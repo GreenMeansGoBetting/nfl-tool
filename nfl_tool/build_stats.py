@@ -407,22 +407,75 @@ def compute_starting_field_position(pbp: pd.DataFrame) -> dict:
     return result
 
 
-def compute_pre_first_td_red_zone(pbp: pd.DataFrame, first_td_by_game: dict) -> dict:
-    """Count of a team's own red-zone-reaching drives that happened before
-    the game's very first TD (regardless of who eventually scored it) --
-    the "opening act" red zone activity, both for this team's own offense
-    and what its defense allowed, before either side got on the board."""
-    off_counts = {}
-    def_counts = {}
+def compute_pre_first_td_red_zone(pbp: pd.DataFrame, first_td_by_game: dict) -> tuple:
+    """Red zone trips that started at or before the game's very first TD
+    (regardless of who eventually scored it), and how many of those trips
+    were the actual drive that produced it -- a "before anyone's scored"
+    red zone conversion rate, both for this team's own offense and what its
+    defense allowed. Uses play_id <= the first-TD play (not strictly before)
+    so a touchdown scored on a drive's very first snap inside the red zone
+    still counts as a red-zone trip for that drive, not a miss."""
+    off_trips, off_conversions = {}, {}
+    def_trips, def_conversions = {}, {}
     for game_id, info in first_td_by_game.items():
         pre = pbp[
-            (pbp["game_id"] == game_id) & (pbp["play_id"] < info["play_id"]) & (pbp["yardline_100"] <= RED_ZONE_YARDLINE)
+            (pbp["game_id"] == game_id) & (pbp["play_id"] <= info["play_id"]) & (pbp["yardline_100"] <= RED_ZONE_YARDLINE)
         ]
+        scoring_team = info["team"] if info["is_offense_td"] else None
+        scoring_drive = info["drive"] if info["is_offense_td"] else None
+
         for team, drives in pre.groupby("posteam")["drive"]:
-            off_counts[team] = off_counts.get(team, 0) + drives.nunique()
+            unique_drives = drives.unique()
+            off_trips[team] = off_trips.get(team, 0) + len(unique_drives)
+            if team == scoring_team and scoring_drive in unique_drives:
+                off_conversions[team] = off_conversions.get(team, 0) + 1
         for team, drives in pre.groupby("defteam")["drive"]:
-            def_counts[team] = def_counts.get(team, 0) + drives.nunique()
-    return off_counts, def_counts
+            unique_drives = drives.unique()
+            def_trips[team] = def_trips.get(team, 0) + len(unique_drives)
+            if scoring_team is not None and team != scoring_team and scoring_drive in unique_drives:
+                def_conversions[team] = def_conversions.get(team, 0) + 1
+    return off_trips, off_conversions, def_trips, def_conversions
+
+
+def compute_pre_first_td_player_usage(pbp: pd.DataFrame, first_td_by_game: dict, pos_lookup) -> dict:
+    """Per-player carries/targets/receptions inside the red zone before the
+    game's first TD (same window as compute_pre_first_td_red_zone) --
+    who was actually getting the ball in the "opening act" red zone chances."""
+    tally = {}
+
+    def ensure(team, pid, name, pos):
+        key = (team, pid)
+        if key not in tally:
+            tally[key] = {"player_id": pid, "name": name, "team": team, "position": pos, "carries": 0, "targets": 0, "receptions": 0}
+        return tally[key]
+
+    for game_id, info in first_td_by_game.items():
+        pre = pbp[
+            (pbp["game_id"] == game_id) & (pbp["play_id"] <= info["play_id"]) & (pbp["yardline_100"] <= RED_ZONE_YARDLINE)
+        ]
+        for _, row in pre[pre["rush_attempt"] == 1].iterrows():
+            pid = row.get("rusher_player_id")
+            if pd.isna(pid):
+                continue
+            pos, _, name = pos_lookup(pid, row["week"])
+            p = ensure(row["posteam"], pid, name or row.get("rusher_player_name"), bucket_position(pos) if pos else "DST")
+            p["carries"] += 1
+        for _, row in pre[pre["pass_attempt"] == 1].iterrows():
+            pid = row.get("receiver_player_id")
+            if pd.isna(pid):
+                continue
+            pos, _, name = pos_lookup(pid, row["week"])
+            p = ensure(row["posteam"], pid, name or row.get("receiver_player_name"), bucket_position(pos) if pos else "DST")
+            p["targets"] += 1
+            if row.get("complete_pass") == 1:
+                p["receptions"] += 1
+
+    by_team = {}
+    for (team, _pid), rec in tally.items():
+        by_team.setdefault(team, []).append(rec)
+    for team in by_team:
+        by_team[team].sort(key=lambda r: (-(r["carries"] + r["targets"]), r["name"] or ""))
+    return by_team
 
 
 def compute_first_td_position_breakdown(first_td_by_game: dict, teams) -> dict:
@@ -449,8 +502,10 @@ def build_team_stats(
     length_buckets,
     possessions_to_score,
     field_position,
-    pre_rz_off,
-    pre_rz_def,
+    pre_rz_off_trips,
+    pre_rz_off_conv,
+    pre_rz_def_trips,
+    pre_rz_def_conv,
     first_td_position,
     first_td_position_allowed,
     teams,
@@ -566,10 +621,18 @@ def build_team_stats(
             "first_td_dst_allowed_games": first_td_dst_allowed_games,
             "avg_start_yardline_100_off": fp["off"],
             "avg_start_yardline_100_def": fp["def"],
-            "pre_first_td_rz_trips": pre_rz_off.get(team, 0),
-            "pre_first_td_rz_trips_per_g": per_g(pre_rz_off.get(team, 0)),
-            "pre_first_td_rz_trips_allowed": pre_rz_def.get(team, 0),
-            "pre_first_td_rz_trips_allowed_per_g": per_g(pre_rz_def.get(team, 0)),
+            "pre_first_td_rz_trips": pre_rz_off_trips.get(team, 0),
+            "pre_first_td_rz_trips_per_g": per_g(pre_rz_off_trips.get(team, 0)),
+            "pre_first_td_rz_conversions": pre_rz_off_conv.get(team, 0),
+            "pre_first_td_rz_conversion_rate": round(pre_rz_off_conv.get(team, 0) / pre_rz_off_trips[team], 3)
+            if pre_rz_off_trips.get(team)
+            else None,
+            "pre_first_td_rz_trips_allowed": pre_rz_def_trips.get(team, 0),
+            "pre_first_td_rz_trips_allowed_per_g": per_g(pre_rz_def_trips.get(team, 0)),
+            "pre_first_td_rz_conversions_allowed": pre_rz_def_conv.get(team, 0),
+            "pre_first_td_rz_conversion_rate_allowed": round(pre_rz_def_conv.get(team, 0) / pre_rz_def_trips[team], 3)
+            if pre_rz_def_trips.get(team)
+            else None,
             "first_td_position": first_td_position.get(team, {p: 0 for p in POSITION_KEYS}),
             "first_td_position_allowed": first_td_position_allowed.get(team, {p: 0 for p in POSITION_KEYS}),
         }
@@ -650,8 +713,9 @@ def main():
     length_buckets = compute_length_buckets(pbp)
     possessions_to_score = compute_possessions_to_score(pbp, first_td_by_game)
     field_position = compute_starting_field_position(pbp)
-    pre_rz_off, pre_rz_def = compute_pre_first_td_red_zone(pbp, first_td_by_game)
+    pre_rz_off_trips, pre_rz_off_conv, pre_rz_def_trips, pre_rz_def_conv = compute_pre_first_td_red_zone(pbp, first_td_by_game)
     first_td_position, first_td_position_allowed = compute_first_td_position_breakdown(first_td_by_game, teams)
+    pre_first_td_usage = compute_pre_first_td_player_usage(pbp, first_td_by_game, pos_lookup)
 
     team_stats = build_team_stats(
         team_games,
@@ -663,8 +727,10 @@ def main():
         length_buckets,
         possessions_to_score,
         field_position,
-        pre_rz_off,
-        pre_rz_def,
+        pre_rz_off_trips,
+        pre_rz_off_conv,
+        pre_rz_def_trips,
+        pre_rz_def_conv,
         first_td_position,
         first_td_position_allowed,
         teams,
@@ -682,6 +748,7 @@ def main():
         "teams": teams,
         "team_stats": team_stats,
         "player_stats": player_stats,
+        "pre_first_td_usage": pre_first_td_usage,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

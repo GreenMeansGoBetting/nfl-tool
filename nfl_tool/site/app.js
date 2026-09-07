@@ -118,9 +118,15 @@ function renderPositionTable(offTeam, defTeam) {
 
 // Simple white (fewest TDs on this team) -> green (most TDs on this team)
 // scale, scoped to just this team's own roster -- not a league percentile.
+// White (fewest on this team) -> green scale, scoped to just this team's
+// own roster (not a league percentile). The green end is the SAME shade
+// tier-good actually renders as (--good at 0.28 alpha over the --panel
+// background), not the raw --good hex -- otherwise a pure hex on white
+// reads much brighter/more lime than the same hex shows up as a translucent
+// tint on the dark charts elsewhere on the site.
 function whiteToGreen(ratio) {
   const start = [255, 255, 255];
-  const end = [62, 201, 114];
+  const end = [34, 75, 56];
   const rgb = start.map((c, i) => Math.round(c + (end[i] - c) * ratio));
   return `rgb(${rgb.join(",")})`;
 }
@@ -131,12 +137,13 @@ function renderLeaderboard(team) {
     return `<h3>${team}</h3><p class="no-data-note">No TDs scored yet this season.</p>`;
   }
   const maxTds = Math.max(...players.map((p) => p.tds));
+  const maxFirstTds = Math.max(...players.map((p) => p.first_tds));
   const rows = players
     .map((p) => {
       const tag = p.position !== "DST" && p.dst_tds > 0 ? ` <span class="dst-tag">(DST)</span>` : "";
-      const ratio = maxTds ? p.tds / maxTds : 0;
-      const bg = whiteToGreen(ratio);
-      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num" style="background:${bg}; color:#0f1115">${p.tds}</td><td class="num">${p.first_tds}</td></tr>`;
+      const tdBg = whiteToGreen(maxTds ? p.tds / maxTds : 0);
+      const firstTdBg = whiteToGreen(maxFirstTds ? p.first_tds / maxFirstTds : 0);
+      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num" style="background:${tdBg}; color:#0f1115">${p.tds}</td><td class="num" style="background:${firstTdBg}; color:#0f1115">${p.first_tds}</td></tr>`;
     })
     .join("");
   return `<h3>${team}</h3>

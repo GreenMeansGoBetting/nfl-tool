@@ -87,12 +87,45 @@ function renderRedZoneBeforeTable(offTeam, defTeam) {
   const defTotalCls = tierFor("pre_first_td_rz_trips_allowed", defTeam, true);
   const defRateCls = tierFor("pre_first_td_rz_trips_allowed_per_g", defTeam, true);
 
+  const offConvVals = teamsWithGames()
+    .map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate)
+    .filter((v) => v !== null);
+  const defConvVals = teamsWithGames()
+    .map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed)
+    .filter((v) => v !== null);
+  const offConvVal = off.pre_first_td_rz_conversion_rate;
+  const defConvVal = def.pre_first_td_rz_conversion_rate_allowed;
+  const offConvCls = offConvVal === null ? "" : percentileTier(offConvVal, offConvVals, false);
+  const defConvCls = defConvVal === null ? "" : percentileTier(defConvVal, defConvVals, true);
+  const offConvDisplay = offConvVal === null ? "&mdash;" : `${Math.round(offConvVal * 100)}%`;
+  const defConvDisplay = defConvVal === null ? "&mdash;" : `${Math.round(defConvVal * 100)}%`;
+
   return `<table class="data-table stat-table">
     <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
     <tbody>
       <tr><td>RZ Trips Before First TD</td><td class="num ${offTotalCls}">${off.pre_first_td_rz_trips}</td><td class="num ${offRateCls}">${fmt(off.pre_first_td_rz_trips_per_g, 2)}</td><td class="num ${defTotalCls}">${def.pre_first_td_rz_trips_allowed}</td><td class="num ${defRateCls}">${fmt(def.pre_first_td_rz_trips_allowed_per_g, 2)}</td></tr>
+      <tr><td>Of Those, Converted to That TD</td><td class="num" colspan="2">${off.pre_first_td_rz_conversions} trip${off.pre_first_td_rz_conversions === 1 ? "" : "s"}</td><td class="num" colspan="2">${def.pre_first_td_rz_conversions_allowed} trip${def.pre_first_td_rz_conversions_allowed === 1 ? "" : "s"}</td></tr>
+      <tr><td>Conversion Rate</td><td class="num ${offConvCls}" colspan="2">${offConvDisplay}</td><td class="num ${defConvCls}" colspan="2">${defConvDisplay}</td></tr>
     </tbody>
   </table>`;
+}
+
+function renderRzUsageTable(team) {
+  const usage = (DATA.pre_first_td_usage[team] || []).filter((p) => p.carries + p.targets > 0);
+  if (usage.length === 0) {
+    return `<h3>${team}</h3><p class="no-data-note">No red zone touches yet before a first TD this season.</p>`;
+  }
+  const rows = usage
+    .map(
+      (p) =>
+        `<tr><td>${p.name}</td><td>${p.position}</td><td class="num">${p.carries}</td><td class="num">${p.targets}</td><td class="num">${p.receptions}</td></tr>`
+    )
+    .join("");
+  return `<h3>${team}</h3>
+    <table class="data-table">
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Carries</th><th class="num">Targets</th><th class="num">Rec</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function renderScorers(team) {
@@ -116,7 +149,7 @@ function renderScorers(team) {
     </table>`;
 }
 
-const SECTIONS = ["basics", "opportunities", "fieldpos", "rz", "scorers"];
+const SECTIONS = ["basics", "opportunities", "fieldpos", "rz", "rzusage", "scorers"];
 
 function render() {
   const away = document.getElementById("away-select").value;
@@ -154,6 +187,8 @@ function render() {
   document.getElementById("col-home-fieldpos").innerHTML = renderFieldPosTable(home, away);
   document.getElementById("col-away-rz").innerHTML = renderRedZoneBeforeTable(away, home);
   document.getElementById("col-home-rz").innerHTML = renderRedZoneBeforeTable(home, away);
+  document.getElementById("rzusage-away").innerHTML = renderRzUsageTable(away);
+  document.getElementById("rzusage-home").innerHTML = renderRzUsageTable(home);
   document.getElementById("scorers-away").innerHTML = renderScorers(away);
   document.getElementById("scorers-home").innerHTML = renderScorers(home);
 }
