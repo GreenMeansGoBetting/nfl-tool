@@ -179,7 +179,7 @@ function renderStatTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
+    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -197,7 +197,7 @@ function renderRedZoneTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
+    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -245,15 +245,6 @@ function renderPositionTable(offTeam, defTeam) {
   </table>`;
 }
 
-function renderColumn(offTeam, defTeam) {
-  return [
-    renderStatTable(offTeam, defTeam),
-    renderRedZoneTable(offTeam, defTeam),
-    renderLengthTable(offTeam, defTeam),
-    renderPositionTable(offTeam, defTeam),
-  ].join('<div class="section-divider"></div>');
-}
-
 function renderLeaderboard(team) {
   const players = DATA.player_stats[team] || [];
   if (players.length === 0) {
@@ -272,16 +263,16 @@ function renderLeaderboard(team) {
     </table>`;
 }
 
+const SECTIONS = ["type", "position", "distance", "redzone", "player"];
+
 function render() {
   const away = document.getElementById("away-select").value;
   const home = document.getElementById("home-select").value;
-  const matchupEl = document.getElementById("matchup");
-  const lbEl = document.getElementById("leaderboards");
   const emptyEl = document.getElementById("empty-state");
+  const sectionEls = SECTIONS.map((s) => document.getElementById(`section-${s}`));
 
   if (!away || !home) {
-    matchupEl.hidden = true;
-    lbEl.hidden = true;
+    sectionEls.forEach((el) => (el.hidden = true));
     emptyEl.hidden = false;
     emptyEl.innerHTML = "<p>Choose both teams above to see the matchup.</p>";
     return;
@@ -293,19 +284,23 @@ function render() {
   const homeReady = homeStats && homeStats.games_played > 0;
 
   if (!awayReady || !homeReady) {
-    matchupEl.hidden = true;
-    lbEl.hidden = true;
+    sectionEls.forEach((el) => (el.hidden = true));
     emptyEl.hidden = false;
     const missing = [!awayReady && away, !homeReady && home].filter(Boolean).join(" and ");
     emptyEl.innerHTML = `<p>${missing} ${missing.includes(" and ") ? "have" : "has"} no games played yet this season.</p>`;
     return;
   }
   emptyEl.hidden = true;
-  matchupEl.hidden = false;
-  lbEl.hidden = false;
+  sectionEls.forEach((el) => (el.hidden = false));
 
-  document.getElementById("col-away-off").innerHTML = renderColumn(away, home);
-  document.getElementById("col-home-off").innerHTML = renderColumn(home, away);
+  document.getElementById("col-away-type").innerHTML = renderStatTable(away, home);
+  document.getElementById("col-home-type").innerHTML = renderStatTable(home, away);
+  document.getElementById("col-away-position").innerHTML = renderPositionTable(away, home);
+  document.getElementById("col-home-position").innerHTML = renderPositionTable(home, away);
+  document.getElementById("col-away-distance").innerHTML = renderLengthTable(away, home);
+  document.getElementById("col-home-distance").innerHTML = renderLengthTable(home, away);
+  document.getElementById("col-away-redzone").innerHTML = renderRedZoneTable(away, home);
+  document.getElementById("col-home-redzone").innerHTML = renderRedZoneTable(home, away);
   document.getElementById("lb-away").innerHTML = renderLeaderboard(away);
   document.getElementById("lb-home").innerHTML = renderLeaderboard(home);
 }

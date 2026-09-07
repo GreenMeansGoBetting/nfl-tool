@@ -24,18 +24,56 @@
     </label>
   </div>
 
+  <div class="legend-box">
+    <span class="legend-title">What the colors mean:</span>
+    <span class="legend-item"><span class="swatch tier-good"></span>Top third, league-wide</span>
+    <span class="legend-item"><span class="swatch tier-mid"></span>Middle third, league-wide</span>
+    <span class="legend-item"><span class="swatch tier-bad"></span>Bottom third, league-wide</span>
+    <span class="legend-note">For a defense's "allowed" numbers, colors flip: green = fewest allowed (best defense).</span>
+  </div>
+
   <div id="empty-state" class="empty-state">
     <p>Choose both teams above to see the matchup.</p>
   </div>
 
-  <div id="matchup" class="two-col" hidden>
-    <section class="stat-block" id="col-away-off"></section>
-    <section class="stat-block" id="col-home-off"></section>
+  <div id="section-type" class="section-wrap" hidden>
+    <h2 class="section-title">Type of Touchdown</h2>
+    <div class="two-col">
+      <section id="col-away-type"></section>
+      <section id="col-home-type"></section>
+    </div>
   </div>
 
-  <div id="leaderboards" class="two-col" hidden>
-    <section id="lb-away"></section>
-    <section id="lb-home"></section>
+  <div id="section-position" class="section-wrap" hidden>
+    <h2 class="section-title">Touchdown by Position</h2>
+    <div class="two-col">
+      <section id="col-away-position"></section>
+      <section id="col-home-position"></section>
+    </div>
+  </div>
+
+  <div id="section-distance" class="section-wrap" hidden>
+    <h2 class="section-title">Touchdown Distance</h2>
+    <div class="two-col">
+      <section id="col-away-distance"></section>
+      <section id="col-home-distance"></section>
+    </div>
+  </div>
+
+  <div id="section-redzone" class="section-wrap" hidden>
+    <h2 class="section-title">Red Zone Touchdowns</h2>
+    <div class="two-col">
+      <section id="col-away-redzone"></section>
+      <section id="col-home-redzone"></section>
+    </div>
+  </div>
+
+  <div id="section-player" class="section-wrap" hidden>
+    <h2 class="section-title">Player Touchdowns</h2>
+    <div class="two-col">
+      <section id="lb-away"></section>
+      <section id="lb-home"></section>
+    </div>
   </div>
 </main>
 
