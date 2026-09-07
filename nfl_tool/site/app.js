@@ -245,15 +245,27 @@ function renderPositionTable(offTeam, defTeam) {
   </table>`;
 }
 
+// Simple white (fewest TDs on this team) -> green (most TDs on this team)
+// scale, scoped to just this team's own roster -- not a league percentile.
+function whiteToGreen(ratio) {
+  const start = [255, 255, 255];
+  const end = [62, 201, 114];
+  const rgb = start.map((c, i) => Math.round(c + (end[i] - c) * ratio));
+  return `rgb(${rgb.join(",")})`;
+}
+
 function renderLeaderboard(team) {
   const players = DATA.player_stats[team] || [];
   if (players.length === 0) {
     return `<h3>${team}</h3><p class="no-data-note">No TDs scored yet this season.</p>`;
   }
+  const maxTds = Math.max(...players.map((p) => p.tds));
   const rows = players
     .map((p) => {
       const tag = p.position !== "DST" && p.dst_tds > 0 ? ` <span class="dst-tag">(DST)</span>` : "";
-      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num">${p.tds}</td><td class="num">${p.first_tds}</td></tr>`;
+      const ratio = maxTds ? p.tds / maxTds : 0;
+      const bg = whiteToGreen(ratio);
+      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num" style="background:${bg}; color:#0f1115">${p.tds}</td><td class="num">${p.first_tds}</td></tr>`;
     })
     .join("");
   return `<h3>${team}</h3>
