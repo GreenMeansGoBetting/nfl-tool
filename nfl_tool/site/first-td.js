@@ -120,10 +120,10 @@ function renderRzUsageTable(team) {
   const maxReceptions = Math.max(...usage.map((p) => p.receptions));
   const rows = usage
     .map((p) => {
-      const carriesBg = whiteToGreen(maxCarries ? p.carries / maxCarries : 0);
-      const targetsBg = whiteToGreen(maxTargets ? p.targets / maxTargets : 0);
-      const receptionsBg = whiteToGreen(maxReceptions ? p.receptions / maxReceptions : 0);
-      return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num" style="background:${carriesBg}; color:#0f1115">${p.carries}</td><td class="num" style="background:${targetsBg}; color:#0f1115">${p.targets}</td><td class="num" style="background:${receptionsBg}; color:#0f1115">${p.receptions}</td></tr>`;
+      const carriesBg = teamFade(team, maxCarries ? p.carries / maxCarries : 0);
+      const targetsBg = teamFade(team, maxTargets ? p.targets / maxTargets : 0);
+      const receptionsBg = teamFade(team, maxReceptions ? p.receptions / maxReceptions : 0);
+      return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num" style="background:${carriesBg}">${p.carries}</td><td class="num" style="background:${targetsBg}">${p.targets}</td><td class="num" style="background:${receptionsBg}">${p.receptions}</td></tr>`;
     })
     .join("");
   return `<h3>${team}</h3>
@@ -222,6 +222,7 @@ fetch("data.json")
     }
     document.getElementById("season-note").textContent = note;
     populateSelects();
+    initScheduleScroller(render);
     render();
   })
   .catch((err) => {

@@ -70,3 +70,12 @@ const TEAM_COLORS = {
   TEN: "#4B92DB",
   WAS: "#FFB612",
 };
+
+// ESPN's team-logo CDN uses its own lowercase abbreviations, which match
+// ours except for these two.
+const ESPN_LOGO_ABBR = { LA: "lar", WAS: "wsh" };
+
+function teamLogoUrl(team) {
+  const code = ESPN_LOGO_ABBR[team] || (team || "").toLowerCase();
+  return `https://a.espncdn.com/i/teamlogos/nfl/500/${code}.png`;
+}

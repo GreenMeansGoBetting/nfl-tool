@@ -19,6 +19,15 @@
 </div>
 
 <main>
+  <div id="schedule-scroller" class="schedule-scroller" hidden>
+    <div class="week-picker">
+      <button type="button" id="week-prev" class="week-nav-btn">&lsaquo;</button>
+      <span id="week-label" class="week-label">Week</span>
+      <button type="button" id="week-next" class="week-nav-btn">&rsaquo;</button>
+    </div>
+    <div id="matchup-row" class="matchup-row"></div>
+  </div>
+
   <div class="filter-bar">
     <label>Away
       <select id="away-select"></select>

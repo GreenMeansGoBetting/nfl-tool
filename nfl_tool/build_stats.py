@@ -30,12 +30,14 @@ import json
 import sys
 import urllib.error
 import urllib.request
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
 
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"
+SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 
 TEAM_NAME_FIXES = {
     # nflverse occasionally uses different abbreviations across seasons for
@@ -150,6 +152,46 @@ def load_rosters(data_dir: Path, season: int) -> pd.DataFrame:
     # Keep one row per (gsis_id, week); prefer the most complete position value.
     df = df.dropna(subset=["gsis_id"])
     return df[["season", "week", "team", "gsis_id", "position", "full_name"]]
+
+
+def compute_schedule(data_dir: Path, season: int) -> list:
+    """The requested season's schedule (one file covering every season the
+    NFL has ever played, filtered down here) -- used only for the site's
+    week/matchup picker, so it deliberately uses the REQUESTED season, not
+    whatever season the stats themselves fell back to. The NFL publishes
+    the full season schedule well before it's played, so this exists even
+    when play-by-play for that season doesn't yet."""
+    path = data_dir / "games.csv"
+    download_if_missing(SCHEDULE_URL, path)
+    df = pd.read_csv(path, low_memory=False)
+    df = df[(df["season"] == season) & (df["game_type"] == "REG")].copy()
+    for col in ("away_team", "home_team"):
+        df[col] = df[col].map(normalize_team)
+    df = df.sort_values(["week", "gameday", "gametime"])
+
+    games = []
+    for _, row in df.iterrows():
+        games.append(
+            {
+                "week": int(row["week"]),
+                "date": row["gameday"],
+                "weekday": row["weekday"],
+                "time": row["gametime"] if pd.notna(row["gametime"]) else None,
+                "away": row["away_team"],
+                "home": row["home_team"],
+            }
+        )
+    return games
+
+
+def compute_current_week(schedule: list) -> int:
+    if not schedule:
+        return 1
+    today = date.today().isoformat()
+    upcoming = [g for g in schedule if g["date"] >= today]
+    if upcoming:
+        return upcoming[0]["week"]
+    return schedule[-1]["week"]
 
 
 def build_position_lookup(rosters: pd.DataFrame):
@@ -739,6 +781,9 @@ def main():
 
     max_week = int(pbp["week"].max())
 
+    schedule = compute_schedule(args.data_dir, args.season)
+    current_week = compute_current_week(schedule)
+
     blob = {
         "season": season,
         "requested_season": args.season,
@@ -749,6 +794,8 @@ def main():
         "team_stats": team_stats,
         "player_stats": player_stats,
         "pre_first_td_usage": pre_first_td_usage,
+        "schedule": schedule,
+        "current_week": current_week,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

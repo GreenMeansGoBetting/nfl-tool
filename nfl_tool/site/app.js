@@ -126,9 +126,9 @@ function renderLeaderboard(team) {
   const rows = players
     .map((p) => {
       const tag = p.position !== "DST" && p.dst_tds > 0 ? ` <span class="dst-tag">(DST)</span>` : "";
-      const tdBg = whiteToGreen(maxTds ? p.tds / maxTds : 0);
-      const firstTdBg = whiteToGreen(maxFirstTds ? p.first_tds / maxFirstTds : 0);
-      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num" style="background:${tdBg}; color:#0f1115">${p.tds}</td><td class="num" style="background:${firstTdBg}; color:#0f1115">${p.first_tds}</td></tr>`;
+      const tdBg = teamFade(team, maxTds ? p.tds / maxTds : 0);
+      const firstTdBg = teamFade(team, maxFirstTds ? p.first_tds / maxFirstTds : 0);
+      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num" style="background:${tdBg}">${p.tds}</td><td class="num" style="background:${firstTdBg}">${p.first_tds}</td></tr>`;
     })
     .join("");
   return `<h3>${team}</h3>
@@ -204,6 +204,7 @@ fetch("data.json")
     }
     document.getElementById("season-note").textContent = note;
     populateSelects();
+    initScheduleScroller(render);
     render();
   })
   .catch((err) => {

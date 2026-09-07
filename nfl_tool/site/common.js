@@ -81,18 +81,15 @@ function percentileTier(value, allValues, invert) {
   return "tier-bad";
 }
 
-// White (fewest on this team/column) -> green scale, scoped to whatever
-// list of values is passed in (a team's own roster, not a league
-// percentile). The green end is the SAME shade tier-good actually renders
-// as (--good at 0.28 alpha over the --panel background), not the raw
-// --good hex -- otherwise a pure hex on white reads much brighter/more
-// "lime" than the same hex shows up as a translucent tint on the dark
-// charts elsewhere on the site.
-function whiteToGreen(ratio) {
-  const start = [255, 255, 255];
-  const end = [34, 75, 56];
-  const rgb = start.map((c, i) => Math.round(c + (end[i] - c) * ratio));
-  return `rgb(${rgb.join(",")})`;
+// No-color-at-zero fade in the TEAM's own color, scoped to whatever list
+// of values is passed in (a team's own roster, not a league percentile).
+// ratio=0 renders fully transparent (the plain dark table row shows
+// through, no white/no color at all); ratio=1 renders at maxAlpha over
+// the dark panel background, using the same normalized team accent color
+// as the header cells so the whole table reads as one consistent tint.
+function teamFade(team, ratio, maxAlpha = 0.6) {
+  const rgb = teamAccentRgb(team);
+  return `rgba(${rgb.join(",")},${(ratio * maxAlpha).toFixed(3)})`;
 }
 
 function tierFor(statKey, team, invert) {
@@ -134,6 +131,89 @@ function bucketShareTier(dictKey, totalKey, bucketKey, team) {
     return s[totalKey] ? (s[dictKey][bucketKey] || 0) / s[totalKey] : 0;
   };
   return percentileTier(shareOf(team), pool.map(shareOf), false);
+}
+
+// One-click week/matchup picker, shared by both pages. Reads DATA.schedule
+// (the real schedule for whatever season was requested, even if the stats
+// themselves fell back to last season -- see build_stats.py) and
+// DATA.current_week. Clicking a matchup card sets the existing away/home
+// selects and calls onPick (each page's own render()) -- the manual
+// dropdowns stay fully functional on their own, this is just a faster path
+// to the same state.
+let scheduleWeek = null;
+
+function renderMatchupRow(rowEl, week) {
+  const games = (DATA.schedule || []).filter((g) => g.week === week);
+  if (games.length === 0) {
+    rowEl.innerHTML = `<p class="no-data-note">No games scheduled for this week.</p>`;
+    return;
+  }
+  const awayVal = document.getElementById("away-select").value;
+  const homeVal = document.getElementById("home-select").value;
+  rowEl.innerHTML = games
+    .map((g) => {
+      const selected = g.away === awayVal && g.home === homeVal ? " selected" : "";
+      const dateLabel = g.date ? new Date(g.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" }) : "";
+      return `<button type="button" class="matchup-card${selected}" data-away="${g.away}" data-home="${g.home}">
+        <span class="matchup-teams-row">
+          <img src="${teamLogoUrl(g.away)}" class="team-logo" alt="${g.away}" loading="lazy">
+          <span class="at">@</span>
+          <img src="${teamLogoUrl(g.home)}" class="team-logo" alt="${g.home}" loading="lazy">
+        </span>
+        <span class="matchup-date">${dateLabel}</span>
+      </button>`;
+    })
+    .join("");
+}
+
+function initScheduleScroller(onPick) {
+  const wrap = document.getElementById("schedule-scroller");
+  if (!wrap) return;
+  if (!DATA.schedule || DATA.schedule.length === 0) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+
+  const weeks = [...new Set(DATA.schedule.map((g) => g.week))].sort((a, b) => a - b);
+  scheduleWeek = DATA.current_week && weeks.includes(DATA.current_week) ? DATA.current_week : weeks[0];
+
+  const label = document.getElementById("week-label");
+  const row = document.getElementById("matchup-row");
+  const prevBtn = document.getElementById("week-prev");
+  const nextBtn = document.getElementById("week-next");
+
+  function refresh() {
+    label.textContent = `Week ${scheduleWeek}`;
+    renderMatchupRow(row, scheduleWeek);
+    prevBtn.disabled = scheduleWeek <= weeks[0];
+    nextBtn.disabled = scheduleWeek >= weeks[weeks.length - 1];
+  }
+
+  prevBtn.addEventListener("click", () => {
+    const idx = weeks.indexOf(scheduleWeek);
+    if (idx > 0) {
+      scheduleWeek = weeks[idx - 1];
+      refresh();
+    }
+  });
+  nextBtn.addEventListener("click", () => {
+    const idx = weeks.indexOf(scheduleWeek);
+    if (idx < weeks.length - 1) {
+      scheduleWeek = weeks[idx + 1];
+      refresh();
+    }
+  });
+  row.addEventListener("click", (e) => {
+    const card = e.target.closest(".matchup-card");
+    if (!card) return;
+    document.getElementById("away-select").value = card.dataset.away;
+    document.getElementById("home-select").value = card.dataset.home;
+    [...row.querySelectorAll(".matchup-card")].forEach((c) => c.classList.toggle("selected", c === card));
+    onPick();
+  });
+
+  refresh();
 }
 
 function headerRow(offTeam, defTeam, subLabels) {

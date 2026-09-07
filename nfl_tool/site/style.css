@@ -38,6 +38,61 @@ body {
 
 main { max-width: 1100px; margin: 0 auto; padding: 16px 24px 32px; }
 
+.schedule-scroller {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 4px 0 16px;
+}
+.week-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.week-nav-btn {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.week-nav-btn:hover:not(:disabled) { border-color: var(--accent); }
+.week-nav-btn:disabled { opacity: 0.35; cursor: default; }
+.week-label { font-weight: 700; font-size: 0.9rem; min-width: 56px; text-align: center; }
+
+.matchup-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.matchup-card {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.matchup-card:hover { border-color: var(--accent); }
+.matchup-card.selected { border-color: var(--accent); background: rgba(91, 141, 239, 0.15); }
+.matchup-teams-row { display: flex; align-items: center; gap: 6px; }
+.team-logo { width: 26px; height: 26px; object-fit: contain; }
+.matchup-card .at { color: var(--muted); font-size: 0.75rem; }
+.matchup-date { color: var(--muted); font-size: 0.7rem; white-space: nowrap; }
+
 .filter-bar {
   display: flex;
   gap: 20px;
