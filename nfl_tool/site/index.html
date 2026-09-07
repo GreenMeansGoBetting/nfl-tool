@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFL TD Cheatsheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">NFL TD Cheatsheet</span>
+  <span id="season-note" class="muted"></span>
+</div>
+
+<main>
+  <h1>Anytime &amp; First-TD Matchup Lookup</h1>
+  <p class="sub">Pick both teams in a matchup to see each side's touchdown-scoring tendencies against the other's tendencies allowed. No picks, no scores &mdash; just the raw numbers side by side.</p>
+
+  <div class="filter-bar">
+    <label>Away
+      <select id="away-select"></select>
+    </label>
+    <label>Home
+      <select id="home-select"></select>
+    </label>
+  </div>
+
+  <div id="empty-state" class="empty-state">
+    <p>Choose both teams above to see the matchup.</p>
+  </div>
+
+  <div id="matchup" class="two-col" hidden>
+    <section class="team-col" id="col-away"></section>
+    <section class="team-col" id="col-home"></section>
+  </div>
+
+  <div id="leaderboards" class="two-col" hidden>
+    <section id="lb-away"></section>
+    <section id="lb-home"></section>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play, regular season only. Refreshes automatically each morning during the season.
+</footer>
+
+<script src="teams.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

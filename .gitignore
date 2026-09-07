@@ -1,0 +1,11 @@
+# Downloaded nflverse source files (re-downloaded on demand, large)
+nfl_tool/data/
+
+# Generated data blob -- rebuilt by build_stats.py / the daily workflow.
+# Keep the copy currently in the repo out of version control going forward
+# so it doesn't quietly go stale; `git rm --cached` it once if it was
+# already committed.
+nfl_tool/site/data.json
+
+__pycache__/
+*.pyc

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nfl-tool",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8010"],
+      "port": 8010
+    }
+  ]
+}

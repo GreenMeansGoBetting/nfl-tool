@@ -1,0 +1,53 @@
+name: Refresh data and deploy site
+
+on:
+  schedule:
+    # Daily refresh, ~6am ET (10:00 UTC covers 6am EDT; during EST part of
+    # the season this lands ~5am ET instead -- close enough that it's always
+    # fresh well before the workday, no need to split the cron by DST).
+    - cron: "0 10 * * *"
+  workflow_dispatch: {}  # manual "Run workflow" button, for on-demand refresh
+  push:
+    branches: [main]
+    paths:
+      - "nfl_tool/**"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r nfl_tool/requirements.txt
+
+      - name: Build stats (downloads nflverse-data, no API key needed)
+        # NOTE: bump this each year once the new season's data exists on
+        # nflverse (typically as soon as Week 1 games are played).
+        run: python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: nfl_tool/site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
