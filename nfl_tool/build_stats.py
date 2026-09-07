@@ -7,17 +7,23 @@ Usage:
 
 Downloads the season's play-by-play and weekly-roster files from the public
 nflverse-data GitHub release (no API key needed) into --data-dir (default
-./data, gitignored) if they aren't already there, then computes:
-
-For each team, computes (regular season, to date):
-  - Pass TD / Rush TD / Total TD per game
-  - First-TD-of-game rate (share of the team's games in which they scored the
-    game's first touchdown, of any type)
-  - Season totals for the above
-  - Offensive TDs scored by position (QB/RB/WR/TE) and defensive TDs allowed
-    by position
+./data, gitignored) if they aren't already there, then computes, for each
+team (regular season, to date):
+  - Pass TD / Rush TD / Total TD, and defensive/special-teams (DST) TDs
+    (pick-sixes, fumble/kick/punt/blocked-kick returns) -- season totals
+    and per-game rates, both scored and allowed
+  - First-TD-of-game rate/count, both scored (this team) and allowed
+    (opponent scored first instead)
+  - Red zone (own side's 20-yard-line-in) TDs, plays, carries, and targets,
+    both this team's own offense and what its defense allows
+  - TDs bucketed by the scoring play's length (10-19/20-29/.../50+ yards),
+    both scored and allowed
+  - Offensive TDs scored by position (QB/RB/WR/TE/DST) and defensive TDs
+    allowed by position
 For each player who has scored at least one TD:
-  - Team, position, season TD count, season "scored the game's first TD" count
+  - Team, position, season TD count, "scored the game's first TD" count,
+    and how many of their TDs came via a DST-type score (so a WR who also
+    returns punts is flagged rather than blended into their receiving line)
 """
 import argparse
 import json
@@ -40,6 +46,22 @@ TEAM_NAME_FIXES = {
 }
 
 POSITION_BUCKETS = {"QB", "RB", "WR", "TE"}
+POSITION_KEYS = ("QB", "RB", "WR", "TE", "DST")
+
+RED_ZONE_YARDLINE = 20
+
+# TD-length buckets, keyed by the scoring play's own yards_gained. Only
+# applies to offensive scrimmage TDs (pass/rush) -- a return TD's "length"
+# isn't a comparable/meaningful prop signal the same way a long catch-and-run
+# or breakaway run is.
+LENGTH_BUCKETS = [
+    ("under_10", 0, 9),
+    ("10_19", 10, 19),
+    ("20_29", 20, 29),
+    ("30_39", 30, 39),
+    ("40_49", 40, 49),
+    ("50_plus", 50, 9999),
+]
 
 
 def normalize_team(abbr):
@@ -55,7 +77,14 @@ def bucket_position(pos):
         return "RB"
     if pos in ("HB",):
         return "RB"
-    return "OTHER"
+    return "DST"
+
+
+def length_bucket(yards):
+    for key, lo, hi in LENGTH_BUCKETS:
+        if lo <= yards <= hi:
+            return key
+    return LENGTH_BUCKETS[-1][0]
 
 
 def remote_exists(url: str) -> bool:
@@ -216,35 +245,118 @@ def compute_first_td_per_game(pbp: pd.DataFrame, pos_lookup):
 
 
 def scoring_plays_with_position(pbp: pd.DataFrame, pos_lookup) -> pd.DataFrame:
-    """One row per offensive TD play with the scorer's id/name/position/team."""
-    off_td = pbp[(pbp["touchdown"] == 1) & ((pbp["pass_touchdown"] == 1) | (pbp["rush_touchdown"] == 1))].copy()
+    """One row per TD play of ANY type (offensive pass/rush AND defensive/
+    special-teams returns) with the scorer's id/name/position, which team
+    scored it, and which team allowed it. Unlike posteam/defteam (who had
+    the ball at snap), scoring_team/allowed_team always reflect who actually
+    benefited -- correct for a pick-six or a blocked-punt return where the
+    "offense" at snap is the team that got scored on."""
+    td_plays = pbp[pbp["touchdown"] == 1].copy()
 
     def scorer_id(row):
         if row["pass_touchdown"] == 1:
             return row.get("receiver_player_id")
-        return row.get("rusher_player_id")
+        if row["rush_touchdown"] == 1:
+            return row.get("rusher_player_id")
+        return row.get("td_player_id")
 
     def scorer_name(row):
         if row["pass_touchdown"] == 1:
             return row.get("receiver_player_name")
-        return row.get("rusher_player_name")
+        if row["rush_touchdown"] == 1:
+            return row.get("rusher_player_name")
+        return row.get("td_player_name")
 
-    off_td["scorer_id"] = off_td.apply(scorer_id, axis=1)
-    off_td["scorer_name_raw"] = off_td.apply(scorer_name, axis=1)
-    off_td["td_type"] = off_td["pass_touchdown"].map(lambda v: "pass" if v == 1 else "rush")
+    def td_type(row):
+        if row["pass_touchdown"] == 1:
+            return "pass"
+        if row["rush_touchdown"] == 1:
+            return "rush"
+        return "dst"
+
+    def scoring_team(row):
+        if row["pass_touchdown"] == 1 or row["rush_touchdown"] == 1:
+            return row["posteam"]
+        return normalize_team(row.get("td_team"))
+
+    def allowed_team(row):
+        if row["pass_touchdown"] == 1 or row["rush_touchdown"] == 1:
+            return row["defteam"]
+        scorer = normalize_team(row.get("td_team"))
+        return row["away_team"] if scorer == row["home_team"] else row["home_team"]
+
+    td_plays["scorer_id"] = td_plays.apply(scorer_id, axis=1)
+    td_plays["scorer_name_raw"] = td_plays.apply(scorer_name, axis=1)
+    td_plays["td_type"] = td_plays.apply(td_type, axis=1)
+    td_plays["scoring_team"] = td_plays.apply(scoring_team, axis=1)
+    td_plays["allowed_team"] = td_plays.apply(allowed_team, axis=1)
 
     positions, full_names = [], []
-    for _, row in off_td.iterrows():
+    for _, row in td_plays.iterrows():
         pos, _, full_name = pos_lookup(row["scorer_id"], row["week"])
-        positions.append(bucket_position(pos) if pos else "OTHER")
+        positions.append(bucket_position(pos) if pos else "DST")
         full_names.append(full_name or row["scorer_name_raw"])
-    off_td["position"] = positions
-    off_td["scorer_name"] = full_names
-    return off_td
+    td_plays["position"] = positions
+    td_plays["scorer_name"] = full_names
+    return td_plays
 
 
-def build_team_stats(team_games, team_games_allowed, games_played, first_td_by_game, scoring_df, teams):
+def compute_red_zone(pbp: pd.DataFrame) -> dict:
+    """Red zone = own offense's snap inside the opponent's 20. Excludes
+    two-point attempts (not a normal drive play). Returns per-team dict of
+    raw counts -- TDs, total plays, carries (rush attempts), and targets
+    (pass attempts) -- both this team's own red zone offense and what its
+    defense allows. This is play-level volume, not drive-level red-zone
+    trips/conversion rate (that needs drive reconstruction, deliberately
+    left out of this first pass)."""
+    rz = pbp[(pbp["yardline_100"] <= RED_ZONE_YARDLINE) & (pbp["two_point_attempt"] != 1)].copy()
+    scrimmage = rz[(rz["rush_attempt"] == 1) | (rz["pass_attempt"] == 1)]
+    rz_td = rz[(rz["touchdown"] == 1) & ((rz["pass_touchdown"] == 1) | (rz["rush_touchdown"] == 1))]
+
+    result = {}
+    for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
+        if pd.isna(team):
+            continue
+        off_plays = scrimmage[scrimmage["posteam"] == team]
+        def_plays = scrimmage[scrimmage["defteam"] == team]
+        result[team] = {
+            "rz_td": int((rz_td["posteam"] == team).sum()),
+            "rz_td_allowed": int((rz_td["defteam"] == team).sum()),
+            "rz_plays": int(len(off_plays)),
+            "rz_plays_allowed": int(len(def_plays)),
+            "rz_carries": int((off_plays["rush_attempt"] == 1).sum()),
+            "rz_carries_allowed": int((def_plays["rush_attempt"] == 1).sum()),
+            "rz_targets": int((off_plays["pass_attempt"] == 1).sum()),
+            "rz_targets_allowed": int((def_plays["pass_attempt"] == 1).sum()),
+        }
+    return result
+
+
+def compute_length_buckets(pbp: pd.DataFrame) -> dict:
+    """TDs bucketed by the scoring play's own yardage, offensive scrimmage
+    TDs only (pass/rush -- see LENGTH_BUCKETS)."""
+    off_td = pbp[(pbp["touchdown"] == 1) & ((pbp["pass_touchdown"] == 1) | (pbp["rush_touchdown"] == 1))].copy()
+    off_td["bucket"] = off_td["yards_gained"].clip(lower=0).map(length_bucket)
+
+    result = {}
+    for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
+        if pd.isna(team):
+            continue
+        scored = off_td[off_td["posteam"] == team]["bucket"].value_counts()
+        allowed = off_td[off_td["defteam"] == team]["bucket"].value_counts()
+        result[team] = {
+            "scored": {key: int(scored.get(key, 0)) for key, _, _ in LENGTH_BUCKETS},
+            "allowed": {key: int(allowed.get(key, 0)) for key, _, _ in LENGTH_BUCKETS},
+        }
+    return result
+
+
+def build_team_stats(
+    team_games, team_games_allowed, games_played, first_td_by_game, scoring_df, red_zone, length_buckets, teams
+):
     stats = {}
+    dst_plays = scoring_df[scoring_df["td_type"] == "dst"]
+
     for team in teams:
         g = games_played.get(team, 0)
         tg = team_games[team_games["posteam"] == team]
@@ -257,37 +369,68 @@ def build_team_stats(team_games, team_games_allowed, games_played, first_td_by_g
         rush_td_allowed = int(tga["rush_td_allowed"].sum())
         total_td_allowed = pass_td_allowed + rush_td_allowed
 
+        dst_td = int((dst_plays["scoring_team"] == team).sum())
+        dst_td_allowed = int((dst_plays["allowed_team"] == team).sum())
+
         team_first_td_games = sum(1 for v in first_td_by_game.values() if v["team"] == team)
         first_td_rate = round(team_first_td_games / g, 3) if g else 0.0
 
-        off_pos_counts = {p: 0 for p in ("QB", "RB", "WR", "TE", "OTHER")}
-        off_team_scores = scoring_df[scoring_df["posteam"] == team]
+        off_pos_counts = {p: 0 for p in POSITION_KEYS}
+        off_team_scores = scoring_df[scoring_df["scoring_team"] == team]
         for pos, cnt in off_team_scores["position"].value_counts().items():
             off_pos_counts[pos] = int(cnt)
 
-        def_pos_counts = {p: 0 for p in ("QB", "RB", "WR", "TE", "OTHER")}
-        def_team_allowed = scoring_df[scoring_df["defteam"] == team]
+        def_pos_counts = {p: 0 for p in POSITION_KEYS}
+        def_team_allowed = scoring_df[scoring_df["allowed_team"] == team]
         for pos, cnt in def_team_allowed["position"].value_counts().items():
             def_pos_counts[pos] = int(cnt)
+
+        rz = red_zone.get(team, {})
+        lb = length_buckets.get(team, {"scored": {}, "allowed": {}})
+
+        def per_g(n):
+            return round(n / g, 2) if g else 0.0
 
         stats[team] = {
             "games_played": g,
             "pass_td": pass_td,
             "rush_td": rush_td,
             "total_td": total_td,
-            "pass_td_per_g": round(pass_td / g, 2) if g else 0.0,
-            "rush_td_per_g": round(rush_td / g, 2) if g else 0.0,
-            "total_td_per_g": round(total_td / g, 2) if g else 0.0,
+            "pass_td_per_g": per_g(pass_td),
+            "rush_td_per_g": per_g(rush_td),
+            "total_td_per_g": per_g(total_td),
             "pass_td_allowed": pass_td_allowed,
             "rush_td_allowed": rush_td_allowed,
             "total_td_allowed": total_td_allowed,
-            "pass_td_allowed_per_g": round(pass_td_allowed / g, 2) if g else 0.0,
-            "rush_td_allowed_per_g": round(rush_td_allowed / g, 2) if g else 0.0,
-            "total_td_allowed_per_g": round(total_td_allowed / g, 2) if g else 0.0,
+            "pass_td_allowed_per_g": per_g(pass_td_allowed),
+            "rush_td_allowed_per_g": per_g(rush_td_allowed),
+            "total_td_allowed_per_g": per_g(total_td_allowed),
+            "dst_td": dst_td,
+            "dst_td_per_g": per_g(dst_td),
+            "dst_td_allowed": dst_td_allowed,
+            "dst_td_allowed_per_g": per_g(dst_td_allowed),
             "first_td_games": team_first_td_games,
             "first_td_rate": first_td_rate,
             "off_position_td": off_pos_counts,
             "def_position_td_allowed": def_pos_counts,
+            "rz_td": rz.get("rz_td", 0),
+            "rz_td_per_g": per_g(rz.get("rz_td", 0)),
+            "rz_td_allowed": rz.get("rz_td_allowed", 0),
+            "rz_td_allowed_per_g": per_g(rz.get("rz_td_allowed", 0)),
+            "rz_plays": rz.get("rz_plays", 0),
+            "rz_plays_per_g": per_g(rz.get("rz_plays", 0)),
+            "rz_plays_allowed": rz.get("rz_plays_allowed", 0),
+            "rz_plays_allowed_per_g": per_g(rz.get("rz_plays_allowed", 0)),
+            "rz_carries": rz.get("rz_carries", 0),
+            "rz_carries_per_g": per_g(rz.get("rz_carries", 0)),
+            "rz_carries_allowed": rz.get("rz_carries_allowed", 0),
+            "rz_carries_allowed_per_g": per_g(rz.get("rz_carries_allowed", 0)),
+            "rz_targets": rz.get("rz_targets", 0),
+            "rz_targets_per_g": per_g(rz.get("rz_targets", 0)),
+            "rz_targets_allowed": rz.get("rz_targets_allowed", 0),
+            "rz_targets_allowed_per_g": per_g(rz.get("rz_targets_allowed", 0)),
+            "td_by_length": lb["scored"],
+            "td_by_length_allowed": lb["allowed"],
         }
     return stats
 
@@ -304,6 +447,7 @@ def build_player_stats(scoring_df, first_td_by_game, teams):
                 "position": pos,
                 "tds": 0,
                 "first_tds": 0,
+                "dst_tds": 0,
             }
         return players[pid]
 
@@ -311,8 +455,10 @@ def build_player_stats(scoring_df, first_td_by_game, teams):
         pid = row["scorer_id"]
         if pd.isna(pid):
             continue
-        p = ensure(pid, row["scorer_name"], row["posteam"], row["position"])
+        p = ensure(pid, row["scorer_name"], row["scoring_team"], row["position"])
         p["tds"] += 1
+        if row["td_type"] == "dst":
+            p["dst_tds"] += 1
 
     for game_id, info in first_td_by_game.items():
         pid = info["player_id"]
@@ -323,9 +469,10 @@ def build_player_stats(scoring_df, first_td_by_game, teams):
                 "player_id": pid,
                 "name": info["player_name"],
                 "team": info["team"],
-                "position": info["position"] or "OTHER",
+                "position": info["position"] or "DST",
                 "tds": 0,
                 "first_tds": 0,
+                "dst_tds": 0,
             }
         players[pid]["first_tds"] += 1
 
@@ -358,8 +505,12 @@ def main():
     games_played = compute_games_played(pbp)
     first_td_by_game = compute_first_td_per_game(pbp, pos_lookup)
     scoring_df = scoring_plays_with_position(pbp, pos_lookup)
+    red_zone = compute_red_zone(pbp)
+    length_buckets = compute_length_buckets(pbp)
 
-    team_stats = build_team_stats(team_games, team_games_allowed, games_played, first_td_by_game, scoring_df, teams)
+    team_stats = build_team_stats(
+        team_games, team_games_allowed, games_played, first_td_by_game, scoring_df, red_zone, length_buckets, teams
+    )
     player_stats = build_player_stats(scoring_df, first_td_by_game, teams)
 
     max_week = int(pbp["week"].max())

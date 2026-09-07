@@ -97,8 +97,6 @@ select {
   background: #1d2129;
   text-align: center;
 }
-.data-table th.hdr-off { background: rgba(91, 141, 239, 0.3); }
-.data-table th.hdr-def { background: rgba(168, 109, 224, 0.3); }
 .sub-hdr {
   font-size: 0.62rem !important;
   font-weight: 600 !important;
@@ -124,6 +122,18 @@ select {
   font-style: italic;
   color: var(--muted);
   margin: 6px 0 0;
+}
+
+.stat-block { display: flex; flex-direction: column; }
+.section-divider {
+  border-top: 2px solid var(--border);
+  margin: 8px 0;
+}
+
+.dst-tag {
+  color: var(--mid);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 h3 {
