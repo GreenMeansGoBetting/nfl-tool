@@ -10,14 +10,11 @@
 </head>
 <body>
 <div class="topbar">
-  <span class="brand">NFL TD Cheatsheet</span>
+  <span class="brand">TD Matchup Data</span>
   <span id="season-note" class="muted"></span>
 </div>
 
 <main>
-  <h1>Anytime &amp; First-TD Matchup Lookup</h1>
-  <p class="sub">Pick both teams in a matchup to see each side's touchdown-scoring tendencies against the other's tendencies allowed. No picks, no scores &mdash; just the raw numbers side by side.</p>
-
   <div class="filter-bar">
     <label>Away
       <select id="away-select"></select>
@@ -32,8 +29,13 @@
   </div>
 
   <div id="matchup" class="two-col" hidden>
-    <section class="team-col" id="col-away"></section>
-    <section class="team-col" id="col-home"></section>
+    <section id="col-away-off"></section>
+    <section id="col-home-off"></section>
+  </div>
+
+  <div id="positions" class="two-col" hidden>
+    <section id="pos-away-off"></section>
+    <section id="pos-home-off"></section>
   </div>
 
   <div id="leaderboards" class="two-col" hidden>
