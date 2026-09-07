@@ -20,7 +20,7 @@ function renderBasicsTable(offTeam, defTeam) {
     const offSharePct = off.first_td_games ? Math.round((offCount / off.first_td_games) * 100) : 0;
     const defSharePct = defTotal ? Math.round((defCount / defTotal) * 100) : 0;
     const offCountCls = bucketCountTier("first_td_position", pos, offTeam);
-    const defCountCls = bucketCountTier("first_td_position_allowed", pos, defTeam);
+    const defCountCls = bucketCountTier("first_td_position_allowed", pos, defTeam, true);
     return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num">${offSharePct}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num">${defSharePct}%</td></tr>`;
   }).join("");
 

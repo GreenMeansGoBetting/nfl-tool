@@ -82,8 +82,8 @@ function renderLengthTable(offTeam, defTeam) {
     const defCount = def.td_by_length_allowed[key] || 0;
     const offCountCls = bucketCountTier("td_by_length", key, offTeam);
     const offShareCls = bucketShareTier("td_by_length", "total_td", key, offTeam);
-    const defCountCls = bucketCountTier("td_by_length_allowed", key, defTeam);
-    const defShareCls = bucketShareTier("td_by_length_allowed", "total_td_allowed", key, defTeam);
+    const defCountCls = bucketCountTier("td_by_length_allowed", key, defTeam, true);
+    const defShareCls = bucketShareTier("td_by_length_allowed", "total_td_allowed", key, defTeam, true);
     const offShare = off.total_td ? Math.round((offCount / off.total_td) * 100) : 0;
     const defShare = def.total_td_allowed ? Math.round((defCount / def.total_td_allowed) * 100) : 0;
     return `<tr><td>${label}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offShare}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defShare}%</td></tr>`;
@@ -105,8 +105,8 @@ function renderPositionTable(offTeam, defTeam) {
     const defShare = def.total_td_allowed ? defCount / def.total_td_allowed : 0;
     const offCountCls = bucketCountTier("off_position_td", pos, offTeam);
     const offShareCls = bucketShareTier("off_position_td", "total_td", pos, offTeam);
-    const defCountCls = bucketCountTier("def_position_td_allowed", pos, defTeam);
-    const defShareCls = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam);
+    const defCountCls = bucketCountTier("def_position_td_allowed", pos, defTeam, true);
+    const defShareCls = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam, true);
     return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td></tr>`;
   }).join("");
 

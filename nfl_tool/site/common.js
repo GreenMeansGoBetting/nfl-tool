@@ -117,20 +117,23 @@ function tierForFirstTdAllowed(team) {
 }
 
 // Share/count percentile helpers for any {key: count} bucket dict (position
-// breakdown, TD-length breakdown). Not inverted either way -- a high share
-// is a strong tendency toward that bucket, not a quality judgment.
-function bucketCountTier(dictKey, bucketKey, team) {
+// breakdown, TD-length breakdown). invert follows the same site-wide rule
+// as every other stat: offense side non-inverted (a high share is just a
+// notable tendency), defense/"allowed" side inverted (a high share allowed
+// to one position/length is a real vulnerability, same "green = fewest
+// allowed" promise the legend makes everywhere else).
+function bucketCountTier(dictKey, bucketKey, team, invert = false) {
   const pool = teamsWithGames();
   const countOf = (t) => DATA.team_stats[t][dictKey][bucketKey] || 0;
-  return percentileTier(countOf(team), pool.map(countOf), false);
+  return percentileTier(countOf(team), pool.map(countOf), invert);
 }
-function bucketShareTier(dictKey, totalKey, bucketKey, team) {
+function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false) {
   const pool = teamsWithGames();
   const shareOf = (t) => {
     const s = DATA.team_stats[t];
     return s[totalKey] ? (s[dictKey][bucketKey] || 0) / s[totalKey] : 0;
   };
-  return percentileTier(shareOf(team), pool.map(shareOf), false);
+  return percentileTier(shareOf(team), pool.map(shareOf), invert);
 }
 
 // One-click week/matchup picker, shared by both pages. Reads DATA.schedule
