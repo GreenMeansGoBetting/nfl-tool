@@ -81,6 +81,20 @@ function percentileTier(value, allValues, invert) {
   return "tier-bad";
 }
 
+// White (fewest on this team/column) -> green scale, scoped to whatever
+// list of values is passed in (a team's own roster, not a league
+// percentile). The green end is the SAME shade tier-good actually renders
+// as (--good at 0.28 alpha over the --panel background), not the raw
+// --good hex -- otherwise a pure hex on white reads much brighter/more
+// "lime" than the same hex shows up as a translucent tint on the dark
+// charts elsewhere on the site.
+function whiteToGreen(ratio) {
+  const start = [255, 255, 255];
+  const end = [34, 75, 56];
+  const rgb = start.map((c, i) => Math.round(c + (end[i] - c) * ratio));
+  return `rgb(${rgb.join(",")})`;
+}
+
 function tierFor(statKey, team, invert) {
   const pool = teamsWithGames();
   const values = pool.map((t) => DATA.team_stats[t][statKey]);

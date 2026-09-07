@@ -115,11 +115,16 @@ function renderRzUsageTable(team) {
   if (usage.length === 0) {
     return `<h3>${team}</h3><p class="no-data-note">No red zone touches yet before a first TD this season.</p>`;
   }
+  const maxCarries = Math.max(...usage.map((p) => p.carries));
+  const maxTargets = Math.max(...usage.map((p) => p.targets));
+  const maxReceptions = Math.max(...usage.map((p) => p.receptions));
   const rows = usage
-    .map(
-      (p) =>
-        `<tr><td>${p.name}</td><td>${p.position}</td><td class="num">${p.carries}</td><td class="num">${p.targets}</td><td class="num">${p.receptions}</td></tr>`
-    )
+    .map((p) => {
+      const carriesBg = whiteToGreen(maxCarries ? p.carries / maxCarries : 0);
+      const targetsBg = whiteToGreen(maxTargets ? p.targets / maxTargets : 0);
+      const receptionsBg = whiteToGreen(maxReceptions ? p.receptions / maxReceptions : 0);
+      return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num" style="background:${carriesBg}; color:#0f1115">${p.carries}</td><td class="num" style="background:${targetsBg}; color:#0f1115">${p.targets}</td><td class="num" style="background:${receptionsBg}; color:#0f1115">${p.receptions}</td></tr>`;
+    })
     .join("");
   return `<h3>${team}</h3>
     <table class="data-table">
