@@ -31,6 +31,11 @@ body {
 .brand { color: var(--text); font-weight: 700; font-size: 1.05rem; }
 .muted { color: var(--muted); }
 
+.page-nav { display: flex; gap: 16px; font-size: 0.88rem; }
+.page-nav a { color: var(--muted); text-decoration: none; }
+.page-nav a:hover { color: var(--text); }
+.page-nav-current { color: var(--accent); font-weight: 700; }
+
 main { max-width: 1100px; margin: 0 auto; padding: 16px 24px 32px; }
 
 .filter-bar {
@@ -157,6 +162,8 @@ select {
   color: var(--muted);
   margin: 6px 0 0;
 }
+
+.muted-label { color: var(--muted); font-style: italic; font-size: 0.85em; }
 
 .dst-tag {
   color: var(--mid);

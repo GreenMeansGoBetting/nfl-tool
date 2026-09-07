@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NFL TD Cheatsheet</title>
+<title>First TD Mini-Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="topbar">
-  <span class="brand">TD Matchup Data</span>
+  <span class="brand">First TD</span>
   <nav class="page-nav">
-    <span class="page-nav-current">Matchup</span>
-    <a href="first-td.html">First TD</a>
+    <a href="index.html">Matchup</a>
+    <span class="page-nav-current">First TD</span>
   </nav>
   <span id="season-note" class="muted"></span>
 </div>
@@ -37,46 +37,46 @@
   </div>
 
   <div id="empty-state" class="empty-state">
-    <p>Choose both teams above to see the matchup.</p>
+    <p>Choose both teams above to see the mini-game -- everything that happens before the game's very first touchdown.</p>
   </div>
 
-  <div id="section-type" class="section-wrap" hidden>
-    <h2 class="section-title">Type of Touchdown</h2>
+  <div id="section-basics" class="section-wrap" hidden>
+    <h2 class="section-title">First TD Basics</h2>
     <div class="two-col">
-      <section id="col-away-type"></section>
-      <section id="col-home-type"></section>
+      <section id="col-away-basics"></section>
+      <section id="col-home-basics"></section>
     </div>
   </div>
 
-  <div id="section-position" class="section-wrap" hidden>
-    <h2 class="section-title">Touchdown by Position</h2>
+  <div id="section-opportunities" class="section-wrap" hidden>
+    <h2 class="section-title">Opportunities</h2>
     <div class="two-col">
-      <section id="col-away-position"></section>
-      <section id="col-home-position"></section>
+      <section id="col-away-opportunities"></section>
+      <section id="col-home-opportunities"></section>
     </div>
   </div>
 
-  <div id="section-distance" class="section-wrap" hidden>
-    <h2 class="section-title">Touchdown Distance</h2>
+  <div id="section-fieldpos" class="section-wrap" hidden>
+    <h2 class="section-title">Starting Field Position</h2>
     <div class="two-col">
-      <section id="col-away-distance"></section>
-      <section id="col-home-distance"></section>
+      <section id="col-away-fieldpos"></section>
+      <section id="col-home-fieldpos"></section>
     </div>
   </div>
 
-  <div id="section-redzone" class="section-wrap" hidden>
-    <h2 class="section-title">Red Zone Touchdowns</h2>
+  <div id="section-rz" class="section-wrap" hidden>
+    <h2 class="section-title">Red Zone Before First TD</h2>
     <div class="two-col">
-      <section id="col-away-redzone"></section>
-      <section id="col-home-redzone"></section>
+      <section id="col-away-rz"></section>
+      <section id="col-home-rz"></section>
     </div>
   </div>
 
-  <div id="section-player" class="section-wrap" hidden>
-    <h2 class="section-title">Player Touchdowns</h2>
+  <div id="section-scorers" class="section-wrap" hidden>
+    <h2 class="section-title">First TD Scorers</h2>
     <div class="two-col">
-      <section id="lb-away"></section>
-      <section id="lb-home"></section>
+      <section id="scorers-away"></section>
+      <section id="scorers-home"></section>
     </div>
   </div>
 </main>
@@ -87,6 +87,6 @@
 
 <script src="teams.js"></script>
 <script src="common.js"></script>
-<script src="app.js"></script>
+<script src="first-td.js"></script>
 </body>
 </html>
