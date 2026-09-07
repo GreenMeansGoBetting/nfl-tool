@@ -77,8 +77,15 @@ select {
   border: 1px solid var(--border);
   font-size: 0.86rem;
 }
+.stat-table, .pos-table {
+  table-layout: fixed;
+}
+.stat-table th:first-child, .stat-table td:first-child,
+.pos-table th:first-child, .pos-table td:first-child {
+  width: 24%;
+}
 .data-table th, .data-table td {
-  padding: 4px 8px;
+  padding: 3px 4px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
@@ -88,6 +95,15 @@ select {
   font-size: 0.72rem;
   letter-spacing: 0.02em;
   background: #1d2129;
+  text-align: center;
+}
+.data-table th.hdr-off { background: rgba(91, 141, 239, 0.3); }
+.data-table th.hdr-def { background: rgba(168, 109, 224, 0.3); }
+.sub-hdr {
+  font-size: 0.62rem !important;
+  font-weight: 600 !important;
+  color: var(--muted) !important;
+  background: #1d2129 !important;
 }
 .col-sub {
   display: block;
@@ -96,7 +112,7 @@ select {
   font-size: 0.62rem;
   letter-spacing: 0.05em;
 }
-.data-table td.num, .data-table th.num { text-align: right; }
+.data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
 
 .tier-good { background: rgba(62, 201, 114, 0.28); color: #eafff0; font-weight: 600; }

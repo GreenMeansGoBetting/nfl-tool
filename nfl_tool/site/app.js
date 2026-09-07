@@ -2,19 +2,15 @@ let DATA = null;
 
 const POSITIONS = ["QB", "RB", "WR", "TE", "OTHER"];
 
-// Every row in the combined offense/defense stat table. offKey is read off
-// the offense-side team, defKey off the defense-side (opponent) team --
-// same row, both numbers, so the tension is visible without flipping
-// between sections.
+// Every row in the combined offense/defense stat table -- each side shows
+// BOTH the season total and the per-game rate, so nothing needs a second
+// row. offKey/rateOffKey read off the offense-side team, the Def variants
+// off the defense-side (opponent) team.
 const STAT_ROWS = [
-  { label: "Pass TD / G", offKey: "pass_td_per_g", defKey: "pass_td_allowed_per_g", digits: 2 },
-  { label: "Rush TD / G", offKey: "rush_td_per_g", defKey: "rush_td_allowed_per_g", digits: 2 },
-  { label: "Total TD / G", offKey: "total_td_per_g", defKey: "total_td_allowed_per_g", digits: 2 },
-  { label: "first-td-rate" },
-  { label: "Pass TD", offKey: "pass_td", defKey: "pass_td_allowed", digits: 0 },
-  { label: "Rush TD", offKey: "rush_td", defKey: "rush_td_allowed", digits: 0 },
-  { label: "Total TDs", offKey: "total_td", defKey: "total_td_allowed", digits: 0 },
-  { label: "first-td-count" },
+  { label: "Pass TD", totalOffKey: "pass_td", rateOffKey: "pass_td_per_g", totalDefKey: "pass_td_allowed", rateDefKey: "pass_td_allowed_per_g" },
+  { label: "Rush TD", totalOffKey: "rush_td", rateOffKey: "rush_td_per_g", totalDefKey: "rush_td_allowed", rateDefKey: "rush_td_allowed_per_g" },
+  { label: "Total TD", totalOffKey: "total_td", rateOffKey: "total_td_per_g", totalDefKey: "total_td_allowed", rateDefKey: "total_td_allowed_per_g" },
+  { label: "First TD", special: "first" },
 ];
 
 function teamsWithGames() {
@@ -77,28 +73,48 @@ function positionShareTier(kind, pos, team) {
   return percentileTier(shareOf(team), pool.map(shareOf), false);
 }
 
+// Same idea but on the raw count rather than the share -- same
+// not-inverted-either-way reasoning.
+function positionCountTier(kind, pos, team) {
+  const pool = teamsWithGames();
+  const countOf = (t) => {
+    const s = DATA.team_stats[t];
+    const counts = kind === "off" ? s.off_position_td : s.def_position_td_allowed;
+    return counts[pos];
+  };
+  return percentileTier(countOf(team), pool.map(countOf), false);
+}
+
+function headerRow(offTeam, defTeam, subLabels) {
+  return `<tr><th></th><th colspan="2" class="hdr-off">${offTeam}<span class="col-sub">OFF</span></th><th colspan="2" class="hdr-def">${defTeam}<span class="col-sub">DEF</span></th></tr>
+    <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
+}
+
 function renderStatTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
 
   const rows = STAT_ROWS.map((r) => {
-    if (r.label === "first-td-rate") {
-      const offCls = tierFor("first_td_rate", offTeam, false);
-      const defCls = tierForFirstTdAllowed(defTeam);
-      return `<tr><td>First TD Rate</td><td class="num ${offCls}">${fmt(off.first_td_rate * 100, 0)}%</td><td class="num ${defCls}">${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%</td></tr>`;
+    if (r.special === "first") {
+      const offTotal = off.first_td_games;
+      const offRate = off.first_td_rate * 100;
+      const defTotal = firstTdAllowedGames(defTeam);
+      const defRate = firstTdAllowedRate(defTeam) * 100;
+      const offTotalCls = percentileTier(offTotal, teamsWithGames().map((t) => DATA.team_stats[t].first_td_games), false);
+      const offRateCls = tierFor("first_td_rate", offTeam, false);
+      const defTotalCls = percentileTier(defTotal, teamsWithGames().map(firstTdAllowedGames), true);
+      const defRateCls = tierForFirstTdAllowed(defTeam);
+      return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${offTotal}</td><td class="num ${offRateCls}">${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}">${defTotal}</td><td class="num ${defRateCls}">${fmt(defRate, 0)}%</td></tr>`;
     }
-    if (r.label === "first-td-count") {
-      const offCls = tierFor("first_td_rate", offTeam, false);
-      const defCls = tierForFirstTdAllowed(defTeam);
-      return `<tr><td>First TDs</td><td class="num ${offCls}">${off.first_td_games}</td><td class="num ${defCls}">${firstTdAllowedGames(defTeam)}</td></tr>`;
-    }
-    const offCls = tierFor(r.offKey, offTeam, false);
-    const defCls = tierFor(r.defKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offCls}">${fmt(off[r.offKey], r.digits)}</td><td class="num ${defCls}">${fmt(def[r.defKey], r.digits)}</td></tr>`;
+    const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
+    const offRateCls = tierFor(r.rateOffKey, offTeam, false);
+    const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
+    const defRateCls = tierFor(r.rateDefKey, defTeam, true);
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td></tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
-    <thead><tr><th></th><th>${offTeam}<span class="col-sub">OFF</span></th><th>${defTeam}<span class="col-sub">DEF</span></th></tr></thead>
+    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -107,15 +123,19 @@ function renderPositionTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
   const rows = POSITIONS.map((pos) => {
-    const offShare = off.total_td ? off.off_position_td[pos] / off.total_td : 0;
-    const defShare = def.total_td_allowed ? def.def_position_td_allowed[pos] / def.total_td_allowed : 0;
-    const offCls = positionShareTier("off", pos, offTeam);
-    const defCls = positionShareTier("def", pos, defTeam);
-    return `<tr><td>${pos}</td><td class="num ${offCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCls}">${Math.round(defShare * 100)}%</td></tr>`;
+    const offCount = off.off_position_td[pos];
+    const defCount = def.def_position_td_allowed[pos];
+    const offShare = off.total_td ? offCount / off.total_td : 0;
+    const defShare = def.total_td_allowed ? defCount / def.total_td_allowed : 0;
+    const offCountCls = positionCountTier("off", pos, offTeam);
+    const offShareCls = positionShareTier("off", pos, offTeam);
+    const defCountCls = positionCountTier("def", pos, defTeam);
+    const defShareCls = positionShareTier("def", pos, defTeam);
+    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td></tr>`;
   }).join("");
 
-  return `<table class="data-table">
-    <thead><tr><th></th><th>${offTeam}<span class="col-sub">OFF</span></th><th>${defTeam}<span class="col-sub">DEF</span></th></tr></thead>
+  return `<table class="data-table pos-table">
+    <thead>${headerRow(offTeam, defTeam, ["Total", "%"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -125,15 +145,16 @@ function renderLeaderboard(team) {
   if (players.length === 0) {
     return `<h3>${team}</h3><p class="no-data-note">No TDs scored yet this season.</p>`;
   }
+  const games = DATA.team_stats[team]?.games_played || 0;
   const rows = players
-    .map(
-      (p) =>
-        `<tr><td>${p.name}</td><td>${p.position}</td><td class="num">${p.tds}</td><td class="num">${p.first_tds}</td></tr>`
-    )
+    .map((p) => {
+      const perG = games ? p.tds / games : 0;
+      return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num">${p.tds}</td><td class="num">${fmt(perG, 2)}</td><td class="num">${p.first_tds}</td></tr>`;
+    })
     .join("");
   return `<h3>${team}</h3>
     <table class="data-table lb-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">TDs</th><th class="num">1st TDs</th></tr></thead>
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">TDs</th><th class="num">TD/G</th><th class="num">1st TDs</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
