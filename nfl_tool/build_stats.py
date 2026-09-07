@@ -22,6 +22,7 @@ For each player who has scored at least one TD:
 import argparse
 import json
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -57,6 +58,15 @@ def bucket_position(pos):
     return "OTHER"
 
 
+def remote_exists(url: str) -> bool:
+    req = urllib.request.Request(url, method="HEAD")
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return resp.status == 200
+    except urllib.error.HTTPError:
+        return False
+
+
 def download_if_missing(url: str, dest: Path):
     if dest.exists():
         return
@@ -73,6 +83,23 @@ def download_if_missing(url: str, dest: Path):
             file=sys.stderr,
         )
         raise
+
+
+def resolve_season(season: int, data_dir: Path) -> tuple[int, bool]:
+    """Returns (season_to_use, is_fallback). Falls back one season back if
+    nflverse hasn't published the requested season's pbp file yet (common
+    very early in a season -- their pipeline lags kickoff by a few days)."""
+    if (data_dir / f"play_by_play_{season}.csv.gz").exists():
+        return season, False
+    if remote_exists(PBP_URL.format(season=season)):
+        return season, False
+    fallback = season - 1
+    print(
+        f"NOTE: play_by_play_{season}.csv.gz isn't published on nflverse yet -- "
+        f"falling back to {fallback} season data until it appears.",
+        file=sys.stderr,
+    )
+    return fallback, True
 
 
 def load_pbp(data_dir: Path, season: int) -> pd.DataFrame:
@@ -318,8 +345,10 @@ def main():
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
-    pbp = load_pbp(args.data_dir, args.season)
-    rosters = load_rosters(args.data_dir, args.season)
+    season, is_fallback = resolve_season(args.season, args.data_dir)
+
+    pbp = load_pbp(args.data_dir, season)
+    rosters = load_rosters(args.data_dir, season)
     pos_lookup = build_position_lookup(rosters)
 
     teams = sorted(set(pbp["home_team"].dropna()) | set(pbp["away_team"].dropna()))
@@ -336,7 +365,9 @@ def main():
     max_week = int(pbp["week"].max())
 
     blob = {
-        "season": args.season,
+        "season": season,
+        "requested_season": args.season,
+        "is_fallback_season": is_fallback,
         "through_week": max_week,
         "generated_by": "nflverse-data pbp + weekly rosters",
         "teams": teams,
@@ -348,7 +379,7 @@ def main():
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
 
-    print(f"Wrote {args.out} -- season {args.season}, through week {max_week}, {len(teams)} teams")
+    print(f"Wrote {args.out} -- season {season}, through week {max_week}, {len(teams)} teams")
 
 
 if __name__ == "__main__":
