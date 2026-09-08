@@ -16,12 +16,13 @@ function renderBasicsTable(offTeam, defTeam) {
   rows += POSITIONS.map((pos) => {
     const offCount = off.first_td_position[pos];
     const defCount = def.first_td_position_allowed[pos];
-    const defTotal = Object.values(def.first_td_position_allowed).reduce((a, b) => a + b, 0);
     const offSharePct = off.first_td_games ? Math.round((offCount / off.first_td_games) * 100) : 0;
-    const defSharePct = defTotal ? Math.round((defCount / defTotal) * 100) : 0;
+    const defSharePct = def.trailing_games ? Math.round((defCount / def.trailing_games) * 100) : 0;
     const offCountCls = bucketCountTier("first_td_position", pos, offTeam);
     const defCountCls = bucketCountTier("first_td_position_allowed", pos, defTeam, true);
-    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num">${offSharePct}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num">${defSharePct}%</td></tr>`;
+    const offShareCls = bucketShareTier("first_td_position", "first_td_games", pos, offTeam);
+    const defShareCls = bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true);
+    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offSharePct}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defSharePct}%</td></tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
@@ -30,69 +31,32 @@ function renderBasicsTable(offTeam, defTeam) {
   </table>`;
 }
 
+// Rows 1-6 (scoring-first) compare TWO TEAMS' OWN records side by side --
+// not an offense-vs-defense pairing like every other table on this site.
+// "Didn't score first" for the away team isn't "what the home defense
+// allows," it's just a fact about the away team's own games. Rows 7-9
+// (red zone) ARE a genuine off/def pairing (this team's own red zone
+// trips vs. what the other team's defense allows), same as elsewhere.
 function renderOpportunitiesTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
 
-  const ownVals = teamsWithGames()
-    .map((t) => DATA.team_stats[t].avg_possessions_to_first_td)
-    .filter((v) => v !== null);
-  const allowedVals = teamsWithGames()
-    .map((t) => DATA.team_stats[t].avg_possessions_allowed_before_first_td)
-    .filter((v) => v !== null);
+  const scoredFirstCls = (team) => tierFor("first_td_rate", team, false);
+  const avgPossCls = (team) => {
+    const val = DATA.team_stats[team].avg_possessions_to_first_td;
+    if (val === null) return "";
+    const pool = teamsWithGames().map((t) => DATA.team_stats[t].avg_possessions_to_first_td).filter((v) => v !== null);
+    return percentileTier(val, pool, true);
+  };
+  const avgPossDisplay = (team) => {
+    const s = DATA.team_stats[team];
+    return s.avg_possessions_to_first_td === null
+      ? "&mdash;"
+      : `${fmt(s.avg_possessions_to_first_td, 2)} <span class="muted">(n=${s.possessions_to_first_td_games})</span>`;
+  };
 
-  const offVal = off.avg_possessions_to_first_td;
-  const defVal = def.avg_possessions_allowed_before_first_td;
-  const offCls = offVal === null ? "" : percentileTier(offVal, ownVals, true);
-  const defCls = defVal === null ? "" : percentileTier(defVal, allowedVals, false);
-
-  const offDisplay = offVal === null ? "&mdash;" : fmt(offVal, 2);
-  const defDisplay = defVal === null ? "&mdash;" : fmt(defVal, 2);
-
-  return `<table class="data-table">
-    <thead><tr><th></th><th style="background:rgba(${teamAccentRgb(offTeam).join(",")},0.4)">${offTeam}<span class="col-sub">OFF</span></th><th style="background:rgba(${teamAccentRgb(defTeam).join(",")},0.4)">${defTeam}<span class="col-sub">DEF</span></th></tr></thead>
-    <tbody>
-      <tr><td>Avg. Possessions to Score First TD</td><td class="num ${offCls}">${offDisplay}</td><td class="num ${defCls}">${defDisplay}</td></tr>
-      <tr><td class="muted-label">Sample size (games)</td><td class="num muted">${off.possessions_to_first_td_games}</td><td class="num muted">${def.possessions_allowed_before_first_td_games}</td></tr>
-      <tr><td class="muted-label">First TD was a DST/return score instead</td><td class="num muted">${off.first_td_dst_games}</td><td class="num muted">${def.first_td_dst_allowed_games}</td></tr>
-    </tbody>
-  </table>`;
-}
-
-function renderFieldPosTable(offTeam, defTeam) {
-  const off = DATA.team_stats[offTeam];
-  const def = DATA.team_stats[defTeam];
-
-  const offVals = teamsWithGames().map((t) => DATA.team_stats[t].avg_start_yardline_100_off);
-  const defVals = teamsWithGames().map((t) => DATA.team_stats[t].avg_start_yardline_100_def);
-  const offCls = percentileTier(off.avg_start_yardline_100_off, offVals, true);
-  const defCls = percentileTier(def.avg_start_yardline_100_def, defVals, false);
-
-  const toOwnYard = (v) => `Own ${Math.round(100 - v)}`;
-
-  return `<table class="data-table">
-    <thead><tr><th></th><th style="background:rgba(${teamAccentRgb(offTeam).join(",")},0.4)">${offTeam}<span class="col-sub">OFF</span></th><th style="background:rgba(${teamAccentRgb(defTeam).join(",")},0.4)">${defTeam}<span class="col-sub">DEF</span></th></tr></thead>
-    <tbody>
-      <tr><td>Avg. Starting Field Position</td><td class="num ${offCls}">${toOwnYard(off.avg_start_yardline_100_off)}</td><td class="num ${defCls}">${toOwnYard(def.avg_start_yardline_100_def)}</td></tr>
-    </tbody>
-  </table>`;
-}
-
-function renderRedZoneBeforeTable(offTeam, defTeam) {
-  const off = DATA.team_stats[offTeam];
-  const def = DATA.team_stats[defTeam];
-
-  const offTotalCls = tierFor("pre_first_td_rz_trips", offTeam, false);
-  const offRateCls = tierFor("pre_first_td_rz_trips_per_g", offTeam, false);
-  const defTotalCls = tierFor("pre_first_td_rz_trips_allowed", defTeam, true);
-  const defRateCls = tierFor("pre_first_td_rz_trips_allowed_per_g", defTeam, true);
-
-  const offConvVals = teamsWithGames()
-    .map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate)
-    .filter((v) => v !== null);
-  const defConvVals = teamsWithGames()
-    .map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed)
-    .filter((v) => v !== null);
+  const offConvVals = teamsWithGames().map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate).filter((v) => v !== null);
+  const defConvVals = teamsWithGames().map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed).filter((v) => v !== null);
   const offConvVal = off.pre_first_td_rz_conversion_rate;
   const defConvVal = def.pre_first_td_rz_conversion_rate_allowed;
   const offConvCls = offConvVal === null ? "" : percentileTier(offConvVal, offConvVals, false);
@@ -100,12 +64,25 @@ function renderRedZoneBeforeTable(offTeam, defTeam) {
   const offConvDisplay = offConvVal === null ? "&mdash;" : `${Math.round(offConvVal * 100)}%`;
   const defConvDisplay = defConvVal === null ? "&mdash;" : `${Math.round(defConvVal * 100)}%`;
 
-  return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
+  const offRzTotalCls = tierFor("pre_first_td_rz_trips", offTeam, false);
+  const offRzRateCls = tierFor("pre_first_td_rz_trips_per_g", offTeam, false);
+  const defRzTotalCls = tierFor("pre_first_td_rz_trips_allowed", defTeam, true);
+  const defRzRateCls = tierFor("pre_first_td_rz_trips_allowed_per_g", defTeam, true);
+
+  return `<table class="data-table">
+    <thead><tr><th></th><th style="background:rgba(${teamAccentRgb(offTeam).join(",")},0.4)">${offTeam}</th><th style="background:rgba(${teamAccentRgb(defTeam).join(",")},0.4)">${defTeam}</th></tr></thead>
     <tbody>
-      <tr><td>RZ Trips Before First TD</td><td class="num ${offTotalCls}">${off.pre_first_td_rz_trips}</td><td class="num ${offRateCls}">${fmt(off.pre_first_td_rz_trips_per_g, 2)}</td><td class="num ${defTotalCls}">${def.pre_first_td_rz_trips_allowed}</td><td class="num ${defRateCls}">${fmt(def.pre_first_td_rz_trips_allowed_per_g, 2)}</td></tr>
-      <tr><td>Of Those, Converted to That TD</td><td class="num" colspan="2">${off.pre_first_td_rz_conversions} trip${off.pre_first_td_rz_conversions === 1 ? "" : "s"}</td><td class="num" colspan="2">${def.pre_first_td_rz_conversions_allowed} trip${def.pre_first_td_rz_conversions_allowed === 1 ? "" : "s"}</td></tr>
-      <tr><td>Conversion Rate</td><td class="num ${offConvCls}" colspan="2">${offConvDisplay}</td><td class="num ${defConvCls}" colspan="2">${defConvDisplay}</td></tr>
+      <tr><td class="section-group-label" colspan="3">Scoring First</td></tr>
+      <tr><td>Games Played</td><td class="num">${off.games_played}</td><td class="num">${def.games_played}</td></tr>
+      <tr><td>Scored First</td><td class="num ${scoredFirstCls(offTeam)}">${off.first_td_games} of ${off.games_played}</td><td class="num ${scoredFirstCls(defTeam)}">${def.first_td_games} of ${def.games_played}</td></tr>
+      <tr><td>When Scored First, Avg. Possessions</td><td class="num ${avgPossCls(offTeam)}">${avgPossDisplay(offTeam)}</td><td class="num ${avgPossCls(defTeam)}">${avgPossDisplay(defTeam)}</td></tr>
+      <tr><td>Didn't Score First</td><td class="num">${off.trailing_games}</td><td class="num">${def.trailing_games}</td></tr>
+      <tr><td>Of Those, Had a Possession First</td><td class="num">${off.trailing_games_with_possession} (0 poss: ${off.trailing_games_zero_possession})</td><td class="num">${def.trailing_games_with_possession} (0 poss: ${def.trailing_games_zero_possession})</td></tr>
+      <tr><td>When Trailing, Avg. Possessions Before Opponent Scored</td><td class="num">${off.avg_trailing_possessions === null ? "&mdash;" : fmt(off.avg_trailing_possessions, 2)}</td><td class="num">${def.avg_trailing_possessions === null ? "&mdash;" : fmt(def.avg_trailing_possessions, 2)}</td></tr>
+      <tr><td class="section-group-label" colspan="3">Red Zone</td></tr>
+      <tr><td>RZ Trips Before First TD (Total / Per Game)</td><td class="num"><span class="${offRzTotalCls}">${off.pre_first_td_rz_trips}</span> / <span class="${offRzRateCls}">${fmt(off.pre_first_td_rz_trips_per_g, 2)}</span></td><td class="num"><span class="${defRzTotalCls}">${def.pre_first_td_rz_trips_allowed}</span> / <span class="${defRzRateCls}">${fmt(def.pre_first_td_rz_trips_allowed_per_g, 2)}</span></td></tr>
+      <tr><td>Of Those, Converted to That TD</td><td class="num">${off.pre_first_td_rz_conversions} trip${off.pre_first_td_rz_conversions === 1 ? "" : "s"}</td><td class="num">${def.pre_first_td_rz_conversions_allowed} trip${def.pre_first_td_rz_conversions_allowed === 1 ? "" : "s"}</td></tr>
+      <tr><td>Conversion Rate</td><td class="num ${offConvCls}">${offConvDisplay}</td><td class="num ${defConvCls}">${defConvDisplay}</td></tr>
     </tbody>
   </table>`;
 }
@@ -154,7 +131,7 @@ function renderScorers(team) {
     </table>`;
 }
 
-const SECTIONS = ["basics", "opportunities", "fieldpos", "rz", "rzusage", "scorers"];
+const SECTIONS = ["basics", "opportunities", "rzusage", "scorers"];
 
 function render() {
   const away = document.getElementById("away-select").value;
@@ -188,10 +165,6 @@ function render() {
   document.getElementById("col-home-basics").innerHTML = renderBasicsTable(home, away);
   document.getElementById("col-away-opportunities").innerHTML = renderOpportunitiesTable(away, home);
   document.getElementById("col-home-opportunities").innerHTML = renderOpportunitiesTable(home, away);
-  document.getElementById("col-away-fieldpos").innerHTML = renderFieldPosTable(away, home);
-  document.getElementById("col-home-fieldpos").innerHTML = renderFieldPosTable(home, away);
-  document.getElementById("col-away-rz").innerHTML = renderRedZoneBeforeTable(away, home);
-  document.getElementById("col-home-rz").innerHTML = renderRedZoneBeforeTable(home, away);
   document.getElementById("rzusage-away").innerHTML = renderRzUsageTable(away);
   document.getElementById("rzusage-home").innerHTML = renderRzUsageTable(home);
   document.getElementById("scorers-away").innerHTML = renderScorers(away);

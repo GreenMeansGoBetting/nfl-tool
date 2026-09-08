@@ -422,30 +422,19 @@ def compute_possessions_to_score(pbp: pd.DataFrame, first_td_by_game: dict) -> d
     return result
 
 
-def compute_starting_field_position(pbp: pd.DataFrame) -> dict:
-    """Average yardline_100 (distance to the opponent's end zone) at the
-    start of each offensive drive, season-wide -- both this team's own
-    starting spot on offense, and what its defense allows the opponent to
-    start at. Lower is a better starting spot for whoever's on offense.
-
-    A kickoff shares its drive number with the return team's ensuing
-    offensive drive, so the play-id-first row of a (game_id, drive) group
-    is often the kickoff itself (yardline_100 = where the KICK landed, not
-    where the return team's first scrimmage snap started) -- restrict to
-    actual scrimmage plays (run/pass) before taking each drive's first row."""
-    scrimmage = pbp[pbp["play_type"].isin(["run", "pass"])]
-    starts = scrimmage.dropna(subset=["drive"]).sort_values("play_id").groupby(["game_id", "drive"]).first()
-    off_avg = starts.groupby("posteam")["yardline_100"].mean()
-    def_avg = starts.groupby("defteam")["yardline_100"].mean()
-
+def compute_trailing_possessions(pbp: pd.DataFrame, first_td_by_game: dict) -> dict:
+    """For every game, how many of the OTHER team's own possessions
+    happened before the game's first TD -- i.e. for the team that did NOT
+    score first, how many of their own chances they'd gotten by the time
+    the opponent got there. 0 means the opponent scored before this team's
+    offense ever took the field. Keyed by game_id since each game has
+    exactly one such team (first_td_by_game[game_id]["allowed_team"])."""
     result = {}
-    for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
-        if pd.isna(team):
-            continue
-        result[team] = {
-            "off": round(float(off_avg[team]), 1) if team in off_avg.index else None,
-            "def": round(float(def_avg[team]), 1) if team in def_avg.index else None,
-        }
+    for game_id, info in first_td_by_game.items():
+        team = info["allowed_team"]
+        team_plays = pbp[(pbp["game_id"] == game_id) & (pbp["posteam"] == team) & (pbp["play_id"] <= info["play_id"])]
+        own_drives = team_plays["drive"].dropna().unique()
+        result[game_id] = len(own_drives)
     return result
 
 
@@ -543,7 +532,7 @@ def build_team_stats(
     red_zone,
     length_buckets,
     possessions_to_score,
-    field_position,
+    trailing_possessions,
     pre_rz_off_trips,
     pre_rz_off_conv,
     pre_rz_def_trips,
@@ -585,33 +574,29 @@ def build_team_stats(
 
         rz = red_zone.get(team, {})
         lb = length_buckets.get(team, {"scored": {}, "allowed": {}})
-        fp = field_position.get(team, {"off": None, "def": None})
 
         def per_g(n):
             return round(n / g, 2) if g else 0.0
 
-        # "Opportunities before the first TD": how many of the scoring
-        # team's own possessions it took, both when THIS team scored first
-        # (own_possessions) and when the OPPONENT scored first against this
-        # team's defense (allowed_possessions) -- same underlying quantity,
-        # viewed from each side. DST (return-TD) first scores are excluded,
-        # see compute_possessions_to_score.
+        # "When they scored first, how many of their own possessions it
+        # took" -- DST (return-TD) first scores are excluded, see
+        # compute_possessions_to_score (doesn't apply to a play that
+        # happens on defense/special teams rather than one of the team's
+        # own drives).
         own_possessions = [
             possessions_to_score[gid]
             for gid, info in first_td_by_game.items()
             if info["team"] == team and gid in possessions_to_score
         ]
-        allowed_possessions = [
-            possessions_to_score[gid]
-            for gid, info in first_td_by_game.items()
-            if info["allowed_team"] == team and gid in possessions_to_score
-        ]
-        first_td_dst_games = sum(
-            1 for info in first_td_by_game.values() if info["team"] == team and not info["is_offense_td"]
-        )
-        first_td_dst_allowed_games = sum(
-            1 for info in first_td_by_game.values() if info["allowed_team"] == team and not info["is_offense_td"]
-        )
+
+        # "When they DIDN'T score first, how many of their own possessions
+        # they'd gotten before the opponent did" -- every such game, no DST
+        # exclusion needed since this counts the TRAILING team's own
+        # offensive drives regardless of how the opponent scored.
+        trailing_list = [trailing_possessions[gid] for gid, info in first_td_by_game.items() if info["allowed_team"] == team]
+        trailing_games = len(trailing_list)
+        trailing_games_with_possession = sum(1 for c in trailing_list if c >= 1)
+        trailing_games_zero_possession = sum(1 for c in trailing_list if c == 0)
 
         stats[team] = {
             "games_played": g,
@@ -655,14 +640,10 @@ def build_team_stats(
             "td_by_length_allowed": lb["allowed"],
             "avg_possessions_to_first_td": round(sum(own_possessions) / len(own_possessions), 2) if own_possessions else None,
             "possessions_to_first_td_games": len(own_possessions),
-            "avg_possessions_allowed_before_first_td": round(sum(allowed_possessions) / len(allowed_possessions), 2)
-            if allowed_possessions
-            else None,
-            "possessions_allowed_before_first_td_games": len(allowed_possessions),
-            "first_td_dst_games": first_td_dst_games,
-            "first_td_dst_allowed_games": first_td_dst_allowed_games,
-            "avg_start_yardline_100_off": fp["off"],
-            "avg_start_yardline_100_def": fp["def"],
+            "trailing_games": trailing_games,
+            "trailing_games_with_possession": trailing_games_with_possession,
+            "trailing_games_zero_possession": trailing_games_zero_possession,
+            "avg_trailing_possessions": round(sum(trailing_list) / len(trailing_list), 2) if trailing_list else None,
             "pre_first_td_rz_trips": pre_rz_off_trips.get(team, 0),
             "pre_first_td_rz_trips_per_g": per_g(pre_rz_off_trips.get(team, 0)),
             "pre_first_td_rz_conversions": pre_rz_off_conv.get(team, 0),
@@ -754,7 +735,7 @@ def main():
     red_zone = compute_red_zone(pbp)
     length_buckets = compute_length_buckets(pbp)
     possessions_to_score = compute_possessions_to_score(pbp, first_td_by_game)
-    field_position = compute_starting_field_position(pbp)
+    trailing_possessions = compute_trailing_possessions(pbp, first_td_by_game)
     pre_rz_off_trips, pre_rz_off_conv, pre_rz_def_trips, pre_rz_def_conv = compute_pre_first_td_red_zone(pbp, first_td_by_game)
     first_td_position, first_td_position_allowed = compute_first_td_position_breakdown(first_td_by_game, teams)
     pre_first_td_usage = compute_pre_first_td_player_usage(pbp, first_td_by_game, pos_lookup)
@@ -768,7 +749,7 @@ def main():
         red_zone,
         length_buckets,
         possessions_to_score,
-        field_position,
+        trailing_possessions,
         pre_rz_off_trips,
         pre_rz_off_conv,
         pre_rz_def_trips,

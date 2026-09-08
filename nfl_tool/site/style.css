@@ -225,6 +225,16 @@ select {
 
 .muted-label { color: var(--muted); font-style: italic; font-size: 0.85em; }
 
+.section-group-label {
+  background: #1d2129;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 8px;
+}
+
 .dst-tag {
   color: var(--mid);
   font-size: 0.72rem;
