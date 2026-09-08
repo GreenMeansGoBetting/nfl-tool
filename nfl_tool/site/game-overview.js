@@ -133,7 +133,7 @@ function pairedStatHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th></tr>`;
+  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th class="edge-hdr">Edge</th></tr>`;
 }
 
 // Each row pairs an offense stat with its defense mirror, framed as a
@@ -148,7 +148,7 @@ function renderGeneralStatsTable(offTeam, defTeam) {
   const rows = GENERAL_STAT_ROWS.map((r) => {
     const offCls = tierFor(r.offKey, offTeam, r.offInvert);
     const defCls = tierFor(r.defKey, defTeam, r.defInvert);
-    return `<tr><td>${r.label}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td></tr>`;
+    return `<tr><td>${r.label}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam)}</tr>`;
   }).join("");
 
   return `<table class="data-table general-stat-table">

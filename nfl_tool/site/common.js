@@ -339,7 +339,7 @@ function renderRedZoneTable(offTeam, defTeam) {
     const offRateCls = tierFor(r.rateOffKey, offTeam, false);
     const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
     const defRateCls = tierFor(r.rateDefKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td></tr>`;
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
@@ -353,6 +353,21 @@ function headerRow(offTeam, defTeam, subLabels) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th colspan="2" style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th></tr>
+  return `<tr><th></th><th colspan="2" style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">Edge</th></tr>
     <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
+}
+
+// Plain-language decode of a row's two tier colors -- which team the stat
+// favors, so a viewer doesn't have to mentally cross-reference green/red
+// against which side is offense vs defense. Only fires on a real top-third-
+// vs-bottom-third mismatch (the same bar checkOpportunity() uses); anything
+// else (both mid, both good, both bad) has no standout edge, so it's blank.
+function advantageTeam(offTier, defTier, offTeam, defTeam) {
+  if (offTier === "tier-good" && defTier === "tier-bad") return offTeam;
+  if (offTier === "tier-bad" && defTier === "tier-good") return defTeam;
+  return "--";
+}
+function edgeCell(offTier, defTier, offTeam, defTeam) {
+  const team = advantageTeam(offTier, defTier, offTeam, defTeam);
+  return `<td class="edge-cell${team === "--" ? "" : " edge-hit"}">${team}</td>`;
 }

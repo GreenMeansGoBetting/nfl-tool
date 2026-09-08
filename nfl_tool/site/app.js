@@ -112,13 +112,13 @@ function renderStatTable(offTeam, defTeam) {
       const offRateCls = tierFor("first_td_rate", offTeam, false);
       const defTotalCls = percentileTier(defTotal, teamsWithGames().map(firstTdAllowedGames), true);
       const defRateCls = tierForFirstTdAllowed(defTeam);
-      return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${offTotal}</td><td class="num ${offRateCls}">${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}">${defTotal}</td><td class="num ${defRateCls}">${fmt(defRate, 0)}%</td></tr>`;
+      return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${offTotal}</td><td class="num ${offRateCls}">${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}">${defTotal}</td><td class="num ${defRateCls}">${fmt(defRate, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam)}</tr>`;
     }
     const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
     const offRateCls = tierFor(r.rateOffKey, offTeam, false);
     const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
     const defRateCls = tierFor(r.rateDefKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td></tr>`;
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
@@ -140,7 +140,7 @@ function renderLengthTable(offTeam, defTeam) {
     const defShareCls = bucketShareTier("td_by_length_allowed", "total_td_allowed", key, defTeam, true);
     const offShare = off.total_td ? Math.round((offCount / off.total_td) * 100) : 0;
     const defShare = def.total_td_allowed ? Math.round((defCount / def.total_td_allowed) * 100) : 0;
-    return `<tr><td>${label}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offShare}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defShare}%</td></tr>`;
+    return `<tr><td>${label}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offShare}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam)}</tr>`;
   }).join("");
 
   return `<table class="data-table pos-table">
@@ -161,7 +161,7 @@ function renderPositionTable(offTeam, defTeam) {
     const offShareCls = bucketShareTier("off_position_td", "total_td", pos, offTeam);
     const defCountCls = bucketCountTier("def_position_td_allowed", pos, defTeam, true);
     const defShareCls = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam, true);
-    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td></tr>`;
+    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam)}</tr>`;
   }).join("");
 
   return `<table class="data-table pos-table">

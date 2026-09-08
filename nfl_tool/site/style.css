@@ -229,6 +229,21 @@ select {
   font-size: 0.62rem;
   letter-spacing: 0.05em;
 }
+
+.edge-hdr {
+  background: var(--table-head);
+  font-size: 0.68rem !important;
+}
+.edge-cell {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.edge-cell.edge-hit {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
+}
 .data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
 
