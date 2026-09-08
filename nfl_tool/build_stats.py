@@ -39,6 +39,7 @@ PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"
 SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 INJURIES_URL = "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{season}.csv"
+PARTICIPATION_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_{season}.csv"
 
 TEAM_NAME_FIXES = {
     # nflverse occasionally uses different abbreviations across seasons for
@@ -189,6 +190,136 @@ def load_injuries(data_dir: Path, season: int) -> pd.DataFrame:
     df = pd.read_csv(path, low_memory=False)
     df["team"] = df["team"].map(normalize_team)
     return df[["team", "week", "position", "full_name", "report_status", "practice_status"]]
+
+
+def load_participation(data_dir: Path, season: int) -> pd.DataFrame:
+    """Official NFL charting (defenders in box, pass rushers, man/zone
+    coverage, specific coverage shell) -- same nflverse-data ecosystem as
+    everything else in this pipeline, free, no API key. Same caching
+    policy as load_pbp(): stable once a season's games are played, so no
+    force=True needed."""
+    path = data_dir / f"pbp_participation_{season}.csv"
+    download_if_missing(PARTICIPATION_URL.format(season=season), path)
+    return pd.read_csv(path, low_memory=False)
+
+
+def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams, team_stats: dict) -> dict:
+    """Schematic tendency (how a defense lines up) paired with how the
+    FACING OFFENSE performs against that specific look. Tendency = this
+    team's own defense's rate of using a look, out of its own defensive
+    snaps. Performance = this team's own offense's result specifically
+    when facing that look, aggregated across every defense it played this
+    season (not one opponent) -- paired for display the same way every
+    other offense/defense stat on this site is paired.
+
+    MIN_SAMPLE gates every performance number: below it, the number is
+    None (frontend shows "--") rather than a noisy rate from a handful of
+    plays. The specific coverage shells run thinnest -- COMBO and BLOWN
+    coverage are dropped as categories entirely (they showed up 1-6 times
+    in the whole 2025 season, league-wide -- not a real defensive call to
+    measure, unlike Cover 0/1/2/3/4/6 and 2-Man which all clear the floor).
+
+    opp_quality (the "SOS" bar the user asked for): the play-count-weighted
+    average points-allowed-per-game of the specific opponents contributing
+    to a performance sample. A low number means the sample came against
+    stingier-than-average defenses (this offense may be UNDERrated by the
+    raw number); a high number means weaker-than-average defenses (may be
+    OVERrated). Reuses team_stats' already-computed points_against_per_g
+    rather than building a second opponent-quality metric from scratch.
+    """
+    MIN_SAMPLE = 8
+    SHELLS = {
+        "cover0": "COVER_0",
+        "cover1": "COVER_1",
+        "cover2": "COVER_2",
+        "cover3": "COVER_3",
+        "cover4": "COVER_4",
+        "cover6": "COVER_6",
+        "twoman": "2_MAN",
+    }
+    opp_quality = {t: team_stats[t]["points_against_per_g"] for t in teams if t in team_stats}
+
+    merged = participation.merge(
+        pbp[["game_id", "play_id", "posteam", "defteam", "rush_attempt", "pass_attempt", "yards_gained", "success", "two_point_attempt"]],
+        left_on=["nflverse_game_id", "play_id"],
+        right_on=["game_id", "play_id"],
+        how="inner",
+    )
+    merged = merged[merged["two_point_attempt"] != 1]
+    run = merged[merged["rush_attempt"] == 1].copy()
+    passp = merged[merged["pass_attempt"] == 1].copy()
+    run["heavy_box"] = run["defenders_in_box"] >= 7
+    passp["blitz"] = passp["number_of_pass_rushers"] >= 5
+    passp["zone"] = passp["defense_man_zone_type"] == "ZONE_COVERAGE"
+    passp["man"] = passp["defense_man_zone_type"] == "MAN_COVERAGE"
+
+    def opp_quality_of(sample: pd.DataFrame):
+        if len(sample) < MIN_SAMPLE:
+            return None
+        vals = sample["defteam"].map(opp_quality).dropna()
+        return round(vals.mean(), 2) if len(vals) else None
+
+    result = {t: {} for t in teams}
+    for team in teams:
+        d = result[team]
+
+        # ---- Run defense: box count ----
+        def_run = run[run["defteam"] == team]
+        off_run = run[run["posteam"] == team]
+        def_total = len(def_run)
+        heavy_def = int(def_run["heavy_box"].sum())
+        d["box_heavy_rate"] = round(heavy_def / def_total, 3) if def_total else None
+        d["box_light_rate"] = round(1 - heavy_def / def_total, 3) if def_total else None
+        off_heavy = off_run[off_run["heavy_box"]]
+        off_light = off_run[~off_run["heavy_box"]]
+        d["ypc_vs_heavy_box"] = round(off_heavy["yards_gained"].mean(), 2) if len(off_heavy) >= MIN_SAMPLE else None
+        d["ypc_vs_light_box"] = round(off_light["yards_gained"].mean(), 2) if len(off_light) >= MIN_SAMPLE else None
+        d["ypc_vs_heavy_box_plays"] = len(off_heavy)
+        d["ypc_vs_light_box_plays"] = len(off_light)
+        d["ypc_vs_heavy_box_opp_quality"] = opp_quality_of(off_heavy)
+        d["ypc_vs_light_box_opp_quality"] = opp_quality_of(off_light)
+
+        # ---- Pass rush: blitz ----
+        def_pass = passp[passp["defteam"] == team]
+        off_pass = passp[passp["posteam"] == team]
+        pr_total = len(def_pass)
+        blitz_def = int(def_pass["blitz"].sum())
+        d["blitz_rate"] = round(blitz_def / pr_total, 3) if pr_total else None
+        d["standard_rush_rate"] = round(1 - blitz_def / pr_total, 3) if pr_total else None
+        off_blitzed = off_pass[off_pass["blitz"]]
+        off_standard = off_pass[~off_pass["blitz"]]
+        d["success_vs_blitz"] = round(off_blitzed["success"].mean(), 3) if len(off_blitzed) >= MIN_SAMPLE else None
+        d["success_vs_standard_rush"] = round(off_standard["success"].mean(), 3) if len(off_standard) >= MIN_SAMPLE else None
+        d["success_vs_blitz_plays"] = len(off_blitzed)
+        d["success_vs_standard_rush_plays"] = len(off_standard)
+        d["success_vs_blitz_opp_quality"] = opp_quality_of(off_blitzed)
+        d["success_vs_standard_rush_opp_quality"] = opp_quality_of(off_standard)
+
+        # ---- Coverage style: zone vs man ----
+        zone_def = int(def_pass["zone"].sum())
+        man_def = int(def_pass["man"].sum())
+        cov_total = zone_def + man_def
+        d["zone_rate"] = round(zone_def / cov_total, 3) if cov_total else None
+        d["man_rate"] = round(man_def / cov_total, 3) if cov_total else None
+        off_zone = off_pass[off_pass["zone"]]
+        off_man = off_pass[off_pass["man"]]
+        d["success_vs_zone"] = round(off_zone["success"].mean(), 3) if len(off_zone) >= MIN_SAMPLE else None
+        d["success_vs_man"] = round(off_man["success"].mean(), 3) if len(off_man) >= MIN_SAMPLE else None
+        d["success_vs_zone_plays"] = len(off_zone)
+        d["success_vs_man_plays"] = len(off_man)
+        d["success_vs_zone_opp_quality"] = opp_quality_of(off_zone)
+        d["success_vs_man_opp_quality"] = opp_quality_of(off_man)
+
+        # ---- Coverage scheme: specific shells ----
+        shell_total = int(def_pass["defense_coverage_type"].isin(SHELLS.values()).sum())
+        for key, code in SHELLS.items():
+            def_count = int((def_pass["defense_coverage_type"] == code).sum())
+            d[f"{key}_rate"] = round(def_count / shell_total, 3) if shell_total else None
+            off_shell = off_pass[off_pass["defense_coverage_type"] == code]
+            d[f"success_vs_{key}"] = round(off_shell["success"].mean(), 3) if len(off_shell) >= MIN_SAMPLE else None
+            d[f"success_vs_{key}_plays"] = len(off_shell)
+            d[f"success_vs_{key}_opp_quality"] = opp_quality_of(off_shell)
+    return result
 
 
 def moneyline_to_implied_prob(ml):
@@ -1130,6 +1261,7 @@ def main():
     # whatever season the pbp-based stats fell back to -- same reasoning
     # compute_schedule() already documents.
     injuries_df = load_injuries(args.data_dir, args.season)
+    participation = load_participation(args.data_dir, season)
     pos_lookup = build_position_lookup(rosters)
 
     teams = sorted(set(pbp["home_team"].dropna()) | set(pbp["away_team"].dropna()))
@@ -1174,6 +1306,12 @@ def main():
         teams,
     )
     player_stats = build_player_stats(scoring_df, first_td_by_game, teams)
+
+    # Needs team_stats already built (reuses points_against_per_g for the
+    # opponent-quality signal), so this runs after build_team_stats().
+    scheme_splits = compute_scheme_splits(pbp, participation, teams, team_stats)
+    for team in teams:
+        team_stats[team].update(scheme_splits.get(team, {}))
 
     max_week = int(pbp["week"].max())
 
