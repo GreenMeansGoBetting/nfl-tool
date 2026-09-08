@@ -133,7 +133,7 @@ function pairedStatHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th class="edge-hdr">Edge</th></tr>`;
+  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Each row pairs an offense stat with its defense mirror, framed as a

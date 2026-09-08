@@ -201,10 +201,10 @@ select {
 }
 .stat-table th:first-child, .stat-table td:first-child,
 .pos-table th:first-child, .pos-table td:first-child {
-  width: 24%;
+  width: 20%;
 }
 .data-table th, .data-table td {
-  padding: 3px 4px;
+  padding: 3px 3px;
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
@@ -232,17 +232,17 @@ select {
 
 .edge-hdr {
   background: var(--table-head);
-  font-size: 0.68rem !important;
+  font-size: 0.62rem !important;
+  width: 34px;
 }
 .edge-cell {
   text-align: center;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--muted);
-}
-.edge-cell.edge-hit {
-  color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.1);
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+  width: 34px;
 }
 .data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
@@ -337,9 +337,12 @@ footer a { color: var(--accent); }
 }
 .odds-price { color: var(--muted); font-size: 0.78rem; }
 
+.general-stat-table {
+  table-layout: fixed;
+}
 .general-stat-table th:first-child, .general-stat-table td:first-child {
   text-align: left;
-  width: 40%;
+  width: 34%;
 }
 
 .recent-games-dropdown { margin-top: 8px; }

@@ -353,7 +353,7 @@ function headerRow(offTeam, defTeam, subLabels) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th colspan="2" style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">Edge</th></tr>
+  return `<tr><th></th><th colspan="2" style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
     <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
 }
 
@@ -361,13 +361,18 @@ function headerRow(offTeam, defTeam, subLabels) {
 // favors, so a viewer doesn't have to mentally cross-reference green/red
 // against which side is offense vs defense. Only fires on a real top-third-
 // vs-bottom-third mismatch (the same bar checkOpportunity() uses); anything
-// else (both mid, both good, both bad) has no standout edge, so it's blank.
+// else (both mid, both good, both bad) has no standout advantage, so it's blank.
 function advantageTeam(offTier, defTier, offTeam, defTeam) {
   if (offTier === "tier-good" && defTier === "tier-bad") return offTeam;
   if (offTier === "tier-bad" && defTier === "tier-good") return defTeam;
   return "--";
 }
+// Colored in the WINNING team's own accent (same normalized color the
+// header bars use), not a fixed site accent -- two teams that both happen
+// to be blue-ish still need to read as different teams here.
 function edgeCell(offTier, defTier, offTeam, defTeam) {
   const team = advantageTeam(offTier, defTier, offTeam, defTeam);
-  return `<td class="edge-cell${team === "--" ? "" : " edge-hit"}">${team}</td>`;
+  if (team === "--") return `<td class="edge-cell">--</td>`;
+  const rgb = teamAccentRgb(team);
+  return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${team}</td>`;
 }
