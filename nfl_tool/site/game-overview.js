@@ -207,21 +207,23 @@ function renderGeneralStatsTable(offTeam, defTeam) {
   </table>`;
 }
 
-// Only flags an opponent-quality note when the sample's average opponent
-// (by points_against_per_g) is a genuine league-wide extreme -- silent for
-// an average schedule, so this doesn't turn into noise on every row.
-// oppQ is a computed AVERAGE across several opponents, so it won't exactly
-// match any single team's own value -- percentileTier()'s indexOf-based
-// lookup would silently fail here, so this ranks by comparison instead.
-function oppQualityCaption(oppQ) {
-  if (oppQ === null || oppQ === undefined) return "";
+// One schedule-strength line per table (not per row -- every condition is
+// just a slice of the same ~17-game schedule, so a per-row version came
+// back saying almost the same thing on every line). Silent when the
+// schedule was genuinely average. schedule_quality is a computed AVERAGE
+// across ~17 opponents, so it won't exactly match any single team's own
+// value -- percentileTier()'s indexOf-based lookup would silently fail
+// here, so this ranks by comparison instead.
+function scheduleQualityNote(team) {
+  const q = DATA.team_stats[team].schedule_quality;
+  if (q === null || q === undefined) return "";
   const pool = teamsWithGames()
     .map((t) => DATA.team_stats[t].points_against_per_g)
     .filter((v) => v !== null && v !== undefined);
   if (pool.length < 3) return "";
-  const pct = pool.filter((v) => v < oppQ).length / pool.length;
-  if (pct < 0.333) return `<span class="opp-quality-note">faced tough D's</span>`;
-  if (pct >= 0.667) return `<span class="opp-quality-note">faced weaker D's</span>`;
+  const pct = pool.filter((v) => v < q).length / pool.length;
+  if (pct < 0.333) return `<tr class="sos-row"><td colspan="3">${team} has faced a tougher-than-average slate of defenses this season -- these performance splits may understate them.</td></tr>`;
+  if (pct >= 0.667) return `<tr class="sos-row"><td colspan="3">${team} has faced a weaker-than-average slate of defenses this season -- these performance splits may overstate them.</td></tr>`;
   return "";
 }
 
@@ -245,8 +247,7 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : fmt(perfVal, 1);
-      const oppNote = perfVal === null || perfVal === undefined ? "" : oppQualityCaption(DATA.team_stats[offTeam][r.oppQKey]);
-      return `<tr><td>${r.label}</td><td>${tendBar}</td><td class="num ${perfCls}">${perfDisplay}${oppNote}</td></tr>`;
+      return `<tr><td>${r.label}</td><td>${tendBar}</td><td class="num ${perfCls}">${perfDisplay}</td></tr>`;
     })
     .join("");
   return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption">Usage</td><td class="metric-caption">${group.perfLabel}</td></tr>${rows}`;
@@ -256,7 +257,7 @@ function renderSchemeTable(offTeam, defTeam) {
   const groups = SCHEME_GROUPS.map((g) => renderSchemeGroup(g, offTeam, defTeam)).join("");
   return `<table class="data-table scheme-table">
     <thead>${schemeTableHeader(offTeam, defTeam)}</thead>
-    <tbody>${groups}</tbody>
+    <tbody>${scheduleQualityNote(offTeam)}${groups}</tbody>
   </table>`;
 }
 

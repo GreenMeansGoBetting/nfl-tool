@@ -203,7 +203,7 @@ def load_participation(data_dir: Path, season: int) -> pd.DataFrame:
     return pd.read_csv(path, low_memory=False)
 
 
-def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams, team_stats: dict) -> dict:
+def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) -> dict:
     """Schematic tendency (how a defense lines up) paired with how the
     FACING OFFENSE performs against that specific look. Tendency = this
     team's own defense's rate of using a look, out of its own defensive
@@ -219,13 +219,13 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
     in the whole 2025 season, league-wide -- not a real defensive call to
     measure, unlike Cover 0/1/2/3/4/6 and 2-Man which all clear the floor).
 
-    opp_quality (the "SOS" bar the user asked for): the play-count-weighted
-    average points-allowed-per-game of the specific opponents contributing
-    to a performance sample. A low number means the sample came against
-    stingier-than-average defenses (this offense may be UNDERrated by the
-    raw number); a high number means weaker-than-average defenses (may be
-    OVERrated). Reuses team_stats' already-computed points_against_per_g
-    rather than building a second opponent-quality metric from scratch.
+    Opponent quality (the "is this team's schedule skewing these numbers"
+    question) is handled once per team, not per condition -- see
+    compute_schedule_quality(). A first pass computed it per condition
+    sample, but since every condition is just a different slice of the
+    SAME ~17-game schedule, it came back nearly identical on every row
+    (redundant, not per-row signal) -- one team-level number is the honest
+    version of this.
     """
     MIN_SAMPLE = 8
     SHELLS = {
@@ -237,7 +237,6 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
         "cover6": "COVER_6",
         "twoman": "2_MAN",
     }
-    opp_quality = {t: team_stats[t]["points_against_per_g"] for t in teams if t in team_stats}
 
     merged = participation.merge(
         pbp[["game_id", "play_id", "posteam", "defteam", "rush_attempt", "pass_attempt", "yards_gained", "success", "two_point_attempt"]],
@@ -252,12 +251,6 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
     passp["blitz"] = passp["number_of_pass_rushers"] >= 5
     passp["zone"] = passp["defense_man_zone_type"] == "ZONE_COVERAGE"
     passp["man"] = passp["defense_man_zone_type"] == "MAN_COVERAGE"
-
-    def opp_quality_of(sample: pd.DataFrame):
-        if len(sample) < MIN_SAMPLE:
-            return None
-        vals = sample["defteam"].map(opp_quality).dropna()
-        return round(vals.mean(), 2) if len(vals) else None
 
     result = {t: {} for t in teams}
     for team in teams:
@@ -276,8 +269,6 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
         d["ypc_vs_light_box"] = round(off_light["yards_gained"].mean(), 2) if len(off_light) >= MIN_SAMPLE else None
         d["ypc_vs_heavy_box_plays"] = len(off_heavy)
         d["ypc_vs_light_box_plays"] = len(off_light)
-        d["ypc_vs_heavy_box_opp_quality"] = opp_quality_of(off_heavy)
-        d["ypc_vs_light_box_opp_quality"] = opp_quality_of(off_light)
 
         # ---- Pass rush: blitz ----
         def_pass = passp[passp["defteam"] == team]
@@ -292,8 +283,6 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
         d["success_vs_standard_rush"] = round(off_standard["success"].mean(), 3) if len(off_standard) >= MIN_SAMPLE else None
         d["success_vs_blitz_plays"] = len(off_blitzed)
         d["success_vs_standard_rush_plays"] = len(off_standard)
-        d["success_vs_blitz_opp_quality"] = opp_quality_of(off_blitzed)
-        d["success_vs_standard_rush_opp_quality"] = opp_quality_of(off_standard)
 
         # ---- Coverage style: zone vs man ----
         zone_def = int(def_pass["zone"].sum())
@@ -307,8 +296,6 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
         d["success_vs_man"] = round(off_man["success"].mean(), 3) if len(off_man) >= MIN_SAMPLE else None
         d["success_vs_zone_plays"] = len(off_zone)
         d["success_vs_man_plays"] = len(off_man)
-        d["success_vs_zone_opp_quality"] = opp_quality_of(off_zone)
-        d["success_vs_man_opp_quality"] = opp_quality_of(off_man)
 
         # ---- Coverage scheme: specific shells ----
         shell_total = int(def_pass["defense_coverage_type"].isin(SHELLS.values()).sum())
@@ -318,7 +305,6 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams,
             off_shell = off_pass[off_pass["defense_coverage_type"] == code]
             d[f"success_vs_{key}"] = round(off_shell["success"].mean(), 3) if len(off_shell) >= MIN_SAMPLE else None
             d[f"success_vs_{key}_plays"] = len(off_shell)
-            d[f"success_vs_{key}_opp_quality"] = opp_quality_of(off_shell)
     return result
 
 
@@ -1307,11 +1293,18 @@ def main():
     )
     player_stats = build_player_stats(scoring_df, first_td_by_game, teams)
 
-    # Needs team_stats already built (reuses points_against_per_g for the
-    # opponent-quality signal), so this runs after build_team_stats().
-    scheme_splits = compute_scheme_splits(pbp, participation, teams, team_stats)
+    scheme_splits = compute_scheme_splits(pbp, participation, teams)
     for team in teams:
         team_stats[team].update(scheme_splits.get(team, {}))
+
+    # One team-level schedule-strength number (not per condition -- see
+    # compute_scheme_splits' docstring for why), reusing recent_games'
+    # opponent list and team_stats' own points_against_per_g so this
+    # doesn't need a second opponent-quality metric.
+    for team in teams:
+        opponents = [g["opponent"] for g in recent_games.get(team, [])]
+        quality_vals = [team_stats[o]["points_against_per_g"] for o in opponents if o in team_stats]
+        team_stats[team]["schedule_quality"] = round(sum(quality_vals) / len(quality_vals), 2) if quality_vals else None
 
     max_week = int(pbp["week"].max())
 

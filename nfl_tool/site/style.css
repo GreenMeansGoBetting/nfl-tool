@@ -354,9 +354,9 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
   padding: 5px 4px;
 }
-.scheme-table th:first-child, .scheme-table td:first-child { width: 30%; }
-.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 40%; }
-.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 30%; text-align: center; }
+.scheme-table th:first-child, .scheme-table td:first-child { width: 34%; }
+.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 33%; }
+.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 33%; text-align: center; }
 .metric-caption {
   font-size: 0.6rem !important;
   font-weight: 400 !important;
@@ -366,14 +366,21 @@ footer a { color: var(--accent); }
   background: var(--table-head) !important;
   text-align: center;
 }
-.tend-bar-row { display: flex; align-items: center; gap: 5px; }
-.tend-bar-track { flex: 1; background: var(--table-head); border: 1px solid var(--border); border-radius: 3px; height: 13px; overflow: hidden; }
+.tend-bar-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.tend-bar-track { width: 56px; flex: 0 0 auto; background: var(--table-head); border: 1px solid var(--border); border-radius: 3px; height: 13px; overflow: hidden; }
 .tend-bar-fill { display: block; height: 100%; }
 .tend-bar-fill.tier-good { background: var(--good); }
 .tend-bar-fill.tier-mid { background: var(--mid); }
 .tend-bar-fill.tier-bad { background: var(--bad); }
-.tend-bar-num { font-size: 0.68rem; font-weight: 700; color: var(--text); min-width: 28px; text-align: right; }
-.opp-quality-note { display: block; font-size: 0.62rem; font-style: italic; color: var(--muted); font-weight: 400; }
+.tend-bar-num { font-size: 0.68rem; font-weight: 700; color: var(--text); width: 28px; text-align: center; }
+.sos-row td {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
 
 .recent-games-dropdown { margin-top: 8px; }
 .recent-games-dropdown summary {
