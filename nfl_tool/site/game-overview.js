@@ -250,7 +250,7 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       return `<tr><td>${r.label}</td><td>${tendBar}</td><td class="num ${perfCls}">${perfDisplay}</td></tr>`;
     })
     .join("");
-  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption">Usage</td><td class="metric-caption">${group.perfLabel}</td></tr>${rows}`;
+  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption"></td><td class="metric-caption">${group.perfLabel}</td></tr>${rows}`;
 }
 
 function renderSchemeTable(offTeam, defTeam) {
