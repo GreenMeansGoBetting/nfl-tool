@@ -592,11 +592,29 @@ def build_team_stats(
         # "When they DIDN'T score first, how many of their own possessions
         # they'd gotten before the opponent did" -- every such game, no DST
         # exclusion needed since this counts the TRAILING team's own
-        # offensive drives regardless of how the opponent scored.
+        # offensive drives regardless of how the opponent scored. This is
+        # the OFFENSE-side half of the story.
         trailing_list = [trailing_possessions[gid] for gid, info in first_td_by_game.items() if info["allowed_team"] == team]
         trailing_games = len(trailing_list)
         trailing_games_with_possession = sum(1 for c in trailing_list if c >= 1)
         trailing_games_zero_possession = sum(1 for c in trailing_list if c == 0)
+
+        # DEFENSE-side mirror of the two lists above, same underlying data
+        # just credited to the other team: when THIS team's defense allowed
+        # the first score, how many of the OPPONENT's own possessions did
+        # it take them (own_possessions, viewed from the other side); when
+        # THIS team scored first themselves, how many of the opponent's own
+        # possessions had already happened -- i.e. how many drives this
+        # defense forced before its offense got there first (trailing_
+        # possessions, viewed from the other side).
+        allowed_possessions = [
+            possessions_to_score[gid]
+            for gid, info in first_td_by_game.items()
+            if info["allowed_team"] == team and gid in possessions_to_score
+        ]
+        forced_list = [trailing_possessions[gid] for gid, info in first_td_by_game.items() if info["team"] == team]
+        forced_games_with_possession = sum(1 for c in forced_list if c >= 1)
+        forced_games_zero_possession = sum(1 for c in forced_list if c == 0)
 
         stats[team] = {
             "games_played": g,
@@ -644,6 +662,13 @@ def build_team_stats(
             "trailing_games_with_possession": trailing_games_with_possession,
             "trailing_games_zero_possession": trailing_games_zero_possession,
             "avg_trailing_possessions": round(sum(trailing_list) / len(trailing_list), 2) if trailing_list else None,
+            "avg_possessions_allowed_before_first_td": round(sum(allowed_possessions) / len(allowed_possessions), 2)
+            if allowed_possessions
+            else None,
+            "possessions_allowed_before_first_td_games": len(allowed_possessions),
+            "forced_games_with_possession": forced_games_with_possession,
+            "forced_games_zero_possession": forced_games_zero_possession,
+            "avg_opponent_possessions_forced": round(sum(forced_list) / len(forced_list), 2) if forced_list else None,
             "pre_first_td_rz_trips": pre_rz_off_trips.get(team, 0),
             "pre_first_td_rz_trips_per_g": per_g(pre_rz_off_trips.get(team, 0)),
             "pre_first_td_rz_conversions": pre_rz_off_conv.get(team, 0),
