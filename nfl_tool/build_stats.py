@@ -530,6 +530,97 @@ def compute_explosive_plays(pbp: pd.DataFrame) -> dict:
     return result
 
 
+def compute_general_stats(pbp: pd.DataFrame) -> dict:
+    """"Normal" box-score volume stats for the Game Overviews page -- raw
+    season totals, both this team's own offense and its defense's mirror
+    (what it allows/takes away). per-game rates and derived shares (comp %,
+    yards/attempt, turnover margin, ...) are computed in build_team_stats
+    alongside every other derived rate in this pipeline."""
+    result = {}
+    for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
+        if pd.isna(team):
+            continue
+        off = pbp[pbp["posteam"] == team]
+        deff = pbp[pbp["defteam"] == team]
+
+        result[team] = {
+            "pass_att": int((off["pass_attempt"] == 1).sum()),
+            "completions": int((off["complete_pass"] == 1).sum()),
+            "pass_yards": float(off.loc[off["complete_pass"] == 1, "yards_gained"].sum()),
+            "int_thrown": int((off["interception"] == 1).sum()),
+            "sacks_allowed": int((off["sack"] == 1).sum()),
+            "sack_yards_lost": float(-off.loc[off["sack"] == 1, "yards_gained"].sum()),
+            "rush_att": int((off["rush_attempt"] == 1).sum()),
+            "rush_yards": float(off.loc[off["rush_attempt"] == 1, "yards_gained"].sum()),
+            "fumbles_lost": int((off["fumble_lost"] == 1).sum()),
+            "pass_att_allowed": int((deff["pass_attempt"] == 1).sum()),
+            "completions_allowed": int((deff["complete_pass"] == 1).sum()),
+            "pass_yards_allowed": float(deff.loc[deff["complete_pass"] == 1, "yards_gained"].sum()),
+            "sacks_made": int((deff["sack"] == 1).sum()),
+            "int_made": int((deff["interception"] == 1).sum()),
+            "rush_att_allowed": int((deff["rush_attempt"] == 1).sum()),
+            "rush_yards_allowed": float(deff.loc[deff["rush_attempt"] == 1, "yards_gained"].sum()),
+            "fumbles_recovered": int((deff["fumble_lost"] == 1).sum()),
+            # Penalties are credited to whichever team committed them
+            # (penalty_team), independent of who had the ball at snap.
+            "penalties": int((pbp["penalty_team"] == team).sum()),
+            "penalty_yards": float(pbp.loc[pbp["penalty_team"] == team, "penalty_yards"].sum()),
+        }
+    return result
+
+
+def compute_recent_games(pbp: pd.DataFrame) -> dict:
+    """Per-team game log: opponent, home/away, halftime score, and final
+    score, oldest to newest -- grows week over week as the season goes.
+    Halftime score comes from the last play of the "Half1" game_half (the
+    running total_home_score/total_away_score at that point); final score
+    reuses pbp's own home_score/away_score columns (constant per game_id)."""
+    half1 = pbp[pbp["game_half"] == "Half1"].sort_values(["game_id", "play_id"])
+    half1_last = half1.groupby("game_id").last()
+
+    games = pbp.groupby("game_id").agg(
+        week=("week", "first"),
+        home_team=("home_team", "first"),
+        away_team=("away_team", "first"),
+        home_score=("home_score", "last"),
+        away_score=("away_score", "last"),
+    )
+
+    result = {}
+    for game_id, row in games.sort_values("week").iterrows():
+        home_ht = away_ht = None
+        if game_id in half1_last.index:
+            ht_row = half1_last.loc[game_id]
+            if pd.notna(ht_row["total_home_score"]):
+                home_ht = int(ht_row["total_home_score"])
+            if pd.notna(ht_row["total_away_score"]):
+                away_ht = int(ht_row["total_away_score"])
+
+        for team, opp, is_home in (
+            (row["home_team"], row["away_team"], True),
+            (row["away_team"], row["home_team"], False),
+        ):
+            if pd.isna(team):
+                continue
+            own_final = int(row["home_score"] if is_home else row["away_score"])
+            opp_final = int(row["away_score"] if is_home else row["home_score"])
+            own_ht = home_ht if is_home else away_ht
+            opp_ht = away_ht if is_home else home_ht
+            result.setdefault(team, []).append(
+                {
+                    "week": int(row["week"]),
+                    "opponent": opp,
+                    "home_away": "home" if is_home else "away",
+                    "ht_for": own_ht,
+                    "ht_against": opp_ht,
+                    "final_for": own_final,
+                    "final_against": opp_final,
+                    "result": "W" if own_final > opp_final else ("L" if own_final < opp_final else "T"),
+                }
+            )
+    return result
+
+
 def compute_injury_report(injuries_df: pd.DataFrame, teams) -> dict:
     """{team: {week: [ {full_name, position, position_group, report_status,
     practice_status, status, status_source} ]}}. status/status_source
@@ -685,6 +776,8 @@ def build_team_stats(
     red_zone,
     length_buckets,
     explosive,
+    general,
+    recent_games,
     possessions_to_score,
     trailing_possessions,
     pre_rz_off_trips,
@@ -731,6 +824,13 @@ def build_team_stats(
         expl = explosive.get(team, {})
         off_plays = expl.get("off_plays", 0)
         def_plays_faced = expl.get("def_plays_faced", 0)
+
+        gen = general.get(team, {})
+        team_recent = recent_games.get(team, [])
+        points_for = sum(g["final_for"] for g in team_recent)
+        points_against = sum(g["final_against"] for g in team_recent)
+        turnovers = gen.get("int_thrown", 0) + gen.get("fumbles_lost", 0)
+        takeaways = gen.get("int_made", 0) + gen.get("fumbles_recovered", 0)
 
         def per_g(n):
             return round(n / g, 2) if g else 0.0
@@ -831,6 +931,59 @@ def build_team_stats(
             "explosive_rate_allowed": round(expl.get("explosive_plays_allowed", 0) / def_plays_faced, 3)
             if def_plays_faced
             else None,
+            "points_for": points_for,
+            "points_for_per_g": per_g(points_for),
+            "points_against": points_against,
+            "points_against_per_g": per_g(points_against),
+            "pass_att": gen.get("pass_att", 0),
+            "pass_att_per_g": per_g(gen.get("pass_att", 0)),
+            "completions": gen.get("completions", 0),
+            "comp_pct": round(gen.get("completions", 0) / gen["pass_att"], 3) if gen.get("pass_att") else None,
+            "pass_yards": gen.get("pass_yards", 0),
+            "pass_yards_per_g": per_g(gen.get("pass_yards", 0)),
+            "yards_per_att": round(gen.get("pass_yards", 0) / gen["pass_att"], 2) if gen.get("pass_att") else None,
+            "int_thrown": gen.get("int_thrown", 0),
+            "int_thrown_per_g": per_g(gen.get("int_thrown", 0)),
+            "sacks_allowed": gen.get("sacks_allowed", 0),
+            "sacks_allowed_per_g": per_g(gen.get("sacks_allowed", 0)),
+            "sack_yards_lost": gen.get("sack_yards_lost", 0),
+            "rush_att": gen.get("rush_att", 0),
+            "rush_att_per_g": per_g(gen.get("rush_att", 0)),
+            "rush_yards": gen.get("rush_yards", 0),
+            "rush_yards_per_g": per_g(gen.get("rush_yards", 0)),
+            "yards_per_carry": round(gen.get("rush_yards", 0) / gen["rush_att"], 2) if gen.get("rush_att") else None,
+            "fumbles_lost": gen.get("fumbles_lost", 0),
+            "fumbles_lost_per_g": per_g(gen.get("fumbles_lost", 0)),
+            "pass_att_allowed": gen.get("pass_att_allowed", 0),
+            "pass_att_allowed_per_g": per_g(gen.get("pass_att_allowed", 0)),
+            "completions_allowed": gen.get("completions_allowed", 0),
+            "comp_pct_allowed": round(gen.get("completions_allowed", 0) / gen["pass_att_allowed"], 3)
+            if gen.get("pass_att_allowed")
+            else None,
+            "pass_yards_allowed": gen.get("pass_yards_allowed", 0),
+            "pass_yards_allowed_per_g": per_g(gen.get("pass_yards_allowed", 0)),
+            "sacks_made": gen.get("sacks_made", 0),
+            "sacks_made_per_g": per_g(gen.get("sacks_made", 0)),
+            "int_made": gen.get("int_made", 0),
+            "int_made_per_g": per_g(gen.get("int_made", 0)),
+            "rush_att_allowed": gen.get("rush_att_allowed", 0),
+            "rush_att_allowed_per_g": per_g(gen.get("rush_att_allowed", 0)),
+            "rush_yards_allowed": gen.get("rush_yards_allowed", 0),
+            "rush_yards_allowed_per_g": per_g(gen.get("rush_yards_allowed", 0)),
+            "yards_per_carry_allowed": round(gen.get("rush_yards_allowed", 0) / gen["rush_att_allowed"], 2)
+            if gen.get("rush_att_allowed")
+            else None,
+            "fumbles_recovered": gen.get("fumbles_recovered", 0),
+            "fumbles_recovered_per_g": per_g(gen.get("fumbles_recovered", 0)),
+            "turnovers": turnovers,
+            "turnovers_per_g": per_g(turnovers),
+            "takeaways": takeaways,
+            "takeaways_per_g": per_g(takeaways),
+            "turnover_margin_per_g": per_g(takeaways - turnovers),
+            "penalties": gen.get("penalties", 0),
+            "penalties_per_g": per_g(gen.get("penalties", 0)),
+            "penalty_yards": gen.get("penalty_yards", 0),
+            "penalty_yards_per_g": per_g(gen.get("penalty_yards", 0)),
             "avg_possessions_to_first_td": round(sum(own_possessions) / len(own_possessions), 2) if own_possessions else None,
             "possessions_to_first_td_games": len(own_possessions),
             "trailing_games": trailing_games,
@@ -939,6 +1092,8 @@ def main():
     red_zone = compute_red_zone(pbp)
     length_buckets = compute_length_buckets(pbp)
     explosive = compute_explosive_plays(pbp)
+    general = compute_general_stats(pbp)
+    recent_games = compute_recent_games(pbp)
     possessions_to_score = compute_possessions_to_score(pbp, first_td_by_game)
     trailing_possessions = compute_trailing_possessions(pbp, first_td_by_game)
     pre_rz_off_trips, pre_rz_off_conv, pre_rz_def_trips, pre_rz_def_conv = compute_pre_first_td_red_zone(pbp, first_td_by_game)
@@ -954,6 +1109,8 @@ def main():
         red_zone,
         length_buckets,
         explosive,
+        general,
+        recent_games,
         possessions_to_score,
         trailing_possessions,
         pre_rz_off_trips,
@@ -984,6 +1141,7 @@ def main():
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,
+        "recent_games": recent_games,
         "injuries": injury_report,
         "injuries_max_week": int(injuries_df["week"].max()) if len(injuries_df) else None,
     }

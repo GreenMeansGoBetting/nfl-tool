@@ -1,7 +1,19 @@
-const EXPLOSIVE_ROWS = [
-  { label: "Explosive Rush", totalOffKey: "explosive_rush", rateOffKey: "explosive_rush_per_g", totalDefKey: "explosive_rush_allowed", rateDefKey: "explosive_rush_allowed_per_g" },
-  { label: "Explosive Pass", totalOffKey: "explosive_pass", rateOffKey: "explosive_pass_per_g", totalDefKey: "explosive_pass_allowed", rateDefKey: "explosive_pass_allowed_per_g" },
-  { label: "Explosive Plays", totalOffKey: "explosive_plays", rateOffKey: "explosive_plays_per_g", totalDefKey: "explosive_plays_allowed", rateDefKey: "explosive_plays_allowed_per_g" },
+// "Normal" broadcast-style box score stats, one simple team-vs-team table
+// (not an offense-vs-opponent's-defense mismatch table like the TD pages --
+// this page is a quick overview, not a matchup-exploit finder). Red zone
+// and explosive plays are included but kept to one row each, not their own
+// section, per feedback that they shouldn't be massive categories here.
+const GENERAL_STAT_ROWS = [
+  { label: "Points For / Game", key: "points_for_per_g", invert: false, pct: false },
+  { label: "Points Against / Game", key: "points_against_per_g", invert: true, pct: false },
+  { label: "Pass Attempts / Game", key: "pass_att_per_g", invert: false, pct: false },
+  { label: "Completion %", key: "comp_pct", invert: false, pct: true },
+  { label: "Rush Attempts / Game", key: "rush_att_per_g", invert: false, pct: false },
+  { label: "Sacks Allowed / Game", key: "sacks_allowed_per_g", invert: true, pct: false },
+  { label: "Turnovers / Game", key: "turnovers_per_g", invert: true, pct: false },
+  { label: "Takeaways / Game", key: "takeaways_per_g", invert: false, pct: false },
+  { label: "Red Zone TDs / Game", key: "rz_td_per_g", invert: false, pct: false },
+  { label: "Explosive Play Rate", key: "explosive_rate", invert: false, pct: true },
 ];
 
 const MARKETS = [
@@ -15,7 +27,7 @@ const COLORS = [
   { key: "red", label: "No Confidence" },
 ];
 
-const SECTIONS = ["odds", "angles", "firsttd", "redzone", "explosive", "injuries", "picks"];
+const SECTIONS = ["injuries", "odds", "general", "recent", "picks"];
 
 let weekGames = [];
 let currentGameIndex = 0;
@@ -46,39 +58,14 @@ function fmtOdds(n) {
 function fmtPct(p) {
   return p === null || p === undefined ? "" : `${Math.round(p * 100)}%`;
 }
-
-// ---- explosive-play mismatch / red zone / first-TD "angles" ----
-// Reuses checkOpportunity/renderMatchupSnapshot unchanged from common.js --
-// this page is deliberately framed as general handicapping angles, never
-// "TD"/"touchdown" wording, even though two of the three inputs are
-// TD-derived stats shared with the TD Data page.
-function overviewInsights(offTeam, defTeam) {
-  const insights = [];
-
-  const expl = checkOpportunity(
-    offTeam,
-    defTeam,
-    (t) => DATA.team_stats[t].explosive_rate,
-    (t) => DATA.team_stats[t].explosive_rate_allowed,
-    false,
-    true
-  );
-  if (expl) insights.push({ ...expl, category: "explosive", subject: null, team: offTeam, label: "explosive plays" });
-
-  const rz = checkOpportunity(
-    offTeam,
-    defTeam,
-    (t) => DATA.team_stats[t].rz_td_per_g,
-    (t) => DATA.team_stats[t].rz_td_allowed_per_g,
-    false,
-    true
-  );
-  if (rz) insights.push({ ...rz, category: "redzone", subject: null, team: offTeam, label: "red zone touchdowns" });
-
-  const first = checkOpportunity(offTeam, defTeam, (t) => DATA.team_stats[t].first_td_rate, (t) => firstTdAllowedRate(t), false, true);
-  if (first) insights.push({ ...first, category: "first_td", subject: null, team: offTeam, label: "getting on the board first" });
-
-  return insights;
+// nflverse's schedule "gametime" is already Eastern -- just reformat to
+// 12-hour, no timezone math needed.
+function fmtGameTime(time) {
+  if (!time) return "";
+  const [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${period} ET`;
 }
 
 function renderGameHeader(game) {
@@ -87,70 +74,94 @@ function renderGameHeader(game) {
   const dateLabel = game.date
     ? new Date(game.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })
     : "";
+  const timeLabel = fmtGameTime(game.time);
   headerEl.innerHTML = `
-    <img src="${teamLogoUrl(game.away)}" class="team-logo-lg" alt="${game.away}" loading="lazy">
-    <span class="game-header-team">${TEAM_NAMES[game.away] || game.away}</span>
-    <span class="at">@</span>
-    <span class="game-header-team">${TEAM_NAMES[game.home] || game.home}</span>
-    <img src="${teamLogoUrl(game.home)}" class="team-logo-lg" alt="${game.home}" loading="lazy">
-    <span class="game-header-meta">${dateLabel}${game.time ? " &middot; " + game.time : ""}</span>
+    <div class="game-header-teams">
+      <img src="${teamLogoUrl(game.away)}" class="team-logo-lg" alt="${game.away}" loading="lazy">
+      <span class="game-header-team">${TEAM_NAMES[game.away] || game.away}</span>
+      <span class="at">@</span>
+      <span class="game-header-team">${TEAM_NAMES[game.home] || game.home}</span>
+      <img src="${teamLogoUrl(game.home)}" class="team-logo-lg" alt="${game.home}" loading="lazy">
+    </div>
+    <div class="game-header-meta">${dateLabel}${timeLabel ? " &middot; " + timeLabel : ""}</div>
   `;
 }
 
+// One combined box: team logos as row headers, Spread/Total/Moneyline as
+// columns -- a single glance instead of three separate boxes.
 function renderOddsBar(game) {
   const hasSpread = game.away_team_spread !== null && game.away_spread_odds !== null;
   const hasTotal = game.total_line !== null;
   const hasMl = game.away_moneyline !== null && game.home_moneyline !== null;
 
-  const spreadHtml = hasSpread
-    ? `<div class="odds-line"><span class="odds-team">${game.away}</span><span class="odds-num">${fmtSigned(game.away_team_spread)}</span><span class="odds-price">(${fmtOdds(game.away_spread_odds)})</span></div>
-       <div class="odds-line"><span class="odds-team">${game.home}</span><span class="odds-num">${fmtSigned(game.home_team_spread)}</span><span class="odds-price">(${fmtOdds(game.home_spread_odds)})</span></div>`
-    : `<p class="no-data-note">Not posted yet.</p>`;
+  if (!hasSpread && !hasTotal && !hasMl) {
+    return `<p class="no-data-note">Odds not posted yet for this game.</p>`;
+  }
 
-  const totalHtml = hasTotal
-    ? `<div class="odds-line"><span class="odds-team">Over</span><span class="odds-num">${fmt(game.total_line, 1)}</span><span class="odds-price">(${fmtOdds(game.over_odds)})</span></div>
-       <div class="odds-line"><span class="odds-team">Under</span><span class="odds-num">${fmt(game.total_line, 1)}</span><span class="odds-price">(${fmtOdds(game.under_odds)})</span></div>`
-    : `<p class="no-data-note">Not posted yet.</p>`;
+  const spreadCell = (team, line, odds) => (hasSpread ? `${fmtSigned(line)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
+  const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 1)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
+  const mlCell = (odds, prob) => (hasMl ? `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>` : "--");
 
-  const mlHtml = hasMl
-    ? `<div class="odds-line"><span class="odds-team">${game.away}</span><span class="odds-num">${fmtOdds(game.away_moneyline)}</span><span class="odds-price">${fmtPct(game.away_ml_implied_prob)} no-vig</span></div>
-       <div class="odds-line"><span class="odds-team">${game.home}</span><span class="odds-num">${fmtOdds(game.home_moneyline)}</span><span class="odds-price">${fmtPct(game.home_ml_implied_prob)} no-vig</span></div>`
-    : `<p class="no-data-note">Not posted yet.</p>`;
-
-  return `<div class="odds-bar">
-    <div class="odds-box"><span class="odds-label">Spread</span>${spreadHtml}</div>
-    <div class="odds-box"><span class="odds-label">Total</span>${totalHtml}</div>
-    <div class="odds-box"><span class="odds-label">Moneyline</span>${mlHtml}</div>
-  </div>`;
+  return `<table class="data-table odds-table">
+    <thead><tr><th></th><th>Spread</th><th>Total</th><th>Moneyline</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="odds-team-cell"><img src="${teamLogoUrl(game.away)}" class="team-logo" alt="${game.away}" loading="lazy">${game.away}</td>
+        <td class="num">${spreadCell(game.away, game.away_team_spread, game.away_spread_odds)}</td>
+        <td class="num">${totalCell("O", game.over_odds)}</td>
+        <td class="num">${mlCell(game.away_moneyline, game.away_ml_implied_prob)}</td>
+      </tr>
+      <tr>
+        <td class="odds-team-cell"><img src="${teamLogoUrl(game.home)}" class="team-logo" alt="${game.home}" loading="lazy">${game.home}</td>
+        <td class="num">${spreadCell(game.home, game.home_team_spread, game.home_spread_odds)}</td>
+        <td class="num">${totalCell("U", game.under_odds)}</td>
+        <td class="num">${mlCell(game.home_moneyline, game.home_ml_implied_prob)}</td>
+      </tr>
+    </tbody>
+  </table>`;
 }
 
-function renderFirstTdBox(team) {
-  const s = DATA.team_stats[team];
-  const scoredCls = tierFor("first_td_rate", team, false);
-  const allowedCls = tierForFirstTdAllowed(team);
-  return `<section class="mini-stat-box">
-    <h3>${team}</h3>
-    <div class="mini-stat-row"><span>Scores first</span><span class="num ${scoredCls}">${fmt(s.first_td_rate * 100, 0)}% <span class="muted">(${s.first_td_games}/${s.games_played})</span></span></div>
-    <div class="mini-stat-row"><span>Allows first</span><span class="num ${allowedCls}">${fmt(firstTdAllowedRate(team) * 100, 0)}% <span class="muted">(${firstTdAllowedGames(team)}/${s.games_played})</span></span></div>
-  </section>`;
-}
-
-function renderExplosiveTable(offTeam, defTeam) {
-  const off = DATA.team_stats[offTeam];
-  const def = DATA.team_stats[defTeam];
-
-  const rows = EXPLOSIVE_ROWS.map((r) => {
-    const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
-    const offRateCls = tierFor(r.rateOffKey, offTeam, false);
-    const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
-    const defRateCls = tierFor(r.rateDefKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td></tr>`;
+// Simple team-vs-team comparison (each team's own value, tiered
+// league-wide) -- not an offense-vs-defense mismatch table like the TD
+// pages use, so this reads as a plain overview rather than an angle-finder.
+function renderGeneralStatsTable(away, home) {
+  const teamHeader = (t) => `<th><img src="${teamLogoUrl(t)}" class="team-logo" alt="${t}" loading="lazy">${t}</th>`;
+  const rows = GENERAL_STAT_ROWS.map((r) => {
+    const awayVal = DATA.team_stats[away][r.key];
+    const homeVal = DATA.team_stats[home][r.key];
+    const awayCls = tierFor(r.key, away, r.invert);
+    const homeCls = tierFor(r.key, home, r.invert);
+    const format = (v) => (v === null || v === undefined ? "--" : r.pct ? `${Math.round(v * 100)}%` : fmt(v, 1));
+    return `<tr><td>${r.label}</td><td class="num ${awayCls}">${format(awayVal)}</td><td class="num ${homeCls}">${format(homeVal)}</td></tr>`;
   }).join("");
 
-  return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
+  return `<table class="data-table general-stat-table">
+    <thead><tr><th></th>${teamHeader(away)}${teamHeader(home)}</tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
+}
+
+function renderRecentGamesPanel(team) {
+  const games = (DATA.recent_games[team] || []).slice().reverse();
+  if (games.length === 0) {
+    return `<h3>${team}</h3><p class="no-data-note">No games played yet this season.</p>`;
+  }
+  const rows = games
+    .map((g) => {
+      const oppLabel = g.home_away === "away" ? `@ ${g.opponent}` : g.opponent;
+      const resultCls = g.result === "W" ? "tier-good" : g.result === "L" ? "tier-bad" : "tier-mid";
+      const halfLabel = g.ht_for === null || g.ht_against === null ? "--" : `${g.ht_for}-${g.ht_against}`;
+      return `<tr><td>${g.week}</td><td>${oppLabel}</td><td class="num">${halfLabel}</td><td class="num">${g.final_for}-${g.final_against}</td><td class="num ${resultCls}">${g.result}</td></tr>`;
+    })
+    .join("");
+  return `<h3>${team}</h3>
+    <details class="recent-games-dropdown">
+      <summary>Recent Games (${games.length})</summary>
+      <table class="data-table recent-games-table">
+        <thead><tr><th>Wk</th><th>Opp</th><th>Half</th><th>Final</th><th>W/L</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </details>`;
 }
 
 function statusAbbr(status) {
@@ -379,15 +390,12 @@ function render() {
   emptyEl.hidden = true;
   sectionEls.forEach((el) => (el.hidden = false));
 
-  document.getElementById("odds-content").innerHTML = renderOddsBar(game);
-  document.getElementById("angles-content").innerHTML = renderMatchupSnapshot([...overviewInsights(away, home), ...overviewInsights(home, away)]);
-  document.getElementById("firsttd-content").innerHTML = renderFirstTdBox(away) + renderFirstTdBox(home);
-  document.getElementById("col-away-redzone").innerHTML = renderRedZoneTable(away, home);
-  document.getElementById("col-home-redzone").innerHTML = renderRedZoneTable(home, away);
-  document.getElementById("col-away-explosive").innerHTML = renderExplosiveTable(away, home);
-  document.getElementById("col-home-explosive").innerHTML = renderExplosiveTable(home, away);
   document.getElementById("col-away-injuries").innerHTML = renderInjuryPanel(away, game.week);
   document.getElementById("col-home-injuries").innerHTML = renderInjuryPanel(home, game.week);
+  document.getElementById("odds-content").innerHTML = renderOddsBar(game);
+  document.getElementById("general-content").innerHTML = renderGeneralStatsTable(away, home);
+  document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
+  document.getElementById("col-home-recent").innerHTML = renderRecentGamesPanel(home);
 
   renderPickTracker(game);
 }

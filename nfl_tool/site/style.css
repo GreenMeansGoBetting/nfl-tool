@@ -1,13 +1,21 @@
 :root {
-  --bg: #0f1115;
-  --panel: #171a21;
-  --border: #262b36;
-  --text: #e8eaed;
-  --muted: #8b93a5;
-  --accent: #5b8def;
-  --good: #3ec972;
-  --mid: #d9a53f;
-  --bad: #d94f4f;
+  --bg: #f7f6f1;
+  --panel: #ffffff;
+  --table-head: #edeade;
+  --border: #dad6c8;
+  --text: #1c1f1a;
+  --muted: #6b7062;
+  --accent: #2f5fbf;
+  --accent-rgb: 47, 95, 191;
+  --good: #1f9d55;
+  --good-rgb: 31, 157, 85;
+  --good-text: #14532d;
+  --mid: #b7791f;
+  --mid-rgb: 183, 121, 31;
+  --mid-text: #78350f;
+  --bad: #c53030;
+  --bad-rgb: 197, 48, 48;
+  --bad-text: #7f1d1d;
 }
 
 * { box-sizing: border-box; }
@@ -87,7 +95,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px 24px 32px; }
   font-family: inherit;
 }
 .matchup-card:hover { border-color: var(--accent); }
-.matchup-card.selected { border-color: var(--accent); background: rgba(91, 141, 239, 0.15); }
+.matchup-card.selected { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.12); }
 .matchup-teams-row { display: flex; align-items: center; gap: 6px; }
 .team-logo { width: 26px; height: 26px; object-fit: contain; }
 .matchup-card .at { color: var(--muted); font-size: 0.75rem; }
@@ -205,14 +213,14 @@ select {
   font-weight: 700;
   font-size: 0.72rem;
   letter-spacing: 0.02em;
-  background: #1d2129;
+  background: var(--table-head);
   text-align: center;
 }
 .sub-hdr {
   font-size: 0.62rem !important;
   font-weight: 600 !important;
   color: var(--muted) !important;
-  background: #1d2129 !important;
+  background: var(--table-head) !important;
 }
 .col-sub {
   display: block;
@@ -224,9 +232,9 @@ select {
 .data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
 
-.tier-good { background: rgba(62, 201, 114, 0.28); color: #eafff0; font-weight: 600; }
-.tier-mid { background: rgba(217, 165, 63, 0.28); color: #fff6e6; font-weight: 600; }
-.tier-bad { background: rgba(217, 79, 79, 0.28); color: #ffecec; font-weight: 600; }
+.tier-good { background: rgba(var(--good-rgb), 0.16); color: var(--good-text); font-weight: 600; }
+.tier-mid { background: rgba(var(--mid-rgb), 0.16); color: var(--mid-text); font-weight: 600; }
+.tier-bad { background: rgba(var(--bad-rgb), 0.16); color: var(--bad-text); font-weight: 600; }
 
 .no-data-note {
   font-size: 0.85rem;
@@ -238,7 +246,7 @@ select {
 .muted-label { color: var(--muted); font-style: italic; font-size: 0.85em; }
 
 .section-group-label {
-  background: #1d2129;
+  background: var(--table-head);
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 700;
@@ -258,8 +266,8 @@ h3 {
   font-size: 0.95rem;
 }
 
-.lb-table th.lb-player { background: rgba(91, 141, 239, 0.22); }
-.lb-table th.lb-pos { background: rgba(217, 165, 63, 0.22); }
+.lb-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
+.lb-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
 footer {
   text-align: center;
@@ -275,18 +283,26 @@ footer a { color: var(--accent); }
 
 .game-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 16px;
   margin: 0 0 10px;
+  text-align: center;
+}
+.game-header-teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .team-logo-lg { width: 40px; height: 40px; object-fit: contain; }
 .game-header-team { font-weight: 700; font-size: 1.05rem; }
-.game-header-meta { color: var(--muted); font-size: 0.85rem; margin-left: auto; }
+.game-header-meta { color: var(--muted); font-size: 0.85rem; }
 
 .game-flipper {
   display: flex;
@@ -296,55 +312,30 @@ footer a { color: var(--accent); }
   margin: 0 0 16px;
 }
 
-.odds-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 8px;
-}
-.odds-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-.odds-label {
-  display: block;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 6px;
-}
-.odds-line {
+.odds-table th, .odds-table td { text-align: center; }
+.odds-table .odds-team-cell {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 3px 0;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  text-align: left;
 }
-.odds-team { font-weight: 600; font-size: 0.85rem; }
-.odds-num { font-weight: 700; font-size: 1.15rem; }
 .odds-price { color: var(--muted); font-size: 0.78rem; }
-@media (max-width: 760px) {
-  .odds-bar { grid-template-columns: 1fr; }
+
+.general-stat-table th:first-child, .general-stat-table td:first-child {
+  text-align: left;
+  width: 40%;
 }
 
-.mini-stat-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-.mini-stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 0;
+.recent-games-dropdown { margin-top: 8px; }
+.recent-games-dropdown summary {
+  cursor: pointer;
+  font-weight: 600;
   font-size: 0.88rem;
+  color: var(--accent);
+  padding: 4px 0;
 }
-.mini-stat-row .num { padding: 2px 8px; border-radius: 4px; }
+.recent-games-table { margin-top: 8px; }
 
 .injury-group { margin-top: 6px; }
 .injury-group-label {
@@ -390,12 +381,12 @@ footer a { color: var(--accent); }
   cursor: pointer;
 }
 .pick-side-btn:hover, .pick-color-btn:hover, .pick-save-btn:hover:not(:disabled), .pick-edit-btn:hover { border-color: var(--accent); }
-.pick-side-btn.selected { border-color: var(--accent); background: rgba(91, 141, 239, 0.2); }
+.pick-side-btn.selected { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.15); }
 .pick-save-btn:disabled { opacity: 0.4; cursor: default; }
 
-.pick-color-btn.pick-color-green.selected { border-color: var(--good); background: rgba(62, 201, 114, 0.25); }
-.pick-color-btn.pick-color-yellow.selected { border-color: var(--mid); background: rgba(217, 165, 63, 0.25); }
-.pick-color-btn.pick-color-red.selected { border-color: var(--bad); background: rgba(217, 79, 79, 0.25); }
+.pick-color-btn.pick-color-green.selected { border-color: var(--good); background: rgba(var(--good-rgb), 0.18); }
+.pick-color-btn.pick-color-yellow.selected { border-color: var(--mid); background: rgba(var(--mid-rgb), 0.18); }
+.pick-color-btn.pick-color-red.selected { border-color: var(--bad); background: rgba(var(--bad-rgb), 0.18); }
 
 .pick-badge {
   font-size: 0.85rem;
@@ -403,9 +394,9 @@ footer a { color: var(--accent); }
   padding: 4px 10px;
   border-radius: 4px;
 }
-.pick-badge.pick-color-green { background: rgba(62, 201, 114, 0.25); color: #eafff0; }
-.pick-badge.pick-color-yellow { background: rgba(217, 165, 63, 0.25); color: #fff6e6; }
-.pick-badge.pick-color-red { background: rgba(217, 79, 79, 0.25); color: #ffecec; }
+.pick-badge.pick-color-green { background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
+.pick-badge.pick-color-yellow { background: rgba(var(--mid-rgb), 0.18); color: var(--mid-text); }
+.pick-badge.pick-color-red { background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); }
 
 .pick-result {
   font-size: 0.72rem;
@@ -413,10 +404,10 @@ footer a { color: var(--accent); }
   padding: 3px 8px;
   border-radius: 4px;
 }
-.pick-result-win { background: rgba(62, 201, 114, 0.25); color: #eafff0; }
-.pick-result-loss { background: rgba(217, 79, 79, 0.25); color: #ffecec; }
-.pick-result-push { background: rgba(139, 147, 165, 0.25); color: var(--text); }
-.pick-result-pending { background: #1d2129; color: var(--muted); }
+.pick-result-win { background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
+.pick-result-loss { background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); }
+.pick-result-push { background: rgba(107, 112, 98, 0.18); color: var(--text); }
+.pick-result-pending { background: var(--table-head); color: var(--muted); }
 
 .pick-summary-row, .pick-recent-row {
   display: flex;
