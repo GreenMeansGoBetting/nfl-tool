@@ -136,26 +136,26 @@ function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false) {
   return percentileTier(shareOf(team), pool.map(shareOf), invert);
 }
 
-// One-click week/matchup picker, shared by both pages. Reads DATA.schedule
+// One-click week/matchup picker, shared by all pages. Reads DATA.schedule
 // (the real schedule for whatever season was requested, even if the stats
 // themselves fell back to last season -- see build_stats.py) and
-// DATA.current_week. Clicking a matchup card sets the existing away/home
-// selects and calls onPick (each page's own render()) -- the manual
-// dropdowns stay fully functional on their own, this is just a faster path
-// to the same state.
+// DATA.current_week. Clicking a matchup card calls options.onSelect (by
+// default: sets the away/home selects) then onPick (each page's own
+// render()) -- the manual dropdowns stay fully functional on their own on
+// the two-select pages, this is just a faster path to the same state.
+// Game Overviews has no selects at all, so it supplies its own
+// getSelected/onSelect that read/write its own "current game" index instead.
 let scheduleWeek = null;
 
-function renderMatchupRow(rowEl, week) {
+function renderMatchupRow(rowEl, week, selectedAway, selectedHome) {
   const games = (DATA.schedule || []).filter((g) => g.week === week);
   if (games.length === 0) {
     rowEl.innerHTML = `<p class="no-data-note">No games scheduled for this week.</p>`;
     return;
   }
-  const awayVal = document.getElementById("away-select").value;
-  const homeVal = document.getElementById("home-select").value;
   rowEl.innerHTML = games
     .map((g) => {
-      const selected = g.away === awayVal && g.home === homeVal ? " selected" : "";
+      const selected = g.away === selectedAway && g.home === selectedHome ? " selected" : "";
       const dateLabel = g.date ? new Date(g.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" }) : "";
       return `<button type="button" class="matchup-card${selected}" data-away="${g.away}" data-home="${g.home}">
         <span class="matchup-teams-row">
@@ -169,7 +169,21 @@ function renderMatchupRow(rowEl, week) {
     .join("");
 }
 
-function initScheduleScroller(onPick) {
+function initScheduleScroller(onPick, options = {}) {
+  const getSelected =
+    options.getSelected ||
+    (() => ({
+      away: document.getElementById("away-select").value,
+      home: document.getElementById("home-select").value,
+    }));
+  const onSelect =
+    options.onSelect ||
+    ((away, home) => {
+      document.getElementById("away-select").value = away;
+      document.getElementById("home-select").value = home;
+    });
+  const onWeekChange = options.onWeekChange || (() => {});
+
   const wrap = document.getElementById("schedule-scroller");
   if (!wrap) return;
   if (!DATA.schedule || DATA.schedule.length === 0) {
@@ -188,7 +202,8 @@ function initScheduleScroller(onPick) {
 
   function refresh() {
     label.textContent = `Week ${scheduleWeek}`;
-    renderMatchupRow(row, scheduleWeek);
+    const { away, home } = getSelected();
+    renderMatchupRow(row, scheduleWeek, away, home);
     prevBtn.disabled = scheduleWeek <= weeks[0];
     nextBtn.disabled = scheduleWeek >= weeks[weeks.length - 1];
   }
@@ -198,6 +213,7 @@ function initScheduleScroller(onPick) {
     if (idx > 0) {
       scheduleWeek = weeks[idx - 1];
       refresh();
+      onWeekChange();
     }
   });
   nextBtn.addEventListener("click", () => {
@@ -205,13 +221,13 @@ function initScheduleScroller(onPick) {
     if (idx < weeks.length - 1) {
       scheduleWeek = weeks[idx + 1];
       refresh();
+      onWeekChange();
     }
   });
   row.addEventListener("click", (e) => {
     const card = e.target.closest(".matchup-card");
     if (!card) return;
-    document.getElementById("away-select").value = card.dataset.away;
-    document.getElementById("home-select").value = card.dataset.home;
+    onSelect(card.dataset.away, card.dataset.home);
     [...row.querySelectorAll(".matchup-card")].forEach((c) => c.classList.toggle("selected", c === card));
     onPick();
   });
@@ -304,6 +320,32 @@ function renderMatchupSnapshot(opportunities) {
     .map((i) => `<li>${i.text}</li>`)
     .join("");
   return `<ul class="snapshot-list">${items}</ul>`;
+}
+
+// Shared by the TD Data and Game Overviews pages.
+const RED_ZONE_ROWS = [
+  { label: "RZ TD", totalOffKey: "rz_td", rateOffKey: "rz_td_per_g", totalDefKey: "rz_td_allowed", rateDefKey: "rz_td_allowed_per_g" },
+  { label: "RZ Plays", totalOffKey: "rz_plays", rateOffKey: "rz_plays_per_g", totalDefKey: "rz_plays_allowed", rateDefKey: "rz_plays_allowed_per_g" },
+  { label: "RZ Carries", totalOffKey: "rz_carries", rateOffKey: "rz_carries_per_g", totalDefKey: "rz_carries_allowed", rateDefKey: "rz_carries_allowed_per_g" },
+  { label: "RZ Targets", totalOffKey: "rz_targets", rateOffKey: "rz_targets_per_g", totalDefKey: "rz_targets_allowed", rateDefKey: "rz_targets_allowed_per_g" },
+];
+
+function renderRedZoneTable(offTeam, defTeam) {
+  const off = DATA.team_stats[offTeam];
+  const def = DATA.team_stats[defTeam];
+
+  const rows = RED_ZONE_ROWS.map((r) => {
+    const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
+    const offRateCls = tierFor(r.rateOffKey, offTeam, false);
+    const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
+    const defRateCls = tierFor(r.rateDefKey, defTeam, true);
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td></tr>`;
+  }).join("");
+
+  return `<table class="data-table stat-table">
+    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 function headerRow(offTeam, defTeam, subLabels) {

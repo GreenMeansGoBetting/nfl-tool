@@ -38,6 +38,7 @@ import pandas as pd
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"
 SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
+INJURIES_URL = "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{season}.csv"
 
 TEAM_NAME_FIXES = {
     # nflverse occasionally uses different abbreviations across seasons for
@@ -64,6 +65,30 @@ LENGTH_BUCKETS = [
     ("40_49", 40, 49),
     ("50_plus", 50, 9999),
 ]
+
+# "Explosive play" thresholds for the Game Overviews page -- a completed
+# pass needs more yardage than a run to count as a chunk play, per common
+# usage. Tunable if the on-air feel doesn't match these.
+EXPLOSIVE_RUSH_YARDS = 10
+EXPLOSIVE_PASS_YARDS = 15
+
+# Injury-report position grouping -- distinct from POSITION_BUCKETS/
+# bucket_position() above, which is TD-scorer-oriented and dumps every
+# non-skill position into "DST". An injury report needs to show offensive
+# and defensive line/secondary players too, so it gets its own map.
+OFFENSE_POSITIONS = {"QB", "RB", "FB", "HB", "WR", "TE", "T", "G", "C", "OL", "OT", "OG"}
+DEFENSE_POSITIONS = {
+    "DE", "DT", "NT", "DL", "LB", "ILB", "OLB", "MLB", "EDGE",
+    "CB", "S", "SS", "FS", "SAF", "DB",
+}
+
+
+def position_group(pos):
+    if pos in OFFENSE_POSITIONS:
+        return "OFF"
+    if pos in DEFENSE_POSITIONS:
+        return "DEF"
+    return "ST"
 
 
 def normalize_team(abbr):
@@ -98,8 +123,8 @@ def remote_exists(url: str) -> bool:
         return False
 
 
-def download_if_missing(url: str, dest: Path):
-    if dest.exists():
+def download_if_missing(url: str, dest: Path, force: bool = False):
+    if dest.exists() and not force:
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     print(f"Downloading {url} -> {dest}")
@@ -154,31 +179,97 @@ def load_rosters(data_dir: Path, season: int) -> pd.DataFrame:
     return df[["season", "week", "team", "gsis_id", "position", "full_name"]]
 
 
+def load_injuries(data_dir: Path, season: int) -> pd.DataFrame:
+    """Weekly official injury/practice reports. force=True: like the
+    schedule, this changes daily within a season (practice status updates
+    through the week, final Q/D/O designation usually lands Thu/Fri) --
+    never worth caching past the first run."""
+    path = data_dir / f"injuries_{season}.csv"
+    download_if_missing(INJURIES_URL.format(season=season), path, force=True)
+    df = pd.read_csv(path, low_memory=False)
+    df["team"] = df["team"].map(normalize_team)
+    return df[["team", "week", "position", "full_name", "report_status", "practice_status"]]
+
+
+def moneyline_to_implied_prob(ml):
+    """American odds -> raw (vig-included) implied win probability."""
+    if ml is None or pd.isna(ml):
+        return None
+    ml = float(ml)
+    return 100 / (ml + 100) if ml > 0 else -ml / (-ml + 100)
+
+
+def novig_moneyline_probs(away_ml, home_ml):
+    """Normalizes both sides' implied probabilities to sum to 1.0, removing
+    the sportsbook's vig. Returns (away_prob, home_prob), or (None, None) if
+    either side's moneyline isn't posted yet."""
+    away_p = moneyline_to_implied_prob(away_ml)
+    home_p = moneyline_to_implied_prob(home_ml)
+    if away_p is None or home_p is None:
+        return None, None
+    total = away_p + home_p
+    return round(away_p / total, 3), round(home_p / total, 3)
+
+
 def compute_schedule(data_dir: Path, season: int) -> list:
     """The requested season's schedule (one file covering every season the
-    NFL has ever played, filtered down here) -- used only for the site's
-    week/matchup picker, so it deliberately uses the REQUESTED season, not
-    whatever season the stats themselves fell back to. The NFL publishes
-    the full season schedule well before it's played, so this exists even
-    when play-by-play for that season doesn't yet."""
+    NFL has ever played, filtered down here) -- used for the site's
+    week/matchup picker AND (for Game Overviews) odds/scores, so it
+    deliberately uses the REQUESTED season, not whatever season the stats
+    themselves fell back to. The NFL publishes the full season schedule
+    (and betting lines) well before it's played, so this exists even when
+    play-by-play for that season doesn't yet.
+
+    force=True on the download: unlike pbp/roster archives, this file
+    changes daily within a season (line movement, final scores as games
+    complete) -- caching it after the first run would freeze odds/scores
+    at whatever they were the first time build_stats.py was ever run."""
     path = data_dir / "games.csv"
-    download_if_missing(SCHEDULE_URL, path)
+    download_if_missing(SCHEDULE_URL, path, force=True)
     df = pd.read_csv(path, low_memory=False)
     df = df[(df["season"] == season) & (df["game_type"] == "REG")].copy()
     for col in ("away_team", "home_team"):
         df[col] = df[col].map(normalize_team)
     df = df.sort_values(["week", "gameday", "gametime"])
 
+    def num_or_none(v):
+        return float(v) if pd.notna(v) else None
+
     games = []
     for _, row in df.iterrows():
+        away_score = num_or_none(row.get("away_score"))
+        home_score = num_or_none(row.get("home_score"))
+        spread_line = num_or_none(row.get("spread_line"))
+        away_ml = num_or_none(row.get("away_moneyline"))
+        home_ml = num_or_none(row.get("home_moneyline"))
+        away_ml_prob, home_ml_prob = novig_moneyline_probs(away_ml, home_ml)
         games.append(
             {
+                "game_id": row["game_id"],
                 "week": int(row["week"]),
                 "date": row["gameday"],
                 "weekday": row["weekday"],
                 "time": row["gametime"] if pd.notna(row["gametime"]) else None,
                 "away": row["away_team"],
                 "home": row["home_team"],
+                "away_score": int(away_score) if away_score is not None else None,
+                "home_score": int(home_score) if home_score is not None else None,
+                "status": "final" if away_score is not None and home_score is not None else "scheduled",
+                # spread_line is away-team-referenced in nflverse's schedule
+                # file (negative = away favored) -- precomputed both signed
+                # per-team numbers here so nothing downstream has to re-derive it.
+                "spread_line": spread_line,
+                "away_team_spread": spread_line,
+                "home_team_spread": -spread_line if spread_line is not None else None,
+                "away_spread_odds": num_or_none(row.get("away_spread_odds")),
+                "home_spread_odds": num_or_none(row.get("home_spread_odds")),
+                "total_line": num_or_none(row.get("total_line")),
+                "over_odds": num_or_none(row.get("over_odds")),
+                "under_odds": num_or_none(row.get("under_odds")),
+                "away_moneyline": away_ml,
+                "home_moneyline": home_ml,
+                "away_ml_implied_prob": away_ml_prob,
+                "home_ml_implied_prob": home_ml_prob,
             }
         )
     return games
@@ -402,6 +493,68 @@ def compute_length_buckets(pbp: pd.DataFrame) -> dict:
     return result
 
 
+def compute_explosive_plays(pbp: pd.DataFrame) -> dict:
+    """Chunk-play rate for the Game Overviews page -- a rush of
+    EXPLOSIVE_RUSH_YARDS+ or a COMPLETED pass of EXPLOSIVE_PASS_YARDS+,
+    excluding two-point attempts. Both this team's own offense and what its
+    defense allows."""
+    scrimmage = pbp[
+        ((pbp["rush_attempt"] == 1) | (pbp["pass_attempt"] == 1)) & (pbp["two_point_attempt"] != 1)
+    ].copy()
+    is_expl_rush = (scrimmage["rush_attempt"] == 1) & (scrimmage["yards_gained"] >= EXPLOSIVE_RUSH_YARDS)
+    is_expl_pass = (
+        (scrimmage["pass_attempt"] == 1)
+        & (scrimmage["complete_pass"] == 1)
+        & (scrimmage["yards_gained"] >= EXPLOSIVE_PASS_YARDS)
+    )
+    scrimmage["is_expl_rush"] = is_expl_rush
+    scrimmage["is_expl_pass"] = is_expl_pass
+    scrimmage["is_explosive"] = is_expl_rush | is_expl_pass
+
+    result = {}
+    for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
+        if pd.isna(team):
+            continue
+        off = scrimmage[scrimmage["posteam"] == team]
+        deff = scrimmage[scrimmage["defteam"] == team]
+        result[team] = {
+            "off_plays": int(len(off)),
+            "def_plays_faced": int(len(deff)),
+            "explosive_rush": int(off["is_expl_rush"].sum()),
+            "explosive_pass": int(off["is_expl_pass"].sum()),
+            "explosive_plays": int(off["is_explosive"].sum()),
+            "explosive_rush_allowed": int(deff["is_expl_rush"].sum()),
+            "explosive_pass_allowed": int(deff["is_expl_pass"].sum()),
+            "explosive_plays_allowed": int(deff["is_explosive"].sum()),
+        }
+    return result
+
+
+def compute_injury_report(injuries_df: pd.DataFrame, teams) -> dict:
+    """{team: {week: [ {full_name, position, position_group, report_status,
+    practice_status, status, status_source} ]}}. status/status_source
+    precompute the report_status-else-practice_status fallback -- early in
+    the week the official Q/D/O designation is often still blank while the
+    practice-participation status is already posted."""
+    result = {t: {} for t in teams}
+    for row in injuries_df.itertuples(index=False):
+        if row.team not in result:
+            continue
+        report = row.report_status if pd.notna(row.report_status) and row.report_status else None
+        practice = row.practice_status if pd.notna(row.practice_status) and row.practice_status else None
+        entry = {
+            "full_name": row.full_name,
+            "position": row.position,
+            "position_group": position_group(row.position),
+            "report_status": report,
+            "practice_status": practice,
+            "status": report or practice,
+            "status_source": "report" if report else ("practice" if practice else None),
+        }
+        result[row.team].setdefault(str(int(row.week)), []).append(entry)
+    return result
+
+
 def compute_possessions_to_score(pbp: pd.DataFrame, first_td_by_game: dict) -> dict:
     """For games where the first TD was a normal offensive score, returns
     dict game_id -> possession_number: which of the scoring team's OWN
@@ -531,6 +684,7 @@ def build_team_stats(
     scoring_df,
     red_zone,
     length_buckets,
+    explosive,
     possessions_to_score,
     trailing_possessions,
     pre_rz_off_trips,
@@ -574,6 +728,9 @@ def build_team_stats(
 
         rz = red_zone.get(team, {})
         lb = length_buckets.get(team, {"scored": {}, "allowed": {}})
+        expl = explosive.get(team, {})
+        off_plays = expl.get("off_plays", 0)
+        def_plays_faced = expl.get("def_plays_faced", 0)
 
         def per_g(n):
             return round(n / g, 2) if g else 0.0
@@ -656,6 +813,24 @@ def build_team_stats(
             "rz_targets_allowed_per_g": per_g(rz.get("rz_targets_allowed", 0)),
             "td_by_length": lb["scored"],
             "td_by_length_allowed": lb["allowed"],
+            "off_plays": off_plays,
+            "def_plays_faced": def_plays_faced,
+            "explosive_rush": expl.get("explosive_rush", 0),
+            "explosive_rush_per_g": per_g(expl.get("explosive_rush", 0)),
+            "explosive_rush_allowed": expl.get("explosive_rush_allowed", 0),
+            "explosive_rush_allowed_per_g": per_g(expl.get("explosive_rush_allowed", 0)),
+            "explosive_pass": expl.get("explosive_pass", 0),
+            "explosive_pass_per_g": per_g(expl.get("explosive_pass", 0)),
+            "explosive_pass_allowed": expl.get("explosive_pass_allowed", 0),
+            "explosive_pass_allowed_per_g": per_g(expl.get("explosive_pass_allowed", 0)),
+            "explosive_plays": expl.get("explosive_plays", 0),
+            "explosive_plays_per_g": per_g(expl.get("explosive_plays", 0)),
+            "explosive_plays_allowed": expl.get("explosive_plays_allowed", 0),
+            "explosive_plays_allowed_per_g": per_g(expl.get("explosive_plays_allowed", 0)),
+            "explosive_rate": round(expl.get("explosive_plays", 0) / off_plays, 3) if off_plays else None,
+            "explosive_rate_allowed": round(expl.get("explosive_plays_allowed", 0) / def_plays_faced, 3)
+            if def_plays_faced
+            else None,
             "avg_possessions_to_first_td": round(sum(own_possessions) / len(own_possessions), 2) if own_possessions else None,
             "possessions_to_first_td_games": len(own_possessions),
             "trailing_games": trailing_games,
@@ -748,6 +923,10 @@ def main():
 
     pbp = load_pbp(args.data_dir, season)
     rosters = load_rosters(args.data_dir, season)
+    # Injuries are about the REQUESTED season's upcoming games, not
+    # whatever season the pbp-based stats fell back to -- same reasoning
+    # compute_schedule() already documents.
+    injuries_df = load_injuries(args.data_dir, args.season)
     pos_lookup = build_position_lookup(rosters)
 
     teams = sorted(set(pbp["home_team"].dropna()) | set(pbp["away_team"].dropna()))
@@ -759,6 +938,7 @@ def main():
     scoring_df = scoring_plays_with_position(pbp, pos_lookup)
     red_zone = compute_red_zone(pbp)
     length_buckets = compute_length_buckets(pbp)
+    explosive = compute_explosive_plays(pbp)
     possessions_to_score = compute_possessions_to_score(pbp, first_td_by_game)
     trailing_possessions = compute_trailing_possessions(pbp, first_td_by_game)
     pre_rz_off_trips, pre_rz_off_conv, pre_rz_def_trips, pre_rz_def_conv = compute_pre_first_td_red_zone(pbp, first_td_by_game)
@@ -773,6 +953,7 @@ def main():
         scoring_df,
         red_zone,
         length_buckets,
+        explosive,
         possessions_to_score,
         trailing_possessions,
         pre_rz_off_trips,
@@ -789,6 +970,7 @@ def main():
 
     schedule = compute_schedule(args.data_dir, args.season)
     current_week = compute_current_week(schedule)
+    injury_report = compute_injury_report(injuries_df, teams)
 
     blob = {
         "season": season,
@@ -802,6 +984,8 @@ def main():
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,
+        "injuries": injury_report,
+        "injuries_max_week": int(injuries_df["week"].max()) if len(injuries_df) else None,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

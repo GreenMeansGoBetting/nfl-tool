@@ -32,13 +32,6 @@ const STAT_ROWS = [
   { label: "First TD", special: "first" },
 ];
 
-const RED_ZONE_ROWS = [
-  { label: "RZ TD", totalOffKey: "rz_td", rateOffKey: "rz_td_per_g", totalDefKey: "rz_td_allowed", rateDefKey: "rz_td_allowed_per_g" },
-  { label: "RZ Plays", totalOffKey: "rz_plays", rateOffKey: "rz_plays_per_g", totalDefKey: "rz_plays_allowed", rateDefKey: "rz_plays_allowed_per_g" },
-  { label: "RZ Carries", totalOffKey: "rz_carries", rateOffKey: "rz_carries_per_g", totalDefKey: "rz_carries_allowed", rateDefKey: "rz_carries_allowed_per_g" },
-  { label: "RZ Targets", totalOffKey: "rz_targets", rateOffKey: "rz_targets_per_g", totalDefKey: "rz_targets_allowed", rateDefKey: "rz_targets_allowed_per_g" },
-];
-
 function topOpportunity(candidates) {
   const valid = candidates.filter(Boolean);
   if (valid.length === 0) return null;
@@ -121,24 +114,6 @@ function renderStatTable(offTeam, defTeam) {
       const defRateCls = tierForFirstTdAllowed(defTeam);
       return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${offTotal}</td><td class="num ${offRateCls}">${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}">${defTotal}</td><td class="num ${defRateCls}">${fmt(defRate, 0)}%</td></tr>`;
     }
-    const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
-    const offRateCls = tierFor(r.rateOffKey, offTeam, false);
-    const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
-    const defRateCls = tierFor(r.rateDefKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td></tr>`;
-  }).join("");
-
-  return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-}
-
-function renderRedZoneTable(offTeam, defTeam) {
-  const off = DATA.team_stats[offTeam];
-  const def = DATA.team_stats[defTeam];
-
-  const rows = RED_ZONE_ROWS.map((r) => {
     const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
     const offRateCls = tierFor(r.rateOffKey, offTeam, false);
     const defTotalCls = tierFor(r.totalDefKey, defTeam, true);

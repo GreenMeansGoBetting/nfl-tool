@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Game Overviews</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">GMG's NFL Suite</span>
+  <nav class="page-nav">
+    <a href="index.html">TD Data</a>
+    <a href="first-td.html">First TD Data</a>
+    <span class="page-nav-current">Game Overviews</span>
+  </nav>
+  <span id="season-note" class="muted"></span>
+</div>
+
+<main>
+  <div id="schedule-scroller" class="schedule-scroller" hidden>
+    <div class="week-picker">
+      <button type="button" id="week-prev" class="week-nav-btn">&lsaquo;</button>
+      <span id="week-label" class="week-label">Week</span>
+      <button type="button" id="week-next" class="week-nav-btn">&rsaquo;</button>
+    </div>
+    <div id="matchup-row" class="matchup-row"></div>
+  </div>
+
+  <div id="game-header" class="game-header" hidden></div>
+
+  <div id="game-flipper" class="game-flipper" hidden>
+    <button type="button" id="game-prev" class="week-nav-btn">&lsaquo;</button>
+    <span id="game-flipper-label" class="week-label">Game</span>
+    <button type="button" id="game-next" class="week-nav-btn">&rsaquo;</button>
+  </div>
+
+  <div id="empty-state" class="empty-state">
+    <p>Loading this week's slate&hellip;</p>
+  </div>
+
+  <div id="section-odds" class="section-wrap" hidden>
+    <h2 class="section-title">Odds</h2>
+    <p class="section-note">Snapshot as of the last data refresh &mdash; not live.</p>
+    <div id="odds-content"></div>
+  </div>
+
+  <div id="section-angles" class="section-wrap" hidden>
+    <h2 class="section-title">Matchup Angles</h2>
+    <p class="section-note">Statistical edges worth mentioning before kickoff.</p>
+    <div id="angles-content"></div>
+  </div>
+
+  <div id="section-firsttd" class="section-wrap" hidden>
+    <h2 class="section-title">First TD</h2>
+    <div id="firsttd-content" class="two-col"></div>
+  </div>
+
+  <div id="section-redzone" class="section-wrap" hidden>
+    <h2 class="section-title">Red Zone</h2>
+    <div class="two-col">
+      <section id="col-away-redzone"></section>
+      <section id="col-home-redzone"></section>
+    </div>
+  </div>
+
+  <div id="section-explosive" class="section-wrap" hidden>
+    <h2 class="section-title">Explosive Plays</h2>
+    <div class="two-col">
+      <section id="col-away-explosive"></section>
+      <section id="col-home-explosive"></section>
+    </div>
+  </div>
+
+  <div id="section-injuries" class="section-wrap" hidden>
+    <h2 class="section-title">Injuries</h2>
+    <p class="section-note">From the most recent official/practice report on file.</p>
+    <div class="two-col">
+      <section id="col-away-injuries"></section>
+      <section id="col-home-injuries"></section>
+    </div>
+  </div>
+
+  <div id="section-picks" class="section-wrap" hidden>
+    <h2 class="section-title">Pick Tracker</h2>
+    <p class="section-note">Saved to this browser only. Auto-grades once a game's final score is in data.json.</p>
+    <div id="picks-content"></div>
+    <div id="picks-summary"></div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> schedules, play-by-play, and injury reports. Odds/injuries reflect whenever <code>build_stats.py</code> was last run, not a live feed.
+</footer>
+
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script src="picks.js"></script>
+<script src="game-overview.js"></script>
+</body>
+</html>
