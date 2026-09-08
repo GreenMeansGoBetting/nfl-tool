@@ -92,20 +92,28 @@ function renderRzUsageTable(team) {
   if (usage.length === 0) {
     return `<h3>${team}</h3><p class="no-data-note">No red zone touches yet before a first TD this season.</p>`;
   }
+  const firstTdsById = {};
+  (DATA.player_stats[team] || []).forEach((p) => {
+    firstTdsById[p.player_id] = p.first_tds;
+  });
+
+  const maxFirstTds = Math.max(...usage.map((p) => firstTdsById[p.player_id] || 0));
   const maxCarries = Math.max(...usage.map((p) => p.carries));
   const maxTargets = Math.max(...usage.map((p) => p.targets));
   const maxReceptions = Math.max(...usage.map((p) => p.receptions));
   const rows = usage
     .map((p) => {
+      const firstTds = firstTdsById[p.player_id] || 0;
+      const firstTdBg = teamFade(team, maxFirstTds ? firstTds / maxFirstTds : 0);
       const carriesBg = teamFade(team, maxCarries ? p.carries / maxCarries : 0);
       const targetsBg = teamFade(team, maxTargets ? p.targets / maxTargets : 0);
       const receptionsBg = teamFade(team, maxReceptions ? p.receptions / maxReceptions : 0);
-      return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num" style="background:${carriesBg}">${p.carries}</td><td class="num" style="background:${targetsBg}">${p.targets}</td><td class="num" style="background:${receptionsBg}">${p.receptions}</td></tr>`;
+      return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num" style="background:${firstTdBg}">${firstTds}</td><td class="num" style="background:${carriesBg}">${p.carries}</td><td class="num" style="background:${targetsBg}">${p.targets}</td><td class="num" style="background:${receptionsBg}">${p.receptions}</td></tr>`;
     })
     .join("");
   return `<h3>${team}</h3>
     <table class="data-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Carries</th><th class="num">Targets</th><th class="num">Rec</th></tr></thead>
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">First TDs</th><th class="num">Carries</th><th class="num">Targets</th><th class="num">Rec</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
