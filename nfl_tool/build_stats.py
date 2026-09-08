@@ -478,22 +478,39 @@ def compute_red_zone_trips(pbp: pd.DataFrame) -> dict:
     """Full-season red zone TRIPS (drives that reached the red zone) and how
     many ended in a touchdown on that same drive -- the drive-level "Red
     Zone TD %" conversion rate compute_red_zone()'s docstring flagged as
-    deliberately left out of that first pass. Offensive scrimmage TDs only,
-    same convention as everywhere else in this pipeline."""
-    rz_drives = pbp[pbp["yardline_100"] <= RED_ZONE_YARDLINE].groupby(["game_id", "posteam"])["drive"].unique()
+    deliberately left out of that first pass. Both this team's own
+    conversion rate and what its defense allows (a drive belongs to exactly
+    one offense, so a defense's "allowed" trip is looked up by the same
+    (game_id, drive) key rather than needing the opponent's identity).
+    Offensive scrimmage TDs only, same convention as everywhere else in this
+    pipeline."""
+    rz = pbp[pbp["yardline_100"] <= RED_ZONE_YARDLINE]
+    off_trip_drives = rz.groupby(["game_id", "posteam"])["drive"].unique()
+    def_trip_drives = rz.groupby(["game_id", "defteam"])["drive"].unique()
+
     off_td = pbp[(pbp["touchdown"] == 1) & ((pbp["pass_touchdown"] == 1) | (pbp["rush_touchdown"] == 1))]
-    td_drives = off_td.groupby(["game_id", "posteam"])["drive"].apply(set)
+    td_drive_keys = set(zip(off_td["game_id"], off_td["drive"]))
+    td_drives_by_scorer = off_td.groupby(["game_id", "posteam"])["drive"].apply(set)
 
     result = {}
-    for (game_id, team), drives in rz_drives.items():
+    for (game_id, team), drives in off_trip_drives.items():
         if pd.isna(team):
             continue
-        d = result.setdefault(team, {"rz_trips": 0, "rz_trips_td": 0})
-        scored = td_drives.get((game_id, team), set())
+        d = result.setdefault(team, {"rz_trips": 0, "rz_trips_td": 0, "rz_trips_allowed": 0, "rz_trips_td_allowed": 0})
+        scored = td_drives_by_scorer.get((game_id, team), set())
         for drv in set(drives):
             d["rz_trips"] += 1
             if drv in scored:
                 d["rz_trips_td"] += 1
+
+    for (game_id, team), drives in def_trip_drives.items():
+        if pd.isna(team):
+            continue
+        d = result.setdefault(team, {"rz_trips": 0, "rz_trips_td": 0, "rz_trips_allowed": 0, "rz_trips_td_allowed": 0})
+        for drv in set(drives):
+            d["rz_trips_allowed"] += 1
+            if (game_id, drv) in td_drive_keys:
+                d["rz_trips_td_allowed"] += 1
     return result
 
 
@@ -1012,6 +1029,11 @@ def build_team_stats(
             "rz_trips": rz_trip.get("rz_trips", 0),
             "rz_trips_td": rz_trip.get("rz_trips_td", 0),
             "rz_td_rate": round(rz_trip.get("rz_trips_td", 0) / rz_trip["rz_trips"], 3) if rz_trip.get("rz_trips") else None,
+            "rz_trips_allowed": rz_trip.get("rz_trips_allowed", 0),
+            "rz_trips_td_allowed": rz_trip.get("rz_trips_td_allowed", 0),
+            "rz_td_rate_allowed": round(rz_trip.get("rz_trips_td_allowed", 0) / rz_trip["rz_trips_allowed"], 3)
+            if rz_trip.get("rz_trips_allowed")
+            else None,
             "avg_possessions_to_first_td": round(sum(own_possessions) / len(own_possessions), 2) if own_possessions else None,
             "possessions_to_first_td_games": len(own_possessions),
             "trailing_games": trailing_games,

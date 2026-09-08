@@ -3,27 +3,22 @@
 // this page is a quick overview, not a matchup-exploit finder). Red zone
 // and explosive plays are included but kept to one row each, not their own
 // section, per feedback that they shouldn't be massive categories here.
-// Exact set + order picked via the Game Overview Stat Picker checklist.
+// Same set picked via the Game Overview Stat Picker checklist, but paired
+// one offense stat per row with its defense mirror -- half the rows, and
+// each row reads as a matchup ("this team's pass volume vs that team's
+// pass defense") instead of two separate lines. Penalty Yards had no
+// defense-side mirror selected/computed, so it's left out of this table.
 const GENERAL_STAT_ROWS = [
-  { label: "Points For / Game", key: "points_for_per_g", invert: false, pct: false },
-  { label: "Points Against / Game", key: "points_against_per_g", invert: true, pct: false },
-  { label: "Pass Attempts / Game", key: "pass_att_per_g", invert: false, pct: false },
-  { label: "Pass Yards / Game", key: "pass_yards_per_g", invert: false, pct: false },
-  { label: "Sacks Allowed / Game", key: "sacks_allowed_per_g", invert: true, pct: false },
-  { label: "Rush Attempts / Game", key: "rush_att_per_g", invert: false, pct: false },
-  { label: "Rush Yards / Game", key: "rush_yards_per_g", invert: false, pct: false },
-  { label: "Yards / Carry", key: "yards_per_carry", invert: false, pct: false },
-  { label: "Pass Attempts Allowed / Game", key: "pass_att_allowed_per_g", invert: true, pct: false },
-  { label: "Pass Yards Allowed / Game", key: "pass_yards_allowed_per_g", invert: true, pct: false },
-  { label: "Sacks Made / Game", key: "sacks_made_per_g", invert: false, pct: false },
-  { label: "Rush Attempts Allowed / Game", key: "rush_att_allowed_per_g", invert: true, pct: false },
-  { label: "Rush Yards Allowed / Game", key: "rush_yards_allowed_per_g", invert: true, pct: false },
-  { label: "Yards / Carry Allowed", key: "yards_per_carry_allowed", invert: true, pct: false },
-  { label: "Turnovers (Giveaways) / Game", key: "turnovers_per_g", invert: true, pct: false },
-  { label: "Takeaways / Game", key: "takeaways_per_g", invert: false, pct: false },
-  { label: "Penalty Yards / Game", key: "penalty_yards_per_g", invert: true, pct: false },
-  { label: "Red Zone TD %", key: "rz_td_rate", invert: false, pct: true },
-  { label: "Explosive Play Rate", key: "explosive_rate", invert: false, pct: true },
+  { label: "Points", offKey: "points_for_per_g", offInvert: false, defKey: "points_against_per_g", defInvert: true },
+  { label: "Pass Attempts", offKey: "pass_att_per_g", offInvert: false, defKey: "pass_att_allowed_per_g", defInvert: true },
+  { label: "Pass Yards", offKey: "pass_yards_per_g", offInvert: false, defKey: "pass_yards_allowed_per_g", defInvert: true },
+  { label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false },
+  { label: "Rush Attempts", offKey: "rush_att_per_g", offInvert: false, defKey: "rush_att_allowed_per_g", defInvert: true },
+  { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
+  { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
+  { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
+  { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
+  { label: "Explosive Play Rate", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
 ];
 
 const MARKETS = [
@@ -131,22 +126,33 @@ function renderOddsBar(game) {
   </table>`;
 }
 
-// Simple team-vs-team comparison (each team's own value, tiered
-// league-wide) -- not an offense-vs-defense mismatch table like the TD
-// pages use, so this reads as a plain overview rather than an angle-finder.
-function renderGeneralStatsTable(away, home) {
-  const teamHeader = (t) => `<th><img src="${teamLogoUrl(t)}" class="team-logo" alt="${t}" loading="lazy">${t}</th>`;
+// One number per side (not the Total/Per-Game pair headerRow() expects),
+// so this gets its own compact header instead of reusing that function.
+function pairedStatHeader(offTeam, defTeam) {
+  const offRgb = teamAccentRgb(offTeam);
+  const defRgb = teamAccentRgb(defTeam);
+  const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
+  const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
+  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th></tr>`;
+}
+
+// Each row pairs an offense stat with its defense mirror, framed as a
+// matchup: offTeam's own number vs defTeam's own "allowed" number on the
+// same stat -- e.g. "Sacks" shows offTeam's own sacks-allowed rate next to
+// defTeam's own sacks-made rate. Call twice (away-vs-home, home-vs-away)
+// for the two side-by-side tables.
+function renderGeneralStatsTable(offTeam, defTeam) {
+  const off = DATA.team_stats[offTeam];
+  const def = DATA.team_stats[defTeam];
+  const format = (v, pct) => (v === null || v === undefined ? "--" : pct ? `${Math.round(v * 100)}%` : fmt(v, 1));
   const rows = GENERAL_STAT_ROWS.map((r) => {
-    const awayVal = DATA.team_stats[away][r.key];
-    const homeVal = DATA.team_stats[home][r.key];
-    const awayCls = tierFor(r.key, away, r.invert);
-    const homeCls = tierFor(r.key, home, r.invert);
-    const format = (v) => (v === null || v === undefined ? "--" : r.pct ? `${Math.round(v * 100)}%` : fmt(v, 1));
-    return `<tr><td>${r.label}</td><td class="num ${awayCls}">${format(awayVal)}</td><td class="num ${homeCls}">${format(homeVal)}</td></tr>`;
+    const offCls = tierFor(r.offKey, offTeam, r.offInvert);
+    const defCls = tierFor(r.defKey, defTeam, r.defInvert);
+    return `<tr><td>${r.label}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td></tr>`;
   }).join("");
 
   return `<table class="data-table general-stat-table">
-    <thead><tr><th></th>${teamHeader(away)}${teamHeader(home)}</tr></thead>
+    <thead>${pairedStatHeader(offTeam, defTeam)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -403,7 +409,8 @@ function render() {
   document.getElementById("col-away-injuries").innerHTML = renderInjuryPanel(away, game.week);
   document.getElementById("col-home-injuries").innerHTML = renderInjuryPanel(home, game.week);
   document.getElementById("odds-content").innerHTML = renderOddsBar(game);
-  document.getElementById("general-content").innerHTML = renderGeneralStatsTable(away, home);
+  document.getElementById("col-away-general").innerHTML = renderGeneralStatsTable(away, home);
+  document.getElementById("col-home-general").innerHTML = renderGeneralStatsTable(home, away);
   document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
   document.getElementById("col-home-recent").innerHTML = renderRecentGamesPanel(home);
 
