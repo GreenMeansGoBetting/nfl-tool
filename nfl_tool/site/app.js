@@ -7,6 +7,19 @@ const LENGTH_BUCKETS = [
   { key: "50_plus", label: "50+ yd" },
 ];
 
+// For the Matchup Snapshot only (the detailed Touchdown Distance table
+// below keeps all 6 granular buckets) -- a single 10-yard slice like
+// "30-39 yd" reads as too specific and can be a tiny, noisy sample (e.g.
+// 2 TDs). Rolling up into short/big-play tells the same "explosive or
+// not" story on a far more solid count.
+const MACRO_LENGTH_BUCKETS = [
+  { key: "short", keys: ["under_10", "10_19"], label: "short TDs" },
+  { key: "bigplay", keys: ["20_29", "30_39", "40_49", "50_plus"], label: "big plays" },
+];
+function sumBucketKeys(dict, keys) {
+  return keys.reduce((sum, k) => sum + (dict[k] || 0), 0);
+}
+
 // Every row in the combined offense/defense stat table -- each side shows
 // BOTH the season total and the per-game rate, so nothing needs a second
 // row. offKey/rateOffKey read off the offense-side team, the Def variants
@@ -60,16 +73,24 @@ function directionInsights(offTeam, defTeam) {
   if (posOpp) insights.push(posOpp);
 
   const distOpp = topOpportunity(
-    LENGTH_BUCKETS.map(({ key, label }) => {
+    MACRO_LENGTH_BUCKETS.map(({ key, keys, label }) => {
       const r = checkOpportunity(
         offTeam,
         defTeam,
-        (t) => (DATA.team_stats[t].total_td ? (DATA.team_stats[t].td_by_length[key] || 0) / DATA.team_stats[t].total_td : null),
-        (t) => (DATA.team_stats[t].total_td_allowed ? (DATA.team_stats[t].td_by_length_allowed[key] || 0) / DATA.team_stats[t].total_td_allowed : null),
+        (t) => {
+          const s = DATA.team_stats[t];
+          const count = sumBucketKeys(s.td_by_length, keys);
+          return s.total_td && count >= 3 ? count / s.total_td : null;
+        },
+        (t) => {
+          const s = DATA.team_stats[t];
+          const count = sumBucketKeys(s.td_by_length_allowed, keys);
+          return s.total_td_allowed && count >= 3 ? count / s.total_td_allowed : null;
+        },
         false,
         true
       );
-      return r && { ...r, category: "distance", subject: key, team: offTeam, label: `TDs from ${label}` };
+      return r && { ...r, category: "distance", subject: key, team: offTeam, label: label };
     })
   );
   if (distOpp) insights.push(distOpp);
