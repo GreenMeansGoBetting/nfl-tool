@@ -31,55 +31,180 @@ function renderBasicsTable(offTeam, defTeam) {
   </table>`;
 }
 
-// Genuine offense/defense pairing, like every other table on the site:
-// OFF column = offTeam's own offense (their scoring-first record). DEF
-// column = defTeam's own defense (what it does TO ITS OPPONENTS, not a
-// repeat of offTeam's numbers). Every OFF row has a real DEF mirror --
-// same underlying possession data, credited to the other side of the ball.
-// See build_stats.py's trailing_possessions/possessions_to_score comments.
-function renderOpportunitiesTable(offTeam, defTeam) {
-  const off = DATA.team_stats[offTeam];
-  const def = DATA.team_stats[defTeam];
-
-  const percentileClsFor = (statKey, team, invert) => {
-    const val = DATA.team_stats[team][statKey];
-    if (val === null) return "";
-    const pool = teamsWithGames().map((t) => DATA.team_stats[t][statKey]).filter((v) => v !== null);
-    return percentileTier(val, pool, invert);
-  };
-  const avgDisplay = (val, n) => (val === null ? "&mdash;" : `${fmt(val, 2)} <span class="muted">(n=${n})</span>`);
-
-  const offConvVals = teamsWithGames().map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate).filter((v) => v !== null);
-  const defConvVals = teamsWithGames().map((t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed).filter((v) => v !== null);
-  const offConvVal = off.pre_first_td_rz_conversion_rate;
-  const defConvVal = def.pre_first_td_rz_conversion_rate_allowed;
-  const offConvCls = offConvVal === null ? "" : percentileTier(offConvVal, offConvVals, false);
-  const defConvCls = defConvVal === null ? "" : percentileTier(defConvVal, defConvVals, true);
-  const offConvDisplay = offConvVal === null ? "&mdash;" : `${Math.round(offConvVal * 100)}%`;
-  const defConvDisplay = defConvVal === null ? "&mdash;" : `${Math.round(defConvVal * 100)}%`;
-
-  const offRzTotalCls = tierFor("pre_first_td_rz_trips", offTeam, false);
-  const offRzRateCls = tierFor("pre_first_td_rz_trips_per_g", offTeam, false);
-  const defRzTotalCls = tierFor("pre_first_td_rz_trips_allowed", defTeam, true);
-  const defRzRateCls = tierFor("pre_first_td_rz_trips_allowed_per_g", defTeam, true);
-
+// Two separate panels instead of one table with two columns whose meaning
+// flips depending on which side you're looking at. Offenses panel: both
+// teams' own scoring-first record, offense-phrased throughout. Defenses
+// panel: both teams' own allowing/preventing record, defense-phrased
+// throughout -- same underlying possession data as the offense panel
+// (see build_stats.py's trailing_possessions/possessions_to_score
+// comments), just credited and worded from the other side of the ball.
+// Every row uses ONE consistent meaning for both the Away and Home column,
+// so there's nothing to mentally flip while reading either panel.
+function teamPairTable(awayTeam, homeTeam, groups) {
+  const headerCell = (team) => `<th style="background:rgba(${teamAccentRgb(team).join(",")},0.4)">${team}</th>`;
+  const rows = groups
+    .map((group) => {
+      const label = `<tr><td class="section-group-label" colspan="3">${group.label}</td></tr>`;
+      const dataRows = group.rows
+        .map((r) => `<tr><td>${r.label}</td><td class="num ${r.awayCls || ""}">${r.away}</td><td class="num ${r.homeCls || ""}">${r.home}</td></tr>`)
+        .join("");
+      return label + dataRows;
+    })
+    .join("");
   return `<table class="data-table">
-    <thead><tr><th></th><th style="background:rgba(${teamAccentRgb(offTeam).join(",")},0.4)">${offTeam}<span class="col-sub">OFF</span></th><th style="background:rgba(${teamAccentRgb(defTeam).join(",")},0.4)">${defTeam}<span class="col-sub">DEF</span></th></tr></thead>
-    <tbody>
-      <tr><td class="section-group-label" colspan="3">Scoring First</td></tr>
-      <tr><td>Games Played</td><td class="num">${off.games_played}</td><td class="num">${def.games_played}</td></tr>
-      <tr><td>Scored First</td><td class="num ${tierFor("first_td_rate", offTeam, false)}">${off.first_td_games} of ${off.games_played}</td><td class="num ${tierForFirstTdAllowed(defTeam)}">${firstTdAllowedGames(defTeam)} of ${def.games_played}</td></tr>
-      <tr><td>When That Happened, Avg. Possessions It Took</td><td class="num ${percentileClsFor("avg_possessions_to_first_td", offTeam, true)}">${avgDisplay(off.avg_possessions_to_first_td, off.possessions_to_first_td_games)}</td><td class="num ${percentileClsFor("avg_possessions_allowed_before_first_td", defTeam, false)}">${avgDisplay(def.avg_possessions_allowed_before_first_td, def.possessions_allowed_before_first_td_games)}</td></tr>
-      <tr><td class="section-group-label" colspan="3">Trailing</td></tr>
-      <tr><td>Didn't Score First / Didn't Prevent It</td><td class="num">${off.trailing_games}</td><td class="num">${def.first_td_games}</td></tr>
-      <tr><td>Of Those, Opponent Had a Possession First</td><td class="num">${off.trailing_games_with_possession} <span class="muted">(0: ${off.trailing_games_zero_possession})</span></td><td class="num">${def.forced_games_with_possession} <span class="muted">(0: ${def.forced_games_zero_possession})</span></td></tr>
-      <tr><td>Avg. Possessions Before the Other Side Scored</td><td class="num">${off.avg_trailing_possessions === null ? "&mdash;" : fmt(off.avg_trailing_possessions, 2)}</td><td class="num">${def.avg_opponent_possessions_forced === null ? "&mdash;" : fmt(def.avg_opponent_possessions_forced, 2)}</td></tr>
-      <tr><td class="section-group-label" colspan="3">Red Zone</td></tr>
-      <tr><td>RZ Trips Before First TD (Total / Per Game)</td><td class="num"><span class="${offRzTotalCls}">${off.pre_first_td_rz_trips}</span> / <span class="${offRzRateCls}">${fmt(off.pre_first_td_rz_trips_per_g, 2)}</span></td><td class="num"><span class="${defRzTotalCls}">${def.pre_first_td_rz_trips_allowed}</span> / <span class="${defRzRateCls}">${fmt(def.pre_first_td_rz_trips_allowed_per_g, 2)}</span></td></tr>
-      <tr><td>Of Those, Converted to That TD</td><td class="num">${off.pre_first_td_rz_conversions} trip${off.pre_first_td_rz_conversions === 1 ? "" : "s"}</td><td class="num">${def.pre_first_td_rz_conversions_allowed} trip${def.pre_first_td_rz_conversions_allowed === 1 ? "" : "s"}</td></tr>
-      <tr><td>Conversion Rate</td><td class="num ${offConvCls}">${offConvDisplay}</td><td class="num ${defConvCls}">${defConvDisplay}</td></tr>
-    </tbody>
+    <thead><tr><th></th>${headerCell(awayTeam)}${headerCell(homeTeam)}</tr></thead>
+    <tbody>${rows}</tbody>
   </table>`;
+}
+
+const avgDisplay = (val, n) => (val === null ? "&mdash;" : `${fmt(val, 2)} <span class="muted">(n=${n})</span>`);
+const percentileClsFor = (statKey, team, invert) => {
+  const val = DATA.team_stats[team][statKey];
+  if (val === null) return "";
+  const pool = teamsWithGames().map((t) => DATA.team_stats[t][statKey]).filter((v) => v !== null);
+  return percentileTier(val, pool, invert);
+};
+const rzConvCls = (statKey, team, invert) => {
+  const val = DATA.team_stats[team][statKey];
+  if (val === null) return "";
+  const pool = teamsWithGames().map((t) => DATA.team_stats[t][statKey]).filter((v) => v !== null);
+  return percentileTier(val, pool, invert);
+};
+const rzConvDisplay = (statKey, team) => {
+  const val = DATA.team_stats[team][statKey];
+  return val === null ? "&mdash;" : `${Math.round(val * 100)}%`;
+};
+
+function renderOffensesPanel(awayTeam, homeTeam) {
+  const a = DATA.team_stats[awayTeam];
+  const h = DATA.team_stats[homeTeam];
+  const groups = [
+    {
+      label: "Scoring First",
+      rows: [
+        { label: "Games Played", away: a.games_played, home: h.games_played },
+        {
+          label: "Scored First",
+          away: `${a.first_td_games} of ${a.games_played}`,
+          home: `${h.first_td_games} of ${h.games_played}`,
+          awayCls: tierFor("first_td_rate", awayTeam, false),
+          homeCls: tierFor("first_td_rate", homeTeam, false),
+        },
+        {
+          label: "When That Happened, Avg. Possessions It Took",
+          away: avgDisplay(a.avg_possessions_to_first_td, a.possessions_to_first_td_games),
+          home: avgDisplay(h.avg_possessions_to_first_td, h.possessions_to_first_td_games),
+          awayCls: percentileClsFor("avg_possessions_to_first_td", awayTeam, true),
+          homeCls: percentileClsFor("avg_possessions_to_first_td", homeTeam, true),
+        },
+      ],
+    },
+    {
+      label: "Trailing",
+      rows: [
+        { label: "Didn't Score First", away: a.trailing_games, home: h.trailing_games },
+        {
+          label: "Of Those, Had a Possession First",
+          away: `${a.trailing_games_with_possession} <span class="muted">(0: ${a.trailing_games_zero_possession})</span>`,
+          home: `${h.trailing_games_with_possession} <span class="muted">(0: ${h.trailing_games_zero_possession})</span>`,
+        },
+        {
+          label: "Avg. Possessions Before the Other Side Scored",
+          away: a.avg_trailing_possessions === null ? "&mdash;" : fmt(a.avg_trailing_possessions, 2),
+          home: h.avg_trailing_possessions === null ? "&mdash;" : fmt(h.avg_trailing_possessions, 2),
+        },
+      ],
+    },
+    {
+      label: "Red Zone",
+      rows: [
+        {
+          label: "RZ Trips Before First TD (Total / Per Game)",
+          away: `<span class="${tierFor("pre_first_td_rz_trips", awayTeam, false)}">${a.pre_first_td_rz_trips}</span> / <span class="${tierFor("pre_first_td_rz_trips_per_g", awayTeam, false)}">${fmt(a.pre_first_td_rz_trips_per_g, 2)}</span>`,
+          home: `<span class="${tierFor("pre_first_td_rz_trips", homeTeam, false)}">${h.pre_first_td_rz_trips}</span> / <span class="${tierFor("pre_first_td_rz_trips_per_g", homeTeam, false)}">${fmt(h.pre_first_td_rz_trips_per_g, 2)}</span>`,
+        },
+        {
+          label: "Of Those, Converted to That TD",
+          away: `${a.pre_first_td_rz_conversions} trip${a.pre_first_td_rz_conversions === 1 ? "" : "s"}`,
+          home: `${h.pre_first_td_rz_conversions} trip${h.pre_first_td_rz_conversions === 1 ? "" : "s"}`,
+        },
+        {
+          label: "Conversion Rate",
+          away: rzConvDisplay("pre_first_td_rz_conversion_rate", awayTeam),
+          home: rzConvDisplay("pre_first_td_rz_conversion_rate", homeTeam),
+          awayCls: rzConvCls("pre_first_td_rz_conversion_rate", awayTeam, false),
+          homeCls: rzConvCls("pre_first_td_rz_conversion_rate", homeTeam, false),
+        },
+      ],
+    },
+  ];
+  return `<h3>Offenses</h3>${teamPairTable(awayTeam, homeTeam, groups)}`;
+}
+
+function renderDefensesPanel(awayTeam, homeTeam) {
+  const a = DATA.team_stats[awayTeam];
+  const h = DATA.team_stats[homeTeam];
+  const groups = [
+    {
+      label: "Allowing First",
+      rows: [
+        { label: "Games Played", away: a.games_played, home: h.games_played },
+        {
+          label: "Allowed First Score",
+          away: `${firstTdAllowedGames(awayTeam)} of ${a.games_played}`,
+          home: `${firstTdAllowedGames(homeTeam)} of ${h.games_played}`,
+          awayCls: tierForFirstTdAllowed(awayTeam),
+          homeCls: tierForFirstTdAllowed(homeTeam),
+        },
+        {
+          label: "When Allowed, Avg. Opponent's Possessions It Took Them",
+          away: avgDisplay(a.avg_possessions_allowed_before_first_td, a.possessions_allowed_before_first_td_games),
+          home: avgDisplay(h.avg_possessions_allowed_before_first_td, h.possessions_allowed_before_first_td_games),
+          awayCls: percentileClsFor("avg_possessions_allowed_before_first_td", awayTeam, false),
+          homeCls: percentileClsFor("avg_possessions_allowed_before_first_td", homeTeam, false),
+        },
+      ],
+    },
+    {
+      label: "Preventing First",
+      rows: [
+        { label: "Prevented First Score / Scored First Themselves", away: a.first_td_games, home: h.first_td_games },
+        {
+          label: "Of Those, Opponent Had a Possession First",
+          away: `${a.forced_games_with_possession} <span class="muted">(0: ${a.forced_games_zero_possession})</span>`,
+          home: `${h.forced_games_with_possession} <span class="muted">(0: ${h.forced_games_zero_possession})</span>`,
+        },
+        {
+          label: "Avg. Opponent Possessions Before This Team Scored",
+          away: a.avg_opponent_possessions_forced === null ? "&mdash;" : fmt(a.avg_opponent_possessions_forced, 2),
+          home: h.avg_opponent_possessions_forced === null ? "&mdash;" : fmt(h.avg_opponent_possessions_forced, 2),
+        },
+      ],
+    },
+    {
+      label: "Red Zone",
+      rows: [
+        {
+          label: "RZ Trips Allowed Before First TD (Total / Per Game)",
+          away: `<span class="${tierFor("pre_first_td_rz_trips_allowed", awayTeam, true)}">${a.pre_first_td_rz_trips_allowed}</span> / <span class="${tierFor("pre_first_td_rz_trips_allowed_per_g", awayTeam, true)}">${fmt(a.pre_first_td_rz_trips_allowed_per_g, 2)}</span>`,
+          home: `<span class="${tierFor("pre_first_td_rz_trips_allowed", homeTeam, true)}">${h.pre_first_td_rz_trips_allowed}</span> / <span class="${tierFor("pre_first_td_rz_trips_allowed_per_g", homeTeam, true)}">${fmt(h.pre_first_td_rz_trips_allowed_per_g, 2)}</span>`,
+        },
+        {
+          label: "Of Those, Opponent Converted to That TD",
+          away: `${a.pre_first_td_rz_conversions_allowed} trip${a.pre_first_td_rz_conversions_allowed === 1 ? "" : "s"}`,
+          home: `${h.pre_first_td_rz_conversions_allowed} trip${h.pre_first_td_rz_conversions_allowed === 1 ? "" : "s"}`,
+        },
+        {
+          label: "Conversion Rate Allowed",
+          away: rzConvDisplay("pre_first_td_rz_conversion_rate_allowed", awayTeam),
+          home: rzConvDisplay("pre_first_td_rz_conversion_rate_allowed", homeTeam),
+          awayCls: rzConvCls("pre_first_td_rz_conversion_rate_allowed", awayTeam, true),
+          homeCls: rzConvCls("pre_first_td_rz_conversion_rate_allowed", homeTeam, true),
+        },
+      ],
+    },
+  ];
+  return `<h3>Defenses</h3>${teamPairTable(awayTeam, homeTeam, groups)}`;
 }
 
 function renderRzUsageTable(team) {
@@ -113,28 +238,7 @@ function renderRzUsageTable(team) {
     </table>`;
 }
 
-function renderScorers(team) {
-  const players = (DATA.player_stats[team] || [])
-    .filter((p) => p.first_tds > 0)
-    .slice()
-    .sort((a, b) => b.first_tds - a.first_tds || (a.name || "").localeCompare(b.name || ""));
-  if (players.length === 0) {
-    return `<h3>${team}</h3><p class="no-data-note">No first-TD scores yet this season.</p>`;
-  }
-  const rows = players
-    .map((p) => {
-      const tag = p.position !== "DST" && p.dst_tds > 0 ? ` <span class="dst-tag">(DST)</span>` : "";
-      return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num">${p.first_tds}</td></tr>`;
-    })
-    .join("");
-  return `<h3>${team}</h3>
-    <table class="data-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">First TDs</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-const SECTIONS = ["basics", "opportunities", "rzusage", "scorers"];
+const SECTIONS = ["basics", "opportunities", "rzusage"];
 
 function render() {
   const away = document.getElementById("away-select").value;
@@ -166,12 +270,10 @@ function render() {
 
   document.getElementById("col-away-basics").innerHTML = renderBasicsTable(away, home);
   document.getElementById("col-home-basics").innerHTML = renderBasicsTable(home, away);
-  document.getElementById("col-away-opportunities").innerHTML = renderOpportunitiesTable(away, home);
-  document.getElementById("col-home-opportunities").innerHTML = renderOpportunitiesTable(home, away);
+  document.getElementById("panel-offenses").innerHTML = renderOffensesPanel(away, home);
+  document.getElementById("panel-defenses").innerHTML = renderDefensesPanel(away, home);
   document.getElementById("rzusage-away").innerHTML = renderRzUsageTable(away);
   document.getElementById("rzusage-home").innerHTML = renderRzUsageTable(home);
-  document.getElementById("scorers-away").innerHTML = renderScorers(away);
-  document.getElementById("scorers-home").innerHTML = renderScorers(home);
 }
 
 function populateSelects() {
