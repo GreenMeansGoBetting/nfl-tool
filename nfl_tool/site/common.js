@@ -231,17 +231,17 @@ function initScheduleScroller(onPick) {
 // 0 (both sides sit at the 50th percentile, least interesting) to 1 (both
 // sides at the extreme edge of their tier, most interesting).
 function insightMagnitude(offPct, defPct) {
-  return (Math.abs(offPct - 0.5) + Math.abs(defPct - 0.5)) / 1;
+  return Math.abs(offPct - 0.5) + Math.abs(defPct - 0.5);
 }
 
 // offGetter/defGetter: (team) => raw value for that stat. offInvert/
-// defInvert: same meaning as percentileTier's invert. textFn(kind, offVal,
-// defVal) -> string, kind is "likely" (off's strength meets def's
-// weakness on this exact stat) or "unlikely" (off's weakness meets def's
-// strength) -- only these two aligned cases are ever surfaced; a mixed
-// result (one side extreme, the other middling) isn't a real mismatch and
-// is skipped.
-function checkAlignment(offTeam, defTeam, offGetter, defGetter, offInvert, defInvert, textFn) {
+// defInvert: same meaning as percentileTier's invert. Returns
+// {magnitude, offVal, defVal} ONLY when offTeam's own value is top-third
+// AND defTeam's own (allowed-side) value is bottom-third on the exact
+// same stat -- a real "good offense meets bad defense" opportunity.
+// Deliberately one-directional: this summary surfaces angles that ARE
+// likely, never the inverse "both sides weak, unlikely to happen" case.
+function checkOpportunity(offTeam, defTeam, offGetter, defGetter, offInvert, defInvert) {
   const pool = teamsWithGames();
   if (pool.length < 3) return null;
   const offVal = offGetter(offTeam);
@@ -257,23 +257,48 @@ function checkAlignment(offTeam, defTeam, offGetter, defGetter, offInvert, defIn
   if (offInvert) offPct = 1 - offPct;
   if (defInvert) defPct = 1 - defPct;
 
-  const offGood = offPct >= 0.667, offBad = offPct < 0.333;
-  const defGood = defPct >= 0.667, defBad = defPct < 0.333;
-
-  if (offGood && defBad) return { magnitude: insightMagnitude(offPct, defPct), text: textFn("likely", offVal, defVal) };
-  if (offBad && defGood) return { magnitude: insightMagnitude(offPct, defPct), text: textFn("unlikely", offVal, defVal) };
+  if (offPct >= 0.667 && defPct < 0.333) {
+    return { magnitude: insightMagnitude(offPct, defPct), offVal, defVal };
+  }
   return null;
 }
 
-function pct(v) {
-  return `${Math.round(v * 100)}%`;
-}
-
-function renderMatchupSnapshot(insights) {
-  if (insights.length === 0) {
-    return `<p class="no-data-note">No standout mismatches turned up between these two teams -- most stats land in the middle third for both sides.</p>`;
+// Each opportunity carries {category, subject, team, magnitude, label}.
+// subject is the shared thing being targeted (a position, a distance
+// bucket, etc.) -- when BOTH matchup directions produce an opportunity
+// with the same category+subject (e.g. both teams lean on TEs against
+// each other), they're merged into one "both teams" line instead of two
+// near-duplicate ones. category "first_td" never merges since its
+// subject is inherently which team, not a shared thing.
+function renderMatchupSnapshot(opportunities) {
+  const valid = opportunities.filter(Boolean);
+  if (valid.length === 0) {
+    return `<p class="no-data-note">No standout opportunities turned up between these two teams this time.</p>`;
   }
-  const items = insights
+
+  const merged = [];
+  const used = new Set();
+  valid.forEach((o, i) => {
+    if (used.has(i)) return;
+    if (o.subject) {
+      const partnerIdx = valid.findIndex(
+        (other, j) => j !== i && !used.has(j) && other.category === o.category && other.subject === o.subject
+      );
+      if (partnerIdx !== -1) {
+        used.add(i);
+        used.add(partnerIdx);
+        merged.push({
+          magnitude: Math.max(o.magnitude, valid[partnerIdx].magnitude),
+          text: `Target ${o.label} &mdash; both teams lean on it.`,
+        });
+        return;
+      }
+    }
+    used.add(i);
+    merged.push({ magnitude: o.magnitude, text: `Target ${o.team} ${o.label}.` });
+  });
+
+  const items = merged
     .sort((a, b) => b.magnitude - a.magnitude)
     .slice(0, 8)
     .map((i) => `<li>${i.text}</li>`)

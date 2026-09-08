@@ -15,71 +15,45 @@ function firstTdTopInsight(candidates) {
 function firstTdDirectionInsights(offTeam, defTeam) {
   const insights = [];
 
-  insights.push(
-    checkAlignment(
-      offTeam,
-      defTeam,
-      (t) => DATA.team_stats[t].first_td_rate,
-      (t) => firstTdAllowedRate(t),
-      false,
-      true,
-      (kind, offVal, defVal) =>
-        kind === "likely"
-          ? `${offTeam} scores the game's first TD ${pct(offVal)} of the time (top third league-wide); ${defTeam} allows the opponent to score first ${pct(defVal)} of the time (bottom third).`
-          : `${offTeam} rarely scores the game's first TD (${pct(offVal)}, bottom third); ${defTeam} rarely allows it either (${pct(defVal)} allowed, top third).`
-    )
-  );
+  const firstTd = checkOpportunity(offTeam, defTeam, (t) => DATA.team_stats[t].first_td_rate, (t) => firstTdAllowedRate(t), false, true);
+  if (firstTd) insights.push({ ...firstTd, category: "first_td", subject: null, team: offTeam, label: "for the first TD" });
 
-  insights.push(
-    firstTdTopInsight(
-      POSITIONS.map((pos) =>
-        checkAlignment(
-          offTeam,
-          defTeam,
-          (t) => (DATA.team_stats[t].first_td_games ? DATA.team_stats[t].first_td_position[pos] / DATA.team_stats[t].first_td_games : null),
-          (t) => (DATA.team_stats[t].trailing_games ? DATA.team_stats[t].first_td_position_allowed[pos] / DATA.team_stats[t].trailing_games : null),
-          false,
-          true,
-          (kind, offVal, defVal) =>
-            kind === "likely"
-              ? `When ${offTeam} scores first, it's a ${pos} ${pct(offVal)} of the time (top third). When ${defTeam} allows the first TD, it's a ${pos} ${pct(defVal)} of the time too (bottom third for defense).`
-              : `${offTeam} rarely has a ${pos} score its first TD (${pct(offVal)}, bottom third). ${defTeam} rarely allows a ${pos} to score the first TD either (${pct(defVal)}, top third for defense).`
-        )
-      )
-    )
+  const posOpp = firstTdTopInsight(
+    POSITIONS.map((pos) => {
+      const r = checkOpportunity(
+        offTeam,
+        defTeam,
+        (t) => (DATA.team_stats[t].first_td_games ? DATA.team_stats[t].first_td_position[pos] / DATA.team_stats[t].first_td_games : null),
+        (t) => (DATA.team_stats[t].trailing_games ? DATA.team_stats[t].first_td_position_allowed[pos] / DATA.team_stats[t].trailing_games : null),
+        false,
+        true
+      );
+      return r && { ...r, category: "first_td_position", subject: pos, team: offTeam, label: `${pos}s for the first TD` };
+    })
   );
+  if (posOpp) insights.push(posOpp);
 
-  insights.push(
-    checkAlignment(
-      offTeam,
-      defTeam,
-      (t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate,
-      (t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed,
-      false,
-      true,
-      (kind, offVal, defVal) =>
-        kind === "likely"
-          ? `${offTeam} converts ${pct(offVal)} of its early red zone trips into the first TD (top third); ${defTeam} allows a similarly high conversion rate (${pct(defVal)}, bottom third for defense).`
-          : `${offTeam} rarely converts an early red zone trip into the first TD (${pct(offVal)}, bottom third); ${defTeam} rarely allows one to convert either (${pct(defVal)}, top third for defense).`
-    )
+  const rzOpp = checkOpportunity(
+    offTeam,
+    defTeam,
+    (t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate,
+    (t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed,
+    false,
+    true
   );
+  if (rzOpp) insights.push({ ...rzOpp, category: "first_td_rz", subject: "conv", team: offTeam, label: "converting an early red zone trip into the first TD" });
 
-  insights.push(
-    checkAlignment(
-      offTeam,
-      defTeam,
-      (t) => DATA.team_stats[t].avg_possessions_to_first_td,
-      (t) => DATA.team_stats[t].avg_possessions_allowed_before_first_td,
-      true,
-      false,
-      (kind, offVal, defVal) =>
-        kind === "likely"
-          ? `${offTeam} scores its first TD fast when it does (${fmt(offVal, 2)} possessions on average, top third); ${defTeam} typically allows a fast first score too (${fmt(defVal, 2)} possessions, bottom third for defense).`
-          : `${offTeam} takes a while to score its first TD (${fmt(offVal, 2)} possessions on average, bottom third); ${defTeam} typically makes the opponent wait too (${fmt(defVal, 2)} possessions, top third for defense).`
-    )
+  const speedOpp = checkOpportunity(
+    offTeam,
+    defTeam,
+    (t) => DATA.team_stats[t].avg_possessions_to_first_td,
+    (t) => DATA.team_stats[t].avg_possessions_allowed_before_first_td,
+    true,
+    false
   );
+  if (speedOpp) insights.push({ ...speedOpp, category: "first_td_speed", subject: "speed", team: offTeam, label: "for a fast first TD" });
 
-  return insights.filter(Boolean);
+  return insights;
 }
 
 function computeFirstTdInsights(awayTeam, homeTeam) {

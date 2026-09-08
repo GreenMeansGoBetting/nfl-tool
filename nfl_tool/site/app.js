@@ -26,101 +26,58 @@ const RED_ZONE_ROWS = [
   { label: "RZ Targets", totalOffKey: "rz_targets", rateOffKey: "rz_targets_per_g", totalDefKey: "rz_targets_allowed", rateDefKey: "rz_targets_allowed_per_g" },
 ];
 
-function topInsight(candidates) {
+function topOpportunity(candidates) {
   const valid = candidates.filter(Boolean);
   if (valid.length === 0) return null;
   return valid.reduce((best, c) => (c.magnitude > best.magnitude ? c : best));
 }
 
-// One direction (offTeam scoring/scored on defTeam) worth of insights
-// across every category on this page. Called twice (away-vs-home and
-// home-vs-away) and the results combined for the full matchup snapshot.
+// One direction (offTeam's offense against defTeam's defense) worth of
+// targetable opportunities across every category on this page. Called
+// twice (away-vs-home and home-vs-away) and combined for the full
+// snapshot. Each entry is tagged with a category/subject so
+// renderMatchupSnapshot can merge same-subject opportunities that show up
+// in both directions (e.g. both teams leaning on TEs) into one line.
 function directionInsights(offTeam, defTeam) {
   const insights = [];
 
-  insights.push(
-    checkAlignment(
-      offTeam,
-      defTeam,
-      (t) => DATA.team_stats[t].first_td_rate,
-      (t) => firstTdAllowedRate(t),
-      false,
-      true,
-      (kind, offVal, defVal) =>
-        kind === "likely"
-          ? `${offTeam} scores the game's first TD ${pct(offVal)} of the time (top third league-wide); ${defTeam} allows the opponent to score first ${pct(defVal)} of the time (bottom third).`
-          : `${offTeam} rarely scores the game's first TD (${pct(offVal)}, bottom third); ${defTeam} rarely allows it either (${pct(defVal)} allowed, top third).`
-    )
-  );
+  const firstTd = checkOpportunity(offTeam, defTeam, (t) => DATA.team_stats[t].first_td_rate, (t) => firstTdAllowedRate(t), false, true);
+  if (firstTd) insights.push({ ...firstTd, category: "first_td", subject: null, team: offTeam, label: "for the first TD" });
 
-  insights.push(
-    topInsight(
-      POSITIONS.map((pos) =>
-        checkAlignment(
-          offTeam,
-          defTeam,
-          (t) => (DATA.team_stats[t].total_td ? DATA.team_stats[t].off_position_td[pos] / DATA.team_stats[t].total_td : null),
-          (t) => (DATA.team_stats[t].total_td_allowed ? DATA.team_stats[t].def_position_td_allowed[pos] / DATA.team_stats[t].total_td_allowed : null),
-          false,
-          true,
-          (kind, offVal, defVal) =>
-            kind === "likely"
-              ? `${offTeam}'s TDs skew toward ${pos} (${pct(offVal)} of their total, top third). ${defTeam} allows a similarly high share of TDs to ${pos}s (${pct(defVal)}, bottom third for defense).`
-              : `${offTeam} rarely scores via ${pos} (${pct(offVal)}, bottom third). ${defTeam} rarely allows ${pos} scores either (${pct(defVal)}, top third for defense).`
-        )
-      )
-    )
-  );
-
-  insights.push(
-    topInsight(
-      LENGTH_BUCKETS.map(({ key, label }) =>
-        checkAlignment(
-          offTeam,
-          defTeam,
-          (t) => (DATA.team_stats[t].total_td ? (DATA.team_stats[t].td_by_length[key] || 0) / DATA.team_stats[t].total_td : null),
-          (t) => (DATA.team_stats[t].total_td_allowed ? (DATA.team_stats[t].td_by_length_allowed[key] || 0) / DATA.team_stats[t].total_td_allowed : null),
-          false,
-          true,
-          (kind, offVal, defVal) =>
-            kind === "likely"
-              ? `${offVal ? pct(offVal) : "0%"} of ${offTeam}'s TDs go for ${label} (top third). ${defTeam} allows a similarly high share of ${label} TDs (${pct(defVal)}, bottom third for defense).`
-              : `${offTeam} rarely scores from ${label} (${pct(offVal)}, bottom third). ${defTeam} rarely allows ${label} TDs either (${pct(defVal)}, top third for defense).`
-        )
-      )
-    )
-  );
-
-  insights.push(
-    topInsight([
-      checkAlignment(
+  const posOpp = topOpportunity(
+    POSITIONS.map((pos) => {
+      const r = checkOpportunity(
         offTeam,
         defTeam,
-        (t) => DATA.team_stats[t].rz_td_per_g,
-        (t) => DATA.team_stats[t].rz_td_allowed_per_g,
+        (t) => (DATA.team_stats[t].total_td ? DATA.team_stats[t].off_position_td[pos] / DATA.team_stats[t].total_td : null),
+        (t) => (DATA.team_stats[t].total_td_allowed ? DATA.team_stats[t].def_position_td_allowed[pos] / DATA.team_stats[t].total_td_allowed : null),
         false,
-        true,
-        (kind, offVal, defVal) =>
-          kind === "likely"
-            ? `${offTeam} scores ${fmt(offVal, 2)} red zone TDs/game (top third); ${defTeam} allows ${fmt(defVal, 2)} red zone TDs/game (bottom third).`
-            : `${offTeam} rarely scores in the red zone (${fmt(offVal, 2)}/game, bottom third); ${defTeam} rarely allows it either (${fmt(defVal, 2)}/game, top third).`
-      ),
-      checkAlignment(
+        true
+      );
+      return r && { ...r, category: "position", subject: pos, team: offTeam, label: `${pos}s` };
+    })
+  );
+  if (posOpp) insights.push(posOpp);
+
+  const distOpp = topOpportunity(
+    LENGTH_BUCKETS.map(({ key, label }) => {
+      const r = checkOpportunity(
         offTeam,
         defTeam,
-        (t) => DATA.team_stats[t].rz_plays_per_g,
-        (t) => DATA.team_stats[t].rz_plays_allowed_per_g,
+        (t) => (DATA.team_stats[t].total_td ? (DATA.team_stats[t].td_by_length[key] || 0) / DATA.team_stats[t].total_td : null),
+        (t) => (DATA.team_stats[t].total_td_allowed ? (DATA.team_stats[t].td_by_length_allowed[key] || 0) / DATA.team_stats[t].total_td_allowed : null),
         false,
-        true,
-        (kind, offVal, defVal) =>
-          kind === "likely"
-            ? `${offTeam} runs ${fmt(offVal, 2)} red zone plays/game (top third); ${defTeam} allows ${fmt(defVal, 2)} red zone plays/game (bottom third).`
-            : `${offTeam} rarely gets to the red zone (${fmt(offVal, 2)} plays/game, bottom third); ${defTeam} rarely allows red zone trips either (${fmt(defVal, 2)}/game, top third).`
-      ),
-    ])
+        true
+      );
+      return r && { ...r, category: "distance", subject: key, team: offTeam, label: `TDs from ${label}` };
+    })
   );
+  if (distOpp) insights.push(distOpp);
 
-  return insights.filter(Boolean);
+  const rzOpp = checkOpportunity(offTeam, defTeam, (t) => DATA.team_stats[t].rz_td_per_g, (t) => DATA.team_stats[t].rz_td_allowed_per_g, false, true);
+  if (rzOpp) insights.push({ ...rzOpp, category: "redzone", subject: "td", team: offTeam, label: "red zone TDs" });
+
+  return insights;
 }
 
 function computeMatchupInsights(awayTeam, homeTeam) {
