@@ -7,15 +7,15 @@
   --muted: #6b7062;
   --accent: #2f5fbf;
   --accent-rgb: 47, 95, 191;
-  --good: #1f9d55;
-  --good-rgb: 31, 157, 85;
-  --good-text: #14532d;
-  --mid: #b7791f;
-  --mid-rgb: 183, 121, 31;
-  --mid-text: #78350f;
-  --bad: #c53030;
-  --bad-rgb: 197, 48, 48;
-  --bad-text: #7f1d1d;
+  --good: #28a86b;
+  --good-rgb: 40, 168, 107;
+  --good-text: #155f3d;
+  --mid: #f0c236;
+  --mid-rgb: 240, 194, 54;
+  --mid-text: #7a5c10;
+  --bad: #b6282a;
+  --bad-rgb: 182, 40, 42;
+  --bad-text: #7a1b1c;
 }
 
 * { box-sizing: border-box; }
