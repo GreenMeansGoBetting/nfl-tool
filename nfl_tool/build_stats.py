@@ -474,6 +474,29 @@ def compute_red_zone(pbp: pd.DataFrame) -> dict:
     return result
 
 
+def compute_red_zone_trips(pbp: pd.DataFrame) -> dict:
+    """Full-season red zone TRIPS (drives that reached the red zone) and how
+    many ended in a touchdown on that same drive -- the drive-level "Red
+    Zone TD %" conversion rate compute_red_zone()'s docstring flagged as
+    deliberately left out of that first pass. Offensive scrimmage TDs only,
+    same convention as everywhere else in this pipeline."""
+    rz_drives = pbp[pbp["yardline_100"] <= RED_ZONE_YARDLINE].groupby(["game_id", "posteam"])["drive"].unique()
+    off_td = pbp[(pbp["touchdown"] == 1) & ((pbp["pass_touchdown"] == 1) | (pbp["rush_touchdown"] == 1))]
+    td_drives = off_td.groupby(["game_id", "posteam"])["drive"].apply(set)
+
+    result = {}
+    for (game_id, team), drives in rz_drives.items():
+        if pd.isna(team):
+            continue
+        d = result.setdefault(team, {"rz_trips": 0, "rz_trips_td": 0})
+        scored = td_drives.get((game_id, team), set())
+        for drv in set(drives):
+            d["rz_trips"] += 1
+            if drv in scored:
+                d["rz_trips_td"] += 1
+    return result
+
+
 def compute_length_buckets(pbp: pd.DataFrame) -> dict:
     """TDs bucketed by the scoring play's own yardage, offensive scrimmage
     TDs only (pass/rush -- see LENGTH_BUCKETS)."""
@@ -774,6 +797,7 @@ def build_team_stats(
     first_td_by_game,
     scoring_df,
     red_zone,
+    red_zone_trips,
     length_buckets,
     explosive,
     general,
@@ -826,6 +850,7 @@ def build_team_stats(
         def_plays_faced = expl.get("def_plays_faced", 0)
 
         gen = general.get(team, {})
+        rz_trip = red_zone_trips.get(team, {})
         team_recent = recent_games.get(team, [])
         points_for = sum(g["final_for"] for g in team_recent)
         points_against = sum(g["final_against"] for g in team_recent)
@@ -984,6 +1009,9 @@ def build_team_stats(
             "penalties_per_g": per_g(gen.get("penalties", 0)),
             "penalty_yards": gen.get("penalty_yards", 0),
             "penalty_yards_per_g": per_g(gen.get("penalty_yards", 0)),
+            "rz_trips": rz_trip.get("rz_trips", 0),
+            "rz_trips_td": rz_trip.get("rz_trips_td", 0),
+            "rz_td_rate": round(rz_trip.get("rz_trips_td", 0) / rz_trip["rz_trips"], 3) if rz_trip.get("rz_trips") else None,
             "avg_possessions_to_first_td": round(sum(own_possessions) / len(own_possessions), 2) if own_possessions else None,
             "possessions_to_first_td_games": len(own_possessions),
             "trailing_games": trailing_games,
@@ -1090,6 +1118,7 @@ def main():
     first_td_by_game = compute_first_td_per_game(pbp, pos_lookup)
     scoring_df = scoring_plays_with_position(pbp, pos_lookup)
     red_zone = compute_red_zone(pbp)
+    red_zone_trips = compute_red_zone_trips(pbp)
     length_buckets = compute_length_buckets(pbp)
     explosive = compute_explosive_plays(pbp)
     general = compute_general_stats(pbp)
@@ -1107,6 +1136,7 @@ def main():
         first_td_by_game,
         scoring_df,
         red_zone,
+        red_zone_trips,
         length_buckets,
         explosive,
         general,

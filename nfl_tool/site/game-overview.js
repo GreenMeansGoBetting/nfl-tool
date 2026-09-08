@@ -3,16 +3,26 @@
 // this page is a quick overview, not a matchup-exploit finder). Red zone
 // and explosive plays are included but kept to one row each, not their own
 // section, per feedback that they shouldn't be massive categories here.
+// Exact set + order picked via the Game Overview Stat Picker checklist.
 const GENERAL_STAT_ROWS = [
   { label: "Points For / Game", key: "points_for_per_g", invert: false, pct: false },
   { label: "Points Against / Game", key: "points_against_per_g", invert: true, pct: false },
   { label: "Pass Attempts / Game", key: "pass_att_per_g", invert: false, pct: false },
-  { label: "Completion %", key: "comp_pct", invert: false, pct: true },
-  { label: "Rush Attempts / Game", key: "rush_att_per_g", invert: false, pct: false },
+  { label: "Pass Yards / Game", key: "pass_yards_per_g", invert: false, pct: false },
   { label: "Sacks Allowed / Game", key: "sacks_allowed_per_g", invert: true, pct: false },
-  { label: "Turnovers / Game", key: "turnovers_per_g", invert: true, pct: false },
+  { label: "Rush Attempts / Game", key: "rush_att_per_g", invert: false, pct: false },
+  { label: "Rush Yards / Game", key: "rush_yards_per_g", invert: false, pct: false },
+  { label: "Yards / Carry", key: "yards_per_carry", invert: false, pct: false },
+  { label: "Pass Attempts Allowed / Game", key: "pass_att_allowed_per_g", invert: true, pct: false },
+  { label: "Pass Yards Allowed / Game", key: "pass_yards_allowed_per_g", invert: true, pct: false },
+  { label: "Sacks Made / Game", key: "sacks_made_per_g", invert: false, pct: false },
+  { label: "Rush Attempts Allowed / Game", key: "rush_att_allowed_per_g", invert: true, pct: false },
+  { label: "Rush Yards Allowed / Game", key: "rush_yards_allowed_per_g", invert: true, pct: false },
+  { label: "Yards / Carry Allowed", key: "yards_per_carry_allowed", invert: true, pct: false },
+  { label: "Turnovers (Giveaways) / Game", key: "turnovers_per_g", invert: true, pct: false },
   { label: "Takeaways / Game", key: "takeaways_per_g", invert: false, pct: false },
-  { label: "Red Zone TDs / Game", key: "rz_td_per_g", invert: false, pct: false },
+  { label: "Penalty Yards / Game", key: "penalty_yards_per_g", invert: true, pct: false },
+  { label: "Red Zone TD %", key: "rz_td_rate", invert: false, pct: true },
   { label: "Explosive Play Rate", key: "explosive_rate", invert: false, pct: true },
 ];
 
