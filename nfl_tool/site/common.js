@@ -219,6 +219,68 @@ function initScheduleScroller(onPick) {
   refresh();
 }
 
+// ---- Matchup Snapshot: automated mismatch finder ----
+// Surfaces places where one team's own tendency (top or bottom third
+// league-wide) lines up with the other team's own tendency on the exact
+// same stat -- e.g. a team that feeds a position a lot meeting a defense
+// that leaks to that position a lot. Every insight is stated as a plain
+// fact pair (both raw numbers, both percentile context), never a pick or
+// a "target this" recommendation -- consistent with this site's color
+// coding being a magnitude signal, not a verdict.
+
+// 0 (both sides sit at the 50th percentile, least interesting) to 1 (both
+// sides at the extreme edge of their tier, most interesting).
+function insightMagnitude(offPct, defPct) {
+  return (Math.abs(offPct - 0.5) + Math.abs(defPct - 0.5)) / 1;
+}
+
+// offGetter/defGetter: (team) => raw value for that stat. offInvert/
+// defInvert: same meaning as percentileTier's invert. textFn(kind, offVal,
+// defVal) -> string, kind is "likely" (off's strength meets def's
+// weakness on this exact stat) or "unlikely" (off's weakness meets def's
+// strength) -- only these two aligned cases are ever surfaced; a mixed
+// result (one side extreme, the other middling) isn't a real mismatch and
+// is skipped.
+function checkAlignment(offTeam, defTeam, offGetter, defGetter, offInvert, defInvert, textFn) {
+  const pool = teamsWithGames();
+  if (pool.length < 3) return null;
+  const offVal = offGetter(offTeam);
+  const defVal = defGetter(defTeam);
+  if (offVal === null || offVal === undefined || defVal === null || defVal === undefined) return null;
+
+  const offVals = pool.map(offGetter).filter((v) => v !== null && v !== undefined);
+  const defVals = pool.map(defGetter).filter((v) => v !== null && v !== undefined);
+  const offSorted = [...offVals].sort((a, b) => a - b);
+  const defSorted = [...defVals].sort((a, b) => a - b);
+  let offPct = offSorted.indexOf(offVal) / (offSorted.length - 1);
+  let defPct = defSorted.indexOf(defVal) / (defSorted.length - 1);
+  if (offInvert) offPct = 1 - offPct;
+  if (defInvert) defPct = 1 - defPct;
+
+  const offGood = offPct >= 0.667, offBad = offPct < 0.333;
+  const defGood = defPct >= 0.667, defBad = defPct < 0.333;
+
+  if (offGood && defBad) return { magnitude: insightMagnitude(offPct, defPct), text: textFn("likely", offVal, defVal) };
+  if (offBad && defGood) return { magnitude: insightMagnitude(offPct, defPct), text: textFn("unlikely", offVal, defVal) };
+  return null;
+}
+
+function pct(v) {
+  return `${Math.round(v * 100)}%`;
+}
+
+function renderMatchupSnapshot(insights) {
+  if (insights.length === 0) {
+    return `<p class="no-data-note">No standout mismatches turned up between these two teams -- most stats land in the middle third for both sides.</p>`;
+  }
+  const items = insights
+    .sort((a, b) => b.magnitude - a.magnitude)
+    .slice(0, 8)
+    .map((i) => `<li>${i.text}</li>`)
+    .join("");
+  return `<ul class="snapshot-list">${items}</ul>`;
+}
+
 function headerRow(offTeam, defTeam, subLabels) {
   const offRgb = teamAccentRgb(offTeam);
   const defRgb = teamAccentRgb(defTeam);

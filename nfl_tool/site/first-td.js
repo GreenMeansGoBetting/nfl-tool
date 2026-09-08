@@ -2,6 +2,90 @@
 // very first touchdown is scored, condensed from the same data.json used
 // by the main matchup page.
 
+function firstTdTopInsight(candidates) {
+  const valid = candidates.filter(Boolean);
+  if (valid.length === 0) return null;
+  return valid.reduce((best, c) => (c.magnitude > best.magnitude ? c : best));
+}
+
+// Same idea as the Matchup page's snapshot, but sourced from the First-TD-
+// specific stats on this page (who scores/allows the FIRST TD, not season
+// totals) rather than the season-long Type of Touchdown/Position/Distance
+// stats.
+function firstTdDirectionInsights(offTeam, defTeam) {
+  const insights = [];
+
+  insights.push(
+    checkAlignment(
+      offTeam,
+      defTeam,
+      (t) => DATA.team_stats[t].first_td_rate,
+      (t) => firstTdAllowedRate(t),
+      false,
+      true,
+      (kind, offVal, defVal) =>
+        kind === "likely"
+          ? `${offTeam} scores the game's first TD ${pct(offVal)} of the time (top third league-wide); ${defTeam} allows the opponent to score first ${pct(defVal)} of the time (bottom third).`
+          : `${offTeam} rarely scores the game's first TD (${pct(offVal)}, bottom third); ${defTeam} rarely allows it either (${pct(defVal)} allowed, top third).`
+    )
+  );
+
+  insights.push(
+    firstTdTopInsight(
+      POSITIONS.map((pos) =>
+        checkAlignment(
+          offTeam,
+          defTeam,
+          (t) => (DATA.team_stats[t].first_td_games ? DATA.team_stats[t].first_td_position[pos] / DATA.team_stats[t].first_td_games : null),
+          (t) => (DATA.team_stats[t].trailing_games ? DATA.team_stats[t].first_td_position_allowed[pos] / DATA.team_stats[t].trailing_games : null),
+          false,
+          true,
+          (kind, offVal, defVal) =>
+            kind === "likely"
+              ? `When ${offTeam} scores first, it's a ${pos} ${pct(offVal)} of the time (top third). When ${defTeam} allows the first TD, it's a ${pos} ${pct(defVal)} of the time too (bottom third for defense).`
+              : `${offTeam} rarely has a ${pos} score its first TD (${pct(offVal)}, bottom third). ${defTeam} rarely allows a ${pos} to score the first TD either (${pct(defVal)}, top third for defense).`
+        )
+      )
+    )
+  );
+
+  insights.push(
+    checkAlignment(
+      offTeam,
+      defTeam,
+      (t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate,
+      (t) => DATA.team_stats[t].pre_first_td_rz_conversion_rate_allowed,
+      false,
+      true,
+      (kind, offVal, defVal) =>
+        kind === "likely"
+          ? `${offTeam} converts ${pct(offVal)} of its early red zone trips into the first TD (top third); ${defTeam} allows a similarly high conversion rate (${pct(defVal)}, bottom third for defense).`
+          : `${offTeam} rarely converts an early red zone trip into the first TD (${pct(offVal)}, bottom third); ${defTeam} rarely allows one to convert either (${pct(defVal)}, top third for defense).`
+    )
+  );
+
+  insights.push(
+    checkAlignment(
+      offTeam,
+      defTeam,
+      (t) => DATA.team_stats[t].avg_possessions_to_first_td,
+      (t) => DATA.team_stats[t].avg_possessions_allowed_before_first_td,
+      true,
+      false,
+      (kind, offVal, defVal) =>
+        kind === "likely"
+          ? `${offTeam} scores its first TD fast when it does (${fmt(offVal, 2)} possessions on average, top third); ${defTeam} typically allows a fast first score too (${fmt(defVal, 2)} possessions, bottom third for defense).`
+          : `${offTeam} takes a while to score its first TD (${fmt(offVal, 2)} possessions on average, bottom third); ${defTeam} typically makes the opponent wait too (${fmt(defVal, 2)} possessions, top third for defense).`
+    )
+  );
+
+  return insights.filter(Boolean);
+}
+
+function computeFirstTdInsights(awayTeam, homeTeam) {
+  return [...firstTdDirectionInsights(awayTeam, homeTeam), ...firstTdDirectionInsights(homeTeam, awayTeam)];
+}
+
 function renderBasicsTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
@@ -238,7 +322,7 @@ function renderRzUsageTable(team) {
     </table>`;
 }
 
-const SECTIONS = ["basics", "opportunities", "rzusage"];
+const SECTIONS = ["snapshot", "basics", "opportunities", "rzusage"];
 
 function render() {
   const away = document.getElementById("away-select").value;
@@ -268,6 +352,7 @@ function render() {
   emptyEl.hidden = true;
   sectionEls.forEach((el) => (el.hidden = false));
 
+  document.getElementById("snapshot-content").innerHTML = renderMatchupSnapshot(computeFirstTdInsights(away, home));
   document.getElementById("col-away-basics").innerHTML = renderBasicsTable(away, home);
   document.getElementById("col-home-basics").innerHTML = renderBasicsTable(home, away);
   document.getElementById("panel-offenses").innerHTML = renderOffensesPanel(away, home);

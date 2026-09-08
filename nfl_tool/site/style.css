@@ -159,6 +159,18 @@ select {
   margin: 4px 0 0;
 }
 
+.snapshot-list {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.snapshot-list li {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
