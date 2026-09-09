@@ -97,13 +97,20 @@ function zScore(value, allValues, invert) {
   return invert ? -(value - mean) / sd : (value - mean) / sd;
 }
 
+// A team can be a real outlier -- not just "bottom third" but historically,
+// drastically bad (or good) at something -- strongly enough that it creates
+// a real edge for/against even a perfectly average opponent, not just an
+// elite one. threshold lets a caller ask "is this an EXTREME outlier" with
+// the exact same z-score math as the normal tier cutoff, just a stricter bar.
+const TIER_Z_EXTREME_THRESHOLD = 1.5;
+
 // Percentile tier across every team currently with games played.
 // invert=true means a LOWER raw value is the good outcome (e.g. TDs allowed).
-function percentileTier(value, allValues, invert) {
+function percentileTier(value, allValues, invert, threshold = TIER_Z_THRESHOLD) {
   const z = zScore(value, allValues, invert);
   if (z === null) return "";
-  if (z >= TIER_Z_THRESHOLD) return "tier-good";
-  if (z <= -TIER_Z_THRESHOLD) return "tier-bad";
+  if (z >= threshold) return "tier-good";
+  if (z <= -threshold) return "tier-bad";
   return "tier-mid";
 }
 
@@ -118,10 +125,10 @@ function teamFade(team, ratio, maxAlpha = 0.6) {
   return `rgba(${rgb.join(",")},${(ratio * maxAlpha).toFixed(3)})`;
 }
 
-function tierFor(statKey, team, invert) {
+function tierFor(statKey, team, invert, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const values = pool.map((t) => DATA.team_stats[t][statKey]);
-  return percentileTier(DATA.team_stats[team][statKey], values, invert);
+  return percentileTier(DATA.team_stats[team][statKey], values, invert, threshold);
 }
 
 // A team's own share of its games where the OPPONENT scored first -- the
@@ -136,10 +143,10 @@ function firstTdAllowedGames(team) {
   const s = DATA.team_stats[team];
   return s.games_played - s.first_td_games;
 }
-function tierForFirstTdAllowed(team) {
+function tierForFirstTdAllowed(team, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const values = pool.map((t) => firstTdAllowedRate(t));
-  return percentileTier(firstTdAllowedRate(team), values, true);
+  return percentileTier(firstTdAllowedRate(team), values, true, threshold);
 }
 
 // Share/count percentile helpers for any {key: count} bucket dict (position
@@ -148,18 +155,18 @@ function tierForFirstTdAllowed(team) {
 // notable tendency), defense/"allowed" side inverted (a high share allowed
 // to one position/length is a real vulnerability, same "green = fewest
 // allowed" promise the legend makes everywhere else).
-function bucketCountTier(dictKey, bucketKey, team, invert = false) {
+function bucketCountTier(dictKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const countOf = (t) => DATA.team_stats[t][dictKey][bucketKey] || 0;
-  return percentileTier(countOf(team), pool.map(countOf), invert);
+  return percentileTier(countOf(team), pool.map(countOf), invert, threshold);
 }
-function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false) {
+function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const shareOf = (t) => {
     const s = DATA.team_stats[t];
     return s[totalKey] ? (s[dictKey][bucketKey] || 0) / s[totalKey] : 0;
   };
-  return percentileTier(shareOf(team), pool.map(shareOf), invert);
+  return percentileTier(shareOf(team), pool.map(shareOf), invert, threshold);
 }
 
 // One-click week/matchup picker, shared by all pages. Reads DATA.schedule
@@ -403,7 +410,9 @@ function renderRedZoneTable(offTeam, defTeam) {
     const offRateCls = tierFor(r.rateOffKey, offTeam, false);
     const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
     const defRateCls = tierFor(r.rateDefKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam)}</tr>`;
+    const offRateExtreme = tierFor(r.rateOffKey, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
+    const defRateExtreme = tierFor(r.rateDefKey, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
@@ -426,19 +435,32 @@ function headerRow(offTeam, defTeam, subLabels, market = "anytime_td") {
 
 // Plain-language decode of a row's two tier colors -- which team the stat
 // favors, so a viewer doesn't have to mentally cross-reference green/red
-// against which side is offense vs defense. Only fires on a real top-third-
-// vs-bottom-third mismatch (the same bar checkOpportunity() uses); anything
-// else (both mid, both good, both bad) has no standout advantage, so it's blank.
-function advantageTeam(offTier, defTier, offTeam, defTeam) {
+// against which side is offense vs defense. Fires on a real top-third-vs-
+// bottom-third mismatch (the same bar checkOpportunity() uses), OR when
+// one side is a genuine EXTREME outlier (TIER_Z_EXTREME_THRESHOLD, not just
+// "bottom third") and the other is merely average -- a historically bad
+// bottom-3-in-the-league defense gets exploited by an average offense too,
+// not just a great one, and the mirror holds for a dominant defense/offense
+// against an average opponent. offExtreme/defExtreme are optional (a caller
+// that doesn't pass them just gets the original two-case behavior).
+// extreme is always a strict subset of its own non-extreme tier (the
+// threshold is stricter), so by the time an extreme check is reached the
+// matching non-extreme case above it has already ruled out the exact-
+// opposite-extreme pairing -- these can't double-fire.
+function advantageTeam(offTier, defTier, offTeam, defTeam, offExtreme = "", defExtreme = "") {
   if (offTier === "tier-good" && defTier === "tier-bad") return offTeam;
   if (offTier === "tier-bad" && defTier === "tier-good") return defTeam;
+  if (defExtreme === "tier-bad" && offTier === "tier-mid") return offTeam;
+  if (offExtreme === "tier-bad" && defTier === "tier-mid") return defTeam;
+  if (defExtreme === "tier-good" && offTier === "tier-mid") return defTeam;
+  if (offExtreme === "tier-good" && defTier === "tier-mid") return offTeam;
   return "--";
 }
 // Colored in the WINNING team's own accent (same normalized color the
 // header bars use), not a fixed site accent -- two teams that both happen
 // to be blue-ish still need to read as different teams here.
-function edgeCell(offTier, defTier, offTeam, defTeam) {
-  const team = advantageTeam(offTier, defTier, offTeam, defTeam);
+function edgeCell(offTier, defTier, offTeam, defTeam, offExtreme = "", defExtreme = "") {
+  const team = advantageTeam(offTier, defTier, offTeam, defTeam, offExtreme, defExtreme);
   if (team === "--") return `<td class="edge-cell">--</td>`;
   const rgb = teamAccentRgb(team);
   return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${team}</td>`;

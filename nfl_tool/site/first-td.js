@@ -66,10 +66,12 @@ function renderBasicsTable(offTeam, defTeam) {
 
   const offRateCls = tierFor("first_td_rate", offTeam, false);
   const defRateCls = tierForFirstTdAllowed(defTeam);
+  const offRateExtreme = tierFor("first_td_rate", offTeam, false, TIER_Z_EXTREME_THRESHOLD);
+  const defRateExtreme = tierForFirstTdAllowed(defTeam, TIER_Z_EXTREME_THRESHOLD);
   const offGamesCls = percentileTier(off.first_td_games, teamsWithGames().map((t) => DATA.team_stats[t].first_td_games), false);
   const defGamesCls = percentileTier(firstTdAllowedGames(defTeam), teamsWithGames().map(firstTdAllowedGames), true);
 
-  let rows = `<tr><td>First TD</td><td class="num ${offGamesCls}">${off.first_td_games}</td><td class="num ${offRateCls}">${fmt(off.first_td_rate * 100, 0)}%</td><td class="num ${defGamesCls}">${firstTdAllowedGames(defTeam)}</td><td class="num ${defRateCls}">${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam)}</tr>`;
+  let rows = `<tr><td>First TD</td><td class="num ${offGamesCls}">${off.first_td_games}</td><td class="num ${offRateCls}">${fmt(off.first_td_rate * 100, 0)}%</td><td class="num ${defGamesCls}">${firstTdAllowedGames(defTeam)}</td><td class="num ${defRateCls}">${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
 
   rows += POSITIONS.map((pos) => {
     const offCount = off.first_td_position[pos];
@@ -80,7 +82,9 @@ function renderBasicsTable(offTeam, defTeam) {
     const defCountCls = bucketCountTier("first_td_position_allowed", pos, defTeam, true);
     const offShareCls = bucketShareTier("first_td_position", "first_td_games", pos, offTeam);
     const defShareCls = bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true);
-    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offSharePct}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defSharePct}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam)}</tr>`;
+    const offShareExtreme = bucketShareTier("first_td_position", "first_td_games", pos, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
+    const defShareExtreme = bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
+    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offSharePct}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defSharePct}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">

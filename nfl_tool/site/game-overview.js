@@ -220,8 +220,10 @@ function renderGeneralStatsTable(offTeam, defTeam) {
       .map((r) => {
         const offCls = tierFor(r.offKey, offTeam, r.offInvert);
         const defCls = tierFor(r.defKey, defTeam, r.defInvert);
+        const offExtreme = tierFor(r.offKey, offTeam, r.offInvert, TIER_Z_EXTREME_THRESHOLD);
+        const defExtreme = tierFor(r.defKey, defTeam, r.defInvert, TIER_Z_EXTREME_THRESHOLD);
         const labelHtml = r.note ? `${r.label}<br><span class="muted-label">${r.note}</span>` : r.label;
-        return `<tr><td>${labelHtml}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam)}</tr>`;
+        return `<tr><td>${labelHtml}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam, offExtreme, defExtreme)}</tr>`;
       })
       .join("");
     return `<tr><td class="section-group-label" colspan="4">${group.label}</td></tr>${rows}`;
