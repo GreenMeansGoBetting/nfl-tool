@@ -591,9 +591,14 @@ function renderPickTracker(game) {
 // ---- flipper / render ----
 function ensureCurrentGame() {
   const fresh = gamesForWeek(scheduleWeek);
-  const sameWeek = weekGames.length && weekGames[0].week === scheduleWeek;
+  // Only reset to game 0 on an actual week CHANGE (weekGames already held a
+  // different week) -- not on the very first call, where weekGames is still
+  // its initial empty array. That first-call case needs to keep whatever
+  // currentGameIndex initFlipper's onSelect already set (the stored pick,
+  // or the week's first game), not stomp it back to 0.
+  const isWeekChange = weekGames.length > 0 && weekGames[0].week !== scheduleWeek;
   weekGames = fresh;
-  if (!sameWeek) currentGameIndex = 0;
+  if (isWeekChange) currentGameIndex = 0;
   if (currentGameIndex >= weekGames.length) currentGameIndex = Math.max(0, weekGames.length - 1);
 }
 
@@ -678,6 +683,7 @@ function initFlipper() {
       currentGameIndex--;
       resetDraftPicks();
       render();
+      saveSelectedGame(scheduleWeek, currentGame().away, currentGame().home);
     }
   });
   document.getElementById("game-next").addEventListener("click", () => {
@@ -685,6 +691,7 @@ function initFlipper() {
       currentGameIndex++;
       resetDraftPicks();
       render();
+      saveSelectedGame(scheduleWeek, currentGame().away, currentGame().home);
     }
   });
 }

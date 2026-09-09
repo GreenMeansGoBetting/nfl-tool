@@ -161,6 +161,32 @@ function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false) {
 // getSelected/onSelect that read/write its own "current game" index instead.
 let scheduleWeek = null;
 
+// The three pages (TD Data, First TD Data, Game Previews) are separate page
+// loads, not a single-page app, so carrying "the game I'm looking at" across
+// a tab click can't just live in memory -- localStorage is what makes that
+// survive the navigation. Only an EXPLICIT pick (a matchup card click, or
+// Game Previews' flipper) gets saved here; the default "first game of the
+// week" every page falls back to on its own is deterministic and doesn't
+// need it, so a page nobody has ever clicked into still opens on the
+// upcoming game instead of something stale.
+const SELECTED_GAME_KEY = "nfl-tool.selected-game.v1";
+
+function loadSelectedGame() {
+  try {
+    return JSON.parse(localStorage.getItem(SELECTED_GAME_KEY));
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveSelectedGame(week, away, home) {
+  try {
+    localStorage.setItem(SELECTED_GAME_KEY, JSON.stringify({ week, away, home }));
+  } catch (e) {
+    // localStorage unavailable -- selection just won't carry across pages.
+  }
+}
+
 function renderMatchupRow(rowEl, week, selectedAway, selectedHome) {
   const games = (DATA.schedule || []).filter((g) => g.week === week);
   if (games.length === 0) {
@@ -209,6 +235,15 @@ function initScheduleScroller(onPick, options = {}) {
   const weeks = [...new Set(DATA.schedule.map((g) => g.week))].sort((a, b) => a - b);
   scheduleWeek = DATA.current_week && weeks.includes(DATA.current_week) ? DATA.current_week : weeks[0];
 
+  // Apply a stored explicit pick if it matches this week's slate, else fall
+  // back to the week's earliest game (schedule is already date/time-sorted)
+  // -- either way, the page opens on a real game instead of blank selects.
+  const weekGames = DATA.schedule.filter((g) => g.week === scheduleWeek);
+  const stored = loadSelectedGame();
+  const storedMatch = stored && stored.week === scheduleWeek && weekGames.find((g) => g.away === stored.away && g.home === stored.home);
+  const initialGame = storedMatch || weekGames[0];
+  if (initialGame) onSelect(initialGame.away, initialGame.home);
+
   const label = document.getElementById("week-label");
   const row = document.getElementById("matchup-row");
   const prevBtn = document.getElementById("week-prev");
@@ -242,6 +277,7 @@ function initScheduleScroller(onPick, options = {}) {
     const card = e.target.closest(".matchup-card");
     if (!card) return;
     onSelect(card.dataset.away, card.dataset.home);
+    saveSelectedGame(scheduleWeek, card.dataset.away, card.dataset.home);
     [...row.querySelectorAll(".matchup-card")].forEach((c) => c.classList.toggle("selected", c === card));
     onPick();
   });
