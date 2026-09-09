@@ -191,9 +191,9 @@ def load_pbp(data_dir: Path, season: int) -> pd.DataFrame:
     return df
 
 
-def load_rosters(data_dir: Path, season: int) -> pd.DataFrame:
+def load_rosters(data_dir: Path, season: int, force: bool = False) -> pd.DataFrame:
     path = data_dir / f"roster_weekly_{season}.csv.gz"
-    download_if_missing(ROSTER_URL.format(season=season), path)
+    download_if_missing(ROSTER_URL.format(season=season), path, force=force)
     df = pd.read_csv(path, compression="gzip", low_memory=False)
     df["team"] = df["team"].map(normalize_team)
     # Keep one row per (gsis_id, week); prefer the most complete position value.
@@ -455,13 +455,16 @@ def compute_current_week(schedule: list) -> int:
 
 def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
     """{full_name: {team, team, ...}} across the whole season on file --
-    used to catch a real data-quality issue verified directly against
-    SportsGameOdds' free tier: it occasionally tags a player to the wrong
-    team WITHIN that team's own event data (e.g. listed the real Eagles WR
-    A.J. Brown as a Patriot inside the NE @ SEA event's own player list).
-    Only used to drop entries we have POSITIVE evidence are wrong -- a name
-    with no roster match at all is left alone, since a name-format mismatch
-    between the two data sources is far more likely than an actual imposter."""
+    used to catch SportsGameOdds' free tier occasionally tagging a player to
+    the wrong team WITHIN that team's own event data. MUST be built from the
+    CURRENT (requested) season's roster, not whatever season the pbp-based
+    stats fell back to -- an earlier version used the fallback season's
+    roster here and it flagged A.J. Brown as wrongly listed on the Patriots,
+    when he'd actually been traded there that offseason and SGO had it
+    right; the stale prior-season roster just hadn't caught up. Only drops
+    entries we have POSITIVE evidence are wrong -- a name with no roster
+    match at all is left alone, since a name-format mismatch between the two
+    data sources is far more likely than an actual imposter."""
     lookup = {}
     for row in rosters.itertuples(index=False):
         if pd.isna(row.full_name):
@@ -1496,7 +1499,14 @@ def main():
     if week_dates:
         starts_after = week_dates[0]
         starts_before = (date.fromisoformat(week_dates[-1]) + timedelta(days=1)).isoformat()
-        roster_teams = build_roster_team_lookup(rosters)
+        # NOT `rosters` -- that's the fallback SEASON's roster (2025, whatever
+        # nflverse pbp data actually exists for right now), which would still
+        # show last year's team for anyone traded this offseason. This needs
+        # the REQUESTED season's current roster, force-refreshed every run
+        # same as injuries/schedule, since trades/roster moves keep
+        # happening throughout the year.
+        current_rosters = load_rosters(args.data_dir, args.season, force=True)
+        roster_teams = build_roster_team_lookup(current_rosters)
         player_td_odds = fetch_player_td_odds(os.environ.get("SGO_API_KEY"), starts_after, starts_before, teams, roster_teams)
 
     blob = {
