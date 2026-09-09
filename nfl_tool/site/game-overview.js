@@ -471,8 +471,13 @@ function anyDraftReady(game) {
 const MARKET_LABELS = { spread: "Spread", total: "Total", moneyline: "Moneyline" };
 const COLOR_LABELS = { green: "Good Play", yellow: "Lean", red: "No Confidence" };
 
+// Units assume a flat 1u stake on every pick, spread/total priced at a
+// standardized -105 and moneyline at its real frozen price -- see picks.js'
+// unitsForPick for why. Shown on every cell, win% only once picks are decided.
 function matrixCellText(t) {
-  return `${t.win}-${t.loss}-${t.push}${t.winPct !== null ? ` (${t.winPct}%)` : ""}`;
+  const unitsStr = `${t.units >= 0 ? "+" : ""}${t.units.toFixed(2)}u`;
+  const pct = t.winPct !== null ? `${t.winPct}%, ` : "";
+  return `${t.win}-${t.loss}-${t.push} (${pct}${unitsStr})`;
 }
 
 function renderPickMatrix(picks) {
@@ -505,6 +510,7 @@ function renderPickSummary() {
     .join("");
   document.getElementById("picks-summary").innerHTML = `
     <h3>Your Record</h3>
+    ${picks.length ? `<p class="no-data-note">Units assume 1u per pick -- spread/total priced at a flat -105, moneyline at its real price.</p>` : ""}
     ${renderPickMatrix(picks) || `<p class="no-data-note">No picks saved yet.</p>`}
     ${recent ? `<h3>Recent Picks</h3>${recent}` : ""}
   `;

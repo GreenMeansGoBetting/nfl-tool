@@ -88,12 +88,37 @@ function regradeAllPicks(schedule) {
   return updated;
 }
 
+// Spread/total prices vary pick to pick (and this site doesn't even store
+// enough of a "market standard" to assume one), so unit tracking assumes a
+// flat -105 on both -- a standard, easy-to-reason-about number instead of
+// pretending the actual frozen price at pick time is what got bet. Moneyline
+// keeps its real frozen price (odds_at_pick) since that's the whole point of
+// a moneyline number -- there's no "standard" price to substitute.
+const STANDARD_SPREAD_TOTAL_ODDS = -105;
+
+// American odds -> profit on a 1-unit stake (e.g. -105 -> 0.95u, +150 -> 1.5u).
+function americanOddsProfit(odds) {
+  return odds > 0 ? odds / 100 : 100 / Math.abs(odds);
+}
+
+// Net units for one graded pick, assuming a flat 1u stake. 0 for a push or
+// a pick that hasn't graded yet.
+function unitsForPick(pick) {
+  if (pick.graded === "win") {
+    const odds = pick.market === "moneyline" ? pick.odds_at_pick : STANDARD_SPREAD_TOTAL_ODDS;
+    return americanOddsProfit(odds);
+  }
+  if (pick.graded === "loss") return -1;
+  return 0;
+}
+
 function tallyPicks(list) {
   const win = list.filter((p) => p.graded === "win").length;
   const loss = list.filter((p) => p.graded === "loss").length;
   const push = list.filter((p) => p.graded === "push").length;
   const decided = win + loss;
-  return { win, loss, push, winPct: decided ? Math.round((win / decided) * 100) : null };
+  const units = Math.round(list.reduce((sum, p) => sum + unitsForPick(p), 0) * 100) / 100;
+  return { win, loss, push, winPct: decided ? Math.round((win / decided) * 100) : null, units };
 }
 
 function pickSummary(picks) {
