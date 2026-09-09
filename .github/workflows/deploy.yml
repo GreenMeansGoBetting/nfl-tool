@@ -38,9 +38,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r nfl_tool/requirements.txt
 
-      - name: Build stats (downloads nflverse-data, no API key needed)
-        # NOTE: bump this each year once the new season's data exists on
-        # nflverse (typically as soon as Week 1 games are played).
+      - name: Build stats (nflverse needs no key; SGO_API_KEY is optional)
+        # NOTE: bump the --season each year once the new season's data
+        # exists on nflverse (typically as soon as Week 1 games are played).
+        # SGO_API_KEY is optional -- player anytime-TD odds just don't
+        # populate without it, everything else works the same.
+        env:
+          SGO_API_KEY: ${{ secrets.SGO_API_KEY }}
         run: python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
 
       - uses: actions/configure-pages@v5

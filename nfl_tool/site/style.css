@@ -301,6 +301,48 @@ footer {
 }
 footer a { color: var(--accent); }
 
+/* ---- Player odds modal (shared by every page) ---- */
+.team-click { cursor: pointer; }
+.team-click:hover { text-decoration: underline; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.modal-close:hover { color: var(--text); }
+.player-odds-table th, .player-odds-table td { text-align: left; }
+.player-odds-table td.num, .player-odds-table th.num { text-align: center; }
+
 /* ---- Game Overviews ---- */
 
 .game-header {

@@ -367,7 +367,7 @@ function headerRow(offTeam, defTeam, subLabels) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th colspan="2" style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
+  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="team-click" data-team="${offTeam}">${offTeam}</span><span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="team-click" data-team="${defTeam}">${defTeam}</span><span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
     <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
 }
 
@@ -390,3 +390,79 @@ function edgeCell(offTier, defTier, offTeam, defTeam) {
   const rgb = teamAccentRgb(team);
   return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${team}</td>`;
 }
+
+// ---- Player anytime-TD odds modal ----
+// Every team name on every stat table (headerRow, and Game Overviews'
+// pairedStatHeader/schemeTableHeader) is wrapped in a .team-click span --
+// one delegated listener here handles all of them, on every page, so a
+// table that gets re-rendered (innerHTML replaced) never needs its own
+// listener reattached.
+function fmtOddsSigned(n) {
+  if (n === null || n === undefined) return "--";
+  return n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`;
+}
+
+function ensurePlayerOddsModal() {
+  if (document.getElementById("player-odds-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "player-odds-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="player-odds-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closePlayerOddsModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closePlayerOddsModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePlayerOddsModal();
+  });
+}
+
+function closePlayerOddsModal() {
+  const el = document.getElementById("player-odds-modal");
+  if (el) el.hidden = true;
+}
+
+// Anytime-TD-scorer odds, from build_stats.py's SportsGameOdds pull --
+// entirely optional (DATA.player_td_odds is null if no API key was
+// configured at build time), so this degrades to a plain message rather
+// than a broken modal when it's missing.
+function renderPlayerOddsModalContent(team) {
+  const heading = `<h3>${TEAM_NAMES[team] || team} &mdash; Anytime TD Odds</h3>`;
+  const rows = DATA.player_td_odds && DATA.player_td_odds[team];
+  if (!DATA.player_td_odds) {
+    return `${heading}<p class="no-data-note">Player odds aren't configured for this build.</p>`;
+  }
+  if (!rows || rows.length === 0) {
+    return `${heading}<p class="no-data-note">No anytime-TD odds posted for this team yet this week.</p>`;
+  }
+  const body = rows
+    .map((p) => {
+      const hasBook = p.best_odds !== null && p.best_odds !== undefined;
+      const price = hasBook ? p.best_odds : p.fair_odds;
+      const book = hasBook ? p.best_book : "Fair line";
+      return `<tr><td>${p.name}</td><td class="num">${fmtOddsSigned(price)}</td><td class="muted-label">${book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+    })
+    .join("");
+  return `${heading}
+    <p class="no-data-note">Anytime touchdown scorer -- best price found across a handful of books (SportsGameOdds free tier), or the de-vigged fair line where no book has one posted. A ballpark, not every book, not live.</p>
+    <table class="data-table player-odds-table">
+      <thead><tr><th>Player</th><th>Odds</th><th>Book</th><th>Implied %</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function openPlayerOddsModal(team) {
+  ensurePlayerOddsModal();
+  document.getElementById("player-odds-modal-content").innerHTML = renderPlayerOddsModalContent(team);
+  document.getElementById("player-odds-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".team-click");
+  if (btn) openPlayerOddsModal(btn.dataset.team);
+});

@@ -203,7 +203,7 @@ function pairedStatHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Each row pairs an offense stat with its defense mirror, framed as a
@@ -267,7 +267,7 @@ function schemeTableHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th style="${defStyle}" class="freq-hdr"></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th style="${defStyle}" class="freq-hdr"></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Below this, a look doesn't come up often enough for an edge here to be

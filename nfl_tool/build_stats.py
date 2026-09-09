@@ -27,10 +27,12 @@ For each player who has scored at least one TD:
 """
 import argparse
 import json
+import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -40,6 +42,25 @@ ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly
 SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 INJURIES_URL = "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{season}.csv"
 PARTICIPATION_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_{season}.csv"
+
+# Anytime-touchdown-scorer odds, from SportsGameOdds' free tier (2,500
+# "objects"/month, billed per EVENT returned -- not per market or player --
+# so one pull of a full ~16-game week costs ~16 objects regardless of how
+# many players/books come back in it). Entirely optional: if SGO_API_KEY
+# isn't set, this whole feature just doesn't populate, same graceful
+# degradation as every other optional data source in this pipeline.
+SGO_EVENTS_URL = "https://api.sportsgameodds.com/v2/events"
+SGO_BOOK_NAMES = {
+    "draftkings": "DraftKings",
+    "fanduel": "FanDuel",
+    "caesars": "Caesars",
+    "betmgm": "BetMGM",
+    "espnbet": "ESPN BET",
+    "bovada": "Bovada",
+    "pointsbet": "PointsBet",
+    "betrivers": "BetRivers",
+    "wynnbet": "WynnBET",
+}
 
 TEAM_NAME_FIXES = {
     # nflverse occasionally uses different abbreviations across seasons for
@@ -430,6 +451,130 @@ def compute_current_week(schedule: list) -> int:
     if upcoming:
         return upcoming[0]["week"]
     return schedule[-1]["week"]
+
+
+def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
+    """{full_name: {team, team, ...}} across the whole season on file --
+    used to catch a real data-quality issue verified directly against
+    SportsGameOdds' free tier: it occasionally tags a player to the wrong
+    team WITHIN that team's own event data (e.g. listed the real Eagles WR
+    A.J. Brown as a Patriot inside the NE @ SEA event's own player list).
+    Only used to drop entries we have POSITIVE evidence are wrong -- a name
+    with no roster match at all is left alone, since a name-format mismatch
+    between the two data sources is far more likely than an actual imposter."""
+    lookup = {}
+    for row in rosters.itertuples(index=False):
+        if pd.isna(row.full_name):
+            continue
+        lookup.setdefault(row.full_name, set()).add(row.team)
+    return lookup
+
+
+def fetch_player_td_odds(api_key: str, starts_after: str, starts_before: str, teams, roster_teams: dict) -> dict | None:
+    """Anytime-touchdown-scorer ("yes/no" any TD) odds for every player with
+    a real line this week, from SportsGameOdds' free tier. Returns None if
+    no API key is configured (this feature is entirely optional -- the site
+    works fine without it) or if the request fails for any reason.
+
+    Picks the best (most favorable to a "yes" bettor) price across whatever
+    real sportsbooks the free tier returns for that player, plus the
+    de-vigged "fair" price/probability SportsGameOdds computes across all of
+    them -- used to RANK players by true likelihood regardless of which book
+    happened to have the best number, so the ranking isn't skewed by one
+    book's outlier price. roster_teams (see build_roster_team_lookup) drops
+    entries the free tier mis-tagged to the wrong team.
+    """
+    if not api_key:
+        return None
+    params = urllib.parse.urlencode(
+        {
+            "leagueID": "NFL",
+            "oddsAvailable": "true",
+            "startsAfter": starts_after,
+            "startsBefore": starts_before,
+            "limit": 50,
+            "apiKey": api_key,
+        }
+    )
+    url = f"{SGO_EVENTS_URL}?{params}"
+    # SportsGameOdds appears to reject urllib's default User-Agent string --
+    # a normal browser-like one goes through fine.
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            payload = json.load(resp)
+    except Exception as e:
+        print(f"WARNING: could not fetch player TD odds ({e}) -- skipping player props.", file=sys.stderr)
+        return None
+    if not payload.get("success"):
+        print(f"WARNING: SportsGameOdds request unsuccessful: {payload.get('notice')}", file=sys.stderr)
+        return None
+
+    # Keyed by (team, player name) rather than playerID -- SportsGameOdds
+    # occasionally carries two different playerIDs for the same real person
+    # (data-vendor quirk), which would otherwise show the same player twice
+    # with two different prices. Keep whichever duplicate actually has a
+    # live book price; if neither/none do, keep the higher implied
+    # probability one.
+    best_by_key = {}
+    for event in payload.get("data", []):
+        players = event.get("players", {})
+        odds = event.get("odds", {})
+        team_short_by_id = {
+            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
+            for side in ("home", "away")
+        }
+        for odd in odds.values():
+            if odd.get("statID") != "touchdowns" or odd.get("betTypeID") != "yn" or odd.get("sideID") != "yes":
+                continue
+            player = players.get(odd.get("playerID"))
+            if not player:
+                continue
+            team_short = team_short_by_id.get(player.get("teamID"))
+            if team_short not in teams:
+                continue
+            known_teams = roster_teams.get(player.get("name"))
+            if known_teams and team_short not in known_teams:
+                continue
+
+            best_price, best_book = None, None
+            for book, info in (odd.get("byBookmaker") or {}).items():
+                if not info.get("available") or info.get("odds") is None:
+                    continue
+                price = float(info["odds"])
+                if best_price is None or price > best_price:
+                    best_price, best_book = price, book
+
+            fair_odds = odd.get("fairOdds")
+            fair_odds = float(fair_odds) if fair_odds is not None else None
+            if best_price is None and fair_odds is None:
+                continue
+
+            row = {
+                "name": player.get("name"),
+                "best_odds": int(best_price) if best_price is not None else None,
+                "best_book": SGO_BOOK_NAMES.get(best_book, best_book),
+                "fair_odds": int(fair_odds) if fair_odds is not None else None,
+                "implied_prob": round(moneyline_to_implied_prob(fair_odds if fair_odds is not None else best_price), 3),
+            }
+            key = (team_short, row["name"])
+            existing = best_by_key.get(key)
+            if existing is None:
+                best_by_key[key] = row
+                continue
+            existing_has_price = existing["best_odds"] is not None
+            row_has_price = row["best_odds"] is not None
+            if row_has_price and not existing_has_price:
+                best_by_key[key] = row
+            elif row_has_price == existing_has_price and row["implied_prob"] > existing["implied_prob"]:
+                best_by_key[key] = row
+
+    result = {t: [] for t in teams}
+    for (team_short, _name), row in best_by_key.items():
+        result[team_short].append(row)
+    for t in result:
+        result[t].sort(key=lambda p: -p["implied_prob"])
+    return result
 
 
 def build_position_lookup(rosters: pd.DataFrame):
@@ -1342,6 +1487,18 @@ def main():
     current_week = compute_current_week(schedule)
     injury_report = compute_injury_report(injuries_df, teams)
 
+    # Player anytime-TD odds for whatever week is currently on deck --
+    # requested_season since (like odds/injuries) this is about the
+    # upcoming slate, not whatever season the pbp-based stats fell back to.
+    week_games = [g for g in schedule if g["week"] == current_week]
+    week_dates = sorted(g["date"] for g in week_games if g.get("date"))
+    player_td_odds = None
+    if week_dates:
+        starts_after = week_dates[0]
+        starts_before = (date.fromisoformat(week_dates[-1]) + timedelta(days=1)).isoformat()
+        roster_teams = build_roster_team_lookup(rosters)
+        player_td_odds = fetch_player_td_odds(os.environ.get("SGO_API_KEY"), starts_after, starts_before, teams, roster_teams)
+
     blob = {
         "season": season,
         "requested_season": args.season,
@@ -1357,6 +1514,7 @@ def main():
         "recent_games": recent_games,
         "injuries": injury_report,
         "injuries_max_week": int(injuries_df["week"].max()) if len(injuries_df) else None,
+        "player_td_odds": player_td_odds,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
