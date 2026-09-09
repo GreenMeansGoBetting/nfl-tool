@@ -79,17 +79,29 @@ function teamAccentRgb(team) {
 // consistent across every stat on the site without hand-tuning per category.
 const TIER_Z_THRESHOLD = 0.6;
 
-// Percentile tier across every team currently with games played.
-// invert=true means a LOWER raw value is the good outcome (e.g. TDs allowed).
-function percentileTier(value, allValues, invert) {
+// How many standard deviations above (positive) or below (negative) the
+// league mean a value sits, across every team currently with games played.
+// invert=true means a LOWER raw value is the good outcome (e.g. TDs
+// allowed), so the sign flips to match. Returns null when there isn't
+// enough of a pool to mean anything (same floor percentileTier always used).
+// Shared by every tier/opportunity calculation on the site so nothing
+// quietly reverts to raw percentile-rank tiering (see TIER_Z_THRESHOLD's
+// comment for why that broke on tightly-bunched stats).
+function zScore(value, allValues, invert) {
   const clean = allValues.filter((v) => v !== null && v !== undefined);
-  if (clean.length < 3 || value === null || value === undefined) return "";
+  if (clean.length < 3 || value === null || value === undefined) return null;
   const mean = clean.reduce((a, b) => a + b, 0) / clean.length;
   const variance = clean.reduce((a, b) => a + (b - mean) ** 2, 0) / clean.length;
   const sd = Math.sqrt(variance);
-  if (sd === 0) return "";
-  let z = (value - mean) / sd;
-  if (invert) z = -z;
+  if (sd === 0) return 0;
+  return invert ? -(value - mean) / sd : (value - mean) / sd;
+}
+
+// Percentile tier across every team currently with games played.
+// invert=true means a LOWER raw value is the good outcome (e.g. TDs allowed).
+function percentileTier(value, allValues, invert) {
+  const z = zScore(value, allValues, invert);
+  if (z === null) return "";
   if (z >= TIER_Z_THRESHOLD) return "tier-good";
   if (z <= -TIER_Z_THRESHOLD) return "tier-bad";
   return "tier-mid";
@@ -286,7 +298,7 @@ function initScheduleScroller(onPick, options = {}) {
 }
 
 // ---- Matchup Snapshot: automated mismatch finder ----
-// Surfaces places where one team's own tendency (top or bottom third
+// Surfaces places where one team's own tendency (a real, z-scored outlier
 // league-wide) lines up with the other team's own tendency on the exact
 // same stat -- e.g. a team that feeds a position a lot meeting a defense
 // that leaks to that position a lot. Every insight is stated as a plain
@@ -294,19 +306,26 @@ function initScheduleScroller(onPick, options = {}) {
 // a "target this" recommendation -- consistent with this site's color
 // coding being a magnitude signal, not a verdict.
 
-// 0 (both sides sit at the 50th percentile, least interesting) to 1 (both
-// sides at the extreme edge of their tier, most interesting).
-function insightMagnitude(offPct, defPct) {
-  return Math.abs(offPct - 0.5) + Math.abs(defPct - 0.5);
+// 0 (both sides sit at the league mean, least interesting) and up from
+// there (both sides further from the pack, more interesting) -- same
+// z-score scale as every tier color on the site, not a fixed 0-1 range, so
+// this is only ever compared relatively (sorting candidate insights
+// against each other), never against an absolute cutoff.
+function insightMagnitude(offZ, defZ) {
+  return Math.abs(offZ) + Math.abs(defZ);
 }
 
 // offGetter/defGetter: (team) => raw value for that stat. offInvert/
 // defInvert: same meaning as percentileTier's invert. Returns
-// {magnitude, offVal, defVal} ONLY when offTeam's own value is top-third
-// AND defTeam's own (allowed-side) value is bottom-third on the exact
-// same stat -- a real "good offense meets bad defense" opportunity.
-// Deliberately one-directional: this summary surfaces angles that ARE
-// likely, never the inverse "both sides weak, unlikely to happen" case.
+// {magnitude, offVal, defVal} ONLY when offTeam's own value is a real
+// z-scored outlier on the good side AND defTeam's own (allowed-side) value
+// is an outlier on the bad side, on the exact same stat -- a real "good
+// offense meets bad defense" opportunity, using the same TIER_Z_THRESHOLD
+// every colored cell on the site uses (was its own raw percentile-rank cutoff
+// before, which could flip on a fractional difference the same way the old
+// tier coloring used to). Deliberately one-directional: this summary
+// surfaces angles that ARE likely, never the inverse "both sides weak,
+// unlikely to happen" case.
 function checkOpportunity(offTeam, defTeam, offGetter, defGetter, offInvert, defInvert) {
   const pool = teamsWithGames();
   if (pool.length < 3) return null;
@@ -314,17 +333,12 @@ function checkOpportunity(offTeam, defTeam, offGetter, defGetter, offInvert, def
   const defVal = defGetter(defTeam);
   if (offVal === null || offVal === undefined || defVal === null || defVal === undefined) return null;
 
-  const offVals = pool.map(offGetter).filter((v) => v !== null && v !== undefined);
-  const defVals = pool.map(defGetter).filter((v) => v !== null && v !== undefined);
-  const offSorted = [...offVals].sort((a, b) => a - b);
-  const defSorted = [...defVals].sort((a, b) => a - b);
-  let offPct = offSorted.indexOf(offVal) / (offSorted.length - 1);
-  let defPct = defSorted.indexOf(defVal) / (defSorted.length - 1);
-  if (offInvert) offPct = 1 - offPct;
-  if (defInvert) defPct = 1 - defPct;
+  const offZ = zScore(offVal, pool.map(offGetter), offInvert);
+  const defZ = zScore(defVal, pool.map(defGetter), defInvert);
+  if (offZ === null || defZ === null) return null;
 
-  if (offPct >= 0.667 && defPct < 0.333) {
-    return { magnitude: insightMagnitude(offPct, defPct), offVal, defVal };
+  if (offZ >= TIER_Z_THRESHOLD && defZ <= -TIER_Z_THRESHOLD) {
+    return { magnitude: insightMagnitude(offZ, defZ), offVal, defVal };
   }
   return null;
 }
