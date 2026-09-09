@@ -8,17 +8,30 @@
 // each row reads as a matchup ("this team's pass volume vs that team's
 // pass defense") instead of two separate lines. Penalty Yards had no
 // defense-side mirror selected/computed, so it's left out of this table.
-const GENERAL_STAT_ROWS = [
-  { label: "Points", offKey: "points_for_per_g", offInvert: false, defKey: "points_against_per_g", defInvert: true },
-  { label: "Pass Attempts", offKey: "pass_att_per_g", offInvert: false, defKey: "pass_att_allowed_per_g", defInvert: true },
-  { label: "Pass Yards", offKey: "pass_yards_per_g", offInvert: false, defKey: "pass_yards_allowed_per_g", defInvert: true },
-  { label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false },
-  { label: "Rush Attempts", offKey: "rush_att_per_g", offInvert: false, defKey: "rush_att_allowed_per_g", defInvert: true },
-  { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
-  { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
-  { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
-  { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
-  { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
+// Grouped into two sections (was one flat list that read as a blended wall
+// of numbers): the core volume/efficiency picture, then the two "flips
+// games" stats that don't fit that story.
+const GENERAL_STAT_GROUPS = [
+  {
+    label: "Production",
+    rows: [
+      { label: "Points", offKey: "points_for_per_g", offInvert: false, defKey: "points_against_per_g", defInvert: true },
+      { label: "Pass Attempts", offKey: "pass_att_per_g", offInvert: false, defKey: "pass_att_allowed_per_g", defInvert: true },
+      { label: "Pass Yards", offKey: "pass_yards_per_g", offInvert: false, defKey: "pass_yards_allowed_per_g", defInvert: true },
+      { label: "Rush Attempts", offKey: "rush_att_per_g", offInvert: false, defKey: "rush_att_allowed_per_g", defInvert: true },
+      { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
+      { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
+      { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
+      { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
+    ],
+  },
+  {
+    label: "Turnovers & Pressure",
+    rows: [
+      { label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false },
+      { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
+    ],
+  },
 ];
 
 // Schematic tendency (how a defense lines up, from nflverse's free
@@ -202,16 +215,21 @@ function renderGeneralStatsTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
   const format = (v, pct) => (v === null || v === undefined ? "--" : pct ? `${Math.round(v * 100)}%` : fmt(v, 2));
-  const rows = GENERAL_STAT_ROWS.map((r) => {
-    const offCls = tierFor(r.offKey, offTeam, r.offInvert);
-    const defCls = tierFor(r.defKey, defTeam, r.defInvert);
-    const labelHtml = r.note ? `${r.label}<br><span class="muted-label">${r.note}</span>` : r.label;
-    return `<tr><td>${labelHtml}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam)}</tr>`;
+  const groups = GENERAL_STAT_GROUPS.map((group) => {
+    const rows = group.rows
+      .map((r) => {
+        const offCls = tierFor(r.offKey, offTeam, r.offInvert);
+        const defCls = tierFor(r.defKey, defTeam, r.defInvert);
+        const labelHtml = r.note ? `${r.label}<br><span class="muted-label">${r.note}</span>` : r.label;
+        return `<tr><td>${labelHtml}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam)}</tr>`;
+      })
+      .join("");
+    return `<tr><td class="section-group-label" colspan="4">${group.label}</td></tr>${rows}`;
   }).join("");
 
   return `<table class="data-table general-stat-table">
     <thead>${pairedStatHeader(offTeam, defTeam)}</thead>
-    <tbody>${rows}</tbody>
+    <tbody>${groups}</tbody>
   </table>`;
 }
 
