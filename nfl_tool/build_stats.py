@@ -473,19 +473,15 @@ def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
     return lookup
 
 
-def fetch_player_td_odds(api_key: str, starts_after: str, starts_before: str, teams, roster_teams: dict) -> dict | None:
-    """Anytime-touchdown-scorer ("yes/no" any TD) odds for every player with
-    a real line this week, from SportsGameOdds' free tier. Returns None if
-    no API key is configured (this feature is entirely optional -- the site
-    works fine without it) or if the request fails for any reason.
-
-    Picks the best (most favorable to a "yes" bettor) price across whatever
-    real sportsbooks the free tier returns for that player, plus the
-    de-vigged "fair" price/probability SportsGameOdds computes across all of
-    them -- used to RANK players by true likelihood regardless of which book
-    happened to have the best number, so the ranking isn't skewed by one
-    book's outlier price. roster_teams (see build_roster_team_lookup) drops
-    entries the free tier mis-tagged to the wrong team.
+def fetch_sgo_events(api_key: str, starts_after: str, starts_before: str) -> list | None:
+    """Raw SportsGameOdds events (every market, every player, every book the
+    free tier returns) for the given date window. Returns None if no API key
+    is configured (player props are entirely optional -- the site works
+    fine without them) or the request fails for any reason. Fetched ONCE and
+    shared across every player-prop market we extract from it (anytime-TD,
+    first-TD, and whatever gets added later) -- SportsGameOdds bills per
+    EVENT returned, not per market, so there's no reason to hit the API
+    again just to look at a different statID in the same response.
     """
     if not api_key:
         return None
@@ -507,12 +503,27 @@ def fetch_player_td_odds(api_key: str, starts_after: str, starts_before: str, te
         with urllib.request.urlopen(req, timeout=30) as resp:
             payload = json.load(resp)
     except Exception as e:
-        print(f"WARNING: could not fetch player TD odds ({e}) -- skipping player props.", file=sys.stderr)
+        print(f"WARNING: could not fetch player prop odds ({e}) -- skipping player props.", file=sys.stderr)
         return None
     if not payload.get("success"):
         print(f"WARNING: SportsGameOdds request unsuccessful: {payload.get('notice')}", file=sys.stderr)
         return None
+    return payload.get("data", [])
 
+
+def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict) -> dict:
+    """Every player's "yes/no" odds for one statID (e.g. "touchdowns" for
+    anytime-TD, "firstTouchdown" for first-TD) out of a fetch_sgo_events()
+    response.
+
+    Picks the best (most favorable to a "yes" bettor) price across whatever
+    real sportsbooks the free tier returns for that player, plus the
+    de-vigged "fair" price/probability SportsGameOdds computes across all of
+    them -- used to RANK players by true likelihood regardless of which book
+    happened to have the best number, so the ranking isn't skewed by one
+    book's outlier price. roster_teams (see build_roster_team_lookup) drops
+    entries the free tier mis-tagged to the wrong team.
+    """
     # Keyed by (team, player name) rather than playerID -- SportsGameOdds
     # occasionally carries two different playerIDs for the same real person
     # (data-vendor quirk), which would otherwise show the same player twice
@@ -520,7 +531,7 @@ def fetch_player_td_odds(api_key: str, starts_after: str, starts_before: str, te
     # live book price; if neither/none do, keep the higher implied
     # probability one.
     best_by_key = {}
-    for event in payload.get("data", []):
+    for event in events:
         players = event.get("players", {})
         odds = event.get("odds", {})
         team_short_by_id = {
@@ -528,7 +539,7 @@ def fetch_player_td_odds(api_key: str, starts_after: str, starts_before: str, te
             for side in ("home", "away")
         }
         for odd in odds.values():
-            if odd.get("statID") != "touchdowns" or odd.get("betTypeID") != "yn" or odd.get("sideID") != "yes":
+            if odd.get("statID") != stat_id or odd.get("betTypeID") != "yn" or odd.get("sideID") != "yes":
                 continue
             player = players.get(odd.get("playerID"))
             if not player:
@@ -1490,12 +1501,13 @@ def main():
     current_week = compute_current_week(schedule)
     injury_report = compute_injury_report(injuries_df, teams)
 
-    # Player anytime-TD odds for whatever week is currently on deck --
-    # requested_season since (like odds/injuries) this is about the
-    # upcoming slate, not whatever season the pbp-based stats fell back to.
+    # Player prop odds (anytime-TD, first-TD) for whatever week is currently
+    # on deck -- requested_season since (like odds/injuries) this is about
+    # the upcoming slate, not whatever season the pbp-based stats fell back to.
     week_games = [g for g in schedule if g["week"] == current_week]
     week_dates = sorted(g["date"] for g in week_games if g.get("date"))
     player_td_odds = None
+    player_first_td_odds = None
     if week_dates:
         starts_after = week_dates[0]
         starts_before = (date.fromisoformat(week_dates[-1]) + timedelta(days=1)).isoformat()
@@ -1507,7 +1519,10 @@ def main():
         # happening throughout the year.
         current_rosters = load_rosters(args.data_dir, args.season, force=True)
         roster_teams = build_roster_team_lookup(current_rosters)
-        player_td_odds = fetch_player_td_odds(os.environ.get("SGO_API_KEY"), starts_after, starts_before, teams, roster_teams)
+        sgo_events = fetch_sgo_events(os.environ.get("SGO_API_KEY"), starts_after, starts_before)
+        if sgo_events is not None:
+            player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams)
+            player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams)
 
     blob = {
         "season": season,
@@ -1525,6 +1540,7 @@ def main():
         "injuries": injury_report,
         "injuries_max_week": int(injuries_df["week"].max()) if len(injuries_df) else None,
         "player_td_odds": player_td_odds,
+        "player_first_td_odds": player_first_td_odds,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

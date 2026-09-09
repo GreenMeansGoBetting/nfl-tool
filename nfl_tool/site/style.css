@@ -342,6 +342,10 @@ footer a { color: var(--accent); }
 .modal-close:hover { color: var(--text); }
 .player-odds-table th, .player-odds-table td { text-align: left; }
 .player-odds-table td.num, .player-odds-table th.num { text-align: center; }
+.pp-row-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 400; }
+.pp-row-label input { cursor: pointer; }
+.pp-check-inline { display: inline-flex; align-items: center; margin-left: 4px; cursor: pointer; }
+.pp-check-inline input { cursor: pointer; }
 
 /* ---- Game Overviews ---- */
 
@@ -546,6 +550,7 @@ footer a { color: var(--accent); }
 }
 .pick-market-label { font-weight: 700; font-size: 0.85rem; min-width: 80px; }
 .pick-side-group, .pick-color-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.pick-side-wrap { display: inline-flex; align-items: center; gap: 2px; }
 
 .pick-side-btn, .pick-color-btn, .pick-save-btn, .pick-edit-btn {
   background: var(--bg);

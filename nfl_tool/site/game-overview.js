@@ -462,8 +462,25 @@ function renderPickMarketRow(game, market) {
     return `<div class="pick-market-row"><span class="pick-market-label">${market.label}</span><span class="no-data-note">Odds not posted yet.</span></div>`;
   }
   const draft = draftPicks[market.key] || {};
+  // Checkbox is independent of the actual side-select/color pick flow --
+  // a "worth a look" note for the Possible Plays list, not a graded pick.
   const sideBtns = sides
-    .map((s) => `<button type="button" class="pick-side-btn${draft.side === s.side ? " selected" : ""}" data-market="${market.key}" data-action="side" data-side="${s.side}">${s.label}</button>`)
+    .map((s) => {
+      const entry = {
+        id: `${game.game_id}_${market.key}_${s.side}`,
+        week: game.week,
+        matchup: `${game.away} @ ${game.home}`,
+        category: MARKET_LABELS[market.key],
+        description: s.label,
+        odds: fmtOdds(s.odds),
+        book: null,
+      };
+      const checked = isPossiblePlay(entry.id) ? " checked" : "";
+      return `<span class="pick-side-wrap">
+        <button type="button" class="pick-side-btn${draft.side === s.side ? " selected" : ""}" data-market="${market.key}" data-action="side" data-side="${s.side}">${s.label}</button>
+        <label class="pp-check-inline" title="Add to Possible Plays"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}></label>
+      </span>`;
+    })
     .join("");
   const colorBtns = COLORS.map(
     (c) => `<button type="button" class="pick-color-btn pick-color-${c.key}${draft.color === c.key ? " selected" : ""}" data-market="${market.key}" data-action="color" data-color="${c.key}">${c.label}</button>`

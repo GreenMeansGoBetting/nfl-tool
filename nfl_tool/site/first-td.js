@@ -84,7 +84,7 @@ function renderBasicsTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
+    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"], "first_td")}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }

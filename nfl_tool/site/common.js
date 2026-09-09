@@ -398,12 +398,15 @@ function renderRedZoneTable(offTeam, defTeam) {
   </table>`;
 }
 
-function headerRow(offTeam, defTeam, subLabels) {
+// market picks which player-prop odds a team-header click opens in the
+// modal -- "anytime_td" everywhere by default, "first_td" on the First TD
+// Data page (see that page's headerRow call).
+function headerRow(offTeam, defTeam, subLabels, market = "anytime_td") {
   const offRgb = teamAccentRgb(offTeam);
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="team-click" data-team="${offTeam}">${offTeam}</span><span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="team-click" data-team="${defTeam}">${defTeam}</span><span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
+  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="team-click" data-team="${offTeam}" data-market="${market}">${offTeam}</span><span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="team-click" data-team="${defTeam}" data-market="${market}">${defTeam}</span><span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
     <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
 }
 
@@ -463,42 +466,112 @@ function closePlayerOddsModal() {
   if (el) el.hidden = true;
 }
 
-// Anytime-TD-scorer odds, from build_stats.py's SportsGameOdds pull --
-// entirely optional (DATA.player_td_odds is null if no API key was
+// ---- Possible Plays ----
+// A "napkin math" notes list, deliberately separate from the graded Pick
+// Tracker -- checking a box here just remembers a player/side worth
+// considering as you browse, nothing gets graded. Shared across every page
+// (the odds modal on TD Data/First TD Data/Game Previews, the mainline
+// checkboxes on Game Previews, and the Possible Plays page that lists them
+// all back out grouped by week).
+const POSSIBLE_PLAYS_KEY = "nfl-tool.possible-plays.v1";
+
+// Round-trips a JS object through a data-* attribute regardless of what
+// characters are in it (player names with apostrophes/periods, etc.) --
+// base64 of the UTF-8 JSON sidesteps HTML-attribute-escaping entirely.
+function encodeDataAttr(obj) {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+}
+function decodeDataAttr(str) {
+  return JSON.parse(decodeURIComponent(escape(atob(str))));
+}
+
+function loadPossiblePlays() {
+  try {
+    return JSON.parse(localStorage.getItem(POSSIBLE_PLAYS_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+function savePossiblePlays(list) {
+  try {
+    localStorage.setItem(POSSIBLE_PLAYS_KEY, JSON.stringify(list));
+  } catch (e) {
+    // localStorage unavailable -- the checkbox just won't stick.
+  }
+}
+function isPossiblePlay(id) {
+  return loadPossiblePlays().some((p) => p.id === id);
+}
+// Plain checkbox semantics: present -> removed, absent -> added.
+function togglePossiblePlay(entry) {
+  const list = loadPossiblePlays();
+  const idx = list.findIndex((p) => p.id === entry.id);
+  if (idx === -1) list.push({ ...entry, added_at: new Date().toISOString() });
+  else list.splice(idx, 1);
+  savePossiblePlays(list);
+}
+
+document.addEventListener("change", (e) => {
+  const cb = e.target.closest(".pp-toggle");
+  if (!cb) return;
+  togglePossiblePlay(decodeDataAttr(cb.dataset.entry));
+});
+
+// ---- Player prop odds modal ----
+const PLAY_MARKET_LABELS = { anytime_td: "Anytime TD", first_td: "First TD" };
+
+// From build_stats.py's SportsGameOdds pull -- entirely optional
+// (DATA.player_td_odds/player_first_td_odds are null if no API key was
 // configured at build time), so this degrades to a plain message rather
 // than a broken modal when it's missing.
-function renderPlayerOddsModalContent(team) {
-  const heading = `<h3>${TEAM_NAMES[team] || team} &mdash; Anytime TD Odds</h3>`;
-  const rows = DATA.player_td_odds && DATA.player_td_odds[team];
-  if (!DATA.player_td_odds) {
+function renderPlayerOddsModalContent(team, market) {
+  const marketLabel = PLAY_MARKET_LABELS[market] || PLAY_MARKET_LABELS.anytime_td;
+  const dataField = market === "first_td" ? DATA.player_first_td_odds : DATA.player_td_odds;
+  const heading = `<h3>${TEAM_NAMES[team] || team} &mdash; ${marketLabel} Odds</h3>`;
+  if (!dataField) {
     return `${heading}<p class="no-data-note">Player odds aren't configured for this build.</p>`;
   }
+  const rows = dataField[team];
   if (!rows || rows.length === 0) {
-    return `${heading}<p class="no-data-note">No anytime-TD odds posted for this team yet this week.</p>`;
+    return `${heading}<p class="no-data-note">No ${marketLabel.toLowerCase()} odds posted for this team yet this week.</p>`;
   }
+  const game = (DATA.schedule || []).find((g) => g.week === scheduleWeek && (g.away === team || g.home === team));
+  const weekNum = game ? game.week : scheduleWeek;
+  const matchup = game ? `${game.away} @ ${game.home}` : team;
+
   const body = rows
     .map((p) => {
       const hasBook = p.best_odds !== null && p.best_odds !== undefined;
       const price = hasBook ? p.best_odds : p.fair_odds;
       const book = hasBook ? p.best_book : "Fair line";
-      return `<tr><td>${p.name}</td><td class="num">${fmtOddsSigned(price)}</td><td class="muted-label">${book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+      const entry = {
+        id: `${weekNum}_${market}_${team}_${p.name}`,
+        week: weekNum,
+        matchup,
+        category: marketLabel,
+        description: `${p.name} (${team})`,
+        odds: fmtOddsSigned(price),
+        book,
+      };
+      const checked = isPossiblePlay(entry.id) ? " checked" : "";
+      return `<tr><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name}</label></td><td class="num">${fmtOddsSigned(price)}</td><td class="muted-label">${book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
     })
     .join("");
   return `${heading}
-    <p class="no-data-note">Anytime touchdown scorer -- best price found across a handful of books (SportsGameOdds free tier), or the de-vigged fair line where no book has one posted. A ballpark, not every book, not live.</p>
+    <p class="no-data-note">${marketLabel} scorer -- best price found across a handful of books (SportsGameOdds free tier), or the de-vigged fair line where no book has one posted. A ballpark, not every book, not live. Check a player to add them to Possible Plays.</p>
     <table class="data-table player-odds-table">
       <thead><tr><th>Player</th><th>Odds</th><th>Book</th><th>Implied %</th></tr></thead>
       <tbody>${body}</tbody>
     </table>`;
 }
 
-function openPlayerOddsModal(team) {
+function openPlayerOddsModal(team, market = "anytime_td") {
   ensurePlayerOddsModal();
-  document.getElementById("player-odds-modal-content").innerHTML = renderPlayerOddsModalContent(team);
+  document.getElementById("player-odds-modal-content").innerHTML = renderPlayerOddsModalContent(team, market);
   document.getElementById("player-odds-modal").hidden = false;
 }
 
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".team-click");
-  if (btn) openPlayerOddsModal(btn.dataset.team);
+  if (btn) openPlayerOddsModal(btn.dataset.team, btn.dataset.market || "anytime_td");
 });

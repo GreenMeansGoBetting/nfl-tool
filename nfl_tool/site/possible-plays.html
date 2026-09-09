@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Possible Plays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">GMG's NFL Suite</span>
+  <nav class="page-nav">
+    <a href="game-overview.html">Game Previews</a>
+    <a href="index.html">TD Data</a>
+    <a href="first-td.html">First TD Data</a>
+    <span class="page-nav-current">Possible Plays</span>
+  </nav>
+  <span class="muted">Saved to this browser only</span>
+</div>
+
+<main>
+  <div id="empty-state" class="empty-state" hidden>
+    <p>Nothing saved yet. Check a player in an odds modal, or a side on Game Previews' Pick Tracker, and it'll show up here.</p>
+  </div>
+  <div id="plays-content"></div>
+</main>
+
+<footer>
+  Napkin-math notes, not a graded pick -- saved to this browser only.
+</footer>
+
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script src="possible-plays.js"></script>
+</body>
+</html>
