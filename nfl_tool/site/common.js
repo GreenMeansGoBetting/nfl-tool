@@ -393,8 +393,18 @@ function renderMatchupSnapshot(opportunities) {
   return `<ul class="snapshot-list">${items}</ul>`;
 }
 
-// Shared by the TD Data and Game Overviews pages.
+// TD Data's Red Zone Touchdowns section. RZ TD % leads the table
+// on purpose -- the volume rows below it (Plays/Carries/Targets) only count
+// how much action a defense allowed inside the 20, not what happened once
+// it got there. A defense that allows one red zone snap and it's a
+// touchdown looks great on every volume row (fewest plays/carries/targets
+// allowed) despite a 100% TD rate; a defense that stones three straight
+// trips on 4th down looks bad on volume despite a 0% TD rate. TD % (trips
+// that actually ended in a score, not raw play count) is the number that
+// answers "what actually happens when this defense is backed up," so it's
+// the row the ADV column is most worth trusting here.
 const RED_ZONE_ROWS = [
+  { label: "RZ TD %", totalOffKey: "rz_trips", rateOffKey: "rz_td_rate", totalDefKey: "rz_trips_allowed", rateDefKey: "rz_td_rate_allowed", ratePct: true },
   { label: "RZ TD", totalOffKey: "rz_td", rateOffKey: "rz_td_per_g", totalDefKey: "rz_td_allowed", rateDefKey: "rz_td_allowed_per_g" },
   { label: "RZ Plays", totalOffKey: "rz_plays", rateOffKey: "rz_plays_per_g", totalDefKey: "rz_plays_allowed", rateDefKey: "rz_plays_allowed_per_g" },
   { label: "RZ Carries", totalOffKey: "rz_carries", rateOffKey: "rz_carries_per_g", totalDefKey: "rz_carries_allowed", rateDefKey: "rz_carries_allowed_per_g" },
@@ -412,11 +422,13 @@ function renderRedZoneTable(offTeam, defTeam) {
     const defRateCls = tierFor(r.rateDefKey, defTeam, true);
     const offRateExtreme = tierFor(r.rateOffKey, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defRateExtreme = tierFor(r.rateDefKey, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+    const offRateDisplay = r.ratePct ? `${Math.round(off[r.rateOffKey] * 100)}%` : fmt(off[r.rateOffKey], 2);
+    const defRateDisplay = r.ratePct ? `${Math.round(def[r.rateDefKey] * 100)}%` : fmt(def[r.rateDefKey], 2);
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${offRateDisplay}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${defRateDisplay}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
+    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
