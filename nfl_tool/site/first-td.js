@@ -70,8 +70,12 @@ function renderBasicsTable(offTeam, defTeam) {
   const defRateExtreme = tierForFirstTdAllowed(defTeam, TIER_Z_EXTREME_THRESHOLD);
   const offGamesCls = percentileTier(off.first_td_games, teamsWithGames().map((t) => DATA.team_stats[t].first_td_games), false);
   const defGamesCls = percentileTier(firstTdAllowedGames(defTeam), teamsWithGames().map(firstTdAllowedGames), true);
+  const offGamesA = tierAlphaAttr(off.first_td_games, teamsWithGames().map((t) => DATA.team_stats[t].first_td_games), false);
+  const offRateA = tierForAlphaAttr("first_td_rate", offTeam, false);
+  const defGamesA = tierAlphaAttr(firstTdAllowedGames(defTeam), teamsWithGames().map(firstTdAllowedGames), true);
+  const defRateA = tierForFirstTdAllowedAlphaAttr(defTeam);
 
-  let rows = `<tr><td>First TD</td><td class="num ${offGamesCls}">${off.first_td_games}</td><td class="num ${offRateCls}">${fmt(off.first_td_rate * 100, 0)}%</td><td class="num ${defGamesCls}">${firstTdAllowedGames(defTeam)}</td><td class="num ${defRateCls}">${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+  let rows = `<tr><td>First TD</td><td class="num ${offGamesCls}"${offGamesA}>${off.first_td_games}</td><td class="num ${offRateCls}"${offRateA}>${fmt(off.first_td_rate * 100, 0)}%</td><td class="num ${defGamesCls}"${defGamesA}>${firstTdAllowedGames(defTeam)}</td><td class="num ${defRateCls}"${defRateA}>${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
 
   rows += POSITIONS.map((pos) => {
     const offCount = off.first_td_position[pos];

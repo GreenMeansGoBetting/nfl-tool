@@ -114,7 +114,11 @@ function renderStatTable(offTeam, defTeam) {
       const defRateCls = tierForFirstTdAllowed(defTeam);
       const offRateExtreme = tierFor("first_td_rate", offTeam, false, TIER_Z_EXTREME_THRESHOLD);
       const defRateExtreme = tierForFirstTdAllowed(defTeam, TIER_Z_EXTREME_THRESHOLD);
-      return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${offTotal}</td><td class="num ${offRateCls}">${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}">${defTotal}</td><td class="num ${defRateCls}">${fmt(defRate, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+      const offTotalA = tierAlphaAttr(offTotal, teamsWithGames().map((t) => DATA.team_stats[t].first_td_games), false);
+      const offRateA = tierForAlphaAttr("first_td_rate", offTeam, false);
+      const defTotalA = tierAlphaAttr(defTotal, teamsWithGames().map(firstTdAllowedGames), true);
+      const defRateA = tierForFirstTdAllowedAlphaAttr(defTeam);
+      return `<tr><td>${r.label}</td><td class="num ${offTotalCls}"${offTotalA}>${offTotal}</td><td class="num ${offRateCls}"${offRateA}>${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}"${defTotalA}>${defTotal}</td><td class="num ${defRateCls}"${defRateA}>${fmt(defRate, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
     }
     const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
     const offRateCls = tierFor(r.rateOffKey, offTeam, false);
@@ -122,7 +126,11 @@ function renderStatTable(offTeam, defTeam) {
     const defRateCls = tierFor(r.rateDefKey, defTeam, true);
     const offRateExtreme = tierFor(r.rateOffKey, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defRateExtreme = tierFor(r.rateDefKey, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+    const offTotalA = tierForAlphaAttr(r.totalOffKey, offTeam, false);
+    const offRateA = tierForAlphaAttr(r.rateOffKey, offTeam, false);
+    const defTotalA = tierForAlphaAttr(r.totalDefKey, defTeam, true);
+    const defRateA = tierForAlphaAttr(r.rateDefKey, defTeam, true);
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}"${offTotalA}>${off[r.totalOffKey]}</td><td class="num ${offRateCls}"${offRateA}>${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}"${defTotalA}>${def[r.totalDefKey]}</td><td class="num ${defRateCls}"${defRateA}>${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">

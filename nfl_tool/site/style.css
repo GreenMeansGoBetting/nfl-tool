@@ -254,9 +254,13 @@ select {
 .data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
 
-.tier-good { background: rgba(var(--good-rgb), 0.16); color: var(--good-text); font-weight: 600; }
-.tier-mid { background: rgba(var(--mid-rgb), 0.16); color: var(--mid-text); font-weight: 600; }
-.tier-bad { background: rgba(var(--bad-rgb), 0.16); color: var(--bad-text); font-weight: 600; }
+/* --tier-a (set inline per-cell) lets a value that just barely crossed the
+   tier threshold render lighter than a genuine outlier instead of both
+   looking identically loud; falls back to the old flat 0.16 wherever a
+   cell doesn't set it (tier-mid never does -- see tierAlpha() in common.js). */
+.tier-good { background: rgba(var(--good-rgb), var(--tier-a, 0.16)); color: var(--good-text); font-weight: 600; }
+.tier-mid { background: rgba(var(--mid-rgb), var(--tier-a, 0.16)); color: var(--mid-text); font-weight: 600; }
+.tier-bad { background: rgba(var(--bad-rgb), var(--tier-a, 0.16)); color: var(--bad-text); font-weight: 600; }
 
 .no-data-note {
   font-size: 0.85rem;

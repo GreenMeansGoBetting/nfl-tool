@@ -114,6 +114,37 @@ function percentileTier(value, allValues, invert, threshold = TIER_Z_THRESHOLD) 
   return "tier-mid";
 }
 
+// A value that just barely crosses into tier-good/tier-bad (right past the
+// z-score threshold) shouldn't look as loud as a genuine outlier -- same
+// two tiers, continuous intensity instead of jumping straight to full
+// strength the instant it crosses the line (this is what was behind report
+// like "146 red, 147 yellow" reading as a jarring flip for a tiny real
+// difference: the CLASSIFICATION was already correct, but every tier-bad
+// cell rendered at identical strength regardless of how far past the
+// cutoff it actually was). tier-mid is untouched -- it never had a hard-
+// boundary flip the way crossing INTO bad/good does, since the whole mid
+// band shares one flat color already. Returns null for mid (or no
+// signal), meaning "use the CSS default" -- see TIER_ALPHA_MIN/MAX below.
+// Same idea as teamFade()'s continuous ratio-based shading, just driven by
+// z-score distance instead of a 0-1 ratio.
+const TIER_Z_SATURATE = 2;
+const TIER_ALPHA_MIN = 0.1;
+const TIER_ALPHA_MAX = 0.32;
+function tierAlpha(value, allValues, invert, threshold = TIER_Z_THRESHOLD) {
+  const z = zScore(value, allValues, invert);
+  if (z === null) return null;
+  const az = Math.abs(z);
+  if (az < threshold) return null;
+  const t = Math.min((az - threshold) / (TIER_Z_SATURATE - threshold), 1);
+  return TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
+}
+// `style="--tier-a:0.18"` (or "" for mid/no-signal, letting the CSS
+// fallback apply) -- ready to splice straight into a <td ...> tag.
+function tierAlphaAttr(value, allValues, invert, threshold = TIER_Z_THRESHOLD) {
+  const a = tierAlpha(value, allValues, invert, threshold);
+  return a === null ? "" : ` style="--tier-a:${a.toFixed(2)}"`;
+}
+
 // No-color-at-zero fade in the TEAM's own color, scoped to whatever list
 // of values is passed in (a team's own roster, not a league percentile).
 // ratio=0 renders fully transparent (the plain dark table row shows
@@ -129,6 +160,12 @@ function tierFor(statKey, team, invert, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const values = pool.map((t) => DATA.team_stats[t][statKey]);
   return percentileTier(DATA.team_stats[team][statKey], values, invert, threshold);
+}
+// Companion to tierFor -- same lookup, continuous shading instead of a class.
+function tierForAlphaAttr(statKey, team, invert, threshold = TIER_Z_THRESHOLD) {
+  const pool = teamsWithGames();
+  const values = pool.map((t) => DATA.team_stats[t][statKey]);
+  return tierAlphaAttr(DATA.team_stats[team][statKey], values, invert, threshold);
 }
 
 // A team's own share of its games where the OPPONENT scored first -- the
@@ -147,6 +184,11 @@ function tierForFirstTdAllowed(team, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const values = pool.map((t) => firstTdAllowedRate(t));
   return percentileTier(firstTdAllowedRate(team), values, true, threshold);
+}
+function tierForFirstTdAllowedAlphaAttr(team, threshold = TIER_Z_THRESHOLD) {
+  const pool = teamsWithGames();
+  const values = pool.map((t) => firstTdAllowedRate(t));
+  return tierAlphaAttr(firstTdAllowedRate(team), values, true, threshold);
 }
 
 // Share/count percentile helpers for any {key: count} bucket dict (position
@@ -410,6 +452,7 @@ function renderMatchupSnapshot(opportunities) {
 const RED_ZONE_ROWS = [
   { label: "RZ TD %", totalOffKey: "rz_trips", rateOffKey: "rz_td_rate", totalDefKey: "rz_trips_allowed", rateDefKey: "rz_td_rate_allowed", ratePct: true },
   { label: "RZ TD", totalOffKey: "rz_td", rateOffKey: "rz_td_per_g", totalDefKey: "rz_td_allowed", rateDefKey: "rz_td_allowed_per_g" },
+  { label: "RZ Trips", totalOffKey: "rz_trips", rateOffKey: "rz_trips_per_g", totalDefKey: "rz_trips_allowed", rateDefKey: "rz_trips_allowed_per_g" },
 ];
 
 function renderRedZoneTable(offTeam, defTeam) {
@@ -423,9 +466,13 @@ function renderRedZoneTable(offTeam, defTeam) {
     const defRateCls = tierFor(r.rateDefKey, defTeam, true);
     const offRateExtreme = tierFor(r.rateOffKey, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defRateExtreme = tierFor(r.rateDefKey, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
+    const offTotalA = tierForAlphaAttr(r.totalOffKey, offTeam, false);
+    const offRateA = tierForAlphaAttr(r.rateOffKey, offTeam, false);
+    const defTotalA = tierForAlphaAttr(r.totalDefKey, defTeam, true);
+    const defRateA = tierForAlphaAttr(r.rateDefKey, defTeam, true);
     const offRateDisplay = r.ratePct ? `${Math.round(off[r.rateOffKey] * 100)}%` : fmt(off[r.rateOffKey], 2);
     const defRateDisplay = r.ratePct ? `${Math.round(def[r.rateDefKey] * 100)}%` : fmt(def[r.rateDefKey], 2);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}">${off[r.totalOffKey]}</td><td class="num ${offRateCls}">${offRateDisplay}</td><td class="num ${defTotalCls}">${def[r.totalDefKey]}</td><td class="num ${defRateCls}">${defRateDisplay}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}"${offTotalA}>${off[r.totalOffKey]}</td><td class="num ${offRateCls}"${offRateA}>${offRateDisplay}</td><td class="num ${defTotalCls}"${defTotalA}>${def[r.totalDefKey]}</td><td class="num ${defRateCls}"${defRateA}>${defRateDisplay}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">

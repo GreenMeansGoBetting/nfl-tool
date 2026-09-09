@@ -1341,9 +1341,11 @@ def build_team_stats(
             "penalty_yards": gen.get("penalty_yards", 0),
             "penalty_yards_per_g": per_g(gen.get("penalty_yards", 0)),
             "rz_trips": rz_trip.get("rz_trips", 0),
+            "rz_trips_per_g": per_g(rz_trip.get("rz_trips", 0)),
             "rz_trips_td": rz_trip.get("rz_trips_td", 0),
             "rz_td_rate": round(rz_trip.get("rz_trips_td", 0) / rz_trip["rz_trips"], 3) if rz_trip.get("rz_trips") else None,
             "rz_trips_allowed": rz_trip.get("rz_trips_allowed", 0),
+            "rz_trips_allowed_per_g": per_g(rz_trip.get("rz_trips_allowed", 0)),
             "rz_trips_td_allowed": rz_trip.get("rz_trips_td_allowed", 0),
             "rz_td_rate_allowed": round(rz_trip.get("rz_trips_td_allowed", 0) / rz_trip["rz_trips_allowed"], 3)
             if rz_trip.get("rz_trips_allowed")
