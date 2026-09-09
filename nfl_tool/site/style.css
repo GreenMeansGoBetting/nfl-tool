@@ -356,27 +356,12 @@ footer a { color: var(--accent); }
   padding: 16px;
   text-align: center;
 }
-.novig-logo-slot {
-  font-weight: 700;
-  font-size: 1.3rem;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  border: 2px solid var(--accent);
-  border-radius: 6px;
-  padding: 6px 18px;
-}
+.novig-logo { width: 56px; height: 56px; border-radius: 12px; display: block; }
 .novig-cta { margin: 0; font-size: 0.95rem; font-weight: 600; }
 .novig-cta strong { color: var(--accent); }
+.novig-cta a { color: var(--accent); }
 .novig-sub { margin: 0; font-size: 0.8rem; color: var(--muted); }
-.novig-qr-slot {
-  margin-top: 4px;
-  font-size: 0.68rem;
-  font-style: italic;
-  color: var(--muted);
-  border: 1px dashed var(--border);
-  border-radius: 4px;
-  padding: 10px 14px;
-}
+.novig-qr { width: 88px; height: 88px; margin-top: 4px; border: 1px solid var(--border); border-radius: 4px; }
 
 .general-stat-table {
   table-layout: fixed;
