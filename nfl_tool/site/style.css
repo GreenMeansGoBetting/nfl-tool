@@ -389,6 +389,16 @@ footer a { color: var(--accent); }
   font-size: 0.92rem;
   letter-spacing: 0.01em;
 }
+.pair-hdr-sub {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: none;
+}
+.general-stat-table th:nth-child(2), .general-stat-table td:nth-child(2),
+.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) {
+  border-right: 1px solid #000;
+}
 
 .scheme-table .group-row td {
   background: var(--table-head);
@@ -418,6 +428,19 @@ footer a { color: var(--accent); }
 .tend-bar-fill.tier-mid { background: var(--mid); }
 .tend-bar-fill.tier-bad { background: var(--bad); }
 .tend-bar-num { flex: 1; font-size: 0.7rem; font-weight: 700; color: var(--text); text-align: center; }
+.tend-def-success {
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  margin-top: 2px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.tend-def-success.tier-good { background: rgba(var(--good-rgb), 0.16); color: var(--good-text); }
+.tend-def-success.tier-mid { background: rgba(var(--mid-rgb), 0.16); color: var(--mid-text); }
+.tend-def-success.tier-bad { background: rgba(var(--bad-rgb), 0.16); color: var(--bad-text); }
+.scheme-notes:empty { display: none; margin: 0; padding: 0; }
+.scheme-notes { margin: 6px 0 0; }
 .sos-row td {
   font-size: 0.72rem;
   font-style: italic;

@@ -269,6 +269,16 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         d["ypc_vs_light_box"] = round(off_light["yards_gained"].mean(), 2) if len(off_light) >= MIN_SAMPLE else None
         d["ypc_vs_heavy_box_plays"] = len(off_heavy)
         d["ypc_vs_light_box_plays"] = len(off_light)
+        # Mirror image: THIS team's own defense's yards-per-carry ALLOWED
+        # when it plays that box count (how good the defense actually is in
+        # that alignment, not just how often it uses it -- tendency alone
+        # doesn't say whether a look works).
+        def_heavy = def_run[def_run["heavy_box"]]
+        def_light = def_run[~def_run["heavy_box"]]
+        d["def_ypc_allowed_heavy_box"] = round(def_heavy["yards_gained"].mean(), 2) if len(def_heavy) >= MIN_SAMPLE else None
+        d["def_ypc_allowed_light_box"] = round(def_light["yards_gained"].mean(), 2) if len(def_light) >= MIN_SAMPLE else None
+        d["def_ypc_allowed_heavy_box_plays"] = len(def_heavy)
+        d["def_ypc_allowed_light_box_plays"] = len(def_light)
 
         # ---- Pass rush: blitz ----
         def_pass = passp[passp["defteam"] == team]
@@ -283,6 +293,17 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         d["success_vs_standard_rush"] = round(off_standard["success"].mean(), 3) if len(off_standard) >= MIN_SAMPLE else None
         d["success_vs_blitz_plays"] = len(off_blitzed)
         d["success_vs_standard_rush_plays"] = len(off_standard)
+        # Defense-side mirror: the opposing OFFENSE's success rate specifically
+        # against THIS team's own blitz/standard rush -- i.e. how good this
+        # defense actually is when it makes that call, not just how often it
+        # makes it. Stored un-inverted (raw offense success rate allowed);
+        # the frontend applies invert=true same as every other "allowed" stat.
+        def_blitzed = def_pass[def_pass["blitz"]]
+        def_standard = def_pass[~def_pass["blitz"]]
+        d["def_success_allowed_blitz"] = round(def_blitzed["success"].mean(), 3) if len(def_blitzed) >= MIN_SAMPLE else None
+        d["def_success_allowed_standard_rush"] = round(def_standard["success"].mean(), 3) if len(def_standard) >= MIN_SAMPLE else None
+        d["def_success_allowed_blitz_plays"] = len(def_blitzed)
+        d["def_success_allowed_standard_rush_plays"] = len(def_standard)
 
         # ---- Coverage style: zone vs man ----
         zone_def = int(def_pass["zone"].sum())
@@ -296,6 +317,12 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         d["success_vs_man"] = round(off_man["success"].mean(), 3) if len(off_man) >= MIN_SAMPLE else None
         d["success_vs_zone_plays"] = len(off_zone)
         d["success_vs_man_plays"] = len(off_man)
+        def_zone = def_pass[def_pass["zone"]]
+        def_man = def_pass[def_pass["man"]]
+        d["def_success_allowed_zone"] = round(def_zone["success"].mean(), 3) if len(def_zone) >= MIN_SAMPLE else None
+        d["def_success_allowed_man"] = round(def_man["success"].mean(), 3) if len(def_man) >= MIN_SAMPLE else None
+        d["def_success_allowed_zone_plays"] = len(def_zone)
+        d["def_success_allowed_man_plays"] = len(def_man)
 
         # ---- Coverage scheme: specific shells ----
         shell_total = int(def_pass["defense_coverage_type"].isin(SHELLS.values()).sum())
@@ -305,6 +332,9 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
             off_shell = off_pass[off_pass["defense_coverage_type"] == code]
             d[f"success_vs_{key}"] = round(off_shell["success"].mean(), 3) if len(off_shell) >= MIN_SAMPLE else None
             d[f"success_vs_{key}_plays"] = len(off_shell)
+            def_shell = def_pass[def_pass["defense_coverage_type"] == code]
+            d[f"def_success_allowed_{key}"] = round(def_shell["success"].mean(), 3) if len(def_shell) >= MIN_SAMPLE else None
+            d[f"def_success_allowed_{key}_plays"] = len(def_shell)
     return result
 
 

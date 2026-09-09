@@ -18,7 +18,7 @@ const GENERAL_STAT_ROWS = [
   { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
   { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
   { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
-  { label: "Explosive Play Rate", note: "(created / allowed)", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
+  { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
 ];
 
 // Schematic tendency (how a defense lines up, from nflverse's free
@@ -28,13 +28,20 @@ const GENERAL_STAT_ROWS = [
 // column for that whole group (Yards/Carry for run splits, Success Rate
 // for every pass-rush/coverage split -- see build_stats.py's
 // compute_scheme_splits for exactly what "success" means).
+// defTendKey/defSuccessKey pair with each row's tendency bar: not just how
+// often the defense uses a look (frequency, no color judgment) but how well
+// it actually works for them when they do (a real value judgment, tiered
+// invert=true since it's stored as the OPPOSING offense's success/yards --
+// lower is a better defensive result). Run Defense's def-side number is
+// yards allowed (fmtYc), every other group's is a success rate (pct).
 const SCHEME_GROUPS = [
   {
     label: "Run Defense",
     perfLabel: "Y/C",
+    inlineUnit: "Y/C",
     rows: [
-      { label: "Heavy Box (7+)", tendKey: "box_heavy_rate", perfKey: "ypc_vs_heavy_box", oppQKey: "ypc_vs_heavy_box_opp_quality" },
-      { label: "Light Box (≤6)", tendKey: "box_light_rate", perfKey: "ypc_vs_light_box", oppQKey: "ypc_vs_light_box_opp_quality" },
+      { label: "Heavy Box (7+)", tendKey: "box_heavy_rate", perfKey: "ypc_vs_heavy_box", defSuccessKey: "def_ypc_allowed_heavy_box" },
+      { label: "Light Box (≤6)", tendKey: "box_light_rate", perfKey: "ypc_vs_light_box", defSuccessKey: "def_ypc_allowed_light_box" },
     ],
   },
   {
@@ -42,8 +49,8 @@ const SCHEME_GROUPS = [
     perfLabel: "Success %",
     pct: true,
     rows: [
-      { label: "Blitz (5+ rushers)", tendKey: "blitz_rate", perfKey: "success_vs_blitz", oppQKey: "success_vs_blitz_opp_quality" },
-      { label: "Standard Rush", tendKey: "standard_rush_rate", perfKey: "success_vs_standard_rush", oppQKey: "success_vs_standard_rush_opp_quality" },
+      { label: "Blitz (5+ rushers)", tendKey: "blitz_rate", perfKey: "success_vs_blitz", defSuccessKey: "def_success_allowed_blitz" },
+      { label: "Standard Rush", tendKey: "standard_rush_rate", perfKey: "success_vs_standard_rush", defSuccessKey: "def_success_allowed_standard_rush" },
     ],
   },
   {
@@ -51,8 +58,8 @@ const SCHEME_GROUPS = [
     perfLabel: "Success %",
     pct: true,
     rows: [
-      { label: "Zone", tendKey: "zone_rate", perfKey: "success_vs_zone", oppQKey: "success_vs_zone_opp_quality" },
-      { label: "Man", tendKey: "man_rate", perfKey: "success_vs_man", oppQKey: "success_vs_man_opp_quality" },
+      { label: "Zone", tendKey: "zone_rate", perfKey: "success_vs_zone", defSuccessKey: "def_success_allowed_zone" },
+      { label: "Man", tendKey: "man_rate", perfKey: "success_vs_man", defSuccessKey: "def_success_allowed_man" },
     ],
   },
   {
@@ -60,13 +67,13 @@ const SCHEME_GROUPS = [
     perfLabel: "Success %",
     pct: true,
     rows: [
-      { label: "Cover 0", tendKey: "cover0_rate", perfKey: "success_vs_cover0", oppQKey: "success_vs_cover0_opp_quality" },
-      { label: "Cover 1", tendKey: "cover1_rate", perfKey: "success_vs_cover1", oppQKey: "success_vs_cover1_opp_quality" },
-      { label: "Cover 2", tendKey: "cover2_rate", perfKey: "success_vs_cover2", oppQKey: "success_vs_cover2_opp_quality" },
-      { label: "Cover 3", tendKey: "cover3_rate", perfKey: "success_vs_cover3", oppQKey: "success_vs_cover3_opp_quality" },
-      { label: "Cover 4", tendKey: "cover4_rate", perfKey: "success_vs_cover4", oppQKey: "success_vs_cover4_opp_quality" },
-      { label: "Cover 6", tendKey: "cover6_rate", perfKey: "success_vs_cover6", oppQKey: "success_vs_cover6_opp_quality" },
-      { label: "2-Man", tendKey: "twoman_rate", perfKey: "success_vs_twoman", oppQKey: "success_vs_twoman_opp_quality" },
+      { label: "Cover 0", tendKey: "cover0_rate", perfKey: "success_vs_cover0", defSuccessKey: "def_success_allowed_cover0" },
+      { label: "Cover 1", tendKey: "cover1_rate", perfKey: "success_vs_cover1", defSuccessKey: "def_success_allowed_cover1" },
+      { label: "Cover 2", tendKey: "cover2_rate", perfKey: "success_vs_cover2", defSuccessKey: "def_success_allowed_cover2" },
+      { label: "Cover 3", tendKey: "cover3_rate", perfKey: "success_vs_cover3", defSuccessKey: "def_success_allowed_cover3" },
+      { label: "Cover 4", tendKey: "cover4_rate", perfKey: "success_vs_cover4", defSuccessKey: "def_success_allowed_cover4" },
+      { label: "Cover 6", tendKey: "cover6_rate", perfKey: "success_vs_cover6", defSuccessKey: "def_success_allowed_cover6" },
+      { label: "2-Man", tendKey: "twoman_rate", perfKey: "success_vs_twoman", defSuccessKey: "def_success_allowed_twoman" },
     ],
   },
 ];
@@ -183,7 +190,7 @@ function pairedStatHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr">${offTeam} - OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam} - DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Each row pairs an offense stat with its defense mirror, framed as a
@@ -208,24 +215,33 @@ function renderGeneralStatsTable(offTeam, defTeam) {
   </table>`;
 }
 
-// One schedule-strength line per table (not per row -- every condition is
+// One schedule-strength bullet per team (not per row -- every condition is
 // just a slice of the same ~17-game schedule, so a per-row version came
-// back saying almost the same thing on every line). Silent when the
-// schedule was genuinely average. schedule_quality is a computed AVERAGE
-// across ~17 opponents, so it won't exactly match any single team's own
-// value -- percentileTier()'s indexOf-based lookup would silently fail
-// here, so this ranks by comparison instead.
-function scheduleQualityNote(team) {
+// back saying almost the same thing on every line), surfaced once at the
+// TOP of the section so it's read before the tables, not buried inside one
+// of them. Silent when the schedule was genuinely average. schedule_quality
+// is a computed AVERAGE across ~17 opponents, so it won't exactly match any
+// single team's own value -- percentileTier()'s indexOf-based lookup would
+// silently fail here, so this ranks by comparison instead.
+function scheduleQualityText(team) {
   const q = DATA.team_stats[team].schedule_quality;
-  if (q === null || q === undefined) return "";
+  if (q === null || q === undefined) return null;
   const pool = teamsWithGames()
     .map((t) => DATA.team_stats[t].points_against_per_g)
     .filter((v) => v !== null && v !== undefined);
-  if (pool.length < 3) return "";
+  if (pool.length < 3) return null;
   const pct = pool.filter((v) => v < q).length / pool.length;
-  if (pct < 0.333) return `<tr class="sos-row"><td colspan="4">${team} has faced a tougher-than-average slate of defenses this season -- these performance splits may understate them.</td></tr>`;
-  if (pct >= 0.667) return `<tr class="sos-row"><td colspan="4">${team} has faced a weaker-than-average slate of defenses this season -- these performance splits may overstate them.</td></tr>`;
-  return "";
+  if (pct < 0.333) return `${team} has faced a tougher-than-average slate of defenses this season -- these performance splits may understate them.`;
+  if (pct >= 0.667) return `${team} has faced a weaker-than-average slate of defenses this season -- these performance splits may overstate them.`;
+  return null;
+}
+
+function renderSchemeNotes(away, home) {
+  return [away, home]
+    .map(scheduleQualityText)
+    .filter(Boolean)
+    .map((t) => `<li>${t}</li>`)
+    .join("");
 }
 
 function schemeTableHeader(offTeam, defTeam) {
@@ -257,6 +273,19 @@ function schemeEdgeCell(perfCls, tendCls, offTeam, defTeam) {
   return `<td class="edge-cell">--</td>`;
 }
 
+// Defense success is a real value judgment (unlike the tendency bar it sits
+// under, which is a pure frequency signal) -- always stored as the OPPOSING
+// offense's raw success/yards, so invert=true here regardless of group,
+// same "lower is better defense" convention as every other *_allowed stat.
+function defSuccessLine(group, defSuccessKey, defTeam) {
+  const val = DATA.team_stats[defTeam][defSuccessKey];
+  if (val === null || val === undefined) return "";
+  const cls = tierFor(defSuccessKey, defTeam, true);
+  const display = group.pct ? `${Math.round(val * 100)}%` : `${fmt(val, 1)} Y/C`;
+  const label = group.pct ? "Opp Success" : "Allowed";
+  return `<div class="tend-def-success ${cls}">${label}: ${display}</div>`;
+}
+
 function renderSchemeGroup(group, offTeam, defTeam) {
   const rows = group.rows
     .map((r) => {
@@ -266,21 +295,23 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       const tendBar =
         tendVal === null || tendVal === undefined
           ? `<span class="no-data-note">--</span>`
-          : `<div class="tend-bar-row"><span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span><span class="tend-bar-num">${Math.round(tendVal * 100)}%</span></div>`;
+          : `<div class="tend-bar-row"><span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span><span class="tend-bar-num">${Math.round(tendVal * 100)}%</span></div>${defSuccessLine(group, r.defSuccessKey, defTeam)}`;
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
+      const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
       const perfDisplay =
-        perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : fmt(perfVal, 1);
+        perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 1)}${perfUnit}`;
       return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td><td>${tendBar}</td>${schemeEdgeCell(perfCls, tendCls, offTeam, defTeam)}</tr>`;
     })
     .join("");
-  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption">${group.perfLabel}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
+  const perfCaption = group.inlineUnit ? "" : group.perfLabel;
+  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
 }
 
 function renderSchemeTable(offTeam, defTeam) {
   const groups = SCHEME_GROUPS.map((g) => renderSchemeGroup(g, offTeam, defTeam)).join("");
   return `<table class="data-table scheme-table">
     <thead>${schemeTableHeader(offTeam, defTeam)}</thead>
-    <tbody>${scheduleQualityNote(offTeam)}${groups}</tbody>
+    <tbody>${groups}</tbody>
   </table>`;
 }
 
@@ -569,6 +600,7 @@ function render() {
   document.getElementById("odds-content").innerHTML = renderOddsBar(game);
   document.getElementById("col-away-general").innerHTML = renderGeneralStatsTable(away, home);
   document.getElementById("col-home-general").innerHTML = renderGeneralStatsTable(home, away);
+  document.getElementById("scheme-notes").innerHTML = renderSchemeNotes(away, home);
   document.getElementById("col-away-scheme").innerHTML = renderSchemeTable(away, home);
   document.getElementById("col-home-scheme").innerHTML = renderSchemeTable(home, away);
   document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
