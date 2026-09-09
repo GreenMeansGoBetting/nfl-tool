@@ -249,7 +249,7 @@ function schemeTableHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th style="${defStyle}" class="freq-hdr">FREQ</th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Below this, a look doesn't come up often enough for an edge here to be
@@ -284,42 +284,48 @@ function schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam) {
   return `<td class="edge-cell">--</td>`;
 }
 
-// One compact line: how often the look happens (bar) and how it actually
-// works out for the defense (badge) side by side, so both read at a glance
-// without stacking into a second line per row (that's what was making these
-// rows too tall). Defense success is a real value judgment (unlike the
-// tendency bar, a pure frequency signal) -- always stored as the OPPOSING
-// offense's raw success/yards, so invert=true regardless of group, same
-// "lower is better defense" convention as every other *_allowed stat.
-function tendencyCell(group, r, defTeam) {
+// Frequency bar + % on its own now (defense success moved out into its own
+// column, right beside offense performance, so the two directly-comparable
+// numbers sit next to each other same as General Stats' OFF/DEF columns).
+// % first, then the bar fills whatever width is left.
+function tendencyCell(r, defTeam) {
   const tendVal = DATA.team_stats[defTeam][r.tendKey];
   if (tendVal === null || tendVal === undefined) return { html: `<span class="no-data-note">--</span>`, tendVal: null, tendCls: "" };
   const tendCls = tierFor(r.tendKey, defTeam, false);
-  const succVal = DATA.team_stats[defTeam][r.defSuccessKey];
-  const succCls = succVal === null || succVal === undefined ? "" : tierFor(r.defSuccessKey, defTeam, true);
-  const succDisplay = succVal === null || succVal === undefined ? "--" : group.pct ? `${Math.round(succVal * 100)}%` : fmt(succVal, 2);
   const html = `<div class="tend-row">
-    <span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span>
     <span class="tend-bar-num">${Math.round(tendVal * 100)}%</span>
-    <span class="tend-succ-badge ${succCls}">${succDisplay}</span>
+    <span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span>
   </div>`;
   return { html, tendVal, tendCls };
+}
+
+// Defense success is a real value judgment (unlike the tendency bar, a pure
+// frequency signal) -- always stored as the OPPOSING offense's raw
+// success/yards, so invert=true regardless of group, same "lower is better
+// defense" convention as every other *_allowed stat.
+function defSuccessCell(group, r, defTeam) {
+  const succVal = DATA.team_stats[defTeam][r.defSuccessKey];
+  if (succVal === null || succVal === undefined) return `<td class="num">--</td>`;
+  const cls = tierFor(r.defSuccessKey, defTeam, true);
+  const unit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
+  const display = group.pct ? `${Math.round(succVal * 100)}%` : `${fmt(succVal, 2)}${unit}`;
+  return `<td class="num ${cls}">${display}</td>`;
 }
 
 function renderSchemeGroup(group, offTeam, defTeam) {
   const rows = group.rows
     .map((r) => {
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
-      const { html: tendHtml, tendVal, tendCls } = tendencyCell(group, r, defTeam);
+      const { html: tendHtml, tendVal, tendCls } = tendencyCell(r, defTeam);
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
       const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 2)}${perfUnit}`;
-      return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td><td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td>${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
-  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
+  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption" colspan="2">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
 }
 
 function renderSchemeTable(offTeam, defTeam) {
@@ -658,6 +664,11 @@ function initFlipper() {
     }
   });
 }
+
+document.getElementById("scheme-info-btn").addEventListener("click", () => {
+  const el = document.getElementById("scheme-info-text");
+  el.hidden = !el.hidden;
+});
 
 fetch("data.json")
   .then((r) => r.json())
