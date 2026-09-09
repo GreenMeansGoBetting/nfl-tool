@@ -80,12 +80,10 @@ RED_ZONE_YARDLINE = 20
 # isn't a comparable/meaningful prop signal the same way a long catch-and-run
 # or breakaway run is.
 LENGTH_BUCKETS = [
-    ("under_10", 0, 9),
-    ("10_19", 10, 19),
-    ("20_29", 20, 29),
-    ("30_39", 30, 39),
-    ("40_49", 40, 49),
-    ("50_plus", 50, 9999),
+    ("10_or_less", 0, 10),
+    ("11_20", 11, 20),
+    ("21_40", 21, 40),
+    ("41_plus", 41, 9999),
 ]
 
 # "Explosive play" thresholds for the Game Overviews page -- a completed

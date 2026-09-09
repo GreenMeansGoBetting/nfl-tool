@@ -210,6 +210,21 @@ function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false, thr
   };
   return percentileTier(shareOf(team), pool.map(shareOf), invert, threshold);
 }
+// Alpha companions to bucketCountTier/bucketShareTier -- same lookups,
+// continuous shading instead of a class (see tierAlpha's comment).
+function bucketCountAlphaAttr(dictKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
+  const pool = teamsWithGames();
+  const countOf = (t) => DATA.team_stats[t][dictKey][bucketKey] || 0;
+  return tierAlphaAttr(countOf(team), pool.map(countOf), invert, threshold);
+}
+function bucketShareAlphaAttr(dictKey, totalKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
+  const pool = teamsWithGames();
+  const shareOf = (t) => {
+    const s = DATA.team_stats[t];
+    return s[totalKey] ? (s[dictKey][bucketKey] || 0) / s[totalKey] : 0;
+  };
+  return tierAlphaAttr(shareOf(team), pool.map(shareOf), invert, threshold);
+}
 
 // One-click week/matchup picker, shared by all pages. Reads DATA.schedule
 // (the real schedule for whatever season was requested, even if the stats

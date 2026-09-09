@@ -1,20 +1,16 @@
 const LENGTH_BUCKETS = [
-  { key: "under_10", label: "< 10 yd" },
-  { key: "10_19", label: "10-19 yd" },
-  { key: "20_29", label: "20-29 yd" },
-  { key: "30_39", label: "30-39 yd" },
-  { key: "40_49", label: "40-49 yd" },
-  { key: "50_plus", label: "50+ yd" },
+  { key: "10_or_less", label: "≤10 yd" },
+  { key: "11_20", label: "11-20 yd" },
+  { key: "21_40", label: "21-40 yd" },
+  { key: "41_plus", label: "41+ yd" },
 ];
 
 // For the Matchup Snapshot only (the detailed Touchdown Distance table
-// below keeps all 6 granular buckets) -- a single 10-yard slice like
-// "30-39 yd" reads as too specific and can be a tiny, noisy sample (e.g.
-// 2 TDs). Rolling up into short/big-play tells the same "explosive or
-// not" story on a far more solid count.
+// below keeps all 4 buckets) -- rolling up into short/big-play tells the
+// same "explosive or not" story on a more solid count.
 const MACRO_LENGTH_BUCKETS = [
-  { key: "short", keys: ["under_10", "10_19"], label: "short TDs" },
-  { key: "bigplay", keys: ["20_29", "30_39", "40_49", "50_plus"], label: "big plays" },
+  { key: "short", keys: ["10_or_less", "11_20"], label: "short TDs" },
+  { key: "bigplay", keys: ["21_40", "41_plus"], label: "big plays" },
 ];
 function sumBucketKeys(dict, keys) {
   return keys.reduce((sum, k) => sum + (dict[k] || 0), 0);
@@ -152,9 +148,13 @@ function renderLengthTable(offTeam, defTeam) {
     const defShareCls = bucketShareTier("td_by_length_allowed", "total_td_allowed", key, defTeam, true);
     const offShareExtreme = bucketShareTier("td_by_length", "total_td", key, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defShareExtreme = bucketShareTier("td_by_length_allowed", "total_td_allowed", key, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
+    const offCountA = bucketCountAlphaAttr("td_by_length", key, offTeam);
+    const offShareA = bucketShareAlphaAttr("td_by_length", "total_td", key, offTeam);
+    const defCountA = bucketCountAlphaAttr("td_by_length_allowed", key, defTeam, true);
+    const defShareA = bucketShareAlphaAttr("td_by_length_allowed", "total_td_allowed", key, defTeam, true);
     const offShare = off.total_td ? Math.round((offCount / off.total_td) * 100) : 0;
     const defShare = def.total_td_allowed ? Math.round((defCount / def.total_td_allowed) * 100) : 0;
-    return `<tr><td>${label}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offShare}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
+    return `<tr><td>${label}</td><td class="num ${offCountCls}"${offCountA}>${offCount}</td><td class="num ${offShareCls}"${offShareA}>${offShare}%</td><td class="num ${defCountCls}"${defCountA}>${defCount}</td><td class="num ${defShareCls}"${defShareA}>${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table pos-table">
