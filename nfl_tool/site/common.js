@@ -541,24 +541,21 @@ function renderPlayerOddsModalContent(team, market) {
 
   const body = rows
     .map((p) => {
-      const hasBook = p.best_odds !== null && p.best_odds !== undefined;
-      const price = hasBook ? p.best_odds : p.fair_odds;
-      const book = hasBook ? p.best_book : "Fair line";
       const entry = {
         id: `${weekNum}_${market}_${team}_${p.name}`,
         week: weekNum,
         matchup,
         category: marketLabel,
         description: `${p.name} (${team})`,
-        odds: fmtOddsSigned(price),
-        book,
+        odds: fmtOddsSigned(p.best_odds),
+        book: p.best_book,
       };
       const checked = isPossiblePlay(entry.id) ? " checked" : "";
-      return `<tr><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name}</label></td><td class="num">${fmtOddsSigned(price)}</td><td class="muted-label">${book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+      return `<tr><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name}</label></td><td class="num">${fmtOddsSigned(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
     })
     .join("");
   return `${heading}
-    <p class="no-data-note">${marketLabel} scorer -- best price found across a handful of books (SportsGameOdds free tier), or the de-vigged fair line where no book has one posted. A ballpark, not every book, not live. Check a player to add them to Possible Plays.</p>
+    <p class="no-data-note">${marketLabel} scorer -- best price found across a handful of books (SportsGameOdds free tier). A ballpark, not every book, not live. Only players with an actual posted line show up here -- someone missing usually means they're out or hurt. Check a player to add them to Possible Plays.</p>
     <table class="data-table player-odds-table">
       <thead><tr><th>Player</th><th>Odds</th><th>Book</th><th>Implied %</th></tr></thead>
       <tbody>${body}</tbody>

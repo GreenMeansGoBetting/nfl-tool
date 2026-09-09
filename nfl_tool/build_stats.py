@@ -514,14 +514,20 @@ def fetch_sgo_events(api_key: str, starts_after: str, starts_before: str) -> lis
 def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict) -> dict:
     """Every player's "yes/no" odds for one statID (e.g. "touchdowns" for
     anytime-TD, "firstTouchdown" for first-TD) out of a fetch_sgo_events()
-    response.
+    response -- ONLY players with an actual live book price. A player with
+    no book posting a line is almost always hurt/inactive (verified: every
+    such case checked was a player who'd since been ruled out or was
+    questionable/limited); showing SportsGameOdds' de-vigged "fair" number
+    for them anyway read as a real line when the real market had already
+    been pulled, so those are dropped entirely rather than falling back to it.
 
     Picks the best (most favorable to a "yes" bettor) price across whatever
-    real sportsbooks the free tier returns for that player, plus the
-    de-vigged "fair" price/probability SportsGameOdds computes across all of
-    them -- used to RANK players by true likelihood regardless of which book
-    happened to have the best number, so the ranking isn't skewed by one
-    book's outlier price. roster_teams (see build_roster_team_lookup) drops
+    real sportsbooks the free tier returns for that player. The de-vigged
+    "fair" price/probability SportsGameOdds computes across all of them is
+    still stored (used to RANK players by true likelihood regardless of
+    which book happened to have the best number, so the ranking isn't
+    skewed by one book's outlier price) but no longer shown as a
+    stand-in price. roster_teams (see build_roster_team_lookup) drops
     entries the free tier mis-tagged to the wrong team.
     """
     # Keyed by (team, player name) rather than playerID -- SportsGameOdds
@@ -559,10 +565,16 @@ def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: di
                 if best_price is None or price > best_price:
                     best_price, best_book = price, book
 
+            # Require an actual live book price -- a player with none (no
+            # sportsbook posting a line) is almost always hurt/inactive, and
+            # SportsGameOdds' de-vigged "fair" number can still exist even
+            # with the real market pulled. Showing it read as a live line
+            # that happened to have no book listed, not as "books think
+            # this guy isn't playing."
+            if best_price is None:
+                continue
             fair_odds = odd.get("fairOdds")
             fair_odds = float(fair_odds) if fair_odds is not None else None
-            if best_price is None and fair_odds is None:
-                continue
 
             row = {
                 "name": player.get("name"),
@@ -576,11 +588,7 @@ def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: di
             if existing is None:
                 best_by_key[key] = row
                 continue
-            existing_has_price = existing["best_odds"] is not None
-            row_has_price = row["best_odds"] is not None
-            if row_has_price and not existing_has_price:
-                best_by_key[key] = row
-            elif row_has_price == existing_has_price and row["implied_prob"] > existing["implied_prob"]:
+            if row["implied_prob"] > existing["implied_prob"]:
                 best_by_key[key] = row
 
     result = {t: [] for t in teams}
