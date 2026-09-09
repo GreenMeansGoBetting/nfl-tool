@@ -88,18 +88,36 @@ function regradeAllPicks(schedule) {
   return updated;
 }
 
+function tallyPicks(list) {
+  const win = list.filter((p) => p.graded === "win").length;
+  const loss = list.filter((p) => p.graded === "loss").length;
+  const push = list.filter((p) => p.graded === "push").length;
+  const decided = win + loss;
+  return { win, loss, push, winPct: decided ? Math.round((win / decided) * 100) : null };
+}
+
 function pickSummary(picks) {
-  const tally = (list) => {
-    const win = list.filter((p) => p.graded === "win").length;
-    const loss = list.filter((p) => p.graded === "loss").length;
-    const push = list.filter((p) => p.graded === "push").length;
-    const decided = win + loss;
-    return { win, loss, push, winPct: decided ? Math.round((win / decided) * 100) : null };
-  };
   return {
-    overall: tally(picks),
-    green: tally(picks.filter((p) => p.color === "green")),
-    yellow: tally(picks.filter((p) => p.color === "yellow")),
-    red: tally(picks.filter((p) => p.color === "red")),
+    overall: tallyPicks(picks),
+    green: tallyPicks(picks.filter((p) => p.color === "green")),
+    yellow: tallyPicks(picks.filter((p) => p.color === "yellow")),
+    red: tallyPicks(picks.filter((p) => p.color === "red")),
   };
+}
+
+// Record broken out by market AND color/confidence at once -- a 3x3 grid
+// (Spread/Total/Moneyline x Green/Yellow/Red) plus a totals row and column,
+// so a 4x4 table. Answers both "how do my Green picks do" and "how do my
+// Spread picks do" in one place, instead of two separate summaries.
+function pickMatrix(picks) {
+  const markets = ["spread", "total", "moneyline"];
+  const colors = ["green", "yellow", "red"];
+  const rows = markets.map((market) => ({
+    market,
+    cells: colors.map((color) => tallyPicks(picks.filter((p) => p.market === market && p.color === color))),
+    total: tallyPicks(picks.filter((p) => p.market === market)),
+  }));
+  const colTotals = colors.map((color) => tallyPicks(picks.filter((p) => p.color === color)));
+  const grandTotal = tallyPicks(picks);
+  return { markets, colors, rows, colTotals, grandTotal };
 }

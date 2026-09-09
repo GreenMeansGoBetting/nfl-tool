@@ -67,18 +67,32 @@ function teamAccentRgb(team) {
   return hslToRgb(h, Math.max(s, 55), Math.min(Math.max(l, 40), 58));
 }
 
+// How far from the league mean (in standard deviations) a value has to sit
+// before it earns a hard green/red instead of yellow. Percentile-rank tiering
+// (the old approach) assigns colors by RANK ORDER alone, so on a
+// tightly-bunched stat (e.g. rush attempts/game, which every team runs
+// 24-29 of) two teams 0.1 apart can land on opposite sides of a rank cutoff
+// and flip from green to yellow to red for no meaningful reason. Z-score
+// tiering colors by actual DISTANCE from the pack instead, so a stat that's
+// naturally bunched league-wide stays mostly yellow, and only a genuinely
+// separated value (a real outlier, not a rounding artifact) goes green/red --
+// consistent across every stat on the site without hand-tuning per category.
+const TIER_Z_THRESHOLD = 0.6;
+
 // Percentile tier across every team currently with games played.
 // invert=true means a LOWER raw value is the good outcome (e.g. TDs allowed).
 function percentileTier(value, allValues, invert) {
   const clean = allValues.filter((v) => v !== null && v !== undefined);
   if (clean.length < 3 || value === null || value === undefined) return "";
-  const sorted = [...clean].sort((a, b) => a - b);
-  const rank = sorted.indexOf(value);
-  let pct = rank / (sorted.length - 1);
-  if (invert) pct = 1 - pct;
-  if (pct >= 0.667) return "tier-good";
-  if (pct >= 0.333) return "tier-mid";
-  return "tier-bad";
+  const mean = clean.reduce((a, b) => a + b, 0) / clean.length;
+  const variance = clean.reduce((a, b) => a + (b - mean) ** 2, 0) / clean.length;
+  const sd = Math.sqrt(variance);
+  if (sd === 0) return "";
+  let z = (value - mean) / sd;
+  if (invert) z = -z;
+  if (z >= TIER_Z_THRESHOLD) return "tier-good";
+  if (z <= -TIER_Z_THRESHOLD) return "tier-bad";
+  return "tier-mid";
 }
 
 // No-color-at-zero fade in the TEAM's own color, scoped to whatever list

@@ -18,7 +18,7 @@ const GENERAL_STAT_ROWS = [
   { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
   { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
   { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
-  { label: "Explosive Play Rate", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
+  { label: "Explosive Play Rate", note: "(created / allowed)", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
 ];
 
 // Schematic tendency (how a defense lines up, from nflverse's free
@@ -183,7 +183,7 @@ function pairedStatHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">OFF</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr">${offTeam} - OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam} - DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Each row pairs an offense stat with its defense mirror, framed as a
@@ -198,7 +198,8 @@ function renderGeneralStatsTable(offTeam, defTeam) {
   const rows = GENERAL_STAT_ROWS.map((r) => {
     const offCls = tierFor(r.offKey, offTeam, r.offInvert);
     const defCls = tierFor(r.defKey, defTeam, r.defInvert);
-    return `<tr><td>${r.label}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam)}</tr>`;
+    const labelHtml = r.note ? `${r.label}<br><span class="muted-label">${r.note}</span>` : r.label;
+    return `<tr><td>${labelHtml}</td><td class="num ${offCls}">${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}">${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam)}</tr>`;
   }).join("");
 
   return `<table class="data-table general-stat-table">
@@ -222,8 +223,8 @@ function scheduleQualityNote(team) {
     .filter((v) => v !== null && v !== undefined);
   if (pool.length < 3) return "";
   const pct = pool.filter((v) => v < q).length / pool.length;
-  if (pct < 0.333) return `<tr class="sos-row"><td colspan="3">${team} has faced a tougher-than-average slate of defenses this season -- these performance splits may understate them.</td></tr>`;
-  if (pct >= 0.667) return `<tr class="sos-row"><td colspan="3">${team} has faced a weaker-than-average slate of defenses this season -- these performance splits may overstate them.</td></tr>`;
+  if (pct < 0.333) return `<tr class="sos-row"><td colspan="4">${team} has faced a tougher-than-average slate of defenses this season -- these performance splits may understate them.</td></tr>`;
+  if (pct >= 0.667) return `<tr class="sos-row"><td colspan="4">${team} has faced a weaker-than-average slate of defenses this season -- these performance splits may overstate them.</td></tr>`;
   return "";
 }
 
@@ -232,7 +233,28 @@ function schemeTableHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
-  return `<tr><th></th><th style="${defStyle}">${defTeam}<span class="col-sub">TENDENCY</span></th><th style="${offStyle}">${offTeam}<span class="col-sub">PERFORMANCE</span></th></tr>`;
+  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">PERFORMANCE</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">TENDENCY</span></th><th class="edge-hdr">ADV</th></tr>`;
+}
+
+// Tendency is a frequency signal, not a value judgment (see SCHEME_GROUPS
+// comment) -- so this can't reuse edgeCell's good/bad-tier logic straight
+// across. An edge only gets flagged when the offense's performance tier AND
+// the defense's tendency tier point the SAME direction: offense performs
+// well against a look the defense uses often (real, likely-to-matter
+// advantage) or performs poorly against a look the defense leans on heavily
+// (real risk). A good performance number against a look the defense rarely
+// shows (e.g. "HOU beats the blitz, but BUF barely blitzes") deliberately
+// falls through to "--" -- it's true but unlikely to come up.
+function schemeEdgeCell(perfCls, tendCls, offTeam, defTeam) {
+  if (perfCls === "tier-good" && tendCls === "tier-good") {
+    const rgb = teamAccentRgb(offTeam);
+    return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${offTeam}</td>`;
+  }
+  if (perfCls === "tier-bad" && tendCls === "tier-good") {
+    const rgb = teamAccentRgb(defTeam);
+    return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${defTeam}</td>`;
+  }
+  return `<td class="edge-cell">--</td>`;
 }
 
 function renderSchemeGroup(group, offTeam, defTeam) {
@@ -240,17 +262,18 @@ function renderSchemeGroup(group, offTeam, defTeam) {
     .map((r) => {
       const tendVal = DATA.team_stats[defTeam][r.tendKey];
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
+      const tendCls = tendVal === null || tendVal === undefined ? "" : tierFor(r.tendKey, defTeam, false);
       const tendBar =
         tendVal === null || tendVal === undefined
           ? `<span class="no-data-note">--</span>`
-          : `<div class="tend-bar-row"><span class="tend-bar-track"><span class="tend-bar-fill ${tierFor(r.tendKey, defTeam, false)}" style="width:${Math.round(tendVal * 100)}%"></span></span><span class="tend-bar-num">${Math.round(tendVal * 100)}%</span></div>`;
+          : `<div class="tend-bar-row"><span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span><span class="tend-bar-num">${Math.round(tendVal * 100)}%</span></div>`;
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : fmt(perfVal, 1);
-      return `<tr><td>${r.label}</td><td>${tendBar}</td><td class="num ${perfCls}">${perfDisplay}</td></tr>`;
+      return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td><td>${tendBar}</td>${schemeEdgeCell(perfCls, tendCls, offTeam, defTeam)}</tr>`;
     })
     .join("");
-  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption"></td><td class="metric-caption">${group.perfLabel}</td></tr>${rows}`;
+  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption">${group.perfLabel}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
 }
 
 function renderSchemeTable(offTeam, defTeam) {
@@ -375,19 +398,50 @@ function renderPickMarketRow(game, market) {
   const colorBtns = COLORS.map(
     (c) => `<button type="button" class="pick-color-btn pick-color-${c.key}${draft.color === c.key ? " selected" : ""}" data-market="${market.key}" data-action="color" data-color="${c.key}">${c.label}</button>`
   ).join("");
-  const canSave = draft.side && draft.color;
   return `<div class="pick-market-row pick-market-form">
     <span class="pick-market-label">${market.label}</span>
     <div class="pick-side-group">${sideBtns}</div>
     <div class="pick-color-group">${colorBtns}</div>
-    <button type="button" class="pick-save-btn" data-market="${market.key}" data-action="save"${canSave ? "" : " disabled"}>Save Pick</button>
   </div>`;
+}
+
+// Every fully-picked (side + color) draft market saves in one click, instead
+// of a separate Save per market -- draftPicks accumulates selections across
+// all three markets as the user clicks side/color buttons, untouched until
+// this fires.
+function anyDraftReady(game) {
+  return MARKETS.some((m) => {
+    const draft = draftPicks[m.key];
+    return draft && draft.side && draft.color && !getPick(game.game_id, m.key);
+  });
+}
+
+const MARKET_LABELS = { spread: "Spread", total: "Total", moneyline: "Moneyline" };
+const COLOR_LABELS = { green: "Good Play", yellow: "Lean", red: "No Confidence" };
+
+function matrixCellText(t) {
+  return `${t.win}-${t.loss}-${t.push}${t.winPct !== null ? ` (${t.winPct}%)` : ""}`;
+}
+
+function renderPickMatrix(picks) {
+  const m = pickMatrix(picks);
+  if (picks.length === 0) return "";
+  const header = `<tr><th></th>${m.colors.map((c) => `<th>${COLOR_LABELS[c]}</th>`).join("")}<th>Total</th></tr>`;
+  const rows = m.rows
+    .map(
+      (r) =>
+        `<tr><td>${MARKET_LABELS[r.market]}</td>${r.cells.map((c) => `<td>${matrixCellText(c)}</td>`).join("")}<td class="matrix-total-col">${matrixCellText(r.total)}</td></tr>`
+    )
+    .join("");
+  const totalRow = `<tr class="matrix-total-row"><td>Total</td>${m.colTotals.map((c) => `<td>${matrixCellText(c)}</td>`).join("")}<td class="matrix-total-col">${matrixCellText(m.grandTotal)}</td></tr>`;
+  return `<table class="data-table pick-matrix-table">
+    <thead>${header}</thead>
+    <tbody>${rows}${totalRow}</tbody>
+  </table>`;
 }
 
 function renderPickSummary() {
   const picks = regradeAllPicks(DATA.schedule);
-  const summary = pickSummary(picks);
-  const row = (label, t) => `<div class="pick-summary-row"><span>${label}</span><span>${t.win}-${t.loss}-${t.push}${t.winPct !== null ? ` (${t.winPct}%)` : ""}</span></div>`;
   const recent = picks
     .slice()
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -399,10 +453,7 @@ function renderPickSummary() {
     .join("");
   document.getElementById("picks-summary").innerHTML = `
     <h3>Your Record</h3>
-    ${row("Overall", summary.overall)}
-    ${row("Green", summary.green)}
-    ${row("Yellow", summary.yellow)}
-    ${row("Red", summary.red)}
+    ${renderPickMatrix(picks) || `<p class="no-data-note">No picks saved yet.</p>`}
     ${recent ? `<h3>Recent Picks</h3>${recent}` : ""}
   `;
 }
@@ -419,24 +470,26 @@ function attachPickTrackerHandlers(game) {
       } else if (action === "color") {
         draftPicks[market] = { ...draftPicks[market], color: btn.dataset.color };
         renderPickTracker(game);
-      } else if (action === "save") {
-        const draft = draftPicks[market] || {};
-        if (!draft.side || !draft.color) return;
-        const sideInfo = marketSides(game, market).find((s) => s.side === draft.side);
-        upsertPick({
-          game_id: game.game_id,
-          season: DATA.requested_season,
-          week: game.week,
-          away: game.away,
-          home: game.home,
-          market,
-          side: draft.side,
-          line_at_pick: sideInfo.line,
-          odds_at_pick: sideInfo.odds,
-          color: draft.color,
-          created_at: new Date().toISOString(),
+      } else if (action === "save-all") {
+        MARKETS.forEach((m) => {
+          const draft = draftPicks[m.key];
+          if (!draft || !draft.side || !draft.color || getPick(game.game_id, m.key)) return;
+          const sideInfo = marketSides(game, m.key).find((s) => s.side === draft.side);
+          upsertPick({
+            game_id: game.game_id,
+            season: DATA.requested_season,
+            week: game.week,
+            away: game.away,
+            home: game.home,
+            market: m.key,
+            side: draft.side,
+            line_at_pick: sideInfo.line,
+            odds_at_pick: sideInfo.odds,
+            color: draft.color,
+            created_at: new Date().toISOString(),
+          });
         });
-        draftPicks[market] = {};
+        resetDraftPicks();
         renderPickTracker(game);
       } else if (action === "edit") {
         const existing = getPick(game.game_id, market);
@@ -453,7 +506,8 @@ function attachPickTrackerHandlers(game) {
 
 function renderPickTracker(game) {
   regradeAllPicks(DATA.schedule);
-  document.getElementById("picks-content").innerHTML = `<div class="pick-markets">${MARKETS.map((m) => renderPickMarketRow(game, m)).join("")}</div>`;
+  const saveAllBtn = `<div class="pick-save-all-row"><button type="button" class="pick-save-all-btn" data-action="save-all"${anyDraftReady(game) ? "" : " disabled"}>Save Picks</button></div>`;
+  document.getElementById("picks-content").innerHTML = `<div class="pick-markets">${MARKETS.map((m) => renderPickMarketRow(game, m)).join("")}${saveAllBtn}</div>`;
   attachPickTrackerHandlers(game);
   renderPickSummary();
 }

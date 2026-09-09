@@ -235,7 +235,7 @@ select {
   font-size: 0.62rem !important;
   width: 34px;
 }
-.edge-cell {
+.data-table td.edge-cell, .data-table th.edge-cell {
   text-align: center;
   font-weight: 700;
   font-size: 0.7rem;
@@ -337,12 +337,57 @@ footer a { color: var(--accent); }
 }
 .odds-price { color: var(--muted); font-size: 0.78rem; }
 
+.novig-ad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.novig-logo-slot {
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  padding: 6px 18px;
+}
+.novig-cta { margin: 0; font-size: 0.95rem; font-weight: 600; }
+.novig-cta strong { color: var(--accent); }
+.novig-sub { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.novig-qr-slot {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  font-style: italic;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+
 .general-stat-table {
   table-layout: fixed;
 }
 .general-stat-table th:first-child, .general-stat-table td:first-child {
   text-align: left;
   width: 34%;
+}
+.per-game-hdr {
+  font-style: italic;
+  font-weight: 400 !important;
+  color: var(--muted) !important;
+  text-transform: none !important;
+}
+.pair-hdr {
+  display: inline-block;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
 }
 
 .scheme-table .group-row td {
@@ -354,9 +399,9 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
   padding: 5px 4px;
 }
-.scheme-table th:first-child, .scheme-table td:first-child { width: 30%; }
-.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 40%; }
-.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 30%; text-align: center; }
+.scheme-table th:first-child, .scheme-table td:first-child { width: 24%; }
+.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 26%; text-align: center; }
+.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 40%; }
 .metric-caption {
   font-size: 0.6rem !important;
   font-weight: 400 !important;
@@ -372,7 +417,7 @@ footer a { color: var(--accent); }
 .tend-bar-fill.tier-good { background: var(--good); }
 .tend-bar-fill.tier-mid { background: var(--mid); }
 .tend-bar-fill.tier-bad { background: var(--bad); }
-.tend-bar-num { flex: 1; font-size: 0.7rem; font-weight: 700; color: var(--text); text-align: right; }
+.tend-bar-num { flex: 1; font-size: 0.7rem; font-weight: 700; color: var(--text); text-align: center; }
 .sos-row td {
   font-size: 0.72rem;
   font-style: italic;
@@ -483,3 +528,26 @@ footer a { color: var(--accent); }
 .pick-color-dot.pick-color-green { background: var(--good); }
 .pick-color-dot.pick-color-yellow { background: var(--mid); }
 .pick-color-dot.pick-color-red { background: var(--bad); }
+
+.pick-save-all-row { display: flex; justify-content: flex-end; margin-top: 4px; }
+.pick-save-all-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 18px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+.pick-save-all-btn:hover:not(:disabled) { opacity: 0.9; }
+.pick-save-all-btn:disabled { opacity: 0.4; cursor: default; }
+
+.pick-matrix-table { margin-top: 6px; table-layout: fixed; }
+.pick-matrix-table th, .pick-matrix-table td { text-align: center; font-size: 0.78rem; }
+.pick-matrix-table th:first-child, .pick-matrix-table td:first-child { text-align: left; width: 26%; }
+.pick-matrix-table .matrix-total-row td, .pick-matrix-table .matrix-total-col {
+  background: var(--table-head);
+  font-weight: 700;
+}
