@@ -346,22 +346,23 @@ footer a { color: var(--accent); }
 
 .novig-ad {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 14px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 16px;
-  text-align: center;
+  padding: 10px 16px;
+  text-align: left;
 }
-.novig-logo { width: 56px; height: 56px; border-radius: 12px; display: block; }
-.novig-cta { margin: 0; font-size: 0.95rem; font-weight: 600; }
+.novig-logo-link, .novig-qr-link { flex: 0 0 auto; line-height: 0; }
+.novig-logo { width: 40px; height: 40px; border-radius: 9px; display: block; }
+.novig-text { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.novig-cta { margin: 0; font-size: 0.88rem; font-weight: 600; }
 .novig-cta strong { color: var(--accent); }
 .novig-cta a { color: var(--accent); }
-.novig-sub { margin: 0; font-size: 0.8rem; color: var(--muted); }
-.novig-qr { width: 88px; height: 88px; margin-top: 4px; border: 1px solid var(--border); border-radius: 4px; }
+.novig-sub { margin: 0; font-size: 0.76rem; color: var(--muted); }
+.novig-qr { width: 52px; height: 52px; border: 1px solid var(--border); border-radius: 4px; display: block; }
 
 .general-stat-table {
   table-layout: fixed;
