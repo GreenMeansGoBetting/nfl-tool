@@ -393,22 +393,23 @@ function renderMatchupSnapshot(opportunities) {
   return `<ul class="snapshot-list">${items}</ul>`;
 }
 
-// TD Data's Red Zone Touchdowns section. RZ TD % leads the table
-// on purpose -- the volume rows below it (Plays/Carries/Targets) only count
-// how much action a defense allowed inside the 20, not what happened once
-// it got there. A defense that allows one red zone snap and it's a
-// touchdown looks great on every volume row (fewest plays/carries/targets
-// allowed) despite a 100% TD rate; a defense that stones three straight
-// trips on 4th down looks bad on volume despite a 0% TD rate. TD % (trips
-// that actually ended in a score, not raw play count) is the number that
-// answers "what actually happens when this defense is backed up," so it's
-// the row the ADV column is most worth trusting here.
+// TD Data's Red Zone Touchdowns section. Dropped the volume rows this used
+// to have (Plays/Carries/Targets) entirely -- they only count how much
+// action a defense allowed inside the 20, not what happened once it got
+// there (a defense that allows one red zone snap and it's a touchdown
+// looked great on every volume row despite a 100% TD rate; a defense that
+// stones three straight trips on 4th down looked bad despite a 0% TD rate),
+// and being raw counts on a league spread that's tight-but-real, they were
+// also prone to flipping color on a single-play difference sitting right at
+// the z-score cutoff (verified: MIN/TB at 146 red-zone plays sat at
+// z=-0.624, CAR at 147 sat at z=-0.587 -- one side of a threshold that's
+// inherent to any hard cutoff on a volume count, not a bug, but exactly
+// why a real rate metric is worth trusting more). RZ TD % (trips that
+// actually ended in a score) is the number that answers "what actually
+// happens when this defense is backed up."
 const RED_ZONE_ROWS = [
   { label: "RZ TD %", totalOffKey: "rz_trips", rateOffKey: "rz_td_rate", totalDefKey: "rz_trips_allowed", rateDefKey: "rz_td_rate_allowed", ratePct: true },
   { label: "RZ TD", totalOffKey: "rz_td", rateOffKey: "rz_td_per_g", totalDefKey: "rz_td_allowed", rateDefKey: "rz_td_allowed_per_g" },
-  { label: "RZ Plays", totalOffKey: "rz_plays", rateOffKey: "rz_plays_per_g", totalDefKey: "rz_plays_allowed", rateDefKey: "rz_plays_allowed_per_g" },
-  { label: "RZ Carries", totalOffKey: "rz_carries", rateOffKey: "rz_carries_per_g", totalDefKey: "rz_carries_allowed", rateDefKey: "rz_carries_allowed_per_g" },
-  { label: "RZ Targets", totalOffKey: "rz_targets", rateOffKey: "rz_targets_per_g", totalDefKey: "rz_targets_allowed", rateDefKey: "rz_targets_allowed_per_g" },
 ];
 
 function renderRedZoneTable(offTeam, defTeam) {
