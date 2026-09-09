@@ -111,7 +111,7 @@ function currentGame() {
 // ---- formatting helpers ----
 function fmtSigned(n) {
   if (n === null || n === undefined) return "";
-  return n > 0 ? `+${fmt(n, 1)}` : fmt(n, 1);
+  return n > 0 ? `+${fmt(n, 2)}` : fmt(n, 2);
 }
 function fmtOdds(n) {
   if (n === null || n === undefined) return "";
@@ -161,7 +161,7 @@ function renderOddsBar(game) {
   }
 
   const spreadCell = (team, line, odds) => (hasSpread ? `${fmtSigned(line)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
-  const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 1)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
+  const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 2)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
   const mlCell = (odds, prob) => (hasMl ? `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>` : "--");
 
   return `<table class="data-table odds-table">
@@ -201,7 +201,7 @@ function pairedStatHeader(offTeam, defTeam) {
 function renderGeneralStatsTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
-  const format = (v, pct) => (v === null || v === undefined ? "--" : pct ? `${Math.round(v * 100)}%` : fmt(v, 1));
+  const format = (v, pct) => (v === null || v === undefined ? "--" : pct ? `${Math.round(v * 100)}%` : fmt(v, 2));
   const rows = GENERAL_STAT_ROWS.map((r) => {
     const offCls = tierFor(r.offKey, offTeam, r.offInvert);
     const defCls = tierFor(r.defKey, defTeam, r.defInvert);
@@ -281,7 +281,7 @@ function defSuccessLine(group, defSuccessKey, defTeam) {
   const val = DATA.team_stats[defTeam][defSuccessKey];
   if (val === null || val === undefined) return "";
   const cls = tierFor(defSuccessKey, defTeam, true);
-  const display = group.pct ? `${Math.round(val * 100)}%` : `${fmt(val, 1)} Y/C`;
+  const display = group.pct ? `${Math.round(val * 100)}%` : `${fmt(val, 2)} Y/C`;
   const label = group.pct ? "Opp Success" : "Allowed";
   return `<div class="tend-def-success ${cls}">${label}: ${display}</div>`;
 }
@@ -299,7 +299,7 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
       const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
       const perfDisplay =
-        perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 1)}${perfUnit}`;
+        perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 2)}${perfUnit}`;
       return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td><td>${tendBar}</td>${schemeEdgeCell(perfCls, tendCls, offTeam, defTeam)}</tr>`;
     })
     .join("");
@@ -389,8 +389,8 @@ function marketSides(game, market) {
   }
   if (market === "total") {
     return [
-      { side: "over", label: `Over ${fmt(game.total_line, 1)}`, line: game.total_line, odds: game.over_odds, available: game.total_line !== null },
-      { side: "under", label: `Under ${fmt(game.total_line, 1)}`, line: game.total_line, odds: game.under_odds, available: game.total_line !== null },
+      { side: "over", label: `Over ${fmt(game.total_line, 2)}`, line: game.total_line, odds: game.over_odds, available: game.total_line !== null },
+      { side: "under", label: `Under ${fmt(game.total_line, 2)}`, line: game.total_line, odds: game.under_odds, available: game.total_line !== null },
     ];
   }
   return [
