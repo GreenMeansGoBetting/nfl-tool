@@ -111,7 +111,7 @@ function currentGame() {
 // ---- formatting helpers ----
 function fmtSigned(n) {
   if (n === null || n === undefined) return "";
-  return n > 0 ? `+${fmt(n, 2)}` : fmt(n, 2);
+  return n > 0 ? `+${fmt(n, 1)}` : fmt(n, 1);
 }
 function fmtOdds(n) {
   if (n === null || n === undefined) return "";
@@ -161,7 +161,7 @@ function renderOddsBar(game) {
   }
 
   const spreadCell = (team, line, odds) => (hasSpread ? `${fmtSigned(line)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
-  const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 2)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
+  const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 1)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
   const mlCell = (odds, prob) => (hasMl ? `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>` : "--");
 
   return `<table class="data-table odds-table">
@@ -249,19 +249,30 @@ function schemeTableHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}">${offTeam}<span class="col-sub">PERFORMANCE</span></th><th style="${defStyle}">${defTeam}<span class="col-sub">TENDENCY</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
+
+// Below this, a look doesn't come up often enough for an edge here to be
+// worth flagging, no matter how it ranks against other equally-rare looks
+// (a specialty package used on 7% of snaps can still z-score as "tier-good"
+// relative to a league where everyone runs it under 5% -- that's true but
+// meaningless for gameplanning, since it barely happens either way).
+const SCHEME_ADV_MIN_TENDENCY = 0.2;
 
 // Tendency is a frequency signal, not a value judgment (see SCHEME_GROUPS
 // comment) -- so this can't reuse edgeCell's good/bad-tier logic straight
-// across. An edge only gets flagged when the offense's performance tier AND
-// the defense's tendency tier point the SAME direction: offense performs
-// well against a look the defense uses often (real, likely-to-matter
-// advantage) or performs poorly against a look the defense leans on heavily
-// (real risk). A good performance number against a look the defense rarely
-// shows (e.g. "HOU beats the blitz, but BUF barely blitzes") deliberately
-// falls through to "--" -- it's true but unlikely to come up.
-function schemeEdgeCell(perfCls, tendCls, offTeam, defTeam) {
+// across. An edge only gets flagged when the look is actually common
+// (SCHEME_ADV_MIN_TENDENCY) AND the offense's performance tier AND the
+// defense's tendency tier point the SAME direction: offense performs well
+// against a look the defense uses often (real, likely-to-matter advantage)
+// or performs poorly against a look the defense leans on heavily (real
+// risk). A good performance number against a look the defense rarely shows
+// (e.g. "HOU beats the blitz, but BUF barely blitzes") deliberately falls
+// through to "--" -- it's true but unlikely to come up.
+function schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam) {
+  if (tendVal === null || tendVal === undefined || tendVal < SCHEME_ADV_MIN_TENDENCY) {
+    return `<td class="edge-cell">--</td>`;
+  }
   if (perfCls === "tier-good" && tendCls === "tier-good") {
     const rgb = teamAccentRgb(offTeam);
     return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${offTeam}</td>`;
@@ -273,34 +284,38 @@ function schemeEdgeCell(perfCls, tendCls, offTeam, defTeam) {
   return `<td class="edge-cell">--</td>`;
 }
 
-// Defense success is a real value judgment (unlike the tendency bar it sits
-// under, which is a pure frequency signal) -- always stored as the OPPOSING
-// offense's raw success/yards, so invert=true here regardless of group,
-// same "lower is better defense" convention as every other *_allowed stat.
-function defSuccessLine(group, defSuccessKey, defTeam) {
-  const val = DATA.team_stats[defTeam][defSuccessKey];
-  if (val === null || val === undefined) return "";
-  const cls = tierFor(defSuccessKey, defTeam, true);
-  const display = group.pct ? `${Math.round(val * 100)}%` : `${fmt(val, 2)} Y/C`;
-  const label = group.pct ? "Opp Success" : "Allowed";
-  return `<div class="tend-def-success ${cls}">${label}: ${display}</div>`;
+// One compact line: how often the look happens (bar) and how it actually
+// works out for the defense (badge) side by side, so both read at a glance
+// without stacking into a second line per row (that's what was making these
+// rows too tall). Defense success is a real value judgment (unlike the
+// tendency bar, a pure frequency signal) -- always stored as the OPPOSING
+// offense's raw success/yards, so invert=true regardless of group, same
+// "lower is better defense" convention as every other *_allowed stat.
+function tendencyCell(group, r, defTeam) {
+  const tendVal = DATA.team_stats[defTeam][r.tendKey];
+  if (tendVal === null || tendVal === undefined) return { html: `<span class="no-data-note">--</span>`, tendVal: null, tendCls: "" };
+  const tendCls = tierFor(r.tendKey, defTeam, false);
+  const succVal = DATA.team_stats[defTeam][r.defSuccessKey];
+  const succCls = succVal === null || succVal === undefined ? "" : tierFor(r.defSuccessKey, defTeam, true);
+  const succDisplay = succVal === null || succVal === undefined ? "--" : group.pct ? `${Math.round(succVal * 100)}%` : fmt(succVal, 2);
+  const html = `<div class="tend-row">
+    <span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span>
+    <span class="tend-bar-num">${Math.round(tendVal * 100)}%</span>
+    <span class="tend-succ-badge ${succCls}">${succDisplay}</span>
+  </div>`;
+  return { html, tendVal, tendCls };
 }
 
 function renderSchemeGroup(group, offTeam, defTeam) {
   const rows = group.rows
     .map((r) => {
-      const tendVal = DATA.team_stats[defTeam][r.tendKey];
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
-      const tendCls = tendVal === null || tendVal === undefined ? "" : tierFor(r.tendKey, defTeam, false);
-      const tendBar =
-        tendVal === null || tendVal === undefined
-          ? `<span class="no-data-note">--</span>`
-          : `<div class="tend-bar-row"><span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span><span class="tend-bar-num">${Math.round(tendVal * 100)}%</span></div>${defSuccessLine(group, r.defSuccessKey, defTeam)}`;
+      const { html: tendHtml, tendVal, tendCls } = tendencyCell(group, r, defTeam);
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
       const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 2)}${perfUnit}`;
-      return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td><td>${tendBar}</td>${schemeEdgeCell(perfCls, tendCls, offTeam, defTeam)}</tr>`;
+      return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td><td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
@@ -389,8 +404,8 @@ function marketSides(game, market) {
   }
   if (market === "total") {
     return [
-      { side: "over", label: `Over ${fmt(game.total_line, 2)}`, line: game.total_line, odds: game.over_odds, available: game.total_line !== null },
-      { side: "under", label: `Under ${fmt(game.total_line, 2)}`, line: game.total_line, odds: game.under_odds, available: game.total_line !== null },
+      { side: "over", label: `Over ${fmt(game.total_line, 1)}`, line: game.total_line, odds: game.over_odds, available: game.total_line !== null },
+      { side: "under", label: `Under ${fmt(game.total_line, 1)}`, line: game.total_line, odds: game.under_odds, available: game.total_line !== null },
     ];
   }
   return [
