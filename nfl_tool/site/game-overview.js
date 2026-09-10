@@ -295,41 +295,6 @@ function summaryAdvCell(offZ, defZ, offTeam, defTeam) {
   return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},${alpha.toFixed(2)})">${team}</td>`;
 }
 
-// Compact, fully mechanical readout of the SAME gaps already driving the
-// ADV column -- sorted biggest-first and spelled out in words instead of a
-// single abbreviation. Deliberately NOT a written recap: nothing here is
-// authored per game, it's the exact same composite z-scores re-sorted and
-// labeled, so it reads identically every week instead of needing a fresh
-// paragraph for every matchup. Categories with no real gap (below
-// TIER_Z_THRESHOLD, already "--" in the ADV column) are left out rather
-// than padded with a non-finding.
-function renderSummaryDebrief(offTeam, defTeam) {
-  const items = SUMMARY_CATEGORIES.map((cat) => {
-    const offZ = cat.scheme ? schemeCompositeZ(offTeam, "off") : compositeZ(cat.off, offTeam);
-    const defZ = cat.scheme ? schemeCompositeZ(defTeam, "def") : compositeZ(cat.def, defTeam);
-    if (offZ === null || offZ === undefined || defZ === null || defZ === undefined) return null;
-    const gap = offZ - defZ;
-    const gapAbs = Math.abs(gap);
-    if (gapAbs < TIER_Z_THRESHOLD) return null;
-    const team = gap > 0 ? offTeam : defTeam;
-    const size = gapAbs >= ADV_Z_SATURATE / 2 ? "big edge" : "edge";
-    return { label: cat.label, team, size, gapAbs };
-  })
-    .filter(Boolean)
-    .sort((a, b) => b.gapAbs - a.gapAbs);
-
-  if (!items.length) {
-    return `<div class="grade-debrief"><p class="no-data-note">No category clears a real gap here.</p></div>`;
-  }
-  const rows = items
-    .map((i) => {
-      const rgb = teamAccentRgb(i.team);
-      return `<li><span class="debrief-cat">${i.label}</span> <span class="debrief-team" style="color:rgb(${rgb.join(",")})">${i.team}</span> ${i.size}</li>`;
-    })
-    .join("");
-  return `<div class="grade-debrief"><ul>${rows}</ul></div>`;
-}
-
 // Paired by MATCHUP (offTeam's offense against defTeam's defense), same
 // convention as General Stats/Scheme -- call twice (away-vs-home,
 // home-vs-away) for the two side-by-side tables.
@@ -350,11 +315,102 @@ function renderSummaryTable(offTeam, defTeam) {
   </table>`;
 }
 
-// Grade table pinned to its natural (narrow) width, debrief list filling
-// whatever's left in the column -- avoids the table alone stretching into
-// a lot of dead space the way it did as the column's only content.
-function renderSummaryPanel(offTeam, defTeam) {
-  return `<div class="summary-row">${renderSummaryTable(offTeam, defTeam)}${renderSummaryDebrief(offTeam, defTeam)}</div>`;
+// This team's own four category grades for one side of the ball, plus its
+// average z (used to rank all four graded units against each other) and
+// its own single weakest category. Returns null when this side has no
+// graded categories at all (shouldn't happen once games_played > 0, but
+// keeps renderSummaryFacts from crashing on a partial-data edge case).
+function unitProfile(team, side) {
+  const cats = SUMMARY_CATEGORIES.map((cat) => ({
+    label: cat.label,
+    z: cat.scheme ? schemeCompositeZ(team, side) : compositeZ(cat[side], team),
+  }));
+  const known = cats.filter((c) => c.z !== null && c.z !== undefined);
+  if (!known.length) return null;
+  const avgZ = known.reduce((a, c) => a + c.z, 0) / known.length;
+  const worst = known.reduce((a, c) => (c.z < a.z ? c : a));
+  return {
+    team,
+    side,
+    grades: cats.map((c) => (c.z === null || c.z === undefined ? "--" : gradeForZ(c.z))),
+    avgZ,
+    worstLabel: worst.label,
+    worstGrade: gradeForZ(worst.z),
+  };
+}
+
+// Whole-game synthesis, computed once (not per table) since these facts
+// compare across BOTH matchup directions at once -- which of the four
+// graded units (either team's offense or defense) grades best/worst on
+// average, how many categories each team grades ahead in overall, and
+// which category grades closest between the two teams. Plain descriptive
+// statements only, no "likely"/"expect"/"decided by" language -- these
+// describe what the grades already say, not a prediction about the game.
+function renderSummaryFacts(away, home) {
+  const phase = (s) => (s === "off" ? "offense" : "defense");
+  const catList = SUMMARY_CATEGORIES.map((c) => c.label).join("/");
+  const lines = [];
+
+  const units = [unitProfile(away, "off"), unitProfile(away, "def"), unitProfile(home, "off"), unitProfile(home, "def")].filter(
+    Boolean
+  );
+  if (units.length === 4) {
+    const best = units.reduce((a, b) => (b.avgZ > a.avgZ ? b : a));
+    const worst = units.reduce((a, b) => (b.avgZ < a.avgZ ? b : a));
+    lines.push(
+      `${best.team} ${phase(best.side)} grades ${best.grades.join("/")} (${catList}) -- the highest average grade of the four graded units.`
+    );
+    lines.push(
+      `${worst.team} ${phase(worst.side)} grades ${worst.grades.join("/")} -- the lowest average grade, weakest at ${worst.worstLabel} (${worst.worstGrade}).`
+    );
+  }
+
+  // Same ADV logic as summaryAdvCell, tallied across both tables' 4
+  // categories each (up to 8 signed comparisons) instead of shown cell by
+  // cell.
+  let awayEdges = 0;
+  let homeEdges = 0;
+  const combined = SUMMARY_CATEGORIES.map((cat) => {
+    const offZ1 = cat.scheme ? schemeCompositeZ(away, "off") : compositeZ(cat.off, away);
+    const defZ1 = cat.scheme ? schemeCompositeZ(home, "def") : compositeZ(cat.def, home);
+    const offZ2 = cat.scheme ? schemeCompositeZ(home, "off") : compositeZ(cat.off, home);
+    const defZ2 = cat.scheme ? schemeCompositeZ(away, "def") : compositeZ(cat.def, away);
+    const gaps = [];
+    if (offZ1 !== null && offZ1 !== undefined && defZ1 !== null && defZ1 !== undefined) {
+      const g = offZ1 - defZ1;
+      gaps.push(g);
+      if (Math.abs(g) >= TIER_Z_THRESHOLD) {
+        if (g > 0) awayEdges++;
+        else homeEdges++;
+      }
+    }
+    if (offZ2 !== null && offZ2 !== undefined && defZ2 !== null && defZ2 !== undefined) {
+      const g = offZ2 - defZ2;
+      gaps.push(g);
+      if (Math.abs(g) >= TIER_Z_THRESHOLD) {
+        if (g > 0) homeEdges++;
+        else awayEdges++;
+      }
+    }
+    const avgAbs = gaps.length ? gaps.reduce((a, b) => a + Math.abs(b), 0) / gaps.length : null;
+    return { label: cat.label, avgAbs, count: gaps.length };
+  });
+
+  if (awayEdges || homeEdges) {
+    const total = awayEdges + homeEdges;
+    const [leadTeam, leadCount, otherTeam, otherCount] =
+      awayEdges >= homeEdges ? [away, awayEdges, home, homeEdges] : [home, homeEdges, away, awayEdges];
+    lines.push(`${leadTeam} grades ahead in ${leadCount} of ${total} graded categories; ${otherTeam} grades ahead in ${otherCount}.`);
+  }
+
+  const bothSides = combined.filter((c) => c.count === 2 && c.avgAbs !== null);
+  if (bothSides.length) {
+    const closest = bothSides.reduce((a, b) => (b.avgAbs < a.avgAbs ? b : a));
+    lines.push(`${closest.label} shows the smallest grade gap between the two teams on both sides of the ball.`);
+  }
+
+  if (!lines.length) return "";
+  return `<ul class="grade-facts">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>`;
 }
 
 const MARKETS = [
@@ -955,8 +1011,9 @@ function render() {
   document.getElementById("col-home-scheme").innerHTML = renderSchemeTable(home, away);
   document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
   document.getElementById("col-home-recent").innerHTML = renderRecentGamesPanel(home);
-  document.getElementById("col-away-summary").innerHTML = renderSummaryPanel(away, home);
-  document.getElementById("col-home-summary").innerHTML = renderSummaryPanel(home, away);
+  document.getElementById("col-away-summary").innerHTML = renderSummaryTable(away, home);
+  document.getElementById("col-home-summary").innerHTML = renderSummaryTable(home, away);
+  document.getElementById("summary-facts").innerHTML = renderSummaryFacts(away, home);
 
   renderPickTracker(game);
 }
