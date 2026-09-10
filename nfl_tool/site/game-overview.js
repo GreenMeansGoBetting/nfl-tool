@@ -961,6 +961,11 @@ document.getElementById("scheme-info-btn").addEventListener("click", () => {
   el.hidden = !el.hidden;
 });
 
+document.getElementById("grades-info-btn").addEventListener("click", () => {
+  const el = document.getElementById("grades-info-text");
+  el.hidden = !el.hidden;
+});
+
 fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
