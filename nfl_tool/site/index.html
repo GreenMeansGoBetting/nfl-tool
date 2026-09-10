@@ -16,7 +16,6 @@
     <span class="page-nav-current">TD Data</span>
     <a href="possible-plays.html">Possible Plays</a>
   </nav>
-  <span id="season-note" class="muted"></span>
 </div>
 
 <main>
@@ -85,26 +84,15 @@
   </div>
 
   <div id="view-first" hidden>
-    <div id="section-snapshot" class="section-wrap" hidden>
-      <h2 class="section-title">Matchup Snapshot</h2>
-      <p class="section-note">Possible first-TD angles to target.</p>
-      <div id="snapshot-content"></div>
-    </div>
-
     <div id="section-basics" class="section-wrap" hidden>
       <h2 class="section-title">First TD Basics</h2>
-      <div class="two-col">
-        <section id="col-away-basics"></section>
-        <section id="col-home-basics"></section>
-      </div>
-    </div>
-
-    <div id="section-opportunities" class="section-wrap" hidden>
-      <h2 class="section-title">Opportunities &amp; Red Zone</h2>
-      <p class="section-note">Left box: both teams' own OFFENSES (scoring first). Right box: both teams' own DEFENSES (allowing/preventing first) -- same two teams in both, just read with different wording so the two directions don't have to share one confusing label.</p>
-      <div class="two-col">
-        <section id="panel-offenses"></section>
-        <section id="panel-defenses"></section>
+      <div class="stat-columns">
+        <section id="col-away-basics" class="stat-column"></section>
+        <section id="col-home-basics" class="stat-column"></section>
+        <div class="stat-column">
+          <h3 class="stat-column-title">Opportunities</h3>
+          <div id="opportunities-summary"></div>
+        </div>
       </div>
     </div>
 
