@@ -1264,11 +1264,6 @@ fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;
-    let note = `${data.season} season — through week ${data.through_week}`;
-    if (data.is_fallback_season) {
-      note = `Showing final ${data.season} season — ${data.requested_season} season data isn't published on nflverse yet`;
-    }
-    document.getElementById("season-note").textContent = note;
     resetDraftPicks();
     initFlipper();
     render();
