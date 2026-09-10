@@ -330,7 +330,29 @@ const COLORS = [
   { key: "red", label: "No Confidence" },
 ];
 
-const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "summary", "picks"];
+const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "summary", "notes", "picks"];
+
+// ---- Per-game notes (localStorage, keyed by game_id -- free text, not
+// graded or shared anywhere, just a scratchpad while working through a
+// game) ----
+const GAME_NOTES_KEY = "nfl-tool.game-notes.v1";
+function loadGameNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(GAME_NOTES_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveGameNote(gameId, text) {
+  try {
+    const all = loadGameNotes();
+    if (text) all[gameId] = text;
+    else delete all[gameId];
+    localStorage.setItem(GAME_NOTES_KEY, JSON.stringify(all));
+  } catch (e) {
+    // localStorage unavailable -- notes just won't stick.
+  }
+}
 
 let weekGames = [];
 let currentGameIndex = 0;
@@ -421,8 +443,132 @@ function renderOddsBar(game) {
         <td class="num">${mlCell(game.home_moneyline, game.home_ml_implied_prob)}</td>
       </tr>
     </tbody>
-  </table>`;
+  </table>
+  ${(DATA.general_odds || {})[`${game.away}_${game.home}`] ? `<button type="button" class="all-odds-btn" data-away="${game.away}" data-home="${game.home}">All Odds</button>` : ""}`;
 }
+
+// ---- General (non-player) odds modal ----
+// Everything build_stats.py's extract_general_odds pulled out of the SAME
+// SportsGameOdds event fetch already paid for by the player-prop pull --
+// full-game and 1st-half spread/total/moneyline/team-totals plus a couple
+// of game-level derivatives. No extra API cost: SGO bills per event, not
+// per market, so this is just reading more of a response already fetched.
+// Page-specific (unlike the player-odds modal in common.js, which TD
+// Data/First TD Data also use) -- only this page has a per-game odds bar.
+function ensureGeneralOddsModal() {
+  if (document.getElementById("general-odds-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "general-odds-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="general-odds-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeGeneralOddsModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeGeneralOddsModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeGeneralOddsModal();
+  });
+}
+
+function closeGeneralOddsModal() {
+  const el = document.getElementById("general-odds-modal");
+  if (el) el.hidden = true;
+}
+
+// Spreads get a "+" on a positive line (favorite/dog convention); totals
+// and team-totals don't need a sign.
+function fmtOddsLine(line, betType) {
+  if (line === null || line === undefined) return "";
+  if (betType === "sp") return line > 0 ? ` +${line}` : ` ${line}`;
+  return ` ${line}`;
+}
+
+// Consistent row labels regardless of SGO's own market_name phrasing
+// (which varies: "Spread" for the combined market, team names baked into
+// team-total market names, etc.) -- market_name is kept as a fallback for
+// anything not in this list rather than a hard requirement to keep in sync.
+function generalOddsRowLabel(m) {
+  if (m.stat_id === "points" && m.bet_type === "ou") return m.team ? `${m.team} Team Total` : "Total";
+  if (m.stat_id === "points" && m.bet_type === "sp") return "Spread";
+  if (m.stat_id === "points" && m.bet_type === "ml") return "Moneyline";
+  if (m.stat_id === "points" && m.bet_type === "eo") return "Odd / Even";
+  if (m.stat_id === "firstToScore") return "First to Score";
+  if (m.stat_id === "bothTeamsScored") return "Both Teams to Score";
+  if (m.stat_id === "touchdowns") return m.bet_type === "ou" ? "Total Touchdowns" : "Any Touchdown Scored";
+  if (m.stat_id === "fieldGoals_made") return m.team ? `${m.team} Field Goals Made` : "Field Goals Made";
+  return m.market_name;
+}
+
+const GENERAL_ODDS_SIDE_ORDER = { away: 0, over: 0, home: 1, under: 1 };
+const GENERAL_ODDS_PERIOD_LABELS = { game: "Full Game", "1h": "1st Half" };
+
+function renderGeneralOddsModalContent(away, home) {
+  const heading = `<h3>${TEAM_NAMES[away] || away} @ ${TEAM_NAMES[home] || home} &mdash; All Odds</h3>`;
+  const markets = (DATA.general_odds || {})[`${away}_${home}`];
+  if (!markets || !markets.length) {
+    return `${heading}<p class="no-data-note">No additional odds posted for this game yet.</p>`;
+  }
+
+  // Group into one row per (period, market[, team]) -- e.g. the Spread's
+  // away and home prices become two cells on the same row rather than two
+  // separate rows. "ou" markets keep team in the key since it distinguishes
+  // three DIFFERENT sub-markets (combined total, each team's own total)
+  // that happen to share a bet type -- everything else (spread, moneyline,
+  // first-to-score) has home/away as the two SIDES of one single market,
+  // so team must NOT split those into separate rows.
+  const groups = {};
+  for (const m of markets) {
+    const gk = m.bet_type === "ou" ? `${m.period}|${m.stat_id}|${m.bet_type}|${m.team || "all"}` : `${m.period}|${m.stat_id}|${m.bet_type}`;
+    (groups[gk] = groups[gk] || []).push(m);
+  }
+  const rowsByPeriod = {};
+  for (const gk in groups) {
+    const entries = groups[gk];
+    entries.sort((a, b) => (GENERAL_ODDS_SIDE_ORDER[a.side] ?? 9) - (GENERAL_ODDS_SIDE_ORDER[b.side] ?? 9));
+    const period = entries[0].period;
+    (rowsByPeriod[period] = rowsByPeriod[period] || []).push(entries);
+  }
+
+  const sections = Object.keys(GENERAL_ODDS_PERIOD_LABELS)
+    .filter((p) => rowsByPeriod[p] && rowsByPeriod[p].length)
+    .map((p) => {
+      const rows = rowsByPeriod[p]
+        .map((entries) => {
+          const label = generalOddsRowLabel(entries[0]);
+          const cells = entries
+            .map((e) => {
+              const side = e.team || e.side.charAt(0).toUpperCase() + e.side.slice(1);
+              return `<span class="odds-price">${side}${fmtOddsLine(e.line, e.bet_type)} (${fmtOddsSigned(e.best_odds)})</span> <span class="muted-label">${e.best_book}</span>`;
+            })
+            .join("&nbsp;&nbsp;");
+          return `<tr><td>${label}</td><td>${cells}</td></tr>`;
+        })
+        .join("");
+      return `<h4 class="odds-period-heading">${GENERAL_ODDS_PERIOD_LABELS[p]}</h4>
+        <table class="data-table general-odds-table"><tbody>${rows}</tbody></table>`;
+    })
+    .join("");
+
+  return `${heading}
+    <p class="no-data-note">Every non-player market SportsGameOdds returns for this game -- the same event pull as the player-prop odds, no extra API cost. Best price found across a handful of books. A ballpark, not every book, not live.</p>
+    ${sections}`;
+}
+
+function openGeneralOddsModal(away, home) {
+  ensureGeneralOddsModal();
+  document.getElementById("general-odds-modal-content").innerHTML = renderGeneralOddsModalContent(away, home);
+  document.getElementById("general-odds-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".all-odds-btn");
+  if (btn) openGeneralOddsModal(btn.dataset.away, btn.dataset.home);
+});
 
 // One number per side (not the Total/Per-Game pair headerRow() expects),
 // so this gets its own compact header instead of reusing that function.
@@ -920,8 +1066,16 @@ function render() {
   document.getElementById("col-away-summary").innerHTML = renderSummaryTable(away, home);
   document.getElementById("col-home-summary").innerHTML = renderSummaryTable(home, away);
 
+  const notesEl = document.getElementById("game-notes");
+  notesEl.value = loadGameNotes()[game.game_id] || "";
+  notesEl.dataset.gameId = game.game_id;
+
   renderPickTracker(game);
 }
+
+document.getElementById("game-notes").addEventListener("input", (e) => {
+  saveGameNote(e.target.dataset.gameId, e.target.value);
+});
 
 function handlePick() {
   resetDraftPicks();

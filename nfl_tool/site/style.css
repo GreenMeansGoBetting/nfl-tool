@@ -351,6 +351,43 @@ footer a { color: var(--accent); }
 .pp-check-inline { display: inline-flex; align-items: center; margin-left: 4px; cursor: pointer; }
 .pp-check-inline input { cursor: pointer; }
 
+.game-notes {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+#general-odds-modal .modal-box { max-width: 640px; }
+.all-odds-btn {
+  margin-top: 8px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.all-odds-btn:hover { border-color: var(--accent); color: var(--accent); }
+.odds-period-heading {
+  margin: 14px 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+.odds-period-heading:first-of-type { margin-top: 8px; }
+.general-odds-table td { padding: 5px 6px; font-size: 0.8rem; }
+.general-odds-table td:first-child { font-weight: 600; width: 32%; }
+
 /* ---- Game Overviews ---- */
 
 .game-header {

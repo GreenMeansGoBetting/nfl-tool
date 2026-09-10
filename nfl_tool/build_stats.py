@@ -630,6 +630,91 @@ def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: di
     return result
 
 
+# Every non-player market SGO returns for full game + 1st half -- spread,
+# total, moneyline, each team's own point total, odd/even, plus a few
+# game-level derivatives (both teams to score, first team to score, team
+# touchdowns/field-goals over-under). Free: this reuses the SAME event
+# fetch already paid for by the player-prop pull above (SGO bills per
+# EVENT returned, not per market). Quarter-by-quarter and 2nd-half lines
+# exist in the same response but are deliberately left out here -- a much
+# deeper derivative than the "team totals, halftime lines" this was built
+# for. GENERAL_ODDS_PERIODS/MARKETS are isolated so widening the scope
+# later (2h, quarters, more derivatives) is additive, not a rewrite.
+GENERAL_ODDS_PERIODS = {"game": "Full Game", "1h": "1st Half"}
+GENERAL_ODDS_MARKETS = {
+    ("points", "sp"),
+    ("points", "ou"),
+    ("points", "ml"),
+    ("points", "eo"),
+    ("touchdowns", "ou"),
+    ("touchdowns", "yn"),
+    ("fieldGoals_made", "ou"),
+    ("bothTeamsScored", "yn"),
+    ("firstToScore", "ml"),
+}
+
+
+def extract_general_odds(events: list, teams) -> dict:
+    """{"AWAY_HOME": [ {period, period_label, stat_id, bet_type, side,
+    team, market_name, line, best_odds, best_book}, ... ]} -- team is None
+    for a whole-game side (the combined total, either side of a 2-way
+    market like odd/even or both-teams-to-score). Same best-price-across-
+    books selection as extract_player_prop_odds, just per market side
+    instead of per player."""
+    result = {}
+    for event in events:
+        odds = event.get("odds", {})
+        team_short_by_id = {
+            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
+            for side in ("home", "away")
+        }
+        away_team = team_short_by_id.get(event["teams"]["away"]["teamID"])
+        home_team = team_short_by_id.get(event["teams"]["home"]["teamID"])
+        if away_team not in teams or home_team not in teams:
+            continue
+
+        markets = []
+        for odd in odds.values():
+            if odd.get("playerID"):
+                continue
+            period = odd.get("periodID")
+            if period not in GENERAL_ODDS_PERIODS:
+                continue
+            if (odd.get("statID"), odd.get("betTypeID")) not in GENERAL_ODDS_MARKETS:
+                continue
+
+            best_price, best_book, best_line = None, None, None
+            for book, info in (odd.get("byBookmaker") or {}).items():
+                if not info.get("available") or info.get("odds") is None:
+                    continue
+                price = float(info["odds"])
+                if best_price is None or price > best_price:
+                    best_price = price
+                    best_book = book
+                    best_line = info.get("overUnder") if info.get("overUnder") is not None else info.get("spread")
+            if best_price is None:
+                continue
+
+            team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
+            markets.append(
+                {
+                    "period": period,
+                    "period_label": GENERAL_ODDS_PERIODS[period],
+                    "stat_id": odd.get("statID"),
+                    "bet_type": odd.get("betTypeID"),
+                    "side": odd.get("sideID"),
+                    "team": team,
+                    "market_name": odd.get("marketName"),
+                    "line": float(best_line) if best_line is not None else None,
+                    "best_odds": int(best_price),
+                    "best_book": SGO_BOOK_NAMES.get(best_book, best_book),
+                }
+            )
+        if markets:
+            result[f"{away_team}_{home_team}"] = markets
+    return result
+
+
 def build_position_lookup(rosters: pd.DataFrame):
     # gsis_id + week -> position/team/name, with a fallback keyed only by gsis_id
     # (most recent week on file) for edge cases like playoff-only IDs.
@@ -1636,6 +1721,7 @@ def main():
     week_dates = sorted(g["date"] for g in week_games if g.get("date"))
     player_td_odds = None
     player_first_td_odds = None
+    general_odds = None
     if week_dates:
         starts_after = week_dates[0]
         starts_before = (date.fromisoformat(week_dates[-1]) + timedelta(days=1)).isoformat()
@@ -1651,6 +1737,7 @@ def main():
         if sgo_events is not None:
             player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams)
             player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams)
+            general_odds = extract_general_odds(sgo_events, teams)
 
     blob = {
         "season": season,
@@ -1669,6 +1756,7 @@ def main():
         "injuries_max_week": int(injuries_df["week"].max()) if len(injuries_df) else None,
         "player_td_odds": player_td_odds,
         "player_first_td_odds": player_first_td_odds,
+        "general_odds": general_odds,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
