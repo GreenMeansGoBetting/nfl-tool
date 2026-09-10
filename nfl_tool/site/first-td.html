@@ -2,94 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=index.html?view=first">
 <title>GMG's NFL Suite &mdash; First TD Data</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="topbar">
-  <span class="brand">GMG's NFL Suite</span>
-  <nav class="page-nav">
-    <a href="game-overview.html">Game Previews</a>
-    <a href="index.html">TD Data</a>
-    <span class="page-nav-current">First TD Data</span>
-    <a href="possible-plays.html">Possible Plays</a>
-  </nav>
-  <span id="season-note" class="muted"></span>
-</div>
-
-<main>
-  <div id="schedule-scroller" class="schedule-scroller" hidden>
-    <div class="week-picker">
-      <button type="button" id="week-prev" class="week-nav-btn">&lsaquo;</button>
-      <span id="week-label" class="week-label">Week</span>
-      <button type="button" id="week-next" class="week-nav-btn">&rsaquo;</button>
-    </div>
-    <div id="matchup-row" class="matchup-row"></div>
-  </div>
-
-  <div class="filter-bar">
-    <label>Away
-      <select id="away-select"></select>
-    </label>
-    <label>Home
-      <select id="home-select"></select>
-    </label>
-  </div>
-
-  <div class="legend-box">
-    <span class="legend-title">What the colors mean:</span>
-    <span class="legend-item"><span class="swatch tier-good"></span>Top third, league-wide</span>
-    <span class="legend-item"><span class="swatch tier-mid"></span>Middle third, league-wide</span>
-    <span class="legend-item"><span class="swatch tier-bad"></span>Bottom third, league-wide</span>
-    <span class="legend-note">For a defense's "allowed" numbers, colors flip: green = fewest allowed (best defense).</span>
-  </div>
-
-  <div id="empty-state" class="empty-state">
-    <p>Choose both teams above to see the mini-game -- everything that happens before the game's very first touchdown.</p>
-  </div>
-
-  <div id="section-snapshot" class="section-wrap" hidden>
-    <h2 class="section-title">Matchup Snapshot</h2>
-    <p class="section-note">Possible first-TD angles to target.</p>
-    <div id="snapshot-content"></div>
-  </div>
-
-  <div id="section-basics" class="section-wrap" hidden>
-    <h2 class="section-title">First TD Basics</h2>
-    <div class="two-col">
-      <section id="col-away-basics"></section>
-      <section id="col-home-basics"></section>
-    </div>
-  </div>
-
-  <div id="section-opportunities" class="section-wrap" hidden>
-    <h2 class="section-title">Opportunities &amp; Red Zone</h2>
-    <p class="section-note">Left box: both teams' own OFFENSES (scoring first). Right box: both teams' own DEFENSES (allowing/preventing first) -- same two teams in both, just read with different wording so the two directions don't have to share one confusing label.</p>
-    <div class="two-col">
-      <section id="panel-offenses"></section>
-      <section id="panel-defenses"></section>
-    </div>
-  </div>
-
-  <div id="section-rzusage" class="section-wrap" hidden>
-    <h2 class="section-title">Red Zone Usage Before First TD</h2>
-    <p class="section-note">Who's actually getting the ball on this team's red zone snaps before either side's first touchdown &mdash; a field goal doesn't end this window, so a 3-0 game is still "before the first TD" and keeps counting. First TDs included here too.</p>
-    <div class="two-col">
-      <section id="rzusage-away"></section>
-      <section id="rzusage-home"></section>
-    </div>
-  </div>
-</main>
-
-<footer>
-  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play, regular season only. Refreshes automatically each morning during the season.
-</footer>
-
-<script src="teams.js"></script>
-<script src="common.js"></script>
-<script src="first-td.js"></script>
+<p>First TD Data has moved -- it's now a toggle on the <a href="index.html?view=first">TD Data page</a>.</p>
 </body>
 </html>

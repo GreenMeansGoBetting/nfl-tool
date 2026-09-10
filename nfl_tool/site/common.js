@@ -1,6 +1,7 @@
-// Shared helpers used by both index.html (matchup data) and
-// first-td.html (first-TD mini-game view). Each page fetches its own
-// data.json and sets the shared DATA variable before calling any of these.
+// Shared helpers used across index.html (season TDs + first-TD mini-game,
+// toggled on one page), game-overview.html, and possible-plays.html. Each
+// page fetches its own data.json and sets the shared DATA variable before
+// calling any of these.
 let DATA = null;
 
 const POSITIONS = ["QB", "RB", "WR", "TE", "DST"];
@@ -237,9 +238,9 @@ function bucketShareAlphaAttr(dictKey, totalKey, bucketKey, team, invert = false
 // getSelected/onSelect that read/write its own "current game" index instead.
 let scheduleWeek = null;
 
-// The three pages (TD Data, First TD Data, Game Previews) are separate page
-// loads, not a single-page app, so carrying "the game I'm looking at" across
-// a tab click can't just live in memory -- localStorage is what makes that
+// TD Data and Game Previews are separate page loads, not a single-page app,
+// so carrying "the game I'm looking at" across a tab click can't just live
+// in memory -- localStorage is what makes that
 // survive the navigation. Only an EXPLICIT pick (a matchup card click, or
 // Game Previews' flipper) gets saved here; the default "first game of the
 // week" every page falls back to on its own is deterministic and doesn't
@@ -545,7 +546,7 @@ function closePlayerOddsModal() {
 // A "napkin math" notes list, deliberately separate from the graded Pick
 // Tracker -- checking a box here just remembers a player/side worth
 // considering as you browse, nothing gets graded. Shared across every page
-// (the odds modal on TD Data/First TD Data/Game Previews, the mainline
+// (the odds modal on TD Data/Game Previews, the mainline
 // checkboxes on Game Previews, and the Possible Plays page that lists them
 // all back out grouped by week).
 const POSSIBLE_PLAYS_KEY = "nfl-tool.possible-plays.v1";

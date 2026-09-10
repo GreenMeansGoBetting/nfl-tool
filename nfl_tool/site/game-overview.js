@@ -460,7 +460,7 @@ function renderOddsBar(game) {
 // of game-level derivatives. No extra API cost: SGO bills per event, not
 // per market, so this is just reading more of a response already fetched.
 // Page-specific (unlike the player-odds modal in common.js, which TD
-// Data/First TD Data also use) -- only this page has a per-game odds bar.
+// Data also uses) -- only this page has a per-game odds bar.
 function ensureGeneralOddsModal() {
   if (document.getElementById("general-odds-modal")) return;
   const overlay = document.createElement("div");

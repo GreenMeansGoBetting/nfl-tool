@@ -14,7 +14,6 @@
   <nav class="page-nav">
     <a href="game-overview.html">Game Previews</a>
     <span class="page-nav-current">TD Data</span>
-    <a href="first-td.html">First TD Data</a>
     <a href="possible-plays.html">Possible Plays</a>
   </nav>
   <span id="season-note" class="muted"></span>
@@ -39,41 +38,82 @@
     </label>
   </div>
 
+  <div class="view-toggle">
+    <button type="button" class="view-toggle-btn" data-view="season">Season TDs</button>
+    <button type="button" class="view-toggle-btn" data-view="first">First TD</button>
+  </div>
+
   <div id="empty-state" class="empty-state">
     <p>Choose both teams above to see the matchup.</p>
   </div>
 
-  <div id="section-type" class="section-wrap" hidden>
-    <h2 class="section-title">Touchdowns: Type, Position &amp; Distance</h2>
-    <div class="stat-columns">
-      <div class="stat-column">
-        <h3 class="stat-column-title">TD Type</h3>
-        <div id="col-away-type"></div>
-        <div id="col-home-type"></div>
+  <div id="view-season" hidden>
+    <div id="section-type" class="section-wrap" hidden>
+      <h2 class="section-title">Touchdowns: Type, Position &amp; Distance</h2>
+      <div class="stat-columns">
+        <div class="stat-column">
+          <h3 class="stat-column-title">TD Type</h3>
+          <div id="col-away-type"></div>
+          <div id="col-home-type"></div>
+        </div>
+        <div class="stat-column">
+          <h3 class="stat-column-title">TD Position</h3>
+          <div id="col-away-position"></div>
+          <div id="col-home-position"></div>
+        </div>
+        <div class="stat-column">
+          <h3 class="stat-column-title">TD Distance</h3>
+          <div id="col-away-distance"></div>
+          <div id="col-home-distance"></div>
+        </div>
       </div>
-      <div class="stat-column">
-        <h3 class="stat-column-title">TD Position</h3>
-        <div id="col-away-position"></div>
-        <div id="col-home-position"></div>
-      </div>
-      <div class="stat-column">
-        <h3 class="stat-column-title">TD Distance</h3>
-        <div id="col-away-distance"></div>
-        <div id="col-home-distance"></div>
+    </div>
+
+    <div id="section-player" class="section-wrap" hidden>
+      <h2 class="section-title">Player Touchdowns</h2>
+      <div class="stat-columns">
+        <div id="lb-away" class="stat-column"></div>
+        <div id="lb-home" class="stat-column"></div>
+        <div class="stat-column stat-column-notes">
+          <h3 class="stat-column-title">Notes</h3>
+          <textarea id="td-notes" class="game-notes" placeholder="Notes for this matchup..." rows="4"></textarea>
+          <h3 class="stat-column-title stat-column-title-spaced">Possible Plays</h3>
+          <div id="td-possible-plays-list"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="section-player" class="section-wrap" hidden>
-    <h2 class="section-title">Player Touchdowns</h2>
-    <div class="stat-columns">
-      <div id="lb-away" class="stat-column"></div>
-      <div id="lb-home" class="stat-column"></div>
-      <div class="stat-column stat-column-notes">
-        <h3 class="stat-column-title">Notes</h3>
-        <textarea id="td-notes" class="game-notes" placeholder="Notes for this matchup..." rows="4"></textarea>
-        <h3 class="stat-column-title stat-column-title-spaced">Possible Plays</h3>
-        <div id="td-possible-plays-list"></div>
+  <div id="view-first" hidden>
+    <div id="section-snapshot" class="section-wrap" hidden>
+      <h2 class="section-title">Matchup Snapshot</h2>
+      <p class="section-note">Possible first-TD angles to target.</p>
+      <div id="snapshot-content"></div>
+    </div>
+
+    <div id="section-basics" class="section-wrap" hidden>
+      <h2 class="section-title">First TD Basics</h2>
+      <div class="two-col">
+        <section id="col-away-basics"></section>
+        <section id="col-home-basics"></section>
+      </div>
+    </div>
+
+    <div id="section-opportunities" class="section-wrap" hidden>
+      <h2 class="section-title">Opportunities &amp; Red Zone</h2>
+      <p class="section-note">Left box: both teams' own OFFENSES (scoring first). Right box: both teams' own DEFENSES (allowing/preventing first) -- same two teams in both, just read with different wording so the two directions don't have to share one confusing label.</p>
+      <div class="two-col">
+        <section id="panel-offenses"></section>
+        <section id="panel-defenses"></section>
+      </div>
+    </div>
+
+    <div id="section-rzusage" class="section-wrap" hidden>
+      <h2 class="section-title">Red Zone Usage Before First TD</h2>
+      <p class="section-note">Who's actually getting the ball on this team's red zone snaps before either side's first touchdown &mdash; a field goal doesn't end this window, so a 3-0 game is still "before the first TD" and keeps counting. First TDs included here too.</p>
+      <div class="two-col">
+        <section id="rzusage-away"></section>
+        <section id="rzusage-home"></section>
       </div>
     </div>
   </div>
