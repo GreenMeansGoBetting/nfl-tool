@@ -158,10 +158,27 @@ function renderLengthTable(offTeam, defTeam) {
     return `<tr><td>${label}</td><td class="num ${offCountCls}"${offCountA}>${offCount}</td><td class="num ${offShareCls}"${offShareA}>${offShare}%</td><td class="num ${defCountCls}"${defCountA}>${defCount}</td><td class="num ${defShareCls}"${defShareA}>${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
+  // A 5th row, same Total/% shape as the length buckets above -- Total here
+  // is red zone trips (not a TD-length bucket), % is the conversion rate
+  // once there: how often a trip inside the 20 actually ends in a score,
+  // offense's own rate vs. what this defense allows. Rounds Distance out to
+  // the same row count as TD Type/Position instead of running one short.
+  const rzOffTripsCls = tierFor("rz_trips", offTeam, false);
+  const rzDefTripsCls = tierFor("rz_trips_allowed", defTeam, true);
+  const rzOffTripsA = tierForAlphaAttr("rz_trips", offTeam, false);
+  const rzDefTripsA = tierForAlphaAttr("rz_trips_allowed", defTeam, true);
+  const rzOffCls = tierFor("rz_td_rate", offTeam, false);
+  const rzDefCls = tierFor("rz_td_rate_allowed", defTeam, true);
+  const rzOffExtreme = tierFor("rz_td_rate", offTeam, false, TIER_Z_EXTREME_THRESHOLD);
+  const rzDefExtreme = tierFor("rz_td_rate_allowed", defTeam, true, TIER_Z_EXTREME_THRESHOLD);
+  const rzOffA = tierForAlphaAttr("rz_td_rate", offTeam, false);
+  const rzDefA = tierForAlphaAttr("rz_td_rate_allowed", defTeam, true);
+  const rzRow = `<tr><td>RZ %</td><td class="num ${rzOffTripsCls}"${rzOffTripsA}>${off.rz_trips}</td><td class="num ${rzOffCls}"${rzOffA}>${Math.round(off.rz_td_rate * 100)}%</td><td class="num ${rzDefTripsCls}"${rzDefTripsA}>${def.rz_trips_allowed}</td><td class="num ${rzDefCls}"${rzDefA}>${Math.round(def.rz_td_rate_allowed * 100)}%</td>${edgeCell(rzOffCls, rzDefCls, offTeam, defTeam, rzOffExtreme, rzDefExtreme)}</tr>`;
+
   return `<table class="data-table pos-table">
     ${STAT_TABLE_COLGROUP}
     <thead>${headerRow(offTeam, defTeam, ["Total", "%"])}</thead>
-    <tbody>${rows}</tbody>
+    <tbody>${rows}${rzRow}</tbody>
   </table>`;
 }
 

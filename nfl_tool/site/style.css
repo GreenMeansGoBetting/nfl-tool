@@ -311,6 +311,15 @@ h3 {
   font-size: 0.95rem;
 }
 
+.lb-table {
+  table-layout: fixed;
+  width: auto;
+  max-width: 300px;
+}
+.lb-table th:first-child, .lb-table td:first-child { width: 130px; }
+.lb-table th:nth-child(2), .lb-table td:nth-child(2) { width: 40px; }
+.lb-table th:nth-child(3), .lb-table td:nth-child(3),
+.lb-table th:nth-child(4), .lb-table td:nth-child(4) { width: 56px; }
 .lb-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .lb-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
