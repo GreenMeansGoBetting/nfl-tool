@@ -270,6 +270,12 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
     passp["blitz"] = passp["number_of_pass_rushers"] >= 5
     passp["zone"] = passp["defense_man_zone_type"] == "ZONE_COVERAGE"
     passp["man"] = passp["defense_man_zone_type"] == "MAN_COVERAGE"
+    # NGS charting's own pressure flag (hits, hurries, and knockdowns, not
+    # just sacks) -- the free-data proxy most public sites fall back to is
+    # sacks+hits/dropback, but this is the real thing, already sitting in
+    # the same participation file the rest of this function already merges
+    # in. NaN (a handful of plays, no signal either way) reads as False.
+    passp["pressure"] = passp["was_pressure"] == True  # noqa: E712
 
     result = {t: {} for t in teams}
     for team in teams:
@@ -323,6 +329,25 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         d["def_success_allowed_standard_rush"] = round(def_standard["success"].mean(), 3) if len(def_standard) >= MIN_SAMPLE else None
         d["def_success_allowed_blitz_plays"] = len(def_blitzed)
         d["def_success_allowed_standard_rush_plays"] = len(def_standard)
+
+        # ---- Pass rush: pressure (a sack isn't the only way a rush wins --
+        # a hurried/hit-but-not-sacked QB still shows up here, unlike sack
+        # totals alone) ----
+        pressure_def = int(def_pass["pressure"].sum())
+        d["pressure_rate"] = round(pressure_def / pr_total, 3) if pr_total else None
+        d["clean_pocket_rate"] = round(1 - pressure_def / pr_total, 3) if pr_total else None
+        off_pressured = off_pass[off_pass["pressure"]]
+        off_clean = off_pass[~off_pass["pressure"]]
+        d["success_vs_pressure"] = round(off_pressured["success"].mean(), 3) if len(off_pressured) >= MIN_SAMPLE else None
+        d["success_vs_clean_pocket"] = round(off_clean["success"].mean(), 3) if len(off_clean) >= MIN_SAMPLE else None
+        d["success_vs_pressure_plays"] = len(off_pressured)
+        d["success_vs_clean_pocket_plays"] = len(off_clean)
+        def_pressured = def_pass[def_pass["pressure"]]
+        def_clean = def_pass[~def_pass["pressure"]]
+        d["def_success_allowed_pressure"] = round(def_pressured["success"].mean(), 3) if len(def_pressured) >= MIN_SAMPLE else None
+        d["def_success_allowed_clean_pocket"] = round(def_clean["success"].mean(), 3) if len(def_clean) >= MIN_SAMPLE else None
+        d["def_success_allowed_pressure_plays"] = len(def_pressured)
+        d["def_success_allowed_clean_pocket_plays"] = len(def_clean)
 
         # ---- Coverage style: zone vs man ----
         zone_def = int(def_pass["zone"].sum())
@@ -889,9 +914,11 @@ def compute_epa_per_play(pbp: pd.DataFrame) -> dict:
     splits already tracked elsewhere. Same scrimmage definition as
     compute_explosive_plays (rush/pass attempts, two-point tries excluded --
     EPA runs on a different scale there and it's a tiny fraction of plays
-    anyway). Stored as a sum + play count rather than an average so the
-    per-play rate is derived in build_team_stats alongside every other
-    derived rate in this pipeline."""
+    anyway). Split by play type (not just an overall figure) since the
+    Game Overviews summary grades Passing and Rushing separately. Stored as
+    a sum + play count rather than an average so the per-play rate is
+    derived in build_team_stats alongside every other derived rate in this
+    pipeline."""
     scrimmage = pbp[((pbp["rush_attempt"] == 1) | (pbp["pass_attempt"] == 1)) & (pbp["two_point_attempt"] != 1)]
     result = {}
     for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
@@ -899,11 +926,23 @@ def compute_epa_per_play(pbp: pd.DataFrame) -> dict:
             continue
         off = scrimmage[scrimmage["posteam"] == team]
         deff = scrimmage[scrimmage["defteam"] == team]
+        off_pass = off[off["pass_attempt"] == 1]
+        off_rush = off[off["rush_attempt"] == 1]
+        def_pass = deff[deff["pass_attempt"] == 1]
+        def_rush = deff[deff["rush_attempt"] == 1]
         result[team] = {
             "epa_sum": float(off["epa"].sum()),
             "epa_plays": int(len(off)),
             "epa_sum_allowed": float(deff["epa"].sum()),
             "epa_plays_allowed": int(len(deff)),
+            "epa_sum_pass": float(off_pass["epa"].sum()),
+            "epa_plays_pass": int(len(off_pass)),
+            "epa_sum_pass_allowed": float(def_pass["epa"].sum()),
+            "epa_plays_pass_allowed": int(len(def_pass)),
+            "epa_sum_rush": float(off_rush["epa"].sum()),
+            "epa_plays_rush": int(len(off_rush)),
+            "epa_sum_rush_allowed": float(def_rush["epa"].sum()),
+            "epa_plays_rush_allowed": int(len(def_rush)),
         }
     return result
 
@@ -1325,6 +1364,26 @@ def build_team_stats(
             "epa_per_play_allowed": round(epa_d["epa_sum_allowed"] / epa_d["epa_plays_allowed"], 3)
             if epa_d.get("epa_plays_allowed")
             else None,
+            "epa_per_play_pass": round(epa_d["epa_sum_pass"] / epa_d["epa_plays_pass"], 3)
+            if epa_d.get("epa_plays_pass")
+            else None,
+            "epa_per_play_pass_allowed": round(epa_d["epa_sum_pass_allowed"] / epa_d["epa_plays_pass_allowed"], 3)
+            if epa_d.get("epa_plays_pass_allowed")
+            else None,
+            "epa_per_play_rush": round(epa_d["epa_sum_rush"] / epa_d["epa_plays_rush"], 3)
+            if epa_d.get("epa_plays_rush")
+            else None,
+            "epa_per_play_rush_allowed": round(epa_d["epa_sum_rush_allowed"] / epa_d["epa_plays_rush_allowed"], 3)
+            if epa_d.get("epa_plays_rush_allowed")
+            else None,
+            "explosive_rush_rate": round(expl.get("explosive_rush", 0) / gen["rush_att"], 3) if gen.get("rush_att") else None,
+            "explosive_rush_rate_allowed": round(expl.get("explosive_rush_allowed", 0) / gen["rush_att_allowed"], 3)
+            if gen.get("rush_att_allowed")
+            else None,
+            "explosive_pass_rate": round(expl.get("explosive_pass", 0) / gen["pass_att"], 3) if gen.get("pass_att") else None,
+            "explosive_pass_rate_allowed": round(expl.get("explosive_pass_allowed", 0) / gen["pass_att_allowed"], 3)
+            if gen.get("pass_att_allowed")
+            else None,
             "points_for": points_for,
             "points_for_per_g": per_g(points_for),
             "points_against": points_against,
@@ -1364,6 +1423,9 @@ def build_team_stats(
             else None,
             "pass_yards_allowed": gen.get("pass_yards_allowed", 0),
             "pass_yards_allowed_per_g": per_g(gen.get("pass_yards_allowed", 0)),
+            "yards_per_att_allowed": round(gen.get("pass_yards_allowed", 0) / gen["pass_att_allowed"], 2)
+            if gen.get("pass_att_allowed")
+            else None,
             "sacks_made": gen.get("sacks_made", 0),
             "sacks_made_per_g": per_g(gen.get("sacks_made", 0)),
             "int_made": gen.get("int_made", 0),

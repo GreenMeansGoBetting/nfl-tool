@@ -69,6 +69,18 @@ const SCHEME_GROUPS = [
     ],
   },
   {
+    // A sack isn't the only way a pass rush wins -- a QB who's hit or
+    // hurried but not sacked still shows up here (NGS's own pressure
+    // charting), unlike sack totals alone.
+    label: "QB Pressure",
+    perfLabel: "Success %",
+    pct: true,
+    rows: [
+      { label: "Pressured", tendKey: "pressure_rate", perfKey: "success_vs_pressure", defSuccessKey: "def_success_allowed_pressure" },
+      { label: "Clean Pocket", tendKey: "clean_pocket_rate", perfKey: "success_vs_clean_pocket", defSuccessKey: "def_success_allowed_clean_pocket" },
+    ],
+  },
+  {
     label: "Coverage Style",
     perfLabel: "Success %",
     pct: true,
@@ -108,6 +120,175 @@ const SCHEME_GROUPS = [
 // a stricter bar than mere visibility.
 const SCHEME_MIN_TENDENCY_SHOWN = 0.05;
 
+// ---- Team Grades: a scored summary instead of a written one ----
+// A prose recap anchors the reader on whatever gets mentioned first and
+// invites skipping the rest of the data -- a graded grid compresses the
+// same tables into scannable numbers without telling anyone what to
+// conclude from them. Each category below averages a handful of z-scores
+// (weighted by sample size where the underlying stat has one) into a
+// single z, then maps that to a letter using the exact same z-score scale
+// driving every tier color already on the page -- the grade and the color
+// are the same computation, not a separate judgment layered on top.
+// Turnovers were deliberately left out -- one tipped pass or bad-bounce
+// fumble swings a team's turnover count more on luck than skill over a
+// single season, which doesn't belong next to categories built on
+// repeatable tendencies. Third Down was folded into Passing/Rushing
+// EPA rather than kept separate -- EPA per play already captures
+// down-and-distance efficiency without a dedicated row.
+const SUMMARY_CATEGORIES = [
+  {
+    label: "Passing",
+    off: [
+      { key: "epa_per_play_pass", invert: false, weight: 2 },
+      { key: "yards_per_att", invert: false },
+      { key: "explosive_pass_rate", invert: false },
+    ],
+    def: [
+      { key: "epa_per_play_pass_allowed", invert: true, weight: 2 },
+      { key: "yards_per_att_allowed", invert: true },
+      { key: "explosive_pass_rate_allowed", invert: true },
+    ],
+  },
+  {
+    label: "Rushing",
+    off: [
+      { key: "epa_per_play_rush", invert: false, weight: 2 },
+      { key: "yards_per_carry", invert: false },
+      { key: "explosive_rush_rate", invert: false },
+    ],
+    def: [
+      { key: "epa_per_play_rush_allowed", invert: true, weight: 2 },
+      { key: "yards_per_carry_allowed", invert: true },
+      { key: "explosive_rush_rate_allowed", invert: true },
+    ],
+  },
+  {
+    label: "Red Zone",
+    off: [{ key: "rz_td_rate", invert: false }],
+    def: [{ key: "rz_td_rate_allowed", invert: true }],
+  },
+  {
+    // Built from every row in SCHEME_GROUPS rather than a fixed list, so it
+    // always reflects whatever the Scheme & Tendencies table above is
+    // actually showing -- see schemeCompositeZ().
+    label: "Scheme",
+    scheme: true,
+  },
+];
+
+// Weighted-average z-score across a list of {key, invert, weight} metrics
+// for one team. A metric this team has no value for (thin sample, stat
+// never cleared MIN_SAMPLE) is simply skipped rather than counted as
+// average/zero -- a category shouldn't get dragged toward "C" just because
+// one input hasn't hit its sample floor yet.
+function compositeZ(metrics, team) {
+  const pool = teamsWithGames();
+  let sum = 0;
+  let weightSum = 0;
+  for (const m of metrics) {
+    const value = DATA.team_stats[team][m.key];
+    if (value === null || value === undefined) continue;
+    const values = pool.map((t) => DATA.team_stats[t][m.key]);
+    const z = zScore(value, values, m.invert);
+    if (z === null) continue;
+    const w = m.weight || 1;
+    sum += z * w;
+    weightSum += w;
+  }
+  return weightSum ? sum / weightSum : null;
+}
+
+// Every row across every SCHEME_GROUPS group, flattened -- the Scheme grade
+// stays in sync with the table above it automatically, no separate list to
+// maintain by hand.
+const ALL_SCHEME_ROWS = SCHEME_GROUPS.flatMap((g) => g.rows);
+
+// side: "off" grades this team's own performance against whatever look it
+// faced (perfKey); "def" grades this team's own defense's success allowed
+// when it made that call (defSuccessKey). Weighted by each row's own play
+// count -- the same count already used to dim rare shells in the table
+// above, so a 6-play Cover-0 split can't swing the grade any more than it
+// swings the visual weight given to that row up there.
+function schemeCompositeZ(team, side) {
+  const pool = teamsWithGames();
+  let sum = 0;
+  let weightSum = 0;
+  for (const r of ALL_SCHEME_ROWS) {
+    const key = side === "off" ? r.perfKey : r.defSuccessKey;
+    const weight = DATA.team_stats[team][`${key}_plays`];
+    const value = DATA.team_stats[team][key];
+    if (!weight || value === null || value === undefined) continue;
+    const values = pool.map((t) => DATA.team_stats[t][key]);
+    const z = zScore(value, values, side === "def");
+    if (z === null) continue;
+    sum += z * weight;
+    weightSum += weight;
+  }
+  return weightSum ? sum / weightSum : null;
+}
+
+// Finer-grained than the site's usual 3-tier good/mid/bad -- once a
+// composite is the only number standing in for a whole category, it earns
+// more graduation than a single raw stat gets. TIER_Z_THRESHOLD (0.6) sits
+// inside the B/D bands here, same scale as the color underneath it.
+const GRADE_BANDS = [
+  { min: 1.2, grade: "A" },
+  { min: 0.4, grade: "B" },
+  { min: -0.4, grade: "C" },
+  { min: -1.2, grade: "D" },
+  { min: -Infinity, grade: "F" },
+];
+function gradeForZ(z) {
+  if (z === null || z === undefined) return null;
+  return GRADE_BANDS.find((b) => z >= b.min).grade;
+}
+// tier class + continuous alpha, driven directly off an already-computed z
+// (tierAlpha/percentileTier take a raw value + pool and z-score it
+// themselves -- these operate one step downstream of that, since a
+// composite has no single raw value/pool of its own).
+function tierClassForZ(z, threshold = TIER_Z_THRESHOLD) {
+  if (z === null || z === undefined) return "";
+  if (z >= threshold) return "tier-good";
+  if (z <= -threshold) return "tier-bad";
+  return "tier-mid";
+}
+function tierAlphaAttrForZ(z, threshold = TIER_Z_THRESHOLD) {
+  if (z === null || z === undefined) return "";
+  const az = Math.abs(z);
+  if (az < threshold) return "";
+  const t = Math.min((az - threshold) / (TIER_Z_SATURATE - threshold), 1);
+  const a = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
+  return ` style="--tier-a:${a.toFixed(2)}"`;
+}
+
+function renderSummaryGrid(away, home) {
+  const cols = [
+    { team: away, side: "off" },
+    { team: away, side: "def" },
+    { team: home, side: "off" },
+    { team: home, side: "def" },
+  ];
+  const header = `<tr><th></th>${cols
+    .map((c) => `<th><span class="pair-hdr team-click" data-team="${c.team}">${c.team}</span> <span class="pair-hdr-sub">- ${c.side.toUpperCase()}</span></th>`)
+    .join("")}</tr>`;
+  const rows = SUMMARY_CATEGORIES.map((cat) => {
+    const cells = cols
+      .map((c) => {
+        const z = cat.scheme ? schemeCompositeZ(c.team, c.side) : compositeZ(cat[c.side], c.team);
+        const grade = gradeForZ(z);
+        const cls = tierClassForZ(z);
+        const a = tierAlphaAttrForZ(z);
+        return `<td class="num grade-cell ${cls}"${a}>${grade || "--"}</td>`;
+      })
+      .join("");
+    return `<tr><td>${cat.label}</td>${cells}</tr>`;
+  }).join("");
+  return `<table class="data-table summary-grade-table">
+    <thead>${header}</thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
 const MARKETS = [
   { key: "spread", label: "Spread" },
   { key: "total", label: "Total" },
@@ -119,7 +300,7 @@ const COLORS = [
   { key: "red", label: "No Confidence" },
 ];
 
-const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "picks"];
+const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "summary", "picks"];
 
 let weekGames = [];
 let currentGameIndex = 0;
@@ -706,6 +887,7 @@ function render() {
   document.getElementById("col-home-scheme").innerHTML = renderSchemeTable(home, away);
   document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
   document.getElementById("col-home-recent").innerHTML = renderRecentGamesPanel(home);
+  document.getElementById("summary-content").innerHTML = renderSummaryGrid(away, home);
 
   renderPickTracker(game);
 }
