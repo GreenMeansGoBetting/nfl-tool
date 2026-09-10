@@ -346,9 +346,10 @@ function defSuccessCell(group, r, defTeam) {
   const succVal = DATA.team_stats[defTeam][r.defSuccessKey];
   if (succVal === null || succVal === undefined) return `<td class="num">--</td>`;
   const cls = tierFor(r.defSuccessKey, defTeam, true);
+  const a = tierForAlphaAttr(r.defSuccessKey, defTeam, true);
   const unit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
   const display = group.pct ? `${Math.round(succVal * 100)}%` : `${fmt(succVal, 2)}${unit}`;
-  return `<td class="num ${cls}">${display}</td>`;
+  return `<td class="num ${cls}"${a}>${display}</td>`;
 }
 
 function renderSchemeGroup(group, offTeam, defTeam) {
@@ -367,11 +368,12 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
       const { html: tendHtml, tendVal, tendCls } = tendencyCell(r, defTeam);
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
+      const perfA = perfVal === null || perfVal === undefined ? "" : tierForAlphaAttr(r.perfKey, offTeam, false);
       const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 2)}${perfUnit}`;
       const dim = tendVal !== null && tendVal !== undefined && tendVal < SCHEME_MIN_TENDENCY_SHOWN;
-      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td>${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td><td class="num ${perfCls}"${perfA}>${perfDisplay}</td>${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
