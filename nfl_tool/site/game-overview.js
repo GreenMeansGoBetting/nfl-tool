@@ -65,22 +65,18 @@ const SCHEME_GROUPS = [
     ],
   },
   {
+    // Blitz/Standard is the CALL (how many rushers sent); Pressured/Clean
+    // Pocket is the RESULT (whether the rush actually got home) -- a team
+    // can blitz constantly and still rarely get pressure, or rush four and
+    // still win often. Kept as four rows under one header rather than two
+    // separate groups: same "how does this pass rush operate" theme, no
+    // reason to split them into two header rows on the page.
     label: "Pass Rush",
     perfLabel: "Success %",
     pct: true,
     rows: [
       { label: "Blitz (5+ rushers)", tendKey: "blitz_rate", perfKey: "success_vs_blitz", defSuccessKey: "def_success_allowed_blitz" },
       { label: "Standard Rush", tendKey: "standard_rush_rate", perfKey: "success_vs_standard_rush", defSuccessKey: "def_success_allowed_standard_rush" },
-    ],
-  },
-  {
-    // A sack isn't the only way a pass rush wins -- a QB who's hit or
-    // hurried but not sacked still shows up here (NGS's own pressure
-    // charting), unlike sack totals alone.
-    label: "QB Pressure",
-    perfLabel: "Success %",
-    pct: true,
-    rows: [
       { label: "Pressured", tendKey: "pressure_rate", perfKey: "success_vs_pressure", defSuccessKey: "def_success_allowed_pressure" },
       { label: "Clean Pocket", tendKey: "clean_pocket_rate", perfKey: "success_vs_clean_pocket", defSuccessKey: "def_success_allowed_clean_pocket" },
     ],
