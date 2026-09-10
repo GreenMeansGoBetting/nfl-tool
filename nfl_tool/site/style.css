@@ -163,6 +163,13 @@ select {
 .swatch.tier-bad { background: var(--bad); }
 
 .section-wrap { margin-bottom: 24px; }
+/* Type+Position and Distance+RedZone stack two tables per team inside one
+   merged section (one heading instead of two) -- a small gap between them
+   so they don't touch, without a second section-title's worth of margin. */
+#section-type .two-col > section > div + div,
+#section-distance .two-col > section > div + div {
+  margin-top: 10px;
+}
 .section-title {
   font-size: 1rem;
   font-weight: 700;
@@ -207,10 +214,22 @@ select {
 }
 .stat-table, .pos-table {
   table-layout: fixed;
+  width: auto;
+  max-width: 380px;
 }
 .stat-table th:first-child, .stat-table td:first-child,
 .pos-table th:first-child, .pos-table td:first-child {
-  width: 20%;
+  width: 108px;
+}
+.stat-table th:nth-child(2), .stat-table td:nth-child(2),
+.stat-table th:nth-child(3), .stat-table td:nth-child(3),
+.stat-table th:nth-child(4), .stat-table td:nth-child(4),
+.stat-table th:nth-child(5), .stat-table td:nth-child(5),
+.pos-table th:nth-child(2), .pos-table td:nth-child(2),
+.pos-table th:nth-child(3), .pos-table td:nth-child(3),
+.pos-table th:nth-child(4), .pos-table td:nth-child(4),
+.pos-table th:nth-child(5), .pos-table td:nth-child(5) {
+  width: 56px;
 }
 .data-table th, .data-table td {
   padding: 3px 3px;

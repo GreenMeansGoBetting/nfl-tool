@@ -208,7 +208,7 @@ function renderLeaderboard(team) {
     </table>`;
 }
 
-const SECTIONS = ["snapshot", "type", "position", "distance", "redzone", "player"];
+const SECTIONS = ["snapshot", "type", "distance", "player"];
 
 function render() {
   const away = document.getElementById("away-select").value;
