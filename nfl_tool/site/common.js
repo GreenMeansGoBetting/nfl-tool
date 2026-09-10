@@ -635,34 +635,43 @@ const PLAY_MARKET_LABELS = { anytime_td: "Anytime TD", first_td: "First TD" };
 // (DATA.player_td_odds/player_first_td_odds are null if no API key was
 // configured at build time), so this degrades to a plain message rather
 // than a broken modal when it's missing.
+// Shows BOTH teams in the game, not just whichever team header was clicked
+// -- clicking either side opens the same full list, merged and sorted by
+// implied probability so the most likely scorers in the whole game float
+// to the top regardless of which team they're on. Each row tagged with its
+// own team (not the clicked team) and highlighted in that team's color so
+// a mixed list still reads at a glance.
 function renderPlayerOddsModalContent(team, market) {
   const marketLabel = PLAY_MARKET_LABELS[market] || PLAY_MARKET_LABELS.anytime_td;
   const dataField = market === "first_td" ? DATA.player_first_td_odds : DATA.player_td_odds;
-  const heading = `<h3>${TEAM_NAMES[team] || team} &mdash; ${marketLabel} Odds</h3>`;
+  const game = (DATA.schedule || []).find((g) => g.week === scheduleWeek && (g.away === team || g.home === team));
+  const matchup = game ? `${game.away} @ ${game.home}` : team;
+  const heading = `<h3>${matchup} &mdash; ${marketLabel} Odds</h3>`;
   if (!dataField) {
     return `${heading}<p class="no-data-note">Player odds aren't configured for this build.</p>`;
   }
-  const rows = dataField[team];
-  if (!rows || rows.length === 0) {
-    return `${heading}<p class="no-data-note">No ${marketLabel.toLowerCase()} odds posted for this team yet this week.</p>`;
-  }
-  const game = (DATA.schedule || []).find((g) => g.week === scheduleWeek && (g.away === team || g.home === team));
   const weekNum = game ? game.week : scheduleWeek;
-  const matchup = game ? `${game.away} @ ${game.home}` : team;
+  const gameTeams = game ? [game.away, game.home] : [team];
+  const rows = gameTeams.flatMap((t) => (dataField[t] || []).map((p) => ({ ...p, team: t }))).sort((a, b) => b.implied_prob - a.implied_prob);
+  if (rows.length === 0) {
+    return `${heading}<p class="no-data-note">No ${marketLabel.toLowerCase()} odds posted for this game yet.</p>`;
+  }
 
   const body = rows
     .map((p) => {
       const entry = {
-        id: `${weekNum}_${market}_${team}_${p.name}`,
+        id: `${weekNum}_${market}_${p.team}_${p.name}`,
         week: weekNum,
         matchup,
         category: marketLabel,
-        description: `${p.name} (${team})`,
+        description: `${p.name} (${p.team})`,
         odds: fmtOddsSigned(p.best_odds),
         book: p.best_book,
       };
       const checked = isPossiblePlay(entry.id) ? " checked" : "";
-      return `<tr><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name}</label></td><td class="num">${fmtOddsSigned(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+      const rgb = teamAccentRgb(p.team);
+      const rowStyle = `border-left:4px solid rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.07);`;
+      return `<tr style="${rowStyle}"><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name} <span class="muted-label">(${p.team})</span></label></td><td class="num">${fmtOddsSigned(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
     })
     .join("");
   return `${heading}
