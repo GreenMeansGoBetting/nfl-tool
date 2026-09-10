@@ -1079,10 +1079,20 @@ def compute_general_stats(pbp: pd.DataFrame) -> dict:
             "rush_att_allowed": int((deff["rush_attempt"] == 1).sum()),
             "rush_yards_allowed": float(deff.loc[deff["rush_attempt"] == 1, "yards_gained"].sum()),
             "fumbles_recovered": int((deff["fumble_lost"] == 1).sum()),
-            # Penalties are credited to whichever team committed them
-            # (penalty_team), independent of who had the ball at snap.
-            "penalties": int((pbp["penalty_team"] == team).sum()),
-            "penalty_yards": float(pbp.loc[pbp["penalty_team"] == team, "penalty_yards"].sum()),
+            # Split by which side of the ball the penalty happened on
+            # (posteam vs defteam on that play), not just credited to the
+            # team blindly -- an OFFENSIVE penalty (false start, holding,
+            # illegal shift) and a DEFENSIVE one (offside, DPI, defensive
+            # holding) are different units doing different jobs, and mixing
+            # them into one team-wide number couldn't tell you which.
+            "penalties_off": int(((pbp["penalty_team"] == team) & (pbp["posteam"] == team)).sum()),
+            "penalty_yards_off": float(
+                pbp.loc[(pbp["penalty_team"] == team) & (pbp["posteam"] == team), "penalty_yards"].sum()
+            ),
+            "penalties_def": int(((pbp["penalty_team"] == team) & (pbp["defteam"] == team)).sum()),
+            "penalty_yards_def": float(
+                pbp.loc[(pbp["penalty_team"] == team) & (pbp["defteam"] == team), "penalty_yards"].sum()
+            ),
         }
     return result
 
@@ -1537,10 +1547,14 @@ def build_team_stats(
             "takeaways": takeaways,
             "takeaways_per_g": per_g(takeaways),
             "turnover_margin_per_g": per_g(takeaways - turnovers),
-            "penalties": gen.get("penalties", 0),
-            "penalties_per_g": per_g(gen.get("penalties", 0)),
-            "penalty_yards": gen.get("penalty_yards", 0),
-            "penalty_yards_per_g": per_g(gen.get("penalty_yards", 0)),
+            "penalties_off": gen.get("penalties_off", 0),
+            "penalties_off_per_g": per_g(gen.get("penalties_off", 0)),
+            "penalty_yards_off": gen.get("penalty_yards_off", 0),
+            "penalty_yards_off_per_g": per_g(gen.get("penalty_yards_off", 0)),
+            "penalties_def": gen.get("penalties_def", 0),
+            "penalties_def_per_g": per_g(gen.get("penalties_def", 0)),
+            "penalty_yards_def": gen.get("penalty_yards_def", 0),
+            "penalty_yards_def_per_g": per_g(gen.get("penalty_yards_def", 0)),
             "rz_trips": rz_trip.get("rz_trips", 0),
             "rz_trips_per_g": per_g(rz_trip.get("rz_trips", 0)),
             "rz_trips_td": rz_trip.get("rz_trips_td", 0),

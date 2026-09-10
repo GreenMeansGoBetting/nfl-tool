@@ -17,9 +17,12 @@ const GENERAL_STAT_GROUPS = [
     rows: [
       { label: "Points", offKey: "points_for_per_g", offInvert: false, defKey: "points_against_per_g", defInvert: true },
       { label: "EPA / Play", offKey: "epa_per_play", offInvert: false, defKey: "epa_per_play_allowed", defInvert: true },
-      { label: "Pass Attempts", offKey: "pass_att_per_g", offInvert: false, defKey: "pass_att_allowed_per_g", defInvert: true },
+      // Attempts (pass or rush) deliberately excluded -- a team trailing
+      // late passes more and a team leading runs more out of game script,
+      // not because that's a real tendency, so a raw attempts count without
+      // that context reads as signal it isn't. Yards and Yards/Carry stay
+      // since those measure production, not play-calling circumstance.
       { label: "Pass Yards", offKey: "pass_yards_per_g", offInvert: false, defKey: "pass_yards_allowed_per_g", defInvert: true },
-      { label: "Rush Attempts", offKey: "rush_att_per_g", offInvert: false, defKey: "rush_att_allowed_per_g", defInvert: true },
       { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
       { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
       { label: "3rd Down %", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, pct: true },
@@ -32,11 +35,14 @@ const GENERAL_STAT_GROUPS = [
     rows: [
       { label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false },
       { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
-      // No off/def mirror here the way Sacks/Turnovers have one (a penalty
-      // isn't "drawn" by the other team the way a sack or takeaway is) --
-      // both columns show each team's own penalty rate instead, fewer is
-      // better for whichever team.
-      { label: "Penalties", offKey: "penalties_per_g", offInvert: true, defKey: "penalties_per_g", defInvert: true },
+      // Split by which side of the ball the flag actually happened on
+      // (false start/holding/illegal shift while on offense vs
+      // offside/DPI/defensive holding while on defense) -- these are two
+      // different units doing different jobs, not one team-wide number.
+      // Yards over count: a holding call and a defensive holding call cost
+      // very different amounts, so yards is the more honest measure of
+      // actual damage done.
+      { label: "Penalty Yards", offKey: "penalty_yards_off_per_g", offInvert: true, defKey: "penalty_yards_def_per_g", defInvert: true },
     ],
   },
 ];
@@ -275,7 +281,7 @@ function summaryTableHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${teamLogoMini(offTeam)} ${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${teamLogoMini(defTeam)} ${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // How big is the gap between this offense's grade and the opposing
@@ -297,7 +303,7 @@ function summaryAdvCell(offZ, defZ, offTeam, defTeam) {
   const alpha = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
   const team = gap > 0 ? offTeam : defTeam;
   const rgb = teamAccentRgb(team);
-  return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},${alpha.toFixed(2)})">${team}</td>`;
+  return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},${alpha.toFixed(2)})">${teamLogoMini(team)}</td>`;
 }
 
 // Paired by MATCHUP (offTeam's offense against defTeam's defense), same
@@ -577,7 +583,7 @@ function pairedStatHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th class="per-game-hdr">PER GAME</th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${teamLogoMini(offTeam)} ${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${teamLogoMini(defTeam)} ${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Each row pairs an offense stat with its defense mirror, framed as a
@@ -645,7 +651,7 @@ function schemeTableHeader(offTeam, defTeam) {
   const defRgb = teamAccentRgb(defTeam);
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
-  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="freq-hdr"></th><th class="edge-hdr">ADV</th></tr>`;
+  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${teamLogoMini(offTeam)} ${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${teamLogoMini(defTeam)} ${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="freq-hdr"></th><th class="edge-hdr">ADV</th></tr>`;
 }
 
 // Below this, a look doesn't come up often enough for an edge here to be
@@ -671,11 +677,11 @@ function schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam) {
   }
   if (perfCls === "tier-good" && tendCls === "tier-good") {
     const rgb = teamAccentRgb(offTeam);
-    return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${offTeam}</td>`;
+    return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},0.14)">${teamLogoMini(offTeam)}</td>`;
   }
   if (perfCls === "tier-bad" && tendCls === "tier-good") {
     const rgb = teamAccentRgb(defTeam);
-    return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${defTeam}</td>`;
+    return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},0.14)">${teamLogoMini(defTeam)}</td>`;
   }
   return `<td class="edge-cell">--</td>`;
 }

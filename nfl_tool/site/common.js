@@ -504,7 +504,7 @@ function headerRow(offTeam, defTeam, subLabels, market = "anytime_td") {
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="team-click" data-team="${offTeam}" data-market="${market}">${offTeam}</span><span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="team-click" data-team="${defTeam}" data-market="${market}">${defTeam}</span><span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
+  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="team-click" data-team="${offTeam}" data-market="${market}">${teamLogoMini(offTeam)} ${offTeam}</span><span class="col-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="team-click" data-team="${defTeam}" data-market="${market}">${teamLogoMini(defTeam)} ${defTeam}</span><span class="col-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
     <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
 }
 
@@ -538,7 +538,7 @@ function edgeCell(offTier, defTier, offTeam, defTeam, offExtreme = "", defExtrem
   const team = advantageTeam(offTier, defTier, offTeam, defTeam, offExtreme, defExtreme);
   if (team === "--") return `<td class="edge-cell">--</td>`;
   const rgb = teamAccentRgb(team);
-  return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.14)">${team}</td>`;
+  return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},0.14)">${teamLogoMini(team)}</td>`;
 }
 
 // ---- Player anytime-TD odds modal ----

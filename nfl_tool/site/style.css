@@ -105,6 +105,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 16px 24px 32px; }
 .matchup-card.selected { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.12); }
 .matchup-teams-row { display: flex; align-items: center; gap: 6px; }
 .team-logo { width: 26px; height: 26px; object-fit: contain; }
+.team-logo-mini { width: 16px; height: 16px; object-fit: contain; vertical-align: middle; margin-right: 2px; position: relative; top: -1px; }
+.edge-cell .team-logo-mini { margin-right: 0; }
 .matchup-card .at { color: var(--muted); font-size: 0.75rem; }
 .matchup-date { color: var(--muted); font-size: 0.7rem; white-space: nowrap; }
 

@@ -79,3 +79,11 @@ function teamLogoUrl(team) {
   const code = ESPN_LOGO_ABBR[team] || (team || "").toLowerCase();
   return `https://a.espncdn.com/i/teamlogos/nfl/500/${code}.png`;
 }
+
+// Small inline logo for cells that otherwise show only a bare team code
+// (ADV columns, header labels) -- same CDN/URL as the schedule scroller
+// and odds bar already use, just sized down to sit inline with text.
+function teamLogoMini(team, size = 16) {
+  if (!team) return "";
+  return `<img src="${teamLogoUrl(team)}" class="team-logo-mini" alt="${team}" loading="lazy" width="${size}" height="${size}">`;
+}
