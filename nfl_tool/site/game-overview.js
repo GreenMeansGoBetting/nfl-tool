@@ -965,19 +965,18 @@ function renderPickSummary() {
 }
 
 // ---- Pick reveal modal (on-stream "flare" after Save Picks) ----
-// Drop 3-4 short MP3s per confidence color into site/sfx/, named
-// green-1.mp3.. green-4.mp3 (same pattern for yellow-/red-), and this picks
-// one at random the moment the modal opens -- SFX_COUNTS just needs to match
-// however many files actually exist per color. Missing files fail silently
-// (caught, ignored), so this ships safely before any files exist. Browsers
-// block autoplay-with-sound on page load, but NOT on a real user gesture --
-// this only ever fires from the Save Picks click, so no second click needed.
-const SFX_COUNTS = { green: 0, yellow: 0, red: 0 };
+// site/sfx/<color><n>.mp3 (green1.mp3.. green7.mp3, etc) -- one picked at
+// random per reveal. Missing files fail silently (caught, ignored), so this
+// stays safe if a count and the actual files on disk ever drift apart.
+// Browsers block autoplay-with-sound on page load, but NOT on a real user
+// gesture -- this only ever fires from the Save Picks click, so no second
+// click is needed.
+const SFX_COUNTS = { green: 7, yellow: 4, red: 5, verygreen: 2, veryred: 2 };
 function playConfidenceSound(color) {
   const count = SFX_COUNTS[color];
   if (!count) return;
   const n = 1 + Math.floor(Math.random() * count);
-  new Audio(`sfx/${color}-${n}.mp3`).play().catch(() => {});
+  new Audio(`sfx/${color}${n}.mp3`).play().catch(() => {});
 }
 
 function ensurePickRevealModal() {
@@ -1010,9 +1009,14 @@ function closePickRevealModal() {
 // markets were actually picked, not just the loudest one -- green=1,
 // yellow=0, red=-1, averaged, then bucketed back into a color: strongly
 // green-leaning (>0.5) plays green, strongly red-leaning (<-0.5) plays red,
-// anything in between (including dead even at 0) plays yellow.
+// anything in between (including dead even at 0) plays yellow. A genuine
+// SWEEP -- every market picked (at least 2 of them) landing on the exact
+// same extreme -- upgrades to the "very" sound instead; a single green pick
+// alone isn't a sweep, it's just a pick, so count >= 2 is required.
 const CONFIDENCE_VALUE = { green: 1, yellow: 0, red: -1 };
-function soundColorForAverage(avg) {
+function soundColorForAverage(avg, count) {
+  if (count >= 2 && avg === 1) return "verygreen";
+  if (count >= 2 && avg === -1) return "veryred";
   if (avg > 0.5) return "green";
   if (avg < -0.5) return "red";
   return "yellow";
@@ -1047,7 +1051,7 @@ function renderPickRevealContent(game) {
   })
     .filter(Boolean)
     .join("");
-  const soundColor = present.length ? soundColorForAverage(present.reduce((a, b) => a + b, 0) / present.length) : null;
+  const soundColor = present.length ? soundColorForAverage(present.reduce((a, b) => a + b, 0) / present.length, present.length) : null;
   if (!sections) return { html: `${heading}<p class="no-data-note">No picks saved for this game yet.</p>`, soundColor: null };
   return { html: `${heading}<div class="reveal-grid">${sections}</div>`, soundColor };
 }
