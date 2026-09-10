@@ -491,10 +491,21 @@ function renderRedZoneTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table stat-table">
+    ${STAT_TABLE_COLGROUP}
     <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
+
+// Every headerRow()-based table (label + 4 data columns + ADV, 6 total)
+// needs this immediately before its <thead> to actually get narrow columns.
+// table-layout:fixed's column-width algorithm doesn't reliably honor
+// individual th/td widths once the header row has colspan cells (verified:
+// browsers redistributed the space unpredictably instead of respecting the
+// declared per-column widths) -- <colgroup> is the spec-correct way to pin
+// column widths regardless of what the header row's cells span.
+const STAT_TABLE_COLGROUP =
+  '<colgroup><col style="width:64px"><col style="width:52px"><col style="width:52px"><col style="width:52px"><col style="width:52px"><col style="width:26px"></colgroup>';
 
 // market picks which player-prop odds a team-header click opens in the
 // modal -- "anytime_td" everywhere by default, "first_td" on the First TD

@@ -92,6 +92,7 @@ function renderBasicsTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table stat-table">
+    ${STAT_TABLE_COLGROUP}
     <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"], "first_td")}</thead>
     <tbody>${rows}</tbody>
   </table>`;

@@ -130,6 +130,7 @@ function renderStatTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table stat-table">
+    ${STAT_TABLE_COLGROUP}
     <thead>${headerRow(offTeam, defTeam, ["Total", "Per Game"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -158,6 +159,7 @@ function renderLengthTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table pos-table">
+    ${STAT_TABLE_COLGROUP}
     <thead>${headerRow(offTeam, defTeam, ["Total", "%"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -181,6 +183,7 @@ function renderPositionTable(offTeam, defTeam) {
   }).join("");
 
   return `<table class="data-table pos-table">
+    ${STAT_TABLE_COLGROUP}
     <thead>${headerRow(offTeam, defTeam, ["Total", "%"])}</thead>
     <tbody>${rows}</tbody>
   </table>`;

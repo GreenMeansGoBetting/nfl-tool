@@ -163,13 +163,6 @@ select {
 .swatch.tier-bad { background: var(--bad); }
 
 .section-wrap { margin-bottom: 24px; }
-/* Type+Position and Distance+RedZone stack two tables per team inside one
-   merged section (one heading instead of two) -- a small gap between them
-   so they don't touch, without a second section-title's worth of margin. */
-#section-type .two-col > section > div + div,
-#section-distance .two-col > section > div + div {
-  margin-top: 10px;
-}
 .section-title {
   font-size: 1rem;
   font-weight: 700;
@@ -201,6 +194,21 @@ select {
   gap: 12px;
   margin-top: 12px;
 }
+
+/* Type+Position and Distance+RedZone: tables size to their own (now much
+   narrower) content instead of each forced into a rigid 1fr-wide column --
+   flex-wrap lets as many as actually fit sit on one row, wrapping to a new
+   row only when the viewport is too narrow for that, instead of a fixed
+   2-per-row split regardless of how much space is actually free. */
+.stat-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+.stat-flow > div {
+  flex: 0 0 auto;
+}
 @media (max-width: 760px) {
   .two-col { grid-template-columns: 1fr; }
 }
@@ -212,24 +220,13 @@ select {
   border: 1px solid var(--border);
   font-size: 0.86rem;
 }
+/* Column widths for these come from STAT_TABLE_COLGROUP (common.js) --
+   table-layout:fixed doesn't reliably honor individual th/td widths once
+   the header row has colspan cells, but a <colgroup> is unaffected by that.
+   width here just needs to match the colgroup's own column-width sum. */
 .stat-table, .pos-table {
   table-layout: fixed;
-  width: auto;
-  max-width: 380px;
-}
-.stat-table th:first-child, .stat-table td:first-child,
-.pos-table th:first-child, .pos-table td:first-child {
-  width: 108px;
-}
-.stat-table th:nth-child(2), .stat-table td:nth-child(2),
-.stat-table th:nth-child(3), .stat-table td:nth-child(3),
-.stat-table th:nth-child(4), .stat-table td:nth-child(4),
-.stat-table th:nth-child(5), .stat-table td:nth-child(5),
-.pos-table th:nth-child(2), .pos-table td:nth-child(2),
-.pos-table th:nth-child(3), .pos-table td:nth-child(3),
-.pos-table th:nth-child(4), .pos-table td:nth-child(4),
-.pos-table th:nth-child(5), .pos-table td:nth-child(5) {
-  width: 56px;
+  width: 298px;
 }
 .data-table th, .data-table td {
   padding: 3px 3px;
@@ -261,7 +258,7 @@ select {
 .edge-hdr {
   background: var(--table-head);
   font-size: 0.62rem !important;
-  width: 34px;
+  width: 26px;
 }
 .data-table td.edge-cell, .data-table th.edge-cell {
   text-align: center;
@@ -270,7 +267,7 @@ select {
   color: var(--muted);
   padding-left: 2px !important;
   padding-right: 2px !important;
-  width: 34px;
+  width: 26px;
 }
 .data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
