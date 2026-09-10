@@ -163,16 +163,24 @@ def download_if_missing(url: str, dest: Path, force: bool = False):
 
 def resolve_season(season: int, data_dir: Path) -> tuple[int, bool]:
     """Returns (season_to_use, is_fallback). Falls back one season back if
-    nflverse hasn't published the requested season's pbp file yet (common
-    very early in a season -- their pipeline lags kickoff by a few days)."""
-    if (data_dir / f"play_by_play_{season}.csv.gz").exists():
-        return season, False
-    if remote_exists(PBP_URL.format(season=season)):
+    nflverse hasn't published EITHER the requested season's pbp or its
+    participation file yet. Checking pbp alone isn't enough once the season
+    is underway: pbp for an already-played game can appear on nflverse
+    before that same game's participation charting does (observed directly
+    -- pbp for 2026's first game showed up while pbp_participation_2026.csv
+    still 404'd), and the two must come from the SAME season since
+    compute_scheme_splits merges them by game_id/play_id -- 2026 pbp
+    against 2025 participation wouldn't match a single play."""
+    def available(url_template):
+        path = data_dir / Path(url_template.format(season=season)).name
+        return path.exists() or remote_exists(url_template.format(season=season))
+
+    if available(PBP_URL) and available(PARTICIPATION_URL):
         return season, False
     fallback = season - 1
     print(
-        f"NOTE: play_by_play_{season}.csv.gz isn't published on nflverse yet -- "
-        f"falling back to {fallback} season data until it appears.",
+        f"NOTE: {season}'s pbp and/or participation file isn't published on nflverse yet -- "
+        f"falling back to {fallback} season data until both appear.",
         file=sys.stderr,
     )
     return fallback, True
