@@ -295,6 +295,41 @@ function summaryAdvCell(offZ, defZ, offTeam, defTeam) {
   return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},${alpha.toFixed(2)})">${team}</td>`;
 }
 
+// Compact, fully mechanical readout of the SAME gaps already driving the
+// ADV column -- sorted biggest-first and spelled out in words instead of a
+// single abbreviation. Deliberately NOT a written recap: nothing here is
+// authored per game, it's the exact same composite z-scores re-sorted and
+// labeled, so it reads identically every week instead of needing a fresh
+// paragraph for every matchup. Categories with no real gap (below
+// TIER_Z_THRESHOLD, already "--" in the ADV column) are left out rather
+// than padded with a non-finding.
+function renderSummaryDebrief(offTeam, defTeam) {
+  const items = SUMMARY_CATEGORIES.map((cat) => {
+    const offZ = cat.scheme ? schemeCompositeZ(offTeam, "off") : compositeZ(cat.off, offTeam);
+    const defZ = cat.scheme ? schemeCompositeZ(defTeam, "def") : compositeZ(cat.def, defTeam);
+    if (offZ === null || offZ === undefined || defZ === null || defZ === undefined) return null;
+    const gap = offZ - defZ;
+    const gapAbs = Math.abs(gap);
+    if (gapAbs < TIER_Z_THRESHOLD) return null;
+    const team = gap > 0 ? offTeam : defTeam;
+    const size = gapAbs >= ADV_Z_SATURATE / 2 ? "big edge" : "edge";
+    return { label: cat.label, team, size, gapAbs };
+  })
+    .filter(Boolean)
+    .sort((a, b) => b.gapAbs - a.gapAbs);
+
+  if (!items.length) {
+    return `<div class="grade-debrief"><p class="no-data-note">No category clears a real gap here.</p></div>`;
+  }
+  const rows = items
+    .map((i) => {
+      const rgb = teamAccentRgb(i.team);
+      return `<li><span class="debrief-cat">${i.label}</span> <span class="debrief-team" style="color:rgb(${rgb.join(",")})">${i.team}</span> ${i.size}</li>`;
+    })
+    .join("");
+  return `<div class="grade-debrief"><ul>${rows}</ul></div>`;
+}
+
 // Paired by MATCHUP (offTeam's offense against defTeam's defense), same
 // convention as General Stats/Scheme -- call twice (away-vs-home,
 // home-vs-away) for the two side-by-side tables.
@@ -313,6 +348,13 @@ function renderSummaryTable(offTeam, defTeam) {
     <thead>${summaryTableHeader(offTeam, defTeam)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
+}
+
+// Grade table pinned to its natural (narrow) width, debrief list filling
+// whatever's left in the column -- avoids the table alone stretching into
+// a lot of dead space the way it did as the column's only content.
+function renderSummaryPanel(offTeam, defTeam) {
+  return `<div class="summary-row">${renderSummaryTable(offTeam, defTeam)}${renderSummaryDebrief(offTeam, defTeam)}</div>`;
 }
 
 const MARKETS = [
@@ -913,8 +955,8 @@ function render() {
   document.getElementById("col-home-scheme").innerHTML = renderSchemeTable(home, away);
   document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
   document.getElementById("col-home-recent").innerHTML = renderRecentGamesPanel(home);
-  document.getElementById("col-away-summary").innerHTML = renderSummaryTable(away, home);
-  document.getElementById("col-home-summary").innerHTML = renderSummaryTable(home, away);
+  document.getElementById("col-away-summary").innerHTML = renderSummaryPanel(away, home);
+  document.getElementById("col-home-summary").innerHTML = renderSummaryPanel(home, away);
 
   renderPickTracker(game);
 }

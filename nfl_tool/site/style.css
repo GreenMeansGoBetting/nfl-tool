@@ -451,6 +451,39 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
   padding: 5px 4px;
 }
+.summary-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.summary-row .summary-grade-table {
+  flex: 0 0 auto;
+}
+.grade-debrief {
+  flex: 1 1 auto;
+  padding-top: 6px;
+  font-size: 0.78rem;
+}
+.grade-debrief ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.grade-debrief li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.grade-debrief li:last-child {
+  border-bottom: none;
+}
+.debrief-cat {
+  font-weight: 700;
+  margin-right: 4px;
+}
+.debrief-team {
+  font-weight: 700;
+}
+
 .summary-grade-table {
   width: auto;
   max-width: 380px;
