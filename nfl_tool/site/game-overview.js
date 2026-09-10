@@ -234,8 +234,7 @@ function schemeCompositeZ(team, side) {
 
 // Finer-grained than the site's usual 3-tier good/mid/bad -- once a
 // composite is the only number standing in for a whole category, it earns
-// more graduation than a single raw stat gets. TIER_Z_THRESHOLD (0.6) sits
-// inside the B/D bands here, same scale as the color underneath it.
+// more graduation than a single raw stat gets.
 const GRADE_BANDS = [
   { min: 1.2, grade: "A" },
   { min: 0.4, grade: "B" },
@@ -247,23 +246,28 @@ function gradeForZ(z) {
   if (z === null || z === undefined) return null;
   return GRADE_BANDS.find((b) => z >= b.min).grade;
 }
-// tier class + continuous alpha, driven directly off an already-computed z
-// (tierAlpha/percentileTier take a raw value + pool and z-score it
-// themselves -- these operate one step downstream of that, since a
-// composite has no single raw value/pool of its own).
-function tierClassForZ(z, threshold = TIER_Z_THRESHOLD) {
-  if (z === null || z === undefined) return "";
-  if (z >= threshold) return "tier-good";
-  if (z <= -threshold) return "tier-bad";
-  return "tier-mid";
+
+// Color driven directly off the LETTER, not a separately-thresholded
+// z-score -- coloring by z independently of GRADE_BANDS let TIER_Z_THRESHOLD
+// (0.6) cut through the middle of the B and D bands, so a B right at the
+// edge rendered the same flat yellow as a C, and so did a D. Keying off the
+// grade itself makes that impossible: same three hues as everywhere else on
+// the site, but five fixed steps instead of a continuous one -- A/F get the
+// strongest tint, B/D a light tint of the same hue, C stays flat neutral.
+const GRADE_STYLE = {
+  A: { cls: "tier-good", alpha: TIER_ALPHA_MAX },
+  B: { cls: "tier-good", alpha: TIER_ALPHA_MIN },
+  C: { cls: "tier-mid", alpha: null },
+  D: { cls: "tier-bad", alpha: TIER_ALPHA_MIN },
+  F: { cls: "tier-bad", alpha: TIER_ALPHA_MAX },
+};
+function gradeClass(grade) {
+  return grade && GRADE_STYLE[grade] ? GRADE_STYLE[grade].cls : "";
 }
-function tierAlphaAttrForZ(z, threshold = TIER_Z_THRESHOLD) {
-  if (z === null || z === undefined) return "";
-  const az = Math.abs(z);
-  if (az < threshold) return "";
-  const t = Math.min((az - threshold) / (TIER_Z_SATURATE - threshold), 1);
-  const a = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
-  return ` style="--tier-a:${a.toFixed(2)}"`;
+function gradeAlphaAttr(grade) {
+  const style = grade && GRADE_STYLE[grade];
+  if (!style || style.alpha === null) return "";
+  return ` style="--tier-a:${style.alpha.toFixed(2)}"`;
 }
 
 // Same header shape as pairedStatHeader/schemeTableHeader (team-accent
@@ -309,10 +313,8 @@ function renderSummaryTable(offTeam, defTeam) {
     const defZ = cat.scheme ? schemeCompositeZ(defTeam, "def") : compositeZ(cat.def, defTeam);
     const offGrade = gradeForZ(offZ);
     const defGrade = gradeForZ(defZ);
-    const offA = tierAlphaAttrForZ(offZ);
-    const defA = tierAlphaAttrForZ(defZ);
     const advCell = summaryAdvCell(offZ, defZ, offTeam, defTeam);
-    return `<tr><td>${cat.label}</td><td class="num grade-cell ${tierClassForZ(offZ)}"${offA}>${offGrade || "--"}</td><td class="num grade-cell ${tierClassForZ(defZ)}"${defA}>${defGrade || "--"}</td>${advCell}</tr>`;
+    return `<tr><td>${cat.label}</td><td class="num grade-cell ${gradeClass(offGrade)}"${gradeAlphaAttr(offGrade)}>${offGrade || "--"}</td><td class="num grade-cell ${gradeClass(defGrade)}"${gradeAlphaAttr(defGrade)}>${defGrade || "--"}</td>${advCell}</tr>`;
   }).join("");
   return `<table class="data-table summary-grade-table">
     <thead>${summaryTableHeader(offTeam, defTeam)}</thead>
