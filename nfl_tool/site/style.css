@@ -392,6 +392,24 @@ footer a { color: var(--accent); }
   resize: vertical;
 }
 
+.stat-column-notes {
+  width: 260px;
+}
+.stat-column-title-spaced {
+  margin-top: 14px;
+}
+.td-pp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+.td-pp-row:last-child { border-bottom: none; }
+.td-pp-desc { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-pp-odds { flex: 0 0 auto; font-weight: 700; }
+
 #general-odds-modal .modal-box { max-width: 640px; }
 
 .reveal-grid {

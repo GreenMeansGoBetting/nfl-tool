@@ -629,6 +629,7 @@ function renderPlayerOddsModalContent(team, market) {
         matchup,
         category: marketLabel,
         description: `${p.name} (${p.team})`,
+        team: p.team,
         odds: fmtOddsSigned(p.best_odds),
         book: p.best_book,
       };

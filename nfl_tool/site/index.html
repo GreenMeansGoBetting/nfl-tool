@@ -80,9 +80,15 @@
 
   <div id="section-player" class="section-wrap" hidden>
     <h2 class="section-title">Player Touchdowns</h2>
-    <div class="two-col">
-      <section id="lb-away"></section>
-      <section id="lb-home"></section>
+    <div class="stat-columns">
+      <div id="lb-away" class="stat-column"></div>
+      <div id="lb-home" class="stat-column"></div>
+      <div class="stat-column stat-column-notes">
+        <h3 class="stat-column-title">Notes</h3>
+        <textarea id="td-notes" class="game-notes" placeholder="Notes for this matchup..." rows="4"></textarea>
+        <h3 class="stat-column-title stat-column-title-spaced">Possible Plays</h3>
+        <div id="td-possible-plays-list"></div>
+      </div>
     </div>
   </div>
 </main>
