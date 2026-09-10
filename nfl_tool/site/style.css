@@ -261,6 +261,7 @@ select {
   padding-right: 2px !important;
   width: 26px;
 }
+.edge-hit-marginal .team-logo-mini { opacity: 0.55; }
 .data-table td.num, .data-table th.num { text-align: center; }
 .data-table tr:last-child td { border-bottom: none; }
 

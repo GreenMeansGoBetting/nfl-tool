@@ -475,35 +475,30 @@ function headerRow(offTeam, defTeam, subLabels, market = "anytime_td") {
 
 // Plain-language decode of a row's two tier colors -- which team the stat
 // favors, so a viewer doesn't have to mentally cross-reference green/red
-// against which side is offense vs defense. Fires on a real top-third-vs-
-// bottom-third mismatch (the same bar checkOpportunity() uses), OR when
-// one side is a genuine EXTREME outlier (TIER_Z_EXTREME_THRESHOLD, not just
-// "bottom third") and the other is merely average -- a historically bad
-// bottom-3-in-the-league defense gets exploited by an average offense too,
-// not just a great one, and the mirror holds for a dominant defense/offense
-// against an average opponent. offExtreme/defExtreme are optional (a caller
-// that doesn't pass them just gets the original two-case behavior).
-// extreme is always a strict subset of its own non-extreme tier (the
-// threshold is stricter), so by the time an extreme check is reached the
-// matching non-extreme case above it has already ruled out the exact-
-// opposite-extreme pairing -- these can't double-fire.
-function advantageTeam(offTier, defTier, offTeam, defTeam, offExtreme = "", defExtreme = "") {
-  if (offTier === "tier-good" && defTier === "tier-bad") return offTeam;
-  if (offTier === "tier-bad" && defTier === "tier-good") return defTeam;
-  if (defExtreme === "tier-bad" && offTier === "tier-mid") return offTeam;
-  if (offExtreme === "tier-bad" && defTier === "tier-mid") return defTeam;
-  if (defExtreme === "tier-good" && offTier === "tier-mid") return defTeam;
-  if (offExtreme === "tier-good" && defTier === "tier-mid") return offTeam;
-  return "--";
+// against which side is offense vs defense. OFFENSE-ONLY BY DESIGN: the ADV
+// column never credits the defense, even when the defense is the lopsided/
+// extreme side -- a viewer shouldn't have to double check which side "ADV"
+// points to, and "the defense is dominant" is already visible from the row's
+// own tier coloring without needing a second callout. "extreme" (a genuine
+// outlier, TIER_Z_EXTREME_THRESHOLD) gets the full-strength highlight;
+// "marginal" (a plain top-third-vs-bottom-third mismatch that doesn't reach
+// outlier territory) still shows the logo, just faded, instead of vanishing.
+function offAdvantageStrength(offTier, defTier, offExtreme = "", defExtreme = "") {
+  if (offExtreme === "tier-good" && defTier === "tier-mid") return "extreme";
+  if (defExtreme === "tier-bad" && offTier === "tier-mid") return "extreme";
+  if (offTier === "tier-good" && defTier === "tier-bad") return "marginal";
+  return "";
 }
-// Colored in the WINNING team's own accent (same normalized color the
-// header bars use), not a fixed site accent -- two teams that both happen
-// to be blue-ish still need to read as different teams here.
+// Colored in the offense's own accent (same normalized color the header
+// bars use), not a fixed site accent -- two teams that both happen to be
+// blue-ish still need to read as different teams here.
 function edgeCell(offTier, defTier, offTeam, defTeam, offExtreme = "", defExtreme = "") {
-  const team = advantageTeam(offTier, defTier, offTeam, defTeam, offExtreme, defExtreme);
-  if (team === "--") return `<td class="edge-cell">--</td>`;
-  const rgb = teamAccentRgb(team);
-  return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},0.14)">${teamLogoMini(team)}</td>`;
+  const strength = offAdvantageStrength(offTier, defTier, offExtreme, defExtreme);
+  if (!strength) return `<td class="edge-cell">--</td>`;
+  const rgb = teamAccentRgb(offTeam);
+  const alpha = strength === "extreme" ? 0.14 : 0.06;
+  const cls = strength === "extreme" ? "edge-hit" : "edge-hit edge-hit-marginal";
+  return `<td class="edge-cell ${cls}" style="background:rgba(${rgb.join(",")},${alpha})">${teamLogoMini(offTeam)}</td>`;
 }
 
 // ---- Player anytime-TD odds modal ----
