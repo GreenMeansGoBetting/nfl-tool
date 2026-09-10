@@ -155,7 +155,7 @@ function renderLengthTable(offTeam, defTeam) {
     const defShareA = bucketShareAlphaAttr("td_by_length_allowed", "total_td_allowed", key, defTeam, true);
     const offShare = off.total_td ? Math.round((offCount / off.total_td) * 100) : 0;
     const defShare = def.total_td_allowed ? Math.round((defCount / def.total_td_allowed) * 100) : 0;
-    return `<tr><td>${label}</td><td class="num ${offCountCls}"${offCountA}>${offCount}</td><td class="num ${offShareCls}"${offShareA}>${offShare}%</td><td class="num ${defCountCls}"${defCountA}>${defCount}</td><td class="num ${defShareCls}"${defShareA}>${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
+    return `<tr><td><span class="dist-row-click" data-bucket="${key}">${label}</span></td><td class="num ${offCountCls}"${offCountA}>${offCount}</td><td class="num ${offShareCls}"${offShareA}>${offShare}%</td><td class="num ${defCountCls}"${defCountA}>${defCount}</td><td class="num ${defShareCls}"${defShareA}>${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   // A 5th row, same Total/% shape as the length buckets above -- Total here
@@ -196,7 +196,7 @@ function renderPositionTable(offTeam, defTeam) {
     const defShareCls = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam, true);
     const offShareExtreme = bucketShareTier("off_position_td", "total_td", pos, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defShareExtreme = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
-    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
+    return `<tr><td><span class="pos-row-click" data-pos="${pos}">${pos}</span></td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table pos-table">
@@ -205,6 +205,119 @@ function renderPositionTable(offTeam, defTeam) {
     <tbody>${rows}</tbody>
   </table>`;
 }
+
+// ---- TD breakdown modal: clicking a Position or Distance row shows the
+// actual players behind that team-level number, both teams at once, grouped
+// by every position (or every distance bucket) so the clicked row is a
+// starting point to scroll to -- not a filter that hides the rest. Reuses
+// the .modal-overlay/.modal-box shell pattern (own instance, matching how
+// every other modal on this site is its own self-contained overlay rather
+// than a shared one) but is otherwise independent of the player-odds modal.
+function tdBreakdownGroups(kind, awayTeam, homeTeam) {
+  const allPlayers = [awayTeam, homeTeam].flatMap((t) => (DATA.player_stats[t] || []).map((p) => ({ ...p, team: t })));
+  if (kind === "position") {
+    return POSITIONS.map((pos) => ({
+      key: pos,
+      label: pos,
+      players: allPlayers
+        .filter((p) => p.position === pos)
+        .map((p) => ({ ...p, count: p.tds }))
+        .sort((a, b) => b.count - a.count),
+    }));
+  }
+  return LENGTH_BUCKETS.map(({ key, label }) => ({
+    key,
+    label,
+    players: allPlayers
+      .filter((p) => (p.tds_by_length[key] || 0) > 0)
+      .map((p) => ({ ...p, count: p.tds_by_length[key] }))
+      .sort((a, b) => b.count - a.count),
+  }));
+}
+
+function tdBreakdownPlayerRow(p, kind) {
+  const rgb = teamAccentRgb(p.team);
+  const rowStyle = `border-left:4px solid rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.07);`;
+  let countLabel = `${p.count} TD${p.count === 1 ? "" : "s"}`;
+  // Only worth calling out when it's actually a mix -- a pure rusher or
+  // pure receiver doesn't need "(N rush)" restating what the position
+  // column already implies.
+  if (kind === "position" && p.rush_tds > 0 && p.rec_tds > 0) {
+    countLabel += ` <span class="muted-label">(${p.rush_tds} rush / ${p.rec_tds} rec)</span>`;
+  }
+  const dstTag = p.position !== "DST" && p.dst_tds > 0 ? ` <span class="dst-tag">(DST)</span>` : "";
+  // Season-long target rank within the player's own team (1 = most
+  // targeted WR) -- tells you whether a defense gave up a TD to a team's
+  // clear #1 option or someone further down the depth chart.
+  const wrRankTag = p.position === "WR" && p.wr_rank ? ` <span class="muted-label">(WR${p.wr_rank})</span>` : "";
+  return `<tr style="${rowStyle}"><td>${teamLogoMini(p.team)} ${p.name}${wrRankTag}${dstTag}</td><td class="num">${countLabel}</td></tr>`;
+}
+
+function renderTdBreakdownModalContent(kind, awayTeam, homeTeam, highlightKey) {
+  const title = kind === "position" ? "Touchdowns by Position" : "Touchdowns by Distance";
+  const groups = tdBreakdownGroups(kind, awayTeam, homeTeam);
+  const sections = groups
+    .map((g) => {
+      const rows = g.players.length
+        ? g.players.map((p) => tdBreakdownPlayerRow(p, kind)).join("")
+        : `<tr><td colspan="2" class="no-data-note">No one yet</td></tr>`;
+      const highlightCls = g.key === highlightKey ? " td-breakdown-group-highlight" : "";
+      return `<div class="td-breakdown-group${highlightCls}" id="td-breakdown-group-${g.key}">
+        <h3>${g.label}</h3>
+        <table class="data-table td-breakdown-table">
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    })
+    .join("");
+  return `<h3>${awayTeam} @ ${homeTeam} &mdash; ${title}</h3>${sections}`;
+}
+
+function ensureTdBreakdownModal() {
+  if (document.getElementById("td-breakdown-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "td-breakdown-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="td-breakdown-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeTdBreakdownModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeTdBreakdownModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeTdBreakdownModal();
+  });
+}
+
+function closeTdBreakdownModal() {
+  const el = document.getElementById("td-breakdown-modal");
+  if (el) el.hidden = true;
+}
+
+function openTdBreakdownModal(kind, awayTeam, homeTeam, highlightKey) {
+  ensureTdBreakdownModal();
+  document.getElementById("td-breakdown-modal-content").innerHTML = renderTdBreakdownModalContent(kind, awayTeam, homeTeam, highlightKey);
+  document.getElementById("td-breakdown-modal").hidden = false;
+  const target = document.getElementById(`td-breakdown-group-${highlightKey}`);
+  if (target) target.scrollIntoView({ block: "start" });
+}
+
+document.addEventListener("click", (e) => {
+  const away = document.getElementById("away-select").value;
+  const home = document.getElementById("home-select").value;
+  if (!away || !home) return;
+  const posBtn = e.target.closest(".pos-row-click");
+  if (posBtn) {
+    openTdBreakdownModal("position", away, home, posBtn.dataset.pos);
+    return;
+  }
+  const distBtn = e.target.closest(".dist-row-click");
+  if (distBtn) openTdBreakdownModal("distance", away, home, distBtn.dataset.bucket);
+});
 
 // Shared full-width header for every per-team player table (Season TDs'
 // leaderboard, First TD's Red Zone Usage) so both read as the same

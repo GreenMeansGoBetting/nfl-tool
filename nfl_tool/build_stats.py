@@ -870,6 +870,14 @@ def scoring_plays_with_position(pbp: pd.DataFrame, pos_lookup) -> pd.DataFrame:
         full_names.append(full_name or row["scorer_name_raw"])
     td_plays["position"] = positions
     td_plays["scorer_name"] = full_names
+
+    # Same length-bucket rule as compute_length_buckets: only a rush/pass
+    # scrimmage TD has a meaningful "length" -- a return score doesn't.
+    td_plays["length_bucket"] = None
+    scrimmage_mask = td_plays["td_type"].isin(["pass", "rush"])
+    td_plays.loc[scrimmage_mask, "length_bucket"] = (
+        td_plays.loc[scrimmage_mask, "yards_gained"].clip(lower=0).map(length_bucket)
+    )
     return td_plays
 
 
@@ -1596,20 +1604,58 @@ def build_team_stats(
     return stats
 
 
-def build_player_stats(scoring_df, first_td_by_game, teams):
+def compute_target_ranks(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Season-long target rank within each team's own WR corps (1 = most
+    targeted), used to describe a scoring receiver's role in the TD
+    breakdown modal -- e.g. a defense allowing a TD to someone's WR1 reads
+    very differently than to their WR4. Ranked by raw target count, which
+    orders identically to true target share (same team, same denominator),
+    so there's no need to also compute team pass-attempt totals."""
+    targets = pbp[pbp["pass_attempt"] == 1]
+    tally = {}
+    for _, row in targets.iterrows():
+        pid = row.get("receiver_player_id")
+        if pd.isna(pid):
+            continue
+        pos, _, _ = pos_lookup(pid, row["week"])
+        if not pos or bucket_position(pos) != "WR":
+            continue
+        key = (row.get("posteam"), pid)
+        tally[key] = tally.get(key, 0) + 1
+
+    by_team = {}
+    for (team, pid), count in tally.items():
+        by_team.setdefault(team, []).append((pid, count))
+
+    ranks = {}
+    for players in by_team.values():
+        players.sort(key=lambda x: -x[1])
+        for i, (pid, _) in enumerate(players, start=1):
+            ranks[pid] = i
+    return ranks
+
+
+def build_player_stats(scoring_df, first_td_by_game, teams, target_ranks):
     players = {}
+
+    def blank_player(pid, name, team, pos):
+        return {
+            "player_id": pid,
+            "name": name,
+            "team": team,
+            "position": pos,
+            "tds": 0,
+            "first_tds": 0,
+            "dst_tds": 0,
+            "rush_tds": 0,
+            "rec_tds": 0,
+            "tds_by_length": {key: 0 for key, _, _ in LENGTH_BUCKETS},
+            "wr_rank": target_ranks.get(pid) if pos == "WR" else None,
+        }
 
     def ensure(pid, name, team, pos):
         if pid not in players:
-            players[pid] = {
-                "player_id": pid,
-                "name": name,
-                "team": team,
-                "position": pos,
-                "tds": 0,
-                "first_tds": 0,
-                "dst_tds": 0,
-            }
+            players[pid] = blank_player(pid, name, team, pos)
         return players[pid]
 
     for _, row in scoring_df.iterrows():
@@ -1620,21 +1666,20 @@ def build_player_stats(scoring_df, first_td_by_game, teams):
         p["tds"] += 1
         if row["td_type"] == "dst":
             p["dst_tds"] += 1
+        elif row["td_type"] == "rush":
+            p["rush_tds"] += 1
+        elif row["td_type"] == "pass":
+            p["rec_tds"] += 1
+        bucket = row.get("length_bucket")
+        if bucket:
+            p["tds_by_length"][bucket] += 1
 
     for game_id, info in first_td_by_game.items():
         pid = info["player_id"]
         if pd.isna(pid) or pid is None:
             continue
         if pid not in players:
-            players[pid] = {
-                "player_id": pid,
-                "name": info["player_name"],
-                "team": info["team"],
-                "position": info["position"] or "DST",
-                "tds": 0,
-                "first_tds": 0,
-                "dst_tds": 0,
-            }
+            players[pid] = blank_player(pid, info["player_name"], info["team"], info["position"] or "DST")
         players[pid]["first_tds"] += 1
 
     by_team = {t: [] for t in teams}
@@ -1683,6 +1728,7 @@ def main():
     pre_rz_off_trips, pre_rz_off_conv, pre_rz_def_trips, pre_rz_def_conv = compute_pre_first_td_red_zone(pbp, first_td_by_game)
     first_td_position, first_td_position_allowed = compute_first_td_position_breakdown(first_td_by_game, teams)
     pre_first_td_usage = compute_pre_first_td_player_usage(pbp, first_td_by_game, pos_lookup)
+    target_ranks = compute_target_ranks(pbp, pos_lookup)
 
     team_stats = build_team_stats(
         team_games,
@@ -1707,7 +1753,7 @@ def main():
         first_td_position_allowed,
         teams,
     )
-    player_stats = build_player_stats(scoring_df, first_td_by_game, teams)
+    player_stats = build_player_stats(scoring_df, first_td_by_game, teams, target_ranks)
 
     scheme_splits = compute_scheme_splits(pbp, participation, teams)
     for team in teams:

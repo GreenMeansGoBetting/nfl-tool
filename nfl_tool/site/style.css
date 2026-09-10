@@ -428,6 +428,18 @@ footer a { color: var(--accent); }
 
 #general-odds-modal .modal-box { max-width: 640px; }
 
+.pos-row-click, .dist-row-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.pos-row-click:hover, .dist-row-click:hover { color: var(--accent); }
+
+#td-breakdown-modal .modal-box { max-width: 520px; }
+.td-breakdown-group { margin-bottom: 14px; }
+.td-breakdown-group:last-child { margin-bottom: 0; }
+.td-breakdown-group h3 { margin-bottom: 4px; }
+.td-breakdown-group-highlight h3 { color: var(--accent); }
+.td-breakdown-group-highlight { border-left: 3px solid var(--accent); padding-left: 8px; }
+.td-breakdown-table td { padding: 4px 6px; }
+.td-breakdown-table td.num { text-align: right; white-space: nowrap; }
+
 .reveal-grid {
   display: flex;
   gap: 10px;
