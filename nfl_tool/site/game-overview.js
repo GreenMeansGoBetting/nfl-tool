@@ -315,6 +315,8 @@ function renderSummaryTable(offTeam, defTeam) {
   </table>`;
 }
 
+const GRADE_VALUE = { A: 4, B: 3, C: 2, D: 1, F: 0 };
+
 // This team's own four category grades for one side of the ball, plus its
 // average z (used to rank all four graded units against each other) and
 // its own single weakest category. Returns null when this side has no
@@ -329,88 +331,143 @@ function unitProfile(team, side) {
   if (!known.length) return null;
   const avgZ = known.reduce((a, c) => a + c.z, 0) / known.length;
   const worst = known.reduce((a, c) => (c.z < a.z ? c : a));
+  const grades = cats.map((c) => (c.z === null || c.z === undefined ? "--" : gradeForZ(c.z)));
+  const knownValues = grades.filter((g) => g !== "--").map((g) => GRADE_VALUE[g]);
   return {
     team,
     side,
-    grades: cats.map((c) => (c.z === null || c.z === undefined ? "--" : gradeForZ(c.z))),
+    grades,
     avgZ,
     worstLabel: worst.label,
     worstGrade: gradeForZ(worst.z),
+    spread: knownValues.length > 1 ? Math.max(...knownValues) - Math.min(...knownValues) : null,
   };
 }
 
-// Whole-game synthesis, computed once (not per table) since these facts
-// compare across BOTH matchup directions at once -- which of the four
-// graded units (either team's offense or defense) grades best/worst on
-// average, how many categories each team grades ahead in overall, and
-// which category grades closest between the two teams. Plain descriptive
-// statements only, no "likely"/"expect"/"decided by" language -- these
-// describe what the grades already say, not a prediction about the game.
+// This team's own offense: which category it grades highest and lowest at
+// (a shape, not a level -- two offenses can share the same shape while
+// grading at completely different average levels).
+function offenseShape(team) {
+  const cats = SUMMARY_CATEGORIES.map((cat) => ({
+    label: cat.label,
+    z: cat.scheme ? schemeCompositeZ(team, "off") : compositeZ(cat.off, team),
+  })).filter((c) => c.z !== null && c.z !== undefined);
+  if (cats.length < 2) return null;
+  const best = cats.reduce((a, c) => (c.z > a.z ? c : a));
+  const worst = cats.reduce((a, c) => (c.z < a.z ? c : a));
+  return { best: best.label, worst: worst.label };
+}
+
+// Every category where offTeam's offense (vs defTeam's defense) clears a
+// real gap (TIER_Z_THRESHOLD), split by which side it favors -- the same
+// per-cell logic summaryAdvCell uses, just collected into two lists
+// instead of colored one cell at a time.
+function edgeLists(offTeam, defTeam) {
+  const offList = [];
+  const defList = [];
+  for (const cat of SUMMARY_CATEGORIES) {
+    const offZ = cat.scheme ? schemeCompositeZ(offTeam, "off") : compositeZ(cat.off, offTeam);
+    const defZ = cat.scheme ? schemeCompositeZ(defTeam, "def") : compositeZ(cat.def, defTeam);
+    if (offZ === null || offZ === undefined || defZ === null || defZ === undefined) continue;
+    const gap = offZ - defZ;
+    if (Math.abs(gap) < TIER_Z_THRESHOLD) continue;
+    (gap > 0 ? offList : defList).push(cat.label);
+  }
+  return { offList, defList };
+}
+
+function joinList(list) {
+  if (!list.length) return null;
+  if (list.length === 1) return list[0];
+  if (list.length === 2) return `${list[0]} and ${list[1]}`;
+  return `${list.slice(0, -1).join(", ")}, and ${list[list.length - 1]}`;
+}
+
+// Whole-game synthesis, computed once (not per table) since these
+// paragraphs compare across BOTH matchup directions at once. Plain
+// descriptive statements only -- no "likely"/"expect"/"decided by"
+// language, since these describe what the grades already say, not a
+// prediction about the game. Same shape every week (four fixed
+// paragraphs), built entirely from the same composite z-scores driving
+// the tables and ADV column -- nothing here is authored per matchup.
 function renderSummaryFacts(away, home) {
   const phase = (s) => (s === "off" ? "offense" : "defense");
-  const catList = SUMMARY_CATEGORIES.map((c) => c.label).join("/");
-  const lines = [];
+  const paragraphs = [];
 
+  // 1. Most/least consistent unit on the board.
   const units = [unitProfile(away, "off"), unitProfile(away, "def"), unitProfile(home, "off"), unitProfile(home, "def")].filter(
     Boolean
   );
   if (units.length === 4) {
     const best = units.reduce((a, b) => (b.avgZ > a.avgZ ? b : a));
     const worst = units.reduce((a, b) => (b.avgZ < a.avgZ ? b : a));
-    lines.push(
-      `${best.team} ${phase(best.side)} grades ${best.grades.join("/")} (${catList}) -- the highest average grade of the four graded units.`
-    );
-    lines.push(
-      `${worst.team} ${phase(worst.side)} grades ${worst.grades.join("/")} -- the lowest average grade, weakest at ${worst.worstLabel} (${worst.worstGrade}).`
+    const consistencyClause = best.spread !== null && best.spread <= 1 ? ", with every category in the same tier" : "";
+    paragraphs.push(
+      `${best.team} ${phase(best.side)} grades ${best.grades.join("/")} across Passing/Rushing/Red Zone/Scheme -- the highest average of the four graded units${consistencyClause}. ${worst.team} ${phase(
+        worst.side
+      )} grades ${worst.grades.join("/")} -- the lowest average of the four, weakest at ${worst.worstLabel} (${worst.worstGrade}).`
     );
   }
 
-  // Same ADV logic as summaryAdvCell, tallied across both tables' 4
-  // categories each (up to 8 signed comparisons) instead of shown cell by
-  // cell.
-  let awayEdges = 0;
-  let homeEdges = 0;
+  // 2. Do the two offenses share a shape (same strong/weak category), or not.
+  const awayShape = offenseShape(away);
+  const homeShape = offenseShape(home);
+  if (awayShape && homeShape) {
+    if (awayShape.best === homeShape.best && awayShape.worst === homeShape.worst) {
+      paragraphs.push(
+        `${away} and ${home} offenses share the same shape: both grade highest at ${awayShape.best} and lowest at ${awayShape.worst}.`
+      );
+    } else {
+      paragraphs.push(
+        `${away} offense grades highest at ${awayShape.best} and lowest at ${awayShape.worst}. ${home} offense grades highest at ${homeShape.best} and lowest at ${homeShape.worst}.`
+      );
+    }
+  }
+
+  // 3. Full edge breakdown for both matchup directions (the same two ADV
+  // columns, spelled out in full instead of a count).
+  const t1 = edgeLists(away, home);
+  const t2 = edgeLists(home, away);
+  const t1OffText = joinList(t1.offList);
+  const t1DefText = joinList(t1.defList);
+  const t2OffText = joinList(t2.offList);
+  const t2DefText = joinList(t2.defList);
+  if (t1OffText || t1DefText || t2OffText || t2DefText) {
+    const clause1 = t1OffText
+      ? `${away} offense grades ahead of ${home} defense in ${t1OffText}`
+      : `${away} offense does not grade ahead of ${home} defense in any category`;
+    const clause2 = t1DefText
+      ? `${home} defense grades ahead in ${t1DefText}`
+      : `${home} defense does not grade ahead in any category`;
+    const clause3 = t2OffText
+      ? `${home} offense grades ahead of ${away} defense in ${t2OffText}`
+      : `${home} offense does not grade ahead of ${away} defense in any category`;
+    const clause4 = t2DefText
+      ? `${away} defense grades ahead in ${t2DefText}`
+      : `${away} defense does not grade ahead in any category`;
+    paragraphs.push(`${clause1}; ${clause2}. ${clause3}; ${clause4}.`);
+  }
+
+  // 4. Category with the smallest grade gap on both sides of the ball.
   const combined = SUMMARY_CATEGORIES.map((cat) => {
     const offZ1 = cat.scheme ? schemeCompositeZ(away, "off") : compositeZ(cat.off, away);
     const defZ1 = cat.scheme ? schemeCompositeZ(home, "def") : compositeZ(cat.def, home);
     const offZ2 = cat.scheme ? schemeCompositeZ(home, "off") : compositeZ(cat.off, home);
     const defZ2 = cat.scheme ? schemeCompositeZ(away, "def") : compositeZ(cat.def, away);
-    const gaps = [];
-    if (offZ1 !== null && offZ1 !== undefined && defZ1 !== null && defZ1 !== undefined) {
-      const g = offZ1 - defZ1;
-      gaps.push(g);
-      if (Math.abs(g) >= TIER_Z_THRESHOLD) {
-        if (g > 0) awayEdges++;
-        else homeEdges++;
-      }
-    }
-    if (offZ2 !== null && offZ2 !== undefined && defZ2 !== null && defZ2 !== undefined) {
-      const g = offZ2 - defZ2;
-      gaps.push(g);
-      if (Math.abs(g) >= TIER_Z_THRESHOLD) {
-        if (g > 0) homeEdges++;
-        else awayEdges++;
-      }
-    }
-    const avgAbs = gaps.length ? gaps.reduce((a, b) => a + Math.abs(b), 0) / gaps.length : null;
-    return { label: cat.label, avgAbs, count: gaps.length };
-  });
-
-  if (awayEdges || homeEdges) {
-    const total = awayEdges + homeEdges;
-    const [leadTeam, leadCount, otherTeam, otherCount] =
-      awayEdges >= homeEdges ? [away, awayEdges, home, homeEdges] : [home, homeEdges, away, awayEdges];
-    lines.push(`${leadTeam} grades ahead in ${leadCount} of ${total} graded categories; ${otherTeam} grades ahead in ${otherCount}.`);
+    const known = offZ1 !== null && offZ1 !== undefined && defZ1 !== null && defZ1 !== undefined && offZ2 !== null && offZ2 !== undefined && defZ2 !== null && defZ2 !== undefined;
+    if (!known) return null;
+    const avgAbs = (Math.abs(offZ1 - defZ1) + Math.abs(offZ2 - defZ2)) / 2;
+    return { label: cat.label, avgAbs, awayOffGrade: gradeForZ(offZ1), homeDefGrade: gradeForZ(defZ1), homeOffGrade: gradeForZ(offZ2), awayDefGrade: gradeForZ(defZ2) };
+  }).filter(Boolean);
+  if (combined.length) {
+    const closest = combined.reduce((a, b) => (b.avgAbs < a.avgAbs ? b : a));
+    paragraphs.push(
+      `${closest.label} shows the smallest grade gap between the two teams on both sides of the ball: ${away} offense grades ${closest.awayOffGrade} against ${home} defense's ${closest.homeDefGrade}, and ${home} offense grades ${closest.homeOffGrade} against ${away} defense's ${closest.awayDefGrade}.`
+    );
   }
 
-  const bothSides = combined.filter((c) => c.count === 2 && c.avgAbs !== null);
-  if (bothSides.length) {
-    const closest = bothSides.reduce((a, b) => (b.avgAbs < a.avgAbs ? b : a));
-    lines.push(`${closest.label} shows the smallest grade gap between the two teams on both sides of the ball.`);
-  }
-
-  if (!lines.length) return "";
-  return `<ul class="grade-facts">${lines.map((l) => `<li>${l}</li>`).join("")}</ul>`;
+  if (!paragraphs.length) return "";
+  return `<div class="grade-facts">${paragraphs.map((p) => `<p>${p}</p>`).join("")}</div>`;
 }
 
 const MARKETS = [

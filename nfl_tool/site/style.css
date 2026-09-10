@@ -451,20 +451,22 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
   padding: 5px 4px;
 }
-.grade-facts {
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
-  max-width: 720px;
+.summary-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
-.grade-facts li {
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
-  line-height: 1.4;
+.summary-layout #summary-facts {
+  flex: 1 1 auto;
+  min-width: 0;
 }
-.grade-facts li:last-child {
-  border-bottom: none;
+.grade-facts p {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.grade-facts p:last-child {
+  margin-bottom: 0;
 }
 
 .summary-grade-table {
