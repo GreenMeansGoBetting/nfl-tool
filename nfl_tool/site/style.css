@@ -451,10 +451,17 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
   padding: 5px 4px;
 }
+.summary-grade-table {
+  width: auto;
+  max-width: 480px;
+}
 .summary-grade-table th:first-child, .summary-grade-table td:first-child {
   text-align: left;
   font-weight: 700;
-  width: 18%;
+  width: 90px;
+}
+.summary-grade-table th, .summary-grade-table td {
+  width: 70px;
 }
 .summary-grade-table td.grade-cell {
   font-size: 1.1rem;

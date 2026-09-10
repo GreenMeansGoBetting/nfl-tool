@@ -261,15 +261,24 @@ function tierAlphaAttrForZ(z, threshold = TIER_Z_THRESHOLD) {
   return ` style="--tier-a:${a.toFixed(2)}"`;
 }
 
+// Paired by MATCHUP (away's offense next to the defense it's actually
+// facing this game), not by team -- same convention as every other table
+// on this page (pairedStatHeader, schemeTableHeader), where OFF/DEF next to
+// each other represent one side of the ball meeting the other, not a
+// team's own two grades sitting side by side.
 function renderSummaryGrid(away, home) {
   const cols = [
     { team: away, side: "off" },
-    { team: away, side: "def" },
-    { team: home, side: "off" },
     { team: home, side: "def" },
+    { team: home, side: "off" },
+    { team: away, side: "def" },
   ];
   const header = `<tr><th></th>${cols
-    .map((c) => `<th><span class="pair-hdr team-click" data-team="${c.team}">${c.team}</span> <span class="pair-hdr-sub">- ${c.side.toUpperCase()}</span></th>`)
+    .map((c) => {
+      const rgb = teamAccentRgb(c.team);
+      const style = `background:rgba(${rgb.join(",")},0.4); border-bottom:3px solid rgb(${rgb.join(",")})`;
+      return `<th style="${style}"><span class="pair-hdr team-click" data-team="${c.team}">${c.team}</span> <span class="pair-hdr-sub">- ${c.side.toUpperCase()}</span></th>`;
+    })
     .join("")}</tr>`;
   const rows = SUMMARY_CATEGORIES.map((cat) => {
     const cells = cols
