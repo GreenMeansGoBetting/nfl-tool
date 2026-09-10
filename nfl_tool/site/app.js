@@ -254,16 +254,27 @@ function saveTdNote(key, text) {
 // Live mirror of the shared Possible Plays list (same data the standalone
 // Possible Plays page and every odds-modal checkbox read/write) -- shown
 // right here so a play checked in the TD-odds modal shows up without
-// leaving the page. Logo + name + odds only, no book: the whole point of
-// "best price across a handful of books" is to shop it yourself, a single
-// book name here would read as more final than it is. Entries without a
-// team on file (older saves, or non-player picks) just skip the logo.
-function renderTdPossiblePlaysList() {
-  const list = loadPossiblePlays();
+// leaving the page. Filtered to the currently selected away/home matchup
+// only (matching both team codes against the entry's own matchup string,
+// order-independent) -- switching to a different matchup should show that
+// matchup's plays, not everything ever saved. Logo + name + odds only, no
+// book: the whole point of "best price across a handful of books" is to
+// shop it yourself, a single book name here would read as more final than
+// it is. Entries without a team on file (older saves, or non-player picks)
+// just skip the logo.
+function renderTdPossiblePlaysList(away, home) {
+  // Exact team-code match (split on " @ "), not a substring check -- LA is
+  // a substring of LAC, so .includes() would wrongly match one team's
+  // plays onto an unrelated matchup involving the other.
+  const list = loadPossiblePlays().filter((p) => {
+    if (!p.matchup) return false;
+    const teams = p.matchup.split(" @ ");
+    return teams.includes(away) && teams.includes(home);
+  });
   const el = document.getElementById("td-possible-plays-list");
   if (!el) return;
   if (!list.length) {
-    el.innerHTML = `<p class="no-data-note">None yet -- check a player in the TD odds modal to add one.</p>`;
+    el.innerHTML = `<p class="no-data-note">None yet for this matchup -- check a player in the TD odds modal to add one.</p>`;
     return;
   }
   el.innerHTML = list
@@ -320,7 +331,7 @@ function render() {
   const notesKey = `${away}_${home}`;
   notesEl.value = loadTdNotes()[notesKey] || "";
   notesEl.dataset.key = notesKey;
-  renderTdPossiblePlaysList();
+  renderTdPossiblePlaysList(away, home);
 }
 
 document.getElementById("td-notes").addEventListener("input", (e) => {
@@ -330,7 +341,9 @@ document.getElementById("td-notes").addEventListener("input", (e) => {
 // Delegated so it catches a checkbox toggled inside the (dynamically
 // created) odds modal too, not just ones already in the page at load time.
 document.addEventListener("change", (e) => {
-  if (e.target.closest(".pp-toggle")) renderTdPossiblePlaysList();
+  if (e.target.closest(".pp-toggle")) {
+    renderTdPossiblePlaysList(document.getElementById("away-select").value, document.getElementById("home-select").value);
+  }
 });
 
 function populateSelects() {
