@@ -206,10 +206,23 @@ function renderPositionTable(offTeam, defTeam) {
   </table>`;
 }
 
+// Shared full-width header for every per-team player table (Season TDs'
+// leaderboard, First TD's Red Zone Usage) so both read as the same
+// component -- these boxes run tall with rows of player data, so there's
+// plenty of width to spare for a real logo and the full team name instead
+// of a bare "<h3>NE</h3>".
+function teamBannerHeader(team) {
+  const rgb = teamAccentRgb(team);
+  return `<div class="team-banner" style="background:rgba(${rgb.join(",")},0.16)">
+    <img src="${teamLogoUrl(team)}" class="team-logo" alt="${team}" loading="lazy">
+    <span class="team-banner-name">${TEAM_NAMES[team] || team}</span>
+  </div>`;
+}
+
 function renderLeaderboard(team) {
   const players = DATA.player_stats[team] || [];
   if (players.length === 0) {
-    return `<h3>${team}</h3><p class="no-data-note">No TDs scored yet this season.</p>`;
+    return `${teamBannerHeader(team)}<p class="no-data-note">No TDs scored yet this season.</p>`;
   }
   const maxTds = Math.max(...players.map((p) => p.tds));
   const maxFirstTds = Math.max(...players.map((p) => p.first_tds));
@@ -221,7 +234,7 @@ function renderLeaderboard(team) {
       return `<tr><td>${p.name}${tag}</td><td>${p.position}</td><td class="num" style="background:${tdBg}">${p.tds}</td><td class="num" style="background:${firstTdBg}">${p.first_tds}</td></tr>`;
     })
     .join("");
-  return `<h3>${team}</h3>
+  return `${teamBannerHeader(team)}
     <table class="data-table lb-table">
       <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">TDs</th><th class="num">1st TDs</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -261,7 +274,9 @@ function saveTdNote(key, text) {
 // book: the whole point of "best price across a handful of books" is to
 // shop it yourself, a single book name here would read as more final than
 // it is. Entries without a team on file (older saves, or non-player picks)
-// just skip the logo.
+// just skip the logo. Writes to every ".td-possible-plays-list" on the page,
+// not just one -- Season TDs and First TD each have their own copy of this
+// list (same underlying data), since only one view is visible at a time.
 function renderTdPossiblePlaysList(away, home) {
   // Exact team-code match (split on " @ "), not a substring check -- LA is
   // a substring of LAC, so .includes() would wrongly match one team's
@@ -271,13 +286,11 @@ function renderTdPossiblePlaysList(away, home) {
     const teams = p.matchup.split(" @ ");
     return teams.includes(away) && teams.includes(home);
   });
-  const el = document.getElementById("td-possible-plays-list");
-  if (!el) return;
-  if (!list.length) {
-    el.innerHTML = `<p class="no-data-note">None yet for this matchup -- check a player in the TD odds modal to add one.</p>`;
-    return;
-  }
-  el.innerHTML = list
+  const els = document.querySelectorAll(".td-possible-plays-list");
+  if (!els.length) return;
+  const html = !list.length
+    ? `<p class="no-data-note">None yet for this matchup -- check a player in the TD odds modal to add one.</p>`
+    : list
     .slice()
     .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
     .map(
@@ -285,6 +298,7 @@ function renderTdPossiblePlaysList(away, home) {
         `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-odds">${p.odds}</span></div>`
     )
     .join("");
+  els.forEach((el) => (el.innerHTML = html));
 }
 
 // ---- First TD view: everything that happens in a game before the very
@@ -378,7 +392,7 @@ function renderOpportunitiesSummary(awayTeam, homeTeam) {
 function renderRzUsageTable(team) {
   const usage = (DATA.pre_first_td_usage[team] || []).filter((p) => p.carries + p.targets > 0);
   if (usage.length === 0) {
-    return `<h3>${team}</h3><p class="no-data-note">No red zone touches yet before a first TD this season.</p>`;
+    return `${teamBannerHeader(team)}<p class="no-data-note">No red zone touches yet before a first TD this season.</p>`;
   }
   const firstTdsById = {};
   (DATA.player_stats[team] || []).forEach((p) => {
@@ -399,9 +413,9 @@ function renderRzUsageTable(team) {
       return `<tr><td>${p.name}</td><td>${p.position}</td><td class="num" style="background:${firstTdBg}">${firstTds}</td><td class="num" style="background:${carriesBg}">${p.carries}</td><td class="num" style="background:${targetsBg}">${p.targets}</td><td class="num" style="background:${receptionsBg}">${p.receptions}</td></tr>`;
     })
     .join("");
-  return `<h3>${team}</h3>
-    <table class="data-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">First TDs</th><th class="num">Carries</th><th class="num">Targets</th><th class="num">Rec</th></tr></thead>
+  return `${teamBannerHeader(team)}
+    <table class="data-table rzusage-table">
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">1st TDs</th><th class="num">Carries</th><th class="num">Targets</th><th class="num">Rec</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -484,10 +498,12 @@ function render() {
   document.getElementById("lb-away").innerHTML = renderLeaderboard(away);
   document.getElementById("lb-home").innerHTML = renderLeaderboard(home);
 
-  const notesEl = document.getElementById("td-notes");
   const notesKey = `${away}_${home}`;
-  notesEl.value = loadTdNotes()[notesKey] || "";
-  notesEl.dataset.key = notesKey;
+  const savedNote = loadTdNotes()[notesKey] || "";
+  document.querySelectorAll(".td-notes-input").forEach((el) => {
+    el.value = savedNote;
+    el.dataset.key = notesKey;
+  });
   renderTdPossiblePlaysList(away, home);
 
   // First TD view
@@ -498,8 +514,16 @@ function render() {
   document.getElementById("rzusage-home").innerHTML = renderRzUsageTable(home);
 }
 
-document.getElementById("td-notes").addEventListener("input", (e) => {
+// Delegated (not one listener per textarea) since Season TDs and First TD
+// each have their own notes box for the same matchup -- typing in either
+// saves to the shared key and mirrors the text into the other immediately,
+// so neither ever shows stale text even without a re-render in between.
+document.addEventListener("input", (e) => {
+  if (!e.target.classList.contains("td-notes-input")) return;
   saveTdNote(e.target.dataset.key, e.target.value);
+  document.querySelectorAll(".td-notes-input").forEach((el) => {
+    if (el !== e.target) el.value = e.target.value;
+  });
 });
 
 // Delegated so it catches a checkbox toggled inside the (dynamically

@@ -314,6 +314,26 @@ h3 {
 .lb-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .lb-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
+.team-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.team-banner-name { font-weight: 700; font-size: 0.95rem; }
+
+.rzusage-table { table-layout: fixed; width: 352px; }
+.rzusage-table th:first-child, .rzusage-table td:first-child { width: 130px; }
+.rzusage-table th:nth-child(2), .rzusage-table td:nth-child(2) { width: 40px; }
+.rzusage-table th:nth-child(3), .rzusage-table td:nth-child(3) { width: 50px; }
+.rzusage-table th:nth-child(4), .rzusage-table td:nth-child(4),
+.rzusage-table th:nth-child(5), .rzusage-table td:nth-child(5) { width: 46px; }
+.rzusage-table th:nth-child(6), .rzusage-table td:nth-child(6) { width: 40px; }
+.rzusage-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
+.rzusage-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
+
 .opp-table { table-layout: fixed; width: 260px; }
 .opp-table th:first-child, .opp-table td:first-child { width: 100px; }
 .opp-table th:nth-child(2), .opp-table td:nth-child(2),

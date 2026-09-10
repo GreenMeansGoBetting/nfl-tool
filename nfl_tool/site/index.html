@@ -75,9 +75,9 @@
         <div id="lb-home" class="stat-column"></div>
         <div class="stat-column stat-column-notes">
           <h3 class="stat-column-title">Notes</h3>
-          <textarea id="td-notes" class="game-notes" placeholder="Notes for this matchup..." rows="4"></textarea>
+          <textarea id="td-notes" class="game-notes td-notes-input" placeholder="Notes for this matchup..." rows="4"></textarea>
           <h3 class="stat-column-title stat-column-title-spaced">Possible Plays</h3>
-          <div id="td-possible-plays-list"></div>
+          <div id="td-possible-plays-list" class="td-possible-plays-list"></div>
         </div>
       </div>
     </div>
@@ -98,10 +98,15 @@
 
     <div id="section-rzusage" class="section-wrap" hidden>
       <h2 class="section-title">Red Zone Usage Before First TD</h2>
-      <p class="section-note">Who's actually getting the ball on this team's red zone snaps before either side's first touchdown &mdash; a field goal doesn't end this window, so a 3-0 game is still "before the first TD" and keeps counting. First TDs included here too.</p>
-      <div class="two-col">
-        <section id="rzusage-away"></section>
-        <section id="rzusage-home"></section>
+      <div class="stat-columns">
+        <section id="rzusage-away" class="stat-column"></section>
+        <section id="rzusage-home" class="stat-column"></section>
+        <div class="stat-column stat-column-notes">
+          <h3 class="stat-column-title">Notes</h3>
+          <textarea id="td-notes-2" class="game-notes td-notes-input" placeholder="Notes for this matchup..." rows="4"></textarea>
+          <h3 class="stat-column-title stat-column-title-spaced">Possible Plays</h3>
+          <div id="td-possible-plays-list-2" class="td-possible-plays-list"></div>
+        </div>
       </div>
     </div>
   </div>
