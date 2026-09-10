@@ -287,7 +287,7 @@ function renderTdPossiblePlaysList(away, home) {
     .join("");
 }
 
-const SECTIONS = ["snapshot", "type", "player"];
+const SECTIONS = ["type", "player"];
 
 function render() {
   const away = document.getElementById("away-select").value;
@@ -317,7 +317,6 @@ function render() {
   emptyEl.hidden = true;
   sectionEls.forEach((el) => (el.hidden = false));
 
-  document.getElementById("snapshot-content").innerHTML = renderMatchupSnapshot(computeMatchupInsights(away, home));
   document.getElementById("col-away-type").innerHTML = renderStatTable(away, home);
   document.getElementById("col-home-type").innerHTML = renderStatTable(home, away);
   document.getElementById("col-away-position").innerHTML = renderPositionTable(away, home);
