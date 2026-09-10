@@ -255,13 +255,6 @@ select {
   color: var(--muted) !important;
   background: var(--table-head) !important;
 }
-.col-sub {
-  display: block;
-  color: var(--muted);
-  font-weight: 400;
-  font-size: 0.62rem;
-  letter-spacing: 0.05em;
-}
 
 .edge-hdr {
   background: var(--table-head);
