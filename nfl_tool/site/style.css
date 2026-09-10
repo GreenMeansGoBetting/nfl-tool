@@ -470,16 +470,24 @@ footer a { color: var(--accent); }
 }
 
 .summary-grade-table {
-  width: auto;
-  max-width: 380px;
+  table-layout: fixed;
+  width: 246px;
+  flex: 0 0 auto;
 }
 .summary-grade-table th:first-child, .summary-grade-table td:first-child {
   text-align: left;
   font-weight: 700;
-  width: 32%;
+  width: 86px;
+}
+.summary-grade-table th:nth-child(2), .summary-grade-table td:nth-child(2),
+.summary-grade-table th:nth-child(3), .summary-grade-table td:nth-child(3) {
+  width: 58px;
+}
+.summary-grade-table th:last-child, .summary-grade-table td:last-child {
+  width: 44px;
 }
 .summary-grade-table th, .summary-grade-table td {
-  padding: 7px 5px;
+  padding: 8px 5px;
 }
 .summary-grade-table td.grade-cell {
   font-size: 1.15rem;

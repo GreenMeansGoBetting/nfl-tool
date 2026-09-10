@@ -32,6 +32,11 @@ const GENERAL_STAT_GROUPS = [
     rows: [
       { label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false },
       { label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false },
+      // No off/def mirror here the way Sacks/Turnovers have one (a penalty
+      // isn't "drawn" by the other team the way a sack or takeaway is) --
+      // both columns show each team's own penalty rate instead, fewer is
+      // better for whichever team.
+      { label: "Penalties", offKey: "penalties_per_g", offInvert: true, defKey: "penalties_per_g", defInvert: true },
     ],
   },
 ];
@@ -403,9 +408,10 @@ function renderSummaryFacts(away, home) {
     const worst = units.reduce((a, b) => (b.avgZ < a.avgZ ? b : a));
     const consistencyClause = best.spread !== null && best.spread <= 1 ? ", with every category in the same tier" : "";
     paragraphs.push(
-      `${best.team} ${phase(best.side)} grades ${best.grades.join("/")} across Passing/Rushing/Red Zone/Scheme -- the highest average of the four graded units${consistencyClause}. ${worst.team} ${phase(
-        worst.side
-      )} grades ${worst.grades.join("/")} -- the lowest average of the four, weakest at ${worst.worstLabel} (${worst.worstGrade}).`
+      `<strong>${best.team} ${phase(best.side)} is the most consistent unit on the board; ${worst.team} ${phase(worst.side)} is the least.</strong> ` +
+        `${best.team} ${phase(best.side)} grades ${best.grades.join("/")} across Passing/Rushing/Red Zone/Scheme -- the highest average of the four graded units${consistencyClause}. ${worst.team} ${phase(
+          worst.side
+        )} grades ${worst.grades.join("/")} -- the lowest average of the four, weakest at ${worst.worstLabel} (${worst.worstGrade}).`
     );
   }
 
@@ -415,11 +421,11 @@ function renderSummaryFacts(away, home) {
   if (awayShape && homeShape) {
     if (awayShape.best === homeShape.best && awayShape.worst === homeShape.worst) {
       paragraphs.push(
-        `${away} and ${home} offenses share the same shape: both grade highest at ${awayShape.best} and lowest at ${awayShape.worst}.`
+        `<strong>${away} and ${home} offenses share the same shape.</strong> Both grade highest at ${awayShape.best} and lowest at ${awayShape.worst}.`
       );
     } else {
       paragraphs.push(
-        `${away} offense grades highest at ${awayShape.best} and lowest at ${awayShape.worst}. ${home} offense grades highest at ${homeShape.best} and lowest at ${homeShape.worst}.`
+        `<strong>${away} and ${home} offenses have different shapes.</strong> ${away} offense grades highest at ${awayShape.best} and lowest at ${awayShape.worst}; ${home} offense grades highest at ${homeShape.best} and lowest at ${homeShape.worst}.`
       );
     }
   }
@@ -433,6 +439,14 @@ function renderSummaryFacts(away, home) {
   const t2OffText = joinList(t2.offList);
   const t2DefText = joinList(t2.defList);
   if (t1OffText || t1DefText || t2OffText || t2DefText) {
+    const awayTotal = t1.offList.length + t2.defList.length;
+    const homeTotal = t1.defList.length + t2.offList.length;
+    const headline =
+      awayTotal === homeTotal
+        ? `Category edges are evenly split between ${away} and ${home}.`
+        : awayTotal > homeTotal
+        ? `${away} holds more category edges than ${home} (${awayTotal} to ${homeTotal}).`
+        : `${home} holds more category edges than ${away} (${homeTotal} to ${awayTotal}).`;
     const clause1 = t1OffText
       ? `${away} offense grades ahead of ${home} defense in ${t1OffText}`
       : `${away} offense does not grade ahead of ${home} defense in any category`;
@@ -445,7 +459,7 @@ function renderSummaryFacts(away, home) {
     const clause4 = t2DefText
       ? `${away} defense grades ahead in ${t2DefText}`
       : `${away} defense does not grade ahead in any category`;
-    paragraphs.push(`${clause1}; ${clause2}. ${clause3}; ${clause4}.`);
+    paragraphs.push(`<strong>${headline}</strong> ${clause1}; ${clause2}. ${clause3}; ${clause4}.`);
   }
 
   // 4. Category with the smallest grade gap on both sides of the ball.
@@ -462,7 +476,7 @@ function renderSummaryFacts(away, home) {
   if (combined.length) {
     const closest = combined.reduce((a, b) => (b.avgAbs < a.avgAbs ? b : a));
     paragraphs.push(
-      `${closest.label} shows the smallest grade gap between the two teams on both sides of the ball: ${away} offense grades ${closest.awayOffGrade} against ${home} defense's ${closest.homeDefGrade}, and ${home} offense grades ${closest.homeOffGrade} against ${away} defense's ${closest.awayDefGrade}.`
+      `<strong>${closest.label} is the closest graded matchup.</strong> It shows the smallest grade gap between the two teams on both sides of the ball: ${away} offense grades ${closest.awayOffGrade} against ${home} defense's ${closest.homeDefGrade}, and ${home} offense grades ${closest.homeOffGrade} against ${away} defense's ${closest.awayDefGrade}.`
     );
   }
 
