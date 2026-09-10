@@ -211,7 +211,7 @@ function renderLeaderboard(team) {
     </table>`;
 }
 
-const SECTIONS = ["snapshot", "type", "distance", "player"];
+const SECTIONS = ["snapshot", "type", "player"];
 
 function render() {
   const away = document.getElementById("away-select").value;
@@ -248,8 +248,6 @@ function render() {
   document.getElementById("col-home-position").innerHTML = renderPositionTable(home, away);
   document.getElementById("col-away-distance").innerHTML = renderLengthTable(away, home);
   document.getElementById("col-home-distance").innerHTML = renderLengthTable(home, away);
-  document.getElementById("col-away-redzone").innerHTML = renderRedZoneTable(away, home);
-  document.getElementById("col-home-redzone").innerHTML = renderRedZoneTable(home, away);
   document.getElementById("lb-away").innerHTML = renderLeaderboard(away);
   document.getElementById("lb-home").innerHTML = renderLeaderboard(home);
 }

@@ -450,53 +450,6 @@ function renderMatchupSnapshot(opportunities) {
   return `<ul class="snapshot-list">${items}</ul>`;
 }
 
-// TD Data's Red Zone Touchdowns section. Dropped the volume rows this used
-// to have (Plays/Carries/Targets) entirely -- they only count how much
-// action a defense allowed inside the 20, not what happened once it got
-// there (a defense that allows one red zone snap and it's a touchdown
-// looked great on every volume row despite a 100% TD rate; a defense that
-// stones three straight trips on 4th down looked bad despite a 0% TD rate),
-// and being raw counts on a league spread that's tight-but-real, they were
-// also prone to flipping color on a single-play difference sitting right at
-// the z-score cutoff (verified: MIN/TB at 146 red-zone plays sat at
-// z=-0.624, CAR at 147 sat at z=-0.587 -- one side of a threshold that's
-// inherent to any hard cutoff on a volume count, not a bug, but exactly
-// why a real rate metric is worth trusting more). RZ TD % (trips that
-// actually ended in a score) is the number that answers "what actually
-// happens when this defense is backed up."
-const RED_ZONE_ROWS = [
-  { label: "RZ TD %", totalOffKey: "rz_trips", rateOffKey: "rz_td_rate", totalDefKey: "rz_trips_allowed", rateDefKey: "rz_td_rate_allowed", ratePct: true },
-  { label: "RZ TD", totalOffKey: "rz_td", rateOffKey: "rz_td_per_g", totalDefKey: "rz_td_allowed", rateDefKey: "rz_td_allowed_per_g" },
-  { label: "RZ Trips", totalOffKey: "rz_trips", rateOffKey: "rz_trips_per_g", totalDefKey: "rz_trips_allowed", rateDefKey: "rz_trips_allowed_per_g" },
-];
-
-function renderRedZoneTable(offTeam, defTeam) {
-  const off = DATA.team_stats[offTeam];
-  const def = DATA.team_stats[defTeam];
-
-  const rows = RED_ZONE_ROWS.map((r) => {
-    const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
-    const offRateCls = tierFor(r.rateOffKey, offTeam, false);
-    const defTotalCls = tierFor(r.totalDefKey, defTeam, true);
-    const defRateCls = tierFor(r.rateDefKey, defTeam, true);
-    const offRateExtreme = tierFor(r.rateOffKey, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
-    const defRateExtreme = tierFor(r.rateDefKey, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
-    const offTotalA = tierForAlphaAttr(r.totalOffKey, offTeam, false);
-    const offRateA = tierForAlphaAttr(r.rateOffKey, offTeam, false);
-    const defTotalA = tierForAlphaAttr(r.totalDefKey, defTeam, true);
-    const defRateA = tierForAlphaAttr(r.rateDefKey, defTeam, true);
-    const offRateDisplay = r.ratePct ? `${Math.round(off[r.rateOffKey] * 100)}%` : fmt(off[r.rateOffKey], 2);
-    const defRateDisplay = r.ratePct ? `${Math.round(def[r.rateDefKey] * 100)}%` : fmt(def[r.rateDefKey], 2);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}"${offTotalA}>${off[r.totalOffKey]}</td><td class="num ${offRateCls}"${offRateA}>${offRateDisplay}</td><td class="num ${defTotalCls}"${defTotalA}>${def[r.totalDefKey]}</td><td class="num ${defRateCls}"${defRateA}>${defRateDisplay}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
-  }).join("");
-
-  return `<table class="data-table stat-table">
-    ${STAT_TABLE_COLGROUP}
-    <thead>${headerRow(offTeam, defTeam, ["Total", "Rate"])}</thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-}
-
 // Every headerRow()-based table (label + 4 data columns + ADV, 6 total)
 // needs this immediately before its <thead> to actually get narrow columns.
 // table-layout:fixed's column-width algorithm doesn't reliably honor

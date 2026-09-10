@@ -195,19 +195,27 @@ select {
   margin-top: 12px;
 }
 
-/* Type+Position and Distance+RedZone: tables size to their own (now much
-   narrower) content instead of each forced into a rigid 1fr-wide column --
-   flex-wrap lets as many as actually fit sit on one row, wrapping to a new
-   row only when the viewport is too narrow for that, instead of a fixed
-   2-per-row split regardless of how much space is actually free. */
-.stat-flow {
+/* One column per stat category (Type/Position/Distance), each stacking its
+   away table directly above its home table -- grouped by WHAT the stat is
+   first, team second, with a header naming each category since there's no
+   longer a per-team header doing that job. flex-wrap so 3 columns sit on
+   one row when there's room and drop to fewer per row when there isn't. */
+.stat-columns {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 20px;
   margin-top: 12px;
 }
-.stat-flow > div {
+.stat-column {
   flex: 0 0 auto;
+}
+.stat-column-title {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.stat-column > div + div {
+  margin-top: 10px;
 }
 @media (max-width: 760px) {
   .two-col { grid-template-columns: 1fr; }
