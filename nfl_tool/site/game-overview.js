@@ -1137,13 +1137,13 @@ function render() {
   ensureCurrentGame();
   const emptyEl = document.getElementById("empty-state");
   const sectionEls = SECTIONS.map((s) => document.getElementById(`section-${s}`));
-  const flipperEl = document.getElementById("game-flipper");
+  const flipperEls = document.querySelectorAll(".game-flipper");
   const headerEl = document.getElementById("game-header");
 
   const game = currentGame();
   if (!game) {
     sectionEls.forEach((el) => (el.hidden = true));
-    flipperEl.hidden = true;
+    flipperEls.forEach((el) => (el.hidden = true));
     headerEl.hidden = true;
     emptyEl.hidden = false;
     emptyEl.innerHTML = "<p>No games scheduled for this week.</p>";
@@ -1151,10 +1151,15 @@ function render() {
   }
 
   renderGameHeader(game);
-  flipperEl.hidden = false;
-  document.getElementById("game-flipper-label").textContent = `Game ${currentGameIndex + 1} of ${weekGames.length}`;
-  document.getElementById("game-prev").disabled = currentGameIndex <= 0;
-  document.getElementById("game-next").disabled = currentGameIndex >= weekGames.length - 1;
+  // Bottom flipper (under Recent Picks) mirrors the top one 1:1 -- same
+  // class-based selectors so both stay in sync from one update instead of
+  // needing every render/prev/next path to remember two separate ids.
+  flipperEls.forEach((el) => (el.hidden = false));
+  document.querySelectorAll(".game-flipper-label").forEach((el) => {
+    el.textContent = `Game ${currentGameIndex + 1} of ${weekGames.length}`;
+  });
+  document.querySelectorAll(".game-prev-btn").forEach((el) => (el.disabled = currentGameIndex <= 0));
+  document.querySelectorAll(".game-next-btn").forEach((el) => (el.disabled = currentGameIndex >= weekGames.length - 1));
   // Keep the scroller's card highlight in sync -- the flipper's own
   // prev/next buttons move currentGameIndex without going through the
   // scroller's click handler, so its "selected" card would otherwise go stale.
@@ -1219,21 +1224,29 @@ function initFlipper() {
     onWeekChange: handlePick,
   });
 
-  document.getElementById("game-prev").addEventListener("click", () => {
-    if (currentGameIndex > 0) {
-      currentGameIndex--;
-      resetDraftPicks();
-      render();
-      saveSelectedGame(scheduleWeek, currentGame().away, currentGame().home);
-    }
+  // Same handler on both the top flipper and the bottom one (under Recent
+  // Picks) -- querySelectorAll instead of one id lookup since there are now
+  // two of these buttons in the DOM, both static (never re-created via
+  // innerHTML), so attaching once here at init is safe for both.
+  document.querySelectorAll(".game-prev-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (currentGameIndex > 0) {
+        currentGameIndex--;
+        resetDraftPicks();
+        render();
+        saveSelectedGame(scheduleWeek, currentGame().away, currentGame().home);
+      }
+    });
   });
-  document.getElementById("game-next").addEventListener("click", () => {
-    if (currentGameIndex < weekGames.length - 1) {
-      currentGameIndex++;
-      resetDraftPicks();
-      render();
-      saveSelectedGame(scheduleWeek, currentGame().away, currentGame().home);
-    }
+  document.querySelectorAll(".game-next-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (currentGameIndex < weekGames.length - 1) {
+        currentGameIndex++;
+        resetDraftPicks();
+        render();
+        saveSelectedGame(scheduleWeek, currentGame().away, currentGame().home);
+      }
+    });
   });
 }
 
