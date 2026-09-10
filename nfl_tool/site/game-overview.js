@@ -261,39 +261,56 @@ function tierAlphaAttrForZ(z, threshold = TIER_Z_THRESHOLD) {
   return ` style="--tier-a:${a.toFixed(2)}"`;
 }
 
-// Paired by MATCHUP (away's offense next to the defense it's actually
-// facing this game), not by team -- same convention as every other table
-// on this page (pairedStatHeader, schemeTableHeader), where OFF/DEF next to
-// each other represent one side of the ball meeting the other, not a
-// team's own two grades sitting side by side.
-function renderSummaryGrid(away, home) {
-  const cols = [
-    { team: away, side: "off" },
-    { team: home, side: "def" },
-    { team: home, side: "off" },
-    { team: away, side: "def" },
-  ];
-  const header = `<tr><th></th>${cols
-    .map((c) => {
-      const rgb = teamAccentRgb(c.team);
-      const style = `background:rgba(${rgb.join(",")},0.4); border-bottom:3px solid rgb(${rgb.join(",")})`;
-      return `<th style="${style}"><span class="pair-hdr team-click" data-team="${c.team}">${c.team}</span> <span class="pair-hdr-sub">- ${c.side.toUpperCase()}</span></th>`;
-    })
-    .join("")}</tr>`;
+// Same header shape as pairedStatHeader/schemeTableHeader (team-accent
+// background per column, no "PER GAME" corner label since there's no rate
+// here) -- kept as its own function since this table has 3 data columns
+// (OFF/DEF/ADV), not pairedStatHeader's 3 plus its per-game label.
+function summaryTableHeader(offTeam, defTeam) {
+  const offRgb = teamAccentRgb(offTeam);
+  const defRgb = teamAccentRgb(defTeam);
+  const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
+  const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
+  return `<tr><th></th><th style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}">${offTeam}</span> <span class="pair-hdr-sub">- OFF</span></th><th style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}">${defTeam}</span> <span class="pair-hdr-sub">- DEF</span></th><th class="edge-hdr">ADV</th></tr>`;
+}
+
+// How big is the gap between this offense's grade and the opposing
+// defense's grade -- not just which side crossed a fixed line. An A-vs-F
+// mismatch should read as a dark, saturated color; an A-vs-B gap should
+// barely tint at all. Reuses the site's TIER_ALPHA_MIN/MAX scale, but
+// against a wider saturation point (ADV_Z_SATURATE) than a single stat's
+// alpha gets, since this is a gap BETWEEN two already-computed z-scores
+// (roughly double the spread of one team's distance from the league mean).
+const ADV_Z_SATURATE = 3;
+function summaryAdvCell(offZ, defZ, offTeam, defTeam) {
+  if (offZ === null || offZ === undefined || defZ === null || defZ === undefined) {
+    return `<td class="edge-cell">--</td>`;
+  }
+  const gap = offZ - defZ;
+  const gapAbs = Math.abs(gap);
+  if (gapAbs < TIER_Z_THRESHOLD) return `<td class="edge-cell">--</td>`;
+  const t = Math.min((gapAbs - TIER_Z_THRESHOLD) / (ADV_Z_SATURATE - TIER_Z_THRESHOLD), 1);
+  const alpha = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
+  const team = gap > 0 ? offTeam : defTeam;
+  const rgb = teamAccentRgb(team);
+  return `<td class="edge-cell edge-hit" style="color:rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},${alpha.toFixed(2)})">${team}</td>`;
+}
+
+// Paired by MATCHUP (offTeam's offense against defTeam's defense), same
+// convention as General Stats/Scheme -- call twice (away-vs-home,
+// home-vs-away) for the two side-by-side tables.
+function renderSummaryTable(offTeam, defTeam) {
   const rows = SUMMARY_CATEGORIES.map((cat) => {
-    const cells = cols
-      .map((c) => {
-        const z = cat.scheme ? schemeCompositeZ(c.team, c.side) : compositeZ(cat[c.side], c.team);
-        const grade = gradeForZ(z);
-        const cls = tierClassForZ(z);
-        const a = tierAlphaAttrForZ(z);
-        return `<td class="num grade-cell ${cls}"${a}>${grade || "--"}</td>`;
-      })
-      .join("");
-    return `<tr><td>${cat.label}</td>${cells}</tr>`;
+    const offZ = cat.scheme ? schemeCompositeZ(offTeam, "off") : compositeZ(cat.off, offTeam);
+    const defZ = cat.scheme ? schemeCompositeZ(defTeam, "def") : compositeZ(cat.def, defTeam);
+    const offGrade = gradeForZ(offZ);
+    const defGrade = gradeForZ(defZ);
+    const offA = tierAlphaAttrForZ(offZ);
+    const defA = tierAlphaAttrForZ(defZ);
+    const advCell = summaryAdvCell(offZ, defZ, offTeam, defTeam);
+    return `<tr><td>${cat.label}</td><td class="num grade-cell ${tierClassForZ(offZ)}"${offA}>${offGrade || "--"}</td><td class="num grade-cell ${tierClassForZ(defZ)}"${defA}>${defGrade || "--"}</td>${advCell}</tr>`;
   }).join("");
   return `<table class="data-table summary-grade-table">
-    <thead>${header}</thead>
+    <thead>${summaryTableHeader(offTeam, defTeam)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -896,7 +913,8 @@ function render() {
   document.getElementById("col-home-scheme").innerHTML = renderSchemeTable(home, away);
   document.getElementById("col-away-recent").innerHTML = renderRecentGamesPanel(away);
   document.getElementById("col-home-recent").innerHTML = renderRecentGamesPanel(home);
-  document.getElementById("summary-content").innerHTML = renderSummaryGrid(away, home);
+  document.getElementById("col-away-summary").innerHTML = renderSummaryTable(away, home);
+  document.getElementById("col-home-summary").innerHTML = renderSummaryTable(home, away);
 
   renderPickTracker(game);
 }
