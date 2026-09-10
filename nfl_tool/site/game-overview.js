@@ -16,11 +16,13 @@ const GENERAL_STAT_GROUPS = [
     label: "Production",
     rows: [
       { label: "Points", offKey: "points_for_per_g", offInvert: false, defKey: "points_against_per_g", defInvert: true },
+      { label: "EPA / Play", offKey: "epa_per_play", offInvert: false, defKey: "epa_per_play_allowed", defInvert: true },
       { label: "Pass Attempts", offKey: "pass_att_per_g", offInvert: false, defKey: "pass_att_allowed_per_g", defInvert: true },
       { label: "Pass Yards", offKey: "pass_yards_per_g", offInvert: false, defKey: "pass_yards_allowed_per_g", defInvert: true },
       { label: "Rush Attempts", offKey: "rush_att_per_g", offInvert: false, defKey: "rush_att_allowed_per_g", defInvert: true },
       { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
       { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
+      { label: "3rd Down %", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, pct: true },
       { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
       { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
     ],
@@ -79,6 +81,14 @@ const SCHEME_GROUPS = [
     label: "Coverage Scheme",
     perfLabel: "Success %",
     pct: true,
+    // Specific shells run thin (some clear under 5% of a defense's own
+    // snaps) -- sorting by this defense's own usage (most-used shell on
+    // top) instead of a fixed Cover-0-to-6 list draws the eye to what the
+    // defense actually plays first. Rows under SCHEME_MIN_TENDENCY_SHOWN
+    // stay visible (still real, still occasionally called) but dimmed --
+    // greyed out rather than hidden, since hiding them would make the
+    // shell breakdown look incomplete.
+    sortByTendency: true,
     rows: [
       { label: "Cover 0", tendKey: "cover0_rate", perfKey: "success_vs_cover0", defSuccessKey: "def_success_allowed_cover0" },
       { label: "Cover 1", tendKey: "cover1_rate", perfKey: "success_vs_cover1", defSuccessKey: "def_success_allowed_cover1" },
@@ -90,6 +100,13 @@ const SCHEME_GROUPS = [
     ],
   },
 ];
+
+// Below this usage rate a coverage shell is still real (worth showing) but
+// rare enough for this specific defense that it shouldn't draw the eye the
+// same as their bread-and-butter looks -- dimmed, not hidden. Separate from
+// SCHEME_ADV_MIN_TENDENCY (0.2) below, which gates the ADV callout itself,
+// a stricter bar than mere visibility.
+const SCHEME_MIN_TENDENCY_SHOWN = 0.05;
 
 const MARKETS = [
   { key: "spread", label: "Spread" },
@@ -335,7 +352,17 @@ function defSuccessCell(group, r, defTeam) {
 }
 
 function renderSchemeGroup(group, offTeam, defTeam) {
-  const rows = group.rows
+  let orderedRows = group.rows;
+  if (group.sortByTendency) {
+    orderedRows = [...group.rows].sort((a, b) => {
+      const av = DATA.team_stats[defTeam][a.tendKey];
+      const bv = DATA.team_stats[defTeam][b.tendKey];
+      if (av === null || av === undefined) return bv === null || bv === undefined ? 0 : 1;
+      if (bv === null || bv === undefined) return -1;
+      return bv - av;
+    });
+  }
+  const rows = orderedRows
     .map((r) => {
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
       const { html: tendHtml, tendVal, tendCls } = tendencyCell(r, defTeam);
@@ -343,7 +370,8 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 2)}${perfUnit}`;
-      return `<tr><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td>${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      const dim = tendVal !== null && tendVal !== undefined && tendVal < SCHEME_MIN_TENDENCY_SHOWN;
+      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td><td class="num ${perfCls}">${perfDisplay}</td>${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;

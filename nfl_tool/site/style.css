@@ -451,6 +451,7 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
   padding: 5px 4px;
 }
+.scheme-table tr.scheme-row-dim { opacity: 0.4; }
 .scheme-table th:first-child, .scheme-table td:first-child { width: 20%; }
 .scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 16%; text-align: center; }
 .scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 16%; text-align: center; }

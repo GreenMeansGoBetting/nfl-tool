@@ -882,6 +882,32 @@ def compute_explosive_plays(pbp: pd.DataFrame) -> dict:
     return result
 
 
+def compute_epa_per_play(pbp: pd.DataFrame) -> dict:
+    """EPA (expected points added) per scrimmage play -- the standard modern
+    efficiency metric, generally a stronger predictor of a team's real
+    strength (and next week's results) than raw yardage or the success-rate
+    splits already tracked elsewhere. Same scrimmage definition as
+    compute_explosive_plays (rush/pass attempts, two-point tries excluded --
+    EPA runs on a different scale there and it's a tiny fraction of plays
+    anyway). Stored as a sum + play count rather than an average so the
+    per-play rate is derived in build_team_stats alongside every other
+    derived rate in this pipeline."""
+    scrimmage = pbp[((pbp["rush_attempt"] == 1) | (pbp["pass_attempt"] == 1)) & (pbp["two_point_attempt"] != 1)]
+    result = {}
+    for team in pd.unique(pbp[["home_team", "away_team"]].values.ravel()):
+        if pd.isna(team):
+            continue
+        off = scrimmage[scrimmage["posteam"] == team]
+        deff = scrimmage[scrimmage["defteam"] == team]
+        result[team] = {
+            "epa_sum": float(off["epa"].sum()),
+            "epa_plays": int(len(off)),
+            "epa_sum_allowed": float(deff["epa"].sum()),
+            "epa_plays_allowed": int(len(deff)),
+        }
+    return result
+
+
 def compute_general_stats(pbp: pd.DataFrame) -> dict:
     """"Normal" box-score volume stats for the Game Overviews page -- raw
     season totals, both this team's own offense and its defense's mirror
@@ -894,8 +920,16 @@ def compute_general_stats(pbp: pd.DataFrame) -> dict:
             continue
         off = pbp[pbp["posteam"] == team]
         deff = pbp[pbp["defteam"] == team]
+        off_3rd = off[off["down"] == 3]
+        deff_3rd = deff[deff["down"] == 3]
 
         result[team] = {
+            "third_down_att": int(((off_3rd["third_down_converted"] == 1) | (off_3rd["third_down_failed"] == 1)).sum()),
+            "third_down_conv": int((off_3rd["third_down_converted"] == 1).sum()),
+            "third_down_att_allowed": int(
+                ((deff_3rd["third_down_converted"] == 1) | (deff_3rd["third_down_failed"] == 1)).sum()
+            ),
+            "third_down_conv_allowed": int((deff_3rd["third_down_converted"] == 1).sum()),
             "pass_att": int((off["pass_attempt"] == 1).sum()),
             "completions": int((off["complete_pass"] == 1).sum()),
             "pass_yards": float(off.loc[off["complete_pass"] == 1, "yards_gained"].sum()),
@@ -1129,6 +1163,7 @@ def build_team_stats(
     red_zone_trips,
     length_buckets,
     explosive,
+    epa,
     general,
     recent_games,
     possessions_to_score,
@@ -1177,6 +1212,7 @@ def build_team_stats(
         expl = explosive.get(team, {})
         off_plays = expl.get("off_plays", 0)
         def_plays_faced = expl.get("def_plays_faced", 0)
+        epa_d = epa.get(team, {})
 
         gen = general.get(team, {})
         rz_trip = red_zone_trips.get(team, {})
@@ -1285,10 +1321,22 @@ def build_team_stats(
             "explosive_rate_allowed": round(expl.get("explosive_plays_allowed", 0) / def_plays_faced, 3)
             if def_plays_faced
             else None,
+            "epa_per_play": round(epa_d["epa_sum"] / epa_d["epa_plays"], 3) if epa_d.get("epa_plays") else None,
+            "epa_per_play_allowed": round(epa_d["epa_sum_allowed"] / epa_d["epa_plays_allowed"], 3)
+            if epa_d.get("epa_plays_allowed")
+            else None,
             "points_for": points_for,
             "points_for_per_g": per_g(points_for),
             "points_against": points_against,
             "points_against_per_g": per_g(points_against),
+            "third_down_att": gen.get("third_down_att", 0),
+            "third_down_conv": gen.get("third_down_conv", 0),
+            "third_down_rate": round(gen["third_down_conv"] / gen["third_down_att"], 3) if gen.get("third_down_att") else None,
+            "third_down_att_allowed": gen.get("third_down_att_allowed", 0),
+            "third_down_conv_allowed": gen.get("third_down_conv_allowed", 0),
+            "third_down_rate_allowed": round(gen["third_down_conv_allowed"] / gen["third_down_att_allowed"], 3)
+            if gen.get("third_down_att_allowed")
+            else None,
             "pass_att": gen.get("pass_att", 0),
             "pass_att_per_g": per_g(gen.get("pass_att", 0)),
             "completions": gen.get("completions", 0),
@@ -1458,6 +1506,7 @@ def main():
     red_zone_trips = compute_red_zone_trips(pbp)
     length_buckets = compute_length_buckets(pbp)
     explosive = compute_explosive_plays(pbp)
+    epa = compute_epa_per_play(pbp)
     general = compute_general_stats(pbp)
     recent_games = compute_recent_games(pbp)
     possessions_to_score = compute_possessions_to_score(pbp, first_td_by_game)
@@ -1476,6 +1525,7 @@ def main():
         red_zone_trips,
         length_buckets,
         explosive,
+        epa,
         general,
         recent_games,
         possessions_to_score,
