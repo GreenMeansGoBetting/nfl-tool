@@ -1005,10 +1005,18 @@ function closePickRevealModal() {
   if (el) el.hidden = true;
 }
 
-// Confidence priority for picking which sound plays when a save covers more
-// than one color at once (e.g. Spread green, Total red) -- green wins the
-// room, same instinct as leading a broadcast with your best angle.
-const CONFIDENCE_SOUND_PRIORITY = ["green", "yellow", "red"];
+// When a save covers more than one market at once (e.g. Spread green, Total
+// red), the sound is picked off the AVERAGE confidence across whatever
+// markets were actually picked, not just the loudest one -- green=1,
+// yellow=0, red=-1, averaged, then bucketed back into a color: strongly
+// green-leaning (>0.5) plays green, strongly red-leaning (<-0.5) plays red,
+// anything in between (including dead even at 0) plays yellow.
+const CONFIDENCE_VALUE = { green: 1, yellow: 0, red: -1 };
+function soundColorForAverage(avg) {
+  if (avg > 0.5) return "green";
+  if (avg < -0.5) return "red";
+  return "yellow";
+}
 
 function renderPickRevealContent(game) {
   const heading = `<h3>${TEAM_NAMES[game.away] || game.away} @ ${TEAM_NAMES[game.home] || game.home}</h3>`;
@@ -1016,7 +1024,7 @@ function renderPickRevealContent(game) {
   const sections = MARKETS.map((m) => {
     const pick = getPick(game.game_id, m.key);
     if (!pick) return "";
-    present.push(pick.color);
+    present.push(CONFIDENCE_VALUE[pick.color]);
     const sideInfo = marketSides(game, m.key).find((s) => s.side === pick.side);
     const ppId = `${game.game_id}_${m.key}_${pick.side}`;
     const star = isPossiblePlay(ppId) ? `<span class="reveal-star" title="Possible Play">&#9733;</span>` : "";
@@ -1039,7 +1047,7 @@ function renderPickRevealContent(game) {
   })
     .filter(Boolean)
     .join("");
-  const soundColor = CONFIDENCE_SOUND_PRIORITY.find((c) => present.includes(c));
+  const soundColor = present.length ? soundColorForAverage(present.reduce((a, b) => a + b, 0) / present.length) : null;
   if (!sections) return { html: `${heading}<p class="no-data-note">No picks saved for this game yet.</p>`, soundColor: null };
   return { html: `${heading}<div class="reveal-grid">${sections}</div>`, soundColor };
 }
