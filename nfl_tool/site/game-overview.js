@@ -912,17 +912,33 @@ function matrixCellText(t) {
   return `${t.win}-${t.loss}-${t.push} (${pct}${unitsStr})`;
 }
 
+// Win% coloring for Your Record -- deliberately NOT the site's usual
+// z-score-against-a-league-pool tiering (there's no league of other
+// bettors to compare against here, just win or lose). A straight 2-color
+// gradient centered on 50%: green above it, red below it, scaling toward
+// full saturation at 100%/0%, white at exactly 50% ("perfectly break
+// even"). No yellow/mid band at all -- these are real dollars, not a
+// third "meh" bucket.
+function winPctStyle(winPct) {
+  if (winPct === null || winPct === undefined || winPct === 50) return { cls: "", attr: "" };
+  const cls = winPct > 50 ? "tier-good" : "tier-bad";
+  const t = Math.abs(winPct - 50) / 50;
+  const alpha = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
+  return { cls, attr: ` style="--tier-a:${alpha.toFixed(2)}"` };
+}
+
 function renderPickMatrix(picks) {
   const m = pickMatrix(picks);
   if (picks.length === 0) return "";
+  const cellTd = (t, extraCls = "") => {
+    const { cls, attr } = winPctStyle(t.winPct);
+    return `<td class="${[extraCls, cls].filter(Boolean).join(" ")}"${attr}>${matrixCellText(t)}</td>`;
+  };
   const header = `<tr><th></th>${m.colors.map((c) => `<th>${COLOR_LABELS[c]}</th>`).join("")}<th>Total</th></tr>`;
   const rows = m.rows
-    .map(
-      (r) =>
-        `<tr><td>${MARKET_LABELS[r.market]}</td>${r.cells.map((c) => `<td>${matrixCellText(c)}</td>`).join("")}<td class="matrix-total-col">${matrixCellText(r.total)}</td></tr>`
-    )
+    .map((r) => `<tr><td>${MARKET_LABELS[r.market]}</td>${r.cells.map((c) => cellTd(c)).join("")}${cellTd(r.total, "matrix-total-col")}</tr>`)
     .join("");
-  const totalRow = `<tr class="matrix-total-row"><td>Total</td>${m.colTotals.map((c) => `<td>${matrixCellText(c)}</td>`).join("")}<td class="matrix-total-col">${matrixCellText(m.grandTotal)}</td></tr>`;
+  const totalRow = `<tr class="matrix-total-row"><td>Total</td>${m.colTotals.map((c) => cellTd(c)).join("")}${cellTd(m.grandTotal, "matrix-total-col")}</tr>`;
   return `<table class="data-table pick-matrix-table">
     <thead>${header}</thead>
     <tbody>${rows}${totalRow}</tbody>
@@ -946,6 +962,94 @@ function renderPickSummary() {
     ${renderPickMatrix(picks) || `<p class="no-data-note">No picks saved yet.</p>`}
     ${recent ? `<h3>Recent Picks</h3>${recent}` : ""}
   `;
+}
+
+// ---- Pick reveal modal (on-stream "flare" after Save Picks) ----
+// Drop 3-4 short MP3s per confidence color into site/sfx/, named
+// green-1.mp3.. green-4.mp3 (same pattern for yellow-/red-), and this picks
+// one at random the moment the modal opens -- SFX_COUNTS just needs to match
+// however many files actually exist per color. Missing files fail silently
+// (caught, ignored), so this ships safely before any files exist. Browsers
+// block autoplay-with-sound on page load, but NOT on a real user gesture --
+// this only ever fires from the Save Picks click, so no second click needed.
+const SFX_COUNTS = { green: 0, yellow: 0, red: 0 };
+function playConfidenceSound(color) {
+  const count = SFX_COUNTS[color];
+  if (!count) return;
+  const n = 1 + Math.floor(Math.random() * count);
+  new Audio(`sfx/${color}-${n}.mp3`).play().catch(() => {});
+}
+
+function ensurePickRevealModal() {
+  if (document.getElementById("pick-reveal-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "pick-reveal-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="pick-reveal-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closePickRevealModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closePickRevealModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePickRevealModal();
+  });
+}
+
+function closePickRevealModal() {
+  const el = document.getElementById("pick-reveal-modal");
+  if (el) el.hidden = true;
+}
+
+// Confidence priority for picking which sound plays when a save covers more
+// than one color at once (e.g. Spread green, Total red) -- green wins the
+// room, same instinct as leading a broadcast with your best angle.
+const CONFIDENCE_SOUND_PRIORITY = ["green", "yellow", "red"];
+
+function renderPickRevealContent(game) {
+  const heading = `<h3>${TEAM_NAMES[game.away] || game.away} @ ${TEAM_NAMES[game.home] || game.home}</h3>`;
+  const present = [];
+  const sections = MARKETS.map((m) => {
+    const pick = getPick(game.game_id, m.key);
+    if (!pick) return "";
+    present.push(pick.color);
+    const sideInfo = marketSides(game, m.key).find((s) => s.side === pick.side);
+    const ppId = `${game.game_id}_${m.key}_${pick.side}`;
+    const star = isPossiblePlay(ppId) ? `<span class="reveal-star" title="Possible Play">&#9733;</span>` : "";
+    const visual =
+      m.key === "total"
+        ? `<div class="reveal-big-text">${pick.side.toUpperCase()}</div>`
+        : `<img src="${teamLogoUrl(pick.side === "home" ? game.home : game.away)}" class="reveal-team-logo" alt="">`;
+    // Moneyline's own label already embeds the price (see marketSides) --
+    // spread/total's don't, so those get it appended separately.
+    const numberText =
+      m.key === "moneyline"
+        ? sideInfo.label
+        : `${sideInfo.label}${sideInfo.odds !== null && sideInfo.odds !== undefined ? ` (${fmtOdds(sideInfo.odds)})` : ""}`;
+    return `<div class="reveal-section pick-color-${pick.color}">
+      ${star}
+      <div class="reveal-market-label">${MARKET_LABELS[m.key]}</div>
+      ${visual}
+      <div class="reveal-number">${numberText}</div>
+    </div>`;
+  })
+    .filter(Boolean)
+    .join("");
+  const soundColor = CONFIDENCE_SOUND_PRIORITY.find((c) => present.includes(c));
+  if (!sections) return { html: `${heading}<p class="no-data-note">No picks saved for this game yet.</p>`, soundColor: null };
+  return { html: `${heading}<div class="reveal-grid">${sections}</div>`, soundColor };
+}
+
+function openPickRevealModal(game) {
+  ensurePickRevealModal();
+  const { html, soundColor } = renderPickRevealContent(game);
+  document.getElementById("pick-reveal-modal-content").innerHTML = html;
+  document.getElementById("pick-reveal-modal").hidden = false;
+  if (soundColor) playConfidenceSound(soundColor);
 }
 
 function attachPickTrackerHandlers(game) {
@@ -981,6 +1085,7 @@ function attachPickTrackerHandlers(game) {
         });
         resetDraftPicks();
         renderPickTracker(game);
+        openPickRevealModal(game);
       } else if (action === "edit") {
         const existing = getPick(game.game_id, market);
         draftPicks[market] = existing ? { side: existing.side, color: existing.color } : {};

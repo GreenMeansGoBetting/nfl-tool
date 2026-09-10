@@ -367,6 +367,44 @@ footer a { color: var(--accent); }
 }
 
 #general-odds-modal .modal-box { max-width: 640px; }
+
+.reveal-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.reveal-section {
+  flex: 1 1 120px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.reveal-section.pick-color-green { background: rgba(var(--good-rgb), 0.12); border-color: var(--good); }
+.reveal-section.pick-color-yellow { background: rgba(var(--mid-rgb), 0.12); border-color: var(--mid); }
+.reveal-section.pick-color-red { background: rgba(var(--bad-rgb), 0.12); border-color: var(--bad); }
+.reveal-market-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.reveal-team-logo { width: 64px; height: 64px; object-fit: contain; }
+.reveal-big-text { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.02em; }
+.reveal-number { font-size: 1rem; font-weight: 700; }
+.reveal-star {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: #d4a017;
+  font-size: 1rem;
+}
 .all-odds-btn {
   margin-top: 8px;
   padding: 6px 14px;
