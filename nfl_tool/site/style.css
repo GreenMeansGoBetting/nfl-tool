@@ -344,14 +344,13 @@ h3 {
 .props-rec-table, .props-rush-table, .props-pass-table {
   table-layout: fixed;
 }
-.props-rec-table { width: 462px; }
+.props-rec-table { width: 432px; }
 .props-rec-table th:first-child, .props-rec-table td:first-child { width: 200px; }
 .props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 34px; }
 .props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
 .props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
 .props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 46px; }
 .props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 60px; }
-.props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7) { width: 30px; }
 .props-rec-table td:first-child { vertical-align: top; padding-top: 5px; }
 
 .props-rush-table { width: 352px; }
@@ -373,21 +372,33 @@ h3 {
 .props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
-.route-def-table { table-layout: fixed; width: 268px; }
-.route-def-table th:first-child, .route-def-table td:first-child { width: 90px; }
-.route-def-table th:nth-child(2), .route-def-table td:nth-child(2) { width: 62px; }
-.route-def-table th:nth-child(3), .route-def-table td:nth-child(3),
-.route-def-table th:nth-child(4), .route-def-table td:nth-child(4) { width: 58px; }
+.route-map-teams {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.route-map-side {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex: 1;
+}
+.route-map-table { table-layout: fixed; width: 336px; }
+.route-map-table th:first-child, .route-map-table td:first-child { width: 90px; }
+.route-map-table th:nth-child(2), .route-map-table td:nth-child(2) { width: 50px; }
+.route-map-table th:nth-child(3), .route-map-table td:nth-child(3) { width: 62px; }
+.route-map-table th:nth-child(4), .route-map-table td:nth-child(4),
+.route-map-table th:nth-child(5), .route-map-table td:nth-child(5) { width: 58px; }
 .route-rank {
   display: block;
   font-size: 0.62rem;
   font-weight: 400;
   color: var(--muted);
 }
-
-.route-usage-table { table-layout: fixed; width: 160px; }
-.route-usage-table th:first-child, .route-usage-table td:first-child { width: 105px; }
-.route-usage-table th:nth-child(2), .route-usage-table td:nth-child(2) { width: 55px; }
 
 .player-name { font-weight: 600; }
 .player-routes {

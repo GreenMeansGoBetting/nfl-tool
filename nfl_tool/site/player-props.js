@@ -124,68 +124,48 @@ function routeDefenseCell(defTeam, statKey, opts = {}) {
   return `<td class="num ${cls}"${alpha}>${display}${rankHtml}</td>`;
 }
 
-// Full route-by-route defensive profile for one team -- every route type
-// (not just a player's own top 3), so a defense's specific soft spots (e.g.
-// "fine everywhere except Hitch/Curl") show up even for a route none of
-// the shown players happen to lean on. Meant to sit right next to the
-// OPPOSING team's Receiving table (that team's players are the ones who'll
-// actually test this profile). Sorted worst-to-best by success rate allowed
-// EVERY time (not a fixed route order) -- the point is a scannable "map":
-// the softest matchup route is always the first row.
-function renderRouteDefenseTable(defTeam) {
-  const sortedRoutes = ROUTE_TYPES.slice().sort((a, b) => {
-    const va = DATA.team_stats[defTeam][`success_allowed_${routeStatKey(a)}`];
-    const vb = DATA.team_stats[defTeam][`success_allowed_${routeStatKey(b)}`];
-    if (va === null || va === undefined) return 1;
-    if (vb === null || vb === undefined) return -1;
-    return vb - va;
-  });
-  const rows = sortedRoutes.map((route) => {
-    const key = routeStatKey(route);
-    const label = ROUTE_LABELS[route] || route;
-    return `<tr>
-      <td>${label}</td>
-      ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true, showRank: true })}
-      ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
-      ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true })}
-    </tr>`;
-  }).join("");
-  return `${teamBannerHeader(defTeam)}
-    <p class="section-note">How ${defTeam} defends each route, worst matchup first ("--" = too few charted plays yet).</p>
-    <table class="data-table route-def-table">
-      <thead><tr><th>Route</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
-// Team's own OFFENSE route mix -- how much this team leans on each route,
-// sorted most- to least-used so the identity reads at a glance. Also
-// tinted by how that SAME route's usage compares to the OTHER 31 teams'
-// usage of it (not this team's other routes) -- not a good/bad judgment,
-// just a "notably more/less than league average" magnitude signal, same
-// non-judgmental convention bucketShareTier already uses for offense-side
-// shares elsewhere on the site (e.g. TD Position/Distance tables).
-function renderRouteUsageTable(team) {
-  const rows = ROUTE_TYPES.map((route) => ({
+// One row per route: offTeam's own usage share next to defTeam's allowed
+// numbers for that EXACT route -- one merged table instead of two separate
+// ones, so "what this offense likes to do" and "how this defense handles
+// it" read as a single map. Sorted by OFF usage (most-used route first,
+// not by defensive vulnerability) since the point is "here's what they'll
+// probably do, and here's how it goes against this defense" -- usage
+// drives the order, defense numbers just ride along per route.
+function renderRouteMapTable(offTeam, defTeam) {
+  const sortedRoutes = ROUTE_TYPES.map((route) => ({
     route,
-    rate: DATA.team_stats[team][`route_rate_${routeStatKey(route)}`],
+    usage: DATA.team_stats[offTeam][`route_rate_${routeStatKey(route)}`],
   }))
-    .filter((r) => r.rate !== null && r.rate !== undefined)
-    .sort((a, b) => b.rate - a.rate)
-    .map((r) => {
-      const key = `route_rate_${routeStatKey(r.route)}`;
-      const pool = teamsWithGames()
-        .map((t) => DATA.team_stats[t][key])
+    .filter((r) => r.usage !== null && r.usage !== undefined)
+    .sort((a, b) => b.usage - a.usage);
+
+  const rows = sortedRoutes
+    .map(({ route, usage }) => {
+      const key = routeStatKey(route);
+      const usagePool = teamsWithGames()
+        .map((t) => DATA.team_stats[t][`route_rate_${key}`])
         .filter((v) => v !== null && v !== undefined);
-      const cls = percentileTier(r.rate, pool, false);
-      const alpha = tierAlphaAttr(r.rate, pool, false);
-      return `<tr><td>${ROUTE_LABELS[r.route] || r.route}</td><td class="num ${cls}"${alpha}>${Math.round(r.rate * 100)}%</td></tr>`;
+      const usageCls = percentileTier(usage, usagePool, false);
+      const usageAlpha = tierAlphaAttr(usage, usagePool, false);
+      return `<tr>
+        <td>${ROUTE_LABELS[route] || route}</td>
+        <td class="num ${usageCls}"${usageAlpha}>${Math.round(usage * 100)}%</td>
+        ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true, showRank: true })}
+        ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
+        ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true })}
+      </tr>`;
     })
     .join("");
-  return `${teamBannerHeader(team)}
-    <p class="section-note">${team}'s own route usage vs. league average for that route, most-used first.</p>
-    <table class="data-table route-usage-table">
-      <thead><tr><th>Route</th><th class="num">Usage</th></tr></thead>
+
+  const offRgb = teamAccentRgb(offTeam);
+  const defRgb = teamAccentRgb(defTeam);
+  return `<div class="route-map-teams">
+      <span class="route-map-side" style="background:rgba(${offRgb.join(",")},0.16)">${teamLogoMini(offTeam)} ${offTeam} usage</span>
+      <span class="route-map-side" style="background:rgba(${defRgb.join(",")},0.16)">${teamLogoMini(defTeam)} ${defTeam} defends</span>
+    </div>
+    <p class="section-note">${offTeam}'s own route mix, most-used first, next to how ${defTeam} defends that exact route ("--" = too few charted plays yet).</p>
+    <table class="data-table route-map-table">
+      <thead><tr><th>Route</th><th class="num">Usage</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -200,7 +180,6 @@ function renderReceivingTable(team, oppTeam) {
   }
   const rows = players
     .map((p) => {
-      const allowedKey = `rec_yards_allowed_${p.position.toLowerCase()}_per_g`;
       return `<tr>
         <td><div class="player-name">${p.name}</div>${routeChipsHtml(p, oppTeam)}</td>
         <td>${p.position}</td>
@@ -208,13 +187,12 @@ function renderReceivingTable(team, oppTeam) {
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_yards_per_g, 1)}</td>
         <td class="num">${p.catch_rate != null ? Math.round(p.catch_rate * 100) + "%" : "--"}</td>
-        ${playerAdvCell(p, oppTeam, "rec_yards_per_g", allowedKey)}
       </tr>`;
     })
     .join("");
   return `${teamBannerHeader(team)}
     <table class="data-table props-rec-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Tgt/g</th><th class="num">Rec/g</th><th class="num">Yds/g</th><th class="num">Ctch%</th><th class="edge-hdr">ADV</th></tr></thead>
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Tgt/g</th><th class="num">Rec/g</th><th class="num">Yds/g</th><th class="num">Ctch%</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -303,12 +281,10 @@ function render() {
   emptyEl.hidden = true;
   sectionEls.forEach((el) => (el.hidden = false));
 
-  document.getElementById("col-away-routeusage").innerHTML = renderRouteUsageTable(away);
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTable(away, home);
-  document.getElementById("col-home-routedef").innerHTML = renderRouteDefenseTable(home);
-  document.getElementById("col-home-routeusage").innerHTML = renderRouteUsageTable(home);
+  document.getElementById("col-away-routemap").innerHTML = renderRouteMapTable(away, home);
   document.getElementById("col-home-receiving").innerHTML = renderReceivingTable(home, away);
-  document.getElementById("col-away-routedef").innerHTML = renderRouteDefenseTable(away);
+  document.getElementById("col-home-routemap").innerHTML = renderRouteMapTable(home, away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);
   document.getElementById("col-away-passing").innerHTML = renderPassingTable(away, home);
