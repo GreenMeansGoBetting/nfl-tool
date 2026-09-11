@@ -400,7 +400,7 @@ function renderTdPossiblePlaysList(away, home) {
     .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
     .map(
       (p) =>
-        `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-odds">${p.odds}</span></div>`
+        `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${p.odds}</span></div>`
     )
     .join("");
   els.forEach((el) => (el.innerHTML = html));

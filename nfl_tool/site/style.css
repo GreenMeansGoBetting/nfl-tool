@@ -503,6 +503,13 @@ footer a { color: var(--accent); }
 }
 .td-pp-row:last-child { border-bottom: none; }
 .td-pp-desc { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-pp-category {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-style: italic;
+  white-space: nowrap;
+}
 .td-pp-odds { flex: 0 0 auto; font-weight: 700; }
 
 #general-odds-modal .modal-box { max-width: 640px; }
