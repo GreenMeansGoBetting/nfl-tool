@@ -57,6 +57,210 @@ document.addEventListener("click", (e) => {
   renderPossiblePlays();
 });
 
+// ---- Grading ----
+// Auto-grades every saved play win/loss/push once data.json has the final
+// score (Spread/Total/Moneyline, sourced from game-overview.js) or that
+// week's scoring data (Anytime TD/First TD, sourced from common.js's odds
+// modal) -- these are the only two shapes of entry anything on the site
+// ever adds to Possible Plays. A manual override (win/loss/void, from the
+// Results modal below) always wins over a later auto re-grade, since a
+// name-format mismatch between SGO's odds names and nflverse's play-by-play
+// names is a known, accepted limitation everywhere else this site joins
+// the two sources (see build_roster_position_lookup's docstring).
+const GAME_LINE_CATEGORIES = { Spread: "spread", Total: "total", Moneyline: "moneyline" };
+
+// game_overview.js builds ids as "<game_id>_<market>_<side>", and game_id
+// itself contains underscores (e.g. "2025_01_KC_LAC") -- splitting on the
+// known "_<market>_" substring instead of a naive split keeps the game_id
+// intact.
+function parseGameLineId(id, marketKey) {
+  const suffix = `_${marketKey}_`;
+  const idx = id.indexOf(suffix);
+  if (idx === -1) return null;
+  return { gameId: id.slice(0, idx), side: id.slice(idx + suffix.length) };
+}
+
+function gradeGameLinePlay(play, schedule) {
+  const marketKey = GAME_LINE_CATEGORIES[play.category];
+  if (!marketKey) return null;
+  const parsed = parseGameLineId(play.id, marketKey);
+  if (!parsed) return null;
+  const game = (schedule || []).find((g) => g.game_id === parsed.gameId);
+  if (!game || game.away_score == null || game.home_score == null) return null;
+
+  if (marketKey === "moneyline") {
+    if (game.home_score === game.away_score) return "push";
+    const winner = game.home_score > game.away_score ? "home" : "away";
+    return parsed.side === winner ? "win" : "loss";
+  }
+  const lineMatch = play.description.match(/([+-]?[\d.]+)\s*$/);
+  const line = lineMatch ? parseFloat(lineMatch[1]) : null;
+  if (line === null) return null;
+  if (marketKey === "total") {
+    const total = game.away_score + game.home_score;
+    if (total === line) return "push";
+    const over = total > line;
+    return parsed.side === "over" ? (over ? "win" : "loss") : over ? "loss" : "win";
+  }
+  // spread -- description's trailing number is already signed from the
+  // picked side's own perspective (build_stats.py's away/home_team_spread).
+  const ownScore = parsed.side === "home" ? game.home_score : game.away_score;
+  const oppScore = parsed.side === "home" ? game.away_score : game.home_score;
+  const margin = ownScore - oppScore + line;
+  return margin > 0 ? "win" : margin < 0 ? "loss" : "push";
+}
+
+function gradeTdPlay(play, tdResults) {
+  const weekResults = (tdResults || {})[play.week];
+  const teamResults = weekResults && weekResults[play.team];
+  if (!teamResults) return null;
+  const field = play.category === "First TD" ? "first_td" : "any_td";
+  return teamResults[field].includes(play.description) ? "win" : "loss";
+}
+
+function autoGradePlay(play, data) {
+  if (play.category === "Anytime TD" || play.category === "First TD") {
+    return gradeTdPlay(play, data.player_td_results);
+  }
+  if (GAME_LINE_CATEGORIES[play.category]) {
+    return gradeGameLinePlay(play, data.schedule);
+  }
+  return null;
+}
+
+function regradeAllPossiblePlays(data) {
+  if (!data) return loadPossiblePlays();
+  const plays = loadPossiblePlays();
+  let changed = false;
+  const updated = plays.map((p) => {
+    if (p.result_source === "manual") return p;
+    const result = autoGradePlay(p, data);
+    if (result && result !== p.result) {
+      changed = true;
+      return { ...p, result, result_source: "auto" };
+    }
+    return p;
+  });
+  if (changed) savePossiblePlays(updated);
+  return updated;
+}
+
+// Clicking the same active manual override again clears it, falling back
+// to auto-grading (re-run right after) rather than leaving no way to undo
+// a manual call.
+function setManualResult(id, result) {
+  const plays = loadPossiblePlays();
+  const updated = plays.map((p) => {
+    if (p.id !== id) return p;
+    if (p.result_source === "manual" && p.result === result) {
+      const { result: _r, result_source: _rs, ...rest } = p;
+      return rest;
+    }
+    return { ...p, result, result_source: "manual" };
+  });
+  savePossiblePlays(updated);
+}
+
+const RESULT_LABELS = { win: "Win", loss: "Loss", push: "Push", void: "Void" };
+
+function tallyResults(list) {
+  const win = list.filter((p) => p.result === "win").length;
+  const loss = list.filter((p) => p.result === "loss").length;
+  const push = list.filter((p) => p.result === "push").length;
+  const voidCt = list.filter((p) => p.result === "void").length;
+  const pending = list.filter((p) => !p.result).length;
+  const decided = win + loss;
+  return { win, loss, push, void: voidCt, pending, winPct: decided ? Math.round((win / decided) * 100) : null };
+}
+
+function ensureResultsModal() {
+  if (document.getElementById("results-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "results-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box results-modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="results-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeResultsModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeResultsModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeResultsModal();
+  });
+}
+function closeResultsModal() {
+  const el = document.getElementById("results-modal");
+  if (el) el.hidden = true;
+}
+
+function renderResultsModalContent() {
+  const plays = loadPossiblePlays();
+  if (!plays.length) {
+    return `<h3>Possible Plays &mdash; Results</h3><p class="no-data-note">Nothing saved yet.</p>`;
+  }
+  const t = tallyResults(plays);
+  const pushVoid = t.push + t.void;
+  const summary = `<p class="results-summary">${t.win}-${t.loss}-${pushVoid}${t.winPct !== null ? ` <span class="muted-label">(${t.winPct}%)</span>` : ""}${t.pending ? ` <span class="muted-label">&middot; ${t.pending} pending</span>` : ""}</p>`;
+
+  const byWeek = {};
+  plays.forEach((p) => (byWeek[p.week] = byWeek[p.week] || []).push(p));
+  const weeks = Object.keys(byWeek).map(Number).sort((a, b) => b - a);
+
+  const sections = weeks
+    .map((week) => {
+      const rows = byWeek[week]
+        .slice()
+        .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
+        .map((p) => {
+          const resultLabel = p.result ? RESULT_LABELS[p.result] : "Pending";
+          const overrideBtns = ["win", "loss", "void"]
+            .map((r) => `<button type="button" class="result-override-btn${p.result === r && p.result_source === "manual" ? " active" : ""}" data-id="${p.id}" data-result="${r}">${RESULT_LABELS[r]}</button>`)
+            .join("");
+          return `<tr class="result-row-${p.result || "pending"}">
+            <td>${p.matchup}</td>
+            <td>${p.category}</td>
+            <td>${p.team ? teamLogoMini(p.team) : ""} ${p.description}</td>
+            <td class="num">${p.odds}</td>
+            <td><span class="pick-result pick-result-${p.result || "pending"}">${resultLabel}</span></td>
+            <td class="result-override-group">${overrideBtns}</td>
+          </tr>`;
+        })
+        .join("");
+      return `<div class="section-wrap">
+        <h2 class="section-title">Week ${week}</h2>
+        <table class="data-table results-table">
+          <thead><tr><th>Matchup</th><th>Type</th><th>Play</th><th>Odds</th><th>Result</th><th>Override</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    })
+    .join("");
+
+  return `<h3>Possible Plays &mdash; Results</h3>${summary}${sections}`;
+}
+
+function openResultsModal() {
+  ensureResultsModal();
+  regradeAllPossiblePlays(DATA);
+  document.getElementById("results-modal-content").innerHTML = renderResultsModalContent();
+  document.getElementById("results-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const overrideBtn = e.target.closest(".result-override-btn");
+  if (!overrideBtn) return;
+  setManualResult(overrideBtn.dataset.id, overrideBtn.dataset.result);
+  regradeAllPossiblePlays(DATA);
+  document.getElementById("results-modal-content").innerHTML = renderResultsModalContent();
+  renderPossiblePlays();
+});
+
+document.getElementById("view-results-btn").addEventListener("click", openResultsModal);
+
 function renderPossiblePlays() {
   const plays = loadPossiblePlays();
   const emptyEl = document.getElementById("empty-state");
@@ -88,12 +292,14 @@ function renderPossiblePlays() {
         .map((p) => {
           const pct = oddsToImpliedPct(p.odds);
           const checked = wheelSelected.has(p.id) ? " checked" : "";
+          const resultLabel = p.result ? RESULT_LABELS[p.result] : "Pending";
           return `<tr>
             <td><input type="checkbox" class="wheel-select" data-id="${p.id}"${checked}></td>
             <td>${p.matchup}</td>
             <td>${p.category}</td>
             <td>${p.team ? teamLogoMini(p.team) : ""} ${p.description}</td>
             <td class="num">${p.odds}${pct !== null ? ` <span class="muted-label">(${pct}%)</span>` : ""}${p.book ? ` <span class="muted-label">(${p.book})</span>` : ""}</td>
+            <td><span class="pick-result pick-result-${p.result || "pending"}">${resultLabel}</span></td>
             <td><button type="button" class="pick-edit-btn" data-remove-id="${p.id}">Remove</button></td>
           </tr>`;
         })
@@ -101,7 +307,7 @@ function renderPossiblePlays() {
       return `<div class="section-wrap">
         <h2 class="section-title">Week ${week}</h2>
         <table class="data-table possible-plays-table">
-          <thead><tr><th></th><th>Matchup</th><th>Type</th><th>Play</th><th>Odds</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Matchup</th><th>Type</th><th>Play</th><th>Odds</th><th>Result</th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
@@ -317,4 +523,18 @@ document.getElementById("open-wheel-btn").addEventListener("click", () => {
   openWheelModal(chosen);
 });
 
+// This page normally reads localStorage only (see file-top comment), but
+// grading needs the schedule's final scores and that week's TD scoring
+// data, both of which only live in data.json -- so this is the one place
+// on this page that fetches it. Render immediately off localStorage first
+// (so the list isn't blank while the fetch is in flight), then re-render
+// once graded.
 renderPossiblePlays();
+fetch("data.json")
+  .then((r) => r.json())
+  .then((data) => {
+    DATA = data;
+    regradeAllPossiblePlays(DATA);
+    renderPossiblePlays();
+  })
+  .catch((err) => console.error("Couldn't load data.json for grading:", err));

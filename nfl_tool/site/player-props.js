@@ -363,6 +363,7 @@ let propsModalTeams = null;
 function openPropsModal(awayTeam, homeTeam) {
   ensurePropsModal();
   propsModalTeams = { away: awayTeam, home: homeTeam };
+  playerModalState = null;
   document.getElementById("props-modal-content").innerHTML = renderPropsModalContent(awayTeam, homeTeam);
   document.getElementById("props-modal").hidden = false;
 }
@@ -404,12 +405,56 @@ function renderPlayerMarketsModalContent(team, name) {
     </table>`;
 }
 
+// Which player modal is open and whether it's showing the odds view or the
+// game log -- a small toggle bar re-renders just the body in place, same
+// "stay open, swap content" pattern as the market-select dropdown above.
+let playerModalState = null;
+
+function renderPlayerGameLogContent(team, name) {
+  const rows = ((DATA.player_game_logs || {})[team] || {})[name] || [];
+  const heading = `<h3>${name} <span class="muted-label">(${team})</span> &mdash; Game Log</h3>`;
+  if (!rows.length) {
+    return `${heading}<p class="no-data-note">No game logs recorded for this player yet.</p>`;
+  }
+  const body = rows
+    .map((r) => {
+      const passing = r.pass_att > 0 ? `${r.completions}/${r.pass_att}, ${fmt(r.pass_yards, 0)} yds, ${r.pass_td} TD, ${r.interceptions} INT` : "--";
+      const rushing = r.carries > 0 ? `${r.carries} car, ${fmt(r.rush_yards, 0)} yds, ${r.rush_td} TD` : "--";
+      const receiving = r.targets > 0 ? `${r.receptions}/${r.targets} tgt, ${fmt(r.rec_yards, 0)} yds, ${r.rec_td} TD` : "--";
+      return `<tr><td>${r.week}</td><td>${teamLogoMini(r.opp)} ${r.opp}</td><td>${passing}</td><td>${rushing}</td><td>${receiving}</td></tr>`;
+    })
+    .join("");
+  return `${heading}
+    <table class="data-table player-odds-table game-log-table">
+      <thead><tr><th>Wk</th><th>Opp</th><th>Passing</th><th>Rushing</th><th>Receiving</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function renderPlayerModalShell() {
+  const { team, name, view } = playerModalState;
+  const bodyHtml = view === "gamelog" ? renderPlayerGameLogContent(team, name) : renderPlayerMarketsModalContent(team, name);
+  return `<div class="player-modal-toggle">
+      <button type="button" class="player-modal-toggle-btn${view === "odds" ? " active" : ""}" data-view="odds">Odds</button>
+      <button type="button" class="player-modal-toggle-btn${view === "gamelog" ? " active" : ""}" data-view="gamelog">Game Log</button>
+    </div>
+    <div id="player-modal-body">${bodyHtml}</div>`;
+}
+
 function openPlayerMarketsModal(team, name) {
   ensurePropsModal();
   propsModalTeams = null; // no market dropdown in this view -- keeps the OTHER change handler from acting on stale state
-  document.getElementById("props-modal-content").innerHTML = renderPlayerMarketsModalContent(team, name);
+  playerModalState = { team, name, view: "odds" };
+  document.getElementById("props-modal-content").innerHTML = renderPlayerModalShell();
   document.getElementById("props-modal").hidden = false;
 }
+
+document.addEventListener("click", (e) => {
+  const toggleBtn = e.target.closest(".player-modal-toggle-btn");
+  if (!toggleBtn || !playerModalState) return;
+  playerModalState.view = toggleBtn.dataset.view;
+  document.getElementById("props-modal-content").innerHTML = renderPlayerModalShell();
+});
 
 // Every player on this team with ANY charted targets on this route -- not
 // just whoever's top-3 chip happens to show it (a route can be a soft spot
@@ -450,6 +495,7 @@ function renderRouteReceiversModalContent(team, route) {
 function openRouteReceiversModal(team, route) {
   ensurePropsModal();
   propsModalTeams = null;
+  playerModalState = null;
   document.getElementById("props-modal-content").innerHTML = renderRouteReceiversModalContent(team, route);
   document.getElementById("props-modal").hidden = false;
 }
@@ -485,6 +531,40 @@ document.addEventListener("change", (e) => {
 
 const ALL_SECTIONS = ["receiving", "rushing", "passing"];
 
+// ---- Receiving/Rushing/Passing tabs -- same view-toggle pattern as TD
+// Data's Season/First TD toggle, just three panels instead of two, and all
+// three panels live flat (no separate readiness wrapper) since a single
+// currentPropsView already covers both "which tab" and "what's visible".
+const PROPS_VIEW_KEY = "nfl-tool.props-view.v1";
+let currentPropsView = "receiving";
+
+function loadSavedPropsView() {
+  try {
+    return localStorage.getItem(PROPS_VIEW_KEY) || "receiving";
+  } catch (e) {
+    return "receiving";
+  }
+}
+
+function setActivePropsView(view) {
+  currentPropsView = view;
+  ALL_SECTIONS.forEach((s) => {
+    document.getElementById(`section-${s}`).hidden = s !== view;
+  });
+  document.querySelectorAll(".props-view-toggle-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.view === view);
+  });
+  try {
+    localStorage.setItem(PROPS_VIEW_KEY, view);
+  } catch (e) {
+    // localStorage unavailable -- toggle just won't stick across reloads.
+  }
+}
+
+document.querySelectorAll(".props-view-toggle-btn").forEach((btn) => {
+  btn.addEventListener("click", () => setActivePropsView(btn.dataset.view));
+});
+
 function render() {
   const away = document.getElementById("away-select").value;
   const home = document.getElementById("home-select").value;
@@ -510,7 +590,7 @@ function render() {
     return;
   }
   emptyEl.hidden = true;
-  sectionEls.forEach((el) => (el.hidden = false));
+  setActivePropsView(currentPropsView);
 
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTable(away, home);
   document.getElementById("col-away-routemap").innerHTML = renderRouteMapTable(away, home);
@@ -542,6 +622,7 @@ fetch("data.json")
     DATA = data;
     populateSelects();
     initScheduleScroller(render);
+    setActivePropsView(loadSavedPropsView());
     render();
   })
   .catch((err) => {

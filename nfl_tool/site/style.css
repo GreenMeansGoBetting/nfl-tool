@@ -653,6 +653,21 @@ footer a { color: var(--accent); }
   margin: 8px 0 12px;
   font-weight: 700;
 }
+.player-modal-toggle { display: flex; gap: 8px; margin: 8px 0 12px; }
+.player-modal-toggle-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--muted);
+}
+.player-modal-toggle-btn:hover { color: var(--text); border-color: var(--accent); }
+.player-modal-toggle-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+.game-log-table td { font-size: 0.82rem; }
 .props-market-table .props-line { font-weight: 700; }
 .td-breakdown-group { margin-bottom: 14px; }
 .td-breakdown-group:last-child { margin-bottom: 0; }
@@ -1011,8 +1026,29 @@ footer a { color: var(--accent); }
 }
 .pick-result-win { background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
 .pick-result-loss { background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); }
-.pick-result-push { background: rgba(107, 112, 98, 0.18); color: var(--text); }
+.pick-result-push, .pick-result-void { background: rgba(107, 112, 98, 0.18); color: var(--text); }
 .pick-result-pending { background: var(--table-head); color: var(--muted); }
+
+.results-bar { margin: 8px 0; }
+#results-modal .modal-box { max-width: 760px; }
+.results-summary { font-size: 1rem; font-weight: 700; margin: 4px 0 16px; }
+.results-table .result-override-group { display: flex; gap: 4px; }
+.result-override-btn {
+  background: var(--panel);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.result-override-btn:hover { border-color: var(--accent); color: var(--text); }
+.result-override-btn.active[data-result="win"] { background: rgba(var(--good-rgb), 0.22); border-color: var(--good); color: var(--good-text); }
+.result-override-btn.active[data-result="loss"] { background: rgba(var(--bad-rgb), 0.22); border-color: var(--bad); color: var(--bad-text); }
+.result-override-btn.active[data-result="void"] { background: rgba(107, 112, 98, 0.22); border-color: var(--muted); color: var(--text); }
+.result-row-win td { background: rgba(var(--good-rgb), 0.06); }
+.result-row-loss td { background: rgba(var(--bad-rgb), 0.06); }
 
 .pick-summary-row, .pick-recent-row {
   display: flex;

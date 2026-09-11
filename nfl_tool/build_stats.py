@@ -936,6 +936,7 @@ def compute_first_td_per_game(pbp: pd.DataFrame, pos_lookup):
             "play_id": row["play_id"],
             "drive": row["drive"],
             "is_offense_td": bool(is_offense_td),
+            "week": int(week) if pd.notna(week) else None,
         }
     return result
 
@@ -1815,6 +1816,119 @@ def build_player_stats(scoring_df, first_td_by_game, teams, target_ranks):
     return by_team
 
 
+def compute_player_td_results(scoring_df, first_td_by_game) -> dict:
+    """Per (week, team): full names that scored an offensive TD ("any_td")
+    and whoever scored that game's very first TD ("first_td") -- lets the
+    Possible Plays page auto-grade saved Anytime TD / First TD plays once a
+    week's pbp data is in. Keyed by full_name, NOT gsis_id, since that's the
+    only join key a saved play has (SGO's own odds rows carry a name, no
+    gsis_id -- same limitation build_roster_position_lookup already
+    documents); a handful of name-format mismatches are possible, same
+    accepted tradeoff as everywhere else that joins across the two sources.
+    """
+    results = {}
+
+    def bucket(week, team):
+        if week is None or pd.isna(week) or not team:
+            return None
+        week = int(week)
+        results.setdefault(week, {})
+        results[week].setdefault(team, {"any_td": [], "first_td": []})
+        return results[week][team]
+
+    off_scores = scoring_df[scoring_df["td_type"].isin(["pass", "rush"])]
+    for _, row in off_scores.iterrows():
+        name = row["scorer_name"]
+        if not name or pd.isna(name):
+            continue
+        b = bucket(row["week"], row["scoring_team"])
+        if b is not None and name not in b["any_td"]:
+            b["any_td"].append(name)
+
+    for info in first_td_by_game.values():
+        if not info.get("is_offense_td") or not info.get("player_name"):
+            continue
+        b = bucket(info.get("week"), info.get("team"))
+        if b is not None and info["player_name"] not in b["first_td"]:
+            b["first_td"].append(info["player_name"])
+
+    return results
+
+
+def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Per-game (not season-total) stat lines for every skill player with a
+    qualifying snap that week -- powers the Player Props modal's "Game Log"
+    view. Keyed by (team, full_name), the same pos_lookup-derived name used
+    to join build_player_props' own rows, so a click from either the props
+    table or the odds modal resolves to the same player."""
+    scrimmage = pbp[pbp["two_point_attempt"] != 1]
+    targets = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["receiver_player_id"])
+    rushes = scrimmage[scrimmage["rush_attempt"] == 1].dropna(subset=["rusher_player_id"])
+    dropbacks = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["passer_player_id"])
+
+    logs = {}
+
+    def ensure(pid, team, week, opp):
+        pos, _, name = pos_lookup(pid, week)
+        if not name:
+            return None
+        key = (team, name)
+        by_week = logs.setdefault(key, {})
+        return by_week.setdefault(
+            int(week),
+            {
+                "week": int(week),
+                "opp": opp,
+                "targets": 0, "receptions": 0, "rec_yards": 0.0, "rec_td": 0,
+                "carries": 0, "rush_yards": 0.0, "rush_td": 0,
+                "pass_att": 0, "completions": 0, "pass_yards": 0.0, "pass_td": 0, "interceptions": 0,
+            },
+        )
+
+    for row in targets.itertuples(index=False):
+        g = ensure(row.receiver_player_id, row.posteam, row.week, row.defteam)
+        if g is None:
+            continue
+        g["targets"] += 1
+        if row.complete_pass == 1:
+            g["receptions"] += 1
+            g["rec_yards"] += row.yards_gained
+            if row.pass_touchdown == 1:
+                g["rec_td"] += 1
+
+    for row in rushes.itertuples(index=False):
+        g = ensure(row.rusher_player_id, row.posteam, row.week, row.defteam)
+        if g is None:
+            continue
+        g["carries"] += 1
+        g["rush_yards"] += row.yards_gained
+        if row.rush_touchdown == 1:
+            g["rush_td"] += 1
+
+    for row in dropbacks.itertuples(index=False):
+        g = ensure(row.passer_player_id, row.posteam, row.week, row.defteam)
+        if g is None:
+            continue
+        g["pass_att"] += 1
+        if row.complete_pass == 1:
+            g["completions"] += 1
+            g["pass_yards"] += row.yards_gained
+            if row.pass_touchdown == 1:
+                g["pass_td"] += 1
+        if row.interception == 1:
+            g["interceptions"] += 1
+
+    out = {}
+    for (team, name), by_week in logs.items():
+        rows = sorted(by_week.values(), key=lambda r: -r["week"])
+        for r in rows:
+            r["rush_yards"] = round(r["rush_yards"], 0)
+            r["rec_yards"] = round(r["rec_yards"], 0)
+            r["pass_yards"] = round(r["pass_yards"], 0)
+        out.setdefault(team, {})[name] = rows
+    return out
+
+
 # ---- Player Props ----
 # Volume/efficiency (targets, carries, pass attempts and what they turned
 # into) plus route-tree matchup context -- distinct from player_stats above,
@@ -2102,6 +2216,7 @@ def main():
         teams,
     )
     player_stats = build_player_stats(scoring_df, first_td_by_game, teams, target_ranks)
+    player_td_results = compute_player_td_results(scoring_df, first_td_by_game)
 
     scheme_splits = compute_scheme_splits(pbp, participation, teams)
     for team in teams:
@@ -2114,6 +2229,7 @@ def main():
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))
     player_props = build_player_props(volume_players, player_route_profiles, teams)
+    player_game_logs = compute_player_game_logs(pbp, pos_lookup)
 
     # One team-level schedule-strength number (not per condition -- see
     # compute_scheme_splits' docstring for why), reusing recent_games'
@@ -2174,6 +2290,8 @@ def main():
         "team_stats": team_stats,
         "player_stats": player_stats,
         "player_props": player_props,
+        "player_game_logs": player_game_logs,
+        "player_td_results": player_td_results,
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,
