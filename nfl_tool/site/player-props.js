@@ -410,25 +410,86 @@ function renderPlayerMarketsModalContent(team, name) {
 // "stay open, swap content" pattern as the market-select dropdown above.
 let playerModalState = null;
 
+// One stat-type table (Passing/Rushing/Receiving), header + rows straight
+// down -- separate tables instead of one row cramming all three together,
+// so each stat gets its own labeled column and a QB's passing line doesn't
+// need to squeeze next to two columns of "--" for a position that never
+// touches the ball as a rusher/receiver most weeks.
+function renderGameLogSection(title, headers, rows, rowFn) {
+  const headHtml = headers.map((h, i) => `<th${i >= 2 ? ' class="num"' : ""}>${h}</th>`).join("");
+  const body = rows
+    .map((r) => {
+      const cells = rowFn(r);
+      return `<tr>${cells.map((c, i) => `<td${i >= 2 ? ' class="num"' : ""}>${c}</td>`).join("")}</tr>`;
+    })
+    .join("");
+  return `<div class="game-log-section">
+    <h4 class="game-log-section-title">${title}</h4>
+    <table class="data-table player-odds-table game-log-table">
+      <thead><tr>${headHtml}</tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+  </div>`;
+}
+
 function renderPlayerGameLogContent(team, name) {
   const rows = ((DATA.player_game_logs || {})[team] || {})[name] || [];
   const heading = `<h3>${name} <span class="muted-label">(${team})</span> &mdash; Game Log</h3>`;
   if (!rows.length) {
     return `${heading}<p class="no-data-note">No game logs recorded for this player yet.</p>`;
   }
-  const body = rows
-    .map((r) => {
-      const passing = r.pass_att > 0 ? `${r.completions}/${r.pass_att}, ${fmt(r.pass_yards, 0)} yds, ${r.pass_td} TD, ${r.interceptions} INT` : "--";
-      const rushing = r.carries > 0 ? `${r.carries} car, ${fmt(r.rush_yards, 0)} yds, ${r.rush_td} TD` : "--";
-      const receiving = r.targets > 0 ? `${r.receptions}/${r.targets} tgt, ${fmt(r.rec_yards, 0)} yds, ${r.rec_td} TD` : "--";
-      return `<tr><td>${r.week}</td><td>${teamLogoMini(r.opp)} ${r.opp}</td><td>${passing}</td><td>${rushing}</td><td>${receiving}</td></tr>`;
-    })
-    .join("");
-  return `${heading}
-    <table class="data-table player-odds-table game-log-table">
-      <thead><tr><th>Wk</th><th>Opp</th><th>Passing</th><th>Rushing</th><th>Receiving</th></tr></thead>
-      <tbody>${body}</tbody>
-    </table>`;
+
+  // Passing only for QBs -- a position, not "did they ever throw one pass"
+  // (a wildcat/trick-play completion shouldn't earn a skill player a
+  // Passing section). Position comes from the same player_props row this
+  // modal's own Odds view is keyed against.
+  const position = (DATA.player_props[team] || []).find((p) => p.name === name)?.position;
+  const weekCell = (r) => [r.week, `${teamLogoMini(r.opp)} ${r.opp}`];
+
+  const sections = [];
+  if (position === "QB") {
+    const passRows = rows.filter((r) => r.pass_att > 0);
+    if (passRows.length) {
+      sections.push(
+        renderGameLogSection("Passing", ["Wk", "Opp", "Att", "Cmp", "Yds", "TD", "INT"], passRows, (r) => [
+          ...weekCell(r),
+          r.pass_att,
+          r.completions,
+          fmt(r.pass_yards, 0),
+          r.pass_td,
+          r.interceptions,
+        ])
+      );
+    }
+  }
+  const rushRows = rows.filter((r) => r.carries > 0);
+  if (rushRows.length) {
+    sections.push(
+      renderGameLogSection("Rushing", ["Wk", "Opp", "Car", "Yds", "TD"], rushRows, (r) => [
+        ...weekCell(r),
+        r.carries,
+        fmt(r.rush_yards, 0),
+        r.rush_td,
+      ])
+    );
+  }
+  const recRows = rows.filter((r) => r.targets > 0);
+  if (recRows.length) {
+    sections.push(
+      renderGameLogSection("Receiving", ["Wk", "Opp", "Tgt", "Rec", "Yds", "TD"], recRows, (r) => [
+        ...weekCell(r),
+        r.targets,
+        r.receptions,
+        fmt(r.rec_yards, 0),
+        r.rec_td,
+      ])
+    );
+  }
+
+  if (!sections.length) {
+    return `${heading}<p class="no-data-note">No qualifying stat lines recorded for this player yet.</p>`;
+  }
+  return `${heading}${sections.join("")}`;
 }
 
 function renderPlayerModalShell() {

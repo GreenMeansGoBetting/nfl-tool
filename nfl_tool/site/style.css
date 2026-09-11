@@ -667,7 +667,17 @@ footer a { color: var(--accent); }
 }
 .player-modal-toggle-btn:hover { color: var(--text); border-color: var(--accent); }
 .player-modal-toggle-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); }
-.game-log-table td { font-size: 0.82rem; }
+.game-log-section { margin-top: 14px; }
+.game-log-section:first-of-type { margin-top: 4px; }
+.game-log-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+.game-log-table td, .game-log-table th { font-size: 0.82rem; }
 .props-market-table .props-line { font-weight: 700; }
 .td-breakdown-group { margin-bottom: 14px; }
 .td-breakdown-group:last-child { margin-bottom: 0; }
