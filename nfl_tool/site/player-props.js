@@ -187,7 +187,7 @@ function renderReceivingTable(team, oppTeam) {
   const rows = players
     .map((p) => {
       return `<tr>
-        <td><div class="player-name">${p.name}</div>${routeChipsHtml(p, oppTeam)}</td>
+        <td><div class="player-name"><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span></div>${routeChipsHtml(p, oppTeam)}</td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
@@ -215,7 +215,7 @@ function renderRushingTable(team, oppTeam) {
     .map((p) => {
       const allowedKey = `rush_yards_allowed_${p.position.toLowerCase()}_per_g`;
       return `<tr>
-        <td>${p.name}</td>
+        <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.carries_per_g, 1)}</td>
         <td class="num">${fmt(p.rush_yards_per_g, 1)}</td>
@@ -242,7 +242,7 @@ function renderPassingTable(team, oppTeam) {
   const rows = players
     .map((p) => {
       return `<tr>
-        <td>${p.name}</td>
+        <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span></td>
         <td class="num">${fmt(p.pass_att_per_g, 1)}</td>
         <td class="num">${p.comp_pct != null ? Math.round(p.comp_pct * 100) + "%" : "--"}</td>
         <td class="num">${fmt(p.pass_yards_per_g, 1)}</td>
@@ -359,7 +359,57 @@ function openPropsModal(awayTeam, homeTeam) {
   document.getElementById("props-modal").hidden = false;
 }
 
+// The inverse of the team-header modal: every market THIS ONE player has a
+// posted line for, instead of every player in one market. Scans the same
+// DATA.player_prop_markets catalog by name (SGO player props carry no
+// gsis_id to join on, same limitation build_roster_position_lookup already
+// works around) -- a handful of players won't match across name-format
+// quirks, same known/accepted limitation as roster_teams elsewhere.
+function playerPropsAcrossMarkets(team, name) {
+  const labels = DATA.player_prop_market_labels || {};
+  const markets = DATA.player_prop_markets || {};
+  const rows = [];
+  for (const stat of Object.keys(labels)) {
+    const found = ((markets[stat] || {})[team] || []).find((p) => p.name === name);
+    if (found) rows.push({ market: labels[stat], ...found });
+  }
+  return rows;
+}
+
+function renderPlayerMarketsModalContent(team, name) {
+  const rows = playerPropsAcrossMarkets(team, name);
+  const position = rows.length ? rows[0].position : null;
+  const heading = `<h3>${name} <span class="muted-label">(${position || "?"} &middot; ${team})</span> &mdash; All Props</h3>`;
+  if (!rows.length) {
+    return `${heading}<p class="no-data-note">No prop lines posted for this player yet.</p>`;
+  }
+  const body = rows
+    .map(
+      (r) =>
+        `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${fmtOddsSigned(r.over_odds)}</td><td class="num">${fmtOddsSigned(r.under_odds)}</td></tr>`
+    )
+    .join("");
+  return `${heading}
+    <table class="data-table player-odds-table props-market-table">
+      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function openPlayerMarketsModal(team, name) {
+  ensurePropsModal();
+  propsModalTeams = null; // no market dropdown in this view -- keeps the OTHER change handler from acting on stale state
+  document.getElementById("props-modal-content").innerHTML = renderPlayerMarketsModalContent(team, name);
+  document.getElementById("props-modal").hidden = false;
+}
+
 document.addEventListener("click", (e) => {
+  const playerEl = e.target.closest(".player-click");
+  if (playerEl) {
+    const { team, name } = decodeDataAttr(playerEl.dataset.entry);
+    openPlayerMarketsModal(team, name);
+    return;
+  }
   const btn = e.target.closest(".props-team-click");
   if (!btn) return;
   const away = document.getElementById("away-select").value;

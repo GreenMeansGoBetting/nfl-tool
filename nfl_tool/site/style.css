@@ -414,6 +414,9 @@ footer a { color: var(--accent); }
 .props-team-click { cursor: pointer; }
 .props-team-click:hover { filter: brightness(1.15); }
 
+.player-click { cursor: pointer; }
+.player-click:hover { text-decoration: underline; }
+
 .modal-overlay {
   position: fixed;
   inset: 0;
