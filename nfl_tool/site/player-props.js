@@ -28,6 +28,14 @@ const ROUTE_LABELS = {
   GO: "Go/Fly",
 };
 
+// Explicit <colgroup> (not th/td nth-child widths) because the header has
+// a colspan cell -- table-layout:fixed's column-width algorithm doesn't
+// reliably honor per-cell widths once colspan is involved (same issue
+// STAT_TABLE_COLGROUP in common.js already documents/works around), which
+// is exactly what caused the previous version's header to overhang.
+const ROUTE_MAP_COLGROUP =
+  '<colgroup><col style="width:90px"><col style="width:50px"><col style="width:62px"><col style="width:58px"><col style="width:58px"></colgroup>';
+
 // Matches build_stats.py's _route_key() exactly -- the route string is the
 // join key between a player's own route mix and the opponent's team_stats
 // success_allowed_<key> field.
@@ -149,7 +157,7 @@ function renderRouteMapTable(offTeam, defTeam) {
       const usageAlpha = tierAlphaAttr(usage, usagePool, false);
       return `<tr>
         <td>${ROUTE_LABELS[route] || route}</td>
-        <td class="num ${usageCls}"${usageAlpha}>${Math.round(usage * 100)}%</td>
+        <td class="num route-map-off-end ${usageCls}"${usageAlpha}>${Math.round(usage * 100)}%</td>
         ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true, showRank: true })}
         ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
         ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true })}
@@ -157,15 +165,24 @@ function renderRouteMapTable(offTeam, defTeam) {
     })
     .join("");
 
+  // Team badges live IN the table's own header row (colspan matched to the
+  // real columns below them) instead of a separate div above it -- a
+  // flex-based header next to a fixed-width table can't guarantee its
+  // splits land on the same boundaries as the actual columns, which is
+  // exactly what caused the previous version's badges to overhang/misalign
+  // (the OFF badge needs to sit ONLY over the Usage column, not half the
+  // table). colspan guarantees exact alignment, same technique common.js's
+  // headerRow() already uses for every other paired OFF/DEF table.
   const offRgb = teamAccentRgb(offTeam);
   const defRgb = teamAccentRgb(defTeam);
-  return `<div class="route-map-teams">
-      <span class="route-map-side" style="background:rgba(${offRgb.join(",")},0.16)">${teamLogoMini(offTeam)} ${offTeam} usage</span>
-      <span class="route-map-side" style="background:rgba(${defRgb.join(",")},0.16)">${teamLogoMini(defTeam)} ${defTeam} defends</span>
-    </div>
-    <p class="section-note">${offTeam}'s own route mix, most-used first, next to how ${defTeam} defends that exact route ("--" = too few charted plays yet).</p>
-    <table class="data-table route-map-table">
-      <thead><tr><th>Route</th><th class="num">Usage</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr></thead>
+  const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
+  const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
+  return `<table class="data-table route-map-table">
+      ${ROUTE_MAP_COLGROUP}
+      <thead>
+        <tr><th></th><th class="route-map-off-end" style="${offStyle}">${teamLogoMini(offTeam)} ${offTeam}</th><th colspan="3" style="${defStyle}">${teamLogoMini(defTeam)} ${defTeam}</th></tr>
+        <tr><th>Route</th><th class="num route-map-off-end">Usage</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr>
+      </thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
