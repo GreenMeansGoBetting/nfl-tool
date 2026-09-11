@@ -344,13 +344,15 @@ h3 {
 .props-rec-table, .props-rush-table, .props-pass-table {
   table-layout: fixed;
 }
-.props-rec-table { width: 560px; }
+.props-rec-table { width: 646px; }
 .props-rec-table th:first-child, .props-rec-table td:first-child { width: 328px; }
 .props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 34px; }
 .props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
-.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
-.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 46px; }
+.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4) { width: 46px; }
 .props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 60px; }
+.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6),
+.props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7),
+.props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8) { width: 44px; }
 
 .props-rush-table { width: 352px; }
 .props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }

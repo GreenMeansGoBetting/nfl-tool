@@ -200,13 +200,15 @@ function renderReceivingTable(team, oppTeam) {
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_yards_per_g, 1)}</td>
-        <td class="num">${p.catch_rate != null ? Math.round(p.catch_rate * 100) + "%" : "--"}</td>
+        <td class="num">${p.adot != null ? fmt(p.adot, 1) : "--"}</td>
+        <td class="num">${p.yac_per_rec != null ? fmt(p.yac_per_rec, 1) : "--"}</td>
+        <td class="num">${p.target_share != null ? Math.round(p.target_share * 100) + "%" : "--"}</td>
       </tr>`;
     })
     .join("");
   return `${teamBannerHeader(team, true)}
     <table class="data-table props-rec-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Tgt/g</th><th class="num">Rec/g</th><th class="num">Yds/g</th><th class="num">Ctch%</th></tr></thead>
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Tgt/g</th><th class="num">Rec/g</th><th class="num">Yds/g</th><th class="num">ADOT</th><th class="num">YAC</th><th class="num">Tgt%</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
