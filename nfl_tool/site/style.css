@@ -529,6 +529,12 @@ footer a { color: var(--accent); }
 .pos-row-click, .dist-row-click, .route-name-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
 .pos-row-click:hover, .dist-row-click:hover, .route-name-click:hover { color: var(--accent); }
 
+.stat-rank-click { cursor: pointer; }
+.stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+.stat-rank-table { width: 260px; }
+.stat-rank-table th:first-child, .stat-rank-table td:first-child { text-align: left; }
+.stat-rank-current td { border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); font-weight: 700; }
+
 #td-breakdown-modal .modal-box { max-width: 520px; }
 
 #props-modal .modal-box { max-width: 480px; }

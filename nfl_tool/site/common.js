@@ -516,6 +516,109 @@ function edgeCell(offTier, defTier, offTeam, defTeam, offExtreme = "", defExtrem
   return `<td class="edge-cell ${cls}" style="background:rgba(${rgb.join(",")},${alpha})">${teamLogoMini(offTeam)}</td>`;
 }
 
+// ---- League-wide stat-rank modal ----
+// Click any colored numerical cell to see all teams' values for that EXACT
+// stat, so you can gauge how extreme a number really is (e.g. "Colts allow
+// 28 TDs under 10 yards -- how bad is that really?"). Getter-based rather
+// than a flat key string, since not every stat lives at
+// team_stats[team][key] -- some are nested under a bucket dict (TD by
+// length/position), some are a share computed from two fields on the fly
+// (bucketShareTier's own pattern), and a couple (first-TD-allowed games/
+// rate) are derived via their own named functions already used elsewhere
+// for tiering. statRankGetter() covers all four shapes from one small
+// payload rather than needing a different modal per shape.
+//
+// Always sorted by raw value descending regardless of invert -- for an
+// "allowed" stat that puts the worst offenders at the top, for an offense
+// stat it puts the top producers at the top, either way answering "where
+// does this number fall" without an explicit rank number (a similar list
+// elsewhere on the site showed an explicit worst-to-best rank and it read
+// backwards/confusing -- color alone already carries that signal
+// correctly, so no rank number here either).
+const STAT_RANK_COMPUTED = {
+  firstTdAllowedGames: (t) => firstTdAllowedGames(t),
+  firstTdAllowedRate: (t) => firstTdAllowedRate(t),
+};
+
+function statRankGetter(p) {
+  if (p.computed) return STAT_RANK_COMPUTED[p.computed];
+  if (p.shareOf) {
+    const { dictKey, totalKey, bucketKey } = p.shareOf;
+    return (t) => {
+      const s = DATA.team_stats[t];
+      return s && s[totalKey] ? (s[dictKey][bucketKey] || 0) / s[totalKey] : null;
+    };
+  }
+  if (p.dictKey) return (t) => DATA.team_stats[t]?.[p.dictKey]?.[p.bucketKey];
+  return (t) => DATA.team_stats[t]?.[p.statKey];
+}
+
+function ensureStatRankModal() {
+  if (document.getElementById("stat-rank-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "stat-rank-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="stat-rank-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeStatRankModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeStatRankModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeStatRankModal();
+  });
+}
+
+function closeStatRankModal() {
+  const el = document.getElementById("stat-rank-modal");
+  if (el) el.hidden = true;
+}
+
+function openStatRankModal(p) {
+  ensureStatRankModal();
+  const getter = statRankGetter(p);
+  const rows = teamsWithGames()
+    .map((t) => ({ team: t, value: getter(t) }))
+    .filter((r) => r.value !== null && r.value !== undefined)
+    .sort((a, b) => b.value - a.value);
+  const values = rows.map((r) => r.value);
+  const display = (v) => (p.percent ? `${Math.round(v * 100)}%` : fmt(v, p.digits ?? 0));
+  const body = rows
+    .map((r) => {
+      const cls = percentileTier(r.value, values, !!p.invert);
+      const alpha = tierAlphaAttr(r.value, values, !!p.invert);
+      const rowCls = r.team === p.team ? ' class="stat-rank-current"' : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num ${cls}"${alpha}>${display(r.value)}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${p.label} &mdash; All Teams</h3>
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Team</th><th class="num">${p.label}</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  document.getElementById("stat-rank-modal").hidden = false;
+}
+
+// Wraps a tier-colored value in a clickable <td> that opens the league-rank
+// modal for that exact number. `display` is the already-formatted cell
+// content (a plain value, or a value plus a muted suffix like "(n=12)"),
+// `cls`/`alphaAttr` are the same tier class/inline-alpha every other cell
+// on the site already computes, `payload` is whatever statRankGetter needs
+// plus `team` (for highlighting that row in the modal) and `label`.
+function numCell(display, cls, alphaAttr, payload) {
+  return `<td class="num ${cls} stat-rank-click"${alphaAttr} data-entry="${encodeDataAttr(payload)}">${display}</td>`;
+}
+
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".stat-rank-click");
+  if (!cell) return;
+  openStatRankModal(decodeDataAttr(cell.dataset.entry));
+});
+
 // ---- Player anytime-TD odds modal ----
 // Every team name on every stat table (headerRow, and Game Overviews'
 // pairedStatHeader/schemeTableHeader) is wrapped in a .team-click span --

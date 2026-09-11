@@ -114,7 +114,11 @@ function renderStatTable(offTeam, defTeam) {
       const offRateA = tierForAlphaAttr("first_td_rate", offTeam, false);
       const defTotalA = tierAlphaAttr(defTotal, teamsWithGames().map(firstTdAllowedGames), true);
       const defRateA = tierForFirstTdAllowedAlphaAttr(defTeam);
-      return `<tr><td>${r.label}</td><td class="num ${offTotalCls}"${offTotalA}>${offTotal}</td><td class="num ${offRateCls}"${offRateA}>${fmt(offRate, 0)}%</td><td class="num ${defTotalCls}"${defTotalA}>${defTotal}</td><td class="num ${defRateCls}"${defRateA}>${fmt(defRate, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+      const offTotalCell = numCell(offTotal, offTotalCls, offTotalA, { team: offTeam, statKey: "first_td_games", label: "First TD Games", invert: false });
+      const offRateCell = numCell(`${fmt(offRate, 0)}%`, offRateCls, offRateA, { team: offTeam, statKey: "first_td_rate", label: "First TD Rate", invert: false, percent: true });
+      const defTotalCell = numCell(defTotal, defTotalCls, defTotalA, { team: defTeam, computed: "firstTdAllowedGames", label: "First TD Games Allowed", invert: true });
+      const defRateCell = numCell(`${fmt(defRate, 0)}%`, defRateCls, defRateA, { team: defTeam, computed: "firstTdAllowedRate", label: "First TD Rate Allowed", invert: true, percent: true });
+      return `<tr><td>${r.label}</td>${offTotalCell}${offRateCell}${defTotalCell}${defRateCell}${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
     }
     const offTotalCls = tierFor(r.totalOffKey, offTeam, false);
     const offRateCls = tierFor(r.rateOffKey, offTeam, false);
@@ -126,7 +130,11 @@ function renderStatTable(offTeam, defTeam) {
     const offRateA = tierForAlphaAttr(r.rateOffKey, offTeam, false);
     const defTotalA = tierForAlphaAttr(r.totalDefKey, defTeam, true);
     const defRateA = tierForAlphaAttr(r.rateDefKey, defTeam, true);
-    return `<tr><td>${r.label}</td><td class="num ${offTotalCls}"${offTotalA}>${off[r.totalOffKey]}</td><td class="num ${offRateCls}"${offRateA}>${fmt(off[r.rateOffKey], 2)}</td><td class="num ${defTotalCls}"${defTotalA}>${def[r.totalDefKey]}</td><td class="num ${defRateCls}"${defRateA}>${fmt(def[r.rateDefKey], 2)}</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+    const offTotalCell = numCell(off[r.totalOffKey], offTotalCls, offTotalA, { team: offTeam, statKey: r.totalOffKey, label: `${r.label} (Total)`, invert: false });
+    const offRateCell = numCell(fmt(off[r.rateOffKey], 2), offRateCls, offRateA, { team: offTeam, statKey: r.rateOffKey, label: `${r.label} Per Game`, invert: false, digits: 2 });
+    const defTotalCell = numCell(def[r.totalDefKey], defTotalCls, defTotalA, { team: defTeam, statKey: r.totalDefKey, label: `${r.label} Allowed (Total)`, invert: true });
+    const defRateCell = numCell(fmt(def[r.rateDefKey], 2), defRateCls, defRateA, { team: defTeam, statKey: r.rateDefKey, label: `${r.label} Allowed Per Game`, invert: true, digits: 2 });
+    return `<tr><td>${r.label}</td>${offTotalCell}${offRateCell}${defTotalCell}${defRateCell}${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
@@ -155,7 +163,11 @@ function renderLengthTable(offTeam, defTeam) {
     const defShareA = bucketShareAlphaAttr("td_by_length_allowed", "total_td_allowed", key, defTeam, true);
     const offShare = off.total_td ? Math.round((offCount / off.total_td) * 100) : 0;
     const defShare = def.total_td_allowed ? Math.round((defCount / def.total_td_allowed) * 100) : 0;
-    return `<tr><td><span class="dist-row-click" data-bucket="${key}">${label}</span></td><td class="num ${offCountCls}"${offCountA}>${offCount}</td><td class="num ${offShareCls}"${offShareA}>${offShare}%</td><td class="num ${defCountCls}"${defCountA}>${defCount}</td><td class="num ${defShareCls}"${defShareA}>${defShare}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
+    const offCountCell = numCell(offCount, offCountCls, offCountA, { team: offTeam, dictKey: "td_by_length", bucketKey: key, label: `${label} TDs`, invert: false });
+    const offShareCell = numCell(`${offShare}%`, offShareCls, offShareA, { team: offTeam, shareOf: { dictKey: "td_by_length", totalKey: "total_td", bucketKey: key }, label: `${label} TD Share`, invert: false, percent: true });
+    const defCountCell = numCell(defCount, defCountCls, defCountA, { team: defTeam, dictKey: "td_by_length_allowed", bucketKey: key, label: `${label} TDs Allowed`, invert: true });
+    const defShareCell = numCell(`${defShare}%`, defShareCls, defShareA, { team: defTeam, shareOf: { dictKey: "td_by_length_allowed", totalKey: "total_td_allowed", bucketKey: key }, label: `${label} TD Allowed Share`, invert: true, percent: true });
+    return `<tr><td><span class="dist-row-click" data-bucket="${key}">${label}</span></td>${offCountCell}${offShareCell}${defCountCell}${defShareCell}${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   // A 5th row, same Total/% shape as the length buckets above -- Total here
@@ -173,7 +185,11 @@ function renderLengthTable(offTeam, defTeam) {
   const rzDefExtreme = tierFor("rz_td_rate_allowed", defTeam, true, TIER_Z_EXTREME_THRESHOLD);
   const rzOffA = tierForAlphaAttr("rz_td_rate", offTeam, false);
   const rzDefA = tierForAlphaAttr("rz_td_rate_allowed", defTeam, true);
-  const rzRow = `<tr><td>RZ %</td><td class="num ${rzOffTripsCls}"${rzOffTripsA}>${off.rz_trips}</td><td class="num ${rzOffCls}"${rzOffA}>${Math.round(off.rz_td_rate * 100)}%</td><td class="num ${rzDefTripsCls}"${rzDefTripsA}>${def.rz_trips_allowed}</td><td class="num ${rzDefCls}"${rzDefA}>${Math.round(def.rz_td_rate_allowed * 100)}%</td>${edgeCell(rzOffCls, rzDefCls, offTeam, defTeam, rzOffExtreme, rzDefExtreme)}</tr>`;
+  const rzOffTripsCell = numCell(off.rz_trips, rzOffTripsCls, rzOffTripsA, { team: offTeam, statKey: "rz_trips", label: "RZ Trips", invert: false });
+  const rzOffCell = numCell(`${Math.round(off.rz_td_rate * 100)}%`, rzOffCls, rzOffA, { team: offTeam, statKey: "rz_td_rate", label: "RZ TD Rate", invert: false, percent: true });
+  const rzDefTripsCell = numCell(def.rz_trips_allowed, rzDefTripsCls, rzDefTripsA, { team: defTeam, statKey: "rz_trips_allowed", label: "RZ Trips Allowed", invert: true });
+  const rzDefCell = numCell(`${Math.round(def.rz_td_rate_allowed * 100)}%`, rzDefCls, rzDefA, { team: defTeam, statKey: "rz_td_rate_allowed", label: "RZ TD Rate Allowed", invert: true, percent: true });
+  const rzRow = `<tr><td>RZ %</td>${rzOffTripsCell}${rzOffCell}${rzDefTripsCell}${rzDefCell}${edgeCell(rzOffCls, rzDefCls, offTeam, defTeam, rzOffExtreme, rzDefExtreme)}</tr>`;
 
   return `<table class="data-table pos-table">
     ${STAT_TABLE_COLGROUP}
@@ -196,7 +212,11 @@ function renderPositionTable(offTeam, defTeam) {
     const defShareCls = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam, true);
     const offShareExtreme = bucketShareTier("off_position_td", "total_td", pos, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defShareExtreme = bucketShareTier("def_position_td_allowed", "total_td_allowed", pos, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
-    return `<tr><td><span class="pos-row-click" data-pos="${pos}">${pos}</span></td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${Math.round(offShare * 100)}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${Math.round(defShare * 100)}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
+    const offCountCell = numCell(offCount, offCountCls, "", { team: offTeam, dictKey: "off_position_td", bucketKey: pos, label: `${pos} TDs`, invert: false });
+    const offShareCell = numCell(`${Math.round(offShare * 100)}%`, offShareCls, "", { team: offTeam, shareOf: { dictKey: "off_position_td", totalKey: "total_td", bucketKey: pos }, label: `${pos} TD Share`, invert: false, percent: true });
+    const defCountCell = numCell(defCount, defCountCls, "", { team: defTeam, dictKey: "def_position_td_allowed", bucketKey: pos, label: `${pos} TDs Allowed`, invert: true });
+    const defShareCell = numCell(`${Math.round(defShare * 100)}%`, defShareCls, "", { team: defTeam, shareOf: { dictKey: "def_position_td_allowed", totalKey: "total_td_allowed", bucketKey: pos }, label: `${pos} TD Allowed Share`, invert: true, percent: true });
+    return `<tr><td><span class="pos-row-click" data-pos="${pos}">${pos}</span></td>${offCountCell}${offShareCell}${defCountCell}${defShareCell}${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table pos-table">
@@ -426,7 +446,11 @@ function renderBasicsTable(offTeam, defTeam) {
   const defGamesA = tierAlphaAttr(firstTdAllowedGames(defTeam), teamsWithGames().map(firstTdAllowedGames), true);
   const defRateA = tierForFirstTdAllowedAlphaAttr(defTeam);
 
-  let rows = `<tr><td>First TD</td><td class="num ${offGamesCls}"${offGamesA}>${off.first_td_games}</td><td class="num ${offRateCls}"${offRateA}>${fmt(off.first_td_rate * 100, 0)}%</td><td class="num ${defGamesCls}"${defGamesA}>${firstTdAllowedGames(defTeam)}</td><td class="num ${defRateCls}"${defRateA}>${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%</td>${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
+  const basicsOffGamesCell = numCell(off.first_td_games, offGamesCls, offGamesA, { team: offTeam, statKey: "first_td_games", label: "First TD Games", invert: false });
+  const basicsOffRateCell = numCell(`${fmt(off.first_td_rate * 100, 0)}%`, offRateCls, offRateA, { team: offTeam, statKey: "first_td_rate", label: "First TD Rate", invert: false, percent: true });
+  const basicsDefGamesCell = numCell(firstTdAllowedGames(defTeam), defGamesCls, defGamesA, { team: defTeam, computed: "firstTdAllowedGames", label: "First TD Games Allowed", invert: true });
+  const basicsDefRateCell = numCell(`${fmt(firstTdAllowedRate(defTeam) * 100, 0)}%`, defRateCls, defRateA, { team: defTeam, computed: "firstTdAllowedRate", label: "First TD Rate Allowed", invert: true, percent: true });
+  let rows = `<tr><td>First TD</td>${basicsOffGamesCell}${basicsOffRateCell}${basicsDefGamesCell}${basicsDefRateCell}${edgeCell(offRateCls, defRateCls, offTeam, defTeam, offRateExtreme, defRateExtreme)}</tr>`;
 
   rows += POSITIONS.map((pos) => {
     const offCount = off.first_td_position[pos];
@@ -439,7 +463,11 @@ function renderBasicsTable(offTeam, defTeam) {
     const defShareCls = bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true);
     const offShareExtreme = bucketShareTier("first_td_position", "first_td_games", pos, offTeam, false, TIER_Z_EXTREME_THRESHOLD);
     const defShareExtreme = bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true, TIER_Z_EXTREME_THRESHOLD);
-    return `<tr><td>${pos}</td><td class="num ${offCountCls}">${offCount}</td><td class="num ${offShareCls}">${offSharePct}%</td><td class="num ${defCountCls}">${defCount}</td><td class="num ${defShareCls}">${defSharePct}%</td>${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
+    const offCountCell = numCell(offCount, offCountCls, "", { team: offTeam, dictKey: "first_td_position", bucketKey: pos, label: `${pos} First TDs`, invert: false });
+    const offShareCell = numCell(`${offSharePct}%`, offShareCls, "", { team: offTeam, shareOf: { dictKey: "first_td_position", totalKey: "first_td_games", bucketKey: pos }, label: `${pos} First TD Share`, invert: false, percent: true });
+    const defCountCell = numCell(defCount, defCountCls, "", { team: defTeam, dictKey: "first_td_position_allowed", bucketKey: pos, label: `${pos} First TDs Allowed`, invert: true });
+    const defShareCell = numCell(`${defSharePct}%`, defShareCls, "", { team: defTeam, shareOf: { dictKey: "first_td_position_allowed", totalKey: "trailing_games", bucketKey: pos }, label: `${pos} First TD Allowed Share`, invert: true, percent: true });
+    return `<tr><td>${pos}</td>${offCountCell}${offShareCell}${defCountCell}${defShareCell}${edgeCell(offShareCls, defShareCls, offTeam, defTeam, offShareExtreme, defShareExtreme)}</tr>`;
   }).join("");
 
   return `<table class="data-table stat-table">
@@ -471,18 +499,19 @@ function renderOpportunitiesSummary(awayTeam, homeTeam) {
 
   const scoredFirstCell = (team) => {
     const s = DATA.team_stats[team];
-    return `<td class="num ${tierFor("first_td_rate", team, false)}">${fmt(s.first_td_rate * 100, 0)}% <span class="muted">(${s.first_td_games}/${s.games_played})</span></td>`;
+    const display = `${fmt(s.first_td_rate * 100, 0)}% <span class="muted">(${s.first_td_games}/${s.games_played})</span>`;
+    return numCell(display, tierFor("first_td_rate", team, false), "", { team, statKey: "first_td_rate", label: "Scored First Rate", invert: false, percent: true });
   };
 
-  const rzCell = (team, statKey, tripsKey, invert) => {
+  const rzCell = (team, statKey, tripsKey, invert, label) => {
     const val = DATA.team_stats[team][statKey];
     const cls = val === null ? "" : percentileClsFor(statKey, team, invert);
     const suffix = val === null ? "" : ` <span class="muted">(n=${DATA.team_stats[team][tripsKey]})</span>`;
-    return `<td class="num ${cls}">${rzConvDisplay(statKey, team)}${suffix}</td>`;
+    return numCell(`${rzConvDisplay(statKey, team)}${suffix}`, cls, "", { team, statKey, label, invert, percent: true });
   };
 
   const rzRow = (label, statKey, tripsKey, invert) =>
-    `<tr><td>${label}</td>${rzCell(awayTeam, statKey, tripsKey, invert)}${rzCell(homeTeam, statKey, tripsKey, invert)}</tr>`;
+    `<tr><td>${label}</td>${rzCell(awayTeam, statKey, tripsKey, invert, label)}${rzCell(homeTeam, statKey, tripsKey, invert, label)}</tr>`;
 
   return `<table class="data-table opp-table">
     <thead><tr><th></th>${headerCell(awayTeam)}${headerCell(homeTeam)}</tr></thead>
