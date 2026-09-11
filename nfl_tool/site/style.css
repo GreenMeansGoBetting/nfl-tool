@@ -376,6 +376,12 @@ h3 {
 .props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
+.route-def-table { table-layout: fixed; width: 250px; }
+.route-def-table th:first-child, .route-def-table td:first-child { width: 90px; }
+.route-def-table th:nth-child(2), .route-def-table td:nth-child(2),
+.route-def-table th:nth-child(3), .route-def-table td:nth-child(3),
+.route-def-table th:nth-child(4), .route-def-table td:nth-child(4) { width: 53px; }
+
 .player-name { font-weight: 600; }
 .player-routes {
   display: flex;

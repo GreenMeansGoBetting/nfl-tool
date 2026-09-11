@@ -1726,18 +1726,20 @@ def compute_route_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) 
 
     team_route_stats[team]: for each route type, this team's own OFFENSE
     target-share on that route, its DEFENSE's share of targets faced on it,
-    and the success rate its defense allows on it (floored at
-    ROUTE_MIN_SAMPLE, same reasoning/pattern as compute_scheme_splits --
-    this is the same merged participation+pbp join, just keyed by route
-    instead of coverage shell).
+    and three flavors of what its defense allows when that route is thrown
+    at it -- success rate, yards allowed PER TARGET (not per game -- a rate,
+    same volume-independence reasoning as success rate), and catch rate
+    allowed -- each floored at ROUTE_MIN_SAMPLE, same reasoning/pattern as
+    compute_scheme_splits (this is the same merged participation+pbp join,
+    just keyed by route instead of coverage shell).
 
     player_route_profiles[(team, receiver_player_id)]: {route: target_count}
     -- a player's own target mix by route, shown on the Player Props page
-    next to the opponent's allowed-success numbers above.
+    next to the opponent's allowed numbers above.
     """
     passp = pbp.loc[
         (pbp["pass_attempt"] == 1) & (pbp["two_point_attempt"] != 1),
-        ["game_id", "play_id", "posteam", "defteam", "receiver_player_id", "success"],
+        ["game_id", "play_id", "posteam", "defteam", "receiver_player_id", "success", "yards_gained", "complete_pass"],
     ]
     merged = passp.merge(
         participation[["nflverse_game_id", "play_id", "route"]],
@@ -1765,10 +1767,13 @@ def compute_route_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) 
             def_route = deff[deff["route"] == route]
             d[f"route_rate_{key}"] = round(len(off_route) / off_total, 3) if off_total else None
             d[f"route_faced_rate_{key}"] = round(len(def_route) / def_total, 3) if def_total else None
-            d[f"success_allowed_{key}"] = (
-                round(def_route["success"].mean(), 3) if len(def_route) >= ROUTE_MIN_SAMPLE else None
-            )
+            enough = len(def_route) >= ROUTE_MIN_SAMPLE
+            d[f"success_allowed_{key}"] = round(def_route["success"].mean(), 3) if enough else None
             d[f"success_allowed_{key}_plays"] = len(def_route)
+            d[f"yards_allowed_per_target_{key}"] = round(def_route["yards_gained"].mean(), 2) if enough else None
+            d[f"catch_rate_allowed_{key}"] = (
+                round((def_route["complete_pass"] == 1).mean(), 3) if enough else None
+            )
     return team_stats, player_profiles
 
 

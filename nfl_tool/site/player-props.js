@@ -5,6 +5,14 @@
 // same DATA.player_props/team_stats build_stats.py already produces; no
 // separate data source from TD Data or Game Previews.
 
+// Same order as build_stats.py's ROUTE_TYPES -- must match exactly, since
+// this drives the full route-defense breakdown table (every route, not
+// just a player's own top 3).
+const ROUTE_TYPES = [
+  "SCREEN", "SWING", "TEXAS/ANGLE", "QUICK OUT", "SLANT", "HITCH/CURL",
+  "SHALLOW CROSS/DRAG", "IN/DIG", "WHEEL", "DEEP OUT", "CORNER", "POST", "GO",
+];
+
 const ROUTE_LABELS = {
   SCREEN: "Screen",
   SWING: "Swing",
@@ -96,6 +104,46 @@ function oppAllowsCell(oppTeam, allowedKey, digits = 1) {
   const cls = percentileTier(val, pool, true);
   const alpha = tierAlphaAttr(val, pool, true);
   return `<td class="num ${cls}"${alpha}>${fmt(val, digits)}</td>`;
+}
+
+// One cell of the route-defense table: value tiered/shaded against every
+// OTHER team's same stat, same invert=true convention as every other
+// "allowed" number on the site (lower = better defense = green).
+function routeDefenseCell(defTeam, statKey, opts = {}) {
+  const val = DATA.team_stats[defTeam][statKey];
+  if (val === null || val === undefined) return `<td class="num">--</td>`;
+  const pool = teamsWithGames()
+    .map((t) => DATA.team_stats[t][statKey])
+    .filter((v) => v !== null && v !== undefined);
+  const cls = percentileTier(val, pool, true);
+  const alpha = tierAlphaAttr(val, pool, true);
+  const display = opts.percent ? `${Math.round(val * 100)}%` : fmt(val, opts.digits ?? 1);
+  return `<td class="num ${cls}"${alpha}>${display}</td>`;
+}
+
+// Full route-by-route defensive profile for one team -- every route type
+// (not just a player's own top 3), so a defense's specific soft spots (e.g.
+// "fine everywhere except Hitch/Curl") show up even for a route none of
+// the shown players happen to lean on. Meant to sit right next to the
+// OPPOSING team's Receiving table (that team's players are the ones who'll
+// actually test this profile).
+function renderRouteDefenseTable(defTeam) {
+  const rows = ROUTE_TYPES.map((route) => {
+    const key = routeStatKey(route);
+    const label = ROUTE_LABELS[route] || route;
+    return `<tr>
+      <td>${label}</td>
+      ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true })}
+      ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
+      ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true })}
+    </tr>`;
+  }).join("");
+  return `${teamBannerHeader(defTeam)}
+    <p class="section-note">How ${defTeam} defends each route ("--" = too few charted plays yet).</p>
+    <table class="data-table route-def-table">
+      <thead><tr><th>Route</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function renderReceivingTable(team, oppTeam) {
@@ -215,7 +263,9 @@ function render() {
   sectionEls.forEach((el) => (el.hidden = false));
 
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTable(away, home);
+  document.getElementById("col-home-routedef").innerHTML = renderRouteDefenseTable(home);
   document.getElementById("col-home-receiving").innerHTML = renderReceivingTable(home, away);
+  document.getElementById("col-away-routedef").innerHTML = renderRouteDefenseTable(away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);
   document.getElementById("col-away-passing").innerHTML = renderPassingTable(away, home);
