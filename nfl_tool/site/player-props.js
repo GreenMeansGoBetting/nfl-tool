@@ -69,7 +69,13 @@ function routeChipsHtml(player, oppTeam) {
         cls = percentileTier(val, pool, true);
       }
       const label = ROUTE_LABELS[route] || route;
-      return `<span class="route-chip ${cls}">${label} ${share}%</span>`;
+      // The chip's own % is the player's target share (not a league stat),
+      // but its COLOR comes from the opponent's success_allowed on this
+      // route -- clicking opens the rank modal for that underlying stat,
+      // same "every colored square is clickable" convention as the rest
+      // of the site.
+      const payload = { team: oppTeam, statKey, label: `${label} Success % Allowed`, invert: true, percent: true };
+      return `<span class="route-chip ${cls} stat-rank-click" data-entry="${encodeDataAttr(payload)}">${label} ${share}%</span>`;
     })
     .join("");
   return `<div class="player-routes">${chips}</div>`;
@@ -118,7 +124,7 @@ function routeDefenseCell(defTeam, statKey, opts = {}) {
   const cls = percentileTier(val, pool, true);
   const alpha = tierAlphaAttr(val, pool, true);
   const display = opts.percent ? `${Math.round(val * 100)}%` : fmt(val, opts.digits ?? 1);
-  return `<td class="num ${cls}"${alpha}>${display}</td>`;
+  return numCell(display, cls, alpha, { team: defTeam, statKey, label: opts.label || statKey, invert: true, percent: !!opts.percent, digits: opts.digits });
 }
 
 // One row per route: offTeam's own usage share next to defTeam's allowed
@@ -144,12 +150,14 @@ function renderRouteMapTable(offTeam, defTeam) {
         .filter((v) => v !== null && v !== undefined);
       const usageCls = percentileTier(usage, usagePool, false);
       const usageAlpha = tierAlphaAttr(usage, usagePool, false);
+      const routeLabel = ROUTE_LABELS[route] || route;
+      const usageCell = numCell(`${Math.round(usage * 100)}%`, `route-map-off-end ${usageCls}`, usageAlpha, { team: offTeam, statKey: `route_rate_${key}`, label: `${routeLabel} Usage`, invert: false, percent: true });
       return `<tr>
-        <td><span class="route-name-click" data-entry="${encodeDataAttr({ team: offTeam, route })}">${ROUTE_LABELS[route] || route}</span></td>
-        <td class="num route-map-off-end ${usageCls}"${usageAlpha}>${Math.round(usage * 100)}%</td>
-        ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true })}
-        ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
-        ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true })}
+        <td><span class="route-name-click" data-entry="${encodeDataAttr({ team: offTeam, route })}">${routeLabel}</span></td>
+        ${usageCell}
+        ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true, label: `${routeLabel} Success % Allowed` })}
+        ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1, label: `${routeLabel} Yards/Target Allowed` })}
+        ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true, label: `${routeLabel} Catch % Allowed` })}
       </tr>`;
     })
     .join("");

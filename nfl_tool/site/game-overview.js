@@ -605,7 +605,9 @@ function renderGeneralStatsTable(offTeam, defTeam) {
         const offA = tierForAlphaAttr(r.offKey, offTeam, r.offInvert);
         const defA = tierForAlphaAttr(r.defKey, defTeam, r.defInvert);
         const labelHtml = r.note ? `${r.label}<br><span class="muted-label">${r.note}</span>` : r.label;
-        return `<tr><td>${labelHtml}</td><td class="num ${offCls}"${offA}>${format(off[r.offKey], r.pct)}</td><td class="num ${defCls}"${defA}>${format(def[r.defKey], r.pct)}</td>${edgeCell(offCls, defCls, offTeam, defTeam, offExtreme, defExtreme)}</tr>`;
+        const offCell = numCell(format(off[r.offKey], r.pct), offCls, offA, { team: offTeam, statKey: r.offKey, label: r.label, invert: r.offInvert, percent: !!r.pct });
+        const defCell = numCell(format(def[r.defKey], r.pct), defCls, defA, { team: defTeam, statKey: r.defKey, label: `${r.label} Allowed`, invert: r.defInvert, percent: !!r.pct });
+        return `<tr><td>${labelHtml}</td>${offCell}${defCell}${edgeCell(offCls, defCls, offTeam, defTeam, offExtreme, defExtreme)}</tr>`;
       })
       .join("");
     return `<tr><td class="section-group-label" colspan="4">${group.label}</td></tr>${rows}`;
@@ -694,8 +696,9 @@ function tendencyCell(r, defTeam) {
   const tendVal = DATA.team_stats[defTeam][r.tendKey];
   if (tendVal === null || tendVal === undefined) return { html: `<span class="no-data-note">--</span>`, tendVal: null, tendCls: "" };
   const tendCls = tierFor(r.tendKey, defTeam, false);
+  const payload = { team: defTeam, statKey: r.tendKey, label: `${r.label} Tendency`, invert: false, percent: true };
   const html = `<div class="tend-row">
-    <span class="tend-bar-num">${Math.round(tendVal * 100)}%</span>
+    <span class="tend-bar-num stat-rank-click" data-entry="${encodeDataAttr(payload)}">${Math.round(tendVal * 100)}%</span>
     <span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span>
   </div>`;
   return { html, tendVal, tendCls };
@@ -712,7 +715,7 @@ function defSuccessCell(group, r, defTeam) {
   const a = tierForAlphaAttr(r.defSuccessKey, defTeam, true);
   const unit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
   const display = group.pct ? `${Math.round(succVal * 100)}%` : `${fmt(succVal, 2)}${unit}`;
-  return `<td class="num ${cls}"${a}>${display}</td>`;
+  return numCell(display, cls, a, { team: defTeam, statKey: r.defSuccessKey, label: `${r.label} Success Allowed`, invert: true, percent: !!group.pct });
 }
 
 function renderSchemeGroup(group, offTeam, defTeam) {
@@ -736,7 +739,11 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       const perfDisplay =
         perfVal === null || perfVal === undefined ? "--" : group.pct ? `${Math.round(perfVal * 100)}%` : `${fmt(perfVal, 2)}${perfUnit}`;
       const dim = tendVal !== null && tendVal !== undefined && tendVal < SCHEME_MIN_TENDENCY_SHOWN;
-      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td><td class="num ${perfCls}"${perfA}>${perfDisplay}</td>${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      const perfCell =
+        perfVal === null || perfVal === undefined
+          ? `<td class="num">--</td>`
+          : numCell(perfDisplay, perfCls, perfA, { team: offTeam, statKey: r.perfKey, label: `${r.label} Performance`, invert: false, percent: !!group.pct });
+      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
