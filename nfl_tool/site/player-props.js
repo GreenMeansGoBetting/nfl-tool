@@ -145,7 +145,7 @@ function renderRouteMapTable(offTeam, defTeam) {
       const usageCls = percentileTier(usage, usagePool, false);
       const usageAlpha = tierAlphaAttr(usage, usagePool, false);
       return `<tr>
-        <td>${ROUTE_LABELS[route] || route}</td>
+        <td><span class="route-name-click" data-entry="${encodeDataAttr({ team: offTeam, route })}">${ROUTE_LABELS[route] || route}</span></td>
         <td class="num route-map-off-end ${usageCls}"${usageAlpha}>${Math.round(usage * 100)}%</td>
         ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true })}
         ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
@@ -403,11 +403,60 @@ function openPlayerMarketsModal(team, name) {
   document.getElementById("props-modal").hidden = false;
 }
 
+// Every player on this team with ANY charted targets on this route -- not
+// just whoever's top-3 chip happens to show it (a route can be a soft spot
+// for the defense without being any single receiver's SIGNATURE route, so
+// this is the "who actually runs it, even a little" reference view).
+function playersForRoute(team, route) {
+  return (DATA.player_props[team] || [])
+    .map((p) => {
+      const count = (p.routes || {})[route] || 0;
+      if (!count) return null;
+      const total = Object.values(p.routes || {}).reduce((a, b) => a + b, 0);
+      return { name: p.name, position: p.position, count, share: total ? count / total : 0 };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.count - a.count);
+}
+
+function renderRouteReceiversModalContent(team, route) {
+  const label = ROUTE_LABELS[route] || route;
+  const rows = playersForRoute(team, route);
+  const heading = `<h3>${label} Routes &mdash; ${team}</h3>`;
+  if (!rows.length) {
+    return `${heading}<p class="no-data-note">No charted targets on this route for ${team} yet.</p>`;
+  }
+  const body = rows
+    .map(
+      (r) =>
+        `<tr><td>${r.name} <span class="muted-label">(${r.position})</span></td><td class="num">${r.count}</td><td class="num">${Math.round(r.share * 100)}%</td></tr>`
+    )
+    .join("");
+  return `${heading}
+    <table class="data-table player-odds-table props-market-table">
+      <thead><tr><th>Player</th><th class="num">Targets</th><th class="num">Share</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function openRouteReceiversModal(team, route) {
+  ensurePropsModal();
+  propsModalTeams = null;
+  document.getElementById("props-modal-content").innerHTML = renderRouteReceiversModalContent(team, route);
+  document.getElementById("props-modal").hidden = false;
+}
+
 document.addEventListener("click", (e) => {
   const playerEl = e.target.closest(".player-click");
   if (playerEl) {
     const { team, name } = decodeDataAttr(playerEl.dataset.entry);
     openPlayerMarketsModal(team, name);
+    return;
+  }
+  const routeEl = e.target.closest(".route-name-click");
+  if (routeEl) {
+    const { team, route } = decodeDataAttr(routeEl.dataset.entry);
+    openRouteReceiversModal(team, route);
     return;
   }
   const btn = e.target.closest(".props-team-click");

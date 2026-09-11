@@ -400,6 +400,17 @@ h3 {
   font-weight: 600;
   white-space: nowrap;
 }
+/* Two-class selectors so these always win over the plain .route-chip
+   fallback above regardless of source order (the earlier bug: .route-chip's
+   OWN background was declared after .tier-good/.tier-mid/.tier-bad in the
+   file, so it silently won the cascade and every chip rendered with the
+   same neutral box -- only the text color was ever actually showing the
+   tier). Alpha bumped well past the site's normal ~0.16 table-cell tint
+   too -- a small inline chip reads as a real colored box at that strength,
+   where the normal tint mostly disappears at this size. */
+.route-chip.tier-good { background: rgba(var(--good-rgb), 0.35); color: var(--good-text); }
+.route-chip.tier-mid { background: rgba(var(--mid-rgb), 0.35); color: var(--mid-text); }
+.route-chip.tier-bad { background: rgba(var(--bad-rgb), 0.35); color: var(--bad-text); }
 
 footer {
   text-align: center;
@@ -496,8 +507,8 @@ footer a { color: var(--accent); }
 
 #general-odds-modal .modal-box { max-width: 640px; }
 
-.pos-row-click, .dist-row-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
-.pos-row-click:hover, .dist-row-click:hover { color: var(--accent); }
+.pos-row-click, .dist-row-click, .route-name-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.pos-row-click:hover, .dist-row-click:hover, .route-name-click:hover { color: var(--accent); }
 
 #td-breakdown-modal .modal-box { max-width: 520px; }
 
