@@ -340,6 +340,59 @@ h3 {
 .opp-table th:nth-child(2), .opp-table td:nth-child(2),
 .opp-table th:nth-child(3), .opp-table td:nth-child(3) { width: 80px; }
 
+/* ---- Player Props ---- */
+.props-rec-table, .props-rush-table, .props-pass-table {
+  table-layout: fixed;
+}
+.props-rec-table { width: 560px; }
+.props-rec-table th:first-child, .props-rec-table td:first-child { width: 200px; }
+.props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 34px; }
+.props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
+.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
+.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 46px; }
+.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5),
+.props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7) { width: 60px; }
+.props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8) { width: 30px; }
+.props-rec-table td:first-child { vertical-align: top; padding-top: 5px; }
+
+.props-rush-table { width: 420px; }
+.props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
+.props-rush-table th:nth-child(2), .props-rush-table td:nth-child(2) { width: 34px; }
+.props-rush-table th:nth-child(3), .props-rush-table td:nth-child(3),
+.props-rush-table th:nth-child(4), .props-rush-table td:nth-child(4),
+.props-rush-table th:nth-child(5), .props-rush-table td:nth-child(5) { width: 46px; }
+.props-rush-table th:nth-child(6), .props-rush-table td:nth-child(6) { width: 60px; }
+.props-rush-table th:nth-child(7), .props-rush-table td:nth-child(7) { width: 30px; }
+
+.props-pass-table { width: 420px; }
+.props-pass-table th:first-child, .props-pass-table td:first-child { width: 160px; }
+.props-pass-table th:nth-child(2), .props-pass-table td:nth-child(2),
+.props-pass-table th:nth-child(3), .props-pass-table td:nth-child(3),
+.props-pass-table th:nth-child(5), .props-pass-table td:nth-child(5) { width: 46px; }
+.props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4),
+.props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 60px; }
+.props-pass-table th:nth-child(7), .props-pass-table td:nth-child(7) { width: 30px; }
+
+.props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
+.props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
+
+.player-name { font-weight: 600; }
+.player-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
+}
+.route-chip {
+  display: inline-block;
+  background: var(--table-head);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 footer {
   text-align: center;
   color: var(--muted);

@@ -157,6 +157,18 @@ function teamFade(team, ratio, maxAlpha = 0.6) {
   return `rgba(${rgb.join(",")},${(ratio * maxAlpha).toFixed(3)})`;
 }
 
+// Full-width team logo + spelled-out name header, tinted in the team's own
+// color -- shared by every per-player table on the site (Season TDs'
+// leaderboard, First TD's Red Zone Usage, Player Props) since they all have
+// room to spare for it.
+function teamBannerHeader(team) {
+  const rgb = teamAccentRgb(team);
+  return `<div class="team-banner" style="background:rgba(${rgb.join(",")},0.16)">
+    <img src="${teamLogoUrl(team)}" class="team-logo" alt="${team}" loading="lazy">
+    <span class="team-banner-name">${TEAM_NAMES[team] || team}</span>
+  </div>`;
+}
+
 function tierFor(statKey, team, invert, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
   const values = pool.map((t) => DATA.team_stats[t][statKey]);

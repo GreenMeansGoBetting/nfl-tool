@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Player Props</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">GMG's NFL Suite</span>
+  <nav class="page-nav">
+    <a href="game-overview.html">Game Previews</a>
+    <a href="index.html">TD Data</a>
+    <span class="page-nav-current">Player Props</span>
+    <a href="possible-plays.html">Possible Plays</a>
+  </nav>
+</div>
+
+<main>
+  <div id="schedule-scroller" class="schedule-scroller" hidden>
+    <div class="week-picker">
+      <button type="button" id="week-prev" class="week-nav-btn">&lsaquo;</button>
+      <span id="week-label" class="week-label">Week</span>
+      <button type="button" id="week-next" class="week-nav-btn">&rsaquo;</button>
+    </div>
+    <div id="matchup-row" class="matchup-row"></div>
+  </div>
+
+  <div class="filter-bar">
+    <label>Away
+      <select id="away-select"></select>
+    </label>
+    <label>Home
+      <select id="home-select"></select>
+    </label>
+  </div>
+
+  <div id="empty-state" class="empty-state">
+    <p>Choose both teams above to see player props for this matchup.</p>
+  </div>
+
+  <div id="section-receiving" class="section-wrap" hidden>
+    <h2 class="section-title">Receiving</h2>
+    <p class="section-note">Volume/efficiency this season, next to what the opponent allows to that position. Routes show each player's top target-share by route type, tinted by the opponent's allowed success rate on that specific route.</p>
+    <div class="stat-columns">
+      <section id="col-away-receiving"></section>
+      <section id="col-home-receiving"></section>
+    </div>
+  </div>
+
+  <div id="section-rushing" class="section-wrap" hidden>
+    <h2 class="section-title">Rushing</h2>
+    <div class="stat-columns">
+      <section id="col-away-rushing"></section>
+      <section id="col-home-rushing"></section>
+    </div>
+  </div>
+
+  <div id="section-passing" class="section-wrap" hidden>
+    <h2 class="section-title">Passing</h2>
+    <div class="stat-columns">
+      <section id="col-away-passing"></section>
+      <section id="col-home-passing"></section>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play + NGS route charting, regular season only. ADV/route tints follow the same offense-only convention as TD Data and Game Previews.
+</footer>
+
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script src="player-props.js"></script>
+</body>
+</html>

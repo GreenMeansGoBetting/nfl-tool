@@ -1691,6 +1691,222 @@ def build_player_stats(scoring_df, first_td_by_game, teams, target_ranks):
     return by_team
 
 
+# ---- Player Props ----
+# Volume/efficiency (targets, carries, pass attempts and what they turned
+# into) plus route-tree matchup context -- distinct from player_stats above,
+# which is TD-scorer-oriented only. Reuses the same full-season pbp already
+# loaded for everything else; no new download.
+
+# Route charting (NGS, via the same pbp_participation file compute_scheme_
+# splits already uses) is logged only for the actual targeted receiver on a
+# pass play -- confirmed directly against a real season file (2025: 18,871
+# charted targets, these 13 distinct values). Ordered roughly shallow ->
+# deep for display, not alphabetically.
+ROUTE_TYPES = [
+    "SCREEN", "SWING", "TEXAS/ANGLE", "QUICK OUT", "SLANT", "HITCH/CURL",
+    "SHALLOW CROSS/DRAG", "IN/DIG", "WHEEL", "DEEP OUT", "CORNER", "POST", "GO",
+]
+ROUTE_MIN_SAMPLE = 8
+
+# A player needs at least this much season volume in ONE category to show up
+# on the Player Props page at all -- keeps one-off trick-play targets/carries
+# (a lineman on a fumblerooski, a punter's fake-punct carry) out of the list
+# without hiding anyone who's actually a real role player.
+PROPS_MIN_TARGETS = 5
+PROPS_MIN_CARRIES = 5
+PROPS_MIN_PASS_ATT = 10
+
+
+def _route_key(route: str) -> str:
+    return route.lower().replace("/", "_").replace(" ", "_")
+
+
+def compute_route_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) -> tuple:
+    """Returns (team_route_stats, player_route_profiles).
+
+    team_route_stats[team]: for each route type, this team's own OFFENSE
+    target-share on that route, its DEFENSE's share of targets faced on it,
+    and the success rate its defense allows on it (floored at
+    ROUTE_MIN_SAMPLE, same reasoning/pattern as compute_scheme_splits --
+    this is the same merged participation+pbp join, just keyed by route
+    instead of coverage shell).
+
+    player_route_profiles[(team, receiver_player_id)]: {route: target_count}
+    -- a player's own target mix by route, shown on the Player Props page
+    next to the opponent's allowed-success numbers above.
+    """
+    passp = pbp.loc[
+        (pbp["pass_attempt"] == 1) & (pbp["two_point_attempt"] != 1),
+        ["game_id", "play_id", "posteam", "defteam", "receiver_player_id", "success"],
+    ]
+    merged = passp.merge(
+        participation[["nflverse_game_id", "play_id", "route"]],
+        left_on=["game_id", "play_id"],
+        right_on=["nflverse_game_id", "play_id"],
+        how="inner",
+    )
+    merged = merged.dropna(subset=["route", "receiver_player_id"])
+
+    player_profiles = {}
+    for row in merged.itertuples(index=False):
+        key = (row.posteam, row.receiver_player_id)
+        profile = player_profiles.setdefault(key, {})
+        profile[row.route] = profile.get(row.route, 0) + 1
+
+    team_stats = {t: {} for t in teams}
+    for team in teams:
+        off = merged[merged["posteam"] == team]
+        deff = merged[merged["defteam"] == team]
+        off_total, def_total = len(off), len(deff)
+        d = team_stats[team]
+        for route in ROUTE_TYPES:
+            key = _route_key(route)
+            off_route = off[off["route"] == route]
+            def_route = deff[deff["route"] == route]
+            d[f"route_rate_{key}"] = round(len(off_route) / off_total, 3) if off_total else None
+            d[f"route_faced_rate_{key}"] = round(len(def_route) / def_total, 3) if def_total else None
+            d[f"success_allowed_{key}"] = (
+                round(def_route["success"].mean(), 3) if len(def_route) >= ROUTE_MIN_SAMPLE else None
+            )
+            d[f"success_allowed_{key}_plays"] = len(def_route)
+    return team_stats, player_profiles
+
+
+def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> tuple:
+    """Returns (players, defense_allowed_by_position) from a single pass over
+    every target/carry/dropback, so the same per-play position lookup isn't
+    done twice.
+
+    players[(team, player_id)]: season totals for whichever of receiving/
+    rushing/passing that player actually did (targets/receptions/rec_yards,
+    carries/rush_yards, pass_att/completions/pass_yards/interceptions), plus
+    each side's own game count (own games with a qualifying look, NOT the
+    team's overall games_played -- a player who missed time shouldn't have
+    his rate diluted by games he didn't play).
+
+    defense_allowed_by_position[team]: what that team's DEFENSE allows per
+    game to each skill-position bucket (WR/RB/TE for receiving, RB/QB/WR for
+    rushing) -- the matchup-context half of the props page, same offense-
+    volume/defense-allowed pairing used everywhere else on this site.
+    """
+    scrimmage = pbp[pbp["two_point_attempt"] != 1]
+    targets = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["receiver_player_id"])
+    rushes = scrimmage[scrimmage["rush_attempt"] == 1].dropna(subset=["rusher_player_id"])
+    dropbacks = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["passer_player_id"])
+
+    players = {}
+    def_totals = {t: {"targets": {}, "rec": {}, "rec_yds": {}, "rush_att": {}, "rush_yds": {}} for t in games_played}
+
+    def ensure(pid, team, week):
+        key = (team, pid)
+        if key not in players:
+            pos, _, name = pos_lookup(pid, week)
+            players[key] = {
+                "player_id": pid,
+                "name": name,
+                "team": team,
+                "position": bucket_position(pos) if pos else "DST",
+                "targets": 0, "receptions": 0, "rec_yards": 0.0, "rec_games": set(),
+                "carries": 0, "rush_yards": 0.0, "rush_games": set(),
+                "pass_att": 0, "completions": 0, "pass_yards": 0.0, "interceptions": 0, "pass_games": set(),
+            }
+        return players[key]
+
+    def bump(defteam, bucket, field, amount=1):
+        if defteam not in def_totals:
+            return
+        b = def_totals[defteam][field]
+        b[bucket] = b.get(bucket, 0) + amount
+
+    for row in targets.itertuples(index=False):
+        pos, _, _ = pos_lookup(row.receiver_player_id, row.week)
+        bucket = bucket_position(pos) if pos else "DST"
+        p = ensure(row.receiver_player_id, row.posteam, row.week)
+        p["targets"] += 1
+        p["rec_games"].add(row.game_id)
+        bump(row.defteam, bucket, "targets")
+        if row.complete_pass == 1:
+            p["receptions"] += 1
+            p["rec_yards"] += row.yards_gained
+            bump(row.defteam, bucket, "rec")
+            bump(row.defteam, bucket, "rec_yds", row.yards_gained)
+
+    for row in rushes.itertuples(index=False):
+        pos, _, _ = pos_lookup(row.rusher_player_id, row.week)
+        bucket = bucket_position(pos) if pos else "DST"
+        p = ensure(row.rusher_player_id, row.posteam, row.week)
+        p["carries"] += 1
+        p["rush_yards"] += row.yards_gained
+        p["rush_games"].add(row.game_id)
+        bump(row.defteam, bucket, "rush_att")
+        bump(row.defteam, bucket, "rush_yds", row.yards_gained)
+
+    for row in dropbacks.itertuples(index=False):
+        p = ensure(row.passer_player_id, row.posteam, row.week)
+        p["pass_att"] += 1
+        p["pass_games"].add(row.game_id)
+        if row.complete_pass == 1:
+            p["completions"] += 1
+            p["pass_yards"] += row.yards_gained
+        if row.interception == 1:
+            p["interceptions"] += 1
+
+    for p in players.values():
+        p["rec_games"] = len(p["rec_games"])
+        p["rush_games"] = len(p["rush_games"])
+        p["pass_games"] = len(p["pass_games"])
+
+    defense_allowed = {}
+    for team, agg in def_totals.items():
+        gp = games_played.get(team) or 0
+        d = {}
+        for pos in ("WR", "RB", "TE"):
+            d[f"targets_allowed_{pos.lower()}_per_g"] = round(agg["targets"].get(pos, 0) / gp, 2) if gp else None
+            d[f"rec_allowed_{pos.lower()}_per_g"] = round(agg["rec"].get(pos, 0) / gp, 2) if gp else None
+            d[f"rec_yards_allowed_{pos.lower()}_per_g"] = round(agg["rec_yds"].get(pos, 0) / gp, 2) if gp else None
+        for pos in ("RB", "QB", "WR"):
+            d[f"rush_att_allowed_{pos.lower()}_per_g"] = round(agg["rush_att"].get(pos, 0) / gp, 2) if gp else None
+            d[f"rush_yards_allowed_{pos.lower()}_per_g"] = round(agg["rush_yds"].get(pos, 0) / gp, 2) if gp else None
+        defense_allowed[team] = d
+
+    return players, defense_allowed
+
+
+def build_player_props(players: dict, player_route_profiles: dict, teams) -> dict:
+    """Turns compute_volume_stats' raw players dict into the sorted,
+    derived-rate, per-team lists the Player Props page actually renders --
+    same season-totals-in/per-game-rates-out split as build_team_stats."""
+    by_team = {t: [] for t in teams}
+    for (team, pid), p in players.items():
+        if team not in by_team or p["position"] not in ("QB", "RB", "WR", "TE"):
+            continue
+        qualifies = (
+            p["targets"] >= PROPS_MIN_TARGETS
+            or p["carries"] >= PROPS_MIN_CARRIES
+            or p["pass_att"] >= PROPS_MIN_PASS_ATT
+        )
+        if not qualifies:
+            continue
+        row = dict(p)
+        row["routes"] = player_route_profiles.get((team, pid), {})
+        row["ypt"] = round(p["rec_yards"] / p["targets"], 2) if p["targets"] else None
+        row["catch_rate"] = round(p["receptions"] / p["targets"], 3) if p["targets"] else None
+        row["targets_per_g"] = round(p["targets"] / p["rec_games"], 1) if p["rec_games"] else None
+        row["rec_per_g"] = round(p["receptions"] / p["rec_games"], 1) if p["rec_games"] else None
+        row["rec_yards_per_g"] = round(p["rec_yards"] / p["rec_games"], 1) if p["rec_games"] else None
+        row["ypc"] = round(p["rush_yards"] / p["carries"], 2) if p["carries"] else None
+        row["carries_per_g"] = round(p["carries"] / p["rush_games"], 1) if p["rush_games"] else None
+        row["rush_yards_per_g"] = round(p["rush_yards"] / p["rush_games"], 1) if p["rush_games"] else None
+        row["comp_pct"] = round(p["completions"] / p["pass_att"], 3) if p["pass_att"] else None
+        row["pass_att_per_g"] = round(p["pass_att"] / p["pass_games"], 1) if p["pass_games"] else None
+        row["pass_yards_per_g"] = round(p["pass_yards"] / p["pass_games"], 1) if p["pass_games"] else None
+        row["int_per_g"] = round(p["interceptions"] / p["pass_games"], 2) if p["pass_games"] else None
+        by_team[team].append(row)
+    for t in by_team:
+        by_team[t].sort(key=lambda r: -(r["targets"] + r["carries"] + r["pass_att"]))
+    return by_team
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--season", type=int, required=True)
@@ -1759,6 +1975,14 @@ def main():
     for team in teams:
         team_stats[team].update(scheme_splits.get(team, {}))
 
+    route_team_stats, player_route_profiles = compute_route_splits(pbp, participation, teams)
+    for team in teams:
+        team_stats[team].update(route_team_stats.get(team, {}))
+    volume_players, position_allowed = compute_volume_stats(pbp, pos_lookup, games_played)
+    for team in teams:
+        team_stats[team].update(position_allowed.get(team, {}))
+    player_props = build_player_props(volume_players, player_route_profiles, teams)
+
     # One team-level schedule-strength number (not per condition -- see
     # compute_scheme_splits' docstring for why), reusing recent_games'
     # opponent list and team_stats' own points_against_per_g so this
@@ -1808,6 +2032,7 @@ def main():
         "teams": teams,
         "team_stats": team_stats,
         "player_stats": player_stats,
+        "player_props": player_props,
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,

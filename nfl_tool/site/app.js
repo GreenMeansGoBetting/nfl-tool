@@ -324,14 +324,6 @@ document.addEventListener("click", (e) => {
 // component -- these boxes run tall with rows of player data, so there's
 // plenty of width to spare for a real logo and the full team name instead
 // of a bare "<h3>NE</h3>".
-function teamBannerHeader(team) {
-  const rgb = teamAccentRgb(team);
-  return `<div class="team-banner" style="background:rgba(${rgb.join(",")},0.16)">
-    <img src="${teamLogoUrl(team)}" class="team-logo" alt="${team}" loading="lazy">
-    <span class="team-banner-name">${TEAM_NAMES[team] || team}</span>
-  </div>`;
-}
-
 function renderLeaderboard(team) {
   const players = DATA.player_stats[team] || [];
   if (players.length === 0) {
