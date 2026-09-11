@@ -379,12 +379,6 @@ h3 {
 .route-map-table th.route-map-off-end, .route-map-table td.route-map-off-end {
   border-right: 2px solid var(--text);
 }
-.route-rank {
-  display: block;
-  font-size: 0.62rem;
-  font-weight: 400;
-  color: var(--muted);
-}
 
 .player-name { font-weight: 600; }
 .player-routes {

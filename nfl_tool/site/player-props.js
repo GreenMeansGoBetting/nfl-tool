@@ -102,21 +102,13 @@ function playerAdvCell(player, oppTeam, statKey, allowedKey) {
   return edgeCell(offTier, defTier, player.team, oppTeam, offExtreme, defExtreme);
 }
 
-// 1 = worst (allows the most/highest value in the pool), last = best --
-// "worst to best" ranking so the juiciest matchup route always reads as
-// rank 1, matching how the whole table is sorted. null when the value
-// itself has no signal (too few charted plays).
-function rankWorstToBest(value, pool) {
-  if (value === null || value === undefined) return null;
-  const sorted = pool.slice().sort((a, b) => b - a);
-  return sorted.indexOf(value) + 1;
-}
-
 // One cell of the route-defense table: value tiered/shaded against every
 // OTHER team's same stat, same invert=true convention as every other
-// "allowed" number on the site (lower = better defense = green). showRank
-// appends a "(Nth of 32)" worst-to-best rank -- only the primary sort
-// column carries it, to keep the row from getting too busy.
+// "allowed" number on the site (lower = better defense = green). The color
+// alone carries the worst-to-best signal (also how the table is sorted) --
+// an explicit "8/32" rank number sat next to it before and read as
+// backwards/confusing (people expect rank 1 = best, not worst), so it's
+// color-only now.
 function routeDefenseCell(defTeam, statKey, opts = {}) {
   const val = DATA.team_stats[defTeam][statKey];
   if (val === null || val === undefined) return `<td class="num">--</td>`;
@@ -126,10 +118,7 @@ function routeDefenseCell(defTeam, statKey, opts = {}) {
   const cls = percentileTier(val, pool, true);
   const alpha = tierAlphaAttr(val, pool, true);
   const display = opts.percent ? `${Math.round(val * 100)}%` : fmt(val, opts.digits ?? 1);
-  const rankHtml = opts.showRank
-    ? `<span class="route-rank">${rankWorstToBest(val, pool)}/${pool.length}</span>`
-    : "";
-  return `<td class="num ${cls}"${alpha}>${display}${rankHtml}</td>`;
+  return `<td class="num ${cls}"${alpha}>${display}</td>`;
 }
 
 // One row per route: offTeam's own usage share next to defTeam's allowed
@@ -158,7 +147,7 @@ function renderRouteMapTable(offTeam, defTeam) {
       return `<tr>
         <td>${ROUTE_LABELS[route] || route}</td>
         <td class="num route-map-off-end ${usageCls}"${usageAlpha}>${Math.round(usage * 100)}%</td>
-        ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true, showRank: true })}
+        ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true })}
         ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1 })}
         ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true })}
       </tr>`;
