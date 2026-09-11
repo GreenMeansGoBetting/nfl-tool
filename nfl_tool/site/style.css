@@ -344,14 +344,13 @@ h3 {
 .props-rec-table, .props-rush-table, .props-pass-table {
   table-layout: fixed;
 }
-.props-rec-table { width: 432px; }
-.props-rec-table th:first-child, .props-rec-table td:first-child { width: 200px; }
+.props-rec-table { width: 560px; }
+.props-rec-table th:first-child, .props-rec-table td:first-child { width: 328px; }
 .props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 34px; }
 .props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
 .props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
 .props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 46px; }
 .props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 60px; }
-.props-rec-table td:first-child { vertical-align: top; padding-top: 5px; }
 
 .props-rush-table { width: 352px; }
 .props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
@@ -380,12 +379,17 @@ h3 {
   border-right: 2px solid var(--text);
 }
 
-.player-name { font-weight: 600; }
+.player-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.player-name { font-weight: 600; white-space: nowrap; }
 .player-routes {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
-  margin-top: 3px;
 }
 .route-chip {
   display: inline-block;

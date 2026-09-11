@@ -187,7 +187,7 @@ function renderReceivingTable(team, oppTeam) {
   const rows = players
     .map((p) => {
       return `<tr>
-        <td><div class="player-name"><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span></div>${routeChipsHtml(p, oppTeam)}</td>
+        <td><div class="player-name-row"><span class="player-name player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span>${routeChipsHtml(p, oppTeam)}</div></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
