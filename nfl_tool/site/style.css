@@ -513,6 +513,78 @@ footer a { color: var(--accent); }
 .td-pp-odds { flex: 0 0 auto; font-weight: 700; }
 .td-pp-implied { font-weight: 400; color: var(--muted); }
 
+.wheel-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.wheel-action-bar[hidden] { display: none; }
+.wheel-spin-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.wheel-spin-btn:hover { filter: brightness(1.12); }
+.wheel-spin-btn:disabled { opacity: 0.5; cursor: default; }
+
+#wheel-modal .modal-box { max-width: 420px; text-align: center; }
+.wheel-legs-label { display: block; margin: 10px 0; font-weight: 600; font-size: 0.9rem; }
+.wheel-legs-label select {
+  margin-left: 6px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+.wheel-wrap {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 16px auto;
+}
+.wheel-pointer {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 18px solid var(--text);
+  z-index: 2;
+}
+#wheel-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--border);
+  transition: transform 4s cubic-bezier(0.12, 0.67, 0.1, 0.99);
+}
+.wheel-slip {
+  text-align: left;
+  background: var(--table-head);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.wheel-slip h4 { margin: 0 0 4px; font-size: 0.85rem; }
+.wheel-slip ul { margin: 0; padding-left: 18px; font-size: 0.85rem; }
+.wheel-slip li { margin: 2px 0; }
+.wheel-done { font-weight: 700; font-size: 1.1rem; margin-top: 12px; }
+
 .pikkit-reminder {
   background: rgba(var(--accent-rgb), 0.14);
   color: var(--accent);
