@@ -182,7 +182,7 @@ function renderReceivingTable(team, oppTeam) {
     .sort((a, b) => b.targets - a.targets)
     .slice(0, 6);
   if (!players.length) {
-    return `${teamBannerHeader(team)}<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
+    return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
   }
   const rows = players
     .map((p) => {
@@ -196,7 +196,7 @@ function renderReceivingTable(team, oppTeam) {
       </tr>`;
     })
     .join("");
-  return `${teamBannerHeader(team)}
+  return `${teamBannerHeader(team, true)}
     <table class="data-table props-rec-table">
       <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Tgt/g</th><th class="num">Rec/g</th><th class="num">Yds/g</th><th class="num">Ctch%</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -209,7 +209,7 @@ function renderRushingTable(team, oppTeam) {
     .sort((a, b) => b.carries - a.carries)
     .slice(0, 4);
   if (!players.length) {
-    return `${teamBannerHeader(team)}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
+    return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
   }
   const rows = players
     .map((p) => {
@@ -224,7 +224,7 @@ function renderRushingTable(team, oppTeam) {
       </tr>`;
     })
     .join("");
-  return `${teamBannerHeader(team)}
+  return `${teamBannerHeader(team, true)}
     <table class="data-table props-rush-table">
       <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Car/g</th><th class="num">Yds/g</th><th class="num">YPC</th><th class="edge-hdr">ADV</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -237,7 +237,7 @@ function renderPassingTable(team, oppTeam) {
     .sort((a, b) => b.pass_att - a.pass_att)
     .slice(0, 2);
   if (!players.length) {
-    return `${teamBannerHeader(team)}<p class="no-data-note">No qualifying passers yet this season.</p>`;
+    return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying passers yet this season.</p>`;
   }
   const rows = players
     .map((p) => {
@@ -251,12 +251,130 @@ function renderPassingTable(team, oppTeam) {
       </tr>`;
     })
     .join("");
-  return `${teamBannerHeader(team)}
+  return `${teamBannerHeader(team, true)}
     <table class="data-table props-pass-table">
       <thead><tr><th class="lb-player">Player</th><th class="num">Att/g</th><th class="num">Cmp%</th><th class="num">Yds/g</th><th class="num">INT/g</th><th class="edge-hdr">ADV</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
+
+// ---- Full player-props modal (every market SGO offers, per team header
+// click) -- distinct from the anytime-TD odds modal in common.js, since
+// this one needs a market dropdown that re-renders in place while staying
+// open, rather than one fixed market per click. ----
+function ensurePropsModal() {
+  if (document.getElementById("props-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "props-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="props-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closePropsModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closePropsModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePropsModal();
+  });
+}
+
+function closePropsModal() {
+  const el = document.getElementById("props-modal");
+  if (el) el.hidden = true;
+}
+
+// Only markets with an actual posted line for THIS matchup -- a market can
+// exist in the site-wide catalog but have zero real book coverage for a
+// specific game/week (backup QB, a market the books just haven't priced
+// yet), so the dropdown only ever offers markets with real rows.
+function availableMarketsFor(awayTeam, homeTeam) {
+  const labels = DATA.player_prop_market_labels || {};
+  const markets = DATA.player_prop_markets || {};
+  return Object.keys(labels).filter((stat) => {
+    const m = markets[stat];
+    if (!m) return false;
+    return (m[awayTeam] || []).length > 0 || (m[homeTeam] || []).length > 0;
+  });
+}
+
+// Line is the leading/leftmost number (what you're actually betting on),
+// Over/Under prices follow -- no book column, since line-shopping across
+// books is on the user, not this tool (same reasoning the anytime-TD modal
+// already states). Position, not team code, in parens -- the row's own
+// team-color border/tint already says which team.
+function renderPropsMarketTable(awayTeam, homeTeam, market) {
+  const marketData = (DATA.player_prop_markets || {})[market] || {};
+  const rows = [awayTeam, homeTeam]
+    .flatMap((t) => (marketData[t] || []).map((p) => ({ ...p, team: t })))
+    .sort((a, b) => (b.line || 0) - (a.line || 0));
+  if (!rows.length) {
+    return `<p class="no-data-note">No lines posted for this market yet.</p>`;
+  }
+  const body = rows
+    .map((p) => {
+      const rgb = teamAccentRgb(p.team);
+      const rowStyle = `border-left:4px solid rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.07);`;
+      return `<tr style="${rowStyle}">
+        <td>${teamLogoMini(p.team)} ${p.name} <span class="muted-label">(${p.position || "?"})</span></td>
+        <td class="num props-line">${fmt(p.line, 1)}</td>
+        <td class="num">${fmtOddsSigned(p.over_odds)}</td>
+        <td class="num">${fmtOddsSigned(p.under_odds)}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<table class="data-table player-odds-table props-market-table">
+    <thead><tr><th>Player</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+function renderPropsModalContent(awayTeam, homeTeam) {
+  const matchup = `${awayTeam} @ ${homeTeam}`;
+  const markets = availableMarketsFor(awayTeam, homeTeam);
+  if (!markets.length) {
+    return `<h3>${matchup} &mdash; Player Props</h3><p class="no-data-note">No player prop lines posted for this game yet.</p>`;
+  }
+  const labels = DATA.player_prop_market_labels || {};
+  const selected = markets[0];
+  const options = markets.map((m) => `<option value="${m}">${labels[m] || m}</option>`).join("");
+  return `<h3>${matchup} &mdash; Player Props</h3>
+    <select id="props-market-select" class="props-market-select">${options}</select>
+    <div id="props-market-table">${renderPropsMarketTable(awayTeam, homeTeam, selected)}</div>`;
+}
+
+// Which game the open modal's market dropdown is showing -- set once when
+// the modal opens, read by the dropdown's own change handler so switching
+// markets only re-renders the table, not the whole modal (keeps the
+// dropdown's own selection/focus intact).
+let propsModalTeams = null;
+
+function openPropsModal(awayTeam, homeTeam) {
+  ensurePropsModal();
+  propsModalTeams = { away: awayTeam, home: homeTeam };
+  document.getElementById("props-modal-content").innerHTML = renderPropsModalContent(awayTeam, homeTeam);
+  document.getElementById("props-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".props-team-click");
+  if (!btn) return;
+  const away = document.getElementById("away-select").value;
+  const home = document.getElementById("home-select").value;
+  if (away && home) openPropsModal(away, home);
+});
+
+document.addEventListener("change", (e) => {
+  if (e.target.id !== "props-market-select" || !propsModalTeams) return;
+  document.getElementById("props-market-table").innerHTML = renderPropsMarketTable(
+    propsModalTeams.away,
+    propsModalTeams.home,
+    e.target.value
+  );
+});
 
 const ALL_SECTIONS = ["receiving", "rushing", "passing"];
 

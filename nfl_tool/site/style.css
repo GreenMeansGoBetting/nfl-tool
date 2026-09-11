@@ -411,6 +411,9 @@ footer a { color: var(--accent); }
 .team-click { cursor: pointer; }
 .team-click:hover { text-decoration: underline; }
 
+.props-team-click { cursor: pointer; }
+.props-team-click:hover { filter: brightness(1.15); }
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -490,6 +493,14 @@ footer a { color: var(--accent); }
 .pos-row-click:hover, .dist-row-click:hover { color: var(--accent); }
 
 #td-breakdown-modal .modal-box { max-width: 520px; }
+
+#props-modal .modal-box { max-width: 480px; }
+.props-market-select {
+  width: 100%;
+  margin: 8px 0 12px;
+  font-weight: 700;
+}
+.props-market-table .props-line { font-weight: 700; }
 .td-breakdown-group { margin-bottom: 14px; }
 .td-breakdown-group:last-child { margin-bottom: 0; }
 .td-breakdown-group h3 { margin-bottom: 4px; }

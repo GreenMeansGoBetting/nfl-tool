@@ -160,10 +160,13 @@ function teamFade(team, ratio, maxAlpha = 0.6) {
 // Full-width team logo + spelled-out name header, tinted in the team's own
 // color -- shared by every per-player table on the site (Season TDs'
 // leaderboard, First TD's Red Zone Usage, Player Props) since they all have
-// room to spare for it.
-function teamBannerHeader(team) {
+// room to spare for it. clickable=true (Player Props' full prop catalog
+// modal) adds the same affordance the TD-odds ".team-click" header cells
+// already use, just its own class/listener since it opens a different modal.
+function teamBannerHeader(team, clickable = false) {
   const rgb = teamAccentRgb(team);
-  return `<div class="team-banner" style="background:rgba(${rgb.join(",")},0.16)">
+  const cls = clickable ? "team-banner props-team-click" : "team-banner";
+  return `<div class="${cls}" style="background:rgba(${rgb.join(",")},0.16)" ${clickable ? `data-team="${team}"` : ""}>
     <img src="${teamLogoUrl(team)}" class="team-logo" alt="${team}" loading="lazy">
     <span class="team-banner-name">${TEAM_NAMES[team] || team}</span>
   </div>`;
@@ -644,11 +647,10 @@ function renderPlayerOddsModalContent(team, market) {
       const checked = isPossiblePlay(entry.id) ? " checked" : "";
       const rgb = teamAccentRgb(p.team);
       const rowStyle = `border-left:4px solid rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.07);`;
-      return `<tr style="${rowStyle}"><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name} <span class="muted-label">(${p.team})</span></label></td><td class="num">${fmtOddsSigned(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+      return `<tr style="${rowStyle}"><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name} <span class="muted-label">(${p.position || "?"})</span></label></td><td class="num">${fmtOddsSigned(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
     })
     .join("");
   return `${heading}
-    <p class="no-data-note">${marketLabel} scorer -- best price found across a handful of books (SportsGameOdds free tier). A ballpark, not every book, not live. Only players with an actual posted line show up here -- someone missing usually means they're out or hurt. Check a player to add them to Possible Plays.</p>
     <table class="data-table player-odds-table">
       <thead><tr><th>Player</th><th>Odds</th><th>Book</th><th>Implied %</th></tr></thead>
       <tbody>${body}</tbody>

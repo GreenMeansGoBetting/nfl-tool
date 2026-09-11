@@ -504,6 +504,20 @@ def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
     return lookup
 
 
+def build_roster_position_lookup(rosters: pd.DataFrame) -> dict:
+    """{full_name: position} from the most recent week on file -- same
+    name-keyed shape as build_roster_team_lookup (SGO's player odds only
+    carry a name, not a gsis_id), used to label player-odds modal rows by
+    position instead of team (the row's own color/border already conveys
+    team, so position is the more useful second identifier)."""
+    lookup = {}
+    for row in rosters.sort_values("week").itertuples(index=False):
+        if pd.isna(row.full_name) or pd.isna(row.position):
+            continue
+        lookup[row.full_name] = row.position
+    return lookup
+
+
 def fetch_sgo_events(api_key: str, starts_after: str, starts_before: str) -> list | None:
     """Raw SportsGameOdds events (every market, every player, every book the
     free tier returns) for the given date window. Returns None if no API key
@@ -542,7 +556,7 @@ def fetch_sgo_events(api_key: str, starts_after: str, starts_before: str) -> lis
     return payload.get("data", [])
 
 
-def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict) -> dict:
+def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None) -> dict:
     """Every player's "yes/no" odds for one statID (e.g. "touchdowns" for
     anytime-TD, "firstTouchdown" for first-TD) out of a fetch_sgo_events()
     response -- ONLY players with an actual live book price. A player with
@@ -609,6 +623,7 @@ def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: di
 
             row = {
                 "name": player.get("name"),
+                "position": (roster_positions or {}).get(player.get("name")),
                 "best_odds": int(best_price) if best_price is not None else None,
                 "best_book": SGO_BOOK_NAMES.get(best_book, best_book),
                 "fair_odds": int(fair_odds) if fair_odds is not None else None,
@@ -627,6 +642,103 @@ def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: di
         result[team_short].append(row)
     for t in result:
         result[t].sort(key=lambda p: -p["implied_prob"])
+    return result
+
+
+# The full player-props catalog (Player Props page's per-market modal) --
+# distinct from extract_player_prop_odds above (yes/no anytime/first-TD
+# markets). Confirmed directly against a live SGO response (2026-09-11,
+# SF @ LA) rather than guessed from their marketing docs, which don't list
+# exact statID strings and aren't consistently cased (the existing
+# "touchdowns"/"firstTouchdown" markets already mix conventions). Kicking
+# and defense markets (fieldGoals_made, defense_sacks, etc.) also exist on
+# the free tier but are deliberately left out of this v1 -- this page is
+# scoped to skill-position offense, and each would need its own new
+# section/position-filtering the way Receiving/Rushing/Passing already do.
+PLAYER_OU_MARKETS = {
+    "receiving_yards": "Receiving Yards",
+    "receiving_receptions": "Receptions",
+    "receiving_longestReception": "Longest Reception",
+    "rushing_yards": "Rushing Yards",
+    "rushing_attempts": "Rush Attempts",
+    "rushing_longestRush": "Longest Rush",
+    "rushing_touchdowns": "Rushing TDs",
+    "passing_yards": "Passing Yards",
+    "passing_attempts": "Pass Attempts",
+    "passing_completions": "Completions",
+    "passing_interceptions": "INTs Thrown",
+    "passing_longestCompletion": "Longest Completion",
+    "passing_touchdowns": "Passing TDs",
+    "rushing+receiving_yards": "Rush + Rec Yards",
+    "passing+rushing_yards": "Pass + Rush Yards",
+    "fantasyScore": "Fantasy Score",
+}
+
+
+def extract_player_ou_props(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None) -> dict:
+    """Every player's over/under LINE plus both sides' prices for one
+    statID (e.g. "receiving_yards") -- the general player-props catalog.
+    Unlike the yes/no anytime-TD markets above, an o/u market has a real
+    number attached (the line), and that number can differ slightly by
+    book -- so the line and BOTH prices are taken from the SAME bookmaker
+    (whichever has the best "over" price among books actually posting one)
+    rather than picking each side/line independently, since a line from one
+    book paired with a price from another isn't a real bettable number. No
+    book name is kept in the output -- the user line-shops themselves.
+    """
+    best_by_key = {}
+    for event in events:
+        players = event.get("players", {})
+        odds = event.get("odds", {})
+        team_short_by_id = {
+            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
+            for side in ("home", "away")
+        }
+        for odd in odds.values():
+            if odd.get("statID") != stat_id or odd.get("betTypeID") != "ou" or odd.get("sideID") != "over":
+                continue
+            player = players.get(odd.get("playerID"))
+            if not player:
+                continue
+            team_short = team_short_by_id.get(player.get("teamID"))
+            if team_short not in teams:
+                continue
+            known_teams = roster_teams.get(player.get("name"))
+            if known_teams and team_short not in known_teams:
+                continue
+
+            under_odd = odds.get(odd.get("opposingOddID"))
+            if not under_odd:
+                continue
+
+            best_book, best_over, line = None, None, None
+            for book, info in (odd.get("byBookmaker") or {}).items():
+                if not info.get("available") or info.get("odds") is None or info.get("overUnder") is None:
+                    continue
+                price = float(info["odds"])
+                if best_over is None or price > best_over:
+                    best_over, best_book, line = price, book, float(info["overUnder"])
+            if best_book is None:
+                continue
+
+            under_info = (under_odd.get("byBookmaker") or {}).get(best_book)
+            if not under_info or not under_info.get("available") or under_info.get("odds") is None:
+                continue
+
+            row = {
+                "name": player.get("name"),
+                "position": (roster_positions or {}).get(player.get("name")),
+                "line": line,
+                "over_odds": int(best_over),
+                "under_odds": int(float(under_info["odds"])),
+            }
+            best_by_key[(team_short, row["name"])] = row
+
+    result = {t: [] for t in teams}
+    for (team_short, _name), row in best_by_key.items():
+        result[team_short].append(row)
+    for t in result:
+        result[t].sort(key=lambda p: -(p["line"] or 0))
     return result
 
 
@@ -2014,6 +2126,7 @@ def main():
     player_td_odds = None
     player_first_td_odds = None
     general_odds = None
+    player_prop_markets = None
     if week_dates:
         starts_after = week_dates[0]
         starts_before = (date.fromisoformat(week_dates[-1]) + timedelta(days=1)).isoformat()
@@ -2025,11 +2138,19 @@ def main():
         # happening throughout the year.
         current_rosters = load_rosters(args.data_dir, args.season, force=True)
         roster_teams = build_roster_team_lookup(current_rosters)
+        roster_positions = build_roster_position_lookup(current_rosters)
         sgo_events = fetch_sgo_events(os.environ.get("SGO_API_KEY"), starts_after, starts_before)
         if sgo_events is not None:
-            player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams)
-            player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams)
+            player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions)
+            player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions)
             general_odds = extract_general_odds(sgo_events, teams)
+            # Same event fetch already paid for above -- SGO bills per EVENT
+            # returned, not per market, so pulling all 16 of these costs
+            # nothing extra over the anytime-TD pull alone.
+            player_prop_markets = {
+                stat_id: extract_player_ou_props(sgo_events, stat_id, teams, roster_teams, roster_positions)
+                for stat_id in PLAYER_OU_MARKETS
+            }
 
     blob = {
         "season": season,
@@ -2050,6 +2171,8 @@ def main():
         "player_td_odds": player_td_odds,
         "player_first_td_odds": player_first_td_odds,
         "general_odds": general_odds,
+        "player_prop_markets": player_prop_markets,
+        "player_prop_market_labels": PLAYER_OU_MARKETS,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
