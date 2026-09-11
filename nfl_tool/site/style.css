@@ -488,7 +488,7 @@ footer a { color: var(--accent); }
 }
 
 .stat-column-notes {
-  width: 260px;
+  width: 300px;
 }
 .stat-column-title-spaced {
   margin-top: 14px;
@@ -511,6 +511,18 @@ footer a { color: var(--accent); }
   white-space: nowrap;
 }
 .td-pp-odds { flex: 0 0 auto; font-weight: 700; }
+.td-pp-implied { font-weight: 400; color: var(--muted); }
+
+.pikkit-reminder {
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin: 8px 0 0;
+}
 
 #general-odds-modal .modal-box { max-width: 640px; }
 

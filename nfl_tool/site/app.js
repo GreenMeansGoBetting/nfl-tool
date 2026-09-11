@@ -398,10 +398,10 @@ function renderTdPossiblePlaysList(away, home) {
     : list
     .slice()
     .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
-    .map(
-      (p) =>
-        `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${p.odds}</span></div>`
-    )
+    .map((p) => {
+      const pct = oddsToImpliedPct(p.odds);
+      return `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${p.odds}${pct !== null ? ` <span class="td-pp-implied">(${pct}%)</span>` : ""}</span></div>`;
+    })
     .join("");
   els.forEach((el) => (el.innerHTML = html));
 }

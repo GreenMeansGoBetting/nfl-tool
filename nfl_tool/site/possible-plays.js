@@ -28,15 +28,16 @@ function renderPossiblePlays() {
       const rows = byWeek[week]
         .slice()
         .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
-        .map(
-          (p) => `<tr>
+        .map((p) => {
+          const pct = oddsToImpliedPct(p.odds);
+          return `<tr>
             <td>${p.matchup}</td>
             <td>${p.category}</td>
-            <td>${p.description}</td>
-            <td class="num">${p.odds}${p.book ? ` <span class="muted-label">(${p.book})</span>` : ""}</td>
+            <td>${p.team ? teamLogoMini(p.team) : ""} ${p.description}</td>
+            <td class="num">${p.odds}${pct !== null ? ` <span class="muted-label">(${pct}%)</span>` : ""}${p.book ? ` <span class="muted-label">(${p.book})</span>` : ""}</td>
             <td><button type="button" class="pick-edit-btn" data-remove-id="${p.id}">Remove</button></td>
-          </tr>`
-        )
+          </tr>`;
+        })
         .join("");
       return `<div class="section-wrap">
         <h2 class="section-title">Week ${week}</h2>

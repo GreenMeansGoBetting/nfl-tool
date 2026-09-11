@@ -527,6 +527,18 @@ function fmtOddsSigned(n) {
   return n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`;
 }
 
+// Raw American-odds -> implied win probability, same formula build_stats.py's
+// moneyline_to_implied_prob uses server-side -- computed straight from the
+// stored odds string here rather than needing its own stored field, so it
+// works for every kind of saved possible play (player props, spreads,
+// totals, moneylines) with no extra data to carry around.
+function oddsToImpliedPct(oddsStr) {
+  const n = parseFloat(oddsStr);
+  if (isNaN(n) || n === 0) return null;
+  const prob = n > 0 ? 100 / (n + 100) : -n / (-n + 100);
+  return Math.round(prob * 100);
+}
+
 function ensurePlayerOddsModal() {
   if (document.getElementById("player-odds-modal")) return;
   const overlay = document.createElement("div");
@@ -639,7 +651,7 @@ function renderPlayerOddsModalContent(team, market) {
         week: weekNum,
         matchup,
         category: marketLabel,
-        description: `${p.name} (${p.team})`,
+        description: p.name,
         team: p.team,
         odds: fmtOddsSigned(p.best_odds),
         book: p.best_book,
