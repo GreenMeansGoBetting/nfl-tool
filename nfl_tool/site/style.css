@@ -513,6 +513,28 @@ footer a { color: var(--accent); }
 .td-pp-odds { flex: 0 0 auto; font-weight: 700; }
 .td-pp-implied { font-weight: 400; color: var(--muted); }
 
+.quick-select-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0;
+}
+.quick-select-bar[hidden] { display: none; }
+.quick-select-label { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-right: 2px; }
+.quick-select-btn {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.quick-select-btn:hover { border-color: var(--accent); color: var(--accent); }
+.quick-select-clear-btn { color: var(--muted); }
+
 .wheel-action-bar {
   display: flex;
   align-items: center;
@@ -540,6 +562,11 @@ footer a { color: var(--accent); }
 .wheel-spin-btn:disabled { opacity: 0.5; cursor: default; }
 
 #wheel-modal .modal-box { max-width: 420px; text-align: center; }
+/* Once a round is showing (wheel + running slip), the box needs to be much
+   wider than the plain leg-count-picker screen -- overridden per-state via
+   this second class rather than just always being huge, so the initial
+   "how many legs" screen still reads as a normal small dialog. */
+#wheel-modal .modal-box.wheel-modal-wide { max-width: 900px; width: 95vw; }
 .wheel-legs-label { display: block; margin: 10px 0; font-weight: 600; font-size: 0.9rem; }
 .wheel-legs-label select {
   margin-left: 6px;
@@ -549,12 +576,23 @@ footer a { color: var(--accent); }
   border-radius: 4px;
   padding: 3px 6px;
 }
+.wheel-round-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.wheel-col { flex: 0 0 auto; }
+.wheel-slip-col { flex: 1 1 220px; max-width: 300px; text-align: left; padding-top: 8px; }
 .wheel-wrap {
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: 520px;
+  max-width: 100%;
+  height: 520px;
   margin: 16px auto;
 }
+.wheel-wrap svg { width: 100%; height: 100%; }
 .wheel-pointer {
   position: absolute;
   top: -4px;
@@ -562,9 +600,9 @@ footer a { color: var(--accent); }
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 11px solid transparent;
-  border-right: 11px solid transparent;
-  border-top: 18px solid var(--text);
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 22px solid var(--text);
   z-index: 2;
 }
 #wheel-spinner {

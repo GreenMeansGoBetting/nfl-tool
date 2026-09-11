@@ -21,6 +21,42 @@ function updateWheelActionBar() {
   document.getElementById("wheel-selected-count").textContent = `${wheelSelected.size} selected`;
 }
 
+// One button per distinct market present in the saved list (Anytime TD,
+// First TD, Receiving Yards, whatever's actually there) -- replaces the
+// current wheel selection with exactly that market's plays, so "select all
+// Anytime TD" means just those, not those added on top of whatever else
+// was already checked. Manual checkboxes still work fine afterward for
+// mixing in extras.
+function renderQuickSelectBar() {
+  const bar = document.getElementById("quick-select-bar");
+  if (!bar) return;
+  const categories = [...new Set(loadPossiblePlays().map((p) => p.category))].sort();
+  if (categories.length === 0) {
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+  const buttons = categories
+    .map((c) => `<button type="button" class="quick-select-btn" data-entry="${encodeDataAttr(c)}">Select all: ${c}</button>`)
+    .join("");
+  bar.innerHTML = `<span class="quick-select-label">Quick select:</span>${buttons}<button type="button" id="quick-select-clear" class="quick-select-btn quick-select-clear-btn">Clear</button>`;
+}
+
+document.addEventListener("click", (e) => {
+  const qsBtn = e.target.closest(".quick-select-btn");
+  if (!qsBtn) return;
+  if (qsBtn.id === "quick-select-clear") {
+    wheelSelected.clear();
+  } else {
+    const category = decodeDataAttr(qsBtn.dataset.entry);
+    wheelSelected.clear();
+    loadPossiblePlays()
+      .filter((p) => p.category === category)
+      .forEach((p) => wheelSelected.add(p.id));
+  }
+  renderPossiblePlays();
+});
+
 function renderPossiblePlays() {
   const plays = loadPossiblePlays();
   const emptyEl = document.getElementById("empty-state");
@@ -30,9 +66,11 @@ function renderPossiblePlays() {
     emptyEl.hidden = false;
     contentEl.innerHTML = "";
     updateWheelActionBar();
+    renderQuickSelectBar();
     return;
   }
   emptyEl.hidden = true;
+  renderQuickSelectBar();
 
   const byWeek = {};
   plays.forEach((p) => {
@@ -139,21 +177,30 @@ function wheelSliceD(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z`;
 }
 
+// 520px -- big enough that even a wheel with 30+ slices keeps names
+// readable, per the explicit ask to size this for "see all player names"
+// rather than optimizing for a compact modal.
+const WHEEL_SIZE = 520;
+
 function renderWheelSvg(pool) {
   const n = pool.length;
-  const size = 300;
+  const size = WHEEL_SIZE;
   const cx = size / 2, cy = size / 2, r = size / 2 - 4;
   const segAngle = 360 / n;
+  // More slices -> less arc length per label -> trim harder so text
+  // doesn't run into its neighbors; a wheel of 3-4 plays gets to keep much
+  // longer names than one with 30+.
+  const maxChars = n <= 8 ? 22 : n <= 16 ? 16 : n <= 24 ? 12 : 9;
   const slices = pool
     .map((p, i) => {
       const start = i * segAngle;
       const end = start + segAngle;
       const mid = start + segAngle / 2;
       const color = p.team ? `rgb(${teamAccentRgb(p.team).join(",")})` : WHEEL_FALLBACK_COLORS[i % WHEEL_FALLBACK_COLORS.length];
-      const labelPos = polarToCartesian(cx, cy, r * 0.6, mid);
-      const label = p.description.length > 14 ? `${p.description.slice(0, 13)}…` : p.description;
+      const labelPos = polarToCartesian(cx, cy, r * 0.62, mid);
+      const label = p.description.length > maxChars ? `${p.description.slice(0, maxChars - 1)}…` : p.description;
       return `<path d="${wheelSliceD(cx, cy, r, start, end)}" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-        <text x="${labelPos.x.toFixed(2)}" y="${labelPos.y.toFixed(2)}" transform="rotate(${mid.toFixed(2)}, ${labelPos.x.toFixed(2)}, ${labelPos.y.toFixed(2)})" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="#fff">${label}</text>`;
+        <text x="${labelPos.x.toFixed(2)}" y="${labelPos.y.toFixed(2)}" transform="rotate(${mid.toFixed(2)}, ${labelPos.x.toFixed(2)}, ${labelPos.y.toFixed(2)})" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#fff">${label}</text>`;
     })
     .join("");
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg>`;
@@ -163,6 +210,9 @@ let wheelState = null;
 
 function openWheelModal(selectedPlays) {
   ensureWheelModal();
+  // Always starts back at the small, centered leg-count screen -- the wide
+  // layout only kicks in once a round with a real wheel is showing.
+  document.querySelector("#wheel-modal .modal-box").classList.remove("wheel-modal-wide");
   const maxLegs = Math.min(10, distinctGameCount(selectedPlays));
   const content = document.getElementById("wheel-modal-content");
   if (maxLegs < 1) {
@@ -174,34 +224,40 @@ function openWheelModal(selectedPlays) {
     .map((n) => `<option value="${n}"${n === maxLegs ? " selected" : ""}>${n} leg${n > 1 ? "s" : ""}</option>`)
     .join("");
   content.innerHTML = `
-    <h3>&#127920; Parlay Wheel</h3>
-    <p class="no-data-note">${selectedPlays.length} plays checked across ${distinctGameCount(selectedPlays)} games. Landing on a play clears the rest of its game from the wheel before the next spin.</p>
-    <label class="wheel-legs-label">Parlay legs:
-      <select id="wheel-legs-select">${options}</select>
-    </label>
-    <button type="button" id="wheel-start-btn" class="wheel-spin-btn">Start Spinning</button>
+    <div id="wheel-setup">
+      <h3>&#127920; Parlay Wheel</h3>
+      <p class="no-data-note">${selectedPlays.length} plays checked across ${distinctGameCount(selectedPlays)} games. Landing on a play clears the rest of its game from the wheel before the next spin.</p>
+      <label class="wheel-legs-label">Parlay legs:
+        <select id="wheel-legs-select">${options}</select>
+      </label>
+      <button type="button" id="wheel-start-btn" class="wheel-spin-btn">Start Spinning</button>
+    </div>
     <div id="wheel-arena"></div>
   `;
   document.getElementById("wheel-modal").hidden = false;
   document.getElementById("wheel-start-btn").addEventListener("click", () => {
     const targetCount = parseInt(document.getElementById("wheel-legs-select").value, 10);
     wheelState = { pool: selectedPlays.slice(), legs: [], targetCount, original: selectedPlays };
+    document.getElementById("wheel-setup").hidden = true;
+    document.querySelector("#wheel-modal .modal-box").classList.add("wheel-modal-wide");
     renderWheelRound();
   });
+}
+
+function renderWheelSlip(legs, targetCount) {
+  const items = legs.length
+    ? legs.map((l) => `<li>${l.team ? teamLogoMini(l.team) : ""} ${l.description} <span class="muted-label">${l.odds}</span></li>`).join("")
+    : `<li class="muted-label">No legs yet -- spin to add one.</li>`;
+  return `<div class="wheel-slip"><h4>Your Parlay (${legs.length}/${targetCount})</h4><ul>${items}</ul></div>`;
 }
 
 function renderWheelRound() {
   const { pool, legs, targetCount } = wheelState;
   const arena = document.getElementById("wheel-arena");
-  const slipHtml = legs.length
-    ? `<div class="wheel-slip"><h4>Your Parlay (${legs.length}/${targetCount})</h4><ul>${legs
-        .map((l) => `<li>${l.team ? teamLogoMini(l.team) : ""} ${l.description} <span class="muted-label">${l.odds}</span></li>`)
-        .join("")}</ul></div>`
-    : "";
 
   if (legs.length >= targetCount || pool.length === 0) {
     const shortNote = pool.length === 0 && legs.length < targetCount ? `<p class="no-data-note">Ran out of distinct games before reaching ${targetCount} legs.</p>` : "";
-    arena.innerHTML = `${slipHtml}${shortNote}<p class="wheel-done">&#127881; Parlay complete &mdash; ${legs.length} leg${legs.length === 1 ? "" : "s"}!</p>
+    arena.innerHTML = `${renderWheelSlip(legs, targetCount)}${shortNote}<p class="wheel-done">&#127881; Parlay complete &mdash; ${legs.length} leg${legs.length === 1 ? "" : "s"}!</p>
       <button type="button" id="wheel-restart-btn" class="wheel-spin-btn">New Parlay</button>`;
     document.getElementById("wheel-restart-btn").addEventListener("click", () => openWheelModal(wheelState.original));
     return;
@@ -215,12 +271,18 @@ function renderWheelRound() {
     return;
   }
 
-  arena.innerHTML = `${slipHtml}
-    <div class="wheel-wrap">
-      <div class="wheel-pointer"></div>
-      <div id="wheel-spinner">${renderWheelSvg(pool)}</div>
-    </div>
-    <button type="button" id="wheel-spin-btn" class="wheel-spin-btn">SPIN</button>`;
+  // Wheel on the left, the running parlay slip to the right of it -- both
+  // side by side rather than the slip stacked above a now-much-bigger wheel.
+  arena.innerHTML = `<div class="wheel-round-layout">
+      <div class="wheel-col">
+        <div class="wheel-wrap">
+          <div class="wheel-pointer"></div>
+          <div id="wheel-spinner">${renderWheelSvg(pool)}</div>
+        </div>
+        <button type="button" id="wheel-spin-btn" class="wheel-spin-btn">SPIN</button>
+      </div>
+      <div class="wheel-slip-col">${renderWheelSlip(legs, targetCount)}</div>
+    </div>`;
   document.getElementById("wheel-spin-btn").addEventListener("click", spinWheel);
 }
 
