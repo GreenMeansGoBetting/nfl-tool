@@ -1700,11 +1700,14 @@ def build_player_stats(scoring_df, first_td_by_game, teams, target_ranks):
 # Route charting (NGS, via the same pbp_participation file compute_scheme_
 # splits already uses) is logged only for the actual targeted receiver on a
 # pass play -- confirmed directly against a real season file (2025: 18,871
-# charted targets, these 13 distinct values). Ordered roughly shallow ->
-# deep for display, not alphabetically.
+# charted targets, 13 distinct values). Texas/Angle and Wheel deliberately
+# excluded here -- thin league-wide volume (many teams barely face them, and
+# they rarely show up in any player's own top routes), so they'd mostly just
+# add noise/small-sample cells to the team-level defense map. Ordered
+# roughly shallow -> deep for display, not alphabetically.
 ROUTE_TYPES = [
-    "SCREEN", "SWING", "TEXAS/ANGLE", "QUICK OUT", "SLANT", "HITCH/CURL",
-    "SHALLOW CROSS/DRAG", "IN/DIG", "WHEEL", "DEEP OUT", "CORNER", "POST", "GO",
+    "SCREEN", "SWING", "QUICK OUT", "SLANT", "HITCH/CURL",
+    "SHALLOW CROSS/DRAG", "IN/DIG", "DEEP OUT", "CORNER", "POST", "GO",
 ]
 ROUTE_MIN_SAMPLE = 8
 

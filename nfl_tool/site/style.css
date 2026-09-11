@@ -344,43 +344,50 @@ h3 {
 .props-rec-table, .props-rush-table, .props-pass-table {
   table-layout: fixed;
 }
-.props-rec-table { width: 560px; }
+.props-rec-table { width: 462px; }
 .props-rec-table th:first-child, .props-rec-table td:first-child { width: 200px; }
 .props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 34px; }
 .props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
 .props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
 .props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 46px; }
-.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5),
-.props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7) { width: 60px; }
-.props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8) { width: 30px; }
+.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 60px; }
+.props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7) { width: 30px; }
 .props-rec-table td:first-child { vertical-align: top; padding-top: 5px; }
 
-.props-rush-table { width: 420px; }
+.props-rush-table { width: 352px; }
 .props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
 .props-rush-table th:nth-child(2), .props-rush-table td:nth-child(2) { width: 34px; }
 .props-rush-table th:nth-child(3), .props-rush-table td:nth-child(3),
 .props-rush-table th:nth-child(4), .props-rush-table td:nth-child(4),
 .props-rush-table th:nth-child(5), .props-rush-table td:nth-child(5) { width: 46px; }
-.props-rush-table th:nth-child(6), .props-rush-table td:nth-child(6) { width: 60px; }
-.props-rush-table th:nth-child(7), .props-rush-table td:nth-child(7) { width: 30px; }
+.props-rush-table th:nth-child(6), .props-rush-table td:nth-child(6) { width: 30px; }
 
-.props-pass-table { width: 420px; }
+.props-pass-table { width: 388px; }
 .props-pass-table th:first-child, .props-pass-table td:first-child { width: 160px; }
 .props-pass-table th:nth-child(2), .props-pass-table td:nth-child(2),
 .props-pass-table th:nth-child(3), .props-pass-table td:nth-child(3),
 .props-pass-table th:nth-child(5), .props-pass-table td:nth-child(5) { width: 46px; }
-.props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4),
-.props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 60px; }
-.props-pass-table th:nth-child(7), .props-pass-table td:nth-child(7) { width: 30px; }
+.props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4) { width: 60px; }
+.props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 30px; }
 
 .props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
-.route-def-table { table-layout: fixed; width: 250px; }
+.route-def-table { table-layout: fixed; width: 268px; }
 .route-def-table th:first-child, .route-def-table td:first-child { width: 90px; }
-.route-def-table th:nth-child(2), .route-def-table td:nth-child(2),
+.route-def-table th:nth-child(2), .route-def-table td:nth-child(2) { width: 62px; }
 .route-def-table th:nth-child(3), .route-def-table td:nth-child(3),
-.route-def-table th:nth-child(4), .route-def-table td:nth-child(4) { width: 53px; }
+.route-def-table th:nth-child(4), .route-def-table td:nth-child(4) { width: 58px; }
+.route-rank {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.route-usage-table { table-layout: fixed; width: 160px; }
+.route-usage-table th:first-child, .route-usage-table td:first-child { width: 105px; }
+.route-usage-table th:nth-child(2), .route-usage-table td:nth-child(2) { width: 55px; }
 
 .player-name { font-weight: 600; }
 .player-routes {
