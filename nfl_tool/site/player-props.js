@@ -180,7 +180,7 @@ function renderRouteMapTable(offTeam, defTeam) {
   return `<table class="data-table route-map-table">
       ${ROUTE_MAP_COLGROUP}
       <thead>
-        <tr><th></th><th class="route-map-off-end" style="${offStyle}">${teamLogoMini(offTeam)} ${offTeam}</th><th colspan="3" style="${defStyle}">${teamLogoMini(defTeam)} ${defTeam}</th></tr>
+        <tr><th colspan="2" class="route-map-off-end" style="${offStyle}">${teamLogoMini(offTeam)} ${offTeam}</th><th colspan="3" style="${defStyle}">${teamLogoMini(defTeam)} ${defTeam}</th></tr>
         <tr><th>Route</th><th class="num route-map-off-end">Usage</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr>
       </thead>
       <tbody>${rows}</tbody>
