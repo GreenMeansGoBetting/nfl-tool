@@ -685,6 +685,16 @@ def extract_player_ou_props(events: list, stat_id: str, teams, roster_teams: dic
     rather than picking each side/line independently, since a line from one
     book paired with a price from another isn't a real bettable number. No
     book name is kept in the output -- the user line-shops themselves.
+
+    periodID must be filtered to "game" (full game) -- SGO returns the SAME
+    statID/betTypeID/sideID combo again for 1Q/2Q/3Q/4Q sub-markets (e.g.
+    Drake London's full-game 61.5 receiving yards line sits alongside a
+    separate 8.5 line for his 1st quarter ONLY), and without this filter
+    the best-price scan across ALL of them could just as easily land on a
+    quarter-specific line as the real full-game one -- confirmed live: this
+    was silently happening (caught via a user-reported "way off" ATL/PIT
+    receiving-yards line). Same period-scoping extract_general_odds already
+    does via GENERAL_ODDS_PERIODS, just missed here originally.
     """
     best_by_key = {}
     for event in events:
@@ -696,6 +706,8 @@ def extract_player_ou_props(events: list, stat_id: str, teams, roster_teams: dic
         }
         for odd in odds.values():
             if odd.get("statID") != stat_id or odd.get("betTypeID") != "ou" or odd.get("sideID") != "over":
+                continue
+            if odd.get("periodID") != "game":
                 continue
             player = players.get(odd.get("playerID"))
             if not player:
