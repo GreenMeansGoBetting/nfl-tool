@@ -5,7 +5,13 @@ on:
     # Daily refresh, ~6am ET (10:00 UTC covers 6am EDT; during EST part of
     # the season this lands ~5am ET instead -- close enough that it's always
     # fresh well before the workday, no need to split the cron by DST).
-    - cron: "0 10 * * *"
+    # Offset 17 minutes past the hour on purpose -- GitHub's own docs warn
+    # that on-the-hour schedules are the most likely to be delayed/dropped
+    # during peak Actions load, and that's exactly what happened here
+    # (confirmed: only one scheduled run ever fired, 4+ hours late, and a
+    # whole day was missed outright) -- a few minutes off the hour avoids
+    # the worst of that contention.
+    - cron: "17 10 * * *"
   workflow_dispatch: {}  # manual "Run workflow" button, for on-demand refresh
   push:
     branches: [main]
