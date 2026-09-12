@@ -421,11 +421,10 @@ h3 {
 .rush-lane-label { font-size: 0.65rem; font-weight: 700; opacity: 0.75; }
 .rush-lane-pct { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
 .rush-lane-ypc { font-size: 0.68rem; opacity: 0.85; }
-.rush-lane-freq-pct { font-size: 0.85rem; font-weight: 700; }
-/* Frequency's own background is an inline style (magnitude-scaled accent
-   blue, set in JS) -- this is just the text-color flip for when that blue
-   gets dark enough that the default text color stops being legible. */
-.rush-lane-freq-dark, .rush-lane-freq-dark .rush-lane-freq-pct { color: #fff; }
+/* Always dark text regardless of how deep the blue fill gets (alpha tops
+   out at 0.85, never fully opaque) -- explicit rather than inherited so it
+   can't accidentally pick up a lighter color from context. */
+.rush-lane-freq-pct { font-size: 0.85rem; font-weight: 700; color: var(--text); }
 /* Used only by the "See All Players" modal, where each player's offense
    block has no defense box above it to inherit a top edge from -- overflow
    hidden + the block's own radius clips the (otherwise square) success

@@ -293,9 +293,8 @@ function offenseFreqCell(freqVal) {
   }
   const t = Math.min(freqVal / FREQ_SHADE_CAP, 1);
   const alpha = FREQ_SHADE_MIN_ALPHA + t * (FREQ_SHADE_MAX_ALPHA - FREQ_SHADE_MIN_ALPHA);
-  const darkCls = alpha > 0.45 ? " rush-lane-freq-dark" : "";
   const display = `${Math.round(freqVal * 100)}%`;
-  return `<div class="rush-lane-off-freq${darkCls}" style="background: rgba(var(--accent-rgb), ${alpha.toFixed(2)})"><span class="rush-lane-freq-pct">${display}</span></div>`;
+  return `<div class="rush-lane-off-freq" style="background: rgba(var(--accent-rgb), ${alpha.toFixed(2)})"><span class="rush-lane-freq-pct">${display}</span></div>`;
 }
 
 // One lane column: defense box on top, the offense block (success half
@@ -322,6 +321,15 @@ function rushLaneColumnStandalone(offSuccessCell, offFreqCell) {
       ${offFreqCell}
     </div>
   </div>`;
+}
+
+// A defense box on its own, still wrapped in .rush-lane-col so it stretches
+// to the same width as every offense column below it -- .rush-lane-box
+// itself has no flex-grow of its own (it relies on .rush-lane-col for
+// that), so used bare it shrinks to its content width instead of lining up
+// with the (wrapped) offense blocks underneath.
+function rushLaneColumnDefenseOnly(defBox) {
+  return `<div class="rush-lane-col">${defBox}</div>`;
 }
 
 function renderRushLanesChart(offTeam, defTeam) {
@@ -406,7 +414,7 @@ function renderTeamRushLanesAllPlayersContent(team, oppTeam) {
     return `${heading}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
   }
   const pools = buildRushZonePools();
-  const defRow = RUSH_ZONES.map((z) => defenseLaneCell(oppTeam, z)).join("");
+  const defRow = RUSH_ZONES.map((z) => rushLaneColumnDefenseOnly(defenseLaneCell(oppTeam, z))).join("");
   const playerBlocks = players
     .map((p) => {
       const zones = ((DATA.player_rush_zones || {})[team] || {})[p.name] || {};
