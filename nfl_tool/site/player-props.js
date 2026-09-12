@@ -258,18 +258,20 @@ function rushLaneBox(team, zone, allowed) {
   </div>`;
 }
 
-// Offense row on top, defense-allowed row on the bottom, same left-to-right
-// lane order in both -- reading straight down any one column answers "does
-// this offense like this lane, and is the opponent actually bad there."
+// Defense-allowed row on top, offense row on the bottom, same left-to-right
+// lane order in both -- reads bottom-up as "here's what the offense likes
+// to do, and here's the defense it's running into," per explicit feedback
+// that reading offense-first from the bottom felt more natural than
+// offense-on-top.
 function renderRushLanesChart(offTeam, defTeam) {
   const offRow = RUSH_ZONES.map((z) => rushLaneBox(offTeam, z, false)).join("");
   const defRow = RUSH_ZONES.map((z) => rushLaneBox(defTeam, z, true)).join("");
   return `<div class="rush-lanes">
-    <div class="rush-lanes-team-tag">${teamLogoMini(offTeam)} ${offTeam} rush offense</div>
-    <div class="rush-lanes-row">${offRow}</div>
-    <div class="rush-lanes-divider"></div>
-    <div class="rush-lanes-row">${defRow}</div>
     <div class="rush-lanes-team-tag">${teamLogoMini(defTeam)} ${defTeam} run defense</div>
+    <div class="rush-lanes-row">${defRow}</div>
+    <div class="rush-lanes-divider"></div>
+    <div class="rush-lanes-row">${offRow}</div>
+    <div class="rush-lanes-team-tag">${teamLogoMini(offTeam)} ${offTeam} rush offense</div>
   </div>`;
 }
 
