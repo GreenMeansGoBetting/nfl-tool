@@ -167,6 +167,16 @@ select {
   margin: 4px 0 0;
 }
 
+.backup-qb-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 8px 0 0;
+  cursor: pointer;
+}
+
 .snapshot-list {
   margin: 10px 0 0;
   padding-left: 20px;

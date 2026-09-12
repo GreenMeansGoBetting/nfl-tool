@@ -576,11 +576,45 @@ document.addEventListener("click", (e) => {
   openPlayerStatRankModal(decodeDataAttr(cell.dataset.entry));
 });
 
-function renderPassingTable(team, oppTeam) {
-  const players = (DATA.player_props[team] || [])
+// ---- Backup-QB visibility toggle (Passing tab) ----
+// Off by default: only the team's top passer by volume shows up across
+// the Passing table, Coverage & Pressure, and QB Rushing panels -- a
+// clipboard-holder who threw 11 garbage-time passes cluttered all three
+// otherwise. On, it reverts to showing up to 2 qualifying passers (the
+// original behavior), for the rare case a real QB competition is
+// happening. Persisted the same try/catch localStorage pattern as
+// PROPS_VIEW_KEY above.
+const SHOW_BACKUP_QBS_KEY = "nfl-tool.show-backup-qbs.v1";
+let showBackupQbs = false;
+
+function loadShowBackupQbs() {
+  try {
+    return localStorage.getItem(SHOW_BACKUP_QBS_KEY) === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+function setShowBackupQbs(value) {
+  showBackupQbs = value;
+  try {
+    localStorage.setItem(SHOW_BACKUP_QBS_KEY, value ? "1" : "0");
+  } catch (e) {
+    // localStorage unavailable -- toggle just won't stick across reloads.
+  }
+}
+
+// Every render function on this tab that lists passers pulls from this
+// one place, so the toggle only has to be handled once.
+function qualifyingPassers(team) {
+  const all = (DATA.player_props[team] || [])
     .filter((p) => p.pass_att >= 10)
-    .sort((a, b) => b.pass_att - a.pass_att)
-    .slice(0, 2);
+    .sort((a, b) => b.pass_att - a.pass_att);
+  return showBackupQbs ? all.slice(0, 2) : all.slice(0, 1);
+}
+
+function renderPassingTable(team, oppTeam) {
+  const players = qualifyingPassers(team);
   if (!players.length) {
     return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying passers yet this season.</p>`;
   }
@@ -722,10 +756,7 @@ function passSplitAdvCell(team, oppTeam, successVal, pool, defAllowedKey) {
 }
 
 function renderPassCoveragePanel(team, oppTeam) {
-  const players = (DATA.player_props[team] || [])
-    .filter((p) => p.pass_att >= 10)
-    .sort((a, b) => b.pass_att - a.pass_att)
-    .slice(0, 2);
+  const players = qualifyingPassers(team);
   if (!players.length) {
     return `<div class="stat-column-title">Coverage &amp; Pressure</div><p class="no-data-note">No qualifying passers yet this season.</p>`;
   }
@@ -858,10 +889,7 @@ document.addEventListener("click", (e) => {
 });
 
 function renderQbRushingPanel(team, oppTeam) {
-  const players = (DATA.player_props[team] || [])
-    .filter((p) => p.pass_att >= 10)
-    .sort((a, b) => b.pass_att - a.pass_att)
-    .slice(0, 2);
+  const players = qualifyingPassers(team);
   if (!players.length) {
     return `<div class="stat-column-title">QB Rushing</div><p class="no-data-note">No qualifying passers yet this season.</p>`;
   }
@@ -1318,6 +1346,14 @@ document.querySelectorAll(".props-view-toggle-btn").forEach((btn) => {
   btn.addEventListener("click", () => setActivePropsView(btn.dataset.view));
 });
 
+const backupQbToggleEl = document.getElementById("show-backup-qbs");
+if (backupQbToggleEl) {
+  backupQbToggleEl.addEventListener("change", () => {
+    setShowBackupQbs(backupQbToggleEl.checked);
+    render();
+  });
+}
+
 function render() {
   const away = document.getElementById("away-select").value;
   const home = document.getElementById("home-select").value;
@@ -1394,6 +1430,8 @@ fetch("data.json")
     populateSelects();
     initScheduleScroller(render);
     setActivePropsView(loadSavedPropsView());
+    showBackupQbs = loadShowBackupQbs();
+    if (backupQbToggleEl) backupQbToggleEl.checked = showBackupQbs;
     render();
   })
   .catch((err) => {
