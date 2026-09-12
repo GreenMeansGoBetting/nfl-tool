@@ -396,6 +396,7 @@ h3 {
   background: var(--table-head);
 }
 .rush-lane-label { font-size: 0.65rem; font-weight: 700; opacity: 0.75; }
+.rush-lane-share { font-size: 0.68rem; font-weight: 600; opacity: 0.85; }
 .rush-lane-pct { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
 .rush-lane-ypc { font-size: 0.68rem; opacity: 0.85; }
 .rush-lanes-divider { border-top: 2px dashed var(--border); margin: 4px 0; }

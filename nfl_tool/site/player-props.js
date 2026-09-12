@@ -195,7 +195,7 @@ function renderReceivingTable(team, oppTeam) {
   const rows = players
     .map((p) => {
       return `<tr>
-        <td><div class="player-name-row"><span class="player-name player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span>${routeChipsHtml(p, oppTeam)}</div></td>
+        <td><div class="player-name-row"><span class="player-name player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span>${routeChipsHtml(p, oppTeam)}</div></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
@@ -275,6 +275,73 @@ function renderRushLanesChart(offTeam, defTeam) {
   </div>`;
 }
 
+// Must match build_stats.py's PLAYER_RUSH_ZONE_MIN_SAMPLE -- just the
+// caption text below, not an actual filter (the floor is already applied
+// server-side; success/ypc come back null when a lane didn't clear it).
+const PLAYER_RUSH_ZONE_MIN_SAMPLE = 5;
+
+// League-wide success-rate pool per lane, built once per modal open (not
+// per box) -- every player with a qualifying sample in DATA.player_rush_
+// zones, regardless of position. Tiering a back's own lane success against
+// this answers "does he actually run well to that side" (vs. the league),
+// not just "well relative to his other lanes."
+function buildRushZonePools() {
+  const pools = {};
+  RUSH_ZONES.forEach((z) => (pools[z.key] = []));
+  const all = DATA.player_rush_zones || {};
+  for (const t of Object.keys(all)) {
+    for (const n of Object.keys(all[t])) {
+      const zones = all[t][n];
+      RUSH_ZONES.forEach((z) => {
+        const v = zones[z.key] && zones[z.key].success;
+        if (v !== null && v !== undefined) pools[z.key].push(v);
+      });
+    }
+  }
+  return pools;
+}
+
+// The individual-back complement to renderRushLanesChart's team view: this
+// player's own usage share and (sample permitting) success%/YPC per lane,
+// paired with the SAME opponent-allowed row from the team chart -- "does
+// this back like this lane, is he actually good at it, and is this
+// defense's own weak side lined up with it." Usage is shown regardless of
+// sample size (it's just a share of his own carries, not a rate that needs
+// stabilizing); success%/YPC show "--" below the floor rather than a wild
+// swing off two or three carries.
+function renderPlayerRushLanesContent(team, name, oppTeam) {
+  const zones = ((DATA.player_rush_zones || {})[team] || {})[name];
+  const heading = `<h3>${name} <span class="muted-label">(${team})</span> &mdash; Rush Lanes</h3>`;
+  if (!zones || !oppTeam) {
+    return `${heading}<p class="no-data-note">No charted rush attempts for this player yet.</p>`;
+  }
+  const pools = buildRushZonePools();
+  const playerRow = RUSH_ZONES.map((z) => {
+    const zd = zones[z.key] || {};
+    const share = zd.share != null ? `${Math.round(zd.share * 100)}%` : "--";
+    const success = zd.success;
+    const cls = success !== null && success !== undefined ? percentileTier(success, pools[z.key], false) : "";
+    const successDisplay = success !== null && success !== undefined ? `${Math.round(success * 100)}%` : "--";
+    const ypcDisplay = zd.ypc !== null && zd.ypc !== undefined ? fmt(zd.ypc, 1) : "--";
+    return `<div class="rush-lane-box ${cls}">
+      <span class="rush-lane-label">${z.label}</span>
+      <span class="rush-lane-share">${share} usage</span>
+      <span class="rush-lane-pct">${successDisplay}</span>
+      <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
+    </div>`;
+  }).join("");
+  const defRow = RUSH_ZONES.map((z) => rushLaneBox(oppTeam, z, true)).join("");
+  return `${heading}
+    <p class="no-data-note">Usage is this player's own share of carries into that lane. Success%/YPC need at least ${PLAYER_RUSH_ZONE_MIN_SAMPLE} of his carries in a lane to show -- too small a sample otherwise.</p>
+    <div class="rush-lanes">
+      <div class="rush-lanes-team-tag">${name} carries</div>
+      <div class="rush-lanes-row">${playerRow}</div>
+      <div class="rush-lanes-divider"></div>
+      <div class="rush-lanes-row">${defRow}</div>
+      <div class="rush-lanes-team-tag">${teamLogoMini(oppTeam)} ${oppTeam} run defense</div>
+    </div>`;
+}
+
 function renderRushingTable(team, oppTeam) {
   const players = (DATA.player_props[team] || [])
     .filter((p) => p.carries >= 5)
@@ -287,7 +354,7 @@ function renderRushingTable(team, oppTeam) {
     .map((p) => {
       const allowedKey = `rush_yards_allowed_${p.position.toLowerCase()}_per_g`;
       return `<tr>
-        <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span></td>
+        <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.carries_per_g, 1)}</td>
         <td class="num">${fmt(p.rush_yards_per_g, 1)}</td>
@@ -316,7 +383,7 @@ function renderPassingTable(team, oppTeam) {
   const rows = players
     .map((p) => {
       return `<tr>
-        <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${p.name}</span></td>
+        <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span></td>
         <td class="num">${fmt(p.pass_att_per_g, 1)}</td>
         <td class="num">${p.comp_pct != null ? Math.round(p.comp_pct * 100) + "%" : "--"}</td>
         <td class="num">${fmt(p.pass_yards_per_g, 1)}</td>
@@ -584,19 +651,23 @@ function renderPlayerGameLogContent(team, name) {
 }
 
 function renderPlayerModalShell() {
-  const { team, name, view } = playerModalState;
-  const bodyHtml = view === "gamelog" ? renderPlayerGameLogContent(team, name) : renderPlayerMarketsModalContent(team, name);
+  const { team, name, oppTeam, view } = playerModalState;
+  let bodyHtml;
+  if (view === "gamelog") bodyHtml = renderPlayerGameLogContent(team, name);
+  else if (view === "rushlanes") bodyHtml = renderPlayerRushLanesContent(team, name, oppTeam);
+  else bodyHtml = renderPlayerMarketsModalContent(team, name);
   return `<div class="player-modal-toggle">
       <button type="button" class="player-modal-toggle-btn${view === "odds" ? " active" : ""}" data-view="odds">Odds</button>
       <button type="button" class="player-modal-toggle-btn${view === "gamelog" ? " active" : ""}" data-view="gamelog">Game Log</button>
+      <button type="button" class="player-modal-toggle-btn${view === "rushlanes" ? " active" : ""}" data-view="rushlanes">Rush Lanes</button>
     </div>
     <div id="player-modal-body">${bodyHtml}</div>`;
 }
 
-function openPlayerMarketsModal(team, name) {
+function openPlayerMarketsModal(team, name, oppTeam) {
   ensurePropsModal();
   propsModalTeams = null; // no market dropdown in this view -- keeps the OTHER change handler from acting on stale state
-  playerModalState = { team, name, view: "odds" };
+  playerModalState = { team, name, oppTeam, view: "odds" };
   document.getElementById("props-modal-content").innerHTML = renderPlayerModalShell();
   document.getElementById("props-modal").hidden = false;
 }
@@ -655,8 +726,8 @@ function openRouteReceiversModal(team, route) {
 document.addEventListener("click", (e) => {
   const playerEl = e.target.closest(".player-click");
   if (playerEl) {
-    const { team, name } = decodeDataAttr(playerEl.dataset.entry);
-    openPlayerMarketsModal(team, name);
+    const { team, name, oppTeam } = decodeDataAttr(playerEl.dataset.entry);
+    openPlayerMarketsModal(team, name, oppTeam);
     return;
   }
   const routeEl = e.target.closest(".route-name-click");

@@ -2075,6 +2075,53 @@ def compute_rush_zone_splits(pbp: pd.DataFrame, teams) -> dict:
     return team_stats
 
 
+# Lower than RUSH_ZONE_MIN_SAMPLE (team-level) since a single back's season
+# carries in one specific lane run out much faster than a whole team's --
+# requiring 8 would leave most backs with almost no lanes ever qualifying.
+PLAYER_RUSH_ZONE_MIN_SAMPLE = 5
+
+
+def compute_player_rush_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Per player: their OWN usage share, YPC, and success rate by rush
+    lane -- the individual-back complement to compute_rush_zone_splits'
+    team-level view, for the Player Props page's per-player "Rush Lanes"
+    tab (does THIS back actually run well to a side, not just his team in
+    general). Keyed by (team, full_name), the same pos_lookup-derived join
+    used by build_player_props/compute_player_game_logs. Usage share is
+    always returned (it's just a count, not a rate that needs stabilizing);
+    YPC/success are floored at PLAYER_RUSH_ZONE_MIN_SAMPLE per lane."""
+    rushes = pbp[(pbp["rush_attempt"] == 1) & (pbp["two_point_attempt"] != 1)].dropna(subset=["rusher_player_id"]).copy()
+    rushes["zone"] = [
+        _rush_zone(loc, gap) for loc, gap in zip(rushes["run_location"], rushes["run_gap"])
+    ]
+    rushes = rushes.dropna(subset=["zone"])
+
+    by_player = {}
+    for row in rushes.itertuples(index=False):
+        _, _, name = pos_lookup(row.rusher_player_id, row.week)
+        if not name:
+            continue
+        key = (row.posteam, name)
+        by_player.setdefault(key, []).append((row.zone, row.yards_gained, row.success))
+
+    out = {}
+    for (team, name), plays in by_player.items():
+        total = len(plays)
+        zones = {}
+        for zone_key in RUSH_ZONES:
+            zone_plays = [p for p in plays if p[0] == zone_key]
+            n = len(zone_plays)
+            enough = n >= PLAYER_RUSH_ZONE_MIN_SAMPLE
+            zones[zone_key] = {
+                "carries": n,
+                "share": round(n / total, 3) if total else None,
+                "ypc": round(sum(p[1] for p in zone_plays) / n, 2) if enough else None,
+                "success": round(sum(1 for p in zone_plays if p[2] == 1) / n, 3) if enough else None,
+            }
+        out.setdefault(team, {})[name] = zones
+    return out
+
+
 def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> tuple:
     """Returns (players, defense_allowed_by_position) from a single pass over
     every target/carry/dropback, so the same per-play position lookup isn't
@@ -2308,6 +2355,7 @@ def main():
     rush_zone_stats = compute_rush_zone_splits(pbp, teams)
     for team in teams:
         team_stats[team].update(rush_zone_stats.get(team, {}))
+    player_rush_zones = compute_player_rush_zone_splits(pbp, pos_lookup)
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))
@@ -2374,6 +2422,7 @@ def main():
         "player_stats": player_stats,
         "player_props": player_props,
         "player_game_logs": player_game_logs,
+        "player_rush_zones": player_rush_zones,
         "player_td_results": player_td_results,
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
