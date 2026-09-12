@@ -354,13 +354,15 @@ h3 {
 .props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7),
 .props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8) { width: 44px; }
 
-.props-rush-table { width: 352px; }
+.props-rush-table { width: 440px; }
 .props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
 .props-rush-table th:nth-child(2), .props-rush-table td:nth-child(2) { width: 34px; }
 .props-rush-table th:nth-child(3), .props-rush-table td:nth-child(3),
 .props-rush-table th:nth-child(4), .props-rush-table td:nth-child(4),
 .props-rush-table th:nth-child(5), .props-rush-table td:nth-child(5) { width: 46px; }
-.props-rush-table th:nth-child(6), .props-rush-table td:nth-child(6) { width: 30px; }
+.props-rush-table th:nth-child(6), .props-rush-table td:nth-child(6),
+.props-rush-table th:nth-child(7), .props-rush-table td:nth-child(7) { width: 44px; }
+.props-rush-table th:nth-child(8), .props-rush-table td:nth-child(8) { width: 30px; }
 
 .props-pass-table { width: 388px; }
 .props-pass-table th:first-child, .props-pass-table td:first-child { width: 160px; }
@@ -369,6 +371,43 @@ h3 {
 .props-pass-table th:nth-child(5), .props-pass-table td:nth-child(5) { width: 46px; }
 .props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4) { width: 60px; }
 .props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 30px; }
+
+.rush-lanes { width: 318px; }
+.rush-lanes-team-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rush-lanes-row { display: flex; gap: 3px; }
+.rush-lane-box {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 5px 2px;
+  cursor: pointer;
+  background: var(--table-head);
+}
+.rush-lane-label { font-size: 0.65rem; font-weight: 700; opacity: 0.75; }
+.rush-lane-pct { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
+.rush-lane-ypc { font-size: 0.68rem; opacity: 0.85; }
+.rush-lanes-divider { border-top: 2px dashed var(--border); margin: 4px 0; }
+/* .tier-good/mid/bad are defined earlier in this file with the same
+   specificity as .rush-lane-box's own background -- without this override
+   the later, plainer rule would silently win the cascade and every box
+   would show the same neutral background regardless of tier (same class
+   of bug already hit once with .route-chip and once with
+   .wheel-action-bar this project). */
+.rush-lane-box.tier-good { background: rgba(var(--good-rgb), var(--tier-a, 0.3)); color: var(--good-text); }
+.rush-lane-box.tier-mid { background: rgba(var(--mid-rgb), var(--tier-a, 0.3)); color: var(--mid-text); }
+.rush-lane-box.tier-bad { background: rgba(var(--bad-rgb), var(--tier-a, 0.3)); color: var(--bad-text); }
 
 .props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }

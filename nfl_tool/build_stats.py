@@ -2018,6 +2018,63 @@ def compute_route_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) 
     return team_stats, player_profiles
 
 
+# Rush direction/gap ("run_location" + "run_gap", both standard nflverse
+# pbp columns, confirmed directly against a real season file) -- 7 real
+# lanes; "middle" carries no gap value (there's no left/right on an
+# up-the-middle run), the other 6 are location+gap. A small number of rows
+# (scrambles, kneels, spikes) have neither and are dropped rather than
+# forced into a lane they were never charted for.
+RUSH_ZONES = [
+    "left_end", "left_tackle", "left_guard", "middle", "right_guard", "right_tackle", "right_end",
+]
+RUSH_ZONE_MIN_SAMPLE = 8
+
+
+def _rush_zone(loc, gap):
+    if pd.isna(loc):
+        return None
+    if loc == "middle":
+        return "middle"
+    if pd.isna(gap):
+        return None
+    return f"{loc}_{gap}"
+
+
+def compute_rush_zone_splits(pbp: pd.DataFrame, teams) -> dict:
+    """Per team, per rush lane: this offense's own usage share/YPC/success
+    rate running into that lane, and what its DEFENSE allows when opponents
+    run into it -- offense effectiveness and defense effectiveness in the
+    SAME lane, side by side, so "this team loves running left end and the
+    opponent is bad defending left end" reads as one signal. Powers the
+    Rushing tab's rush-lane visual. Same floor/pattern as compute_route_
+    splits, just keyed by rush lane instead of route type."""
+    rushes = pbp[(pbp["rush_attempt"] == 1) & (pbp["two_point_attempt"] != 1)].copy()
+    rushes["zone"] = [
+        _rush_zone(loc, gap) for loc, gap in zip(rushes["run_location"], rushes["run_gap"])
+    ]
+    rushes = rushes.dropna(subset=["zone"])
+
+    team_stats = {t: {} for t in teams}
+    for team in teams:
+        off = rushes[rushes["posteam"] == team]
+        deff = rushes[rushes["defteam"] == team]
+        off_total = len(off)
+        d = team_stats[team]
+        for zone_key in RUSH_ZONES:
+            off_zone = off[off["zone"] == zone_key]
+            def_zone = deff[deff["zone"] == zone_key]
+            off_enough = len(off_zone) >= RUSH_ZONE_MIN_SAMPLE
+            def_enough = len(def_zone) >= RUSH_ZONE_MIN_SAMPLE
+            d[f"rush_rate_{zone_key}"] = round(len(off_zone) / off_total, 3) if off_total else None
+            d[f"rush_ypc_{zone_key}"] = round(off_zone["yards_gained"].mean(), 2) if off_enough else None
+            d[f"rush_success_{zone_key}"] = round((off_zone["success"] == 1).mean(), 3) if off_enough else None
+            d[f"rush_carries_{zone_key}"] = len(off_zone)
+            d[f"rush_ypc_allowed_{zone_key}"] = round(def_zone["yards_gained"].mean(), 2) if def_enough else None
+            d[f"rush_success_allowed_{zone_key}"] = round((def_zone["success"] == 1).mean(), 3) if def_enough else None
+            d[f"rush_carries_allowed_{zone_key}"] = len(def_zone)
+    return team_stats
+
+
 def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> tuple:
     """Returns (players, defense_allowed_by_position) from a single pass over
     every target/carry/dropback, so the same per-play position lookup isn't
@@ -2060,6 +2117,7 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
                 "targets": 0, "receptions": 0, "rec_yards": 0.0, "rec_games": set(),
                 "air_yards_sum": 0.0, "yac_sum": 0.0,
                 "carries": 0, "rush_yards": 0.0, "rush_games": set(),
+                "explosive_rushes": 0, "rz_carries": 0,
                 "pass_att": 0, "completions": 0, "pass_yards": 0.0, "interceptions": 0, "pass_games": set(),
             }
         return players[key]
@@ -2096,6 +2154,10 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
         p["carries"] += 1
         p["rush_yards"] += row.yards_gained
         p["rush_games"].add(row.game_id)
+        if row.yards_gained >= EXPLOSIVE_RUSH_YARDS:
+            p["explosive_rushes"] += 1
+        if pd.notna(row.yardline_100) and row.yardline_100 <= 20:
+            p["rz_carries"] += 1
         bump(row.defteam, bucket, "rush_att")
         bump(row.defteam, bucket, "rush_yds", row.yards_gained)
 
@@ -2159,6 +2221,8 @@ def build_player_props(players: dict, player_route_profiles: dict, teams, team_t
         row["ypc"] = round(p["rush_yards"] / p["carries"], 2) if p["carries"] else None
         row["carries_per_g"] = round(p["carries"] / p["rush_games"], 1) if p["rush_games"] else None
         row["rush_yards_per_g"] = round(p["rush_yards"] / p["rush_games"], 1) if p["rush_games"] else None
+        row["explosive_rush_rate"] = round(p["explosive_rushes"] / p["carries"], 3) if p["carries"] else None
+        row["rz_carries_per_g"] = round(p["rz_carries"] / p["rush_games"], 1) if p["rush_games"] else None
         row["comp_pct"] = round(p["completions"] / p["pass_att"], 3) if p["pass_att"] else None
         row["pass_att_per_g"] = round(p["pass_att"] / p["pass_games"], 1) if p["pass_games"] else None
         row["pass_yards_per_g"] = round(p["pass_yards"] / p["pass_games"], 1) if p["pass_games"] else None
@@ -2241,6 +2305,9 @@ def main():
     route_team_stats, player_route_profiles = compute_route_splits(pbp, participation, teams)
     for team in teams:
         team_stats[team].update(route_team_stats.get(team, {}))
+    rush_zone_stats = compute_rush_zone_splits(pbp, teams)
+    for team in teams:
+        team_stats[team].update(rush_zone_stats.get(team, {}))
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))

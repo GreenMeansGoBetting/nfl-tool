@@ -213,6 +213,66 @@ function renderReceivingTable(team, oppTeam) {
     </table>`;
 }
 
+// Same 7 lanes as build_stats.py's RUSH_ZONES, left to right the way a
+// broadcast angle actually reads them (defense's own left is the offense's
+// right, but this follows the OFFENSE's perspective site-wide, same as
+// "left"/"right" in run_location itself).
+const RUSH_ZONES = [
+  { key: "left_end", label: "LE", full: "Left End" },
+  { key: "left_tackle", label: "LT", full: "Left Tackle" },
+  { key: "left_guard", label: "LG", full: "Left Guard" },
+  { key: "middle", label: "M", full: "Middle" },
+  { key: "right_guard", label: "RG", full: "Right Guard" },
+  { key: "right_tackle", label: "RT", full: "Right Tackle" },
+  { key: "right_end", label: "RE", full: "Right End" },
+];
+
+// One lane box: this team's own success rate (offense) or what it allows
+// (defense, invert=true) running into that lane, tiered/shaded the same
+// percentile-vs-every-other-team way as every other colored cell on the
+// site, and clickable into the same league-rank modal. YPC rides along
+// underneath as the plainer, more betting-familiar number next to the
+// tiered success rate.
+function rushLaneBox(team, zone, allowed) {
+  const successKey = allowed ? `rush_success_allowed_${zone.key}` : `rush_success_${zone.key}`;
+  const ypcKey = allowed ? `rush_ypc_allowed_${zone.key}` : `rush_ypc_${zone.key}`;
+  const val = DATA.team_stats[team][successKey];
+  const ypc = DATA.team_stats[team][ypcKey];
+  let cls = "";
+  let alpha = "";
+  if (val !== null && val !== undefined) {
+    const pool = teamsWithGames()
+      .map((t) => DATA.team_stats[t][successKey])
+      .filter((v) => v !== null && v !== undefined);
+    cls = percentileTier(val, pool, allowed);
+    alpha = tierAlphaAttr(val, pool, allowed);
+  }
+  const display = val !== null && val !== undefined ? `${Math.round(val * 100)}%` : "--";
+  const ypcDisplay = ypc !== null && ypc !== undefined ? fmt(ypc, 1) : "--";
+  const label = `${zone.full} Rush Success %${allowed ? " Allowed" : ""}`;
+  const payload = { team, statKey: successKey, label, invert: allowed, percent: true };
+  return `<div class="rush-lane-box ${cls} stat-rank-click" data-entry="${encodeDataAttr(payload)}"${alpha}>
+    <span class="rush-lane-label">${zone.label}</span>
+    <span class="rush-lane-pct">${display}</span>
+    <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
+  </div>`;
+}
+
+// Offense row on top, defense-allowed row on the bottom, same left-to-right
+// lane order in both -- reading straight down any one column answers "does
+// this offense like this lane, and is the opponent actually bad there."
+function renderRushLanesChart(offTeam, defTeam) {
+  const offRow = RUSH_ZONES.map((z) => rushLaneBox(offTeam, z, false)).join("");
+  const defRow = RUSH_ZONES.map((z) => rushLaneBox(defTeam, z, true)).join("");
+  return `<div class="rush-lanes">
+    <div class="rush-lanes-team-tag">${teamLogoMini(offTeam)} ${offTeam} rush offense</div>
+    <div class="rush-lanes-row">${offRow}</div>
+    <div class="rush-lanes-divider"></div>
+    <div class="rush-lanes-row">${defRow}</div>
+    <div class="rush-lanes-team-tag">${teamLogoMini(defTeam)} ${defTeam} run defense</div>
+  </div>`;
+}
+
 function renderRushingTable(team, oppTeam) {
   const players = (DATA.player_props[team] || [])
     .filter((p) => p.carries >= 5)
@@ -230,13 +290,15 @@ function renderRushingTable(team, oppTeam) {
         <td class="num">${fmt(p.carries_per_g, 1)}</td>
         <td class="num">${fmt(p.rush_yards_per_g, 1)}</td>
         <td class="num">${p.ypc != null ? fmt(p.ypc, 1) : "--"}</td>
+        <td class="num">${p.explosive_rush_rate != null ? Math.round(p.explosive_rush_rate * 100) + "%" : "--"}</td>
+        <td class="num">${p.rz_carries_per_g != null ? fmt(p.rz_carries_per_g, 1) : "--"}</td>
         ${playerAdvCell(p, oppTeam, "rush_yards_per_g", allowedKey)}
       </tr>`;
     })
     .join("");
   return `${teamBannerHeader(team, true)}
     <table class="data-table props-rush-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Car/g</th><th class="num">Yds/g</th><th class="num">YPC</th><th class="edge-hdr">ADV</th></tr></thead>
+      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Car/g</th><th class="num">Yds/g</th><th class="num">YPC</th><th class="num">Exp%</th><th class="num">RZ/g</th><th class="edge-hdr">ADV</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -316,8 +378,30 @@ function availableMarketsFor(awayTeam, homeTeam) {
 // books is on the user, not this tool (same reasoning the anytime-TD modal
 // already states). Position, not team code, in parens -- the row's own
 // team-color border/tint already says which team.
+// A single O/U market row is really TWO potential plays (Over and Under),
+// so it gets two checkboxes, not one -- built from the same shape both
+// the team-header market table and the player-only "All Props" modal use,
+// so checking a line in either place shows checked in the other too (same
+// id scheme). Week is baked into the id since a market's current line is
+// only ever this week's -- an old saved play for the same player/market
+// from a prior week shouldn't collide with (or show as checked for) this
+// week's line.
+function propOuEntries(marketKey, marketLabel, team, name, line, overOdds, underOdds, matchup) {
+  const base = { week: scheduleWeek, matchup, category: marketLabel, team };
+  return {
+    over: { ...base, id: `${scheduleWeek}_${marketKey}_${team}_${name}_over`, description: `${name} Over ${fmt(line, 1)}`, odds: fmtOddsSigned(overOdds) },
+    under: { ...base, id: `${scheduleWeek}_${marketKey}_${team}_${name}_under`, description: `${name} Under ${fmt(line, 1)}`, odds: fmtOddsSigned(underOdds) },
+  };
+}
+function ouCheckboxCell(oddsDisplay, entry) {
+  const checked = isPossiblePlay(entry.id) ? " checked" : "";
+  return `${oddsDisplay} <label class="pp-check-inline" title="Add to Possible Plays"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}></label>`;
+}
+
 function renderPropsMarketTable(awayTeam, homeTeam, market) {
+  const marketLabel = (DATA.player_prop_market_labels || {})[market] || market;
   const marketData = (DATA.player_prop_markets || {})[market] || {};
+  const matchup = `${awayTeam} @ ${homeTeam}`;
   const rows = [awayTeam, homeTeam]
     .flatMap((t) => (marketData[t] || []).map((p) => ({ ...p, team: t })))
     .sort((a, b) => (b.line || 0) - (a.line || 0));
@@ -328,11 +412,12 @@ function renderPropsMarketTable(awayTeam, homeTeam, market) {
     .map((p) => {
       const rgb = teamAccentRgb(p.team);
       const rowStyle = `border-left:4px solid rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.07);`;
+      const { over, under } = propOuEntries(market, marketLabel, p.team, p.name, p.line, p.over_odds, p.under_odds, matchup);
       return `<tr style="${rowStyle}">
         <td>${teamLogoMini(p.team)} ${p.name} <span class="muted-label">(${p.position || "?"})</span></td>
         <td class="num props-line">${fmt(p.line, 1)}</td>
-        <td class="num">${fmtOddsSigned(p.over_odds)}</td>
-        <td class="num">${fmtOddsSigned(p.under_odds)}</td>
+        <td class="num">${ouCheckboxCell(fmtOddsSigned(p.over_odds), over)}</td>
+        <td class="num">${ouCheckboxCell(fmtOddsSigned(p.under_odds), under)}</td>
       </tr>`;
     })
     .join("");
@@ -382,7 +467,7 @@ function playerPropsAcrossMarkets(team, name) {
   const rows = [];
   for (const stat of Object.keys(labels)) {
     const found = ((markets[stat] || {})[team] || []).find((p) => p.name === name);
-    if (found) rows.push({ market: labels[stat], ...found });
+    if (found) rows.push({ marketKey: stat, market: labels[stat], ...found });
   }
   return rows;
 }
@@ -394,11 +479,13 @@ function renderPlayerMarketsModalContent(team, name) {
   if (!rows.length) {
     return `${heading}<p class="no-data-note">No prop lines posted for this player yet.</p>`;
   }
+  const game = (DATA.schedule || []).find((g) => g.week === scheduleWeek && (g.away === team || g.home === team));
+  const matchup = game ? `${game.away} @ ${game.home}` : team;
   const body = rows
-    .map(
-      (r) =>
-        `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${fmtOddsSigned(r.over_odds)}</td><td class="num">${fmtOddsSigned(r.under_odds)}</td></tr>`
-    )
+    .map((r) => {
+      const { over, under } = propOuEntries(r.marketKey, r.market, team, name, r.line, r.over_odds, r.under_odds, matchup);
+      return `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.under_odds), under)}</td></tr>`;
+    })
     .join("");
   return `${heading}
     <table class="data-table player-odds-table props-market-table">
@@ -633,9 +720,11 @@ function render() {
   const home = document.getElementById("home-select").value;
   const emptyEl = document.getElementById("empty-state");
   const sectionEls = ALL_SECTIONS.map((s) => document.getElementById(`section-${s}`));
+  const notesPlaysEl = document.getElementById("section-notes-plays");
 
   if (!away || !home) {
     sectionEls.forEach((el) => (el.hidden = true));
+    notesPlaysEl.hidden = true;
     emptyEl.hidden = false;
     emptyEl.innerHTML = "<p>Choose both teams above to see player props for this matchup.</p>";
     return;
@@ -647,12 +736,14 @@ function render() {
   const homeReady = homeStats && homeStats.games_played > 0;
   if (!awayReady || !homeReady) {
     sectionEls.forEach((el) => (el.hidden = true));
+    notesPlaysEl.hidden = true;
     emptyEl.hidden = false;
     const missing = [!awayReady && away, !homeReady && home].filter(Boolean).join(" and ");
     emptyEl.innerHTML = `<p>${missing} ${missing.includes(" and ") ? "have" : "has"} no games played yet this season.</p>`;
     return;
   }
   emptyEl.hidden = true;
+  notesPlaysEl.hidden = false;
   setActivePropsView(currentPropsView);
 
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTable(away, home);
@@ -660,9 +751,19 @@ function render() {
   document.getElementById("col-home-receiving").innerHTML = renderReceivingTable(home, away);
   document.getElementById("col-home-routemap").innerHTML = renderRouteMapTable(home, away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
+  document.getElementById("col-away-rushlanes").innerHTML = renderRushLanesChart(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);
+  document.getElementById("col-home-rushlanes").innerHTML = renderRushLanesChart(home, away);
   document.getElementById("col-away-passing").innerHTML = renderPassingTable(away, home);
   document.getElementById("col-home-passing").innerHTML = renderPassingTable(home, away);
+
+  const notesKey = `${away}_${home}`;
+  const savedNote = loadTdNotes()[notesKey] || "";
+  document.querySelectorAll(".td-notes-input").forEach((el) => {
+    el.value = savedNote;
+    el.dataset.key = notesKey;
+  });
+  renderTdPossiblePlaysList(away, home);
 }
 
 function populateSelects() {

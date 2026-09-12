@@ -366,66 +366,6 @@ function renderLeaderboard(team) {
     </table>`;
 }
 
-// ---- Per-matchup notes (localStorage, keyed by away_home -- TD Data has
-// no single "game_id" the way Game Previews does, since away/home here are
-// just whatever's picked in the selects, not necessarily a real scheduled
-// game) ----
-const TD_NOTES_KEY = "nfl-tool.td-notes.v1";
-function loadTdNotes() {
-  try {
-    return JSON.parse(localStorage.getItem(TD_NOTES_KEY)) || {};
-  } catch (e) {
-    return {};
-  }
-}
-function saveTdNote(key, text) {
-  try {
-    const all = loadTdNotes();
-    if (text) all[key] = text;
-    else delete all[key];
-    localStorage.setItem(TD_NOTES_KEY, JSON.stringify(all));
-  } catch (e) {
-    // localStorage unavailable -- notes just won't stick.
-  }
-}
-
-// Live mirror of the shared Possible Plays list (same data the standalone
-// Possible Plays page and every odds-modal checkbox read/write) -- shown
-// right here so a play checked in the TD-odds modal shows up without
-// leaving the page. Filtered to the currently selected away/home matchup
-// only (matching both team codes against the entry's own matchup string,
-// order-independent) -- switching to a different matchup should show that
-// matchup's plays, not everything ever saved. Logo + name + odds only, no
-// book: the whole point of "best price across a handful of books" is to
-// shop it yourself, a single book name here would read as more final than
-// it is. Entries without a team on file (older saves, or non-player picks)
-// just skip the logo. Writes to every ".td-possible-plays-list" on the page,
-// not just one -- Season TDs and First TD each have their own copy of this
-// list (same underlying data), since only one view is visible at a time.
-function renderTdPossiblePlaysList(away, home) {
-  // Exact team-code match (split on " @ "), not a substring check -- LA is
-  // a substring of LAC, so .includes() would wrongly match one team's
-  // plays onto an unrelated matchup involving the other.
-  const list = loadPossiblePlays().filter((p) => {
-    if (!p.matchup) return false;
-    const teams = p.matchup.split(" @ ");
-    return teams.includes(away) && teams.includes(home);
-  });
-  const els = document.querySelectorAll(".td-possible-plays-list");
-  if (!els.length) return;
-  const html = !list.length
-    ? `<p class="no-data-note">None yet for this matchup -- check a player in the TD odds modal to add one.</p>`
-    : list
-    .slice()
-    .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
-    .map((p) => {
-      const pct = oddsToImpliedPct(p.odds);
-      return `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${p.odds}${pct !== null ? ` <span class="td-pp-implied">(${pct}%)</span>` : ""}</span></div>`;
-    })
-    .join("");
-  els.forEach((el) => (el.innerHTML = html));
-}
-
 // ---- First TD view: everything that happens in a game before the very
 // first touchdown is scored, condensed from the same team_stats already
 // loaded above. Ported in from the old standalone first-td.html/first-td.js
@@ -652,21 +592,9 @@ function render() {
 // each have their own notes box for the same matchup -- typing in either
 // saves to the shared key and mirrors the text into the other immediately,
 // so neither ever shows stale text even without a re-render in between.
-document.addEventListener("input", (e) => {
-  if (!e.target.classList.contains("td-notes-input")) return;
-  saveTdNote(e.target.dataset.key, e.target.value);
-  document.querySelectorAll(".td-notes-input").forEach((el) => {
-    if (el !== e.target) el.value = e.target.value;
-  });
-});
-
-// Delegated so it catches a checkbox toggled inside the (dynamically
-// created) odds modal too, not just ones already in the page at load time.
-document.addEventListener("change", (e) => {
-  if (e.target.closest(".pp-toggle")) {
-    renderTdPossiblePlaysList(document.getElementById("away-select").value, document.getElementById("home-select").value);
-  }
-});
+// (The listeners that save this input and re-render renderTdPossiblePlaysList
+// on any pp-toggle change now live in common.js -- both are shared with the
+// Player Props page's own notes box/possible-plays list.)
 
 function populateSelects() {
   const awaySel = document.getElementById("away-select");

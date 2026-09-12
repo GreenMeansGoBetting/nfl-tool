@@ -61,9 +61,12 @@
 
   <div id="section-rushing" class="section-wrap" hidden>
     <h2 class="section-title">Rushing</h2>
+    <p class="section-note">Volume/efficiency this season, plus each side's own rush lanes: how this offense does running left/middle/right, and what the opponent's defense allows in that same lane.</p>
     <div class="stat-columns">
       <section id="col-away-rushing"></section>
+      <section id="col-away-rushlanes"></section>
       <section id="col-home-rushing"></section>
+      <section id="col-home-rushlanes"></section>
     </div>
   </div>
 
@@ -72,6 +75,18 @@
     <div class="stat-columns">
       <section id="col-away-passing"></section>
       <section id="col-home-passing"></section>
+    </div>
+  </div>
+
+  <div id="section-notes-plays" class="section-wrap" hidden>
+    <div class="stat-columns">
+      <div class="stat-column stat-column-notes">
+        <h3 class="stat-column-title">Notes</h3>
+        <textarea id="props-notes" class="game-notes td-notes-input" placeholder="Notes for this matchup..." rows="4"></textarea>
+        <h3 class="stat-column-title stat-column-title-spaced">Possible Plays</h3>
+        <div id="props-possible-plays-list" class="td-possible-plays-list"></div>
+        <p class="pikkit-reminder">Always line shop with Pikkit! (Use Code "GMG")</p>
+      </div>
     </div>
   </div>
 </main>

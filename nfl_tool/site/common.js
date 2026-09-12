@@ -718,6 +718,91 @@ document.addEventListener("change", (e) => {
   togglePossiblePlay(decodeDataAttr(cb.dataset.entry));
 });
 
+// ---- Per-matchup notes (localStorage, keyed by away_home) -- shared by
+// every page with a away/home select and a ".td-notes-input" box (TD Data,
+// Player Props); "TD" in the key/name is legacy from where this started,
+// the feature itself is matchup-generic. ----
+const TD_NOTES_KEY = "nfl-tool.td-notes.v1";
+function loadTdNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(TD_NOTES_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveTdNote(key, text) {
+  try {
+    const all = loadTdNotes();
+    if (text) all[key] = text;
+    else delete all[key];
+    localStorage.setItem(TD_NOTES_KEY, JSON.stringify(all));
+  } catch (e) {
+    // localStorage unavailable -- notes just won't stick.
+  }
+}
+
+// Live mirror of the shared Possible Plays list (same data the standalone
+// Possible Plays page and every odds-modal checkbox read/write) -- shown
+// right on whichever page called it, so a play checked in an odds modal
+// shows up without leaving the page. Filtered to the currently selected
+// away/home matchup only (matching both team codes against the entry's own
+// matchup string, order-independent) -- switching to a different matchup
+// should show that matchup's plays, not everything ever saved. Logo + name
+// + odds only, no book: the whole point of "best price across a handful of
+// books" is to shop it yourself, a single book name here would read as more
+// final than it is. Entries without a team on file (older saves, or
+// non-player picks) just skip the logo. Writes to every
+// ".td-possible-plays-list" on the page, not just one -- TD Data's Season/
+// First TD views each have their own copy (same underlying data), since
+// only one view is visible at a time.
+function renderTdPossiblePlaysList(away, home) {
+  // Exact team-code match (split on " @ "), not a substring check -- LA is
+  // a substring of LAC, so .includes() would wrongly match one team's
+  // plays onto an unrelated matchup involving the other.
+  const list = loadPossiblePlays().filter((p) => {
+    if (!p.matchup) return false;
+    const teams = p.matchup.split(" @ ");
+    return teams.includes(away) && teams.includes(home);
+  });
+  const els = document.querySelectorAll(".td-possible-plays-list");
+  if (!els.length) return;
+  const html = !list.length
+    ? `<p class="no-data-note">None yet for this matchup -- check a player or line in an odds modal to add one.</p>`
+    : list
+    .slice()
+    .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
+    .map((p) => {
+      const pct = oddsToImpliedPct(p.odds);
+      return `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${p.odds}${pct !== null ? ` <span class="td-pp-implied">(${pct}%)</span>` : ""}</span></div>`;
+    })
+    .join("");
+  els.forEach((el) => (el.innerHTML = html));
+}
+
+// Mirrors typed notes across every ".td-notes-input" box on the page (TD
+// Data's Season/First TD views each have their own copy of the same note)
+// so neither ever shows stale text even without a re-render in between.
+document.addEventListener("input", (e) => {
+  if (!e.target.classList.contains("td-notes-input")) return;
+  saveTdNote(e.target.dataset.key, e.target.value);
+  document.querySelectorAll(".td-notes-input").forEach((el) => {
+    if (el !== e.target) el.value = e.target.value;
+  });
+});
+
+// Delegated so it catches a checkbox toggled inside a dynamically-created
+// odds modal too, not just ones already in the page at load time. Guarded
+// for pages with no away/home select at all (Possible Plays, Game
+// Previews) -- those don't have a ".td-possible-plays-list" to update
+// anyway, but the selects themselves don't exist there either.
+document.addEventListener("change", (e) => {
+  if (!e.target.closest(".pp-toggle")) return;
+  const awaySel = document.getElementById("away-select");
+  const homeSel = document.getElementById("home-select");
+  if (!awaySel || !homeSel) return;
+  renderTdPossiblePlaysList(awaySel.value, homeSel.value);
+});
+
 // ---- Player prop odds modal ----
 const PLAY_MARKET_LABELS = { anytime_td: "Anytime TD", first_td: "First TD" };
 
