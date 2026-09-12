@@ -364,13 +364,24 @@ h3 {
 .props-rush-table th:nth-child(7), .props-rush-table td:nth-child(7) { width: 44px; }
 .props-rush-table th:nth-child(8), .props-rush-table td:nth-child(8) { width: 30px; }
 
-.props-pass-table { width: 388px; }
-.props-pass-table th:first-child, .props-pass-table td:first-child { width: 160px; }
+.props-pass-table { width: 436px; }
+.props-pass-table th:first-child, .props-pass-table td:first-child { width: 150px; }
 .props-pass-table th:nth-child(2), .props-pass-table td:nth-child(2),
 .props-pass-table th:nth-child(3), .props-pass-table td:nth-child(3),
-.props-pass-table th:nth-child(5), .props-pass-table td:nth-child(5) { width: 46px; }
-.props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4) { width: 60px; }
-.props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 30px; }
+.props-pass-table th:nth-child(5), .props-pass-table td:nth-child(5) { width: 40px; }
+.props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4) { width: 50px; }
+.props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 48px; }
+.props-pass-table th:nth-child(7), .props-pass-table td:nth-child(7) { width: 38px; }
+.props-pass-table th:nth-child(8), .props-pass-table td:nth-child(8) { width: 30px; }
+
+.pass-coverage-table { table-layout: fixed; width: 268px; }
+.pass-coverage-table th:first-child, .pass-coverage-table td:first-child { width: 78px; }
+.pass-coverage-table th:nth-child(2), .pass-coverage-table td:nth-child(2),
+.pass-coverage-table th:nth-child(3), .pass-coverage-table td:nth-child(3) { width: 40px; }
+.pass-coverage-table th:nth-child(4), .pass-coverage-table td:nth-child(4) { width: 36px; }
+.pass-coverage-table th:nth-child(5), .pass-coverage-table td:nth-child(5) { width: 44px; }
+.pass-coverage-table th:nth-child(6), .pass-coverage-table td:nth-child(6) { width: 30px; }
+.pass-coverage-table + .player-name-row, .pass-coverage-table + .no-data-note { margin-top: 12px; }
 
 .rush-lanes { width: 318px; }
 .rush-lanes-team-tag {

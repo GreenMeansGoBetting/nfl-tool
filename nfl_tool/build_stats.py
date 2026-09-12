@@ -2122,6 +2122,76 @@ def compute_player_rush_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
     return out
 
 
+# Lower than compute_scheme_splits' team-level MIN_SAMPLE=8 would need to be
+# raised for, not lowered -- a single QB's own dropbacks clear 8 per
+# condition almost every week (unlike a specific coverage shell), so the
+# same floor works fine here too.
+PLAYER_PASS_SPLIT_MIN_SAMPLE = 8
+
+
+def compute_player_pass_splits(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup) -> dict:
+    """Per-QB complement to compute_scheme_splits' team-level coverage/
+    pressure numbers: how THIS passer actually performs vs zone/man
+    coverage and vs pressure/a clean pocket. Paired on the frontend with
+    the opponent's own zone_rate/man_rate/pressure_rate/clean_pocket_rate
+    (how often they show it) and def_success_allowed_zone/man/pressure/
+    clean_pocket (what they allow in it) -- same team_stats fields
+    compute_scheme_splits already produces, just matched up against a
+    specific passer instead of a whole offense.
+
+    Same participation merge/condition flags as compute_scheme_splits,
+    just grouped by passer_player_id instead of team. The specific
+    coverage shells (Cover 0/1/2/3/4/6, 2-Man) are deliberately left at
+    the team level only -- a single QB's attempts against one shell run
+    out fast, and compute_scheme_splits already covers that angle.
+    Floored at PLAYER_PASS_SPLIT_MIN_SAMPLE per condition; att is always
+    shown (a count, not a rate that needs stabilizing)."""
+    passp = pbp.loc[
+        (pbp["pass_attempt"] == 1) & (pbp["two_point_attempt"] != 1),
+        ["game_id", "play_id", "week", "posteam", "passer_player_id", "complete_pass",
+         "yards_gained", "success", "interception", "pass_touchdown"],
+    ].dropna(subset=["passer_player_id"])
+    merged = passp.merge(
+        participation[["nflverse_game_id", "play_id", "defense_man_zone_type", "was_pressure"]],
+        left_on=["game_id", "play_id"],
+        right_on=["nflverse_game_id", "play_id"],
+        how="inner",
+    )
+    merged["zone"] = merged["defense_man_zone_type"] == "ZONE_COVERAGE"
+    merged["man"] = merged["defense_man_zone_type"] == "MAN_COVERAGE"
+    merged["pressure"] = merged["was_pressure"] == True  # noqa: E712
+
+    by_player = {}
+    for row in merged.itertuples(index=False):
+        _, _, name = pos_lookup(row.passer_player_id, row.week)
+        if not name:
+            continue
+        by_player.setdefault((row.posteam, name), []).append(row)
+
+    def summarize(rows):
+        n = len(rows)
+        enough = n >= PLAYER_PASS_SPLIT_MIN_SAMPLE
+        comp = sum(1 for r in rows if r.complete_pass == 1)
+        return {
+            "att": n,
+            "comp_pct": round(comp / n, 3) if enough else None,
+            "ypa": round(sum(r.yards_gained for r in rows) / n, 2) if enough else None,
+            "success": round(sum(1 for r in rows if r.success == 1) / n, 3) if enough else None,
+            "pass_td": sum(1 for r in rows if r.pass_touchdown == 1),
+            "interceptions": sum(1 for r in rows if r.interception == 1),
+        }
+
+    out = {}
+    for (team, name), rows in by_player.items():
+        out.setdefault(team, {})[name] = {
+            "zone": summarize([r for r in rows if r.zone]),
+            "man": summarize([r for r in rows if r.man]),
+            "pressure": summarize([r for r in rows if r.pressure]),
+            "clean": summarize([r for r in rows if not r.pressure]),
+        }
+    return out
+
+
 def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> tuple:
     """Returns (players, defense_allowed_by_position) from a single pass over
     every target/carry/dropback, so the same per-play position lookup isn't
@@ -2166,6 +2236,7 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
                 "carries": 0, "rush_yards": 0.0, "rush_games": set(),
                 "explosive_rushes": 0, "rz_carries": 0,
                 "pass_att": 0, "completions": 0, "pass_yards": 0.0, "interceptions": 0, "pass_games": set(),
+                "epa_sum_pass": 0.0, "air_yards_thrown_sum": 0.0, "air_yards_thrown_n": 0,
             }
         return players[key]
 
@@ -2212,6 +2283,11 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
         p = ensure(row.passer_player_id, row.posteam, row.week)
         p["pass_att"] += 1
         p["pass_games"].add(row.game_id)
+        if pd.notna(row.epa):
+            p["epa_sum_pass"] += row.epa
+        if pd.notna(row.air_yards):
+            p["air_yards_thrown_sum"] += row.air_yards
+            p["air_yards_thrown_n"] += 1
         if row.complete_pass == 1:
             p["completions"] += 1
             p["pass_yards"] += row.yards_gained
@@ -2274,6 +2350,10 @@ def build_player_props(players: dict, player_route_profiles: dict, teams, team_t
         row["pass_att_per_g"] = round(p["pass_att"] / p["pass_games"], 1) if p["pass_games"] else None
         row["pass_yards_per_g"] = round(p["pass_yards"] / p["pass_games"], 1) if p["pass_games"] else None
         row["int_per_g"] = round(p["interceptions"] / p["pass_games"], 2) if p["pass_games"] else None
+        row["epa_per_att"] = round(p["epa_sum_pass"] / p["pass_att"], 3) if p["pass_att"] else None
+        row["adot_thrown"] = (
+            round(p["air_yards_thrown_sum"] / p["air_yards_thrown_n"], 1) if p["air_yards_thrown_n"] else None
+        )
         by_team[team].append(row)
     for t in by_team:
         by_team[t].sort(key=lambda r: -(r["targets"] + r["carries"] + r["pass_att"]))
@@ -2356,6 +2436,7 @@ def main():
     for team in teams:
         team_stats[team].update(rush_zone_stats.get(team, {}))
     player_rush_zones = compute_player_rush_zone_splits(pbp, pos_lookup)
+    player_pass_splits = compute_player_pass_splits(pbp, participation, pos_lookup)
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))
@@ -2423,6 +2504,7 @@ def main():
         "player_props": player_props,
         "player_game_logs": player_game_logs,
         "player_rush_zones": player_rush_zones,
+        "player_pass_splits": player_pass_splits,
         "player_td_results": player_td_results,
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,

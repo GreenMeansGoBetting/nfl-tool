@@ -519,15 +519,111 @@ function renderPassingTable(team, oppTeam) {
         <td class="num">${p.comp_pct != null ? Math.round(p.comp_pct * 100) + "%" : "--"}</td>
         <td class="num">${fmt(p.pass_yards_per_g, 1)}</td>
         <td class="num">${fmt(p.int_per_g, 2)}</td>
+        <td class="num">${p.epa_per_att != null ? fmt(p.epa_per_att, 2) : "--"}</td>
+        <td class="num">${p.adot_thrown != null ? fmt(p.adot_thrown, 1) : "--"}</td>
         ${playerAdvCell(p, oppTeam, "pass_yards_per_g", "pass_yards_allowed_per_g")}
       </tr>`;
     })
     .join("");
   return `${teamBannerHeader(team, true)}
     <table class="data-table props-pass-table">
-      <thead><tr><th class="lb-player">Player</th><th class="num">Att/g</th><th class="num">Cmp%</th><th class="num">Yds/g</th><th class="num">INT/g</th><th class="edge-hdr">ADV</th></tr></thead>
+      <thead><tr><th class="lb-player">Player</th><th class="num">Att/g</th><th class="num">Cmp%</th><th class="num">Yds/g</th><th class="num">INT/g</th><th class="num">EPA/Att</th><th class="num">aDOT</th><th class="edge-hdr">ADV</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
+}
+
+// ---- Coverage & Pressure (Passing tab) ----
+// Per-QB complement to compute_scheme_splits' team-level zone/man/blitz/
+// pressure numbers (build_stats.py's compute_player_pass_splits): how THIS
+// passer performs in each condition, next to how often the opponent shows
+// it (team_stats tendency, neutral -- no color judgment on frequency alone,
+// same reasoning as Game Overview's Scheme & Tendencies table) and what
+// that defense allows in it (team_stats def_success_allowed_*, feeds the
+// ADV cell same as every other offense/defense pairing on the site).
+const PASS_SPLIT_ROWS = [
+  { key: "zone", label: "Zone", tendKey: "zone_rate", tendLabel: "Zone Coverage Rate", defAllowedKey: "def_success_allowed_zone" },
+  { key: "man", label: "Man", tendKey: "man_rate", tendLabel: "Man Coverage Rate", defAllowedKey: "def_success_allowed_man" },
+  { key: "pressure", label: "Pressured", tendKey: "pressure_rate", tendLabel: "Pressure Rate", defAllowedKey: "def_success_allowed_pressure" },
+  { key: "clean", label: "Clean Pocket", tendKey: "clean_pocket_rate", tendLabel: "Clean Pocket Rate", defAllowedKey: "def_success_allowed_clean_pocket" },
+];
+
+// League-wide pool of every qualifying QB's success rate in ONE condition
+// (e.g. every QB's success% vs zone) -- the percentile context for tiering
+// a single QB's own number, same role playerAdvCell's pool plays for the
+// season-long stats.
+function passSplitPool(condition) {
+  return Object.values(DATA.player_pass_splits || {})
+    .flatMap((players) => Object.values(players))
+    .map((c) => c[condition]?.success)
+    .filter((v) => v !== null && v !== undefined);
+}
+
+function passSplitSuccessCell(value, pool) {
+  if (value === null || value === undefined) return `<td class="num">--</td>`;
+  const cls = percentileTier(value, pool, false);
+  const alpha = tierAlphaAttr(value, pool, false);
+  return `<td class="num ${cls}"${alpha}>${Math.round(value * 100)}%</td>`;
+}
+
+// Opponent's own rate of showing this look -- plain/neutral, no tiering
+// (frequency alone isn't good or bad), still clickable into the league
+// rank modal like every other team_stats number on the site.
+function passSplitOppRateCell(oppTeam, tendKey, label) {
+  const val = DATA.team_stats[oppTeam]?.[tendKey];
+  if (val === null || val === undefined) return `<td class="num">--</td>`;
+  return numCell(`${Math.round(val * 100)}%`, "", "", { team: oppTeam, statKey: tendKey, label, invert: false, percent: true });
+}
+
+function passSplitAdvCell(team, oppTeam, successVal, pool, defAllowedKey) {
+  if (successVal === null || successVal === undefined) return `<td class="edge-cell">--</td>`;
+  const offTier = percentileTier(successVal, pool, false);
+  const offExtreme = percentileTier(successVal, pool, false, TIER_Z_EXTREME_THRESHOLD);
+  const defVal = DATA.team_stats[oppTeam]?.[defAllowedKey];
+  let defTier = "", defExtreme = "";
+  if (defVal !== null && defVal !== undefined) {
+    const teamPool = teamsWithGames()
+      .map((t) => DATA.team_stats[t]?.[defAllowedKey])
+      .filter((v) => v !== null && v !== undefined);
+    defTier = percentileTier(defVal, teamPool, true);
+    defExtreme = percentileTier(defVal, teamPool, true, TIER_Z_EXTREME_THRESHOLD);
+  }
+  return edgeCell(offTier, defTier, team, oppTeam, offExtreme, defExtreme);
+}
+
+function renderPassCoveragePanel(team, oppTeam) {
+  const players = (DATA.player_props[team] || [])
+    .filter((p) => p.pass_att >= 10)
+    .sort((a, b) => b.pass_att - a.pass_att)
+    .slice(0, 2);
+  if (!players.length) {
+    return `<div class="stat-column-title">Coverage &amp; Pressure</div><p class="no-data-note">No qualifying passers yet this season.</p>`;
+  }
+  const blocks = players
+    .map((p) => {
+      const splits = (DATA.player_pass_splits[team] || {})[p.name];
+      if (!splits) {
+        return `<div class="player-name-row"><span class="player-name">${p.name}</span></div><p class="no-data-note">No charted coverage/pressure data yet.</p>`;
+      }
+      const rows = PASS_SPLIT_ROWS.map((r) => {
+        const cond = splits[r.key] || {};
+        const pool = passSplitPool(r.key);
+        return `<tr>
+          <td>${r.label}</td>
+          ${passSplitOppRateCell(oppTeam, r.tendKey, r.tendLabel)}
+          <td class="num">${cond.comp_pct != null ? Math.round(cond.comp_pct * 100) + "%" : "--"}</td>
+          <td class="num">${cond.ypa != null ? fmt(cond.ypa, 1) : "--"}</td>
+          ${passSplitSuccessCell(cond.success, pool)}
+          ${passSplitAdvCell(team, oppTeam, cond.success, pool, r.defAllowedKey)}
+        </tr>`;
+      }).join("");
+      return `<div class="player-name-row"><span class="player-name">${p.name}</span></div>
+        <table class="data-table pass-coverage-table">
+          <thead><tr><th>Split</th><th class="num">Opp%</th><th class="num">Cmp%</th><th class="num">YPA</th><th class="num">Succ%</th><th class="edge-hdr">ADV</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    })
+    .join("");
+  return `<div class="stat-column-title">Coverage &amp; Pressure</div>${blocks}`;
 }
 
 // ---- Full player-props modal (every market SGO offers, per team header
@@ -960,6 +1056,8 @@ function render() {
   document.getElementById("col-home-rushlanes").innerHTML = renderRushLanesChart(home, away);
   document.getElementById("col-away-passing").innerHTML = renderPassingTable(away, home);
   document.getElementById("col-home-passing").innerHTML = renderPassingTable(home, away);
+  document.getElementById("col-away-passcoverage").innerHTML = renderPassCoveragePanel(away, home);
+  document.getElementById("col-home-passcoverage").innerHTML = renderPassCoveragePanel(home, away);
 
   const notesKey = `${away}_${home}`;
   const savedNote = loadTdNotes()[notesKey] || "";
