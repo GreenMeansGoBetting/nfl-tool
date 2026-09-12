@@ -383,6 +383,31 @@ h3 {
 .pass-coverage-table th:nth-child(6), .pass-coverage-table td:nth-child(6) { width: 30px; }
 .pass-coverage-table + .player-name-row, .pass-coverage-table + .no-data-note { margin-top: 12px; }
 
+.scramble-table { table-layout: fixed; width: 244px; }
+.scramble-table th:first-child, .scramble-table td:first-child { width: 78px; }
+.scramble-table th:nth-child(2), .scramble-table td:nth-child(2) { width: 40px; }
+.scramble-table th:nth-child(3), .scramble-table td:nth-child(3) { width: 52px; }
+.scramble-table th:nth-child(4), .scramble-table td:nth-child(4) { width: 44px; }
+.scramble-table th:nth-child(5), .scramble-table td:nth-child(5) { width: 30px; }
+
+.scramble-type-table { table-layout: fixed; width: 194px; margin-top: 6px; }
+.scramble-type-table th:first-child, .scramble-type-table td:first-child { width: 70px; }
+.scramble-type-table th:nth-child(2), .scramble-type-table td:nth-child(2) { width: 40px; }
+.scramble-type-table th:nth-child(3), .scramble-type-table td:nth-child(3) { width: 44px; }
+.scramble-type-table th:nth-child(4), .scramble-type-table td:nth-child(4) { width: 40px; }
+.scramble-type-table + .player-name-row { margin-top: 14px; }
+.scramble-type-table + .stat-column-title { margin-top: 16px; }
+
+.rz-mix-table { table-layout: fixed; width: 234px; margin-top: 6px; }
+.rz-mix-table th:first-child, .rz-mix-table td:first-child { width: 50px; }
+.rz-mix-table th:nth-child(2), .rz-mix-table td:nth-child(2) { width: 44px; }
+.rz-mix-table th:nth-child(3), .rz-mix-table td:nth-child(3) { width: 40px; }
+.rz-mix-table th:nth-child(4), .rz-mix-table td:nth-child(4) { width: 52px; }
+.rz-mix-table th:nth-child(5), .rz-mix-table td:nth-child(5) { width: 48px; }
+
+.scramble-rank-click { cursor: pointer; }
+.scramble-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+
 .rush-lanes { width: 318px; }
 .rush-lanes-team-tag {
   font-size: 0.78rem;

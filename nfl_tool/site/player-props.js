@@ -757,6 +757,178 @@ function renderPassCoveragePanel(team, oppTeam) {
   return `<div class="stat-column-title">Coverage &amp; Pressure</div>${blocks}`;
 }
 
+// ---- QB Rushing (scramble vs designed) ----
+// build_stats.py's compute_scramble_splits: does pressure actually make
+// this QB take off (his own scramble rate, pressured vs clean), and does
+// the OPPONENT's own pressure actually contain scramblers once it forces
+// one (their scramble rate/yards allowed in that same state) -- pressure
+// without containment is a real, checkable distinction, not just raw
+// pressure rate. Paired with a plain designed-vs-scramble volume/YPC
+// split of this QB's own season rushing (build_player_props' designed_*/
+// scramble_* fields).
+const SCRAMBLE_ROWS = [
+  { label: "Pressured", rateField: "scramble_rate_pressured", oppRateKey: "scramble_rate_allowed_pressured", oppYardsKey: "scramble_yards_allowed_pressured" },
+  { label: "Clean Pocket", rateField: "scramble_rate_clean", oppRateKey: "scramble_rate_allowed_clean", oppYardsKey: "scramble_yards_allowed_clean" },
+];
+
+function scrambleRatePool(field) {
+  return Object.values(DATA.player_scramble_splits || {})
+    .flatMap((players) => Object.values(players))
+    .map((s) => s[field])
+    .filter((v) => v !== null && v !== undefined);
+}
+
+function scrambleRateCell(value, pool, payload) {
+  if (value === null || value === undefined) return `<td class="num">--</td>`;
+  const cls = percentileTier(value, pool, false);
+  const alpha = tierAlphaAttr(value, pool, false);
+  return `<td class="num ${cls} scramble-rank-click"${alpha} data-entry="${encodeDataAttr(payload)}">${Math.round(value * 100)}%</td>`;
+}
+
+// Generic tiered+clickable team_stats cell -- same pool/tier/click pattern
+// as routeDefenseCell, just with an adjustable invert direction so it can
+// serve a defense "allowed" stat (invert=true, lower=green) or a neutral
+// team tendency (invert=false), reused by both the scramble-containment
+// and red-zone-mix panels below.
+function teamRateCell(team, statKey, label, opts = {}) {
+  const val = DATA.team_stats[team]?.[statKey];
+  if (val === null || val === undefined) return `<td class="num">--</td>`;
+  const pool = teamsWithGames()
+    .map((t) => DATA.team_stats[t]?.[statKey])
+    .filter((v) => v !== null && v !== undefined);
+  const invert = !!opts.invert;
+  const cls = percentileTier(val, pool, invert);
+  const alpha = tierAlphaAttr(val, pool, invert);
+  const display = opts.percent ? `${Math.round(val * 100)}%` : fmt(val, opts.digits ?? 1);
+  return numCell(display, cls, alpha, { team, statKey, label, invert, percent: !!opts.percent, digits: opts.digits });
+}
+
+function scrambleAdvCell(team, oppTeam, ownVal, pool, oppRateKey) {
+  if (ownVal === null || ownVal === undefined) return `<td class="edge-cell">--</td>`;
+  const offTier = percentileTier(ownVal, pool, false);
+  const offExtreme = percentileTier(ownVal, pool, false, TIER_Z_EXTREME_THRESHOLD);
+  const defVal = DATA.team_stats[oppTeam]?.[oppRateKey];
+  let defTier = "", defExtreme = "";
+  if (defVal !== null && defVal !== undefined) {
+    const teamPool = teamsWithGames()
+      .map((t) => DATA.team_stats[t]?.[oppRateKey])
+      .filter((v) => v !== null && v !== undefined);
+    defTier = percentileTier(defVal, teamPool, true);
+    defExtreme = percentileTier(defVal, teamPool, true, TIER_Z_EXTREME_THRESHOLD);
+  }
+  return edgeCell(offTier, defTier, team, oppTeam, offExtreme, defExtreme);
+}
+
+// Every qualifying QB's value for one scramble-split field, sorted best to
+// worst -- same shell/highlight convention as openPassSplitRankModal, just
+// sourced from DATA.player_scramble_splits' flat fields instead of a
+// nested zone/man/pressure/clean split.
+function openScrambleRankModal(p) {
+  ensureStatRankModal();
+  const rows = [];
+  for (const [t, players] of Object.entries(DATA.player_scramble_splits || {})) {
+    for (const [name, s] of Object.entries(players)) {
+      const val = s[p.field];
+      if (val === null || val === undefined) continue;
+      rows.push({ team: t, name, value: val });
+    }
+  }
+  rows.sort((a, b) => b.value - a.value);
+  const values = rows.map((r) => r.value);
+  const body = rows
+    .map((r) => {
+      const cls = percentileTier(r.value, values, false);
+      const alpha = tierAlphaAttr(r.value, values, false);
+      const rowCls = r.team === p.team && r.name === p.name ? ' class="stat-rank-current"' : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${r.name}</td><td class="num ${cls}"${alpha}>${Math.round(r.value * 100)}%</td></tr>`;
+    })
+    .join("");
+  document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${p.label} &mdash; All QBs</h3>
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Player</th><th class="num">${p.label}</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  document.getElementById("stat-rank-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".scramble-rank-click");
+  if (!cell) return;
+  openScrambleRankModal(decodeDataAttr(cell.dataset.entry));
+});
+
+function renderQbRushingPanel(team, oppTeam) {
+  const players = (DATA.player_props[team] || [])
+    .filter((p) => p.pass_att >= 10)
+    .sort((a, b) => b.pass_att - a.pass_att)
+    .slice(0, 2);
+  if (!players.length) {
+    return `<div class="stat-column-title">QB Rushing</div><p class="no-data-note">No qualifying passers yet this season.</p>`;
+  }
+  const blocks = players
+    .map((p) => {
+      const s = (DATA.player_scramble_splits[team] || {})[p.name];
+      const scrambleRows = !s
+        ? `<tr><td colspan="5" class="no-data-note">No charted scramble data yet.</td></tr>`
+        : SCRAMBLE_ROWS.map((r) => {
+            const pool = scrambleRatePool(r.rateField);
+            const ownVal = s[r.rateField];
+            return `<tr>
+              <td>${r.label}</td>
+              ${scrambleRateCell(ownVal, pool, { team, name: p.name, field: r.rateField, label: `${r.label} Scramble Rate` })}
+              ${teamRateCell(oppTeam, r.oppRateKey, `Opp Scramble Rate Allowed (${r.label})`, { percent: true, invert: true })}
+              ${teamRateCell(oppTeam, r.oppYardsKey, `Opp Yards/Scramble Allowed (${r.label})`, { digits: 1, invert: true })}
+              ${scrambleAdvCell(team, oppTeam, ownVal, pool, r.oppRateKey)}
+            </tr>`;
+          }).join("");
+      const typeRows = `
+        <tr><td>Designed</td><td class="num">${p.designed_carries}</td><td class="num">${fmt(p.designed_rush_yards, 0)}</td>${passStatCell(p, "designed_ypc", { label: "Designed Rush YPC" })}</tr>
+        <tr><td>Scramble</td><td class="num">${p.scramble_carries}</td><td class="num">${fmt(p.scramble_rush_yards, 0)}</td>${passStatCell(p, "scramble_ypc", { label: "Scramble YPC" })}</tr>
+      `;
+      return `<div class="player-name-row"><span class="player-name">${p.name}</span></div>
+        <table class="data-table scramble-table">
+          <thead><tr><th>Split</th><th class="num">Scr%</th><th class="num">OppAllow%</th><th class="num">OppYds</th><th class="edge-hdr">ADV</th></tr></thead>
+          <tbody>${scrambleRows}</tbody>
+        </table>
+        <table class="data-table scramble-type-table">
+          <thead><tr><th>Type</th><th class="num">Car</th><th class="num">Yds</th><th class="num">YPC</th></tr></thead>
+          <tbody>${typeRows}</tbody>
+        </table>`;
+    })
+    .join("");
+  return `<div class="stat-column-title">QB Rushing</div>${blocks}`;
+}
+
+// ---- Red Zone Approach (team-level pass/run mix) ----
+// build_stats.py's build_team_stats: this offense's own pass-vs-run SHARE
+// of its red zone snaps, and each type's own TD conversion rate -- "does
+// this team lean pass or run near the goal line, and which one actually
+// works for them" -- next to what the OPPONENT shows/allows in the same
+// split. Team-level only (not per-QB), so every cell reuses teamRateCell
+// straight off team_stats, same as every other paired offense/defense
+// table on the site.
+const RZ_MIX_ROWS = [
+  { label: "Pass", rateKey: "rz_pass_rate", tdKey: "rz_pass_td_rate", oppRateKey: "rz_pass_rate_allowed", oppTdKey: "rz_pass_td_rate_allowed" },
+  { label: "Rush", rateKey: "rz_rush_rate", tdKey: "rz_rush_td_rate", oppRateKey: "rz_rush_rate_allowed", oppTdKey: "rz_rush_td_rate_allowed" },
+];
+
+function renderRedZoneMixPanel(team, oppTeam) {
+  const rows = RZ_MIX_ROWS.map(
+    (r) => `<tr>
+      <td>${r.label}</td>
+      ${teamRateCell(team, r.rateKey, `${r.label} Rate (Red Zone)`, { percent: true })}
+      ${teamRateCell(team, r.tdKey, `${r.label} TD Rate (Red Zone)`, { percent: true })}
+      ${teamRateCell(oppTeam, r.oppRateKey, `Opp ${r.label} Rate Allowed (Red Zone)`, { percent: true })}
+      ${teamRateCell(oppTeam, r.oppTdKey, `Opp ${r.label} TD Rate Allowed (Red Zone)`, { percent: true, invert: true })}
+    </tr>`
+  ).join("");
+  return `<div class="stat-column-title">Red Zone Approach</div>
+    <table class="data-table rz-mix-table">
+      <thead><tr><th>Play</th><th class="num">Rate</th><th class="num">TD%</th><th class="num">OppRate</th><th class="num">OppTD%</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
 // ---- Full player-props modal (every market SGO offers, per team header
 // click) -- distinct from the anytime-TD odds modal in common.js, since
 // this one needs a market dropdown that re-renders in place while staying
@@ -1189,6 +1361,8 @@ function render() {
   document.getElementById("col-home-passing").innerHTML = renderPassingTable(home, away);
   document.getElementById("col-away-passcoverage").innerHTML = renderPassCoveragePanel(away, home);
   document.getElementById("col-home-passcoverage").innerHTML = renderPassCoveragePanel(home, away);
+  document.getElementById("col-away-scramble").innerHTML = renderQbRushingPanel(away, home) + renderRedZoneMixPanel(away, home);
+  document.getElementById("col-home-scramble").innerHTML = renderQbRushingPanel(home, away) + renderRedZoneMixPanel(home, away);
 
   const notesKey = `${away}_${home}`;
   const savedNote = loadTdNotes()[notesKey] || "";

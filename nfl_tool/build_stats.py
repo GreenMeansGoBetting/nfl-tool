@@ -1024,9 +1024,19 @@ def compute_red_zone(pbp: pd.DataFrame) -> dict:
             continue
         off_plays = scrimmage[scrimmage["posteam"] == team]
         def_plays = scrimmage[scrimmage["defteam"] == team]
+        off_rz_td = rz_td[rz_td["posteam"] == team]
+        def_rz_td = rz_td[rz_td["defteam"] == team]
         result[team] = {
             "rz_td": int((rz_td["posteam"] == team).sum()),
             "rz_td_allowed": int((rz_td["defteam"] == team).sum()),
+            # Split by play type -- pairs with rz_carries/rz_targets below to
+            # answer "does this team lean pass or run near the goal line, and
+            # which one actually converts" (rz_pass_td_rate/rz_rush_td_rate
+            # in build_team_stats), not just overall RZ TD volume.
+            "rz_pass_td": int((off_rz_td["pass_touchdown"] == 1).sum()),
+            "rz_rush_td": int((off_rz_td["rush_touchdown"] == 1).sum()),
+            "rz_pass_td_allowed": int((def_rz_td["pass_touchdown"] == 1).sum()),
+            "rz_rush_td_allowed": int((def_rz_td["rush_touchdown"] == 1).sum()),
             "rz_plays": int(len(off_plays)),
             "rz_plays_allowed": int(len(def_plays)),
             "rz_carries": int((off_plays["rush_attempt"] == 1).sum()),
@@ -1428,6 +1438,12 @@ def compute_first_td_position_breakdown(first_td_by_game: dict, teams) -> dict:
     return scored, allowed
 
 
+# A team's full-season red zone attempts by play type run out fast (~40-80
+# per team) -- floors rz_pass_td_rate/rz_rush_td_rate below this so a
+# handful of red zone pass attempts can't produce a noisy 100%/0% TD rate.
+RZ_TD_RATE_MIN_SAMPLE = 8
+
+
 def build_team_stats(
     team_games,
     team_games_allowed,
@@ -1576,6 +1592,44 @@ def build_team_stats(
             "rz_targets_per_g": per_g(rz.get("rz_targets", 0)),
             "rz_targets_allowed": rz.get("rz_targets_allowed", 0),
             "rz_targets_allowed_per_g": per_g(rz.get("rz_targets_allowed", 0)),
+            # Red zone play-calling mix (this offense's own pass-vs-run
+            # SHARE of its red zone snaps) and each type's own TD conversion
+            # rate -- "does this team lean pass or run near the goal line,
+            # and which one actually works for them," floored the same as
+            # every other rate stat in this pipeline. _allowed mirrors it
+            # for the DEFENSE side (what it faces/allows by play type).
+            "rz_pass_rate": (
+                round(rz.get("rz_targets", 0) / (rz.get("rz_targets", 0) + rz.get("rz_carries", 0)), 3)
+                if (rz.get("rz_targets", 0) + rz.get("rz_carries", 0)) else None
+            ),
+            "rz_rush_rate": (
+                round(rz.get("rz_carries", 0) / (rz.get("rz_targets", 0) + rz.get("rz_carries", 0)), 3)
+                if (rz.get("rz_targets", 0) + rz.get("rz_carries", 0)) else None
+            ),
+            "rz_pass_td_rate": (
+                round(rz.get("rz_pass_td", 0) / rz.get("rz_targets", 0), 3)
+                if rz.get("rz_targets", 0) >= RZ_TD_RATE_MIN_SAMPLE else None
+            ),
+            "rz_rush_td_rate": (
+                round(rz.get("rz_rush_td", 0) / rz.get("rz_carries", 0), 3)
+                if rz.get("rz_carries", 0) >= RZ_TD_RATE_MIN_SAMPLE else None
+            ),
+            "rz_pass_rate_allowed": (
+                round(rz.get("rz_targets_allowed", 0) / (rz.get("rz_targets_allowed", 0) + rz.get("rz_carries_allowed", 0)), 3)
+                if (rz.get("rz_targets_allowed", 0) + rz.get("rz_carries_allowed", 0)) else None
+            ),
+            "rz_rush_rate_allowed": (
+                round(rz.get("rz_carries_allowed", 0) / (rz.get("rz_targets_allowed", 0) + rz.get("rz_carries_allowed", 0)), 3)
+                if (rz.get("rz_targets_allowed", 0) + rz.get("rz_carries_allowed", 0)) else None
+            ),
+            "rz_pass_td_rate_allowed": (
+                round(rz.get("rz_pass_td_allowed", 0) / rz.get("rz_targets_allowed", 0), 3)
+                if rz.get("rz_targets_allowed", 0) >= RZ_TD_RATE_MIN_SAMPLE else None
+            ),
+            "rz_rush_td_rate_allowed": (
+                round(rz.get("rz_rush_td_allowed", 0) / rz.get("rz_carries_allowed", 0), 3)
+                if rz.get("rz_carries_allowed", 0) >= RZ_TD_RATE_MIN_SAMPLE else None
+            ),
             "td_by_length": lb["scored"],
             "td_by_length_allowed": lb["allowed"],
             "off_plays": off_plays,
@@ -2192,6 +2246,114 @@ def compute_player_pass_splits(pbp: pd.DataFrame, participation: pd.DataFrame, p
     return out
 
 
+# Same floor as PLAYER_PASS_SPLIT_MIN_SAMPLE -- a QB's pressured/clean
+# dropback counts clear this easily most weeks.
+SCRAMBLE_MIN_SAMPLE = 8
+
+
+def compute_scramble_splits(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup, teams) -> tuple:
+    """Returns (player_scramble_splits, team_scramble_containment).
+
+    player_scramble_splits[(team)][name]: this QB's OWN scramble rate out
+    of every dropback (not just his rushing -- see build_player_props'
+    scramble_share_of_rushing for that angle), split by whether the play
+    was pressured or clean -- "does pressure actually make him take off"
+    (e.g. Josh Allen: ~14% of pressured dropbacks in 2025 vs ~7% clean).
+    Uses qb_dropback==1 (pass attempts, sacks, AND scrambles), unlike
+    compute_player_pass_splits which is pass_attempt==1 only and would
+    silently exclude every scramble (scrambles carry pass_attempt=0).
+
+    team_scramble_containment[team]: this team's DEFENSE -- scramble rate
+    ALLOWED overall, and split by whether ITS OWN pressure got home, so
+    "how often is this defense's pressure actually forcing him to run"
+    (rate) can be checked against "and how much does he gain when he does"
+    (avg_scramble_yards) -- pressure without containment (e.g. a defense
+    that gets to the QB but still gives up 9+ yards a scramble when it
+    does) is a real, checkable distinction, not just raw pressure rate.
+    """
+    # nflverse leaves passer_player_id NULL on every scramble row (confirmed
+    # directly: 1221/1221 in a real season file) -- it logs the scrambling
+    # QB under rusher_player_id instead, since the play resolved as a run.
+    # A naive dropna(subset=["passer_player_id"]) silently drops every
+    # scramble before it can ever be counted. qb_player_id falls back to
+    # rusher_player_id so the same QB is grouped across pass/sack/scramble
+    # outcomes alike.
+    db = pbp.loc[
+        (pbp["qb_dropback"] == 1) & (pbp["two_point_attempt"] != 1),
+        ["game_id", "play_id", "week", "posteam", "defteam", "passer_player_id", "rusher_player_id", "qb_scramble", "yards_gained"],
+    ].copy()
+    db["qb_player_id"] = db["passer_player_id"].fillna(db["rusher_player_id"])
+    db = db.dropna(subset=["qb_player_id"])
+    merged = db.merge(
+        participation[["nflverse_game_id", "play_id", "was_pressure"]],
+        left_on=["game_id", "play_id"],
+        right_on=["nflverse_game_id", "play_id"],
+        how="inner",
+    )
+    merged["pressure"] = merged["was_pressure"] == True  # noqa: E712
+    merged["scramble"] = merged["qb_scramble"] == 1
+
+    by_player = {}
+    for row in merged.itertuples(index=False):
+        _, _, name = pos_lookup(row.qb_player_id, row.week)
+        if not name:
+            continue
+        by_player.setdefault((row.posteam, name), []).append(row)
+
+    def rate(rows):
+        n = len(rows)
+        if n < SCRAMBLE_MIN_SAMPLE:
+            return None
+        return round(sum(1 for r in rows if r.scramble) / n, 3)
+
+    player_splits = {}
+    for (team, name), rows in by_player.items():
+        pressured = [r for r in rows if r.pressure]
+        clean = [r for r in rows if not r.pressure]
+        scrambles = [r for r in rows if r.scramble]
+        player_splits.setdefault(team, {})[name] = {
+            "dropbacks": len(rows),
+            "scramble_rate": rate(rows),
+            "scramble_rate_pressured": rate(pressured),
+            "scramble_rate_clean": rate(clean),
+            "avg_scramble_yards": (
+                round(sum(r.yards_gained for r in scrambles) / len(scrambles), 2)
+                if len(scrambles) >= SCRAMBLE_MIN_SAMPLE else None
+            ),
+        }
+
+    team_containment = {}
+    for team in teams:
+        def_rows = merged[merged["defteam"] == team]
+        pressured = def_rows[def_rows["pressure"]]
+        clean = def_rows[~def_rows["pressure"]]
+        scrambles_pressured = pressured[pressured["scramble"]]
+        scrambles_clean = clean[clean["scramble"]]
+        team_containment[team] = {
+            "scramble_rate_allowed": (
+                round(def_rows["scramble"].sum() / len(def_rows), 3)
+                if len(def_rows) >= SCRAMBLE_MIN_SAMPLE else None
+            ),
+            "scramble_rate_allowed_pressured": (
+                round(len(scrambles_pressured) / len(pressured), 3)
+                if len(pressured) >= SCRAMBLE_MIN_SAMPLE else None
+            ),
+            "scramble_rate_allowed_clean": (
+                round(len(scrambles_clean) / len(clean), 3)
+                if len(clean) >= SCRAMBLE_MIN_SAMPLE else None
+            ),
+            "scramble_yards_allowed_pressured": (
+                round(scrambles_pressured["yards_gained"].mean(), 2)
+                if len(scrambles_pressured) >= SCRAMBLE_MIN_SAMPLE else None
+            ),
+            "scramble_yards_allowed_clean": (
+                round(scrambles_clean["yards_gained"].mean(), 2)
+                if len(scrambles_clean) >= SCRAMBLE_MIN_SAMPLE else None
+            ),
+        }
+    return player_splits, team_containment
+
+
 def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> tuple:
     """Returns (players, defense_allowed_by_position) from a single pass over
     every target/carry/dropback, so the same per-play position lookup isn't
@@ -2235,6 +2397,7 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
                 "air_yards_sum": 0.0, "yac_sum": 0.0,
                 "carries": 0, "rush_yards": 0.0, "rush_games": set(),
                 "explosive_rushes": 0, "rz_carries": 0,
+                "scramble_rushes": 0, "scramble_rush_yards": 0.0,
                 "pass_att": 0, "completions": 0, "pass_yards": 0.0, "interceptions": 0, "pass_games": set(),
                 "epa_sum_pass": 0.0, "air_yards_thrown_sum": 0.0, "air_yards_thrown_n": 0,
             }
@@ -2276,6 +2439,9 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
             p["explosive_rushes"] += 1
         if pd.notna(row.yardline_100) and row.yardline_100 <= 20:
             p["rz_carries"] += 1
+        if row.qb_scramble == 1:
+            p["scramble_rushes"] += 1
+            p["scramble_rush_yards"] += row.yards_gained
         bump(row.defteam, bucket, "rush_att")
         bump(row.defteam, bucket, "rush_yds", row.yards_gained)
 
@@ -2354,6 +2520,21 @@ def build_player_props(players: dict, player_route_profiles: dict, teams, team_t
         row["adot_thrown"] = (
             round(p["air_yards_thrown_sum"] / p["air_yards_thrown_n"], 1) if p["air_yards_thrown_n"] else None
         )
+        # Designed vs scramble split of this player's OWN season rushing
+        # (qb_scramble flag -- true for almost everyone except a QB, whose
+        # "carries" otherwise conflate broken-play scrambles with schemed
+        # runs). scramble_share is share of THIS player's rushing that's
+        # scrambles -- descriptive, not the pressure-conditioned rate (see
+        # compute_scramble_splits for "does pressure make him run more").
+        designed_carries = p["carries"] - p["scramble_rushes"]
+        designed_rush_yards = p["rush_yards"] - p["scramble_rush_yards"]
+        row["scramble_carries"] = p["scramble_rushes"]
+        row["scramble_rush_yards"] = round(p["scramble_rush_yards"], 0)
+        row["scramble_ypc"] = round(p["scramble_rush_yards"] / p["scramble_rushes"], 2) if p["scramble_rushes"] else None
+        row["scramble_share_of_rushing"] = round(p["scramble_rushes"] / p["carries"], 3) if p["carries"] else None
+        row["designed_carries"] = designed_carries
+        row["designed_rush_yards"] = round(designed_rush_yards, 0)
+        row["designed_ypc"] = round(designed_rush_yards / designed_carries, 2) if designed_carries else None
         by_team[team].append(row)
     for t in by_team:
         by_team[t].sort(key=lambda r: -(r["targets"] + r["carries"] + r["pass_att"]))
@@ -2437,6 +2618,9 @@ def main():
         team_stats[team].update(rush_zone_stats.get(team, {}))
     player_rush_zones = compute_player_rush_zone_splits(pbp, pos_lookup)
     player_pass_splits = compute_player_pass_splits(pbp, participation, pos_lookup)
+    player_scramble_splits, team_scramble_containment = compute_scramble_splits(pbp, participation, pos_lookup, teams)
+    for team in teams:
+        team_stats[team].update(team_scramble_containment.get(team, {}))
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))
@@ -2505,6 +2689,7 @@ def main():
         "player_game_logs": player_game_logs,
         "player_rush_zones": player_rush_zones,
         "player_pass_splits": player_pass_splits,
+        "player_scramble_splits": player_scramble_splits,
         "player_td_results": player_td_results,
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
