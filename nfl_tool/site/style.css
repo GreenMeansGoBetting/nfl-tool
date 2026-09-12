@@ -422,6 +422,15 @@ h3 {
 .rush-lane-pct { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
 .rush-lane-ypc { font-size: 0.68rem; opacity: 0.85; }
 .rush-lane-freq-pct { font-size: 0.85rem; font-weight: 700; }
+/* Frequency's own background is an inline style (magnitude-scaled accent
+   blue, set in JS) -- this is just the text-color flip for when that blue
+   gets dark enough that the default text color stops being legible. */
+.rush-lane-freq-dark, .rush-lane-freq-dark .rush-lane-freq-pct { color: #fff; }
+/* Used only by the "See All Players" modal, where each player's offense
+   block has no defense box above it to inherit a top edge from -- overflow
+   hidden + the block's own radius clips the (otherwise square) success
+   cell inside it into a rounded top corner. */
+.rush-lane-off-block.rush-lane-off-block-standalone { border-radius: 4px; overflow: hidden; }
 /* Below the sample floor there's nothing reliable to color -- flat gray
    instead of a tier color or the plain untiered background, so a thin
    sample reads as visibly different from a real (even neutral) result. */
@@ -436,6 +445,24 @@ h3 {
 .rush-lane-box.tier-good, .rush-lane-off-success.tier-good { background: rgba(var(--good-rgb), var(--tier-a, 0.3)); color: var(--good-text); }
 .rush-lane-box.tier-mid, .rush-lane-off-success.tier-mid { background: rgba(var(--mid-rgb), var(--tier-a, 0.3)); color: var(--mid-text); }
 .rush-lane-box.tier-bad, .rush-lane-off-success.tier-bad { background: rgba(var(--bad-rgb), var(--tier-a, 0.3)); color: var(--bad-text); }
+
+.rush-lanes-all-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rush-lanes-all-btn {
+  background: var(--panel);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rush-lanes-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
+.rush-lanes-all-modal-box { max-width: 900px; width: 95vw; max-height: 85vh; overflow-y: auto; }
+.rush-lanes-all-players { margin-top: 10px; }
+.rush-lanes-player-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.rush-lanes-player-block:first-child { margin-top: 12px; }
 
 .props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }

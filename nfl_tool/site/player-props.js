@@ -275,12 +275,27 @@ function offenseSuccessCell(successVal, ypcVal, pool, label, clickPayload) {
   </div>`;
 }
 
-// Offense block, bottom half: just how often (frequency), no tier color --
-// it's a share, not a "good/bad" rate, so a flat neutral background is all
-// it needs.
+// Offense block, bottom half: how often (frequency) -- not a "good/bad"
+// rate, so no percentile tier, but shaded in a flat accent blue scaled by
+// its own magnitude (darker = more often, lighter = rarely) rather than
+// left uncolored, so a glance at shade alone says which lanes actually get
+// used. Scale caps at FREQ_SHADE_CAP -- lane shares rarely clear ~35% even
+// for a heavily-used lane, so capping there (instead of at the
+// mathematical max of 100%) keeps real differences visible instead of
+// every lane looking pale.
+const FREQ_SHADE_CAP = 0.35;
+const FREQ_SHADE_MIN_ALPHA = 0.08;
+const FREQ_SHADE_MAX_ALPHA = 0.85;
+
 function offenseFreqCell(freqVal) {
-  const display = freqVal !== null && freqVal !== undefined ? `${Math.round(freqVal * 100)}%` : "--";
-  return `<div class="rush-lane-off-freq"><span class="rush-lane-freq-pct">${display}</span></div>`;
+  if (freqVal === null || freqVal === undefined) {
+    return `<div class="rush-lane-off-freq"><span class="rush-lane-freq-pct">--</span></div>`;
+  }
+  const t = Math.min(freqVal / FREQ_SHADE_CAP, 1);
+  const alpha = FREQ_SHADE_MIN_ALPHA + t * (FREQ_SHADE_MAX_ALPHA - FREQ_SHADE_MIN_ALPHA);
+  const darkCls = alpha > 0.45 ? " rush-lane-freq-dark" : "";
+  const display = `${Math.round(freqVal * 100)}%`;
+  return `<div class="rush-lane-off-freq${darkCls}" style="background: rgba(var(--accent-rgb), ${alpha.toFixed(2)})"><span class="rush-lane-freq-pct">${display}</span></div>`;
 }
 
 // One lane column: defense box on top, the offense block (success half
@@ -290,6 +305,19 @@ function rushLaneColumn(defBox, offSuccessCell, offFreqCell) {
   return `<div class="rush-lane-col">
     ${defBox}
     <div class="rush-lane-off-block">
+      ${offSuccessCell}
+      ${offFreqCell}
+    </div>
+  </div>`;
+}
+
+// Same offense block with no defense box above it -- used by the "See All
+// Players" modal, where the shared defense row is shown ONCE up top
+// instead of once per player. Gets its own rounded-top treatment (the
+// normal column relies on the defense box above it for that corner).
+function rushLaneColumnStandalone(offSuccessCell, offFreqCell) {
+  return `<div class="rush-lane-col">
+    <div class="rush-lane-off-block rush-lane-off-block-standalone">
       ${offSuccessCell}
       ${offFreqCell}
     </div>
@@ -364,6 +392,78 @@ function renderPlayerRushLanesContent(team, name, oppTeam) {
     </div>`;
 }
 
+// ---- "See All Players" rush-lanes modal -- every qualifying rusher on
+// one team, at once, against the same opponent defense (shown once at the
+// top instead of repeated per player), instead of opening each player's
+// own modal one at a time. Its own dedicated modal (not the shared
+// props-modal) since it needs to be much wider to fit everyone. ----
+function renderTeamRushLanesAllPlayersContent(team, oppTeam) {
+  const heading = `<h3>${teamLogoMini(team)} ${TEAM_NAMES[team] || team} Rushers <span class="muted-label">vs ${teamLogoMini(oppTeam)} ${TEAM_NAMES[oppTeam] || oppTeam} Run Defense</span></h3>`;
+  const players = (DATA.player_props[team] || [])
+    .filter((p) => p.carries >= 5)
+    .sort((a, b) => b.carries - a.carries);
+  if (!players.length) {
+    return `${heading}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
+  }
+  const pools = buildRushZonePools();
+  const defRow = RUSH_ZONES.map((z) => defenseLaneCell(oppTeam, z)).join("");
+  const playerBlocks = players
+    .map((p) => {
+      const zones = ((DATA.player_rush_zones || {})[team] || {})[p.name] || {};
+      const cols = RUSH_ZONES.map((z) => {
+        const zd = zones[z.key] || {};
+        const off = offenseSuccessCell(zd.success, zd.ypc, pools[z.key], z.full, null);
+        const freq = offenseFreqCell(zd.share);
+        return rushLaneColumnStandalone(off, freq);
+      }).join("");
+      return `<div class="rush-lanes-player-block">
+        <div class="rush-lanes-team-tag">${p.name} <span class="muted-label">(${p.position})</span></div>
+        <div class="rush-lanes-cols">${cols}</div>
+      </div>`;
+    })
+    .join("");
+  return `${heading}
+    <div class="rush-lanes-team-tag">${teamLogoMini(oppTeam)} ${oppTeam} run defense</div>
+    <div class="rush-lanes-cols">${defRow}</div>
+    <div class="rush-lanes-all-players">${playerBlocks}</div>`;
+}
+
+function ensureRushLanesAllModal() {
+  if (document.getElementById("rush-lanes-all-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "rush-lanes-all-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box rush-lanes-all-modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="rush-lanes-all-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeRushLanesAllModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeRushLanesAllModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeRushLanesAllModal();
+  });
+}
+function closeRushLanesAllModal() {
+  const el = document.getElementById("rush-lanes-all-modal");
+  if (el) el.hidden = true;
+}
+function openRushLanesAllModal(team, oppTeam) {
+  ensureRushLanesAllModal();
+  document.getElementById("rush-lanes-all-modal-content").innerHTML = renderTeamRushLanesAllPlayersContent(team, oppTeam);
+  document.getElementById("rush-lanes-all-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".rush-lanes-all-btn");
+  if (!btn) return;
+  const { team, oppTeam } = decodeDataAttr(btn.dataset.entry);
+  openRushLanesAllModal(team, oppTeam);
+});
+
 function renderRushingTable(team, oppTeam) {
   const players = (DATA.player_props[team] || [])
     .filter((p) => p.carries >= 5)
@@ -387,7 +487,8 @@ function renderRushingTable(team, oppTeam) {
       </tr>`;
     })
     .join("");
-  return `${teamBannerHeader(team, true)}
+  const allPlayersPayload = { team, oppTeam };
+  return `<div class="rush-lanes-all-row">${teamBannerHeader(team, true)}<button type="button" class="rush-lanes-all-btn" data-entry="${encodeDataAttr(allPlayersPayload)}">See All Players</button></div>
     <table class="data-table props-rush-table">
       <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Car/g</th><th class="num">Yds/g</th><th class="num">YPC</th><th class="num">Exp%</th><th class="num">RZ/g</th><th class="edge-hdr">ADV</th></tr></thead>
       <tbody>${rows}</tbody>
