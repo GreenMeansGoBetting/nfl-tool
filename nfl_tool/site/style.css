@@ -382,12 +382,6 @@ h3 {
 .pass-coverage-table th:nth-child(5), .pass-coverage-table td:nth-child(5) { width: 44px; }
 .pass-coverage-table th:nth-child(6), .pass-coverage-table td:nth-child(6) { width: 30px; }
 .pass-coverage-table + .player-name-row, .pass-coverage-table + .no-data-note { margin-top: 12px; }
-/* Opponent tendency cells are shaded by magnitude only (see
-   passSplitOppRateCell) -- not the tier-good/mid/bad system, so text
-   color has to be set explicitly rather than riding along with a tier
-   class. Same "always dark text on the blue fill" fix already applied to
-   the rush-lane frequency cells. */
-.pass-tend-cell { color: var(--text); font-weight: 600; }
 
 .rush-lanes { width: 318px; }
 .rush-lanes-team-tag {

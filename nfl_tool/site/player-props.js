@@ -614,18 +614,22 @@ document.addEventListener("click", (e) => {
   openPassSplitRankModal(decodeDataAttr(cell.dataset.entry));
 });
 
-// Opponent's own rate of showing this look. Frequency alone isn't good or
-// bad the way a performance number is, so this deliberately skips the
-// green/red tier system -- same call already made for rush-lane usage
-// share (see offenseFreqCell): shaded by magnitude only, in the site's
-// blue accent, darker = shows it more often. Still clickable into the
-// league rank modal like every other team_stats number on the site.
+// Opponent's own rate of showing this look, tiered against every OTHER
+// team's rate for that exact same look -- a two-way split (zone/man,
+// pressure/clean) has an easy-to-read dispersion even at just two numbers,
+// so a team leaning unusually hard into one side is worth flagging the
+// same way every other colored cell on the site flags an outlier. Same
+// stat-rank-click convention as everywhere else -- click to see all 32
+// teams' rate for this exact look.
 function passSplitOppRateCell(oppTeam, tendKey, label) {
   const val = DATA.team_stats[oppTeam]?.[tendKey];
   if (val === null || val === undefined) return `<td class="num">--</td>`;
-  const alpha = FREQ_SHADE_MIN_ALPHA + val * (FREQ_SHADE_MAX_ALPHA - FREQ_SHADE_MIN_ALPHA);
-  const payload = { team: oppTeam, statKey: tendKey, label, invert: false, percent: true };
-  return `<td class="num pass-tend-cell stat-rank-click" style="background: rgba(var(--accent-rgb), ${alpha.toFixed(2)})" data-entry="${encodeDataAttr(payload)}">${Math.round(val * 100)}%</td>`;
+  const pool = teamsWithGames()
+    .map((t) => DATA.team_stats[t]?.[tendKey])
+    .filter((v) => v !== null && v !== undefined);
+  const cls = percentileTier(val, pool, false);
+  const alpha = tierAlphaAttr(val, pool, false);
+  return numCell(`${Math.round(val * 100)}%`, cls, alpha, { team: oppTeam, statKey: tendKey, label, invert: false, percent: true });
 }
 
 function passSplitAdvCell(team, oppTeam, successVal, pool, defAllowedKey) {
