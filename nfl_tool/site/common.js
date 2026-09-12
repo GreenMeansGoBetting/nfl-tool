@@ -699,6 +699,7 @@ function savePossiblePlays(list) {
   } catch (e) {
     // localStorage unavailable -- the checkbox just won't stick.
   }
+  window.NFLSync?.push(POSSIBLE_PLAYS_KEY, list);
 }
 function isPossiblePlay(id) {
   return loadPossiblePlays().some((p) => p.id === id);
@@ -736,6 +737,7 @@ function saveTdNote(key, text) {
     if (text) all[key] = text;
     else delete all[key];
     localStorage.setItem(TD_NOTES_KEY, JSON.stringify(all));
+    window.NFLSync?.push(TD_NOTES_KEY, all);
   } catch (e) {
     // localStorage unavailable -- notes just won't stick.
   }

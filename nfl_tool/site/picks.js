@@ -19,6 +19,7 @@ function savePicks(picks) {
     // localStorage unavailable (private browsing, quota, etc) -- picks just
     // won't persist this session, nothing else to do about it.
   }
+  window.NFLSync?.push(PICKS_KEY, picks);
 }
 
 function pickId(gameId, market) {

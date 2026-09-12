@@ -37,6 +37,57 @@ body {
   background: var(--panel);
 }
 .topbar .muted { justify-self: end; }
+
+/* Cross-device sync bar (firebase-sync.js) -- a slim strip above the
+   normal topbar, signed-out (login form) or signed-in (status + sign
+   out), inserted via document.body.prepend so it always sits first. */
+.sync-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 16px;
+  background: var(--table-head);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+.sync-label { color: var(--muted); }
+.sync-login-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.sync-login-form input {
+  font-size: 0.78rem;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--text);
+}
+.sync-login-form button {
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--text);
+  cursor: pointer;
+}
+.sync-login-form button:hover { background: rgba(var(--accent-rgb), 0.24); }
+.sync-error { color: var(--bad-text); }
+.sync-status { color: var(--muted); }
+.sync-bar button#sync-signout-btn {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+}
 .brand { color: var(--text); font-weight: 700; font-size: 1.05rem; }
 .muted { color: var(--muted); }
 

@@ -355,6 +355,7 @@ function saveGameNote(gameId, text) {
     if (text) all[gameId] = text;
     else delete all[gameId];
     localStorage.setItem(GAME_NOTES_KEY, JSON.stringify(all));
+    window.NFLSync?.push(GAME_NOTES_KEY, all);
   } catch (e) {
     // localStorage unavailable -- notes just won't stick.
   }
