@@ -285,7 +285,13 @@ function renderPossiblePlays() {
     .sort((a, b) => b - a);
 
   contentEl.innerHTML = weeks
-    .map((week) => {
+    .map((week, i) => {
+      // Newest plays always land at the very top (both a new week's own
+      // section, and the top row within a week -- see the sorts below),
+      // so pin the reminder to the top of the top section only, right
+      // between its header and the first play -- it always stays the
+      // first thing visible instead of getting buried under a growing list.
+      const reminder = i === 0 ? `<p class="pikkit-reminder">Always line shop with Pikkit! (Use Code "GMG")</p>` : "";
       const rows = byWeek[week]
         .slice()
         .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
@@ -306,6 +312,7 @@ function renderPossiblePlays() {
         .join("");
       return `<div class="section-wrap">
         <h2 class="section-title">Week ${week}</h2>
+        ${reminder}
         <table class="data-table possible-plays-table">
           <thead><tr><th></th><th>Matchup</th><th>Type</th><th>Play</th><th>Odds</th><th>Result</th><th></th></tr></thead>
           <tbody>${rows}</tbody>
