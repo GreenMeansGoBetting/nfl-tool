@@ -227,58 +227,94 @@ const RUSH_ZONES = [
   { key: "right_end", label: "RE", full: "Right End" },
 ];
 
-// One lane box: this team's own success rate (offense) or what it allows
-// (defense, invert=true) running into that lane, tiered/shaded the same
-// percentile-vs-every-other-team way as every other colored cell on the
-// site, and clickable into the same league-rank modal. YPC rides along
-// underneath as the plainer, more betting-familiar number next to the
-// tiered success rate.
-function rushLaneBox(team, zone, allowed) {
-  const successKey = allowed ? `rush_success_allowed_${zone.key}` : `rush_success_${zone.key}`;
-  const ypcKey = allowed ? `rush_ypc_allowed_${zone.key}` : `rush_ypc_${zone.key}`;
+// Defense box: this team's own success rate/YPC allowed running into that
+// lane, tiered against every other team the same percentile way as every
+// other colored cell on the site, and clickable into the league-rank
+// modal. Below RUSH_ZONE_MIN_SAMPLE (build_stats.py) there's nothing
+// reliable to show or rank, so it renders flat gray instead of a color
+// tier or a dead click target.
+function defenseLaneCell(team, zone) {
+  const successKey = `rush_success_allowed_${zone.key}`;
+  const ypcKey = `rush_ypc_allowed_${zone.key}`;
   const val = DATA.team_stats[team][successKey];
   const ypc = DATA.team_stats[team][ypcKey];
-  let cls = "";
-  let alpha = "";
-  if (val !== null && val !== undefined) {
+  const hasSample = val !== null && val !== undefined;
+  let cls = "rush-lane-nosample";
+  let clickAttrs = "";
+  if (hasSample) {
     const pool = teamsWithGames()
       .map((t) => DATA.team_stats[t][successKey])
       .filter((v) => v !== null && v !== undefined);
-    cls = percentileTier(val, pool, allowed);
-    alpha = tierAlphaAttr(val, pool, allowed);
+    cls = percentileTier(val, pool, true);
+    const payload = { team, statKey: successKey, label: `${zone.full} Rush Success % Allowed`, invert: true, percent: true };
+    clickAttrs = ` stat-rank-click" data-entry="${encodeDataAttr(payload)}`;
   }
-  const display = val !== null && val !== undefined ? `${Math.round(val * 100)}%` : "--";
+  const display = hasSample ? `${Math.round(val * 100)}%` : "--";
   const ypcDisplay = ypc !== null && ypc !== undefined ? fmt(ypc, 1) : "--";
-  const label = `${zone.full} Rush Success %${allowed ? " Allowed" : ""}`;
-  const payload = { team, statKey: successKey, label, invert: allowed, percent: true };
-  return `<div class="rush-lane-box ${cls} stat-rank-click" data-entry="${encodeDataAttr(payload)}"${alpha}>
+  return `<div class="rush-lane-box ${cls}${clickAttrs}">
     <span class="rush-lane-label">${zone.label}</span>
     <span class="rush-lane-pct">${display}</span>
     <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
   </div>`;
 }
 
-// Defense-allowed row on top, offense row on the bottom, same left-to-right
-// lane order in both -- reads bottom-up as "here's what the offense likes
-// to do, and here's the defense it's running into," per explicit feedback
-// that reading offense-first from the bottom felt more natural than
-// offense-on-top.
-function renderRushLanesChart(offTeam, defTeam) {
-  const offRow = RUSH_ZONES.map((z) => rushLaneBox(offTeam, z, false)).join("");
-  const defRow = RUSH_ZONES.map((z) => rushLaneBox(defTeam, z, true)).join("");
-  return `<div class="rush-lanes">
-    <div class="rush-lanes-team-tag">${teamLogoMini(defTeam)} ${defTeam} run defense</div>
-    <div class="rush-lanes-row">${defRow}</div>
-    <div class="rush-lanes-divider"></div>
-    <div class="rush-lanes-row">${offRow}</div>
-    <div class="rush-lanes-team-tag">${teamLogoMini(offTeam)} ${offTeam} rush offense</div>
+// Offense block, top half: success rate/YPC running into that lane (team's
+// own, or via successVal/pool/label overrides, a single player's). Sits
+// directly under the defense box above it with no gap -- both halves are
+// "how good," meant to read as one connected stack from defense down
+// through offense effectiveness.
+function offenseSuccessCell(successVal, ypcVal, pool, label, clickPayload) {
+  const hasSample = successVal !== null && successVal !== undefined;
+  const cls = hasSample ? percentileTier(successVal, pool, false) : "rush-lane-nosample";
+  const display = hasSample ? `${Math.round(successVal * 100)}%` : "--";
+  const ypcDisplay = ypcVal !== null && ypcVal !== undefined ? fmt(ypcVal, 1) : "--";
+  const clickAttrs = hasSample && clickPayload ? ` stat-rank-click" data-entry="${encodeDataAttr(clickPayload)}` : "";
+  return `<div class="rush-lane-off-success ${cls}${clickAttrs}">
+    <span class="rush-lane-pct">${display}</span>
+    <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
   </div>`;
 }
 
-// Must match build_stats.py's PLAYER_RUSH_ZONE_MIN_SAMPLE -- just the
-// caption text below, not an actual filter (the floor is already applied
-// server-side; success/ypc come back null when a lane didn't clear it).
-const PLAYER_RUSH_ZONE_MIN_SAMPLE = 5;
+// Offense block, bottom half: just how often (frequency), no tier color --
+// it's a share, not a "good/bad" rate, so a flat neutral background is all
+// it needs.
+function offenseFreqCell(freqVal) {
+  const display = freqVal !== null && freqVal !== undefined ? `${Math.round(freqVal * 100)}%` : "--";
+  return `<div class="rush-lane-off-freq"><span class="rush-lane-freq-pct">${display}</span></div>`;
+}
+
+// One lane column: defense box on top, the offense block (success half
+// over frequency half) on the bottom -- offense stays on the bottom
+// everywhere on this chart, team view and player view alike.
+function rushLaneColumn(defBox, offSuccessCell, offFreqCell) {
+  return `<div class="rush-lane-col">
+    ${defBox}
+    <div class="rush-lane-off-block">
+      ${offSuccessCell}
+      ${offFreqCell}
+    </div>
+  </div>`;
+}
+
+function renderRushLanesChart(offTeam, defTeam) {
+  const cols = RUSH_ZONES.map((z) => {
+    const successKey = `rush_success_${z.key}`;
+    const val = DATA.team_stats[offTeam][successKey];
+    const ypc = DATA.team_stats[offTeam][`rush_ypc_${z.key}`];
+    const pool = teamsWithGames()
+      .map((t) => DATA.team_stats[t][successKey])
+      .filter((v) => v !== null && v !== undefined);
+    const payload = { team: offTeam, statKey: successKey, label: `${z.full} Rush Success %`, invert: false, percent: true };
+    const off = offenseSuccessCell(val, ypc, pool, z.full, payload);
+    const freq = offenseFreqCell(DATA.team_stats[offTeam][`rush_rate_${z.key}`]);
+    return rushLaneColumn(defenseLaneCell(defTeam, z), off, freq);
+  }).join("");
+  return `<div class="rush-lanes">
+    <div class="rush-lanes-team-tag">${teamLogoMini(defTeam)} ${defTeam} run defense</div>
+    <div class="rush-lanes-cols">${cols}</div>
+    <div class="rush-lanes-team-tag">${teamLogoMini(offTeam)} ${offTeam} rush offense</div>
+  </div>`;
+}
 
 // League-wide success-rate pool per lane, built once per modal open (not
 // per box) -- every player with a qualifying sample in DATA.player_rush_
@@ -302,13 +338,11 @@ function buildRushZonePools() {
 }
 
 // The individual-back complement to renderRushLanesChart's team view: this
-// player's own usage share and (sample permitting) success%/YPC per lane,
-// paired with the SAME opponent-allowed row from the team chart -- "does
-// this back like this lane, is he actually good at it, and is this
-// defense's own weak side lined up with it." Usage is shown regardless of
-// sample size (it's just a share of his own carries, not a rate that needs
-// stabilizing); success%/YPC show "--" below the floor rather than a wild
-// swing off two or three carries.
+// player's own success rate/YPC and usage frequency per lane, paired with
+// the SAME opponent-allowed box from the team chart -- "does this back
+// like this lane, is he actually good at it, and is this defense's own
+// weak side lined up with it." No click-through-to-rank-modal here (a
+// single player's number isn't a team to rank against other teams).
 function renderPlayerRushLanesContent(team, name, oppTeam) {
   const zones = ((DATA.player_rush_zones || {})[team] || {})[name];
   const heading = `<h3>${name} <span class="muted-label">(${team})</span> &mdash; Rush Lanes</h3>`;
@@ -316,29 +350,17 @@ function renderPlayerRushLanesContent(team, name, oppTeam) {
     return `${heading}<p class="no-data-note">No charted rush attempts for this player yet.</p>`;
   }
   const pools = buildRushZonePools();
-  const playerRow = RUSH_ZONES.map((z) => {
+  const cols = RUSH_ZONES.map((z) => {
     const zd = zones[z.key] || {};
-    const share = zd.share != null ? `${Math.round(zd.share * 100)}%` : "--";
-    const success = zd.success;
-    const cls = success !== null && success !== undefined ? percentileTier(success, pools[z.key], false) : "";
-    const successDisplay = success !== null && success !== undefined ? `${Math.round(success * 100)}%` : "--";
-    const ypcDisplay = zd.ypc !== null && zd.ypc !== undefined ? fmt(zd.ypc, 1) : "--";
-    return `<div class="rush-lane-box ${cls}">
-      <span class="rush-lane-label">${z.label}</span>
-      <span class="rush-lane-share">${share} usage</span>
-      <span class="rush-lane-pct">${successDisplay}</span>
-      <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
-    </div>`;
+    const off = offenseSuccessCell(zd.success, zd.ypc, pools[z.key], z.full, null);
+    const freq = offenseFreqCell(zd.share);
+    return rushLaneColumn(defenseLaneCell(oppTeam, z), off, freq);
   }).join("");
-  const defRow = RUSH_ZONES.map((z) => rushLaneBox(oppTeam, z, true)).join("");
   return `${heading}
-    <p class="no-data-note">Usage is this player's own share of carries into that lane. Success%/YPC need at least ${PLAYER_RUSH_ZONE_MIN_SAMPLE} of his carries in a lane to show -- too small a sample otherwise.</p>
     <div class="rush-lanes">
-      <div class="rush-lanes-team-tag">${name} carries</div>
-      <div class="rush-lanes-row">${playerRow}</div>
-      <div class="rush-lanes-divider"></div>
-      <div class="rush-lanes-row">${defRow}</div>
       <div class="rush-lanes-team-tag">${teamLogoMini(oppTeam)} ${oppTeam} run defense</div>
+      <div class="rush-lanes-cols">${cols}</div>
+      <div class="rush-lanes-team-tag">${name} carries</div>
     </div>`;
 }
 
