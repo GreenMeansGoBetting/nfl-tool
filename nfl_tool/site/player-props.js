@@ -559,14 +559,60 @@ function passSplitPool(condition, stat) {
 }
 
 // Any QB performance number in a split (comp%, YPA, success%) -- higher is
-// always better for all three, so invert is always false here.
-function passSplitRateCell(value, pool, opts = {}) {
+// always better for all three, so invert is always false here. Clickable
+// into openPassSplitRankModal (every qualifying QB's value for this exact
+// stat+condition), same "every colored cell opens its own leaderboard"
+// convention as the rest of the site -- just a per-QB leaderboard instead
+// of the usual per-team one, since compute_scheme_splits' team-shaped
+// rank modal (openStatRankModal/statRankGetter) has no notion of a player.
+function passSplitRateCell(value, pool, payload) {
   if (value === null || value === undefined) return `<td class="num">--</td>`;
   const cls = percentileTier(value, pool, false);
   const alpha = tierAlphaAttr(value, pool, false);
-  const display = opts.percent ? `${Math.round(value * 100)}%` : fmt(value, opts.digits ?? 1);
-  return `<td class="num ${cls}"${alpha}>${display}</td>`;
+  const display = payload.percent ? `${Math.round(value * 100)}%` : fmt(value, payload.digits ?? 1);
+  return `<td class="num ${cls} pass-split-rank-click"${alpha} data-entry="${encodeDataAttr(payload)}">${display}</td>`;
 }
+
+// Every qualifying QB's value for one exact stat+condition (e.g. every
+// QB's Success % vs Zone), sorted best to worst -- the player-level
+// counterpart to common.js's openStatRankModal, reusing the same overlay/
+// close-button chrome (ensureStatRankModal) since the shell is identical,
+// just a different row source (every (team, name) in player_pass_splits
+// instead of every team in team_stats).
+function openPassSplitRankModal(p) {
+  ensureStatRankModal();
+  const rows = [];
+  for (const [t, players] of Object.entries(DATA.player_pass_splits || {})) {
+    for (const [name, splits] of Object.entries(players)) {
+      const val = splits[p.condition]?.[p.stat];
+      if (val === null || val === undefined) continue;
+      rows.push({ team: t, name, value: val });
+    }
+  }
+  rows.sort((a, b) => b.value - a.value);
+  const values = rows.map((r) => r.value);
+  const display = (v) => (p.percent ? `${Math.round(v * 100)}%` : fmt(v, p.digits ?? 1));
+  const body = rows
+    .map((r) => {
+      const cls = percentileTier(r.value, values, false);
+      const alpha = tierAlphaAttr(r.value, values, false);
+      const rowCls = r.team === p.team && r.name === p.name ? ' class="stat-rank-current"' : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${r.name}</td><td class="num ${cls}"${alpha}>${display(r.value)}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${p.label} &mdash; All QBs</h3>
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Player</th><th class="num">${p.label}</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  document.getElementById("stat-rank-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".pass-split-rank-click");
+  if (!cell) return;
+  openPassSplitRankModal(decodeDataAttr(cell.dataset.entry));
+});
 
 // Opponent's own rate of showing this look. Frequency alone isn't good or
 // bad the way a performance number is, so this deliberately skips the
@@ -618,9 +664,9 @@ function renderPassCoveragePanel(team, oppTeam) {
         return `<tr>
           <td>${r.label}</td>
           ${passSplitOppRateCell(oppTeam, r.tendKey, r.tendLabel)}
-          ${passSplitRateCell(cond.comp_pct, passSplitPool(r.key, "comp_pct"), { percent: true })}
-          ${passSplitRateCell(cond.ypa, passSplitPool(r.key, "ypa"))}
-          ${passSplitRateCell(cond.success, successPool, { percent: true })}
+          ${passSplitRateCell(cond.comp_pct, passSplitPool(r.key, "comp_pct"), { team, name: p.name, condition: r.key, stat: "comp_pct", label: `${r.label} Comp %`, percent: true })}
+          ${passSplitRateCell(cond.ypa, passSplitPool(r.key, "ypa"), { team, name: p.name, condition: r.key, stat: "ypa", label: `${r.label} YPA`, digits: 1 })}
+          ${passSplitRateCell(cond.success, successPool, { team, name: p.name, condition: r.key, stat: "success", label: `${r.label} Success %`, percent: true })}
           ${passSplitAdvCell(team, oppTeam, cond.success, successPool, r.defAllowedKey)}
         </tr>`;
       }).join("");

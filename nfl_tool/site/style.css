@@ -753,6 +753,12 @@ footer a { color: var(--accent); }
 
 .stat-rank-click { cursor: pointer; }
 .stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+
+/* Coverage & Pressure panel's per-QB cells -- same click affordance as
+   .stat-rank-click, opens openPassSplitRankModal's per-QB leaderboard
+   instead of common.js's per-team one. */
+.pass-split-rank-click { cursor: pointer; }
+.pass-split-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 .stat-rank-table { width: 260px; }
 .stat-rank-table th:first-child, .stat-rank-table td:first-child { text-align: left; }
 .stat-rank-current td { border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); font-weight: 700; }
