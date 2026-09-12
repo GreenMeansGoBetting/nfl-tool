@@ -547,31 +547,39 @@ const PASS_SPLIT_ROWS = [
   { key: "clean", label: "Clean Pocket", tendKey: "clean_pocket_rate", tendLabel: "Clean Pocket Rate", defAllowedKey: "def_success_allowed_clean_pocket" },
 ];
 
-// League-wide pool of every qualifying QB's success rate in ONE condition
-// (e.g. every QB's success% vs zone) -- the percentile context for tiering
-// a single QB's own number, same role playerAdvCell's pool plays for the
-// season-long stats.
-function passSplitPool(condition) {
+// League-wide pool of every qualifying QB's value for ONE stat in ONE
+// condition (e.g. every QB's success% vs zone, or every QB's YPA vs
+// pressure) -- the percentile context for tiering a single QB's own
+// number, same role playerAdvCell's pool plays for the season-long stats.
+function passSplitPool(condition, stat) {
   return Object.values(DATA.player_pass_splits || {})
     .flatMap((players) => Object.values(players))
-    .map((c) => c[condition]?.success)
+    .map((c) => c[condition]?.[stat])
     .filter((v) => v !== null && v !== undefined);
 }
 
-function passSplitSuccessCell(value, pool) {
+// Any QB performance number in a split (comp%, YPA, success%) -- higher is
+// always better for all three, so invert is always false here.
+function passSplitRateCell(value, pool, opts = {}) {
   if (value === null || value === undefined) return `<td class="num">--</td>`;
   const cls = percentileTier(value, pool, false);
   const alpha = tierAlphaAttr(value, pool, false);
-  return `<td class="num ${cls}"${alpha}>${Math.round(value * 100)}%</td>`;
+  const display = opts.percent ? `${Math.round(value * 100)}%` : fmt(value, opts.digits ?? 1);
+  return `<td class="num ${cls}"${alpha}>${display}</td>`;
 }
 
-// Opponent's own rate of showing this look -- plain/neutral, no tiering
-// (frequency alone isn't good or bad), still clickable into the league
-// rank modal like every other team_stats number on the site.
+// Opponent's own rate of showing this look. Frequency alone isn't good or
+// bad the way a performance number is, so this deliberately skips the
+// green/red tier system -- same call already made for rush-lane usage
+// share (see offenseFreqCell): shaded by magnitude only, in the site's
+// blue accent, darker = shows it more often. Still clickable into the
+// league rank modal like every other team_stats number on the site.
 function passSplitOppRateCell(oppTeam, tendKey, label) {
   const val = DATA.team_stats[oppTeam]?.[tendKey];
   if (val === null || val === undefined) return `<td class="num">--</td>`;
-  return numCell(`${Math.round(val * 100)}%`, "", "", { team: oppTeam, statKey: tendKey, label, invert: false, percent: true });
+  const alpha = FREQ_SHADE_MIN_ALPHA + val * (FREQ_SHADE_MAX_ALPHA - FREQ_SHADE_MIN_ALPHA);
+  const payload = { team: oppTeam, statKey: tendKey, label, invert: false, percent: true };
+  return `<td class="num pass-tend-cell stat-rank-click" style="background: rgba(var(--accent-rgb), ${alpha.toFixed(2)})" data-entry="${encodeDataAttr(payload)}">${Math.round(val * 100)}%</td>`;
 }
 
 function passSplitAdvCell(team, oppTeam, successVal, pool, defAllowedKey) {
@@ -606,14 +614,14 @@ function renderPassCoveragePanel(team, oppTeam) {
       }
       const rows = PASS_SPLIT_ROWS.map((r) => {
         const cond = splits[r.key] || {};
-        const pool = passSplitPool(r.key);
+        const successPool = passSplitPool(r.key, "success");
         return `<tr>
           <td>${r.label}</td>
           ${passSplitOppRateCell(oppTeam, r.tendKey, r.tendLabel)}
-          <td class="num">${cond.comp_pct != null ? Math.round(cond.comp_pct * 100) + "%" : "--"}</td>
-          <td class="num">${cond.ypa != null ? fmt(cond.ypa, 1) : "--"}</td>
-          ${passSplitSuccessCell(cond.success, pool)}
-          ${passSplitAdvCell(team, oppTeam, cond.success, pool, r.defAllowedKey)}
+          ${passSplitRateCell(cond.comp_pct, passSplitPool(r.key, "comp_pct"), { percent: true })}
+          ${passSplitRateCell(cond.ypa, passSplitPool(r.key, "ypa"))}
+          ${passSplitRateCell(cond.success, successPool, { percent: true })}
+          ${passSplitAdvCell(team, oppTeam, cond.success, successPool, r.defAllowedKey)}
         </tr>`;
       }).join("");
       return `<div class="player-name-row"><span class="player-name">${p.name}</span></div>
