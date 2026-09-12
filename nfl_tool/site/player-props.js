@@ -503,6 +503,79 @@ function renderRushingTable(team, oppTeam) {
     </table>`;
 }
 
+// League-wide pool of every qualifying QB's season-total value for ONE
+// Player Props stat (e.g. every QB's EPA/Att) -- same position-scoped
+// pool playerAdvCell already builds for its own tiering, just reused here
+// for a plain (non-paired) cell instead of an offense-vs-defense edge.
+function passStatPool(statKey) {
+  return Object.values(DATA.player_props)
+    .flat()
+    .filter((p) => p.position === "QB")
+    .map((p) => p[statKey])
+    .filter((v) => v !== null && v !== undefined);
+}
+
+// One season-total passing stat, tiered against every other qualifying QB
+// and clickable into openPlayerStatRankModal's full QB leaderboard for
+// that exact stat -- same "every colored cell opens its own leaderboard"
+// convention as the Coverage & Pressure panel above, just for the
+// season-long numbers instead of a zone/man/pressure/clean split.
+function passStatCell(player, statKey, opts = {}) {
+  const value = player[statKey];
+  if (value === null || value === undefined) return `<td class="num">--</td>`;
+  const pool = passStatPool(statKey);
+  const invert = !!opts.invert;
+  const cls = percentileTier(value, pool, invert);
+  const alpha = tierAlphaAttr(value, pool, invert);
+  const display = opts.percent ? `${Math.round(value * 100)}%` : fmt(value, opts.digits ?? 1);
+  const payload = {
+    team: player.team, name: player.name, statKey, label: opts.label,
+    invert, percent: !!opts.percent, digits: opts.digits,
+  };
+  return `<td class="num ${cls} player-stat-rank-click"${alpha} data-entry="${encodeDataAttr(payload)}">${display}</td>`;
+}
+
+// Every qualifying QB's value for one season-total Player Props stat,
+// sorted best to worst (invert=true sorts ascending -- e.g. INT/g, where
+// lower is better). Same shell/highlight convention as
+// openPassSplitRankModal, just sourced from DATA.player_props instead of
+// DATA.player_pass_splits.
+function openPlayerStatRankModal(p) {
+  ensureStatRankModal();
+  const rows = [];
+  for (const [team, players] of Object.entries(DATA.player_props)) {
+    for (const pl of players) {
+      if (pl.position !== "QB") continue;
+      const val = pl[p.statKey];
+      if (val === null || val === undefined) continue;
+      rows.push({ team, name: pl.name, value: val });
+    }
+  }
+  rows.sort((a, b) => (p.invert ? a.value - b.value : b.value - a.value));
+  const values = rows.map((r) => r.value);
+  const display = (v) => (p.percent ? `${Math.round(v * 100)}%` : fmt(v, p.digits ?? 1));
+  const body = rows
+    .map((r) => {
+      const cls = percentileTier(r.value, values, !!p.invert);
+      const alpha = tierAlphaAttr(r.value, values, !!p.invert);
+      const rowCls = r.team === p.team && r.name === p.name ? ' class="stat-rank-current"' : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${r.name}</td><td class="num ${cls}"${alpha}>${display(r.value)}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${p.label} &mdash; All QBs</h3>
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Player</th><th class="num">${p.label}</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  document.getElementById("stat-rank-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".player-stat-rank-click");
+  if (!cell) return;
+  openPlayerStatRankModal(decodeDataAttr(cell.dataset.entry));
+});
+
 function renderPassingTable(team, oppTeam) {
   const players = (DATA.player_props[team] || [])
     .filter((p) => p.pass_att >= 10)
@@ -515,12 +588,12 @@ function renderPassingTable(team, oppTeam) {
     .map((p) => {
       return `<tr>
         <td><span class="player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span></td>
-        <td class="num">${fmt(p.pass_att_per_g, 1)}</td>
-        <td class="num">${p.comp_pct != null ? Math.round(p.comp_pct * 100) + "%" : "--"}</td>
-        <td class="num">${fmt(p.pass_yards_per_g, 1)}</td>
-        <td class="num">${fmt(p.int_per_g, 2)}</td>
-        <td class="num">${p.epa_per_att != null ? fmt(p.epa_per_att, 2) : "--"}</td>
-        <td class="num">${p.adot_thrown != null ? fmt(p.adot_thrown, 1) : "--"}</td>
+        ${passStatCell(p, "pass_att_per_g", { label: "Pass Attempts/Game" })}
+        ${passStatCell(p, "comp_pct", { label: "Completion %", percent: true })}
+        ${passStatCell(p, "pass_yards_per_g", { label: "Passing Yards/Game" })}
+        ${passStatCell(p, "int_per_g", { label: "Interceptions/Game", digits: 2, invert: true })}
+        ${passStatCell(p, "epa_per_att", { label: "EPA per Attempt", digits: 2 })}
+        ${passStatCell(p, "adot_thrown", { label: "Average Depth of Target" })}
         ${playerAdvCell(p, oppTeam, "pass_yards_per_g", "pass_yards_allowed_per_g")}
       </tr>`;
     })

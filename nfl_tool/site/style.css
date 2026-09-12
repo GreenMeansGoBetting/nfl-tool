@@ -753,6 +753,11 @@ footer a { color: var(--accent); }
    instead of common.js's per-team one. */
 .pass-split-rank-click { cursor: pointer; }
 .pass-split-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+
+/* Main Passing table's season-total cells (Att/g, Cmp%, Yds/g, INT/g,
+   EPA/Att, aDOT) -- opens openPlayerStatRankModal's full QB leaderboard. */
+.player-stat-rank-click { cursor: pointer; }
+.player-stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 .stat-rank-table { width: 260px; }
 .stat-rank-table th:first-child, .stat-rank-table td:first-child { text-align: left; }
 .stat-rank-current td { border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); font-weight: 700; }
