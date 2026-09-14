@@ -120,6 +120,18 @@ function gradeTdPlay(play, tdResults) {
 
 function autoGradePlay(play, data) {
   if (play.category === "Anytime TD" || play.category === "First TD") {
+    // player_td_results comes from play-by-play, which during a season's
+    // fallback window (build_stats.py's resolve_season -- true whenever
+    // nflverse hasn't published BOTH the season's pbp and participation
+    // files yet) is a WHOLE DIFFERENT SEASON's data, just keyed by the
+    // same week numbers. Grading a real current-season play against last
+    // season's results for that week/team either silently finds no entry
+    // (stays stuck on Pending) or, worse, coincidentally matches an
+    // unrelated result from last year and confidently grades it wrong.
+    // Skip TD grading entirely until real current-season data is live --
+    // see regradeAllPossiblePlays for resetting any play already wrongly
+    // graded this way before this fix shipped.
+    if (data.is_fallback_season) return null;
     return gradeTdPlay(play, data.player_td_results);
   }
   if (GAME_LINE_CATEGORIES[play.category]) {
@@ -134,6 +146,14 @@ function regradeAllPossiblePlays(data) {
   let changed = false;
   const updated = plays.map((p) => {
     if (p.result_source === "manual") return p;
+    // A TD play auto-graded during an earlier fallback-season run may
+    // already be sitting on a wrong result -- reset it back to pending
+    // rather than leaving a stale wrong grade in place forever.
+    const isTdPlay = p.category === "Anytime TD" || p.category === "First TD";
+    if (data.is_fallback_season && isTdPlay && p.result_source === "auto") {
+      changed = true;
+      return { ...p, result: null, result_source: null };
+    }
     const result = autoGradePlay(p, data);
     if (result && result !== p.result) {
       changed = true;
@@ -541,6 +561,7 @@ fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;
+    document.getElementById("fallback-note").hidden = !data.is_fallback_season;
     regradeAllPossiblePlays(DATA);
     renderPossiblePlays();
   })
