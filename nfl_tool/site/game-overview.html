@@ -71,15 +71,32 @@
   </div>
 
   <div id="section-general" class="section-wrap" hidden>
-    <h2 class="section-title">General Stats &amp; Scheme <button type="button" id="scheme-info-btn" class="info-icon" aria-label="What is Success Rate?">i</button></h2>
+    <h2 class="section-title">General Stats &amp; Grades <button type="button" id="grades-info-btn" class="info-icon" aria-label="What do these categories grade?">i</button></h2>
+    <p id="grades-info-text" class="info-text" hidden>Passing/Rushing/Red Zone grade OFF as this team's own production and DEF as what the opposing defense allows, same as every table above. Scheme is the only category built from BOTH sides at once: its OFF grade is how well this team's own offense performs against the varied looks (blitzes, coverages, box counts) it faces league-wide, and its DEF grade is how well this team's own defense executes when it calls those same varied looks -- so a team's Scheme OFF and DEF grades describe two different units, not the same one twice.</p>
+    <div class="stat-row">
+      <section id="col-away-general"></section>
+      <section id="col-home-general"></section>
+      <div class="grades-stack">
+        <section id="col-away-summary"></section>
+        <section id="col-home-summary"></section>
+      </div>
+      <section class="pikkit-ad-slot">
+        <div class="ad-placeholder">
+          <div class="novig-text">
+            <p class="novig-cta">Pikkit sponsor placeholder</p>
+            <p class="novig-sub">Swap in logo, referral link, and code once ready.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="section-scheme" class="section-wrap" hidden>
+    <h2 class="section-title">Scheme &amp; Coverage <button type="button" id="scheme-info-btn" class="info-icon" aria-label="What is Success Rate?">i</button></h2>
     <p id="scheme-info-text" class="info-text" hidden>Success Rate (nflfastR): a play "succeeds" if it gains at least 40% of yards-to-go on 1st down, 60% on 2nd down, or picks up the first down/TD on 3rd or 4th down &mdash; a per-play efficiency measure (staying on schedule), not total yards or points.</p>
     <ul id="scheme-notes" class="snapshot-list scheme-notes"></ul>
-    <div class="two-col">
-      <section id="col-away-general"></section>
+    <div class="stat-row stat-row-center">
       <section id="col-away-scheme"></section>
-    </div>
-    <div class="two-col">
-      <section id="col-home-general"></section>
       <section id="col-home-scheme"></section>
     </div>
   </div>
@@ -89,23 +106,6 @@
     <div class="two-col">
       <section id="col-away-recent"></section>
       <section id="col-home-recent"></section>
-    </div>
-  </div>
-
-  <div id="section-summary" class="section-wrap" hidden>
-    <h2 class="section-title">Team Grades <button type="button" id="grades-info-btn" class="info-icon" aria-label="What do these categories grade?">i</button></h2>
-    <p id="grades-info-text" class="info-text" hidden>Passing/Rushing/Red Zone grade OFF as this team's own production and DEF as what the opposing defense allows, same as every table above. Scheme is the only category built from BOTH sides at once: its OFF grade is how well this team's own offense performs against the varied looks (blitzes, coverages, box counts) it faces league-wide, and its DEF grade is how well this team's own defense executes when it calls those same varied looks -- so a team's Scheme OFF and DEF grades describe two different units, not the same one twice.</p>
-    <div class="summary-layout">
-      <section id="col-away-summary"></section>
-      <section id="col-home-summary"></section>
-      <section class="pikkit-ad-slot">
-        <div class="ad-placeholder">
-          <div class="novig-text">
-            <p class="novig-cta">Pikkit sponsor placeholder</p>
-            <p class="novig-sub">Swap in logo, referral link, and code once ready.</p>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 

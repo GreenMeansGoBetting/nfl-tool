@@ -247,6 +247,26 @@ select {
   margin-top: 12px;
 }
 
+/* Content-sized, not 1fr/1fr -- a CSS grid stretches each column to half
+   the container regardless of how wide the table inside it actually is,
+   which is exactly what left huge dead gaps between compact tables on a
+   wide screen. Flex only ever takes the width each item actually needs,
+   wrapping to a new line when it runs out of room, same pattern already
+   used for .stat-columns/.summary-layout elsewhere on the site. */
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 12px;
+}
+.stat-row-center { justify-content: center; }
+.grades-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* One column per stat category (Type/Position/Distance), each stacking its
    away table directly above its home table -- grouped by WHAT the stat is
    first, team second, with a header naming each category since there's no

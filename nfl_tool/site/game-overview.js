@@ -392,7 +392,7 @@ const COLORS = [
   { key: "red", label: "No Confidence" },
 ];
 
-const SECTIONS = ["injuries", "odds", "general", "recent", "summary", "picks"];
+const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "picks"];
 
 // ---- Per-game notes (localStorage, keyed by game_id -- free text, not
 // graded or shared anywhere, just a scratchpad while working through a
