@@ -909,28 +909,35 @@ function anyDraftReady(game) {
 }
 
 const MARKET_LABELS = { spread: "Spread", total: "Total", moneyline: "Moneyline" };
-const COLOR_LABELS = { green: "Good Play", yellow: "Lean", red: "No Confidence" };
+// Abbreviated header form for the dense matrix table only -- "No
+// Confidence" spelled out was forcing every column wide regardless of how
+// short the cell content actually was. Colored in the same green/yellow/
+// red the pick-color picker itself uses (tier-good/mid/bad), so the
+// header itself carries the confidence-level meaning, not just the label.
+const COLOR_LABEL_ABBR = { green: "GP", yellow: "L", red: "NC" };
+const COLOR_HEADER_CLASS = { green: "tier-good", yellow: "tier-mid", red: "tier-bad" };
 
 // Units assume a flat 1u stake on every pick, spread/total priced at a
 // standardized -105 and moneyline at its real frozen price -- see picks.js'
-// unitsForPick for why. Shown on every cell, win% only once picks are decided.
+// unitsForPick for why. Win% dropped from display entirely -- see
+// unitsStyle() below for why it's also no longer what colors the cell.
 function matrixCellText(t) {
   const unitsStr = `${t.units >= 0 ? "+" : ""}${t.units.toFixed(2)}u`;
-  const pct = t.winPct !== null ? `${t.winPct}%, ` : "";
-  return `${t.win}-${t.loss}-${t.push} (${pct}${unitsStr})`;
+  return `${t.win}-${t.loss}-${t.push}<br>(${unitsStr})`;
 }
 
-// Win% coloring for Your Record -- deliberately NOT the site's usual
-// z-score-against-a-league-pool tiering (there's no league of other
-// bettors to compare against here, just win or lose). A straight 2-color
-// gradient centered on 50%: green above it, red below it, scaling toward
-// full saturation at 100%/0%, white at exactly 50% ("perfectly break
-// even"). No yellow/mid band at all -- these are real dollars, not a
-// third "meh" bucket.
-function winPctStyle(winPct) {
-  if (winPct === null || winPct === undefined || winPct === 50) return { cls: "", attr: "" };
-  const cls = winPct > 50 ? "tier-good" : "tier-bad";
-  const t = Math.abs(winPct - 50) / 50;
+// Colors the cell by REAL PROFIT, not win%. A moneyline column especially
+// can go .500 and still be a loser (laying big favorites) or a big winner
+// (hitting live dogs) -- win% alone read as neutral either way, which
+// hid exactly the signal this table exists to show. Straight 2-color
+// gradient centered on 0u: green above it, red below it, white at exactly
+// breakeven, saturating fully by UNITS_SATURATE so one huge outlier
+// column doesn't wash out the color range for every other cell.
+const UNITS_SATURATE = 3;
+function unitsStyle(units) {
+  if (!units) return { cls: "", attr: "" };
+  const cls = units > 0 ? "tier-good" : "tier-bad";
+  const t = Math.min(Math.abs(units) / UNITS_SATURATE, 1);
   const alpha = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
   return { cls, attr: ` style="--tier-a:${alpha.toFixed(2)}"` };
 }
@@ -939,10 +946,10 @@ function renderPickMatrix(picks) {
   const m = pickMatrix(picks);
   if (picks.length === 0) return "";
   const cellTd = (t, extraCls = "") => {
-    const { cls, attr } = winPctStyle(t.winPct);
+    const { cls, attr } = unitsStyle(t.units);
     return `<td class="${[extraCls, cls].filter(Boolean).join(" ")}"${attr}>${matrixCellText(t)}</td>`;
   };
-  const header = `<tr><th></th>${m.colors.map((c) => `<th>${COLOR_LABELS[c]}</th>`).join("")}<th>Total</th></tr>`;
+  const header = `<tr><th></th>${m.colors.map((c) => `<th class="${COLOR_HEADER_CLASS[c]}">${COLOR_LABEL_ABBR[c]}</th>`).join("")}<th>Total</th></tr>`;
   const rows = m.rows
     .map((r) => `<tr><td>${MARKET_LABELS[r.market]}</td>${r.cells.map((c) => cellTd(c)).join("")}${cellTd(r.total, "matrix-total-col")}</tr>`)
     .join("");

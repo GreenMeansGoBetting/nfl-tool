@@ -1298,10 +1298,21 @@ footer a { color: var(--accent); }
 .pick-save-all-btn:hover:not(:disabled) { opacity: 0.9; }
 .pick-save-all-btn:disabled { opacity: 0.4; cursor: default; }
 
-.pick-matrix-table { margin-top: 6px; table-layout: fixed; }
-.pick-matrix-table th, .pick-matrix-table td { text-align: center; font-size: 0.78rem; }
-.pick-matrix-table th:first-child, .pick-matrix-table td:first-child { text-align: left; width: 26%; }
+.pick-matrix-table { margin-top: 6px; table-layout: fixed; width: 374px; }
+.pick-matrix-table th, .pick-matrix-table td { text-align: center; font-size: 0.76rem; padding: 3px 4px; line-height: 1.3; }
+.pick-matrix-table th:first-child, .pick-matrix-table td:first-child { text-align: left; width: 78px; }
+.pick-matrix-table th:nth-child(2), .pick-matrix-table td:nth-child(2),
+.pick-matrix-table th:nth-child(3), .pick-matrix-table td:nth-child(3),
+.pick-matrix-table th:nth-child(4), .pick-matrix-table td:nth-child(4),
+.pick-matrix-table th:nth-child(5), .pick-matrix-table td:nth-child(5) { width: 74px; }
 .pick-matrix-table .matrix-total-row td, .pick-matrix-table .matrix-total-col {
-  background: var(--table-head);
   font-weight: 700;
+}
+/* Gray fallback only when there's no units color to show -- otherwise this
+   rule's higher specificity (two classes) would always beat the plain
+   .tier-good/.tier-bad class and the Total row/column would never actually
+   show the win/loss color the rest of the table does. */
+.pick-matrix-table .matrix-total-row td:not(.tier-good):not(.tier-bad),
+.pick-matrix-table .matrix-total-col:not(.tier-good):not(.tier-bad) {
+  background: var(--table-head);
 }
