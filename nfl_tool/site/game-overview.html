@@ -113,17 +113,21 @@
     </div>
   </div>
 
-  <div id="section-notes" class="section-wrap" hidden>
-    <h2 class="section-title">Notes</h2>
-    <p class="section-note">Saved to this browser only, per game.</p>
-    <textarea id="game-notes" class="game-notes" placeholder="Notes for this game..." rows="4"></textarea>
-  </div>
-
   <div id="section-picks" class="section-wrap" hidden>
     <h2 class="section-title">Pick Tracker</h2>
     <p class="section-note">Saved to this browser only. Auto-grades once a game's final score is in data.json.</p>
-    <div id="picks-content"></div>
-    <div id="picks-summary"></div>
+    <div class="picks-layout-row">
+      <div id="picks-content" class="picks-half"></div>
+      <div id="picks-record" class="picks-half"></div>
+    </div>
+    <div class="picks-layout-row">
+      <div id="picks-recent" class="picks-half"></div>
+      <div class="picks-half">
+        <h3>Notes</h3>
+        <p class="section-note">Saved to this browser only, per game.</p>
+        <textarea id="game-notes" class="game-notes" placeholder="Notes for this game..." rows="8"></textarea>
+      </div>
+    </div>
     <div id="game-flipper-bottom" class="game-flipper" hidden>
       <button type="button" class="game-prev-btn week-nav-btn">&lsaquo;</button>
       <span class="game-flipper-label week-label">Game</span>

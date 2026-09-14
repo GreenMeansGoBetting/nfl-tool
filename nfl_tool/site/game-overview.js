@@ -74,12 +74,15 @@ const SCHEME_GROUPS = [
     // Blitz/Standard is the CALL (how many rushers sent); Pressured/Clean
     // Pocket is the RESULT (whether the rush actually got home) -- a team
     // can blitz constantly and still rarely get pressure, or rush four and
-    // still win often. Kept as four rows under one header rather than two
-    // separate groups: same "how does this pass rush operate" theme, no
-    // reason to split them into two header rows on the page.
+    // still win often. groupNote below says this in the UI itself, not
+    // just a code comment, since this exact pairing read as contradictory
+    // without it (e.g. a defense showing good success vs blitz but bad
+    // vs pressure isn't a conflict -- it means they blitz a lot without
+    // converting it into real pressure).
     label: "Pass Rush",
     perfLabel: "Success %",
     pct: true,
+    groupNote: "Blitz/Standard = how the rush is called (headcount sent). Pressured/Clean = whether it actually got home, regardless of headcount -- a defense can blitz often without converting it into real pressure.",
     rows: [
       { label: "Blitz (5+ rushers)", tendKey: "blitz_rate", perfKey: "success_vs_blitz", defSuccessKey: "def_success_allowed_blitz" },
       { label: "Standard Rush", tendKey: "standard_rush_rate", perfKey: "success_vs_standard_rush", defSuccessKey: "def_success_allowed_standard_rush" },
@@ -88,27 +91,22 @@ const SCHEME_GROUPS = [
     ],
   },
   {
-    label: "Coverage Style",
+    // Style (Zone/Man) and the specific shells are both "who's covering
+    // whom back there" -- one umbrella group instead of two, so they read
+    // as the same schematic question at two levels of detail rather than
+    // two unrelated tables. Zone/Man stay in fixed order (sortFrom: 2);
+    // the shells past them sort by this defense's own usage (most-used
+    // shell first) since some clear under 5% of snaps and a fixed
+    // Cover-0-to-6 list would bury what the defense actually plays.
+    // Thin shells stay visible but dimmed (SCHEME_MIN_TENDENCY_SHOWN)
+    // rather than hidden, so the breakdown never looks incomplete.
+    label: "Coverage",
     perfLabel: "Success %",
     pct: true,
+    sortFrom: 2,
     rows: [
       { label: "Zone", tendKey: "zone_rate", perfKey: "success_vs_zone", defSuccessKey: "def_success_allowed_zone" },
       { label: "Man", tendKey: "man_rate", perfKey: "success_vs_man", defSuccessKey: "def_success_allowed_man" },
-    ],
-  },
-  {
-    label: "Coverage Scheme",
-    perfLabel: "Success %",
-    pct: true,
-    // Specific shells run thin (some clear under 5% of a defense's own
-    // snaps) -- sorting by this defense's own usage (most-used shell on
-    // top) instead of a fixed Cover-0-to-6 list draws the eye to what the
-    // defense actually plays first. Rows under SCHEME_MIN_TENDENCY_SHOWN
-    // stay visible (still real, still occasionally called) but dimmed --
-    // greyed out rather than hidden, since hiding them would make the
-    // shell breakdown look incomplete.
-    sortByTendency: true,
-    rows: [
       { label: "Cover 0", tendKey: "cover0_rate", perfKey: "success_vs_cover0", defSuccessKey: "def_success_allowed_cover0" },
       { label: "Cover 1", tendKey: "cover1_rate", perfKey: "success_vs_cover1", defSuccessKey: "def_success_allowed_cover1" },
       { label: "Cover 2", tendKey: "cover2_rate", perfKey: "success_vs_cover2", defSuccessKey: "def_success_allowed_cover2" },
@@ -309,6 +307,44 @@ function summaryAdvCell(offZ, defZ, offTeam, defTeam) {
 // Paired by MATCHUP (offTeam's offense against defTeam's defense), same
 // convention as General Stats/Scheme -- call twice (away-vs-home,
 // home-vs-away) for the two side-by-side tables.
+// Every team's grade for one category+side, sorted best to worst -- same
+// shell/highlight convention as common.js's openStatRankModal, just
+// showing the LETTER GRADE (gradeForZ) instead of a raw number, since a
+// composite z-score on its own means nothing to look at directly. A
+// dedicated function rather than folding into openStatRankModal's
+// STAT_RANK_COMPUTED path since a grade needs its own display format
+// (letter, not a percent/digit number) that function doesn't support.
+function openGradeRankModal(cat, side, currentTeam) {
+  ensureStatRankModal();
+  const rows = teamsWithGames()
+    .map((t) => {
+      const z = cat.scheme ? schemeCompositeZ(t, side) : compositeZ(side === "off" ? cat.off : cat.def, t);
+      return { team: t, z, grade: gradeForZ(z) };
+    })
+    .filter((r) => r.grade !== null)
+    .sort((a, b) => b.z - a.z);
+  const label = `${cat.label} (${side === "off" ? "Offense" : "Defense"})`;
+  const body = rows
+    .map((r) => {
+      const rowCls = r.team === currentTeam ? ' class="stat-rank-current"' : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num grade-cell ${gradeClass(r.grade)}"${gradeAlphaAttr(r.grade)}>${r.grade}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${label} &mdash; All Teams</h3>
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Team</th><th class="num">Grade</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  document.getElementById("stat-rank-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".grade-rank-click");
+  if (!cell) return;
+  const { cat, side, team } = decodeDataAttr(cell.dataset.entry);
+  openGradeRankModal(cat, side, team);
+});
+
 function renderSummaryTable(offTeam, defTeam) {
   const rows = SUMMARY_CATEGORIES.map((cat) => {
     const offZ = cat.scheme ? schemeCompositeZ(offTeam, "off") : compositeZ(cat.off, offTeam);
@@ -316,7 +352,9 @@ function renderSummaryTable(offTeam, defTeam) {
     const offGrade = gradeForZ(offZ);
     const defGrade = gradeForZ(defZ);
     const advCell = summaryAdvCell(offZ, defZ, offTeam, defTeam);
-    return `<tr><td>${cat.label}</td><td class="num grade-cell ${gradeClass(offGrade)}"${gradeAlphaAttr(offGrade)}>${offGrade || "--"}</td><td class="num grade-cell ${gradeClass(defGrade)}"${gradeAlphaAttr(defGrade)}>${defGrade || "--"}</td>${advCell}</tr>`;
+    const offEntry = encodeDataAttr({ cat, side: "off", team: offTeam });
+    const defEntry = encodeDataAttr({ cat, side: "def", team: defTeam });
+    return `<tr><td>${cat.label}</td><td class="num grade-cell grade-rank-click ${gradeClass(offGrade)}" data-entry="${offEntry}"${gradeAlphaAttr(offGrade)}>${offGrade || "--"}</td><td class="num grade-cell grade-rank-click ${gradeClass(defGrade)}" data-entry="${defEntry}"${gradeAlphaAttr(defGrade)}>${defGrade || "--"}</td>${advCell}</tr>`;
   }).join("");
   return `<table class="data-table summary-grade-table">
     <thead>${summaryTableHeader(offTeam, defTeam)}</thead>
@@ -336,7 +374,7 @@ const COLORS = [
   { key: "red", label: "No Confidence" },
 ];
 
-const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "summary", "notes", "picks"];
+const SECTIONS = ["injuries", "odds", "general", "scheme", "recent", "summary", "picks"];
 
 // ---- Per-game notes (localStorage, keyed by game_id -- free text, not
 // graded or shared anywhere, just a scratchpad while working through a
@@ -689,19 +727,19 @@ function schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam) {
   return `<td class="edge-cell">--</td>`;
 }
 
-// Frequency bar + % on its own now (defense success moved out into its own
-// column, right beside offense performance, so the two directly-comparable
-// numbers sit next to each other same as General Stats' OFF/DEF columns).
-// % first, then the bar fills whatever width is left.
+// Just the tiered percentage now -- the bar chart this used to also draw
+// said the same thing a second time in a less legible form ("is it a lot
+// or a little" was already answered by the color), so it's gone. Tiered
+// against the league same as everywhere else on the site: an unusually
+// extreme tendency is worth flagging visually even though raw frequency
+// alone isn't inherently good or bad.
 function tendencyCell(r, defTeam) {
   const tendVal = DATA.team_stats[defTeam][r.tendKey];
-  if (tendVal === null || tendVal === undefined) return { html: `<span class="no-data-note">--</span>`, tendVal: null, tendCls: "" };
+  if (tendVal === null || tendVal === undefined) return { html: `<td class="num">--</td>`, tendVal: null, tendCls: "" };
   const tendCls = tierFor(r.tendKey, defTeam, false);
+  const tendA = tierForAlphaAttr(r.tendKey, defTeam, false);
   const payload = { team: defTeam, statKey: r.tendKey, label: `${r.label} Tendency`, invert: false, percent: true };
-  const html = `<div class="tend-row">
-    <span class="tend-bar-num stat-rank-click" data-entry="${encodeDataAttr(payload)}">${Math.round(tendVal * 100)}%</span>
-    <span class="tend-bar-track"><span class="tend-bar-fill ${tendCls}" style="width:${Math.round(tendVal * 100)}%"></span></span>
-  </div>`;
+  const html = numCell(`${Math.round(tendVal * 100)}%`, tendCls, tendA, payload);
   return { html, tendVal, tendCls };
 }
 
@@ -721,14 +759,20 @@ function defSuccessCell(group, r, defTeam) {
 
 function renderSchemeGroup(group, offTeam, defTeam) {
   let orderedRows = group.rows;
-  if (group.sortByTendency) {
-    orderedRows = [...group.rows].sort((a, b) => {
+  // sortFrom: N keeps the first N rows in their written order (e.g.
+  // Zone/Man, which shouldn't reshuffle) and sorts only the rest by this
+  // defense's own usage -- lets one group mix a fixed-order lead-in with
+  // a frequency-sorted tail instead of needing two separate group headers.
+  if (group.sortFrom !== undefined) {
+    const fixed = group.rows.slice(0, group.sortFrom);
+    const sortable = [...group.rows.slice(group.sortFrom)].sort((a, b) => {
       const av = DATA.team_stats[defTeam][a.tendKey];
       const bv = DATA.team_stats[defTeam][b.tendKey];
       if (av === null || av === undefined) return bv === null || bv === undefined ? 0 : 1;
       if (bv === null || bv === undefined) return -1;
       return bv - av;
     });
+    orderedRows = [...fixed, ...sortable];
   }
   const rows = orderedRows
     .map((r) => {
@@ -744,11 +788,12 @@ function renderSchemeGroup(group, offTeam, defTeam) {
         perfVal === null || perfVal === undefined
           ? `<td class="num">--</td>`
           : numCell(perfDisplay, perfCls, perfA, { team: offTeam, statKey: r.perfKey, label: `${r.label} Performance`, invert: false, percent: !!group.pct });
-      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}<td>${tendHtml}</td>${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}${tendHtml}${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
-  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption" colspan="2">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
+  const noteRow = group.groupNote ? `<tr class="scheme-group-note"><td colspan="5">${group.groupNote}</td></tr>` : "";
+  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption" colspan="2">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${noteRow}${rows}`;
 }
 
 function renderSchemeTable(offTeam, defTeam) {
@@ -897,6 +942,21 @@ function statusClass(status) {
   return "tier-good";
 }
 
+// Season-long snap share (build_stats.py's compute_player_snap_shares --
+// share of the team's own offensive/defensive plays this player was on
+// the field for, works for every position including the O/D-line since
+// it's just presence, not a stat) -- tells you whether an injury is to a
+// real every-down piece or a deep backup/special-teamer. Unknown (name
+// didn't resolve against pbp) shows no tag at all rather than guessing.
+const INJURY_STARTER_SNAP_SHARE = 0.4;
+function starterTag(snapShare) {
+  if (snapShare === null || snapShare === undefined) return "";
+  const isStarter = snapShare >= INJURY_STARTER_SNAP_SHARE;
+  const cls = isStarter ? "injury-starter-tag-starter" : "injury-starter-tag-depth";
+  const label = isStarter ? "Starter" : "Depth";
+  return `<span class="injury-starter-tag ${cls}" title="${Math.round(snapShare * 100)}% of offensive/defensive snaps this season">${label}</span>`;
+}
+
 function renderInjuryPanel(team, week) {
   const list = (DATA.injuries[team] && DATA.injuries[team][String(week)]) || [];
   if (list.length === 0) {
@@ -911,7 +971,7 @@ function renderInjuryPanel(team, week) {
     .filter((g) => groups[g].length > 0)
     .map((g) => {
       const badges = groups[g]
-        .map((p) => `<span class="injury-badge ${statusClass(p.status)}">${p.full_name} (${p.position}) &mdash; ${statusAbbr(p.status)}</span>`)
+        .map((p) => `<span class="injury-badge ${statusClass(p.status)}">${p.full_name} (${p.position}) &mdash; ${statusAbbr(p.status)} ${starterTag(p.snap_share)}</span>`)
         .join("");
       return `<div class="injury-group"><span class="injury-group-label">${groupLabel[g]}</span><div class="injury-badges">${badges}</div></div>`;
     })
@@ -1067,11 +1127,14 @@ function renderPickSummary() {
         `<div class="pick-recent-row"><span class="pick-color-dot pick-color-${p.color}"></span><span>${p.away} @ ${p.home} &mdash; ${p.market} ${p.side}</span><span>${p.graded ? p.graded.toUpperCase() : "Pending"}</span></div>`
     )
     .join("");
-  document.getElementById("picks-summary").innerHTML = `
+  document.getElementById("picks-record").innerHTML = `
     <h3>Your Record</h3>
     ${picks.length ? `<p class="no-data-note">Units assume 1u per pick -- spread/total priced at a flat -105, moneyline at its real price.</p>` : ""}
     ${renderPickMatrix(picks) || `<p class="no-data-note">No picks saved yet.</p>`}
-    ${recent ? `<h3>Recent Picks</h3>${recent}` : ""}
+  `;
+  document.getElementById("picks-recent").innerHTML = `
+    <h3>Recent Picks</h3>
+    ${recent || `<p class="no-data-note">No picks saved yet.</p>`}
   `;
 }
 

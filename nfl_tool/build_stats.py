@@ -1293,12 +1293,65 @@ def compute_recent_games(pbp: pd.DataFrame) -> dict:
     return result
 
 
-def compute_injury_report(injuries_df: pd.DataFrame, teams) -> dict:
+def compute_player_snap_shares(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup) -> dict:
+    """Season-long offensive/defensive snap share per player -- the
+    participation file's offense_players/defense_players columns (the 11
+    player IDs actually on the field for that specific play, semicolon-
+    delimited) exploded and counted, divided by that team's own season
+    total offensive/defensive plays. Used to flag whether an injured
+    player is a real regular contributor or a deep backup/special-teamer
+    -- unlike compute_volume_stats' targets/carries (offense skill
+    positions only, since only they touch the ball), this works for
+    every position including the offensive/defensive line, since it's
+    just presence on the field, not a stat. A two-way player's higher of
+    the two shares wins (rare enough not to need its own category)."""
+    merged = pbp[["game_id", "play_id", "posteam", "defteam", "week"]].merge(
+        participation[["nflverse_game_id", "play_id", "offense_players", "defense_players"]],
+        left_on=["game_id", "play_id"],
+        right_on=["nflverse_game_id", "play_id"],
+        how="inner",
+    )
+    off_team_totals = merged.groupby("posteam").size()
+    def_team_totals = merged.groupby("defteam").size()
+
+    def side_shares(side_col, team_col, totals):
+        side = merged.dropna(subset=[side_col])[[team_col, side_col, "week"]].copy()
+        side["pid"] = side[side_col].str.split(";")
+        side = side.explode("pid")
+        counts = side.groupby([team_col, "pid"]).size()
+        last_week = side.groupby([team_col, "pid"])["week"].max()
+        shares = {}
+        for (team, pid), n in counts.items():
+            total = totals.get(team) or 1
+            _, _, name = pos_lookup(pid, int(last_week.loc[(team, pid)]))
+            if not name:
+                continue
+            shares.setdefault(team, {})
+            shares[team][name] = max(shares[team].get(name, 0.0), round(n / total, 3))
+        return shares
+
+    off_shares = side_shares("offense_players", "posteam", off_team_totals)
+    def_shares = side_shares("defense_players", "defteam", def_team_totals)
+
+    out = {}
+    for shares in (off_shares, def_shares):
+        for team, players in shares.items():
+            out.setdefault(team, {})
+            for name, share in players.items():
+                out[team][name] = max(out[team].get(name, 0.0), share)
+    return out
+
+
+def compute_injury_report(injuries_df: pd.DataFrame, teams, snap_shares: dict) -> dict:
     """{team: {week: [ {full_name, position, position_group, report_status,
-    practice_status, status, status_source} ]}}. status/status_source
-    precompute the report_status-else-practice_status fallback -- early in
-    the week the official Q/D/O designation is often still blank while the
-    practice-participation status is already posted."""
+    practice_status, status, status_source, snap_share} ]}}. status/
+    status_source precompute the report_status-else-practice_status
+    fallback -- early in the week the official Q/D/O designation is often
+    still blank while the practice-participation status is already
+    posted. snap_share (see compute_player_snap_shares) lets the frontend
+    flag a real starter vs. a deep backup/special-teamer -- None when the
+    player hasn't logged a charted snap yet (name-format mismatch between
+    the injury report and pbp, or truly hasn't played)."""
     result = {t: {} for t in teams}
     for row in injuries_df.itertuples(index=False):
         if row.team not in result:
@@ -1313,6 +1366,7 @@ def compute_injury_report(injuries_df: pd.DataFrame, teams) -> dict:
             "practice_status": practice,
             "status": report or practice,
             "status_source": "report" if report else ("practice" if practice else None),
+            "snap_share": snap_shares.get(row.team, {}).get(row.full_name),
         }
         result[row.team].setdefault(str(int(row.week)), []).append(entry)
     return result
@@ -2776,7 +2830,8 @@ def main():
     max_week = int(pbp["week"].max())
 
     current_week = compute_current_week(schedule)
-    injury_report = compute_injury_report(injuries_df, teams)
+    player_snap_shares = compute_player_snap_shares(pbp, participation, pos_lookup)
+    injury_report = compute_injury_report(injuries_df, teams, player_snap_shares)
 
     # Player prop odds (anytime-TD, first-TD) for whatever week is currently
     # on deck -- requested_season since (like odds/injuries) this is about

@@ -1015,10 +1015,18 @@ footer a { color: var(--accent); }
 
 .general-stat-table {
   table-layout: fixed;
+  width: 286px;
 }
 .general-stat-table th:first-child, .general-stat-table td:first-child {
   text-align: left;
-  width: 34%;
+  width: 130px;
+}
+.general-stat-table th:nth-child(2), .general-stat-table td:nth-child(2),
+.general-stat-table th:nth-child(3), .general-stat-table td:nth-child(3) {
+  width: 65px;
+}
+.general-stat-table th:nth-child(4), .general-stat-table td:nth-child(4) {
+  width: 26px;
 }
 .per-game-hdr {
   font-style: italic;
@@ -1096,12 +1104,14 @@ footer a { color: var(--accent); }
   font-size: 1.15rem;
   font-weight: 700;
 }
+.grade-rank-click { cursor: pointer; }
+.grade-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 
 .scheme-table tr.scheme-row-dim { opacity: 0.4; }
-.scheme-table th:first-child, .scheme-table td:first-child { width: 20%; }
-.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 16%; text-align: center; }
-.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 16%; text-align: center; }
-.scheme-table th:nth-child(4), .scheme-table td:nth-child(4) { width: 44%; }
+.scheme-table th:first-child, .scheme-table td:first-child { width: 26%; }
+.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 18%; text-align: center; }
+.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 18%; text-align: center; }
+.scheme-table th:nth-child(4), .scheme-table td:nth-child(4) { width: 18%; text-align: center; }
 .freq-hdr {
   font-size: 0.62rem !important;
   font-weight: 400 !important;
@@ -1117,13 +1127,13 @@ footer a { color: var(--accent); }
   background: var(--table-head) !important;
   text-align: center;
 }
-.tend-row { display: flex; align-items: center; gap: 6px; }
-.tend-bar-num { flex: 0 0 auto; width: 32px; text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--text); }
-.tend-bar-track { flex: 1 1 auto; background: var(--table-head); border: 1px solid var(--border); border-radius: 3px; height: 15px; overflow: hidden; }
-.tend-bar-fill { display: block; height: 100%; }
-.tend-bar-fill.tier-good { background: var(--good); }
-.tend-bar-fill.tier-mid { background: var(--mid); }
-.tend-bar-fill.tier-bad { background: var(--bad); }
+.scheme-group-note {
+  font-size: 0.68rem;
+  font-style: italic;
+  color: var(--muted);
+  background: var(--panel);
+}
+.scheme-group-note td { padding: 4px 6px 8px; }
 .scheme-notes:empty { display: none; margin: 0; padding: 0; }
 .scheme-notes { margin: 6px 0 0; }
 .info-icon {
@@ -1187,8 +1197,32 @@ footer a { color: var(--accent); }
   border: 1px solid var(--border);
   white-space: nowrap;
 }
+.injury-starter-tag {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 3px;
+}
+.injury-starter-tag-starter { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
+.injury-starter-tag-depth { background: rgba(var(--bad-rgb), 0.14); color: var(--muted); }
 
 .pick-markets { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+
+/* Pick Tracker: two rows of two halves each (pick form + record matrix,
+   then recent picks + notes) instead of everything stacked full-width --
+   the pick matrix and recent-picks list are dense/narrow enough that
+   full width was mostly empty space. */
+.picks-layout-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-top: 14px;
+}
+.picks-layout-row:first-child { margin-top: 8px; }
+.picks-half { flex: 1 1 0; min-width: 0; }
 .pick-market-row {
   display: flex;
   align-items: center;
