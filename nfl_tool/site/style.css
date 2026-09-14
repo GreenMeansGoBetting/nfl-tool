@@ -1015,11 +1015,11 @@ footer a { color: var(--accent); }
 
 .general-stat-table {
   table-layout: fixed;
-  width: 286px;
+  width: 251px;
 }
 .general-stat-table th:first-child, .general-stat-table td:first-child {
   text-align: left;
-  width: 130px;
+  width: 95px;
 }
 .general-stat-table th:nth-child(2), .general-stat-table td:nth-child(2),
 .general-stat-table th:nth-child(3), .general-stat-table td:nth-child(3) {
@@ -1108,10 +1108,17 @@ footer a { color: var(--accent); }
 .grade-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 
 .scheme-table tr.scheme-row-dim { opacity: 0.4; }
-.scheme-table th:first-child, .scheme-table td:first-child { width: 26%; }
-.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 18%; text-align: center; }
-.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 18%; text-align: center; }
-.scheme-table th:nth-child(4), .scheme-table td:nth-child(4) { width: 18%; text-align: center; }
+/* table-layout was never set to fixed here, so the widths below were only
+   ever suggestions -- with a wide flex/grid container and auto layout,
+   the browser filled the leftover space into these columns anyway
+   (exactly the "massive" percentage/team/ADV columns reported). Fixed
+   px widths + table-layout:fixed actually enforces them now. */
+.scheme-table { table-layout: fixed; width: 296px; }
+.scheme-table th:first-child, .scheme-table td:first-child { width: 115px; }
+.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 55px; text-align: center; }
+.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 55px; text-align: center; }
+.scheme-table th:nth-child(4), .scheme-table td:nth-child(4) { width: 45px; text-align: center; }
+.scheme-table th:nth-child(5), .scheme-table td:nth-child(5) { width: 26px; }
 .freq-hdr {
   font-size: 0.62rem !important;
   font-weight: 400 !important;
