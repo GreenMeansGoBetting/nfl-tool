@@ -2559,7 +2559,17 @@ def main():
     participation = load_participation(args.data_dir, season)
     pos_lookup = build_position_lookup(rosters)
 
-    teams = sorted(set(pbp["home_team"].dropna()) | set(pbp["away_team"].dropna()))
+    # Schedule (and the full 32-team list derived from it) computed up
+    # front: early in a season, `pbp` itself may not yet include every
+    # team -- a team whose game hasn't been played yet has zero rows in
+    # pbp at all. Deriving `teams` from pbp's own home/away columns
+    # instead would silently drop any such team from every team-level
+    # stat on the site (confirmed directly: Week 1 with one Monday night
+    # game still to come left DEN and KC completely absent -- 30 teams
+    # instead of 32). The schedule always lists all 32 regardless of
+    # what's been played, so it's the correct source for this.
+    schedule = compute_schedule(args.data_dir, args.season)
+    teams = sorted(set(g["away"] for g in schedule) | set(g["home"] for g in schedule))
 
     team_games = compute_team_game_td_counts(pbp)
     team_games_allowed = compute_team_game_td_allowed(pbp)
@@ -2638,7 +2648,6 @@ def main():
 
     max_week = int(pbp["week"].max())
 
-    schedule = compute_schedule(args.data_dir, args.season)
     current_week = compute_current_week(schedule)
     injury_report = compute_injury_report(injuries_df, teams)
 
