@@ -92,15 +92,10 @@ const SCHEME_GROUPS = [
     // Blitz/Standard is the CALL (how many rushers sent); Pressured/Clean
     // Pocket is the RESULT (whether the rush actually got home) -- a team
     // can blitz constantly and still rarely get pressure, or rush four and
-    // still win often. groupNote below says this in the UI itself, not
-    // just a code comment, since this exact pairing read as contradictory
-    // without it (e.g. a defense showing good success vs blitz but bad
-    // vs pressure isn't a conflict -- it means they blitz a lot without
-    // converting it into real pressure).
+    // still win often.
     label: "Pass Rush",
     perfLabel: "Success %",
     pct: true,
-    groupNote: "Blitz/Standard = how the rush is called (headcount sent). Pressured/Clean = whether it actually got home, regardless of headcount -- a defense can blitz often without converting it into real pressure.",
     rows: [
       { label: "Blitz (5+ rushers)", tendKey: "blitz_rate", perfKey: "success_vs_blitz", defSuccessKey: "def_success_allowed_blitz" },
       { label: "Standard Rush", tendKey: "standard_rush_rate", perfKey: "success_vs_standard_rush", defSuccessKey: "def_success_allowed_standard_rush" },
@@ -793,7 +788,7 @@ function renderSchemeGroup(group, offTeam, defTeam) {
     orderedRows = [...fixed, ...sortable];
   }
   const rows = orderedRows
-    .map((r) => {
+    .map((r, idx) => {
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
       const { html: tendHtml, tendVal, tendCls } = tendencyCell(r, defTeam);
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
@@ -806,12 +801,16 @@ function renderSchemeGroup(group, offTeam, defTeam) {
         perfVal === null || perfVal === undefined
           ? `<td class="num">--</td>`
           : numCell(perfDisplay, perfCls, perfA, { team: offTeam, statKey: r.perfKey, label: `${r.label} Performance`, invert: false, percent: !!group.pct });
-      return `<tr${dim ? ' class="scheme-row-dim"' : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}${tendHtml}${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      // Thin border under the last fixed-order row (e.g. "Man") -- visually
+      // separates Zone/Man (coverage STYLE) from the specific shells sorted
+      // in below them (coverage SCHEME), even though they share one group.
+      const styleBoundary = group.sortFrom !== undefined && idx === group.sortFrom - 1;
+      const rowCls = [dim ? "scheme-row-dim" : "", styleBoundary ? "scheme-style-boundary" : ""].filter(Boolean).join(" ");
+      return `<tr${rowCls ? ` class="${rowCls}"` : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}${tendHtml}${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
-  const noteRow = group.groupNote ? `<tr class="scheme-group-note"><td colspan="5">${group.groupNote}</td></tr>` : "";
-  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption" colspan="2">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${noteRow}${rows}`;
+  return `<tr class="group-row"><td>${group.label}</td><td class="metric-caption" colspan="2">${perfCaption}</td><td class="metric-caption"></td><td class="metric-caption"></td></tr>${rows}`;
 }
 
 function renderSchemeTable(offTeam, defTeam) {

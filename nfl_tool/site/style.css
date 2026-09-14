@@ -1149,13 +1149,11 @@ footer a { color: var(--accent); }
   background: var(--table-head) !important;
   text-align: center;
 }
-.scheme-group-note {
-  font-size: 0.68rem;
-  font-style: italic;
-  color: var(--muted);
-  background: var(--panel);
-}
-.scheme-group-note td { padding: 4px 6px 8px; }
+/* Separates Zone/Man (coverage STYLE) from the specific shells sorted in
+   below them (coverage SCHEME) within the shared Coverage group -- a
+   thin rule rather than a second group header, since they're still the
+   same schematic question at two levels of detail. */
+.scheme-table tr.scheme-style-boundary td { border-bottom: 2px solid var(--border); }
 .scheme-notes:empty { display: none; margin: 0; padding: 0; }
 .scheme-notes { margin: 6px 0 0; }
 .info-icon {
