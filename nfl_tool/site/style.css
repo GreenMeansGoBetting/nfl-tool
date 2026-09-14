@@ -257,15 +257,10 @@ select {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 14px;
+  gap: 8px;
   margin-top: 12px;
 }
 .stat-row-center { justify-content: center; }
-.grades-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
 /* One column per stat category (Type/Position/Distance), each stacking its
    away table directly above its home table -- grouped by WHAT the stat is
@@ -1133,11 +1128,11 @@ footer a { color: var(--accent); }
    the browser filled the leftover space into these columns anyway
    (exactly the "massive" percentage/team/ADV columns reported). Fixed
    px widths + table-layout:fixed actually enforces them now. */
-.scheme-table { table-layout: fixed; width: 296px; }
-.scheme-table th:first-child, .scheme-table td:first-child { width: 115px; }
-.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 55px; text-align: center; }
-.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 55px; text-align: center; }
-.scheme-table th:nth-child(4), .scheme-table td:nth-child(4) { width: 45px; text-align: center; }
+.scheme-table { table-layout: fixed; width: 256px; font-size: 0.8rem; }
+.scheme-table th:first-child, .scheme-table td:first-child { width: 90px; }
+.scheme-table th:nth-child(2), .scheme-table td:nth-child(2) { width: 50px; text-align: center; }
+.scheme-table th:nth-child(3), .scheme-table td:nth-child(3) { width: 50px; text-align: center; }
+.scheme-table th:nth-child(4), .scheme-table td:nth-child(4) { width: 40px; text-align: center; }
 .scheme-table th:nth-child(5), .scheme-table td:nth-child(5) { width: 26px; }
 .freq-hdr {
   font-size: 0.62rem !important;
