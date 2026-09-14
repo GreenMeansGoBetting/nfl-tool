@@ -1293,6 +1293,62 @@ def compute_recent_games(pbp: pd.DataFrame) -> dict:
     return result
 
 
+def compute_scoring_by_quarter(pbp: pd.DataFrame) -> dict:
+    """Average points scored/allowed PER QUARTER across the season --
+    fast starters (a lot of 1st-quarter points) vs. slow/comeback-heavy
+    teams (scoring picks up in the second half), for whoever's deciding
+    whether a 1st-half line is worth a look. Same technique
+    compute_recent_games already uses for halftime score (the running
+    total_home_score/total_away_score at the LAST play of a quarter),
+    just done for all four instead of only the halfway point, and
+    differenced quarter-to-quarter to get that quarter's OWN points
+    rather than the cumulative total. Overtime (qtr 5+) folds into Q4 --
+    most games never reach it, and it's sudden-death when they do, not
+    four more quarters worth comparing on its own.
+    """
+    snap = pbp[pbp["qtr"].notna()].copy()
+    snap["qtr_bucket"] = snap["qtr"].clip(upper=4).astype(int)
+    last = (
+        snap.sort_values(["game_id", "play_id"])
+        .groupby(["game_id", "qtr_bucket"])
+        .agg(
+            home_team=("home_team", "first"),
+            away_team=("away_team", "first"),
+            home_score=("total_home_score", "last"),
+            away_score=("total_away_score", "last"),
+        )
+        .reset_index()
+        .sort_values(["game_id", "qtr_bucket"])
+    )
+    last["home_pts"] = last.groupby("game_id")["home_score"].diff().fillna(last["home_score"])
+    last["away_pts"] = last.groupby("game_id")["away_score"].diff().fillna(last["away_score"])
+
+    QUARTER_KEYS = {1: "q1", 2: "q2", 3: "q3", 4: "q4"}
+    totals = {}
+
+    def bump(team, bucket, scored, allowed, game_id):
+        d = totals.setdefault(team, {}).setdefault(bucket, {"scored": 0.0, "allowed": 0.0, "games": set()})
+        d["scored"] += scored
+        d["allowed"] += allowed
+        d["games"].add(game_id)
+
+    for row in last.itertuples(index=False):
+        bucket = QUARTER_KEYS[int(row.qtr_bucket)]
+        bump(row.home_team, bucket, row.home_pts, row.away_pts, row.game_id)
+        bump(row.away_team, bucket, row.away_pts, row.home_pts, row.game_id)
+
+    out = {}
+    for team, buckets in totals.items():
+        out[team] = {}
+        for bucket, vals in buckets.items():
+            gp = len(vals["games"])
+            out[team][bucket] = {
+                "scored_per_g": round(vals["scored"] / gp, 2) if gp else None,
+                "allowed_per_g": round(vals["allowed"] / gp, 2) if gp else None,
+            }
+    return out
+
+
 def compute_player_snap_shares(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup) -> dict:
     """Season-long offensive/defensive snap share per player -- the
     participation file's offense_players/defense_players columns (the 11
@@ -1688,7 +1744,9 @@ def build_team_stats(
             "td_by_length": lb["scored"],
             "td_by_length_allowed": lb["allowed"],
             "off_plays": off_plays,
+            "off_plays_per_g": per_g(off_plays),
             "def_plays_faced": def_plays_faced,
+            "def_plays_faced_per_g": per_g(def_plays_faced),
             "explosive_rush": expl.get("explosive_rush", 0),
             "explosive_rush_per_g": per_g(expl.get("explosive_rush", 0)),
             "explosive_rush_allowed": expl.get("explosive_rush_allowed", 0),
@@ -2763,6 +2821,7 @@ def main():
     epa = compute_epa_per_play(pbp)
     general = compute_general_stats(pbp)
     recent_games = compute_recent_games(pbp)
+    scoring_by_quarter = compute_scoring_by_quarter(pbp)
     possessions_to_score = compute_possessions_to_score(pbp, first_td_by_game)
     trailing_possessions = compute_trailing_possessions(pbp, first_td_by_game)
     pre_rz_off_trips, pre_rz_off_conv, pre_rz_def_trips, pre_rz_def_conv = compute_pre_first_td_red_zone(pbp, first_td_by_game)
@@ -2799,6 +2858,14 @@ def main():
     scheme_splits = compute_scheme_splits(pbp, participation, teams)
     for team in teams:
         team_stats[team].update(scheme_splits.get(team, {}))
+    # Flattened (q1_scored_per_g, q1_allowed_per_g, ...) rather than a
+    # nested dict -- General Stats' table renderer (and tierFor/numCell,
+    # which every other row in that table already goes through) expects a
+    # flat team_stats key per cell, same as everything else in this blob.
+    for team in teams:
+        for bucket, vals in scoring_by_quarter.get(team, {}).items():
+            team_stats[team][f"{bucket}_scored_per_g"] = vals.get("scored_per_g")
+            team_stats[team][f"{bucket}_allowed_per_g"] = vals.get("allowed_per_g")
 
     route_team_stats, player_route_profiles = compute_route_splits(pbp, participation, teams)
     for team in teams:

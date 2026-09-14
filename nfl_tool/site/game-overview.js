@@ -28,6 +28,12 @@ const GENERAL_STAT_GROUPS = [
       { label: "3rd Down %", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, pct: true },
       { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
       { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
+      // Plays run per game -- a fast-tempo offense facing another
+      // fast-tempo offense suggests a track meet; two slow, run-first
+      // teams suggests a grind. Not a real value judgment either
+      // direction (pace isn't "good," it's a style), tiered anyway for
+      // visual consistency with every other row in this table.
+      { label: "Plays / Game", offKey: "off_plays_per_g", offInvert: false, defKey: "def_plays_faced_per_g", defInvert: true },
     ],
   },
   {
@@ -43,6 +49,18 @@ const GENERAL_STAT_GROUPS = [
       // very different amounts, so yards is the more honest measure of
       // actual damage done.
       { label: "Penalty Yards", offKey: "penalty_yards_off_per_g", offInvert: true, defKey: "penalty_yards_def_per_g", defInvert: true },
+    ],
+  },
+  {
+    // Fast starter vs. slow/comeback-heavy team -- relevant to anyone
+    // who bets 1st-half lines specifically, not just full-game totals.
+    // OT folds into Q4 (build_stats.py's compute_scoring_by_quarter).
+    label: "Scoring by Quarter",
+    rows: [
+      { label: "1st Quarter", offKey: "q1_scored_per_g", offInvert: false, defKey: "q1_allowed_per_g", defInvert: true },
+      { label: "2nd Quarter", offKey: "q2_scored_per_g", offInvert: false, defKey: "q2_allowed_per_g", defInvert: true },
+      { label: "3rd Quarter", offKey: "q3_scored_per_g", offInvert: false, defKey: "q3_allowed_per_g", defInvert: true },
+      { label: "4th Quarter", offKey: "q4_scored_per_g", offInvert: false, defKey: "q4_allowed_per_g", defInvert: true },
     ],
   },
 ];
