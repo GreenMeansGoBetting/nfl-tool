@@ -909,12 +909,12 @@ function anyDraftReady(game) {
 }
 
 const MARKET_LABELS = { spread: "Spread", total: "Total", moneyline: "Moneyline" };
-// Abbreviated header form for the dense matrix table only -- "No
-// Confidence" spelled out was forcing every column wide regardless of how
-// short the cell content actually was. Colored in the same green/yellow/
-// red the pick-color picker itself uses (tier-good/mid/bad), so the
-// header itself carries the confidence-level meaning, not just the label.
-const COLOR_LABEL_ABBR = { green: "GP", yellow: "L", red: "NC" };
+// Full label, colored in the same green/yellow/red the pick-color picker
+// itself uses (tier-good/mid/bad) -- header wraps within its column's
+// fixed width rather than forcing the table wide (abbreviations read as
+// meaningless on their own, so the header carries the confidence-level
+// meaning through color instead of through a shortened label).
+const COLOR_LABELS = { green: "Good Play", yellow: "Lean", red: "No Confidence" };
 const COLOR_HEADER_CLASS = { green: "tier-good", yellow: "tier-mid", red: "tier-bad" };
 
 // Units assume a flat 1u stake on every pick, spread/total priced at a
@@ -949,7 +949,7 @@ function renderPickMatrix(picks) {
     const { cls, attr } = unitsStyle(t.units);
     return `<td class="${[extraCls, cls].filter(Boolean).join(" ")}"${attr}>${matrixCellText(t)}</td>`;
   };
-  const header = `<tr><th></th>${m.colors.map((c) => `<th class="${COLOR_HEADER_CLASS[c]}">${COLOR_LABEL_ABBR[c]}</th>`).join("")}<th>Total</th></tr>`;
+  const header = `<tr><th></th>${m.colors.map((c) => `<th class="${COLOR_HEADER_CLASS[c]}">${COLOR_LABELS[c]}</th>`).join("")}<th class="matrix-total-col">Total</th></tr>`;
   const rows = m.rows
     .map((r) => `<tr><td>${MARKET_LABELS[r.market]}</td>${r.cells.map((c) => cellTd(c)).join("")}${cellTd(r.total, "matrix-total-col")}</tr>`)
     .join("");

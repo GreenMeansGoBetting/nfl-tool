@@ -1299,7 +1299,8 @@ footer a { color: var(--accent); }
 .pick-save-all-btn:disabled { opacity: 0.4; cursor: default; }
 
 .pick-matrix-table { margin-top: 6px; table-layout: fixed; width: 374px; }
-.pick-matrix-table th, .pick-matrix-table td { text-align: center; font-size: 0.76rem; padding: 3px 4px; line-height: 1.3; }
+.pick-matrix-table th, .pick-matrix-table td { text-align: center; font-size: 0.76rem; padding: 3px 4px; line-height: 1.25; }
+.pick-matrix-table th { font-size: 0.66rem; }
 .pick-matrix-table th:first-child, .pick-matrix-table td:first-child { text-align: left; width: 78px; }
 .pick-matrix-table th:nth-child(2), .pick-matrix-table td:nth-child(2),
 .pick-matrix-table th:nth-child(3), .pick-matrix-table td:nth-child(3),
@@ -1316,3 +1317,8 @@ footer a { color: var(--accent); }
 .pick-matrix-table .matrix-total-col:not(.tier-good):not(.tier-bad) {
   background: var(--table-head);
 }
+/* Frames the grand total row/column against the individual market/
+   confidence cells, so the totals read as a separate summary rather than
+   blending into the picks they're summarizing. */
+.pick-matrix-table .matrix-total-row td { border-top: 2px solid var(--text); }
+.pick-matrix-table .matrix-total-col { border-left: 2px solid var(--text); }
