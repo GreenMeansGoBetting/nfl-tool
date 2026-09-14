@@ -1280,6 +1280,7 @@ def compute_recent_games(pbp: pd.DataFrame) -> dict:
             result.setdefault(team, []).append(
                 {
                     "week": int(row["week"]),
+                    "game_id": game_id,
                     "opponent": opp,
                     "home_away": "home" if is_home else "away",
                     "ht_for": own_ht,
@@ -1983,6 +1984,131 @@ def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
     return out
 
 
+def compute_player_box_scores(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Per-game player box score: Passing/Rushing/Receiving/Defense stat
+    lines for every player involved, grouped by (game_id, team) so a
+    single game's full two-team box score can be pulled by game_id alone
+    -- the shape a box-score modal needs (click one game, see both teams'
+    complete stat lines), distinct from compute_player_game_logs (keyed
+    by player, across the whole season).
+
+    Defense follows nflverse's own tackle-crediting convention: a plain
+    solo tackle or a "tackle with assist" (the primary tackler on a
+    two-man tackle, credited with a full tackle) both count as SOLO here;
+    the secondary player on that same play (a plain "assist" tackle)
+    counts as ASSIST -- the same split a broadcast box score shows as
+    e.g. "8 (6 solo, 2 ast)". Half-sacks aren't split out (sack_player_id
+    only ever names one credited sacker in this data), so a shared sack
+    shows as a full sack for the named player -- accepted simplification.
+    """
+    scrimmage = pbp[pbp["two_point_attempt"] != 1]
+    targets = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["receiver_player_id"])
+    rushes = scrimmage[scrimmage["rush_attempt"] == 1].dropna(subset=["rusher_player_id"])
+    dropbacks = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["passer_player_id"])
+
+    box = {}
+
+    def player_row(game_id, team, category, pid, week, template):
+        players = box.setdefault(game_id, {}).setdefault(team, {}).setdefault(category, {})
+        if pid not in players:
+            _, _, name = pos_lookup(pid, week)
+            if not name:
+                return None
+            players[pid] = {"name": name, **template}
+        return players[pid]
+
+    for row in targets.itertuples(index=False):
+        r = player_row(row.game_id, row.posteam, "receiving", row.receiver_player_id, row.week,
+                        {"targets": 0, "receptions": 0, "yards": 0.0, "td": 0})
+        if r is None:
+            continue
+        r["targets"] += 1
+        if row.complete_pass == 1:
+            r["receptions"] += 1
+            r["yards"] += row.yards_gained
+            if row.pass_touchdown == 1:
+                r["td"] += 1
+
+    for row in rushes.itertuples(index=False):
+        r = player_row(row.game_id, row.posteam, "rushing", row.rusher_player_id, row.week,
+                        {"carries": 0, "yards": 0.0, "td": 0})
+        if r is None:
+            continue
+        r["carries"] += 1
+        r["yards"] += row.yards_gained
+        if row.rush_touchdown == 1:
+            r["td"] += 1
+
+    for row in dropbacks.itertuples(index=False):
+        r = player_row(row.game_id, row.posteam, "passing", row.passer_player_id, row.week,
+                        {"att": 0, "cmp": 0, "yards": 0.0, "td": 0, "int": 0})
+        if r is None:
+            continue
+        r["att"] += 1
+        if row.complete_pass == 1:
+            r["cmp"] += 1
+            r["yards"] += row.yards_gained
+            if row.pass_touchdown == 1:
+                r["td"] += 1
+        if row.interception == 1:
+            r["int"] += 1
+
+    def_template = {"solo": 0, "assist": 0, "sacks": 0.0, "tfl": 0, "qb_hits": 0, "int": 0, "fumble_rec": 0}
+
+    def bump_def(game_id, team, pid, week, field, amount=1):
+        r = player_row(game_id, team, "defense", pid, week, def_template)
+        if r is not None:
+            r[field] += amount
+
+    for row in scrimmage.itertuples(index=False):
+        if pd.notna(row.solo_tackle_1_player_id):
+            bump_def(row.game_id, row.defteam, row.solo_tackle_1_player_id, row.week, "solo")
+        if pd.notna(row.solo_tackle_2_player_id):
+            bump_def(row.game_id, row.defteam, row.solo_tackle_2_player_id, row.week, "solo")
+        if pd.notna(row.tackle_with_assist_1_player_id):
+            bump_def(row.game_id, row.defteam, row.tackle_with_assist_1_player_id, row.week, "solo")
+        if pd.notna(row.tackle_with_assist_2_player_id):
+            bump_def(row.game_id, row.defteam, row.tackle_with_assist_2_player_id, row.week, "solo")
+        for i in (1, 2, 3, 4):
+            pid = getattr(row, f"assist_tackle_{i}_player_id")
+            if pd.notna(pid):
+                bump_def(row.game_id, row.defteam, pid, row.week, "assist")
+        if pd.notna(row.tackle_for_loss_1_player_id):
+            bump_def(row.game_id, row.defteam, row.tackle_for_loss_1_player_id, row.week, "tfl")
+        if pd.notna(row.tackle_for_loss_2_player_id):
+            bump_def(row.game_id, row.defteam, row.tackle_for_loss_2_player_id, row.week, "tfl")
+        if pd.notna(row.qb_hit_1_player_id):
+            bump_def(row.game_id, row.defteam, row.qb_hit_1_player_id, row.week, "qb_hits")
+        if pd.notna(row.qb_hit_2_player_id):
+            bump_def(row.game_id, row.defteam, row.qb_hit_2_player_id, row.week, "qb_hits")
+        if pd.notna(row.sack_player_id):
+            bump_def(row.game_id, row.defteam, row.sack_player_id, row.week, "sacks", 1.0)
+        if pd.notna(row.interception_player_id):
+            bump_def(row.game_id, row.defteam, row.interception_player_id, row.week, "int")
+        if pd.notna(row.fumble_recovery_1_player_id):
+            bump_def(row.game_id, row.defteam, row.fumble_recovery_1_player_id, row.week, "fumble_rec")
+        if pd.notna(row.fumble_recovery_2_player_id):
+            bump_def(row.game_id, row.defteam, row.fumble_recovery_2_player_id, row.week, "fumble_rec")
+
+    # Round accumulated yards, sort each category by its headline stat
+    # (yards for offense, combined tackles for defense) so the frontend
+    # can render straight through without re-sorting.
+    for game_teams in box.values():
+        for team_cats in game_teams.values():
+            for category, players in team_cats.items():
+                rows = list(players.values())
+                for r in rows:
+                    if "yards" in r:
+                        r["yards"] = round(r["yards"], 0)
+                if category == "defense":
+                    rows.sort(key=lambda r: -(r["solo"] + r["assist"]))
+                else:
+                    rows.sort(key=lambda r: -r.get("yards", 0))
+                team_cats[category] = rows
+
+    return box
+
+
 # ---- Player Props ----
 # Volume/efficiency (targets, carries, pass attempts and what they turned
 # into) plus route-tree matchup context -- distinct from player_stats above,
@@ -2636,6 +2762,7 @@ def main():
         team_stats[team].update(position_allowed.get(team, {}))
     player_props = build_player_props(volume_players, player_route_profiles, teams, team_targets)
     player_game_logs = compute_player_game_logs(pbp, pos_lookup)
+    player_box_scores = compute_player_box_scores(pbp, pos_lookup)
 
     # One team-level schedule-strength number (not per condition -- see
     # compute_scheme_splits' docstring for why), reusing recent_games'
@@ -2709,6 +2836,7 @@ def main():
         "player_stats": player_stats,
         "player_props": player_props,
         "player_game_logs": player_game_logs,
+        "player_box_scores": player_box_scores,
         "player_rush_zones": player_rush_zones,
         "player_pass_splits": player_pass_splits,
         "player_scramble_splits": player_scramble_splits,

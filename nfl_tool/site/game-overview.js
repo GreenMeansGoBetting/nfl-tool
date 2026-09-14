@@ -769,7 +769,10 @@ function renderRecentGamesPanel(team) {
       const oppLabel = g.home_away === "away" ? `@ ${g.opponent}` : g.opponent;
       const resultCls = g.result === "W" ? "tier-good" : g.result === "L" ? "tier-bad" : "tier-mid";
       const halfLabel = g.ht_for === null || g.ht_against === null ? "--" : `${g.ht_for}-${g.ht_against}`;
-      return `<tr><td>${g.week}</td><td>${oppLabel}</td><td class="num">${halfLabel}</td><td class="num">${g.final_for}-${g.final_against}</td><td class="num ${resultCls}">${g.result}</td></tr>`;
+      const away = g.home_away === "away" ? team : g.opponent;
+      const home = g.home_away === "away" ? g.opponent : team;
+      const payload = { gameId: g.game_id, away, home };
+      return `<tr class="recent-game-row" data-entry="${encodeDataAttr(payload)}"><td>${g.week}</td><td>${oppLabel}</td><td class="num">${halfLabel}</td><td class="num">${g.final_for}-${g.final_against}</td><td class="num ${resultCls}">${g.result}</td></tr>`;
     })
     .join("");
   return `<h3>${team}</h3>
@@ -781,6 +784,99 @@ function renderRecentGamesPanel(team) {
       </table>
     </details>`;
 }
+
+// ---- Box score modal (click any Recent Games row) ----
+// build_stats.py's compute_player_box_scores: full Passing/Rushing/
+// Receiving/Defense stat lines for both teams in one specific game,
+// toggled between away/home rather than shown side by side (a real box
+// score is dense enough per team that both at once would be unreadable
+// at this page's column widths).
+function boxScoreTable(title, headers, rows, rowFn) {
+  if (!rows || !rows.length) return "";
+  const headHtml = headers.map((h) => `<th${h === "Player" ? "" : ' class="num"'}>${h}</th>`).join("");
+  return `<table class="data-table box-score-table">
+    <thead><tr><th colspan="${headers.length}" class="box-score-cat-hdr">${title}</th></tr><tr>${headHtml}</tr></thead>
+    <tbody>${rows.map(rowFn).join("")}</tbody>
+  </table>`;
+}
+
+function renderBoxScoreTeamContent(gameId, team) {
+  const cats = ((DATA.player_box_scores || {})[gameId] || {})[team] || {};
+  const tables = [
+    boxScoreTable("Passing", ["Player", "C/ATT", "Yds", "TD", "INT"], cats.passing, (p) =>
+      `<tr><td>${p.name}</td><td class="num">${p.cmp}/${p.att}</td><td class="num">${fmt(p.yards, 0)}</td><td class="num">${p.td}</td><td class="num">${p.int}</td></tr>`),
+    boxScoreTable("Rushing", ["Player", "Car", "Yds", "TD"], cats.rushing, (p) =>
+      `<tr><td>${p.name}</td><td class="num">${p.carries}</td><td class="num">${fmt(p.yards, 0)}</td><td class="num">${p.td}</td></tr>`),
+    boxScoreTable("Receiving", ["Player", "Tgt", "Rec", "Yds", "TD"], cats.receiving, (p) =>
+      `<tr><td>${p.name}</td><td class="num">${p.targets}</td><td class="num">${p.receptions}</td><td class="num">${fmt(p.yards, 0)}</td><td class="num">${p.td}</td></tr>`),
+    // Tkl shown as "solo-assist" (e.g. "6-2"), same convention a
+    // broadcast box score uses -- see compute_player_box_scores for
+    // exactly what counts as solo vs assist.
+    boxScoreTable("Defense", ["Player", "Tkl", "Sck", "TFL", "QBH", "INT", "FR"], cats.defense, (p) =>
+      `<tr><td>${p.name}</td><td class="num">${p.solo}-${p.assist}</td><td class="num">${p.sacks}</td><td class="num">${p.tfl}</td><td class="num">${p.qb_hits}</td><td class="num">${p.int}</td><td class="num">${p.fumble_rec}</td></tr>`),
+  ]
+    .filter(Boolean)
+    .join("");
+  return tables || `<p class="no-data-note">No box score data for this team.</p>`;
+}
+
+function ensureBoxScoreModal() {
+  if (document.getElementById("box-score-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "box-score-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box box-score-modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="box-score-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeBoxScoreModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeBoxScoreModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeBoxScoreModal();
+  });
+}
+
+function closeBoxScoreModal() {
+  const el = document.getElementById("box-score-modal");
+  if (el) el.hidden = true;
+}
+
+let boxScoreState = null;
+
+function renderBoxScoreModal() {
+  if (!boxScoreState) return;
+  const { gameId, away, home, activeTeam } = boxScoreState;
+  const teamBtn = (t) => `<button type="button" class="box-score-team-btn${t === activeTeam ? " active" : ""}" data-team="${t}">${TEAM_NAMES[t] || t}</button>`;
+  document.getElementById("box-score-modal-content").innerHTML = `
+    <h3>Box Score</h3>
+    <div class="box-score-team-toggle">${teamBtn(away)}${teamBtn(home)}</div>
+    ${renderBoxScoreTeamContent(gameId, activeTeam)}
+  `;
+  document.querySelectorAll(".box-score-team-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      boxScoreState.activeTeam = btn.dataset.team;
+      renderBoxScoreModal();
+    });
+  });
+}
+
+function openBoxScoreModal(gameId, away, home) {
+  ensureBoxScoreModal();
+  boxScoreState = { gameId, away, home, activeTeam: away };
+  renderBoxScoreModal();
+  document.getElementById("box-score-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const row = e.target.closest(".recent-game-row");
+  if (!row) return;
+  const { gameId, away, home } = decodeDataAttr(row.dataset.entry);
+  openBoxScoreModal(gameId, away, home);
+});
 
 function statusAbbr(status) {
   if (!status) return "?";
