@@ -32,7 +32,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -2653,7 +2653,20 @@ def main():
     player_prop_markets = None
     if week_dates:
         starts_after = week_dates[0]
-        starts_before = (date.fromisoformat(week_dates[-1]) + timedelta(days=1)).isoformat()
+        # A plain date+1 cutoff is midnight UTC on the day after the last
+        # game's LOCAL calendar date -- but a Sunday/Monday night kickoff
+        # (~8:15-8:20pm ET) itself lands ~15-20 minutes AFTER that midnight
+        # UTC boundary, so the week's last (and often most-watched) game
+        # was silently excluded from the odds fetch every single week.
+        # Confirmed directly against a real event: a 2026-09-14 Monday
+        # night game's real startsAt was 2026-09-15T00:15:00Z, 15 minutes
+        # past the old (bare) 2026-09-15 cutoff. An 8-hour pad covers any
+        # realistic NFL kickoff (even a 10:15pm ET West Coast game is only
+        # ~2-3am UTC) with plenty of room to spare, while staying far short
+        # of the next week's games (always 3+ days later) so it can't leak
+        # a different week's line onto the same team key.
+        next_local_day = date.fromisoformat(week_dates[-1]) + timedelta(days=1)
+        starts_before = (datetime.combine(next_local_day, datetime.min.time()) + timedelta(hours=8)).isoformat()
         # NOT `rosters` -- that's the fallback SEASON's roster (2025, whatever
         # nflverse pbp data actually exists for right now), which would still
         # show last year's team for anyone traded this offseason. This needs
