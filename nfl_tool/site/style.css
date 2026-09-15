@@ -565,6 +565,7 @@ h3 {
 .rush-lane-label { font-size: 0.65rem; font-weight: 700; opacity: 0.75; }
 .rush-lane-pct { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
 .rush-lane-ypc { font-size: 0.68rem; opacity: 0.85; }
+.rush-lane-n { display: block; font-size: 0.62rem; opacity: 0.65; }
 /* Always dark text regardless of how deep the blue fill gets (alpha tops
    out at 0.85, never fully opaque) -- explicit rather than inherited so it
    can't accidentally pick up a lighter color from context. */
@@ -1181,11 +1182,6 @@ footer a { color: var(--accent); }
   background: var(--table-head) !important;
   text-align: center;
 }
-/* Separates Zone/Man (coverage STYLE) from the specific shells sorted in
-   below them (coverage SCHEME) within the shared Coverage group -- a
-   thin rule rather than a second group header, since they're still the
-   same schematic question at two levels of detail. */
-.scheme-table tr.scheme-style-boundary td { border-bottom: 2px solid var(--border); }
 .scheme-notes:empty { display: none; margin: 0; padding: 0; }
 .scheme-notes { margin: 6px 0 0; }
 .info-icon {

@@ -103,32 +103,10 @@ const SCHEME_GROUPS = [
       { label: "Clean Pocket", tendKey: "clean_pocket_rate", perfKey: "success_vs_clean_pocket", defSuccessKey: "def_success_allowed_clean_pocket" },
     ],
   },
-  {
-    // Style (Zone/Man) and the specific shells are both "who's covering
-    // whom back there" -- one umbrella group instead of two, so they read
-    // as the same schematic question at two levels of detail rather than
-    // two unrelated tables. Zone/Man stay in fixed order (sortFrom: 2);
-    // the shells past them sort by this defense's own usage (most-used
-    // shell first) since some clear under 5% of snaps and a fixed
-    // Cover-0-to-6 list would bury what the defense actually plays.
-    // Thin shells stay visible but dimmed (SCHEME_MIN_TENDENCY_SHOWN)
-    // rather than hidden, so the breakdown never looks incomplete.
-    label: "Coverage",
-    perfLabel: "Success %",
-    pct: true,
-    sortFrom: 2,
-    rows: [
-      { label: "Zone", tendKey: "zone_rate", perfKey: "success_vs_zone", defSuccessKey: "def_success_allowed_zone" },
-      { label: "Man", tendKey: "man_rate", perfKey: "success_vs_man", defSuccessKey: "def_success_allowed_man" },
-      { label: "Cover 0", tendKey: "cover0_rate", perfKey: "success_vs_cover0", defSuccessKey: "def_success_allowed_cover0" },
-      { label: "Cover 1", tendKey: "cover1_rate", perfKey: "success_vs_cover1", defSuccessKey: "def_success_allowed_cover1" },
-      { label: "Cover 2", tendKey: "cover2_rate", perfKey: "success_vs_cover2", defSuccessKey: "def_success_allowed_cover2" },
-      { label: "Cover 3", tendKey: "cover3_rate", perfKey: "success_vs_cover3", defSuccessKey: "def_success_allowed_cover3" },
-      { label: "Cover 4", tendKey: "cover4_rate", perfKey: "success_vs_cover4", defSuccessKey: "def_success_allowed_cover4" },
-      { label: "Cover 6", tendKey: "cover6_rate", perfKey: "success_vs_cover6", defSuccessKey: "def_success_allowed_cover6" },
-      { label: "2-Man", tendKey: "twoman_rate", perfKey: "success_vs_twoman", defSuccessKey: "def_success_allowed_twoman" },
-    ],
-  },
+  // Coverage (Zone/Man, specific shells) was dropped entirely -- that data
+  // only exists in the NFL's own participation charting, which has no
+  // live-during-season source anywhere (see build_stats.py's
+  // compute_scheme_splits docstring), so it would only ever be stale.
 ];
 
 // Below this usage rate a coverage shell is still real (worth showing) but
@@ -693,14 +671,13 @@ function scheduleQualityText(team) {
 }
 
 function renderSchemeNotes(away, home) {
-  // NFL charting (participation -- box counts, blitz/coverage shells, snap
-  // shares) for the current season isn't published on nflverse until well
-  // after that season ends, so scheme/coverage/snap-share numbers below
-  // are the most recent thing available, not necessarily this season's.
-  const participationNote = DATA.is_participation_fallback
-    ? [`Scheme, coverage, and snap-share numbers reflect ${DATA.participation_season} -- the NFL hasn't published this season's charting data yet.`]
-    : [];
-  return [...participationNote, ...[away, home].map(scheduleQualityText).filter(Boolean)]
+  // Box count/blitz/pressure (FTN charting + plain pbp) and snap share
+  // (PFR via nflverse) are all live, current-season data now -- see
+  // build_stats.py's compute_scheme_splits/compute_player_snap_shares.
+  // No participation-fallback note needed here anymore.
+  return [away, home]
+    .map(scheduleQualityText)
+    .filter(Boolean)
     .map((t) => `<li>${t}</li>`)
     .join("");
 }

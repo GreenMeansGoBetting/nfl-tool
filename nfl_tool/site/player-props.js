@@ -230,14 +230,16 @@ const RUSH_ZONES = [
 // Defense box: this team's own success rate/YPC allowed running into that
 // lane, tiered against every other team the same percentile way as every
 // other colored cell on the site, and clickable into the league-rank
-// modal. Below RUSH_ZONE_MIN_SAMPLE (build_stats.py) there's nothing
-// reliable to show or rank, so it renders flat gray instead of a color
-// tier or a dead click target.
+// modal. No sample floor -- build_stats.py returns a number as soon as
+// there's at least one play, so the carry count is shown right alongside
+// it (n=2 reads very differently than n=20) instead of hiding thin lanes
+// outright.
 function defenseLaneCell(team, zone) {
   const successKey = `rush_success_allowed_${zone.key}`;
   const ypcKey = `rush_ypc_allowed_${zone.key}`;
   const val = DATA.team_stats[team][successKey];
   const ypc = DATA.team_stats[team][ypcKey];
+  const n = DATA.team_stats[team][`rush_carries_allowed_${zone.key}`] || 0;
   const hasSample = val !== null && val !== undefined;
   let cls = "rush-lane-nosample";
   let clickAttrs = "";
@@ -255,6 +257,7 @@ function defenseLaneCell(team, zone) {
     <span class="rush-lane-label">${zone.label}</span>
     <span class="rush-lane-pct">${display}</span>
     <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
+    <span class="rush-lane-n">n=${n}</span>
   </div>`;
 }
 
@@ -262,16 +265,20 @@ function defenseLaneCell(team, zone) {
 // own, or via successVal/pool/label overrides, a single player's). Sits
 // directly under the defense box above it with no gap -- both halves are
 // "how good," meant to read as one connected stack from defense down
-// through offense effectiveness.
-function offenseSuccessCell(successVal, ypcVal, pool, label, clickPayload) {
+// through offense effectiveness. carries is shown alongside the rate for
+// the same reason as defenseLaneCell -- no sample floor upstream anymore,
+// so the reader judges thin samples themselves instead of them being hidden.
+function offenseSuccessCell(successVal, ypcVal, pool, label, clickPayload, carries) {
   const hasSample = successVal !== null && successVal !== undefined;
   const cls = hasSample ? percentileTier(successVal, pool, false) : "rush-lane-nosample";
   const display = hasSample ? `${Math.round(successVal * 100)}%` : "--";
   const ypcDisplay = ypcVal !== null && ypcVal !== undefined ? fmt(ypcVal, 1) : "--";
   const clickAttrs = hasSample && clickPayload ? ` stat-rank-click" data-entry="${encodeDataAttr(clickPayload)}` : "";
+  const nDisplay = carries !== null && carries !== undefined ? `<span class="rush-lane-n">n=${carries}</span>` : "";
   return `<div class="rush-lane-off-success ${cls}${clickAttrs}">
     <span class="rush-lane-pct">${display}</span>
     <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
+    ${nDisplay}
   </div>`;
 }
 
@@ -341,7 +348,7 @@ function renderRushLanesChart(offTeam, defTeam) {
       .map((t) => DATA.team_stats[t][successKey])
       .filter((v) => v !== null && v !== undefined);
     const payload = { team: offTeam, statKey: successKey, label: `${z.full} Rush Success %`, invert: false, percent: true };
-    const off = offenseSuccessCell(val, ypc, pool, z.full, payload);
+    const off = offenseSuccessCell(val, ypc, pool, z.full, payload, DATA.team_stats[offTeam][`rush_carries_${z.key}`]);
     const freq = offenseFreqCell(DATA.team_stats[offTeam][`rush_rate_${z.key}`]);
     return rushLaneColumn(defenseLaneCell(defTeam, z), off, freq);
   }).join("");
@@ -388,7 +395,7 @@ function renderPlayerRushLanesContent(team, name, oppTeam) {
   const pools = buildRushZonePools();
   const cols = RUSH_ZONES.map((z) => {
     const zd = zones[z.key] || {};
-    const off = offenseSuccessCell(zd.success, zd.ypc, pools[z.key], z.full, null);
+    const off = offenseSuccessCell(zd.success, zd.ypc, pools[z.key], z.full, null, zd.carries);
     const freq = offenseFreqCell(zd.share);
     return rushLaneColumn(defenseLaneCell(oppTeam, z), off, freq);
   }).join("");
@@ -407,9 +414,10 @@ function renderPlayerRushLanesContent(team, name, oppTeam) {
 // props-modal) since it needs to be much wider to fit everyone. ----
 function renderTeamRushLanesAllPlayersContent(team, oppTeam) {
   const heading = `<h3>${teamLogoMini(team)} ${TEAM_NAMES[team] || team} Rushers <span class="muted-label">vs ${teamLogoMini(oppTeam)} ${TEAM_NAMES[oppTeam] || oppTeam} Run Defense</span></h3>`;
-  const players = (DATA.player_props[team] || [])
-    .filter((p) => p.carries >= 5)
-    .sort((a, b) => b.carries - a.carries);
+  // No minimum carries to appear here anymore -- every rush lane cell
+  // already shows its own carry count (n=X), so a one-carry back is
+  // visibly thin rather than hidden outright.
+  const players = (DATA.player_props[team] || []).filter((p) => p.carries > 0).sort((a, b) => b.carries - a.carries);
   if (!players.length) {
     return `${heading}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
   }
@@ -420,7 +428,7 @@ function renderTeamRushLanesAllPlayersContent(team, oppTeam) {
       const zones = ((DATA.player_rush_zones || {})[team] || {})[p.name] || {};
       const cols = RUSH_ZONES.map((z) => {
         const zd = zones[z.key] || {};
-        const off = offenseSuccessCell(zd.success, zd.ypc, pools[z.key], z.full, null);
+        const off = offenseSuccessCell(zd.success, zd.ypc, pools[z.key], z.full, null, zd.carries);
         const freq = offenseFreqCell(zd.share);
         return rushLaneColumnStandalone(off, freq);
       }).join("");
@@ -647,9 +655,11 @@ function renderPassingTable(team, oppTeam) {
 // same reasoning as Game Overview's Scheme & Tendencies table) and what
 // that defense allows in it (team_stats def_success_allowed_*, feeds the
 // ADV cell same as every other offense/defense pairing on the site).
+// Zone/Man rows were dropped along with build_stats.py's compute_scheme_
+// splits/compute_player_pass_splits coverage-type data -- no live-during-
+// season source exists for it (see that docstring). Pressured/Clean
+// Pocket are still real: a sack-or-QB-hit proxy computed from plain pbp.
 const PASS_SPLIT_ROWS = [
-  { key: "zone", label: "Zone", tendKey: "zone_rate", tendLabel: "Zone Coverage Rate", defAllowedKey: "def_success_allowed_zone" },
-  { key: "man", label: "Man", tendKey: "man_rate", tendLabel: "Man Coverage Rate", defAllowedKey: "def_success_allowed_man" },
   { key: "pressure", label: "Pressured", tendKey: "pressure_rate", tendLabel: "Pressure Rate", defAllowedKey: "def_success_allowed_pressure" },
   { key: "clean", label: "Clean Pocket", tendKey: "clean_pocket_rate", tendLabel: "Clean Pocket Rate", defAllowedKey: "def_success_allowed_clean_pocket" },
 ];

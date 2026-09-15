@@ -42,6 +42,18 @@ ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly
 SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 INJURIES_URL = "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{season}.csv"
 PARTICIPATION_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_{season}.csv"
+# Third-party charting (FTN Fantasy, distributed via nflverse) -- box count/
+# blitzers/pass rushers per play. Unlike the NFL's own official
+# participation charting (PARTICIPATION_URL above), this is published
+# weekly DURING the season (confirmed: ftn_charting_2026.csv already
+# existed the same day as 2026's first games), so scheme stats built from
+# it don't need a fallback season the way compute_scheme_splits used to.
+FTN_URL = "https://github.com/nflverse/nflverse-data/releases/download/ftn_charting/ftn_charting_{season}.csv"
+# Real per-player weekly snap counts/percentages, sourced from Pro-Football-
+# Reference via nflverse -- also published weekly during the season
+# (confirmed: snap_counts_2026.csv created the same day as 2026's first
+# games), unlike the participation file's own snap-participation columns.
+SNAP_COUNTS_URL = "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{season}.csv"
 
 # Anytime-touchdown-scorer odds, from SportsGameOdds' free tier (2,500
 # "objects"/month, billed per EVENT returned -- not per market or player --
@@ -275,16 +287,16 @@ def resolve_season(season: int, data_dir: Path) -> tuple[int, bool]:
 
 def resolve_participation_season(season: int, data_dir: Path) -> tuple[int, bool]:
     """Returns (participation_season, is_participation_fallback). Official
-    NFL charting (defenders in box, pass rushers, man/zone coverage,
-    snap participation) has its own, much later publish schedule than
-    pbp -- see resolve_season's docstring. Scheme/route/pass-rush/
-    snap-share stats need to fall back independently of everything else,
-    to whichever season nflverse has actually published participation
-    for. The fallback pbp file must come from that SAME season (not
-    whatever `season` resolve_season landed on) since compute_scheme_splits
-    and friends merge pbp and participation by game_id/play_id -- one
-    season's pbp against another's participation wouldn't match a single
-    play."""
+    NFL charting (route type is the only thing this pipeline still reads
+    from it -- see compute_route_splits) has its own, much later publish
+    schedule than pbp -- see resolve_season's docstring. Scheme splits,
+    snap shares, and pass-rush/pressure splits USED to fall back here too,
+    but have since moved to live sources (FTN charting, PFR snap counts,
+    plain pbp) and no longer depend on this at all. Route splits may still
+    resolve to a different season than everything else, and its own pbp
+    needs to come from that SAME season (the participation merge is keyed
+    by game_id/play_id) -- one season's pbp against another's
+    participation wouldn't match a single play."""
     def available(url_template, s):
         path = data_dir / Path(url_template.format(season=s)).name
         return path.exists() or remote_exists(url_template.format(season=s))
@@ -294,7 +306,7 @@ def resolve_participation_season(season: int, data_dir: Path) -> tuple[int, bool
     fallback = season - 1
     print(
         f"NOTE: {season}'s participation file isn't published on nflverse yet -- "
-        f"scheme/route/pass-rush/snap-share stats will use {fallback} data until it appears.",
+        f"route-type splits will use {fallback} data until it appears.",
         file=sys.stderr,
     )
     return fallback, True
@@ -344,7 +356,28 @@ def load_participation(data_dir: Path, season: int) -> pd.DataFrame:
     return pd.read_csv(path, low_memory=False)
 
 
-def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) -> dict:
+def load_ftn_charting(data_dir: Path, season: int) -> pd.DataFrame:
+    """See FTN_URL's comment -- box count/blitzers/pass rushers, published
+    weekly during the season. Stable once a game's been charted, so no
+    force=True (same caching policy as load_pbp/load_participation)."""
+    path = data_dir / f"ftn_charting_{season}.csv"
+    download_if_missing(FTN_URL.format(season=season), path)
+    return pd.read_csv(path, low_memory=False)
+
+
+def load_snap_counts(data_dir: Path, season: int) -> pd.DataFrame:
+    """See SNAP_COUNTS_URL's comment. force=True: a new week's rows get
+    added as the season goes, same reasoning as load_injuries/
+    compute_schedule (this changes within a season, unlike pbp/roster
+    archives)."""
+    path = data_dir / f"snap_counts_{season}.csv"
+    download_if_missing(SNAP_COUNTS_URL.format(season=season), path, force=True)
+    df = pd.read_csv(path, low_memory=False)
+    df["team"] = df["team"].map(normalize_team)
+    return df[["week", "team", "player", "offense_pct", "defense_pct"]]
+
+
+def compute_scheme_splits(pbp: pd.DataFrame, ftn: pd.DataFrame, teams) -> dict:
     """Schematic tendency (how a defense lines up) paired with how the
     FACING OFFENSE performs against that specific look. Tendency = this
     team's own defense's rate of using a look, out of its own defensive
@@ -353,12 +386,28 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
     season (not one opponent) -- paired for display the same way every
     other offense/defense stat on this site is paired.
 
-    MIN_SAMPLE gates every performance number: below it, the number is
-    None (frontend shows "--") rather than a noisy rate from a handful of
-    plays. The specific coverage shells run thinnest -- COMBO and BLOWN
-    coverage are dropped as categories entirely (they showed up 1-6 times
-    in the whole 2025 season, league-wide -- not a real defensive call to
-    measure, unlike Cover 0/1/2/3/4/6 and 2-Man which all clear the floor).
+    Box count (defenders_in_box equivalent) and blitz volume come from FTN
+    charting (n_defense_box/n_pass_rushers), joined to pbp by game_id/
+    play_id -- FTN is published weekly during the season (see FTN_URL),
+    unlike the NFL's own official participation charting this used to
+    read from, which isn't published until after the season ends (see
+    resolve_participation_season). Pressure is a plain-pbp proxy (sack or
+    QB hit on the play) rather than the participation file's own
+    was_pressure flag (which also catches hurries/knockdowns that don't
+    show up as a hit or sack) -- a narrower definition, but real and
+    current every week instead of a whole season behind.
+
+    Coverage (zone/man, specific shells) is NOT computed here anymore --
+    that data ONLY exists in the NFL's own participation charting, which
+    has no live-during-season source anywhere (confirmed independently
+    against nflsavant.com's own team pages hitting the identical gap), so
+    showing it would mean permanently stale data with no way to fix it.
+    It was dropped rather than kept stale.
+
+    No MIN_SAMPLE floor -- every performance number is returned as soon as
+    there's at least one play, with its own play count returned alongside
+    it (the `_plays` fields) so a thin sample is visibly thin instead of
+    silently hidden.
 
     Opponent quality (the "is this team's schedule skewing these numbers"
     question) is handled once per team, not per condition -- see
@@ -368,36 +417,18 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
     (redundant, not per-row signal) -- one team-level number is the honest
     version of this.
     """
-    MIN_SAMPLE = 8
-    SHELLS = {
-        "cover0": "COVER_0",
-        "cover1": "COVER_1",
-        "cover2": "COVER_2",
-        "cover3": "COVER_3",
-        "cover4": "COVER_4",
-        "cover6": "COVER_6",
-        "twoman": "2_MAN",
-    }
-
-    merged = participation.merge(
-        pbp[["game_id", "play_id", "posteam", "defteam", "rush_attempt", "pass_attempt", "yards_gained", "success", "two_point_attempt"]],
-        left_on=["nflverse_game_id", "play_id"],
-        right_on=["game_id", "play_id"],
-        how="inner",
+    merged = pbp[["game_id", "play_id", "posteam", "defteam", "rush_attempt", "pass_attempt", "yards_gained", "success", "two_point_attempt", "qb_hit", "sack"]].merge(
+        ftn[["nflverse_game_id", "nflverse_play_id", "n_defense_box", "n_pass_rushers"]],
+        left_on=["game_id", "play_id"],
+        right_on=["nflverse_game_id", "nflverse_play_id"],
+        how="left",
     )
     merged = merged[merged["two_point_attempt"] != 1]
-    run = merged[merged["rush_attempt"] == 1].copy()
+    run = merged[merged["rush_attempt"] == 1].dropna(subset=["n_defense_box"]).copy()
     passp = merged[merged["pass_attempt"] == 1].copy()
-    run["heavy_box"] = run["defenders_in_box"] >= 7
-    passp["blitz"] = passp["number_of_pass_rushers"] >= 5
-    passp["zone"] = passp["defense_man_zone_type"] == "ZONE_COVERAGE"
-    passp["man"] = passp["defense_man_zone_type"] == "MAN_COVERAGE"
-    # NGS charting's own pressure flag (hits, hurries, and knockdowns, not
-    # just sacks) -- the free-data proxy most public sites fall back to is
-    # sacks+hits/dropback, but this is the real thing, already sitting in
-    # the same participation file the rest of this function already merges
-    # in. NaN (a handful of plays, no signal either way) reads as False.
-    passp["pressure"] = passp["was_pressure"] == True  # noqa: E712
+    run["heavy_box"] = run["n_defense_box"] >= 7
+    passp["blitz"] = passp["n_pass_rushers"] >= 5
+    passp["pressure"] = (passp["sack"] == 1) | (passp["qb_hit"] == 1)
 
     result = {t: {} for t in teams}
     for team in teams:
@@ -412,8 +443,8 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         d["box_light_rate"] = round(1 - heavy_def / def_total, 3) if def_total else None
         off_heavy = off_run[off_run["heavy_box"]]
         off_light = off_run[~off_run["heavy_box"]]
-        d["ypc_vs_heavy_box"] = round(off_heavy["yards_gained"].mean(), 2) if len(off_heavy) >= MIN_SAMPLE else None
-        d["ypc_vs_light_box"] = round(off_light["yards_gained"].mean(), 2) if len(off_light) >= MIN_SAMPLE else None
+        d["ypc_vs_heavy_box"] = round(off_heavy["yards_gained"].mean(), 2) if len(off_heavy) else None
+        d["ypc_vs_light_box"] = round(off_light["yards_gained"].mean(), 2) if len(off_light) else None
         d["ypc_vs_heavy_box_plays"] = len(off_heavy)
         d["ypc_vs_light_box_plays"] = len(off_light)
         # Mirror image: THIS team's own defense's yards-per-carry ALLOWED
@@ -422,8 +453,8 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         # doesn't say whether a look works).
         def_heavy = def_run[def_run["heavy_box"]]
         def_light = def_run[~def_run["heavy_box"]]
-        d["def_ypc_allowed_heavy_box"] = round(def_heavy["yards_gained"].mean(), 2) if len(def_heavy) >= MIN_SAMPLE else None
-        d["def_ypc_allowed_light_box"] = round(def_light["yards_gained"].mean(), 2) if len(def_light) >= MIN_SAMPLE else None
+        d["def_ypc_allowed_heavy_box"] = round(def_heavy["yards_gained"].mean(), 2) if len(def_heavy) else None
+        d["def_ypc_allowed_light_box"] = round(def_light["yards_gained"].mean(), 2) if len(def_light) else None
         d["def_ypc_allowed_heavy_box_plays"] = len(def_heavy)
         d["def_ypc_allowed_light_box_plays"] = len(def_light)
 
@@ -436,8 +467,8 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         d["standard_rush_rate"] = round(1 - blitz_def / pr_total, 3) if pr_total else None
         off_blitzed = off_pass[off_pass["blitz"]]
         off_standard = off_pass[~off_pass["blitz"]]
-        d["success_vs_blitz"] = round(off_blitzed["success"].mean(), 3) if len(off_blitzed) >= MIN_SAMPLE else None
-        d["success_vs_standard_rush"] = round(off_standard["success"].mean(), 3) if len(off_standard) >= MIN_SAMPLE else None
+        d["success_vs_blitz"] = round(off_blitzed["success"].mean(), 3) if len(off_blitzed) else None
+        d["success_vs_standard_rush"] = round(off_standard["success"].mean(), 3) if len(off_standard) else None
         d["success_vs_blitz_plays"] = len(off_blitzed)
         d["success_vs_standard_rush_plays"] = len(off_standard)
         # Defense-side mirror: the opposing OFFENSE's success rate specifically
@@ -447,60 +478,27 @@ def compute_scheme_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams)
         # the frontend applies invert=true same as every other "allowed" stat.
         def_blitzed = def_pass[def_pass["blitz"]]
         def_standard = def_pass[~def_pass["blitz"]]
-        d["def_success_allowed_blitz"] = round(def_blitzed["success"].mean(), 3) if len(def_blitzed) >= MIN_SAMPLE else None
-        d["def_success_allowed_standard_rush"] = round(def_standard["success"].mean(), 3) if len(def_standard) >= MIN_SAMPLE else None
+        d["def_success_allowed_blitz"] = round(def_blitzed["success"].mean(), 3) if len(def_blitzed) else None
+        d["def_success_allowed_standard_rush"] = round(def_standard["success"].mean(), 3) if len(def_standard) else None
         d["def_success_allowed_blitz_plays"] = len(def_blitzed)
         d["def_success_allowed_standard_rush_plays"] = len(def_standard)
 
-        # ---- Pass rush: pressure (a sack isn't the only way a rush wins --
-        # a hurried/hit-but-not-sacked QB still shows up here, unlike sack
-        # totals alone) ----
+        # ---- Pass rush: pressure (sack-or-QB-hit proxy -- see docstring) ----
         pressure_def = int(def_pass["pressure"].sum())
         d["pressure_rate"] = round(pressure_def / pr_total, 3) if pr_total else None
         d["clean_pocket_rate"] = round(1 - pressure_def / pr_total, 3) if pr_total else None
         off_pressured = off_pass[off_pass["pressure"]]
         off_clean = off_pass[~off_pass["pressure"]]
-        d["success_vs_pressure"] = round(off_pressured["success"].mean(), 3) if len(off_pressured) >= MIN_SAMPLE else None
-        d["success_vs_clean_pocket"] = round(off_clean["success"].mean(), 3) if len(off_clean) >= MIN_SAMPLE else None
+        d["success_vs_pressure"] = round(off_pressured["success"].mean(), 3) if len(off_pressured) else None
+        d["success_vs_clean_pocket"] = round(off_clean["success"].mean(), 3) if len(off_clean) else None
         d["success_vs_pressure_plays"] = len(off_pressured)
         d["success_vs_clean_pocket_plays"] = len(off_clean)
         def_pressured = def_pass[def_pass["pressure"]]
         def_clean = def_pass[~def_pass["pressure"]]
-        d["def_success_allowed_pressure"] = round(def_pressured["success"].mean(), 3) if len(def_pressured) >= MIN_SAMPLE else None
-        d["def_success_allowed_clean_pocket"] = round(def_clean["success"].mean(), 3) if len(def_clean) >= MIN_SAMPLE else None
+        d["def_success_allowed_pressure"] = round(def_pressured["success"].mean(), 3) if len(def_pressured) else None
+        d["def_success_allowed_clean_pocket"] = round(def_clean["success"].mean(), 3) if len(def_clean) else None
         d["def_success_allowed_pressure_plays"] = len(def_pressured)
         d["def_success_allowed_clean_pocket_plays"] = len(def_clean)
-
-        # ---- Coverage style: zone vs man ----
-        zone_def = int(def_pass["zone"].sum())
-        man_def = int(def_pass["man"].sum())
-        cov_total = zone_def + man_def
-        d["zone_rate"] = round(zone_def / cov_total, 3) if cov_total else None
-        d["man_rate"] = round(man_def / cov_total, 3) if cov_total else None
-        off_zone = off_pass[off_pass["zone"]]
-        off_man = off_pass[off_pass["man"]]
-        d["success_vs_zone"] = round(off_zone["success"].mean(), 3) if len(off_zone) >= MIN_SAMPLE else None
-        d["success_vs_man"] = round(off_man["success"].mean(), 3) if len(off_man) >= MIN_SAMPLE else None
-        d["success_vs_zone_plays"] = len(off_zone)
-        d["success_vs_man_plays"] = len(off_man)
-        def_zone = def_pass[def_pass["zone"]]
-        def_man = def_pass[def_pass["man"]]
-        d["def_success_allowed_zone"] = round(def_zone["success"].mean(), 3) if len(def_zone) >= MIN_SAMPLE else None
-        d["def_success_allowed_man"] = round(def_man["success"].mean(), 3) if len(def_man) >= MIN_SAMPLE else None
-        d["def_success_allowed_zone_plays"] = len(def_zone)
-        d["def_success_allowed_man_plays"] = len(def_man)
-
-        # ---- Coverage scheme: specific shells ----
-        shell_total = int(def_pass["defense_coverage_type"].isin(SHELLS.values()).sum())
-        for key, code in SHELLS.items():
-            def_count = int((def_pass["defense_coverage_type"] == code).sum())
-            d[f"{key}_rate"] = round(def_count / shell_total, 3) if shell_total else None
-            off_shell = off_pass[off_pass["defense_coverage_type"] == code]
-            d[f"success_vs_{key}"] = round(off_shell["success"].mean(), 3) if len(off_shell) >= MIN_SAMPLE else None
-            d[f"success_vs_{key}_plays"] = len(off_shell)
-            def_shell = def_pass[def_pass["defense_coverage_type"] == code]
-            d[f"def_success_allowed_{key}"] = round(def_shell["success"].mean(), 3) if len(def_shell) >= MIN_SAMPLE else None
-            d[f"def_success_allowed_{key}_plays"] = len(def_shell)
     return result
 
 
@@ -1463,53 +1461,24 @@ def compute_scoring_by_quarter(pbp: pd.DataFrame) -> dict:
     return out
 
 
-def compute_player_snap_shares(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup) -> dict:
-    """Season-long offensive/defensive snap share per player -- the
-    participation file's offense_players/defense_players columns (the 11
-    player IDs actually on the field for that specific play, semicolon-
-    delimited) exploded and counted, divided by that team's own season
-    total offensive/defensive plays. Used to flag whether an injured
-    player is a real regular contributor or a deep backup/special-teamer
-    -- unlike compute_volume_stats' targets/carries (offense skill
-    positions only, since only they touch the ball), this works for
-    every position including the offensive/defensive line, since it's
-    just presence on the field, not a stat. A two-way player's higher of
-    the two shares wins (rare enough not to need its own category)."""
-    merged = pbp[["game_id", "play_id", "posteam", "defteam", "week"]].merge(
-        participation[["nflverse_game_id", "play_id", "offense_players", "defense_players"]],
-        left_on=["game_id", "play_id"],
-        right_on=["nflverse_game_id", "play_id"],
-        how="inner",
-    )
-    off_team_totals = merged.groupby("posteam").size()
-    def_team_totals = merged.groupby("defteam").size()
-
-    def side_shares(side_col, team_col, totals):
-        side = merged.dropna(subset=[side_col])[[team_col, side_col, "week"]].copy()
-        side["pid"] = side[side_col].str.split(";")
-        side = side.explode("pid")
-        counts = side.groupby([team_col, "pid"]).size()
-        last_week = side.groupby([team_col, "pid"])["week"].max()
-        shares = {}
-        for (team, pid), n in counts.items():
-            total = totals.get(team) or 1
-            _, _, name = pos_lookup(pid, int(last_week.loc[(team, pid)]))
-            if not name:
-                continue
-            shares.setdefault(team, {})
-            shares[team][name] = max(shares[team].get(name, 0.0), round(n / total, 3))
-        return shares
-
-    off_shares = side_shares("offense_players", "posteam", off_team_totals)
-    def_shares = side_shares("defense_players", "defteam", def_team_totals)
-
-    out = {}
-    for shares in (off_shares, def_shares):
-        for team, players in shares.items():
-            out.setdefault(team, {})
-            for name, share in players.items():
-                out[team][name] = max(out[team].get(name, 0.0), share)
-    return out
+def compute_player_snap_shares(snap_counts: pd.DataFrame) -> dict:
+    """Season-long (so far) offensive/defensive snap share per player,
+    from real nflverse/Pro-Football-Reference weekly snap-count data (see
+    load_snap_counts) -- published weekly during the season, unlike the
+    participation file's own offense_players/defense_players columns this
+    used to read from (see resolve_participation_season). Used to flag
+    whether an injured player is a real regular contributor or a deep
+    backup/special-teamer. A two-way player's higher of the two shares
+    wins, same as before this swapped data sources. Averaged across
+    however many weeks the player has a row for so far this season (PFR's
+    own offense_pct/defense_pct are already per-game rates)."""
+    df = snap_counts.dropna(subset=["player"])
+    grouped = df.groupby(["team", "player"])[["offense_pct", "defense_pct"]].mean().fillna(0.0)
+    shares = {}
+    for (team, name), row in grouped.iterrows():
+        share = max(row["offense_pct"], row["defense_pct"])
+        shares.setdefault(team, {})[name] = round(float(share), 3)
+    return shares
 
 
 def compute_injury_report(injuries_df: pd.DataFrame, teams, snap_shares: dict) -> dict:
@@ -2441,7 +2410,6 @@ def compute_route_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) 
 RUSH_ZONES = [
     "left_end", "left_tackle", "left_guard", "middle", "right_guard", "right_tackle", "right_end",
 ]
-RUSH_ZONE_MIN_SAMPLE = 8
 
 
 def _rush_zone(loc, gap):
@@ -2477,22 +2445,19 @@ def compute_rush_zone_splits(pbp: pd.DataFrame, teams) -> dict:
         for zone_key in RUSH_ZONES:
             off_zone = off[off["zone"] == zone_key]
             def_zone = deff[deff["zone"] == zone_key]
-            off_enough = len(off_zone) >= RUSH_ZONE_MIN_SAMPLE
-            def_enough = len(def_zone) >= RUSH_ZONE_MIN_SAMPLE
+            # No MIN_SAMPLE floor on YPC/success here -- the play COUNT is
+            # returned right alongside every rate below, so the frontend
+            # (and whoever's reading it) can judge for themselves whether a
+            # 2-carry lane's number means anything, rather than the number
+            # being hidden outright.
             d[f"rush_rate_{zone_key}"] = round(len(off_zone) / off_total, 3) if off_total else None
-            d[f"rush_ypc_{zone_key}"] = round(off_zone["yards_gained"].mean(), 2) if off_enough else None
-            d[f"rush_success_{zone_key}"] = round((off_zone["success"] == 1).mean(), 3) if off_enough else None
+            d[f"rush_ypc_{zone_key}"] = round(off_zone["yards_gained"].mean(), 2) if len(off_zone) else None
+            d[f"rush_success_{zone_key}"] = round((off_zone["success"] == 1).mean(), 3) if len(off_zone) else None
             d[f"rush_carries_{zone_key}"] = len(off_zone)
-            d[f"rush_ypc_allowed_{zone_key}"] = round(def_zone["yards_gained"].mean(), 2) if def_enough else None
-            d[f"rush_success_allowed_{zone_key}"] = round((def_zone["success"] == 1).mean(), 3) if def_enough else None
+            d[f"rush_ypc_allowed_{zone_key}"] = round(def_zone["yards_gained"].mean(), 2) if len(def_zone) else None
+            d[f"rush_success_allowed_{zone_key}"] = round((def_zone["success"] == 1).mean(), 3) if len(def_zone) else None
             d[f"rush_carries_allowed_{zone_key}"] = len(def_zone)
     return team_stats
-
-
-# Lower than RUSH_ZONE_MIN_SAMPLE (team-level) since a single back's season
-# carries in one specific lane run out much faster than a whole team's --
-# requiring 8 would leave most backs with almost no lanes ever qualifying.
-PLAYER_RUSH_ZONE_MIN_SAMPLE = 5
 
 
 def compute_player_rush_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
@@ -2501,9 +2466,9 @@ def compute_player_rush_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
     team-level view, for the Player Props page's per-player "Rush Lanes"
     tab (does THIS back actually run well to a side, not just his team in
     general). Keyed by (team, full_name), the same pos_lookup-derived join
-    used by build_player_props/compute_player_game_logs. Usage share is
-    always returned (it's just a count, not a rate that needs stabilizing);
-    YPC/success are floored at PLAYER_RUSH_ZONE_MIN_SAMPLE per lane."""
+    used by build_player_props/compute_player_game_logs. No MIN_SAMPLE
+    floor -- carries is returned right alongside YPC/success so a thin
+    lane is visibly thin, not silently hidden."""
     rushes = pbp[(pbp["rush_attempt"] == 1) & (pbp["two_point_attempt"] != 1)].dropna(subset=["rusher_player_id"]).copy()
     rushes["zone"] = [
         _rush_zone(loc, gap) for loc, gap in zip(rushes["run_location"], rushes["run_gap"])
@@ -2525,12 +2490,11 @@ def compute_player_rush_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
         for zone_key in RUSH_ZONES:
             zone_plays = [p for p in plays if p[0] == zone_key]
             n = len(zone_plays)
-            enough = n >= PLAYER_RUSH_ZONE_MIN_SAMPLE
             zones[zone_key] = {
                 "carries": n,
                 "share": round(n / total, 3) if total else None,
-                "ypc": round(sum(p[1] for p in zone_plays) / n, 2) if enough else None,
-                "success": round(sum(1 for p in zone_plays if p[2] == 1) / n, 3) if enough else None,
+                "ypc": round(sum(p[1] for p in zone_plays) / n, 2) if n else None,
+                "success": round(sum(1 for p in zone_plays if p[2] == 1) / n, 3) if n else None,
             }
         out.setdefault(team, {})[name] = zones
     return out
@@ -2543,40 +2507,30 @@ def compute_player_rush_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
 PLAYER_PASS_SPLIT_MIN_SAMPLE = 8
 
 
-def compute_player_pass_splits(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup) -> dict:
-    """Per-QB complement to compute_scheme_splits' team-level coverage/
-    pressure numbers: how THIS passer actually performs vs zone/man
-    coverage and vs pressure/a clean pocket. Paired on the frontend with
-    the opponent's own zone_rate/man_rate/pressure_rate/clean_pocket_rate
-    (how often they show it) and def_success_allowed_zone/man/pressure/
-    clean_pocket (what they allow in it) -- same team_stats fields
-    compute_scheme_splits already produces, just matched up against a
-    specific passer instead of a whole offense.
-
-    Same participation merge/condition flags as compute_scheme_splits,
-    just grouped by passer_player_id instead of team. The specific
-    coverage shells (Cover 0/1/2/3/4/6, 2-Man) are deliberately left at
-    the team level only -- a single QB's attempts against one shell run
-    out fast, and compute_scheme_splits already covers that angle.
-    Floored at PLAYER_PASS_SPLIT_MIN_SAMPLE per condition; att is always
-    shown (a count, not a rate that needs stabilizing)."""
+def compute_player_pass_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Per-QB complement to compute_scheme_splits' team-level pass-rush
+    numbers: how THIS passer actually performs vs pressure/a clean pocket.
+    Paired on the frontend with the opponent's own pressure_rate/
+    clean_pocket_rate (how often they show it) and def_success_allowed_
+    pressure/clean_pocket (what they allow in it) -- same team_stats
+    fields compute_scheme_splits already produces, just matched up
+    against a specific passer instead of a whole offense. Same sack-or-
+    QB-hit pressure proxy as compute_scheme_splits (see its docstring),
+    computed straight from pbp -- no participation dependency, so this
+    stays live all season. Zone/man splits were dropped entirely along
+    with compute_scheme_splits' own zone_rate/man_rate -- there's no live
+    source for coverage type and nothing left to pair a QB's zone/man
+    splits against. Floored at PLAYER_PASS_SPLIT_MIN_SAMPLE per condition;
+    att is always shown (a count, not a rate that needs stabilizing)."""
     passp = pbp.loc[
         (pbp["pass_attempt"] == 1) & (pbp["two_point_attempt"] != 1),
-        ["game_id", "play_id", "week", "posteam", "passer_player_id", "complete_pass",
-         "yards_gained", "success", "interception", "pass_touchdown"],
-    ].dropna(subset=["passer_player_id"])
-    merged = passp.merge(
-        participation[["nflverse_game_id", "play_id", "defense_man_zone_type", "was_pressure"]],
-        left_on=["game_id", "play_id"],
-        right_on=["nflverse_game_id", "play_id"],
-        how="inner",
-    )
-    merged["zone"] = merged["defense_man_zone_type"] == "ZONE_COVERAGE"
-    merged["man"] = merged["defense_man_zone_type"] == "MAN_COVERAGE"
-    merged["pressure"] = merged["was_pressure"] == True  # noqa: E712
+        ["week", "posteam", "passer_player_id", "complete_pass",
+         "yards_gained", "success", "interception", "pass_touchdown", "sack", "qb_hit"],
+    ].dropna(subset=["passer_player_id"]).copy()
+    passp["pressure"] = (passp["sack"] == 1) | (passp["qb_hit"] == 1)
 
     by_player = {}
-    for row in merged.itertuples(index=False):
+    for row in passp.itertuples(index=False):
         _, _, name = pos_lookup(row.passer_player_id, row.week)
         if not name:
             continue
@@ -2598,8 +2552,6 @@ def compute_player_pass_splits(pbp: pd.DataFrame, participation: pd.DataFrame, p
     out = {}
     for (team, name), rows in by_player.items():
         out.setdefault(team, {})[name] = {
-            "zone": summarize([r for r in rows if r.zone]),
-            "man": summarize([r for r in rows if r.man]),
             "pressure": summarize([r for r in rows if r.pressure]),
             "clean": summarize([r for r in rows if not r.pressure]),
         }
@@ -2611,7 +2563,7 @@ def compute_player_pass_splits(pbp: pd.DataFrame, participation: pd.DataFrame, p
 SCRAMBLE_MIN_SAMPLE = 8
 
 
-def compute_scramble_splits(pbp: pd.DataFrame, participation: pd.DataFrame, pos_lookup, teams) -> tuple:
+def compute_scramble_splits(pbp: pd.DataFrame, pos_lookup, teams) -> tuple:
     """Returns (player_scramble_splits, team_scramble_containment).
 
     player_scramble_splits[(team)][name]: this QB's OWN scramble rate out
@@ -2640,17 +2592,14 @@ def compute_scramble_splits(pbp: pd.DataFrame, participation: pd.DataFrame, pos_
     # outcomes alike.
     db = pbp.loc[
         (pbp["qb_dropback"] == 1) & (pbp["two_point_attempt"] != 1),
-        ["game_id", "play_id", "week", "posteam", "defteam", "passer_player_id", "rusher_player_id", "qb_scramble", "yards_gained"],
+        ["week", "posteam", "defteam", "passer_player_id", "rusher_player_id", "qb_scramble", "yards_gained", "sack", "qb_hit"],
     ].copy()
     db["qb_player_id"] = db["passer_player_id"].fillna(db["rusher_player_id"])
-    db = db.dropna(subset=["qb_player_id"])
-    merged = db.merge(
-        participation[["nflverse_game_id", "play_id", "was_pressure"]],
-        left_on=["game_id", "play_id"],
-        right_on=["nflverse_game_id", "play_id"],
-        how="inner",
-    )
-    merged["pressure"] = merged["was_pressure"] == True  # noqa: E712
+    merged = db.dropna(subset=["qb_player_id"]).copy()
+    # Same sack-or-QB-hit pressure proxy as compute_scheme_splits/
+    # compute_player_pass_splits -- no participation dependency, so this
+    # stays live all season instead of needing a fallback.
+    merged["pressure"] = (merged["sack"] == 1) | (merged["qb_hit"] == 1)
     merged["scramble"] = merged["qb_scramble"] == 1
 
     by_player = {}
@@ -2919,20 +2868,18 @@ def main():
     injuries_df = load_injuries(args.data_dir, args.season)
     pos_lookup = build_position_lookup(rosters)
 
-    # Participation-derived stats (scheme/route/pass-rush/snap-share) may
-    # be resolved to a different season than everything else -- see
-    # resolve_participation_season. When it is, pull that season's own
-    # pbp/rosters too, since the participation merges are keyed by
-    # game_id/play_id and player position lookups need to match the same
-    # season's players.
-    if participation_season == season:
-        participation_pbp = pbp
-        participation_pos_lookup = pos_lookup
-    else:
-        participation_pbp = load_pbp(args.data_dir, participation_season)
-        participation_rosters = load_rosters(args.data_dir, participation_season)
-        participation_pos_lookup = build_position_lookup(participation_rosters)
+    # Route-type charting (compute_route_splits) is the one remaining
+    # participation-derived stat with no live-during-season alternative
+    # (see resolve_participation_season's docstring) -- scheme splits,
+    # snap shares, and pass-rush/pressure splits have all since moved to
+    # live sources (FTN charting, PFR snap counts, plain pbp) below. Route
+    # splits may still resolve to a different season than everything else,
+    # so its own pbp needs to come from that SAME season (the participation
+    # merge is keyed by game_id/play_id).
+    participation_pbp = pbp if participation_season == season else load_pbp(args.data_dir, participation_season)
     participation = load_participation(args.data_dir, participation_season)
+    ftn = load_ftn_charting(args.data_dir, season)
+    snap_counts_df = load_snap_counts(args.data_dir, season)
 
     # Schedule (and the full 32-team list derived from it) computed up
     # front: early in a season, `pbp` itself may not yet include every
@@ -2992,7 +2939,7 @@ def main():
     player_stats = build_player_stats(scoring_df, first_td_by_game, teams, target_ranks)
     player_td_results = compute_player_td_results(scoring_df, first_td_by_game)
 
-    scheme_splits = compute_scheme_splits(participation_pbp, participation, teams)
+    scheme_splits = compute_scheme_splits(pbp, ftn, teams)
     for team in teams:
         team_stats[team].update(scheme_splits.get(team, {}))
     # Flattened (q1_scored_per_g, q1_allowed_per_g, ...) rather than a
@@ -3011,8 +2958,8 @@ def main():
     for team in teams:
         team_stats[team].update(rush_zone_stats.get(team, {}))
     player_rush_zones = compute_player_rush_zone_splits(pbp, pos_lookup)
-    player_pass_splits = compute_player_pass_splits(participation_pbp, participation, participation_pos_lookup)
-    player_scramble_splits, team_scramble_containment = compute_scramble_splits(participation_pbp, participation, participation_pos_lookup, teams)
+    player_pass_splits = compute_player_pass_splits(pbp, pos_lookup)
+    player_scramble_splits, team_scramble_containment = compute_scramble_splits(pbp, pos_lookup, teams)
     for team in teams:
         team_stats[team].update(team_scramble_containment.get(team, {}))
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
@@ -3035,7 +2982,7 @@ def main():
     max_week = int(pbp["week"].max())
 
     current_week = compute_current_week(schedule)
-    player_snap_shares = compute_player_snap_shares(participation_pbp, participation, participation_pos_lookup)
+    player_snap_shares = compute_player_snap_shares(snap_counts_df)
     injury_report = compute_injury_report(injuries_df, teams, player_snap_shares)
 
     # Player prop odds (anytime-TD, first-TD) for whatever week is currently
