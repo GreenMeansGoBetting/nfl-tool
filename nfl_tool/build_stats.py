@@ -2139,9 +2139,11 @@ def compute_player_td_results(scoring_df, first_td_by_game) -> dict:
 def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
     """Per-game (not season-total) stat lines for every skill player with a
     qualifying snap that week -- powers the Player Props modal's "Game Log"
-    view. Keyed by (team, full_name), the same pos_lookup-derived name used
-    to join build_player_props' own rows, so a click from either the props
-    table or the odds modal resolves to the same player."""
+    view, and (via possible-plays.js's gradePlayerPropPlay) auto-grading
+    saved player-prop O/U plays once the game is final. Keyed by (team,
+    full_name), the same pos_lookup-derived name used to join
+    build_player_props' own rows, so a click from either the props table
+    or the odds modal resolves to the same player."""
     scrimmage = pbp[pbp["two_point_attempt"] != 1]
     targets = scrimmage[scrimmage["pass_attempt"] == 1].dropna(subset=["receiver_player_id"])
     rushes = scrimmage[scrimmage["rush_attempt"] == 1].dropna(subset=["rusher_player_id"])
@@ -2160,9 +2162,9 @@ def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
             {
                 "week": int(week),
                 "opp": opp,
-                "targets": 0, "receptions": 0, "rec_yards": 0.0, "rec_td": 0,
-                "carries": 0, "rush_yards": 0.0, "rush_td": 0,
-                "pass_att": 0, "completions": 0, "pass_yards": 0.0, "pass_td": 0, "interceptions": 0,
+                "targets": 0, "receptions": 0, "rec_yards": 0.0, "rec_td": 0, "longest_rec": 0.0,
+                "carries": 0, "rush_yards": 0.0, "rush_td": 0, "longest_rush": 0.0,
+                "pass_att": 0, "completions": 0, "pass_yards": 0.0, "pass_td": 0, "interceptions": 0, "longest_pass": 0.0,
             },
         )
 
@@ -2174,6 +2176,7 @@ def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
         if row.complete_pass == 1:
             g["receptions"] += 1
             g["rec_yards"] += row.yards_gained
+            g["longest_rec"] = max(g["longest_rec"], row.yards_gained)
             if row.pass_touchdown == 1:
                 g["rec_td"] += 1
 
@@ -2183,6 +2186,7 @@ def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
             continue
         g["carries"] += 1
         g["rush_yards"] += row.yards_gained
+        g["longest_rush"] = max(g["longest_rush"], row.yards_gained)
         if row.rush_touchdown == 1:
             g["rush_td"] += 1
 
@@ -2194,6 +2198,7 @@ def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
         if row.complete_pass == 1:
             g["completions"] += 1
             g["pass_yards"] += row.yards_gained
+            g["longest_pass"] = max(g["longest_pass"], row.yards_gained)
             if row.pass_touchdown == 1:
                 g["pass_td"] += 1
         if row.interception == 1:
@@ -2206,6 +2211,9 @@ def compute_player_game_logs(pbp: pd.DataFrame, pos_lookup) -> dict:
             r["rush_yards"] = round(r["rush_yards"], 0)
             r["rec_yards"] = round(r["rec_yards"], 0)
             r["pass_yards"] = round(r["pass_yards"], 0)
+            r["longest_rec"] = round(r["longest_rec"], 0)
+            r["longest_rush"] = round(r["longest_rush"], 0)
+            r["longest_pass"] = round(r["longest_pass"], 0)
         out.setdefault(team, {})[name] = rows
     return out
 

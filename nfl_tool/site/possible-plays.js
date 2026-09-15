@@ -118,6 +118,56 @@ function gradeTdPlay(play, tdResults) {
   return teamResults[field].includes(play.description) ? "win" : "loss";
 }
 
+// Player-prop O/U markets (Player Props page's "Add to Possible Plays"
+// checkboxes) -- these fell through autoGradePlay to a silent `null`
+// (permanently Pending) until now, since only the TD and Spread/Total/ML
+// shapes above ever had grading logic. Sourced from build_stats.py's
+// compute_player_game_logs, which -- like the game-line schedule scores
+// above, and unlike the participation-gated scheme/route stats -- is
+// built from standard pbp columns only, so it's real and current the
+// same week the game is played. "Fantasy Score" is deliberately left out:
+// no fixed scoring format (PPR/half/standard) has been confirmed against
+// SGO's own definition yet, and grading it against a guessed formula
+// would be worse than leaving it Pending.
+const PLAYER_OU_STAT_FIELDS = {
+  "Receiving Yards": (g) => g.rec_yards,
+  "Receptions": (g) => g.receptions,
+  "Longest Reception": (g) => g.longest_rec,
+  "Rushing Yards": (g) => g.rush_yards,
+  "Rush Attempts": (g) => g.carries,
+  "Longest Rush": (g) => g.longest_rush,
+  "Rushing TDs": (g) => g.rush_td,
+  "Passing Yards": (g) => g.pass_yards,
+  "Pass Attempts": (g) => g.pass_att,
+  "Completions": (g) => g.completions,
+  "INTs Thrown": (g) => g.interceptions,
+  "Longest Completion": (g) => g.longest_pass,
+  "Passing TDs": (g) => g.pass_td,
+  "Rush + Rec Yards": (g) => g.rush_yards + g.rec_yards,
+  "Pass + Rush Yards": (g) => g.pass_yards + g.rush_yards,
+};
+
+function gradePlayerPropPlay(play, data) {
+  const statFn = PLAYER_OU_STAT_FIELDS[play.category];
+  if (!statFn || !play.team) return null;
+  const m = play.description.match(/^(.*) (Over|Under) ([\d.]+)$/);
+  if (!m) return null;
+  const [, name, side, lineStr] = m;
+  const line = parseFloat(lineStr);
+  const gameLogs = (data.player_game_logs[play.team] || {})[name];
+  // Name-format mismatch between SGO's odds names and nflverse's own names
+  // is a known, accepted limitation everywhere else this site joins the
+  // two sources (see build_roster_position_lookup's docstring) -- a
+  // handful of plays just won't find a log here and stay Pending.
+  const gameLog = gameLogs && gameLogs.find((g) => g.week === play.week);
+  if (!gameLog) return null;
+  const actual = statFn(gameLog);
+  if (actual === undefined || actual === null) return null;
+  if (actual === line) return "push";
+  const over = actual > line;
+  return side === "Over" ? (over ? "win" : "loss") : over ? "loss" : "win";
+}
+
 function autoGradePlay(play, data) {
   if (play.category === "Anytime TD" || play.category === "First TD") {
     // player_td_results comes from play-by-play, which during a season's
@@ -137,7 +187,7 @@ function autoGradePlay(play, data) {
   if (GAME_LINE_CATEGORIES[play.category]) {
     return gradeGameLinePlay(play, data.schedule);
   }
-  return null;
+  return gradePlayerPropPlay(play, data);
 }
 
 function regradeAllPossiblePlays(data) {
