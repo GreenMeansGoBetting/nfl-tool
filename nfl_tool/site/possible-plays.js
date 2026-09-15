@@ -147,6 +147,17 @@ const PLAYER_OU_STAT_FIELDS = {
   "Pass + Rush Yards": (g) => g.pass_yards + g.rush_yards,
 };
 
+// Strips a trailing generational suffix for a looser name match -- SGO and
+// nflverse don't consistently agree on whether "Jr."/"II"/etc is part of a
+// player's name (confirmed: SGO's "Omar Cooper" vs nflverse's own "Omar
+// Cooper Jr." for the same person). A genuine nickname-vs-legal-name gap
+// (e.g. "Chig" vs "Chigoziem" Okonkwo) is NOT handled here -- too easy to
+// false-match a different player -- and stays the known, accepted
+// limitation documented elsewhere in this codebase.
+function stripNameSuffix(name) {
+  return name.replace(/\s+(Jr\.?|Sr\.?|III|II|IV|V)$/i, "").trim();
+}
+
 function gradePlayerPropPlay(play, data) {
   const statFn = PLAYER_OU_STAT_FIELDS[play.category];
   if (!statFn || !play.team) return null;
@@ -154,11 +165,13 @@ function gradePlayerPropPlay(play, data) {
   if (!m) return null;
   const [, name, side, lineStr] = m;
   const line = parseFloat(lineStr);
-  const gameLogs = (data.player_game_logs[play.team] || {})[name];
-  // Name-format mismatch between SGO's odds names and nflverse's own names
-  // is a known, accepted limitation everywhere else this site joins the
-  // two sources (see build_roster_position_lookup's docstring) -- a
-  // handful of plays just won't find a log here and stay Pending.
+  const teamLogs = data.player_game_logs[play.team] || {};
+  let gameLogs = teamLogs[name];
+  if (!gameLogs) {
+    const target = stripNameSuffix(name);
+    const matchKey = Object.keys(teamLogs).find((k) => stripNameSuffix(k) === target);
+    if (matchKey) gameLogs = teamLogs[matchKey];
+  }
   const gameLog = gameLogs && gameLogs.find((g) => g.week === play.week);
   if (!gameLog) return null;
   const actual = statFn(gameLog);
@@ -233,6 +246,50 @@ function setManualResult(id, result) {
 
 const RESULT_LABELS = { win: "Win", loss: "Loss", push: "Push", void: "Void" };
 
+// ---- Bet-type grouping (Results modal filters) ----
+// Three buckets for the shows-content workflow: Main Lines (game-level),
+// TDs (the site's original bread and butter), Props (everything else --
+// every player O/U market). Deliberately a lookup for the two small,
+// fixed-size categories rather than listing every prop category by name,
+// so a new PLAYER_OU_MARKETS entry added in build_stats.py automatically
+// falls into Props with no matching frontend change needed.
+const BET_TYPE_GROUPS = {
+  Spread: "Main Lines",
+  Total: "Main Lines",
+  Moneyline: "Main Lines",
+  "Anytime TD": "TDs",
+  "First TD": "TDs",
+};
+const BET_TYPES = ["Main Lines", "TDs", "Props"];
+function betTypeGroup(category) {
+  return BET_TYPE_GROUPS[category] || "Props";
+}
+
+// ---- Units ----
+// Stake size scales down as the odds get longer, per a fixed house rule:
+// 1u up through +500, 0.5u from +501-+1000, 0.25u beyond +1000 -- so one
+// deep-longshot prop hit doesn't blow the unit ledger out of proportion to
+// how big a bet it actually was. Negative odds (favorites) and anything up
+// to +500 are always 1u.
+function stakeForOdds(oddsStr) {
+  const odds = parseFloat(oddsStr);
+  if (isNaN(odds) || odds <= 500) return 1;
+  if (odds <= 1000) return 0.5;
+  return 0.25;
+}
+// American odds -> profit per 1u staked (e.g. -110 -> 0.91u, +150 -> 1.5u).
+function americanOddsProfit(odds) {
+  return odds > 0 ? odds / 100 : 100 / Math.abs(odds);
+}
+// Net units for one graded play at its own tiered stake size. 0 for a
+// push/void or anything still Pending.
+function unitsForPlay(play) {
+  const stake = stakeForOdds(play.odds);
+  if (play.result === "win") return stake * americanOddsProfit(parseFloat(play.odds));
+  if (play.result === "loss") return -stake;
+  return 0;
+}
+
 function tallyResults(list) {
   const win = list.filter((p) => p.result === "win").length;
   const loss = list.filter((p) => p.result === "loss").length;
@@ -240,7 +297,11 @@ function tallyResults(list) {
   const voidCt = list.filter((p) => p.result === "void").length;
   const pending = list.filter((p) => !p.result).length;
   const decided = win + loss;
-  return { win, loss, push, void: voidCt, pending, winPct: decided ? Math.round((win / decided) * 100) : null };
+  const units = Math.round(list.reduce((sum, p) => sum + unitsForPlay(p), 0) * 100) / 100;
+  return { win, loss, push, void: voidCt, pending, winPct: decided ? Math.round((win / decided) * 100) : null, units };
+}
+function fmtUnits(units) {
+  return `${units >= 0 ? "+" : ""}${units.toFixed(2)}u`;
 }
 
 function ensureResultsModal() {
@@ -267,51 +328,161 @@ function closeResultsModal() {
   if (el) el.hidden = true;
 }
 
+// ---- Results modal: filter/sort state ----
+// Sticky for the page session (not persisted across reloads) -- picking a
+// week/type filter or a sort column while flipping between shows should
+// stay put until the modal is closed and the page reloaded, not reset on
+// every open.
+let resultsWeekFilter = "all";
+let resultsTypeFilters = new Set(BET_TYPES);
+let resultsSort = { col: "week", dir: "desc" };
+
+function filteredResultsPlays() {
+  return loadPossiblePlays().filter((p) => {
+    if (resultsWeekFilter !== "all" && p.week !== resultsWeekFilter) return false;
+    return resultsTypeFilters.has(betTypeGroup(p.category));
+  });
+}
+
+const RESULT_RANK = { win: 0, push: 1, void: 1, loss: 2 };
+function resultRank(p) {
+  return p.result ? RESULT_RANK[p.result] ?? 3 : 3; // Pending sorts last
+}
+const RESULT_SORT_COLUMNS = [
+  { key: "week", label: "Week" },
+  { key: "matchup", label: "Matchup" },
+  { key: "type", label: "Type" },
+  { key: "play", label: "Play" },
+  { key: "odds", label: "Odds" },
+  { key: "units", label: "Units" },
+  { key: "result", label: "Result" },
+];
+// New column click: numeric columns default to biggest-first, text/result
+// columns to A-first/win-first -- whichever reads as the more useful
+// initial order. Clicking the SAME column again just flips it.
+const SORT_DEFAULT_DIR = { week: "desc", matchup: "asc", type: "asc", play: "asc", odds: "desc", units: "desc", result: "asc" };
+function sortResultsValue(p, col) {
+  switch (col) {
+    case "week": return p.week;
+    case "matchup": return p.matchup;
+    case "type": return p.category;
+    case "play": return p.description;
+    case "odds": return parseFloat(p.odds) || 0;
+    case "units": return unitsForPlay(p);
+    case "result": return resultRank(p);
+    default: return 0;
+  }
+}
+function setResultsSort(col) {
+  resultsSort = resultsSort.col === col ? { col, dir: resultsSort.dir === "asc" ? "desc" : "asc" } : { col, dir: SORT_DEFAULT_DIR[col] || "asc" };
+}
+function sortResultsPlays(list) {
+  const { col, dir } = resultsSort;
+  const mult = dir === "asc" ? 1 : -1;
+  return [...list].sort((a, b) => {
+    const av = sortResultsValue(a, col);
+    const bv = sortResultsValue(b, col);
+    if (av < bv) return -1 * mult;
+    if (av > bv) return 1 * mult;
+    return new Date(b.added_at) - new Date(a.added_at);
+  });
+}
+function sortArrowFor(col) {
+  if (resultsSort.col !== col) return "";
+  return resultsSort.dir === "asc" ? " ↑" : " ↓";
+}
+
+function renderResultsFilterBar(allPlays) {
+  const weeks = [...new Set(allPlays.map((p) => p.week))].sort((a, b) => b - a);
+  const weekOptions = [`<option value="all"${resultsWeekFilter === "all" ? " selected" : ""}>All Weeks (Cumulative)</option>`]
+    .concat(weeks.map((w) => `<option value="${w}"${resultsWeekFilter === w ? " selected" : ""}>Week ${w}</option>`))
+    .join("");
+  const typeChecks = BET_TYPES.map(
+    (t) => `<label class="results-type-check"><input type="checkbox" class="results-type-checkbox" data-type="${t}"${resultsTypeFilters.has(t) ? " checked" : ""}> ${t}</label>`
+  ).join("");
+  return `<div class="results-filter-bar">
+    <label class="results-week-label">Week <select class="results-week-select">${weekOptions}</select></label>
+    <div class="results-type-checks">${typeChecks}</div>
+  </div>`;
+}
+
+// Overall record/units for the current filter, plus the same broken out
+// per bet-type group -- directly answers "how are my TDs doing vs my
+// Props" without needing to flip the type checkboxes back and forth.
+function renderResultsSummary(list) {
+  const overall = tallyResults(list);
+  const pushVoid = overall.push + overall.void;
+  const overallLine = `<p class="results-summary">${overall.win}-${overall.loss}-${pushVoid}${overall.winPct !== null ? ` <span class="muted-label">(${overall.winPct}%)</span>` : ""} <strong>${fmtUnits(overall.units)}</strong>${overall.pending ? ` <span class="muted-label">&middot; ${overall.pending} pending</span>` : ""}</p>`;
+  const typeRows = BET_TYPES.map((t) => ({ type: t, ...tallyResults(list.filter((p) => betTypeGroup(p.category) === t)) }))
+    .filter((t) => t.win + t.loss + t.push + t.void + t.pending > 0)
+    .map((t) => `<div class="results-type-summary-row"><span>${t.type}</span><span>${t.win}-${t.loss}-${t.push + t.void}${t.winPct !== null ? ` (${t.winPct}%)` : ""}</span><span>${fmtUnits(t.units)}</span></div>`)
+    .join("");
+  return `${overallLine}${typeRows ? `<div class="results-type-summary">${typeRows}</div>` : ""}`;
+}
+
 function renderResultsModalContent() {
-  const plays = loadPossiblePlays();
-  if (!plays.length) {
+  const allPlays = loadPossiblePlays();
+  if (!allPlays.length) {
     return `<h3>Possible Plays &mdash; Results</h3><p class="no-data-note">Nothing saved yet.</p>`;
   }
-  const t = tallyResults(plays);
-  const pushVoid = t.push + t.void;
-  const summary = `<p class="results-summary">${t.win}-${t.loss}-${pushVoid}${t.winPct !== null ? ` <span class="muted-label">(${t.winPct}%)</span>` : ""}${t.pending ? ` <span class="muted-label">&middot; ${t.pending} pending</span>` : ""}</p>`;
-
-  const byWeek = {};
-  plays.forEach((p) => (byWeek[p.week] = byWeek[p.week] || []).push(p));
-  const weeks = Object.keys(byWeek).map(Number).sort((a, b) => b - a);
-
-  const sections = weeks
-    .map((week) => {
-      const rows = byWeek[week]
-        .slice()
-        .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
-        .map((p) => {
-          const resultLabel = p.result ? RESULT_LABELS[p.result] : "Pending";
-          const overrideBtns = ["win", "loss", "void"]
-            .map((r) => `<button type="button" class="result-override-btn${p.result === r && p.result_source === "manual" ? " active" : ""}" data-id="${p.id}" data-result="${r}">${RESULT_LABELS[r]}</button>`)
-            .join("");
-          return `<tr class="result-row-${p.result || "pending"}">
-            <td>${p.matchup}</td>
-            <td>${p.category}</td>
-            <td>${p.team ? teamLogoMini(p.team) : ""} ${p.description}</td>
-            <td class="num">${p.odds}</td>
-            <td><span class="pick-result pick-result-${p.result || "pending"}">${resultLabel}</span></td>
-            <td class="result-override-group">${overrideBtns}</td>
-          </tr>`;
-        })
+  const filterBar = renderResultsFilterBar(allPlays);
+  const list = filteredResultsPlays();
+  if (!list.length) {
+    return `<h3>Possible Plays &mdash; Results</h3>${filterBar}<p class="no-data-note">No plays match these filters.</p>`;
+  }
+  const summary = renderResultsSummary(list);
+  const headerCells = RESULT_SORT_COLUMNS.map((c) => `<th class="results-sort-th" data-col="${c.key}">${c.label}${sortArrowFor(c.key)}</th>`).join("");
+  const rows = sortResultsPlays(list)
+    .map((p) => {
+      const resultLabel = p.result ? RESULT_LABELS[p.result] : "Pending";
+      const unitsDisplay = p.result === "win" || p.result === "loss" ? fmtUnits(unitsForPlay(p)) : "--";
+      const overrideBtns = ["win", "loss", "void"]
+        .map((r) => `<button type="button" class="result-override-btn${p.result === r && p.result_source === "manual" ? " active" : ""}" data-id="${p.id}" data-result="${r}">${RESULT_LABELS[r]}</button>`)
         .join("");
-      return `<div class="section-wrap">
-        <h2 class="section-title">Week ${week}</h2>
-        <table class="data-table results-table">
-          <thead><tr><th>Matchup</th><th>Type</th><th>Play</th><th>Odds</th><th>Result</th><th>Override</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
+      return `<tr class="result-row-${p.result || "pending"}">
+        <td>${p.week}</td>
+        <td>${p.matchup}</td>
+        <td>${p.category}</td>
+        <td>${p.team ? teamLogoMini(p.team) : ""} ${p.description}</td>
+        <td class="num">${p.odds}</td>
+        <td class="num">${unitsDisplay}</td>
+        <td><span class="pick-result pick-result-${p.result || "pending"}">${resultLabel}</span></td>
+        <td class="result-override-group">${overrideBtns}</td>
+      </tr>`;
     })
     .join("");
-
-  return `<h3>Possible Plays &mdash; Results</h3>${summary}${sections}`;
+  return `<h3>Possible Plays &mdash; Results</h3>
+    ${filterBar}
+    ${summary}
+    <div class="results-table-scroll">
+      <table class="data-table results-table">
+        <thead><tr>${headerCells}<th>Override</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
+
+document.addEventListener("change", (e) => {
+  const weekSel = e.target.closest(".results-week-select");
+  if (weekSel) {
+    resultsWeekFilter = weekSel.value === "all" ? "all" : Number(weekSel.value);
+    document.getElementById("results-modal-content").innerHTML = renderResultsModalContent();
+    return;
+  }
+  const typeCb = e.target.closest(".results-type-checkbox");
+  if (typeCb) {
+    if (typeCb.checked) resultsTypeFilters.add(typeCb.dataset.type);
+    else resultsTypeFilters.delete(typeCb.dataset.type);
+    document.getElementById("results-modal-content").innerHTML = renderResultsModalContent();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  const th = e.target.closest(".results-sort-th");
+  if (!th) return;
+  setResultsSort(th.dataset.col);
+  document.getElementById("results-modal-content").innerHTML = renderResultsModalContent();
+});
 
 function openResultsModal() {
   ensureResultsModal();
