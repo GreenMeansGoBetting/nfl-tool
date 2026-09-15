@@ -788,6 +788,115 @@ function renderPassCoveragePanel(team, oppTeam) {
   return `<div class="stat-column-title">Coverage &amp; Pressure</div>${blocks}`;
 }
 
+// ---- Pass Zone shot chart (Passing + Receiving tabs) ----
+// Where a team's passing game actually attacks the field -- depth of
+// target (screen/short/intermediate/deep, by air_yards) x pass_location
+// (left/middle/right). Built entirely from build_stats.py's
+// compute_pass_shot_chart, which -- unlike the Coverage & Pressure panel
+// above -- uses only standard pbp columns nflverse publishes every week
+// during the season, so this stays live all year instead of getting
+// stuck on last season's data.
+const PASS_ZONE_ROWS = [
+  { key: "deep", label: "Deep" },
+  { key: "intermediate", label: "Intermediate" },
+  { key: "short", label: "Short" },
+  { key: "screen", label: "Screen" },
+];
+const PASS_ZONE_COLS = ["left", "middle", "right"];
+
+// Completion rate, not the EPA-based "success rate" -- so the headline %
+// always matches the comp/att fraction shown right below it (e.g. "67% /
+// 2 of 3"), same as the reference chart this was modeled on. success/
+// epa_sum are still in the raw data if a per-zone efficiency view is
+// wanted later.
+function passZoneRate(zone) {
+  return zone && zone.attempts ? zone.completions / zone.attempts : null;
+}
+
+// League-wide pool of success rate for one specific zone cell (e.g. "how
+// do all 32 teams' offenses do on deep-right throws"), off or def side --
+// same zone-vs-zone comparison a raw team_stats percentile pool would do,
+// just sourced from the nested pass_shot_charts blob instead of a flat key.
+function passZonePool(side, zoneKey) {
+  return Object.values(DATA.pass_shot_charts || {})
+    .map((t) => passZoneRate(t[side]?.zones?.[zoneKey]))
+    .filter((v) => v !== null);
+}
+
+function renderPassZoneGrid(team, side) {
+  const chart = (DATA.pass_shot_charts[team] || {})[side];
+  if (!chart) return `<p class="no-data-note">No pass-zone data yet.</p>`;
+  const rows = PASS_ZONE_ROWS.map((r) => {
+    const cells = PASS_ZONE_COLS.map((loc) => {
+      const zk = `${r.key}_${loc}`;
+      const zone = chart.zones[zk];
+      const rate = passZoneRate(zone);
+      // DEF side inverted: a defense allowing a HIGH success rate there is
+      // the bad outcome (red), same "green = good for the team it's on"
+      // promise every other tier color on the site already makes.
+      const invert = side === "def";
+      const cls = rate === null ? "" : percentileTier(rate, passZonePool(side, zk), invert);
+      const alpha = rate === null ? "" : tierAlphaAttr(rate, passZonePool(side, zk), invert);
+      const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
+      const epaSign = zone.epa_sum > 0 ? "+" : "";
+      const subDisplay = zone.attempts ? `${zone.completions}/${zone.attempts} &middot; ${epaSign}${zone.epa_sum.toFixed(1)} epa` : "no attempts";
+      return `<td class="num pass-zone-cell ${cls}"${alpha}><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
+    }).join("");
+    return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
+  }).join("");
+  return `<table class="data-table pass-zone-grid">
+    <thead><tr><th></th><th>Left</th><th>Middle</th><th>Right</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function zoneLabel(zoneKey) {
+  const [depth, loc] = zoneKey.split("_");
+  return `${depth[0].toUpperCase()}${depth.slice(1)} ${loc[0].toUpperCase()}${loc.slice(1)}`;
+}
+
+function renderPassIdentityCard(team, side) {
+  const chart = (DATA.pass_shot_charts[team] || {})[side];
+  if (!chart) return "";
+  const zoneEntries = Object.entries(chart.zones).map(([key, z]) => ({ key, ...z }));
+  const totalAttempts = zoneEntries.reduce((a, z) => a + z.attempts, 0);
+  if (!totalAttempts) return `<p class="no-data-note">No pass attempts charted yet.</p>`;
+  const leadZone = zoneEntries.reduce((best, z) => (z.attempts > best.attempts ? z : best), zoneEntries[0]);
+  const deepAttempts = zoneEntries.filter((z) => z.key.startsWith("deep_")).reduce((a, z) => a + z.attempts, 0);
+  const deepRate = deepAttempts / totalAttempts;
+  const passRate = chart.total_plays ? chart.pass_attempts / chart.total_plays : null;
+  const rows = [...zoneEntries]
+    .filter((z) => z.attempts > 0)
+    .sort((a, b) => b.attempts - a.attempts)
+    .map((z) => {
+      const pct = ((z.attempts / totalAttempts) * 100).toFixed(1);
+      const epaCls = z.epa_sum > 0 ? "tier-good" : z.epa_sum < 0 ? "tier-bad" : "";
+      const epaSign = z.epa_sum > 0 ? "+" : "";
+      return `<div class="pass-zone-identity-row">
+        <span class="pass-zone-identity-label">${zoneLabel(z.key)}</span>
+        <span class="pass-zone-identity-vol">${z.attempts} att &middot; ${pct}%</span>
+        <span class="pass-zone-identity-epa ${epaCls}">${epaSign}${z.epa_sum.toFixed(1)} epa</span>
+      </div>`;
+    })
+    .join("");
+  return `<div class="pass-zone-identity">
+    <div class="pass-zone-identity-stat"><span>Lead Zone</span><strong>${zoneLabel(leadZone.key)}</strong></div>
+    <div class="pass-zone-identity-stat"><span>Deep-Target Rate</span><strong>${Math.round(deepRate * 100)}%</strong></div>
+    <div class="pass-zone-identity-stat"><span>Pass Rate</span><strong>${passRate === null ? "--" : Math.round(passRate * 100) + "%"}</strong></div>
+    <div class="pass-zone-identity-stat"><span>Attempts</span><strong>${chart.pass_attempts}</strong></div>
+    <div class="pass-zone-identity-zones">${rows}</div>
+  </div>`;
+}
+
+function renderPassZoneBlock(team, side) {
+  const heading = side === "off" ? `${team} &mdash; Passing Offense` : `${team} &mdash; Pass Defense (Allowed)`;
+  return `<div class="pass-zone-block">
+    <div class="stat-column-title">${teamLogoMini(team)} ${heading}</div>
+    ${renderPassZoneGrid(team, side)}
+    ${renderPassIdentityCard(team, side)}
+  </div>`;
+}
+
 // ---- QB Rushing (scramble vs designed) ----
 // build_stats.py's compute_scramble_splits: does pressure actually make
 // this QB take off (his own scramble rate, pressured vs clean), and does
@@ -1399,6 +1508,14 @@ function render() {
   document.getElementById("col-home-passcoverage").innerHTML = renderPassCoveragePanel(home, away);
   document.getElementById("col-away-scramble").innerHTML = renderQbRushingPanel(away, home) + renderRedZoneMixPanel(away, home);
   document.getElementById("col-home-scramble").innerHTML = renderQbRushingPanel(home, away) + renderRedZoneMixPanel(home, away);
+  document.getElementById("col-away-passzones-off").innerHTML = renderPassZoneBlock(away, "off");
+  document.getElementById("col-away-passzones-def").innerHTML = renderPassZoneBlock(away, "def");
+  document.getElementById("col-home-passzones-off").innerHTML = renderPassZoneBlock(home, "off");
+  document.getElementById("col-home-passzones-def").innerHTML = renderPassZoneBlock(home, "def");
+  document.getElementById("col-away-recvzones-off").innerHTML = renderPassZoneBlock(away, "off");
+  document.getElementById("col-away-recvzones-def").innerHTML = renderPassZoneBlock(away, "def");
+  document.getElementById("col-home-recvzones-off").innerHTML = renderPassZoneBlock(home, "off");
+  document.getElementById("col-home-recvzones-def").innerHTML = renderPassZoneBlock(home, "def");
 
   const notesKey = `${away}_${home}`;
   const savedNote = loadTdNotes()[notesKey] || "";

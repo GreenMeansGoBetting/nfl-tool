@@ -693,9 +693,14 @@ function scheduleQualityText(team) {
 }
 
 function renderSchemeNotes(away, home) {
-  return [away, home]
-    .map(scheduleQualityText)
-    .filter(Boolean)
+  // NFL charting (participation -- box counts, blitz/coverage shells, snap
+  // shares) for the current season isn't published on nflverse until well
+  // after that season ends, so scheme/coverage/snap-share numbers below
+  // are the most recent thing available, not necessarily this season's.
+  const participationNote = DATA.is_participation_fallback
+    ? [`Scheme, coverage, and snap-share numbers reflect ${DATA.participation_season} -- the NFL hasn't published this season's charting data yet.`]
+    : [];
+  return [...participationNote, ...[away, home].map(scheduleQualityText).filter(Boolean)]
     .map((t) => `<li>${t}</li>`)
     .join("");
 }

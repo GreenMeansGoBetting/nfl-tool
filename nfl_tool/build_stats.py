@@ -134,6 +134,88 @@ def length_bucket(yards):
     return LENGTH_BUCKETS[-1][0]
 
 
+# Pass-zone shot chart (Player Props: Passing/Receiving tabs) -- depth of
+# target (by air_yards) x pass_location (left/middle/right). Deliberately
+# built ONLY from columns nflverse publishes on the standard pbp file
+# every week during the season (pass_location, air_yards, epa, success,
+# complete_pass) -- unlike compute_scheme_splits' box/blitz/coverage
+# charting, none of this depends on the participation file that's stuck
+# on a season-plus lag (see resolve_participation_season). Bucket
+# boundaries match the same depth tiers nflsavant.com's own shot chart
+# uses (screen/short/intermediate/deep).
+PASS_DEPTH_BUCKETS = [
+    ("screen", -9999, -1),
+    ("short", 0, 9),
+    ("intermediate", 10, 19),
+    ("deep", 20, 9999),
+]
+PASS_LOCATIONS = ["left", "middle", "right"]
+
+
+def pass_depth_bucket(air_yards):
+    for key, lo, hi in PASS_DEPTH_BUCKETS:
+        if lo <= air_yards <= hi:
+            return key
+    return PASS_DEPTH_BUCKETS[-1][0]
+
+
+def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
+    """Where each team's passing game actually attacks the field, and
+    what each defense allows there -- see PASS_DEPTH_BUCKETS' docstring.
+    Returns {team: {"off": {...}, "def": {...}}}, off/def each shaped
+    {"zones": {"<depth>_<location>": {attempts, completions, success,
+    epa_sum}}, "pass_attempts": int, "total_plays": int (pass+rush, for
+    computing pass rate on the frontend)}. Every team in `teams` gets a
+    zero-filled entry even with no pass attempts yet (bye week, season's
+    first game not yet played) -- callers shouldn't need a fallback."""
+    passes = pbp[
+        (pbp["pass_attempt"] == 1)
+        & (pbp["two_point_attempt"] != 1)
+        & pbp["pass_location"].notna()
+        & pbp["air_yards"].notna()
+    ].copy()
+    passes["zone_key"] = passes["air_yards"].map(pass_depth_bucket) + "_" + passes["pass_location"]
+
+    scrimmage = pbp[((pbp["pass_attempt"] == 1) | (pbp["rush_attempt"] == 1)) & (pbp["two_point_attempt"] != 1)]
+    total_plays_off = scrimmage.groupby("posteam").size()
+    total_plays_def = scrimmage.groupby("defteam").size()
+
+    def empty_side(team_col, total_plays):
+        zones = {
+            f"{depth}_{loc}": {"attempts": 0, "completions": 0, "success": 0, "epa_sum": 0.0}
+            for depth, _, _ in PASS_DEPTH_BUCKETS
+            for loc in PASS_LOCATIONS
+        }
+        return {"zones": zones, "pass_attempts": 0, "total_plays": int(total_plays.get(team_col, 0))}
+
+    def side_stats(team_col):
+        grouped = passes.groupby(team_col)
+        totals = total_plays_off if team_col == "posteam" else total_plays_def
+        result = {}
+        for team in teams:
+            if team not in grouped.groups:
+                result[team] = empty_side(team, totals)
+                continue
+            grp = grouped.get_group(team)
+            zones = {}
+            for depth, _, _ in PASS_DEPTH_BUCKETS:
+                for loc in PASS_LOCATIONS:
+                    zk = f"{depth}_{loc}"
+                    sub = grp[grp["zone_key"] == zk]
+                    zones[zk] = {
+                        "attempts": int(len(sub)),
+                        "completions": int(sub["complete_pass"].sum()),
+                        "success": int(sub["success"].sum()),
+                        "epa_sum": round(float(sub["epa"].sum()), 2),
+                    }
+            result[team] = {"zones": zones, "pass_attempts": int(len(grp)), "total_plays": int(totals.get(team, 0))}
+        return result
+
+    off = side_stats("posteam")
+    deff = side_stats("defteam")
+    return {team: {"off": off[team], "def": deff[team]} for team in teams}
+
+
 def remote_exists(url: str) -> bool:
     req = urllib.request.Request(url, method="HEAD")
     try:
@@ -162,25 +244,57 @@ def download_if_missing(url: str, dest: Path, force: bool = False):
 
 
 def resolve_season(season: int, data_dir: Path) -> tuple[int, bool]:
-    """Returns (season_to_use, is_fallback). Falls back one season back if
-    nflverse hasn't published EITHER the requested season's pbp or its
-    participation file yet. Checking pbp alone isn't enough once the season
-    is underway: pbp for an already-played game can appear on nflverse
-    before that same game's participation charting does (observed directly
-    -- pbp for 2026's first game showed up while pbp_participation_2026.csv
-    still 404'd), and the two must come from the SAME season since
-    compute_scheme_splits merges them by game_id/play_id -- 2026 pbp
-    against 2025 participation wouldn't match a single play."""
+    """Returns (season_to_use, is_fallback). Falls back one season back
+    only if nflverse hasn't published the requested season's pbp file yet.
+    Scores, schedule/odds, injuries, TD stats, red zone, explosive plays,
+    and general stats all come from pbp alone, so pbp availability is the
+    only thing that should gate them.
+
+    This deliberately does NOT also require the participation file (see
+    resolve_participation_season for that) -- confirmed directly against
+    nflverse's actual release history that participation for a season
+    isn't published until well AFTER that season ends (2025's file was
+    created 2026-02-10, months after the season; 2023/2024's were both
+    backfilled together in Sept 2025, not during either season). Gating
+    the whole season's data on participation would mean the site shows
+    last year's scores for the entire season, every season, forever."""
     def available(url_template):
         path = data_dir / Path(url_template.format(season=season)).name
         return path.exists() or remote_exists(url_template.format(season=season))
 
-    if available(PBP_URL) and available(PARTICIPATION_URL):
+    if available(PBP_URL):
         return season, False
     fallback = season - 1
     print(
-        f"NOTE: {season}'s pbp and/or participation file isn't published on nflverse yet -- "
-        f"falling back to {fallback} season data until both appear.",
+        f"NOTE: {season}'s pbp file isn't published on nflverse yet -- "
+        f"falling back to {fallback} season data until it appears.",
+        file=sys.stderr,
+    )
+    return fallback, True
+
+
+def resolve_participation_season(season: int, data_dir: Path) -> tuple[int, bool]:
+    """Returns (participation_season, is_participation_fallback). Official
+    NFL charting (defenders in box, pass rushers, man/zone coverage,
+    snap participation) has its own, much later publish schedule than
+    pbp -- see resolve_season's docstring. Scheme/route/pass-rush/
+    snap-share stats need to fall back independently of everything else,
+    to whichever season nflverse has actually published participation
+    for. The fallback pbp file must come from that SAME season (not
+    whatever `season` resolve_season landed on) since compute_scheme_splits
+    and friends merge pbp and participation by game_id/play_id -- one
+    season's pbp against another's participation wouldn't match a single
+    play."""
+    def available(url_template, s):
+        path = data_dir / Path(url_template.format(season=s)).name
+        return path.exists() or remote_exists(url_template.format(season=s))
+
+    if available(PARTICIPATION_URL, season) and available(PBP_URL, season):
+        return season, False
+    fallback = season - 1
+    print(
+        f"NOTE: {season}'s participation file isn't published on nflverse yet -- "
+        f"scheme/route/pass-rush/snap-share stats will use {fallback} data until it appears.",
         file=sys.stderr,
     )
     return fallback, True
@@ -2787,6 +2901,7 @@ def main():
     args = ap.parse_args()
 
     season, is_fallback = resolve_season(args.season, args.data_dir)
+    participation_season, is_participation_fallback = resolve_participation_season(season, args.data_dir)
 
     pbp = load_pbp(args.data_dir, season)
     rosters = load_rosters(args.data_dir, season)
@@ -2794,8 +2909,22 @@ def main():
     # whatever season the pbp-based stats fell back to -- same reasoning
     # compute_schedule() already documents.
     injuries_df = load_injuries(args.data_dir, args.season)
-    participation = load_participation(args.data_dir, season)
     pos_lookup = build_position_lookup(rosters)
+
+    # Participation-derived stats (scheme/route/pass-rush/snap-share) may
+    # be resolved to a different season than everything else -- see
+    # resolve_participation_season. When it is, pull that season's own
+    # pbp/rosters too, since the participation merges are keyed by
+    # game_id/play_id and player position lookups need to match the same
+    # season's players.
+    if participation_season == season:
+        participation_pbp = pbp
+        participation_pos_lookup = pos_lookup
+    else:
+        participation_pbp = load_pbp(args.data_dir, participation_season)
+        participation_rosters = load_rosters(args.data_dir, participation_season)
+        participation_pos_lookup = build_position_lookup(participation_rosters)
+    participation = load_participation(args.data_dir, participation_season)
 
     # Schedule (and the full 32-team list derived from it) computed up
     # front: early in a season, `pbp` itself may not yet include every
@@ -2855,7 +2984,7 @@ def main():
     player_stats = build_player_stats(scoring_df, first_td_by_game, teams, target_ranks)
     player_td_results = compute_player_td_results(scoring_df, first_td_by_game)
 
-    scheme_splits = compute_scheme_splits(pbp, participation, teams)
+    scheme_splits = compute_scheme_splits(participation_pbp, participation, teams)
     for team in teams:
         team_stats[team].update(scheme_splits.get(team, {}))
     # Flattened (q1_scored_per_g, q1_allowed_per_g, ...) rather than a
@@ -2867,15 +2996,15 @@ def main():
             team_stats[team][f"{bucket}_scored_per_g"] = vals.get("scored_per_g")
             team_stats[team][f"{bucket}_allowed_per_g"] = vals.get("allowed_per_g")
 
-    route_team_stats, player_route_profiles = compute_route_splits(pbp, participation, teams)
+    route_team_stats, player_route_profiles = compute_route_splits(participation_pbp, participation, teams)
     for team in teams:
         team_stats[team].update(route_team_stats.get(team, {}))
     rush_zone_stats = compute_rush_zone_splits(pbp, teams)
     for team in teams:
         team_stats[team].update(rush_zone_stats.get(team, {}))
     player_rush_zones = compute_player_rush_zone_splits(pbp, pos_lookup)
-    player_pass_splits = compute_player_pass_splits(pbp, participation, pos_lookup)
-    player_scramble_splits, team_scramble_containment = compute_scramble_splits(pbp, participation, pos_lookup, teams)
+    player_pass_splits = compute_player_pass_splits(participation_pbp, participation, participation_pos_lookup)
+    player_scramble_splits, team_scramble_containment = compute_scramble_splits(participation_pbp, participation, participation_pos_lookup, teams)
     for team in teams:
         team_stats[team].update(team_scramble_containment.get(team, {}))
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
@@ -2884,6 +3013,7 @@ def main():
     player_props = build_player_props(volume_players, player_route_profiles, teams, team_targets)
     player_game_logs = compute_player_game_logs(pbp, pos_lookup)
     player_box_scores = compute_player_box_scores(pbp, pos_lookup)
+    pass_shot_charts = compute_pass_shot_chart(pbp, teams)
 
     # One team-level schedule-strength number (not per condition -- see
     # compute_scheme_splits' docstring for why), reusing recent_games'
@@ -2897,7 +3027,7 @@ def main():
     max_week = int(pbp["week"].max())
 
     current_week = compute_current_week(schedule)
-    player_snap_shares = compute_player_snap_shares(pbp, participation, pos_lookup)
+    player_snap_shares = compute_player_snap_shares(participation_pbp, participation, participation_pos_lookup)
     injury_report = compute_injury_report(injuries_df, teams, player_snap_shares)
 
     # Player prop odds (anytime-TD, first-TD) for whatever week is currently
@@ -2951,6 +3081,8 @@ def main():
         "season": season,
         "requested_season": args.season,
         "is_fallback_season": is_fallback,
+        "is_participation_fallback": is_participation_fallback,
+        "participation_season": participation_season,
         "through_week": max_week,
         "generated_by": "nflverse-data pbp + weekly rosters",
         "teams": teams,
@@ -2959,6 +3091,7 @@ def main():
         "player_props": player_props,
         "player_game_logs": player_game_logs,
         "player_box_scores": player_box_scores,
+        "pass_shot_charts": pass_shot_charts,
         "player_rush_zones": player_rush_zones,
         "player_pass_splits": player_pass_splits,
         "player_scramble_splits": player_scramble_splits,
