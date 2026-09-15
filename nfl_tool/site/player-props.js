@@ -814,27 +814,64 @@ const PASS_ZONE_ROWS = [
   { key: "deep", label: "20+" },
   { key: "intermediate", label: "10-19" },
   { key: "short", label: "0-9" },
-  { key: "screen", label: "Screen" },
+  { key: "screen", label: "SCN" },
 ];
 const PASS_ZONE_COLS = ["left", "middle", "right"];
 
-// Completion rate, not the EPA-based "success rate" -- so the headline %
-// always matches the comp/att fraction shown right below it (e.g. "67% /
-// 2 of 3"), same as the reference chart this was modeled on. success/
-// epa_sum are still in the raw data if a per-zone efficiency view is
-// wanted later.
+// Completion rate -- still the headline % on the cell (matches the comp/
+// att fraction right below it), just no longer what drives the CELL
+// COLOR (see passZoneCompositeZ). Still used as-is in the league-rank
+// modal's own column.
 function passZoneRate(zone) {
   return zone && zone.attempts ? zone.completions / zone.attempts : null;
 }
+function passZoneEpaPerPlay(zone) {
+  return zone && zone.attempts ? zone.epa_sum / zone.attempts : null;
+}
 
-// League-wide pool of success rate for one specific zone cell (e.g. "how
-// do all 32 teams' offenses do on deep-right throws"), off or def side --
-// same zone-vs-zone comparison a raw team_stats percentile pool would do,
-// just sourced from the nested pass_shot_charts blob instead of a flat key.
-function passZonePool(side, zoneKey) {
+// League-wide pool of some per-zone metric (completion rate, volume, EPA/
+// play -- whatever `metricFn` extracts), off or def side -- same zone-vs-
+// zone comparison a raw team_stats percentile pool would do, just sourced
+// from the nested pass_shot_charts blob instead of a flat key.
+function passZonePool(side, zoneKey, metricFn) {
   return Object.values(DATA.pass_shot_charts || {})
-    .map((t) => passZoneRate(t[side]?.zones?.[zoneKey]))
+    .map((t) => metricFn(t[side]?.zones?.[zoneKey]))
     .filter((v) => v !== null);
+}
+
+// Cell color: 75% how often this zone gets used (volume -- a raw
+// attempts count, not a rate) + 25% EPA/play there. Deliberately NOT
+// completion rate -- 2/2 and 7/8 read as the same "100%"-ish color under
+// a rate-only scheme despite being very different signals (one snapshot,
+// one a real, repeatable tendency), and a huge-volume zone at moderate
+// efficiency is a more real "magnet spot" (offense) or "soft spot"
+// (defense allowed) than a tiny-sample zone that happened to hit. EPA
+// inverts on the def side (allowing good EPA there is the bad outcome for
+// that defense) same as every other "allowed" stat on the site; volume
+// does NOT invert on either side -- getting attacked there often is
+// itself part of the soft-spot signal, not a neutral fact.
+function passZoneCompositeZ(side, zoneKey, zone) {
+  if (!zone || !zone.attempts) return null;
+  const volumePool = passZonePool(side, zoneKey, (z) => (z && z.attempts ? z.attempts : null));
+  const epaPool = passZonePool(side, zoneKey, passZoneEpaPerPlay);
+  const volZ = zScore(zone.attempts, volumePool, false);
+  const epaZ = zScore(passZoneEpaPerPlay(zone), epaPool, side === "def");
+  if (volZ === null && epaZ === null) return null;
+  return 0.75 * (volZ || 0) + 0.25 * (epaZ || 0);
+}
+function tierFromZ(z, threshold = TIER_Z_THRESHOLD) {
+  if (z === null || z === undefined) return "";
+  if (z >= threshold) return "tier-good";
+  if (z <= -threshold) return "tier-bad";
+  return "tier-mid";
+}
+function alphaAttrFromZ(z, threshold = TIER_Z_THRESHOLD) {
+  if (z === null || z === undefined) return "";
+  const az = Math.abs(z);
+  if (az < threshold) return "";
+  const t = Math.min((az - threshold) / (TIER_Z_SATURATE - threshold), 1);
+  const a = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * t;
+  return ` style="--tier-a:${a.toFixed(2)}"`;
 }
 
 function renderPassZoneGrid(team, side) {
@@ -845,15 +882,11 @@ function renderPassZoneGrid(team, side) {
       const zk = `${r.key}_${loc}`;
       const zone = chart.zones[zk];
       const rate = passZoneRate(zone);
-      // DEF side inverted: a defense allowing a HIGH success rate there is
-      // the bad outcome (red), same "green = good for the team it's on"
-      // promise every other tier color on the site already makes.
-      const invert = side === "def";
-      const cls = rate === null ? "" : percentileTier(rate, passZonePool(side, zk), invert);
-      const alpha = rate === null ? "" : tierAlphaAttr(rate, passZonePool(side, zk), invert);
+      const z = passZoneCompositeZ(side, zk, zone);
+      const cls = tierFromZ(z);
+      const alpha = alphaAttrFromZ(z);
       const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
-      const epaSign = zone.epa_sum > 0 ? "+" : "";
-      const subDisplay = zone.attempts ? `${zone.completions}/${zone.attempts} &middot; ${epaSign}${zone.epa_sum.toFixed(1)} epa` : "no attempts";
+      const subDisplay = zone.attempts ? `${zone.completions}/${zone.attempts}` : "no attempts";
       const payload = { team, side, zoneKey: zk };
       return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
     }).join("");
@@ -896,53 +929,81 @@ function renderPassZoneRankContent(team, side, zoneKey) {
   const rows = DATA.teams
     .map((t) => {
       const zone = (DATA.pass_shot_charts[t] || {})[side]?.zones?.[zoneKey];
-      return { team: t, rate: passZoneRate(zone), zone };
+      return { team: t, rate: passZoneRate(zone), epa: passZoneEpaPerPlay(zone), zone };
     })
     .filter((r) => r.rate !== null)
-    .sort((a, b) => (side === "def" ? a.rate - b.rate : b.rate - a.rate));
+    .sort((a, b) => b.zone.attempts - a.zone.attempts);
   const heading = `${zoneLabel(zoneKey)} ${side === "off" ? "Offense" : "Defense Allowed"} &mdash; League Rank`;
-  const seeBtn = side === "off" ? `<button type="button" class="pass-zone-plays-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">See the Plays</button>` : "";
+  const seeBtn = `<button type="button" class="pass-zone-plays-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">See the Plays</button>`;
   if (!rows.length) return `<h3>${heading}</h3>${seeBtn}<p class="no-data-note">No attempts anywhere in this zone yet.</p>`;
   const body = rows
     .map((r) => {
       const rowCls = r.team === team ? ' class="stat-rank-current"' : "";
-      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${Math.round(r.rate * 100)}% <span class="muted-label">(${r.zone.completions}/${r.zone.attempts})</span></td></tr>`;
+      const epaSign = r.epa >= 0 ? "+" : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${r.zone.attempts}</td><td class="num">${Math.round(r.rate * 100)}% <span class="muted-label">(${r.zone.completions}/${r.zone.attempts})</span></td><td class="num">${epaSign}${r.epa.toFixed(2)}</td></tr>`;
     })
     .join("");
   return `<h3>${heading}</h3>
+    <p class="no-data-note">Sorted by volume (attempts) -- the raw comp % and EPA/play are here for the full picture, not to re-sort by.</p>
     ${seeBtn}
     <table class="data-table player-odds-table stat-rank-table">
-      <thead><tr><th>Team</th><th class="num">Comp %</th></tr></thead>
+      <thead><tr><th>Team</th><th class="num">Att</th><th class="num">Comp %</th><th class="num">EPA/pl</th></tr></thead>
       <tbody>${body}</tbody>
     </table>`;
 }
 
+// Grouped by receiver, most-targeted first (not chronological) -- "who's
+// actually living in this zone" reads faster than a flat play-by-play
+// list once there's more than a handful of attempts. Works identically
+// for the defense side -- these are the SAME underlying plays, just
+// listing the opponent's receivers who found this defense's zone instead
+// of this team's own.
 function renderPassZonePlaysContent(team, side, zoneKey) {
   const zone = (DATA.pass_shot_charts[team] || {})[side]?.zones?.[zoneKey];
   const plays = (zone && zone.plays) || [];
   const backBtn = `<button type="button" class="pass-zone-back-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">&larr; Back to League Rank</button>`;
-  const heading = `${teamLogoMini(team)} ${team} ${zoneLabel(zoneKey)} &mdash; Plays`;
+  const sideLabel = side === "off" ? "Offense" : "Defense Allowed";
+  const heading = `${teamLogoMini(team)} ${team} ${zoneLabel(zoneKey)} ${sideLabel} &mdash; Plays`;
   if (!plays.length) return `${backBtn}<h3>${heading}</h3><p class="no-data-note">No attempts in this zone yet.</p>`;
+
+  const groups = {};
+  plays.forEach((p) => {
+    const key = p.receiver || "Unknown";
+    (groups[key] = groups[key] || []).push(p);
+  });
+  const names = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+
   // No "drop" distinction -- standard pbp doesn't chart drops (that's a
-  // PFF/NGS-only call), so an incompletion just shows as incomplete unless
-  // a pass defenser was actually credited with breaking it up.
-  const rows = plays
-    .map((p) => {
-      const result = p.complete
-        ? `${p.receiver || "Unknown"} for ${p.yards}`
-        : p.defender
-        ? `Incomplete &mdash; broken up by ${p.defender}`
-        : `Incomplete${p.receiver ? ` &mdash; ${p.receiver}` : ""}`;
-      const epaCls = p.epa > 0 ? "tier-good" : p.epa < 0 ? "tier-bad" : "";
-      const epaSign = p.epa >= 0 ? "+" : "";
-      return `<tr><td>Wk ${p.week}</td><td>${result}</td><td class="num ${epaCls}">${p.epa === null ? "--" : `${epaSign}${p.epa.toFixed(1)}`}</td></tr>`;
+  // PFF/NGS-only call), so an incompletion just shows as incomplete
+  // unless a pass defender was actually credited with breaking it up.
+  // yards is split into air (where it was caught -- the same depth this
+  // whole grid is bucketed by) and yac (yards after catch), since a short
+  // completion that housed it on YAC is a very different play than one
+  // that just fell short of the sticks.
+  const blocks = names
+    .map((name) => {
+      const rows = groups[name]
+        .map((p) => {
+          const result = p.complete
+            ? `${p.yards}y <span class="muted-label">(${p.air_yards} air + ${p.yac ?? 0} yac)</span>`
+            : p.defender
+            ? `Incomplete &mdash; broken up by ${p.defender}`
+            : "Incomplete";
+          const epaCls = p.epa > 0 ? "tier-good" : p.epa < 0 ? "tier-bad" : "";
+          const epaSign = p.epa >= 0 ? "+" : "";
+          return `<tr><td>Wk ${p.week}</td><td>${result}</td><td class="num ${epaCls}">${p.epa === null ? "--" : `${epaSign}${p.epa.toFixed(1)}`}</td></tr>`;
+        })
+        .join("");
+      return `<div class="pass-zone-plays-player">
+        <div class="stat-column-title">${name} <span class="muted-label">(${groups[name].length} tgt)</span></div>
+        <table class="data-table player-odds-table">
+          <thead><tr><th>Wk</th><th>Result</th><th class="num">EPA</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
     })
     .join("");
-  return `${backBtn}<h3>${heading}</h3>
-    <table class="data-table player-odds-table">
-      <thead><tr><th>Wk</th><th>Result</th><th class="num">EPA</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  return `${backBtn}<h3>${heading}</h3>${blocks}`;
 }
 
 function openPassZoneRankModal(team, side, zoneKey) {

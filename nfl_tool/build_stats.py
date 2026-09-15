@@ -207,6 +207,13 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
                 "complete": bool(row.complete_pass == 1),
                 "yards": None if pd.isna(row.yards_gained) else int(row.yards_gained),
                 "air_yards": None if pd.isna(row.air_yards) else int(row.air_yards),
+                # air_yards + yac = yards (confirmed against real plays) --
+                # air_yards is where the ball was caught (the same depth
+                # this whole zone grid buckets by), yac is what happened
+                # after that catch, kept separate so a short completion
+                # that housed it on YAC doesn't look identical to one that
+                # just fell a yard short.
+                "yac": None if pd.isna(row.yards_after_catch) else int(row.yards_after_catch),
                 "epa": None if pd.isna(row.epa) else round(float(row.epa), 2),
                 "defender": row.pass_defense_1_player_name if pd.notna(row.pass_defense_1_player_name) else None,
             })

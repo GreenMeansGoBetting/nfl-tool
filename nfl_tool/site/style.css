@@ -484,10 +484,10 @@ h3 {
 .scramble-rank-click { cursor: pointer; }
 .scramble-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 
-.pass-zone-block { width: 250px; }
-.pass-zone-grid { table-layout: fixed; width: 250px; font-size: 0.78rem; }
-.pass-zone-grid th, .pass-zone-grid td { padding: 4px 3px; text-align: center; }
-.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.75rem; width: 74px; }
+.pass-zone-block { width: 222px; }
+.pass-zone-grid { table-layout: fixed; width: 222px; font-size: 0.78rem; }
+.pass-zone-grid th, .pass-zone-grid td { padding: 4px 2px; text-align: center; }
+.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.68rem; width: 38px; padding-left: 2px !important; }
 .pass-zone-cell { vertical-align: middle; }
 .pass-zone-rate { display: block; font-weight: 700; font-size: 0.88rem; }
 .pass-zone-sub { display: block; font-size: 0.65rem; opacity: 0.75; font-weight: 400; }
@@ -544,6 +544,8 @@ h3 {
   cursor: pointer;
 }
 .pass-zone-plays-btn:hover, .pass-zone-back-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
+.pass-zone-plays-player { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.pass-zone-plays-player:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
 
 .rush-lanes { width: 318px; }
 .rush-lanes-team-tag {
