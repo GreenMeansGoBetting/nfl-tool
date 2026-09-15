@@ -54,6 +54,17 @@ let applyingRemoteChange = false;
 
 function refreshCurrentPage() {
   if (typeof DATA === "undefined" || !DATA) return; // data.json hasn't loaded yet
+  // A remote snapshot can land at ANY point in this page's life (Firestore
+  // fires onSnapshot again on every change, not just once at load) and
+  // just did a raw overwrite of localStorage above -- possibly with an
+  // older, ungraded copy synced from a previous day/device, blowing away
+  // whatever this page's own data.json-driven regrade already computed
+  // and rendered. Re-grading here, every time remote data lands, is what
+  // actually stops synced plays/picks from reverting to "Pending" after a
+  // grade already showed correctly (confirmed: without this, the two
+  // async chains -- data.json fetch+regrade vs. Firestore's snapshot --
+  // race, and whichever finishes last wins).
+  if (typeof window.regradeAllPossiblePlays === "function") window.regradeAllPossiblePlays(DATA);
   if (typeof window.render === "function") window.render();
   else if (typeof window.renderPossiblePlays === "function") window.renderPossiblePlays();
 }
