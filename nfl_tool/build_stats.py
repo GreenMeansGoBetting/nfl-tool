@@ -176,10 +176,16 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
     what each defense allows there -- see PASS_DEPTH_BUCKETS' docstring.
     Returns {team: {"off": {...}, "def": {...}}}, off/def each shaped
     {"zones": {"<depth>_<location>": {attempts, completions, success,
-    epa_sum}}, "pass_attempts": int, "total_plays": int (pass+rush, for
-    computing pass rate on the frontend)}. Every team in `teams` gets a
-    zero-filled entry even with no pass attempts yet (bye week, season's
-    first game not yet played) -- callers shouldn't need a fallback."""
+    epa_sum, plays}}, "pass_attempts": int, "total_plays": int (pass+rush,
+    for computing pass rate on the frontend)}. Every team in `teams` gets
+    a zero-filled entry even with no pass attempts yet (bye week, season's
+    first game not yet played) -- callers shouldn't need a fallback.
+
+    "plays" is every individual pass attempt in that zone this season
+    (week, receiver, complete, yards, air_yards, epa, defender -- who
+    broke it up, if anyone), most recent week first -- powers a "see the
+    plays behind this number" drill-down on the frontend instead of
+    leaving the aggregate as a dead end."""
     passes = pbp[
         (pbp["pass_attempt"] == 1)
         & (pbp["two_point_attempt"] != 1)
@@ -192,9 +198,23 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
     total_plays_off = scrimmage.groupby("posteam").size()
     total_plays_def = scrimmage.groupby("defteam").size()
 
+    def play_records(sub):
+        recs = []
+        for row in sub.sort_values("week", ascending=False).itertuples(index=False):
+            recs.append({
+                "week": int(row.week),
+                "receiver": row.receiver_player_name if pd.notna(row.receiver_player_name) else None,
+                "complete": bool(row.complete_pass == 1),
+                "yards": None if pd.isna(row.yards_gained) else int(row.yards_gained),
+                "air_yards": None if pd.isna(row.air_yards) else int(row.air_yards),
+                "epa": None if pd.isna(row.epa) else round(float(row.epa), 2),
+                "defender": row.pass_defense_1_player_name if pd.notna(row.pass_defense_1_player_name) else None,
+            })
+        return recs
+
     def empty_side(team_col, total_plays):
         zones = {
-            f"{depth}_{loc}": {"attempts": 0, "completions": 0, "success": 0, "epa_sum": 0.0}
+            f"{depth}_{loc}": {"attempts": 0, "completions": 0, "success": 0, "epa_sum": 0.0, "plays": []}
             for depth, _, _ in PASS_DEPTH_BUCKETS
             for loc in PASS_LOCATIONS
         }
@@ -219,6 +239,7 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
                         "completions": int(sub["complete_pass"].sum()),
                         "success": int(sub["success"].sum()),
                         "epa_sum": round(float(sub["epa"].sum()), 2),
+                        "plays": play_records(sub),
                     }
             result[team] = {"zones": zones, "pass_attempts": int(len(grp)), "total_plays": int(totals.get(team, 0))}
         return result
@@ -226,6 +247,48 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
     off = side_stats("posteam")
     deff = side_stats("defteam")
     return {team: {"off": off[team], "def": deff[team]} for team in teams}
+
+
+def compute_player_pass_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Per receiver: their own targets/receptions/yards/EPA by the same
+    depth x location zone as compute_pass_shot_chart -- the individual-
+    player complement to that team-level view (same idea as
+    compute_player_rush_zone_splits for rush lanes), for seeing WHO
+    actually gets used in a defense's weak zones. Keyed by (team,
+    full_name). No sample floor -- targets is returned right alongside
+    everything else, so a 1-target zone is visibly thin, not hidden."""
+    passes = pbp[
+        (pbp["pass_attempt"] == 1)
+        & (pbp["two_point_attempt"] != 1)
+        & pbp["pass_location"].notna()
+        & pbp["air_yards"].notna()
+    ].dropna(subset=["receiver_player_id"]).copy()
+    passes["zone_key"] = passes["air_yards"].map(pass_depth_bucket) + "_" + passes["pass_location"]
+
+    by_player = {}
+    for row in passes.itertuples(index=False):
+        _, _, name = pos_lookup(row.receiver_player_id, row.week)
+        if not name:
+            continue
+        by_player.setdefault((row.posteam, name), []).append(row)
+
+    out = {}
+    for (team, name), rows in by_player.items():
+        zones = {}
+        for depth, _, _ in PASS_DEPTH_BUCKETS:
+            for loc in PASS_LOCATIONS:
+                zk = f"{depth}_{loc}"
+                zone_rows = [r for r in rows if r.zone_key == zk]
+                n = len(zone_rows)
+                comps = [r for r in zone_rows if r.complete_pass == 1]
+                zones[zk] = {
+                    "targets": n,
+                    "receptions": len(comps),
+                    "yards": int(sum(r.yards_gained for r in comps)),
+                    "epa_sum": round(sum(r.epa for r in zone_rows), 2) if n else 0.0,
+                }
+        out.setdefault(team, {})[name] = zones
+    return out
 
 
 def remote_exists(url: str) -> bool:
@@ -2969,6 +3032,7 @@ def main():
     player_game_logs = compute_player_game_logs(pbp, pos_lookup)
     player_box_scores = compute_player_box_scores(pbp, pos_lookup)
     pass_shot_charts = compute_pass_shot_chart(pbp, teams)
+    player_pass_zones = compute_player_pass_zone_splits(pbp, pos_lookup)
 
     # One team-level schedule-strength number (not per condition -- see
     # compute_scheme_splits' docstring for why), reusing recent_games'
@@ -3047,6 +3111,7 @@ def main():
         "player_game_logs": player_game_logs,
         "player_box_scores": player_box_scores,
         "pass_shot_charts": pass_shot_charts,
+        "player_pass_zones": player_pass_zones,
         "player_rush_zones": player_rush_zones,
         "player_pass_splits": player_pass_splits,
         "player_scramble_splits": player_scramble_splits,

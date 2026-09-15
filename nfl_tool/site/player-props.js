@@ -806,10 +806,14 @@ function renderPassCoveragePanel(team, oppTeam) {
 // above -- uses only standard pbp columns nflverse publishes every week
 // during the season, so this stays live all year instead of getting
 // stuck on last season's data.
+// Yardage ranges instead of words -- matches build_stats.py's
+// PASS_DEPTH_BUCKETS boundaries exactly (deep=20+, intermediate=10-19,
+// short=0-9, screen=behind the LOS). Shorter label = a shorter label
+// column = room for all 4 team grids to sit on one row.
 const PASS_ZONE_ROWS = [
-  { key: "deep", label: "Deep" },
-  { key: "intermediate", label: "Intermediate" },
-  { key: "short", label: "Short" },
+  { key: "deep", label: "20+" },
+  { key: "intermediate", label: "10-19" },
+  { key: "short", label: "0-9" },
   { key: "screen", label: "Screen" },
 ];
 const PASS_ZONE_COLS = ["left", "middle", "right"];
@@ -850,7 +854,8 @@ function renderPassZoneGrid(team, side) {
       const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
       const epaSign = zone.epa_sum > 0 ? "+" : "";
       const subDisplay = zone.attempts ? `${zone.completions}/${zone.attempts} &middot; ${epaSign}${zone.epa_sum.toFixed(1)} epa` : "no attempts";
-      return `<td class="num pass-zone-cell ${cls}"${alpha}><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
+      const payload = { team, side, zoneKey: zk };
+      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
     }).join("");
     return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
   }).join("");
@@ -859,6 +864,112 @@ function renderPassZoneGrid(team, side) {
     <tbody>${rows}</tbody>
   </table>`;
 }
+
+// ---- Pass zone click-throughs: league rank, and (offense only) the
+// individual plays behind one cell's number. One shared modal, two views,
+// same "setup screen vs. arena" swap pattern the Wheel modal already uses. ----
+function ensurePassZoneModal() {
+  if (document.getElementById("pass-zone-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "pass-zone-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box pass-zone-modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="pass-zone-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closePassZoneModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closePassZoneModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePassZoneModal();
+  });
+}
+function closePassZoneModal() {
+  const el = document.getElementById("pass-zone-modal");
+  if (el) el.hidden = true;
+}
+
+function renderPassZoneRankContent(team, side, zoneKey) {
+  const rows = DATA.teams
+    .map((t) => {
+      const zone = (DATA.pass_shot_charts[t] || {})[side]?.zones?.[zoneKey];
+      return { team: t, rate: passZoneRate(zone), zone };
+    })
+    .filter((r) => r.rate !== null)
+    .sort((a, b) => (side === "def" ? a.rate - b.rate : b.rate - a.rate));
+  const heading = `${zoneLabel(zoneKey)} ${side === "off" ? "Offense" : "Defense Allowed"} &mdash; League Rank`;
+  const seeBtn = side === "off" ? `<button type="button" class="pass-zone-plays-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">See the Plays</button>` : "";
+  if (!rows.length) return `<h3>${heading}</h3>${seeBtn}<p class="no-data-note">No attempts anywhere in this zone yet.</p>`;
+  const body = rows
+    .map((r) => {
+      const rowCls = r.team === team ? ' class="stat-rank-current"' : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${Math.round(r.rate * 100)}% <span class="muted-label">(${r.zone.completions}/${r.zone.attempts})</span></td></tr>`;
+    })
+    .join("");
+  return `<h3>${heading}</h3>
+    ${seeBtn}
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Team</th><th class="num">Comp %</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+function renderPassZonePlaysContent(team, side, zoneKey) {
+  const zone = (DATA.pass_shot_charts[team] || {})[side]?.zones?.[zoneKey];
+  const plays = (zone && zone.plays) || [];
+  const backBtn = `<button type="button" class="pass-zone-back-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">&larr; Back to League Rank</button>`;
+  const heading = `${teamLogoMini(team)} ${team} ${zoneLabel(zoneKey)} &mdash; Plays`;
+  if (!plays.length) return `${backBtn}<h3>${heading}</h3><p class="no-data-note">No attempts in this zone yet.</p>`;
+  // No "drop" distinction -- standard pbp doesn't chart drops (that's a
+  // PFF/NGS-only call), so an incompletion just shows as incomplete unless
+  // a pass defenser was actually credited with breaking it up.
+  const rows = plays
+    .map((p) => {
+      const result = p.complete
+        ? `${p.receiver || "Unknown"} for ${p.yards}`
+        : p.defender
+        ? `Incomplete &mdash; broken up by ${p.defender}`
+        : `Incomplete${p.receiver ? ` &mdash; ${p.receiver}` : ""}`;
+      const epaCls = p.epa > 0 ? "tier-good" : p.epa < 0 ? "tier-bad" : "";
+      const epaSign = p.epa >= 0 ? "+" : "";
+      return `<tr><td>Wk ${p.week}</td><td>${result}</td><td class="num ${epaCls}">${p.epa === null ? "--" : `${epaSign}${p.epa.toFixed(1)}`}</td></tr>`;
+    })
+    .join("");
+  return `${backBtn}<h3>${heading}</h3>
+    <table class="data-table player-odds-table">
+      <thead><tr><th>Wk</th><th>Result</th><th class="num">EPA</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function openPassZoneRankModal(team, side, zoneKey) {
+  ensurePassZoneModal();
+  document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneRankContent(team, side, zoneKey);
+  document.getElementById("pass-zone-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const cell = e.target.closest(".pass-zone-rank-click");
+  if (cell) {
+    const { team, side, zoneKey } = decodeDataAttr(cell.dataset.entry);
+    openPassZoneRankModal(team, side, zoneKey);
+    return;
+  }
+  const playsBtn = e.target.closest(".pass-zone-plays-btn");
+  if (playsBtn) {
+    const { team, side, zoneKey } = decodeDataAttr(playsBtn.dataset.entry);
+    document.getElementById("pass-zone-modal-content").innerHTML = renderPassZonePlaysContent(team, side, zoneKey);
+    return;
+  }
+  const backBtn = e.target.closest(".pass-zone-back-btn");
+  if (backBtn) {
+    const { team, side, zoneKey } = decodeDataAttr(backBtn.dataset.entry);
+    document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneRankContent(team, side, zoneKey);
+  }
+});
 
 function zoneLabel(zoneKey) {
   const [depth, loc] = zoneKey.split("_");
@@ -900,12 +1011,100 @@ function renderPassIdentityCard(team, side) {
 
 function renderPassZoneBlock(team, side) {
   const heading = side === "off" ? `${team} &mdash; Passing Offense` : `${team} &mdash; Pass Defense (Allowed)`;
+  // Offense only -- "who's actually getting targeted where" only makes
+  // sense from the offense's own side; the defense-allowed grid already
+  // says where a defense is weak, this says who's exploiting it.
+  const allBtn = side === "off" ? `<button type="button" class="pass-zone-all-btn" data-team="${team}">See Players</button>` : "";
   return `<div class="pass-zone-block">
-    <div class="stat-column-title">${teamLogoMini(team)} ${heading}</div>
+    <div class="stat-column-title">${teamLogoMini(team)} ${heading} ${allBtn}</div>
     ${renderPassZoneGrid(team, side)}
     ${renderPassIdentityCard(team, side)}
   </div>`;
 }
+
+// ---- Per-player target zones ("See Players") -- who actually gets
+// targeted where, the offense-side complement to the team grid above.
+// Same visual grid, sourced from build_stats.py's compute_player_pass_
+// zone_splits instead of the team aggregate. Pattern-matched on the Rush
+// Lanes "See All Players" modal (renderTeamRushLanesAllPlayersContent). ----
+function passZonePlayerRate(zone) {
+  return zone && zone.targets ? zone.receptions / zone.targets : null;
+}
+function passZonePlayerPool(zoneKey) {
+  const pool = [];
+  for (const players of Object.values(DATA.player_pass_zones || {})) {
+    for (const zones of Object.values(players)) {
+      const rate = passZonePlayerRate(zones[zoneKey]);
+      if (rate !== null) pool.push(rate);
+    }
+  }
+  return pool;
+}
+function renderPlayerPassZoneGrid(zones) {
+  const rows = PASS_ZONE_ROWS.map((r) => {
+    const cells = PASS_ZONE_COLS.map((loc) => {
+      const zk = `${r.key}_${loc}`;
+      const zone = zones[zk];
+      const rate = passZonePlayerRate(zone);
+      const cls = rate === null ? "" : percentileTier(rate, passZonePlayerPool(zk), false);
+      const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
+      const epaSign = zone && zone.epa_sum > 0 ? "+" : "";
+      const subDisplay = zone && zone.targets ? `${zone.receptions}/${zone.targets} &middot; ${zone.yards}y &middot; ${epaSign}${zone.epa_sum.toFixed(1)} epa` : "no targets";
+      return `<td class="num pass-zone-cell ${cls}"><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
+    }).join("");
+    return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
+  }).join("");
+  return `<table class="data-table pass-zone-grid">
+    <thead><tr><th></th><th>Left</th><th>Middle</th><th>Right</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+function renderPassZoneAllPlayersContent(team) {
+  const heading = `<h3>${teamLogoMini(team)} ${TEAM_NAMES[team] || team} &mdash; Target Zones by Player</h3>`;
+  const players = DATA.player_pass_zones[team] || {};
+  const totalTargets = (name) => Object.values(players[name]).reduce((s, z) => s + z.targets, 0);
+  const names = Object.keys(players)
+    .filter((n) => totalTargets(n) > 0)
+    .sort((a, b) => totalTargets(b) - totalTargets(a));
+  if (!names.length) return `${heading}<p class="no-data-note">No charted targets yet this season.</p>`;
+  const blocks = names
+    .map((name) => `<div class="pass-zone-block"><div class="stat-column-title">${name} <span class="muted-label">(${totalTargets(name)} tgt)</span></div>${renderPlayerPassZoneGrid(players[name])}</div>`)
+    .join("");
+  return `${heading}<div class="stat-columns">${blocks}</div>`;
+}
+function ensurePassZoneAllModal() {
+  if (document.getElementById("pass-zone-all-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "pass-zone-all-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box pass-zone-all-modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="pass-zone-all-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closePassZoneAllModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closePassZoneAllModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePassZoneAllModal();
+  });
+}
+function closePassZoneAllModal() {
+  const el = document.getElementById("pass-zone-all-modal");
+  if (el) el.hidden = true;
+}
+function openPassZoneAllPlayersModal(team) {
+  ensurePassZoneAllModal();
+  document.getElementById("pass-zone-all-modal-content").innerHTML = renderPassZoneAllPlayersContent(team);
+  document.getElementById("pass-zone-all-modal").hidden = false;
+}
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".pass-zone-all-btn");
+  if (!btn) return;
+  openPassZoneAllPlayersModal(btn.dataset.team);
+});
 
 // ---- QB Rushing (scramble vs designed) ----
 // build_stats.py's compute_scramble_splits: does pressure actually make

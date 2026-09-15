@@ -515,6 +515,35 @@ h3 {
 .pass-zone-identity-label { flex: 1 1 auto; }
 .pass-zone-identity-vol { opacity: 0.75; white-space: nowrap; }
 .pass-zone-identity-epa { font-weight: 600; white-space: nowrap; }
+.pass-zone-rank-click { cursor: pointer; }
+.pass-zone-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+.pass-zone-all-btn {
+  background: var(--panel);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.pass-zone-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
+.pass-zone-modal-box { max-width: 420px; }
+.pass-zone-all-modal-box { max-width: 900px; width: 95vw; max-height: 85vh; overflow-y: auto; }
+.pass-zone-plays-btn, .pass-zone-back-btn {
+  display: block;
+  margin: 8px 0 12px;
+  background: var(--panel);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pass-zone-plays-btn:hover, .pass-zone-back-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
 
 .rush-lanes { width: 318px; }
 .rush-lanes-team-tag {
@@ -1128,6 +1157,15 @@ footer a { color: var(--accent); }
   text-align: left;
 }
 
+/* Pairs a team's own Scheme table directly above its Team Grades table in
+   the same column -- Coverage's removal shortened the Scheme table enough
+   that Grades now fits underneath it instead of needing its own separate
+   section below the whole General Stats & Scheme block. */
+.scheme-grade-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .summary-grade-table {
   table-layout: fixed;
   width: 246px;
