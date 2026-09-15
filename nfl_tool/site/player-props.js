@@ -1084,8 +1084,8 @@ function renderPassZoneModalContent(team, side, zoneKey) {
       <div class="pass-zone-modal-col">
         ${summaryBlock}
       </div>
-      <div class="pass-zone-modal-col">
-        ${plays.length ? `<h4 class="pass-zone-modal-subhead">Every Play</h4>${renderPassZonePlayList(summary)}` : ""}
+      <div class="pass-zone-modal-col pass-zone-modal-col-plays">
+        ${plays.length ? `<h4 class="pass-zone-modal-subhead">Every Play</h4><div class="pass-zone-plays-wrap">${renderPassZonePlayList(summary)}</div>` : ""}
       </div>
     </div>`;
 }

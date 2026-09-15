@@ -485,6 +485,18 @@ h3 {
 .scramble-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 
 .pass-zone-block { width: 222px; }
+/* Fixed header height so all four blocks line up -- the offense ones
+   carry a "See Players" button that wraps to a second line, which
+   otherwise pushes their grid (and everything under it) down relative to
+   the button-less defense blocks. */
+.pass-zone-block .stat-column-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 42px;
+  margin-bottom: 0;
+}
 .pass-zone-grid { table-layout: fixed; width: 222px; font-size: 0.78rem; }
 .pass-zone-grid th, .pass-zone-grid td { padding: 4px 2px; text-align: center; }
 .pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.68rem; width: 38px; padding-left: 2px !important; }
@@ -520,19 +532,40 @@ h3 {
   vertical-align: middle;
 }
 .pass-zone-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
-/* Rank, summary and plays all sit side by side in one wide box rather
-   than stacked in a narrow one that forced toggling between views. */
-.pass-zone-modal-box { max-width: 1500px; width: 96vw; max-height: 88vh; overflow-y: auto; }
-.pass-zone-all-modal-box { max-width: 1500px; width: 96vw; max-height: 88vh; overflow-y: auto; }
+/* Rank, summary and plays all sit side by side, filling the whole screen
+   rather than a narrow box that forced toggling between views. The BOX
+   itself never scrolls -- each column scrolls inside its own pane
+   instead, so all three sections stay on screen at once no matter how
+   long the 32-team rank list or the play list gets. */
+/* ID-scoped on purpose: the base .modal-box (max-width 460px) is declared
+   LATER in this file, so a plain .pass-zone-modal-box class rule loses on
+   source order at equal specificity and silently does nothing -- which is
+   exactly why these modals stayed tiny no matter what width was set here.
+   Every other modal in this file uses the same #id .modal-box form. */
+#pass-zone-modal .modal-box {
+  max-width: none;
+  width: 98vw;
+  max-height: 94vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#pass-zone-all-modal .modal-box { max-width: none; width: 98vw; max-height: 94vh; overflow-y: auto; }
 .pass-zone-modal-layout {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 24px;
   margin-top: 10px;
+  min-height: 0;
 }
-.pass-zone-modal-col { flex: 1 1 320px; min-width: 300px; }
+.pass-zone-modal-col { flex: 1 1 0; min-width: 0; max-height: 78vh; overflow-y: auto; }
 .pass-zone-modal-col-rank { flex: 0 0 auto; }
+/* Plays wrap into their own sub-columns instead of one long vertical
+   stack -- horizontal room is what's actually free here. */
+.pass-zone-modal-col-plays { flex: 2 1 0; }
+.pass-zone-plays-wrap { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 22px; }
+.pass-zone-plays-wrap .pass-zone-plays-player { flex: 0 0 auto; min-width: 210px; }
 .pass-zone-modal-subhead {
   margin: 0 0 6px;
   font-size: 0.82rem;
@@ -548,6 +581,9 @@ h3 {
 .pass-zone-summary-table th:first-child, .pass-zone-summary-table td:first-child { text-align: left; }
 .pass-zone-plays-player { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
 .pass-zone-plays-player:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+/* In the wrapped grid every card keeps its own rule -- the first-of-type
+   reset above only reads as intentional in a single vertical stack. */
+.pass-zone-plays-wrap .pass-zone-plays-player { margin-top: 0; padding-top: 8px; border-top: 1px solid var(--border); }
 
 .rush-lanes { width: 318px; }
 .rush-lanes-team-tag {
@@ -636,7 +672,7 @@ h3 {
   white-space: nowrap;
 }
 .rush-lanes-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
-.rush-lanes-all-modal-box { max-width: 900px; width: 95vw; max-height: 85vh; overflow-y: auto; }
+#rush-lanes-all-modal .modal-box { max-width: none; width: 96vw; max-height: 90vh; overflow-y: auto; }
 .rush-lanes-all-players { margin-top: 10px; }
 .rush-lanes-player-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
 .rush-lanes-player-block:first-child { margin-top: 12px; }
@@ -716,14 +752,20 @@ footer a { color: var(--accent); }
   z-index: 1000;
 }
 .modal-overlay[hidden] { display: none; }
+/* Big by default. The old 460px cap left content smashed into a narrow
+   column with most of the screen empty around it -- and because this rule
+   sits AFTER the per-modal class rules in this file, it silently beat
+   them at equal specificity, so widening an individual modal via its own
+   class did nothing. Per-modal overrides now use #id .modal-box so they
+   actually win. */
 .modal-box {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 20px;
   width: 100%;
-  max-width: 460px;
-  max-height: 80vh;
+  max-width: 1200px;
+  max-height: 88vh;
   overflow-y: auto;
   position: relative;
 }
@@ -907,7 +949,7 @@ footer a { color: var(--accent); }
   margin: 8px 0 0;
 }
 
-#general-odds-modal .modal-box { max-width: 640px; }
+#general-odds-modal .modal-box { max-width: 1100px; width: 92vw; }
 
 .pos-row-click, .dist-row-click, .route-name-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
 .pos-row-click:hover, .dist-row-click:hover, .route-name-click:hover { color: var(--accent); }
@@ -925,13 +967,16 @@ footer a { color: var(--accent); }
    EPA/Att, aDOT) -- opens openPlayerStatRankModal's full QB leaderboard. */
 .player-stat-rank-click { cursor: pointer; }
 .player-stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
-.stat-rank-table { width: 260px; }
+/* Fills the (now much wider) modal instead of sitting as a 260px sliver
+   in a sea of white -- the same smashed-into-a-corner problem the modal
+   width fix above is about. */
+.stat-rank-table { width: 100%; }
 .stat-rank-table th:first-child, .stat-rank-table td:first-child { text-align: left; }
 .stat-rank-current td { border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); font-weight: 700; }
 
-#td-breakdown-modal .modal-box { max-width: 520px; }
+#td-breakdown-modal .modal-box { max-width: 1000px; width: 90vw; }
 
-#props-modal .modal-box { max-width: 480px; }
+#props-modal .modal-box { max-width: 1000px; width: 90vw; }
 .props-market-select {
   width: 100%;
   margin: 8px 0 12px;
@@ -1370,7 +1415,7 @@ footer a { color: var(--accent); }
 .recent-game-row { cursor: pointer; }
 .recent-game-row:hover td { background: rgba(var(--accent-rgb), 0.08); }
 
-#box-score-modal .modal-box { max-width: 460px; }
+#box-score-modal .modal-box { max-width: 1100px; width: 92vw; }
 .box-score-team-toggle { display: flex; gap: 8px; margin: 8px 0 14px; }
 .box-score-team-toggle .box-score-team-btn {
   padding: 5px 12px;
@@ -1395,7 +1440,7 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
 }
 
-#results-modal .modal-box { max-width: 900px; width: 95vw; }
+#results-modal .modal-box { max-width: none; width: 96vw; }
 .results-filter-bar {
   display: flex;
   flex-wrap: wrap;
