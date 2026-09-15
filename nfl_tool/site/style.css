@@ -551,6 +551,22 @@ h3 {
   flex-direction: column;
 }
 #pass-zone-all-modal .modal-box { max-width: none; width: 98vw; max-height: 94vh; overflow-y: auto; }
+/* Three per row here, not the six that fit at the main page's compact
+   222px -- these grids are the whole point of this modal, so they get the
+   room. Scoped to the modal so the 4-across team grids on the page
+   itself keep their tighter sizing. */
+#pass-zone-all-modal .stat-columns { gap: 30px; }
+#pass-zone-all-modal .pass-zone-block {
+  flex: 0 0 calc((100% - 60px) / 3);
+  width: calc((100% - 60px) / 3);
+  min-width: 340px;
+}
+#pass-zone-all-modal .pass-zone-grid { width: 100%; font-size: 0.85rem; }
+#pass-zone-all-modal .pass-zone-grid th,
+#pass-zone-all-modal .pass-zone-grid td { padding: 9px 7px; }
+#pass-zone-all-modal .pass-zone-row-label { width: 58px; font-size: 0.78rem; }
+#pass-zone-all-modal .pass-zone-rate { font-size: 1.05rem; }
+#pass-zone-all-modal .pass-zone-sub { font-size: 0.72rem; }
 .pass-zone-modal-layout {
   display: flex;
   flex-wrap: nowrap;
