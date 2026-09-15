@@ -845,17 +845,21 @@ function passZonePool(side, zoneKey, metricFn) {
 // a rate-only scheme despite being very different signals (one snapshot,
 // one a real, repeatable tendency), and a huge-volume zone at moderate
 // efficiency is a more real "magnet spot" (offense) or "soft spot"
-// (defense allowed) than a tiny-sample zone that happened to hit. EPA
-// inverts on the def side (allowing good EPA there is the bad outcome for
-// that defense) same as every other "allowed" stat on the site; volume
-// does NOT invert on either side -- getting attacked there often is
-// itself part of the soft-spot signal, not a neutral fact.
+// (defense allowed) than a tiny-sample zone that happened to hit.
+//
+// BOTH components invert on the def side: getting thrown at often in one
+// zone is itself the soft-spot signal (offenses attack what they've
+// identified), so high volume allowed is bad news for that defense and
+// has to read red -- same direction as allowing good EPA there. Green on
+// a defense grid therefore means "nobody goes here, and it doesn't work
+// when they do."
 function passZoneCompositeZ(side, zoneKey, zone) {
   if (!zone || !zone.attempts) return null;
+  const invert = side === "def";
   const volumePool = passZonePool(side, zoneKey, (z) => (z && z.attempts ? z.attempts : null));
   const epaPool = passZonePool(side, zoneKey, passZoneEpaPerPlay);
-  const volZ = zScore(zone.attempts, volumePool, false);
-  const epaZ = zScore(passZoneEpaPerPlay(zone), epaPool, side === "def");
+  const volZ = zScore(zone.attempts, volumePool, invert);
+  const epaZ = zScore(passZoneEpaPerPlay(zone), epaPool, invert);
   if (volZ === null && epaZ === null) return null;
   return 0.75 * (volZ || 0) + 0.25 * (epaZ || 0);
 }
@@ -925,7 +929,7 @@ function closePassZoneModal() {
   if (el) el.hidden = true;
 }
 
-function renderPassZoneRankContent(team, side, zoneKey) {
+function renderPassZoneRankTable(team, side, zoneKey) {
   const rows = DATA.teams
     .map((t) => {
       const zone = (DATA.pass_shot_charts[t] || {})[side]?.zones?.[zoneKey];
@@ -933,56 +937,107 @@ function renderPassZoneRankContent(team, side, zoneKey) {
     })
     .filter((r) => r.rate !== null)
     .sort((a, b) => b.zone.attempts - a.zone.attempts);
-  const heading = `${zoneLabel(zoneKey)} ${side === "off" ? "Offense" : "Defense Allowed"} &mdash; League Rank`;
-  const seeBtn = `<button type="button" class="pass-zone-plays-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">See the Plays</button>`;
-  if (!rows.length) return `<h3>${heading}</h3>${seeBtn}<p class="no-data-note">No attempts anywhere in this zone yet.</p>`;
+  if (!rows.length) return `<p class="no-data-note">No attempts anywhere in this zone yet.</p>`;
   const body = rows
     .map((r) => {
       const rowCls = r.team === team ? ' class="stat-rank-current"' : "";
       const epaSign = r.epa >= 0 ? "+" : "";
-      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${r.zone.attempts}</td><td class="num">${Math.round(r.rate * 100)}% <span class="muted-label">(${r.zone.completions}/${r.zone.attempts})</span></td><td class="num">${epaSign}${r.epa.toFixed(2)}</td></tr>`;
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${r.zone.attempts}</td><td class="num">${r.zone.completions}/${r.zone.attempts}</td><td class="num">${Math.round(r.rate * 100)}%</td><td class="num">${epaSign}${r.epa.toFixed(2)}</td></tr>`;
     })
     .join("");
-  return `<h3>${heading}</h3>
-    <p class="no-data-note">Sorted by volume (attempts) -- the raw comp % and EPA/play are here for the full picture, not to re-sort by.</p>
-    ${seeBtn}
-    <table class="data-table player-odds-table stat-rank-table">
-      <thead><tr><th>Team</th><th class="num">Att</th><th class="num">Comp %</th><th class="num">EPA/pl</th></tr></thead>
-      <tbody>${body}</tbody>
-    </table>`;
+  return `<table class="data-table player-odds-table pass-zone-rank-table">
+    <thead><tr><th>Team</th><th class="num">Att</th><th class="num">C/A</th><th class="num">Comp %</th><th class="num">EPA/pl</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
 }
 
-// Grouped by receiver, most-targeted first (not chronological) -- "who's
-// actually living in this zone" reads faster than a flat play-by-play
-// list once there's more than a handful of attempts. Works identically
-// for the defense side -- these are the SAME underlying plays, just
-// listing the opponent's receivers who found this defense's zone instead
-// of this team's own.
-function renderPassZonePlaysContent(team, side, zoneKey) {
-  const zone = (DATA.pass_shot_charts[team] || {})[side]?.zones?.[zoneKey];
-  const plays = (zone && zone.plays) || [];
-  const backBtn = `<button type="button" class="pass-zone-back-btn" data-entry="${encodeDataAttr({ team, side, zoneKey })}">&larr; Back to League Rank</button>`;
-  const sideLabel = side === "off" ? "Offense" : "Defense Allowed";
-  const heading = `${teamLogoMini(team)} ${team} ${zoneLabel(zoneKey)} ${sideLabel} &mdash; Plays`;
-  if (!plays.length) return `${backBtn}<h3>${heading}</h3><p class="no-data-note">No attempts in this zone yet.</p>`;
-
+// One row per pass catcher who saw a target in this zone -- "who do I
+// target" (offense) answered up front, without reading the play list
+// underneath it. Sorted by targets, since volume is the whole point.
+function passZonePlayerSummary(plays) {
   const groups = {};
   plays.forEach((p) => {
     const key = p.receiver || "Unknown";
-    (groups[key] = groups[key] || []).push(p);
+    if (!groups[key]) groups[key] = { name: key, position: p.position || "?", targets: 0, rec: 0, yards: 0, air: 0, yac: 0, epa: 0, plays: [] };
+    const g = groups[key];
+    g.targets += 1;
+    if (p.complete) {
+      g.rec += 1;
+      g.yards += p.yards || 0;
+      g.air += p.air_yards || 0;
+      g.yac += p.yac || 0;
+    }
+    g.epa += p.epa || 0;
+    g.plays.push(p);
+    if (!g.position || g.position === "?") g.position = p.position || "?";
   });
-  const names = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+  return Object.values(groups).sort((a, b) => b.targets - a.targets);
+}
 
-  // No "drop" distinction -- standard pbp doesn't chart drops (that's a
-  // PFF/NGS-only call), so an incompletion just shows as incomplete
-  // unless a pass defender was actually credited with breaking it up.
-  // yards is split into air (where it was caught -- the same depth this
-  // whole grid is bucketed by) and yac (yards after catch), since a short
-  // completion that housed it on YAC is a very different play than one
-  // that just fell short of the sticks.
-  const blocks = names
-    .map((name) => {
-      const rows = groups[name]
+function renderPassZonePlayerSummaryTable(summary) {
+  const body = summary
+    .map((g) => {
+      const epaCls = g.epa > 0 ? "tier-good" : g.epa < 0 ? "tier-bad" : "";
+      const epaSign = g.epa >= 0 ? "+" : "";
+      return `<tr>
+        <td>${g.name}</td>
+        <td>${g.position}</td>
+        <td class="num">${g.targets}</td>
+        <td class="num">${g.rec}</td>
+        <td class="num">${g.yards}</td>
+        <td class="num">${g.air}</td>
+        <td class="num">${g.yac}</td>
+        <td class="num ${epaCls}">${epaSign}${g.epa.toFixed(1)}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<table class="data-table player-odds-table pass-zone-summary-table">
+    <thead><tr><th>Player</th><th>Pos</th><th class="num">Tgt</th><th class="num">Rec</th><th class="num">Yds</th><th class="num">Air</th><th class="num">YAC</th><th class="num">EPA</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+// Defense view of the same plays, rolled up by position group instead of
+// by individual -- "which position group is finding this soft spot" is
+// the question that actually transfers to next week's opponent, since
+// the receivers themselves change every game.
+function renderPassZonePositionTable(summary) {
+  const groups = {};
+  summary.forEach((g) => {
+    const pos = g.position || "?";
+    if (!groups[pos]) groups[pos] = { pos, targets: 0, rec: 0, yards: 0, yac: 0, epa: 0 };
+    const t = groups[pos];
+    t.targets += g.targets;
+    t.rec += g.rec;
+    t.yards += g.yards;
+    t.yac += g.yac;
+    t.epa += g.epa;
+  });
+  const rows = Object.values(groups).sort((a, b) => b.targets - a.targets);
+  const body = rows
+    .map((t) => {
+      const epaCls = t.epa > 0 ? "tier-good" : t.epa < 0 ? "tier-bad" : "";
+      const epaSign = t.epa >= 0 ? "+" : "";
+      const rate = t.targets ? Math.round((t.rec / t.targets) * 100) : 0;
+      return `<tr><td>${t.pos}</td><td class="num">${t.targets}</td><td class="num">${t.rec}/${t.targets}</td><td class="num">${rate}%</td><td class="num">${t.yards}</td><td class="num">${t.yac}</td><td class="num ${epaCls}">${epaSign}${t.epa.toFixed(1)}</td></tr>`;
+    })
+    .join("");
+  return `<table class="data-table player-odds-table pass-zone-summary-table">
+    <thead><tr><th>Pos</th><th class="num">Tgt</th><th class="num">C/A</th><th class="num">Comp %</th><th class="num">Yds</th><th class="num">YAC</th><th class="num">EPA</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>`;
+}
+
+// No "drop" distinction -- standard pbp doesn't chart drops (that's a
+// PFF/NGS-only call), so an incompletion just shows as incomplete unless
+// a pass defender was actually credited with breaking it up. yards splits
+// into air (where it was caught -- the same depth this grid buckets by)
+// and yac, since a short completion that housed it on YAC is a very
+// different play than one that fell short of the sticks.
+function renderPassZonePlayList(summary) {
+  return summary
+    .map((g) => {
+      const rows = g.plays
         .map((p) => {
           const result = p.complete
             ? `${p.yards}y <span class="muted-label">(${p.air_yards} air + ${p.yac ?? 0} yac)</span>`
@@ -995,7 +1050,7 @@ function renderPassZonePlaysContent(team, side, zoneKey) {
         })
         .join("");
       return `<div class="pass-zone-plays-player">
-        <div class="stat-column-title">${name} <span class="muted-label">(${groups[name].length} tgt)</span></div>
+        <div class="stat-column-title">${g.name} <span class="muted-label">(${g.position} &middot; ${g.targets} tgt)</span></div>
         <table class="data-table player-odds-table">
           <thead><tr><th>Wk</th><th>Result</th><th class="num">EPA</th></tr></thead>
           <tbody>${rows}</tbody>
@@ -1003,33 +1058,49 @@ function renderPassZonePlaysContent(team, side, zoneKey) {
       </div>`;
     })
     .join("");
-  return `${backBtn}<h3>${heading}</h3>${blocks}`;
+}
+
+// Everything in one wide view -- league rank, the who-to-target summary,
+// and the plays themselves side by side, instead of a narrow box that
+// made you toggle between them to hold two numbers in your head.
+function renderPassZoneModalContent(team, side, zoneKey) {
+  const zone = (DATA.pass_shot_charts[team] || {})[side]?.zones?.[zoneKey];
+  const plays = (zone && zone.plays) || [];
+  const sideLabel = side === "off" ? "Offense" : "Defense Allowed";
+  const heading = `${teamLogoMini(team)} ${team} &mdash; ${zoneLabel(zoneKey)} ${sideLabel}`;
+  const summary = passZonePlayerSummary(plays);
+  const summaryBlock = !plays.length
+    ? `<p class="no-data-note">No attempts in this zone yet.</p>`
+    : side === "def"
+    ? `<h4 class="pass-zone-modal-subhead">By Position</h4>${renderPassZonePositionTable(summary)}
+       <h4 class="pass-zone-modal-subhead">By Player</h4>${renderPassZonePlayerSummaryTable(summary)}`
+    : `<h4 class="pass-zone-modal-subhead">Who's Getting Targeted</h4>${renderPassZonePlayerSummaryTable(summary)}`;
+  return `<h3>${heading}</h3>
+    <div class="pass-zone-modal-layout">
+      <div class="pass-zone-modal-col pass-zone-modal-col-rank">
+        <h4 class="pass-zone-modal-subhead">League Rank <span class="muted-label">(by volume)</span></h4>
+        ${renderPassZoneRankTable(team, side, zoneKey)}
+      </div>
+      <div class="pass-zone-modal-col">
+        ${summaryBlock}
+      </div>
+      <div class="pass-zone-modal-col">
+        ${plays.length ? `<h4 class="pass-zone-modal-subhead">Every Play</h4>${renderPassZonePlayList(summary)}` : ""}
+      </div>
+    </div>`;
 }
 
 function openPassZoneRankModal(team, side, zoneKey) {
   ensurePassZoneModal();
-  document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneRankContent(team, side, zoneKey);
+  document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneModalContent(team, side, zoneKey);
   document.getElementById("pass-zone-modal").hidden = false;
 }
 
 document.addEventListener("click", (e) => {
   const cell = e.target.closest(".pass-zone-rank-click");
-  if (cell) {
-    const { team, side, zoneKey } = decodeDataAttr(cell.dataset.entry);
-    openPassZoneRankModal(team, side, zoneKey);
-    return;
-  }
-  const playsBtn = e.target.closest(".pass-zone-plays-btn");
-  if (playsBtn) {
-    const { team, side, zoneKey } = decodeDataAttr(playsBtn.dataset.entry);
-    document.getElementById("pass-zone-modal-content").innerHTML = renderPassZonePlaysContent(team, side, zoneKey);
-    return;
-  }
-  const backBtn = e.target.closest(".pass-zone-back-btn");
-  if (backBtn) {
-    const { team, side, zoneKey } = decodeDataAttr(backBtn.dataset.entry);
-    document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneRankContent(team, side, zoneKey);
-  }
+  if (!cell) return;
+  const { team, side, zoneKey } = decodeDataAttr(cell.dataset.entry);
+  openPassZoneRankModal(team, side, zoneKey);
 });
 
 function zoneLabel(zoneKey) {
@@ -1037,36 +1108,52 @@ function zoneLabel(zoneKey) {
   return `${depth[0].toUpperCase()}${depth.slice(1)} ${loc[0].toUpperCase()}${loc.slice(1)}`;
 }
 
-function renderPassIdentityCard(team, side) {
+// The per-zone list that used to sit under these stats was removed -- it
+// was just the grid above it restated as text. What's left is the stuff
+// the grid canNOT tell you at a glance, each tiered against the league so
+// "25% deep rate" reads as high or low without needing the other 31 teams
+// in front of you. Same invert rule as the grid: on defense, being
+// thrown at more (deeper, more often) is the bad direction.
+function passIdentityStats(team, side) {
   const chart = (DATA.pass_shot_charts[team] || {})[side];
-  if (!chart) return "";
+  if (!chart) return null;
   const zoneEntries = Object.entries(chart.zones).map(([key, z]) => ({ key, ...z }));
   const totalAttempts = zoneEntries.reduce((a, z) => a + z.attempts, 0);
-  if (!totalAttempts) return `<p class="no-data-note">No pass attempts charted yet.</p>`;
+  if (!totalAttempts) return null;
   const leadZone = zoneEntries.reduce((best, z) => (z.attempts > best.attempts ? z : best), zoneEntries[0]);
   const deepAttempts = zoneEntries.filter((z) => z.key.startsWith("deep_")).reduce((a, z) => a + z.attempts, 0);
-  const deepRate = deepAttempts / totalAttempts;
-  const passRate = chart.total_plays ? chart.pass_attempts / chart.total_plays : null;
-  const rows = [...zoneEntries]
-    .filter((z) => z.attempts > 0)
-    .sort((a, b) => b.attempts - a.attempts)
-    .map((z) => {
-      const pct = ((z.attempts / totalAttempts) * 100).toFixed(1);
-      const epaCls = z.epa_sum > 0 ? "tier-good" : z.epa_sum < 0 ? "tier-bad" : "";
-      const epaSign = z.epa_sum > 0 ? "+" : "";
-      return `<div class="pass-zone-identity-row">
-        <span class="pass-zone-identity-label">${zoneLabel(z.key)}</span>
-        <span class="pass-zone-identity-vol">${z.attempts} att &middot; ${pct}%</span>
-        <span class="pass-zone-identity-epa ${epaCls}">${epaSign}${z.epa_sum.toFixed(1)} epa</span>
-      </div>`;
+  return {
+    leadZoneKey: leadZone.key,
+    leadZoneShare: leadZone.attempts / totalAttempts,
+    deepRate: deepAttempts / totalAttempts,
+    passRate: chart.total_plays ? chart.pass_attempts / chart.total_plays : null,
+    attempts: chart.pass_attempts,
+  };
+}
+function passIdentityPool(side, field) {
+  return DATA.teams
+    .map((t) => {
+      const s = passIdentityStats(t, side);
+      return s ? s[field] : null;
     })
-    .join("");
+    .filter((v) => v !== null && v !== undefined);
+}
+
+function renderPassIdentityCard(team, side) {
+  const s = passIdentityStats(team, side);
+  if (!s) return `<p class="no-data-note">No pass attempts charted yet.</p>`;
+  const invert = side === "def";
+  const statRow = (label, value, field, raw) => {
+    const pool = passIdentityPool(side, field);
+    const cls = raw === null || raw === undefined ? "" : percentileTier(raw, pool, invert);
+    const alpha = raw === null || raw === undefined ? "" : tierAlphaAttr(raw, pool, invert);
+    return `<div class="pass-zone-identity-stat"><span>${label}</span><strong class="${cls}"${alpha}>${value}</strong></div>`;
+  };
   return `<div class="pass-zone-identity">
-    <div class="pass-zone-identity-stat"><span>Lead Zone</span><strong>${zoneLabel(leadZone.key)}</strong></div>
-    <div class="pass-zone-identity-stat"><span>Deep-Target Rate</span><strong>${Math.round(deepRate * 100)}%</strong></div>
-    <div class="pass-zone-identity-stat"><span>Pass Rate</span><strong>${passRate === null ? "--" : Math.round(passRate * 100) + "%"}</strong></div>
-    <div class="pass-zone-identity-stat"><span>Attempts</span><strong>${chart.pass_attempts}</strong></div>
-    <div class="pass-zone-identity-zones">${rows}</div>
+    ${statRow("Lead Zone", zoneLabel(s.leadZoneKey), "leadZoneShare", s.leadZoneShare)}
+    ${statRow("Deep-Target Rate", `${Math.round(s.deepRate * 100)}%`, "deepRate", s.deepRate)}
+    ${statRow("Pass Rate", s.passRate === null ? "--" : `${Math.round(s.passRate * 100)}%`, "passRate", s.passRate)}
+    ${statRow("Attempts", s.attempts, "attempts", s.attempts)}
   </div>`;
 }
 

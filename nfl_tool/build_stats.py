@@ -171,7 +171,7 @@ def pass_depth_bucket(air_yards):
     return PASS_DEPTH_BUCKETS[-1][0]
 
 
-def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
+def compute_pass_shot_chart(pbp: pd.DataFrame, teams, pos_lookup) -> dict:
     """Where each team's passing game actually attacks the field, and
     what each defense allows there -- see PASS_DEPTH_BUCKETS' docstring.
     Returns {team: {"off": {...}, "def": {...}}}, off/def each shaped
@@ -182,10 +182,12 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
     first game not yet played) -- callers shouldn't need a fallback.
 
     "plays" is every individual pass attempt in that zone this season
-    (week, receiver, complete, yards, air_yards, epa, defender -- who
-    broke it up, if anyone), most recent week first -- powers a "see the
-    plays behind this number" drill-down on the frontend instead of
-    leaving the aggregate as a dead end."""
+    (week, receiver, position, complete, yards, air_yards, yac, epa,
+    defender -- who broke it up, if anyone), most recent week first --
+    powers the drill-down on the frontend instead of leaving the aggregate
+    as a dead end. position is carried per play so the defense-side view
+    can break a zone down by WR/RB/TE (which position group actually finds
+    this soft spot) without a second join."""
     passes = pbp[
         (pbp["pass_attempt"] == 1)
         & (pbp["two_point_attempt"] != 1)
@@ -201,9 +203,17 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams) -> dict:
     def play_records(sub):
         recs = []
         for row in sub.sort_values("week", ascending=False).itertuples(index=False):
+            pos = None
+            full_name = None
+            if pd.notna(row.receiver_player_id):
+                pos, _, full_name = pos_lookup(row.receiver_player_id, row.week)
             recs.append({
                 "week": int(row.week),
-                "receiver": row.receiver_player_name if pd.notna(row.receiver_player_name) else None,
+                # pbp's own short form ("D.Kincaid") is the fallback -- the
+                # roster join gives a full name, but misses on the handful
+                # of players pos_lookup can't resolve for that week.
+                "receiver": full_name or (row.receiver_player_name if pd.notna(row.receiver_player_name) else None),
+                "position": pos,
                 "complete": bool(row.complete_pass == 1),
                 "yards": None if pd.isna(row.yards_gained) else int(row.yards_gained),
                 "air_yards": None if pd.isna(row.air_yards) else int(row.air_yards),
@@ -3038,7 +3048,7 @@ def main():
     player_props = build_player_props(volume_players, player_route_profiles, teams, team_targets)
     player_game_logs = compute_player_game_logs(pbp, pos_lookup)
     player_box_scores = compute_player_box_scores(pbp, pos_lookup)
-    pass_shot_charts = compute_pass_shot_chart(pbp, teams)
+    pass_shot_charts = compute_pass_shot_chart(pbp, teams, pos_lookup)
     player_pass_zones = compute_player_pass_zone_splits(pbp, pos_lookup)
 
     # One team-level schedule-strength number (not per condition -- see

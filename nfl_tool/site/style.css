@@ -503,18 +503,9 @@ h3 {
   padding: 2px 0;
 }
 .pass-zone-identity-stat span { opacity: 0.75; }
-.pass-zone-identity-zones { margin-top: 8px; }
-.pass-zone-identity-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 2px 0;
-  font-size: 0.74rem;
-  border-top: 1px solid var(--border);
-}
-.pass-zone-identity-label { flex: 1 1 auto; }
-.pass-zone-identity-vol { opacity: 0.75; white-space: nowrap; }
-.pass-zone-identity-epa { font-weight: 600; white-space: nowrap; }
+/* Tiered value gets the same pill treatment a tiered table cell does --
+   it's a league-standing signal, not just a number. */
+.pass-zone-identity-stat strong { padding: 0 5px; border-radius: 4px; }
 .pass-zone-rank-click { cursor: pointer; }
 .pass-zone-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 .pass-zone-all-btn {
@@ -529,21 +520,32 @@ h3 {
   vertical-align: middle;
 }
 .pass-zone-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
-.pass-zone-modal-box { max-width: 420px; }
-.pass-zone-all-modal-box { max-width: 900px; width: 95vw; max-height: 85vh; overflow-y: auto; }
-.pass-zone-plays-btn, .pass-zone-back-btn {
-  display: block;
-  margin: 8px 0 12px;
-  background: var(--panel);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
+/* Rank, summary and plays all sit side by side in one wide box rather
+   than stacked in a narrow one that forced toggling between views. */
+.pass-zone-modal-box { max-width: 1500px; width: 96vw; max-height: 88vh; overflow-y: auto; }
+.pass-zone-all-modal-box { max-width: 1500px; width: 96vw; max-height: 88vh; overflow-y: auto; }
+.pass-zone-modal-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 10px;
 }
-.pass-zone-plays-btn:hover, .pass-zone-back-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
+.pass-zone-modal-col { flex: 1 1 320px; min-width: 300px; }
+.pass-zone-modal-col-rank { flex: 0 0 auto; }
+.pass-zone-modal-subhead {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pass-zone-modal-col .pass-zone-modal-subhead:not(:first-child) { margin-top: 18px; }
+/* Auto width, not the 260px .stat-rank-table cap -- that cap is what was
+   wrapping "100% (3/3)" onto two lines in a box with room to spare. */
+.pass-zone-rank-table, .pass-zone-summary-table { width: auto; min-width: 100%; white-space: nowrap; }
+.pass-zone-rank-table th:first-child, .pass-zone-rank-table td:first-child,
+.pass-zone-summary-table th:first-child, .pass-zone-summary-table td:first-child { text-align: left; }
 .pass-zone-plays-player { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
 .pass-zone-plays-player:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
 
