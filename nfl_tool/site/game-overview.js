@@ -35,12 +35,19 @@ const RED_ZONE_CATEGORY = {
   ],
   // Shown as extra columns in the grade-rank modal only (not in the
   // compact grade tables themselves) -- Trips/TDs/FGs/Avg Points behind
-  // the composite so "why is this a B" is never a mystery.
+  // the composite so "why is this a B" is never a mystery. Each column is
+  // colored by its own league-wide percentile (see openGradeRankModal) --
+  // offInvert/defInvert follow the same "green = good for the team it's
+  // on" rule as everywhere else, EXCEPT FGs: a high FG count off a red
+  // zone trip usually means settling for 3 instead of scoring 6, so more
+  // FGs reads as worse for an offense (and, mirrored, more FGs ALLOWED
+  // reads as better for a defense -- bending without breaking). Every
+  // other column keeps the normal direction.
   extraCols: [
-    { label: "Trips", off: "rz_trips", def: "rz_trips_allowed" },
-    { label: "TDs", off: "rz_trips_td", def: "rz_trips_td_allowed" },
-    { label: "FGs", off: "rz_trips_fg", def: "rz_trips_fg_allowed" },
-    { label: "Avg Pts", off: "rz_avg_points", def: "rz_avg_points_allowed", digits: 2 },
+    { label: "Trips", off: "rz_trips", def: "rz_trips_allowed", offInvert: false, defInvert: true },
+    { label: "TDs", off: "rz_trips_td", def: "rz_trips_td_allowed", offInvert: false, defInvert: true },
+    { label: "FGs", off: "rz_trips_fg", def: "rz_trips_fg_allowed", offInvert: true, defInvert: false },
+    { label: "Avg Pts", off: "rz_avg_points", def: "rz_avg_points_allowed", digits: 2, offInvert: false, defInvert: true },
   ],
 };
 
@@ -351,12 +358,22 @@ function openGradeRankModal(cat, side, currentTeam) {
   const body = rows
     .map((r) => {
       const rowCls = r.team === currentTeam ? ' class="stat-rank-current"' : "";
+      // Same league-wide percentile shading every other stat cell on the
+      // site uses (tierFor/tierForAlphaAttr) -- each column carries its
+      // own offInvert/defInvert (see extraCols above) rather than one
+      // fixed direction for the whole row, since FGs colors opposite of
+      // Trips/TDs/Avg Pts.
       const extraCells = cat.extraCols
         ? cat.extraCols
             .map((c) => {
-              const v = DATA.team_stats[r.team][side === "off" ? c.off : c.def];
-              const display = v === null || v === undefined ? "--" : c.digits ? fmt(v, c.digits) : v;
-              return `<td class="num">${display}</td>`;
+              const statKey = side === "off" ? c.off : c.def;
+              const v = DATA.team_stats[r.team][statKey];
+              if (v === null || v === undefined) return `<td class="num">--</td>`;
+              const display = c.digits ? fmt(v, c.digits) : v;
+              const invert = side === "off" ? c.offInvert : c.defInvert;
+              const cls = tierFor(statKey, r.team, invert);
+              const alpha = tierForAlphaAttr(statKey, r.team, invert);
+              return `<td class="num ${cls}"${alpha}>${display}</td>`;
             })
             .join("")
         : "";
