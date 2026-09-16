@@ -818,6 +818,14 @@ footer a { color: var(--accent); }
 .modal-close:hover { color: var(--text); }
 .player-odds-table th, .player-odds-table td { text-align: left; }
 .player-odds-table td.num, .player-odds-table th.num { text-align: center; }
+/* Base .data-table sets width:100%, which is right for a table with
+   enough real columns/content to earn that space -- but a thin table
+   (a handful of short numeric columns, e.g. anytime-TD odds, a game log,
+   a props market list) just stretched those few columns apart across the
+   whole modal, leaving huge gaps between them. Auto width lets it hug its
+   own content like the general-stat-table/scheme-table pattern already
+   does everywhere else on the site. */
+.player-odds-table { width: auto; }
 .pp-row-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 400; }
 .pp-row-label input { cursor: pointer; }
 .pp-check-inline { display: inline-flex; align-items: center; margin-left: 4px; cursor: pointer; }
@@ -1001,12 +1009,16 @@ footer a { color: var(--accent); }
    EPA/Att, aDOT) -- opens openPlayerStatRankModal's full QB leaderboard. */
 .player-stat-rank-click { cursor: pointer; }
 .player-stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
-/* Fills the (now much wider) modal instead of sitting as a 260px sliver
-   in a sea of white -- the same smashed-into-a-corner problem the modal
-   width fix above is about. */
-.stat-rank-table { width: 100%; }
+/* Was width:100% to fill the (now much wider) modal instead of sitting as
+   a 260px sliver -- but stretching a 2-6 column table (team + a value or
+   two + a grade) across a 1200px-wide modal just spread those few columns
+   apart into a lot of dead space between them. Auto width plus a much
+   smaller modal cap below fits the modal to the table instead. */
+.stat-rank-table { width: auto; }
 .stat-rank-table th:first-child, .stat-rank-table td:first-child { text-align: left; }
 .stat-rank-current td { border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); font-weight: 700; }
+#stat-rank-modal .modal-box { max-width: 640px; width: 92vw; }
+#player-odds-modal .modal-box { max-width: 640px; width: 92vw; }
 
 #td-breakdown-modal .modal-box { max-width: 1000px; width: 90vw; }
 
@@ -1456,7 +1468,11 @@ footer a { color: var(--accent); }
 .recent-game-row { cursor: pointer; }
 .recent-game-row:hover td { background: rgba(var(--accent-rgb), 0.08); }
 
-#box-score-modal .modal-box { max-width: 1100px; width: 92vw; }
+/* 1100px was sized for a table that used to stretch full-width -- now
+   that box-score-table hugs its own (much narrower) content below, the
+   modal itself is capped down to match instead of leaving a wide empty
+   margin around four stacked, skinny stat tables. */
+#box-score-modal .modal-box { max-width: 700px; width: 92vw; }
 .box-score-team-toggle { display: flex; gap: 8px; margin: 8px 0 14px; }
 .box-score-team-toggle .box-score-team-btn {
   padding: 5px 12px;
@@ -1471,7 +1487,7 @@ footer a { color: var(--accent); }
 }
 .box-score-team-toggle .box-score-team-btn:hover { color: var(--text); border-color: var(--accent); }
 .box-score-team-toggle .box-score-team-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); }
-.box-score-table { margin-top: 14px; font-size: 0.78rem; }
+.box-score-table { width: auto; margin-top: 14px; font-size: 0.78rem; }
 .box-score-table:first-of-type { margin-top: 0; }
 .box-score-cat-hdr {
   background: rgba(var(--accent-rgb), 0.16) !important;
