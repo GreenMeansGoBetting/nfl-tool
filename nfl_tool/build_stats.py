@@ -1017,13 +1017,18 @@ def _standard_line(by_bookmaker: dict, field: str):
 def _best_price_at_line(by_bookmaker: dict, field: str, line):
     """Best price among books quoting EXACTLY `line` -- or, if `line` is
     None (no standard could be determined), the best price anywhere,
-    same as the old unconstrained behavior."""
+    same as the old unconstrained behavior. SGO returns odds/lines as
+    JSON strings, not numbers -- comparing a book's raw string value
+    straight against `line` (a float) would never match anything and
+    silently drop every market, so this casts before comparing."""
     best_price, best_book = None, None
     for book, info in by_bookmaker.items():
         if not info.get("available") or info.get("odds") is None:
             continue
-        if line is not None and info.get(field) != line:
-            continue
+        if line is not None:
+            v = info.get(field)
+            if v is None or float(v) != line:
+                continue
         price = float(info["odds"])
         if best_price is None or price > best_price:
             best_price, best_book = price, book
