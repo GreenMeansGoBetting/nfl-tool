@@ -2,16 +2,25 @@ name: Refresh data and deploy site
 
 on:
   schedule:
-    # Daily refresh, ~6am ET (10:00 UTC covers 6am EDT; during EST part of
-    # the season this lands ~5am ET instead -- close enough that it's always
-    # fresh well before the workday, no need to split the cron by DST).
+    # Every 4 hours (00:17, 04:17, 08:17, 12:17, 16:17, 20:17 UTC) --
+    # bumped from once daily because nflverse's own games.csv (the free
+    # odds source build_stats.py reads from -- no live feed involved) gets
+    # re-scraped several times a day, not just once, so a full day's gap
+    # meant this site could sit noticeably behind the real market even
+    # right after a rebuild (confirmed directly: a build that ran under 2
+    # hours after nflverse's own last scrape still showed a line nflverse
+    # itself hadn't caught up on yet). This narrows the average gap to
+    # nflverse's own update cadence -- it can't do better than THEIR
+    # refresh rate no matter how often this polls, so if a line still
+    # looks off right after a run, nflverse just hasn't re-scraped it yet,
+    # not a bug here.
     # Offset 17 minutes past the hour on purpose -- GitHub's own docs warn
     # that on-the-hour schedules are the most likely to be delayed/dropped
     # during peak Actions load, and that's exactly what happened here
     # (confirmed: only one scheduled run ever fired, 4+ hours late, and a
     # whole day was missed outright) -- a few minutes off the hour avoids
     # the worst of that contention.
-    - cron: "17 10 * * *"
+    - cron: "17 */4 * * *"
   workflow_dispatch: {}  # manual "Run workflow" button, for on-demand refresh
   push:
     branches: [main]
