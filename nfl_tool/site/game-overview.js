@@ -1194,7 +1194,8 @@ function renderPickRevealContent(game) {
     .filter(Boolean)
     .join("");
   if (!sections) return `${heading}<p class="no-data-note">No picks saved for this game yet.</p>`;
-  return `${heading}<div class="reveal-grid">${sections}</div>`;
+  return `${heading}<div class="reveal-grid">${sections}</div>
+    <p class="pikkit-reminder">Novig likely has the best price. Always line shop with Pikkit. Prices are estimates.</p>`;
 }
 
 function openPickRevealModal(game) {

@@ -1050,6 +1050,12 @@ footer a { color: var(--accent); }
 .td-breakdown-table td { padding: 4px 6px; }
 .td-breakdown-table td.num { text-align: right; white-space: nowrap; }
 
+/* Scoped to the id (not just .modal-box) since the base .modal-box rule
+   is declared later in this file and wins at equal specificity otherwise
+   -- same fix as the pass-zone/rush-lanes/results modals. This one's just
+   2-3 small color-coded boxes; the global 1200px default stretched them
+   into mostly empty cards with huge gaps between. */
+#pick-reveal-modal .modal-box { max-width: 560px; }
 .reveal-grid {
   display: flex;
   gap: 10px;
