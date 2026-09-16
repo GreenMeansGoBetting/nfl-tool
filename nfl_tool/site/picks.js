@@ -89,26 +89,19 @@ function regradeAllPicks(schedule) {
   return updated;
 }
 
-// Spread/total prices vary pick to pick (and this site doesn't even store
-// enough of a "market standard" to assume one), so unit tracking assumes a
-// flat -105 on both -- a standard, easy-to-reason-about number instead of
-// pretending the actual frozen price at pick time is what got bet. Moneyline
-// keeps its real frozen price (odds_at_pick) since that's the whole point of
-// a moneyline number -- there's no "standard" price to substitute.
-const STANDARD_SPREAD_TOTAL_ODDS = -105;
-
 // American odds -> profit on a 1-unit stake (e.g. -105 -> 0.95u, +150 -> 1.5u).
 function americanOddsProfit(odds) {
   return odds > 0 ? odds / 100 : 100 / Math.abs(odds);
 }
 
-// Net units for one graded pick, assuming a flat 1u stake. 0 for a push or
-// a pick that hasn't graded yet.
+// Net units for one graded pick, assuming a flat 1u stake. odds_at_pick is
+// now always a real frozen price (Novig's own price when it had one at pick
+// time, the best-price-across-books number otherwise -- see marketSides in
+// game-overview.js) for every market including spread/total, not just
+// moneyline, so there's no need for a flat assumed price anymore. 0 for a
+// push or a pick that hasn't graded yet.
 function unitsForPick(pick) {
-  if (pick.graded === "win") {
-    const odds = pick.market === "moneyline" ? pick.odds_at_pick : STANDARD_SPREAD_TOTAL_ODDS;
-    return americanOddsProfit(odds);
-  }
+  if (pick.graded === "win") return americanOddsProfit(pick.odds_at_pick);
   if (pick.graded === "loss") return -1;
   return 0;
 }

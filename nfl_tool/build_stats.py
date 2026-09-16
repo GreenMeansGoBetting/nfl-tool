@@ -1058,6 +1058,79 @@ def extract_general_odds(events: list, teams) -> dict:
     return result
 
 
+# Full-game spread/total/moneyline, specifically Novig's own price rather
+# than the best price found across every book (that's extract_general_odds'
+# job) -- for pick TRACKING, the number that matters is what a bet placed on
+# Novig itself actually pays, not a hypothetical best-of-all-books number
+# the user may not have gotten. Same shape as compute_schedule's own
+# spread/total/ml fields so apply_novig_pick_odds can drop it straight in.
+def extract_novig_schedule_odds(events: list, teams) -> dict:
+    result = {}
+    for event in events:
+        odds = event.get("odds", {})
+        team_short_by_id = {
+            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
+            for side in ("home", "away")
+        }
+        away_team = team_short_by_id.get(event["teams"]["away"]["teamID"])
+        home_team = team_short_by_id.get(event["teams"]["home"]["teamID"])
+        if away_team not in teams or home_team not in teams:
+            continue
+
+        game_odds = {}
+        for odd in odds.values():
+            if odd.get("playerID") or odd.get("periodID") != "game" or odd.get("statID") != "points":
+                continue
+            bet_type = odd.get("betTypeID")
+            if bet_type not in ("sp", "ou", "ml"):
+                continue
+            novig = (odd.get("byBookmaker") or {}).get("novig")
+            if not novig or not novig.get("available") or novig.get("odds") is None:
+                continue
+            price = float(novig["odds"])
+            line = novig.get("overUnder") if novig.get("overUnder") is not None else novig.get("spread")
+            team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
+            side = odd.get("sideID")
+
+            if bet_type == "sp" and team == away_team:
+                game_odds["away_team_spread"] = float(line) if line is not None else None
+                game_odds["away_spread_odds"] = int(price)
+            elif bet_type == "sp" and team == home_team:
+                game_odds["home_team_spread"] = float(line) if line is not None else None
+                game_odds["home_spread_odds"] = int(price)
+            elif bet_type == "ou" and side == "over":
+                game_odds["total_line"] = float(line) if line is not None else None
+                game_odds["over_odds"] = int(price)
+            elif bet_type == "ou" and side == "under":
+                game_odds["under_odds"] = int(price)
+            elif bet_type == "ml" and team == away_team:
+                game_odds["away_moneyline"] = int(price)
+            elif bet_type == "ml" and team == home_team:
+                game_odds["home_moneyline"] = int(price)
+
+        if game_odds:
+            result[f"{away_team}_{home_team}"] = game_odds
+    return result
+
+
+def apply_novig_pick_odds(schedule: list, novig_odds: dict) -> None:
+    """Attaches game["novig"] = {same field names as the top-level schedule
+    entry} wherever Novig has posted a price -- kept as a SEPARATE nested
+    object rather than overwriting the top-level (best-of-all-books) fields,
+    since the Odds bar/general handicapping numbers and the Pick Tracker's
+    frozen price now intentionally answer two different questions ("what's
+    the best price anywhere" vs "what would I actually get on Novig").
+    Absent entirely for a game/market Novig hasn't priced -- the picker
+    falls back to the top-level fields itself (see marketSides in
+    game-overview.js) rather than this leaving partial/None placeholders."""
+    if not novig_odds:
+        return
+    for game in schedule:
+        odds = novig_odds.get(f"{game['away']}_{game['home']}")
+        if odds:
+            game["novig"] = odds
+
+
 def apply_sgo_schedule_odds(schedule: list, general_odds: dict) -> None:
     """Overwrites each game's spread/total/moneyline fields (in place) with
     SportsGameOdds' full-game numbers -- the best price found across every
@@ -3238,6 +3311,10 @@ def main():
             # this same fetch already had a fresher, best-price number
             # sitting right here the whole time.
             apply_sgo_schedule_odds(week_games, general_odds)
+            # Separate from the best-of-books number above -- Pick Tracker
+            # unit tracking wants what Novig itself actually pays.
+            novig_schedule_odds = extract_novig_schedule_odds(sgo_events, teams)
+            apply_novig_pick_odds(week_games, novig_schedule_odds)
 
     blob = {
         "season": season,

@@ -1060,22 +1060,39 @@ function renderInjuryPanel(team, week) {
 }
 
 // ---- pick tracker ----
+// Pick tracking wants what a bet placed on Novig itself actually pays, not
+// the best price found across every book (that's what the Odds bar/general
+// handicapping numbers above still show) -- game.novig carries Novig's own
+// line+price per market when build_stats.py's extract_novig_schedule_odds
+// found one. Falls back to the top-level (best-of-books) field per KEY,
+// not per market, since Novig can post one side of a market without the
+// other (e.g. a spread side pulled for liquidity).
+function pv(game, key) {
+  const v = game.novig?.[key];
+  return v !== undefined && v !== null ? v : game[key];
+}
+
 function marketSides(game, market) {
   if (market === "spread") {
+    const awaySpread = pv(game, "away_team_spread");
+    const homeSpread = pv(game, "home_team_spread");
     return [
-      { side: "away", label: `${game.away} ${fmtSigned(game.away_team_spread)}`, line: game.away_team_spread, odds: game.away_spread_odds, available: game.away_team_spread !== null },
-      { side: "home", label: `${game.home} ${fmtSigned(game.home_team_spread)}`, line: game.home_team_spread, odds: game.home_spread_odds, available: game.home_team_spread !== null },
+      { side: "away", label: `${game.away} ${fmtSigned(awaySpread)}`, line: awaySpread, odds: pv(game, "away_spread_odds"), available: awaySpread !== null },
+      { side: "home", label: `${game.home} ${fmtSigned(homeSpread)}`, line: homeSpread, odds: pv(game, "home_spread_odds"), available: homeSpread !== null },
     ];
   }
   if (market === "total") {
+    const totalLine = pv(game, "total_line");
     return [
-      { side: "over", label: `Over ${fmt(game.total_line, 1)}`, line: game.total_line, odds: game.over_odds, available: game.total_line !== null },
-      { side: "under", label: `Under ${fmt(game.total_line, 1)}`, line: game.total_line, odds: game.under_odds, available: game.total_line !== null },
+      { side: "over", label: `Over ${fmt(totalLine, 1)}`, line: totalLine, odds: pv(game, "over_odds"), available: totalLine !== null },
+      { side: "under", label: `Under ${fmt(totalLine, 1)}`, line: totalLine, odds: pv(game, "under_odds"), available: totalLine !== null },
     ];
   }
+  const awayMl = pv(game, "away_moneyline");
+  const homeMl = pv(game, "home_moneyline");
   return [
-    { side: "away", label: `${game.away} ${fmtOdds(game.away_moneyline)}`, line: null, odds: game.away_moneyline, available: game.away_moneyline !== null },
-    { side: "home", label: `${game.home} ${fmtOdds(game.home_moneyline)}`, line: null, odds: game.home_moneyline, available: game.home_moneyline !== null },
+    { side: "away", label: `${game.away} ${fmtOdds(awayMl)}`, line: null, odds: awayMl, available: awayMl !== null },
+    { side: "home", label: `${game.home} ${fmtOdds(homeMl)}`, line: null, odds: homeMl, available: homeMl !== null },
   ];
 }
 
