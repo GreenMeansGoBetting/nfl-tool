@@ -1261,15 +1261,20 @@ def compute_red_zone(pbp: pd.DataFrame) -> dict:
 
 
 def compute_red_zone_trips(pbp: pd.DataFrame) -> dict:
-    """Full-season red zone TRIPS (drives that reached the red zone) and how
-    many ended in a touchdown on that same drive -- the drive-level "Red
-    Zone TD %" conversion rate compute_red_zone()'s docstring flagged as
-    deliberately left out of that first pass. Both this team's own
-    conversion rate and what its defense allows (a drive belongs to exactly
-    one offense, so a defense's "allowed" trip is looked up by the same
+    """Full-season red zone TRIPS (drives that reached the red zone) and
+    how each one ended -- touchdown, made field goal, or neither
+    (turnover, turnover on downs, missed FG, clock) -- both this team's
+    own trips and what its defense allows (a drive belongs to exactly one
+    offense, so a defense's "allowed" trip is looked up by the same
     (game_id, drive) key rather than needing the opponent's identity).
-    Offensive scrimmage TDs only, same convention as everywhere else in this
-    pipeline."""
+    Offensive scrimmage TDs only, same convention as everywhere else in
+    this pipeline.
+
+    Also tallies rz_points (6 per TD trip, 3 per FG trip, 0 otherwise) so
+    build_team_stats can derive average points per trip -- the volume-
+    weighted Red Zone grade (game-overview.js's RED_ZONE_CATEGORY) treats
+    that as a truer efficiency signal than a bare TD-conversion rate,
+    since it doesn't score a missed FG the same as a turnover."""
     rz = pbp[pbp["yardline_100"] <= RED_ZONE_YARDLINE]
     off_trip_drives = rz.groupby(["game_id", "posteam"])["drive"].unique()
     def_trip_drives = rz.groupby(["game_id", "defteam"])["drive"].unique()
@@ -1278,25 +1283,44 @@ def compute_red_zone_trips(pbp: pd.DataFrame) -> dict:
     td_drive_keys = set(zip(off_td["game_id"], off_td["drive"]))
     td_drives_by_scorer = off_td.groupby(["game_id", "posteam"])["drive"].apply(set)
 
+    fg_made = pbp[(pbp["field_goal_attempt"] == 1) & (pbp["field_goal_result"] == "made")]
+    fg_drive_keys = set(zip(fg_made["game_id"], fg_made["drive"]))
+    fg_drives_by_scorer = fg_made.groupby(["game_id", "posteam"])["drive"].apply(set)
+
+    def blank():
+        return {
+            "rz_trips": 0, "rz_trips_td": 0, "rz_trips_fg": 0, "rz_points": 0,
+            "rz_trips_allowed": 0, "rz_trips_td_allowed": 0, "rz_trips_fg_allowed": 0, "rz_points_allowed": 0,
+        }
+
     result = {}
     for (game_id, team), drives in off_trip_drives.items():
         if pd.isna(team):
             continue
-        d = result.setdefault(team, {"rz_trips": 0, "rz_trips_td": 0, "rz_trips_allowed": 0, "rz_trips_td_allowed": 0})
-        scored = td_drives_by_scorer.get((game_id, team), set())
+        d = result.setdefault(team, blank())
+        scored_td = td_drives_by_scorer.get((game_id, team), set())
+        scored_fg = fg_drives_by_scorer.get((game_id, team), set())
         for drv in set(drives):
             d["rz_trips"] += 1
-            if drv in scored:
+            if drv in scored_td:
                 d["rz_trips_td"] += 1
+                d["rz_points"] += 6
+            elif drv in scored_fg:
+                d["rz_trips_fg"] += 1
+                d["rz_points"] += 3
 
     for (game_id, team), drives in def_trip_drives.items():
         if pd.isna(team):
             continue
-        d = result.setdefault(team, {"rz_trips": 0, "rz_trips_td": 0, "rz_trips_allowed": 0, "rz_trips_td_allowed": 0})
+        d = result.setdefault(team, blank())
         for drv in set(drives):
             d["rz_trips_allowed"] += 1
             if (game_id, drv) in td_drive_keys:
                 d["rz_trips_td_allowed"] += 1
+                d["rz_points_allowed"] += 6
+            elif (game_id, drv) in fg_drive_keys:
+                d["rz_trips_fg_allowed"] += 1
+                d["rz_points_allowed"] += 3
     return result
 
 
@@ -2042,10 +2066,18 @@ def build_team_stats(
             "rz_trips": rz_trip.get("rz_trips", 0),
             "rz_trips_per_g": per_g(rz_trip.get("rz_trips", 0)),
             "rz_trips_td": rz_trip.get("rz_trips_td", 0),
+            "rz_trips_fg": rz_trip.get("rz_trips_fg", 0),
+            "rz_points": rz_trip.get("rz_points", 0),
+            "rz_avg_points": round(rz_trip.get("rz_points", 0) / rz_trip["rz_trips"], 2) if rz_trip.get("rz_trips") else None,
             "rz_td_rate": round(rz_trip.get("rz_trips_td", 0) / rz_trip["rz_trips"], 3) if rz_trip.get("rz_trips") else None,
             "rz_trips_allowed": rz_trip.get("rz_trips_allowed", 0),
             "rz_trips_allowed_per_g": per_g(rz_trip.get("rz_trips_allowed", 0)),
             "rz_trips_td_allowed": rz_trip.get("rz_trips_td_allowed", 0),
+            "rz_trips_fg_allowed": rz_trip.get("rz_trips_fg_allowed", 0),
+            "rz_points_allowed": rz_trip.get("rz_points_allowed", 0),
+            "rz_avg_points_allowed": round(rz_trip.get("rz_points_allowed", 0) / rz_trip["rz_trips_allowed"], 2)
+            if rz_trip.get("rz_trips_allowed")
+            else None,
             "rz_td_rate_allowed": round(rz_trip.get("rz_trips_td_allowed", 0) / rz_trip["rz_trips_allowed"], 3)
             if rz_trip.get("rz_trips_allowed")
             else None,

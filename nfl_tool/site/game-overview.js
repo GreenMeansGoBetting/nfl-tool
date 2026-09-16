@@ -11,6 +11,39 @@
 // Grouped into two sections (was one flat list that read as a blended wall
 // of numbers): the core volume/efficiency picture, then the two "flips
 // games" stats that don't fit that story.
+// Shared by GENERAL_STAT_GROUPS' "Red Zone" row and SUMMARY_CATEGORIES'
+// "Red Zone" grade -- one definition so both places' grades (and the
+// modal behind either) always agree. Weighted 70/30 toward volume
+// (trips/game) over efficiency (points/trip) rather than a bare TD
+// conversion rate: 3-for-4 and 1-for-1 both read as "100%" under a rate,
+// despite one being a real, repeatable trip volume and the other a tiny
+// sample. rz_avg_points already accounts for FGs (3) vs TDs (6) vs
+// nothing (turnover/turnover on downs/missed FG), so it's a truer
+// efficiency number than the raw TD rate alone. Defense side inverts
+// both -- allowing MORE trips and MORE points per trip are both bad for
+// that defense, same "green = good for the team it's on" rule as
+// everywhere else.
+const RED_ZONE_CATEGORY = {
+  label: "Red Zone",
+  off: [
+    { key: "rz_trips_per_g", invert: false, weight: 7 },
+    { key: "rz_avg_points", invert: false, weight: 3 },
+  ],
+  def: [
+    { key: "rz_trips_allowed_per_g", invert: true, weight: 7 },
+    { key: "rz_avg_points_allowed", invert: true, weight: 3 },
+  ],
+  // Shown as extra columns in the grade-rank modal only (not in the
+  // compact grade tables themselves) -- Trips/TDs/FGs/Avg Points behind
+  // the composite so "why is this a B" is never a mystery.
+  extraCols: [
+    { label: "Trips", off: "rz_trips", def: "rz_trips_allowed" },
+    { label: "TDs", off: "rz_trips_td", def: "rz_trips_td_allowed" },
+    { label: "FGs", off: "rz_trips_fg", def: "rz_trips_fg_allowed" },
+    { label: "Avg Pts", off: "rz_avg_points", def: "rz_avg_points_allowed", digits: 2 },
+  ],
+};
+
 const GENERAL_STAT_GROUPS = [
   {
     label: "Production",
@@ -26,7 +59,7 @@ const GENERAL_STAT_GROUPS = [
       { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
       { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
       { label: "3rd Down %", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, pct: true },
-      { label: "Red Zone TD %", offKey: "rz_td_rate", offInvert: false, defKey: "rz_td_rate_allowed", defInvert: true, pct: true },
+      { label: "Red Zone", composite: RED_ZONE_CATEGORY },
       { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
       // Plays run per game -- a fast-tempo offense facing another
       // fast-tempo offense suggests a track meet; two slow, run-first
@@ -158,11 +191,7 @@ const SUMMARY_CATEGORIES = [
       { key: "explosive_rush_rate_allowed", invert: true },
     ],
   },
-  {
-    label: "Red Zone",
-    off: [{ key: "rz_td_rate", invert: false }],
-    def: [{ key: "rz_td_rate_allowed", invert: true }],
-  },
+  RED_ZONE_CATEGORY,
   {
     // Built from every row in SCHEME_GROUPS rather than a fixed list, so it
     // always reflects whatever the Scheme & Tendencies table above is
@@ -305,6 +334,9 @@ function summaryAdvCell(offZ, defZ, offTeam, defTeam) {
 // dedicated function rather than folding into openStatRankModal's
 // STAT_RANK_COMPUTED path since a grade needs its own display format
 // (letter, not a percent/digit number) that function doesn't support.
+// cat.extraCols (currently just RED_ZONE_CATEGORY) adds the raw counting
+// stats behind the grade -- Trips/TDs/FGs/Avg Points -- so the composite
+// is never a black box.
 function openGradeRankModal(cat, side, currentTeam) {
   ensureStatRankModal();
   const rows = teamsWithGames()
@@ -315,15 +347,25 @@ function openGradeRankModal(cat, side, currentTeam) {
     .filter((r) => r.grade !== null)
     .sort((a, b) => b.z - a.z);
   const label = `${cat.label} (${side === "off" ? "Offense" : "Defense"})`;
+  const extraHeaders = cat.extraCols ? cat.extraCols.map((c) => `<th class="num">${c.label}</th>`).join("") : "";
   const body = rows
     .map((r) => {
       const rowCls = r.team === currentTeam ? ' class="stat-rank-current"' : "";
-      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num grade-cell ${gradeClass(r.grade)}"${gradeAlphaAttr(r.grade)}>${r.grade}</td></tr>`;
+      const extraCells = cat.extraCols
+        ? cat.extraCols
+            .map((c) => {
+              const v = DATA.team_stats[r.team][side === "off" ? c.off : c.def];
+              const display = v === null || v === undefined ? "--" : c.digits ? fmt(v, c.digits) : v;
+              return `<td class="num">${display}</td>`;
+            })
+            .join("")
+        : "";
+      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td>${extraCells}<td class="num grade-cell ${gradeClass(r.grade)}"${gradeAlphaAttr(r.grade)}>${r.grade}</td></tr>`;
     })
     .join("");
   document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${label} &mdash; All Teams</h3>
     <table class="data-table player-odds-table stat-rank-table">
-      <thead><tr><th>Team</th><th class="num">Grade</th></tr></thead>
+      <thead><tr><th>Team</th>${extraHeaders}<th class="num">Grade</th></tr></thead>
       <tbody>${body}</tbody>
     </table>`;
   document.getElementById("stat-rank-modal").hidden = false;
@@ -631,6 +673,22 @@ function renderGeneralStatsTable(offTeam, defTeam) {
   const groups = GENERAL_STAT_GROUPS.map((group) => {
     const rows = group.rows
       .map((r) => {
+        // Composite rows (currently just Red Zone) show a letter grade
+        // instead of a raw percent/number -- same compositeZ/gradeForZ
+        // machinery Team Grades uses, and the SAME cat object (see
+        // RED_ZONE_CATEGORY), so this row's grade and Team Grades' Red
+        // Zone grade always agree, and clicking either opens the
+        // identical Trips/TDs/FGs/Avg Points modal.
+        if (r.composite) {
+          const cat = r.composite;
+          const offZ = compositeZ(cat.off, offTeam);
+          const defZ = compositeZ(cat.def, defTeam);
+          const offGrade = gradeForZ(offZ);
+          const defGrade = gradeForZ(defZ);
+          const offEntry = encodeDataAttr({ cat, side: "off", team: offTeam });
+          const defEntry = encodeDataAttr({ cat, side: "def", team: defTeam });
+          return `<tr><td>${r.label}</td><td class="num grade-cell grade-rank-click ${gradeClass(offGrade)}" data-entry="${offEntry}"${gradeAlphaAttr(offGrade)}>${offGrade || "--"}</td><td class="num grade-cell grade-rank-click ${gradeClass(defGrade)}" data-entry="${defEntry}"${gradeAlphaAttr(defGrade)}>${defGrade || "--"}</td>${summaryAdvCell(offZ, defZ, offTeam, defTeam)}</tr>`;
+        }
         const offCls = tierFor(r.offKey, offTeam, r.offInvert);
         const defCls = tierFor(r.defKey, defTeam, r.defInvert);
         const offExtreme = tierFor(r.offKey, offTeam, r.offInvert, TIER_Z_EXTREME_THRESHOLD);

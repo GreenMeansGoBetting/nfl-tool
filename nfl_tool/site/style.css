@@ -1275,7 +1275,8 @@ footer a { color: var(--accent); }
 .summary-grade-table th, .summary-grade-table td {
   padding: 8px 5px;
 }
-.summary-grade-table td.grade-cell {
+.summary-grade-table td.grade-cell,
+.general-stat-table td.grade-cell {
   font-size: 1.15rem;
   font-weight: 700;
 }
