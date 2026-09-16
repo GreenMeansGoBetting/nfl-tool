@@ -72,6 +72,12 @@ SGO_BOOK_NAMES = {
     "pointsbet": "PointsBet",
     "betrivers": "BetRivers",
     "wynnbet": "WynnBET",
+    # SGO carries Novig (the site's sponsor) as an ordinary bookmakerID
+    # alongside the sportsbooks above -- no separate request or
+    # integration needed, just a display name so it doesn't show up
+    # lowercase/unstyled on the rare market where its exchange price
+    # happens to be the best one returned.
+    "novig": "Novig",
 }
 
 TEAM_NAME_FIXES = {
@@ -1050,6 +1056,67 @@ def extract_general_odds(events: list, teams) -> dict:
         if markets:
             result[f"{away_team}_{home_team}"] = markets
     return result
+
+
+def apply_sgo_schedule_odds(schedule: list, general_odds: dict) -> None:
+    """Overwrites each game's spread/total/moneyline fields (in place) with
+    SportsGameOdds' full-game numbers -- the best price found across every
+    book SGO returns, refreshed on every run -- instead of leaving them on
+    nflverse's games.csv line. games.csv is only re-scraped by nflverse a
+    handful of times a day (confirmed directly: a line here has sat visibly
+    behind the real market by a point or more between those scrapes), while
+    this reuses the SAME SGO event fetch already paid for by player props/
+    general odds, so there's no extra API cost to keeping the number shown
+    here -- the one used for the Pick Tracker and the video -- as fresh as
+    everything else on the page already is.
+
+    Leaves nflverse's number in place, untouched, for any game SGO doesn't
+    have a line for yet (too far out, or the fetch failed/wasn't
+    configured) -- same optional, graceful-degradation shape as every
+    other SGO-derived field in this file."""
+    if not general_odds:
+        return
+    for game in schedule:
+        markets = general_odds.get(f"{game['away']}_{game['home']}")
+        if not markets:
+            continue
+
+        def find(stat_id, bet_type, **match):
+            for m in markets:
+                if m["stat_id"] != stat_id or m["bet_type"] != bet_type:
+                    continue
+                if all(m.get(k) == v for k, v in match.items()):
+                    return m
+            return None
+
+        away_spread = find("points", "sp", team=game["away"])
+        home_spread = find("points", "sp", team=game["home"])
+        if away_spread and away_spread["line"] is not None:
+            game["spread_line"] = away_spread["line"]
+            game["away_team_spread"] = away_spread["line"]
+            game["away_spread_odds"] = away_spread["best_odds"]
+        if home_spread and home_spread["line"] is not None:
+            game["home_team_spread"] = home_spread["line"]
+            game["home_spread_odds"] = home_spread["best_odds"]
+
+        over = find("points", "ou", side="over")
+        under = find("points", "ou", side="under")
+        if over and over["line"] is not None:
+            game["total_line"] = over["line"]
+            game["over_odds"] = over["best_odds"]
+        if under:
+            game["under_odds"] = under["best_odds"]
+
+        away_ml = find("points", "ml", team=game["away"])
+        home_ml = find("points", "ml", team=game["home"])
+        if away_ml:
+            game["away_moneyline"] = away_ml["best_odds"]
+        if home_ml:
+            game["home_moneyline"] = home_ml["best_odds"]
+        if away_ml or home_ml:
+            game["away_ml_implied_prob"], game["home_ml_implied_prob"] = novig_moneyline_probs(
+                game["away_moneyline"], game["home_moneyline"]
+            )
 
 
 def build_position_lookup(rosters: pd.DataFrame):
@@ -3166,6 +3233,11 @@ def main():
                 stat_id: extract_player_ou_props(sgo_events, stat_id, teams, roster_teams, roster_positions)
                 for stat_id in PLAYER_OU_MARKETS
             }
+            # The Odds bar / Pick Tracker were still reading nflverse's
+            # games.csv line -- see apply_sgo_schedule_odds -- even though
+            # this same fetch already had a fresher, best-price number
+            # sitting right here the whole time.
+            apply_sgo_schedule_odds(week_games, general_odds)
 
     blob = {
         "season": season,
