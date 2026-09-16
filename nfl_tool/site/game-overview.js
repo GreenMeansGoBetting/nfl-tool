@@ -134,7 +134,12 @@ const SCHEME_GROUPS = [
     // Blitz/Standard is the CALL (how many rushers sent); Pressured/Clean
     // Pocket is the RESULT (whether the rush actually got home) -- a team
     // can blitz constantly and still rarely get pressure, or rush four and
-    // still win often.
+    // still win often. Unlike the CALL rows (blitzing more or less isn't
+    // inherently good or bad -- see tendencyCell), Pressured/Clean Pocket's
+    // own frequency IS a real value judgment for the defense: pressuring
+    // the QB more is good (tendInvert left at the default false -- high
+    // reads green, already correct), and letting the QB sit clean more
+    // is bad, the exact opposite direction, hence tendInvert: true here.
     label: "Pass Rush",
     perfLabel: "Success %",
     pct: true,
@@ -142,7 +147,7 @@ const SCHEME_GROUPS = [
       { label: "Blitz (5+ rushers)", tendKey: "blitz_rate", perfKey: "success_vs_blitz", defSuccessKey: "def_success_allowed_blitz" },
       { label: "Standard Rush", tendKey: "standard_rush_rate", perfKey: "success_vs_standard_rush", defSuccessKey: "def_success_allowed_standard_rush" },
       { label: "Pressured", tendKey: "pressure_rate", perfKey: "success_vs_pressure", defSuccessKey: "def_success_allowed_pressure" },
-      { label: "Clean Pocket", tendKey: "clean_pocket_rate", perfKey: "success_vs_clean_pocket", defSuccessKey: "def_success_allowed_clean_pocket" },
+      { label: "Clean Pocket", tendKey: "clean_pocket_rate", perfKey: "success_vs_clean_pocket", defSuccessKey: "def_success_allowed_clean_pocket", tendInvert: true },
     ],
   },
   // Coverage (Zone/Man, specific shells) was dropped entirely -- that data
@@ -527,18 +532,29 @@ function renderOddsBar(game) {
   const spreadCell = (team, line, odds) => (hasSpread ? `${fmtSigned(line)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
   const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 1)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
   const mlCell = (odds, prob) => (hasMl ? `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>` : "--");
+  // Ballpark projected score off the two numbers already shown (total split
+  // by each team's own share of the spread) -- not a new data source, just
+  // the same math a viewer would otherwise do in their head from the
+  // Spread/Total columns. Whole numbers print plain; a real half-point
+  // score (e.g. 18.5) keeps its .5 instead of rounding it away.
+  const impliedScore = (teamSpread) => {
+    if (!hasSpread || !hasTotal) return "";
+    const score = (game.total_line - teamSpread) / 2;
+    const display = Number.isInteger(score) ? score : score.toFixed(1);
+    return ` <span class="odds-implied-score">(${display})</span>`;
+  };
 
   return `<table class="data-table odds-table">
     <thead><tr><th></th><th>Spread</th><th>Total</th><th>Moneyline</th></tr></thead>
     <tbody>
       <tr>
-        <td class="odds-team-cell"><img src="${teamLogoUrl(game.away)}" class="team-logo" alt="${game.away}" loading="lazy">${game.away}</td>
+        <td class="odds-team-cell"><img src="${teamLogoUrl(game.away)}" class="team-logo" alt="${game.away}" loading="lazy">${game.away}${impliedScore(game.away_team_spread)}</td>
         <td class="num">${spreadCell(game.away, game.away_team_spread, game.away_spread_odds)}</td>
         <td class="num">${totalCell("O", game.over_odds)}</td>
         <td class="num">${mlCell(game.away_moneyline, game.away_ml_implied_prob)}</td>
       </tr>
       <tr>
-        <td class="odds-team-cell"><img src="${teamLogoUrl(game.home)}" class="team-logo" alt="${game.home}" loading="lazy">${game.home}</td>
+        <td class="odds-team-cell"><img src="${teamLogoUrl(game.home)}" class="team-logo" alt="${game.home}" loading="lazy">${game.home}${impliedScore(game.home_team_spread)}</td>
         <td class="num">${spreadCell(game.home, game.home_team_spread, game.home_spread_odds)}</td>
         <td class="num">${totalCell("U", game.under_odds)}</td>
         <td class="num">${mlCell(game.home_moneyline, game.home_ml_implied_prob)}</td>
@@ -792,15 +808,15 @@ const SCHEME_ADV_MIN_TENDENCY = 0.2;
 // risk). A good performance number against a look the defense rarely shows
 // (e.g. "HOU beats the blitz, but BUF barely blitzes") deliberately falls
 // through to "--" -- it's true but unlikely to come up.
-function schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam) {
+function schemeEdgeCell(perfCls, freqCls, tendVal, offTeam, defTeam) {
   if (tendVal === null || tendVal === undefined || tendVal < SCHEME_ADV_MIN_TENDENCY) {
     return `<td class="edge-cell">--</td>`;
   }
-  if (perfCls === "tier-good" && tendCls === "tier-good") {
+  if (perfCls === "tier-good" && freqCls === "tier-good") {
     const rgb = teamAccentRgb(offTeam);
     return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},0.14)">${teamLogoMini(offTeam)}</td>`;
   }
-  if (perfCls === "tier-bad" && tendCls === "tier-good") {
+  if (perfCls === "tier-bad" && freqCls === "tier-good") {
     const rgb = teamAccentRgb(defTeam);
     return `<td class="edge-cell edge-hit" style="background:rgba(${rgb.join(",")},0.14)">${teamLogoMini(defTeam)}</td>`;
   }
@@ -815,12 +831,19 @@ function schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam) {
 // alone isn't inherently good or bad.
 function tendencyCell(r, defTeam) {
   const tendVal = DATA.team_stats[defTeam][r.tendKey];
-  if (tendVal === null || tendVal === undefined) return { html: `<td class="num">--</td>`, tendVal: null, tendCls: "" };
-  const tendCls = tierFor(r.tendKey, defTeam, false);
-  const tendA = tierForAlphaAttr(r.tendKey, defTeam, false);
-  const payload = { team: defTeam, statKey: r.tendKey, label: `${r.label} Tendency`, invert: false, percent: true };
+  if (tendVal === null || tendVal === undefined) return { html: `<td class="num">--</td>`, tendVal: null, freqCls: "" };
+  const invert = !!r.tendInvert;
+  const tendCls = tierFor(r.tendKey, defTeam, invert);
+  const tendA = tierForAlphaAttr(r.tendKey, defTeam, invert);
+  // schemeEdgeCell's "is this look common enough to matter" check needs
+  // the plain high-frequency reading regardless of which direction THIS
+  // row colors as good/bad for the defense (tendInvert) -- a tendInvert
+  // row still counts as "common" when the raw number is high, not when
+  // its (flipped) display color happens to land on tier-good.
+  const freqCls = invert ? tierFor(r.tendKey, defTeam, false) : tendCls;
+  const payload = { team: defTeam, statKey: r.tendKey, label: `${r.label} Tendency`, invert, percent: true };
   const html = numCell(`${Math.round(tendVal * 100)}%`, tendCls, tendA, payload);
-  return { html, tendVal, tendCls };
+  return { html, tendVal, freqCls };
 }
 
 // Defense success is a real value judgment (unlike the tendency bar, a pure
@@ -857,7 +880,7 @@ function renderSchemeGroup(group, offTeam, defTeam) {
   const rows = orderedRows
     .map((r, idx) => {
       const perfVal = DATA.team_stats[offTeam][r.perfKey];
-      const { html: tendHtml, tendVal, tendCls } = tendencyCell(r, defTeam);
+      const { html: tendHtml, tendVal, freqCls } = tendencyCell(r, defTeam);
       const perfCls = perfVal === null || perfVal === undefined ? "" : tierFor(r.perfKey, offTeam, false);
       const perfA = perfVal === null || perfVal === undefined ? "" : tierForAlphaAttr(r.perfKey, offTeam, false);
       const perfUnit = group.inlineUnit ? ` ${group.inlineUnit}` : "";
@@ -873,7 +896,7 @@ function renderSchemeGroup(group, offTeam, defTeam) {
       // in below them (coverage SCHEME), even though they share one group.
       const styleBoundary = group.sortFrom !== undefined && idx === group.sortFrom - 1;
       const rowCls = [dim ? "scheme-row-dim" : "", styleBoundary ? "scheme-style-boundary" : ""].filter(Boolean).join(" ");
-      return `<tr${rowCls ? ` class="${rowCls}"` : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}${tendHtml}${schemeEdgeCell(perfCls, tendCls, tendVal, offTeam, defTeam)}</tr>`;
+      return `<tr${rowCls ? ` class="${rowCls}"` : ""}><td>${r.label}</td>${perfCell}${defSuccessCell(group, r, defTeam)}${tendHtml}${schemeEdgeCell(perfCls, freqCls, tendVal, offTeam, defTeam)}</tr>`;
     })
     .join("");
   const perfCaption = group.inlineUnit ? "" : group.perfLabel;
