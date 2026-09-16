@@ -58,7 +58,7 @@ const GENERAL_STAT_GROUPS = [
     label: "Production",
     rows: [
       { label: "Points", offKey: "points_for_per_g", offInvert: false, defKey: "points_against_per_g", defInvert: true },
-      { label: "EPA / Play", offKey: "epa_per_play", offInvert: false, defKey: "epa_per_play_allowed", defInvert: true },
+      { label: "EPA / Play", offKey: "epa_per_play", offInvert: false, defKey: "epa_per_play_allowed", defInvert: true, digits: 2 },
       // Attempts (pass or rush) deliberately excluded -- a team trailing
       // late passes more and a team leading runs more out of game script,
       // not because that's a real tendency, so a raw attempts count without
@@ -66,7 +66,7 @@ const GENERAL_STAT_GROUPS = [
       // since those measure production, not play-calling circumstance.
       { label: "Pass Yards", offKey: "pass_yards_per_g", offInvert: false, defKey: "pass_yards_allowed_per_g", defInvert: true },
       { label: "Rush Yards", offKey: "rush_yards_per_g", offInvert: false, defKey: "rush_yards_allowed_per_g", defInvert: true },
-      { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true },
+      { label: "Yards / Carry", offKey: "yards_per_carry", offInvert: false, defKey: "yards_per_carry_allowed", defInvert: true, digits: 1 },
       { label: "3rd Down %", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, pct: true },
       { label: "Red Zone", composite: RED_ZONE_CATEGORY },
       { label: "Explosive Plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, pct: true },
@@ -689,7 +689,11 @@ function pairedStatHeader(offTeam, defTeam) {
 function renderGeneralStatsTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
-  const format = (v, pct) => (v === null || v === undefined ? "--" : pct ? `${Math.round(v * 100)}%` : fmt(v, 2));
+  // Whole numbers by default (points, yards, plays, sacks, turnovers --
+  // none of these need decimal precision to be readable) -- a row with a
+  // genuinely fractional rate (EPA/Play, Yards/Carry) sets its own digits
+  // to opt back in, same convention openStatRankModal already uses.
+  const format = (v, r) => (v === null || v === undefined ? "--" : r.pct ? `${Math.round(v * 100)}%` : fmt(v, r.digits ?? 0));
   const groups = GENERAL_STAT_GROUPS.map((group) => {
     const rows = group.rows
       .map((r) => {
@@ -716,8 +720,8 @@ function renderGeneralStatsTable(offTeam, defTeam) {
         const offA = tierForAlphaAttr(r.offKey, offTeam, r.offInvert);
         const defA = tierForAlphaAttr(r.defKey, defTeam, r.defInvert);
         const labelHtml = r.note ? `${r.label}<br><span class="muted-label">${r.note}</span>` : r.label;
-        const offCell = numCell(format(off[r.offKey], r.pct), offCls, offA, { team: offTeam, statKey: r.offKey, label: r.label, invert: r.offInvert, percent: !!r.pct });
-        const defCell = numCell(format(def[r.defKey], r.pct), defCls, defA, { team: defTeam, statKey: r.defKey, label: `${r.label} Allowed`, invert: r.defInvert, percent: !!r.pct });
+        const offCell = numCell(format(off[r.offKey], r), offCls, offA, { team: offTeam, statKey: r.offKey, label: r.label, invert: r.offInvert, percent: !!r.pct, digits: r.digits });
+        const defCell = numCell(format(def[r.defKey], r), defCls, defA, { team: defTeam, statKey: r.defKey, label: `${r.label} Allowed`, invert: r.defInvert, percent: !!r.pct, digits: r.digits });
         return `<tr><td>${labelHtml}</td>${offCell}${defCell}${edgeCell(offCls, defCls, offTeam, defTeam, offExtreme, defExtreme)}</tr>`;
       })
       .join("");
