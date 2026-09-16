@@ -266,14 +266,33 @@ def compute_pass_shot_chart(pbp: pd.DataFrame, teams, pos_lookup) -> dict:
     return {team: {"off": off[team], "def": deff[team]} for team in teams}
 
 
+def compute_player_headshots(rosters: pd.DataFrame, pos_lookup) -> dict:
+    """{team: {full_name: headshot_url}} -- keyed the same way every other
+    per-player blob in this file is (pos_lookup-derived name), so a photo
+    lookup from a pass-zone summary row (or anywhere else) resolves by the
+    exact same (team, name) pair. One row per player (their most recent
+    week on file, matching pos_lookup's own fallback preference)."""
+    out = {}
+    for gsis_id, grp in rosters.groupby("gsis_id"):
+        latest = grp.sort_values("week").iloc[-1]
+        if pd.isna(latest.headshot_url):
+            continue
+        _, team, name = pos_lookup(gsis_id, int(latest.week))
+        if not team or not name:
+            continue
+        out.setdefault(team, {})[name] = latest.headshot_url
+    return out
+
+
 def compute_player_pass_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
     """Per receiver: their own targets/receptions/yards/EPA by the same
     depth x location zone as compute_pass_shot_chart -- the individual-
     player complement to that team-level view (same idea as
     compute_player_rush_zone_splits for rush lanes), for seeing WHO
     actually gets used in a defense's weak zones. Keyed by (team,
-    full_name). No sample floor -- targets is returned right alongside
-    everything else, so a 1-target zone is visibly thin, not hidden."""
+    full_name) -> {"position": str, "zones": {...}}. No sample floor --
+    targets is returned right alongside everything else, so a 1-target
+    zone is visibly thin, not hidden."""
     passes = pbp[
         (pbp["pass_attempt"] == 1)
         & (pbp["two_point_attempt"] != 1)
@@ -283,11 +302,13 @@ def compute_player_pass_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
     passes["zone_key"] = passes["air_yards"].map(pass_depth_bucket) + "_" + passes["pass_location"]
 
     by_player = {}
+    positions = {}
     for row in passes.itertuples(index=False):
-        _, _, name = pos_lookup(row.receiver_player_id, row.week)
+        pos, _, name = pos_lookup(row.receiver_player_id, row.week)
         if not name:
             continue
         by_player.setdefault((row.posteam, name), []).append(row)
+        positions[(row.posteam, name)] = pos
 
     out = {}
     for (team, name), rows in by_player.items():
@@ -304,7 +325,7 @@ def compute_player_pass_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:
                     "yards": int(sum(r.yards_gained for r in comps)),
                     "epa_sum": round(sum(r.epa for r in zone_rows), 2) if n else 0.0,
                 }
-        out.setdefault(team, {})[name] = zones
+        out.setdefault(team, {})[name] = {"position": positions[(team, name)], "zones": zones}
     return out
 
 
@@ -410,7 +431,7 @@ def load_rosters(data_dir: Path, season: int, force: bool = False) -> pd.DataFra
     df["team"] = df["team"].map(normalize_team)
     # Keep one row per (gsis_id, week); prefer the most complete position value.
     df = df.dropna(subset=["gsis_id"])
-    return df[["season", "week", "team", "gsis_id", "position", "full_name"]]
+    return df[["season", "week", "team", "gsis_id", "position", "full_name", "headshot_url"]]
 
 
 def load_injuries(data_dir: Path, season: int) -> pd.DataFrame:
@@ -3050,6 +3071,7 @@ def main():
     player_box_scores = compute_player_box_scores(pbp, pos_lookup)
     pass_shot_charts = compute_pass_shot_chart(pbp, teams, pos_lookup)
     player_pass_zones = compute_player_pass_zone_splits(pbp, pos_lookup)
+    player_headshots = compute_player_headshots(rosters, pos_lookup)
 
     # One team-level schedule-strength number (not per condition -- see
     # compute_scheme_splits' docstring for why), reusing recent_games'
@@ -3129,6 +3151,7 @@ def main():
         "player_box_scores": player_box_scores,
         "pass_shot_charts": pass_shot_charts,
         "player_pass_zones": player_pass_zones,
+        "player_headshots": player_headshots,
         "player_rush_zones": player_rush_zones,
         "player_pass_splits": player_pass_splits,
         "player_scramble_splits": player_scramble_splits,

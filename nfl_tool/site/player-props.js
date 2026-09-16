@@ -878,7 +878,16 @@ function alphaAttrFromZ(z, threshold = TIER_Z_THRESHOLD) {
   return ` style="--tier-a:${a.toFixed(2)}"`;
 }
 
-function renderPassZoneGrid(team, side) {
+// Tinted the same way every other team table on the site headers its
+// columns (schemeTableHeader, teamBannerHeader) -- plain "Left/Middle/
+// Right" text read as generic and out of place next to those.
+function passZoneGridHeader(team) {
+  const rgb = teamAccentRgb(team);
+  const style = `background:rgba(${rgb.join(",")},0.35)`;
+  return `<tr><th></th><th style="${style}">Left</th><th style="${style}">Middle</th><th style="${style}">Right</th></tr>`;
+}
+
+function renderPassZoneGrid(team, side, opponent) {
   const chart = (DATA.pass_shot_charts[team] || {})[side];
   if (!chart) return `<p class="no-data-note">No pass-zone data yet.</p>`;
   const rows = PASS_ZONE_ROWS.map((r) => {
@@ -890,14 +899,13 @@ function renderPassZoneGrid(team, side) {
       const cls = tierFromZ(z);
       const alpha = alphaAttrFromZ(z);
       const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
-      const subDisplay = zone.attempts ? `${zone.completions}/${zone.attempts}` : "no attempts";
-      const payload = { team, side, zoneKey: zk };
-      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
+      const payload = { team, side, zoneKey: zk, opponent };
+      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${rateDisplay}</span></td>`;
     }).join("");
     return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
   }).join("");
   return `<table class="data-table pass-zone-grid">
-    <thead><tr><th></th><th>Left</th><th>Middle</th><th>Right</th></tr></thead>
+    <thead>${passZoneGridHeader(team)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -1060,10 +1068,25 @@ function renderPassZonePlayList(summary) {
     .join("");
 }
 
+// On the defense side, this week's actual opponent's offense in this
+// SAME zone -- "BUF's middle 10-19 is soft" is only actionable once you
+// know DET (this week's opponent, not a league-wide guess) has Williams
+// and LaPorta living there. Reuses the exact same player-summary table as
+// the offense side's "who's getting targeted."
+function renderPassZoneOpponentBlock(opponent, zoneKey) {
+  const oppZone = (DATA.pass_shot_charts[opponent] || {}).off?.zones?.[zoneKey];
+  const oppPlays = (oppZone && oppZone.plays) || [];
+  if (!oppPlays.length) {
+    return `<h4 class="pass-zone-modal-subhead">${opponent} Offense in This Zone</h4><p class="no-data-note">No attempts here yet.</p>`;
+  }
+  const oppSummary = passZonePlayerSummary(oppPlays);
+  return `<h4 class="pass-zone-modal-subhead">${teamLogoMini(opponent)} ${opponent} Offense in This Zone</h4>${renderPassZonePlayerSummaryTable(oppSummary)}`;
+}
+
 // Everything in one wide view -- league rank, the who-to-target summary,
 // and the plays themselves side by side, instead of a narrow box that
 // made you toggle between them to hold two numbers in your head.
-function renderPassZoneModalContent(team, side, zoneKey) {
+function renderPassZoneModalContent(team, side, zoneKey, opponent) {
   const zone = (DATA.pass_shot_charts[team] || {})[side]?.zones?.[zoneKey];
   const plays = (zone && zone.plays) || [];
   const sideLabel = side === "off" ? "Offense" : "Defense Allowed";
@@ -1073,7 +1096,8 @@ function renderPassZoneModalContent(team, side, zoneKey) {
     ? `<p class="no-data-note">No attempts in this zone yet.</p>`
     : side === "def"
     ? `<h4 class="pass-zone-modal-subhead">By Position</h4>${renderPassZonePositionTable(summary)}
-       <h4 class="pass-zone-modal-subhead">By Player</h4>${renderPassZonePlayerSummaryTable(summary)}`
+       <h4 class="pass-zone-modal-subhead">By Player</h4>${renderPassZonePlayerSummaryTable(summary)}
+       ${opponent ? renderPassZoneOpponentBlock(opponent, zoneKey) : ""}`
     : `<h4 class="pass-zone-modal-subhead">Who's Getting Targeted</h4>${renderPassZonePlayerSummaryTable(summary)}`;
   return `<h3>${heading}</h3>
     <div class="pass-zone-modal-layout">
@@ -1090,17 +1114,17 @@ function renderPassZoneModalContent(team, side, zoneKey) {
     </div>`;
 }
 
-function openPassZoneRankModal(team, side, zoneKey) {
+function openPassZoneRankModal(team, side, zoneKey, opponent) {
   ensurePassZoneModal();
-  document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneModalContent(team, side, zoneKey);
+  document.getElementById("pass-zone-modal-content").innerHTML = renderPassZoneModalContent(team, side, zoneKey, opponent);
   document.getElementById("pass-zone-modal").hidden = false;
 }
 
 document.addEventListener("click", (e) => {
   const cell = e.target.closest(".pass-zone-rank-click");
   if (!cell) return;
-  const { team, side, zoneKey } = decodeDataAttr(cell.dataset.entry);
-  openPassZoneRankModal(team, side, zoneKey);
+  const { team, side, zoneKey, opponent } = decodeDataAttr(cell.dataset.entry);
+  openPassZoneRankModal(team, side, zoneKey, opponent);
 });
 
 function zoneLabel(zoneKey) {
@@ -1157,15 +1181,31 @@ function renderPassIdentityCard(team, side) {
   </div>`;
 }
 
-function renderPassZoneBlock(team, side) {
-  const heading = side === "off" ? `${team} &mdash; Passing Offense` : `${team} &mdash; Pass Defense (Allowed)`;
-  // Offense only -- "who's actually getting targeted where" only makes
-  // sense from the offense's own side; the defense-allowed grid already
-  // says where a defense is weak, this says who's exploiting it.
-  const allBtn = side === "off" ? `<button type="button" class="pass-zone-all-btn" data-team="${team}">See Players</button>` : "";
+// Team-color banner (matches teamBannerHeader's look elsewhere on the
+// site) doubles as the "see players" trigger on the offense side --
+// clicking the team's own name/logo to drill into its players is the
+// same affordance props-team-click already uses for the full prop
+// catalog, so this reuses that pattern instead of a separate button
+// competing for space in the header. Defense side isn't clickable --
+// "who's exploiting this defense" is answered by clicking a CELL (which
+// now surfaces the specific opposing offense), not by browsing this
+// team's own defenders.
+function passZoneTeamHeader(team, side) {
+  const rgb = teamAccentRgb(team);
+  const sideLabel = side === "off" ? "Passing Offense" : "Pass Defense Allowed";
+  const clickable = side === "off";
+  const cls = `pass-zone-team-banner${clickable ? " pass-zone-team-click" : ""}`;
+  return `<div class="${cls}" style="background:rgba(${rgb.join(",")},0.16)"${clickable ? ` data-team="${team}"` : ""}>
+    <img src="${teamLogoUrl(team)}" class="team-logo" alt="${team}" loading="lazy">
+    <span class="pass-zone-team-name">${TEAM_NAMES[team] || team}</span>
+    <span class="pass-zone-team-side">${sideLabel}${clickable ? " &rsaquo;" : ""}</span>
+  </div>`;
+}
+
+function renderPassZoneBlock(team, side, opponent) {
   return `<div class="pass-zone-block">
-    <div class="stat-column-title">${teamLogoMini(team)} ${heading} ${allBtn}</div>
-    ${renderPassZoneGrid(team, side)}
+    ${passZoneTeamHeader(team, side)}
+    ${renderPassZoneGrid(team, side, opponent)}
     ${renderPassIdentityCard(team, side)}
   </div>`;
 }
@@ -1181,14 +1221,14 @@ function passZonePlayerRate(zone) {
 function passZonePlayerPool(zoneKey) {
   const pool = [];
   for (const players of Object.values(DATA.player_pass_zones || {})) {
-    for (const zones of Object.values(players)) {
-      const rate = passZonePlayerRate(zones[zoneKey]);
+    for (const p of Object.values(players)) {
+      const rate = passZonePlayerRate(p.zones[zoneKey]);
       if (rate !== null) pool.push(rate);
     }
   }
   return pool;
 }
-function renderPlayerPassZoneGrid(zones) {
+function renderPlayerPassZoneGrid(zones, team) {
   const rows = PASS_ZONE_ROWS.map((r) => {
     const cells = PASS_ZONE_COLS.map((loc) => {
       const zk = `${r.key}_${loc}`;
@@ -1196,29 +1236,46 @@ function renderPlayerPassZoneGrid(zones) {
       const rate = passZonePlayerRate(zone);
       const cls = rate === null ? "" : percentileTier(rate, passZonePlayerPool(zk), false);
       const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
-      const epaSign = zone && zone.epa_sum > 0 ? "+" : "";
-      const subDisplay = zone && zone.targets ? `${zone.receptions}/${zone.targets} &middot; ${zone.yards}y &middot; ${epaSign}${zone.epa_sum.toFixed(1)} epa` : "no targets";
-      return `<td class="num pass-zone-cell ${cls}"><span class="pass-zone-rate">${rateDisplay}</span><span class="pass-zone-sub">${subDisplay}</span></td>`;
+      return `<td class="num pass-zone-cell ${cls}"><span class="pass-zone-rate">${rateDisplay}</span></td>`;
     }).join("");
     return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
   }).join("");
   return `<table class="data-table pass-zone-grid">
-    <thead><tr><th></th><th>Left</th><th>Middle</th><th>Right</th></tr></thead>
+    <thead>${passZoneGridHeader(team)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
+}
+// Photo + name + position banner above each player's grid -- the same
+// "who am I even looking at" context a real broadcast graphic gives you,
+// instead of a plain text label. Falls back to a blank placeholder (not a
+// broken image) when nflverse doesn't have a headshot on file for someone.
+function renderPlayerZoneCard(team, name, player) {
+  const headshot = (DATA.player_headshots[team] || {})[name];
+  const photo = headshot
+    ? `<img src="${headshot}" class="pass-zone-player-photo" alt="${name}" loading="lazy">`
+    : `<div class="pass-zone-player-photo pass-zone-player-photo-blank"></div>`;
+  const totalTgt = Object.values(player.zones).reduce((s, z) => s + z.targets, 0);
+  return `<div class="pass-zone-block">
+    <div class="pass-zone-player-banner">
+      ${photo}
+      <div class="pass-zone-player-info">
+        <span class="pass-zone-player-name">${name}</span>
+        <span class="pass-zone-player-pos">${player.position || "?"} &middot; ${totalTgt} tgt</span>
+      </div>
+    </div>
+    ${renderPlayerPassZoneGrid(player.zones, team)}
+  </div>`;
 }
 function renderPassZoneAllPlayersContent(team) {
   const heading = `<h3>${teamLogoMini(team)} ${TEAM_NAMES[team] || team} &mdash; Target Zones by Player</h3>`;
   const players = DATA.player_pass_zones[team] || {};
-  const totalTargets = (name) => Object.values(players[name]).reduce((s, z) => s + z.targets, 0);
+  const totalTargets = (name) => Object.values(players[name].zones).reduce((s, z) => s + z.targets, 0);
   const names = Object.keys(players)
     .filter((n) => totalTargets(n) > 0)
     .sort((a, b) => totalTargets(b) - totalTargets(a));
   if (!names.length) return `${heading}<p class="no-data-note">No charted targets yet this season.</p>`;
-  const blocks = names
-    .map((name) => `<div class="pass-zone-block"><div class="stat-column-title">${name} <span class="muted-label">(${totalTargets(name)} tgt)</span></div>${renderPlayerPassZoneGrid(players[name])}</div>`)
-    .join("");
-  return `${heading}<div class="stat-columns">${blocks}</div>`;
+  const blocks = names.map((name) => renderPlayerZoneCard(team, name, players[name])).join("");
+  return `${heading}<div class="stat-columns pass-zone-players-grid">${blocks}</div>`;
 }
 function ensurePassZoneAllModal() {
   if (document.getElementById("pass-zone-all-modal")) return;
@@ -1249,9 +1306,9 @@ function openPassZoneAllPlayersModal(team) {
   document.getElementById("pass-zone-all-modal").hidden = false;
 }
 document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".pass-zone-all-btn");
-  if (!btn) return;
-  openPassZoneAllPlayersModal(btn.dataset.team);
+  const banner = e.target.closest(".pass-zone-team-click");
+  if (!banner) return;
+  openPassZoneAllPlayersModal(banner.dataset.team);
 });
 
 // ---- QB Rushing (scramble vs designed) ----
@@ -1865,14 +1922,14 @@ function render() {
   document.getElementById("col-home-passcoverage").innerHTML = renderPassCoveragePanel(home, away);
   document.getElementById("col-away-scramble").innerHTML = renderQbRushingPanel(away, home) + renderRedZoneMixPanel(away, home);
   document.getElementById("col-home-scramble").innerHTML = renderQbRushingPanel(home, away) + renderRedZoneMixPanel(home, away);
-  document.getElementById("col-away-passzones-off").innerHTML = renderPassZoneBlock(away, "off");
-  document.getElementById("col-away-passzones-def").innerHTML = renderPassZoneBlock(away, "def");
-  document.getElementById("col-home-passzones-off").innerHTML = renderPassZoneBlock(home, "off");
-  document.getElementById("col-home-passzones-def").innerHTML = renderPassZoneBlock(home, "def");
-  document.getElementById("col-away-recvzones-off").innerHTML = renderPassZoneBlock(away, "off");
-  document.getElementById("col-away-recvzones-def").innerHTML = renderPassZoneBlock(away, "def");
-  document.getElementById("col-home-recvzones-off").innerHTML = renderPassZoneBlock(home, "off");
-  document.getElementById("col-home-recvzones-def").innerHTML = renderPassZoneBlock(home, "def");
+  document.getElementById("col-away-passzones-off").innerHTML = renderPassZoneBlock(away, "off", home);
+  document.getElementById("col-away-passzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
+  document.getElementById("col-home-passzones-off").innerHTML = renderPassZoneBlock(home, "off", away);
+  document.getElementById("col-home-passzones-def").innerHTML = renderPassZoneBlock(home, "def", away);
+  document.getElementById("col-away-recvzones-off").innerHTML = renderPassZoneBlock(away, "off", home);
+  document.getElementById("col-away-recvzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
+  document.getElementById("col-home-recvzones-off").innerHTML = renderPassZoneBlock(home, "off", away);
+  document.getElementById("col-home-recvzones-def").innerHTML = renderPassZoneBlock(home, "def", away);
 
   const notesKey = `${away}_${home}`;
   const savedNote = loadTdNotes()[notesKey] || "";

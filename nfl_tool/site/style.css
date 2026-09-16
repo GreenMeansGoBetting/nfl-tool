@@ -1,10 +1,14 @@
 :root {
-  --bg: #f7f6f1;
+  /* Neutral white/gray palette -- no warm tan/beige/olive cast anywhere.
+     --table-head/--border are the only non-white surfaces left, and
+     they're neutral gray purely to keep a header row or a cell edge
+     visible against white, not to add color. */
+  --bg: #ffffff;
   --panel: #ffffff;
-  --table-head: #edeade;
-  --border: #dad6c8;
-  --text: #1c1f1a;
-  --muted: #6b7062;
+  --table-head: #f2f2f2;
+  --border: #e2e2e2;
+  --text: #1a1a1a;
+  --muted: #666666;
   --accent: #2f5fbf;
   --accent-rgb: 47, 95, 191;
   --good: #28a86b;
@@ -485,24 +489,29 @@ h3 {
 .scramble-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 
 .pass-zone-block { width: 222px; }
-/* Fixed header height so all four blocks line up -- the offense ones
-   carry a "See Players" button that wraps to a second line, which
-   otherwise pushes their grid (and everything under it) down relative to
-   the button-less defense blocks. */
-.pass-zone-block .stat-column-title {
+/* Team-color banner (matches .team-banner elsewhere) instead of a plain
+   text title + button -- fixed height so all four blocks line up
+   regardless of whether the banner is clickable (offense) or not
+   (defense). */
+.pass-zone-team-banner {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  min-height: 42px;
-  margin-bottom: 0;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
+.pass-zone-team-banner .team-logo { width: 20px; height: 20px; }
+.pass-zone-team-name { font-weight: 700; font-size: 0.85rem; }
+.pass-zone-team-side { font-size: 0.68rem; opacity: 0.75; margin-left: auto; white-space: nowrap; }
+.pass-zone-team-click { cursor: pointer; }
+.pass-zone-team-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 .pass-zone-grid { table-layout: fixed; width: 222px; font-size: 0.78rem; }
-.pass-zone-grid th, .pass-zone-grid td { padding: 4px 2px; text-align: center; }
-.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.68rem; width: 38px; padding-left: 2px !important; }
+.pass-zone-grid th, .pass-zone-grid td { padding: 7px 2px; text-align: center; }
+.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.66rem; width: 30px; padding-left: 3px !important; }
 .pass-zone-cell { vertical-align: middle; }
-.pass-zone-rate { display: block; font-weight: 700; font-size: 0.88rem; }
-.pass-zone-sub { display: block; font-size: 0.65rem; opacity: 0.75; font-weight: 400; }
+.pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
 .pass-zone-identity {
   margin-top: 10px;
   padding-top: 8px;
@@ -520,18 +529,6 @@ h3 {
 .pass-zone-identity-stat strong { padding: 0 5px; border-radius: 4px; }
 .pass-zone-rank-click { cursor: pointer; }
 .pass-zone-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
-.pass-zone-all-btn {
-  background: var(--panel);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  padding: 2px 8px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  cursor: pointer;
-  vertical-align: middle;
-}
-.pass-zone-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
 /* Rank, summary and plays all sit side by side, filling the whole screen
    rather than a narrow box that forced toggling between views. The BOX
    itself never scrolls -- each column scrolls inside its own pane
@@ -551,22 +548,43 @@ h3 {
   flex-direction: column;
 }
 #pass-zone-all-modal .modal-box { max-width: none; width: 98vw; max-height: 94vh; overflow-y: auto; }
-/* Three per row here, not the six that fit at the main page's compact
-   222px -- these grids are the whole point of this modal, so they get the
-   room. Scoped to the modal so the 4-across team grids on the page
+/* Four per row, not the six that fit at the main page's compact 222px --
+   these grids are the whole point of this modal, so they get real room,
+   and centered as a group so an uneven last row doesn't read as
+   lopsided. Scoped to the modal so the 4-across team grids on the page
    itself keep their tighter sizing. */
-#pass-zone-all-modal .stat-columns { gap: 30px; }
+#pass-zone-all-modal .pass-zone-players-grid { gap: 26px; justify-content: center; }
 #pass-zone-all-modal .pass-zone-block {
-  flex: 0 0 calc((100% - 60px) / 3);
-  width: calc((100% - 60px) / 3);
-  min-width: 340px;
+  flex: 0 0 calc((100% - 78px) / 4);
+  width: calc((100% - 78px) / 4);
+  min-width: 260px;
+  max-width: 320px;
 }
-#pass-zone-all-modal .pass-zone-grid { width: 100%; font-size: 0.85rem; }
+#pass-zone-all-modal .pass-zone-grid { width: 100%; font-size: 0.82rem; }
 #pass-zone-all-modal .pass-zone-grid th,
-#pass-zone-all-modal .pass-zone-grid td { padding: 9px 7px; }
-#pass-zone-all-modal .pass-zone-row-label { width: 58px; font-size: 0.78rem; }
-#pass-zone-all-modal .pass-zone-rate { font-size: 1.05rem; }
-#pass-zone-all-modal .pass-zone-sub { font-size: 0.72rem; }
+#pass-zone-all-modal .pass-zone-grid td { padding: 10px 6px; }
+#pass-zone-all-modal .pass-zone-row-label { width: 26px; font-size: 0.72rem; }
+#pass-zone-all-modal .pass-zone-rate { font-size: 1.15rem; }
+/* Photo + name + position banner, sized to sit flush above the grid it
+   belongs to (each grid is already its own bordered block below it). */
+.pass-zone-player-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pass-zone-player-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--table-head);
+  flex: 0 0 auto;
+}
+.pass-zone-player-photo-blank { border: 1px solid var(--border); }
+.pass-zone-player-info { display: flex; flex-direction: column; min-width: 0; }
+.pass-zone-player-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pass-zone-player-pos { font-size: 0.75rem; color: var(--muted); }
 .pass-zone-modal-layout {
   display: flex;
   flex-wrap: nowrap;
@@ -1424,7 +1442,7 @@ footer a { color: var(--accent); }
 }
 .pick-result-win { background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
 .pick-result-loss { background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); }
-.pick-result-push, .pick-result-void { background: rgba(107, 112, 98, 0.18); color: var(--text); }
+.pick-result-push, .pick-result-void { background: rgba(102, 102, 102, 0.14); color: var(--text); }
 .pick-result-pending { background: var(--table-head); color: var(--muted); }
 
 .results-bar { margin: 8px 0; }
@@ -1456,7 +1474,10 @@ footer a { color: var(--accent); }
   letter-spacing: 0.03em;
 }
 
-#results-modal .modal-box { max-width: none; width: 96vw; }
+/* This one's just a filter bar + a table with a handful of columns --
+   96vw left it stretched across the screen with huge gaps between
+   columns. Capped back down to a width that fits its actual content. */
+#results-modal .modal-box { max-width: 1050px; width: 92vw; }
 .results-filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1498,7 +1519,7 @@ footer a { color: var(--accent); }
 .result-override-btn:hover { border-color: var(--accent); color: var(--text); }
 .result-override-btn.active[data-result="win"] { background: rgba(var(--good-rgb), 0.22); border-color: var(--good); color: var(--good-text); }
 .result-override-btn.active[data-result="loss"] { background: rgba(var(--bad-rgb), 0.22); border-color: var(--bad); color: var(--bad-text); }
-.result-override-btn.active[data-result="void"] { background: rgba(107, 112, 98, 0.22); border-color: var(--muted); color: var(--text); }
+.result-override-btn.active[data-result="void"] { background: rgba(102, 102, 102, 0.18); border-color: var(--muted); color: var(--text); }
 .result-row-win td { background: rgba(var(--good-rgb), 0.06); }
 .result-row-loss td { background: rgba(var(--bad-rgb), 0.06); }
 
