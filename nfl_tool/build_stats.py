@@ -32,6 +32,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import Counter
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -997,13 +998,53 @@ GENERAL_ODDS_MARKETS = {
 }
 
 
+def _standard_line(by_bookmaker: dict, field: str):
+    """The line most books agree on for one market side (field is "spread"
+    or "overUnder" in SGO's byBookmaker schema) -- picking the single
+    number the majority of books are quoting, rather than whatever number
+    happens to come with the single best price. See extract_general_odds
+    for why this matters."""
+    counts = Counter()
+    for info in by_bookmaker.values():
+        if not info.get("available") or info.get("odds") is None:
+            continue
+        v = info.get(field)
+        if v is not None:
+            counts[float(v)] += 1
+    return counts.most_common(1)[0][0] if counts else None
+
+
+def _best_price_at_line(by_bookmaker: dict, field: str, line):
+    """Best price among books quoting EXACTLY `line` -- or, if `line` is
+    None (no standard could be determined), the best price anywhere,
+    same as the old unconstrained behavior."""
+    best_price, best_book = None, None
+    for book, info in by_bookmaker.items():
+        if not info.get("available") or info.get("odds") is None:
+            continue
+        if line is not None and info.get(field) != line:
+            continue
+        price = float(info["odds"])
+        if best_price is None or price > best_price:
+            best_price, best_book = price, book
+    return best_price, best_book
+
+
 def extract_general_odds(events: list, teams) -> dict:
     """{"AWAY_HOME": [ {period, period_label, stat_id, bet_type, side,
     team, market_name, line, best_odds, best_book}, ... ]} -- team is None
     for a whole-game side (the combined total, either side of a 2-way
-    market like odd/even or both-teams-to-score). Same best-price-across-
-    books selection as extract_player_prop_odds, just per market side
-    instead of per player."""
+    market like odd/even or both-teams-to-score).
+
+    Spread and total each pick ONE standard line (the number most books
+    are quoting -- see _standard_line) and then find the best price at
+    THAT line for each side, rather than letting each side independently
+    chase whichever book happens to have the single best price at ITS OWN
+    number. Picking sides independently could -- and did -- pair, say,
+    HOU -3 (one book's best away price) with CIN +2.5 (a DIFFERENT book's
+    best home price), a combination no real book actually offers and one
+    that doesn't even sum to zero. Moneyline/odd-even/yes-no have no line
+    to reconcile, so those keep the old plain best-price-anywhere pick."""
     result = {}
     for event in events:
         odds = event.get("odds", {})
@@ -1016,28 +1057,81 @@ def extract_general_odds(events: list, teams) -> dict:
         if away_team not in teams or home_team not in teams:
             continue
 
-        markets = []
+        # Group spread/total odds by market (period + stat + bet type +
+        # team, where team distinguishes a combined total from each team's
+        # own total) so the away/over and home/under sides of the SAME
+        # market can be reconciled together. Everything else (ml/eo/yn)
+        # has no line at all, so it's handled independently exactly as
+        # before.
+        line_groups = {}
+        loose_odds = []
         for odd in odds.values():
             if odd.get("playerID"):
                 continue
             period = odd.get("periodID")
             if period not in GENERAL_ODDS_PERIODS:
                 continue
-            if (odd.get("statID"), odd.get("betTypeID")) not in GENERAL_ODDS_MARKETS:
+            stat_id, bet_type = odd.get("statID"), odd.get("betTypeID")
+            if (stat_id, bet_type) not in GENERAL_ODDS_MARKETS:
                 continue
+            if bet_type in ("sp", "ou"):
+                # "ou" needs team in the key -- it distinguishes three
+                # DIFFERENT sub-markets sharing one bet type (the combined
+                # total, and each team's own total). "sp" must NOT include
+                # team here: away and home spread are the two SIDES of one
+                # single market, and including team would put them in two
+                # separate groups instead of pairing them.
+                group_team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID")) if bet_type == "ou" else None
+                key = (period, stat_id, bet_type, group_team)
+                line_groups.setdefault(key, {})[odd.get("sideID")] = odd
+            else:
+                loose_odds.append(odd)
 
-            best_price, best_book, best_line = None, None, None
+        markets = []
+        for (period, stat_id, bet_type, _group_team), sides in line_groups.items():
+            field = "spread" if bet_type == "sp" else "overUnder"
+            # away/over is the reference side the standard line is measured
+            # from; home mirrors it (negated -- a spread is one number,
+            # signed opposite per side), under just reuses the same number.
+            ref_side = "away" if bet_type == "sp" else "over"
+            ref_by_book = (sides.get(ref_side) or {}).get("byBookmaker") or {}
+            standard_line = _standard_line(ref_by_book, field)
+
+            for side_name, odd in sides.items():
+                target_line = standard_line
+                if bet_type == "sp" and side_name == "home" and standard_line is not None:
+                    target_line = -standard_line
+                by_book = odd.get("byBookmaker") or {}
+                price, book = _best_price_at_line(by_book, field, target_line)
+                if price is None:
+                    continue
+                team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
+                markets.append(
+                    {
+                        "period": period,
+                        "period_label": GENERAL_ODDS_PERIODS[period],
+                        "stat_id": stat_id,
+                        "bet_type": bet_type,
+                        "side": side_name,
+                        "team": team,
+                        "market_name": odd.get("marketName"),
+                        "line": target_line,
+                        "best_odds": int(price),
+                        "best_book": SGO_BOOK_NAMES.get(book, book),
+                    }
+                )
+
+        for odd in loose_odds:
+            best_price, best_book = None, None
             for book, info in (odd.get("byBookmaker") or {}).items():
                 if not info.get("available") or info.get("odds") is None:
                     continue
                 price = float(info["odds"])
                 if best_price is None or price > best_price:
-                    best_price = price
-                    best_book = book
-                    best_line = info.get("overUnder") if info.get("overUnder") is not None else info.get("spread")
+                    best_price, best_book = price, book
             if best_price is None:
                 continue
-
+            period = odd.get("periodID")
             team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
             markets.append(
                 {
@@ -1048,11 +1142,12 @@ def extract_general_odds(events: list, teams) -> dict:
                     "side": odd.get("sideID"),
                     "team": team,
                     "market_name": odd.get("marketName"),
-                    "line": float(best_line) if best_line is not None else None,
+                    "line": None,
                     "best_odds": int(best_price),
                     "best_book": SGO_BOOK_NAMES.get(best_book, best_book),
                 }
             )
+
         if markets:
             result[f"{away_team}_{home_team}"] = markets
     return result
