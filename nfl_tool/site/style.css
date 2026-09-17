@@ -700,10 +700,13 @@ h3 {
    stays plain instead of picking up the site's good/bad coloring. */
 .pass-zone-heat-cell { font-weight: 700; }
 /* Flags a hotspot cell that's ALSO a soft spot for the exact defense this
-   player is facing (see defenseZoneIsExploitable) -- a dotted outline
-   instead of a fill so it layers on top of the heat shading instead of
-   fighting it for the cell's background. */
-.pass-zone-heat-cell-exploit { outline: 2px dotted rgb(var(--bad-rgb)); outline-offset: -3px; }
+   player is facing (see defenseZoneTier) -- a solid outline instead of a
+   fill so it layers on top of the heat shading instead of fighting it for
+   the cell's background. Red for a real soft spot (tier-bad on the
+   defense grid), yellow for merely average (tier-mid) -- tier-good gets
+   no outline at all, nothing to flag there. */
+.pass-zone-heat-cell-exploit-bad { outline: 3px solid rgb(var(--bad-rgb)); outline-offset: -3px; }
+.pass-zone-heat-cell-exploit-mid { outline: 3px solid rgb(var(--mid-rgb)); outline-offset: -3px; }
 .pass-zone-modal-layout {
   display: flex;
   flex-wrap: nowrap;

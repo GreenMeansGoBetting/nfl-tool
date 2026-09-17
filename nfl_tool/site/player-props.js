@@ -1299,12 +1299,12 @@ const PLAYER_ZONE_HEAT_MAX_ALPHA = 0.85;
 // its own cells with -- evaluated for one zone instead of a whole grid, so
 // a hotspot card can flag "this is also a soft spot for the exact defense
 // he's facing" without making the reader cross-reference the two grids by
-// eye. tier-bad on the defense grid means "this defense is exposed here,"
-// which is exactly the zone worth circling on the offense side too.
-function defenseZoneIsExploitable(oppTeam, zoneKey) {
+// eye. tier-bad/tier-mid on the defense grid mean "exposed"/"average" --
+// tier-good means the defense actually handles this zone, nothing to flag.
+function defenseZoneTier(oppTeam, zoneKey) {
   const chart = (DATA.pass_shot_charts[oppTeam] || {}).def;
-  if (!chart) return false;
-  return tierFromZ(passZoneCompositeZ("def", zoneKey, chart.zones[zoneKey])) === "tier-bad";
+  if (!chart) return "";
+  return tierFromZ(passZoneCompositeZ("def", zoneKey, chart.zones[zoneKey]));
 }
 
 function renderPlayerZoneHeatGrid(zones, oppTeam) {
@@ -1325,7 +1325,8 @@ function renderPlayerZoneHeatGrid(zones, oppTeam) {
         ? ` style="background: rgba(var(--accent-rgb), ${(PLAYER_ZONE_HEAT_MIN_ALPHA + (targets / maxTargets) * (PLAYER_ZONE_HEAT_MAX_ALPHA - PLAYER_ZONE_HEAT_MIN_ALPHA)).toFixed(2)})"`
         : "";
       const display = targets ? `${rec}/${targets}` : "--";
-      const exploitCls = oppTeam && defenseZoneIsExploitable(oppTeam, zk) ? " pass-zone-heat-cell-exploit" : "";
+      const tier = oppTeam ? defenseZoneTier(oppTeam, zk) : "";
+      const exploitCls = tier === "tier-bad" ? " pass-zone-heat-cell-exploit-bad" : tier === "tier-mid" ? " pass-zone-heat-cell-exploit-mid" : "";
       return `<td class="num pass-zone-heat-cell${exploitCls}"${style}>${display}</td>`;
     }).join("");
     return `<tr><th class="pass-zone-row-label-mini">${r.short}</th>${cells}</tr>`;
