@@ -654,13 +654,14 @@ function renderPassCoveragePanel(team, oppTeam) {
 // stuck on last season's data.
 // Yardage ranges instead of words -- matches build_stats.py's
 // PASS_DEPTH_BUCKETS boundaries exactly (deep=20+, intermediate=10-19,
-// short=0-9, screen=behind the LOS). Shorter label = a shorter label
-// column = room for all 4 team grids to sit on one row.
+// short=0-9, screen=behind the LOS). Spelled out now that each grid gets
+// a real row-label box instead of a cramped narrow column (see
+// .pass-zone-row-label) -- there's room.
 const PASS_ZONE_ROWS = [
-  { key: "deep", label: "20+" },
-  { key: "intermediate", label: "10-19" },
-  { key: "short", label: "0-9" },
-  { key: "screen", label: "SCN" },
+  { key: "deep", label: "20+ yards" },
+  { key: "intermediate", label: "10-19 yards" },
+  { key: "short", label: "0-9 yards" },
+  { key: "screen", label: "SCREEN" },
 ];
 const PASS_ZONE_COLS = ["left", "middle", "right"];
 
@@ -741,8 +742,30 @@ function passZoneColShare(chart, colKey) {
   const sum = PASS_ZONE_ROWS.reduce((s, r) => s + (chart.zones[`${r.key}_${colKey}`]?.attempts || 0), 0);
   return sum / chart.pass_attempts;
 }
-function passZoneTotalBadge(share) {
-  return share === null ? "" : `<span class="pass-zone-total-badge">${Math.round(share * 100)}%</span>`;
+// League-wide pool of every team's OWN row/column share (same side) --
+// lets the total badge tier the same way every other cell on the site
+// does (percentileTier/zScore against the league), instead of an
+// untiered flat number.
+function passZoneRowSharePool(side, rowKey) {
+  return Object.values(DATA.pass_shot_charts || {})
+    .map((t) => passZoneRowShare(t[side], rowKey))
+    .filter((v) => v !== null);
+}
+function passZoneColSharePool(side, colKey) {
+  return Object.values(DATA.pass_shot_charts || {})
+    .map((t) => passZoneColShare(t[side], colKey))
+    .filter((v) => v !== null);
+}
+// Big colored pill instead of a small muted number -- same invert
+// convention as passZoneCompositeZ (more volume is a real signal on
+// offense=green, more volume ALLOWED is a soft spot on defense=red), so
+// the badge's color means the same thing the cells around it already do.
+function passZoneTotalBadge(side, share, pool) {
+  if (share === null) return "";
+  const invert = side === "def";
+  const cls = tierFromZ(zScore(share, pool, invert));
+  const alpha = alphaAttrFromZ(zScore(share, pool, invert));
+  return `<span class="pass-zone-total-badge ${cls}"${alpha}>${Math.round(share * 100)}%</span>`;
 }
 
 // Tinted the same way every other team table on the site headers its
@@ -750,10 +773,14 @@ function passZoneTotalBadge(share) {
 // Right" text read as generic and out of place next to those. Each header
 // also carries that location's own total share of attempts (all 4 depths
 // combined), same idea as the row labels' own depth total.
-function passZoneGridHeader(team, chart) {
+function passZoneGridHeader(team, chart, side) {
   const rgb = teamAccentRgb(team);
   const style = `background:rgba(${rgb.join(",")},0.35)`;
-  const col = (label, key) => `<th style="${style}">${label}${passZoneTotalBadge(passZoneColShare(chart, key))}</th>`;
+  const col = (label, key) => {
+    const share = passZoneColShare(chart, key);
+    const badge = passZoneTotalBadge(side, share, passZoneColSharePool(side, key));
+    return `<th style="${style}"><span class="pass-zone-col-label">${label}</span>${badge}</th>`;
+  };
   return `<tr><th></th>${col("Left", "left")}${col("Middle", "middle")}${col("Right", "right")}</tr>`;
 }
 
@@ -769,13 +796,19 @@ function passZoneVolumeShare(chart, zone) {
   return zone.attempts / chart.pass_attempts;
 }
 
-// Last token of a full name ("Amon-Ra St. Brown" -> "Brown", "D.Kincaid"
+// Last token of a full name ("Dalton Kincaid" -> "Kincaid", "D.Kincaid"
 // stays as-is) -- short enough to sit next to a target/catch count inside
-// a compact cell without wrapping.
+// a compact cell without wrapping. Multi-word surnames ("Amon-Ra St.
+// Brown") keep the "St." prefix -- the last token alone ("Brown") reads
+// as a different, wrong player.
 function zonePlayerShortName(name) {
   if (!name) return "?";
   const parts = name.trim().split(" ");
-  return parts[parts.length - 1];
+  if (parts.length < 2) return parts[0] || "?";
+  const last = parts[parts.length - 1];
+  const secondLast = parts[parts.length - 2];
+  if (/^st\.?$/i.test(secondLast)) return `${secondLast} ${last}`;
+  return last;
 }
 
 // Offense cell: who's actually getting targeted in this zone and how many
@@ -826,11 +859,12 @@ function renderPassZoneGrid(team, side, opponent) {
       // size regardless of how many player lines it has.
       return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><div class="pass-zone-cell-inner"><span class="pass-zone-rate">${shareDisplay}</span>${detail}</div></td>`;
     }).join("");
-    const rowBadge = passZoneTotalBadge(passZoneRowShare(chart, r.key));
-    return `<tr><th class="pass-zone-row-label">${r.label}${rowBadge}</th>${cells}</tr>`;
+    const rowShare = passZoneRowShare(chart, r.key);
+    const rowBadge = passZoneTotalBadge(side, rowShare, passZoneRowSharePool(side, r.key));
+    return `<tr><th class="pass-zone-row-label"><span class="pass-zone-row-label-text">${r.label}</span>${rowBadge}</th>${cells}</tr>`;
   }).join("");
   return `<table class="data-table pass-zone-grid">
-    <thead>${passZoneGridHeader(team, chart)}</thead>
+    <thead>${passZoneGridHeader(team, chart, side)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }

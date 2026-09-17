@@ -520,8 +520,10 @@ h3 {
    one blurry block; full borders on every cell (not just the base table's
    bottom-only rule) give each box a real edge. */
 .pass-zone-grid th, .pass-zone-grid td { padding: 8px 4px; text-align: center; border: 1px solid #000; }
-.pass-zone-row-label { text-align: left !important; font-weight: 700; font-size: 0.8rem; width: 48px; padding-left: 5px !important; }
+.pass-zone-row-label { text-align: left !important; vertical-align: top; width: 92px; padding-left: 8px !important; }
+.pass-zone-row-label-text { display: block; font-weight: 700; font-size: 0.95rem; }
 .pass-zone-grid th { font-size: 0.85rem; }
+.pass-zone-col-label { display: block; font-weight: 700; font-size: 0.95rem; }
 .pass-zone-cell { vertical-align: top; }
 /* Every cell (offense AND defense, whichever grid) locked to the same
    minimum height -- sized for the largest real case (volume % + 3 player
@@ -533,10 +535,26 @@ h3 {
    rendered short). */
 .pass-zone-cell-inner { min-height: 80px; }
 .pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
-/* Row/column total badges (see passZoneTotalBadge) -- block-level so they
-   sit on their own line under "20+"/"Left" instead of needing the label
-   column widened to fit both side by side. */
-.pass-zone-total-badge { display: block; font-size: 0.68rem; font-weight: 700; opacity: 0.8; margin-top: 2px; }
+/* Row/column total badges (see passZoneTotalBadge) -- a real colored
+   pill (same tier-good/mid/bad meaning as every other colored cell on
+   the site, just at full solid strength instead of the usual light
+   tint) instead of a small muted number, so "how popular is this whole
+   depth/side" reads as a real headline instead of an afterthought caption
+   under the label. */
+.pass-zone-total-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 12px;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #1a1a1a;
+  background: #d8d8d8;
+}
+.pass-zone-total-badge.tier-good { background: rgb(var(--good-rgb)); }
+.pass-zone-total-badge.tier-mid { background: rgb(var(--mid-rgb)); }
+.pass-zone-total-badge.tier-bad { background: rgb(var(--bad-rgb)); }
 /* Offense: up to 3 "who's getting targeted here" lines, name left / rec-
    over-target right -- the volume % above says how popular the zone is,
    this says popular with whom and how often it turns into a catch,
