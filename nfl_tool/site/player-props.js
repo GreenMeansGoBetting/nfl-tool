@@ -1325,7 +1325,10 @@ function renderPlayerZoneHeatGrid(zones, oppTeam) {
         ? ` style="background: rgba(var(--accent-rgb), ${(PLAYER_ZONE_HEAT_MIN_ALPHA + (targets / maxTargets) * (PLAYER_ZONE_HEAT_MAX_ALPHA - PLAYER_ZONE_HEAT_MIN_ALPHA)).toFixed(2)})"`
         : "";
       const display = targets ? `${rec}/${targets}` : "--";
-      const tier = oppTeam ? defenseZoneTier(oppTeam, zk) : "";
+      // Only a real zone gets the outline -- flagging an empty "--" cell as
+      // a soft spot the player has never actually been sent to is a
+      // meaningless signal, not an insight.
+      const tier = targets && oppTeam ? defenseZoneTier(oppTeam, zk) : "";
       const exploitCls = tier === "tier-bad" ? " pass-zone-heat-cell-exploit-bad" : tier === "tier-mid" ? " pass-zone-heat-cell-exploit-mid" : "";
       return `<td class="num pass-zone-heat-cell${exploitCls}"${style}>${display}</td>`;
     }).join("");
