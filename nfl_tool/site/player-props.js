@@ -1295,7 +1295,19 @@ function renderPassZoneBlock(team, side, opponent) {
 const PLAYER_ZONE_HEAT_MIN_ALPHA = 0.06;
 const PLAYER_ZONE_HEAT_MAX_ALPHA = 0.85;
 
-function renderPlayerZoneHeatGrid(zones) {
+// Same composite (volume+EPA, defense-inverted) the defense grid colors
+// its own cells with -- evaluated for one zone instead of a whole grid, so
+// a hotspot card can flag "this is also a soft spot for the exact defense
+// he's facing" without making the reader cross-reference the two grids by
+// eye. tier-bad on the defense grid means "this defense is exposed here,"
+// which is exactly the zone worth circling on the offense side too.
+function defenseZoneIsExploitable(oppTeam, zoneKey) {
+  const chart = (DATA.pass_shot_charts[oppTeam] || {}).def;
+  if (!chart) return false;
+  return tierFromZ(passZoneCompositeZ("def", zoneKey, chart.zones[zoneKey])) === "tier-bad";
+}
+
+function renderPlayerZoneHeatGrid(zones, oppTeam) {
   let maxTargets = 0;
   PASS_ZONE_ROWS.forEach((r) =>
     PASS_ZONE_COLS.forEach((c) => {
@@ -1305,14 +1317,16 @@ function renderPlayerZoneHeatGrid(zones) {
   );
   const rows = PASS_ZONE_ROWS.map((r) => {
     const cells = PASS_ZONE_COLS.map((loc) => {
-      const zone = zones[`${r.key}_${loc}`];
+      const zk = `${r.key}_${loc}`;
+      const zone = zones[zk];
       const targets = zone?.targets || 0;
       const rec = zone?.receptions || 0;
       const style = targets
         ? ` style="background: rgba(var(--accent-rgb), ${(PLAYER_ZONE_HEAT_MIN_ALPHA + (targets / maxTargets) * (PLAYER_ZONE_HEAT_MAX_ALPHA - PLAYER_ZONE_HEAT_MIN_ALPHA)).toFixed(2)})"`
         : "";
       const display = targets ? `${rec}/${targets}` : "--";
-      return `<td class="num pass-zone-heat-cell"${style}>${display}</td>`;
+      const exploitCls = oppTeam && defenseZoneIsExploitable(oppTeam, zk) ? " pass-zone-heat-cell-exploit" : "";
+      return `<td class="num pass-zone-heat-cell${exploitCls}"${style}>${display}</td>`;
     }).join("");
     return `<tr><th class="pass-zone-row-label-mini">${r.short}</th>${cells}</tr>`;
   }).join("");
@@ -1322,7 +1336,7 @@ function renderPlayerZoneHeatGrid(zones) {
   </table>`;
 }
 
-function renderPlayerZoneMiniCard(team, name, player) {
+function renderPlayerZoneMiniCard(team, name, player, oppTeam) {
   const headshot = (DATA.player_headshots[team] || {})[name];
   const photo = headshot
     ? `<img src="${headshot}" class="pass-zone-player-photo pass-zone-player-photo-mini" alt="${name}" loading="lazy">`
@@ -1336,7 +1350,7 @@ function renderPlayerZoneMiniCard(team, name, player) {
         <span class="pass-zone-player-pos">${player.position || "?"} &middot; ${totalTgt} tgt</span>
       </div>
     </div>
-    ${renderPlayerZoneHeatGrid(player.zones)}
+    ${renderPlayerZoneHeatGrid(player.zones, oppTeam)}
   </div>`;
 }
 
@@ -1355,7 +1369,7 @@ function renderOffensePlayerZoneCards(team, side, opponent) {
     .sort((a, b) => totalTgt(b) - totalTgt(a))
     .slice(0, 5);
   const body = names.length
-    ? `<div class="pass-zone-players-inline">${names.map((n) => renderPlayerZoneMiniCard(team, n, players[n])).join("")}</div>`
+    ? `<div class="pass-zone-players-inline">${names.map((n) => renderPlayerZoneMiniCard(team, n, players[n], opponent)).join("")}</div>`
     : `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
   return `<div class="pass-zone-block">
     ${passZoneTeamHeader(team, side)}

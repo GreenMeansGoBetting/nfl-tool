@@ -699,6 +699,11 @@ h3 {
    tier class -- no green/red judgment here, just "how much," so the text
    stays plain instead of picking up the site's good/bad coloring. */
 .pass-zone-heat-cell { font-weight: 700; }
+/* Flags a hotspot cell that's ALSO a soft spot for the exact defense this
+   player is facing (see defenseZoneIsExploitable) -- a dotted outline
+   instead of a fill so it layers on top of the heat shading instead of
+   fighting it for the cell's background. */
+.pass-zone-heat-cell-exploit { outline: 2px dotted rgb(var(--bad-rgb)); outline-offset: -3px; }
 .pass-zone-modal-layout {
   display: flex;
   flex-wrap: nowrap;
