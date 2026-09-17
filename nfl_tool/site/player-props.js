@@ -30,18 +30,94 @@ function playerAdvCell(player, oppTeam, statKey, allowedKey) {
   return edgeCell(offTier, defTier, player.team, oppTeam, offExtreme, defExtreme);
 }
 
-function renderReceivingTable(team, oppTeam) {
-  const players = (DATA.player_props[team] || [])
-    .filter((p) => p.targets >= 5)
-    .sort((a, b) => b.targets - a.targets)
-    .slice(0, 6);
-  if (!players.length) {
-    return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
+// Same depth buckets as the Target Zones grid (PASS_ZONE_ROWS/PASS_ZONE_
+// COLS), short labels instead of the grid's spelled-out ones -- this table
+// already has 9 other columns, so brevity matters more here than it does
+// in a 3-wide grid.
+const RECEIVING_DIST_COLS = [
+  { key: "deep", label: "20+" },
+  { key: "intermediate", label: "10-19" },
+  { key: "short", label: "0-9" },
+  { key: "screen", label: "SCN" },
+];
+
+// A player's own share of targets at ONE depth (summed across all 3
+// locations), out of that player's own total targets across every zone --
+// the player-level version of passZoneRowShare's team-level "how much of
+// MY volume is at this depth."
+function playerZoneDepthShare(zones, rowKey) {
+  if (!zones) return null;
+  let total = 0;
+  for (const key in zones) total += zones[key].targets || 0;
+  if (!total) return null;
+  const sum = PASS_ZONE_COLS.reduce((s, loc) => s + (zones[`${rowKey}_${loc}`]?.targets || 0), 0);
+  return sum / total;
+}
+// League-wide pool of every qualifying pass-catcher's own share at one
+// depth, for percentile coloring -- same convention as everywhere else,
+// just sourced from player_pass_zones instead of a flat team_stats key.
+function playerZoneDepthSharePool(rowKey) {
+  const pool = [];
+  for (const players of Object.values(DATA.player_pass_zones || {})) {
+    for (const p of Object.values(players)) {
+      const share = playerZoneDepthShare(p.zones, rowKey);
+      if (share !== null) pool.push(share);
+    }
   }
-  const rows = players
+  return pool;
+}
+
+// Sort state for the distance columns only -- the original stat columns
+// (Tgt/g, etc.) open a league rank modal on click instead (see
+// openReceivingColumnRankModal), so only ONE sort key is ever active at a
+// time and it always belongs to a distance column. Module-level since the
+// click handler re-renders the table in place rather than reopening it.
+let receivingSort = { key: null, dir: "desc" };
+
+// Both teams in ONE table instead of two stacked ones -- a fixed-width
+// Player column sized for "Amon-Ra St. Brown" left the SAME dead space
+// next to every shorter name on both tables, and stacking meant that
+// space was wasted twice. A small team-logo column replaces the two
+// separate team banners.
+function renderReceivingChart(away, home) {
+  let rows = [away, home].flatMap((team) => (DATA.player_props[team] || []).filter((p) => p.targets >= 5));
+  if (!rows.length) {
+    return `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
+  }
+  if (receivingSort.key) {
+    const getVal = (p) => {
+      const zones = ((DATA.player_pass_zones[p.team] || {})[p.name] || {}).zones;
+      const share = playerZoneDepthShare(zones, receivingSort.key);
+      return share === null ? -1 : share;
+    };
+    rows = [...rows].sort((a, b) => (receivingSort.dir === "desc" ? getVal(b) - getVal(a) : getVal(a) - getVal(b)));
+  } else {
+    rows = [...rows].sort((a, b) => (a.team === away && b.team !== away ? -1 : a.team !== away && b.team === away ? 1 : b.targets - a.targets));
+  }
+
+  const statHeader = (label, statKey, opts = {}) =>
+    `<th class="num receiving-col-rank-click" data-entry="${encodeDataAttr({ statKey, label, ...opts })}">${label}</th>`;
+  const distHeader = ({ key, label }) => {
+    const active = receivingSort.key === key;
+    const arrow = active ? (receivingSort.dir === "desc" ? " ▼" : " ▲") : "";
+    return `<th class="num receiving-dist-sort-click${active ? " active" : ""}" data-rowkey="${key}">${label}${arrow}</th>`;
+  };
+
+  const body = rows
     .map((p) => {
+      const oppTeam = p.team === away ? home : away;
+      const zones = ((DATA.player_pass_zones[p.team] || {})[p.name] || {}).zones;
+      const distCells = RECEIVING_DIST_COLS.map((r) => {
+        const share = playerZoneDepthShare(zones, r.key);
+        if (share === null) return `<td class="num">--</td>`;
+        const pool = playerZoneDepthSharePool(r.key);
+        const cls = percentileTier(share, pool, false);
+        const alpha = tierAlphaAttr(share, pool, false);
+        return `<td class="num ${cls}"${alpha}>${Math.round(share * 100)}%</td>`;
+      }).join("");
       return `<tr>
-        <td><div class="player-name-row"><span class="player-name player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span></div></td>
+        <td class="receiving-team-cell">${teamLogoMini(p.team)}</td>
+        <td><span class="player-name player-click" data-entry="${encodeDataAttr({ team: p.team, name: p.name, oppTeam })}">${p.name}</span></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
@@ -49,15 +125,79 @@ function renderReceivingTable(team, oppTeam) {
         <td class="num">${p.adot != null ? fmt(p.adot, 1) : "--"}</td>
         <td class="num">${p.yac_per_rec != null ? fmt(p.yac_per_rec, 1) : "--"}</td>
         <td class="num">${p.target_share != null ? Math.round(p.target_share * 100) + "%" : "--"}</td>
+        ${distCells}
       </tr>`;
     })
     .join("");
-  return `${teamBannerHeader(team, true)}
-    <table class="data-table props-rec-table">
-      <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Tgt/g</th><th class="num">Rec/g</th><th class="num">Yds/g</th><th class="num">ADOT</th><th class="num">YAC</th><th class="num">Tgt%</th></tr></thead>
-      <tbody>${rows}</tbody>
+
+  return `<table class="data-table props-rec-table">
+      <thead><tr>
+        <th></th>
+        <th class="lb-player">Player</th>
+        <th class="lb-pos">Pos</th>
+        ${statHeader("Tgt/g", "targets_per_g")}
+        ${statHeader("Rec/g", "rec_per_g")}
+        ${statHeader("Yds/g", "rec_yards_per_g")}
+        ${statHeader("ADOT", "adot")}
+        ${statHeader("YAC", "yac_per_rec")}
+        ${statHeader("Tgt%", "target_share", { percent: true })}
+        ${RECEIVING_DIST_COLS.map(distHeader).join("")}
+      </tr></thead>
+      <tbody>${body}</tbody>
     </table>`;
 }
+
+// League-wide rank for one Receiving-table column, across every
+// qualifying pass-catcher on ANY team (not position-scoped -- a TE and a
+// WR on the same list, position shown per row for context) -- opened by
+// clicking that column's header, same "click a label, see everyone"
+// pattern as the rest of the site.
+function openReceivingColumnRankModal(statKey, label, opts = {}) {
+  ensureStatRankModal();
+  const rows = [];
+  for (const [team, players] of Object.entries(DATA.player_props)) {
+    for (const pl of players) {
+      if (pl.targets < 5) continue;
+      const val = pl[statKey];
+      if (val === null || val === undefined) continue;
+      rows.push({ team, name: pl.name, position: pl.position, value: val });
+    }
+  }
+  const invert = !!opts.invert;
+  rows.sort((a, b) => (invert ? a.value - b.value : b.value - a.value));
+  const values = rows.map((r) => r.value);
+  const display = (v) => (opts.percent ? `${Math.round(v * 100)}%` : fmt(v, opts.digits ?? 1));
+  const body = rows
+    .map((r) => {
+      const cls = percentileTier(r.value, values, invert);
+      const alpha = tierAlphaAttr(r.value, values, invert);
+      return `<tr><td>${teamLogoMini(r.team)} ${r.name} <span class="muted-label">(${r.position})</span></td><td class="num ${cls}"${alpha}>${display(r.value)}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("stat-rank-modal-content").innerHTML = `<h3>${label} &mdash; All Pass-Catchers</h3>
+    <table class="data-table player-odds-table stat-rank-table">
+      <thead><tr><th>Player</th><th class="num">${label}</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
+  document.getElementById("stat-rank-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const rankTh = e.target.closest(".receiving-col-rank-click");
+  if (rankTh) {
+    const { statKey, label, invert, percent, digits } = decodeDataAttr(rankTh.dataset.entry);
+    openReceivingColumnRankModal(statKey, label, { invert, percent, digits });
+    return;
+  }
+  const sortTh = e.target.closest(".receiving-dist-sort-click");
+  if (sortTh) {
+    const rowKey = sortTh.dataset.rowkey;
+    receivingSort = receivingSort.key === rowKey ? { key: rowKey, dir: receivingSort.dir === "desc" ? "asc" : "desc" } : { key: rowKey, dir: "desc" };
+    const away = document.getElementById("away-select").value;
+    const home = document.getElementById("home-select").value;
+    document.getElementById("col-receiving").innerHTML = renderReceivingChart(away, home);
+  }
+});
 
 // Same 7 lanes as build_stats.py's RUSH_ZONES, left to right the way a
 // broadcast angle actually reads them (defense's own left is the offense's
@@ -1817,8 +1957,7 @@ function render() {
   notesPlaysEl.hidden = false;
   setActivePropsView(currentPropsView);
 
-  document.getElementById("col-away-receiving").innerHTML = renderReceivingTable(away, home);
-  document.getElementById("col-home-receiving").innerHTML = renderReceivingTable(home, away);
+  document.getElementById("col-receiving").innerHTML = renderReceivingChart(away, home);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
   document.getElementById("col-away-rushlanes").innerHTML = renderRushLanesChart(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);

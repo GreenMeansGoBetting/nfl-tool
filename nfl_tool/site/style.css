@@ -424,15 +424,33 @@ h3 {
 .props-rec-table, .props-rush-table, .props-pass-table {
   table-layout: fixed;
 }
-.props-rec-table { width: 646px; }
-.props-rec-table th:first-child, .props-rec-table td:first-child { width: 328px; }
-.props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 34px; }
-.props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
-.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4) { width: 46px; }
-.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 60px; }
-.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6),
+/* Both teams in one table now (see renderReceivingChart) -- team logo,
+   then Player, sized to fit real names instead of the old fixed 328px
+   (room for "Amon-Ra St. Brown" three times over) that left the same
+   dead space next to every shorter name, twice (once per team's own
+   separate table). */
+.props-rec-table { width: 576px; }
+.props-rec-table th:first-child, .props-rec-table td:first-child { width: 24px; }
+.props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 130px; }
+.props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3) { width: 32px; }
+.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
+.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 40px; }
+.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 48px; }
 .props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7),
-.props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8) { width: 44px; }
+.props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8),
+.props-rec-table th:nth-child(9), .props-rec-table td:nth-child(9) { width: 40px; }
+/* Distance columns (10-13): a hairline divider before the first one marks
+   where the "core stats" end and the per-depth breakdown starts, same
+   idea as the old route-map table's OFF/DEF divider. */
+.props-rec-table th:nth-child(10), .props-rec-table td:nth-child(10) { width: 34px; border-left: 2px solid var(--text); }
+.props-rec-table th:nth-child(11), .props-rec-table td:nth-child(11) { width: 40px; }
+.props-rec-table th:nth-child(12), .props-rec-table td:nth-child(12),
+.props-rec-table th:nth-child(13), .props-rec-table td:nth-child(13) { width: 34px; }
+.props-rec-table .receiving-team-cell { padding-right: 0 !important; }
+.props-rec-table .receiving-team-cell img { display: block; }
+.receiving-col-rank-click, .receiving-dist-sort-click { cursor: pointer; }
+.receiving-col-rank-click:hover, .receiving-dist-sort-click:hover { color: var(--accent); }
+.receiving-dist-sort-click.active { color: var(--accent); }
 
 .props-rush-table { width: 440px; }
 .props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
@@ -520,7 +538,7 @@ h3 {
    one blurry block; full borders on every cell (not just the base table's
    bottom-only rule) give each box a real edge. */
 .pass-zone-grid th, .pass-zone-grid td { padding: 8px 4px; text-align: center; border: 1px solid #000; }
-.pass-zone-row-label { text-align: left !important; vertical-align: top; width: 92px; padding-left: 8px !important; }
+.pass-zone-row-label { text-align: center !important; vertical-align: top; width: 92px; }
 .pass-zone-row-label-text { display: block; font-weight: 700; font-size: 0.95rem; }
 .pass-zone-grid th { font-size: 0.85rem; }
 .pass-zone-col-label { display: block; font-weight: 700; font-size: 0.95rem; }
