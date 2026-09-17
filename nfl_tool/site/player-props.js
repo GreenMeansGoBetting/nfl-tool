@@ -798,10 +798,10 @@ function renderPassCoveragePanel(team, oppTeam) {
 // a real row-label box instead of a cramped narrow column (see
 // .pass-zone-row-label) -- there's room.
 const PASS_ZONE_ROWS = [
-  { key: "deep", label: "20+ yards" },
-  { key: "intermediate", label: "10-19 yards" },
-  { key: "short", label: "0-9 yards" },
-  { key: "screen", label: "SCREEN" },
+  { key: "deep", label: "20+ yards", short: "20+" },
+  { key: "intermediate", label: "10-19 yards", short: "10-19" },
+  { key: "short", label: "0-9 yards", short: "0-9" },
+  { key: "screen", label: "SCREEN", short: "SCR" },
 ];
 const PASS_ZONE_COLS = ["left", "middle", "right"];
 
@@ -1308,6 +1308,85 @@ function renderPassZoneBlock(team, side, opponent) {
   return `<div class="pass-zone-block">
     ${passZoneTeamHeader(team, side)}
     ${renderPassZoneGrid(team, side, opponent)}
+    ${renderPassIdentityCard(team, side)}
+  </div>`;
+}
+
+// ---- Offense side, main page: one mini hotspot grid per pass-catcher
+// instead of a single team-level grid with everyone's line crammed into
+// each cell. Same shell as renderPlayerZoneCard (the "See All Players"
+// modal card), just sized down to sit inline on the page and reused as-is
+// -- clicking the team banner above still opens that modal for the full
+// roster. Deliberately NOT the league-percentile rate coloring the team
+// grid uses: this is "where does THIS guy actually get used," a
+// self-referential heatmap (each player's own busiest zone reads darkest),
+// not a comparison to the rest of the league. No % anywhere -- raw
+// receptions/targets counts only, same as a broadcast target chart. */
+const PLAYER_ZONE_HEAT_MIN_ALPHA = 0.06;
+const PLAYER_ZONE_HEAT_MAX_ALPHA = 0.85;
+
+function renderPlayerZoneHeatGrid(zones) {
+  let maxTargets = 0;
+  PASS_ZONE_ROWS.forEach((r) =>
+    PASS_ZONE_COLS.forEach((c) => {
+      const t = zones[`${r.key}_${c}`]?.targets || 0;
+      if (t > maxTargets) maxTargets = t;
+    })
+  );
+  const rows = PASS_ZONE_ROWS.map((r) => {
+    const cells = PASS_ZONE_COLS.map((loc) => {
+      const zone = zones[`${r.key}_${loc}`];
+      const targets = zone?.targets || 0;
+      const rec = zone?.receptions || 0;
+      const style = targets
+        ? ` style="background: rgba(var(--accent-rgb), ${(PLAYER_ZONE_HEAT_MIN_ALPHA + (targets / maxTargets) * (PLAYER_ZONE_HEAT_MAX_ALPHA - PLAYER_ZONE_HEAT_MIN_ALPHA)).toFixed(2)})"`
+        : "";
+      const display = targets ? `${rec}/${targets}` : "--";
+      return `<td class="num pass-zone-heat-cell"${style}>${display}</td>`;
+    }).join("");
+    return `<tr><th class="pass-zone-row-label-mini">${r.short}</th>${cells}</tr>`;
+  }).join("");
+  return `<table class="data-table pass-zone-grid pass-zone-grid-mini">
+    <thead><tr><th></th><th>L</th><th>M</th><th>R</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderPlayerZoneMiniCard(team, name, player) {
+  const headshot = (DATA.player_headshots[team] || {})[name];
+  const photo = headshot
+    ? `<img src="${headshot}" class="pass-zone-player-photo pass-zone-player-photo-mini" alt="${name}" loading="lazy">`
+    : `<div class="pass-zone-player-photo pass-zone-player-photo-mini pass-zone-player-photo-blank"></div>`;
+  const totalTgt = Object.values(player.zones).reduce((s, z) => s + (z.targets || 0), 0);
+  return `<div class="pass-zone-player-mini-card">
+    <div class="pass-zone-player-banner pass-zone-player-banner-mini">
+      ${photo}
+      <div class="pass-zone-player-info">
+        <span class="pass-zone-player-name">${name}</span>
+        <span class="pass-zone-player-pos">${player.position || "?"} &middot; ${totalTgt} tgt</span>
+      </div>
+    </div>
+    ${renderPlayerZoneHeatGrid(player.zones)}
+  </div>`;
+}
+
+// Same targets>=5 qualifying bar as the Receiving table, capped to the top
+// 4 by volume so this stays a glance-able row instead of growing with the
+// roster -- click the team banner (still wired to openPassZoneAllPlayersModal)
+// for every charted pass-catcher.
+function renderOffensePlayerZoneCards(team, side, opponent) {
+  const players = DATA.player_pass_zones[team] || {};
+  const totalTgt = (name) => Object.values(players[name].zones).reduce((s, z) => s + (z.targets || 0), 0);
+  const names = Object.keys(players)
+    .filter((n) => totalTgt(n) >= 5)
+    .sort((a, b) => totalTgt(b) - totalTgt(a))
+    .slice(0, 4);
+  const body = names.length
+    ? `<div class="pass-zone-players-inline">${names.map((n) => renderPlayerZoneMiniCard(team, n, players[n])).join("")}</div>`
+    : `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
+  return `<div class="pass-zone-block">
+    ${passZoneTeamHeader(team, side)}
+    ${body}
     ${renderPassIdentityCard(team, side)}
   </div>`;
 }
@@ -1971,13 +2050,13 @@ function render() {
   document.getElementById("col-home-passcoverage").innerHTML = renderPassCoveragePanel(home, away);
   document.getElementById("col-away-scramble").innerHTML = renderQbRushingPanel(away, home) + renderRedZoneMixPanel(away, home);
   document.getElementById("col-home-scramble").innerHTML = renderQbRushingPanel(home, away) + renderRedZoneMixPanel(home, away);
-  document.getElementById("col-away-passzones-off").innerHTML = renderPassZoneBlock(away, "off", home);
+  document.getElementById("col-away-passzones-off").innerHTML = renderOffensePlayerZoneCards(away, "off", home);
   document.getElementById("col-away-passzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
-  document.getElementById("col-home-passzones-off").innerHTML = renderPassZoneBlock(home, "off", away);
+  document.getElementById("col-home-passzones-off").innerHTML = renderOffensePlayerZoneCards(home, "off", away);
   document.getElementById("col-home-passzones-def").innerHTML = renderPassZoneBlock(home, "def", away);
-  document.getElementById("col-away-recvzones-off").innerHTML = renderPassZoneBlock(away, "off", home);
+  document.getElementById("col-away-recvzones-off").innerHTML = renderOffensePlayerZoneCards(away, "off", home);
   document.getElementById("col-away-recvzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
-  document.getElementById("col-home-recvzones-off").innerHTML = renderPassZoneBlock(home, "off", away);
+  document.getElementById("col-home-recvzones-off").innerHTML = renderOffensePlayerZoneCards(home, "off", away);
   document.getElementById("col-home-recvzones-def").innerHTML = renderPassZoneBlock(home, "def", away);
 
   const notesKey = `${away}_${home}`;

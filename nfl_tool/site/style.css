@@ -693,6 +693,30 @@ h3 {
 .pass-zone-player-info { display: flex; flex-direction: column; min-width: 0; }
 .pass-zone-player-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pass-zone-player-pos { font-size: 0.75rem; color: var(--muted); }
+
+/* Main-page offense view: one shrunk-down hotspot grid per pass-catcher
+   (see renderOffensePlayerZoneCards) instead of one full-size team grid --
+   several of these sit side by side where a single grid used to be, so
+   every dimension is cut down from the modal's already-compact version. */
+.pass-zone-players-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.pass-zone-player-mini-card { flex: 1 1 155px; min-width: 145px; max-width: 220px; }
+.pass-zone-player-banner-mini { gap: 6px; margin-bottom: 4px; }
+.pass-zone-player-banner-mini .pass-zone-player-photo { width: 24px; height: 24px; }
+.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.76rem; }
+.pass-zone-player-banner-mini .pass-zone-player-pos { font-size: 0.62rem; }
+.pass-zone-grid-mini { font-size: 0.68rem; }
+.pass-zone-grid-mini th, .pass-zone-grid-mini td { padding: 4px 2px; }
+.pass-zone-grid-mini th { font-size: 0.62rem; }
+.pass-zone-row-label-mini { text-align: center; vertical-align: middle; width: 28px; font-size: 0.6rem; font-weight: 700; }
+/* Heat alpha comes from an inline style (see PLAYER_ZONE_HEAT_*), not a
+   tier class -- no green/red judgment here, just "how much," so the text
+   stays plain instead of picking up the site's good/bad coloring. */
+.pass-zone-heat-cell { font-weight: 700; }
 .pass-zone-modal-layout {
   display: flex;
   flex-wrap: nowrap;
