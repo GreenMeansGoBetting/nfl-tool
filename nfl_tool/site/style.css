@@ -706,7 +706,17 @@ h3 {
   white-space: nowrap;
 }
 .rush-lanes-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
-#rush-lanes-all-modal .modal-box { max-width: none; width: 96vw; max-height: 90vh; overflow-y: auto; }
+/* The main rushing page wraps its lane row in .rush-lanes (318px) to keep
+   the 7 columns compact -- this modal never had that wrapper, so with
+   nothing constraining it, .rush-lanes-cols (a flex row with no width of
+   its own) just stretched to fill the whole 96vw modal, blowing up every
+   cell into an oversized box instead of the same tight bar the main page
+   shows. Same fixed width here reproduces that exact ratio, and since
+   every player's row is stacked vertically (not side by side), the modal
+   itself is capped down to fit that one narrow column instead of leaving
+   a wide empty margin around it. */
+#rush-lanes-all-modal .modal-box { max-width: 460px; width: 92vw; max-height: 90vh; overflow-y: auto; }
+#rush-lanes-all-modal .rush-lanes-cols { width: 318px; }
 .rush-lanes-all-players { margin-top: 10px; }
 .rush-lanes-player-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
 .rush-lanes-player-block:first-child { margin-top: 12px; }
