@@ -936,49 +936,19 @@ function passZoneVolumeShare(chart, zone) {
   return zone.attempts / chart.pass_attempts;
 }
 
-// Last token of a full name ("Dalton Kincaid" -> "Kincaid", "D.Kincaid"
-// stays as-is) -- short enough to sit next to a target/catch count inside
-// a compact cell without wrapping. Multi-word surnames ("Amon-Ra St.
-// Brown") keep the "St." prefix -- the last token alone ("Brown") reads
-// as a different, wrong player.
-function zonePlayerShortName(name) {
-  if (!name) return "?";
-  const parts = name.trim().split(" ");
-  if (parts.length < 2) return parts[0] || "?";
-  const last = parts[parts.length - 1];
-  const secondLast = parts[parts.length - 2];
-  if (/^st\.?$/i.test(secondLast)) return `${secondLast} ${last}`;
-  return last;
-}
-
-// Offense cell: who's actually getting targeted in this zone and how many
-// of those targets turned into catches -- the volume % (top-right corner,
-// see .pass-zone-rate) answers "how popular," this answers "popular with
-// whom" and "how often it works," both without clicking into the cell.
-// Capped at 5 names (up from 3 now that the % badge moved out of the main
-// flow and freed up the rest of the box) so a zone with a long tail of
-// one-target players doesn't blow out the cell height.
-function passZoneCellOffenseDetail(zone) {
-  if (!zone || !zone.attempts) return "";
-  const summary = passZonePlayerSummary(zone.plays).slice(0, 5);
-  const rows = summary
-    .map((g) => `<span class="pass-zone-cell-player"><span>${zonePlayerShortName(g.name)}</span><b>${g.rec}/${g.targets}</b></span>`)
-    .join("");
-  return `<span class="pass-zone-cell-players">${rows}</span>`;
-}
-
-// Defense cell: completion rate allowed, next to the volume % (top-right
-// corner) that drives most of the cell's color -- "teams target this
-// area (the %) AND have success here (this line)" as one reinforcing
-// story instead of the old mismatched pairing (color from a volume+EPA
-// blend, number from a rate that often pointed a different direction).
-// Player-level detail is deliberately left off this side -- see
-// renderPassZoneOpponentBlock for "which specific players" once a cell
-// is clicked.
+// Defense cell: how often this zone gets attacked (the big share number)
+// and what the defense allows when it does (completion % + the raw sample
+// underneath it), stacked as one story instead of a corner badge fighting
+// a cramped caption line for space -- this is now the ONLY thing a
+// pass-zone grid on the main page shows (the offense side moved to
+// renderOffensePlayerZoneCards' per-player heat grids), so the cell has
+// the whole box to itself instead of needing to also leave room for a
+// player list. Player-level detail for a specific defense cell is still
+// one click away -- see renderPassZoneOpponentBlock.
 function passZoneCellDefenseDetail(zone) {
   if (!zone || !zone.attempts) return "";
   const rate = passZoneRate(zone);
-  return `<span class="pass-zone-cell-sub">${Math.round(rate * 100)}% comp <span class="muted-label">(${zone.completions}/${zone.attempts})</span></span>`;
+  return `<span class="pass-zone-cell-comp">${Math.round(rate * 100)}% comp</span><span class="pass-zone-cell-sample">(${zone.completions}/${zone.attempts})</span>`;
 }
 
 function renderPassZoneGrid(team, side, opponent) {
@@ -993,7 +963,7 @@ function renderPassZoneGrid(team, side, opponent) {
       const alpha = alphaAttrFromZ(z);
       const share = passZoneVolumeShare(chart, zone);
       const shareDisplay = share === null ? "--" : `${Math.round(share * 100)}%`;
-      const detail = side === "off" ? passZoneCellOffenseDetail(zone) : passZoneCellDefenseDetail(zone);
+      const detail = passZoneCellDefenseDetail(zone);
       const payload = { team, side, zoneKey: zk, opponent };
       // min-height on a <td> itself isn't reliably respected by browsers
       // (row height quietly ignores it) -- wrapping the content in a real
@@ -1370,17 +1340,20 @@ function renderPlayerZoneMiniCard(team, name, player) {
   </div>`;
 }
 
-// Same targets>=5 qualifying bar as the Receiving table, capped to the top
-// 4 by volume so this stays a glance-able row instead of growing with the
-// roster -- click the team banner (still wired to openPassZoneAllPlayersModal)
-// for every charted pass-catcher.
+// No target minimum -- the Receiving table's targets>=5 bar made sense for
+// stabilizing a per-game RATE, but it was quietly dropping real
+// pass-catchers from this raw volume view (a WR with 3 targets in Week 2
+// just vanished entirely). Any charted target qualifies; capped to the
+// top 5 by volume so this stays a glance-able row instead of growing with
+// the roster -- click the team banner (still wired to
+// openPassZoneAllPlayersModal) for every charted pass-catcher.
 function renderOffensePlayerZoneCards(team, side, opponent) {
   const players = DATA.player_pass_zones[team] || {};
   const totalTgt = (name) => Object.values(players[name].zones).reduce((s, z) => s + (z.targets || 0), 0);
   const names = Object.keys(players)
-    .filter((n) => totalTgt(n) >= 5)
+    .filter((n) => totalTgt(n) > 0)
     .sort((a, b) => totalTgt(b) - totalTgt(a))
-    .slice(0, 4);
+    .slice(0, 5);
   const body = names.length
     ? `<div class="pass-zone-players-inline">${names.map((n) => renderPlayerZoneMiniCard(team, n, players[n])).join("")}</div>`
     : `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;

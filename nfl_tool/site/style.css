@@ -107,7 +107,7 @@ body {
 .page-nav a:hover { color: var(--text); border-color: var(--accent); background: var(--bg); }
 .page-nav-current { color: #fff; background: var(--accent); border-color: var(--accent); }
 
-main { max-width: 1100px; margin: 0 auto; padding: 16px 24px 32px; }
+main { max-width: 1600px; margin: 0 auto; padding: 16px 24px 32px; }
 
 .schedule-scroller {
   background: var(--panel);
@@ -512,7 +512,7 @@ h3 {
    quarter of the page even though they're the whole point of this
    section -- two per row (one real matchup: this team's offense paired
    with the exact opponent it's facing) now each get half. */
-.pass-zone-col { flex: 1 1 calc(50% - 10px); min-width: 340px; }
+.pass-zone-col { flex: 1 1 calc(50% - 10px); min-width: 420px; }
 .pass-zone-block { width: 100%; }
 /* Groups the two grids that make up ONE real matchup (this team's offense
    + the exact defense it's facing) into a single bordered panel, with real
@@ -551,34 +551,33 @@ h3 {
    one blurry block; full borders on every cell (not just the base table's
    bottom-only rule) give each box a real edge. */
 .pass-zone-grid th, .pass-zone-grid td { padding: 8px 4px; text-align: center; border: 1px solid #000; }
-.pass-zone-row-label { text-align: center !important; vertical-align: top; width: 92px; }
-.pass-zone-row-label-text { display: block; font-weight: 700; font-size: 0.95rem; }
-.pass-zone-grid th { font-size: 0.85rem; }
-.pass-zone-col-label { display: block; font-weight: 700; font-size: 0.95rem; }
-.pass-zone-cell { vertical-align: top; }
-/* Every cell (offense AND defense, whichever grid) locked to the same
-   minimum height -- sized for the largest real case (volume % + 3 player
-   lines on an offense cell) so a thin zone with one line of detail and a
-   packed one with three don't render as visibly different-sized boxes in
-   the same grid. min-height goes on this inner block, not the <td> itself
-   -- browsers don't reliably respect min-height set directly on a table
-   cell (confirmed directly: it computed correctly but the row still
-   rendered short). */
-.pass-zone-cell-inner { min-height: 80px; position: relative; padding-right: 32px; }
+.pass-zone-row-label { text-align: center !important; vertical-align: middle; width: 100px; }
+.pass-zone-row-label-text { display: block; font-weight: 700; font-size: 1.05rem; }
+.pass-zone-grid th { font-size: 0.95rem; }
+.pass-zone-col-label { display: block; font-weight: 700; font-size: 1.1rem; }
+.pass-zone-cell { vertical-align: middle; }
+/* This grid only renders the defense side now (the offense side moved to
+   renderOffensePlayerZoneCards' per-player heat grids), so the cell no
+   longer needs to reserve room for a player list -- everything centers
+   and stacks in reading order: how often this zone gets attacked (the
+   headline share %), what the defense allows there (comp %), and the raw
+   sample it's built on. min-height goes on this inner block, not the
+   <td> itself -- browsers don't reliably respect min-height set directly
+   on a table cell (confirmed directly: it computed correctly but the row
+   still rendered short). */
+.pass-zone-cell-inner {
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
 /* Base look for the "all players" modal's per-player grid (a bare
    .pass-zone-rate span, no wrapper div) -- the more specific rule below
    overrides this for the main grid's cells instead of replacing it. */
 .pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
-/* Corner badge instead of a big centered headline -- freed up the whole
-   rest of the box for the player list (which now starts at the top-left
-   instead of getting pushed below it), and the % is still the first
-   thing your eye hits since it's the only bold/colored thing up there.
-   Scoped to .pass-zone-cell-inner specifically -- the "all players"
-   modal's per-player grid (renderPlayerPassZoneGrid) reuses the bare
-   .pass-zone-rate span WITHOUT that wrapper div, so an unscoped
-   position:absolute here would have no positioned ancestor to anchor to
-   and jump the rate to a totally wrong spot in that modal. */
-.pass-zone-cell-inner .pass-zone-rate { position: absolute; top: 0; right: 0; font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+.pass-zone-cell-inner .pass-zone-rate { font-weight: 800; font-size: 1.5rem; }
 /* Row/column total badges (see passZoneTotalBadge) -- plain colored text,
    not a filled pill. These used to be full-strength tier-colored pills at
    1.3rem/800 weight, which made every row and column label shout as loud
@@ -596,30 +595,13 @@ h3 {
 .pass-zone-total-badge.tier-good { color: rgb(var(--good-rgb)); }
 .pass-zone-total-badge.tier-mid { color: var(--muted); }
 .pass-zone-total-badge.tier-bad { color: rgb(var(--bad-rgb)); }
-/* Offense: up to 5 "who's getting targeted here" lines, starting at the
-   very top-left of the box now that the % moved to its own corner badge
-   -- the % still says how popular the zone is, this says popular with
-   whom and how often it turns into a catch, without needing to click
-   into the cell. */
-.pass-zone-cell-players {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.66rem;
-  font-weight: 500;
-}
-/* Name gets a fixed width (not "however long the name is") so every
-   row's catch/target fraction lines up in the same column regardless of
-   whether that row says "LaPorta" or "St. Brown" -- and sits right after
-   the name instead of being pushed all the way to the cell's far edge. */
-.pass-zone-cell-player { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
-.pass-zone-cell-player > span:first-child { flex: 0 0 42px; overflow: hidden; text-overflow: ellipsis; }
-.pass-zone-cell-player b { font-weight: 700; }
-/* Defense: completion rate allowed, next to the volume % badge -- pairs
-   with it as one story ("targeted often AND works when they do") instead
-   of the volume-driven color and a same-size completion number reading as
-   two unrelated stats. */
-.pass-zone-cell-sub { display: block; font-size: 0.66rem; font-weight: 600; }
+/* Defense cell, below the big share headline: completion % allowed (its
+   own real line now, not a cramped caption) and the raw sample it's built
+   on underneath in muted, smaller text -- "targeted often AND works when
+   they do" as one story read top to bottom instead of a corner badge
+   fighting a tiny caption for space. */
+.pass-zone-cell-comp { display: block; font-size: 1rem; font-weight: 700; }
+.pass-zone-cell-sample { display: block; font-size: 0.75rem; color: var(--muted); }
 .pass-zone-identity {
   margin-top: 10px;
   padding-top: 8px;
@@ -704,15 +686,15 @@ h3 {
   gap: 10px;
   margin-top: 6px;
 }
-.pass-zone-player-mini-card { flex: 1 1 155px; min-width: 145px; max-width: 220px; }
-.pass-zone-player-banner-mini { gap: 6px; margin-bottom: 4px; }
-.pass-zone-player-banner-mini .pass-zone-player-photo { width: 24px; height: 24px; }
-.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.76rem; }
-.pass-zone-player-banner-mini .pass-zone-player-pos { font-size: 0.62rem; }
-.pass-zone-grid-mini { font-size: 0.68rem; }
-.pass-zone-grid-mini th, .pass-zone-grid-mini td { padding: 4px 2px; }
-.pass-zone-grid-mini th { font-size: 0.62rem; }
-.pass-zone-row-label-mini { text-align: center; vertical-align: middle; width: 28px; font-size: 0.6rem; font-weight: 700; }
+.pass-zone-player-mini-card { flex: 1 1 210px; min-width: 190px; max-width: 280px; }
+.pass-zone-player-banner-mini { gap: 8px; margin-bottom: 6px; }
+.pass-zone-player-banner-mini .pass-zone-player-photo { width: 36px; height: 36px; }
+.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.92rem; }
+.pass-zone-player-banner-mini .pass-zone-player-pos { font-size: 0.75rem; }
+.pass-zone-grid-mini { font-size: 0.85rem; }
+.pass-zone-grid-mini th, .pass-zone-grid-mini td { padding: 7px 4px; }
+.pass-zone-grid-mini th { font-size: 0.75rem; }
+.pass-zone-row-label-mini { text-align: center; vertical-align: middle; width: 40px; font-size: 0.72rem; font-weight: 700; }
 /* Heat alpha comes from an inline style (see PLAYER_ZONE_HEAT_*), not a
    tier class -- no green/red judgment here, just "how much," so the text
    stays plain instead of picking up the site's good/bad coloring. */
