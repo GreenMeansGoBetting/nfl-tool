@@ -1382,6 +1382,84 @@ function renderOffensePlayerZoneCards(team, side, opponent) {
   </div>`;
 }
 
+// ---- QB perspective for the Passing tab's Pass Zones (Receiving tab's
+// Target Zones keeps the per-receiver cards above -- this is a separate
+// view, not a replacement). Attempts/completions by zone instead of
+// targets/receptions, sourced from build_stats.py's compute_pass_shot_
+// chart -- the same team-level chart the old team grid used before the
+// Receiving-tab revamp, just given a QB banner and reused as-is here.
+// It's genuinely the whole team's passing (any backup snaps included),
+// not isolated to one arm -- no per-QB zone split exists on the backend --
+// but for the one real starter most teams run out there in a given week,
+// that distinction doesn't show up in practice. Always the single top
+// passer by attempts regardless of the backup-QB toggle: two QBs would
+// just render the same team chart twice, which isn't a second data point.
+function mainPasser(team) {
+  return (DATA.player_props[team] || [])
+    .filter((p) => p.pass_att >= 10)
+    .sort((a, b) => b.pass_att - a.pass_att)[0] || null;
+}
+
+function renderQbZoneHeatGrid(chart, oppTeam) {
+  let maxAtt = 0;
+  PASS_ZONE_ROWS.forEach((r) =>
+    PASS_ZONE_COLS.forEach((c) => {
+      const a = chart.zones[`${r.key}_${c}`]?.attempts || 0;
+      if (a > maxAtt) maxAtt = a;
+    })
+  );
+  const rows = PASS_ZONE_ROWS.map((r) => {
+    const cells = PASS_ZONE_COLS.map((loc) => {
+      const zk = `${r.key}_${loc}`;
+      const zone = chart.zones[zk];
+      const att = zone?.attempts || 0;
+      const comp = zone?.completions || 0;
+      const style = att
+        ? ` style="background: rgba(var(--accent-rgb), ${(PLAYER_ZONE_HEAT_MIN_ALPHA + (att / maxAtt) * (PLAYER_ZONE_HEAT_MAX_ALPHA - PLAYER_ZONE_HEAT_MIN_ALPHA)).toFixed(2)})"`
+        : "";
+      const display = att ? `${comp}/${att}` : "--";
+      const tier = att && oppTeam ? defenseZoneTier(oppTeam, zk) : "";
+      const exploitCls = tier === "tier-bad" ? " pass-zone-heat-cell-exploit-bad" : tier === "tier-mid" ? " pass-zone-heat-cell-exploit-mid" : "";
+      return `<td class="num pass-zone-heat-cell${exploitCls}"${style}>${display}</td>`;
+    }).join("");
+    return `<tr><th class="pass-zone-row-label-mini">${r.short}</th>${cells}</tr>`;
+  }).join("");
+  return `<table class="data-table pass-zone-grid pass-zone-grid-mini">
+    <thead><tr><th></th><th>L</th><th>M</th><th>R</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderQbZoneMiniCard(team, qb, chart, oppTeam) {
+  const headshot = (DATA.player_headshots[team] || {})[qb.name];
+  const photo = headshot
+    ? `<img src="${headshot}" class="pass-zone-player-photo pass-zone-player-photo-mini" alt="${qb.name}" loading="lazy">`
+    : `<div class="pass-zone-player-photo pass-zone-player-photo-mini pass-zone-player-photo-blank"></div>`;
+  return `<div class="pass-zone-player-mini-card">
+    <div class="pass-zone-player-banner pass-zone-player-banner-mini">
+      ${photo}
+      <div class="pass-zone-player-info">
+        <span class="pass-zone-player-name">${qb.name}</span>
+        <span class="pass-zone-player-pos">QB &middot; ${chart.pass_attempts} att</span>
+      </div>
+    </div>
+    ${renderQbZoneHeatGrid(chart, oppTeam)}
+  </div>`;
+}
+
+function renderQbPassZoneCards(team, side, opponent) {
+  const qb = mainPasser(team);
+  const chart = (DATA.pass_shot_charts[team] || {})[side];
+  const body = qb && chart
+    ? `<div class="pass-zone-players-inline">${renderQbZoneMiniCard(team, qb, chart, opponent)}</div>`
+    : `<p class="no-data-note">No qualifying passers yet this season.</p>`;
+  return `<div class="pass-zone-block">
+    ${passZoneTeamHeader(team, side)}
+    ${body}
+    ${renderPassIdentityCard(team, side)}
+  </div>`;
+}
+
 // ---- Per-player target zones ("See Players") -- who actually gets
 // targeted where, the offense-side complement to the team grid above.
 // Same visual grid, sourced from build_stats.py's compute_player_pass_
@@ -2041,9 +2119,9 @@ function render() {
   document.getElementById("col-home-passcoverage").innerHTML = renderPassCoveragePanel(home, away);
   document.getElementById("col-away-scramble").innerHTML = renderQbRushingPanel(away, home) + renderRedZoneMixPanel(away, home);
   document.getElementById("col-home-scramble").innerHTML = renderQbRushingPanel(home, away) + renderRedZoneMixPanel(home, away);
-  document.getElementById("col-away-passzones-off").innerHTML = renderOffensePlayerZoneCards(away, "off", home);
+  document.getElementById("col-away-passzones-off").innerHTML = renderQbPassZoneCards(away, "off", home);
   document.getElementById("col-away-passzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
-  document.getElementById("col-home-passzones-off").innerHTML = renderOffensePlayerZoneCards(home, "off", away);
+  document.getElementById("col-home-passzones-off").innerHTML = renderQbPassZoneCards(home, "off", away);
   document.getElementById("col-home-passzones-def").innerHTML = renderPassZoneBlock(home, "def", away);
   document.getElementById("col-away-recvzones-off").innerHTML = renderOffensePlayerZoneCards(away, "off", home);
   document.getElementById("col-away-recvzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
