@@ -725,13 +725,36 @@ function alphaAttrFromZ(z, threshold = TIER_Z_THRESHOLD) {
   return ` style="--tier-a:${a.toFixed(2)}"`;
 }
 
+// Sum of a team's own attempts across all 3 locations at ONE depth (a row
+// total) or across all 4 depths at ONE location (a column total) -- same
+// share-of-attempts math as passZoneVolumeShare, just aggregated across
+// the whole row/column instead of one cell, so "how popular is this DEPTH
+// overall" and "how popular is this SIDE of the field overall" are each
+// answered right on the label instead of needing to add 3-4 cells by eye.
+function passZoneRowShare(chart, rowKey) {
+  if (!chart || !chart.pass_attempts) return null;
+  const sum = PASS_ZONE_COLS.reduce((s, loc) => s + (chart.zones[`${rowKey}_${loc}`]?.attempts || 0), 0);
+  return sum / chart.pass_attempts;
+}
+function passZoneColShare(chart, colKey) {
+  if (!chart || !chart.pass_attempts) return null;
+  const sum = PASS_ZONE_ROWS.reduce((s, r) => s + (chart.zones[`${r.key}_${colKey}`]?.attempts || 0), 0);
+  return sum / chart.pass_attempts;
+}
+function passZoneTotalBadge(share) {
+  return share === null ? "" : `<span class="pass-zone-total-badge">${Math.round(share * 100)}%</span>`;
+}
+
 // Tinted the same way every other team table on the site headers its
 // columns (schemeTableHeader, teamBannerHeader) -- plain "Left/Middle/
-// Right" text read as generic and out of place next to those.
-function passZoneGridHeader(team) {
+// Right" text read as generic and out of place next to those. Each header
+// also carries that location's own total share of attempts (all 4 depths
+// combined), same idea as the row labels' own depth total.
+function passZoneGridHeader(team, chart) {
   const rgb = teamAccentRgb(team);
   const style = `background:rgba(${rgb.join(",")},0.35)`;
-  return `<tr><th></th><th style="${style}">Left</th><th style="${style}">Middle</th><th style="${style}">Right</th></tr>`;
+  const col = (label, key) => `<th style="${style}">${label}${passZoneTotalBadge(passZoneColShare(chart, key))}</th>`;
+  return `<tr><th></th>${col("Left", "left")}${col("Middle", "middle")}${col("Right", "right")}</tr>`;
 }
 
 // Share of this team's OWN attempts (this side) that land in one zone --
@@ -796,12 +819,18 @@ function renderPassZoneGrid(team, side, opponent) {
       const shareDisplay = share === null ? "--" : `${Math.round(share * 100)}%`;
       const detail = side === "off" ? passZoneCellOffenseDetail(zone) : passZoneCellDefenseDetail(zone);
       const payload = { team, side, zoneKey: zk, opponent };
-      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${shareDisplay}</span>${detail}</td>`;
+      // min-height on a <td> itself isn't reliably respected by browsers
+      // (row height quietly ignores it) -- wrapping the content in a real
+      // block element and putting min-height THERE is the standard fix,
+      // and it's what actually makes every cell in the grid a uniform
+      // size regardless of how many player lines it has.
+      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><div class="pass-zone-cell-inner"><span class="pass-zone-rate">${shareDisplay}</span>${detail}</div></td>`;
     }).join("");
-    return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
+    const rowBadge = passZoneTotalBadge(passZoneRowShare(chart, r.key));
+    return `<tr><th class="pass-zone-row-label">${r.label}${rowBadge}</th>${cells}</tr>`;
   }).join("");
   return `<table class="data-table pass-zone-grid">
-    <thead>${passZoneGridHeader(team)}</thead>
+    <thead>${passZoneGridHeader(team, chart)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }

@@ -515,10 +515,28 @@ h3 {
 .pass-zone-team-click { cursor: pointer; }
 .pass-zone-team-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 .pass-zone-grid { table-layout: fixed; width: 100%; font-size: 0.78rem; }
-.pass-zone-grid th, .pass-zone-grid td { padding: 8px 4px; text-align: center; }
-.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.66rem; width: 34px; padding-left: 3px !important; }
+/* Thin black grid lines -- at the site's normal hairline border color
+   these 12 cells (or 24, offense+defense side by side) ran together into
+   one blurry block; full borders on every cell (not just the base table's
+   bottom-only rule) give each box a real edge. */
+.pass-zone-grid th, .pass-zone-grid td { padding: 8px 4px; text-align: center; border: 1px solid #000; }
+.pass-zone-row-label { text-align: left !important; font-weight: 700; font-size: 0.8rem; width: 48px; padding-left: 5px !important; }
+.pass-zone-grid th { font-size: 0.85rem; }
 .pass-zone-cell { vertical-align: top; }
+/* Every cell (offense AND defense, whichever grid) locked to the same
+   minimum height -- sized for the largest real case (volume % + 3 player
+   lines on an offense cell) so a thin zone with one line of detail and a
+   packed one with three don't render as visibly different-sized boxes in
+   the same grid. min-height goes on this inner block, not the <td> itself
+   -- browsers don't reliably respect min-height set directly on a table
+   cell (confirmed directly: it computed correctly but the row still
+   rendered short). */
+.pass-zone-cell-inner { min-height: 80px; }
 .pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
+/* Row/column total badges (see passZoneTotalBadge) -- block-level so they
+   sit on their own line under "20+"/"Left" instead of needing the label
+   column widened to fit both side by side. */
+.pass-zone-total-badge { display: block; font-size: 0.68rem; font-weight: 700; opacity: 0.8; margin-top: 2px; }
 /* Offense: up to 3 "who's getting targeted here" lines, name left / rec-
    over-target right -- the volume % above says how popular the zone is,
    this says popular with whom and how often it turns into a catch,
