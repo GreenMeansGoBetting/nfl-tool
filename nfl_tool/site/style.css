@@ -487,14 +487,15 @@ h3 {
 .scramble-table th:nth-child(3), .scramble-table td:nth-child(3) { width: 52px; }
 .scramble-table th:nth-child(4), .scramble-table td:nth-child(4) { width: 44px; }
 .scramble-table th:nth-child(5), .scramble-table td:nth-child(5) { width: 30px; }
-
-.scramble-type-table { table-layout: fixed; width: 194px; margin-top: 6px; }
-.scramble-type-table th:first-child, .scramble-type-table td:first-child { width: 70px; }
-.scramble-type-table th:nth-child(2), .scramble-type-table td:nth-child(2) { width: 40px; }
-.scramble-type-table th:nth-child(3), .scramble-type-table td:nth-child(3) { width: 44px; }
-.scramble-type-table th:nth-child(4), .scramble-type-table td:nth-child(4) { width: 40px; }
-.scramble-type-table + .player-name-row { margin-top: 14px; }
-.scramble-type-table + .stat-column-title { margin-top: 16px; }
+/* Combined QB Rushing table (see renderQbRushingPanel): the pressure-split
+   rows and the designed/scramble rows don't share a column meaning, so
+   instead of two separate tables with a gap between them, this is one
+   table with two inline group-header rows -- a heavier top border marks
+   the second group's start so it still reads as two logical sections
+   inside the one bordered box. */
+.qb-rushing-group-header:not(:first-child) th { border-top: 2px solid var(--text); }
+.qb-rushing-combined-table + .player-name-row { margin-top: 14px; }
+.qb-rushing-combined-table + .stat-column-title { margin-top: 16px; }
 
 .rz-mix-table { table-layout: fixed; width: 234px; margin-top: 6px; }
 .rz-mix-table th:first-child, .rz-mix-table td:first-child { width: 50px; }
@@ -707,6 +708,19 @@ h3 {
    no outline at all, nothing to flag there. */
 .pass-zone-heat-cell-exploit-bad { outline: 3px solid rgb(var(--bad-rgb)); outline-offset: -3px; }
 .pass-zone-heat-cell-exploit-mid { outline: 3px solid rgb(var(--mid-rgb)); outline-offset: -3px; }
+/* QB pass-zone card (Passing tab): its own size, not the receiver row's
+   compact .pass-zone-player-mini-card/.pass-zone-grid-mini -- a single QB
+   card never shares a row with 3-4 siblings, so it gets to be as big as
+   the defense grid instead of shrunk to fit alongside others. */
+.pass-zone-qb-card { flex: 1 1 auto; width: 100%; max-width: 480px; }
+.pass-zone-player-banner-qb { gap: 12px; margin-bottom: 10px; }
+.pass-zone-player-photo-qb { width: 56px; height: 56px; }
+.pass-zone-player-name-qb { font-size: 1.2rem; }
+.pass-zone-player-pos-qb { font-size: 0.95rem; }
+.pass-zone-grid-qb { font-size: 1rem; }
+.pass-zone-grid-qb th, .pass-zone-grid-qb td { padding: 12px 6px; }
+.pass-zone-grid-qb th { font-size: 0.85rem; }
+.pass-zone-row-label-qb { text-align: center; vertical-align: middle; width: 56px; font-size: 0.85rem; font-weight: 700; }
 .pass-zone-modal-layout {
   display: flex;
   flex-wrap: nowrap;

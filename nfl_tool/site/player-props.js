@@ -1422,9 +1422,13 @@ function renderQbZoneHeatGrid(chart, oppTeam) {
       const exploitCls = tier === "tier-bad" ? " pass-zone-heat-cell-exploit-bad" : tier === "tier-mid" ? " pass-zone-heat-cell-exploit-mid" : "";
       return `<td class="num pass-zone-heat-cell${exploitCls}"${style}>${display}</td>`;
     }).join("");
-    return `<tr><th class="pass-zone-row-label-mini">${r.short}</th>${cells}</tr>`;
+    return `<tr><th class="pass-zone-row-label-qb">${r.short}</th>${cells}</tr>`;
   }).join("");
-  return `<table class="data-table pass-zone-grid pass-zone-grid-mini">
+  // Its own (bigger) class, not the receiver row's .pass-zone-grid-mini --
+  // one QB card never has to share a row with 3-4 siblings the way the
+  // receiver hotspot cards do, so there's no reason to shrink it down to
+  // that same size.
+  return `<table class="data-table pass-zone-grid pass-zone-grid-qb">
     <thead><tr><th></th><th>L</th><th>M</th><th>R</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -1433,14 +1437,14 @@ function renderQbZoneHeatGrid(chart, oppTeam) {
 function renderQbZoneMiniCard(team, qb, chart, oppTeam) {
   const headshot = (DATA.player_headshots[team] || {})[qb.name];
   const photo = headshot
-    ? `<img src="${headshot}" class="pass-zone-player-photo pass-zone-player-photo-mini" alt="${qb.name}" loading="lazy">`
-    : `<div class="pass-zone-player-photo pass-zone-player-photo-mini pass-zone-player-photo-blank"></div>`;
-  return `<div class="pass-zone-player-mini-card">
-    <div class="pass-zone-player-banner pass-zone-player-banner-mini">
+    ? `<img src="${headshot}" class="pass-zone-player-photo pass-zone-player-photo-qb" alt="${qb.name}" loading="lazy">`
+    : `<div class="pass-zone-player-photo pass-zone-player-photo-qb pass-zone-player-photo-blank"></div>`;
+  return `<div class="pass-zone-qb-card">
+    <div class="pass-zone-player-banner pass-zone-player-banner-qb">
       ${photo}
       <div class="pass-zone-player-info">
-        <span class="pass-zone-player-name">${qb.name}</span>
-        <span class="pass-zone-player-pos">QB &middot; ${chart.pass_attempts} att</span>
+        <span class="pass-zone-player-name pass-zone-player-name-qb">${qb.name}</span>
+        <span class="pass-zone-player-pos pass-zone-player-pos-qb">QB &middot; ${chart.pass_attempts} att</span>
       </div>
     </div>
     ${renderQbZoneHeatGrid(chart, oppTeam)}
@@ -1661,6 +1665,12 @@ document.addEventListener("click", (e) => {
   openScrambleRankModal(decodeDataAttr(cell.dataset.entry));
 });
 
+// One table instead of two stacked ones -- the pressure-split rows
+// (Scr%/OppAllow%/OppYds/ADV) and the designed-vs-scramble rows (Car/Yds/
+// YPC) don't share a column meaning, so this isn't a single shared header;
+// it's one bordered table with two inline group-header rows, which reads
+// as "one table" (no gap, no second box) without forcing Car/Yds into
+// columns labeled Scr%/OppAllow%.
 function renderQbRushingPanel(team, oppTeam) {
   const players = qualifyingPassers(team);
   if (!players.length) {
@@ -1683,17 +1693,17 @@ function renderQbRushingPanel(team, oppTeam) {
             </tr>`;
           }).join("");
       const typeRows = `
-        <tr><td>Designed</td><td class="num">${p.designed_carries}</td><td class="num">${fmt(p.designed_rush_yards, 0)}</td>${passStatCell(p, "designed_ypc", { label: "Designed Rush YPC" })}</tr>
-        <tr><td>Scramble</td><td class="num">${p.scramble_carries}</td><td class="num">${fmt(p.scramble_rush_yards, 0)}</td>${passStatCell(p, "scramble_ypc", { label: "Scramble YPC" })}</tr>
+        <tr><td>Designed</td><td class="num">${p.designed_carries}</td><td class="num">${fmt(p.designed_rush_yards, 0)}</td>${passStatCell(p, "designed_ypc", { label: "Designed Rush YPC" })}<td></td></tr>
+        <tr><td>Scramble</td><td class="num">${p.scramble_carries}</td><td class="num">${fmt(p.scramble_rush_yards, 0)}</td>${passStatCell(p, "scramble_ypc", { label: "Scramble YPC" })}<td></td></tr>
       `;
       return `<div class="player-name-row"><span class="player-name">${p.name}</span></div>
-        <table class="data-table scramble-table">
-          <thead><tr><th>Split</th><th class="num">Scr%</th><th class="num">OppAllow%</th><th class="num">OppYds</th><th class="edge-hdr">ADV</th></tr></thead>
-          <tbody>${scrambleRows}</tbody>
-        </table>
-        <table class="data-table scramble-type-table">
-          <thead><tr><th>Type</th><th class="num">Car</th><th class="num">Yds</th><th class="num">YPC</th></tr></thead>
-          <tbody>${typeRows}</tbody>
+        <table class="data-table scramble-table qb-rushing-combined-table">
+          <tbody>
+            <tr class="qb-rushing-group-header"><th>Split</th><th class="num">Scr%</th><th class="num">OppAllow%</th><th class="num">OppYds</th><th class="edge-hdr">ADV</th></tr>
+            ${scrambleRows}
+            <tr class="qb-rushing-group-header"><th>Type</th><th class="num">Car</th><th class="num">Yds</th><th class="num">YPC</th><th></th></tr>
+            ${typeRows}
+          </tbody>
         </table>`;
     })
     .join("");
