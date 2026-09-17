@@ -1514,8 +1514,21 @@ def compute_red_zone_trips(pbp: pd.DataFrame) -> dict:
     build_team_stats can derive average points per trip -- the volume-
     weighted Red Zone grade (game-overview.js's RED_ZONE_CATEGORY) treats
     that as a truer efficiency signal than a bare TD-conversion rate,
-    since it doesn't score a missed FG the same as a turnover."""
-    rz = pbp[pbp["yardline_100"] <= RED_ZONE_YARDLINE]
+    since it doesn't score a missed FG the same as a turnover.
+
+    Excludes extra-point and two-point conversion snaps from the red-zone
+    filter -- those are always run from the 15 (PAT) or 2 (2-point), so
+    without this exclusion EVERY touchdown drive looked like a red zone
+    trip regardless of where the offense actually was, even a 43-yard
+    bomb thrown from midfield. Confirmed directly: 3 of a real team's 4
+    "red zone touchdowns" in one game had never actually run a play
+    inside the 20 -- the PAT/2-point snap after the score was the only
+    thing making the drive register as a trip at all."""
+    rz = pbp[
+        (pbp["yardline_100"] <= RED_ZONE_YARDLINE)
+        & (pbp["extra_point_attempt"] != 1)
+        & (pbp["two_point_attempt"] != 1)
+    ]
     off_trip_drives = rz.groupby(["game_id", "posteam"])["drive"].unique()
     def_trip_drives = rz.groupby(["game_id", "defteam"])["drive"].unique()
 
