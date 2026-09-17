@@ -952,26 +952,29 @@ function zonePlayerShortName(name) {
 }
 
 // Offense cell: who's actually getting targeted in this zone and how many
-// of those targets turned into catches -- the volume % above answers "how
-// popular," this answers "popular with whom" and "how often it works,"
-// both without clicking into the cell. Capped at 3 names so a zone with a
-// long tail of one-target players doesn't blow out the cell height.
+// of those targets turned into catches -- the volume % (top-right corner,
+// see .pass-zone-rate) answers "how popular," this answers "popular with
+// whom" and "how often it works," both without clicking into the cell.
+// Capped at 5 names (up from 3 now that the % badge moved out of the main
+// flow and freed up the rest of the box) so a zone with a long tail of
+// one-target players doesn't blow out the cell height.
 function passZoneCellOffenseDetail(zone) {
   if (!zone || !zone.attempts) return "";
-  const summary = passZonePlayerSummary(zone.plays).slice(0, 3);
+  const summary = passZonePlayerSummary(zone.plays).slice(0, 5);
   const rows = summary
     .map((g) => `<span class="pass-zone-cell-player"><span>${zonePlayerShortName(g.name)}</span><b>${g.rec}/${g.targets}</b></span>`)
     .join("");
   return `<span class="pass-zone-cell-players">${rows}</span>`;
 }
 
-// Defense cell: completion rate allowed, right under the volume % that
-// drives most of the cell's color -- "teams target this area (the %) AND
-// have success here (this line)" as one reinforcing story instead of the
-// old mismatched pairing (color from a volume+EPA blend, number from a
-// rate that often pointed a different direction). Player-level detail is
-// deliberately left off this side -- see renderPassZoneOpponentBlock for
-// "which specific players" once a cell is clicked.
+// Defense cell: completion rate allowed, next to the volume % (top-right
+// corner) that drives most of the cell's color -- "teams target this
+// area (the %) AND have success here (this line)" as one reinforcing
+// story instead of the old mismatched pairing (color from a volume+EPA
+// blend, number from a rate that often pointed a different direction).
+// Player-level detail is deliberately left off this side -- see
+// renderPassZoneOpponentBlock for "which specific players" once a cell
+// is clicked.
 function passZoneCellDefenseDetail(zone) {
   if (!zone || !zone.attempts) return "";
   const rate = passZoneRate(zone);

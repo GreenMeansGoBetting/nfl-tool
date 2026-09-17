@@ -551,8 +551,21 @@ h3 {
    -- browsers don't reliably respect min-height set directly on a table
    cell (confirmed directly: it computed correctly but the row still
    rendered short). */
-.pass-zone-cell-inner { min-height: 80px; }
+.pass-zone-cell-inner { min-height: 80px; position: relative; padding-right: 32px; }
+/* Base look for the "all players" modal's per-player grid (a bare
+   .pass-zone-rate span, no wrapper div) -- the more specific rule below
+   overrides this for the main grid's cells instead of replacing it. */
 .pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
+/* Corner badge instead of a big centered headline -- freed up the whole
+   rest of the box for the player list (which now starts at the top-left
+   instead of getting pushed below it), and the % is still the first
+   thing your eye hits since it's the only bold/colored thing up there.
+   Scoped to .pass-zone-cell-inner specifically -- the "all players"
+   modal's per-player grid (renderPlayerPassZoneGrid) reuses the bare
+   .pass-zone-rate span WITHOUT that wrapper div, so an unscoped
+   position:absolute here would have no positioned ancestor to anchor to
+   and jump the rate to a totally wrong spot in that modal. */
+.pass-zone-cell-inner .pass-zone-rate { position: absolute; top: 0; right: 0; font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
 /* Row/column total badges (see passZoneTotalBadge) -- a real colored
    pill (same tier-good/mid/bad meaning as every other colored cell on
    the site, just at full solid strength instead of the usual light
@@ -573,25 +586,30 @@ h3 {
 .pass-zone-total-badge.tier-good { background: rgb(var(--good-rgb)); }
 .pass-zone-total-badge.tier-mid { background: rgb(var(--mid-rgb)); }
 .pass-zone-total-badge.tier-bad { background: rgb(var(--bad-rgb)); }
-/* Offense: up to 3 "who's getting targeted here" lines, name left / rec-
-   over-target right -- the volume % above says how popular the zone is,
-   this says popular with whom and how often it turns into a catch,
-   without needing to click into the cell. */
+/* Offense: up to 5 "who's getting targeted here" lines, starting at the
+   very top-left of the box now that the % moved to its own corner badge
+   -- the % still says how popular the zone is, this says popular with
+   whom and how often it turns into a catch, without needing to click
+   into the cell. */
 .pass-zone-cell-players {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: 5px;
   font-size: 0.66rem;
   font-weight: 500;
 }
-.pass-zone-cell-player { display: flex; justify-content: space-between; gap: 4px; white-space: nowrap; }
+/* Name gets a fixed width (not "however long the name is") so every
+   row's catch/target fraction lines up in the same column regardless of
+   whether that row says "LaPorta" or "St. Brown" -- and sits right after
+   the name instead of being pushed all the way to the cell's far edge. */
+.pass-zone-cell-player { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
+.pass-zone-cell-player > span:first-child { flex: 0 0 42px; overflow: hidden; text-overflow: ellipsis; }
 .pass-zone-cell-player b { font-weight: 700; }
-/* Defense: completion rate allowed, directly under the volume % -- pairs
+/* Defense: completion rate allowed, next to the volume % badge -- pairs
    with it as one story ("targeted often AND works when they do") instead
    of the volume-driven color and a same-size completion number reading as
    two unrelated stats. */
-.pass-zone-cell-sub { display: block; margin-top: 5px; font-size: 0.66rem; font-weight: 600; }
+.pass-zone-cell-sub { display: block; font-size: 0.66rem; font-weight: 600; }
 .pass-zone-identity {
   margin-top: 10px;
   padding-top: 8px;
