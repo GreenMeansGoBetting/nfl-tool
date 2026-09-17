@@ -123,9 +123,8 @@ function gradeTdPlay(play, tdResults) {
 // (permanently Pending) until now, since only the TD and Spread/Total/ML
 // shapes above ever had grading logic. Sourced from build_stats.py's
 // compute_player_game_logs, which -- like the game-line schedule scores
-// above, and unlike the participation-gated scheme/route stats -- is
-// built from standard pbp columns only, so it's real and current the
-// same week the game is played. "Fantasy Score" is deliberately left out:
+// above -- is built from standard pbp columns only, so it's real and
+// current the same week the game is played. "Fantasy Score" is deliberately left out:
 // no fixed scoring format (PPR/half/standard) has been confirmed against
 // SGO's own definition yet, and grading it against a guessed formula
 // would be worse than leaving it Pending.

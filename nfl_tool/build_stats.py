@@ -42,18 +42,19 @@ PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"
 SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
 INJURIES_URL = "https://github.com/nflverse/nflverse-data/releases/download/injuries/injuries_{season}.csv"
-PARTICIPATION_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp_participation/pbp_participation_{season}.csv"
 # Third-party charting (FTN Fantasy, distributed via nflverse) -- box count/
 # blitzers/pass rushers per play. Unlike the NFL's own official
-# participation charting (PARTICIPATION_URL above), this is published
-# weekly DURING the season (confirmed: ftn_charting_2026.csv already
-# existed the same day as 2026's first games), so scheme stats built from
-# it don't need a fallback season the way compute_scheme_splits used to.
+# participation charting (no longer read by this pipeline at all -- its one
+# consumer, route-type splits, was removed since that file isn't published
+# until well after a season ends), this is published weekly DURING the
+# season (confirmed: ftn_charting_2026.csv already existed the same day as
+# 2026's first games), so scheme stats built from it don't need a fallback
+# season the way compute_scheme_splits used to.
 FTN_URL = "https://github.com/nflverse/nflverse-data/releases/download/ftn_charting/ftn_charting_{season}.csv"
 # Real per-player weekly snap counts/percentages, sourced from Pro-Football-
 # Reference via nflverse -- also published weekly during the season
 # (confirmed: snap_counts_2026.csv created the same day as 2026's first
-# games), unlike the participation file's own snap-participation columns.
+# games), unlike the old participation file's own snap-participation columns.
 SNAP_COUNTS_URL = "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{season}.csv"
 
 # Anytime-touchdown-scorer odds, from SportsGameOdds' free tier (2,500
@@ -158,10 +159,9 @@ def length_bucket(yards):
 # built ONLY from columns nflverse publishes on the standard pbp file
 # every week during the season (pass_location, air_yards, epa, success,
 # complete_pass) -- unlike compute_scheme_splits' box/blitz/coverage
-# charting, none of this depends on the participation file that's stuck
-# on a season-plus lag (see resolve_participation_season). Bucket
-# boundaries match the same depth tiers nflsavant.com's own shot chart
-# uses (screen/short/intermediate/deep).
+# charting, none of this depends on the official participation file, which
+# is stuck on a season-plus lag. Bucket boundaries match the same depth
+# tiers nflsavant.com's own shot chart uses (screen/short/intermediate/deep).
 PASS_DEPTH_BUCKETS = [
     ("screen", -9999, -1),
     ("short", 0, 9),
@@ -370,14 +370,16 @@ def resolve_season(season: int, data_dir: Path) -> tuple[int, bool]:
     and general stats all come from pbp alone, so pbp availability is the
     only thing that should gate them.
 
-    This deliberately does NOT also require the participation file (see
-    resolve_participation_season for that) -- confirmed directly against
-    nflverse's actual release history that participation for a season
-    isn't published until well AFTER that season ends (2025's file was
-    created 2026-02-10, months after the season; 2023/2024's were both
-    backfilled together in Sept 2025, not during either season). Gating
-    the whole season's data on participation would mean the site shows
-    last year's scores for the entire season, every season, forever."""
+    This deliberately does NOT also require the official participation
+    file -- confirmed directly against nflverse's actual release history
+    that participation for a season isn't published until well AFTER that
+    season ends (2025's file was created 2026-02-10, months after the
+    season; 2023/2024's were both backfilled together in Sept 2025, not
+    during either season). Gating the whole season's data on participation
+    would mean the site shows last year's scores for the entire season,
+    every season, forever. (The participation file itself is no longer
+    read at all -- route-type charting, its one remaining consumer, was
+    removed since it could never be fresher than last season's data.)"""
     def available(url_template):
         path = data_dir / Path(url_template.format(season=season)).name
         return path.exists() or remote_exists(url_template.format(season=season))
@@ -388,33 +390,6 @@ def resolve_season(season: int, data_dir: Path) -> tuple[int, bool]:
     print(
         f"NOTE: {season}'s pbp file isn't published on nflverse yet -- "
         f"falling back to {fallback} season data until it appears.",
-        file=sys.stderr,
-    )
-    return fallback, True
-
-
-def resolve_participation_season(season: int, data_dir: Path) -> tuple[int, bool]:
-    """Returns (participation_season, is_participation_fallback). Official
-    NFL charting (route type is the only thing this pipeline still reads
-    from it -- see compute_route_splits) has its own, much later publish
-    schedule than pbp -- see resolve_season's docstring. Scheme splits,
-    snap shares, and pass-rush/pressure splits USED to fall back here too,
-    but have since moved to live sources (FTN charting, PFR snap counts,
-    plain pbp) and no longer depend on this at all. Route splits may still
-    resolve to a different season than everything else, and its own pbp
-    needs to come from that SAME season (the participation merge is keyed
-    by game_id/play_id) -- one season's pbp against another's
-    participation wouldn't match a single play."""
-    def available(url_template, s):
-        path = data_dir / Path(url_template.format(season=s)).name
-        return path.exists() or remote_exists(url_template.format(season=s))
-
-    if available(PARTICIPATION_URL, season) and available(PBP_URL, season):
-        return season, False
-    fallback = season - 1
-    print(
-        f"NOTE: {season}'s participation file isn't published on nflverse yet -- "
-        f"route-type splits will use {fallback} data until it appears.",
         file=sys.stderr,
     )
     return fallback, True
@@ -453,21 +428,10 @@ def load_injuries(data_dir: Path, season: int) -> pd.DataFrame:
     return df[["team", "week", "position", "full_name", "report_status", "practice_status"]]
 
 
-def load_participation(data_dir: Path, season: int) -> pd.DataFrame:
-    """Official NFL charting (defenders in box, pass rushers, man/zone
-    coverage, specific coverage shell) -- same nflverse-data ecosystem as
-    everything else in this pipeline, free, no API key. Same caching
-    policy as load_pbp(): stable once a season's games are played, so no
-    force=True needed."""
-    path = data_dir / f"pbp_participation_{season}.csv"
-    download_if_missing(PARTICIPATION_URL.format(season=season), path)
-    return pd.read_csv(path, low_memory=False)
-
-
 def load_ftn_charting(data_dir: Path, season: int) -> pd.DataFrame:
     """See FTN_URL's comment -- box count/blitzers/pass rushers, published
     weekly during the season. Stable once a game's been charted, so no
-    force=True (same caching policy as load_pbp/load_participation)."""
+    force=True (same caching policy as load_pbp)."""
     path = data_dir / f"ftn_charting_{season}.csv"
     download_if_missing(FTN_URL.format(season=season), path)
     return pd.read_csv(path, low_memory=False)
@@ -498,12 +462,12 @@ def compute_scheme_splits(pbp: pd.DataFrame, ftn: pd.DataFrame, teams) -> dict:
     charting (n_defense_box/n_pass_rushers), joined to pbp by game_id/
     play_id -- FTN is published weekly during the season (see FTN_URL),
     unlike the NFL's own official participation charting this used to
-    read from, which isn't published until after the season ends (see
-    resolve_participation_season). Pressure is a plain-pbp proxy (sack or
-    QB hit on the play) rather than the participation file's own
-    was_pressure flag (which also catches hurries/knockdowns that don't
-    show up as a hit or sack) -- a narrower definition, but real and
-    current every week instead of a whole season behind.
+    read from, which isn't published until after the season ends. Pressure
+    is a plain-pbp proxy (sack or QB hit on the play) rather than the
+    participation file's own was_pressure flag (which also catches
+    hurries/knockdowns that don't show up as a hit or sack) -- a narrower
+    definition, but real and current every week instead of a whole season
+    behind.
 
     Coverage (zone/man, specific shells) is NOT computed here anymore --
     that data ONLY exists in the NFL's own participation charting, which
@@ -1843,9 +1807,9 @@ def compute_player_snap_shares(snap_counts: pd.DataFrame) -> dict:
     """Season-long (so far) offensive/defensive snap share per player,
     from real nflverse/Pro-Football-Reference weekly snap-count data (see
     load_snap_counts) -- published weekly during the season, unlike the
-    participation file's own offense_players/defense_players columns this
-    used to read from (see resolve_participation_season). Used to flag
-    whether an injured player is a real regular contributor or a deep
+    official participation file's own offense_players/defense_players
+    columns this used to read from. Used to flag whether an injured player
+    is a real regular contributor or a deep
     backup/special-teamer. A two-way player's higher of the two shares
     wins, same as before this swapped data sources. Averaged across
     however many weeks the player has a row for so far this season (PFR's
@@ -2700,23 +2664,9 @@ def compute_player_box_scores(pbp: pd.DataFrame, pos_lookup) -> dict:
 
 # ---- Player Props ----
 # Volume/efficiency (targets, carries, pass attempts and what they turned
-# into) plus route-tree matchup context -- distinct from player_stats above,
-# which is TD-scorer-oriented only. Reuses the same full-season pbp already
-# loaded for everything else; no new download.
-
-# Route charting (NGS, via the same pbp_participation file compute_scheme_
-# splits already uses) is logged only for the actual targeted receiver on a
-# pass play -- confirmed directly against a real season file (2025: 18,871
-# charted targets, 13 distinct values). Texas/Angle and Wheel deliberately
-# excluded here -- thin league-wide volume (many teams barely face them, and
-# they rarely show up in any player's own top routes), so they'd mostly just
-# add noise/small-sample cells to the team-level defense map. Ordered
-# roughly shallow -> deep for display, not alphabetically.
-ROUTE_TYPES = [
-    "SCREEN", "SWING", "QUICK OUT", "SLANT", "HITCH/CURL",
-    "SHALLOW CROSS/DRAG", "IN/DIG", "DEEP OUT", "CORNER", "POST", "GO",
-]
-ROUTE_MIN_SAMPLE = 8
+# into) -- distinct from player_stats above, which is TD-scorer-oriented
+# only. Reuses the same full-season pbp already loaded for everything else;
+# no new download.
 
 # A player needs at least this much season volume in ONE category to show up
 # on the Player Props page at all -- keeps one-off trick-play targets/carries
@@ -2725,66 +2675,6 @@ ROUTE_MIN_SAMPLE = 8
 PROPS_MIN_TARGETS = 5
 PROPS_MIN_CARRIES = 5
 PROPS_MIN_PASS_ATT = 10
-
-
-def _route_key(route: str) -> str:
-    return route.lower().replace("/", "_").replace(" ", "_")
-
-
-def compute_route_splits(pbp: pd.DataFrame, participation: pd.DataFrame, teams) -> tuple:
-    """Returns (team_route_stats, player_route_profiles).
-
-    team_route_stats[team]: for each route type, this team's own OFFENSE
-    target-share on that route, its DEFENSE's share of targets faced on it,
-    and three flavors of what its defense allows when that route is thrown
-    at it -- success rate, yards allowed PER TARGET (not per game -- a rate,
-    same volume-independence reasoning as success rate), and catch rate
-    allowed -- each floored at ROUTE_MIN_SAMPLE, same reasoning/pattern as
-    compute_scheme_splits (this is the same merged participation+pbp join,
-    just keyed by route instead of coverage shell).
-
-    player_route_profiles[(team, receiver_player_id)]: {route: target_count}
-    -- a player's own target mix by route, shown on the Player Props page
-    next to the opponent's allowed numbers above.
-    """
-    passp = pbp.loc[
-        (pbp["pass_attempt"] == 1) & (pbp["two_point_attempt"] != 1),
-        ["game_id", "play_id", "posteam", "defteam", "receiver_player_id", "success", "yards_gained", "complete_pass"],
-    ]
-    merged = passp.merge(
-        participation[["nflverse_game_id", "play_id", "route"]],
-        left_on=["game_id", "play_id"],
-        right_on=["nflverse_game_id", "play_id"],
-        how="inner",
-    )
-    merged = merged.dropna(subset=["route", "receiver_player_id"])
-
-    player_profiles = {}
-    for row in merged.itertuples(index=False):
-        key = (row.posteam, row.receiver_player_id)
-        profile = player_profiles.setdefault(key, {})
-        profile[row.route] = profile.get(row.route, 0) + 1
-
-    team_stats = {t: {} for t in teams}
-    for team in teams:
-        off = merged[merged["posteam"] == team]
-        deff = merged[merged["defteam"] == team]
-        off_total, def_total = len(off), len(deff)
-        d = team_stats[team]
-        for route in ROUTE_TYPES:
-            key = _route_key(route)
-            off_route = off[off["route"] == route]
-            def_route = deff[deff["route"] == route]
-            d[f"route_rate_{key}"] = round(len(off_route) / off_total, 3) if off_total else None
-            d[f"route_faced_rate_{key}"] = round(len(def_route) / def_total, 3) if def_total else None
-            enough = len(def_route) >= ROUTE_MIN_SAMPLE
-            d[f"success_allowed_{key}"] = round(def_route["success"].mean(), 3) if enough else None
-            d[f"success_allowed_{key}_plays"] = len(def_route)
-            d[f"yards_allowed_per_target_{key}"] = round(def_route["yards_gained"].mean(), 2) if enough else None
-            d[f"catch_rate_allowed_{key}"] = (
-                round((def_route["complete_pass"] == 1).mean(), 3) if enough else None
-            )
-    return team_stats, player_profiles
 
 
 # Rush direction/gap ("run_location" + "run_gap", both standard nflverse
@@ -3176,7 +3066,7 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
     return players, defense_allowed, team_targets
 
 
-def build_player_props(players: dict, player_route_profiles: dict, teams, team_targets: dict) -> dict:
+def build_player_props(players: dict, teams, team_targets: dict) -> dict:
     """Turns compute_volume_stats' raw players dict into the sorted,
     derived-rate, per-team lists the Player Props page actually renders --
     same season-totals-in/per-game-rates-out split as build_team_stats."""
@@ -3192,7 +3082,6 @@ def build_player_props(players: dict, player_route_profiles: dict, teams, team_t
         if not qualifies:
             continue
         row = dict(p)
-        row["routes"] = player_route_profiles.get((team, pid), {})
         row["ypt"] = round(p["rec_yards"] / p["targets"], 2) if p["targets"] else None
         row["catch_rate"] = round(p["receptions"] / p["targets"], 3) if p["targets"] else None
         row["adot"] = round(p["air_yards_sum"] / p["targets"], 1) if p["targets"] else None
@@ -3244,7 +3133,6 @@ def main():
     args = ap.parse_args()
 
     season, is_fallback = resolve_season(args.season, args.data_dir)
-    participation_season, is_participation_fallback = resolve_participation_season(season, args.data_dir)
 
     pbp = load_pbp(args.data_dir, season)
     rosters = load_rosters(args.data_dir, season)
@@ -3254,16 +3142,6 @@ def main():
     injuries_df = load_injuries(args.data_dir, args.season)
     pos_lookup = build_position_lookup(rosters)
 
-    # Route-type charting (compute_route_splits) is the one remaining
-    # participation-derived stat with no live-during-season alternative
-    # (see resolve_participation_season's docstring) -- scheme splits,
-    # snap shares, and pass-rush/pressure splits have all since moved to
-    # live sources (FTN charting, PFR snap counts, plain pbp) below. Route
-    # splits may still resolve to a different season than everything else,
-    # so its own pbp needs to come from that SAME season (the participation
-    # merge is keyed by game_id/play_id).
-    participation_pbp = pbp if participation_season == season else load_pbp(args.data_dir, participation_season)
-    participation = load_participation(args.data_dir, participation_season)
     ftn = load_ftn_charting(args.data_dir, season)
     snap_counts_df = load_snap_counts(args.data_dir, season)
 
@@ -3337,9 +3215,6 @@ def main():
             team_stats[team][f"{bucket}_scored_per_g"] = vals.get("scored_per_g")
             team_stats[team][f"{bucket}_allowed_per_g"] = vals.get("allowed_per_g")
 
-    route_team_stats, player_route_profiles = compute_route_splits(participation_pbp, participation, teams)
-    for team in teams:
-        team_stats[team].update(route_team_stats.get(team, {}))
     rush_zone_stats = compute_rush_zone_splits(pbp, teams)
     for team in teams:
         team_stats[team].update(rush_zone_stats.get(team, {}))
@@ -3351,7 +3226,7 @@ def main():
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))
-    player_props = build_player_props(volume_players, player_route_profiles, teams, team_targets)
+    player_props = build_player_props(volume_players, teams, team_targets)
     player_game_logs = compute_player_game_logs(pbp, pos_lookup)
     player_box_scores = compute_player_box_scores(pbp, pos_lookup)
     pass_shot_charts = compute_pass_shot_chart(pbp, teams, pos_lookup)
@@ -3433,8 +3308,6 @@ def main():
         "season": season,
         "requested_season": args.season,
         "is_fallback_season": is_fallback,
-        "is_participation_fallback": is_participation_fallback,
-        "participation_season": participation_season,
         "through_week": max_week,
         "generated_by": "nflverse-data pbp + weekly rosters",
         "teams": teams,

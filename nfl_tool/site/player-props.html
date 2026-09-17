@@ -50,20 +50,18 @@
 
   <div id="section-receiving" class="section-wrap" hidden>
     <h2 class="section-title">Receiving</h2>
-    <p class="section-note">Volume/efficiency this season, next to what the opponent allows to that position. Routes show each player's top target-share by route type, tinted by the opponent's allowed success rate on that specific route.</p>
+    <p class="section-note">Volume/efficiency this season, next to what the opponent allows to that position.</p>
     <div class="stat-columns">
       <section id="col-away-receiving"></section>
-      <section id="col-away-routemap"></section>
       <section id="col-home-receiving"></section>
-      <section id="col-home-routemap"></section>
     </div>
-    <h3 class="stat-column-title stat-column-title-spaced">Target Zones <span class="muted-label">(WR route/location overlay coming soon)</span></h3>
-    <p class="section-note">Each offense paired with the defense it's actually facing this week -- click any cell for the league rank, or (on an offense cell) the plays behind it.</p>
+    <h3 class="stat-column-title stat-column-title-spaced">Target Zones</h3>
+    <p class="section-note">Each offense paired with the defense it's actually facing this week -- volume, who's getting targeted, and catches, all at a glance.</p>
     <div class="stat-columns">
-      <section id="col-away-recvzones-off"></section>
-      <section id="col-home-recvzones-def"></section>
-      <section id="col-home-recvzones-off"></section>
-      <section id="col-away-recvzones-def"></section>
+      <section id="col-away-recvzones-off" class="pass-zone-col"></section>
+      <section id="col-home-recvzones-def" class="pass-zone-col"></section>
+      <section id="col-home-recvzones-off" class="pass-zone-col"></section>
+      <section id="col-away-recvzones-def" class="pass-zone-col"></section>
     </div>
   </div>
 
@@ -94,12 +92,12 @@
       <section id="col-home-scramble"></section>
     </div>
     <h3 class="stat-column-title stat-column-title-spaced">Pass Zones</h3>
-    <p class="section-note">Depth of target x field location, straight from this week's own pbp -- updates every week, no charting-file lag. Each offense paired with the defense it's actually facing this week -- click any cell for the league rank, or (on an offense cell) the plays behind it.</p>
+    <p class="section-note">Depth of target x field location, straight from this week's own pbp -- updates every week, no charting-file lag. Each offense paired with the defense it's actually facing this week -- volume, who's getting targeted, and catches, all at a glance.</p>
     <div class="stat-columns">
-      <section id="col-away-passzones-off"></section>
-      <section id="col-home-passzones-def"></section>
-      <section id="col-home-passzones-off"></section>
-      <section id="col-away-passzones-def"></section>
+      <section id="col-away-passzones-off" class="pass-zone-col"></section>
+      <section id="col-home-passzones-def" class="pass-zone-col"></section>
+      <section id="col-home-passzones-off" class="pass-zone-col"></section>
+      <section id="col-away-passzones-def" class="pass-zone-col"></section>
     </div>
   </div>
 
@@ -117,7 +115,7 @@
 </main>
 
 <footer>
-  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play + NGS route charting, regular season only. ADV/route tints follow the same offense-only convention as TD Data and Game Previews.
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play, regular season only. ADV tints follow the same offense-only convention as TD Data and Game Previews.
 </footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>

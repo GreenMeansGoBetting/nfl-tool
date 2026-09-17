@@ -1,85 +1,7 @@
 // Player Props page: volume/efficiency for receiving, rushing, and passing,
-// each next to what the OPPONENT allows at that position -- plus a route-
-// tree breakdown for pass-catchers (target share by route type, tinted by
-// the opponent's allowed success rate on that specific route). Reads the
-// same DATA.player_props/team_stats build_stats.py already produces; no
+// each next to what the OPPONENT allows at that position. Reads the same
+// DATA.player_props/team_stats build_stats.py already produces; no
 // separate data source from TD Data or Game Previews.
-
-// Same order as build_stats.py's ROUTE_TYPES -- must match exactly, since
-// this drives the full route-defense breakdown table (every route, not
-// just a player's own top 3). Texas/Angle and Wheel deliberately excluded
-// -- thin league-wide volume, rarely anyone's top route.
-const ROUTE_TYPES = [
-  "SCREEN", "SWING", "QUICK OUT", "SLANT", "HITCH/CURL",
-  "SHALLOW CROSS/DRAG", "IN/DIG", "DEEP OUT", "CORNER", "POST", "GO",
-];
-
-const ROUTE_LABELS = {
-  SCREEN: "Screen",
-  SWING: "Swing",
-  "QUICK OUT": "Quick Out",
-  SLANT: "Slant",
-  "HITCH/CURL": "Hitch/Curl",
-  "SHALLOW CROSS/DRAG": "Drag",
-  "IN/DIG": "Dig",
-  "DEEP OUT": "Deep Out",
-  CORNER: "Corner",
-  POST: "Post",
-  GO: "Go/Fly",
-};
-
-// Explicit <colgroup> (not th/td nth-child widths) because the header has
-// a colspan cell -- table-layout:fixed's column-width algorithm doesn't
-// reliably honor per-cell widths once colspan is involved (same issue
-// STAT_TABLE_COLGROUP in common.js already documents/works around), which
-// is exactly what caused the previous version's header to overhang.
-const ROUTE_MAP_COLGROUP =
-  '<colgroup><col style="width:90px"><col style="width:50px"><col style="width:62px"><col style="width:58px"><col style="width:58px"></colgroup>';
-
-// Matches build_stats.py's _route_key() exactly -- the route string is the
-// join key between a player's own route mix and the opponent's team_stats
-// success_allowed_<key> field.
-function routeStatKey(route) {
-  return route.toLowerCase().replace(/\//g, "_").replace(/ /g, "_");
-}
-
-// Top 3 routes by target count, as % share of that player's OWN charted
-// targets (not all targets -- route charting only covers the actual
-// targeted receiver, see build_stats.py's compute_route_splits).
-function topRoutes(routes, n = 3) {
-  return Object.entries(routes || {})
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, n);
-}
-
-function routeChipsHtml(player, oppTeam) {
-  const entries = topRoutes(player.routes);
-  if (!entries.length) return "";
-  const total = Object.values(player.routes).reduce((a, b) => a + b, 0);
-  const chips = entries
-    .map(([route, count]) => {
-      const share = total ? Math.round((count / total) * 100) : 0;
-      const statKey = `success_allowed_${routeStatKey(route)}`;
-      const val = DATA.team_stats[oppTeam][statKey];
-      let cls = "";
-      if (val !== null && val !== undefined) {
-        const pool = teamsWithGames()
-          .map((t) => DATA.team_stats[t][statKey])
-          .filter((v) => v !== null && v !== undefined);
-        cls = percentileTier(val, pool, true);
-      }
-      const label = ROUTE_LABELS[route] || route;
-      // The chip's own % is the player's target share (not a league stat),
-      // but its COLOR comes from the opponent's success_allowed on this
-      // route -- clicking opens the rank modal for that underlying stat,
-      // same "every colored square is clickable" convention as the rest
-      // of the site.
-      const payload = { team: oppTeam, statKey, label: `${label} Success % Allowed`, invert: true, percent: true };
-      return `<span class="route-chip ${cls} stat-rank-click" data-entry="${encodeDataAttr(payload)}">${label} ${share}%</span>`;
-    })
-    .join("");
-  return `<div class="player-routes">${chips}</div>`;
-}
 
 // Same offense-vs-allowed pairing as every ADV column on the site, just at
 // player granularity: the player's own value is z-scored against every
@@ -108,82 +30,6 @@ function playerAdvCell(player, oppTeam, statKey, allowedKey) {
   return edgeCell(offTier, defTier, player.team, oppTeam, offExtreme, defExtreme);
 }
 
-// One cell of the route-defense table: value tiered/shaded against every
-// OTHER team's same stat, same invert=true convention as every other
-// "allowed" number on the site (lower = better defense = green). The color
-// alone carries the worst-to-best signal (also how the table is sorted) --
-// an explicit "8/32" rank number sat next to it before and read as
-// backwards/confusing (people expect rank 1 = best, not worst), so it's
-// color-only now.
-function routeDefenseCell(defTeam, statKey, opts = {}) {
-  const val = DATA.team_stats[defTeam][statKey];
-  if (val === null || val === undefined) return `<td class="num">--</td>`;
-  const pool = teamsWithGames()
-    .map((t) => DATA.team_stats[t][statKey])
-    .filter((v) => v !== null && v !== undefined);
-  const cls = percentileTier(val, pool, true);
-  const alpha = tierAlphaAttr(val, pool, true);
-  const display = opts.percent ? `${Math.round(val * 100)}%` : fmt(val, opts.digits ?? 1);
-  return numCell(display, cls, alpha, { team: defTeam, statKey, label: opts.label || statKey, invert: true, percent: !!opts.percent, digits: opts.digits });
-}
-
-// One row per route: offTeam's own usage share next to defTeam's allowed
-// numbers for that EXACT route -- one merged table instead of two separate
-// ones, so "what this offense likes to do" and "how this defense handles
-// it" read as a single map. Sorted by OFF usage (most-used route first,
-// not by defensive vulnerability) since the point is "here's what they'll
-// probably do, and here's how it goes against this defense" -- usage
-// drives the order, defense numbers just ride along per route.
-function renderRouteMapTable(offTeam, defTeam) {
-  const sortedRoutes = ROUTE_TYPES.map((route) => ({
-    route,
-    usage: DATA.team_stats[offTeam][`route_rate_${routeStatKey(route)}`],
-  }))
-    .filter((r) => r.usage !== null && r.usage !== undefined)
-    .sort((a, b) => b.usage - a.usage);
-
-  const rows = sortedRoutes
-    .map(({ route, usage }) => {
-      const key = routeStatKey(route);
-      const usagePool = teamsWithGames()
-        .map((t) => DATA.team_stats[t][`route_rate_${key}`])
-        .filter((v) => v !== null && v !== undefined);
-      const usageCls = percentileTier(usage, usagePool, false);
-      const usageAlpha = tierAlphaAttr(usage, usagePool, false);
-      const routeLabel = ROUTE_LABELS[route] || route;
-      const usageCell = numCell(`${Math.round(usage * 100)}%`, `route-map-off-end ${usageCls}`, usageAlpha, { team: offTeam, statKey: `route_rate_${key}`, label: `${routeLabel} Usage`, invert: false, percent: true });
-      return `<tr>
-        <td><span class="route-name-click" data-entry="${encodeDataAttr({ team: offTeam, route })}">${routeLabel}</span></td>
-        ${usageCell}
-        ${routeDefenseCell(defTeam, `success_allowed_${key}`, { percent: true, label: `${routeLabel} Success % Allowed` })}
-        ${routeDefenseCell(defTeam, `yards_allowed_per_target_${key}`, { digits: 1, label: `${routeLabel} Yards/Target Allowed` })}
-        ${routeDefenseCell(defTeam, `catch_rate_allowed_${key}`, { percent: true, label: `${routeLabel} Catch % Allowed` })}
-      </tr>`;
-    })
-    .join("");
-
-  // Team badges live IN the table's own header row (colspan matched to the
-  // real columns below them) instead of a separate div above it -- a
-  // flex-based header next to a fixed-width table can't guarantee its
-  // splits land on the same boundaries as the actual columns, which is
-  // exactly what caused the previous version's badges to overhang/misalign
-  // (the OFF badge needs to sit ONLY over the Usage column, not half the
-  // table). colspan guarantees exact alignment, same technique common.js's
-  // headerRow() already uses for every other paired OFF/DEF table.
-  const offRgb = teamAccentRgb(offTeam);
-  const defRgb = teamAccentRgb(defTeam);
-  const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
-  const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<table class="data-table route-map-table">
-      ${ROUTE_MAP_COLGROUP}
-      <thead>
-        <tr><th colspan="2" class="route-map-off-end" style="${offStyle}">${teamLogoMini(offTeam)} ${offTeam}</th><th colspan="3" style="${defStyle}">${teamLogoMini(defTeam)} ${defTeam}</th></tr>
-        <tr><th>Route</th><th class="num route-map-off-end">Usage</th><th class="num">Succ%</th><th class="num">Yds/Tgt</th><th class="num">Ctch%</th></tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-}
-
 function renderReceivingTable(team, oppTeam) {
   const players = (DATA.player_props[team] || [])
     .filter((p) => p.targets >= 5)
@@ -195,7 +41,7 @@ function renderReceivingTable(team, oppTeam) {
   const rows = players
     .map((p) => {
       return `<tr>
-        <td><div class="player-name-row"><span class="player-name player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span>${routeChipsHtml(p, oppTeam)}</div></td>
+        <td><div class="player-name-row"><span class="player-name player-click" data-entry="${encodeDataAttr({ team, name: p.name, oppTeam })}">${p.name}</span></div></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
         <td class="num">${fmt(p.rec_per_g, 1)}</td>
@@ -818,10 +664,11 @@ const PASS_ZONE_ROWS = [
 ];
 const PASS_ZONE_COLS = ["left", "middle", "right"];
 
-// Completion rate -- still the headline % on the cell (matches the comp/
-// att fraction right below it), just no longer what drives the CELL
-// COLOR (see passZoneCompositeZ). Still used as-is in the league-rank
-// modal's own column.
+// Completion rate -- no longer the headline % on the cell (that's volume
+// share now, see passZoneVolumeShare/passZoneCellDefenseDetail) or what
+// drives the cell color (see passZoneCompositeZ), but still shown as the
+// defense side's success detail line, and still used as-is in the
+// league-rank modal's own column.
 function passZoneRate(zone) {
   return zone && zone.attempts ? zone.completions / zone.attempts : null;
 }
@@ -887,6 +734,54 @@ function passZoneGridHeader(team) {
   return `<tr><th></th><th style="${style}">Left</th><th style="${style}">Middle</th><th style="${style}">Right</th></tr>`;
 }
 
+// Share of this team's OWN attempts (this side) that land in one zone --
+// the volume story the cell is actually built around now, instead of
+// completion rate (which used to be the printed number even though the
+// cell's COLOR was 75% volume/25% EPA -- two different stats sharing one
+// box). Denominator is this side's own total pass attempts, not the raw
+// sum of zone attempts, so screens/spikes without a charted location
+// don't quietly inflate every real zone's share.
+function passZoneVolumeShare(chart, zone) {
+  if (!chart || !chart.pass_attempts || !zone) return null;
+  return zone.attempts / chart.pass_attempts;
+}
+
+// Last token of a full name ("Amon-Ra St. Brown" -> "Brown", "D.Kincaid"
+// stays as-is) -- short enough to sit next to a target/catch count inside
+// a compact cell without wrapping.
+function zonePlayerShortName(name) {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  return parts[parts.length - 1];
+}
+
+// Offense cell: who's actually getting targeted in this zone and how many
+// of those targets turned into catches -- the volume % above answers "how
+// popular," this answers "popular with whom" and "how often it works,"
+// both without clicking into the cell. Capped at 3 names so a zone with a
+// long tail of one-target players doesn't blow out the cell height.
+function passZoneCellOffenseDetail(zone) {
+  if (!zone || !zone.attempts) return "";
+  const summary = passZonePlayerSummary(zone.plays).slice(0, 3);
+  const rows = summary
+    .map((g) => `<span class="pass-zone-cell-player"><span>${zonePlayerShortName(g.name)}</span><b>${g.rec}/${g.targets}</b></span>`)
+    .join("");
+  return `<span class="pass-zone-cell-players">${rows}</span>`;
+}
+
+// Defense cell: completion rate allowed, right under the volume % that
+// drives most of the cell's color -- "teams target this area (the %) AND
+// have success here (this line)" as one reinforcing story instead of the
+// old mismatched pairing (color from a volume+EPA blend, number from a
+// rate that often pointed a different direction). Player-level detail is
+// deliberately left off this side -- see renderPassZoneOpponentBlock for
+// "which specific players" once a cell is clicked.
+function passZoneCellDefenseDetail(zone) {
+  if (!zone || !zone.attempts) return "";
+  const rate = passZoneRate(zone);
+  return `<span class="pass-zone-cell-sub">${Math.round(rate * 100)}% comp <span class="muted-label">(${zone.completions}/${zone.attempts})</span></span>`;
+}
+
 function renderPassZoneGrid(team, side, opponent) {
   const chart = (DATA.pass_shot_charts[team] || {})[side];
   if (!chart) return `<p class="no-data-note">No pass-zone data yet.</p>`;
@@ -894,13 +789,14 @@ function renderPassZoneGrid(team, side, opponent) {
     const cells = PASS_ZONE_COLS.map((loc) => {
       const zk = `${r.key}_${loc}`;
       const zone = chart.zones[zk];
-      const rate = passZoneRate(zone);
       const z = passZoneCompositeZ(side, zk, zone);
       const cls = tierFromZ(z);
       const alpha = alphaAttrFromZ(z);
-      const rateDisplay = rate === null ? "--" : `${Math.round(rate * 100)}%`;
+      const share = passZoneVolumeShare(chart, zone);
+      const shareDisplay = share === null ? "--" : `${Math.round(share * 100)}%`;
+      const detail = side === "off" ? passZoneCellOffenseDetail(zone) : passZoneCellDefenseDetail(zone);
       const payload = { team, side, zoneKey: zk, opponent };
-      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${rateDisplay}</span></td>`;
+      return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><span class="pass-zone-rate">${shareDisplay}</span>${detail}</td>`;
     }).join("");
     return `<tr><th class="pass-zone-row-label">${r.label}</th>${cells}</tr>`;
   }).join("");
@@ -1340,10 +1236,10 @@ function scrambleRateCell(value, pool, payload) {
 }
 
 // Generic tiered+clickable team_stats cell -- same pool/tier/click pattern
-// as routeDefenseCell, just with an adjustable invert direction so it can
-// serve a defense "allowed" stat (invert=true, lower=green) or a neutral
-// team tendency (invert=false), reused by both the scramble-containment
-// and red-zone-mix panels below.
+// as every other percentile cell on the site, with an adjustable invert
+// direction so it can serve a defense "allowed" stat (invert=true,
+// lower=green) or a neutral team tendency (invert=false), reused by both
+// the scramble-containment and red-zone-mix panels below.
 function teamRateCell(team, statKey, label, opts = {}) {
   const val = DATA.team_stats[team]?.[statKey];
   if (val === null || val === undefined) return `<td class="num">--</td>`;
@@ -1760,61 +1656,11 @@ document.addEventListener("click", (e) => {
   document.getElementById("props-modal-content").innerHTML = renderPlayerModalShell();
 });
 
-// Every player on this team with ANY charted targets on this route -- not
-// just whoever's top-3 chip happens to show it (a route can be a soft spot
-// for the defense without being any single receiver's SIGNATURE route, so
-// this is the "who actually runs it, even a little" reference view).
-function playersForRoute(team, route) {
-  return (DATA.player_props[team] || [])
-    .map((p) => {
-      const count = (p.routes || {})[route] || 0;
-      if (!count) return null;
-      const total = Object.values(p.routes || {}).reduce((a, b) => a + b, 0);
-      return { name: p.name, position: p.position, count, share: total ? count / total : 0 };
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.count - a.count);
-}
-
-function renderRouteReceiversModalContent(team, route) {
-  const label = ROUTE_LABELS[route] || route;
-  const rows = playersForRoute(team, route);
-  const heading = `<h3>${label} Routes &mdash; ${team}</h3>`;
-  if (!rows.length) {
-    return `${heading}<p class="no-data-note">No charted targets on this route for ${team} yet.</p>`;
-  }
-  const body = rows
-    .map(
-      (r) =>
-        `<tr><td>${r.name} <span class="muted-label">(${r.position})</span></td><td class="num">${r.count}</td><td class="num">${Math.round(r.share * 100)}%</td></tr>`
-    )
-    .join("");
-  return `${heading}
-    <table class="data-table player-odds-table props-market-table">
-      <thead><tr><th>Player</th><th class="num">Targets</th><th class="num">Share</th></tr></thead>
-      <tbody>${body}</tbody>
-    </table>`;
-}
-
-function openRouteReceiversModal(team, route) {
-  ensurePropsModal();
-  propsModalTeams = null;
-  playerModalState = null;
-  document.getElementById("props-modal-content").innerHTML = renderRouteReceiversModalContent(team, route);
-  document.getElementById("props-modal").hidden = false;
-}
-
 document.addEventListener("click", (e) => {
   const playerEl = e.target.closest(".player-click");
   if (playerEl) {
     const { team, name, oppTeam } = decodeDataAttr(playerEl.dataset.entry);
     openPlayerMarketsModal(team, name, oppTeam);
-    return;
-  }
-  const routeEl = e.target.closest(".route-name-click");
-  if (routeEl) {
-    const { team, route } = decodeDataAttr(routeEl.dataset.entry);
-    openRouteReceiversModal(team, route);
     return;
   }
   const btn = e.target.closest(".props-team-click");
@@ -1909,9 +1755,7 @@ function render() {
   setActivePropsView(currentPropsView);
 
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTable(away, home);
-  document.getElementById("col-away-routemap").innerHTML = renderRouteMapTable(away, home);
   document.getElementById("col-home-receiving").innerHTML = renderReceivingTable(home, away);
-  document.getElementById("col-home-routemap").innerHTML = renderRouteMapTable(home, away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
   document.getElementById("col-away-rushlanes").innerHTML = renderRushLanesChart(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);

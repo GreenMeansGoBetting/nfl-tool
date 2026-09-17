@@ -488,7 +488,14 @@ h3 {
 .scramble-rank-click { cursor: pointer; }
 .scramble-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
 
-.pass-zone-block { width: 222px; }
+/* .pass-zone-col (the actual flex item -- see .stat-columns) is what
+   controls the on-page width; .pass-zone-block just fills whatever that
+   gives it. Was a flat 222px, making offense and defense each read as a
+   quarter of the page even though they're the whole point of this
+   section -- two per row (one real matchup: this team's offense paired
+   with the exact opponent it's facing) now each get half. */
+.pass-zone-col { flex: 1 1 calc(50% - 10px); min-width: 340px; }
+.pass-zone-block { width: 100%; }
 /* Team-color banner (matches .team-banner elsewhere) instead of a plain
    text title + button -- fixed height so all four blocks line up
    regardless of whether the banner is clickable (offense) or not
@@ -507,11 +514,30 @@ h3 {
 .pass-zone-team-side { font-size: 0.68rem; opacity: 0.75; margin-left: auto; white-space: nowrap; }
 .pass-zone-team-click { cursor: pointer; }
 .pass-zone-team-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
-.pass-zone-grid { table-layout: fixed; width: 222px; font-size: 0.78rem; }
-.pass-zone-grid th, .pass-zone-grid td { padding: 7px 2px; text-align: center; }
-.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.66rem; width: 30px; padding-left: 3px !important; }
-.pass-zone-cell { vertical-align: middle; }
+.pass-zone-grid { table-layout: fixed; width: 100%; font-size: 0.78rem; }
+.pass-zone-grid th, .pass-zone-grid td { padding: 8px 4px; text-align: center; }
+.pass-zone-row-label { text-align: left !important; font-weight: 600; font-size: 0.66rem; width: 34px; padding-left: 3px !important; }
+.pass-zone-cell { vertical-align: top; }
 .pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
+/* Offense: up to 3 "who's getting targeted here" lines, name left / rec-
+   over-target right -- the volume % above says how popular the zone is,
+   this says popular with whom and how often it turns into a catch,
+   without needing to click into the cell. */
+.pass-zone-cell-players {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 5px;
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+.pass-zone-cell-player { display: flex; justify-content: space-between; gap: 4px; white-space: nowrap; }
+.pass-zone-cell-player b { font-weight: 700; }
+/* Defense: completion rate allowed, directly under the volume % -- pairs
+   with it as one story ("targeted often AND works when they do") instead
+   of the volume-driven color and a same-size completion number reading as
+   two unrelated stats. */
+.pass-zone-cell-sub { display: block; margin-top: 5px; font-size: 0.66rem; font-weight: 600; }
 .pass-zone-identity {
   margin-top: 10px;
   padding-top: 8px;
@@ -687,8 +713,7 @@ h3 {
    specificity as these cells' own background -- without this override the
    later, plainer rule would silently win the cascade and every cell would
    show the same neutral background regardless of tier (same class of bug
-   already hit once with .route-chip and once with .wheel-action-bar this
-   project). */
+   already hit once with .wheel-action-bar this project). */
 .rush-lane-box.tier-good, .rush-lane-off-success.tier-good { background: rgba(var(--good-rgb), var(--tier-a, 0.3)); color: var(--good-text); }
 .rush-lane-box.tier-mid, .rush-lane-off-success.tier-mid { background: rgba(var(--mid-rgb), var(--tier-a, 0.3)); color: var(--mid-text); }
 .rush-lane-box.tier-bad, .rush-lane-off-success.tier-bad { background: rgba(var(--bad-rgb), var(--tier-a, 0.3)); color: var(--bad-text); }
@@ -724,14 +749,6 @@ h3 {
 .props-rec-table th.lb-player, .props-rush-table th.lb-player { background: rgba(var(--accent-rgb), 0.16); }
 .props-rec-table th.lb-pos, .props-rush-table th.lb-pos { background: rgba(var(--mid-rgb), 0.16); }
 
-.route-map-table { table-layout: fixed; width: 318px; }
-/* Hard divider right after the Usage column -- Route+Usage is the OFFENSE
-   side (this team's own tendency), everything past it is the OPPONENT's
-   defense; without a visible break the two read as one merged stat. */
-.route-map-table th.route-map-off-end, .route-map-table td.route-map-off-end {
-  border-right: 2px solid var(--text);
-}
-
 .player-name-row {
   display: flex;
   align-items: center;
@@ -739,31 +756,6 @@ h3 {
   gap: 6px;
 }
 .player-name { font-weight: 600; white-space: nowrap; }
-.player-routes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-.route-chip {
-  display: inline-block;
-  background: var(--table-head);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-/* Two-class selectors so these always win over the plain .route-chip
-   fallback above regardless of source order (the earlier bug: .route-chip's
-   OWN background was declared after .tier-good/.tier-mid/.tier-bad in the
-   file, so it silently won the cascade and every chip rendered with the
-   same neutral box -- only the text color was ever actually showing the
-   tier). Alpha bumped well past the site's normal ~0.16 table-cell tint
-   too -- a small inline chip reads as a real colored box at that strength,
-   where the normal tint mostly disappears at this size. */
-.route-chip.tier-good { background: rgba(var(--good-rgb), 0.35); color: var(--good-text); }
-.route-chip.tier-mid { background: rgba(var(--mid-rgb), 0.35); color: var(--mid-text); }
-.route-chip.tier-bad { background: rgba(var(--bad-rgb), 0.35); color: var(--bad-text); }
 
 footer {
   text-align: center;
@@ -1003,8 +995,8 @@ footer a { color: var(--accent); }
 
 #general-odds-modal .modal-box { max-width: 1100px; width: 92vw; }
 
-.pos-row-click, .dist-row-click, .route-name-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
-.pos-row-click:hover, .dist-row-click:hover, .route-name-click:hover { color: var(--accent); }
+.pos-row-click, .dist-row-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.pos-row-click:hover, .dist-row-click:hover { color: var(--accent); }
 
 .stat-rank-click { cursor: pointer; }
 .stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
