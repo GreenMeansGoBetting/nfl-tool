@@ -711,42 +711,57 @@ def build_roster_position_lookup(rosters: pd.DataFrame) -> dict:
     return lookup
 
 
-def fetch_sgo_events(api_key: str, starts_after: str, starts_before: str) -> list | None:
+def fetch_sgo_events(api_keys: list, starts_after: str, starts_before: str) -> list | None:
     """Raw SportsGameOdds events (every market, every player, every book the
     free tier returns) for the given date window. Returns None if no API key
     is configured (player props are entirely optional -- the site works
-    fine without them) or the request fails for any reason. Fetched ONCE and
+    fine without them) or every configured key fails. Fetched ONCE and
     shared across every player-prop market we extract from it (anytime-TD,
     first-TD, and whatever gets added later) -- SportsGameOdds bills per
     EVENT returned, not per market, so there's no reason to hit the API
     again just to look at a different statID in the same response.
+
+    api_keys is tried in order (primary, then any backups) -- a quota-
+    exhausted primary key falls through to a backup automatically instead
+    of the whole feature going dark until the primary's own quota resets
+    (confirmed directly: a single account's 2,500-objects/month free tier
+    ran out well before a full month, see SGO_EVENTS_URL's comment). Only
+    reports failure once every key in the list has failed.
     """
-    if not api_key:
+    keys = [k for k in api_keys if k]
+    if not keys:
         return None
-    params = urllib.parse.urlencode(
-        {
-            "leagueID": "NFL",
-            "oddsAvailable": "true",
-            "startsAfter": starts_after,
-            "startsBefore": starts_before,
-            "limit": 50,
-            "apiKey": api_key,
-        }
-    )
-    url = f"{SGO_EVENTS_URL}?{params}"
-    # SportsGameOdds appears to reject urllib's default User-Agent string --
-    # a normal browser-like one goes through fine.
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"})
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            payload = json.load(resp)
-    except Exception as e:
-        print(f"WARNING: could not fetch player prop odds ({e}) -- skipping player props.", file=sys.stderr)
-        return None
-    if not payload.get("success"):
-        print(f"WARNING: SportsGameOdds request unsuccessful: {payload.get('notice')}", file=sys.stderr)
-        return None
-    return payload.get("data", [])
+    last_error = None
+    for i, api_key in enumerate(keys):
+        which = "primary" if i == 0 else f"backup #{i}"
+        params = urllib.parse.urlencode(
+            {
+                "leagueID": "NFL",
+                "oddsAvailable": "true",
+                "startsAfter": starts_after,
+                "startsBefore": starts_before,
+                "limit": 50,
+                "apiKey": api_key,
+            }
+        )
+        url = f"{SGO_EVENTS_URL}?{params}"
+        # SportsGameOdds appears to reject urllib's default User-Agent
+        # string -- a normal browser-like one goes through fine.
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                payload = json.load(resp)
+        except Exception as e:
+            last_error = str(e)
+            print(f"WARNING: SGO {which} key failed ({e}).", file=sys.stderr)
+            continue
+        if not payload.get("success"):
+            last_error = payload.get("notice")
+            print(f"WARNING: SGO {which} key request unsuccessful: {payload.get('notice')}.", file=sys.stderr)
+            continue
+        return payload.get("data", [])
+    print(f"WARNING: all {len(keys)} SGO key(s) failed (last error: {last_error}) -- skipping player props.", file=sys.stderr)
+    return None
 
 
 LIVE_SITE_DATA_URL = "https://nfl.gmgsports.org/data.json"
@@ -3327,7 +3342,8 @@ def main():
         current_rosters = load_rosters(args.data_dir, args.season, force=True)
         roster_teams = build_roster_team_lookup(current_rosters)
         roster_positions = build_roster_position_lookup(current_rosters)
-        sgo_events = fetch_sgo_events(os.environ.get("SGO_API_KEY"), starts_after, starts_before)
+        sgo_api_keys = [os.environ.get("SGO_API_KEY"), os.environ.get("SGO_API_KEY_BACKUP")]
+        sgo_events = fetch_sgo_events(sgo_api_keys, starts_after, starts_before)
         if sgo_events is not None:
             player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions)
             player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions)

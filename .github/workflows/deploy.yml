@@ -68,8 +68,14 @@ jobs:
         # exists on nflverse (typically as soon as Week 1 games are played).
         # SGO_API_KEY is optional -- player anytime-TD odds just don't
         # populate without it, everything else works the same.
+        # SGO_API_KEY_BACKUP is also optional -- a second SGO account's key,
+        # tried automatically if the primary key's quota runs out mid-month
+        # (see fetch_sgo_events). Add it as its own repository secret
+        # (Settings -> Secrets and variables -> Actions) with this exact
+        # name; nothing else needs to change for it to start being used.
         env:
           SGO_API_KEY: ${{ secrets.SGO_API_KEY }}
+          SGO_API_KEY_BACKUP: ${{ secrets.SGO_API_KEY_BACKUP }}
         run: python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
 
       - uses: actions/configure-pages@v5
