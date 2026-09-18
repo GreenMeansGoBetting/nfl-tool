@@ -518,13 +518,19 @@ h3 {
    as flat siblings with nothing but wrapping position marking where one
    matchup ended and the next began -- they read as "4 things" instead of
    "2 matchups," which was most of the clutter complaint. */
-.pass-zone-pair {
+.pass-zone-pair, .rush-pair {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px;
   background: var(--panel);
 }
 .pass-zone-pair + .pass-zone-pair { margin-top: 20px; }
+/* Same "one matchup, one boxed panel" treatment for Rushing -- the table
+   and the per-player rush lanes (renderRushLanesPlayers) used to sit as
+   flat 3rd/4th siblings in one row, which is how the OTHER team's table
+   ended up wedged in next to this team's lanes grid instead of dropping
+   to its own row below. */
+.rush-pair + .rush-pair { margin-top: 20px; }
 /* Team-color banner (matches .team-banner elsewhere) instead of a plain
    text title + button -- fixed height so all four blocks line up
    regardless of whether the banner is clickable (offense) or not
@@ -811,10 +817,10 @@ h3 {
    out at 0.85, never fully opaque) -- explicit rather than inherited so it
    can't accidentally pick up a lighter color from context. */
 .rush-lane-freq-pct { font-size: 0.85rem; font-weight: 700; color: var(--text); }
-/* Used only by the "See All Players" modal, where each player's offense
-   block has no defense box above it to inherit a top edge from -- overflow
-   hidden + the block's own radius clips the (otherwise square) success
-   cell inside it into a rounded top corner. */
+/* Used by the per-player rush lanes list (renderRushLanesPlayers), where
+   each player's offense block has no defense box above it to inherit a
+   top edge from -- overflow hidden + the block's own radius clips the
+   (otherwise square) success cell inside it into a rounded top corner. */
 .rush-lane-off-block.rush-lane-off-block-standalone { border-radius: 4px; overflow: hidden; }
 /* Below the sample floor there's nothing reliable to color -- flat gray
    instead of a tier color or the plain untiered background, so a thin
@@ -830,30 +836,6 @@ h3 {
 .rush-lane-box.tier-mid, .rush-lane-off-success.tier-mid { background: rgba(var(--mid-rgb), var(--tier-a, 0.3)); color: var(--mid-text); }
 .rush-lane-box.tier-bad, .rush-lane-off-success.tier-bad { background: rgba(var(--bad-rgb), var(--tier-a, 0.3)); color: var(--bad-text); }
 
-.rush-lanes-all-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.rush-lanes-all-btn {
-  background: var(--panel);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.rush-lanes-all-btn:hover { background: rgba(var(--accent-rgb), 0.12); }
-/* The main rushing page wraps its lane row in .rush-lanes (318px) to keep
-   the 7 columns compact -- this modal never had that wrapper, so with
-   nothing constraining it, .rush-lanes-cols (a flex row with no width of
-   its own) just stretched to fill the whole 96vw modal, blowing up every
-   cell into an oversized box instead of the same tight bar the main page
-   shows. Same fixed width here reproduces that exact ratio, and since
-   every player's row is stacked vertically (not side by side), the modal
-   itself is capped down to fit that one narrow column instead of leaving
-   a wide empty margin around it. */
-#rush-lanes-all-modal .modal-box { max-width: 460px; width: 92vw; max-height: 90vh; overflow-y: auto; }
-#rush-lanes-all-modal .rush-lanes-cols { width: 318px; }
 .rush-lanes-all-players { margin-top: 10px; }
 .rush-lanes-player-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
 .rush-lanes-player-block:first-child { margin-top: 12px; }

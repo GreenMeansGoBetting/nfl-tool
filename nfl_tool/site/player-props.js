@@ -333,31 +333,11 @@ function rushLaneColumnDefenseOnly(defBox) {
   return `<div class="rush-lane-col">${defBox}</div>`;
 }
 
-function renderRushLanesChart(offTeam, defTeam) {
-  const cols = RUSH_ZONES.map((z) => {
-    const successKey = `rush_success_${z.key}`;
-    const val = DATA.team_stats[offTeam][successKey];
-    const ypc = DATA.team_stats[offTeam][`rush_ypc_${z.key}`];
-    const pool = teamsWithGames()
-      .map((t) => DATA.team_stats[t][successKey])
-      .filter((v) => v !== null && v !== undefined);
-    const payload = { team: offTeam, statKey: successKey, label: `${z.full} Rush Success %`, invert: false, percent: true };
-    const off = offenseSuccessCell(val, ypc, pool, z.full, payload, DATA.team_stats[offTeam][`rush_carries_${z.key}`]);
-    const freq = offenseFreqCell(DATA.team_stats[offTeam][`rush_rate_${z.key}`]);
-    return rushLaneColumn(defenseLaneCell(defTeam, z), off, freq);
-  }).join("");
-  return `<div class="rush-lanes">
-    <div class="rush-lanes-team-tag">${teamLogoMini(defTeam)} ${defTeam} run defense</div>
-    <div class="rush-lanes-cols">${cols}</div>
-    <div class="rush-lanes-team-tag">${teamLogoMini(offTeam)} ${offTeam} rush offense</div>
-  </div>`;
-}
-
-// League-wide success-rate pool per lane, built once per modal open (not
-// per box) -- every player with a qualifying sample in DATA.player_rush_
-// zones, regardless of position. Tiering a back's own lane success against
-// this answers "does he actually run well to that side" (vs. the league),
-// not just "well relative to his other lanes."
+// League-wide success-rate pool per lane -- every player with a qualifying
+// sample in DATA.player_rush_zones, regardless of position. Tiering a
+// back's own lane success against this answers "does he actually run well
+// to that side" (vs. the league), not just "well relative to his other
+// lanes."
 function buildRushZonePools() {
   const pools = {};
   RUSH_ZONES.forEach((z) => (pools[z.key] = []));
@@ -374,12 +354,16 @@ function buildRushZonePools() {
   return pools;
 }
 
-// The individual-back complement to renderRushLanesChart's team view: this
+// The individual-player complement to renderRushLanesPlayers below: this
 // player's own success rate/YPC and usage frequency per lane, paired with
-// the SAME opponent-allowed box from the team chart -- "does this back
-// like this lane, is he actually good at it, and is this defense's own
-// weak side lined up with it." No click-through-to-rank-modal here (a
-// single player's number isn't a team to rank against other teams).
+// the SAME opponent-allowed box -- "does this back like this lane, is he
+// actually good at it, and is this defense's own weak side lined up with
+// it." Reachable by clicking ANY player's name (the shared player-detail
+// modal's "Rush Lanes" tab), including a receiver/QB who also carries --
+// not redundant with the main page's per-team view below, which only
+// covers that team's own qualifying rushers in place. No click-through-
+// to-rank-modal here (a single player's number isn't a team to rank
+// against other teams).
 function renderPlayerRushLanesContent(team, name, oppTeam) {
   const zones = ((DATA.player_rush_zones || {})[team] || {})[name];
   const heading = `<h3>${name} <span class="muted-label">(${team})</span> &mdash; Rush Lanes</h3>`;
@@ -401,22 +385,22 @@ function renderPlayerRushLanesContent(team, name, oppTeam) {
     </div>`;
 }
 
-// ---- "See All Players" rush-lanes modal -- every qualifying rusher on
-// one team, at once, against the same opponent defense (shown once at the
-// top instead of repeated per player), instead of opening each player's
-// own modal one at a time. Its own dedicated modal (not the shared
-// props-modal) since it needs to be much wider to fit everyone. ----
-function renderTeamRushLanesAllPlayersContent(team, oppTeam) {
-  const heading = `<h3>${teamLogoMini(team)} ${TEAM_NAMES[team] || team} Rushers <span class="muted-label">vs ${teamLogoMini(oppTeam)} ${TEAM_NAMES[oppTeam] || oppTeam} Run Defense</span></h3>`;
-  // No minimum carries to appear here anymore -- every rush lane cell
-  // already shows its own carry count (n=X), so a one-carry back is
-  // visibly thin rather than hidden outright.
+// Main-page rush lanes: the opponent's defense row shown once at the top,
+// then every rusher who's actually touched the ball gets his OWN lane
+// column set below it -- the Rushing-tab equivalent of the Receiving tab's
+// per-player hotspot cards (renderOffensePlayerZoneCards), so "does this
+// back like this lane, and is this defense's own weak side lined up with
+// it" reads directly off the main page instead of behind a "See All
+// Players" click-through (this used to be modal-only content; the modal's
+// gone now since duplicating the exact same view there added nothing).
+function renderRushLanesPlayers(team, oppTeam) {
+  const defRow = RUSH_ZONES.map((z) => rushLaneColumnDefenseOnly(defenseLaneCell(oppTeam, z))).join("");
+  const defHeader = `<div class="rush-lanes-team-tag">${teamLogoMini(oppTeam)} ${oppTeam} run defense</div><div class="rush-lanes-cols">${defRow}</div>`;
   const players = (DATA.player_props[team] || []).filter((p) => p.carries > 0).sort((a, b) => b.carries - a.carries);
   if (!players.length) {
-    return `${heading}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
+    return `<div class="rush-lanes">${defHeader}<p class="no-data-note">No qualifying rushers yet this season.</p></div>`;
   }
   const pools = buildRushZonePools();
-  const defRow = RUSH_ZONES.map((z) => rushLaneColumnDefenseOnly(defenseLaneCell(oppTeam, z))).join("");
   const playerBlocks = players
     .map((p) => {
       const zones = ((DATA.player_rush_zones || {})[team] || {})[p.name] || {};
@@ -432,53 +416,17 @@ function renderTeamRushLanesAllPlayersContent(team, oppTeam) {
       </div>`;
     })
     .join("");
-  return `${heading}
-    <div class="rush-lanes-team-tag">${teamLogoMini(oppTeam)} ${oppTeam} run defense</div>
-    <div class="rush-lanes-cols">${defRow}</div>
-    <div class="rush-lanes-all-players">${playerBlocks}</div>`;
+  return `<div class="rush-lanes">${defHeader}<div class="rush-lanes-all-players">${playerBlocks}</div></div>`;
 }
 
-function ensureRushLanesAllModal() {
-  if (document.getElementById("rush-lanes-all-modal")) return;
-  const overlay = document.createElement("div");
-  overlay.id = "rush-lanes-all-modal";
-  overlay.className = "modal-overlay";
-  overlay.hidden = true;
-  overlay.innerHTML = `<div class="modal-box rush-lanes-all-modal-box">
-    <button type="button" class="modal-close" aria-label="Close">&times;</button>
-    <div id="rush-lanes-all-modal-content"></div>
-  </div>`;
-  document.body.appendChild(overlay);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) closeRushLanesAllModal();
-  });
-  overlay.querySelector(".modal-close").addEventListener("click", closeRushLanesAllModal);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeRushLanesAllModal();
-  });
-}
-function closeRushLanesAllModal() {
-  const el = document.getElementById("rush-lanes-all-modal");
-  if (el) el.hidden = true;
-}
-function openRushLanesAllModal(team, oppTeam) {
-  ensureRushLanesAllModal();
-  document.getElementById("rush-lanes-all-modal-content").innerHTML = renderTeamRushLanesAllPlayersContent(team, oppTeam);
-  document.getElementById("rush-lanes-all-modal").hidden = false;
-}
-
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".rush-lanes-all-btn");
-  if (!btn) return;
-  const { team, oppTeam } = decodeDataAttr(btn.dataset.entry);
-  openRushLanesAllModal(team, oppTeam);
-});
-
+// No carry minimum and no top-4 cap -- same targets>=5-style bug already
+// fixed on the Receiving table, just here instead (a real rotational back
+// with 3 carries was invisible). Every rusher with at least one carry
+// shows now.
 function renderRushingTable(team, oppTeam) {
   const players = (DATA.player_props[team] || [])
-    .filter((p) => p.carries >= 5)
-    .sort((a, b) => b.carries - a.carries)
-    .slice(0, 4);
+    .filter((p) => p.carries > 0)
+    .sort((a, b) => b.carries - a.carries);
   if (!players.length) {
     return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying rushers yet this season.</p>`;
   }
@@ -497,8 +445,7 @@ function renderRushingTable(team, oppTeam) {
       </tr>`;
     })
     .join("");
-  const allPlayersPayload = { team, oppTeam };
-  return `<div class="rush-lanes-all-row">${teamBannerHeader(team, true)}<button type="button" class="rush-lanes-all-btn" data-entry="${encodeDataAttr(allPlayersPayload)}">See All Players</button></div>
+  return `${teamBannerHeader(team, true)}
     <table class="data-table props-rush-table">
       <thead><tr><th class="lb-player">Player</th><th class="lb-pos">Pos</th><th class="num">Car/g</th><th class="num">Yds/g</th><th class="num">YPC</th><th class="num">Exp%</th><th class="num">RZ/g</th><th class="edge-hdr">ADV</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -1476,8 +1423,8 @@ function renderQbPassZoneCards(team, side, opponent) {
 // ---- Per-player target zones ("See Players") -- who actually gets
 // targeted where, the offense-side complement to the team grid above.
 // Same visual grid, sourced from build_stats.py's compute_player_pass_
-// zone_splits instead of the team aggregate. Pattern-matched on the Rush
-// Lanes "See All Players" modal (renderTeamRushLanesAllPlayersContent). ----
+// zone_splits instead of the team aggregate. Pattern-matched on the
+// per-player rush lanes list (renderRushLanesPlayers). ----
 function passZonePlayerRate(zone) {
   return zone && zone.targets ? zone.receptions / zone.targets : null;
 }
@@ -2130,9 +2077,9 @@ function render() {
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTeamTable(away, home);
   document.getElementById("col-home-receiving").innerHTML = renderReceivingTeamTable(home, away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
-  document.getElementById("col-away-rushlanes").innerHTML = renderRushLanesChart(away, home);
+  document.getElementById("col-away-rushlanes").innerHTML = renderRushLanesPlayers(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);
-  document.getElementById("col-home-rushlanes").innerHTML = renderRushLanesChart(home, away);
+  document.getElementById("col-home-rushlanes").innerHTML = renderRushLanesPlayers(home, away);
   document.getElementById("col-away-passing").innerHTML = renderPassingTable(away, home);
   document.getElementById("col-home-passing").innerHTML = renderPassingTable(home, away);
   document.getElementById("col-away-passcoverage").innerHTML = renderPassCoveragePanel(away, home);
