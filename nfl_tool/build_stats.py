@@ -63,6 +63,15 @@ SNAP_COUNTS_URL = "https://github.com/nflverse/nflverse-data/releases/download/s
 # many players/books come back in it). Entirely optional: if SGO_API_KEY
 # isn't set, this whole feature just doesn't populate, same graceful
 # degradation as every other optional data source in this pipeline.
+#
+# The math is tight even at normal cadence: the deploy workflow's own
+# every-4-hours schedule alone is ~180 builds/month * ~16 objects =
+# ~2,880/month, already over the 2,500 budget before a single manual
+# rebuild. Confirmed directly: a run hit HTTP 429 (quota exceeded) with no
+# unusual activity beyond a day of more-frequent-than-normal manual
+# rebuilds. See fetch_previous_odds_snapshot for how a failed fetch
+# degrades instead of wiping every team's odds out, and deploy.yml's
+# cron comment for the schedule change made alongside this.
 SGO_EVENTS_URL = "https://api.sportsgameodds.com/v2/events"
 SGO_BOOK_NAMES = {
     "draftkings": "DraftKings",
@@ -738,6 +747,29 @@ def fetch_sgo_events(api_key: str, starts_after: str, starts_before: str) -> lis
         print(f"WARNING: SportsGameOdds request unsuccessful: {payload.get('notice')}", file=sys.stderr)
         return None
     return payload.get("data", [])
+
+
+LIVE_SITE_DATA_URL = "https://nfl.gmgsports.org/data.json"
+
+
+def fetch_previous_odds_snapshot() -> dict | None:
+    """Best-effort fallback for when THIS run's SGO fetch fails (quota
+    exceeded, timeout, outage) -- reuses whatever player_td_odds/
+    player_first_td_odds/general_odds/player_prop_markets are already live
+    on the deployed site instead of nulling every team's odds out. Before
+    this, a single failed fetch (e.g. one HTTP 429) wiped Anytime TD odds
+    for all 32 teams even though most of them hadn't changed since the
+    last successful pull -- stale-by-one-cycle odds are a far smaller
+    problem than no odds at all. Returns None (no fallback available) on
+    ANY failure -- reading the live site is a nice-to-have, never allowed
+    to break the build itself."""
+    try:
+        req = urllib.request.Request(LIVE_SITE_DATA_URL, headers={"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.load(resp)
+    except Exception as e:
+        print(f"WARNING: could not fetch previous odds snapshot for fallback ({e}).", file=sys.stderr)
+        return None
 
 
 def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None) -> dict:
@@ -3316,6 +3348,22 @@ def main():
             # unit tracking wants what Novig itself actually pays.
             novig_schedule_odds = extract_novig_schedule_odds(sgo_events, teams)
             apply_novig_pick_odds(week_games, novig_schedule_odds)
+        else:
+            prev = fetch_previous_odds_snapshot()
+            if prev:
+                player_td_odds = prev.get("player_td_odds")
+                player_first_td_odds = prev.get("player_first_td_odds")
+                general_odds = prev.get("general_odds")
+                player_prop_markets = prev.get("player_prop_markets")
+                if general_odds:
+                    apply_sgo_schedule_odds(week_games, general_odds)
+                print("WARNING: SGO fetch failed this run -- reused last-known-good odds from the live site instead of clearing them.", file=sys.stderr)
+            # Pick Tracker's own novig unit price isn't reused here (it's
+            # baked into last run's schedule rows, not a clean standalone
+            # blob field to pull back out) -- it already has its own
+            # documented fallback, quietly leaving nflverse's plain line in
+            # place untouched, so no odds bar / spread-total value goes
+            # missing either way.
 
     blob = {
         "season": season,
