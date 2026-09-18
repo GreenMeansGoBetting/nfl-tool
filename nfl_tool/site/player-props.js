@@ -74,21 +74,22 @@ function playerZoneDepthSharePool(rowKey) {
 // click handler re-renders the table in place rather than reopening it.
 let receivingSort = { key: null, dir: "desc" };
 
-// Both teams in ONE table instead of two stacked ones -- a fixed-width
-// Player column sized for "Amon-Ra St. Brown" left the SAME dead space
-// next to every shorter name on both tables, and stacking meant that
-// space was wasted twice. A small team-logo column replaces the two
-// separate team banners.
+// One table per team (with room to spare at 1600px main width now) instead
+// of both teams merged into one sorted list -- easier to scan "this team's
+// whole receiving corps" as its own block, same pattern every other tab on
+// this page already uses (Rushing/Passing are both split by team).
 // No target minimum -- same reasoning as the Target Zones cards below
 // (renderOffensePlayerZoneCards): a targets>=5 bar was built for
 // stabilizing a per-game RATE, but it was quietly dropping every real
 // pass-catcher below that bar from this table entirely (a deep receiving
 // corps might only show 2 of 9 real targets-earners per team). Any
-// charted target qualifies now.
-function renderReceivingChart(away, home) {
-  let rows = [away, home].flatMap((team) => (DATA.player_props[team] || []).filter((p) => p.targets > 0));
+// charted target qualifies now -- and as of build_stats.py's
+// PROPS_MIN_TARGETS fix, that's true all the way back to the underlying
+// data too, not just this display filter.
+function renderReceivingTeamTable(team, oppTeam) {
+  let rows = (DATA.player_props[team] || []).filter((p) => p.targets > 0);
   if (!rows.length) {
-    return `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
+    return `${teamBannerHeader(team, true)}<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
   }
   if (receivingSort.key) {
     const getVal = (p) => {
@@ -98,7 +99,7 @@ function renderReceivingChart(away, home) {
     };
     rows = [...rows].sort((a, b) => (receivingSort.dir === "desc" ? getVal(b) - getVal(a) : getVal(a) - getVal(b)));
   } else {
-    rows = [...rows].sort((a, b) => (a.team === away && b.team !== away ? -1 : a.team !== away && b.team === away ? 1 : b.targets - a.targets));
+    rows = [...rows].sort((a, b) => b.targets - a.targets);
   }
 
   const statHeader = (label, statKey, opts = {}) =>
@@ -111,7 +112,6 @@ function renderReceivingChart(away, home) {
 
   const body = rows
     .map((p) => {
-      const oppTeam = p.team === away ? home : away;
       const zones = ((DATA.player_pass_zones[p.team] || {})[p.name] || {}).zones;
       const distCells = RECEIVING_DIST_COLS.map((r) => {
         const share = playerZoneDepthShare(zones, r.key);
@@ -122,7 +122,6 @@ function renderReceivingChart(away, home) {
         return `<td class="num ${cls}"${alpha}>${Math.round(share * 100)}%</td>`;
       }).join("");
       return `<tr>
-        <td class="receiving-team-cell">${teamLogoMini(p.team)}</td>
         <td><span class="player-name player-click" data-entry="${encodeDataAttr({ team: p.team, name: p.name, oppTeam })}">${p.name}</span></td>
         <td>${p.position}</td>
         <td class="num">${fmt(p.targets_per_g, 1)}</td>
@@ -131,14 +130,15 @@ function renderReceivingChart(away, home) {
         <td class="num">${p.adot != null ? fmt(p.adot, 1) : "--"}</td>
         <td class="num">${p.yac_per_rec != null ? fmt(p.yac_per_rec, 1) : "--"}</td>
         <td class="num">${p.target_share != null ? Math.round(p.target_share * 100) + "%" : "--"}</td>
+        <td class="num">${p.snap_pct != null ? Math.round(p.snap_pct * 100) + "%" : "--"}</td>
         ${distCells}
       </tr>`;
     })
     .join("");
 
-  return `<table class="data-table props-rec-table">
+  return `${teamBannerHeader(team, true)}
+    <table class="data-table props-rec-table">
       <thead><tr>
-        <th></th>
         <th class="lb-player">Player</th>
         <th class="lb-pos">Pos</th>
         ${statHeader("Tgt/g", "targets_per_g")}
@@ -147,6 +147,7 @@ function renderReceivingChart(away, home) {
         ${statHeader("ADOT", "adot")}
         ${statHeader("YAC", "yac_per_rec")}
         ${statHeader("Tgt%", "target_share", { percent: true })}
+        ${statHeader("Snap%", "snap_pct", { percent: true })}
         ${RECEIVING_DIST_COLS.map(distHeader).join("")}
       </tr></thead>
       <tbody>${body}</tbody>
@@ -163,7 +164,7 @@ function openReceivingColumnRankModal(statKey, label, opts = {}) {
   const rows = [];
   for (const [team, players] of Object.entries(DATA.player_props)) {
     for (const pl of players) {
-      if (pl.targets < 5) continue;
+      if (pl.targets < 1) continue;
       const val = pl[statKey];
       if (val === null || val === undefined) continue;
       rows.push({ team, name: pl.name, position: pl.position, value: val });
@@ -201,7 +202,8 @@ document.addEventListener("click", (e) => {
     receivingSort = receivingSort.key === rowKey ? { key: rowKey, dir: receivingSort.dir === "desc" ? "asc" : "desc" } : { key: rowKey, dir: "desc" };
     const away = document.getElementById("away-select").value;
     const home = document.getElementById("home-select").value;
-    document.getElementById("col-receiving").innerHTML = renderReceivingChart(away, home);
+    document.getElementById("col-away-receiving").innerHTML = renderReceivingTeamTable(away, home);
+    document.getElementById("col-home-receiving").innerHTML = renderReceivingTeamTable(home, away);
   }
 });
 
@@ -2125,7 +2127,8 @@ function render() {
   notesPlaysEl.hidden = false;
   setActivePropsView(currentPropsView);
 
-  document.getElementById("col-receiving").innerHTML = renderReceivingChart(away, home);
+  document.getElementById("col-away-receiving").innerHTML = renderReceivingTeamTable(away, home);
+  document.getElementById("col-home-receiving").innerHTML = renderReceivingTeamTable(home, away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);
   document.getElementById("col-away-rushlanes").innerHTML = renderRushLanesChart(away, home);
   document.getElementById("col-home-rushing").innerHTML = renderRushingTable(home, away);

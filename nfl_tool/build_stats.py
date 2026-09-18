@@ -2668,13 +2668,18 @@ def compute_player_box_scores(pbp: pd.DataFrame, pos_lookup) -> dict:
 # only. Reuses the same full-season pbp already loaded for everything else;
 # no new download.
 
-# A player needs at least this much season volume in ONE category to show up
-# on the Player Props page at all -- keeps one-off trick-play targets/carries
-# (a lineman on a fumblerooski, a punter's fake-punct carry) out of the list
-# without hiding anyone who's actually a real role player.
-PROPS_MIN_TARGETS = 5
-PROPS_MIN_CARRIES = 5
-PROPS_MIN_PASS_ATT = 10
+# Any real season volume in ONE category is enough to show up on the
+# Player Props page at all -- this used to require 5 targets/5 carries/10
+# pass attempts, which was meant to filter out trick plays but actually
+# just deleted every low-volume rookie/role player from the underlying
+# data entirely (not just hidden by a display filter -- gone from
+# data.json, so no frontend fix could ever surface them). A single charted
+# target or carry IS real involvement, exactly what a props bettor wants
+# to see; each page's own display filter (Rushing's carries>=5, Passing's
+# qualifyingPassers) still controls what's shown where.
+PROPS_MIN_TARGETS = 1
+PROPS_MIN_CARRIES = 1
+PROPS_MIN_PASS_ATT = 1
 
 
 # Rush direction/gap ("run_location" + "run_gap", both standard nflverse
@@ -3066,10 +3071,15 @@ def compute_volume_stats(pbp: pd.DataFrame, pos_lookup, games_played: dict) -> t
     return players, defense_allowed, team_targets
 
 
-def build_player_props(players: dict, teams, team_targets: dict) -> dict:
+def build_player_props(players: dict, teams, team_targets: dict, snap_shares: dict) -> dict:
     """Turns compute_volume_stats' raw players dict into the sorted,
     derived-rate, per-team lists the Player Props page actually renders --
-    same season-totals-in/per-game-rates-out split as build_team_stats."""
+    same season-totals-in/per-game-rates-out split as build_team_stats.
+    snap_shares (see compute_player_snap_shares) is keyed by the snap-count
+    file's OWN player-name spelling, not pos_lookup's roster name, so a
+    join miss (accented characters, suffix formatting) leaves snap_pct
+    None rather than crashing -- same disclosed limitation as every other
+    join between nflverse sources on this site."""
     by_team = {t: [] for t in teams}
     for (team, pid), p in players.items():
         if team not in by_team or p["position"] not in ("QB", "RB", "WR", "TE"):
@@ -3082,6 +3092,7 @@ def build_player_props(players: dict, teams, team_targets: dict) -> dict:
         if not qualifies:
             continue
         row = dict(p)
+        row["snap_pct"] = snap_shares.get(team, {}).get(p["name"])
         row["ypt"] = round(p["rec_yards"] / p["targets"], 2) if p["targets"] else None
         row["catch_rate"] = round(p["receptions"] / p["targets"], 3) if p["targets"] else None
         row["adot"] = round(p["air_yards_sum"] / p["targets"], 1) if p["targets"] else None
@@ -3226,7 +3237,10 @@ def main():
     volume_players, position_allowed, team_targets = compute_volume_stats(pbp, pos_lookup, games_played)
     for team in teams:
         team_stats[team].update(position_allowed.get(team, {}))
-    player_props = build_player_props(volume_players, teams, team_targets)
+    # Computed here (not down with the injury report, its other consumer)
+    # so build_player_props can join it onto each row below.
+    player_snap_shares = compute_player_snap_shares(snap_counts_df)
+    player_props = build_player_props(volume_players, teams, team_targets, player_snap_shares)
     player_game_logs = compute_player_game_logs(pbp, pos_lookup)
     player_box_scores = compute_player_box_scores(pbp, pos_lookup)
     pass_shot_charts = compute_pass_shot_chart(pbp, teams, pos_lookup)
@@ -3245,7 +3259,6 @@ def main():
     max_week = int(pbp["week"].max())
 
     current_week = compute_current_week(schedule)
-    player_snap_shares = compute_player_snap_shares(snap_counts_df)
     injury_report = compute_injury_report(injuries_df, teams, player_snap_shares)
 
     # Player prop odds (anytime-TD, first-TD) for whatever week is currently

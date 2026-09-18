@@ -424,18 +424,17 @@ h3 {
 .props-rec-table, .props-rush-table, .props-pass-table {
   table-layout: fixed;
 }
-/* Both teams in one table now (see renderReceivingChart) -- team logo,
-   then Player, sized to fit real names instead of the old fixed 328px
-   (room for "Amon-Ra St. Brown" three times over) that left the same
-   dead space next to every shorter name, twice (once per team's own
-   separate table). */
-.props-rec-table { width: 576px; }
-.props-rec-table th:first-child, .props-rec-table td:first-child { width: 24px; }
-.props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 130px; }
-.props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3) { width: 32px; }
-.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4),
-.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 40px; }
-.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6) { width: 48px; }
+/* One table per team now (see renderReceivingTeamTable) -- Player sized to
+   fit real names instead of the old fixed 328px (room for "Amon-Ra St.
+   Brown" three times over) that left the same dead space next to every
+   shorter name. */
+.props-rec-table { width: 592px; }
+.props-rec-table th:first-child, .props-rec-table td:first-child { width: 130px; }
+.props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 32px; }
+.props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
+.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4) { width: 40px; }
+.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 48px; }
+.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6),
 .props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7),
 .props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8),
 .props-rec-table th:nth-child(9), .props-rec-table td:nth-child(9) { width: 40px; }
@@ -446,8 +445,6 @@ h3 {
 .props-rec-table th:nth-child(11), .props-rec-table td:nth-child(11) { width: 40px; }
 .props-rec-table th:nth-child(12), .props-rec-table td:nth-child(12),
 .props-rec-table th:nth-child(13), .props-rec-table td:nth-child(13) { width: 34px; }
-.props-rec-table .receiving-team-cell { padding-right: 0 !important; }
-.props-rec-table .receiving-team-cell img { display: block; }
 .receiving-col-rank-click, .receiving-dist-sort-click { cursor: pointer; }
 .receiving-col-rank-click:hover, .receiving-dist-sort-click:hover { color: var(--accent); }
 .receiving-dist-sort-click.active { color: var(--accent); }
