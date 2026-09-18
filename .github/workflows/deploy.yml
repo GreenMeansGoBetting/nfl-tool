@@ -73,9 +73,16 @@ jobs:
         # (see fetch_sgo_events). Add it as its own repository secret
         # (Settings -> Secrets and variables -> Actions) with this exact
         # name; nothing else needs to change for it to start being used.
+        # SKIP_SGO_FETCH only on the "push" trigger -- a routine code/UI
+        # push doesn't need fresh odds, and every one used to spend real
+        # SGO quota for nothing (confirmed: this is what burned a whole
+        # month's budget in one active day). The schedule (every 6 hours)
+        # and a manual "Run workflow" -- the site's actual "UPDATE ODDS"
+        # button, see the topbar link -- still fetch fresh every time.
         env:
           SGO_API_KEY: ${{ secrets.SGO_API_KEY }}
           SGO_API_KEY_BACKUP: ${{ secrets.SGO_API_KEY_BACKUP }}
+          SKIP_SGO_FETCH: ${{ github.event_name == 'push' && '1' || '0' }}
         run: python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
 
       - uses: actions/configure-pages@v5

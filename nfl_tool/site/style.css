@@ -41,6 +41,29 @@ body {
   background: var(--panel);
 }
 .topbar .muted { justify-self: end; }
+/* Right side of the topbar can hold more than one thing now (the existing
+   per-page .muted note plus this link) -- wrapped in its own flex group
+   so both land in the grid's 3rd column together instead of fighting over
+   justify-self individually. */
+.topbar-actions { justify-self: end; display: flex; align-items: center; gap: 12px; }
+/* Deliberately not a same-page button -- see build_stats.py's
+   SKIP_SGO_FETCH comment. A real "fetch now" button would need a GitHub
+   token embedded in this public page's own JS for anyone to steal, so
+   this just deep-links to the Actions run page instead; clicking "Run
+   workflow" there is the actual trigger. Styled like the wheel/spin
+   buttons elsewhere so it still reads as a real action, not a plain nav
+   link. */
+.update-odds-link {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.update-odds-link:hover { filter: brightness(1.12); }
 
 /* Cross-device sync bar (firebase-sync.js) -- a slim strip above the
    normal topbar, signed-out (login form) or signed-in (status + sign

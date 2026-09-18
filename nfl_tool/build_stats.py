@@ -3342,8 +3342,19 @@ def main():
         current_rosters = load_rosters(args.data_dir, args.season, force=True)
         roster_teams = build_roster_team_lookup(current_rosters)
         roster_positions = build_roster_position_lookup(current_rosters)
-        sgo_api_keys = [os.environ.get("SGO_API_KEY"), os.environ.get("SGO_API_KEY_BACKUP")]
-        sgo_events = fetch_sgo_events(sgo_api_keys, starts_after, starts_before)
+        # Routine code pushes (deploy.yml sets SKIP_SGO_FETCH=1 for the
+        # "push" trigger) skip hitting SGO entirely and fall straight to
+        # the last-known-good snapshot below -- a UI tweak doesn't need
+        # fresh odds, and every push used to spend real quota for nothing
+        # (confirmed: this exact pattern is what exhausted a 2,500/month
+        # budget in one active day). Only the 6-hour schedule and a manual
+        # "Run workflow" actually fetch fresh.
+        if os.environ.get("SKIP_SGO_FETCH") == "1":
+            sgo_events = None
+            print("INFO: SKIP_SGO_FETCH set (routine push) -- reusing last-known-good odds instead of fetching.", file=sys.stderr)
+        else:
+            sgo_api_keys = [os.environ.get("SGO_API_KEY"), os.environ.get("SGO_API_KEY_BACKUP")]
+            sgo_events = fetch_sgo_events(sgo_api_keys, starts_after, starts_before)
         if sgo_events is not None:
             player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions)
             player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions)
