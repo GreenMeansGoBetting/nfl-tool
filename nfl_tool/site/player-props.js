@@ -79,8 +79,14 @@ let receivingSort = { key: null, dir: "desc" };
 // next to every shorter name on both tables, and stacking meant that
 // space was wasted twice. A small team-logo column replaces the two
 // separate team banners.
+// No target minimum -- same reasoning as the Target Zones cards below
+// (renderOffensePlayerZoneCards): a targets>=5 bar was built for
+// stabilizing a per-game RATE, but it was quietly dropping every real
+// pass-catcher below that bar from this table entirely (a deep receiving
+// corps might only show 2 of 9 real targets-earners per team). Any
+// charted target qualifies now.
 function renderReceivingChart(away, home) {
-  let rows = [away, home].flatMap((team) => (DATA.player_props[team] || []).filter((p) => p.targets >= 5));
+  let rows = [away, home].flatMap((team) => (DATA.player_props[team] || []).filter((p) => p.targets > 0));
   if (!rows.length) {
     return `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;
   }
