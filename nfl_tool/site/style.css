@@ -1067,7 +1067,7 @@ footer a { color: var(--accent); }
    wider than the plain leg-count-picker screen -- overridden per-state via
    this second class rather than just always being huge, so the initial
    "how many legs" screen still reads as a normal small dialog. */
-#wheel-modal .modal-box.wheel-modal-wide { max-width: 900px; width: 95vw; }
+#wheel-modal .modal-box.wheel-modal-wide { max-width: 980px; width: 95vw; }
 .wheel-legs-label { display: block; margin: 10px 0; font-weight: 600; font-size: 0.9rem; }
 .wheel-legs-label select {
   margin-left: 6px;
@@ -1088,9 +1088,9 @@ footer a { color: var(--accent); }
 .wheel-slip-col { flex: 1 1 220px; max-width: 300px; text-align: left; padding-top: 8px; }
 .wheel-wrap {
   position: relative;
-  width: 520px;
+  width: 600px;
   max-width: 100%;
-  height: 520px;
+  height: 600px;
   margin: 16px auto;
 }
 .wheel-wrap svg { width: 100%; height: 100%; }

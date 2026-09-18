@@ -704,10 +704,61 @@ function wheelSliceD(cx, cy, r, startAngle, endAngle) {
   return `M ${cx} ${cy} L ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z`;
 }
 
-// 520px -- big enough that even a wheel with 30+ slices keeps names
-// readable, per the explicit ask to size this for "see all player names"
-// rather than optimizing for a compact modal.
-const WHEEL_SIZE = 520;
+// 600px -- big enough that even a wheel with 30+ slices keeps names and
+// logos readable, per the explicit ask to size this for "see everything
+// clearly" rather than optimizing for a compact modal.
+const WHEEL_SIZE = 600;
+
+// "First initial. Last name" for a real player description (Amon-Ra St.
+// Brown -> A. St. Brown) -- game-line plays (Spread/Total/Moneyline)
+// aren't player names at all ("Bills -3.5"), so those pass through
+// untouched. Collision-aware: if two players in the SAME wheel would
+// abbreviate to the same string (Bijan Robinson / Brian Robinson Jr. both
+// land on "B. Robinson"), grows the shared prefix just for that colliding
+// group until they're distinct again, capped at the shorter first name's
+// own length so it never asks for more letters than exist.
+function wheelIsPlayerName(p) {
+  return !GAME_LINE_CATEGORIES[p.category];
+}
+function wheelAbbreviate(name, prefixLen) {
+  const parts = name.trim().split(" ");
+  if (parts.length < 2) return name;
+  return `${parts[0].slice(0, prefixLen)}. ${parts.slice(1).join(" ")}`;
+}
+// Groups by initial+surname with generational suffixes (Jr./Sr./II-IV)
+// stripped out, NOT by the exact abbreviated string -- "B. Robinson" and
+// "B. Robinson Jr." never collide as literal strings (Bijan Robinson /
+// Brian Robinson Jr.), but they're exactly the confusing pair the request
+// called out, so the check has to see past that trailing suffix to catch
+// it.
+const NAME_SUFFIX_RE = /^(jr\.?|sr\.?|ii|iii|iv|v)$/i;
+function wheelCollisionKey(name) {
+  const parts = name.trim().split(" ").filter((w) => !NAME_SUFFIX_RE.test(w));
+  if (parts.length < 2) return name.toLowerCase();
+  return `${parts[0][0]}.${parts[parts.length - 1]}`.toLowerCase();
+}
+function wheelLabels(pool) {
+  const base = pool.map((p) => (wheelIsPlayerName(p) ? wheelAbbreviate(p.description, 1) : p.description));
+  const groups = {};
+  pool.forEach((p, i) => {
+    const key = wheelIsPlayerName(p) ? wheelCollisionKey(p.description) : `__${i}`;
+    (groups[key] = groups[key] || []).push(i);
+  });
+  const result = base.slice();
+  Object.values(groups).forEach((idxs) => {
+    if (idxs.length < 2) return;
+    const maxLen = Math.max(...idxs.map((i) => pool[i].description.split(" ")[0].length));
+    for (let n = 2; n <= maxLen; n++) {
+      const attempt = idxs.map((i) => wheelAbbreviate(pool[i].description, n));
+      if (new Set(attempt).size === attempt.length) {
+        idxs.forEach((i, k) => (result[i] = attempt[k]));
+        return;
+      }
+    }
+    idxs.forEach((i) => (result[i] = pool[i].description));
+  });
+  return result;
+}
 
 function renderWheelSvg(pool) {
   const n = pool.length;
@@ -718,16 +769,35 @@ function renderWheelSvg(pool) {
   // doesn't run into its neighbors; a wheel of 3-4 plays gets to keep much
   // longer names than one with 30+.
   const maxChars = n <= 8 ? 22 : n <= 16 ? 16 : n <= 24 ? 12 : 9;
+  const labels = wheelLabels(pool);
   const slices = pool
     .map((p, i) => {
       const start = i * segAngle;
       const end = start + segAngle;
       const mid = start + segAngle / 2;
       const color = p.team ? `rgb(${teamAccentRgb(p.team).join(",")})` : WHEEL_FALLBACK_COLORS[i % WHEEL_FALLBACK_COLORS.length];
-      const labelPos = polarToCartesian(cx, cy, r * 0.62, mid);
-      const label = p.description.length > maxChars ? `${p.description.slice(0, maxChars - 1)}…` : p.description;
+      // Rotate the label to run ALONG the spoke (radially) instead of
+      // tangent to the rim -- rotate(mid) alone points text along the
+      // circle's circumference, which is what made every label curve
+      // around the wheel instead of reading outward from center. The
+      // extra -90 aligns it with the radius instead; the +180 on the
+      // wheel's left/bottom half keeps it right-side-up for the viewer
+      // rather than upside-down (same convention every prize-wheel
+      // graphic uses), still along the same spoke either way.
+      let rot = mid - 90;
+      if (mid > 90 && mid < 270) rot += 180;
+      const labelPos = polarToCartesian(cx, cy, r * 0.58, mid);
+      const label = labels[i].length > maxChars ? `${labels[i].slice(0, maxChars - 1)}…` : labels[i];
+      const logo = p.team
+        ? (() => {
+            const logoPos = polarToCartesian(cx, cy, r * 0.85, mid);
+            const logoSize = n <= 12 ? 26 : n <= 24 ? 20 : 16;
+            return `<image href="${teamLogoUrl(p.team)}" x="${(logoPos.x - logoSize / 2).toFixed(2)}" y="${(logoPos.y - logoSize / 2).toFixed(2)}" width="${logoSize}" height="${logoSize}"/>`;
+          })()
+        : "";
       return `<path d="${wheelSliceD(cx, cy, r, start, end)}" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-        <text x="${labelPos.x.toFixed(2)}" y="${labelPos.y.toFixed(2)}" transform="rotate(${mid.toFixed(2)}, ${labelPos.x.toFixed(2)}, ${labelPos.y.toFixed(2)})" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#fff">${label}</text>`;
+        ${logo}
+        <text x="${labelPos.x.toFixed(2)}" y="${labelPos.y.toFixed(2)}" transform="rotate(${rot.toFixed(2)}, ${labelPos.x.toFixed(2)}, ${labelPos.y.toFixed(2)})" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#fff">${label}</text>`;
     })
     .join("");
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg>`;
