@@ -445,9 +445,9 @@ h3 {
 .props-rec-table th:nth-child(11), .props-rec-table td:nth-child(11) { width: 40px; }
 .props-rec-table th:nth-child(12), .props-rec-table td:nth-child(12),
 .props-rec-table th:nth-child(13), .props-rec-table td:nth-child(13) { width: 34px; }
-.receiving-col-rank-click, .receiving-dist-sort-click { cursor: pointer; }
-.receiving-col-rank-click:hover, .receiving-dist-sort-click:hover { color: var(--accent); }
-.receiving-dist-sort-click.active { color: var(--accent); }
+.receiving-col-rank-click, .receiving-sort-click { cursor: pointer; }
+.receiving-col-rank-click:hover, .receiving-sort-click:hover { color: var(--accent); }
+.receiving-sort-click.active { color: var(--accent); }
 
 .props-rush-table { width: 440px; }
 .props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
