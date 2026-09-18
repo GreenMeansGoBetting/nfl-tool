@@ -1003,6 +1003,54 @@ footer a { color: var(--accent); }
 }
 .quick-select-btn:hover { border-color: var(--accent); color: var(--accent); }
 .quick-select-clear-btn { color: var(--muted); }
+/* Week filter (plain toggle buttons, same look as the view-toggle buttons
+   elsewhere) -- scopes the categories dropdown below to one week, since
+   "select all Anytime TD" used to grab that category across every saved
+   week at once. */
+.quick-select-weeks { display: flex; gap: 4px; }
+.quick-select-week-btn {
+  background: var(--panel);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.quick-select-week-btn:hover { border-color: var(--accent); color: var(--accent); }
+.quick-select-week-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* Categories dropdown -- checkboxes instead of the old one-button-per-
+   category row, so multiple categories layer together (checking a second
+   one doesn't wipe out the first) and the always-visible button row
+   doesn't grow unbounded as more markets get saved. */
+.quick-select-dropdown { position: relative; }
+.quick-select-menu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.quick-select-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.quick-select-menu-item:hover { background: var(--table-head); }
+.quick-select-menu-panel .quick-select-clear-btn { margin-top: 4px; align-self: flex-start; }
 
 .wheel-action-bar {
   display: flex;

@@ -21,40 +21,106 @@ function updateWheelActionBar() {
   document.getElementById("wheel-selected-count").textContent = `${wheelSelected.size} selected`;
 }
 
-// One button per distinct market present in the saved list (Anytime TD,
-// First TD, Receiving Yards, whatever's actually there) -- replaces the
-// current wheel selection with exactly that market's plays, so "select all
-// Anytime TD" means just those, not those added on top of whatever else
-// was already checked. Manual checkboxes still work fine afterward for
-// mixing in extras.
+// Which week the quick-select controls are scoped to -- a plain module
+// variable, not persisted, since it's just a same-session filter on the
+// tool itself (the plays list below still always shows every week). Old
+// behavior had "Select all: Anytime TD" grab that category across EVERY
+// saved week at once, which is exactly the "why did it just pick last
+// week's plays too" complaint -- picking a week first scopes every
+// category checkbox underneath it to that week only.
+let quickSelectWeek = null;
+
+// Every play ID for one (week, category) combo -- both the dropdown
+// checkbox's own checked state and its change handler key off this same
+// list, so they can't drift apart.
+function quickSelectIds(week, category) {
+  return loadPossiblePlays()
+    .filter((p) => p.week === week && p.category === category)
+    .map((p) => p.id);
+}
+
+// Week buttons + a "Categories" dropdown of checkboxes for the chosen
+// week, replacing the old flat row of "Select all: X" buttons (which had
+// no notion of week at all). A checkbox mirrors whether EVERY play in that
+// (week, category) is currently wheel-selected -- checking/unchecking it
+// adds/removes exactly that set, so multiple categories layer together
+// instead of each one wiping out the last (the old buttons' "replaces the
+// whole selection" behavior doesn't fit checkbox semantics).
 function renderQuickSelectBar() {
   const bar = document.getElementById("quick-select-bar");
   if (!bar) return;
-  const categories = [...new Set(loadPossiblePlays().map((p) => p.category))].sort();
-  if (categories.length === 0) {
+  const allPlays = loadPossiblePlays();
+  if (allPlays.length === 0) {
     bar.hidden = true;
     return;
   }
   bar.hidden = false;
-  const buttons = categories
-    .map((c) => `<button type="button" class="quick-select-btn" data-entry="${encodeDataAttr(c)}">Select all: ${c}</button>`)
+  const weeks = [...new Set(allPlays.map((p) => p.week))].sort((a, b) => b - a);
+  if (quickSelectWeek === null || !weeks.includes(quickSelectWeek)) quickSelectWeek = weeks[0];
+
+  const weekButtons = weeks
+    .map((w) => `<button type="button" class="quick-select-week-btn${w === quickSelectWeek ? " active" : ""}" data-week="${w}">Week ${w}</button>`)
     .join("");
-  bar.innerHTML = `<span class="quick-select-label">Quick select:</span>${buttons}<button type="button" id="quick-select-clear" class="quick-select-btn quick-select-clear-btn">Clear</button>`;
+
+  const categories = [...new Set(allPlays.filter((p) => p.week === quickSelectWeek).map((p) => p.category))].sort();
+  const categoryItems = categories.length
+    ? categories
+        .map((c) => {
+          const ids = quickSelectIds(quickSelectWeek, c);
+          const allChecked = ids.every((id) => wheelSelected.has(id));
+          return `<label class="quick-select-menu-item"><input type="checkbox" class="quick-select-check" data-entry="${encodeDataAttr(c)}"${allChecked ? " checked" : ""}> ${c}</label>`;
+        })
+        .join("")
+    : `<p class="no-data-note">No plays saved for Week ${quickSelectWeek}.</p>`;
+
+  bar.innerHTML = `
+    <span class="quick-select-label">Quick select:</span>
+    <div class="quick-select-weeks">${weekButtons}</div>
+    <div class="quick-select-dropdown">
+      <button type="button" id="quick-select-dropdown-btn" class="quick-select-btn">Categories &#9662;</button>
+      <div id="quick-select-menu" class="quick-select-menu-panel" hidden>
+        ${categoryItems}
+        <button type="button" id="quick-select-clear" class="quick-select-btn quick-select-clear-btn">Clear selection</button>
+      </div>
+    </div>`;
 }
 
 document.addEventListener("click", (e) => {
-  const qsBtn = e.target.closest(".quick-select-btn");
-  if (!qsBtn) return;
-  if (qsBtn.id === "quick-select-clear") {
-    wheelSelected.clear();
-  } else {
-    const category = decodeDataAttr(qsBtn.dataset.entry);
-    wheelSelected.clear();
-    loadPossiblePlays()
-      .filter((p) => p.category === category)
-      .forEach((p) => wheelSelected.add(p.id));
+  const weekBtn = e.target.closest(".quick-select-week-btn");
+  if (weekBtn) {
+    quickSelectWeek = Number(weekBtn.dataset.week);
+    renderQuickSelectBar();
+    return;
   }
-  renderPossiblePlays();
+  const dropdownBtn = e.target.closest("#quick-select-dropdown-btn");
+  if (dropdownBtn) {
+    document.getElementById("quick-select-menu").hidden = !document.getElementById("quick-select-menu").hidden;
+    return;
+  }
+  const clearBtn = e.target.closest("#quick-select-clear");
+  if (clearBtn) {
+    wheelSelected.clear();
+    renderPossiblePlays();
+    return;
+  }
+  // Click anywhere outside the dropdown closes it -- but not a click
+  // inside the menu itself (a checkbox toggle re-renders the rows, not
+  // this bar, precisely so the open menu doesn't get yanked shut on every
+  // category you check).
+  const menu = document.getElementById("quick-select-menu");
+  if (menu && !menu.hidden && !e.target.closest(".quick-select-dropdown")) {
+    menu.hidden = true;
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const cb = e.target.closest(".quick-select-check");
+  if (!cb) return;
+  const category = decodeDataAttr(cb.dataset.entry);
+  const ids = quickSelectIds(quickSelectWeek, category);
+  if (cb.checked) ids.forEach((id) => wheelSelected.add(id));
+  else ids.forEach((id) => wheelSelected.delete(id));
+  renderPlaysList();
 });
 
 // ---- Grading ----
@@ -501,7 +567,12 @@ document.addEventListener("click", (e) => {
 
 document.getElementById("view-results-btn").addEventListener("click", openResultsModal);
 
-function renderPossiblePlays() {
+// Rows + week sections only -- deliberately NOT touching quick-select-bar,
+// so a quick-select checkbox toggle (see the "change" handler above) can
+// call just this and leave the open dropdown alone. renderPossiblePlays
+// (below) calls both, for everything else (initial load, add/remove a
+// play, week-independent state changes).
+function renderPlaysList() {
   const plays = loadPossiblePlays();
   const emptyEl = document.getElementById("empty-state");
   const contentEl = document.getElementById("plays-content");
@@ -510,11 +581,9 @@ function renderPossiblePlays() {
     emptyEl.hidden = false;
     contentEl.innerHTML = "";
     updateWheelActionBar();
-    renderQuickSelectBar();
     return;
   }
   emptyEl.hidden = true;
-  renderQuickSelectBar();
 
   const byWeek = {};
   plays.forEach((p) => {
@@ -570,6 +639,11 @@ function renderPossiblePlays() {
   });
 
   updateWheelActionBar();
+}
+
+function renderPossiblePlays() {
+  renderQuickSelectBar();
+  renderPlaysList();
 }
 
 document.addEventListener("change", (e) => {
