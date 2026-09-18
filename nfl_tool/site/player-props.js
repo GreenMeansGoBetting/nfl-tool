@@ -823,37 +823,34 @@ function passZoneEpaPerPlay(zone) {
   return zone && zone.attempts ? zone.epa_sum / zone.attempts : null;
 }
 
-// League-wide pool of some per-zone metric (completion rate, volume, EPA/
-// play -- whatever `metricFn` extracts), off or def side -- same zone-vs-
-// zone comparison a raw team_stats percentile pool would do, just sourced
-// from the nested pass_shot_charts blob instead of a flat key.
-function passZonePool(side, zoneKey, metricFn) {
-  return Object.values(DATA.pass_shot_charts || {})
-    .map((t) => metricFn(t[side]?.zones?.[zoneKey]))
-    .filter((v) => v !== null);
-}
-
-// Cell color: 75% how often this zone gets used (volume -- a raw
-// attempts count, not a rate) + 25% EPA/play there. Deliberately NOT
-// completion rate -- 2/2 and 7/8 read as the same "100%"-ish color under
-// a rate-only scheme despite being very different signals (one snapshot,
-// one a real, repeatable tendency), and a huge-volume zone at moderate
-// efficiency is a more real "magnet spot" (offense) or "soft spot"
-// (defense allowed) than a tiny-sample zone that happened to hit.
+// Self-referential ONLY -- deliberately no comparison to the other 31
+// defenses. The old version z-scored this zone's volume/EPA against every
+// OTHER team's own version of the same zone, which answered "is this an
+// unusual zone leaguewide" -- a completely different, and much less
+// useful, question than "where do teams actually exploit THIS defense."
+// A zone that gets modest volume by league standards can still be this
+// specific defense's clear soft spot if it's where THEY, relative to
+// their OWN other 11 zones, get attacked most and/or hold up worst -- and
+// that's exactly what this compares now: this zone's attempts/EPA against
+// this same team's other zones, nothing else.
 //
-// BOTH components invert on the def side: getting thrown at often in one
-// zone is itself the soft-spot signal (offenses attack what they've
-// identified), so high volume allowed is bad news for that defense and
-// has to read red -- same direction as allowing good EPA there. Green on
-// a defense grid therefore means "nobody goes here, and it doesn't work
-// when they do."
-function passZoneCompositeZ(side, zoneKey, zone) {
+// 75% how often this zone gets used (volume -- a raw attempts count, not
+// a rate) + 25% EPA/play there. Deliberately NOT completion rate -- 2/2
+// and 7/8 read as the same "100%"-ish color under a rate-only scheme
+// despite being very different signals (one snapshot, one a real,
+// repeatable tendency), and a huge-volume zone at moderate efficiency is
+// a more real "soft spot" than a tiny-sample zone that happened to hit.
+// Both components invert (bad = red): getting thrown at often in one zone
+// relative to this defense's own other areas, or allowing better EPA
+// there than elsewhere, are both exactly the "this is where they go after
+// this defense" signal.
+function passZoneCompositeZ(chart, zoneKey, zone) {
   if (!zone || !zone.attempts) return null;
-  const invert = side === "def";
-  const volumePool = passZonePool(side, zoneKey, (z) => (z && z.attempts ? z.attempts : null));
-  const epaPool = passZonePool(side, zoneKey, passZoneEpaPerPlay);
-  const volZ = zScore(zone.attempts, volumePool, invert);
-  const epaZ = zScore(passZoneEpaPerPlay(zone), epaPool, invert);
+  const allZones = Object.values(chart.zones);
+  const volumePool = allZones.map((z) => (z && z.attempts ? z.attempts : null)).filter((v) => v !== null);
+  const epaPool = allZones.map(passZoneEpaPerPlay).filter((v) => v !== null);
+  const volZ = zScore(zone.attempts, volumePool, true);
+  const epaZ = zScore(passZoneEpaPerPlay(zone), epaPool, true);
   if (volZ === null && epaZ === null) return null;
   return 0.75 * (volZ || 0) + 0.25 * (epaZ || 0);
 }
@@ -888,29 +885,28 @@ function passZoneColShare(chart, colKey) {
   const sum = PASS_ZONE_ROWS.reduce((s, r) => s + (chart.zones[`${r.key}_${colKey}`]?.attempts || 0), 0);
   return sum / chart.pass_attempts;
 }
-// League-wide pool of every team's OWN row/column share (same side) --
-// lets the total badge tier the same way every other cell on the site
-// does (percentileTier/zScore against the league), instead of an
-// untiered flat number.
-function passZoneRowSharePool(side, rowKey) {
-  return Object.values(DATA.pass_shot_charts || {})
-    .map((t) => passZoneRowShare(t[side], rowKey))
-    .filter((v) => v !== null);
+// This team's OWN other row/column shares -- same self-referential-only
+// principle as passZoneCompositeZ above, just at the row/column-total
+// level instead of per-cell. A row/column pool has just 4 or 3 values
+// (this team's own depths/sides), which is why zScore's 3-sample floor
+// matters here: a column pool (Left/Middle/Right) sits exactly at that
+// floor.
+function passZoneRowSharePool(chart) {
+  if (!chart) return [];
+  return PASS_ZONE_ROWS.map((r) => passZoneRowShare(chart, r.key)).filter((v) => v !== null);
 }
-function passZoneColSharePool(side, colKey) {
-  return Object.values(DATA.pass_shot_charts || {})
-    .map((t) => passZoneColShare(t[side], colKey))
-    .filter((v) => v !== null);
+function passZoneColSharePool(chart) {
+  if (!chart) return [];
+  return PASS_ZONE_COLS.map((c) => passZoneColShare(chart, c)).filter((v) => v !== null);
 }
-// Big colored pill instead of a small muted number -- same invert
-// convention as passZoneCompositeZ (more volume is a real signal on
-// offense=green, more volume ALLOWED is a soft spot on defense=red), so
-// the badge's color means the same thing the cells around it already do.
-function passZoneTotalBadge(side, share, pool) {
+// Big colored pill instead of a small muted number -- same self-only
+// invert convention as passZoneCompositeZ (more share than this team's
+// own other rows/columns = a soft spot = red), so the badge's color means
+// the same thing the cells around it already do.
+function passZoneTotalBadge(share, pool) {
   if (share === null) return "";
-  const invert = side === "def";
-  const cls = tierFromZ(zScore(share, pool, invert));
-  const alpha = alphaAttrFromZ(zScore(share, pool, invert));
+  const cls = tierFromZ(zScore(share, pool, true));
+  const alpha = alphaAttrFromZ(zScore(share, pool, true));
   return `<span class="pass-zone-total-badge ${cls}"${alpha}>${Math.round(share * 100)}%</span>`;
 }
 
@@ -918,13 +914,17 @@ function passZoneTotalBadge(side, share, pool) {
 // columns (schemeTableHeader, teamBannerHeader) -- plain "Left/Middle/
 // Right" text read as generic and out of place next to those. Each header
 // also carries that location's own total share of attempts (all 4 depths
-// combined), same idea as the row labels' own depth total.
-function passZoneGridHeader(team, chart, side) {
+// combined), same idea as the row labels' own depth total. `chart` is
+// optional -- renderPlayerPassZoneGrid reuses this header for a per-player
+// grid with no team-level share data, and gets the styled label with no
+// badge (passZoneColShare/passZoneColSharePool both no-op on an
+// undefined chart).
+function passZoneGridHeader(team, chart) {
   const rgb = teamAccentRgb(team);
   const style = `background:rgba(${rgb.join(",")},0.35)`;
   const col = (label, key) => {
     const share = passZoneColShare(chart, key);
-    const badge = passZoneTotalBadge(side, share, passZoneColSharePool(side, key));
+    const badge = passZoneTotalBadge(share, passZoneColSharePool(chart));
     return `<th style="${style}"><span class="pass-zone-col-label">${label}</span>${badge}</th>`;
   };
   return `<tr><th></th>${col("Left", "left")}${col("Middle", "middle")}${col("Right", "right")}</tr>`;
@@ -964,7 +964,7 @@ function renderPassZoneGrid(team, side, opponent) {
     const cells = PASS_ZONE_COLS.map((loc) => {
       const zk = `${r.key}_${loc}`;
       const zone = chart.zones[zk];
-      const z = passZoneCompositeZ(side, zk, zone);
+      const z = passZoneCompositeZ(chart, zk, zone);
       const cls = tierFromZ(z);
       const alpha = alphaAttrFromZ(z);
       const share = passZoneVolumeShare(chart, zone);
@@ -979,11 +979,11 @@ function renderPassZoneGrid(team, side, opponent) {
       return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><div class="pass-zone-cell-inner"><span class="pass-zone-rate">${shareDisplay}</span>${detail}</div></td>`;
     }).join("");
     const rowShare = passZoneRowShare(chart, r.key);
-    const rowBadge = passZoneTotalBadge(side, rowShare, passZoneRowSharePool(side, r.key));
+    const rowBadge = passZoneTotalBadge(rowShare, passZoneRowSharePool(chart));
     return `<tr><th class="pass-zone-row-label"><span class="pass-zone-row-label-text">${r.label}</span>${rowBadge}</th>${cells}</tr>`;
   }).join("");
   return `<table class="data-table pass-zone-grid">
-    <thead>${passZoneGridHeader(team, chart, side)}</thead>
+    <thead>${passZoneGridHeader(team, chart)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -1310,7 +1310,7 @@ const PLAYER_ZONE_HEAT_MAX_ALPHA = 0.85;
 function defenseZoneTier(oppTeam, zoneKey) {
   const chart = (DATA.pass_shot_charts[oppTeam] || {}).def;
   if (!chart) return "";
-  return tierFromZ(passZoneCompositeZ("def", zoneKey, chart.zones[zoneKey]));
+  return tierFromZ(passZoneCompositeZ(chart, zoneKey, chart.zones[zoneKey]));
 }
 
 function renderPlayerZoneHeatGrid(zones, oppTeam) {
