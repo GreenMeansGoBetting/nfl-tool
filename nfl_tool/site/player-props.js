@@ -1361,17 +1361,18 @@ function renderPlayerZoneMiniCard(team, name, player, oppTeam) {
 // No target minimum -- the Receiving table's targets>=5 bar made sense for
 // stabilizing a per-game RATE, but it was quietly dropping real
 // pass-catchers from this raw volume view (a WR with 3 targets in Week 2
-// just vanished entirely). Any charted target qualifies; capped to the
-// top 5 by volume so this stays a glance-able row instead of growing with
-// the roster -- click the team banner (still wired to
-// openPassZoneAllPlayersModal) for every charted pass-catcher.
+// just vanished entirely). No cap either -- a top-5 cutoff was still
+// hiding real target-earners on a deep receiving corps (Carolina had more
+// than 5 players with charted targets); every qualifying player shows,
+// most-targeted first, sized small enough (see .pass-zone-player-mini-card)
+// that a long roster still wraps into a manageable grid instead of one
+// giant row.
 function renderOffensePlayerZoneCards(team, side, opponent) {
   const players = DATA.player_pass_zones[team] || {};
   const totalTgt = (name) => Object.values(players[name].zones).reduce((s, z) => s + (z.targets || 0), 0);
   const names = Object.keys(players)
     .filter((n) => totalTgt(n) > 0)
-    .sort((a, b) => totalTgt(b) - totalTgt(a))
-    .slice(0, 5);
+    .sort((a, b) => totalTgt(b) - totalTgt(a));
   const body = names.length
     ? `<div class="pass-zone-players-inline">${names.map((n) => renderPlayerZoneMiniCard(team, n, players[n], opponent)).join("")}</div>`
     : `<p class="no-data-note">No qualifying pass-catchers yet this season.</p>`;

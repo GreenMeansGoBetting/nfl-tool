@@ -687,15 +687,20 @@ h3 {
   gap: 10px;
   margin-top: 6px;
 }
-.pass-zone-player-mini-card { flex: 1 1 210px; min-width: 190px; max-width: 280px; }
-.pass-zone-player-banner-mini { gap: 8px; margin-bottom: 6px; }
-.pass-zone-player-banner-mini .pass-zone-player-photo { width: 36px; height: 36px; }
-.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.92rem; }
-.pass-zone-player-banner-mini .pass-zone-player-pos { font-size: 0.75rem; }
-.pass-zone-grid-mini { font-size: 0.85rem; }
-.pass-zone-grid-mini th, .pass-zone-grid-mini td { padding: 7px 4px; }
-.pass-zone-grid-mini th { font-size: 0.75rem; }
-.pass-zone-row-label-mini { text-align: center; vertical-align: middle; width: 40px; font-size: 0.72rem; font-weight: 700; }
+/* Shrunk again once the top-5 cap on renderOffensePlayerZoneCards came off
+   -- a deep receiving corps can mean 8-10+ cards in this row now, and each
+   cell only ever holds a 3-4 character "rec/tgt" (or "--"), so the wider
+   sizing from when this topped out at 5 cards left a lot of dead space per
+   cell for that little content. */
+.pass-zone-player-mini-card { flex: 1 1 140px; min-width: 128px; max-width: 170px; }
+.pass-zone-player-banner-mini { gap: 6px; margin-bottom: 4px; }
+.pass-zone-player-banner-mini .pass-zone-player-photo { width: 26px; height: 26px; }
+.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.78rem; }
+.pass-zone-player-banner-mini .pass-zone-player-pos { font-size: 0.64rem; }
+.pass-zone-grid-mini { font-size: 0.7rem; }
+.pass-zone-grid-mini th, .pass-zone-grid-mini td { padding: 4px 2px; }
+.pass-zone-grid-mini th { font-size: 0.64rem; }
+.pass-zone-row-label-mini { text-align: center; vertical-align: middle; width: 26px; font-size: 0.6rem; font-weight: 700; }
 /* Heat alpha comes from an inline style (see PLAYER_ZONE_HEAT_*), not a
    tier class -- no green/red judgment here, just "how much," so the text
    stays plain instead of picking up the site's good/bad coloring. */
