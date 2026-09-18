@@ -252,6 +252,25 @@ const RUSH_ZONES = [
 // there's at least one play, so the carry count is shown right alongside
 // it (n=2 reads very differently than n=20) instead of hiding thin lanes
 // outright.
+// Success rate allowed alone is blind to explosive severity -- a lane
+// with 2 stuffs and 2 backbreaking long runs can average 20+ YPC while
+// still landing near a normal success%, since "success" is a binary
+// per-play efficiency call, not a magnitude. Blends in YPC allowed (50/50)
+// so a lane that's actually getting gashed reads red even when the
+// per-play tally looks unremarkable. Self-referential only, same
+// principle as the pass zone grid: this team's own other 6 lanes are the
+// pool, not the other 31 teams' own (often equally thin) samples.
+function rushLaneDefenseCompositeZ(team, zoneKey) {
+  const val = DATA.team_stats[team][`rush_success_allowed_${zoneKey}`];
+  if (val === null || val === undefined) return null;
+  const successPool = RUSH_ZONES.map((z) => DATA.team_stats[team][`rush_success_allowed_${z.key}`]).filter((v) => v !== null && v !== undefined);
+  const ypcPool = RUSH_ZONES.map((z) => DATA.team_stats[team][`rush_ypc_allowed_${z.key}`]).filter((v) => v !== null && v !== undefined);
+  const successZ = zScore(val, successPool, true);
+  const ypcZ = zScore(DATA.team_stats[team][`rush_ypc_allowed_${zoneKey}`], ypcPool, true);
+  if (successZ === null && ypcZ === null) return null;
+  return 0.5 * (successZ || 0) + 0.5 * (ypcZ || 0);
+}
+
 function defenseLaneCell(team, zone) {
   const successKey = `rush_success_allowed_${zone.key}`;
   const ypcKey = `rush_ypc_allowed_${zone.key}`;
@@ -260,18 +279,18 @@ function defenseLaneCell(team, zone) {
   const n = DATA.team_stats[team][`rush_carries_allowed_${zone.key}`] || 0;
   const hasSample = val !== null && val !== undefined;
   let cls = "rush-lane-nosample";
+  let alpha = "";
   let clickAttrs = "";
   if (hasSample) {
-    const pool = teamsWithGames()
-      .map((t) => DATA.team_stats[t][successKey])
-      .filter((v) => v !== null && v !== undefined);
-    cls = percentileTier(val, pool, true);
+    const z = rushLaneDefenseCompositeZ(team, zone.key);
+    cls = tierFromZ(z);
+    alpha = alphaAttrFromZ(z);
     const payload = { team, statKey: successKey, label: `${zone.full} Rush Success % Allowed`, invert: true, percent: true };
     clickAttrs = ` stat-rank-click" data-entry="${encodeDataAttr(payload)}`;
   }
   const display = hasSample ? `${Math.round(val * 100)}%` : "--";
   const ypcDisplay = ypc !== null && ypc !== undefined ? fmt(ypc, 1) : "--";
-  return `<div class="rush-lane-box ${cls}${clickAttrs}">
+  return `<div class="rush-lane-box ${cls}${clickAttrs}"${alpha}>
     <span class="rush-lane-label">${zone.label}</span>
     <span class="rush-lane-pct">${display}</span>
     <span class="rush-lane-ypc">${ypcDisplay} YPC</span>
