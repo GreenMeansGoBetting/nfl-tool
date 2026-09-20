@@ -787,6 +787,30 @@ def fetch_previous_odds_snapshot() -> dict | None:
         return None
 
 
+def sgo_debug_summary(events: list, teams) -> dict:
+    """Per team: every player name SGO lists in the event, plus which
+    anytime-TD 'yes' rows exist for them and whether each has a live book
+    price. Exists only so a "why is X missing from the odds" question can be
+    answered straight from the live data.json instead of build logs."""
+    out = {}
+    for event in events:
+        players = event.get("players", {})
+        short = {
+            event["teams"][s]["teamID"]: normalize_team(event["teams"][s]["names"]["short"])
+            for s in ("home", "away")
+        }
+        td_rows = {}
+        for odd in event.get("odds", {}).values():
+            if odd.get("statID") == "touchdowns" and odd.get("betTypeID") == "yn" and odd.get("sideID") == "yes":
+                has_book = any(i.get("available") and i.get("odds") is not None for i in (odd.get("byBookmaker") or {}).values())
+                td_rows[odd.get("playerID")] = "book" if has_book else ("fair" if odd.get("fairOdds") is not None else "none")
+        for pid, pl in players.items():
+            t = short.get(pl.get("teamID"))
+            if t in teams:
+                out.setdefault(t, {})[pl.get("name")] = td_rows.get(pid, "no-row")
+    return out
+
+
 def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None, unavailable: set = None) -> dict:
     """Every player's "yes/no" odds for one statID (e.g. "touchdowns" for
     anytime-TD, "firstTouchdown" for first-TD) out of a fetch_sgo_events()
@@ -3322,6 +3346,7 @@ def main():
     player_first_td_odds = None
     general_odds = None
     player_prop_markets = None
+    sgo_debug = None
     if week_dates:
         starts_after = week_dates[0]
         # A plain date+1 cutoff is midnight UTC on the day after the last
@@ -3369,6 +3394,7 @@ def main():
                 if isinstance(row.report_status, str)
                 and row.report_status.lower() in ("out", "doubtful", "injured reserve", "ir", "suspended")
             }
+            sgo_debug = sgo_debug_summary(sgo_events, teams)
             player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions, unavailable)
             player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions, unavailable)
             general_odds = extract_general_odds(sgo_events, teams)
@@ -3395,6 +3421,7 @@ def main():
                 player_first_td_odds = prev.get("player_first_td_odds")
                 general_odds = prev.get("general_odds")
                 player_prop_markets = prev.get("player_prop_markets")
+                sgo_debug = prev.get("sgo_debug")
                 if general_odds:
                     apply_sgo_schedule_odds(week_games, general_odds)
                 print("WARNING: SGO fetch failed this run -- reused last-known-good odds from the live site instead of clearing them.", file=sys.stderr)
@@ -3434,6 +3461,7 @@ def main():
         "player_first_td_odds": player_first_td_odds,
         "general_odds": general_odds,
         "player_prop_markets": player_prop_markets,
+        "sgo_debug": sgo_debug,
         "player_prop_market_labels": PLAYER_OU_MARKETS,
     }
 

@@ -1047,6 +1047,9 @@ footer a { color: var(--accent); }
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
+/* display:flex above beats the UA [hidden] rule, which is what left the
+   menu permanently open -- restore it explicitly. */
+.quick-select-menu-panel[hidden] { display: none; }
 .quick-select-menu-item {
   display: flex;
   align-items: center;
