@@ -787,7 +787,7 @@ def fetch_previous_odds_snapshot() -> dict | None:
         return None
 
 
-def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None) -> dict:
+def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None, unavailable: set = None) -> dict:
     """Every player's "yes/no" odds for one statID (e.g. "touchdowns" for
     anytime-TD, "firstTouchdown" for first-TD) out of a fetch_sgo_events()
     response -- ONLY players with an actual live book price. A player with
@@ -841,16 +841,21 @@ def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: di
                 if best_price is None or price > best_price:
                     best_price, best_book = price, book
 
-            # Require an actual live book price -- a player with none (no
-            # sportsbook posting a line) is almost always hurt/inactive, and
-            # SportsGameOdds' de-vigged "fair" number can still exist even
-            # with the real market pulled. Showing it read as a live line
-            # that happened to have no book listed, not as "books think
-            # this guy isn't playing."
-            if best_price is None:
-                continue
             fair_odds = odd.get("fairOdds")
             fair_odds = float(fair_odds) if fair_odds is not None else None
+
+            # No live book price used to drop the player outright (a pulled
+            # market usually meant hurt/inactive, and SGO's de-vigged "fair"
+            # number can outlive the real market). That also silently hid
+            # healthy starters the free tier just has no book line for --
+            # Miami's Caleb Douglas (91% snaps) and Chris Bell (52%) were
+            # missing while practice-squad names showed up. So: keep the
+            # player on the fair number, labeled as such, unless he's
+            # confirmed out on the injury report.
+            if best_price is None:
+                if fair_odds is None or player.get("name") in (unavailable or ()):
+                    continue
+                best_price, best_book = fair_odds, "fair value"
 
             row = {
                 "name": player.get("name"),
@@ -3356,8 +3361,16 @@ def main():
             sgo_api_keys = [os.environ.get("SGO_API_KEY"), os.environ.get("SGO_API_KEY_BACKUP")]
             sgo_events = fetch_sgo_events(sgo_api_keys, starts_after, starts_before)
         if sgo_events is not None:
-            player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions)
-            player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions)
+            # Confirmed-out players (official Out/Doubtful/IR designation) --
+            # the one case where a price-less player should stay hidden.
+            unavailable = {
+                row.full_name
+                for row in injuries_df.itertuples(index=False)
+                if isinstance(row.report_status, str)
+                and row.report_status.lower() in ("out", "doubtful", "injured reserve", "ir", "suspended")
+            }
+            player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions, unavailable)
+            player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions, unavailable)
             general_odds = extract_general_odds(sgo_events, teams)
             # Same event fetch already paid for above -- SGO bills per EVENT
             # returned, not per market, so pulling all 16 of these costs
