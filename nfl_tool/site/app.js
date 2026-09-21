@@ -418,9 +418,9 @@ function renderBasicsTable(offTeam, defTeam) {
 }
 
 const percentileClsFor = (statKey, team, invert) => {
-  const val = DATA.team_stats[team][statKey];
+  const val = tierValue(team, statKey);
   if (val === null) return "";
-  const pool = teamsWithGames().map((t) => DATA.team_stats[t][statKey]).filter((v) => v !== null);
+  const pool = teamsWithGames().map((t) => tierValue(t, statKey)).filter((v) => v !== null);
   return percentileTier(val, pool, invert);
 };
 const rzConvDisplay = (statKey, team) => {

@@ -225,9 +225,9 @@ function compositeZ(metrics, team) {
   let sum = 0;
   let weightSum = 0;
   for (const m of metrics) {
-    const value = DATA.team_stats[team][m.key];
+    const value = tierValue(team, m.key);
     if (value === null || value === undefined) continue;
-    const values = pool.map((t) => DATA.team_stats[t][m.key]);
+    const values = pool.map((t) => tierValue(t, m.key));
     const z = zScore(value, values, m.invert);
     if (z === null) continue;
     const w = m.weight || 1;

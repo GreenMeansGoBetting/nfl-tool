@@ -172,16 +172,27 @@ function teamBannerHeader(team, clickable = false) {
   </div>`;
 }
 
+// Colors are judged PER GAME, not on the displayed season total -- a team
+// with 1 game played (e.g. the Monday-night teams on a Monday) has half the
+// total of a 2-game team for reasons that have nothing to do with quality,
+// which used to inflate/deflate every count-based color. Any stat with a
+// "<key>_per_g" sibling is compared on that; the cell still DISPLAYS the
+// total. Stats with no per-game sibling are already rates/shares.
+function tierValue(t, statKey) {
+  const s = DATA.team_stats[t];
+  const pg = s[statKey + "_per_g"];
+  return pg !== undefined && pg !== null ? pg : s[statKey];
+}
 function tierFor(statKey, team, invert, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
-  const values = pool.map((t) => DATA.team_stats[t][statKey]);
-  return percentileTier(DATA.team_stats[team][statKey], values, invert, threshold);
+  const values = pool.map((t) => tierValue(t, statKey));
+  return percentileTier(tierValue(team, statKey), values, invert, threshold);
 }
 // Companion to tierFor -- same lookup, continuous shading instead of a class.
 function tierForAlphaAttr(statKey, team, invert, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
-  const values = pool.map((t) => DATA.team_stats[t][statKey]);
-  return tierAlphaAttr(DATA.team_stats[team][statKey], values, invert, threshold);
+  const values = pool.map((t) => tierValue(t, statKey));
+  return tierAlphaAttr(tierValue(team, statKey), values, invert, threshold);
 }
 
 // A team's own share of its games where the OPPONENT scored first -- the
@@ -215,7 +226,8 @@ function tierForFirstTdAllowedAlphaAttr(team, threshold = TIER_Z_THRESHOLD) {
 // allowed" promise the legend makes everywhere else).
 function bucketCountTier(dictKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
-  const countOf = (t) => DATA.team_stats[t][dictKey][bucketKey] || 0;
+  // Per game (see tierValue) -- raw bucket counts scale with games played.
+  const countOf = (t) => (DATA.team_stats[t][dictKey][bucketKey] || 0) / (DATA.team_stats[t].games_played || 1);
   return percentileTier(countOf(team), pool.map(countOf), invert, threshold);
 }
 function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
@@ -230,7 +242,7 @@ function bucketShareTier(dictKey, totalKey, bucketKey, team, invert = false, thr
 // continuous shading instead of a class (see tierAlpha's comment).
 function bucketCountAlphaAttr(dictKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {
   const pool = teamsWithGames();
-  const countOf = (t) => DATA.team_stats[t][dictKey][bucketKey] || 0;
+  const countOf = (t) => (DATA.team_stats[t][dictKey][bucketKey] || 0) / (DATA.team_stats[t].games_played || 1);
   return tierAlphaAttr(countOf(team), pool.map(countOf), invert, threshold);
 }
 function bucketShareAlphaAttr(dictKey, totalKey, bucketKey, team, invert = false, threshold = TIER_Z_THRESHOLD) {

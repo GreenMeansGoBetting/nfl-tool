@@ -1331,7 +1331,10 @@ footer a { color: var(--accent); }
   margin: 0 0 16px;
 }
 
-.odds-table th, .odds-table td { text-align: center; }
+/* Base .data-table is width:100%, which stretched this to the full section
+   width for a handful of narrow columns -- size to content instead. */
+.odds-table { width: auto; }
+.odds-table th, .odds-table td { text-align: center; padding-left: 10px; padding-right: 10px; }
 .odds-table .odds-team-cell {
   display: flex;
   align-items: center;
