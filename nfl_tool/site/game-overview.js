@@ -687,6 +687,182 @@ document.addEventListener("click", (e) => {
   if (btn) openGeneralOddsModal(btn.dataset.away, btn.dataset.home);
 });
 
+// ---- Wins & Losses quality (each result vs. its pregame spread) ----
+// The spread already prices in opponent strength, home field, and injuries
+// (a backup QB start, etc.), so it's the yardstick for "was this result
+// better or worse than expected" -- a record-based opponent tier means
+// little two games into a season. Labels freeze the market's pregame view;
+// the detail modal shows each opponent's CURRENT record for hindsight.
+const RESUME_PICKEM = 2.5; // |spread| at or under this = near pick'em
+const RESUME_BAD_WIN_MISS = 7; // favorite won but missed the spread by 7+
+
+const RESUME_LABELS = {
+  QW: "Quality Win", NW: "Neutral Win", BW: "Bad Win",
+  QL: "Quality Loss", NL: "Neutral Loss", BL: "Bad Loss", T: "Tie",
+};
+
+// spread is the team's own line (betting notation: + = underdog);
+// ats = margin + spread (>0 covered, 0 push, <0 didn't cover). A game with
+// no line on file grades as a pick'em (Neutral).
+function resumeLabel(margin, spread, ats) {
+  if (margin === 0) return "T";
+  const hasLine = spread !== null && spread !== undefined;
+  const dog = hasLine && spread > RESUME_PICKEM;
+  const fav = hasLine && spread < -RESUME_PICKEM;
+  if (margin > 0) {
+    if (dog) return "QW";
+    if (fav && ats <= -RESUME_BAD_WIN_MISS) return "BW";
+    return "NW";
+  }
+  if (fav) return "BL";
+  if (dog && ats >= 0) return "QL";
+  return "NL";
+}
+
+// Final games only, and only weeks BEFORE the game being previewed -- so
+// flipping back to an old week shows the résumé as it stood then.
+function resumeGamesFor(team, beforeWeek) {
+  return (DATA.schedule || [])
+    .filter((g) => g.status === "final" && g.week < beforeWeek && (g.away === team || g.home === team))
+    .map((g) => {
+      const isHome = g.home === team;
+      const pf = isHome ? g.home_score : g.away_score;
+      const pa = isHome ? g.away_score : g.home_score;
+      const spread = isHome ? g.home_team_spread : g.away_team_spread;
+      const margin = pf - pa;
+      const ats = spread === null || spread === undefined ? null : margin + spread;
+      return { week: g.week, opp: isHome ? g.away : g.home, isHome, pf, pa, spread, margin, ats, label: resumeLabel(margin, spread, ats) };
+    });
+}
+
+function fmtRecord(w, l, t) {
+  return t ? `${w}-${l}-${t}` : `${w}-${l}`;
+}
+
+// Current full-season record (hindsight), not as of the résumé week.
+function teamCurrentRecord(team) {
+  let w = 0, l = 0, t = 0;
+  for (const g of DATA.schedule || []) {
+    if (g.status !== "final" || (g.away !== team && g.home !== team)) continue;
+    const diff = g.home === team ? g.home_score - g.away_score : g.away_score - g.home_score;
+    if (diff > 0) w++;
+    else if (diff < 0) l++;
+    else t++;
+  }
+  return fmtRecord(w, l, t);
+}
+
+function resumeSummary(games) {
+  const count = (lbl) => games.filter((g) => g.label === lbl).length;
+  const su = [games.filter((g) => g.margin > 0).length, games.filter((g) => g.margin < 0).length, count("T")];
+  const lined = games.filter((g) => g.ats !== null);
+  const ats = [lined.filter((g) => g.ats > 0).length, lined.filter((g) => g.ats < 0).length, lined.filter((g) => g.ats === 0).length];
+  return {
+    Q: [count("QW"), count("QL")], N: [count("NW"), count("NL")], B: [count("BW"), count("BL")],
+    su: fmtRecord(...su), ats: fmtRecord(...ats),
+  };
+}
+
+function resumeWLCell([w, l]) {
+  const n = (v) => `<span class="${v ? "resume-count" : "resume-zero"}">${v}</span>`;
+  return `${n(w)}-${n(l)}`;
+}
+
+function renderResumeChart(game) {
+  const rows = [game.away, game.home]
+    .map((team) => {
+      const s = resumeSummary(resumeGamesFor(team, game.week));
+      return `<tr>
+        <td class="resume-team">${teamLogoMini(team, 18)} ${team}</td>
+        <td class="num">${resumeWLCell(s.Q)}</td>
+        <td class="num">${resumeWLCell(s.N)}</td>
+        <td class="num">${resumeWLCell(s.B)}</td>
+        <td class="num resume-rec">${s.su}</td>
+        <td class="num resume-rec">${s.ats}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<button type="button" class="resume-chart" data-away="${game.away}" data-home="${game.home}" data-week="${game.week}" title="Click for the game-by-game breakdown">
+    <table class="data-table resume-table">
+      <thead>
+        <tr><th class="resume-caption">W-L vs. pregame spread</th><th class="resume-hdr-q">Quality</th><th class="resume-hdr-n">Neutral</th><th class="resume-hdr-b">Bad</th><th>SU</th><th>ATS</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <span class="resume-more">Game-by-game &rsaquo;</span>
+  </button>`;
+}
+
+function fmtSpreadLine(n) {
+  if (n === null || n === undefined) return "--";
+  if (n === 0) return "PK";
+  const v = Number.isInteger(n) ? n : n.toFixed(1);
+  return n > 0 ? `+${v}` : `${v}`;
+}
+
+function renderResumeTeamLog(team, beforeWeek) {
+  const games = resumeGamesFor(team, beforeWeek);
+  const heading = `<h4 class="resume-log-heading">${teamLogoMini(team, 22)} ${TEAM_NAMES[team] || team} <span class="muted-label">(${teamCurrentRecord(team)})</span></h4>`;
+  if (!games.length) return `${heading}<p class="no-data-note">No completed games before this week.</p>`;
+  const rows = games
+    .map((g) => {
+      const atsCls = g.ats === null ? "" : g.ats > 0 ? "resume-ats-cover" : g.ats < 0 ? "resume-ats-miss" : "";
+      const atsText = g.ats === null ? "--" : g.ats === 0 ? "Push" : fmtSpreadLine(g.ats);
+      return `<tr>
+        <td class="num">${g.week}</td>
+        <td class="resume-opp">${g.isHome ? "vs" : "@"} ${teamLogoMini(g.opp, 16)} ${g.opp} <span class="muted-label">(${teamCurrentRecord(g.opp)})</span></td>
+        <td class="num">${fmtSpreadLine(g.spread)}</td>
+        <td class="num">${g.margin > 0 ? "W" : g.margin < 0 ? "L" : "T"} ${g.pf}-${g.pa}</td>
+        <td class="num ${atsCls}">${atsText}</td>
+        <td><span class="resume-chip resume-chip-${g.label}">${RESUME_LABELS[g.label]}</span></td>
+      </tr>`;
+    })
+    .join("");
+  return `${heading}
+    <table class="data-table resume-log-table">
+      <thead><tr><th>Wk</th><th>Opponent (current record)</th><th>Line</th><th>Result</th><th>vs. Spread</th><th>Label</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function ensureResumeModal() {
+  if (document.getElementById("resume-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "resume-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="resume-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const close = () => (overlay.hidden = true);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", close);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+}
+
+function openResumeModal(away, home, week) {
+  ensureResumeModal();
+  document.getElementById("resume-modal-content").innerHTML = `
+    <h3>${TEAM_NAMES[away] || away} @ ${TEAM_NAMES[home] || home} &mdash; Wins &amp; Losses</h3>
+    <p class="no-data-note">Each result graded against its pregame spread (Line = that team's own number, + = underdog). <b>Quality Win</b>: won as a 3+ pt underdog. <b>Bad Loss</b>: lost as a 3+ pt favorite. <b>Quality Loss</b>: lost as an underdog but covered. <b>Bad Win</b>: won as a favorite but missed the spread by 7+. Everything else, including games within 2.5 pts, is <b>Neutral</b>. Opponent records are current, for hindsight.</p>
+    <div class="resume-log-cols">
+      <div>${renderResumeTeamLog(away, week)}</div>
+      <div>${renderResumeTeamLog(home, week)}</div>
+    </div>`;
+  document.getElementById("resume-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const chart = e.target.closest(".resume-chart");
+  if (chart) openResumeModal(chart.dataset.away, chart.dataset.home, Number(chart.dataset.week));
+});
+
 // One number per side (not the Total/Per-Game pair headerRow() expects),
 // so this gets its own compact header instead of reusing that function.
 function pairedStatHeader(offTeam, defTeam) {
@@ -1446,6 +1622,7 @@ function render() {
   document.getElementById("col-away-injuries").innerHTML = renderInjuryPanel(away, game.week);
   document.getElementById("col-home-injuries").innerHTML = renderInjuryPanel(home, game.week);
   document.getElementById("odds-content").innerHTML = renderOddsBar(game);
+  document.getElementById("resume-content").innerHTML = renderResumeChart(game);
   document.getElementById("col-away-general").innerHTML = renderGeneralStatsTable(away, home);
   document.getElementById("col-home-general").innerHTML = renderGeneralStatsTable(home, away);
   document.getElementById("scheme-notes").innerHTML = renderSchemeNotes(away, home);

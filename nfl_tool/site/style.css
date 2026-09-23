@@ -1343,6 +1343,49 @@ footer a { color: var(--accent); }
   text-align: left;
 }
 .odds-price { color: var(--muted); font-size: 0.78rem; }
+
+/* Odds table + Wins & Losses chart share the left column side by side. */
+.odds-resume-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.resume-chart {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.resume-table { width: auto; }
+.resume-table th, .resume-table td { text-align: center; padding: 5px 8px; font-size: 0.82rem; }
+.resume-table th.resume-caption { font-size: 0.68rem; font-weight: 600; color: var(--muted); text-align: left; max-width: 90px; line-height: 1.15; }
+.resume-table .resume-team { display: flex; align-items: center; gap: 5px; font-weight: 700; text-align: left; }
+.resume-hdr-q { background: rgba(var(--good-rgb), 0.22); }
+.resume-hdr-n { background: rgba(128, 128, 128, 0.18); }
+.resume-hdr-b { background: rgba(var(--bad-rgb), 0.2); }
+.resume-count { font-weight: 700; }
+.resume-zero { color: var(--muted); opacity: 0.6; }
+.resume-rec { color: var(--muted); }
+.resume-more { display: block; margin-top: 4px; font-size: 0.72rem; color: var(--muted); }
+.resume-chart:hover .resume-more { color: var(--accent); }
+.resume-chart:hover .resume-table { outline: 1px solid var(--accent); }
+
+.resume-log-cols { display: flex; flex-wrap: wrap; gap: 20px; }
+.resume-log-cols > div { flex: 1 1 380px; min-width: 0; }
+.resume-log-heading { display: flex; align-items: center; gap: 6px; margin: 10px 0 6px; }
+.resume-log-table { width: auto; }
+.resume-log-table th, .resume-log-table td { padding: 5px 8px; font-size: 0.82rem; white-space: nowrap; }
+.resume-opp { display: flex; align-items: center; gap: 4px; }
+.resume-ats-cover { color: var(--good-text); font-weight: 600; }
+.resume-ats-miss { color: var(--bad-text); font-weight: 600; }
+/* Quality = green, Neutral = gray, Bad = red; wins solid, losses outlined. */
+.resume-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.74rem; font-weight: 700; border: 1px solid transparent; }
+.resume-chip-QW { background: var(--good); color: #fff; }
+.resume-chip-QL { border-color: var(--good); color: var(--good-text); }
+.resume-chip-NW { background: #8a8a8a; color: #fff; }
+.resume-chip-NL, .resume-chip-T { border-color: #8a8a8a; color: var(--muted); }
+.resume-chip-BW { background: var(--bad); color: #fff; }
+.resume-chip-BL { border-color: var(--bad); color: var(--bad-text); }
 .odds-implied-score { font-style: italic; font-weight: 400; color: var(--muted); font-size: 0.85em; }
 
 .novig-ad {
