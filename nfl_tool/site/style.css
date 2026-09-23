@@ -1370,8 +1370,14 @@ footer a { color: var(--accent); }
 .resume-chart:hover .resume-more { color: var(--accent); }
 .resume-chart:hover .resume-table { outline: 1px solid var(--accent); }
 
-.resume-log-cols { display: flex; flex-wrap: wrap; gap: 20px; }
-.resume-log-cols > div { flex: 1 1 380px; min-width: 0; }
+/* Box shrinks to the two team tables so there's no dead gap between them
+   (screenshot-friendly); the rules note wraps to that width instead of
+   stretching the box (width:0 + min-width:100% keeps it out of the
+   intrinsic-width calculation). */
+#resume-modal .modal-box { width: fit-content; max-width: 96vw; }
+#resume-modal .modal-box > div > .no-data-note { width: 0; min-width: 100%; }
+.resume-log-cols { display: flex; flex-wrap: wrap; gap: 24px; }
+.resume-log-cols > div { flex: 0 0 auto; min-width: 0; }
 .resume-log-heading { display: flex; align-items: center; gap: 6px; margin: 10px 0 6px; }
 .resume-log-table { width: auto; }
 .resume-log-table th, .resume-log-table td { padding: 5px 8px; font-size: 0.82rem; white-space: nowrap; }
