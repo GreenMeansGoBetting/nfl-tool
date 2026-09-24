@@ -1499,6 +1499,41 @@ def scoring_plays_with_position(pbp: pd.DataFrame, pos_lookup) -> pd.DataFrame:
     return td_plays
 
 
+def compute_td_allowed_log(scoring_df: pd.DataFrame) -> dict:
+    """Every TD each team has allowed, one entry per play, in game order --
+    backs the TD Data page's click-a-defense-header modal. score_before is
+    the scoring team's score first, then the allowing team's, as of the
+    snap (posteam_score/defteam_score are pre-play; a return TD's scoring
+    team is the snap's DEFENSE, so the pair flips)."""
+    df = scoring_df.sort_values(["game_id", "play_id"]).copy()
+    df["first_td"] = ~df.duplicated("game_id")
+    out: dict = {}
+    for _, row in df.iterrows():
+        team = row["allowed_team"]
+        if not isinstance(team, str):
+            continue
+        off_scored = row["td_type"] in ("pass", "rush")
+        own, opp = (row.get("posteam_score"), row.get("defteam_score")) if off_scored else (row.get("defteam_score"), row.get("posteam_score"))
+        score_before = f"{int(own)}-{int(opp)}" if pd.notna(own) and pd.notna(opp) else None
+        yards = row.get("yards_gained") if off_scored else row.get("return_yards")
+        out.setdefault(team, []).append(
+            {
+                "week": int(row["week"]),
+                "opp": row["scoring_team"],
+                "qtr": int(row["qtr"]) if pd.notna(row.get("qtr")) else None,
+                "clock": row.get("time") if isinstance(row.get("time"), str) else None,
+                "player": row["scorer_name"] if isinstance(row["scorer_name"], str) else None,
+                "position": row["position"],
+                "type": row["td_type"],
+                "yards": int(yards) if pd.notna(yards) else None,
+                "passer": row.get("passer_player_name") if row["td_type"] == "pass" and isinstance(row.get("passer_player_name"), str) else None,
+                "score_before": score_before,
+                "first_td": bool(row["first_td"]),
+            }
+        )
+    return out
+
+
 def compute_red_zone(pbp: pd.DataFrame) -> dict:
     """Red zone = own offense's snap inside the opponent's 20. Excludes
     two-point attempts (not a normal drive play). Returns per-team dict of
@@ -3451,6 +3486,7 @@ def main():
         "player_pass_splits": player_pass_splits,
         "player_scramble_splits": player_scramble_splits,
         "player_td_results": player_td_results,
+        "td_allowed_log": compute_td_allowed_log(scoring_df),
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,

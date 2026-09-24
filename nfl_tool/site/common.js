@@ -488,15 +488,16 @@ function renderMatchupSnapshot(opportunities) {
 const STAT_TABLE_COLGROUP =
   '<colgroup><col style="width:64px"><col style="width:52px"><col style="width:52px"><col style="width:52px"><col style="width:52px"><col style="width:26px"></colgroup>';
 
-// market picks which player-prop odds a team-header click opens in the
-// modal -- "anytime_td" everywhere by default, "first_td" on the First TD
-// Data page (see that page's headerRow call).
+// market picks which player-prop odds an OFF team-header click opens in
+// the modal -- "anytime_td" everywhere by default, "first_td" on the First
+// TD Data page (see that page's headerRow call). The DEF header opens the
+// TDs-allowed log instead (openTdAllowedModal).
 function headerRow(offTeam, defTeam, subLabels, market = "anytime_td") {
   const offRgb = teamAccentRgb(offTeam);
   const defRgb = teamAccentRgb(defTeam);
   const offStyle = `background:rgba(${offRgb.join(",")},0.4); border-bottom:3px solid rgb(${offRgb.join(",")})`;
   const defStyle = `background:rgba(${defRgb.join(",")},0.4); border-bottom:3px solid rgb(${defRgb.join(",")})`;
-  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}" data-market="${market}">${teamLogoMini(offTeam, 20)}</span> <span class="pair-hdr-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="pair-hdr team-click" data-team="${defTeam}" data-market="${market}">${teamLogoMini(defTeam, 20)}</span> <span class="pair-hdr-sub">DEF</span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
+  return `<tr><th></th><th colspan="2" style="${offStyle}"><span class="pair-hdr team-click" data-team="${offTeam}" data-market="${market}">${teamLogoMini(offTeam, 20)}</span> <span class="pair-hdr-sub">OFF</span></th><th colspan="2" style="${defStyle}"><span class="td-allowed-click" data-team="${defTeam}" title="All TDs allowed by this defense"><span class="pair-hdr">${teamLogoMini(defTeam, 20)}</span> <span class="pair-hdr-sub">DEF</span></span></th><th rowspan="2" class="edge-hdr">ADV</th></tr>
     <tr><th></th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th><th class="sub-hdr">${subLabels[0]}</th><th class="sub-hdr">${subLabels[1]}</th></tr>`;
 }
 
@@ -880,4 +881,81 @@ function openPlayerOddsModal(team, market = "anytime_td") {
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".team-click");
   if (btn) openPlayerOddsModal(btn.dataset.team, btn.dataset.market || "anytime_td");
+});
+
+// ---- TDs allowed log: clicking a DEF header in a TD stat table lists
+// every touchdown that defense has given up (build_stats.py's
+// compute_td_allowed_log), one row per play in game order. ----
+const TD_ALLOWED_TYPE_LABELS = { pass: "Pass", rush: "Run", dst: "Return/Def" };
+
+function renderTdAllowedModalContent(team) {
+  const log = (DATA.td_allowed_log || {})[team];
+  const heading = `<h3 class="td-allowed-heading">${teamLogoMini(team, 24)} ${TEAM_NAMES[team] || team} &mdash; TDs Allowed</h3>`;
+  if (!log) return `${heading}<p class="no-data-note">TD-by-TD data isn't in this build yet -- it appears after the next data refresh.</p>`;
+  if (!log.length) return `${heading}<p class="no-data-note">No touchdowns allowed yet.</p>`;
+
+  const byType = (t) => log.filter((e) => e.type === t).length;
+  const posCounts = {};
+  log.forEach((e) => (posCounts[e.position] = (posCounts[e.position] || 0) + 1));
+  const posSummary = Object.entries(posCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([pos, n]) => `${pos} ${n}`)
+    .join(" &middot; ");
+  const summary = `<p class="td-allowed-summary"><b>${log.length}</b> TDs &mdash; ${byType("pass")} pass &middot; ${byType("rush")} run${byType("dst") ? ` &middot; ${byType("dst")} return/def` : ""} &nbsp;|&nbsp; ${posSummary}</p>`;
+
+  const rows = log
+    .map((e) => {
+      const when = e.qtr ? `${e.qtr > 4 ? "OT" : `Q${e.qtr}`} ${e.clock || ""}` : "--";
+      const first = e.first_td ? ` <span class="td-allowed-first">1st TD</span>` : "";
+      const qb = e.passer ? `<span class="muted-label">${e.passer}</span>` : "";
+      return `<tr>
+        <td class="num">${e.week}</td>
+        <td>${teamLogoMini(e.opp, 16)} ${e.opp}</td>
+        <td>${e.player || "--"}${first}</td>
+        <td class="num">${e.position || "--"}</td>
+        <td class="td-allowed-type-${e.type}">${TD_ALLOWED_TYPE_LABELS[e.type] || e.type}</td>
+        <td class="num">${e.yards ?? "--"}</td>
+        <td>${qb}</td>
+        <td class="num">${when}</td>
+        <td class="num">${e.score_before || "--"}</td>
+      </tr>`;
+    })
+    .join("");
+  return `${heading}${summary}
+    <table class="data-table td-allowed-table">
+      <thead><tr><th class="num">Wk</th><th>Scored by</th><th>Player</th><th class="num">Pos</th><th>Type</th><th class="num">Yds</th><th>QB</th><th class="num">When</th><th class="num" title="Scoring team's score first, as of the snap">Score before</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function ensureTdAllowedModal() {
+  if (document.getElementById("td-allowed-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "td-allowed-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="td-allowed-modal-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const close = () => (overlay.hidden = true);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", close);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+}
+
+function openTdAllowedModal(team) {
+  ensureTdAllowedModal();
+  document.getElementById("td-allowed-modal-content").innerHTML = renderTdAllowedModalContent(team);
+  document.getElementById("td-allowed-modal").hidden = false;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".td-allowed-click");
+  if (btn) openTdAllowedModal(btn.dataset.team);
 });

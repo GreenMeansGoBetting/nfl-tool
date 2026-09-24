@@ -903,6 +903,18 @@ footer a { color: var(--accent); }
 .team-click { cursor: pointer; }
 .team-click:hover { text-decoration: underline; }
 
+.td-allowed-click { cursor: pointer; }
+.td-allowed-click:hover .pair-hdr-sub { text-decoration: underline; }
+#td-allowed-modal .modal-box { width: fit-content; max-width: 96vw; }
+.td-allowed-heading { display: flex; align-items: center; gap: 8px; }
+.td-allowed-summary { margin: 0 0 10px; font-size: 0.85rem; color: var(--muted); }
+.td-allowed-table { width: auto; }
+.td-allowed-table th, .td-allowed-table td { padding: 5px 9px; font-size: 0.82rem; white-space: nowrap; }
+.td-allowed-type-pass { color: var(--accent); font-weight: 600; }
+.td-allowed-type-rush { color: var(--good-text); font-weight: 600; }
+.td-allowed-type-dst { color: var(--bad-text); font-weight: 600; }
+.td-allowed-first { margin-left: 6px; padding: 1px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; background: rgba(var(--mid-rgb), 0.35); color: var(--mid-text); }
+
 .props-team-click { cursor: pointer; }
 .props-team-click:hover { filter: brightness(1.15); }
 
