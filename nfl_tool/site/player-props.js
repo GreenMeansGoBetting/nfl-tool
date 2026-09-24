@@ -846,6 +846,108 @@ function passZoneCompositeZ(chart, zoneKey, zone) {
   if (volZ === null && epaZ === null) return null;
   return 0.75 * (volZ || 0) + 0.25 * (epaZ || 0);
 }
+// ---- League-rank coloring (toggle) ----
+// The self-referential composite above answers "where do teams go after
+// THIS defense"; this answers "how does this zone rank against the other
+// 31 defenses' same zone." Per game (games played differ -- bye/MNF weeks),
+// three parts:
+//   40% attempts allowed per game (volume -- how often it gets tested)
+//   25% completion % allowed
+//   35% EPA per attempt allowed
+// Efficiency (60% combined) outweighs volume on purpose: a defense that
+// gets thrown at a lot but shuts it down (e.g. 1/5 deep) is being tested,
+// not beaten, and shouldn't read red just for the volume. Completion % and
+// EPA are shrunk toward the league average for that zone by
+// PASS_ZONE_SHRINK_ATT phantom attempts, so a 1/1 or 0/2 sample can't
+// swing the color on its own -- the rate has to hold over real volume.
+const PASS_ZONE_LEAGUE_WEIGHTS = { volume: 0.4, comp: 0.25, epa: 0.35 };
+const PASS_ZONE_SHRINK_ATT = 5;
+const PASS_ZONE_COLOR_MODE_KEY = "nfl-tool.pass-zone-color-mode.v1";
+let passZoneColorMode = loadPassZoneColorMode();
+
+function loadPassZoneColorMode() {
+  try {
+    return localStorage.getItem(PASS_ZONE_COLOR_MODE_KEY) === "league" ? "league" : "self";
+  } catch (e) {
+    return "self";
+  }
+}
+function setPassZoneColorMode(mode) {
+  passZoneColorMode = mode;
+  try {
+    localStorage.setItem(PASS_ZONE_COLOR_MODE_KEY, mode);
+  } catch (e) {
+    // localStorage unavailable -- toggle just won't stick across reloads.
+  }
+}
+
+// One or more zones of a chart summed into a single sample -- a single
+// cell, or a whole row/column for the total badges.
+function passZoneSum(chart, zoneKeys) {
+  const out = { attempts: 0, completions: 0, epa_sum: 0 };
+  zoneKeys.forEach((k) => {
+    const z = chart.zones[k];
+    if (!z) return;
+    out.attempts += z.attempts || 0;
+    out.completions += z.completions || 0;
+    out.epa_sum += z.epa_sum || 0;
+  });
+  return out;
+}
+
+// Per-team league samples for one zone set: attempts/game plus shrunk
+// completion % and EPA/attempt.
+function passZoneLeagueSamples(zoneKeys, side) {
+  const raw = DATA.teams
+    .map((t) => {
+      const chart = (DATA.pass_shot_charts[t] || {})[side];
+      const g = DATA.team_stats[t]?.games_played || 0;
+      return chart && g ? { team: t, g, ...passZoneSum(chart, zoneKeys) } : null;
+    })
+    .filter(Boolean);
+  const att = raw.reduce((s, r) => s + r.attempts, 0);
+  if (!att) return [];
+  const lgComp = raw.reduce((s, r) => s + r.completions, 0) / att;
+  const lgEpa = raw.reduce((s, r) => s + r.epa_sum, 0) / att;
+  const k = PASS_ZONE_SHRINK_ATT;
+  return raw.map((r) => ({
+    team: r.team,
+    perG: r.attempts / r.g,
+    comp: (r.completions + k * lgComp) / (r.attempts + k),
+    epa: (r.epa_sum + k * lgEpa) / (r.attempts + k),
+  }));
+}
+
+// Positive = good for this side (defense: less volume/comp/EPA allowed).
+function passZoneLeagueCompositeZ(team, side, zoneKeys) {
+  const samples = passZoneLeagueSamples(zoneKeys, side);
+  const me = samples.find((s) => s.team === team);
+  if (!me) return null;
+  const invert = side === "def";
+  const z = (key) => zScore(me[key], samples.map((s) => s[key]), invert) || 0;
+  const w = PASS_ZONE_LEAGUE_WEIGHTS;
+  return w.volume * z("perG") + w.comp * z("comp") + w.epa * z("epa");
+}
+
+// Whichever mode the toggle is on, for one cell.
+function passZoneCellZ(chart, team, side, zoneKey) {
+  if (passZoneColorMode === "league") return passZoneLeagueCompositeZ(team, side, [zoneKey]);
+  return passZoneCompositeZ(chart, zoneKey, chart.zones[zoneKey]);
+}
+
+function renderPassZoneColorToggle() {
+  const btn = (mode, label) =>
+    `<button type="button" class="pass-zone-mode-btn${passZoneColorMode === mode ? " active" : ""}" data-mode="${mode}">${label}</button>`;
+  return `<span class="pass-zone-mode-label">Defense colors:</span>${btn("self", "Own tendencies")}${btn("league", "League rank")}`;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".pass-zone-mode-btn");
+  if (!btn || btn.dataset.mode === passZoneColorMode) return;
+  setPassZoneColorMode(btn.dataset.mode);
+  render();
+});
+
 function tierFromZ(z, threshold = TIER_Z_THRESHOLD) {
   if (z === null || z === undefined) return "";
   if (z >= threshold) return "tier-good";
@@ -895,10 +997,13 @@ function passZoneColSharePool(chart) {
 // invert convention as passZoneCompositeZ (more share than this team's
 // own other rows/columns = a soft spot = red), so the badge's color means
 // the same thing the cells around it already do.
-function passZoneTotalBadge(share, pool) {
+// In League-rank mode the badge instead grades the whole row/column
+// (zoneKeys) against the league with the same composite as the cells.
+function passZoneTotalBadge(share, pool, league) {
   if (share === null) return "";
-  const cls = tierFromZ(zScore(share, pool, true));
-  const alpha = alphaAttrFromZ(zScore(share, pool, true));
+  const z = passZoneColorMode === "league" && league ? passZoneLeagueCompositeZ(league.team, league.side, league.zoneKeys) : zScore(share, pool, true);
+  const cls = tierFromZ(z);
+  const alpha = alphaAttrFromZ(z);
   return `<span class="pass-zone-total-badge ${cls}"${alpha}>${Math.round(share * 100)}%</span>`;
 }
 
@@ -911,12 +1016,13 @@ function passZoneTotalBadge(share, pool) {
 // grid with no team-level share data, and gets the styled label with no
 // badge (passZoneColShare/passZoneColSharePool both no-op on an
 // undefined chart).
-function passZoneGridHeader(team, chart) {
+function passZoneGridHeader(team, chart, side) {
   const rgb = teamAccentRgb(team);
   const style = `background:rgba(${rgb.join(",")},0.35)`;
   const col = (label, key) => {
     const share = passZoneColShare(chart, key);
-    const badge = passZoneTotalBadge(share, passZoneColSharePool(chart));
+    const league = side ? { team, side, zoneKeys: PASS_ZONE_ROWS.map((r) => `${r.key}_${key}`) } : null;
+    const badge = passZoneTotalBadge(share, passZoneColSharePool(chart), league);
     return `<th style="${style}"><span class="pass-zone-col-label">${label}</span>${badge}</th>`;
   };
   return `<tr><th></th>${col("Left", "left")}${col("Middle", "middle")}${col("Right", "right")}</tr>`;
@@ -956,7 +1062,7 @@ function renderPassZoneGrid(team, side, opponent) {
     const cells = PASS_ZONE_COLS.map((loc) => {
       const zk = `${r.key}_${loc}`;
       const zone = chart.zones[zk];
-      const z = passZoneCompositeZ(chart, zk, zone);
+      const z = passZoneCellZ(chart, team, side, zk);
       const cls = tierFromZ(z);
       const alpha = alphaAttrFromZ(z);
       const share = passZoneVolumeShare(chart, zone);
@@ -971,11 +1077,12 @@ function renderPassZoneGrid(team, side, opponent) {
       return `<td class="num pass-zone-cell pass-zone-rank-click ${cls}"${alpha} data-entry="${encodeDataAttr(payload)}"><div class="pass-zone-cell-inner"><span class="pass-zone-rate">${shareDisplay}</span>${detail}</div></td>`;
     }).join("");
     const rowShare = passZoneRowShare(chart, r.key);
-    const rowBadge = passZoneTotalBadge(rowShare, passZoneRowSharePool(chart));
+    const rowLeague = { team, side, zoneKeys: PASS_ZONE_COLS.map((c) => `${r.key}_${c}`) };
+    const rowBadge = passZoneTotalBadge(rowShare, passZoneRowSharePool(chart), rowLeague);
     return `<tr><th class="pass-zone-row-label"><span class="pass-zone-row-label-text">${r.label}</span>${rowBadge}</th>${cells}</tr>`;
   }).join("");
   return `<table class="data-table pass-zone-grid">
-    <thead>${passZoneGridHeader(team, chart)}</thead>
+    <thead>${passZoneGridHeader(team, chart, side)}</thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -1011,20 +1118,23 @@ function renderPassZoneRankTable(team, side, zoneKey) {
   const rows = DATA.teams
     .map((t) => {
       const zone = (DATA.pass_shot_charts[t] || {})[side]?.zones?.[zoneKey];
-      return { team: t, rate: passZoneRate(zone), epa: passZoneEpaPerPlay(zone), zone };
+      const g = DATA.team_stats[t]?.games_played || 0;
+      return { team: t, rate: passZoneRate(zone), epa: passZoneEpaPerPlay(zone), zone, perG: g && zone ? zone.attempts / g : null };
     })
     .filter((r) => r.rate !== null)
-    .sort((a, b) => b.zone.attempts - a.zone.attempts);
+    // Per game, not raw attempts -- teams can have played different numbers
+    // of games (byes, Monday night).
+    .sort((a, b) => b.perG - a.perG || b.zone.attempts - a.zone.attempts);
   if (!rows.length) return `<p class="no-data-note">No attempts anywhere in this zone yet.</p>`;
   const body = rows
-    .map((r) => {
+    .map((r, i) => {
       const rowCls = r.team === team ? ' class="stat-rank-current"' : "";
       const epaSign = r.epa >= 0 ? "+" : "";
-      return `<tr${rowCls}><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${r.zone.attempts}</td><td class="num">${r.zone.completions}/${r.zone.attempts}</td><td class="num">${Math.round(r.rate * 100)}%</td><td class="num">${epaSign}${r.epa.toFixed(2)}</td></tr>`;
+      return `<tr${rowCls}><td class="num">${i + 1}</td><td>${teamLogoMini(r.team)} ${TEAM_NAMES[r.team] || r.team}</td><td class="num">${r.perG === null ? "--" : r.perG.toFixed(1)}</td><td class="num">${r.zone.completions}/${r.zone.attempts}</td><td class="num">${Math.round(r.rate * 100)}%</td><td class="num">${epaSign}${r.epa.toFixed(2)}</td></tr>`;
     })
     .join("");
   return `<table class="data-table player-odds-table pass-zone-rank-table">
-    <thead><tr><th>Team</th><th class="num">Att</th><th class="num">C/A</th><th class="num">Comp %</th><th class="num">EPA/pl</th></tr></thead>
+    <thead><tr><th class="num">#</th><th>Team</th><th class="num">Att/G</th><th class="num">C/A</th><th class="num">Comp %</th><th class="num">EPA/pl</th></tr></thead>
     <tbody>${body}</tbody>
   </table>`;
 }
@@ -1302,7 +1412,7 @@ const PLAYER_ZONE_HEAT_MAX_ALPHA = 0.85;
 function defenseZoneTier(oppTeam, zoneKey) {
   const chart = (DATA.pass_shot_charts[oppTeam] || {}).def;
   if (!chart) return "";
-  return tierFromZ(passZoneCompositeZ(chart, zoneKey, chart.zones[zoneKey]));
+  return tierFromZ(passZoneCellZ(chart, oppTeam, "def", zoneKey));
 }
 
 function renderPlayerZoneHeatGrid(zones, oppTeam) {
@@ -2117,6 +2227,7 @@ function render() {
   notesPlaysEl.hidden = false;
   setActivePropsView(currentPropsView);
 
+  document.querySelectorAll(".pass-zone-mode-toggle").forEach((el) => (el.innerHTML = renderPassZoneColorToggle()));
   document.getElementById("col-away-receiving").innerHTML = renderReceivingTeamTable(away, home);
   document.getElementById("col-home-receiving").innerHTML = renderReceivingTeamTable(home, away);
   document.getElementById("col-away-rushing").innerHTML = renderRushingTable(away, home);

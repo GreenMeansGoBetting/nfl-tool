@@ -245,6 +245,21 @@ select {
   margin: 4px 0 0;
 }
 
+.pass-zone-mode-toggle { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px; }
+.pass-zone-mode-label { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.pass-zone-mode-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.pass-zone-mode-btn.active { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.12); color: var(--accent); }
+
 .backup-qb-toggle {
   display: inline-flex;
   align-items: center;
