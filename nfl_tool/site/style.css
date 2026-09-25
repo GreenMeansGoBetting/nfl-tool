@@ -953,6 +953,10 @@ footer a { color: var(--accent); }
 .target-none { color: var(--muted); font-size: 0.8rem; }
 .target-legend { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
 .target-legend .target-chip { font-size: 0.66rem; padding: 1px 7px; }
+.target-due { margin-left: 3px; font-size: 0.62rem; color: var(--mid); vertical-align: 1px; }
+.target-chip-strong .target-due { color: var(--on-accent); }
+.target-legend-due { font-size: 0.68rem; font-weight: 700; color: var(--muted); display: inline-flex; align-items: center; }
+.target-note { margin: 4px 0 0; font-size: 0.66rem; color: var(--muted); text-align: right; }
 
 .td-allowed-click { cursor: pointer; }
 .td-allowed-click:hover .pair-hdr-sub { text-decoration: underline; }

@@ -1499,6 +1499,107 @@ def scoring_plays_with_position(pbp: pd.DataFrame, pos_lookup) -> pd.DataFrame:
     return td_plays
 
 
+# Field-position bins for expected TDs (yardline_100 = yards to the end
+# zone at the snap). Finer inside the 10, where TD odds change fastest.
+XTD_YARDLINE_BINS = [0, 2, 5, 10, 15, 20, 30, 50, 100]
+# Opponent adjustment shrinks each opponent's "normal" toward the league
+# average by this many league-average games -- with 1-3 games of data, a
+# single opponent game can't be trusted on its own.
+OPP_ADJ_SHRINK_GAMES = 2.0
+
+
+def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lookup) -> dict:
+    """Backs the TD Data page's Targets column. Two things the raw TD
+    tables can't show:
+
+    1. Expected TDs (xTD) from usage: every target and carry gets the
+       league's TD rate for that play type from that spot on the field, so
+       an offense feeding its WRs targets at the 5 shows up even if those
+       WRs haven't scored yet (and a defense that keeps allowing them
+       shows up as exposed even if it got lucky).
+    2. Opponent adjustment: each game's number is compared with what that
+       opponent normally allows (offense) or scores (defense) in its OTHER
+       games, so two games against weak defenses don't make an offense look
+       elite, and a defense that faced two great offenses isn't buried.
+
+    Returns {team: {"off": {metric: {"adj": x, "xtd": y}}, "def": {...}}},
+    all per game, where metric is a position (QB/RB/WR/TE/DST), "pass",
+    "rush", "first" (1st TD of the game) or a length bucket."""
+    plays = pbp[(pbp["two_point_attempt"] != 1) & pbp["yardline_100"].notna()].copy()
+    targets = plays[(plays["pass_attempt"] == 1) & (plays["sack"] != 1) & plays["receiver_player_id"].notna()].copy()
+    carries = plays[(plays["rush_attempt"] == 1) & plays["rusher_player_id"].notna()].copy()
+    targets["kind"], targets["td"], targets["pid"] = "pass", targets["pass_touchdown"].fillna(0), targets["receiver_player_id"]
+    carries["kind"], carries["td"], carries["pid"] = "rush", carries["rush_touchdown"].fillna(0), carries["rusher_player_id"]
+    opp = pd.concat([targets, carries], ignore_index=True)
+    opp["bin"] = pd.cut(opp["yardline_100"], XTD_YARDLINE_BINS, include_lowest=True)
+    rates = opp.groupby(["kind", "bin"], observed=True)["td"].mean()
+    opp["xtd"] = [rates.get((k, b), 0.0) for k, b in zip(opp["kind"], opp["bin"])]
+    opp["position"] = [
+        bucket_position(pos_lookup(pid, wk)[0]) if pos_lookup(pid, wk)[0] else None
+        for pid, wk in zip(opp["pid"], opp["week"])
+    ]
+
+    games = pbp.groupby("game_id").agg(home=("home_team", "first"), away=("away_team", "first")).reset_index()
+    sides = pd.concat(
+        [
+            games.rename(columns={"home": "off", "away": "def"})[["game_id", "off", "def"]],
+            games.rename(columns={"away": "off", "home": "def"})[["game_id", "off", "def"]],
+        ],
+        ignore_index=True,
+    )
+
+    # One row per (game, offense, defense), one column per metric.
+    tds = scoring_df.sort_values(["game_id", "play_id"]).copy()
+    tds["first"] = ~tds.duplicated("game_id")
+    metric_cols = {}
+    for pos in ("QB", "RB", "WR", "TE", "DST"):
+        metric_cols[f"td_{pos}"] = tds[tds["position"] == pos].groupby(["game_id", "scoring_team"]).size()
+        if pos != "DST":  # return/defensive TDs have no target/carry usage
+            metric_cols[f"xtd_{pos}"] = opp[opp["position"] == pos].groupby(["game_id", "posteam"])["xtd"].sum()
+    for kind in ("pass", "rush"):
+        metric_cols[f"td_{kind}"] = tds[tds["td_type"] == kind].groupby(["game_id", "scoring_team"]).size()
+        metric_cols[f"xtd_{kind}"] = opp[opp["kind"] == kind].groupby(["game_id", "posteam"])["xtd"].sum()
+    metric_cols["td_first"] = tds[tds["first"]].groupby(["game_id", "scoring_team"]).size()
+    for bucket in ("10_or_less", "11_20", "21_40", "41_plus"):
+        metric_cols[f"td_{bucket}"] = tds[tds["length_bucket"] == bucket].groupby(["game_id", "scoring_team"]).size()
+
+    key = pd.MultiIndex.from_frame(sides[["game_id", "off"]])
+    for col, series in metric_cols.items():
+        sides[col] = series.reindex(key).fillna(0).to_numpy()
+
+    def adjusted(col: str) -> tuple[dict, dict]:
+        """Per-team opponent-adjusted per-game value, offense and defense."""
+        league = sides[col].mean()
+        off_sum = sides.groupby("off")[col].agg(["sum", "count"])
+        def_sum = sides.groupby("def")[col].agg(["sum", "count"])
+
+        def normal(table, team, value):
+            # That opponent's average EXCLUDING this game, shrunk to league.
+            s, n = (table.loc[team, "sum"], table.loc[team, "count"]) if team in table.index else (0.0, 0)
+            s, n = s - value, n - 1
+            return (s + OPP_ADJ_SHRINK_GAMES * league) / (n + OPP_ADJ_SHRINK_GAMES)
+
+        off_res = sides.apply(lambda r: r[col] - normal(def_sum, r["def"], r[col]), axis=1)
+        def_res = sides.apply(lambda r: r[col] - normal(off_sum, r["off"], r[col]), axis=1)
+        off_adj = (league + off_res.groupby(sides["off"]).mean()).round(3).to_dict()
+        def_adj = (league + def_res.groupby(sides["def"]).mean()).round(3).to_dict()
+        return off_adj, def_adj
+
+    out: dict = {}
+    metrics = ["QB", "RB", "WR", "TE", "DST", "pass", "rush", "first", "10_or_less", "11_20", "21_40", "41_plus"]
+    for m in metrics:
+        off_adj, def_adj = adjusted(f"td_{m}")
+        xtd = adjusted(f"xtd_{m}") if f"xtd_{m}" in sides.columns else ({}, {})
+        for team in set(off_adj) | set(def_adj):
+            t = out.setdefault(team, {"off": {}, "def": {}})
+            t["off"][m] = {"adj": off_adj.get(team)}
+            t["def"][m] = {"adj": def_adj.get(team)}
+            if xtd[0]:
+                t["off"][m]["xtd"] = xtd[0].get(team)
+                t["def"][m]["xtd"] = xtd[1].get(team)
+    return out
+
+
 def compute_td_allowed_log(scoring_df: pd.DataFrame) -> dict:
     """Every TD each team has allowed, one entry per play, in game order --
     backs the TD Data page's click-a-defense-header modal. score_before is
@@ -3487,6 +3588,7 @@ def main():
         "player_scramble_splits": player_scramble_splits,
         "player_td_results": player_td_results,
         "td_allowed_log": compute_td_allowed_log(scoring_df),
+        "td_matchup_model": compute_td_matchup_model(pbp, scoring_df, pos_lookup),
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,

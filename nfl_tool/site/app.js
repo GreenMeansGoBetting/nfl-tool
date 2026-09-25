@@ -178,7 +178,57 @@ function targetEntry(label, offZ, defZ) {
   return { label, score: 0.6 * defZ + 0.4 * offZ };
 }
 
+// ---- Model-based Targets (build_stats.py compute_td_matchup_model) ----
+// Each side's strength in a spot = opponent-adjusted TDs per game (so a
+// soft or brutal schedule doesn't inflate/bury anyone) blended 50/50 with
+// opponent-adjusted expected TDs from usage (targets/carries weighted by
+// where on the field they happened) -- the "due" half: an offense feeding
+// WRs near the goal line rates well there even before the TDs land.
+// Offense and defense weigh equally (an elite offense manufactures its
+// own chances). Qualifies when the combined score clears the bar AND
+// neither side is a clear mismatch the wrong way: a good offense vs. a
+// slightly-better-than-average defense can make it (the "Lions are still
+// the Lions" case), a below-average offense can't.
+const MODEL_TARGET_MIN_SCORE = 0.6;
+const MODEL_TARGET_DEF_FLOOR = -0.5;
+const MODEL_TARGET_OFF_FLOOR = -0.3;
+const MODEL_DUE_GAP = 0.75; // usage z this far above TD z = "due"
+
+function modelZ(team, side, metric, field) {
+  const model = DATA.td_matchup_model;
+  const get = (t) => model[t]?.[side]?.[metric]?.[field];
+  const pool = teamsWithGames().map(get).filter((v) => v !== null && v !== undefined);
+  const v = get(team);
+  return v === null || v === undefined ? null : zScore(v, pool, false);
+}
+function modelSideZ(team, side, metric) {
+  const adj = modelZ(team, side, metric, "adj");
+  const xtd = modelZ(team, side, metric, "xtd");
+  if (adj === null) return { z: null };
+  return { z: xtd === null ? adj : 0.5 * adj + 0.5 * xtd, adj, xtd };
+}
+function modelEntry(label, off, def) {
+  if (off.z === null || def.z === null) return null;
+  if (def.z < MODEL_TARGET_DEF_FLOOR || off.z < MODEL_TARGET_OFF_FLOOR) return null;
+  const score = 0.5 * def.z + 0.5 * off.z;
+  if (score < MODEL_TARGET_MIN_SCORE) return null;
+  const due = off.xtd !== undefined && off.xtd !== null && off.xtd - off.adj >= MODEL_DUE_GAP && off.xtd >= 0.3;
+  return { label, score, due };
+}
+function modelTargetGroups(offTeam, defTeam) {
+  const pair = (metric, label) => modelEntry(label, modelSideZ(offTeam, "off", metric), modelSideZ(defTeam, "def", metric));
+  const stat = (key) => (t) => DATA.team_stats[t][key];
+  const clean = (list) => list.filter(Boolean).sort((a, b) => b.score - a.score);
+  const rz = targetEntry("Red Zone", targetRateZ(offTeam, stat("rz_td_rate")), targetRateZ(defTeam, stat("rz_td_rate_allowed")));
+  return [
+    { title: "Type", items: clean([pair("pass", "Pass TD"), pair("rush", "Rush TD"), pair("first", "First TD")]) },
+    { title: "Position", items: clean(POSITIONS.map((pos) => pair(pos, pos))) },
+    { title: "Distance", items: clean([...LENGTH_BUCKETS.map(({ key, label }) => pair(key, label)), rz]) },
+  ];
+}
+
 function targetGroups(offTeam, defTeam) {
+  if (DATA.td_matchup_model?.[offTeam] && DATA.td_matchup_model?.[defTeam]) return modelTargetGroups(offTeam, defTeam);
   const stat = (key) => (t) => DATA.team_stats[t][key];
   const type = [
     targetEntry("Pass TD", targetRateZ(offTeam, stat("pass_td_per_g")), targetRateZ(defTeam, stat("pass_td_allowed_per_g"))),
@@ -208,7 +258,12 @@ function renderTargets(awayTeam, homeTeam) {
     const groups = targetGroups(offTeam, defTeam)
       .map((g) => {
         const chips = g.items.length
-          ? g.items.map((i) => `<span class="target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}">${i.label}</span>`).join("")
+          ? g.items
+              .map((i) => {
+                const due = i.due ? `<span class="target-due" title="Usage running ahead of TDs so far">&#9650;</span>` : "";
+                return `<span class="target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}">${i.label}${due}</span>`;
+              })
+              .join("")
           : `<span class="target-none">&mdash;</span>`;
         return `<div class="target-group"><div class="target-group-title">${g.title}</div><div class="target-chips">${chips}</div></div>`;
       })
@@ -219,7 +274,10 @@ function renderTargets(awayTeam, homeTeam) {
     </div>`;
   };
   return `${block(awayTeam, homeTeam)}${block(homeTeam, awayTeam)}
-    <div class="target-legend"><span class="target-chip target-chip-strong">Strong</span><span class="target-chip">Lean</span></div>`;
+    <div class="target-legend"><span class="target-chip target-chip-strong">Strong</span><span class="target-chip">Lean</span>${
+      DATA.td_matchup_model ? `<span class="target-legend-due"><span class="target-due">&#9650;</span> due</span>` : ""
+    }</div>
+    ${DATA.td_matchup_model ? `<p class="target-note">Schedule-adjusted &middot; includes usage</p>` : ""}`;
 }
 
 function renderLengthTable(offTeam, defTeam) {
