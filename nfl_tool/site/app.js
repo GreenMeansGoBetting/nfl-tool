@@ -216,10 +216,14 @@ function modelEntry(label, off, def) {
   return { label, score, due };
 }
 function modelTargetGroups(offTeam, defTeam) {
-  const pair = (metric, label) => modelEntry(label, modelSideZ(offTeam, "off", metric), modelSideZ(defTeam, "def", metric));
+  const pair = (metric, label) => {
+    const e = modelEntry(label, modelSideZ(offTeam, "off", metric), modelSideZ(defTeam, "def", metric));
+    return e && { ...e, metric };
+  };
   const stat = (key) => (t) => DATA.team_stats[t][key];
   const clean = (list) => list.filter(Boolean).sort((a, b) => b.score - a.score);
-  const rz = targetEntry("Red Zone", targetRateZ(offTeam, stat("rz_td_rate")), targetRateZ(defTeam, stat("rz_td_rate_allowed")));
+  const rzEntry = targetEntry("Red Zone", targetRateZ(offTeam, stat("rz_td_rate")), targetRateZ(defTeam, stat("rz_td_rate_allowed")));
+  const rz = rzEntry && { ...rzEntry, metric: "rz" };
   return [
     { title: "Type", items: clean([pair("pass", "Pass TD"), pair("rush", "Rush TD"), pair("first", "First TD")]) },
     { title: "Position", items: clean(POSITIONS.map((pos) => pair(pos, pos))) },
@@ -978,6 +982,207 @@ function renderRzUsageTable(team) {
     </table>`;
 }
 
+// ---- Summary tab: one screenshot-ready card with everything ----
+// Fixed 1134x800 (the same 1.42:1 shape as the open area of the video
+// template), so a screenshot or the Save image PNG drops straight in.
+// Content that runs long is scaled down to fit instead of being cut off.
+const SUMMARY_FIRST_TD_PLAYERS = 3;
+
+// The chart numbers behind one target: [offense, defense allows].
+function summaryTargetValues(metric, offTeam, defTeam) {
+  const o = DATA.team_stats[offTeam];
+  const d = DATA.team_stats[defTeam];
+  const pg = (n, g) => (g ? (n / g).toFixed(2) : "--");
+  const pct = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
+  if (metric === "pass") return [o.pass_td_per_g.toFixed(2), d.pass_td_allowed_per_g.toFixed(2)];
+  if (metric === "rush") return [o.rush_td_per_g.toFixed(2), d.rush_td_allowed_per_g.toFixed(2)];
+  if (metric === "first") return [pct(o.first_td_rate), pct(firstTdAllowedRate(defTeam))];
+  if (metric === "rz") return [pct(o.rz_td_rate), pct(d.rz_td_rate_allowed)];
+  if (POSITIONS.includes(metric)) return [pg(o.off_position_td[metric] || 0, o.games_played), pg(d.def_position_td_allowed[metric] || 0, d.games_played)];
+  if (LENGTH_BUCKETS.some((b) => b.key === metric)) return [pg(o.td_by_length[metric] || 0, o.games_played), pg(d.td_by_length_allowed[metric] || 0, d.games_played)];
+  return ["--", "--"];
+}
+function summaryTargetUnit(metric) {
+  if (metric === "first") return "scored 1st";
+  if (metric === "rz") return "RZ TD rate";
+  return "TDs / game";
+}
+
+function summaryTeamColumn(offTeam, defTeam, chance, week) {
+  const rgb = teamAccentRgb(offTeam);
+  const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items.map((i) => ({ ...i, group: g.title })));
+  const targetRows = items.length
+    ? items
+        .map((i) => {
+          const [ov, dv] = i.metric ? summaryTargetValues(i.metric, offTeam, defTeam) : ["--", "--"];
+          const strong = i.score >= TARGET_STRONG_SCORE;
+          const due = i.due ? `<span class="target-due">&#9650;</span>` : "";
+          return `<tr><td><span class="target-chip${strong ? " target-chip-strong" : ""}">${i.label}${due}</span></td><td class="sc-group">${i.group}</td><td class="num">${ov}</td><td class="num">${dv}</td><td class="sc-unit">${i.metric ? summaryTargetUnit(i.metric) : ""}</td></tr>`;
+        })
+        .join("")
+    : `<tr><td colspan="5" class="target-none">No targets this week</td></tr>`;
+  const tags = matchupTags(offTeam, defTeam);
+  const tagRows = tags.length
+    ? tags.map((t) => `<li><span class="tag-chip tag-chip-${t.kind}">${t.label}</span><span class="sc-tag-text">${t.title}</span></li>`).join("")
+    : `<li class="target-none">No tags</li>`;
+  const posChips = firstTdPositionTargets(offTeam, defTeam)
+    .map((i) => `<span class="target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}">${i.label}</span>`)
+    .join("");
+  const pct = (x) => `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`;
+  const players = firstTdPlayerTargets(offTeam, defTeam, chance, week)
+    .slice(0, SUMMARY_FIRST_TD_PLAYERS)
+    .map((p) => {
+      const edgeCls = p.edge === null ? "" : p.edge >= 1.25 ? "ftd-edge-strong" : p.edge >= 1 ? "ftd-edge-lean" : "";
+      const odds = p.odds === null ? "--" : `${p.odds > 0 ? "+" : ""}${p.odds} <span class="muted">${pct(p.implied)}</span>`;
+      const inj = p.injury ? ` <span class="ftd-inj">${p.injury}</span>` : "";
+      return `<tr class="${edgeCls}"><td>${p.name} <span class="muted">${p.position}</span>${inj}</td><td class="num ftd-est">${pct(p.est)}</td><td class="num">${odds}</td></tr>`;
+    })
+    .join("");
+  return `<div class="sc-col">
+    <div class="sc-team" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
+      <img src="${teamLogoUrl(offTeam)}" crossorigin="anonymous" class="sc-team-logo" alt="">
+      <span class="sc-team-name">${TEAM_NAMES[offTeam] || offTeam}</span>
+      <span class="sc-team-vs">offense vs ${defTeam} D</span>
+    </div>
+    <div class="sc-label">TD Targets</div>
+    <table class="sc-table"><thead><tr><th>Target</th><th></th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table>
+    <div class="sc-label">Matchup Tags</div>
+    <ul class="sc-tags">${tagRows}</ul>
+    <div class="sc-label">First TD <span class="sc-label-sub">${pct(chance)} to score first</span>${posChips ? `<span class="sc-pos-chips">${posChips}</span>` : ""}</div>
+    <table class="sc-table sc-ftd"><thead><tr><th>Player</th><th class="num">Model</th><th class="num">Best odds</th></tr></thead><tbody>${players}</tbody></table>
+  </div>`;
+}
+
+function renderSummaryCard(away, home) {
+  const card = document.getElementById("summary-card");
+  if (!card) return;
+  if (!DATA.td_matchup_model || !DATA.player_xtd) {
+    card.innerHTML = `<p class="no-data-note">The summary appears after the next data refresh.</p>`;
+    return;
+  }
+  const game = (DATA.schedule || []).find((g) => g.away === away && g.home === home && g.status !== "final")
+    || (DATA.schedule || []).find((g) => g.away === away && g.home === home);
+  const week = game ? game.week : DATA.current_week;
+  const pAway = firstTdTeamChance(away, home);
+  const when = game?.date ? new Date(game.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  const line = (n) => (n > 0 ? `+${n}` : `${n}`);
+  const lines = [
+    game && game.home_team_spread !== null && game.home_team_spread !== undefined ? `${home} ${line(game.home_team_spread)}` : null,
+    game && game.total_line ? `O/U ${game.total_line}` : null,
+  ].filter(Boolean).join(" &middot; ");
+  const rgbA = teamAccentRgb(away);
+  const rgbH = teamAccentRgb(home);
+  card.innerHTML = `<div class="sc-inner">
+    <div class="sc-header">
+      <img src="${teamLogoUrl(away)}" crossorigin="anonymous" class="sc-logo" alt="">
+      <div class="sc-title">
+        <div class="sc-matchup">${TEAM_NAMES[away] || away} <span class="sc-at">@</span> ${TEAM_NAMES[home] || home}</div>
+        <div class="sc-meta">Week ${week}${when ? ` &middot; ${when}` : ""}${lines ? ` &middot; ${lines}` : ""}</div>
+      </div>
+      <img src="${teamLogoUrl(home)}" crossorigin="anonymous" class="sc-logo" alt="">
+      <div class="sc-brand"><span class="brand-mark">GMG</span><span class="sc-brand-name">TD Summary</span></div>
+    </div>
+    <div class="sc-split">
+      <span class="sc-split-team">${away} <b>${Math.round(pAway * 100)}%</b></span>
+      <div class="ftd-split-bar"><span style="width:${pAway * 100}%;background:rgb(${rgbA.join(",")})"></span><span style="width:${(1 - pAway) * 100}%;background:rgb(${rgbH.join(",")})"></span></div>
+      <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
+      <span class="sc-split-label">to score the first TD</span>
+    </div>
+    <div class="sc-cols">
+      ${summaryTeamColumn(away, home, pAway, week)}
+      ${summaryTeamColumn(home, away, 1 - pAway, week)}
+    </div>
+    <div class="sc-footer">
+      <span><span class="target-chip target-chip-strong">Strong</span> <span class="target-chip">Lean</span> <span class="target-due">&#9650;</span> usage ahead of TDs &middot; targets are schedule-adjusted and include usage</span>
+      <span>Model % = chance to score the game's first TD &middot; highlighted rows: model above the odds' implied %</span>
+    </div>
+  </div>`;
+  fitSummaryCard();
+  // Logos load after the first measurement; re-fit once they have.
+  card.querySelectorAll("img").forEach((img) => img.addEventListener("load", fitSummaryCard, { once: true }));
+}
+
+// Scale the inner content down (never up) until it fits the fixed card.
+function fitSummaryCard() {
+  const card = document.getElementById("summary-card");
+  const inner = card?.querySelector(".sc-inner");
+  if (!inner) return;
+  inner.style.transform = "";
+  inner.style.width = "";
+  const scale = Math.min(1, card.clientHeight / inner.scrollHeight);
+  if (scale < 1) {
+    inner.style.transform = `scale(${scale})`;
+    inner.style.width = `${100 / scale}%`;
+  }
+}
+
+// The exported PNG only uses fonts embedded into it -- html-to-image can't
+// read Google Fonts' cross-origin stylesheet itself, so fetch it, keep the
+// latin subsets, and inline each font file as a data URL.
+let summaryFontCSSCache = null;
+async function summaryFontCSS() {
+  if (summaryFontCSSCache !== null) return summaryFontCSSCache;
+  try {
+    const link = document.querySelector('link[href*="fonts.googleapis.com/css"]');
+    const css = await fetch(link.href).then((r) => r.text());
+    const latin = css.split("/* ").filter((block) => block.startsWith("latin */")).map((block) => block.slice("latin */".length));
+    const inlined = await Promise.all(
+      latin.map(async (face) => {
+        const m = face.match(/url\((https:[^)]+)\)/);
+        if (!m) return face;
+        const blob = await fetch(m[1]).then((r) => r.blob());
+        const dataUrl = await new Promise((resolve) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(fr.result);
+          fr.readAsDataURL(blob);
+        });
+        return face.replace(m[1], dataUrl);
+      })
+    );
+    summaryFontCSSCache = inlined.join("\n");
+  } catch (e) {
+    summaryFontCSSCache = "";
+  }
+  return summaryFontCSSCache;
+}
+
+async function saveSummaryImage() {
+  const btn = document.getElementById("summary-save-btn");
+  const card = document.getElementById("summary-card");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  try {
+    if (!window.htmlToImage) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js";
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    const bg = getComputedStyle(card).backgroundColor;
+    const fontEmbedCSS = await summaryFontCSS();
+    const url = await window.htmlToImage.toPng(card, { pixelRatio: 2, backgroundColor: bg, fontEmbedCSS });
+    const a = document.createElement("a");
+    const away = document.getElementById("away-select").value;
+    const home = document.getElementById("home-select").value;
+    a.href = url;
+    a.download = `${away}-at-${home}-td-summary.png`;
+    a.click();
+    btn.textContent = "Saved";
+  } catch (e) {
+    btn.textContent = "Couldn't save -- screenshot instead";
+  }
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = "Save image";
+  }, 2500);
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#summary-save-btn")) saveSummaryImage();
+});
+
 // ---- Season TDs / First TD view toggle (localStorage so it survives a
 // reload during a stream; a "?view=first" URL param wins on first load so
 // the old first-td.html redirect can still land you on the right tab) ----
@@ -986,7 +1191,7 @@ let currentView = "season";
 
 function loadSavedView() {
   const fromUrl = new URLSearchParams(window.location.search).get("view");
-  if (fromUrl === "first" || fromUrl === "season") return fromUrl;
+  if (fromUrl === "first" || fromUrl === "season" || fromUrl === "summary") return fromUrl;
   try {
     return localStorage.getItem(TD_VIEW_KEY) || "season";
   } catch (e) {
@@ -998,6 +1203,7 @@ function setActiveView(view) {
   currentView = view;
   document.getElementById("view-season").hidden = view !== "season";
   document.getElementById("view-first").hidden = view !== "first";
+  document.getElementById("view-summary").hidden = view !== "summary";
   document.querySelectorAll(".view-toggle-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.view === view);
   });
@@ -1045,6 +1251,7 @@ function render() {
   }
   emptyEl.hidden = true;
   sectionEls.forEach((el) => (el.hidden = false));
+  if (currentView === "summary") renderSummaryCard(away, home);
 
   // Season TDs view
   document.getElementById("col-away-type").innerHTML = renderStatTable(away, home);

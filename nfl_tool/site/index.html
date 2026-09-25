@@ -46,6 +46,7 @@
   <div class="view-toggle">
     <button type="button" class="view-toggle-btn" data-view="season">Season TDs</button>
     <button type="button" class="view-toggle-btn" data-view="first">First TD</button>
+    <button type="button" class="view-toggle-btn" data-view="summary">Summary</button>
   </div>
 
   <div id="empty-state" class="empty-state">
@@ -126,6 +127,13 @@
         </div>
       </div>
     </div>
+  </div>
+  <div id="view-summary" hidden>
+    <div class="summary-toolbar">
+      <button type="button" id="summary-save-btn" class="summary-save-btn">Save image</button>
+      <span class="section-note">Sized to your video template's open area (1.42 : 1). Save image downloads a crisp PNG, or just screenshot the card.</span>
+    </div>
+    <div id="summary-card" class="summary-card"></div>
   </div>
 </main>
 
