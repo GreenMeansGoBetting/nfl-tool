@@ -2325,3 +2325,13 @@ footer { border-top-color: var(--border); }
 .sc-picker-col .pp-row-label { gap: 6px; }
 .sc-picker-col .sc-headshot { vertical-align: middle; }
 .sc-picker-col tr.sc-picker-on td { background: rgba(var(--accent-rgb), 0.1); }
+
+/* Summary: centered targets table, numbered items, key players */
+.sc-targets th, .sc-targets td, .sc-targets th.num, .sc-targets td.num { text-align: center; }
+.sc-targets td:first-child { white-space: nowrap; }
+.sc-num { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 3px; margin-right: 4px; border-radius: 999px; background: var(--table-head); border: 1px solid var(--border-strong); color: var(--text); font-size: 0.64rem; font-weight: 800; line-height: 1; vertical-align: middle; }
+.sc-tags li .sc-num { margin-right: 0; flex: 0 0 auto; align-self: center; }
+.sc-keys { display: flex; flex-wrap: wrap; gap: 5px; }
+.sc-key { display: inline-flex; align-items: center; gap: 5px; padding: 2px 6px 2px 3px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; color: var(--good-text); background: rgba(var(--good-rgb), 0.1); border: 1px solid rgba(var(--good-rgb), 0.45); white-space: nowrap; }
+.sc-key .sc-num { margin: 0 0 0 1px; }
+.sc-key-warn { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.1); border-color: rgba(var(--mid-rgb), 0.5); }

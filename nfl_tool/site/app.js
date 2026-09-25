@@ -1046,28 +1046,131 @@ function summaryTeamBanner(team) {
   </div>`;
 }
 
-// Season half of a team's column: targets (with chart numbers) + tags.
-function summarySeasonColumn(offTeam, defTeam) {
+// ---- Key players: who on this offense fits each numbered target/tag ----
+// Each target row and tag gets a number; players who are the main
+// options for that item are listed under the tags with those numbers
+// (e.g. "O. Hampton 3 5"). Matching uses usage, not outcomes: red zone /
+// end zone / deep targets, red zone carries, carries by rush lane,
+// explosive runs, and each position's leading options.
+const KEY_PLAYERS_MAX = 6;
+
+function shortName(name) {
+  const parts = (name || "").replace(/\s+(Jr\.?|Sr\.?|II|III|IV|V)$/i, "").split(" ");
+  return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(" ")}` : name;
+}
+
+function keyPlayerPool(team, week) {
+  const injured = firstTdInjuryStatus(team, week);
+  const props = {};
+  ((DATA.player_props || {})[team] || []).forEach((p) => (props[normName(p.name)] = p));
+  return ((DATA.player_xtd || {})[team] || [])
+    .filter((p) => injured[normName(p.name)] !== "out")
+    .map((p) => {
+      const pp = props[normName(p.name)] || {};
+      return { ...p, explosive_rushes: pp.explosive_rushes || 0, pass_att: pp.pass_att || 0 };
+    });
+}
+
+// Top n players by score(p), only those with score >= min.
+function keyTop(pool, score, n = 2, min = 1) {
+  return pool
+    .map((p) => ({ p, v: score(p) }))
+    .filter((x) => x.v >= min)
+    .sort((a, b) => b.v - a.v)
+    .slice(0, n)
+    .map((x) => x.p.name);
+}
+
+function keyPlayersForTarget(metric, pool, team, defTeam, week) {
+  const rzUse = (p) => p.rz_targets + p.rz_carries;
+  const deep = (p) => p.deep_targets + p.ez_targets + p.explosive_rushes;
+  if (["QB", "RB", "WR", "TE"].includes(metric)) {
+    return keyTop(pool.filter((p) => p.position === metric), (p) => p.xtd_pg * 10 + p.targets * 0.05 + p.carries * 0.02, metric === "QB" ? 1 : 2, 0.5);
+  }
+  if (metric === "pass") return keyTop(pool.filter((p) => p.position !== "QB"), (p) => p.rz_targets + p.ez_targets + p.targets * 0.1, 2, 1);
+  if (metric === "rush") return keyTop(pool, (p) => p.rz_carries + p.carries * 0.05, 2, 1);
+  if (metric === "rz" || metric === "10_or_less" || metric === "11_20") return keyTop(pool, rzUse, 2, 2);
+  if (metric === "21_40" || metric === "41_plus") return keyTop(pool, deep, 2, 2);
+  if (metric === "first") {
+    const top = firstTdPlayerTargets(team, defTeam, 0.5, week)[0];
+    return top ? [top.name] : [];
+  }
+  return [];
+}
+
+function keyPlayersForTag(label, pool, team) {
+  const rzUse = (p) => p.rz_targets + p.rz_carries;
+  const qb = () => keyTop(pool.filter((p) => p.position === "QB"), (p) => p.pass_att, 1, 10);
+  if (["RZ leak", "RZ wall", "RZ volume", "Few RZ trips"].includes(label)) return keyTop(pool, rzUse, 2, 2);
+  if (label === "RZ pass edge") return keyTop(pool, (p) => p.rz_targets, 2, 1);
+  if (label === "Goal-line run edge") return keyTop(pool, (p) => p.rz_carries, 2, 2);
+  if (label === "Big-play pass" || label === "Limits big passes") return keyTop(pool, (p) => p.deep_targets, 2, 2);
+  if (label === "Big-play run" || label === "Limits big runs") return keyTop(pool, (p) => p.explosive_rushes, 2, 1);
+  if (label === "Deep / EZ exposed") return keyTop(pool, (p) => p.deep_targets + 2 * p.ez_targets, 2, 2);
+  if (["Clean pocket", "Pressure trouble", "Beats the blitz", "Turnover risk"].includes(label)) return qb();
+  if (label === "Light-box runs" || label === "Beats stacked box") return keyTop(pool, (p) => p.carries, 1, 10);
+  if (label.startsWith("Run lane: ")) {
+    const laneLabel = label.slice("Run lane: ".length);
+    const lane = Object.keys(RUSH_LANE_LABELS).find((k) => RUSH_LANE_LABELS[k] === laneLabel);
+    const zones = (DATA.player_rush_zones || {})[team] || {};
+    return keyTop(pool, (p) => {
+      const z = zones[p.name]?.[lane];
+      return z && z.share >= 0.25 ? z.carries : 0;
+    }, 2, 3);
+  }
+  return []; // game-level tags (pace, short fields) have no single player
+}
+
+function numBadge(n) {
+  return `<span class="sc-num">${n}</span>`;
+}
+
+// Season half of a team's column: numbered targets (with chart numbers),
+// numbered tags, then the key players tied to those numbers.
+function summarySeasonColumn(offTeam, defTeam, week) {
+  const pool = keyPlayerPool(offTeam, week);
+  const byPlayer = {};
+  const link = (names, n, kind) =>
+    names.forEach((name) => {
+      const e = (byPlayer[name] = byPlayer[name] || { name, nums: [], good: false });
+      e.nums.push(n);
+      if (kind !== "warn") e.good = true;
+    });
+  let n = 0;
   const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items);
   const targetRows = items.length
     ? items
         .map((i) => {
+          n += 1;
+          if (i.metric) link(keyPlayersForTarget(i.metric, pool, offTeam, defTeam, week), n, "good");
           const [oc, dc] = i.metric ? summaryTargetCells(i.metric, offTeam, defTeam) : ["<td></td>", "<td></td>"];
           const strong = i.score >= TARGET_STRONG_SCORE;
           const due = i.due ? `<span class="target-due">&#9650;</span>` : "";
-          return `<tr><td><span class="target-chip${strong ? " target-chip-strong" : ""}">${i.label}${due}</span></td>${oc}${dc}<td class="sc-unit">${i.metric ? summaryTargetUnit(i.metric) : ""}</td></tr>`;
+          return `<tr><td>${numBadge(n)}<span class="target-chip${strong ? " target-chip-strong" : ""}">${i.label}${due}</span></td>${oc}${dc}<td class="sc-unit">${i.metric ? summaryTargetUnit(i.metric) : ""}</td></tr>`;
         })
         .join("")
     : `<tr><td colspan="4" class="target-none">No targets this week</td></tr>`;
   const tags = matchupTags(offTeam, defTeam);
   const tagRows = tags.length
-    ? tags.map((t) => `<li><span class="tag-chip tag-chip-${t.kind}">${t.label}</span><span class="sc-tag-text">${t.title}</span></li>`).join("")
+    ? tags
+        .map((t) => {
+          n += 1;
+          link(keyPlayersForTag(t.label, pool, offTeam), n, t.kind);
+          return `<li>${numBadge(n)}<span class="tag-chip tag-chip-${t.kind}">${t.label}</span><span class="sc-tag-text">${t.title}</span></li>`;
+        })
+        .join("")
     : `<li class="target-none">No tags</li>`;
+  const keyPlayers = Object.values(byPlayer)
+    .sort((a, b) => b.nums.length - a.nums.length || a.nums[0] - b.nums[0])
+    .slice(0, KEY_PLAYERS_MAX)
+    .map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}">${summaryHeadshot(offTeam, e.name, 18)}${shortName(e.name)}${e.nums.map(numBadge).join("")}</span>`)
+    .join("");
   return `<div class="sc-col">
     ${summaryTeamBanner(offTeam)}
     <table class="sc-table sc-targets"><thead><tr><th>Target</th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table>
     <div class="sc-label">Matchup Tags</div>
     <ul class="sc-tags">${tagRows}</ul>
+    ${keyPlayers ? `<div class="sc-label">Key Players</div><div class="sc-keys">${keyPlayers}</div>` : ""}
   </div>`;
 }
 
@@ -1337,8 +1440,8 @@ function renderSummaryCard(away, home) {
         <section class="sc-section">
           <div class="sc-section-title">Season TD Targets</div>
           <div class="sc-cols">
-            ${summarySeasonColumn(away, home)}
-            ${summarySeasonColumn(home, away)}
+            ${summarySeasonColumn(away, home, week)}
+            ${summarySeasonColumn(home, away, week)}
           </div>
         </section>
 

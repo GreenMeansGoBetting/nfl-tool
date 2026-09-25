@@ -1652,7 +1652,19 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
     team_games = sides.groupby("off")["game_id"].nunique()
     td_by_player = tds.groupby("scorer_id").agg(tds=("game_id", "size"), first_tds=("first", "sum"))
     players: dict = {}
-    grouped = opp.groupby(["posteam", "pid"]).agg(xtd=("xtd", "sum"), early_xtd=("early_xtd", "sum"), week=("week", "max"))
+    # Per-player usage counts for the Summary card's key-player matching
+    # (who gets the red zone / end zone / deep looks behind a tag).
+    opp["is_tgt"] = opp["kind"] == "pass"
+    opp["is_car"] = opp["kind"] == "rush"
+    opp["rz_tgt"] = opp["is_tgt"] & (opp["yardline_100"] <= 20)
+    opp["rz_car"] = opp["is_car"] & (opp["yardline_100"] <= 20)
+    opp["ez_tgt"] = opp["is_tgt"] & (opp["air"] == "ez")
+    opp["deep_tgt"] = opp["is_tgt"] & (opp["air_yards"] >= 20)
+    grouped = opp.groupby(["posteam", "pid"]).agg(
+        xtd=("xtd", "sum"), early_xtd=("early_xtd", "sum"), week=("week", "max"),
+        targets=("is_tgt", "sum"), carries=("is_car", "sum"), rz_targets=("rz_tgt", "sum"),
+        rz_carries=("rz_car", "sum"), ez_targets=("ez_tgt", "sum"), deep_targets=("deep_tgt", "sum"),
+    )
     for (team, pid), row in grouped.iterrows():
         pos, _, name = pos_lookup(pid, row["week"])
         pos = bucket_position(pos) if pos else None
@@ -1669,6 +1681,7 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
                 "early_xtd_pg": round(row["early_xtd"] / g, 3),
                 "tds": int(actual["tds"]) if actual is not None else 0,
                 "first_tds": int(actual["first_tds"]) if actual is not None else 0,
+                **{k: int(row[k]) for k in ("targets", "carries", "rz_targets", "rz_carries", "ez_targets", "deep_targets")},
             }
         )
     for team in players:
