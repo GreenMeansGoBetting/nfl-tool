@@ -1534,7 +1534,10 @@ async function saveSummaryImage() {
     }
     const bg = getComputedStyle(card).backgroundColor;
     const fontEmbedCSS = await summaryFontCSS();
-    const url = await window.htmlToImage.toPng(card, { pixelRatio: 2, backgroundColor: bg, fontEmbedCSS });
+    // includeQueryParams: every team logo is the same ESPN resizer URL with
+    // a different ?img=... query -- without this, html-to-image caches
+    // images by URL minus the query and stamps the first logo on every team.
+    const url = await window.htmlToImage.toPng(card, { pixelRatio: 2, backgroundColor: bg, fontEmbedCSS, includeQueryParams: true });
     const a = document.createElement("a");
     const away = document.getElementById("away-select").value;
     const home = document.getElementById("home-select").value;
