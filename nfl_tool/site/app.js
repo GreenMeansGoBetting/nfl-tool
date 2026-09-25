@@ -1112,10 +1112,12 @@ function summaryFirstTdColumn(offTeam, defTeam, chance, week) {
   </div>`;
 }
 
-// ---- Right rail: the odds popup, inline -- each team's players with
-// Anytime TD and First TD odds, each one a checkbox into Possible Plays.
-// Custom (not native) checkboxes so the checkmark shows up in the saved PNG.
-const SUMMARY_ODDS_PER_TEAM = 8;
+// ---- Right rail: player odds YOU choose (blank until picked) -- each
+// team's picks with photo, Anytime TD and First TD odds, each a checkbox
+// into Possible Plays. Custom (not native) checkboxes so the checkmark
+// shows up in the saved PNG. Picks are remembered per game.
+const SUMMARY_MAX_PICKS = 10;
+const SUMMARY_PICKS_KEY = "nfl-tool.summary-picks.v1";
 
 function summaryPlayEntry(week, matchup, market, team, name, odds) {
   return {
@@ -1134,41 +1136,69 @@ function summaryPlayCheck(entry, label) {
   return `<button type="button" class="sc-pp${on ? " sc-pp-on" : ""}" data-entry="${encodeDataAttr(entry)}" title="Add to Possible Plays"><span class="sc-pp-box">${on ? "&#10003;" : ""}</span>${label}</button>`;
 }
 
+function summaryGameKey(week, away, home) {
+  return `${week}_${away}_${home}`;
+}
+function loadSummaryPicks(gameKey) {
+  try {
+    return (JSON.parse(localStorage.getItem(SUMMARY_PICKS_KEY)) || {})[gameKey] || {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveSummaryPicks(gameKey, picks) {
+  try {
+    const all = JSON.parse(localStorage.getItem(SUMMARY_PICKS_KEY)) || {};
+    all[gameKey] = picks;
+    localStorage.setItem(SUMMARY_PICKS_KEY, JSON.stringify(all));
+  } catch (e) {
+    // localStorage unavailable -- picks just won't stick across reloads.
+  }
+}
+
+// Every player with Anytime or First TD odds for one team, merged by
+// name and sorted most likely first.
+function summaryTeamOdds(team) {
+  const any = {};
+  const first = {};
+  const names = {};
+  ((DATA.player_td_odds || {})[team] || []).forEach((o) => {
+    any[normName(o.name)] = o;
+    names[normName(o.name)] = names[normName(o.name)] || o;
+  });
+  ((DATA.player_first_td_odds || {})[team] || []).forEach((o) => {
+    first[normName(o.name)] = o;
+    names[normName(o.name)] = names[normName(o.name)] || o;
+  });
+  return Object.entries(names)
+    .map(([k, o]) => ({ key: k, name: o.name, position: o.position, any: any[k] || null, first: first[k] || null, prob: (any[k] || first[k] || {}).implied_prob || 0 }))
+    .sort((a, b) => b.prob - a.prob);
+}
+
 function summaryOddsRail(away, home, week) {
   const matchup = `${away} @ ${home}`;
+  const picks = loadSummaryPicks(summaryGameKey(week, away, home));
   const block = (team) => {
-    const any = {};
-    ((DATA.player_td_odds || {})[team] || []).forEach((o) => (any[normName(o.name)] = o));
-    const first = {};
-    ((DATA.player_first_td_odds || {})[team] || []).forEach((o) => (first[normName(o.name)] = o));
-    const names = {};
-    [...((DATA.player_td_odds || {})[team] || []), ...((DATA.player_first_td_odds || {})[team] || [])].forEach((o) => {
-      const k = normName(o.name);
-      if (!names[k]) names[k] = o;
-    });
-    const rows = Object.entries(names)
-      .map(([k, o]) => ({ k, o, prob: (any[k] || first[k] || {}).implied_prob || 0 }))
-      .sort((a, b) => b.prob - a.prob)
-      .slice(0, SUMMARY_ODDS_PER_TEAM)
-      .map(({ k, o }) => {
-        const a = any[k];
-        const f = first[k];
-        const cell = (odds, market) => (odds ? summaryPlayCheck(summaryPlayEntry(week, matchup, market, team, o.name, odds), fmtOddsSigned(odds.best_odds)) : `<span class="muted">--</span>`);
-        return `<tr><td><span class="sc-player">${summaryHeadshot(team, o.name, 26)}<span class="sc-odds-name">${o.name} <span class="muted">${o.position || ""}</span></span></span></td><td class="num">${cell(a, "anytime_td")}</td><td class="num">${cell(f, "first_td")}</td></tr>`;
+    const chosen = new Set(picks[team] || []);
+    const rows = summaryTeamOdds(team)
+      .filter((p) => chosen.has(p.key))
+      .map((p) => {
+        const cell = (odds, market) => (odds ? summaryPlayCheck(summaryPlayEntry(week, matchup, market, team, p.name, odds), fmtOddsSigned(odds.best_odds)) : `<span class="muted">--</span>`);
+        return `<tr><td><span class="sc-player">${summaryHeadshot(team, p.name, 26)}<span class="sc-odds-name">${p.name} <span class="muted">${p.position || ""}</span></span></span></td><td class="num">${cell(p.any, "anytime_td")}</td><td class="num">${cell(p.first, "first_td")}</td></tr>`;
       })
       .join("");
     const rgb = teamAccentRgb(team);
     return `<div class="sc-odds-team" style="border-left:4px solid rgb(${rgb.join(",")})">
         <img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt=""><span class="sc-ftd-team">${team}</span>
       </div>
-      <table class="sc-table sc-odds"><thead><tr><th>Player</th><th class="num">Anytime</th><th class="num">1st TD</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="3" class="target-none">No odds posted yet</td></tr>`}</tbody></table>`;
+      ${rows
+        ? `<table class="sc-table sc-odds"><thead><tr><th>Player</th><th class="num">Anytime</th><th class="num">1st TD</th></tr></thead><tbody>${rows}</tbody></table>`
+        : `<p class="sc-odds-empty">Click TD Odds to pick players</p>`}`;
   };
   return `<section class="sc-section sc-section-odds">
-    <div class="sc-section-title">TD Odds</div>
+    <button type="button" class="sc-section-title sc-odds-open" title="Pick which players show here">TD Odds</button>
     ${block(away)}
     ${block(home)}
-    <div class="sc-odds-note">Best price found &middot; check a box to add it to Possible Plays</div>
   </section>`;
 }
 
@@ -1181,6 +1211,95 @@ document.addEventListener("click", (e) => {
   const away = document.getElementById("away-select").value;
   const home = document.getElementById("home-select").value;
   if (away && home) renderTdPossiblePlaysList(away, home);
+});
+
+// ---- Player picker: every player with odds in the game, "Add to
+// summary" per player, max SUMMARY_MAX_PICKS per team. ----
+function summaryPickerContext() {
+  const away = document.getElementById("away-select").value;
+  const home = document.getElementById("home-select").value;
+  const game = (DATA.schedule || []).find((g) => g.away === away && g.home === home && g.status !== "final")
+    || (DATA.schedule || []).find((g) => g.away === away && g.home === home);
+  const week = game ? game.week : DATA.current_week;
+  return { away, home, week, gameKey: summaryGameKey(week, away, home) };
+}
+
+function renderSummaryPicker() {
+  const { away, home, gameKey } = summaryPickerContext();
+  const picks = loadSummaryPicks(gameKey);
+  const col = (team) => {
+    const chosen = new Set(picks[team] || []);
+    const full = chosen.size >= SUMMARY_MAX_PICKS;
+    const players = summaryTeamOdds(team);
+    const rows = players.length
+      ? players
+          .map((p) => {
+            const on = chosen.has(p.key);
+            return `<tr class="${on ? "sc-picker-on" : ""}"><td><label class="pp-row-label"><input type="checkbox" class="sc-pick-toggle" data-team="${team}" data-key="${p.key}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${summaryHeadshot(team, p.name, 24)} ${p.name} <span class="muted-label">${p.position || ""}</span></label></td><td class="num">${p.any ? fmtOddsSigned(p.any.best_odds) : "--"}</td><td class="num">${p.first ? fmtOddsSigned(p.first.best_odds) : "--"}</td></tr>`;
+          })
+          .join("")
+      : `<tr><td colspan="3" class="no-data-note">No odds posted yet.</td></tr>`;
+    return `<div class="sc-picker-col">
+      <h4 class="sc-picker-team">${teamLogoMini(team, 20)} ${TEAM_NAMES[team] || team} <span class="muted">${chosen.size}/${SUMMARY_MAX_PICKS}</span></h4>
+      <table class="data-table player-odds-table"><thead><tr><th>Add to summary</th><th class="num">Anytime</th><th class="num">1st TD</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>`;
+  };
+  return `<h3>${away} @ ${home} &mdash; Pick players for the summary</h3>
+    <p class="no-data-note">Up to ${SUMMARY_MAX_PICKS} per team. The card updates as you check.</p>
+    <div class="sc-picker-actions"><button type="button" class="view-toggle-btn sc-picker-clear">Clear all</button></div>
+    <div class="sc-picker-cols">${col(away)}${col(home)}</div>`;
+}
+
+function ensureSummaryPicker() {
+  if (document.getElementById("summary-picker-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "summary-picker-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <div id="summary-picker-content"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const close = () => (overlay.hidden = true);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", close);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+}
+function openSummaryPicker() {
+  ensureSummaryPicker();
+  document.getElementById("summary-picker-content").innerHTML = renderSummaryPicker();
+  document.getElementById("summary-picker-modal").hidden = false;
+}
+function refreshSummaryAfterPick() {
+  const { away, home } = summaryPickerContext();
+  document.getElementById("summary-picker-content").innerHTML = renderSummaryPicker();
+  renderSummaryCard(away, home);
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".sc-odds-open, #summary-pick-btn")) openSummaryPicker();
+  if (e.target.closest(".sc-picker-clear")) {
+    const { gameKey } = summaryPickerContext();
+    saveSummaryPicks(gameKey, {});
+    refreshSummaryAfterPick();
+  }
+});
+document.addEventListener("change", (e) => {
+  const cb = e.target.closest(".sc-pick-toggle");
+  if (!cb) return;
+  const { gameKey } = summaryPickerContext();
+  const picks = loadSummaryPicks(gameKey);
+  const list = new Set(picks[cb.dataset.team] || []);
+  if (cb.checked && list.size < SUMMARY_MAX_PICKS) list.add(cb.dataset.key);
+  else list.delete(cb.dataset.key);
+  picks[cb.dataset.team] = [...list];
+  saveSummaryPicks(gameKey, picks);
+  refreshSummaryAfterPick();
 });
 
 function renderSummaryCard(away, home) {

@@ -2307,3 +2307,21 @@ footer { border-top-color: var(--border); }
 .sc-pp-box { width: 13px; height: 13px; border-radius: 3px; border: 1.5px solid var(--muted); display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; line-height: 1; }
 .sc-pp-on { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.14); }
 .sc-pp-on .sc-pp-box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+/* Summary: centered team banners, tight number columns, picker */
+.sc-team { justify-content: center; }
+.sc-targets { table-layout: fixed; }
+.sc-targets th:first-child, .sc-targets td:first-child { width: auto; }
+.sc-targets th.num, .sc-targets td.num { width: 72px; white-space: nowrap; }
+.sc-targets th:last-child, .sc-targets td:last-child { width: 78px; }
+.sc-odds-open { background: none; border: none; padding: 0; color: var(--text); cursor: pointer; text-align: left; }
+.sc-odds-open:hover { color: var(--accent); }
+.sc-odds-empty { margin: 2px 0 8px 12px; font-size: 0.76rem; color: var(--muted); font-style: italic; }
+#summary-picker-modal .modal-box { width: fit-content; max-width: 96vw; }
+.sc-picker-actions { margin: 6px 0 10px; }
+.sc-picker-cols { display: flex; flex-wrap: wrap; gap: 20px; }
+.sc-picker-col { flex: 0 1 420px; }
+.sc-picker-team { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; }
+.sc-picker-col .pp-row-label { gap: 6px; }
+.sc-picker-col .sc-headshot { vertical-align: middle; }
+.sc-picker-col tr.sc-picker-on td { background: rgba(var(--accent-rgb), 0.1); }
