@@ -777,6 +777,9 @@ const FIRST_TD_MARKET_SLOPE = 0.4; // first-TD % moves 0.4 per 1.0 of win %
 // flatter (anyone can score on the opening drive), so shares are raised to
 // this power and renormalized.
 const FIRST_TD_SHARE_FLATTEN = 0.65;
+// Expected-TD units of early-window usage a team needs before its own
+// early split outweighs the full-game split.
+const FIRST_TD_EARLY_PRIOR = 0.3;
 const FIRST_TD_NON_OFFENSE = 0.05; // share of first TDs that are DST/return
 const FIRST_TD_PLAYERS_SHOWN = 5;
 
@@ -853,12 +856,22 @@ function firstTdPlayerTargets(offTeam, defTeam, teamChance, week) {
   const injured = firstTdInjuryStatus(offTeam, week);
   const players = ((DATA.player_xtd || {})[offTeam] || []).filter((p) => injured[normName(p.name)] !== "out");
   if (!players.length) return [];
+  // Overall involvement: share of the team's targets + carries (Player
+  // Props data) -- a starter who hasn't drawn goal-line looks yet still
+  // plays every snap and can score first on any drive.
+  const props = {};
+  ((DATA.player_props || {})[offTeam] || []).forEach((pp) => (props[normName(pp.name)] = (pp.targets || 0) + (pp.carries || 0)));
+  players.forEach((p) => (p.touches = props[normName(p.name)] || 0));
   const sum = (k) => players.reduce((s, p) => s + (p[k] || 0), 0) || 1;
-  const totals = { early: sum("early_xtd_pg"), xtd: sum("xtd_pg"), tds: sum("tds") };
+  const totals = { early: sum("early_xtd_pg"), xtd: sum("xtd_pg"), tds: sum("tds"), touches: sum("touches") };
   const defPosZ = {};
   const raw = players.map((p) => {
     if (!(p.position in defPosZ)) defPosZ[p.position] = avgZ(modelSideZ(defTeam, "def", `first_${p.position}`).z, modelSideZ(defTeam, "def", p.position).z) || 0;
-    const share = 0.35 * (p.early_xtd_pg / totals.early) + 0.45 * (p.xtd_pg / totals.xtd) + 0.2 * (p.tds / totals.tds);
+    const fullShare = p.xtd_pg / totals.xtd;
+    // A thin first-TD window (a team that's barely had the ball before the
+    // first TD) leans on the full-game share instead of one lucky snap.
+    const earlyShare = (p.early_xtd_pg + FIRST_TD_EARLY_PRIOR * fullShare) / (totals.early + FIRST_TD_EARLY_PRIOR);
+    const share = 0.3 * earlyShare + 0.35 * fullShare + 0.15 * (p.tds / totals.tds) + 0.2 * (p.touches / totals.touches);
     return { p, w: Math.pow(share, FIRST_TD_SHARE_FLATTEN) * Math.exp(0.2 * defPosZ[p.position]) };
   });
   const wSum = raw.reduce((s, r) => s + r.w, 0) || 1;
@@ -989,18 +1002,35 @@ function renderRzUsageTable(team) {
 const SUMMARY_FIRST_TD_PLAYERS = 3;
 
 // The chart numbers behind one target: [offense, defense allows].
-function summaryTargetValues(metric, offTeam, defTeam) {
+// The chart numbers behind one target -- [offense cell, defense cell] as
+// <td>s, colored exactly like the TD Data charts color the same stat
+// (offense: more = green; defense allowed: more = red), per game.
+function summaryTargetCells(metric, offTeam, defTeam) {
   const o = DATA.team_stats[offTeam];
   const d = DATA.team_stats[defTeam];
+  const cell = (text, cls, alpha) => `<td class="num ${cls}"${alpha || ""}>${text}</td>`;
   const pg = (n, g) => (g ? (n / g).toFixed(2) : "--");
   const pct = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
-  if (metric === "pass") return [o.pass_td_per_g.toFixed(2), d.pass_td_allowed_per_g.toFixed(2)];
-  if (metric === "rush") return [o.rush_td_per_g.toFixed(2), d.rush_td_allowed_per_g.toFixed(2)];
-  if (metric === "first") return [pct(o.first_td_rate), pct(firstTdAllowedRate(defTeam))];
-  if (metric === "rz") return [pct(o.rz_td_rate), pct(d.rz_td_rate_allowed)];
-  if (POSITIONS.includes(metric)) return [pg(o.off_position_td[metric] || 0, o.games_played), pg(d.def_position_td_allowed[metric] || 0, d.games_played)];
-  if (LENGTH_BUCKETS.some((b) => b.key === metric)) return [pg(o.td_by_length[metric] || 0, o.games_played), pg(d.td_by_length_allowed[metric] || 0, d.games_played)];
-  return ["--", "--"];
+  const stat = (offKey, defKey, fmtFn) => [
+    cell(fmtFn(o[offKey]), tierFor(offKey, offTeam, false), tierForAlphaAttr(offKey, offTeam, false)),
+    cell(fmtFn(d[defKey]), tierFor(defKey, defTeam, true), tierForAlphaAttr(defKey, defTeam, true)),
+  ];
+  const bucket = (offDict, defDict, key) => [
+    cell(pg(o[offDict][key] || 0, o.games_played), bucketCountTier(offDict, key, offTeam), bucketCountAlphaAttr(offDict, key, offTeam)),
+    cell(pg(d[defDict][key] || 0, d.games_played), bucketCountTier(defDict, key, defTeam, true), bucketCountAlphaAttr(defDict, key, defTeam, true)),
+  ];
+  if (metric === "pass") return stat("pass_td_per_g", "pass_td_allowed_per_g", (v) => v.toFixed(2));
+  if (metric === "rush") return stat("rush_td_per_g", "rush_td_allowed_per_g", (v) => v.toFixed(2));
+  if (metric === "rz") return stat("rz_td_rate", "rz_td_rate_allowed", pct);
+  if (metric === "first") {
+    return [
+      cell(pct(o.first_td_rate), tierFor("first_td_rate", offTeam, false), tierForAlphaAttr("first_td_rate", offTeam, false)),
+      cell(pct(firstTdAllowedRate(defTeam)), tierForFirstTdAllowed(defTeam), tierForFirstTdAllowedAlphaAttr(defTeam)),
+    ];
+  }
+  if (POSITIONS.includes(metric)) return bucket("off_position_td", "def_position_td_allowed", metric);
+  if (LENGTH_BUCKETS.some((b) => b.key === metric)) return bucket("td_by_length", "td_by_length_allowed", metric);
+  return [cell("--", ""), cell("--", "")];
 }
 function summaryTargetUnit(metric) {
   if (metric === "first") return "scored 1st";
@@ -1008,27 +1038,46 @@ function summaryTargetUnit(metric) {
   return "TDs / game";
 }
 
-function summaryTeamColumn(offTeam, defTeam, chance, week) {
-  const rgb = teamAccentRgb(offTeam);
-  const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items.map((i) => ({ ...i, group: g.title })));
+function summaryTeamBanner(team) {
+  const rgb = teamAccentRgb(team);
+  return `<div class="sc-team" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
+    <img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt="">
+    <span class="sc-team-name">${TEAM_NAMES[team] || team}</span>
+  </div>`;
+}
+
+// Season half of a team's column: targets (with chart numbers) + tags.
+function summarySeasonColumn(offTeam, defTeam) {
+  const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items);
   const targetRows = items.length
     ? items
         .map((i) => {
-          const [ov, dv] = i.metric ? summaryTargetValues(i.metric, offTeam, defTeam) : ["--", "--"];
+          const [oc, dc] = i.metric ? summaryTargetCells(i.metric, offTeam, defTeam) : ["<td></td>", "<td></td>"];
           const strong = i.score >= TARGET_STRONG_SCORE;
           const due = i.due ? `<span class="target-due">&#9650;</span>` : "";
-          return `<tr><td><span class="target-chip${strong ? " target-chip-strong" : ""}">${i.label}${due}</span></td><td class="sc-group">${i.group}</td><td class="num">${ov}</td><td class="num">${dv}</td><td class="sc-unit">${i.metric ? summaryTargetUnit(i.metric) : ""}</td></tr>`;
+          return `<tr><td><span class="target-chip${strong ? " target-chip-strong" : ""}">${i.label}${due}</span></td>${oc}${dc}<td class="sc-unit">${i.metric ? summaryTargetUnit(i.metric) : ""}</td></tr>`;
         })
         .join("")
-    : `<tr><td colspan="5" class="target-none">No targets this week</td></tr>`;
+    : `<tr><td colspan="4" class="target-none">No targets this week</td></tr>`;
   const tags = matchupTags(offTeam, defTeam);
   const tagRows = tags.length
     ? tags.map((t) => `<li><span class="tag-chip tag-chip-${t.kind}">${t.label}</span><span class="sc-tag-text">${t.title}</span></li>`).join("")
     : `<li class="target-none">No tags</li>`;
+  return `<div class="sc-col">
+    ${summaryTeamBanner(offTeam)}
+    <table class="sc-table sc-targets"><thead><tr><th>Target</th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table>
+    <div class="sc-label">Matchup Tags</div>
+    <ul class="sc-tags">${tagRows}</ul>
+  </div>`;
+}
+
+// First TD half of a team's column: position chips + top players.
+function summaryFirstTdColumn(offTeam, defTeam, chance, week) {
+  const rgb = teamAccentRgb(offTeam);
+  const pct = (x) => `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`;
   const posChips = firstTdPositionTargets(offTeam, defTeam)
     .map((i) => `<span class="target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}">${i.label}</span>`)
     .join("");
-  const pct = (x) => `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`;
   const players = firstTdPlayerTargets(offTeam, defTeam, chance, week)
     .slice(0, SUMMARY_FIRST_TD_PLAYERS)
     .map((p) => {
@@ -1039,16 +1088,11 @@ function summaryTeamColumn(offTeam, defTeam, chance, week) {
     })
     .join("");
   return `<div class="sc-col">
-    <div class="sc-team" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
+    <div class="sc-ftd-head" style="border-left:4px solid rgb(${rgb.join(",")})">
       <img src="${teamLogoUrl(offTeam)}" crossorigin="anonymous" class="sc-team-logo" alt="">
-      <span class="sc-team-name">${TEAM_NAMES[offTeam] || offTeam}</span>
-      <span class="sc-team-vs">offense vs ${defTeam} D</span>
+      <span class="sc-ftd-team">${offTeam}</span>
+      ${posChips ? `<span class="sc-pos-chips">${posChips}</span>` : ""}
     </div>
-    <div class="sc-label">TD Targets</div>
-    <table class="sc-table"><thead><tr><th>Target</th><th></th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table>
-    <div class="sc-label">Matchup Tags</div>
-    <ul class="sc-tags">${tagRows}</ul>
-    <div class="sc-label">First TD <span class="sc-label-sub">${pct(chance)} to score first</span>${posChips ? `<span class="sc-pos-chips">${posChips}</span>` : ""}</div>
     <table class="sc-table sc-ftd"><thead><tr><th>Player</th><th class="num">Model</th><th class="num">Best odds</th></tr></thead><tbody>${players}</tbody></table>
   </div>`;
 }
@@ -1074,26 +1118,39 @@ function renderSummaryCard(away, home) {
   const rgbH = teamAccentRgb(home);
   card.innerHTML = `<div class="sc-inner">
     <div class="sc-header">
-      <img src="${teamLogoUrl(away)}" crossorigin="anonymous" class="sc-logo" alt="">
-      <div class="sc-title">
+      <div class="sc-title-row">
+        <img src="${teamLogoUrl(away)}" crossorigin="anonymous" class="sc-logo" alt="">
         <div class="sc-matchup">${TEAM_NAMES[away] || away} <span class="sc-at">@</span> ${TEAM_NAMES[home] || home}</div>
-        <div class="sc-meta">Week ${week}${when ? ` &middot; ${when}` : ""}${lines ? ` &middot; ${lines}` : ""}</div>
+        <img src="${teamLogoUrl(home)}" crossorigin="anonymous" class="sc-logo" alt="">
       </div>
-      <img src="${teamLogoUrl(home)}" crossorigin="anonymous" class="sc-logo" alt="">
+      <div class="sc-meta">Week ${week}${when ? ` &middot; ${when}` : ""}${lines ? ` &middot; ${lines}` : ""}</div>
       <div class="sc-brand"><span class="brand-mark">GMG</span><span class="sc-brand-name">TD Summary</span></div>
     </div>
-    <div class="sc-split">
-      <span class="sc-split-team">${away} <b>${Math.round(pAway * 100)}%</b></span>
-      <div class="ftd-split-bar"><span style="width:${pAway * 100}%;background:rgb(${rgbA.join(",")})"></span><span style="width:${(1 - pAway) * 100}%;background:rgb(${rgbH.join(",")})"></span></div>
-      <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
-      <span class="sc-split-label">to score the first TD</span>
-    </div>
-    <div class="sc-cols">
-      ${summaryTeamColumn(away, home, pAway, week)}
-      ${summaryTeamColumn(home, away, 1 - pAway, week)}
-    </div>
+
+    <section class="sc-section">
+      <div class="sc-section-title">Season TD Targets</div>
+      <div class="sc-cols">
+        ${summarySeasonColumn(away, home)}
+        ${summarySeasonColumn(home, away)}
+      </div>
+    </section>
+
+    <section class="sc-section sc-section-ftd">
+      <div class="sc-section-title">First TD</div>
+      <div class="sc-split">
+        <span class="sc-split-team">${away} <b>${Math.round(pAway * 100)}%</b></span>
+        <div class="ftd-split-bar"><span style="width:${pAway * 100}%;background:rgb(${rgbA.join(",")})"></span><span style="width:${(1 - pAway) * 100}%;background:rgb(${rgbH.join(",")})"></span></div>
+        <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
+        <span class="sc-split-label">to score the first TD</span>
+      </div>
+      <div class="sc-cols">
+        ${summaryFirstTdColumn(away, home, pAway, week)}
+        ${summaryFirstTdColumn(home, away, 1 - pAway, week)}
+      </div>
+    </section>
+
     <div class="sc-footer">
-      <span><span class="target-chip target-chip-strong">Strong</span> <span class="target-chip">Lean</span> <span class="target-due">&#9650;</span> usage ahead of TDs &middot; targets are schedule-adjusted and include usage</span>
+      <span><span class="target-chip target-chip-strong">Strong</span> <span class="target-chip">Lean</span> <span class="target-due">&#9650;</span> usage ahead of TDs &middot; numbers colored like the charts (vs. league)</span>
       <span>Model % = chance to score the game's first TD &middot; highlighted rows: model above the odds' implied %</span>
     </div>
   </div>`;
@@ -1101,6 +1158,7 @@ function renderSummaryCard(away, home) {
   // Logos load after the first measurement; re-fit once they have.
   card.querySelectorAll("img").forEach((img) => img.addEventListener("load", fitSummaryCard, { once: true }));
 }
+
 
 // Scale the inner content down (never up) until it fits the fixed card.
 function fitSummaryCard() {

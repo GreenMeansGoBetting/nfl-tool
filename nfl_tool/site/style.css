@@ -2235,15 +2235,15 @@ footer { border-top-color: var(--border); }
   font-variant-numeric: tabular-nums;
 }
 .sc-inner { min-height: 100%; padding: 18px 22px 14px; transform-origin: top left; display: flex; flex-direction: column; gap: 10px; }
-.sc-header { display: flex; align-items: center; gap: 14px; }
+.sc-header { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sc-title-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .sc-logo { width: 54px; height: 54px; object-fit: contain; }
-.sc-title { flex: 0 1 auto; text-align: center; }
 .sc-matchup { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; }
 .sc-at { color: var(--muted); font-weight: 600; }
 .sc-meta { color: var(--muted); font-size: 0.9rem; font-weight: 600; }
-.sc-brand { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.sc-brand { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .sc-brand-name { font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.sc-split { display: flex; align-items: center; gap: 10px; }
+.sc-split { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 2px 0 8px; }
 .sc-split .ftd-split-bar { height: 12px; max-width: 520px; }
 .sc-split-team { font-weight: 700; white-space: nowrap; }
 .sc-split-team b { font-size: 1.15rem; }
@@ -2253,7 +2253,6 @@ footer { border-top-color: var(--border); }
 .sc-team { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
 .sc-team-logo { width: 28px; height: 28px; object-fit: contain; }
 .sc-team-name { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
-.sc-team-vs { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
 .sc-label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 5px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .sc-label-sub { text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
 .sc-pos-chips { display: inline-flex; gap: 4px; }
@@ -2262,7 +2261,6 @@ footer { border-top-color: var(--border); }
 .sc-table td { padding: 3px 6px; border-top: 1px solid var(--border); vertical-align: middle; }
 .sc-table .num { text-align: right; font-weight: 700; }
 .sc-table th.num { text-align: right; }
-.sc-group { color: var(--muted); font-size: 0.74rem; }
 .sc-unit { color: var(--muted); font-size: 0.7rem; white-space: nowrap; }
 .sc-table .target-chip { font-size: 0.76rem; white-space: nowrap; }
 .sc-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -2273,3 +2271,15 @@ footer { border-top-color: var(--border); }
 .sc-ftd tr.ftd-edge-strong td { background: rgba(var(--good-rgb), 0.22); }
 .sc-footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 8px; margin-top: auto; }
 .sc-footer .target-chip { font-size: 0.64rem; padding: 0 6px; }
+
+/* Summary sections: Season TD Targets vs First TD, visibly separate */
+.sc-section { border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px 10px; background: rgba(var(--accent-rgb), 0.03); }
+.sc-section-ftd { background: rgba(var(--mid-rgb), 0.04); border-color: rgba(var(--mid-rgb), 0.3); }
+.sc-section-title { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.sc-section-title::before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: var(--accent); }
+.sc-section-ftd .sc-section-title::before { background: var(--mid); }
+.sc-targets { margin-top: 6px; }
+.sc-targets td.num { border-left: 2px solid var(--panel-2); }
+.sc-ftd-head { display: flex; align-items: center; gap: 8px; padding: 2px 8px; margin-bottom: 4px; }
+.sc-ftd-team { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; letter-spacing: 0.03em; }
+.sc-ftd-head .sc-pos-chips { margin-left: auto; }
