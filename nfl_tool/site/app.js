@@ -252,6 +252,174 @@ function targetGroups(offTeam, defTeam) {
   ];
 }
 
+// ---- Matchup tags: situational flags worth a look, no verdict ----
+// Each compares this offense with this defense against the league (z of
+// per-game or rate stats); "good" = an opening for the offense, "warn" =
+// something working against it. Tooltips carry the raw numbers so the
+// reader can judge. Thresholds are deliberately tight so tags stay rare.
+const TAG_Z = 0.75;
+const TAG_MIN_RZ_TRIPS = 3;
+const TAG_MIN_SPLIT_PLAYS = 10;
+const TAG_MIN_LANE_CARRIES = 4;
+const RUSH_LANE_LABELS = {
+  left_end: "L End", left_tackle: "L Tackle", left_guard: "L Guard", middle: "Middle",
+  right_guard: "R Guard", right_tackle: "R Tackle", right_end: "R End",
+};
+
+function tagLeague(key) {
+  const vals = teamsWithGames().map((t) => DATA.team_stats[t][key]).filter((v) => v !== null && v !== undefined);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+}
+function tagPct(v) {
+  return v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`;
+}
+function tagNum(v, d = 1) {
+  return v === null || v === undefined ? "--" : Number(v).toFixed(d);
+}
+
+function matchupTags(offTeam, defTeam) {
+  const o = DATA.team_stats[offTeam];
+  const d = DATA.team_stats[defTeam];
+  const z = (key, team, invert = false) => statZ(key, invert)(team);
+  const ok = (...vals) => vals.every((v) => v !== null && v !== undefined);
+  const tags = [];
+  const add = (kind, label, title) => tags.push({ kind, label, title });
+
+  // Red zone leak / wall
+  if (d.rz_trips_allowed >= TAG_MIN_RZ_TRIPS) {
+    const dz = z("rz_td_rate_allowed", defTeam);
+    const oz = z("rz_td_rate", offTeam);
+    const t = `${defTeam} allows a TD on ${tagPct(d.rz_td_rate_allowed)} of red zone trips (lg ${tagPct(tagLeague("rz_td_rate_allowed"))}); ${offTeam} scores on ${tagPct(o.rz_td_rate)}`;
+    if (ok(dz, oz) && dz >= TAG_Z && oz >= -0.3) add("good", "RZ leak", t);
+    else if (ok(dz) && dz <= -TAG_Z) add("warn", "RZ wall", t);
+  }
+
+  // Goal-line run vs pass: offense's red zone lean meets the defense's weak side
+  const passLean = z("rz_pass_rate", offTeam);
+  const rushLean = z("rz_rush_rate", offTeam);
+  const passLeak = z("rz_pass_td_rate_allowed", defTeam);
+  const rushLeak = z("rz_rush_td_rate_allowed", defTeam);
+  if (ok(passLean, passLeak) && passLean >= 0.5 && passLeak >= 0.6) {
+    add("good", "RZ pass edge", `${offTeam} throws on ${tagPct(o.rz_pass_rate)} of red zone plays; ${defTeam} allows a TD on ${tagPct(d.rz_pass_td_rate_allowed)} of red zone targets (lg ${tagPct(tagLeague("rz_pass_td_rate_allowed"))})`);
+  }
+  if (ok(rushLean, rushLeak) && rushLean >= 0.5 && rushLeak >= 0.6) {
+    add("good", "Goal-line run edge", `${offTeam} runs on ${tagPct(o.rz_rush_rate)} of red zone plays; ${defTeam} allows a TD on ${tagPct(d.rz_rush_td_rate_allowed)} of red zone carries (lg ${tagPct(tagLeague("rz_rush_td_rate_allowed"))})`);
+  }
+
+  // Red zone trip volume
+  const volZ = avgZ(z("rz_trips_per_g", offTeam), z("rz_trips_allowed_per_g", defTeam));
+  if (volZ !== null) {
+    const t = `${offTeam} ${tagNum(o.rz_trips_per_g)} red zone trips/g; ${defTeam} allows ${tagNum(d.rz_trips_allowed_per_g)}/g (lg ${tagNum(tagLeague("rz_trips_per_g"))})`;
+    if (volZ >= TAG_Z) add("good", "RZ volume", t);
+    else if (volZ <= -TAG_Z) add("warn", "Few RZ trips", t);
+  }
+
+  // Short fields / turnover risk
+  const shortZ = avgZ(z("turnovers_per_g", defTeam), z("takeaways_per_g", offTeam));
+  if (shortZ !== null && shortZ >= TAG_Z) {
+    add("good", "Short fields", `${defTeam} offense gives it away ${tagNum(d.turnovers_per_g)}/g; ${offTeam} defense takes it away ${tagNum(o.takeaways_per_g)}/g (lg ${tagNum(tagLeague("takeaways_per_g"))})`);
+  }
+  const riskZ = avgZ(z("turnovers_per_g", offTeam), z("takeaways_per_g", defTeam));
+  if (riskZ !== null && riskZ >= TAG_Z) {
+    add("warn", "Turnover risk", `${offTeam} turns it over ${tagNum(o.turnovers_per_g)}/g; ${defTeam} takes it away ${tagNum(d.takeaways_per_g)}/g (lg ${tagNum(tagLeague("takeaways_per_g"))})`);
+  }
+
+  // Big-play vulnerability (pass and run)
+  for (const [kind, label, offKey, defKey, desc] of [
+    ["pass", "Big-play pass", "explosive_pass_rate", "explosive_pass_rate_allowed", "15+ yd completions"],
+    ["rush", "Big-play run", "explosive_rush_rate", "explosive_rush_rate_allowed", "10+ yd runs"],
+  ]) {
+    const oz = z(offKey, offTeam);
+    const dz = z(defKey, defTeam);
+    if (!ok(oz, dz)) continue;
+    const per = kind === "pass" ? "passes" : "runs";
+    const t = `${desc}: ${offTeam} ${tagPct(o[offKey])} of ${per}, ${defTeam} allows ${tagPct(d[defKey])} of ${per} (lg ${tagPct(tagLeague(defKey))})`;
+    if (dz >= 0.6 && oz >= 0) add("good", label, t);
+    else if (dz <= -TAG_Z && oz >= 0.6) add("warn", kind === "pass" ? "Limits big passes" : "Limits big runs", t);
+  }
+
+  // Deep-ball / end-zone exposure (opponent-adjusted targets per game)
+  if (DATA.td_matchup_model) {
+    const dz = avgZ(modelZ(defTeam, "def", "ez", "adj"), modelZ(defTeam, "def", "deep", "adj"));
+    const oz = avgZ(modelZ(offTeam, "off", "ez", "adj"), modelZ(offTeam, "off", "deep", "adj"));
+    const m = DATA.td_matchup_model;
+    if (ok(dz, oz) && dz >= 0.6 && oz >= 0) {
+      add("good", "Deep / EZ exposed", `${defTeam} allows ${tagNum(m[defTeam].def.deep?.adj)} deep (20+) and ${tagNum(m[defTeam].def.ez?.adj)} end-zone targets/g; ${offTeam} throws ${tagNum(m[offTeam].off.deep?.adj)} and ${tagNum(m[offTeam].off.ez?.adj)} (schedule-adjusted)`);
+    }
+  }
+
+  // Pressure / blitz mismatch
+  if (o.success_vs_clean_pocket_plays >= TAG_MIN_SPLIT_PLAYS) {
+    const pz = z("pressure_rate", defTeam);
+    const cz = z("success_vs_clean_pocket", offTeam);
+    if (ok(pz, cz) && pz <= -0.6 && cz >= 0.3) {
+      add("good", "Clean pocket", `${defTeam} pressures on ${tagPct(d.pressure_rate)} of dropbacks (lg ${tagPct(tagLeague("pressure_rate"))}); ${offTeam} success rate from a clean pocket ${tagPct(o.success_vs_clean_pocket)}`);
+    }
+  }
+  if (o.success_vs_pressure_plays >= TAG_MIN_SPLIT_PLAYS) {
+    const pz = z("pressure_rate", defTeam);
+    const sz = z("success_vs_pressure", offTeam);
+    if (ok(pz, sz) && pz >= 0.6 && sz <= -0.3) {
+      add("warn", "Pressure trouble", `${defTeam} pressures on ${tagPct(d.pressure_rate)} of dropbacks (lg ${tagPct(tagLeague("pressure_rate"))}); ${offTeam} success rate under pressure ${tagPct(o.success_vs_pressure)}`);
+    }
+  }
+  if (o.success_vs_blitz_plays >= TAG_MIN_SPLIT_PLAYS) {
+    const bz = z("blitz_rate", defTeam);
+    const sz = z("success_vs_blitz", offTeam);
+    if (ok(bz, sz) && bz >= 0.6 && sz >= 0.3) {
+      add("good", "Beats the blitz", `${defTeam} blitzes on ${tagPct(d.blitz_rate)} of dropbacks (lg ${tagPct(tagLeague("blitz_rate"))}); ${offTeam} success rate vs the blitz ${tagPct(o.success_vs_blitz)}`);
+    }
+  }
+
+  // Pace / play volume (game-level: both teams)
+  const paceZ = avgZ(z("off_plays_per_g", offTeam), z("off_plays_per_g", defTeam));
+  if (paceZ !== null) {
+    const t = `${offTeam} ${tagNum(o.off_plays_per_g, 0)} plays/g, ${defTeam} ${tagNum(d.off_plays_per_g, 0)} (lg ${tagNum(tagLeague("off_plays_per_g"), 0)})`;
+    if (paceZ >= TAG_Z) add("good", "High pace", t);
+    else if (paceZ <= -TAG_Z) add("warn", "Slow pace", t);
+  }
+
+  // Run lane edge: this offense runs well to a lane the defense can't hold
+  let bestLane = null;
+  for (const lane of Object.keys(RUSH_LANE_LABELS)) {
+    if ((o[`rush_carries_${lane}`] || 0) < TAG_MIN_LANE_CARRIES || (d[`rush_carries_allowed_${lane}`] || 0) < TAG_MIN_LANE_CARRIES) continue;
+    const oz = z(`rush_ypc_${lane}`, offTeam);
+    const dz = z(`rush_ypc_allowed_${lane}`, defTeam);
+    if (!ok(oz, dz) || oz < 0.5 || dz < 0.6) continue;
+    if (!bestLane || oz + dz > bestLane.score) bestLane = { lane, score: oz + dz };
+  }
+  if (bestLane) {
+    const l = bestLane.lane;
+    add("good", `Run lane: ${RUSH_LANE_LABELS[l]}`, `${offTeam} ${tagNum(o[`rush_ypc_${l}`])} YPC to ${RUSH_LANE_LABELS[l]} (${o[`rush_carries_${l}`]} car); ${defTeam} allows ${tagNum(d[`rush_ypc_allowed_${l}`])} there (${d[`rush_carries_allowed_${l}`]} car)`);
+  }
+
+  // Box-count edge
+  if (o.ypc_vs_light_box_plays >= TAG_MIN_SPLIT_PLAYS) {
+    const lz = z("box_light_rate", defTeam);
+    const yz = z("ypc_vs_light_box", offTeam);
+    if (ok(lz, yz) && lz >= 0.6 && yz >= 0.5) {
+      add("good", "Light-box runs", `${defTeam} shows a light box on ${tagPct(d.box_light_rate)} of runs (lg ${tagPct(tagLeague("box_light_rate"))}); ${offTeam} ${tagNum(o.ypc_vs_light_box)} YPC vs light boxes`);
+    }
+  }
+  if (o.ypc_vs_heavy_box_plays >= TAG_MIN_SPLIT_PLAYS) {
+    const hz = z("box_heavy_rate", defTeam);
+    const yz = z("ypc_vs_heavy_box", offTeam);
+    if (ok(hz, yz) && hz >= 0.6 && yz >= 0.5) {
+      add("good", "Beats stacked box", `${defTeam} stacks the box on ${tagPct(d.box_heavy_rate)} of runs (lg ${tagPct(tagLeague("box_heavy_rate"))}); ${offTeam} ${tagNum(o.ypc_vs_heavy_box)} YPC vs 7+ in the box`);
+    }
+  }
+
+  return tags.sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "good" ? -1 : 1));
+}
+
+function renderMatchupTags(offTeam, defTeam) {
+  const tags = matchupTags(offTeam, defTeam);
+  const chips = tags.length
+    ? tags.map((t) => `<span class="tag-chip tag-chip-${t.kind}" title="${t.title.replace(/"/g, "&quot;")}">${t.label}</span>`).join("")
+    : `<span class="target-none">&mdash;</span>`;
+  return `<div class="target-group"><div class="target-group-title">Tags</div><div class="target-chips">${chips}</div></div>`;
+}
+
 function renderTargets(awayTeam, homeTeam) {
   const block = (offTeam, defTeam) => {
     const rgb = teamAccentRgb(offTeam);
@@ -271,6 +439,7 @@ function renderTargets(awayTeam, homeTeam) {
     return `<div class="target-block">
       <div class="target-team" style="background:rgba(${rgb.join(",")},0.18);border-left:3px solid rgb(${rgb.join(",")})">${teamLogoMini(offTeam, 18)} ${offTeam} <span class="target-vs">vs ${teamLogoMini(defTeam, 14)} ${defTeam} D</span></div>
       ${groups}
+      ${renderMatchupTags(offTeam, defTeam)}
     </div>`;
   };
   return `${block(awayTeam, homeTeam)}${block(homeTeam, awayTeam)}

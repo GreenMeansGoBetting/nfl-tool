@@ -2203,3 +2203,7 @@ footer { border-top-color: var(--border); }
   main { padding-left: 16px; padding-right: 16px; }
 }
 .ftd-inj { font-size: 0.66rem; font-weight: 700; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.18); border-radius: 4px; padding: 0 4px; }
+/* Matchup tags (TD Data Targets) -- situational flags, not picks */
+.tag-chip { padding: 2px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; cursor: help; border: 1px dashed transparent; }
+.tag-chip-good { color: var(--good-text); border-color: rgba(var(--good-rgb), 0.55); background: rgba(var(--good-rgb), 0.06); }
+.tag-chip-warn { color: var(--mid-text); border-color: rgba(var(--mid-rgb), 0.6); background: rgba(var(--mid-rgb), 0.08); }

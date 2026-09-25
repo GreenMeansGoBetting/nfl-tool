@@ -1596,6 +1596,12 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
     for bucket in ("10_or_less", "11_20", "21_40", "41_plus"):
         metric_cols[f"td_{bucket}"] = tds[tds["length_bucket"] == bucket].groupby(["game_id", "scoring_team"]).size()
 
+    # Deep-ball / end-zone exposure counts (targets, not TDs): end-zone
+    # throws and 20+ air-yard throws per game, for the matchup tags.
+    is_target = opp["kind"] == "pass"
+    metric_cols["cnt_ez"] = opp[is_target & (opp["air"] == "ez")].groupby(["game_id", "posteam"]).size()
+    metric_cols["cnt_deep"] = opp[is_target & (opp["air_yards"] >= 20)].groupby(["game_id", "posteam"]).size()
+
     key = pd.MultiIndex.from_frame(sides[["game_id", "off"]])
     for col, series in metric_cols.items():
         sides[col] = series.reindex(key).fillna(0).to_numpy()
@@ -1631,6 +1637,13 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
             if xtd[0]:
                 t["off"][m]["xtd"] = xtd[0].get(team)
                 t["def"][m]["xtd"] = xtd[1].get(team)
+
+    for m in ("ez", "deep"):
+        off_adj, def_adj = adjusted(f"cnt_{m}")
+        for team in set(off_adj) | set(def_adj):
+            t = out.setdefault(team, {"off": {}, "def": {}})
+            t["off"][m] = {"adj": off_adj.get(team)}
+            t["def"][m] = {"adj": def_adj.get(team)}
 
     # Per player: usage-based expected TDs per team game, whole game and
     # first-TD window, plus actual TDs/first TDs -- the player layer of the
