@@ -2335,3 +2335,10 @@ footer { border-top-color: var(--border); }
 .sc-key { display: inline-flex; align-items: center; gap: 5px; padding: 2px 6px 2px 3px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; color: var(--good-text); background: rgba(var(--good-rgb), 0.1); border: 1px solid rgba(var(--good-rgb), 0.45); white-space: nowrap; }
 .sc-key .sc-num { margin: 0 0 0 1px; }
 .sc-key-warn { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.1); border-color: rgba(var(--mid-rgb), 0.5); }
+
+/* Summary: targets left-aligned in col 1; tag number + chip as one unit */
+.sc-targets th:first-child, .sc-targets td:first-child { text-align: left; }
+.sc-tags li { display: grid; grid-template-columns: auto 1fr; align-items: start; column-gap: 8px; }
+.sc-tag-head { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.sc-tag-head .sc-num { margin: 0; }
+.sc-tag-text { padding-top: 2px; }
