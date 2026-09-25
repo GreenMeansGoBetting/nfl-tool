@@ -996,8 +996,8 @@ function renderRzUsageTable(team) {
 }
 
 // ---- Summary tab: one screenshot-ready card with everything ----
-// Fixed 1134x800 (the same 1.42:1 shape as the open area of the video
-// template), so a screenshot or the Save image PNG drops straight in.
+// Fixed 1160x980 (1.18:1 -- the video template's full left area), so a
+// screenshot or the Save image PNG drops straight in.
 // Content that runs long is scaled down to fit instead of being cut off.
 const SUMMARY_FIRST_TD_PLAYERS = 3;
 
@@ -1071,6 +1071,21 @@ function summarySeasonColumn(offTeam, defTeam) {
   </div>`;
 }
 
+// Player photo by name -- headshots are keyed by roster full name, odds by
+// the sportsbook's spelling, so both go through normName.
+function summaryHeadshot(team, name, size = 26) {
+  const byTeam = (DATA.player_headshots || {})[team] || {};
+  if (!summaryHeadshot.index) summaryHeadshot.index = {};
+  if (!summaryHeadshot.index[team]) {
+    summaryHeadshot.index[team] = {};
+    Object.entries(byTeam).forEach(([n, url]) => (summaryHeadshot.index[team][normName(n)] = url));
+  }
+  const url = summaryHeadshot.index[team][normName(name)];
+  return url
+    ? `<img src="${url}" crossorigin="anonymous" class="sc-headshot" style="width:${size}px;height:${size}px" alt="">`
+    : `<span class="sc-headshot sc-headshot-empty" style="width:${size}px;height:${size}px"></span>`;
+}
+
 // First TD half of a team's column: position chips + top players.
 function summaryFirstTdColumn(offTeam, defTeam, chance, week) {
   const rgb = teamAccentRgb(offTeam);
@@ -1084,7 +1099,7 @@ function summaryFirstTdColumn(offTeam, defTeam, chance, week) {
       const edgeCls = p.edge === null ? "" : p.edge >= 1.25 ? "ftd-edge-strong" : p.edge >= 1 ? "ftd-edge-lean" : "";
       const odds = p.odds === null ? "--" : `${p.odds > 0 ? "+" : ""}${p.odds} <span class="muted">${pct(p.implied)}</span>`;
       const inj = p.injury ? ` <span class="ftd-inj">${p.injury}</span>` : "";
-      return `<tr class="${edgeCls}"><td>${p.name} <span class="muted">${p.position}</span>${inj}</td><td class="num ftd-est">${pct(p.est)}</td><td class="num">${odds}</td></tr>`;
+      return `<tr class="${edgeCls}"><td><span class="sc-player">${summaryHeadshot(offTeam, p.name, 24)}<span>${p.name} <span class="muted">${p.position}</span>${inj}</span></span></td><td class="num ftd-est">${pct(p.est)}</td><td class="num">${odds}</td></tr>`;
     })
     .join("");
   return `<div class="sc-col">
@@ -1096,6 +1111,77 @@ function summaryFirstTdColumn(offTeam, defTeam, chance, week) {
     <table class="sc-table sc-ftd"><thead><tr><th>Player</th><th class="num">Model</th><th class="num">Best odds</th></tr></thead><tbody>${players}</tbody></table>
   </div>`;
 }
+
+// ---- Right rail: the odds popup, inline -- each team's players with
+// Anytime TD and First TD odds, each one a checkbox into Possible Plays.
+// Custom (not native) checkboxes so the checkmark shows up in the saved PNG.
+const SUMMARY_ODDS_PER_TEAM = 8;
+
+function summaryPlayEntry(week, matchup, market, team, name, odds) {
+  return {
+    id: `${week}_${market}_${team}_${name}`,
+    week,
+    matchup,
+    category: PLAY_MARKET_LABELS[market],
+    description: name,
+    team,
+    odds: fmtOddsSigned(odds.best_odds),
+    book: odds.best_book,
+  };
+}
+function summaryPlayCheck(entry, label) {
+  const on = isPossiblePlay(entry.id);
+  return `<button type="button" class="sc-pp${on ? " sc-pp-on" : ""}" data-entry="${encodeDataAttr(entry)}" title="Add to Possible Plays"><span class="sc-pp-box">${on ? "&#10003;" : ""}</span>${label}</button>`;
+}
+
+function summaryOddsRail(away, home, week) {
+  const matchup = `${away} @ ${home}`;
+  const block = (team) => {
+    const any = {};
+    ((DATA.player_td_odds || {})[team] || []).forEach((o) => (any[normName(o.name)] = o));
+    const first = {};
+    ((DATA.player_first_td_odds || {})[team] || []).forEach((o) => (first[normName(o.name)] = o));
+    const names = {};
+    [...((DATA.player_td_odds || {})[team] || []), ...((DATA.player_first_td_odds || {})[team] || [])].forEach((o) => {
+      const k = normName(o.name);
+      if (!names[k]) names[k] = o;
+    });
+    const rows = Object.entries(names)
+      .map(([k, o]) => ({ k, o, prob: (any[k] || first[k] || {}).implied_prob || 0 }))
+      .sort((a, b) => b.prob - a.prob)
+      .slice(0, SUMMARY_ODDS_PER_TEAM)
+      .map(({ k, o }) => {
+        const a = any[k];
+        const f = first[k];
+        const cell = (odds, market) => (odds ? summaryPlayCheck(summaryPlayEntry(week, matchup, market, team, o.name, odds), fmtOddsSigned(odds.best_odds)) : `<span class="muted">--</span>`);
+        return `<tr><td><span class="sc-player">${summaryHeadshot(team, o.name, 26)}<span class="sc-odds-name">${o.name} <span class="muted">${o.position || ""}</span></span></span></td><td class="num">${cell(a, "anytime_td")}</td><td class="num">${cell(f, "first_td")}</td></tr>`;
+      })
+      .join("");
+    const rgb = teamAccentRgb(team);
+    return `<div class="sc-odds-team" style="border-left:4px solid rgb(${rgb.join(",")})">
+        <img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt=""><span class="sc-ftd-team">${team}</span>
+      </div>
+      <table class="sc-table sc-odds"><thead><tr><th>Player</th><th class="num">Anytime</th><th class="num">1st TD</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="3" class="target-none">No odds posted yet</td></tr>`}</tbody></table>`;
+  };
+  return `<section class="sc-section sc-section-odds">
+    <div class="sc-section-title">TD Odds</div>
+    ${block(away)}
+    ${block(home)}
+    <div class="sc-odds-note">Best price found &middot; check a box to add it to Possible Plays</div>
+  </section>`;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".sc-pp");
+  if (!btn) return;
+  togglePossiblePlay(decodeDataAttr(btn.dataset.entry));
+  const on = btn.classList.toggle("sc-pp-on");
+  btn.querySelector(".sc-pp-box").innerHTML = on ? "&#10003;" : "";
+  const away = document.getElementById("away-select").value;
+  const home = document.getElementById("home-select").value;
+  if (away && home) renderTdPossiblePlaysList(away, home);
+});
 
 function renderSummaryCard(away, home) {
   const card = document.getElementById("summary-card");
@@ -1127,27 +1213,32 @@ function renderSummaryCard(away, home) {
       <div class="sc-brand"><span class="brand-mark">GMG</span><span class="sc-brand-name">TD Summary</span></div>
     </div>
 
-    <section class="sc-section">
-      <div class="sc-section-title">Season TD Targets</div>
-      <div class="sc-cols">
-        ${summarySeasonColumn(away, home)}
-        ${summarySeasonColumn(home, away)}
-      </div>
-    </section>
+    <div class="sc-body">
+      <div class="sc-main">
+        <section class="sc-section">
+          <div class="sc-section-title">Season TD Targets</div>
+          <div class="sc-cols">
+            ${summarySeasonColumn(away, home)}
+            ${summarySeasonColumn(home, away)}
+          </div>
+        </section>
 
-    <section class="sc-section sc-section-ftd">
-      <div class="sc-section-title">First TD</div>
-      <div class="sc-split">
-        <span class="sc-split-team">${away} <b>${Math.round(pAway * 100)}%</b></span>
-        <div class="ftd-split-bar"><span style="width:${pAway * 100}%;background:rgb(${rgbA.join(",")})"></span><span style="width:${(1 - pAway) * 100}%;background:rgb(${rgbH.join(",")})"></span></div>
-        <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
-        <span class="sc-split-label">to score the first TD</span>
+        <section class="sc-section sc-section-ftd">
+          <div class="sc-section-title">First TD</div>
+          <div class="sc-split">
+            <span class="sc-split-team">${away} <b>${Math.round(pAway * 100)}%</b></span>
+            <div class="ftd-split-bar"><span style="width:${pAway * 100}%;background:rgb(${rgbA.join(",")})"></span><span style="width:${(1 - pAway) * 100}%;background:rgb(${rgbH.join(",")})"></span></div>
+            <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
+          </div>
+          <div class="sc-split-label">chance to score the game's first TD</div>
+          <div class="sc-cols">
+            ${summaryFirstTdColumn(away, home, pAway, week)}
+            ${summaryFirstTdColumn(home, away, 1 - pAway, week)}
+          </div>
+        </section>
       </div>
-      <div class="sc-cols">
-        ${summaryFirstTdColumn(away, home, pAway, week)}
-        ${summaryFirstTdColumn(home, away, 1 - pAway, week)}
-      </div>
-    </section>
+      ${summaryOddsRail(away, home, week)}
+    </div>
 
     <div class="sc-footer">
       <span><span class="target-chip target-chip-strong">Strong</span> <span class="target-chip">Lean</span> <span class="target-due">&#9650;</span> usage ahead of TDs &middot; numbers colored like the charts (vs. league)</span>
@@ -1155,10 +1246,9 @@ function renderSummaryCard(away, home) {
     </div>
   </div>`;
   fitSummaryCard();
-  // Logos load after the first measurement; re-fit once they have.
+  // Logos/photos load after the first measurement; re-fit once they have.
   card.querySelectorAll("img").forEach((img) => img.addEventListener("load", fitSummaryCard, { once: true }));
 }
-
 
 // Scale the inner content down (never up) until it fits the fixed card.
 function fitSummaryCard() {
