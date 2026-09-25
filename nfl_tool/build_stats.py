@@ -1502,6 +1502,7 @@ def scoring_plays_with_position(pbp: pd.DataFrame, pos_lookup) -> pd.DataFrame:
 # Field-position bins for expected TDs (yardline_100 = yards to the end
 # zone at the snap). Finer inside the 10, where TD odds change fastest.
 XTD_YARDLINE_BINS = [0, 2, 5, 10, 15, 20, 30, 50, 100]
+XTD_MIN_CELL = 25  # plays needed before a (spot, throw depth) cell's own TD rate is trusted
 # Opponent adjustment shrinks each opponent's "normal" toward the league
 # average by this many league-average games -- with 1-3 games of data, a
 # single opponent game can't be trusted on its own.
@@ -1532,8 +1533,29 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
     carries["kind"], carries["td"], carries["pid"] = "rush", carries["rush_touchdown"].fillna(0), carries["rusher_player_id"]
     opp = pd.concat([targets, carries], ignore_index=True)
     opp["bin"] = pd.cut(opp["yardline_100"], XTD_YARDLINE_BINS, include_lowest=True)
-    rates = opp.groupby(["kind", "bin"], observed=True)["td"].mean()
-    opp["xtd"] = [rates.get((k, b), 0.0) for k, b in zip(opp["kind"], opp["bin"])]
+    # Targets also keyed by where the ball was thrown: into the end zone
+    # (air_yards >= distance to goal -- ~50% of these score, vs ~2-4% for
+    # anything short of it), or short/intermediate/deep otherwise. Field
+    # position alone valued every deep shot as near-worthless, which hid
+    # big-play passing offenses and defenses that give up end-zone throws.
+    air, ydl = opp["air_yards"], opp["yardline_100"]
+    opp["air"] = "run"
+    is_pass = opp["kind"] == "pass"
+    opp.loc[is_pass, "air"] = "short"
+    opp.loc[is_pass & (air >= 10), "air"] = "mid"
+    opp.loc[is_pass & (air >= 20), "air"] = "deep"
+    opp.loc[is_pass & (air >= ydl), "air"] = "ez"
+    fine = opp.groupby(["kind", "bin", "air"], observed=True)["td"].agg(["mean", "size"])
+    coarse = opp.groupby(["kind", "bin"], observed=True)["td"].mean()
+
+    def xtd_rate(k, b, a):
+        # Fall back to the field-position-only rate when a cell is too thin.
+        if (k, b, a) in fine.index and fine.loc[(k, b, a), "size"] >= XTD_MIN_CELL:
+            return fine.loc[(k, b, a), "mean"]
+        return coarse.get((k, b), 0.0)
+
+    cache = {}
+    opp["xtd"] = [cache.setdefault(key, xtd_rate(*key)) for key in zip(opp["kind"], opp["bin"], opp["air"])]
     opp["position"] = [
         bucket_position(pos_lookup(pid, wk)[0]) if pos_lookup(pid, wk)[0] else None
         for pid, wk in zip(opp["pid"], opp["week"])
