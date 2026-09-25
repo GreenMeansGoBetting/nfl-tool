@@ -75,9 +75,12 @@ const TEAM_COLORS = {
 // ours except for these two.
 const ESPN_LOGO_ABBR = { LA: "lar", WAS: "wsh" };
 
+// Resized by ESPN's image combiner: the raw logo is 500x500 (~1 MB once
+// decoded) but never shown bigger than ~54px, and a page can show dozens --
+// 120px keeps them sharp on high-DPI screens at a fraction of the cost.
 function teamLogoUrl(team) {
   const code = ESPN_LOGO_ABBR[team] || (team || "").toLowerCase();
-  return `https://a.espncdn.com/i/teamlogos/nfl/500/${code}.png`;
+  return `https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${code}.png&w=120&h=120`;
 }
 
 // Small inline logo for cells that otherwise show only a bare team code

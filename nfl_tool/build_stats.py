@@ -296,8 +296,27 @@ def compute_player_headshots(rosters: pd.DataFrame, pos_lookup) -> dict:
         _, team, name = pos_lookup(gsis_id, int(latest.week))
         if not team or not name:
             continue
-        out.setdefault(team, {})[name] = latest.headshot_url
+        out.setdefault(team, {})[name] = small_headshot_url(latest.headshot_url)
     return out
+
+
+# nflverse headshot URLs point at full-size originals (~0.5-1 MB each);
+# the site never shows one bigger than ~80px, and pages with dozens of
+# them (Summary card, Player Props) were decoding tens of MB of photos.
+# NFL's image CDN resizes on the fly: a face-centered 160px square is
+# ~2-5 KB and still sharp on high-DPI screens.
+HEADSHOT_TRANSFORM = "w_160,h_160,c_fill,g_face"
+
+
+def small_headshot_url(url: str) -> str:
+    marker = "/image/upload/"
+    if marker not in url or HEADSHOT_TRANSFORM in url:
+        return url
+    head, tail = url.split(marker, 1)
+    first, _, rest = tail.partition("/")
+    if first.startswith(("f_", "q_", "w_", "h_", "c_")):
+        return f"{head}{marker}{first},{HEADSHOT_TRANSFORM}/{rest}"
+    return f"{head}{marker}{HEADSHOT_TRANSFORM}/{tail}"
 
 
 def compute_player_pass_zone_splits(pbp: pd.DataFrame, pos_lookup) -> dict:

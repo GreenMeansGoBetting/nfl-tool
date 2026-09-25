@@ -25,7 +25,7 @@
   --bad: #ef4444;
   --bad-rgb: 239, 68, 68;
   --bad-text: #fb8a8a;
-  --topbar-bg: rgba(7, 11, 19, 0.82);
+  --topbar-bg: rgba(7, 11, 19, 0.97);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --row-hover: rgba(255, 255, 255, 0.035);
   --font-display: "Barlow Condensed", "Barlow Semi Condensed", sans-serif;
@@ -53,7 +53,7 @@
   --bad: #dc2626;
   --bad-rgb: 220, 38, 38;
   --bad-text: #7f1d1d;
-  --topbar-bg: rgba(255, 255, 255, 0.85);
+  --topbar-bg: rgba(255, 255, 255, 0.97);
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
   --row-hover: rgba(15, 23, 42, 0.03);
 }
@@ -1938,7 +1938,7 @@ body {
   background:
     radial-gradient(1200px 500px at 50% -120px, rgba(var(--accent-rgb), 0.09), transparent 70%),
     var(--bg);
-  background-attachment: fixed;
+  background-repeat: no-repeat;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
@@ -1952,8 +1952,6 @@ a { color: var(--accent); }
   z-index: 50;
   padding: 10px 24px;
   background: var(--topbar-bg);
-  backdrop-filter: saturate(160%) blur(12px);
-  -webkit-backdrop-filter: saturate(160%) blur(12px);
   border-bottom: 1px solid var(--border);
 }
 .brand {
@@ -2167,11 +2165,7 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--a
 .tier-good, .tier-mid, .tier-bad { font-weight: 700; }
 
 /* Modals */
-.modal-overlay {
-  background: rgba(2, 6, 14, 0.68);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
+.modal-overlay { background: rgba(2, 6, 14, 0.78); }
 :root[data-theme="light"] .modal-overlay { background: rgba(15, 23, 42, 0.35); }
 .modal-box {
   border-radius: 16px;

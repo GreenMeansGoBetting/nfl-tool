@@ -80,18 +80,32 @@ window.NFLSync = {
   },
 };
 
+// Only writes keys whose value actually differs, and only re-renders the
+// page when something did -- a snapshot that just echoes what this device
+// already has (Firestore re-sends the doc after every write) no longer
+// triggers a full-page redraw.
 function applySnapshot(data) {
+  let changed = false;
   applyingRemoteChange = true;
   try {
     for (const [key, field] of Object.entries(SYNCED_KEYS)) {
-      if (data[field] !== undefined) {
-        localStorage.setItem(key, JSON.stringify(data[field]));
-      }
+      if (data[field] === undefined) continue;
+      const next = JSON.stringify(data[field]);
+      if (localStorage.getItem(key) === next) continue;
+      localStorage.setItem(key, next);
+      changed = true;
     }
   } finally {
     applyingRemoteChange = false;
   }
-  refreshCurrentPage();
+  if (changed) scheduleRefresh();
+}
+
+// Several snapshots can land back to back; redraw once for the batch.
+let refreshTimer = null;
+function scheduleRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(refreshCurrentPage, 150);
 }
 
 // First sign-in on a brand-new account has no Firestore doc yet -- seed it
@@ -121,6 +135,9 @@ function startSync(uid) {
   syncUid = uid;
   unsubscribeSnapshot = syncDb.collection("users").doc(uid).onSnapshot(
     (doc) => {
+      // hasPendingWrites = Firestore echoing this device's own write back
+      // before the server confirms it -- localStorage already has it.
+      if (doc.metadata.hasPendingWrites) return;
       if (doc.exists) applySnapshot(doc.data());
       else seedFromLocalStorage(uid);
     },
