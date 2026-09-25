@@ -144,6 +144,84 @@ function renderStatTable(offTeam, defTeam) {
   </table>`;
 }
 
+// ---- Targets: a filtered read of the Type/Position/Distance tables ----
+// For one offense vs. the defense it faces, every row where the DEFENSE
+// is a real soft spot league-wide AND the offense is at least close to
+// average there. Defense leads (60%) -- an average offense vs. a bad
+// defense is still an opportunity -- but a bottom-tier offense in that
+// spot can't cash it, so it's dropped. Each side's z blends per-game
+// volume (60%) with share of its own TDs (40%), matching the Total/%
+// pair the tables show; Type rows and RZ/First TD are rates, used as-is.
+const TARGET_DEF_MIN_Z = TIER_Z_THRESHOLD; // defense must be a soft spot
+const TARGET_OFF_MIN_Z = -0.3; // offense can't be clearly below average
+const TARGET_STRONG_SCORE = 1.3;
+
+function targetBucketZ(team, dictKey, totalKey, bucketKey) {
+  const pool = teamsWithGames();
+  const perG = (t) => (DATA.team_stats[t][dictKey][bucketKey] || 0) / (DATA.team_stats[t].games_played || 1);
+  const share = (t) => {
+    const s = DATA.team_stats[t];
+    return s[totalKey] ? (s[dictKey][bucketKey] || 0) / s[totalKey] : 0;
+  };
+  const cz = zScore(perG(team), pool.map(perG), false);
+  const sz = zScore(share(team), pool.map(share), false);
+  if (cz === null || sz === null) return null;
+  return 0.6 * cz + 0.4 * sz;
+}
+function targetRateZ(team, getter) {
+  return zScore(getter(team), teamsWithGames().map(getter), false);
+}
+
+function targetEntry(label, offZ, defZ) {
+  if (offZ === null || defZ === null) return null;
+  if (defZ < TARGET_DEF_MIN_Z || offZ < TARGET_OFF_MIN_Z) return null;
+  return { label, score: 0.6 * defZ + 0.4 * offZ };
+}
+
+function targetGroups(offTeam, defTeam) {
+  const stat = (key) => (t) => DATA.team_stats[t][key];
+  const type = [
+    targetEntry("Pass TD", targetRateZ(offTeam, stat("pass_td_per_g")), targetRateZ(defTeam, stat("pass_td_allowed_per_g"))),
+    targetEntry("Rush TD", targetRateZ(offTeam, stat("rush_td_per_g")), targetRateZ(defTeam, stat("rush_td_allowed_per_g"))),
+    targetEntry("First TD", targetRateZ(offTeam, stat("first_td_rate")), targetRateZ(defTeam, firstTdAllowedRate)),
+  ];
+  const position = POSITIONS.map((pos) =>
+    targetEntry(pos, targetBucketZ(offTeam, "off_position_td", "total_td", pos), targetBucketZ(defTeam, "def_position_td_allowed", "total_td_allowed", pos))
+  );
+  const distance = [
+    ...LENGTH_BUCKETS.map(({ key, label }) =>
+      targetEntry(label, targetBucketZ(offTeam, "td_by_length", "total_td", key), targetBucketZ(defTeam, "td_by_length_allowed", "total_td_allowed", key))
+    ),
+    targetEntry("Red Zone", targetRateZ(offTeam, stat("rz_td_rate")), targetRateZ(defTeam, stat("rz_td_rate_allowed"))),
+  ];
+  const clean = (list) => list.filter(Boolean).sort((a, b) => b.score - a.score);
+  return [
+    { title: "Type", items: clean(type) },
+    { title: "Position", items: clean(position) },
+    { title: "Distance", items: clean(distance) },
+  ];
+}
+
+function renderTargets(awayTeam, homeTeam) {
+  const block = (offTeam, defTeam) => {
+    const rgb = teamAccentRgb(offTeam);
+    const groups = targetGroups(offTeam, defTeam)
+      .map((g) => {
+        const chips = g.items.length
+          ? g.items.map((i) => `<span class="target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}">${i.label}</span>`).join("")
+          : `<span class="target-none">&mdash;</span>`;
+        return `<div class="target-group"><div class="target-group-title">${g.title}</div><div class="target-chips">${chips}</div></div>`;
+      })
+      .join("");
+    return `<div class="target-block">
+      <div class="target-team" style="background:rgba(${rgb.join(",")},0.18);border-left:3px solid rgb(${rgb.join(",")})">${teamLogoMini(offTeam, 18)} ${offTeam} <span class="target-vs">vs ${teamLogoMini(defTeam, 14)} ${defTeam} D</span></div>
+      ${groups}
+    </div>`;
+  };
+  return `${block(awayTeam, homeTeam)}${block(homeTeam, awayTeam)}
+    <div class="target-legend"><span class="target-chip target-chip-strong">Strong</span><span class="target-chip">Lean</span></div>`;
+}
+
 function renderLengthTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];
   const def = DATA.team_stats[defTeam];
@@ -569,6 +647,7 @@ function render() {
   document.getElementById("col-home-position").innerHTML = renderPositionTable(home, away);
   document.getElementById("col-away-distance").innerHTML = renderLengthTable(away, home);
   document.getElementById("col-home-distance").innerHTML = renderLengthTable(home, away);
+  document.getElementById("td-targets").innerHTML = renderTargets(away, home);
   document.getElementById("lb-away").innerHTML = renderLeaderboard(away);
   document.getElementById("lb-home").innerHTML = renderLeaderboard(home);
 
