@@ -1539,6 +1539,13 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
         for pid, wk in zip(opp["pid"], opp["week"])
     ]
 
+    # First-TD window: plays before the game's first touchdown (the whole
+    # game if nobody scored one) -- the usage that actually decides a
+    # First TD bet, as opposed to garbage-time volume.
+    first_td_play = scoring_df.groupby("game_id")["play_id"].min()
+    opp["early"] = opp["play_id"] < opp["game_id"].map(first_td_play).fillna(float("inf"))
+    opp["early_xtd"] = opp["xtd"].where(opp["early"], 0.0)
+
     games = pbp.groupby("game_id").agg(home=("home_team", "first"), away=("away_team", "first")).reset_index()
     sides = pd.concat(
         [
@@ -1560,6 +1567,10 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
         metric_cols[f"td_{kind}"] = tds[tds["td_type"] == kind].groupby(["game_id", "scoring_team"]).size()
         metric_cols[f"xtd_{kind}"] = opp[opp["kind"] == kind].groupby(["game_id", "posteam"])["xtd"].sum()
     metric_cols["td_first"] = tds[tds["first"]].groupby(["game_id", "scoring_team"]).size()
+    metric_cols["xtd_first"] = opp.groupby(["game_id", "posteam"])["early_xtd"].sum()
+    for pos in ("QB", "RB", "WR", "TE"):
+        metric_cols[f"td_first_{pos}"] = tds[tds["first"] & (tds["position"] == pos)].groupby(["game_id", "scoring_team"]).size()
+        metric_cols[f"xtd_first_{pos}"] = opp[opp["position"] == pos].groupby(["game_id", "posteam"])["early_xtd"].sum()
     for bucket in ("10_or_less", "11_20", "21_40", "41_plus"):
         metric_cols[f"td_{bucket}"] = tds[tds["length_bucket"] == bucket].groupby(["game_id", "scoring_team"]).size()
 
@@ -1587,6 +1598,7 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
 
     out: dict = {}
     metrics = ["QB", "RB", "WR", "TE", "DST", "pass", "rush", "first", "10_or_less", "11_20", "21_40", "41_plus"]
+    metrics += [f"first_{pos}" for pos in ("QB", "RB", "WR", "TE")]
     for m in metrics:
         off_adj, def_adj = adjusted(f"td_{m}")
         xtd = adjusted(f"xtd_{m}") if f"xtd_{m}" in sides.columns else ({}, {})
@@ -1597,7 +1609,36 @@ def compute_td_matchup_model(pbp: pd.DataFrame, scoring_df: pd.DataFrame, pos_lo
             if xtd[0]:
                 t["off"][m]["xtd"] = xtd[0].get(team)
                 t["def"][m]["xtd"] = xtd[1].get(team)
-    return out
+
+    # Per player: usage-based expected TDs per team game, whole game and
+    # first-TD window, plus actual TDs/first TDs -- the player layer of the
+    # First TD targets. Per TEAM game (not games the player appeared in),
+    # so a part-timer's share reads as a share of the team's opportunity.
+    team_games = sides.groupby("off")["game_id"].nunique()
+    td_by_player = tds.groupby("scorer_id").agg(tds=("game_id", "size"), first_tds=("first", "sum"))
+    players: dict = {}
+    grouped = opp.groupby(["posteam", "pid"]).agg(xtd=("xtd", "sum"), early_xtd=("early_xtd", "sum"), week=("week", "max"))
+    for (team, pid), row in grouped.iterrows():
+        pos, _, name = pos_lookup(pid, row["week"])
+        pos = bucket_position(pos) if pos else None
+        if pos not in ("QB", "RB", "WR", "TE") or row["xtd"] <= 0:
+            continue
+        g = team_games.get(team, 0) or 1
+        actual = td_by_player.loc[pid] if pid in td_by_player.index else None
+        players.setdefault(team, []).append(
+            {
+                "player_id": pid,
+                "name": name,
+                "position": pos,
+                "xtd_pg": round(row["xtd"] / g, 3),
+                "early_xtd_pg": round(row["early_xtd"] / g, 3),
+                "tds": int(actual["tds"]) if actual is not None else 0,
+                "first_tds": int(actual["first_tds"]) if actual is not None else 0,
+            }
+        )
+    for team in players:
+        players[team].sort(key=lambda p: -p["xtd_pg"])
+    return {"teams": out, "players": players}
 
 
 def compute_td_allowed_log(scoring_df: pd.DataFrame) -> dict:
@@ -3588,7 +3629,7 @@ def main():
         "player_scramble_splits": player_scramble_splits,
         "player_td_results": player_td_results,
         "td_allowed_log": compute_td_allowed_log(scoring_df),
-        "td_matchup_model": compute_td_matchup_model(pbp, scoring_df, pos_lookup),
+        **(lambda m: {"td_matchup_model": m["teams"], "player_xtd": m["players"]})(compute_td_matchup_model(pbp, scoring_df, pos_lookup)),
         "pre_first_td_usage": pre_first_td_usage,
         "schedule": schedule,
         "current_week": current_week,
