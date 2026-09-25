@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GMG's NFL Suite &mdash; TD Data</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="topbar">
-  <span class="brand">GMG's NFL Suite</span>
+  <a class="brand" href="game-overview.html" aria-label="GMG's NFL Suite home"><span class="brand-mark">GMG</span><span class="brand-name">NFL <b>Suite</b></span></a>
   <nav class="page-nav">
     <a href="game-overview.html">Game Previews</a>
     <span class="page-nav-current">TD Data</span>
@@ -18,6 +19,7 @@
     <a href="possible-plays.html">Possible Plays</a>
   </nav>
   <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
     <a href="https://github.com/GreenMeansGoBetting/nfl-tool/actions/workflows/deploy.yml" target="_blank" rel="noopener" class="update-odds-link" title="Opens GitHub Actions in a new tab -- click &quot;Run workflow&quot; there to fetch fresh odds right now">&#128260; Update Odds</a>
   </div>
 </div>

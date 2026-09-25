@@ -4,6 +4,33 @@
 // calling any of these.
 let DATA = null;
 
+// Light/dark theme -- dark is the default; the choice is remembered per
+// browser. Every page's <head> applies the saved theme before first paint
+// (no flash); this just wires the header button.
+const THEME_KEY = "nfl-tool.theme";
+function initThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  const sync = () => {
+    const light = document.documentElement.dataset.theme === "light";
+    btn.innerHTML = light ? "&#9790;" : "&#9788;";
+    btn.title = light ? "Switch to dark theme" : "Switch to light theme";
+  };
+  sync();
+  btn.addEventListener("click", () => {
+    const light = document.documentElement.dataset.theme !== "light";
+    if (light) document.documentElement.dataset.theme = "light";
+    else delete document.documentElement.dataset.theme;
+    try {
+      localStorage.setItem(THEME_KEY, light ? "light" : "dark");
+    } catch (e) {
+      // localStorage unavailable -- theme just won't stick across reloads.
+    }
+    sync();
+  });
+}
+initThemeToggle();
+
 const POSITIONS = ["QB", "RB", "WR", "TE", "DST"];
 
 function teamsWithGames() {
