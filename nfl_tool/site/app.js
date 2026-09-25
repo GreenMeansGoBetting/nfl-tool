@@ -1164,12 +1164,14 @@ function summarySeasonColumn(offTeam, defTeam, week) {
     .slice(0, KEY_PLAYERS_MAX)
     .map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}">${summaryHeadshot(offTeam, e.name, 18)}${shortName(e.name)}${e.nums.map(numBadge).join("")}</span>`)
     .join("");
+  // Four fixed blocks (banner / targets / tags / key players) -- the two
+  // team columns share row lines (CSS subgrid), so each block starts at
+  // the same height on both sides even when one team has less in it.
   return `<div class="sc-col">
     ${summaryTeamBanner(offTeam)}
-    <table class="sc-table sc-targets"><thead><tr><th>Target</th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table>
-    <div class="sc-label">Matchup Tags</div>
-    <ul class="sc-tags">${tagRows}</ul>
-    ${keyPlayers ? `<div class="sc-label">Key Players</div><div class="sc-keys">${keyPlayers}</div>` : ""}
+    <div class="sc-block"><table class="sc-table sc-targets"><thead><tr><th>Target</th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table></div>
+    <div class="sc-block"><div class="sc-label">Matchup Tags</div><ul class="sc-tags">${tagRows}</ul></div>
+    <div class="sc-block"><div class="sc-label">Key Players</div>${keyPlayers ? `<div class="sc-keys">${keyPlayers}</div>` : `<span class="target-none">&mdash;</span>`}</div>
   </div>`;
 }
 
@@ -1438,7 +1440,7 @@ function renderSummaryCard(away, home) {
       <div class="sc-main">
         <section class="sc-section">
           <div class="sc-section-title">Season TD Targets</div>
-          <div class="sc-cols">
+          <div class="sc-cols sc-grid4">
             ${summarySeasonColumn(away, home, week)}
             ${summarySeasonColumn(home, away, week)}
           </div>
@@ -1452,7 +1454,7 @@ function renderSummaryCard(away, home) {
             <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
           </div>
           <div class="sc-split-label">chance to score the game's first TD</div>
-          <div class="sc-cols">
+          <div class="sc-cols sc-grid2">
             ${summaryFirstTdColumn(away, home, pAway, week)}
             ${summaryFirstTdColumn(home, away, 1 - pAway, week)}
           </div>
