@@ -2032,7 +2032,7 @@ function renderPlayerMarketsModalContent(team, name, oppTeam) {
     })
     .join("");
   const note = inGame
-    ? `<p class="no-data-note">Proj / Model = the Summary tab's projection and the side it leans (bold = listed on the card). + Summary adds the line to the card's Prop Picks (${chosen.size}/${PROPS_SUMMARY_MAX_PICKS} for ${team}).</p>`
+    ? `<p class="no-data-note">Proj / Model = the Summary tab's projection and the side it leans (bold = strong lean, 10%+). + Summary adds the line to the card's Prop Picks (${chosen.size}/${PROPS_SUMMARY_MAX_PICKS} for ${team}).</p>`
     : "";
   return `${heading}${note}
     <table class="data-table player-odds-table props-market-table">

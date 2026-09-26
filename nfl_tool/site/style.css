@@ -2451,3 +2451,9 @@ footer { border-top-color: var(--border); }
 .ps-angle-under { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.13); border-color: rgba(var(--bad-rgb), 0.5); }
 .ps-angle-why { color: var(--muted); font-weight: 600; min-width: 0; }
 .sc-footer .ps-angle-call { font-size: 0.58rem; padding: 0 5px; }
+
+.ps-bet b.ps-side-over { color: var(--good-text); }
+.ps-bet b.ps-side-under { color: var(--bad-text); }
+.ps-backs { display: block; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.1; }
+.ps-backs.ps-side-over { color: var(--good-text); }
+.ps-backs.ps-side-under { color: var(--bad-text); }

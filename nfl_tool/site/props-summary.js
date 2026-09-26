@@ -624,24 +624,44 @@ function propDisplayName(rows, r) {
   return clash ? r.name : short;
 }
 
-// Best plays in one section: one row per player (their biggest edge), any
-// other markets that point the same way listed as "also".
-// A play is left off when it argues with a market call above it (an over
-// on Receptions under "Fade Receptions").
-function propConflicts(r, angles) {
-  return (angles || []).some((a) => a.markets.includes(r.marketKey) && a.pos.includes(r.position) && a.side !== r.side);
+// Plays under a column are the lines that BACK one of its market calls:
+// right market, right position (and, for depth calls, a receiver who's
+// actually targeted at that depth), same side as the call, and the
+// player's own projection agrees by at least PROP_CALL_EDGE_MIN. One row
+// per player, his best-backed line; each row names the call it backs.
+const PROP_CALL_EDGE_MIN = 0.04;
+function propFitsCall(r, a) {
+  if (!a.markets.includes(r.marketKey) || !a.pos.includes(r.position) || r.side !== a.side) return false;
+  if (!a.depth) return true;
+  const sh = propDepthShares(r.team, r.name);
+  return !!sh && sh[a.depth] >= a.share;
 }
 function propSectionPlays(rows, section, angles) {
   const byPlayer = {};
   rows
-    .filter((r) => r.section === section && r.edge !== null && r.edge >= PROP_EDGE_MIN && !propConflicts(r, angles))
-    .sort((a, b) => b.edge - a.edge)
+    .filter((r) => r.section === section && r.edge !== null && r.edge >= PROP_CALL_EDGE_MIN)
     .forEach((r) => {
+      const call = (angles || []).find((a) => propFitsCall(r, a));
+      if (!call) return;
       const k = normName(r.name);
-      if (!byPlayer[k]) byPlayer[k] = { ...r, display: propDisplayName(rows, r), also: [] };
-      else byPlayer[k].also.push(r);
+      if (!byPlayer[k] || r.edge > byPlayer[k].edge) byPlayer[k] = { ...r, display: propDisplayName(rows, r), call };
     });
   return Object.values(byPlayer).sort((a, b) => b.edge - a.edge);
+}
+
+// Share of a receiver's targets at each depth (short <10 air yds, 10-19, 20+).
+function propDepthShares(team, name) {
+  const byTeam = (DATA.player_pass_zones || {})[team] || {};
+  const logName = propGameLogs(team, name)?.name || name;
+  const zones = (byTeam[logName] || byTeam[name] || {}).zones;
+  if (!zones) return null;
+  const n = { short: 0, int: 0, deep: 0 };
+  Object.entries(zones).forEach(([k, z]) => {
+    const d = k.startsWith("deep") ? "deep" : k.startsWith("intermediate") ? "int" : "short";
+    n[d] += z.targets || 0;
+  });
+  const total = n.short + n.int + n.deep;
+  return total >= 3 ? { short: n.short / total, int: n.int / total, deep: n.deep / total } : null;
 }
 
 // ---- Market calls: this offense vs this defense ----
@@ -671,9 +691,9 @@ const PROP_ANGLES = {
     { name: "QB rushing", def: ["rushyds_QB"], off: "rushyds_QB", d: (v) => `allows ${f0(v)} QB rush yds/g`, o: (v) => `${f0(v)}/g`, markets: ["rushing_yards", "rushing_attempts"], pos: ["QB"] },
   ],
   rec: [
-    { name: "Receptions", def: ["yds_short"], off: "att_short", d: (v) => `allows ${f0(v)} yds/g on short throws`, o: (v) => `throws ${f1(v)} short/g`, markets: ["receiving_receptions"], pos: ["WR", "TE", "RB"] },
-    { name: "10-19 yd yards", def: ["yds_int"], off: "att_int", d: (v) => `allows ${f0(v)} yds/g on 10-19 yd throws`, o: (v) => `throws ${f1(v)} there/g`, markets: ["receiving_yards"], pos: ["WR", "TE"] },
-    { name: "Deep yards", def: ["yds_deep"], off: "att_deep", d: (v) => `allows ${f0(v)} yds/g on 20+ yd throws`, o: (v) => `throws ${f1(v)} deep/g`, markets: ["receiving_yards", "receiving_longestReception"], pos: ["WR", "TE"] },
+    { name: "Receptions", def: ["yds_short"], off: "att_short", d: (v) => `allows ${f0(v)} yds/g on short throws`, o: (v) => `throws ${f1(v)} short/g`, markets: ["receiving_receptions"], pos: ["WR", "TE", "RB"], depth: "short", share: 0.5 },
+    { name: "10-19 yd yards", def: ["yds_int"], off: "att_int", d: (v) => `allows ${f0(v)} yds/g on 10-19 yd throws`, o: (v) => `throws ${f1(v)} there/g`, markets: ["receiving_yards"], pos: ["WR", "TE"], depth: "int", share: 0.25 },
+    { name: "Deep yards", def: ["yds_deep"], off: "att_deep", d: (v) => `allows ${f0(v)} yds/g on 20+ yd throws`, o: (v) => `throws ${f1(v)} deep/g`, markets: ["receiving_yards", "receiving_longestReception"], pos: ["WR", "TE"], depth: "deep", share: 0.2 },
     { name: "Long catches", def: ["expl_pass"], off: "expl_pass", d: (v) => `allows ${f1(v)} 20+ yd catches/g`, o: (v) => `makes ${f1(v)}/g`, markets: ["receiving_longestReception"], pos: ["WR", "TE", "RB"] },
     { name: "WR yards", def: ["recyds_WR"], off: "recyds_WR", d: (v) => `allows ${f0(v)} WR yds/g`, o: (v) => `WRs ${f0(v)}/g`, markets: ["receiving_yards", "receiving_receptions"], pos: ["WR"] },
     { name: "TE yards", def: ["recyds_TE"], off: "recyds_TE", d: (v) => `allows ${f0(v)} TE yds/g`, o: (v) => `TEs ${f0(v)}/g`, markets: ["receiving_yards", "receiving_receptions"], pos: ["TE"] },
@@ -758,7 +778,7 @@ function propPlayRow(r) {
   const lineup = r.reasons.filter((x) => / OUT \+| back \(/.test(x.text)).map((x) => x.text).join(" &middot; ");
   return `<tr class="ps-play${strong ? " ps-play-strong" : ""}">
       <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 26)}<span class="ps-name">${r.display} <span class="muted ps-pos">${r.position || ""}</span>${inj}${lineup ? `<span class="ps-lineup">${lineup}</span>` : ""}</span></span></td>
-      <td><span class="ps-bet"><b>${r.side === "over" ? "Over" : "Under"} ${fmt(r.line, 1)}</b> ${r.market}</span> <span class="muted">${fmtOddsSigned(r.odds)}</span></td>
+      <td><span class="ps-bet"><b class="ps-side-${r.side}">${r.side === "over" ? "Over" : "Under"} ${fmt(r.line, 1)}</b> ${r.market}</span> <span class="muted">${fmtOddsSigned(r.odds)}</span><span class="ps-backs ps-side-${r.side}">${r.side === "over" ? "&#9650;" : "&#9660;"} ${r.call.name}</span></td>
       <td class="num">${fmt(r.proj, r.proj < 10 ? 1 : 0)}</td>
       <td class="ps-vals">${propValuesCell(r)}</td>
       <td class="num">${r.hits}/${r.values.length}</td>
@@ -770,7 +790,7 @@ function propSectionColumn(section, offTeam, defTeam, rows) {
   const plays = propSectionPlays(rows, section, angles).slice(0, PROP_ROWS[section]);
   const body = plays.length
     ? `<table class="sc-table ps-plays"><thead><tr><th>Player</th><th>Play</th><th class="num">Proj</th><th>Games</th><th class="num">Hit</th></tr></thead><tbody>${plays.map(propPlayRow).join("")}</tbody></table>`
-    : `<p class="target-none ps-none">No lines off from the model</p>`;
+    : `<p class="target-none ps-none">${angles.length ? "No posted lines the model agrees with for these calls" : ""}</p>`;
   return `<div class="sc-col">
     <div class="sc-block"><div class="sc-label">${teamLogoMini(offTeam, 14)} ${offTeam} offense vs ${defTeam} defense</div><div class="ps-angles">${tagHtml}</div></div>
     <div class="sc-block">${body}</div>
@@ -926,7 +946,7 @@ function renderPropsPicker() {
     </div>`;
   };
   return `<h3>${away} @ ${home} &mdash; Pick lines for the summary</h3>
-    <p class="no-data-note">Up to ${PROPS_SUMMARY_MAX_PICKS} per team. Model = the side the projection favors and how far it is from the odds' no-vig chance (bold = listed on the card).</p>
+    <p class="no-data-note">Up to ${PROPS_SUMMARY_MAX_PICKS} per team. Model = the side the projection favors and how far it is from the odds' no-vig chance (bold = strong lean, 10%+).</p>
     <div class="sc-picker-actions"><select id="ps-picker-market" class="props-market-select">${options}</select> <button type="button" class="view-toggle-btn ps-picker-clear">Clear all</button></div>
     <div class="sc-picker-cols">${col(away, home)}${col(home, away)}</div>`;
 }
