@@ -2431,3 +2431,15 @@ footer { border-top-color: var(--border); }
 .ps-dtag { grid-template-columns: auto minmax(0, 1fr); }
 .ps-dtag-text, .ps-dtag-fits { min-width: 0; }
 .ps-dsep { margin: 0 1px; }
+
+.ps-dsum { display: flex; flex-direction: column; gap: 3px; font-size: 0.76rem; line-height: 1.35; }
+.ps-dstats .ps-dstat { white-space: nowrap; }
+.ps-dstat-weak { color: var(--bad-text); }
+.ps-dstat-strong { color: var(--good-text); }
+.ps-dstat b { font-weight: 800; }
+.ps-calls { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.ps-call-weak { color: var(--bad-text); }
+.ps-call-strong { color: var(--good-text); }
+.ps-lineup { display: block; font-size: 0.62rem; font-weight: 600; color: var(--muted); line-height: 1.1; }
+.ps-plays td { padding: 4px 4px; }
+.ps-bet b { color: var(--text); }

@@ -430,7 +430,11 @@ function propProjectPlayer(team, name, position, defTeam, week, game, neutral = 
     const vac = isQb || neutral ? { add: 0, names: [] } : propVacated(team, week, name, position, "carries", ["RB"]);
     const rp = isQb ? "QB" : "RB";
     const dCar = D(`car_${rp}`);
-    const car = (carBase + vac.add) * pw(dCar.f, PROP_VOLUME_MATCHUP_POWER) * runScript;
+    // Teams keep running when it works and bail when it doesn't: yards per
+    // carry allowed moves carries too, not just the carries-allowed count
+    // (which is mostly game script).
+    const dYpcVol = D(`ypc_${rp}`);
+    const car = (carBase + vac.add) * pw(dCar.f, PROP_VOLUME_MATCHUP_POWER) * pw(dYpcVol.f, 0.35) * runScript;
     const C = propSum(games, (g) => g.carries);
     const ypcLg = lg[`ypc_${rp}`] || 4.2;
     const ypc = (propSum(games, (g) => g.rush_yards) + PROP_RATE_PRIOR.ypc * ypcLg) / (C + PROP_RATE_PRIOR.ypc);
@@ -623,10 +627,18 @@ function propDisplayName(rows, r) {
 
 // Best plays in one section: one row per player (their biggest edge), any
 // other markets that point the same way listed as "also".
-function propSectionPlays(rows, section) {
+// A play is left off when it contradicts the defense summary above it
+// (an over on a run game this defense shuts down, an under on a spot it
+// gives up). Only position-specific tags count ("RB yds per carry", not
+// "short throws", which doesn't say much about any one receiver); INT/sack
+// tags cut the other way and are skipped.
+function propConflicts(r, tags) {
+  return (tags || []).some((t) => !t.defenseStat && !t.generic && t.group.includes(r.position) && (t.weak ? r.side === "under" : r.side === "over"));
+}
+function propSectionPlays(rows, section, tags) {
   const byPlayer = {};
   rows
-    .filter((r) => r.section === section && r.edge !== null && r.edge >= PROP_EDGE_MIN)
+    .filter((r) => r.section === section && r.edge !== null && r.edge >= PROP_EDGE_MIN && !propConflicts(r, tags))
     .sort((a, b) => b.edge - a.edge)
     .forEach((r) => {
       const k = normName(r.name);
@@ -704,7 +716,8 @@ function propDefenseTags(defTeam, section, offLines) {
       })
       .sort((a, b) => b.line - a.line)
       .slice(0, 3);
-    tags.push({ weak, value, label, words: propRankWords(d.rk, rate), fits, strength: Math.abs(d.f - 1) });
+    const group = filter.pos ? [filter.pos] : section === "pass" ? ["QB"] : section === "rush" ? ["RB", "QB"] : ["WR", "TE", "RB"];
+    tags.push({ weak, value, label, words: propRankWords(d.rk, rate), fits, group, generic: !filter.pos, defenseStat, strength: Math.abs(d.f - 1) });
   });
   return tags.sort((a, b) => b.weak - a.weak || b.strength - a.strength).slice(0, 3);
 }
@@ -729,57 +742,48 @@ function propValuesCell(r) {
     })
     .join("");
 }
+// Reads like a pick: "Over 57.5 Rec Yds -114". The defense story is in the
+// summary line above; the only note kept here is a lineup change (a
+// teammate Out, or back), since nothing else on the card says that.
 function propPlayRow(r) {
   const strong = r.edge >= PROP_EDGE_STRONG;
   const inj = r.injury === "Q" ? ` <span class="ftd-inj">Q</span>` : "";
-  const also = r.also.length ? `<span class="ps-also">also ${r.also.slice(0, 2).map((a) => `${a.market} ${propLineText(a)}`).join(", ")}</span>` : "";
-  const reasons = r.reasons.slice(0, 2).map((x) => `<span class="ps-reason">${x.text}</span>`).join("");
+  const lineup = r.reasons.filter((x) => / OUT \+| back \(/.test(x.text)).map((x) => x.text).join(" &middot; ");
   return `<tr class="ps-play${strong ? " ps-play-strong" : ""}">
-      <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 24)}<span class="ps-name">${r.display} <span class="muted ps-pos">${r.position || ""}</span>${inj}</span></span></td>
-      <td><span class="ps-bet">${r.market} <b>${propLineText(r)}</b></span> <span class="muted">${fmtOddsSigned(r.odds)}</span></td>
+      <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 26)}<span class="ps-name">${r.display} <span class="muted ps-pos">${r.position || ""}</span>${inj}${lineup ? `<span class="ps-lineup">${lineup}</span>` : ""}</span></span></td>
+      <td><span class="ps-bet"><b>${r.side === "over" ? "Over" : "Under"} ${fmt(r.line, 1)}</b> ${r.market}</span> <span class="muted">${fmtOddsSigned(r.odds)}</span></td>
       <td class="num">${fmt(r.proj, r.proj < 10 ? 1 : 0)}</td>
       <td class="ps-vals">${propValuesCell(r)}</td>
       <td class="num">${r.hits}/${r.values.length}</td>
-    </tr>
-    <tr class="ps-why${strong ? " ps-play-strong" : ""}"><td colspan="5">${reasons}${also}</td></tr>`;
+    </tr>`;
 }
-// One row per direction: WEAK stats joined together, then one deduped
-// list of the players they point at (names only -- click for lines), so
-// the message reads "this pass D is soft, look at these guys" at a glance.
-function propDefenseSummaryRow(tags, weak, rows) {
-  const group = tags.filter((t) => t.weak === weak);
-  if (!group.length) return "";
-  const stats = group
-    .map((t) => `<span class="ps-dstat"><b>${t.value}</b> ${t.label} <span class="muted">${t.words}</span></span>`)
+// Defense summary for a section: the stats it's extreme in, red where it
+// gives up a lot and green where it shuts things down (rank on hover),
+// then one plain line of which position groups to look at.
+const PROP_GROUP_WORDS = { pass: "QB", rush: "run game", rec: "pass catchers" };
+function propGroupText(tags, section) {
+  const specific = [...new Set(tags.filter((t) => !t.generic).flatMap((t) => t.group))];
+  if (specific.length) return specific.join(" / ");
+  return PROP_GROUP_WORDS[section];
+}
+function propDefenseSummary(tags, section, offTeam) {
+  const ordered = tags.slice().sort((a, b) => b.weak - a.weak);
+  const stats = ordered
+    .map((t) => `<span class="ps-dstat ${t.weak ? "ps-dstat-weak" : "ps-dstat-strong"}" title="${t.words} of 32 defenses (opponent-adjusted)"><b>${t.value}</b> ${t.label}</span>`)
     .join(` <span class="ps-dsep">&middot;</span> `);
-  // Players named by the most tags first, then the bigger line.
-  const seen = {};
-  group.forEach((t) =>
-    t.fits.forEach((r) => {
-      const k = normName(r.name);
-      if (!seen[k]) seen[k] = { r, n: 0, line: 0 };
-      seen[k].n += 1;
-      seen[k].line = Math.max(seen[k].line, r.line);
-    })
-  );
-  const players = Object.values(seen)
-    .sort((a, b) => b.n - a.n || b.line - a.line)
-    .slice(0, 4)
-    .map(({ r }) => `<span class="player-click" data-entry="${propClickEntry(r)}">${propDisplayName(rows, r)}</span>`)
-    .join(` <span class="ps-dsep">&middot;</span> `);
-  return `<div class="ps-dtag">
-      <span class="ps-dtag-kind ${weak ? "ps-weak" : "ps-strong"}">${weak ? "Weak" : "Strong"}</span>
-      <span class="ps-dtag-text">${stats}</span>
-      ${players ? `<span class="ps-dtag-fits"><span class="ps-dtag-verb">${weak ? "Target" : "Fade"}</span> ${players}</span>` : ""}
-    </div>`;
+  const weak = tags.filter((t) => t.weak && !t.defenseStat);
+  const strong = tags.filter((t) => !t.weak && !t.defenseStat);
+  const calls = [
+    weak.length ? `<span class="ps-call ps-call-weak">Target ${offTeam} ${propGroupText(weak, section)}</span>` : "",
+    strong.length ? `<span class="ps-call ps-call-strong">Tough on ${offTeam} ${propGroupText(strong, section)}</span>` : "",
+  ].filter(Boolean).join(` <span class="ps-dsep">&middot;</span> `);
+  return `<div class="ps-dsum"><div class="ps-dstats">${stats}</div>${calls ? `<div class="ps-calls">${calls}</div>` : ""}</div>`;
 }
 
 function propSectionColumn(section, offTeam, defTeam, rows) {
   const tags = propDefenseTags(defTeam, section, rows);
-  const tagHtml = tags.length
-    ? propDefenseSummaryRow(tags, true, rows) + propDefenseSummaryRow(tags, false, rows)
-    : `<span class="target-none">Nothing extreme vs the league</span>`;
-  const plays = propSectionPlays(rows, section).slice(0, PROP_ROWS[section]);
+  const tagHtml = tags.length ? propDefenseSummary(tags, section, offTeam) : `<span class="target-none">Nothing extreme vs the league</span>`;
+  const plays = propSectionPlays(rows, section, tags).slice(0, PROP_ROWS[section]);
   const body = plays.length
     ? `<table class="sc-table ps-plays"><thead><tr><th>Player</th><th>Play</th><th class="num">Proj</th><th>Games</th><th class="num">Hit</th></tr></thead><tbody>${plays.map(propPlayRow).join("")}</tbody></table>`
     : `<p class="target-none ps-none">No lines off from the model</p>`;
@@ -900,7 +904,7 @@ function renderPropsSummaryCard(away, home) {
     </div>
 
     <div class="sc-footer">
-      <span><span class="ps-dtag-kind ps-weak">Weak</span> / <span class="ps-dtag-kind ps-strong">Strong</span> = top / bottom 6 of 32 defenses, opponent-adjusted &rarr; lines it affects</span>
+      <span>Defense stats: <span class="ps-dstat-weak"><b>red</b></span> = among the 6 worst in the league, <span class="ps-dstat-strong"><b>green</b></span> = among the 6 best (opponent-adjusted)</span>
       <span>Games newest first, green = hit &middot; <span class="ps-val ps-val-partial">7*</span> left early, skipped &middot; <span class="ps-val ps-val-hit ps-val-lineup">9</span> teammate out, scaled</span>
     </div>
   </div>`;
