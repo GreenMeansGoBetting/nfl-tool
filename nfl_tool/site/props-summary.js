@@ -743,17 +743,41 @@ function propPlayRow(r) {
     </tr>
     <tr class="ps-why${strong ? " ps-play-strong" : ""}"><td colspan="5">${reasons}${also}</td></tr>`;
 }
+// One row per direction: WEAK stats joined together, then one deduped
+// list of the players they point at (names only -- click for lines), so
+// the message reads "this pass D is soft, look at these guys" at a glance.
+function propDefenseSummaryRow(tags, weak, rows) {
+  const group = tags.filter((t) => t.weak === weak);
+  if (!group.length) return "";
+  const stats = group
+    .map((t) => `<span class="ps-dstat"><b>${t.value}</b> ${t.label} <span class="muted">${t.words}</span></span>`)
+    .join(` <span class="ps-dsep">&middot;</span> `);
+  // Players named by the most tags first, then the bigger line.
+  const seen = {};
+  group.forEach((t) =>
+    t.fits.forEach((r) => {
+      const k = normName(r.name);
+      if (!seen[k]) seen[k] = { r, n: 0, line: 0 };
+      seen[k].n += 1;
+      seen[k].line = Math.max(seen[k].line, r.line);
+    })
+  );
+  const players = Object.values(seen)
+    .sort((a, b) => b.n - a.n || b.line - a.line)
+    .slice(0, 4)
+    .map(({ r }) => `<span class="player-click" data-entry="${propClickEntry(r)}">${propDisplayName(rows, r)}</span>`)
+    .join(` <span class="ps-dsep">&middot;</span> `);
+  return `<div class="ps-dtag">
+      <span class="ps-dtag-kind ${weak ? "ps-weak" : "ps-strong"}">${weak ? "Weak" : "Strong"}</span>
+      <span class="ps-dtag-text">${stats}</span>
+      ${players ? `<span class="ps-dtag-fits"><span class="ps-dtag-verb">${weak ? "Target" : "Fade"}</span> ${players}</span>` : ""}
+    </div>`;
+}
+
 function propSectionColumn(section, offTeam, defTeam, rows) {
   const tags = propDefenseTags(defTeam, section, rows);
   const tagHtml = tags.length
-    ? tags
-        .map((t) => {
-          const fits = t.fits.length
-            ? `<span class="ps-dtag-fits">&rarr; ${t.fits.map((r) => `<span class="player-click" data-entry="${propClickEntry(r)}">${propDisplayName(rows, r)} ${fmt(r.line, 1)}</span>`).join(", ")}</span>`
-            : "";
-          return `<div class="ps-dtag"><span class="ps-dtag-kind ${t.weak ? "ps-weak" : "ps-strong"}">${t.weak ? "Weak" : "Strong"}</span><span class="ps-dtag-text"><b>${t.value}</b> ${t.label} <span class="muted">${t.words}</span></span>${fits}</div>`;
-        })
-        .join("")
+    ? propDefenseSummaryRow(tags, true, rows) + propDefenseSummaryRow(tags, false, rows)
     : `<span class="target-none">Nothing extreme vs the league</span>`;
   const plays = propSectionPlays(rows, section).slice(0, PROP_ROWS[section]);
   const body = plays.length

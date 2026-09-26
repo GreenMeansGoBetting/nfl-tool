@@ -2420,3 +2420,14 @@ footer { border-top-color: var(--border); }
 .ps-val-partial { color: var(--muted); background: var(--table-head); text-decoration: line-through; }
 .ps-val-lineup { box-shadow: inset 0 -2px 0 var(--mid); }
 .sc-footer .ps-val { font-size: 0.62rem; min-width: 0; }
+
+.ps-dtag { display: grid; grid-template-columns: auto 1fr; column-gap: 6px; row-gap: 2px; align-items: baseline; }
+.ps-dtag-kind { grid-row: span 2; align-self: start; margin-top: 1px; }
+.ps-dtag-text { line-height: 1.35; }
+.ps-dstat { white-space: nowrap; }
+.ps-dsep { margin: 0 5px; color: var(--muted); }
+.ps-dtag-fits { grid-column: 2; font-size: 0.72rem; font-weight: 700; opacity: 1; }
+.ps-dtag-verb { margin-right: 4px; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.ps-dtag { grid-template-columns: auto minmax(0, 1fr); }
+.ps-dtag-text, .ps-dtag-fits { min-width: 0; }
+.ps-dsep { margin: 0 1px; }
