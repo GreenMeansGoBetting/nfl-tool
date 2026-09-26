@@ -47,6 +47,7 @@
     <button type="button" class="props-view-toggle-btn view-toggle-btn" data-view="receiving">Receiving</button>
     <button type="button" class="props-view-toggle-btn view-toggle-btn" data-view="rushing">Rushing</button>
     <button type="button" class="props-view-toggle-btn view-toggle-btn" data-view="passing">Passing</button>
+    <button type="button" class="props-view-toggle-btn view-toggle-btn" data-view="summary">Summary</button>
   </div>
 
   <div id="empty-state" class="empty-state">
@@ -128,6 +129,15 @@
     </div>
   </div>
 
+  <div id="section-summary" class="section-wrap" hidden>
+    <div class="summary-toolbar">
+      <button type="button" id="summary-save-btn" class="summary-save-btn">Save image</button>
+      <button type="button" id="props-pick-btn" class="view-toggle-btn">Pick props</button>
+      <span class="section-note">Every posted line gets a projection from the player's recent games, teammates ruled Out, what this defense allows (adjusted for opponents), and the spread/total. Lines furthest from the model are listed per team. Pick props (or click Prop Picks on the card) to fill the right column, then check Over/Under to add them to Possible Plays -- the checks show in the saved image.</span>
+    </div>
+    <div id="summary-card" class="summary-card"></div>
+  </div>
+
   <div id="section-notes-plays" class="section-wrap" hidden>
     <div class="stat-columns">
       <div class="stat-column stat-column-notes">
@@ -152,5 +162,6 @@
 <script src="teams.js"></script>
 <script src="common.js"></script>
 <script src="player-props.js"></script>
+<script src="props-summary.js"></script>
 </body>
 </html>

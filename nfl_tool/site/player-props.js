@@ -2152,7 +2152,7 @@ document.addEventListener("change", (e) => {
   );
 });
 
-const ALL_SECTIONS = ["receiving", "rushing", "passing"];
+const ALL_SECTIONS = ["receiving", "rushing", "passing", "summary"];
 
 // ---- Receiving/Rushing/Passing tabs -- same view-toggle pattern as TD
 // Data's Season/First TD toggle, just three panels instead of two, and all
@@ -2185,7 +2185,10 @@ function setActivePropsView(view) {
 }
 
 document.querySelectorAll(".props-view-toggle-btn").forEach((btn) => {
-  btn.addEventListener("click", () => setActivePropsView(btn.dataset.view));
+  btn.addEventListener("click", () => {
+    setActivePropsView(btn.dataset.view);
+    if (btn.dataset.view === "summary") render();
+  });
 });
 
 const backupQbToggleEl = document.getElementById("show-backup-qbs");
@@ -2248,6 +2251,9 @@ function render() {
   document.getElementById("col-away-recvzones-def").innerHTML = renderPassZoneBlock(away, "def", home);
   document.getElementById("col-home-recvzones-off").innerHTML = renderOffensePlayerZoneCards(home, "off", away);
   document.getElementById("col-home-recvzones-def").innerHTML = renderPassZoneBlock(home, "def", away);
+
+  // Only built while it's showing -- it projects every line in the game.
+  if (currentPropsView === "summary") renderPropsSummaryCard(away, home);
 
   const notesKey = `${away}_${home}`;
   const savedNote = loadTdNotes()[notesKey] || "";

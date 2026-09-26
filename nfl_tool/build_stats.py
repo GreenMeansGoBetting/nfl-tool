@@ -1743,6 +1743,182 @@ def compute_td_allowed_log(scoring_df: pd.DataFrame) -> dict:
     return out
 
 
+# ---- Player Props summary: opponent-adjusted "what this defense allows" ----
+# Per-game counts and per-attempt rates for every stat a player prop is
+# settled on, split by position (WR/TE/RB targets, RB/QB carries) and by
+# throw depth. Rates are weighted by attempts. Same opponent adjustment as
+# the TD model, then each team's number is shrunk toward the league by
+# OPP_ADJ_SHRINK_GAMES games of league-average data so a 2-3 game sample
+# can't swing a factor too far.
+PROP_COUNT_METRICS = [
+    "pass_att", "completions", "pass_yards", "pass_td", "ints", "sacks",
+    "tgt_WR", "rec_WR", "recyds_WR", "tgt_TE", "rec_TE", "recyds_TE", "tgt_RB", "rec_RB", "recyds_RB",
+    "car_RB", "rushyds_RB", "car_QB", "rushyds_QB", "rush_att", "rush_yards",
+    "att_short", "att_int", "att_deep", "yds_short", "yds_int", "yds_deep",
+    "expl_pass", "expl_rush", "long_pass", "long_rush", "plays",
+]
+# rate name -> (numerator, denominator)
+PROP_RATE_METRICS = {
+    "comp": ("completions", "pass_att"),
+    "ypa": ("pass_yards", "pass_att"),
+    "td_rate": ("pass_td", "pass_att"),
+    "int_rate": ("ints", "pass_att"),
+    "ypt_WR": ("recyds_WR", "tgt_WR"),
+    "ypt_TE": ("recyds_TE", "tgt_TE"),
+    "ypt_RB": ("recyds_RB", "tgt_RB"),
+    "catch_WR": ("rec_WR", "tgt_WR"),
+    "catch_TE": ("rec_TE", "tgt_TE"),
+    "catch_RB": ("rec_RB", "tgt_RB"),
+    "ypc_RB": ("rushyds_RB", "car_RB"),
+    "ypc_QB": ("rushyds_QB", "car_QB"),
+    "ypa_short": ("yds_short", "att_short"),
+    "ypa_int": ("yds_int", "att_int"),
+    "ypa_deep": ("yds_deep", "att_deep"),
+}
+PROP_EXPLOSIVE_PASS_YARDS = 20  # completions long enough to decide a Longest Reception line
+
+
+def compute_prop_matchup_model(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Returns {"league": {metric: value}, "teams": {team: {"off": {...},
+    "def": {...}}}} where each side's metric is {"v": adjusted value,
+    "raw": plain per game / rate, "rk": rank 1-32 (1 = most produced /
+    most allowed)}. Counts are per game, rates per attempt."""
+    plays = pbp[(pbp["two_point_attempt"] != 1) & pbp["posteam"].notna() & pbp["defteam"].notna()].copy()
+    pos_cache: dict = {}
+
+    def pos_of(pid, week):
+        if not isinstance(pid, str):
+            return None
+        key = (pid, week)
+        if key not in pos_cache:
+            pos = pos_lookup(pid, week)[0]
+            pos_cache[key] = bucket_position(pos) if pos else None
+        return pos_cache[key]
+
+    passes = plays[(plays["pass_attempt"] == 1) & (plays["sack"] != 1) & plays["passer_player_id"].notna()].copy()
+    rushes = plays[(plays["rush_attempt"] == 1) & plays["rusher_player_id"].notna()].copy()
+    sacks = plays[plays["sack"] == 1]
+    comp = passes["complete_pass"] == 1
+    passes["cyds"] = passes["yards_gained"].where(comp, 0.0).fillna(0.0)
+    passes["rpos"] = [pos_of(pid, wk) for pid, wk in zip(passes["receiver_player_id"], passes["week"])]
+    rushes["rpos"] = [pos_of(pid, wk) for pid, wk in zip(rushes["rusher_player_id"], rushes["week"])]
+    air = passes["air_yards"]
+    passes["depth"] = None
+    passes.loc[air.notna(), "depth"] = "short"
+    passes.loc[air >= 10, "depth"] = "int"
+    passes.loc[air >= 20, "depth"] = "deep"
+
+    keys = ["game_id", "posteam"]
+    cols: dict = {}
+    pg = passes.groupby(keys)
+    cols["pass_att"] = pg.size()
+    cols["completions"] = pg["complete_pass"].sum()
+    cols["pass_yards"] = pg["cyds"].sum()
+    cols["pass_td"] = pg["pass_touchdown"].sum()
+    cols["ints"] = pg["interception"].sum()
+    cols["expl_pass"] = passes[comp & (passes["yards_gained"] >= PROP_EXPLOSIVE_PASS_YARDS)].groupby(keys).size()
+    cols["long_pass"] = pg["cyds"].max()
+    cols["sacks"] = sacks.groupby(keys).size()
+    for pos in ("WR", "TE", "RB"):
+        sub = passes[passes["rpos"] == pos]
+        g = sub.groupby(keys)
+        cols[f"tgt_{pos}"] = g.size()
+        cols[f"rec_{pos}"] = g["complete_pass"].sum()
+        cols[f"recyds_{pos}"] = g["cyds"].sum()
+    for d in ("short", "int", "deep"):
+        sub = passes[passes["depth"] == d].groupby(keys)
+        cols[f"att_{d}"] = sub.size()
+        cols[f"yds_{d}"] = sub["cyds"].sum()
+    rg = rushes.groupby(keys)
+    cols["rush_att"] = rg.size()
+    cols["rush_yards"] = rg["yards_gained"].sum()
+    cols["expl_rush"] = rushes[rushes["yards_gained"] >= EXPLOSIVE_RUSH_YARDS].groupby(keys).size()
+    cols["long_rush"] = rg["yards_gained"].max()
+    for pos in ("RB", "QB"):
+        g = rushes[rushes["rpos"] == pos].groupby(keys)
+        cols[f"car_{pos}"] = g.size()
+        cols[f"rushyds_{pos}"] = g["yards_gained"].sum()
+
+    games = pbp.groupby("game_id").agg(home=("home_team", "first"), away=("away_team", "first")).reset_index()
+    sides = pd.concat(
+        [
+            games.rename(columns={"home": "off", "away": "def"})[["game_id", "off", "def"]],
+            games.rename(columns={"away": "off", "home": "def"})[["game_id", "off", "def"]],
+        ],
+        ignore_index=True,
+    )
+    idx = pd.MultiIndex.from_frame(sides[["game_id", "off"]])
+    for col, series in cols.items():
+        sides[col] = series.reindex(idx).fillna(0).astype(float).to_numpy()
+    sides["plays"] = sides["pass_att"] + sides["sacks"] + sides["rush_att"]
+    # Games with no plays at all (not yet played) would read as zeros.
+    sides = sides[sides["plays"] > 0].reset_index(drop=True)
+    if sides.empty:
+        return {"league": {}, "teams": {}}
+
+    k = OPP_ADJ_SHRINK_GAMES
+    out: dict = {}
+    league: dict = {}
+
+    def put(team, side, metric, v, raw):
+        out.setdefault(team, {"off": {}, "def": {}})[side][metric] = {"v": v, "raw": raw}
+
+    def count_metric(col):
+        L = sides[col].mean()
+        league[col] = round(L, 3)
+        tables = {s: sides.groupby(s)[col].agg(["sum", "count"]) for s in ("off", "def")}
+
+        def normal(table, team, value):
+            s, n = (table.loc[team, "sum"], table.loc[team, "count"]) if team in table.index else (0.0, 0)
+            return (s - value + k * L) / (n - 1 + k)
+
+        for side, other in (("off", "def"), ("def", "off")):
+            res = sides.apply(lambda r: r[col] - normal(tables[other], r[other], r[col]), axis=1)
+            by = pd.DataFrame({"team": sides[side], "res": res, "val": sides[col]}).groupby("team")
+            for team, grp in by:
+                n = len(grp)
+                adj = L + grp["res"].mean()
+                put(team, side, col, round((adj * n + k * L) / (n + k), 3), round(grp["val"].mean(), 2))
+
+    def rate_metric(name, num, den):
+        tot_den = sides[den].sum()
+        if tot_den <= 0:
+            return
+        L = sides[num].sum() / tot_den
+        league[name] = round(L, 4)
+        kw = k * sides[den].mean()
+        tables = {s: sides.groupby(s)[[num, den]].sum() for s in ("off", "def")}
+
+        def normal(table, team, n_g, d_g):
+            n_t, d_t = (table.loc[team, num], table.loc[team, den]) if team in table.index else (0.0, 0.0)
+            return (n_t - n_g + kw * L) / (d_t - d_g + kw)
+
+        for side, other in (("off", "def"), ("def", "off")):
+            valid = sides[sides[den] > 0]
+            res = valid.apply(lambda r: r[num] / r[den] - normal(tables[other], r[other], r[num], r[den]), axis=1)
+            frame = pd.DataFrame({"team": valid[side], "res": res, "w": valid[den], "num": valid[num]})
+            for team, grp in frame.groupby("team"):
+                w = grp["w"].sum()
+                adj = L + (grp["res"] * grp["w"]).sum() / w
+                put(team, side, name, round((adj * w + kw * L) / (w + kw), 4), round(grp["num"].sum() / w, 4))
+
+    for col in PROP_COUNT_METRICS:
+        count_metric(col)
+    for name, (num, den) in PROP_RATE_METRICS.items():
+        rate_metric(name, num, den)
+
+    # Rank 1 = most produced (offense) / most allowed (defense).
+    for side in ("off", "def"):
+        for metric in league:
+            vals = sorted(
+                ((t, s[side][metric]["v"]) for t, s in out.items() if metric in s[side]),
+                key=lambda x: -x[1],
+            )
+            for rank, (team, _) in enumerate(vals, start=1):
+                out[team][side][metric]["rk"] = rank
+    return {"league": league, "teams": out}
+
+
 def compute_red_zone(pbp: pd.DataFrame) -> dict:
     """Red zone = own offense's snap inside the opponent's 20. Excludes
     two-point attempts (not a normal drive play). Returns per-team dict of
@@ -3698,6 +3874,7 @@ def main():
         "td_allowed_log": compute_td_allowed_log(scoring_df),
         **(lambda m: {"td_matchup_model": m["teams"], "player_xtd": m["players"]})(compute_td_matchup_model(pbp, scoring_df, pos_lookup)),
         "pre_first_td_usage": pre_first_td_usage,
+        "prop_matchup_model": compute_prop_matchup_model(pbp, pos_lookup),
         "schedule": schedule,
         "current_week": current_week,
         "recent_games": recent_games,

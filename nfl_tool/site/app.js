@@ -832,10 +832,6 @@ function firstTdPositionTargets(offTeam, defTeam) {
     .sort((a, b) => b.score - a.score);
 }
 
-function normName(n) {
-  return (n || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "").replace(/[^a-z]/g, "");
-}
-
 // This week's injury status by normalized name: Out/Doubtful/IR players
 // are dropped from the player list; Questionable and did-not-practice get
 // a tag instead, since they may still play.
@@ -1037,14 +1033,6 @@ function summaryTargetUnit(metric) {
   return "TDs / game";
 }
 
-function summaryTeamBanner(team) {
-  const rgb = teamAccentRgb(team);
-  return `<div class="sc-team" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
-    <img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt="">
-    <span class="sc-team-name">${TEAM_NAMES[team] || team}</span>
-  </div>`;
-}
-
 // ---- Key players: who on this offense fits each numbered target/tag ----
 // Each target row and tag gets a number; players who are the main
 // options for that item are listed under the tags with those numbers
@@ -1052,11 +1040,6 @@ function summaryTeamBanner(team) {
 // end zone / deep targets, red zone carries, carries by rush lane,
 // explosive runs, and each position's leading options.
 const KEY_PLAYERS_MAX = 6;
-
-function shortName(name) {
-  const parts = (name || "").replace(/\s+(Jr\.?|Sr\.?|II|III|IV|V)$/i, "").split(" ");
-  return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(" ")}` : name;
-}
 
 function keyPlayerPool(team, week) {
   const injured = firstTdInjuryStatus(team, week);
@@ -1173,21 +1156,6 @@ function summarySeasonColumn(offTeam, defTeam, week) {
     <div class="sc-block"><div class="sc-label">Matchup Tags</div><ul class="sc-tags">${tagRows}</ul></div>
     <div class="sc-block"><div class="sc-label">Key Players</div>${keyPlayers ? `<div class="sc-keys">${keyPlayers}</div>` : `<span class="target-none">&mdash;</span>`}</div>
   </div>`;
-}
-
-// Player photo by name -- headshots are keyed by roster full name, odds by
-// the sportsbook's spelling, so both go through normName.
-function summaryHeadshot(team, name, size = 26) {
-  const byTeam = (DATA.player_headshots || {})[team] || {};
-  if (!summaryHeadshot.index) summaryHeadshot.index = {};
-  if (!summaryHeadshot.index[team]) {
-    summaryHeadshot.index[team] = {};
-    Object.entries(byTeam).forEach(([n, url]) => (summaryHeadshot.index[team][normName(n)] = url));
-  }
-  const url = summaryHeadshot.index[team][normName(name)];
-  return url
-    ? `<img src="${url}" crossorigin="anonymous" class="sc-headshot" style="width:${size}px;height:${size}px" alt="">`
-    : `<span class="sc-headshot sc-headshot-empty" style="width:${size}px;height:${size}px"></span>`;
 }
 
 // First TD half of a team's column: position chips + top players.
@@ -1472,90 +1440,6 @@ function renderSummaryCard(away, home) {
   // Logos/photos load after the first measurement; re-fit once they have.
   card.querySelectorAll("img").forEach((img) => img.addEventListener("load", fitSummaryCard, { once: true }));
 }
-
-// Scale the inner content down (never up) until it fits the fixed card.
-function fitSummaryCard() {
-  const card = document.getElementById("summary-card");
-  const inner = card?.querySelector(".sc-inner");
-  if (!inner) return;
-  inner.style.transform = "";
-  inner.style.width = "";
-  const scale = Math.min(1, card.clientHeight / inner.scrollHeight);
-  if (scale < 1) {
-    inner.style.transform = `scale(${scale})`;
-    inner.style.width = `${100 / scale}%`;
-  }
-}
-
-// The exported PNG only uses fonts embedded into it -- html-to-image can't
-// read Google Fonts' cross-origin stylesheet itself, so fetch it, keep the
-// latin subsets, and inline each font file as a data URL.
-let summaryFontCSSCache = null;
-async function summaryFontCSS() {
-  if (summaryFontCSSCache !== null) return summaryFontCSSCache;
-  try {
-    const link = document.querySelector('link[href*="fonts.googleapis.com/css"]');
-    const css = await fetch(link.href).then((r) => r.text());
-    const latin = css.split("/* ").filter((block) => block.startsWith("latin */")).map((block) => block.slice("latin */".length));
-    const inlined = await Promise.all(
-      latin.map(async (face) => {
-        const m = face.match(/url\((https:[^)]+)\)/);
-        if (!m) return face;
-        const blob = await fetch(m[1]).then((r) => r.blob());
-        const dataUrl = await new Promise((resolve) => {
-          const fr = new FileReader();
-          fr.onload = () => resolve(fr.result);
-          fr.readAsDataURL(blob);
-        });
-        return face.replace(m[1], dataUrl);
-      })
-    );
-    summaryFontCSSCache = inlined.join("\n");
-  } catch (e) {
-    summaryFontCSSCache = "";
-  }
-  return summaryFontCSSCache;
-}
-
-async function saveSummaryImage() {
-  const btn = document.getElementById("summary-save-btn");
-  const card = document.getElementById("summary-card");
-  btn.disabled = true;
-  btn.textContent = "Saving...";
-  try {
-    if (!window.htmlToImage) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = "https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js";
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-    const bg = getComputedStyle(card).backgroundColor;
-    const fontEmbedCSS = await summaryFontCSS();
-    // includeQueryParams: every team logo is the same ESPN resizer URL with
-    // a different ?img=... query -- without this, html-to-image caches
-    // images by URL minus the query and stamps the first logo on every team.
-    const url = await window.htmlToImage.toPng(card, { pixelRatio: 2, backgroundColor: bg, fontEmbedCSS, includeQueryParams: true });
-    const a = document.createElement("a");
-    const away = document.getElementById("away-select").value;
-    const home = document.getElementById("home-select").value;
-    a.href = url;
-    a.download = `${away}-at-${home}-td-summary.png`;
-    a.click();
-    btn.textContent = "Saved";
-  } catch (e) {
-    btn.textContent = "Couldn't save -- screenshot instead";
-  }
-  setTimeout(() => {
-    btn.disabled = false;
-    btn.textContent = "Save image";
-  }, 2500);
-}
-document.addEventListener("click", (e) => {
-  if (e.target.closest("#summary-save-btn")) saveSummaryImage();
-});
 
 // ---- Season TDs / First TD view toggle (localStorage so it survives a
 // reload during a stream; a "?view=first" URL param wins on first load so
