@@ -556,6 +556,11 @@ function propDefenseTags(defTeam, section) {
 }
 
 // ---- Card rendering ----
+// Clicking a player opens the shared player popup (player-props.js).
+function propClickEntry(r) {
+  const { away, home } = propsSummaryContext();
+  return encodeDataAttr({ team: r.team, name: r.name, oppTeam: r.team === away ? home : away });
+}
 function propLineText(r, side = r.side) {
   return `${side === "over" ? "o" : "u"}${fmt(r.line, 1)}`;
 }
@@ -571,7 +576,7 @@ function propPlayRow(r) {
   const also = r.also.length ? `<span class="ps-also">also ${r.also.slice(0, 2).map((a) => `${a.market} ${propLineText(a)}`).join(", ")}</span>` : "";
   const reasons = r.reasons.slice(0, 3).map((x) => `<span class="ps-reason">${x.text}</span>`).join("");
   return `<tr class="ps-play${strong ? " ps-play-strong" : ""}">
-      <td><span class="sc-player">${summaryHeadshot(r.team, r.name, 24)}<span class="ps-name">${r.display}${inj}</span></span></td>
+      <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 24)}<span class="ps-name">${r.display}${inj}</span></span></td>
       <td><span class="ps-bet">${r.market} <b>${propLineText(r)}</b></span> <span class="muted">${fmtOddsSigned(r.odds)}</span></td>
       <td class="num">${fmt(r.proj, r.proj < 10 ? 1 : 0)}</td>
       <td class="ps-vals">${propValuesCell(r)}</td>
@@ -642,7 +647,7 @@ function propsRail(away, home, linesByTeam, gameKey) {
       .map((r) => {
         // Arrow where the model sides with this line strongly enough to list it.
         const lean = r.edge !== null && r.edge !== undefined && r.edge >= PROP_EDGE_MIN ? ` <span class="ps-lean" title="Model leans ${r.side}">${r.side === "over" ? "&#9650;" : "&#9660;"}</span>` : "";
-        return `<tr><td><span class="sc-player">${summaryHeadshot(team, r.name, 26)}<span class="ps-rail-name">${propDisplayName(linesByTeam[team], r)}<span class="ps-rail-mkt">${r.market} ${fmt(r.line, 1)}${r.proj !== null ? ` <span class="muted">proj ${fmt(r.proj, r.proj < 10 ? 1 : 0)}</span>` : ""}${lean}</span></span></span></td><td class="num"><div class="ps-rail-btns">${propSideButton(r, "over")}${propSideButton(r, "under")}</div></td></tr>`;
+        return `<tr><td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(team, r.name, 26)}<span class="ps-rail-name">${propDisplayName(linesByTeam[team], r)}<span class="ps-rail-mkt">${r.market} ${fmt(r.line, 1)}${r.proj !== null ? ` <span class="muted">proj ${fmt(r.proj, r.proj < 10 ? 1 : 0)}</span>` : ""}${lean}</span></span></span></td><td class="num"><div class="ps-rail-btns">${propSideButton(r, "over")}${propSideButton(r, "under")}</div></td></tr>`;
       })
       .join("");
     const rgb = teamAccentRgb(team);

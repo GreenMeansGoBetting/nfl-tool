@@ -1985,30 +1985,58 @@ function playerPropsAcrossMarkets(team, name) {
   const markets = DATA.player_prop_markets || {};
   const rows = [];
   for (const stat of Object.keys(labels)) {
-    const found = ((markets[stat] || {})[team] || []).find((p) => p.name === name);
+    const found = ((markets[stat] || {})[team] || []).find((p) => normName(p.name) === normName(name));
     if (found) rows.push({ marketKey: stat, market: labels[stat], ...found });
   }
   return rows;
 }
 
-function renderPlayerMarketsModalContent(team, name) {
+// Odds view: every line for this player, the Summary model's projection
+// and lean for each, Over/Under into Possible Plays, and a button that puts
+// the line on the Summary card's Prop Picks rail.
+function renderPlayerMarketsModalContent(team, name, oppTeam) {
   const rows = playerPropsAcrossMarkets(team, name);
   const position = rows.length ? rows[0].position : null;
-  const heading = `<h3>${name} <span class="muted-label">(${position || "?"} &middot; ${team})</span> &mdash; All Props</h3>`;
+  const heading = `<h3>${summaryHeadshot(team, name, 34)} ${name} <span class="muted-label">(${position || "?"} &middot; ${team})</span> &mdash; All Props</h3>`;
   if (!rows.length) {
     return `${heading}<p class="no-data-note">No prop lines posted for this player yet.</p>`;
   }
   const game = (DATA.schedule || []).find((g) => g.week === scheduleWeek && (g.away === team || g.home === team));
   const matchup = game ? `${game.away} @ ${game.home}` : team;
+  // Model numbers and summary picks are for the game selected up top.
+  const ctx = propsSummaryContext();
+  const inGame = oppTeam && [ctx.away, ctx.home].includes(team) && [ctx.away, ctx.home].includes(oppTeam);
+  const model = {};
+  if (inGame) {
+    propTeamLines(team, oppTeam, ctx.week, ctx.game)
+      .filter((r) => normName(r.name) === normName(name))
+      .forEach((r) => (model[r.marketKey] = r));
+  }
+  const chosen = new Set(inGame ? loadPropsSummaryPicks(ctx.gameKey)[team] || [] : []);
+  const full = chosen.size >= PROPS_SUMMARY_MAX_PICKS;
   const body = rows
     .map((r) => {
-      const { over, under } = propOuEntries(r.marketKey, r.market, team, name, r.line, r.over_odds, r.under_odds, matchup);
-      return `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.under_odds), under)}</td></tr>`;
+      const { over, under } = propOuEntries(r.marketKey, r.market, team, r.name, r.line, r.over_odds, r.under_odds, matchup);
+      const m = model[r.marketKey];
+      const hasEdge = m && m.edge !== null && m.edge !== undefined;
+      const proj = m && m.proj !== null ? fmt(m.proj, 1) : "--";
+      const lean = hasEdge ? `${m.edge >= PROP_EDGE_MIN ? `<b>${propLineText(m)}</b>` : propLineText(m)} ${m.edge >= 0 ? "+" : ""}${Math.round(m.edge * 100)}%` : "--";
+      let add = `<span class="muted">--</span>`;
+      if (m) {
+        const key = propPickKey(m);
+        const on = chosen.has(key);
+        const disabled = !on && full ? ` disabled title="${PROPS_SUMMARY_MAX_PICKS} per team max"` : "";
+        add = `<button type="button" class="ps-add-btn${on ? " ps-add-on" : ""}" data-team="${team}" data-key="${encodeDataAttr(key)}"${disabled}>${on ? "&#10003; On summary" : "+ Summary"}</button>`;
+      }
+      return `<tr class="${hasEdge && m.edge >= PROP_EDGE_MIN ? "ps-picker-lean" : ""}"><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${proj}</td><td class="num">${lean}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.under_odds), under)}</td><td class="num">${add}</td></tr>`;
     })
     .join("");
-  return `${heading}
+  const note = inGame
+    ? `<p class="no-data-note">Proj / Model = the Summary tab's projection and the side it leans (bold = listed on the card). + Summary adds the line to the card's Prop Picks (${chosen.size}/${PROPS_SUMMARY_MAX_PICKS} for ${team}).</p>`
+    : "";
+  return `${heading}${note}
     <table class="data-table player-odds-table props-market-table">
-      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th></tr></thead>
+      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Proj</th><th class="num">Model</th><th class="num">Over</th><th class="num">Under</th><th class="num">Summary</th></tr></thead>
       <tbody>${body}</tbody>
     </table>`;
 }
@@ -2103,9 +2131,12 @@ function renderPlayerGameLogContent(team, name) {
 function renderPlayerModalShell() {
   const { team, name, oppTeam, view } = playerModalState;
   let bodyHtml;
-  if (view === "gamelog") bodyHtml = renderPlayerGameLogContent(team, name);
-  else if (view === "rushlanes") bodyHtml = renderPlayerRushLanesContent(team, name, oppTeam);
-  else bodyHtml = renderPlayerMarketsModalContent(team, name);
+  // Sportsbook spellings ("Brian Robinson") vs roster names ("Brian
+  // Robinson Jr.") -- the stat views look the player up by roster name.
+  const statName = propGameLogs(team, name)?.name || name;
+  if (view === "gamelog") bodyHtml = renderPlayerGameLogContent(team, statName);
+  else if (view === "rushlanes") bodyHtml = renderPlayerRushLanesContent(team, statName, oppTeam);
+  else bodyHtml = renderPlayerMarketsModalContent(team, name, oppTeam);
   return `<div class="player-modal-toggle">
       <button type="button" class="player-modal-toggle-btn${view === "odds" ? " active" : ""}" data-view="odds">Odds</button>
       <button type="button" class="player-modal-toggle-btn${view === "gamelog" ? " active" : ""}" data-view="gamelog">Game Log</button>
@@ -2121,6 +2152,23 @@ function openPlayerMarketsModal(team, name, oppTeam) {
   document.getElementById("props-modal-content").innerHTML = renderPlayerModalShell();
   document.getElementById("props-modal").hidden = false;
 }
+
+// "+ Summary" in the player popup: add/remove that line on the Summary
+// card's Prop Picks rail (same per-game picks the Pick props list edits).
+document.addEventListener("click", (e) => {
+  const addBtn = e.target.closest(".ps-add-btn");
+  if (!addBtn || !playerModalState) return;
+  const { gameKey, away, home } = propsSummaryContext();
+  const picks = loadPropsSummaryPicks(gameKey);
+  const list = new Set(picks[addBtn.dataset.team] || []);
+  const key = decodeDataAttr(addBtn.dataset.key);
+  if (list.has(key)) list.delete(key);
+  else if (list.size < PROPS_SUMMARY_MAX_PICKS) list.add(key);
+  picks[addBtn.dataset.team] = [...list];
+  savePropsSummaryPicks(gameKey, picks);
+  document.getElementById("props-modal-content").innerHTML = renderPlayerModalShell();
+  if (currentPropsView === "summary") renderPropsSummaryCard(away, home);
+});
 
 document.addEventListener("click", (e) => {
   const toggleBtn = e.target.closest(".player-modal-toggle-btn");

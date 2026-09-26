@@ -2395,3 +2395,12 @@ footer { border-top-color: var(--border); }
 .ps-card .ps-section { flex: 1 1 auto; }
 .ps-card .ps-section > .sc-grid2 { flex: 1 1 auto; grid-template-rows: auto 1fr; }
 .ps-lean { margin-left: 3px; color: var(--good-text); font-size: 0.62rem; }
+
+.summary-card .player-click:hover { text-decoration: none; }
+.summary-card .player-click:hover .ps-name, .summary-card .player-click:hover .ps-rail-name { text-decoration: underline; }
+.ps-add-btn { padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel); color: var(--text); font: inherit; font-size: 0.76rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.ps-add-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.ps-add-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.ps-add-on { background: rgba(var(--accent-rgb), 0.16); border-color: var(--accent); color: var(--accent); }
+.props-market-table tr.ps-picker-lean td { background: rgba(var(--good-rgb), 0.06); }
+#props-modal h3 .sc-headshot { vertical-align: middle; margin-right: 4px; }
