@@ -778,7 +778,7 @@ function propPlayRow(r) {
   const lineup = r.reasons.filter((x) => / OUT \+| back \(/.test(x.text)).map((x) => x.text).join(" &middot; ");
   return `<tr class="ps-play${strong ? " ps-play-strong" : ""}">
       <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 26)}<span class="ps-name">${r.display} <span class="muted ps-pos">${r.position || ""}</span>${inj}${lineup ? `<span class="ps-lineup">${lineup}</span>` : ""}</span></span></td>
-      <td><span class="ps-bet"><b class="ps-side-${r.side}">${r.side === "over" ? "Over" : "Under"} ${fmt(r.line, 1)}</b> ${r.market}</span> <span class="muted">${fmtOddsSigned(r.odds)}</span><span class="ps-backs ps-side-${r.side}">${r.side === "over" ? "&#9650;" : "&#9660;"} ${r.call.name}</span></td>
+      <td><span class="ps-bet"><b class="ps-side-${r.side}">${r.side === "over" ? "Over" : "Under"} ${fmt(r.line, 1)}</b> ${r.market}</span> <span class="muted">${fmtOddsSigned(r.odds)}</span></td>
       <td class="num">${fmt(r.proj, r.proj < 10 ? 1 : 0)}</td>
       <td class="ps-vals">${propValuesCell(r)}</td>
       <td class="num">${r.hits}/${r.values.length}</td>
