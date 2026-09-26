@@ -2443,3 +2443,11 @@ footer { border-top-color: var(--border); }
 .ps-lineup { display: block; font-size: 0.62rem; font-weight: 600; color: var(--muted); line-height: 1.1; }
 .ps-plays td { padding: 4px 4px; }
 .ps-bet b { color: var(--text); }
+
+.ps-angles { display: flex; flex-direction: column; gap: 4px; }
+.ps-angle { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; line-height: 1.25; }
+.ps-angle-call { flex: 0 0 auto; display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; border: 1px solid transparent; }
+.ps-angle-over { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
+.ps-angle-under { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.13); border-color: rgba(var(--bad-rgb), 0.5); }
+.ps-angle-why { color: var(--muted); font-weight: 600; min-width: 0; }
+.sc-footer .ps-angle-call { font-size: 0.58rem; padding: 0 5px; }

@@ -23,7 +23,6 @@ const PROP_EDGE_MIN = 0.1;
 // line-anchored player baseline (the books price some of it already).
 const PROP_CONTEXT_TRUST = 0.8; // model minus no-vig odds, to list a play
 const PROP_EDGE_STRONG = 0.18;
-const PROP_TAG_RANK = 6; // top/bottom N defenses get a tag
 const PROP_ROWS = { pass: 2, rush: 3, rec: 3 };
 // Games of data it takes before the data counts as much as the line
 // itself: volume settles fast, yards slower, long plays/TDs/INTs slowest.
@@ -627,18 +626,15 @@ function propDisplayName(rows, r) {
 
 // Best plays in one section: one row per player (their biggest edge), any
 // other markets that point the same way listed as "also".
-// A play is left off when it contradicts the defense summary above it
-// (an over on a run game this defense shuts down, an under on a spot it
-// gives up). Only position-specific tags count ("RB yds per carry", not
-// "short throws", which doesn't say much about any one receiver); INT/sack
-// tags cut the other way and are skipped.
-function propConflicts(r, tags) {
-  return (tags || []).some((t) => !t.defenseStat && !t.generic && t.group.includes(r.position) && (t.weak ? r.side === "under" : r.side === "over"));
+// A play is left off when it argues with a market call above it (an over
+// on Receptions under "Fade Receptions").
+function propConflicts(r, angles) {
+  return (angles || []).some((a) => a.markets.includes(r.marketKey) && a.pos.includes(r.position) && a.side !== r.side);
 }
-function propSectionPlays(rows, section, tags) {
+function propSectionPlays(rows, section, angles) {
   const byPlayer = {};
   rows
-    .filter((r) => r.section === section && r.edge !== null && r.edge >= PROP_EDGE_MIN && !propConflicts(r, tags))
+    .filter((r) => r.section === section && r.edge !== null && r.edge >= PROP_EDGE_MIN && !propConflicts(r, angles))
     .sort((a, b) => b.edge - a.edge)
     .forEach((r) => {
       const k = normName(r.name);
@@ -648,78 +644,89 @@ function propSectionPlays(rows, section, tags) {
   return Object.values(byPlayer).sort((a, b) => b.edge - a.edge);
 }
 
-// ---- Defense tags: where this defense ranks, in words, and the lines
-// on the other side that the tag points at (so a "weak vs RB receiving"
-// tag names the RBs with a receiving line). ----
-// [metric, label, rate stat?, stat that's good FOR the defense?, markets, player filter]
-const PROP_TAG_METRICS = {
+// ---- Market calls: this offense vs this defense ----
+// Each angle pairs what the defense allows with what the offense actually
+// does, and ends in a market: "Target Receptions" when a defense gives up
+// underneath catches to an offense that lives underneath, "Fade Deep
+// catches" when a defense takes away the deep ball from an offense that
+// doesn't throw it much. Defense counts 60%, offense 40%; both have to
+// lean the same way (or the offense be neutral) for a call. Ranks are
+// opponent-adjusted (build_stats.py prop_matchup_model).
+const PROP_ANGLE_MIN = 0.45; // combined lean (-1..1) needed for a call
+const PROP_ANGLES_SHOWN = 3;
+const f1 = (v) => fmt(v, 1);
+const f0 = (v) => fmt(v, 0);
+const PROP_ANGLES = {
   pass: [
-    ["pass_yards", "pass yds/g", false, false, ["passing_yards"]],
-    ["ypa", "yds per att", true, false, ["passing_yards"]],
-    ["pass_att", "pass att/g faced", false, false, ["passing_attempts"]],
-    ["comp", "comp %", true, false, ["passing_completions"]],
-    ["pass_td", "pass TD/g", false, false, ["passing_touchdowns"]],
-    ["ints", "INTs made/g", false, true, ["passing_interceptions"]],
-    ["sacks", "sacks/g", false, true, []],
+    { name: "Pass attempts", def: ["pass_att"], off: "pass_att", d: (v) => `faces ${f1(v)} att/g`, o: (v) => `throws ${f1(v)}/g`, markets: ["passing_attempts", "passing_completions"], pos: ["QB"] },
+    { name: "Pass yards", def: ["pass_yards", "ypa"], off: "pass_yards", d: (v) => `allows ${f0(v)} pass yds/g`, o: (v) => `${f0(v)}/g`, markets: ["passing_yards", "passing+rushing_yards"], pos: ["QB"] },
+    { name: "Pass TDs", def: ["pass_td"], off: "pass_td", d: (v) => `allows ${f1(v)} pass TD/g`, o: (v) => `${f1(v)}/g`, markets: ["passing_touchdowns"], pos: ["QB"] },
+    { name: "Long completions", def: ["expl_pass"], off: "expl_pass", d: (v) => `allows ${f1(v)} 20+ yd comp/g`, o: (v) => `${f1(v)}/g`, markets: ["passing_longestCompletion"], pos: ["QB"] },
+    { name: "INTs", def: ["ints"], off: "ints", d: (v) => `picks off ${f1(v)}/g`, o: (v) => `throws ${f1(v)}/g`, markets: ["passing_interceptions"], pos: ["QB"] },
   ],
   rush: [
-    ["car_RB", "RB carries/g", false, false, ["rushing_attempts"], { pos: "RB" }],
-    ["rushyds_RB", "RB rush yds/g", false, false, ["rushing_yards"], { pos: "RB" }],
-    ["ypc_RB", "RB yds per carry", true, false, ["rushing_yards"], { pos: "RB" }],
-    ["rushyds_QB", "QB rush yds/g", false, false, ["rushing_yards"], { pos: "QB" }],
-    ["expl_rush", "10+ yd runs/g", false, false, ["rushing_longestRush"]],
+    { name: "RB carries", def: ["car_RB", "ypc_RB"], off: "car_RB", d: (v) => `allows ${f1(v)} RB car/g`, o: (v) => `${f1(v)}/g`, markets: ["rushing_attempts"], pos: ["RB"] },
+    { name: "RB rush yards", def: ["rushyds_RB", "ypc_RB"], off: "rushyds_RB", d: (v) => `allows ${f0(v)} RB rush yds/g`, o: (v) => `${f0(v)}/g`, markets: ["rushing_yards", "rushing+receiving_yards"], pos: ["RB"] },
+    { name: "Long runs", def: ["expl_rush"], off: "expl_rush", d: (v) => `allows ${f1(v)} 10+ yd runs/g`, o: (v) => `${f1(v)}/g`, markets: ["rushing_longestRush"], pos: ["RB", "QB"] },
+    { name: "QB rushing", def: ["rushyds_QB"], off: "rushyds_QB", d: (v) => `allows ${f0(v)} QB rush yds/g`, o: (v) => `${f0(v)}/g`, markets: ["rushing_yards", "rushing_attempts"], pos: ["QB"] },
   ],
   rec: [
-    ["recyds_WR", "WR rec yds/g", false, false, ["receiving_yards"], { pos: "WR" }],
-    ["recyds_TE", "TE rec yds/g", false, false, ["receiving_yards"], { pos: "TE" }],
-    ["recyds_RB", "RB rec yds/g", false, false, ["receiving_yards"], { pos: "RB" }],
-    ["yds_short", "yds/g on short throws", false, false, ["receiving_yards"], { depth: "short", share: 0.5 }],
-    ["yds_int", "yds/g on 10-19 yd throws", false, false, ["receiving_yards"], { depth: "int", share: 0.25 }],
-    ["yds_deep", "yds/g on 20+ yd throws", false, false, ["receiving_yards"], { depth: "deep", share: 0.2 }],
-    ["expl_pass", "20+ yd catches/g", false, false, ["receiving_longestReception"]],
+    { name: "Receptions", def: ["yds_short"], off: "att_short", d: (v) => `allows ${f0(v)} yds/g on short throws`, o: (v) => `throws ${f1(v)} short/g`, markets: ["receiving_receptions"], pos: ["WR", "TE", "RB"] },
+    { name: "10-19 yd yards", def: ["yds_int"], off: "att_int", d: (v) => `allows ${f0(v)} yds/g on 10-19 yd throws`, o: (v) => `throws ${f1(v)} there/g`, markets: ["receiving_yards"], pos: ["WR", "TE"] },
+    { name: "Deep yards", def: ["yds_deep"], off: "att_deep", d: (v) => `allows ${f0(v)} yds/g on 20+ yd throws`, o: (v) => `throws ${f1(v)} deep/g`, markets: ["receiving_yards", "receiving_longestReception"], pos: ["WR", "TE"] },
+    { name: "Long catches", def: ["expl_pass"], off: "expl_pass", d: (v) => `allows ${f1(v)} 20+ yd catches/g`, o: (v) => `makes ${f1(v)}/g`, markets: ["receiving_longestReception"], pos: ["WR", "TE", "RB"] },
+    { name: "WR yards", def: ["recyds_WR"], off: "recyds_WR", d: (v) => `allows ${f0(v)} WR yds/g`, o: (v) => `WRs ${f0(v)}/g`, markets: ["receiving_yards", "receiving_receptions"], pos: ["WR"] },
+    { name: "TE yards", def: ["recyds_TE"], off: "recyds_TE", d: (v) => `allows ${f0(v)} TE yds/g`, o: (v) => `TEs ${f0(v)}/g`, markets: ["receiving_yards", "receiving_receptions"], pos: ["TE"] },
+    { name: "RB catches", def: ["recyds_RB"], off: "recyds_RB", d: (v) => `allows ${f0(v)} RB rec yds/g`, o: (v) => `RBs ${f0(v)}/g`, markets: ["receiving_yards", "receiving_receptions"], pos: ["RB"] },
   ],
 };
 
-// Share of a receiver's targets at each depth (short <10 air yds, 10-19, 20+).
-function propDepthShares(team, name) {
-  const byTeam = (DATA.player_pass_zones || {})[team] || {};
-  const logName = propGameLogs(team, name)?.name || name;
-  const zones = (byTeam[logName] || byTeam[name] || {}).zones;
-  if (!zones) return null;
-  const n = { short: 0, int: 0, deep: 0 };
-  Object.entries(zones).forEach(([k, z]) => {
-    const d = k.startsWith("deep") ? "deep" : k.startsWith("intermediate") ? "int" : "short";
-    n[d] += z.targets || 0;
-  });
-  const total = n.short + n.int + n.deep;
-  return total >= 3 ? { short: n.short / total, int: n.int / total, deep: n.deep / total } : null;
+// Rank 1 (most) -> +1, rank 32 (fewest) -> -1.
+function propRankLean(rk) {
+  return rk ? (16.5 - rk) / 15.5 : 0;
+}
+function propSide(team, side, metric) {
+  const cell = ((propModel().teams[team] || {})[side] || {})[metric];
+  return cell ? { raw: cell.raw, rk: cell.rk, lean: propRankLean(cell.rk) } : null;
 }
 
-// Weak spots first, then strong ones; the top/bottom PROP_TAG_RANK only.
-function propDefenseTags(defTeam, section, offLines) {
-  const tags = [];
-  PROP_TAG_METRICS[section].forEach(([metric, label, rate, defenseStat, markets, filter = {}]) => {
-    const d = propDef(defTeam, metric);
-    if (!d.rk || d.raw === null) return;
-    const high = d.rk <= PROP_TAG_RANK;
-    const low = d.rk > 32 - PROP_TAG_RANK;
-    if (!high && !low) return;
-    const weak = defenseStat ? low : high;
-    const value = rate && d.raw < 1 ? `${Math.round(d.raw * 100)}%` : fmt(d.raw, d.raw < 10 ? 1 : 0);
-    const fits = (offLines || [])
-      .filter((r) => markets.includes(r.marketKey) && r.injury !== "out")
-      .filter((r) => !filter.pos || r.position === filter.pos)
-      .filter((r) => {
-        if (!filter.depth) return true;
-        const sh = propDepthShares(r.team, r.name);
-        return sh && sh[filter.depth] >= filter.share;
-      })
-      .sort((a, b) => b.line - a.line)
-      .slice(0, 3);
-    const group = filter.pos ? [filter.pos] : section === "pass" ? ["QB"] : section === "rush" ? ["RB", "QB"] : ["WR", "TE", "RB"];
-    tags.push({ weak, value, label, words: propRankWords(d.rk, rate), fits, group, generic: !filter.pos, defenseStat, strength: Math.abs(d.f - 1) });
+function propMarketAngles(section, offTeam, defTeam) {
+  const out = [];
+  PROP_ANGLES[section].forEach((a) => {
+    const defs = a.def.map((m) => propSide(defTeam, "def", m)).filter(Boolean);
+    const off = propSide(offTeam, "off", a.off);
+    if (!defs.length || !off) return;
+    const dLean = defs.reduce((x, d) => x + d.lean, 0) / defs.length;
+    const score = 0.6 * dLean + 0.4 * off.lean;
+    const dir = Math.sign(score);
+    if (Math.abs(score) < PROP_ANGLE_MIN || dLean * dir < 0.3 || off.lean * dir < -0.2) return;
+    const d = defs[0];
+    out.push({
+      ...a,
+      side: dir > 0 ? "over" : "under",
+      score,
+      detail: `${defTeam} ${a.d(d.raw)} &middot; ${offTeam} ${a.o(off.raw)}`,
+      tip: `${defTeam}: ${propRankWords(d.rk)} of 32 defenses; ${offTeam}: ${propRankWords(off.rk)} of 32 offenses (opponent-adjusted)`,
+    });
   });
-  return tags.sort((a, b) => b.weak - a.weak || b.strength - a.strength).slice(0, 3);
+  // Strongest first; one call per market group so two angles never say
+  // the same thing twice (or the opposite thing) about the same market.
+  const taken = new Set();
+  return out
+    .sort((x, y) => Math.abs(y.score) - Math.abs(x.score))
+    .filter((a) => {
+      const key = a.markets[0] + "|" + a.pos.join("");
+      if (taken.has(key)) return false;
+      taken.add(key);
+      return true;
+    })
+    .slice(0, PROP_ANGLES_SHOWN);
+}
+function propAnglesHtml(angles) {
+  if (!angles.length) return `<span class="target-none">No clear market edge from this matchup</span>`;
+  return angles
+    .map((a) => `<div class="ps-angle" title="${a.tip}"><span class="ps-angle-call ps-angle-${a.side}">${a.side === "over" ? "&#9650; Target" : "&#9660; Fade"} ${a.name}</span><span class="ps-angle-why">${a.detail}</span></div>`)
+    .join("");
 }
 
 // ---- Card rendering ----
@@ -757,38 +764,15 @@ function propPlayRow(r) {
       <td class="num">${r.hits}/${r.values.length}</td>
     </tr>`;
 }
-// Defense summary for a section: the stats it's extreme in, red where it
-// gives up a lot and green where it shuts things down (rank on hover),
-// then one plain line of which position groups to look at.
-const PROP_GROUP_WORDS = { pass: "QB", rush: "run game", rec: "pass catchers" };
-function propGroupText(tags, section) {
-  const specific = [...new Set(tags.filter((t) => !t.generic).flatMap((t) => t.group))];
-  if (specific.length) return specific.join(" / ");
-  return PROP_GROUP_WORDS[section];
-}
-function propDefenseSummary(tags, section, offTeam) {
-  const ordered = tags.slice().sort((a, b) => b.weak - a.weak);
-  const stats = ordered
-    .map((t) => `<span class="ps-dstat ${t.weak ? "ps-dstat-weak" : "ps-dstat-strong"}" title="${t.words} of 32 defenses (opponent-adjusted)"><b>${t.value}</b> ${t.label}</span>`)
-    .join(` <span class="ps-dsep">&middot;</span> `);
-  const weak = tags.filter((t) => t.weak && !t.defenseStat);
-  const strong = tags.filter((t) => !t.weak && !t.defenseStat);
-  const calls = [
-    weak.length ? `<span class="ps-call ps-call-weak">Target ${offTeam} ${propGroupText(weak, section)}</span>` : "",
-    strong.length ? `<span class="ps-call ps-call-strong">Tough on ${offTeam} ${propGroupText(strong, section)}</span>` : "",
-  ].filter(Boolean).join(` <span class="ps-dsep">&middot;</span> `);
-  return `<div class="ps-dsum"><div class="ps-dstats">${stats}</div>${calls ? `<div class="ps-calls">${calls}</div>` : ""}</div>`;
-}
-
 function propSectionColumn(section, offTeam, defTeam, rows) {
-  const tags = propDefenseTags(defTeam, section, rows);
-  const tagHtml = tags.length ? propDefenseSummary(tags, section, offTeam) : `<span class="target-none">Nothing extreme vs the league</span>`;
-  const plays = propSectionPlays(rows, section, tags).slice(0, PROP_ROWS[section]);
+  const angles = propMarketAngles(section, offTeam, defTeam);
+  const tagHtml = propAnglesHtml(angles);
+  const plays = propSectionPlays(rows, section, angles).slice(0, PROP_ROWS[section]);
   const body = plays.length
     ? `<table class="sc-table ps-plays"><thead><tr><th>Player</th><th>Play</th><th class="num">Proj</th><th>Games</th><th class="num">Hit</th></tr></thead><tbody>${plays.map(propPlayRow).join("")}</tbody></table>`
     : `<p class="target-none ps-none">No lines off from the model</p>`;
   return `<div class="sc-col">
-    <div class="sc-block"><div class="sc-label">${teamLogoMini(defTeam, 14)} ${defTeam} defense vs ${offTeam}</div><div class="ps-dtags">${tagHtml}</div></div>
+    <div class="sc-block"><div class="sc-label">${teamLogoMini(offTeam, 14)} ${offTeam} offense vs ${defTeam} defense</div><div class="ps-angles">${tagHtml}</div></div>
     <div class="sc-block">${body}</div>
   </div>`;
 }
@@ -904,7 +888,7 @@ function renderPropsSummaryCard(away, home) {
     </div>
 
     <div class="sc-footer">
-      <span>Defense stats: <span class="ps-dstat-weak"><b>red</b></span> = among the 6 worst in the league, <span class="ps-dstat-strong"><b>green</b></span> = among the 6 best (opponent-adjusted)</span>
+      <span><span class="ps-angle-call ps-angle-over">&#9650; Target</span> / <span class="ps-angle-call ps-angle-under">&#9660; Fade</span> = defense and offense both lean that way (opponent-adjusted, hover for ranks)</span>
       <span>Games newest first, green = hit &middot; <span class="ps-val ps-val-partial">7*</span> left early, skipped &middot; <span class="ps-val ps-val-hit ps-val-lineup">9</span> teammate out, scaled</span>
     </div>
   </div>`;
