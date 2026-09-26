@@ -474,7 +474,7 @@ def load_snap_counts(data_dir: Path, season: int) -> pd.DataFrame:
     download_if_missing(SNAP_COUNTS_URL.format(season=season), path, force=True)
     df = pd.read_csv(path, low_memory=False)
     df["team"] = df["team"].map(normalize_team)
-    return df[["week", "team", "player", "offense_pct", "defense_pct"]]
+    return df[["week", "team", "player", "position", "offense_snaps", "offense_pct", "defense_pct"]]
 
 
 def compute_scheme_splits(pbp: pd.DataFrame, ftn: pd.DataFrame, teams) -> dict:
@@ -2319,6 +2319,20 @@ def compute_player_snap_shares(snap_counts: pd.DataFrame) -> dict:
     return shares
 
 
+def compute_player_weekly_snaps(snap_counts: pd.DataFrame) -> dict:
+    """Offensive snap share per game for skill players:
+    {team: {player: {"pos": "WR", "w": {week: pct}}}}. The Player Props
+    Summary uses it to spot games a player left early (a 31% game after
+    76% the week before) and games a regular teammate missed (a WR2's
+    numbers the week the WR1 sat out), so neither skews a baseline."""
+    df = snap_counts.dropna(subset=["player"])
+    df = df[df["position"].isin(["QB", "RB", "FB", "WR", "TE"]) & (df["offense_snaps"] > 0)]
+    out: dict = {}
+    for row in df.itertuples(index=False):
+        entry = out.setdefault(row.team, {}).setdefault(row.player, {"pos": "RB" if row.position == "FB" else row.position, "w": {}})
+        entry["w"][int(row.week)] = round(float(row.offense_pct), 2)
+    return out
+
 def compute_injury_report(injuries_df: pd.DataFrame, teams, snap_shares: dict) -> dict:
     """{team: {week: [ {full_name, position, position_group, report_status,
     practice_status, status, status_source, snap_share} ]}}. status/
@@ -3867,6 +3881,7 @@ def main():
         "pass_shot_charts": pass_shot_charts,
         "player_pass_zones": player_pass_zones,
         "player_headshots": player_headshots,
+        "player_snaps": compute_player_weekly_snaps(snap_counts_df),
         "player_rush_zones": player_rush_zones,
         "player_pass_splits": player_pass_splits,
         "player_scramble_splits": player_scramble_splits,

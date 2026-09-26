@@ -106,11 +106,13 @@ function propNoVigOver(overOdds, underOdds) {
   return null;
 }
 const propClamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+// Games carry their own weight (g.w) once propBaselineGames has looked
+// at snaps; otherwise plain recency.
 function propWeightedMean(games, fn) {
   let s = 0;
   let w = 0;
   games.forEach((g, i) => {
-    const wt = Math.pow(PROP_RECENCY, i);
+    const wt = g.w !== undefined ? g.w : Math.pow(PROP_RECENCY, i);
     s += fn(g) * wt;
     w += wt;
   });
@@ -171,6 +173,93 @@ function propPlayerGames(logs, isQb) {
     .filter((g) => (isQb ? g.pass_att >= 10 : g.targets + g.carries > 0))
     .slice()
     .sort((a, b) => b.week - a.week);
+}
+
+// ---- Snap counts: games that don't reflect this week's role ----
+// A game the player left early (snap share well under his normal) is
+// dropped from his baseline and hit rate. A game a regular teammate who's
+// healthy THIS week sat out (WR1 missed week 2, WR2 soaked up his targets)
+// is scaled back: the targets (RBs: carries) that regular usually gets were
+// spread over whoever played, so this player's cut of them comes off that
+// game before it goes into his baseline (and the game counts a bit less).
+const PROP_PARTIAL_SNAP_RATIO = 0.6; // under 60% of his usual share = left early / limited
+const PROP_REGULAR_SNAP = 0.5; // teammates averaging 50%+ of snaps are "regulars"
+const PROP_LINEUP_WEIGHT = 0.7; // weight of a game a returning regular missed
+const PROP_VOLUME_FIELDS = ["targets", "receptions", "rec_yards", "carries", "rush_yards"];
+
+function propSnapIndex(team) {
+  if (!propSnapIndex.cache) propSnapIndex.cache = {};
+  if (!propSnapIndex.cache[team]) {
+    const map = {};
+    Object.entries((DATA.player_snaps || {})[team] || {}).forEach(([n, v]) => (map[normName(n)] = { ...v, name: n }));
+    propSnapIndex.cache[team] = map;
+  }
+  return propSnapIndex.cache[team];
+}
+function propMedian(xs) {
+  const v = xs.slice().sort((a, b) => a - b);
+  return v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
+}
+
+// This player's games (newest first) with a weight each, plus flags:
+// partial (snap share), missing (returning regulars who sat that game).
+function propBaselineGames(team, name, position, isQb, week) {
+  const found = propGameLogs(team, name);
+  if (!found) return [];
+  const games = propPlayerGames(found.logs, isQb).map((g) => ({ ...g }));
+  const snapsIdx = propSnapIndex(team);
+  const mine = snapsIdx[normName(name)] || snapsIdx[normName(found.name)];
+  if (mine) {
+    games.forEach((g) => (g.snap = mine.w[g.week] ?? null));
+    games.forEach((g) => {
+      const others = games.filter((o) => o !== g && o.snap !== null).map((o) => o.snap);
+      if (g.snap === null || !others.length) return;
+      const usual = propMedian(others);
+      if (usual >= 0.4 && g.snap < PROP_PARTIAL_SNAP_RATIO * usual) g.partial = true;
+    });
+  }
+  const group = isQb ? [] : position === "RB" ? ["RB"] : ["WR", "TE"];
+  const field = position === "RB" ? "carries" : "targets";
+  const injuries = propInjuries(team, week);
+  const teamLogs = (DATA.player_game_logs || {})[team] || {};
+  const posOf = (n) => snapsIdx[normName(n)]?.pos || propPositions(team)[normName(n)];
+  games.forEach((g) => (g.orig = { ...g }));
+  Object.entries(snapsIdx).forEach(([key, t]) => {
+    if (!group.includes(t.pos) || key === normName(name) || key === normName(found.name)) return;
+    if (injuries[key]?.tag === "out") return; // handled as vacated volume instead
+    const played = Object.values(t.w).filter((p) => p >= 0.15);
+    if (!played.length || played.reduce((a, b) => a + b, 0) / played.length < PROP_REGULAR_SNAP) return;
+    const theirLogs = propGameLogs(team, t.name);
+    const usual = theirLogs ? propWeightedMean(propPlayerGames(theirLogs.logs, false), (g) => g[field]) : 0;
+    games.forEach((g) => {
+      // Missing = didn't play at all, or ruled Out that week. A backup who
+      // barely played before a promotion isn't a "returning" regular.
+      const snap = t.w[g.week];
+      if (snap !== undefined && !(snap < 0.15 && propInjuries(team, g.week)[key]?.tag === "out")) return;
+      (g.missing = g.missing || []).push(t.name);
+      g.missingVol = (g.missingVol || 0) + usual;
+    });
+  });
+  // Take this player's cut of the missing regulars' volume back out.
+  games.forEach((g) => {
+    if (!g.missingVol) return;
+    const groupTotal = Object.entries(teamLogs).reduce((sum, [n, logs]) => {
+      if (!group.includes(posOf(n))) return sum;
+      const row = logs.find((l) => l.week === g.week);
+      return sum + (row ? row[field] : 0);
+    }, 0);
+    if (!groupTotal) return;
+    const scale = propClamp(1 - (PROP_VACATED_RETAIN * g.missingVol) / groupTotal, 0.5, 1);
+    PROP_VOLUME_FIELDS.forEach((f) => (g[f] = g[f] * scale));
+    g.scale = scale;
+  });
+  let any = false;
+  games.forEach((g, i) => {
+    g.w = Math.pow(PROP_RECENCY, i) * (g.partial ? 0 : 1) * (g.missing ? PROP_LINEUP_WEIGHT : 1);
+    if (g.w > 0) any = true;
+  });
+  if (!any) games.forEach((g, i) => (g.w = Math.pow(PROP_RECENCY, i))); // every game flagged: nothing better to go on
+  return games;
 }
 
 // Volume an Out teammate leaves behind, and this player's cut of it.
@@ -271,7 +360,7 @@ function propProjectPlayer(team, name, position, defTeam, week, game, neutral = 
   const found = propGameLogs(team, name);
   if (!found) return null;
   const isQb = position === "QB";
-  const games = propPlayerGames(found.logs, isQb);
+  const games = propBaselineGames(team, name, position, isQb, week);
   if (!games.length) return null;
   const lg = propModel().league;
   const pos = ["WR", "TE", "RB"].includes(position) ? position : "WR";
@@ -281,6 +370,12 @@ function propProjectPlayer(team, name, position, defTeam, week, game, neutral = 
   const reasons = {}; // market group -> [{text, dir}] (dir +1 = pushes over)
   const note = (group, text, dir) => (reasons[group] = reasons[group] || []).push({ text, dir });
   const pw = (f, p) => Math.pow(f, p);
+  const back = {};
+  games.forEach((g) => (g.missing || []).forEach((n) => (back[n] = (back[n] || []).concat(g.week))));
+  Object.entries(back).forEach(([n, wks]) => {
+    const txt = `${shortName(n)} back (out wk ${wks.sort((a, b) => a - b).join(", ")})`;
+    ["rec", "rush", "passvol"].forEach((gr) => note(gr, txt, -1));
+  });
 
   // Script: favorites run more, underdogs throw more.
   const runScript = isQb ? 1 : propClamp(1 + 0.012 * fav, 0.88, 1.12);
@@ -490,7 +585,10 @@ function propTeamLines(team, defTeam, week, game) {
         shown = center;
       }
       const side = mktOver === null ? (pOver >= 0.5 ? "over" : "under") : pOver >= mktOver ? "over" : "under";
-      const values = proj.games.map((g) => def.stat(g));
+      // Games list keeps every game, flagged; hits and the average skip
+      // games he left early.
+      const games = proj.games.map((g) => ({ v: def.stat(g.orig || g), week: g.week, partial: !!g.partial, snap: g.snap, missing: g.missing || null }));
+      const values = games.filter((g) => !g.partial).map((g) => g.v);
       const hits = values.filter((v) => (side === "over" ? v > line.line : v < line.line)).length;
       const dir = side === "over" ? 1 : -1;
       const reasons = mp.groups.flatMap((gr) => proj.reasons[gr] || []).filter((r) => r.dir === dir);
@@ -506,6 +604,7 @@ function propTeamLines(team, defTeam, week, game) {
         edge: mktOver === null ? null : side === "over" ? pOver - mktOver : mktOver - pOver,
         odds: side === "over" ? line.over_odds : line.under_odds,
         values,
+        games,
         hits,
         reasons: [...new Map(reasons.map((r) => [r.text, r])).values()],
       });
@@ -620,9 +719,14 @@ function propLineText(r, side = r.side) {
   return `${side === "over" ? "o" : "u"}${fmt(r.line, 1)}`;
 }
 function propValuesCell(r) {
-  return r.values
+  return r.games
     .slice(0, 4)
-    .map((v) => `<span class="ps-val ${(r.side === "over" ? v > r.line : v < r.line) ? "ps-val-hit" : "ps-val-miss"}">${Math.round(v)}</span>`)
+    .map((g) => {
+      if (g.partial) return `<span class="ps-val ps-val-partial" title="Wk ${g.week}: ${Math.round((g.snap || 0) * 100)}% of snaps -- left early / limited, not counted">${Math.round(g.v)}*</span>`;
+      const cls = (r.side === "over" ? g.v > r.line : g.v < r.line) ? "ps-val-hit" : "ps-val-miss";
+      const tip = g.missing ? ` title="Wk ${g.week}: ${g.missing.join(", ")} out -- scaled back in the projection"` : "";
+      return `<span class="ps-val ${cls}${g.missing ? " ps-val-lineup" : ""}"${tip}>${Math.round(g.v)}</span>`;
+    })
     .join("");
 }
 function propPlayRow(r) {
@@ -772,8 +876,8 @@ function renderPropsSummaryCard(away, home) {
     </div>
 
     <div class="sc-footer">
-      <span><span class="ps-dtag-kind ps-weak">Weak</span> / <span class="ps-dtag-kind ps-strong">Strong</span> = top / bottom 6 of 32 defenses (adjusted for opponents) &rarr; lines on the other side it affects</span>
-      <span>Proj = model projection &middot; Games = most recent first, green = would have hit &middot; highlighted: biggest gap vs the odds</span>
+      <span><span class="ps-dtag-kind ps-weak">Weak</span> / <span class="ps-dtag-kind ps-strong">Strong</span> = top / bottom 6 of 32 defenses, opponent-adjusted &rarr; lines it affects</span>
+      <span>Games newest first, green = hit &middot; <span class="ps-val ps-val-partial">7*</span> left early, skipped &middot; <span class="ps-val ps-val-hit ps-val-lineup">9</span> teammate out, scaled</span>
     </div>
   </div>`;
   fitSummaryCard();

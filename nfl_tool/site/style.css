@@ -2416,3 +2416,7 @@ footer { border-top-color: var(--border); }
 .ps-pos { font-size: 0.64rem; font-weight: 700; }
 .sc-footer .ps-dtag-kind { display: inline-block; min-width: 0; }
 .summary-card .ps-dtag-fits .player-click:hover { text-decoration: underline; }
+
+.ps-val-partial { color: var(--muted); background: var(--table-head); text-decoration: line-through; }
+.ps-val-lineup { box-shadow: inset 0 -2px 0 var(--mid); }
+.sc-footer .ps-val { font-size: 0.62rem; min-width: 0; }
