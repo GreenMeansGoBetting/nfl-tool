@@ -18,10 +18,13 @@ const PROP_RECENCY = 0.75; // each older game counts 75% of the one after it
 const PROP_VOLUME_MATCHUP_POWER = 0.5; // defenses move volume less than efficiency
 const PROP_RATE_MATCHUP_POWER = 0.75;
 const PROP_VACATED_RETAIN = 0.85; // share of an Out player's volume that stays with teammates
-const PROP_EDGE_MIN = 0.1; // model minus no-vig odds, to list a play
+const PROP_EDGE_MIN = 0.1;
+// Share of the defense / script / injury adjustment kept on top of the
+// line-anchored player baseline (the books price some of it already).
+const PROP_CONTEXT_TRUST = 0.8; // model minus no-vig odds, to list a play
 const PROP_EDGE_STRONG = 0.18;
 const PROP_TAG_RANK = 6; // top/bottom N defenses get a tag
-const PROP_ROWS = { pass: 2, rush: 3, rec: 4 };
+const PROP_ROWS = { pass: 2, rush: 3, rec: 3 };
 // Games of data it takes before the data counts as much as the line
 // itself: volume settles fast, yards slower, long plays/TDs/INTs slowest.
 const PROP_STABILITY = {
@@ -37,20 +40,20 @@ const PROP_RATE_PRIOR = { catch: 15, ypt: 25, ypc: 40, comp: 60, ypa: 80, td: 15
 
 // stat: game-log field(s) the bet settles on; section: card section.
 const PROP_MARKETS = {
-  passing_attempts: { section: "pass", label: "Pass Att", stat: (g) => g.pass_att, kind: "att" },
-  passing_completions: { section: "pass", label: "Completions", stat: (g) => g.completions, kind: "comp" },
-  passing_yards: { section: "pass", label: "Pass Yds", stat: (g) => g.pass_yards, kind: "passyds" },
-  passing_touchdowns: { section: "pass", label: "Pass TDs", stat: (g) => g.pass_td, kind: "poisson" },
-  passing_interceptions: { section: "pass", label: "INTs", stat: (g) => g.interceptions, kind: "poisson" },
-  passing_longestCompletion: { section: "pass", label: "Long Comp", stat: (g) => g.longest_pass, kind: "long" },
-  "passing+rushing_yards": { section: "pass", label: "Pass+Rush Yds", stat: (g) => g.pass_yards + g.rush_yards, kind: "combo" },
-  rushing_attempts: { section: "rush", label: "Rush Att", stat: (g) => g.carries, kind: "car" },
-  rushing_yards: { section: "rush", label: "Rush Yds", stat: (g) => g.rush_yards, kind: "rushyds" },
-  rushing_longestRush: { section: "rush", label: "Long Rush", stat: (g) => g.longest_rush, kind: "long" },
-  "rushing+receiving_yards": { section: null, label: "Rush+Rec Yds", stat: (g) => g.rush_yards + g.rec_yards, kind: "combo" },
-  receiving_receptions: { section: "rec", label: "Receptions", stat: (g) => g.receptions, kind: "rec" },
-  receiving_yards: { section: "rec", label: "Rec Yds", stat: (g) => g.rec_yards, kind: "recyds" },
-  receiving_longestReception: { section: "rec", label: "Long Rec", stat: (g) => g.longest_rec, kind: "long" },
+  passing_attempts: { section: "pass", label: "Pass Att", stat: (g) => g.pass_att, kind: "att", unit: "att" },
+  passing_completions: { section: "pass", label: "Completions", stat: (g) => g.completions, kind: "comp", unit: "comp" },
+  passing_yards: { section: "pass", label: "Pass Yds", stat: (g) => g.pass_yards, kind: "passyds", unit: "yds" },
+  passing_touchdowns: { section: "pass", label: "Pass TDs", stat: (g) => g.pass_td, kind: "poisson", unit: "TD" },
+  passing_interceptions: { section: "pass", label: "INTs", stat: (g) => g.interceptions, kind: "poisson", unit: "INT" },
+  passing_longestCompletion: { section: "pass", label: "Long Comp", stat: (g) => g.longest_pass, kind: "long", unit: "long" },
+  "passing+rushing_yards": { section: "pass", label: "Pass+Rush Yds", stat: (g) => g.pass_yards + g.rush_yards, kind: "combo", unit: "yds" },
+  rushing_attempts: { section: "rush", label: "Rush Att", stat: (g) => g.carries, kind: "car", unit: "car" },
+  rushing_yards: { section: "rush", label: "Rush Yds", stat: (g) => g.rush_yards, kind: "rushyds", unit: "yds" },
+  rushing_longestRush: { section: "rush", label: "Long Rush", stat: (g) => g.longest_rush, kind: "long", unit: "long" },
+  "rushing+receiving_yards": { section: null, label: "Rush+Rec Yds", stat: (g) => g.rush_yards + g.rec_yards, kind: "combo", unit: "yds" },
+  receiving_receptions: { section: "rec", label: "Receptions", stat: (g) => g.receptions, kind: "rec", unit: "rec" },
+  receiving_yards: { section: "rec", label: "Rec Yds", stat: (g) => g.rec_yards, kind: "recyds", unit: "yds" },
+  receiving_longestReception: { section: "rec", label: "Long Rec", stat: (g) => g.longest_rec, kind: "long", unit: "long" },
 };
 
 // ---- small math helpers ----
@@ -247,12 +250,24 @@ function propDepthFactor(team, name, defTeam) {
 }
 
 const PROP_DEPTH_LABEL = { short: "short", int: "10-19 air yd", deep: "20+ air yd" };
-function propRankText(rk) {
-  return rk ? `#${rk}` : "";
+// Rank among 32 defenses in plain words: 1 = allows the most.
+function propOrdinal(n) {
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+  return `${n}${suffix}`;
+}
+function propRankWords(rk, rate = false) {
+  if (!rk) return "";
+  return rk <= 16 ? `${propOrdinal(rk)} ${rate ? "highest" : "most"}` : `${propOrdinal(33 - rk)} ${rate ? "lowest" : "fewest"}`;
+}
+function propRankText(rk, rate = false) {
+  return rk ? `(${propRankWords(rk, rate)})` : "";
 }
 
 // ---- projection for one player (every market at once) ----
-function propProjectPlayer(team, name, position, defTeam, week, game) {
+// neutral = the player's own numbers only (league-average defense, no
+// script, no injury bumps) -- the part that 2-3 games can't be trusted on.
+function propProjectPlayer(team, name, position, defTeam, week, game, neutral = false) {
+  const D = neutral ? () => ({ f: 1, raw: null, rk: null }) : (metric) => propDef(defTeam, metric);
   const found = propGameLogs(team, name);
   if (!found) return null;
   const isQb = position === "QB";
@@ -261,8 +276,8 @@ function propProjectPlayer(team, name, position, defTeam, week, game) {
   const lg = propModel().league;
   const pos = ["WR", "TE", "RB"].includes(position) ? position : "WR";
   const spread = game ? (game.away === team ? game.away_team_spread : game.home_team_spread) : null;
-  const fav = spread === null || spread === undefined ? 0 : -spread; // + = favored
-  const total = game?.total_line || null;
+  const fav = neutral || spread === null || spread === undefined ? 0 : -spread; // + = favored
+  const total = neutral ? null : game?.total_line || null;
   const reasons = {}; // market group -> [{text, dir}] (dir +1 = pushes over)
   const note = (group, text, dir) => (reasons[group] = reasons[group] || []).push({ text, dir });
   const pw = (f, p) => Math.pow(f, p);
@@ -282,77 +297,77 @@ function propProjectPlayer(team, name, position, defTeam, week, game) {
   // Receiving
   const tgtBase = propWeightedMean(games, (g) => g.targets);
   if (tgtBase > 0.5 && !isQb) {
-    const vac = propVacated(team, week, name, position, "targets", ["WR", "TE", "RB"]);
-    const dT = propDef(defTeam, `tgt_${pos}`);
+    const vac = neutral ? { add: 0, names: [] } : propVacated(team, week, name, position, "targets", ["WR", "TE", "RB"]);
+    const dT = D(`tgt_${pos}`);
     const tgt = (tgtBase + vac.add) * pw(dT.f, PROP_VOLUME_MATCHUP_POWER) * passScript;
     const T = propSum(games, (g) => g.targets);
     const catchLg = lg[`catch_${pos}`] || 0.65;
     const yptLg = lg[`ypt_${pos}`] || 8;
-    const dC = propDef(defTeam, `catch_${pos}`);
+    const dC = D(`catch_${pos}`);
     const catchRate = ((propSum(games, (g) => g.receptions) + PROP_RATE_PRIOR.catch * catchLg) / (T + PROP_RATE_PRIOR.catch)) * pw(dC.f, PROP_RATE_MATCHUP_POWER);
     const ypt = (propSum(games, (g) => g.rec_yards) + PROP_RATE_PRIOR.ypt * yptLg) / (T + PROP_RATE_PRIOR.ypt);
-    const dY = propDef(defTeam, `recyds_${pos}`);
-    const depth = propDepthFactor(team, name, defTeam);
+    const dY = D(`recyds_${pos}`);
+    const depth = neutral ? { f: 1, depth: null } : propDepthFactor(team, name, defTeam);
     const yptEff = ypt * pw(0.5 * dY.f + 0.5 * depth.f, PROP_RATE_MATCHUP_POWER);
     out.targets = tgt;
     out.receptions = tgt * propClamp(catchRate, 0.3, 0.95);
     out.recYds = tgt * yptEff;
     if (vac.add >= 0.8) note("rec", `${vac.names.map(shortName).join(", ")} OUT +${vac.add.toFixed(1)} tgt`, 1);
-    if (Math.abs(dT.f - 1) >= 0.1) note("rec", `${defTeam} ${fmt(dT.raw, 1)} ${pos} tgt/g ${propRankText(dT.rk)}`, dT.f > 1 ? 1 : -1);
-    if (Math.abs(dY.f - 1) >= 0.1) note("rec", `${defTeam} ${Math.round(dY.raw)} ${pos} yds/g ${propRankText(dY.rk)}`, dY.f > 1 ? 1 : -1);
+    if (Math.abs(dT.f - 1) >= 0.1) note("rec", `${defTeam} allows ${fmt(dT.raw, 1)} ${pos} tgt/g ${propRankText(dT.rk)}`, dT.f > 1 ? 1 : -1);
+    if (Math.abs(dY.f - 1) >= 0.1) note("rec", `${defTeam} allows ${Math.round(dY.raw)} ${pos} yds/g ${propRankText(dY.rk)}`, dY.f > 1 ? 1 : -1);
     if (depth.depth && Math.abs(depth.depth.f - 1) >= 0.12) {
       const d = depth.depth.d;
-      const dd = propDef(defTeam, `yds_${d}`);
-      note("rec", `${Math.round(depth.depth.share * 100)}% tgts ${PROP_DEPTH_LABEL[d]} · ${defTeam} ${propRankText(dd.rk)}`, depth.depth.f > 1 ? 1 : -1);
+      const dd = D(`yds_${d}`);
+      note("rec", `${Math.round(depth.depth.share * 100)}% of tgts ${PROP_DEPTH_LABEL[d]}; ${defTeam} allows ${Math.round(dd.raw)} yds/g there ${propRankText(dd.rk)}`, depth.depth.f > 1 ? 1 : -1);
     }
     // Longest catch: chance at least one of ~N catches goes past the line,
     // each catch's yards falling off like the player's yards per catch.
-    const dL = propDef(defTeam, "expl_pass");
+    const dL = D("expl_pass");
     const yprLg = yptLg / catchLg;
     const ypr = (propSum(games, (g) => g.rec_yards) + 20 * yprLg) / (propSum(games, (g) => g.receptions) + 20);
     out.longRec = { lambda: out.receptions, a: 1, b: 0.85 * ypr * pw(dL.f, 0.3) };
-    if (Math.abs(dL.f - 1) >= 0.15) note("long", `${defTeam} ${fmt(dL.raw, 1)} 20+ yd comp/g ${propRankText(dL.rk)}`, dL.f > 1 ? 1 : -1);
+    if (Math.abs(dL.f - 1) >= 0.15) note("long", `${defTeam} allows ${fmt(dL.raw, 1)} 20+ yd comp/g ${propRankText(dL.rk)}`, dL.f > 1 ? 1 : -1);
   }
 
   // Rushing
   const carBase = propWeightedMean(games, (g) => g.carries);
   if (carBase > 0.5) {
-    const vac = isQb ? { add: 0, names: [] } : propVacated(team, week, name, position, "carries", ["RB"]);
+    const vac = isQb || neutral ? { add: 0, names: [] } : propVacated(team, week, name, position, "carries", ["RB"]);
     const rp = isQb ? "QB" : "RB";
-    const dCar = propDef(defTeam, `car_${rp}`);
+    const dCar = D(`car_${rp}`);
     const car = (carBase + vac.add) * pw(dCar.f, PROP_VOLUME_MATCHUP_POWER) * runScript;
     const C = propSum(games, (g) => g.carries);
     const ypcLg = lg[`ypc_${rp}`] || 4.2;
     const ypc = (propSum(games, (g) => g.rush_yards) + PROP_RATE_PRIOR.ypc * ypcLg) / (C + PROP_RATE_PRIOR.ypc);
-    const dYpc = propDef(defTeam, `ypc_${rp}`);
+    const dYpc = D(`ypc_${rp}`);
     out.carries = car;
     // QBs: kneel-downs and sneaks make carries x league YPC meaningless --
     // their own rushing yards per game, nudged by what this defense allows
     // QBs, is the honest number.
     out.rushYds = isQb
-      ? Math.max(0, propWeightedMean(games, (g) => g.rush_yards)) * pw(propDef(defTeam, "rushyds_QB").f, 0.5)
+      ? Math.max(0, propWeightedMean(games, (g) => g.rush_yards)) * pw(D("rushyds_QB").f, 0.5)
       : car * ypc * pw(dYpc.f, PROP_RATE_MATCHUP_POWER);
     if (vac.add >= 0.8) note("rush", `${vac.names.map(shortName).join(", ")} OUT +${vac.add.toFixed(1)} car`, 1);
-    if (Math.abs(dCar.f - 1) >= 0.08) note("rush", `${defTeam} ${fmt(dCar.raw, 1)} ${rp} car/g ${propRankText(dCar.rk)}`, dCar.f > 1 ? 1 : -1);
-    if (Math.abs(dYpc.f - 1) >= 0.08) note("rushyds", `${defTeam} ${fmt(dYpc.raw, 1)} ${rp} YPC ${propRankText(dYpc.rk)}`, dYpc.f > 1 ? 1 : -1);
+    if (Math.abs(dCar.f - 1) >= 0.08) note("rush", `${defTeam} allows ${fmt(dCar.raw, 1)} ${rp} car/g ${propRankText(dCar.rk)}`, dCar.f > 1 ? 1 : -1);
+    if (Math.abs(dYpc.f - 1) >= 0.08) note("rushyds", `${defTeam} allows ${fmt(dYpc.raw, 1)} ${rp} YPC ${propRankText(dYpc.rk, true)}`, dYpc.f > 1 ? 1 : -1);
     // Longest run: about 1 in 3 carries has a tail that falls off with
     // ~2x the player's YPC (fits the league's 10+ and 20+ yard run rates).
-    const dL = propDef(defTeam, "expl_rush");
+    const dL = D("expl_rush");
     out.longRush = { lambda: car, a: 0.35, b: 2.15 * ypc * pw(dL.f, 0.3) };
-    if (Math.abs(dL.f - 1) >= 0.15) note("longrush", `${defTeam} ${fmt(dL.raw, 1)} 10+ yd runs/g ${propRankText(dL.rk)}`, dL.f > 1 ? 1 : -1);
+    if (Math.abs(dL.f - 1) >= 0.15) note("longrush", `${defTeam} allows ${fmt(dL.raw, 1)} 10+ yd runs/g ${propRankText(dL.rk)}`, dL.f > 1 ? 1 : -1);
   }
 
   // Passing
   if (isQb) {
     const attBase = propWeightedMean(games, (g) => g.pass_att);
     const A = propSum(games, (g) => g.pass_att);
-    const dAtt = propDef(defTeam, "pass_att");
+    const dAtt = D("pass_att");
     const att = attBase * pw(dAtt.f, PROP_VOLUME_MATCHUP_POWER) * passScript;
     const rate = (num, prior, lgKey, fallback) => (num + prior * (lg[lgKey] || fallback)) / (A + prior);
-    const dComp = propDef(defTeam, "comp");
-    const dYpa = propDef(defTeam, "ypa");
-    const dTd = propDef(defTeam, "td_rate");
-    const dInt = propDef(defTeam, "int_rate");
+    const dComp = D("comp");
+    const dYpa = D("ypa");
+    const dTd = D("td_rate");
+    const dInt = D("int_rate");
     // Implied team points vs a league-average ~22 moves TD passes.
     const teamPts = total ? total / 2 + fav / 2 : 22;
     const pace = propClamp(Math.pow(teamPts / 22, 0.8), 0.75, 1.3);
@@ -361,16 +376,16 @@ function propProjectPlayer(team, name, position, defTeam, week, game) {
     out.passYds = att * rate(propSum(games, (g) => g.pass_yards), PROP_RATE_PRIOR.ypa, "ypa", 7) * pw(dYpa.f, PROP_RATE_MATCHUP_POWER);
     out.passTd = att * rate(propSum(games, (g) => g.pass_td), PROP_RATE_PRIOR.td, "td_rate", 0.045) * pw(dTd.f, PROP_RATE_MATCHUP_POWER) * pace;
     out.ints = att * rate(propSum(games, (g) => g.interceptions), PROP_RATE_PRIOR.int, "int_rate", 0.022) * pw(dInt.f, PROP_RATE_MATCHUP_POWER);
-    const dL = propDef(defTeam, "expl_pass");
+    const dL = D("expl_pass");
     const ypComp = (propSum(games, (g) => g.pass_yards) + 60 * ((lg.ypa || 7) / (lg.comp || 0.64))) / (propSum(games, (g) => g.completions) + 60);
     out.longPass = { lambda: out.completions, a: 1, b: 0.95 * ypComp * pw(dL.f, 0.3) };
-    if (Math.abs(dAtt.f - 1) >= 0.06) note("passvol", `${defTeam} ${fmt(dAtt.raw, 1)} att/g faced ${propRankText(dAtt.rk)}`, dAtt.f > 1 ? 1 : -1);
-    if (Math.abs(dYpa.f - 1) >= 0.06) note("pass", `${defTeam} ${fmt(dYpa.raw, 1)} YPA ${propRankText(dYpa.rk)}`, dYpa.f > 1 ? 1 : -1);
-    if (Math.abs(dComp.f - 1) >= 0.04) note("comp", `${defTeam} ${Math.round(dComp.raw * 100)}% comp ${propRankText(dComp.rk)}`, dComp.f > 1 ? 1 : -1);
-    if (Math.abs(dTd.f - 1) >= 0.15) note("td", `${defTeam} ${fmt(propDef(defTeam, "pass_td").raw, 1)} pass TD/g ${propRankText(propDef(defTeam, "pass_td").rk)}`, dTd.f > 1 ? 1 : -1);
+    if (Math.abs(dAtt.f - 1) >= 0.06) note("passvol", `${defTeam} faces ${fmt(dAtt.raw, 1)} pass att/g ${propRankText(dAtt.rk)}`, dAtt.f > 1 ? 1 : -1);
+    if (Math.abs(dYpa.f - 1) >= 0.06) note("pass", `${defTeam} allows ${fmt(dYpa.raw, 1)} YPA ${propRankText(dYpa.rk, true)}`, dYpa.f > 1 ? 1 : -1);
+    if (Math.abs(dComp.f - 1) >= 0.04) note("comp", `${defTeam} allows ${Math.round(dComp.raw * 100)}% comp ${propRankText(dComp.rk, true)}`, dComp.f > 1 ? 1 : -1);
+    if (Math.abs(dTd.f - 1) >= 0.15) note("td", `${defTeam} allows ${fmt(D("pass_td").raw, 1)} pass TD/g ${propRankText(D("pass_td").rk)}`, dTd.f > 1 ? 1 : -1);
     if (Math.abs(pace - 1) >= 0.08) note("td", `Team total ${teamPts.toFixed(1)}`, pace > 1 ? 1 : -1);
-    if (Math.abs(dInt.f - 1) >= 0.2) note("int", `${defTeam} ${fmt(propDef(defTeam, "ints").raw, 1)} INT/g ${propRankText(propDef(defTeam, "ints").rk)}`, dInt.f > 1 ? 1 : -1);
-    if (Math.abs(dL.f - 1) >= 0.15) note("long", `${defTeam} ${fmt(dL.raw, 1)} 20+ yd comp/g ${propRankText(dL.rk)}`, dL.f > 1 ? 1 : -1);
+    if (Math.abs(dInt.f - 1) >= 0.2) note("int", `${defTeam} makes ${fmt(D("ints").raw, 1)} INT/g ${propRankText(D("ints").rk)}`, dInt.f > 1 ? 1 : -1);
+    if (Math.abs(dL.f - 1) >= 0.15) note("long", `${defTeam} allows ${fmt(dL.raw, 1)} 20+ yd comp/g ${propRankText(dL.rk)}`, dL.f > 1 ? 1 : -1);
   }
   out.reasons = reasons;
   return out;
@@ -435,15 +450,21 @@ function propTeamLines(team, defTeam, week, game) {
     ((markets[marketKey] || {})[team] || []).forEach((line) => {
       const key = normName(line.name);
       const position = line.position || propPositions(team)[key] || null;
-      if (!(key in cache)) cache[key] = propProjectPlayer(team, line.name, position, defTeam, week, game);
+      if (!(key in cache)) {
+        cache[key] = propProjectPlayer(team, line.name, position, defTeam, week, game);
+        cache[key + "|n"] = propProjectPlayer(team, line.name, position, defTeam, week, game, true);
+      }
       const proj = cache[key];
+      const base = cache[key + "|n"];
       const def = PROP_MARKETS[marketKey];
       const section = def.section || (position === "RB" ? "rush" : "rec");
       const row = { team, name: line.name, position, marketKey, market: def.label, section, line: line.line, over: line.over_odds, under: line.under_odds, injury: injuries[key]?.tag || null, proj: null };
       rows.push(row);
       if (!proj || row.injury === "out") return;
       const mp = propMarketProjection(proj, marketKey);
-      if (!mp) return;
+      const mn = propMarketProjection(base, marketKey);
+      if (!mp || !mn) return;
+      const ctx = (full, neutral) => (neutral > 0 ? Math.pow(full / neutral, PROP_CONTEXT_TRUST) : 1);
       const mktOver = propNoVigOver(line.over_odds, line.under_odds);
       // Start from where the odds put this player, move toward the data.
       const w = proj.games.length / (proj.games.length + (PROP_STABILITY[marketKey] || 4));
@@ -451,19 +472,20 @@ function propTeamLines(team, defTeam, week, game) {
       let shown;
       if (mp.tail) {
         // Longest-play markets: P(longest > L) = 1 - exp(-lambda * a * e^(-L/b)).
-        const { lambda, a, b } = mp.tail;
-        const pRaw = 1 - Math.exp(-lambda * a * Math.exp(-line.line / b));
-        pOver = mktOver === null ? pRaw : mktOver + w * (pRaw - mktOver);
-        const median = lambda * a > Math.LN2 ? b * Math.log((lambda * a) / Math.LN2) : 0;
-        shown = line.line + w * (median - line.line);
+        const tailP = (t) => 1 - Math.exp(-t.lambda * t.a * Math.exp(-line.line / t.b));
+        const tailMedian = (t) => (t.lambda * t.a > Math.LN2 ? t.b * Math.log((t.lambda * t.a) / Math.LN2) : 0);
+        const pN = tailP(mn.tail);
+        const start = mktOver === null ? pN : mktOver + w * (pN - mktOver);
+        pOver = propClamp(start + PROP_CONTEXT_TRUST * (tailP(mp.tail) - pN), 0.01, 0.99);
+        shown = line.line + w * (tailMedian(mn.tail) - line.line) + PROP_CONTEXT_TRUST * (tailMedian(mp.tail) - tailMedian(mn.tail));
       } else if (mp.poisson) {
-        const mktMean = mktOver === null ? mp.mean : propPoissonMeanFor(line.line, mktOver);
-        shown = mktMean + w * (mp.mean - mktMean);
+        const mktMean = mktOver === null ? mn.mean : propPoissonMeanFor(line.line, mktOver);
+        shown = (mktMean + w * (mn.mean - mktMean)) * ctx(mp.mean, mn.mean);
         pOver = propPoissonOver(shown, line.line);
       } else {
         const sdAtLine = mp.sdFor(Math.max(line.line, 1));
         const mktCenter = mktOver === null ? line.line : line.line + sdAtLine * propNormInv(mktOver);
-        const center = mktCenter + w * (mp.center - mktCenter);
+        const center = (mktCenter + w * (mn.center - mktCenter)) * ctx(mp.center, mn.center);
         pOver = 1 - propNormCdf((line.line - center) / mp.sdFor(center));
         shown = center;
       }
@@ -472,6 +494,10 @@ function propTeamLines(team, defTeam, week, game) {
       const hits = values.filter((v) => (side === "over" ? v > line.line : v < line.line)).length;
       const dir = side === "over" ? 1 : -1;
       const reasons = mp.groups.flatMap((gr) => proj.reasons[gr] || []).filter((r) => r.dir === dir);
+      const avg = values.reduce((x, y) => x + y, 0) / (values.length || 1);
+      if (values.length && (side === "over" ? avg > line.line : avg < line.line)) {
+        reasons.unshift({ text: `Avg ${fmt(avg, avg < 10 ? 1 : 0)} ${def.unit}`, dir });
+      }
       Object.assign(row, {
         proj: shown,
         pOver,
@@ -511,48 +537,77 @@ function propSectionPlays(rows, section) {
   return Object.values(byPlayer).sort((a, b) => b.edge - a.edge);
 }
 
-// ---- Defense tags: what this defense gives up (or takes away) most ----
+// ---- Defense tags: where this defense ranks, in words, and the lines
+// on the other side that the tag points at (so a "weak vs RB receiving"
+// tag names the RBs with a receiving line). ----
+// [metric, label, rate stat?, stat that's good FOR the defense?, markets, player filter]
 const PROP_TAG_METRICS = {
   pass: [
-    ["pass_yards", (v) => `${Math.round(v)} pass yds/g`],
-    ["ypa", (v) => `${v.toFixed(1)} YPA`],
-    ["pass_att", (v) => `${v.toFixed(1)} att/g faced`],
-    ["comp", (v) => `${Math.round(v * 100)}% comp`],
-    ["pass_td", (v) => `${v.toFixed(1)} pass TD/g`],
-    ["ints", (v) => `${v.toFixed(1)} INTs made/g`, true],
-    ["sacks", (v) => `${v.toFixed(1)} sacks/g`, true],
+    ["pass_yards", "pass yds/g", false, false, ["passing_yards"]],
+    ["ypa", "yds per att", true, false, ["passing_yards"]],
+    ["pass_att", "pass att/g faced", false, false, ["passing_attempts"]],
+    ["comp", "comp %", true, false, ["passing_completions"]],
+    ["pass_td", "pass TD/g", false, false, ["passing_touchdowns"]],
+    ["ints", "INTs made/g", false, true, ["passing_interceptions"]],
+    ["sacks", "sacks/g", false, true, []],
   ],
   rush: [
-    ["car_RB", (v) => `${v.toFixed(1)} RB car/g`],
-    ["rushyds_RB", (v) => `${Math.round(v)} RB rush yds/g`],
-    ["ypc_RB", (v) => `${v.toFixed(1)} RB YPC`],
-    ["rushyds_QB", (v) => `${Math.round(v)} QB rush yds/g`],
-    ["expl_rush", (v) => `${v.toFixed(1)} 10+ yd runs/g`],
+    ["car_RB", "RB carries/g", false, false, ["rushing_attempts"], { pos: "RB" }],
+    ["rushyds_RB", "RB rush yds/g", false, false, ["rushing_yards"], { pos: "RB" }],
+    ["ypc_RB", "RB yds per carry", true, false, ["rushing_yards"], { pos: "RB" }],
+    ["rushyds_QB", "QB rush yds/g", false, false, ["rushing_yards"], { pos: "QB" }],
+    ["expl_rush", "10+ yd runs/g", false, false, ["rushing_longestRush"]],
   ],
   rec: [
-    ["recyds_WR", (v) => `${Math.round(v)} WR yds/g`],
-    ["recyds_TE", (v) => `${Math.round(v)} TE yds/g`],
-    ["recyds_RB", (v) => `${Math.round(v)} RB rec yds/g`],
-    ["yds_short", (v) => `${Math.round(v)} yds/g on short throws`],
-    ["yds_int", (v) => `${Math.round(v)} yds/g on 10-19 air yd throws`],
-    ["yds_deep", (v) => `${Math.round(v)} yds/g on 20+ air yd throws`],
-    ["expl_pass", (v) => `${v.toFixed(1)} 20+ yd comp/g`],
+    ["recyds_WR", "WR rec yds/g", false, false, ["receiving_yards"], { pos: "WR" }],
+    ["recyds_TE", "TE rec yds/g", false, false, ["receiving_yards"], { pos: "TE" }],
+    ["recyds_RB", "RB rec yds/g", false, false, ["receiving_yards"], { pos: "RB" }],
+    ["yds_short", "yds/g on short throws", false, false, ["receiving_yards"], { depth: "short", share: 0.5 }],
+    ["yds_int", "yds/g on 10-19 yd throws", false, false, ["receiving_yards"], { depth: "int", share: 0.25 }],
+    ["yds_deep", "yds/g on 20+ yd throws", false, false, ["receiving_yards"], { depth: "deep", share: 0.2 }],
+    ["expl_pass", "20+ yd catches/g", false, false, ["receiving_longestReception"]],
   ],
 };
-// Leaks (rank near the top in what it allows) first, then walls. Stats
-// where more = good for the defense (INTs, sacks) flip.
-function propDefenseTags(defTeam, section) {
+
+// Share of a receiver's targets at each depth (short <10 air yds, 10-19, 20+).
+function propDepthShares(team, name) {
+  const byTeam = (DATA.player_pass_zones || {})[team] || {};
+  const logName = propGameLogs(team, name)?.name || name;
+  const zones = (byTeam[logName] || byTeam[name] || {}).zones;
+  if (!zones) return null;
+  const n = { short: 0, int: 0, deep: 0 };
+  Object.entries(zones).forEach(([k, z]) => {
+    const d = k.startsWith("deep") ? "deep" : k.startsWith("intermediate") ? "int" : "short";
+    n[d] += z.targets || 0;
+  });
+  const total = n.short + n.int + n.deep;
+  return total >= 3 ? { short: n.short / total, int: n.int / total, deep: n.deep / total } : null;
+}
+
+// Weak spots first, then strong ones; the top/bottom PROP_TAG_RANK only.
+function propDefenseTags(defTeam, section, offLines) {
   const tags = [];
-  PROP_TAG_METRICS[section].forEach(([metric, text, defenseStat]) => {
+  PROP_TAG_METRICS[section].forEach(([metric, label, rate, defenseStat, markets, filter = {}]) => {
     const d = propDef(defTeam, metric);
     if (!d.rk || d.raw === null) return;
     const high = d.rk <= PROP_TAG_RANK;
     const low = d.rk > 32 - PROP_TAG_RANK;
     if (!high && !low) return;
-    const leak = defenseStat ? low : high;
-    tags.push({ leak, text: text(d.raw), rk: d.rk, strength: Math.abs(d.f - 1) });
+    const weak = defenseStat ? low : high;
+    const value = rate && d.raw < 1 ? `${Math.round(d.raw * 100)}%` : fmt(d.raw, d.raw < 10 ? 1 : 0);
+    const fits = (offLines || [])
+      .filter((r) => markets.includes(r.marketKey) && r.injury !== "out")
+      .filter((r) => !filter.pos || r.position === filter.pos)
+      .filter((r) => {
+        if (!filter.depth) return true;
+        const sh = propDepthShares(r.team, r.name);
+        return sh && sh[filter.depth] >= filter.share;
+      })
+      .sort((a, b) => b.line - a.line)
+      .slice(0, 3);
+    tags.push({ weak, value, label, words: propRankWords(d.rk, rate), fits, strength: Math.abs(d.f - 1) });
   });
-  return tags.sort((a, b) => b.leak - a.leak || b.strength - a.strength).slice(0, 3);
+  return tags.sort((a, b) => b.weak - a.weak || b.strength - a.strength).slice(0, 3);
 }
 
 // ---- Card rendering ----
@@ -574,9 +629,9 @@ function propPlayRow(r) {
   const strong = r.edge >= PROP_EDGE_STRONG;
   const inj = r.injury === "Q" ? ` <span class="ftd-inj">Q</span>` : "";
   const also = r.also.length ? `<span class="ps-also">also ${r.also.slice(0, 2).map((a) => `${a.market} ${propLineText(a)}`).join(", ")}</span>` : "";
-  const reasons = r.reasons.slice(0, 3).map((x) => `<span class="ps-reason">${x.text}</span>`).join("");
+  const reasons = r.reasons.slice(0, 2).map((x) => `<span class="ps-reason">${x.text}</span>`).join("");
   return `<tr class="ps-play${strong ? " ps-play-strong" : ""}">
-      <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 24)}<span class="ps-name">${r.display}${inj}</span></span></td>
+      <td><span class="sc-player player-click" data-entry="${propClickEntry(r)}" title="Game log, odds, add to summary">${summaryHeadshot(r.team, r.name, 24)}<span class="ps-name">${r.display} <span class="muted ps-pos">${r.position || ""}</span>${inj}</span></span></td>
       <td><span class="ps-bet">${r.market} <b>${propLineText(r)}</b></span> <span class="muted">${fmtOddsSigned(r.odds)}</span></td>
       <td class="num">${fmt(r.proj, r.proj < 10 ? 1 : 0)}</td>
       <td class="ps-vals">${propValuesCell(r)}</td>
@@ -585,16 +640,23 @@ function propPlayRow(r) {
     <tr class="ps-why${strong ? " ps-play-strong" : ""}"><td colspan="5">${reasons}${also}</td></tr>`;
 }
 function propSectionColumn(section, offTeam, defTeam, rows) {
-  const tags = propDefenseTags(defTeam, section);
+  const tags = propDefenseTags(defTeam, section, rows);
   const tagHtml = tags.length
-    ? tags.map((t) => `<span class="ps-tag ${t.leak ? "ps-tag-leak" : "ps-tag-wall"}"><b>#${t.rk}</b> ${t.text}</span>`).join("")
-    : `<span class="target-none">Nothing extreme</span>`;
+    ? tags
+        .map((t) => {
+          const fits = t.fits.length
+            ? `<span class="ps-dtag-fits">&rarr; ${t.fits.map((r) => `<span class="player-click" data-entry="${propClickEntry(r)}">${propDisplayName(rows, r)} ${fmt(r.line, 1)}</span>`).join(", ")}</span>`
+            : "";
+          return `<div class="ps-dtag"><span class="ps-dtag-kind ${t.weak ? "ps-weak" : "ps-strong"}">${t.weak ? "Weak" : "Strong"}</span><span class="ps-dtag-text"><b>${t.value}</b> ${t.label} <span class="muted">${t.words}</span></span>${fits}</div>`;
+        })
+        .join("")
+    : `<span class="target-none">Nothing extreme vs the league</span>`;
   const plays = propSectionPlays(rows, section).slice(0, PROP_ROWS[section]);
   const body = plays.length
     ? `<table class="sc-table ps-plays"><thead><tr><th>Player</th><th>Play</th><th class="num">Proj</th><th>Games</th><th class="num">Hit</th></tr></thead><tbody>${plays.map(propPlayRow).join("")}</tbody></table>`
     : `<p class="target-none ps-none">No lines off from the model</p>`;
   return `<div class="sc-col">
-    <div class="sc-block"><div class="sc-label">${teamLogoMini(defTeam, 14)} ${defTeam} defense</div><div class="ps-tags">${tagHtml}</div></div>
+    <div class="sc-block"><div class="sc-label">${teamLogoMini(defTeam, 14)} ${defTeam} defense vs ${offTeam}</div><div class="ps-dtags">${tagHtml}</div></div>
     <div class="sc-block">${body}</div>
   </div>`;
 }
@@ -710,7 +772,7 @@ function renderPropsSummaryCard(away, home) {
     </div>
 
     <div class="sc-footer">
-      <span><span class="ps-tag ps-tag-leak"><b>#1</b></span> allows the most &middot; <span class="ps-tag ps-tag-wall"><b>#32</b></span> allows the least (adjusted for opponents)</span>
+      <span><span class="ps-dtag-kind ps-weak">Weak</span> / <span class="ps-dtag-kind ps-strong">Strong</span> = top / bottom 6 of 32 defenses (adjusted for opponents) &rarr; lines on the other side it affects</span>
       <span>Proj = model projection &middot; Games = most recent first, green = would have hit &middot; highlighted: biggest gap vs the odds</span>
     </div>
   </div>`;

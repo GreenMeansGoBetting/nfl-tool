@@ -2404,3 +2404,15 @@ footer { border-top-color: var(--border); }
 .ps-add-on { background: rgba(var(--accent-rgb), 0.16); border-color: var(--accent); color: var(--accent); }
 .props-market-table tr.ps-picker-lean td { background: rgba(var(--good-rgb), 0.06); }
 #props-modal h3 .sc-headshot { vertical-align: middle; margin-right: 4px; }
+
+.ps-dtags { display: flex; flex-direction: column; gap: 3px; }
+.ps-dtag { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 6px; row-gap: 1px; font-size: 0.74rem; line-height: 1.25; }
+.ps-dtag-kind { flex: 0 0 auto; min-width: 44px; padding: 0 5px; border-radius: 4px; text-align: center; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.ps-weak { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.5); }
+.ps-strong { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.12); border: 1px solid rgba(var(--bad-rgb), 0.45); }
+.ps-dtag-text b { font-weight: 800; }
+.ps-dtag-text .muted { font-size: 0.68rem; }
+.ps-dtag-fits { color: var(--text); opacity: 0.85; font-size: 0.7rem; font-weight: 600; }
+.ps-pos { font-size: 0.64rem; font-weight: 700; }
+.sc-footer .ps-dtag-kind { display: inline-block; min-width: 0; }
+.summary-card .ps-dtag-fits .player-click:hover { text-decoration: underline; }
