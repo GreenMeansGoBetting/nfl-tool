@@ -126,7 +126,24 @@ context. It is the only copy that travels with the repo.
      or losing a role cuts access. data.json is gated too.
   3. Free vs Supporter roles.
   4. Sell the role (Discord Server Subscriptions / Patreon / Whop).
-  5. Optional Patreon/Whop login for people without Discord.
+  5. ~~Optional Patreon/Whop login~~ -> **Email + Stripe membership for people without Discord**
+     (planned 2026-10-08, not built yet). Some people would pay but won't join Discord, and the
+     user wants low fees on a $5/month price, so: direct Stripe (no Patreon/Whop cut).
+     - Flow: Subscribe button on the login page -> Stripe Checkout subscription (card, Apple/Google
+       Pay, and ACH bank, which is pennies on $5) -> sign in by emailed one-time link (no
+       passwords; needs an email-sending service, free tier). A Stripe webhook keeps a D1 record of
+       each member's live subscription status; failed payment or cancel = no access (same live-
+       access rule as Discord roles). Discord login keeps working alongside it.
+     - **Free trial: yes (user 2026-10-08).** Recommended: 7 days, card required, $0 until the
+       trial ends, Stripe's reminder email before the first charge, one trial per email AND per
+       card (Stripe card fingerprint). No-card trial is the fallback if the user wants more signups.
+       Optional promo codes for video viewers (e.g. a free first month) via Stripe coupons.
+     - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
+       ~8c. The flat 30c is what hurts, so offer a yearly plan (e.g. $50/yr, ~4% total fees).
+     - Optional owner-only "grant access until <date>" page for people who pay by Venmo/Zelle.
+     - Needs from the user: a Stripe account; Stripe secret + webhook keys added to GitHub
+       Secrets (never pasted in chat); decisions on price, yearly plan, card-required trial, and
+       whether email members get the same access as the Discord supporter role.
 - The user wants access tied to live roles; someone who paid a week must not keep access after cancelling.
 - **Gate code:** `nfl_tool/functions/_middleware.js` (Pages Functions; deploy.yml deploys from `nfl_tool/`
   so the functions get bundled). It holds the config constants: GUILD_ID `1295760852892385290`,
