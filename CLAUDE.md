@@ -141,6 +141,9 @@ context. It is the only copy that travels with the repo.
      - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
        ~8c. The flat 30c is what hurts, so offer a yearly plan (e.g. $50/yr, ~4% total fees).
      - Optional owner-only "grant access until <date>" page for people who pay by Venmo/Zelle.
+     - **Stripe test-mode prices (2026-10-08, not secret):** monthly $5 =
+       `price_1UOKQhLM3ebsVWbZWbCfXE9X`, yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt`. Live-mode
+       prices will have different IDs when the user switches Stripe out of Test mode.
      - Needs from the user: a Stripe account; Stripe secret + webhook keys added to GitHub
        Secrets (never pasted in chat); decisions on price, yearly plan, card-required trial, and
        whether email members get the same access as the Discord supporter role.
