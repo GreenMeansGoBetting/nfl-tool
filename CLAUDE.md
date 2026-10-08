@@ -127,43 +127,40 @@ context. It is the only copy that travels with the repo.
   3. Free vs Supporter roles.
   4. Sell the role (Discord Server Subscriptions / Patreon / Whop).
   5. ~~Optional Patreon/Whop login~~ -> **Email + Stripe membership for people without Discord**
-     (planned 2026-10-08, not built yet). Some people would pay but won't join Discord, and the
-     user wants low fees on a $5/month price, so: direct Stripe (no Patreon/Whop cut).
-     - Flow: Subscribe button on the login page -> Stripe Checkout subscription (card, Apple/Google
-       Pay, and ACH bank, which is pennies on $5) -> sign in by emailed one-time link (no
-       passwords; needs an email-sending service, free tier). A Stripe webhook keeps a D1 record of
-       each member's live subscription status; failed payment or cancel = no access (same live-
-       access rule as Discord roles). Discord login keeps working alongside it.
-     - **Free trial: yes (user 2026-10-08).** Recommended: 7 days, card required, $0 until the
-       trial ends, Stripe's reminder email before the first charge, one trial per email AND per
-       card (Stripe card fingerprint). No-card trial is the fallback if the user wants more signups.
-       Optional promo codes for video viewers (e.g. a free first month) via Stripe coupons.
+     (built 2026-10-08; Stripe is in Test mode until the user goes live). Some people would pay
+     but won't join Discord, and the user wants low fees on $5/month, so: direct Stripe.
+     - **How it works (password version):** the user refused the email-service (Resend + Namecheap
+       DNS) and webhook setup as too much work, so: Join -> Stripe Checkout -> signed in -> picks a
+       password; later sign-ins are **email + password**; the gate asks Stripe for the member's
+       subscription every RECHECK_MS (no webhook needed); failed payment / cancel = no access (same
+       live rule as Discord roles). Only secret needed: `STRIPE_SECRET_KEY`. Discord login keeps
+       working alongside it.
+     - Code: `nfl_tool/functions/_middleware.js` "Email members (Stripe)" block. Routes `/join`,
+       `POST /stripe/checkout` (subscription, `trial_period_days` 7 unless the email had a trial,
+       `payment_method_collection` always, promo codes allowed, email in metadata), `/join/done`
+       (confirms with Stripe, saves the member, one-trial-per-card check via the `trial_cards`
+       fingerprint -> `trial_end=now`, signs in, sends to `/set-password`), `/auth/email`
+       (email + password; same reply for unknown email or wrong password; 5 misses = 15-min lock),
+       `/set-password` (8+ chars; also the "Password" link in the account chip), `/account` (Stripe
+       billing portal), `/admin/members` (owner-only: grant access until a date for Zelle/Venmo
+       payers; reset a password -> shows a temporary one to send them). An optional
+       `POST /stripe/webhook` works if `STRIPE_WEBHOOK_SECRET` is ever added. Passwords:
+       PBKDF2-SHA256, 100k iterations, random salt. Sessions `kind: "email"`, uid
+       `email:<address>`; an email member with no password is redirected to `/set-password`.
+       Turns on when `STRIPE_SECRET_KEY` + DB exist; with an `sk_test_` key only the owner (signed
+       in with Discord) can check out and the login page hides Join. D1 tables `members` (+ `pw`,
+       `fail_count`, `lock_until`, added by ALTERs in deploy.yml) and `trial_cards`. Tested in the
+       browser (no Node on this PC) with sql.js standing in for D1 and a fake Stripe: 34 checks.
+     - **Free trial (user 2026-10-08):** 7 days, card or bank required, $0 until it ends (Stripe's
+       reminder email before the first charge is on in the dashboard), one trial per email and per
+       card. Optional promo codes for video viewers via Stripe coupons.
+     - **Stripe test-mode prices (not secret):** monthly $5 = `price_1UOKQhLM3ebsVWbZWbCfXE9X`,
+       yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt` (`STRIPE_PRICES`).
      - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
-       ~8c. The flat 30c is what hurts, so offer a yearly plan (e.g. $50/yr, ~4% total fees).
-     - Optional owner-only "grant access until <date>" page for people who pay by Venmo/Zelle.
-     - **BUILT 2026-10-08** in `nfl_tool/functions/_middleware.js` ("Email members (Stripe)" block):
-       routes `/join` (plans + trial), `POST /stripe/checkout` (Checkout Session: subscription,
-       `trial_period_days` 7 unless the email already had a trial, `payment_method_collection`
-       always, promo codes allowed, email in metadata), `/join/done` (confirms the session with
-       Stripe, saves the member, signs them in if the checkout is < 1 h old), `POST /stripe/webhook`
-       (signature-checked; `checkout.session.completed` + `customer.subscription.*` -> `members`;
-       on `.created`, a card/bank fingerprint already in `trial_cards` under another email gets
-       `trial_end=now`), `/auth/email` + `/auth/email/verify` (one-time 15-min link, hashed in
-       `login_tokens`, 1/min per email, same reply whether or not the email is a member),
-       `/account` (Stripe billing portal), `/admin/members` (owner-only manual grants).
-       Sessions: `kind: "email"`, uid `email:<address>`; the gate re-checks `members` every
-       RECHECK_MS (active/trialing or `manual_until` in the future). Turns on only when
-       `STRIPE_SECRET_KEY` + `RESEND_API_KEY` + DB exist; with an `sk_test_` key only the owner can
-       check out and the login page hides Join. `/auth/status` shows emailMembers / stripeKey /
-       stripeWebhook / emailSender. deploy.yml pushes the 3 secrets and creates the 3 tables.
-       sync.js shows "Manage membership" for email accounts. No Node on this PC: the gate was tested
-       in the browser with sql.js standing in for D1 and fake Stripe/Resend (31 checks).
-     - **Stripe test-mode prices (2026-10-08, not secret):** monthly $5 =
-       `price_1UOKQhLM3ebsVWbZWbCfXE9X`, yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt`. Live-mode
-       prices will have different IDs when the user switches Stripe out of Test mode.
-     - Needs from the user: a Stripe account; Stripe secret + webhook keys added to GitHub
-       Secrets (never pasted in chat); decisions on price, yearly plan, card-required trial, and
-       whether email members get the same access as the Discord supporter role.
+       ~8c. The flat 30c is what hurts, which is why there's a yearly plan.
+     - **To go live:** switch Stripe out of Test mode, recreate the two prices in live mode (new
+       IDs -> `STRIPE_PRICES`), and replace the GitHub secret `STRIPE_SECRET_KEY` with the
+       `sk_live_` key. The login page then shows "No Discord? Start a 7-day free trial".
 - The user wants access tied to live roles; someone who paid a week must not keep access after cancelling.
 - **Gate code:** `nfl_tool/functions/_middleware.js` (Pages Functions; deploy.yml deploys from `nfl_tool/`
   so the functions get bundled). It holds the config constants: GUILD_ID `1295760852892385290`,

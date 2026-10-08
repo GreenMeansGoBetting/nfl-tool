@@ -284,28 +284,30 @@ async function handleApi(request, env, session, json) {
 // ---- Email members (Stripe), added 2026-10-08 ----
 // For people who'd pay but won't join Discord. They subscribe through
 // Stripe Checkout ($5/month or $45/year, 7-day free trial with a card or
-// bank account required) and sign in with a one-time emailed link. A
-// Stripe webhook keeps the D1 `members` table in sync with each
-// subscription's live status, and the gate re-checks that row every
-// RECHECK_MS -- a failed payment or a cancel cuts access, the same live
-// rule as Discord roles. Needs the Pages secrets STRIPE_SECRET_KEY,
-// STRIPE_WEBHOOK_SECRET and RESEND_API_KEY (pushed from GitHub secrets by
-// deploy.yml). While the Stripe key is a TEST key, only the owner (signed
-// in with Discord) can start a checkout, so nobody gets in free with
-// Stripe's test cards.
+// bank account required), pick a password right after paying, and sign
+// in with email + password. Every RECHECK_MS the gate asks Stripe for the
+// member's subscription and saves it to the D1 `members` table, so a
+// failed payment or a cancel cuts access -- the same live rule as Discord
+// roles. Only needs the Pages secret STRIPE_SECRET_KEY (pushed from GitHub
+// by deploy.yml); no email service, no webhook (the user didn't want the
+// DNS / dashboard setup -- an optional webhook still works if
+// STRIPE_WEBHOOK_SECRET is ever added). While the Stripe key is a TEST
+// key, only the owner (signed in with Discord) can start a checkout, so
+// nobody gets in free with Stripe's test cards.
 const STRIPE_PRICES = {
   monthly: { id: "price_1UOKQhLM3ebsVWbZWbCfXE9X", label: "$5 / month" },
   yearly: { id: "price_1UOKQhLM3ebsVWbZrn3B6uGt", label: "$45 / year", note: "save 25%" },
 };
 const TRIAL_DAYS = 7;
-const EMAIL_FROM = "GMG NFL Suite <login@send.gmgsports.org>";
-const LOGIN_LINK_MIN = 15; // emailed sign-in links work once, for this long
-const LOGIN_LINK_COOLDOWN_MS = 60 * 1000; // one link per email per minute
+const PW_MIN = 8;
+const PW_ITERATIONS = 100000; // PBKDF2-SHA256 (Workers' maximum)
+const LOGIN_FAILS_MAX = 5; // wrong passwords before a short lockout
+const LOGIN_LOCK_MS = 15 * 60 * 1000;
 const JOIN_DONE_MAX_AGE_S = 60 * 60; // checkout success link signs you in for an hour
 const MEMBER_STATUSES_IN = ["active", "trialing"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const membersReady = (env) => !!(env.DB && env.STRIPE_SECRET_KEY && env.RESEND_API_KEY);
+const membersReady = (env) => !!(env.DB && env.STRIPE_SECRET_KEY);
 const stripeTestMode = (env) => (env.STRIPE_SECRET_KEY || "").startsWith("sk_test_");
 const cleanEmail = (e) => String(e || "").trim().toLowerCase();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -343,23 +345,42 @@ async function verifyStripeSignature(env, raw, header) {
   return sigs.includes(hex);
 }
 
-async function sendEmail(env, to, subject, html) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html }),
-  });
-  return res.ok;
+// Passwords: PBKDF2-SHA256 with a random salt, stored as
+// "pbkdf2$<iterations>$<salt>$<hash>".
+async function pbkdf2(password, salt, iterations) {
+  const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+  return b64url(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations, hash: "SHA-256" }, key, 256));
+}
+async function hashPassword(password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  return `pbkdf2$${PW_ITERATIONS}$${b64url(salt)}$${await pbkdf2(password, salt, PW_ITERATIONS)}`;
+}
+async function checkPassword(password, stored) {
+  const [kind, iter, saltB64, hash] = String(stored || "").split("$");
+  if (kind !== "pbkdf2" || !hash) return false;
+  const salt = Uint8Array.from(atob(saltB64.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+  return (await pbkdf2(password, salt, Number(iter))) === hash;
 }
 
 // ---- the members table ----
 async function getMember(env, email) {
   return env.DB.prepare("SELECT * FROM members WHERE email = ?").bind(email).first();
 }
-async function memberHasAccess(env, email) {
+// refresh = ask Stripe for the subscription's live status first (the gate
+// does this every RECHECK_MS); if Stripe can't answer, the saved status stands.
+async function memberHasAccess(env, email, refresh = false) {
   const m = await getMember(env, email);
   if (!m) return false;
   if (m.manual_until && m.manual_until > Date.now()) return true;
+  if (refresh && m.subscription) {
+    try {
+      const sub = await stripeApi(env, "GET", `subscriptions/${m.subscription}`);
+      await saveSubscription(env, email, sub);
+      return MEMBER_STATUSES_IN.includes(sub.status);
+    } catch (e) {
+      // Stripe unreachable: fall through to the saved status.
+    }
+  }
   return MEMBER_STATUSES_IN.includes(m.status);
 }
 // Upsert from a Stripe subscription object.
@@ -411,28 +432,6 @@ function redirectWithSession(location, session) {
   headers.append("Set-Cookie", setCookie(COOKIE, session, SESSION_DAYS * 86400));
   return new Response(null, { status: 302, headers });
 }
-async function sendLoginLink(env, origin, email) {
-  const recent = await env.DB.prepare("SELECT created FROM login_tokens WHERE email = ? ORDER BY created DESC LIMIT 1").bind(email).first();
-  if (recent && Date.now() - recent.created < LOGIN_LINK_COOLDOWN_MS) return true;
-  await env.DB.prepare("DELETE FROM login_tokens WHERE email = ? OR expires < ?").bind(email, Date.now()).run();
-  const token = b64url(crypto.getRandomValues(new Uint8Array(32)));
-  await env.DB.prepare("INSERT INTO login_tokens (hash, email, expires, created) VALUES (?, ?, ?, ?)")
-    .bind(await sha256Hex(token), email, Date.now() + LOGIN_LINK_MIN * 60000, Date.now())
-    .run();
-  const link = `${origin}/auth/email/verify?t=${token}`;
-  return sendEmail(
-    env,
-    email,
-    "Your GMG NFL Suite sign-in link",
-    `<div style="font-family:system-ui,sans-serif;max-width:480px">
-      <h2 style="margin:0 0 12px">Sign in to GMG's NFL Suite</h2>
-      <p>Tap the button to sign in. The link works once and expires in ${LOGIN_LINK_MIN} minutes.</p>
-      <p><a href="${link}" style="display:inline-block;background:#22c55e;color:#03140a;font-weight:700;padding:12px 18px;border-radius:8px;text-decoration:none">Sign in</a></p>
-      <p style="color:#667;font-size:13px">Didn't ask for this? You can ignore it.</p>
-    </div>`
-  );
-}
-
 // ---- member pages ----
 async function readSession(request, env) {
   try {
@@ -518,8 +517,14 @@ async function handleJoinDone(request, env) {
   const email = cleanEmail((cs.metadata && cs.metadata.email) || cs.customer_email || (cs.customer_details && cs.customer_details.email));
   if (!email || cs.status !== "complete" || !cs.subscription || typeof cs.subscription !== "object") return joinPage(env, null, "That checkout isn't finished.");
   await saveSubscription(env, email, cs.subscription);
-  if (Date.now() / 1000 - cs.created > JOIN_DONE_MAX_AGE_S || !(await memberHasAccess(env, email))) return emailPage(env, email, "You're all set. Sign in with your email.");
-  return redirectWithSession("/", await emailSession(env, email));
+  try {
+    await enforceOneTrialPerCard(env, email, cs.subscription);
+  } catch (e) {
+    // the card check is best-effort; the trial still stands
+  }
+  const m = await getMember(env, email);
+  if (Date.now() / 1000 - cs.created > JOIN_DONE_MAX_AGE_S || !(await memberHasAccess(env, email))) return emailPage(env, email, "You're all set. Sign in with your email and password.");
+  return redirectWithSession(m && m.pw ? "/" : "/set-password", await emailSession(env, email));
 }
 
 async function handleStripeWebhook(request, env) {
@@ -545,39 +550,68 @@ async function handleStripeWebhook(request, env) {
   return new Response("ok");
 }
 
-function emailPage(env, email = "", message = "") {
+const PW_INPUT_CSS = "width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px";
+function emailPage(env, email = "", message = "", status = 200) {
   return page(
     "Sign in with email -- GMG's NFL Suite",
-    `${FORM_CSS}<p>${message ? esc(message) : "Members who joined with email: we'll send you a one-time sign-in link."}</p>
-     <form method="post" action="/auth/email">
+    `${FORM_CSS}<p>${message ? esc(message) : "Members who joined with email: sign in with your email and password."}</p>
+     <form method="post" action="/auth/email" style="text-align:left">
        <input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(email)}">
-       <button class="btn plan">Email me a sign-in link</button>
+       <input type="password" name="password" required autocomplete="current-password" placeholder="Password" style="${PW_INPUT_CSS}">
+       <button class="btn plan">Sign in</button>
      </form>
+     <small>Forgot your password? Message GMG and we'll reset it for you.</small>
      <a class="btn ghost" href="/join">Not a member yet? Start a free trial</a>
-     <a class="btn ghost" href="/auth/login">Log in with Discord instead</a>`
+     <a class="btn ghost" href="/auth/login">Log in with Discord instead</a>`,
+    status
   );
 }
 async function handleEmailLogin(request, env) {
   const form = await request.formData();
   const email = cleanEmail(form.get("email"));
-  if (!EMAIL_RE.test(email)) return emailPage(env, email, "Enter a valid email.");
-  // Same answer either way, so the page never reveals who's a member.
-  if (await memberHasAccess(env, email)) await sendLoginLink(env, new URL(request.url).origin, email);
-  return page(
-    "Check your email -- GMG's NFL Suite",
-    `<p class="ok" style="color:#6ee79b">If <b>${esc(email)}</b> has an active membership, a sign-in link is on its way.</p>
-     <p>It works once and expires in ${LOGIN_LINK_MIN} minutes. Check spam if you don't see it.</p>
-     <a class="btn ghost" href="/join">Not a member yet? Start a free trial</a>`
-  );
+  const password = String(form.get("password") || "");
+  const m = EMAIL_RE.test(email) ? await getMember(env, email) : null;
+  if (m && m.lock_until && m.lock_until > Date.now()) return emailPage(env, email, "Too many wrong passwords. Try again in 15 minutes.", 429);
+  // Same answer for an unknown email and a wrong password.
+  if (!m || !(await checkPassword(password, m.pw))) {
+    if (m) {
+      const fails = (m.fail_count || 0) + 1;
+      const locked = fails >= LOGIN_FAILS_MAX;
+      await env.DB.prepare("UPDATE members SET fail_count = ?, lock_until = ? WHERE email = ?")
+        .bind(locked ? 0 : fails, locked ? Date.now() + LOGIN_LOCK_MS : null, email)
+        .run();
+    }
+    return emailPage(env, email, "That email and password don't match.", 401);
+  }
+  await env.DB.prepare("UPDATE members SET fail_count = 0, lock_until = NULL WHERE email = ?").bind(email).run();
+  if (!(await memberHasAccess(env, email, true))) return endedPage(email);
+  return redirectWithSession("/", await emailSession(env, email));
 }
-async function handleEmailVerify(request, env) {
-  const t = new URL(request.url).searchParams.get("t") || "";
-  const hash = await sha256Hex(t);
-  const row = await env.DB.prepare("SELECT email, expires FROM login_tokens WHERE hash = ?").bind(hash).first();
-  if (row) await env.DB.prepare("DELETE FROM login_tokens WHERE hash = ?").bind(hash).run();
-  if (!row || row.expires < Date.now()) return emailPage(env, row ? row.email : "", "That link expired or was already used. Send yourself a new one.");
-  if (!(await memberHasAccess(env, row.email))) return endedPage(row.email);
-  return redirectWithSession("/", await emailSession(env, row.email));
+// Pick (or change) a password -- for a signed-in email member.
+async function handleSetPassword(request, env) {
+  const session = await readSession(request, env);
+  if (!session || session.kind !== "email") return emailPage(env);
+  const email = session.name;
+  let err = "";
+  if (request.method === "POST") {
+    const form = await request.formData();
+    const pw = String(form.get("password") || "");
+    if (pw.length < PW_MIN) err = `Use at least ${PW_MIN} characters.`;
+    else if (pw !== String(form.get("confirm") || "")) err = "Those two passwords don't match.";
+    else {
+      await env.DB.prepare("UPDATE members SET pw = ?, fail_count = 0, lock_until = NULL WHERE email = ?").bind(await hashPassword(pw), email).run();
+      return new Response(null, { status: 303, headers: { Location: "/" } });
+    }
+  }
+  const m = await getMember(env, email);
+  const field = (name, ph) => `<input type="password" name="${name}" required minlength="${PW_MIN}" autocomplete="new-password" placeholder="${ph}" style="${PW_INPUT_CSS}">`;
+  return page(
+    "Password -- GMG's NFL Suite",
+    `${FORM_CSS}<p>${m && m.pw ? "Change your password" : `<b class="ok">You're in!</b> Pick a password so you can sign in on any device`} for <b>${esc(email)}</b>.</p>
+     ${err ? `<p class="err">${esc(err)}</p>` : ""}
+     <form method="post" style="text-align:left">${field("password", `New password (${PW_MIN}+ characters)`)}${field("confirm", "Type it again")}
+       <button class="btn plan">Save password</button></form>`
+  );
 }
 function endedPage(email) {
   return page(
@@ -613,7 +647,15 @@ async function handleAdminMembers(request, env) {
     const email = cleanEmail(form.get("email"));
     const until = Date.parse(String(form.get("until") || "") + "T23:59:59");
     if (!EMAIL_RE.test(email)) msg = "Enter a valid email.";
-    else if (form.get("action") === "remove") {
+    else if (form.get("action") === "reset") {
+      const temp = b64url(crypto.getRandomValues(new Uint8Array(6)));
+      const hit = await getMember(env, email);
+      if (!hit) msg = `No member with ${email}.`;
+      else {
+        await env.DB.prepare("UPDATE members SET pw = ?, fail_count = 0, lock_until = NULL WHERE email = ?").bind(await hashPassword(temp), email).run();
+        msg = `Temporary password for ${email}: ${temp} -- send it to them; they can change it after signing in (Password, next to Log out).`;
+      }
+    } else if (form.get("action") === "remove") {
       await env.DB.prepare("UPDATE members SET manual_until = NULL WHERE email = ?").bind(email).run();
       msg = `Removed manual access for ${email}.`;
     } else if (!until) msg = "Pick an end date.";
@@ -634,7 +676,7 @@ async function handleAdminMembers(request, env) {
     .join("");
   return page(
     "Members -- GMG's NFL Suite",
-    `${FORM_CSS}<p>Give someone access until a date (for direct Zelle / Venmo payments), or see every email member.</p>
+    `${FORM_CSS}<p>Give someone access until a date (Zelle / Venmo payers), reset a forgotten password, or see every email member. For a manual-access member: grant access, then reset their password to get a temporary one to send them.</p>
      ${msg ? `<p class="ok">${esc(msg)}</p>` : ""}
      <form method="post" style="text-align:left">
        <input type="email" name="email" required placeholder="member@example.com">
@@ -642,6 +684,7 @@ async function handleAdminMembers(request, env) {
        <input type="text" name="note" placeholder="Note (e.g. Zelle Oct)">
        <button class="btn plan" name="action" value="grant">Grant access until that date</button>
        <button class="btn ghost" name="action" value="remove">Remove manual access</button>
+       <button class="btn ghost" name="action" value="reset">Reset their password (shows a temporary one)</button>
      </form>
      <table><tr><th>Email</th><th>Stripe</th><th>Renews</th><th>Manual until</th><th>Note</th></tr>${rows || `<tr><td colspan="5">No email members yet.</td></tr>`}</table>
      <a class="btn ghost" href="/">Back to the site</a>`
@@ -664,7 +707,6 @@ export async function onRequest(context) {
       emailMembers: membersReady(env) ? (stripeTestMode(env) ? "test mode" : "on") : "off",
       stripeKey: !!env.STRIPE_SECRET_KEY,
       stripeWebhook: !!env.STRIPE_WEBHOOK_SECRET,
-      emailSender: !!env.RESEND_API_KEY,
     };
     return new Response(JSON.stringify(status), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
   }
@@ -677,7 +719,7 @@ export async function onRequest(context) {
     if (p === "/stripe/checkout" && post) return handleCheckout(request, env);
     if (p === "/join/done") return handleJoinDone(request, env);
     if (p === "/auth/email") return post ? handleEmailLogin(request, env) : emailPage(env);
-    if (p === "/auth/email/verify") return handleEmailVerify(request, env);
+    if (p === "/set-password") return handleSetPassword(request, env);
     if (p === "/account") return handleAccount(request, env);
     if (p === "/admin/members") return handleAdminMembers(request, env);
   }
@@ -707,7 +749,9 @@ export async function onRequest(context) {
   let refreshed = null;
   if (age >= RECHECK_MS && session.kind === "email") {
     if (!env.DB) return isApi ? json({ error: "members" }, 503) : deniedPage("api");
-    if (!(await memberHasAccess(env, session.name))) return isApi ? json({ error: "membership" }, 403) : endedPage(session.name);
+    if (!(await memberHasAccess(env, session.name, true))) return isApi ? json({ error: "membership" }, 403) : endedPage(session.name);
+    const m = await getMember(env, session.name);
+    if (!isApi && !(m && m.pw)) return new Response(null, { status: 302, headers: { Location: "/set-password" } });
     refreshed = await sign(env, { ...session, checked: Date.now() });
   } else if (age >= RECHECK_MS) {
     const check = await memberRoles(env, session.uid);
