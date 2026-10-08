@@ -154,13 +154,22 @@ context. It is the only copy that travels with the repo.
      - **Free trial (user 2026-10-08):** 7 days, card or bank required, $0 until it ends (Stripe's
        reminder email before the first charge is on in the dashboard), one trial per email and per
        card. Optional promo codes for video viewers via Stripe coupons.
-     - **Stripe test-mode prices (not secret):** monthly $5 = `price_1UOKQhLM3ebsVWbZWbCfXE9X`,
-       yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt` (`STRIPE_PRICES`).
+     - **Prices (`STRIPE_PRICE_IDS`, not secret):** test monthly $5 = `price_1UOKQhLM3ebsVWbZWbCfXE9X`,
+       test yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt`; `live` IDs blank until the user sends them.
+       The key in use (sk_test_ / sk_live_) picks the set, and Join stays closed in a mode with blank
+       IDs, so the GitHub key can be swapped in any order. A subscription Stripe doesn't know
+       (`resource_missing`, e.g. test members after going live) marks that member canceled.
+     - **One sign-in screen (user 2026-10-08):** `accessPage` renders "Already a member" (Discord, or
+       email + password) beside "New here?" (email + the two free-trial plan buttons) in one wide box;
+       stacks under 720px. Used by the login gate, `/join` and every sign-in error. When Join is closed
+       (test mode for non-owners, or no live prices) the right panel says memberships are coming soon.
      - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
        ~8c. The flat 30c is what hurts, which is why there's a yearly plan.
-     - **To go live:** switch Stripe out of Test mode, recreate the two prices in live mode (new
-       IDs -> `STRIPE_PRICES`), and replace the GitHub secret `STRIPE_SECRET_KEY` with the
-       `sk_live_` key. The login page then shows "No Discord? Start a 7-day free trial".
+     - **To go live:** in Stripe's live mode, (1) activate the account, (2) copy the product to live
+       mode (or recreate the $5/month and $45/year prices) and send the two live `price_` IDs ->
+       `STRIPE_PRICE_IDS.live`, (3) redo the live-mode settings that don't carry over (payment methods
+       incl. ACH, customer portal, trial-reminder / failed-payment emails), (4) replace the GitHub
+       secret `STRIPE_SECRET_KEY` with the `sk_live_` key. Then the trial panel opens to everyone.
 - The user wants access tied to live roles; someone who paid a week must not keep access after cancelling.
 - **Gate code:** `nfl_tool/functions/_middleware.js` (Pages Functions; deploy.yml deploys from `nfl_tool/`
   so the functions get bundled). It holds the config constants: GUILD_ID `1295760852892385290`,

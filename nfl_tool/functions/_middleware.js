@@ -101,13 +101,20 @@ function gateEnabled(env) {
 }
 
 // ---- pages ----
-function page(title, inner, status = 200, headers = {}) {
+function page(title, inner, status = 200, headers = {}, wide = false) {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#070b13;--panel:#0d1422;--panel2:#111a2b;--border:#1d2a41;--text:#e7edf7;--muted:#8797b0;--accent:#22c55e}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 420px at 50% -80px,rgba(34,197,94,.12),transparent 70%),var(--bg);color:var(--text);font-family:"Barlow Semi Condensed",system-ui,sans-serif}
+.wide .box{max-width:900px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:left;margin-top:14px}
+.col{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:18px 18px 16px}
+.col h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px}
+.col.join{border-color:rgba(34,197,94,.55);background:linear-gradient(180deg,rgba(34,197,94,.08),transparent 60%),var(--panel2)}
+.col p{margin:0 0 12px}.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem;margin:14px 0 2px}.or:before,.or:after{content:"";flex:1;height:1px;background:var(--border)}
+@media(max-width:720px){.cols{grid-template-columns:1fr}}
 .box{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px 26px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .mark{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:.04em;color:#03140a;background:var(--accent);border-radius:7px;padding:3px 9px 2px;box-shadow:0 0 18px rgba(34,197,94,.35)}
 h1{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 6px}h1 b{color:var(--accent)}
@@ -116,24 +123,13 @@ p{color:var(--muted);line-height:1.45;margin:0 0 18px}
 .discord{background:#5865f2;color:#fff}.discord:hover{background:#4752c4}
 .ghost{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
 small{display:block;margin-top:16px;color:var(--muted);font-size:.78rem}
-</style></head><body><div class="box"><span class="mark">GMG</span><h1>NFL <b>Suite</b></h1>${inner}</div></body></html>`;
+</style></head><body${wide ? ' class="wide"' : ""}><div class="box"><span class="mark">GMG</span><h1>NFL <b>Suite</b></h1>${inner}</div></body></html>`;
   return new Response(html, { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...headers } });
 }
 const DISCORD_ICON = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.4 18.4 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.4C.6 9 -.3 13.5.1 18a19.9 19.9 0 0 0 6 3l1.3-2.1a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12.2 0l.5.4a12.9 12.9 0 0 1-2 1L18 21a19.9 19.9 0 0 0 6-3c.5-5.2-.8-9.7-3.7-13.6zM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/></svg>`;
 
 function loginPage(next, env = null) {
-  const email = env && membersReady(env);
-  const join = email && !stripeTestMode(env);
-  return page(
-    "Sign in -- GMG's NFL Suite",
-    `<p>${email ? "Sign in with your GMG Discord or your email membership." : "Access is for members of the GMG Discord."}</p>
-     <a class="btn discord" href="/auth/login?next=${encodeURIComponent(next)}">${DISCORD_ICON}Log in with Discord</a>
-     ${email ? `<a class="btn ghost" href="/auth/email">Sign in with email</a>` : ""}
-     ${join ? `<a class="btn ghost" style="background:#22c55e;color:#03140a;border-color:#22c55e" href="/join">No Discord? Start a ${TRIAL_DAYS}-day free trial</a>` : ""}
-     ${INVITE_URL ? `<a class="btn ghost" href="${INVITE_URL}" target="_blank" rel="noopener">Not in the Discord yet? Join here</a>` : ""}
-     <small>Discord: we only see your name and your roles in the GMG server.</small>`,
-    401
-  );
+  return accessPage({ env, next, status: 401 });
 }
 function deniedPage(reason) {
   const msg =
@@ -294,9 +290,16 @@ async function handleApi(request, env, session, json) {
 // STRIPE_WEBHOOK_SECRET is ever added). While the Stripe key is a TEST
 // key, only the owner (signed in with Discord) can start a checkout, so
 // nobody gets in free with Stripe's test cards.
-const STRIPE_PRICES = {
-  monthly: { id: "price_1UOKQhLM3ebsVWbZWbCfXE9X", label: "$5 / month" },
-  yearly: { id: "price_1UOKQhLM3ebsVWbZrn3B6uGt", label: "$45 / year", note: "save 25%" },
+// Prices per Stripe mode; the secret key in use (sk_test_ / sk_live_) picks
+// the set, so the GitHub key can be swapped any time. Join stays closed in
+// a mode whose IDs are blank.
+const STRIPE_PRICE_IDS = {
+  test: { monthly: "price_1UOKQhLM3ebsVWbZWbCfXE9X", yearly: "price_1UOKQhLM3ebsVWbZrn3B6uGt" },
+  live: { monthly: "", yearly: "" },
+};
+const PLANS = {
+  monthly: { label: "$5 / month" },
+  yearly: { label: "$45 / year", note: "save 25%" },
 };
 const TRIAL_DAYS = 7;
 const PW_MIN = 8;
@@ -309,6 +312,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const membersReady = (env) => !!(env.DB && env.STRIPE_SECRET_KEY);
 const stripeTestMode = (env) => (env.STRIPE_SECRET_KEY || "").startsWith("sk_test_");
+const priceId = (env, plan) => (STRIPE_PRICE_IDS[stripeTestMode(env) ? "test" : "live"] || {})[plan] || "";
+const pricesReady = (env) => Object.keys(PLANS).every((k) => priceId(env, k));
+// Join is open: everyone in live mode; only the owner while Stripe is in test mode.
+const joinOpen = (env, session) => membersReady(env) && pricesReady(env) && (!stripeTestMode(env) || isOwnerSession(session));
 const cleanEmail = (e) => String(e || "").trim().toLowerCase();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -328,7 +335,11 @@ async function stripeApi(env, method, path, params) {
   }
   const res = await fetch(url, init);
   const data = await res.json();
-  if (!res.ok) throw new Error((data.error && data.error.message) || `stripe ${res.status}`);
+  if (!res.ok) {
+    const err = new Error((data.error && data.error.message) || `stripe ${res.status}`);
+    err.code = data.error && data.error.code;
+    throw err;
+  }
   return data;
 }
 
@@ -378,6 +389,10 @@ async function memberHasAccess(env, email, refresh = false) {
       await saveSubscription(env, email, sub);
       return MEMBER_STATUSES_IN.includes(sub.status);
     } catch (e) {
+      if (e.code === "resource_missing") {
+        await env.DB.prepare("UPDATE members SET status = 'canceled', updated = ? WHERE email = ?").bind(Date.now(), email).run();
+        return false;
+      }
       // Stripe unreachable: fall through to the saved status.
     }
   }
@@ -451,32 +466,65 @@ table{width:100%;border-collapse:collapse;text-align:left;font-size:.85rem;margi
 </style>`;
 
 function joinPage(env, session, error = "") {
-  const testBlocked = stripeTestMode(env) && !isOwnerSession(session);
-  const plans = Object.entries(STRIPE_PRICES)
-    .map(([key, p]) => `<button class="btn plan" name="plan" value="${key}">Start ${TRIAL_DAYS}-day free trial &middot; then ${p.label}${p.note ? `<span class="note" style="color:#03140a">(${p.note})</span>` : ""}</button>`)
+  return accessPage({ env, session, joinError: error });
+}
+
+// The sign-in screen. Left: Discord, or email + password. Right (when Join
+// is open): start the free trial. One page, side by side; stacks on phones.
+function accessPage({ env = null, session = null, next = "/", signinEmail = "", signinMsg = "", joinError = "", status = 200 }) {
+  const email = !!(env && membersReady(env));
+  const join = email && joinOpen(env, session);
+  const discordBtn = `<a class="btn discord" href="/auth/login?next=${encodeURIComponent(next)}">${DISCORD_ICON}Log in with Discord</a>`;
+  const invite = INVITE_URL ? `<a class="btn ghost" href="${INVITE_URL}" target="_blank" rel="noopener">Not in the Discord yet? Join here</a>` : "";
+  if (!email) {
+    return page(
+      "Sign in -- GMG's NFL Suite",
+      `<p>Access is for members of the GMG Discord.</p>${discordBtn}${invite}
+       <small>We only see your Discord name and your roles in the GMG server.</small>`,
+      status
+    );
+  }
+  const pwStyle = "width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px";
+  const signin = `<section class="col">
+      <h2>Already a member</h2>
+      <p>${signinMsg ? `<span class="${status >= 400 ? "err" : "ok"}">${esc(signinMsg)}</span>` : "Sign in with Discord or your email."}</p>
+      ${discordBtn}
+      <div class="or">or sign in with email</div>
+      <form method="post" action="/auth/email">
+        <input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(signinEmail)}">
+        <input type="password" name="password" required autocomplete="current-password" placeholder="Password" style="${pwStyle}">
+        <button class="btn plan">Sign in</button>
+      </form>
+      <small>Forgot your password? Message GMG and we'll reset it for you.</small>
+    </section>`;
+  const plans = Object.entries(PLANS)
+    .map(([key, p]) => `<button class="btn plan" name="plan" value="${key}">Start free trial &middot; then ${p.label}${p.note ? ` <span style="font-size:.8rem;opacity:.85">(${p.note})</span>` : ""}</button>`)
     .join("");
-  return page(
-    "Join -- GMG's NFL Suite",
-    `${FORM_CSS}<p>Become a member: every page, every tool, updated all week.</p>
-     ${error ? `<p class="err">${esc(error)}</p>` : ""}
-     ${testBlocked
-       ? `<p>Memberships open soon. Already a member through Discord? <a href="/auth/login" style="color:var(--accent)">Log in with Discord</a>.</p>`
-       : `<form method="post" action="/stripe/checkout">
-            <label style="display:block;text-align:left;color:var(--muted);font-size:.85rem">Your email (you'll sign in with it)
-              <input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
-            <div class="plans">${plans}</div>
-          </form>
-          <small>Card or bank account required to start the trial. You won't be charged until day ${TRIAL_DAYS + 1}, and Stripe emails you a reminder before the first charge. Cancel anytime from <b>Manage membership</b>.${stripeTestMode(env) ? "<br><b>Stripe TEST mode:</b> only you can see this; use Stripe's test cards." : ""}</small>`}
-     <a class="btn ghost" href="/auth/email">Already a member? Sign in with email</a>`
-  );
+  const joinCol = join
+    ? `<section class="col join">
+        <h2>New here?</h2>
+        <p><b style="color:var(--text)">${TRIAL_DAYS} days free</b>, then $5/month or $45/year. Every page, every tool, updated all week.</p>
+        ${joinError ? `<p class="err">${esc(joinError)}</p>` : ""}
+        <form method="post" action="/stripe/checkout">
+          <input type="email" name="email" required autocomplete="email" placeholder="Your email (you'll sign in with it)">
+          ${plans}
+        </form>
+        <small>Card or bank account required to start. You won't be charged until day ${TRIAL_DAYS + 1}, and Stripe emails a reminder first. Cancel anytime from <b>Manage membership</b>.${stripeTestMode(env) ? "<br><b>Stripe TEST mode:</b> only you can see this; use Stripe's test cards." : ""}</small>
+      </section>`
+    : `<section class="col">
+        <h2>New here?</h2>
+        <p>${joinError ? `<span class="err">${esc(joinError)}</span><br>` : ""}Memberships without Discord are coming soon. For now, join the GMG Discord to get access.</p>
+        ${invite}
+      </section>`;
+  return page("Sign in -- GMG's NFL Suite", `${FORM_CSS}<div class="cols">${signin}${joinCol}</div>`, status, {}, true);
 }
 
 async function handleCheckout(request, env) {
   const session = await readSession(request, env);
-  if (stripeTestMode(env) && !isOwnerSession(session)) return joinPage(env, session);
+  if (!joinOpen(env, session)) return joinPage(env, session);
   const form = await request.formData();
   const email = cleanEmail(form.get("email"));
-  const plan = STRIPE_PRICES[form.get("plan")];
+  const plan = PLANS[form.get("plan")] ? { id: priceId(env, form.get("plan")) } : null;
   if (!EMAIL_RE.test(email) || !plan) return joinPage(env, session, "Enter a valid email and pick a plan.");
   const existing = await getMember(env, email);
   if (existing && MEMBER_STATUSES_IN.includes(existing.status)) return emailPage(env, "", "That email already has a membership. Sign in below.");
@@ -550,21 +598,8 @@ async function handleStripeWebhook(request, env) {
   return new Response("ok");
 }
 
-const PW_INPUT_CSS = "width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px";
 function emailPage(env, email = "", message = "", status = 200) {
-  return page(
-    "Sign in with email -- GMG's NFL Suite",
-    `${FORM_CSS}<p>${message ? esc(message) : "Members who joined with email: sign in with your email and password."}</p>
-     <form method="post" action="/auth/email" style="text-align:left">
-       <input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(email)}">
-       <input type="password" name="password" required autocomplete="current-password" placeholder="Password" style="${PW_INPUT_CSS}">
-       <button class="btn plan">Sign in</button>
-     </form>
-     <small>Forgot your password? Message GMG and we'll reset it for you.</small>
-     <a class="btn ghost" href="/join">Not a member yet? Start a free trial</a>
-     <a class="btn ghost" href="/auth/login">Log in with Discord instead</a>`,
-    status
-  );
+  return accessPage({ env, signinEmail: email, signinMsg: message, status });
 }
 async function handleEmailLogin(request, env) {
   const form = await request.formData();
@@ -604,7 +639,7 @@ async function handleSetPassword(request, env) {
     }
   }
   const m = await getMember(env, email);
-  const field = (name, ph) => `<input type="password" name="${name}" required minlength="${PW_MIN}" autocomplete="new-password" placeholder="${ph}" style="${PW_INPUT_CSS}">`;
+  const field = (name, ph) => `<input type="password" name="${name}" required minlength="${PW_MIN}" autocomplete="new-password" placeholder="${ph}" style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px">`;
   return page(
     "Password -- GMG's NFL Suite",
     `${FORM_CSS}<p>${m && m.pw ? "Change your password" : `<b class="ok">You're in!</b> Pick a password so you can sign in on any device`} for <b>${esc(email)}</b>.</p>
