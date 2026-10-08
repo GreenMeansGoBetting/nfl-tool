@@ -141,6 +141,23 @@ context. It is the only copy that travels with the repo.
      - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
        ~8c. The flat 30c is what hurts, so offer a yearly plan (e.g. $50/yr, ~4% total fees).
      - Optional owner-only "grant access until <date>" page for people who pay by Venmo/Zelle.
+     - **BUILT 2026-10-08** in `nfl_tool/functions/_middleware.js` ("Email members (Stripe)" block):
+       routes `/join` (plans + trial), `POST /stripe/checkout` (Checkout Session: subscription,
+       `trial_period_days` 7 unless the email already had a trial, `payment_method_collection`
+       always, promo codes allowed, email in metadata), `/join/done` (confirms the session with
+       Stripe, saves the member, signs them in if the checkout is < 1 h old), `POST /stripe/webhook`
+       (signature-checked; `checkout.session.completed` + `customer.subscription.*` -> `members`;
+       on `.created`, a card/bank fingerprint already in `trial_cards` under another email gets
+       `trial_end=now`), `/auth/email` + `/auth/email/verify` (one-time 15-min link, hashed in
+       `login_tokens`, 1/min per email, same reply whether or not the email is a member),
+       `/account` (Stripe billing portal), `/admin/members` (owner-only manual grants).
+       Sessions: `kind: "email"`, uid `email:<address>`; the gate re-checks `members` every
+       RECHECK_MS (active/trialing or `manual_until` in the future). Turns on only when
+       `STRIPE_SECRET_KEY` + `RESEND_API_KEY` + DB exist; with an `sk_test_` key only the owner can
+       check out and the login page hides Join. `/auth/status` shows emailMembers / stripeKey /
+       stripeWebhook / emailSender. deploy.yml pushes the 3 secrets and creates the 3 tables.
+       sync.js shows "Manage membership" for email accounts. No Node on this PC: the gate was tested
+       in the browser with sql.js standing in for D1 and fake Stripe/Resend (31 checks).
      - **Stripe test-mode prices (2026-10-08, not secret):** monthly $5 =
        `price_1UOKQhLM3ebsVWbZWbCfXE9X`, yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt`. Live-mode
        prices will have different IDs when the user switches Stripe out of Test mode.

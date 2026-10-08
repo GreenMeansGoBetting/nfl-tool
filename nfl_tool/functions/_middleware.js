@@ -121,13 +121,17 @@ small{display:block;margin-top:16px;color:var(--muted);font-size:.78rem}
 }
 const DISCORD_ICON = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.4 18.4 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.4C.6 9 -.3 13.5.1 18a19.9 19.9 0 0 0 6 3l1.3-2.1a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12.2 0l.5.4a12.9 12.9 0 0 1-2 1L18 21a19.9 19.9 0 0 0 6-3c.5-5.2-.8-9.7-3.7-13.6zM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/></svg>`;
 
-function loginPage(next) {
+function loginPage(next, env = null) {
+  const email = env && membersReady(env);
+  const join = email && !stripeTestMode(env);
   return page(
     "Sign in -- GMG's NFL Suite",
-    `<p>Access is for members of the GMG Discord.</p>
+    `<p>${email ? "Sign in with your GMG Discord or your email membership." : "Access is for members of the GMG Discord."}</p>
      <a class="btn discord" href="/auth/login?next=${encodeURIComponent(next)}">${DISCORD_ICON}Log in with Discord</a>
+     ${email ? `<a class="btn ghost" href="/auth/email">Sign in with email</a>` : ""}
+     ${join ? `<a class="btn ghost" style="background:#22c55e;color:#03140a;border-color:#22c55e" href="/join">No Discord? Start a ${TRIAL_DAYS}-day free trial</a>` : ""}
      ${INVITE_URL ? `<a class="btn ghost" href="${INVITE_URL}" target="_blank" rel="noopener">Not in the Discord yet? Join here</a>` : ""}
-     <small>We only see your Discord name and your roles in the GMG server.</small>`,
+     <small>Discord: we only see your name and your roles in the GMG server.</small>`,
     401
   );
 }
@@ -253,7 +257,7 @@ async function handleApi(request, env, session, json) {
     const { results } = await env.DB.prepare("SELECT k, v, updated FROM user_state WHERE uid = ?").bind(session.uid).all();
     const state = {};
     for (const r of results || []) state[r.k] = { v: r.v, updated: r.updated };
-    return json({ user: { name: session.name, owner: OWNER_IDS.includes(session.uid) }, state });
+    return json({ user: { name: session.name, owner: isOwnerSession(session), email: session.kind === "email" }, state });
   }
   if (request.method === "PUT") {
     let body;
@@ -277,6 +281,373 @@ async function handleApi(request, env, session, json) {
   return json({ error: "method" }, 405);
 }
 
+// ---- Email members (Stripe), added 2026-10-08 ----
+// For people who'd pay but won't join Discord. They subscribe through
+// Stripe Checkout ($5/month or $45/year, 7-day free trial with a card or
+// bank account required) and sign in with a one-time emailed link. A
+// Stripe webhook keeps the D1 `members` table in sync with each
+// subscription's live status, and the gate re-checks that row every
+// RECHECK_MS -- a failed payment or a cancel cuts access, the same live
+// rule as Discord roles. Needs the Pages secrets STRIPE_SECRET_KEY,
+// STRIPE_WEBHOOK_SECRET and RESEND_API_KEY (pushed from GitHub secrets by
+// deploy.yml). While the Stripe key is a TEST key, only the owner (signed
+// in with Discord) can start a checkout, so nobody gets in free with
+// Stripe's test cards.
+const STRIPE_PRICES = {
+  monthly: { id: "price_1UOKQhLM3ebsVWbZWbCfXE9X", label: "$5 / month" },
+  yearly: { id: "price_1UOKQhLM3ebsVWbZrn3B6uGt", label: "$45 / year", note: "save 25%" },
+};
+const TRIAL_DAYS = 7;
+const EMAIL_FROM = "GMG NFL Suite <login@send.gmgsports.org>";
+const LOGIN_LINK_MIN = 15; // emailed sign-in links work once, for this long
+const LOGIN_LINK_COOLDOWN_MS = 60 * 1000; // one link per email per minute
+const JOIN_DONE_MAX_AGE_S = 60 * 60; // checkout success link signs you in for an hour
+const MEMBER_STATUSES_IN = ["active", "trialing"];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const membersReady = (env) => !!(env.DB && env.STRIPE_SECRET_KEY && env.RESEND_API_KEY);
+const stripeTestMode = (env) => (env.STRIPE_SECRET_KEY || "").startsWith("sk_test_");
+const cleanEmail = (e) => String(e || "").trim().toLowerCase();
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+async function sha256Hex(text) {
+  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(text)));
+  return [...d].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Stripe REST call (form-encoded). Throws with Stripe's own message on error.
+async function stripeApi(env, method, path, params) {
+  let url = `https://api.stripe.com/v1/${path}`;
+  const init = { method, headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } };
+  if (params && method === "GET") url += `?${new URLSearchParams(params)}`;
+  else if (params) {
+    init.headers["Content-Type"] = "application/x-www-form-urlencoded";
+    init.body = new URLSearchParams(params);
+  }
+  const res = await fetch(url, init);
+  const data = await res.json();
+  if (!res.ok) throw new Error((data.error && data.error.message) || `stripe ${res.status}`);
+  return data;
+}
+
+// Stripe-Signature: t=<time>,v1=<hex hmac of "t.body">; 5-minute tolerance.
+async function verifyStripeSignature(env, raw, header) {
+  if (!env.STRIPE_WEBHOOK_SECRET || !header) return false;
+  const parts = Object.fromEntries(header.split(",").map((p) => p.split("=")).filter((p) => p.length === 2));
+  const sigs = header.split(",").filter((p) => p.startsWith("v1=")).map((p) => p.slice(3));
+  const t = Number(parts.t);
+  if (!t || Math.abs(Date.now() / 1000 - t) > 300) return false;
+  const key = await crypto.subtle.importKey("raw", enc.encode(env.STRIPE_WEBHOOK_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`${t}.${raw}`)));
+  const hex = [...mac].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return sigs.includes(hex);
+}
+
+async function sendEmail(env, to, subject, html) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html }),
+  });
+  return res.ok;
+}
+
+// ---- the members table ----
+async function getMember(env, email) {
+  return env.DB.prepare("SELECT * FROM members WHERE email = ?").bind(email).first();
+}
+async function memberHasAccess(env, email) {
+  const m = await getMember(env, email);
+  if (!m) return false;
+  if (m.manual_until && m.manual_until > Date.now()) return true;
+  return MEMBER_STATUSES_IN.includes(m.status);
+}
+// Upsert from a Stripe subscription object.
+async function saveSubscription(env, email, sub) {
+  const periodEnd = sub.current_period_end || (sub.items && sub.items.data && sub.items.data[0] && sub.items.data[0].current_period_end) || null;
+  await env.DB.prepare(
+    `INSERT INTO members (email, customer, subscription, status, period_end, trial_used, updated)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(email) DO UPDATE SET customer = excluded.customer, subscription = excluded.subscription,
+       status = excluded.status, period_end = excluded.period_end,
+       trial_used = MAX(members.trial_used, excluded.trial_used), updated = excluded.updated`
+  )
+    .bind(email, sub.customer || null, sub.id, sub.status, periodEnd ? periodEnd * 1000 : null, sub.trial_end ? 1 : 0, Date.now())
+    .run();
+}
+async function emailForSubscription(env, sub) {
+  const fromMeta = cleanEmail(sub.metadata && sub.metadata.email);
+  if (fromMeta) return fromMeta;
+  const row = sub.customer ? await env.DB.prepare("SELECT email FROM members WHERE customer = ?").bind(sub.customer).first() : null;
+  if (row) return row.email;
+  if (!sub.customer) return null;
+  const c = await stripeApi(env, "GET", `customers/${sub.customer}`);
+  return cleanEmail(c.email) || null;
+}
+
+// One free trial per card / bank account: a payment method that already
+// started a trial under another email gets charged right away instead.
+async function enforceOneTrialPerCard(env, email, sub) {
+  if (sub.status !== "trialing" || !sub.default_payment_method) return;
+  const pmId = typeof sub.default_payment_method === "string" ? sub.default_payment_method : sub.default_payment_method.id;
+  const pm = await stripeApi(env, "GET", `payment_methods/${pmId}`);
+  const fp = (pm.card && pm.card.fingerprint) || (pm.us_bank_account && pm.us_bank_account.fingerprint);
+  if (!fp) return;
+  const seen = await env.DB.prepare("SELECT email FROM trial_cards WHERE fingerprint = ?").bind(fp).first();
+  if (seen && seen.email !== email) {
+    await stripeApi(env, "POST", `subscriptions/${sub.id}`, { trial_end: "now" });
+    return;
+  }
+  if (!seen) await env.DB.prepare("INSERT INTO trial_cards (fingerprint, email, created) VALUES (?, ?, ?)").bind(fp, email, Date.now()).run();
+}
+
+// ---- sessions for email members ----
+function emailSession(env, email) {
+  const now = Date.now();
+  return sign(env, { uid: `email:${email}`, name: email, kind: "email", checked: now, exp: now + SESSION_DAYS * 864e5 });
+}
+function redirectWithSession(location, session) {
+  const headers = new Headers({ Location: location });
+  headers.append("Set-Cookie", setCookie(COOKIE, session, SESSION_DAYS * 86400));
+  return new Response(null, { status: 302, headers });
+}
+async function sendLoginLink(env, origin, email) {
+  const recent = await env.DB.prepare("SELECT created FROM login_tokens WHERE email = ? ORDER BY created DESC LIMIT 1").bind(email).first();
+  if (recent && Date.now() - recent.created < LOGIN_LINK_COOLDOWN_MS) return true;
+  await env.DB.prepare("DELETE FROM login_tokens WHERE email = ? OR expires < ?").bind(email, Date.now()).run();
+  const token = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  await env.DB.prepare("INSERT INTO login_tokens (hash, email, expires, created) VALUES (?, ?, ?, ?)")
+    .bind(await sha256Hex(token), email, Date.now() + LOGIN_LINK_MIN * 60000, Date.now())
+    .run();
+  const link = `${origin}/auth/email/verify?t=${token}`;
+  return sendEmail(
+    env,
+    email,
+    "Your GMG NFL Suite sign-in link",
+    `<div style="font-family:system-ui,sans-serif;max-width:480px">
+      <h2 style="margin:0 0 12px">Sign in to GMG's NFL Suite</h2>
+      <p>Tap the button to sign in. The link works once and expires in ${LOGIN_LINK_MIN} minutes.</p>
+      <p><a href="${link}" style="display:inline-block;background:#22c55e;color:#03140a;font-weight:700;padding:12px 18px;border-radius:8px;text-decoration:none">Sign in</a></p>
+      <p style="color:#667;font-size:13px">Didn't ask for this? You can ignore it.</p>
+    </div>`
+  );
+}
+
+// ---- member pages ----
+async function readSession(request, env) {
+  try {
+    return await verify(env, getCookie(request, COOKIE));
+  } catch (e) {
+    return null;
+  }
+}
+const isOwnerSession = (s) => !!(s && s.kind !== "email" && OWNER_IDS.includes(s.uid));
+const FORM_CSS = `<style>
+input[type=email],input[type=text],input[type=date]{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px}
+button.btn{border:none;cursor:pointer;font:inherit;font-weight:700}
+.plan{background:var(--accent);color:#03140a}.plan:hover{filter:brightness(1.08)}
+.plans{margin-top:14px}.note{color:var(--accent);font-size:.82rem;margin-left:6px}
+.err{color:#f87171;margin:0 0 12px}.ok{color:#6ee79b}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:.85rem;margin:10px 0}td,th{padding:5px 4px;border-bottom:1px solid var(--border)}
+</style>`;
+
+function joinPage(env, session, error = "") {
+  const testBlocked = stripeTestMode(env) && !isOwnerSession(session);
+  const plans = Object.entries(STRIPE_PRICES)
+    .map(([key, p]) => `<button class="btn plan" name="plan" value="${key}">Start ${TRIAL_DAYS}-day free trial &middot; then ${p.label}${p.note ? `<span class="note" style="color:#03140a">(${p.note})</span>` : ""}</button>`)
+    .join("");
+  return page(
+    "Join -- GMG's NFL Suite",
+    `${FORM_CSS}<p>Become a member: every page, every tool, updated all week.</p>
+     ${error ? `<p class="err">${esc(error)}</p>` : ""}
+     ${testBlocked
+       ? `<p>Memberships open soon. Already a member through Discord? <a href="/auth/login" style="color:var(--accent)">Log in with Discord</a>.</p>`
+       : `<form method="post" action="/stripe/checkout">
+            <label style="display:block;text-align:left;color:var(--muted);font-size:.85rem">Your email (you'll sign in with it)
+              <input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
+            <div class="plans">${plans}</div>
+          </form>
+          <small>Card or bank account required to start the trial. You won't be charged until day ${TRIAL_DAYS + 1}, and Stripe emails you a reminder before the first charge. Cancel anytime from <b>Manage membership</b>.${stripeTestMode(env) ? "<br><b>Stripe TEST mode:</b> only you can see this; use Stripe's test cards." : ""}</small>`}
+     <a class="btn ghost" href="/auth/email">Already a member? Sign in with email</a>`
+  );
+}
+
+async function handleCheckout(request, env) {
+  const session = await readSession(request, env);
+  if (stripeTestMode(env) && !isOwnerSession(session)) return joinPage(env, session);
+  const form = await request.formData();
+  const email = cleanEmail(form.get("email"));
+  const plan = STRIPE_PRICES[form.get("plan")];
+  if (!EMAIL_RE.test(email) || !plan) return joinPage(env, session, "Enter a valid email and pick a plan.");
+  const existing = await getMember(env, email);
+  if (existing && MEMBER_STATUSES_IN.includes(existing.status)) return emailPage(env, "", "That email already has a membership. Sign in below.");
+  const origin = new URL(request.url).origin;
+  const params = {
+    mode: "subscription",
+    customer_email: email,
+    "line_items[0][price]": plan.id,
+    "line_items[0][quantity]": "1",
+    payment_method_collection: "always",
+    allow_promotion_codes: "true",
+    "metadata[email]": email,
+    "subscription_data[metadata][email]": email,
+    success_url: `${origin}/join/done?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/join`,
+  };
+  // One free trial per email (the card check happens in the webhook).
+  if (!(existing && existing.trial_used)) params["subscription_data[trial_period_days]"] = String(TRIAL_DAYS);
+  try {
+    const cs = await stripeApi(env, "POST", "checkout/sessions", params);
+    return new Response(null, { status: 303, headers: { Location: cs.url } });
+  } catch (e) {
+    return joinPage(env, session, `Couldn't start checkout: ${e.message}`);
+  }
+}
+
+// Stripe sends them back here after paying: record the subscription right
+// away (the webhook may land a few seconds later) and sign them in.
+async function handleJoinDone(request, env) {
+  const id = new URL(request.url).searchParams.get("session_id") || "";
+  if (!id.startsWith("cs_")) return joinPage(env, null);
+  let cs;
+  try {
+    cs = await stripeApi(env, "GET", `checkout/sessions/${id}`, { "expand[]": "subscription" });
+  } catch (e) {
+    return joinPage(env, null, "We couldn't confirm that checkout. If you were charged, sign in with your email below.");
+  }
+  const email = cleanEmail((cs.metadata && cs.metadata.email) || cs.customer_email || (cs.customer_details && cs.customer_details.email));
+  if (!email || cs.status !== "complete" || !cs.subscription || typeof cs.subscription !== "object") return joinPage(env, null, "That checkout isn't finished.");
+  await saveSubscription(env, email, cs.subscription);
+  if (Date.now() / 1000 - cs.created > JOIN_DONE_MAX_AGE_S || !(await memberHasAccess(env, email))) return emailPage(env, email, "You're all set. Sign in with your email.");
+  return redirectWithSession("/", await emailSession(env, email));
+}
+
+async function handleStripeWebhook(request, env) {
+  const raw = await request.text();
+  if (!(await verifyStripeSignature(env, raw, request.headers.get("Stripe-Signature")))) return new Response("bad signature", { status: 400 });
+  const event = JSON.parse(raw);
+  const obj = event.data && event.data.object;
+  try {
+    if (event.type === "checkout.session.completed" && obj.subscription) {
+      const sub = await stripeApi(env, "GET", `subscriptions/${obj.subscription}`);
+      const email = cleanEmail((obj.metadata && obj.metadata.email) || obj.customer_email || (obj.customer_details && obj.customer_details.email));
+      if (email) await saveSubscription(env, email, sub);
+    } else if (event.type.startsWith("customer.subscription.")) {
+      const email = await emailForSubscription(env, obj);
+      if (email) {
+        await saveSubscription(env, email, obj);
+        if (event.type === "customer.subscription.created") await enforceOneTrialPerCard(env, email, obj);
+      }
+    }
+  } catch (e) {
+    return new Response(`error: ${e.message}`, { status: 500 }); // Stripe retries
+  }
+  return new Response("ok");
+}
+
+function emailPage(env, email = "", message = "") {
+  return page(
+    "Sign in with email -- GMG's NFL Suite",
+    `${FORM_CSS}<p>${message ? esc(message) : "Members who joined with email: we'll send you a one-time sign-in link."}</p>
+     <form method="post" action="/auth/email">
+       <input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(email)}">
+       <button class="btn plan">Email me a sign-in link</button>
+     </form>
+     <a class="btn ghost" href="/join">Not a member yet? Start a free trial</a>
+     <a class="btn ghost" href="/auth/login">Log in with Discord instead</a>`
+  );
+}
+async function handleEmailLogin(request, env) {
+  const form = await request.formData();
+  const email = cleanEmail(form.get("email"));
+  if (!EMAIL_RE.test(email)) return emailPage(env, email, "Enter a valid email.");
+  // Same answer either way, so the page never reveals who's a member.
+  if (await memberHasAccess(env, email)) await sendLoginLink(env, new URL(request.url).origin, email);
+  return page(
+    "Check your email -- GMG's NFL Suite",
+    `<p class="ok" style="color:#6ee79b">If <b>${esc(email)}</b> has an active membership, a sign-in link is on its way.</p>
+     <p>It works once and expires in ${LOGIN_LINK_MIN} minutes. Check spam if you don't see it.</p>
+     <a class="btn ghost" href="/join">Not a member yet? Start a free trial</a>`
+  );
+}
+async function handleEmailVerify(request, env) {
+  const t = new URL(request.url).searchParams.get("t") || "";
+  const hash = await sha256Hex(t);
+  const row = await env.DB.prepare("SELECT email, expires FROM login_tokens WHERE hash = ?").bind(hash).first();
+  if (row) await env.DB.prepare("DELETE FROM login_tokens WHERE hash = ?").bind(hash).run();
+  if (!row || row.expires < Date.now()) return emailPage(env, row ? row.email : "", "That link expired or was already used. Send yourself a new one.");
+  if (!(await memberHasAccess(env, row.email))) return endedPage(row.email);
+  return redirectWithSession("/", await emailSession(env, row.email));
+}
+function endedPage(email) {
+  return page(
+    "Membership ended -- GMG's NFL Suite",
+    `<p>The membership for <b>${esc(email)}</b> isn't active (cancelled, or a payment didn't go through).</p>
+     <a class="btn plan" style="background:#22c55e;color:#03140a" href="/account">Manage membership</a>
+     <a class="btn ghost" href="/join">Start a new membership</a>`,
+    403,
+    { "Set-Cookie": setCookie(COOKIE, "", 0) }
+  );
+}
+// Stripe's own page for updating a card or cancelling.
+async function handleAccount(request, env) {
+  const session = await readSession(request, env);
+  const email = session && session.kind === "email" ? session.name : null;
+  const m = email ? await getMember(env, email) : null;
+  if (!m || !m.customer) return emailPage(env, email || "", "Sign in with your email to manage your membership.");
+  try {
+    const portal = await stripeApi(env, "POST", "billing_portal/sessions", { customer: m.customer, return_url: new URL(request.url).origin + "/" });
+    return new Response(null, { status: 303, headers: { Location: portal.url } });
+  } catch (e) {
+    return page("Manage membership -- GMG's NFL Suite", `<p class="err">${esc(e.message)}</p><a class="btn ghost" href="/">Back to the site</a>`, 500);
+  }
+}
+
+// Owner-only: give someone access until a date (Zelle/Venmo payers).
+async function handleAdminMembers(request, env) {
+  const session = await readSession(request, env);
+  if (!isOwnerSession(session)) return loginPage("/admin/members");
+  let msg = "";
+  if (request.method === "POST") {
+    const form = await request.formData();
+    const email = cleanEmail(form.get("email"));
+    const until = Date.parse(String(form.get("until") || "") + "T23:59:59");
+    if (!EMAIL_RE.test(email)) msg = "Enter a valid email.";
+    else if (form.get("action") === "remove") {
+      await env.DB.prepare("UPDATE members SET manual_until = NULL WHERE email = ?").bind(email).run();
+      msg = `Removed manual access for ${email}.`;
+    } else if (!until) msg = "Pick an end date.";
+    else {
+      await env.DB.prepare(
+        `INSERT INTO members (email, manual_until, note, updated) VALUES (?, ?, ?, ?)
+         ON CONFLICT(email) DO UPDATE SET manual_until = excluded.manual_until, note = excluded.note, updated = excluded.updated`
+      )
+        .bind(email, until, String(form.get("note") || "").slice(0, 120), Date.now())
+        .run();
+      msg = `${email} has access through ${new Date(until).toLocaleDateString("en-US")}.`;
+    }
+  }
+  const { results } = await env.DB.prepare("SELECT email, status, period_end, manual_until, note FROM members ORDER BY updated DESC LIMIT 300").all();
+  const day = (ms) => (ms ? new Date(ms).toLocaleDateString("en-US") : "");
+  const rows = (results || [])
+    .map((r) => `<tr><td>${esc(r.email)}</td><td>${esc(r.status || "")}</td><td>${day(r.period_end)}</td><td>${day(r.manual_until)}</td><td>${esc(r.note || "")}</td></tr>`)
+    .join("");
+  return page(
+    "Members -- GMG's NFL Suite",
+    `${FORM_CSS}<p>Give someone access until a date (for direct Zelle / Venmo payments), or see every email member.</p>
+     ${msg ? `<p class="ok">${esc(msg)}</p>` : ""}
+     <form method="post" style="text-align:left">
+       <input type="email" name="email" required placeholder="member@example.com">
+       <input type="date" name="until">
+       <input type="text" name="note" placeholder="Note (e.g. Zelle Oct)">
+       <button class="btn plan" name="action" value="grant">Grant access until that date</button>
+       <button class="btn ghost" name="action" value="remove">Remove manual access</button>
+     </form>
+     <table><tr><th>Email</th><th>Stripe</th><th>Renews</th><th>Manual until</th><th>Note</th></tr>${rows || `<tr><td colspan="5">No email members yet.</td></tr>`}</table>
+     <a class="btn ghost" href="/">Back to the site</a>`
+  );
+}
+
 // ---- the gate ----
 export async function onRequest(context) {
   const { request, env, next } = context;
@@ -290,8 +661,25 @@ export async function onRequest(context) {
       clientSecret: !!env.DISCORD_CLIENT_SECRET,
       botToken: !!env.DISCORD_BOT_TOKEN,
       profiles: !!env.DB,
+      emailMembers: membersReady(env) ? (stripeTestMode(env) ? "test mode" : "on") : "off",
+      stripeKey: !!env.STRIPE_SECRET_KEY,
+      stripeWebhook: !!env.STRIPE_WEBHOOK_SECRET,
+      emailSender: !!env.RESEND_API_KEY,
     };
     return new Response(JSON.stringify(status), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+  }
+  // Email-member routes (they work before sign-in, by design).
+  if (gateReady(env) && membersReady(env)) {
+    const p = url.pathname;
+    const post = request.method === "POST";
+    if (p === "/stripe/webhook" && post) return handleStripeWebhook(request, env);
+    if (p === "/join") return joinPage(env, await readSession(request, env));
+    if (p === "/stripe/checkout" && post) return handleCheckout(request, env);
+    if (p === "/join/done") return handleJoinDone(request, env);
+    if (p === "/auth/email") return post ? handleEmailLogin(request, env) : emailPage(env);
+    if (p === "/auth/email/verify") return handleEmailVerify(request, env);
+    if (p === "/account") return handleAccount(request, env);
+    if (p === "/admin/members") return handleAdminMembers(request, env);
   }
   if (gateReady(env)) {
     if (url.pathname === "/auth/login") return handleLogin(request);
@@ -311,13 +699,17 @@ export async function onRequest(context) {
   } catch (e) {
     session = null;
   }
-  if (!session) return isApi ? json({ error: "login" }, 401) : loginPage(url.pathname + url.search);
+  if (!session) return isApi ? json({ error: "login" }, 401) : loginPage(url.pathname + url.search, env);
 
   // Roles re-checked with Discord whenever the last check is older than
   // RECHECK_MS -- this is what makes a cancelled role stop working.
   const age = Date.now() - session.checked;
   let refreshed = null;
-  if (age >= RECHECK_MS) {
+  if (age >= RECHECK_MS && session.kind === "email") {
+    if (!env.DB) return isApi ? json({ error: "members" }, 503) : deniedPage("api");
+    if (!(await memberHasAccess(env, session.name))) return isApi ? json({ error: "membership" }, 403) : endedPage(session.name);
+    refreshed = await sign(env, { ...session, checked: Date.now() });
+  } else if (age >= RECHECK_MS) {
     const check = await memberRoles(env, session.uid);
     if (!check.ok && check.reason === "api") {
       if (age >= OUTAGE_GRACE_MS) return isApi ? json({ error: "discord" }, 503) : deniedPage("api");

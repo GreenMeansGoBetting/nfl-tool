@@ -151,8 +151,9 @@
     const el = document.createElement("span");
     el.id = "acct-chip";
     el.className = "acct-chip";
-    el.title = "Your plays, picks and notes are saved to this Discord account";
-    el.innerHTML = `<span class="acct-name"></span><a href="/auth/logout">Log out</a>`;
+    el.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
+    // Email members (Stripe) get Stripe's page for updating a card or cancelling.
+    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a>` : ""}<a href="/auth/logout">Log out</a>`;
     el.querySelector(".acct-name").textContent = user.name || "Signed in";
     bar.prepend(el);
   }

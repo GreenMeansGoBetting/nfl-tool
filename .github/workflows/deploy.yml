@@ -122,9 +122,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           DCS: ${{ secrets.DISCORD_CLIENT_SECRET }}
           DBT: ${{ secrets.DISCORD_BOT_TOKEN }}
+          SSK: ${{ secrets.STRIPE_SECRET_KEY }}
+          SWS: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          RAK: ${{ secrets.RESEND_API_KEY }}
         run: |
           if [ -n "$DCS" ]; then printf '%s' "$DCS" | npx -y wrangler@3 pages secret put DISCORD_CLIENT_SECRET --project-name=gmg-nfl; fi
           if [ -n "$DBT" ]; then printf '%s' "$DBT" | npx -y wrangler@3 pages secret put DISCORD_BOT_TOKEN --project-name=gmg-nfl; fi
+          # Email members (Stripe + emailed sign-in links); each skipped until it exists.
+          if [ -n "$SSK" ]; then printf '%s' "$SSK" | npx -y wrangler@3 pages secret put STRIPE_SECRET_KEY --project-name=gmg-nfl; fi
+          if [ -n "$SWS" ]; then printf '%s' "$SWS" | npx -y wrangler@3 pages secret put STRIPE_WEBHOOK_SECRET --project-name=gmg-nfl; fi
+          if [ -n "$RAK" ]; then printf '%s' "$RAK" | npx -y wrangler@3 pages secret put RESEND_API_KEY --project-name=gmg-nfl; fi
 
       # Member profiles (saved plays/picks/notes per Discord account): a D1
       # database, created on the first run, its table created if missing,
@@ -158,6 +165,10 @@ jobs:
             echo "database_id = \"$DBID\""
           } > wrangler.toml
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS user_state (uid TEXT NOT NULL, k TEXT NOT NULL, v TEXT NOT NULL, updated INTEGER NOT NULL, PRIMARY KEY (uid, k))"
+          # Email members (Stripe): live subscription status, one-time sign-in links, one trial per card.
+          npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS members (email TEXT PRIMARY KEY, customer TEXT, subscription TEXT, status TEXT, period_end INTEGER, trial_used INTEGER NOT NULL DEFAULT 0, manual_until INTEGER, note TEXT, updated INTEGER)"
+          npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS login_tokens (hash TEXT PRIMARY KEY, email TEXT NOT NULL, expires INTEGER NOT NULL, created INTEGER NOT NULL)"
+          npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS trial_cards (fingerprint TEXT PRIMARY KEY, email TEXT NOT NULL, created INTEGER)"
 
       # Deployed from nfl_tool/ so wrangler bundles nfl_tool/functions (the
       # login gate) alongside the static site folder.
