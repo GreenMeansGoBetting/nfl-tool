@@ -455,7 +455,7 @@ function matchupTags(offTeam, defTeam) {
     const oz = avgZ(modelZ(offTeam, "off", "ez", "adj"), modelZ(offTeam, "off", "deep", "adj"));
     const m = DATA.td_matchup_model;
     if (ok(dz, oz) && dz >= 0.6 && oz >= 0) {
-      add("good", "Deep / EZ exposed", `${defTeam} allows ${tagNum(m[defTeam].def.deep?.adj)} deep · ${tagNum(m[defTeam].def.ez?.adj)} EZ tgts/g · ${offTeam} throws ${tagNum(m[offTeam].off.deep?.adj)} · ${tagNum(m[offTeam].off.ez?.adj)}`);
+      add("good", "Deep / EZ exposed", `${defTeam} allows ${tagNum(m[defTeam].def.deep?.adj)} deep tgts/g · ${tagNum(m[defTeam].def.ez?.adj)} EZ tgts/g · ${offTeam} throws ${tagNum(m[offTeam].off.deep?.adj)} deep · ${tagNum(m[offTeam].off.ez?.adj)} EZ`);
     }
   }
 
@@ -1323,7 +1323,7 @@ function numBadge(n) {
 
 // Season half of a team's column: numbered targets (with chart numbers),
 // numbered tags, then the key players tied to those numbers.
-function summarySeasonColumn(offTeam, defTeam, week) {
+function summarySeasonColumn(offTeam, defTeam, week, chance, game) {
   const pool = keyPlayerPool(offTeam, week);
   const byPlayer = {};
   const link = (names, n, kind) =>
@@ -1333,7 +1333,8 @@ function summarySeasonColumn(offTeam, defTeam, week) {
       if (kind !== "warn") e.good = true;
     });
   let n = 0;
-  const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items); // DST already dropped
+  // DST already dropped; the First TD target lives in the First TD section's "Scored 1st" tile.
+  const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items).filter((i) => i.metric !== "first");
   const targetRows = items.length
     ? items
         .map((i) => {
@@ -1346,62 +1347,132 @@ function summarySeasonColumn(offTeam, defTeam, week) {
             ? ` title="${defTeam} is a soft spot here; ${offTeam} hasn't produced it yet (schedule-adjusted)"`
             : "";
           const softTag = i.defLed ? `<span class="target-soft-tag">soft D</span>` : "";
-          return `<tr><td>${numBadge(n)}<span class="target-chip${strong ? " target-chip-strong" : ""}${i.defLed ? " target-chip-soft" : ""}"${soft}>${i.label}${due}${softTag}</span></td>${oc}${dc}<td class="sc-unit">${i.metric ? summaryTargetUnit(i.metric) : ""}</td></tr>`;
+          // Summary-card tile (2026-10-09, the user wanted the Props card's punch): the
+          // table cells become two big shaded boxes under the chip.
+          const box = (td) => td.replace(/^<td class="num ?([^"]*)"/, '<span class="tdt-v $1"').replace(/<\/td>$/, "</span>");
+          return `<div class="tdt">
+            <div class="tdt-head"><span class="target-chip${strong ? " target-chip-strong" : ""}${i.defLed ? " target-chip-soft" : ""}"${soft}>${i.label}${due}${softTag}</span></div>
+            <div class="tdt-vals"><div class="tdt-cell"><span class="tdt-who">${offTeam}</span>${box(oc)}</div><div class="tdt-cell"><span class="tdt-who">${defTeam} allows</span>${box(dc)}</div></div>
+          </div>`;
         })
         .join("")
-    : `<tr><td colspan="4" class="target-none">No targets this week</td></tr>`;
+    : `<div class="target-none">No targets this week</div>`;
   const tags = matchupTags(offTeam, defTeam);
   const tagRows = tags.length
     ? tags
         .map((t) => {
           n += 1;
           link(keyPlayersForTag(t.label, pool, offTeam, week), n, t.kind);
-          return `<li><span class="sc-tag-head">${numBadge(n)}<span class="tag-chip tag-chip-${t.kind}">${t.label}</span></span><span class="sc-tag-text">${t.title}</span></li>`;
+          return summaryTagTile(n, t);
         })
         .join("")
-    : `<li class="target-none">No tags</li>`;
+    : `<div class="target-none">No tags</div>`;
   const keyList = Object.values(byPlayer)
     .sort((a, b) => b.nums.length - a.nums.length || a.nums[0] - b.nums[0])
     .slice(0, KEY_PLAYERS_MAX);
   const keyNames = uniqueShortNames(keyList.map((e) => e.name));
   const keyPlayers = keyList
-    .map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}">${playerClick(offTeam, e.name, `${summaryHeadshot(offTeam, e.name, 18)}${keyNames[e.name]}`, defTeam)}${e.nums.map(numBadge).join("")}</span>`)
+    .map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}" title="Fits ${e.nums.length} of this team's targets / tags">${playerClick(offTeam, e.name, `${summaryHeadshot(offTeam, e.name, 18)}${keyNames[e.name]}`, defTeam)}<span class="sc-stars">${"★".repeat(Math.min(5, e.nums.length))}</span></span>`)
     .join("");
   // Four fixed blocks (banner / targets / tags / key players) -- the two
   // team columns share row lines (CSS subgrid), so each block starts at
   // the same height on both sides even when one team has less in it.
-  return `<div class="sc-col">
-    ${summaryTeamBanner(offTeam)}
-    <div class="sc-block"><table class="sc-table sc-targets"><thead><tr><th>Target</th><th class="num">${offTeam}</th><th class="num">${defTeam} allows</th><th></th></tr></thead><tbody>${targetRows}</tbody></table></div>
-    <div class="sc-block"><div class="sc-label">Matchup Tags</div><ul class="sc-tags">${tagRows}</ul></div>
-    <div class="sc-block"><div class="sc-label">Key Players</div>${keyPlayers ? `<div class="sc-keys">${keyPlayers}</div>` : `<span class="target-none">&mdash;</span>`}</div>
+  // One full-height column per team (2026-10-09 facelift, like the Props card):
+  // targets, matchup tags in the same tile style, that team's First TD, key players.
+  return `<div class="sc-col td-team">
+    ${summaryTdTeamBanner(offTeam, game, keyList.slice(0, 2).map((e) => e.name), defTeam)}
+    <div class="sc-block"><div class="sc-label">TD Targets</div><div class="tdt-grid">${targetRows}</div></div>
+    <div class="sc-block"><div class="sc-label">Matchup Tags</div><div class="tdt-grid tdt-tags">${tagRows}</div></div>
+    ${summaryFirstTdBlock(offTeam, defTeam, chance)}
+    <div class="sc-block td-keys"><div class="sc-label">Key Players</div>${keyPlayers ? `<div class="sc-keys">${keyPlayers}</div>` : `<span class="target-none">&mdash;</span>`}</div>
   </div>`;
 }
 
-// First TD half of a team's column: position chips + top players.
-function summaryFirstTdColumn(offTeam, defTeam, chance, week) {
-  const rgb = teamAccentRgb(offTeam);
-  const pct = (x) => `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`;
-  const posChips = firstTdPositionTargets(offTeam, defTeam)
-    .map((i) => `<span class="target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}">${i.label}</span>`)
-    .join("");
-  const list = firstTdPlayerTargets(offTeam, defTeam, chance, week).slice(0, SUMMARY_FIRST_TD_PLAYERS);
-  const short = uniqueShortNames(list.map((p) => p.name));
-  const players = list
-    .map((p) => {
-      const edgeCls = p.edge === null ? "" : p.edge >= 1.25 ? "ftd-edge-strong" : p.edge >= 1 ? "ftd-edge-lean" : "";
-      const odds = p.odds === null ? "--" : `${p.odds > 0 ? "+" : ""}${p.odds} <span class="muted">${pct(p.implied)}</span>`;
-      const inj = p.injury ? ` <span class="ftd-inj">${p.injury}</span>` : "";
-      return `<tr class="${edgeCls}"><td><span class="sc-player player-click" data-entry="${encodeDataAttr({ team: offTeam, name: p.name, oppTeam: defTeam })}">${summaryHeadshot(offTeam, p.name, 24)}<span>${short[p.name]} <span class="muted">${p.position}</span>${inj}</span></span></td><td class="num ftd-est">${pct(p.est)}</td><td class="num ftd-odds">${odds}</td></tr>`;
-    })
-    .join("");
-  return `<div class="sc-col">
-    <div class="sc-ftd-head" style="border-left:4px solid rgb(${rgb.join(",")})">
-      <img src="${teamLogoUrl(offTeam)}" crossorigin="anonymous" class="sc-team-logo" alt="">
-      <span class="sc-ftd-team">${offTeam}</span>
-      ${posChips ? `<span class="sc-pos-chips">${posChips}</span>` : ""}
+// Team header with a one-line fact strip in the same color block (user
+// 2026-10-09): implied TDs from the spread + total (Novig first; ~7 points
+// per TD), the position that scores the biggest share of the team's TDs,
+// and photos of its top two key players.
+function summaryTdTeamBanner(team, game, topPlayers, oppTeam) {
+  const rgb = teamAccentRgb(team);
+  const g = game ? { ...game, ...(game.novig || {}) } : {};
+  const spread = team === g.away ? g.away_team_spread : g.home_team_spread;
+  const implied = g.total_line && spread !== null && spread !== undefined ? g.total_line / 2 - spread / 2 : null;
+  const st = DATA.team_stats[team] || {};
+  const counts = st.off_position_td || {};
+  const top = POSITIONS.filter((p) => p !== "DST").sort((a, b) => (counts[b] || 0) - (counts[a] || 0))[0];
+  const share = st.total_td && top ? Math.round(((counts[top] || 0) / st.total_td) * 100) : null;
+  const photos = topPlayers.map((n) => playerClick(team, n, summaryHeadshot(team, n, 36), oppTeam)).join("");
+  return `<div class="sc-team td-banner" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
+    <div class="td-banner-name"><img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt=""><span class="sc-team-name">${TEAM_NAMES[team] || team}</span></div>
+    <div class="td-facts">
+      <div class="td-fact"><span class="td-fact-label">Implied</span><span class="td-fact-val">${implied === null ? `<b>--</b>` : `<b>${(implied / 7).toFixed(1)} TDs</b><small>${fmt(implied, 1)} pts</small>`}</span></div>
+      <div class="td-fact"><span class="td-fact-label">Top TD position</span><span class="td-fact-val">${share === null || !counts[top] ? `<b>--</b>` : `<b>${top} ${share}%</b><small>of TDs</small>`}</span></div>
+      <div class="td-fact td-fact-players">${photos || `<b>--</b>`}</div>
     </div>
-    <table class="sc-table sc-ftd"><thead><tr><th>Player</th><th class="num">Model</th><th class="num">Best odds</th></tr></thead><tbody>${players}</tbody></table>
+  </div>`;
+}
+
+// A matchup tag as a tile like the targets: chip on top, then one box per
+// " · " part of its line, the first number in each part pulled out big
+// ("TB 3.4 RZ trips/g" -> label TB, 3.4, RZ trips/g), "(lg x)" under it.
+// Boxes are tinted by the tag's direction: green helps the offense, yellow
+// is working against it.
+function summaryTagTile(n, t) {
+  const tone = t.kind === "good" ? "tier-good" : "tier-mid";
+  const parts = String(t.title)
+    .split(/\s+·\s+/)
+    .map((part) => {
+      const lg = (part.match(/\((lg [^)]*)\)/) || [])[1] || "";
+      const clean = part.replace(/\s*\((lg [^)]*)\)/g, "").trim();
+      // First number that isn't part of a label like "7+ box".
+      const m = clean.match(/^(.*?)(-?\d+(?:\.\d+)?%?)(?![\d.+])(.*)$/);
+      if (!m) return `<div class="tgt-box"><span class="tgt-v">${clean}</span></div>`;
+      const label = m[1].trim().replace(/:$/, "");
+      return `<div class="tgt-box"><span class="tgt-label">${label || "&nbsp;"}</span><span class="tgt-v ${tone}">${m[2]}${m[3].trim() ? `<small>${m[3].trim()}</small>` : ""}</span></div>`;
+    });
+  return `<div class="tdt tdt-tag${parts.length > 2 ? " tdt-wide" : ""}">
+    <div class="tdt-head"><span class="tag-chip tag-chip-${t.kind}">${t.label}</span></div>
+    <div class="tgt-boxes" style="grid-template-columns:repeat(${parts.length}, minmax(0, 1fr))">${parts.join("")}</div>
+  </div>`;
+}
+
+// This team's First TD, inside its column, from the First TD tab's numbers
+// in the same tile style as the targets (team vs what the defense allows):
+// how often it scores first, its first-TD position matchups (shares, only
+// the positions the First TD tab flags), and red-zone finishing before the
+// first TD -- next to the big chance-to-score-first box. No model players
+// (user 2026-10-09).
+function summaryFirstTdBlock(offTeam, defTeam, chance) {
+  const o = DATA.team_stats[offTeam];
+  const d = DATA.team_stats[defTeam];
+  const pctTxt = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
+  const box = (text, cls, alpha) => `<span class="tdt-v ${cls || ""}"${alpha || ""}>${text}</span>`;
+  const tile = (label, offBox, defBox, chipCls = "target-chip") => `<div class="tdt">
+      <div class="tdt-head"><span class="${chipCls}">${label}</span></div>
+      <div class="tdt-vals"><div class="tdt-cell"><span class="tdt-who">${offTeam}</span>${offBox}</div><div class="tdt-cell"><span class="tdt-who">${defTeam} allows</span>${defBox}</div></div>
+    </div>`;
+  const tiles = [];
+  tiles.push(tile("Scored 1st",
+    box(pctTxt(o.first_td_rate), tierFor("first_td_rate", offTeam, false), tierForAlphaAttr("first_td_rate", offTeam, false)),
+    box(pctTxt(firstTdAllowedRate(defTeam)), tierForFirstTdAllowed(defTeam), tierForFirstTdAllowedAlphaAttr(defTeam))));
+  firstTdPositionTargets(offTeam, defTeam).forEach((i) => {
+    const pos = i.label;
+    const offShare = o.first_td_games ? (o.first_td_position[pos] || 0) / o.first_td_games : null;
+    const defShare = d.trailing_games ? (d.first_td_position_allowed[pos] || 0) / d.trailing_games : null;
+    tiles.push(tile(`${pos} 1st TD`,
+      box(pctTxt(offShare), bucketShareTier("first_td_position", "first_td_games", pos, offTeam)),
+      box(pctTxt(defShare), bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true)),
+      `target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}`));
+  });
+  const rz = (key, team, invert) => box(pctTxt(DATA.team_stats[team][key]), DATA.team_stats[team][key] === null ? "" : percentileClsFor(key, team, invert));
+  tiles.push(tile("RZ finish", rz("pre_first_td_rz_conversion_rate", offTeam, false), rz("pre_first_td_rz_conversion_rate_allowed", defTeam, true)));
+  const tone = chance >= 0.55 ? "tier-good" : chance <= 0.45 ? "tier-bad" : "tier-mid";
+  return `<div class="sc-block tdf">
+    <div class="sc-label">First TD</div>
+    <div class="tdt-grid">
+      <div class="tdt tdf-big"><div class="tdt-head"><span class="tdf-title">1st TD chance</span></div><span class="tdt-v tdf-chance ${tone}">${Math.round(chance * 100)}%</span></div>
+      ${tiles.join("")}
+    </div>
   </div>`;
 }
 
@@ -1635,37 +1706,18 @@ function renderSummaryCard(away, home) {
     </div>
 
     <div class="sc-body">
-      <div class="sc-main">
-        <section class="sc-section sc-zoom-target">
-          <div class="sc-section-title">Season TD Targets</div>
-          <div class="sc-cols sc-grid4">
-            ${summarySeasonColumn(away, home, week)}
-            ${summarySeasonColumn(home, away, week)}
-          </div>
-        </section>
-
-        <div class="td-bottom">
-        <section class="sc-section sc-section-ftd">
-          <div class="sc-section-title">First TD</div>
-          <div class="sc-split">
-            <span class="sc-split-team">${away} <b>${Math.round(pAway * 100)}%</b></span>
-            <div class="ftd-split-bar"><span style="width:${pAway * 100}%;background:rgb(${rgbA.join(",")})"></span><span style="width:${(1 - pAway) * 100}%;background:rgb(${rgbH.join(",")})"></span></div>
-            <span class="sc-split-team"><b>${Math.round((1 - pAway) * 100)}%</b> ${home}</span>
-          </div>
-          <div class="sc-split-label">chance to score the game's first TD</div>
-          <div class="sc-cols sc-grid2">
-            ${summaryFirstTdColumn(away, home, pAway, week)}
-            ${summaryFirstTdColumn(home, away, 1 - pAway, week)}
-          </div>
-        </section>
-        ${railHidden ? "" : summaryOddsRail(away, home, week)}
+      <div class="sc-main sc-zoom-target">
+        <div class="td-cols">
+          ${summarySeasonColumn(away, home, week, pAway, game)}
+          ${summarySeasonColumn(home, away, week, 1 - pAway, game)}
         </div>
       </div>
+      ${railHidden ? "" : summaryOddsRail(away, home, week)}
     </div>
 
     <div class="sc-footer">
       <span><span class="target-chip target-chip-strong">Strong</span> <span class="target-chip">Lean</span> <span class="target-due">&#9650;</span> usage ahead of TDs &middot; numbers colored like the charts (vs. league)</span>
-      <span>Model % = chance to score the game's first TD &middot; highlighted rows: model above the odds' implied %</span>
+      <span>1st TD chance = this game &middot; Scored 1st = season rate &middot; &#9733; = how many of the team's targets and tags a player fits</span>
     </div>
   </div>`;
   fitWideSummaryCard();

@@ -427,14 +427,30 @@ context. It is the only copy that travels with the repo.
     the offense's usage (the user wants the tendency visible), but the line prints the offense's
     own share of TDs at that position, so both sides are on the card. Key players: that
     position's top usage players. Week 4: 9 tags across 32 sides.
-  - **TD Summary layout (2026-10-05, from the user's marked-up screenshot; approved from a
-    mockup):** Season TD Targets spans the card (`.td-card`), and in each team column Key Players
-    sit in a short list beside the Matchup Tags. The bottom row is First TD (compact, both teams
-    side by side, `SUMMARY_FIRST_TD_PLAYERS` = 5, odds and implied % on one line) next to TD Odds
-    (the picks, teams side by side). Only Season TD Targets grows (`.sc-zoom-target`, read by
-    `fitWideSummaryCard`): Week 4 games landed 1.0-1.25x. Hiding TD Odds gives First TD the
-    whole bottom row. Colliding short names (Bijan / Brian Robinson) show in full
-    (`uniqueShortNames`).
+  - **TD Summary layout (facelift 2026-10-09, built from the user's notes over 6 mockups):** like the
+    Props card, one full-height column per team (`.td-team`, rows aligned across the two columns
+    with subgrid -- the user likes them lined up) plus the TD Odds picks as a 250px right rail.
+    Each column, top to bottom:
+    - **Header** (`summaryTdTeamBanner`): team color block with name/logo and a one-line fact strip:
+      Implied TDs (implied points from Novig spread + total, / 7), Top TD position (biggest share of
+      the team's TDs), photos of the top 2 key players.
+    - **TD Targets** as tiles: chip label centered on top, two big shaded boxes (team | opp allows),
+      share % small under distance values. No units, no numbered bubbles; the First TD target is
+      left out (it's the First TD section's Scored 1st tile).
+    - **Matchup Tags** as tiles in the same style (`summaryTagTile`): each " · " part of the tag's
+      line becomes a box, the first number pulled out big ("TB 3.4 RZ trips/g"); a number followed
+      by "+" stays in the label ("7+ box"); boxes tinted green (tag helps the offense) / yellow
+      (works against it). "(lg x)" league notes are dropped on the card (user: no small gray text).
+    - **First TD** (`summaryFirstTdBlock`): the big 1st TD chance box (this game), then First TD tab
+      stats as tiles: Scored 1st (season rate vs allowed), the First TD tab's flagged position
+      shares, RZ finish before the first TD. **No model player list** (user: "stop with the first td
+      model player crap").
+    - **Key Players** at the bottom, centered, with ★ = how many of the team's targets/tags the
+      player fits (replaced the numbered badges).
+    Leftover tiles in a row are centered under the row above (flex, not grid). Only `.sc-main`
+    grows (`.sc-zoom-target`); the fit check also watches tiles and boxes for overflow. Week 5: 8 of
+    15 games grow 1.0-1.25x, 7 dense ones shrink to 0.86-0.96 (still bigger type than the old card),
+    0 overflow. Colliding short names (Bijan / Brian Robinson) show in full (`uniqueShortNames`).
   - **No DST targets anywhere (user 2026-10-02; TD Targets panel too since 2026-10-05):**
     defensive/return TDs are random and not bet, so `targetGroups` (app.js) drops DST items for
     both the TD Targets panel and the Summary card (First TD position targets already skipped

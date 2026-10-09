@@ -2811,6 +2811,100 @@ footer { border-top-color: var(--border); }
 .td-card .sc-section-odds > .sc-section-title { grid-column: 1 / -1; }
 .td-card .sc-odds-block { min-width: 0; }
 .td-card .sc-odds-team { margin-top: 0; }
+/* TD Summary team section, punchier (2026-10-09, mockup for the user): targets as tiles with
+   two big shaded boxes; matchup-tag sentences split into small stat boxes. */
+.td-card .tdt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 2px; }
+.td-card .tdt { display: flex; flex-direction: column; gap: 4px; padding: 6px 6px 5px; border-radius: 10px; background: var(--panel); border: 1px solid var(--border); min-width: 0; }
+.td-card .tdt-head { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.td-card .tdt-head .target-chip { flex: 0 0 auto; font-size: 0.82rem; white-space: nowrap; }
+.td-card .tdt-vals { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.td-card .tdt-cell { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.td-card .tdt-who { font-size: 0.54rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; white-space: nowrap; }
+.td-card .tdt-v { display: block; padding: 3px 2px; border-radius: 7px; text-align: center; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; line-height: 1.15; background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--border); white-space: nowrap; }
+.td-card .tdt-v.tier-good { box-shadow: inset 0 0 0 1px rgba(var(--good-rgb), 0.5); }
+.td-card .tdt-v.tier-mid { box-shadow: inset 0 0 0 1px rgba(var(--mid-rgb), 0.45); }
+.td-card .tdt-v.tier-bad { box-shadow: inset 0 0 0 1px rgba(var(--bad-rgb), 0.5); }
+.td-card .tdt-v .sc-share { display: block; margin: 0; font-size: 0.62rem; line-height: 1; }
+.td-card .tdt-foot { font-size: 0.56rem; color: var(--muted); text-align: center; font-weight: 700; }
+.td-card .tdt-head { flex-wrap: wrap; row-gap: 2px; }
+.td-card .target-soft-tag { font-size: 0.55rem; }
+.td-card .tdt-unit { flex: 1 1 0; min-width: 0; margin-left: auto; padding-left: 4px; font-size: 0.54rem; color: var(--muted); font-weight: 700; text-align: right; line-height: 1.05; }
+.td-card .sc-grid4 .sc-keys { flex-wrap: nowrap; }
+.td-card .sc-tags { gap: 6px; }
+.td-card .sc-tags li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 6px; }
+.td-card .sc-tags .tag-chip { font-size: 0.8rem; padding: 2px 9px; }
+.td-card .sc-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+.td-card .sc-pill { padding: 1px 6px; border-radius: 5px; background: var(--panel); border: 1px solid var(--border); font-size: 0.74rem; font-weight: 700; white-space: nowrap; }
+.td-card .sc-pill small { color: var(--muted); font-weight: 600; font-size: 0.68rem; }
+.td-card .sc-key { font-size: 0.84rem; }
+/* TD Summary facelift v3 (2026-10-09, user: "an entire DAL side and an entire TB side, top to
+   bottom, like the player props"): two full-height team columns (targets, matchup tags as tiles,
+   that team's First TD, key players at the bottom) plus the TD Odds rail. */
+.td-card .sc-body { grid-template-columns: minmax(0, 1fr) 250px; }
+.td-card.sc-no-rail .sc-body { grid-template-columns: minmax(0, 1fr); }
+.td-card .sc-main { display: flex; flex-direction: column; }
+.td-card .td-cols { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto auto 1fr; column-gap: 12px; }
+.td-card .td-team { grid-row: span 5; display: grid; grid-template-rows: subgrid; row-gap: 10px; align-content: start; padding: 10px 10px 12px; }
+.td-card .td-team .sc-label { margin: 0 0 5px; }
+.td-card .td-keys { align-self: end; }
+.td-card .td-keys .sc-keys { flex-wrap: wrap; flex-direction: row; }
+.td-card .tdt-tags { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.td-card .tdt-tags .tdt-wide { grid-column: span 2; }
+.td-card .tdt-tag .tag-chip { font-size: 0.8rem; padding: 2px 9px; white-space: nowrap; }
+.td-card .tgt-boxes { display: grid; gap: 4px; }
+.td-card .tgt-box { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.td-card .tgt-label { font-size: 0.54rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); text-align: center; line-height: 1.1; }
+.td-card .tgt-v { display: block; padding: 3px 3px; border-radius: 7px; text-align: center; font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; line-height: 1.15; background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--border); }
+.td-card .tgt-v small { margin-left: 3px; font-family: var(--font-body, inherit); font-size: 0.58rem; font-weight: 700; opacity: 0.85; }
+.td-card .tgt-v.tier-good { box-shadow: inset 0 0 0 1px rgba(var(--good-rgb), 0.5); }
+.td-card .tgt-v.tier-mid { box-shadow: inset 0 0 0 1px rgba(var(--mid-rgb), 0.45); }
+.td-card .tgt-lg { font-size: 0.54rem; color: var(--muted); text-align: center; font-weight: 600; }
+.td-card .tdf-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 5px; }
+.td-card .tdf-head .sc-label { margin: 0; }
+.td-card .tdf-chance { padding: 1px 9px; border-radius: 7px; font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; box-shadow: inset 0 0 0 1px var(--border); }
+.td-card .tdf-sub { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
+.td-card .tdf-head .sc-pos-chips { margin-left: auto; }
+.td-card .tdf-rows { display: grid; gap: 3px; }
+.td-card .ftd-row { display: grid; grid-template-columns: minmax(0, 1fr) 54px 92px; align-items: center; gap: 6px; padding: 3px 7px; border-radius: 8px; background: var(--panel); border: 1px solid var(--border); font-size: 0.86rem; }
+.td-card .ftd-row .player-click { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.td-card .ftd-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.td-card .ftd-est { text-align: right; font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+.td-card .ftd-odds { text-align: right; font-weight: 700; white-space: nowrap; }
+.td-card .ftd-odds .muted { font-size: 0.72rem; }
+.td-card .ftd-row.ftd-hdr { background: transparent; border-color: transparent; padding-top: 0; padding-bottom: 0; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.td-card .ftd-row.ftd-hdr .ftd-est { font-family: inherit; font-size: inherit; }
+.td-card .ftd-row.ftd-edge-lean { background: rgba(var(--good-rgb), 0.1); border-color: rgba(var(--good-rgb), 0.35); }
+.td-card .ftd-row.ftd-edge-strong { background: rgba(var(--good-rgb), 0.22); border-color: rgba(var(--good-rgb), 0.55); }
+.td-card .sc-section-odds { display: flex; flex-direction: column; }
+/* v4 (2026-10-09): no numbered bubbles, labels centered at the top of each tile, stars on key
+   players, First TD as tiles (no model player list). */
+.td-card .tdt-head { justify-content: center; }
+.td-card .td-team .sc-label { text-align: center; display: block; }
+.td-card .sc-stars { margin-left: 4px; color: #f5b301; letter-spacing: 1px; font-size: 0.82rem; }
+.td-card .tdf-big { justify-content: space-between; }
+.td-card .tdf-title { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.td-card .tdt-v.tdf-chance { font-size: 1.7rem; padding: 4px 2px; }
+/* v5 (2026-10-09): leftover tiles center under the row above (flex instead of grid),
+   key players centered, no small gray notes inside the boxes. */
+.td-card .tdt-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.td-card .tdt-grid > .tdt { flex: 0 0 calc((100% - 12px) / 3); }
+.td-card .tdt-grid.tdt-tags > .tdt { flex-basis: calc((100% - 6px) / 2); }
+.td-card .tdt-grid.tdt-tags > .tdt-wide { flex-basis: 100%; }
+.td-card .td-keys .sc-keys { justify-content: center; }
+.td-card .tdf-big { justify-content: flex-start; gap: 6px; }
+/* v6 (2026-10-09): team header fact strip -- implied TDs | top TD position | top 2 players */
+.td-card .td-banner { flex-direction: column; align-items: stretch; gap: 5px; padding: 7px 10px 8px; }
+.td-card .td-banner-name { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.td-card .td-facts { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; border-top: 1px solid rgba(127, 127, 127, 0.25); padding-top: 5px; }
+.td-card .td-fact { display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 0; white-space: nowrap; }
+.td-card .td-fact:first-child { align-items: flex-start; }
+.td-card .td-fact-val { display: flex; align-items: baseline; gap: 4px; }
+.td-card .td-fact-label { font-size: 0.56rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.td-card .td-fact b { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; }
+.td-card .td-fact small { font-size: 0.66rem; color: var(--muted); font-weight: 700; }
+.td-card .td-fact-players { flex-direction: row; justify-content: flex-end; align-items: center; gap: 6px; }
+.td-card .td-fact-players .player-click { display: inline-flex; }
+.td-card .td-fact-players .sc-headshot { border: 2px solid rgba(255, 255, 255, 0.7); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); }
 /* Hide the picks column (any Summary card): the main content takes the whole card (common.js fitWideSummaryCard zooms it to fill) */
 .sc-inner.sc-no-rail .sc-body { grid-template-columns: minmax(0, 1fr); }
 /* Garbage-time note: neutral gray, dashed edge, so it reads as a caution, not a rank */
