@@ -295,6 +295,7 @@ async function handleApi(request, env, session, json) {
 // a mode whose IDs are blank.
 const STRIPE_PRICE_IDS = {
   test: { monthly: "price_1UOKQhLM3ebsVWbZWbCfXE9X", yearly: "price_1UOKQhLM3ebsVWbZrn3B6uGt" },
+  // Live prices + sk_live_ key in place 2026-10-09: memberships open to everyone.
   live: { monthly: "price_1UOg8YLM3ebsVWbZZQXVqT3q", yearly: "price_1UOg99LM3ebsVWbZZwm7LMCD" },
 };
 const PLANS = {
