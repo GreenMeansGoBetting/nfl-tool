@@ -3534,3 +3534,31 @@ main { max-width: 1840px; }
             mask-image: linear-gradient(to right, #000 88%, transparent);
   }
 }
+
+/* ---- Support page: links + codes from gmgsports.org/links.json, hub look (Black, ALL CAPS) ---- */
+.support { max-width: 980px; margin: 0 auto; font-family: "Barlow Semi Condensed", sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; }
+.support-head h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; margin: 6px 0 4px; }
+.support-head .section-note { font-weight: 600; margin: 0 0 16px; }
+.support-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.sup-social { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--text); text-decoration: none; font-size: 0.9rem; }
+.sup-social:hover { border-color: var(--accent); }
+.sup-social .sup-icon { width: 28px; height: 28px; border-radius: 50%; font-size: 1rem; background: transparent; }
+.sup-social img[src*="x-logo"] { background: #000; padding: 6px; }
+.sup-section { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: var(--muted); margin: 0 0 10px; }
+.sup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+.sup-card { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; color: var(--text); text-decoration: none; transition: transform .15s ease, border-color .15s ease; }
+.sup-card:hover { border-color: rgba(var(--accent-rgb), 0.6); transform: translateY(-2px); }
+.sup-icon { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; object-fit: contain; background: #fff; display: grid; place-items: center; font-size: 1.5em; }
+.sup-emoji { background: var(--accent); }
+.sup-text { flex: 1; min-width: 0; }
+.sup-name { display: block; font-size: 1.05rem; }
+.sup-blurb { display: block; font-size: 0.85rem; color: var(--muted); margin-top: 1px; }
+.sup-arrow { color: var(--muted); }
+.sup-copy, .sup-badge { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 78px; min-height: 38px; padding: 6px 12px; border: 0; border-radius: 10px; font: inherit; line-height: 1.05; letter-spacing: 0.04em; text-align: center; text-transform: inherit; }
+.sup-copy { background: #ffd23f; color: #1a1400; cursor: pointer; }
+.sup-copy small { font-size: 0.62em; letter-spacing: 0.12em; opacity: 0.7; }
+.sup-copy b { font-size: 1.05em; font-weight: 900; }
+.sup-copy:hover { filter: brightness(1.08); }
+.sup-copy.done { background: #fff; }
+.sup-badge { background: var(--accent); color: var(--on-accent); font-size: 0.9em; }
+@media (max-width: 700px) { .sup-grid { grid-template-columns: 1fr; } }

@@ -331,7 +331,7 @@ function gsPickRail(game) {
     <div class="gs-novig">
       <div class="gs-novig-head"><img src="novig-logo.jpg" alt="Novig" class="gs-novig-logo"><span>Odds provided by <b>Novig</b></span></div>
       <img src="novig-qr.png" alt="Scan to sign up for Novig" class="gs-novig-qr">
-      <p class="gs-novig-offer">New users: deposit <b>$10</b>, get <b>$25</b> in trade credits with code <span class="gs-novig-code">GMGO</span></p>
+      <p class="gs-novig-offer">New users: deposit <b>$10</b>, get <b>$50</b> in trade credits with code <span class="gs-novig-code">GMGO</span></p>
     </div>
   </section>`;
 }

@@ -54,6 +54,13 @@ context. It is the only copy that travels with the repo.
   - Local builds: `nfl_tool/build_stats.py` only downloads a data file if it's missing
     (`download_if_missing`), so a local `data/` folder goes stale. Delete `data/*_2026*` and
     `data/games.csv` before a local build that needs the latest games. CI always starts fresh.
+  - `support.html`: **Support** tab (added 2026-10-09, last in the nav after Promo Tools). Shows the
+    user's socials (pill buttons) and codes/tools cards in the gmgsports.org hub look (Black, ALL
+    CAPS, gold copy-code buttons, green "Free trial" badges). It fetches
+    `https://gmgsports.org/links.json` live (CORS allows it; logo paths get the hub prefix), so to
+    change a link, code or blurb edit `links.json` in the hub repo (josh-conley/gmg-site), not here.
+    The hub's "suite" section is skipped. Novig offer is **$50** in trade credits for a $10 deposit
+    (also hardcoded in `game-summary.js` and `game-overview.html` Novig panels).
   - `promo-tools.html/.js`: **Promo Tools** tab (added 2026-10-05). First section: **King of the
     Endzone** (DraftKings' weekly promo paying on the game's LONGEST TD, D/ST included).
     - Team checklist for this week's games (per-device, `nfl-tool.koe.teams`), position filter.
@@ -245,7 +252,7 @@ context. It is the only copy that travels with the repo.
   - Player props, Anytime/First TD, and game spread/total/moneyline (`game.novig`) come
     from Novig. A market is only used from Novig when both sides are priced. Thin books
     are flagged `thin`.
-  - The user promotes Novig (code **GMGO**: deposit $10 → $25 in trade credits; QR at
+  - The user promotes Novig (code **GMGO**: deposit $10 → $50 in trade credits; QR at
     `site/novig-qr.png`). The user says Novig is fine with outside tools reading its feed.
   - SGO (SportsGameOdds, free tier) leaves many props without a book price. See
     `sgo_props_debug` in data.json.

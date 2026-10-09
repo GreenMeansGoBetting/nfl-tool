@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="game-overview.html" aria-label="GMG's NFL Suite home"><span class="brand-mark">GMG</span><span class="brand-name">NFL <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="game-overview.html">Game Previews</a>
+    <a href="index.html">TD Data</a>
+    <a href="player-props.html">Player Props</a>
+    <a href="possible-plays.html">Possible Plays</a>
+    <a href="promo-tools.html">Promo Tools</a>
+    <span class="page-nav-current">Support</span>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+    <a href="https://github.com/GreenMeansGoBetting/nfl-tool/actions/workflows/deploy.yml" target="_blank" rel="noopener" class="update-odds-link" title="Opens GitHub Actions in a new tab -- click &quot;Run workflow&quot; there to fetch fresh odds right now">&#128260; Update Odds</a>
+  </div>
+</div>
+
+<main class="support">
+  <div class="support-head">
+    <h2>Support GMG</h2>
+    <p class="section-note">Using these codes and links is the easiest way to support the channel and the Suite. Tap a code to copy it.</p>
+  </div>
+  <div id="support-socials" class="support-socials"></div>
+  <div id="support-links" class="support-cards"><p class="section-note">Loading links&hellip;</p></div>
+</main>
+
+<script src="sync.js"></script>
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script>
+// Links come from gmgsports.org/links.json -- the same file the hub reads, so a code or
+// link changed there updates both sites. Logo paths in it are relative to gmgsports.org.
+(function () {
+  const HUB = "https://gmgsports.org/";
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const logo = p => /^https?:/.test(p) ? p : HUB + p;
+  const icon = item => item.logo
+    ? `<img class="sup-icon" src="${esc(logo(item.logo))}" alt="" loading="lazy">`
+    : `<span class="sup-icon sup-emoji" aria-hidden="true">${esc(item.emoji || "🔗")}</span>`;
+
+  function card(item) {
+    const end = item.code
+      ? `<button class="sup-copy" type="button" data-code="${esc(item.code)}" title="Copy code"><small>CODE</small><b>${esc(item.code)}</b></button>`
+      : item.badge ? `<span class="sup-badge">${esc(item.badge).split(" ").join("<br>")}</span>`
+      : `<span class="sup-arrow">&rarr;</span>`;
+    return `<a class="sup-card" href="${esc(item.url)}" target="_blank" rel="noopener">${icon(item)}
+      <span class="sup-text"><span class="sup-name">${esc(item.name)}</span>${item.blurb ? `<span class="sup-blurb">${esc(item.blurb)}</span>` : ""}</span>${end}</a>`;
+  }
+
+  fetch(HUB + "links.json", { cache: "no-cache" })
+    .then(r => r.json())
+    .then(data => {
+      const sections = (data && data.sections) || [];
+      const socials = sections.find(s => s.id === "socials");
+      if (socials) document.getElementById("support-socials").innerHTML = socials.items.map(i =>
+        `<a class="sup-social" href="${esc(i.url)}" target="_blank" rel="noopener">${icon(i)}<span>${esc(i.name)}</span></a>`).join("");
+      // The Suite banner section is skipped -- you're already here.
+      document.getElementById("support-links").innerHTML = sections
+        .filter(s => s.id !== "socials" && s.id !== "suite")
+        .map(s => `<h3 class="sup-section">${esc(s.title)}</h3><div class="sup-grid">${s.items.map(card).join("")}</div>`).join("");
+    })
+    .catch(() => {
+      document.getElementById("support-links").innerHTML =
+        `<p class="section-note">Couldn't load the links right now &mdash; find them all at <a href="${HUB}" target="_blank" rel="noopener">gmgsports.org</a>.</p>`;
+    });
+
+  // Copy a promo code without following the card's link.
+  document.addEventListener("click", e => {
+    const btn = e.target.closest(".sup-copy");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const code = btn.dataset.code;
+    const done = () => {
+      btn.innerHTML = "<small>CODE</small><b>COPIED!</b>";
+      btn.classList.add("done");
+      setTimeout(() => { btn.innerHTML = `<small>CODE</small><b>${esc(code)}</b>`; btn.classList.remove("done"); }, 1400);
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(code).then(done, done);
+    else done();
+  });
+})();
+</script>
+</body>
+</html>
