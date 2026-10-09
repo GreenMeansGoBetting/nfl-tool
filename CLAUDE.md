@@ -175,6 +175,8 @@ context. It is the only copy that travels with the repo.
          reset passwords at `/admin/members`).
        - Stacks under 720px. When Join is closed (test mode for non-owners), the right box says email
          memberships are coming soon.
+       - All text on these pages is ALL CAPS (`page()` CSS, buttons included), like the
+         gmgsports.org style. Typed input values and tables stay as written.
      - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
        ~8c. The flat 30c is what hurts, which is why there's a yearly plan.
      - **To go live:** in Stripe's live mode, (1) activate the account, (2) copy the product to live

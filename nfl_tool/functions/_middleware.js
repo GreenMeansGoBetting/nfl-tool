@@ -116,6 +116,8 @@ function page(title, inner, status = 200, headers = {}, wide = false) {
 .col p{margin:0 0 12px}.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem;margin:14px 0 2px}.or:before,.or:after{content:"";flex:1;height:1px;background:var(--border)}
 @media(max-width:720px){.cols{grid-template-columns:1fr}}
 .box{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px 26px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+body,button{text-transform:uppercase;letter-spacing:.02em}
+input,table{text-transform:none;letter-spacing:normal}input::placeholder{text-transform:uppercase;letter-spacing:.02em}
 .logo{display:block;width:170px;height:auto;margin:0 auto;filter:drop-shadow(0 0 1px rgba(255,255,255,.45)) drop-shadow(0 4px 14px rgba(0,0,0,.5))}
 h1{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 6px}h1 b{color:var(--accent)}
 .col .sub{color:var(--text);font-weight:600}
