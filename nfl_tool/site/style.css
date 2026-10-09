@@ -3596,3 +3596,6 @@ main { max-width: 1840px; }
 /* TD banner: top TD scorers with a count bubble half over the photo's bottom-right */
 .td-card .td-scorer { position: relative; display: inline-flex; }
 .td-card .td-scorer-n { position: absolute; right: -5px; bottom: -4px; min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--accent); color: var(--on-accent); border: 1.5px solid var(--panel); font-size: 0.68rem; font-weight: 800; line-height: 14px; text-align: center; pointer-events: none; }
+
+/* TD Odds rail team headers: same team-color fill as the column banners (user 2026-10-09) */
+.td-card .sc-odds-team { padding: 6px 10px; border-radius: 8px; }

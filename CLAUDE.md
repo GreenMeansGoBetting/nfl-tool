@@ -462,6 +462,7 @@ context. It is the only copy that travels with the repo.
   - **TD Summary layout (facelift 2026-10-09, built from the user's notes over 6 mockups):** like the
     Props card, one full-height column per team (`.td-team`, rows aligned across the two columns
     with subgrid -- the user likes them lined up) plus the TD Odds picks as a 250px right rail.
+    The rail's team headers use the same team-color fill + left stripe as the column banners.
     Each column, top to bottom:
     - **Header** (`summaryTdTeamBanner`): team color block with name/logo and a one-line fact strip:
       Implied TDs (implied points from Novig spread + total, / 7), Top TD position (biggest share of
