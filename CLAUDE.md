@@ -160,10 +160,21 @@ context. It is the only copy that travels with the repo.
        The key in use (sk_test_ / sk_live_) picks the set, and Join stays closed in a mode with blank
        IDs, so the GitHub key can be swapped in any order. A subscription Stripe doesn't know
        (`resource_missing`, e.g. test members after going live) marks that member canceled.
-     - **One sign-in screen (user 2026-10-08):** `accessPage` renders "Already a member" (Discord, or
-       email + password) beside "New here?" (email + the two free-trial plan buttons) in one wide box;
-       stacks under 720px. Used by the login gate, `/join` and every sign-in error. When Join is closed
-       (test mode for non-owners, or no live prices) the right panel says memberships are coming soon.
+     - **One sign-in screen (redone 2026-10-09 to the user's wording):**
+       - Header: the real GMG logo (`site/brand/gmg-logo.png`, served publicly through the `/brand/`
+         bypass in the middleware) and **"GMG Sports Data Suite"**. The brand isn't NFL-only; NBA is
+         coming.
+       - `accessPage`, left box **"Join with Discord"**: "For $5 a month, get access to the site and
+         Discord server.", a **Join now** button (INVITE_URL, Buildr) and **Log in with Discord**.
+       - Right box **"Hate Discord? No problem"**: "7-day free trial, then $5 a month or $45 a year.
+         Access to the entire site.", the email box, the two trial plan buttons, and a small "Already
+         joined with email? Sign in" link to `/auth/email`.
+       - `/auth/email` is its own page (`emailPage`): email + password form, and where every email
+         sign-in error lands.
+       - The "forgot your password" line was removed at the user's request (the owner can still
+         reset passwords at `/admin/members`).
+       - Stacks under 720px. When Join is closed (test mode for non-owners), the right box says email
+         memberships are coming soon.
      - Fees (approx., verify current rates): card ~2.9% + 30c + ~0.7% Billing = ~49c of $5; ACH
        ~8c. The flat 30c is what hurts, which is why there's a yearly plan.
      - **To go live:** in Stripe's live mode, (1) activate the account, (2) copy the product to live
