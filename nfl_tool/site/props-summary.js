@@ -946,7 +946,7 @@ function propsRail(away, home, linesByTeam, gameKey) {
       )
       .join("");
     const rgb = teamAccentRgb(team);
-    return `<div class="sc-odds-team" style="border-left:4px solid rgb(${rgb.join(",")})">
+    return `<div class="sc-odds-team" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
         <img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt=""><span class="sc-ftd-team">${team}</span>
       </div>
       ${rows ? `<table class="sc-table sc-odds ps-rail"><tbody>${rows}</tbody></table>` : `<p class="sc-odds-empty">Click Prop Picks to add lines</p>`}`;
