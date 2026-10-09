@@ -999,6 +999,10 @@ def _novig_player_team(market):
     return normalize_team(NOVIG_TEAM_FIXES.get(sym, sym)) if sym else None
 
 
+# Highest believable Yes price per TD market (a first-TD favorite is ~30%).
+TD_YES_MAX = {"TOUCHDOWNS": 0.95, "FIRST_TOUCHDOWN_SCORER": 0.5}
+
+
 def extract_novig_props(novig_games: dict, teams, roster_positions: dict, unavailable: set) -> tuple:
     """(ou, anytime, first): ou is {stat_id: {team: [rows]}} shaped like
     extract_player_ou_props; anytime/first are {team: [rows]} shaped like
@@ -1007,6 +1011,7 @@ def extract_novig_props(novig_games: dict, teams, roster_positions: dict, unavai
     anytime = {t: [] for t in teams}
     first = {t: [] for t in teams}
     for markets in novig_games.values():
+        game_td_rows = []  # (type, team, yes, no, row) -- chances set once the whole game is read
         for m in markets:
             if not m.get("is_consensus") or not m.get("player"):
                 continue
@@ -1032,12 +1037,28 @@ def extract_novig_props(novig_games: dict, teams, roster_positions: dict, unavai
                 if mtype == "TOUCHDOWNS" and float(m.get("strike") or 0) != 0.5:
                     continue
                 odds = novig_price_to_american(yes_p)
-                # One-sided (no one selling "No") = too thin to read a chance from.
-                if odds is None or not no_p:
-                    continue
-                fair = yes_p / (yes_p + no_p)
-                row = {"name": name, "position": position, "best_odds": odds, "best_book": "Novig", "fair_odds": novig_price_to_american(fair), "implied_prob": round(fair, 3)}
-                (anytime if mtype == "TOUCHDOWNS" else first)[team].append(row)
+                if odds is None or yes_p > TD_YES_MAX[mtype] or (no_p and yes_p + no_p > 1.5):
+                    continue  # junk quote (e.g. 99.9c on both sides of a backup TE's First TD)
+                game_td_rows.append((mtype, team, yes_p, no_p, {"name": name, "position": position, "best_odds": odds, "best_book": "Novig", "thin": not no_p}))
+        # Chances. Most Novig First TD markets (and ~40% of Anytime) are
+        # one-sided -- a Yes price but no one selling No -- and used to be
+        # dropped, leaving 2-5 First TD prices a game (user, 2026-10-09:
+        # "a lot of first TDs not populating"). Now every Yes price is kept:
+        #  * First TD is one race per game, so each Yes is de-vigged against
+        #    the sum of every player's Yes in that game (never inflated when
+        #    the list is short and sums under 1).
+        #  * Anytime uses Yes/(Yes+No) when both sides trade; a one-sided
+        #    one gets the game's median fair/Yes ratio from the two-sided ones.
+        first_sum = sum(y for t, _, y, _, _ in game_td_rows if t == "FIRST_TOUCHDOWN_SCORER")
+        ratios = sorted((y / (y + n)) / y for t, _, y, n, _ in game_td_rows if t == "TOUCHDOWNS" and n)
+        any_ratio = ratios[len(ratios) // 2] if ratios else 0.9
+        for mtype, team, yes_p, no_p, row in game_td_rows:
+            if mtype == "FIRST_TOUCHDOWN_SCORER":
+                fair = yes_p / max(first_sum, 1.0)
+            else:
+                fair = yes_p / (yes_p + no_p) if no_p else min(yes_p * any_ratio, 0.99)
+            row.update({"fair_odds": novig_price_to_american(fair), "implied_prob": round(fair, 3)})
+            (anytime if mtype == "TOUCHDOWNS" else first)[team].append(row)
     for stat in ou:
         for t in ou[stat]:
             ou[stat][t].sort(key=lambda r: -(r["line"] or 0))

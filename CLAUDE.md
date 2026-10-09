@@ -261,8 +261,17 @@ context. It is the only copy that travels with the repo.
     - Games come from `GET https://api.novig.us/v3/public/catalog/events?league=NFL`.
     - `is_consensus` marks the main line; `outcomes[].available` is the price (0–1).
   - Player props, Anytime/First TD, and game spread/total/moneyline (`game.novig`) come
-    from Novig. A market is only used from Novig when both sides are priced. Thin books
-    are flagged `thin`.
+    from Novig. Thin books are flagged `thin`.
+    - **TD markets keep one-sided prices** (changed 2026-10-09). Most First TD markets, and
+      about 40% of Anytime ones, have a Yes price but no No. Requiring both sides left only 2–5
+      First TD prices a game.
+    - First TD chance = Yes ÷ the sum of every player's Yes in that game (never divided by
+      less than 1).
+    - Anytime chance = Yes/(Yes+No) when both sides trade. A one-sided one gets Yes × the
+      game's median fair/Yes ratio.
+    - Junk quotes are dropped: First TD Yes > 0.5, Anytime Yes > 0.95, or Yes+No > 1.5 (e.g.
+      99.9¢/99.9¢ on a backup TE).
+    - Other prop over/unders still need at least one side priced.
   - The user promotes Novig (code **GMGO**: deposit $10 → $50 in trade credits; QR at
     `site/novig-qr.png`). The user says Novig is fine with outside tools reading its feed.
   - SGO (SportsGameOdds, free tier) leaves many props without a book price. See
