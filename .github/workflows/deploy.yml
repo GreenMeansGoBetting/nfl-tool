@@ -170,6 +170,8 @@ jobs:
             npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "ALTER TABLE members ADD COLUMN $col" || true
           done
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS trial_cards (fingerprint TEXT PRIMARY KEY, email TEXT NOT NULL, created INTEGER)"
+          # "Request a feature" ideas from members (owner reads them from the same button).
+          npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS feature_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT NOT NULL, name TEXT, text TEXT NOT NULL, created INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'new')"
 
       # Deployed from nfl_tool/ so wrangler bundles nfl_tool/functions (the
       # login gate) alongside the static site folder.

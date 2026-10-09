@@ -250,8 +250,59 @@ const SYNC_KEYS = new Set([
 ]);
 const SYNC_MAX_BYTES = 512 * 1024;
 
+// ---- Feature requests (added 2026-10-09) ----
+// Any member can send an idea from the "Request a feature" button; the
+// owner's same button lists them all (D1 `feature_requests`) to mark
+// added or delete. Members never see anyone else's requests.
+const REQUEST_MAX_CHARS = 1000;
+const REQUESTS_PER_DAY = 10; // per member, stops accidental floods
+const REQUEST_STATUSES = ["new", "added", "deleted"];
+
+async function handleRequests(request, env, session, json) {
+  const owner = isOwnerSession(session);
+  if (request.method === "POST") {
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return json({ error: "bad json" }, 400);
+    }
+    const text = String((body && body.text) || "").trim().slice(0, REQUEST_MAX_CHARS);
+    if (!text) return json({ error: "empty" }, 400);
+    const since = Date.now() - 24 * 3600 * 1000;
+    const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM feature_requests WHERE uid = ? AND created > ?").bind(session.uid || session.name, since).first();
+    if (recent && recent.n >= REQUESTS_PER_DAY && !owner) return json({ error: "limit" }, 429);
+    await env.DB.prepare("INSERT INTO feature_requests (uid, name, text, created, status) VALUES (?, ?, ?, ?, 'new')")
+      .bind(session.uid || session.name, session.name || "", text, Date.now())
+      .run();
+    return json({ ok: true });
+  }
+  if (!owner) return json({ error: "owner only" }, 403);
+  if (request.method === "GET") {
+    const { results } = await env.DB.prepare("SELECT id, name, text, created, status FROM feature_requests WHERE status != 'deleted' ORDER BY created DESC LIMIT 500").all();
+    return json({ requests: results || [] });
+  }
+  if (request.method === "PATCH") {
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return json({ error: "bad json" }, 400);
+    }
+    const { id, status } = body || {};
+    if (!Number.isInteger(id) || !REQUEST_STATUSES.includes(status)) return json({ error: "bad item" }, 400);
+    await env.DB.prepare("UPDATE feature_requests SET status = ? WHERE id = ?").bind(status, id).run();
+    return json({ ok: true });
+  }
+  return json({ error: "method" }, 405);
+}
+
 async function handleApi(request, env, session, json) {
   const url = new URL(request.url);
+  if (url.pathname === "/api/requests") {
+    if (!env.DB) return json({ error: "no database" }, 503);
+    return handleRequests(request, env, session, json);
+  }
   if (url.pathname !== "/api/state") return json({ error: "not found" }, 404);
   if (!env.DB) return json({ error: "no database" }, 503);
   if (request.method === "GET") {

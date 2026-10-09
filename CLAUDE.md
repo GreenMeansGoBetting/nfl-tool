@@ -223,6 +223,17 @@ context. It is the only copy that travels with the repo.
   - **Owner-only controls:** `OWNER_IDS` (the user's Discord ID `613105360286253076`) makes `/api/state`
     return `user.owner`. sync.js then adds `html.is-owner`, and the **Update Odds** button (which runs
     the GitHub build) is shown only then, plus on localhost.
+  - **Request a feature (added 2026-10-09):**
+    - sync.js adds a yellow "💡 Request a feature" button just left of the account chip (logged-in
+      members only; icon-only on phones).
+    - It opens a box titled "Have an idea for a tool, data point, or feature? I will do my best to
+      get it added!". The idea is POSTed to `/api/requests` and saved in the D1 table
+      `feature_requests` (created by deploy.yml).
+    - Limits: 1000 characters per idea and 10 ideas per member per day.
+    - The owner's button reads "Feature requests" instead. It lists every idea newest first (name,
+      date), with Mark added / Undo / Delete (a PATCH; delete is soft, status `deleted`) and
+      "+ Add my own idea".
+    - Members can never read others' ideas.
   - Known bypass until fixed: the GitHub Pages copy still serves the site to anyone who hits
     GitHub's IPs directly, and the repo is public. Turn off GitHub Pages and make the repo
     private once the gate is confirmed.
