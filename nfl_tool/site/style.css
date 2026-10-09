@@ -3592,3 +3592,7 @@ main { max-width: 1840px; }
   .feature-request-btn { padding: 6px 9px; }
   .feature-request-btn .fr-label { display: none; }
 }
+
+/* TD banner: top TD scorers with a count bubble half over the photo's bottom-right */
+.td-card .td-scorer { position: relative; display: inline-flex; }
+.td-card .td-scorer-n { position: absolute; right: -5px; bottom: -4px; min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--accent); color: var(--on-accent); border: 1.5px solid var(--panel); font-size: 0.68rem; font-weight: 800; line-height: 14px; text-align: center; pointer-events: none; }

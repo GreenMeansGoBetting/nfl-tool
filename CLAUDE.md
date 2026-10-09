@@ -465,7 +465,13 @@ context. It is the only copy that travels with the repo.
     Each column, top to bottom:
     - **Header** (`summaryTdTeamBanner`): team color block with name/logo and a one-line fact strip:
       Implied TDs (implied points from Novig spread + total, / 7), Top TD position (biggest share of
-      the team's TDs), photos of the top 2 key players.
+      the team's TDs), and photos of the team's **top 3 TD scorers** (`topTdScorers`).
+      - Each photo has a green bubble on its bottom-right with that player's season TD count.
+      - Counts are rushing + receiving TDs, so a QB counts only his own runs. They are real season
+        counts from player_xtd, not the lineup-weighted ones.
+      - Players ruled out this week are skipped. Ties are broken by expected TDs per game.
+      - This used to show the top 2 key players. The user saw Burrow there with one TD, because QB
+        matchup tags made him a key player.
     - **TD Targets** as tiles: chip label centered on top, two big shaded boxes (team | opp allows),
       share % small under distance values. No units, no numbered bubbles; the First TD target is
       left out (it's the First TD section's Scored 1st tile).

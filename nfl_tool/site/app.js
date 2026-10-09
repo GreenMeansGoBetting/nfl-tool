@@ -1380,7 +1380,7 @@ function summarySeasonColumn(offTeam, defTeam, week, chance, game) {
   // One full-height column per team (2026-10-09 facelift, like the Props card):
   // targets, matchup tags in the same tile style, that team's First TD, key players.
   return `<div class="sc-col td-team">
-    ${summaryTdTeamBanner(offTeam, game, keyList.slice(0, 2).map((e) => e.name), defTeam)}
+    ${summaryTdTeamBanner(offTeam, game, topTdScorers(offTeam, week), defTeam)}
     <div class="sc-block"><div class="sc-label">TD Targets</div><div class="tdt-grid">${targetRows}</div></div>
     <div class="sc-block"><div class="sc-label">Matchup Tags</div><div class="tdt-grid tdt-tags">${tagRows}</div></div>
     ${summaryFirstTdBlock(offTeam, defTeam, chance)}
@@ -1388,10 +1388,24 @@ function summarySeasonColumn(offTeam, defTeam, week, chance, game) {
   </div>`;
 }
 
+// The team's top 3 TD scorers this season (rushing + receiving, so a QB
+// counts only for his own runs), for the banner photos. Real season counts
+// from player_xtd, not the lineup-weighted ones; anyone ruled out this week
+// is skipped (keyPlayerPool). Ties broken by expected TDs per game.
+// Replaced "top two key players" 2026-10-09: the user saw Burrow (QB tags)
+// in the TD banner with one TD.
+function topTdScorers(team, week, n = 3) {
+  const active = new Set(keyPlayerPool(team, week).map((p) => normName(p.name)));
+  return ((DATA.player_xtd || {})[team] || [])
+    .filter((p) => p.tds > 0 && p.position !== "DST" && active.has(normName(p.name)))
+    .sort((a, b) => b.tds - a.tds || b.xtd_pg - a.xtd_pg)
+    .slice(0, n);
+}
+
 // Team header with a one-line fact strip in the same color block (user
 // 2026-10-09): implied TDs from the spread + total (Novig first; ~7 points
 // per TD), the position that scores the biggest share of the team's TDs,
-// and photos of its top two key players.
+// and photos of its top TD scorers with their TD count in a bubble.
 function summaryTdTeamBanner(team, game, topPlayers, oppTeam) {
   const rgb = teamAccentRgb(team);
   const g = game ? { ...game, ...(game.novig || {}) } : {};
@@ -1401,7 +1415,9 @@ function summaryTdTeamBanner(team, game, topPlayers, oppTeam) {
   const counts = st.off_position_td || {};
   const top = POSITIONS.filter((p) => p !== "DST").sort((a, b) => (counts[b] || 0) - (counts[a] || 0))[0];
   const share = st.total_td && top ? Math.round(((counts[top] || 0) / st.total_td) * 100) : null;
-  const photos = topPlayers.map((n) => playerClick(team, n, summaryHeadshot(team, n, 36), oppTeam)).join("");
+  const photos = topPlayers
+    .map((p) => `<span class="td-scorer" title="${p.name}: ${p.tds} TD${p.tds === 1 ? "" : "s"} this season">${playerClick(team, p.name, summaryHeadshot(team, p.name, 36), oppTeam)}<span class="td-scorer-n">${p.tds}</span></span>`)
+    .join("");
   return `<div class="sc-team td-banner" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
     <div class="td-banner-name"><img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt=""><span class="sc-team-name">${TEAM_NAMES[team] || team}</span></div>
     <div class="td-facts">
