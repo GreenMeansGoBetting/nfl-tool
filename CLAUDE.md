@@ -155,7 +155,8 @@ context. It is the only copy that travels with the repo.
        reminder email before the first charge is on in the dashboard), one trial per email and per
        card. Optional promo codes for video viewers via Stripe coupons.
      - **Prices (`STRIPE_PRICE_IDS`, not secret):** test monthly $5 = `price_1UOKQhLM3ebsVWbZWbCfXE9X`,
-       test yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt`; `live` IDs blank until the user sends them.
+       test yearly $45 = `price_1UOKQhLM3ebsVWbZrn3B6uGt`; live monthly $5 = `price_1UOg8YLM3ebsVWbZZQXVqT3q`,
+       live yearly $45 = `price_1UOg99LM3ebsVWbZZwm7LMCD` (added 2026-10-09; live account activated).
        The key in use (sk_test_ / sk_live_) picks the set, and Join stays closed in a mode with blank
        IDs, so the GitHub key can be swapped in any order. A subscription Stripe doesn't know
        (`resource_missing`, e.g. test members after going live) marks that member canceled.
