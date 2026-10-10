@@ -625,6 +625,210 @@ document.addEventListener("click", (e) => {
 
 document.getElementById("view-results-btn").addEventListener("click", openResultsModal);
 
+// ---- Photo export ----
+// One compact image of the saved plays for chosen categories (the user's
+// Discord wants every TD play in one picture, not a stack of screenshots).
+// Each row is just team logo, play, odds; rows flow into columns so a long
+// list still fits one image. Per-visit state, nothing saved.
+let exportWeek = null;
+let exportCats = null; // Set of categories; null = pick the default on open
+let exportOnlyChecked = false;
+let exportCols = 0; // 0 = auto
+
+function exportWeekPlays() {
+  return loadPossiblePlays().filter((p) => p.week === exportWeek);
+}
+function exportPlays() {
+  let list = exportWeekPlays().filter((p) => exportCats.has(p.category));
+  if (exportOnlyChecked) list = list.filter((p) => wheelSelected.has(p.id));
+  return list;
+}
+// TDs first, then props A-Z, main lines last.
+function exportCategoryOrder(a, b) {
+  const rank = (c) => (c === "Anytime TD" ? 0 : c === "First TD" ? 1 : GAME_LINE_CATEGORIES[c] ? 3 : 2);
+  return rank(a) - rank(b) || a.localeCompare(b);
+}
+function exportAutoCols(rowCount, groupCount) {
+  const units = rowCount + groupCount * 1.5;
+  return units <= 14 ? 1 : units <= 32 ? 2 : units <= 60 ? 3 : 4;
+}
+function exportTitle(cats) {
+  if (cats.length === 1) return `${cats[0]} Plays`;
+  if (cats.length && cats.every((c) => betTypeGroup(c) === "TDs")) return "TD Plays";
+  if (cats.length && cats.every((c) => betTypeGroup(c) === "Props")) return "Player Props";
+  return "Plays";
+}
+function renderExportCard() {
+  const list = exportPlays();
+  if (!list.length) return `<p class="no-data-note">No plays match. Check a category above.</p>`;
+  const cats = [...new Set(list.map((p) => p.category))].sort(exportCategoryOrder);
+  const cols = exportCols || exportAutoCols(list.length, cats.length);
+  const groups = cats
+    .map((c) => {
+      const rows = list
+        .filter((p) => p.category === c)
+        .sort((a, b) => a.matchup.localeCompare(b.matchup) || parseFloat(a.odds) - parseFloat(b.odds))
+        .map(
+          (p) => `<div class="pe-row">
+            <span class="pe-logo">${p.team ? teamLogoMini(p.team, 18) : ""}</span>
+            <span class="pe-play">${p.description}</span>
+            <span class="pe-odds">${p.odds}</span>
+          </div>`
+        )
+        .join("");
+      const count = list.filter((p) => p.category === c).length;
+      return `<div class="pe-group-head"><span>${c}</span><span class="pe-count">${count}</span></div>${rows}`;
+    })
+    .join("");
+  // Prop rows carry "Over 67.5" after the name, so they get wider columns.
+  const colWidth = list.some((p) => p.description.length > 20) ? 300 : 250;
+  const width = cols * colWidth + (cols - 1) * 14 + 28;
+  return `<div id="plays-export-card" class="pe-card" style="width:${width}px">
+    <div class="pe-head"><span class="brand-mark">GMG</span><span class="pe-title">Week ${exportWeek} &middot; ${exportTitle(cats)}</span><span class="pe-total">${list.length} plays</span></div>
+    <div class="pe-body" style="column-count:${cols}">${groups}</div>
+  </div>`;
+}
+function renderExportModalContent() {
+  const all = loadPossiblePlays();
+  const weeks = [...new Set(all.map((p) => p.week))].sort((a, b) => b - a);
+  const weekButtons = weeks
+    .map((w) => `<button type="button" class="quick-select-week-btn pe-week-btn${w === exportWeek ? " active" : ""}" data-week="${w}">Week ${w}</button>`)
+    .join("");
+  const weekPlays = exportWeekPlays();
+  const cats = [...new Set(weekPlays.map((p) => p.category))].sort(exportCategoryOrder);
+  const catChecks = cats
+    .map((c) => {
+      const n = weekPlays.filter((p) => p.category === c).length;
+      return `<label class="pe-check"><input type="checkbox" class="pe-cat" data-entry="${encodeDataAttr(c)}"${exportCats.has(c) ? " checked" : ""}> ${c} <span class="muted-label">(${n})</span></label>`;
+    })
+    .join("");
+  const checkedHere = weekPlays.filter((p) => wheelSelected.has(p.id)).length;
+  const onlyChecked = checkedHere
+    ? `<label class="pe-check"><input type="checkbox" id="pe-only-checked"${exportOnlyChecked ? " checked" : ""}> Only the ${checkedHere} plays I checked in the list</label>`
+    : "";
+  const colButtons = [0, 1, 2, 3, 4]
+    .map((n) => `<button type="button" class="quick-select-week-btn pe-col-btn${n === exportCols ? " active" : ""}" data-cols="${n}">${n || "Auto"}</button>`)
+    .join("");
+  return `<h2 class="modal-title">&#128247; Photo export</h2>
+    <div class="pe-controls">
+      <div class="pe-control-row"><span class="quick-select-label">Week:</span>${weekButtons}</div>
+      <div class="pe-control-row"><span class="quick-select-label">Include:</span>${catChecks}</div>
+      ${onlyChecked ? `<div class="pe-control-row">${onlyChecked}</div>` : ""}
+      <div class="pe-control-row"><span class="quick-select-label">Columns:</span>${colButtons}
+        <button type="button" id="pe-save-btn" class="wheel-spin-btn pe-save-btn">Save image</button></div>
+    </div>
+    <div class="pe-preview">${renderExportCard()}</div>`;
+}
+function refreshExportModal() {
+  document.getElementById("export-modal-content").innerHTML = renderExportModalContent();
+}
+function exportDefaultCats() {
+  const cats = [...new Set(exportWeekPlays().map((p) => p.category))];
+  const tds = cats.filter((c) => betTypeGroup(c) === "TDs");
+  exportCats = new Set(tds.length ? tds : cats);
+}
+function openExportModal() {
+  if (!document.getElementById("export-modal")) {
+    const overlay = document.createElement("div");
+    overlay.id = "export-modal";
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `<div class="modal-box">
+      <button type="button" class="modal-close" aria-label="Close">&times;</button>
+      <div id="export-modal-content"></div>
+    </div>`;
+    document.body.appendChild(overlay);
+    const close = () => (overlay.hidden = true);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    overlay.querySelector(".modal-close").addEventListener("click", close);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
+    });
+  }
+  const weeks = [...new Set(loadPossiblePlays().map((p) => p.week))].sort((a, b) => b - a);
+  if (!weeks.includes(exportWeek)) {
+    exportWeek = weeks.includes(quickSelectWeek) ? quickSelectWeek : weeks[0];
+    exportCats = null;
+  }
+  if (!exportCats) exportDefaultCats();
+  exportOnlyChecked = exportPlays().some((p) => wheelSelected.has(p.id));
+  refreshExportModal();
+  document.getElementById("export-modal").hidden = false;
+}
+async function saveExportImage() {
+  const btn = document.getElementById("pe-save-btn");
+  const card = document.getElementById("plays-export-card");
+  if (!card) return;
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  let label = "Saved";
+  try {
+    if (!window.htmlToImage) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js";
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    const url = await window.htmlToImage.toPng(card, {
+      pixelRatio: 2,
+      backgroundColor: getComputedStyle(document.body).backgroundColor,
+      fontEmbedCSS: await summaryFontCSS(),
+      includeQueryParams: true,
+      width: card.offsetWidth,
+      height: card.offsetHeight,
+    });
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gmg-week-${exportWeek}-${exportTitle([...exportCats]).toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`;
+    a.click();
+  } catch (e) {
+    label = "Couldn't save -- screenshot instead";
+  }
+  const again = document.getElementById("pe-save-btn");
+  if (!again) return;
+  again.textContent = label;
+  setTimeout(() => {
+    const b = document.getElementById("pe-save-btn");
+    if (b) {
+      b.disabled = false;
+      b.textContent = "Save image";
+    }
+  }, 2500);
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#photo-export-btn")) return openExportModal();
+  if (e.target.closest("#pe-save-btn")) return saveExportImage();
+  const weekBtn = e.target.closest(".pe-week-btn");
+  if (weekBtn) {
+    exportWeek = Number(weekBtn.dataset.week);
+    exportDefaultCats();
+    return refreshExportModal();
+  }
+  const colBtn = e.target.closest(".pe-col-btn");
+  if (colBtn) {
+    exportCols = Number(colBtn.dataset.cols);
+    refreshExportModal();
+  }
+});
+document.addEventListener("change", (e) => {
+  const cat = e.target.closest(".pe-cat");
+  if (cat) {
+    const c = decodeDataAttr(cat.dataset.entry);
+    if (cat.checked) exportCats.add(c);
+    else exportCats.delete(c);
+    return refreshExportModal();
+  }
+  if (e.target.closest("#pe-only-checked")) {
+    exportOnlyChecked = e.target.checked;
+    refreshExportModal();
+  }
+});
+
 // Rows + week sections only -- deliberately NOT touching quick-select-bar,
 // so a quick-select checkbox toggle (see the "change" handler above) can
 // call just this and leave the open dropdown alone. renderPossiblePlays

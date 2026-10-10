@@ -3588,6 +3588,41 @@ main { max-width: 1840px; }
 .fr-item-actions button { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font: inherit; font-size: 0.74rem; cursor: pointer; }
 .fr-item-actions button:hover { color: var(--text); border-color: var(--border-strong); }
 
+/* Possible Plays: Photo export (one compact image of chosen categories) */
+.results-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+#export-modal .modal-box { width: fit-content; max-width: 96vw; max-height: 94vh; overflow: auto; }
+.pe-controls { display: grid; gap: 8px; margin: 10px 0 14px; }
+.pe-control-row { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.pe-check { display: inline-flex; align-items: center; gap: 5px; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
+.pe-save-btn { margin-left: auto; }
+.pe-preview { overflow: auto; border: 1px dashed var(--border-strong); border-radius: 10px; }
+.pe-card { box-sizing: border-box; padding: 12px 14px 14px; background: var(--bg); color: var(--text); }
+.pe-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+.pe-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.pe-total { margin-left: auto; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.pe-body { column-gap: 14px; }
+.pe-group-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0 0 4px; padding: 4px 8px; border-radius: 6px;
+  background: var(--table-head); border-left: 4px solid var(--accent);
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
+  break-inside: avoid; break-after: avoid;
+}
+.pe-row + .pe-group-head { margin-top: 10px; }
+.pe-count { font-size: 0.78rem; color: var(--muted); }
+.pe-row {
+  display: flex; align-items: center; gap: 7px; height: 28px; margin-bottom: 3px; padding: 0 4px 0 7px;
+  border-radius: 6px; background: var(--panel); border: 1px solid var(--border);
+  break-inside: avoid;
+}
+.pe-logo { display: inline-flex; width: 18px; flex: none; }
+.pe-play { flex: 1; min-width: 0; font-size: 0.86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pe-odds {
+  flex: none; min-width: 50px; padding: 1px 6px; border-radius: 5px; text-align: center;
+  font-family: var(--font-display); font-size: 0.98rem; font-weight: 800;
+  background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.4); color: var(--good-text);
+}
+
 @media (max-width: 760px) {
   .feature-request-btn { padding: 6px 9px; }
   .feature-request-btn .fr-label { display: none; }

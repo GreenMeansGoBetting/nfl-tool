@@ -48,6 +48,13 @@ context. It is the only copy that travels with the repo.
     "Select by game" chips; when any shown bet is checked, the summary covers only the checked ones
     ("Summary of N selected bets" + Clear selection). In-memory per visit (`resultsSelected`). The
     user wanted to recap just MNF.
+  - `possible-plays.js` **Photo Export** (2026-10-10): a "📷 Photo Export" button beside View Results
+    opens a box with week buttons, a checkbox per category (TD categories pre-checked), a Columns
+    choice (Auto / 1-4) and **Save image**. The image (`#plays-export-card`, `.pe-*` styles) is just
+    team logo, play, odds, grouped under category bars and flowed into columns so everything fits
+    one picture (64 TD plays = 4 columns, about 1070x600). If plays are checked in the list, an
+    "Only the N plays I checked" box appears, pre-checked. The user's Discord wanted all TD plays
+    in one image instead of a stack of screenshots.
   - **TD bets grade on a loose name match** (`gradeTdPlay`, `normName`, 2026-10-06): bets keep the
     sportsbook's spelling ("Brian Robinson Jr.") while TD results use nflverse's ("Brian Robinson");
     an exact match graded his MNF TD a loss. Already-graded auto losses flip to wins on next load.
