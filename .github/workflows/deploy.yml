@@ -39,7 +39,8 @@ on:
       - ".github/workflows/deploy.yml"
 
 permissions:
-  contents: read
+  # write: the build commits model_history/gmg_model.json (see that step)
+  contents: write
   pages: write
   id-token: write
 
@@ -87,6 +88,23 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           SKIP_SGO_FETCH: ${{ github.event_name == 'push' && '1' || '0' }}
         run: python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
+
+      # The GMG model's locked projections and graded picks. The build
+      # rewrites this file with every game that has kicked off; committing it
+      # keeps the record in the repo, so it survives even if the next build
+      # can't read the live site. It only changes when a game locks or goes
+      # final. Never allowed to block the deploy.
+      - name: Save GMG model record
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add model_history/gmg_model.json
+          if ! git diff --cached --quiet; then
+            git commit -m "GMG model record: lock kicked-off games and grade finals"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
       - uses: actions/configure-pages@v5
 

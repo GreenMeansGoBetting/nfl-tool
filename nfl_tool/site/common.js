@@ -1245,7 +1245,7 @@ function fitWideSummaryCard() {
     inner.style.width = "";
     // Too big also means something got squeezed sideways: a row label cut
     // off with "...", or a line / rating tile too narrow for its numbers.
-    const squeezed = () => [...main.querySelectorAll(".gs-row-label, .gs-ml, .gs-rt, .td-card .sc-col, .td-card .sc-odds-block, .td-card .tdt-head, .td-card .tdt-v, .td-card .tgt-v, .td-card .ftd-row")].some((el) => el.scrollWidth > el.clientWidth + 1);
+    const squeezed = () => [...main.querySelectorAll(".gs-row-label, .gs-ml, .gs-rt, .g2-proof-label, .g2-key-title, .g2-line-big, .td-card .sc-col, .td-card .sc-odds-block, .td-card .tdt-head, .td-card .tdt-v, .td-card .tgt-v, .td-card .ftd-row")].some((el) => el.scrollWidth > el.clientWidth + 1);
     let z = SUMMARY_WIDE_ZOOM_MAX;
     main.style.zoom = z;
     while (z > 1 && (inner.scrollHeight > card.clientHeight || squeezed())) {

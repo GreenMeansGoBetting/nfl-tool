@@ -3588,6 +3588,100 @@ main { max-width: 1840px; }
 .fr-item-actions button { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font: inherit; font-size: 0.74rem; cursor: pointer; }
 .fr-item-actions button:hover { color: var(--text); border-color: var(--border-strong); }
 
+/* Game Summary v2 (2026-10-10, after a viewer said the card looked scattered): three bands that
+   read top to bottom -- The Line, The Teams, The Matchups -- and every stat sits under the
+   grade it backs up. */
+.gs-card .g2-sec { padding: 6px 10px 8px; flex: 0 0 auto; }
+.gs-card .g2-sec .sc-section-title { margin-bottom: 5px; }
+.gs-card .g2-sec.gs-matchups { flex: 1 1 auto; }
+.g2-line { display: grid; grid-template-columns: 1fr 0.85fr 1.6fr 1.75fr 2fr; gap: 8px; }
+.g2-line-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 8px 7px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); min-width: 0; }
+.g2-line-big { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; line-height: 1.15; white-space: nowrap; }
+.g2-line-wide .g2-line-big { gap: 16px; }
+.g2-line-side { display: inline-flex; align-items: center; gap: 5px; }
+.g2-line-side small { font-family: inherit; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.g2-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g2-team { display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--border); overflow: hidden; min-width: 0; }
+.g2-team-head { display: flex; align-items: center; gap: 8px; padding: 5px 10px; font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+.g2-team-head b { font-weight: 800; overflow: hidden; text-overflow: ellipsis; }
+.g2-rec { margin-left: auto; display: inline-flex; gap: 12px; font-size: 1.1rem; font-weight: 800; }
+.g2-rec span { display: inline-flex; align-items: baseline; gap: 5px; }
+.g2-rec i, .g2-lbl, .g2-rt i { font-family: "Barlow Semi Condensed", sans-serif; font-style: normal; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.g2-team-row { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: center; gap: 6px; padding: 0 10px; min-height: 26px; }
+.g2-rts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.g2-rt { display: flex; flex-direction: column; align-items: stretch; gap: 1px; text-align: center; }
+.g2-rt .gs-rt { height: 28px; gap: 5px; }
+.g2-rt .gs-rt b { font-size: 1.15rem; line-height: 28px; }
+.g2-team .gs-inj-list { gap: 4px; }
+.g2-col { display: flex; flex-direction: column; gap: 4px; padding: 7px 9px 8px; }
+.g2-grade-row { display: grid; grid-template-columns: minmax(0, 1fr) 92px 92px 118px; align-items: center; gap: 6px; }
+.g2-col-head { padding: 0 5px 0 11px; }
+.g2-col-head .gs-head { height: 26px; gap: 5px; font-size: 0.74rem; letter-spacing: 0.05em; white-space: nowrap; }
+.g2-block { display: flex; flex-direction: column; gap: 3px; padding: 3px 5px 4px 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.025); border-left: 3px solid var(--border-strong); }
+.g2-block-mismatch { border-left-color: rgb(var(--good-rgb)); background: rgba(var(--good-rgb), 0.06); }
+.g2-block-tough { border-left-color: rgb(var(--bad-rgb)); background: rgba(var(--bad-rgb), 0.055); }
+.g2-block-strong { border-left-color: rgb(var(--mid-rgb)); background: rgba(var(--mid-rgb), 0.05); }
+.g2-cat { font-family: var(--font-display); font-size: 1.12rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.g2-cat-plain { font-size: 0.9rem; color: var(--muted); }
+.g2-col .gs-grade { height: 28px; font-size: 1.25rem; }
+.g2-col .gs-tag { height: 28px; font-size: 0.7rem; }
+.g2-notag { text-align: center; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); opacity: 0.6; }
+.g2-proof { display: grid; grid-template-columns: 8px minmax(0, 1fr) 92px 92px 118px; align-items: center; gap: 6px; font-size: 0.84rem; }
+.g2-proof::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); }
+.g2-proof-mismatch::before { background: rgb(var(--good-rgb)); }
+.g2-proof-tough::before { background: rgb(var(--bad-rgb)); }
+.g2-proof-strong::before { background: rgb(var(--mid-rgb)); }
+.g2-proof-label { font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g2-proof-note { text-align: center; font-size: 0.68rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.g2-proof .gs-val { height: 22px; font-size: 0.8rem; }
+.g2-footer .g2-key { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 3px 0 8px; }
+.g2-key-mismatch { background: rgb(var(--good-rgb)); }
+.g2-key-tough { background: rgb(var(--bad-rgb)); }
+.g2-key-strong { background: rgb(var(--mid-rgb)); }
+
+/* No side rail: My Picks is a strip across the bottom, title on the left, markets in one line */
+.gs-card .sc-body { grid-template-columns: minmax(0, 1fr); }
+.gs-card .g2-picks { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: center; gap: 10px; flex: 0 0 auto; }
+.gs-card .g2-picks .sc-section-title { margin: 0 6px 0 0; }
+.g2-picks .gs-pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 10px; row-gap: 4px; padding: 5px 8px 6px; }
+.g2-picks .gs-pick-label { grid-row: 1 / span 2; margin: 0; flex-direction: column; gap: 3px; min-width: 62px; }
+.g2-picks .gs-pick-sides, .g2-picks .gs-pick-colors { grid-column: 2; margin: 0; }
+.g2-picks .gs-pick-side { padding: 4px 3px; }
+.g2-picks .gs-none { grid-column: 2; }
+
+/* The Line: title on the left of its tiles, like My Picks, to save a row of height */
+.gs-card .g2-line-sec { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; }
+.gs-card .g2-line-sec .sc-section-title { margin: 0; }
+.g2-line-tile { flex-direction: row; justify-content: center; gap: 12px; padding: 6px 8px; }
+.gs-card .g2-teams + *, .g2-team { gap: 3px; }
+
+/* GMG model tile + Keys to the game band */
+.g2-line-model { border-color: rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.09); }
+.g2-line-model .gs-tile-label { color: var(--accent); }
+.g2-line-tile { gap: 9px; }
+.g2-line-wide .g2-line-big { gap: 11px; }
+.g2-line-big { font-size: 1.35rem; }
+.gs-card .g2-teams { flex: 0 0 auto; }
+.gs-card .g2-keys { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 10px; }
+.gs-card .g2-keys .sc-section-title { margin: 0 6px 0 0; align-self: center; }
+.g2-key-tile { display: flex; align-items: center; gap: 8px; padding: 5px 8px 6px 10px; border-radius: 10px; border: 1px solid var(--border); border-left: 4px solid rgb(var(--mid-rgb)); background: rgba(var(--mid-rgb), 0.08); min-width: 0; }
+.g2-key-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.g2-key-label { display: inline-flex; align-items: center; gap: 4px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.g2-key-title { font-family: var(--font-display); font-size: 1.08rem; font-weight: 800; letter-spacing: 0.02em; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g2-key-right { display: inline-flex; gap: 4px; flex: none; }
+.g2-key-right .gs-grade { width: 34px; height: 28px; font-size: 1.2rem; }
+
+/* GMG model record popup */
+.g2-line-model { cursor: pointer; }
+#model-record-modal .modal-box { width: 92vw; max-width: 900px; max-height: 92vh; overflow: auto; }
+.gm-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.gm-tile { padding: 8px 10px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); text-align: center; }
+.gm-tile-big { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+.gm-table td { white-space: nowrap; }
+.gm-pick-big { font-weight: 800; }
+.gm-edge { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 5px; font-size: 0.72rem; font-weight: 800; color: var(--muted); background: var(--table-head); }
+.gm-pick-big .gm-edge { color: var(--good-text); background: rgba(var(--good-rgb), 0.18); }
+
 /* Possible Plays: Photo export (one compact image of chosen categories) */
 .results-bar { display: flex; gap: 8px; flex-wrap: wrap; }
 #export-modal .modal-box { width: fit-content; max-width: 96vw; max-height: 94vh; overflow: auto; }
@@ -3624,6 +3718,7 @@ main { max-width: 1840px; }
 }
 
 @media (max-width: 760px) {
+  .gm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .feature-request-btn { padding: 6px 9px; }
   .feature-request-btn .fr-label { display: none; }
 }

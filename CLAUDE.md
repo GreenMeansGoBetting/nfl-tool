@@ -512,15 +512,60 @@ context. It is the only copy that travels with the repo.
     both the TD Targets panel and the Summary card (First TD position targets already skipped
     DST). The DST stat rows in the TD Data tables stay; they're data, not a target.
 - The Game Previews Summary card:
-  - **Layout (2026-10-05, from the user's marked-up screenshot; approved from a mockup):**
-    main column = injuries strip; W&L vs the spread; Matchups with A–F grades and
-    Mismatch/Tough/Good vs Good/Bad vs Bad tags. Right rail = Lines, compact Ratings
-    (Off/Def/FPI/SOS tiles, number over change, with the "1-100 vs the league" note under them),
-    My Picks (slimmer buttons), Novig ad. Rail is 256px. The card is `.sc-grow`, so
-    `fitWideSummaryCard` zooms the main column up when there's room (it also backs off if a
-    row label would get cut off). Week 4: every game fit at 100% (ATL @ NO was shrunk to 86%
-    before). Hiding My Picks puts Lines and Ratings back in the main column's top row.
-    The user's rule: never drop data to make it bigger; rearrange into dead space instead.
+  - **Layout (redone 2026-10-10 over 4 mockups).** A viewer told the user the card "looks
+    scattered, too much info and not organized"; the user asked for a joint NFL-statistician + UX
+    review. Findings: the same story was told three times (grade, then loose stat edges), Bad vs
+    Bad / Even rows had the same weight as real edges, numbers had no units, and the line was
+    buried in a side rail. New card, one full-width column (`g2-*` styles), top to bottom:
+    - **The Line** (`gsLineStrip`): Spread, Total, Market score (the score the spread + total
+      imply), **GMG model** score (green tile), Win chance.
+    - **Team panels** (`gsTeamPanel`), one per team side by side: team-color banner with record
+      and record vs the spread, Results chips, Ratings (Off / Def / Overall / Schedule), Injuries
+      (5 starters, then "+N").
+    - **The Matchups** (`gsMatchupColumn`): each grade row (Passing, Rushing, Red Zone, Trenches,
+      Blitz & Box) with the stats behind it nested underneath ("claim, then proof"). Only the grade
+      rows get a tag box; stats get a dot (green favors the offense, red the defense, yellow
+      strength vs strength). At most `GS_PROOF_PER_GRADE` 2 stats per grade and
+      `GS_PROOF_PER_SIDE` 7 per side, strongest grade first; Bad vs Bad stats are not listed (not
+      an edge). Leftover edges (points, EPA, 3rd down, penalties...) go under "Overall". Labels
+      carry units ("Rush yds / game", "4-man rush success", "DAL shows it 53%").
+    - **Keys** (`gsKeys`, user: "here's what you really need"): the 3 biggest graded matchups
+      from both sides (`GS_KEYS_SHOWN`), tile = who has the advantage (team color), the matchup in
+      plain words, the two grades. A starting QB ruled Out always takes the first tile. Sits below
+      the matchups, above My Picks (the user's placement).
+    - **My Picks** (`gsPickStrip`): one strip across the bottom, the three markets side by side.
+      "Hide My Picks" hides the strip. The Novig QR block is off the card "for now" (user).
+    Week 5: cards scale 93-98%, 0 labels cut off. The user's earlier rule still stands for new
+    work: don't drop data to make it bigger; rearrange instead.
+  - **GMG score model** (`nfl_tool/gmg_model.py` -> data.json `gmg_model[game_id]`, 2026-10-10;
+    the user asked for predicted scores, then for its picks to be tracked "starting this week").
+    - Each team's points = league average + three reads of its offense vs that defense (`BLEND`):
+      ratings 40% (ESPN FPI off minus def), scoring 20% (opponent-adjusted points for / against,
+      shrunk by 4 prior games), matchups 40% (offense z minus defense z for every graded piece:
+      Passing .25, Trenches .15, Red Zone .13, Rushing .12, EPA/play .12, Blitz & Box .08, 3rd
+      down .05, explosive .04, turnovers .03, sacks .02, penalties .01; 4.0 points per z).
+      Home field 1.6. A starting QB ruled Out costs his team 3.5 points (`QB_OUT_POINTS`, the
+      user's number) because the stats were built with him playing. Always opponent-adjusted.
+    - It lives in the build, not the browser, so one number feeds the card, the record and the
+      grading. The grade math in gmg_model.py mirrors game-overview.js (`compositeZ`,
+      `schemeCompositeZ`, `SUMMARY_CATEGORIES`); **change a grade's recipe in both places**.
+      Checked equal to the browser version on all 14 Week 5 games before the browser copy was removed.
+    - **Picks:** every game gets a spread pick and a total pick (whichever side of Novig's line
+      the model's score lands on) with an edge in points; 2.5+ (`EDGE_POINTS` / `GS_MODEL_EDGE`)
+      is highlighted and tallied separately.
+    - **Locked at kickoff:** this week's upcoming games are re-projected every build; once a
+      game has started its entry is kept as the last build before kickoff left it (`frozen`) and
+      graded against the line stored in it. A game that started with no earlier entry is never
+      projected after the fact (TB @ DAL Week 5 shows "--"; tracking starts with Week 5's Sunday games).
+    - **Where the record lives:** `previous_gmg_model` (build_stats.py) merges the live
+      data.json's `gmg_model` with `model_history/gmg_model.json`, which deploy.yml commits (as
+      github-actions[bot], needs `contents: write`) whenever a game locks or goes final. So
+      expect small bot commits on main; `git pull --rebase` before pushing.
+    - **Where it shows:** the green GMG model tile on the card (click it) and the "GMG Model
+      record" toolbar button open the record popup (`renderModelRecord`, game-summary.js): four
+      record tiles, then each week's games with model score, final, picks, edges and results.
+    - Weights were set from the season's first 65 finished games and marked down for being
+      in-sample. **Not backtested on past seasons**: a talking point, never "beats the line".
   - The A–F grade boxes (`.gs-grade.tier-*`) use the same tinted fill + edge as the full
     preview's Team Grades cells (A/B green, C yellow, D/F red, A and F strongest), per the user
     2026-09-30. Keep the two in sync if either changes.
@@ -530,7 +575,8 @@ context. It is the only copy that travels with the repo.
     still flags (the old rule needed both sides past ±0.6 and hid PIT bad vs blitz, CLE sacks
     allowed, PIT's red zone). Both past ±0.4 the same way = Good vs Good / Bad vs Bad. Grade rows
     use the same tagger on their composite z.
-    - Edges ranked by gap (or how far both lean for same-direction tags); top 8 shown.
+    - Edges ranked by gap (or how far both lean for same-direction tags); since 2026-10-10 they
+      are nested under the grade they back up (see Layout), not listed as a top 8.
     - Scheme looks count once the defense shows them >= 12% of the time; frequency only scales
       rank (0.7x-1.25x), never gates (the old "above-average frequency" gate dropped PIT vs a
       34% heavy box, the biggest edge in the game).
@@ -539,15 +585,13 @@ context. It is the only copy that travels with the repo.
       parts (Pass pro vs rush, Run block vs run D). Turnovers show only as good vs bad (mostly
       random; never Bad vs Bad filler). Skipped: Plays/Game, quarter splits, the Red Zone
       composite (it has its own grade row).
-  - Right side: Lines, Ratings, My Picks and the Novig ad (see Layout above).
   - "Scheme" is labeled "Blitz & Box" on the card.
 - **Hide the picks column on any Summary card (2026-10-05):** a toolbar button `#summary-rail-btn`
   ("Hide Prop Picks" / "Hide My Picks" / "Hide TD Odds") drops the right rail; the card gets
   `.sc-no-rail`, and `fitWideSummaryCard` (common.js) zooms `.sc-main` to the biggest size that
   still fits (max `SUMMARY_WIDE_ZOOM_MAX` 1.6), then the usual shrink-only fit. html-to-image
   keeps the zoom, so saved images come out big too. Per-device view pref per card
-  (`SUMMARY_RAIL_KEYS`), not synced. On Game Previews this also hides the Novig ad (it lives in
-  that rail). The Props card has spare height so it grows a lot; the Game and TD cards are
+  (`SUMMARY_RAIL_KEYS`), not synced. On Game Previews (since 2026-10-10) the picks are a bottom strip, so the button just hides that strip. The Props card has spare height so it grows a lot; the Game and TD cards are
   already height-bound (Game ~1030px of content for 980, TD 1.0-1.15x), so hiding the rail
   mostly widens them -- making them bigger needs less content or a different layout.
 - **One look across the whole site (the summary-card look), set 2026-09-28.** It lives in the

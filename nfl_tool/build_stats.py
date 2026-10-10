@@ -39,6 +39,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from gmg_model import compute_gmg_model
 from line_grades import compute_line_grades, load_ngs
 
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
@@ -1108,6 +1109,9 @@ def merge_td_odds(novig: dict, sgo: dict | None) -> dict:
 LIVE_SITE_DATA_URL = "https://nfl.gmgsports.org/data.json"
 
 
+_PREVIOUS_SNAPSHOT: list = []  # one successful read is reused for the whole build
+
+
 def fetch_previous_odds_snapshot() -> dict | None:
     """Best-effort fallback for when THIS run's SGO fetch fails (quota
     exceeded, timeout, outage) -- reuses whatever player_td_odds/
@@ -1119,6 +1123,8 @@ def fetch_previous_odds_snapshot() -> dict | None:
     problem than no odds at all. Returns None (no fallback available) on
     ANY failure -- reading the live site is a nice-to-have, never allowed
     to break the build itself."""
+    if _PREVIOUS_SNAPSHOT:
+        return _PREVIOUS_SNAPSHOT[0]
     try:
         headers = {"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"}
         # The live site sits behind the Discord login (nfl_tool/functions/
@@ -1131,10 +1137,48 @@ def fetch_previous_odds_snapshot() -> dict | None:
             headers["X-GMG-Build"] = hmac.new(bot_token.encode(), b"gmg-build-v1", hashlib.sha256).hexdigest()
         req = urllib.request.Request(LIVE_SITE_DATA_URL, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
-            return json.load(resp)
+            _PREVIOUS_SNAPSHOT.append(json.load(resp))
+            return _PREVIOUS_SNAPSHOT[0]
     except Exception as e:
         print(f"WARNING: could not fetch previous odds snapshot for fallback ({e}).", file=sys.stderr)
         return None
+
+
+GMG_HISTORY_PATH = Path(__file__).parent.parent / "model_history" / "gmg_model.json"
+
+
+def previous_gmg_model() -> dict:
+    """Last build's GMG model entries. Two sources, because the record must
+    survive a bad day: the deployed data.json (has the freshest projections
+    for games that haven't kicked off; three tries) and the repo's own
+    model_history/gmg_model.json, which deploy.yml commits whenever a game
+    locks or gets graded. A locked entry in the repo file is never replaced
+    by an unlocked one."""
+    history = {}
+    try:
+        history = json.loads(GMG_HISTORY_PATH.read_text())
+    except (OSError, ValueError):
+        pass
+    live = {}
+    for _ in range(3):
+        prev = fetch_previous_odds_snapshot()
+        if prev is not None:
+            live = prev.get("gmg_model") or {}
+            break
+    merged = {**history, **live}
+    for gid, entry in history.items():
+        if entry.get("frozen") and not (live.get(gid) or {}).get("frozen"):
+            merged[gid] = entry
+    return merged
+
+
+def save_gmg_history(model: dict) -> None:
+    """Only locked entries -- the file then changes a few times a week (a
+    game kicks off or goes final), not on every build."""
+    locked = {gid: entry for gid, entry in model.items() if entry.get("frozen")}
+    GMG_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(GMG_HISTORY_PATH, "w", newline=chr(10)) as f:  # same bytes on Windows and in CI
+        f.write(json.dumps(locked, indent=1, sort_keys=True) + chr(10))
 
 
 # ---- ESPN FPI ratings (Game Previews Summary's Ratings box) ----
@@ -4907,6 +4951,9 @@ def main():
         "espn_ratings": espn_ratings,
         "player_prop_market_labels": PLAYER_OU_MARKETS,
     }
+
+    blob["gmg_model"] = compute_gmg_model(blob, previous_gmg_model())
+    save_gmg_history(blob["gmg_model"])
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
