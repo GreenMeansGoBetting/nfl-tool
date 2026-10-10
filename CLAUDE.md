@@ -531,7 +531,7 @@ context. It is the only copy that travels with the repo.
       carry units ("Rush yds / game", "4-man rush success", "DAL shows it 53%").
     - **Keys** (`gsKeys`, user: "here's what you really need"): the 3 biggest graded matchups
       from both sides (`GS_KEYS_SHOWN`), tile = who has the advantage (team color), the matchup in
-      plain words, the two grades. A starting QB ruled Out always takes the first tile. Sits below
+      plain words, the two grades. The regular starting QB ruled Out (same rule as the model) always takes the first tile. Sits below
       the matchups, above My Picks (the user's placement).
     - **My Picks** (`gsPickStrip`): one strip across the bottom, the three markets side by side.
       "Hide My Picks" hides the strip. The Novig QR block is off the card "for now" (user).
@@ -546,6 +546,12 @@ context. It is the only copy that travels with the repo.
       down .05, explosive .04, turnovers .03, sacks .02, penalties .01; 4.0 points per z).
       Home field 1.6. A starting QB ruled Out costs his team 3.5 points (`QB_OUT_POINTS`, the
       user's number) because the stats were built with him playing. Always opponent-adjusted.
+    - **Which QB counts as "the starter"** (`_regular_qb` / `gsRegularQb`, fixed 2026-10-10):
+      the QB with the most games as the team's lead passer (10+ attempts), ties to whoever led
+      more recently; he's "out" if this week's injury report says Out or he's on IR. The first
+      version took any QB with 40%+ snaps who was Out, and flagged Mariota (the fill-in) the week
+      Jayden Daniels returned, docking WAS 3.5 points and showing "WAS without M. Mariota" in
+      Keys. The model does not add points for a starter coming BACK; only ESPN's ratings see that.
     - It lives in the build, not the browser, so one number feeds the card, the record and the
       grading. The grade math in gmg_model.py mirrors game-overview.js (`compositeZ`,
       `schemeCompositeZ`, `SUMMARY_CATEGORIES`); **change a grade's recipe in both places**.

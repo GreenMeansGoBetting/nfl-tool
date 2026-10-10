@@ -258,9 +258,33 @@ const GS_MODEL_EDGE = 2.5; // "bigger edge" = the model is this far from the lin
 function gsModelEntry(game) {
   return (DATA.gmg_model || {})[game.game_id] || null;
 }
-// The team's regular QB, if this week's injury report rules him Out.
+// The team's No. 1 QB: most games as its lead passer (10+ attempts) before
+// this week, a tie going to whoever led more recently. Mirrors _regular_qb
+// in gmg_model.py.
+function gsRegularQb(team, week) {
+  const leads = {};
+  Object.entries((DATA.player_game_logs || {})[team] || {}).forEach(([name, games]) =>
+    games.forEach((g) => {
+      const att = g.pass_att || 0;
+      if (g.week < week && att >= 10 && att > (leads[g.week] ? leads[g.week][0] : 0)) leads[g.week] = [att, name];
+    })
+  );
+  const starts = {};
+  const last = {};
+  Object.entries(leads).forEach(([wk, [, name]]) => {
+    starts[name] = (starts[name] || 0) + 1;
+    last[name] = Math.max(last[name] || 0, Number(wk));
+  });
+  return Object.keys(starts).sort((a, b) => starts[b] - starts[a] || last[b] - last[a])[0] || null;
+}
+// That QB's name if he is ruled Out this week (injury report or IR). A
+// backup who filled in and is now Out himself does not count -- the first
+// version flagged Mariota the week Jayden Daniels returned (user 2026-10-10).
 function gsQbOut(team, week) {
-  return (((DATA.injuries || {})[team] || {})[String(week)] || []).find((p) => p.position === "QB" && statusAbbr(p.status) === "Out" && (p.snap_share || 0) >= INJURY_STARTER_SNAP_SHARE) || null;
+  const qb = gsRegularQb(team, week);
+  if (!qb) return null;
+  const listed = (((DATA.injuries || {})[team] || {})[String(week)] || []).some((p) => normName(p.full_name) === normName(qb) && statusAbbr(p.status) === "Out");
+  return listed || rosterOut(team, qb) ? qb : null;
 }
 
 // ---- GMG model record: every locked projection, its picks and results ----
@@ -354,7 +378,7 @@ function gsKeys(game) {
   const keys = [];
   [[away, home], [home, away]].forEach(([team, opp]) => {
     const qb = gsQbOut(team, week);
-    if (qb) keys.push({ weight: 9, adv: team, plain: true, label: "QB out", title: `${team} without ${shortName(qb.full_name)}`, right: summaryHeadshot(team, qb.full_name, 34) });
+    if (qb) keys.push({ weight: 9, adv: team, plain: true, label: "QB out", title: `${team} without ${shortName(qb)}`, right: summaryHeadshot(team, qb, 34) });
   });
   [[away, home], [home, away]].forEach(([off, def]) =>
     SUMMARY_CATEGORIES.forEach((cat) => {

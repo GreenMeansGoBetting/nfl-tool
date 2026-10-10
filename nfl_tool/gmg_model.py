@@ -32,7 +32,6 @@ HOME_FIELD = 1.6
 POINTS_PER_Z = 4.0
 FULL_TRUST_GAMES = 4
 QB_OUT_POINTS = 3.5
-STARTER_SNAP_SHARE = 0.4  # INJURY_STARTER_SNAP_SHARE in game-overview.js
 # A pick counts as a "bigger edge" when the model is this far from the line.
 EDGE_POINTS = 2.5
 
@@ -151,11 +150,43 @@ class _Grades:
         return gap
 
 
+def _norm_name(name):
+    words = "".join(ch for ch in (name or "").lower() if ch.isalnum() or ch == " ").split()
+    return " ".join(w for w in words if w not in ("jr", "sr", "ii", "iii", "iv"))
+
+
+def _regular_qb(blob, team, week):
+    """The team's No. 1 QB: most games as its lead passer (10+ attempts)
+    before `week`, a tie going to whoever led more recently. Mirrors
+    gsRegularQb in game-summary.js."""
+    leads = {}
+    for name, games in ((blob.get("player_game_logs") or {}).get(team) or {}).items():
+        for g in games:
+            att, wk = g.get("pass_att") or 0, g.get("week")
+            if wk is not None and wk < week and att >= 10 and att > leads.get(wk, (0, None))[0]:
+                leads[wk] = (att, name)
+    starts, last = {}, {}
+    for wk, (_, name) in leads.items():
+        starts[name] = starts.get(name, 0) + 1
+        last[name] = max(last.get(name, 0), wk)
+    return max(starts, key=lambda n: (starts[n], last[n])) if starts else None
+
+
 def _qb_out(blob, team, week):
-    """The team's regular QB if this week's injury report rules him Out."""
+    """The team's regular QB, if he is ruled Out this week (injury report or
+    IR). A backup who filled in and is now Out himself does NOT count: the
+    first version flagged Mariota (Out) the week Jayden Daniels returned
+    (user 2026-10-10)."""
+    qb = _regular_qb(blob, team, week)
+    if not qb:
+        return None
+    key = _norm_name(qb)
     for p in ((blob.get("injuries") or {}).get(team) or {}).get(str(week)) or []:
-        if p.get("position") == "QB" and "out" in (p.get("status") or "").lower() and (p.get("snap_share") or 0) >= STARTER_SNAP_SHARE:
-            return p.get("full_name")
+        if _norm_name(p.get("full_name")) == key and "out" in (p.get("status") or "").lower():
+            return qb
+    for p in (blob.get("roster_out") or {}).get(team) or []:
+        if _norm_name(p.get("name")) == key:
+            return qb
     return None
 
 
