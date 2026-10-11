@@ -26,6 +26,7 @@
     "nfl-tool.manual-outs.v1",
     "nfl-tool.props-summary-picks.v1",
     "nfl-tool.summary-picks.v1",
+    "nfl-tool.model-presets.v1",
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;

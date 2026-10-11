@@ -512,6 +512,7 @@ context. It is the only copy that travels with the repo.
     both the TD Targets panel and the Summary card (First TD position targets already skipped
     DST). The DST stat rows in the TD Data tables stay; they're data, not a target.
 - The Game Previews Summary card:
+  - The Summary toolbar has no explanatory subtext (removed at the user's request 2026-10-11).
   - **Layout (redone 2026-10-10 over 4 mockups).** A viewer told the user the card "looks
     scattered, too much info and not organized"; the user asked for a joint NFL-statistician + UX
     review. Findings: the same story was told three times (grade, then loose stat edges), Bad vs
@@ -570,6 +571,22 @@ context. It is the only copy that travels with the repo.
     - **Where it shows:** the green GMG model tile on the card (click it) and the "GMG Model
       record" toolbar button open the record popup (`renderModelRecord`, game-summary.js): four
       record tiles, then each week's games with model score, final, picks, edges and results.
+    - **Your own weights (2026-10-11, the user's ask: "move and groove them"):** the small "i" on
+      the model tile opens "How the model weighs things" (`openModelWeights`, game-summary.js):
+      every weight is a slider in three groups (what goes into the score, matchup grades, point
+      adjustments: home field, starting QB out, matchup impact), with a live table of the week's
+      games (Market | GMG default | yours). Blend and matchup sliders are relative (share = value
+      / group total). `gsModelCompute(game, w)` re-projects in the browser with the same math as
+      gmg_model.py (equal to the build on GMG default weights; **keep the two in step**, including
+      `GS_MODEL_BLEND / _MATCHUPS / _POINTS` bases vs the Python constants).
+      - Presets: a "Using" dropdown (GMG default + saved sets), Save as new (named, max 12), Reset
+        sliders, Delete. Moving a slider while on GMG default starts a preset called "My weights";
+        slider moves save straight into the active preset. Stored in
+        `nfl-tool.model-presets.v1` (`{active, presets:[{id,name,w}]}`), synced to the member's
+        profile (in `SYNC_KEYS` and sync.js `KEYS`).
+      - With a preset active the tile shows the preset's name and score, so a screenshot never
+        passes custom weights off as "GMG model". Games that have kicked off, the record popup and
+        the graded picks always use GMG default.
     - Weights were set from the season's first 65 finished games and marked down for being
       in-sample. **Not backtested on past seasons**: a talking point, never "beats the line".
   - The A–F grade boxes (`.gs-grade.tier-*`) use the same tinted fill + edge as the full

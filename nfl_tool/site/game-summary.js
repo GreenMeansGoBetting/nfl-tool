@@ -258,6 +258,301 @@ const GS_MODEL_EDGE = 2.5; // "bigger edge" = the model is this far from the lin
 function gsModelEntry(game) {
   return (DATA.gmg_model || {})[game.game_id] || null;
 }
+// ---- Your own weights (2026-10-11) ----
+// The info button on the model tile opens every weight as a slider. Moving
+// one re-projects the scores in the browser with the same math as
+// nfl_tool/gmg_model.py (checked equal on the GMG default weights). Saved
+// sets ("presets") follow the member's profile. Custom weights only ever
+// change what THIS member sees for games that haven't kicked off: the
+// locked scores and the tracked record always stay on GMG default.
+// base = GMG default. Blend and matchup sliders are relative: each one's
+// share is its value over its group's total.
+const GS_MODEL_BLEND = [
+  { key: "ratings", label: "Power ratings", hint: "ESPN FPI: offense vs the other defense", base: 40 },
+  { key: "scoring", label: "Points scored / allowed", hint: "Opponent-adjusted points per game", base: 20 },
+  { key: "matchups", label: "Matchup grades", hint: "Everything in the Matchup grades list", base: 40 },
+];
+const GS_MODEL_MATCHUPS = [
+  { key: "passing", label: "Passing", cat: "Passing", base: 25 },
+  { key: "trenches", label: "Trenches", cat: "Trenches", base: 15 },
+  { key: "redzone", label: "Red zone", cat: "Red Zone", base: 13 },
+  { key: "rushing", label: "Rushing", cat: "Rushing", base: 12 },
+  { key: "epa", label: "EPA per play", offKey: "epa_per_play", offInvert: false, defKey: "epa_per_play_allowed", defInvert: true, base: 12 },
+  { key: "scheme", label: "Blitz & box", cat: "Scheme", base: 8 },
+  { key: "third", label: "3rd down", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, base: 5 },
+  { key: "explosive", label: "Explosive plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, base: 4 },
+  { key: "turnovers", label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false, base: 3 },
+  { key: "sacks", label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false, base: 2 },
+  { key: "penalties", label: "Penalties", offKey: "penalty_yards_off_per_g", offInvert: true, defKey: "penalty_yards_def_per_g", defInvert: true, base: 1 },
+];
+const GS_MODEL_POINTS = [
+  { key: "homeField", label: "Home field", hint: "Points the home team gets", base: 1.6, max: 5, step: 0.1 },
+  { key: "qbOut", label: "Starting QB out", hint: "Points taken off a team whose regular QB is out", base: 3.5, max: 8, step: 0.5 },
+  { key: "impact", label: "Matchup impact", hint: "Points a one-grade edge across the matchup grades is worth", base: 4, max: 8, step: 0.5 },
+];
+const GS_MODEL_PRIOR_GAMES = 4; // scoring is pulled toward average until this many games
+const GS_MODEL_FULL_TRUST_GAMES = 4; // matchup grades count in full from here
+function gsModelDefaults() {
+  const w = {};
+  [...GS_MODEL_BLEND, ...GS_MODEL_MATCHUPS, ...GS_MODEL_POINTS].forEach((f) => (w[f.key] = f.base));
+  return w;
+}
+// Both teams' projected points under weights w (mirror of gmg_model.py _project).
+function gsModelCompute(game, w) {
+  const r = DATA.espn_ratings;
+  const raw = DATA.team_stats_raw || DATA.team_stats;
+  const { away, home } = game;
+  if (!r || !r[away] || !r[home] || !raw[away] || !raw[home]) return null;
+  const shown = DATA.team_stats;
+  DATA.team_stats = DATA.team_stats_opp || raw; // always opponent-adjusted
+  try {
+    const adj = DATA.team_stats;
+    const pool = teamsWithGames();
+    if (!pool.includes(away) || !pool.includes(home)) return null;
+    const league = pool.reduce((sum, t) => sum + raw[t].points_for_per_g, 0) / pool.length;
+    const blendSum = GS_MODEL_BLEND.reduce((sum, f) => sum + w[f.key], 0);
+    const share = (key) => (blendSum ? w[key] / blendSum : 0);
+    const partSum = GS_MODEL_MATCHUPS.reduce((sum, f) => sum + w[f.key], 0);
+    const gap = (off, def) => {
+      let total = 0;
+      if (!partSum) return total;
+      GS_MODEL_MATCHUPS.forEach((f) => {
+        const cat = f.cat && SUMMARY_CATEGORIES.find((c) => c.label === f.cat);
+        const offZ = cat ? categoryZ(cat, off, "off") : gsStatZ(f.offKey, off, f.offInvert);
+        const defZ = cat ? categoryZ(cat, def, "def") : gsStatZ(f.defKey, def, f.defInvert);
+        if (offZ === null || offZ === undefined || defZ === null || defZ === undefined) return;
+        total += (w[f.key] / partSum) * (offZ - defZ);
+      });
+      return total;
+    };
+    const played = (t) => raw[t].games_played || 0;
+    const trust = (t) => played(t) / (played(t) + GS_MODEL_PRIOR_GAMES);
+    const points = (off, def) => {
+      const ratings = r[off].off - r[def].def;
+      const scoring = (adj[off].points_for_per_g - league) * trust(off) + (adj[def].points_against_per_g - league) * trust(def);
+      const matchups = gap(off, def) * w.impact * Math.min(1, (played(off) + played(def)) / 2 / GS_MODEL_FULL_TRUST_GAMES);
+      return league + share("ratings") * ratings + share("scoring") * scoring + share("matchups") * matchups;
+    };
+    const qbOut = (t) => (gsQbOut(t, game.week) ? w.qbOut : 0);
+    return { away_pts: points(away, home) - w.homeField / 2 - qbOut(away), home_pts: points(home, away) + w.homeField / 2 - qbOut(home) };
+  } finally {
+    DATA.team_stats = shown;
+  }
+}
+
+// Saved weight sets: { active: "gmg" | preset id, presets: [{ id, name, w }] }.
+const GS_MODEL_PRESETS_KEY = "nfl-tool.model-presets.v1";
+const GS_MODEL_MAX_PRESETS = 12;
+function gsModelState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(GS_MODEL_PRESETS_KEY));
+    if (s && Array.isArray(s.presets)) return s;
+  } catch (e) {
+    // localStorage unavailable -- GMG default only.
+  }
+  return { active: "gmg", presets: [] };
+}
+function gsModelSaveState(state) {
+  try {
+    localStorage.setItem(GS_MODEL_PRESETS_KEY, JSON.stringify(state));
+  } catch (e) {
+    // localStorage unavailable -- the weights just won't stick.
+  }
+  window.NFLSync?.push(GS_MODEL_PRESETS_KEY, state);
+}
+function gsModelActivePreset(state = gsModelState()) {
+  return state.presets.find((p) => p.id === state.active) || null;
+}
+// A preset's weights, with GMG default filling in anything it doesn't have.
+function gsModelWeights(preset) {
+  const w = gsModelDefaults();
+  Object.keys(w).forEach((k) => {
+    const v = preset && preset.w ? Number(preset.w[k]) : NaN;
+    if (Number.isFinite(v) && v >= 0) w[k] = v;
+  });
+  return w;
+}
+function gsEsc(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+function gsGameStarted(game) {
+  const locked = gsModelEntry(game);
+  return game.status === "final" || (game.home_score !== null && game.home_score !== undefined) || !!(locked && locked.frozen);
+}
+// GMG default's score for a game: the locked / build number when there is
+// one, else worked out here (a later week the build hasn't projected yet).
+function gsModelDefaultScore(game) {
+  return gsModelEntry(game) || (gsGameStarted(game) ? null : gsModelCompute(game, gsModelDefaults()));
+}
+// What the card shows: the member's active preset for games that haven't
+// kicked off, GMG default otherwise.
+function gsModelShown(game) {
+  const preset = gsModelActivePreset();
+  if (!preset || gsGameStarted(game)) return { name: "GMG model", score: gsModelDefaultScore(game) };
+  return { name: preset.name, score: gsModelCompute(game, gsModelWeights(preset)) };
+}
+
+// ---- weights popup ----
+function gsModelShareText(group, w, f) {
+  const sum = group.reduce((total, x) => total + w[x.key], 0);
+  return `${sum ? Math.round((w[f.key] / sum) * 100) : 0}%`;
+}
+function gsModelSliderRows(group, w, points) {
+  return group
+    .map((f) => {
+      const value = points ? `${fmt(w[f.key], 1)} pts` : gsModelShareText(group, w, f);
+      return `<div class="mw-row"${f.hint ? ` title="${f.hint}"` : ""}>
+        <span class="mw-label">${f.label}</span>
+        <input type="range" class="mw-range" data-key="${f.key}" min="0" max="${points ? f.max : 100}" step="${points ? f.step : 1}" value="${w[f.key]}">
+        <span class="mw-val" data-val="${f.key}">${value}</span>
+      </div>`;
+    })
+    .join("");
+}
+function gsModelPreviewTable(w, presetName) {
+  const cur = currentGame();
+  const week = cur ? cur.week : DATA.current_week;
+  const score = (s) => (s ? `${fmt(s.away_pts, 1)} - ${fmt(s.home_pts, 1)}` : "--");
+  const rows = (DATA.schedule || [])
+    .filter((g) => g.week === week)
+    .map((g) => {
+      const hs = pv(g, "home_team_spread");
+      const total = pv(g, "total_line");
+      const market = hs !== null && hs !== undefined && total ? `${fmt((total + hs) / 2, 1)} - ${fmt((total - hs) / 2, 1)}` : "--";
+      const started = gsGameStarted(g);
+      const yours = started ? `<span class="muted-label">locked</span>` : score(gsModelCompute(g, w));
+      return `<tr${cur && g.game_id === cur.game_id ? ' class="stat-rank-current"' : ""}><td class="mw-game">${teamLogoMini(g.away, 16)} ${g.away} @ ${teamLogoMini(g.home, 16)} ${g.home}</td><td class="num">${market}</td><td class="num">${score(gsModelDefaultScore(g))}</td><td class="num mw-yours">${yours}</td></tr>`;
+    })
+    .join("");
+  return `<table class="data-table mw-table"><thead><tr><th>Week ${week}</th><th>Market</th><th>GMG default</th><th>${gsEsc(presetName)}</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function gsModelPresetBar(state) {
+  const preset = gsModelActivePreset(state);
+  const options = [`<option value="gmg"${preset ? "" : " selected"}>GMG default</option>`]
+    .concat(state.presets.map((p) => `<option value="${gsEsc(p.id)}"${preset && p.id === preset.id ? " selected" : ""}>${gsEsc(p.name)}</option>`))
+    .join("");
+  return `<label class="mw-using">Using <select id="mw-select">${options}</select></label>
+    <input type="text" id="mw-name" maxlength="24" placeholder="Name these weights">
+    <button type="button" id="mw-save-as" class="view-toggle-btn">Save as new</button>
+    ${preset ? `<button type="button" id="mw-reset" class="view-toggle-btn" title="Put every slider back to GMG default">Reset sliders</button><button type="button" id="mw-delete" class="view-toggle-btn">Delete</button>` : ""}`;
+}
+function renderModelWeights() {
+  const state = gsModelState();
+  const preset = gsModelActivePreset(state);
+  const w = gsModelWeights(preset);
+  return `<h2 class="modal-title">How the model weighs things</h2>
+    <p class="section-note">Each team's projected points start at the league average and move with three things; the sliders set how much each one counts (the % is its share of its group). Move any slider to make your own version, then name and save it. Your weights change the score on your card for games that haven't kicked off. The GMG Model record always uses GMG default.</p>
+    <div class="mw-presets" id="mw-presets">${gsModelPresetBar(state)}</div>
+    <div class="mw-body">
+      <div class="mw-sliders">
+        <h3 class="stat-column-title">What goes into the score</h3>
+        ${gsModelSliderRows(GS_MODEL_BLEND, w)}
+        <h3 class="stat-column-title stat-column-title-spaced">Matchup grades</h3>
+        ${gsModelSliderRows(GS_MODEL_MATCHUPS, w)}
+        <h3 class="stat-column-title stat-column-title-spaced">Point adjustments</h3>
+        ${gsModelSliderRows(GS_MODEL_POINTS, w, true)}
+      </div>
+      <div class="mw-preview" id="mw-preview">${gsModelPreviewTable(w, preset ? preset.name : "Your weights")}</div>
+    </div>`;
+}
+function refreshModelWeights() {
+  const el = document.getElementById("model-weights-content");
+  if (el) el.innerHTML = renderModelWeights();
+  const game = currentGame();
+  if (game) renderGameSummaryCard(game);
+}
+function openModelWeights() {
+  let overlay = document.getElementById("model-weights-modal");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "model-weights-modal";
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = `<div class="modal-box"><button type="button" class="modal-close" aria-label="Close">&times;</button><div id="model-weights-content"></div></div>`;
+    document.body.appendChild(overlay);
+    const close = () => (overlay.hidden = true);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    overlay.querySelector(".modal-close").addEventListener("click", close);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
+    });
+  }
+  document.getElementById("model-weights-content").innerHTML = renderModelWeights();
+  overlay.hidden = false;
+}
+function gsModelNewName(state, wanted) {
+  const taken = new Set(state.presets.map((p) => p.name.toLowerCase()));
+  const base = (wanted || "").trim().slice(0, 24) || "My weights";
+  if (!taken.has(base.toLowerCase())) return base;
+  for (let n = 2; ; n += 1) if (!taken.has(`${base} ${n}`.toLowerCase())) return `${base} ${n}`;
+}
+// Adds a preset holding `w` and makes it the active one. False when full.
+function gsModelAddPreset(state, name, w) {
+  if (state.presets.length >= GS_MODEL_MAX_PRESETS) return false;
+  const preset = { id: `p${Date.now()}`, name: gsModelNewName(state, name), w };
+  state.presets.push(preset);
+  state.active = preset.id;
+  return true;
+}
+// A slider moved: write it to the active preset (moving one on GMG default
+// starts a new "My weights" preset), then update the numbers in place -- the
+// popup isn't re-drawn, so the slider being dragged keeps its grip.
+let gsModelCardTimer = 0;
+document.addEventListener("input", (e) => {
+  const slider = e.target.closest(".mw-range");
+  if (!slider) return;
+  const state = gsModelState();
+  let preset = gsModelActivePreset(state);
+  if (!preset) {
+    if (!gsModelAddPreset(state, "My weights", gsModelDefaults())) return;
+    preset = gsModelActivePreset(state);
+    document.getElementById("mw-presets").innerHTML = gsModelPresetBar(state);
+  }
+  preset.w = { ...gsModelWeights(preset), [slider.dataset.key]: Number(slider.value) };
+  gsModelSaveState(state);
+  const w = gsModelWeights(preset);
+  [[GS_MODEL_BLEND, false], [GS_MODEL_MATCHUPS, false], [GS_MODEL_POINTS, true]].forEach(([group, points]) =>
+    group.forEach((f) => {
+      const el = document.querySelector(`.mw-val[data-val="${f.key}"]`);
+      if (el) el.textContent = points ? `${fmt(w[f.key], 1)} pts` : gsModelShareText(group, w, f);
+    })
+  );
+  document.getElementById("mw-preview").innerHTML = gsModelPreviewTable(w, preset.name);
+  clearTimeout(gsModelCardTimer);
+  gsModelCardTimer = setTimeout(() => {
+    const game = currentGame();
+    if (game) renderGameSummaryCard(game);
+  }, 60);
+});
+document.addEventListener("change", (e) => {
+  if (!e.target.closest("#mw-select")) return;
+  const state = gsModelState();
+  state.active = e.target.value;
+  gsModelSaveState(state);
+  refreshModelWeights();
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#mw-save-as, #mw-reset, #mw-delete")) return;
+  const state = gsModelState();
+  const preset = gsModelActivePreset(state);
+  if (e.target.closest("#mw-save-as")) {
+    const name = document.getElementById("mw-name").value;
+    if (!gsModelAddPreset(state, name, gsModelWeights(preset))) {
+      document.getElementById("mw-name").value = "";
+      document.getElementById("mw-name").placeholder = `Limit is ${GS_MODEL_MAX_PRESETS} -- delete one first`;
+      return;
+    }
+  } else if (e.target.closest("#mw-reset") && preset) {
+    preset.w = gsModelDefaults();
+  } else if (e.target.closest("#mw-delete") && preset) {
+    state.presets = state.presets.filter((p) => p.id !== preset.id);
+    state.active = "gmg";
+  }
+  gsModelSaveState(state);
+  refreshModelWeights();
+});
+
 // The team's No. 1 QB: most games as its lead passer (10+ attempts) before
 // this week, a tie going to whoever led more recently. Mirrors _regular_qb
 // in gmg_model.py.
@@ -359,7 +654,8 @@ function openModelRecord() {
   overlay.hidden = false;
 }
 document.addEventListener("click", (e) => {
-  if (e.target.closest("#model-record-btn, .g2-line-model")) openModelRecord();
+  if (e.target.closest(".g2-model-info")) openModelWeights();
+  else if (e.target.closest("#model-record-btn, .g2-line-model")) openModelRecord();
 });
 
 // ---- Keys to the game: the few things that matter most ----
@@ -421,7 +717,8 @@ function gsLineStrip(game) {
   const num = (n) => fmt(n, 1).replace(/\.0$/, "");
   const tile = (label, body, cls = "", title = "") => `<div class="g2-line-tile ${cls}"${title ? ` title="${title}"` : ""}><div class="gs-tile-label">${label}</div><div class="g2-line-big">${body}</div></div>`;
   const pair = (a, b) => `<span class="g2-line-side">${a}</span><span class="g2-line-side">${b}</span>`;
-  const m = gsModelEntry(game);
+  const shown = gsModelShown(game);
+  const m = shown.score;
   const model = m ? pair(`${teamLogoMini(away, 20)} ${fmt(m.away_pts, 1)}`, `${teamLogoMini(home, 20)} ${fmt(m.home_pts, 1)}`) : "--";
   const implied = hasSpread && total ? pair(`${teamLogoMini(away, 20)} ${num((total + hs) / 2)}`, `${teamLogoMini(home, 20)} ${num((total - hs) / 2)}`) : "--";
   const hasMl = pv(game, "away_moneyline") !== null && pv(game, "away_moneyline") !== undefined;
@@ -431,7 +728,7 @@ function gsLineStrip(game) {
     ${tile("Spread", fav ? `${teamLogoMini(fav, 22)} ${gsSigned(favLine)}` : "--")}
     ${tile("Total", total ? num(total) : "--")}
     ${tile("Market score", implied, "g2-line-wide", "The score the spread and total imply")}
-    ${tile("GMG model", model, "g2-line-wide g2-line-model", "GMG projected score, locked at kickoff: ESPN FPI ratings, each team's opponent-adjusted scoring, and every graded matchup on this card, plus home field; 3.5 points off when the starting QB is out. Click for the model's record.")}
+    ${tile(`<span class="g2-model-name">${gsEsc(shown.name)}</span><span class="g2-model-info" role="button" title="How the model weighs things, and set your own weights">i</span>`, model, "g2-line-wide g2-line-model", "Projected score, locked at kickoff. Click for the GMG model's record; the i shows how it weighs things and lets you set your own.")}
     ${tile("Win chance", ml, "g2-line-wide")}
   </div>`;
 }
