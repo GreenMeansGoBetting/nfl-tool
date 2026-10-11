@@ -1,1 +1,18 @@
-{}
+{
+ "2026_05_PHI_JAX": {
+  "away": "PHI",
+  "away_pts": 18.0,
+  "frozen": true,
+  "home": "JAX",
+  "home_pts": 27.2,
+  "qb_out": [],
+  "spread": -7.5,
+  "spread_edge": 1.7,
+  "spread_pick": "home",
+  "total": 41.5,
+  "total_edge": 3.7,
+  "total_pick": "over",
+  "updated": "2026-10-11T12:54Z",
+  "week": 5
+ }
+}
