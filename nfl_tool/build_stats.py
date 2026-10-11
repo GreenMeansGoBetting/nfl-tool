@@ -29,6 +29,7 @@ import argparse
 import json
 import math
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -1067,7 +1068,53 @@ def extract_novig_props(novig_games: dict, teams, roster_positions: dict, unavai
 
 
 def _norm_player(name: str) -> str:
-    return "".join(ch for ch in (name or "").lower().replace(" jr.", "").replace(" sr.", "").replace(" iii", "").replace(" ii", "") if ch.isalpha())
+    """Letters only, without Jr./Sr./II/III/IV -- the same player however a
+    book spells him (normName in common.js does the same on the site)."""
+    return "".join(ch for ch in re.sub(r"\b(jr|sr|ii|iii|iv)\b\.?", "", (name or "").lower()) if ch.isalpha())
+
+
+def canonicalize_odds_names(blob: dict, roster_positions: dict | None) -> int:
+    """Rewrites every odds row's player name to the site's own spelling.
+    Books disagree ("Brian Robinson Jr." on SGO, "Brian Robinson" on Novig
+    and in nflverse), and which book a row comes from can change from one
+    build to the next -- so the same player's name flipped, a saved Possible
+    Play stopped matching its checkbox, and saving it again listed him twice
+    (user 2026-10-11). The site's spelling = the team's own game-log names,
+    then any roster / headshot name that only one player in the league has.
+    Rows that end up sharing a name on a team keep the first. Returns how
+    many names changed."""
+    by_team = {t: {_norm_player(n): n for n in names} for t, names in (blob.get("player_game_logs") or {}).items()}
+    league, clashes = {}, set()
+    for name in list(roster_positions or {}) + list(blob.get("player_headshots") or {}):
+        key = _norm_player(name)
+        if league.setdefault(key, name) != name:
+            clashes.add(key)
+    changed = 0
+
+    def fix(team, rows):
+        nonlocal changed
+        seen, out = set(), []
+        for row in rows or []:
+            key = _norm_player(row.get("name"))
+            site = by_team.get(team, {}).get(key) or (league.get(key) if key not in clashes else None)
+            if site and site != row["name"]:
+                row["name"] = site
+                changed += 1
+            if not row.get("position") and roster_positions:
+                row["position"] = roster_positions.get(row["name"])
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(row)
+        return out
+
+    for field in ("player_td_odds", "player_first_td_odds"):
+        for team, rows in (blob.get(field) or {}).items():
+            blob[field][team] = fix(team, rows)
+    for by_stat in (blob.get("player_prop_markets") or {}).values():
+        for team, rows in (by_stat or {}).items():
+            by_stat[team] = fix(team, rows)
+    return changed
 
 
 def merge_prop_markets(novig: dict, sgo: dict | None) -> dict:
@@ -4795,6 +4842,7 @@ def main():
     sgo_debug = None
     sgo_props_debug = None
     novig_debug = None
+    roster_positions = None
     if week_dates:
         starts_after = week_dates[0]
         # A plain date+1 cutoff is midnight UTC on the day after the last
@@ -4952,6 +5000,8 @@ def main():
         "player_prop_market_labels": PLAYER_OU_MARKETS,
     }
 
+    renamed = canonicalize_odds_names(blob, roster_positions)
+    print(f"Odds names matched to the site's spelling: {renamed} changed")
     blob["gmg_model"] = compute_gmg_model(blob, previous_gmg_model())
     save_gmg_history(blob["gmg_model"])
 

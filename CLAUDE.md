@@ -58,6 +58,14 @@ context. It is the only copy that travels with the repo.
   - **TD bets grade on a loose name match** (`gradeTdPlay`, `normName`, 2026-10-06): bets keep the
     sportsbook's spelling ("Brian Robinson Jr.") while TD results use nflverse's ("Brian Robinson");
     an exact match graded his MNF TD a loss. Already-graded auto losses flip to wins on next load.
+  - **One spelling per player in the odds (2026-10-11):** books disagree ("Brian Robinson Jr." on
+    SGO, "Brian Robinson" on Novig and nflverse) and a row's book can change between builds, so
+    a name flipped, the saved play's checkbox stopped matching, and saving it again listed him
+    twice in Possible Plays / Photo Export. Two fixes: `canonicalize_odds_names` (build_stats.py,
+    runs last) rewrites every TD / prop odds row to the site's own spelling (team game logs,
+    then unique roster / headshot names; 36 rows changed the first run), and saved plays are
+    matched by `possiblePlayKey` (common.js: the id without Jr./Sr./II-IV and punctuation), with
+    `dedupePossiblePlays` merging existing doubles on page load (newest kept).
   - Local builds: `nfl_tool/build_stats.py` only downloads a data file if it's missing
     (`download_if_missing`), so a local `data/` folder goes stale. Delete `data/*_2026*` and
     `data/games.csv` before a local build that needs the latest games. CI always starts fresh.

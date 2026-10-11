@@ -895,17 +895,40 @@ function savePossiblePlays(list) {
   }
   window.NFLSync?.push(POSSIBLE_PLAYS_KEY, list);
 }
+// A play's id has the player's name in it, and books spell names differently
+// ("Brian Robinson Jr." / "Brian Robinson"), so plays are matched on the id
+// with Jr./Sr./II-IV and punctuation taken out. An exact match let the same
+// bet be saved twice once the name's spelling changed (user 2026-10-11).
+function possiblePlayKey(id) {
+  return String(id).toLowerCase().replace(/\b(jr|sr|ii|iii|iv)\b\.?/g, "").replace(/[^a-z0-9]/g, "");
+}
 function isPossiblePlay(id) {
-  return loadPossiblePlays().some((p) => p.id === id);
+  const key = possiblePlayKey(id);
+  return loadPossiblePlays().some((p) => possiblePlayKey(p.id) === key);
 }
 // Plain checkbox semantics: present -> removed, absent -> added.
 function togglePossiblePlay(entry) {
+  const key = possiblePlayKey(entry.id);
   const list = loadPossiblePlays();
-  const idx = list.findIndex((p) => p.id === entry.id);
-  if (idx === -1) list.push({ ...entry, added_at: new Date().toISOString() });
-  else list.splice(idx, 1);
-  savePossiblePlays(list);
+  if (list.some((p) => possiblePlayKey(p.id) === key)) savePossiblePlays(list.filter((p) => possiblePlayKey(p.id) !== key));
+  else savePossiblePlays([...list, { ...entry, added_at: new Date().toISOString() }]);
 }
+// One-time tidy on every page load: the same bet saved under two spellings
+// becomes one. The newest save wins (fresher odds); a result already on the
+// older copy is kept.
+function dedupePossiblePlays() {
+  const list = loadPossiblePlays();
+  const byKey = new Map();
+  list.forEach((p) => {
+    const key = possiblePlayKey(p.id);
+    const prev = byKey.get(key);
+    if (!prev) return byKey.set(key, p);
+    const [newer, older] = new Date(p.added_at || 0) >= new Date(prev.added_at || 0) ? [p, prev] : [prev, p];
+    byKey.set(key, newer.result ? newer : { ...newer, result: older.result, result_source: older.result_source });
+  });
+  if (byKey.size < list.length) savePossiblePlays([...byKey.values()]);
+}
+dedupePossiblePlays();
 
 document.addEventListener("change", (e) => {
   const cb = e.target.closest(".pp-toggle");
