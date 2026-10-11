@@ -39,7 +39,7 @@ context. It is the only copy that travels with the repo.
   - Pushes set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota.
     Novig and ESPN are free, so they're fetched fresh on every build.
 - `nfl_tool/site/`: static HTML/CSS/JS pages.
-  - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview + Summary card).
+  - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card).
   - `player-props.html/.js` + `props-summary.js`: **Player Props** (Receiving/Rushing/Passing + Summary card).
   - `possible-plays.html/.js`: the Possible Plays list.
@@ -579,6 +579,12 @@ context. It is the only copy that travels with the repo.
       / group total). `gsModelCompute(game, w)` re-projects in the browser with the same math as
       gmg_model.py (equal to the build on GMG default weights; **keep the two in step**, including
       `GS_MODEL_BLEND / _MATCHUPS / _POINTS` bases vs the Python constants).
+      - **Build Your Model view (2026-10-11):** a third view button on Game Previews, between
+        Full Preview and Summary (`gsView` "model", `#section-model`). It's the same block as the
+        popup (`renderModelWeights(page)`, one `.mw-root` each, everything found by class inside
+        its own root) plus two extras: the week table adds the spread and total pick the current
+        weights make (edge in points, 2.5+ highlighted), and the GMG Model record sits underneath.
+        The card's "i" popup still works.
       - Presets: a "Using" dropdown (GMG default + saved sets), Save as new (named, max 12), Reset
         sliders, Delete. Moving a slider while on GMG default starts a preset called "My weights";
         slider moves save straight into the active preset. Stored in

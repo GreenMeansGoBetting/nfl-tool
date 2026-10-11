@@ -409,7 +409,30 @@ function gsModelSliderRows(group, w, points) {
     })
     .join("");
 }
-function gsModelPreviewTable(w, presetName) {
+// Spread and total pick a projected score makes against the current line.
+function gsModelPickCells(game, s) {
+  const hs = pv(game, "home_team_spread");
+  const total = pv(game, "total_line");
+  const cell = (label, edge) => `<td class="gm-pick${edge >= GS_MODEL_EDGE ? " gm-pick-big" : ""}">${label} <span class="gm-edge" title="How far these weights are from the line">${fmt(edge, 1)}</span></td>`;
+  const none = `<td class="muted-label">--</td>`;
+  if (!s) return none + none;
+  let out = "";
+  if (hs === null || hs === undefined) out += none;
+  else {
+    const lean = s.home_pts - s.away_pts + hs;
+    const side = lean > 0 ? game.home : game.away;
+    out += cell(`${teamLogoMini(side, 16)} ${side} ${gsSigned(lean > 0 ? hs : -hs)}`, Math.abs(lean));
+  }
+  if (!total) out += none;
+  else {
+    const lean = s.away_pts + s.home_pts - total;
+    out += cell(`${lean > 0 ? "Over" : "Under"} ${fmt(total, 1).replace(/\.0$/, "")}`, Math.abs(lean));
+  }
+  return out;
+}
+// The week's games under weights w. The page version (withPicks) adds the
+// spread and total pick those weights make.
+function gsModelPreviewTable(w, presetName, withPicks) {
   const cur = currentGame();
   const week = cur ? cur.week : DATA.current_week;
   const score = (s) => (s ? `${fmt(s.away_pts, 1)} - ${fmt(s.home_pts, 1)}` : "--");
@@ -420,29 +443,36 @@ function gsModelPreviewTable(w, presetName) {
       const total = pv(g, "total_line");
       const market = hs !== null && hs !== undefined && total ? `${fmt((total + hs) / 2, 1)} - ${fmt((total - hs) / 2, 1)}` : "--";
       const started = gsGameStarted(g);
-      const yours = started ? `<span class="muted-label">locked</span>` : score(gsModelCompute(g, w));
-      return `<tr${cur && g.game_id === cur.game_id ? ' class="stat-rank-current"' : ""}><td class="mw-game">${teamLogoMini(g.away, 16)} ${g.away} @ ${teamLogoMini(g.home, 16)} ${g.home}</td><td class="num">${market}</td><td class="num">${score(gsModelDefaultScore(g))}</td><td class="num mw-yours">${yours}</td></tr>`;
+      const mine = started ? null : gsModelCompute(g, w);
+      const yours = started ? `<span class="muted-label">locked</span>` : score(mine);
+      const picks = withPicks ? (started ? `<td class="muted-label">--</td><td class="muted-label">--</td>` : gsModelPickCells(g, mine)) : "";
+      return `<tr${cur && g.game_id === cur.game_id ? ' class="stat-rank-current"' : ""}><td class="mw-game">${teamLogoMini(g.away, 16)} ${g.away} @ ${teamLogoMini(g.home, 16)} ${g.home}</td><td class="num">${market}</td><td class="num">${score(gsModelDefaultScore(g))}</td><td class="num mw-yours">${yours}</td>${picks}</tr>`;
     })
     .join("");
-  return `<table class="data-table mw-table"><thead><tr><th>Week ${week}</th><th>Market</th><th>GMG default</th><th>${gsEsc(presetName)}</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="data-table mw-table"><thead><tr><th>Week ${week}</th><th>Market</th><th>GMG default</th><th>${gsEsc(presetName)}</th>${withPicks ? "<th>Spread pick</th><th>Total pick</th>" : ""}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 function gsModelPresetBar(state) {
   const preset = gsModelActivePreset(state);
   const options = [`<option value="gmg"${preset ? "" : " selected"}>GMG default</option>`]
     .concat(state.presets.map((p) => `<option value="${gsEsc(p.id)}"${preset && p.id === preset.id ? " selected" : ""}>${gsEsc(p.name)}</option>`))
     .join("");
-  return `<label class="mw-using">Using <select id="mw-select">${options}</select></label>
-    <input type="text" id="mw-name" maxlength="24" placeholder="Name these weights">
-    <button type="button" id="mw-save-as" class="view-toggle-btn">Save as new</button>
-    ${preset ? `<button type="button" id="mw-reset" class="view-toggle-btn" title="Put every slider back to GMG default">Reset sliders</button><button type="button" id="mw-delete" class="view-toggle-btn">Delete</button>` : ""}`;
+  return `<label class="mw-using">Using <select class="mw-select">${options}</select></label>
+    <input type="text" class="mw-name" maxlength="24" placeholder="Name these weights">
+    <button type="button" class="view-toggle-btn mw-save-as">Save as new</button>
+    ${preset ? `<button type="button" class="view-toggle-btn mw-reset" title="Put every slider back to GMG default">Reset sliders</button><button type="button" class="view-toggle-btn mw-delete">Delete</button>` : ""}`;
 }
-function renderModelWeights() {
+// One block, two homes: the "Build Your Model" view on Game Previews (page:
+// wider table with picks, and the GMG record underneath) and the popup behind
+// the card's info button. Everything inside is found by class from its own
+// .mw-root, so the two never collide.
+function renderModelWeights(page) {
   const state = gsModelState();
   const preset = gsModelActivePreset(state);
   const w = gsModelWeights(preset);
-  return `<h2 class="modal-title">How the model weighs things</h2>
-    <p class="section-note">Each team's projected points start at the league average and move with three things; the sliders set how much each one counts (the % is its share of its group). Move any slider to make your own version, then name and save it. Your weights change the score on your card for games that haven't kicked off. The GMG Model record always uses GMG default.</p>
-    <div class="mw-presets" id="mw-presets">${gsModelPresetBar(state)}</div>
+  return `<div class="mw-root${page ? " mw-page" : ""}">
+    <h2 class="${page ? "section-title" : "modal-title"}">${page ? "Build Your Model" : "How the model weighs things"}</h2>
+    <p class="section-note">Each team's projected points start at the league average and move with three things; the sliders set how much each one counts (the % is its share of its group). Move any slider to make your own version, then name and save it. Your weights change the score on your Summary card for games that haven't kicked off. The GMG Model record always uses GMG default.</p>
+    <div class="mw-presets">${gsModelPresetBar(state)}</div>
     <div class="mw-body">
       <div class="mw-sliders">
         <h3 class="stat-column-title">What goes into the score</h3>
@@ -452,14 +482,19 @@ function renderModelWeights() {
         <h3 class="stat-column-title stat-column-title-spaced">Point adjustments</h3>
         ${gsModelSliderRows(GS_MODEL_POINTS, w, true)}
       </div>
-      <div class="mw-preview" id="mw-preview">${gsModelPreviewTable(w, preset ? preset.name : "Your weights")}</div>
-    </div>`;
+      <div class="mw-preview">${gsModelPreviewTable(w, preset ? preset.name : "Your weights", page)}</div>
+    </div>
+    ${page ? `<div class="mw-record">${renderModelRecord()}</div>` : ""}
+  </div>`;
 }
+// Re-draw whichever home is on screen, and the Summary card if it's showing.
 function refreshModelWeights() {
-  const el = document.getElementById("model-weights-content");
-  if (el) el.innerHTML = renderModelWeights();
+  const popup = document.getElementById("model-weights-content");
+  if (popup && !document.getElementById("model-weights-modal").hidden) popup.innerHTML = renderModelWeights(false);
+  const section = document.getElementById("section-model");
+  if (section && !section.hidden) section.innerHTML = renderModelWeights(true);
   const game = currentGame();
-  if (game) renderGameSummaryCard(game);
+  if (game && gsView === "summary") renderGameSummaryCard(game);
 }
 function openModelWeights() {
   let overlay = document.getElementById("model-weights-modal");
@@ -478,8 +513,8 @@ function openModelWeights() {
       if (e.key === "Escape") close();
     });
   }
-  document.getElementById("model-weights-content").innerHTML = renderModelWeights();
   overlay.hidden = false;
+  document.getElementById("model-weights-content").innerHTML = renderModelWeights(false);
 }
 function gsModelNewName(state, wanted) {
   const taken = new Set(state.presets.map((p) => p.name.toLowerCase()));
@@ -497,55 +532,57 @@ function gsModelAddPreset(state, name, w) {
 }
 // A slider moved: write it to the active preset (moving one on GMG default
 // starts a new "My weights" preset), then update the numbers in place -- the
-// popup isn't re-drawn, so the slider being dragged keeps its grip.
+// block isn't re-drawn, so the slider being dragged keeps its grip.
 let gsModelCardTimer = 0;
 document.addEventListener("input", (e) => {
   const slider = e.target.closest(".mw-range");
   if (!slider) return;
+  const root = slider.closest(".mw-root");
   const state = gsModelState();
   let preset = gsModelActivePreset(state);
   if (!preset) {
     if (!gsModelAddPreset(state, "My weights", gsModelDefaults())) return;
     preset = gsModelActivePreset(state);
-    document.getElementById("mw-presets").innerHTML = gsModelPresetBar(state);
+    root.querySelector(".mw-presets").innerHTML = gsModelPresetBar(state);
   }
   preset.w = { ...gsModelWeights(preset), [slider.dataset.key]: Number(slider.value) };
   gsModelSaveState(state);
   const w = gsModelWeights(preset);
   [[GS_MODEL_BLEND, false], [GS_MODEL_MATCHUPS, false], [GS_MODEL_POINTS, true]].forEach(([group, points]) =>
     group.forEach((f) => {
-      const el = document.querySelector(`.mw-val[data-val="${f.key}"]`);
+      const el = root.querySelector(`.mw-val[data-val="${f.key}"]`);
       if (el) el.textContent = points ? `${fmt(w[f.key], 1)} pts` : gsModelShareText(group, w, f);
     })
   );
-  document.getElementById("mw-preview").innerHTML = gsModelPreviewTable(w, preset.name);
+  root.querySelector(".mw-preview").innerHTML = gsModelPreviewTable(w, preset.name, root.classList.contains("mw-page"));
   clearTimeout(gsModelCardTimer);
   gsModelCardTimer = setTimeout(() => {
     const game = currentGame();
-    if (game) renderGameSummaryCard(game);
+    if (game && gsView === "summary") renderGameSummaryCard(game);
   }, 60);
 });
 document.addEventListener("change", (e) => {
-  if (!e.target.closest("#mw-select")) return;
+  if (!e.target.closest(".mw-select")) return;
   const state = gsModelState();
   state.active = e.target.value;
   gsModelSaveState(state);
   refreshModelWeights();
 });
 document.addEventListener("click", (e) => {
-  if (!e.target.closest("#mw-save-as, #mw-reset, #mw-delete")) return;
+  const btn = e.target.closest(".mw-save-as, .mw-reset, .mw-delete");
+  if (!btn) return;
   const state = gsModelState();
   const preset = gsModelActivePreset(state);
-  if (e.target.closest("#mw-save-as")) {
-    const name = document.getElementById("mw-name").value;
-    if (!gsModelAddPreset(state, name, gsModelWeights(preset))) {
-      document.getElementById("mw-name").value = "";
-      document.getElementById("mw-name").placeholder = `Limit is ${GS_MODEL_MAX_PRESETS} -- delete one first`;
+  if (btn.classList.contains("mw-save-as")) {
+    const nameBox = btn.closest(".mw-root").querySelector(".mw-name");
+    if (!gsModelAddPreset(state, nameBox.value, gsModelWeights(preset))) {
+      nameBox.value = "";
+      nameBox.placeholder = `Limit is ${GS_MODEL_MAX_PRESETS} -- delete one first`;
       return;
     }
-  } else if (e.target.closest("#mw-reset") && preset) {
+  } else if (btn.classList.contains("mw-reset") && preset) {
     preset.w = gsModelDefaults();
-  } else if (e.target.closest("#mw-delete") && preset) {
+  } else if (btn.classList.contains("mw-delete") && preset) {
     state.presets = state.presets.filter((p) => p.id !== preset.id);
     state.active = "gmg";
   }
@@ -965,18 +1002,23 @@ document.querySelectorAll(".stats-mode-btn").forEach((btn) =>
 // ---- view toggle: Full Preview / Summary ----
 function applyPreviewView(game) {
   const summary = gsView === "summary";
+  const model = gsView === "model"; // Build Your Model
+  const modelWrap = document.getElementById("section-model");
   document.querySelectorAll(".preview-view-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === gsView));
   const wrap = document.getElementById("section-game-summary");
   if (!game) {
     wrap.hidden = true;
+    modelWrap.hidden = true;
     return;
   }
   SECTIONS.forEach((s) => {
     const el = document.getElementById(`section-${s}`);
-    if (el && summary) el.hidden = true;
+    if (el && (summary || model)) el.hidden = true;
   });
-  document.querySelectorAll("#game-flipper-bottom").forEach((el) => (el.hidden = summary));
+  document.querySelectorAll("#game-flipper-bottom").forEach((el) => (el.hidden = summary || model));
   wrap.hidden = !summary;
+  modelWrap.hidden = !model;
+  if (model) modelWrap.innerHTML = renderModelWeights(true);
   if (summary) {
     gsDraft = {};
     renderGameSummaryCard(game);

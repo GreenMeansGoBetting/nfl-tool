@@ -3699,6 +3699,10 @@ main { max-width: 1840px; }
 .mw-val { text-align: center; padding: 2px 0; border-radius: 6px; font-family: var(--font-display); font-size: 0.98rem; font-weight: 800; background: var(--table-head); border: 1px solid var(--border); }
 .mw-table td { white-space: nowrap; }
 .mw-yours { font-weight: 800; color: var(--good-text); }
+/* Build Your Model view: the same block on the page, wider table (with picks), record below */
+.mw-page .mw-body { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 22px; }
+.mw-page .mw-preview { overflow-x: auto; }
+.mw-record { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); }
 
 /* Possible Plays: Photo export (one compact image of chosen categories) */
 .results-bar { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -3736,6 +3740,7 @@ main { max-width: 1840px; }
 }
 
 @media (max-width: 760px) {
+  .mw-page .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }
   .gm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
