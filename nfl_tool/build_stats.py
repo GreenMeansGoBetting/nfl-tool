@@ -1200,6 +1200,10 @@ SCHEDULE_ODDS_FIELDS = (
 )
 
 
+# A game["novig"] holding only these (or nothing) is the no-pregame-copy fallback.
+LOCK_FALLBACK_FIELDS = {"home_team_spread", "away_team_spread", "total_line"}
+
+
 def lock_started_game_odds(blob: dict, previous: dict | None, model_history: dict) -> list:
     """Once a game kicks off its odds stop moving on the site. Novig (and
     SGO) keep quoting IN-GAME lines, and the build was publishing those as
@@ -1259,6 +1263,16 @@ def lock_started_game_odds(blob: dict, previous: dict | None, model_history: dic
             entry = model_history.get(gid) or {}
             if entry.get("spread") is not None and entry.get("total") is not None:
                 game["novig"] = {"home_team_spread": entry["spread"], "away_team_spread": -entry["spread"], "total_line": entry["total"]}
+        # A game locked WITHOUT a pregame copy still has this run's (possibly
+        # in-game) numbers in its top-level fields. Until it goes final and
+        # the schedule's closing line takes over, show only what is known to
+        # be pregame: the locked spread/total, and no moneyline.
+        pregame = game.get("novig") or {}
+        if set(pregame) <= LOCK_FALLBACK_FIELDS and game.get("status") != "final" and game.get("home_score") is None:
+            for field in SCHEDULE_ODDS_FIELDS:
+                game[field] = pregame.get(field)
+            if pregame.get("home_team_spread") is not None:
+                game["spread_line"] = -pregame["home_team_spread"]
     return locked
 
 
