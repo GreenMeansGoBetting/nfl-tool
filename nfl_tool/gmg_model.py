@@ -196,7 +196,21 @@ def _line(game, key):
     return value if value is not None else game.get(key)
 
 
-def _started(game, now_et):
+def eastern_now():
+    """Kickoff times are Eastern. UTC-4 is exact until November and an hour
+    early after, which only locks a game an hour sooner."""
+    return (datetime.now(timezone.utc) - timedelta(hours=4)).replace(tzinfo=None)
+
+
+def kickoff_utc(game):
+    """The game's kickoff as a naive UTC datetime, or None."""
+    try:
+        return datetime.strptime(f"{game['date']} {game.get('time') or '00:00'}", "%Y-%m-%d %H:%M") + timedelta(hours=4)
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def game_has_started(game, now_et):
     if game.get("status") == "final" or game.get("home_score") is not None:
         return True
     try:
@@ -257,14 +271,12 @@ def compute_gmg_model(blob, previous):
     previous = previous or {}
     out = {gid: dict(entry) for gid, entry in previous.items()}
     grades = _Grades(blob)
-    # Kickoff times are Eastern. UTC-4 is exact until November and an hour
-    # early after, which only freezes a projection an hour sooner.
-    now_et = (datetime.now(timezone.utc) - timedelta(hours=4)).replace(tzinfo=None)
+    now_et = eastern_now()
     for game in blob.get("schedule") or []:
         gid = game.get("game_id")
         if not gid:
             continue
-        if _started(game, now_et):
+        if game_has_started(game, now_et):
             if gid in out:
                 out[gid]["frozen"] = True
                 _grade(out[gid], game)

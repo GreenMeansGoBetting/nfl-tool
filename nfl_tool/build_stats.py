@@ -40,7 +40,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from gmg_model import compute_gmg_model
+from gmg_model import compute_gmg_model, eastern_now, game_has_started, kickoff_utc
 from line_grades import compute_line_grades, load_ngs
 
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
@@ -1189,6 +1189,77 @@ def fetch_previous_odds_snapshot() -> dict | None:
     except Exception as e:
         print(f"WARNING: could not fetch previous odds snapshot for fallback ({e}).", file=sys.stderr)
         return None
+
+
+# Every odds field on a schedule entry (the top-level best-of-books numbers;
+# Novig's own copy rides along in game["novig"]).
+SCHEDULE_ODDS_FIELDS = (
+    "spread_line", "away_team_spread", "home_team_spread", "away_spread_odds", "home_spread_odds",
+    "total_line", "over_odds", "under_odds", "away_moneyline", "home_moneyline",
+    "away_ml_implied_prob", "home_ml_implied_prob",
+)
+
+
+def lock_started_game_odds(blob: dict, previous: dict | None, model_history: dict) -> list:
+    """Once a game kicks off its odds stop moving on the site. Novig (and
+    SGO) keep quoting IN-GAME lines, and the build was publishing those as
+    if they were the pregame number: SF +3.5 / 46.5 turned into "SF -4.5,
+    Under 56.5, SF -245" on the Pick Tracker mid-game (user 2026-10-11).
+
+    For every game that has started, the odds are taken from the previous
+    build instead of this run's fetch -- but only when that build is known
+    to hold pregame numbers: it had already locked the game, or it was
+    generated before kickoff. Covers the schedule lines (top-level and
+    Novig), both teams' TD and prop odds, and the game's all-odds list.
+    When there's no trustworthy earlier copy (the previous build couldn't
+    be read, or predates this feature), Novig's live copy is dropped and the
+    spread/total fall back to the line the GMG model locked at kickoff, then
+    to the schedule's own closing line. Returns the locked game ids, which
+    go into the blob for the next build to trust."""
+    now_et = eastern_now()
+    previous = previous or {}
+    prev_locked = set(previous.get("lines_locked") or [])
+    prev_games = {g.get("game_id"): g for g in previous.get("schedule") or []}
+    try:
+        prev_made = datetime.strptime(previous.get("generated_at") or "", "%Y-%m-%dT%H:%MZ")
+    except ValueError:
+        prev_made = None
+    locked = []
+    for game in blob.get("schedule") or []:
+        gid = game.get("game_id")
+        if not gid or not game_has_started(game, now_et):
+            continue
+        locked.append(gid)
+        if game.get("week") != blob.get("current_week"):
+            continue  # earlier weeks already sit on closing lines
+        kickoff = kickoff_utc(game)
+        prev_game = prev_games.get(gid)
+        trusted = prev_game is not None and (gid in prev_locked or (prev_made is not None and kickoff is not None and prev_made < kickoff))
+        if trusted:
+            for field in SCHEDULE_ODDS_FIELDS:
+                if prev_game.get(field) is not None:
+                    game[field] = prev_game[field]
+            if prev_game.get("novig"):
+                game["novig"] = prev_game["novig"]
+            else:
+                game.pop("novig", None)
+            for team in (game["away"], game["home"]):
+                for field in ("player_td_odds", "player_first_td_odds"):
+                    if isinstance(blob.get(field), dict) and team in (previous.get(field) or {}):
+                        blob[field][team] = previous[field][team]
+                for stat, by_team in (blob.get("player_prop_markets") or {}).items():
+                    prev_rows = ((previous.get("player_prop_markets") or {}).get(stat) or {}).get(team)
+                    if prev_rows is not None:
+                        by_team[team] = prev_rows
+            key = f"{game['away']}_{game['home']}"
+            if isinstance(blob.get("general_odds"), dict) and key in (previous.get("general_odds") or {}):
+                blob["general_odds"][key] = previous["general_odds"][key]
+        else:
+            game.pop("novig", None)
+            entry = model_history.get(gid) or {}
+            if entry.get("spread") is not None and entry.get("total") is not None:
+                game["novig"] = {"home_team_spread": entry["spread"], "away_team_spread": -entry["spread"], "total_line": entry["total"]}
+    return locked
 
 
 GMG_HISTORY_PATH = Path(__file__).parent.parent / "model_history" / "gmg_model.json"
@@ -5000,9 +5071,12 @@ def main():
         "player_prop_market_labels": PLAYER_OU_MARKETS,
     }
 
+    model_history = previous_gmg_model()
+    blob["lines_locked"] = lock_started_game_odds(blob, fetch_previous_odds_snapshot(), model_history)
+    blob["generated_at"] = (eastern_now() + timedelta(hours=4)).strftime("%Y-%m-%dT%H:%MZ")  # UTC
     renamed = canonicalize_odds_names(blob, roster_positions)
     print(f"Odds names matched to the site's spelling: {renamed} changed")
-    blob["gmg_model"] = compute_gmg_model(blob, previous_gmg_model())
+    blob["gmg_model"] = compute_gmg_model(blob, model_history)
     save_gmg_history(blob["gmg_model"])
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

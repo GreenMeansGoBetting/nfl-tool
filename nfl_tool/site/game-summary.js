@@ -853,8 +853,11 @@ function gsPickMarket(game, m) {
   const sideBtns = sides
     .map((s) => {
       const on = chosen === s.side;
-      const odds = m.key === "moneyline" ? "" : ` <span class="gs-price">${fmtOddsSigned(s.odds)}</span>`;
-      return `<button type="button" class="gs-pick-side${on ? ` gs-on${color ? ` pick-color-${color}` : " gs-pending"}` : ""}" data-market="${m.key}" data-side="${s.side}">${s.label}${odds}</button>`;
+      // A saved pick shows the line and price it was made at.
+      const saved = pick && on;
+      const price = saved && pick.odds_at_pick !== null && pick.odds_at_pick !== undefined ? pick.odds_at_pick : s.odds;
+      const odds = m.key === "moneyline" ? "" : ` <span class="gs-price">${fmtOddsSigned(price)}</span>`;
+      return `<button type="button" class="gs-pick-side${on ? ` gs-on${color ? ` pick-color-${color}` : " gs-pending"}` : ""}" data-market="${m.key}" data-side="${s.side}">${saved ? pickLabel(game, m.key, pick) : s.label}${odds}</button>`;
     })
     .join("");
   const colorBtns = COLORS.map((c) => `<button type="button" class="gs-pick-color pick-color-${c.key}${color === c.key ? " gs-on" : ""}" data-market="${m.key}" data-color="${c.key}">${c.label}</button>`).join("");
@@ -931,7 +934,9 @@ document.addEventListener("click", (e) => {
   const market = btn.dataset.market;
   const existing = getPick(game.game_id, market);
   const save = (side, color) => {
-    const sideInfo = marketSides(game, market).find((s) => s.side === side);
+    // Changing only the confidence keeps the line the pick was made at.
+    const kept = existing && existing.side === side;
+    const sideInfo = kept ? { line: existing.line_at_pick, odds: existing.odds_at_pick } : marketSides(game, market).find((s) => s.side === side);
     upsertPick({
       game_id: game.game_id,
       season: DATA.requested_season,

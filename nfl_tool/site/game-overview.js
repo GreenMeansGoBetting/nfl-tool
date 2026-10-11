@@ -1547,7 +1547,7 @@ function renderPickMarketRow(game, market) {
       : `<span class="pick-result pick-result-pending">Pending</span>`;
     return `<div class="pick-market-row">
       <span class="pick-market-label">${market.label}</span>
-      <span class="pick-badge pick-color-${existing.color}">${sideInfo ? sideInfo.label : existing.side} &middot; ${colorInfo ? colorInfo.label : existing.color}</span>
+      <span class="pick-badge pick-color-${existing.color}">${pickLabel(game, market.key, existing)} &middot; ${colorInfo ? colorInfo.label : existing.color}</span>
       ${resultTag}
       <button type="button" class="pick-edit-btn" data-market="${market.key}" data-action="edit">Edit</button>
       <button type="button" class="pick-edit-btn" data-market="${market.key}" data-action="delete">Delete</button>
@@ -1770,8 +1770,8 @@ function renderPickRevealContent(game) {
     // spread/total's don't, so those get it appended separately.
     const numberText =
       m.key === "moneyline"
-        ? sideInfo.label
-        : `${sideInfo.label}${sideInfo.odds !== null && sideInfo.odds !== undefined ? ` (${fmtOdds(sideInfo.odds)})` : ""}`;
+        ? pickLabel(game, m.key, pick)
+        : `${pickLabel(game, m.key, pick)}${pick.odds_at_pick !== null && pick.odds_at_pick !== undefined ? ` (${fmtOdds(pick.odds_at_pick)})` : ""}`;
     return `<div class="reveal-section pick-color-${pick.color}">
       ${star}
       <div class="reveal-market-label">${MARKET_LABELS[m.key]}</div>
@@ -1790,6 +1790,18 @@ function openPickRevealModal(game) {
   ensurePickRevealModal();
   document.getElementById("pick-reveal-modal-content").innerHTML = renderPickRevealContent(game);
   document.getElementById("pick-reveal-modal").hidden = false;
+}
+
+// A saved pick reads as the line and price it was MADE at, never today's
+// number -- the badge used to show the current line, so a pick taken at
+// SF +3.5 read "SF -4.5" once the line moved (user 2026-10-11).
+function pickLabel(game, market, pick) {
+  const current = marketSides(game, market).find((s) => s.side === pick.side);
+  const team = pick.side === "home" ? game.home : game.away;
+  if (market === "spread" && pick.line_at_pick !== null && pick.line_at_pick !== undefined) return `${team} ${fmtSigned(pick.line_at_pick)}`;
+  if (market === "total" && pick.line_at_pick !== null && pick.line_at_pick !== undefined) return `${pick.side === "over" ? "Over" : "Under"} ${fmt(pick.line_at_pick, 1)}`;
+  if (market === "moneyline" && pick.odds_at_pick !== null && pick.odds_at_pick !== undefined) return `${team} ${fmtOdds(pick.odds_at_pick)}`;
+  return current ? current.label : pick.side;
 }
 
 function attachPickTrackerHandlers(game) {

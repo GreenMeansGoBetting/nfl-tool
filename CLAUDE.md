@@ -58,6 +58,20 @@ context. It is the only copy that travels with the repo.
   - **TD bets grade on a loose name match** (`gradeTdPlay`, `normName`, 2026-10-06): bets keep the
     sportsbook's spelling ("Brian Robinson Jr.") while TD results use nflverse's ("Brian Robinson");
     an exact match graded his MNF TD a loss. Already-graded auto losses flip to wins on next load.
+  - **Odds lock at kickoff (2026-10-11):** Novig (and SGO) keep quoting IN-GAME lines, and the
+    build published them as if pregame; mid-game the Pick Tracker read "SF -4.5, Under 56.5,
+    SF -245" for a game that closed SF +3.5 / 46.5. `lock_started_game_odds` (build_stats.py)
+    now takes a started game's odds from the previous build instead of this run's fetch, but only
+    when that build is known to be pregame (it had already locked the game, listed in
+    `lines_locked`, or its `generated_at` is before kickoff). Covers schedule lines (top-level +
+    `novig`), both teams' TD and prop odds, and the all-odds list. With no trustworthy earlier
+    copy it drops Novig's live copy and uses the spread/total the GMG model locked, then the
+    schedule's closing line.
+  - **A saved pick shows the line it was made at** (`pickLabel`, game-overview.js): the Pick
+    Tracker badge, the reveal popup and the Summary card's My Picks used to print the CURRENT
+    line next to a saved pick (grading always used the stored `line_at_pick`). Changing only
+    the confidence on the Summary card also re-saved the pick at the current line; it now keeps
+    the original line.
   - **One spelling per player in the odds (2026-10-11):** books disagree ("Brian Robinson Jr." on
     SGO, "Brian Robinson" on Novig and nflverse) and a row's book can change between builds, so
     a name flipped, the saved play's checkbox stopped matching, and saving it again listed him
