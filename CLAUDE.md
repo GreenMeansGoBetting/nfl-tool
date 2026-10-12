@@ -90,7 +90,7 @@ that, move detail into a rules file.
   real week and check that no strong single part is dropped except by an intentional block.
 - **Summary cards direct attention and don't explain.** No wordy blurbs; use color and shaded
   boxes, not plain colored text. No "#5" rank badges on the card (ranks go in hovers or small
-  tags). The card must never contradict itself. Give rows and boxes room: use the full card
+  tags); the one exception is the Game Summary's Matchups, which show each grade's league rank. The card must never contradict itself. Give rows and boxes room: use the full card
   height and don't cram. **Never drop data to make a card bigger; rearrange into dead space.**
 - **Props Summary is directional, never a pick sheet:** no projections, "model edge" numbers or
   model-picked players. The user draws the conclusions.

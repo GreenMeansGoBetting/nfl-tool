@@ -115,6 +115,16 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 
 ### The Game Previews Summary card, GMG score model, tags and edges
 
+- **2026-10-12, the card was cut back to grades only.** It used to nest one or two stats under
+  each grade, shown only when that stat was an "edge" (offense and defense far apart), capped at
+  2 per grade and 7 per side. So one team's side could show several stat lines while the other
+  showed only letters, which the user read as inconsistent, and the whole block as too wordy.
+  A first redesign (grade tiles in a 2-wide grid per side) was rejected as "too jammed, too
+  wordy" with dead space at the bottom. The user then chose: only the five categories with a
+  letter and league rank, ratings stacked for comparison, an 8-color scale, and a logo chip for
+  the edge. The edge rule moved from a z-score gap (Mismatch / Tough / Good vs Good tags) to
+  the rank gap shown on the card, so nothing on the card can look contradictory.
+
 - The Game Previews Summary card:
   - The Summary toolbar has no explanatory subtext (removed at the user's request 2026-10-11).
   - **Layout (redone 2026-10-10 over 4 mockups).** A viewer told the user the card "looks

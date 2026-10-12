@@ -35,25 +35,18 @@ Stories and examples behind these rules: `docs/history.md`, "Game Previews".
   `odds_at_pick`, never the current line. Changing only the confidence on the Summary card keeps
   the original line. Grading always uses the stored line.
 
-## Grades, tags and edges
+## Grades and edges
 
 - `categoryZ(cat, team, side)` in game-overview.js is the one switch for scheme / trenches /
   composite grades (`compositeZ`, `schemeCompositeZ`, `SUMMARY_CATEGORIES`).
-- `gsMatchupTag(offZ, defZ)` in game-summary.js, both z's "good for its own side". Gap
-  (off − def) >= 1.0 = Mismatch, <= −1.0 = Tough, so a bad offense vs an AVERAGE defense still
-  flags. Both past ±0.4 the same way = Good vs Good / Bad vs Bad. Grade rows use the same tagger
-  on their composite z.
-- Edges are ranked by gap (or how far both lean for same-direction tags) and nested under the
-  grade they back up, not listed as a top 8.
-- Scheme looks count once the defense shows them >= 12% of the time; frequency only scales rank
-  (0.7x-1.25x), never gates.
-- Candidates: General Stats rows (Production rows ranked 0.75x, since the Passing/Rushing grades
-  already sum them), Penalty Yards, scheme looks, and the Trenches parts (Pass pro vs rush, Run
-  block vs run D). Turnovers show only as good vs bad (mostly random; never Bad vs Bad filler).
-  Skipped: Plays/Game, quarter splits, the Red Zone composite (it has its own grade row).
 - "Scheme" is labeled "Blitz & Box" on the card.
-- The A–F grade boxes (`.gs-grade.tier-*`) use the same tinted fill + edge as the full preview's
-  Team Grades cells (A/B green, C yellow, D/F red, A and F strongest). Keep the two in sync.
+- **On the Summary card an edge is read straight off the two ranks shown** (`gsRankEdge` in
+  game-summary.js), so a chip can never disagree with the numbers beside it:
+  - `gsCategoryRank` ranks a team's grade 1-32 for its own side (1 = best offense / best defense).
+  - Gap = the defense's rank minus the offense's rank. 16+ apart = clear edge, 8-15 = slight,
+    closer = even. Both sides top 8 = strength vs strength.
+  - The Matchups rows and the Keys tiles both use this one call.
+- The Full Preview's Team Grades cells keep their own A/B green, C yellow, D/F red fill.
 
 ## Trenches (`nfl_tool/line_grades.py` -> data.json `line_grades[team].ol / .dl`)
 
@@ -75,33 +68,38 @@ Stories and examples behind these rules: `docs/history.md`, "Game Previews".
 - Pressure = sack or QB hit (no public hurries). NGS comes from nflverse's combined
   `ngs_passing/ngs_rushing.csv.gz` (per-season files don't exist for 2026), weeks >= 1 only.
 
-## Summary card (one full-width column, `g2-*` styles, top to bottom)
+## Summary card (one full-width column, `g2-*` / `g5-*` styles, top to bottom)
+
+Simplified 2026-10-12 at the user's call: "so much info is actually hurting it... if people
+want the entire set of info they can get on the site." Do not add stat lines back to it.
 
 - The Summary toolbar has no explanatory subtext.
 - **The Line** (`gsLineStrip`): Spread, Total, Market score (the score the spread + total imply),
   **GMG model** score (green tile), Win chance.
-- **Team panels** (`gsTeamPanel`), one per team side by side: team-color banner with record and
-  record vs the spread, Results chips, Ratings (Off / Def / Overall / Schedule), Injuries (5
-  starters, then "+N").
-- **The Matchups** (`gsMatchupColumn`): each grade row (Passing, Rushing, Red Zone, Trenches,
-  Blitz & Box) with the stats behind it nested underneath ("claim, then proof"). Only the grade
-  rows get a tag box; stats get a dot (green favors the offense, red the defense, yellow strength
-  vs strength). At most `GS_PROOF_PER_GRADE` 2 stats per grade and `GS_PROOF_PER_SIDE` 7 per
-  side, strongest grade first; Bad vs Bad stats are not listed (not an edge). Leftover edges
-  (points, EPA, 3rd down, penalties...) go under "Overall". Labels carry units ("Rush yds /
-  game", "4-man rush success", "DAL shows it 53%").
-  - Every stat number has a color (`gsZClass`): green / red past the tier line, **yellow in
-    between** (never plain). A Trenches value shown with its letter takes the letter's color
-    (`gsGradeValClass`: A/B green, C yellow, D/F red).
-- **Keys** (`gsKeys`): the 3 biggest graded matchups from both sides (`GS_KEYS_SHOWN`); tile =
-  who has the advantage (team color), the matchup in plain words, the two grades. The regular
-  starting QB ruled Out (same rule as the model) always takes the first tile. Sits below the
-  matchups, above My Picks (the user's placement).
+- **Teams row** (`.g5-teams`): a panel per team at the two ends (`gsTeamPanel`: team-color banner
+  with Rec and ATS, Results chips, Injuries with 5 starters then "+N"), and **both teams' Ratings
+  stacked between them** (`gsRatingsStack`: one row per team; Off / Def / Overall / Schedule
+  compare straight down). The user prefers stacked over a ratings row inside each panel.
+- **The Matchups** (`gsMatchupTape`): only the five grades (Passing, Rushing, Red Zone, Trenches,
+  Blitz & Box), the same rows for both teams in every game.
+  - One shared label column down the middle: away offense vs home defense on its left, home
+    offense vs away defense on its right.
+  - Each cell is the letter grade plus its league rank ("#3"). The user asked for ranks here,
+    so this card is the exception to the "no rank badges" rule.
+  - Color follows the rank on an **8-step scale** (`GS_RANK_SCALE`, four teams per step: two
+    greens, lime, yellow, amber, orange, red-orange, red), not the 3-tier green/yellow/red.
+  - The edge is a **logo chip** at the outer end of each side, not a word: the logo of the team
+    with the edge, green border = clear, yellow = slight, two logos = strength vs strength,
+    a dash = even.
+- **Keys** (`gsKeys`): the 3 biggest matchups from both sides (`GS_KEYS_SHOWN`), picked by the
+  same rank edge; tile = who has the advantage (team color), the matchup in plain words, the two
+  grades in rank colors. The regular starting QB ruled Out (same rule as the model) always takes
+  the first tile. Sits below the matchups, above My Picks (the user's placement).
 - **My Picks** (`gsPickStrip`): one strip across the bottom, the three markets side by side. The
   toolbar button `#summary-rail-btn` ("Hide My Picks") hides the strip. The Novig QR block is off
   the card "for now" (user).
-- Cards scale 93-98% with everything on; the card is `.sc-grow`, so `fitWideSummaryCard` zooms
-  the main column when there's room.
+- The card fits at full size (scale 1.00) with everything on; it is `.sc-grow`, so
+  `fitWideSummaryCard` zooms the main column when there's room.
 
 ## GMG score model (`nfl_tool/gmg_model.py` -> data.json `gmg_model[game_id]`)
 

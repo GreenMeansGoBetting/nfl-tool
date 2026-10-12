@@ -1,9 +1,11 @@
 // ---- Game Previews Summary: one screenshot-ready card per game ----
 // Same 1160x980 card as the TD / Props summaries, read top to bottom: The
-// Line (market score next to the GMG model score), one panel per team
-// (record, results, ratings, injuries), The Matchups (each A-F grade with
-// the stats behind it), Keys (the three biggest edges) and My Picks, which
-// saves to the same picks as the full page. Boxes and chips, no sentences.
+// Line (market score next to the GMG model score), a panel per team (record,
+// results, injuries) with both teams' ratings stacked between them, The
+// Matchups (five grades, each a letter + league rank, offense vs the defense
+// it faces), Keys (the three biggest edges) and My Picks, which saves to the
+// same picks as the full page. Boxes and chips, no sentences; the stats
+// behind the grades live on the Full Preview.
 
 const GS_VIEW_KEY = "nfl-tool.preview-view.v1";
 let gsView = "full";
@@ -12,74 +14,11 @@ try {
 } catch (e) {
   // localStorage unavailable -- opens on the full preview.
 }
-const GS_EDGE_Z = TIER_Z_THRESHOLD; // same line as the page's green/red tiers
-const GS_EDGES_SHOWN = 8;
-// Matchup tagging (reworked with the user 2026-10-01). Both numbers are
-// "good for its own side" z-scores (offense: produces; defense: stops).
-// The GAP between them decides Mismatch/Tough, so a bad offense against an
-// average defense still flags -- requiring BOTH sides to be extreme hid real
-// edges (PIT bad vs blitz, CLE allowing sacks, PIT's red zone). Same-
-// direction pairs past GS_BOTH_Z read Good vs Good / Bad vs Bad.
-const GS_GAP_Z = 1.0;
-const GS_BOTH_Z = 0.4;
-// A defensive look counts once a defense shows it this often; how often only
-// scales how high the edge ranks (frequency = relevance, never a gate on
-// whether a matchup is real).
-const GS_MIN_LOOK_RATE = 0.12;
 const GS_INJURIES_SHOWN = 5;
 
-// ---- matchup tags ----
-// good/bad from each side's own point of view (offense: produces a lot;
-// defense: allows little).
-const GS_TAGS = {
-  mismatch: { label: "Mismatch", cls: "gs-tag-mismatch" },
-  tough: { label: "Tough", cls: "gs-tag-tough" },
-  strong: { label: "Good vs Good", cls: "gs-tag-strong" },
-  weak: { label: "Bad vs Bad", cls: "gs-tag-weak" },
-};
-function gsTag(offGood, offBad, defGood, defBad) {
-  if (offGood && defBad) return "mismatch";
-  if (offBad && defGood) return "tough";
-  if (offGood && defGood) return "strong";
-  if (offBad && defBad) return "weak";
-  return null;
-}
-function gsMatchupTag(offZ, defZ) {
-  if (offZ === null || offZ === undefined || defZ === null || defZ === undefined) return null;
-  if (offZ >= GS_BOTH_Z && defZ >= GS_BOTH_Z) return "strong";
-  if (offZ <= -GS_BOTH_Z && defZ <= -GS_BOTH_Z) return "weak";
-  const gap = offZ - defZ;
-  if (gap >= GS_GAP_Z) return "mismatch";
-  if (gap <= -GS_GAP_Z) return "tough";
-  return null;
-}
-// How strongly an edge should rank: the gap for Mismatch/Tough, how far both
-// sides lean for Good vs Good / Bad vs Bad.
-function gsEdgeStrength(offZ, defZ, tag) {
-  return tag === "strong" || tag === "weak" ? 0.6 * (Math.abs(offZ) + Math.abs(defZ)) : Math.abs(offZ - defZ);
-}
-function gsTagHtml(key) {
-  return key ? `<span class="gs-tag ${GS_TAGS[key].cls}">${GS_TAGS[key].label}</span>` : `<span class="gs-tag gs-tag-even">Even</span>`;
-}
-function gsGradeBox(grade) {
-  return `<span class="gs-grade ${gradeClass(grade)}"${gradeAlphaAttr(grade)}>${grade || "--"}</span>`;
-}
 function gsStatZ(key, team, invert) {
   const pool = teamsWithGames();
   return zScore(tierValue(team, key), pool.map((t) => tierValue(t, key)), invert);
-}
-// Every number on the card gets a color: green / red past the page's tier
-// line, yellow in between (an average number used to be left plain, which
-// read as "the color didn't load" -- user 2026-10-12). Blank only with no data.
-function gsZClass(z) {
-  if (z === null || z === undefined) return "";
-  return z >= GS_EDGE_Z ? "gs-good" : z <= -GS_EDGE_Z ? "gs-bad" : "gs-mid";
-}
-// A value shown WITH its letter grade takes the letter's color (A/B green,
-// C yellow, D/F red), so "C 59" can never sit in a green or plain box.
-function gsGradeValClass(grade) {
-  const g = (grade || "").charAt(0);
-  return g === "A" || g === "B" ? "gs-good" : g === "C" ? "gs-mid" : g === "D" || g === "F" ? "gs-bad" : "";
 }
 
 // "Scheme" on the full page = how an offense does against the looks a
@@ -87,174 +26,96 @@ function gsGradeValClass(grade) {
 // defense does when it shows them. Named for what it is on the card.
 const GS_CATEGORY_LABELS = { Scheme: "Blitz & Box" };
 
-// Team grades, offense vs the other defense.
-function gsGradeRows(offTeam, defTeam) {
-  return SUMMARY_CATEGORIES.map((cat) => {
-    const offZ = categoryZ(cat, offTeam, "off");
-    const defZ = categoryZ(cat, defTeam, "def");
-    const og = gradeForZ(offZ);
-    const dg = gradeForZ(defZ);
-    const tag = gsMatchupTag(offZ, defZ);
-    return `<div class="gs-row"><span class="gs-row-label">${GS_CATEGORY_LABELS[cat.label] || cat.label}</span>${gsGradeBox(og)}<span class="gs-vs">vs</span>${gsGradeBox(dg)}${gsTagHtml(tag)}</div>`;
-  }).join("");
+// ---- The Matchups, simplified (2026-10-12, the user's call) ----
+// The card used to list the stats behind each grade; which ones showed
+// changed game to game and side to side, and it read as too much. Now it is
+// only the five grades, the same rows for both teams every game: letter +
+// league rank (1-32) for the offense and for the defense it faces, and a
+// logo chip for who has the edge. One shared label column down the middle
+// (BUF offense vs LA defense on its left, LA offense vs BUF defense on its
+// right). The full stats live on the Full Preview.
+// Color follows the RANK on an 8-step scale (four teams per step), so a #2
+// and a #8 no longer share one green.
+// [hue, fill strength] per step, best to worst: two greens, lime, yellow,
+// amber, orange, red-orange, red. The ends are filled hardest.
+const GS_RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
+const GS_RANK_STEPS = GS_RANK_SCALE.length;
+function gsRankStyle(rank, total) {
+  if (!rank) return "";
+  const [hue, fill] = GS_RANK_SCALE[Math.min(GS_RANK_STEPS - 1, Math.floor(((rank - 1) / total) * GS_RANK_STEPS))];
+  return ` style="background:hsla(${hue},78%,44%,${fill});border-color:hsl(${hue},78%,48%)"`;
 }
-
-const GS_SCHEME_SHORT = {
-  "Heavy Box (7+)": "Heavy box",
-  "Light Box (≤6)": "Light box",
-  "Blitz (5+ rushers)": "Blitz",
-  "Standard Rush": "4-man rush",
-  Pressured: "Pressure",
-  "Clean Pocket": "Clean pocket",
-};
-
-// Biggest General Stats + Scheme + Trenches edges for this offense vs that
-// defense, ranked by gsEdgeStrength. Left out: pace (plays/game isn't good
-// or bad), quarter splits (noise at this size) and the red zone composite
-// (it has its own grade row above). Turnovers are mostly random, so they
-// only show as good vs bad -- never Good vs Good / Bad vs Bad filler.
-const GS_SKIP_ROWS = new Set(["Plays / Game", "Red Zone"]);
-const GS_GOOD_VS_BAD_ONLY = new Set(["Turnovers"]);
-// Plain production rows are already summed up by the Passing/Rushing grades
-// above, so they rank a step below the specific situational edges.
-const GS_PRODUCTION_RANK = 0.75;
-// Which grade a stat row backs up, and its label with the unit spelled out.
-const GS_ROW_CATEGORY = { "Pass Yards": "Passing", "Rush Yards": "Rushing", "Yards / Carry": "Rushing", Sacks: "Trenches" };
-const GS_ROW_LABELS = { Points: "Points / game", "Pass Yards": "Pass yds / game", "Rush Yards": "Rush yds / game", "Yards / Carry": "Yds / carry", Sacks: "Sacks / game", Turnovers: "Turnovers / game", "Penalty Yards": "Penalty yds / game", "Explosive Plays": "Explosive play %" };
-// Each grade shows at most this many stats under it, and a side at most this many in all.
-const GS_PROOF_PER_GRADE = 2;
-const GS_PROOF_PER_SIDE = 7;
-function gsStatEdges(offTeam, defTeam, all) {
-  const edges = [];
-  // Small per-game counts (sacks, turnovers) get one decimal on the card --
-  // whole numbers turned 2.6 vs 3.4 into a confusing "3 vs 3".
-  const fmtV = (v, r) => {
-    if (v === null || v === undefined) return "--";
-    if (r.pct) return `${Math.round(v * 100)}%`;
-    if (r.digits === undefined && Math.abs(v) < 10) return fmt(v, 1);
-    return fmt(v, r.digits ?? 0);
-  };
-  GENERAL_STAT_GROUPS.filter((g) => g.label !== "Scoring by Quarter").forEach((g) =>
-    g.rows.forEach((r) => {
-      if (r.composite || GS_SKIP_ROWS.has(r.label)) return;
-      const offZ = gsStatZ(r.offKey, offTeam, r.offInvert);
-      const defZ = gsStatZ(r.defKey, defTeam, r.defInvert);
-      const tag = gsMatchupTag(offZ, defZ);
-      if (!tag) return;
-      if (GS_GOOD_VS_BAD_ONLY.has(r.label)) {
-        const goodVsBad = (offZ >= GS_EDGE_Z && defZ <= -GS_EDGE_Z) || (offZ <= -GS_EDGE_Z && defZ >= GS_EDGE_Z);
-        if (!goodVsBad) return;
-      }
-      edges.push({
-        label: GS_ROW_LABELS[r.label] || r.label,
-        cat: GS_ROW_CATEGORY[r.label] || "Overall",
-        offZ,
-        defZ,
-        off: `<span class="gs-val ${gsZClass(offZ)}">${fmtV(tierValue(offTeam, r.offKey), r)}</span>`,
-        def: `<span class="gs-val ${gsZClass(defZ)}">${fmtV(tierValue(defTeam, r.defKey), r)}</span>`,
-        tag,
-        weight: gsEdgeStrength(offZ, defZ, tag) * (g.label === "Production" ? GS_PRODUCTION_RANK : 1),
-      });
-    })
-  );
-  // Scheme: the offense's result against a look vs the defense's own result
-  // when it shows that look (two-sided). How often the defense shows it
-  // scales the ranking only.
-  SCHEME_GROUPS.forEach((group) =>
-    group.rows.forEach((r) => {
-      const tend = DATA.team_stats[defTeam][r.tendKey];
-      if (tend === null || tend === undefined || tend < GS_MIN_LOOK_RATE) return;
-      const offZ = gsStatZ(r.perfKey, offTeam, false);
-      const leakZ = gsStatZ(r.defSuccessKey, defTeam, false); // + = leaky
-      if (offZ === null || leakZ === null) return;
-      const defZ = -leakZ; // good-for-the-defense orientation
-      const tag = gsMatchupTag(offZ, defZ);
-      if (!tag) return;
-      const perf = DATA.team_stats[offTeam][r.perfKey];
-      const allowed = DATA.team_stats[defTeam][r.defSuccessKey];
-      const txt = (v) => (group.pct ? `${Math.round(v * 100)}%` : `${fmt(v, 1)}`);
-      const relevance = Math.min(1.25, Math.max(0.7, 0.55 + tend)); // 15% look ~0.7x, 70%+ ~1.25x
-      edges.push({
-        label: `${GS_SCHEME_SHORT[r.label] || r.label} ${group.pct ? "success" : "yds/carry"}`,
-        note: `${defTeam} shows it ${Math.round(tend * 100)}%`,
-        cat: "Scheme",
-        offZ,
-        defZ,
-        off: `<span class="gs-val ${gsZClass(offZ)}">${txt(perf)}</span>`,
-        def: `<span class="gs-val ${gsZClass(defZ)}" title="${defTeam} allows this when it shows the look">${txt(allowed)}</span>`,
-        tag,
-        weight: gsEdgeStrength(offZ, defZ, tag) * relevance,
-        scheme: true,
-      });
-    })
-  );
-  // Trenches parts: this line vs that front (overall already has a grade row).
-  if (DATA.line_grades) {
-    [["Pass pro vs rush", "pass_pro", "pass_rush"], ["Run block vs run D", "run_block", "run_defense"]].forEach(([label, og, dg]) => {
-      const oe = trenchesEntry(offTeam, "off", og);
-      const de = trenchesEntry(defTeam, "def", dg);
-      if (!oe || !de || oe.z === null || de.z === null) return;
-      const tag = gsMatchupTag(oe.z, de.z);
-      if (!tag) return;
-      edges.push({
-        label,
-        cat: "Trenches",
-        offZ: oe.z,
-        defZ: de.z,
-        off: `<span class="gs-val ${gsGradeValClass(oe.grade)}">${oe.grade} ${oe.score}</span>`,
-        def: `<span class="gs-val ${gsGradeValClass(de.grade)}">${de.grade} ${de.score}</span>`,
-        tag,
-        weight: gsEdgeStrength(oe.z, de.z, tag),
-      });
-    });
-  }
-  edges.sort((a, b) => b.weight - a.weight);
-  return all ? edges : edges.slice(0, GS_EDGES_SHOWN);
+// 1 = best for its own side (offense: produces; defense: stops).
+function gsCategoryRank(cat, team, side) {
+  const z = categoryZ(cat, team, side);
+  if (z === null || z === undefined) return null;
+  return 1 + teamsWithGames().filter((t) => {
+    const other = categoryZ(cat, t, side);
+    return other !== null && other !== undefined && other > z;
+  }).length;
 }
-
-// One side of the ball: each grade row, with the one or two stats behind it
-// tucked underneath (claim, then proof). Only real edges are listed -- a stat
-// where both sides are bad is not an edge -- and each is marked by who it
-// favors: green bar = the offense, red = the defense, yellow = strength on
-// strength. Leftover edges that belong to no grade go under "Overall".
-function gsProofRow(e) {
-  return `<div class="g2-proof g2-proof-${e.tag}"><span class="g2-proof-label">${e.label}</span>${e.off}${e.def}<span class="g2-proof-note">${e.note || ""}</span></div>`;
+// Who has the edge, read straight off the two ranks the card shows, so a
+// chip can never disagree with the numbers next to it: the offense's rank
+// against the rank of the defense it faces. 16+ ranks apart (half the
+// league) = clear, 8-15 = slight, closer = even; both top 8 = strength vs
+// strength. The Keys use the same call.
+const GS_EDGE_CLEAR_RANKS = 16;
+const GS_EDGE_SLIGHT_RANKS = 8;
+const GS_STRENGTH_RANK = 8;
+function gsRankEdge(cat, offTeam, defTeam) {
+  const offRank = gsCategoryRank(cat, offTeam, "off");
+  const defRank = gsCategoryRank(cat, defTeam, "def");
+  const out = { offRank, defRank, kind: "none", adv: null, gap: 0 };
+  if (!offRank || !defRank) return out;
+  out.gap = defRank - offRank; // + = the offense is better at this than the defense is at stopping it
+  const size = Math.abs(out.gap);
+  if (size >= GS_EDGE_SLIGHT_RANKS) {
+    out.kind = size >= GS_EDGE_CLEAR_RANKS ? "clear" : "slight";
+    out.adv = out.gap > 0 ? offTeam : defTeam;
+  } else if (offRank <= GS_STRENGTH_RANK && defRank <= GS_STRENGTH_RANK) out.kind = "str";
+  return out;
 }
-function gsMatchupColumn(offTeam, defTeam) {
-  const edges = gsStatEdges(offTeam, defTeam, true).filter((e) => e.tag !== "weak");
-  let left = GS_PROOF_PER_SIDE;
-  const take = (cat) => {
-    const picked = edges.filter((e) => e.cat === cat).slice(0, Math.min(GS_PROOF_PER_GRADE, left));
-    left -= picked.length;
-    return picked.map(gsProofRow).join("");
-  };
+function gsAdvChip(edge, offTeam, defTeam) {
+  if (edge.kind === "str") return `<span class="g5-adv g5-adv-str" title="Strength vs strength">${teamLogoMini(offTeam, 20)}${teamLogoMini(defTeam, 20)}</span>`;
+  if (edge.kind === "none") return `<span class="g5-adv g5-adv-none" title="Even">&ndash;</span>`;
+  return `<span class="g5-adv g5-adv-${edge.kind}" title="${edge.kind === "clear" ? "Clear" : "Slight"} edge: ${edge.adv}">${teamLogoMini(edge.adv, 32)}</span>`;
+}
+function gsRankGradeBox(cat, team, side, rank) {
+  return `<span class="g5-grade"${gsRankStyle(rank, teamsWithGames().length)}>${gradeForZ(categoryZ(cat, team, side)) || "--"}</span>`;
+}
+function gsTapeSide(cat, offTeam, defTeam, mirror) {
+  const edge = gsRankEdge(cat, offTeam, defTeam);
+  const cell = (team, side, rank) => `<span class="g5-cell">${gsRankGradeBox(cat, team, side, rank)}<span class="g5-rank">${rank ? `#${rank}` : "--"}</span></span>`;
+  const cells = `${cell(offTeam, "off", edge.offRank)}${cell(defTeam, "def", edge.defRank)}`;
+  const chip = gsAdvChip(edge, offTeam, defTeam);
+  return mirror ? `${chip}${cells}` : `${cells}${chip}`;
+}
+function gsMatchupTape(away, home) {
   const head = (team, side) => {
-    const rgb = teamAccentRgb(team);
-    return `<span class="gs-head" style="background:rgba(${rgb.join(",")},0.35);border-bottom:3px solid rgb(${rgb.join(",")})">${teamLogoMini(team, 16)}<span>${team} ${side}</span></span>`;
+    const rgb = teamAccentRgb(team).join(",");
+    return `<span class="g5-head" style="background:rgba(${rgb},0.35);border-bottom:3px solid rgb(${rgb})">${teamLogoMini(team, 18)}<b>${team}</b> ${side}</span>`;
   };
-  // Proof is handed out strongest grade first so the cap never starves the
-  // biggest mismatch, then printed in the usual grade order.
-  const cats = SUMMARY_CATEGORIES.map((cat) => {
-    const offZ = categoryZ(cat, offTeam, "off");
-    const defZ = categoryZ(cat, defTeam, "def");
-    return { cat, offZ, defZ, tag: gsMatchupTag(offZ, defZ), gap: offZ === null || defZ === null ? 0 : Math.abs(offZ - defZ) };
-  });
-  const proof = {};
-  [...cats].sort((x, y) => y.gap - x.gap).forEach((c) => (proof[c.cat.label] = take(c.cat.label)));
-  const overall = take("Overall");
-  const blocks = cats
-    .map((c) => {
-      const tag = c.tag && c.tag !== "weak" ? gsTagHtml(c.tag) : `<span class="g2-notag">${c.tag === "weak" ? "Bad vs Bad" : "Even"}</span>`;
-      return `<div class="g2-block${c.tag && c.tag !== "weak" ? ` g2-block-${c.tag}` : ""}">
-        <div class="g2-grade-row"><span class="g2-cat">${GS_CATEGORY_LABELS[c.cat.label] || c.cat.label}</span>${gsGradeBox(gradeForZ(c.offZ))}${gsGradeBox(gradeForZ(c.defZ))}${tag}</div>
-        ${proof[c.cat.label]}
-      </div>`;
-    })
-    .join("");
-  return `<div class="sc-col g2-col">
-    <div class="g2-grade-row g2-col-head"><span></span>${head(offTeam, "OFF")}${head(defTeam, "DEF")}<span></span></div>
-    ${blocks}
-    ${overall ? `<div class="g2-block"><div class="g2-grade-row"><span class="g2-cat g2-cat-plain">Overall</span></div>${overall}</div>` : ""}
+  const rows = SUMMARY_CATEGORIES.map(
+    (cat) => `<div class="g5-row">${gsTapeSide(cat, away, home, true)}<span class="g5-label">${GS_CATEGORY_LABELS[cat.label] || cat.label}</span>${gsTapeSide(cat, home, away, false)}</div>`
+  ).join("");
+  return `<div class="g5-tape">
+    <div class="g5-row g5-head-row"><span class="g5-edge-h">Edge</span>${head(away, "offense")}${head(home, "defense")}<span></span>${head(home, "offense")}${head(away, "defense")}<span class="g5-edge-h">Edge</span></div>
+    ${rows}
+  </div>`;
+}
+
+// Both teams' ratings stacked, one row each, so every column compares
+// straight down (the user liked this better than a row inside each team panel).
+function gsRatingsStack(away, home) {
+  const row = (team) => {
+    const r = (DATA.espn_ratings || {})[team];
+    const tiles = r ? `${gsRatingTile(r.off_rating, r.off)}${gsRatingTile(r.def_rating, r.def)}${gsRatingTile(r.fpi_rating, r.fpi)}${gsSosTile(r.sos_rank)}` : `<span class="gs-rt">--</span><span class="gs-rt">--</span><span class="gs-rt">--</span><span class="gs-rt">--</span>`;
+    return `<div class="g5-rt-row"><span class="g5-rt-team">${teamLogoMini(team, 20)}<b>${team}</b></span>${tiles}</div>`;
+  };
+  return `<div class="g2-team g5-ratings">
+    <div class="g5-rt-title">Ratings</div>
+    <div class="g5-rt-row g5-rt-head"><span></span><span>Off</span><span>Def</span><span>Overall</span><span>Schedule</span></div>
+    ${row(away)}${row(home)}
   </div>`;
 }
 
@@ -713,28 +574,30 @@ const GS_KEY_UNITS = {
   Rushing: ["run game", "run D"],
   "Red Zone": ["red zone O", "red zone D"],
   Trenches: ["O-line", "front"],
-  Scheme: ["offense", "blitz & box looks"],
+  Scheme: ["offense", "blitz & box"],
 };
 function gsKeys(game) {
   const { away, home, week } = game;
   const keys = [];
   [[away, home], [home, away]].forEach(([team, opp]) => {
     const qb = gsQbOut(team, week);
-    if (qb) keys.push({ weight: 9, adv: team, plain: true, label: "QB out", title: `${team} without ${shortName(qb)}`, right: summaryHeadshot(team, qb, 34) });
+    if (qb) keys.push({ weight: 99, adv: team, plain: true, label: "QB out", title: `${team} without ${shortName(qb)}`, right: summaryHeadshot(team, qb, 34) });
   });
   [[away, home], [home, away]].forEach(([off, def]) =>
     SUMMARY_CATEGORIES.forEach((cat) => {
-      const offZ = categoryZ(cat, off, "off");
-      const defZ = categoryZ(cat, def, "def");
-      const tag = gsMatchupTag(offZ, defZ);
-      if (!tag || tag === "weak") return;
+      const edge = gsRankEdge(cat, off, def);
+      if (edge.kind === "none") return;
       const [offUnit, defUnit] = GS_KEY_UNITS[cat.label] || [cat.label, cat.label];
+      const offBox = gsRankGradeBox(cat, off, "off", edge.offRank);
+      const defBox = gsRankGradeBox(cat, def, "def", edge.defRank);
+      const defEdge = edge.adv === def;
       keys.push({
-        weight: gsEdgeStrength(offZ, defZ, tag),
-        adv: tag === "mismatch" ? off : tag === "tough" ? def : null,
-        label: tag === "strong" ? "Strength vs strength" : "Advantage",
-        title: tag === "tough" ? `${def} ${defUnit} vs ${off} ${offUnit}` : `${off} ${offUnit} vs ${def} ${defUnit}`,
-        right: tag === "tough" ? `${gsGradeBox(gradeForZ(defZ))}${gsGradeBox(gradeForZ(offZ))}` : `${gsGradeBox(gradeForZ(offZ))}${gsGradeBox(gradeForZ(defZ))}`,
+        // Strength vs strength ranks with the slight edges, the better the pair the higher.
+        weight: edge.kind === "str" ? GS_EDGE_SLIGHT_RANKS + (2 * GS_STRENGTH_RANK - edge.offRank - edge.defRank) / 2 : Math.abs(edge.gap),
+        adv: edge.adv,
+        label: edge.kind === "str" ? "Strength vs strength" : "Advantage",
+        title: defEdge ? `${def} ${defUnit} vs ${off} ${offUnit}` : `${off} ${offUnit} vs ${def} ${defUnit}`,
+        right: defEdge ? `${defBox}${offBox}` : `${offBox}${defBox}`,
       });
     })
   );
@@ -793,16 +656,12 @@ function gsTeamPanel(team, week) {
         })
         .join("")
     : `<span class="gs-none">No games yet</span>`;
-  const r = (DATA.espn_ratings || {})[team];
-  const rt = (label, tile) => `<span class="g2-rt"><i>${label}</i>${tile}</span>`;
-  const ratings = r ? rt("Off", gsRatingTile(r.off_rating, r.off)) + rt("Def", gsRatingTile(r.def_rating, r.def)) + rt("Overall", gsRatingTile(r.fpi_rating, r.fpi)) + rt("Schedule", gsSosTile(r.sos_rank)) : `<span class="gs-none">No ratings</span>`;
   return `<div class="g2-team">
     <div class="g2-team-head" style="background:rgba(${rgb},0.3);border-left:4px solid rgb(${rgb})">
       ${teamLogoMini(team, 26)}<b>${TEAM_NAMES[team] || team}</b>
-      <span class="g2-rec"><span><i>Record</i>${s.su}</span><span><i>vs spread</i>${s.ats}</span></span>
+      <span class="g2-rec"><span><i>Rec</i>${s.su}</span><span><i>ATS</i>${s.ats}</span></span>
     </div>
     <div class="g2-team-row"><span class="g2-lbl">Results</span><span class="gs-res-chips">${chips}</span></div>
-    <div class="g2-team-row"><span class="g2-lbl">Ratings</span><span class="g2-rts">${ratings}</span></div>
     <div class="g2-team-row"><span class="g2-lbl">Injuries</span>${gsInjuryChips(team, week)}</div>
   </div>`;
 }
@@ -910,17 +769,17 @@ function renderGameSummaryCard(game) {
     <div class="sc-body">
       <div class="sc-main">
         <section class="sc-section g2-sec g2-line-sec"><div class="sc-section-title">The Line</div>${gsLineStrip(game)}</section>
-        <div class="g2-teams">${gsTeamPanel(away, game.week)}${gsTeamPanel(home, game.week)}</div>
+        <div class="g2-teams g5-teams">${gsTeamPanel(away, game.week)}${gsRatingsStack(away, home)}${gsTeamPanel(home, game.week)}</div>
         <section class="sc-section g2-sec gs-matchups"><div class="sc-section-title">The Matchups</div>
-          <div class="sc-cols">${gsMatchupColumn(away, home)}${gsMatchupColumn(home, away)}</div>
+          ${gsMatchupTape(away, home)}
         </section>
         <section class="sc-section g2-sec g2-keys"><div class="sc-section-title">Keys</div>${gsKeys(game)}</section>
         ${railHidden ? "" : gsPickStrip(game)}
       </div>
     </div>
     <div class="sc-footer g2-footer">
-      <span>Grades A-F vs the league &middot; under each grade: the stats behind it, offense | what the defense allows</span>
-      <span><span class="g2-key g2-key-mismatch"></span> favors the offense <span class="g2-key g2-key-tough"></span> favors the defense <span class="g2-key g2-key-strong"></span> strength vs strength</span>
+      <span>Grade + league rank (1-32) &middot; offense vs the defense it faces &middot; rank colors <span class="g5-scale">${Array.from({ length: GS_RANK_STEPS }, (_, k) => `<i${gsRankStyle(1 + k * 4, 32)}></i>`).join("")}</span> best to worst</span>
+      <span>Edge: the logo is who has it &middot; <span class="g2-key g2-key-mismatch"></span> clear <span class="g2-key g2-key-strong"></span> slight &middot; two logos = strength vs strength</span>
     </div>
   </div>`;
   fitWideSummaryCard();
