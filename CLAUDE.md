@@ -39,6 +39,9 @@ that, move detail into a rules file.
 
 ### Local verification
 
+- To verify a change, run `python tools/check_site.py` (add `--screenshots` before/after for
+  style changes). Use the browser only to look at something specific. It needs Playwright
+  (`pip install -r tools/requirements-dev.txt`, then `python -m playwright install chromium`).
 - Build: `SKIP_SGO_FETCH=1 python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
   A 404 is a transient nflverse error; re-run. The build only downloads a file that's missing
   (`download_if_missing`), so delete `data/*_2026*` and `data/games.csv` first when the latest
@@ -57,6 +60,8 @@ that, move detail into a rules file.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, on pushes touching
   `nfl_tool/**`, and on manual dispatch (the site's "Update Odds" button). `cloudflare-domain.yml`: one-off domain attach.
 - `model_history/gmg_model.json`: the model's locked projections, committed by the deploy bot.
+- `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
+  optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
