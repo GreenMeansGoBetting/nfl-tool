@@ -28,8 +28,10 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
 - **`.github/workflows/site-check.yml`** runs after every successful deploy (and on demand): it
   downloads the LIVE data (`tools/fetch_live_data.py`, same `X-GMG-Build` key) and runs
   `tools/check_site.py` in its own job, so the deploy never waits on it or installs a browser. A
-  failed run = the check found a problem; the report is on the run's Summary page, GitHub emails
-  the owner, and it also posts to Discord if the optional secret `SITE_CHECK_WEBHOOK` exists.
+  failed run = the check found a NEW problem (the same problems are reported once, not every 6
+  hours); the report is on the run's Summary page, GitHub emails the owner, and it also posts to
+  Discord if the optional secret `SITE_CHECK_WEBHOOK` exists. `tools/check_site.py --site DIR`
+  checks a copy of the site folder (how to reproduce a CI report locally with the live data).
 - `.github/workflows/cloudflare-domain.yml` attached `nfl.gmgsports.org` to the Pages project
   through the API. It can be re-run from the Actions tab and prints the verification status. (The
   Cloudflare connector for Claude can't manage Pages domains; the GitHub secret token can.)

@@ -6,10 +6,11 @@ name: Site check
 # someone happens to look. It is a separate workflow on purpose: the deploy
 # never waits on it and never installs a browser.
 #
-# A failed run means the check found a problem. GitHub emails the repo owner
-# about failed runs; the report is on the run's Summary page. If the secret
-# SITE_CHECK_WEBHOOK (a Discord webhook URL) is ever added, the report is
-# also posted there.
+# A failed run means the check found a NEW problem. GitHub emails the repo
+# owner about failed runs; the report is on the run's Summary page. If the
+# secret SITE_CHECK_WEBHOOK (a Discord webhook URL) is ever added, the report
+# is also posted there. The same problems are only reported once: a card that
+# stays too full all week doesn't fail (and email) four times a day.
 
 on:
   workflow_run:
@@ -49,18 +50,38 @@ jobs:
           sleep 45
           python tools/fetch_live_data.py
 
+      # What the last run reported, so the same problems aren't reported twice.
+      - uses: actions/cache/restore@v4
+        with:
+          path: last-problems.txt
+          key: site-check-${{ github.run_id }}
+          restore-keys: site-check-
+
       - name: Check the site
         id: check
         run: |
           set +e
           python tools/check_site.py | tee report.txt
           code=${PIPESTATUS[0]}
+          grep "PROBLEM" report.txt | sort > problems.txt
+          touch last-problems.txt
+          if [ "$code" = "1" ] && cmp -s problems.txt last-problems.txt; then
+            echo "Same problems as the last run; already reported." | tee -a report.txt
+            code=0
+          fi
+          cp problems.txt last-problems.txt
           {
             echo '```'
             cat report.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           exit $code
+
+      - uses: actions/cache/save@v4
+        if: ${{ always() }}
+        with:
+          path: last-problems.txt
+          key: site-check-${{ github.run_id }}
 
       - name: Post the report to Discord (only if a webhook is set up)
         if: ${{ failure() && steps.check.conclusion == 'failure' }}

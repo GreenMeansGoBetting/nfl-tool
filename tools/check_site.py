@@ -302,11 +302,15 @@ def compare(dir_a, dir_b):
 def main():
     parser = argparse.ArgumentParser(description="Check the local site: pages, Summary cards, phone layout.")
     parser.add_argument("--screenshots", nargs="?", const="", metavar="DIR", help="also save screenshots (default: a temp folder)")
+    parser.add_argument("--site", metavar="DIR", help="check a copy of the site folder instead of nfl_tool/site")
     parser.add_argument("--games", type=int, metavar="N", help="only the first N games' Summary cards (default: every game this week)")
     parser.add_argument("--compare", nargs=2, metavar=("DIR_A", "DIR_B"), help="list which screenshots differ between two folders")
     args = parser.parse_args()
     if args.compare:
         return compare(*args.compare)
+    if args.site:
+        global SITE
+        SITE = Path(args.site).resolve()
 
     if not (SITE / "data.json").exists():
         print(f"nfl_tool/site/data.json isn't built yet. Build it first:\n  {BUILD_COMMAND}")
