@@ -54,39 +54,50 @@ The user wants the whole offense's usage, not "who has scored before".
 - Calibration check: sum the model's first-TD % by position across a full slate and compare with
   the season's actual first-TD scorers by position (last check: model RB 43 / WR 36 / TE 16 /
   QB 4.5 vs actual 39 / 37 / 17 / 6.5).
-- The TD summary's QB Key Player chips use `currentStarterQb(team, week)` (`keyStarterQb`).
+- The TD summary's QB Key Player chips use `currentStarterQb(team, week)` (`keyStarterQb`), and only
+  for a QB who runs (`qbIsRunner`, see the card layout below).
 
-## TD Summary card layout
+## TD Summary card layout (`td2Main`, `td2-*` styles)
 
-Like the Props card: one full-height column per team (`.td-team`, rows aligned across the two
-columns with subgrid; the user likes them lined up) plus the TD Odds picks as a 250px right rail.
-The rail's team headers use the same team-color fill + left stripe as the column banners. Each
-column, top to bottom:
+Simplified 2026-10-12 at the user's call (the wall of tiles, different for each team, read as
+"so much data it's overwhelming"). Do not go back to tiles or add rows without asking. The TD
+Odds picks stay as a 250px right rail (team headers in team color). Main area, top to bottom:
 
-- **Header** (`summaryTdTeamBanner`): team color block with name/logo and a one-line fact strip:
-  Implied TDs (implied points from Novig spread + total, / 7), Top TD position (biggest share of
-  the team's TDs), and photos of the team's **top 3 TD scorers** (`topTdScorers`).
-  - Each photo has a green bubble on its bottom-right with that player's season TD count.
-  - Counts are rushing + receiving TDs, so a QB counts only his own runs. They are real season
-    counts from player_xtd, not the lineup-weighted ones.
-  - Players ruled out this week are skipped. Ties are broken by expected TDs per game.
-- **TD Targets** as tiles: chip label centered on top, two big shaded boxes (team | opp allows),
-  share % small under distance values. No units, no numbered bubbles; the First TD target is left
-  out (it's the First TD section's Scored 1st tile).
-- **Matchup Tags** as tiles in the same style (`summaryTagTile`): each " · " part of the tag's
-  line becomes a box, the first number pulled out big ("TB 3.4 RZ trips/g"); a number followed by
-  "+" stays in the label ("7+ box"); boxes tinted green (tag helps the offense) / yellow (works
-  against it). "(lg x)" league notes are dropped on the card (no small gray text).
-- **First TD** (`summaryFirstTdBlock`): the big 1st TD chance box (this game), then First TD tab
-  stats as tiles: Scored 1st (season rate vs allowed), the First TD tab's flagged position shares,
-  RZ finish before the first TD. **No model player list on the card.**
-- **Key Players** at the bottom, centered, with ★ = how many of the team's targets/tags the
-  player fits.
-
-Leftover tiles in a row are centered under the row above (flex, not grid). Only `.sc-main` grows
-(`.sc-zoom-target`); the fit check also watches tiles and boxes for overflow. Colliding short
-names (Bijan / Brian Robinson) show in full (`uniqueShortNames`). The toolbar button
-`#summary-rail-btn` ("Hide TD Odds") drops the rail.
+- **Team banners** (`summaryTdTeamBanner`, the part the user loves): name/logo, Implied TDs
+  (implied points from Novig spread + total, / 7), Top TD position, and photos of the team's
+  **top 3 TD scorers** (`topTdScorers`) with a green bubble holding each one's season TD count.
+  Counts are rushing + receiving TDs, real season counts from player_xtd. Players ruled out this
+  week are skipped. Ties are broken by expected TDs per game.
+- Then four sections, each under a **solid header bar** (`.td2-h`; the old light labels did not
+  separate anything, and First TD "blended in"):
+  - **TD Targets** (`TD2_ROWS`): one tape with the SAME 7 rows for both teams in every game
+    (Pass TDs, Rush TDs, QB, RB, WR, TE, Red zone TD %), labels down the middle: what this
+    offense scores | what that defense allows. Each number is per game with its league rank
+    ("#3") on the shared 8-step rank colors (`rankScaleStyle` in common.js, same as the Game
+    Summary). Ranks are of the raw number shown.
+  - **The Target chip** at the outer end of a row = the target model flagged it
+    (`td2TargetItems`): this offense's logo, green border = strong, yellow = lean, **dashed =
+    Soft D**, a small triangle = usage ahead of TDs. One card-only guard: no chip where the
+    defense's number on the card ranks top 8 (`TD2_GOOD_DEF_RANK`). The model reads
+    opponent-adjusted and usage numbers and could flag DAL's run game against a TB defense
+    ranked #3 on the card, which read as a mistake.
+  - **First TD**: the 1st TD chance for this game (one big box per team), then a "Scores first"
+    row (season rate vs how often the other team allows it), with a chip when First TD is a target.
+  - **Matchup Tags**: one line each (`td2TagRow`: chip, then up to three of its numbers; sample
+    sizes and league notes stay in the tooltip; a three-number tag drops its unit text, and
+    `TD2_TAG_WORDS` shortens long wording, so every line fits its box),
+    at most `TD2_TAGS_SHOWN` 3 per team.
+  - **Key Players**: up to `TD2_KEY_PLAYERS` 5 per team, stars = how many of the flagged rows and
+    shown tags the player fits.
+- **A QB is a TD-scoring option only if he runs** (`qbIsRunner`: 15+ rush yards or 5+ carries a
+  game). Otherwise he never appears in Key Players or the banner photos. The user, on Stafford:
+  "his TD was a fluke". His red-zone sneaks had also made him a top red-zone "usage" player.
+- Left off the card on purpose (still on the TD Data tabs): distance targets, the RZ finish and
+  position first-TD tiles, tags past the first three.
+- The card fits at full size; only `.sc-main` grows (`.sc-zoom-target`), and the fit check
+  watches the tag lines and tape cells for overflow. Colliding short names (Bijan / Brian
+  Robinson) show in full (`uniqueShortNames`). The toolbar button `#summary-rail-btn` ("Hide TD
+  Odds") drops the rail.
 
 ## TD Data tags that read both sides
 

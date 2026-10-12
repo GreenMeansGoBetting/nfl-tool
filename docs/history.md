@@ -254,6 +254,15 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 
 ## TD Data
 
+- **2026-10-12, the TD Summary card was simplified like the Game Summary.** It had been a wall of
+  tiles: each team got whichever TD targets, matchup tags and First TD tiles fired, so the two
+  columns never matched and the section labels did not separate anything. The user: "so much
+  data and it's overwhelming", "first tds - didn't see it because it blended in". Now the
+  banners are followed by four sections under solid header bars, and TD Targets is one tape of
+  the same 7 rows for both teams with league ranks. Distance targets, RZ finish and the position
+  first-TD tiles left the card. Same day: QBs who don't run no longer count as TD options
+  (Stafford kept appearing off one sneak TD and his red-zone sneaks).
+
 ### TD targets, First TD model, Soft D, Weak spot, TD Summary layout, no DST
 
 - The TD Data page is considered solid; change it only when asked.

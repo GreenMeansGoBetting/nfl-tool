@@ -34,25 +34,11 @@ const GS_CATEGORY_LABELS = { Scheme: "Blitz & Box" };
 // logo chip for who has the edge. One shared label column down the middle
 // (BUF offense vs LA defense on its left, LA offense vs BUF defense on its
 // right). The full stats live on the Full Preview.
-// Color follows the RANK on an 8-step scale (four teams per step), so a #2
-// and a #8 no longer share one green.
-// [hue, fill strength] per step, best to worst: two greens, lime, yellow,
-// amber, orange, red-orange, red. The ends are filled hardest.
-const GS_RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
-const GS_RANK_STEPS = GS_RANK_SCALE.length;
-function gsRankStyle(rank, total) {
-  if (!rank) return "";
-  const [hue, fill] = GS_RANK_SCALE[Math.min(GS_RANK_STEPS - 1, Math.floor(((rank - 1) / total) * GS_RANK_STEPS))];
-  return ` style="background:hsla(${hue},78%,44%,${fill});border-color:hsl(${hue},78%,48%)"`;
-}
+// Color follows the RANK on the shared 8-step scale (common.js rankScaleStyle:
+// four teams per step), so a #2 and a #8 no longer share one green.
 // 1 = best for its own side (offense: produces; defense: stops).
 function gsCategoryRank(cat, team, side) {
-  const z = categoryZ(cat, team, side);
-  if (z === null || z === undefined) return null;
-  return 1 + teamsWithGames().filter((t) => {
-    const other = categoryZ(cat, t, side);
-    return other !== null && other !== undefined && other > z;
-  }).length;
+  return leagueRank(team, (t) => categoryZ(cat, t, side), true);
 }
 // Who has the edge, read straight off the two ranks the card shows, so a
 // chip can never disagree with the numbers next to it: the offense's rank
@@ -81,7 +67,7 @@ function gsAdvChip(edge, offTeam, defTeam) {
   return `<span class="g5-adv g5-adv-${edge.kind}" title="${edge.kind === "clear" ? "Clear" : "Slight"} edge: ${edge.adv}">${teamLogoMini(edge.adv, 32)}</span>`;
 }
 function gsRankGradeBox(cat, team, side, rank) {
-  return `<span class="g5-grade"${gsRankStyle(rank, teamsWithGames().length)}>${gradeForZ(categoryZ(cat, team, side)) || "--"}</span>`;
+  return `<span class="g5-grade"${rankScaleStyle(rank, teamsWithGames().length)}>${gradeForZ(categoryZ(cat, team, side)) || "--"}</span>`;
 }
 function gsTapeSide(cat, offTeam, defTeam, mirror) {
   const edge = gsRankEdge(cat, offTeam, defTeam);
@@ -788,7 +774,7 @@ function renderGameSummaryCard(game) {
       </div>
     </div>
     <div class="sc-footer g2-footer">
-      <span>Grade + league rank (1-32) &middot; offense vs the defense it faces &middot; rank colors <span class="g5-scale">${Array.from({ length: GS_RANK_STEPS }, (_, k) => `<i${gsRankStyle(1 + k * 4, 32)}></i>`).join("")}</span> best to worst</span>
+      <span>Grade + league rank (1-32) &middot; offense vs the defense it faces &middot; rank colors <span class="g5-scale">${Array.from({ length: RANK_SCALE.length }, (_, k) => `<i${rankScaleStyle(1 + k * 4, 32)}></i>`).join("")}</span> best to worst</span>
       <span>Edge: the logo is who has it &middot; <span class="g2-key g2-key-mismatch"></span> clear <span class="g2-key g2-key-strong"></span> slight &middot; two logos = strength vs strength</span>
     </div>
   </div>`;

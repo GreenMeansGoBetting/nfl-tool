@@ -1184,53 +1184,12 @@ const SUMMARY_FIRST_TD_PLAYERS = 5; // user 2026-10-05 (was 3)
 // The chart numbers behind one target -- [offense cell, defense cell] as
 // <td>s, colored exactly like the TD Data charts color the same stat
 // (offense: more = green; defense allowed: more = red), per game.
-function summaryTargetCells(metric, offTeam, defTeam) {
-  const o = DATA.team_stats[offTeam];
-  const d = DATA.team_stats[defTeam];
-  const cell = (text, cls, alpha) => `<td class="num ${cls}"${alpha || ""}>${text}</td>`;
-  const pg = (n, g) => (g ? (n / g).toFixed(2) : "--");
-  const pct = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
-  const stat = (offKey, defKey, fmtFn) => [
-    cell(fmtFn(o[offKey]), tierFor(offKey, offTeam, false), tierForAlphaAttr(offKey, offTeam, false)),
-    cell(fmtFn(d[defKey]), tierFor(defKey, defTeam, true), tierForAlphaAttr(defKey, defTeam, true)),
-  ];
-  const bucket = (offDict, defDict, key) => [
-    cell(pg(o[offDict][key] || 0, o.games_played), bucketCountTier(offDict, key, offTeam), bucketCountAlphaAttr(offDict, key, offTeam)),
-    cell(pg(d[defDict][key] || 0, d.games_played), bucketCountTier(defDict, key, defTeam, true), bucketCountAlphaAttr(defDict, key, defTeam, true)),
-  ];
-  if (metric === "pass") return stat("pass_td_per_g", "pass_td_allowed_per_g", (v) => v.toFixed(2));
-  if (metric === "rush") return stat("rush_td_per_g", "rush_td_allowed_per_g", (v) => v.toFixed(2));
-  if (metric === "rz") return stat("rz_td_rate", "rz_td_rate_allowed", pct);
-  if (metric === "first") {
-    return [
-      cell(pct(o.first_td_rate), tierFor("first_td_rate", offTeam, false), tierForAlphaAttr("first_td_rate", offTeam, false)),
-      cell(pct(firstTdAllowedRate(defTeam)), tierForFirstTdAllowed(defTeam), tierForFirstTdAllowedAlphaAttr(defTeam)),
-    ];
-  }
-  if (POSITIONS.includes(metric)) return bucket("off_position_td", "def_position_td_allowed", metric);
-  if (LENGTH_BUCKETS.some((b) => b.key === metric)) {
-    // Per game plus share of all TDs (scored / allowed) -- the share is the
-    // "how" a defense gives up TDs, which the per-game number alone hides.
-    const share = (dict, total, team) => (team[total] ? ` <small class="sc-share">${Math.round(((team[dict][metric] || 0) / team[total]) * 100)}%</small>` : "");
-    const [oc, dc] = bucket("td_by_length", "td_by_length_allowed", metric);
-    return [oc.replace("</td>", `${share("td_by_length", "total_td", o)}</td>`), dc.replace("</td>", `${share("td_by_length_allowed", "total_td_allowed", d)}</td>`)];
-  }
-  return [cell("--", ""), cell("--", "")];
-}
-function summaryTargetUnit(metric) {
-  if (metric === "first") return "scored 1st";
-  if (metric === "rz") return "RZ TD rate";
-  if (LENGTH_BUCKETS.some((b) => b.key === metric)) return "TDs/g · % of TDs";
-  return "TDs / game";
-}
-
 // ---- Key players: who on this offense fits each numbered target/tag ----
 // Each target row and tag gets a number; players who are the main
 // options for that item are listed under the tags with those numbers
 // (e.g. "O. Hampton 3 5"). Matching uses usage, not outcomes: red zone /
 // end zone / deep targets, red zone carries, carries by rush lane,
 // explosive runs, and each position's leading options.
-const KEY_PLAYERS_MAX = 6;
 
 function keyPlayerPool(team, week) {
   const injured = firstTdInjuryStatus(team, week);
@@ -1317,77 +1276,6 @@ function uniqueShortNames(names) {
   return Object.fromEntries(names.map((n) => [n, counts[shortName(n)] > 1 ? n : shortName(n)]));
 }
 
-function numBadge(n) {
-  return `<span class="sc-num">${n}</span>`;
-}
-
-// Season half of a team's column: numbered targets (with chart numbers),
-// numbered tags, then the key players tied to those numbers.
-function summarySeasonColumn(offTeam, defTeam, week, chance, game) {
-  const pool = keyPlayerPool(offTeam, week);
-  const byPlayer = {};
-  const link = (names, n, kind) =>
-    names.forEach((name) => {
-      const e = (byPlayer[name] = byPlayer[name] || { name, nums: [], good: false });
-      e.nums.push(n);
-      if (kind !== "warn") e.good = true;
-    });
-  let n = 0;
-  // DST already dropped; the First TD target lives in the First TD section's "Scored 1st" tile.
-  const items = targetGroups(offTeam, defTeam).flatMap((g) => g.items).filter((i) => i.metric !== "first");
-  const targetRows = items.length
-    ? items
-        .map((i) => {
-          n += 1;
-          if (i.metric) link(keyPlayersForTarget(i.metric, pool, offTeam, defTeam, week), n, "good");
-          const [oc, dc] = i.metric ? summaryTargetCells(i.metric, offTeam, defTeam) : ["<td></td>", "<td></td>"];
-          const strong = i.score >= TARGET_STRONG_SCORE && !i.defLed;
-          const due = i.due ? `<span class="target-due">&#9650;</span>` : "";
-          const soft = i.defLed
-            ? ` title="${defTeam} is a soft spot here; ${offTeam} hasn't produced it yet (schedule-adjusted)"`
-            : "";
-          const softTag = i.defLed ? `<span class="target-soft-tag">soft D</span>` : "";
-          // Summary-card tile (2026-10-09, the user wanted the Props card's punch): the
-          // table cells become two big shaded boxes under the chip.
-          const box = (td) => td.replace(/^<td class="num ?([^"]*)"/, '<span class="tdt-v $1"').replace(/<\/td>$/, "</span>");
-          return `<div class="tdt">
-            <div class="tdt-head"><span class="target-chip${strong ? " target-chip-strong" : ""}${i.defLed ? " target-chip-soft" : ""}"${soft}>${i.label}${due}${softTag}</span></div>
-            <div class="tdt-vals"><div class="tdt-cell"><span class="tdt-who">${offTeam}</span>${box(oc)}</div><div class="tdt-cell"><span class="tdt-who">${defTeam} allows</span>${box(dc)}</div></div>
-          </div>`;
-        })
-        .join("")
-    : `<div class="target-none">No targets this week</div>`;
-  const tags = matchupTags(offTeam, defTeam);
-  const tagRows = tags.length
-    ? tags
-        .map((t) => {
-          n += 1;
-          link(keyPlayersForTag(t.label, pool, offTeam, week), n, t.kind);
-          return summaryTagTile(n, t);
-        })
-        .join("")
-    : `<div class="target-none">No tags</div>`;
-  const keyList = Object.values(byPlayer)
-    .sort((a, b) => b.nums.length - a.nums.length || a.nums[0] - b.nums[0])
-    .slice(0, KEY_PLAYERS_MAX);
-  const keyNames = uniqueShortNames(keyList.map((e) => e.name));
-  const keyPlayers = keyList
-    .map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}" title="Fits ${e.nums.length} of this team's targets / tags">${playerClick(offTeam, e.name, `${summaryHeadshot(offTeam, e.name, 18)}${keyNames[e.name]}`, defTeam)}<span class="sc-stars">${"★".repeat(Math.min(5, e.nums.length))}</span></span>`)
-    .join("");
-  // Four fixed blocks (banner / targets / tags / key players) -- the two
-  // team columns share row lines (CSS subgrid), so each block starts at
-  // the same height on both sides even when one team has less in it.
-  // One full-height column per team (2026-10-09 facelift, like the Props card):
-  // targets, matchup tags in the same tile style, that team's First TD, key players.
-  return `<div class="sc-col td-team">
-    ${summaryTdTeamBanner(offTeam, game, topTdScorers(offTeam, week), defTeam)}
-    <div class="sc-block"><div class="sc-label">TD Targets</div><div class="tdt-grid">${targetRows}</div></div>
-    <div class="sc-block"><div class="sc-label">Matchup Tags</div><div class="tdt-grid tdt-tags">${tagRows}</div></div>
-    ${summaryFirstTdBlock(offTeam, defTeam, chance)}
-    <div class="sc-block td-keys"><div class="sc-label">Key Players</div>${keyPlayers ? `<div class="sc-keys">${keyPlayers}</div>` : `<span class="target-none">&mdash;</span>`}</div>
-  </div>`;
-}
-
 // The team's top 3 TD scorers this season (rushing + receiving, so a QB
 // counts only for his own runs), for the banner photos. Real season counts
 // from player_xtd, not the lineup-weighted ones; anyone ruled out this week
@@ -1397,7 +1285,7 @@ function summarySeasonColumn(offTeam, defTeam, week, chance, game) {
 function topTdScorers(team, week, n = 3) {
   const active = new Set(keyPlayerPool(team, week).map((p) => normName(p.name)));
   return ((DATA.player_xtd || {})[team] || [])
-    .filter((p) => p.tds > 0 && p.position !== "DST" && active.has(normName(p.name)))
+    .filter((p) => p.tds > 0 && p.position !== "DST" && active.has(normName(p.name)) && (p.position !== "QB" || qbIsRunner(team, p.name)))
     .sort((a, b) => b.tds - a.tds || b.xtd_pg - a.xtd_pg)
     .slice(0, n);
 }
@@ -1424,70 +1312,6 @@ function summaryTdTeamBanner(team, game, topPlayers, oppTeam) {
       <div class="td-fact"><span class="td-fact-label">Implied</span><span class="td-fact-val">${implied === null ? `<b>--</b>` : `<b>${(implied / 7).toFixed(1)} TDs</b><small>${fmt(implied, 1)} pts</small>`}</span></div>
       <div class="td-fact"><span class="td-fact-label">Top TD position</span><span class="td-fact-val">${share === null || !counts[top] ? `<b>--</b>` : `<b>${top} ${share}%</b><small>of TDs</small>`}</span></div>
       <div class="td-fact td-fact-players">${photos || `<b>--</b>`}</div>
-    </div>
-  </div>`;
-}
-
-// A matchup tag as a tile like the targets: chip on top, then one box per
-// " · " part of its line, the first number in each part pulled out big
-// ("TB 3.4 RZ trips/g" -> label TB, 3.4, RZ trips/g), "(lg x)" under it.
-// Boxes are tinted by the tag's direction: green helps the offense, yellow
-// is working against it.
-function summaryTagTile(n, t) {
-  const tone = t.kind === "good" ? "tier-good" : "tier-mid";
-  const parts = String(t.title)
-    .split(/\s+·\s+/)
-    .map((part) => {
-      const lg = (part.match(/\((lg [^)]*)\)/) || [])[1] || "";
-      const clean = part.replace(/\s*\((lg [^)]*)\)/g, "").trim();
-      // First number that isn't part of a label like "7+ box".
-      const m = clean.match(/^(.*?)(-?\d+(?:\.\d+)?%?)(?![\d.+])(.*)$/);
-      if (!m) return `<div class="tgt-box"><span class="tgt-v">${clean}</span></div>`;
-      const label = m[1].trim().replace(/:$/, "");
-      return `<div class="tgt-box"><span class="tgt-label">${label || "&nbsp;"}</span><span class="tgt-v ${tone}">${m[2]}${m[3].trim() ? `<small>${m[3].trim()}</small>` : ""}</span></div>`;
-    });
-  return `<div class="tdt tdt-tag${parts.length > 2 ? " tdt-wide" : ""}">
-    <div class="tdt-head"><span class="tag-chip tag-chip-${t.kind}">${t.label}</span></div>
-    <div class="tgt-boxes" style="grid-template-columns:repeat(${parts.length}, minmax(0, 1fr))">${parts.join("")}</div>
-  </div>`;
-}
-
-// This team's First TD, inside its column, from the First TD tab's numbers
-// in the same tile style as the targets (team vs what the defense allows):
-// how often it scores first, its first-TD position matchups (shares, only
-// the positions the First TD tab flags), and red-zone finishing before the
-// first TD -- next to the big chance-to-score-first box. No model players
-// (user 2026-10-09).
-function summaryFirstTdBlock(offTeam, defTeam, chance) {
-  const o = DATA.team_stats[offTeam];
-  const d = DATA.team_stats[defTeam];
-  const pctTxt = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
-  const box = (text, cls, alpha) => `<span class="tdt-v ${cls || ""}"${alpha || ""}>${text}</span>`;
-  const tile = (label, offBox, defBox, chipCls = "target-chip") => `<div class="tdt">
-      <div class="tdt-head"><span class="${chipCls}">${label}</span></div>
-      <div class="tdt-vals"><div class="tdt-cell"><span class="tdt-who">${offTeam}</span>${offBox}</div><div class="tdt-cell"><span class="tdt-who">${defTeam} allows</span>${defBox}</div></div>
-    </div>`;
-  const tiles = [];
-  tiles.push(tile("Scored 1st",
-    box(pctTxt(o.first_td_rate), tierFor("first_td_rate", offTeam, false), tierForAlphaAttr("first_td_rate", offTeam, false)),
-    box(pctTxt(firstTdAllowedRate(defTeam)), tierForFirstTdAllowed(defTeam), tierForFirstTdAllowedAlphaAttr(defTeam))));
-  firstTdPositionTargets(offTeam, defTeam).forEach((i) => {
-    const pos = i.label;
-    const offShare = o.first_td_games ? (o.first_td_position[pos] || 0) / o.first_td_games : null;
-    const defShare = d.trailing_games ? (d.first_td_position_allowed[pos] || 0) / d.trailing_games : null;
-    tiles.push(tile(`${pos} 1st TD`,
-      box(pctTxt(offShare), bucketShareTier("first_td_position", "first_td_games", pos, offTeam)),
-      box(pctTxt(defShare), bucketShareTier("first_td_position_allowed", "trailing_games", pos, defTeam, true)),
-      `target-chip${i.score >= TARGET_STRONG_SCORE ? " target-chip-strong" : ""}`));
-  });
-  const rz = (key, team, invert) => box(pctTxt(DATA.team_stats[team][key]), DATA.team_stats[team][key] === null ? "" : percentileClsFor(key, team, invert));
-  tiles.push(tile("RZ finish", rz("pre_first_td_rz_conversion_rate", offTeam, false), rz("pre_first_td_rz_conversion_rate_allowed", defTeam, true)));
-  const tone = chance >= 0.55 ? "tier-good" : chance <= 0.45 ? "tier-bad" : "tier-mid";
-  return `<div class="sc-block tdf">
-    <div class="sc-label">First TD</div>
-    <div class="tdt-grid">
-      <div class="tdt tdf-big"><div class="tdt-head"><span class="tdf-title">1st TD chance</span></div><span class="tdt-v tdf-chance ${tone}">${Math.round(chance * 100)}%</span></div>
-      ${tiles.join("")}
     </div>
   </div>`;
 }
@@ -1689,6 +1513,153 @@ document.addEventListener("change", (e) => {
   refreshSummaryAfterPick();
 });
 
+// ---- TD Summary, simplified (2026-10-12, same idea as the Game Summary) ----
+// The tile wall (a different set of targets and tags for each team) read as
+// too much. Now: the banners, then four clearly headed sections. TD Targets
+// and First TD are the SAME rows for both teams every game, around one shared
+// label column (what this offense scores | what that defense allows), each
+// number with its league rank on the 8-step rank colors. A logo chip marks
+// the rows the target model flags (green = strong, yellow = lean / soft D).
+// Matchup Tags are capped and one line each; Key Players close the card.
+const TD2_ROWS = [
+  { metric: "pass", label: "Pass TDs" },
+  { metric: "rush", label: "Rush TDs" },
+  { metric: "QB", label: "QB TDs" },
+  { metric: "RB", label: "RB TDs" },
+  { metric: "WR", label: "WR TDs" },
+  { metric: "TE", label: "TE TDs" },
+  { metric: "rz", label: "Red zone TD %" },
+];
+const TD2_TAGS_SHOWN = 3;
+const TD2_KEY_PLAYERS = 5;
+function td2Value(metric, team, side) {
+  const s = DATA.team_stats[team];
+  if (!s) return null;
+  const off = side === "off";
+  if (metric === "pass") return off ? s.pass_td_per_g : s.pass_td_allowed_per_g;
+  if (metric === "rush") return off ? s.rush_td_per_g : s.rush_td_allowed_per_g;
+  if (metric === "rz") return off ? s.rz_td_rate : s.rz_td_rate_allowed;
+  if (metric === "first") return off ? s.first_td_rate : firstTdAllowedRate(team);
+  return s.games_played ? (((off ? s.off_position_td : s.def_position_td_allowed) || {})[metric] || 0) / s.games_played : null;
+}
+function td2Cell(metric, team, side) {
+  const v = td2Value(metric, team, side);
+  // Offense: scoring more is better. Defense: allowing less is better.
+  const rank = leagueRank(team, (t) => td2Value(metric, t, side), side === "off");
+  const text = v === null || v === undefined ? "--" : metric === "rz" || metric === "first" ? `${Math.round(v * 100)}%` : v.toFixed(2);
+  return `<span class="g5-cell"><span class="g5-grade td2-val"${rankScaleStyle(rank, teamsWithGames().length)}>${text}</span><span class="g5-rank">${rank ? `#${rank}` : "--"}</span></span>`;
+}
+// The chip: this offense's logo on the rows the target model flags.
+function td2Chip(item, offTeam, defTeam) {
+  if (!item) return `<span class="g5-adv g5-adv-none">&ndash;</span>`;
+  const strong = item.score >= TARGET_STRONG_SCORE && !item.defLed;
+  const why = item.defLed ? `${defTeam} is a soft spot here; ${offTeam} hasn't produced it yet` : strong ? "Strong TD target" : "TD target";
+  return `<span class="g5-adv ${strong ? "g5-adv-clear" : "g5-adv-slight"}${item.defLed ? " td2-soft" : ""}" title="${why}${item.due ? " (usage ahead of TDs)" : ""}">${teamLogoMini(offTeam, 26)}${item.due ? `<i class="td2-due">&#9650;</i>` : ""}</span>`;
+}
+// The target model's flags for this offense, by metric. One card-only guard:
+// no chip where the defense's number on the card ranks in the league's top
+// quarter. The model reads opponent-adjusted and usage numbers, so it can
+// flag an elite offense against a defense that looks elite on raw TDs
+// allowed (DAL run game vs TB, #7 vs #3); a logo there reads as a mistake.
+const TD2_GOOD_DEF_RANK = 8;
+function td2TargetItems(offTeam, defTeam) {
+  const items = {};
+  targetGroupsAll(offTeam, defTeam).flatMap((g) => g.items).forEach((i) => {
+    if (!i.metric) return;
+    const defRank = leagueRank(defTeam, (t) => td2Value(i.metric, t, "def"), false);
+    if (defRank !== null && defRank <= TD2_GOOD_DEF_RANK) return;
+    items[i.metric] = i;
+  });
+  return items;
+}
+function td2Head(away, home, offWord, defWord) {
+  const head = (team, word) => {
+    const rgb = teamAccentRgb(team).join(",");
+    return `<span class="g5-head" style="background:rgba(${rgb},0.35);border-bottom:3px solid rgb(${rgb})">${teamLogoMini(team, 16)}<b>${team}</b> ${word}</span>`;
+  };
+  return `<div class="g5-row g5-head-row"><span class="g5-edge-h">Target</span>${head(away, offWord)}${head(home, defWord)}<span></span>${head(home, offWord)}${head(away, defWord)}<span class="g5-edge-h">Target</span></div>`;
+}
+function td2Tape(away, home, rows, itemsAway, itemsHome) {
+  return rows
+    .map(
+      (r) => `<div class="g5-row">${td2Chip(itemsAway[r.metric], away, home)}${td2Cell(r.metric, away, "off")}${td2Cell(r.metric, home, "def")}<span class="g5-label">${r.label}</span>${td2Cell(r.metric, home, "off")}${td2Cell(r.metric, away, "def")}${td2Chip(itemsHome[r.metric], home, away)}</div>`
+    )
+    .join("");
+}
+function td2ChanceRow(away, home, pAway) {
+  const box = (p) => `<span class="td2-chance ${p >= 0.55 ? "tier-good" : p <= 0.45 ? "tier-bad" : "tier-mid"}">${Math.round(p * 100)}%</span>`;
+  return `<div class="g5-row td2-chance-row"><span></span>${box(pAway)}<span class="g5-label">1st TD chance</span>${box(1 - pAway)}<span></span></div>`;
+}
+// One line per tag: its chip, then up to three of its numbers (the sample
+// sizes and league notes stay in the tooltip).
+const TD2_TAG_WORDS = [
+  [/clean-pocket success/i, "clean"],
+  [/success when pressured/i, "pressured"],
+  [/pressure(?!d)/i, "press."],
+  [/success vs blitz/i, "vs blitz"],
+  [/allows TD on/i, "allows TD"],
+  [/DEF forces/i, "forces"],
+  [/deep tgts\/g/i, "deep/g"],
+];
+function td2TagRow(t) {
+  const all = String(t.title).split(/\s+·\s+/);
+  // Deep / EZ exposed carries four numbers; the card keeps the deep pair (allowed | thrown).
+  const raw = t.label === "Deep / EZ exposed" && all.length >= 3 ? [all[0], all[2]] : all.slice(0, 3);
+  const parts = raw
+    .map((part) => {
+      const clean = part.replace(/\s*\([^)]*\)/g, "").trim();
+      const m = clean.match(/^(.*?)(-?\d+(?:\.\d+)?%?)(?![\d.+])(.*)$/);
+      if (!m) return `<span class="td2-part"><small>${clean}</small></span>`;
+      // Short wording for the one-line row; the full sentence is the tooltip.
+      // Three numbers on a line only fit without unit text, and "of ..."
+      // units ("of RZ tgts", "of its TDs") never fit.
+      const short = (text) => TD2_TAG_WORDS.reduce((out, [from, to]) => out.replace(from, to), text);
+      const label = short(m[1].trim().replace(/:$/, ""));
+      const unit = short(m[3].trim());
+      const showUnit = unit && raw.length < 3 && !/^of /.test(unit);
+      return `<span class="td2-part"><small>${label}</small><b class="${t.kind === "good" ? "tier-good" : "tier-mid"}">${m[2]}</b>${showUnit ? `<small>${unit}</small>` : ""}</span>`;
+    })
+    .join("");
+  return `<div class="td2-tag${raw.length > 2 ? " td2-tag-3" : ""}" title="${String(t.title).replace(/"/g, "&quot;")}"><span class="tag-chip tag-chip-${t.kind}">${t.label}</span><span class="td2-parts">${parts}</span></div>`;
+}
+// A QB is a TD-scoring option only if he actually runs (15+ rush yards or 5+
+// carries a game). A pocket passer's sneak TD is not usage (user 2026-10-12:
+// Stafford kept showing up off one fluke TD and his red-zone sneaks).
+function qbIsRunner(team, name) {
+  const prop = ((DATA.player_props || {})[team] || []).find((x) => normName(x.name) === normName(name));
+  return !!prop && ((prop.rush_yards_per_g || 0) >= 15 || (prop.carries_per_g || 0) >= 5);
+}
+function td2KeyPlayers(offTeam, defTeam, week, items, tags) {
+  const pool = keyPlayerPool(offTeam, week).filter((p) => p.position !== "QB" || qbIsRunner(offTeam, p.name));
+  const byPlayer = {};
+  const link = (names, kind) =>
+    names.forEach((name) => {
+      const e = (byPlayer[name] = byPlayer[name] || { name, n: 0, good: false });
+      e.n += 1;
+      if (kind !== "warn") e.good = true;
+    });
+  TD2_ROWS.forEach((r) => items[r.metric] && link(keyPlayersForTarget(r.metric, pool, offTeam, defTeam, week), "good"));
+  tags.forEach((t) => link(keyPlayersForTag(t.label, pool, offTeam, week), t.kind));
+  const list = Object.values(byPlayer).sort((a, b) => b.n - a.n).slice(0, TD2_KEY_PLAYERS);
+  const names = uniqueShortNames(list.map((e) => e.name));
+  return list.length
+    ? list.map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}" title="Fits ${e.n} of this team's targets / tags">${playerClick(offTeam, e.name, `${summaryHeadshot(offTeam, e.name, 22)}${names[e.name]}`, defTeam)}<span class="sc-stars">${"★".repeat(Math.min(5, e.n))}</span></span>`).join("")
+    : `<span class="target-none">&mdash;</span>`;
+}
+function td2Main(away, home, week, pAway, game) {
+  const itemsAway = td2TargetItems(away, home);
+  const itemsHome = td2TargetItems(home, away);
+  const tagsAway = matchupTags(away, home).slice(0, TD2_TAGS_SHOWN);
+  const tagsHome = matchupTags(home, away).slice(0, TD2_TAGS_SHOWN);
+  const tagCol = (tags) => `<div class="td2-col">${tags.length ? tags.map(td2TagRow).join("") : `<span class="target-none">No tags this week</span>`}</div>`;
+  const sec = (title, body, cls = "") => `<section class="td2-sec ${cls}"><div class="td2-h">${title}</div>${body}</section>`;
+  return `<div class="td2-banners">${summaryTdTeamBanner(away, game, topTdScorers(away, week), home)}${summaryTdTeamBanner(home, game, topTdScorers(home, week), away)}</div>
+    ${sec("TD Targets", `<div class="g5-tape">${td2Head(away, home, "scores", "allows")}${td2Tape(away, home, TD2_ROWS, itemsAway, itemsHome)}</div>`, "td2-targets")}
+    ${sec("First TD", `<div class="g5-tape">${td2ChanceRow(away, home, pAway)}${td2Tape(away, home, [{ metric: "first", label: "Scores first" }], itemsAway, itemsHome)}</div>`)}
+    ${sec("Matchup Tags", `<div class="td2-two">${tagCol(tagsAway)}${tagCol(tagsHome)}</div>`)}
+    ${sec("Key Players", `<div class="td2-two"><div class="td2-col td2-keys">${td2KeyPlayers(away, home, week, itemsAway, tagsAway)}</div><div class="td2-col td2-keys">${td2KeyPlayers(home, away, week, itemsHome, tagsHome)}</div></div>`)}`;
+}
+
 function renderSummaryCard(away, home) {
   const card = document.getElementById("summary-card");
   if (!card) return;
@@ -1722,18 +1693,15 @@ function renderSummaryCard(away, home) {
     </div>
 
     <div class="sc-body">
-      <div class="sc-main sc-zoom-target">
-        <div class="td-cols">
-          ${summarySeasonColumn(away, home, week, pAway, game)}
-          ${summarySeasonColumn(home, away, week, 1 - pAway, game)}
-        </div>
+      <div class="sc-main sc-zoom-target td2">
+        ${td2Main(away, home, week, pAway, game)}
       </div>
       ${railHidden ? "" : summaryOddsRail(away, home, week)}
     </div>
 
     <div class="sc-footer">
-      <span><span class="target-chip target-chip-strong">Strong</span> <span class="target-chip">Lean</span> <span class="target-due">&#9650;</span> usage ahead of TDs &middot; numbers colored like the charts (vs. league)</span>
-      <span>1st TD chance = this game &middot; Scored 1st = season rate &middot; &#9733; = how many of the team's targets and tags a player fits</span>
+      <span>TDs per game with league rank (1-32) &middot; rank colors <span class="g5-scale">${Array.from({ length: RANK_SCALE.length }, (_, k) => `<i${rankScaleStyle(1 + k * 4, 32)}></i>`).join("")}</span> best to worst &middot; logo = TD target: green strong, yellow lean &middot; &#9650; usage ahead of TDs</span>
+      <span>1st TD chance = this game &middot; &#9733; = how many targets and tags a player fits</span>
     </div>
   </div>`;
   fitWideSummaryCard();

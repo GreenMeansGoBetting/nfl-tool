@@ -1279,7 +1279,7 @@ function fitWideSummaryCard() {
     const over = (el) => el.scrollWidth > el.clientWidth + 1;
     // Too big also means something got squeezed sideways: a row label cut
     // off with "...", or a line / rating tile too narrow for its numbers.
-    const named = [...main.querySelectorAll(".gs-row-label, .gs-ml, .gs-rt, .g2-proof-label, .g2-key-title, .g2-line-big, .td-card .sc-col, .td-card .sc-odds-block, .td-card .tdt-head, .td-card .tdt-v, .td-card .tgt-v, .td-card .ftd-row")];
+    const named = [...main.querySelectorAll(".gs-row-label, .gs-ml, .gs-rt, .g2-proof-label, .g2-key-title, .g2-line-big, .td-card .sc-col, .td-card .sc-odds-block, .td-card .tdt-head, .td-card .tdt-v, .td-card .tgt-v, .td-card .ftd-row, .td-card .td2-parts, .td-card .g5-cell")];
     // Safeguard (2026-10-11): that list is kept by hand, and a label that
     // wasn't on it ("TEN allows" on the TD tiles) spilled out of its box once
     // the card grew. So ALSO watch every one-line text label that fits at
@@ -1576,4 +1576,23 @@ function lineupAdjustedXtd(team, week, opts = {}) {
     adj.touches = adj.targets + adj.carries;
     return adj;
   });
+}
+
+// ---- League rank on an 8-step color scale (four teams per step) ----
+// Shared by the Game Summary and TD Summary cards: two greens, lime, yellow,
+// amber, orange, red-orange, red; the ends are filled hardest.
+const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
+function rankScaleStyle(rank, total) {
+  if (!rank) return "";
+  const [hue, fill] = RANK_SCALE[Math.min(RANK_SCALE.length - 1, Math.floor(((rank - 1) / total) * RANK_SCALE.length))];
+  return ` style="background:hsla(${hue},78%,44%,${fill});border-color:hsl(${hue},78%,48%)"`;
+}
+// 1 = best. valueOf(team) may return null (left out of the ranking).
+function leagueRank(team, valueOf, higherIsBetter) {
+  const v = valueOf(team);
+  if (v === null || v === undefined) return null;
+  return 1 + teamsWithGames().filter((t) => {
+    const other = valueOf(t);
+    return other !== null && other !== undefined && (higherIsBetter ? other > v : other < v);
+  }).length;
 }
