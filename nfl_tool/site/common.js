@@ -1200,6 +1200,7 @@ function summaryHeadshot(team, name, size = 26) {
 }
 
 // Scale the inner content down (never up) until it fits the fixed card.
+const SUMMARY_TIGHT_BELOW = 0.92;
 function fitSummaryCard() {
   const card = document.getElementById("summary-card");
   const inner = card?.querySelector(".sc-inner");
@@ -1207,7 +1208,15 @@ function fitSummaryCard() {
   card.style.zoom = "";
   inner.style.transform = "";
   inner.style.width = "";
-  const scale = Math.min(1, card.clientHeight / inner.scrollHeight);
+  inner.classList.remove("sc-tight");
+  let scale = Math.min(1, card.clientHeight / inner.scrollHeight);
+  // Safeguard (2026-10-11): a card this full would be shrunk until its text
+  // is hard to read on video. Trim its padding and gaps first (.sc-tight,
+  // defined per card in style.css), then shrink only as far as still needed.
+  if (scale < SUMMARY_TIGHT_BELOW) {
+    inner.classList.add("sc-tight");
+    scale = Math.min(1, card.clientHeight / inner.scrollHeight);
+  }
   if (scale < 1) {
     inner.style.transform = `scale(${scale})`;
     inner.style.width = `${100 / scale}%`;
@@ -1266,9 +1275,18 @@ function fitWideSummaryCard() {
     card.style.zoom = "";
     inner.style.transform = "";
     inner.style.width = "";
+    inner.classList.remove("sc-tight");
+    const over = (el) => el.scrollWidth > el.clientWidth + 1;
     // Too big also means something got squeezed sideways: a row label cut
     // off with "...", or a line / rating tile too narrow for its numbers.
-    const squeezed = () => [...main.querySelectorAll(".gs-row-label, .gs-ml, .gs-rt, .g2-proof-label, .g2-key-title, .g2-line-big, .td-card .sc-col, .td-card .sc-odds-block, .td-card .tdt-head, .td-card .tdt-v, .td-card .tgt-v, .td-card .ftd-row")].some((el) => el.scrollWidth > el.clientWidth + 1);
+    const named = [...main.querySelectorAll(".gs-row-label, .gs-ml, .gs-rt, .g2-proof-label, .g2-key-title, .g2-line-big, .td-card .sc-col, .td-card .sc-odds-block, .td-card .tdt-head, .td-card .tdt-v, .td-card .tgt-v, .td-card .ftd-row")];
+    // Safeguard (2026-10-11): that list is kept by hand, and a label that
+    // wasn't on it ("TEN allows" on the TD tiles) spilled out of its box once
+    // the card grew. So ALSO watch every one-line text label that fits at
+    // normal size: growing the card may never make one of those spill.
+    main.style.zoom = 1;
+    const labels = [...main.querySelectorAll("*")].filter((el) => !el.children.length && el.clientWidth > 0 && el.textContent.trim() && getComputedStyle(el).whiteSpace === "nowrap" && !over(el));
+    const squeezed = () => named.some(over) || labels.some(over);
     let z = SUMMARY_WIDE_ZOOM_MAX;
     main.style.zoom = z;
     while (z > 1 && (inner.scrollHeight > card.clientHeight || squeezed())) {

@@ -1,0 +1,77 @@
+name: Site check
+
+# Runs tools/check_site.py against the LIVE data after every deploy (the
+# 6-hour refresh, pushes, and "Update Odds"), so a Summary card that gets
+# squeezed or a page that breaks is caught the same day instead of when
+# someone happens to look. It is a separate workflow on purpose: the deploy
+# never waits on it and never installs a browser.
+#
+# A failed run means the check found a problem. GitHub emails the repo owner
+# about failed runs; the report is on the run's Summary page. If the secret
+# SITE_CHECK_WEBHOOK (a Discord webhook URL) is ever added, the report is
+# also posted there.
+
+on:
+  workflow_run:
+    workflows: ["Refresh data and deploy site"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the check's tools
+        run: |
+          pip install -r tools/requirements-dev.txt
+          python -m playwright install --with-deps chromium
+
+      # Cloudflare needs a moment to start serving the deploy that just finished.
+      - name: Download the live data
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: |
+          sleep 45
+          python tools/fetch_live_data.py
+
+      - name: Check the site
+        id: check
+        run: |
+          set +e
+          python tools/check_site.py | tee report.txt
+          code=${PIPESTATUS[0]}
+          {
+            echo '```'
+            cat report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
+
+      - name: Post the report to Discord (only if a webhook is set up)
+        if: ${{ failure() && steps.check.conclusion == 'failure' }}
+        env:
+          SITE_CHECK_WEBHOOK: ${{ secrets.SITE_CHECK_WEBHOOK }}
+        run: |
+          if [ -z "$SITE_CHECK_WEBHOOK" ]; then echo "No webhook set; skipping."; exit 0; fi
+          python - <<'EOF'
+          import json, os, urllib.request
+          report = open("report.txt", encoding="utf-8").read()[:1800]
+          body = json.dumps({"content": "**GMG site check found a problem**\n```\n" + report + "\n```"}).encode()
+          req = urllib.request.Request(os.environ["SITE_CHECK_WEBHOOK"], data=body, headers={"content-type": "application/json", "User-Agent": "gmg-site-check"})
+          urllib.request.urlopen(req, timeout=30)
+          EOF

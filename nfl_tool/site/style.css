@@ -3748,6 +3748,19 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-inj .gs-inj-status { min-width: 34px; text-align: center; }
 .nba-inj-what { margin-left: auto; color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
 
+/* .sc-tight: a Summary card too full to fit near full size gives up padding and gaps before
+   its text is shrunk (fitSummaryCard, SUMMARY_TIGHT_BELOW). Nothing is hidden. */
+.td-card.sc-tight .td-team { row-gap: 6px; padding: 7px 9px 8px; }
+.td-card.sc-tight .td-team .sc-label { margin-bottom: 3px; }
+.td-card.sc-tight .tdt { padding: 3px 5px 3px; gap: 2px; }
+.td-card.sc-tight .tdt-grid { gap: 4px; }
+.td-card.sc-tight .tdt-v, .td-card.sc-tight .tgt-v { padding-top: 1px; padding-bottom: 1px; line-height: 1.08; }
+.td-card.sc-tight .tgt-boxes { gap: 3px; }
+.gs-card.sc-tight .g2-col { gap: 3px; padding-top: 5px; padding-bottom: 6px; }
+.gs-card.sc-tight .g2-block { padding-top: 2px; padding-bottom: 3px; gap: 2px; }
+.gs-card.sc-tight .g2-sec { padding-top: 5px; padding-bottom: 6px; }
+.gs-card.sc-tight .g2-team { gap: 2px; padding-bottom: 4px; }
+
 /* Possible Plays: Photo export (one compact image of chosen categories) */
 .results-bar { display: flex; gap: 8px; flex-wrap: wrap; }
 #export-modal .modal-box { width: fit-content; max-width: 96vw; max-height: 94vh; overflow: auto; }

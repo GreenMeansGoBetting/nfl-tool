@@ -62,6 +62,7 @@ that, move detail into a rules file.
 - `model_history/gmg_model.json`: the model's locked projections, committed by the deploy bot.
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
+  `.github/workflows/site-check.yml` runs it against the live data after every deploy.
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.

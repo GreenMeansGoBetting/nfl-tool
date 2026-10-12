@@ -62,6 +62,13 @@ than add a new look.
   On Game Previews the picks are a bottom strip, so the button just hides that strip.
 - The Props card has spare height so it grows a lot; the Game and TD cards are already
   height-bound, so making them bigger needs less content or a different layout.
-- `fitWideSummaryCard` backs off when a label would be cut: its "squeezed" check watches specific
-  selectors, so add a new card's label classes to it (`.g2-proof-label`, `.g2-key-title`,
-  `.g2-line-big`, `.tdt-head`, `.tdt-v`, `.tgt-v` are already there).
+- **Two safeguards keep cards readable** (added 2026-10-11 after `tools/check_site.py` found TD
+  cards with spilling labels and one shrunk to 0.85):
+  - `fitWideSummaryCard` backs off its zoom when anything is squeezed. Besides a hand-kept list
+    of selectors, it watches **every one-line text label that fits at normal size**, so growing a
+    card can never make a label spill out of its box, whatever class it has.
+  - `fitSummaryCard` adds `.sc-tight` to a card that would otherwise be shrunk below
+    `SUMMARY_TIGHT_BELOW` (0.92): padding and gaps are trimmed first (rules per card in style.css,
+    `.td-card.sc-tight ...`, `.gs-card.sc-tight ...`), then it shrinks only as far as still
+    needed. Nothing is hidden. A new card type should define its own `.sc-tight` rules.
+- The check flags a card scaled below 0.85 and any cut-off text; run it after changing a card.
