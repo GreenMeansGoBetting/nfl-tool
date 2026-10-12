@@ -143,17 +143,17 @@ const GS_MODEL_BLEND = [
   { key: "matchups", label: "Matchup grades", hint: "Everything in the Matchup grades list", base: 40 },
 ];
 const GS_MODEL_MATCHUPS = [
-  { key: "passing", label: "Passing", cat: "Passing", base: 25 },
-  { key: "trenches", label: "Trenches", cat: "Trenches", base: 15 },
-  { key: "redzone", label: "Red zone", cat: "Red Zone", base: 13 },
-  { key: "rushing", label: "Rushing", cat: "Rushing", base: 12 },
+  { key: "passing", label: "Passing", cat: "Passing", base: 26 },
+  { key: "redzone", label: "Red zone", cat: "Red Zone", base: 17 },
+  { key: "trenches", label: "Trenches", cat: "Trenches", base: 13 },
   { key: "epa", label: "EPA per play", offKey: "epa_per_play", offInvert: false, defKey: "epa_per_play_allowed", defInvert: true, base: 12 },
+  { key: "rushing", label: "Rushing", cat: "Rushing", base: 10 },
   { key: "scheme", label: "Blitz & box", cat: "Scheme", base: 8 },
-  { key: "third", label: "3rd down", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, base: 5 },
-  { key: "explosive", label: "Explosive plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, base: 4 },
-  { key: "turnovers", label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false, base: 3 },
-  { key: "sacks", label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false, base: 2 },
-  { key: "penalties", label: "Penalties", offKey: "penalty_yards_off_per_g", offInvert: true, defKey: "penalty_yards_def_per_g", defInvert: true, base: 1 },
+  { key: "turnovers", label: "Turnovers", offKey: "turnovers_per_g", offInvert: true, defKey: "takeaways_per_g", defInvert: false, base: 6 },
+  { key: "explosive", label: "Explosive plays", offKey: "explosive_rate", offInvert: false, defKey: "explosive_rate_allowed", defInvert: true, base: 3 },
+  { key: "sacks", label: "Sacks", offKey: "sacks_allowed_per_g", offInvert: true, defKey: "sacks_made_per_g", defInvert: false, base: 3 },
+  { key: "third", label: "3rd down", offKey: "third_down_rate", offInvert: false, defKey: "third_down_rate_allowed", defInvert: true, base: 2 },
+  { key: "penalties", label: "Penalties", offKey: "penalty_yards_off_per_g", offInvert: true, defKey: "penalty_yards_def_per_g", defInvert: true, base: 0 },
 ];
 const GS_MODEL_POINTS = [
   { key: "homeField", label: "Home field", hint: "Points the home team gets", base: 1.6, max: 5, step: 0.1 },

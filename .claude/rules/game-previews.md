@@ -106,8 +106,8 @@ want the entire set of info they can get on the site." Do not add stat lines bac
 - Each team's points = league average + three reads of its offense vs that defense (`BLEND`):
   ratings 40% (ESPN FPI off minus def), scoring 20% (opponent-adjusted points for / against,
   shrunk by 4 prior games), matchups 40% (offense z minus defense z for every graded piece:
-  Passing .25, Trenches .15, Red Zone .13, Rushing .12, EPA/play .12, Blitz & Box .08, 3rd down
-  .05, explosive .04, turnovers .03, sacks .02, penalties .01; 4.0 points per z). Home field 1.6.
+  Passing .26, Red Zone .17, Trenches .13, EPA/play .12, Rushing .10, Blitz & Box .08, turnovers
+  .06, explosive .03, sacks .03, 3rd down .02, penalties 0; 4.0 points per z). Home field 1.6.
   Always opponent-adjusted, whatever the Raw / vs Opponents toggle says.
 - A starting QB ruled Out costs his team 3.5 points (`QB_OUT_POINTS`, the user's number). **The
   starter** (`_regular_qb` / `gsRegularQb`) = the QB with the most games as the team's lead
@@ -130,8 +130,20 @@ want the entire set of info they can get on the site." Do not add stat lines bac
 - **Where it shows:** the green GMG model tile on the card (click it) and the "GMG Model record"
   toolbar button open the record popup (`renderModelRecord`): four record tiles, then each week's
   games with model score, final, picks, edges and results.
-- Weights were set from the 2026 season's first 65 finished games and marked down for being
-  in-sample. **Not backtested on past seasons**: a talking point, never "beats the line".
+- **Backtest (2026-10-12, `tools/backtest/`):** a week-by-week replay of 2024 and 2025 (480
+  games, weeks 3-18, each projected only from earlier games; no ratings part, ESPN keeps no
+  history). What it showed:
+  - Against the closing spread it was 50%, and sliders tuned on one season then tested on the
+    other did no better (47.7%). **A talking point, never "beats the line".**
+  - The matchup pieces overlap heavily (Passing vs EPA/play 0.92), so the exact split barely
+    moves accuracy. The weights were nudged toward what held up in both seasons: Red Zone and
+    turnovers up, 3rd down and Rushing down, penalties to 0 (no link to the margin at all).
+  - **The model's margins are smaller than the market's** (2026 weeks 3-5: 3.5 points on
+    average vs 4.5), so about 4 of 5 spread picks land on the underdog. A week where favorites
+    cover (Week 5: 3-10) says nothing about the weights. Not changed; ask the user before
+    stretching the model's margins.
+  - Home field fit near 2.2 and QB-out near 2.2 in that replay; both left at the user's numbers
+    (1.6 and 3.5), the sample is too small to move them.
 
 ## Your own weights and Build Your Model
 

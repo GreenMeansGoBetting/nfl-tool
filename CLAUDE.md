@@ -63,6 +63,7 @@ that, move detail into a rules file.
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
   `.github/workflows/site-check.yml` runs it against the live data after every deploy.
+- `tools/backtest/`: week-by-week replay of the GMG model on past seasons (`features.py`, then `analyze.py`).
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
@@ -94,7 +95,7 @@ that, move detail into a rules file.
   height and don't cram. **Never drop data to make a card bigger; rearrange into dead space.**
 - **Props Summary is directional, never a pick sheet:** no projections, "model edge" numbers or
   model-picked players. The user draws the conclusions.
-- **The GMG model is a talking point, never "beats the line".** It hasn't been backtested on past seasons.
+- **The GMG model is a talking point, never "beats the line".** A 2024-25 replay had it at 50% against the spread.
 - **Any new place that shows a player must use `playerClick`** (the one player card).
 - **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color
   banners, filled tier cells) rather than adding a new one.

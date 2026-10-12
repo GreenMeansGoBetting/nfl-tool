@@ -20,9 +20,12 @@ his team QB_OUT_POINTS (the stats were built with him playing).
 
 The grade math mirrors game-overview.js (compositeZ, schemeCompositeZ,
 trenchesZ, SUMMARY_CATEGORIES) on opponent-adjusted stats -- if a grade's
-recipe changes there, change it here too. Weights were set from the 2026
-season's first 65 finished games and marked down for being in-sample; the
-model has NOT been backtested on other seasons.
+recipe changes there, change it here too. The matchup weights were
+re-balanced 2026-10-12 from a week-by-week replay of 2024 and 2025 (480
+games, each projected only from games played before it -- tools/backtest/).
+The replay could not include the ratings part (ESPN keeps no history), and
+with or without tuning it sat at about 50% against the closing spread: the
+model is a talking point, not an edge.
 """
 from datetime import datetime, timedelta, timezone
 
@@ -59,15 +62,17 @@ SCHEME_ROWS = [
     ("success_vs_pressure", "def_success_allowed_pressure"),
     ("success_vs_clean_pocket", "def_success_allowed_clean_pocket"),
 ]
-GRADE_WEIGHTS = {"Passing": 0.25, "Rushing": 0.12, "Red Zone": 0.13, "Trenches": 0.15, "Scheme": 0.08}
+GRADE_WEIGHTS = {"Passing": 0.26, "Rushing": 0.10, "Red Zone": 0.17, "Trenches": 0.13, "Scheme": 0.08}
 # (offense key, invert, defense key, invert, weight)
 STAT_WEIGHTS = [
     ("epa_per_play", False, "epa_per_play_allowed", True, 0.12),
-    ("third_down_rate", False, "third_down_rate_allowed", True, 0.05),
-    ("explosive_rate", False, "explosive_rate_allowed", True, 0.04),
-    ("turnovers_per_g", True, "takeaways_per_g", False, 0.03),
-    ("sacks_allowed_per_g", True, "sacks_made_per_g", False, 0.02),
-    ("penalty_yards_off_per_g", True, "penalty_yards_def_per_g", True, 0.01),
+    ("third_down_rate", False, "third_down_rate_allowed", True, 0.02),
+    ("explosive_rate", False, "explosive_rate_allowed", True, 0.03),
+    ("turnovers_per_g", True, "takeaways_per_g", False, 0.06),
+    ("sacks_allowed_per_g", True, "sacks_made_per_g", False, 0.03),
+    # 0: in the 2024-25 replay penalty yards had no link to the final margin (the
+    # slider stays so a member can still add weight).
+    ("penalty_yards_off_per_g", True, "penalty_yards_def_per_g", True, 0.0),
 ]
 
 
