@@ -2,6 +2,10 @@
  "2026_05_BAL_ATL": {
   "away": "BAL",
   "away_pts": 18.2,
+  "final": [
+   30,
+   23
+  ],
   "frozen": true,
   "home": "ATL",
   "home_pts": 23.5,
@@ -11,9 +15,11 @@
   "spread": -3.5,
   "spread_edge": 1.9,
   "spread_pick": "home",
+  "spread_result": "loss",
   "total": 43.5,
   "total_edge": 1.8,
   "total_pick": "under",
+  "total_result": "loss",
   "updated": "2026-10-11T22:42Z",
   "week": 5
  },
