@@ -15,8 +15,10 @@ that defense, blended (BLEND):
   * matchups -- everything graded on the Game Summary card: the offense's z
     minus the defense's z for each piece (the same two-sided gap the card's
     tags use), weighted by GRADE_WEIGHTS / STAT_WEIGHTS, POINTS_PER_Z each.
-Home field is split across the two teams, and a starting QB ruled Out costs
-his team QB_OUT_POINTS (the stats were built with him playing).
+The gap between the two teams' blended points is then widened by
+MARGIN_STRETCH, home field is split across the two teams, and a starting QB
+ruled Out costs his team QB_OUT_POINTS (the stats were built with him
+playing).
 
 The grade math mirrors game-overview.js (compositeZ, schemeCompositeZ,
 trenchesZ, SUMMARY_CATEGORIES) on opponent-adjusted stats -- if a grade's
@@ -35,8 +37,20 @@ HOME_FIELD = 1.6
 POINTS_PER_Z = 4.0
 FULL_TRUST_GAMES = 4
 QB_OUT_POINTS = 3.5
-# A pick counts as a "bigger edge" when the model is this far from the line.
-EDGE_POINTS = 2.5
+# The blended score runs closer than the betting line: averaging three reads
+# pulls every game toward a coin flip (2026 weeks 3-5: the model's margins
+# were about 3.5 points on average, the market's 4.5), which put roughly 4 of
+# 5 spread picks on the underdog whatever the weights were. The gap between
+# the two teams' blended points is widened by this much (the total is left
+# alone; home field and QB-out are added after, at face value). 1.2 = the
+# market's width over the model's in that stretch. Revisit if the tracked
+# picks lean hard to favorites or underdogs.
+MARGIN_STRETCH = 1.2
+# A projection is a PICK only when it is this far from the line; closer than
+# that it is a lean, shown in grey and left out of the headline record. In
+# the 2024-25 replay the model added nothing to the closing spread, so
+# calling every game a pick just tracked coin flips (user, 2026-10-12).
+EDGE_POINTS = 4.0
 
 # (key, invert, weight) per side -- SUMMARY_CATEGORIES in game-overview.js.
 CATEGORIES = {
@@ -239,8 +253,10 @@ def _project(blob, grades, game):
         return grades.league + BLEND["ratings"] * rating + BLEND["scoring"] * scoring + BLEND["matchups"] * matchups
 
     qb_out = [t for t in (away, home) if _qb_out(blob, t, game["week"])]
-    away_pts = points(away, home) - HOME_FIELD / 2 - (QB_OUT_POINTS if away in qb_out else 0)
-    home_pts = points(home, away) + HOME_FIELD / 2 - (QB_OUT_POINTS if home in qb_out else 0)
+    away_raw, home_raw = points(away, home), points(home, away)
+    mid, half = (away_raw + home_raw) / 2, (home_raw - away_raw) / 2 * MARGIN_STRETCH
+    away_pts = mid - half - HOME_FIELD / 2 - (QB_OUT_POINTS if away in qb_out else 0)
+    home_pts = mid + half + HOME_FIELD / 2 - (QB_OUT_POINTS if home in qb_out else 0)
     entry = {"week": game["week"], "away": away, "home": home, "away_pts": round(away_pts, 1), "home_pts": round(home_pts, 1), "qb_out": qb_out}
     spread, total = _line(game, "home_team_spread"), _line(game, "total_line")
     if spread is not None:

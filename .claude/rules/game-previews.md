@@ -107,8 +107,13 @@ want the entire set of info they can get on the site." Do not add stat lines bac
   ratings 40% (ESPN FPI off minus def), scoring 20% (opponent-adjusted points for / against,
   shrunk by 4 prior games), matchups 40% (offense z minus defense z for every graded piece:
   Passing .26, Red Zone .17, Trenches .13, EPA/play .12, Rushing .10, Blitz & Box .08, turnovers
-  .06, explosive .03, sacks .03, 3rd down .02, penalties 0; 4.0 points per z). Home field 1.6.
-  Always opponent-adjusted, whatever the Raw / vs Opponents toggle says.
+  .06, explosive .03, sacks .03, 3rd down .02, penalties 0; 4.0 points per z). Always
+  opponent-adjusted, whatever the Raw / vs Opponents toggle says.
+- **Margin stretch 1.2** (`MARGIN_STRETCH`, slider "Margin stretch"): the gap between the two
+  teams' blended points is widened 1.2x before home field (1.6) and QB-out are added; the total
+  is untouched. Without it the model's margins ran about 3.5 points against the market's 4.5,
+  which put roughly 4 of 5 spread picks on the underdog whatever the weights were. If the
+  tracked picks start leaning hard to favorites or underdogs, revisit this number.
 - A starting QB ruled Out costs his team 3.5 points (`QB_OUT_POINTS`, the user's number). **The
   starter** (`_regular_qb` / `gsRegularQb`) = the QB with the most games as the team's lead
   passer (10+ attempts), ties to whoever led more recently; he's "out" if this week's injury
@@ -117,9 +122,10 @@ want the entire set of info they can get on the site." Do not add stat lines bac
 - It lives in the build, not the browser, so one number feeds the card, the record and the
   grading. The grade math in gmg_model.py mirrors game-overview.js; **change a grade's recipe in
   both places**.
-- **Picks:** every game gets a spread pick and a total pick (whichever side of Novig's line the
-  model's score lands on) with an edge in points; 2.5+ (`EDGE_POINTS` / `GS_MODEL_EDGE`) is
-  highlighted and tallied separately.
+- **Picks vs leans:** every game stores which side of Novig's spread and total the model's score
+  lands on, with the gap in points. It is a **pick** only at 4+ points (`EDGE_POINTS` /
+  `GS_MODEL_EDGE`, keep the two equal); closer than that it is a **lean**, shown grey. The
+  user's call (2026-10-12): calling every game a pick just tracked coin flips.
 - **Locked at kickoff:** this week's upcoming games are re-projected every build; once a game has
   started its entry is kept as the last build before kickoff left it (`frozen`) and graded against
   the line stored in it. A game that started with no earlier entry is never projected after the
@@ -128,8 +134,9 @@ want the entire set of info they can get on the site." Do not add stat lines bac
   `gmg_model` with `model_history/gmg_model.json`, which deploy.yml commits (as
   github-actions[bot], needs `contents: write`) whenever a game locks or goes final.
 - **Where it shows:** the green GMG model tile on the card (click it) and the "GMG Model record"
-  toolbar button open the record popup (`renderModelRecord`): four record tiles, then each week's
-  games with model score, final, picks, edges and results.
+  toolbar button open the record popup (`renderModelRecord`): two headline tiles (Spread picks,
+  Total picks: 4+ only), two small "Every game" tiles, then each week's games with model score,
+  final, the pick or lean, its gap and the result (leans greyed).
 - **Backtest (2026-10-12, `tools/backtest/`):** a week-by-week replay of 2024 and 2025 (480
   games, weeks 3-18, each projected only from earlier games; no ratings part, ESPN keeps no
   history). What it showed:
@@ -138,10 +145,12 @@ want the entire set of info they can get on the site." Do not add stat lines bac
   - The matchup pieces overlap heavily (Passing vs EPA/play 0.92), so the exact split barely
     moves accuracy. The weights were nudged toward what held up in both seasons: Red Zone and
     turnovers up, 3rd down and Rushing down, penalties to 0 (no link to the margin at all).
-  - **The model's margins are smaller than the market's** (2026 weeks 3-5: 3.5 points on
-    average vs 4.5), so about 4 of 5 spread picks land on the underdog. A week where favorites
-    cover (Week 5: 3-10) says nothing about the weights. Not changed; ask the user before
-    stretching the model's margins.
+  - **The model's margins were smaller than the market's** (2026 weeks 3-5: 3.5 points on
+    average vs 4.5), so about 4 of 5 spread picks landed on the underdog. A week where favorites
+    cover (Week 5: 3-10) said nothing about the weights. Fixed with the margin stretch above.
+  - Once the spread is known, the model's disagreement with it added nothing (best blend: the
+    market plus 9% of the model's gap, with opposite signs in the two seasons). Hence picks only
+    at 4+ points, and the "talking point" framing.
   - Home field fit near 2.2 and QB-out near 2.2 in that replay; both left at the user's numbers
     (1.6 and 3.5), the sample is too small to move them.
 
@@ -149,7 +158,7 @@ want the entire set of info they can get on the site." Do not add stat lines bac
 
 - The small "i" on the model tile opens "How the model weighs things" (`openModelWeights`): every
   weight is a slider in three groups (what goes into the score, matchup grades, point adjustments:
-  home field, starting QB out, matchup impact), with a live table of the week's games (Market |
+  home field, starting QB out, matchup impact, margin stretch), with a live table of the week's games (Market |
   GMG default | yours). Blend and matchup sliders are relative (share = value / group total).
 - `gsModelCompute(game, w)` re-projects in the browser with the same math as gmg_model.py (equal
   to the build on GMG default weights). **Keep the two in step**, including
@@ -157,8 +166,8 @@ want the entire set of info they can get on the site." Do not add stat lines bac
 - **Build Your Model view:** a third view button between Full Preview and Summary (`gsView`
   "model", `#section-model`). Same block as the popup (`renderModelWeights(page)`, one `.mw-root`
   each, everything found by class inside its own root) plus two extras: the week table adds the
-  spread and total pick the current weights make (edge in points, 2.5+ highlighted), and the GMG
-  Model record sits underneath.
+  spread and total side the current weights land on (gap in points; 4+ = a pick, green; closer
+  = a lean, grey), and the GMG Model record sits underneath.
 - Presets: a "Using" dropdown (GMG default + saved sets), Save as new (named, max 12), Reset
   sliders, Delete. Moving a slider while on GMG default starts a preset called "My weights";
   slider moves save straight into the active preset. Stored in `nfl-tool.model-presets.v1`

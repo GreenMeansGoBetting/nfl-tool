@@ -3817,3 +3817,9 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .g5-adv-str .team-logo-mini { width: 24px; height: 24px; }
 .g5-teams .g2-team-head { font-size: 0.98rem; letter-spacing: 0.02em; gap: 6px; }
 .g5-teams .g2-rec { font-size: 1rem; gap: 10px; }
+
+/* GMG model: a lean (under 4 points from the line) is grey; only picks are highlighted */
+.gm-lean { color: var(--muted); font-weight: 500; }
+td.gm-lean .pick-result { opacity: 0.5; }
+.gm-tile-minor { background: none; }
+.gm-tile-minor .gm-tile-big { font-size: 1.15rem; color: var(--muted); }

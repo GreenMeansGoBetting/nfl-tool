@@ -124,7 +124,10 @@ function gsRatingsStack(away, home) {
 // DATA.gmg_model[game_id]) and locked at kickoff, so the card, the record
 // popup and the graded picks all read one number that can't be re-run after
 // the game. A game with no entry (it started before tracking began) shows "--".
-const GS_MODEL_EDGE = 2.5; // "bigger edge" = the model is this far from the line
+// A projection is a PICK only when the model is this far from the line;
+// closer than that it is a lean (grey, not in the headline record). Same
+// number as EDGE_POINTS in gmg_model.py.
+const GS_MODEL_EDGE = 4;
 function gsModelEntry(game) {
   return (DATA.gmg_model || {})[game.game_id] || null;
 }
@@ -159,7 +162,9 @@ const GS_MODEL_POINTS = [
   { key: "homeField", label: "Home field", hint: "Points the home team gets", base: 1.6, max: 5, step: 0.1 },
   { key: "qbOut", label: "Starting QB out", hint: "Points taken off a team whose regular QB is out", base: 3.5, max: 8, step: 0.5 },
   { key: "impact", label: "Matchup impact", hint: "Points a one-grade edge across the matchup grades is worth", base: 4, max: 8, step: 0.5 },
+  { key: "stretch", label: "Margin stretch", hint: "Widens the gap between the two scores. The blended score runs closer than the betting line; 1.00x turns this off", base: 1.2, min: 0.5, max: 2, step: 0.05, unit: "x" },
 ];
+const gsModelPointText = (f, value) => (f.unit === "x" ? `${fmt(value, 2)}x` : `${fmt(value, 1)} pts`);
 const GS_MODEL_PRIOR_GAMES = 4; // scoring is pulled toward average until this many games
 const GS_MODEL_FULL_TRUST_GAMES = 4; // matchup grades count in full from here
 function gsModelDefaults() {
@@ -204,7 +209,12 @@ function gsModelCompute(game, w) {
       return league + share("ratings") * ratings + share("scoring") * scoring + share("matchups") * matchups;
     };
     const qbOut = (t) => (gsQbOut(t, game.week) ? w.qbOut : 0);
-    return { away_pts: points(away, home) - w.homeField / 2 - qbOut(away), home_pts: points(home, away) + w.homeField / 2 - qbOut(home) };
+    // Widen the gap between the two blended scores (MARGIN_STRETCH); the total stays put.
+    const awayRaw = points(away, home);
+    const homeRaw = points(home, away);
+    const mid = (awayRaw + homeRaw) / 2;
+    const half = ((homeRaw - awayRaw) / 2) * w.stretch;
+    return { away_pts: mid - half - w.homeField / 2 - qbOut(away), home_pts: mid + half + w.homeField / 2 - qbOut(home) };
   } finally {
     DATA.team_stats = shown;
   }
@@ -270,10 +280,10 @@ function gsModelShareText(group, w, f) {
 function gsModelSliderRows(group, w, points) {
   return group
     .map((f) => {
-      const value = points ? `${fmt(w[f.key], 1)} pts` : gsModelShareText(group, w, f);
+      const value = points ? gsModelPointText(f, w[f.key]) : gsModelShareText(group, w, f);
       return `<div class="mw-row"${f.hint ? ` title="${f.hint}"` : ""}>
         <span class="mw-label">${f.label}</span>
-        <input type="range" class="mw-range" data-key="${f.key}" min="0" max="${points ? f.max : 100}" step="${points ? f.step : 1}" value="${w[f.key]}">
+        <input type="range" class="mw-range" data-key="${f.key}" min="${points ? f.min || 0 : 0}" max="${points ? f.max : 100}" step="${points ? f.step : 1}" value="${w[f.key]}">
         <span class="mw-val" data-val="${f.key}">${value}</span>
       </div>`;
     })
@@ -283,7 +293,7 @@ function gsModelSliderRows(group, w, points) {
 function gsModelPickCells(game, s) {
   const hs = pv(game, "home_team_spread");
   const total = pv(game, "total_line");
-  const cell = (label, edge) => `<td class="gm-pick${edge >= GS_MODEL_EDGE ? " gm-pick-big" : ""}">${label} <span class="gm-edge" title="How far these weights are from the line">${fmt(edge, 1)}</span></td>`;
+  const cell = (label, edge) => `<td class="gm-pick ${edge >= GS_MODEL_EDGE ? "gm-pick-big" : "gm-lean"}" title="${edge >= GS_MODEL_EDGE ? "A pick" : "A lean, not a pick"}: these weights are ${fmt(edge, 1)} points from the line (${GS_MODEL_EDGE}+ makes a pick)">${label} <span class="gm-edge">${fmt(edge, 1)}</span></td>`;
   const none = `<td class="muted-label">--</td>`;
   if (!s) return none + none;
   let out = "";
@@ -319,7 +329,7 @@ function gsModelPreviewTable(w, presetName, withPicks) {
       return `<tr${cur && g.game_id === cur.game_id ? ' class="stat-rank-current"' : ""}><td class="mw-game">${teamLogoMini(g.away, 16)} ${g.away} @ ${teamLogoMini(g.home, 16)} ${g.home}</td><td class="num">${market}</td><td class="num">${score(gsModelDefaultScore(g))}</td><td class="num mw-yours">${yours}</td>${picks}</tr>`;
     })
     .join("");
-  return `<table class="data-table mw-table"><thead><tr><th>Week ${week}</th><th>Market</th><th>GMG default</th><th>${gsEsc(presetName)}</th>${withPicks ? "<th>Spread pick</th><th>Total pick</th>" : ""}</tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="data-table mw-table"><thead><tr><th>Week ${week}</th><th>Market</th><th>GMG default</th><th>${gsEsc(presetName)}</th>${withPicks ? "<th>Spread</th><th>Total</th>" : ""}</tr></thead><tbody>${rows}</tbody></table>${withPicks ? `<p class="section-note">Green = a pick (${GS_MODEL_EDGE}+ points from the line). Grey = only a lean.</p>` : ""}`;
 }
 function gsModelPresetBar(state) {
   const preset = gsModelActivePreset(state);
@@ -421,7 +431,7 @@ document.addEventListener("input", (e) => {
   [[GS_MODEL_BLEND, false], [GS_MODEL_MATCHUPS, false], [GS_MODEL_POINTS, true]].forEach(([group, points]) =>
     group.forEach((f) => {
       const el = root.querySelector(`.mw-val[data-val="${f.key}"]`);
-      if (el) el.textContent = points ? `${fmt(w[f.key], 1)} pts` : gsModelShareText(group, w, f);
+      if (el) el.textContent = points ? gsModelPointText(f, w[f.key]) : gsModelShareText(group, w, f);
     })
   );
   root.querySelector(".mw-preview").innerHTML = gsModelPreviewTable(w, preset.name, root.classList.contains("mw-page"));
@@ -504,13 +514,13 @@ function gsModelPickCell(e, key) {
   const label = key === "spread" ? `${teamLogoMini(e[side], 16)} ${e[side]} ${gsSigned(side === "home" ? e.spread : -e.spread)}` : `${side === "over" ? "Over" : "Under"} ${fmt(e.total, 1).replace(/\.0$/, "")}`;
   const big = e[`${key}_edge`] >= GS_MODEL_EDGE;
   const result = e[`${key}_result`];
-  return `<td class="gm-pick${big ? " gm-pick-big" : ""}">${label} <span class="gm-edge" title="How far the model is from the line">${fmt(e[`${key}_edge`], 1)}</span></td>
-    <td><span class="pick-result pick-result-${result || "pending"}">${result ? result.toUpperCase() : "Pending"}</span></td>`;
+  return `<td class="gm-pick ${big ? "gm-pick-big" : "gm-lean"}" title="${big ? "A pick" : "A lean, not a pick"}: the model was ${fmt(e[`${key}_edge`], 1)} points from the line">${label} <span class="gm-edge">${fmt(e[`${key}_edge`], 1)}</span></td>
+    <td class="${big ? "" : "gm-lean"}"><span class="pick-result pick-result-${result || "pending"}">${result ? result.toUpperCase() : "Pending"}</span></td>`;
 }
 function renderModelRecord() {
   const entries = Object.values(DATA.gmg_model || {});
   if (!entries.length) return `<h2 class="modal-title">GMG Model record</h2><p class="no-data-note">No projections yet. They appear with the next data update.</p>`;
-  const tile = (label, value) => `<div class="gm-tile"><div class="gs-tile-label">${label}</div><div class="gm-tile-big">${value}</div></div>`;
+  const tile = (label, value, minor) => `<div class="gm-tile${minor ? " gm-tile-minor" : ""}"><div class="gs-tile-label">${label}</div><div class="gm-tile-big">${value}</div></div>`;
   const weeks = [...new Set(entries.map((e) => e.week))].sort((a, b) => b - a);
   const tables = weeks
     .map((w) => {
@@ -526,17 +536,17 @@ function renderModelRecord() {
         )
         .join("");
       return `<h3 class="stat-column-title">Week ${w}</h3>
-        <table class="data-table gm-table"><thead><tr><th>Game</th><th>Model score</th><th>Final</th><th>Spread pick</th><th></th><th>Total pick</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+        <table class="data-table gm-table"><thead><tr><th>Game</th><th>Model score</th><th>Final</th><th>Spread</th><th></th><th>Total</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
     })
     .join("");
   return `<h2 class="modal-title">GMG Model record</h2>
     <div class="gm-tiles">
-      ${tile("Spread picks", gsModelTally(entries, "spread", 0))}
-      ${tile("Total picks", gsModelTally(entries, "total", 0))}
-      ${tile(`Spread, ${GS_MODEL_EDGE}+ pt edge`, gsModelTally(entries, "spread", GS_MODEL_EDGE))}
-      ${tile(`Total, ${GS_MODEL_EDGE}+ pt edge`, gsModelTally(entries, "total", GS_MODEL_EDGE))}
+      ${tile("Spread picks", gsModelTally(entries, "spread", GS_MODEL_EDGE))}
+      ${tile("Total picks", gsModelTally(entries, "total", GS_MODEL_EDGE))}
+      ${tile("Every game, spread", gsModelTally(entries, "spread", 0), true)}
+      ${tile("Every game, total", gsModelTally(entries, "total", 0), true)}
     </div>
-    <p class="section-note">Every game gets a spread pick and a total pick: whichever side of the line the model's score lands on. The small number is how many points the model is from the line; ${GS_MODEL_EDGE}+ is highlighted. Scores and lines lock at kickoff and are graded against the line at that moment. Tracking started Week 5, 2026.</p>
+    <p class="section-note">A projection is a <b>pick</b> only when the model is ${GS_MODEL_EDGE}+ points from the line (green below). Closer than that it is a lean (grey): it counts in "Every game" but not in the picks record. The small number is how many points the model was from the line. Scores and lines lock at kickoff and are graded against the line at that moment. Tracking started Week 5, 2026; the model's weights and margins were adjusted after Week 5. A talking point, not a system: a replay of 2024-25 had it at 50% against the spread.</p>
     ${tables}`;
 }
 const GS_MODEL_QB_NOTE = "3.5 points taken off that team";
