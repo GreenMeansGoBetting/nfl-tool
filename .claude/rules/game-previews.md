@@ -90,6 +90,9 @@ Stories and examples behind these rules: `docs/history.md`, "Game Previews".
   side, strongest grade first; Bad vs Bad stats are not listed (not an edge). Leftover edges
   (points, EPA, 3rd down, penalties...) go under "Overall". Labels carry units ("Rush yds /
   game", "4-man rush success", "DAL shows it 53%").
+  - Every stat number has a color (`gsZClass`): green / red past the tier line, **yellow in
+    between** (never plain). A Trenches value shown with its letter takes the letter's color
+    (`gsGradeValClass`: A/B green, C yellow, D/F red).
 - **Keys** (`gsKeys`): the 3 biggest graded matchups from both sides (`GS_KEYS_SHOWN`); tile =
   who has the advantage (team color), the matchup in plain words, the two grades. The regular
   starting QB ruled Out (same rule as the model) always takes the first tile. Sits below the

@@ -68,9 +68,18 @@ function gsStatZ(key, team, invert) {
   const pool = teamsWithGames();
   return zScore(tierValue(team, key), pool.map((t) => tierValue(t, key)), invert);
 }
+// Every number on the card gets a color: green / red past the page's tier
+// line, yellow in between (an average number used to be left plain, which
+// read as "the color didn't load" -- user 2026-10-12). Blank only with no data.
 function gsZClass(z) {
   if (z === null || z === undefined) return "";
-  return z >= GS_EDGE_Z ? "gs-good" : z <= -GS_EDGE_Z ? "gs-bad" : "";
+  return z >= GS_EDGE_Z ? "gs-good" : z <= -GS_EDGE_Z ? "gs-bad" : "gs-mid";
+}
+// A value shown WITH its letter grade takes the letter's color (A/B green,
+// C yellow, D/F red), so "C 59" can never sit in a green or plain box.
+function gsGradeValClass(grade) {
+  const g = (grade || "").charAt(0);
+  return g === "A" || g === "B" ? "gs-good" : g === "C" ? "gs-mid" : g === "D" || g === "F" ? "gs-bad" : "";
 }
 
 // "Scheme" on the full page = how an offense does against the looks a
@@ -192,8 +201,8 @@ function gsStatEdges(offTeam, defTeam, all) {
         cat: "Trenches",
         offZ: oe.z,
         defZ: de.z,
-        off: `<span class="gs-val ${gsZClass(oe.z)}">${oe.grade} ${oe.score}</span>`,
-        def: `<span class="gs-val ${gsZClass(de.z)}">${de.grade} ${de.score}</span>`,
+        off: `<span class="gs-val ${gsGradeValClass(oe.grade)}">${oe.grade} ${oe.score}</span>`,
+        def: `<span class="gs-val ${gsGradeValClass(de.grade)}">${de.grade} ${de.score}</span>`,
         tag,
         weight: gsEdgeStrength(oe.z, de.z, tag),
       });

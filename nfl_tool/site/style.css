@@ -2544,6 +2544,7 @@ footer { border-top-color: var(--border); }
 .gs-val { font-size: 0.76rem; padding: 0 4px; }
 .gs-val.gs-good { color: var(--good-text); background: rgba(var(--good-rgb), 0.18); border-color: rgba(var(--good-rgb), 0.5); }
 .gs-val.gs-bad { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.15); border-color: rgba(var(--bad-rgb), 0.45); }
+.gs-val.gs-mid { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.14); border-color: rgba(var(--mid-rgb), 0.42); }
 .gs-freq { color: var(--muted); }
 .gs-tag { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 6px; border-radius: 6px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; border: 1px solid transparent; }
 .gs-tag-mismatch { color: var(--good-text); background: rgba(var(--good-rgb), 0.18); border-color: rgba(var(--good-rgb), 0.55); }
