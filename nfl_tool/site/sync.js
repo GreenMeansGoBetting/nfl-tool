@@ -272,6 +272,46 @@
     chip.before(btn);
   }
 
+  // ---- Suite switcher (added 2026-10-11) ----
+  // The brand in the topbar ("GMG NFL SUITE") becomes a dropdown for moving
+  // between suites. Until the NBA suite launches it only works for the owner
+  // and on localhost; flip SUITE_SWITCH_PUBLIC to open it to every member
+  // (and take the owner-only guard off the NBA pages -- .nba-app in style.css).
+  const SUITE_SWITCH_PUBLIC = false;
+  const SUITES = [
+    { key: "nfl", label: "NFL", href: "/game-overview.html" },
+    { key: "nba", label: "NBA", href: "/nba/" },
+  ];
+  function suiteSwitchOn() {
+    const cls = document.documentElement.classList;
+    return SUITE_SWITCH_PUBLIC || cls.contains("is-owner") || cls.contains("local-dev");
+  }
+  function addSuiteSwitcher() {
+    const brand = document.querySelector(".topbar .brand");
+    if (!brand || brand.dataset.suite) return;
+    const current = location.pathname.includes("/nba/") ? "nba" : "nfl";
+    brand.dataset.suite = current;
+    brand.classList.add("suite-brand");
+    brand.insertAdjacentHTML("beforeend", '<span class="suite-caret" aria-hidden="true">&#9662;</span>');
+    const menu = document.createElement("div");
+    menu.className = "suite-menu";
+    menu.hidden = true;
+    menu.innerHTML = SUITES.map(
+      (s) => `<a href="${s.href}" class="suite-item${s.key === current ? " suite-current" : ""}"><span class="brand-mark">GMG</span><span class="brand-name">${s.label} <b>Suite</b></span></a>`
+    ).join("");
+    brand.after(menu);
+    brand.addEventListener("click", (e) => {
+      if (!suiteSwitchOn()) return; // plain link home until it's switched on
+      e.preventDefault();
+      menu.hidden = !menu.hidden;
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".suite-brand, .suite-menu")) menu.hidden = true;
+    });
+  }
+  if (SUITE_SWITCH_PUBLIC) document.documentElement.classList.add("suite-public");
+  addSuiteSwitcher();
+
   window.NFLSync = {
     push(key, value) {
       if (applyingRemote || !KEYS.includes(key)) return;

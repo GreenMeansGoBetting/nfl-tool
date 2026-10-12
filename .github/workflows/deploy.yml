@@ -89,6 +89,15 @@ jobs:
           SKIP_SGO_FETCH: ${{ github.event_name == 'push' && '1' || '0' }}
         run: python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
 
+      # GMG NBA Suite data (site/nba/data.json). Separate script, separate
+      # sources (hoopR season files + Novig NBA lines); if it fails the NFL
+      # site still deploys, just with no fresh NBA data.
+      - name: Build NBA data
+        continue-on-error: true
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json
+
       # The GMG model's locked projections and graded picks. The build
       # rewrites this file with every game that has kicked off; committing it
       # keeps the record in the repo, so it survives even if the next build
