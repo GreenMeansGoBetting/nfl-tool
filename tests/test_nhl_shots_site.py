@@ -2,12 +2,14 @@
 NHL data and Shots samples.
 
 What is pinned: the page and the build agree on every play (the side, the
-price and the edge the record is graded by); the ranking is best edge first
-with the gaps too big to trust in their own group underneath; players who are
-out are left off; the filters, the sort and one-game view; the row breakdown
-(the pieces multiply out to the projection, every line the book prices is on
-the ladder); names open the one player card; a finished game shows real shots
-and a win or loss; the record tiles."""
+price and the edge the record is graded by, and whether it goes against his
+own season average); the ranking is best edge first with the gaps too big to
+trust in their own group underneath; players who are out are left off; the
+filters, the sort and one-game view; the row breakdown (from his season
+average, the pieces multiply out to the projection; every line the book
+prices is on the ladder; a defense's rank is said in words that can't be read
+backwards); this season only, on the page and in the card it opens; a
+finished game shows real shots and a win or loss; the record tiles."""
 import math
 import unittest
 
@@ -24,7 +26,7 @@ ROWS = """() => [...document.querySelectorAll('.shots-row')].map((tr) => {
     const cell = (i) => tr.children[i].textContent.trim().replace(/\\s+/g, ' ');
     const chip = tr.querySelector('.shots-play');
     const play = chip ? `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}` : cell(2);
-    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell(0), play, proj: cell(3), model: cell(4), fair: cell(5), edge: cell(6), check: !!tr.querySelector('.shots-flag') && /check/.test(cell(6)) };
+    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell(0), play, avg: cell(3), proj: cell(4), model: cell(5), fair: cell(6), edge: cell(7), check: /check/.test(cell(7)), fade: !!tr.querySelector('.shots-fade') };
 })"""
 
 
@@ -58,6 +60,14 @@ def reset(day=TONIGHT, **view):
     return PAGE.evaluate(ROWS)
 
 
+def rank_word(rank, teams=32):
+    """A defense's rank the way the page says it: from the nearer end."""
+    ordinal = lambda n: f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+    if rank <= teams / 2:
+        return "the most" if rank == 1 else f"{ordinal(rank)} most"
+    return "the fewest" if rank == teams else f"{ordinal(teams - rank + 1)} fewest"
+
+
 def expected_plays(day=TONIGHT):
     """{player id: the play the build would grade} for everyone the page should list."""
     data, shots = nhl_data(), nhl_shots()
@@ -69,9 +79,9 @@ def expected_plays(day=TONIGHT):
             market = ((data["player_odds"].get(g["game_id"]) or {}).get(row["id"]) or {}).get("sog")
             if row["out"] or not market:
                 continue
-            play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"))
+            play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"])
             if play:
-                out[row["id"]] = {**play, "mean": row["mean"]}
+                out[row["id"]] = {**play, "mean": row["mean"], "avg": row["avg"]}
     return out
 
 
@@ -100,6 +110,10 @@ class Ranking(unittest.TestCase):
             self.assertNotEqual(shown, "-0.0", r)
             self.assertLessEqual(abs(int(r["model"].rstrip("%")) - play["chance"] * 100), 0.5 + 1e-9, r)
             self.assertEqual(r["proj"], f"{play['mean']:.2f}", r)
+            self.assertEqual(r["avg"], f"{play['avg']:.2f}", r)
+            # "vs his avg" is on exactly the called plays the build's record files as going against his average.
+            self.assertEqual(r["fade"], play["fade"] and play["edge"] >= build_nhl.SHOTS_EDGES["lean"], r)
+        self.assertGreater(sum(1 for play in plays.values() if play["fade"] and play["edge"] >= build_nhl.SHOTS_EDGES["lean"]), 5)
 
     def test_best_edge_first_with_the_too_big_gaps_underneath(self):
         plays = expected_plays()
@@ -133,6 +147,28 @@ class Ranking(unittest.TestCase):
         out = {row["id"] for entry in shots["games"].values() for row in entry["players"] if row["out"]}
         self.assertGreater(len(out), 0)
         self.assertEqual(out & {r["id"] for r in reset(lined=False)}, set())
+
+
+class ThisSeasonOnly(unittest.TestCase):
+    """The owner's rule for the NHL prop tools: nothing from last season."""
+
+    def test_the_card_opens_on_this_season_here(self):
+        # Game Previews opens on last season while the sample is small; this page does not.
+        self.assertEqual(nhl_data()["default_view"], "prev")
+        self.assertEqual(PAGE.evaluate("() => view"), "season")
+
+    def test_no_last_season_numbers_in_the_data_or_on_the_page(self):
+        shots = nhl_shots()
+        self.assertTrue(all("prev" not in stat for team in shots["defense"].values() for stat in team.values()))
+        # Every projected player has played this season, and his average is this season's.
+        rows = [r for entry in shots["games"].values() for r in entry["players"]]
+        self.assertTrue(all(r["games"] >= 1 and r["avg"] is not None for r in rows))
+        hughes = next(p for p in nhl_data()["skaters"]["NJD"] if p["name"] == "Jack Hughes")
+        self.assertEqual(next(r for r in rows if r["id"] == hughes["id"] and "actual" not in r)["avg"], hughes["sog_pg"])
+        reset()
+        PAGE.evaluate("() => document.querySelector('.shots-row').children[3].click()")
+        text = PAGE.evaluate("() => document.querySelector('#shots-content').innerHTML.toLowerCase()")
+        self.assertNotIn("last season", text)
 
 
 class Filters(unittest.TestCase):
@@ -196,7 +232,9 @@ class Breakdown(unittest.TestCase):
                     steps: [...box.querySelectorAll('.shots-step')].map((s) => [text(s.querySelector('small')), text(s.querySelector('b'))]),
                     ladder: [...box.querySelectorAll('.shots-ladder tbody tr')].map((tr) => [...tr.children].map(text)),
                     tiles: [...box.querySelectorAll('.shots-allows .nba-tile')].map((t) => [text(t.querySelector('.gs-tile-label')), text(t.querySelector('b')), text(t.querySelector('small'))]),
+                    tags: [...box.querySelectorAll('.shots-allows .nba-tile')].map((t) => text(t.querySelector('.gs-tag, .nba-notag'))),
                     zones: [...box.querySelectorAll('svg .nhl-zone-big')].map(text),
+                    zone_ranks: [...box.querySelectorAll('svg .nhl-zone-small')].map(text),
                 };
             }""",
             f"{self.game['game_id']}:{self.hughes['id']}",
@@ -206,13 +244,18 @@ class Breakdown(unittest.TestCase):
         detail = self.open()
         self.assertEqual(detail["open"], 1)
         steps = detail["steps"]
-        self.assertEqual([s[0] for s in steps], ["His usual", "DET defense", "vs forwards", "His spots", "Power play", "Home / rest", "Tonight"])
-        self.assertEqual((steps[0][1], steps[-1][1]), (f"{self.hughes['usual']:.2f}", f"{self.hughes['mean']:.2f}"))
+        games = self.hughes["games"]
+        self.assertEqual([s[0] for s in steps], [f"Season avg \u00b7 {games} gp", f"{games}-game sample", "DET defense", "vs forwards", "His spots", "Power play", "Home / rest", "Tonight"])
+        # It starts from what his game log says and ends at tonight's number...
+        self.assertEqual((steps[0][1], steps[-1][1]), (f"{self.hughes['avg']:.2f}", f"{self.hughes['mean']:.2f}"))
+        # ...the second piece being how far a small sample is discounted (or topped up).
+        sample = self.hughes["usual"] / self.hughes["avg"]
+        self.assertEqual(steps[1][1], f"{'+' if sample >= 1 else ''}{round((sample - 1) * 100)}%")
         lift = self.hughes["lift"]
-        product = self.hughes["usual"] * lift["opp"] * lift["pos"] * lift["area"] * lift["pp"] * lift["home"] * lift["b2b"] * lift["opp_b2b"]
+        product = self.hughes["avg"] * sample * lift["opp"] * lift["pos"] * lift["area"] * lift["pp"] * lift["home"] * lift["b2b"] * lift["opp_b2b"]
         self.assertAlmostEqual(product, self.hughes["mean"], delta=0.02)
         # NJD played the night before (10-12 vs OTT): the last piece is the back-to-back.
-        self.assertEqual(steps[5][1], "-3%")
+        self.assertEqual(steps[6][1], "-3%")
 
     def test_the_ladder_is_every_line_the_book_prices(self):
         ladder = self.open()["ladder"]
@@ -223,14 +266,19 @@ class Breakdown(unittest.TestCase):
         # 4 or more = over 3.5: the model's chance, the price it would be fair at, and the edge at Novig's price.
         four = next(row for row in ladder if row[0] == "4 or more")
         chance = self.hughes["chances"][3]
-        self.assertEqual(four[1:3], [f"{chance * 100:.0f}%", signed(round(100 * (1 - chance) / chance))])
+        self.assertLessEqual(abs(int(four[1].rstrip("%")) - chance * 100), 0.5 + 1e-9)
+        self.assertEqual(four[2], signed(round(100 * (1 - chance) / chance)))
         self.assertEqual(four[4], f"{(chance - build_nhl.break_even(self.odds['sog']['over'])) * 100:+.1f}")
 
     def test_the_defense_tiles_and_the_rink(self):
         detail = self.open()
         defense = self.shots["defense"]["DET"]
-        self.assertEqual(detail["tiles"][0], ["Shots on goal allowed", f"{defense['sog']['blend']:.1f}", f"{defense['sog']['rank']}{'th' if 4 <= defense['sog']['rank'] <= 20 else ''} most"])
+        # This season's own number, and its rank said from the nearer end ("3rd most" / "2nd fewest").
+        self.assertEqual(detail["tiles"][0], ["Shots on goal allowed", f"{defense['sog']['season']:.1f}", rank_word(defense["sog"]["season_rank"])])
         self.assertEqual([t[0] for t in detail["tiles"]], ["Shots on goal allowed", "To forwards", "Power-play shots allowed"])
+        self.assertTrue(all(tag in ("Leaky", "Stingy", "Average") for tag in detail["tags"]), detail["tags"])
+        self.assertEqual(len(detail["tags"]), 3)
+        self.assertIn(f"allows {rank_word(defense['a_slot']['season_rank'])}", detail["zone_ranks"])
         # Six zones, each with the share of his shots from there.
         self.assertEqual(len(detail["zones"]), 5)  # the strip outside the zone is one line of text, not a big number
         self.assertIn(f"{self.hughes['shares']['slot'] * 100:.0f}%", detail["zones"])
@@ -293,7 +341,7 @@ class FinishedGames(unittest.TestCase):
     def test_the_record_tiles(self):
         reset()
         text = PAGE.inner_text("#shots-results").upper().replace("\n", " ")
-        for piece in ("THE RECORD SO FAR", "21 GAMES", "EDGE 6 TO 12", "9-5", "64%", "+3.4U", "EDGE 3 TO 6", "14-12", "12+: CHECK FIRST", "1-2", "UNDERS WITH AN EDGE", "15-8"):
+        for piece in ("THE RECORD SO FAR", "21 GAMES", "EDGE 6 TO 12", "9-5", "64%", "+3.4U", "EDGE 3 TO 6", "14-12", "12+: CHECK FIRST", "1-2", "UNDERS WITH AN EDGE", "15-8", "AGAINST HIS AVERAGE", "6-3", "WITH HIS AVERAGE", "17-14"):
             self.assertIn(piece, text)
         PAGE.evaluate("() => { window.keptRecord = SHOTS.record; SHOTS.record = null; render(); }")
         self.assertIn("The record starts", PAGE.inner_text("#shots-results"))

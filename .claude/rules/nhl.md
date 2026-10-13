@@ -82,6 +82,7 @@ switch"). More background: `docs/history.md`, "NHL".
   blocked shots, empty-net shots and penalty shots.
 - `reduce_game` also counts each team's unblocked shots a man up (`unb_pp`), which the shots
   model reads as "power-play shots allowed".
+- `prior_2026.json.gz` carries nothing for the shots model (see "Prop tools use THIS SEASON ONLY").
 - Output: `teams`, `team_stats` and `team_stats_prev` (every stat as `off_*` and the matching
   `def_*` allowed, plus record, power play, penalty kill), `recent_games`, `skaters` (12 forwards
   and 6 defensemen a team, each with last season's line as `prev`), `goalies`, `injuries`,
@@ -118,64 +119,96 @@ switch"). More background: `docs/history.md`, "NHL".
 - `lineup` discounts ice time for a player with only a game or two (the lineup-aware usage rule).
 - Team colors are `TEAM_COLORS` (ESPN's; teams whose main color is black use their second).
 
+## Prop tools use THIS SEASON ONLY (the user's rule, 2026-10-13, said twice)
+
+"For shots/goals/points/saves I think it would be best to JUST use the current season and
+understand that for awhile the sample will be small. A small sample of current form and style is
+more accurate than a previous season with bad data." Then, when a fade-out was offered: "I don't
+want a gradual fade out. I don't want last season's data in the model for shots at all."
+
+- **No last-season data in any NHL prop model** (shots now; goals, points, saves when built): not
+  a player's old rate, not a defense's old numbers, not as a starting point that fades. Do not
+  re-offer a blend. Last season stays where it is on Game Previews and behind the player card's
+  season switch; a prop page opens the card on this season.
+- What a small sample is steadied with must come from this season too (this season's league
+  averages), and every number shown on a prop page is this season's.
+- The user was shown what this costs (below) and chose it. The cost is real for the first 10-20
+  games of a season; say so again only if they ask why the page looks the way it does.
+
 ## Shots on goal model (`nfl_tool/nhl/shots_model.py`, standard library only)
 
 The user asked (2026-10-13) for a shots tool that weighs "a variety of factors" and was honest
 about one worry: "Vegas has this info and can model better than me." So every weight was fitted
 on a replay, and the page keeps a record against the real prices.
 
-- **Projection = shots per minute x minutes tonight x tonight's matchup.**
+- **Projection = shots per minute x minutes tonight x tonight's matchup**, from this season's
+  games only (`shots_model_for` gives the model no prior).
   - Shots per minute: his shots for every minute played, each game back counting 0.985 of the one
-    after it, last season at half weight, 80 minutes of a league-average skater at his position
-    mixed in. Three quarters of it is read from shot ATTEMPTS (times his own on-goal share, pulled
-    hard to the league's): attempts predicted shots on goal better than shots on goal did.
-  - Minutes: his recent ice time (each game back counts 0.8), last season's average as 1.5 games;
-    a game under 60% of his usual ("left early") doesn't change it.
+    after it, with 50 minutes of an average skater mixed in (`pad_minutes`): **an average skater
+    at his position WITH HIS ICE TIME** (`role`: his minutes over the position's average, to the
+    power `role_power` 1.0). Three quarters of the rate is read from shot ATTEMPTS (times his own
+    on-goal share, pulled hard to the league's): attempts predicted shots on goal better than
+    shots on goal did.
+  - Minutes: his recent ice time (each game back counts 0.8); a game under 60% of his usual
+    ("left early") doesn't change it.
   - Matchup pieces, each an exponent on "what the other team allows against the league"
     (`WEIGHTS`): overall shots on goal 1.0, his position (forwards / defensemen) 0.5, the rink
-    areas he shoots from 0.5, power-play shots allowed x his power-play share 0.8; home ice +3%,
+    areas he shoots from 0.5, power-play shots allowed x his power-play share 0.6; home ice +3%,
     second night of a back-to-back -3.5%, opponent on one +3.5%; `scale` -4%.
-  - A defense's number is this season blended with last season (as 12 games) and a league-average
-    defense (as 20 games): five games of a new season barely move it.
+  - A defense's number is its games this season mixed with 20 games of a league-average defense.
 - **Chance to clear a line:** a count a little streakier than pure chance (negative binomial,
-  spread = m + 0.06 m^2). `chance_at_least`, `chance_over`, `fair_american`.
-- **The replay** (`python tools/backtest/nhl_shots.py 2026`, add `--tune` to try other settings;
-  needs `data/nhl/games/2025` and `/2026`, downloads a missing season in about 4 minutes): every
-  2025-26 skater-game (46,478) projected only from the games before it. What it showed:
+  spread = m + 0.07 m^2). `chance_at_least`, `chance_over`, `fair_american`.
+- **The replay** (`python tools/backtest/nhl_shots.py 2026`; `--tune` tries other settings;
+  `--last-season` starts from the season before as well, to measure the rule above; a missing
+  season downloads in about 4 minutes): every 2025-26 skater-game projected only from that
+  season's games before it. What it showed:
   - His rate and ice time are most of it. For the middle 80% of players the defense's overall
-    number moves a projection about 6% either way, position 2%, rink areas 1%, power play 1-2%.
+    number moves a projection about 6% either way, position 2%, rink areas 1%, power play 1%.
   - A hot or cold last five games added nothing. Neither did team strength or the defense's
     attempts allowed once shots on goal allowed was in.
-  - Honest chances: "60-70% to clear" cleared 66-67% of the time.
+  - Honest chances: "60-70% to clear" cleared 63-65% of the time.
   - Knowing the real ice time would have helped more than every matchup piece together: lineup
     news (a promotion, top power play) is where the model is blind.
+  - **The small-sample guard is not optional.** Raw this-season numbers with no guard missed by
+    5% more at 5-9 games and 13% more in a player's first four.
+  - **Fading a hot start has been right.** When a player's average after 5-9 games said "over"
+    and the model said "under", he went over 36% of the time at 1.5 (the average implied 57%, the
+    model 43%). Defensemen averaging 1.6-2.2 after 5-9 games went over 1.5 in 42% of their next
+    games.
+  - **What this-season-only costs:** the defenses, nothing. The players: a volume shooter can't
+    be told from a hot start, so the 66 players who averaged 2.5+ the year before were projected
+    0.5 shots low in games 1-4 and 0.35 low in games 5-9 with a plain average-skater guard. The
+    ice-time guard cut that to about 0.1 with no loss elsewhere. With last season in, it was 0.05.
+- **Expect a big "check" group until about game 20.** On the first slate (teams 5 games in) 33
+  of 252 lines were 12+ points from the market: a model that has only seen this season against a
+  book that knows who Cale Makar is. That is the rule working as chosen, not a bug.
 - **It has NOT been shown to beat the line.** No free history of shots-on-goal prices exists.
-  Same rule as the GMG model: a talking point until the record says otherwise. On the first
-  slate the model sat about 2 points under the market on overs, so most "edges" were unders:
-  either books shade overs or the model runs low. The record is how that gets settled.
-- Re-fit the weights when a new season is saved (`--write-prior`), and re-run `--write-prior`
-  if `season_summary` changes: `prior_<season>.json.gz` carries it as `shots`.
+  Same rule as the GMG model: a talking point until the record says otherwise.
 
 ## Shots page data (`site/nhl/shots.json`, written next to data.json; not tracked)
 
 - `games`: `{game id: {locked, final, players: [rows]}}` for games through `SHOTS_DAYS_AHEAD`
   (2) days out; each team's lineup (the same 12 forwards and 6 defensemen as Game Previews).
-  A row: `mean` = `usual` x `matchup`, `minutes`, `lift` (what each piece did: 1.06 = +6%),
-  `shares` (where he shoots), `chances` (1+ ... 8+ shots), `out` (ESPN: anything but day-to-day).
+  A row: `games` and `avg` (his shots on goal a game this season: what his game log says),
+  `mean` = `usual` x `matchup`, `minutes`, `lift` (what each piece did: 1.06 = +6%), `shares`
+  (where he shoots), `chances` (1+ ... 8+ shots), `out` (ESPN: anything but day-to-day).
 - **Same lock as the odds:** a game that has started keeps the previous build's rows (read from
   the live `shots.json` with the build key); with nothing saved it shows no projection rather
   than one made after puck drop. A finished game's rows get `actual` (real shots on goal; null
   if he didn't dress).
-- `defense`: per team, what it allows a game for each stat the model reads (`season`, `prev`,
-  `blend`, `league`, `factor`, `rank` with 1 = allows the most).
+- `defense`: per team, what it allows a game for each stat the model reads: `season` and
+  `season_rank` (1 = allows the most; what the page shows), `blend` / `factor` / `rank` (the
+  steadied number the model uses), `league`, `games`.
 - `edges` (`SHOTS_EDGES`: lean 3 points, strong 6, check 12) and `record`.
 - **The record** (`model_history/nhl_shots/<month>.json`, committed by the deploy's "Save GMG
   model record" step): each finished game is written once, with every player who had a main line
-  and played: `[id, name, team, line, over, under, projection, chance of the over, real shots]`,
-  all as locked before puck drop. `shots_record_summary` grades the better side of each line
-  (`shots_play`) into `strong` / `lean` / `none` / `check` and, for edges of 3 to 12, `over` /
-  `under`: wins, losses, units won risking 1 a play. The lock is the last build before puck drop
-  (often the 2:17 pm ET one), not the closing line.
+  and played: `[id, name, team, line, over, under, projection, chance of the over, real shots,
+  season average]`, all as locked before puck drop. `shots_record_summary` grades the better side
+  of each line (`shots_play`) into `strong` / `lean` / `none` / `check`; for edges of 3 to 12 it
+  also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
+  average (an under on a line he averages more than, or the reverse) next to plays with it.
+  Wins, losses, units won risking 1 a play. The lock is the last build before puck drop (often
+  the 2:17 pm ET one), not the closing line.
 
 ## Pages
 
@@ -215,18 +248,27 @@ on a replay, and the page keeps a record against the real prices.
     does no shot math: it reads `chances` and compares them with prices. `pickSide` must agree
     with the build's `shots_play` (a test checks every row), since the record is graded by it.
   - **A gap of 12+ points is set apart, never hidden:** those plays sit in their own group under
-    the ranking ("look for news first"). On the first slate the biggest gap was a 9-minute
-    fourth-liner the book had lined at 2.5: a promotion the model couldn't see.
-  - Columns: the play, Proj, Model %, Fair price, Edge, Usual, Min (arrow = a minute off his
-    season average), SOG/g, then what moved the number: Opp, Pos, Spots, PP, Home/rest. **Green
-    = more shots, red = fewer** (the Over chip is green, the Under chip red, so a row agrees with
-    itself). A piece is colored from 2.5%.
-  - A row opens its breakdown: the pieces multiplying out to tonight's number, the defense's
-    tiles, every line the book prices at the model's fair price, and a rink of where he shoots
-    (a zone is colored only where he takes 15%+ of his shots AND the defense is 5%+ off the league).
+    the ranking. A gap that big is a handful of games against everything the market knows, or
+    news (the first slate had a 9-minute fourth-liner lined at 2.5: a promotion).
+  - Columns: the play, Avg (his season average) next to Proj, Model %, Fair price, Edge, Min
+    (arrow = a minute off his season average), then what moved the number: Opp, Pos, Spots, PP,
+    Home/rest. **Green = more shots for him, red = fewer** (the Over chip is green, the Under chip
+    red, so a row agrees with itself). A piece is colored from 2.5%.
+  - **A called play that goes against his own season average says so** ("vs his avg" next to the
+    play). The first play the user opened was an under 1.5 on a defenseman who had cleared it in
+    3 of 5 games ("why on earth would we play an under?"). The breakdown now starts from his
+    season average and shows the small-sample step by name ("5-game sample -22%").
+  - **A defense's numbers are never colored alone.** The user read red tiles as "bad defense"
+    when red meant "fewer shots" (Ottawa was allowing the fewest point shots in the league). So:
+    this season's own number, its rank said from the nearer end (`rankWord`: "3rd most", "the
+    fewest"), and a word (Leaky / Stingy / Average). The rink says "allows 2nd fewest" per zone.
+  - A row opens its breakdown: his season average, the sample step, the matchup pieces
+    multiplying out to tonight's number, the defense's tiles, every line the book prices at the
+    model's fair price, and a rink of where he shoots (a zone is colored only where he takes
+    15%+ of his shots AND the defense is 5%+ off the league).
   - Filters: side, forwards / defense, "With a line" (default) / Everyone. A game in the strip
     shows only that game; click it again for the whole day. Players marked out are left off.
-  - No season switch: the model already blends both seasons. Names open the player card.
+  - No season switch (this season only). Names open the player card, on this season.
 - It reuses the NBA page's layout classes (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` /
   `.nba-soon` for the owner-only guard); hockey-only styles are `.nhl-*`. It does not load
   common.js.
@@ -244,8 +286,8 @@ on a replay, and the page keeps a record against the real prices.
   `tests/test_nhl_site.py` (the page and the player card in a browser on a saved `nhl/data.json`
   and two saved player files, NJD and DET). They run with the rest
   (`python tools/run_tests.py`), so a broken NHL test stops a deploy like any other.
-- `tests/test_nhl_shots.py` (the model and the board, lock and record, on the saved game and
-  hand-made games) and `tests/test_nhl_shots_site.py` (the Shots page in a browser on
+- `tests/test_nhl_shots.py` (the model, that the build never hands it last season, and the board,
+  lock and record, on the saved game and hand-made games) and `tests/test_nhl_shots_site.py` (the Shots page in a browser on
   `nhl_shots.json.gz`, the shots.json that matches the saved data sample).
 - `tools/fetch_live_data.py` also downloads the live player files and `shots.json`, so the
   after-deploy site check sees the pages as members do.

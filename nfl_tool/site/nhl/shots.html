@@ -44,7 +44,7 @@
 
     <div id="shots-app" class="section-wrap" hidden>
       <h2 class="section-title" id="shots-title">Shots on Goal</h2>
-      <p class="section-note">Every skater on the slate, best value first. <b>Proj</b> is the shots on goal the model expects; <b>Edge</b> is the model's chance minus the chance Novig's price needs to break even. The columns on the right show what moved the number tonight: green means more shots, red fewer. Click a row for the full breakdown, a name for the player card, a game above to see only that game.</p>
+      <p class="section-note">Every skater on the slate, best value first, from this season's games only. <b>Avg</b> is his shots on goal a game so far; <b>Proj</b> is what the model expects tonight; <b>Edge</b> is the model's chance minus the chance Novig's price needs to break even. The columns on the right show what moved the number tonight: green means more shots for him, red fewer. Click a row for the full breakdown, a name for the player card, a game above to see only that game.</p>
       <div id="shots-toolbar" class="view-toggle shots-toolbar"></div>
       <p id="shots-locked" class="no-data-note" hidden></p>
       <div id="shots-content"></div>
@@ -53,12 +53,18 @@
       <details class="shots-about">
         <summary>How the number is made, and how far to trust it</summary>
         <div class="shots-about-body">
-          <p><b>Shots per minute &times; minutes tonight &times; tonight's matchup.</b> His shot rate comes from every minute he has played this season and last (recent games count a little more), read mostly from his shot attempts, which settle down sooner than shots on goal. His minutes come from his last few games. The matchup is what the other team allows: shots on goal overall, to his position, from the parts of the ice he shoots from, and on the power play, plus home ice and back-to-backs.</p>
-          <p><b>What a full-season replay showed</b> (2025-26: every game projected only from the games before it, 46,478 player-games):</p>
+          <p><b>Shots per minute &times; minutes tonight &times; tonight's matchup</b>, all from this season's games. His shot rate comes from every minute he has played (recent games count a little more), read mostly from his shot attempts, which settle down sooner than shots on goal. His minutes come from his last few games. The matchup is what the other team allows: shots on goal overall, to his position, from the parts of the ice he shoots from, and on the power play, plus home ice and back-to-backs.</p>
+          <p><b>This season only.</b> Nothing from last season is in the model: not a player's old shot rate, not a defense's old numbers. Early in a season that means small samples, and two things follow from it.</p>
+          <ul>
+            <li><b>Proj can sit well off his Avg.</b> The model only partly trusts a handful of games: it mixes in an average skater at his position with his ice time (and an average defense for the other team), all from this season. When that puts a play against his own average, the row says <i>vs his avg</i>. In a replay of 2025-26, players whose average after 5 to 9 games said "over" while the model said "under" went over 36% of the time at a 1.5 line and 33% at 2.5: hot starts cooled. The record keeps those plays apart so you can see whether that holds.</li>
+            <li><b>There are a lot of big gaps to the market until about game 20.</b> A star who starts slowly looks like an under to a model that has only seen this season; the book knows who he is. Those are the plays set apart at the bottom, marked <i>check</i>.</li>
+          </ul>
+          <p><b>What a full-season replay showed</b> (2025-26: every game projected only from that season's games before it, 44,496 player-games):</p>
           <ul>
             <li>His own rate and his ice time are most of it. The other team's defense moves a projection about 6% either way; position 2%; where he shoots from 1%; the power play 1 to 2%; home ice +3%; a back-to-back about 3.5%.</li>
             <li>A hot or cold last five games predicted nothing beyond his rate and minutes.</li>
-            <li>The chances were honest: players the model gave 60 to 70% to clear a line cleared it 66% of the time.</li>
+            <li>Trusting a handful of games outright would be a mistake: without the small-sample guard, projections missed by 5% more at 5 to 9 games and 13% more in a player's first four.</li>
+            <li>The chances were honest: players the model gave 60 to 70% to clear a line cleared it 63 to 65% of the time.</li>
             <li>The single biggest thing it can't see is tonight's ice time. A player moved up a line or onto the top power play will shoot more than his recent games say.</li>
           </ul>
           <p><b>What it has not shown:</b> that it beats the betting line. There is no free history of shots-on-goal prices to test against, and the market sees lineup news the model doesn't. So the page keeps its own record, above: every play graded at the price that was locked before puck drop. Until that record says otherwise, treat an edge as a spot worth a look, and a very large one (marked <i>check</i>) as a reason to look for news first.</p>

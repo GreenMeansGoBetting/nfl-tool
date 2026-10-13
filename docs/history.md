@@ -1043,3 +1043,33 @@ edge or at least get to a place where we are identifying good spots, that would 
   beat the line" cannot be replayed. The page grades its own plays at the prices locked before
   puck drop and the deploy commits them (`model_history/nhl_shots/`, one file a month so the
   repo doesn't store a growing file every day).
+
+### Shots: this season only (2026-10-13, an hour after the page went live)
+
+The user opened the first play, an under 1.5 on Adam Jiricek (a St. Louis defenseman, 5 NHL
+games: 2, 1, 2, 1, 3 shots), and asked "why on earth would we play an under?" He had cleared 1.5
+in 3 of 5, and the user read Ottawa as a leaky defense that gives up point shots.
+
+- **Two things had gone wrong, neither of them last season's data.** Ottawa was in fact allowing
+  the FEWEST point shots in the league (8.0 a game against 11.0); the page had colored that red
+  for "fewer shots", which on a defense's tile reads as "bad defense". And the under came from
+  the small-sample guard: five games count for about half, so 1.8 a game became 1.4. Jiricek had
+  no NHL games the year before, so last season was not in his number at all.
+- **The guard was checked against the replay rather than argued.** Defensemen averaging 1.6-2.2
+  after 5-9 games went over 1.5 in 42% of their next games; when a 5-9 game average said "over"
+  and the model said "under", the over came in 36% of the time. The under was a fair call, but
+  the page gave no way to see why, so it now starts each breakdown from the season average,
+  names the sample step, and tags a called play that goes against his average.
+- **The user then asked for this season only**, for every prop tool. Tested exactly as asked, the
+  first slate projected Cale Makar for 1.6 shots and put a third of the board 12+ points from the
+  market, almost all unders on stars: with five games and an average-skater guard, nothing says
+  he is a volume shooter. A fade-out (last season gone by game 25) matched the best version's
+  accuracy and was offered. The answer: "I don't want a gradual fade out. I don't want last
+  season's data in the model for shots at all."
+- **So it is this season only, with the best guard this season's data allows:** a small sample
+  is mixed with an average skater who plays HIS minutes (a 21-minute forward against other
+  big-minute forwards). On the replay that cut the stars' shortfall from 0.5 shots to about 0.1
+  with no loss anywhere else. The first slate still had 33 "check" plays; that is what the rule
+  costs until about game 20, and the user chose it knowing.
+- The record keeps "against his average" plays apart from the rest, so whether fading a hot
+  start actually wins is something the site will show rather than something to argue about.

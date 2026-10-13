@@ -1,8 +1,10 @@
 // ---- GMG NHL Suite: Shots ----
 // Every skater on the day's slate ranked by shots-on-goal value: the model's
 // projection (nfl_tool/nhl/shots_model.py, written to shots.json by the
-// build) next to Novig's line. The data, helpers, rink drawing and the
-// player card are in nhl-common.js (loaded first); this file is the page.
+// build) next to Novig's line. This season's numbers only, here and in the
+// model: the owner's rule for every NHL prop tool. The data, helpers, rink
+// drawing and the player card are in nhl-common.js (loaded first); this file
+// is the page.
 // No shot math lives here: the build sends each player's chance of 1+, 2+ ...
 // shots, and the page only compares those with the prices.
 
@@ -35,6 +37,13 @@ function points(edge) {
 const liftText = (lift) => `${lift >= 1 ? "+" : ""}${Math.round((lift - 1) * 100)}%`;
 const liftTier = (lift) => (lift - 1 >= LIFT_CALL ? "tier-good" : lift - 1 <= -LIFT_CALL ? "tier-bad" : "");
 const positionGroup = (pos) => (pos === "D" ? "D" : "F");
+// Where a defense ranks for what it allows, said from the nearer end so it
+// can't be read backwards: "3rd most" or "2nd fewest".
+function rankWord(rank) {
+  const teams = Object.keys((SHOTS || {}).defense || {}).length || 32;
+  if (rank <= teams / 2) return rank === 1 ? "the most" : `${ordinal(rank)} most`;
+  return rank === teams ? "the fewest" : `${ordinal(teams - rank + 1)} fewest`;
+}
 // The model's chance of clearing a line: over 2.5 = 3 or more.
 function chanceOver(r, lineValue) {
   const need = Math.floor(lineValue) + 1;
@@ -55,14 +64,18 @@ const boardFor = (g) => ((SHOTS || {}).games || {})[g.game_id] || null;
 
 // ---- one row per skater ----
 // The play is the side of his main line the model likes more; each side
-// carries the model's chance, the price, and the edge at that price.
+// carries the model's chance, the price, and the edge at that price. "fade"
+// = the side goes against his own season average (an under on a line he
+// averages more than, or the other way round): the model thinks a small
+// sample has run hot or cold. Same rule as the build's shots_play.
 function sidesFor(r, market) {
   const sides = {};
   if (!market || !has(market.line)) return sides;
   const over = chanceOver(r, market.line);
   if (!has(over)) return sides;
-  if (has(market.over)) sides.over = { side: "over", line: market.line, price: market.over, chance: over, edge: over - breakEven(market.over) };
-  if (has(market.under)) sides.under = { side: "under", line: market.line, price: market.under, chance: 1 - over, edge: 1 - over - breakEven(market.under) };
+  const line = market.line;
+  if (has(market.over)) sides.over = { side: "over", line, price: market.over, chance: over, edge: over - breakEven(market.over), fade: has(r.avg) && r.avg < line };
+  if (has(market.under)) sides.under = { side: "under", line, price: market.under, chance: 1 - over, edge: 1 - over - breakEven(market.under), fade: has(r.avg) && r.avg > line };
   return sides;
 }
 function pickSide(sides, want) {
@@ -98,10 +111,9 @@ function seasonLine(id) {
 const SORTS = {
   edge: (x) => (x.play ? x.play.edge : null),
   proj: (x) => x.r.mean,
+  avg: (x) => x.r.avg,
   chance: (x) => (x.play ? x.play.chance : null),
-  usual: (x) => x.r.usual,
   minutes: (x) => x.r.minutes,
-  sog: (x) => (x.season ? x.season.sog_pg : null),
   opp: (x) => x.r.lift.opp,
   pos: (x) => x.r.lift.pos,
   area: (x) => x.r.lift.area,
@@ -155,9 +167,11 @@ function renderToolbar() {
     group("pos", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     group("lined", [[true, "With a line"], [false, "Everyone"]]);
 }
-function playChip(play) {
+function playChip(play, r) {
   if (!play) return `<span class="shots-noline">No line</span>`;
-  return `<span class="shots-play shots-play-${play.side}"><b>${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)}</b><span>${odds(play.price)}</span></span>`;
+  // Said out loud when a play the page calls an edge goes against what his game log shows.
+  const fade = play.fade && play.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} a game in ${r.games} games): the model thinks a small sample has run ${play.side === "under" ? "hot" : "cold"}. Click the row to see how much it discounts it.">vs his avg</span>` : "";
+  return `<span class="shots-play shots-play-${play.side}"><b>${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)}</b><span>${odds(play.price)}</span></span>${fade}`;
 }
 function edgeCell(x) {
   const play = x.play;
@@ -167,13 +181,13 @@ function edgeCell(x) {
   const lean = edgeAt("lean");
   const cls = edge >= lean ? "tier-good" : "";
   const alpha = edge >= lean ? ` style="--tier-a:${Math.min(0.34, 0.08 + (edge - lean) * 3).toFixed(2)}"` : "";
-  const flag = needsCheck(x) ? `<span class="shots-flag" title="A gap this big usually means news the model can't see: a line change, a scratch, a new role. Check before you bet.">check</span>` : thin ? `<span class="shots-flag" title="Barely traded on Novig: treat the price with care">thin</span>` : "";
+  const flag = needsCheck(x) ? `<span class="shots-flag" title="A gap this big usually means the market knows something this season's few games don't: his usual level, a line change, a scratch, a new role. Check before you bet.">check</span>` : thin ? `<span class="shots-flag" title="Barely traded on Novig: treat the price with care">thin</span>` : "";
   return `<td class="num shots-edge ${cls}"${alpha} title="The model's ${Math.round(play.chance * 100)}% minus the ${Math.round(breakEven(play.price) * 100)}% this price needs to break even">${points(edge)}${flag}</td>`;
 }
 function minutesCell(x) {
   const s = x.season;
   const trend = s && has(s.toi) ? x.r.minutes - s.toi : 0;
-  const tip = s ? `Season ${fmt(s.toi)} min a game, last five ${fmt(s.l5_toi)}${s.prev ? `, last season ${fmt(s.prev.toi)}` : ""}` : "";
+  const tip = s ? `Season ${fmt(s.toi)} min a game, last five ${fmt(s.l5_toi)}` : "";
   const arrow = trend >= MINUTES_TREND ? `<small class="shots-up">&#9650;</small>` : trend <= -MINUTES_TREND ? `<small class="shots-down">&#9660;</small>` : "";
   return `<td class="num" title="${tip}">${fmt(x.r.minutes)}${arrow}</td>`;
 }
@@ -183,7 +197,7 @@ function liftCell(lift, tip) {
 function allowsTip(opp, key, what) {
   const d = ((SHOTS.defense || {})[opp] || {})[key];
   if (!d) return "";
-  return `${opp} allows ${fmt(d.blend)} ${what} a game (${ordinal(d.rank)} most; the league allows ${fmt(d.league)}). This season ${fmt(d.season)}, last season ${fmt(d.prev)}.`;
+  return `${opp} allows ${fmt(d.season)} ${what} a game this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)}). After ${d.games} games the model counts that as ${liftText(d.factor)}.`;
 }
 function siteTip(r) {
   const parts = [r.home ? "Home ice" : "On the road"];
@@ -205,8 +219,15 @@ function detailRow(x, columns) {
   const defense = (SHOTS.defense || {})[r.opp] || {};
   const forward = positionGroup(r.pos) === "F";
   const step = (label, lift, tip) => `<span class="shots-step ${liftTier(lift)}" title="${tip}"><small>${label}</small><b>${liftText(lift)}</b></span>`;
+  // From what his game log says to what the model believes: after a handful
+  // of games it only partly trusts his average (a league-average skater at
+  // his position is mixed in, and his rate is read mostly from his attempts).
+  const sampleTip = `After ${r.games} game${r.games === 1 ? "" : "s"} the model only partly trusts his average: it mixes in a league-average ${forward ? "forward" : "defenseman"} and reads his rate mostly from his shot attempts (${fmt(r.att60)} per 60 minutes, ${pct(r.thru, 0)} of them on goal), for the ${fmt(r.minutes)} minutes he should play. The more he plays, the less this moves him.`;
+  const start = r.avg
+    ? `<span class="shots-step shots-step-end" title="Shots on goal a game this season"><small>Season avg &middot; ${r.games} gp</small><b>${fmt(r.avg, 2)}</b></span>${step(`${r.games}-game sample`, r.usual / r.avg, sampleTip)}`
+    : `<span class="shots-step shots-step-end" title="${sampleTip}"><small>Model's rate &middot; ${r.games} gp</small><b>${fmt(r.usual, 2)}</b></span>`;
   const build = `<div class="shots-build">
-      <span class="shots-step shots-step-end" title="His own shot rate in the minutes he should play tonight, against an average defense"><small>His usual</small><b>${fmt(r.usual, 2)}</b></span>
+      ${start}
       ${step(`${r.opp} defense`, r.lift.opp, allowsTip(r.opp, "sog", "shots on goal"))}
       ${step(forward ? "vs forwards" : "vs defensemen", r.lift.pos, allowsTip(r.opp, forward ? "f_sog" : "d_sog", forward ? "shots on goal to forwards" : "shots on goal to defensemen"))}
       ${step("His spots", r.lift.area, `Where he shoots from against where ${r.opp} gives shots up`)}
@@ -229,11 +250,14 @@ function detailRow(x, columns) {
     ? `<table class="data-table shots-ladder"><thead><tr><th>Shots on goal</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>${rungs.join("")}</tbody></table>`
     : `<p class="no-data-note">No shots-on-goal line posted for him.</p>`;
 
+  // A defense's tile says which way it points in words, never by color alone:
+  // "Stingy" is a tough night for a shooter, "Leaky" a good one.
   const tile = (label, key) => {
     const d = defense[key];
     if (!d) return "";
-    const tier = d.factor - 1 >= LIFT_CALL ? "tier-good" : d.factor - 1 <= -LIFT_CALL ? "tier-bad" : "";
-    return `<div class="nba-tile ${tier}" title="This season ${fmt(d.season)}, last season ${fmt(d.prev)}; the league allows ${fmt(d.league)}"><div class="gs-tile-label">${label}</div><b>${fmt(d.blend)}</b><small>${ordinal(d.rank)} most</small></div>`;
+    const tilt = d.factor - 1;
+    const tag = tilt >= LIFT_CALL ? `<span class="gs-tag gs-tag-mismatch">Leaky</span>` : tilt <= -LIFT_CALL ? `<span class="gs-tag gs-tag-tough">Stingy</span>` : `<span class="nba-notag">Average</span>`;
+    return `<div class="nba-tile" title="${d.games} games this season; the league allows ${fmt(d.league)}. The model counts it as ${liftText(d.factor)}."><div class="gs-tile-label">${label}</div><b>${fmt(d.season)}</b><small>${rankWord(d.season_rank)}</small>${tag}</div>`;
   };
   const tiles = `<div class="nba-tiles shots-allows">${tile("Shots on goal allowed", "sog")}${tile(forward ? "To forwards" : "To defensemen", forward ? "f_sog" : "d_sog")}${tile("Power-play shots allowed", "pp_unb")}</div>`;
 
@@ -247,19 +271,19 @@ function detailRow(x, columns) {
     return {
       cls: matters && tilt >= 0.05 ? "nhl-zone-more" : matters && tilt <= -0.05 ? "nhl-zone-fewer" : "",
       big: pct(share, 0),
-      small: d ? `${r.opp} ${tilt >= 0 ? "+" : ""}${Math.round(tilt * 100)}%` : "",
-      tip: `${z.label}: ${pct(share, 0)} of his shots. ${d ? `${r.opp} allows ${fmt(d.blend)} a game from here (${ordinal(d.rank)} most; the league allows ${fmt(d.league)}).` : ""}`,
+      small: d ? `allows ${rankWord(d.season_rank)}` : "",
+      tip: `${z.label}: ${pct(share, 0)} of his shots. ${d ? `${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)}).` : ""}`,
     };
   });
   return `<tr class="shots-detail"><td colspan="${columns}">
       <div class="shots-detail-grid">
         <div class="shots-detail-main">
           <div class="shots-detail-label">How tonight's number is built</div>${build}
-          <div class="shots-detail-label">${logo(r.opp, 16)} ${r.opp} defense <span class="muted-label">this season blended with last</span></div>${tiles}
+          <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows a game <span class="muted-label">this season, and where that ranks</span></div>${tiles}
           <div class="shots-detail-label">Every line, at the model's fair price</div>${ladder}
         </div>
         <div class="shots-detail-rink">
-          <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows there vs the league</span></div>${rink}
+          <div class="shots-detail-label">Where he shoots <span class="muted-label">and where ${r.opp} ranks for shots allowed from there</span></div>${rink}
         </div>
       </div>
     </td></tr>`;
@@ -269,13 +293,12 @@ const COLUMNS = [
   { key: null, label: "#" },
   { key: null, label: "Player", cls: "shots-th-player" },
   { key: null, label: "Play", title: "The side of his main line the model likes more, at Novig's price" },
+  { key: "avg", label: "Avg", title: "His shots on goal a game this season: what his game log says" },
   { key: "proj", label: "Proj", title: "Shots on goal the model expects tonight" },
   { key: "chance", label: "Model", title: "The model's chance the play wins" },
   { key: null, label: "Fair", title: "The price with no cut at which that chance breaks even" },
   { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points. Green from 3 points; from 12 it is set apart to be checked for news." },
-  { key: "usual", label: "Usual", title: "His own shot rate in tonight's minutes against an average defense: what he would project for with no matchup" },
   { key: "minutes", label: "Min", title: "Ice time the model expects tonight, from his recent games. An arrow means a minute or more above or below his season average." },
-  { key: "sog", label: "SOG/g", title: "Shots on goal a game this season" },
   { key: "opp", label: "Opp", title: "What the other team's defense does to the projection: shots on goal it allows against the league" },
   { key: "pos", label: "Pos", title: "Beyond that: what the defense allows to his position (forwards or defensemen)" },
   { key: "area", label: "Spots", title: "Beyond that: the parts of the ice he shoots from against where the defense gives shots up" },
@@ -304,6 +327,8 @@ function renderRecord() {
       ${tile(`${n("check")}+: check first`, record.check, "Gaps too big to take at face value")}
       ${tile("Overs with an edge", record.over, `Overs with an edge of ${n("lean")} to ${n("check")}`)}
       ${tile("Unders with an edge", record.under, `Unders with an edge of ${n("lean")} to ${n("check")}`)}
+      ${record.fade ? tile("Against his average", record.fade, `Plays with an edge that went against the player's own season average: the model not believing a hot or cold start`) : ""}
+      ${record.with ? tile("With his average", record.with, `Plays with an edge that his own season average agreed with`) : ""}
     </div>`;
 }
 function renderTable() {
@@ -327,18 +352,17 @@ function renderTable() {
       const open = shotsView.open === `${x.game.game_id}:${r.id}`;
       const who = `${headshot(x.season || {})}<span>${r.name}</span>`;
       // The first "check" play in the ranking starts its group.
-      const divider = rankedByEdge() && needsCheck(x) && (i === 0 || !needsCheck(rows[i - 1])) ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-check-head"><td colspan="${columns}">Gap too big to take at face value: look for news first (a line change, a scratch, a new role)</td></tr>` : "";
+      const divider = rankedByEdge() && needsCheck(x) && (i === 0 || !needsCheck(rows[i - 1])) ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-check-head"><td colspan="${columns}">Gap too big to take at face value: a handful of games against everything the market knows, or news (a line change, a scratch, a new role)</td></tr>` : "";
       const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}" data-row="${x.game.game_id}:${r.id}">
         <td class="num shots-rank">${i + 1}</td>
         <td class="nba-player shots-player">${playerClick(r.id, who)}<span class="muted-label">${r.pos}</span><span class="shots-vs">${logo(r.team, 16)}<span class="at">${r.home ? "vs" : "@"}</span>${logo(r.opp, 16)}</span></td>
-        <td class="shots-play-cell">${playChip(x.play)}</td>
+        <td class="shots-play-cell">${playChip(x.play, r)}</td>
+        <td class="num" title="${r.games} game${r.games === 1 ? "" : "s"} this season">${has(r.avg) ? fmt(r.avg, 2) : "--"}</td>
         <td class="num shots-proj"><b>${fmt(r.mean, 2)}</b></td>
         <td class="num">${x.play ? pct(x.play.chance, 0) : "--"}</td>
         <td class="num">${x.play ? odds(fairPrice(x.play.chance)) || "--" : "--"}</td>
         ${edgeCell(x)}
-        <td class="num">${fmt(r.usual, 2)}</td>
         ${minutesCell(x)}
-        <td class="num"${x.season && x.season.prev ? ` title="Last season ${fmt(x.season.prev.sog_pg)} a game in ${x.season.prev.games} games"` : ""}>${x.season ? fmt(x.season.sog_pg) : "--"}</td>
         ${liftCell(r.lift.opp, allowsTip(r.opp, "sog", "shots on goal"))}
         ${liftCell(r.lift.pos, allowsTip(r.opp, forward ? "f_sog" : "d_sog", forward ? "shots on goal to forwards" : "shots on goal to defensemen"))}
         ${liftCell(r.lift.area, `Where he shoots from against where ${r.opp} gives shots up. Click the row for the rink.`)}
@@ -420,6 +444,9 @@ Promise.all([
 ])
   .then(([, shots]) => {
     SHOTS = shots || { games: {}, defense: {} };
+    // This page is this season only, so the player card opens on this season too
+    // (its own switch still reaches last season).
+    view = "season";
     const all = days();
     // Open on today's slate if it has projections, else the first day that does.
     const today = new Date().toLocaleDateString("en-CA");

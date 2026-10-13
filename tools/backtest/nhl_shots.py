@@ -1,8 +1,8 @@
 """Walk-forward replay of the NHL shots-on-goal model.
 
-Every skater in every game of a season is projected ONLY from the games
-before it (plus the season before, the way the live build starts from last
-season's saved numbers). It answers three things:
+Every skater in every game of a season is projected ONLY from that season's
+games before it, the way the live build runs (the owner's rule: this season
+only). It answers three things:
 
   1. How much should each matchup piece count? (the WEIGHTS in
      nfl_tool/nhl/shots_model.py: fitted on the first half of the season,
@@ -10,15 +10,17 @@ season's saved numbers). It answers three things:
   2. Does the projection beat "his season average"? Which pieces earn it?
   3. When the model says 60% to clear a line, does it happen 60% of the time?
 
-    python tools/backtest/nhl_shots.py 2026            (replay 2025-26; needs data/nhl/games/2025 and /2026)
+    python tools/backtest/nhl_shots.py 2026            (replay 2025-26; needs data/nhl/games/2026)
     python tools/backtest/nhl_shots.py 2026 --tune     (also try other settings for the rate and minutes)
+    python tools/backtest/nhl_shots.py 2026 --last-season   (start from the season before as well: what the
+                                                        this-season-only rule costs; needs data/nhl/games/2025)
 
 The games come from the build's own folder (data/nhl/games/<season>); a
 season that isn't there is downloaded first (about 4 minutes).
 
 What it can NOT say: whether the model beats the betting line. There is no
 free history of shots-on-goal lines; the site keeps its own record from the
-day the page went live (model_history/nhl_shots.json).
+day the page went live (model_history/nhl_shots/).
 """
 import argparse
 import gzip
@@ -76,7 +78,7 @@ def replay(records: list, prior: dict, params: dict | None = None) -> dict:
                     "day": n, "pid": pid, "group": parts["group"], "sog": line["sog"], "toi": line["toi"] / 60,
                     "base": parts["base"], "minutes": parts["minutes"], "direct": parts["rate"]["direct"] * parts["minutes"],
                     "by_attempts": parts["rate"]["attempts"] * parts["rate"]["thru"] * parts["minutes"],
-                    # The plain yardstick: his shots on goal a game this season (last season until he has 5 games).
+                    # The plain yardstick: his shots on goal a game this season (from 5 games on).
                     "naive": season["sog"] / parts["games"] if parts["games"] >= 5 else None,
                     "games": parts["games"], **{f"x_{k}": parts["x"][k] for k in X_KEYS},
                 })
@@ -192,9 +194,9 @@ def tune(records: list, prior: dict) -> None:
     start, n = score({})
     print(f"\n=== Settings (deviance of the base projection; now {start:.4f} on {n:,}) ===")
     for key, values in {
-        "decay": (0.97, 0.98, 0.99, 1.0), "prev_weight": (0.25, 0.4, 0.7, 1.0), "pad_minutes": (40, 80, 200, 300),
-        "attempt_blend": (0.0, 0.25, 0.75, 1.0), "thru_pad": (20, 120, 250), "toi_decay": (0.6, 0.7, 0.85, 0.92),
-        "toi_prev_games": (0.5, 3, 6), "short_night": (0.0, 0.5, 0.75),
+        "decay": (0.97, 0.98, 0.99, 1.0), "pad_minutes": (25, 80, 120, 200), "role_power": (0.0, 0.5, 0.8, 1.3),
+        "attempt_blend": (0.0, 0.25, 0.5, 1.0), "thru_pad": (20, 60, 250), "toi_decay": (0.6, 0.7, 0.85, 0.92),
+        "short_night": (0.0, 0.5, 0.75),
     }.items():
         print(f"   {key:<15} now {sm.PARAMS[key]:<6} " + "  ".join(f"{v}: {score({key: v})[0] - start:+.4f}" for v in values))
 
@@ -203,8 +205,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("season", type=int, help="Season to replay, by the year it ends (2026 = 2025-26)")
     parser.add_argument("--tune", action="store_true")
+    parser.add_argument("--last-season", action="store_true", help="Also start from the season before (the site does not: this measures what that rule costs)")
     args = parser.parse_args()
-    prior = sm.season_summary(load_records(args.season - 1))
+    prior = sm.season_summary(load_records(args.season - 1)) if args.last_season else None
     records = load_records(args.season)
     if args.tune:
         tune(records, prior)

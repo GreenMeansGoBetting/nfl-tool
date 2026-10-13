@@ -127,6 +127,7 @@ that, move detail into a rules file.
 - **Phone layout:** phone-only rules go in the last `@media (max-width: 760px)` block of
   style.css so desktop stays pixel-identical; new wide tables must scroll inside their own box.
 - The TD Data page is considered solid; change it only when asked.
+- **NHL prop tools (shots, goals, points, saves) use this season's games only**: no last-season data in the model, not even fading out (nhl.md).
 
 ## Where the detail lives
 

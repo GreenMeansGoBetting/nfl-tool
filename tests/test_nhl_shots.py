@@ -4,10 +4,12 @@ page's half of the build (build_nhl.py), on saved and hand-made games.
 What is pinned: the chance of clearing a line (a count a little streakier
 than pure chance, whose chances still add up to the projection); what a
 defense "allows" is what the other offense did; a projection is his usual
-times each matchup piece; small samples are pulled to the league, last season
-counts for less, a night he left early doesn't change his minutes; the board
-(who is projected, the same lock as the odds, real shots on a finished game)
-and the record (a game is written once, plays graded at the locked price)."""
+times each matchup piece; THIS SEASON ONLY (the build never hands the model
+last season); small samples are pulled toward an average skater with his ice
+time, a night he left early doesn't change his minutes; the board (who is
+projected, the same lock as the odds, real shots on a finished game) and the
+record (a game is written once, plays graded at the locked price, plays
+against his own average kept apart)."""
 import json
 import math
 import tempfile
@@ -45,9 +47,9 @@ class Chances(unittest.TestCase):
 
     def test_shots_are_a_little_streakier_than_pure_chance(self):
         """Same projection, wider spread: the middle line is cleared a bit less often, a big night a bit more."""
-        self.assertEqual(shots_model.DISPERSION, 0.06)
+        self.assertEqual(shots_model.DISPERSION, 0.07)
         self.assertAlmostEqual(shots_model.chance_at_least(3, 3, 0), 0.5768, places=4)
-        self.assertAlmostEqual(shots_model.chance_at_least(3, 3), 0.5583, places=4)
+        self.assertAlmostEqual(shots_model.chance_at_least(3, 3), 0.5556, places=4)
         self.assertGreater(shots_model.chance_at_least(3, 6), shots_model.chance_at_least(3, 6, 0))
 
     def test_the_chances_add_up_to_the_projection(self):
@@ -95,7 +97,7 @@ class WhatADefenseAllows(unittest.TestCase):
         self.assertEqual(summary["players"][BENSON], {"pos": "L", "games": 1, "toi": 1180, "sog": 2, "att": 3, "unb": 3, "pp_unb": 1, "areas": {"low_slot": 2, "left": 1}})
         self.assertEqual(summary["teams"]["BUF"]["sog"], 23)
         self.assertEqual((summary["league"]["F_sog"], summary["league"]["D_sog"]), (31, 24))
-        json.dumps(summary)  # it is saved inside prior_<season>.json.gz
+        self.assertEqual((summary["league"]["F_games"], summary["league"]["D_games"]), (24, 12))
 
 
 class Projection(unittest.TestCase):
@@ -168,10 +170,23 @@ class Projection(unittest.TestCase):
     def test_one_big_night_is_pulled_toward_the_league(self):
         model = self.model([game("2026-02-01", "AAA", "BBB", {"p": skater("AAA", sog=7, att=11, areas={"slot": [9, 7, 0]}), "q": skater("BBB")}, 1)])
         proj = model.project("p", "XXX", False)
-        # The league's forwards get 2 shots on goal in these 18 minutes; one 7-shot game moves him a little, not to 7.
-        self.assertTrue(2.0 < proj["mean"] < 3.2, proj["mean"])
+        # The league's forwards get 2 shots on goal in these 18 minutes; one 7-shot game moves him some of the way, not to 7.
+        self.assertTrue(2.0 < proj["mean"] < 3.6, proj["mean"])
 
-    def test_last_season_counts_for_less_than_this_one(self):
+    def test_a_small_sample_is_measured_against_skaters_with_his_ice_time(self):
+        """Two forwards with the same shot rate over two games, one playing 24 minutes and one 12
+        (the league's forwards play 18): the big-minute forward is mixed with a busier "average skater"."""
+        lines = lambda: {"top": skater("AAA", toi=1440, sog=4, att=8), "depth": skater("AAA", toi=720, sog=2, att=4), "q": skater("BBB")}
+        model = self.model([game(f"2026-02-0{d}", "AAA", "BBB", lines(), d) for d in (1, 2)])
+        top, depth = model.project("top", "XXX", False), model.project("depth", "XXX", False)
+        self.assertAlmostEqual(model.role("F", 24.0), 24 / 18, places=1)
+        self.assertGreater(top["rate"]["per_min"], depth["rate"]["per_min"] * 1.15)
+        # With no ice-time scaling both would be mixed with the same average forward.
+        flat = self.model([game(f"2026-02-0{d}", "AAA", "BBB", lines(), d) for d in (1, 2)], role_power=0.0)
+        self.assertLess(flat.project("top", "XXX", False)["rate"]["per_min"], top["rate"]["per_min"])
+
+    def test_the_replay_can_still_start_from_a_season_before(self):
+        """Only the replay hands the model a `prior` (to measure what this-season-only costs)."""
         cold = game("2025-12-01", "AAA", "BBB", {"p": skater("AAA", sog=1, att=2), "q": skater("BBB")}, 1)
         prior = shots_model.season_summary([cold] * 20)
         hot = [game(f"2026-02-{d:02d}", "AAA", "BBB", {"p": skater("AAA", sog=5, att=9), "q": skater("BBB")}, d) for d in range(1, 21)]
@@ -180,11 +195,19 @@ class Projection(unittest.TestCase):
         self.assertGreater(proj["rate"]["direct"] * 18, 3.2)
         self.assertEqual((proj["games"], proj["prev_games"]), (20, 20))
 
-    def test_a_player_back_from_last_season_is_projected_before_his_first_game(self):
+    def test_the_site_never_gives_the_model_last_season(self):
+        """The owner's rule: this season's games only. A player who hasn't played yet this
+        season has no projection, whatever he did the year before."""
         last = game("2025-12-01", "AAA", "BBB", {"p": skater("AAA", sog=3, att=6), "q": skater("BBB")}, 1)
+        this = game("2026-10-10", "CCC", "DDD", {"c": skater("CCC"), "d": skater("DDD")}, 2)
+        model = build_nhl.shots_model_for([this])
+        self.assertEqual((model.prior_players, model.prior_teams), ({}, {}))
+        self.assertIsNone(model.project("p", "CCC", True))
+        self.assertIsNotNone(model.project("c", "DDD", True))
+        self.assertIsNone(model.allowed("DDD", "sog")["prev"])
+        # (Handed the season before, as only the replay does, he would have one.)
         proj = self.model([], shots_model.season_summary([last] * 30)).project("p", "XXX", True)
         self.assertEqual((proj["games"], proj["prev_games"]), (0, 30))
-        self.assertAlmostEqual(proj["minutes"], 18.0)
 
     def test_a_night_he_left_early_does_not_change_his_minutes(self):
         usual = [game(f"2026-02-{d:02d}", "AAA", "BBB", {"p": skater("AAA", toi=1200), "q": skater("BBB")}, d) for d in range(1, 6)]
@@ -210,7 +233,7 @@ class Board(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.record = build_nhl.reduce_game(helpers.nhl_game())
-        cls.model = build_nhl.shots_model_for([cls.record], {})
+        cls.model = build_nhl.shots_model_for([cls.record])
         cls.lineups = build_nhl.lineup(build_nhl.compute_skaters([cls.record], {}), Counter(BUF=1, FLA=1))
 
     def schedule(self, **changes):
@@ -227,6 +250,8 @@ class Board(unittest.TestCase):
         self.assertEqual([r["mean"] for r in rows], sorted((r["mean"] for r in rows), reverse=True))
         benson = next(r for r in rows if r["id"] == BENSON)
         self.assertEqual((benson["name"], benson["opp"], benson["home"], benson["out"]), ("Zach Benson", "FLA", False, False))
+        # What his game log says: one game, two shots on goal.
+        self.assertEqual((benson["games"], benson["avg"]), (1, 2.0))
         # Both teams played yesterday: his own tired legs and the other team's cancel out.
         self.assertEqual((benson["lift"]["home"], benson["lift"]["b2b"], benson["lift"]["opp_b2b"]), (1.0, 0.966, 1.036))
         self.assertAlmostEqual(benson["mean"], benson["usual"] * benson["matchup"], delta=0.011)
@@ -272,9 +297,9 @@ class Board(unittest.TestCase):
 
     def test_defense_numbers_rank_who_allows_the_most(self):
         defense = build_nhl.shots_defense(self.model, ["BUF", "FLA"])
-        self.assertEqual((defense["FLA"]["sog"]["season"], defense["FLA"]["sog"]["rank"]), (32.0, 1))
-        self.assertEqual((defense["BUF"]["sog"]["season"], defense["BUF"]["sog"]["rank"]), (23.0, 2))
-        self.assertIsNone(defense["BUF"]["sog"]["prev"])
+        self.assertEqual((defense["FLA"]["sog"]["season"], defense["FLA"]["sog"]["rank"], defense["FLA"]["sog"]["season_rank"]), (32.0, 1, 1))
+        self.assertEqual((defense["BUF"]["sog"]["season"], defense["BUF"]["sog"]["rank"], defense["BUF"]["sog"]["season_rank"]), (23.0, 2, 2))
+        self.assertEqual(set(defense["BUF"]["sog"]), {"season", "blend", "league", "factor", "rank", "season_rank", "games"})  # nothing from last season
         self.assertEqual(set(defense["BUF"]), {"sog", "f_sog", "d_sog", "pp_unb", *(f"a_{a}" for a in build_nhl.AREAS)})
 
 
@@ -289,15 +314,24 @@ class Record(unittest.TestCase):
         # One side priced: that side, even at a bad price. Neither: no play.
         self.assertEqual(build_nhl.shots_play(0.3, 1.5, 150, None)["side"], "over")
         self.assertIsNone(build_nhl.shots_play(0.3, 1.5, None, None))
+
+    def test_a_play_against_his_own_average_is_marked(self):
+        """An under on a line he averages more than (or an over on one he averages less than)."""
+        fade = lambda chance, over, under, avg: build_nhl.shots_play(chance, 1.5, over, under, avg)["fade"]
+        self.assertTrue(fade(0.40, -122, 102, 1.8))    # under 1.5 for a player averaging 1.8
+        self.assertFalse(fade(0.40, -122, 102, 1.2))   # under 1.5 for a player averaging 1.2
+        self.assertTrue(fade(0.65, -110, -110, 1.0))   # over 1.5 for a player averaging 1.0
+        self.assertFalse(fade(0.65, -110, -110, 2.4))
+        self.assertFalse(fade(0.40, -122, 102, None))  # no games yet: nothing to go against
         self.assertEqual((build_nhl.break_even(-150), build_nhl.break_even(150), build_nhl.break_even(100)), (0.6, 0.4, 0.5))
 
-    def row(self, pid, mean, actual):
-        return {"id": pid, "name": pid.upper(), "team": "AAA", "mean": mean, "chances": [round(shots_model.chance_at_least(mean, n), 3) for n in range(1, 9)], "actual": actual}
+    def row(self, pid, mean, actual, avg=None):
+        return {"id": pid, "name": pid.upper(), "team": "AAA", "mean": mean, "avg": avg, "chances": [round(shots_model.chance_at_least(mean, n), 3) for n in range(1, 9)], "actual": actual}
 
     def test_a_finished_game_is_written_once(self):
         games = [{"game_id": "9", "date": "2026-10-13", "away": "AAA", "home": "BBB"}, {"game_id": "10", "date": "2026-10-13", "away": "CCC", "home": "DDD"}]
         board = {
-            "9": {"final": True, "players": [self.row("a", 2.8, 4), self.row("b", 1.9, 1), self.row("noline", 1.0, 0), self.row("scratched", 2.0, None)]},
+            "9": {"final": True, "players": [self.row("a", 2.8, 4, 3.2), self.row("b", 1.9, 1, 2.5), self.row("noline", 1.0, 0), self.row("scratched", 2.0, None)]},
             "10": {"locked": True, "players": [self.row("c", 2.0, None)]},  # started, not final yet
         }
         odds = {"9": {"a": {"sog": {"line": 2.5, "over": -120, "under": 100}}, "b": {"sog": {"line": 1.5, "over": -140, "under": 115}}, "scratched": {"sog": {"line": 1.5, "over": 100, "under": -120}}, "noline": {"goal": {"odds": 300}}}}
@@ -307,8 +341,9 @@ class Record(unittest.TestCase):
             saved = json.loads((folder / "2026-10.json").read_text())
             self.assertEqual(list(saved["games"]), ["9"])
             self.assertEqual(saved["games"]["9"]["plays"], [
-                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4],
-                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1],
+                # ... the projection, the model's chance of the over, his real shots, his season average at the lock
+                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2],
+                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5],
             ])
             # The next build sees the same finished game: nothing is added or rewritten.
             board["9"]["players"][0]["mean"] = 9.9
@@ -317,12 +352,12 @@ class Record(unittest.TestCase):
 
     def test_the_record_by_edge_size(self):
         plays = [
-            # id, name, team, line, over, under, projection, model's chance of the over, real shots
-            ["a", "A", "AAA", 2.5, -120, 100, 3.4, 0.70, 3],   # over, edge 15.5: "check"; won
-            ["b", "B", "AAA", 2.5, -120, 100, 2.9, 0.62, 2],   # over, edge 7.5: strong; lost
-            ["c", "C", "AAA", 2.5, 100, -110, 2.0, 0.40, 1],   # under, edge 7.6: strong; won
-            ["d", "D", "AAA", 2.5, -118, 100, 2.7, 0.58, 4],   # over, edge 3.9: lean; won
-            ["e", "E", "AAA", 2.5, -115, -105, 2.6, 0.55, 3],  # over, edge 1.5: no edge; won
+            # id, name, team, line, over, under, projection, model's chance of the over, real shots, his season average
+            ["a", "A", "AAA", 2.5, -120, 100, 3.4, 0.70, 3, 3.6],   # over, edge 15.5: "check"; won
+            ["b", "B", "AAA", 2.5, -120, 100, 2.9, 0.62, 2, 3.0],   # over, edge 7.5: strong; lost; with his average
+            ["c", "C", "AAA", 2.5, 100, -110, 2.0, 0.40, 1, 2.8],   # under, edge 7.6: strong; won; AGAINST his average
+            ["d", "D", "AAA", 2.5, -118, 100, 2.7, 0.58, 4, 2.2],   # over, edge 3.9: lean; won; AGAINST his average
+            ["e", "E", "AAA", 2.5, -115, -105, 2.6, 0.55, 3],       # over, edge 1.5: no edge; won (a row saved before averages were kept)
         ]
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
@@ -338,19 +373,9 @@ class Record(unittest.TestCase):
         # Overs against unders counts only the plays the page calls an edge (3 to 12 points).
         self.assertEqual(record["over"], {"wins": 1, "losses": 1, "units": -0.15})
         self.assertEqual(record["under"], {"wins": 1, "losses": 0, "units": 0.91})
-
-
-class SavedSeason(unittest.TestCase):
-    def test_last_seasons_file_has_what_the_model_starts_from(self):
-        prior = build_nhl.load_prior(2026)
-        shots = prior["shots"]
-        self.assertEqual(len(shots["teams"]), 32)
-        self.assertTrue(all(team["games"] == 82 for team in shots["teams"].values()))
-        hughes = shots["players"]["8481559"]  # Jack Hughes: 61 games, 228 shots on goal
-        self.assertEqual((hughes["games"], hughes["sog"], hughes["att"]), (61, 228, 430))
-        # The league's forwards outshoot its defensemen per minute, as the model's padding assumes.
-        league = shots["league"]
-        self.assertGreater(league["F_sog"] / league["F_toi"], 1.5 * league["D_sog"] / league["D_toi"])
+        # ...and, among those, the plays that went against the player's own season average.
+        self.assertEqual(record["fade"], {"wins": 2, "losses": 0, "units": 1.76})
+        self.assertEqual(record["with"], {"wins": 0, "losses": 1, "units": -1.0})
 
 
 if __name__ == "__main__":

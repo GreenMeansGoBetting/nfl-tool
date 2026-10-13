@@ -3755,6 +3755,8 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .shots-table td.shots-proj b { font-size: 1.12rem; }
 .shots-table td.shots-edge { font-size: 1.05rem; }
 .shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+.shots-flag.shots-fade { margin-left: 6px; }
+.shots-allows .nba-tile .gs-tag, .shots-allows .nba-tile .nba-notag { margin-top: 3px; height: 18px; }
 .shots-up, .shots-down { margin-left: 3px; font-size: 0.62em; }
 .shots-up { color: rgb(var(--good-rgb)); }
 .shots-down { color: rgb(var(--bad-rgb)); }
@@ -3777,7 +3779,7 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .shots-ladder tr.shots-main-line td:first-child { font-weight: 800; }
 .shots-detail-rink .nhl-rink { width: 100%; max-width: 380px; margin: 0; }
 .shots-results { margin-top: 16px; }
-.shots-record { grid-template-columns: repeat(6, minmax(0, 1fr)); max-width: 1000px; padding: 0; margin: 8px 0 0; }
+.shots-record { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 760px; padding: 0; margin: 8px 0 0; }
 .shots-record-note { margin: 0; font-size: 0.82rem; color: var(--muted); }
 .shots-about { margin-top: 16px; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
 .shots-about summary { cursor: pointer; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -3855,7 +3857,7 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .shots-allows .nba-tile b { font-size: 1.1rem; }
   .shots-filter .view-toggle-btn { padding: 5px 9px; font-size: 0.78rem; }
   .shots-step { min-width: 70px; padding: 4px 6px 5px; }
-  .shots-record { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shots-record { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mw-page .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }

@@ -1037,9 +1037,10 @@ def locked_player_odds(games: list, fresh: dict, previous: dict | None, now_utc:
 
 
 # ---- the Shots page ----
-def shots_model_for(records: list, prior: dict):
-    """The shots-on-goal model with last season's summary and every finished game of this one."""
-    model = shots_model.ShotsModel(prior.get("shots"))
+def shots_model_for(records: list):
+    """The shots-on-goal model fed every finished game of this season, and
+    nothing from last season (the owner's rule: see shots_model.py)."""
+    model = shots_model.ShotsModel()
     for record in records:
         model.add_game(record)
     return model
@@ -1051,8 +1052,11 @@ def shot_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: boo
     if proj is None:
         return None
     usual = proj["base"] * math.exp(model.w["scale"])
+    games = proj["games"]
     return {
         "id": player["id"], "name": player["name"], "team": player["team"], "opp": opp, "home": home, "pos": player["pos"], "out": out,
+        # What his game log says, plain: shots on goal a game this season.
+        "games": games, "avg": round(proj["season"]["sog"] / games, 2) if games else None,
         # mean = usual x matchup: his shot rate in tonight's minutes, then what tonight changes.
         "mean": round(proj["mean"], 2), "usual": round(usual, 2), "matchup": round(proj["mean"] / usual, 3) if usual else 1.0,
         "minutes": round(proj["minutes"], 1), "rate60": round(proj["rate"]["per_min"] * 60, 2), "att60": round(proj["rate"]["attempts"] * 60, 1),
@@ -1066,17 +1070,22 @@ def shot_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: boo
 
 def shots_defense(model, teams) -> dict:
     """{team: {stat: what its defense allows a game}} for the stats the
-    model reads: this season, last season, the blend the model uses, the
-    league's number and where the blend ranks (1 = allows the most)."""
+    model reads: this season's number and where it ranks (`season_rank`,
+    1 = allows the most), the steadied number the model uses (`blend`: this
+    season mixed with a league-average defense, and its `rank`), and the
+    league's number."""
     stats = ["sog", "f_sog", "d_sog", "pp_unb", *(f"a_{area}" for area in AREAS)]
     out = {team: {key: model.allowed(team, key) for key in stats} for team in teams}
+    games_played = {team: (model.teams.get(team) or {}).get("games", 0) for team in teams}
     for key in stats:
         order = sorted(out, key=lambda team: -out[team][key]["blend"])
+        # The rank a person would quote: this season's own number, most allowed first.
+        plain = sorted(out, key=lambda team: -(out[team][key]["season"] or 0))
         for team in out:
             row = out[team][key]
             out[team][key] = {
-                "season": num(row["season"]), "prev": num(row["prev"]), "blend": num(row["blend"]), "league": num(row["league"]),
-                "factor": num(row["factor"], 3), "rank": order.index(team) + 1,
+                "season": num(row["season"]), "blend": num(row["blend"]), "league": num(row["league"]),
+                "factor": num(row["factor"], 3), "rank": order.index(team) + 1, "season_rank": plain.index(team) + 1, "games": games_played[team],
             }
     return out
 
@@ -1124,14 +1133,17 @@ def break_even(american: int) -> float:
     return -american / (100 - american) if american < 0 else 100 / (american + 100)
 
 
-def shots_play(chance_over: float, line: float, over, under) -> dict | None:
+def shots_play(chance_over: float, line: float, over, under, avg=None) -> dict | None:
     """The side of a main line the model likes more, at the book's price
-    (the page's "Best side": shots.js pickSide)."""
+    (the page's "Best side": shots.js pickSide). `fade` = the play goes
+    against his own season average (an under on a line he averages more than,
+    or the other way round): the model thinks a small sample has run hot or cold."""
     sides = [(side, price, chance) for side, price, chance in (("over", over, chance_over), ("under", under, 1 - chance_over)) if price is not None]
     if not sides:
         return None
     side, price, chance = max(sides, key=lambda x: x[2] - break_even(x[1]))
-    return {"side": side, "line": line, "price": price, "chance": chance, "edge": chance - break_even(price)}
+    fade = avg is not None and (avg > line if side == "under" else avg < line)
+    return {"side": side, "line": line, "price": price, "chance": chance, "edge": chance - break_even(price), "fade": fade}
 
 
 def record_finished_games(folder: Path, board: dict, player_odds: dict, games: list) -> int:
@@ -1158,7 +1170,7 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
                 need = math.floor(market["line"]) + 1 if market else 0
                 if not market or row.get("actual") is None or not 1 <= need <= len(row["chances"]):
                     continue
-                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"]])
+                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg")])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
@@ -1170,23 +1182,28 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
 
 def shots_record_summary(folder: Path) -> dict:
     """The record so far, by how big the edge was when the game locked:
-    wins, losses and units won risking 1 unit a play at the locked price."""
+    wins, losses and units won risking 1 unit a play at the locked price.
+    `fade` / `with` split the called plays by whether they went against the
+    player's own season average: the record of "the model doesn't believe his
+    hot (or cold) start" next to everything else."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
-    out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally()}
+    out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally()}
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
         for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
             out["games"] += 1
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
-            for _id, _name, _team, line, over, under, _mean, chance_over, actual in game["plays"]:
-                play = shots_play(chance_over, line, over, under)
+            for _id, _name, _team, line, over, under, _mean, chance_over, actual, *rest in game["plays"]:
+                play = shots_play(chance_over, line, over, under, rest[0] if rest else None)
                 if play is None or actual == line:
                     continue
                 won = (actual > line) == (play["side"] == "over")
                 units = (100 / -play["price"] if play["price"] < 0 else play["price"] / 100) if won else -1.0
                 size = next((key for key in ("check", "strong", "lean") if play["edge"] >= SHOTS_EDGES[key]), "none")
-                # Overs against unders: only the plays the page calls an edge.
-                for key in (size, *([play["side"]] if size in ("strong", "lean") else [])):
+                # Overs against unders, and plays against his season average
+                # ("fade") against plays with it: only the plays the page calls an edge.
+                called = [play["side"], "fade" if play["fade"] else "with"] if size in ("strong", "lean") else []
+                for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
     return out
@@ -1247,8 +1264,6 @@ def write_prior(season: int, data_dir: Path, out: Path) -> None:
     blob = {
         "season": season, "season_label": season_label(season), "team_stats": stats["team_stats"], "skaters": stats["skaters"], "goalies": stats["goalies"],
         "detail": stats["detail"], "league": stats["league"],
-        # What next season's shots-on-goal model starts from (shots_model.season_summary).
-        "shots": shots_model.season_summary(stats["records"]),
     }
     with gzip.open(out, "wt", encoding="utf-8") as f:
         json.dump(blob, f, separators=(",", ":"))
@@ -1334,7 +1349,7 @@ def main():
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
     write_player_files(args.out.parent / "players", teams, stats, prior, generated_at)
-    model = shots_model_for(stats["records"], prior)
+    model = shots_model_for(stats["records"])
     board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc)
     try:
         record_finished_games(args.record_dir, board, player_odds, games)
