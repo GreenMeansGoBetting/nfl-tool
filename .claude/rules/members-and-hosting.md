@@ -45,13 +45,13 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
 - `.github/workflows/cloudflare-domain.yml` attached `nfl.gmgsports.org` to the Pages project
   through the API. It can be re-run from the Actions tab and prints the verification status. (The
   Cloudflare connector for Claude can't manage Pages domains; the GitHub secret token can.)
-- **The GitHub Pages copy is gone from the deploy** (2026-10-13; it served the site without the
-  login). What is left is the user's own click: repo Settings -> General -> Danger Zone ->
-  Change visibility -> Private (on GitHub's free plan that also unpublishes the old Pages copy).
-  Once private:
+- **The repo is private and GitHub Pages is off** (2026-10-13). The Pages copy had served the
+  site without the login; it was dropped from the deploy, then the user made the repo private,
+  which unpublished it (checked: GitHub's servers return 404 for the old copy). Because of that:
   - the public GitHub API no longer shows the runs, so confirm deploys with `version.json`;
-  - private repos get 2,000 free build minutes a month; this project used about 540 a month
-    before the gate, which adds well under a minute per run (first gated run: 3 minutes in all);
+  - there is no `gh` on the user's PC, so a failed run can only be read by the user on the
+    Actions page (or from the failure email); ask them for the red step's name;
+  - private repos get 2,000 free build minutes a month; this project uses roughly 600-900;
   - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
 
 ## Login gate (`nfl_tool/functions/_middleware.js`, Pages Functions)
