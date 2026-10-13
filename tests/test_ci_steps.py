@@ -7,7 +7,9 @@ debugged from a log: they are pinned here instead.
 What is pinned: a push rebuilds only the suites whose build code changed and
 a scheduled or manual run rebuilds everything; the hockey-only refresh never
 publishes over a full rebuild, never publishes code that isn't live, and
-never publishes a folder with a live data file missing; a download is only
+never publishes a folder with a live data file missing; every publish is
+followed by a look at the real site, and one that leaves it down is undone;
+a download is only
 kept if it is real JSON (a wrong key gets the login page back with a 200);
 and the refresh publishes with the same database binding and build command
 as the deploy.
@@ -357,6 +359,121 @@ class LiveData(unittest.TestCase):
         self.assertEqual(self.asked, [])
 
 
+class LiveCheck(unittest.TestCase):
+    """After every publish: is the real site answering, and if not, the
+    version from before it goes back (the owner, 2026-10-13: the site being
+    down for members "CANNOT happen")."""
+
+    VERSION = {"sha": SHA, "run": "1", "built": "2026-10-13T21:00Z"}
+    KEY = "build-key"
+
+    def site(self, **changes):
+        """A fake live site: {path: (status, body)}, healthy unless changed."""
+        pages = {
+            "": (401, b"<html><h1>GMG Sports Data <b>Suite</b></h1></html>"),
+            "auth/status": (200, json.dumps({"gate": "on", "profiles": True}).encode()),
+            "version.json": (200, json.dumps(self.VERSION).encode()),
+            "data.json": (200, json.dumps({"schedule": [{"game_id": "1"}], "teams": ["BUF"]}).encode()),
+            **{rel: (200, b"x" * 2000) for rel in ci_steps.LIVE_FILES},
+        }
+        pages.update(changes)
+
+        def get(path, key=None):
+            rel = path.split("?")[0]
+            if rel in ("data.json", *ci_steps.LIVE_FILES) and key != self.KEY:
+                return pages[""]  # no key: the sign-in page, like the real site
+            return pages[rel]
+
+        return get
+
+    def verdict(self, get, expected=None, **kw):
+        return ci_steps.live_verdict(get, expected or self.VERSION, self.KEY, rounds=3, sleep=lambda s: None, **kw)
+
+    def test_a_healthy_site_on_the_new_version_passes(self):
+        self.assertEqual(self.verdict(self.site()), ("ok", []))
+
+    def test_what_counts_as_down(self):
+        down = {
+            "the login code crashing": {"": (500, b"error 1101"), "auth/status": (500, b"")},
+            "no answer at all": {"": (None, b"")},
+            "the member database not connected": {"auth/status": (200, json.dumps({"gate": "on", "profiles": False}).encode())},
+            "the login switched off by a missing secret": {"": (200, b"<html>GMG Sports Data</html>"), "auth/status": (200, json.dumps({"gate": "off", "profiles": True}).encode())},
+            "the data file missing": {"data.json": (404, b"")},
+            "the sign-in page where the data should be": {"data.json": (200, b"<html>GMG Sports Data</html>")},
+            "an empty data file": {"data.json": (200, b"{}")},
+            "a page missing": {"game-overview.html": (404, b"")},
+            "the stylesheet missing": {"style.css": (404, b"")},
+        }
+        for what, changes in down.items():
+            verdict, problems = self.verdict(self.site(**changes))
+            self.assertEqual(verdict, "down", what)
+            self.assertTrue(problems, what)
+
+    def test_a_slow_hand_over_is_not_an_outage(self):
+        """The old version for the first two looks, the new one on the third."""
+        looks = {"n": 0}
+        old, new = self.site(**{"version.json": (200, json.dumps({**self.VERSION, "run": "0"}).encode())}), self.site()
+
+        def get(path, key=None):
+            if path.startswith("version.json"):
+                looks["n"] += 1  # the first request of each look
+            return (old if looks["n"] <= 2 else new)(path, key)
+
+        self.assertEqual(self.verdict(get), ("ok", []))
+        self.assertEqual(looks["n"], 3)
+
+    def test_the_old_version_still_being_served_fails_without_going_back(self):
+        verdict, problems = self.verdict(self.site(), expected={**self.VERSION, "run": "2"})
+        self.assertEqual(verdict, "not-served")
+        self.assertIn("still serving the version from before", problems[0])
+
+    def test_a_site_opened_on_purpose_is_not_expected_to_show_the_sign_in_page(self):
+        opened = self.site(**{"": (200, b"<html>the site</html>"), "auth/status": (200, json.dumps({"gate": "off", "profiles": True}).encode())})
+        self.assertEqual(self.verdict(opened, gate=False), ("ok", []))
+        self.assertTrue(ci_steps.gate_is_on())  # today the login is on, so the sign-in page is expected
+
+    def test_without_the_build_key_only_the_public_checks_run(self):
+        self.assertEqual(ci_steps.live_problems(self.site(**{"data.json": (404, b"")}), None), [])
+        self.assertTrue(ci_steps.live_problems(self.site(**{"": (500, b"")}), None))
+
+    def test_going_back_picks_the_version_from_before_this_publish(self):
+        d = lambda i, status="success", stage="deploy", env="production": {"id": i, "environment": env, "latest_stage": {"name": stage, "status": status}}
+        self.assertEqual(ci_steps.step_back_target([d("new"), d("before"), d("older")]), "before")
+        # Never the one just published, a failed one, an unfinished one or a preview.
+        self.assertEqual(ci_steps.step_back_target([d("new"), d("x", "failure"), d("y", stage="build"), d("z", env="preview"), d("good")]), "good")
+        self.assertIsNone(ci_steps.step_back_target([d("new")]))
+        self.assertIsNone(ci_steps.step_back_target(None))
+
+    def test_going_back_asks_cloudflare_for_exactly_that(self):
+        calls = []
+
+        def api(method, path):
+            calls.append((method, path))
+            return {"success": True, "result": [{"id": "new", "latest_stage": {"name": "deploy", "status": "success"}}, {"id": "before", "latest_stage": {"name": "deploy", "status": "success"}}]}
+
+        self.assertEqual(ci_steps.step_back(api), (True, "the version from before this publish is back"))
+        self.assertEqual(calls, [("GET", "deployments?env=production&per_page=10"), ("POST", "deployments/before/rollback")])
+        self.assertFalse(ci_steps.step_back(lambda method, path: None)[0])  # Cloudflare can't be reached: says so, doesn't crash
+
+    def test_the_command_goes_back_only_when_the_site_is_down(self):
+        went_back = []
+        cases = (("ok", [], 0, 0), ("not-served", ["old"], 1, 0), ("down", ["the login code isn't answering"], 1, 1))
+        for verdict, problems, code, backs in cases:
+            went_back.clear()
+            with mock.patch.object(ci_steps, "live_verdict", return_value=(verdict, problems)), \
+                 mock.patch.object(ci_steps, "step_back", side_effect=lambda: went_back.append(1) or (True, "back")), \
+                 mock.patch.object(ci_steps, "live_problems", return_value=[]), mock.patch.object(ci_steps.time, "sleep"), \
+                 mock.patch.dict(ci_steps.os.environ, {}, clear=True):
+                self.assertEqual(ci_steps.main(["live-check"]), code, verdict)
+            self.assertEqual(len(went_back), backs, verdict)
+
+    def test_looking_never_goes_back(self):
+        with mock.patch.object(ci_steps, "live_get", self.site(**{"": (500, b"")})), mock.patch.object(ci_steps, "step_back") as back, \
+             mock.patch.dict(ci_steps.os.environ, {}, clear=True):
+            self.assertEqual(ci_steps.main(["live-check", "--look"]), 1)
+        back.assert_not_called()
+
+
 class WorkflowsInStep(unittest.TestCase):
     """The hockey refresh republishes the whole site, so what it shares with
     the deploy has to stay word for word the same."""
@@ -426,6 +543,21 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertIn("} > wrangler.toml", binding)
         self.assertNotIn("wrangler.toml", tables)
         self.assertNotIn("command: pages project create", self.deploy)
+
+    def test_both_publishes_are_followed_by_the_live_check(self):
+        """The last step of each workflow, straight after the publish, and in
+        the deploy never conditional. It holds the Cloudflare token it needs to
+        put the last version back."""
+        for text, python in ((self.deploy, "python"), (self.refresh, "python3")):
+            last = text.split("      - name: ")[-1]
+            self.assertTrue(last.startswith("Check the live site (and put the last version back if it is down)"), last[:60])
+            self.assertIn(f"run: {python} tools/ci_steps.py live-check\n", last)
+            self.assertNotIn("--look", last)
+            self.assertNotIn("continue-on-error", last)
+            for secret in ("DISCORD_BOT_TOKEN", "CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"):
+                self.assertIn(f"{secret}: ${{{{ secrets.{secret} }}}}", last)
+            self.assertIn("command: pages deploy", text.split("      - name: ")[-2])
+        self.assertNotIn("        if:", self.deploy.split("      - name: ")[-1])
 
 
 if __name__ == "__main__":

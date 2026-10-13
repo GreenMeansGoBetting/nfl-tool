@@ -1206,3 +1206,17 @@ information."
   user also asked why it was taking a while and said they didn't want that to be the norm: the
   proof that nothing moved (every element's computed style, old file against new) is for a
   structural move like this one only, never for ordinary changes.
+
+## 2026-10-13 evening: the outage, the live check, and last season leaving the NHL suite
+
+- The owner reported the site down for paying members for over two hours while their Claude
+  usage was used up. Every workflow run that day had succeeded; the publish live during the gap
+  (the hockey-only refresh's first, 13:41 Eastern) uploaded the same 87 files and login code as
+  the deploy before it. The cause was not found from the record. What was added does not depend
+  on the cause: every publish is now followed by a look at the real site, and one that leaves it
+  down is undone automatically (`ci_steps.py live-check`); CLAUDE.md tells every session to check
+  usage before starting anything that ends in a push.
+- NHL: the owner had last season's data removed from the whole suite (they disliked the page
+  opening on it), and the "Where he shoots" rink's wording ("allows 3rd fewest") became three
+  boxes per zone: shots a game, share, league rank. Zones are colored by the league-wide count.
+- This session ran on a second PC (`C:\Users\cdmcc`), where Python is `py`.

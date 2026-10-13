@@ -64,6 +64,49 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     ("Build minutes" below);
   - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
 
+## The site must never be left down (2026-10-13)
+
+The site was down for paying members for over two hours on 2026-10-13 while the owner's Claude
+usage was spent, so nobody could fix it. The owner: "that CANNOT happen. We need a safeguard in
+place so that usage is either understood and new tasks don't begin if they can't finish, or never
+take the site offline until a push is completely ready."
+
+- **What was found afterwards:** every workflow run that day succeeded. The gap in publishes
+  (13:41 to 16:03 Eastern) had the hockey-only refresh's first publish live; its log shows the
+  same 87 files and the same login code as the deploy before it. So the record does not show a
+  broken publish, and the cause is NOT known. Ask the owner what members saw (a sign-in error, a
+  blank page, a Cloudflare error page) before guessing. Not ruled out: Discord refusing the role
+  re-check (`OUTAGE_GRACE_MS`: members are let in for 2 h after the last good check, then not).
+- **The live check** (`tools/ci_steps.py live-check`, the last step of deploy.yml and
+  nhl-refresh.yml). After every publish it looks at the real site up to four times, 15 s apart:
+  the sign-in page is served (401), `/auth/status` says the login is on and the member database
+  is connected, and with the build's key `data.json`, three pages, `style.css`, `common.js` and
+  `sync.js` come back. The tests and the gate can't see any of that: they run before the publish.
+  - Down = the version from before the publish is put back through Cloudflare's API
+    (`step_back`: the newest earlier finished production deployment, `.../rollback`), the site
+    is looked at again, and the run fails (GitHub emails the owner). No person and no Claude
+    session is needed. The push is then NOT live: fix it and push again.
+  - Still the old version but answering = the run fails and nothing is undone.
+  - `ENFORCE = false` in the login code (the site opened on purpose) stops it expecting the
+    sign-in page.
+  - The going-back call has only been run against a fake Cloudflare in the tests; the first real
+    outage is its first real use. If a run says "STILL DOWN after going back", the owner can go
+    back by hand: Cloudflare dashboard, Workers & Pages, gmg-nfl, Deployments, "Rollback" on the
+    last good one.
+- **`python tools/ci_steps.py live-check --look`** from any PC: is the site answering right now
+  (public checks only without the key; changes nothing).
+- **Claude's side** (CLAUDE.md): check plan usage before starting anything that ends in a push,
+  and don't start with under about 25% of the 5-hour window left. Work in progress stays on the
+  PC, uncommitted or committed but not pushed, where it can't touch the site. One push is one
+  finished change: the site must work after it with no second push. Never change Cloudflare,
+  DNS, secrets or the member database by hand as a step of a larger task.
+- **The Actions page can be read from here** with Claude in Chrome when the owner's Chrome is
+  signed in to GitHub (open the run, expand the step): how a failed run is diagnosed without
+  asking the owner for the red step's name.
+- Not built: something that watches the site BETWEEN publishes (a free uptime monitor such as
+  UptimeRobot pointed at `https://nfl.gmgsports.org/auth/status`, which the owner would sign up
+  for; a watcher in GitHub Actions would use up the 2,000 build minutes).
+
 ## Build minutes: an isolated task must not set off unrelated work (2026-10-13)
 
 The repo going private put the builds on GitHub's 2,000 free minutes a month (a job is billed

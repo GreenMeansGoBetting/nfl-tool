@@ -82,14 +82,10 @@ switch"). More background: `docs/history.md`, "NHL".
   `data/nhl` between runs; "Build NHL data" is `continue-on-error`, so it can never block the
   NFL deploy. A lost cache just means the season so far is downloaded again (2025-26's 1,312
   games took about 4 minutes from the user's PC).
-- **`nfl_tool/nhl/prior_2026.json.gz`** (0.5 MB, committed): 2025-26's team, skater and goalie
-  numbers plus every player's game log and shot areas (`detail`) and the league's area averages
-  (`league`), written once with `--season 2026 --write-prior nfl_tool/nhl/prior_2026.json.gz`
-  (about 10 seconds when the games are already in `data/nhl`). Do the same for 2026-27 when it
-  ends, and re-run it whenever `reduce_game` gains a stat the card should show for last season.
-  It lets the page show last season while this one is young without CI downloading 1,300 old
-  games.
-- `default_view` is `prev` until the middle team has played `MIN_GAMES_FOR_CURRENT` (10) games.
+- **This season only: no last-season file.** `prior_2026.json.gz`, `--write-prior`,
+  `default_view`, `team_stats_prev`, `prev_season_label`, each player's `prev` and the player
+  files' `prev` were removed 2026-10-13 (see "This season only" below). The file is in git
+  history; the replays download a past season's games themselves.
 - `reduce_game` boils one game down to team counts, skater lines and goalie lines; the season
   numbers are sums of those. Shootouts count only in the final score. Checked against the
   league's own 2025-26 reports: goals exact, shots on goal within 0.07 a game, 5v5 shooting %
@@ -102,20 +98,19 @@ switch"). More background: `docs/history.md`, "NHL".
   blocked shots, empty-net shots and penalty shots.
 - `reduce_game` also counts each team's unblocked shots a man up (`unb_pp`), which the shots
   model reads as "power-play shots allowed".
-- `prior_2026.json.gz` carries nothing for the shots model (see "Prop tools use THIS SEASON ONLY").
-- Output: `teams`, `team_stats` and `team_stats_prev` (every stat as `off_*` and the matching
+- Output: `teams`, `team_stats` (every stat as `off_*` and the matching
   `def_*` allowed, plus record, power play, penalty kill), `recent_games`, `skaters` (12 forwards
-  and 6 defensemen a team, each with last season's line as `prev`), `goalies`, `injuries`,
+  and 6 defensemen a team), `goalies`, `injuries`,
   `schedule` (yesterday through 14 days out, Novig lines, `away_rest` / `home_rest` days),
   `player_odds` (`{game id: {player id: odds}}`), `league` (each area's share of shots and
-  shooting %, `season` and `prev`), `novig_debug`, `feed_debug`.
+  shooting %, under `season`), `novig_debug`, `feed_debug`.
 - **Player files** (`write_player_files`): `site/nhl/players/<TEAM>.json`, one per team, written
   next to data.json on every build and not tracked by git. Each holds, for everyone whose latest
-  game was with that team, `season` and `prev`: the game log (one row per game: `log_lead` then
+  game was with that team, under `season`: the game log (one row per game: `log_lead` then
   `skater_cols` / `goalie_cols`), `areas` (skater `{area: [shots, on goal, goals]}`, goalie
   `{area: [shots faced, goals]}`), and for skaters `types` (shot type: `[shots, goals]`), `unb`
   and `pp_unb`. The page loads a team's file when one of its games is opened, so data.json stays
-  small (the files are about 80 KB each, mostly last season's logs).
+  small (the files are about 10 KB each early in a season; they were 80 KB with last season's logs).
 - **Player odds** (`player_odds_from_event`), same spirit as the NFL build's TD odds:
   - Over / unders (`sog`, `points`, `assists`) use the consensus line only and need at least
     one side priced; `thin` = one side missing or the two asks adding past 115%.
@@ -139,7 +134,19 @@ switch"). More background: `docs/history.md`, "NHL".
 - `lineup` discounts ice time for a player with only a game or two (the lineup-aware usage rule).
 - Team colors are `TEAM_COLORS` (ESPN's; teams whose main color is black use their second).
 
-## Prop tools use THIS SEASON ONLY (the user's rule, 2026-10-13, said twice)
+## This season only, everywhere (the user's rule, 2026-10-13, said three times)
+
+The third time, for the whole site: "is the last season data on NHL slowing things down? ... It
+really isn't relevant to me and if we need to scrap all past season NHL data I would be fine with
+that. currently it defaults to last season anyway which i hate. Let's scrap all of last years
+data on the site - if youd like to keep it archived for running tests on models thats fine."
+So there is no last-season number on any NHL page, no season switch, and Game Previews opens on
+this season with a "small sample" note until the middle team has played 10 games. (It was not
+slowing the build: the old file was read from disk. The pages got lighter: data.json 1,217 KB to
+828 KB, the player files 2,717 KB to 313 KB.) Do not re-offer last season as a fallback.
+
+The first two times, for the prop tools:
+
 
 "For shots/goals/points/saves I think it would be best to JUST use the current season and
 understand that for awhile the sample will be small. A small sample of current form and style is
@@ -148,8 +155,7 @@ want a gradual fade out. I don't want last season's data in the model for shots 
 
 - **No last-season data in any NHL prop model** (shots now; goals, points, saves when built): not
   a player's old rate, not a defense's old numbers, not as a starting point that fades. Do not
-  re-offer a blend. Last season stays where it is on Game Previews and behind the player card's
-  season switch; a prop page opens the card on this season.
+  re-offer a blend.
 - What a small sample is steadied with must come from this season too (this season's league
   averages), and every number shown on a prop page is this season's.
 - The user was shown what this costs (below) and chose it. The cost is real for the first 10-20
@@ -264,16 +270,14 @@ on a replay, and the page keeps a record against the real prices.
   (`loadNhlData`), the season switch (`view`), helpers, the rink drawing (`rinkSvg`) and the
   player card. A new NHL page adds its own script after it and defines `render()` (called when
   the season or theme changes) and, if it has a selected game, `currentGame()`.
-- `site/nhl/index.html` + `nhl.js` = NHL Game Previews v1: day strip, a season switch (this
-  season / last season), The Line (moneyline with win chance, puck line, total), The Teams (10
+- `site/nhl/index.html` + `nhl.js` = NHL Game Previews v1: day strip, The Line (moneyline with win chance, puck line, total), The Teams (10
   tiles), Offense vs Defense (7 rows, same two-sided tags as NBA), Where the Shots Come From (a
   rink per offense), Goalies, Skaters, Injuries, Recent Games (with who started in net).
 - **The player card** (nhl-common.js) is the ONE popup for every skater and goalie on every NHL
   page: wrap any name or photo with `playerClick(id, inner)`. **Any new place that shows an NHL
   player must use it.** It reuses the NFL card's shell (`#player-card-modal`, `.pc-box`,
   `.pc-head`, `.player-modal-toggle`); the NFL `player-card.js` is not loaded on NHL pages.
-  - Tabs in the user's order: **Game Log** (opens here), **Shot Map**, **Odds**, plus the season
-    switch, which is the same setting as the page's.
+  - Tabs in the user's order: **Game Log** (opens here), **Shot Map**, **Odds**.
   - Game Log: newest first with a per-game row on top. Ice time, shots on goal and attempts are
     shaded against the player's own games; goals, assists and points only light up when he
     scored (zeros stay plain, or the whole table is red).
@@ -314,15 +318,29 @@ on a replay, and the page keeps a record against the real prices.
     play). The first play the user opened was an under 1.5 on a defenseman who had cleared it in
     3 of 5 games ("why on earth would we play an under?"). The breakdown now starts from his
     season average and shows the small-sample step by name ("5-game sample -22%").
-  - **A defense's numbers are never colored alone.** The user read red tiles as "bad defense"
+  - **A defense's tiles are never colored alone.** The user read red tiles as "bad defense"
     when red meant "fewer shots" (Ottawa was allowing the fewest point shots in the league). So:
     this season's own number, its rank said from the nearer end (`rankWord`: "3rd most", "the
-    fewest"), and a word (Leaky / Stingy / Average). The rink says "allows 2nd fewest" per zone.
+    fewest"), and a word (Leaky / Stingy / Average).
+  - **"Where he shoots": his share in bold, the defense in three boxes per zone** (the user,
+    2026-10-13: the bold share "is helpful", but "allows x most/fewest ... is all relative
+    information. It's also very wordy"). `zoneBoxes` in nhl-common.js, each box on the eight rank
+    colors: shots a game allowed from the zone ("8.0/g"), that zone's share of ALL the shots
+    the team allows ("21%"), and the league rank ("30th", 1st = allows the most).
+    - **What colors a zone as a whole: the league-wide count, not the team's own split** (the
+      user asked for this to be settled without adding complexity). Their example: a team
+      allowing 10 shots can give up 80% of them from the low slot (8) and still allow fewer
+      there than a team giving up 25% of 40 (10). A shooter's shots come from the count, and the
+      count is what the model reads. So the zone, the count box and the rank box are on the rank
+      for shots a game; the share box is on its OWN league rank (`areaShares` in shots.js,
+      worked out on the page), so a defense that funnels shots into a zone still shows. No
+      blended score.
+    - The rink is 520px wide here (three boxes must fit the 18 ft low slot); the strip outside
+      the zone carries the same three numbers as one uncolored line. On a phone the boxes are
+      small. The player card's Shot Map still has its table instead.
   - A row opens its breakdown: his season average, the sample step, the matchup pieces
     multiplying out to tonight's number, the defense's tiles, every line the book prices at the
-    model's fair price, and a rink of where he shoots: the number is his share from each zone,
-    the color is where the opponent ranks for shots allowed from there (`season_rank`, the rank
-    the zone says in words) on the eight rank colors, with the key underneath.
+    model's fair price, and the rink of where he shoots (above), with the key underneath.
   - Filters: side, forwards / defense, and **"Lineup Confirmed" (how it opens) / "All"** (the
     user's words, 2026-10-13: "Only show players with a line by default, and remove the feature
     to sort by everyone"). Lineup Confirmed = only players on a line or pair in a posted lineup
@@ -332,7 +350,7 @@ on a replay, and the page keeps a record against the real prices.
     that game; click it again for the whole day. Players marked out are left off.
   - "Confirmed" is the user's label for "the NHL's projected lineup is in". It is not the
     official sheet from warmups; the page's About box says so (95% of listed skaters played).
-  - No season switch (this season only). Names open the player card, on this season.
+  - Names open the player card.
 - `site/nhl/promo-tools.html` + `promo-tools.js` = **Promo Tools: King of the Crease** (below).
 - **Styles:** hockey-only rules go in `site/nhl/nhl.css` (never style.css: see styles.md); the
   layout shared with the NBA page is `site/suite.css`.
@@ -355,7 +373,6 @@ on a replay, and the page keeps a record against the real prices.
     land in the middle colors. This replaced the green / red / plain `rinkCall`.
   - Never colored: the strip outside the zone (too rare to read), and its row in the card's
     table. The goalie's map keeps its own rule (colored only past what luck explains).
-- The season switch is not remembered between visits; the page always opens on `default_view`.
 - Logos are the NHL's SVGs, with a dark-page version (`logo_dark`); the page redraws on a theme
   switch.
 

@@ -362,3 +362,16 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: nfl_tool
           command: pages deploy site --project-name=gmg-nfl --branch=main --commit-dirty=true
+
+      # After the publish (2026-10-13, tools/ci_steps.py live-check): look at
+      # the real site from outside. The tests and the gate only see the pages
+      # before they go out; they can't see the login code, the member database
+      # or a secret going wrong at the host. If the site isn't answering after
+      # this publish, the version from before it is put back within about a
+      # minute, with nobody needed, and the run fails so GitHub emails the owner.
+      - name: Check the live site (and put the last version back if it is down)
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python tools/ci_steps.py live-check

@@ -15,8 +15,7 @@ that, move detail into a rules file.
   Explain in plain language and do the technical work yourself.
 - Live at **https://nfl.gmgsports.org**. Repo: `GreenMeansGoBetting/nfl-tool`. The brand is
   "GMG Sports Data Suite"; NFL is live, the NBA and NHL suites are being built (owner-only until
-  launch).
-  A separate CFB tool is paused.
+  launch). A separate CFB tool is paused.
 - The user screenshots sections and the **Summary cards** (fixed 1160×980, sized to their video
   template's left area) and drops them into betting videos. Favor dense, screenshot-ready,
   visually clean layouts.
@@ -31,7 +30,10 @@ that, move detail into a rules file.
    `sha`, usually about 3 minutes after the push. The deploy runs the tests first, then opens every
    page and Summary card in a browser (`check_site.py --gate`), and publishes nothing if a test
    fails or a page is broken, so if the sha never changes, the run failed: say so and look at why.
+   After publishing it looks at the real site and puts the last version back if it is down.
 4. Tell the user to hard refresh (Ctrl+Shift+R).
+
+- **The site must never be left down or half-done** (members pay; it was down 2+ hours on 2026-10-13). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: members-and-hosting.md, "The site must never be left down".
 
 - Commit messages end with the Co-Authored-By line the environment specifies.
 - **Never view, print, or ask the user to paste API keys.** `SGO_API_KEY`, `SGO_API_KEY_BACKUP`,
@@ -47,8 +49,8 @@ that, move detail into a rules file.
   code or the site's JavaScript. `tests/` pins the math and every past bug on saved samples
   (`tests/fixtures/`), so the answers never depend on this week's data. When a rule they pin
   changes on purpose, change its test in the same commit; a bug fix gets a test that fails without it.
-- On this PC call Python as `C:\Users\Carter\AppData\Local\Python\bin\python.exe`: in Claude's
-  shell plain `python` is the Store stub, and `py` can't see Playwright's browser.
+- Python: on the Carter PC `C:\Users\Carter\AppData\Local\Python\bin\python.exe` (there `py` can't
+  see Playwright's browser); on the cdmcc PC `py`. Plain `python` is the Store stub on both.
 - To verify a change, run `python tools/check_site.py` once before a push. While iterating on a
   design, screenshot ONE game's card, never the full all-games screenshot set (the user: it
   "takes way too long"). Use the browser only to look at something specific. It needs Playwright
@@ -128,7 +130,7 @@ that, move detail into a rules file.
 - **Phone layout:** phone-only rules go in the last `@media (max-width: 760px)` block of
   style.css so desktop stays pixel-identical; new wide tables must scroll inside their own box.
 - The TD Data page is considered solid; change it only when asked.
-- **NHL prop tools (shots, goals, points, saves) use this season's games only**: no last-season data in the model, not even fading out (nhl.md).
+- **The NHL suite is this season only**: no last-season data in any model or on any page, not even fading out (nhl.md).
 
 ## Where the detail lives
 
@@ -144,7 +146,5 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists):
 - `nba.md`: the NBA suite (data sources, build, pages, suite switcher, launch switch).
 - `nhl.md`: the NHL suite (the NHL's own feed, kept games, rink areas, pages, the Shots model and its record; never MoneyPuck).
 
-The engineering clean-up plan and its status: `docs/foundation-plan.md` (one item per session).
-
-Background on past decisions and why rules exist: `docs/history.md` (search it when a rule's
-reason matters; it is not loaded automatically).
+The engineering clean-up plan: `docs/foundation-plan.md` (one item per session). Background on past
+decisions and why rules exist: `docs/history.md` (search it when a reason matters; not loaded automatically).

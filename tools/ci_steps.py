@@ -7,6 +7,8 @@
     python tools/ci_steps.py refresh-check         # nhl-refresh.yml: anything to refresh, and safe to publish?
     python tools/ci_steps.py refresh-check --again # nhl-refresh.yml: the same question right before publishing
     python tools/ci_steps.py refresh-stamp         # nhl-refresh.yml: check the new NHL files, note the refresh
+    python tools/ci_steps.py live-check            # both, right after publishing: is the live site answering? if not, put the last version back
+    python tools/ci_steps.py live-check --look     # anywhere, any time: is the live site answering? (changes nothing)
 
 Why they exist (2026-10-13): the repo went private, which put the builds on
 GitHub's 2,000 free minutes a month, and every run did everything: a lineup
@@ -25,6 +27,8 @@ Standard library only: the hockey refresh runs on the machine's own Python
 with nothing installed.
 """
 import argparse
+import hashlib
+import hmac
 import json
 import os
 import re
@@ -32,6 +36,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -443,6 +448,202 @@ def cmd_refresh_stamp(args):
     return 0
 
 
+# ---- after a publish: is the live site answering? if not, put the last version back ----
+# The owner, 2026-10-13, after the site was down for paying members for over
+# two hours: "that CANNOT happen ... never take the site offline until a push
+# is completely ready." The tests and the gate run BEFORE a publish and only
+# see the pages. Neither can see what breaks at the host: the login code, the
+# member database binding, a secret, a file that didn't upload. So every
+# publish is followed by a look at the real site from outside, and a publish
+# that leaves it not answering is undone on the spot (Cloudflare keeps every
+# earlier version; going back to one takes a few seconds), with no person and
+# no Claude session needed. The run then fails, so GitHub emails the owner.
+PAGES_PROJECT = "gmg-nfl"
+MIDDLEWARE = ROOT / "nfl_tool" / "functions" / "_middleware.js"
+LIVE_ROUNDS = 4          # looks at the live site before calling it down...
+LIVE_PAUSE = 15          # ...this many seconds apart (a new version takes a moment to be served everywhere)
+# Files every page needs, read with the build's key (members are served the same files).
+LIVE_FILES = ("game-overview.html", "index.html", "player-props.html", "style.css", "common.js", "sync.js")
+SIGN_IN_TEXT = "GMG Sports Data"
+
+
+def live_get(path, key=None, timeout=25):
+    """(status, body) for a path on the live site; (None, b"") if it can't be
+    reached. `key` is the build's key (the member login lets it through)."""
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; gmg-live-check/1.0)", "Cache-Control": "no-cache"}
+    if key:
+        headers["X-GMG-Build"] = key
+    try:
+        with urllib.request.urlopen(urllib.request.Request(f"{LIVE}/{path}", headers=headers), timeout=timeout) as resp:
+            return resp.status, resp.read()
+    except urllib.error.HTTPError as e:
+        with e:
+            return e.code, e.read()
+    except Exception as e:
+        print(f"/{path.split('?')[0]}: {e}")
+        return None, b""
+
+
+def build_key():
+    token = os.environ.get("DISCORD_BOT_TOKEN")
+    return hmac.new(token.encode(), b"gmg-build-v1", hashlib.sha256).hexdigest() if token else None
+
+
+def gate_is_on():
+    """Whether the code being published has the member login switched on
+    (ENFORCE in the login code). If the owner ever opens the site on purpose,
+    the check stops expecting the sign-in page."""
+    try:
+        return bool(re.search(r"^const ENFORCE = true\b", MIDDLEWARE.read_text(encoding="utf-8"), flags=re.M))
+    except OSError:
+        return True
+
+
+def as_json(body):
+    try:
+        found = json.loads(body)
+    except ValueError:
+        return None
+    return found if isinstance(found, dict) else None
+
+
+def live_problems(get, key=None, gate=True):
+    """What is wrong with the live site right now, in plain words (empty =
+    it is answering). `get(path, key)` -> (status, body). Without the build's
+    key only the public checks run."""
+    problems = []
+    stamp = int(time.time())
+    status, body = get(f"?t={stamp}", None)
+    if gate:
+        if status != 401 or SIGN_IN_TEXT not in body.decode("utf-8", "replace"):
+            problems.append(f"the sign-in page isn't being served (got {status or 'no answer'})")
+    elif status != 200:
+        problems.append(f"the home page isn't being served (got {status or 'no answer'})")
+    status, body = get(f"auth/status?t={stamp}", None)
+    auth = as_json(body) if status == 200 else None
+    if auth is None:
+        problems.append(f"the login code isn't answering (/auth/status gave {status or 'no answer'})")
+    else:
+        if gate and auth.get("gate") != "on":
+            problems.append("the member login is off (a secret is missing): the site is open to everyone")
+        if auth.get("profiles") is not True:
+            problems.append("the member database isn't connected: email members can't sign in")
+    if key:
+        status, body = get(f"data.json?t={stamp}", key)
+        data = as_json(body) if status == 200 else None
+        if data is None or not data.get("schedule") or not data.get("teams"):
+            problems.append(f"the NFL data file isn't being served whole (got {status or 'no answer'})")
+        for rel in LIVE_FILES:
+            status, body = get(f"{rel}?t={stamp}", key)
+            if status != 200 or len(body) < 500:
+                problems.append(f"{rel} isn't being served (got {status or 'no answer'})")
+    return problems
+
+
+def version_is_live(get, expected):
+    """True once the live version.json is the one just published."""
+    status, body = get(f"version.json?t={int(time.time())}", None)
+    return status == 200 and expected is not None and as_json(body) == expected
+
+
+def live_verdict(get, expected, key=None, gate=True, rounds=LIVE_ROUNDS, pause=LIVE_PAUSE, sleep=time.sleep):
+    """("ok" | "not-served" | "down", problems) after a publish.
+
+    Looks up to `rounds` times, `pause` seconds apart, and stops at the first
+    clean look, so a slow hand-over at the host is never called an outage.
+      * "ok": the new version is being served and the site answers.
+      * "not-served": the site answers but is still the OLD version. Nothing
+        is broken for members, so nothing is undone; the run fails so it shows.
+      * "down": the site is not answering properly. The caller puts the last
+        version back.
+    """
+    problems, served = [], False
+    for attempt in range(rounds):
+        if attempt:
+            sleep(pause)
+        served = version_is_live(get, expected)
+        problems = live_problems(get, key, gate)
+        if served and not problems:
+            return "ok", []
+    if problems:
+        return "down", problems
+    return "not-served", ["the site is answering, but it is still serving the version from before this publish"]
+
+
+def step_back_target(deployments):
+    """The version that was live before this publish: the newest earlier
+    production deployment that finished. `deployments` is Cloudflare's list,
+    newest first, the one just published on top. None if there isn't one."""
+    for d in (deployments or [])[1:]:
+        stage = d.get("latest_stage") or {}
+        if d.get("environment", "production") == "production" and stage.get("name") == "deploy" and stage.get("status") == "success" and d.get("id"):
+            return d["id"]
+    return None
+
+
+def cloudflare(method, path):
+    """A call to Cloudflare's API with the deploy's own token: the parsed
+    answer, or None. The token is never printed."""
+    token, account = os.environ.get("CLOUDFLARE_API_TOKEN"), os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+    if not token or not account:
+        print("No Cloudflare token here.")
+        return None
+    request = urllib.request.Request(
+        f"https://api.cloudflare.com/client/v4/accounts/{account}/pages/projects/{PAGES_PROJECT}/{path}",
+        method=method, data=b"" if method == "POST" else None, headers={"Authorization": f"Bearer {token}", "User-Agent": "gmg-ci/1.0"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as resp:
+            return as_json(resp.read())
+    except urllib.error.HTTPError as e:
+        with e:
+            print(f"Cloudflare said {e.code} to {method} {path.split('?')[0]}")
+    except Exception as e:
+        print(f"Cloudflare couldn't be reached: {type(e).__name__}")
+    return None
+
+
+def step_back(api=cloudflare):
+    """Put the version from before this publish back. (done, words)."""
+    listed = api("GET", "deployments?env=production&per_page=10")
+    target = step_back_target((listed or {}).get("result")) if listed and listed.get("success") else None
+    if not target:
+        return False, "couldn't find the version from before this publish to go back to"
+    answer = api("POST", f"deployments/{target}/rollback")
+    if not answer or not answer.get("success"):
+        return False, "Cloudflare refused to go back to the version from before this publish"
+    return True, "the version from before this publish is back"
+
+
+def cmd_live_check(args):
+    key = build_key()
+    gate = gate_is_on()
+    if args.look:
+        problems = live_problems(live_get, key, gate)
+        status, body = live_get(f"version.json?t={int(time.time())}")
+        version = as_json(body) if status == 200 else None
+        if version is None:
+            problems.append("version.json isn't being served")
+        print(f"Live now: commit {str((version or {}).get('sha'))[:7]}, built {(version or {}).get('built')}." + ("" if key else " (Public checks only: the data files need the build's key.)"))
+        print("The site is answering." if not problems else "PROBLEMS: " + "; ".join(problems) + ".")
+        return 1 if problems else 0
+    verdict, problems = live_verdict(live_get, read_json(SITE / "version.json"), key, gate)
+    if verdict == "ok":
+        summary("Live check: the new version is being served and the site is answering.")
+        return 0
+    if verdict == "not-served":
+        summary("Live check FAILED: " + problems[0] + ". Members are not affected; nothing was undone.")
+        return 1
+    summary("Live check FAILED after publishing: " + "; ".join(problems) + ".")
+    done, words = step_back()
+    summary(f"Going back: {words}.")
+    if done:
+        time.sleep(LIVE_PAUSE)
+        still = live_problems(live_get, key, gate)
+        summary("After going back the site is answering. This push is NOT live; fix it and push again." if not still else "STILL DOWN after going back: " + "; ".join(still) + ". This needs a person now.")
+    return 1
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Decisions the GitHub workflows make.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -455,6 +656,9 @@ def main(argv=None):
     check.add_argument("--again", action="store_true", help="right before publishing: also stop if the site changed since the first check")
     check.set_defaults(run=cmd_refresh_check)
     sub.add_parser("refresh-stamp").set_defaults(run=cmd_refresh_stamp)
+    live = sub.add_parser("live-check")
+    live.add_argument("--look", action="store_true", help="only look and report: expects no particular version and never goes back")
+    live.set_defaults(run=cmd_live_check)
     args = parser.parse_args(argv)
     return args.run(args)
 
