@@ -26,6 +26,10 @@
  "2026_05_BUF_LA": {
   "away": "BUF",
   "away_pts": 24.7,
+  "final": [
+   37,
+   34
+  ],
   "frozen": true,
   "home": "LA",
   "home_pts": 27.6,
@@ -33,9 +37,11 @@
   "spread": -3.5,
   "spread_edge": 0.6,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 54.5,
   "total_edge": 2.2,
   "total_pick": "under",
+  "total_result": "loss",
   "updated": "2026-10-12T15:31Z",
   "week": 5
  },
