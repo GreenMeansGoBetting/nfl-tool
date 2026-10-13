@@ -1502,28 +1502,53 @@ def last_starters(records: list) -> dict:
 
 
 def crease_starter(posted: dict | None, listed: list, team_goalies: list, all_goalies: dict, rest, last_start) -> dict:
-    """Who should start in net for a team tonight, best source first:
-      "lineup"  the first goalie in the NHL's projected lineup for the game
-      "market"  the goalie the book has a saves line for
-      "usual"   the goalie with the most starts this season, or the other
-                one on the second night of a back-to-back he started the
-                first night of
+    """Who should start in net for a team tonight. NOTHING the site can read
+    is a confirmation: starters are official at warmups, and no feed carries
+    that. There are two outside sources, and each is one opinion:
+      * the first goalie in the NHL's projected lineup for the game. Right
+        92% of the time in 2025-26 (2,378 of 2,583), written around midday,
+        sometimes with no morning skate to go on. When it named the goalie
+        who had started the night before, it was right 55% of the time.
+      * the goalie the book has a saves line for. Books post the expected
+        starter and take the line down when that changes.
+    `source` says how much stands behind the name:
+      "both"    the two agree (the page's check mark)
+      "split"   they name different goalies: the book's is shown, since it
+                is the later and the one with money behind it, and `other`
+                carries the name the NHL's lineup has (Jake Allen against
+                Nico Daws, New Jersey, 2026-10-13: the book was right)
+      "lineup" / "market"   only one of them has spoken
+      "usual"   neither: the goalie with the most starts this season, or the
+                other one on the second night of a back-to-back he started
+                the first night of
+    `doubt` = the lineup alone names the goalie who started last night.
     Returns {"id" (None for a goalie with no game this season), "name" (None
-    when nobody can be named), "source"}. The promo moves a pick to whoever
-    does start for the team, so a wrong guess costs a name, not the row."""
+    when nobody can be named), "source", "other", "doubt"}. The promo moves a
+    pick to whoever does start for the team, so a wrong name never changes
+    whose saves count; it must still never be shown as settled."""
     usual = team_goalies[0] if team_goalies else None
     if usual and rest == 1 and last_start == usual["id"] and len(team_goalies) > 1:
         usual = team_goalies[1]
-    if posted and posted.get("goalie"):
-        who = posted["goalie"]  # an id when the site knows him, else his name as the story spells it
+
+    def named(who, name=None):
+        """{"id", "name"} for an id the site knows, or a goalie it doesn't (by the name given)."""
         known = all_goalies.get(who)
-        return {"id": known["id"] if known else None, "name": known["name"] if known else who, "source": "lineup"}
-    if listed:
-        # Two goalies listed for one team: the usual starter if he is one of them.
-        row = next((row for row in listed if usual and row["id"] == usual["id"]), listed[0])
-        known = all_goalies.get(row["id"])
-        return {"id": row["id"], "name": known["name"] if known else row["name"], "source": "market"}
-    return {"id": usual["id"] if usual else None, "name": usual["name"] if usual else None, "source": "usual"}
+        return {"id": known["id"] if known else None, "name": known["name"] if known else name or who}
+
+    same = lambda a, b: bool(a and b) and ((a["id"] and a["id"] == b["id"]) or plain(a["name"]) == plain(b["name"]))
+    lineup = named(posted["goalie"]) if posted and posted.get("goalie") else None
+    # Two goalies listed for one team: the one the lineup has, else the usual starter, else the first.
+    priced = [named(row["id"], row["name"]) for row in listed]
+    market = next((g for g in priced if same(g, lineup)), None) or next((g for g in priced if usual and g["id"] == usual["id"]), None) or (priced[0] if priced else None)
+    if lineup and market:
+        if same(lineup, market):
+            return {**market, "source": "both", "other": None, "doubt": False}
+        return {**market, "source": "split", "other": lineup["name"], "doubt": False}
+    if lineup:
+        return {**lineup, "source": "lineup", "other": None, "doubt": rest == 1 and bool(lineup["id"]) and lineup["id"] == last_start}
+    if market:
+        return {**market, "source": "market", "other": None, "doubt": False}
+    return {"id": usual["id"] if usual else None, "name": usual["name"] if usual else None, "source": "usual", "other": None, "doubt": False}
 
 
 def crease_line(starter: dict, listed: list) -> dict | None:
@@ -1562,7 +1587,7 @@ def crease_row(model, g: dict, team: str, opp: str, side: str, other: str, start
     starts = proj["starts"]
     return {
         "game_id": g["game_id"], "team": team, "opp": opp, "home": side == "home", "locked": False,
-        "id": starter["id"], "name": starter["name"], "source": starter["source"],
+        "id": starter["id"], "name": starter["name"], "source": starter["source"], "other": starter["other"], "doubt": starter["doubt"],
         # His season so far, as his game log says it.
         "starts": starts, "saves_avg": num(proj["start_saves"] / starts, 1) if starts else None, "sv_pct": ratio(proj["sa"] - proj["ga"], proj["sa"]), "high": proj["high"] or None,
         # Both sides of the matchup: what the other team puts on net a game, and what his own team gives up.

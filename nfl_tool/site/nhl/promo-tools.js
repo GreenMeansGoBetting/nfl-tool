@@ -92,12 +92,12 @@ function renderSchedule() {
     .map((g) => {
       const final = g.status === "final";
       const rows = board ? board.goalies.filter((r) => r.game_id === g.game_id) : [];
-      const named = rows.filter((r) => r.source === "lineup").length;
+      const agreed = rows.filter((r) => r.source === "both").length;
       const status = !rows.length || final
         ? ""
-        : named === 2
-          ? `<span class="shots-card-lineup shots-card-lineup-in" title="Both starters are from the NHL's projected lineup for this game">&#10003; Goalies</span>`
-          : `<span class="shots-card-lineup" title="The NHL hasn't posted this game's projected lineup yet: the starter shown is the one the book has a line for, or the team's usual one">Goalies expected</span>`;
+        : agreed === 2
+          ? `<span class="shots-card-lineup shots-card-lineup-in" title="For both teams, the NHL's projected lineup and the betting market name the same starter. Still not official until warmups.">&#10003; Goalies agree</span>`
+          : `<span class="shots-card-lineup" title="At least one starter here rests on a single source, or the sources disagree">Goalies expected</span>`;
       return `<div class="matchup-card crease-game${final ? " matchup-card-final" : ""}${rows.length ? "" : " shots-card-empty"}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
         <span class="matchup-date">${final ? "Final" : fmtTime(g.time).replace(" ET", "")}</span>
@@ -112,10 +112,16 @@ function tagChips(r) {
 }
 function goalieCell(r) {
   const name = r.name ? `<span class="koe-name">${r.name}</span>` : `<span class="koe-name muted-label">Starter TBD</span>`;
-  const sure = r.source === "lineup"
-    ? `<span class="crease-sure" title="First goalie in the NHL's projected lineup for this game">&#10003;</span>`
-    : "";
-  const why = r.source === "lineup" ? "" : r.source === "market" ? "Expected: the goalie Novig has a saves line for. The NHL's projected lineup isn't in yet." : "Expected: the team's usual starter (the other goalie on the second night of a back-to-back). The NHL's projected lineup isn't in yet.";
+  // Nothing here is a confirmation: starters are official at warmups. The check
+  // mark means two sources agree; a split is shown, never smoothed over.
+  const sure = r.source === "both"
+    ? `<span class="crease-sure" title="The NHL's projected lineup and the betting market both have him starting. Not official until warmups.">&#10003;</span>`
+    : r.source === "split"
+      ? `<span class="crease-split" title="The sources disagree: the NHL's projected lineup has ${r.other}, the book has a saves line for ${r.name}. The book's goalie is shown. Check before you bet.">&#9888; or ${r.other}</span>`
+      : r.doubt
+        ? `<span class="crease-split" title="Only the NHL's projected lineup names him, and he started last night. When it has named the same goalie on back-to-back nights it has been right about half the time.">&#9888;</span>`
+        : "";
+  const why = { lineup: "Expected: named by the NHL's projected lineup only (right about 92% of the time last season). No saves line is posted for him yet.", market: "Expected: the goalie Novig has a saves line for. The NHL's projected lineup isn't in yet.", usual: "Expected: the team's usual starter (the other goalie on the second night of a back-to-back). Neither the NHL's projected lineup nor a saves line is in yet." }[r.source] || "";
   return `<td class="koe-player crease-goalie"${why ? ` title="${why}"` : ""}><span class="koe-who">${shareLogo(r.team, 22)}${playerClick(r.id, name)}${sure}${tagChips(r)}<span class="koe-meta">${r.home ? "vs" : "@"} ${shareLogo(r.opp, 18)}</span></span></td>`;
 }
 function statCell(col, r, pools) {
@@ -195,16 +201,17 @@ function renderTable() {
       </tr>`)
     .join("");
   box.innerHTML = `<section class="koe-section"><table class="data-table koe-table crease-table">${colgroup}<thead>${head}</thead><tbody>${body}</tbody></table></section>`;
-  const sure = all.filter((r) => r.source === "lineup").length;
+  const sure = all.filter((r) => r.source === "both").length;
+  const split = all.filter((r) => r.source === "split").length;
   const lined = all.filter((r) => has(r.line)).length;
-  el("crease-count").textContent = `${all.length} starters · ${sure} confirmed · lines for ${lined}`;
+  el("crease-count").textContent = `${all.length} starters · two sources agree on ${sure}${split ? ` · ${split} in dispute` : ""} · lines for ${lined}`;
 }
 function renderHead() {
   const date = days()[dayIndex];
   const board = dayBoard(date);
   const games = gamesOn(date).length;
   el("crease-capture-sub").textContent = date ? `${longDate(date)} · ${games} game${games === 1 ? "" : "s"}` : "";
-  el("crease-key").innerHTML = `<span><b>Upside</b> chance to make the day's most saves</span><span><b>Value</b> that chance against what his line alone says</span><span><b class="crease-sure">&#10003;</b> in the NHL's projected lineup</span><span>${rankScaleKey("more shots", "fewer")}</span><span>Lines: Novig</span>`;
+  el("crease-key").innerHTML = `<span><b>Upside</b> chance to make the day's most saves</span><span><b>Value</b> that chance against what his line alone says</span><span><b class="crease-sure">&#10003;</b> NHL.com and the market agree on the starter</span><span>${rankScaleKey("more shots", "fewer")}</span><span>Lines: Novig</span>`;
   const rows = board ? board.goalies : [];
   const locked = new Set(rows.filter((r) => r.locked && !has(r.actual)).map((r) => r.game_id)).size;
   const note = board && board.final

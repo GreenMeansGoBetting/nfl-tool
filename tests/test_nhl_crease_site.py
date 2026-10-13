@@ -19,7 +19,7 @@ TONIGHT = "2026-10-13"
 ROWS = """() => [...document.querySelectorAll('.crease-row')].map((tr) => {
     const cells = [...tr.children].filter((td) => !td.classList.contains('koe-gap'));
     const text = (i) => cells[i].textContent.trim();
-    return { team: tr.dataset.team, name: tr.querySelector('.koe-name').textContent, sure: !!tr.querySelector('.crease-sure'),
+    return { team: tr.dataset.team, name: tr.querySelector('.koe-name').textContent, sure: !!tr.querySelector('.crease-sure'), split: (tr.querySelector('.crease-split') || { textContent: '' }).textContent,
         tags: [...tr.querySelectorAll('.crease-tag')].map((t) => t.textContent.toLowerCase()),
         line: text(1), avg: text(2), opp: text(5), allowed: text(6), shots: text(7), saves: text(8), big: text(9), upside: text(10), value: text(11),
         check: !!tr.querySelector('.crease-pill-check'), ranked: [5, 6].map((i) => cells[i].classList.contains('nhl-rank-cell')), colored: [1, 2].map((i) => cells[i].classList.contains('nhl-rank-cell')) };
@@ -76,7 +76,8 @@ class Board(unittest.TestCase):
             self.assertEqual(r["line"], "" if b["line"] is None else f"{b['line']:.1f}")
             self.assertEqual(r["tags"], [t for t in b["tags"] if t == "value"])  # Upside has its column, not a chip
             self.assertEqual(r["colored"], [b["line"] is not None, b["saves_avg"] is not None])
-            self.assertEqual(r["sure"], b["source"] == "lineup")
+            self.assertEqual(r["sure"], b["source"] == "both")  # a check mark needs two sources
+            self.assertEqual(r["split"], f"\u26a0 or {b['other']}" if b["source"] == "split" else "\u26a0" if b["doubt"] else "")
             self.assertEqual(r["value"].rstrip("?"), "" if b["value"] is None else f"{b['value']:.2f}")
             self.assertEqual(r["check"], bool(b["check"]) and b["value"] is not None)
             self.assertEqual(r["ranked"], [True, True])
@@ -91,7 +92,8 @@ class Board(unittest.TestCase):
     def test_the_count_line(self):
         reset()
         rows = built()
-        self.assertEqual(PAGE.inner_text("#crease-count"), f"32 starters · {sum(r['source'] == 'lineup' for r in rows)} confirmed · lines for {sum(r['line'] is not None for r in rows)}")
+        split = sum(r["source"] == "split" for r in rows)
+        self.assertEqual(PAGE.inner_text("#crease-count"), f"32 starters · two sources agree on {sum(r['source'] == 'both' for r in rows)}{f' · {split} in dispute' if split else ''} · lines for {sum(r['line'] is not None for r in rows)}")
 
 
 class Sorting(unittest.TestCase):

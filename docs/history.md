@@ -1179,3 +1179,9 @@ information."
   from the Shots page. Fixed in passing.
 - The NHL's own logos can't go into a saved image (no cross-origin header on assets.nhle.com),
   so this one page uses ESPN's, as the NFL pages always have.
+- **The Devils goalie (same evening).** "Massive error - Jake Allen is confirmed for the Devils,
+  yet the site is showing Nico Daws as confirmed. This cannot happen." The page had put the
+  NHL's projected lineup first and a check mark on it. That lineup named Daws, who had started
+  the night before, on a day the team didn't skate; Novig had a saves line for Allen only. Now
+  no single source earns a mark, two agreeing earn "agree", and a disagreement is printed on the
+  row with both names.

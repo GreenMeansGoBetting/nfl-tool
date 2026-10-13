@@ -3415,6 +3415,7 @@ main { max-width: 1840px; }
 .crease-table .koe-meta { font-size: 0.72rem; gap: 4px; }
 .crease-g-value { --g: var(--mid-rgb); }
 .crease-sure { flex: 0 0 auto; font-size: 0.78rem; font-weight: 800; color: var(--good-text); }
+.crease-split { flex: 0 0 auto; font-size: 0.66rem; font-weight: 800; white-space: nowrap; color: var(--mid-text); }
 .crease-tag { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; border: 1px solid; }
 .crease-tag-upside { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
 .crease-tag-value { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border-color: rgba(var(--mid-rgb), 0.55); }

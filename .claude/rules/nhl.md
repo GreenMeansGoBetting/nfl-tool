@@ -386,9 +386,20 @@ means your payout will be smaller").
     each goalie (DraftKings doesn't publish it; payouts after the fact could back it out).
 - **The board** (`crease_board` -> `site/nhl/crease.json`, untracked): `days[date].goalies`,
   one row per team playing, for the same days as the Shots page.
-  - **Starter** (`crease_starter`): the first goalie in the NHL's projected lineup (`source`
-    "lineup": the page's check mark), else the goalie Novig has a saves line for ("market"), else
-    the most starts, or the other goalie on the second night of a back-to-back ("usual").
+  - **A starter is never called confirmed** (the user, 2026-10-13: "Massive error ... this cannot
+    happen"). The first version showed Nico Daws for New Jersey with a check mark while Jake
+    Allen was starting: it trusted the NHL's projected lineup first and called it confirmed. That
+    story is one writer's midday projection (that day's said "the Devils did not hold a morning
+    skate"). Measured on 2025-26: its first goalie started 92% of the time (2,378 of 2,583), and
+    55% when it named the goalie who had started the night before. Starters are official at
+    warmups and no feed the site reads carries that.
+  - **Starter** (`crease_starter`), `source`: "both" = the NHL's lineup and the book's saves line
+    name the same goalie (the ONLY check mark, worded "agree", never "confirmed"); "split" = they
+    differ: the book's goalie is shown (later, and money behind it) and `other` carries the
+    lineup's name, drawn as a warning beside him; "lineup" / "market" = one source only, no mark;
+    "usual" = neither (most starts, or the other goalie on the second night of a back-to-back).
+    `doubt` = the lineup alone names last night's starter (a warning). A test fails if the page's
+    script uses the word "confirmed".
   - Row: his season (`starts`, `saves_avg`, `sv_pct`, `high`), both sides of the matchup
     (`opp_shots` + rank, `allowed` + rank; 1 = the most, either way more work for him), the
     model's `shots` and `mean`, the line (`line`, `over`, `under`, `alts`, `mkt_mean` = the line

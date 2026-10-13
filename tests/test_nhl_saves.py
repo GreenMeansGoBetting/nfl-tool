@@ -200,20 +200,45 @@ class Starter(unittest.TestCase):
     def pick(self, posted=None, listed=(), rest=None, last=None):
         return build_nhl.crease_starter(posted, list(listed), self.GOALIES, self.ALL, rest, last)
 
-    def test_the_projected_lineup_comes_first(self):
-        self.assertEqual(self.pick({"goalie": "g2"}, [{"id": "g1", "name": "Number One"}]), {"id": "g2", "name": "Number Two", "source": "lineup"})
-        self.assertEqual(self.pick({"goalie": "Brand New"}), {"id": None, "name": "Brand New", "source": "lineup"})
+    def test_two_sources_agreeing_is_the_most_it_can_say(self):
+        got = self.pick({"goalie": "g2"}, [{"id": "g2", "name": "N. Two"}])
+        self.assertEqual(got, {"id": "g2", "name": "Number Two", "source": "both", "other": None, "doubt": False})
+        # A goalie the site doesn't know yet, spelled two ways.
+        self.assertEqual(self.pick({"goalie": "Bránd New"}, [{"id": None, "name": "Brand New"}])["source"], "both")
 
-    def test_then_the_goalie_the_book_lists(self):
+    def test_a_disagreement_is_shown_never_settled_quietly(self):
+        """New Jersey, 2026-10-13: the NHL's lineup had Nico Daws (who started the
+        night before), the book had a line for Jake Allen only, and the page
+        showed Daws with a check mark. The book's goalie is the one shown, and
+        the other name rides along."""
+        got = self.pick({"goalie": "g2"}, [{"id": "g1", "name": "Number One"}], rest=1, last="g2")
+        self.assertEqual(got, {"id": "g1", "name": "Number One", "source": "split", "other": "Number Two", "doubt": False})
+
+    def test_one_source_alone_is_only_expected(self):
+        self.assertEqual(self.pick({"goalie": "g2"})["source"], "lineup")
+        self.assertEqual(self.pick({"goalie": "Brand New"}), {"id": None, "name": "Brand New", "source": "lineup", "other": None, "doubt": False})
         self.assertEqual(self.pick(None, [{"id": "g2", "name": "N. Two"}])["source"], "market")
         self.assertEqual(self.pick(None, [{"id": "g2", "name": "N. Two"}])["name"], "Number Two")
-        self.assertEqual(self.pick({"goalie": None}, [{"id": "g2", "name": "x"}, {"id": "g1", "name": "y"}])["id"], "g1")  # two listed: the usual one
 
-    def test_then_the_usual_one_and_the_other_on_a_back_to_back(self):
+    def test_the_lineup_naming_last_nights_starter_is_doubted(self):
+        self.assertTrue(self.pick({"goalie": "g2"}, rest=1, last="g2")["doubt"])
+        self.assertFalse(self.pick({"goalie": "g2"}, rest=1, last="g1")["doubt"])
+        self.assertFalse(self.pick({"goalie": "g2"}, rest=3, last="g2")["doubt"])
+
+    def test_two_goalies_listed_by_the_book(self):
+        both = [{"id": "g2", "name": "x"}, {"id": "g1", "name": "y"}]
+        self.assertEqual(self.pick({"goalie": None}, both)["id"], "g1")  # no lineup: the usual one
+        self.assertEqual((self.pick({"goalie": "g2"}, both)["id"], self.pick({"goalie": "g2"}, both)["source"]), ("g2", "both"))
+
+    def test_with_no_source_the_usual_one_and_the_other_on_a_back_to_back(self):
         self.assertEqual(self.pick()["id"], "g1")
         self.assertEqual(self.pick(rest=1, last="g1")["id"], "g2")
         self.assertEqual(self.pick(rest=1, last="g2")["id"], "g1")
-        self.assertEqual(build_nhl.crease_starter(None, [], [], {}, None, None), {"id": None, "name": None, "source": "usual"})
+        self.assertEqual(build_nhl.crease_starter(None, [], [], {}, None, None), {"id": None, "name": None, "source": "usual", "other": None, "doubt": False})
+
+    def test_no_source_is_ever_called_confirmed(self):
+        page = (Path(build_nhl.__file__).parent.parent / "site" / "nhl" / "promo-tools.js").read_text(encoding="utf-8")
+        self.assertNotIn("confirmed", page.lower().replace("never confirmed", ""))
 
 
 class Board(unittest.TestCase):
@@ -233,7 +258,7 @@ class Board(unittest.TestCase):
 
     def test_one_row_per_team_named_for_its_starter(self):
         self.assertEqual(set(self.rows), {"BUSY", "LEAKY", "CALM", "TIGHT"})
-        self.assertEqual((self.rows["LEAKY"]["name"], self.rows["LEAKY"]["source"]), ("Lee Leaky", "lineup"))
+        self.assertEqual((self.rows["LEAKY"]["name"], self.rows["LEAKY"]["source"]), ("Lee Leaky", "both"))
         self.assertEqual(self.rows["BUSY"]["source"], "market")
         self.assertEqual(self.rows["CALM"]["source"], "usual")
         self.assertEqual(self.board["2026-10-13"]["starters"], 4)
