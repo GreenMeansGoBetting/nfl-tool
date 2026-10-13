@@ -274,13 +274,14 @@
 
   // ---- Suite switcher (added 2026-10-11) ----
   // The brand in the topbar ("GMG NFL SUITE") becomes a dropdown for moving
-  // between suites. Until the NBA suite launches it only works for the owner
-  // and on localhost; flip SUITE_SWITCH_PUBLIC to open it to every member
-  // (and take the owner-only guard off the NBA pages -- .nba-app in style.css).
+  // between suites. Until the NBA and NHL suites launch it only works for the
+  // owner and on localhost; flip SUITE_SWITCH_PUBLIC to open it to every member
+  // (and take the owner-only guard off those pages -- .nba-app in style.css).
   const SUITE_SWITCH_PUBLIC = false;
   const SUITES = [
     { key: "nfl", label: "NFL", href: "/game-overview.html" },
     { key: "nba", label: "NBA", href: "/nba/" },
+    { key: "nhl", label: "NHL", href: "/nhl/" },
   ];
   function suiteSwitchOn() {
     const cls = document.documentElement.classList;
@@ -289,7 +290,7 @@
   function addSuiteSwitcher() {
     const brand = document.querySelector(".topbar .brand");
     if (!brand || brand.dataset.suite) return;
-    const current = location.pathname.includes("/nba/") ? "nba" : "nfl";
+    const current = (SUITES.find((s) => s.key !== "nfl" && location.pathname.includes(s.href)) || SUITES[0]).key;
     brand.dataset.suite = current;
     brand.classList.add("suite-brand");
     brand.insertAdjacentHTML("beforeend", '<span class="suite-caret" aria-hidden="true">&#9662;</span>');

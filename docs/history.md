@@ -936,3 +936,46 @@ The brand is "GMG Sports Data Suite"; NFL and NBA are suites inside it.
 - **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
   play-by-play tools (shot zones, first basket, quarter splits).
 
+
+## NHL
+
+### GMG NHL Suite (started 2026-10-13, a week into the 2026-27 season)
+
+Two days after the NBA suite was started, the user asked whether the NHL could get the same
+treatment: "is there enough free data out there for advanced NHL data points - box score stats,
+but also location on rink". They pointed at moneypuck.com as an example of the data they wanted,
+noting that its page says commercial use is prohibited, and asked for a source that could be used
+instead.
+
+- **Why not MoneyPuck:** its data page allows non-commercial use only, asks for credit, and says
+  unapproved scraping will be blocked. This site has paying members, so it counts as commercial.
+  The user was also told plainly that no source explicitly permits commercial use (NHL.com's terms
+  read "personal, non-commercial"), which is the same footing as the ESPN and NFL feeds the other
+  suites already stand on, and that this is a reading of published terms, not legal advice.
+- **What was found instead:** everything MoneyPuck starts from is in the NHL's own public feed,
+  which answered from the user's PC with no key (the NBA's official feed had been blocked). One
+  game's play-by-play carries every shot, miss, block, goal, hit and faceoff with its spot on the
+  ice. sportsdataverse (the source of the NBA files) has no NHL season files, only injuries and
+  an open expected-goals model, so games are fetched one at a time.
+- **Why games are kept as raw files:** with no season files, a cold build would download 1,344
+  games (two requests each). The build keeps each official game on disk and the deploy carries
+  that folder in GitHub's cache. The raw game is kept rather than its totals so later stats
+  (expected goals, shot maps, line combinations) need no new downloads.
+- **Why last season is a committed file:** on day one teams had played about 5 games, and the
+  project rule is to distrust small samples. `prior_2026.json.gz` (60 KB) holds 2025-26's team
+  and player numbers so the page can open on them until teams reach 10 games, without CI ever
+  downloading last season. The page has a switch between the two seasons.
+- **Checks made before trusting the numbers:** on all 1,312 games of 2025-26, goals matched the
+  league's season report exactly, shots on goal within 0.07 a game, 5v5 shooting % exactly, and
+  every one of 109,571 offensive / defensive zone shots faced the right net after being turned.
+  Left / right was settled by comparing each team's lean with the NHL's own EDGE "L" / "R" shot
+  areas (28 of 31 teams agree; the other three are near ties).
+- **Why the rink colors mean volume:** a team that takes a lot of point shots isn't good at
+  anything, so "more is green for the offense" would mislead. The rink is colored for how many
+  shots the matchup points to from each area (two-sided, like `matchupCall`), which is also what
+  matters for shot props.
+- **Deliberately left for later:** expected goals (it needs its own fit and checks; the user
+  should decide whether they want it before it is shown as a number), starting goalies (no free
+  feed found), props, a Summary card.
+- **How a CI build is confirmed:** the repo is private and `nhl/data.json` is behind the login,
+  so `version.json` now carries a short note on the NBA and NHL builds.

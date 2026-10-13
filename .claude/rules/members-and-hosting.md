@@ -23,17 +23,23 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   - **The gate** (`python tools/check_site.py --gate`, retried once): every page and every game's
     Summary cards are opened in a real browser before anything is published. A script error, a
     missing file or a card that doesn't draw fails the run, so members keep the last good version
-    and GitHub emails the owner. Cards that are merely too full never block. The NBA page is
-    left out of the gate (its build may fail on its own).
+    and GitHub emails the owner. Cards that are merely too full never block. The NBA and NHL
+    pages are left out of the gate (their builds may fail on their own).
   - It also refuses to publish if the member database step could not write the database binding
     (publishing without it would lock email members out).
   - The publish step is NOT `continue-on-error`: a failed publish is a failed run.
   - `version.json` (commit sha, run id, build time) is written into the site and served without
     a login (`/version.json` is let through by the middleware). It is how a deploy is confirmed.
+    It also carries `nba` and `nhl`: when each of those builds last worked (`built`, null if it
+    failed), how many lines it matched, and for NHL the games loaded / downloaded or the failed
+    build's last line (`error`). Their data files are behind the login, so this is the only way
+    to see those builds from outside.
 - It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, and on manual dispatch. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
   are free, so they're fetched fresh on every build.
-- Other steps: "Build NBA data" (`continue-on-error`) and "Save GMG model record" (commits
+- Other steps: "Build NBA data" and "Build NHL data" (both `continue-on-error`; the NHL one
+  sits between "Restore saved NHL games" and "Save NHL games", see nhl.md), "Note the NBA and NHL
+  builds in version.json", and "Save GMG model record" (commits
   `model_history/gmg_model.json` as github-actions[bot]; the workflow has `contents: write`).
 - **`.github/workflows/site-check.yml`** runs after every successful deploy (and on demand): it
   downloads the LIVE data (`tools/fetch_live_data.py`, same `X-GMG-Build` key) and runs
@@ -156,7 +162,8 @@ For people who'd pay but won't join Discord. Password version: no email service,
   requests": it lists every idea newest first (name, date), with Mark added / Undo / Delete (a
   PATCH; delete is soft, status `deleted`) and "+ Add my own idea". Members can never read others'
   ideas.
-- **Suite switcher** (`addSuiteSwitcher`, `SUITE_SWITCH_PUBLIC`): see nba.md.
+- **Suite switcher** (`addSuiteSwitcher`, `SUITE_SWITCH_PUBLIC`): see nba.md. It lists NFL, NBA
+  and NHL (`SUITES`).
 
 ## Support tab (`support.html`)
 

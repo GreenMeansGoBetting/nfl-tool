@@ -3,7 +3,7 @@ site check (.github/workflows/site-check.yml).
 
     python tools/fetch_live_data.py
 
-Writes nfl_tool/site/data.json and nfl_tool/site/nba/data.json exactly as
+Writes nfl_tool/site/data.json and the NBA and NHL data files exactly as
 members are being served them, so the check runs against what is live. The
 site sits behind the member login; this proves itself the same way the data
 build does (a key derived from DISCORD_BOT_TOKEN, which only CI holds).
@@ -20,7 +20,7 @@ from pathlib import Path
 
 SITE = Path(__file__).resolve().parent.parent / "nfl_tool" / "site"
 LIVE = "https://nfl.gmgsports.org"
-FILES = ["data.json", "nba/data.json"]
+FILES = ["data.json", "nba/data.json", "nhl/data.json"]
 
 
 def main():

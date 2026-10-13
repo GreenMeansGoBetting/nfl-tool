@@ -7,6 +7,10 @@ nfl_tool/data/
 # already committed.
 nfl_tool/site/data.json
 nfl_tool/site/nba/data.json
+nfl_tool/site/nhl/data.json
+
+# Downloads kept between local builds (nflverse files, NBA season files, NHL games)
+/data/
 
 __pycache__/
 *.pyc

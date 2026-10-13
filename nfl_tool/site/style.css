@@ -3671,6 +3671,36 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-inj .gs-inj-status { min-width: 34px; text-align: center; }
 .nba-inj-what { margin-left: auto; color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
 
+/* ---- GMG NHL Suite (site/nhl/): the NBA page's layout (.nba-* above) plus the hockey-only pieces ---- */
+.nhl-view-toggle { margin: 0 0 12px; }
+.nhl-view-btn small { margin-left: 6px; font-size: 0.78em; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.75; }
+.nhl-line.g2-line { grid-template-columns: 1.5fr 1.5fr 1fr; max-width: 1100px; }
+.nhl-line .g2-line-tile { flex-direction: column; gap: 3px; padding: 8px 10px 10px; }
+.nhl-line .g2-line-big small { font-size: 0.62em; font-weight: 700; color: var(--muted); }
+.nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.nhl-pts { margin-left: 6px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.nhl-headshot { flex: none; width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--table-head); }
+/* The rink: the offensive zone, net at the top, drawn in feet (nhl.js RINK_ZONES) */
+.nhl-rink-box { padding-bottom: 12px; }
+.nhl-rink { display: block; width: calc(100% - 20px); max-width: 540px; margin: 0 auto; }
+.nhl-ice { fill: var(--panel-2); }
+.nhl-zone rect, .nhl-zone polygon { fill: transparent; stroke: var(--border-strong); stroke-width: 0.35; }
+.nhl-zone-more rect, .nhl-zone-more polygon { fill: rgba(var(--good-rgb), 0.3); stroke: rgba(var(--good-rgb), 0.7); }
+.nhl-zone-fewer rect, .nhl-zone-fewer polygon { fill: rgba(var(--bad-rgb), 0.24); stroke: rgba(var(--bad-rgb), 0.6); }
+.nhl-marks { pointer-events: none; }
+.nhl-marks * { fill: none; stroke: var(--border-strong); stroke-width: 0.3; }
+.nhl-marks .nhl-goal-line { stroke: rgba(var(--bad-rgb), 0.6); stroke-width: 0.45; }
+.nhl-marks .nhl-blue-line { stroke: var(--grid-line); stroke-width: 1.1; }
+.nhl-marks .nhl-dot { fill: rgba(var(--bad-rgb), 0.6); stroke: none; }
+.nhl-marks .nhl-crease { fill: var(--table-head); }
+.nhl-marks .nhl-net { fill: var(--panel); stroke: var(--muted); }
+.nhl-boards { fill: none; stroke: var(--border-strong); stroke-width: 0.9; }
+.nhl-zone-text { pointer-events: none; }
+.nhl-zone-text text { text-anchor: middle; font-family: var(--font-display); fill: var(--text); }
+.nhl-zone-text .nhl-zone-label { font-size: 2.5px; font-weight: 800; letter-spacing: 0.22px; text-transform: uppercase; fill: var(--muted); }
+.nhl-zone-text .nhl-zone-big { font-size: 6.4px; font-weight: 800; }
+.nhl-zone-text .nhl-zone-small { font-size: 2.7px; font-weight: 700; fill: var(--muted); }
+
 /* .sc-tight: a Summary card too full to fit near full size gives up padding and gaps before
    its text is shrunk (fitSummaryCard, SUMMARY_TIGHT_BELOW). Nothing is hidden. */
 .td-card.sc-tight .td-team { row-gap: 6px; padding: 7px 9px 8px; }
@@ -3722,6 +3752,11 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .nba-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .nba-line.g2-line { grid-template-columns: 1fr 1fr; }
   .nba-box { overflow-x: auto; }
+  .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .nhl-tiles .nba-tile { padding: 6px 2px 7px; }
+  .nhl-tiles .nba-tile b { font-size: 0.95rem; white-space: nowrap; }
+  .nhl-suite .nba-banner-right { white-space: nowrap; font-size: 1.05rem; }
+  .nhl-line.g2-line { grid-template-columns: 1fr; }
   .mw-page .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }

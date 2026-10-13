@@ -12,11 +12,13 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 ## Suite switcher and launch switch
 
 - `addSuiteSwitcher` (sync.js; `.suite-*` styles): the topbar brand ("GMG NFL SUITE") becomes a
-  dropdown listing both suites.
+  dropdown listing every suite in `SUITES` (NFL, NBA, NHL since 2026-10-13).
 - **Owner / localhost only until launch** (`SUITE_SWITCH_PUBLIC = false`); for everyone else the
   brand is still a plain link home. The NBA pages are guarded the same way (`.nba-app` hidden,
   `.nba-soon` "being built" note shown).
 - **To launch:** set `SUITE_SWITCH_PUBLIC = true` (adds `html.suite-public`, which opens both).
+  One switch covers NBA and NHL: the NHL page uses the same `.nba-app` / `.nba-soon` guard, so
+  launching one without the other needs a second switch first.
 
 ## Data: sportsdataverse / hoopR
 
@@ -62,6 +64,7 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   the league from each unit's side, same two-sided Mismatch / Tough / Good vs Good tags as the NFL
   cards), Rotations, Injuries, Recent Games.
 - It does NOT load common.js (NFL-specific); it shares style.css and sync.js. New NBA styles are
-  `.nba-*`. Pace is shown without a good/bad color (fast or slow isn't good or bad).
+  `.nba-*`. The NHL page reuses the layout ones (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app`),
+  so check `site/nhl/` after changing them. Pace is shown without a good/bad color (fast or slow isn't good or bad).
 - **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
   play-by-play tools (shot zones, first basket, quarter splits).

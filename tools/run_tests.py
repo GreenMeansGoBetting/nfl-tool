@@ -8,8 +8,9 @@ week's data, so they give the same answer every day. Each one pins a rule or
 a bug that already happened: the GMG model's score (and that the build and
 the browser agree on it), the 4-point pick rule, the odds lock at kickoff,
 Novig's TD odds, two-sided matchup calls, the Game Summary edge rule, pocket
-QBs, and the TD Summary's top-8 defense guard. The deploy runs this before it
-builds anything.
+QBs, the TD Summary's top-8 defense guard, and the NHL build and page (rink
+areas, one saved game's totals, the same odds lock). The deploy runs this
+before it builds anything.
 
 The browser half needs Playwright with its Chromium browser:
     pip install -r tools/requirements-dev.txt

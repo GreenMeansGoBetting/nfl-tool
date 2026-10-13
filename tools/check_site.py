@@ -47,7 +47,12 @@ PAGES = [
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
     ("NBA Game Previews", "nba/index.html", None),
+    ("NHL Game Previews", "nhl/index.html", None),
 ]
+# The other suites' pages: they have a schedule strip to wait for, and their
+# data builds are allowed to fail without holding up the NFL site.
+SUITE_FOLDERS = ("nba/", "nhl/")
+SUITE_LABELS = ("NBA", "NHL")
 GAME_CARDS = "#matchup-row .matchup-card"  # this week's games in the schedule strip
 DESKTOP = {"width": 1440, "height": 1000}
 PHONE = {"width": 390, "height": 844}
@@ -178,12 +183,13 @@ def open_card(page, index):
 # --gate: the problems that mean a page or card is broken for members (a
 # script error, a missing file, a card that doesn't draw). A card that is a
 # bit too full is worth a report but must never stop an odds refresh. The NBA
-# page is left out: its data build is allowed to fail without holding up NFL.
+# and NHL pages are left out: their data builds are allowed to fail without
+# holding up NFL.
 BROKEN_MARKERS = ("JavaScript error", "request failed", "no Summary button found", "Summary card is empty", "no games in the schedule strip")
 
 
 def is_broken(problem):
-    if problem.startswith("NBA"):
+    if problem.startswith(SUITE_LABELS):
         return False
     return any(marker in problem for marker in BROKEN_MARKERS) or bool(re.search(r": [45]\d\d for /", problem))
 
@@ -202,7 +208,7 @@ def run_check(browser, origin, shots_dir, max_games=None, gate=False):
             continue
         watcher.label = label
         page.goto(f"{origin}/{path}")
-        settle(page, GAME_CARDS if summary_btn or path.startswith("nba/") else None)
+        settle(page, GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None)
         if not summary_btn:
             continue
         if not click_in_page(page, summary_btn):
@@ -241,7 +247,7 @@ def run_check(browser, origin, shots_dir, max_games=None, gate=False):
             continue
         watcher.label = f"{label} (phone)"
         page.goto(f"{origin}/{path}")
-        settle(page, GAME_CARDS if summary_btn or path.startswith("nba/") else None)
+        settle(page, GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None)
         views = [("", None)] + ([(" Summary", summary_btn)] if summary_btn else [])
         for suffix, button in views:
             if button and click_in_page(page, button):
@@ -270,7 +276,7 @@ def take_screenshots(browser, origin, shots_dir, max_games=None):
                     continue
                 slug = label.lower().replace(" ", "-")
                 page.goto(f"{origin}/{path}")
-                settle(page, GAME_CARDS if summary_btn or path.startswith("nba/") else None)
+                settle(page, GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None)
                 page.wait_for_timeout(600)
                 page.screenshot(path=str(shots_dir / f"{theme}-{size_name}-{slug}.png"), full_page=True)
                 count += 1
@@ -364,8 +370,9 @@ def main():
     print(f"check_site: {pages} pages, {cards} summary cards, {len(problems)} problem{'' if len(problems) == 1 else 's'}" + (f", {shots} screenshots in {shots_dir}" if shots_dir else ""))
     for note in notes:
         print("  " + note)
-    if not (SITE / "nba" / "data.json").exists():
-        print("  NBA page skipped its data: nfl_tool/site/nba/data.json isn't built")
+    for label, folder in zip(SUITE_LABELS, SUITE_FOLDERS):
+        if not (SITE / folder / "data.json").exists():
+            print(f"  {label} page skipped its data: nfl_tool/site/{folder}data.json isn't built")
     for line in problems[:MAX_PROBLEM_LINES]:
         print("  PROBLEM " + line)
     if len(problems) > MAX_PROBLEM_LINES:

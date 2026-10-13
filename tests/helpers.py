@@ -1,6 +1,6 @@
 """Shared setup for the tests.
 
-The tests never read this week's live data. They use two saved samples in
+The tests never read this week's live data. They use saved samples in
 tests/fixtures/, so the right answers can't change from week to week:
 
   * data.json.gz        -- the site's data.json as built 2026-10-12 12:19 UTC
@@ -10,6 +10,12 @@ tests/fixtures/, so the right answers can't change from week to week:
                            so tests work scores out again rather than read them.
   * novig_event.json.gz -- one game's markets from Novig's public feed, as the
                            build receives them (HOU @ JAX, captured 2026-10-13).
+  * nhl_game.json.gz    -- one finished NHL game exactly as the NHL build keeps
+                           it (FLA @ BUF, 2026-10-12: play-by-play + box score).
+  * nhl_novig_event.json.gz -- one NHL game's Novig markets (NJD @ DET,
+                           captured 2026-10-13, before puck drop).
+  * nhl_data.json.gz    -- the NHL page's data.json as built 2026-10-13 13:40
+                           UTC (teams about 5 games into 2026-27).
 
 tests/ sits outside nfl_tool/, so none of it is deployed and a push that only
 touches tests doesn't rebuild the site.
@@ -22,7 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "tests" / "fixtures"
-for folder in (ROOT / "nfl_tool", ROOT / "tools"):
+for folder in (ROOT / "nfl_tool", ROOT / "nfl_tool" / "nhl", ROOT / "tools"):
     if str(folder) not in sys.path:
         sys.path.insert(0, str(folder))
 
@@ -54,3 +60,22 @@ def site_data():
 def novig_event():
     """A fresh copy of the saved Novig game: {"description", "event": {"game", "markets", ...}}."""
     return json.loads(_fixture_bytes("novig_event.json.gz"))
+
+
+def nhl_game():
+    """A fresh copy of the saved NHL game: {"pbp": play-by-play, "box": box score}."""
+    return json.loads(_fixture_bytes("nhl_game.json.gz"))
+
+
+def nhl_novig_event():
+    """A fresh copy of the saved NHL Novig game, same shape as novig_event()."""
+    return json.loads(_fixture_bytes("nhl_novig_event.json.gz"))
+
+
+def nhl_data_bytes():
+    """The NHL data sample exactly as the NHL page would download it."""
+    return _fixture_bytes("nhl_data.json.gz")
+
+
+def nhl_data():
+    return json.loads(nhl_data_bytes())

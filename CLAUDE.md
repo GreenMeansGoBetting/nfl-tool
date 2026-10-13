@@ -14,7 +14,8 @@ that, move detail into a rules file.
 - Owner: a sports-betting content creator ("GMG" = Green Means Go) with no coding background.
   Explain in plain language and do the technical work yourself.
 - Live at **https://nfl.gmgsports.org**. Repo: `GreenMeansGoBetting/nfl-tool`. The brand is
-  "GMG Sports Data Suite"; NFL is live, the NBA suite is being built (owner-only until launch).
+  "GMG Sports Data Suite"; NFL is live, the NBA and NHL suites are being built (owner-only until
+  launch).
   A separate CFB tool is paused.
 - The user screenshots sections and the **Summary cards** (fixed 1160×980, sized to their video
   template's left area) and drops them into betting videos. Favor dense, screenshot-ready,
@@ -65,6 +66,7 @@ that, move detail into a rules file.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim.
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
+- `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json` (games kept in `data/nhl`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, on pushes touching
   `nfl_tool/**`, and on manual dispatch (the site's "Update Odds" button). `cloudflare-domain.yml`: one-off domain attach.
@@ -85,7 +87,7 @@ that, move detail into a rules file.
   - `common.js`: shared helpers (tiers, matchup calls, saved plays, lineup weights, modals, summary-card fit / Save image).
   - `sync.js`: member profiles, account chip, feature requests, suite switcher. `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and every page's styles.
-  - `nba/index.html` + `nba/nba.js`: NBA Game Previews.
+  - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
 
 ## Rules that apply everywhere
 
@@ -132,6 +134,7 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists):
 - `data-pipeline.md`: sources, Novig / SGO odds rules, odds lock, injuries, lineup-aware usage, opponent adjustment.
 - `styles.md`: the site-wide look, phone layout, summary-card fit / zoom / Save image.
 - `nba.md`: the NBA suite (data sources, build, pages, suite switcher, launch switch).
+- `nhl.md`: the NHL suite (the NHL's own feed, kept games, rink areas, pages; never MoneyPuck).
 
 The engineering clean-up plan and its status: `docs/foundation-plan.md` (one item per session).
 

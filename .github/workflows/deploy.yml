@@ -111,6 +111,38 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json
 
+      # GMG NHL Suite data (site/nhl/data.json). Hockey has no season files:
+      # the build downloads each finished game from the NHL's feed once and
+      # keeps it in data/nhl. This cache carries that folder from one run to
+      # the next; without it a run just downloads the season so far again.
+      - name: Restore saved NHL games
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: data/nhl
+          key: nhl-games-${{ github.run_id }}
+          restore-keys: nhl-games-
+
+      # Like the NBA step: if it fails the NFL site still deploys. Its output
+      # is kept in nhl_build.log so a failure's last line can be shown in
+      # version.json (the step after "Stamp the version").
+      - name: Build NHL data
+        continue-on-error: true
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: |
+          set -o pipefail
+          python nfl_tool/nhl/build_nhl.py --season 2027 --out nfl_tool/site/nhl/data.json --data-dir data/nhl 2>&1 | tee nhl_build.log
+
+      # Saved under a name made from the games on disk, so a run that
+      # downloaded nothing new doesn't store a second copy.
+      - name: Save NHL games
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: data/nhl
+          key: nhl-games-${{ hashFiles('data/nhl/games/**') }}
+
       # The GMG model's locked projections and graded picks. The build
       # rewrites this file with every game that has kicked off; committing it
       # keeps the record in the repo, so it survives even if the next build
@@ -133,6 +165,36 @@ jobs:
       - name: Stamp the version
         run: |
           printf '{"sha":"%s","run":"%s","built":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%Y-%m-%dT%H:%MZ)" > nfl_tool/site/version.json
+
+      # Whether the NBA and NHL data builds worked, added to version.json:
+      # their data files sit behind the login and the repo's Actions page is
+      # private, so this is the one place a failed build can be seen from
+      # outside. Never allowed to block the deploy (version.json stays as
+      # stamped above if this step fails).
+      - name: Note the NBA and NHL builds in version.json
+        continue-on-error: true
+        run: |
+          python - <<'EOF'
+          import json
+          from pathlib import Path
+          site = Path("nfl_tool/site")
+          version = json.loads((site / "version.json").read_text())
+          for suite in ("nba", "nhl"):
+              try:
+                  data = json.loads((site / suite / "data.json").read_text())
+                  feed = data.get("feed_debug") or {}
+                  note = {"built": data.get("generated_at"), "lines": (data.get("novig_debug") or {}).get("matched")}
+                  if feed:
+                      note.update(games=feed.get("games_loaded"), wanted=feed.get("games_wanted"), downloaded=feed.get("games_downloaded"))
+              except Exception:
+                  note = {"built": None}
+                  log = Path(f"{suite}_build.log")
+                  if log.exists():
+                      lines = [line for line in log.read_text(errors="replace").splitlines() if line.strip()]
+                      note["error"] = lines[-1][:200] if lines else None
+              version[suite] = note
+          (site / "version.json").write_text(json.dumps(version) + "\n")
+          EOF
 
       # The gate (2026-10-13): open every page and every game's Summary cards
       # in a real browser BEFORE anything is published. A script error, a
