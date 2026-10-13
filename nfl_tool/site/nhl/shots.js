@@ -1,7 +1,10 @@
 // ---- GMG NHL Suite: Shots ----
-// Every skater on the day's slate ranked by shots-on-goal value: the model's
-// projection (nfl_tool/nhl/shots_model.py, written to shots.json by the
-// build) next to Novig's line. This season's numbers only, here and in the
+// Every skater on the day's slate with a shots-on-goal line, ranked by
+// value: the model's projection (nfl_tool/nhl/shots_model.py, written to
+// shots.json by the build) next to Novig's line. It opens on the players
+// whose lineup is in ("Lineup Confirmed": the NHL has posted the game's
+// projected lineup, so the page knows who is dressed and on which line);
+// "All" adds the games still waiting on one. This season's numbers only, here and in the
 // model: the owner's rule for every NHL prop tool. The data, helpers, rink
 // drawing and the player card are in nhl-common.js (loaded first); this file
 // is the page.
@@ -11,7 +14,7 @@
 let SHOTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
-const shotsView = { side: "best", pos: "all", lined: true, sort: "edge", dir: -1, open: null };
+const shotsView = { side: "best", pos: "all", lineup: "confirmed", sort: "edge", dir: -1, open: null };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -113,10 +116,10 @@ function seasonLine(id) {
   return found ? found.row : null;
 }
 const SORTS = {
-  edge: (x) => (x.play ? x.play.edge : null),
+  edge: (x) => x.play.edge,
   proj: (x) => x.r.mean,
   avg: (x) => x.r.avg,
-  chance: (x) => (x.play ? x.play.chance : null),
+  chance: (x) => x.play.chance,
   minutes: (x) => x.r.minutes,
   opp: (x) => x.r.lift.opp,
   pos: (x) => x.r.lift.pos,
@@ -128,19 +131,22 @@ const SORTS = {
 // Home ice and rest, the two pieces that are about the night, not the opponent.
 const siteLift = (r) => r.lift.home * r.lift.b2b * r.lift.opp_b2b;
 // The ranking as first opened (best edge first) keeps the "check" plays
-// apart: the believable plays, then the "check" group, then anyone with no line.
+// apart: the believable plays, then the "check" group.
 const rankedByEdge = () => shotsView.sort === "edge" && shotsView.dir < 0;
-const rankGroup = (x) => (!x.play ? 2 : needsCheck(x) ? 1 : 0);
-function sortedRows(date) {
+const rankGroup = (x) => (needsCheck(x) ? 1 : 0);
+// Who is listed: only players with a shots-on-goal line to play (the owner:
+// no "everyone" view), and under "Lineup Confirmed" only those the NHL's
+// projected lineup has on a line or pair tonight.
+function sortedRows(date, lineup = shotsView.lineup) {
   const get = SORTS[shotsView.sort] || SORTS.edge;
   return rowsFor(date)
-    .filter((x) => !x.r.out)
+    .filter((x) => !x.r.out && x.play)
     .filter((x) => shotsView.pos === "all" || positionGroup(x.r.pos) === shotsView.pos)
-    .filter((x) => !shotsView.lined || x.play)
+    .filter((x) => lineup === "all" || x.r.slot)
     .sort((a, b) => {
       if (rankedByEdge() && rankGroup(a) !== rankGroup(b)) return rankGroup(a) - rankGroup(b);
       const [va, vb] = [get(a), get(b)];
-      // Rows with nothing to sort on (no line) sink, whichever way the sort runs.
+      // Rows with nothing to sort on (no lineup yet, under Line) sink, whichever way the sort runs.
       if (!has(va) || !has(vb)) return has(va) ? -1 : has(vb) ? 1 : b.r.mean - a.r.mean;
       return (va - vb) * shotsView.dir || b.r.mean - a.r.mean;
     });
@@ -157,30 +163,39 @@ function renderSchedule() {
   el("matchup-row").innerHTML = gamesOn(date)
     .map((g) => {
       const final = g.status === "final";
-      return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}${boardFor(g) ? "" : " shots-card-empty"}" data-game="${g.game_id}" data-away="${g.away}" data-home="${g.home}" title="${boardFor(g) ? "Show only this game (click again for the whole day)" : "No projections for this game yet"}">
+      const board = boardFor(g);
+      // Whether the NHL's projected lineup for the game was in at the last refresh.
+      const lineup = !board
+        ? ""
+        : board.posted
+          ? `<span class="shots-card-lineup shots-card-lineup-in" title="The NHL's projected lineup for this game is in">&#10003; Lineup</span>`
+          : `<span class="shots-card-lineup" title="The NHL hasn't posted this game's projected lineup yet (usually around midday Eastern)">No lineup yet</span>`;
+      return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}${board ? "" : " shots-card-empty"}" data-game="${g.game_id}" data-away="${g.away}" data-home="${g.home}" title="${board ? "Show only this game (click again for the whole day)" : "No projections for this game yet"}">
         <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
         <span class="matchup-date">${final ? "Final" : fmtTime(g.time).replace(" ET", "")}</span>
+        ${lineup}
       </button>`;
     })
     .join("");
 }
 function renderToolbar() {
   const group = (key, options) =>
-    `<span class="shots-filter">${options.map(([value, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${String(shotsView[key]) === String(value) ? " active" : ""}" data-filter="${key}" data-value="${value}">${label}</button>`).join("")}</span>`;
+    `<span class="shots-filter">${options.map(([value, label, tip]) => `<button type="button" class="view-toggle-btn shots-filter-btn${String(shotsView[key]) === String(value) ? " active" : ""}" data-filter="${key}" data-value="${value}"${tip ? ` title="${tip}"` : ""}>${label}</button>`).join("")}</span>`;
   el("shots-toolbar").innerHTML =
     group("side", [["best", "Best side"], ["over", "Overs"], ["under", "Unders"]]) +
     group("pos", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
-    group("lined", [[true, "With a line"], [false, "Everyone"]]);
+    group("lineup", [
+      ["confirmed", "Lineup Confirmed", "Only players in a game whose lineup the NHL has posted: each is listed on tonight's line or pair"],
+      ["all", "All", "Also the games still waiting on a lineup: those players are projected from their recent ice time"],
+    ]);
 }
 function playChip(play, r) {
-  if (!play) return `<span class="shots-noline">No line</span>`;
   // Said out loud when a play the page calls an edge goes against what his game log shows.
   const fade = play.fade && play.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} a game in ${r.games} games): the model thinks a small sample has run ${play.side === "under" ? "hot" : "cold"}. Click the row to see how much it discounts it.">vs his avg</span>` : "";
   return `<span class="shots-play shots-play-${play.side}"><b>${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)}</b><span>${odds(play.price)}</span></span>${fade}`;
 }
 function edgeCell(x) {
   const play = x.play;
-  if (!play) return `<td class="num muted-label">--</td>`;
   const edge = play.edge;
   const thin = x.book.sog && x.book.sog.thin;
   const lean = edgeAt("lean");
@@ -280,9 +295,7 @@ function detailRow(x, columns) {
   const overs = [...(x.book.sog_alts || []).map(([strike, price]) => [strike, price, false]), ...(main && has(main.over) ? [[main.line, main.over, true]] : [])].sort((a, b) => a[0] - b[0]);
   overs.forEach(([strike, price, isMain]) => rung(`${Math.ceil(strike)} or more`, chanceOver(r, strike), price, isMain));
   if (main && has(main.under)) rung(`Under ${fmt(main.line)}`, has(chanceOver(r, main.line)) ? 1 - chanceOver(r, main.line) : null, main.under, true);
-  const ladder = rungs.length
-    ? `<table class="data-table shots-ladder"><thead><tr><th>Shots on goal</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>${rungs.join("")}</tbody></table>`
-    : `<p class="no-data-note">No shots-on-goal line posted for him.</p>`;
+  const ladder = `<table class="data-table shots-ladder"><thead><tr><th>Shots on goal</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>${rungs.join("")}</tbody></table>`;
 
   // A defense's tile says which way it points in words, never by color alone:
   // "Stingy" is a tough night for a shooter, "Leaky" a good one.
@@ -295,15 +308,17 @@ function detailRow(x, columns) {
   };
   const tiles = `<div class="nba-tiles shots-allows">${tile("Shots on goal allowed", "sog")}${tile(forward ? "To forwards" : "To defensemen", forward ? "f_sog" : "d_sog")}${tile("Power-play shots allowed", "pp_unb")}</div>`;
 
-  // The rink reads both sides: a zone is colored only where he actually
-  // shoots from AND the defense clearly allows more (or fewer) than the league.
+  // The rink shows both sides in every zone: the number is the share of his
+  // shots he takes from there, the color is where the other team ranks for
+  // shots allowed from there on the site's eight rank colors (the owner: no
+  // zone left plain). The same rank the zone says in words, so the color and
+  // the words can't disagree. The strip outside the zone is never colored.
+  const teams = Object.keys(SHOTS.defense || {}).length || 32;
   const rink = rinkSvg(`shots-rink-${r.id}`, `Where ${r.name} shoots from against what ${r.opp} allows`, (z) => {
     const share = r.shares[z.key] || 0;
     const d = defense[`a_${z.key}`];
-    const tilt = d ? d.factor - 1 : 0;
-    const matters = !z.small && share >= 0.15;
     return {
-      cls: matters && tilt >= 0.05 ? "nhl-zone-more" : matters && tilt <= -0.05 ? "nhl-zone-fewer" : "",
+      ...(d && !z.small ? zoneOnStep(rankStep(d.season_rank, teams)) : {}),
       big: pct(share, 0),
       small: d ? `allows ${rankWord(d.season_rank)}` : "",
       tip: `${z.label}: ${pct(share, 0)} of his shots. ${d ? `${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)}).` : ""}`,
@@ -318,6 +333,7 @@ function detailRow(x, columns) {
         </div>
         <div class="shots-detail-rink">
           <div class="shots-detail-label">Where he shoots <span class="muted-label">and where ${r.opp} ranks for shots allowed from there</span></div>${rink}
+          <p class="shots-rink-key">The number is the share of his shots from that spot. The color is what ${r.opp} allows from there: ${rankScaleKey("the most", "the fewest")}</p>
         </div>
       </div>
     </td></tr>`;
@@ -369,11 +385,20 @@ function renderRecord() {
 function renderTable() {
   const date = days()[dayIndex];
   const rows = sortedRows(date);
-  const anyBoard = gamesOn(date).some((g) => boardFor(g));
+  const shown = gamesOn(date).filter((g) => boardFor(g) && (!gameId || g.game_id === gameId));
   const showResult = rows.some((x) => has(x.r.actual));
   const columns = COLUMNS.length + (showResult ? 1 : 0);
   if (!rows.length) {
-    el("shots-content").innerHTML = `<p class="no-data-note">${anyBoard ? "No players match these filters. Lines usually post the morning of the game: try Everyone." : "No projections for this day yet. They are made for games in the next two days."}</p>`;
+    const one = shown.length === 1;
+    // Nothing under "Lineup Confirmed" but there is under "All": say why, and offer the switch.
+    const waiting = shotsView.lineup === "confirmed" && sortedRows(date, "all").length;
+    el("shots-content").innerHTML = !shown.length
+      ? `<p class="no-data-note">No projections for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.</p>`
+      : waiting
+        ? `<p class="no-data-note shots-waiting">${shown.every((g) => boardFor(g).locked)
+            ? `No lineup was in for ${one ? "this game" : "these games"} before puck drop.`
+            : `No lineup is in yet for ${one ? "this game" : "these games"}. The NHL posts each one around midday Eastern on game day, and the page picks it up at its next refresh.`} <button type="button" class="view-toggle-btn shots-filter-btn" data-filter="lineup" data-value="all">Show all players</button></p>`
+        : `<p class="no-data-note">${shown.every((g) => boardFor(g).locked) ? `No shots-on-goal lines were saved for ${one ? "this game" : "these games"}.` : "No players match these filters. Shots-on-goal lines usually post the morning of the game."}</p>`;
     return;
   }
   const head = COLUMNS.map((c) => {
@@ -395,8 +420,8 @@ function renderTable() {
         <td class="shots-play-cell">${playChip(x.play, r)}</td>
         <td class="num" title="${r.games} game${r.games === 1 ? "" : "s"} this season">${has(r.avg) ? fmt(r.avg, 2) : "--"}</td>
         <td class="num shots-proj"><b>${fmt(r.mean, 2)}</b></td>
-        <td class="num">${x.play ? pct(x.play.chance, 0) : "--"}</td>
-        <td class="num">${x.play ? odds(fairPrice(x.play.chance)) || "--" : "--"}</td>
+        <td class="num">${pct(x.play.chance, 0)}</td>
+        <td class="num">${odds(fairPrice(x.play.chance)) || "--"}</td>
         ${edgeCell(x)}
         ${minutesCell(x)}
         ${liftCell(r.lift.opp, allowsTip(r.opp, "sog", "shots on goal"))}
@@ -426,8 +451,8 @@ function renderNote() {
   el("shots-lineups").textContent = !open.length
     ? ""
     : lined === open.length
-      ? `Tonight's lines are in for all ${open.length} games (the NHL's projected lineups).`
-      : `Tonight's lines are in for ${lined} of ${open.length} games. The NHL posts each game's projected lineup around midday Eastern; until then a player's recent ice time stands in and the Line column shows --.`;
+      ? `Lineups are in for all ${open.length} games (the NHL's projected lineups).`
+      : `Lineups are in for ${lined} of ${open.length} games. The NHL posts each game's projected lineup around midday Eastern; a game is marked in the strip above once its lineup is in. Until then its players are under All, projected from their recent ice time, with -- under Line.`;
   el("shots-locked").hidden = !locked;
   el("shots-locked").textContent = locked ? `${locked === boards.length ? "These games have" : `${locked} of these games have`} started: their projections and prices are the last ones from before puck drop.` : "";
 }

@@ -266,11 +266,13 @@ on a replay, and the page keeps a record against the real prices.
   - Game Log: newest first with a per-game row on top. Ice time, shots on goal and attempts are
     shaded against the player's own games; goals, assists and points only light up when he
     scored (zeros stay plain, or the whole table is red).
-  - Shot Map, skater: a rink shaded by where his shots come from (brighter green = more of his
-    shots; the strip outside the zone is never shaded) and a table from the net out: shots per
-    game, share, on goal, goals, shooting % next to the league's, and what tonight's opponent
-    allows from there with its rank (colored from the defense's own side, like every "allows"
-    number). Chips: goals a league-average shooter would have on the same shots from the same
+  - Shot Map, skater: a rink of where his shots come from, every zone on the eight rank colors
+    by what tonight's opponent allows from there (the same chart as the Shots page's "Where he
+    shoots"; with no game to read it against, the old shading by his own shots), and a table
+    from the net out: shots per game, share, on goal, goals, shooting % next to the league's,
+    and what the opponent allows from there with its rank, in the same color as that zone
+    (`oppAllowsCell`: from the SHOOTER's side here, green = allows the most, so the card agrees
+    with itself). Chips: goals a league-average shooter would have on the same shots from the same
     areas, power play share, shot types.
   - Shot Map, goalie: save % by area. A zone is colored only with 30+ shots faced and goals 1.5
     standard deviations from what the league allows on them (`goalieAreaTier`): luck alone
@@ -290,7 +292,8 @@ on a replay, and the page keeps a record against the real prices.
     moved up a line, an over on one moved down; his games so far don't describe tonight's role).
   - **Line column:** L1-L4 / D1-D3 from the projected lineup, an arrow when it is above or below
     the line his minutes say he has been on, "--" until the lineup is posted. A note above the
-    table says how many of the day's games have lines. The breakdown shows the line as its own
+    table says how many of the day's games have lineups, and each game in the strip is marked
+    "Lineup" (with a check mark) or "No lineup yet" (`board.posted`). The breakdown shows the line as its own
     piece ("L1 tonight +13%"), his linemates, and who is injured or scratched.
   - Columns: Line, the play, Avg (his season average) next to Proj, Model %, Fair price, Edge, Min
     (arrow = a minute off his season average), then what moved the number: Opp, Pos, Spots, PP,
@@ -306,18 +309,38 @@ on a replay, and the page keeps a record against the real prices.
     fewest"), and a word (Leaky / Stingy / Average). The rink says "allows 2nd fewest" per zone.
   - A row opens its breakdown: his season average, the sample step, the matchup pieces
     multiplying out to tonight's number, the defense's tiles, every line the book prices at the
-    model's fair price, and a rink of where he shoots (a zone is colored only where he takes
-    15%+ of his shots AND the defense is 5%+ off the league).
-  - Filters: side, forwards / defense, "With a line" (default) / Everyone. A game in the strip
-    shows only that game; click it again for the whole day. Players marked out are left off.
+    model's fair price, and a rink of where he shoots: the number is his share from each zone,
+    the color is where the opponent ranks for shots allowed from there (`season_rank`, the rank
+    the zone says in words) on the eight rank colors, with the key underneath.
+  - Filters: side, forwards / defense, and **"Lineup Confirmed" (how it opens) / "All"** (the
+    user's words, 2026-10-13: "Only show players with a line by default, and remove the feature
+    to sort by everyone"). Lineup Confirmed = only players on a line or pair in a posted lineup
+    (`slot`); All adds the games still waiting on one. **A player with no shots-on-goal line is
+    never listed** (there is no "Everyone" view any more). A day or game with nothing under
+    Lineup Confirmed says why and has a "Show all players" button. A game in the strip shows only
+    that game; click it again for the whole day. Players marked out are left off.
+  - "Confirmed" is the user's label for "the NHL's projected lineup is in". It is not the
+    official sheet from warmups; the page's About box says so (95% of listed skaters played).
   - No season switch (this season only). Names open the player card, on this season.
 - It reuses the NBA page's layout classes (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` /
   `.nba-soon` for the owner-only guard); hockey-only styles are `.nhl-*`. It does not load
   common.js.
-- **The rink colors mean how MANY shots, not good or bad** (a lot of point shots isn't a
-  strength). `rinkCall` is two-sided like the NFL site's `matchupCall`: green ("more") needs one
-  side clearly above the league and the other not pointing the other way; red is the mirror. The
-  strip outside the zone is never colored.
+- **Every rink zone is colored, on the NFL Summary's eight rank colors** (the user, 2026-10-13:
+  "I don't like when the shot charts are not colored. Red and green show, but sometimes it's
+  just the natural display ... the scaled view of 8 colors ... on the entirety of the site").
+  `RANK_SCALE`, `rankStep`, `zoneOnStep`, `cellOnStep`, `rankScaleKey` in nhl-common.js (a copy
+  of common.js's `RANK_SCALE`: change both together). Four teams to a step.
+  - **The colors mean how MANY shots, not good or bad** (a lot of point shots isn't a strength):
+    1st = the most shots = green, last = the fewest = red, and every rink carries the key
+    ("the most ... the fewest") so it can't be read backwards.
+  - A player's rink (Shots page breakdown, the card's Shot Map): the number is his own share or
+    shots, the color is the OPPONENT's rank for shots allowed from there.
+  - A team's rink (Game Previews): both sides as one (`rinkStep`): the offense's rank for shots
+    taken from there and the defense's rank for shots allowed, averaged, then spread back out
+    (two ranks averaged bunch in the middle) and cut into the eight steps. Sides that disagree
+    land in the middle colors. This replaced the green / red / plain `rinkCall`.
+  - Never colored: the strip outside the zone (too rare to read), and its row in the card's
+    table. The goalie's map keeps its own rule (colored only past what luck explains).
 - The season switch is not remembered between visits; the page always opens on `default_view`.
 - Logos are the NHL's SVGs, with a dark-page version (`logo_dark`); the page redraws on a theme
   switch.
@@ -349,5 +372,8 @@ Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, 
 tracking stats, playoffs.
 For the Shots model: power-play units (the projected lineup has lines and pairs, not the power
 play; `shiftcharts` has past games' units); a build nearer puck drop so late lineups and the
-closing line are caught; a "Record" view of the saved plays; the expected starting goalie on
+closing line are caught (the user asked 2026-10-13 how often lineups can be checked: every check
+is a whole-site rebuild on the private repo's 2,000 free minutes, so the offer on the table is
+one or two extra afternoon runs that skip the SGO fetch, or moving the 2 am ET run; nothing was
+changed, it is their call); a "Record" view of the saved plays; the expected starting goalie on
 Game Previews (it is already in `shots.json`).

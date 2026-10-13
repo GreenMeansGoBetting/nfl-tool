@@ -1580,7 +1580,9 @@ function lineupAdjustedXtd(team, week, opts = {}) {
 
 // ---- League rank on an 8-step color scale (four teams per step) ----
 // Shared by the Game Summary and TD Summary cards: two greens, lime, yellow,
-// amber, orange, red-orange, red; the ends are filled hardest.
+// amber, orange, red-orange, red; the ends are filled hardest. The NHL pages
+// color their rinks with the same eight (nhl/nhl-common.js keeps its own copy
+// of this list, since they don't load this file): change both together.
 const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
 function rankScaleStyle(rank, total) {
   if (!rank) return "";

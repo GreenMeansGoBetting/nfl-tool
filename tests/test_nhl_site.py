@@ -93,6 +93,9 @@ class PlayerCard(unittest.TestCase):
             areas: [...body.querySelectorAll(".nhl-pc-areas tbody tr")].map(cells),
             areaHead: [...body.querySelectorAll(".nhl-pc-areas thead th")].map((th) => th.textContent.trim()),
             heat: body.querySelectorAll("svg .nhl-zone-heat").length,
+            steps: [...body.querySelectorAll("svg .nhl-zone")].map((z) => (/nhl-zone-step-(\\d)/.exec(z.getAttribute("class")) || [])[1] || null),
+            allows: [...body.querySelectorAll(".nhl-pc-areas tbody tr")].map((tr) => tr.lastElementChild.style.backgroundColor),
+            key: body.querySelectorAll(".nhl-pc-rink .g5-scale i").length,
             odds: [...body.querySelectorAll(".nhl-pc-odds tbody tr")].map(cells),
             chips: [...body.querySelectorAll(".nhl-pc-chip")].map((c) => c.textContent.trim().replace(/\\s+/g, " ")),
         };
@@ -161,7 +164,27 @@ class PlayerCard(unittest.TestCase):
         self.assertEqual([row[0] for row in card["areas"]], ["Low slot", "Slot", "Left side", "Right side", "Point", "Outside the zone"])
         # Slot: 102 shots in 61 games, 81 on goal, 11 goals; 305 shots placed in all.
         self.assertEqual(card["areas"][1][:7], ["Slot", "1.7", "33%", "81", "11", "13.6%", f"{league * 100:.1f}%"])
-        self.assertEqual(card["heat"], 5)  # every zone he shot from, but never the strip outside the zone
+        # No zone is left plain: each is on the eight rank colors by where DET ranked for shots allowed
+        # from there (1st = the most = green), never the strip outside the zone, and the "DET allows"
+        # cell beside it is the same color.
+        allowed = {t: s for t, s in self.blob["team_stats_prev"].items()}
+        rank = lambda area: sorted(allowed, key=lambda t: -allowed[t][f"def_{area}_pg"]).index("DET") + 1
+        drawn = ["point", "left", "right", "slot", "low_slot"]  # the order the rink draws them, then the strip
+        self.assertEqual(card["steps"], [str((rank(area) - 1) * 8 // 32 + 1) for area in drawn] + [None])
+        self.assertEqual((card["heat"], card["key"]), (0, 8))
+        self.assertTrue(all(card["allows"][:5]), card["allows"])
+        self.assertEqual(card["allows"][5], "")  # the row for shots from outside the zone
+        self.assertEqual(len(set(card["allows"][:5])), len(set(card["steps"][:5])))
+
+    def test_shot_map_with_no_game_to_read_it_against(self):
+        """Without an opponent the zones are shaded by his own shots, as before."""
+        PAGE.evaluate("() => { window.keptPlayerGame = playerGame; playerGame = () => null; }")
+        try:
+            card = self.card(self.hughes, "prev", "map")
+        finally:
+            PAGE.evaluate("() => { playerGame = window.keptPlayerGame; }")
+        self.assertEqual((card["heat"], card["key"], card["steps"]), (5, 0, [None] * 6))
+        self.assertNotIn("allows", card["areaHead"][-1])
         self.assertIn("FROM THESE SPOTS 26.3 goals expectedhe scored 24".lower(), " ".join(card["chips"]).lower().replace("expected he", "expectedhe"))
         self.assertTrue(any(chip.lower().startswith("wrist 53%") for chip in card["chips"]), card["chips"])
 
@@ -216,45 +239,78 @@ class PlayerCard(unittest.TestCase):
         self.assertTrue(PAGE.evaluate("() => document.getElementById('player-card-modal').hidden"))
 
 
-class RinkCall(unittest.TestCase):
-    """A zone is called from both sides: one side clearly above (or below) the
-    league and the other side not pointing the other way."""
+class RinkColors(unittest.TestCase):
+    """Every zone is on the eight rank colors, read from both sides: the
+    offense's league rank for shots from there and the defense's rank for
+    shots allowed from there, as one (step 0 = the most shots = green)."""
 
-    def call(self, takes, allows):
-        return PAGE.evaluate("([a, b]) => rinkCall(a, b)", [takes, allows])
+    def step(self, takes, allows, total=32):
+        return PAGE.evaluate("([a, b, n]) => rinkStep(a, b, n)", [takes, allows, total])
 
-    def test_more(self):
-        self.assertEqual(self.call(0.8, 0.6), "more")
-        self.assertEqual(self.call(0.8, 0.0), "more")   # the defense is average: the offense's habit stands
-        self.assertEqual(self.call(-0.2, 0.9), "more")  # a leaky defense, an offense that isn't shy there
+    def test_both_sides_pointing_the_same_way(self):
+        self.assertEqual(self.step(1, 1), 0)     # shoots from there the most, allows the most
+        self.assertEqual(self.step(4, 6), 0)
+        self.assertEqual(self.step(32, 32), 7)   # the fewest on both sides
+        self.assertEqual(self.step(28, 30), 7)
 
-    def test_fewer(self):
-        self.assertEqual(self.call(-0.8, -0.6), "fewer")
-        self.assertEqual(self.call(0.1, -0.9), "fewer")
+    def test_sides_that_disagree_land_in_the_middle(self):
+        self.assertEqual(self.step(1, 32), 4)
+        self.assertEqual(self.step(32, 1), 4)    # either way round
+        self.assertIn(self.step(16, 17), (3, 4))
 
-    def test_no_call_when_the_sides_disagree_or_neither_is_clear(self):
-        self.assertEqual(self.call(0.9, -0.9), "")
-        self.assertEqual(self.call(0.9, -0.4), "")
-        self.assertEqual(self.call(0.4, 0.4), "")
-        self.assertEqual(self.call(None, 1.2), "")
+    def test_a_better_rank_on_either_side_never_moves_a_zone_toward_red(self):
+        for other in (1, 9, 17, 25, 32):
+            steps = [self.step(rank, other) for rank in range(1, 33)]
+            self.assertEqual(steps, sorted(steps), other)
+            self.assertEqual(steps, [self.step(other, rank) for rank in range(1, 33)], other)
 
-    def test_long_shots_are_never_colored(self):
-        colored = PAGE.evaluate(
+    def test_no_rank_no_color(self):
+        self.assertIsNone(self.step(None, 5))
+        self.assertIsNone(self.step(5, None))
+
+    def test_every_zone_is_colored_but_never_the_long_shots(self):
+        found = PAGE.evaluate(
             """() => {
                 view = "season";
-                let found = 0;
+                const out = { plain: 0, strip: 0, steps: new Set(), key: 0 };
                 for (const g of DATA.schedule) {
                     selectGame(g.game_id);
-                    // The strip below the blue line is the last zone drawn in each rink.
                     for (const svg of document.querySelectorAll("#rink-content svg")) {
-                        const zones = svg.querySelectorAll(".nhl-zone");
-                        if (/nhl-zone-(more|fewer)/.test(zones[zones.length - 1].getAttribute("class"))) found++;
+                        const zones = [...svg.querySelectorAll(".nhl-zone")];
+                        // The strip below the blue line is the last zone drawn in each rink.
+                        const strip = zones.pop();
+                        if (/nhl-zone-(rank|more|fewer|heat)/.test(strip.getAttribute("class"))) out.strip++;
+                        zones.forEach((z) => {
+                            const step = /nhl-zone-step-(\\d)/.exec(z.getAttribute("class"));
+                            if (step) out.steps.add(step[1]);
+                            else out.plain++;
+                        });
                     }
                 }
-                return found;
+                out.key = document.querySelectorAll("#rink-key .g5-scale i").length;
+                return { ...out, steps: [...out.steps].sort() };
             }"""
         )
-        self.assertEqual(colored, 0)
+        self.assertEqual((found["plain"], found["strip"], found["key"]), (0, 0, 8))
+        self.assertEqual(found["steps"], [str(n) for n in range(1, 9)])  # across the slate, all eight colors turn up
+
+    def test_a_zone_is_the_color_of_its_two_ranks(self):
+        """NJD's shots against DET, this season: the slot."""
+        game = next(g for g in nhl_data()["schedule"] if g["away"] == "NJD" and g["home"] == "DET")
+        stats = nhl_data()["team_stats"]
+        rank = lambda key, team: sorted((t for t in stats if stats[t].get(key) is not None), key=lambda t: -stats[t][key]).index(team) + 1
+        shown = PAGE.evaluate(
+            """(id) => {
+                view = "season";
+                selectGame(id);
+                const slot = document.querySelectorAll("#rink-content svg")[0].querySelectorAll(".nhl-zone")[3];
+                return { step: Number(/nhl-zone-step-(\\d)/.exec(slot.getAttribute("class"))[1]) - 1, tip: slot.querySelector("title").textContent };
+            }""",
+            game["game_id"],
+        )
+        self.assertEqual(shown["step"], self.step(rank("off_slot_pg", "NJD"), rank("def_slot_pg", "DET"), len(stats)))
+        self.assertIn("NJD", shown["tip"])
+        self.assertIn("DET allows", shown["tip"])
 
 
 class MatchupTag(unittest.TestCase):

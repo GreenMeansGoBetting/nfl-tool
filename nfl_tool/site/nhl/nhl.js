@@ -31,19 +31,19 @@ function matchupTag(offZ, defZ) {
 
 // ---- the rink ----
 // Where shots come from is about how MANY, not good or bad: a lot of point
-// shots isn't a strength. So a zone is called from both sides the way the
-// NFL site's matchupCall does it: "more" needs one side clearly above the
-// league (the offense shoots from there a lot, or the defense allows a lot)
-// and the other side not pointing the other way; "fewer" is the mirror.
-const RINK_CALL_Z = 0.5;
-const RINK_CONTRA_Z = 0.3;
-function rinkCall(takesZ, allowsZ) {
-  if (takesZ === null || allowsZ === null) return "";
-  const hi = Math.max(takesZ, allowsZ);
-  const lo = Math.min(takesZ, allowsZ);
-  if (hi >= RINK_CALL_Z && lo > -RINK_CONTRA_Z) return "more";
-  if (lo <= -RINK_CALL_Z && hi < RINK_CONTRA_Z) return "fewer";
-  return "";
+// shots isn't a strength. Every zone is colored on the site's eight rank
+// colors (the owner: no zone left plain), read from BOTH sides like the NFL
+// site's matchupCall: the offense's league rank for shots from there and the
+// defense's rank for shots allowed from there, as one. Green = both point to
+// a lot of shots from that spot, red = to few; when the sides disagree the
+// zone lands in the middle colors.
+// Two ranks averaged bunch up in the middle (rarely 1st, rarely last), so the
+// average is spread back out before it is cut into the eight steps.
+function rinkStep(takesRank, allowsRank, total) {
+  if (!takesRank || !allowsRank || total < 2) return null;
+  const middle = (takesRank + allowsRank - 2) / (2 * (total - 1)); // 0 = both 1st, 1 = both last
+  const spread = middle <= 0.5 ? 2 * middle * middle : 1 - 2 * (1 - middle) ** 2;
+  return Math.min(RANK_SCALE.length - 1, Math.floor(spread * RANK_SCALE.length));
 }
 function rink(offTeam, defTeam, uid) {
   const off = stats()[offTeam] || {};
@@ -51,13 +51,15 @@ function rink(offTeam, defTeam, uid) {
   const svg = rinkSvg(uid, `${offTeam} shots by area against what ${defTeam} allows`, (z) => {
     const takes = off[`off_${z.key}_pg`];
     const allows = def[`def_${z.key}_pg`];
+    const takesRank = leagueRank(`off_${z.key}_pg`, offTeam, false); // 1st = shoots from here the most
+    const allowsRank = leagueRank(`def_${z.key}_pg`, defTeam, false); // 1st = allows the most
     // Shots from outside the zone are too rare to read anything into.
-    const call = z.small ? "" : rinkCall(zScore(`off_${z.key}_pg`, offTeam, false), zScore(`def_${z.key}_pg`, defTeam, false));
+    const step = z.small ? null : rinkStep(takesRank, allowsRank, teamCount());
     return {
-      cls: call ? `nhl-zone-${call}` : "",
+      ...(step === null ? {} : zoneOnStep(step)),
       big: fmt(takes),
       small: `allows ${fmt(allows)}`,
-      tip: `${z.label}: ${offTeam} ${fmt(takes)} a game (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`,
+      tip: `${z.label}: ${offTeam} ${fmt(takes)} a game${takesRank ? `, ${ordinal(takesRank)} most` : ""} (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)}${allowsRank ? `, ${ordinal(allowsRank)} most` : ""} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`,
     };
   });
   return `<div class="nba-box nhl-rink-box">
@@ -195,6 +197,7 @@ function renderMatchups(g) {
 }
 function renderRink(g) {
   el("rink-content").innerHTML = rink(g.away, g.home, "nhl-rink-away") + rink(g.home, g.away, "nhl-rink-home");
+  el("rink-key").innerHTML = rankScaleKey("the most", "the fewest");
 }
 const outIds = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.id && p.status !== "Day-To-Day").map((p) => p.id));
 // Every player name and photo on the page opens the player card.

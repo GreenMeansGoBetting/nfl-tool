@@ -64,6 +64,22 @@ function leagueRank(key, abbr, lowerIsBetter) {
 }
 const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
 
+// ---- league rank on the site's eight colors ----
+// The NFL Summary cards' scale (RANK_SCALE in common.js, which NHL pages
+// don't load: keep the two lists the same): two greens, lime, yellow, amber,
+// orange, red-orange, red, four teams to a step, the ends filled hardest.
+// On a rink it says how many shots the matchup points to from a spot, so
+// 1st = the most = green and last = the fewest = red.
+const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
+const rankStep = (rank, total) => Math.min(RANK_SCALE.length - 1, Math.max(0, Math.floor(((rank - 1) / total) * RANK_SCALE.length)));
+const stepFill = (step) => `hsla(${RANK_SCALE[step][0]},78%,44%,${RANK_SCALE[step][1]})`;
+const stepEdge = (step) => `hsl(${RANK_SCALE[step][0]},78%,48%)`;
+// A rink zone on a step (what rinkSvg's zoneFn hands back), and a table cell on one.
+const zoneOnStep = (step) => ({ cls: `nhl-zone-rank nhl-zone-step-${step + 1}`, style: `--zone-fill:${stepFill(step)};--zone-edge:${stepEdge(step)}` });
+const cellOnStep = (step) => ` style="background-color:${stepFill(step)};box-shadow:inset 0 0 0 1px ${stepEdge(step)}"`;
+// The key under a rink: the eight colors, from the most shots to the fewest.
+const rankScaleKey = (most, fewest) => `<span class="nhl-scale-key">${most}<span class="g5-scale">${RANK_SCALE.map((_, step) => `<i style="background:${stepFill(step)};border-color:${stepEdge(step)}"></i>`).join("")}</span>${fewest}</span>`;
+
 // ---- the rink ----
 // The offensive zone, net at the top, as the shooter sees it. Drawn in feet:
 // 85 wide, the end boards at y = 0, the goal line at 11, the blue line at 75.
@@ -89,9 +105,10 @@ function rinkSvg(uid, ariaLabel, zoneFn) {
     const d = zoneFn(z) || {};
     const [x, y] = z.at;
     shapes += `<g class="nhl-zone${d.cls ? ` ${d.cls}` : ""}"${d.style ? ` style="${d.style}"` : ""}><title>${d.tip || z.label}</title>${z.shape}</g>`;
-    labels += z.small
+    // The small print over a colored zone is drawn in the full text color so it stays readable.
+    labels += `<g${d.cls ? ` class="nhl-zone-on-color"` : ""}>${z.small
       ? `<text class="nhl-zone-label" x="${x}" y="${y + 2.4}">${z.label}: ${d.big ?? "--"}${d.small ? ` &middot; ${d.small}` : ""}</text>`
-      : `<text class="nhl-zone-label" x="${x}" y="${y}">${z.label}</text><text class="nhl-zone-big" x="${x}" y="${y + 6.6}">${d.big ?? "--"}</text>${d.small ? `<text class="nhl-zone-small" x="${x}" y="${y + 10.4}">${d.small}</text>` : ""}`;
+      : `<text class="nhl-zone-label" x="${x}" y="${y}">${z.label}</text><text class="nhl-zone-big" x="${x}" y="${y + 6.6}">${d.big ?? "--"}</text>${d.small ? `<text class="nhl-zone-small" x="${x}" y="${y + 10.4}">${d.small}</text>` : ""}`}</g>`;
   });
   return `<svg class="nhl-rink" viewBox="0 0 85 84" role="img" aria-label="${ariaLabel}">
       <defs><clipPath id="${uid}"><path d="M0,84 L0,28 A28,28 0 0 1 28,0 L57,0 A28,28 0 0 1 85,28 L85,84 Z"/></clipPath></defs>
@@ -237,14 +254,17 @@ const leagueAreas = () => (DATA.league || {})[view === "prev" ? "prev" : "season
 const SMALL_SAMPLE_GAMES = 10;
 const HEAT_MIN_ALPHA = 0.04;
 const HEAT_MAX_ALPHA = 0.7;
-// What the other team's defense gives up from an area, from the defense's
-// own side like every "allows" number on the page (green = allows little).
+// What the other team's defense gives up from an area, on the eight rank
+// colors from the shooter's side, the same color as that zone on the rink
+// beside it: green = allows the most from there, red = the fewest.
+const allowsRank = (opp, area) => (opp ? leagueRank(`def_${area}_pg`, opp, false) : null); // 1st = allows the most
+const teamCount = () => Object.keys(stats()).length || 32;
 function oppAllowsCell(opp, area) {
   if (!opp) return "";
-  const key = `def_${area}_pg`;
-  const value = (stats()[opp] || {})[key];
-  const rank = leagueRank(key, opp, false); // 1st = allows the most
-  return `<td class="num ${tierClass(zScore(key, opp, true))}" title="${opp} allows the ${rank ? ordinal(rank) : "?"} most shots from here">${fmt(value)}<small class="nhl-pc-rank">${rank ? ` ${ordinal(rank)} most` : ""}</small></td>`;
+  const value = (stats()[opp] || {})[`def_${area}_pg`];
+  const rank = allowsRank(opp, area);
+  // Like the strip on the rink, the row for shots from outside the zone is never colored: too rare to read.
+  return `<td class="num nhl-rank-cell"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} title="${opp} allows the ${rank ? ordinal(rank) : "?"} most shots from here">${fmt(value)}<small class="nhl-pc-rank">${rank ? ` ${ordinal(rank)} most` : ""}</small></td>`;
 }
 function skaterMapView(season, games, opp, uid) {
   const areas = season.areas || {};
@@ -261,24 +281,31 @@ function skaterMapView(season, games, opp, uid) {
     scored += goals;
     return `<tr><td>${z.label}</td><td class="num"><b>${fmt(shots / games)}</b></td><td class="num">${pct(shots / located, 0)}</td><td class="num">${onGoal}</td><td class="num">${goals}</td><td class="num">${onGoal ? pct(goals / onGoal) : "--"}</td><td class="num muted-label">${pct(lg.sh_pct)}</td>${oppAllowsCell(opp, z.key)}</tr>`;
   }).join("");
+  // Every zone is colored by what the other team allows from there (the same
+  // chart as the Shots page's "Where he shoots"). With no game to read it
+  // against, the zones are shaded by his own shots instead.
   const svg = rinkSvg(uid, "Where he shoots from", (z) => {
     const [shots = 0, , goals = 0] = areas[z.key] || [];
+    const rank = z.small ? null : allowsRank(opp, z.key);
     // Squared, so his favorite spot stands out from the places he merely visits.
     const alpha = shots ? HEAT_MIN_ALPHA + (shots / most) ** 2 * (HEAT_MAX_ALPHA - HEAT_MIN_ALPHA) : 0;
+    const fill = rank ? zoneOnStep(rankStep(rank, teamCount())) : shots && !z.small && !opp ? { cls: "nhl-zone-heat", style: `--heat:${alpha.toFixed(2)}` } : {};
     return {
-      style: shots && !z.small ? `--heat:${alpha.toFixed(2)}` : "",
-      cls: shots && !z.small ? "nhl-zone-heat" : "",
+      ...fill,
       big: fmt(shots / games),
       small: z.small ? "" : `${pct(shots / located, 0)} &middot; ${goals} G`,
-      tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals`,
+      tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals${rank ? `. ${opp} allows the ${ordinal(rank)} most shots from here` : ""}`,
     };
   });
+  const colorNote = opp
+    ? `The color is what ${opp} allows from that spot: ${rankScaleKey("the most", "the fewest")}`
+    : "Brighter green = more of his shots.";
   const types = Object.entries(season.types || {})
     .sort((a, b) => b[1][0] - a[1][0])
     .map(([name, [shots, goals]]) => `<span class="nhl-pc-chip"><b>${name[0].toUpperCase()}${name.slice(1)}</b> ${pct(shots / located, 0)}<small>${goals} G</small></span>`)
     .join("");
   return `<div class="nhl-pc-map">
-      <div class="nhl-pc-rink">${svg}<p class="section-note">Shots per game from each area (on goal or wide); brighter green = more of his shots. Below each: share of his shots and goals from there.</p></div>
+      <div class="nhl-pc-rink">${svg}<p class="section-note">Shots per game from each area (on goal or wide). Below each: share of his shots and goals from there. ${colorNote}</p></div>
       <div class="nhl-pc-side">
         <div class="nhl-pc-scroll"><table class="data-table nhl-pc-areas">
           <thead><tr><th>Area</th><th title="Shots per game, on goal or wide">Shots / g</th><th title="Share of his shots">Share</th><th>On goal</th><th>Goals</th><th title="Goals per shot on goal from here">Sh%</th><th title="The league's shooting % from here">Lg Sh%</th>${opp ? `<th title="Shots per game ${opp} allows from here, and where that ranks">${opp} allows</th>` : ""}</tr></thead>

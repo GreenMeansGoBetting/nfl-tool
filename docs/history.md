@@ -1101,3 +1101,25 @@ information."
   things keep it from being a pick anyway: gaps of 12+ points were already set apart, and a play
   that goes AGAINST tonight's line change (an under on a promoted player) is now set apart too,
   whatever its size, shown amber instead of green.
+
+### Shots: "Lineup Confirmed" and rinks with no plain zones (2026-10-13, evening)
+
+- **The switch.** Once the Line column existed the user wanted the page to open on it: "Only
+  show players with a line by default, and remove the feature to sort by everyone. Replace those
+  toggles with Lineup Confirmed and All." So the page opens on players in a posted lineup, All
+  adds the games still waiting, and a player with no shots-on-goal line is never listed. Each
+  game in the strip says whether its lineup is in, because their first question was whether the
+  site could show that at all ("is there a way to denote if a lineup has been confirmed?").
+- "Confirmed" is their word. What NHL.com posts is its projected lineup from the morning skate;
+  the About box says that, and that 95% of the skaters it listed last season did play.
+- **The rinks.** "I also don't like when the shot charts are not colored. Red and green show,
+  but sometimes it's just the natural display. Remember on the NFL Summary page how we had a
+  scaled view of 8 colors: can we input that logic into the WHERE HE SHOOTS charts on the
+  entirety of the site." The old rule colored a zone only when both sides clearly agreed, which
+  left most zones plain. Now every zone is on the eight rank colors: a player's rink by what the
+  opponent allows from there, a team's rink by both teams' ranks as one. The both-sides idea
+  survives in the team rinks (disagreeing sides land in the middle colors) and, on a player's
+  rink, as the number (his share) printed over the color (what the defense allows).
+- The card's "OPP allows" column used to be colored from the defense's side (green = allows
+  little). Next to a rink colored from the shooter's side that would have contradicted it, so
+  the column now takes the zone's color.

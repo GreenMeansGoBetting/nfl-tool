@@ -5,10 +5,12 @@ What is pinned: the page and the build agree on every play (the side, the
 price and the edge the record is graded by, and whether it goes against his
 own season average); the ranking is best edge first with the gaps too big to
 trust in their own group underneath; players who are out are left off; the
-filters, the sort and one-game view; the row breakdown (from his season
-average, the pieces multiply out to the projection; every line the book
-prices is on the ladder; a defense's rank is said in words that can't be read
-backwards); this season only, on the page and in the card it opens; a
+filters (it opens on "Lineup Confirmed", "All" adds the games waiting on a
+lineup, and a player with no line is never listed), the sort and one-game
+view; the row breakdown (from his season average, the pieces multiply out to
+the projection; every line the book prices is on the ladder; a defense's rank
+is said in words that can't be read backwards; every zone of the rink is on
+the eight rank colors); this season only, on the page and in the card it opens; a
 finished game shows real shots and a win or loss; the record tiles; and
 tonight's lines: the Line column, a player moved up a line, his linemates
 and who is out in the breakdown, a play against the move set apart."""
@@ -50,11 +52,12 @@ def tearDownModule():
 
 
 def reset(day=TONIGHT, **view):
-    """Back to how the page opens (or another day / filter), and the rows drawn."""
+    """The whole slate ("All"; the page itself opens on "Lineup Confirmed", see
+    Filters) on a day, or another filter, and the rows drawn."""
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(shotsView, { side: 'best', pos: 'all', lined: true, sort: 'edge', dir: -1, open: null }, view);
+            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null }, view);
             selectDay(days().indexOf(day));
         }""",
         [day, view],
@@ -151,7 +154,7 @@ class Ranking(unittest.TestCase):
         shots = nhl_shots()
         out = {row["id"] for entry in shots["games"].values() for row in entry["players"] if row["out"]}
         self.assertGreater(len(out), 0)
-        self.assertEqual(out & {r["id"] for r in reset(lined=False)}, set())
+        self.assertEqual(out & {r["id"] for r in reset()}, set())
 
 
 class TonightsLines(unittest.TestCase):
@@ -171,25 +174,36 @@ class TonightsLines(unittest.TestCase):
 
     def test_the_note_says_how_many_games_have_lines(self):
         reset()
-        self.assertIn("Tonight's lines are in for 1 of 16 games", PAGE.inner_text("#shots-lineups"))
+        self.assertIn("Lineups are in for 1 of 16 games", PAGE.inner_text("#shots-lineups"))
+
+    def test_the_strip_marks_the_games_whose_lineup_is_in(self):
+        reset()
+        marks = PAGE.evaluate("() => [...document.querySelectorAll('#matchup-row .matchup-card')].map((c) => [c.dataset.game, !!c.querySelector('.shots-card-lineup-in'), (c.querySelector('.shots-card-lineup') || {}).textContent])")
+        self.assertEqual([gid for gid, posted, _ in marks if posted], [self.game["game_id"]])
+        self.assertEqual(sorted({text for _, posted, text in marks if not posted}), ["No lineup yet"])
 
     def test_only_the_listed_skaters_and_each_on_his_line(self):
-        rows = self.page_rows(lined=False)
-        self.assertEqual(set(rows), {r["id"] for r in self.rows.values()})
-        self.assertEqual(len(rows), 31)  # the story lists 36 skaters; five have no games on the page yet
+        self.assertEqual(len(self.rows), 31)  # the story lists 36 skaters; five have no games on the page yet
+        self.assertTrue(all(r["slot"] for r in self.rows.values()))
+        plays = expected_plays()
+        rows = self.page_rows()
+        # Everyone in the lineup with a line to play, nobody else.
+        self.assertEqual(set(rows), {r["id"] for r in self.rows.values() if r["id"] in plays})
+        self.assertEqual(len(rows), 15)
         name = lambda slot: f"{'L' if slot[0] == 'F' else 'D'}{slot[1:]}"
         for r in self.rows.values():
-            self.assertTrue(rows[r["id"]]["line"].startswith(name(r["slot"])), r["name"])
+            if r["id"] in rows:
+                self.assertTrue(rows[r["id"]]["line"].startswith(name(r["slot"])), r["name"])
         # A game with no lineup posted shows no line.
-        other = PAGE.evaluate("() => { document.querySelector('.matchup-card.selected').click(); return [...document.querySelectorAll('.shots-row')].find((tr) => !tr.dataset.row.startsWith(currentGame() ? '' : '2026020096')).children[2].textContent.trim(); }")
-        self.assertEqual(other, "--")
+        others = [r["line"] for r in reset() if not r["key"].startswith(self.game["game_id"])]
+        self.assertEqual(set(others), {"--"})
 
     def test_a_player_moved_up_a_line(self):
         """Warren Foegele: a fourth-liner by his minutes (11.1 a game), on the top line tonight."""
         f = self.foegele
         self.assertEqual((f["slot"], f["usual_slot"], f["move"], f["minutes"], f["line_minutes"]), ("F1", "F4", "up", 11.1, 20.9))
         self.assertAlmostEqual(f["lift"]["line"], math.exp(0.2 * 0.6), places=3)  # +13%: capped, not his new line's full minutes
-        self.page_rows(lined=False)
+        self.page_rows()
         detail = PAGE.evaluate(
             """(key) => {
                 const tr = document.querySelector(`.shots-row[data-row='${key}']`);
@@ -264,15 +278,62 @@ class Filters(unittest.TestCase):
         self.assertEqual({positions[r["id"]] for r in reset(pos="D")}, {"D"})
         self.assertNotIn("D", {positions[r["id"]] for r in reset(pos="F")})
 
-    def test_everyone_adds_the_players_without_a_line(self):
+    def test_it_opens_on_lineup_confirmed(self):
+        """The owner's switch: "Lineup Confirmed" (how it opens) / "All". No "Everyone"."""
+        page = SITE.open("nhl/shots.html")
+        page.wait_for_function("() => typeof SHOTS !== 'undefined' && SHOTS !== null && !document.getElementById('shots-app').hidden")
+        state = lambda: page.evaluate("() => ({ lineup: shotsView.lineup, buttons: [...document.querySelectorAll('.shots-filter-btn[data-filter=\"lineup\"]')].map((b) => [b.textContent, b.classList.contains('active')]), toolbar: document.getElementById('shots-toolbar').textContent, rows: document.querySelectorAll('.shots-row').length, text: document.getElementById('shots-content').textContent.trim().replace(/\\s+/g, ' ') })")
+        opened = state()
+        self.assertEqual(opened["lineup"], "confirmed")
+        self.assertEqual(opened["buttons"], [["Lineup Confirmed", True], ["All", False]])
+        self.assertNotIn("Everyone", opened["toolbar"])
+        self.assertNotIn("With a line", opened["toolbar"])
+        # It opens on 10-12 (the sample's clock): three finished games with no line saved,
+        # so nothing to list, and it says so instead of showing an empty table.
+        self.assertEqual(opened["rows"], 0)
+        self.assertIn("No shots-on-goal lines were saved for these games.", opened["text"])
+        # Tonight: only the one game whose lineup is in.
+        page.evaluate("(day) => selectDay(days().indexOf(day))", TONIGHT)
+        confirmed = {r["id"] for r in page.evaluate(ROWS)}
+        plays = expected_plays()
+        self.assertEqual(confirmed, {pid for pid, play in plays.items() if play["slot"]})
+        self.assertEqual(len(confirmed), 15)
+        # "All" brings in the games still waiting on one.
+        page.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"lineup\"][data-value=\"all\"]').click()")
+        self.assertEqual({r["id"] for r in page.evaluate(ROWS)}, set(plays))
+        self.assertEqual(state()["buttons"], [["Lineup Confirmed", False], ["All", True]])
+        self.assertEqual(SITE.errors, [])
+
+    def test_lineup_confirmed_lists_only_players_on_a_line_tonight(self):
+        rows = reset(lineup="confirmed")
+        plays = expected_plays()
+        self.assertEqual({r["id"] for r in rows}, {pid for pid, play in plays.items() if play["slot"]})
+        self.assertNotIn("--", {r["line"] for r in rows})
+        game = next(g for g in nhl_data()["schedule"] if g["away"] == "STL" and g["home"] == "OTT")
+        self.assertTrue(all(r["key"].startswith(game["game_id"]) for r in rows))
+        # Still best edge first, the set-apart group underneath.
+        believable = [plays[r["id"]]["edge"] for r in rows if plays[r["id"]]["size"] != "check"]
+        self.assertEqual(believable, sorted(believable, reverse=True))
+
+    def test_a_game_waiting_on_its_lineup_says_so_and_offers_all(self):
+        reset(lineup="confirmed")
+        game = next(g for g in nhl_data()["schedule"] if g["away"] == "NJD" and g["home"] == "DET")
+        PAGE.evaluate("(id) => document.querySelector(`.matchup-card[data-game='${id}']`).click()", game["game_id"])
+        self.assertEqual(PAGE.evaluate(ROWS), [])
+        self.assertIn("No lineup is in yet for this game.", PAGE.inner_text("#shots-content"))
+        PAGE.evaluate("() => document.querySelector('.shots-waiting .shots-filter-btn').click()")
+        rows = PAGE.evaluate(ROWS)
+        self.assertTrue(rows and all(r["key"].startswith(game["game_id"]) for r in rows))
+        self.assertEqual(PAGE.evaluate("() => shotsView.lineup"), "all")
+
+    def test_a_player_with_no_line_is_never_listed(self):
         shots, data = nhl_shots(), nhl_data()
         tonight = [g["game_id"] for g in data["schedule"] if g["date"] == TONIGHT]
         everyone = sum(1 for gid in tonight for row in shots["games"][gid]["players"] if not row["out"])
-        rows = reset(lined=False)
-        self.assertEqual(len(rows), everyone)
-        self.assertEqual(sum(1 for r in rows if r["play"] == "No line"), everyone - len(expected_plays()))
-        # They sit under the players with a line.
-        self.assertEqual([r["play"] == "No line" for r in rows], sorted(r["play"] == "No line" for r in rows))
+        rows = reset()
+        self.assertEqual(len(rows), len(expected_plays()))
+        self.assertLess(len(rows), everyone)
+        self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('.shots-row')].filter((tr) => !tr.querySelector('.shots-play')).length"), 0)
 
     def test_a_game_in_the_strip_shows_only_that_game(self):
         reset()
@@ -311,6 +372,8 @@ class Breakdown(unittest.TestCase):
                     tiles: [...box.querySelectorAll('.shots-allows .nba-tile')].map((t) => [text(t.querySelector('.gs-tile-label')), text(t.querySelector('b')), text(t.querySelector('small'))]),
                     tags: [...box.querySelectorAll('.shots-allows .nba-tile')].map((t) => text(t.querySelector('.gs-tag, .nba-notag'))),
                     zones: [...box.querySelectorAll('svg .nhl-zone-big')].map(text),
+                    zone_colors: [...box.querySelectorAll('svg .nhl-zone')].map((z) => [(/nhl-zone-step-(\\d)/.exec(z.getAttribute('class')) || [])[1] || null, getComputedStyle(z.firstElementChild.nextElementSibling).fill]),
+                    key: box.querySelectorAll('.shots-rink-key .g5-scale i').length,
                     zone_ranks: [...box.querySelectorAll('svg .nhl-zone-small')].map(text),
                 };
             }""",
@@ -359,6 +422,16 @@ class Breakdown(unittest.TestCase):
         # Six zones, each with the share of his shots from there.
         self.assertEqual(len(detail["zones"]), 5)  # the strip outside the zone is one line of text, not a big number
         self.assertIn(f"{self.hughes['shares']['slot'] * 100:.0f}%", detail["zones"])
+        # No zone is left plain: each is on the eight rank colors (four teams to a step) by where DET
+        # ranks for shots allowed from there, the same rank the zone says in words. 1st = the most = green.
+        drawn = ["point", "left", "right", "slot", "low_slot"]  # the order the rink draws them, then the strip
+        steps = [str((defense[f"a_{area}"]["season_rank"] - 1) * 8 // 32 + 1) for area in drawn]
+        self.assertEqual([step for step, _ in detail["zone_colors"]], [*steps, None])
+        fills = {step: fill for step, fill in detail["zone_colors"] if step}
+        self.assertEqual(len(set(fills.values())), len(fills))  # a color per step
+        self.assertTrue(all(fill not in ("none", "rgba(0, 0, 0, 0)") for fill in fills.values()), fills)
+        self.assertEqual(detail["zone_colors"][-1][1], "rgba(0, 0, 0, 0)")  # the strip outside the zone is never colored
+        self.assertEqual(detail["key"], 8)
 
     def test_clicking_the_open_row_closes_it(self):
         self.open()
@@ -366,7 +439,7 @@ class Breakdown(unittest.TestCase):
         self.assertEqual(len(PAGE.query_selector_all(".shots-detail")), 0)
 
     def test_every_row_opens(self):
-        reset(lined=False)
+        reset()
         opened = PAGE.evaluate(
             """() => {
                 let count = 0;
@@ -379,7 +452,8 @@ class Breakdown(unittest.TestCase):
                 return count;
             }"""
         )
-        self.assertGreater(opened, 500)
+        self.assertEqual(opened, len(expected_plays()))
+        self.assertGreater(opened, 200)
         self.assertEqual(SITE.errors, [])
 
     def test_a_name_opens_the_player_card_not_the_row(self):
@@ -401,11 +475,10 @@ class FinishedGames(unittest.TestCase):
         self.assertEqual((entry["locked"], entry["final"]), (True, True))
         benson = next(r for r in entry["players"] if r["name"] == "Zach Benson")
         self.assertEqual(benson["actual"], 2)
-        rows = reset(LAST_NIGHT, lined=False)
-        self.assertEqual(len(rows), sum(1 for g in data["schedule"] if g["date"] == LAST_NIGHT for r in shots["games"][g["game_id"]]["players"] if not r["out"]))
+        # No line was saved for these games, and a player with no line is never listed.
+        self.assertEqual(reset(LAST_NIGHT), [])
         self.assertIn("started", PAGE.inner_text("#shots-locked"))
         result = lambda: PAGE.evaluate("(key) => document.querySelector(`.shots-row[data-row='${key}']`).lastElementChild.textContent.trim().replace(/\\s+/g, ' ')", f"{game['game_id']}:{benson['id']}")
-        self.assertEqual(result(), "2")  # no line was saved for him: just his shots
         # With a line, the play is graded. He had 2: an under 2.5 won, an over 2.5 lost.
         sides = []
         for over, under in ((-400, 150), (150, -400)):
@@ -413,6 +486,11 @@ class FinishedGames(unittest.TestCase):
             sides.append(build_nhl.shots_play(benson["chances"][2], 2.5, over, under)["side"])
             self.assertEqual(result(), "W 2" if sides[-1] == "under" else "L 2")
         self.assertEqual(sides, ["under", "over"])  # each time the play is the side with the generous price
+        # Under "Lineup Confirmed" a game that started before its lineup was read says so, and offers All.
+        PAGE.evaluate("() => { shotsView.lineup = 'confirmed'; render(); }")
+        self.assertIn("No lineup was in for these games before puck drop.", PAGE.inner_text("#shots-content"))
+        PAGE.evaluate("() => document.querySelector('.shots-waiting .shots-filter-btn').click()")
+        self.assertEqual(len(PAGE.evaluate(ROWS)), 1)
         PAGE.evaluate("(gid) => { delete DATA.player_odds[gid]; render(); }", game["game_id"])
 
     def test_the_record_tiles(self):
