@@ -104,6 +104,15 @@ def nhl_shots():
     return json.loads(nhl_shots_bytes())
 
 
+def nhl_crease_bytes():
+    """The King of the Crease sample (nhl/crease.json, built 2026-10-13 from the same games) as the page would download it."""
+    return _fixture_bytes("nhl_crease.json.gz")
+
+
+def nhl_crease():
+    return json.loads(nhl_crease_bytes())
+
+
 def nhl_lineup_story():
     """The saved projected-lineups story: {"game_id", "away", "home", "posted", "markdown"}."""
     return json.loads(_fixture_bytes("nhl_lineup_story.json.gz"))

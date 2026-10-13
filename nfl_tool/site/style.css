@@ -3394,6 +3394,41 @@ main { max-width: 1840px; }
 .koe-upside { display: inline-block; min-width: 38px; padding: 2px 8px; border-radius: 6px; border: 1px solid; font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; cursor: help; }
 .koe-dst-team { display: inline-flex; align-items: center; gap: 6px; }
 .koe-dst-td { display: inline-block; margin: 1px 4px 1px 0; padding: 1px 7px; border-radius: 5px; font-size: 0.74rem; font-weight: 700; color: var(--good-text); background: rgba(var(--good-rgb), 0.12); border: 1px solid rgba(var(--good-rgb), 0.45); }
+/* King of the Crease (nhl/promo-tools.js): King of the Endzone's table (.koe-*) with roomier boxes, two tags, and a title bar and key that ride along in the saved image */
+.crease-capture.crease-capturing { max-width: none; padding: 14px 16px; }
+.crease-capture-head { display: none; align-items: center; gap: 10px; margin-bottom: 10px; }
+.crease-capturing .crease-capture-head { display: flex; }
+.crease-capturing .koe-section { overflow: visible; margin-bottom: 0; }
+.crease-capture-titles { display: flex; flex-direction: column; line-height: 1.05; }
+.crease-capture-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.crease-capture-sub { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.crease-capture-promo { margin-left: auto; padding: 4px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--good-text); background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.45); }
+.crease-table col.crease-c-goalie { width: 310px; }
+.crease-table col.crease-c-stat { width: 58px; }
+.crease-table col.crease-c-pill { width: 84px; }
+.crease-table td { height: 36px; }
+.crease-table td.num { font-size: 1rem; }
+.crease-table .koe-label-row th { font-size: 0.62rem !important; }
+.crease-table .koe-who .team-logo { flex: 0 0 auto; }
+.crease-table .koe-meta { font-size: 0.72rem; gap: 4px; }
+.crease-g-value { --g: var(--mid-rgb); }
+.crease-sure { flex: 0 0 auto; font-size: 0.78rem; font-weight: 800; color: var(--good-text); }
+.crease-tag { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; border: 1px solid; }
+.crease-tag-upside { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
+.crease-tag-value { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border-color: rgba(var(--mid-rgb), 0.55); }
+.crease-pill { min-width: 58px; cursor: help; }
+.crease-pill-good { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.22); border-color: rgba(var(--mid-rgb), 0.65); }
+.crease-pill-flat { background: var(--panel-2); border-color: var(--border-strong); }
+.crease-pill-low { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.12); border-color: rgba(var(--bad-rgb), 0.4); }
+.crease-pill-check { color: var(--muted); background: transparent; border-style: dashed; border-color: var(--border-strong); }
+.crease-pill-check::after { content: "?"; margin-left: 1px; }
+.crease-live td { opacity: 0.55; }
+.crease-crown { color: var(--mid-text); }
+.crease-game { cursor: default; }
+.crease-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: 8px 2px 0; font-size: 0.74rem; color: var(--muted); }
+.crease-key b { color: var(--text); }
+.crease-key b.crease-sure { color: var(--good-text); }
+.crease-key .nhl-scale-key { font-weight: 600; color: var(--muted); }
 
 @media (max-width: 760px) {
   main { padding: 12px 12px 28px; }

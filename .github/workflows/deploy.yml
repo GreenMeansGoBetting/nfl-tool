@@ -199,6 +199,9 @@ jobs:
                       # The Shots page's own file: how many games have projections.
                       shots = site / "nhl" / "shots.json"
                       note["shots"] = len(json.loads(shots.read_text()).get("games") or {}) if shots.exists() else None
+                      # King of the Crease's own file: how many days have a board.
+                      crease = site / "nhl" / "crease.json"
+                      note["crease"] = len(json.loads(crease.read_text()).get("days") or {}) if crease.exists() else None
               except Exception:
                   note = {"built": None}
                   log = Path(f"{suite}_build.log")

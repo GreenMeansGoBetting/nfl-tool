@@ -1123,3 +1123,32 @@ information."
 - The card's "OPP allows" column used to be colored from the defense's side (green = allows
   little). Next to a rink colored from the shooter's side that would have contradicted it, so
   the column now takes the zone's color.
+
+### King of the Crease (2026-10-13, afternoon)
+
+- **The ask.** "A tool similar to our King of the Endzone ... called King of the Crease": a
+  quick, digestible snapshot of what decides saves, Novig's lines so everyone sees where the
+  market is, every column sortable, and "a clean and crisp image to twitter" as the priority
+  ("less information dense than the NFL one"). The new idea was theirs: "picking chalky and
+  popular picks means your payout will be smaller. Some people are going to want to take the best
+  possible play and walk out with $50 in bonus bets, others may want to take a dark horse ... and
+  make it into a $400 free bet", so "a value tag which indicates where the market may be
+  underselling the potential of the keeper".
+- Novig had no saves market that morning and listed one by the afternoon, thin: half the main
+  lines had one price or none.
+- **What the replay said about their factors** (shots on goal, chances, saves): shots are nearly
+  everything, from both teams; scoring chances from in close and the goalie's own save rate
+  barely register; his saves a start so far is worse than no information at all.
+- **Why Upside leans on the line.** A week into the season the model's projections ran 21 to 26
+  saves while the lines ran 19.5 to 28.5. The lines are right to be wider: the book knows what a
+  team was last year and the model, by the owner's rule, does not. So the chance to lead the day
+  starts from the line and moves toward the model as the season earns it.
+- **Why Value was rebuilt before it shipped.** Comparing "the day by our numbers" with "the day
+  by the lines" tagged five low-line goalies on the first slate, none of them real: bunching the
+  favorites makes every long shot look underrated. Now only the goalie's own number changes
+  between the two chances. The honest result on day one was no Value tags at all.
+- The lineup reader had been naming Victor Hedman as Tampa Bay's goalie (a seventh defenseman on
+  his own line) and dropping an Islanders pair typed without a space; both were also missing
+  from the Shots page. Fixed in passing.
+- The NHL's own logos can't go into a saved image (no cross-origin header on assets.nhle.com),
+  so this one page uses ESPN's, as the NFL pages always have.

@@ -45,7 +45,7 @@ LIVE = "https://nfl.gmgsports.org"
 SUITES = {
     "nfl": ["data.json"],
     "nba": ["nba/data.json"],
-    "nhl": ["nhl/data.json", "nhl/shots.json"],
+    "nhl": ["nhl/data.json", "nhl/shots.json", "nhl/crease.json"],
 }
 NHL_PLAYERS = "nhl/players/"
 TRIES = 3

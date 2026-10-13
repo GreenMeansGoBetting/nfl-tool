@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8010"],
       "port": 8010
+    },
+    {
+      "name": "nfl-tool-2",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8011"],
+      "port": 8011
     }
   ]
 }

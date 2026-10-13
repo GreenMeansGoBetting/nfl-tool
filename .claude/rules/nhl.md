@@ -40,8 +40,13 @@ switch"). More background: `docs/history.md`, "NHL".
   players are matched to the NHL's by name with accents dropped (`plain`).
 - **Novig** has NHL on the same feed (`events?league=NHL`, same `EventMarkets_Query`). Game
   lines: the consensus MONEY, SPREAD (the puck line, 1.5) and TOTAL. Player odds (below):
-  PLAYER_GOALS, SHOTS_ON_GOAL, POINTS, ASSISTS, FIRST_GOAL_SCORER. Unused so far: TEAM_TOTAL.
-  No goalie saves market was listed (checked 2026-10-13). Futures events (no " @ ") are skipped.
+  PLAYER_GOALS, SHOTS_ON_GOAL, POINTS, ASSISTS, FIRST_GOAL_SCORER, and SAVES (goalies; it first
+  appeared the afternoon of 2026-10-13). Unused so far: TEAM_TOTAL, POWER_PLAY_POINTS. Futures
+  events (no " @ ") are skipped.
+  - **Saves is a thin book** (`saves_lines_from_event`): a main line often has one price or none.
+    The line is kept anyway (it still says where the market is); the over's fair chance is
+    Over/(Over+Under), a lone ask / 1.05, or 50% with no price, held to 35-65%
+    (`saves_over_chance`). Goalies with no game this season are kept by name (`id` None).
   Same odds lock as NBA: only `OPEN_PREGAME` events, and a started game keeps the lines and the
   player odds of the last build before puck drop (`apply_lines`, `locked_player_odds`).
 - **The NHL's "projected lineups" story for every game** (NHL.com's game preview, found
@@ -53,6 +58,12 @@ switch"). More background: `docs/history.md`, "NHL".
   (some West-coast games later), so the 2:17 pm ET build has most of them and the 8:17 am one has
   none. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
   stories are still served. `parse_lineups`, `lineup_slots`, `fetch_lineups`.
+  - The story is typed by hand. Two things it does (both met 2026-10-13): a team dressing seven
+    defensemen lists the seventh **on his own line above the goalies** (Victor Hedman was read as
+    Tampa Bay's starting goalie), and a pair can lose a space ("Tony DeAngelo --Scott Mayfield").
+    So lines are split on `--` alone, and a lone name is a goalie only if the site doesn't know
+    him as a skater and he is one of the last two; any other lone name is a skater in the lineup
+    with no line or pair (`slot` None: on the Shots page he is under All, not Lineup Confirmed).
 - **Confirmed starting goalies:** not in any feed, but the expected starter is the first goalie
   in that story (`shots.json` `lineups[game][team].goalie`). Game Previews doesn't show it yet.
 - **Not built:** expected goals (xG). It is a model on shot location and type, not a feed field;
@@ -278,7 +289,7 @@ on a replay, and the page keeps a record against the real prices.
     standard deviations from what the league allows on them (`goalieAreaTier`): luck alone
     should not paint a zone.
   - Odds: the lines above for the player's game (the open one, else his team's next), with
-    `thin` tags and the ladders as "N or more" chips. Goalies have no lines.
+    `thin` tags and the ladders as "N or more" chips. A goalie's only line is Saves.
   - A team whose file can't be read still opens the card (season tiles and odds only).
 - `site/nhl/shots.html` + `shots.js` = **Shots** (the nav button next to Game Previews): one
   table for the day's slate, a row per skater, ranked best edge first.
@@ -322,6 +333,7 @@ on a replay, and the page keeps a record against the real prices.
   - "Confirmed" is the user's label for "the NHL's projected lineup is in". It is not the
     official sheet from warmups; the page's About box says so (95% of listed skaters played).
   - No season switch (this season only). Names open the player card, on this season.
+- `site/nhl/promo-tools.html` + `promo-tools.js` = **Promo Tools: King of the Crease** (below).
 - It reuses the NBA page's layout classes (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` /
   `.nba-soon` for the owner-only guard); hockey-only styles are `.nhl-*`. It does not load
   common.js.
@@ -345,6 +357,71 @@ on a replay, and the page keeps a record against the real prices.
 - Logos are the NHL's SVGs, with a dark-page version (`logo_dark`); the page redraws on a theme
   switch.
 
+## King of the Crease (Promo Tools; built 2026-10-13)
+
+DraftKings' promo: everyone whose goalie makes the **most saves of the day** shares $500K in
+bonus bets (ties split; if your goalie doesn't start, the team's starter counts for you; the
+qualifying bet must be +100 or longer). The NHL twin of King of the Endzone, with one thing that
+tool lacks, asked for by the user: **Value** next to Upside ("picking chalky and popular picks
+means your payout will be smaller").
+
+- **The saves model** (`nfl_tool/nhl/saves_model.py`, standard library, this season only):
+  a league-average start x how much the other team shoots x what his own team gives up x home /
+  rest x his save rate. `WEIGHTS`: off 1.0, def 0.85, home -3%, his team on a back-to-back +3%,
+  the other team on one -3%, save rate 1.0. Teams are this season's games mixed with 10 games of
+  a league-average team; a quarter of the volume is read from attempts.
+- **The replay** (`python tools/backtest/nhl_saves.py 2026 2025`, `--tune`): 5,034 starts over
+  two seasons, each projected only from that season's games before it.
+  - The two teams are nearly all of it (each moves a projection about 6% either way). His save
+    rate: about 1%. **His own saves a start predicted worse than calling every goalie average.**
+    Team strength, recent form and in-close scoring chances added nothing.
+  - **Early in a season it knows little:** in the first two weeks its miss was 5.36 saves against
+    5.42 for "everyone is average"; full strength by about game 20.
+  - The spread (`save_spread`): a count with `DISPERSION` 0.02, plus 5% of starts ending early at
+    about 12 saves (a pulled starter). Said / was within a point or two from 20 saves to 40.
+  - **The promo's own question** (`top_chances`): goalies given 10-14% led their day 10% of the
+    time; the favorite led 18% of days (a random pick 8%); the top three had the leader on 42%.
+    The day's best averaged 36.7 saves (31 to 43 most days); 9% of days ended in a tie.
+  - Not shown: that it beats the line (no free history of saves lines), or how many people pick
+    each goalie (DraftKings doesn't publish it; payouts after the fact could back it out).
+- **The board** (`crease_board` -> `site/nhl/crease.json`, untracked): `days[date].goalies`,
+  one row per team playing, for the same days as the Shots page.
+  - **Starter** (`crease_starter`): the first goalie in the NHL's projected lineup (`source`
+    "lineup": the page's check mark), else the goalie Novig has a saves line for ("market"), else
+    the most starts, or the other goalie on the second night of a back-to-back ("usual").
+  - Row: his season (`starts`, `saves_avg`, `sv_pct`, `high`), both sides of the matchup
+    (`opp_shots` + rank, `allowed` + rank; 1 = the most, either way more work for him), the
+    model's `shots` and `mean`, the line (`line`, `over`, `under`, `alts`, `mkt_mean` = the line
+    and price turned back into saves), `blend`, `big` (chance of 35+), `top`, `mkt_top`, `value`,
+    `check`, `tags`.
+  - **Upside leans on the market** (`CREASE_RULES`): `blend` = the line moved toward the model by
+    `0.5 x min(1, games / 20)` (the fewer of the two teams' games): about 14% in mid-October,
+    halfway from game 20. A goalie with no line is on the model alone. `top` = his chance to make
+    the day's most saves, ties included, from every starter's `blend`.
+  - **Value = `top` / `mkt_top`**, where `mkt_top` is his chance if he were exactly what his line
+    says **against the same field**. Only his own number changes. (The first version compared two
+    whole fields and tagged every low-line goalie, because the model's projections are bunched
+    early in a season.) Tag at 1.15+, with `top` at least half an even split of the day, and
+    never when `check` (model and line 4+ saves apart: shown as a dashed "?" box).
+    **Expect almost no Value tags until teams have played 10-15 games**: the rule working.
+  - Upside tag: the day's best `top`, three at most (one per four starters on a short slate).
+  - Lock: a started game keeps the previous build's rows; a final one gets `actual` (the saves of
+    whoever STARTED for the team, which is who the promo counts) and, once the whole day is
+    final, `led`. A game still open is worked out against finished goalies' real totals.
+- **The record** (`model_history/nhl_crease/<month>.json`, committed with the other records):
+  each finished day once. `crease_record_summary`: how often the favorite and the Upside tags
+  led, the Value tags against what the chances and the lines said, and the average miss of the
+  model, the line and the blend. It is what will say whether `blend` deserves more or less.
+- **The page:** day strip (not clickable; the promo is the whole day), one table in King of the
+  Endzone's look (`.koe-*` + `.crease-*`), every column sortable, All starters / Top 10, the
+  record tiles and an About box. The page does no math. Matchup columns are on the eight rank
+  colors by league rank; Tonight's by rank within the day. "His season" is left plain on
+  purpose (it doesn't predict).
+- **Save image** is the priority (the user: "a clean and crisp image to twitter"): the table
+  with a GMG title bar and a key, at 2x. **Logos on this page are ESPN's** (`shareLogo`):
+  assets.nhle.com sends no cross-origin header, so html-to-image can't carry the NHL's own files.
+  No headshots for the same reason. Top 10 gives a wide image, All a tall one.
+
 ## Tests and checks
 
 - `tests/test_nhl.py` (the build, on one saved game and one saved Novig event) and
@@ -355,7 +432,10 @@ on a replay, and the page keeps a record against the real prices.
   lines read from a saved story (`nhl_lineup_story.json.gz`, STL @ OTT), and the board, lock and
   record, on the saved game and hand-made games) and `tests/test_nhl_shots_site.py` (the Shots page in a browser on
   `nhl_shots.json.gz`, the shots.json that matches the saved data sample).
-- `tools/fetch_live_data.py` also downloads the live player files and `shots.json`, so the
+- `tests/test_nhl_saves.py` (the saves model, Novig's saves lines, the starter, the lineup
+  reader's lone-name fixes, the board, lock and record) and `tests/test_nhl_crease_site.py` (the
+  Promo Tools page in a browser on `nhl_crease.json.gz`).
+- `tools/fetch_live_data.py` also downloads the live player files, `shots.json` and `crease.json`, so the
   after-deploy site check sees the pages as members do.
 - `tools/check_site.py` opens both NHL pages; like the NBA page they can never block the deploy gate.
 - `https://nfl.gmgsports.org/version.json` shows whether the NHL build worked: `nhl.built`,
@@ -366,8 +446,10 @@ on a replay, and the page keeps a record against the real prices.
 ## Not built yet (waiting on the user's priorities)
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: an anytime
-goal scorer tool, a goalie saves tool (no saves market on Novig yet). The shots on goal tool is
-built (above).
+goal scorer tool, a goalie saves prop tool (the saves model and Novig's saves lines now exist:
+see King of the Crease). The shots on goal tool is built (above).
+For King of the Crease: how many people pick each goalie (ask the user for a winning day's
+payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
 For the Shots model: power-play units (the projected lineup has lines and pairs, not the power

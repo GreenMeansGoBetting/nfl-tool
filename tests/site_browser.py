@@ -7,7 +7,7 @@ call the page's own functions.
 """
 import json
 
-from helpers import SAMPLE_BUILT_UTC, nhl_data_bytes, nhl_players, nhl_shots_bytes, site_data_bytes  # first: puts tools/ on the import path
+from helpers import SAMPLE_BUILT_UTC, nhl_crease_bytes, nhl_data_bytes, nhl_players, nhl_shots_bytes, site_data_bytes  # first: puts tools/ on the import path
 
 from check_site import INSTALL_HELP, start_server
 
@@ -44,6 +44,8 @@ class SiteBrowser:
             route.fulfill(status=200, content_type="application/json", body=nhl_data_bytes())
         elif url == f"{self.origin}/nhl/shots.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_shots_bytes())
+        elif url == f"{self.origin}/nhl/crease.json":
+            route.fulfill(status=200, content_type="application/json", body=nhl_crease_bytes())
         elif url.startswith(f"{self.origin}/nhl/players/"):
             # Only the saved teams exist; any other team's file is "not built".
             team = nhl_players().get(url.rsplit("/", 1)[-1].removesuffix(".json"))

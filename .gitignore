@@ -16,3 +16,4 @@ nfl_tool/site/nhl/players/
 
 __pycache__/
 *.pyc
+nfl_tool/site/nhl/crease.json

@@ -20,7 +20,8 @@ show them while this season's sample is small without downloading 1,300
 games on every cold start.
 
 The Shots page's projections (site/nhl/shots.json) are worked out here
-too, by shots_model.py, from the same finished games.
+too, by shots_model.py, from the same finished games, and so is the Promo
+Tools page's King of the Crease board (site/nhl/crease.json, saves_model.py).
 
 Seasons are named by the year they END, like the NBA build (2027 = 2026-27).
 Team keys are the NHL's own abbreviations (TBL, NJD, SJS, LAK, UTA ...).
@@ -44,9 +45,10 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import saves_model
 import shots_model
 
-API = "https://api-web.nhle.com/v1"
+API ="https://api-web.nhle.com/v1"
 REST = "https://api.nhle.com/stats/rest/en"
 ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/injuries"
 REGULAR_SEASON = 2  # the NHL's gameType
@@ -82,6 +84,7 @@ NOVIG_MARKET_FILTER = {
 STORIES = "https://forge-dapi.d3.nhle.com/v2/content/en-us/stories"
 LIVE_DATA_URL = "https://nfl.gmgsports.org/nhl/data.json"
 LIVE_SHOTS_URL = "https://nfl.gmgsports.org/nhl/shots.json"
+LIVE_CREASE_URL = "https://nfl.gmgsports.org/nhl/crease.json"
 # The Shots page projects games through this many days out (books post
 # shots-on-goal lines about a day ahead) and keeps the chance of 1+ ... 8+.
 SHOTS_DAYS_AHEAD = 2
@@ -95,6 +98,30 @@ SHOTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
 # Every graded play, one file a month (2026-10.json ...), committed by the
 # deploy like the NFL model's record so it survives anything the site loses.
 SHOTS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_shots"
+# King of the Crease (DraftKings' promo: the goalie with the most saves of the
+# day wins). The board covers the same days as the Shots page.
+#   blend   how far a goalie's chance to lead the day leans on the model's own
+#           projection once the season has depth; the rest is the book's
+#           line, which knows things the model can't (who is hurt, what a
+#           team was before this season)
+#   full_games  ...reached when both teams have played this many games. Before
+#           that the model counts for less, in step: in the replay its edge
+#           over "every goalie is average" was a quarter of its full size in
+#           a season's first two weeks and whole by about game 20.
+#   value   the Value tag: his chance to lead the day is at least this many
+#           times what it would be if he were exactly what his line says
+#   floor   ...and at least this share of an even split of the day (half of
+#           1 in 20 on a ten-game day), so a no-hoper doubling to 2% isn't one
+#   check   model and line this many saves apart: more often news the model
+#           can't see than a gift. Marked, never tagged.
+#   upside  the Upside tag: the day's best chances, this many at most (one
+#           for every four starters on a short slate)
+#   big_night  the save total the "big night" chance is quoted at (the day's
+#           best averaged 36.7 saves in the replay)
+CREASE_RULES = {"blend": 0.5, "full_games": 20, "value": 1.15, "floor": 0.5, "check": 4.0, "upside": 3, "big_night": 35}
+# Every finished day, one file a month, committed by the deploy like the Shots record.
+CREASE_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_crease"
+CREASE_RECORD_COLS = ("id", "name", "team", "opp", "mean", "line", "over", "under", "mkt_mean", "blend", "top", "mkt_top", "tags", "actual")
 LINE_FIELDS = (
     "away_team_spread", "home_team_spread", "away_spread_odds", "home_spread_odds", "total_line",
     "over_odds", "under_odds", "away_moneyline", "home_moneyline", "away_ml_implied_prob", "home_ml_implied_prob",
@@ -942,13 +969,73 @@ def player_odds_from_event(ev: dict, team_of_name, find) -> dict:
     return {pid: row for pid, row in out.items() if len(row) > 2}
 
 
+# Novig's goalie saves book is thin: often the line with one price, or none
+# yet. A lone ask sits about this far above the fair price (where both sides
+# trade, the two asks add to about 1.05).
+SAVES_OVERROUND = 1.05
+# The furthest a price can pull the line off 50/50: a thin ask is not a forecast.
+SAVES_CHANCE_RANGE = (0.35, 0.65)
+
+
+def saves_over_chance(over, under) -> float:
+    """The chance the book gives the over at its main line, its cut taken
+    out, from Novig's prices (0-1; either can be missing)."""
+    over = over if over and 0 < over < 1 else None
+    under = under if under and 0 < under < 1 else None
+    if over and under and over + under > 1.5:
+        over = under = None  # junk quotes (99 cents a side)
+    if over and under:
+        chance = over / (over + under)
+    elif over:
+        chance = over / SAVES_OVERROUND
+    elif under:
+        chance = 1 - under / SAVES_OVERROUND
+    else:
+        chance = 0.5
+    return round(min(SAVES_CHANCE_RANGE[1], max(SAVES_CHANCE_RANGE[0], chance)), 3)
+
+
+def saves_lines_from_event(ev: dict, team_of_name, find) -> dict:
+    """{team: [goalie]} for every goalie Novig lists a main saves line for:
+    {"id" (None for a goalie who hasn't played this season), "name", "line",
+    "over", "under", "chance" (of the over, the cut taken out), "thin" (a
+    side isn't priced), "alts" ([line, over price] for its other lines)}.
+    The line is kept even with no price on it: it still says where the
+    market is."""
+    out = {}
+    for m in ev.get("markets") or []:
+        player = m.get("player") or {}
+        if m.get("type") != "SAVES" or not player.get("full_name") or m.get("strike") is None:
+            continue
+        comps = player.get("player_competitors") or []
+        team = team_of_name((comps[0].get("competitor") or {}).get("name")) if comps else None
+        if not team:
+            continue
+        name = player["full_name"]
+        row = out.setdefault(team, {}).setdefault(plain(name), {"id": find(team, name) if find else None, "name": name, "alts": []})
+        prices = {(o.get("description") or "").split(" ")[0].lower(): o.get("available") for o in m.get("outcomes") or []}
+        over, under = prices.get("over"), prices.get("under")
+        if m.get("is_consensus"):
+            row.update(line=float(m["strike"]), over=price_to_american(over), under=price_to_american(under), chance=saves_over_chance(over, under))
+            row["thin"] = row["over"] is None or row["under"] is None
+        elif price_to_american(over) is not None:
+            row["alts"].append([float(m["strike"]), price_to_american(over)])
+    listed = {}
+    for team, rows in out.items():
+        for row in rows.values():
+            if "line" in row:
+                row["alts"].sort()
+                listed.setdefault(team, []).append(row)
+    return listed
+
+
 def fetch_novig_lines(games: list, teams: dict, find=None) -> tuple:
-    """({game_id: lines}, {game_id: {player id: odds}}, debug). Pregame
-    events only -- Novig keeps quoting in-game lines after puck drop, and
-    those must never be shown as the line (the NFL site learned that on
-    2026-10-11). Never raises."""
-    debug = {"events": 0, "matched": 0, "players": 0, "error": None}
-    out, players = {}, {}
+    """({game_id: lines}, {game_id: {player id: odds}}, {game_id: {team:
+    [goalie saves lines]}}, debug). Pregame events only -- Novig keeps
+    quoting in-game lines after puck drop, and those must never be shown as
+    the line (the NFL site learned that on 2026-10-11). Never raises."""
+    debug = {"events": 0, "matched": 0, "players": 0, "saves": 0, "error": None}
+    out, players, saves = {}, {}, {}
     team_of_name = team_namer(teams)
     try:
         query = NOVIG_QUERY_PATH.read_text(encoding="utf-8").rstrip("\n")
@@ -984,13 +1071,25 @@ def fetch_novig_lines(games: list, teams: dict, find=None) -> tuple:
                 debug["matched"] += 1
             if find:
                 odds = player_odds_from_event(rows[0], team_of_name, find)
+                goalie_lines = saves_lines_from_event(rows[0], team_of_name, find)
+                if goalie_lines:
+                    saves[game["game_id"]] = goalie_lines
+                    debug["saves"] += sum(len(listed) for listed in goalie_lines.values())
+                # A goalie the site knows gets his saves line on the player card too.
+                for team, listed in goalie_lines.items():
+                    for row in listed:
+                        if row["id"]:
+                            card = odds.setdefault(row["id"], {"name": row["name"], "team": team})
+                            card["saves"] = {key: row[key] for key in ("line", "over", "under", "chance", "thin")}
+                            if row["alts"]:
+                                card["saves_alts"] = row["alts"]
                 if odds:
                     players[game["game_id"]] = odds
                     debug["players"] += len(odds)
     except Exception as ex:  # network, JSON, or a changed query -- the page just shows no lines
         debug["error"] = str(ex)
         print(f"WARNING: Novig NHL fetch failed ({ex}).", file=sys.stderr)
-    return out, players, debug
+    return out, players, saves, debug
 
 
 def team_namer(teams: dict):
@@ -1069,8 +1168,9 @@ def parse_lineups(markdown: str) -> dict:
                 # "Kirby Dach (broken foot), Alex Newhook (broken ankle)": the reasons go, the names stay.
                 names = [n.strip() for n in re.sub(r"\([^)]*\)", "", rest).split(",") if n.strip() and n.strip().lower() != "none"]
                 team["scratched" if label.strip().lower() == "scratched" else "injured"].extend(names)
-            elif re.search(r"\s--\s", text):
-                team["groups"].append([n.strip() for n in re.split(r"\s+--\s+", text) if n.strip()])
+            elif "--" in text:
+                # Split on the dashes alone: the story is typed by hand ("Tony DeAngelo --Scott Mayfield").
+                team["groups"].append([n.strip() for n in text.split("--") if n.strip()])
             elif not colon and len(text.split()) <= 4:
                 team["goalies"].append(text)
     return out
@@ -1081,8 +1181,18 @@ def lineup_slots(lineup: dict, team: str, find, positions: dict) -> dict:
     {player id: slot}, ...}. A slot is "F1" (first line) to "F4" or "D1"
     (first pair) to "D3", read from the order the story lists them. A group
     is a defense pair if its players are defensemen (by this season's
-    position; two names nobody knows yet count as a pair, three as a line)."""
+    position; two names nobody knows yet count as a pair, three as a line).
+
+    Names on a line of their own are the two goalies, starter first, but not
+    always only them: a team dressing seven defensemen lists the seventh on
+    his own line above the goalies ("Victor Hedman", Tampa Bay, 2026-10-13).
+    A lone name the site knows as a skater, or any lone name before the last
+    two, is a skater in the lineup with no line or pair (slot None)."""
     skaters, unknown, counts = {}, [], {"F": 0, "D": 0}
+    alone = [(find(team, name), name) for name in lineup["goalies"]]
+    in_net = [(pid, name) for pid, name in alone if pid not in positions]
+    extra = [(pid, name) for pid, name in alone if pid in positions] + in_net[:-2]
+    in_net = in_net[-2:]
     for names in lineup["groups"]:
         ids = [find(team, name) for name in names]
         known = [positions[pid] for pid in ids if pid in positions]
@@ -1094,9 +1204,14 @@ def lineup_slots(lineup: dict, team: str, find, positions: dict) -> dict:
                 skaters[pid] = f"{kind}{counts[kind]}"
             else:
                 unknown.append(name)
+    for pid, name in extra:
+        if pid:
+            skaters.setdefault(pid, None)
+        else:
+            unknown.append(name)
     return {
         "skaters": skaters, "unknown": unknown, "lines": lineup["groups"],
-        "goalie": (find(team, lineup["goalies"][0]) or lineup["goalies"][0]) if lineup["goalies"] else None,
+        "goalie": (in_net[0][0] or in_net[0][1]) if in_net else None,
         "scratched": lineup["scratched"], "injured": lineup["injured"],
         "out": [pid for pid in (find(team, name) for name in lineup["scratched"] + lineup["injured"]) if pid],
     }
@@ -1366,6 +1481,287 @@ def shots_record_summary(folder: Path) -> dict:
     return out
 
 
+# ---- King of the Crease (the Promo Tools page) ----
+def saves_model_for(records: list):
+    """The saves model fed every finished game of this season, and nothing
+    from last season (the owner's rule for the NHL prop tools)."""
+    model = saves_model.SavesModel()
+    for record in records:
+        model.add_game(record)
+    return model
+
+
+def last_starters(records: list) -> dict:
+    """{team: the id of the goalie who started its latest game}."""
+    out = {}
+    for record in records:  # in date order
+        for pid, line in record["goalies"].items():
+            if line["start"]:
+                out[line["team"]] = pid
+    return out
+
+
+def crease_starter(posted: dict | None, listed: list, team_goalies: list, all_goalies: dict, rest, last_start) -> dict:
+    """Who should start in net for a team tonight, best source first:
+      "lineup"  the first goalie in the NHL's projected lineup for the game
+      "market"  the goalie the book has a saves line for
+      "usual"   the goalie with the most starts this season, or the other
+                one on the second night of a back-to-back he started the
+                first night of
+    Returns {"id" (None for a goalie with no game this season), "name" (None
+    when nobody can be named), "source"}. The promo moves a pick to whoever
+    does start for the team, so a wrong guess costs a name, not the row."""
+    usual = team_goalies[0] if team_goalies else None
+    if usual and rest == 1 and last_start == usual["id"] and len(team_goalies) > 1:
+        usual = team_goalies[1]
+    if posted and posted.get("goalie"):
+        who = posted["goalie"]  # an id when the site knows him, else his name as the story spells it
+        known = all_goalies.get(who)
+        return {"id": known["id"] if known else None, "name": known["name"] if known else who, "source": "lineup"}
+    if listed:
+        # Two goalies listed for one team: the usual starter if he is one of them.
+        row = next((row for row in listed if usual and row["id"] == usual["id"]), listed[0])
+        known = all_goalies.get(row["id"])
+        return {"id": row["id"], "name": known["name"] if known else row["name"], "source": "market"}
+    return {"id": usual["id"] if usual else None, "name": usual["name"] if usual else None, "source": "usual"}
+
+
+def crease_line(starter: dict, listed: list) -> dict | None:
+    """The book's saves line for that goalie, if it lists him."""
+    for row in listed:
+        if (starter["id"] and row["id"] == starter["id"]) or (starter["name"] and plain(row["name"]) == plain(starter["name"])):
+            return row
+    return None
+
+
+def crease_team_ranks(model) -> dict:
+    """{team: {"shots": rank, "allowed": rank}}: where each team ranks this
+    season for shots on goal a game (1 = the most) and for shots on goal
+    allowed a game (1 = allows the most). Either way 1 = more work for a goalie."""
+    out = {team: {} for team in model.teams}
+    for key, side in (("shots", "for"), ("allowed", "against")):
+        order = sorted(model.teams, key=lambda team: -(model.team_rate(team, side, "sog")["season"] or 0))
+        for team in out:
+            out[team][key] = order.index(team) + 1
+    return out
+
+
+def crease_row(model, g: dict, team: str, opp: str, side: str, other: str, starter: dict, line: dict | None, ranks: dict) -> dict | None:
+    """One team's starter for one game: his season so far, both sides of the
+    matchup, the model's projection, the book's line, and the two blended."""
+    proj = model.project(team, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), starter["id"])
+    if proj is None:
+        return None
+    mean = proj["mean"]
+    # The saves the book expects: its line and price turned back into a projection.
+    mkt_mean = saves_model.mean_for_chance(line["line"], line["chance"]) if line else None
+    # What his chance to lead the day is worked out from: the line, moved toward
+    # the model by as much as the season so far has earned (CREASE_RULES).
+    weight = CREASE_RULES["blend"] * min(1.0, min(proj["team_games"], proj["opp_games"]) / CREASE_RULES["full_games"])
+    blend = weight * mean + (1 - weight) * mkt_mean if line else mean
+    starts = proj["starts"]
+    return {
+        "game_id": g["game_id"], "team": team, "opp": opp, "home": side == "home", "locked": False,
+        "id": starter["id"], "name": starter["name"], "source": starter["source"],
+        # His season so far, as his game log says it.
+        "starts": starts, "saves_avg": num(proj["start_saves"] / starts, 1) if starts else None, "sv_pct": ratio(proj["sa"] - proj["ga"], proj["sa"]), "high": proj["high"] or None,
+        # Both sides of the matchup: what the other team puts on net a game, and what his own team gives up.
+        "opp_shots": num(proj["off"]["season"], 1), "opp_shots_rank": (ranks.get(opp) or {}).get("shots"),
+        "allowed": num(proj["def"]["season"], 1), "allowed_rank": (ranks.get(team) or {}).get("allowed"),
+        "b2b": g.get(f"{side}_rest") == 1, "opp_b2b": g.get(f"{other}_rest") == 1,
+        "shots": num(proj["shots"], 1), "mean": num(mean), "lift": {key: round(value, 3) for key, value in proj["lift"].items()},
+        "line": line["line"] if line else None, "over": line["over"] if line else None, "under": line["under"] if line else None,
+        "thin": line["thin"] if line else None, "alts": line["alts"] if line else [],
+        "mkt_mean": num(mkt_mean), "blend": num(blend), "weight": round(weight, 3) if line else None,
+        # Model and line too far apart to take at face value.
+        "check": bool(line) and abs(mean - mkt_mean) >= CREASE_RULES["check"],
+        "big": round(saves_model.chance_at_least(blend, CREASE_RULES["big_night"]), 3),
+    }
+
+
+def crease_chances(rows: list) -> None:
+    """Each open row's chance to finish with the day's most saves (`top`),
+    what that chance would be if he were exactly what his line says against
+    the same field (`mkt_top`), and the first over the second (`value`: above
+    1, the market may be underselling him). Only his own number changes
+    between the two, so a value can't come from the rest of the day's goalies.
+    A goalie whose game is final counts as what he made, so a late game's
+    chance is the chance to catch the leader; a started game's rows keep the
+    numbers they locked with."""
+    spreads = [saves_model.known_spread(row["actual"]) if row.get("actual") is not None else saves_model.save_spread(row["blend"]) for row in rows]
+    ceilings = [saves_model.at_most(spread) for spread in spreads]
+    for i, row in enumerate(rows):
+        if row["locked"]:
+            continue
+        field = ceilings[:i] + ceilings[i + 1:]
+        chance = saves_model.lead_chance(spreads[i], field)
+        line_chance = saves_model.lead_chance(saves_model.save_spread(row["mkt_mean"]), field) if row["line"] is not None else None
+        row["top"] = round(chance, 4)
+        row["mkt_top"] = round(line_chance, 4) if line_chance is not None else None
+        row["value"] = round(chance / line_chance, 3) if line_chance else None
+
+
+def crease_tags(rows: list) -> None:
+    """The two tags, on the rows still open:
+      "upside"  the best chances to lead the day (CREASE_RULES "upside", one
+                for every four starters on a short slate)
+      "value"   his chance is well above what his line alone says ("value"),
+                he has a real chance to begin with ("floor"), and the gap
+                isn't one to check for news first ("check")"""
+    open_rows = [row for row in rows if not row["locked"]]
+    best = sorted(open_rows, key=lambda row: -row["top"])[:max(1, min(CREASE_RULES["upside"], round(len(open_rows) / 4)))]
+    floor = CREASE_RULES["floor"] / len(rows) if rows else 0
+    for row in open_rows:
+        tags = ["upside"] if any(row is top for top in best) else []
+        if row["value"] is not None and row["value"] >= CREASE_RULES["value"] and row["top"] >= floor and not row["check"]:
+            tags.append("value")
+        row["tags"] = tags
+
+
+def crease_board(model, games: list, tonight: dict | None, saves_lines: dict | None, goalies: dict, records: list, previous: dict | None, now_utc: datetime) -> dict:
+    """{date: {"goalies": [rows], "final", "best"}} for King of the Crease:
+    one row per team playing that day, named for its expected starter. Same
+    lock as the lines: a game that has started keeps the rows of the last
+    build before puck drop (with nothing saved it has no rows, never ones
+    made after the puck dropped), and a finished one gets `actual`: the saves
+    of the goalie who did start, which is who the promo counts. Once every
+    game of a day is final, `best` is the day's top total and `led` marks who
+    made it."""
+    all_goalies = {row["id"]: row for rows in goalies.values() for row in rows}
+    kept_rows = {(row["game_id"], row["team"]): row for day in ((previous or {}).get("days") or {}).values() for row in day.get("goalies") or []}
+    finished = {str(r["id"]): r for r in records}
+    last_start = last_starters(records)
+    ranks = crease_team_ranks(model)
+    last_day = (now_utc - timedelta(hours=4) + timedelta(days=SHOTS_DAYS_AHEAD)).strftime("%Y-%m-%d")
+    starters_in = lambda record: [line for line in record["goalies"].values() if line["start"]]
+    days = {}
+    for g in games:
+        started = g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+        if not started and g["date"] > last_day:
+            continue
+        for team, opp, side, other in ((g["away"], g["home"], "away", "home"), (g["home"], g["away"], "home", "away")):
+            if started:
+                kept = kept_rows.get((g["game_id"], team))
+                if not kept:
+                    continue
+                row = {**kept, "locked": True}
+                played = next((line for line in starters_in(finished[g["game_id"]]) if line["team"] == team), None) if g["game_id"] in finished else None
+                if played:
+                    row["actual"], row["started"] = played["sa"] - played["ga"], played["name"]
+            else:
+                listed = ((saves_lines or {}).get(g["game_id"]) or {}).get(team) or []
+                starter = crease_starter(((tonight or {}).get(g["game_id"]) or {}).get(team), listed, goalies.get(team) or [], all_goalies, g.get(f"{side}_rest"), last_start.get(team))
+                # Tomorrow's second night of a back-to-back reads tonight's expected starter.
+                last_start[team] = starter["id"]
+                row = crease_row(model, g, team, opp, side, other, starter, crease_line(starter, listed), ranks)
+                if not row:
+                    continue
+            days.setdefault(g["date"], []).append(row)
+    out = {}
+    for date, rows in days.items():
+        crease_chances(rows)
+        crease_tags(rows)
+        day_games = [g for g in games if g["date"] == date]
+        final = all(g["game_id"] in finished for g in day_games)
+        best = max((line["sa"] - line["ga"] for g in day_games for line in starters_in(finished[g["game_id"]])), default=None) if final else None
+        if final:
+            for row in rows:
+                if row.get("actual") is not None:
+                    row["led"] = row["actual"] == best
+        out[date] = {"goalies": sorted(rows, key=lambda row: -(row.get("top") or 0)), "starters": 2 * len(day_games), "final": final, "best": best}
+    return out
+
+
+def record_crease_days(folder: Path, board: dict) -> int:
+    """Adds each finished day to the record: every goalie who had a row and
+    started, with the projection, the line and the chances that were locked
+    before puck drop, and what he made. A day is written once and never
+    changed. Returns how many were added."""
+    added = 0
+    for month in sorted({date[:7] for date, day in board.items() if day["final"]}):
+        path = folder / f"{month}.json"
+        saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"cols": list(CREASE_RECORD_COLS), "days": {}}
+        before = len(saved["days"])
+        for date, day in sorted(board.items()):
+            if not day["final"] or date[:7] != month or date in saved["days"]:
+                continue
+            rows = [[row.get(col) for col in saved["cols"]] for row in day["goalies"] if row.get("actual") is not None and row.get("top") is not None]
+            if rows:
+                saved["days"][date] = {"best": day["best"], "starters": day["starters"], "goalies": rows}
+        if len(saved["days"]) > before:
+            folder.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
+            added += len(saved["days"]) - before
+    return added
+
+
+def crease_record_summary(folder: Path) -> dict:
+    """The record so far, in the promo's own terms:
+      favorite  the day's highest chance: how often he led (or tied for) the
+                day, next to how often his chances said he would (`said`)
+      upside    the Upside tags: days one of them led, of the days recorded
+      value     the Value tags: how many led, next to what the chances said
+                (`said`) and what their lines alone said (`line_said`)
+      miss      on goalies with a line, the average miss in saves of the
+                model, of the line, and of the two blended"""
+    out = {
+        "since": None, "through": None, "days": 0,
+        "favorite": {"led": 0, "said": 0.0}, "upside": {"days_led": 0, "tagged": 0, "led": 0, "said": 0.0},
+        "value": {"tagged": 0, "led": 0, "said": 0.0, "line_said": 0.0}, "miss": {"goalies": 0, "model": 0.0, "line": 0.0, "blend": 0.0},
+    }
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        for date, day in sorted(saved["days"].items()):
+            rows = [dict(zip(saved["cols"], values)) for values in day["goalies"]]
+            if not rows:
+                continue
+            out["days"] += 1
+            out["since"] = min(out["since"] or date, date)
+            out["through"] = max(out["through"] or date, date)
+            led = lambda row: row["actual"] == day["best"]
+            favorite = max(rows, key=lambda row: row["top"])
+            out["favorite"]["led"] += led(favorite)
+            out["favorite"]["said"] += favorite["top"]
+            tagged = [row for row in rows if "upside" in (row["tags"] or [])]
+            out["upside"]["days_led"] += any(led(row) for row in tagged)
+            for key, group in (("upside", tagged), ("value", [row for row in rows if "value" in (row["tags"] or [])])):
+                out[key]["tagged"] += len(group)
+                out[key]["led"] += sum(led(row) for row in group)
+                out[key]["said"] += sum(row["top"] for row in group)
+            out["value"]["line_said"] += sum(row["mkt_top"] or 0 for row in rows if "value" in (row["tags"] or []))
+            for row in rows:
+                if row["mkt_mean"] is not None:
+                    out["miss"]["goalies"] += 1
+                    for key, col in (("model", "mean"), ("line", "mkt_mean"), ("blend", "blend")):
+                        out["miss"][key] += abs(row["actual"] - row[col])
+    n = out["miss"]["goalies"]
+    for key in ("model", "line", "blend"):
+        out["miss"][key] = round(out["miss"][key] / n, 2) if n else None
+    for group in ("favorite", "upside", "value"):
+        for key in ("said", "line_said"):
+            if key in out[group]:
+                out[group][key] = round(out[group][key], 2)
+    return out
+
+
+def crease_file(season: int, generated_at: str, records: list, games: list, tonight: dict | None, saves_lines: dict | None, goalies: dict, previous: dict | None, now_utc: datetime, record_dir: Path) -> dict:
+    """site/nhl/crease.json: the board, the rules it was tagged by, the
+    league's yardsticks and the record."""
+    model = saves_model_for(records)
+    board = crease_board(model, games, tonight, saves_lines, goalies, records, previous, now_utc)
+    try:
+        record_crease_days(record_dir, board)
+        record = crease_record_summary(record_dir)
+    except Exception as e:  # a damaged record file must never cost the page its board
+        print(f"WARNING: the King of the Crease record couldn't be updated ({e}).", file=sys.stderr)
+        record = None
+    return {
+        "season": season, "generated_at": generated_at, "weights": model.w, "rules": CREASE_RULES,
+        "league": {"saves": num(model.base(), 1), "sv": num(model.league_sv(), 4), "shots": num(model.per_game("sog"), 1)},
+        "days": board, "record": record,
+    }
+
+
 # ---- putting it together ----
 def season_label(season: int) -> str:
     return f"{season - 1}-{str(season)[2:]}"
@@ -1444,6 +1840,7 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=Path("data/nhl"), help="Where finished games are kept between builds")
     parser.add_argument("--write-prior", type=Path, metavar="FILE", help="Instead of data.json, save this (finished) season's numbers for next season's build")
     parser.add_argument("--record-dir", type=Path, default=SHOTS_RECORD_DIR, help="Where the Shots page's graded plays are kept")
+    parser.add_argument("--crease-record-dir", type=Path, default=CREASE_RECORD_DIR, help="Where King of the Crease's finished days are kept")
     args = parser.parse_args()
     if args.write_prior:
         return write_prior(args.season, args.data_dir, args.write_prior)
@@ -1473,7 +1870,7 @@ def main():
 
     games = fetch_schedule(now_utc)
     add_rest(games, stats["listing"], abbr_by_id)
-    novig, novig_players, novig_debug = fetch_novig_lines(games, teams, player_finder(stats["skaters"], stats["goalies"]))
+    novig, novig_players, novig_saves, novig_debug = fetch_novig_lines(games, teams, player_finder(stats["skaters"], stats["goalies"]))
     previous = fetch_previous()
     apply_lines(games, novig, previous, now_utc)
     injuries, injuries_error = fetch_injuries(teams, stats["skaters"], stats["goalies"])
@@ -1528,6 +1925,12 @@ def main():
     }
     with open(args.out.parent / "shots.json", "w") as f:
         json.dump(shots, f, separators=(",", ":"))
+    try:
+        crease = crease_file(args.season, generated_at, stats["records"], games, tonight, novig_saves, goalies, fetch_previous(LIVE_CREASE_URL), now_utc, args.crease_record_dir)
+        with open(args.out.parent / "crease.json", "w") as f:
+            json.dump(crease, f, separators=(",", ":"))
+    except Exception as e:  # King of the Crease must never cost the other NHL pages their data
+        print(f"WARNING: King of the Crease couldn't be built ({e}).", file=sys.stderr)
     d = stats["debug"]
     print(f"Wrote {args.out} -- {season_label(args.season)}: {d['games_loaded']} of {d['games_wanted']} finished games ({d['games_downloaded']} downloaded), {len(games)} on the schedule, lines for {novig_debug['matched']}")
     if d["errors"]:

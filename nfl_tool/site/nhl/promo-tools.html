@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NHL Suite &mdash; Promo Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body class="nhl-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG's NHL Suite home"><span class="brand-mark">GMG</span><span class="brand-name">NHL <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="./">Game Previews</a>
+    <a href="shots.html">Shots</a>
+    <span class="page-nav-current">Promo Tools</span>
+    <span class="page-nav-soon" title="Being built for the 2026-27 season">More tools coming</span>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <!-- Until launch, only the owner (and local testing) sees the NHL tools
+       (the same guard as Game Previews: .nba-app / .nba-soon in style.css). -->
+  <div class="nba-soon empty-state">
+    <p><b>GMG NHL Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="view-toggle promo-views">
+      <button type="button" class="view-toggle-btn active" data-promo="crease">King of the Crease</button>
+    </div>
+
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NHL slate&hellip;</p></div>
+
+    <section id="crease-app" class="koe crease" hidden>
+      <div class="koe-intro">
+        <h2 class="koe-title">King of the Crease</h2>
+        <p class="section-note">DraftKings pays a share of $500K in bonus bets to everyone whose goalie makes the <b>most saves of the day</b> (ties split it; if your goalie doesn't start, the team's starter counts for you). Saves come from shots, so this ranks every team's starter by how many shots tonight's matchup points to. <b>Upside</b> is his chance to finish with the day's most saves. <b>Value</b> is that chance against what his betting line alone says: above 1.00 the market may be underselling him, and a goalie fewer people are on pays more if he wins. The qualifying bet has to be +100 or longer, so when a line's over is priced below that, bet the next line up.</p>
+      </div>
+
+      <div class="koe-filters crease-filters">
+        <span class="koe-label">Show</span>
+        <span id="crease-show" class="koe-pos"></span>
+        <span id="crease-count" class="koe-count"></span>
+        <button type="button" id="crease-save" class="summary-save-btn">Save image</button>
+      </div>
+      <p id="crease-note" class="no-data-note" hidden></p>
+
+      <div id="crease-capture" class="koe-capture crease-capture">
+        <div class="crease-capture-head">
+          <span class="brand-mark">GMG</span>
+          <span class="crease-capture-titles"><span class="crease-capture-title">King of the Crease</span><span id="crease-capture-sub" class="crease-capture-sub"></span></span>
+          <span class="crease-capture-promo">Most saves of the day wins</span>
+        </div>
+        <div id="crease-table"></div>
+        <div id="crease-key" class="crease-key"></div>
+      </div>
+
+      <div id="crease-record" class="shots-results"></div>
+
+      <details class="shots-about">
+        <summary>How the numbers are made, and how far to trust them</summary>
+        <div class="shots-about-body">
+          <p><b>Projected saves = a league-average start &times; how much the other team shoots &times; how many shots his own team gives up &times; home or away and rest &times; his own save rate</b>, all from this season's games. Each team's number is its games so far mixed with ten games of a league-average team, so one wild night can't run away with it.</p>
+          <p><b>What a replay of the last two seasons showed</b> (5,034 starts, each projected only from that season's games before it):</p>
+          <ul>
+            <li>The two teams are nearly all of it. The other team's shot volume moves a projection about 6% either way, and so does what his own team allows. The road goalie sees about 3% more than the home one; a team on the second night of a back-to-back gives up about 3% more and shoots about 3% less.</li>
+            <li>The goalie himself barely matters: his save rate is worth about 1%. His own saves a start so far predicted worse than calling every goalie average. Scoring chances from in close, team strength and recent form added nothing.</li>
+            <li>The chances were honest. Goalies given 10 to 14% to lead the day led it 10% of the time; the model's favorite led 18% of days (a random pick: 8%), and its top three had the day's leader on 42%. The day's best averaged 37 saves.</li>
+            <li>Even the best pick loses most days. That is the promo, not the model: about 1 start in 20 ends early, overtime adds shots at random, and twenty goalies are in the draw.</li>
+            <li>Early in a season it knows little: in the first two weeks its projection was only a hair better than calling every goalie average, and it was at full strength by about game 20.</li>
+          </ul>
+          <p><b>The line counts too.</b> A book's saves line knows things a few weeks of games can't: who is hurt, what a team was before this season. So a goalie's chance to lead the day is worked out from his line, moved toward the model by as much as the season so far has earned: a few percent of the way in October, halfway from about game 20 on. A goalie with no line posted yet is on the model alone. <b>Proj</b> is always the model's own number, so you can see where it and the line disagree.</p>
+          <p><b>Value</b> compares two chances for the same goalie against the same field: his chance to lead the day, and what that chance would be if he were exactly what his line says. Only his own number changes, so it can't come from the rest of the slate. It gets the tag at 1.15 or more when he has a real chance to begin with. When the model and the line are 4 or more saves apart the box turns amber: a gap that big is more often news the model can't see than a gift. Expect few Value tags until teams have played 10 to 15 games.</p>
+          <p><b>What it has not shown:</b> that it beats the line, or how many people are on each goalie. There is no free history of saves lines to test against, and DraftKings doesn't publish the picks. So the page keeps its own record, above: every finished day, who led it, and whether the model or the line was closer.</p>
+          <p><b>Starters.</b> A check mark means the goalie is the first one listed in the NHL's projected lineup for the game (posted around midday Eastern). Without it he is the goalie the book has a saves line for, or the team's usual starter (the other goalie on the second night of a back-to-back). Lines are Novig's; DraftKings' own line can sit half a save either side.</p>
+        </div>
+      </details>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Data: the NHL's public game feed (play-by-play, box scores). Lines: Novig. Not a pick: the chance to lead the day, and where the model and the market disagree.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="nhl-common.js"></script>
+<script src="promo-tools.js"></script>
+</body>
+</html>

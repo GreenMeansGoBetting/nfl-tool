@@ -380,19 +380,19 @@ function oddsView(id, game) {
   const rows = [];
   if (o.goal) rows.push(`<tr><td>Anytime goal${thin(o.goal)}</td><td class="num props-line">--</td><td class="num"><b>${odds(o.goal.odds)}</b></td><td class="num">${odds(o.goal.no_odds) || "--"}</td><td class="num">${chance(o.goal.chance)}</td></tr>`);
   if (o.first_goal) rows.push(`<tr><td>First goal${thin(o.first_goal)}</td><td class="num props-line">--</td><td class="num"><b>${odds(o.first_goal.odds)}</b></td><td class="num">--</td><td class="num">${chance(o.first_goal.chance)}</td></tr>`);
-  [["sog", "Shots on goal"], ["points", "Points"], ["assists", "Assists"]].forEach(([key, label]) => {
+  [["sog", "Shots on goal"], ["points", "Points"], ["assists", "Assists"], ["saves", "Saves"]].forEach(([key, label]) => {
     const m = o[key];
     if (m) rows.push(`<tr><td>${label}${thin(m)}</td><td class="num props-line">${fmt(m.line)}</td><td class="num"><b>${odds(m.over) || "--"}</b></td><td class="num">${odds(m.under) || "--"}</td><td class="num">${chance(m.chance)}</td></tr>`);
   });
   // The other lines the book prices, as "N or more" (over 2.5 = 3+).
   const ladder = (label, alts) =>
     (alts || []).length ? `<div class="nhl-pc-facts"><span class="nhl-pc-ladder">${label}</span>${alts.map(([strike, price]) => `<span class="nhl-pc-chip"><b>${Math.ceil(strike)}+</b> ${odds(price)}</span>`).join("")}</div>` : "";
-  if (!rows.length && !o.sog_alts && !o.goal_alts) return `<p class="no-data-note">No lines posted for this player.</p>`;
+  if (!rows.length && !o.sog_alts && !o.goal_alts && !o.saves_alts) return `<p class="no-data-note">No lines posted for this player.</p>`;
   return `<div class="nhl-pc-scroll"><table class="data-table player-odds-table nhl-pc-odds">
       <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over / Yes</th><th class="num">Under / No</th><th class="num" title="The price with the book's cut taken out">Chance</th></tr></thead>
       <tbody>${rows.join("")}</tbody>
     </table></div>
-    ${ladder("Shots on goal", o.sog_alts)}${ladder("Goals", o.goal_alts)}
+    ${ladder("Shots on goal", o.sog_alts)}${ladder("Goals", o.goal_alts)}${ladder("Saves", o.saves_alts)}
     <p class="section-note">Novig, ${game.away} @ ${game.home}${game.lines_locked ? ", locked at puck drop" : ""}.</p>`;
 }
 
