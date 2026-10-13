@@ -23,6 +23,22 @@
   "updated": "2026-10-11T22:42Z",
   "week": 5
  },
+ "2026_05_BUF_LA": {
+  "away": "BUF",
+  "away_pts": 24.7,
+  "frozen": true,
+  "home": "LA",
+  "home_pts": 27.6,
+  "qb_out": [],
+  "spread": -3.5,
+  "spread_edge": 0.6,
+  "spread_pick": "away",
+  "total": 54.5,
+  "total_edge": 2.2,
+  "total_pick": "under",
+  "updated": "2026-10-12T15:31Z",
+  "week": 5
+ },
  "2026_05_CHI_GB": {
   "away": "CHI",
   "away_pts": 26.4,
