@@ -6,10 +6,9 @@
 // Data: nhl/data.json plus one file per team in nhl/players/ (the card's
 // game logs and shot areas), all built by nfl_tool/nhl/build_nhl.py.
 
+// This season only: there is no last-season data on any NHL page (the owner,
+// 2026-10-13: "Let's scrap all of last year's data on the site").
 let DATA = null;
-// "season" = this season's numbers, "prev" = last season's. The build picks
-// the one to open on (last season until teams have played enough games).
-let view = "season";
 
 const el = (id) => document.getElementById(id);
 const has = (n) => n !== null && n !== undefined;
@@ -22,11 +21,8 @@ const team = (abbr) => DATA.teams[abbr] || { name: abbr, short: abbr, color: "55
 const isLight = () => document.documentElement.dataset.theme === "light";
 const logoUrl = (abbr) => (isLight() ? team(abbr).logo : team(abbr).logo_dark || team(abbr).logo) || "";
 const logo = (abbr, size = 18) => `<img src="${logoUrl(abbr)}" alt="${abbr}" class="team-logo" style="width:${size}px;height:${size}px" loading="lazy">`;
-const stats = () => (view === "prev" ? DATA.team_stats_prev : DATA.team_stats) || {};
-const viewLabel = () => (view === "prev" ? DATA.prev_season_label : DATA.season_label);
-// A player's line for the season being shown (last season's rides along as .prev).
-const line = (p) => (view === "prev" ? p.prev : p);
-const hasBothSeasons = () => !!DATA.prev_season_label && Object.keys(DATA.team_stats_prev || {}).length > 0;
+const stats = () => DATA.team_stats || {};
+const viewLabel = () => DATA.season_label;
 function teamRgb(abbr) {
   const hex = team(abbr).color || "555555";
   return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
@@ -152,7 +148,7 @@ function rinkSvg(uid, ariaLabel, zoneFn) {
 // ---- the player card ----
 // The ONE popup for every skater and goalie on every NHL page. Wrap any name
 // or photo with playerClick(id, inner) and it opens the card: Game Log, Shot
-// Map and Odds, with its own switch between this season and last.
+// Map and Odds.
 const PLAYER_FILES = {}; // team -> promise of its players file (null if it can't be read)
 function loadTeamPlayers(abbr) {
   if (!PLAYER_FILES[abbr]) {
@@ -202,10 +198,10 @@ function selfTier(v, pool) {
 // scored instead of painting every zero red.
 const scoredTier = (v) => (v > 0 ? ` class="num tier-good" style="--tier-a:${Math.min(0.32, 0.1 + 0.08 * v).toFixed(2)}"` : ` class="num"`);
 const minutes = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-// One season of a player's file as rows of named fields.
+// A player's season in his team's file, as rows of named fields.
 function cardLog(file, kind, id) {
   const group = file && file[kind === "goalie" ? "goalies" : "skaters"];
-  const season = group && group[id] && group[id][view === "prev" ? "prev" : "season"];
+  const season = group && group[id] && group[id].season;
   if (!season) return { season: null, rows: [] };
   const cols = [...file.log_lead, ...(kind === "goalie" ? file.goalie_cols : file.skater_cols)];
   const rows = season.log.map((r) => Object.fromEntries(cols.map((c, i) => [c, r[i]]))).reverse();
@@ -269,8 +265,8 @@ function goalieLogView(rows) {
 }
 
 // ---- Shot Map tab ----
-// The league's numbers for the season being shown: { area: { share, sh_pct } }.
-const leagueAreas = () => (DATA.league || {})[view === "prev" ? "prev" : "season"] || {};
+// The league's numbers this season: { area: { share, sh_pct } }.
+const leagueAreas = () => (DATA.league || {}).season || {};
 const SMALL_SAMPLE_GAMES = 10;
 const HEAT_MIN_ALPHA = 0.04;
 const HEAT_MAX_ALPHA = 0.7;
@@ -441,7 +437,7 @@ function renderPlayerCard() {
   const found = findPlayer(id);
   if (!found) return `<p class="no-data-note">Player not found.</p>`;
   const { kind, row } = found;
-  const s = line(row);
+  const s = row;
   const game = playerGame(row.team);
   const opp = game ? (game.away === row.team ? game.home : game.away) : null;
   const rgb = teamRgb(row.team);
@@ -456,22 +452,19 @@ function renderPlayerCard() {
     : kind === "goalie"
       ? `<div class="nba-tiles nhl-pc-tiles">${tile("Games", s.games)}${tile("Starts", s.starts)}${tile("Record", s.record)}${tile("SV%", svPct(s.sv_pct))}${tile("GAA", fmt(s.gaa, 2))}${tile("Shots / start", fmt(s.sa_pg))}${tile("Low slot SV%", svPct(s.hd_sv_pct))}</div>`
       : `<div class="nba-tiles nhl-pc-tiles">${tile("Games", s.games)}${tile("TOI", fmt(s.toi))}${tile("Goals", s.g)}${tile("Assists", s.a)}${tile("Points", s.p)}${tile("SOG / game", fmt(s.sog_pg))}${tile("PP TOI", fmt(s.pp_toi))}</div>`;
-  const seasons = hasBothSeasons()
-    ? `<span class="nhl-pc-seasons">${[["season", DATA.season_label], ["prev", DATA.prev_season_label]].map(([key, label]) => `<button type="button" class="player-modal-toggle-btn nhl-view-btn${view === key ? " active" : ""}" data-view="${key}">${label}</button>`).join("")}</span>`
-    : "";
   const tabs = CARD_TABS.map(([key, label]) => `<button type="button" class="player-modal-toggle-btn nhl-pc-tab${tab === key ? " active" : ""}" data-tab="${key}">${label}</button>`).join("");
   let body;
   if (tab === "odds") body = oddsView(id, game);
   else if (file === undefined) body = `<p class="no-data-note">Loading&hellip;</p>`;
   else {
     const { season, rows } = cardLog(file, kind, id);
-    const small = view === "season" && rows.length && rows.length < SMALL_SAMPLE_GAMES ? `<p class="no-data-note">Small sample: ${rows.length} game${rows.length === 1 ? "" : "s"} this season.</p>` : "";
+    const small = rows.length && rows.length < SMALL_SAMPLE_GAMES ? `<p class="no-data-note">Small sample: ${rows.length} game${rows.length === 1 ? "" : "s"} this season.</p>` : "";
     if (!season) body = `<p class="no-data-note">No ${viewLabel()} games on file.</p>`;
     else if (tab === "map") body = small + (kind === "goalie" ? goalieMapView(season, rows.length, "nhl-pc-rink-clip") : skaterMapView(season, rows.length, opp, "nhl-pc-rink-clip"));
     else body = small + (kind === "goalie" ? goalieLogView(rows) : skaterLogView(rows));
   }
   return `${head}${tiles}
-    <div class="player-modal-toggle nhl-pc-tabs">${tabs}${seasons}</div>
+    <div class="player-modal-toggle nhl-pc-tabs">${tabs}</div>
     <div id="player-modal-body">${body}</div>`;
 }
 function refreshPlayerCard() {
@@ -500,13 +493,6 @@ document.addEventListener("click", (e) => {
   }
   const name = e.target.closest(".player-click[data-player]");
   if (name) return openPlayerCard(name.dataset.player);
-  // The season switch, on the page or in the card: one setting for both.
-  const season = e.target.closest(".nhl-view-btn");
-  if (season) {
-    view = season.dataset.view;
-    if (typeof render === "function") render();
-    return refreshPlayerCard();
-  }
   if (e.target.closest("#theme-toggle")) {
     const light = !isLight();
     if (light) document.documentElement.dataset.theme = "light";
@@ -527,7 +513,6 @@ function loadNhlData() {
     .then((r) => r.json())
     .then((data) => {
       DATA = data;
-      view = DATA.default_view === "prev" ? "prev" : "season";
       return data;
     });
 }

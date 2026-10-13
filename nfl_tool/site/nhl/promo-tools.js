@@ -344,7 +344,6 @@ Promise.all([
   .then(([, crease]) => {
     CREASE = crease || { days: {}, record: null, rules: null, league: {} };
     // This page is this season only, so the player card opens on this season too.
-    view = "season";
     const all = days();
     // Open on today's slate if it has a board, else the first day that does.
     const today = new Date().toLocaleDateString("en-CA");

@@ -361,14 +361,14 @@ class PlayerCardData(unittest.TestCase):
     def test_one_file_per_team(self):
         stats = {"skaters": build_nhl.compute_skaters([self.game], {}), "goalies": build_nhl.compute_goalies([self.game]), "detail": self.detail}
         with tempfile.TemporaryDirectory() as folder:
-            build_nhl.write_player_files(Path(folder), {"BUF": {}, "FLA": {}, "DET": {}}, stats, {"detail": self.detail}, "2026-10-13T14:12Z")
+            build_nhl.write_player_files(Path(folder), {"BUF": {}, "FLA": {}, "DET": {}}, stats, "2026-10-13T14:12Z")
             buf = json.loads((Path(folder) / "BUF.json").read_text())
             det = json.loads((Path(folder) / "DET.json").read_text())
         self.assertEqual((buf["log_lead"], buf["skater_cols"], buf["goalie_cols"]), (["date", "opp", "home", "gf", "ga", "ended"], list(build_nhl.SKATER_LOG_COLS), list(build_nhl.GOALIE_LOG_COLS)))
         self.assertEqual(len(buf["skaters"]), 18)
         self.assertEqual(sorted(buf["goalies"]), ["8480045", "8481551"])
         benson = buf["skaters"]["8484145"]
-        self.assertEqual(benson["season"], benson["prev"])
+        self.assertEqual(set(benson), {"season"})  # this season only: nothing from last season is written
         self.assertEqual(benson["season"]["log"][0][:7], ["2026-10-12", "FLA", 1, 5, 3, "REG", 1180])
         self.assertTrue(all(s["team"] == "BUF" for pid, s in self.game["skaters"].items() if pid in buf["skaters"]))
         self.assertEqual((det["skaters"], det["goalies"]), ({}, {}))  # a team with nobody yet still gets a file

@@ -114,22 +114,12 @@ function renderHeader(g) {
     </div>
     <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${finalNote}${tired ? ` &nbsp;${tired}` : ""}</div>`;
 }
-function renderViewToggle() {
-  const both = hasBothSeasons();
+// Early in a season every number on the page is a handful of games: say so.
+function renderSampleNote() {
   const games = Math.round(DATA.middle_games_played || 0);
-  el("view-toggle").hidden = !both;
-  el("view-toggle").innerHTML = both
-    ? [["season", `${DATA.season_label} <small>${games} games in</small>`], ["prev", `${DATA.prev_season_label} <small>full season</small>`]]
-        .map(([key, label]) => `<button type="button" class="view-toggle-btn nhl-view-btn${view === key ? " active" : ""}" data-view="${key}">${label}</button>`)
-        .join("")
-    : "";
   const note = el("fallback-note");
-  const early = DATA.default_view === "prev";
-  note.hidden = !(both && early);
-  note.textContent =
-    view === "prev"
-      ? `Team and player numbers below are from ${DATA.prev_season_label}, with players on their current team. Teams are about ${games} games into ${DATA.season_label}; this page opens on ${DATA.season_label} once that reaches 10.`
-      : `Small sample: teams are only about ${games} games into ${DATA.season_label}.`;
+  note.hidden = games >= SMALL_SAMPLE_GAMES;
+  note.textContent = `Small sample: teams are only about ${games} games into ${DATA.season_label}.`;
 }
 function renderLines(g) {
   const total = g.total_line;
@@ -207,14 +197,14 @@ function renderGoalies(g) {
     const injured = outIds(abbr);
     const rows = (DATA.goalies[abbr] || [])
       .map((p) => {
-        const s = line(p);
+        const s = p;
         const name = `<td class="nba-player">${nameCell(p, injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : "")}</td>`;
         if (!s) return `<tr>${name}<td class="num muted-label" colspan="7">No ${viewLabel()} games</td></tr>`;
         return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>${name}
           <td class="num">${s.games}</td><td class="num">${s.starts}</td><td class="num">${s.record}</td>
           <td class="num"><b>${svPct(s.sv_pct)}</b></td><td class="num">${fmt(s.gaa, 2)}</td>
           <td class="num" title="${s.hd_sa} low-slot shots faced">${svPct(s.hd_sv_pct)}</td>
-          <td class="num">${view === "prev" ? "--" : svPct(s.l5_sv_pct)}</td>
+          <td class="num">${svPct(s.l5_sv_pct)}</td>
         </tr>`;
       })
       .join("");
@@ -228,14 +218,14 @@ function renderPlayers(g) {
   const table = (abbr) => {
     const injured = outIds(abbr);
     const row = (p) => {
-      const s = line(p);
+      const s = p;
       const name = `<td class="nba-player">${nameCell(p, `<span class="muted-label">${p.pos || ""}</span>${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}`)}</td>`;
       if (!s) return `<tr>${name}<td class="num muted-label" colspan="9">No ${viewLabel()} games</td></tr>`;
-      const trend = view === "season" && has(s.l5_sog_pg) && has(s.sog_pg) ? s.l5_sog_pg - s.sog_pg : 0;
+      const trend = has(s.l5_sog_pg) && has(s.sog_pg) ? s.l5_sog_pg - s.sog_pg : 0;
       return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>${name}
         <td class="num">${s.games}</td><td class="num">${fmt(s.toi)}</td><td class="num">${s.g}</td><td class="num">${s.a}</td><td class="num"><b>${s.p}</b></td>
         <td class="num"><b>${fmt(s.sog_pg)}</b></td>
-        <td class="num ${trend >= 0.75 ? "tier-good" : trend <= -0.75 ? "tier-bad" : ""}">${view === "prev" ? "--" : fmt(s.l5_sog_pg)}</td>
+        <td class="num ${trend >= 0.75 ? "tier-good" : trend <= -0.75 ? "tier-bad" : ""}">${fmt(s.l5_sog_pg)}</td>
         <td class="num">${fmt(s.pp_toi)}</td><td class="num">${fmt(s.games ? s.hd / s.games : null)}</td>
       </tr>`;
     };
@@ -287,13 +277,12 @@ function render() {
   sections.forEach((s) => (el(`section-${s}`).hidden = !g));
   if (!g) {
     el("game-header").hidden = true;
-    el("view-toggle").hidden = true;
     el("fallback-note").hidden = true;
     el("empty-state").innerHTML = "<p>No games in the next two weeks.</p>";
     return;
   }
   renderHeader(g);
-  renderViewToggle();
+  renderSampleNote();
   renderLines(g);
   renderTeams(g);
   renderMatchups(g);

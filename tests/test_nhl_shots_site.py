@@ -243,10 +243,11 @@ class TonightsLines(unittest.TestCase):
 class ThisSeasonOnly(unittest.TestCase):
     """The owner's rule for the NHL prop tools: nothing from last season."""
 
-    def test_the_card_opens_on_this_season_here(self):
-        # Game Previews opens on last season while the sample is small; this page does not.
-        self.assertEqual(nhl_data()["default_view"], "prev")
-        self.assertEqual(PAGE.evaluate("() => view"), "season")
+    def test_the_data_has_no_last_season(self):
+        blob = nhl_data()
+        self.assertFalse({"default_view", "prev_season_label", "team_stats_prev"} & set(blob))
+        self.assertEqual(set(blob["league"]), {"season"})
+        self.assertTrue(all("prev" not in p for group in ("skaters", "goalies") for rows in blob[group].values() for p in rows))
 
     def test_no_last_season_numbers_in_the_data_or_on_the_page(self):
         shots = nhl_shots()
@@ -375,7 +376,7 @@ class Breakdown(unittest.TestCase):
                     zone_colors: [...box.querySelectorAll('svg .nhl-zone')].map((z) => [(/nhl-zone-step-(\\d)/.exec(z.getAttribute('class')) || [])[1] || null, getComputedStyle(z.firstElementChild.nextElementSibling).fill]),
                     key: box.querySelectorAll('.shots-rink-key .g5-scale i').length,
                     // Each zone's three boxes: [text, the step its color is on], in the order the rink draws the zones.
-                    zone_boxes: [...box.querySelectorAll('svg .nhl-zone-text > g')].map((g) => [...g.querySelectorAll('.nhl-zone-box')].map((b) => [text(b), (/nhl-zone-box-step-(\d)/.exec(b.getAttribute('class')) || [])[1] || null])),
+                    zone_boxes: [...box.querySelectorAll('svg .nhl-zone-text > g')].map((g) => [...g.querySelectorAll('.nhl-zone-box')].map((b) => [text(b), (/nhl-zone-box-step-(\\d)/.exec(b.getAttribute('class')) || [])[1] || null])),
                     strip: text(box.querySelector('svg .nhl-zone-text > g:last-child')),
                 };
             }""",

@@ -14,10 +14,9 @@ finished games are downloaded one at a time and kept in --data-dir
 (games/<season>/<id>.json.gz). A build only downloads the games it doesn't
 have yet; the deploy keeps that folder between runs.
 
-Last season's numbers come from a small saved file next to this script
-(prior_<season>.json.gz, written once with --write-prior), so the page can
-show them while this season's sample is small without downloading 1,300
-games on every cold start.
+This season only (the owner, 2026-10-13: "Let's scrap all of last year's
+data on the site"). Nothing from an earlier season is read or written here;
+the replays in tools/backtest download a past season's games when they need one.
 
 The Shots page's projections (site/nhl/shots.json) are worked out here
 too, by shots_model.py, from the same finished games, and so is the Promo
@@ -59,10 +58,8 @@ FORWARDS_SHOWN = 12
 DEFENSE_SHOWN = 6
 # Until the middle team has played this many games, the page opens on last
 # season's numbers (a handful of games can be one hot goalie).
-MIN_GAMES_FOR_CURRENT = 10
 FETCH_WORKERS = 6
 USER_AGENT = "Mozilla/5.0 (compatible; gmg-nhl/1.0)"
-PRIOR_DIR = Path(__file__).parent
 
 NOVIG_EVENTS_URL = "https://api.novig.us/v3/public/catalog/events?league=NHL"
 NOVIG_GRAPHQL_URL = "https://api.novig.us/v1/graphql"
@@ -677,9 +674,9 @@ def player_file(detail: dict | None, pid: str) -> dict | None:
     return None
 
 
-def write_player_files(folder: Path, teams: dict, stats: dict, prior: dict, generated_at: str) -> int:
+def write_player_files(folder: Path, teams: dict, stats: dict, generated_at: str) -> int:
     """site/nhl/players/<TEAM>.json: the card data for everyone on that team,
-    this season and last. The page loads a team's file only when one of its
+    this season. The page loads a team's file only when one of its
     games is opened, so data.json stays small."""
     folder.mkdir(parents=True, exist_ok=True)
     on_team = {}
@@ -689,7 +686,7 @@ def write_player_files(folder: Path, teams: dict, stats: dict, prior: dict, gene
     for abbr in teams:
         blob = {"team": abbr, "generated_at": generated_at, "log_lead": ["date", "opp", "home", "gf", "ga", "ended"], "skater_cols": list(SKATER_LOG_COLS), "goalie_cols": list(GOALIE_LOG_COLS)}
         for group in ("skaters", "goalies"):
-            blob[group] = {pid: {"season": player_file(stats["detail"], pid), "prev": player_file(prior.get("detail"), pid)} for pid in on_team.get(abbr, {}).get(group, [])}
+            blob[group] = {pid: {"season": player_file(stats["detail"], pid)} for pid in on_team.get(abbr, {}).get(group, [])}
         with open(folder / f"{abbr}.json", "w") as f:
             json.dump(blob, f, separators=(",", ":"))
     return len(teams)
@@ -1829,65 +1826,23 @@ def season_stats(season: int, data_dir: Path, standings: dict, team_ids: dict) -
     }
 
 
-def prior_path(season: int) -> Path:
-    return PRIOR_DIR / f"prior_{season}.json.gz"
-
-
-def write_prior(season: int, data_dir: Path, out: Path) -> None:
-    """Save a finished season's team and player numbers (run once per season)."""
-    teams, _ = fetch_teams()
-    ends = next(s["standingsEnd"] for s in _request(f"{API}/standings-season")["seasons"] if str(s["id"]) == season_id(season))
-    standings = {s["teamAbbrev"]["default"]: s for s in _request(f"{API}/standings/{ends}").get("standings") or []}
-    stats = season_stats(season, data_dir, standings, {abbr: t["id"] for abbr, t in teams.items()})
-    blob = {
-        "season": season, "season_label": season_label(season), "team_stats": stats["team_stats"], "skaters": stats["skaters"], "goalies": stats["goalies"],
-        "detail": stats["detail"], "league": stats["league"],
-    }
-    with gzip.open(out, "wt", encoding="utf-8") as f:
-        json.dump(blob, f, separators=(",", ":"))
-    print(f"Wrote {out} -- {season_label(season)}: {stats['debug']['games_loaded']} of {stats['debug']['games_wanted']} games, {len(stats['skaters'])} skaters, {len(stats['goalies'])} goalies")
-    if stats["debug"]["errors"]:
-        print("  errors:", stats["debug"]["errors"])
-
-
-def load_prior(season: int) -> dict | None:
-    path = prior_path(season)
-    if not path.exists():
-        return None
-    with gzip.open(path, "rt", encoding="utf-8") as f:
-        return json.load(f)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, required=True, help="Year the season ends (2027 = 2026-27)")
-    parser.add_argument("--out", type=Path, help="Where to write data.json")
+    parser.add_argument("--out", type=Path, required=True, help="Where to write data.json")
     parser.add_argument("--data-dir", type=Path, default=Path("data/nhl"), help="Where finished games are kept between builds")
-    parser.add_argument("--write-prior", type=Path, metavar="FILE", help="Instead of data.json, save this (finished) season's numbers for next season's build")
     parser.add_argument("--record-dir", type=Path, default=SHOTS_RECORD_DIR, help="Where the Shots page's graded plays are kept")
     parser.add_argument("--crease-record-dir", type=Path, default=CREASE_RECORD_DIR, help="Where King of the Crease's finished days are kept")
     args = parser.parse_args()
-    if args.write_prior:
-        return write_prior(args.season, args.data_dir, args.write_prior)
-    if not args.out:
-        parser.error("--out is required")
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
 
     teams, standings = fetch_teams()
     team_ids = {abbr: t["id"] for abbr, t in teams.items()}
     abbr_by_id = {v: k for k, v in team_ids.items()}
     stats = season_stats(args.season, args.data_dir, standings, team_ids)
-    prior = load_prior(args.season - 1) or {}
 
     played = [s["games_played"] for s in stats["team_stats"].values()]
     middle_games = statistics.median(played) if played else 0
-    default_view = "season" if middle_games >= MIN_GAMES_FOR_CURRENT or not prior else "prev"
-
-    # Last season's line rides along on each player, so the page can show
-    # either season for the same lineup (players are on their current team).
-    for group, key in ((stats["skaters"], "skaters"), (stats["goalies"], "goalies")):
-        for pid, row in group.items():
-            row["prev"] = (prior.get(key) or {}).get(pid)
     team_games = Counter({team: s["games_played"] for team, s in stats["team_stats"].items()})
     goalies = {}
     for g in sorted(stats["goalies"].values(), key=lambda g: -g["starts"]):
@@ -1914,15 +1869,12 @@ def main():
     blob = {
         "season": args.season,
         "season_label": season_label(args.season),
-        "prev_season_label": prior.get("season_label"),
-        "default_view": default_view,
         "middle_games_played": middle_games,
         "generated_at": generated_at,
         "areas": list(AREAS),
-        "league": {"season": stats["league"], "prev": prior.get("league")},
+        "league": {"season": stats["league"]},
         "teams": teams,
         "team_stats": stats["team_stats"],
-        "team_stats_prev": prior.get("team_stats") or {},
         "recent_games": compute_recent_games(stats["records"]),
         "skaters": lineups,
         "goalies": goalies,
@@ -1935,7 +1887,7 @@ def main():
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
-    write_player_files(args.out.parent / "players", teams, stats, prior, generated_at)
+    write_player_files(args.out.parent / "players", teams, stats, generated_at)
     model = shots_model_for(stats["records"])
     board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc, tonight, stats["skaters"])
     try:

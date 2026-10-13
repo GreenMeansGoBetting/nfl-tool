@@ -1,9 +1,9 @@
 """The NHL page's JavaScript (site/nhl/nhl.js), run in a real browser on the
-saved NHL data sample: every game draws, the season switch swaps the numbers,
+saved NHL data sample: every game draws, there is no last season anywhere,
 and the rink's "more / fewer shots from here" call reads both sides."""
 import unittest
 
-from helpers import nhl_data  # first: puts tools/ on the import path
+from helpers import nhl_data, nhl_players  # first: puts tools/ on the import path
 
 from site_browser import SiteBrowser
 
@@ -26,58 +26,52 @@ def tearDownModule():
 
 
 class PageDraws(unittest.TestCase):
-    def test_every_game_in_both_seasons_without_a_script_error(self):
+    def test_every_game_without_a_script_error(self):
         drawn = PAGE.evaluate(
             """() => {
                 let count = 0;
-                for (const season of ["season", "prev"]) {
-                    view = season;
-                    for (const g of DATA.schedule) {
-                        selectGame(g.game_id);
-                        if (document.querySelectorAll("#rink-content svg").length !== 2) throw new Error(`no rinks for ${g.away} @ ${g.home}`);
-                        if (!document.querySelector("#players-content tbody tr")) throw new Error(`no skaters for ${g.away} @ ${g.home}`);
-                        count++;
-                    }
+                for (const g of DATA.schedule) {
+                    selectGame(g.game_id);
+                    if (document.querySelectorAll("#rink-content svg").length !== 2) throw new Error(`no rinks for ${g.away} @ ${g.home}`);
+                    if (!document.querySelector("#players-content tbody tr")) throw new Error(`no skaters for ${g.away} @ ${g.home}`);
+                    count++;
                 }
                 return count;
             }"""
         )
-        self.assertEqual(drawn, 2 * len(nhl_data()["schedule"]))
+        self.assertEqual(drawn, len(nhl_data()["schedule"]))
         self.assertEqual(SITE.errors, [])
 
-    def test_opens_on_last_season_while_the_sample_is_small(self):
+    def test_this_season_only(self):
+        """The owner, 2026-10-13: "Let's scrap all of last year's data on the
+        site." No switch, no last-season numbers, and a note while the sample
+        is small."""
         blob = nhl_data()
-        self.assertEqual((blob["default_view"], blob["middle_games_played"]), ("prev", 5.0))
+        self.assertEqual(blob["middle_games_played"], 5.0)
         page = SITE.open("nhl/index.html")
-        self.assertEqual(page.evaluate("() => view"), "prev")
-        self.assertEqual(page.evaluate("() => stats().NJD.wins"), blob["team_stats_prev"]["NJD"]["wins"])
+        page.wait_for_function("() => typeof DATA !== 'undefined' && DATA !== null && !document.getElementById('section-teams').hidden")
+        state = page.evaluate(
+            """() => ({
+                wins: stats().NJD.wins,
+                switches: document.querySelectorAll('.nhl-view-btn, #view-toggle').length,
+                note: document.getElementById('fallback-note').hidden ? '' : document.getElementById('fallback-note').textContent,
+                text: document.body.textContent,
+            })"""
+        )
         page.close()
-
-    def test_season_switch_swaps_team_and_player_numbers(self):
-        blob = nhl_data()
-        game = next(g for g in blob["schedule"] if g["away"] == "NJD" and g["home"] == "DET")
-        hughes = next(p for p in blob["skaters"]["NJD"] if p["name"] == "Jack Hughes")
-        read = """([id, season]) => {
-            view = season;
-            selectGame(id);
-            const row = [...document.querySelectorAll("#players-content tbody tr")].find((tr) => tr.textContent.includes("Jack Hughes"));
-            return { record: document.querySelector("#teams-content .nba-banner-right").textContent.trim(), games: row.children[1].textContent };
-        }"""
-        now = PAGE.evaluate(read, [game["game_id"], "season"])
-        last = PAGE.evaluate(read, [game["game_id"], "prev"])
-        self.assertEqual(now["games"], str(hughes["games"]))
-        self.assertEqual(last["games"], str(hughes["prev"]["games"]))
-        self.assertTrue(last["record"].startswith("42-37-3"), last["record"])
-        self.assertNotEqual(now["record"], last["record"])
+        self.assertEqual(state["wins"], blob["team_stats"]["NJD"]["wins"])
+        self.assertEqual(state["switches"], 0)
+        self.assertEqual(state["note"], "Small sample: teams are only about 5 games into 2026-27.")
+        self.assertNotIn("2025-26", state["text"])
+        self.assertNotIn("last season", state["text"].lower())
 
 
 class PlayerCard(unittest.TestCase):
     """The one popup behind every skater and goalie name (NJD @ DET; the two
     teams whose player files are saved)."""
 
-    # Opens a card on one tab and season, waits for the team's file, and reads it back.
-    OPEN = """async ([id, season, tab]) => {
-        view = season;
+    # Opens a card on one tab, waits for the team's file, and reads it back.
+    OPEN = """async ([id, tab]) => {
         render();
         openPlayerCard(id, tab);
         await loadTeamPlayers(findPlayer(id).row.team);
@@ -96,6 +90,7 @@ class PlayerCard(unittest.TestCase):
             steps: [...body.querySelectorAll("svg .nhl-zone")].map((z) => (/nhl-zone-step-(\\d)/.exec(z.getAttribute("class")) || [])[1] || null),
             allows: [...body.querySelectorAll(".nhl-pc-areas tbody tr")].map((tr) => tr.lastElementChild.style.backgroundColor),
             key: body.querySelectorAll(".nhl-pc-rink .g5-scale i").length,
+            switches: document.querySelectorAll("#player-card-content .nhl-view-btn").length,
             odds: [...body.querySelectorAll(".nhl-pc-odds tbody tr")].map(cells),
             chips: [...body.querySelectorAll(".nhl-pc-chip")].map((c) => c.textContent.trim().replace(/\\s+/g, " ")),
         };
@@ -109,8 +104,13 @@ class PlayerCard(unittest.TestCase):
         cls.allen = next(p for p in cls.blob["goalies"]["NJD"] if p["name"] == "Jake Allen")
         PAGE.evaluate("(id) => selectGame(id)", cls.game["game_id"])
 
-    def card(self, player, season="prev", tab="log"):
-        return PAGE.evaluate(self.OPEN, [player["id"], season, tab])
+    def card(self, player, tab="log"):
+        return PAGE.evaluate(self.OPEN, [player["id"], tab])
+
+    @staticmethod
+    def js_round(x, digits=0):
+        """A number as the page's toFixed prints it (a tie rounds up)."""
+        return f"{int(x * 10 ** digits + 0.5) / 10 ** digits:.{digits}f}"
 
     def test_every_name_on_the_page_opens_the_card(self):
         links = PAGE.evaluate("() => ({ skaters: document.querySelectorAll('#players-content .player-click').length, goalies: document.querySelectorAll('#goalies-content .player-click').length })")
@@ -118,7 +118,7 @@ class PlayerCard(unittest.TestCase):
         PAGE.evaluate("() => { closePlayerCard(); document.querySelector('#players-content .player-click').click(); }")
         self.assertTrue(PAGE.evaluate("() => !document.getElementById('player-card-modal').hidden"))
 
-    def test_every_player_in_every_tab_and_season(self):
+    def test_every_player_in_every_tab(self):
         opened = PAGE.evaluate(
             """async () => {
                 let count = 0;
@@ -126,48 +126,46 @@ class PlayerCard(unittest.TestCase):
                 for (const t of [g.away, g.home]) {
                     await loadTeamPlayers(t);
                     for (const p of [...DATA.skaters[t], ...DATA.goalies[t]]) {
-                        for (const season of ["season", "prev"]) {
-                            for (const tab of ["log", "map", "odds"]) {
-                                view = season;
-                                openPlayerCard(p.id, tab);
-                                await new Promise((r) => setTimeout(r, 0));
-                                const text = document.getElementById("player-modal-body").textContent;
-                                if (!text.trim() || text.includes("Loading")) throw new Error(`${p.name} ${season} ${tab} is empty`);
-                                count++;
-                            }
+                        for (const tab of ["log", "map", "odds"]) {
+                            openPlayerCard(p.id, tab);
+                            await new Promise((r) => setTimeout(r, 0));
+                            const text = document.getElementById("player-modal-body").textContent;
+                            if (!text.trim() || text.includes("Loading")) throw new Error(`${p.name} ${tab} is empty`);
+                            count++;
                         }
                     }
                 }
                 return count;
             }"""
         )
-        self.assertEqual(opened, 40 * 6)
+        self.assertEqual(opened, 40 * 3)
         self.assertEqual(SITE.errors, [])
 
     def test_game_log(self):
-        last = self.card(self.hughes, "prev", "log")
-        self.assertEqual((last["open"], last["name"]), (True, "Jack Hughes"))
-        self.assertEqual(last["tiles"][:5], ["61", "21.3", "27", "50", "77"])  # games, ice time, goals, assists, points
-        self.assertEqual(len(last["log"]), 61 + 1)  # every game plus the per-game row on top
-        self.assertEqual(last["log"][0][0], "Per game (61 games)")
-        now = self.card(self.hughes, "season", "log")
-        self.assertEqual(len(now["log"]), self.hughes["games"] + 1)
+        now = self.card(self.hughes, "log")
+        self.assertEqual((now["open"], now["name"], now["switches"]), (True, "Jack Hughes", 0))
+        self.assertEqual(now["tiles"][0], str(self.hughes["games"]))
+        self.assertEqual(len(now["log"]), self.hughes["games"] + 1)  # every game plus the per-game row on top
+        self.assertEqual(now["log"][0][0], "Per game (5 games)")
         # Newest game first: 10/12 vs OTT, a 1-4 loss, 20:41 of ice time, 0 goals, 1 assist, 2 shots on goal.
         self.assertEqual(now["log"][1][:8], ["10/12", "vs OTT", "L 1-4", "20:41", "0", "1", "1", "2"])
         self.assertIn("Small sample: 5 games this season.", now["text"])
-        self.assertNotIn("Small sample", last["text"])
 
     def test_shot_map(self):
-        card = self.card(self.hughes, "prev", "map")
-        league = self.blob["league"]["prev"]["slot"]["sh_pct"]
+        card = self.card(self.hughes, "map")
+        league = self.blob["league"]["season"]["slot"]["sh_pct"]
         self.assertEqual(card["areaHead"][-1], "DET allows")  # the other side of tonight's game
         self.assertEqual([row[0] for row in card["areas"]], ["Low slot", "Slot", "Left side", "Right side", "Point", "Outside the zone"])
-        # Slot: 102 shots in 61 games, 81 on goal, 11 goals; 305 shots placed in all.
-        self.assertEqual(card["areas"][1][:7], ["Slot", "1.7", "33%", "81", "11", "13.6%", f"{league * 100:.1f}%"])
-        # No zone is left plain: each is on the eight rank colors by where DET ranked for shots allowed
+        # The slot's row, from his saved file: shots a game, share of his shots, on goal, goals, shooting %, the league's.
+        areas = nhl_players()["NJD"]["skaters"][self.hughes["id"]]["season"]["areas"]
+        shots, on_goal, goals = areas["slot"]
+        located = sum(a[0] for a in areas.values())
+        self.assertGreater(shots, 0)
+        self.assertEqual(card["areas"][1][:7], ["Slot", self.js_round(shots / self.hughes["games"], 1), f"{self.js_round(shots / located * 100)}%", str(on_goal), str(goals), f"{self.js_round(goals / on_goal * 100, 1)}%" if on_goal else "--", f"{league * 100:.1f}%"])
+        # No zone is left plain: each is on the eight rank colors by where DET ranks for shots allowed
         # from there (1st = the most = green), never the strip outside the zone, and the "DET allows"
         # cell beside it is the same color.
-        allowed = {t: s for t, s in self.blob["team_stats_prev"].items()}
+        allowed = {t: s for t, s in self.blob["team_stats"].items()}
         rank = lambda area: sorted(allowed, key=lambda t: -allowed[t][f"def_{area}_pg"]).index("DET") + 1
         drawn = ["point", "left", "right", "slot", "low_slot"]  # the order the rink draws them, then the strip
         self.assertEqual(card["steps"], [str((rank(area) - 1) * 8 // 32 + 1) for area in drawn] + [None])
@@ -180,24 +178,31 @@ class PlayerCard(unittest.TestCase):
         """Without an opponent the zones are shaded by his own shots, as before."""
         PAGE.evaluate("() => { window.keptPlayerGame = playerGame; playerGame = () => null; }")
         try:
-            card = self.card(self.hughes, "prev", "map")
+            card = self.card(self.hughes, "map")
         finally:
             PAGE.evaluate("() => { playerGame = window.keptPlayerGame; }")
-        self.assertEqual((card["heat"], card["key"], card["steps"]), (5, 0, [None] * 6))
+        season = nhl_players()["NJD"]["skaters"][self.hughes["id"]]["season"]
+        shot_from = sum(1 for area, counts in season["areas"].items() if area != "long" and counts[0])
+        self.assertEqual((card["heat"], card["key"], card["steps"]), (shot_from, 0, [None] * 6))
         self.assertNotIn("allows", card["areaHead"][-1])
-        self.assertIn("FROM THESE SPOTS 26.3 goals expectedhe scored 24".lower(), " ".join(card["chips"]).lower().replace("expected he", "expectedhe"))
-        self.assertTrue(any(chip.lower().startswith("wrist 53%") for chip in card["chips"]), card["chips"])
+        chips = [chip.lower() for chip in card["chips"]]
+        goals = sum(counts[2] for counts in season["areas"].values())
+        self.assertTrue(any(chip.startswith("from these spots") and chip.endswith(f"he scored {goals}") for chip in chips), chips)
+        most = max(season["types"], key=lambda name: season["types"][name][0])
+        self.assertTrue(any(chip.startswith(most.lower()) for chip in chips), chips)
 
     def test_goalie_card(self):
-        card = self.card(self.allen, "prev", "map")
-        self.assertEqual(card["tiles"][:4], ["37", "36", "17-17-2", ".903"])
+        card = self.card(self.allen, "map")
+        self.assertEqual(card["tiles"][:3], [str(self.allen["games"]), str(self.allen["starts"]), self.allen["record"]])
         self.assertEqual(card["areaHead"], ["Area", "Shots / g", "Share", "GA", "SV%", "Lg SV%", "Saved vs avg"])
-        self.assertEqual(card["areas"][0][:5], ["Low slot", "7.3", "26%", "54", ".801"])  # 271 shots, 54 goals in 37 games
-        log = self.card(self.allen, "season", "log")["log"]
+        faced, against = nhl_players()["NJD"]["goalies"][self.allen["id"]]["season"]["areas"]["low_slot"]
+        self.assertEqual((card["areas"][0][0], card["areas"][0][3]), ("Low slot", str(against)))
+        self.assertGreater(faced, 0)
+        log = self.card(self.allen, "log")["log"]
         self.assertEqual(log[1][:5], ["10/10", "vs VAN", "W 4-1", "Start", "W"])
 
     def test_odds_tab(self):
-        card = self.card(self.hughes, "prev", "odds")
+        card = self.card(self.hughes, "odds")
         odds = self.blob["player_odds"][self.game["game_id"]][self.hughes["id"]]
         signed = lambda n: f"+{n}" if n > 0 else str(n)
         rows = {row[0]: row[1:] for row in card["odds"]}
@@ -218,17 +223,11 @@ class PlayerCard(unittest.TestCase):
         self.assertEqual(tier(0, 0, 0.192), "")
 
     def test_no_lines_for_a_goalie(self):
-        self.assertIn("No lines posted", self.card(self.allen, "prev", "odds")["text"])
-
-    def test_the_season_switch_in_the_card_moves_the_page_too(self):
-        self.card(self.hughes, "prev", "log")
-        PAGE.evaluate("() => document.querySelector('#player-card-modal .nhl-view-btn[data-view=\"season\"]').click()")
-        state = PAGE.evaluate("() => ({ view, page: document.querySelector('#view-toggle .active').dataset.view, games: document.querySelector('#player-card-content .nhl-pc-tiles b').textContent })")
-        self.assertEqual(state, {"view": "season", "page": "season", "games": str(self.hughes["games"])})
+        self.assertIn("No lines posted", self.card(self.allen, "odds")["text"])
 
     def test_a_team_whose_file_is_missing_still_opens(self):
         other = next(p for team, players in self.blob["skaters"].items() if team not in ("NJD", "DET") for p in players)
-        card = self.card(other, "prev", "log")
+        card = self.card(other, "log")
         self.assertTrue(card["open"])
         self.assertIn("games on file", card["text"])
         self.assertEqual(SITE.errors, [])

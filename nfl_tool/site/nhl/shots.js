@@ -110,7 +110,7 @@ function rowsFor(date) {
   });
   return rows;
 }
-// His line on the page's data (this season, with last season riding along as .prev).
+// His line on the page's data.
 function seasonLine(id) {
   const found = findPlayer(id);
   return found ? found.row : null;
@@ -552,7 +552,6 @@ Promise.all([
     SHOTS = shots || { games: {}, defense: {} };
     // This page is this season only, so the player card opens on this season too
     // (its own switch still reaches last season).
-    view = "season";
     const all = days();
     // Open on today's slate if it has projections, else the first day that does.
     const today = new Date().toLocaleDateString("en-CA");
