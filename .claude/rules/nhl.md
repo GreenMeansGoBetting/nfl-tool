@@ -44,8 +44,17 @@ switch"). More background: `docs/history.md`, "NHL".
   No goalie saves market was listed (checked 2026-10-13). Futures events (no " @ ") are skipped.
   Same odds lock as NBA: only `OPEN_PREGAME` events, and a started game keeps the lines and the
   player odds of the last build before puck drop (`apply_lines`, `locked_player_odds`).
-- **Not in any free feed found so far:** confirmed starting goalies. The page lists each team's
-  goalies and never names a starter.
+- **The NHL's "projected lineups" story for every game** (NHL.com's game preview, found
+  2026-10-13): `forge-dapi.d3.nhle.com/v2/content/en-us/stories?tags.slug=gameid-{id}&tags.slug=game-preview&context.slug=nhl`
+  lists the story, its `selfUrl` has the text (`parts`, type `markdown`). Plain text: a
+  "<Team> projected lineup" heading, one line of text per forward line ("A -- B -- C") and defense
+  pair ("A -- B"), the goalies one to a line (**the first is the expected starter**), then
+  "Scratched:" and "Injured:", then a "Status report". Posted around midday Eastern on game day
+  (some West-coast games later), so the 2:17 pm ET build has most of them and the 8:17 am one has
+  none. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
+  stories are still served. `parse_lineups`, `lineup_slots`, `fetch_lineups`.
+- **Confirmed starting goalies:** not in any feed, but the expected starter is the first goalie
+  in that story (`shots.json` `lineups[game][team].goalie`). Game Previews doesn't show it yet.
 - **Not built:** expected goals (xG). It is a model on shot location and type, not a feed field;
   sportsdataverse publishes an open one (`nhl_xg_models`, license not checked).
 
@@ -156,19 +165,31 @@ on a replay, and the page keeps a record against the real prices.
     areas he shoots from 0.5, power-play shots allowed x his power-play share 0.6; home ice +3%,
     second night of a back-to-back -3.5%, opponent on one +3.5%; `scale` -4%.
   - A defense's number is its games this season mixed with 20 games of a league-average defense.
+  - **Tonight's line** (`line`, weight 0.2, when the NHL's projected lineup is posted): the
+    log of what his line or pair has been playing on this team (`slot_minutes`: the three busiest
+    forwards of each game are "the first line", the next three the second; pairs by twos) over
+    his own minutes, capped at +/-0.6. A fourth-liner listed on the top line gets about +13%.
+    His minutes on the page stay his own.
 - **Chance to clear a line:** a count a little streakier than pure chance (negative binomial,
   spread = m + 0.07 m^2). `chance_at_least`, `chance_over`, `fair_american`.
 - **The replay** (`python tools/backtest/nhl_shots.py 2026`; `--tune` tries other settings;
   `--last-season` starts from the season before as well, to measure the rule above; a missing
-  season downloads in about 4 minutes): every 2025-26 skater-game projected only from that
+  season's games download in about 4 minutes and its projected-lineups stories, kept in
+  `data/nhl/previews/<season>`, in about 5): every 2025-26 skater-game projected only from that
   season's games before it. What it showed:
   - His rate and ice time are most of it. For the middle 80% of players the defense's overall
     number moves a projection about 6% either way, position 2%, rink areas 1%, power play 1%.
   - A hot or cold last five games added nothing. Neither did team strength or the defense's
     attempts allowed once shots on goal allowed was in.
   - Honest chances: "60-70% to clear" cleared 63-65% of the time.
-  - Knowing the real ice time would have helped more than every matchup piece together: lineup
-    news (a promotion, top power play) is where the model is blind.
+  - Knowing the real ice time would have helped more than every matchup piece together.
+  - **A line change is real but smaller than it looks** (the replay with every game's projected
+    lineup): the `line` piece fitted at 0.21 +/- 0.03, the most reliable matchup piece after the
+    defense's overall number, worth -4% to +4% for the middle 80% of players. A 12-minute forward
+    listed on the first line played 9% more and shot 10% more; a fourth-liner on the second line
+    +19% minutes, +24% shots. He does not inherit the star's ice time or power play: the gap
+    between his minutes and the line's closed by only about 15%. Stars listed on a "third" line
+    barely move (NHL.com lists lines in the team's order, not by ice time).
   - **The small-sample guard is not optional.** Raw this-season numbers with no guard missed by
     5% more at 5-9 games and 13% more in a player's first four.
   - **Fading a hot start has been right.** When a player's average after 5-9 games said "over"
@@ -179,6 +200,12 @@ on a replay, and the page keeps a record against the real prices.
     be told from a hot start, so the 66 players who averaged 2.5+ the year before were projected
     0.5 shots low in games 1-4 and 0.35 low in games 5-9 with a plain average-skater guard. The
     ice-time guard cut that to about 0.1 with no loss elsewhere. With last season in, it was 0.05.
+- **The user's finding that started the line piece (2026-10-13):** "the biggest edges are
+  flagging players with an injury on their offense ... both had a minutes increase due to the
+  injured teammate ... Vegas obviously knows and is accounting for it, we are not." True: Warren
+  Foegele (0.33 shots a game, 11 minutes) was on Ottawa's top line that night and the model had
+  him as a fourth-liner. The lineup closes part of that gap (0.67 -> 0.75), not all of it: most of
+  what is left is a cold six-game start that this-season-only can't see past.
 - **Expect a big "check" group until about game 20.** On the first slate (teams 5 games in) 33
   of 252 lines were 12+ points from the market: a model that has only seen this season against a
   book that knows who Cale Makar is. That is the rule working as chosen, not a bug.
@@ -191,7 +218,16 @@ on a replay, and the page keeps a record against the real prices.
   (2) days out; each team's lineup (the same 12 forwards and 6 defensemen as Game Previews).
   A row: `games` and `avg` (his shots on goal a game this season: what his game log says),
   `mean` = `usual` x `matchup`, `minutes`, `lift` (what each piece did: 1.06 = +6%), `shares`
-  (where he shoots), `chances` (1+ ... 8+ shots), `out` (ESPN: anything but day-to-day).
+  (where he shoots), `chances` (1+ ... 8+ shots), `out` (ESPN: anything but day-to-day), and
+  tonight's line: `slot` ("F1" ... "D3", null until the lineup is posted), `usual_slot` (the line
+  his own minutes say he has been on), `line_minutes`, `move` ("up" / "down" / null).
+- **Who is projected:** once a game's lineup is posted (`posted` on the game), exactly the
+  skaters it lists who have played this season (a scratch or an injury isn't in it, a call-up
+  before his first game has nothing to project from). Until then: the team's usual 18 by ice time,
+  less anyone ESPN lists as out. Everyone in a posted lineup is added to data.json's `skaters`
+  so his name opens the card.
+- `lineups`: `{game id: {posted, team: {lines: [[names]], goalie, scratched, injured}}}` as the
+  story has them, for the breakdown's linemates.
 - **Same lock as the odds:** a game that has started keeps the previous build's rows (read from
   the live `shots.json` with the build key); with nothing saved it shows no projection rather
   than one made after puck drop. A finished game's rows get `actual` (real shots on goal; null
@@ -203,8 +239,9 @@ on a replay, and the page keeps a record against the real prices.
 - **The record** (`model_history/nhl_shots/<month>.json`, committed by the deploy's "Save GMG
   model record" step): each finished game is written once, with every player who had a main line
   and played: `[id, name, team, line, over, under, projection, chance of the over, real shots,
-  season average]`, all as locked before puck drop. `shots_record_summary` grades the better side
-  of each line (`shots_play`) into `strong` / `lean` / `none` / `check`; for edges of 3 to 12 it
+  season average, line move]`, all as locked before puck drop. `shots_record_summary` grades the
+  better side of each line (`shots_play`, whose `size` is how the page files it) into `strong` /
+  `lean` / `none` / `check`; for edges of 3 to 12 it
   also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
   average (an under on a line he averages more than, or the reverse) next to plays with it.
   Wins, losses, units won risking 1 a play. The lock is the last build before puck drop (often
@@ -247,10 +284,15 @@ on a replay, and the page keeps a record against the real prices.
     side of his main Novig line ("Best side"; Overs / Unders show one side for everyone). The page
     does no shot math: it reads `chances` and compares them with prices. `pickSide` must agree
     with the build's `shots_play` (a test checks every row), since the record is graded by it.
-  - **A gap of 12+ points is set apart, never hidden:** those plays sit in their own group under
-    the ranking. A gap that big is a handful of games against everything the market knows, or
-    news (the first slate had a 9-minute fourth-liner lined at 2.5: a promotion).
-  - Columns: the play, Avg (his season average) next to Proj, Model %, Fair price, Edge, Min
+  - **"Not plays" are set apart, never hidden**, in their own group under the ranking, amber
+    instead of green: a gap of 12+ points (`check`: a handful of games against everything the
+    market knows), and **a play against tonight's line change** (`new line`: an under on a player
+    moved up a line, an over on one moved down; his games so far don't describe tonight's role).
+  - **Line column:** L1-L4 / D1-D3 from the projected lineup, an arrow when it is above or below
+    the line his minutes say he has been on, "--" until the lineup is posted. A note above the
+    table says how many of the day's games have lines. The breakdown shows the line as its own
+    piece ("L1 tonight +13%"), his linemates, and who is injured or scratched.
+  - Columns: Line, the play, Avg (his season average) next to Proj, Model %, Fair price, Edge, Min
     (arrow = a minute off his season average), then what moved the number: Opp, Pos, Spots, PP,
     Home/rest. **Green = more shots for him, red = fewer** (the Over chip is green, the Under chip
     red, so a row agrees with itself). A piece is colored from 2.5%.
@@ -286,14 +328,16 @@ on a replay, and the page keeps a record against the real prices.
   `tests/test_nhl_site.py` (the page and the player card in a browser on a saved `nhl/data.json`
   and two saved player files, NJD and DET). They run with the rest
   (`python tools/run_tests.py`), so a broken NHL test stops a deploy like any other.
-- `tests/test_nhl_shots.py` (the model, that the build never hands it last season, and the board,
-  lock and record, on the saved game and hand-made games) and `tests/test_nhl_shots_site.py` (the Shots page in a browser on
+- `tests/test_nhl_shots.py` (the model, that the build never hands it last season, tonight's
+  lines read from a saved story (`nhl_lineup_story.json.gz`, STL @ OTT), and the board, lock and
+  record, on the saved game and hand-made games) and `tests/test_nhl_shots_site.py` (the Shots page in a browser on
   `nhl_shots.json.gz`, the shots.json that matches the saved data sample).
 - `tools/fetch_live_data.py` also downloads the live player files and `shots.json`, so the
   after-deploy site check sees the pages as members do.
 - `tools/check_site.py` opens both NHL pages; like the NBA page they can never block the deploy gate.
 - `https://nfl.gmgsports.org/version.json` shows whether the NHL build worked: `nhl.built`,
-  `games` / `wanted`, `downloaded`, `lines`, `player_odds`, `shots` (games with projections), or
+  `games` / `wanted`, `downloaded`, `lines`, `player_odds`, `shots` (games with projections),
+  `lineups` (games whose projected lineup was read), or
   `error` (the build's last line) when it failed.
 
 ## Not built yet (waiting on the user's priorities)
@@ -303,6 +347,7 @@ goal scorer tool, a goalie saves tool (no saves market on Novig yet). The shots 
 built (above).
 Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
-For the Shots model: tonight's line combinations and power-play units from the shift charts
-(`shiftcharts`), the one thing the replay says would help most; a closing-line snapshot nearer
-puck drop; a "Record" view of the saved plays.
+For the Shots model: power-play units (the projected lineup has lines and pairs, not the power
+play; `shiftcharts` has past games' units); a build nearer puck drop so late lineups and the
+closing line are caught; a "Record" view of the saved plays; the expected starting goalie on
+Game Previews (it is already in `shots.json`).

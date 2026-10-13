@@ -15,6 +15,9 @@ One projection is three things multiplied together:
   * Tonight's matchup: what the other team allows (shots on goal a game, to
     his position, and from the parts of the ice he shoots from), home ice,
     and the power-play shots the other team gives up for a power-play shooter.
+  * Tonight's line: when the NHL's projected lineup has him on a busier or
+    quieter line than his own minutes say he has been on (a fourth-liner
+    moved up for an injured teammate), the projection moves with it.
 
 How much each piece counts (WEIGHTS) was fitted on a replay of 2025-26, every
 game projected only from the games before it (tools/backtest/nhl_shots.py).
@@ -54,6 +57,7 @@ PARAMS = {
     "thru_pad": 150,       # attempts at the league's on-goal rate mixed into his own
     # ---- his minutes ----
     "toi_decay": 0.8,
+    "line_cap": 0.6,        # the most tonight's line can count: e^0.6 = a line playing 1.8x his own minutes
     "toi_prev_games": 1.5,  # last season's average ice time counts as this many recent games
     "short_night": 0.6,     # a game under this share of his usual ice time is "left early"
     # ---- what a defense allows ----
@@ -64,15 +68,21 @@ PARAMS = {
 }
 # How much each matchup piece moves the projection (the fitted exponents; 1.0
 # means "take the number at face value").
-# Fitted on 2025-26 replayed with that season's games only (44,496
-# skater-games) and rounded; each held its sign in both halves of the season.
-# In plain terms, for most players: the defense's overall number moves a
-# projection about 6% either way, position 2%, the parts of the ice 1%, the
-# power play 1%, home ice +3%, the second night of a back-to-back -3.5% (and
-# +3.5% against a team on one). "scale" trims the whole projection 4%: the
-# minutes leave out nights a player left early, so on their own they run a
-# touch high.
-WEIGHTS = {"opp": 1.0, "pos": 0.5, "area": 0.5, "pp": 0.6, "home": 0.03, "b2b": -0.035, "opp_b2b": 0.035, "scale": -0.04}
+# Fitted on 2025-26 replayed with that season's games only (42,816
+# skater-games, with the NHL's projected lineup for 1,300 of the 1,312 games)
+# and rounded; each held its sign in both halves of the season. In plain
+# terms, for most players: the defense's overall number moves a projection
+# about 6% either way, tonight's line 4%, position 2%, the parts of the ice
+# 1%, the power play 1%, home ice +3%, the second night of a back-to-back
+# -3.5% (and +3.5% against a team on one). "scale" trims the whole projection
+# 4%: the minutes leave out nights a player left early, so on their own they
+# run a touch high.
+# "line": a player listed on a line that plays e times his own minutes gets
+# e^0.2 = 22% more shots, not e times more. A fill-in on the top line does
+# shoot more (a 12-minute forward listed on the first line: +10% in the
+# replay; a fourth-liner on the second: +24%), but he does not inherit the
+# star's ice time or power play.
+WEIGHTS = {"opp": 1.0, "pos": 0.5, "area": 0.5, "pp": 0.6, "line": 0.2, "home": 0.03, "b2b": -0.035, "opp_b2b": 0.035, "scale": -0.04}
 # Shots on goal are a bit streakier than a pure count: the spread around a
 # projection m is m + DISPERSION * m^2.
 DISPERSION = 0.07
@@ -138,6 +148,7 @@ class ShotsModel:
         self.prior_teams = prior.get("teams") or {}
         self.players = {}
         self.teams = {}
+        self.slots = {}  # team -> {"F1": [minutes sum, games], ...}: what each line and pair plays
         # The league's yardsticks: every game added so far (plus last season's
         # totals, when a prior is given).
         self.league = Counter(prior.get("league") or {})
@@ -167,6 +178,16 @@ class ShotsModel:
             allowed = allowed_in(record, team)
             self.teams.setdefault(team, Counter()).update(allowed)
             self.league_allowed.update(allowed)
+            # What each line and pair played: the three busiest forwards are
+            # "the first line", the next three the second, and so on.
+            for g, size in ((FORWARD, 3), (DEFENSE, 2)):
+                played = sorted((line["toi"] for line in record["skaters"].values() if line["team"] == team and group(line["pos"]) == g), reverse=True)
+                for i in range(0, len(played), size):
+                    for key in (team, "*"):
+                        slot = self.slots.setdefault(key, {}).setdefault(f"{g}{i // size + 1}", [0.0, 0.0])
+                        fade = self.p["toi_decay"] if key == team else 1.0
+                        slot[0] = slot[0] * fade + sum(played[i:i + size]) / len(played[i:i + size])
+                        slot[1] = slot[1] * fade + 1
         for pid, line in record["skaters"].items():
             s = self._player(pid, line["pos"])
             g = group(line["pos"])
@@ -229,6 +250,26 @@ class ShotsModel:
     def minutes(self, s: dict) -> float | None:
         return s["toi_num"] / s["toi_den"] / 60 if s["toi_den"] else None
 
+    def slot_minutes(self, team: str, slot: str) -> float | None:
+        """What that line ("F1" = first line ... "F4") or pair ("D1" ... "D3")
+        has been playing on this team; the league's number until the team has games."""
+        for key in (team, "*"):
+            total, games = (self.slots.get(key) or {}).get(slot) or (0.0, 0.0)
+            if games:
+                return total / games / 60
+        return None
+
+    def usual_slot(self, pid: str, team: str) -> str | None:
+        """The line or pair his own minutes put him on (the slot whose minutes are nearest his)."""
+        s = self.players.get(pid)
+        mine = self.minutes(s) if s else None
+        if not mine:
+            return None
+        g = group(s["pos"])
+        options = [(abs(self.slot_minutes(team, f"{g}{n}") - mine), f"{g}{n}") for n in range(1, 5) if self.slot_minutes(team, f"{g}{n}")]
+        return min(options)[1] if options else None
+
+
     def allowed(self, team: str, key: str) -> dict:
         """What a defense allows a game this season, steadied with a
         league-average defense (team_pad_games), and that number against the league."""
@@ -262,9 +303,10 @@ class ShotsModel:
         t = self.totals(s)
         return (t["pp_unb"] + self.p["pp_pad"] * league) / (t["unb"] + self.p["pp_pad"])
 
-    def parts(self, pid: str, opp: str, home: bool, rest: int | None = None, opp_rest: int | None = None) -> dict | None:
+    def parts(self, pid: str, opp: str, home: bool, rest: int | None = None, opp_rest: int | None = None, team: str | None = None, slot: str | None = None) -> dict | None:
         """Everything a projection is made of, before the weights (the
-        replay fits the weights on these)."""
+        replay fits the weights on these). `team` and `slot` = his line or
+        pair in tonight's projected lineup ("F1" ... "D3"), when one is posted."""
         s = self.players.get(pid)
         if s is None:
             before = self.prior_players.get(pid)
@@ -275,6 +317,11 @@ class ShotsModel:
         if not minutes:
             return None
         g = group(s["pos"])
+        # Tonight's line against his own minutes: how much busier (or quieter) a
+        # line he is on than the one he has been playing on.
+        line_minutes = self.slot_minutes(team, slot) if team and slot and slot[0] == g else None
+        cap = self.p["line_cap"]
+        line = max(-cap, min(cap, math.log(line_minutes / minutes))) if line_minutes else 0.0
         rate = self.rate(s)
         overall = self.allowed(opp, "sog")
         position = self.allowed(opp, "f_sog" if g == FORWARD else "d_sog")
@@ -286,7 +333,7 @@ class ShotsModel:
         pp_share = self.pp_share(s)
         return {
             "pos": s["pos"], "group": g, "games": s["games"], "prev_games": s["prev_games"],
-            "minutes": minutes, "rate": rate, "base": rate["per_min"] * minutes,
+            "minutes": minutes, "line_minutes": line_minutes, "rate": rate, "base": rate["per_min"] * minutes,
             "opp": overall, "position": position, "areas": by_area, "shares": shares, "pp": pp, "pp_share": pp_share,
             # The logs the weights multiply. Position and area are measured
             # against the defense's overall number, so each one only carries
@@ -296,6 +343,7 @@ class ShotsModel:
                 "pos": math.log(position["factor"] / overall["factor"]),
                 "area": math.log(fit / located["factor"]) if fit > 0 else 0.0,
                 "pp": pp_share * math.log(pp["factor"]),
+                "line": line,
                 "home": 1.0 if home else 0.0,
                 "b2b": 1.0 if rest == 1 else 0.0,
                 "opp_b2b": 1.0 if opp_rest == 1 else 0.0,
@@ -303,10 +351,10 @@ class ShotsModel:
             "season": dict(s["season"]), "recent": list(s["recent"]),
         }
 
-    def project(self, pid: str, opp: str, home: bool, rest: int | None = None, opp_rest: int | None = None) -> dict | None:
+    def project(self, pid: str, opp: str, home: bool, rest: int | None = None, opp_rest: int | None = None, team: str | None = None, slot: str | None = None) -> dict | None:
         """parts() plus the projection: `mean` shots on goal and what each
         piece did to it (`lift`: 1.06 = 6% more than his usual)."""
-        parts = self.parts(pid, opp, home, rest, opp_rest)
+        parts = self.parts(pid, opp, home, rest, opp_rest, team, slot)
         if parts is None:
             return None
         lift = {key: math.exp(self.w[key] * x) for key, x in parts["x"].items()}

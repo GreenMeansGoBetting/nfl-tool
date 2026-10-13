@@ -32,6 +32,7 @@ import hmac
 import json
 import math
 import os
+import re
 import statistics
 import sys
 import time
@@ -75,6 +76,10 @@ NOVIG_MARKET_FILTER = {
         ]},
     ]
 }
+# The NHL's own "projected lineups" story for each game (NHL.com's game
+# preview: tonight's forward lines, defense pairs, goalies, scratches and
+# injuries), usually posted around midday Eastern on game day.
+STORIES = "https://forge-dapi.d3.nhle.com/v2/content/en-us/stories"
 LIVE_DATA_URL = "https://nfl.gmgsports.org/nhl/data.json"
 LIVE_SHOTS_URL = "https://nfl.gmgsports.org/nhl/shots.json"
 # The Shots page projects games through this many days out (books post
@@ -347,14 +352,14 @@ def reduce_game(raw: dict) -> dict:
 
 
 # ---- downloading ----
-def _request(url: str, body: dict | None = None, headers: dict | None = None, tries: int = 3):
+def _request(url: str, body: dict | None = None, headers: dict | None = None, tries: int = 3, timeout: int = 30):
     data = json.dumps(body).encode() if body is not None else None
     head = {"accept": "*/*", "User-Agent": USER_AGENT, **(headers or {})}
     if data is not None:
         head["content-type"] = "application/json"
     for attempt in range(tries):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=head), timeout=30) as resp:
+            with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=head), timeout=timeout) as resp:
                 return json.load(resp)
         except urllib.error.HTTPError as e:
             if e.code == 404 or attempt == tries - 1:
@@ -1036,6 +1041,120 @@ def locked_player_odds(games: list, fresh: dict, previous: dict | None, now_utc:
     return out
 
 
+# ---- tonight's lines (the NHL's projected lineups) ----
+def parse_lineups(markdown: str) -> dict:
+    """The NHL's "projected lineups" story as {team label: lineup}. The story
+    is plain text: a "<Team> projected lineup" heading, then one line of text
+    per forward line ("A -- B -- C") and defense pair ("A -- B"), then the
+    goalies one to a line (the first is the expected starter), then
+    "Scratched:" and "Injured:". A lineup is {"groups": [[names]], "goalies":
+    [names], "scratched": [names], "injured": [names]}."""
+    out, team = {}, None
+    # The story is typed by hand: non-breaking spaces, curly apostrophes and
+    # long dashes turn up where plain ones are meant.
+    tidy = markdown.replace("\u00a0", " ").replace("\u2019", "'").replace("\u2018", "'")
+    tidy = re.sub("\\s+[\u2013\u2014]\\s+", " -- ", tidy)
+    for raw in tidy.splitlines():
+        text = re.sub(r"[*#_]", "", raw).strip()
+        if not text:
+            continue
+        heading = re.match(r"^(.+?) projected lineup$", text, re.IGNORECASE)
+        if heading:
+            team = out.setdefault(heading.group(1).strip(), {"groups": [], "goalies": [], "scratched": [], "injured": []})
+        elif re.match(r"^status report", text, re.IGNORECASE):
+            team = None
+        elif team is not None:
+            label, colon, rest = text.partition(":")
+            if colon and label.strip().lower() in ("scratched", "injured", "suspended"):
+                # "Kirby Dach (broken foot), Alex Newhook (broken ankle)": the reasons go, the names stay.
+                names = [n.strip() for n in re.sub(r"\([^)]*\)", "", rest).split(",") if n.strip() and n.strip().lower() != "none"]
+                team["scratched" if label.strip().lower() == "scratched" else "injured"].extend(names)
+            elif re.search(r"\s--\s", text):
+                team["groups"].append([n.strip() for n in re.split(r"\s+--\s+", text) if n.strip()])
+            elif not colon and len(text.split()) <= 4:
+                team["goalies"].append(text)
+    return out
+
+
+def lineup_slots(lineup: dict, team: str, find, positions: dict) -> dict:
+    """One team's parsed lineup with the NHL's player ids: {"skaters":
+    {player id: slot}, ...}. A slot is "F1" (first line) to "F4" or "D1"
+    (first pair) to "D3", read from the order the story lists them. A group
+    is a defense pair if its players are defensemen (by this season's
+    position; two names nobody knows yet count as a pair, three as a line)."""
+    skaters, unknown, counts = {}, [], {"F": 0, "D": 0}
+    for names in lineup["groups"]:
+        ids = [find(team, name) for name in names]
+        known = [positions[pid] for pid in ids if pid in positions]
+        defense = sum(pos == "D" for pos in known) > len(known) / 2 if known else len(names) == 2
+        kind = "D" if defense else "F"
+        counts[kind] += 1
+        for pid, name in zip(ids, names):
+            if pid:
+                skaters[pid] = f"{kind}{counts[kind]}"
+            else:
+                unknown.append(name)
+    return {
+        "skaters": skaters, "unknown": unknown, "lines": lineup["groups"],
+        "goalie": (find(team, lineup["goalies"][0]) or lineup["goalies"][0]) if lineup["goalies"] else None,
+        "scratched": lineup["scratched"], "injured": lineup["injured"],
+        "out": [pid for pid in (find(team, name) for name in lineup["scratched"] + lineup["injured"]) if pid],
+    }
+
+
+def fetch_lineup_story(game_id) -> dict | None:
+    """{"posted", "markdown"} for one game's projected-lineups story, or None
+    if it isn't up yet. Short waits: this is asked for every game on the
+    slate, and a slow day at NHL.com must not hold up the deploy."""
+    listing = _request(f"{STORIES}?tags.slug=gameid-{game_id}&tags.slug=game-preview&context.slug=nhl&$limit=5", tries=2, timeout=12)
+    for item in listing.get("items") or []:
+        story = _request(item["selfUrl"], tries=2, timeout=12)
+        text = "\n".join(part.get("content") or "" for part in story.get("parts") or [] if part.get("type") == "markdown")
+        if "projected lineup" in text.lower():
+            return {"posted": utc_text((item.get("lastUpdatedDate") or item["contentDate"])[:19] + "Z"), "markdown": text}
+    return None
+
+
+def fetch_lineups(games: list, teams: dict, find, positions: dict, now_utc: datetime) -> tuple:
+    """({game id: {"posted", team: lineup_slots(...)}}, error) for games that
+    haven't started and are close enough to have a story. Never raises: with
+    no story the Shots page falls back to each player's recent minutes."""
+    team_of = team_namer(teams)
+    last_day = (now_utc - timedelta(hours=4) + timedelta(days=1)).strftime("%Y-%m-%d")
+    out, error, failed = {}, None, 0
+    for g in games:
+        if g["status"] == "final" or g["date"] > last_day or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
+            continue
+        if failed >= 2:
+            break  # the stories aren't answering: stop asking, the rest fall back too
+        try:
+            story = fetch_lineup_story(g["game_id"])
+            failed = 0
+            if not story:
+                continue
+            entry = {"posted": story["posted"]}
+            for label, lineup in parse_lineups(story["markdown"]).items():
+                team = team_of(label)
+                if team in (g["away"], g["home"]) and lineup["groups"]:
+                    entry[team] = lineup_slots(lineup, team, find, positions)
+            if len(entry) > 1:
+                out[g["game_id"]] = entry
+        except Exception as e:  # one game's story must never cost the others theirs
+            error, failed = f"{g['game_id']}: {e}", failed + 1
+    return out, error
+
+
+def lineups_for_page(tonight: dict, goalies: dict) -> dict:
+    """Tonight's lines as posted, for the page to show a player's linemates,
+    who is hurt or scratched, and who is expected in net: {game id:
+    {"posted", team: {"lines": [[names]], "goalie", "scratched", "injured"}}}."""
+    name = lambda who: (goalies.get(who) or {}).get("name") or who
+    return {
+        gid: {"posted": entry["posted"], **{team: {"lines": posted["lines"], "goalie": name(posted["goalie"]), "scratched": posted["scratched"], "injured": posted["injured"]} for team, posted in entry.items() if team != "posted"}}
+        for gid, entry in tonight.items()
+    }
+
+
 # ---- the Shots page ----
 def shots_model_for(records: list):
     """The shots-on-goal model fed every finished game of this season, and
@@ -1046,19 +1165,34 @@ def shots_model_for(records: list):
     return model
 
 
-def shot_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool) -> dict | None:
-    """One skater's projection for one game, with what it is made of."""
-    proj = model.project(player["id"], opp, home, rest, opp_rest)
+def line_move(slot: str | None, usual_slot: str | None) -> str | None:
+    """"up" when tonight's line is above the one his own minutes say he has
+    been on ("F1" against "F3"), "down" when below, None when it is the same
+    or no lineup is posted."""
+    if not slot or not usual_slot or slot[0] != usual_slot[0] or slot[1:] == usual_slot[1:]:
+        return None
+    return "up" if int(slot[1:]) < int(usual_slot[1:]) else "down"
+
+
+def shot_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot: str | None = None) -> dict | None:
+    """One skater's projection for one game, with what it is made of. `slot`
+    = his line or pair in the NHL's projected lineup ("F1" ... "D3"), when
+    one is posted: the projection then moves with tonight's line."""
+    proj = model.project(player["id"], opp, home, rest, opp_rest, player["team"], slot)
     if proj is None:
         return None
     usual = proj["base"] * math.exp(model.w["scale"])
     games = proj["games"]
+    usual_slot = model.usual_slot(player["id"], player["team"])
     return {
         "id": player["id"], "name": player["name"], "team": player["team"], "opp": opp, "home": home, "pos": player["pos"], "out": out,
         # What his game log says, plain: shots on goal a game this season.
         "games": games, "avg": round(proj["season"]["sog"] / games, 2) if games else None,
         # mean = usual x matchup: his shot rate in tonight's minutes, then what tonight changes.
         "mean": round(proj["mean"], 2), "usual": round(usual, 2), "matchup": round(proj["mean"] / usual, 3) if usual else 1.0,
+        # Tonight's line, the one his own minutes say he has been on, what tonight's line
+        # plays, and whether that is a move up or down.
+        "slot": slot, "usual_slot": usual_slot, "line_minutes": num(proj["line_minutes"], 1), "move": line_move(slot, usual_slot),
         "minutes": round(proj["minutes"], 1), "rate60": round(proj["rate"]["per_min"] * 60, 2), "att60": round(proj["rate"]["attempts"] * 60, 1),
         "thru": round(proj["rate"]["thru"], 3), "pp_share": round(proj["pp_share"], 3),
         "lift": {key: round(value, 3) for key, value in proj["lift"].items()},
@@ -1090,12 +1224,17 @@ def shots_defense(model, teams) -> dict:
     return out
 
 
-def shots_board(model, games: list, lineups: dict, injuries: dict, records: list, previous: dict | None, now_utc: datetime) -> dict:
+def shots_board(model, games: list, lineups: dict, injuries: dict, records: list, previous: dict | None, now_utc: datetime, tonight: dict | None = None, skaters: dict | None = None) -> dict:
     """{game id: {"locked", "players": [rows]}} for the Shots page. A game
     that hasn't started gets fresh projections; one that has started keeps
     the last build's (the same lock as the lines: a projection made after
     puck drop would already know the game), and a finished one gets each
-    player's real shots on goal next to it."""
+    player's real shots on goal next to it.
+
+    Who is projected: the skaters in the NHL's projected lineup for the game
+    (`tonight`: fetch_lineups), each on the line it lists him on. Until that
+    is posted: the team's usual lineup by ice time (`lineups`), less anyone
+    ESPN lists as out."""
     prev_games = (previous or {}).get("games") or {}
     finished = {str(r["id"]): r for r in records}
     last_day = (now_utc - timedelta(hours=4) + timedelta(days=SHOTS_DAYS_AHEAD)).strftime("%Y-%m-%d")
@@ -1115,15 +1254,21 @@ def shots_board(model, games: list, lineups: dict, injuries: dict, records: list
             continue
         if g["date"] > last_day:
             continue
-        rows = []
+        rows, posted = [], (tonight or {}).get(g["game_id"]) or {}
         for team, opp, side, other in ((g["away"], g["home"], "away", "home"), (g["home"], g["away"], "home", "away")):
-            out_ids = {p["id"] for p in injuries.get(team) or [] if p.get("id") and p.get("status") in OUT_STATUSES}
-            for player in lineups.get(team) or []:
-                row = shot_row(model, player, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), player["id"] in out_ids)
+            slots = (posted.get(team) or {}).get("skaters")
+            if slots:
+                # The lineup is posted: exactly the skaters it lists (a scratch or an injury isn't in it).
+                dressed = [(skaters[pid], slot, False) for pid, slot in slots.items() if pid in (skaters or {})]
+            else:
+                out_ids = {p["id"] for p in injuries.get(team) or [] if p.get("id") and p.get("status") in OUT_STATUSES}
+                dressed = [(player, None, player["id"] in out_ids) for player in lineups.get(team) or []]
+            for player, slot, is_out in dressed:
+                row = shot_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot)
                 if row:
                     rows.append(row)
         if rows:
-            out[g["game_id"]] = {"locked": False, "players": sorted(rows, key=lambda row: -row["mean"])}
+            out[g["game_id"]] = {"locked": False, "posted": posted.get("posted"), "players": sorted(rows, key=lambda row: -row["mean"])}
     return out
 
 
@@ -1133,17 +1278,28 @@ def break_even(american: int) -> float:
     return -american / (100 - american) if american < 0 else 100 / (american + 100)
 
 
-def shots_play(chance_over: float, line: float, over, under, avg=None) -> dict | None:
+def shots_play(chance_over: float, line: float, over, under, avg=None, move=None) -> dict | None:
     """The side of a main line the model likes more, at the book's price
-    (the page's "Best side": shots.js pickSide). `fade` = the play goes
-    against his own season average (an under on a line he averages more than,
-    or the other way round): the model thinks a small sample has run hot or cold."""
+    (the page's "Best side": shots.js pickSide).
+    `fade` = the play goes against his own season average (an under on a line
+    he averages more than, or the other way round): the model thinks a small
+    sample has run hot or cold.
+    `size` = how the page files it: "strong" / "lean" / "none" by the edge, or
+    "check" (set apart, not a play) when the gap is too big to take at face
+    value OR the play goes against tonight's line change: an under on a
+    player moved up a line (`move` "up"), an over on one moved down. His games
+    so far don't describe the role he has tonight, and the book knows it."""
     sides = [(side, price, chance) for side, price, chance in (("over", over, chance_over), ("under", under, 1 - chance_over)) if price is not None]
     if not sides:
         return None
     side, price, chance = max(sides, key=lambda x: x[2] - break_even(x[1]))
+    edge = chance - break_even(price)
     fade = avg is not None and (avg > line if side == "under" else avg < line)
-    return {"side": side, "line": line, "price": price, "chance": chance, "edge": chance - break_even(price), "fade": fade}
+    against_move = move == ("up" if side == "under" else "down")
+    size = next((key for key in ("check", "strong", "lean") if edge >= SHOTS_EDGES[key]), "none")
+    if against_move and size != "none":
+        size = "check"
+    return {"side": side, "line": line, "price": price, "chance": chance, "edge": edge, "fade": fade, "against_move": against_move, "size": size}
 
 
 def record_finished_games(folder: Path, board: dict, player_odds: dict, games: list) -> int:
@@ -1170,7 +1326,7 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
                 need = math.floor(market["line"]) + 1 if market else 0
                 if not market or row.get("actual") is None or not 1 <= need <= len(row["chances"]):
                     continue
-                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg")])
+                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg"), row.get("move")])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
@@ -1194,12 +1350,13 @@ def shots_record_summary(folder: Path) -> dict:
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
             for _id, _name, _team, line, over, under, _mean, chance_over, actual, *rest in game["plays"]:
-                play = shots_play(chance_over, line, over, under, rest[0] if rest else None)
+                avg, move = (*rest, None, None)[:2]  # rows saved before these were kept have neither
+                play = shots_play(chance_over, line, over, under, avg, move)
                 if play is None or actual == line:
                     continue
                 won = (actual > line) == (play["side"] == "over")
                 units = (100 / -play["price"] if play["price"] < 0 else play["price"] / 100) if won else -1.0
-                size = next((key for key in ("check", "strong", "lean") if play["edge"] >= SHOTS_EDGES[key]), "none")
+                size = play["size"]
                 # Overs against unders, and plays against his season average
                 # ("fade") against plays with it: only the plays the page calls an edge.
                 called = [play["side"], "fade" if play["fade"] else "with"] if size in ("strong", "lean") else []
@@ -1323,6 +1480,14 @@ def main():
     generated_at = now_utc.strftime("%Y-%m-%dT%H:%MZ")
     lineups = lineup(stats["skaters"], team_games)
     player_odds = locked_player_odds(games, novig_players, previous, now_utc)
+    # Tonight's lines, as the NHL posts them. Everyone in one is on the page's
+    # skater list too, so a call-up on the top line still opens the player card.
+    tonight, lineups_error = fetch_lineups(games, teams, player_finder(stats["skaters"], stats["goalies"]), {pid: s["pos"] for pid, s in stats["skaters"].items()}, now_utc)
+    for entry in tonight.values():
+        for team, posted in entry.items():
+            if team in lineups:
+                listed = {p["id"] for p in lineups[team]}
+                lineups[team].extend(stats["skaters"][pid] for pid in posted["skaters"] if pid in stats["skaters"] and pid not in listed)
 
     blob = {
         "season": args.season,
@@ -1343,14 +1508,14 @@ def main():
         "schedule": games,
         "player_odds": player_odds,
         "novig_debug": novig_debug,
-        "feed_debug": {**stats["debug"], "injuries_error": injuries_error},
+        "feed_debug": {**stats["debug"], "injuries_error": injuries_error, "lineups": len(tonight), "lineups_error": lineups_error},
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
     write_player_files(args.out.parent / "players", teams, stats, prior, generated_at)
     model = shots_model_for(stats["records"])
-    board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc)
+    board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc, tonight, stats["skaters"])
     try:
         record_finished_games(args.record_dir, board, player_odds, games)
         record = shots_record_summary(args.record_dir)
@@ -1359,7 +1524,7 @@ def main():
         record = None
     shots = {
         "season": args.season, "generated_at": generated_at, "weights": model.w, "dispersion": shots_model.DISPERSION, "edges": SHOTS_EDGES,
-        "games": board, "defense": shots_defense(model, teams), "record": record,
+        "games": board, "defense": shots_defense(model, teams), "record": record, "lineups": lineups_for_page(tonight, stats["goalies"]),
     }
     with open(args.out.parent / "shots.json", "w") as f:
         json.dump(shots, f, separators=(",", ":"))

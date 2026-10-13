@@ -3756,6 +3756,9 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .shots-table td.shots-edge { font-size: 1.05rem; }
 .shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
 .shots-flag.shots-fade { margin-left: 6px; }
+.shots-table td.shots-line { font-size: 0.95rem; }
+.shots-lineup { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+.shots-lineup b { color: var(--text); text-transform: capitalize; }
 .shots-allows .nba-tile .gs-tag, .shots-allows .nba-tile .nba-notag { margin-top: 3px; height: 18px; }
 .shots-up, .shots-down { margin-left: 3px; font-size: 0.62em; }
 .shots-up { color: rgb(var(--good-rgb)); }

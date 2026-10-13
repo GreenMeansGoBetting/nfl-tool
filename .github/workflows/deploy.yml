@@ -193,6 +193,8 @@ jobs:
                       note["player_odds"] = novig["players"]
                   if feed:
                       note.update(games=feed.get("games_loaded"), wanted=feed.get("games_wanted"), downloaded=feed.get("games_downloaded"))
+                  if "lineups" in feed:
+                      note["lineups"] = feed["lineups"]  # games with the NHL's projected lineup read
                   if suite == "nhl":
                       # The Shots page's own file: how many games have projections.
                       shots = site / "nhl" / "shots.json"

@@ -22,8 +22,14 @@ tests/fixtures/, so the right answers can't change from week to week:
                            the 16 games of 10-13 projected from the 89 games
                            before them, and the three 10-12 games as they
                            were projected that morning, locked, with each
-                           player's real shots on goal. Its "record" block is
-                           made up (the real one comes from model_history).
+                           player's real shots on goal. One game (STL @ OTT)
+                           has the NHL's projected lineup, the saved story
+                           below; the other 15 have none yet. Its "record"
+                           block is made up (the real one comes from
+                           model_history).
+  * nhl_lineup_story.json.gz -- one "projected lineups" story exactly as the
+                           NHL serves it (STL @ OTT, posted 2026-10-13 16:04
+                           UTC: Warren Foegele moved up to Ottawa's top line).
 
 tests/ sits outside nfl_tool/, so none of it is deployed and a push that only
 touches tests doesn't rebuild the site.
@@ -96,6 +102,11 @@ def nhl_shots_bytes():
 
 def nhl_shots():
     return json.loads(nhl_shots_bytes())
+
+
+def nhl_lineup_story():
+    """The saved projected-lineups story: {"game_id", "away", "home", "posted", "markdown"}."""
+    return json.loads(_fixture_bytes("nhl_lineup_story.json.gz"))
 
 
 def nhl_players():

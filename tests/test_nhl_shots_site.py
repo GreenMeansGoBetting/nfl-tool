@@ -9,7 +9,9 @@ filters, the sort and one-game view; the row breakdown (from his season
 average, the pieces multiply out to the projection; every line the book
 prices is on the ladder; a defense's rank is said in words that can't be read
 backwards); this season only, on the page and in the card it opens; a
-finished game shows real shots and a win or loss; the record tiles."""
+finished game shows real shots and a win or loss; the record tiles; and
+tonight's lines: the Line column, a player moved up a line, his linemates
+and who is out in the breakdown, a play against the move set apart."""
 import math
 import unittest
 
@@ -25,8 +27,8 @@ TONIGHT, LAST_NIGHT = "2026-10-13", "2026-10-12"
 ROWS = """() => [...document.querySelectorAll('.shots-row')].map((tr) => {
     const cell = (i) => tr.children[i].textContent.trim().replace(/\\s+/g, ' ');
     const chip = tr.querySelector('.shots-play');
-    const play = chip ? `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}` : cell(2);
-    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell(0), play, avg: cell(3), proj: cell(4), model: cell(5), fair: cell(6), edge: cell(7), check: /check/.test(cell(7)), fade: !!tr.querySelector('.shots-fade') };
+    const play = chip ? `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}` : cell(3);
+    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell(0), line: cell(2), play, avg: cell(4), proj: cell(5), model: cell(6), fair: cell(7), edge: cell(8), check: /check|new line/.test(cell(8)), flag: (/(check|new line|thin)/.exec(cell(8)) || [''])[0], amber: tr.children[8].classList.contains('tier-mid'), green: tr.children[8].classList.contains('tier-good'), fade: !!tr.querySelector('.shots-fade') };
 })"""
 
 
@@ -79,9 +81,9 @@ def expected_plays(day=TONIGHT):
             market = ((data["player_odds"].get(g["game_id"]) or {}).get(row["id"]) or {}).get("sog")
             if row["out"] or not market:
                 continue
-            play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"])
+            play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
             if play:
-                out[row["id"]] = {**play, "mean": row["mean"], "avg": row["avg"]}
+                out[row["id"]] = {**play, "mean": row["mean"], "avg": row["avg"], "slot": row["slot"], "move": row["move"]}
     return out
 
 
@@ -105,7 +107,7 @@ class Ranking(unittest.TestCase):
         for r in reset():
             play = plays[r["id"]]
             self.assertEqual(r["play"], f"{'Over' if play['side'] == 'over' else 'Under'} {play['line']:.1f} {price(play['price'])}", r)
-            shown = r["edge"].replace("check", "").replace("thin", "").strip()
+            shown = r["edge"].replace("check", "").replace("new line", "").replace("thin", "").strip()
             self.assertLessEqual(abs(float(shown) - play["edge"] * 100), 0.05 + 1e-9, r)
             self.assertNotEqual(shown, "-0.0", r)
             self.assertLessEqual(abs(int(r["model"].rstrip("%")) - play["chance"] * 100), 0.5 + 1e-9, r)
@@ -118,15 +120,18 @@ class Ranking(unittest.TestCase):
     def test_best_edge_first_with_the_too_big_gaps_underneath(self):
         plays = expected_plays()
         rows = reset()
-        check = build_nhl.SHOTS_EDGES["check"]
-        believable = [r for r in rows if plays[r["id"]]["edge"] < check]
-        too_big = [r for r in rows if plays[r["id"]]["edge"] >= check]
+        # The build files a play as "check" (a gap too big, or a play against tonight's line change); so must the page.
+        believable = [r for r in rows if plays[r["id"]]["size"] != "check"]
+        too_big = [r for r in rows if plays[r["id"]]["size"] == "check"]
         self.assertGreater(len(too_big), 0)
         # The table lists every believable play, best first, then the "check" group.
         self.assertEqual([r["id"] for r in rows], [r["id"] for r in believable] + [r["id"] for r in too_big])
         edges = [plays[r["id"]]["edge"] for r in believable]
         self.assertEqual(edges, sorted(edges, reverse=True))
         self.assertEqual([r["check"] for r in rows], [False] * len(believable) + [True] * len(too_big))
+        # A play is green; nothing in the set-apart group is.
+        self.assertTrue(all(r["amber"] and not r["green"] for r in too_big))
+        self.assertTrue(all(r["green"] == (plays[r["id"]]["edge"] >= build_nhl.SHOTS_EDGES["lean"]) and not r["amber"] for r in believable))
         self.assertEqual([r["rank"] for r in rows[:3]], ["1", "2", "3"])
         self.assertEqual(len(PAGE.query_selector_all(".shots-check-head")), 1)
         head = PAGE.evaluate("() => document.querySelector('.shots-check-head').nextElementSibling.dataset.row.split(':')[1]")
@@ -147,6 +152,78 @@ class Ranking(unittest.TestCase):
         out = {row["id"] for entry in shots["games"].values() for row in entry["players"] if row["out"]}
         self.assertGreater(len(out), 0)
         self.assertEqual(out & {r["id"] for r in reset(lined=False)}, set())
+
+
+class TonightsLines(unittest.TestCase):
+    """STL @ OTT is the one game in the sample with the NHL's projected lineup (the saved story)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.data, cls.shots = nhl_data(), nhl_shots()
+        cls.game = next(g for g in cls.data["schedule"] if g["away"] == "STL" and g["home"] == "OTT")
+        cls.rows = {r["name"]: r for r in cls.shots["games"][cls.game["game_id"]]["players"]}
+        cls.foegele = cls.rows["Warren Foegele"]
+
+    def page_rows(self, **view):
+        reset(**view)
+        PAGE.evaluate("(id) => document.querySelector(`.matchup-card[data-game='${id}']`).click()", self.game["game_id"])
+        return {r["id"]: r for r in PAGE.evaluate(ROWS)}
+
+    def test_the_note_says_how_many_games_have_lines(self):
+        reset()
+        self.assertIn("Tonight's lines are in for 1 of 16 games", PAGE.inner_text("#shots-lineups"))
+
+    def test_only_the_listed_skaters_and_each_on_his_line(self):
+        rows = self.page_rows(lined=False)
+        self.assertEqual(set(rows), {r["id"] for r in self.rows.values()})
+        self.assertEqual(len(rows), 31)  # the story lists 36 skaters; five have no games on the page yet
+        name = lambda slot: f"{'L' if slot[0] == 'F' else 'D'}{slot[1:]}"
+        for r in self.rows.values():
+            self.assertTrue(rows[r["id"]]["line"].startswith(name(r["slot"])), r["name"])
+        # A game with no lineup posted shows no line.
+        other = PAGE.evaluate("() => { document.querySelector('.matchup-card.selected').click(); return [...document.querySelectorAll('.shots-row')].find((tr) => !tr.dataset.row.startsWith(currentGame() ? '' : '2026020096')).children[2].textContent.trim(); }")
+        self.assertEqual(other, "--")
+
+    def test_a_player_moved_up_a_line(self):
+        """Warren Foegele: a fourth-liner by his minutes (11.1 a game), on the top line tonight."""
+        f = self.foegele
+        self.assertEqual((f["slot"], f["usual_slot"], f["move"], f["minutes"], f["line_minutes"]), ("F1", "F4", "up", 11.1, 20.9))
+        self.assertAlmostEqual(f["lift"]["line"], math.exp(0.2 * 0.6), places=3)  # +13%: capped, not his new line's full minutes
+        self.page_rows(lined=False)
+        detail = PAGE.evaluate(
+            """(key) => {
+                const tr = document.querySelector(`.shots-row[data-row='${key}']`);
+                const cell = tr.children[2];
+                tr.children[3].click();
+                const box = document.querySelector('.shots-detail');
+                const text = (el) => el.textContent.trim().replace(/\\s+/g, ' ');
+                return { line: text(cell), up: !!cell.querySelector('.shots-up'), green: cell.classList.contains('tier-good'), tip: cell.title,
+                    steps: [...box.querySelectorAll('.shots-step')].map((s) => [text(s.querySelector('small')), text(s.querySelector('b'))]), note: text(box.querySelector('.shots-lineup')) };
+            }""",
+            f"{self.game['game_id']}:{f['id']}",
+        )
+        self.assertEqual((detail["line"], detail["up"], detail["green"]), ("L1\u25b2", True, True))
+        self.assertIn("fourth line player", detail["tip"])
+        self.assertEqual(detail["steps"][2], ["L1 tonight", "+13%"])
+        # His linemates and who is out, straight from the story.
+        self.assertIn("Warren Foegele \u2013 Tim Stutzle \u2013 Drake Batherson", detail["note"])
+        self.assertIn("Injured: Jake Sanderson, Artem Zub, William Eklund", detail["note"])
+        self.assertIn("Scratched: Hayden Hodgson", detail["note"])
+        # The pieces still multiply out to tonight's number, the line among them.
+        lift = f["lift"]
+        product = f["usual"] * lift["line"] * lift["opp"] * lift["pos"] * lift["area"] * lift["pp"] * lift["home"] * lift["b2b"] * lift["opp_b2b"]
+        self.assertAlmostEqual(product, f["mean"], delta=0.02)
+
+    def test_an_under_on_a_player_moved_up_is_set_apart(self):
+        plays = expected_plays()
+        against = {pid: p for pid, p in plays.items() if p["against_move"] and build_nhl.SHOTS_EDGES["lean"] <= p["edge"] < build_nhl.SHOTS_EDGES["check"]}
+        self.assertGreater(len(against), 0)
+        rows = {r["id"]: r for r in reset()}
+        for pid, play in against.items():
+            self.assertEqual((rows[pid]["flag"], rows[pid]["amber"], rows[pid]["green"]), ("new line", True, False), play)
+        # A move that agrees with the play leaves it a play.
+        agree = [pid for pid, p in plays.items() if p["move"] and not p["against_move"] and p["size"] in ("lean", "strong")]
+        self.assertTrue(all(rows[pid]["green"] and rows[pid]["flag"] != "new line" for pid in agree))
 
 
 class ThisSeasonOnly(unittest.TestCase):

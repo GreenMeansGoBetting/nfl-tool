@@ -1073,3 +1073,31 @@ in 3 of 5, and the user read Ottawa as a leaky defense that gives up point shots
   costs until about game 20, and the user chose it knowing.
 - The record keeps "against his average" plays apart from the rest, so whether fading a hot
   start actually wins is something the site will show rather than something to argue about.
+
+### Shots: tonight's lines (2026-10-13, the same afternoon)
+
+The user looked at the biggest edges and found the pattern: they were players on teams with an
+injured forward, players whose minutes were going up that night. "The model is not accounting
+for an uptick in usage based on injuries. This is something Vegas obviously knows and is clearly
+accounting for. We are not. Thus we are generating bad picks based on a lack of full scoped
+information."
+
+- **They were right, and the information turned out to be free.** NHL.com publishes a "projected
+  lineups" story for every game around midday: forward lines, defense pairs, goalies, scratches,
+  injuries. That night's showed Warren Foegele, an 11-minute fourth-liner by his minutes, on
+  Ottawa's top line, and Adam Jiricek (the under the user had questioned that morning) moved up
+  to St. Louis's top pair.
+- **What an injury list alone could not do:** a replay of "a regular is out" found his minutes
+  spread thinly over everyone (about +0.04 minutes for each minute of a missing player above him),
+  because WHO moves up is the whole story, and only the lineup says who.
+- **Why the bump is +13% and not "the top line's minutes":** 1,300 of last season's 1,312 games
+  still had their story, so the effect was fitted rather than assumed. A fill-in closes only
+  about 15% of the gap between his minutes and his new line's, since he gets no power play and
+  less of everything else. He does shoot more per minute with better linemates, so shots move
+  more than minutes: about +10% for a 12-minute forward on the first line, +24% for a
+  fourth-liner on the second.
+- **So the lineup does not make Foegele a 1.5-shot player** (0.67 became 0.75 against a line of
+  1.5). What is left of that gap is his cold start, which this-season-only cannot see past. Two
+  things keep it from being a pick anyway: gaps of 12+ points were already set apart, and a play
+  that goes AGAINST tonight's line change (an under on a promoted player) is now set apart too,
+  whatever its size, shown amber instead of green.

@@ -27,6 +27,7 @@ import gzip
 import json
 import math
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -37,8 +38,9 @@ import build_nhl as b  # noqa: E402
 import shots_model as sm  # noqa: E402
 
 DATA = ROOT / "data" / "nhl"
-X_KEYS = ("opp", "pos", "area", "pp", "home", "b2b", "opp_b2b")
+X_KEYS = ("opp", "pos", "area", "pp", "line", "home", "b2b", "opp_b2b")
 MIN_HISTORY = 5  # games on file (either season) before a player's projection is judged
+PREVIEWS = {}    # {game id: projected-lineups story}, filled by main()
 LINES = (0.5, 1.5, 2.5, 3.5, 4.5)
 
 
@@ -56,7 +58,49 @@ def load_records(season: int) -> list:
     return records
 
 
-def replay(records: list, prior: dict, params: dict | None = None) -> dict:
+def load_previews(season: int, records: list) -> dict:
+    """{game id: the NHL's projected-lineups story} for a season, kept in
+    data/nhl/previews/<season> (downloaded once: about 5 minutes a season)."""
+    folder = DATA / "previews" / str(season)
+    folder.mkdir(parents=True, exist_ok=True)
+    missing = [r["id"] for r in records if not (folder / f"{r['id']}.json").exists()]
+    if missing:
+        print(f"Downloading {len(missing)} projected-lineups stories (kept in {folder})...", flush=True)
+
+        def one(game_id):
+            try:
+                (folder / f"{game_id}.json").write_text(json.dumps(b.fetch_lineup_story(game_id)), encoding="utf-8")
+            except Exception:
+                pass  # asked for again on the next run
+
+        with ThreadPoolExecutor(max_workers=b.FETCH_WORKERS) as pool:
+            list(pool.map(one, missing))
+    out = {}
+    for r in records:
+        path = folder / f"{r['id']}.json"
+        story = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+        if story:
+            out[r["id"]] = story
+    return out
+
+
+def game_slots(record: dict, story: dict | None) -> dict:
+    """{player id: "F1" ... "D3"} from a game's projected lineup. The story
+    names players, not ids: they are matched to the skaters who played."""
+    slots = {}
+    if not story:
+        return slots
+    positions = {pid: line["pos"] for pid, line in record["skaters"].items()}
+    for lineup in b.parse_lineups(story["markdown"]).values():
+        listed = {b.plain(name) for names in lineup["groups"] for name in names}
+        by_team = {team: {b.plain(line["name"]): pid for pid, line in record["skaters"].items() if line["team"] == team} for team in (record["home"], record["away"])}
+        team = max(by_team, key=lambda t: len(listed & set(by_team[t])))
+        if len(listed & set(by_team[team])) >= 8:
+            slots.update(b.lineup_slots(lineup, team, lambda _team, name: by_team[team].get(b.plain(name)), positions)["skaters"])
+    return slots
+
+
+def replay(records: list, prior: dict, params: dict | None = None, previews: dict | None = None) -> dict:
     """One row per skater-game: what the model had before the game, and what happened."""
     model = sm.ShotsModel(prior, params)
     last_played, rows = {}, []
@@ -67,10 +111,11 @@ def replay(records: list, prior: dict, params: dict | None = None) -> dict:
         day = np.datetime64(date)
         for r in by_date[date]:
             rest = {t: int((day - last_played[t]) / np.timedelta64(1, "D")) if t in last_played else None for t in (r["home"], r["away"])}
+            slots = game_slots(r, (previews or {}).get(r["id"]))
             for pid, line in r["skaters"].items():
                 team = line["team"]
                 opp = r["away"] if team == r["home"] else r["home"]
-                parts = model.parts(pid, opp, team == r["home"], rest[team], rest[opp])
+                parts = model.parts(pid, opp, team == r["home"], rest[team], rest[opp], team, slots.get(pid))
                 if parts is None or parts["games"] + parts["prev_games"] < MIN_HISTORY:
                     continue
                 season = parts["season"]
@@ -147,7 +192,7 @@ def report(d: dict, label: str) -> dict:
         ("rate x minutes, from attempts only", d["by_attempts"][test]),
         ("rate x minutes, blended (the base)", base[test]),
     ]
-    for keys, name in (((), "base, rescaled"), (("opp",), "+ what the defense allows"), (("opp", "pos", "area"), "+ position and area"), (("opp", "pos", "area", "pp"), "+ power play"), (X_KEYS, "+ home ice and rest (everything)")):
+    for keys, name in (((), "base, rescaled"), (("opp",), "+ what the defense allows"), (("opp", "pos", "area"), "+ position and area"), (("opp", "pos", "area", "pp"), "+ power play"), (("opp", "pos", "area", "pp", "line"), "+ tonight's line"), (X_KEYS, "+ home ice and rest (everything)")):
         Xk = design(d, keys)
         wk = poisson_fit(Xk[half], y[half], np.log(base[half]))
         rows.append((name, np.exp(np.log(base[test]) + Xk[test] @ wk)))
@@ -188,7 +233,7 @@ def report(d: dict, label: str) -> dict:
 def tune(records: list, prior: dict) -> None:
     """Try other settings for the shot rate and the minutes, one at a time."""
     def score(params):
-        d = replay(records, prior, params)
+        d = replay(records, prior, params, PREVIEWS)
         return deviance(d["sog"], d["base"] * d["sog"].sum() / d["base"].sum()), len(d["sog"])
 
     start, n = score({})
@@ -209,9 +254,12 @@ def main():
     args = parser.parse_args()
     prior = sm.season_summary(load_records(args.season - 1)) if args.last_season else None
     records = load_records(args.season)
+    global PREVIEWS
+    PREVIEWS = load_previews(args.season, records)
+    print(f"Projected lineups for {len(PREVIEWS):,} of {len(records):,} games.")
     if args.tune:
         tune(records, prior)
-    d = replay(records, prior)
+    d = replay(records, prior, None, PREVIEWS)
     fitted = report(d, b.season_label(args.season))
     regulars = d["base"] >= 1.5
     report({k: v[regulars] for k, v in d.items()}, f"{b.season_label(args.season)}, players projected for 1.5+ (the ones books post lines on)")
