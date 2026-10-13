@@ -3403,7 +3403,9 @@ main { max-width: 1840px; }
 .crease-capture-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
 .crease-capture-sub { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
 .crease-capture-promo { margin-left: auto; padding: 4px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--good-text); background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.45); }
-.crease-table col.crease-c-goalie { width: 310px; }
+.crease-table col.crease-c-goalie { width: 236px; }
+.crease-table col.crease-c-line { width: 74px; }
+.crease-count { margin-left: 0; margin-right: auto; }
 .crease-table col.crease-c-stat { width: 58px; }
 .crease-table col.crease-c-pill { width: 84px; }
 .crease-table td { height: 36px; }

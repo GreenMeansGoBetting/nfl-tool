@@ -13,8 +13,7 @@
 
 let CREASE = null;
 let dayIndex = 0;
-const creaseView = { sort: "top", dir: -1, show: "all" };
-const TOP_ROWS = 10;
+const creaseView = { sort: "top", dir: -1 };
 
 // ESPN's logos, not the NHL's own: the saved image can only carry pictures
 // from a host that allows it, and ESPN's does (the NFL pages' logos come from
@@ -46,9 +45,8 @@ const longDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefin
 // `rank` = a league rank to color by (1 = the most shots = green);
 // `slate` = colored against the day's other goalies instead.
 const COLS = [
-  { key: "line", label: "Line", group: "Novig line", fmt: (r) => (has(r.line) ? fmt(r.line) : ""), title: "His main saves line on Novig. DraftKings' own line can sit half a save either side." },
-  { key: "over", label: "Over", group: "Novig line", fmt: (r) => odds(r.over), title: "Novig's price on the over. The promo's bet has to be +100 or longer: when the over is priced below that, bet the next line up." },
-  { key: "saves_avg", label: "Sv/GS", group: "His season", fmt: (r) => (has(r.saves_avg) ? fmt(r.saves_avg) : ""), title: "Saves a start this season" },
+  { key: "line", label: "Line", group: "Novig", slate: true, wide: true, fmt: (r) => (has(r.line) ? fmt(r.line) : ""), title: "His main saves line on Novig, colored against the day's other lines. DraftKings' own line can sit half a save either side, and the promo's bet has to be +100 or longer: when the over is priced below that, bet the next line up." },
+  { key: "saves_avg", label: "Sv/GS", group: "His season", slate: true, fmt: (r) => (has(r.saves_avg) ? fmt(r.saves_avg) : ""), title: "Saves a start this season" },
   { key: "sv_pct", label: "SV%", group: "His season", fmt: (r) => (has(r.sv_pct) ? svPct(r.sv_pct) : ""), title: "Save % this season" },
   { key: "high", label: "High", group: "His season", fmt: (r) => r.high || "", title: "His most saves in a start this season" },
   { key: "opp_shots", label: "Opp shots", group: "Matchup", rank: "opp_shots_rank", fmt: (r) => (has(r.opp_shots) ? fmt(r.opp_shots) : ""), title: "Shots on goal a game by the team he faces, colored by its league rank" },
@@ -57,7 +55,7 @@ const COLS = [
   { key: "mean", label: "Saves", group: "Tonight", slate: true, fmt: (r) => fmt(r.mean), title: "Saves the model expects (its own number, before the line is counted)" },
   { key: "big", label: "", group: "Tonight", fmt: (r) => whole(r.big), title: "" },
 ];
-const GROUP_CLASS = { "Novig line": "td", "His season": "role", Matchup: "def", Tonight: "big" };
+const GROUP_CLASS = { Novig: "td", "His season": "role", Matchup: "def", Tonight: "big" };
 
 // ---- one day's rows ----
 function rowsFor(date) {
@@ -73,7 +71,7 @@ function sortedRows(date) {
     if (!has(va) || !has(vb) || va === "" || vb === "") return has(va) && va !== "" ? -1 : has(vb) && vb !== "" ? 1 : (b.top || 0) - (a.top || 0);
     return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * dir || (b.top || 0) - (a.top || 0);
   });
-  return creaseView.show === "top" ? rows.slice(0, TOP_ROWS) : rows;
+  return rows;
 }
 // Where a value stands among the day's goalies, as a step on the eight colors.
 function slateStep(value, pool) {
@@ -109,9 +107,8 @@ function renderSchedule() {
     .join("");
 }
 function tagChips(r) {
-  const tags = r.tags || [];
-  return (tags.includes("upside") ? `<span class="crease-tag crease-tag-upside" title="One of the day's best chances to make the most saves">Upside</span>` : "") +
-    (tags.includes("value") ? `<span class="crease-tag crease-tag-value" title="His chance to lead the day is at least ${times(rule("value"))} times what his line alone says">Value</span>` : "");
+  // Only Value gets a chip: the Upside column already shows who the day's best chances are.
+  return ((r.tags || []).includes("value") ? `<span class="crease-tag crease-tag-value" title="His chance to lead the day is at least ${times(rule("value"))} times what his line alone says">Value</span>` : "");
 }
 function goalieCell(r) {
   const name = r.name ? `<span class="koe-name">${r.name}</span>` : `<span class="koe-name muted-label">Starter TBD</span>`;
@@ -131,6 +128,7 @@ function statCell(col, r, pools) {
     tip = col.key === "opp_shots" ? `${r.opp} takes the ${ordinal(r[col.rank])} most shots on goal a game` : `${r.team} allows the ${ordinal(r[col.rank])} most shots on goal a game`;
   } else if (col.slate) {
     style = cellOnStep(slateStep(r[col.key], pools[col.key]));
+    if (col.key === "saves_avg") tip = `${r.saves_avg} saves a start in ${r.starts} start${r.starts === 1 ? "" : "s"}, colored against the day's other goalies`;
     if (col.key === "mean") tip = projectionTip(r);
   }
   return `<td class="num${style ? " nhl-rank-cell" : ""}"${style}${tip ? ` title="${tip}"` : ""}>${text}</td>`;
@@ -173,7 +171,7 @@ function renderTable() {
     return;
   }
   const showResult = all.some((r) => has(r.actual) || r.locked);
-  const pools = { shots: all.map((r) => r.shots), mean: all.map((r) => r.mean) };
+  const pools = Object.fromEntries(COLS.filter((c) => c.slate).map((c) => [c.key, all.map((r) => r[c.key]).filter(has)]));
   const tops = all.map((r) => r.top).filter(has);
   const groups = [];
   COLS.forEach((c) => (groups.length && groups[groups.length - 1].name === c.group ? groups[groups.length - 1].cols.push(c) : groups.push({ name: c.group, cols: [c] })));
@@ -184,7 +182,7 @@ function renderTable() {
   const tip = (c) => (c.key === "big" ? `His chance of ${rule("big_night")} or more saves. The day's best averaged 37 in a replay of the last two seasons.` : c.title);
   const upTitle = "His chance to finish with the day's most saves, ties included: from his line, moved toward the model by as much as the season so far has earned";
   const valTitle = `Upside against what it would be if he were exactly what his line says. ${times(rule("value"))} or more gets the Value tag; amber = the model and the line are ${rule("check")}+ saves apart, so check for news first`;
-  const colgroup = `<colgroup><col class="crease-c-goalie">${groups.map((g) => `<col class="koe-c-gap">${g.cols.map(() => `<col class="crease-c-stat">`).join("")}`).join("")}<col class="koe-c-gap"><col class="crease-c-pill"><col class="koe-c-gap"><col class="crease-c-pill">${showResult ? `<col class="koe-c-gap"><col class="crease-c-stat">` : ""}</colgroup>`;
+  const colgroup = `<colgroup><col class="crease-c-goalie">${groups.map((g) => `<col class="koe-c-gap">${g.cols.map((c) => `<col class="${c.wide ? "crease-c-line" : "crease-c-stat"}">`).join("")}`).join("")}<col class="koe-c-gap"><col class="crease-c-pill"><col class="koe-c-gap"><col class="crease-c-pill">${showResult ? `<col class="koe-c-gap"><col class="crease-c-stat">` : ""}</colgroup>`;
   const head = `<tr class="koe-group-row"><th></th>${groups.map((g) => `${gap("th")}<th colspan="${g.cols.length}" class="koe-group ${gcls(g.name)}"><span>${g.name}</span></th>`).join("")}${gap("th")}<th class="koe-group koe-g-up"><span>Upside</span></th>${gap("th")}<th class="koe-group crease-g-value"><span>Value</span></th>${showResult ? `${gap("th")}<th class="koe-group koe-g-dist"><span>Result</span></th>` : ""}</tr>
     <tr class="koe-label-row"><th class="koe-sort${sortCls("name")}" data-sort="name">Goalie</th>${groups.map((g) => `${gap("th")}${g.cols.map((c) => `<th class="num koe-sort ${gcls(g.name)}${sortCls(c.key)}" data-sort="${c.key}" title="${tip(c)}">${label(c)}</th>`).join("")}`).join("")}${gap("th")}<th class="num koe-sort koe-g-up${sortCls("top")}" data-sort="top" title="${upTitle}">Lead the day</th>${gap("th")}<th class="num koe-sort crease-g-value${sortCls("value")}" data-sort="value" title="${valTitle}">vs his line</th>${showResult ? `${gap("th")}<th class="num koe-sort koe-g-dist${sortCls("result")}" data-sort="result" title="His saves, and a star for the day's leader">Saves</th>` : ""}</tr>`;
   const body = rows
@@ -199,16 +197,13 @@ function renderTable() {
   box.innerHTML = `<section class="koe-section"><table class="data-table koe-table crease-table">${colgroup}<thead>${head}</thead><tbody>${body}</tbody></table></section>`;
   const sure = all.filter((r) => r.source === "lineup").length;
   const lined = all.filter((r) => has(r.line)).length;
-  el("crease-count").textContent = `${rows.length === all.length ? all.length : `${rows.length} of ${all.length}`} starters · ${sure} confirmed · lines for ${lined}`;
+  el("crease-count").textContent = `${all.length} starters · ${sure} confirmed · lines for ${lined}`;
 }
 function renderHead() {
   const date = days()[dayIndex];
   const board = dayBoard(date);
   const games = gamesOn(date).length;
   el("crease-capture-sub").textContent = date ? `${longDate(date)} · ${games} game${games === 1 ? "" : "s"}` : "";
-  el("crease-show").innerHTML = [["all", "All starters"], ["top", `Top ${TOP_ROWS}`]]
-    .map(([value, label]) => `<button type="button" class="view-toggle-btn crease-show-btn${creaseView.show === value ? " active" : ""}" data-show="${value}">${label}</button>`)
-    .join("");
   el("crease-key").innerHTML = `<span><b>Upside</b> chance to make the day's most saves</span><span><b>Value</b> that chance against what his line alone says</span><span><b class="crease-sure">&#10003;</b> in the NHL's projected lineup</span><span>${rankScaleKey("more shots", "fewer")}</span><span>Lines: Novig</span>`;
   const rows = board ? board.goalies : [];
   const locked = new Set(rows.filter((r) => r.locked && !has(r.actual)).map((r) => r.game_id)).size;
@@ -325,11 +320,6 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#crease-save")) return saveCreaseImage();
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
-  const show = e.target.closest(".crease-show-btn");
-  if (show) {
-    creaseView.show = show.dataset.show;
-    return render();
-  }
   const sort = e.target.closest(".koe-sort");
   if (sort) {
     const key = sort.dataset.sort;

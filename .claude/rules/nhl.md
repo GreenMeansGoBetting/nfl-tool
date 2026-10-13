@@ -413,14 +413,17 @@ means your payout will be smaller").
   led, the Value tags against what the chances and the lines said, and the average miss of the
   model, the line and the blend. It is what will say whether `blend` deserves more or less.
 - **The page:** day strip (not clickable; the promo is the whole day), one table in King of the
-  Endzone's look (`.koe-*` + `.crease-*`), every column sortable, All starters / Top 10, the
+  Endzone's look (`.koe-*` + `.crease-*`), every column sortable, always the whole slate, the
   record tiles and an About box. The page does no math. Matchup columns are on the eight rank
-  colors by league rank; Tonight's by rank within the day. "His season" is left plain on
-  purpose (it doesn't predict).
+  colors by league rank; the Novig line, saves a start and Tonight's by rank within the day.
+  - The user's edits the same evening: no Upside chip ("clutter and already displayed in the
+    chart"; the tag stays in the data for the record, Value keeps its chip), a narrower name
+    column, the line without the over's price, the line and saves a start color coded "best to
+    worst", and no Top 10 cut ("show the whole slate on the export photo").
 - **Save image** is the priority (the user: "a clean and crisp image to twitter"): the table
   with a GMG title bar and a key, at 2x. **Logos on this page are ESPN's** (`shareLogo`):
   assets.nhle.com sends no cross-origin header, so html-to-image can't carry the NHL's own files.
-  No headshots for the same reason. Top 10 gives a wide image, All a tall one.
+  No headshots for the same reason. The image is always the whole slate.
 
 ## Tests and checks
 

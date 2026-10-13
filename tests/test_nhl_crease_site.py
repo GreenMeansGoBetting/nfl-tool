@@ -3,7 +3,7 @@ in a real browser on the saved NHL data and crease samples.
 
 What is pinned: one row per starter, best Upside first; the page shows the
 build's numbers and tags and adds none of its own; every column sorts and a
-goalie with nothing to sort on sinks; Top 10; a goalie with no line has no
+goalie with nothing to sort on sinks; the whole slate is always shown and only Value gets a chip; a goalie with no line has no
 Value; the model-and-line gap is marked; the two matchup columns are on the
 eight rank colors; a day with no board says so; logos come from a host the
 saved image can carry."""
@@ -21,8 +21,8 @@ ROWS = """() => [...document.querySelectorAll('.crease-row')].map((tr) => {
     const text = (i) => cells[i].textContent.trim();
     return { team: tr.dataset.team, name: tr.querySelector('.koe-name').textContent, sure: !!tr.querySelector('.crease-sure'),
         tags: [...tr.querySelectorAll('.crease-tag')].map((t) => t.textContent.toLowerCase()),
-        line: text(1), over: text(2), opp: text(6), allowed: text(7), shots: text(8), saves: text(9), big: text(10), upside: text(11), value: text(12),
-        check: !!tr.querySelector('.crease-pill-check'), ranked: [6, 7].map((i) => cells[i].classList.contains('nhl-rank-cell')) };
+        line: text(1), avg: text(2), opp: text(5), allowed: text(6), shots: text(7), saves: text(8), big: text(9), upside: text(10), value: text(11),
+        check: !!tr.querySelector('.crease-pill-check'), ranked: [5, 6].map((i) => cells[i].classList.contains('nhl-rank-cell')), colored: [1, 2].map((i) => cells[i].classList.contains('nhl-rank-cell')) };
 })"""
 
 
@@ -44,7 +44,7 @@ def tearDownModule():
 
 def reset(day=TONIGHT, **view):
     PAGE.evaluate(
-        """([day, view]) => { Object.assign(creaseView, { sort: 'top', dir: -1, show: 'all' }, view); selectDay(days().indexOf(day)); }""",
+        """([day, view]) => { Object.assign(creaseView, { sort: 'top', dir: -1 }, view); selectDay(days().indexOf(day)); }""",
         [day, view],
     )
     return PAGE.evaluate(ROWS)
@@ -74,7 +74,8 @@ class Board(unittest.TestCase):
             self.assertEqual(r["name"], b["name"] or "Starter TBD")
             self.assertEqual(r["saves"], f"{b['mean']:.1f}")
             self.assertEqual(r["line"], "" if b["line"] is None else f"{b['line']:.1f}")
-            self.assertEqual(sorted(r["tags"]), sorted(b["tags"]))
+            self.assertEqual(r["tags"], [t for t in b["tags"] if t == "value"])  # Upside has its column, not a chip
+            self.assertEqual(r["colored"], [b["line"] is not None, b["saves_avg"] is not None])
             self.assertEqual(r["sure"], b["source"] == "lineup")
             self.assertEqual(r["value"].rstrip("?"), "" if b["value"] is None else f"{b['value']:.2f}")
             self.assertEqual(r["check"], bool(b["check"]) and b["value"] is not None)
@@ -97,7 +98,7 @@ class Sorting(unittest.TestCase):
     def test_every_column_sorts(self):
         reset()
         keys = PAGE.evaluate("() => [...document.querySelectorAll('.crease-table .koe-sort')].map((th) => th.dataset.sort)")
-        self.assertEqual(keys, ["name", "line", "over", "saves_avg", "sv_pct", "high", "opp_shots", "allowed", "shots", "mean", "big", "top", "value"])
+        self.assertEqual(keys, ["name", "line", "saves_avg", "sv_pct", "high", "opp_shots", "allowed", "shots", "mean", "big", "top", "value"])
         for key in keys:
             PAGE.click(f'.crease-table .koe-sort[data-sort="{key}"]')
             self.assertEqual(PAGE.evaluate("() => creaseView.sort"), key)
@@ -118,10 +119,9 @@ class Sorting(unittest.TestCase):
         rows = reset(sort="name", dir=1)
         self.assertEqual(rows[0]["name"], min(b["name"] for b in built() if b["name"]))
 
-    def test_top_ten(self):
-        rows = reset(show="top")
-        self.assertEqual([r["team"] for r in rows], [r["team"] for r in sorted(built(), key=lambda r: -r["top"])[:10]])
-        self.assertIn("10 of 32", PAGE.inner_text("#crease-count"))
+    def test_the_whole_slate_whatever_the_sort(self):
+        self.assertEqual(len(reset(sort="value")), 32)
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.crease-show-btn').length"), 0)
 
 
 class Page(unittest.TestCase):
