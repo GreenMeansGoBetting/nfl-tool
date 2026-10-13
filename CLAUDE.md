@@ -26,8 +26,10 @@ that, move detail into a rules file.
 1. Make the change and verify it locally (below).
 2. `git pull --rebase` (a bot commits `model_history/gmg_model.json` to main), then **commit and
    push to `main`**. GitHub Actions rebuilds and deploys automatically. No branches or pull requests.
-3. Confirm it's live: the Actions run succeeded and `https://nfl.gmgsports.org/<file>?x=N` shows the
-   new code or data, usually 60–105 s after the push (the site is behind the member login).
+3. Confirm it's live: `https://nfl.gmgsports.org/version.json` (public) shows the pushed commit's
+   `sha`, usually 4–5 minutes after the push. The deploy opens every page and Summary card in a
+   browser first (`check_site.py --gate`) and publishes nothing if one is broken, so if the sha
+   never changes, the run failed: say so and look at why.
 4. Tell the user to hard refresh (Ctrl+Shift+R).
 
 - Commit messages end with the Co-Authored-By line the environment specifies.
@@ -39,8 +41,9 @@ that, move detail into a rules file.
 
 ### Local verification
 
-- To verify a change, run `python tools/check_site.py` (add `--screenshots` before/after for
-  style changes). Use the browser only to look at something specific. It needs Playwright
+- To verify a change, run `python tools/check_site.py` once before a push. While iterating on a
+  design, screenshot ONE game's card, never the full all-games screenshot set (the user: it
+  "takes way too long"). Use the browser only to look at something specific. It needs Playwright
   (`pip install -r tools/requirements-dev.txt`, then `python -m playwright install chromium`).
 - Build: `SKIP_SGO_FETCH=1 python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
   A 404 is a transient nflverse error; re-run. The build only downloads a file that's missing

@@ -839,6 +839,9 @@ export async function onRequest(context) {
   if (!gateEnabled(env)) return next(); // not configured / test mode: site stays open
   // Brand files (logo) are public: the sign-in screen shows them before login.
   if (url.pathname.startsWith("/brand/")) return next();
+  // Which build is live (commit + time, written by deploy.yml). Public so a
+  // deploy can be confirmed without a login; it holds nothing else.
+  if (url.pathname === "/version.json") return next();
   if (await isBuildRequest(request, env)) return next();
 
   const isApi = url.pathname.startsWith("/api/");

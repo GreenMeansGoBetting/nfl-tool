@@ -565,6 +565,13 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 
 ## Members and hosting
 
+- **2026-10-13, the deploy got a gate and lost its public copy.** A friend of the user's reviewed
+  the project and worried about its foundations. Two things stood out for a product people now
+  pay for: the site check only ran AFTER a change was live, and the GitHub Pages copy plus the
+  public repo let anyone read the site and its code without the login. The check now runs
+  before publishing and blocks a broken site; GitHub Pages was dropped from the deploy; a public
+  `version.json` replaced reading the Actions page to confirm a deploy.
+
 ### Support tab
 
   - `support.html`: **Support** tab (added 2026-10-09, last in the nav after Promo Tools). Shows the

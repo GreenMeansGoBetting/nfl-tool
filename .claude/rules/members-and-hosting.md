@@ -16,10 +16,20 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   the member login runs there. The domain is at **Namecheap**, which also runs email forwarding
   (MX `eforward*.registrar-servers.com`). **Don't move the whole domain's nameservers**; only the
   `nfl` record was changed.
-- **deploy.yml** builds the data, deploys `nfl_tool/site` to GitHub Pages, then publishes the same
-  built folder to Cloudflare Pages using the secrets `CLOUDFLARE_API_TOKEN` and
-  `CLOUDFLARE_ACCOUNT_ID`. The Cloudflare steps are `continue-on-error`. It deploys from
-  `nfl_tool/` so the Pages Functions get bundled, and writes `nfl_tool/wrangler.toml` in CI.
+- **deploy.yml** builds the data, runs the gate, then publishes `nfl_tool/site` to Cloudflare
+  Pages (the only host) using the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. It
+  deploys from `nfl_tool/` so the Pages Functions get bundled, and writes `nfl_tool/wrangler.toml`
+  in CI.
+  - **The gate** (`python tools/check_site.py --gate`, retried once): every page and every game's
+    Summary cards are opened in a real browser before anything is published. A script error, a
+    missing file or a card that doesn't draw fails the run, so members keep the last good version
+    and GitHub emails the owner. Cards that are merely too full never block. The NBA page is
+    left out of the gate (its build may fail on its own).
+  - It also refuses to publish if the member database step could not write the database binding
+    (publishing without it would lock email members out).
+  - The publish step is NOT `continue-on-error`: a failed publish is a failed run.
+  - `version.json` (commit sha, run id, build time) is written into the site and served without
+    a login (`/version.json` is let through by the middleware). It is how a deploy is confirmed.
 - It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, and on manual dispatch. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
   are free, so they're fetched fresh on every build.
@@ -35,9 +45,14 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
 - `.github/workflows/cloudflare-domain.yml` attached `nfl.gmgsports.org` to the Pages project
   through the API. It can be re-run from the Actions tab and prints the verification status. (The
   Cloudflare connector for Claude can't manage Pages domains; the GitHub secret token can.)
-- **Known bypass, still open:** the GitHub Pages copy still serves the site to anyone who hits
-  GitHub's IPs directly, and the repo is public. Turn off GitHub Pages and make the repo private
-  once the user agrees.
+- **The GitHub Pages copy is gone from the deploy** (2026-10-13; it served the site without the
+  login). What is left is the user's own click: repo Settings -> General -> Danger Zone ->
+  Change visibility -> Private (on GitHub's free plan that also unpublishes the old Pages copy).
+  Once private:
+  - the public GitHub API no longer shows the runs, so confirm deploys with `version.json`;
+  - private repos get 2,000 free build minutes a month; this project used about 540 a month
+    before the gate and should sit near 900 with it;
+  - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
 
 ## Login gate (`nfl_tool/functions/_middleware.js`, Pages Functions)
 

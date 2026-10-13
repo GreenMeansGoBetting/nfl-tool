@@ -4,6 +4,7 @@
     python tools/check_site.py --screenshots DIR    # also save every page and card (before/after)
     python tools/check_site.py --screenshots DIR --games 3   # ...only the first 3 games' cards (faster)
     python tools/check_site.py --compare DIR_A DIR_B   # which screenshots changed, and by how much
+    python tools/check_site.py --gate               # what the deploy runs: exit 1 only if the site is BROKEN
 
 What the check does (nothing in the repo is ever written):
   * serves nfl_tool/site on a free local port for the length of the run;
@@ -25,6 +26,7 @@ Needs data.json built first, and Playwright with its Chromium browser:
 """
 import argparse
 import functools
+import re
 import http.server
 import sys
 import tempfile
@@ -173,7 +175,20 @@ def open_card(page, index):
     return name
 
 
-def run_check(browser, origin, shots_dir, max_games=None):
+# --gate: the problems that mean a page or card is broken for members (a
+# script error, a missing file, a card that doesn't draw). A card that is a
+# bit too full is worth a report but must never stop an odds refresh. The NBA
+# page is left out: its data build is allowed to fail without holding up NFL.
+BROKEN_MARKERS = ("JavaScript error", "request failed", "no Summary button found", "Summary card is empty", "no games in the schedule strip")
+
+
+def is_broken(problem):
+    if problem.startswith("NBA"):
+        return False
+    return any(marker in problem for marker in BROKEN_MARKERS) or bool(re.search(r": [45]\d\d for /", problem))
+
+
+def run_check(browser, origin, shots_dir, max_games=None, gate=False):
     problems, notes = [], []
     cards_checked = 0
 
@@ -213,6 +228,8 @@ def run_check(browser, origin, shots_dir, max_games=None):
         else:
             problems.append(f"{label}: no games in the schedule strip")
     context.close()
+    if gate:  # layout width on phones can't break the site; skip it to keep deploys quick
+        return problems, notes, cards_checked, 0
 
     # ---- phone: nothing wider than the screen ----
     context = browser.new_context(viewport=PHONE, device_scale_factor=2, is_mobile=True, has_touch=True)
@@ -305,6 +322,7 @@ def main():
     parser.add_argument("--site", metavar="DIR", help="check a copy of the site folder instead of nfl_tool/site")
     parser.add_argument("--games", type=int, metavar="N", help="only the first N games' Summary cards (default: every game this week)")
     parser.add_argument("--compare", nargs=2, metavar=("DIR_A", "DIR_B"), help="list which screenshots differ between two folders")
+    parser.add_argument("--gate", action="store_true", help="for the deploy: exit 1 only when a page or card is broken (script error, missing file, empty card)")
     args = parser.parse_args()
     if args.compare:
         return compare(*args.compare)
@@ -337,7 +355,7 @@ def main():
             except Exception as e:
                 print(f"{INSTALL_HELP}\n({str(e).splitlines()[0][:120]})")
                 return 2
-            problems, notes, cards, shots = run_check(browser, origin, shots_dir, args.games)
+            problems, notes, cards, shots = run_check(browser, origin, shots_dir, args.games, args.gate)
             browser.close()
     finally:
         server.shutdown()
@@ -352,6 +370,12 @@ def main():
         print("  PROBLEM " + line)
     if len(problems) > MAX_PROBLEM_LINES:
         print(f"  ... and {len(problems) - MAX_PROBLEM_LINES} more")
+    if args.gate:
+        broken = [p for p in problems if is_broken(p)]
+        print(f"gate: {len(broken)} blocking problem{'' if len(broken) == 1 else 's'}" + ("" if broken else " -- OK to deploy"))
+        for line in broken[:MAX_PROBLEM_LINES]:
+            print("  BLOCKING " + line)
+        return 1 if broken else 0
     return 1 if problems else 0
 
 

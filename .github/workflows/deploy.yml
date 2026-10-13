@@ -41,19 +41,14 @@ on:
 permissions:
   # write: the build commits model_history/gmg_model.json (see that step)
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
+  group: "deploy"
   cancel-in-progress: false
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -115,21 +110,30 @@ jobs:
             git push origin HEAD:main
           fi
 
-      - uses: actions/configure-pages@v5
+      # Which build this is, served at https://nfl.gmgsports.org/version.json
+      # (public: the way to confirm a deploy without the repo's Actions page).
+      - name: Stamp the version
+        run: |
+          printf '{"sha":"%s","run":"%s","built":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%Y-%m-%dT%H:%MZ)" > nfl_tool/site/version.json
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: nfl_tool/site
+      # The gate (2026-10-13): open every page and every game's Summary cards
+      # in a real browser BEFORE anything is published. A script error, a
+      # missing file or a card that doesn't draw stops the run here, so
+      # members keep the last good version and GitHub emails the owner. Cards
+      # that are merely too full never block (site-check.yml reports those
+      # after the deploy). One retry, so a hiccup can't hold up an odds refresh.
+      - name: Install the site check's tools
+        run: |
+          pip install -r tools/requirements-dev.txt
+          python -m playwright install --with-deps chromium
 
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Check the site before it goes live
+        run: |
+          python tools/check_site.py --gate || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate; }
 
-      # Second copy on Cloudflare Pages (the base for the Discord login gate
-      # -- see CLAUDE.md "Hosting"). Same built folder, same data.json.
-      # continue-on-error: a Cloudflare hiccup must never block the GitHub
-      # Pages deploy above, which still serves nfl.gmgsports.org until the
-      # switch. The project is created on the first run; later runs just
-      # report it already exists.
+      # Cloudflare Pages is the only host (the GitHub Pages copy was dropped
+      # 2026-10-13: it served the site without the member login). The project
+      # is created on the first run; later runs just report it already exists.
       - name: Create Cloudflare Pages project (first run only)
         continue-on-error: true
         uses: cloudflare/wrangler-action@v3
@@ -200,10 +204,16 @@ jobs:
           # "Request a feature" ideas from members (owner reads them from the same button).
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS feature_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT NOT NULL, name TEXT, text TEXT NOT NULL, created INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'new')"
 
+      # Email members sign in through the database. If the step above could
+      # not even name it, publishing would lock them out -- stop instead and
+      # keep the last good version live.
+      - name: Refuse to publish without the member database
+        run: grep -q "d1_databases" nfl_tool/wrangler.toml
+
       # Deployed from nfl_tool/ so wrangler bundles nfl_tool/functions (the
-      # login gate) alongside the static site folder.
+      # login gate) alongside the static site folder. Not continue-on-error:
+      # this is the only host, so a failed publish must show as a failed run.
       - name: Deploy to Cloudflare Pages
-        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
