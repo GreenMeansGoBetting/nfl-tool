@@ -1,0 +1,56 @@
+"""The real site pages in a headless browser, fed the saved data sample.
+
+There is no Node on the owner's PC, so the site's JavaScript is tested where
+it actually runs: Playwright opens the page (the same way tools/check_site.py
+does), answers the page's request for data.json with the sample, and the tests
+call the page's own functions.
+"""
+from helpers import SAMPLE_BUILT_UTC, site_data_bytes  # first: puts tools/ on the import path
+
+from check_site import INSTALL_HELP, start_server
+
+
+class SiteBrowser:
+    def __init__(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            raise RuntimeError(INSTALL_HELP) from None
+        self.errors = []
+        self.server = start_server()
+        self.origin = f"http://127.0.0.1:{self.server.server_address[1]}"
+        self._playwright = sync_playwright().start()
+        try:
+            self.browser = self._playwright.chromium.launch()
+        except Exception as e:
+            self.close()
+            raise RuntimeError(f"{INSTALL_HELP}\n({str(e).splitlines()[0][:120]})") from None
+        # Same clock and time zone on the owner's PC and on GitHub's servers:
+        # the moment the sample was built, Eastern time.
+        self.context = self.browser.new_context(viewport={"width": 1440, "height": 1000}, timezone_id="America/New_York", locale="en-US")
+        self.context.clock.set_fixed_time(SAMPLE_BUILT_UTC)
+        self.context.route("**/*", self._route)
+
+    def _route(self, route):
+        url = route.request.url.split("?")[0]
+        if url == f"{self.origin}/data.json":
+            route.fulfill(status=200, content_type="application/json", body=site_data_bytes())
+        elif url.startswith(self.origin):
+            route.continue_()
+        else:
+            route.abort()  # logos, photos, fonts: not needed for the math
+
+    def open(self, path):
+        """Load a page and wait until it has read the data sample."""
+        page = self.context.new_page()
+        page.on("pageerror", lambda err: self.errors.append(f"{path}: {str(err).splitlines()[0][:200]}"))
+        page.goto(f"{self.origin}/{path}")
+        page.wait_for_function("() => typeof DATA !== 'undefined' && DATA !== null", timeout=20000)
+        return page
+
+    def close(self):
+        for closer in (lambda: self.browser.close(), lambda: self._playwright.stop(), lambda: self.server.shutdown()):
+            try:
+                closer()
+            except Exception:
+                pass

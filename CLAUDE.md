@@ -27,9 +27,9 @@ that, move detail into a rules file.
 2. `git pull --rebase` (a bot commits `model_history/gmg_model.json` to main), then **commit and
    push to `main`**. GitHub Actions rebuilds and deploys automatically. No branches or pull requests.
 3. Confirm it's live: `https://nfl.gmgsports.org/version.json` (public) shows the pushed commit's
-   `sha`, usually about 3 minutes after the push. The deploy opens every page and Summary card in a
-   browser first (`check_site.py --gate`) and publishes nothing if one is broken, so if the sha
-   never changes, the run failed: say so and look at why.
+   `sha`, usually about 3 minutes after the push. The deploy runs the tests first, then opens every
+   page and Summary card in a browser (`check_site.py --gate`), and publishes nothing if a test
+   fails or a page is broken, so if the sha never changes, the run failed: say so and look at why.
 4. Tell the user to hard refresh (Ctrl+Shift+R).
 
 - Commit messages end with the Co-Authored-By line the environment specifies.
@@ -41,6 +41,12 @@ that, move detail into a rules file.
 
 ### Local verification
 
+- **Tests:** `python tools/run_tests.py` (about 4 seconds) before any push that touches the build
+  code or the site's JavaScript. `tests/` pins the math and every past bug on saved samples
+  (`tests/fixtures/`), so the answers never depend on this week's data. When a rule they pin
+  changes on purpose, change its test in the same commit; a bug fix gets a test that fails without it.
+- On this PC call Python as `C:\Users\Carter\AppData\Local\Python\bin\python.exe`: in Claude's
+  shell plain `python` is the Store stub, and `py` can't see Playwright's browser.
 - To verify a change, run `python tools/check_site.py` once before a push. While iterating on a
   design, screenshot ONE game's card, never the full all-games screenshot set (the user: it
   "takes way too long"). Use the browser only to look at something specific. It needs Playwright
@@ -66,6 +72,8 @@ that, move detail into a rules file.
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
   `.github/workflows/site-check.yml` runs it against the live data after every deploy.
+- `tools/run_tests.py` + `tests/`: the permanent tests. Plain Python for the build code; the site's
+  JavaScript runs in a real browser on the saved data (`tests/site_browser.py`), like the site check.
 - `tools/backtest/`: week-by-week replay of the GMG model on past seasons (`features.py`, then `analyze.py`).
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).

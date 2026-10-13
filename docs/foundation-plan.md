@@ -17,31 +17,24 @@ Ground rules:
   The deploy runs `tools/check_site.py --gate` before publishing and stops if a page or card is
   broken. `https://nfl.gmgsports.org/version.json` confirms which commit is live.
 
-## 3. Permanent tests for the math (next)
+- **Permanent tests for the math (item 3, 2026-10-13).** `python tools/run_tests.py` runs 49 tests in
+  about 4 seconds; the deploy runs them before it builds anything and stops if one fails.
+  - Plain Python for the build code (`tests/test_gmg_model.py`, `test_odds_lock.py`,
+    `test_novig_props.py`); the site's JavaScript runs in a real browser on saved data
+    (`tests/test_site_js.py`), because the PC has Playwright but no Node.
+  - Two saved samples in `tests/fixtures/`, outside `nfl_tool/` so they never deploy: the full
+    `data.json` built 2026-10-12 (week 5, compressed to 0.6 MB) and one game's Novig markets.
+  - What is pinned: the GMG model gives the same score in the build and in the browser on default
+    weights, and the weights lists and grade recipes match; a pick needs 4+ points; the odds and
+    the model entry lock at kickoff; Novig First TD prices (one-sided kept, junk dropped, a game
+    sums to about 100%); two-sided matchup calls (the PHI heavy-box case); the Game Summary edge
+    rule; no pocket QB as a TD option; no TD Summary chip against a top-8 defense.
+  - Each rule was broken on purpose once (27 ways) to prove a test fails when it breaks.
+  - Going forward: a bug fix gets a test that fails without it; a rule changed on purpose gets
+    its test changed in the same commit. `test_buf_at_la_score` holds the model's exact answer
+    for one game, which is the proof item 4's split changes nothing.
 
-There are none. Every change so far was verified with one-off scripts that were thrown away.
-Build a small suite that runs in seconds, locally and in the deploy before the gate.
-
-- The PC has Python and Playwright but no Node, so: plain Python tests for the build code, and
-  browser-run checks (Playwright, like `tools/check_site.py`) for the site's JavaScript.
-- A small fixed data sample (one saved `data.json`, trimmed if needed, kept out of the deploy)
-  so results don't change week to week.
-- Each bug that already happened becomes a test so it cannot come back. First ones:
-  - The GMG model gives the same score in the build (`gmg_model.py`) and in the browser
-    (`gsModelCompute`) on default weights, and the weights lists match.
-  - A pocket QB is never a TD option: Stafford / Burrow out of Key Players and the banner photos;
-    a running QB (Allen) stays (`qbIsRunner`).
-  - Two-sided matchup calls: an offense number alone never makes a call (the PHI heavy-box case).
-  - Game Summary edge rule: 16+ ranks apart = clear, 8-15 = slight, both top 8 = strength vs
-    strength (`gsRankEdge`).
-  - TD Summary: no target chip when the defense ranks top 8 on the card (`TD2_GOOD_DEF_RANK`).
-  - Novig TD odds: one-sided First TD prices are kept, junk quotes are dropped, a game's First TD
-    chances sum to about 100% (`extract_novig_props`, with a saved sample response).
-  - Odds lock at kickoff: a started game keeps its stored line and model entry.
-  - A model pick needs 4+ points from the line (`EDGE_POINTS` equals `GS_MODEL_EDGE`).
-- Wire the suite into `deploy.yml` ahead of the gate, and say in CLAUDE.md how to run it.
-
-## 4. Smaller files, one source of truth
+## 4. Smaller files, one source of truth (next)
 
 - `nfl_tool/build_stats.py` is 5,100 lines: split by feature (odds, injuries, TD data, props,
   team stats, schedule) into modules, keeping one entry script. Tests from item 3 come first so
