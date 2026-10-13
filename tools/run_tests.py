@@ -2,6 +2,13 @@
 
     python tools/run_tests.py        # every test: a few seconds, exit 1 if one fails
     python tools/run_tests.py -v     # ...naming each test as it runs
+    python tools/run_tests.py --only nhl    # one sport's tests (nfl, nba or nhl); "all" = every test
+
+Working on one sport runs that sport's tests and nothing else: the deploy
+passes --only for a push that touched a single sport (tools/ci_steps.py
+work_scope), and so should a local check. A test file belongs to the sport
+in its name (test_nhl_*, test_nba_*); test_ci_steps.py (the deploy's own
+tools) runs only with every test; everything else is the NFL site's.
 
 The tests live in tests/ and read saved samples (tests/fixtures/), never this
 week's data, so they give the same answer every day. Each one pins a rule or
@@ -23,9 +30,30 @@ from pathlib import Path
 TESTS = Path(__file__).resolve().parent.parent / "tests"
 
 
+SPORTS = ("nfl", "nba", "nhl")
+
+
+def sport_of(name: str) -> str:
+    """Which sport a test file belongs to ("ci" = the deploy's own tools)."""
+    if name.startswith("test_ci_"):
+        return "ci"
+    return next((sport for sport in ("nba", "nhl") if name.startswith(f"test_{sport}")), "nfl")
+
+
 def main():
     sys.path.insert(0, str(TESTS))
-    suite = unittest.defaultTestLoader.discover(str(TESTS), pattern="test_*.py", top_level_dir=str(TESTS))
+    args = sys.argv[1:]
+    only = args[args.index("--only") + 1] if "--only" in args and args.index("--only") + 1 < len(args) else "all"
+    if only not in (*SPORTS, "all"):
+        print(f"--only takes one of: {', '.join(SPORTS)}, all")
+        return 2
+    loader = unittest.defaultTestLoader
+    suite = unittest.TestSuite()
+    for path in sorted(TESTS.glob("test_*.py")):
+        if only == "all" or sport_of(path.name) == only:
+            suite.addTests(loader.discover(str(TESTS), pattern=path.name, top_level_dir=str(TESTS)))
+    if only != "all":
+        print(f"Only the {only.upper()} tests.")
     result = unittest.TextTestRunner(verbosity=2 if "-v" in sys.argv[1:] else 1).run(suite)
     return 0 if result.wasSuccessful() else 1
 

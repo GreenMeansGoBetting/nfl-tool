@@ -42,7 +42,8 @@ that, move detail into a rules file.
 
 ### Local verification
 
-- **Tests:** `python tools/run_tests.py` (about 4 seconds) before any push that touches the build
+- **One sport at a time** (the user's rule): add `--only nfl|nba|nhl` to both checks below; the deploy does the same for a one-sport push.
+- **Tests:** `python tools/run_tests.py` before any push that touches the build
   code or the site's JavaScript. `tests/` pins the math and every past bug on saved samples
   (`tests/fixtures/`), so the answers never depend on this week's data. When a rule they pin
   changes on purpose, change its test in the same commit; a bug fix gets a test that fails without it.
@@ -70,7 +71,7 @@ that, move detail into a rules file.
 - `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Update Odds", and pushes touching `nfl_tool/**`
-  (a push rebuilds only what it changed: `tools/ci_steps.py`). `nhl-refresh.yml`: hourly hockey-only refresh. `cloudflare-domain.yml`: one-off domain attach.
+  (a push rebuilds, tests and browser-checks only the sport it changed: `tools/ci_steps.py` `plan` / `work_scope`; shared files such as style.css check all). `nhl-refresh.yml`: hourly hockey-only refresh. `cloudflare-domain.yml`: one-off domain attach.
 - `model_history/`, committed by the deploy bot: `gmg_model.json` (locked projections), `nhl_shots/<month>.json` (graded Shots plays), `nhl_crease/` (King of the Crease's days).
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.

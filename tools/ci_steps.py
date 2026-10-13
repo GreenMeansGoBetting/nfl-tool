@@ -156,6 +156,54 @@ def plan(event, changed):
     }
 
 
+# ---- deploy.yml: which sport is this push about? ----
+# The owner (2026-10-13): "if we are working on one sport ... no other sports
+# are ever rebuilt or tested or touched." plan() above already keeps the other
+# sports' DATA from being rebuilt; this keeps their tests and their pages'
+# browser check from running too.
+SPORT_FILES = {
+    "nhl": ("nfl_tool/nhl/", "nfl_tool/site/nhl/", "tests/test_nhl", "tests/fixtures/nhl_", "tools/backtest/nhl_", "model_history/nhl_"),
+    "nba": ("nfl_tool/nba/", "nfl_tool/site/nba/", "tests/test_nba", "tests/fixtures/nba_", "tools/backtest/nba_", "model_history/nba_"),
+    "nfl": ("tests/test_gmg_model.py", "tests/test_novig_props.py", "tests/test_odds_lock.py", "tests/test_site_js.py", "tests/fixtures/data.json.gz", "tests/fixtures/novig_event.json.gz", "tools/backtest/", "model_history/gmg_model.json"),
+}
+# Files every sport's pages or builds lean on: a change to one checks everything.
+SHARED_FILES = (
+    "nfl_tool/site/style.css", "nfl_tool/site/sync.js", "nfl_tool/functions/", "nfl_tool/novig_event_markets.graphql", "nfl_tool/requirements.txt",
+    "tools/", "tests/", ".github/",
+)
+# Notes and settings no test or page reads.
+NO_SPORT = (".claude/", "docs/", "CLAUDE.md", "README.md", ".gitignore")
+
+
+def sport_of(path):
+    """"nfl" / "nba" / "nhl" for a file that belongs to one sport, "all" for
+    one they share (or one nobody has classified), None for notes."""
+    for sport in ("nhl", "nba"):  # their folders sit inside nfl_tool/, so they are asked first
+        if path.startswith(SPORT_FILES[sport]):
+            return sport
+    if path.startswith(SPORT_FILES["nfl"]):
+        return "nfl"
+    if path.startswith(SHARED_FILES):
+        return "all"
+    if path.startswith(NO_SPORT):
+        return None
+    return "nfl" if path.startswith("nfl_tool/") else "all"
+
+
+def work_scope(event, changed):
+    """The one sport a push is about ("nfl" / "nba" / "nhl"), or "all".
+
+    Only that sport's tests run and only its pages are opened in the browser
+    check. "all" whenever more than one sport changed, a shared file changed
+    (style.css, the login code, the tools, the test helpers, the workflows),
+    the run is a scheduled or manual refresh, or the change can't be worked
+    out: when in doubt, everything is checked."""
+    if event != "push" or not changed:
+        return "all"
+    sports = {sport_of(path) for path in changed} - {None}
+    return sports.pop() if len(sports) == 1 else "all"
+
+
 def changed_since_live(live):
     """Files that differ between the live code and this checkout, or None.
     Compared with what is LIVE, not with the push before this one: if an
@@ -171,8 +219,9 @@ def cmd_plan(args):
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     changed = changed_since_live(live_version()) if event == "push" else None
     decided = plan(event, changed)
-    output(**decided)
-    summary(f"Run type: {event or 'unknown'}. " + ", ".join(f"{suite.upper()} data: {decided[suite]}" for suite in SUITES) + f". Cloudflare upkeep: {decided['housekeeping']}.")
+    scope = work_scope(event, changed)
+    output(**decided, scope=scope)
+    summary(f"Run type: {event or 'unknown'}. " + ", ".join(f"{suite.upper()} data: {decided[suite]}" for suite in SUITES) + f". Cloudflare upkeep: {decided['housekeeping']}. Tests and browser check: {'every sport' if scope == 'all' else scope.upper() + ' only'}.")
     return 0
 
 

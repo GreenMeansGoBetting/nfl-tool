@@ -67,19 +67,6 @@ jobs:
           python -m playwright install --with-deps chromium
           python tools/ci_steps.py mark install
 
-      # The tests (2026-10-13): every rule and past bug the suite pins (the GMG
-      # model's math in the build and in the browser, the 4-point pick rule,
-      # the odds lock, Novig's TD odds, two-sided matchup calls, pocket QBs,
-      # the TD Summary's top-8 guard), run on saved samples in tests/ so the
-      # answer never depends on this week's data. First on purpose: a failure
-      # stops the run before anything is built, saved or published, so
-      # members keep the last good version and GitHub emails the owner. One
-      # retry, so a browser hiccup can't hold up an odds refresh.
-      - name: Run the tests
-        run: |
-          python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }
-          python tools/ci_steps.py mark tests
-
       # What this run has to rebuild (2026-10-13, tools/ci_steps.py plan). Every
       # run used to rebuild all three sports, so a one-line style change or a
       # hockey fix re-downloaded football. The repo is private now (2,000 free
@@ -93,10 +80,30 @@ jobs:
       # It compares with the LIVE version, not the previous push, so a push
       # whose deploy failed still counts. If this step fails or can't tell, its
       # outputs are empty and every "Reuse" step is skipped: everything is built.
+      # It also names the one sport a push is about ("scope": nfl, nba, nhl, or
+      # all when sports share the change): the tests and the browser check
+      # below then cover that sport only. So it runs before the tests.
       - name: Plan the run
         id: plan
         continue-on-error: true
         run: python tools/ci_steps.py plan
+
+      # The tests (2026-10-13): every rule and past bug the suite pins (the GMG
+      # model's math in the build and in the browser, the 4-point pick rule,
+      # the odds lock, Novig's TD odds, two-sided matchup calls, pocket QBs,
+      # the TD Summary's top-8 guard), run on saved samples in tests/ so the
+      # answer never depends on this week's data. First on purpose: a failure
+      # stops the run before anything is built, saved or published, so
+      # members keep the last good version and GitHub emails the owner. One
+      # retry, so a browser hiccup can't hold up an odds refresh.
+      # A push about one sport runs that sport's tests only (the plan's
+      # "scope"); with no plan, every test runs.
+      - name: Run the tests
+        env:
+          SCOPE: ${{ steps.plan.outputs.scope || 'all' }}
+        run: |
+          python tools/run_tests.py --only "$SCOPE" || { echo "Retrying once..."; sleep 5; python tools/run_tests.py --only "$SCOPE"; }
+          python tools/ci_steps.py mark tests
 
       # --need: only "success" if the file arrived whole and is real JSON;
       # anything else and the build below runs after all.
@@ -236,9 +243,12 @@ jobs:
       # that are merely too full never block (site-check.yml reports those
       # after the deploy). One retry, so a hiccup can't hold up an odds refresh.
       # (Its browser is installed in the first step, for the tests.)
+      # A push about one sport opens that sport's pages only.
       - name: Check the site before it goes live
+        env:
+          SCOPE: ${{ steps.plan.outputs.scope || 'all' }}
         run: |
-          python tools/check_site.py --gate || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate; }
+          python tools/check_site.py --gate --only "$SCOPE" || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate --only "$SCOPE"; }
           python tools/ci_steps.py mark gate
 
       # Cloudflare Pages is the only host (the GitHub Pages copy was dropped

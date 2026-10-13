@@ -1185,3 +1185,18 @@ information."
   the night before, on a day the team didn't skate; Novig had a saves line for Allen only. Now
   no single source earns a mark, two agreeing earn "agree", and a disagreement is printed on the
   row with both names.
+
+### One sport at a time (2026-10-13, evening)
+
+- The user, after an afternoon of four-minute deploys: "can we make sure if we are working on
+  one sport, that no other sports are ever rebuilt or tested or touched. That seems like a
+  massive waste of resources." Data was already rebuilt per sport (earlier that day); the tests
+  and the browser check still covered everything. Now `work_scope` names the one sport a push is
+  about and the deploy passes it to `run_tests.py --only` and `check_site.py --gate --only`.
+- What still checks everything, on purpose: a change to a file the sports share (style.css,
+  sync.js, the login code, the tools, the test helpers, the workflows), a push that touches two
+  sports, and the 6-hour refresh. The whole site is still published as one folder, so the other
+  sports' live data is downloaded (a few seconds), never rebuilt.
+- Honest sizes: the NHL has most of the browser tests (196 of 281), so an NHL-only push saves
+  little on tests; an NFL-only push saves most of them. The hockey styles living in the shared
+  style.css is the main reason an NHL change can still set off every test.

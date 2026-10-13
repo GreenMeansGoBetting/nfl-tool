@@ -190,6 +190,11 @@ def open_card(page, index):
 BROKEN_MARKERS = ("JavaScript error", "request failed", "no Summary button found", "Summary card is empty", "no games in the schedule strip")
 
 
+def page_sport(path):
+    """Which sport a page belongs to, by its folder."""
+    return next((folder.rstrip("/") for folder in SUITE_FOLDERS if path.startswith(folder)), "nfl")
+
+
 def is_broken(problem):
     if problem.startswith(SUITE_LABELS):
         return False
@@ -330,6 +335,7 @@ def main():
     parser.add_argument("--site", metavar="DIR", help="check a copy of the site folder instead of nfl_tool/site")
     parser.add_argument("--games", type=int, metavar="N", help="only the first N games' Summary cards (default: every game this week)")
     parser.add_argument("--compare", nargs=2, metavar=("DIR_A", "DIR_B"), help="list which screenshots differ between two folders")
+    parser.add_argument("--only", choices=("nfl", "nba", "nhl", "all"), default="all", help="one sport's pages (the deploy passes it for a push that touched a single sport)")
     parser.add_argument("--gate", action="store_true", help="for the deploy: exit 1 only when a page or card is broken (script error, missing file, empty card)")
     args = parser.parse_args()
     if args.compare:
@@ -338,7 +344,12 @@ def main():
         global SITE
         SITE = Path(args.site).resolve()
 
-    if not (SITE / "data.json").exists():
+    if args.only != "all":
+        # Working on one sport opens that sport's pages and no others.
+        global PAGES
+        PAGES = [entry for entry in PAGES if page_sport(entry[1]) == args.only]
+        print(f"Only the {args.only.upper()} pages.")
+    if args.only in ("nfl", "all") and not (SITE / "data.json").exists():
         print(f"nfl_tool/site/data.json isn't built yet. Build it first:\n  {BUILD_COMMAND}")
         return 2
     try:
@@ -373,7 +384,7 @@ def main():
     for note in notes:
         print("  " + note)
     for label, folder in zip(SUITE_LABELS, SUITE_FOLDERS):
-        if not (SITE / folder / "data.json").exists():
+        if args.only in (folder.rstrip("/"), "all") and not (SITE / folder / "data.json").exists():
             print(f"  {label} page skipped its data: nfl_tool/site/{folder}data.json isn't built")
     for line in problems[:MAX_PROBLEM_LINES]:
         print("  PROBLEM " + line)

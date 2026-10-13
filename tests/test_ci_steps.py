@@ -64,6 +64,39 @@ class Plan(unittest.TestCase):
         # deploy.yml holds the build commands and the member tables: a change to it runs it all.
         self.assertEqual(ci_steps.plan("push", [".github/workflows/deploy.yml", "nfl_tool/site/style.css"]), everything)
 
+    def test_a_push_about_one_sport_checks_that_sport_only(self):
+        """The owner: working on one sport must never test or touch another."""
+        scope = lambda *changed: ci_steps.work_scope("push", list(changed))
+        self.assertEqual(scope("nfl_tool/site/nhl/promo-tools.js", "nfl_tool/nhl/build_nhl.py", "tests/test_nhl_saves.py", "tests/fixtures/nhl_crease.json.gz", ".claude/rules/nhl.md", "docs/history.md", "CLAUDE.md"), "nhl")
+        self.assertEqual(scope("nfl_tool/nba/build_nba.py", "nfl_tool/site/nba/nba.js"), "nba")
+        self.assertEqual(scope("nfl_tool/site/game-summary.js", "nfl_tool/build_stats.py", "tests/test_site_js.py", "model_history/gmg_model.json"), "nfl")
+        self.assertEqual(scope("model_history/nhl_shots/2026-10.json", "nfl_tool/site/nhl/shots.js"), "nhl")
+
+    def test_shared_files_and_mixed_pushes_check_everything(self):
+        scope = lambda *changed: ci_steps.work_scope("push", list(changed))
+        for shared in ("nfl_tool/site/style.css", "nfl_tool/site/sync.js", "nfl_tool/functions/_middleware.js", "tools/check_site.py", "tests/helpers.py", "tests/site_browser.py", ".github/workflows/deploy.yml", "something/new.txt"):
+            self.assertEqual(scope("nfl_tool/site/nhl/shots.js", shared), "all", shared)
+        self.assertEqual(scope("nfl_tool/site/nhl/shots.js", "nfl_tool/site/app.js"), "all")
+        self.assertEqual(scope("docs/history.md"), "all")  # nothing to go on
+        self.assertEqual(ci_steps.work_scope("push", None), "all")
+        self.assertEqual(ci_steps.work_scope("schedule", ["nfl_tool/site/nhl/shots.js"]), "all")
+
+    def test_every_test_file_belongs_to_a_sport_the_runner_knows(self):
+        import run_tests
+        files = sorted(path.name for path in (ROOT / "tests").glob("test_*.py"))
+        self.assertEqual({run_tests.sport_of(name) for name in files} - {"nfl", "nba", "nhl", "ci"}, set())
+        for name in files:
+            # The runner and the plan must agree on whose test it is.
+            planned = ci_steps.sport_of(f"tests/{name}")
+            self.assertEqual(planned, "all" if run_tests.sport_of(name) == "ci" else run_tests.sport_of(name), name)
+
+    def test_the_deploy_hands_the_scope_to_the_tests_and_the_browser_check(self):
+        deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
+        self.assertLess(deploy.index("- name: Plan the run"), deploy.index("- name: Run the tests"))
+        self.assertIn('python tools/run_tests.py --only "$SCOPE"', deploy)
+        self.assertIn('python tools/check_site.py --gate --only "$SCOPE"', deploy)
+        self.assertEqual(deploy.count("SCOPE: ${{ steps.plan.outputs.scope || 'all' }}"), 2)
+
     def test_the_comparison_is_with_what_is_live(self):
         """Not with the push before: a sha that isn't one stops the comparison."""
         self.assertIsNone(ci_steps.changed_since_live(None))
