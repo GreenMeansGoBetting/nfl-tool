@@ -342,7 +342,14 @@ on a replay, and the page keeps a record against the real prices.
     2026-10-13: the bold share "is helpful", but "allows x most/fewest ... is all relative
     information. It's also very wordy"). `zoneBoxes` in nhl-common.js, each box on the eight rank
     colors: shots a game allowed from the zone ("8.0/g"), that zone's share of ALL the shots
-    the team allows ("21%"), and the league rank ("30th", 1st = allows the most).
+    the team allows ("21%"), and the league rank.
+    - **The rank is shown the way defenses are always ranked: 1st = allows the FEWEST.** The
+      first version showed 1st = allows the most, and the user read Florida's "8.0/g ... 30th" as
+      a soft defense ("how do they allow 8 per game and are 30th? ... the ugly flip made for the
+      ranking"). Fixed the same evening: that box now reads "3rd". The COLORS stay the shooter's
+      view ("green means go!"): green = the most shots for him, red = a tough spot. So a red
+      zone with a low rank number is a strong defense. `season_rank` in shots.json still counts
+      1st = allows the most; the page turns it round for display only.
     - **What colors a zone as a whole: the league-wide count, not the team's own split** (the
       user asked for this to be settled without adding complexity). Their example: a team
       allowing 10 shots can give up 80% of them from the low slot (8) and still allow fewer

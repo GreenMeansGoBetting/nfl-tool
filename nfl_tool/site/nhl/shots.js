@@ -349,15 +349,19 @@ function detailRow(x, columns) {
     const of = (shares[r.opp] || {})[z.key];
     if (!d) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots.` };
     const step = rankStep(d.season_rank, teams);
+    // The rank is SHOWN the way defenses are always ranked: 1st = allows the fewest (the owner read
+    // "8.0/g ... 30th" as a soft defense; it was the 3rd stingiest). The color is still the
+    // shooter's: green = the most shots for him. season_rank itself counts 1st = allows the most.
+    const stingy = ordinal(teams + 1 - d.season_rank);
     const allowed = `${fmt(d.season)}/g`;
     const ofAll = of ? pct(of.share, 0) : "--";
     const tip = `${z.label}: ${pct(share, 0)} of his shots. ${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)})${of ? `, ${pct(of.share, 0)} of all the shots it allows (${rankWord(of.rank)} share)` : ""}.`;
-    if (z.small) return { big: pct(share, 0), small: `allows ${allowed} &middot; ${ofAll} &middot; ${ordinal(d.season_rank)}`, tip };
+    if (z.small) return { big: pct(share, 0), small: `allows ${allowed} &middot; ${ofAll} &middot; ${stingy}`, tip };
     return {
       ...zoneOnStep(step),
       big: pct(share, 0),
       // Widths in feet on the rink: "10.8/g" needs the most room, and the three still fit the low slot.
-      boxes: [{ text: allowed, step, w: 6.6 }, { text: ofAll, step: of ? rankStep(of.rank, teams) : null, w: 4.7 }, { text: ordinal(d.season_rank), step, w: 5.2 }],
+      boxes: [{ text: allowed, step, w: 6.6 }, { text: ofAll, step: of ? rankStep(of.rank, teams) : null, w: 4.7 }, { text: stingy, step, w: 5.2 }],
       tip,
     };
   });
@@ -370,7 +374,7 @@ function detailRow(x, columns) {
         </div>
         <div class="shots-detail-rink">
           <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span></div>${rink}
-          <p class="shots-rink-key">Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> for shots a game (1st = the most). ${rankScaleKey("the most", "the fewest")}</p>
+          <p class="shots-rink-key">Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> as a defense there (1st = allows the fewest). Colors are his side: ${rankScaleKey("most shots for him", "fewest")}</p>
         </div>
       </div>
     </td></tr>`;

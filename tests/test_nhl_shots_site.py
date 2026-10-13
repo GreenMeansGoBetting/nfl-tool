@@ -441,7 +441,7 @@ class Breakdown(unittest.TestCase):
         ordinal = lambda n: f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
         for area, step, boxes in zip(drawn, steps, detail["zone_boxes"]):
             share_rank = sorted(share, key=lambda team: -share[team][area]).index("DET") + 1
-            self.assertEqual([text for text, _ in boxes], [f"{defense[f'a_{area}']['season']:.1f}/g", f"{share['DET'][area] * 100:.0f}%", ordinal(defense[f"a_{area}"]["season_rank"])], area)
+            self.assertEqual([text for text, _ in boxes], [f"{defense[f'a_{area}']['season']:.1f}/g", f"{share['DET'][area] * 100:.0f}%", ordinal(len(self.shots["defense"]) + 1 - defense[f"a_{area}"]["season_rank"])], area)  # shown as defenses are ranked: 1st = allows the fewest
             self.assertEqual([on for _, on in boxes], [step, str((share_rank - 1) * 8 // 32 + 1), step], area)
         # The strip outside the zone: one line, the same three numbers, no boxes and no color.
         self.assertEqual(detail["zone_boxes"][5], [])
