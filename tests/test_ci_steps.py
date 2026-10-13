@@ -345,8 +345,33 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertNotIn("pip install", self.refresh)
         self.assertNotIn("playwright", self.refresh)
 
-    def test_the_site_check_is_not_started_by_the_refresh(self):
+    def test_the_site_check_runs_once_a_day_not_after_every_deploy(self):
+        self.assertNotIn("workflow_run", self.check)
+        self.assertIn('cron: "57 12 * * *"', self.check)
         self.assertNotIn("Refresh NHL lineups", self.check)
+
+    def test_the_deploy_builds_whatever_it_could_not_reuse(self):
+        """A "Reuse" step may fail (it is continue-on-error); the build after it
+        runs unless the reuse SUCCEEDED, so no plan and no download can leave a
+        suite without data."""
+        steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
+        for suite, build in (("nfl", "Build stats (nflverse needs no key; SGO_API_KEY is optional)"), ("nba", "Build NBA data"), ("nhl", "Build NHL data")):
+            reuse = next(block for name, block in steps.items() if name.startswith(f"Reuse the live {suite.upper()} data"))
+            self.assertIn(f"if: steps.plan.outputs.{suite} == 'reuse'", reuse)
+            self.assertIn("continue-on-error: true", reuse)
+            self.assertIn(f"fetch_live_data.py --only {suite} --need {suite}", reuse)
+            self.assertIn(f"if: steps.reuse_{suite}.outcome != 'success'", steps[build])
+        # The plan itself can't stop a deploy, and the gate, the binding and the publish are never conditional.
+        self.assertIn("continue-on-error: true", steps["Plan the run"])
+        for always in ("Run the tests", "Check the site before it goes live", "Member profile database (D1)", "Refuse to publish without the member database", "Deploy to Cloudflare Pages"):
+            self.assertFalse(any(line.startswith("        if:") for line in steps[always].splitlines()), always)
+        # Housekeeping is skipped only on a plain "no" (an empty plan runs it).
+        self.assertIn("if: steps.plan.outputs.housekeeping != 'no'", steps["Push Discord secrets to Cloudflare"])
+        self.assertIn('if [ "$HOUSEKEEPING" = "no" ]; then exit 0; fi', steps["Member profile database (D1)"])
+        binding, tables = steps["Member profile database (D1)"].split('if [ "$HOUSEKEEPING" = "no" ]')
+        self.assertIn("} > wrangler.toml", binding)
+        self.assertNotIn("wrangler.toml", tables)
+        self.assertNotIn("command: pages project create", self.deploy)
 
 
 if __name__ == "__main__":

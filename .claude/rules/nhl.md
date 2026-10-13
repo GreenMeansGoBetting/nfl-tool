@@ -55,8 +55,8 @@ switch"). More background: `docs/history.md`, "NHL".
   "<Team> projected lineup" heading, one line of text per forward line ("A -- B -- C") and defense
   pair ("A -- B"), the goalies one to a line (**the first is the expected starter**), then
   "Scratched:" and "Injured:", then a "Status report". Posted around midday Eastern on game day
-  (some West-coast games later), so the 2:17 pm ET build has most of them and the 8:17 am one has
-  none. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
+  (some West-coast games later), so the 8:17 am ET build has none; the hockey-only refresh (`nhl-refresh.yml`, hourly from
+  midday to puck drop: members-and-hosting.md, "Build minutes") picks each one up. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
   stories are still served. `parse_lineups`, `lineup_slots`, `fetch_lineups`.
   - The story is typed by hand. Two things it does (both met 2026-10-13): a team dressing seven
     defensemen lists the seventh **on his own line above the goalies** (Victor Hedman was read as
@@ -255,8 +255,8 @@ on a replay, and the page keeps a record against the real prices.
   `lean` / `none` / `check`; for edges of 3 to 12 it
   also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
   average (an under on a line he averages more than, or the reverse) next to plays with it.
-  Wins, losses, units won risking 1 a play. The lock is the last build before puck drop (often
-  the 2:17 pm ET one), not the closing line.
+  Wins, losses, units won risking 1 a play. The lock is the last build before puck drop (since 2026-10-13 usually the hourly refresh
+  within the hour before it), not the closing line.
 
 ## Pages
 
@@ -456,9 +456,5 @@ payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
 For the Shots model: power-play units (the projected lineup has lines and pairs, not the power
-play; `shiftcharts` has past games' units); a build nearer puck drop so late lineups and the
-closing line are caught (the user asked 2026-10-13 how often lineups can be checked: every check
-is a whole-site rebuild on the private repo's 2,000 free minutes, so the offer on the table is
-one or two extra afternoon runs that skip the SGO fetch, or moving the 2 am ET run; nothing was
-changed, it is their call); a "Record" view of the saved plays; the expected starting goalie on
+play; `shiftcharts` has past games' units); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); a "Record" view of the saved plays; the expected starting goalie on
 Game Previews (it is already in `shots.json`).

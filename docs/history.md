@@ -713,6 +713,33 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
     private once the gate is confirmed.
 
 
+### Build minutes: the hockey-only refresh and a deploy that does only what changed (2026-10-13)
+
+- **How it came up.** The user asked how often lineups could be checked. The answer was that
+  each check was a full rebuild, on a repo that had gone private that same day (2,000 free build
+  minutes a month instead of unlimited). Their reply: "Why is checking for lineups rebuilding the
+  entire site? That doesn't even make sense. At this rate we are going to run out of the ability
+  to use this site after a few days?" Then: "Yes build that, and fix anything else that would
+  trigger unnecessary steps for an isolated task."
+- **What a run cost before:** about 3.5 minutes push to live, then a second job (the site check)
+  that installed a second browser to open the pages the deploy's gate had just opened. Roughly
+  7 billed minutes for any change at all, a hockey style tweak included.
+- **The hockey-only refresh** went live about 80 seconds after its first push, with the login
+  gate and the member database checked intact afterwards (`/auth/status`).
+- **Why the refresh is so careful about when it publishes:** Cloudflare Pages replaces the whole
+  site on every publish. A refresh that published while a code push was deploying, or published
+  main's code after a deploy had failed its tests, would put old or untested code live. So it
+  asks twice, and any doubt means it does nothing: the next one is an hour away.
+- **Why the login page had to be ruled out:** a wrong build key gets the sign-in page back with
+  a normal "200 OK". The old download would have saved that as data.json; harmless for a check,
+  fatal for a job that republishes what it downloads. A download is now kept only if it is JSON.
+- **Staying private.** The user offered to make the repo public again (unlimited minutes) and
+  asked whether copying could be tracked. A fork is named and could be alerted on; a plain
+  download is only a count; nobody running a copy on their own machine is visible at all. With
+  the lean runs the private allowance is enough, so the recommendation was to stay private.
+- A second chat was building the goalie saves tool in the same folder at the time, so this work
+  was committed from a separate git worktree and only its own files were ever added.
+
 ## Data pipeline
 
 ### Odds lock at kickoff

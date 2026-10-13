@@ -43,11 +43,12 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   builds in version.json", and "Save GMG model record" (commits everything in
   `model_history/` as github-actions[bot]: `gmg_model.json` and the NHL Shots record,
   `nhl_shots/<month>.json`; the workflow has `contents: write`).
-- **`.github/workflows/site-check.yml`** runs after every successful deploy (and on demand): it
+- **`.github/workflows/site-check.yml`** runs once a day (12:57 UTC) and on demand; until
+  2026-10-13 it ran after every deploy, a second browser install for pages the gate had just
+  opened. It
   downloads the LIVE data (`tools/fetch_live_data.py`, same `X-GMG-Build` key) and runs
-  `tools/check_site.py` in its own job, so the deploy never waits on it or installs a browser. A
-  failed run = the check found a NEW problem (the same problems are reported once, not every 6
-  hours); the report is on the run's Summary page, GitHub emails the owner, and it also posts to
+  `tools/check_site.py` in its own job. A
+  failed run = the check found a NEW problem (the same problems are reported once, not every day); the report is on the run's Summary page, GitHub emails the owner, and it also posts to
   Discord if the optional secret `SITE_CHECK_WEBHOOK` exists. `tools/check_site.py --site DIR`
   checks a copy of the site folder (how to reproduce a CI report locally with the live data).
 - `.github/workflows/cloudflare-domain.yml` attached `nfl.gmgsports.org` to the Pages project
@@ -59,8 +60,52 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   - the public GitHub API no longer shows the runs, so confirm deploys with `version.json`;
   - there is no `gh` on the user's PC, so a failed run can only be read by the user on the
     Actions page (or from the failure email); ask them for the red step's name;
-  - private repos get 2,000 free build minutes a month; this project uses roughly 600-900;
+  - private repos get 2,000 free build minutes a month, which is why runs are kept lean
+    ("Build minutes" below);
   - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
+
+## Build minutes: an isolated task must not set off unrelated work (2026-10-13)
+
+The repo going private put the builds on GitHub's 2,000 free minutes a month (a job is billed
+by the minute, rounded up). Every run used to do everything, and when the user was told a
+lineup check meant a whole-site rebuild: "Why is checking for lineups rebuilding the entire
+site? That doesn't even make sense ... fix anything else that would trigger unnecessary steps
+for an isolated task." If the minutes ever ran out the site would stay up; what stops is the
+refreshing and new code going live, until the 1st or about $0.008 a minute.
+
+- **`tools/ci_steps.py` holds the workflows' decisions** (tested in `tests/test_ci_steps.py`,
+  because nobody can read the Actions log from here). Each run reports itself in the public
+  `version.json`: `data` (per suite `built` or `reused`), `timing` (seconds per stage:
+  `install`, `tests`, `nfl`, `nhl`, `gate`, `cloudflare`, `total`), `nhl_refresh`.
+- **A push rebuilds only what it changed** (`plan`). It compares the code being deployed with
+  the code that is LIVE (`version.json`'s sha, so a push whose deploy failed still counts).
+  A suite whose build code is unchanged has its data taken exactly as it is live ("Reuse the
+  live ... data": `tools/fetch_live_data.py --only X --need X`); if that download isn't whole,
+  the build runs after all. NFL build code = everything under `nfl_tool/` outside `site/`,
+  `functions/`, `nba/`, `nhl/`. A push that edits `deploy.yml`, or anything unclear, builds
+  everything. So a push no longer refreshes odds as a side effect.
+- **The 6-hour cron and "Update Odds" always build everything** and run the housekeeping.
+- **Housekeeping** = pushing the secrets to Cloudflare and the member-table commands. Skipped
+  on a code push (a new secret value is live within 6 hours, or at once with "Update Odds").
+  The database binding itself is written on every run. The "create Pages project" step is
+  gone (it failed with "already exists" on every run; the recreate command is in deploy.yml).
+- **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Hourly at :47 from 16:47 to
+  23:47 UTC, October to June, plus "Run workflow" (the NHL pages' Update Odds button) and a
+  push that edits the file. It rebuilds only the NHL files and republishes, on the machine's
+  own Python with nothing installed, no tests, no page check: about 80 seconds push to live
+  on its first run. A publish replaces the whole site folder, so the NFL and NBA data are
+  downloaded from the live site and put back (`--only nfl nba --strict`), and it asks twice
+  (`refresh-check`, before starting and right before publishing): no full rebuild queued or
+  running, main's `nfl_tool/` is the live code, nobody republished meanwhile. Any doubt = no.
+  `refresh-stamp` refuses a folder with a live data file missing. `version.json` keeps the
+  full rebuild's `sha` / `run` / `built`; `nhl` and `nhl_refresh` change.
+- **A new generated file in the site folder** goes in `.gitignore` AND `fetch_live_data.py`'s
+  `SUITES` (a test compares the two), or a refresh or a reused deploy would publish without it.
+- The refresh shares the database binding, the NHL build command and the publish command with
+  deploy.yml word for word (tests compare them): change both together.
+- Looked at and left alone: the tests on scheduled runs (they keep untested code from ever
+  being published), the browser's system install (dropping it could change fonts and with them
+  the card-fit checks), and pip caching (no real gain).
 
 ## Login gate (`nfl_tool/functions/_middleware.js`, Pages Functions)
 

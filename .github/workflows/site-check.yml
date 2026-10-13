@@ -1,21 +1,29 @@
 name: Site check
 
-# Runs tools/check_site.py against the LIVE data after every deploy (the
-# 6-hour refresh, pushes, and "Update Odds"), so a Summary card that gets
-# squeezed or a page that breaks is caught the same day instead of when
-# someone happens to look. It is a separate workflow on purpose: the deploy
-# never waits on it and never installs a browser.
+# Runs tools/check_site.py against the LIVE data once a day, so a Summary
+# card that gets squeezed is caught the same day instead of when someone
+# happens to look.
+#
+# It used to run after every deploy. Since 2026-10-13 the deploy itself opens
+# every page and every Summary card before it publishes (the gate), so a page
+# that BREAKS never goes live; running this after each deploy as well meant a
+# second machine installing a second browser to look at the same pages, about
+# 3 of the private repo's 2,000 free minutes each time. What only this check
+# reports is the softer kind (a card shrunk too far, cut-off text, a page too
+# wide on a phone), and once a day is enough for those. It can also be run by
+# hand from the Actions page.
 #
 # A failed run means the check found a NEW problem. GitHub emails the repo
 # owner about failed runs; the report is on the run's Summary page. If the
 # secret SITE_CHECK_WEBHOOK (a Discord webhook URL) is ever added, the report
 # is also posted there. The same problems are only reported once: a card that
-# stays too full all week doesn't fail (and email) four times a day.
+# stays too full all week doesn't fail (and email) every day.
 
 on:
-  workflow_run:
-    workflows: ["Refresh data and deploy site"]
-    types: [completed]
+  schedule:
+    # 12:57 UTC, 40 minutes after the morning rebuild (8:57 am Eastern in
+    # daylight time, 7:57 am in standard time).
+    - cron: "57 12 * * *"
   workflow_dispatch:
 
 permissions:
@@ -27,7 +35,6 @@ concurrency:
 
 jobs:
   check:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -42,13 +49,10 @@ jobs:
           pip install -r tools/requirements-dev.txt
           python -m playwright install --with-deps chromium
 
-      # Cloudflare needs a moment to start serving the deploy that just finished.
       - name: Download the live data
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        run: |
-          sleep 45
-          python tools/fetch_live_data.py
+        run: python tools/fetch_live_data.py
 
       # What the last run reported, so the same problems aren't reported twice.
       - uses: actions/cache/restore@v4
