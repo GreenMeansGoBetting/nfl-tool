@@ -125,5 +125,7 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists):
 - `styles.md`: the site-wide look, phone layout, summary-card fit / zoom / Save image.
 - `nba.md`: the NBA suite (data sources, build, pages, suite switcher, launch switch).
 
+The engineering clean-up plan and its status: `docs/foundation-plan.md` (one item per session).
+
 Background on past decisions and why rules exist: `docs/history.md` (search it when a rule's
 reason matters; it is not loaded automatically).
