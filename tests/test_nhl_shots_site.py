@@ -57,7 +57,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null }, view);
+            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null, when: 'all' }, view);
             selectDay(days().indexOf(day));
         }""",
         [day, view],
@@ -518,6 +518,73 @@ class FinishedGames(unittest.TestCase):
         PAGE.evaluate("() => { window.keptRecord = SHOTS.record; SHOTS.record = null; render(); }")
         self.assertIn("The record starts", PAGE.inner_text("#shots-results"))
         PAGE.evaluate("() => { SHOTS.record = window.keptRecord; render(); }")
+
+
+class StartedGames(unittest.TestCase):
+    """The owner, with a game under way: "keep all the plays of the day on the
+    shots list but have them grayed out if they are live ... then have a toggle
+    once games start at the top that differentiates and sorts from live and not."
+    The page reads the clock: a build can be hours old when a game starts."""
+
+    READ = """() => ({
+        rows: [...document.querySelectorAll('.shots-row')].map((tr) => [tr.dataset.row.split(':')[0], tr.dataset.state, tr.classList.contains('shots-live')]),
+        heads: [...document.querySelectorAll('.shots-state-head')].map((tr) => tr.textContent.trim().split(':')[0]),
+        buttons: [...document.querySelectorAll('.shots-filter-btn[data-filter="when"]')].map((b) => b.textContent.trim()),
+        note: document.getElementById('shots-locked').textContent,
+    })"""
+
+    @classmethod
+    def setUpClass(cls):
+        games = [g for g in nhl_data()["schedule"] if g["date"] == TONIGHT and g["game_id"] in nhl_shots()["games"]]
+        cls.early = min(games, key=lambda g: g["start_utc"])["game_id"]
+
+    def start(self, **view):
+        """Tonight with the earliest game's puck already dropped."""
+        reset(**view)
+        PAGE.evaluate("(id) => { const g = DATA.schedule.find((x) => x.game_id === id); window.keptStart = g.start_utc; g.start_utc = '2026-10-01T00:00Z'; render(); }", self.early)
+        return PAGE.evaluate(self.READ)
+
+    def tearDown(self):
+        PAGE.evaluate("(id) => { DATA.schedule.find((x) => x.game_id === id).start_utc = window.keptStart; shotsView.when = 'all'; render(); }", self.early)
+
+    def test_before_any_game_starts_nothing_changes(self):
+        reset()
+        seen = PAGE.evaluate(self.READ)
+        self.assertEqual((seen["heads"], seen["buttons"]), ([], []))
+        self.assertTrue(all(state == "open" and not live for _, state, live in seen["rows"]))
+
+    def test_a_started_games_plays_stay_listed_grayed_under_the_rest(self):
+        before = len(reset())
+        seen = self.start()
+        self.assertEqual(len(seen["rows"]), before)  # nobody drops off the list at puck drop
+        states = [state for _, state, _ in seen["rows"]]
+        self.assertEqual(states, sorted(states, key=["open", "live"].index))  # still-to-come first, whatever the edge
+        live = [row for row in seen["rows"] if row[1] == "live"]
+        self.assertTrue(live and all(game == self.early and gray for game, _, gray in live), live)
+        self.assertTrue(all(game != self.early and not gray for game, state, gray in seen["rows"] if state == "open"))
+        self.assertEqual(seen["heads"], ["Live now"])
+        self.assertEqual(seen["buttons"], ["All games", "Not started", "Live / final"])
+        self.assertIn("1 of these games have started", seen["note"])
+
+    def test_the_buttons_show_one_kind(self):
+        self.assertTrue(all(state == "open" for _, state, _ in self.start(when="open")["rows"]))
+        started = self.start(when="started")
+        self.assertTrue(started["rows"] and all(game == self.early for game, _, _ in started["rows"]))
+        self.assertEqual(started["heads"], [])  # one kind on the list: no heading needed
+
+    def test_a_finished_day_has_no_buttons_and_is_not_grayed(self):
+        # The sample kept no lines for last night's games, so one player is given a line to be listed by.
+        data, shots = nhl_data(), nhl_shots()
+        game = next(g for g in data["schedule"] if g["date"] == LAST_NIGHT and g["home"] == "BUF")
+        player = shots["games"][game["game_id"]]["players"][0]
+        reset(LAST_NIGHT)
+        PAGE.evaluate("([gid, id]) => { window.keptOdds = DATA.player_odds[gid]; DATA.player_odds[gid] = { [id]: { sog: { line: 2.5, over: -110, under: -110 } } }; render(); }", [game["game_id"], player["id"]])
+        try:
+            seen = PAGE.evaluate(self.READ)
+        finally:
+            PAGE.evaluate("(gid) => { if (window.keptOdds === undefined) delete DATA.player_odds[gid]; else DATA.player_odds[gid] = window.keptOdds; render(); }", game["game_id"])
+        self.assertEqual(seen["rows"], [[game["game_id"], "final", False]])
+        self.assertEqual((seen["heads"], seen["buttons"]), ([], []))
 
 
 class GradedPlays(unittest.TestCase):

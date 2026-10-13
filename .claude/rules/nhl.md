@@ -275,9 +275,15 @@ on a replay, and the page keeps a record against the real prices.
     first, each day headed by its own W-L and units, with bucket buttons **Every edge** (how it
     opens) / **Strong** / **Lean** / **Check first** and the shown bucket's total beside them.
     Nothing is typed in by hand: each build adds the games that finished since the last one.
-  - A game leaves the ranking at puck drop and comes back here once it is final (the user:
-    "once games are live those plays disappear - thats great - we don't want non active plays
-    surfacing"). Keep it that way. The lock is the last build before puck drop (since 2026-10-13 usually the hourly refresh
+  - **Started games stay on the list, grayed, under the plays still to come** (the user, later
+    the same evening, with a game under way and its players still ranked as plays: "keep all the
+    plays of the day on the shots list but have them grayed out if they are live kinda like the
+    king of the crease is doing ... then have a toggle once games start at the top that
+    differentiates and sorts from live and not"). `gameState` in shots.js: "open" / "live" /
+    "final", from the build's `locked` AND the clock against `start_utc` (a build can be hours
+    old at puck drop). Order is always open, live, final, whatever the sort; live rows are grayed
+    (`.shots-live`) under a "Live now" heading; a day with both kinds gets the buttons **All
+    games** (how it opens) / **Not started** / **Live / final**. A finished day is not grayed. The lock is the last build before puck drop (since 2026-10-13 usually the hourly refresh
   within the hour before it), not the closing line.
 
 ## Pages
@@ -350,6 +356,10 @@ on a replay, and the page keeps a record against the real prices.
       view ("green means go!"): green = the most shots for him, red = a tough spot. So a red
       zone with a low rank number is a strong defense. `season_rank` in shots.json still counts
       1st = allows the most; the page turns it round for display only.
+    - **Same rule on every NHL page** (`stingyRank` in nhl-common.js): a defense's rank in words
+      is always "Nth fewest" with 1st = the stingiest. The Game Previews rink's hover and the
+      player card's "OPP allows" column said "27th most" until the user caught them the same
+      evening. Colors are never flipped: the most shots = green.
     - **What colors a zone as a whole: the league-wide count, not the team's own split** (the
       user asked for this to be settled without adding complexity). Their example: a team
       allowing 10 shots can give up 80% of them from the low slot (8) and still allow fewer

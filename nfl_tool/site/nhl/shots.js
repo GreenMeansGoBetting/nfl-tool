@@ -14,7 +14,7 @@
 let SHOTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
-const shotsView = { side: "best", pos: "all", lineup: "confirmed", sort: "edge", dir: -1, open: null, record: "edge" };
+const shotsView = { side: "best", pos: "all", lineup: "confirmed", sort: "edge", dir: -1, open: null, record: "edge", when: "all" };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -105,7 +105,7 @@ function rowsFor(date) {
       const book = gameOdds[r.id] || {};
       const sides = sidesFor(r, book.sog);
       const play = pickSide(sides, shotsView.side);
-      rows.push({ r, game: g, board, book, sides, play, season: seasonLine(r.id), result: gradePlay(play, r.actual) });
+      rows.push({ r, game: g, board, book, sides, play, season: seasonLine(r.id), result: gradePlay(play, r.actual), state: gameState(g) });
     });
   });
   return rows;
@@ -133,6 +133,18 @@ const siteLift = (r) => r.lift.home * r.lift.b2b * r.lift.opp_b2b;
 // The ranking as first opened (best edge first) keeps the "check" plays
 // apart: the believable plays, then the "check" group.
 const rankedByEdge = () => shotsView.sort === "edge" && shotsView.dir < 0;
+// Where a game is: "open" (not started), "live" or "final". The build marks a
+// started game `locked`, but builds are hours apart, so the page also reads the
+// clock against the game's start (the owner saw a player listed as a play in a
+// game that had already started).
+function gameState(g) {
+  const board = boardFor(g) || {};
+  if (g.status === "final" || board.final) return "final";
+  return board.locked || g.status === "live" || (g.start_utc && Date.now() >= Date.parse(g.start_utc)) ? "live" : "open";
+}
+const STATE_ORDER = { open: 0, live: 1, final: 2 };
+// A day with some games started and some not gets the "when" buttons.
+const dayIsMixed = (date) => new Set(gamesOn(date).filter(boardFor).map((g) => (gameState(g) === "open" ? "open" : "started"))).size === 2;
 const rankGroup = (x) => (needsCheck(x) ? 1 : 0);
 // Who is listed: only players with a shots-on-goal line to play (the owner:
 // no "everyone" view), and under "Lineup Confirmed" only those the NHL's
@@ -143,7 +155,10 @@ function sortedRows(date, lineup = shotsView.lineup) {
     .filter((x) => !x.r.out && x.play)
     .filter((x) => shotsView.pos === "all" || positionGroup(x.r.pos) === shotsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
+    .filter((x) => !dayIsMixed(date) || shotsView.when === "all" || (shotsView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
+      // Plays still to come first, then games in progress, then finished ones, whatever the sort.
+      if (a.state !== b.state) return STATE_ORDER[a.state] - STATE_ORDER[b.state];
       if (rankedByEdge() && rankGroup(a) !== rankGroup(b)) return rankGroup(a) - rankGroup(b);
       const [va, vb] = [get(a), get(b)];
       // Rows with nothing to sort on (no lineup yet, under Line) sink, whichever way the sort runs.
@@ -187,7 +202,16 @@ function renderToolbar() {
     group("lineup", [
       ["confirmed", "Lineup Confirmed", "Only players in a game whose lineup the NHL has posted: each is listed on tonight's line or pair"],
       ["all", "All", "Also the games still waiting on a lineup: those players are projected from their recent ice time"],
-    ]);
+    ]) +
+    // Once some of the day's games have started: every play of the day stays listed (started ones
+    // grayed, under the ones still to come), or just one kind.
+    (dayIsMixed(days()[dayIndex])
+      ? group("when", [
+          ["all", "All games", "Every play of the day: games still to come first, started games grayed underneath"],
+          ["open", "Not started", "Only games that haven't started: the plays you can still make"],
+          ["started", "Live / final", "Only games that have started: locked at the last price before puck drop"],
+        ])
+      : "");
 }
 function playChip(play, r) {
   // Said out loud when a play the page calls an edge goes against what his game log shows.
@@ -495,9 +519,13 @@ function renderTable() {
       const forward = positionGroup(r.pos) === "F";
       const open = shotsView.open === `${x.game.game_id}:${r.id}`;
       const who = `${headshot(x.season || {})}<span>${r.name}</span>`;
+      // The first started game's play starts its group (only when the list also has plays still to come).
+      const stateHead = x.state !== "open" && i > 0 && rows[i - 1].state !== x.state && rows[0].state !== x.state
+        ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-state-head"><td colspan="${columns}">${x.state === "live" ? "Live now: these games have started. The play, price and projection are the last ones from before puck drop." : "Final: locked before puck drop and graded."}</td></tr>`
+        : "";
       // The first "check" play in the ranking starts its group.
-      const divider = rankedByEdge() && needsCheck(x) && (i === 0 || !needsCheck(rows[i - 1])) ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-check-head"><td colspan="${columns}">Not plays. A gap too big to take at face value (a handful of games against everything the market knows), or a play against tonight's line change.</td></tr>` : "";
-      const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}" data-row="${x.game.game_id}:${r.id}">
+      const divider = stateHead + (rankedByEdge() && needsCheck(x) && (i === 0 || !needsCheck(rows[i - 1]) || rows[i - 1].state !== x.state) ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-check-head"><td colspan="${columns}">Not plays. A gap too big to take at face value (a handful of games against everything the market knows), or a play against tonight's line change.</td></tr>` : "");
+      const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
         <td class="num shots-rank">${i + 1}</td>
         <td class="nba-player shots-player">${playerClick(r.id, who)}<span class="muted-label">${r.pos}</span><span class="shots-vs">${logo(r.team, 16)}<span class="at">${r.home ? "vs" : "@"}</span>${logo(r.opp, 16)}</span></td>
         ${lineCell(r)}
@@ -526,7 +554,7 @@ function renderTable() {
 function renderNote() {
   const date = days()[dayIndex];
   const boards = gamesOn(date).map(boardFor).filter(Boolean);
-  const locked = boards.filter((b) => b.locked).length;
+  const locked = gamesOn(date).filter((g) => boardFor(g) && gameState(g) !== "open").length;
   const g = currentGame();
   el("shots-title").innerHTML = `Shots on Goal${g ? ` <span class="shots-title-game">${logo(g.away, 22)} ${g.away} <span class="at">@</span> ${logo(g.home, 22)} ${g.home}</span>` : ""}`;
   const open = gamesOn(date).filter((g) => boardFor(g) && !boardFor(g).locked);

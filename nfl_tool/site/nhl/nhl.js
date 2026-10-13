@@ -59,7 +59,7 @@ function rink(offTeam, defTeam, uid) {
       ...(step === null ? {} : zoneOnStep(step)),
       big: fmt(takes),
       small: `allows ${fmt(allows)}`,
-      tip: `${z.label}: ${offTeam} ${fmt(takes)} a game${takesRank ? `, ${ordinal(takesRank)} most` : ""} (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)}${allowsRank ? `, ${ordinal(allowsRank)} most` : ""} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`,
+      tip: `${z.label}: ${offTeam} ${fmt(takes)} a game${takesRank ? `, ${ordinal(takesRank)} most` : ""} (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)}${allowsRank ? `, ${ordinal(stingyRank(allowsRank, teamCount()))} fewest` : ""} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`,
     };
   });
   return `<div class="nba-box nhl-rink-box">

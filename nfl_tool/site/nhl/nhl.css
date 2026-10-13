@@ -96,6 +96,10 @@
 .shots-play-over { border-color: rgba(var(--good-rgb), 0.5); background: rgba(var(--good-rgb), 0.1); }
 .shots-play-under { border-color: rgba(var(--bad-rgb), 0.5); background: rgba(var(--bad-rgb), 0.1); }
 .shots-table .group-row.shots-check-head td { white-space: normal; }
+/* A play in a game that has started: still listed, grayed like King of the Crease's started goalies */
+.shots-row.shots-live > td { opacity: 0.5; }
+.shots-row.shots-live.shots-open > td { opacity: 0.8; }
+.shots-table .group-row.shots-state-head td { white-space: normal; }
 .shots-table td.shots-proj b { font-size: 1.12rem; }
 .shots-table td.shots-edge { font-size: 1.05rem; }
 .shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }

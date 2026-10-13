@@ -58,6 +58,11 @@ function leagueRank(key, abbr, lowerIsBetter) {
   const i = sorted.findIndex(([t]) => t === abbr);
   return i === -1 ? null : i + 1;
 }
+// A defense's rank as it is SAID: 1st = allows the fewest, the way defenses are always ranked.
+// The site's own ranks for what a defense allows count 1st = allows the most (that is what the
+// colors run on: the most shots = green), so anything shown in words is turned round here. The
+// owner read "allows 8.8, 27th most" and "8.0/g ... 30th" as soft defenses; both were stingy.
+const stingyRank = (allowsMostRank, total) => total + 1 - allowsMostRank;
 const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
 
 // ---- league rank on the site's eight colors ----
@@ -280,7 +285,7 @@ function oppAllowsCell(opp, area) {
   const value = (stats()[opp] || {})[`def_${area}_pg`];
   const rank = allowsRank(opp, area);
   // Like the strip on the rink, the row for shots from outside the zone is never colored: too rare to read.
-  return `<td class="num nhl-rank-cell"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} title="${opp} allows the ${rank ? ordinal(rank) : "?"} most shots from here">${fmt(value)}<small class="nhl-pc-rank">${rank ? ` ${ordinal(rank)} most` : ""}</small></td>`;
+  return `<td class="num nhl-rank-cell"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} title="${opp} allows the ${rank ? ordinal(stingyRank(rank, teamCount())) : "?"} fewest shots from here">${fmt(value)}<small class="nhl-pc-rank">${rank ? ` ${ordinal(stingyRank(rank, teamCount()))} fewest` : ""}</small></td>`;
 }
 function skaterMapView(season, games, opp, uid) {
   const areas = season.areas || {};
@@ -310,7 +315,7 @@ function skaterMapView(season, games, opp, uid) {
       ...fill,
       big: fmt(shots / games),
       small: z.small ? "" : `${pct(shots / located, 0)} &middot; ${goals} G`,
-      tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals${rank ? `. ${opp} allows the ${ordinal(rank)} most shots from here` : ""}`,
+      tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals${rank ? `. ${opp} allows the ${ordinal(stingyRank(rank, teamCount()))} fewest shots from here` : ""}`,
     };
   });
   const colorNote = opp
