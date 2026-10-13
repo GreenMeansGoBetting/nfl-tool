@@ -1212,8 +1212,9 @@ information."
 - The owner reported the site down for paying members for over two hours while their Claude
   usage was used up. Every workflow run that day had succeeded; the publish live during the gap
   (the hockey-only refresh's first, 13:41 Eastern) uploaded the same 87 files and login code as
-  the deploy before it. The cause was not found from the record. What was added does not depend
-  on the cause: every publish is now followed by a look at the real site, and one that leaves it
+  the deploy before it. The owner then sent a screenshot: members had been looking at the NHL
+  suite's "being built" launch guard, which every NHL page shows to everyone but the owner until
+  the suite is launched. Nothing was broken and no push was stuck. What was added stands anyway: every publish is now followed by a look at the real site, and one that leaves it
   down is undone automatically (`ci_steps.py live-check`); CLAUDE.md tells every session to check
   usage before starting anything that ends in a push.
 - NHL: the owner had last season's data removed from the whole suite (they disliked the page

@@ -74,9 +74,16 @@ take the site offline until a push is completely ready."
 - **What was found afterwards:** every workflow run that day succeeded. The gap in publishes
   (13:41 to 16:03 Eastern) had the hockey-only refresh's first publish live; its log shows the
   same 87 files and the same login code as the deploy before it. So the record does not show a
-  broken publish, and the cause is NOT known. Ask the owner what members saw (a sign-in error, a
-  blank page, a Cloudflare error page) before guessing. Not ruled out: Discord refusing the role
-  re-check (`OUTAGE_GRACE_MS`: members are let in for 2 h after the last good check, then not).
+  broken publish.
+- **What members saw** (the owner's phone screenshot, sent afterwards): the NHL Shots page's
+  "GMG NHL Suite is being built for the 2026-27 season. Check back soon." That is not a broken
+  site. It is the launch guard (`.nba-soon`, suite.css): every NHL and NBA page shows it to
+  everyone who is not the owner, by design, until `SUITE_SWITCH_PUBLIC` is true (nba.md). The
+  text exists only on those pages, no NFL page can show it, and nothing sends a member to an NHL
+  page (the suite dropdown is owner-only too). So people reached an NHL link while the suite was
+  still closed. The owner read it as a push stuck halfway; no push was. **Before the owner shares
+  an NHL or NBA link, check the switch.** The owner sees the same wall on any device that is not
+  signed in with their own Discord account (`OWNER_IDS`; an email sign-in is not the owner).
 - **The live check** (`tools/ci_steps.py live-check`, the last step of deploy.yml and
   nhl-refresh.yml). After every publish it looks at the real site up to four times, 15 s apart:
   the sign-in page is served (401), `/auth/status` says the login is on and the member database

@@ -33,7 +33,7 @@ that, move detail into a rules file.
    After publishing it looks at the real site and puts the last version back if it is down.
 4. Tell the user to hard refresh (Ctrl+Shift+R).
 
-- **The site must never be left down or half-done** (members pay; it was down 2+ hours on 2026-10-13). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: members-and-hosting.md, "The site must never be left down".
+- **The site must never be left down or half-done** (members pay). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: members-and-hosting.md, "The site must never be left down".
 
 - Commit messages end with the Co-Authored-By line the environment specifies.
 - **Never view, print, or ask the user to paste API keys.** `SGO_API_KEY`, `SGO_API_KEY_BACKUP`,
