@@ -51,7 +51,7 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   Once private:
   - the public GitHub API no longer shows the runs, so confirm deploys with `version.json`;
   - private repos get 2,000 free build minutes a month; this project used about 540 a month
-    before the gate and should sit near 900 with it;
+    before the gate, which adds well under a minute per run (first gated run: 3 minutes in all);
   - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
 
 ## Login gate (`nfl_tool/functions/_middleware.js`, Pages Functions)
