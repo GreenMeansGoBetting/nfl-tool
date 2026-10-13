@@ -374,7 +374,9 @@ class Breakdown(unittest.TestCase):
                     zones: [...box.querySelectorAll('svg .nhl-zone-big')].map(text),
                     zone_colors: [...box.querySelectorAll('svg .nhl-zone')].map((z) => [(/nhl-zone-step-(\\d)/.exec(z.getAttribute('class')) || [])[1] || null, getComputedStyle(z.firstElementChild.nextElementSibling).fill]),
                     key: box.querySelectorAll('.shots-rink-key .g5-scale i').length,
-                    zone_ranks: [...box.querySelectorAll('svg .nhl-zone-small')].map(text),
+                    // Each zone's three boxes: [text, the step its color is on], in the order the rink draws the zones.
+                    zone_boxes: [...box.querySelectorAll('svg .nhl-zone-text > g')].map((g) => [...g.querySelectorAll('.nhl-zone-box')].map((b) => [text(b), (/nhl-zone-box-step-(\d)/.exec(b.getAttribute('class')) || [])[1] || null])),
+                    strip: text(box.querySelector('svg .nhl-zone-text > g:last-child')),
                 };
             }""",
             f"{self.game['game_id']}:{self.hughes['id']}",
@@ -418,7 +420,6 @@ class Breakdown(unittest.TestCase):
         self.assertEqual([t[0] for t in detail["tiles"]], ["Shots on goal allowed", "To forwards", "Power-play shots allowed"])
         self.assertTrue(all(tag in ("Leaky", "Stingy", "Average") for tag in detail["tags"]), detail["tags"])
         self.assertEqual(len(detail["tags"]), 3)
-        self.assertIn(f"allows {rank_word(defense['a_slot']['season_rank'])}", detail["zone_ranks"])
         # Six zones, each with the share of his shots from there.
         self.assertEqual(len(detail["zones"]), 5)  # the strip outside the zone is one line of text, not a big number
         self.assertIn(f"{self.hughes['shares']['slot'] * 100:.0f}%", detail["zones"])
@@ -430,6 +431,21 @@ class Breakdown(unittest.TestCase):
         fills = {step: fill for step, fill in detail["zone_colors"] if step}
         self.assertEqual(len(set(fills.values())), len(fills))  # a color per step
         self.assertTrue(all(fill not in ("none", "rgba(0, 0, 0, 0)") for fill in fills.values()), fills)
+        # The defense's side of each zone is three boxes (the owner: "allows 3rd fewest" was all relative):
+        # shots a game it allows from there, that zone's share of all the shots it allows, and the league
+        # rank for shots a game. The count and the rank are on the zone's own step; the share is on the
+        # step of ITS league rank (1st = the biggest share), worked out here from every team's numbers.
+        areas = ["point", "left", "right", "slot", "low_slot", "long"]
+        share = {team: {a: d[f"a_{a}"]["season"] / sum(d[f"a_{x}"]["season"] for x in areas) for a in areas} for team, d in self.shots["defense"].items()}
+        ordinal = lambda n: f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+        for area, step, boxes in zip(drawn, steps, detail["zone_boxes"]):
+            share_rank = sorted(share, key=lambda team: -share[team][area]).index("DET") + 1
+            self.assertEqual([text for text, _ in boxes], [f"{defense[f'a_{area}']['season']:.1f}/g", f"{share['DET'][area] * 100:.0f}%", ordinal(defense[f"a_{area}"]["season_rank"])], area)
+            self.assertEqual([on for _, on in boxes], [step, str((share_rank - 1) * 8 // 32 + 1), step], area)
+        # The strip outside the zone: one line, the same three numbers, no boxes and no color.
+        self.assertEqual(detail["zone_boxes"][5], [])
+        self.assertIn(f"allows {defense['a_long']['season']:.1f}/g", detail["strip"])
+        self.assertNotIn("fewest", " ".join(z for z in detail["zones"]) + detail["strip"])
         self.assertEqual(detail["zone_colors"][-1][1], "rgba(0, 0, 0, 0)")  # the strip outside the zone is never colored
         self.assertEqual(detail["key"], 8)
 

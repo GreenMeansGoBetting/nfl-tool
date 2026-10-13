@@ -36,6 +36,11 @@
 .nhl-zone-text .nhl-zone-big { font-size: 6.4px; font-weight: 800; }
 .nhl-zone-text .nhl-zone-small { font-size: 2.7px; font-weight: 700; fill: var(--muted); }
 .nhl-zone-text .nhl-zone-on-color text { fill: var(--text); }
+/* Three boxes under a zone's big number (nhl-common.js zoneBoxes): what the defense allows from there, each on its own rank color */
+.nhl-zone-text .nhl-zone-big-boxed { font-size: 5.8px; }
+.nhl-zone-box-back { fill: var(--panel); }
+.nhl-zone-box-fill { fill: transparent; stroke: var(--border-strong); stroke-width: 0.22; }
+.nhl-zone-text .nhl-zone-box text { font-size: 2.15px; font-weight: 800; letter-spacing: 0; }
 /* The NHL player card (nhl-common.js): the NFL card's shell (.pc-box, .pc-head, .player-modal-toggle) with hockey tabs */
 .nhl-suite .player-click { cursor: pointer; }
 .nhl-suite .nba-player .player-click { display: inline-flex; align-items: center; gap: 7px; }
@@ -66,7 +71,7 @@
 .shots-card-lineup { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: var(--muted); opacity: 0.75; }
 .shots-card-lineup-in { color: var(--good-text); opacity: 1; }
 .shots-waiting .view-toggle-btn { margin-left: 8px; }
-.shots-rink-key { margin: 6px 0 0; max-width: 380px; font-size: 0.78rem; line-height: 1.5; color: var(--muted); }
+.shots-rink-key { margin: 6px 0 0; max-width: 520px; font-size: 0.78rem; line-height: 1.5; color: var(--muted); }
 .shots-title-game { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 0.8em; color: var(--muted); }
 .shots-box { padding: 0; }
 .shots-scroll { overflow-x: auto; }
@@ -119,7 +124,7 @@
 .shots-allows { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; max-width: 520px; }
 .shots-ladder { width: 100%; max-width: 520px; }
 .shots-ladder tr.shots-main-line td:first-child { font-weight: 800; }
-.shots-detail-rink .nhl-rink { width: 100%; max-width: 380px; margin: 0; }
+.shots-detail-rink .nhl-rink { width: 100%; max-width: 520px; margin: 0; }
 .shots-results { margin-top: 16px; }
 .shots-record { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 760px; padding: 0; margin: 8px 0 0; }
 .shots-record-note { margin: 0; font-size: 0.82rem; color: var(--muted); }

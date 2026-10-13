@@ -94,10 +94,28 @@ const RINK_ZONES = [
 ];
 // Tables list the areas from the net out (the drawing order above is back to front).
 const AREA_ROWS = ["low_slot", "slot", "left", "right", "point", "long"].map((key) => RINK_ZONES.find((z) => z.key === key));
-// One rink. zoneFn(zone) -> { cls, style, tip, big, small } says how each
-// zone is filled and what it reads; the strip outside the zone gets one line
-// ("big · small"). Drawn in layers: the zones' colors, the rink's lines over
-// them, the numbers on top.
+// One rink. zoneFn(zone) -> { cls, style, tip, big, small, boxes } says how
+// each zone is filled and what it reads; the strip outside the zone gets one
+// line ("big · small"). Drawn in layers: the zones' colors, the rink's lines
+// over them, the numbers on top.
+// `boxes` ([{ text, step, w }], in place of `small`) is a row of small boxes
+// under the big number, each on its own rank color (`step`, as rankStep
+// gives it): the three things a defense allows from that zone. Sized so three
+// fit across the low slot, the narrowest zone (18 ft).
+const ZONE_BOX = { w: 5.5, h: 3.7, gap: 0.4 };
+function zoneBoxes(x, top, boxes) {
+  const widths = boxes.map((b) => b.w || ZONE_BOX.w);
+  let left = x - (widths.reduce((a, w) => a + w, 0) + (boxes.length - 1) * ZONE_BOX.gap) / 2;
+  return boxes
+    .map((b, i) => {
+      const at = `x="${left.toFixed(2)}" y="${top.toFixed(2)}" width="${widths[i]}" height="${ZONE_BOX.h}" rx="0.7"`;
+      const mid = left + widths[i] / 2;
+      left += widths[i] + ZONE_BOX.gap;
+      // A solid back first, so a box stands out from a zone filled with the same color.
+      return `<g class="nhl-zone-box${has(b.step) ? ` nhl-zone-box-step-${b.step + 1}` : ""}"><rect class="nhl-zone-box-back" ${at}/><rect class="nhl-zone-box-fill" ${at}${has(b.step) ? ` style="fill:${stepFill(b.step)};stroke:${stepEdge(b.step)}"` : ""}/><text x="${mid.toFixed(2)}" y="${(top + 2.62).toFixed(2)}">${b.text}</text></g>`;
+    })
+    .join("");
+}
 function rinkSvg(uid, ariaLabel, zoneFn) {
   let shapes = "";
   let labels = "";
@@ -108,7 +126,9 @@ function rinkSvg(uid, ariaLabel, zoneFn) {
     // The small print over a colored zone is drawn in the full text color so it stays readable.
     labels += `<g${d.cls ? ` class="nhl-zone-on-color"` : ""}>${z.small
       ? `<text class="nhl-zone-label" x="${x}" y="${y + 2.4}">${z.label}: ${d.big ?? "--"}${d.small ? ` &middot; ${d.small}` : ""}</text>`
-      : `<text class="nhl-zone-label" x="${x}" y="${y}">${z.label}</text><text class="nhl-zone-big" x="${x}" y="${y + 6.6}">${d.big ?? "--"}</text>${d.small ? `<text class="nhl-zone-small" x="${x}" y="${y + 10.4}">${d.small}</text>` : ""}`}</g>`;
+      : d.boxes
+        ? `<text class="nhl-zone-label" x="${x}" y="${y}">${z.label}</text><text class="nhl-zone-big nhl-zone-big-boxed" x="${x}" y="${y + 5.9}">${d.big ?? "--"}</text>${zoneBoxes(x, y + 7, d.boxes)}`
+        : `<text class="nhl-zone-label" x="${x}" y="${y}">${z.label}</text><text class="nhl-zone-big" x="${x}" y="${y + 6.6}">${d.big ?? "--"}</text>${d.small ? `<text class="nhl-zone-small" x="${x}" y="${y + 10.4}">${d.small}</text>` : ""}`}</g>`;
   });
   return `<svg class="nhl-rink" viewBox="0 0 85 84" role="img" aria-label="${ariaLabel}">
       <defs><clipPath id="${uid}"><path d="M0,84 L0,28 A28,28 0 0 1 28,0 L57,0 A28,28 0 0 1 85,28 L85,84 Z"/></clipPath></defs>

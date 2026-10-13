@@ -235,6 +235,28 @@ const plainName = (name) => (name || "").normalize("NFD").replace(/[\u0300-\u036
 function liftCell(lift, tip) {
   return `<td class="num shots-lift ${liftTier(lift)}" title="${tip}">${liftText(lift)}</td>`;
 }
+// Each rink area's share of all the shots a defense allows, and where that
+// share ranks in the league (1st = the biggest share): { team: { area: { share, rank } } }.
+// Display only: the model reads shots a game (shots.json's `defense`), never shares.
+function areaShares() {
+  if (SHOTS.area_shares) return SHOTS.area_shares;
+  const keys = RINK_ZONES.map((z) => z.key);
+  const out = {};
+  Object.entries(SHOTS.defense || {}).forEach(([abbr, d]) => {
+    const all = keys.reduce((a, k) => a + ((d[`a_${k}`] || {}).season || 0), 0);
+    out[abbr] = all ? Object.fromEntries(keys.map((k) => [k, { share: ((d[`a_${k}`] || {}).season || 0) / all }])) : {};
+  });
+  keys.forEach((k) => {
+    Object.keys(out)
+      .filter((abbr) => out[abbr][k])
+      .sort((a, b) => out[b][k].share - out[a][k].share)
+      .forEach((abbr, i) => {
+        out[abbr][k].rank = i + 1;
+      });
+  });
+  SHOTS.area_shares = out;
+  return out;
+}
 function allowsTip(opp, key, what) {
   const d = ((SHOTS.defense || {})[opp] || {})[key];
   if (!d) return "";
@@ -308,20 +330,35 @@ function detailRow(x, columns) {
   };
   const tiles = `<div class="nba-tiles shots-allows">${tile("Shots on goal allowed", "sog")}${tile(forward ? "To forwards" : "To defensemen", forward ? "f_sog" : "d_sog")}${tile("Power-play shots allowed", "pp_unb")}</div>`;
 
-  // The rink shows both sides in every zone: the number is the share of his
-  // shots he takes from there, the color is where the other team ranks for
-  // shots allowed from there on the site's eight rank colors (the owner: no
-  // zone left plain). The same rank the zone says in words, so the color and
-  // the words can't disagree. The strip outside the zone is never colored.
+  // The rink shows both sides in every zone. His side: the big number, the
+  // share of his shots he takes from there. The defense's side: three boxes
+  // (the owner, 2026-10-13: "allows 3rd fewest" was all relative, and wordy):
+  // shots a game it allows from there, that zone's share of all the shots it
+  // allows, and the league rank, each box on the eight rank colors.
+  // The zone itself and the rank are the league-wide count (shots a game), not
+  // the share: a shooter's shots come from how many a defense allows from a
+  // spot, and a team that allows few shots can give up most of them from one
+  // zone and still allow fewer there than anyone. The share box carries its
+  // own league rank's color, so a defense that funnels shots to a zone still
+  // shows. The strip outside the zone is never colored.
   const teams = Object.keys(SHOTS.defense || {}).length || 32;
+  const shares = areaShares();
   const rink = rinkSvg(`shots-rink-${r.id}`, `Where ${r.name} shoots from against what ${r.opp} allows`, (z) => {
     const share = r.shares[z.key] || 0;
     const d = defense[`a_${z.key}`];
+    const of = (shares[r.opp] || {})[z.key];
+    if (!d) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots.` };
+    const step = rankStep(d.season_rank, teams);
+    const allowed = `${fmt(d.season)}/g`;
+    const ofAll = of ? pct(of.share, 0) : "--";
+    const tip = `${z.label}: ${pct(share, 0)} of his shots. ${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)})${of ? `, ${pct(of.share, 0)} of all the shots it allows (${rankWord(of.rank)} share)` : ""}.`;
+    if (z.small) return { big: pct(share, 0), small: `allows ${allowed} &middot; ${ofAll} &middot; ${ordinal(d.season_rank)}`, tip };
     return {
-      ...(d && !z.small ? zoneOnStep(rankStep(d.season_rank, teams)) : {}),
+      ...zoneOnStep(step),
       big: pct(share, 0),
-      small: d ? `allows ${rankWord(d.season_rank)}` : "",
-      tip: `${z.label}: ${pct(share, 0)} of his shots. ${d ? `${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)}).` : ""}`,
+      // Widths in feet on the rink: "10.8/g" needs the most room, and the three still fit the low slot.
+      boxes: [{ text: allowed, step, w: 6.6 }, { text: ofAll, step: of ? rankStep(of.rank, teams) : null, w: 4.7 }, { text: ordinal(d.season_rank), step, w: 5.2 }],
+      tip,
     };
   });
   return `<tr class="shots-detail"><td colspan="${columns}">
@@ -332,8 +369,8 @@ function detailRow(x, columns) {
           <div class="shots-detail-label">Every line, at the model's fair price</div>${ladder}
         </div>
         <div class="shots-detail-rink">
-          <div class="shots-detail-label">Where he shoots <span class="muted-label">and where ${r.opp} ranks for shots allowed from there</span></div>${rink}
-          <p class="shots-rink-key">The number is the share of his shots from that spot. The color is what ${r.opp} allows from there: ${rankScaleKey("the most", "the fewest")}</p>
+          <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span></div>${rink}
+          <p class="shots-rink-key">Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> for shots a game (1st = the most). ${rankScaleKey("the most", "the fewest")}</p>
         </div>
       </div>
     </td></tr>`;
