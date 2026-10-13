@@ -3723,6 +3723,67 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nhl-pc-chip small { color: var(--muted); font-weight: 700; }
 .nhl-pc-ladder { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
 .nhl-pc-thin { margin-left: 4px; padding: 0 5px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+/* NHL Shots (site/nhl/shots.html + shots.js): one ranked table for the day's slate; a row opens its breakdown */
+.shots-toolbar { flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; }
+.shots-filter { display: inline-flex; gap: 6px; }
+.shots-card-empty { opacity: 0.45; }
+.shots-title-game { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 0.8em; color: var(--muted); }
+.shots-box { padding: 0; }
+.shots-scroll { overflow-x: auto; }
+.shots-table { width: 100%; margin: 0; border: none; }
+.shots-table td, .shots-table th { white-space: nowrap; }
+.shots-table th.shots-th-player { text-align: left; padding-left: 10px; }
+.shots-sort { cursor: pointer; user-select: none; }
+.shots-sort:hover, .shots-sort.active { color: var(--accent); }
+.shots-arrow { margin-left: 3px; font-size: 0.8em; }
+.shots-row { cursor: pointer; }
+.shots-row.shots-open > td { border-bottom-color: transparent; }
+.shots-row.shots-open > td:not([class*="tier-"]) { background-color: var(--table-head); }
+.shots-rank { width: 34px; color: var(--muted); }
+.shots-player { padding-left: 10px; }
+.shots-player .muted-label { font-style: normal; font-size: 0.72rem; font-weight: 700; }
+.shots-vs { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; padding-left: 10px; }
+.shots-vs .at { font-size: 0.68rem; font-weight: 700; color: var(--muted); }
+.shots-play-cell { text-align: center; }
+.shots-play { display: inline-flex; align-items: baseline; gap: 7px; padding: 2px 9px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--table-head); font-family: var(--font-display); }
+.shots-play b { font-size: 0.98rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.shots-play span { font-size: 0.92rem; font-weight: 700; color: var(--muted); }
+.shots-play-over { border-color: rgba(var(--good-rgb), 0.5); background: rgba(var(--good-rgb), 0.1); }
+.shots-play-under { border-color: rgba(var(--bad-rgb), 0.5); background: rgba(var(--bad-rgb), 0.1); }
+.shots-table .group-row.shots-check-head td { white-space: normal; }
+.shots-noline { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); opacity: 0.7; }
+.shots-table td.shots-proj b { font-size: 1.12rem; }
+.shots-table td.shots-edge { font-size: 1.05rem; }
+.shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+.shots-up, .shots-down { margin-left: 3px; font-size: 0.62em; }
+.shots-up { color: rgb(var(--good-rgb)); }
+.shots-down { color: rgb(var(--bad-rgb)); }
+.shots-table td.shots-lift:not([class*="tier-"]) { color: var(--muted); font-weight: 600; }
+.shots-detail > td { padding: 12px 14px 16px !important; background: var(--panel) !important; white-space: normal; cursor: default; }
+.shots-detail-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.shots-detail-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.shots-detail-label { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+.shots-detail-label .muted-label { font-style: normal; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+.shots-build { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+.shots-step { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 86px; padding: 5px 10px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
+.shots-step small { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.shots-step b { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; line-height: 1.1; }
+.shots-step.tier-good { background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.45); }
+.shots-step.tier-bad { background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.42); }
+.shots-step-end { border-color: var(--border-strong); background: var(--table-head); }
+.shots-step-end b { font-size: 1.45rem; }
+.shots-allows { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; max-width: 520px; }
+.shots-ladder { width: 100%; max-width: 520px; }
+.shots-ladder tr.shots-main-line td:first-child { font-weight: 800; }
+.shots-detail-rink .nhl-rink { width: 100%; max-width: 380px; margin: 0; }
+.shots-results { margin-top: 16px; }
+.shots-record { grid-template-columns: repeat(6, minmax(0, 1fr)); max-width: 1000px; padding: 0; margin: 8px 0 0; }
+.shots-record-note { margin: 0; font-size: 0.82rem; color: var(--muted); }
+.shots-about { margin-top: 16px; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
+.shots-about summary { cursor: pointer; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.shots-about-body { max-width: 900px; font-size: 0.9rem; line-height: 1.45; color: var(--text); }
+.shots-about-body ul { margin: 6px 0 10px; padding-left: 20px; }
+.shots-about-body li { margin: 3px 0; }
 
 /* .sc-tight: a Summary card too full to fit near full size gives up padding and gaps before
    its text is shrunk (fitSummaryCard, SUMMARY_TIGHT_BELOW). Nothing is hidden. */
@@ -3783,6 +3844,18 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .nhl-pc-map { grid-template-columns: minmax(0, 1fr); }
   .nhl-pc-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .nhl-pc-seasons { margin-left: 0; }
+  /* The table scrolls sideways in its box; an open breakdown stays one screen wide and in view. */
+  .shots-detail-grid { grid-template-columns: minmax(0, 1fr); width: calc(100vw - 92px); position: sticky; left: 10px; }
+  .shots-detail > td { padding: 10px 10px 14px !important; position: static !important; box-shadow: none !important; }
+  /* Pin the player, not the rank number, while the columns scroll. */
+  .shots-table tbody td.shots-rank { position: static; box-shadow: none; }
+  .shots-table tbody td.shots-player { position: sticky; left: 0; z-index: 2; background-color: var(--panel-2); box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.6); }
+  .shots-table thead th:first-child { position: static; }
+  .shots-vs { display: none; }
+  .shots-allows .nba-tile b { font-size: 1.1rem; }
+  .shots-filter .view-toggle-btn { padding: 5px 9px; font-size: 0.78rem; }
+  .shots-step { min-width: 70px; padding: 4px 6px 5px; }
+  .shots-record { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .mw-page .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }

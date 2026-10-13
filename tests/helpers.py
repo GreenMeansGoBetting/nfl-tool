@@ -18,6 +18,12 @@ tests/fixtures/, so the right answers can't change from week to week:
                            UTC (teams about 5 games into 2026-27).
   * nhl_players.json.gz -- two of that build's per-team player files (NJD and
                            DET: game logs and shot areas for the player card).
+  * nhl_shots.json.gz   -- the Shots page's shots.json for that same build:
+                           the 16 games of 10-13 projected from the 89 games
+                           before them, and the three 10-12 games as they
+                           were projected that morning, locked, with each
+                           player's real shots on goal. Its "record" block is
+                           made up (the real one comes from model_history).
 
 tests/ sits outside nfl_tool/, so none of it is deployed and a push that only
 touches tests doesn't rebuild the site.
@@ -81,6 +87,15 @@ def nhl_data_bytes():
 
 def nhl_data():
     return json.loads(nhl_data_bytes())
+
+
+def nhl_shots_bytes():
+    """The Shots sample exactly as the Shots page would download it."""
+    return _fixture_bytes("nhl_shots.json.gz")
+
+
+def nhl_shots():
+    return json.loads(nhl_shots_bytes())
 
 
 def nhl_players():

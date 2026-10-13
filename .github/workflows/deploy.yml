@@ -111,7 +111,8 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json
 
-      # GMG NHL Suite data (site/nhl/data.json). Hockey has no season files:
+      # GMG NHL Suite data (site/nhl/data.json, plus shots.json for the Shots
+      # page and one file per team for the player card). Hockey has no season files:
       # the build downloads each finished game from the NHL's feed once and
       # keeps it in data/nhl. This cache carries that folder from one run to
       # the next; without it a run just downloads the season so far again.
@@ -148,14 +149,17 @@ jobs:
       # keeps the record in the repo, so it survives even if the next build
       # can't read the live site. It only changes when a game locks or goes
       # final. Never allowed to block the deploy.
+      # The NHL Shots page's graded plays are kept the same way
+      # (model_history/nhl_shots/<month>.json: a game is added once, when it
+      # is final), so the whole folder is added.
       - name: Save GMG model record
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add model_history/gmg_model.json
+          git add model_history
           if ! git diff --cached --quiet; then
-            git commit -m "GMG model record: lock kicked-off games and grade finals"
+            git commit -m "Model records: lock started games and grade finals"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
@@ -189,6 +193,10 @@ jobs:
                       note["player_odds"] = novig["players"]
                   if feed:
                       note.update(games=feed.get("games_loaded"), wanted=feed.get("games_wanted"), downloaded=feed.get("games_downloaded"))
+                  if suite == "nhl":
+                      # The Shots page's own file: how many games have projections.
+                      shots = site / "nhl" / "shots.json"
+                      note["shots"] = len(json.loads(shots.read_text()).get("games") or {}) if shots.exists() else None
               except Exception:
                   note = {"built": None}
                   log = Path(f"{suite}_build.log")

@@ -32,15 +32,17 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     a login (`/version.json` is let through by the middleware). It is how a deploy is confirmed.
     It also carries `nba` and `nhl`: when each of those builds last worked (`built`, null if it
     failed), how many lines it matched, and for NHL the games loaded / downloaded, how many
-    players got odds (`player_odds`), or the failed build's last line (`error`). Their data files are behind the login, so this is the only way
+    players got odds (`player_odds`), how many games the Shots page has projections for
+    (`shots`), or the failed build's last line (`error`). Their data files are behind the login, so this is the only way
     to see those builds from outside.
 - It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, and on manual dispatch. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
   are free, so they're fetched fresh on every build.
 - Other steps: "Build NBA data" and "Build NHL data" (both `continue-on-error`; the NHL one
   sits between "Restore saved NHL games" and "Save NHL games", see nhl.md), "Note the NBA and NHL
-  builds in version.json", and "Save GMG model record" (commits
-  `model_history/gmg_model.json` as github-actions[bot]; the workflow has `contents: write`).
+  builds in version.json", and "Save GMG model record" (commits everything in
+  `model_history/` as github-actions[bot]: `gmg_model.json` and the NHL Shots record,
+  `nhl_shots/<month>.json`; the workflow has `contents: write`).
 - **`.github/workflows/site-check.yml`** runs after every successful deploy (and on demand): it
   downloads the LIVE data (`tools/fetch_live_data.py`, same `X-GMG-Build` key) and runs
   `tools/check_site.py` in its own job, so the deploy never waits on it or installs a browser. A

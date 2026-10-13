@@ -66,17 +66,20 @@ that, move detail into a rules file.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim.
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
-- `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
+- `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
+- `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model (projection, chance to clear a line, fair price).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, on pushes touching
   `nfl_tool/**`, and on manual dispatch (the site's "Update Odds" button). `cloudflare-domain.yml`: one-off domain attach.
 - `model_history/gmg_model.json`: the model's locked projections, committed by the deploy bot.
+  `model_history/nhl_shots/<month>.json`: the NHL Shots page's graded plays, kept the same way.
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
   `.github/workflows/site-check.yml` runs it against the live data after every deploy.
 - `tools/run_tests.py` + `tests/`: the permanent tests. Plain Python for the build code; the site's
   JavaScript runs in a real browser on the saved data (`tests/site_browser.py`), like the site check.
-- `tools/backtest/`: week-by-week replay of the GMG model on past seasons (`features.py`, then `analyze.py`).
+- `tools/backtest/`: week-by-week replay of the GMG model on past seasons (`features.py`, then `analyze.py`);
+  `nhl_shots.py` replays the NHL shots model the same way and fits its weights.
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
@@ -88,6 +91,7 @@ that, move detail into a rules file.
   - `sync.js`: member profiles, account chip, feature requests, suite switcher. `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and every page's styles.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
+  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value).
   - `nhl/nhl-common.js`: shared by every NHL page (data, rink drawing, the NHL player card).
 
 ## Rules that apply everywhere
@@ -136,7 +140,7 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists):
 - `data-pipeline.md`: sources, Novig / SGO odds rules, odds lock, injuries, lineup-aware usage, opponent adjustment.
 - `styles.md`: the site-wide look, phone layout, summary-card fit / zoom / Save image.
 - `nba.md`: the NBA suite (data sources, build, pages, suite switcher, launch switch).
-- `nhl.md`: the NHL suite (the NHL's own feed, kept games, rink areas, pages; never MoneyPuck).
+- `nhl.md`: the NHL suite (the NHL's own feed, kept games, rink areas, pages, the Shots model and its record; never MoneyPuck).
 
 The engineering clean-up plan and its status: `docs/foundation-plan.md` (one item per session).
 

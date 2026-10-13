@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NHL Suite &mdash; Shots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body class="nhl-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG's NHL Suite home"><span class="brand-mark">GMG</span><span class="brand-name">NHL <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="./">Game Previews</a>
+    <span class="page-nav-current">Shots</span>
+    <span class="page-nav-soon" title="Being built for the 2026-27 season">More tools coming</span>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <!-- Until launch, only the owner (and local testing) sees the NHL tools
+       (the same guard as Game Previews: .nba-app / .nba-soon in style.css). -->
+  <div class="nba-soon empty-state">
+    <p><b>GMG NHL Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NHL slate&hellip;</p></div>
+
+    <div id="shots-app" class="section-wrap" hidden>
+      <h2 class="section-title" id="shots-title">Shots on Goal</h2>
+      <p class="section-note">Every skater on the slate, best value first. <b>Proj</b> is the shots on goal the model expects; <b>Edge</b> is the model's chance minus the chance Novig's price needs to break even. The columns on the right show what moved the number tonight: green means more shots, red fewer. Click a row for the full breakdown, a name for the player card, a game above to see only that game.</p>
+      <div id="shots-toolbar" class="view-toggle shots-toolbar"></div>
+      <p id="shots-locked" class="no-data-note" hidden></p>
+      <div id="shots-content"></div>
+      <div id="shots-results" class="shots-results"></div>
+
+      <details class="shots-about">
+        <summary>How the number is made, and how far to trust it</summary>
+        <div class="shots-about-body">
+          <p><b>Shots per minute &times; minutes tonight &times; tonight's matchup.</b> His shot rate comes from every minute he has played this season and last (recent games count a little more), read mostly from his shot attempts, which settle down sooner than shots on goal. His minutes come from his last few games. The matchup is what the other team allows: shots on goal overall, to his position, from the parts of the ice he shoots from, and on the power play, plus home ice and back-to-backs.</p>
+          <p><b>What a full-season replay showed</b> (2025-26: every game projected only from the games before it, 46,478 player-games):</p>
+          <ul>
+            <li>His own rate and his ice time are most of it. The other team's defense moves a projection about 6% either way; position 2%; where he shoots from 1%; the power play 1 to 2%; home ice +3%; a back-to-back about 3.5%.</li>
+            <li>A hot or cold last five games predicted nothing beyond his rate and minutes.</li>
+            <li>The chances were honest: players the model gave 60 to 70% to clear a line cleared it 66% of the time.</li>
+            <li>The single biggest thing it can't see is tonight's ice time. A player moved up a line or onto the top power play will shoot more than his recent games say.</li>
+          </ul>
+          <p><b>What it has not shown:</b> that it beats the betting line. There is no free history of shots-on-goal prices to test against, and the market sees lineup news the model doesn't. So the page keeps its own record, above: every play graded at the price that was locked before puck drop. Until that record says otherwise, treat an edge as a spot worth a look, and a very large one (marked <i>check</i>) as a reason to look for news first.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: the NHL's public game feed (play-by-play, box scores); injuries from ESPN. Lines: Novig.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="nhl-common.js"></script>
+<script src="shots.js"></script>
+</body>
+</html>

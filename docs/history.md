@@ -1009,3 +1009,37 @@ saves). They also said the five-game sample is understood and the season switch 
 - **Why goalie zones are rarely colored:** a .911 on 90 shots from one side looks bad next to
   the league's .937 but is two extra goals, well within luck. A zone needs 30 shots and a gap of
   1.5 standard deviations.
+
+### NHL Shots tool (2026-10-13, the first tool built on the player card)
+
+The user asked for a shots on goal tool that weighs "a variety of factors" (ice time, shots a
+game, where he shoots, where the defense gives shots up, position) and ranks players best to
+worst with a fair price. They said they don't know hockey well, and named their hold-back:
+"Vegas has this info and can model better than me", but "if there's anything we can do to get an
+edge or at least get to a place where we are identifying good spots, that would be awesome."
+
+- **Why a replay came before the page:** with no hockey instinct to lean on, the weights had to
+  come from data. 2024-25 was downloaded (1,312 games, about 4 minutes) so 2025-26 could be
+  replayed the way the live build runs: each game projected from the games before it plus the
+  season before. `tools/backtest/nhl_shots.py` prints the whole thing.
+- **What the replay said about the user's factor list:** all of them are real, but small next to
+  the player's own rate and ice time. The defense's overall number is worth about 6% either way
+  for most players, position 2%, the rink areas 1%, the power play 1-2%, home ice 3%, a
+  back-to-back 3.5%. Recent form (the last five games against his own rate) predicted nothing.
+  Team strength and attempts-allowed added nothing once shots allowed was in. So "where he
+  shoots against where they give shots up" is on the page because the user asked for it and it
+  is real, but it is drawn as the small piece it is.
+- **Why attempts:** a rate read from shot attempts (on goal, wide or blocked) predicted his next
+  shots on goal better than his shots on goal did, so the rate is three quarters attempts.
+- **Why the minutes get their own column:** the replay's projection with the REAL ice time known
+  beat everything else by a wide margin. Ice-time news is where an edge would come from, and it
+  is exactly what the model can't see.
+- **The first slate (16 games, 233 two-sided lines):** the model and Novig's no-cut chances
+  agreed closely (correlation 0.83), with the model about 2 points lower on overs on average.
+  The biggest gap was a fourth-liner playing 9 minutes whom the book had lined at 2.5 shots (a
+  promotion). That is why a 12+ point gap goes into its own "look for news first" group instead
+  of topping the ranking.
+- **Why a committed record:** nothing free has a history of shots-on-goal prices, so "does it
+  beat the line" cannot be replayed. The page grades its own plays at the prices locked before
+  puck drop and the deploy commits them (`model_history/nhl_shots/`, one file a month so the
+  repo doesn't store a growing file every day).

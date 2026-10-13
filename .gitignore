@@ -8,6 +8,7 @@ nfl_tool/data/
 nfl_tool/site/data.json
 nfl_tool/site/nba/data.json
 nfl_tool/site/nhl/data.json
+nfl_tool/site/nhl/shots.json
 nfl_tool/site/nhl/players/
 
 # Downloads kept between local builds (nflverse files, NBA season files, NHL games)

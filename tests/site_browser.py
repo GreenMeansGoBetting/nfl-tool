@@ -7,7 +7,7 @@ call the page's own functions.
 """
 import json
 
-from helpers import SAMPLE_BUILT_UTC, nhl_data_bytes, nhl_players, site_data_bytes  # first: puts tools/ on the import path
+from helpers import SAMPLE_BUILT_UTC, nhl_data_bytes, nhl_players, nhl_shots_bytes, site_data_bytes  # first: puts tools/ on the import path
 
 from check_site import INSTALL_HELP, start_server
 
@@ -19,6 +19,7 @@ class SiteBrowser:
         except ImportError:
             raise RuntimeError(INSTALL_HELP) from None
         self.errors = []
+        self.missing = set()  # paths a test wants answered "not built" (404), e.g. "/nhl/shots.json"
         self.server = start_server()
         self.origin = f"http://127.0.0.1:{self.server.server_address[1]}"
         self._playwright = sync_playwright().start()
@@ -35,10 +36,14 @@ class SiteBrowser:
 
     def _route(self, route):
         url = route.request.url.split("?")[0]
-        if url == f"{self.origin}/data.json":
+        if url[len(self.origin):] in self.missing:
+            route.fulfill(status=404, body="")
+        elif url == f"{self.origin}/data.json":
             route.fulfill(status=200, content_type="application/json", body=site_data_bytes())
         elif url == f"{self.origin}/nhl/data.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_data_bytes())
+        elif url == f"{self.origin}/nhl/shots.json":
+            route.fulfill(status=200, content_type="application/json", body=nhl_shots_bytes())
         elif url.startswith(f"{self.origin}/nhl/players/"):
             # Only the saved teams exist; any other team's file is "not built".
             team = nhl_players().get(url.rsplit("/", 1)[-1].removesuffix(".json"))

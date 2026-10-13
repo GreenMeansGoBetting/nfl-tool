@@ -21,7 +21,7 @@ from pathlib import Path
 
 SITE = Path(__file__).resolve().parent.parent / "nfl_tool" / "site"
 LIVE = "https://nfl.gmgsports.org"
-FILES = ["data.json", "nba/data.json", "nhl/data.json"]
+FILES = ["data.json", "nba/data.json", "nhl/data.json", "nhl/shots.json"]
 
 
 def nhl_player_files():

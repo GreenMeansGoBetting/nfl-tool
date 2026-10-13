@@ -48,6 +48,7 @@ PAGES = [
     ("Support", "support.html", None),
     ("NBA Game Previews", "nba/index.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
+    ("NHL Shots", "nhl/shots.html", None),
 ]
 # The other suites' pages: they have a schedule strip to wait for, and their
 # data builds are allowed to fail without holding up the NFL site.

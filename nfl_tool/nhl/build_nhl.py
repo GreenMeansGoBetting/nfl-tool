@@ -19,6 +19,9 @@ Last season's numbers come from a small saved file next to this script
 show them while this season's sample is small without downloading 1,300
 games on every cold start.
 
+The Shots page's projections (site/nhl/shots.json) are worked out here
+too, by shots_model.py, from the same finished games.
+
 Seasons are named by the year they END, like the NBA build (2027 = 2026-27).
 Team keys are the NHL's own abbreviations (TBL, NJD, SJS, LAK, UTA ...).
 """
@@ -27,6 +30,7 @@ import gzip
 import hashlib
 import hmac
 import json
+import math
 import os
 import statistics
 import sys
@@ -38,6 +42,8 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import shots_model
 
 API = "https://api-web.nhle.com/v1"
 REST = "https://api.nhle.com/stats/rest/en"
@@ -70,6 +76,20 @@ NOVIG_MARKET_FILTER = {
     ]
 }
 LIVE_DATA_URL = "https://nfl.gmgsports.org/nhl/data.json"
+LIVE_SHOTS_URL = "https://nfl.gmgsports.org/nhl/shots.json"
+# The Shots page projects games through this many days out (books post
+# shots-on-goal lines about a day ahead) and keeps the chance of 1+ ... 8+.
+SHOTS_DAYS_AHEAD = 2
+SHOTS_LADDER = 8
+# Injury statuses that mean "not playing" (everything but day-to-day).
+OUT_STATUSES = ("Out", "Injured Reserve", "Suspension")
+# An edge is the model's chance minus the chance the price needs to break
+# even. The page colors a play from "lean", and sets a play at "check" or more
+# apart: a gap that big is more often news the model can't see than a gift.
+SHOTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
+# Every graded play, one file a month (2026-10.json ...), committed by the
+# deploy like the NFL model's record so it survives anything the site loses.
+SHOTS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_shots"
 LINE_FIELDS = (
     "away_team_spread", "home_team_spread", "away_spread_odds", "home_spread_odds", "total_line",
     "over_odds", "under_odds", "away_moneyline", "home_moneyline", "away_ml_implied_prob", "home_ml_implied_prob",
@@ -230,6 +250,7 @@ def reduce_game(raw: dict) -> dict:
                 continue
             t["unb"] += 1
             t["unb_5v5"] += even
+            t["unb_pp"] += man == "pp"
             mine["unb"] += 1
             mine["pp_unb"] += man == "pp"
             on_goal = kind in ("goal", "shot-on-goal")
@@ -973,18 +994,18 @@ def team_namer(teams: dict):
     return lambda name: next((abbr for mascot, abbr in by_mascot.items() if plain(name).endswith(mascot)), None)
 
 
-def fetch_previous() -> dict | None:
-    """The deployed nhl/data.json (behind the member login; the build proves
-    itself the same way build_stats.py does). None on any failure."""
+def fetch_previous(url: str = LIVE_DATA_URL) -> dict | None:
+    """The deployed nhl/data.json or shots.json (behind the member login; the
+    build proves itself the same way build_stats.py does). None on any failure."""
     try:
         headers = {"User-Agent": USER_AGENT}
         token = os.environ.get("DISCORD_BOT_TOKEN")
         if token:
             headers["X-GMG-Build"] = hmac.new(token.encode(), b"gmg-build-v1", hashlib.sha256).hexdigest()
-        with urllib.request.urlopen(urllib.request.Request(LIVE_DATA_URL, headers=headers), timeout=20) as resp:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=20) as resp:
             return json.load(resp)
     except Exception as e:
-        print(f"NOTE: no previous NHL data to carry lines from ({e}).", file=sys.stderr)
+        print(f"NOTE: no previous {url.rsplit('/', 1)[-1]} to carry locked numbers from ({e}).", file=sys.stderr)
         return None
 
 
@@ -1012,6 +1033,162 @@ def locked_player_odds(games: list, fresh: dict, previous: dict | None, now_utc:
         odds = prev.get(g["game_id"]) if started else fresh.get(g["game_id"]) or prev.get(g["game_id"])
         if odds:
             out[g["game_id"]] = odds
+    return out
+
+
+# ---- the Shots page ----
+def shots_model_for(records: list, prior: dict):
+    """The shots-on-goal model with last season's summary and every finished game of this one."""
+    model = shots_model.ShotsModel(prior.get("shots"))
+    for record in records:
+        model.add_game(record)
+    return model
+
+
+def shot_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool) -> dict | None:
+    """One skater's projection for one game, with what it is made of."""
+    proj = model.project(player["id"], opp, home, rest, opp_rest)
+    if proj is None:
+        return None
+    usual = proj["base"] * math.exp(model.w["scale"])
+    return {
+        "id": player["id"], "name": player["name"], "team": player["team"], "opp": opp, "home": home, "pos": player["pos"], "out": out,
+        # mean = usual x matchup: his shot rate in tonight's minutes, then what tonight changes.
+        "mean": round(proj["mean"], 2), "usual": round(usual, 2), "matchup": round(proj["mean"] / usual, 3) if usual else 1.0,
+        "minutes": round(proj["minutes"], 1), "rate60": round(proj["rate"]["per_min"] * 60, 2), "att60": round(proj["rate"]["attempts"] * 60, 1),
+        "thru": round(proj["rate"]["thru"], 3), "pp_share": round(proj["pp_share"], 3),
+        "lift": {key: round(value, 3) for key, value in proj["lift"].items()},
+        "shares": {area: round(share, 3) for area, share in proj["shares"].items()},
+        # The chance of 1 or more, 2 or more ... shots on goal.
+        "chances": [round(shots_model.chance_at_least(proj["mean"], n), 3) for n in range(1, SHOTS_LADDER + 1)],
+    }
+
+
+def shots_defense(model, teams) -> dict:
+    """{team: {stat: what its defense allows a game}} for the stats the
+    model reads: this season, last season, the blend the model uses, the
+    league's number and where the blend ranks (1 = allows the most)."""
+    stats = ["sog", "f_sog", "d_sog", "pp_unb", *(f"a_{area}" for area in AREAS)]
+    out = {team: {key: model.allowed(team, key) for key in stats} for team in teams}
+    for key in stats:
+        order = sorted(out, key=lambda team: -out[team][key]["blend"])
+        for team in out:
+            row = out[team][key]
+            out[team][key] = {
+                "season": num(row["season"]), "prev": num(row["prev"]), "blend": num(row["blend"]), "league": num(row["league"]),
+                "factor": num(row["factor"], 3), "rank": order.index(team) + 1,
+            }
+    return out
+
+
+def shots_board(model, games: list, lineups: dict, injuries: dict, records: list, previous: dict | None, now_utc: datetime) -> dict:
+    """{game id: {"locked", "players": [rows]}} for the Shots page. A game
+    that hasn't started gets fresh projections; one that has started keeps
+    the last build's (the same lock as the lines: a projection made after
+    puck drop would already know the game), and a finished one gets each
+    player's real shots on goal next to it."""
+    prev_games = (previous or {}).get("games") or {}
+    finished = {str(r["id"]): r for r in records}
+    last_day = (now_utc - timedelta(hours=4) + timedelta(days=SHOTS_DAYS_AHEAD)).strftime("%Y-%m-%d")
+    out = {}
+    for g in games:
+        started = g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+        if started:
+            kept = prev_games.get(g["game_id"])
+            if not kept:
+                continue
+            entry = {**kept, "locked": True}
+            record = finished.get(g["game_id"])
+            if record:
+                entry["final"] = True
+                entry["players"] = [{**row, "actual": (record["skaters"].get(row["id"]) or {}).get("sog")} for row in kept["players"]]
+            out[g["game_id"]] = entry
+            continue
+        if g["date"] > last_day:
+            continue
+        rows = []
+        for team, opp, side, other in ((g["away"], g["home"], "away", "home"), (g["home"], g["away"], "home", "away")):
+            out_ids = {p["id"] for p in injuries.get(team) or [] if p.get("id") and p.get("status") in OUT_STATUSES}
+            for player in lineups.get(team) or []:
+                row = shot_row(model, player, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), player["id"] in out_ids)
+                if row:
+                    rows.append(row)
+        if rows:
+            out[g["game_id"]] = {"locked": False, "players": sorted(rows, key=lambda row: -row["mean"])}
+    return out
+
+
+# ---- the Shots record ----
+def break_even(american: int) -> float:
+    """The chance a price needs to break even (-150 -> 0.6, +150 -> 0.4)."""
+    return -american / (100 - american) if american < 0 else 100 / (american + 100)
+
+
+def shots_play(chance_over: float, line: float, over, under) -> dict | None:
+    """The side of a main line the model likes more, at the book's price
+    (the page's "Best side": shots.js pickSide)."""
+    sides = [(side, price, chance) for side, price, chance in (("over", over, chance_over), ("under", under, 1 - chance_over)) if price is not None]
+    if not sides:
+        return None
+    side, price, chance = max(sides, key=lambda x: x[2] - break_even(x[1]))
+    return {"side": side, "line": line, "price": price, "chance": chance, "edge": chance - break_even(price)}
+
+
+def record_finished_games(folder: Path, board: dict, player_odds: dict, games: list) -> int:
+    """Adds each newly finished game to the record: every player who had a
+    main shots-on-goal line and played, with the projection and the prices
+    that were locked before puck drop and his real shots on goal. A game is
+    written once and never changed. Returns how many were added."""
+    by_month = {}
+    for g in games:
+        entry = board.get(g["game_id"]) or {}
+        if entry.get("final"):
+            by_month.setdefault(g["date"][:7], []).append((g, entry))
+    added = 0
+    for month, finals in by_month.items():
+        path = folder / f"{month}.json"
+        saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"games": {}}
+        before = len(saved["games"])
+        for g, entry in finals:
+            if g["game_id"] in saved["games"]:
+                continue
+            plays = []
+            for row in entry["players"]:
+                market = ((player_odds.get(g["game_id"]) or {}).get(row["id"]) or {}).get("sog")
+                need = math.floor(market["line"]) + 1 if market else 0
+                if not market or row.get("actual") is None or not 1 <= need <= len(row["chances"]):
+                    continue
+                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"]])
+            if plays:
+                saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
+        if len(saved["games"]) > before:
+            folder.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
+            added += len(saved["games"]) - before
+    return added
+
+
+def shots_record_summary(folder: Path) -> dict:
+    """The record so far, by how big the edge was when the game locked:
+    wins, losses and units won risking 1 unit a play at the locked price."""
+    tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
+    out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally()}
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
+            out["games"] += 1
+            out["since"] = min(out["since"] or game["date"], game["date"])
+            out["through"] = max(out["through"] or game["date"], game["date"])
+            for _id, _name, _team, line, over, under, _mean, chance_over, actual in game["plays"]:
+                play = shots_play(chance_over, line, over, under)
+                if play is None or actual == line:
+                    continue
+                won = (actual > line) == (play["side"] == "over")
+                units = (100 / -play["price"] if play["price"] < 0 else play["price"] / 100) if won else -1.0
+                size = next((key for key in ("check", "strong", "lean") if play["edge"] >= SHOTS_EDGES[key]), "none")
+                # Overs against unders: only the plays the page calls an edge.
+                for key in (size, *([play["side"]] if size in ("strong", "lean") else [])):
+                    out[key]["wins" if won else "losses"] += 1
+                    out[key]["units"] = round(out[key]["units"] + units, 2)
     return out
 
 
@@ -1070,6 +1247,8 @@ def write_prior(season: int, data_dir: Path, out: Path) -> None:
     blob = {
         "season": season, "season_label": season_label(season), "team_stats": stats["team_stats"], "skaters": stats["skaters"], "goalies": stats["goalies"],
         "detail": stats["detail"], "league": stats["league"],
+        # What next season's shots-on-goal model starts from (shots_model.season_summary).
+        "shots": shots_model.season_summary(stats["records"]),
     }
     with gzip.open(out, "wt", encoding="utf-8") as f:
         json.dump(blob, f, separators=(",", ":"))
@@ -1092,6 +1271,7 @@ def main():
     parser.add_argument("--out", type=Path, help="Where to write data.json")
     parser.add_argument("--data-dir", type=Path, default=Path("data/nhl"), help="Where finished games are kept between builds")
     parser.add_argument("--write-prior", type=Path, metavar="FILE", help="Instead of data.json, save this (finished) season's numbers for next season's build")
+    parser.add_argument("--record-dir", type=Path, default=SHOTS_RECORD_DIR, help="Where the Shots page's graded plays are kept")
     args = parser.parse_args()
     if args.write_prior:
         return write_prior(args.season, args.data_dir, args.write_prior)
@@ -1126,6 +1306,8 @@ def main():
     apply_lines(games, novig, previous, now_utc)
     injuries, injuries_error = fetch_injuries(teams, stats["skaters"], stats["goalies"])
     generated_at = now_utc.strftime("%Y-%m-%dT%H:%MZ")
+    lineups = lineup(stats["skaters"], team_games)
+    player_odds = locked_player_odds(games, novig_players, previous, now_utc)
 
     blob = {
         "season": args.season,
@@ -1140,11 +1322,11 @@ def main():
         "team_stats": stats["team_stats"],
         "team_stats_prev": prior.get("team_stats") or {},
         "recent_games": compute_recent_games(stats["records"]),
-        "skaters": lineup(stats["skaters"], team_games),
+        "skaters": lineups,
         "goalies": goalies,
         "injuries": injuries,
         "schedule": games,
-        "player_odds": locked_player_odds(games, novig_players, previous, now_utc),
+        "player_odds": player_odds,
         "novig_debug": novig_debug,
         "feed_debug": {**stats["debug"], "injuries_error": injuries_error},
     }
@@ -1152,6 +1334,20 @@ def main():
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
     write_player_files(args.out.parent / "players", teams, stats, prior, generated_at)
+    model = shots_model_for(stats["records"], prior)
+    board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc)
+    try:
+        record_finished_games(args.record_dir, board, player_odds, games)
+        record = shots_record_summary(args.record_dir)
+    except Exception as e:  # a damaged record file must never cost the page its projections
+        print(f"WARNING: the Shots record couldn't be updated ({e}).", file=sys.stderr)
+        record = None
+    shots = {
+        "season": args.season, "generated_at": generated_at, "weights": model.w, "dispersion": shots_model.DISPERSION, "edges": SHOTS_EDGES,
+        "games": board, "defense": shots_defense(model, teams), "record": record,
+    }
+    with open(args.out.parent / "shots.json", "w") as f:
+        json.dump(shots, f, separators=(",", ":"))
     d = stats["debug"]
     print(f"Wrote {args.out} -- {season_label(args.season)}: {d['games_loaded']} of {d['games_wanted']} finished games ({d['games_downloaded']} downloaded), {len(games)} on the schedule, lines for {novig_debug['matched']}")
     if d["errors"]:
