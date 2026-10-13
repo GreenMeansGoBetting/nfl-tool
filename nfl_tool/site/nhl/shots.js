@@ -14,7 +14,7 @@
 let SHOTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
-const shotsView = { side: "best", pos: "all", lineup: "confirmed", sort: "edge", dir: -1, open: null };
+const shotsView = { side: "best", pos: "all", lineup: "confirmed", sort: "edge", dir: -1, open: null, record: "edge" };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -417,7 +417,50 @@ function renderRecord() {
       ${tile("Unders with an edge", record.under, `Unders with an edge of ${n("lean")} to ${n("check")}`)}
       ${record.fade ? tile("Against his average", record.fade, `Plays with an edge that went against the player's own season average: the model not believing a hot or cold start`) : ""}
       ${record.with ? tile("With his average", record.with, `Plays with an edge that his own season average agreed with`) : ""}
-    </div>`;
+    </div>
+    ${recordPlays(record)}`;
+}
+// The graded plays themselves, under the buckets: every play that declared an
+// edge on a finished game, newest day first, each day headed by its own record.
+// Buckets: the plays with an edge (lean + strong, how it opens), either one
+// alone, or the "check first" group the page sets apart as not plays.
+const RECORD_BUCKETS = [["edge", "Every edge", ["strong", "lean"]], ["strong", "Strong", ["strong"]], ["lean", "Lean", ["lean"]], ["check", "Check first", ["check"]]];
+function recordPlays(record) {
+  const all = record.plays || [];
+  if (!all.length) return "";
+  const n = (size) => Math.round(edgeAt(size) * 100);
+  const range = { edge: `${n("lean")} to ${n("check")}`, strong: `${n("strong")} to ${n("check")}`, lean: `${n("lean")} to ${n("strong")}`, check: `${n("check")}+ or against a line change` };
+  const bucket = RECORD_BUCKETS.find(([key]) => key === shotsView.record) || RECORD_BUCKETS[0];
+  const shown = all.filter((play) => bucket[2].includes(play.size));
+  const sum = (plays) => plays.reduce((t, play) => ({ wins: t.wins + (play.won ? 1 : 0), losses: t.losses + (play.won ? 0 : 1), units: t.units + play.units }), { wins: 0, losses: 0, units: 0 });
+  const line = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
+  const buttons = RECORD_BUCKETS.map(([key, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bucket[0] === key ? " active" : ""}" data-filter="record" data-value="${key}" title="Edge of ${range[key]} points">${label}</button>`).join("");
+  const sizeTag = { strong: "Strong", lean: "Lean", check: "Check" };
+  let body = "";
+  let day = null;
+  shown.forEach((play) => {
+    if (play.date !== day) {
+      day = play.date;
+      body += `<tr class="shots-record-day"><td colspan="8">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
+    }
+    const who = playerClick(play.id, `<b>${play.name}</b>`);
+    body += `<tr>
+        <td class="nba-player shots-player">${who}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
+        <td class="shots-play-cell">${playChip({ ...play, fade: false }, {})}${play.fade ? ` <span class="shots-fade" title="Against his own season average at the time">vs his avg</span>` : ""}</td>
+        <td class="num"><span class="shots-record-size shots-record-${play.size}">${sizeTag[play.size]}</span></td>
+        <td class="num">${points(play.edge)}</td>
+        <td class="num">${fmt(play.mean, 2)}</td>
+        <td class="num"><b>${play.actual}</b></td>
+        <td class="num"><span class="pick-result pick-result-${play.won ? "win" : "loss"}">${play.won ? "W" : "L"}</span></td>
+        <td class="num ${play.won ? "tier-good" : "tier-bad"}">${signed(play.units, 2)}</td>
+      </tr>`;
+  });
+  const dayCount = new Set(all.map((play) => play.date)).size;
+  return `<div class="shots-detail-label shots-record-head">Graded plays <span class="muted-label">every play that declared an edge, at the price locked before puck drop; the latest ${dayCount} day${dayCount === 1 ? "" : "s"} with games</span></div>
+    <div class="view-toggle shots-toolbar shots-record-buckets">${buttons}<span class="shots-record-total">${shown.length ? line(sum(shown)) : "none yet"}</span></div>
+    ${shown.length ? `<div class="shots-record-scroll"><table class="data-table shots-record-table">
+      <thead><tr><th class="shots-th-player">Player</th><th>Play</th><th>Bucket</th><th title="The model's chance minus the chance the price needed, in points">Edge</th><th title="Shots on goal the model expected">Proj</th><th title="His real shots on goal">Shots</th><th>Result</th><th title="Units won risking 1">Units</th></tr></thead>
+      <tbody>${body}</tbody></table></div>` : `<p class="shots-record-note">No graded plays in this bucket yet.</p>`}`;
 }
 function renderTable() {
   const date = days()[dayIndex];

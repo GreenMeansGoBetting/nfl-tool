@@ -261,7 +261,20 @@ on a replay, and the page keeps a record against the real prices.
   `lean` / `none` / `check`; for edges of 3 to 12 it
   also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
   average (an under on a line he averages more than, or the reverse) next to plays with it.
-  Wins, losses, units won risking 1 a play. The lock is the last build before puck drop (since 2026-10-13 usually the hourly refresh
+  Wins, losses, units won risking 1 a play.
+  - **The plays themselves** (the user, 2026-10-13: "a way to see plays that declared any edge and
+    have a record of it. possibly grouped into buckets"): `record.days` = every day's tally of
+    the plays with an edge (lean + strong), and `record.plays` = each graded play that declared
+    an edge (lean, strong or check) on the latest `SHOTS_RECORD_DAYS` (14) days that have any:
+    side, line, locked price, edge, projection, real shots, won, units, `fade`. The buckets cover
+    the whole season; the list is capped so shots.json doesn't grow by a megabyte by spring.
+  - On the page (`recordPlays` in shots.js, under the record's tiles): "Graded plays", newest day
+    first, each day headed by its own W-L and units, with bucket buttons **Every edge** (how it
+    opens) / **Strong** / **Lean** / **Check first** and the shown bucket's total beside them.
+    Nothing is typed in by hand: each build adds the games that finished since the last one.
+  - A game leaves the ranking at puck drop and comes back here once it is final (the user:
+    "once games are live those plays disappear - thats great - we don't want non active plays
+    surfacing"). Keep it that way. The lock is the last build before puck drop (since 2026-10-13 usually the hourly refresh
   within the hour before it), not the closing line.
 
 ## Pages
@@ -486,5 +499,5 @@ payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
 For the Shots model: power-play units (the projected lineup has lines and pairs, not the power
-play; `shiftcharts` has past games' units); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); a "Record" view of the saved plays; the expected starting goalie on
+play; `shiftcharts` has past games' units); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); the expected starting goalie on
 Game Previews (it is already in `shots.json`).

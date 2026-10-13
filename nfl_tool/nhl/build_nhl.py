@@ -92,6 +92,10 @@ OUT_STATUSES = ("Out", "Injured Reserve", "Suspension")
 # even. The page colors a play from "lean", and sets a play at "check" or more
 # apart: a gap that big is more often news the model can't see than a gift.
 SHOTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
+# The Shots page lists the graded plays of the latest days that have any (the
+# buckets and the day-by-day line cover the whole season; listing every play
+# of a season would make shots.json a megabyte heavier by spring).
+SHOTS_RECORD_DAYS = 14
 # Every graded play, one file a month (2026-10.json ...), committed by the
 # deploy like the NFL model's record so it survives anything the site loses.
 SHOTS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_shots"
@@ -1453,15 +1457,23 @@ def shots_record_summary(folder: Path) -> dict:
     wins, losses and units won risking 1 unit a play at the locked price.
     `fade` / `with` split the called plays by whether they went against the
     player's own season average: the record of "the model doesn't believe his
-    hot (or cold) start" next to everything else."""
+    hot (or cold) start" next to everything else.
+
+    Also the plays themselves (the owner, 2026-10-13: "a way to see plays that
+    declared any edge and have a record of it, possibly grouped into buckets"):
+    `days` = every day's tally of the plays with an edge (lean + strong),
+    oldest first, and `plays` = each graded play that declared an edge
+    (lean, strong or check) on the latest SHOTS_RECORD_DAYS days, newest day
+    first and biggest edge first within a day."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally()}
+    days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
         for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
             out["games"] += 1
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
-            for _id, _name, _team, line, over, under, _mean, chance_over, actual, *rest in game["plays"]:
+            for pid, name, team, line, over, under, mean, chance_over, actual, *rest in game["plays"]:
                 avg, move = (*rest, None, None)[:2]  # rows saved before these were kept have neither
                 play = shots_play(chance_over, line, over, under, avg, move)
                 if play is None or actual == line:
@@ -1475,6 +1487,20 @@ def shots_record_summary(folder: Path) -> dict:
                 for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
+                if size == "none":
+                    continue
+                if called:
+                    day = days.setdefault(game["date"], tally())
+                    day["wins" if won else "losses"] += 1
+                    day["units"] = round(day["units"] + units, 2)
+                plays.append({
+                    "date": game["date"], "id": pid, "name": name, "team": team, "opp": game["home"] if team == game["away"] else game["away"], "home": team == game["home"],
+                    "side": play["side"], "line": line, "price": play["price"], "edge": round(play["edge"], 3), "size": size, "fade": play["fade"],
+                    "mean": mean, "actual": actual, "won": won, "units": round(units, 2),
+                })
+    out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
+    latest = set(sorted({play["date"] for play in plays})[-SHOTS_RECORD_DAYS:])
+    out["plays"] = sorted((play for play in plays if play["date"] in latest), key=lambda play: (play["date"], play["edge"]), reverse=True)
     return out
 
 

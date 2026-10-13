@@ -508,6 +508,29 @@ class Record(unittest.TestCase):
         # ...and, among those, the plays that went against the player's own season average.
         self.assertEqual(record["fade"], {"wins": 2, "losses": 0, "units": 1.76})
         self.assertEqual(record["with"], {"wins": 0, "losses": 1, "units": -1.0})
+        # The plays themselves: everything that declared an edge (not "e", the no-edge line), newest
+        # day first and the biggest edge first within a day, each with what happened.
+        self.assertEqual([(play["date"], play["name"], play["size"], play["won"]) for play in record["plays"]], [
+            ("2026-11-02", "F", "check", False), ("2026-11-02", "D", "lean", True),
+            ("2026-10-13", "A", "check", True), ("2026-10-13", "C", "strong", True), ("2026-10-13", "B", "strong", False),
+        ])
+        c = next(play for play in record["plays"] if play["name"] == "C")
+        self.assertEqual({key: c[key] for key in ("id", "team", "opp", "home", "side", "line", "price", "mean", "actual", "units", "fade")},
+                         {"id": "c", "team": "AAA", "opp": "BBB", "home": False, "side": "under", "line": 2.5, "price": -110, "mean": 2.0, "actual": 1, "units": 0.91, "fade": True})
+        self.assertAlmostEqual(c["edge"], 0.076, places=3)
+        # Each day's tally of the plays with an edge (lean + strong; a "check" is not a play).
+        self.assertEqual(record["days"], [{"date": "2026-10-13", "wins": 1, "losses": 1, "units": -0.09}, {"date": "2026-11-02", "wins": 1, "losses": 0, "units": 0.85}])
+
+    def test_the_page_lists_only_the_latest_days_of_plays(self):
+        play = ["a", "A", "AAA", 2.5, -120, 100, 2.9, 0.62, 3, 3.0]  # a strong over that won
+        with tempfile.TemporaryDirectory() as tmp:
+            games = {str(day): {"date": f"2026-11-{day:02d}", "away": "AAA", "home": "BBB", "plays": [play]} for day in range(1, 21)}
+            (Path(tmp) / "2026-11.json").write_text(json.dumps({"games": games}))
+            record = build_nhl.shots_record_summary(Path(tmp))
+        self.assertEqual(record["strong"]["wins"], 20)   # the buckets and the days cover every game
+        self.assertEqual(len(record["days"]), 20)
+        self.assertEqual(len(record["plays"]), build_nhl.SHOTS_RECORD_DAYS)
+        self.assertEqual((record["plays"][0]["date"], record["plays"][-1]["date"]), ("2026-11-20", "2026-11-07"))
 
 
 if __name__ == "__main__":

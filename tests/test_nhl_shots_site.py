@@ -520,6 +520,71 @@ class FinishedGames(unittest.TestCase):
         PAGE.evaluate("() => { SHOTS.record = window.keptRecord; render(); }")
 
 
+class GradedPlays(unittest.TestCase):
+    """Under the record's buckets: the plays that declared an edge, by day."""
+
+    PLAYS = [
+        {"date": "2026-10-13", "id": "x1", "name": "Strong Winner", "team": "NJD", "opp": "DET", "home": False, "side": "over", "line": 2.5, "price": -120, "edge": 0.08, "size": "strong", "fade": False, "mean": 3.1, "actual": 4, "won": True, "units": 0.83},
+        {"date": "2026-10-13", "id": "x2", "name": "Lean Loser", "team": "DET", "opp": "NJD", "home": True, "side": "under", "line": 1.5, "price": 105, "edge": 0.04, "size": "lean", "fade": True, "mean": 1.2, "actual": 3, "won": False, "units": -1.0},
+        {"date": "2026-10-13", "id": "x3", "name": "Check Winner", "team": "NJD", "opp": "DET", "home": False, "side": "over", "line": 1.5, "price": 110, "edge": 0.15, "size": "check", "fade": False, "mean": 2.4, "actual": 2, "won": True, "units": 1.1},
+        {"date": "2026-10-12", "id": "x4", "name": "Older Lean", "team": "DET", "opp": "NJD", "home": True, "side": "over", "line": 2.5, "price": -110, "edge": 0.05, "size": "lean", "fade": False, "mean": 2.9, "actual": 3, "won": True, "units": 0.91},
+    ]
+
+    def show(self, bucket=None):
+        return PAGE.evaluate(
+            """([plays, bucket]) => {
+                const tally = { wins: 1, losses: 1, units: 0 };
+                SHOTS.record = { since: "2026-10-12", through: "2026-10-13", games: 2, strong: tally, lean: tally, none: tally, check: tally, over: tally, under: tally, fade: tally, with: tally, days: [], plays };
+                shotsView.record = "edge";
+                render();
+                if (bucket) document.querySelector(`.shots-filter-btn[data-filter="record"][data-value="${bucket}"]`).click();
+                const text = (el) => el.textContent.trim().replace(/\\s+/g, " ");
+                const box = document.getElementById("shots-results");
+                return {
+                    tiles: box.querySelectorAll(".shots-record .nba-tile").length,
+                    rows: [...box.querySelectorAll(".shots-record-table tbody tr")].map((tr) => [...tr.children].map((td, i) => text(i === 0 && td.querySelector("b") ? td.querySelector("b") : td))),
+                    total: text(box.querySelector(".shots-record-total")),
+                    active: text(box.querySelector(".shots-record-buckets .active")),
+                };
+            }""",
+            [self.PLAYS, bucket],
+        )
+
+    def tearDown(self):
+        PAGE.evaluate("(record) => { SHOTS.record = record; shotsView.record = 'edge'; render(); }", nhl_shots().get("record"))
+
+    def test_it_opens_on_every_play_with_an_edge_grouped_by_day(self):
+        seen = self.show()
+        self.assertEqual((seen["tiles"], seen["active"]), (8, "Every edge"))
+        # Two days, newest first, each headed by its own record; the "check" play is not among them.
+        self.assertEqual([row[0] for row in seen["rows"] if len(row) == 1], ["Tue, Oct 13 1-1 · -0.17u", "Mon, Oct 12 1-0 · +0.91u"])
+        plays = [row for row in seen["rows"] if len(row) > 1]
+        self.assertEqual([row[0] for row in plays], ["Strong Winner", "Lean Loser", "Older Lean"])
+        # Play, bucket, edge in points, projection, real shots, result, units.
+        self.assertEqual(plays[0][1:], ["Over 2.5-120", "Strong", "+8.0", "3.10", "4", "W", "+0.83"])
+        self.assertEqual(plays[1][1:], ["Under 1.5+105 vs his avg", "Lean", "+4.0", "1.20", "3", "L", "-1.00"])
+        self.assertEqual(seen["total"], "2-1 · +0.74u")
+
+    def test_the_buckets(self):
+        names = lambda seen: [row[0] for row in seen["rows"] if len(row) > 1]
+        self.assertEqual(names(self.show("strong")), ["Strong Winner"])
+        self.assertEqual(names(self.show("lean")), ["Lean Loser", "Older Lean"])
+        check = self.show("check")
+        self.assertEqual((names(check), check["total"], check["active"]), (["Check Winner"], "1-0 · +1.10u", "Check first"))
+
+    def test_a_record_saved_before_the_plays_were_kept_still_draws(self):
+        seen = PAGE.evaluate(
+            """() => {
+                const tally = { wins: 0, losses: 0, units: 0 };
+                SHOTS.record = { since: "2026-10-12", through: "2026-10-13", games: 2, strong: tally, lean: tally, none: tally, check: tally, over: tally, under: tally };
+                render();
+                return { tiles: document.querySelectorAll("#shots-results .shots-record .nba-tile").length, table: document.querySelectorAll("#shots-results .shots-record-table").length };
+            }"""
+        )
+        self.assertEqual(seen, {"tiles": 6, "table": 0})
+        self.assertEqual(SITE.errors, [])
+
+
 class NoShotsFile(unittest.TestCase):
     def test_the_page_still_opens_if_the_build_wrote_no_projections(self):
         SITE.missing.add("/nhl/shots.json")
