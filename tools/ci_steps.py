@@ -168,7 +168,7 @@ SPORT_FILES = {
 }
 # Files every sport's pages or builds lean on: a change to one checks everything.
 SHARED_FILES = (
-    "nfl_tool/site/style.css", "nfl_tool/site/sync.js", "nfl_tool/functions/", "nfl_tool/novig_event_markets.graphql", "nfl_tool/requirements.txt",
+    "nfl_tool/site/style.css", "nfl_tool/site/suite.css", "nfl_tool/site/sync.js", "nfl_tool/functions/", "nfl_tool/novig_event_markets.graphql", "nfl_tool/requirements.txt",
     "tools/", "tests/", ".github/",
 )
 # Notes and settings no test or page reads.

@@ -81,6 +81,27 @@ class Plan(unittest.TestCase):
         self.assertEqual(ci_steps.work_scope("push", None), "all")
         self.assertEqual(ci_steps.work_scope("schedule", ["nfl_tool/site/nhl/shots.js"]), "all")
 
+    def test_each_sports_styles_live_in_its_own_file(self):
+        """Hockey's styles sat in the shared style.css, so every hockey change that
+        touched one set off every sport's tests. They live in nhl/nhl.css now, the
+        layout the NBA and NHL pages share in suite.css, and neither may drift back."""
+        site = ROOT / "nfl_tool" / "site"
+        shared = (site / "style.css").read_text(encoding="utf-8")
+        for word in (".nhl-", ".shots-", ".crease-", ".nba-"):
+            self.assertNotIn(word, shared, f"{word} rules belong in nhl/nhl.css or suite.css")
+        self.assertNotIn(".nba-", (site / "nhl" / "nhl.css").read_text(encoding="utf-8").replace(" .nba-", "").replace(".nba-notag", ""))
+        for page in ("nhl/index.html", "nhl/shots.html", "nhl/promo-tools.html"):
+            html = (site / page).read_text(encoding="utf-8")
+            order = [html.index(f'href="{name}"') for name in ("../style.css", "../suite.css", "nhl.css")]
+            self.assertEqual(order, sorted(order), page)
+        nba = (site / "nba" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('href="../suite.css"', nba)
+        self.assertNotIn("nhl.css", nba)
+        for nfl_page in site.glob("*.html"):
+            self.assertNotIn("suite.css", nfl_page.read_text(encoding="utf-8"), nfl_page.name)
+        self.assertEqual(ci_steps.work_scope("push", ["nfl_tool/site/nhl/nhl.css", "nfl_tool/site/nhl/shots.js"]), "nhl")
+        self.assertEqual(ci_steps.work_scope("push", ["nfl_tool/site/suite.css"]), "all")
+
     def test_every_test_file_belongs_to_a_sport_the_runner_knows(self):
         import run_tests
         files = sorted(path.name for path in (ROOT / "tests").glob("test_*.py"))

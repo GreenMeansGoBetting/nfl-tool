@@ -1200,3 +1200,9 @@ information."
 - Honest sizes: the NHL has most of the browser tests (196 of 281), so an NHL-only push saves
   little on tests; an NFL-only push saves most of them. The hockey styles living in the shared
   style.css is the main reason an NHL change can still set off every test.
+- **The stylesheet split (same evening).** Asked whether to close that last gap: "if that will
+  save time in the long run and a skilled software engineer would make that change, please do
+  it." Hockey's styles moved to `nhl/nhl.css`, the NBA / NHL shared layout to `suite.css`. The
+  user also asked why it was taking a while and said they didn't want that to be the norm: the
+  proof that nothing moved (every element's computed style, old file against new) is for a
+  structural move like this one only, never for ordinary changes.

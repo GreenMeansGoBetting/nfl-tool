@@ -334,6 +334,8 @@ on a replay, and the page keeps a record against the real prices.
     official sheet from warmups; the page's About box says so (95% of listed skaters played).
   - No season switch (this season only). Names open the player card, on this season.
 - `site/nhl/promo-tools.html` + `promo-tools.js` = **Promo Tools: King of the Crease** (below).
+- **Styles:** hockey-only rules go in `site/nhl/nhl.css` (never style.css: see styles.md); the
+  layout shared with the NBA page is `site/suite.css`.
 - It reuses the NBA page's layout classes (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` /
   `.nba-soon` for the owner-only guard); hockey-only styles are `.nhl-*`. It does not load
   common.js.

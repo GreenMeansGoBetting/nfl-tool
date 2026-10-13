@@ -1,0 +1,42 @@
+/* The layout the NBA and NHL suites share (.nba-*): the owner-only guard, the two-column
+   boxes, tiles and banners. Loaded after style.css by every NBA and NHL page; the NFL pages
+   never load it. Hockey-only styles are in nhl/nhl.css. Colors come from style.css's tokens. */
+/* Owner / localhost only until launch: everyone else sees the "being built" note. */
+.nba-soon { display: none; }
+html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-app { display: none; }
+html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: block; }
+.page-nav-soon { align-self: center; padding: 0 10px; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.nba-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.nba-line { max-width: 1100px; }
+.nba-line .g2-line-tile { flex-direction: column; gap: 3px; padding: 8px 10px 10px; }
+.nba-line.g2-line { grid-template-columns: 1fr 0.9fr 1.7fr 2.2fr; }
+.nba-team, .nba-box { display: flex; flex-direction: column; gap: 8px; padding: 0 0 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); overflow: hidden; min-width: 0; }
+.nba-box > .data-table, .nba-box > .nba-inj, .nba-box > .no-data-note { margin-left: 10px; margin-right: 10px; width: auto; }
+.nba-banner-right { margin-left: auto; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; }
+.nba-tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 0 10px; }
+.nba-tile { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 4px 7px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); text-align: center; }
+.nba-tile b { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; line-height: 1.1; color: var(--text); }
+.nba-tile small { font-size: 0.66rem; font-weight: 700; color: var(--muted); }
+.nba-tile.tier-good { background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.45); }
+.nba-tile.tier-mid { background: rgba(var(--mid-rgb), 0.12); border-color: rgba(var(--mid-rgb), 0.35); }
+.nba-tile.tier-bad { background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.42); }
+.nba-box-title { display: flex; align-items: center; gap: 6px; padding: 8px 12px; font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--table-head); border-bottom: 1px solid var(--border); }
+.nba-box-title .at { margin: 0 4px; }
+.nba-matchup-table td:first-child { font-weight: 600; white-space: nowrap; }
+.nba-tag-cell { text-align: center; width: 116px; }
+.nba-tag-cell .gs-tag { width: 100%; }
+.nba-notag { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); opacity: 0.6; }
+.nba-player { display: flex; align-items: center; gap: 7px; white-space: nowrap; font-weight: 600; }
+.nba-headshot { flex: none; width: 30px; height: 22px; border-radius: 6px; object-fit: cover; background: var(--table-head); }
+.nba-new { padding: 0 6px; border-radius: 999px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+.nba-out-row td { opacity: 0.55; }
+.nba-inj { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.86rem; }
+.nba-inj .gs-inj-status { min-width: 34px; text-align: center; }
+.nba-inj-what { margin-left: auto; color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .nba-two { grid-template-columns: minmax(0, 1fr); }
+  .nba-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .nba-line.g2-line { grid-template-columns: 1fr 1fr; }
+  .nba-box { overflow-x: auto; }
+}

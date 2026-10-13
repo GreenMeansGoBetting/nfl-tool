@@ -89,7 +89,7 @@ that, move detail into a rules file.
   - `promo-tools.html/.js`: Promo Tools (King of the Endzone). `support.html`: Support tab.
   - `common.js`: shared helpers (tiers, matchup calls, saved plays, lineup weights, modals, summary-card fit / Save image).
   - `sync.js`: member profiles, account chip, feature requests, suite switcher. `teams.js`: names, colors, logos.
-  - `style.css`: dark/light tokens and every page's styles.
+  - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
   - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value).
   - `nhl/promo-tools.html` + `nhl/promo-tools.js`: NHL Promo Tools (King of the Crease: most saves of the day).

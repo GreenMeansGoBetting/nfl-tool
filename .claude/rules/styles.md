@@ -27,6 +27,20 @@ than add a new look.
 - Every color comes from the theme tokens at the top of style.css so dark and light both hold.
 - `teams.js`: team names, colors and logo URLs.
 
+## One stylesheet per sport (2026-10-13)
+
+- `style.css`: the tokens, the site-wide look and every NFL page. It holds no `.nba-*`, `.nhl-*`,
+  `.shots-*` or `.crease-*` rule (a test fails if one comes back).
+- `suite.css`: the layout the NBA and NHL pages share (`.nba-*`: the owner-only guard, boxes,
+  tiles, banners). Loaded after style.css by every NBA and NHL page, never by an NFL page.
+- `nhl/nhl.css`: everything hockey-only, loaded last by the NHL pages. Each has its own phone
+  block at its end.
+- Why: the deploy tests only the sport a push is about, and a hockey style in the shared file
+  made every hockey change count as "everything". A new sport or suite page gets its own file.
+- The move was checked by comparing every element's computed style on every NBA and NHL page,
+  desktop and phone, against the old single file: no differences. Later files win ties, so one
+  phone rule had to be restated in nhl.css (`.shots-allows`, four tiles across).
+
 ## Phone layout
 
 - style.css has four `@media (max-width: 760px)` blocks: two small early ones (`.two-col`,

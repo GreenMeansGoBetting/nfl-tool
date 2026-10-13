@@ -1,0 +1,195 @@
+/* GMG NHL Suite: every hockey-only style (.nhl-*, .shots-*, .crease-*). Loaded by the NHL
+   pages after ../style.css (tokens, the site-wide look, King of the Endzone's .koe-* table)
+   and ../suite.css (the layout shared with the NBA suite). A change here is a hockey change:
+   the deploy then tests and checks hockey only (tools/ci_steps.py work_scope). */
+.nhl-view-toggle { margin: 0 0 12px; }
+.nhl-view-btn small { margin-left: 6px; font-size: 0.78em; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: 0.75; }
+.nhl-line.g2-line { grid-template-columns: 1.5fr 1.5fr 1fr; max-width: 1100px; }
+.nhl-line .g2-line-tile { flex-direction: column; gap: 3px; padding: 8px 10px 10px; }
+.nhl-line .g2-line-big small { font-size: 0.62em; font-weight: 700; color: var(--muted); }
+.nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.nhl-pts { margin-left: 6px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.nhl-headshot { flex: none; width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--table-head); }
+/* The rink: the offensive zone, net at the top, drawn in feet (nhl.js RINK_ZONES) */
+.nhl-rink-box { padding-bottom: 12px; }
+.nhl-rink { display: block; width: calc(100% - 20px); max-width: 540px; margin: 0 auto; }
+.nhl-ice { fill: var(--panel-2); }
+.nhl-zone rect, .nhl-zone polygon { fill: transparent; stroke: var(--border-strong); stroke-width: 0.35; }
+.nhl-zone-more rect, .nhl-zone-more polygon { fill: rgba(var(--good-rgb), 0.3); stroke: rgba(var(--good-rgb), 0.7); }
+.nhl-zone-fewer rect, .nhl-zone-fewer polygon { fill: rgba(var(--bad-rgb), 0.24); stroke: rgba(var(--bad-rgb), 0.6); }
+/* A zone on the eight rank colors (nhl-common.js zoneOnStep: the NFL Summary cards' scale) and the key under the rink */
+.nhl-zone-rank rect, .nhl-zone-rank polygon { fill: var(--zone-fill); stroke: var(--zone-edge); }
+.nhl-scale-key { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-weight: 700; color: var(--text); }
+.nhl-scale-key .g5-scale i { width: 14px; height: 10px; }
+.nhl-rank-cell { font-weight: 700; }
+.nhl-marks { pointer-events: none; }
+.nhl-marks * { fill: none; stroke: var(--border-strong); stroke-width: 0.3; }
+.nhl-marks .nhl-goal-line { stroke: rgba(var(--bad-rgb), 0.6); stroke-width: 0.45; }
+.nhl-marks .nhl-blue-line { stroke: var(--grid-line); stroke-width: 1.1; }
+.nhl-marks .nhl-dot { fill: rgba(var(--bad-rgb), 0.6); stroke: none; }
+.nhl-marks .nhl-crease { fill: var(--table-head); }
+.nhl-marks .nhl-net { fill: var(--panel); stroke: var(--muted); }
+.nhl-boards { fill: none; stroke: var(--border-strong); stroke-width: 0.9; }
+.nhl-zone-text { pointer-events: none; }
+.nhl-zone-text text { text-anchor: middle; font-family: var(--font-display); fill: var(--text); }
+.nhl-zone-text .nhl-zone-label { font-size: 2.5px; font-weight: 800; letter-spacing: 0.22px; text-transform: uppercase; fill: var(--muted); }
+.nhl-zone-text .nhl-zone-big { font-size: 6.4px; font-weight: 800; }
+.nhl-zone-text .nhl-zone-small { font-size: 2.7px; font-weight: 700; fill: var(--muted); }
+.nhl-zone-text .nhl-zone-on-color text { fill: var(--text); }
+/* The NHL player card (nhl-common.js): the NFL card's shell (.pc-box, .pc-head, .player-modal-toggle) with hockey tabs */
+.nhl-suite .player-click { cursor: pointer; }
+.nhl-suite .nba-player .player-click { display: inline-flex; align-items: center; gap: 7px; }
+.nhl-suite .player-click:hover span, .nhl-suite .player-click:hover b { text-decoration: underline; }
+.nhl-pc-photo { flex: none; width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: var(--table-head); }
+.nhl-pc-tiles { grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 0; margin: 0 0 12px; }
+.nhl-pc-tabs { align-items: center; flex-wrap: wrap; }
+.nhl-pc-seasons { display: inline-flex; gap: 6px; margin-left: auto; }
+.nhl-pc-scroll { overflow-x: auto; }
+.nhl-pc-log td, .nhl-pc-areas td { white-space: nowrap; }
+.nhl-pc-odds { width: 100%; max-width: 620px; }
+.nhl-pc-log .nhl-pc-avg td { background: var(--table-head); font-weight: 800; }
+.nhl-pc-map { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 16px; align-items: start; }
+.nhl-pc-rink .nhl-rink { width: 100%; max-width: 420px; }
+.nhl-pc-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.nhl-zone-heat rect, .nhl-zone-heat polygon { fill: rgba(var(--accent-rgb), var(--heat, 0.2)); }
+.nhl-pc-rank { margin-left: 4px; font-size: 0.72em; font-weight: 700; opacity: 0.8; }
+.nhl-pc-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nhl-pc-chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 9px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.84rem; }
+.nhl-pc-chip b { font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.nhl-pc-chip small { color: var(--muted); font-weight: 700; }
+.nhl-pc-ladder { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+.nhl-pc-thin { margin-left: 4px; padding: 0 5px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+/* NHL Shots (site/nhl/shots.html + shots.js): one ranked table for the day's slate; a row opens its breakdown */
+.shots-toolbar { flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; }
+.shots-filter { display: inline-flex; gap: 6px; }
+.shots-card-empty { opacity: 0.45; }
+.shots-card-lineup { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: var(--muted); opacity: 0.75; }
+.shots-card-lineup-in { color: var(--good-text); opacity: 1; }
+.shots-waiting .view-toggle-btn { margin-left: 8px; }
+.shots-rink-key { margin: 6px 0 0; max-width: 380px; font-size: 0.78rem; line-height: 1.5; color: var(--muted); }
+.shots-title-game { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 0.8em; color: var(--muted); }
+.shots-box { padding: 0; }
+.shots-scroll { overflow-x: auto; }
+.shots-table { width: 100%; margin: 0; border: none; }
+.shots-table td, .shots-table th { white-space: nowrap; }
+.shots-table th.shots-th-player { text-align: left; padding-left: 10px; }
+.shots-sort { cursor: pointer; user-select: none; }
+.shots-sort:hover, .shots-sort.active { color: var(--accent); }
+.shots-arrow { margin-left: 3px; font-size: 0.8em; }
+.shots-row { cursor: pointer; }
+.shots-row.shots-open > td { border-bottom-color: transparent; }
+.shots-row.shots-open > td:not([class*="tier-"]) { background-color: var(--table-head); }
+.shots-rank { width: 34px; color: var(--muted); }
+.shots-player { padding-left: 10px; }
+.shots-player .muted-label { font-style: normal; font-size: 0.72rem; font-weight: 700; }
+.shots-vs { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; padding-left: 10px; }
+.shots-vs .at { font-size: 0.68rem; font-weight: 700; color: var(--muted); }
+.shots-play-cell { text-align: center; }
+.shots-play { display: inline-flex; align-items: baseline; gap: 7px; padding: 2px 9px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--table-head); font-family: var(--font-display); }
+.shots-play b { font-size: 0.98rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.shots-play span { font-size: 0.92rem; font-weight: 700; color: var(--muted); }
+.shots-play-over { border-color: rgba(var(--good-rgb), 0.5); background: rgba(var(--good-rgb), 0.1); }
+.shots-play-under { border-color: rgba(var(--bad-rgb), 0.5); background: rgba(var(--bad-rgb), 0.1); }
+.shots-table .group-row.shots-check-head td { white-space: normal; }
+.shots-table td.shots-proj b { font-size: 1.12rem; }
+.shots-table td.shots-edge { font-size: 1.05rem; }
+.shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+.shots-flag.shots-fade { margin-left: 6px; }
+.shots-table td.shots-line { font-size: 0.95rem; }
+.shots-lineup { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+.shots-lineup b { color: var(--text); text-transform: capitalize; }
+.shots-allows .nba-tile .gs-tag, .shots-allows .nba-tile .nba-notag { margin-top: 3px; height: 18px; }
+.shots-up, .shots-down { margin-left: 3px; font-size: 0.62em; }
+.shots-up { color: rgb(var(--good-rgb)); }
+.shots-down { color: rgb(var(--bad-rgb)); }
+.shots-table td.shots-lift:not([class*="tier-"]) { color: var(--muted); font-weight: 600; }
+.shots-detail > td { padding: 12px 14px 16px !important; background: var(--panel) !important; white-space: normal; cursor: default; }
+.shots-detail-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.shots-detail-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.shots-detail-label { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+.shots-detail-label .muted-label { font-style: normal; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
+.shots-build { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+.shots-step { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 86px; padding: 5px 10px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
+.shots-step small { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.shots-step b { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; line-height: 1.1; }
+.shots-step.tier-good { background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.45); }
+.shots-step.tier-bad { background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.42); }
+.shots-step-end { border-color: var(--border-strong); background: var(--table-head); }
+.shots-step-end b { font-size: 1.45rem; }
+.shots-allows { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; max-width: 520px; }
+.shots-ladder { width: 100%; max-width: 520px; }
+.shots-ladder tr.shots-main-line td:first-child { font-weight: 800; }
+.shots-detail-rink .nhl-rink { width: 100%; max-width: 380px; margin: 0; }
+.shots-results { margin-top: 16px; }
+.shots-record { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 760px; padding: 0; margin: 8px 0 0; }
+.shots-record-note { margin: 0; font-size: 0.82rem; color: var(--muted); }
+.shots-about { margin-top: 16px; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
+.shots-about summary { cursor: pointer; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.shots-about-body { max-width: 900px; font-size: 0.9rem; line-height: 1.45; color: var(--text); }
+.shots-about-body ul { margin: 6px 0 10px; padding-left: 20px; }
+.shots-about-body li { margin: 3px 0; }
+
+/* King of the Crease (nhl/promo-tools.js): King of the Endzone's table (.koe-*) with roomier boxes, two tags, and a title bar and key that ride along in the saved image */
+.crease-capture.crease-capturing { max-width: none; padding: 14px 16px; }
+.crease-capture-head { display: none; align-items: center; gap: 10px; margin-bottom: 10px; }
+.crease-capturing .crease-capture-head { display: flex; }
+.crease-capturing .koe-section { overflow: visible; margin-bottom: 0; }
+.crease-capture-titles { display: flex; flex-direction: column; line-height: 1.05; }
+.crease-capture-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.crease-capture-sub { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.crease-capture-promo { margin-left: auto; padding: 4px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--good-text); background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.45); }
+.crease-table col.crease-c-goalie { width: 236px; }
+.crease-table col.crease-c-line { width: 74px; }
+.crease-count { margin-left: 0; margin-right: auto; }
+.crease-table col.crease-c-stat { width: 58px; }
+.crease-table col.crease-c-pill { width: 84px; }
+.crease-table td { height: 36px; }
+.crease-table td.num { font-size: 1rem; }
+.crease-table .koe-label-row th { font-size: 0.62rem !important; }
+.crease-table .koe-who .team-logo { flex: 0 0 auto; }
+.crease-table .koe-meta { font-size: 0.72rem; gap: 4px; }
+.crease-g-value { --g: var(--mid-rgb); }
+.crease-sure { flex: 0 0 auto; font-size: 0.78rem; font-weight: 800; color: var(--good-text); }
+.crease-split { flex: 0 0 auto; font-size: 0.66rem; font-weight: 800; white-space: nowrap; color: var(--mid-text); }
+.crease-tag { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; font-size: 0.58rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; border: 1px solid; }
+.crease-tag-upside { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
+.crease-tag-value { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border-color: rgba(var(--mid-rgb), 0.55); }
+.crease-pill { min-width: 58px; cursor: help; }
+.crease-pill-good { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.22); border-color: rgba(var(--mid-rgb), 0.65); }
+.crease-pill-flat { background: var(--panel-2); border-color: var(--border-strong); }
+.crease-pill-low { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.12); border-color: rgba(var(--bad-rgb), 0.4); }
+.crease-pill-check { color: var(--muted); background: transparent; border-style: dashed; border-color: var(--border-strong); }
+.crease-pill-check::after { content: "?"; margin-left: 1px; }
+.crease-live td { opacity: 0.55; }
+.crease-crown { color: var(--mid-text); }
+.crease-game { cursor: default; }
+.crease-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: 8px 2px 0; font-size: 0.74rem; color: var(--muted); }
+.crease-key b { color: var(--text); }
+.crease-key b.crease-sure { color: var(--good-text); }
+.crease-key .nhl-scale-key { font-weight: 600; color: var(--muted); }
+
+/* Phones: wide boxes scroll inside themselves, grids stack. */
+@media (max-width: 760px) {
+  .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .nhl-tiles .nba-tile { padding: 6px 2px 7px; }
+  .nhl-tiles .nba-tile b { font-size: 0.95rem; white-space: nowrap; }
+  .nhl-suite .nba-banner-right { white-space: nowrap; font-size: 1.05rem; }
+  .nhl-line.g2-line { grid-template-columns: 1fr; }
+  .nhl-pc-map { grid-template-columns: minmax(0, 1fr); }
+  .nhl-pc-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .nhl-pc-seasons { margin-left: 0; }
+  /* The table scrolls sideways in its box; an open breakdown stays one screen wide and in view. */
+  .shots-detail-grid { grid-template-columns: minmax(0, 1fr); width: calc(100vw - 92px); position: sticky; left: 10px; }
+  .shots-detail > td { padding: 10px 10px 14px !important; position: static !important; box-shadow: none !important; }
+  /* Pin the player, not the rank number, while the columns scroll. */
+  .shots-table tbody td.shots-rank { position: static; box-shadow: none; }
+  .shots-table tbody td.shots-player { position: sticky; left: 0; z-index: 2; background-color: var(--panel-2); box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.6); }
+  .shots-table thead th:first-child { position: static; }
+  .shots-vs { display: none; }
+  /* Four across, as the shared phone rule for tiles (suite.css) had them before these styles got their own file. */
+  .shots-allows { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .shots-allows .nba-tile b { font-size: 1.1rem; }
+  .shots-filter .view-toggle-btn { padding: 5px 9px; font-size: 0.78rem; }
+  .shots-step { min-width: 70px; padding: 4px 6px 5px; }
+  .shots-record { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
