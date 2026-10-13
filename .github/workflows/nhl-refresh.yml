@@ -1,0 +1,139 @@
+name: Refresh NHL lineups and odds
+
+# The hockey-only refresh (2026-10-13). The NHL posts each game's projected
+# lineup through the afternoon, and the owner asked why checking for them
+# meant rebuilding the whole site: "That doesn't even make sense." It didn't.
+# The full rebuild (deploy.yml) installs a browser, runs the tests, rebuilds
+# football, basketball and hockey and opens every page: about 4 minutes of a
+# private repo's 2,000 free minutes a month. This job rebuilds only the NHL
+# files (lineups, lines, player odds, the Shots page) and republishes, on the
+# machine's own Python with nothing installed.
+#
+# A publish replaces the whole site folder, so everything that isn't hockey
+# is put back exactly as it is live: the code is main's (only when main's code
+# IS the live code), the NFL and NBA data files are downloaded from the live
+# site. Two things it must never do, both checked twice (tools/ci_steps.py
+# refresh-check, before starting and again right before publishing):
+#   * publish while a full rebuild is queued or running (one would overwrite
+#     the other; the full rebuild reads the lineups itself);
+#   * publish code that isn't live yet (a push whose deploy failed its tests).
+# Anything it can't check counts as "don't": the next run is an hour away.
+#
+# It runs no tests and no page check: the code is already live, and only the
+# NHL data changes. If the NHL build fails, nothing is published.
+#
+# What it did is in the public version.json: "nhl" (when it was built, how
+# many lineups) and "nhl_refresh" (when, the run, seconds before publishing).
+
+on:
+  schedule:
+    # Hourly at :47 from 16:47 to 23:47 UTC, October to June: 12:47 pm to
+    # 7:47 pm Eastern in daylight time, 11:47 am to 6:47 pm in standard time.
+    # The full rebuild at 00:17 UTC covers the late West-coast games. A run
+    # with no game about to start stops in a few seconds.
+    - cron: "47 16-23 * 1-6,10-12 *"
+  # The owner's "Update Odds" button on the NHL pages opens this.
+  workflow_dispatch: {}
+  # A change to this file runs it once, so a mistake shows up right away.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/nhl-refresh.yml"
+
+permissions:
+  contents: read
+  actions: read  # to ask whether a full rebuild is queued or running
+
+concurrency:
+  group: nhl-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Anything to refresh, and safe to publish?
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/ci_steps.py refresh-check
+
+      # The finished games the NHL build keeps (see deploy.yml). Only read
+      # here; the full rebuild saves them.
+      - name: Restore saved NHL games
+        if: steps.check.outputs.go == 'yes'
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: data/nhl
+          key: nhl-games-${{ github.run_id }}
+          restore-keys: nhl-games-
+
+      # --strict: a file that is live but can't be downloaded stops the run,
+      # so a hiccup can never publish the site with a data file missing.
+      - name: Take the NFL and NBA data exactly as they are live
+        if: steps.check.outputs.go == 'yes'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python3 tools/fetch_live_data.py --only nfl nba --strict
+
+      # The same command as deploy.yml's "Build NHL data" (bump the season in
+      # both). Not continue-on-error here: a failed build publishes nothing.
+      - name: Build NHL data
+        if: steps.check.outputs.go == 'yes'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python3 nfl_tool/nhl/build_nhl.py --season 2027 --out nfl_tool/site/nhl/data.json --data-dir data/nhl
+
+      - name: Check the new files and note the refresh in version.json
+        if: steps.check.outputs.go == 'yes'
+        run: python3 tools/ci_steps.py refresh-stamp
+
+      # The member database binding, written exactly as deploy.yml writes it
+      # (a test keeps the two the same). Publishing without it would lock
+      # email members out, so a run that can't name the database stops here.
+      - name: Member database binding (D1)
+        if: steps.check.outputs.go == 'yes'
+        working-directory: nfl_tool
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx -y wrangler@3 d1 list --json > d1.json
+          DBID=$(jq -r '.[] | select(.name=="gmg-nfl-users") | .uuid' d1.json)
+          rm -f d1.json
+          test -n "$DBID"
+          {
+            echo 'name = "gmg-nfl"'
+            echo 'pages_build_output_dir = "site"'
+            echo 'compatibility_date = "2024-09-01"'
+            echo '[[d1_databases]]'
+            echo 'binding = "DB"'
+            echo 'database_name = "gmg-nfl-users"'
+            echo "database_id = \"$DBID\""
+          } > wrangler.toml
+
+      - name: Refuse to publish without the member database
+        if: steps.check.outputs.go == 'yes'
+        run: grep -q "d1_databases" nfl_tool/wrangler.toml
+
+      - name: Still safe to publish?
+        id: still
+        if: steps.check.outputs.go == 'yes'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/ci_steps.py refresh-check --again
+
+      # Same publish as deploy.yml: from nfl_tool/ so the login gate
+      # (nfl_tool/functions) is bundled with the site folder.
+      - name: Publish
+        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: nfl_tool
+          command: pages deploy site --project-name=gmg-nfl --branch=main --commit-dirty=true
