@@ -66,7 +66,7 @@ that, move detail into a rules file.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim.
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
-- `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json` (games kept in `data/nhl`).
+- `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, on pushes touching
   `nfl_tool/**`, and on manual dispatch (the site's "Update Odds" button). `cloudflare-domain.yml`: one-off domain attach.
@@ -88,6 +88,7 @@ that, move detail into a rules file.
   - `sync.js`: member profiles, account chip, feature requests, suite switcher. `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and every page's styles.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
+  - `nhl/nhl-common.js`: shared by every NHL page (data, rink drawing, the NHL player card).
 
 ## Rules that apply everywhere
 
@@ -109,7 +110,8 @@ that, move detail into a rules file.
 - **Props Summary is directional, never a pick sheet:** no projections, "model edge" numbers or
   model-picked players. The user draws the conclusions.
 - **The GMG model is a talking point, never "beats the line".** A 2024-25 replay had it at 50% against the spread.
-- **Any new place that shows a player must use `playerClick`** (the one player card).
+- **Any new place that shows a player must use `playerClick`** (the one player card; NHL pages
+  have their own in `nhl/nhl-common.js`).
 - **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color
   banners, filled tier cells) rather than adding a new one.
 - **Odds lock at kickoff.** Books keep quoting in-game lines; the site must never show them as

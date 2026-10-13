@@ -3,12 +3,17 @@
 What is pinned: where a shot counts as coming from (the rink areas, and that
 every shot is turned to face the net its team attacks), who was a man up, one
 real game boiled down to the right totals, the two-sided team numbers, the
-lineup rule for one-game fill-ins, and the same odds lock as the NFL site (a
-game that has started never shows a fresh, in-game line)."""
+lineup rule for one-game fill-ins, the same odds lock as the NFL site (a
+game that has started never shows a fresh, in-game line), and the player
+card's data: each player's own shot areas and game log, and Novig's player
+odds (main lines, one-sided prices kept, placeholder first-goal asks dropped)."""
 import copy
+import json
+import tempfile
 import unittest
 from collections import Counter
 from datetime import datetime
+from pathlib import Path
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
@@ -287,6 +292,204 @@ class OddsLock(unittest.TestCase):
         games = [self.game("2026-10-14T00:00Z")]
         build_nhl.apply_lines(games, {}, {"schedule": [{"game_id": "1", **self.PREGAME}]}, self.NOW)
         self.assertEqual(games[0]["total_line"], 6.5)
+
+    def test_player_odds_lock_the_same_way(self):
+        fresh, old = {"1": {"p": {"goal": "in-game"}}, "2": {"p": {"goal": "fresh"}}}, {"player_odds": {"1": {"p": {"goal": "pregame"}}, "2": {"p": {"goal": "old"}}, "9": {"p": {}}}}
+        games = [self.game("2026-10-13T22:00Z"), {**self.game("2026-10-14T00:00Z"), "game_id": "2"}, {**self.game("2026-10-14T02:00Z"), "game_id": "3"}]
+        locked = build_nhl.locked_player_odds(games, fresh, old, self.NOW)
+        # Started: the last build's. Not started: this run's. A game off the schedule is dropped.
+        self.assertEqual(locked, {"1": {"p": {"goal": "pregame"}}, "2": {"p": {"goal": "fresh"}}})
+        self.assertEqual(build_nhl.locked_player_odds(games, fresh, None, self.NOW), {"2": {"p": {"goal": "fresh"}}})
+        self.assertEqual(build_nhl.locked_player_odds(games, {}, old, self.NOW)["2"], {"p": {"goal": "old"}})
+
+
+class PlayerCardData(unittest.TestCase):
+    """What the player card reads: each player's game log, where his shots
+    came from and what kind they were (FLA @ BUF again)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.game = build_nhl.reduce_game(helpers.nhl_game())
+        cls.detail = build_nhl.compute_player_details([cls.game])
+
+    def test_a_skaters_areas_and_shot_types(self):
+        benson = self.game["skaters"]["8484145"]
+        self.assertEqual(benson["areas"], {"low_slot": [2, 1, 0], "left": [1, 1, 0]})  # [shots, on goal, goals]
+        self.assertEqual(benson["types"], {"snap": [3, 0]})
+        self.assertEqual((benson["unb"], benson["pp_unb"], benson["pm"], benson["pim"]), (3, 1, 0, 0))
+
+    def test_players_areas_add_up_to_the_teams(self):
+        for team in ("BUF", "FLA"):
+            skaters = [s for s in self.game["skaters"].values() if s["team"] == team]
+            for area in build_nhl.AREAS:
+                self.assertEqual(sum(s["areas"].get(area, [0, 0, 0])[0] for s in skaters), self.game["teams"][team].get(f"a_{area}", 0), f"{team} {area}")
+                self.assertEqual(sum(s["areas"].get(area, [0, 0, 0])[2] for s in skaters), self.game["teams"][team].get(f"ag_{area}", 0), f"{team} {area} goals")
+        for s in self.game["skaters"].values():
+            self.assertEqual(sum(v[0] for v in s["types"].values()), sum(v[0] for v in s["areas"].values()), s["name"])
+
+    def test_every_shot_a_goalie_faced_has_an_area(self):
+        for g in self.game["goalies"].values():
+            self.assertEqual(sum(v[0] for v in g["areas"].values()), g["sa"], g["name"])
+            self.assertEqual(sum(v[1] for v in g["areas"].values()), g["ga"], g["name"])
+        self.assertEqual(self.game["goalies"]["8480045"]["areas"], {"low_slot": [5, 1], "slot": [1, 0], "left": [5, 0], "point": [3, 0]})
+
+    def test_log_rows_point_at_the_game(self):
+        self.assertEqual(self.detail["games"], {"2026020087": ["2026-10-12", "BUF", "FLA", 5, 3, "REG"]})
+        self.assertEqual(self.detail["skaters"]["8484145"]["log"], [["2026020087", "BUF", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1]])
+        self.assertEqual(self.detail["goalies"]["8480045"]["log"], [["2026020087", "BUF", 0, "W", 2014, 14, 1, 5, 1]])
+
+    def test_the_file_spells_each_game_out_from_the_players_side(self):
+        self.assertEqual(build_nhl.player_file(self.detail, "8484145")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1]])
+        self.assertEqual(build_nhl.player_file(self.detail, "8480045")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 0, "W", 2014, 14, 1, 5, 1]])
+        visitor = next(pid for pid, s in self.game["skaters"].items() if s["team"] == "FLA")
+        self.assertEqual(build_nhl.player_file(self.detail, visitor)["log"][0][:6], ["2026-10-12", "BUF", 0, 3, 5, "REG"])
+        self.assertIsNone(build_nhl.player_file(self.detail, "1"))
+        self.assertIsNone(build_nhl.player_file(None, "8484145"))
+
+    def test_games_add_up(self):
+        second = {**self.game, "id": 2026020099}
+        benson = build_nhl.compute_player_details([self.game, second])["skaters"]["8484145"]
+        self.assertEqual(len(benson["log"]), 2)
+        self.assertEqual((benson["areas"], benson["types"], benson["unb"], benson["pp_unb"]), ({"low_slot": [4, 2, 0], "left": [2, 2, 0]}, {"snap": [6, 0]}, 6, 2))
+
+    def test_the_leagues_yardstick(self):
+        league = build_nhl.league_areas([self.game])
+        self.assertEqual(league["low_slot"], {"share": 0.2159, "sh_pct": 0.3846})  # 19 of 88 shots; 5 goals on 13 on goal
+        self.assertEqual(league["long"], {"share": 0.0, "sh_pct": None})
+        self.assertAlmostEqual(sum(a["share"] for a in league.values()), 1, places=3)
+
+    def test_one_file_per_team(self):
+        stats = {"skaters": build_nhl.compute_skaters([self.game], {}), "goalies": build_nhl.compute_goalies([self.game]), "detail": self.detail}
+        with tempfile.TemporaryDirectory() as folder:
+            build_nhl.write_player_files(Path(folder), {"BUF": {}, "FLA": {}, "DET": {}}, stats, {"detail": self.detail}, "2026-10-13T14:12Z")
+            buf = json.loads((Path(folder) / "BUF.json").read_text())
+            det = json.loads((Path(folder) / "DET.json").read_text())
+        self.assertEqual((buf["log_lead"], buf["skater_cols"], buf["goalie_cols"]), (["date", "opp", "home", "gf", "ga", "ended"], list(build_nhl.SKATER_LOG_COLS), list(build_nhl.GOALIE_LOG_COLS)))
+        self.assertEqual(len(buf["skaters"]), 18)
+        self.assertEqual(sorted(buf["goalies"]), ["8480045", "8481551"])
+        benson = buf["skaters"]["8484145"]
+        self.assertEqual(benson["season"], benson["prev"])
+        self.assertEqual(benson["season"]["log"][0][:7], ["2026-10-12", "FLA", 1, 5, 3, "REG", 1180])
+        self.assertTrue(all(s["team"] == "BUF" for pid, s in self.game["skaters"].items() if pid in buf["skaters"]))
+        self.assertEqual((det["skaters"], det["goalies"]), ({}, {}))  # a team with nobody yet still gets a file
+
+
+def novig_market(kind, name, strike, prices, team="Detroit Red Wings", consensus=True):
+    """One player market shaped like Novig's feed."""
+    words = lambda word: word if word in ("Yes", "No") else f"{word} {strike}"
+    return {
+        "type": kind, "is_consensus": consensus, "strike": strike,
+        "player": {"full_name": name, "player_competitors": [{"competitor": {"name": team}}]},
+        "outcomes": [{"description": words(word), "available": price} for word, price in prices.items()],
+    }
+
+
+class PlayerOdds(unittest.TestCase):
+    """Novig's player markets for NJD @ DET (the saved event)."""
+
+    TEAMS = {"Detroit Red Wings": "DET", "New Jersey Devils": "NJD"}
+
+    def read(self, event):
+        return build_nhl.player_odds_from_event(event, self.TEAMS.get, lambda team, name: f"{team}:{name}")
+
+    @classmethod
+    def setUpClass(cls):
+        cls.odds = cls.read(cls, helpers.nhl_novig_event()["event"])
+        cls.hughes = cls.odds["NJD:Jack Hughes"]
+
+    def test_over_unders_use_the_main_line(self):
+        self.assertEqual(self.hughes["sog"], {"line": 3.5, "over": 115, "under": -125, "chance": 0.456, "thin": False})
+        self.assertEqual(self.hughes["points"]["line"], 1.5)  # the book's main line, not the 0.5 it also lists
+        self.assertEqual(self.hughes["assists"], {"line": 0.5, "over": -113, "under": -100, "chance": 0.515, "thin": False})
+        self.assertEqual(sum(1 for o in self.odds.values() if "sog" in o), 14)
+
+    def test_the_other_lines_ride_along_as_ladders(self):
+        self.assertEqual(self.hughes["sog_alts"], [[1.5, -590], [2.5, -199], [4.5, 251], [5.5, 506], [6.5, 953]])  # never the main 3.5
+        self.assertEqual(self.hughes["goal_alts"], [[1.5, 1150], [2.5, 5782]])
+
+    def test_anytime_goal(self):
+        self.assertEqual(self.hughes["goal"], {"odds": 178, "no_odds": -233, "thin": False, "chance": 0.34})
+        self.assertEqual(sum(1 for o in self.odds.values() if "goal" in o), 36)
+        # One-sided (nobody selling No): kept, flagged, and the chance comes in under the asking price.
+        mazur = self.odds["DET:Carter Mazur"]["goal"]
+        self.assertEqual(mazur, {"odds": 1076, "no_odds": None, "thin": True, "chance": 0.081})
+
+    def test_first_goal_placeholders_are_dropped(self):
+        """The book listed 31 first-goal prices; 27 were one-sided asks of
+        21-27% (defensemen included). Only the four real markets remain."""
+        priced = {o["name"]: o["first_goal"] for o in self.odds.values() if "first_goal" in o}
+        self.assertEqual(sorted(priced), ["Alex DeBrincat", "Dylan Larkin", "Jack Hughes", "Nico Hischier"])
+        self.assertEqual(priced["Jack Hughes"], {"odds": 1076, "thin": False, "chance": 0.081})
+        for o in self.odds.values():
+            if "first_goal" in o:
+                self.assertLess(o["first_goal"]["chance"], o["goal"]["chance"], o["name"])  # can't score first without scoring
+
+    def test_one_sided_first_goal_must_fit_his_anytime_price(self):
+        event = {"markets": [
+            novig_market("PLAYER_GOALS", "Real Price", 0.5, {"Over": 0.30, "Under": 0.75}),
+            novig_market("FIRST_GOAL_SCORER", "Real Price", 0.0, {"Yes": 0.10, "No": None}),
+            novig_market("PLAYER_GOALS", "Placeholder", 0.5, {"Over": 0.30, "Under": 0.75}),
+            novig_market("FIRST_GOAL_SCORER", "Placeholder", 0.0, {"Yes": 0.20, "No": None}),
+            novig_market("FIRST_GOAL_SCORER", "No Anytime", 0.0, {"Yes": 0.05, "No": None}),
+        ]}
+        odds = self.read(event)
+        self.assertEqual(odds["DET:Real Price"]["first_goal"], {"odds": 900, "thin": True, "chance": 0.09})
+        self.assertNotIn("first_goal", odds["DET:Placeholder"])
+        self.assertNotIn("DET:No Anytime", odds)
+
+    def test_first_goal_chances_never_add_past_one(self):
+        event = {"markets": [m for name in "ABC" for m in (
+            novig_market("PLAYER_GOALS", name, 0.5, {"Over": 0.6, "Under": 0.45}),
+            novig_market("FIRST_GOAL_SCORER", name, 0.0, {"Yes": 0.45, "No": 0.5}),
+        )]}
+        chances = [o["first_goal"]["chance"] for o in self.read(event).values()]
+        self.assertEqual(chances, [0.333, 0.333, 0.333])
+
+    def test_junk_quotes(self):
+        event = {"markets": [
+            novig_market("PLAYER_GOALS", "Both 99", 0.5, {"Over": 0.999, "Under": 0.999}),
+            novig_market("PLAYER_GOALS", "Wide", 0.5, {"Over": 0.8, "Under": 0.8}),
+            novig_market("SHOTS_ON_GOAL", "Empty", 2.5, {"Over": None, "Under": None}),
+            novig_market("SHOTS_ON_GOAL", "One Side", 2.5, {"Over": 0.4, "Under": None}),
+            novig_market("SHOTS_ON_GOAL", "Wide", 2.5, {"Over": 0.6, "Under": 0.6}),
+        ]}
+        odds = self.read(event)
+        self.assertNotIn("DET:Both 99", odds)
+        self.assertNotIn("DET:Empty", odds)
+        self.assertNotIn("goal", odds["DET:Wide"])
+        self.assertEqual(odds["DET:One Side"]["sog"], {"line": 2.5, "over": 150, "under": None, "chance": None, "thin": True})
+        self.assertTrue(odds["DET:Wide"]["sog"]["thin"])  # the two asks add to 120%
+
+    def test_a_player_the_site_doesnt_know_is_left_out(self):
+        event = helpers.nhl_novig_event()["event"]
+        self.assertEqual(build_nhl.player_odds_from_event(event, self.TEAMS.get, lambda team, name: None), {})
+        self.assertEqual(build_nhl.player_odds_from_event(event, lambda name: None, lambda team, name: "x"), {})
+
+
+class FindingPlayers(unittest.TestCase):
+    """Books spell names their own way; the site's id is the NHL's."""
+
+    @classmethod
+    def setUpClass(cls):
+        skaters = {
+            "1": {"name": "Tim Stützle", "team": "OTT"}, "2": {"name": "Mitchell Marner", "team": "VGK"},
+            "3": {"name": "Elias Pettersson", "team": "VAN"}, "4": {"name": "Elias Pettersson", "team": "VAN"},
+        }
+        cls.find = staticmethod(build_nhl.player_finder(skaters, {"9": {"name": "Jake Allen", "team": "NJD"}}))
+
+    def test_matches(self):
+        self.assertEqual(self.find("OTT", "Tim Stutzle"), "1")    # accents
+        self.assertEqual(self.find("VGK", "Mitch Marner"), "2")   # same last name and first initial on the team
+        self.assertEqual(self.find("DET", "Jake Allen"), "9")     # just changed teams: the only one in the league
+
+    def test_no_guess_when_it_could_be_two_players(self):
+        self.assertIsNone(self.find("VAN", "Elias Pettersson"))
+        self.assertIsNone(self.find("OTT", "Nobody Here"))
+
+    def test_team_names(self):
+        teams = {"DET": {"mascot": "Red Wings"}, "MTL": {"mascot": "Canadiens"}, "STL": {"mascot": "Blues"}, "CBJ": {"mascot": "Blue Jackets"}}
+        name = build_nhl.team_namer(teams)
+        self.assertEqual([name(n) for n in ("Detroit Red Wings", "Montréal Canadiens", "St. Louis Blues", "Columbus Blue Jackets", "Seattle Kraken")], ["DET", "MTL", "STL", "CBJ", None])
 
 
 if __name__ == "__main__":

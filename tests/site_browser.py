@@ -5,7 +5,9 @@ it actually runs: Playwright opens the page (the same way tools/check_site.py
 does), answers the page's request for data.json with the sample, and the tests
 call the page's own functions.
 """
-from helpers import SAMPLE_BUILT_UTC, nhl_data_bytes, site_data_bytes  # first: puts tools/ on the import path
+import json
+
+from helpers import SAMPLE_BUILT_UTC, nhl_data_bytes, nhl_players, site_data_bytes  # first: puts tools/ on the import path
 
 from check_site import INSTALL_HELP, start_server
 
@@ -37,6 +39,13 @@ class SiteBrowser:
             route.fulfill(status=200, content_type="application/json", body=site_data_bytes())
         elif url == f"{self.origin}/nhl/data.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_data_bytes())
+        elif url.startswith(f"{self.origin}/nhl/players/"):
+            # Only the saved teams exist; any other team's file is "not built".
+            team = nhl_players().get(url.rsplit("/", 1)[-1].removesuffix(".json"))
+            if team:
+                route.fulfill(status=200, content_type="application/json", body=json.dumps(team))
+            else:
+                route.fulfill(status=404, body="")
         elif url.startswith(self.origin):
             route.continue_()
         else:

@@ -183,7 +183,10 @@ jobs:
               try:
                   data = json.loads((site / suite / "data.json").read_text())
                   feed = data.get("feed_debug") or {}
-                  note = {"built": data.get("generated_at"), "lines": (data.get("novig_debug") or {}).get("matched")}
+                  novig = data.get("novig_debug") or {}
+                  note = {"built": data.get("generated_at"), "lines": novig.get("matched")}
+                  if "players" in novig:
+                      note["player_odds"] = novig["players"]
                   if feed:
                       note.update(games=feed.get("games_loaded"), wanted=feed.get("games_wanted"), downloaded=feed.get("games_downloaded"))
               except Exception:

@@ -1,66 +1,10 @@
 // ---- GMG NHL Suite: Game Previews ----
-// The hockey twin of nba/nba.js: stands on its own (no common.js), shares the
-// stylesheet and the NBA page's layout classes (.nba-two, .nba-box, .nba-tile
-// ...); hockey-only styles are .nhl-*. Data comes from nhl/data.json, built
-// by nfl_tool/nhl/build_nhl.py.
+// The hockey twin of nba/nba.js. The data, helpers, rink drawing and the
+// player card are in nhl-common.js (loaded first); this file is the page.
 
-let DATA = null;
 let dayIndex = 0;
 let gameId = null;
-// "season" = this season's numbers, "prev" = last season's. The build picks
-// the one to open on (last season until teams have played enough games).
-let view = "season";
 const NHL_GAME_KEY = "nhl-tool.game.v1";
-
-const el = (id) => document.getElementById(id);
-const has = (n) => n !== null && n !== undefined;
-const fmt = (n, digits = 1) => (has(n) ? Number(n).toFixed(digits) : "--");
-const pct = (n, digits = 1) => (has(n) ? `${(n * 100).toFixed(digits)}%` : "--");
-const svPct = (n) => (has(n) ? n.toFixed(3).replace(/^0/, "") : "--");
-const signed = (n, digits = 1) => (has(n) ? `${n > 0 ? "+" : ""}${Number(n).toFixed(digits)}` : "--");
-const odds = (n) => (has(n) ? (n > 0 ? `+${n}` : `${n}`) : "");
-const team = (abbr) => DATA.teams[abbr] || { name: abbr, short: abbr, color: "555555", logo: "" };
-const isLight = () => document.documentElement.dataset.theme === "light";
-const logoUrl = (abbr) => (isLight() ? team(abbr).logo : team(abbr).logo_dark || team(abbr).logo) || "";
-const logo = (abbr, size = 18) => `<img src="${logoUrl(abbr)}" alt="${abbr}" class="team-logo" style="width:${size}px;height:${size}px" loading="lazy">`;
-const stats = () => (view === "prev" ? DATA.team_stats_prev : DATA.team_stats) || {};
-const viewLabel = () => (view === "prev" ? DATA.prev_season_label : DATA.season_label);
-// A player's line for the season being shown (last season's rides along as .prev).
-const line = (p) => (view === "prev" ? p.prev : p);
-function teamRgb(abbr) {
-  const hex = team(abbr).color || "555555";
-  return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
-}
-function banner(abbr, right = "") {
-  return `<div class="team-banner" style="background:rgba(${teamRgb(abbr)},0.22);border-left:4px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span class="team-banner-name">${team(abbr).name}</span>${right ? `<span class="nba-banner-right">${right}</span>` : ""}</div>`;
-}
-function fmtTime(hhmm) {
-  if (!hhmm) return "";
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"} ET`;
-}
-
-// ---- league comparison ----
-// z-score of one team's stat against all 32, flipped when lower is better,
-// so positive always means "good for the unit this number belongs to".
-function zScore(key, abbr, lowerIsBetter) {
-  const values = Object.values(stats()).map((s) => s[key]).filter(has);
-  const value = (stats()[abbr] || {})[key];
-  if (values.length < 3 || !has(value)) return null;
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const sd = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
-  if (!sd) return 0;
-  return ((value - mean) / sd) * (lowerIsBetter ? -1 : 1);
-}
-const tierClass = (z) => (z === null ? "" : z >= 0.5 ? "tier-good" : z <= -0.5 ? "tier-bad" : "tier-mid");
-function leagueRank(key, abbr, lowerIsBetter) {
-  const sorted = Object.entries(stats())
-    .filter(([, s]) => has(s[key]))
-    .sort((a, b) => (lowerIsBetter ? a[1][key] - b[1][key] : b[1][key] - a[1][key]));
-  const i = sorted.findIndex(([t]) => t === abbr);
-  return i === -1 ? null : i + 1;
-}
-const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
 
 // Offense vs defense rows. off / def = data keys for the same thing: what
 // the offense produces and what the other defense allows. In every row the
@@ -101,54 +45,24 @@ function rinkCall(takesZ, allowsZ) {
   if (lo <= -RINK_CALL_Z && hi < RINK_CONTRA_Z) return "fewer";
   return "";
 }
-// The offensive zone, net at the top, as the shooter sees it. Drawn in feet:
-// 85 wide, the end boards at y = 0, the goal line at 11, the blue line at 75.
-// The shapes match shot_area() in build_nhl.py.
-const RINK_ZONES = [
-  { key: "point", label: "Point", shape: `<rect x="0" y="46" width="85" height="29"/>`, at: [42.5, 58] },
-  { key: "left", label: "Left side", shape: `<polygon points="20.5,46 0,46 0,0 42.5,0 42.5,11 33.5,11 33.5,16.95 20.5,31"/>`, at: [11, 29] },
-  { key: "right", label: "Right side", shape: `<polygon points="64.5,46 85,46 85,0 42.5,0 42.5,11 51.5,11 51.5,16.95 64.5,31"/>`, at: [74, 29] },
-  { key: "slot", label: "Slot", shape: `<polygon points="20.5,31 20.5,46 64.5,46 64.5,31 51.5,16.95 51.5,31 33.5,31 33.5,16.95"/>`, at: [42.5, 34.4] },
-  { key: "low_slot", label: "Low slot", shape: `<rect x="33.5" y="11" width="18" height="20"/>`, at: [42.5, 18.6] },
-  { key: "long", label: "Outside the zone", shape: `<rect x="0" y="75" width="85" height="9"/>`, at: [42.5, 78.2], small: true },
-];
 function rink(offTeam, defTeam, uid) {
   const off = stats()[offTeam] || {};
   const def = stats()[defTeam] || {};
-  // Drawn in layers: the zones' colors, the rink's lines over them, the numbers on top.
-  let shapes = "";
-  let labels = "";
-  RINK_ZONES.forEach((z) => {
+  const svg = rinkSvg(uid, `${offTeam} shots by area against what ${defTeam} allows`, (z) => {
     const takes = off[`off_${z.key}_pg`];
     const allows = def[`def_${z.key}_pg`];
     // Shots from outside the zone are too rare to read anything into.
     const call = z.small ? "" : rinkCall(zScore(`off_${z.key}_pg`, offTeam, false), zScore(`def_${z.key}_pg`, defTeam, false));
-    const tip = `${z.label}: ${offTeam} ${fmt(takes)} a game (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`;
-    const [x, y] = z.at;
-    shapes += `<g class="nhl-zone${call ? ` nhl-zone-${call}` : ""}"><title>${tip}</title>${z.shape}</g>`;
-    labels += z.small
-      ? `<text class="nhl-zone-label" x="${x}" y="${y + 2.4}">${z.label}: ${fmt(takes)} &middot; allows ${fmt(allows)}</text>`
-      : `<text class="nhl-zone-label" x="${x}" y="${y}">${z.label}</text><text class="nhl-zone-big" x="${x}" y="${y + 6.6}">${fmt(takes)}</text><text class="nhl-zone-small" x="${x}" y="${y + 10.4}">allows ${fmt(allows)}</text>`;
+    return {
+      cls: call ? `nhl-zone-${call}` : "",
+      big: fmt(takes),
+      small: `allows ${fmt(allows)}`,
+      tip: `${z.label}: ${offTeam} ${fmt(takes)} a game (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`,
+    };
   });
   return `<div class="nba-box nhl-rink-box">
     <div class="nba-box-title">${logo(offTeam, 20)} ${offTeam} shots <span class="at">vs</span> ${logo(defTeam, 20)} ${defTeam} defense</div>
-    <svg class="nhl-rink" viewBox="0 0 85 84" role="img" aria-label="${offTeam} shots by area against what ${defTeam} allows">
-      <defs><clipPath id="${uid}"><path d="M0,84 L0,28 A28,28 0 0 1 28,0 L57,0 A28,28 0 0 1 85,28 L85,84 Z"/></clipPath></defs>
-      <g clip-path="url(#${uid})">
-        <rect class="nhl-ice" x="0" y="0" width="85" height="84"/>
-        ${shapes}
-        <g class="nhl-marks">
-          <line class="nhl-goal-line" x1="0" y1="11" x2="85" y2="11"/>
-          <line class="nhl-blue-line" x1="0" y1="75" x2="85" y2="75"/>
-          <circle cx="20.5" cy="31" r="15"/><circle cx="64.5" cy="31" r="15"/>
-          <circle class="nhl-dot" cx="20.5" cy="31" r="1"/><circle class="nhl-dot" cx="64.5" cy="31" r="1"/>
-          <path class="nhl-crease" d="M36.5,11 A6,6 0 0 0 48.5,11 Z"/>
-          <rect class="nhl-net" x="39.5" y="7.7" width="6" height="3.3"/>
-        </g>
-        <g class="nhl-zone-text">${labels}</g>
-      </g>
-      <path class="nhl-boards" d="M0,84 L0,28 A28,28 0 0 1 28,0 L57,0 A28,28 0 0 1 85,28 L85,84"/>
-    </svg>
+    ${svg}
   </div>`;
 }
 
@@ -199,7 +113,7 @@ function renderHeader(g) {
     <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${finalNote}${tired ? ` &nbsp;${tired}` : ""}</div>`;
 }
 function renderViewToggle() {
-  const both = !!DATA.prev_season_label && Object.keys(DATA.team_stats_prev || {}).length > 0;
+  const both = hasBothSeasons();
   const games = Math.round(DATA.middle_games_played || 0);
   el("view-toggle").hidden = !both;
   el("view-toggle").innerHTML = both
@@ -283,14 +197,15 @@ function renderRink(g) {
   el("rink-content").innerHTML = rink(g.away, g.home, "nhl-rink-away") + rink(g.home, g.away, "nhl-rink-home");
 }
 const outIds = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.id && p.status !== "Day-To-Day").map((p) => p.id));
-const headshot = (p) => (p.headshot ? `<img src="${p.headshot}" alt="" class="nhl-headshot" loading="lazy">` : `<span class="nhl-headshot"></span>`);
+// Every player name and photo on the page opens the player card.
+const nameCell = (p, extra = "") => playerClick(p.id, `${headshot(p)}<span>${p.name}</span>`) + extra;
 function renderGoalies(g) {
   const table = (abbr) => {
     const injured = outIds(abbr);
     const rows = (DATA.goalies[abbr] || [])
       .map((p) => {
         const s = line(p);
-        const name = `<td class="nba-player">${headshot(p)}<span>${p.name}</span>${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>`;
+        const name = `<td class="nba-player">${nameCell(p, injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : "")}</td>`;
         if (!s) return `<tr>${name}<td class="num muted-label" colspan="7">No ${viewLabel()} games</td></tr>`;
         return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>${name}
           <td class="num">${s.games}</td><td class="num">${s.starts}</td><td class="num">${s.record}</td>
@@ -311,7 +226,7 @@ function renderPlayers(g) {
     const injured = outIds(abbr);
     const row = (p) => {
       const s = line(p);
-      const name = `<td class="nba-player">${headshot(p)}<span>${p.name}</span><span class="muted-label">${p.pos || ""}</span>${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>`;
+      const name = `<td class="nba-player">${nameCell(p, `<span class="muted-label">${p.pos || ""}</span>${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}`)}</td>`;
       if (!s) return `<tr>${name}<td class="num muted-label" colspan="9">No ${viewLabel()} games</td></tr>`;
       const trend = view === "season" && has(s.l5_sog_pg) && has(s.sog_pg) ? s.l5_sog_pg - s.sog_pg : 0;
       return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>${name}
@@ -336,7 +251,7 @@ function renderInjuries(g) {
     const rows = (DATA.injuries[abbr] || [])
       .map((p) => {
         const [chip, tier] = INJURY_CHIP[p.status] || [p.status || "?", "tier-mid"];
-        return `<div class="nba-inj"${p.note ? ` title="${p.note.replace(/"/g, "&quot;")}"` : ""}><span class="gs-inj-status ${tier}">${chip}</span><b>${p.name}</b><span class="muted-label">${p.position || ""}</span><span class="nba-inj-what">${p.injury || ""}</span></div>`;
+        return `<div class="nba-inj"${p.note ? ` title="${p.note.replace(/"/g, "&quot;")}"` : ""}><span class="gs-inj-status ${tier}">${chip}</span>${playerClick(p.id, `<b>${p.name}</b>`)}<span class="muted-label">${p.position || ""}</span><span class="nba-inj-what">${p.injury || ""}</span></div>`;
       })
       .join("");
     return `<div class="nba-box">${banner(abbr)}${rows || `<p class="no-data-note">Nobody listed.</p>`}</div>`;
@@ -351,7 +266,7 @@ function renderRecent(g) {
       .map((r) => {
         const kind = r.result === "W" ? "win" : r.result === "L" ? "loss" : "push";
         const extra = r.ended && r.ended !== "REG" ? ` <span class="muted-label">${r.ended}</span>` : "";
-        return `<tr><td>${new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${kind}">${r.result}</span></td><td class="num">${r.gf}-${r.ga}${extra}</td><td class="num">${r.sog}-${r.sog_against}</td><td>${r.goalie || "--"}</td></tr>`;
+        return `<tr><td>${shortDate(r.date)}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${kind}">${r.result}</span></td><td class="num">${r.gf}-${r.ga}${extra}</td><td class="num">${r.sog}-${r.sog_against}</td><td>${r.goalie || "--"}</td></tr>`;
       })
       .join("");
     return `<div class="nba-box">${banner(abbr)}
@@ -384,6 +299,8 @@ function render() {
   renderPlayers(g);
   renderInjuries(g);
   renderRecent(g);
+  // Have both teams' player files on hand before a name is clicked.
+  [g.away, g.home].forEach(loadTeamPlayers);
 }
 function selectGame(id) {
   gameId = id;
@@ -406,30 +323,10 @@ document.addEventListener("click", (e) => {
   if (card) return selectGame(card.dataset.game);
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
-  const viewBtn = e.target.closest(".nhl-view-btn");
-  if (viewBtn) {
-    view = viewBtn.dataset.view;
-    return render();
-  }
-  const theme = e.target.closest("#theme-toggle");
-  if (theme) {
-    const light = document.documentElement.dataset.theme !== "light";
-    if (light) document.documentElement.dataset.theme = "light";
-    else delete document.documentElement.dataset.theme;
-    try {
-      localStorage.setItem("nfl-tool.theme", light ? "light" : "dark");
-    } catch (err) {
-      // localStorage unavailable -- the theme just won't stick.
-    }
-    if (DATA) render(); // the logos have a light and a dark version
-  }
 });
 
-fetch("data.json")
-  .then((r) => r.json())
-  .then((data) => {
-    DATA = data;
-    view = DATA.default_view === "prev" ? "prev" : "season";
+loadNhlData()
+  .then(() => {
     const all = days();
     let saved = null;
     try {

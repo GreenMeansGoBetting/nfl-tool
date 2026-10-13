@@ -107,6 +107,11 @@ DOT_Y = 22
 POST_Y = 3.5
 LOW_SLOT_Y = 9
 SHOT_EVENTS = ("goal", "shot-on-goal", "missed-shot", "blocked-shot")
+# The feed's shot types, grouped for the player card (anything else is "other").
+SHOT_TYPES = {"wrist": "wrist", "snap": "snap", "slap": "slap", "backhand": "backhand", "tip-in": "tip", "deflected": "tip"}
+# One row per game in a player's log (the player files, see write_player_files).
+SKATER_LOG_COLS = ("toi", "g", "a", "sog", "att", "hits", "blk", "pm", "pim", "ppp")
+GOALIE_LOG_COLS = ("start", "dec", "toi", "sa", "ga", "hd_sa", "hd_ga")
 
 
 def shot_area(x: float, y: float) -> str:
@@ -225,6 +230,8 @@ def reduce_game(raw: dict) -> dict:
                 continue
             t["unb"] += 1
             t["unb_5v5"] += even
+            mine["unb"] += 1
+            mine["pp_unb"] += man == "pp"
             on_goal = kind in ("goal", "shot-on-goal")
             if on_goal:
                 t["sog"] += 1
@@ -242,14 +249,21 @@ def reduce_game(raw: dict) -> dict:
             if spot is None:
                 continue
             area = shot_area(*spot)
+            scored = kind == "goal"
             t[f"a_{area}"] += 1
-            t[f"ag_{area}"] += kind == "goal"
+            t[f"as_{area}"] += on_goal
+            t[f"ag_{area}"] += scored
             mine[f"a_{area}"] += 1
+            mine[f"s_{area}"] += on_goal
+            mine[f"g_{area}"] += scored
+            shot_type = SHOT_TYPES.get(d.get("shotType"), "other")
+            mine[f"t_{shot_type}"] += 1
+            mine[f"tg_{shot_type}"] += scored
             goalie = d.get("goalieInNetId")
-            if on_goal and goalie and area == "low_slot":
+            if on_goal and goalie:
                 faced = goalie_extra.setdefault(goalie, Counter())
-                faced["hd_sa"] += 1
-                faced["hd_ga"] += kind == "goal"
+                faced[f"s_{area}"] += 1
+                faced[f"g_{area}"] += scored
         elif owner in abbr:
             t = teams[abbr[owner]]
             if kind == "hit":
@@ -278,7 +292,11 @@ def reduce_game(raw: dict) -> dict:
                     "team": team, "name": person_name(spot) or s["name"]["default"], "pos": "D" if group == "defense" else s.get("position") or "F",
                     "headshot": spot.get("headshot"), "toi": clock_seconds(s.get("toi")), "g": s.get("goals", 0), "a": s.get("assists", 0),
                     "sog": s.get("sog", 0), "hits": s.get("hits", 0), "blk": s.get("blockedShots", 0), "att": extra.get("att", 0),
-                    "hd": extra.get("a_low_slot", 0), "ppp": extra.get("ppp", 0),
+                    "hd": extra.get("a_low_slot", 0), "ppp": extra.get("ppp", 0), "pm": s.get("plusMinus", 0), "pim": s.get("pim", 0),
+                    "unb": extra.get("unb", 0), "pp_unb": extra.get("pp_unb", 0),
+                    # Where he shot from: {area: [shots (on goal or wide), on goal, goals]}, and by shot type: {type: [shots, goals]}.
+                    "areas": {a: [extra[f"a_{a}"], extra.get(f"s_{a}", 0), extra.get(f"g_{a}", 0)] for a in AREAS if extra.get(f"a_{a}")},
+                    "types": {k: [extra[f"t_{k}"], extra.get(f"tg_{k}", 0)] for k in (*dict.fromkeys(SHOT_TYPES.values()), "other") if extra.get(f"t_{k}")},
                 }
         for s in stats.get("goalies") or []:
             toi = clock_seconds(s.get("toi"))
@@ -290,7 +308,9 @@ def reduce_game(raw: dict) -> dict:
             goalies[str(pid)] = {
                 "team": team, "name": person_name(spot) or s["name"]["default"], "headshot": spot.get("headshot"), "toi": toi,
                 "sa": s.get("shotsAgainst", 0), "ga": s.get("goalsAgainst", 0), "start": bool(s.get("starter")), "dec": s.get("decision"),
-                "hd_sa": extra.get("hd_sa", 0), "hd_ga": extra.get("hd_ga", 0),
+                "hd_sa": extra.get("s_low_slot", 0), "hd_ga": extra.get("g_low_slot", 0),
+                # Shots on goal he faced from each area: {area: [shots, goals]}.
+                "areas": {a: [extra[f"s_{a}"], extra.get(f"g_{a}", 0)] for a in AREAS if extra.get(f"s_{a}")},
             }
     return {
         "id": pbp["id"],
@@ -544,6 +564,84 @@ def lineup(skaters: dict, team_games: Counter) -> dict:
     return out
 
 
+# ---- the player card's data ----
+def add_counts(total: dict, part: dict) -> None:
+    """Adds {key: [numbers]} into a running total of the same shape."""
+    for key, values in part.items():
+        have = total.setdefault(key, [0] * len(values))
+        for i, v in enumerate(values):
+            have[i] += v
+
+
+def compute_player_details(records: list) -> dict:
+    """What the player card shows beyond the season line: every game's box
+    score line, where a skater's shots came from and with what kind of shot,
+    and where the shots a goalie faced came from. Log rows point at a shared
+    list of games so the saved last-season file stays small."""
+    games = {str(r["id"]): [r["date"], r["home"], r["away"], r["score"][r["home"]], r["score"][r["away"]], r["ended"]] for r in records}
+    skaters, goalies = {}, {}
+    for r in records:
+        game = str(r["id"])
+        for pid, line in r["skaters"].items():
+            d = skaters.setdefault(pid, {"log": [], "areas": {}, "types": {}, "unb": 0, "pp_unb": 0})
+            d["log"].append([game, line["team"], *(line[c] for c in SKATER_LOG_COLS)])
+            add_counts(d["areas"], line["areas"])
+            add_counts(d["types"], line["types"])
+            d["unb"] += line["unb"]
+            d["pp_unb"] += line["pp_unb"]
+        for pid, line in r["goalies"].items():
+            d = goalies.setdefault(pid, {"log": [], "areas": {}})
+            d["log"].append([game, line["team"], *(int(line[c]) if isinstance(line[c], bool) else line[c] for c in GOALIE_LOG_COLS)])
+            add_counts(d["areas"], line["areas"])
+    return {"games": games, "skaters": skaters, "goalies": goalies}
+
+
+def league_areas(records: list) -> dict:
+    """The whole league's numbers for each rink area, the yardstick on the
+    player card: the share of shots taken there and how often a shot on goal
+    from there goes in."""
+    total = Counter()
+    for r in records:
+        for counts in r["teams"].values():
+            total.update(counts)
+    located = sum(total[f"a_{a}"] for a in AREAS)
+    return {a: {"share": ratio(total[f"a_{a}"], located), "sh_pct": ratio(total[f"ag_{a}"], total[f"as_{a}"])} for a in AREAS}
+
+
+def player_file(detail: dict | None, pid: str) -> dict | None:
+    """One player's card data with each log row spelled out: [date, opponent,
+    at home (1/0), goals for, goals against, how it ended, then the stat columns]."""
+    for group in ("skaters", "goalies"):
+        d = ((detail or {}).get(group) or {}).get(pid)
+        if not d:
+            continue
+        rows = []
+        for game, team, *numbers in d["log"]:
+            date, home, away, home_score, away_score, ended = detail["games"][game]
+            mine, theirs = (home_score, away_score) if team == home else (away_score, home_score)
+            rows.append([date, away if team == home else home, int(team == home), mine, theirs, ended, *numbers])
+        return {**d, "log": rows}
+    return None
+
+
+def write_player_files(folder: Path, teams: dict, stats: dict, prior: dict, generated_at: str) -> int:
+    """site/nhl/players/<TEAM>.json: the card data for everyone on that team,
+    this season and last. The page loads a team's file only when one of its
+    games is opened, so data.json stays small."""
+    folder.mkdir(parents=True, exist_ok=True)
+    on_team = {}
+    for group in ("skaters", "goalies"):
+        for pid, row in stats[group].items():
+            on_team.setdefault(row["team"], {}).setdefault(group, []).append(pid)
+    for abbr in teams:
+        blob = {"team": abbr, "generated_at": generated_at, "log_lead": ["date", "opp", "home", "gf", "ga", "ended"], "skater_cols": list(SKATER_LOG_COLS), "goalie_cols": list(GOALIE_LOG_COLS)}
+        for group in ("skaters", "goalies"):
+            blob[group] = {pid: {"season": player_file(stats["detail"], pid), "prev": player_file(prior.get("detail"), pid)} for pid in on_team.get(abbr, {}).get(group, [])}
+        with open(folder / f"{abbr}.json", "w") as f:
+            json.dump(blob, f, separators=(",", ":"))
+    return len(teams)
+
+
 # ---- injuries ----
 def plain(text: str) -> str:
     """Lowercase with accents dropped, for matching ESPN's names to the NHL's."""
@@ -691,12 +789,141 @@ def lines_from_event(ev: dict) -> dict:
     return lines
 
 
-def fetch_novig_lines(games: list, teams: dict) -> tuple:
-    """({game_id: lines}, debug). Pregame events only -- Novig keeps quoting
-    in-game lines after puck drop, and those must never be shown as the line
-    (the NFL site learned that on 2026-10-11). Never raises."""
-    debug = {"events": 0, "matched": 0, "error": None}
-    out = {}
+# Novig's player markets, as the site names them. The main (consensus) line of
+# each becomes a row on the player card; goals at 0.5 is the anytime goal.
+PLAYER_OU_MARKETS = {"SHOTS_ON_GOAL": "sog", "POINTS": "points", "ASSISTS": "assists"}
+# Highest believable Yes price (same guard as the NFL build's TD markets).
+GOAL_YES_MAX = 0.95
+# Novig's first-goal book is mostly placeholder asks: on 2026-10-13 it quoted
+# 27 of 31 skaters in a game at 21-27% to score first, depth defensemen
+# included, with nobody on the other side. A player can't score first without
+# scoring, so a one-sided first-goal price is only believed when it is at
+# most this share of his own anytime-goal price.
+FIRST_GOAL_MAX_SHARE = 0.5
+
+
+def player_finder(skaters: dict, goalies: dict):
+    """Returns find(team, name) -> the NHL's player id or None. Books spell
+    names their own way, so after an exact match (accents dropped) it tries
+    the same last name and first initial on that team, then a name only one
+    player in the league has (a player who just changed teams)."""
+    exact, loose, league = {}, {}, {}
+    for pid, p in {**goalies, **skaters}.items():
+        name = plain(p["name"])
+        first, _, last = name.partition(" ")
+        exact.setdefault((p["team"], name), set()).add(pid)
+        loose.setdefault((p["team"], last, first[:1]), set()).add(pid)
+        league.setdefault(name, set()).add(pid)
+
+    def find(team, name):
+        name = plain(name)
+        first, _, last = name.partition(" ")
+        for ids in (exact.get((team, name)), loose.get((team, last, first[:1])), league.get(name)):
+            if ids:
+                # Two players it could be (Vancouver has had two Elias Petterssons): no guess.
+                return next(iter(ids)) if len(ids) == 1 else None
+        return None
+
+    return find
+
+
+def player_odds_from_event(ev: dict, team_of_name, find) -> dict:
+    """{player id: odds} from one Novig event. Main lines only for the
+    over/unders; the other shots-on-goal and goals lines ride along as
+    ladders (sog_alts, goal_alts). Like the NFL build's TD odds, one-sided
+    prices are kept and junk quotes dropped; a first-goal price also has to
+    make sense next to the player's own anytime price (FIRST_GOAL_MAX_SHARE)."""
+    out, goal_rows, first_rows = {}, [], []
+
+    def entry(m):
+        player = m.get("player") or {}
+        comps = player.get("player_competitors") or []
+        team = team_of_name((comps[0].get("competitor") or {}).get("name")) if comps else None
+        pid = find(team, player.get("full_name")) if team else None
+        return out.setdefault(pid, {"name": player.get("full_name"), "team": team}) if pid else None
+
+    for m in ev.get("markets") or []:
+        if not m.get("player"):
+            continue
+        kind = m.get("type")
+        prices = {(o.get("description") or "").split(" ")[0].lower(): o.get("available") for o in m.get("outcomes") or []}
+        strike = m.get("strike")
+        if kind in PLAYER_OU_MARKETS and strike is not None:
+            over, under = prices.get("over"), prices.get("under")
+            if m.get("is_consensus"):
+                if price_to_american(over) is None and price_to_american(under) is None:
+                    continue
+                row = entry(m)
+                if row is not None:
+                    # Barely traded: one side missing, or the two asks adding well past 100%.
+                    thin = not over or not under or over + under > 1.15
+                    row[PLAYER_OU_MARKETS[kind]] = {"line": float(strike), "over": price_to_american(over), "under": price_to_american(under), "chance": round(over / (over + under), 3) if over and under else None, "thin": thin}
+            elif kind == "SHOTS_ON_GOAL" and price_to_american(over) is not None:
+                row = entry(m)
+                if row is not None:
+                    row.setdefault("sog_alts", []).append([float(strike), price_to_american(over)])
+        elif kind == "PLAYER_GOALS" and strike is not None:
+            yes, no = prices.get("over"), prices.get("under")
+            if price_to_american(yes) is None:
+                continue
+            if float(strike) != 0.5:
+                row = entry(m)
+                if row is not None:
+                    row.setdefault("goal_alts", []).append([float(strike), price_to_american(yes)])
+            elif m.get("is_consensus") and yes <= GOAL_YES_MAX and not (no and yes + no > 1.5):
+                row = entry(m)
+                if row is not None:
+                    row["goal"] = {"odds": price_to_american(yes), "no_odds": price_to_american(no), "thin": not no}
+                    goal_rows.append((row["goal"], yes, no))
+        elif kind == "FIRST_GOAL_SCORER" and m.get("is_consensus"):
+            yes, no = prices.get("yes"), prices.get("no")
+            if price_to_american(yes) is None or (no and yes + no > 1.5):
+                continue
+            row = entry(m)
+            if row is not None:
+                first_rows.append((row, yes, no))
+
+    # Chances, once the whole game is read: Yes/(Yes+No) when both sides
+    # trade; a one-sided price gets the game's median fair/Yes ratio.
+    def fair(rows):
+        ratios = sorted((yes / (yes + no)) / yes for _, yes, no in rows if no)
+        typical = ratios[len(ratios) // 2] if ratios else 0.9
+        return lambda yes, no: yes / (yes + no) if no else min(yes * typical, 0.99)
+
+    chance = fair(goal_rows)
+    anytime_yes = {}
+    for goal, yes, no in goal_rows:
+        goal["chance"] = round(chance(yes, no), 3)
+        anytime_yes[id(goal)] = yes
+    chance = fair(first_rows)
+    kept = []
+    for row, yes, no in first_rows:
+        ceiling = anytime_yes.get(id(row.get("goal")))
+        if not no and (ceiling is None or yes > FIRST_GOAL_MAX_SHARE * ceiling):
+            continue  # a placeholder ask, not a price
+        row["first_goal"] = {"odds": price_to_american(yes), "thin": not no}
+        kept.append((row["first_goal"], chance(yes, no)))
+    # One goal comes first: the chances can add up to less than 1 (not every
+    # player is priced) but never more.
+    over = max(sum(c for _, c in kept), 1.0)
+    for first, c in kept:
+        first["chance"] = round(c / over, 3)
+    for row in out.values():
+        for key in ("sog_alts", "goal_alts"):
+            if key in row:
+                row[key].sort()
+    # A player whose only quote was dropped has nothing left but his name.
+    return {pid: row for pid, row in out.items() if len(row) > 2}
+
+
+def fetch_novig_lines(games: list, teams: dict, find=None) -> tuple:
+    """({game_id: lines}, {game_id: {player id: odds}}, debug). Pregame
+    events only -- Novig keeps quoting in-game lines after puck drop, and
+    those must never be shown as the line (the NFL site learned that on
+    2026-10-11). Never raises."""
+    debug = {"events": 0, "matched": 0, "players": 0, "error": None}
+    out, players = {}, {}
+    team_of_name = team_namer(teams)
     try:
         query = NOVIG_QUERY_PATH.read_text(encoding="utf-8").rstrip("\n")
         by_matchup = {}
@@ -729,10 +956,21 @@ def fetch_novig_lines(games: list, teams: dict) -> tuple:
             if lines:
                 out[game["game_id"]] = lines
                 debug["matched"] += 1
+            if find:
+                odds = player_odds_from_event(rows[0], team_of_name, find)
+                if odds:
+                    players[game["game_id"]] = odds
+                    debug["players"] += len(odds)
     except Exception as ex:  # network, JSON, or a changed query -- the page just shows no lines
         debug["error"] = str(ex)
         print(f"WARNING: Novig NHL fetch failed ({ex}).", file=sys.stderr)
-    return out, debug
+    return out, players, debug
+
+
+def team_namer(teams: dict):
+    """Returns f(a book's team name) -> the NHL abbreviation ("Detroit Red Wings" -> DET)."""
+    by_mascot = {plain(t["mascot"]): abbr for abbr, t in teams.items()}
+    return lambda name: next((abbr for mascot, abbr in by_mascot.items() if plain(name).endswith(mascot)), None)
 
 
 def fetch_previous() -> dict | None:
@@ -761,6 +999,20 @@ def apply_lines(games: list, novig: dict, previous: dict | None, now_utc: dateti
             if source.get(field) is not None:
                 g[field] = source[field]
         g["lines_locked"] = started
+
+
+def locked_player_odds(games: list, fresh: dict, previous: dict | None, now_utc: datetime) -> dict:
+    """{game_id: {player id: odds}} for the games on the schedule, under the
+    same lock as the game lines: a game that has started keeps the player
+    odds of the last build before puck drop, never this run's."""
+    prev = (previous or {}).get("player_odds") or {}
+    out = {}
+    for g in games:
+        started = g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+        odds = prev.get(g["game_id"]) if started else fresh.get(g["game_id"]) or prev.get(g["game_id"])
+        if odds:
+            out[g["game_id"]] = odds
+    return out
 
 
 # ---- putting it together ----
@@ -800,6 +1052,8 @@ def season_stats(season: int, data_dir: Path, standings: dict, team_ids: dict) -
         "team_stats": compute_team_stats(records, standings, reports, team_ids),
         "skaters": compute_skaters(records, fetch_report("skater/timeonice", season, "playerId")),
         "goalies": compute_goalies(records),
+        "detail": compute_player_details(records),
+        "league": league_areas(records),
     }
 
 
@@ -813,7 +1067,10 @@ def write_prior(season: int, data_dir: Path, out: Path) -> None:
     ends = next(s["standingsEnd"] for s in _request(f"{API}/standings-season")["seasons"] if str(s["id"]) == season_id(season))
     standings = {s["teamAbbrev"]["default"]: s for s in _request(f"{API}/standings/{ends}").get("standings") or []}
     stats = season_stats(season, data_dir, standings, {abbr: t["id"] for abbr, t in teams.items()})
-    blob = {"season": season, "season_label": season_label(season), "team_stats": stats["team_stats"], "skaters": stats["skaters"], "goalies": stats["goalies"]}
+    blob = {
+        "season": season, "season_label": season_label(season), "team_stats": stats["team_stats"], "skaters": stats["skaters"], "goalies": stats["goalies"],
+        "detail": stats["detail"], "league": stats["league"],
+    }
     with gzip.open(out, "wt", encoding="utf-8") as f:
         json.dump(blob, f, separators=(",", ":"))
     print(f"Wrote {out} -- {season_label(season)}: {stats['debug']['games_loaded']} of {stats['debug']['games_wanted']} games, {len(stats['skaters'])} skaters, {len(stats['goalies'])} goalies")
@@ -864,9 +1121,11 @@ def main():
 
     games = fetch_schedule(now_utc)
     add_rest(games, stats["listing"], abbr_by_id)
-    novig, novig_debug = fetch_novig_lines(games, teams)
-    apply_lines(games, novig, fetch_previous(), now_utc)
+    novig, novig_players, novig_debug = fetch_novig_lines(games, teams, player_finder(stats["skaters"], stats["goalies"]))
+    previous = fetch_previous()
+    apply_lines(games, novig, previous, now_utc)
     injuries, injuries_error = fetch_injuries(teams, stats["skaters"], stats["goalies"])
+    generated_at = now_utc.strftime("%Y-%m-%dT%H:%MZ")
 
     blob = {
         "season": args.season,
@@ -874,8 +1133,9 @@ def main():
         "prev_season_label": prior.get("season_label"),
         "default_view": default_view,
         "middle_games_played": middle_games,
-        "generated_at": now_utc.strftime("%Y-%m-%dT%H:%MZ"),
+        "generated_at": generated_at,
         "areas": list(AREAS),
+        "league": {"season": stats["league"], "prev": prior.get("league")},
         "teams": teams,
         "team_stats": stats["team_stats"],
         "team_stats_prev": prior.get("team_stats") or {},
@@ -884,12 +1144,14 @@ def main():
         "goalies": goalies,
         "injuries": injuries,
         "schedule": games,
+        "player_odds": locked_player_odds(games, novig_players, previous, now_utc),
         "novig_debug": novig_debug,
         "feed_debug": {**stats["debug"], "injuries_error": injuries_error},
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
+    write_player_files(args.out.parent / "players", teams, stats, prior, generated_at)
     d = stats["debug"]
     print(f"Wrote {args.out} -- {season_label(args.season)}: {d['games_loaded']} of {d['games_wanted']} finished games ({d['games_downloaded']} downloaded), {len(games)} on the schedule, lines for {novig_debug['matched']}")
     if d["errors"]:

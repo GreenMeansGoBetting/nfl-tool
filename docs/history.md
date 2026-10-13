@@ -979,3 +979,33 @@ instead.
   feed found), props, a Summary card.
 - **How a CI build is confirmed:** the repo is private and `nhl/data.json` is behind the login,
   so `version.json` now carries a short note on the NBA and NHL builds.
+
+### NHL player card (2026-10-13, same day as the foundation)
+
+Right after seeing the first page the user asked for "the modals for clicking players like NFL":
+box score stats, then "another tab for areas where they shoot the most/least like the WR catch
+map we built", with shots per game and goals from each area, then their odds from Novig. They
+called it the framework for the tools to come (anytime goal scorer, shots on goal, goalie
+saves). They also said the five-game sample is understood and the season switch is fine as is.
+
+- **Why per-team player files:** a season of game logs for 600 players would add several MB to
+  data.json by April (the NFL data.json is 9.6 MB and the foundation plan already wants it
+  split). The card's logs and shot areas live in `nhl/players/<TEAM>.json` and are loaded only
+  for the two teams of the open game.
+- **Why last season's logs are in the saved prior file:** with five games played, a card with
+  only this season would be nearly empty, so `prior_2026.json.gz` grew from 60 KB to 0.5 MB to
+  carry each player's 2025-26 log and shot areas.
+- **Why a shared script:** the next tools are more NHL pages, and each must open the same card,
+  so the data loading, helpers, rink drawing and card moved out of `nhl.js` into
+  `nhl-common.js`.
+- **The first-goal surprise:** Novig's first-goal book quoted 27 of 31 skaters in a game at
+  21-27% to score first with nobody on the other side, depth defensemen included. Dividing by
+  the sum of every Yes (the NFL First TD rule) turned a real 8.5% price into 1%. The rule
+  became: a one-sided first-goal price must be at most half the player's own anytime price.
+  That left the four real markets in that game.
+- **Why zeros aren't red in the game log:** the NFL card shades every column against the
+  player's own games, but goals are zero most nights, which painted the table red. Only the
+  volume columns are shaded that way; scoring columns light up on the nights he scored.
+- **Why goalie zones are rarely colored:** a .911 on 90 shots from one side looks bad next to
+  the league's .937 but is two extra goals, well within luck. A zone needs 30 shots and a gap of
+  1.5 standard deviations.

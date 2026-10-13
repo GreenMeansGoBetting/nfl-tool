@@ -3700,6 +3700,29 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nhl-zone-text .nhl-zone-label { font-size: 2.5px; font-weight: 800; letter-spacing: 0.22px; text-transform: uppercase; fill: var(--muted); }
 .nhl-zone-text .nhl-zone-big { font-size: 6.4px; font-weight: 800; }
 .nhl-zone-text .nhl-zone-small { font-size: 2.7px; font-weight: 700; fill: var(--muted); }
+/* The NHL player card (nhl-common.js): the NFL card's shell (.pc-box, .pc-head, .player-modal-toggle) with hockey tabs */
+.nhl-suite .player-click { cursor: pointer; }
+.nhl-suite .nba-player .player-click { display: inline-flex; align-items: center; gap: 7px; }
+.nhl-suite .player-click:hover span, .nhl-suite .player-click:hover b { text-decoration: underline; }
+.nhl-pc-photo { flex: none; width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: var(--table-head); }
+.nhl-pc-tiles { grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 0; margin: 0 0 12px; }
+.nhl-pc-tabs { align-items: center; flex-wrap: wrap; }
+.nhl-pc-seasons { display: inline-flex; gap: 6px; margin-left: auto; }
+.nhl-pc-scroll { overflow-x: auto; }
+.nhl-pc-log td, .nhl-pc-areas td { white-space: nowrap; }
+.nhl-pc-odds { width: 100%; max-width: 620px; }
+.nhl-pc-log .nhl-pc-avg td { background: var(--table-head); font-weight: 800; }
+.nhl-pc-map { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 16px; align-items: start; }
+.nhl-pc-rink .nhl-rink { width: 100%; max-width: 420px; }
+.nhl-pc-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.nhl-zone-heat rect, .nhl-zone-heat polygon { fill: rgba(var(--accent-rgb), var(--heat, 0.2)); }
+.nhl-pc-rank { margin-left: 4px; font-size: 0.72em; font-weight: 700; opacity: 0.8; }
+.nhl-pc-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.nhl-pc-chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 9px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.84rem; }
+.nhl-pc-chip b { font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.nhl-pc-chip small { color: var(--muted); font-weight: 700; }
+.nhl-pc-ladder { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+.nhl-pc-thin { margin-left: 4px; padding: 0 5px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
 
 /* .sc-tight: a Summary card too full to fit near full size gives up padding and gaps before
    its text is shrunk (fitSummaryCard, SUMMARY_TIGHT_BELOW). Nothing is hidden. */
@@ -3757,6 +3780,9 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .nhl-tiles .nba-tile b { font-size: 0.95rem; white-space: nowrap; }
   .nhl-suite .nba-banner-right { white-space: nowrap; font-size: 1.05rem; }
   .nhl-line.g2-line { grid-template-columns: 1fr; }
+  .nhl-pc-map { grid-template-columns: minmax(0, 1fr); }
+  .nhl-pc-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .nhl-pc-seasons { margin-left: 0; }
   .mw-page .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }

@@ -31,8 +31,8 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   - `version.json` (commit sha, run id, build time) is written into the site and served without
     a login (`/version.json` is let through by the middleware). It is how a deploy is confirmed.
     It also carries `nba` and `nhl`: when each of those builds last worked (`built`, null if it
-    failed), how many lines it matched, and for NHL the games loaded / downloaded or the failed
-    build's last line (`error`). Their data files are behind the login, so this is the only way
+    failed), how many lines it matched, and for NHL the games loaded / downloaded, how many
+    players got odds (`player_odds`), or the failed build's last line (`error`). Their data files are behind the login, so this is the only way
     to see those builds from outside.
 - It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, and on manual dispatch. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN

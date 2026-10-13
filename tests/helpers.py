@@ -14,8 +14,10 @@ tests/fixtures/, so the right answers can't change from week to week:
                            it (FLA @ BUF, 2026-10-12: play-by-play + box score).
   * nhl_novig_event.json.gz -- one NHL game's Novig markets (NJD @ DET,
                            captured 2026-10-13, before puck drop).
-  * nhl_data.json.gz    -- the NHL page's data.json as built 2026-10-13 13:40
+  * nhl_data.json.gz    -- the NHL page's data.json as built 2026-10-13 14:12
                            UTC (teams about 5 games into 2026-27).
+  * nhl_players.json.gz -- two of that build's per-team player files (NJD and
+                           DET: game logs and shot areas for the player card).
 
 tests/ sits outside nfl_tool/, so none of it is deployed and a push that only
 touches tests doesn't rebuild the site.
@@ -79,3 +81,9 @@ def nhl_data_bytes():
 
 def nhl_data():
     return json.loads(nhl_data_bytes())
+
+
+def nhl_players():
+    """The saved per-team player files (the player card's game logs and shot
+    areas) from the same build as nhl_data(): {"NJD": {...}, "DET": {...}}."""
+    return json.loads(_fixture_bytes("nhl_players.json.gz"))
