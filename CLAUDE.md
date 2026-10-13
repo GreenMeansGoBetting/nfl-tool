@@ -14,8 +14,8 @@ that, move detail into a rules file.
 - Owner: a sports-betting content creator ("GMG" = Green Means Go) with no coding background.
   Explain in plain language and do the technical work yourself.
 - Live at **https://nfl.gmgsports.org**. Repo: `GreenMeansGoBetting/nfl-tool`. The brand is
-  "GMG Sports Data Suite"; NFL is live, the NBA and NHL suites are being built (owner-only until
-  launch). A separate CFB tool is paused.
+  "GMG Sports Data Suite"; NFL, NBA and NHL are all open to members (NBA and NHL launched
+  2026-10-13 and are still being built out). A separate CFB tool is paused.
 - The user screenshots sections and the **Summary cards** (fixed 1160×980, sized to their video
   template's left area) and drops them into betting videos. Favor dense, screenshot-ready,
   visually clean layouts.

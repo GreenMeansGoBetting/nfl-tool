@@ -26,6 +26,23 @@ def tearDownModule():
 
 
 class PageDraws(unittest.TestCase):
+    def test_the_suite_is_open_to_every_member(self):
+        """Launched 2026-10-13. Before that, a member who opened an NHL link got
+        "GMG NHL Suite is being built ... Check back soon" and took the site
+        for broken. A member is neither the owner nor on localhost: with both
+        of those marks taken off, the page itself must still show."""
+        page = SITE.open("nhl/index.html")
+        page.wait_for_function("() => typeof DATA !== 'undefined' && DATA !== null")
+        seen = page.evaluate(
+            """() => {
+                document.documentElement.classList.remove("is-owner", "local-dev");
+                const shown = (selector) => getComputedStyle(document.querySelector(selector)).display !== "none";
+                return { app: shown(".nba-app"), wall: shown(".nba-soon"), open: document.documentElement.classList.contains("suite-public"), menu: document.querySelectorAll(".suite-menu .suite-item").length };
+            }"""
+        )
+        page.close()
+        self.assertEqual(seen, {"app": True, "wall": False, "open": True, "menu": 3})  # NFL, NBA and NHL in the dropdown
+
     def test_every_game_without_a_script_error(self):
         drawn = PAGE.evaluate(
             """() => {

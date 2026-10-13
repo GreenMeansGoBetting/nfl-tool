@@ -274,10 +274,13 @@
 
   // ---- Suite switcher (added 2026-10-11) ----
   // The brand in the topbar ("GMG NFL SUITE") becomes a dropdown for moving
-  // between suites. Until the NBA and NHL suites launch it only works for the
-  // owner and on localhost; flip SUITE_SWITCH_PUBLIC to open it to every member
-  // (and take the owner-only guard off those pages -- .nba-app in style.css).
-  const SUITE_SWITCH_PUBLIC = false;
+  // between suites. LAUNCHED 2026-10-13: the NBA and NHL suites are open to
+  // every member (the owner: "I have been advertising it! Get it up and going.
+  // You can open both to the public!"). While this was false, members who
+  // opened an NHL link got the "being built" note (.nba-soon in suite.css) and
+  // took the site for broken. Setting it back to false closes both suites to
+  // everyone but the owner: never do that without the owner asking.
+  const SUITE_SWITCH_PUBLIC = true;
   const SUITES = [
     { key: "nfl", label: "NFL", href: "/game-overview.html" },
     { key: "nba", label: "NBA", href: "/nba/" },

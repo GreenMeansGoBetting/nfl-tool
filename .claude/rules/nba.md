@@ -13,12 +13,19 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 
 - `addSuiteSwitcher` (sync.js; `.suite-*` styles): the topbar brand ("GMG NFL SUITE") becomes a
   dropdown listing every suite in `SUITES` (NFL, NBA, NHL since 2026-10-13).
-- **Owner / localhost only until launch** (`SUITE_SWITCH_PUBLIC = false`); for everyone else the
-  brand is still a plain link home. The NBA pages are guarded the same way (`.nba-app` hidden,
-  `.nba-soon` "being built" note shown).
-- **To launch:** set `SUITE_SWITCH_PUBLIC = true` (adds `html.suite-public`, which opens both).
-  One switch covers NBA and NHL: the NHL page uses the same `.nba-app` / `.nba-soon` guard, so
-  launching one without the other needs a second switch first.
+- **LAUNCHED 2026-10-13: both suites are open to every member** (`SUITE_SWITCH_PUBLIC = true`
+  in sync.js adds `html.suite-public`, which shows the dropdown to everyone and takes the guard
+  off the NBA and NHL pages). The owner had been advertising the NHL tools while the switch was
+  still off, so members who opened an NHL link got the guard's note ("GMG NHL Suite is being
+  built ... Check back soon") for over two hours and the owner took the site for broken:
+  "YES! I have been advertising it! Get it up and going. You can open both to the public!"
+- The guard is still in the pages (`.nba-app` hidden and `.nba-soon` shown without
+  `suite-public`, suite.css) and one switch covers both suites. **Never set it back to false
+  unless the owner asks**; a test (`test_the_suite_is_open_to_every_member`) fails if it is.
+- Members now see these pages, so a broken NBA or NHL page is a broken page for paying members.
+  The deploy's gate still leaves them out (their data builds may fail on their own): check them
+  with `tools/check_site.py --only nhl` / `--only nba` before any push that touches them.
+- Still owner-only: the "Update Odds" buttons.
 
 ## Data: sportsdataverse / hoopR
 

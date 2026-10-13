@@ -6,9 +6,9 @@ paths:
 # GMG NHL Suite
 
 Started 2026-10-13, a week into the 2026-27 season (84 games a team this year, 1,344 in all).
-Third suite on the same site, reached from the suite dropdown and **owner / localhost only until
-launch**, exactly like the NBA suite (same switch: see nba.md, "Suite switcher and launch
-switch"). More background: `docs/history.md`, "NHL".
+Third suite on the same site, reached from the suite dropdown. **Open to every member since
+the evening of 2026-10-13** (one switch with the NBA suite: see nba.md, "Suite switcher and
+launch switch"). More background: `docs/history.md`, "NHL".
 
 ## Data: the NHL's own public feed (no key)
 
@@ -355,7 +355,7 @@ on a replay, and the page keeps a record against the real prices.
 - **Styles:** hockey-only rules go in `site/nhl/nhl.css` (never style.css: see styles.md); the
   layout shared with the NBA page is `site/suite.css`.
 - It reuses the NBA page's layout classes (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` /
-  `.nba-soon` for the owner-only guard); hockey-only styles are `.nhl-*`. It does not load
+  `.nba-soon` for the launch guard, now open); hockey-only styles are `.nhl-*`. It does not load
   common.js.
 - **Every rink zone is colored, on the NFL Summary's eight rank colors** (the user, 2026-10-13:
   "I don't like when the shot charts are not colored. Red and green show, but sometimes it's

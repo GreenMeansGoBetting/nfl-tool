@@ -81,9 +81,10 @@ take the site offline until a push is completely ready."
   everyone who is not the owner, by design, until `SUITE_SWITCH_PUBLIC` is true (nba.md). The
   text exists only on those pages, no NFL page can show it, and nothing sends a member to an NHL
   page (the suite dropdown is owner-only too). So people reached an NHL link while the suite was
-  still closed. The owner read it as a push stuck halfway; no push was. **Before the owner shares
-  an NHL or NBA link, check the switch.** The owner sees the same wall on any device that is not
-  signed in with their own Discord account (`OWNER_IDS`; an email sign-in is not the owner).
+  still closed (the owner had been advertising it). The owner read it as a push stuck halfway;
+  no push was. Fixed the same evening by launching both suites (`SUITE_SWITCH_PUBLIC = true`).
+  The lesson: a page members can reach by link must never look finished to the owner and
+  closed to everyone else without the owner knowing which it is.
 - **The live check** (`tools/ci_steps.py live-check`, the last step of deploy.yml and
   nhl-refresh.yml). After every publish it looks at the real site up to four times, 15 s apart:
   the sign-in page is served (401), `/auth/status` says the login is on and the member database
