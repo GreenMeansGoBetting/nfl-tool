@@ -555,7 +555,16 @@ function selectDay(i) {
   render();
 }
 
+// The record lives in its own popup, opened by "YTD Model Performance" next to the title.
+function showRecord(open) {
+  el("shots-record-modal").hidden = !open;
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") showRecord(false);
+});
 document.addEventListener("click", (e) => {
+  if (e.target.closest("#shots-record-open")) return showRecord(true);
+  if (e.target.id === "shots-record-modal" || e.target.closest("#shots-record-modal .modal-close")) return showRecord(false);
   const card = e.target.closest(".matchup-card");
   if (card) {
     gameId = gameId === card.dataset.game ? null : card.dataset.game;
@@ -568,7 +577,7 @@ document.addEventListener("click", (e) => {
   if (filter) {
     const value = filter.dataset.value;
     shotsView[filter.dataset.filter] = value === "true" ? true : value === "false" ? false : value;
-    shotsView.open = null;
+    if (filter.dataset.filter !== "record") shotsView.open = null;
     return render();
   }
   const sort = e.target.closest(".shots-sort");

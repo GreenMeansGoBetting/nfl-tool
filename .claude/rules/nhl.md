@@ -268,7 +268,10 @@ on a replay, and the page keeps a record against the real prices.
     an edge (lean, strong or check) on the latest `SHOTS_RECORD_DAYS` (14) days that have any:
     side, line, locked price, edge, projection, real shots, won, units, `fade`. The buckets cover
     the whole season; the list is capped so shots.json doesn't grow by a megabyte by spring.
-  - On the page (`recordPlays` in shots.js, under the record's tiles): "Graded plays", newest day
+  - On the page: the **"YTD Model Performance"** button beside the Shots on Goal title opens the
+    record in a popup (`#shots-record-modal`; the user's wording and placement, 2026-10-13; it
+    sat at the bottom of the page first and they couldn't find it). In it, the tiles, then
+    (`recordPlays` in shots.js) "Graded plays", newest day
     first, each day headed by its own W-L and units, with bucket buttons **Every edge** (how it
     opens) / **Strong** / **Lean** / **Check first** and the shown bucket's total beside them.
     Nothing is typed in by hand: each build adds the games that finished since the last one.

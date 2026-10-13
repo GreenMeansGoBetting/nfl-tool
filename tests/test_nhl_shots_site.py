@@ -572,6 +572,27 @@ class GradedPlays(unittest.TestCase):
         check = self.show("check")
         self.assertEqual((names(check), check["total"], check["active"]), (["Check Winner"], "1-0 · +1.10u", "Check first"))
 
+    def test_ytd_model_performance_opens_it_as_a_popup(self):
+        """The owner: a button next to the SHOTS ON GOAL title that says "YTD
+        Model Performance" and brings the record up in a modal."""
+        self.show()
+        read = """() => ({
+            hidden: document.getElementById("shots-record-modal").hidden,
+            inside: !!document.querySelector("#shots-record-modal #shots-results .shots-record-table"),
+            button: document.querySelector(".shots-title-row #shots-title + #shots-record-open").textContent,
+        })"""
+        self.assertEqual(PAGE.evaluate(read), {"hidden": True, "inside": True, "button": "YTD Model Performance"})
+        PAGE.evaluate("() => document.getElementById('shots-record-open').click()")
+        self.assertFalse(PAGE.evaluate(read)["hidden"])
+        # A bucket button redraws the record and leaves the popup open.
+        PAGE.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"record\"][data-value=\"strong\"]').click()")
+        self.assertFalse(PAGE.evaluate(read)["hidden"])
+        PAGE.keyboard.press("Escape")
+        self.assertTrue(PAGE.evaluate(read)["hidden"])
+        PAGE.evaluate("() => document.getElementById('shots-record-open').click()")
+        PAGE.evaluate("() => document.querySelector('#shots-record-modal .modal-close').click()")
+        self.assertTrue(PAGE.evaluate(read)["hidden"])
+
     def test_a_record_saved_before_the_plays_were_kept_still_draws(self):
         seen = PAGE.evaluate(
             """() => {
