@@ -544,6 +544,43 @@ means your payout will be smaller").
   `lineups` (games whose projected lineup was read), or
   `error` (the build's last line) when it failed.
 
+## Goals (anytime goal): step 1, the replay (2026-10-14; no page yet)
+
+The owner asked for a Goals tab "displayed similarly to shots", with a flag where a player's
+heavy shooting area overlaps an opponent's weakness (their example: Brandsegg-Nygard, 44% of his
+attempts from the low slot, scored at +500 against New Jersey, who had given up 12 of 22 goals from
+there; but NJD was 20th of 32 in low-slot SHOTS allowed). Plan agreed: replay first, then the
+model, a one-row mockup, the page, the record.
+
+- `python tools/backtest/nhl_goals.py 2026 2025` (about 20 s a season). Expected goals = a logistic
+  table on distance, angle, rink area, shot type, rebound, rush, PP / SH, fitted weekly on the
+  season's own shots before each day (this-season-only holds for the league's yardsticks too).
+  Projection = his expected goals a minute (50 minutes of an average skater with his ice time
+  mixed in) x the shots model's minutes x matchup pieces.
+- What both seasons said:
+  - Honest chances: "30-35%" scored 33-36%; the top 10% were a touch better than said (34-35% vs
+    31-32%). Beats his goals a game clearly (log loss 0.397 vs 0.407; a flat chance 0.431). Only
+    a little better than shots x the league's shooting % (0.3968 vs 0.3977).
+  - Pieces that count: the defense's expected goals allowed (weight about 1.4, -8% to +9%), his
+    finishing (goals over expected goals with 8 xG of average mixed in, weight 0.55, -10% to +10%),
+    home, rest, line. Small: tonight's goalie (0.2-0.26, about +/-3%). Nothing: the areas he
+    shoots from against what the defense allows from them (weight -0.08 / 0.39, +/-0.5, under 1%).
+  - **The Zone Match overlap added nothing beyond the model, either season** (about 4,100 flagged
+    games each): heavy low-slot / slot shooter + top-10 defense from that area scored 0.94 / 0.98 of
+    what the model expected (shots-allowed version) and 0.93 / 0.93 (goals-allowed version). The
+    owner's tighter version (40%+ low slot, top-5 defense): 0.92 both seasons. Flagged players DO
+    score more often than average (16-22% vs 15%), but the model already expected it. Goalie weak
+    in that area: 1.10 then 0.89 (noise).
+  - **Heavy low-slot shooters run about 5-10% under their projection** (0.90-0.95 in every slice):
+    a fix for step 2, not a reason to flag them.
+  - **A defense's low-slot GOALS allowed is noise; its low-slot SHOTS allowed is real.** Team
+    after N games vs the rest of the season, correlation across 32 teams: shots allowed 0.42-0.45
+    after 6 games, goals allowed -0.03 / 0.01, shooting % allowed 0.14 / 0.15.
+  - The rush flag is crude (only 1.7% of shots: the feed logs few neutral-zone events before a
+    shot); it doesn't change the findings.
+- Not testable: the price (no free history of anytime prices), and Novig's team totals as the
+  model's anchor.
+
 ## Not built yet (waiting on the user's priorities)
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: an anytime
