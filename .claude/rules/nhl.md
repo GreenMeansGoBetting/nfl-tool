@@ -581,6 +581,38 @@ model, a one-row mockup, the page, the record.
 - Not testable: the price (no free history of anytime prices), and Novig's team totals as the
   model's anchor.
 
+### Step 1b: five "bottom up" ideas, tested like a statistician (2026-10-14)
+
+The owner asked for other ways to attack goals ("a true bottom up style"), then "what would a
+statistician do?": write the ideas and the bar down first, fit on one season, confirm on the
+other, one model rather than a pile of flags, grade by calibration / log loss, and judge the
+live record by closing line value (CLV) because ~900 anytime bets are needed to tell a 3-point
+edge from luck. `python tools/backtest/nhl_goals_ideas.py` (about 1 minute; needs 2024-25's
+shift charts and lineup stories, now kept in `data/nhl/shifts/2025` and `data/nhl/previews/2025`).
+The bar (in the script's header, written before the first run): weight 2+ standard errors from
+zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fitted on 2025-26.
+
+- **Passed: even strength and power play apart** (his EV expected goals a minute x EV minutes +
+  PP rate x PP minutes, from the shift charts; weight 1.1 both seasons, -8% to +4%).
+- **Passed: one-timer side** (a right-handed shot from the left side or the reverse, in the
+  expected-goals table: off-wing shots scored 9.3% vs 5.7%; small, -5% to +4%).
+- **Passed: the low-slot trim** (not blind, step 1 found it): weight -1.1 / -1.2 on his low-slot
+  share over his position's, -7% to +7%. The biggest of the three.
+- **Out: empty-net goals** as built: the weight came out NEGATIVE (-0.93, -0.34). The players on
+  the ice at an empty net are the ones protecting a lead (defensive forwards, top pairs), not the
+  scorers. Empty-net goals are 6.2-6.6% of all goals; a rebuilt version would be found by looking,
+  so it would need the same bar on a third season.
+- **Out:** the penalty matchup (power-play time drawn x given up: nothing), a backup goalie
+  beyond the goalie's own record (z 0.9), the team-strength gap (z -1.2).
+- Everything that passed together, fitted on 2024-25, on 2025-26: log loss 0.39621 (step-1
+  pieces 0.39691; his goals a game 0.407). Honest: "30-35%" scored 32.8%, the top 2% said 40.1%
+  and scored 42.8%. Weights: opp 1.35, goalie 0.29, finish 0.44, line 0.23, home 0.10, b2b
+  -0.08, opp_b2b 0.055, split 0.98, onetimer 3.44, low -0.95, scale 0.048.
+- **The record must grade CLV:** save the first price of the day next to the locked price (the
+  last refresh before puck drop), for Goals and, cheaply, for Shots too.
+- The owner wants the **Zone Match tag shown and tracked** (its own bucket in the record), even
+  though the replay found no edge in it.
+
 ## Not built yet (waiting on the user's priorities)
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: an anytime

@@ -92,7 +92,7 @@ def game_shots(raw: dict) -> list:
                     rush = not prev["shot"] and prev["x"] is not None and prev["x"] * directions.get((period.get("number"), team_id), 1) < b.BLUE_LINE_X
                 out.append({
                     "shooter": str(shooter), "team": abbr[team_id], "goalie": str(d.get("goalieInNetId")),
-                    "area": b.shot_area(x, y), "dist": math.hypot(b.GOAL_LINE_X - x, y),
+                    "area": b.shot_area(x, y), "y": y, "dist": math.hypot(b.GOAL_LINE_X - x, y),
                     "angle": abs(math.degrees(math.atan2(y, b.GOAL_LINE_X - x))) if x <= b.GOAL_LINE_X else 90.0,
                     "type": b.SHOT_TYPES.get(d.get("shotType"), "other"), "rebound": rebound, "rush": rush,
                     "pp": man == "pp", "sh": man == "sh", "goal": kind == "goal",
