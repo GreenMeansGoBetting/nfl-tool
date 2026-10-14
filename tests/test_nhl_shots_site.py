@@ -5,7 +5,7 @@ What is pinned: the page and the build agree on every play (the side, the
 price and the edge the record is graded by, and whether it goes against his
 own season average); the ranking is best edge first with the gaps too big to
 trust in their own group underneath; players who are out are left off; the
-filters (it opens on "Lineup Confirmed", "All" adds the games waiting on a
+filters (it opens on "All"; "Lineup Confirmed" drops the games waiting on a
 lineup, and a player with no line is never listed), the sort and one-game
 view; the row breakdown (from his season average, the pieces multiply out to
 the projection; every line the book prices is on the ladder; a defense's rank
@@ -52,7 +52,7 @@ def tearDownModule():
 
 
 def reset(day=TONIGHT, **view):
-    """The whole slate ("All"; the page itself opens on "Lineup Confirmed", see
+    """The whole slate ("All", how the page itself opens, see
     Filters) on a day, or another filter, and the rows drawn."""
     PAGE.evaluate(
         """([day, view]) => {
@@ -279,30 +279,31 @@ class Filters(unittest.TestCase):
         self.assertEqual({positions[r["id"]] for r in reset(pos="D")}, {"D"})
         self.assertNotIn("D", {positions[r["id"]] for r in reset(pos="F")})
 
-    def test_it_opens_on_lineup_confirmed(self):
-        """The owner's switch: "Lineup Confirmed" (how it opens) / "All". No "Everyone"."""
+    def test_it_opens_on_all(self):
+        """The owner's switch: "All" (how it opens since 2026-10-14: before the lineups are in,
+        "Lineup Confirmed" showed nothing until you hit All) / "Lineup Confirmed". No "Everyone"."""
         page = SITE.open("nhl/shots.html")
         page.wait_for_function("() => typeof SHOTS !== 'undefined' && SHOTS !== null && !document.getElementById('shots-app').hidden")
         state = lambda: page.evaluate("() => ({ lineup: shotsView.lineup, buttons: [...document.querySelectorAll('.shots-filter-btn[data-filter=\"lineup\"]')].map((b) => [b.textContent, b.classList.contains('active')]), toolbar: document.getElementById('shots-toolbar').textContent, rows: document.querySelectorAll('.shots-row').length, text: document.getElementById('shots-content').textContent.trim().replace(/\\s+/g, ' ') })")
         opened = state()
-        self.assertEqual(opened["lineup"], "confirmed")
-        self.assertEqual(opened["buttons"], [["Lineup Confirmed", True], ["All", False]])
+        self.assertEqual(opened["lineup"], "all")
+        self.assertEqual(opened["buttons"], [["All", True], ["Lineup Confirmed", False]])
         self.assertNotIn("Everyone", opened["toolbar"])
         self.assertNotIn("With a line", opened["toolbar"])
         # It opens on 10-12 (the sample's clock): three finished games with no line saved,
         # so nothing to list, and it says so instead of showing an empty table.
         self.assertEqual(opened["rows"], 0)
         self.assertIn("No shots-on-goal lines were saved for these games.", opened["text"])
-        # Tonight: only the one game whose lineup is in.
+        # Tonight: every game, the ones still waiting on a lineup too.
         page.evaluate("(day) => selectDay(days().indexOf(day))", TONIGHT)
-        confirmed = {r["id"] for r in page.evaluate(ROWS)}
         plays = expected_plays()
+        self.assertEqual({r["id"] for r in page.evaluate(ROWS)}, set(plays))
+        # "Lineup Confirmed" keeps only the one game whose lineup is in.
+        page.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"lineup\"][data-value=\"confirmed\"]').click()")
+        confirmed = {r["id"] for r in page.evaluate(ROWS)}
         self.assertEqual(confirmed, {pid for pid, play in plays.items() if play["slot"]})
         self.assertEqual(len(confirmed), 15)
-        # "All" brings in the games still waiting on one.
-        page.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"lineup\"][data-value=\"all\"]').click()")
-        self.assertEqual({r["id"] for r in page.evaluate(ROWS)}, set(plays))
-        self.assertEqual(state()["buttons"], [["Lineup Confirmed", False], ["All", True]])
+        self.assertEqual(state()["buttons"], [["All", False], ["Lineup Confirmed", True]])
         self.assertEqual(SITE.errors, [])
 
     def test_lineup_confirmed_lists_only_players_on_a_line_tonight(self):

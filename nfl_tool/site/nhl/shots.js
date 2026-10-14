@@ -1,10 +1,11 @@
 // ---- GMG NHL Suite: Shots ----
 // Every skater on the day's slate with a shots-on-goal line, ranked by
 // value: the model's projection (nfl_tool/nhl/shots_model.py, written to
-// shots.json by the build) next to Novig's line. It opens on the players
-// whose lineup is in ("Lineup Confirmed": the NHL has posted the game's
-// projected lineup, so the page knows who is dressed and on which line);
-// "All" adds the games still waiting on one. This season's numbers only, here and in the
+// shots.json by the build) next to Novig's line. It opens on "All" (the owner,
+// 2026-10-14: before the lineups are in around midday, "Lineup Confirmed"
+// showed nothing until you hit All, which confuses people); "Lineup Confirmed"
+// keeps only the games whose projected lineup the NHL has posted, so the page
+// knows who is dressed and on which line. This season's numbers only, here and in the
 // model: the owner's rule for every NHL prop tool. The data, helpers, rink
 // drawing and the player card are in nhl-common.js (loaded first); this file
 // is the page.
@@ -14,7 +15,7 @@
 let SHOTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
-const shotsView = { side: "best", pos: "all", lineup: "confirmed", sort: "edge", dir: -1, open: null, record: "edge", when: "all" };
+const shotsView = { side: "best", pos: "all", lineup: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all" };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -196,8 +197,8 @@ function renderToolbar() {
     group("side", [["best", "Best side"], ["over", "Overs"], ["under", "Unders"]]) +
     group("pos", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     group("lineup", [
+      ["all", "All", "Every game, including those still waiting on a lineup: those players are projected from their recent ice time"],
       ["confirmed", "Lineup Confirmed", "Only players in a game whose lineup the NHL has posted: each is listed on tonight's line or pair"],
-      ["all", "All", "Also the games still waiting on a lineup: those players are projected from their recent ice time"],
     ]) +
     // Once some of the day's games have started: every play of the day stays listed (started ones
     // grayed, under the ones still to come), or just one kind.

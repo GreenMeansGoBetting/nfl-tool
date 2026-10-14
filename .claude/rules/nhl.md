@@ -388,10 +388,12 @@ on a replay, and the page keeps a record against the real prices.
   - A row opens its breakdown: his season average, the sample step, the matchup pieces
     multiplying out to tonight's number, the defense's tiles, every line the book prices at the
     model's fair price, and the rink of where he shoots (above), with the key underneath.
-  - Filters: side, forwards / defense, and **"Lineup Confirmed" (how it opens) / "All"** (the
+  - Filters: side, forwards / defense, and **"All" (how it opens) / "Lineup Confirmed"** (the
     user's words, 2026-10-13: "Only show players with a line by default, and remove the feature
-    to sort by everyone"). Lineup Confirmed = only players on a line or pair in a posted lineup
-    (`slot`); All adds the games still waiting on one. **A player with no shots-on-goal line is
+    to sort by everyone"; then 2026-10-14: before the lineups are in "the page doesn't auto
+    populate until you hit ALL ... that may confuse people", so it opens on All). Lineup
+    Confirmed = only players on a line or pair in a posted lineup (`slot`); All adds the games
+    still waiting on one. **A player with no shots-on-goal line is
     never listed** (there is no "Everyone" view any more). A day or game with nothing under
     Lineup Confirmed says why and has a "Show all players" button. A game in the strip shows only
     that game; click it again for the whole day. Players marked out are left off.
