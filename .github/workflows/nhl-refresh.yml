@@ -86,6 +86,7 @@ jobs:
         if: steps.check.outputs.go == 'yes'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
         run: python3 nfl_tool/nhl/build_nhl.py --season 2027 --out nfl_tool/site/nhl/data.json --data-dir data/nhl
 
       - name: Check the new files and note the refresh in version.json

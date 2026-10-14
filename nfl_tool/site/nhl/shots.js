@@ -396,8 +396,9 @@ function detailRow(x, columns) {
       league,
     };
   });
+  const bookCol = bookPanelFor(x, "sog", (x.book.sog || {}).line, "Shots on goal");
   return `<tr class="shots-detail"><td colspan="${columns}">
-      <div class="shots-detail-grid">
+      <div class="shots-detail-grid${bookCol ? " has-odds" : ""}">
         <div class="shots-detail-main">
           <div class="shots-detail-label">How tonight's number is built</div>${build}${lineNote}
           <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows a game <span class="muted-label">this season, and where that ranks</span></div>${tiles}
@@ -407,6 +408,7 @@ function detailRow(x, columns) {
           <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span></div>${rink}
           <p class="shots-rink-key">Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> there ("2nd most", "3rd fewest"). Click a zone to see every team. Colors are his side: ${rankScaleKey("most shots for him", "fewest")}</p>
         </div>
+        ${bookCol}
       </div>
     </td></tr>`;
 }

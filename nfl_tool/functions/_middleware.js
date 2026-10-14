@@ -28,7 +28,7 @@ const ENFORCE = true;
 // where they are, so local testing (folder paths) works unchanged.
 const NFL_HOST = "nfl.gmgsports.org";
 const SPORT_HOSTS = { "nba.gmgsports.org": "nba", "nhl.gmgsports.org": "nhl" };
-const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/version.json"]; // + /brand/
+const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/book-odds.js", "/version.json"]; // + /brand/
 const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "support", "first-td"];
 // On since 2026-10-14 (both addresses answer): nfl.gmgsports.org/nhl/
 // pages then move to nhl.gmgsports.org. Data files are never moved (the build reads them).

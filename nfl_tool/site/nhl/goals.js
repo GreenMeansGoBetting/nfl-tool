@@ -322,8 +322,9 @@ function detailRow(x, columns) {
   const callout = r.zone
     ? `<div class="goals-callout" title="${zoneTip(r)}"><span class="goals-zone">ZONE MATCH</span> <b>${Math.round(r.zone.share * 100)}%</b> of his shots from the ${ZONE_WORD[r.zone.area]} <span class="muted-label">(${positionGroup(r.pos) === "D" ? "defensemen" : "forwards"} ${Math.round(r.zone.lg_share * 100)}%)</span> &middot; ${r.opp} allows <b>${fmt(r.zone.opp_pg)}</b> a game there, <b>${rankWord(r.zone.opp_rank)}</b>. <span class="muted-label">Tracked in the record; not in the number.</span></div>`
     : "";
+  const bookCol = bookPanelFor(x, "goals", 0.5, "Anytime goal", { o: "Scores", u: "No goal" });
   return `<tr class="shots-detail"><td colspan="${columns}">
-      <div class="shots-detail-grid">
+      <div class="shots-detail-grid${bookCol ? " has-odds" : ""}">
         <div class="shots-detail-main">
           <div class="shots-detail-label">How tonight's chance is built</div>${build}${lineNote}
           <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows a game <span class="muted-label">this season, and where that ranks</span></div>${tiles}
@@ -333,6 +334,7 @@ function detailRow(x, columns) {
           <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span></div>${callout}${rink}
           <p class="shots-rink-key">Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> there. Click a zone to see every team. Colors are his side: ${rankScaleKey("most shots for him", "fewest")}</p>
         </div>
+        ${bookCol}
       </div>
     </td></tr>`;
 }

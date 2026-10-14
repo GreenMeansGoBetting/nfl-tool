@@ -18,6 +18,12 @@ const BOOK_INITIALS = {
   betrivers: "BR", hard_rock: "HR", bally_bet: "BAL", circa: "CIR", pinnacle: "PIN", novig: "NV", prophetx: "PX",
   kalshi: "KAL", polymarket_us: "PM", fliff: "FL",
 };
+// Own helpers: the NHL pages load this file without the NFL's common.js.
+const boNorm = (n) => (n || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "").replace(/[^a-z]/g, "");
+const boEnc = (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+const boDec = (str) => JSON.parse(decodeURIComponent(escape(atob(str))));
+const boOdds = (n) => (n === null || n === undefined ? "--" : n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`);
+const boNum = (n) => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
 const FAIR_BOOKS = ["pinnacle", "novig"];
 const BOOK_TAG_PLAY = 0.01;
 const BOOK_TAG_PASS = -0.02;
@@ -37,20 +43,22 @@ const oddsProb = (o) => 1 / oddsDecimal(o);
 const probToAmerican = (p) => (p >= 0.5 ? -Math.round((100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p));
 const OPPOSITE_SIDE = { o: "u", u: "o", away: "home", home: "away" };
 
-// The game a team plays in this week's book odds.
-function bookGameFor(team) {
-  const all = DATA.book_odds || {};
-  const key = Object.keys(all).find((k) => k.split("_").includes(team));
+// The game a team plays in the book odds; gameKey ("AWAY_HOME") picks one
+// when the schedule holds more than one (the NHL lists yesterday's too).
+function bookGameFor(team, gameKey) {
+  const all = (typeof DATA !== "undefined" && DATA && DATA.book_odds) || {};
+  const key = gameKey && all[gameKey] ? gameKey : Object.keys(all).find((k) => k.split("_").includes(team));
   return key ? { key, game: all[key] } : null;
 }
 
 // spec: {kind: "prop"|"td"|"ml"|"spread"|"total", team, name?, stat?}
 function bookQuotes(spec) {
-  const found = bookGameFor(spec.team);
-  if (!found) return [];
+  const found = bookGameFor(spec.team, spec.game);
+  if (!found || typeof DATA === "undefined" || !DATA) return [];
   const g = found.game;
-  if (spec.kind === "prop") return ((g.props || {})[spec.stat] || {})[normName(spec.name)]?.q || [];
-  if (spec.kind === "td") return (g.td || {})[normName(spec.name)]?.q || [];
+  const who = spec.pid !== undefined && spec.pid !== null ? String(spec.pid) : boNorm(spec.name);
+  if (spec.kind === "prop") return ((g.props || {})[spec.stat] || {})[who]?.q || [];
+  if (spec.kind === "td") return (g.td || {})[who]?.q || [];
   return (g.lines || {})[spec.kind] || [];
 }
 
@@ -91,16 +99,17 @@ function bookPricePill(spec) {
   const best = bookBest(quotes, spec.side, spec.line);
   if (!best) return "";
   const tag = bookTag(bookFairProb(quotes, spec.side, spec.line), best[3]);
-  return `<button type="button" class="bo-pill${tag ? ` bo-${tag.kind}` : ""}" data-bo="${encodeDataAttr(spec)}" title="Best price across your books. Click for every book.">${fmtOddsSigned(best[3])} <small>${BOOK_NAMES[best[0]] || best[0]}</small></button>`;
+  return `<button type="button" class="bo-pill${tag ? ` bo-${tag.kind}` : ""}" data-bo="${boEnc(spec)}" title="Best price across your books. Click for every book.">${boOdds(best[3])} <small>${BOOK_NAMES[best[0]] || best[0]}</small></button>`;
 }
 
 function bookSideLabel(spec, side) {
   const line = side === spec.side ? spec.line : otherLine(spec.side, spec.line);
-  if (side === "o" || side === "u") return `${side === "o" ? "Over" : "Under"}${line !== null && line !== undefined ? ` ${fmt(line, 1)}` : ""}`;
-  const found = bookGameFor(spec.team);
+  if (spec.labels && spec.labels[side] && line === spec.labelLine) return spec.labels[side];
+  if (side === "o" || side === "u") return `${side === "o" ? "Over" : "Under"}${line !== null && line !== undefined ? ` ${boNum(line)}` : ""}`;
+  const found = bookGameFor(spec.team, spec.game);
   const [away, home] = found ? found.key.split("_") : ["Away", "Home"];
   const team = side === "away" ? away : home;
-  return spec.kind === "spread" ? `${team} ${line > 0 ? "+" : ""}${fmt(line, 1)}` : team;
+  return spec.kind === "spread" ? `${team} ${line > 0 ? "+" : ""}${boNum(line)}` : team;
 }
 
 function renderBookOdds(spec) {
@@ -112,28 +121,49 @@ function renderBookOdds(spec) {
   const row = (q, i, alt) => {
     const tag = alt ? null : bookTag(fair, q[3]);
     const tagCell = alt
-      ? '<span class="bo-tag bo-muted">Different line</span>'
+      ? `<span class="bo-tag bo-muted">${bookSideLabel({ ...spec, line: q[2] }, q[1])}</span>`
       : tag ? `<span class="bo-tag bo-${tag.kind}">${tag.kind}<small>${tag.edge >= 0 ? "+" : "&minus;"}${Math.abs(tag.edge * 100).toFixed(1)}%</small></span>` : "";
     const link = q[4] ? `<a class="bo-bet" href="${q[4]}" target="_blank" rel="noopener">Bet &rsaquo;</a>` : "";
     return `<tr class="${!alt && i === 0 ? "bo-best" : ""}${alt ? " bo-alt" : ""}"><td><div class="bo-book"><span class="bo-ini">${BOOK_INITIALS[q[0]] || "?"}</span>${BOOK_NAMES[q[0]] || q[0]}${!alt && i === 0 ? ' <span class="bo-bestchip">BEST</span>' : ""}</div></td>
-      <td class="bo-line">${q[2] !== null && q[2] !== undefined ? bookSideLabel({ ...spec, line: q[2] }, q[1]).replace(/^[A-Z]{2,3} /, "") : ""}</td><td class="bo-odds">${fmtOddsSigned(q[3])}</td><td>${tagCell}</td><td class="bo-go">${link}</td></tr>`;
+      <td class="bo-line">${q[2] !== null && q[2] !== undefined ? bookSideLabel({ ...spec, line: q[2] }, q[1]).replace(/^[A-Z]{2,3} /, "") : ""}</td><td class="bo-odds">${boOdds(q[3])}</td><td>${tagCell}</td><td class="bo-go">${link}</td></tr>`;
   };
-  const sides = spec.kind === "td" ? [spec.side] : [spec.side, OPPOSITE_SIDE[spec.side]];
+  const TAB_ORDER = ["o", "u", "away", "home"];
+  const sides = spec.kind === "td" ? [spec.side] : [spec.side, OPPOSITE_SIDE[spec.side]].sort((a, b) => TAB_ORDER.indexOf(a) - TAB_ORDER.indexOf(b));
   const tabs = sides.length > 1
-    ? `<div class="bo-tabs">${sides.map((s) => `<button type="button" class="bo-tab${s === spec.side ? " bo-on" : ""}" data-bo="${encodeDataAttr({ ...spec, side: s, line: s === spec.side ? spec.line : otherLine(spec.side, spec.line) })}">${bookSideLabel(spec, s)}</button>`).join("")}</div>`
+    ? `<div class="bo-tabs">${sides.map((s) => `<button type="button" class="bo-tab${s === spec.side ? " bo-on" : ""}" data-bo="${boEnc({ ...spec, side: s, line: s === spec.side ? spec.line : otherLine(spec.side, spec.line) })}">${bookSideLabel(spec, s)}</button>`).join("")}</div>`
     : "";
   const hidden = myBooks().hidden || [];
-  const color = typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[spec.team] ? TEAM_COLORS[spec.team] : "var(--accent)";
+  const color = spec.color || (typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[spec.team]) || "var(--accent)";
   return `<div class="bo-banner" style="--bo-team:${color}"><h3>${spec.title}</h3><div class="bo-sub">${spec.sub || ""}${spec.sub ? " &middot; " : ""}${main.length + others.length} books</div></div>
     ${tabs}
     <div class="bo-fair">${fair !== null
-      ? `<div><div class="bo-lbl">Fair price</div><div class="bo-big">${fmtOddsSigned(probToAmerican(fair))}</div></div><div><div class="bo-lbl">Chance</div><div class="bo-big">${(fair * 100).toFixed(1)}%</div></div><div class="bo-src">Pinnacle + Novig<br>with the vig removed</div>`
+      ? `<div><div class="bo-lbl">Fair price</div><div class="bo-big">${boOdds(probToAmerican(fair))}</div></div><div><div class="bo-lbl">Chance</div><div class="bo-big">${(fair * 100).toFixed(1)}%</div></div><div class="bo-src">Pinnacle + Novig<br>with the vig removed</div>`
       : '<div class="bo-src bo-src-left">No Pinnacle or Novig price on both sides of this bet, so there is no fair price to tag against. Every book is still listed, best first.</div>'}</div>
     ${main.length || others.length ? `<table class="bo-table"><thead><tr><th>Book</th><th>Line</th><th>Odds</th><th>${fair !== null ? "vs fair price" : ""}</th><th></th></tr></thead><tbody>
       ${main.map((q, i) => row(q, i, false)).join("")}
       ${others.length ? `<tr class="bo-group"><td colspan="5">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
     </tbody></table>` : '<p class="no-data-note">None of your books has this bet right now.</p>'}
     <div class="bo-foot"><span>Links open for New Jersey${hidden.length ? ` &middot; ${hidden.length} book${hidden.length === 1 ? "" : "s"} hidden (${hidden.map((b) => BOOK_NAMES[b] || b).join(", ")})` : ""}</span><a href="#" class="bo-edit-books">Edit my books &rsaquo;</a></div>`;
+}
+
+// The same list inside a page (the NHL Shots / Goals open rows): "" when no
+// book has the bet; its Over / Under tabs switch in place.
+function bookOddsPanel(spec) {
+  const quotes = bookQuotes(spec);
+  if (!quotes.length) return "";
+  if ((spec.line === null || spec.line === undefined) && spec.kind === "prop") {
+    const count = {};
+    quotes.filter((q) => q[1] === spec.side).forEach((q) => (count[q[2]] = (count[q[2]] || 0) + 1));
+    const common = Object.keys(count).sort((a, b) => count[b] - count[a])[0];
+    if (common !== undefined) spec = { ...spec, line: Number(common) };
+  }
+  return `<div class="bo-panel">${renderBookOdds(spec)}</div>`;
+}
+function refreshBookPanels() {
+  document.querySelectorAll(".bo-panel").forEach((panel) => {
+    const tab = panel.querySelector(".bo-tab.bo-on");
+    if (tab) panel.innerHTML = renderBookOdds(boDec(tab.dataset.bo));
+  });
 }
 
 function ensureBookModal(id) {
@@ -175,7 +205,12 @@ document.addEventListener("click", (e) => {
   if (pill) {
     e.preventDefault();
     e.stopPropagation();
-    openBookOdds(decodeDataAttr(pill.dataset.bo));
+    const panel = pill.closest(".bo-panel");
+    if (panel) {
+      panel.innerHTML = renderBookOdds(boDec(pill.dataset.bo));
+      return;
+    }
+    openBookOdds(boDec(pill.dataset.bo));
     return;
   }
   if (e.target.closest(".bo-edit-books, .my-books-link")) {
@@ -191,6 +226,7 @@ document.addEventListener("click", (e) => {
     hidden.has(chip.dataset.book) ? hidden.delete(chip.dataset.book) : hidden.add(chip.dataset.book);
     saveMyBooks({ hidden: [...hidden] });
     openMyBooks();
+    refreshBookPanels();
     document.dispatchEvent(new CustomEvent("my-books-changed"));
   }
 }, true); // capture: the player card stops clicks inside it from bubbling

@@ -664,3 +664,19 @@ function loadNhlData() {
       return data;
     });
 }
+
+// ---- Every book's price (SmartStake; ../book-odds.js) ----
+// The Shots and Goals open rows' right column: every US book's price for this
+// player's line, best first, tagged against the market's fair price (Pinnacle +
+// Novig, vig removed; never the model). "" when no book has him.
+function bookPanelFor(x, stat, line, label, labels) {
+  if (typeof bookOddsPanel !== "function") return "";
+  const r = x.r;
+  const g = x.game;
+  const panel = bookOddsPanel({
+    kind: "prop", stat, team: r.team, pid: r.id, name: r.name, side: "o", line,
+    game: `${g.away}_${g.home}`, title: `${r.name} &middot; ${label}`, sub: `${g.away} @ ${g.home}`, color: `#${team(r.team).color}`,
+    ...(labels ? { labels, labelLine: line } : {}),
+  });
+  return panel ? `<div class="shots-detail-odds"><div class="shots-detail-label">Every book <span class="muted-label">best price first</span></div>${panel}</div>` : "";
+}

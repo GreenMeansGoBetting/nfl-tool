@@ -704,3 +704,16 @@ tracking stats, playoffs.
 For the Shots model: tonight's power-play units from a licensed morning-report feed (past units
 from `shiftcharts` were tested and add nothing: see "Power-play units" above); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); the expected starting goalie on
 Game Previews (it is already in `shots.json`).
+
+## Every book's price in the Shots and Goals rows (SmartStake, 2026-10-14)
+
+- `build_nhl.py` asks SmartStake for shots on goal and goals (`smartstake.fetch_nhl_book_odds`;
+  key `SMARTSTAKE_API_KEY` on the NHL build step of deploy.yml AND nhl-refresh.yml) and writes
+  nhl/data.json `book_odds["AWAY_HOME"].props.{sog,goals}[player id]`; players are matched with
+  `player_finder` on either team, trying every spelling the books use. Rules as for the NFL
+  (data-pipeline.md): US books, NJ links, odds lock, Pinnacle + Novig fair price, never the model.
+- The open row (`detailRow` in shots.js / goals.js, `bookPanelFor` in nhl-common.js) is three
+  columns: the build pills, tiles and price table in a 520px left column (the pills wrap there,
+  the owner's ask), the rink in the middle, every book's price on the right (`.has-odds`). Under
+  1360px wide the odds sit under the rink; on phones everything stacks. A row with no book
+  prices keeps the two-column layout. Goals' tabs read Scores / No goal (the 0.5 line).

@@ -71,6 +71,9 @@ NFL_PROP_MARKETS = {
 NFL_TD_MARKET = "football_player_touchdowns"  # Anytime TD, quoted as Over 0.5
 NFL_LINE_MARKETS = {"football_moneyline": "ml", "football_points_handicap": "spread", "football_points": "total"}
 
+# NHL: shots on goal and goals (anytime = the 0.5 line), keyed by the NHL's player id.
+NHL_PROP_MARKETS = {"hockey_player_shots_on_goal": "sog", "hockey_player_goals": "goals"}
+
 NFL_TEAMS = {
     "arizona cardinals": "ARI", "atlanta falcons": "ATL", "baltimore ravens": "BAL", "buffalo bills": "BUF",
     "carolina panthers": "CAR", "chicago bears": "CHI", "cincinnati bengals": "CIN", "cleveland browns": "CLE",
@@ -140,10 +143,16 @@ def _quote(q, side):
     return [q["book"], side, q.get("line"), int(q["odds"]), q.get("bet_url") or ""]
 
 
-def build_book_odds(quotes: list, teams: dict, roster_names=()) -> dict:
+def build_book_odds(quotes: list, teams, roster_names=(), *, prop_markets=None, td_market=NFL_TD_MARKET,
+                    line_markets=None, player_key=None) -> dict:
     """quotes -> {"AWAY_HOME": {...}} (shape in the module docstring).
-    teams maps the API's lowercase full team names to the site's abbreviations;
-    roster_names are the site's own player spellings, preferred when they match."""
+    teams maps the API's full team names to the site's abbreviations (a dict
+    of lowercase names, or a function); roster_names are the site's own player
+    spellings, preferred when they match. player_key(name, away, home) names
+    a player's row (default: normName; the NHL uses the league's player id)."""
+    prop_markets = NFL_PROP_MARKETS if prop_markets is None else prop_markets
+    line_markets = NFL_LINE_MARKETS if line_markets is None else line_markets
+    team_of = teams if callable(teams) else (lambda full: teams.get((full or "").lower()))
     roster = {norm_player(n): n for n in roster_names}
     names_by_id = {}
     for q in quotes:
@@ -160,7 +169,7 @@ def build_book_odds(quotes: list, teams: dict, roster_names=()) -> dict:
 
     games, seen = {}, set()
     for q in quotes:
-        away, home = teams.get((q.get("away") or "").lower()), teams.get((q.get("home") or "").lower())
+        away, home = team_of(q.get("away")), team_of(q.get("home"))
         if not away or not home or q.get("odds") is None:
             continue
         # One quote per book / market / player / line / side (the newest).
@@ -170,16 +179,23 @@ def build_book_odds(quotes: list, teams: dict, roster_names=()) -> dict:
         seen.add(key)
         game = games.setdefault(f"{away}_{home}", {"kickoff": q.get("starts_at"), "props": {}, "td": {}, "lines": {}})
         mkey, side = q.get("market_key"), q.get("side")
-        if mkey in NFL_PROP_MARKETS or mkey == NFL_TD_MARKET:
+        if mkey in prop_markets or (td_market and mkey == td_market):
             if side not in ("over", "under") or q.get("player_id") is None:
                 continue
             name = player_name(q)
-            bucket = game["td"] if mkey == NFL_TD_MARKET else game["props"].setdefault(NFL_PROP_MARKETS[mkey], {})
-            if mkey == NFL_TD_MARKET and q.get("line") not in (None, 0.5):
+            if player_key:  # any spelling a book uses for him will do
+                spellings = [name, *sorted(names_by_id.get(q.get("player_id")) or ())]
+                key = next((k for k in (player_key(n, away, home) for n in spellings) if k is not None), None)
+            else:
+                key = norm_player(name)
+            if key is None:
+                continue
+            bucket = game["td"] if mkey == td_market else game["props"].setdefault(prop_markets[mkey], {})
+            if mkey == td_market and q.get("line") not in (None, 0.5):
                 continue  # 2+ TDs and the like
-            bucket.setdefault(norm_player(name), {"name": name, "q": []})["q"].append(_quote(q, side[0]))
-        elif mkey in NFL_LINE_MARKETS:
-            kind = NFL_LINE_MARKETS[mkey]
+            bucket.setdefault(str(key), {"name": name, "q": []})["q"].append(_quote(q, side[0]))
+        elif mkey in line_markets:
+            kind = line_markets[mkey]
             if kind == "total" and side in ("over", "under"):
                 game["lines"].setdefault(kind, []).append(_quote(q, side[0]))
             elif kind != "total" and side in ("awayteam", "hometeam"):
@@ -198,17 +214,37 @@ def lock_started(games: dict, previous: dict | None, now_iso: str) -> dict:
     return out
 
 
-def fetch_nfl_book_odds(api_key: str | None, roster_names, previous: dict | None, now_iso: str) -> tuple:
+def only_games(book_odds: dict, keep) -> dict:
+    """The board runs days ahead; keep the games on the site's own schedule."""
+    return book_odds if keep is None else {k: g for k, g in book_odds.items() if k in keep}
+
+
+def fetch_nfl_book_odds(api_key: str | None, roster_names, previous: dict | None, now_iso: str, keep=None) -> tuple:
     """(book_odds, debug). Never raises: no key or any error = ({}, reason),
     and the previous build's started games still carry over."""
     if not api_key:
-        return lock_started({}, previous, now_iso), {"skipped": "no SMARTSTAKE_API_KEY"}
+        return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
     try:
         markets = [*NFL_PROP_MARKETS, NFL_TD_MARKET, *NFL_LINE_MARKETS]
         quotes = fetch_quotes(api_key, "nfl", markets)
         games = build_book_odds(quotes, NFL_TEAMS, roster_names)
         books = sorted({q["book"] for q in quotes})
-        return lock_started(games, previous, now_iso), {"quotes": len(quotes), "games": len(games), "books": books}
+        return only_games(lock_started(games, previous, now_iso), keep), {"quotes": len(quotes), "games": len(games), "books": books}
     except Exception as e:
         print(f"WARNING: SmartStake fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
-        return lock_started({}, previous, now_iso), {"error": str(e)[:200]}
+        return only_games(lock_started({}, previous, now_iso), keep), {"error": str(e)[:200]}
+
+
+def fetch_nhl_book_odds(api_key: str | None, team_of, player_key, previous: dict | None, now_iso: str, keep=None) -> tuple:
+    """The NHL's (book_odds, debug), same rules as fetch_nfl_book_odds.
+    team_of(full team name) -> abbreviation; player_key(name, away, home) ->
+    the NHL player id, or None for a player the site doesn't list."""
+    if not api_key:
+        return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
+    try:
+        quotes = fetch_quotes(api_key, "nhl", list(NHL_PROP_MARKETS))
+        games = build_book_odds(quotes, team_of, prop_markets=NHL_PROP_MARKETS, td_market=None, line_markets={}, player_key=player_key)
+        return only_games(lock_started(games, previous, now_iso), keep), {"quotes": len(quotes), "games": len(games), "books": sorted({q["book"] for q in quotes})}
+    except Exception as e:
+        print(f"WARNING: SmartStake NHL fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
+        return only_games(lock_started({}, previous, now_iso), keep), {"error": str(e)[:200]}

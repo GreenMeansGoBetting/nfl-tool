@@ -48,6 +48,9 @@ import goals_model
 import saves_model
 import shots_model
 
+sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, for smartstake.py
+import smartstake  # noqa: E402
+
 API ="https://api-web.nhle.com/v1"
 REST = "https://api.nhle.com/stats/rest/en"
 ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/injuries"
@@ -2268,6 +2271,14 @@ def main():
     generated_at = now_utc.strftime("%Y-%m-%dT%H:%MZ")
     lineups = lineup(stats["skaters"], team_games)
     player_odds = locked_player_odds(games, novig_players, previous, now_utc)
+    # Every US book's price (SmartStake) for the Shots and Goals rows' odds
+    # panel. Optional: no key or a failed fetch = Novig's price only, as before.
+    find = player_finder(stats["skaters"], stats["goalies"])
+    book_odds, book_odds_debug = smartstake.fetch_nhl_book_odds(
+        os.environ.get("SMARTSTAKE_API_KEY"), team_namer(teams),
+        lambda name, away, home: find(away, name) or find(home, name),
+        (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        keep={f"{g['away']}_{g['home']}" for g in games})
     # Tonight's lines, as the NHL posts them. Everyone in one is on the page's
     # skater list too, so a call-up on the top line still opens the player card.
     tonight, lineups_error = fetch_lineups(games, teams, player_finder(stats["skaters"], stats["goalies"]), {pid: s["pos"] for pid, s in stats["skaters"].items()}, now_utc)
@@ -2292,6 +2303,8 @@ def main():
         "injuries": injuries,
         "schedule": games,
         "player_odds": player_odds,
+        "book_odds": book_odds,
+        "book_odds_debug": book_odds_debug,
         "novig_debug": novig_debug,
         "feed_debug": {**stats["debug"], "injuries_error": injuries_error, "lineups": len(tonight), "lineups_error": lineups_error},
     }

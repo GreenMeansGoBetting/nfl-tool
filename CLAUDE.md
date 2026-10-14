@@ -67,7 +67,7 @@ that, move detail into a rules file.
 - `nfl_tool/build_stats.py`: the NFL data pipeline -> `nfl_tool/site/data.json` (untracked, built in CI).
 - `nfl_tool/gmg_model.py`: GMG score model, its picks and the locked record.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
-- `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> data.json `book_odds`, shown by `site/book-odds.js` (best-price pill, all-books list with Play / Close / Pass, My Books; data-pipeline.md).
+- `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> `book_odds` in data.json and nhl/data.json, shown by `site/book-odds.js` (shared: best-price pill, all-books list with Play / Close / Pass, My Books; data-pipeline.md, nhl.md).
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
 - `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`).

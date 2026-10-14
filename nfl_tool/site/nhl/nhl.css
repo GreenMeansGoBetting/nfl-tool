@@ -135,7 +135,35 @@
 .shots-down { color: rgb(var(--bad-rgb)); }
 .shots-table td.shots-lift:not([class*="tier-"]) { color: var(--muted); font-weight: 600; }
 .shots-detail > td { padding: 12px 14px 16px !important; background: var(--panel) !important; white-space: normal; cursor: default; }
-.shots-detail-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+/* The left column is as wide as the boxes and the price table below (520px),
+   so the "how it's built" pills wrap there instead of running across the row;
+   the rink takes the middle and every book's price the far right. */
+.shots-detail-grid { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: 18px; align-items: start; }
+/* Narrower screens put the odds under the rink so the rink keeps its size. */
+.shots-detail-grid.has-odds .shots-detail-main { grid-row: span 2; }
+.shots-detail-grid.has-odds .shots-detail-odds { grid-column: 2; }
+@media (min-width: 1360px) {
+  .shots-detail-grid.has-odds { grid-template-columns: minmax(0, 520px) minmax(0, 1fr) minmax(300px, 380px); }
+  .shots-detail-grid.has-odds .shots-detail-odds { grid-column: auto; }
+}
+.shots-detail-odds { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+/* The every-book list in a narrow column: the modal's look, tighter. */
+.bo-panel .bo-banner { display: none; }
+.bo-panel .bo-tabs { margin: 0 0 8px; }
+.bo-panel .bo-tab { font-size: 0.92rem; padding: 5px; }
+.bo-panel .bo-fair { margin: 0 0 6px; padding: 8px 10px; gap: 12px; }
+.bo-panel .bo-big { font-size: 1.3rem; }
+.bo-panel .bo-src { font-size: 0.72rem; }
+.bo-panel .bo-table { border-spacing: 0 4px; }
+.bo-panel .bo-table th:nth-child(2), .bo-panel .bo-table td.bo-line { display: none; }
+.bo-panel .bo-table th { padding: 0 6px; }
+.bo-panel .bo-table td { padding: 5px 6px; }
+.bo-panel .bo-ini { display: none; }
+.bo-panel .bo-book { font-size: 0.85rem; gap: 6px; }
+.bo-panel .bo-odds { font-size: 1.05rem; }
+.bo-panel .bo-tag { min-width: 0; font-size: 0.78rem; padding: 2px 6px; }
+.bo-panel .bo-bet { padding: 2px 8px; font-size: 0.78rem; }
+.bo-panel .bo-foot { flex-direction: column; gap: 4px; font-size: 0.74rem; }
 .shots-detail-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .shots-detail-label { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
 .shots-detail-label .muted-label { font-style: normal; font-weight: 600; letter-spacing: 0.02em; text-transform: none; }
@@ -236,6 +264,9 @@
   .nhl-pc-seasons { margin-left: 0; }
   /* The table scrolls sideways in its box; an open breakdown stays one screen wide and in view. */
   .shots-detail-grid { grid-template-columns: minmax(0, 1fr); width: calc(100vw - 92px); position: sticky; left: 10px; }
+  .shots-detail-grid.has-odds { grid-template-columns: minmax(0, 1fr); }
+  .shots-detail-grid.has-odds .shots-detail-main { grid-row: auto; }
+  .shots-detail-grid.has-odds .shots-detail-odds { grid-column: auto; }
   .shots-detail > td { padding: 10px 10px 14px !important; position: static !important; box-shadow: none !important; }
   /* Pin the player, not the rank number, while the columns scroll. */
   .shots-table tbody td.shots-rank { position: static; box-shadow: none; }

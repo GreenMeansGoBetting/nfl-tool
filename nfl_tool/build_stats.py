@@ -5094,7 +5094,8 @@ def main():
     blob["book_odds"], blob["book_odds_debug"] = fetch_nfl_book_odds(
         os.environ.get("SMARTSTAKE_API_KEY"), list(roster_positions or {}),
         (fetch_previous_odds_snapshot() or {}).get("book_odds"),
-        datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        keep={f"{g['away']}_{g['home']}" for g in schedule if g.get("week") == current_week})
     print(f"SmartStake book odds: {blob['book_odds_debug']}")
     renamed = canonicalize_odds_names(blob, roster_positions)
     print(f"Odds names matched to the site's spelling: {renamed} changed")

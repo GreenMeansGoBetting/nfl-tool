@@ -74,6 +74,10 @@ imported by it (rules in game-previews.md).
 - The site (`book-odds.js`): fair price = Pinnacle + Novig, each with both sides priced, vig
   removed, averaged. Tags per $1: Play >= +1%, Pass <= -2%, Close between; no fair = no tags.
   It never feeds the model math: `over_odds` / `under_odds` stay Novig's for the no-vig numbers.
+- Shared with the NHL build (`fetch_nhl_book_odds`, nhl.md): `smartstake.py` and `site/book-odds.js`
+  are in ci_steps' SHARED_FILES, and `/book-odds.js` in the middleware's SHARED_FILES (the NHL
+  pages load `../book-odds.js`), so book-odds.js carries its own helpers (no common.js there).
+  Each build keeps only the games on its own schedule (`keep`): the board runs days ahead.
 - `tools/smartstake_probe.py` (+ `smartstake-probe.yml`, runs when pushed) re-checks books and
   market keys; it commits counts and names only, never prices.
 
