@@ -57,6 +57,26 @@ imported by it (rules in game-previews.md).
   TD / prop odds row to the site's own spelling (team game logs, then unique roster / headshot
   names). Books disagree on Jr./Sr./II and a row's book can change between builds.
 
+## Every book's price: SmartStake (`nfl_tool/smartstake.py`, 2026-10-14)
+
+- The owner is a SmartStake partner with their WRITTEN permission to show the odds to members
+  (their API terms otherwise allow internal use only). Key: GitHub secret `SMARTSTAKE_API_KEY`,
+  passed to the NFL build step. Docs: https://www.smartstake.app/api (needs `Accept-Encoding: gzip`).
+- One league snapshot per build: `/v1/odds?league=nfl`, `alternate=false`, `live=false`, only the
+  markets used, `state=NJ` (without a state the bet links are Ontario's). Unfiltered it is ~40,000
+  quotes a game. Only `US_BOOKS` are kept (it also carries Canadian, offshore and pick'em apps).
+- data.json `book_odds["AWAY_HOME"]` = props by stat id and normName, Anytime TD (`td`, the 0.5
+  line only; there is no First TD market), game `lines` (ml / spread / total); each quote is
+  `[book, side, line, odds, url]`. Players are grouped by the API's `player_id` (books spell names
+  differently) and take the roster spelling. `book_odds_debug` says what came back.
+- Odds lock: a started game keeps the previous build's pregame copy or shows no book prices.
+  No key or a failed fetch = no book prices; the site falls back to Novig / SGO.
+- The site (`book-odds.js`): fair price = Pinnacle + Novig, each with both sides priced, vig
+  removed, averaged. Tags per $1: Play >= +1%, Pass <= -2%, Close between; no fair = no tags.
+  It never feeds the model math: `over_odds` / `under_odds` stay Novig's for the no-vig numbers.
+- `tools/smartstake_probe.py` (+ `smartstake-probe.yml`, runs when pushed) re-checks books and
+  market keys; it commits counts and names only, never prices.
+
 ## Ratings and adjustments
 
 - **ESPN FPI** (`espn_ratings`): offense/defense/FPI turned into 1–100 league-normed ratings, plus

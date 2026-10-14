@@ -439,16 +439,28 @@ function renderPlayerZoneHeatGrid(zones, oppTeam, ctx = null) {
 // only ever this week's -- an old saved play for the same player/market
 // from a prior week shouldn't collide with (or show as checked for) this
 // week's line.
+// Each entry's every-book spec (book-odds.js), kept beside the entry so it
+// never ends up inside a saved play.
+const BOOK_SPECS = new WeakMap();
 function propOuEntries(marketKey, marketLabel, team, name, line, overOdds, underOdds, matchup) {
   const base = { week: scheduleWeek, matchup, category: marketLabel, team };
-  return {
+  const entries = {
     over: { ...base, id: `${scheduleWeek}_${marketKey}_${team}_${name}_over`, description: `${name} Over ${fmt(line, 1)}`, odds: fmtOddsSigned(overOdds) },
     under: { ...base, id: `${scheduleWeek}_${marketKey}_${team}_${name}_under`, description: `${name} Under ${fmt(line, 1)}`, odds: fmtOddsSigned(underOdds) },
   };
+  const spec = { kind: "prop", stat: marketKey, team, name, line, title: `${name} &middot; ${marketLabel}`, sub: matchup || "" };
+  BOOK_SPECS.set(entries.over, { ...spec, side: "o" });
+  BOOK_SPECS.set(entries.under, { ...spec, side: "u" });
+  return entries;
+}
+// The best price across the member's books when SmartStake has this bet
+// (click: every book), else the price the row came with.
+function bookPriceOr(oddsDisplay, spec) {
+  return (spec && typeof bookPricePill === "function" && bookPricePill(spec)) || oddsDisplay;
 }
 function ouCheckboxCell(oddsDisplay, entry) {
   const checked = isPossiblePlay(entry.id) ? " checked" : "";
-  return `${oddsDisplay} <label class="pp-check-inline" title="Add to Possible Plays"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}></label>`;
+  return `${bookPriceOr(oddsDisplay, BOOK_SPECS.get(entry))} <label class="pp-check-inline" title="Add to Possible Plays"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}></label>`;
 }
 
 // ---- Player card: the one popup for every player name/photo on the site ----
@@ -526,6 +538,8 @@ function pcTdRow(market, label, team, name, game) {
     odds: fmtOddsSigned(p.best_odds),
     book: p.best_book,
   };
+  // Anytime TD only: SmartStake has no First TD market.
+  if (market !== "first_td") BOOK_SPECS.set(entry, { kind: "td", team, name: p.name, side: "o", line: 0.5, title: `${p.name} &middot; Anytime TD`, sub: entry.matchup });
   return `<tr><td>${label}</td><td class="num">--</td><td class="num">${ouCheckboxCell(fmtOddsSigned(p.best_odds), entry)}</td><td class="num">--</td><td class="num pc-implied">${Math.round(p.implied_prob * 100)}%</td></tr>`;
 }
 

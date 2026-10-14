@@ -137,6 +137,7 @@ jobs:
         env:
           SGO_API_KEY: ${{ secrets.SGO_API_KEY }}
           SGO_API_KEY_BACKUP: ${{ secrets.SGO_API_KEY_BACKUP }}
+          SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
           # Lets the build read the live data.json through the Discord login
           # (fetch_previous_odds_snapshot sends a key derived from it).
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}

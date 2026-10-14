@@ -169,7 +169,7 @@ def plan(event, changed):
 SPORT_FILES = {
     "nhl": ("nfl_tool/nhl/", "nfl_tool/site/nhl/", "tests/test_nhl", "tests/fixtures/nhl_", "tools/backtest/nhl_", "model_history/nhl_"),
     "nba": ("nfl_tool/nba/", "nfl_tool/site/nba/", "tests/test_nba", "tests/fixtures/nba_", "tools/backtest/nba_", "model_history/nba_"),
-    "nfl": ("tests/test_gmg_model.py", "tests/test_novig_props.py", "tests/test_odds_lock.py", "tests/test_site_js.py", "tests/fixtures/data.json.gz", "tests/fixtures/novig_event.json.gz", "tools/backtest/", "model_history/gmg_model.json"),
+    "nfl": ("tests/test_gmg_model.py", "tests/test_novig_props.py", "tests/test_odds_lock.py", "tests/test_smartstake.py", "tests/test_site_js.py", "tests/fixtures/data.json.gz", "tests/fixtures/novig_event.json.gz", "tools/backtest/", "model_history/gmg_model.json"),
 }
 # Files every sport's pages or builds lean on: a change to one checks everything.
 SHARED_FILES = (

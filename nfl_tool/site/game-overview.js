@@ -719,9 +719,27 @@ function renderOddsBar(baseGame) {
     return `<p class="no-data-note">Odds not posted yet for this game.</p>`;
   }
 
-  const spreadCell = (team, line, odds) => (hasSpread ? `${fmtSigned(line)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
-  const totalCell = (label, odds) => (hasTotal ? `${label} ${fmt(game.total_line, 1)} <span class="odds-price">(${fmtOdds(odds)})</span>` : "--");
-  const mlCell = (odds, prob) => (hasMl ? `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>` : "--");
+  // The best price across the member's books (book-odds.js) when SmartStake
+  // has this line; click it for every book.
+  const matchup = `${game.away} @ ${game.home}`;
+  const pill = (kind, team, side, line, title) =>
+    typeof bookPricePill === "function" ? bookPricePill({ kind, team, side, line, title, sub: matchup }) : "";
+  const sideOf = (team) => (team === game.away ? "away" : "home");
+  const spreadCell = (team, line, odds) => {
+    if (!hasSpread) return "--";
+    const best = pill("spread", team, sideOf(team), line, `${matchup} &middot; Spread`);
+    return `${fmtSigned(line)} ${best || `<span class="odds-price">(${fmtOdds(odds)})</span>`}`;
+  };
+  const totalCell = (label, odds) => {
+    if (!hasTotal) return "--";
+    const best = pill("total", game.home, label === "O" ? "o" : "u", game.total_line, `${matchup} &middot; Total`);
+    return `${label} ${fmt(game.total_line, 1)} ${best || `<span class="odds-price">(${fmtOdds(odds)})</span>`}`;
+  };
+  const mlCell = (odds, prob, team) => {
+    if (!hasMl) return "--";
+    const best = pill("ml", team, sideOf(team), null, `${matchup} &middot; Moneyline`);
+    return best ? `${best} <span class="odds-price">${fmtPct(prob)}</span>` : `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>`;
+  };
   // Ballpark projected score off the two numbers already shown (total split
   // by each team's own share of the spread) -- not a new data source, just
   // the same math a viewer would otherwise do in their head from the
@@ -741,13 +759,13 @@ function renderOddsBar(baseGame) {
         <td class="odds-team-cell"><img src="${teamLogoUrl(game.away)}" class="team-logo" alt="${game.away}" loading="lazy">${game.away}${impliedScore(game.away_team_spread)}</td>
         <td class="num">${spreadCell(game.away, game.away_team_spread, game.away_spread_odds)}</td>
         <td class="num">${totalCell("O", game.over_odds)}</td>
-        <td class="num">${mlCell(game.away_moneyline, game.away_ml_implied_prob)}</td>
+        <td class="num">${mlCell(game.away_moneyline, game.away_ml_implied_prob, game.away)}</td>
       </tr>
       <tr>
         <td class="odds-team-cell"><img src="${teamLogoUrl(game.home)}" class="team-logo" alt="${game.home}" loading="lazy">${game.home}${impliedScore(game.home_team_spread)}</td>
         <td class="num">${spreadCell(game.home, game.home_team_spread, game.home_spread_odds)}</td>
         <td class="num">${totalCell("U", game.under_odds)}</td>
-        <td class="num">${mlCell(game.home_moneyline, game.home_ml_implied_prob)}</td>
+        <td class="num">${mlCell(game.home_moneyline, game.home_ml_implied_prob, game.home)}</td>
       </tr>
     </tbody>
   </table>

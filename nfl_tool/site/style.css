@@ -3683,7 +3683,66 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
   background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.4); color: var(--good-text);
 }
 
+/* ---- Every book's price (book-odds.js): the best-price pill, the all-books
+   list with Play / Close / Pass, My Books ---- */
+.bo-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.bo-pill small { font-size: 0.72em; font-weight: 600; color: var(--muted); }
+.bo-pill:hover { border-color: var(--accent); }
+.bo-pill.bo-play { background: rgba(var(--good-rgb), 0.14); border-color: rgba(var(--good-rgb), 0.55); }
+#book-odds-modal, #my-books-modal { z-index: 5000; } /* above the player card */
+#book-odds-modal .modal-box { max-width: 720px; }
+#my-books-modal .modal-box { max-width: 460px; }
+.bo-banner { border-radius: 8px; padding: 10px 14px; background: linear-gradient(90deg, var(--bo-team) 0 6px, var(--panel-2) 6px); margin-right: 24px; }
+.bo-banner h3, .bo-title { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.bo-sub { color: var(--muted); font-size: 0.88rem; }
+.bo-tabs { display: flex; gap: 6px; margin: 12px 0 10px; }
+.bo-tab { flex: 1; padding: 7px; border-radius: 6px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; cursor: pointer; }
+.bo-tab.bo-on { background: var(--table-head); border-color: var(--border-strong); color: var(--text); }
+.bo-fair { display: flex; align-items: center; gap: 16px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+.bo-lbl { font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.bo-big { font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; line-height: 1.1; }
+.bo-src { margin-left: auto; font-size: 0.82rem; color: var(--muted); text-align: right; }
+.bo-src-left { margin-left: 0; text-align: left; }
+.bo-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; }
+.bo-table th { font-family: var(--font-display); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 600; padding: 0 10px; }
+.bo-table td { padding: 7px 10px; background: var(--panel-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.bo-table td:first-child { border-left: 1px solid var(--border); border-radius: 6px 0 0 6px; }
+.bo-table td:last-child { border-right: 1px solid var(--border); border-radius: 0 6px 6px 0; text-align: right; }
+.bo-table tr.bo-best td { background: rgba(var(--good-rgb), 0.1); border-color: rgba(var(--good-rgb), 0.5); }
+.bo-table tr.bo-alt td { opacity: 0.8; }
+.bo-table tr.bo-group td { background: none; border: none; border-top: 1px dashed var(--border-strong); border-radius: 0; text-align: left; padding: 10px 0 0; font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.bo-book { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.bo-ini { width: 30px; height: 30px; border-radius: 6px; background: var(--table-head); border: 1px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; color: var(--muted); flex: none; }
+.bo-bestchip { font-family: var(--font-display); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; background: var(--accent); color: var(--on-accent); border-radius: 4px; padding: 1px 6px; }
+.bo-odds { font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; }
+.bo-line { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.bo-tag { display: inline-block; min-width: 112px; text-align: center; border-radius: 5px; padding: 3px 8px; font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.bo-tag small { font-weight: 600; opacity: 0.85; margin-left: 4px; }
+.bo-tag.bo-play { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
+.bo-tag.bo-close { background: rgba(var(--mid-rgb), 0.18); color: var(--mid-text); }
+.bo-tag.bo-pass { background: rgba(var(--bad-rgb), 0.2); color: var(--bad-text); }
+.bo-tag.bo-muted { background: var(--table-head); color: var(--muted); }
+.bo-bet { display: inline-block; border: 1px solid var(--border-strong); border-radius: 5px; padding: 3px 12px; font-weight: 700; font-size: 0.88rem; color: var(--text); text-decoration: none; white-space: nowrap; }
+.bo-bet:hover { border-color: var(--accent); }
+.bo-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+.bo-foot a, .my-books-link { color: var(--good-text); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.bo-field { margin: 14px 0 8px; }
+.bo-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bo-chip { display: flex; align-items: center; gap: 10px; border-radius: 6px; padding: 8px 10px; font: inherit; font-weight: 700; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; text-align: left; }
+.bo-chip .bo-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 900; flex: none; }
+.bo-chip.bo-on { background: rgba(var(--good-rgb), 0.12); border-color: rgba(var(--good-rgb), 0.5); color: var(--text); }
+.bo-chip.bo-on .bo-box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.bo-note { margin-top: 14px; font-size: 0.82rem; color: var(--muted); background: var(--panel-2); border-radius: 6px; padding: 9px 11px; border: 1px solid var(--border); }
+
+.brand-group { display: flex; align-items: center; min-width: 0; }
+.odds-credit { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font-size: 0.72rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.odds-credit:hover { color: var(--text); border-color: var(--border-strong); }
+.odds-credit img { height: 18px; width: auto; display: block; border-radius: 3px; }
+.odds-credit b { color: var(--text); font-weight: 700; }
+
 @media (max-width: 760px) {
+  .odds-credit { margin-left: 6px; padding: 2px 6px; }
+  .odds-credit span, .odds-credit b { display: none; }
   .mw-page .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }

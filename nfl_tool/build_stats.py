@@ -42,6 +42,7 @@ import pandas as pd
 
 from gmg_model import compute_gmg_model, eastern_now, game_has_started, kickoff_utc
 from line_grades import compute_line_grades, load_ngs
+from smartstake import fetch_nfl_book_odds
 
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"
@@ -5088,6 +5089,13 @@ def main():
     model_history = previous_gmg_model()
     blob["lines_locked"] = lock_started_game_odds(blob, fetch_previous_odds_snapshot(), model_history)
     blob["generated_at"] = (eastern_now() + timedelta(hours=4)).strftime("%Y-%m-%dT%H:%MZ")  # UTC
+    # Every US book's price (SmartStake), for the clickable best price and the
+    # all-books list. Optional: no key or a failed fetch = Novig / SGO only.
+    blob["book_odds"], blob["book_odds_debug"] = fetch_nfl_book_odds(
+        os.environ.get("SMARTSTAKE_API_KEY"), list(roster_positions or {}),
+        (fetch_previous_odds_snapshot() or {}).get("book_odds"),
+        datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    print(f"SmartStake book odds: {blob['book_odds_debug']}")
     renamed = canonicalize_odds_names(blob, roster_positions)
     print(f"Odds names matched to the site's spelling: {renamed} changed")
     blob["gmg_model"] = compute_gmg_model(blob, model_history)

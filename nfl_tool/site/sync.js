@@ -27,6 +27,7 @@
     "nfl-tool.props-summary-picks.v1",
     "nfl-tool.summary-picks.v1",
     "nfl-tool.model-presets.v1",
+    "nfl-tool.my-books.v1",
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;
@@ -154,7 +155,7 @@
     el.className = "acct-chip";
     el.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
     // Email members (Stripe) get Stripe's page for updating a card or cancelling.
-    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}<a href="/auth/logout">Log out</a>`;
+    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}${window.GMGBookOdds ? `<a href="#" class="my-books-link">My Books</a>` : ""}<a href="/auth/logout">Log out</a>`;
     el.querySelector(".acct-name").textContent = user.name || "Signed in";
     bar.prepend(el);
     showRequestButton(user);
@@ -320,6 +321,21 @@
   }
   if (SUITE_SWITCH_PUBLIC) document.documentElement.classList.add("suite-public");
   addSuiteSwitcher();
+
+  // "Odds powered by SmartStake" (the owner's partner; written permission to
+  // show their odds, 2026-10-14) beside the suite name, on every page. Links
+  // to the owner's referral, the same one gmgsports.org's links.json uses.
+  function addOddsCredit() {
+    const brand = document.querySelector(".topbar .brand");
+    if (!brand || document.querySelector(".odds-credit")) return;
+    // The brand and the badge share the top bar's first column.
+    const group = document.createElement("div");
+    group.className = "brand-group";
+    brand.before(group);
+    group.appendChild(brand);
+    group.insertAdjacentHTML("beforeend", '<a class="odds-credit" href="https://www.smartstake.app/?via=GMG" target="_blank" rel="noopener" title="Odds powered by SmartStake. Code GREEN: 7 days for $1"><span>Odds powered by</span><img src="/brand/smartstake.avif" alt="" height="18"><b>SmartStake</b></a>');
+  }
+  addOddsCredit();
 
   window.NFLSync = {
     push(key, value) {
