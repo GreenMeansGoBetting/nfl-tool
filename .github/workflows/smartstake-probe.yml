@@ -1,0 +1,35 @@
+name: SmartStake probe (one-off, never touches the site)
+
+# Reads what the SmartStake Odds API returns (books, market names, counts;
+# never prices) and commits tools/smartstake_probe_result.json. Runs when this
+# file or the probe script is pushed, or from the Actions tab.
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/smartstake-probe.yml"
+      - "tools/smartstake_probe.py"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Ask SmartStake what it has
+        env:
+          SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
+        run: python tools/smartstake_probe.py
+      - name: Commit the result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tools/smartstake_probe_result.json
+          git commit -m "SmartStake probe result (counts and names only)"
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
