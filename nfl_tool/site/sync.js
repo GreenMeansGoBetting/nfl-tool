@@ -337,6 +337,20 @@
   }
   addOddsCredit();
 
+  // The "i" beside a heading opens its explanation (the long notes stay out of
+  // the way until someone asks; the owner, 2026-10-14). Capture: it sits inside
+  // rows and cards that react to clicks themselves.
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest(".info-i");
+    if (!button) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const note = document.getElementById(button.getAttribute("aria-controls"));
+    if (!note) return;
+    note.hidden = !note.hidden;
+    button.setAttribute("aria-expanded", String(!note.hidden));
+  }, true);
+
   window.NFLSync = {
     push(key, value) {
       if (applyingRemote || !KEYS.includes(key)) return;

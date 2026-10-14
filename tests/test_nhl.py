@@ -335,11 +335,11 @@ class PlayerCardData(unittest.TestCase):
 
     def test_log_rows_point_at_the_game(self):
         self.assertEqual(self.detail["games"], {"2026020087": ["2026-10-12", "BUF", "FLA", 5, 3, "REG"]})
-        self.assertEqual(self.detail["skaters"]["8484145"]["log"], [["2026020087", "BUF", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1]])
+        self.assertEqual(self.detail["skaters"]["8484145"]["log"], [["2026020087", "BUF", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1, None]])  # None: the sample game has no shift chart, so no line
         self.assertEqual(self.detail["goalies"]["8480045"]["log"], [["2026020087", "BUF", 0, "W", 2014, 14, 1, 5, 1]])
 
     def test_the_file_spells_each_game_out_from_the_players_side(self):
-        self.assertEqual(build_nhl.player_file(self.detail, "8484145")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1]])
+        self.assertEqual(build_nhl.player_file(self.detail, "8484145")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1, None]])
         self.assertEqual(build_nhl.player_file(self.detail, "8480045")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 0, "W", 2014, 14, 1, 5, 1]])
         visitor = next(pid for pid, s in self.game["skaters"].items() if s["team"] == "FLA")
         self.assertEqual(build_nhl.player_file(self.detail, visitor)["log"][0][:6], ["2026-10-12", "BUF", 0, 3, 5, "REG"])

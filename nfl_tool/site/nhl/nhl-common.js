@@ -369,10 +369,22 @@ function logTable(cols, rows, avgLabel) {
 }
 const mean = (rows, get, digits = 1) => fmt(rows.reduce((a, r) => a + get(r), 0) / rows.length, digits);
 const total = (rows, get) => rows.reduce((a, r) => a + get(r), 0);
+// The line he played on (game_lines in build_nhl.py), as a small tag: the top
+// line or pair brightest. -- for a game with no shift chart.
+const lineChip = (slot) => (slot ? `<span class="nhl-line-chip nhl-line-${slot.slice(1)}">${slot}</span>` : '<span class="muted-label">--</span>');
+function commonLine(rows) {
+  const count = {};
+  rows.forEach((r) => r.slot && (count[r.slot] = (count[r.slot] || 0) + 1));
+  return Object.keys(count).sort((a, b) => count[b] - count[a])[0] || null;
+}
 function skaterLogView(rows) {
   const col = (label, key, title) => ({ label, title, get: (r) => r[key], shade: key === "sog" || key === "att", scored: key === "g" || key === "a", avg: (all) => mean(all, (r) => r[key], key === "sog" || key === "att" ? 1 : 2) });
   return logTable(
     [
+      {
+        label: "Line", title: "The line (L1 to L4) or pair (D1 to D3) he played on that night: who he shared the most ice with, from the league's shift chart. The average row shows his most common one.",
+        get: (r) => r.slot, show: (r) => lineChip(r.slot), avg: (all) => lineChip(commonLine(all)),
+      },
       { label: "TOI", title: "Ice time", get: (r) => r.toi, show: (r) => minutes(r.toi), shade: true, avg: (all) => minutes(Math.round(total(all, (r) => r.toi) / all.length)) },
       col("G", "g"),
       col("A", "a"),
@@ -667,16 +679,27 @@ function loadNhlData() {
 
 // ---- Every book's price (SmartStake; ../book-odds.js) ----
 // The Shots and Goals open rows' right column: every US book's price for this
-// player's line, best first, tagged against the market's fair price (Pinnacle +
-// Novig, vig removed; never the model). "" when no book has him.
-function bookPanelFor(x, stat, line, label, labels) {
+// player, best first, each tagged against OUR model (never a market "fair"
+// price): chanceAt(side, line) is the model's chance, and the tags use the
+// page's own edge sizes. "" when no book has him.
+function bookPanelFor(x, stat, line, label, chanceAt, edges, labels) {
   if (typeof bookOddsPanel !== "function") return "";
   const r = x.r;
   const g = x.game;
-  const panel = bookOddsPanel({
+  const spec = {
     kind: "prop", stat, team: r.team, pid: r.id, name: r.name, side: "o", line,
     game: `${g.away}_${g.home}`, title: `${r.name} &middot; ${label}`, sub: `${g.away} @ ${g.home}`, color: `#${team(r.team).color}`,
-    ...(labels ? { labels, labelLine: line } : {}),
+    edges, ...(labels ? { labels, labelLine: line } : {}),
+  };
+  const model = {};
+  bookQuotes(spec).forEach((q) => {
+    const chance = chanceAt(q[1], q[2]);
+    if (has(chance)) model[`${q[1]}|${q[2]}`] = chance;
   });
-  return panel ? `<div class="shots-detail-odds"><div class="shots-detail-label">Every book <span class="muted-label">best price first</span></div>${panel}</div>` : "";
+  [["o", line], ["u", line]].forEach(([side, at]) => {
+    const chance = has(at) ? chanceAt(side, at) : null;
+    if (has(chance)) model[`${side}|${at}`] = chance;
+  });
+  const panel = bookOddsPanel({ ...spec, model });
+  return panel ? `<div class="shots-detail-odds"><div class="shots-detail-label">Every book <span class="muted-label">best price first, against our model</span></div>${panel}</div>` : "";
 }

@@ -176,7 +176,7 @@ SHOT_EVENTS = ("goal", "shot-on-goal", "missed-shot", "blocked-shot")
 # The feed's shot types, grouped for the player card (anything else is "other").
 SHOT_TYPES = {"wrist": "wrist", "snap": "snap", "slap": "slap", "backhand": "backhand", "tip-in": "tip", "deflected": "tip"}
 # One row per game in a player's log (the player files, see write_player_files).
-SKATER_LOG_COLS = ("toi", "g", "a", "sog", "att", "hits", "blk", "pm", "pim", "ppp")
+SKATER_LOG_COLS = ("toi", "g", "a", "sog", "att", "hits", "blk", "pm", "pim", "ppp", "slot")
 GOALIE_LOG_COLS = ("start", "dec", "toi", "sa", "ga", "hd_sa", "hd_ga")
 
 
@@ -396,6 +396,7 @@ def reduce_game(raw: dict) -> dict:
 
     skaters, goalies = {}, {}
     on_pp = raw.get("pp_toi")  # {player id: power-play seconds}, the league's report (fetch_pp_toi)
+    lines = game_lines(raw)  # {player id: "L1".."D3"}, the line he played on (shift chart)
     for side in ("homeTeam", "awayTeam"):
         team = box[side]["abbrev"]
         stats = (box.get("playerByGameStats") or {}).get(side) or {}
@@ -410,6 +411,7 @@ def reduce_game(raw: dict) -> dict:
                     "sog": s.get("sog", 0), "hits": s.get("hits", 0), "blk": s.get("blockedShots", 0), "att": extra.get("att", 0),
                     "hd": extra.get("a_low_slot", 0), "ppp": extra.get("ppp", 0), "pm": s.get("plusMinus", 0), "pim": s.get("pim", 0),
                     "unb": extra.get("unb", 0), "pp_unb": extra.get("pp_unb", 0),
+                    "slot": lines.get(str(pid)),
                     # Seconds on the power play (the league's per-game report); None when the game has none.
                     "pp_toi": on_pp.get(str(pid), 0) if on_pp is not None else None,
                     # Where he shot from: {area: [shots (on goal or wide), on goal, goals]}, and by shot type: {type: [shots, goals]}.
@@ -488,6 +490,87 @@ def save_raw(path: Path, raw: dict) -> None:
     tmp.replace(path)
 
 
+def fetch_shifts(game_id: int) -> list | None:
+    """Every shift of a finished game, [player id, team, period, "mm:ss" on,
+    "mm:ss" off], from the league's shift chart (typeCode 517 = a shift; the
+    rest are goal markers). For who played with whom (game_lines), not for
+    ice time: the chart can run short. None if it can't be read (asked for
+    again next build); [] when the league has no chart for the game (games 6
+    to 52 of 2026-27 have none)."""
+    try:
+        rows = _request(f"{REST}/shiftcharts?cayenneExp=gameId={game_id}", tries=2).get("data") or []
+    except Exception:
+        return None
+    return [[r["playerId"], r.get("teamAbbrev"), r["period"], r["startTime"], r["endTime"]]
+            for r in rows if r.get("typeCode") == 517 and r.get("startTime") and r.get("endTime")]
+
+
+SHIFTS_GIVE_UP_DAYS = 3  # a game this old with no shift chart is marked as having none
+
+
+def keep_shifts(raw: dict, shifts: list | None) -> bool:
+    """Puts a fetched shift chart on the kept game; an empty one only once the
+    game is SHIFTS_GIVE_UP_DAYS old (the league posts late), so it isn't asked
+    for on every build forever. True if the game changed."""
+    if shifts is None:
+        return False
+    played = (raw.get("pbp") or {}).get("gameDate")
+    old = bool(played) and (datetime.now(timezone.utc).date() - datetime.strptime(played, "%Y-%m-%d").date()).days >= SHIFTS_GIVE_UP_DAYS
+    if shifts or old:
+        raw["shifts"] = shifts
+        return True
+    return False
+
+
+def game_lines(raw: dict) -> dict:
+    """{player id: "L1".."L4" for forwards, "D1".."D3" for defensemen}: the
+    line he actually played on that night. From the shift chart: the forward
+    with the most ice time and the two he shared the most of it with are a
+    line, then the next, and so on (pairs for defensemen); lines are numbered
+    by their ice time. {} when the game has no shift chart."""
+    shifts = raw.get("shifts")
+    box = raw.get("box") or {}
+    if not shifts:
+        return {}
+    kind_of = {}
+    for side in ("homeTeam", "awayTeam"):
+        team = (box.get(side) or {}).get("abbrev")
+        stats = (box.get("playerByGameStats") or {}).get(side) or {}
+        for group, kind in (("forwards", "F"), ("defense", "D")):
+            for p in stats.get(group) or []:
+                kind_of[str(p["playerId"])] = (team, kind)
+    spans = {}
+    for pid, _team, period, on, off in shifts:
+        start, end = (period - 1) * 1200 + clock_seconds(on), (period - 1) * 1200 + clock_seconds(off)
+        if end > start:
+            spans.setdefault(str(pid), []).append((start, end))
+    toi = {pid: sum(b - a for a, b in spans[pid]) for pid in spans}
+    shared = {}
+
+    def together(p, q):
+        key = (p, q) if p < q else (q, p)
+        if key not in shared:
+            shared[key] = sum(max(0, min(b1, b2) - max(a1, a2)) for a1, b1 in spans[p] for a2, b2 in spans[q])
+        return shared[key]
+
+    out = {}
+    for team in {team for team, _ in kind_of.values()}:
+        for kind, size, prefix, most in (("F", 3, "L", 4), ("D", 2, "D", 3)):
+            left = sorted((pid for pid, tk in kind_of.items() if tk == (team, kind) and pid in spans), key=lambda pid: -toi[pid])
+            groups = []
+            while left:
+                lead = left.pop(0)
+                mates = sorted(left, key=lambda q: -together(lead, q))[:size - 1]
+                for m in mates:
+                    left.remove(m)
+                groups.append([lead, *mates])
+            groups.sort(key=lambda g: -sum(toi[p] for p in g) / len(g))
+            for i, g in enumerate(groups):
+                for p in g:
+                    out[p] = f"{prefix}{min(i + 1, most)}"
+    return out
+
+
 def load_game(game_id: int, season: int, data_dir: Path) -> tuple:
     """(raw game, downloaded?). A game is kept on disk once the league marks
     it official ("OFF": the scorers' corrections are in); until then it is
@@ -503,17 +586,23 @@ def load_game(game_id: int, season: int, data_dir: Path) -> tuple:
         except (OSError, ValueError):
             path.unlink()  # a half-written file: fetch it again
     if raw is not None:
+        changed = False
         if "pp_toi" not in raw:
             pp_toi = fetch_pp_toi(game_id)
             if pp_toi:
                 raw["pp_toi"] = pp_toi
-                save_raw(path, raw)
+                changed = True
+        if "shifts" not in raw:  # a game kept before the shift chart was
+            changed = keep_shifts(raw, fetch_shifts(game_id)) or changed
+        if changed:
+            save_raw(path, raw)
         return raw, False
     raw = {"pbp": _request(f"{API}/gamecenter/{game_id}/play-by-play"), "box": _request(f"{API}/gamecenter/{game_id}/boxscore")}
     if raw["pbp"].get("gameState") == "OFF":
         pp_toi = fetch_pp_toi(game_id)
         if pp_toi:
             raw["pp_toi"] = pp_toi
+        keep_shifts(raw, fetch_shifts(game_id))
         save_raw(path, raw)
     return raw, True
 

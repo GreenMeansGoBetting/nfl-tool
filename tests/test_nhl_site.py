@@ -165,7 +165,8 @@ class PlayerCard(unittest.TestCase):
         self.assertEqual(len(now["log"]), self.hughes["games"] + 1)  # every game plus the per-game row on top
         self.assertEqual(now["log"][0][0], "Per game (5 games)")
         # Newest game first: 10/12 vs OTT, a 1-4 loss, 20:41 of ice time, 0 goals, 1 assist, 2 shots on goal.
-        self.assertEqual(now["log"][1][:8], ["10/12", "vs OTT", "L 1-4", "20:41", "0", "1", "1", "2"])
+        # Line comes before TOI ("--": the sample games have no shift chart).
+        self.assertEqual(now["log"][1][:9], ["10/12", "vs OTT", "L 1-4", "--", "20:41", "0", "1", "1", "2"])
         self.assertIn("Small sample: 5 games this season.", now["text"])
 
     def test_shot_map(self):

@@ -71,9 +71,13 @@ imported by it (rules in game-previews.md).
   differently) and take the roster spelling. `book_odds_debug` says what came back.
 - Odds lock: a started game keeps the previous build's pregame copy or shows no book prices.
   No key or a failed fetch = no book prices; the site falls back to Novig / SGO.
-- The site (`book-odds.js`): fair price = Pinnacle + Novig, each with both sides priced, vig
-  removed, averaged. Tags per $1: Play >= +1%, Pass <= -2%, Close between; no fair = no tags.
-  It never feeds the model math: `over_odds` / `under_odds` stay Novig's for the no-vig numbers.
+- The site (`book-odds.js`): **tags only against OUR model, never a market "fair" price** (the
+  owner, 2026-10-14: "we aren't top down betting ... we are trying to find an edge from our own
+  number"; a Pinnacle + Novig no-vig yardstick shipped first and was removed). A caller passes
+  `spec.model` ({"side|line": the model's chance}) and `spec.edges`; the edge is the page's own
+  measure (chance minus the price's break-even, in points: PLAY from `lean`, CHECK from `check`,
+  else PASS). No model number = no tags: the NFL pop-ups (props, TDs, game lines) just rank the
+  books. Book odds never feed the model math: `over_odds` / `under_odds` stay Novig's.
 - Shared with the NHL build (`fetch_nhl_book_odds`, nhl.md): `smartstake.py` and `site/book-odds.js`
   are in ci_steps' SHARED_FILES, and `/book-odds.js` in the middleware's SHARED_FILES (the NHL
   pages load `../book-odds.js`), so book-odds.js carries its own helpers (no common.js there).

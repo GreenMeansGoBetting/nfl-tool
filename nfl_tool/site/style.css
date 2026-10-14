@@ -3689,6 +3689,7 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .bo-pill small { font-size: 0.72em; font-weight: 600; color: var(--muted); }
 .bo-pill:hover { border-color: var(--accent); }
 .bo-pill.bo-play { background: rgba(var(--good-rgb), 0.14); border-color: rgba(var(--good-rgb), 0.55); }
+.bo-pill.bo-check { background: rgba(var(--mid-rgb), 0.12); border-color: rgba(var(--mid-rgb), 0.5); }
 #book-odds-modal, #my-books-modal { z-index: 5000; } /* above the player card */
 #book-odds-modal .modal-box { max-width: 720px; }
 #my-books-modal .modal-box { max-width: 460px; }
@@ -3719,7 +3720,8 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .bo-tag { display: inline-block; min-width: 112px; text-align: center; border-radius: 5px; padding: 3px 8px; font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
 .bo-tag small { font-weight: 600; opacity: 0.85; margin-left: 4px; }
 .bo-tag.bo-play { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
-.bo-tag.bo-close { background: rgba(var(--mid-rgb), 0.18); color: var(--mid-text); }
+.bo-tag.bo-check { background: rgba(var(--mid-rgb), 0.18); color: var(--mid-text); }
+.bo-book small.bo-alt-line { display: none; }
 .bo-tag.bo-pass { background: rgba(var(--bad-rgb), 0.2); color: var(--bad-text); }
 .bo-tag.bo-muted { background: var(--table-head); color: var(--muted); }
 .bo-bet { display: inline-block; border: 1px solid var(--border-strong); border-radius: 5px; padding: 3px 12px; font-weight: 700; font-size: 0.88rem; color: var(--text); text-decoration: none; white-space: nowrap; }
@@ -3739,6 +3741,12 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .odds-credit:hover { color: var(--text); border-color: var(--border-strong); }
 .odds-credit img { height: 18px; width: auto; display: block; border-radius: 3px; }
 .odds-credit b { color: var(--text); font-weight: 700; }
+
+/* The "i" that opens a section's explanation (sync.js), and the bubble it opens. */
+.info-i { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-left: 6px; padding: 0; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--muted); font: italic 700 0.78rem Georgia, "Times New Roman", serif; line-height: 1; cursor: pointer; vertical-align: middle; flex: none; text-transform: none; letter-spacing: 0; }
+.info-i:hover, .info-i[aria-expanded="true"] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.info-note { position: relative; max-width: 980px; margin: 8px 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border-strong); box-shadow: var(--shadow); }
+.info-note[hidden] { display: none; }
 
 @media (max-width: 760px) {
   .odds-credit { margin-left: 6px; padding: 2px 6px; }

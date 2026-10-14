@@ -673,7 +673,7 @@ class GradedPlays(unittest.TestCase):
         read = """() => ({
             hidden: document.getElementById("shots-record-modal").hidden,
             inside: !!document.querySelector("#shots-record-modal #shots-results .shots-record-table"),
-            button: document.querySelector(".shots-title-row #shots-title + #shots-record-open").textContent,
+            button: document.querySelector(".shots-title-row #shots-title + .info-i + #shots-record-open").textContent,
         })"""
         self.assertEqual(PAGE.evaluate(read), {"hidden": True, "inside": True, "button": "YTD Model Performance"})
         PAGE.evaluate("() => document.getElementById('shots-record-open').click()")

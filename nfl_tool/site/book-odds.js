@@ -1,10 +1,13 @@
-// Every US book's price (SmartStake, data.json book_odds; build side in
-// nfl_tool/smartstake.py). Wherever a price shows, bookPricePill() swaps in the
-// best price across the member's books; clicking it lists every book, best to
-// worst, each tagged against the FAIR price: Pinnacle + Novig with the vig
-// removed (the market's yardstick, never the GMG model). Play = +1% or better
-// per dollar, Pass = -2% or worse, Close in between. No Pinnacle / Novig price
-// = no fair price = no tags (never guessed from the other books).
+// Every US book's price (SmartStake, book_odds in data.json / nhl/data.json;
+// build side in nfl_tool/smartstake.py). Wherever a price shows,
+// bookPricePill() swaps in the best price across the member's books; clicking
+// it lists every book, best to worst, with a Bet link.
+// Play / Pass tags come ONLY from our own model (the owner: "we aren't top-down
+// betting, we're finding an edge from our own number"): a caller passes
+// spec.model = {"side|line": the model's chance} and spec.edges (the page's own
+// thresholds). The edge is the page's measure: the model's chance minus the
+// chance the price needs to break even, in points. With no model number (the
+// NFL pop-ups) the list just ranks the books; there is no market "fair" price.
 // My Books (synced per member): books to hide. Links are built for New Jersey.
 
 const BOOK_NAMES = {
@@ -24,9 +27,6 @@ const boEnc = (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 const boDec = (str) => JSON.parse(decodeURIComponent(escape(atob(str))));
 const boOdds = (n) => (n === null || n === undefined ? "--" : n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`);
 const boNum = (n) => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
-const FAIR_BOOKS = ["pinnacle", "novig"];
-const BOOK_TAG_PLAY = 0.01;
-const BOOK_TAG_PASS = -0.02;
 const MY_BOOKS_KEY = "nfl-tool.my-books.v1"; // { hidden: [book ids] }
 
 function myBooks() {
@@ -51,10 +51,10 @@ function bookGameFor(team, gameKey) {
   return key ? { key, game: all[key] } : null;
 }
 
-// spec: {kind: "prop"|"td"|"ml"|"spread"|"total", team, name?, stat?}
+// spec: {kind: "prop"|"td"|"ml"|"spread"|"total", team, name? or pid?, stat?}
 function bookQuotes(spec) {
   const found = bookGameFor(spec.team, spec.game);
-  if (!found || typeof DATA === "undefined" || !DATA) return [];
+  if (!found) return [];
   const g = found.game;
   const who = spec.pid !== undefined && spec.pid !== null ? String(spec.pid) : boNorm(spec.name);
   if (spec.kind === "prop") return ((g.props || {})[spec.stat] || {})[who]?.q || [];
@@ -66,17 +66,11 @@ function bookQuotes(spec) {
 const sameBet = (q, side, line) => q[1] === side && (line === null || line === undefined || q[2] === line);
 const otherLine = (side, line) => (line === null || line === undefined ? line : side === "away" || side === "home" ? -line : line);
 
-// The market's fair chance for this side: each of Pinnacle / Novig with both
-// sides priced, vig removed, averaged.
-function bookFairProb(quotes, side, line) {
-  const probs = FAIR_BOOKS.map((book) => {
-    const mine = quotes.find((q) => q[0] === book && sameBet(q, side, line));
-    const theirs = quotes.find((q) => q[0] === book && sameBet(q, OPPOSITE_SIDE[side], otherLine(side, line)));
-    if (!mine || !theirs) return null;
-    const a = oddsProb(mine[3]);
-    return a / (a + oddsProb(theirs[3]));
-  }).filter((p) => p !== null);
-  return probs.length ? probs.reduce((s, p) => s + p, 0) / probs.length : null;
+// Our model's chance for this side at this line, or null (no model, or no
+// number at that line).
+function bookModelChance(spec, side, line) {
+  const chance = (spec.model || {})[`${side}|${line}`];
+  return chance === undefined || chance === null ? null : chance;
 }
 
 function bookBest(quotes, side, line) {
@@ -85,10 +79,14 @@ function bookBest(quotes, side, line) {
     .sort((a, b) => oddsDecimal(b[3]) - oddsDecimal(a[3]))[0] || null;
 }
 
-function bookTag(fair, odds) {
-  if (fair === null) return null;
-  const edge = fair * oddsDecimal(odds) - 1;
-  const kind = edge >= BOOK_TAG_PLAY ? "play" : edge <= BOOK_TAG_PASS ? "pass" : "close";
+// The page's own edge (points of chance over the price's break-even) and its
+// tag: CHECK from the page's "check" size (look for news first), PLAY from its
+// smallest play, PASS below that.
+function bookTag(spec, chance, odds) {
+  if (chance === null) return null;
+  const edges = spec.edges || { lean: 0.03, check: 0.12 };
+  const edge = chance - oddsProb(odds);
+  const kind = edge >= edges.check ? "check" : edge >= edges.lean ? "play" : "pass";
   return { kind, edge };
 }
 
@@ -98,12 +96,12 @@ function bookPricePill(spec) {
   const quotes = bookQuotes(spec);
   const best = bookBest(quotes, spec.side, spec.line);
   if (!best) return "";
-  const tag = bookTag(bookFairProb(quotes, spec.side, spec.line), best[3]);
-  return `<button type="button" class="bo-pill${tag ? ` bo-${tag.kind}` : ""}" data-bo="${boEnc(spec)}" title="Best price across your books. Click for every book.">${boOdds(best[3])} <small>${BOOK_NAMES[best[0]] || best[0]}</small></button>`;
+  const tag = bookTag(spec, bookModelChance(spec, spec.side, spec.line), best[3]);
+  return `<button type="button" class="bo-pill${tag && tag.kind !== "pass" ? ` bo-${tag.kind}` : ""}" data-bo="${boEnc(spec)}" title="Best price across your books. Click for every book.">${boOdds(best[3])} <small>${BOOK_NAMES[best[0]] || best[0]}</small></button>`;
 }
 
-function bookSideLabel(spec, side) {
-  const line = side === spec.side ? spec.line : otherLine(spec.side, spec.line);
+function bookSideLabel(spec, side, atLine) {
+  const line = atLine !== undefined ? atLine : side === spec.side ? spec.line : otherLine(spec.side, spec.line);
   if (spec.labels && spec.labels[side] && line === spec.labelLine) return spec.labels[side];
   if (side === "o" || side === "u") return `${side === "o" ? "Over" : "Under"}${line !== null && line !== undefined ? ` ${boNum(line)}` : ""}`;
   const found = bookGameFor(spec.team, spec.game);
@@ -114,18 +112,20 @@ function bookSideLabel(spec, side) {
 
 function renderBookOdds(spec) {
   const quotes = bookQuotes(spec);
-  const fair = bookFairProb(quotes, spec.side, spec.line);
+  const modelOn = !!spec.model;
+  const chance = bookModelChance(spec, spec.side, spec.line);
   const rows = quotes.filter((q) => q[1] === spec.side && !bookHidden(q[0])).sort((a, b) => oddsDecimal(b[3]) - oddsDecimal(a[3]));
   const main = rows.filter((q) => sameBet(q, spec.side, spec.line));
   const others = rows.filter((q) => !sameBet(q, spec.side, spec.line));
   const row = (q, i, alt) => {
-    const tag = alt ? null : bookTag(fair, q[3]);
-    const tagCell = alt
-      ? `<span class="bo-tag bo-muted">${bookSideLabel({ ...spec, line: q[2] }, q[1])}</span>`
-      : tag ? `<span class="bo-tag bo-${tag.kind}">${tag.kind}<small>${tag.edge >= 0 ? "+" : "&minus;"}${Math.abs(tag.edge * 100).toFixed(1)}%</small></span>` : "";
+    const tag = modelOn ? bookTag(spec, bookModelChance(spec, q[1], q[2]), q[3]) : null;
+    const tagCell = tag
+      ? `<span class="bo-tag bo-${tag.kind}">${tag.kind}<small>${tag.edge >= 0 ? "+" : "&minus;"}${Math.abs(tag.edge * 100).toFixed(1)}</small></span>`
+      : modelOn ? '<span class="bo-tag bo-muted">No model line</span>' : "";
+    const lineText = q[2] !== null && q[2] !== undefined ? bookSideLabel(spec, q[1], q[2]) : "";
     const link = q[4] ? `<a class="bo-bet" href="${q[4]}" target="_blank" rel="noopener">Bet &rsaquo;</a>` : "";
-    return `<tr class="${!alt && i === 0 ? "bo-best" : ""}${alt ? " bo-alt" : ""}"><td><div class="bo-book"><span class="bo-ini">${BOOK_INITIALS[q[0]] || "?"}</span>${BOOK_NAMES[q[0]] || q[0]}${!alt && i === 0 ? ' <span class="bo-bestchip">BEST</span>' : ""}</div></td>
-      <td class="bo-line">${q[2] !== null && q[2] !== undefined ? bookSideLabel({ ...spec, line: q[2] }, q[1]).replace(/^[A-Z]{2,3} /, "") : ""}</td><td class="bo-odds">${boOdds(q[3])}</td><td>${tagCell}</td><td class="bo-go">${link}</td></tr>`;
+    return `<tr class="${!alt && i === 0 ? "bo-best" : ""}${alt ? " bo-alt" : ""}"><td><div class="bo-book"><span class="bo-ini">${BOOK_INITIALS[q[0]] || "?"}</span><span>${BOOK_NAMES[q[0]] || q[0]}${alt ? `<small class="bo-alt-line">${lineText}</small>` : ""}</span>${!alt && i === 0 ? ' <span class="bo-bestchip">BEST</span>' : ""}</div></td>
+      <td class="bo-line">${lineText}</td><td class="bo-odds">${boOdds(q[3])}</td>${modelOn ? `<td>${tagCell}</td>` : ""}<td class="bo-go">${link}</td></tr>`;
   };
   const TAB_ORDER = ["o", "u", "away", "home"];
   const sides = spec.kind === "td" ? [spec.side] : [spec.side, OPPOSITE_SIDE[spec.side]].sort((a, b) => TAB_ORDER.indexOf(a) - TAB_ORDER.indexOf(b));
@@ -134,14 +134,16 @@ function renderBookOdds(spec) {
     : "";
   const hidden = myBooks().hidden || [];
   const color = spec.color || (typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[spec.team]) || "var(--accent)";
+  const cols = modelOn ? 5 : 4;
+  const modelBox = !modelOn ? "" : chance !== null
+    ? `<div class="bo-fair"><div><div class="bo-lbl">GMG model</div><div class="bo-big">${(chance * 100).toFixed(0)}%</div></div><div><div class="bo-lbl">Its price</div><div class="bo-big">${boOdds(probToAmerican(chance))}</div></div><div class="bo-src">Tags: the model's chance minus<br>what each price needs, in points</div></div>`
+    : `<div class="bo-fair"><div class="bo-src bo-src-left">The model has no number for this line, so these prices aren't tagged.</div></div>`;
   return `<div class="bo-banner" style="--bo-team:${color}"><h3>${spec.title}</h3><div class="bo-sub">${spec.sub || ""}${spec.sub ? " &middot; " : ""}${main.length + others.length} books</div></div>
     ${tabs}
-    <div class="bo-fair">${fair !== null
-      ? `<div><div class="bo-lbl">Fair price</div><div class="bo-big">${boOdds(probToAmerican(fair))}</div></div><div><div class="bo-lbl">Chance</div><div class="bo-big">${(fair * 100).toFixed(1)}%</div></div><div class="bo-src">Pinnacle + Novig<br>with the vig removed</div>`
-      : '<div class="bo-src bo-src-left">No Pinnacle or Novig price on both sides of this bet, so there is no fair price to tag against. Every book is still listed, best first.</div>'}</div>
-    ${main.length || others.length ? `<table class="bo-table"><thead><tr><th>Book</th><th>Line</th><th>Odds</th><th>${fair !== null ? "vs fair price" : ""}</th><th></th></tr></thead><tbody>
+    ${modelBox}
+    ${main.length || others.length ? `<table class="bo-table${modelOn ? "" : " bo-plain"}"><thead><tr><th>Book</th><th>Line</th><th>Odds</th>${modelOn ? "<th>vs our model</th>" : ""}<th></th></tr></thead><tbody>
       ${main.map((q, i) => row(q, i, false)).join("")}
-      ${others.length ? `<tr class="bo-group"><td colspan="5">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
+      ${others.length ? `<tr class="bo-group"><td colspan="${cols}">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
     </tbody></table>` : '<p class="no-data-note">None of your books has this bet right now.</p>'}
     <div class="bo-foot"><span>Links open for New Jersey${hidden.length ? ` &middot; ${hidden.length} book${hidden.length === 1 ? "" : "s"} hidden (${hidden.map((b) => BOOK_NAMES[b] || b).join(", ")})` : ""}</span><a href="#" class="bo-edit-books">Edit my books &rsaquo;</a></div>`;
 }
@@ -196,7 +198,7 @@ function openMyBooks() {
     <div class="bo-sub">Only the books you turn on are shown and used for the best price.</div>
     <div class="bo-lbl bo-field">Books</div>
     <div class="bo-chips">${Object.entries(BOOK_NAMES).map(([id, name]) => `<button type="button" class="bo-chip${hidden.includes(id) ? "" : " bo-on"}" data-book="${id}"><span class="bo-box">${hidden.includes(id) ? "" : "&#10003;"}</span>${name}</button>`).join("")}</div>
-    <div class="bo-note">The fair price always uses Pinnacle + Novig, even if you hide them, so the Play / Pass tags stay the same for everyone. Bet links open for New Jersey.</div>`;
+    <div class="bo-note">Hidden books drop out of every price list and the best price. Bet links open for New Jersey.</div>`;
   overlay.hidden = false;
 }
 

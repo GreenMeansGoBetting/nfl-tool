@@ -711,9 +711,31 @@ Game Previews (it is already in `shots.json`).
   key `SMARTSTAKE_API_KEY` on the NHL build step of deploy.yml AND nhl-refresh.yml) and writes
   nhl/data.json `book_odds["AWAY_HOME"].props.{sog,goals}[player id]`; players are matched with
   `player_finder` on either team, trying every spelling the books use. Rules as for the NFL
-  (data-pipeline.md): US books, NJ links, odds lock, Pinnacle + Novig fair price, never the model.
+  (data-pipeline.md): US books, NJ links, odds lock. Each book is tagged against OUR model at its
+  own line (`bookPanelFor(x, stat, line, label, chanceAt, edges)`: shots `chanceOver`, goals
+  `r.chance` / `twoPlus`), with the page's `edges`, so the panel's numbers match the Edge column.
 - The open row (`detailRow` in shots.js / goals.js, `bookPanelFor` in nhl-common.js) is three
   columns: the build pills, tiles and price table in a 520px left column (the pills wrap there,
   the owner's ask), the rink in the middle, every book's price on the right (`.has-odds`). Under
   1360px wide the odds sit under the rink; on phones everything stacks. A row with no book
   prices keeps the two-column layout. Goals' tabs read Scores / No goal (the 0.5 line).
+- Shots / Goals tables: Player, Play and Edge are only as wide as their contents (`width: 1%`; the
+  player cell is display:flex, so its header carries it); the number columns share the rest.
+
+## Explanations behind an "i" (2026-10-14)
+
+The owner: long explanations on screen look "yuck"; put them in a bubble people open themselves.
+Every long `p.section-note` on the NHL pages is `hidden` with class `info-note`, opened by a
+`button.info-i` (aria-controls = the note's id) beside its heading; the rink key in the open rows
+too. The click handler is in sync.js (capture phase), the look in style.css, so any page can use
+it. On Shots / Goals the "i" sits right after `#shots-title` (the pages rewrite that title).
+
+## The player card's Line column (2026-10-14)
+
+Each game log row shows the line he played on that night (L1-L4, D1-D3; `game_lines` in
+build_nhl.py): from the league's shift chart, the forward with the most ice time plus the two he
+shared the most ice with are a line, and so on; lines are numbered by their ice time (pairs for
+defense). Shift charts are fetched once per finished game and kept on it (`fetch_shifts`,
+`keep_shifts`); the league has none for games 6-52 of 2026-27, so those rows show "--" (an empty
+chart is recorded once a game is `SHIFTS_GIVE_UP_DAYS` old so it isn't asked for every build).
+The skater log's last column is `slot`. Date / Opp / Result are only as wide as they need.

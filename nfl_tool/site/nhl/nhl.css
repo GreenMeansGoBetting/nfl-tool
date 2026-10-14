@@ -70,6 +70,11 @@
 .nhl-pc-seasons { display: inline-flex; gap: 6px; margin-left: auto; }
 .nhl-pc-scroll { overflow-x: auto; }
 .nhl-pc-log td, .nhl-pc-areas td { white-space: nowrap; }
+/* Date, opponent and result only as wide as they need (the owner); the stat columns share the rest. */
+.nhl-pc-log th:nth-child(-n+3), .nhl-pc-log td:nth-child(-n+3) { width: 1%; }
+.nhl-line-chip { display: inline-block; min-width: 30px; padding: 1px 6px; border-radius: 5px; font-family: var(--font-display); font-weight: 800; font-size: 0.85rem; text-align: center; background: var(--panel-2); border: 1px solid var(--border-strong); color: var(--muted); }
+.nhl-line-chip.nhl-line-1 { background: rgba(var(--good-rgb), 0.22); border-color: rgba(var(--good-rgb), 0.55); color: var(--good-text); }
+.nhl-line-chip.nhl-line-2 { background: rgba(var(--good-rgb), 0.1); border-color: rgba(var(--good-rgb), 0.35); color: var(--text); }
 .nhl-pc-odds { width: 100%; max-width: 620px; }
 .nhl-pc-log .nhl-pc-avg td { background: var(--table-head); font-weight: 800; }
 .nhl-pc-map { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 16px; align-items: start; }
@@ -112,6 +117,9 @@
 .shots-vs { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; padding-left: 10px; }
 .shots-vs .at { font-size: 0.68rem; font-weight: 700; color: var(--muted); }
 .shots-play-cell { text-align: center; }
+/* Player, Play and Edge only as wide as what's in them (they took most of a
+   wide screen's spare room, the owner's ask); the rest goes to the numbers. */
+.shots-table th.shots-th-player, .shots-table td.shots-player, .shots-table td.shots-play-cell, .shots-table td.shots-edge { width: 1%; }
 .shots-play { display: inline-flex; align-items: baseline; gap: 7px; padding: 2px 9px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--table-head); font-family: var(--font-display); }
 .shots-play b { font-size: 0.98rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 .shots-play span { font-size: 0.92rem; font-weight: 700; color: var(--muted); }
@@ -159,6 +167,7 @@
 .bo-panel .bo-table th { padding: 0 6px; }
 .bo-panel .bo-table td { padding: 5px 6px; }
 .bo-panel .bo-ini { display: none; }
+.bo-panel .bo-book small.bo-alt-line { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); }
 .bo-panel .bo-book { font-size: 0.85rem; gap: 6px; }
 .bo-panel .bo-odds { font-size: 1.05rem; }
 .bo-panel .bo-tag { min-width: 0; font-size: 0.78rem; padding: 2px 6px; }
