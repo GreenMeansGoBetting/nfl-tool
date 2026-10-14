@@ -452,6 +452,7 @@ function renderRecord() {
       ${tile("Unders with an edge", record.under, `Unders with an edge of ${n("lean")} to ${n("check")}`)}
       ${record.fade ? tile("Against his average", record.fade, `Plays with an edge that went against the player's own season average: the model not believing a hot or cold start`) : ""}
       ${record.with ? tile("With his average", record.with, `Plays with an edge that his own season average agreed with`) : ""}
+      ${record.clv ? `<div class="nba-tile" title="Closing line value on the plays with an edge: from the first line and price the page saw to the ones locked at puck drop. The points are how far the play's price moved on an unchanged line (+ = shortened: the market moved toward the model); a line that moved counts as shortened when it moved the play's way (an over whose line went up). Over a few hundred plays this says more than wins and losses."><div class="gs-tile-label">Closing line value</div><b>${has(record.clv.points) ? points(record.clv.points) : "--"}</b><small>${record.clv.plays ? `${record.clv.shortened} shortened &middot; ${record.clv.drifted} drifted &middot; ${record.clv.plays} plays` : "none yet"}</small></div>` : ""}
     </div>
     ${recordPlays(record)}`;
 }

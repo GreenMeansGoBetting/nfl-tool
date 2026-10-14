@@ -458,6 +458,36 @@ class Record(unittest.TestCase):
     def row(self, pid, mean, actual, avg=None):
         return {"id": pid, "name": pid.upper(), "team": "AAA", "mean": mean, "avg": avg, "chances": [round(shots_model.chance_at_least(mean, n), 3) for n in range(1, 9)], "actual": actual}
 
+    def test_closing_line_value(self):
+        """From the first line and price the site saw to the locked ones, on the plays with an edge."""
+        def game(plays):
+            return {"date": "2026-10-13", "away": "AAA", "home": "BBB", "plays": plays}
+        # The model's chance of the over, set so each play has an edge of 3 to 12 points.
+        rows = [
+            ["a", "A", "AAA", 2.5, -110, -110, 3.0, 0.58, 4, 3.0, None, 2.5, 120, -140],   # over: +120 -> -110 on the same line
+            ["b", "B", "AAA", 2.5, 105, -125, 1.6, 0.36, 1, 1.6, None, 2.5, 100, -150],    # under: -150 -> -125, drifted
+            ["c", "C", "AAA", 3.5, -110, -110, 4.0, 0.58, 5, 4.0, None, 2.5, -110, -110],  # over, and the line went up
+            ["d", "D", "AAA", 2.5, -110, -110, 3.0, 0.58, 4, 3.0, None],                     # saved before first prices were kept
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "2026-10.json").write_text(json.dumps({"games": {"9": game(rows)}}))
+            clv = build_nhl.shots_record_summary(Path(tmp))["clv"]
+        self.assertEqual((clv["plays"], clv["priced"], clv["shortened"], clv["drifted"]), (3, 2, 2, 1))
+        self.assertAlmostEqual(clv["points"], ((110 / 210 - 100 / 220) + (125 / 225 - 150 / 250)) / 2, places=4)
+
+    def test_the_board_keeps_the_first_line_seen(self):
+        record = build_nhl.reduce_game(helpers.nhl_game())
+        model = build_nhl.shots_model_for([record])
+        lineups = build_nhl.lineup(build_nhl.compute_skaters([record], {}), Counter(BUF=1, FLA=1))
+        games = [{"game_id": "77", "date": "2026-10-13", "start_utc": "2026-10-13T23:00Z", "away": "BUF", "home": "FLA", "status": "scheduled", "away_rest": 2, "home_rest": 2}]
+        now = datetime(2026, 10, 13, 14, 0)
+        first = build_nhl.shots_board(model, games, lineups, {}, [], None, now, player_odds={"77": {BENSON: {"sog": {"line": 2.5, "over": 120, "under": -150, "thin": False}}}})
+        row = lambda board: next(r for r in board["77"]["players"] if r["id"] == BENSON)
+        self.assertEqual(row(first)["first_sog"], {"line": 2.5, "over": 120, "under": -150})
+        later = build_nhl.shots_board(model, games, lineups, {}, [], {"games": first}, now, player_odds={"77": {BENSON: {"sog": {"line": 3.5, "over": 110, "under": -130}}}})
+        self.assertEqual(row(later)["first_sog"], {"line": 2.5, "over": 120, "under": -150})
+        self.assertIsNone(next(r for r in first["77"]["players"] if r["id"] != BENSON)["first_sog"])
+
     def test_a_finished_game_is_written_once(self):
         games = [{"game_id": "9", "date": "2026-10-13", "away": "AAA", "home": "BBB"}, {"game_id": "10", "date": "2026-10-13", "away": "CCC", "home": "DDD"}]
         board = {
@@ -473,8 +503,9 @@ class Record(unittest.TestCase):
             self.assertEqual(saved["games"]["9"]["plays"], [
                 # ... the projection, the model's chance of the over, his real shots, his season average at the lock
                 # ... and whether tonight's line was a move up or down for him
-                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None],
-                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up"],
+                # ... and the first line and prices the site saw (none on these hand-made rows)
+                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None],
+                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None],
             ])
             # The next build sees the same finished game: nothing is added or rewritten.
             board["9"]["players"][0]["mean"] = 9.9

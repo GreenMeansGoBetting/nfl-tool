@@ -1432,7 +1432,7 @@ def shots_defense(model, teams) -> dict:
     return out
 
 
-def shots_board(model, games: list, lineups: dict, injuries: dict, records: list, previous: dict | None, now_utc: datetime, tonight: dict | None = None, skaters: dict | None = None) -> dict:
+def shots_board(model, games: list, lineups: dict, injuries: dict, records: list, previous: dict | None, now_utc: datetime, tonight: dict | None = None, skaters: dict | None = None, player_odds: dict | None = None) -> dict:
     """{game id: {"locked", "players": [rows]}} for the Shots page. A game
     that hasn't started gets fresh projections; one that has started keeps
     the last build's (the same lock as the lines: a projection made after
@@ -1442,7 +1442,11 @@ def shots_board(model, games: list, lineups: dict, injuries: dict, records: list
     Who is projected: the skaters in the NHL's projected lineup for the game
     (`tonight`: fetch_lineups), each on the line it lists him on. Until that
     is posted: the team's usual lineup by ice time (`lineups`), less anyone
-    ESPN lists as out."""
+    ESPN lists as out.
+
+    `first_sog` = the first main line and prices the site saw for him
+    ({line, over, under}, carried from the live shots.json), for the
+    record's closing line value."""
     prev_games = (previous or {}).get("games") or {}
     finished = {str(r["id"]): r for r in records}
     last_day = (now_utc - timedelta(hours=4) + timedelta(days=SHOTS_DAYS_AHEAD)).strftime("%Y-%m-%d")
@@ -1471,9 +1475,12 @@ def shots_board(model, games: list, lineups: dict, injuries: dict, records: list
             else:
                 out_ids = {p["id"] for p in injuries.get(team) or [] if p.get("id") and p.get("status") in OUT_STATUSES}
                 dressed = [(player, None, player["id"] in out_ids) for player in lineups.get(team) or []]
+            seen = {row["id"]: row.get("first_sog") for row in (prev_games.get(g["game_id"]) or {}).get("players") or []}
             for player, slot, is_out in dressed:
                 row = shot_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot)
                 if row:
+                    market = (((player_odds or {}).get(g["game_id"]) or {}).get(player["id"]) or {}).get("sog")
+                    row["first_sog"] = seen.get(player["id"]) or ({k: market.get(k) for k in ("line", "over", "under")} if market else None)
                     rows.append(row)
         if rows:
             out[g["game_id"]] = {"locked": False, "posted": posted.get("posted"), "players": sorted(rows, key=lambda row: -row["mean"])}
@@ -1534,7 +1541,9 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
                 need = math.floor(market["line"]) + 1 if market else 0
                 if not market or row.get("actual") is None or not 1 <= need <= len(row["chances"]):
                     continue
-                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg"), row.get("move")])
+                first = row.get("first_sog") or {}
+                plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg"), row.get("move"),
+                              first.get("line"), first.get("over"), first.get("under")])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
@@ -1558,7 +1567,8 @@ def shots_record_summary(folder: Path) -> dict:
     (lean, strong or check) on the latest SHOTS_RECORD_DAYS days, newest day
     first and biggest edge first within a day."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
-    out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally()}
+    out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally(),
+           "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0}}
     days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
         for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
@@ -1566,7 +1576,8 @@ def shots_record_summary(folder: Path) -> dict:
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
             for pid, name, team, line, over, under, mean, chance_over, actual, *rest in game["plays"]:
-                avg, move = (*rest, None, None)[:2]  # rows saved before these were kept have neither
+                # Rows saved before these were kept have none of them.
+                avg, move, first_line, first_over, first_under = (*rest, None, None, None, None, None)[:5]
                 play = shots_play(chance_over, line, over, under, avg, move)
                 if play is None or actual == line:
                     continue
@@ -1581,6 +1592,23 @@ def shots_record_summary(folder: Path) -> dict:
                     out[key]["units"] = round(out[key]["units"] + units, 2)
                 if size == "none":
                     continue
+                if called and first_line is not None:
+                    # Closing line value: from the first line and price the site saw to the locked one.
+                    # Same line: how far the play's price moved, in points of chance (+ = shortened,
+                    # the market moved to the model). A moved line counts by direction only (an over
+                    # whose line went up, an under whose line went down: the market agreed).
+                    clv = out["clv"]
+                    clv["plays"] += 1
+                    first_price = first_over if play["side"] == "over" else first_under
+                    moved = None
+                    if first_line == line and first_price is not None:
+                        moved = break_even(play["price"]) - break_even(first_price)
+                        clv["priced"] += 1
+                        clv["points"] += moved
+                    elif first_line != line:
+                        moved = (line - first_line) * (1 if play["side"] == "over" else -1)
+                    if moved is not None and abs(moved) > 0.0005:
+                        clv["shortened" if moved > 0 else "drifted"] += 1
                 if called:
                     day = days.setdefault(game["date"], tally())
                     day["wins" if won else "losses"] += 1
@@ -1590,6 +1618,7 @@ def shots_record_summary(folder: Path) -> dict:
                     "side": play["side"], "line": line, "price": play["price"], "edge": round(play["edge"], 3), "size": size, "fade": play["fade"],
                     "mean": mean, "actual": actual, "won": won, "units": round(units, 2),
                 })
+    out["clv"]["points"] = round(out["clv"]["points"] / out["clv"]["priced"], 4) if out["clv"]["priced"] else None  # average, per play on an unmoved line
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
     latest = set(sorted({play["date"] for play in plays})[-SHOTS_RECORD_DAYS:])
     out["plays"] = sorted((play for play in plays if play["date"] in latest), key=lambda play: (play["date"], play["edge"]), reverse=True)
@@ -2271,7 +2300,7 @@ def main():
         json.dump(blob, f, indent=1)
     write_player_files(args.out.parent / "players", teams, stats, generated_at)
     model = shots_model_for(stats["records"])
-    board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc, tonight, stats["skaters"])
+    board = shots_board(model, games, lineups, injuries, stats["records"], fetch_previous(LIVE_SHOTS_URL), now_utc, tonight, stats["skaters"], player_odds)
     try:
         record_finished_games(args.record_dir, board, player_odds, games)
         record = shots_record_summary(args.record_dir)

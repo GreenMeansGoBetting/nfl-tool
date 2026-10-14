@@ -268,7 +268,13 @@ on a replay, and the page keeps a record against the real prices.
 - **The record** (`model_history/nhl_shots/<month>.json`, committed by the deploy's "Save GMG
   model record" step): each finished game is written once, with every player who had a main line
   and played: `[id, name, team, line, over, under, projection, chance of the over, real shots,
-  season average, line move]`, all as locked before puck drop. `shots_record_summary` grades the
+  season average, line move, first line, first over, first under]`, all as locked before puck drop
+  (the last three, since 2026-10-14: the first main line and prices the site saw, carried on each
+  board row as `first_sog` from the live shots.json; older rows don't have them).
+  - **Closing line value** (`record.clv`, the owner: "start saving the price on shots too"): on the
+    plays with an edge, the play's price moved from first seen to locked, in points of chance, when
+    the line didn't move (`points` = average over `priced`); a moved line counts by direction (an
+    over whose line went up = shortened). `shortened` / `drifted` / `plays`. A tile in the YTD popup. `shots_record_summary` grades the
   better side of each line (`shots_play`, whose `size` is how the page files it) into `strong` /
   `lean` / `none` / `check`; for edges of 3 to 12 it
   also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
@@ -690,8 +696,7 @@ on every NHL page (a test checks).
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
 Built: Shots, Goals (anytime goal, with expected goals), both above. For Goals: a Points tool,
-the market's team totals as an anchor once the record has them, and the first price seen on
-the Shots record too.
+and the market's team totals as an anchor once the record has them.
 For King of the Crease: how many people pick each goalie (ask the user for a winning day's
 payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE
