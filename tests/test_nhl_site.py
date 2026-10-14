@@ -190,6 +190,10 @@ class PlayerCard(unittest.TestCase):
         self.assertTrue(all(card["allows"][:5]), card["allows"])
         self.assertEqual(card["allows"][5], "")  # the row for shots from outside the zone
         self.assertEqual(len(set(card["allows"][:5])), len(set(card["steps"][:5])))
+        # Its rank is said from the nearer end: "3rd most" for a leaky defense, "2nd fewest" for a stingy one.
+        for row in card["areas"]:
+            area = next(z for z, label in AREA_LABELS.items() if label == row[0])
+            self.assertTrue(row[-1].endswith(rank_words(rank(area))), row)
 
     def test_shot_map_with_no_game_to_read_it_against(self):
         """Without an opponent the zones are shaded by his own shots, as before."""
@@ -327,6 +331,137 @@ class RinkColors(unittest.TestCase):
         self.assertEqual(shown["step"], self.step(rank("off_slot_pg", "NJD"), rank("def_slot_pg", "DET"), len(stats)))
         self.assertIn("NJD", shown["tip"])
         self.assertIn("DET allows", shown["tip"])
+
+
+AREA_LABELS = {"low_slot": "Low slot", "slot": "Slot", "left": "Left side", "right": "Right side", "point": "Point", "long": "Outside the zone"}
+
+
+def ordinal(n):
+    return f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def rank_words(rank, teams=32):
+    """A rank the way every NHL page says it: from the nearer end."""
+    if rank <= teams / 2:
+        return "the most" if rank == 1 else f"{ordinal(rank)} most"
+    return "the fewest" if rank == teams else f"{ordinal(teams - rank + 1)} fewest"
+
+
+class RankWords(unittest.TestCase):
+    """The owner, 2026-10-14, on "WSH allows 13.5, 31st fewest": it should read
+    "x most" when a defense is bad and "x fewest" when it is good, split 50/50."""
+
+    def test_said_from_the_nearer_end(self):
+        said = PAGE.evaluate("() => [1, 2, 16, 17, 31, 32].map((r) => rankWords(r, 32))")
+        self.assertEqual(said, ["the most", "2nd most", "16th most", "16th fewest", "2nd fewest", "the fewest"])
+        self.assertEqual(said, [rank_words(r) for r in (1, 2, 16, 17, 31, 32)])
+        self.assertEqual(PAGE.evaluate("() => [rankWords(3, 32, ['highest', 'lowest']), rankWords(null, 32)]"), ["3rd highest", ""])
+
+
+class LeagueLists(unittest.TestCase):
+    """Game Previews' rink: the defense's side in three boxes (as on the Shots
+    page), and every zone and Offense vs Defense number opens every team's list."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.blob = nhl_data()
+        cls.stats = cls.blob["team_stats"]
+        cls.game = next(g for g in cls.blob["schedule"] if g["away"] == "NJD" and g["home"] == "DET")
+
+    def rank(self, key, team):
+        return sorted((t for t in self.stats if self.stats[t].get(key) is not None), key=lambda t: -self.stats[t][key]).index(team) + 1
+
+    def test_the_rink_shows_the_defense_in_three_boxes(self):
+        zones = PAGE.evaluate(
+            """(id) => {
+                selectGame(id);
+                const svg = document.querySelectorAll("#rink-content svg")[0];
+                const text = (el) => el.textContent.trim().replace(/\\s+/g, " ");
+                return {
+                    boxes: [...svg.querySelectorAll(".nhl-zone-text > g")].map((g) => [...g.querySelectorAll(".nhl-zone-box")].map((b) => [...b.querySelectorAll("text")].map(text).join(" "))),
+                    strip: text(svg.querySelector(".nhl-zone-text > g:last-child")),
+                    tips: [...svg.querySelectorAll(".nhl-zone title")].map(text),
+                    clickable: svg.querySelectorAll(".nhl-zone[data-league]").length,
+                };
+            }""",
+            self.game["game_id"],
+        )
+        drawn = ["point", "left", "right", "slot", "low_slot"]
+        d = self.stats["DET"]
+        for area, boxes, tip in zip(drawn, zones["boxes"], zones["tips"]):
+            word = rank_words(self.rank(f"def_{area}_pg", "DET"))
+            self.assertEqual(boxes, [f"{d[f'def_{area}_pg']:.1f}/g", f"{d[f'def_{area}_share'] * 100:.0f}%", word.replace("the ", "1st ")], area)
+            self.assertIn(f"DET allows {d[f'def_{area}_pg']:.1f}, {word}", tip)
+            self.assertIn(rank_words(self.rank(f"off_{area}_pg", "NJD")), tip)
+        self.assertEqual(zones["boxes"][5], [])  # the strip outside the zone: one line, no boxes
+        self.assertIn(rank_words(self.rank("def_long_pg", "DET")), zones["strip"])
+        self.assertEqual(zones["clickable"], 6)
+
+    def open_list(self, selector):
+        return PAGE.evaluate(
+            """([id, selector]) => {
+                selectGame(id);
+                document.querySelector(selector).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+                const box = document.getElementById("nhl-league-modal");
+                const text = (el) => el.textContent.trim().replace(/\\s+/g, " ");
+                return {
+                    open: !box.hidden,
+                    title: text(box.querySelector("h3")),
+                    head: [...box.querySelectorAll("thead th")].map(text),
+                    rows: [...box.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map(text)),
+                    current: [...box.querySelectorAll("tbody td.nhl-league-team.nhl-league-cur")].map(text),
+                };
+            }""",
+            [self.game["game_id"], selector],
+        )
+
+    def test_a_zone_opens_both_lists(self):
+        shown = self.open_list("#rink-content svg .nhl-zone[data-league]")  # the first drawn: the point
+        self.assertTrue(shown["open"])
+        self.assertEqual(shown["title"], "Point: every team")
+        self.assertEqual(shown["head"], ["", "Offense", "Shots / g", "Share", "", "Share", "Allows / g", "Defense"])
+        self.assertEqual(len(shown["rows"]), len(self.stats))
+        self.assertEqual([r[0] for r in shown["rows"][:2]] + [shown["rows"][-1][0]], ["the most", "2nd most", "the fewest"])
+        # Each side most first, this game's offense and defense highlighted.
+        offense = max(self.stats, key=lambda t: self.stats[t]["off_point_pg"])
+        defense = max(self.stats, key=lambda t: self.stats[t]["def_point_pg"])
+        self.assertEqual(shown["rows"][0][2], f"{self.stats[offense]['off_point_pg']:.1f}")
+        self.assertEqual(shown["rows"][0][6], f"{self.stats[defense]['def_point_pg']:.1f}")
+        self.assertEqual(shown["current"], [self.blob["teams"]["NJD"]["name"], self.blob["teams"]["DET"]["name"]])
+        PAGE.keyboard.press("Escape")
+        self.assertTrue(PAGE.evaluate("() => document.getElementById('nhl-league-modal').hidden"))
+
+    def test_an_offense_vs_defense_number_opens_its_row(self):
+        shown = self.open_list("#matchups-content td[data-league]")
+        self.assertEqual(shown["title"], "Goals / game: every team")
+        self.assertEqual(shown["head"], ["", "Offense", "For", "", "Allows", "Defense"])
+        self.assertEqual(len(shown["current"]), 2)
+        PAGE.evaluate("() => closeLeagueModal()")
+
+    def test_the_cards_allows_column_opens_over_the_card(self):
+        hughes = next(p for p in self.blob["skaters"]["NJD"] if p["name"] == "Jack Hughes")
+        state = PAGE.evaluate(
+            """async ([gameId, id]) => {
+                selectGame(gameId);
+                openPlayerCard(id, "map");
+                await loadTeamPlayers("NJD");
+                await new Promise((r) => setTimeout(r, 0));
+                document.querySelector("#player-card-modal .nhl-pc-areas td[data-league]").click();
+                const shown = () => ({ card: !document.getElementById("player-card-modal").hidden, list: !document.getElementById("nhl-league-modal").hidden });
+                const open = shown();
+                const top = [...document.querySelectorAll(".modal-overlay")].filter((m) => !m.hidden).pop().id;
+                // Escape closes the list first and leaves the card open under it.
+                document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+                const after = shown();
+                closePlayerCard();
+                return { open, top, after };
+            }""",
+            [self.game["game_id"], hughes["id"]],
+        )
+        self.assertEqual(state["open"], {"card": True, "list": True})
+        self.assertEqual(state["top"], "nhl-league-modal")
+        self.assertEqual(state["after"], {"card": True, "list": False})
+        self.assertEqual(SITE.errors, [])
 
 
 class MatchupTag(unittest.TestCase):

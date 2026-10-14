@@ -378,6 +378,7 @@ class Breakdown(unittest.TestCase):
                     // Each zone's three boxes: [text, the step its color is on], in the order the rink draws the zones.
                     zone_boxes: [...box.querySelectorAll('svg .nhl-zone-text > g')].map((g) => [...g.querySelectorAll('.nhl-zone-box')].map((b) => [text(b), (/nhl-zone-box-step-(\\d)/.exec(b.getAttribute('class')) || [])[1] || null])),
                     strip: text(box.querySelector('svg .nhl-zone-text > g:last-child')),
+                    clickable: box.querySelectorAll('svg .nhl-zone[data-league]').length,
                 };
             }""",
             f"{self.game['game_id']}:{self.hughes['id']}",
@@ -441,12 +442,16 @@ class Breakdown(unittest.TestCase):
         ordinal = lambda n: f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
         for area, step, boxes in zip(drawn, steps, detail["zone_boxes"]):
             share_rank = sorted(share, key=lambda team: -share[team][area]).index("DET") + 1
-            self.assertEqual([text for text, _ in boxes], [f"{defense[f'a_{area}']['season']:.1f}/g", f"{share['DET'][area] * 100:.0f}%", ordinal(len(self.shots["defense"]) + 1 - defense[f"a_{area}"]["season_rank"])], area)  # shown as defenses are ranked: 1st = allows the fewest
+            # The rank box says it from the nearer end, the ordinal over "most" / "fewest" (the owner,
+            # 2026-10-14: "31st fewest" for a leaky defense read backwards; it is "2nd most").
+            self.assertEqual([text for text, _ in boxes], [f"{defense[f'a_{area}']['season']:.1f}/g", f"{share['DET'][area] * 100:.0f}%", rank_word(defense[f"a_{area}"]["season_rank"], len(self.shots["defense"])).replace("the ", "1st").replace(" ", "")], area)
             self.assertEqual([on for _, on in boxes], [step, str((share_rank - 1) * 8 // 32 + 1), step], area)
         # The strip outside the zone: one line, the same three numbers, no boxes and no color.
         self.assertEqual(detail["zone_boxes"][5], [])
         self.assertIn(f"allows {defense['a_long']['season']:.1f}/g", detail["strip"])
-        self.assertNotIn("fewest", " ".join(z for z in detail["zones"]) + detail["strip"])
+        self.assertIn(rank_word(defense["a_long"]["season_rank"], len(self.shots["defense"])), detail["strip"])
+        # Every zone, the strip too, opens the league-wide list for that spot, DET highlighted.
+        self.assertEqual(detail["clickable"], 6)
         self.assertEqual(detail["zone_colors"][-1][1], "rgba(0, 0, 0, 0)")  # the strip outside the zone is never colored
         self.assertEqual(detail["key"], 8)
 

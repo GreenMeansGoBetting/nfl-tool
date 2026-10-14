@@ -41,6 +41,25 @@
 .nhl-zone-box-back { fill: var(--panel); }
 .nhl-zone-box-fill { fill: transparent; stroke: var(--border-strong); stroke-width: 0.22; }
 .nhl-zone-text .nhl-zone-box text { font-size: 2.15px; font-weight: 800; letter-spacing: 0; }
+/* A rank box: the ordinal over a small "most" / "fewest" */
+.nhl-zone-text .nhl-zone-box text:first-of-type:not(:only-of-type) { font-size: 1.8px; }
+.nhl-zone-text .nhl-zone-box .nhl-zone-box-sub { font-size: 1.4px; font-weight: 700; letter-spacing: 0; text-transform: uppercase; }
+/* A zone or number that opens every team's list (nhl-common.js openLeagueModal) */
+.nhl-zone-click { cursor: pointer; }
+.nhl-zone-click:hover rect, .nhl-zone-click:hover polygon { stroke: var(--accent); stroke-width: 0.6; }
+.nhl-league-click { cursor: pointer; }
+.nhl-league-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+#nhl-league-modal .modal-box { width: auto; max-width: min(96vw, 860px); }
+.nhl-league-scroll { overflow-x: auto; }
+.nhl-league-table { width: auto; }
+.nhl-league-table td { white-space: nowrap; }
+.nhl-league-table td.nhl-league-val { min-width: 64px; font-size: 1rem; font-weight: 700; }
+.nhl-league-table td.nhl-league-rank { background: transparent; color: var(--muted); font-size: 0.72rem; font-weight: 700; text-align: right; }
+.nhl-league-table td.nhl-league-gap, .nhl-league-table th:empty { background: transparent; min-width: 10px; padding: 0; }
+.nhl-league-table td.nhl-league-team span { font-weight: 600; }
+.nhl-league-table td.nhl-league-cur { box-shadow: inset 0 0 0 2px var(--text) !important; }
+.nhl-league-table td.nhl-league-team.nhl-league-cur { background-color: rgba(var(--accent-rgb), 0.16); }
+.nhl-league-table td.nhl-league-team.nhl-league-cur span { font-weight: 800; }
 /* The NHL player card (nhl-common.js): the NFL card's shell (.pc-box, .pc-head, .player-modal-toggle) with hockey tabs */
 .nhl-suite .player-click { cursor: pointer; }
 .nhl-suite .nba-player .player-click { display: inline-flex; align-items: center; gap: 7px; }

@@ -295,6 +295,21 @@ on a replay, and the page keeps a record against the real prices.
 - `site/nhl/index.html` + `nhl.js` = NHL Game Previews v1: day strip, The Line (moneyline with win chance, puck line, total), The Teams (10
   tiles), Offense vs Defense (7 rows, same two-sided tags as NBA), Where the Shots Come From (a
   rink per offense), Goalies, Skaters, Injuries, Recent Games (with who started in net).
+  - Where the Shots Come From (the user, 2026-10-14: "add the same triple data bubble logic
+    that's on the player props"): the big number is the offense's shots a game from the zone;
+    under it the Shots page's three boxes for the other DEFENSE (allows a game, share of all it
+    allows, rank). The zone keeps its both-sides color (`rinkStep`); the boxes are on the
+    defense's own rank colors.
+- **Every team, one number: the league-wide list** (`openLeagueModal` in nhl-common.js, the
+  NFL site's stat-rank popup redone for hockey; the user asked for it "on all pages"). Any
+  element with `data-league="${leagueAttr(p)}"` opens it: every rink zone (Game Previews both
+  sides side by side, offense left and defense right, mirrored like the NFL's paired view; the
+  Shots page and the card's Shot Map the defense only), the card's "OPP allows" cells, and both
+  numbers of each Offense vs Defense row. Each side most first with its rank in words down the
+  left; this game's teams outlined; each number on the eight colors by its own league rank. A
+  rink list keeps the rink's colors (the most = green); an Offense vs Defense list colors the
+  defense like its table cell (allowing the least = green). It opens over the player card, and
+  Escape closes it first.
 - **The player card** (nhl-common.js) is the ONE popup for every skater and goalie on every NHL
   page: wrap any name or photo with `playerClick(id, inner)`. **Any new place that shows an NHL
   player must use it.** It reuses the NFL card's shell (`#player-card-modal`, `.pc-box`,
@@ -342,24 +357,23 @@ on a replay, and the page keeps a record against the real prices.
     season average and shows the small-sample step by name ("5-game sample -22%").
   - **A defense's tiles are never colored alone.** The user read red tiles as "bad defense"
     when red meant "fewer shots" (Ottawa was allowing the fewest point shots in the league). So:
-    this season's own number, its rank said from the nearer end (`rankWord`: "3rd most", "the
+    this season's own number, its rank said from the nearer end (`rankWords`: "3rd most", "the
     fewest"), and a word (Leaky / Stingy / Average).
   - **"Where he shoots": his share in bold, the defense in three boxes per zone** (the user,
     2026-10-13: the bold share "is helpful", but "allows x most/fewest ... is all relative
     information. It's also very wordy"). `zoneBoxes` in nhl-common.js, each box on the eight rank
     colors: shots a game allowed from the zone ("8.0/g"), that zone's share of ALL the shots
     the team allows ("21%"), and the league rank.
-    - **The rank is shown the way defenses are always ranked: 1st = allows the FEWEST.** The
-      first version showed 1st = allows the most, and the user read Florida's "8.0/g ... 30th" as
-      a soft defense ("how do they allow 8 per game and are 30th? ... the ugly flip made for the
-      ranking"). Fixed the same evening: that box now reads "3rd". The COLORS stay the shooter's
-      view ("green means go!"): green = the most shots for him, red = a tough spot. So a red
-      zone with a low rank number is a strong defense. `season_rank` in shots.json still counts
-      1st = allows the most; the page turns it round for display only.
-    - **Same rule on every NHL page** (`stingyRank` in nhl-common.js): a defense's rank in words
-      is always "Nth fewest" with 1st = the stingiest. The Game Previews rink's hover and the
-      player card's "OPP allows" column said "27th most" until the user caught them the same
-      evening. Colors are never flipped: the most shots = green.
+    - **Every rank is said from the nearer end, with its word: "2nd most", "3rd fewest"**
+      (`rankWords` in nhl-common.js; the rank box is `rankBoxText`: the ordinal over a small
+      "MOST" / "FEWEST"). A bare number reads backwards whichever way it counts: the user read
+      Florida's "8.0/g ... 30th" (1st = allows the most) as a soft defense on 2026-10-13, so it
+      became "1st = allows the fewest", and on 2026-10-14 read "WSH allows 13.5, 31st fewest" as
+      wrong for a leaky defense: "it should flip and read x most when they are bad and x fewest
+      when they are good ... split 50/50". Rank 1-16 of 32 is "most", 17-32 "fewest". Same on
+      every NHL page: rink boxes and hovers, the card's "OPP allows" column, the Shots page's
+      tiles, the league-wide lists. The COLORS stay the shooter's view ("green means go!"):
+      green = the most shots for him. `season_rank` in shots.json counts 1st = allows the most.
     - **What colors a zone as a whole: the league-wide count, not the team's own split** (the
       user asked for this to be settled without adding complexity). Their example: a team
       allowing 10 shots can give up 80% of them from the low slot (8) and still allow fewer

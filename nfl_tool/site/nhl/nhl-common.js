@@ -58,12 +58,23 @@ function leagueRank(key, abbr, lowerIsBetter) {
   const i = sorted.findIndex(([t]) => t === abbr);
   return i === -1 ? null : i + 1;
 }
-// A defense's rank as it is SAID: 1st = allows the fewest, the way defenses are always ranked.
-// The site's own ranks for what a defense allows count 1st = allows the most (that is what the
-// colors run on: the most shots = green), so anything shown in words is turned round here. The
-// owner read "allows 8.8, 27th most" and "8.0/g ... 30th" as soft defenses; both were stingy.
-const stingyRank = (allowsMostRank, total) => total + 1 - allowsMostRank;
 const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
+// A rank as it is SAID, from the nearer end, so it can't be read backwards: "3rd most",
+// "2nd fewest", "the most". mostRank counts 1st = the most (what the colors run on: the most
+// shots = green). The owner read "27th most" and "30th" as soft defenses when both were stingy,
+// then "31st fewest" for a leaky one (2026-10-14: "it should flip and read x most when they are
+// bad and x fewest when they are good ... split 50/50"). `words` swaps in "highest" / "lowest".
+function rankWords(mostRank, total = teamCount(), words = ["most", "fewest"]) {
+  if (!mostRank || !total) return "";
+  if (mostRank <= total / 2) return mostRank === 1 ? `the ${words[0]}` : `${ordinal(mostRank)} ${words[0]}`;
+  const fromEnd = total + 1 - mostRank;
+  return fromEnd === 1 ? `the ${words[1]}` : `${ordinal(fromEnd)} ${words[1]}`;
+}
+// The same rank for a box on the rink: the ordinal over a small "most" / "fewest".
+function rankBoxText(mostRank, total = teamCount()) {
+  const top = mostRank <= total / 2;
+  return { text: ordinal(top ? mostRank : total + 1 - mostRank), sub: top ? "most" : "fewest" };
+}
 
 // ---- league rank on the site's eight colors ----
 // The NFL Summary cards' scale (RANK_SCALE in common.js, which NHL pages
@@ -95,7 +106,7 @@ const RINK_ZONES = [
 ];
 // Tables list the areas from the net out (the drawing order above is back to front).
 const AREA_ROWS = ["low_slot", "slot", "left", "right", "point", "long"].map((key) => RINK_ZONES.find((z) => z.key === key));
-// One rink. zoneFn(zone) -> { cls, style, tip, big, small, boxes } says how
+// One rink. zoneFn(zone) -> { cls, style, tip, big, small, boxes, league } says how
 // each zone is filled and what it reads; the strip outside the zone gets one
 // line ("big · small"). Drawn in layers: the zones' colors, the rink's lines
 // over them, the numbers on top.
@@ -113,7 +124,11 @@ function zoneBoxes(x, top, boxes) {
       const mid = left + widths[i] / 2;
       left += widths[i] + ZONE_BOX.gap;
       // A solid back first, so a box stands out from a zone filled with the same color.
-      return `<g class="nhl-zone-box${has(b.step) ? ` nhl-zone-box-step-${b.step + 1}` : ""}"><rect class="nhl-zone-box-back" ${at}/><rect class="nhl-zone-box-fill" ${at}${has(b.step) ? ` style="fill:${stepFill(b.step)};stroke:${stepEdge(b.step)}"` : ""}/><text x="${mid.toFixed(2)}" y="${(top + 2.62).toFixed(2)}">${b.text}</text></g>`;
+      // A rank box (`sub`) has two lines: the ordinal over a small "most" / "fewest".
+      const words = b.sub
+        ? `<text x="${mid.toFixed(2)}" y="${(top + 1.7).toFixed(2)}">${b.text}</text><text class="nhl-zone-box-sub" x="${mid.toFixed(2)}" y="${(top + 3.27).toFixed(2)}">${b.sub}</text>`
+        : `<text x="${mid.toFixed(2)}" y="${(top + 2.62).toFixed(2)}">${b.text}</text>`;
+      return `<g class="nhl-zone-box${has(b.step) ? ` nhl-zone-box-step-${b.step + 1}` : ""}"><rect class="nhl-zone-box-back" ${at}/><rect class="nhl-zone-box-fill" ${at}${has(b.step) ? ` style="fill:${stepFill(b.step)};stroke:${stepEdge(b.step)}"` : ""}/>${words}</g>`;
     })
     .join("");
 }
@@ -123,7 +138,8 @@ function rinkSvg(uid, ariaLabel, zoneFn) {
   RINK_ZONES.forEach((z) => {
     const d = zoneFn(z) || {};
     const [x, y] = z.at;
-    shapes += `<g class="nhl-zone${d.cls ? ` ${d.cls}` : ""}"${d.style ? ` style="${d.style}"` : ""}><title>${d.tip || z.label}</title>${z.shape}</g>`;
+    // `league` (leagueAttr) makes the zone open the league-wide list for that spot.
+    shapes += `<g class="nhl-zone${d.cls ? ` ${d.cls}` : ""}${d.league ? " nhl-zone-click" : ""}"${d.style ? ` style="${d.style}"` : ""}${d.league ? ` data-league="${d.league}"` : ""}><title>${d.tip || z.label}${d.league ? ". Click for every team." : ""}</title>${z.shape}</g>`;
     // The small print over a colored zone is drawn in the full text color so it stays readable.
     labels += `<g${d.cls ? ` class="nhl-zone-on-color"` : ""}>${z.small
       ? `<text class="nhl-zone-label" x="${x}" y="${y + 2.4}">${z.label}: ${d.big ?? "--"}${d.small ? ` &middot; ${d.small}` : ""}</text>`
@@ -148,6 +164,128 @@ function rinkSvg(uid, ariaLabel, zoneFn) {
       </g>
       <path class="nhl-boards" d="M0,84 L0,28 A28,28 0 0 1 28,0 L57,0 A28,28 0 0 1 85,28 L85,84"/>
     </svg>`;
+}
+
+// ---- every team, for one number (the NFL site's league-rank popup, hockey's own copy) ----
+// Click a rink zone (or the boxes on it) or an Offense vs Defense number to see every team's
+// number for that exact thing, so "allows 13.5" can be weighed against the league. The page
+// puts leagueAttr(p) on the element as data-league; p is one of:
+//   { area, def, off? }  a rink spot: what each defense allows from there (shots a game and
+//                        that spot's share of everything it allows), and with `off` every
+//                        offense's shots from there beside it;
+//   { label, kind, offKey, defKey, off, def }  an Offense vs Defense row.
+// Each side is sorted from the most to the fewest, said in words down the left ("2nd most",
+// "3rd fewest"), and every number is on the eight rank colors by its own league rank. The
+// rink's lists keep the rink's colors (the most shots = green, either side); a matchup row's
+// defense is colored like its table cell (allowing the least = green).
+const leagueAttr = (p) => encodeURIComponent(JSON.stringify(p));
+function leagueSpec(p) {
+  const zone = p.area && RINK_ZONES.find((z) => z.key === p.area);
+  if (zone) {
+    const shots = (v) => fmt(v);
+    const share = (v) => pct(v, 0);
+    return {
+      title: `${zone.label}: every team`,
+      note: p.off
+        ? "Shots a game from this spot (on goal or wide), and its share of all of the team's shots, or of all the shots a defense allows."
+        : "Shots a game each defense allows from this spot (on goal or wide), and its share of all the shots it allows.",
+      words: ["most", "fewest"],
+      sides: [
+        p.off ? { head: "Offense", team: p.off, cols: [{ key: `off_${zone.key}_pg`, label: "Shots / g", show: shots }, { key: `off_${zone.key}_share`, label: "Share", show: share }] } : null,
+        { head: "Defense", team: p.def, cols: [{ key: `def_${zone.key}_pg`, label: "Allows / g", show: shots }, { key: `def_${zone.key}_share`, label: "Share", show: share }] },
+      ].filter(Boolean),
+    };
+  }
+  const show = (v) => (p.kind === "pct" ? pct(v) : fmt(v, p.kind === "num2" ? 2 : 1));
+  return {
+    title: `${p.label}: every team`,
+    note: "Green is good for that unit: a lot for an offense, a little allowed for a defense.",
+    words: p.kind === "pct" ? ["highest", "lowest"] : ["most", "fewest"],
+    sides: [
+      { head: "Offense", team: p.off, cols: [{ key: p.offKey, label: "For", show }] },
+      { head: "Defense", team: p.def, cols: [{ key: p.defKey, label: "Allows", show, low: true }] },
+    ],
+  };
+}
+// One side's rows, most first: [{ team, cells: [td html] }].
+function leagueSideRows(side) {
+  const all = Object.keys(stats());
+  const count = (key) => all.filter((t) => has(stats()[t][key])).length;
+  return all
+    .filter((t) => has(stats()[t][side.cols[0].key]))
+    .sort((a, b) => stats()[b][side.cols[0].key] - stats()[a][side.cols[0].key])
+    .map((t) => ({
+      team: t,
+      cells: side.cols.map((c) => {
+        const v = stats()[t][c.key];
+        const rank = leagueRank(c.key, t, false);
+        const n = count(c.key);
+        const step = rank ? rankStep(c.low ? n + 1 - rank : rank, n) : null;
+        return `<td class="num nhl-league-val${t === side.team ? " nhl-league-cur" : ""}"${has(step) ? cellOnStep(step) : ""}>${has(v) ? c.show(v) : "--"}</td>`;
+      }),
+    }));
+}
+function ensureLeagueModal() {
+  if (el("nhl-league-modal")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "nhl-league-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `<div class="modal-box nhl-league-box"><button type="button" class="modal-close" aria-label="Close">&times;</button><div id="nhl-league-content"></div></div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeLeagueModal();
+  });
+  overlay.querySelector(".modal-close").addEventListener("click", closeLeagueModal);
+  // Escape closes this one first when it sits over the player card.
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key === "Escape" && !overlay.hidden) {
+        e.stopPropagation();
+        closeLeagueModal();
+      }
+    },
+    true
+  );
+}
+function closeLeagueModal() {
+  if (el("nhl-league-modal")) el("nhl-league-modal").hidden = true;
+}
+function openLeagueModal(p) {
+  if (!DATA) return;
+  ensureLeagueModal();
+  const spec = leagueSpec(p);
+  const sides = spec.sides.map((side) => ({ ...side, rows: leagueSideRows(side) }));
+  const n = Math.max(...sides.map((s) => s.rows.length));
+  const teamTd = (r, side) => `<td class="nhl-league-team${r.team === side.team ? " nhl-league-cur" : ""}">${logo(r.team, 18)} <span>${team(r.team).name}</span></td>`;
+  const blank = (side) => "<td></td>".repeat(side.cols.length + 1);
+  const [left, right] = sides;
+  const body = [];
+  for (let i = 0; i < n; i++) {
+    const l = left.rows[i];
+    let row = `<td class="nhl-league-rank">${rankWords(i + 1, n, spec.words)}</td>${l ? teamTd(l, left) + l.cells.join("") : blank(left)}`;
+    // A second side mirrors the first, so the two sets of numbers meet in the middle.
+    if (right) {
+      const r = right.rows[i];
+      row += `<td class="nhl-league-gap"></td>${r ? r.cells.slice().reverse().join("") + teamTd(r, right) : blank(right)}`;
+    }
+    body.push(`<tr>${row}</tr>`);
+  }
+  const heads = (side, mirror) => {
+    const cols = side.cols.map((c) => `<th class="num">${c.label}</th>`);
+    const name = `<th class="nhl-league-team-h">${logo(side.team, 16)} ${side.head}</th>`;
+    return mirror ? cols.reverse().join("") + name : name + cols.join("");
+  };
+  el("nhl-league-content").innerHTML = `<h3>${spec.title}</h3>
+    <p class="section-note">${spec.note}</p>
+    <div class="nhl-league-scroll"><table class="data-table nhl-league-table">
+      <thead><tr><th></th>${heads(left)}${right ? `<th></th>${heads(right, true)}` : ""}</tr></thead>
+      <tbody>${body.join("")}</tbody>
+    </table></div>`;
+  const overlay = el("nhl-league-modal");
+  document.body.appendChild(overlay); // last in the page, so it opens over the player card
+  overlay.hidden = false;
 }
 
 // ---- the player card ----
@@ -285,7 +423,9 @@ function oppAllowsCell(opp, area) {
   const value = (stats()[opp] || {})[`def_${area}_pg`];
   const rank = allowsRank(opp, area);
   // Like the strip on the rink, the row for shots from outside the zone is never colored: too rare to read.
-  return `<td class="num nhl-rank-cell"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} title="${opp} allows the ${rank ? ordinal(stingyRank(rank, teamCount())) : "?"} fewest shots from here">${fmt(value)}<small class="nhl-pc-rank">${rank ? ` ${ordinal(stingyRank(rank, teamCount()))} fewest` : ""}</small></td>`;
+  // Click it for every team's number from there.
+  const words = rank ? rankWords(rank) : "";
+  return `<td class="num nhl-rank-cell nhl-league-click"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} data-league="${leagueAttr({ area, def: opp })}" title="${opp} allows ${words ? `the ${words.replace(/^the /, "")}` : "?"} shots from here. Click for every team.">${fmt(value)}<small class="nhl-pc-rank">${words ? ` ${words}` : ""}</small></td>`;
 }
 function skaterMapView(season, games, opp, uid) {
   const areas = season.areas || {};
@@ -315,7 +455,8 @@ function skaterMapView(season, games, opp, uid) {
       ...fill,
       big: fmt(shots / games),
       small: z.small ? "" : `${pct(shots / located, 0)} &middot; ${goals} G`,
-      tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals${rank ? `. ${opp} allows the ${ordinal(stingyRank(rank, teamCount()))} fewest shots from here` : ""}`,
+      tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals${rank ? `. ${opp} allows ${fmt((stats()[opp] || {})[`def_${z.key}_pg`])} a game from here, ${rankWords(rank)}` : ""}`,
+      league: opp && !z.small ? leagueAttr({ area: z.key, def: opp }) : "",
     };
   });
   const colorNote = opp
@@ -496,6 +637,8 @@ document.addEventListener("click", (e) => {
     playerCardState.tab = tab.dataset.tab;
     return refreshPlayerCard();
   }
+  const league = e.target.closest("[data-league]");
+  if (league) return openLeagueModal(JSON.parse(decodeURIComponent(league.dataset.league)));
   const name = e.target.closest(".player-click[data-player]");
   if (name) return openPlayerCard(name.dataset.player);
   if (e.target.closest("#theme-toggle")) {

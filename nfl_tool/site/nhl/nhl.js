@@ -55,11 +55,23 @@ function rink(offTeam, defTeam, uid) {
     const allowsRank = leagueRank(`def_${z.key}_pg`, defTeam, false); // 1st = allows the most
     // Shots from outside the zone are too rare to read anything into.
     const step = z.small ? null : rinkStep(takesRank, allowsRank, teamCount());
+    // The defense's side in three boxes, the same as the Shots page's rink: shots a game it allows
+    // from there, that spot's share of everything it allows, and its league rank. The count and
+    // the rank are on the defense's own rank color, the share on its own league rank's.
+    const share = def[`def_${z.key}_share`];
+    const shareRank = leagueRank(`def_${z.key}_share`, defTeam, false);
+    const allowed = `${fmt(allows)}/g`;
+    const rankBox = allowsRank ? rankBoxText(allowsRank) : null;
+    const tip = `${z.label}: ${offTeam} ${fmt(takes)} a game${takesRank ? `, ${rankWords(takesRank)}` : ""} (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)}${allowsRank ? `, ${rankWords(allowsRank)}` : ""} (${pct(share, 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`;
+    const league = leagueAttr({ area: z.key, off: offTeam, def: defTeam });
+    if (z.small) return { big: fmt(takes), small: `allows ${allowed} &middot; ${pct(share, 0)} &middot; ${allowsRank ? rankWords(allowsRank) : "--"}`, tip, league };
+    const own = allowsRank ? rankStep(allowsRank, teamCount()) : null;
     return {
       ...(step === null ? {} : zoneOnStep(step)),
       big: fmt(takes),
-      small: `allows ${fmt(allows)}`,
-      tip: `${z.label}: ${offTeam} ${fmt(takes)} a game${takesRank ? `, ${ordinal(takesRank)} most` : ""} (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)}${allowsRank ? `, ${ordinal(stingyRank(allowsRank, teamCount()))} fewest` : ""} (${pct(def[`def_${z.key}_share`], 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`,
+      boxes: [{ text: allowed, step: own, w: 6.6 }, { text: pct(share, 0), step: shareRank ? rankStep(shareRank, teamCount()) : null, w: 4.7 }, { text: rankBox ? rankBox.text : "--", sub: rankBox ? rankBox.sub : "", step: own, w: 5.2 }],
+      tip,
+      league,
     };
   });
   return `<div class="nba-box nhl-rink-box">
@@ -175,7 +187,9 @@ function renderMatchups(g) {
         const v = (stats()[abbr] || {})[key];
         return r.kind === "pct" ? pct(v) : fmt(v, r.kind === "num2" ? 2 : 1);
       };
-      const cell = (abbr, key, z, low) => `<td class="num ${tierClass(z)}" title="${ordinal(leagueRank(key, abbr, low) || 0)} in the league">${show(abbr, key)}</td>`;
+      // Either number opens both league lists, this offense and this defense highlighted.
+      const league = leagueAttr({ label: r.label, kind: r.kind, offKey: r.off, defKey: r.def, off: offTeam, def: defTeam });
+      const cell = (abbr, key, z, low) => `<td class="num ${tierClass(z)} nhl-league-click" data-league="${league}" title="${ordinal(leagueRank(key, abbr, low) || 0)} best in the league. Click for every team.">${show(abbr, key)}</td>`;
       return `<tr><td>${r.label}</td>${cell(offTeam, r.off, offZ, false)}${cell(defTeam, r.def, defZ, true)}<td class="nba-tag-cell">${matchupTag(offZ, defZ)}</td></tr>`;
     }).join("");
     return `<div class="nba-box">
