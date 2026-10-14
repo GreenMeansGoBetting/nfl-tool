@@ -63,6 +63,7 @@
       </div>
       <p id="crease-note" class="no-data-note" hidden></p>
 
+      <div class="crease-main">
       <div id="crease-capture" class="koe-capture crease-capture">
         <div class="crease-capture-head">
           <span class="brand-mark">GMG</span>
@@ -73,7 +74,19 @@
         <div id="crease-key" class="crease-key"></div>
       </div>
 
-      <div id="crease-record" class="shots-results"></div>
+      <!-- Outside #crease-capture, so never in the saved image. -->
+      <aside id="crease-winners" class="crease-winners">
+        <h3 class="crease-winners-title">Winners <button type="button" class="info-i" aria-expanded="false" aria-controls="promo-tools-note-2" title="How to read this">i</button></h3>
+        <p class="section-note info-note" id="promo-tools-note-2" hidden>Who made the most saves each finished day, where this page had him before puck drop (<b>Pre</b>: his place by chance to lead the day; <b>Upside</b>: that chance), and what DraftKings paid. <b>If they'd won</b> is what DraftKings showed each of those goalies would have paid. The pool is split evenly among everyone on the winner whatever they bet, so a smaller payout means more people were on him: pool &divide; payout is about how many. <b>Worth</b> = his chance &times; what he paid, what a pick on him was worth before puck drop. Click a day to open it.</p>
+        <div id="crease-winners-list"></div>
+        <div id="crease-log" class="crease-log" hidden>
+          <div class="crease-log-top">Log a day's payouts <select id="crease-log-date" aria-label="Day"></select><span class="crease-log-only">Only you see this</span></div>
+          <label class="crease-log-pool">Pool $<input id="crease-log-pool" type="text" inputmode="numeric" value="500,000"></label>
+          <textarea id="crease-log-text" rows="5" placeholder="Devon Levi - $1,961 in Bonus Bets"></textarea>
+          <div class="crease-log-bot"><span id="crease-log-status" class="crease-log-status"></span><button type="button" id="crease-log-save" class="summary-save-btn">Save</button></div>
+        </div>
+      </aside>
+      </div>
 
       <details class="shots-about">
         <summary>How the numbers are made, and how far to trust them</summary>
@@ -89,7 +102,7 @@
           </ul>
           <p><b>The line counts too.</b> A book's saves line knows things a few weeks of games can't: who is hurt, what a team was before this season. So a goalie's chance to lead the day is worked out from his line, moved toward the model by as much as the season so far has earned: a few percent of the way in October, halfway from about game 20 on. A goalie with no line posted yet is on the model alone. <b>Proj</b> is always the model's own number, so you can see where it and the line disagree.</p>
           <p><b>Value</b> compares two chances for the same goalie against the same field: his chance to lead the day, and what that chance would be if he were exactly what his line says. Only his own number changes, so it can't come from the rest of the slate. It gets the tag at 1.15 or more when he has a real chance to begin with. When the model and the line are 4 or more saves apart the box turns amber: a gap that big is more often news the model can't see than a gift. Expect few Value tags until teams have played 10 to 15 games.</p>
-          <p><b>What it has not shown:</b> that it beats the line, or how many people are on each goalie. There is no free history of saves lines to test against, and DraftKings doesn't publish the picks. So the page keeps its own record, above: every finished day, who led it, and whether the model or the line was closer.</p>
+          <p><b>What it has not shown:</b> that it beats the line, or how many people will be on each goalie before puck drop. There is no free history of saves lines to test against, and DraftKings shows only a few payouts after each contest. So the page keeps its own record of every finished day: the Winners list shows who led each one, where the page had him, and what DraftKings paid.</p>
           <p><b>Starters are never confirmed here.</b> A starter is official at warmups, and nothing the site can read carries that. It has two outside sources: the first goalie in the NHL's projected lineup for the game (posted around midday Eastern; last season he started 92% of the time, and only about half the time when it named the goalie who had started the night before), and the goalie the book has a saves line for. A <b>check mark</b> means the two agree. A <b>warning</b> with a second name means they disagree: the book's goalie is shown and the other is named beside him. No mark means only one source has spoken, or neither (then it is the team's usual starter, or the other goalie on the second night of a back-to-back). The promo counts whoever starts for the team, so the numbers in a row barely move with the name; the name is what to check before you bet. Lines are Novig's; DraftKings' own line can sit half a save either side.</p>
         </div>
       </details>

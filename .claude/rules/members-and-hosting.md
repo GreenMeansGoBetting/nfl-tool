@@ -274,6 +274,11 @@ For people who'd pay but won't join Discord. Password version: no email service,
   requests": it lists every idea newest first (name, date), with Mark added / Undo / Delete (a
   PATCH; delete is soft, status `deleted`) and "+ Add my own idea". Members can never read others'
   ideas.
+- **King of the Crease payouts** (`/api/crease-payouts`, 2026-10-14): GET for any signed-in
+  member, PUT owner-only (`{date, pool, payouts: [{id, name, paid}]}`; replaces that day, an empty
+  list removes it). D1 table `crease_payouts(date, pool, payouts JSON, updated)`, created by the
+  endpoint itself on first use (`CREASE_PAYOUTS_TABLE`), so no deploy step. Used by the NHL
+  Promo Tools Winners list (nhl.md). Test: `tests/test_ci_crease_payouts.py` (a D1 stand-in).
 - **Suite switcher** (`addSuiteSwitcher`, `SUITE_SWITCH_PUBLIC`): see nba.md. It lists NFL, NBA
   and NHL (`SUITES`).
 

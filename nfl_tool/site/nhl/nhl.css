@@ -251,6 +251,54 @@
 .crease-key b { color: var(--text); }
 .crease-key b.crease-sure { color: var(--good-text); }
 .crease-key .nhl-scale-key { font-weight: 600; color: var(--muted); }
+/* Winners (promo-tools.js renderWinners): to the right of the table when there is room, under it when not; never in the saved image. */
+.crease-main { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; margin-bottom: 14px; }
+.crease-main > .crease-capture { flex: 0 1 auto; min-width: 0; }
+.crease-winners { flex: 1 1 340px; min-width: 0; max-width: 430px; display: flex; flex-direction: column; gap: 8px; }
+.crease-winners-title { display: flex; align-items: center; margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.crease-winners .info-note { margin: 0; }
+.crease-win-day { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.crease-win-sum { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 10px; padding: 7px 10px; cursor: pointer; list-style: none; }
+.crease-win-sum::-webkit-details-marker { display: none; }
+.crease-win-sum::after { content: "\25BE"; color: var(--muted); font-size: 0.8rem; transition: transform 0.15s; }
+.crease-win-day[open] .crease-win-sum::after { transform: rotate(180deg); }
+.crease-win-day[open] .crease-win-sum { background: rgba(var(--good-rgb), 0.13); border-bottom: 1px solid rgba(var(--good-rgb), 0.35); }
+.crease-win-date { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.crease-win-who { display: flex; align-items: center; gap: 5px; min-width: 0; font-weight: 700; white-space: nowrap; }
+.crease-win-names { overflow: hidden; text-overflow: ellipsis; }
+.crease-win-saves { font-family: var(--font-display); font-size: 1.3rem; line-height: 1; margin-left: 2px; }
+.crease-win-rank { padding: 1px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; white-space: nowrap; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.18); border: 1px solid rgba(var(--mid-rgb), 0.5); }
+.crease-win-paid { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: var(--good-text); white-space: nowrap; text-align: right; }
+.crease-win-paid .muted-label { font-family: inherit; font-size: 0.7rem; font-weight: 700; }
+.crease-win-meta { padding: 6px 10px 0; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.crease-win-label { padding: 6px 10px 0; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.crease-win-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.82rem; }
+.crease-win-table th:nth-child(2) { width: 28px; }
+.crease-win-table th:nth-child(3) { width: 46px; }
+.crease-win-table th:nth-child(4) { width: 50px; }
+.crease-win-table th:nth-child(5) { width: 52px; }
+.crease-win-table th:nth-child(6) { width: 56px; }
+.crease-win-table th { padding: 5px 4px 3px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.crease-win-table td { padding: 4px; text-align: center; border-top: 1px solid var(--border); white-space: nowrap; }
+.crease-win-table th:first-child, .crease-win-table td:first-child { text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; }
+.crease-win-name .team-logo { vertical-align: middle; margin-right: 5px; }
+.crease-win-name span { font-weight: 600; vertical-align: middle; }
+.crease-win-row td { background: rgba(var(--good-rgb), 0.08); }
+.crease-worth { display: inline-block; min-width: 40px; padding: 1px 5px; border-radius: 6px; border: 1px solid; font-weight: 800; cursor: help; }
+.crease-win-cap { padding: 5px 10px 7px; font-size: 0.74rem; color: var(--muted); border-top: 1px solid var(--border); }
+.crease-win-cap .team-logo { vertical-align: middle; }
+.crease-log { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1.5px dashed var(--border-strong); border-radius: 12px; }
+html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
+.crease-log-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 0.78rem; font-weight: 800; }
+.crease-log-only { margin-left: auto; padding: 1px 6px; border-radius: 6px; font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--good-text); background: rgba(var(--accent-rgb), 0.15); }
+.crease-log select, .crease-log input, .crease-log textarea { color: var(--text); background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 0.76rem; padding: 3px 6px; }
+.crease-log-pool { font-size: 0.74rem; color: var(--muted); }
+.crease-log-pool input { width: 110px; margin-left: 4px; }
+.crease-log textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.crease-log-bot { display: flex; align-items: center; gap: 8px; font-size: 0.74rem; color: var(--muted); }
+.crease-log-bot button { margin-left: auto; }
+.crease-log-good { color: var(--good-text); }
+.crease-log-bad { color: var(--bad-text); }
 
 /* Phones: wide boxes scroll inside themselves, grids stack. */
 /* ---- Goals (goals.html + goals.js): the Shots page's layout and classes, plus these ---- */

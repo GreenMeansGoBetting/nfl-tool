@@ -369,6 +369,19 @@ class LockAndRecord(unittest.TestCase):
         self.assertEqual(summary["miss"]["goalies"], 0)  # nobody had a line
         self.assertEqual(build_nhl.crease_record_summary(Path(tmp) / "nowhere")["days"], 0)
 
+    def test_the_winners_list_has_every_recorded_day_best_chance_first(self):
+        board = self.finished()
+        with tempfile.TemporaryDirectory() as tmp:
+            build_nhl.record_crease_days(Path(tmp), board)
+            history = build_nhl.crease_history(Path(tmp))
+            self.assertEqual(build_nhl.crease_history(Path(tmp) / "nowhere")["days"], {})
+        self.assertEqual(history["cols"], list(build_nhl.CREASE_HISTORY_COLS))
+        day = history["days"]["2026-10-13"]
+        self.assertEqual((day["best"], day["starters"]), (41, board["2026-10-13"]["starters"]))
+        rows = [dict(zip(history["cols"], values)) for values in day["goalies"]]
+        self.assertEqual([r["top"] for r in rows], sorted((r["top"] for r in rows), reverse=True))  # place = pregame rank
+        self.assertEqual({r["team"]: r["actual"] for r in rows}["LEAKY"], 41)
+
     def test_an_open_day_is_not_recorded(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual(build_nhl.record_crease_days(Path(tmp), self.before["days"]), 0)

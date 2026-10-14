@@ -222,30 +222,173 @@ function renderHead() {
   el("crease-note").hidden = !note;
   el("crease-note").textContent = note;
 }
-// The record: every finished day, kept in the repo by the build (model_history/nhl_crease).
-function renderRecord() {
-  const record = CREASE.record;
-  const box = el("crease-record");
-  if (!record || !record.days) {
-    box.innerHTML = `<p class="shots-record-note">The record starts with the first day that finishes after this page went live: who led each day, how often the tags had him, and whether the model or the line was closer.</p>`;
-    return;
-  }
-  const tile = (label, big, small, tip) => `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div><b>${big}</b><small>${small}</small></div>`;
-  const { favorite, upside, value, miss } = record;
-  box.innerHTML = `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.days} day${record.days === 1 ? "" : "s"}, every number as locked before puck drop</span></div>
-    <div class="nba-tiles shots-record">
-      ${tile("The day's favorite", `${favorite.led} of ${record.days}`, `chances said ${fmt(favorite.said)}`, "Days the goalie with the highest Upside led (or tied for) the day in saves, next to how many his chances added up to")}
-      ${tile("Upside tags", `${upside.days_led} of ${record.days} days`, `${upside.led} of ${upside.tagged} goalies`, "Days one of the Upside tags led the day in saves")}
-      ${tile("Value tags", value.tagged ? `${value.led} of ${value.tagged}` : "none yet", value.tagged ? `chances said ${fmt(value.said)} · lines ${fmt(value.line_said)}` : "", "Value-tagged goalies who led their day, next to how many the page's chances said would, and how many their lines alone said")}
-      ${tile("Average miss", has(miss.blend) ? `${fmt(miss.blend, 2)} saves` : "--", has(miss.model) ? `model ${fmt(miss.model, 2)} · line ${fmt(miss.line, 2)}` : "", `On the ${miss.goalies} goalies with a line: how far the model, the line and the two together landed from his real saves`)}
-    </div>`;
+// ---- Winners: who led each finished day, and what DraftKings paid ----
+// The days come from the build (`history`: every goalie as locked before puck
+// drop, best chance first, so his place is his pregame rank). The payouts are
+// typed in by the owner after each contest (/api/crease-payouts, D1): the pool
+// is split evenly among everyone on the winner whatever they bet, so pool /
+// payout = about how many people were on him. Never in the saved image.
+let PAYOUTS = {};
+const DEFAULT_POOL = 500000;
+const plainName = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]+/g, " ").trim();
+const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
+const lastName = (name) => String(name || "").split(" ").slice(-1)[0];
+const shortName = (name) => { const parts = String(name || "").split(" "); return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(" ")}` : name; };
+const dayShort = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+function historyDays() {
+  const h = (CREASE || {}).history;
+  if (!h || !h.days) return [];
+  return Object.entries(h.days)
+    .map(([date, day]) => ({ date, best: day.best, starters: day.starters, goalies: day.goalies.map((v, i) => ({ ...Object.fromEntries(h.cols.map((c, j) => [c, v[j]])), rank: i + 1 })) }))
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
+// A pasted name to one of the day's goalies: the whole name with accents
+// dropped, else a last name only one of them has.
+function matchGoalie(name, goalies) {
+  const want = plainName(name);
+  const exact = goalies.find((g) => plainName(g.name) === want);
+  if (exact) return exact;
+  const last = want.split(" ").pop();
+  const hits = goalies.filter((g) => plainName(g.name).split(" ").pop() === last);
+  return hits.length === 1 ? hits[0] : null;
+}
+// DraftKings' list, one goalie a line: "🥅 Ukko-Pekka Luukkonen - $2,748 in Bonus Bets".
+function parsePayouts(text, goalies) {
+  const read = [];
+  const missed = [];
+  for (const raw of String(text || "").split(/\r?\n/)) {
+    const m = raw.match(/\$\s*([\d,]+(?:\.\d+)?)/);
+    if (!m) continue;
+    const name = raw.slice(0, m.index).replace(/^[^\p{L}]+/u, "").replace(/[\s\-–—:|=]+$/, "").trim();
+    if (!name) continue;
+    const g = matchGoalie(name, goalies);
+    if (g) read.push({ id: g.id, name: g.name, paid: Math.round(Number(m[1].replace(/,/g, ""))) });
+    else missed.push(name);
+  }
+  return { read, missed };
+}
+function paidFor(g, logged) {
+  const p = (logged ? logged.payouts : []).find((x) => (x.id && g.id ? String(x.id) === String(g.id) : plainName(x.name) === plainName(g.name)));
+  return p ? p.paid : null;
+}
+function winnerDay(day) {
+  const logged = PAYOUTS[day.date] || null;
+  const pool = (logged && logged.pool) || DEFAULT_POOL;
+  const winners = day.goalies.filter((g) => g.actual === day.best);
+  const favorite = day.goalies[0];
+  const shown = day.goalies
+    .map((g) => ({ ...g, paid: paidFor(g, logged) }))
+    .filter((g) => has(g.paid) || g.actual === day.best)
+    .map((g) => ({ ...g, worth: has(g.paid) && has(g.top) ? g.top * g.paid : null }))
+    .sort((a, b) => b.actual - a.actual || a.rank - b.rank);
+  const worths = shown.map((g) => g.worth).filter(has);
+  const worthCell = (g) => {
+    if (!has(g.worth)) return `<td></td>`;
+    const place = worths.filter((v) => v > g.worth).length;
+    const hue = worths.length > 1 ? Math.round(120 * (1 - place / (worths.length - 1))) : 120;
+    return `<td><span class="crease-worth" style="background:hsla(${hue},70%,45%,0.22);border-color:hsla(${hue},70%,45%,0.6)" title="His chance to lead the day (${chanceText(g.top)}) times what he paid">${money(g.worth)}</span></td>`;
+  };
+  const crown = ` <span class="crease-crown">&#9733;</span>`;
+  const rows = shown
+    .map((g) => `<tr${g.actual === day.best ? ` class="crease-win-row"` : ""}><td class="crease-win-name">${shareLogo(g.team, 16)}${playerClick(g.id, `<span title="${g.name}">${shortName(g.name)}</span>`)}${g.actual === day.best ? crown : ""}</td><td><b>${g.actual}</b></td><td>${g.rank}<span class="muted-label">/${day.goalies.length}</span></td><td>${chanceText(g.top)}</td><td>${has(g.paid) ? money(g.paid) : ""}</td>${worthCell(g)}</tr>`)
+    .join("");
+  const w = winners[0];
+  const wPaid = paidFor(w, logged);
+  const names = winners.map((g) => lastName(g.name)).join(" / ");
+  const picked = shown.filter((g) => has(g.paid)).sort((a, b) => a.paid - b.paid)[0];
+  const cap = [
+    favorite && !winners.includes(favorite) ? `Our favorite: ${shareLogo(favorite.team, 14)} <b>${lastName(favorite.name)}</b> (${chanceText(favorite.top)}) made ${favorite.actual}` : "",
+    picked ? `Most picked: <b>${lastName(picked.name)}</b> (&asymp;${Math.round(pool / picked.paid).toLocaleString("en-US")})` : "",
+  ].filter(Boolean).join(" &middot; ");
+  return `<details class="crease-win-day" data-date="${day.date}">
+    <summary class="crease-win-sum">
+      <span class="crease-win-date" title="${longDate(day.date)}">${dayShort(day.date)}</span>
+      <span class="crease-win-who">${winners.map((g) => shareLogo(g.team, 22)).join("")}<span class="crease-win-names">${names}</span> <b class="crease-win-saves">${day.best}</b>${crown}</span>
+      <span class="crease-win-rank" title="Where the page had ${winners.length > 1 ? "them" : "him"} before puck drop, by chance to lead the day">${winners.map((g) => ordinal(g.rank)).join(" / ")} of ${day.goalies.length}</span>
+      <span class="crease-win-paid">${has(wPaid) ? money(wPaid) : `<span class="muted-label">not logged</span>`}</span>
+    </summary>
+    <div class="crease-win-body">
+      <div class="crease-win-meta">${day.starters} starters &middot; ${money(pool / 1000)}K pool${has(wPaid) ? ` &middot; &asymp;${Math.round(pool / wPaid).toLocaleString("en-US")} on ${winners.length > 1 ? "the winners" : lastName(w.name)}` : ""}</div>
+      ${shown.length > winners.length ? `<div class="crease-win-label">If they'd won</div>` : ""}
+      <table class="crease-win-table"><thead><tr><th>Goalie</th><th title="His saves">Sv</th><th title="His place before puck drop, by chance to lead the day">Pre</th><th title="His chance to lead the day, as locked before puck drop">Upside</th><th title="What DraftKings paid (or would have paid) each person on him">Paid</th><th title="His chance times what he paid: what a pick on him was worth">Worth</th></tr></thead><tbody>${rows}</tbody></table>
+      ${cap ? `<div class="crease-win-cap">${cap}</div>` : ""}
+    </div>
+  </details>`;
+}
+function renderWinners() {
+  const list = historyDays();
+  const box = el("crease-winners-list");
+  const open = new Set([...box.querySelectorAll("details[open]")].map((d) => d.dataset.date));
+  const first = !box.dataset.drawn;
+  box.innerHTML = list.length ? list.map(winnerDay).join("") : `<p class="no-data-note">The first finished day shows up here: who made the most saves, where the page had him, and what it paid.</p>`;
+  box.dataset.drawn = "1";
+  box.querySelectorAll("details").forEach((d, i) => (d.open = first ? i === 0 : open.has(d.dataset.date)));
+  renderPayoutForm(list);
+}
+// The owner's box: pick a day, paste DraftKings' list, save. Shown only to
+// the owner (html.is-owner) and on localhost; the server checks again.
+function renderPayoutForm(list) {
+  const pick = el("crease-log-date");
+  const keep = pick.value;
+  pick.innerHTML = list.map((d) => `<option value="${d.date}">${longDate(d.date)}</option>`).join("");
+  if (keep && list.some((d) => d.date === keep)) pick.value = keep;
+  el("crease-log").hidden = !list.length;
+  fillPayoutForm();
+}
+function fillPayoutForm() {
+  const date = el("crease-log-date").value;
+  const logged = PAYOUTS[date];
+  el("crease-log-pool").value = ((logged && logged.pool) || DEFAULT_POOL).toLocaleString("en-US");
+  el("crease-log-text").value = logged ? logged.payouts.map((p) => `${p.name} - ${money(p.paid)}`).join("\n") : "";
+  checkPayoutForm();
+}
+function payoutFormRead() {
+  const day = historyDays().find((d) => d.date === el("crease-log-date").value);
+  return day ? parsePayouts(el("crease-log-text").value, day.goalies) : { read: [], missed: [] };
+}
+function checkPayoutForm() {
+  const { read, missed } = payoutFormRead();
+  const status = el("crease-log-status");
+  status.className = `crease-log-status${missed.length ? " crease-log-bad" : read.length ? " crease-log-good" : ""}`;
+  status.textContent = missed.length ? `Not one of that day's starters: ${missed.join(", ")}` : read.length ? `✓ ${read.length} goalie${read.length === 1 ? "" : "s"} matched` : "Paste DraftKings' list: one goalie and $ amount a line";
+  el("crease-log-save").disabled = !!missed.length;
+}
+async function savePayouts() {
+  const btn = el("crease-log-save");
+  const date = el("crease-log-date").value;
+  const pool = Math.round(Number(el("crease-log-pool").value.replace(/[^\d.]/g, ""))) || DEFAULT_POOL;
+  const { read, missed } = payoutFormRead();
+  if (missed.length) return;
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  try {
+    const res = await fetch("/api/crease-payouts", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date, pool, payouts: read }) });
+    if (!res.ok) throw new Error(String(res.status));
+    if (read.length) PAYOUTS[date] = { pool, payouts: read };
+    else delete PAYOUTS[date];
+    btn.textContent = "Saved";
+    renderWinners();
+  } catch (e) {
+    btn.textContent = "Couldn't save";
+  }
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = "Save";
+  }, 2000);
+}
+function loadPayouts() {
+  return fetch("/api/crease-payouts", { credentials: "same-origin", cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (d && d.days ? d.days : {}))
+    .catch(() => ({}));
+}
+
 function render() {
   if (!DATA || !CREASE) return;
   renderSchedule();
   renderHead();
   renderTable();
-  renderRecord();
+  renderWinners();
 }
 function selectDay(i) {
   const all = days();
@@ -323,8 +466,15 @@ async function saveCreaseImage() {
   }, 2500);
 }
 
+document.addEventListener("input", (e) => {
+  if (e.target.closest("#crease-log-text")) checkPayoutForm();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.closest("#crease-log-date")) fillPayoutForm();
+});
 document.addEventListener("click", (e) => {
   if (e.target.closest("#crease-save")) return saveCreaseImage();
+  if (e.target.closest("#crease-log-save")) return savePayouts();
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
   const sort = e.target.closest(".koe-sort");
@@ -340,9 +490,11 @@ Promise.all([
   fetch("crease.json")
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null),
+  loadPayouts(),
 ])
-  .then(([, crease]) => {
+  .then(([, crease, payouts]) => {
     CREASE = crease || { days: {}, record: null, rules: null, league: {} };
+    PAYOUTS = payouts;
     // This page is this season only, so the player card opens on this season too.
     const all = days();
     // Open on today's slate if it has a board, else the first day that does.

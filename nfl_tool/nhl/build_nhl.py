@@ -2268,6 +2268,25 @@ def crease_record_summary(folder: Path) -> dict:
     return out
 
 
+CREASE_HISTORY_COLS = ("id", "name", "team", "line", "top", "actual")
+
+
+def crease_history(folder: Path) -> dict:
+    """Every recorded day for the page's Winners list: `best`, `starters`
+    and each goalie as `CREASE_HISTORY_COLS`, highest pregame chance first
+    (so his place in the list is his pregame rank). The payouts DraftKings
+    showed are typed in by the owner on the page (D1 `crease_payouts`), not
+    here."""
+    out = {}
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        for date, day in saved["days"].items():
+            rows = sorted((dict(zip(saved["cols"], values)) for values in day["goalies"]), key=lambda row: -(row["top"] or 0))
+            if rows:
+                out[date] = {"best": day["best"], "starters": day["starters"], "goalies": [[row.get(col) for col in CREASE_HISTORY_COLS] for row in rows]}
+    return {"cols": list(CREASE_HISTORY_COLS), "days": dict(sorted(out.items()))}
+
+
 def crease_file(season: int, generated_at: str, records: list, games: list, tonight: dict | None, saves_lines: dict | None, goalies: dict, previous: dict | None, now_utc: datetime, record_dir: Path) -> dict:
     """site/nhl/crease.json: the board, the rules it was tagged by, the
     league's yardsticks and the record."""
@@ -2276,13 +2295,14 @@ def crease_file(season: int, generated_at: str, records: list, games: list, toni
     try:
         record_crease_days(record_dir, board)
         record = crease_record_summary(record_dir)
+        history = crease_history(record_dir)
     except Exception as e:  # a damaged record file must never cost the page its board
         print(f"WARNING: the King of the Crease record couldn't be updated ({e}).", file=sys.stderr)
-        record = None
+        record, history = None, None
     return {
         "season": season, "generated_at": generated_at, "weights": model.w, "rules": CREASE_RULES,
         "league": {"saves": num(model.base(), 1), "sv": num(model.league_sv(), 4), "shots": num(model.per_game("sog"), 1)},
-        "days": board, "record": record,
+        "days": board, "record": record, "history": history,
     }
 
 

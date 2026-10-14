@@ -144,8 +144,101 @@ class Page(unittest.TestCase):
         codes = PAGE.evaluate("() => ['LAK', 'NJD', 'SJS', 'TBL', 'UTA', 'TOR'].map((t) => /nhl\\/500(-dark)?\\/(\\w+)\\.png/.exec(shareLogo(t))[2])")
         self.assertEqual(codes, ["la", "nj", "sj", "tb", "utah", "tor"])
 
-    def test_the_record_waits_for_a_finished_day(self):
-        self.assertIn("The record starts", PAGE.inner_text("#crease-record"))
+    def test_the_record_tiles_are_gone(self):
+        # The owner, 2026-10-14: the Winners list "is all we need here".
+        self.assertEqual(PAGE.evaluate("() => !!document.getElementById('crease-record')"), False)
+
+
+# Two finished days as the build writes them (best chance first), and what
+# DraftKings showed for the later one, as the owner pasted it.
+HISTORY = {
+    "cols": ["id", "name", "team", "line", "top", "actual"],
+    "days": {
+        "2026-10-12": {"best": 33, "starters": 4, "goalies": [
+            ["1", "Ann Alpha", "TOR", 27.5, 0.40, 33], ["2", "Bo Beta", "BOS", 25.5, 0.30, 33],
+            ["3", "Cy Gamma", "DET", 24.5, 0.20, 20], ["4", "Di Delta", "EDM", 23.5, 0.10, 18]]},
+        "2026-10-13": {"best": 39, "starters": 4, "goalies": [
+            ["1", "Ann Alpha", "TOR", 28.5, 0.40, 23], ["5", "Leevi Meriläinen", "VAN", 27.5, 0.30, 35],
+            ["6", "Devon Levi", "EDM", 23.5, 0.20, 39], ["7", "John Gibson", "DET", 24.5, 0.10, 32]]},
+    },
+}
+PASTED = "\U0001f945 Devon Levi - $1,961 in Bonus Bets\n\U0001f945 Leevi Merilainen - $520 in Bonus Bets\n\U0001f945 John Gibson - $308 in Bonus Bets"
+
+
+def winners(payouts=None):
+    PAGE.evaluate(
+        """([history, payouts]) => { CREASE.history = history; PAYOUTS = payouts; const box = document.getElementById('crease-winners-list'); delete box.dataset.drawn; renderWinners(); }""",
+        [HISTORY, payouts or {}],
+    )
+
+
+def read_pasted(text, date="2026-10-13"):
+    return PAGE.evaluate("([history, text, date]) => { CREASE.history = history; return parsePayouts(text, historyDays().find((d) => d.date === date).goalies); }", [HISTORY, text, date])
+
+
+class Winners(unittest.TestCase):
+    def tearDown(self):
+        winners()
+        PAGE.evaluate("() => { CREASE.history = null; renderWinners(); }")
+
+    def test_with_no_finished_day_it_says_what_comes(self):
+        PAGE.evaluate("() => { CREASE.history = null; renderWinners(); }")
+        self.assertIn("first finished day", PAGE.inner_text("#crease-winners-list"))
+
+    def test_never_in_the_saved_image(self):
+        winners()
+        self.assertEqual(PAGE.evaluate("() => !!document.querySelector('#crease-capture #crease-winners, #crease-capture .crease-win-day')"), False)
+
+    def test_one_line_a_day_newest_first_and_only_the_newest_open(self):
+        winners()
+        days = PAGE.evaluate("() => [...document.querySelectorAll('.crease-win-day')].map((d) => [d.dataset.date, d.open])")
+        self.assertEqual(days, [["2026-10-13", True], ["2026-10-12", False]])
+
+    def test_the_winner_his_pregame_place_and_what_he_paid(self):
+        winners({"2026-10-13": {"pool": 500000, "payouts": read_pasted(PASTED)["read"]}})
+        line = PAGE.inner_text(".crease-win-day[data-date='2026-10-13'] summary")
+        for bit in ("Levi", "39", "3rd of 4", "$1,961"):
+            self.assertIn(bit, line)
+        self.assertIn("≈255 on Levi".upper(), PAGE.inner_text(".crease-win-day[data-date='2026-10-13'] .crease-win-meta").upper())
+
+    def test_if_theyd_won_most_saves_first_with_worth_as_chance_times_paid(self):
+        winners({"2026-10-13": {"pool": 500000, "payouts": read_pasted(PASTED)["read"]}})
+        rows = PAGE.evaluate("() => [...document.querySelectorAll(\".crease-win-day[data-date='2026-10-13'] tbody tr\")].map((tr) => [...tr.children].map((td) => td.textContent.trim()))")
+        self.assertEqual([r[1] for r in rows], ["39", "35", "32"])
+        self.assertEqual([r[2] for r in rows], ["3/4", "2/4", "4/4"])
+        self.assertEqual([r[4] for r in rows], ["$1,961", "$520", "$308"])
+        self.assertEqual([r[5] for r in rows], ["$392", "$156", "$31"])  # 20% x 1,961; 30% x 520; 10% x 308
+        cap = PAGE.inner_text(".crease-win-day[data-date='2026-10-13'] .crease-win-cap")
+        self.assertIn("Alpha", cap)  # the favorite, who didn't win
+        self.assertIn("Gibson (≈1,623)", cap)  # most picked = the smallest payout
+
+    def test_a_day_with_nothing_logged_still_names_the_winner(self):
+        winners()
+        line = PAGE.inner_text(".crease-win-day[data-date='2026-10-13'] summary")
+        self.assertIn("Levi", line)
+        self.assertIn("not logged", line.lower())
+
+    def test_a_tie_names_both(self):
+        winners()
+        line = PAGE.inner_text(".crease-win-day[data-date='2026-10-12'] summary")
+        self.assertIn("Alpha / Beta", line)
+        self.assertIn("1st / 2nd of 4", line)
+
+    def test_draftkings_list_is_read_accents_and_emoji_and_all(self):
+        got = read_pasted(PASTED)
+        self.assertEqual(got["missed"], [])
+        self.assertEqual([(p["id"], p["name"], p["paid"]) for p in got["read"]], [("6", "Devon Levi", 1961), ("5", "Leevi Meriläinen", 520), ("7", "John Gibson", 308)])
+        self.assertEqual(read_pasted("Gibson: $1,000\nno money on this line")["read"][0]["id"], "7")  # a last name only one starter has
+
+    def test_a_name_that_isnt_a_starter_blocks_the_save(self):
+        winners()
+        PAGE.evaluate("""(text) => { const t = document.getElementById('crease-log-text'); document.getElementById('crease-log-date').value = '2026-10-13'; t.value = text; t.dispatchEvent(new Event('input', { bubbles: true })); }""", PASTED + "\nNobody Here - $50")
+        self.assertIn("Nobody Here", PAGE.inner_text("#crease-log-status"))
+        self.assertEqual(PAGE.evaluate("() => document.getElementById('crease-log-save').disabled"), True)
+
+    def test_the_paste_box_is_only_for_the_owner(self):
+        rule = PAGE.evaluate("() => [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules]; } catch (e) { return []; } }).map((r) => r.cssText).find((t) => t.includes('.crease-log') && t.includes('is-owner'))")
+        self.assertIn("display: none", rule or "")
 
     def test_the_other_nhl_pages_link_here(self):
         for path in ("nhl/index.html", "nhl/shots.html"):

@@ -328,11 +328,70 @@ async function handleRequests(request, env, session, json) {
   return json({ error: "method" }, 405);
 }
 
+// ---- King of the Crease payouts (added 2026-10-14) ----
+// After each contest DraftKings shows what each of a few goalies paid (or
+// would have paid) per winner. The owner pastes that list on the NHL Promo
+// Tools page; every member sees it in the Winners list. One row per day:
+// the pool and [{id, name, paid}] as JSON. The table is made here on first
+// use, so it needs no deploy step.
+const CREASE_PAYOUTS_TABLE = "CREATE TABLE IF NOT EXISTS crease_payouts (date TEXT PRIMARY KEY, pool INTEGER, payouts TEXT NOT NULL, updated INTEGER NOT NULL)";
+const CREASE_PAYOUTS_MAX = 64; // goalies a day (32 starters, room for doubles)
+
+async function handleCreasePayouts(request, env, session, json) {
+  await env.DB.prepare(CREASE_PAYOUTS_TABLE).run();
+  if (request.method === "GET") {
+    const { results } = await env.DB.prepare("SELECT date, pool, payouts FROM crease_payouts ORDER BY date").all();
+    const days = {};
+    for (const r of results || []) {
+      try {
+        days[r.date] = { pool: r.pool, payouts: JSON.parse(r.payouts) };
+      } catch (e) {
+        // a damaged row is skipped, never the whole list
+      }
+    }
+    return json({ days });
+  }
+  if (request.method !== "PUT") return json({ error: "method" }, 405);
+  if (!isOwnerSession(session)) return json({ error: "owner only" }, 403);
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: "bad json" }, 400);
+  }
+  const { date, pool, payouts } = body || {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return json({ error: "bad date" }, 400);
+  if (!Number.isInteger(pool) || pool < 1 || pool > 100000000) return json({ error: "bad pool" }, 400);
+  if (!Array.isArray(payouts) || payouts.length > CREASE_PAYOUTS_MAX) return json({ error: "bad payouts" }, 400);
+  const clean = [];
+  for (const p of payouts) {
+    const name = String((p && p.name) || "").trim().slice(0, 80);
+    const id = p && p.id != null ? String(p.id).slice(0, 12) : null;
+    const paid = p && p.paid;
+    if (!name || !Number.isFinite(paid) || paid < 0 || paid > 10000000) return json({ error: "bad payout" }, 400);
+    clean.push({ id, name, paid: Math.round(paid) });
+  }
+  if (!clean.length) {
+    await env.DB.prepare("DELETE FROM crease_payouts WHERE date = ?").bind(date).run();
+    return json({ ok: true });
+  }
+  await env.DB.prepare(
+    "INSERT INTO crease_payouts (date, pool, payouts, updated) VALUES (?, ?, ?, ?) ON CONFLICT(date) DO UPDATE SET pool = excluded.pool, payouts = excluded.payouts, updated = excluded.updated"
+  )
+    .bind(date, pool, JSON.stringify(clean), Date.now())
+    .run();
+  return json({ ok: true });
+}
+
 async function handleApi(request, env, session, json) {
   const url = new URL(request.url);
   if (url.pathname === "/api/requests") {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleRequests(request, env, session, json);
+  }
+  if (url.pathname === "/api/crease-payouts") {
+    if (!env.DB) return json({ error: "no database" }, 503);
+    return handleCreasePayouts(request, env, session, json);
   }
   if (url.pathname !== "/api/state") return json({ error: "not found" }, 404);
   if (!env.DB) return json({ error: "no database" }, 503);

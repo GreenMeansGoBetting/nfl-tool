@@ -518,12 +518,35 @@ means your payout will be smaller").
   model, the line and the blend. It is what will say whether `blend` deserves more or less.
 - **The page:** day strip (not clickable; the promo is the whole day), one table in King of the
   Endzone's look (`.koe-*` + `.crease-*`), every column sortable, always the whole slate, the
-  record tiles and an About box. The page does no math. Matchup columns are on the eight rank
+  Winners list beside it and an About box. The record tiles were removed 2026-10-14 (the owner:
+  the Winners list "is all we need here"); `record` stays in crease.json for the record. The page does no math. Matchup columns are on the eight rank
   colors by league rank; the Novig line, saves a start and Tonight's by rank within the day.
   - The user's edits the same evening: no Upside chip ("clutter and already displayed in the
     chart"; the tag stays in the data for the record, Value keeps its chip), a narrower name
     column, the line without the over's price, the line and saves a start color coded "best to
     worst", and no Top 10 cut ("show the whole slate on the export photo").
+- **Winners** (2026-10-14, `renderWinners` in promo-tools.js; the owner asked for "a sort of
+  leaderboard history that shows who won, what his pregame rank was, upside etc." off to the
+  right). One collapsible line per finished day, newest first and only the newest open: date,
+  winner (ties: both), saves, his pregame place ("13th of 32" = his place by `top`) and what he
+  paid. Open: starters, pool, about how many were on him (pool / payout), and **If they'd won**:
+  each goalie DraftKings showed a payout for, most saves first, with Sv, Pre, Upside, Paid and
+  **Worth** = `top` x paid (colored best to worst within the day); then our favorite and the most
+  picked. Beside the table when there is room (`.crease-main`, flex-wrap), under it when not;
+  **never in the saved image** (outside `#crease-capture`). No summary tiles (the owner removed
+  them from the mockup).
+  - Days: crease.json `history` (`crease_history`: every recorded day from
+    `model_history/nhl_crease`, `CREASE_HISTORY_COLS`, best chance first).
+  - **Payouts are typed in by the owner after each contest**: DraftKings shows only a few
+    goalies' "what he paid / would have paid" (the pool is split evenly among everyone on the
+    winner, whatever they bet). A box under the list, shown only with `html.is-owner` (and on
+    localhost): pick the day, the pool ($500,000 by default), paste DraftKings' text as it comes
+    ("🥅 Name - $2,748 in Bonus Bets"), Save. Names match the day's starters with accents dropped,
+    else a last name only one starter has; any name it can't match blocks the save. Stored in D1
+    `crease_payouts` through `/api/crease-payouts` (members-and-hosting.md).
+  - Next, once a couple of weeks are logged: learn what drives picks (names, short lines,
+    favorites) and estimate each goalie's payout before puck drop, so Value can become an
+    expected payout. Label it an estimate and grade it like the rest.
 - **Save image** is the priority (the user: "a clean and crisp image to twitter"): the table
   with a GMG title bar and a key, at 2x. **Logos on this page are ESPN's** (`shareLogo`):
   assets.nhle.com sends no cross-origin header, so html-to-image can't carry the NHL's own files.
@@ -540,8 +563,10 @@ means your payout will be smaller").
   record, on the saved game and hand-made games) and `tests/test_nhl_shots_site.py` (the Shots page in a browser on
   `nhl_shots.json.gz`, the shots.json that matches the saved data sample).
 - `tests/test_nhl_saves.py` (the saves model, Novig's saves lines, the starter, the lineup
-  reader's lone-name fixes, the board, lock and record) and `tests/test_nhl_crease_site.py` (the
-  Promo Tools page in a browser on `nhl_crease.json.gz`).
+  reader's lone-name fixes, the board, lock, record and Winners history) and
+  `tests/test_nhl_crease_site.py` (the Promo Tools page in a browser on `nhl_crease.json.gz`,
+  the Winners list on a hand-made history, reading DraftKings' pasted list).
+  `tests/test_ci_crease_payouts.py`: the payouts endpoint in the login middleware.
 - `tools/fetch_live_data.py` also downloads the live player files, `shots.json` and `crease.json`, so the
   after-deploy site check sees the pages as members do.
 - `tools/check_site.py` opens both NHL pages; like the NBA page they can never block the deploy gate.
@@ -697,8 +722,8 @@ The user's next tools (2026-10-13), each built on the player card and `player_od
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
 Built: Shots, Goals (anytime goal, with expected goals), both above. For Goals: a Points tool,
 and the market's team totals as an anchor once the record has them.
-For King of the Crease: how many people pick each goalie (ask the user for a winning day's
-payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
+For King of the Crease: a payout estimate before puck drop from the logged payouts (see
+Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
 For the Shots model: tonight's power-play units from a licensed morning-report feed (past units
