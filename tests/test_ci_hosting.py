@@ -99,6 +99,16 @@ class SportAddresses(unittest.TestCase):
         self.assertEqual(call("https://nhl.gmgsports.org/nhl")["location"], "/")
         self.assertEqual(call("https://nhl.gmgsports.org/game-overview.html")["location"], "https://nfl.gmgsports.org/game-overview.html")
 
+    def test_old_nfl_address_links_go_to_the_sports_own_address(self):
+        self.assertEqual(call("https://nfl.gmgsports.org/nhl/")["location"], "https://nhl.gmgsports.org/")
+        self.assertEqual(call("https://nfl.gmgsports.org/nhl")["location"], "https://nhl.gmgsports.org/")
+        self.assertEqual(call("https://nfl.gmgsports.org/nhl/shots.html?g=1")["location"], "https://nhl.gmgsports.org/shots.html?g=1")
+        self.assertEqual(call("https://nfl.gmgsports.org/nba/")["location"], "https://nba.gmgsports.org/")
+        # Data files stay put (the build reads them here), and so does the NFL.
+        self.assertIsNone(call("https://nfl.gmgsports.org/nhl/players/TOR.json")["location"])
+        self.assertIsNone(call("https://nfl.gmgsports.org/game-overview.html")["location"])
+        self.assertIsNone(call("https://nfl.gmgsports.org/nhlish.html")["location"])
+
     def test_the_nfl_address_is_the_site_as_it_is_on_disk(self):
         self.assertEqual(call("https://nfl.gmgsports.org/game-overview.html")["served"], [["next", "/game-overview.html"]])
         # The build reads the sports' data here; data files never move.

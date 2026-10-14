@@ -23,8 +23,8 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   root. **A sport page that starts loading another root file (`../x.js`) needs it added to
   `SHARED_FILES`**, or it gets the sport folder's file / nothing. On a sport address, old
   `/nhl/...` links drop the folder and NFL pages (`NFL_PAGES`) go to nfl.gmgsports.org.
-  `SPORT_HOSTS_LIVE` (switch on once both addresses answer) sends nfl.gmgsports.org/nba/ and
-  /nhl/ pages to their own address; data files are never moved, the build reads them on the NFL
+  `SPORT_HOSTS_LIVE` (on since 2026-10-14, once both addresses answered) sends
+  nfl.gmgsports.org/nba/ and /nhl/ pages to their own address; data files are never moved, the build reads them on the NFL
   address. The session cookie is set for `gmgsports.org`, so one sign-in covers every sport;
   Discord sign-in always runs on nfl.gmgsports.org (the only callback registered with Discord)
   and returns to the page it started from (`safeNext`: only our three addresses). The suite

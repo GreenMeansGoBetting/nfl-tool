@@ -30,9 +30,9 @@ const NFL_HOST = "nfl.gmgsports.org";
 const SPORT_HOSTS = { "nba.gmgsports.org": "nba", "nhl.gmgsports.org": "nhl" };
 const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/version.json"]; // + /brand/
 const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "support", "first-td"];
-// On once nba. and nhl. answer (their CNAMEs at Namecheap): nfl.gmgsports.org/nhl/
+// On since 2026-10-14 (both addresses answer): nfl.gmgsports.org/nhl/
 // pages then move to nhl.gmgsports.org. Data files are never moved (the build reads them).
-const SPORT_HOSTS_LIVE = false;
+const SPORT_HOSTS_LIVE = true;
 // One sign-in for every sport: on *.gmgsports.org the session cookie is
 // set for the whole domain. Discord sign-in always runs on NFL_HOST (the
 // only callback address registered with Discord) and comes back after.
