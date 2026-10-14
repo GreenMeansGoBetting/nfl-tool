@@ -1,10 +1,11 @@
 name: Cloudflare custom domain
 
-# One-time setup (re-runnable): attaches nfl.gmgsports.org to the gmg-nfl
-# Cloudflare Pages project, then prints the domain's verification status.
-# Runs when this file changes or from the Actions tab. The DNS side (the
-# "nfl" CNAME at Namecheap -> gmg-nfl.pages.dev) is done by hand at
-# Namecheap; Cloudflare finishes verifying on its own once that's in place.
+# One-time setup (re-runnable): attaches the suite addresses (nfl., nba. and
+# nhl.gmgsports.org; nba. and nhl. added 2026-10-14) to the gmg-nfl Cloudflare
+# Pages project, then prints each domain's verification status. Runs when
+# this file changes or from the Actions tab. The DNS side (a CNAME per name
+# at Namecheap -> gmg-nfl.pages.dev) is done by hand at Namecheap; Cloudflare
+# finishes verifying on its own once that's in place.
 on:
   push:
     branches: [main]
@@ -23,11 +24,13 @@ jobs:
       CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       API: https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/gmg-nfl/domains
     steps:
-      - name: Attach nfl.gmgsports.org (already attached is fine)
+      - name: Attach the suite addresses (already attached is fine)
         run: |
-          resp=$(curl -s -X POST "$API" -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" --data '{"name":"nfl.gmgsports.org"}')
-          echo "$resp" | jq '{success, errors, status: .result.status}'
-          echo "$resp" | jq -e '.success or (.errors | tostring | test("already"; "i"))' > /dev/null
+          for name in nfl.gmgsports.org nba.gmgsports.org nhl.gmgsports.org; do
+            resp=$(curl -s -X POST "$API" -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/json" --data "{\"name\":\"$name\"}")
+            echo "$name: $(echo "$resp" | jq -c '{success, errors, status: .result.status}')"
+            echo "$resp" | jq -e '.success or (.errors | tostring | test("already"; "i"))' > /dev/null
+          done
 
       - name: Domain status
         run: |

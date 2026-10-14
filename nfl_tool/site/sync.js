@@ -281,10 +281,15 @@
   // took the site for broken. Setting it back to false closes both suites to
   // everyone but the owner: never do that without the owner asking.
   const SUITE_SWITCH_PUBLIC = true;
+  // Each sport has its own address (nba.gmgsports.org / nhl.gmgsports.org,
+  // served from the site's nba/ and nhl/ folders by the middleware). On those
+  // addresses the menu links across by full address; anywhere else (the NFL
+  // address, local testing) the folders work as they are.
+  const SPORT_HOST = /^(nba|nhl)\.gmgsports\.org$/.exec(location.hostname);
   const SUITES = [
-    { key: "nfl", label: "NFL", href: "/game-overview.html" },
-    { key: "nba", label: "NBA", href: "/nba/" },
-    { key: "nhl", label: "NHL", href: "/nhl/" },
+    { key: "nfl", label: "NFL", href: SPORT_HOST ? "https://nfl.gmgsports.org/game-overview.html" : "/game-overview.html" },
+    { key: "nba", label: "NBA", href: SPORT_HOST ? "https://nba.gmgsports.org/" : "/nba/" },
+    { key: "nhl", label: "NHL", href: SPORT_HOST ? "https://nhl.gmgsports.org/" : "/nhl/" },
   ];
   function suiteSwitchOn() {
     const cls = document.documentElement.classList;
@@ -293,7 +298,7 @@
   function addSuiteSwitcher() {
     const brand = document.querySelector(".topbar .brand");
     if (!brand || brand.dataset.suite) return;
-    const current = (SUITES.find((s) => s.key !== "nfl" && location.pathname.includes(s.href)) || SUITES[0]).key;
+    const current = SPORT_HOST ? SPORT_HOST[1] : (SUITES.find((s) => s.key !== "nfl" && location.pathname.includes(s.href)) || SUITES[0]).key;
     brand.dataset.suite = current;
     brand.classList.add("suite-brand");
     brand.insertAdjacentHTML("beforeend", '<span class="suite-caret" aria-hidden="true">&#9662;</span>');

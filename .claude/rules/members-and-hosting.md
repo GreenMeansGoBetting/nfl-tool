@@ -16,6 +16,20 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   the member login runs there. The domain is at **Namecheap**, which also runs email forwarding
   (MX `eforward*.registrar-servers.com`). **Don't move the whole domain's nameservers**; only the
   `nfl` record was changed.
+- **One address per sport (2026-10-14):** `nba.gmgsports.org` and `nhl.gmgsports.org` are the
+  same Pages project (a CNAME each at Namecheap -> `gmg-nfl.pages.dev`). The files stay in
+  `site/nba/` and `site/nhl/`; the middleware serves `nhl.gmgsports.org/x` from `/nhl/x`, except
+  `SHARED_FILES` (style.css, suite.css, sync.js, version.json) and `/brand/`, which come from the
+  root. **A sport page that starts loading another root file (`../x.js`) needs it added to
+  `SHARED_FILES`**, or it gets the sport folder's file / nothing. On a sport address, old
+  `/nhl/...` links drop the folder and NFL pages (`NFL_PAGES`) go to nfl.gmgsports.org.
+  `SPORT_HOSTS_LIVE` (switch on once both addresses answer) sends nfl.gmgsports.org/nba/ and
+  /nhl/ pages to their own address; data files are never moved, the build reads them on the NFL
+  address. The session cookie is set for `gmgsports.org`, so one sign-in covers every sport;
+  Discord sign-in always runs on nfl.gmgsports.org (the only callback registered with Discord)
+  and returns to the page it started from (`safeNext`: only our three addresses). The suite
+  switcher in sync.js links by full address on nba./nhl. Tests: `tests/test_ci_hosting.py`.
+  Local testing uses the folders, unchanged.
 - **deploy.yml** builds the data, runs the gate, then publishes `nfl_tool/site` to Cloudflare
   Pages (the only host) using the secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. It
   deploys from `nfl_tool/` so the Pages Functions get bundled, and writes `nfl_tool/wrangler.toml`
@@ -51,7 +65,7 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   failed run = the check found a NEW problem (the same problems are reported once, not every day); the report is on the run's Summary page, GitHub emails the owner, and it also posts to
   Discord if the optional secret `SITE_CHECK_WEBHOOK` exists. `tools/check_site.py --site DIR`
   checks a copy of the site folder (how to reproduce a CI report locally with the live data).
-- `.github/workflows/cloudflare-domain.yml` attached `nfl.gmgsports.org` to the Pages project
+- `.github/workflows/cloudflare-domain.yml` attaches `nfl.`, `nba.` and `nhl.gmgsports.org` to the Pages project
   through the API. It can be re-run from the Actions tab and prints the verification status. (The
   Cloudflare connector for Claude can't manage Pages domains; the GitHub secret token can.)
 - **The repo is private and GitHub Pages is off** (2026-10-13). The Pages copy had served the
@@ -179,7 +193,7 @@ cancelling.
 - `https://nfl.gmgsports.org/auth/status` shows which pieces are in place, never the values.
 - Roles are re-checked with the bot every 15 min. Sessions last 30 days. If Discord's API is down,
   access is honored for 2 h after the last good check.
-- OAuth scope is `identify` only; redirect URI `<origin>/auth/callback`.
+- OAuth scope is `identify` only; redirect URI `https://nfl.gmgsports.org/auth/callback` (sign-in on nba./nhl. is sent there).
 - The session HMAC key is derived from the bot token, so rotating the token logs everyone out.
 
 ## Email members (Stripe), LIVE since 2026-10-09

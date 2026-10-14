@@ -1,5 +1,5 @@
 // ---- Discord login gate (Cloudflare Pages Functions) ----
-// Every request to nfl.gmgsports.org -- pages AND data.json -- passes
+// Every request to nfl. / nba. / nhl.gmgsports.org -- pages AND data.json -- passes
 // through here. Access follows the member's CURRENT Discord roles: the bot
 // token looks the member up server-side, and a signed session cookie only
 // vouches for that check for RECHECK_MS, so losing the role (cancelled
@@ -19,6 +19,24 @@ const OWNER_IDS = ["613105360286253076"]; // Discord user IDs that see owner-onl
 // and /auth/check shows whether this Discord account WOULD get in. Flip to
 // true (one-line push) once that's confirmed.
 const ENFORCE = true;
+
+// ---- one address per sport (2026-10-14) ----
+// The three suites are one Cloudflare Pages site; the address picks the
+// sport. nba.gmgsports.org/x is served from the site's nba/ folder and
+// nhl.gmgsports.org/x from nhl/, except the few root files every suite
+// shares. nfl.gmgsports.org is the site as it is on disk. The files stay
+// where they are, so local testing (folder paths) works unchanged.
+const NFL_HOST = "nfl.gmgsports.org";
+const SPORT_HOSTS = { "nba.gmgsports.org": "nba", "nhl.gmgsports.org": "nhl" };
+const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/version.json"]; // + /brand/
+const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "support", "first-td"];
+// On once nba. and nhl. answer (their CNAMEs at Namecheap): nfl.gmgsports.org/nhl/
+// pages then move to nhl.gmgsports.org. Data files are never moved (the build reads them).
+const SPORT_HOSTS_LIVE = false;
+// One sign-in for every sport: on *.gmgsports.org the session cookie is
+// set for the whole domain. Discord sign-in always runs on NFL_HOST (the
+// only callback address registered with Discord) and comes back after.
+const COOKIE_DOMAIN = "gmgsports.org";
 
 const COOKIE = "gmg_session";
 const STATE_COOKIE = "gmg_oauth_state";
@@ -154,10 +172,21 @@ function deniedPage(reason) {
   );
 }
 
+// Where to land after signing in: a path on this address, or a page on
+// one of the suite addresses (Discord sign-in started on nba. / nhl.).
+function safeNext(next) {
+  if (next.startsWith("/") && !next.startsWith("//")) return next;
+  try {
+    const to = new URL(next);
+    if (to.protocol === "https:" && (to.hostname === NFL_HOST || SPORT_HOSTS[to.hostname])) return to.toString();
+  } catch (e) {}
+  return "/";
+}
+
 // ---- OAuth routes ----
 async function handleLogin(request) {
   const url = new URL(request.url);
-  const next = url.searchParams.get("next") || "/";
+  const next = safeNext(url.searchParams.get("next") || "/");
   const state = b64url(crypto.getRandomValues(new Uint8Array(18)));
   const auth = new URL("https://discord.com/oauth2/authorize");
   auth.searchParams.set("client_id", CLIENT_ID);
@@ -168,7 +197,7 @@ async function handleLogin(request) {
   auth.searchParams.set("prompt", "none");
   return new Response(null, {
     status: 302,
-    headers: { Location: auth.toString(), "Set-Cookie": setCookie(STATE_COOKIE, JSON.stringify({ state, next: next.startsWith("/") ? next : "/" }), 600) },
+    headers: { Location: auth.toString(), "Set-Cookie": setCookie(STATE_COOKIE, JSON.stringify({ state, next }), 600) },
   });
 }
 
@@ -202,7 +231,7 @@ async function handleCallback(request, env) {
   if (!hasAllowedRole(check.roles)) return deniedPage("no-role");
   const now = Date.now();
   const session = await sign(env, { uid: me.id, name: me.global_name || me.username, checked: now, exp: now + SESSION_DAYS * 864e5 });
-  const headers = new Headers({ Location: ENFORCE ? saved.next || "/" : "/auth/check" });
+  const headers = new Headers({ Location: ENFORCE ? safeNext(saved.next || "/") : "/auth/check" });
   headers.append("Set-Cookie", setCookie(COOKIE, session, SESSION_DAYS * 86400));
   headers.append("Set-Cookie", setCookie(STATE_COOKIE, "", 0));
   return new Response(null, { status: 302, headers });
@@ -798,10 +827,77 @@ async function handleAdminMembers(request, env) {
   );
 }
 
+// ---- addresses ----
+const isPagePath = (path) => !/\.[a-z0-9]+$/i.test(path) || path.endsWith(".html");
+const inFolder = (path, sport) => path === `/${sport}` || path.startsWith(`/${sport}/`);
+
+// Where this request belongs instead, or null to serve it here.
+function movedTo(url, sport) {
+  const p = url.pathname;
+  if (sport) {
+    if (inFolder(p, sport)) return (p.slice(sport.length + 1) || "/") + url.search; // old /nhl/... links
+    if (NFL_PAGES.includes(p.slice(1).replace(/\.html$/, ""))) return `https://${NFL_HOST}${p}${url.search}`;
+    if (p === "/auth/login") {
+      const back = safeNext(url.searchParams.get("next") || "/");
+      return `https://${NFL_HOST}/auth/login?next=${encodeURIComponent(back.startsWith("/") ? `https://${url.host}${back}` : back)}`;
+    }
+    return null;
+  }
+  if (SPORT_HOSTS_LIVE && url.hostname === NFL_HOST && isPagePath(p)) {
+    const [host, s] = Object.entries(SPORT_HOSTS).find(([, s]) => inFolder(p, s)) || [];
+    if (host) return `https://${host}${p.slice(s.length + 1) || "/"}${url.search}`;
+  }
+  return null;
+}
+
+// A file on a sport's address: shared root files as they are, everything
+// else from the sport's folder. Cloudflare's own redirects (shots.html ->
+// /nhl/shots) come back without the folder name.
+async function serveSport(context, url, sport) {
+  if (SHARED_FILES.includes(url.pathname) || url.pathname.startsWith("/brand/")) return context.next();
+  const inner = new URL(url);
+  inner.pathname = `/${sport}${url.pathname}`;
+  const req = new Request(inner.toString(), context.request);
+  const res = context.env.ASSETS ? await context.env.ASSETS.fetch(req) : await context.next(req);
+  const loc = res.headers.get("Location");
+  if (!loc) return res;
+  const to = new URL(loc, inner);
+  if (to.host !== inner.host || !inFolder(to.pathname, sport)) return res;
+  const out = new Response(res.body, res);
+  out.headers.set("Location", (to.pathname.slice(sport.length + 1) || "/") + to.search);
+  return out;
+}
+
+// Session cookies on *.gmgsports.org are set for the whole domain, so one
+// sign-in covers every sport. The old one-address cookie is cleared as the
+// new one is set.
+function shareSession(res, url) {
+  if (!url.hostname.endsWith(`.${COOKIE_DOMAIN}`) || !res.headers.getSetCookie) return res;
+  const cookies = res.headers.getSetCookie();
+  if (!cookies.some((c) => c.startsWith(`${COOKIE}=`))) return res;
+  const out = new Response(res.body, res);
+  out.headers.delete("Set-Cookie");
+  for (const c of cookies) {
+    if (c.startsWith(`${COOKIE}=`)) {
+      out.headers.append("Set-Cookie", setCookie(COOKIE, "", 0));
+      out.headers.append("Set-Cookie", `${c}; Domain=${COOKIE_DOMAIN}`);
+    } else out.headers.append("Set-Cookie", c);
+  }
+  return out;
+}
+
 // ---- the gate ----
 export async function onRequest(context) {
-  const { request, env, next } = context;
-  const url = new URL(request.url);
+  const url = new URL(context.request.url);
+  const sport = SPORT_HOSTS[url.hostname];
+  const moved = movedTo(url, sport);
+  if (moved) return new Response(null, { status: 302, headers: { Location: moved, "Cache-Control": "no-store" } });
+  const next = sport ? () => serveSport(context, url, sport) : () => context.next();
+  return shareSession(await gate(context, url, next), url);
+}
+
+async function gate(context, url, next) {
+  const { request, env } = context;
   // Setup check: which pieces are in place (never the secret values).
   if (url.pathname === "/auth/status") {
     const status = {

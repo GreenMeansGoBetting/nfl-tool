@@ -565,6 +565,15 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 
 ## Members and hosting
 
+- **2026-10-14, each sport got its own address.** The user: "the site is currently routing to
+  nfl.gmgsports.org. Can we fix it so the NHL, NBA and NFL all have different urls", offering
+  gmgsports.org/nfl or /nhl as an alternative. Paths on gmgsports.org were ruled out: that's the
+  hub on GitHub Pages, and putting the suite under it would mean moving the whole domain's
+  nameservers to Cloudflare (which would also take over Namecheap's email forwarding).
+  Subdomains need only one CNAME each at Namecheap. The files were left in their folders, so
+  local testing and the build's data reads didn't change: the middleware maps each address to
+  its folder. The session cookie went domain-wide so members sign in once, and Discord sign-in
+  stays on nfl.gmgsports.org so no new callback had to be registered with Discord.
 - **2026-10-13, the deploy got a gate and lost its public copy.** A friend of the user's reviewed
   the project and worried about its foundations. Two things stood out for a product people now
   pay for: the site check only ran AFTER a change was live, and the GitHub Pages copy plus the
