@@ -58,49 +58,8 @@ AREA_PAD = 40          # shots at his position's usual spots mixed into where he
 X_KEYS = ("opp", "goalie", "area", "finish", "pp", "line", "home", "b2b", "opp_b2b")
 
 
-# ---- shots, one game ----
-def game_shots(raw: dict) -> list:
-    """Every unblocked shot with a goalie in net (no empty nets, penalty
-    shots or shootouts), with what an expected-goals table reads."""
-    pbp = raw["pbp"]
-    home, away = pbp["homeTeam"], pbp["awayTeam"]
-    abbr = {home["id"]: home["abbrev"], away["id"]: away["abbrev"]}
-    team_of = {r["playerId"]: r["teamId"] for r in pbp.get("rosterSpots") or []}
-    plays = sorted(pbp.get("plays") or [], key=lambda p: p.get("sortOrder", 0))
-    directions = b.attack_directions(plays, team_of, home["id"])
-    out, prev = [], None
-    for p in plays:
-        period = p.get("periodDescriptor") or {}
-        if period.get("periodType") == "SO":
-            continue
-        d = p.get("details") or {}
-        kind = p.get("typeDescKey")
-        t = (period.get("number") or 0) * 1200 + b.clock_seconds(p.get("timeInPeriod"))
-        owner = d.get("eventOwnerTeamId")
-        if kind in ("goal", "shot-on-goal", "missed-shot"):
-            shooter = d.get("scoringPlayerId") or d.get("shootingPlayerId")
-            team_id = team_of.get(shooter, owner)
-            man = b.strength(p.get("situationCode"), team_id == home["id"])
-            spot = b.normalize_xy(d, directions.get((period.get("number"), team_id)))
-            if team_id in abbr and man not in ("en", "ps", "extra") and spot:
-                x, y = spot
-                rebound = rush = False
-                if prev and prev["period"] == period.get("number") and t - prev["t"] <= 4:
-                    rebound = prev["shot"] and prev["team"] == team_id and t - prev["t"] <= 3
-                    # The play before was outside his team's attacking zone (the
-                    # rink's x read from his end): a rush.
-                    rush = not prev["shot"] and prev["x"] is not None and prev["x"] * directions.get((period.get("number"), team_id), 1) < b.BLUE_LINE_X
-                out.append({
-                    "shooter": str(shooter), "team": abbr[team_id], "goalie": str(d.get("goalieInNetId")),
-                    "area": b.shot_area(x, y), "y": y, "dist": math.hypot(b.GOAL_LINE_X - x, y),
-                    "angle": abs(math.degrees(math.atan2(y, b.GOAL_LINE_X - x))) if x <= b.GOAL_LINE_X else 90.0,
-                    "type": b.SHOT_TYPES.get(d.get("shotType"), "other"), "rebound": rebound, "rush": rush,
-                    "pp": man == "pp", "sh": man == "sh", "goal": kind == "goal",
-                })
-        if kind in ("goal", "shot-on-goal", "missed-shot", "blocked-shot", "hit", "giveaway", "takeaway", "faceoff"):
-            prev = {"t": t, "period": period.get("number"), "team": owner, "x": d.get("xCoord"),
-                    "shot": kind in ("goal", "shot-on-goal", "missed-shot", "blocked-shot")}  # a blocked shot's owner is the shooting team
-    return out
+# ---- shots, one game: the build's reader (build_nhl.game_shots) ----
+game_shots = b.game_shots
 
 
 def load_season(season: int) -> list:

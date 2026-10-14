@@ -613,6 +613,46 @@ zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fit
 - The owner wants the **Zone Match tag shown and tracked** (its own bucket in the record), even
   though the replay found no edge in it.
 
+### Step 2: the model and goals.json (built 2026-10-14; no page yet, step 3 is a one-row mockup)
+
+- **`nfl_tool/nhl/goals_model.py`** (standard library): exactly the replayed model.
+  `tools/backtest/nhl_goals_check.py` replays both seasons THROUGH this file (it reproduced the
+  ideas test's 0.39621) and fits `WEIGHTS` on both seasons together; rerun it after any change.
+  - Expected goals: two logistic tables (without and with the off wing; the `onetimer` piece is
+    the log of one rate over the other), fitted every build on this season's shots in plain
+    Python (`fit_xg`, sparse Newton: under 3 s on a full season, identical to numpy to 1e-14).
+  - `parts()` = his EV / PP rates with 50 / 15 minutes of an average skater, the shots model's
+    minutes / line / home / rest, the defense's xG allowed (20 games of average), the goalie (25
+    xG of average), finishing (8 xG of average), the low-slot trim. `chance_to_score` = 1 - e^-mean.
+  - **Zone Match tag** (`zone_match`, `ZONE`): 35%+ more of his located shots from the low slot
+    or slot than his position (15+ located shots) AND a defense top-10 for shots allowed a game from
+    that area AND above the league's average there (added so a small league can't tag everyone).
+    Never in the number.
+- **Power-play seconds come from the league's per-game report**, not the shift charts:
+  `skater/timeonice?isAggregate=false&isGame=true&cayenneExp=gameId=...` (`ppTimeOnIce`).
+  The shift charts were empty for 47 of this season's first 105 games and read about 12 s a game
+  (15%) short. Kept in the saved game as `raw["pp_toi"]` (`fetch_pp_toi`; a game saved before is
+  backfilled when next read); `reduce_game` puts it on each skater (`pp_toi`, None without it; the
+  model then reads that game at his own share so far). The replays' copy: `data/nhl/pp_toi/<season>.json.gz`.
+- `reduce_game` also keeps every unblocked shot on a goalie as `shots` (`game_shots`, moved from
+  the replay: no empty nets, penalty shots, own goalie pulled or shootouts).
+- **`site/nhl/goals.json`** (not tracked; on fetch_live_data's list): `games` = the Shots page's
+  games, players and lock (`goals_board`), EVERY skater priced or not: `chance`, `mean`, `fair`,
+  `lift`, `shares`, `zone`, season `games` / `goals` / `xg` / `shots`, `ev_min` / `pp_min`,
+  tonight's `goalie` (the NHL's projected lineup's, else the team's busiest starter; never called
+  confirmed), the Novig anytime `odds` / `no_odds` / `thin`, **`first_odds`** (the first price the
+  site saw, carried from the live goals.json), `edge` and `size` (`goals_play`, `GOALS_EDGES`
+  3 / 6 / 12 points like Shots; a player moved DOWN a line is "check"). Also `defense`, `xg` (both
+  tables), `league`, `weights`, `zone`, `record`. A failed Goals step still writes a goals.json
+  (`error`), so a reuse deploy's `--need nhl` never trips on it.
+- **The record** (`model_history/nhl_goals/<month>.json`, committed with the others): each
+  finished game once, every projected player who played (priced or not), `GOALS_RECORD_COLS`, plus
+  the game's locked total and moneylines (`market`, to test the market as an anchor later).
+  `goals_record_summary`: buckets strong / lean / none / check, `zone`, `thin` (units at the locked
+  Yes price); `clv` (called plays: average move in points of chance from the first price to the
+  locked one, + = shortened, and how many shortened / drifted); `honest` (said vs scored, everyone);
+  `zone_all`; `days` / `plays` like Shots.
+
 ## Not built yet (waiting on the user's priorities)
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: an anytime

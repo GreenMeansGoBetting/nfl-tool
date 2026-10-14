@@ -44,6 +44,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import goals_model
 import saves_model
 import shots_model
 
@@ -82,6 +83,7 @@ STORIES = "https://forge-dapi.d3.nhle.com/v2/content/en-us/stories"
 LIVE_DATA_URL = "https://nfl.gmgsports.org/nhl/data.json"
 LIVE_SHOTS_URL = "https://nfl.gmgsports.org/nhl/shots.json"
 LIVE_CREASE_URL = "https://nfl.gmgsports.org/nhl/crease.json"
+LIVE_GOALS_URL = "https://nfl.gmgsports.org/nhl/goals.json"
 # The Shots page projects games through this many days out (books post
 # shots-on-goal lines about a day ahead) and keeps the chance of 1+ ... 8+.
 SHOTS_DAYS_AHEAD = 2
@@ -99,6 +101,14 @@ SHOTS_RECORD_DAYS = 14
 # Every graded play, one file a month (2026-10.json ...), committed by the
 # deploy like the NFL model's record so it survives anything the site loses.
 SHOTS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_shots"
+# The Goals page (anytime goal scorer): edges in points of chance, the Shots
+# page's buckets. Goal prices are long (most +150 to +900), so a 3-point edge
+# at 25% is about a 12% return; telling that from luck takes ~900 plays, which
+# is why the record also grades closing line value (goals_record_summary).
+GOALS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
+GOALS_RECORD_DAYS = 14
+GOALS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_goals"
+GOALS_HONEST = (0.0, 0.08, 0.12, 0.16, 0.2, 0.25, 0.3, 0.35, 1.01)  # the record's "said vs scored" buckets
 # King of the Crease (DraftKings' promo: the goalie with the most saves of the
 # day wins). The board covers the same days as the Shots page.
 #   blend   how far a goalie's chance to lead the day leans on the model's own
@@ -244,6 +254,54 @@ def person_name(spot: dict) -> str:
     return f"{(spot.get('firstName') or {}).get('default', '')} {(spot.get('lastName') or {}).get('default', '')}".strip()
 
 
+def game_shots(raw: dict) -> list:
+    """Every unblocked shot with a goalie in net (no empty nets, penalty
+    shots, own goalie pulled or shootouts), with what the goals model's
+    expected-goals table reads (goals_model.py): where (`area`, `dist` and
+    `angle` to the net, `y` = his side), how (`type`), a `rebound` (his
+    team shot within 3 seconds), a `rush` (the play before, within 4
+    seconds, was outside his team's attacking zone), `pp` / `sh`, `goal`."""
+    pbp = raw["pbp"]
+    home, away = pbp["homeTeam"], pbp["awayTeam"]
+    abbr = {home["id"]: home["abbrev"], away["id"]: away["abbrev"]}
+    team_of = {r["playerId"]: r["teamId"] for r in pbp.get("rosterSpots") or []}
+    plays = sorted(pbp.get("plays") or [], key=lambda p: p.get("sortOrder", 0))
+    directions = attack_directions(plays, team_of, home["id"])
+    out, prev = [], None
+    for p in plays:
+        period = p.get("periodDescriptor") or {}
+        if period.get("periodType") == "SO":
+            continue
+        d = p.get("details") or {}
+        kind = p.get("typeDescKey")
+        t = (period.get("number") or 0) * 1200 + clock_seconds(p.get("timeInPeriod"))
+        owner = d.get("eventOwnerTeamId")
+        if kind in ("goal", "shot-on-goal", "missed-shot"):
+            shooter = d.get("scoringPlayerId") or d.get("shootingPlayerId")
+            team_id = team_of.get(shooter, owner)
+            man = strength(p.get("situationCode"), team_id == home["id"])
+            spot = normalize_xy(d, directions.get((period.get("number"), team_id)))
+            if team_id in abbr and man not in ("en", "ps", "extra") and spot:
+                x, y = spot
+                rebound = rush = False
+                if prev and prev["period"] == period.get("number") and t - prev["t"] <= 4:
+                    rebound = prev["shot"] and prev["team"] == team_id and t - prev["t"] <= 3
+                    # The play before was outside his team's attacking zone (the
+                    # rink's x read from his end): a rush.
+                    rush = not prev["shot"] and prev["x"] is not None and prev["x"] * directions.get((period.get("number"), team_id), 1) < BLUE_LINE_X
+                out.append({
+                    "shooter": str(shooter), "team": abbr[team_id], "goalie": str(d.get("goalieInNetId")),
+                    "area": shot_area(x, y), "y": y, "dist": math.hypot(GOAL_LINE_X - x, y),
+                    "angle": abs(math.degrees(math.atan2(y, GOAL_LINE_X - x))) if x <= GOAL_LINE_X else 90.0,
+                    "type": SHOT_TYPES.get(d.get("shotType"), "other"), "rebound": rebound, "rush": rush,
+                    "pp": man == "pp", "sh": man == "sh", "goal": kind == "goal",
+                })
+        if kind in ("goal", "shot-on-goal", "missed-shot", "blocked-shot", "hit", "giveaway", "takeaway", "faceoff"):
+            prev = {"t": t, "period": period.get("number"), "team": owner, "x": d.get("xCoord"),
+                    "shot": kind in ("goal", "shot-on-goal", "missed-shot", "blocked-shot")}  # a blocked shot's owner is the shooting team
+    return out
+
+
 # ---- one game ----
 def reduce_game(raw: dict) -> dict:
     """One finished game's play-by-play and box score boiled down to what the
@@ -334,6 +392,7 @@ def reduce_game(raw: dict) -> dict:
                 t["pim"] += d.get("duration") or 0
 
     skaters, goalies = {}, {}
+    on_pp = raw.get("pp_toi")  # {player id: power-play seconds}, the league's report (fetch_pp_toi)
     for side in ("homeTeam", "awayTeam"):
         team = box[side]["abbrev"]
         stats = (box.get("playerByGameStats") or {}).get(side) or {}
@@ -348,6 +407,8 @@ def reduce_game(raw: dict) -> dict:
                     "sog": s.get("sog", 0), "hits": s.get("hits", 0), "blk": s.get("blockedShots", 0), "att": extra.get("att", 0),
                     "hd": extra.get("a_low_slot", 0), "ppp": extra.get("ppp", 0), "pm": s.get("plusMinus", 0), "pim": s.get("pim", 0),
                     "unb": extra.get("unb", 0), "pp_unb": extra.get("pp_unb", 0),
+                    # Seconds on the power play (the league's per-game report); None when the game has none.
+                    "pp_toi": on_pp.get(str(pid), 0) if on_pp is not None else None,
                     # Where he shot from: {area: [shots (on goal or wide), on goal, goals]}, and by shot type: {type: [shots, goals]}.
                     "areas": {a: [extra[f"a_{a}"], extra.get(f"s_{a}", 0), extra.get(f"g_{a}", 0)] for a in AREAS if extra.get(f"a_{a}")},
                     "types": {k: [extra[f"t_{k}"], extra.get(f"tg_{k}", 0)] for k in (*dict.fromkeys(SHOT_TYPES.values()), "other") if extra.get(f"t_{k}")},
@@ -376,6 +437,8 @@ def reduce_game(raw: dict) -> dict:
         "teams": {k: dict(v) for k, v in teams.items()},
         "skaters": skaters,
         "goalies": goalies,
+        # Every unblocked shot on a goalie, for the goals model (game_shots).
+        "shots": game_shots(raw),
     }
 
 
@@ -402,24 +465,53 @@ def game_path(data_dir: Path, season: int, game_id: int) -> Path:
     return data_dir / "games" / str(season) / f"{game_id}.json.gz"
 
 
+def fetch_pp_toi(game_id: int) -> dict | None:
+    """{player id: seconds on the power play} for a finished game, from the
+    league's per-game time-on-ice report (official; the shift charts it
+    replaced are missing for some games and read about 15% short). None if
+    it can't be read (asked for again next build)."""
+    try:
+        rows = _request(f"{REST}/skater/timeonice?isAggregate=false&isGame=true&limit=-1&cayenneExp=gameId={game_id}", tries=2).get("data") or []
+    except Exception:
+        return None
+    return {str(r["playerId"]): r.get("ppTimeOnIce") or 0 for r in rows} or None
+
+
+def save_raw(path: Path, raw: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    with gzip.open(tmp, "wt", encoding="utf-8") as f:
+        json.dump(raw, f, separators=(",", ":"))
+    tmp.replace(path)
+
+
 def load_game(game_id: int, season: int, data_dir: Path) -> tuple:
     """(raw game, downloaded?). A game is kept on disk once the league marks
     it official ("OFF": the scorers' corrections are in); until then it is
-    downloaded again on the next build."""
+    downloaded again on the next build. A kept game also keeps each
+    skater's power-play seconds (`pp_toi`, for the goals model); one saved
+    before those were kept gets them the next time it is read."""
     path = game_path(data_dir, season, game_id)
+    raw = None
     if path.exists():
         try:
             with gzip.open(path, "rt", encoding="utf-8") as f:
-                return json.load(f), False
+                raw = json.load(f)
         except (OSError, ValueError):
             path.unlink()  # a half-written file: fetch it again
+    if raw is not None:
+        if "pp_toi" not in raw:
+            pp_toi = fetch_pp_toi(game_id)
+            if pp_toi:
+                raw["pp_toi"] = pp_toi
+                save_raw(path, raw)
+        return raw, False
     raw = {"pbp": _request(f"{API}/gamecenter/{game_id}/play-by-play"), "box": _request(f"{API}/gamecenter/{game_id}/boxscore")}
     if raw["pbp"].get("gameState") == "OFF":
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_name(path.name + ".tmp")
-        with gzip.open(tmp, "wt", encoding="utf-8") as f:
-            json.dump(raw, f, separators=(",", ":"))
-        tmp.replace(path)
+        pp_toi = fetch_pp_toi(game_id)
+        if pp_toi:
+            raw["pp_toi"] = pp_toi
+        save_raw(path, raw)
     return raw, True
 
 
@@ -1504,6 +1596,269 @@ def shots_record_summary(folder: Path) -> dict:
     return out
 
 
+# ---- Goals (anytime goal scorer; goals_model.py) ----
+def goals_model_for(records: list, shots: "shots_model.ShotsModel", hand: dict) -> "goals_model.GoalsModel":
+    """The goals model on this season's games only: both expected-goals
+    tables fitted on this season's shots, then every game added."""
+    model = goals_model.GoalsModel(shots, hand)
+    model.fit(records)
+    for record in records:
+        model.add_game(record)
+    return model
+
+
+def expected_goalie(team: str, posted: dict, goalies: dict) -> str | None:
+    """Tonight's goalie for `team`: the NHL's projected lineup's when it is
+    posted (a projection, never called confirmed), else the team's busiest
+    starter this season."""
+    goalie = (posted.get(team) or {}).get("goalie")
+    if goalie and str(goalie).isdigit():
+        return str(goalie)
+    listed = goalies.get(team) or []
+    return str(listed[0]["id"]) if listed and listed[0].get("id") else None
+
+
+def goals_play(chance: float, odds, move=None) -> dict | None:
+    """The anytime goal at the book's Yes price: the edge (model chance minus
+    the chance the price needs to break even) and how the page files it,
+    the Shots page's way: "strong" / "lean" / "none", or "check" (set
+    apart) when the gap is too big to take at face value or he has been
+    moved DOWN a line tonight (his games so far describe a bigger role)."""
+    if odds is None or chance is None:
+        return None
+    edge = chance - break_even(odds)
+    size = next((key for key in ("check", "strong", "lean") if edge >= GOALS_EDGES[key]), "none")
+    against_move = move == "down"
+    if against_move and size != "none":
+        size = "check"
+    return {"price": odds, "chance": chance, "edge": edge, "size": size, "against_move": against_move}
+
+
+def goal_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot, goalie, ranks: dict, odds: dict | None, first_odds) -> dict | None:
+    """One skater's anytime-goal projection for one game, what it is made
+    of, the Zone Match tag, and the book's price (with the first price seen)."""
+    proj = model.project(player["id"], opp, home, rest, opp_rest, player["team"], slot, goalie)
+    if proj is None:
+        return None
+    usual_slot = model.shots.usual_slot(player["id"], player["team"])
+    move = line_move(slot, usual_slot)
+    season = proj["season"]
+    price = (odds or {}).get("odds")
+    play = goals_play(proj["chance"], price, move)
+    return {
+        "id": player["id"], "name": player["name"], "team": player["team"], "opp": opp, "home": home, "pos": player["pos"], "out": out,
+        "slot": slot, "usual_slot": usual_slot, "move": move, "goalie": goalie,
+        # What his season says, plain.
+        "games": season.get("games", 0), "goals": season.get("goals", 0), "xg": round(season.get("xg", 0.0), 2), "shots": season.get("shots", 0),
+        "minutes": round(proj["minutes"], 1), "ev_min": round(proj["ev_min"], 1), "pp_min": round(proj["pp_min"], 1), "xg60": round(proj["rate60"], 3),
+        # Tonight: expected goals, the chance of 1+, its fair price, what each piece did.
+        "mean": round(proj["mean"], 3), "chance": round(proj["chance"], 3), "fair": shots_model.fair_american(proj["chance"]),
+        "lift": {key: round(value, 3) for key, value in proj["lift"].items()},
+        "shares": {area: round(share, 3) for area, share in proj["shares"].items()},
+        "zone": model.zone_match(player["id"], opp, ranks),
+        "odds": price, "no_odds": (odds or {}).get("no_odds"), "thin": (odds or {}).get("thin"),
+        "first_odds": first_odds if first_odds is not None else price,
+        "edge": round(play["edge"], 3) if play else None, "size": play["size"] if play else None,
+    }
+
+
+def goals_board(model, games: list, lineups: dict, injuries: dict, records: list, previous: dict | None, now_utc: datetime,
+                tonight: dict | None, skaters: dict | None, goalies: dict, player_odds: dict) -> dict:
+    """{game id: {"locked", "players": [rows]}} for the Goals page: the same
+    games, players and lock as the Shots page (shots_board). Every skater is
+    projected, with a price or not (the owner: Novig has no liquidity on
+    every player; the fair price is there to shop). A started game keeps the
+    last build's rows; a finished one gets each player's real goals."""
+    prev_games = (previous or {}).get("games") or {}
+    finished = {str(r["id"]): r for r in records}
+    last_day = (now_utc - timedelta(hours=4) + timedelta(days=SHOTS_DAYS_AHEAD)).strftime("%Y-%m-%d")
+    ranks = {area: model.area_ranks(area) for area in goals_model.ZONE["areas"]}
+    out = {}
+    for g in games:
+        started = g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+        if started:
+            kept = prev_games.get(g["game_id"])
+            if not kept:
+                continue
+            entry = {**kept, "locked": True}
+            record = finished.get(g["game_id"])
+            if record:
+                entry["final"] = True
+                entry["players"] = [{**row, "actual": (record["skaters"].get(row["id"]) or {}).get("g")} for row in kept["players"]]
+            out[g["game_id"]] = entry
+            continue
+        if g["date"] > last_day:
+            continue
+        posted = (tonight or {}).get(g["game_id"]) or {}
+        seen = {row["id"]: row for row in (prev_games.get(g["game_id"]) or {}).get("players") or []}
+        odds = player_odds.get(g["game_id"]) or {}
+        rows = []
+        for team, opp, side, other in ((g["away"], g["home"], "away", "home"), (g["home"], g["away"], "home", "away")):
+            slots = (posted.get(team) or {}).get("skaters")
+            if slots:
+                dressed = [(skaters[pid], slot, False) for pid, slot in slots.items() if pid in (skaters or {})]
+            else:
+                out_ids = {p["id"] for p in injuries.get(team) or [] if p.get("id") and p.get("status") in OUT_STATUSES}
+                dressed = [(player, None, player["id"] in out_ids) for player in lineups.get(team) or []]
+            goalie = expected_goalie(opp, posted, goalies)
+            for player, slot, is_out in dressed:
+                mine = (odds.get(player["id"]) or {}).get("goal")
+                first = (seen.get(player["id"]) or {}).get("first_odds")
+                row = goal_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot, goalie, ranks, mine, first)
+                if row:
+                    rows.append(row)
+        if rows:
+            out[g["game_id"]] = {"locked": False, "posted": posted.get("posted"), "players": sorted(rows, key=lambda row: -row["chance"])}
+    return out
+
+
+GOALS_RECORD_COLS = ("id", "name", "team", "chance", "mean", "odds", "first_odds", "thin", "zone", "actual", "move")
+
+
+def record_goal_games(folder: Path, board: dict, games: list) -> int:
+    """Adds each newly finished game to the Goals record: every projected
+    player who played (priced or not, so the chances and the Zone Match tag
+    can be graded on everyone), with the chance and the prices locked before
+    puck drop, the first price the site saw (for closing line value), and
+    the game's locked total and moneylines (to test the market as an anchor
+    later). Written once, never changed. Returns how many games were added."""
+    by_month = {}
+    for g in games:
+        entry = board.get(g["game_id"]) or {}
+        if entry.get("final"):
+            by_month.setdefault(g["date"][:7], []).append((g, entry))
+    added = 0
+    for month, finals in by_month.items():
+        path = folder / f"{month}.json"
+        saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"cols": GOALS_RECORD_COLS, "games": {}}
+        before = len(saved["games"])
+        for g, entry in finals:
+            if g["game_id"] in saved["games"]:
+                continue
+            plays = [[row["id"], row["name"], row["team"], row["chance"], row["mean"], row.get("odds"), row.get("first_odds"), row.get("thin"),
+                      (row.get("zone") or {}).get("area"), row["actual"], row.get("move")] for row in entry["players"] if row.get("actual") is not None]
+            if plays:
+                saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"],
+                                                "market": {k: g.get(k) for k in ("total_line", "away_ml_implied_prob", "home_ml_implied_prob")}, "plays": plays}
+        if len(saved["games"]) > before:
+            folder.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
+            added += len(saved["games"]) - before
+    return added
+
+
+def goals_record_summary(folder: Path) -> dict:
+    """The Goals record so far.
+      * By edge bucket (strong / lean / none / check), the Zone Match tag
+        (`zone`) and thin prices (`thin`): wins, losses and units risking 1
+        a play at the locked Yes price.
+      * `clv`: closing line value on the called plays (lean + strong): how
+        far the price moved from the first one the site saw to the locked one,
+        in points of chance (+ = shortened, the market moved to the model).
+        Hundreds of plays say more here than a season of wins and losses.
+      * `honest`: every graded player (priced or not) by what the model said
+        against how often he scored; `zone_all` the same for every tagged player.
+      * `days` and `plays` (latest GOALS_RECORD_DAYS days), as the Shots record."""
+    tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
+    out = {"since": None, "through": None, "games": 0, "players": 0, **{k: tally() for k in ("strong", "lean", "none", "check", "zone", "thin")},
+           "clv": {"plays": 0, "points": 0.0, "shortened": 0, "drifted": 0},
+           "honest": [{"lo": lo, "hi": hi, "players": 0, "said": 0.0, "scored": 0} for lo, hi in zip(GOALS_HONEST, GOALS_HONEST[1:])],
+           "zone_all": {"players": 0, "said": 0.0, "scored": 0}}
+    days, plays = {}, []
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
+            out["games"] += 1
+            out["since"] = min(out["since"] or game["date"], game["date"])
+            out["through"] = max(out["through"] or game["date"], game["date"])
+            for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move in game["plays"]:
+                scored = actual > 0
+                out["players"] += 1
+                for bucket in out["honest"]:
+                    if bucket["lo"] <= chance < bucket["hi"]:
+                        bucket["players"] += 1
+                        bucket["said"] += chance
+                        bucket["scored"] += scored
+                if zone:
+                    out["zone_all"]["players"] += 1
+                    out["zone_all"]["said"] += chance
+                    out["zone_all"]["scored"] += scored
+                play = goals_play(chance, odds, move)
+                if play is None:
+                    continue
+                units = (100 / -odds if odds < 0 else odds / 100) if scored else -1.0
+                size = play["size"]
+                for key in (size, *(["zone"] if zone else []), *(["thin"] if thin else [])):
+                    out[key]["wins" if scored else "losses"] += 1
+                    out[key]["units"] = round(out[key]["units"] + units, 2)
+                if size == "none":
+                    continue
+                if size in ("strong", "lean"):
+                    day = days.setdefault(game["date"], tally())
+                    day["wins" if scored else "losses"] += 1
+                    day["units"] = round(day["units"] + units, 2)
+                    if first_odds is not None:
+                        moved = break_even(odds) - break_even(first_odds)
+                        out["clv"]["plays"] += 1
+                        out["clv"]["points"] += moved
+                        if moved > 0.0005:
+                            out["clv"]["shortened"] += 1
+                        elif moved < -0.0005:
+                            out["clv"]["drifted"] += 1
+                plays.append({
+                    "date": game["date"], "id": pid, "name": name, "team": team, "opp": game["home"] if team == game["away"] else game["away"], "home": team == game["home"],
+                    "price": odds, "first": first_odds, "chance": chance, "edge": round(play["edge"], 3), "size": size, "zone": zone, "thin": thin,
+                    "actual": actual, "won": scored, "units": round(units, 2),
+                })
+    for bucket in out["honest"]:
+        bucket["said"] = round(bucket["said"], 2)
+    out["zone_all"]["said"] = round(out["zone_all"]["said"], 2)
+    n = out["clv"]["plays"]
+    out["clv"]["points"] = round(out["clv"]["points"] / n, 4) if n else None  # average, per play
+    out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
+    latest = set(sorted({play["date"] for play in plays})[-GOALS_RECORD_DAYS:])
+    out["plays"] = sorted((play for play in plays if play["date"] in latest), key=lambda play: (play["date"], play["edge"]), reverse=True)
+    return out
+
+
+def goals_defense(model, teams) -> dict:
+    """{team: what its defense allows: expected goals a game (`season`, the
+    steadied `blend` the model reads, `factor` against the league, `rank`
+    1 = allows the most), and shots a game from the low slot and the slot with
+    their ranks (what the Zone Match tag reads)}."""
+    out = {team: {"xg": model.allowed(team, "xg")} for team in teams}
+    order = sorted(out, key=lambda team: -out[team]["xg"]["blend"])
+    for area in goals_model.ZONE["areas"]:
+        ranks = model.area_ranks(area)
+        for team in out:
+            t = model.teams.get(team) or {}
+            out[team][area] = {"season": num(t.get(f"n_{area}", 0) / t["games"]) if t.get("games") else None, "rank": ranks.get(team)}
+    for team in out:
+        row = out[team]["xg"]
+        out[team]["xg"] = {"season": num(row["season"]), "blend": num(row["blend"]), "factor": num(row["factor"], 3), "rank": order.index(team) + 1}
+    return out
+
+
+def goals_file(season: int, generated_at: str, records: list, shots, games: list, lineups: dict, injuries: dict, previous: dict | None,
+               now_utc: datetime, tonight: dict | None, skaters: dict, goalies: dict, player_odds: dict, record_dir: Path) -> dict:
+    """site/nhl/goals.json: the board, the rules, the expected-goals tables and the record."""
+    hand = {pid: s.get("shoots") for pid, s in skaters.items() if s.get("shoots")}
+    model = goals_model_for(records, shots, hand)
+    board = goals_board(model, games, lineups, injuries, records, previous, now_utc, tonight, skaters, goalies, player_odds)
+    try:
+        record_goal_games(record_dir, board, games)
+        record = goals_record_summary(record_dir)
+    except Exception as e:  # a damaged record file must never cost the page its board
+        print(f"WARNING: the Goals record couldn't be updated ({e}).", file=sys.stderr)
+        record = None
+    lg = model.league
+    return {
+        "season": season, "generated_at": generated_at, "weights": model.w, "edges": GOALS_EDGES, "zone": goals_model.ZONE,
+        "xg": {"names": goals_model.XG_NAMES, "base": model.xg[False], "wing": model.xg[True], "shots": sum(lg[f"n_{a}"] for a in AREAS)},
+        "league": {"goals_per_shot": num(lg["g"] / sum(lg[f"n_{a}"] for a in AREAS), 4) if lg["g"] else None, "xg_per_team_game": num(lg["xg"] / lg["team_games"]) if lg["team_games"] else None},
+        "games": board, "defense": goals_defense(model, list(model.teams)), "record": record,
+    }
+
+
 # ---- King of the Crease (the Promo Tools page) ----
 def saves_model_for(records: list):
     """The saves model fed every finished game of this season, and nothing
@@ -1859,6 +2214,7 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=Path("data/nhl"), help="Where finished games are kept between builds")
     parser.add_argument("--record-dir", type=Path, default=SHOTS_RECORD_DIR, help="Where the Shots page's graded plays are kept")
     parser.add_argument("--crease-record-dir", type=Path, default=CREASE_RECORD_DIR, help="Where King of the Crease's finished days are kept")
+    parser.add_argument("--goals-record-dir", type=Path, default=GOALS_RECORD_DIR, help="Where the Goals page's graded players are kept")
     args = parser.parse_args()
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -1934,6 +2290,14 @@ def main():
             json.dump(crease, f, separators=(",", ":"))
     except Exception as e:  # King of the Crease must never cost the other NHL pages their data
         print(f"WARNING: King of the Crease couldn't be built ({e}).", file=sys.stderr)
+    try:
+        goals = goals_file(args.season, generated_at, stats["records"], model, games, lineups, injuries, fetch_previous(LIVE_GOALS_URL), now_utc,
+                           tonight, stats["skaters"], goalies, player_odds, args.goals_record_dir)
+    except Exception as e:  # Goals must never cost the other NHL pages their data
+        print(f"WARNING: the Goals page couldn't be built ({e}).", file=sys.stderr)
+        goals = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
+    with open(args.out.parent / "goals.json", "w") as f:
+        json.dump(goals, f, separators=(",", ":"))
     d = stats["debug"]
     print(f"Wrote {args.out} -- {season_label(args.season)}: {d['games_loaded']} of {d['games_wanted']} finished games ({d['games_downloaded']} downloaded), {len(games)} on the schedule, lines for {novig_debug['matched']}")
     if d["errors"]:

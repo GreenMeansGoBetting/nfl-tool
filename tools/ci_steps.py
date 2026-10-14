@@ -284,6 +284,8 @@ def suite_note(site: Path, suite: str) -> dict:
         note["shots"] = len(shots.get("games") or {}) if shots else None  # games with projections
         crease = read_json(site / "nhl" / "crease.json")
         note["crease"] = len(crease.get("days") or {}) if crease else None  # King of the Crease: days with a board
+        goals = read_json(site / "nhl" / "goals.json")
+        note["goals"] = len(goals.get("games") or {}) if goals else None  # Goals: games with projections
     return note
 
 
