@@ -687,7 +687,8 @@ function bookPanelFor(x, stat, line, label, chanceAt, edges, labels) {
   const r = x.r;
   const g = x.game;
   const spec = {
-    kind: "prop", stat, team: r.team, pid: r.id, name: r.name, side: "o", line,
+    // Opens on the side the row's play is on (an Under play shows the unders).
+    kind: "prop", stat, team: r.team, pid: r.id, name: r.name, side: x.play && x.play.side === "under" ? "u" : "o", line,
     game: `${g.away}_${g.home}`, title: `${r.name} &middot; ${label}`, sub: `${g.away} @ ${g.home}`, color: `#${team(r.team).color}`,
     edges, ...(labels ? { labels, labelLine: line } : {}),
   };
