@@ -43,7 +43,7 @@ LIVE = "https://nfl.gmgsports.org"
 # the teams in its data file. A test checks this list against .gitignore, so
 # a new generated file can't be left out of a republish.
 SUITES = {
-    "nfl": ["data.json"],
+    "nfl": ["data.json", "koe_weeks.json"],
     "nba": ["nba/data.json"],
     "nhl": ["nhl/data.json", "nhl/shots.json", "nhl/crease.json", "nhl/goals.json"],
 }
@@ -123,8 +123,8 @@ def main(argv=None):
             players = nhl_player_files()
             got += [download(rel, headers) for rel in players] or ["missing"]
         results[suite] = got
-    if results.get("nfl", ["ok"]) != ["ok"]:
-        return 1  # the NFL data is the one file nothing can run without
+    if results.get("nfl", ["ok"])[0] != "ok":
+        return 1  # the NFL data.json is the one file nothing can run without
     if any(set(results.get(suite, ["missing"])) != {"ok"} for suite in args.need):
         return 1
     if args.strict and any("failed" in got for got in results.values()):

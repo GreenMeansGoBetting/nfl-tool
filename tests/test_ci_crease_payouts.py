@@ -1,4 +1,4 @@
-"""King of the Crease payouts: /api/crease-payouts in the login middleware
+"""Promo payouts: /api/crease-payouts (NHL) and /api/koe-payouts (NFL) in the login middleware
 (nfl_tool/functions/_middleware.js), added 2026-10-14.
 
 The owner pastes what DraftKings paid after each contest on the NHL Promo
@@ -31,11 +31,14 @@ window.fakeDB = () => {
   const stmt = (sql, args = []) => ({
     bind: (...a) => stmt(sql, a),
     run: async () => {
-      if (sql.startsWith("INSERT INTO crease_payouts")) rows.set(args[0], { date: args[0], pool: args[1], payouts: args[2] });
-      if (sql.startsWith("DELETE FROM crease_payouts")) rows.delete(args[0]);
+      const table = (sql.match(/^(?:INSERT INTO|DELETE FROM) (\w+)/) || [])[1];
+      if (!table) return {};
+      if (!rows.has(table)) rows.set(table, new Map());
+      if (sql.startsWith("INSERT")) rows.get(table).set(args[0], { k: args[0], pool: args[1], payouts: args[2] });
+      else rows.get(table).delete(args[0]);
       return {};
     },
-    all: async () => ({ results: [...rows.values()].sort((a, b) => (a.date < b.date ? -1 : 1)) }),
+    all: async () => ({ results: [...((rows.get((sql.match(/FROM (\w+)/) || [])[1]) || new Map()).values())].sort((a, b) => (a.k < b.k ? -1 : 1)) }),
   });
   return { prepare: (sql) => stmt(sql), rows };
 };
@@ -118,6 +121,15 @@ class Payouts(unittest.TestCase):
                     {**DAY, "payouts": [{"name": "A", "paid": -1}]}, {**DAY, "payouts": "Levi 1961"}):
             self.assertEqual(api(uid=OWNER, method="PUT", body=bad)["status"], 400, bad)
         self.assertEqual(api(uid=OWNER)["body"]["days"], {})
+
+    def test_king_of_the_endzone_is_its_own_list_keyed_by_game(self):
+        koe = "https://nfl.gmgsports.org/api/koe-payouts"
+        game = {"game": "2026_04_ATL_NO", "pool": 1000000, "payouts": [{"id": "ATL", "name": "Bijan Robinson", "paid": 812}]}
+        self.assertEqual(api(koe, uid=OWNER, method="PUT", body=game)["status"], 200)
+        self.assertEqual(api(koe, uid=OWNER, method="PUT", body={**game, "game": "2026-10-13"})["status"], 400)
+        self.assertEqual(api(koe, uid="123", method="PUT", body=game)["status"], 403)
+        self.assertEqual(api(koe, uid="123")["body"]["days"], {"2026_04_ATL_NO": {"pool": 1000000, "payouts": game["payouts"]}})
+        self.assertEqual(api(uid="123")["body"]["days"], {})  # the hockey list is untouched
 
     def test_it_answers_on_the_hockey_address(self):
         api(uid=OWNER, method="PUT", body=DAY)

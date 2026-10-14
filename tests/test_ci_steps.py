@@ -256,6 +256,7 @@ class LiveData(unittest.TestCase):
         self.site = Path(self.folder.name)
         self.live = {
             "data.json": {"teams": ["BUF"]},
+            "koe_weeks.json": {"boards": {}, "results": {}},
             "nba/data.json": {"teams": {}},
             "nhl/data.json": {"teams": {"NJD": {}, "DET": {}}},
             "nhl/shots.json": {"games": {}},
@@ -299,13 +300,22 @@ class LiveData(unittest.TestCase):
 
     def test_the_hockey_refresh_takes_the_other_suites_only(self):
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
+        self.assertEqual(self.here(), ["data.json", "koe_weeks.json", "nba/data.json"])
+        self.assertEqual(self.asked, ["data.json", "koe_weeks.json", "nba/data.json"])
+
+    def test_king_of_the_endzones_weeks_not_live_yet_is_not_an_error(self):
+        """The first deploy after koe_weeks.json was added: a refresh before it
+        must still put the NFL data back."""
+        del self.live["koe_weeks.json"]
+        self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
         self.assertEqual(self.here(), ["data.json", "nba/data.json"])
-        self.assertEqual(self.asked, ["data.json", "nba/data.json"])
+        # A reused deploy needs every NFL file, so it builds instead.
+        self.assertEqual(fetch_live_data.main(["--only", "nfl", "--need", "nfl"]), 1)
 
     def test_a_suite_that_is_not_live_is_not_an_error(self):
         del self.live["nba/data.json"]  # the last NBA build failed: nothing to put back
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["data.json"])
+        self.assertEqual(self.here(), ["data.json", "koe_weeks.json"])
 
     def test_strict_stops_when_a_live_file_cannot_be_downloaded(self):
         self.live["nba/data.json"] = 503
@@ -317,17 +327,17 @@ class LiveData(unittest.TestCase):
     def test_a_hiccup_is_tried_again(self):
         self.live["data.json"] = [urllib.error.URLError("timed out"), 502, {"teams": ["BUF"]}]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
-        self.assertEqual(self.asked, ["data.json"] * 3)
+        self.assertEqual(self.asked, ["data.json"] * 3 + ["koe_weeks.json"])
         self.assertEqual(json.loads((self.site / "data.json").read_text()), {"teams": ["BUF"]})
 
     def test_the_login_page_is_never_saved_as_data(self):
         """A wrong key is answered with the login page and a 200."""
         self.live["data.json"] = b"<!doctype html><html><body>GMG Sports Data Suite: log in</body></html>"
         self.assertEqual(fetch_live_data.main(["--only", "nfl"]), 1)
-        self.assertEqual(self.here(), [])
+        self.assertNotIn("data.json", self.here())
         self.live["data.json"] = b'["a list is not the data file"]'
         self.assertEqual(fetch_live_data.main(["--only", "nfl"]), 1)
-        self.assertEqual(self.here(), [])
+        self.assertNotIn("data.json", self.here())
 
     def test_no_nfl_data_always_stops(self):
         del self.live["data.json"]
@@ -351,7 +361,7 @@ class LiveData(unittest.TestCase):
     def test_a_file_already_here_is_left_alone(self):
         self.site.joinpath("data.json").write_text('{"local": true}', encoding="utf-8")
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
-        self.assertEqual(self.asked, [])
+        self.assertEqual(self.asked, ["koe_weeks.json"])
         self.assertEqual(json.loads((self.site / "data.json").read_text()), {"local": True})
 
     def test_it_only_runs_with_the_build_key(self):

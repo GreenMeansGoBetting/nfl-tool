@@ -64,6 +64,33 @@ DraftKings' weekly promo paying on the game's LONGEST TD, D/ST included.
   TDs the opponent has allowed. No Upside score for D/ST yet.
 - Data: `build_stats.py compute_koe` -> `DATA.koe` (players per team, team big plays allowed,
   `dst_tds` / `dst_tds_allowed`; return TD length = `return_yards`, else `fumble_recovery_1_yards`).
+- **Week toggle** (2026-10-14, the owner: "doesn't have a week toggle so going back is not
+  possible"): arrows beside "Week N" in the Teams panel. A past week shows its board **as it
+  stood going into the week** (labeled so): `koe_week_boards` runs `compute_koe` on the games
+  before week W, for W = 2 to now (week 1 has nothing before it), and saves each one once every
+  earlier game is final (`model_history/nfl_koe/<season>/week-NN.json`, committed by the deploy
+  bot) so the build doesn't redo the season every run. Past weeks: that week's injury report
+  and the QB who started that week (`koeOut`, `koeStarterQb`); this week keeps the live rules.
+  Once a game is final a **Result** column shows each player's longest TD in it, with a star for
+  the game's longest (`koe_game_results`: offensive TDs at their gain, return TDs as "<TEAM>
+  D/ST" at their return length, ties name everyone; roster full names). Both go to
+  `site/koe_weeks.json` (its own file, only this page loads it; on fetch_live_data's list).
+- **Winners** (2026-10-14, the NHL King of the Crease list carried over): beside the table when
+  there is room, never in the saved image. One collapsible line per **contest** = a game the
+  owner has logged payouts for (the promo is one game a week, so far Monday night): week and
+  game, the longest TD's scorer and yards, his place going into the week ("2nd of 20" = by
+  Upside among both teams' players, starters only, as the table ranks them: `koeBoard`), and
+  what he paid. Open: pool, about how many were on him (pool / payout), **If they'd won** (each
+  player DraftKings showed a payout for: TD, Pre, Up, Paid), our top Upside and the most picked.
+  No Worth column: Upside is a 0-100 score, not a chance (the planned longest-TD chance model
+  would add one, and a Value column).
+  - The owner's paste box (only with `html.is-owner`): pick the game (finished games, the last
+    Monday one first), the pool (required; filled from the last one logged), DraftKings' list as
+    it comes. Names match both teams' board players, every TD scorer and both D/STs ("Falcons
+    D/ST"); any unmatched name, or no pool, blocks the save. D1 `koe_payouts` through
+    `/api/koe-payouts` (members-and-hosting.md).
+- Tests: `tests/test_koe_build.py` (results and boards on hand-made plays) and
+  `tests/test_koe_site.py` (the toggle, Result column, Winners and paste box in a browser).
 
 ## Shared logic in common.js (other pages rely on it)
 

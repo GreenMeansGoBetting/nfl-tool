@@ -54,10 +54,26 @@
       <button type="button" id="koe-save" class="summary-save-btn">Save image</button>
     </div>
 
+    <div class="koe-main">
     <div id="koe-capture" class="koe-capture">
       <div class="koe-capture-head"><span class="brand-mark">GMG</span><span id="koe-capture-title" class="koe-capture-title">King of the Endzone</span></div>
       <div id="koe-players"></div>
       <div id="koe-dst"></div>
+    </div>
+
+    <!-- Outside #koe-capture, so never in the saved image. -->
+    <aside id="koe-winners" class="koe-winners">
+      <h3 class="koe-winners-title">Winners <button type="button" class="info-i" aria-expanded="false" aria-controls="koe-winners-note" title="How to read this">i</button></h3>
+      <p class="section-note info-note" id="koe-winners-note" hidden>Each contest's longest TD, where this page had the scorer going into that week (<b>Pre</b>: his place by Upside among both teams' players; <b>Up</b>: his Upside), and what DraftKings paid. <b>If they'd won</b> is what DraftKings showed each of those players would have paid. The pool is split evenly among everyone on the winner whatever they bet, so a smaller payout means more people were on him: pool &divide; payout is about how many. Click a game to open it. Use the week arrows above to see any past week's board.</p>
+      <div id="koe-winners-list"></div>
+      <div id="koe-log" class="koe-log" hidden>
+        <div class="koe-log-top">Log a contest's payouts <span class="koe-log-only">Only you see this</span></div>
+        <select id="koe-log-game" aria-label="Game"></select>
+        <label class="koe-log-pool">Pool $<input id="koe-log-pool" type="text" inputmode="numeric" placeholder="DraftKings' pool"></label>
+        <textarea id="koe-log-text" rows="5" placeholder="Bijan Robinson - $1,234 in Bonus Bets"></textarea>
+        <div class="koe-log-bot"><span id="koe-log-status" class="koe-log-status"></span><button type="button" id="koe-log-save" class="summary-save-btn">Save</button></div>
+      </div>
+    </aside>
     </div>
   </section>
 </main>

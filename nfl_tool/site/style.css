@@ -3329,6 +3329,55 @@ main { max-width: 1840px; }
 /* Save image: the capture block hugs the table so the PNG has no empty right side */
 .koe-capture { width: max-content; max-width: 100%; }
 .koe-capture.koe-capturing { max-width: none; padding: 10px 12px; }
+/* King of the Endzone: week toggle, Result column, Winners list (promo-tools.js renderKoeWinners; beside the table when there is room, never in the saved image) */
+.koe-week { display: inline-flex; align-items: center; gap: 6px; }
+.koe-week .week-nav-btn { padding: 0 8px; min-width: 26px; height: 24px; }
+.koe-week-note { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.koe-crown { color: var(--mid-text); }
+.koe-main { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; }
+.koe-main > .koe-capture { flex: 0 1 auto; min-width: 0; }
+.koe-winners { flex: 1 1 340px; min-width: 0; max-width: 430px; display: flex; flex-direction: column; gap: 8px; }
+.koe-winners-title { display: flex; align-items: center; margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.koe-winners .info-note { margin: 0; }
+.koe-win-day { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.koe-win-sum { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; padding: 7px 10px; cursor: pointer; list-style: none; }
+.koe-win-sum::-webkit-details-marker { display: none; }
+.koe-win-sum::after { content: "\25BE"; color: var(--muted); font-size: 0.8rem; transition: transform 0.15s; }
+.koe-win-day[open] .koe-win-sum::after { transform: rotate(180deg); }
+.koe-win-day[open] .koe-win-sum { background: rgba(var(--good-rgb), 0.13); border-bottom: 1px solid rgba(var(--good-rgb), 0.35); }
+.koe-win-date { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.koe-win-who { display: flex; align-items: center; gap: 5px; min-width: 0; font-weight: 700; white-space: nowrap; }
+.koe-win-names { overflow: hidden; text-overflow: ellipsis; }
+.koe-win-yds { font-family: var(--font-display); font-size: 1.3rem; line-height: 1; margin-left: 2px; }
+.koe-win-rank { padding: 1px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; white-space: nowrap; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.18); border: 1px solid rgba(var(--mid-rgb), 0.5); }
+.koe-win-paid { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: var(--good-text); white-space: nowrap; text-align: right; }
+.koe-win-paid .muted-label { font-family: inherit; font-size: 0.7rem; font-weight: 700; }
+.koe-win-meta, .koe-win-label { padding: 6px 10px 0; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.koe-win-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.82rem; }
+.koe-win-table th:nth-child(2) { width: 34px; }
+.koe-win-table th:nth-child(3) { width: 48px; }
+.koe-win-table th:nth-child(4) { width: 36px; }
+.koe-win-table th:nth-child(5) { width: 58px; }
+.koe-win-table th { padding: 5px 4px 3px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.koe-win-table td { padding: 4px; text-align: center; border-top: 1px solid var(--border); white-space: nowrap; }
+.koe-win-table th:first-child, .koe-win-table td:first-child { text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; }
+.koe-win-name .team-logo-mini, .koe-win-name img { vertical-align: middle; margin-right: 5px; }
+.koe-win-name span { font-weight: 600; vertical-align: middle; }
+.koe-win-row td { background: rgba(var(--good-rgb), 0.08); }
+.koe-win-cap { padding: 5px 10px 7px; font-size: 0.74rem; color: var(--muted); border-top: 1px solid var(--border); }
+.koe-win-cap img { vertical-align: middle; }
+.koe-log { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1.5px dashed var(--border-strong); border-radius: 12px; }
+html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
+.koe-log-top { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 800; }
+.koe-log-only { margin-left: auto; padding: 1px 6px; border-radius: 6px; font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--good-text); background: rgba(var(--accent-rgb), 0.15); }
+.koe-log select, .koe-log input, .koe-log textarea { color: var(--text); background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 0.76rem; padding: 3px 6px; }
+.koe-log-pool { font-size: 0.74rem; color: var(--muted); }
+.koe-log-pool input { width: 120px; margin-left: 4px; }
+.koe-log textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.koe-log-bot { display: flex; align-items: center; gap: 8px; font-size: 0.74rem; color: var(--muted); }
+.koe-log-bot button { margin-left: auto; }
+.koe-log-good { color: var(--good-text); }
+.koe-log-bad { color: var(--bad-text); }
 .koe-capture-head { display: none; align-items: center; gap: 8px; margin-bottom: 8px; }
 .koe-capturing .koe-capture-head { display: flex; }
 .koe-capturing .koe-section { overflow: visible; }

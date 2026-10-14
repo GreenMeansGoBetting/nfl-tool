@@ -2628,6 +2628,69 @@ def compute_koe(pbp: pd.DataFrame, pos_lookup) -> dict:
     return {"players": players, "teams": teams, "big": KOE_BIG, "huge": KOE_HUGE, "deep_air": KOE_DEEP_AIR}
 
 
+KOE_WEEKS_DIR = Path(__file__).resolve().parent.parent / "model_history" / "nfl_koe"
+
+
+def koe_game_results(pbp: pd.DataFrame, pos_lookup) -> dict:
+    """Every finished game's King of the Endzone answer: `longest` (yds),
+    `winners` (everyone whose TD was that long; D/ST as "<TEAM> D/ST") and
+    `tds` = each scorer's longest TD that game. Names are the roster's full
+    names, the same as the board's, so the page can match them."""
+    out = {}
+    tds = pbp[(pbp["touchdown"] == 1) & pbp["td_team"].notna() & (pbp["two_point_attempt"] != 1)]
+    for gid, g in tds.groupby("game_id"):
+        best: dict = {}
+        for r in g.itertuples():
+            if r.return_touchdown == 1 or r.td_team != r.posteam:
+                ry = r.return_yards if pd.notna(r.return_yards) and r.return_yards > 0 else r.fumble_recovery_1_yards
+                yds, name, team = int(ry) if pd.notna(ry) else 0, f"{r.td_team} D/ST", r.td_team
+            else:
+                if not isinstance(r.td_player_id, str):
+                    continue
+                _, _, full = pos_lookup(r.td_player_id, r.week)
+                yds, name, team = int(r.yards_gained) if pd.notna(r.yards_gained) else 0, full or r.td_player_name, r.td_team
+            key = (name, team)
+            best[key] = max(best.get(key, -1), yds)
+        if not best:
+            continue
+        longest = max(best.values())
+        out[gid] = {
+            "longest": longest,
+            "winners": [{"name": n, "team": t, "yds": y} for (n, t), y in best.items() if y == longest],
+            "tds": [[n, t, y] for (n, t), y in sorted(best.items(), key=lambda kv: -kv[1])],
+        }
+    return out
+
+
+def koe_week_boards(pbp: pd.DataFrame, pos_lookup, schedule: list, folder: Path | None, season: int) -> dict:
+    """King of the Endzone as it stood going into each week: compute_koe on
+    the games before week W, for W = 2 through the week now being played
+    (week 1 has nothing before it). The page's week toggle shows a past week
+    from these, and the Winners list reads its pregame ranks from them.
+    A board is saved to `folder` once every earlier game is final and read
+    back from then on, so the build doesn't redo the whole season every run."""
+    weeks = sorted({g["week"] for g in schedule if g.get("week")})
+    final = lambda w: all(g.get("status") == "final" for g in schedule if g.get("week") and g["week"] < w)
+    started = {g["week"] for g in schedule if g.get("week") and g.get("status") == "final"}
+    if not started:
+        return {}
+    now = max(started)
+    if all(g.get("status") == "final" for g in schedule if g.get("week") == now) and now + 1 in weeks:
+        now += 1
+    boards = {}
+    for w in range(2, now + 1):
+        path = folder / str(season) / f"week-{w:02d}.json" if folder else None
+        if path and path.exists():
+            boards[str(w)] = json.loads(path.read_text(encoding="utf-8"))
+            continue
+        board = compute_koe(pbp[pbp["week"] < w], pos_lookup)
+        boards[str(w)] = board
+        if path and final(w):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(board, separators=(",", ":")) + "\n", encoding="utf-8")
+    return boards
+
+
 def compute_prop_matchup_model(pbp: pd.DataFrame, pos_lookup) -> dict:
     """Returns {"league": {metric: value}, "teams": {team: {"off": {...},
     "def": {...}}}} where each side's metric is {"v": adjusted value,
@@ -5107,6 +5170,16 @@ def main():
         json.dump(blob, f, indent=1)
 
     print(f"Wrote {args.out} -- season {season}, through week {max_week}, {len(teams)} teams")
+
+    # King of the Endzone's past weeks and results (its own file: only the
+    # Promo Tools page loads it). A failure here must never cost the NFL build.
+    try:
+        koe_weeks = {"season": season, "boards": koe_week_boards(pbp, pos_lookup, schedule, KOE_WEEKS_DIR, season), "results": koe_game_results(pbp, pos_lookup)}
+    except Exception as e:
+        print(f"WARNING: King of the Endzone's past weeks couldn't be built ({e}).", file=sys.stderr)
+        koe_weeks = {"season": season, "boards": {}, "results": {}, "error": str(e)[:200]}
+    (args.out.parent / "koe_weeks.json").write_text(json.dumps(koe_weeks, separators=(",", ":")), encoding="utf-8")
+    print(f"Wrote koe_weeks.json -- {len(koe_weeks['boards'])} past boards, {len(koe_weeks['results'])} games")
 
 
 if __name__ == "__main__":

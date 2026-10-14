@@ -74,7 +74,7 @@ that, move detail into a rules file.
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Update Odds", and pushes touching `nfl_tool/**`
   (a push rebuilds, tests and browser-checks only the sport it changed: `tools/ci_steps.py` `plan` / `work_scope`; shared files such as style.css check all). `nhl-refresh.yml`: hourly hockey-only refresh. `cloudflare-domain.yml`: one-off domain attach.
-- `model_history/`, committed by the deploy bot: `gmg_model.json` (locked projections), `nhl_shots/<month>.json` (graded Shots plays), `nhl_goals/` (graded Goals players), `nhl_crease/` (King of the Crease's days).
+- `model_history/`, committed by the deploy bot: `gmg_model.json` (locked projections), `nfl_koe/` (King of the Endzone's past weekly boards), `nhl_shots/<month>.json` (graded Shots plays), `nhl_goals/` (graded Goals players), `nhl_crease/` (King of the Crease's days).
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
   `.github/workflows/site-check.yml` runs it against the live data once a day.

@@ -328,23 +328,29 @@ async function handleRequests(request, env, session, json) {
   return json({ error: "method" }, 405);
 }
 
-// ---- King of the Crease payouts (added 2026-10-14) ----
-// After each contest DraftKings shows what each of a few goalies paid (or
-// would have paid) per winner. The owner pastes that list on the NHL Promo
-// Tools page; every member sees it in the Winners list. One row per day:
-// the pool and [{id, name, paid}] as JSON. The table is made here on first
-// use, so it needs no deploy step.
-const CREASE_PAYOUTS_TABLE = "CREATE TABLE IF NOT EXISTS crease_payouts (date TEXT PRIMARY KEY, pool INTEGER, payouts TEXT NOT NULL, updated INTEGER NOT NULL)";
-const CREASE_PAYOUTS_MAX = 64; // goalies a day (32 starters, room for doubles)
+// ---- Promo payouts (added 2026-10-14) ----
+// After each contest DraftKings shows what a few players / goalies paid (or
+// would have paid) per winner. The owner pastes that list on the Promo Tools
+// page; every member sees it in the Winners list. One row per contest: the
+// pool and [{id, name, paid}] as JSON. Each table is made here on first use,
+// so it needs no deploy step.
+//   King of the Crease (NHL): one contest a day, keyed by date.
+//   King of the Endzone (NFL): one contest a game, keyed by nflverse game id.
+const PROMO_PAYOUTS = {
+  "/api/crease-payouts": { table: "crease_payouts", col: "date", key: /^\d{4}-\d{2}-\d{2}$/ },
+  "/api/koe-payouts": { table: "koe_payouts", col: "game", key: /^\d{4}_\d{2}_[A-Z]{2,3}_[A-Z]{2,3}$/ },
+};
+const PROMO_PAYOUTS_MAX = 64; // names a contest (32 starters, room to spare)
 
-async function handleCreasePayouts(request, env, session, json) {
-  await env.DB.prepare(CREASE_PAYOUTS_TABLE).run();
+async function handlePromoPayouts(request, env, session, json, promo) {
+  const { table, col, key } = promo;
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS ${table} (${col} TEXT PRIMARY KEY, pool INTEGER, payouts TEXT NOT NULL, updated INTEGER NOT NULL)`).run();
   if (request.method === "GET") {
-    const { results } = await env.DB.prepare("SELECT date, pool, payouts FROM crease_payouts ORDER BY date").all();
+    const { results } = await env.DB.prepare(`SELECT ${col} AS k, pool, payouts FROM ${table} ORDER BY ${col}`).all();
     const days = {};
     for (const r of results || []) {
       try {
-        days[r.date] = { pool: r.pool, payouts: JSON.parse(r.payouts) };
+        days[r.k] = { pool: r.pool, payouts: JSON.parse(r.payouts) };
       } catch (e) {
         // a damaged row is skipped, never the whole list
       }
@@ -359,26 +365,27 @@ async function handleCreasePayouts(request, env, session, json) {
   } catch (e) {
     return json({ error: "bad json" }, 400);
   }
-  const { date, pool, payouts } = body || {};
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return json({ error: "bad date" }, 400);
+  const { pool, payouts } = body || {};
+  const which = (body || {})[col];
+  if (!key.test(which || "")) return json({ error: `bad ${col}` }, 400);
   if (!Number.isInteger(pool) || pool < 1 || pool > 100000000) return json({ error: "bad pool" }, 400);
-  if (!Array.isArray(payouts) || payouts.length > CREASE_PAYOUTS_MAX) return json({ error: "bad payouts" }, 400);
+  if (!Array.isArray(payouts) || payouts.length > PROMO_PAYOUTS_MAX) return json({ error: "bad payouts" }, 400);
   const clean = [];
   for (const p of payouts) {
     const name = String((p && p.name) || "").trim().slice(0, 80);
-    const id = p && p.id != null ? String(p.id).slice(0, 12) : null;
+    const id = p && p.id != null ? String(p.id).slice(0, 40) : null;
     const paid = p && p.paid;
     if (!name || !Number.isFinite(paid) || paid < 0 || paid > 10000000) return json({ error: "bad payout" }, 400);
     clean.push({ id, name, paid: Math.round(paid) });
   }
   if (!clean.length) {
-    await env.DB.prepare("DELETE FROM crease_payouts WHERE date = ?").bind(date).run();
+    await env.DB.prepare(`DELETE FROM ${table} WHERE ${col} = ?`).bind(which).run();
     return json({ ok: true });
   }
   await env.DB.prepare(
-    "INSERT INTO crease_payouts (date, pool, payouts, updated) VALUES (?, ?, ?, ?) ON CONFLICT(date) DO UPDATE SET pool = excluded.pool, payouts = excluded.payouts, updated = excluded.updated"
+    `INSERT INTO ${table} (${col}, pool, payouts, updated) VALUES (?, ?, ?, ?) ON CONFLICT(${col}) DO UPDATE SET pool = excluded.pool, payouts = excluded.payouts, updated = excluded.updated`
   )
-    .bind(date, pool, JSON.stringify(clean), Date.now())
+    .bind(which, pool, JSON.stringify(clean), Date.now())
     .run();
   return json({ ok: true });
 }
@@ -389,9 +396,9 @@ async function handleApi(request, env, session, json) {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleRequests(request, env, session, json);
   }
-  if (url.pathname === "/api/crease-payouts") {
+  if (PROMO_PAYOUTS[url.pathname]) {
     if (!env.DB) return json({ error: "no database" }, 503);
-    return handleCreasePayouts(request, env, session, json);
+    return handlePromoPayouts(request, env, session, json, PROMO_PAYOUTS[url.pathname]);
   }
   if (url.pathname !== "/api/state") return json({ error: "not found" }, 404);
   if (!env.DB) return json({ error: "no database" }, 503);

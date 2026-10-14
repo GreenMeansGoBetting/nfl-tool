@@ -96,7 +96,8 @@ imported by it (rules in game-previews.md).
   against a backup QB count 30% toward the defense's numbers.
 - **Game script:** each throw is flagged `gt` when win probability is under 10% or over 90%
   (`GARBAGE_WP`), with `s` for play success (used by the zone grades in player-props.md).
-- `compute_koe` -> `DATA.koe` (King of the Endzone; plays-and-promos.md).
+- `compute_koe` -> `DATA.koe` (King of the Endzone; plays-and-promos.md). `koe_week_boards` +
+  `koe_game_results` -> `site/koe_weeks.json` (past weeks' boards, each game's longest TD).
 
 ## Lineup-aware player usage (important)
 

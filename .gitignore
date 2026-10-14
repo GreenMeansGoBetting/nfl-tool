@@ -6,6 +6,7 @@ nfl_tool/data/
 # so it doesn't quietly go stale; `git rm --cached` it once if it was
 # already committed.
 nfl_tool/site/data.json
+nfl_tool/site/koe_weeks.json
 nfl_tool/site/nba/data.json
 nfl_tool/site/nhl/data.json
 nfl_tool/site/nhl/shots.json
