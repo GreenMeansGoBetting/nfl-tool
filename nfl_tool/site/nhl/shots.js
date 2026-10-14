@@ -15,7 +15,8 @@
 let SHOTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
-const shotsView = { side: "best", pos: "all", lineup: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all" };
+// checks: the "check first" plays shown (at the top) or hidden.
+const shotsView = { side: "best", pos: "all", lineup: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -142,16 +143,20 @@ function gameState(g) {
 const STATE_ORDER = { open: 0, live: 1, final: 2 };
 // A day with some games started and some not gets the "when" buttons.
 const dayIsMixed = (date) => new Set(gamesOn(date).filter(boardFor).map((g) => (gameState(g) === "open" ? "open" : "started"))).size === 2;
-const rankGroup = (x) => (needsCheck(x) ? 1 : 0);
+// Ranked by edge, the "check first" plays lead (the owner, 2026-10-14: "These are massive
+// edges, and last night the top 10 plays went 9-1. I don't like that they are hidden at the
+// bottom when they may in fact be the best plays"), with a switch to hide them.
+const rankGroup = (x) => (needsCheck(x) ? 0 : 1);
 // Who is listed: only players with a shots-on-goal line to play (the owner:
 // no "everyone" view), and under "Lineup Confirmed" only those the NHL's
 // projected lineup has on a line or pair tonight.
-function sortedRows(date, lineup = shotsView.lineup) {
+function sortedRows(date, lineup = shotsView.lineup, checks = shotsView.checks) {
   const get = SORTS[shotsView.sort] || SORTS.edge;
   return rowsFor(date)
     .filter((x) => !x.r.out && x.play)
     .filter((x) => shotsView.pos === "all" || positionGroup(x.r.pos) === shotsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
+    .filter((x) => checks || !needsCheck(x))
     .filter((x) => !dayIsMixed(date) || shotsView.when === "all" || (shotsView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
       // Plays still to come first, then games in progress, then finished ones, whatever the sort.
@@ -193,13 +198,16 @@ function renderSchedule() {
 function renderToolbar() {
   const group = (key, options) =>
     `<span class="shots-filter">${options.map(([value, label, tip]) => `<button type="button" class="view-toggle-btn shots-filter-btn${String(shotsView[key]) === String(value) ? " active" : ""}" data-filter="${key}" data-value="${value}"${tip ? ` title="${tip}"` : ""}>${label}</button>`).join("")}</span>`;
+  // Side, skaters and lineups are dropdowns (the owner: "to reduce the clutter").
+  const menu = (key, label, options, tip) =>
+    `<label class="shots-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select class="shots-filter-select" data-filter="${key}">${options.map(([value, text]) => `<option value="${value}"${String(shotsView[key]) === String(value) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
+  // How many "check first" plays the switch hides, with every other filter as it is.
+  const checks = sortedRows(days()[dayIndex], shotsView.lineup, true).filter(needsCheck).length;
   el("shots-toolbar").innerHTML =
-    group("side", [["best", "Best side"], ["over", "Overs"], ["under", "Unders"]]) +
-    group("pos", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
-    group("lineup", [
-      ["all", "All", "Every game, including those still waiting on a lineup: those players are projected from their recent ice time"],
-      ["confirmed", "Lineup Confirmed", "Only players in a game whose lineup the NHL has posted: each is listed on tonight's line or pair"],
-    ]) +
+    menu("side", "Side", [["best", "Best side"], ["over", "Overs"], ["under", "Unders"]], "Best side: the side of each line the model likes more. Overs / Unders: that side for everyone") +
+    menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
+    menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup (projected from recent ice time). Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
+    `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${shotsView.checks ? " active" : ""}" data-filter="checks" data-value="${!shotsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a play against tonight's line change. They lead the ranking; click to ${shotsView.checks ? "hide" : "show"} them.">Check plays: ${shotsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +
     // Once some of the day's games have started: every play of the day stays listed (started ones
     // grayed, under the ones still to come), or just one kind.
     (dayIsMixed(days()[dayIndex])
@@ -522,8 +530,16 @@ function renderTable() {
       const stateHead = x.state !== "open" && i > 0 && rows[i - 1].state !== x.state && rows[0].state !== x.state
         ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-state-head"><td colspan="${columns}">${x.state === "live" ? "Live now: these games have started. The play, price and projection are the last ones from before puck drop." : "Final: locked before puck drop and graded."}</td></tr>`
         : "";
-      // The first "check" play in the ranking starts its group.
-      const divider = stateHead + (rankedByEdge() && needsCheck(x) && (i === 0 || !needsCheck(rows[i - 1]) || rows[i - 1].state !== x.state) ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-check-head"><td colspan="${columns}">Not plays. A gap too big to take at face value (a handful of games against everything the market knows), or a play against tonight's line change.</td></tr>` : "");
+      // Ranked by edge, the "check first" plays lead under their own heading, and the first play
+      // after them starts the rest.
+      const sameGroup = i > 0 && rows[i - 1].state === x.state;
+      const checkHead = rankedByEdge() && needsCheck(x) && (!sameGroup || !needsCheck(rows[i - 1]))
+        ? `${i > 0 ? `<tr class="group-gap"><td colspan="${columns}"></td></tr>` : ""}<tr class="group-row shots-check-head"><td colspan="${columns}">Check first. The biggest gaps to the market (${Math.round(edgeAt("check") * 100)}+ points: a handful of games against everything the book knows), or a play against tonight's line change. Look for news (a line change, a scratch, a new role) before you bet.</td></tr>`
+        : "";
+      const playsHead = rankedByEdge() && !needsCheck(x) && sameGroup && needsCheck(rows[i - 1])
+        ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-plays-head"><td colspan="${columns}">Plays: an edge of ${Math.round(edgeAt("lean") * 100)} to ${Math.round(edgeAt("check") * 100)} points, best first.</td></tr>`
+        : "";
+      const divider = stateHead + checkHead + playsHead;
       const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
         <td class="num shots-rank">${i + 1}</td>
         <td class="nba-player shots-player">${playerClick(r.id, who)}<span class="muted-label">${r.pos}</span><span class="shots-vs">${logo(r.team, 16)}<span class="at">${r.home ? "vs" : "@"}</span>${logo(r.opp, 16)}</span></td>
@@ -592,6 +608,14 @@ function showRecord(open) {
 }
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") showRecord(false);
+});
+// The Side, Skaters and Lineups dropdowns.
+document.addEventListener("change", (e) => {
+  const menu = e.target.closest(".shots-filter-select");
+  if (!menu) return;
+  shotsView[menu.dataset.filter] = menu.value;
+  shotsView.open = null;
+  render();
 });
 document.addEventListener("click", (e) => {
   if (e.target.closest("#shots-record-open")) return showRecord(true);

@@ -57,7 +57,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null, when: 'all' }, view);
+            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true }, view);
             selectDay(days().indexOf(day));
         }""",
         [day, view],
@@ -120,25 +120,44 @@ class Ranking(unittest.TestCase):
             self.assertEqual(r["fade"], play["fade"] and play["edge"] >= build_nhl.SHOTS_EDGES["lean"], r)
         self.assertGreater(sum(1 for play in plays.values() if play["fade"] and play["edge"] >= build_nhl.SHOTS_EDGES["lean"]), 5)
 
-    def test_best_edge_first_with_the_too_big_gaps_underneath(self):
+    def test_the_check_plays_lead_then_the_rest_best_edge_first(self):
+        """The owner, 2026-10-14: the "check" plays were "hidden at the bottom when they may in
+        fact be the best plays". They lead the ranking under their own heading; the rest follow."""
         plays = expected_plays()
         rows = reset()
         # The build files a play as "check" (a gap too big, or a play against tonight's line change); so must the page.
         believable = [r for r in rows if plays[r["id"]]["size"] != "check"]
         too_big = [r for r in rows if plays[r["id"]]["size"] == "check"]
         self.assertGreater(len(too_big), 0)
-        # The table lists every believable play, best first, then the "check" group.
-        self.assertEqual([r["id"] for r in rows], [r["id"] for r in believable] + [r["id"] for r in too_big])
-        edges = [plays[r["id"]]["edge"] for r in believable]
-        self.assertEqual(edges, sorted(edges, reverse=True))
-        self.assertEqual([r["check"] for r in rows], [False] * len(believable) + [True] * len(too_big))
-        # A play is green; nothing in the set-apart group is.
+        self.assertEqual([r["id"] for r in rows], [r["id"] for r in too_big] + [r["id"] for r in believable])
+        for group in (believable, too_big):
+            edges = [plays[r["id"]]["edge"] for r in group]
+            self.assertEqual(edges, sorted(edges, reverse=True))
+        self.assertEqual([r["check"] for r in rows], [True] * len(too_big) + [False] * len(believable))
+        # A play is green; a check play is amber, never green.
         self.assertTrue(all(r["amber"] and not r["green"] for r in too_big))
         self.assertTrue(all(r["green"] == (plays[r["id"]]["edge"] >= build_nhl.SHOTS_EDGES["lean"]) and not r["amber"] for r in believable))
         self.assertEqual([r["rank"] for r in rows[:3]], ["1", "2", "3"])
-        self.assertEqual(len(PAGE.query_selector_all(".shots-check-head")), 1)
-        head = PAGE.evaluate("() => document.querySelector('.shots-check-head').nextElementSibling.dataset.row.split(':')[1]")
-        self.assertEqual(head, too_big[0]["id"])
+        # One heading over the check plays, one over the rest.
+        self.assertEqual((len(PAGE.query_selector_all(".shots-check-head")), len(PAGE.query_selector_all(".shots-plays-head"))), (1, 1))
+        first = PAGE.evaluate("() => document.querySelector('.shots-check-head').nextElementSibling.dataset.row.split(':')[1]")
+        self.assertEqual(first, too_big[0]["id"])
+        after = PAGE.evaluate("() => document.querySelector('.shots-plays-head').nextElementSibling.dataset.row.split(':')[1]")
+        self.assertEqual(after, believable[0]["id"])
+
+    def test_the_check_plays_switch_hides_them(self):
+        plays = expected_plays()
+        reset()
+        too_big = sum(1 for play in plays.values() if play["size"] == "check")
+        label = lambda: PAGE.evaluate("() => document.querySelector('.shots-check-toggle').textContent")
+        self.assertEqual(label(), "Check plays: Shown")
+        PAGE.evaluate("() => document.querySelector('.shots-check-toggle').click()")
+        rows = PAGE.evaluate(ROWS)
+        self.assertEqual({r["id"] for r in rows}, {pid for pid, play in plays.items() if play["size"] != "check"})
+        self.assertEqual(label(), f"Check plays: Hidden ({too_big})")
+        self.assertEqual(len(PAGE.query_selector_all(".shots-check-head, .shots-plays-head")), 0)
+        PAGE.evaluate("() => document.querySelector('.shots-check-toggle').click()")
+        self.assertEqual(len(PAGE.evaluate(ROWS)), len(plays))
 
     def test_sorting_by_another_column_drops_the_grouping(self):
         reset()
@@ -284,10 +303,12 @@ class Filters(unittest.TestCase):
         "Lineup Confirmed" showed nothing until you hit All) / "Lineup Confirmed". No "Everyone"."""
         page = SITE.open("nhl/shots.html")
         page.wait_for_function("() => typeof SHOTS !== 'undefined' && SHOTS !== null && !document.getElementById('shots-app').hidden")
-        state = lambda: page.evaluate("() => ({ lineup: shotsView.lineup, buttons: [...document.querySelectorAll('.shots-filter-btn[data-filter=\"lineup\"]')].map((b) => [b.textContent, b.classList.contains('active')]), toolbar: document.getElementById('shots-toolbar').textContent, rows: document.querySelectorAll('.shots-row').length, text: document.getElementById('shots-content').textContent.trim().replace(/\\s+/g, ' ') })")
+        state = lambda: page.evaluate("() => ({ lineup: shotsView.lineup, buttons: [...document.querySelectorAll('.shots-filter-select[data-filter=\"lineup\"] option')].map((o) => [o.textContent, o.selected]), toolbar: document.getElementById('shots-toolbar').textContent, rows: document.querySelectorAll('.shots-row').length, text: document.getElementById('shots-content').textContent.trim().replace(/\\s+/g, ' ') })")
         opened = state()
         self.assertEqual(opened["lineup"], "all")
-        self.assertEqual(opened["buttons"], [["All", True], ["Lineup Confirmed", False]])
+        self.assertEqual(opened["buttons"], [["All players", True], ["Lineup Confirmed", False]])
+        # Side, skaters and lineups are dropdowns (the owner: "to reduce the clutter").
+        self.assertEqual(page.evaluate("() => [...document.querySelectorAll('.shots-filter-select')].map((s) => s.dataset.filter)"), ["side", "pos", "lineup"])
         self.assertNotIn("Everyone", opened["toolbar"])
         self.assertNotIn("With a line", opened["toolbar"])
         # It opens on 10-12 (the sample's clock): three finished games with no line saved,
@@ -299,11 +320,11 @@ class Filters(unittest.TestCase):
         plays = expected_plays()
         self.assertEqual({r["id"] for r in page.evaluate(ROWS)}, set(plays))
         # "Lineup Confirmed" keeps only the one game whose lineup is in.
-        page.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"lineup\"][data-value=\"confirmed\"]').click()")
+        page.evaluate("() => { const s = document.querySelector('.shots-filter-select[data-filter=\"lineup\"]'); s.value = 'confirmed'; s.dispatchEvent(new Event('change', { bubbles: true })); }")
         confirmed = {r["id"] for r in page.evaluate(ROWS)}
         self.assertEqual(confirmed, {pid for pid, play in plays.items() if play["slot"]})
         self.assertEqual(len(confirmed), 15)
-        self.assertEqual(state()["buttons"], [["All", False], ["Lineup Confirmed", True]])
+        self.assertEqual(state()["buttons"], [["All players", False], ["Lineup Confirmed", True]])
         self.assertEqual(SITE.errors, [])
 
     def test_lineup_confirmed_lists_only_players_on_a_line_tonight(self):

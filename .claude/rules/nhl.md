@@ -338,10 +338,17 @@ on a replay, and the page keeps a record against the real prices.
     side of his main Novig line ("Best side"; Overs / Unders show one side for everyone). The page
     does no shot math: it reads `chances` and compares them with prices. `pickSide` must agree
     with the build's `shots_play` (a test checks every row), since the record is graded by it.
-  - **"Not plays" are set apart, never hidden**, in their own group under the ranking, amber
-    instead of green: a gap of 12+ points (`check`: a handful of games against everything the
-    market knows), and **a play against tonight's line change** (`new line`: an under on a player
-    moved up a line, an over on one moved down; his games so far don't describe tonight's role).
+  - **"Check first" plays lead the ranking**, under their own heading, amber instead of green: a
+    gap of 12+ points (`check`: a handful of games against everything the market knows), and **a
+    play against tonight's line change** (`new line`: an under on a player moved up a line, an
+    over on one moved down). Then "Plays", best edge first. They sat at the bottom as "Not
+    plays" until the owner, 2026-10-14, after night one (check 44-29, +7.5u; lean 14-27): "These
+    are massive edges, and last night the top 10 plays went 9-1. I don't like that they are
+    hidden at the bottom". A **Check plays: Shown / Hidden (N)** switch (`shotsView.checks`)
+    drops them. The record still grades them as their own bucket.
+  - **Toolbar:** Side, Skaters and Lineups are dropdowns (`.shots-filter-select`, the owner: "to
+    reduce the clutter"), then the Check plays switch. "How the number is made" sits at the top
+    of the Shots panel, under the schedule strip.
   - **Line column:** L1-L4 / D1-D3 from the projected lineup, an arrow when it is above or below
     the line his minutes say he has been on, "--" until the lineup is posted. A note above the
     table says how many of the day's games have lineups, and each game in the strip is marked

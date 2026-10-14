@@ -86,6 +86,9 @@
 /* NHL Shots (site/nhl/shots.html + shots.js): one ranked table for the day's slate; a row opens its breakdown */
 .shots-toolbar { flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; }
 .shots-filter { display: inline-flex; gap: 6px; }
+/* The Side / Skaters / Lineups dropdowns */
+.shots-menu { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.shots-menu select { margin: 0; font-weight: 700; text-transform: none; letter-spacing: 0; color: var(--text); cursor: pointer; }
 .shots-card-empty { opacity: 0.45; }
 .shots-card-lineup { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; color: var(--muted); opacity: 0.75; }
 .shots-card-lineup-in { color: var(--good-text); opacity: 1; }
@@ -114,7 +117,7 @@
 .shots-play span { font-size: 0.92rem; font-weight: 700; color: var(--muted); }
 .shots-play-over { border-color: rgba(var(--good-rgb), 0.5); background: rgba(var(--good-rgb), 0.1); }
 .shots-play-under { border-color: rgba(var(--bad-rgb), 0.5); background: rgba(var(--bad-rgb), 0.1); }
-.shots-table .group-row.shots-check-head td { white-space: normal; }
+.shots-table .group-row.shots-check-head td, .shots-table .group-row.shots-plays-head td { white-space: normal; }
 /* A play in a game that has started: still listed, grayed like King of the Crease's started goalies */
 .shots-row.shots-live > td { opacity: 0.5; }
 .shots-row.shots-live.shots-open > td { opacity: 0.8; }
@@ -167,7 +170,7 @@
 .shots-record-strong { background: rgba(var(--good-rgb), 0.22); border-color: rgba(var(--good-rgb), 0.6); }
 .shots-record-lean { background: rgba(var(--good-rgb), 0.1); }
 .shots-record-check { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.55); }
-.shots-about { margin-top: 16px; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
+.shots-about { margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
 .shots-about summary { cursor: pointer; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
 .shots-about-body { max-width: 900px; font-size: 0.9rem; line-height: 1.45; color: var(--text); }
 .shots-about-body ul { margin: 6px 0 10px; padding-left: 20px; }

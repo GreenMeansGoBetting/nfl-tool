@@ -47,16 +47,6 @@
     <div id="empty-state" class="empty-state"><p>Loading the NHL slate&hellip;</p></div>
 
     <div id="shots-app" class="section-wrap" hidden>
-      <div class="shots-title-row">
-        <h2 class="section-title" id="shots-title">Shots on Goal</h2>
-        <button type="button" id="shots-record-open" class="view-toggle-btn shots-record-open">YTD Model Performance</button>
-      </div>
-      <p class="section-note">Every skater with a shots-on-goal line, best value first, from this season's games only. It opens on <b>All</b>: every game, including those still waiting on the NHL's projected lineup (usually posted around midday Eastern), whose players are projected from their recent ice time. <b>Lineup Confirmed</b> keeps only the games whose lineup is in (marked &#10003; Lineup above), so each player is in tonight's lineup and on the line shown. <b>Line</b> is where the NHL's projected lineup has him tonight (an arrow = moved up or down from his usual line); <b>Avg</b> is his shots on goal a game so far; <b>Proj</b> is what the model expects tonight; <b>Edge</b> is the model's chance minus the chance Novig's price needs to break even. The columns on the right show what moved the number tonight: green means more shots for him, red fewer. Click a row for the full breakdown, a name for the player card, a game above to see only that game.</p>
-      <div id="shots-toolbar" class="view-toggle shots-toolbar"></div>
-      <p id="shots-lineups" class="no-data-note" hidden></p>
-      <p id="shots-locked" class="no-data-note" hidden></p>
-      <div id="shots-content"></div>
-
       <details class="shots-about">
         <summary>How the number is made, and how far to trust it</summary>
         <div class="shots-about-body">
@@ -65,7 +55,7 @@
           <p><b>This season only.</b> Nothing from last season is in the model: not a player's old shot rate, not a defense's old numbers. Early in a season that means small samples, and two things follow from it.</p>
           <ul>
             <li><b>Proj can sit well off his Avg.</b> The model only partly trusts a handful of games: it mixes in an average skater at his position with his ice time (and an average defense for the other team), all from this season. When that puts a play against his own average, the row says <i>vs his avg</i>. In a replay of 2025-26, players whose average after 5 to 9 games said "over" while the model said "under" went over 36% of the time at a 1.5 line and 33% at 2.5: hot starts cooled. The record keeps those plays apart so you can see whether that holds.</li>
-            <li><b>There are a lot of big gaps to the market until about game 20.</b> A star who starts slowly looks like an under to a model that has only seen this season; the book knows who he is. Those are the plays set apart at the bottom, marked <i>check</i>.</li>
+            <li><b>There are a lot of big gaps to the market until about game 20.</b> A star who starts slowly looks like an under to a model that has only seen this season; the book knows who he is. Those are the plays marked <i>check</i>, at the top of the ranking under their own heading (the <b>Check plays</b> switch hides them). The record keeps them as their own bucket.</li>
           </ul>
           <p><b>What a full-season replay showed</b> (2025-26: every game projected only from that season's games before it, 44,496 player-games):</p>
           <ul>
@@ -78,6 +68,16 @@
           <p><b>What it has not shown:</b> that it beats the betting line. There is no free history of shots-on-goal prices to test against, and the market sees lineup news the model doesn't. So the page keeps its own record, above: every play graded at the price that was locked before puck drop. Until that record says otherwise, treat an edge as a spot worth a look, and a very large one (marked <i>check</i>) as a reason to look for news first.</p>
         </div>
       </details>
+      <div class="shots-title-row">
+        <h2 class="section-title" id="shots-title">Shots on Goal</h2>
+        <button type="button" id="shots-record-open" class="view-toggle-btn shots-record-open">YTD Model Performance</button>
+      </div>
+      <p class="section-note">Every skater with a shots-on-goal line, best value first, from this season's games only. It opens on <b>All players</b>: every game, including those still waiting on the NHL's projected lineup (usually posted around midday Eastern), whose players are projected from their recent ice time. <b>Lineup Confirmed</b> keeps only the games whose lineup is in (marked &#10003; Lineup above), so each player is in tonight's lineup and on the line shown. The biggest gaps (<i>check</i>) lead the ranking under their own heading; <b>Check plays</b> hides them. <b>Line</b> is where the NHL's projected lineup has him tonight (an arrow = moved up or down from his usual line); <b>Avg</b> is his shots on goal a game so far; <b>Proj</b> is what the model expects tonight; <b>Edge</b> is the model's chance minus the chance Novig's price needs to break even. The columns on the right show what moved the number tonight: green means more shots for him, red fewer. Click a row for the full breakdown, a name for the player card, a game above to see only that game.</p>
+      <div id="shots-toolbar" class="view-toggle shots-toolbar"></div>
+      <p id="shots-lineups" class="no-data-note" hidden></p>
+      <p id="shots-locked" class="no-data-note" hidden></p>
+      <div id="shots-content"></div>
+
     </div>
   </div>
 </main>
