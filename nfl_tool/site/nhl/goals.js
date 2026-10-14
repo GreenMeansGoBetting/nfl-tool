@@ -1,0 +1,589 @@
+// ---- GMG NHL Suite: Goals (anytime goal scorer) ----
+// Every skater in the day's games, priced or not, ranked by value: the
+// model's chance to score (nfl_tool/nhl/goals_model.py, written to
+// goals.json by the build) next to Novig's anytime price. The owner,
+// 2026-10-14: "displayed similarly to shots for ease of use", and Novig
+// doesn't have liquidity on every player, so a player with no price is still
+// listed with the model's fair price (under the plays). This season's numbers
+// only, like every NHL prop tool.
+// No goal math lives here: the build sends each player's chance, fair price,
+// edge and bucket (`size`, the same one the record is graded by); the page
+// draws them. The rink's defense boxes come from shots.json (the Shots page's
+// defense numbers: shots a game allowed from each area).
+
+let GOALS = null;
+let SHOTS = null; // shots.json: each defense's shots allowed by area, and tonight's posted lineups
+let dayIndex = 0;
+let gameId = null;
+const goalsView = { pos: "all", lineup: "all", odds: "all", zone: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true };
+
+const edgeAt = (size) => ((GOALS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
+// Set apart, the Shots page's way: a gap of 12+ points, or a player moved down a line tonight
+// (the build's goals_play files both as "check").
+const needsCheck = (x) => x.r.size === "check";
+const LIFT_CALL = 0.025;
+const MINUTES_TREND = 1.0;
+const breakEven = (price) => (has(price) ? (price < 0 ? -price / (100 - price) : 100 / (price + 100)) : null);
+const fairPrice = (p) => (!has(p) || p <= 0 || p >= 1 ? null : p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p));
+function points(edge) {
+  if (!has(edge)) return "--";
+  const text = (edge * 100).toFixed(1);
+  return Number(text) === 0 ? "0.0" : `${edge > 0 ? "+" : ""}${text}`;
+}
+const liftText = (lift) => `${lift >= 1 ? "+" : ""}${Math.round((lift - 1) * 100)}%`;
+const liftTier = (lift) => (lift - 1 >= LIFT_CALL ? "tier-good" : lift - 1 <= -LIFT_CALL ? "tier-bad" : "");
+const positionGroup = (pos) => (pos === "D" ? "D" : "F");
+const teamsInLeague = () => Object.keys((GOALS || {}).defense || {}).length || 32;
+const rankWord = (rank) => rankWords(rank, teamsInLeague());
+const ZONE_WORD = { low_slot: "low slot", slot: "slot" };
+// Home ice and rest; the net-front trim and the off wing ("Style").
+const siteLift = (r) => r.lift.home * r.lift.b2b * r.lift.opp_b2b;
+const styleLift = (r) => r.lift.low * r.lift.onetimer;
+// 2 or more goals when `mean` are expected (the model's count is a plain one).
+const twoPlus = (mean) => 1 - Math.exp(-mean) * (1 + mean);
+
+// ---- schedule ----
+function days() {
+  return [...new Set(DATA.schedule.map((g) => g.date))].sort();
+}
+function gamesOn(date) {
+  return DATA.schedule.filter((g) => g.date === date);
+}
+function currentGame() {
+  return DATA.schedule.find((g) => g.game_id === gameId) || null;
+}
+const boardFor = (g) => ((GOALS || {}).games || {})[g.game_id] || null;
+function seasonLine(id) {
+  const found = findPlayer(id);
+  return found ? found.row : null;
+}
+function gameState(g) {
+  const board = boardFor(g) || {};
+  if (g.status === "final" || board.final) return "final";
+  return board.locked || g.status === "live" || (g.start_utc && Date.now() >= Date.parse(g.start_utc)) ? "live" : "open";
+}
+const STATE_ORDER = { open: 0, live: 1, final: 2 };
+const dayIsMixed = (date) => new Set(gamesOn(date).filter(boardFor).map((g) => (gameState(g) === "open" ? "open" : "started"))).size === 2;
+
+// ---- rows ----
+function rowsFor(date) {
+  const rows = [];
+  gamesOn(date).forEach((g) => {
+    if (gameId && g.game_id !== gameId) return;
+    const board = boardFor(g);
+    if (!board) return;
+    board.players.forEach((r) => {
+      const result = has(r.actual) && has(r.odds) ? (r.actual > 0 ? "win" : "loss") : null;
+      rows.push({ r, game: g, board, season: seasonLine(r.id), result, state: gameState(g) });
+    });
+  });
+  return rows;
+}
+const SORTS = {
+  edge: (x) => x.r.edge,
+  chance: (x) => x.r.chance,
+  proj: (x) => x.r.mean,
+  goals: (x) => x.r.goals,
+  xg: (x) => x.r.xg,
+  minutes: (x) => x.r.minutes,
+  opp: (x) => x.r.lift.opp,
+  goalie: (x) => x.r.lift.goalie,
+  finish: (x) => x.r.lift.finish,
+  split: (x) => x.r.lift.split,
+  style: (x) => styleLift(x.r),
+  site: (x) => siteLift(x.r),
+  line: (x) => (x.r.slot ? x.r.lift.line : null),
+};
+const rankedByEdge = () => goalsView.sort === "edge" && goalsView.dir < 0;
+// Ranked by edge: "check first" on top (as on the Shots page), then the plays, then
+// everyone with no odds by his chance to score.
+const rankGroup = (x) => (needsCheck(x) ? 0 : has(x.r.edge) ? 1 : 2);
+function sortedRows(date, lineup = goalsView.lineup, checks = goalsView.checks) {
+  const get = SORTS[goalsView.sort] || SORTS.edge;
+  return rowsFor(date)
+    .filter((x) => !x.r.out)
+    .filter((x) => goalsView.pos === "all" || positionGroup(x.r.pos) === goalsView.pos)
+    .filter((x) => lineup === "all" || x.r.slot)
+    .filter((x) => goalsView.odds === "all" || has(x.r.odds))
+    .filter((x) => goalsView.zone === "all" || x.r.zone)
+    .filter((x) => checks || !needsCheck(x))
+    .filter((x) => !dayIsMixed(date) || goalsView.when === "all" || (goalsView.when === "open") === (x.state === "open"))
+    .sort((a, b) => {
+      if (a.state !== b.state) return STATE_ORDER[a.state] - STATE_ORDER[b.state];
+      if (rankedByEdge() && rankGroup(a) !== rankGroup(b)) return rankGroup(a) - rankGroup(b);
+      const [va, vb] = [get(a), get(b)];
+      if (!has(va) || !has(vb)) return has(va) ? -1 : has(vb) ? 1 : b.r.chance - a.r.chance;
+      return (va - vb) * goalsView.dir || b.r.chance - a.r.chance;
+    });
+}
+
+// ---- drawing ----
+function renderSchedule() {
+  const all = days();
+  const date = all[dayIndex];
+  el("schedule-scroller").hidden = !all.length;
+  el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  el("day-prev").disabled = dayIndex <= 0;
+  el("day-next").disabled = dayIndex >= all.length - 1;
+  el("matchup-row").innerHTML = gamesOn(date)
+    .map((g) => {
+      const final = g.status === "final";
+      const board = boardFor(g);
+      const lineup = !board
+        ? ""
+        : board.posted
+          ? `<span class="shots-card-lineup shots-card-lineup-in" title="The NHL's projected lineup for this game is in">&#10003; Lineup</span>`
+          : `<span class="shots-card-lineup" title="The NHL hasn't posted this game's projected lineup yet (usually around midday Eastern)">No lineup yet</span>`;
+      return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}${board ? "" : " shots-card-empty"}" data-game="${g.game_id}" data-away="${g.away}" data-home="${g.home}" title="${board ? "Show only this game (click again for the whole day)" : "No projections for this game yet"}">
+        <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
+        <span class="matchup-date">${final ? "Final" : fmtTime(g.time).replace(" ET", "")}</span>
+        ${lineup}
+      </button>`;
+    })
+    .join("");
+}
+function renderToolbar() {
+  const group = (key, options) =>
+    `<span class="shots-filter">${options.map(([value, label, tip]) => `<button type="button" class="view-toggle-btn shots-filter-btn${String(goalsView[key]) === String(value) ? " active" : ""}" data-filter="${key}" data-value="${value}"${tip ? ` title="${tip}"` : ""}>${label}</button>`).join("")}</span>`;
+  const menu = (key, label, options, tip) =>
+    `<label class="shots-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select class="shots-filter-select" data-filter="${key}">${options.map(([value, text]) => `<option value="${value}"${String(goalsView[key]) === String(value) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
+  const checks = sortedRows(days()[dayIndex], goalsView.lineup, true).filter(needsCheck).length;
+  el("shots-toolbar").innerHTML =
+    menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
+    menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup. Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
+    menu("odds", "Odds", [["all", "Priced or not"], ["priced", "Priced only"]], "Priced or not: every player, the ones Novig hasn't priced with the model's fair price only") +
+    menu("zone", "Zone Match", [["all", "Everyone"], ["only", "Zone Match only"]], "His heavy shooting area against a defense that allows a lot from it. Tracked, not in the number") +
+    `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${goalsView.checks ? " active" : ""}" data-filter="checks" data-value="${!goalsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a player moved down a line tonight. They lead the ranking; click to ${goalsView.checks ? "hide" : "show"} them.">Check plays: ${goalsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +
+    (dayIsMixed(days()[dayIndex])
+      ? group("when", [
+          ["all", "All games", "Every player of the day: games still to come first, started games grayed underneath"],
+          ["open", "Not started", "Only games that haven't started"],
+          ["started", "Live / final", "Only games that have started: locked at the last price before puck drop"],
+        ])
+      : "");
+}
+const zoneTip = (r) => `Zone Match: ${Math.round(r.zone.share * 100)}% of his shots come from the ${ZONE_WORD[r.zone.area]} (his position: ${Math.round(r.zone.lg_share * 100)}%), and ${r.opp} allows ${fmt(r.zone.opp_pg)} shots a game from there (${rankWord(r.zone.opp_rank)}). Shown and graded in the record; not in the number.`;
+function priceChip(r) {
+  const price = has(r.odds)
+    ? `<span class="shots-play shots-play-over" title="Novig's anytime goal price"><b>Yes</b><span>${odds(r.odds)}</span></span>`
+    : `<span class="goals-noodds" title="Novig has no anytime price for him yet. The fair price is there to shop elsewhere; prices fill in through the day.">No odds</span>`;
+  const zone = r.zone ? `<span class="goals-zone" title="${zoneTip(r)}">ZONE &middot; ${ZONE_WORD[r.zone.area]}</span>` : "";
+  return price + zone;
+}
+function edgeCell(x) {
+  const r = x.r;
+  if (!has(r.edge)) return `<td class="num muted-label shots-edge" title="No price to compare with">--</td>`;
+  const lean = edgeAt("lean");
+  // Colored by the build's bucket (the one the record grades), never by the rounded edge.
+  const cls = needsCheck(x) ? "tier-mid" : r.size === "lean" || r.size === "strong" ? "tier-good" : "";
+  const alpha = cls === "tier-good" ? ` style="--tier-a:${Math.min(0.34, 0.08 + (r.edge - lean) * 3).toFixed(2)}"` : "";
+  const flag = !needsCheck(x)
+    ? r.thin ? `<span class="shots-flag" title="Only one side priced on Novig: treat the price with care">thin</span>` : ""
+    : r.edge >= edgeAt("check")
+      ? `<span class="shots-flag" title="A gap this big usually means the market knows something this season's few games don't. Check before you bet.">check</span>`
+      : `<span class="shots-flag" title="${r.name} is on a lower line tonight than his minutes this season say he has been on: his games so far describe a bigger role.">new line</span>`;
+  return `<td class="num shots-edge ${cls}"${alpha} title="The model's ${Math.round(r.chance * 100)}% minus the ${Math.round(breakEven(r.odds) * 100)}% this price needs to break even">${points(r.edge)}${flag}</td>`;
+}
+function minutesCell(x) {
+  const s = x.season;
+  const trend = s && has(s.toi) ? x.r.minutes - s.toi : 0;
+  const tip = `${fmt(x.r.ev_min)} at even strength, ${fmt(x.r.pp_min)} on the power play${s ? `. Season ${fmt(s.toi)} min a game, last five ${fmt(s.l5_toi)}` : ""}`;
+  const arrow = trend >= MINUTES_TREND ? `<small class="shots-up">&#9650;</small>` : trend <= -MINUTES_TREND ? `<small class="shots-down">&#9660;</small>` : "";
+  return `<td class="num" title="${tip}">${fmt(x.r.minutes)}${arrow}</td>`;
+}
+const slotName = (slot) => (slot ? `${slot[0] === "F" ? "L" : "D"}${slot.slice(1)}` : "");
+const slotWords = (slot) => (slot ? `${["first", "second", "third", "fourth", "fifth"][Number(slot.slice(1)) - 1] || ""} ${slot[0] === "F" ? "line" : "pair"}` : "");
+function lineTip(r) {
+  if (!r.slot) return "The NHL hasn't posted a projected lineup for this game yet: his recent ice time stands in.";
+  const base = `On the ${slotWords(r.slot)} in the NHL's projected lineup for tonight.`;
+  return r.move ? `${base} His minutes this season are a ${slotWords(r.usual_slot)} player's: ${liftText(r.lift.line)} for the move.` : `${base} That is where his minutes say he has been playing.`;
+}
+function lineCell(r) {
+  if (!r.slot) return `<td class="num muted-label" title="${lineTip(r)}">--</td>`;
+  const arrow = r.move === "up" ? `<small class="shots-up">&#9650;</small>` : r.move === "down" ? `<small class="shots-down">&#9660;</small>` : "";
+  return `<td class="num shots-line ${liftTier(r.lift.line)}" title="${lineTip(r)}">${slotName(r.slot)}${arrow}</td>`;
+}
+const plainName = (name) => (name || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+function liftCell(lift, tip) {
+  return `<td class="num shots-lift ${liftTier(lift)}" title="${tip}">${liftText(lift)}</td>`;
+}
+function goalieName(id) {
+  for (const list of Object.values(DATA.goalies || {})) for (const g of list) if (String(g.id) === String(id)) return g.name;
+  return "His goalie";
+}
+function siteTip(r) {
+  const parts = [r.home ? "Home ice" : "On the road"];
+  if (r.lift.b2b !== 1) parts.push(`${r.team} played yesterday`);
+  if (r.lift.opp_b2b !== 1) parts.push(`${r.opp} played yesterday`);
+  return parts.join(". ");
+}
+const oppTip = (r) => {
+  const d = ((GOALS.defense || {})[r.opp] || {}).xg;
+  return d ? `${r.opp} allows ${fmt(d.season, 2)} expected goals a game this season (${rankWord(d.rank)}). The model counts it as ${liftText(r.lift.opp)}.` : "";
+};
+const PIECE_TIPS = {
+  goalie: (r) => `${goalieName(r.goalie)}, the expected starter (a projection, never confirmed): goals he has allowed against what the shots on him should have scored, pulled toward an average goalie.`,
+  finish: () => "His goals against his expected goals, pulled hard toward average: most of a hot or cold start is luck.",
+  split: (r) => `His even-strength rate times ${fmt(r.ev_min)} even-strength minutes, plus his power-play rate times ${fmt(r.pp_min)} power-play minutes, against one blended rate.`,
+  style: (r) => `Net-front trim ${liftText(r.lift.low)} (low-slot shooters ran a little under in the replay) and off-wing shots ${liftText(r.lift.onetimer)}.`,
+};
+function actualCell(x) {
+  if (!has(x.r.actual)) return `<td class="num muted-label">--</td>`;
+  const pill = x.result ? `<span class="pick-result pick-result-${x.result}">${x.result === "win" ? "W" : "L"}</span> ` : "";
+  return `<td class="num">${pill}<b>${x.r.actual}</b></td>`;
+}
+
+// The open row: how the chance is built, what the other defense allows, the
+// price at the model's fair price, and where he shoots against what the
+// defense allows from there (the Shots page's rink).
+function areaShares() {
+  if (!SHOTS || !SHOTS.defense) return {};
+  if (SHOTS.area_shares) return SHOTS.area_shares;
+  const keys = RINK_ZONES.map((z) => z.key);
+  const out = {};
+  Object.entries(SHOTS.defense).forEach(([abbr, d]) => {
+    const all = keys.reduce((a, k) => a + ((d[`a_${k}`] || {}).season || 0), 0);
+    out[abbr] = all ? Object.fromEntries(keys.map((k) => [k, { share: ((d[`a_${k}`] || {}).season || 0) / all }])) : {};
+  });
+  keys.forEach((k) => {
+    Object.keys(out)
+      .filter((abbr) => out[abbr][k])
+      .sort((a, b) => out[b][k].share - out[a][k].share)
+      .forEach((abbr, i) => {
+        out[abbr][k].rank = i + 1;
+      });
+  });
+  SHOTS.area_shares = out;
+  return out;
+}
+function detailRow(x, columns) {
+  const r = x.r;
+  const usual = r.mean / Object.values(r.lift).reduce((a, b) => a * b, 1);
+  const step = (label, lift, tip) => `<span class="shots-step ${liftTier(lift)}" title="${tip || ""}"><small>${label}</small><b>${liftText(lift)}</b></span>`;
+  const build = `<div class="shots-build">
+      <span class="shots-step shots-step-end" title="Goals and expected goals this season"><small>Season &middot; ${r.games} gp</small><b>${r.goals} G &middot; ${fmt(r.xg, 1)} xG</b></span>
+      <span class="shots-step shots-step-end" title="His expected goals a game at his rate and minutes, before tonight's matchup (${fmt(r.xg60, 2)} a 60 minutes)"><small>His usual xG</small><b>${fmt(usual, 2)}</b></span>
+      ${r.slot ? step(`${slotName(r.slot)} tonight`, r.lift.line, lineTip(r)) : ""}
+      ${step(`${r.opp} defense`, r.lift.opp, oppTip(r))}
+      ${step(goalieName(r.goalie), r.lift.goalie, PIECE_TIPS.goalie(r))}
+      ${step("Finishing", r.lift.finish, PIECE_TIPS.finish())}
+      ${step(`EV ${fmt(r.ev_min, 0)} / PP ${fmt(r.pp_min, 1)} min`, r.lift.split, PIECE_TIPS.split(r))}
+      ${step("Net-front trim", r.lift.low, "Shooters who live in the low slot ran a little under their projection in the replay")}
+      ${step("Off wing", r.lift.onetimer, "His off-wing (one-timer side) shots, worth a little more than the same shot from his own side")}
+      ${step("Home / rest", siteLift(r), siteTip(r))}
+      <span class="shots-step shots-step-end"><small>Tonight</small><b>${fmt(r.mean, 2)} xG &middot; ${pct(r.chance, 0)}</b></span>
+    </div>`;
+  const posted = (((SHOTS || {}).lineups || {})[x.game.game_id] || {})[r.team];
+  const mates = posted ? (posted.lines.find((names) => names.some((name) => plainName(name) === plainName(r.name))) || []).join(" &ndash; ") : "";
+  const lineNote = posted
+    ? `<p class="shots-lineup">${mates ? `<b>${slotWords(r.slot)}:</b> ${mates}. ` : ""}${posted.injured.length ? `Injured: ${posted.injured.join(", ")}. ` : ""}${posted.scratched.length ? `Scratched: ${posted.scratched.join(", ")}.` : ""}</p>`
+    : `<p class="shots-lineup">The NHL hasn't posted ${r.team}'s projected lineup yet (usually around midday Eastern): his recent ice time stands in.</p>`;
+
+  const d = (GOALS.defense || {})[r.opp] || {};
+  const tag = (f) => (f - 1 >= LIFT_CALL ? `<span class="gs-tag gs-tag-mismatch">Leaky</span>` : f - 1 <= -LIFT_CALL ? `<span class="gs-tag gs-tag-tough">Stingy</span>` : `<span class="nba-notag">Average</span>`);
+  const tile = (label, value, rank, extra, tip) => `<div class="nba-tile" title="${tip || ""}"><div class="gs-tile-label">${label}</div><b>${value}</b><small>${has(rank) ? rankWord(rank) : ""}</small>${extra || ""}</div>`;
+  const tiles = `<div class="nba-tiles shots-allows">
+      ${d.xg ? tile("Expected goals allowed", fmt(d.xg.season, 2), d.xg.rank, tag(d.xg.factor), `The model counts it as ${liftText(r.lift.opp)}`) : ""}
+      ${d.low_slot ? tile("Low-slot shots allowed", fmt(d.low_slot.season, 1), d.low_slot.rank) : ""}
+      ${d.slot ? tile("Slot shots allowed", fmt(d.slot.season, 1), d.slot.rank) : ""}
+      <div class="nba-tile" title="${PIECE_TIPS.goalie(r)}"><div class="gs-tile-label">In net (expected)</div><b class="goals-goalie">${goalieName(r.goalie)}</b><small>${liftText(r.lift.goalie)} for shooters</small><span class="nba-notag">projection</span></div>
+    </div>`;
+
+  // The price: anytime (the main line) and 2 or more, at the model's fair price.
+  const alts = ((((DATA.player_odds || {})[x.game.game_id] || {})[r.id] || {}).goal_alts) || [];
+  const twoPrice = (alts.find((a) => a[0] === 1.5) || [])[1];
+  const priceRow = (label, chance, price, first, main) => {
+    const edge = has(price) ? chance - breakEven(price) : null;
+    return `<tr${main ? ' class="shots-main-line"' : ""}><td>${label}</td><td class="num">${pct(chance, 0)}</td><td class="num">${odds(fairPrice(chance)) || "--"}</td><td class="num"><b>${has(price) ? odds(price) : "--"}</b></td><td class="num">${has(first) ? odds(first) : "--"}</td><td class="num ${has(edge) && edge >= edgeAt("lean") ? "tier-good" : ""}">${points(edge)}</td></tr>`;
+  };
+  const ladder = `<table class="data-table shots-ladder"><thead><tr><th>Goals</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>
+      ${priceRow("Anytime (1+)", r.chance, r.odds, r.first_odds, true)}${priceRow("2 or more", twoPlus(r.mean), twoPrice, null, false)}</tbody></table>`;
+
+  // The rink: his share from each zone, the defense's three boxes (shots.json), as on the Shots page.
+  const shares = areaShares();
+  const teams = teamsInLeague();
+  const rink = rinkSvg(`goals-rink-${r.id}`, `Where ${r.name} shoots from against what ${r.opp} allows`, (z) => {
+    const share = r.shares[z.key] || 0;
+    const dd = (((SHOTS || {}).defense || {})[r.opp] || {})[`a_${z.key}`];
+    const of = (shares[r.opp] || {})[z.key];
+    if (!dd) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots.` };
+    const st = rankStep(dd.season_rank, teams);
+    const tip = `${z.label}: ${pct(share, 0)} of his shots. ${r.opp} allows ${fmt(dd.season)} a game from here this season (${rankWord(dd.season_rank)}; the league allows ${fmt(dd.league)}).`;
+    const league = leagueAttr({ area: z.key, def: r.opp });
+    if (z.small) return { big: pct(share, 0), small: `allows ${fmt(dd.season)}/g &middot; ${rankWord(dd.season_rank)}`, tip, league };
+    return {
+      ...zoneOnStep(st),
+      big: pct(share, 0),
+      boxes: [{ text: `${fmt(dd.season)}/g`, step: st, w: 6.6 }, { text: of ? pct(of.share, 0) : "--", step: of ? rankStep(of.rank, teams) : null, w: 4.7 }, { ...rankBoxText(dd.season_rank, teams), step: st, w: 5.2 }],
+      tip,
+      league,
+    };
+  });
+  const callout = r.zone
+    ? `<div class="goals-callout" title="${zoneTip(r)}"><span class="goals-zone">ZONE MATCH</span> <b>${Math.round(r.zone.share * 100)}%</b> of his shots from the ${ZONE_WORD[r.zone.area]} <span class="muted-label">(${positionGroup(r.pos) === "D" ? "defensemen" : "forwards"} ${Math.round(r.zone.lg_share * 100)}%)</span> &middot; ${r.opp} allows <b>${fmt(r.zone.opp_pg)}</b> a game there, <b>${rankWord(r.zone.opp_rank)}</b>. <span class="muted-label">Tracked in the record; not in the number.</span></div>`
+    : "";
+  return `<tr class="shots-detail"><td colspan="${columns}">
+      <div class="shots-detail-grid">
+        <div class="shots-detail-main">
+          <div class="shots-detail-label">How tonight's chance is built</div>${build}${lineNote}
+          <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows a game <span class="muted-label">this season, and where that ranks</span></div>${tiles}
+          <div class="shots-detail-label">The price, at the model's fair price</div>${ladder}
+        </div>
+        <div class="shots-detail-rink">
+          <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span></div>${callout}${rink}
+          <p class="shots-rink-key">Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> there. Click a zone to see every team. Colors are his side: ${rankScaleKey("most shots for him", "fewest")}</p>
+        </div>
+      </div>
+    </td></tr>`;
+}
+
+const COLUMNS = [
+  { key: null, label: "#" },
+  { key: null, label: "Player", cls: "shots-th-player" },
+  { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow = above or below the line his minutes say he has been on. -- = not posted yet." },
+  { key: null, label: "Anytime", title: "Novig's price for him to score (No odds = not priced yet). ZONE = the Zone Match tag" },
+  { key: "goals", label: "G", title: "His goals this season" },
+  { key: "xg", label: "xG", title: "His expected goals this season: what his shots should have scored from where and how they were taken" },
+  { key: "proj", label: "Proj", title: "The expected goals the model sees for him tonight" },
+  { key: "chance", label: "Model", title: "The model's chance he scores (1 or more goals)" },
+  { key: null, label: "Fair", title: "The price with no cut at which that chance breaks even" },
+  { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points. Green from 3; from 12 it is set apart to be checked." },
+  { key: "minutes", label: "Min", title: "Ice time the model expects tonight (even strength + power play)" },
+  { key: "opp", label: "Opp", title: "The other defense's expected goals allowed against the league" },
+  { key: "goalie", label: "Goalie", title: "Tonight's expected goalie: goals he has allowed against what the shots on him should have scored" },
+  { key: "finish", label: "Finish", title: "His goals against his expected goals, pulled hard toward average" },
+  { key: "split", label: "EV/PP", title: "His even-strength and power-play rates read apart, each times his minutes there" },
+  { key: "style", label: "Style", title: "The net-front trim and his off-wing shots" },
+  { key: "site", label: "Home/rest", title: "Home ice and back-to-backs" },
+];
+function renderTable() {
+  const date = days()[dayIndex];
+  const rows = sortedRows(date);
+  const shown = gamesOn(date).filter((g) => boardFor(g) && (!gameId || g.game_id === gameId));
+  const showResult = rows.some((x) => has(x.r.actual));
+  const columns = COLUMNS.length + (showResult ? 1 : 0);
+  if (!rows.length) {
+    const waiting = goalsView.lineup === "confirmed" && sortedRows(date, "all").length;
+    el("shots-content").innerHTML = !shown.length
+      ? `<p class="no-data-note">No projections for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.</p>`
+      : waiting
+        ? `<p class="no-data-note shots-waiting">No lineup is in yet for ${shown.length === 1 ? "this game" : "these games"}. The NHL posts each one around midday Eastern on game day. <button type="button" class="view-toggle-btn shots-filter-btn" data-filter="lineup" data-value="all">Show all players</button></p>`
+        : `<p class="no-data-note">No players match these filters.</p>`;
+    return;
+  }
+  const head = COLUMNS.map((c) => {
+    const active = c.key && c.key === goalsView.sort;
+    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${active ? `<span class="shots-arrow">${goalsView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
+  }).join("");
+  const heading = (text, cls, i) => `${i > 0 ? `<tr class="group-gap"><td colspan="${columns}"></td></tr>` : ""}<tr class="group-row ${cls}"><td colspan="${columns}">${text}</td></tr>`;
+  const body = rows
+    .map((x, i) => {
+      const r = x.r;
+      const open = goalsView.open === `${x.game.game_id}:${r.id}`;
+      const prev = rows[i - 1];
+      let divider = "";
+      if (x.state !== "open" && i > 0 && prev.state !== x.state && rows[0].state !== x.state) {
+        divider = heading(x.state === "live" ? "Live now: these games have started. The price and chance are the last ones from before puck drop." : "Final: locked before puck drop and graded.", "shots-state-head", i);
+      } else if (rankedByEdge() && (!prev || prev.state !== x.state || rankGroup(prev) !== rankGroup(x))) {
+        const n = (size) => Math.round(edgeAt(size) * 100);
+        const text = [
+          `Check first. The biggest gaps to the market (${n("check")}+ points: a handful of games against everything the book knows), or a player moved down a line tonight. Look for news before you bet.`,
+          `Plays: Novig prices them; best edge first.`,
+          `No odds yet: the model's fair price only, best chance first. Shop it elsewhere, or wait for Novig to post.`,
+        ][rankGroup(x)];
+        if (i > 0 || rankGroup(x) !== 1) divider = heading(text, ["shots-check-head", "shots-plays-head", "goals-noodds-head"][rankGroup(x)], i);
+      }
+      const who = `${headshot(x.season || {})}<span>${r.name}</span>`;
+      const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
+        <td class="num shots-rank">${i + 1}</td>
+        <td class="nba-player shots-player">${playerClick(r.id, who)}<span class="muted-label">${r.pos}</span><span class="shots-vs">${logo(r.team, 16)}<span class="at">${r.home ? "vs" : "@"}</span>${logo(r.opp, 16)}</span></td>
+        ${lineCell(r)}
+        <td class="shots-play-cell">${priceChip(r)}</td>
+        <td class="num" title="${r.goals} goals in ${r.games} games this season">${r.goals}<small class="muted-label"> /${r.games}gp</small></td>
+        <td class="num">${fmt(r.xg, 1)}</td>
+        <td class="num shots-proj"><b>${fmt(r.mean, 2)}</b></td>
+        <td class="num">${pct(r.chance, 0)}</td>
+        <td class="num">${odds(r.fair) || "--"}</td>
+        ${edgeCell(x)}
+        ${minutesCell(x)}
+        ${liftCell(r.lift.opp, oppTip(r))}
+        ${liftCell(r.lift.goalie, PIECE_TIPS.goalie(r))}
+        ${liftCell(r.lift.finish, PIECE_TIPS.finish())}
+        ${liftCell(r.lift.split, PIECE_TIPS.split(r))}
+        ${liftCell(styleLift(r), PIECE_TIPS.style(r))}
+        ${liftCell(siteLift(r), siteTip(r))}
+        ${showResult ? actualCell(x) : ""}
+      </tr>`;
+      return row + (open ? detailRow(x, columns) : "");
+    })
+    .join("");
+  el("shots-content").innerHTML = `<div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table goals-table">
+      <thead><tr>${head}${showResult ? `<th title="His real goals, and whether the anytime bet won">Result</th>` : ""}</tr></thead>
+      <tbody>${body}</tbody>
+    </table></div></div>`;
+}
+
+// ---- the record (the build grades it: goals_record_summary) ----
+const RECORD_BUCKETS = [["edge", "Every edge", ["strong", "lean"]], ["strong", "Strong", ["strong"]], ["lean", "Lean", ["lean"]], ["check", "Check first", ["check"]], ["zone", "Zone Match", null]];
+function renderRecord() {
+  const record = GOALS.record;
+  const box = el("shots-results");
+  if (!record || !record.games) {
+    box.innerHTML = `<p class="shots-record-note">The record starts with the first games that finish after this page went live: every player graded at the price locked before puck drop, and how far that price moved from the first one the page saw.</p>`;
+    return;
+  }
+  const n = (size) => Math.round(edgeAt(size) * 100);
+  const tile = (label, t, tip) => {
+    const played = t.wins + t.losses;
+    return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div><b>${t.wins}-${t.losses}</b><small>${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signed(t.units)}u` : "none yet"}</small></div>`;
+  };
+  const clv = record.clv || {};
+  const clvTile = `<div class="nba-tile" title="Closing line value on the plays with an edge: how far the price moved from the first one the page saw to the one locked at puck drop, in points of chance (+ = the price shortened, the market moved toward the model). Over a few hundred plays this says more than wins and losses on long prices."><div class="gs-tile-label">Closing line value</div><b>${has(clv.points) ? points(clv.points) : "--"}</b><small>${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays` : "none yet"}</small></div>`;
+  const za = record.zone_all || {};
+  const honest = (record.honest || []).filter((b) => b.players).map((b) => `<tr><td>${Math.round(b.lo * 100)}-${Math.round(Math.min(b.hi, 1) * 100)}%</td><td class="num">${b.players}</td><td class="num">${pct(b.said / b.players, 0)}</td><td class="num"><b>${pct(b.scored / b.players, 0)}</b></td></tr>`).join("");
+  box.innerHTML = `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; anytime bets at the price locked before puck drop; u = units won risking 1 a play</span></div>
+    <div class="nba-tiles shots-record">
+      ${tile(`Edge ${n("strong")} to ${n("check")}`, record.strong, "Plays the model liked most")}
+      ${tile(`Edge ${n("lean")} to ${n("strong")}`, record.lean, "Leans")}
+      ${tile(`Under ${n("lean")}: no edge`, record.none, "Every other priced player: about what blind betting does")}
+      ${tile(`${n("check")}+: check first`, record.check, "Gaps too big to take at face value, and players moved down a line")}
+      ${tile("Zone Match, priced", record.zone, "Every tagged player with a price, whatever the edge")}
+      ${tile("Thin prices", record.thin, "Players with only one side priced on Novig")}
+      ${clvTile}
+    </div>
+    <div class="shots-detail-label">Said vs scored <span class="muted-label">every graded player, priced or not; the Zone Match tag: ${za.players ? `${za.players} players, model said ${pct(za.said / za.players, 0)}, scored ${pct(za.scored / za.players, 0)}` : "none yet"}</span></div>
+    ${honest ? `<table class="data-table shots-ladder goals-honest"><thead><tr><th>Model said</th><th>Players</th><th>Said</th><th>Scored</th></tr></thead><tbody>${honest}</tbody></table>` : ""}
+    ${recordPlays(record)}`;
+}
+function recordPlays(record) {
+  const all = record.plays || [];
+  if (!all.length) return "";
+  const bucket = RECORD_BUCKETS.find(([key]) => key === goalsView.record) || RECORD_BUCKETS[0];
+  const shown = all.filter((play) => (bucket[2] ? bucket[2].includes(play.size) : !!play.zone));
+  const sum = (plays) => plays.reduce((t, play) => ({ wins: t.wins + (play.won ? 1 : 0), losses: t.losses + (play.won ? 0 : 1), units: t.units + play.units }), { wins: 0, losses: 0, units: 0 });
+  const line = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
+  const buttons = RECORD_BUCKETS.map(([key, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bucket[0] === key ? " active" : ""}" data-filter="record" data-value="${key}">${label}</button>`).join("");
+  const sizeTag = { strong: "Strong", lean: "Lean", check: "Check" };
+  let body = "";
+  let day = null;
+  shown.forEach((play) => {
+    if (play.date !== day) {
+      day = play.date;
+      body += `<tr class="shots-record-day"><td colspan="8">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
+    }
+    body += `<tr>
+        <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
+        <td class="shots-play-cell"><span class="shots-play shots-play-over"><b>Yes</b><span>${odds(play.price)}</span></span>${play.zone ? `<span class="goals-zone">ZONE</span>` : ""}</td>
+        <td class="num"><span class="shots-record-size shots-record-${play.size}">${sizeTag[play.size] || ""}</span></td>
+        <td class="num">${points(play.edge)}</td>
+        <td class="num" title="The first price the page saw">${has(play.first) ? odds(play.first) : "--"}</td>
+        <td class="num"><b>${play.actual}</b></td>
+        <td class="num"><span class="pick-result pick-result-${play.won ? "win" : "loss"}">${play.won ? "W" : "L"}</span></td>
+        <td class="num ${play.won ? "tier-good" : "tier-bad"}">${signed(play.units, 2)}</td>
+      </tr>`;
+  });
+  return `<div class="shots-detail-label shots-record-head">Graded plays <span class="muted-label">every priced player with an edge (or the tag), at the price locked before puck drop</span></div>
+    <div class="view-toggle shots-toolbar shots-record-buckets">${buttons}<span class="shots-record-total">${shown.length ? line(sum(shown)) : "none yet"}</span></div>
+    ${shown.length ? `<div class="shots-record-scroll"><table class="data-table shots-record-table">
+      <thead><tr><th class="shots-th-player">Player</th><th>Anytime</th><th>Bucket</th><th>Edge</th><th>First seen</th><th title="His real goals">Goals</th><th>Result</th><th title="Units won risking 1">Units</th></tr></thead>
+      <tbody>${body}</tbody></table></div>` : `<p class="shots-record-note">No graded plays in this bucket yet.</p>`}`;
+}
+
+function renderNote() {
+  const date = days()[dayIndex];
+  const boards = gamesOn(date).map(boardFor).filter(Boolean);
+  const locked = gamesOn(date).filter((g) => boardFor(g) && gameState(g) !== "open").length;
+  const g = currentGame();
+  el("shots-title").innerHTML = `Anytime Goals${g ? ` <span class="shots-title-game">${logo(g.away, 22)} ${g.away} <span class="at">@</span> ${logo(g.home, 22)} ${g.home}</span>` : ""}`;
+  const open = gamesOn(date).filter((g) => boardFor(g) && !boardFor(g).locked);
+  const lined = open.filter((g) => boardFor(g).posted).length;
+  const priced = open.filter((g) => boardFor(g).players.some((r) => has(r.odds))).length;
+  el("shots-lineups").hidden = !open.length;
+  el("shots-lineups").textContent = !open.length
+    ? ""
+    : `Lineups are in for ${lined} of ${open.length} games; Novig has anytime prices up for ${priced} of ${open.length}. Both fill in through the day as the page refreshes.`;
+  el("shots-locked").hidden = !locked;
+  el("shots-locked").textContent = locked ? `${locked === boards.length ? "These games have" : `${locked} of these games have`} started: their chances and prices are the last ones from before puck drop.` : "";
+}
+function render() {
+  if (!DATA) return;
+  renderSchedule();
+  renderToolbar();
+  renderNote();
+  renderRecord();
+  renderTable();
+  const g = currentGame();
+  if (g) [g.away, g.home].forEach(loadTeamPlayers);
+}
+function selectDay(i) {
+  const all = days();
+  dayIndex = Math.max(0, Math.min(all.length - 1, i));
+  gameId = null;
+  goalsView.open = null;
+  render();
+}
+function showRecord(open) {
+  el("shots-record-modal").hidden = !open;
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") showRecord(false);
+});
+document.addEventListener("change", (e) => {
+  const menu = e.target.closest(".shots-filter-select");
+  if (!menu) return;
+  goalsView[menu.dataset.filter] = menu.value;
+  goalsView.open = null;
+  render();
+});
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#shots-record-open")) return showRecord(true);
+  if (e.target.id === "shots-record-modal" || e.target.closest("#shots-record-modal .modal-close")) return showRecord(false);
+  const card = e.target.closest(".matchup-card");
+  if (card) {
+    gameId = gameId === card.dataset.game ? null : card.dataset.game;
+    goalsView.open = null;
+    return render();
+  }
+  if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
+  if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
+  const filter = e.target.closest(".shots-filter-btn");
+  if (filter) {
+    const value = filter.dataset.value;
+    goalsView[filter.dataset.filter] = value === "true" ? true : value === "false" ? false : value;
+    if (filter.dataset.filter !== "record") goalsView.open = null;
+    return render();
+  }
+  const sort = e.target.closest(".shots-sort");
+  if (sort) {
+    if (goalsView.sort === sort.dataset.sort) goalsView.dir = -goalsView.dir;
+    else Object.assign(goalsView, { sort: sort.dataset.sort, dir: -1 });
+    return renderTable();
+  }
+  const row = e.target.closest(".shots-row");
+  if (row && !e.target.closest(".player-click")) {
+    goalsView.open = goalsView.open === row.dataset.row ? null : row.dataset.row;
+    renderTable();
+  }
+});
+
+const getJson = (url) =>
+  fetch(url)
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+Promise.all([loadNhlData(), getJson("goals.json"), getJson("shots.json")])
+  .then(([, goals, shots]) => {
+    GOALS = goals || { games: {}, defense: {} };
+    SHOTS = shots || { defense: {}, lineups: {} };
+    const all = days();
+    const today = new Date().toLocaleDateString("en-CA");
+    const withBoard = (d) => gamesOn(d).some((g) => boardFor(g));
+    const day = all.find((d) => d >= today && withBoard(d)) || all.find((d) => d >= today) || all[all.length - 1];
+    dayIndex = Math.max(0, all.indexOf(day));
+    el("empty-state").hidden = true;
+    el("shots-app").hidden = false;
+    render();
+  })
+  .catch((err) => {
+    el("empty-state").innerHTML = "<p>Couldn't load the NHL data.</p>";
+    console.error(err);
+  });

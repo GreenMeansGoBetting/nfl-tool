@@ -613,7 +613,7 @@ zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fit
 - The owner wants the **Zone Match tag shown and tracked** (its own bucket in the record), even
   though the replay found no edge in it.
 
-### Step 2: the model and goals.json (built 2026-10-14; no page yet, step 3 is a one-row mockup)
+### Step 2: the model and goals.json (built 2026-10-14)
 
 - **`nfl_tool/nhl/goals_model.py`** (standard library): exactly the replayed model.
   `tools/backtest/nhl_goals_check.py` replays both seasons THROUGH this file (it reproduced the
@@ -653,14 +653,48 @@ zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fit
   locked one, + = shortened, and how many shortened / drifted); `honest` (said vs scored, everyone);
   `zone_all`; `days` / `plays` like Shots.
 
+### Step 3: the Goals page (`site/nhl/goals.html` + `goals.js`, built 2026-10-14)
+
+The owner approved a mockup of one row and its breakdown ("looks great. push it"), built in the
+real Shots page from real numbers. The page REUSES the Shots page's layout, ids and classes
+(`#shots-app`, `.shots-*`); its own styles are `.goals-*` in nhl.css. Nav link "Goals" after Shots
+on every NHL page (a test checks).
+- **No goal math on the page:** chance, fair price, edge and bucket all come from goals.json; the
+  edge cell is colored by the build's `size`, never the rounded edge (an edge of 2.996 rounds to
+  3.0 but is "none" to the record). It also loads shots.json for the rink's defense boxes and
+  tonight's linemates.
+- Columns: #, Player, Line, Anytime (Novig's Yes price chip; **"No odds"** outlined chip when
+  Novig hasn't priced him: the owner asked "no line as in odds or as in lineup?", so it says
+  odds; then the blue **ZONE** chip), G (/gp), xG, Proj (xG tonight), Model, Fair, Edge, Min, then
+  what moved it: Opp, Goalie, Finish, EV/PP, **Style** (net-front trim x off wing; the owner:
+  "Keep style"), Home/rest. Result column once a game is final (W/L only for a priced player).
+- **Ranking:** check first (amber), then priced plays by edge, then **"No odds yet"** players by
+  their chance (the owner: "do it as shown"; prices and lineups fill in through the day with the
+  hourly refresh). Filters: Skaters, Lineups, **Odds** (priced or not / priced only), **Zone Match**
+  (everyone / only), the Check plays switch, and the live / final buttons, as on Shots.
+- **The Zone Match tag is blue, never green** (tracked; no edge in the replay). A tagged
+  player's breakdown has a blue note above the rink: his share, his position's, what the defense
+  allows there and its rank, "Tracked in the record; not in the number."
+- Breakdown: season G and xG -> his usual xG -> each piece -> tonight's xG and chance; the
+  defense's tiles (xG allowed with Leaky / Stingy / Average, low-slot and slot shots allowed, the
+  expected goalie labeled "projection"); the price table (anytime and 2+, model, fair, Novig,
+  **First seen**, edge); the Shots page's rink.
+- **YTD Model Performance** popup: tiles by bucket, Zone Match priced, thin, **Closing line value**
+  (average points, shortened / drifted); "Said vs scored" for every graded player and the tag; the
+  graded plays with bucket buttons (Every edge, Strong, Lean, Check first, Zone Match).
+- Tests: `tests/test_nhl_goals_site.py` on `tests/fixtures/nhl_goals.json.gz` (built from the same
+  games as the data sample: as of 10/12 14:00 UTC, then 10/13 14:12 with that file as the live one).
+
 ## Not built yet (waiting on the user's priorities)
 
-The user's next tools (2026-10-13), each built on the player card and `player_odds`: an anytime
-goal scorer tool, a goalie saves prop tool (the saves model and Novig's saves lines now exist:
-see King of the Crease). The shots on goal tool is built (above).
+The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
+saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
+Built: Shots, Goals (anytime goal, with expected goals), both above. For Goals: a Points tool,
+the market's team totals as an anchor once the record has them, and the first price seen on
+the Shots record too.
 For King of the Crease: how many people pick each goalie (ask the user for a winning day's
 payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
-Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, the EDGE
+Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
 For the Shots model: tonight's power-play units from a licensed morning-report feed (past units
 from `shiftcharts` were tested and add nothing: see "Power-play units" above); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); the expected starting goalie on

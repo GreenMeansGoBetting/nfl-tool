@@ -104,6 +104,17 @@ def nhl_shots():
     return json.loads(nhl_shots_bytes())
 
 
+def nhl_goals_bytes():
+    """The Goals sample (nhl/goals.json) built the way the build would have from the same
+    games: as of 2026-10-12 14:00 UTC, then 2026-10-13 14:12 with that file as the live one,
+    so 10/12's games are locked and final and 10/13's are open with Novig's prices."""
+    return _fixture_bytes("nhl_goals.json.gz")
+
+
+def nhl_goals():
+    return json.loads(nhl_goals_bytes())
+
+
 def nhl_crease_bytes():
     """The King of the Crease sample (nhl/crease.json, built 2026-10-13 from the same games) as the page would download it."""
     return _fixture_bytes("nhl_crease.json.gz")

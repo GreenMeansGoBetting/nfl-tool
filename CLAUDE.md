@@ -70,7 +70,7 @@ that, move detail into a rules file.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim.
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
-- `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`, no page yet).
+- `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Update Odds", and pushes touching `nfl_tool/**`
   (a push rebuilds, tests and browser-checks only the sport it changed: `tools/ci_steps.py` `plan` / `work_scope`; shared files such as style.css check all). `nhl-refresh.yml`: hourly hockey-only refresh. `cloudflare-domain.yml`: one-off domain attach.
@@ -93,7 +93,7 @@ that, move detail into a rules file.
   - `sync.js`: member profiles, account chip, feature requests, suite switcher. `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
-  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value).
+  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal).
   - `nhl/promo-tools.html` + `nhl/promo-tools.js`: NHL Promo Tools (King of the Crease: most saves of the day).
   - `nhl/nhl-common.js`: shared by every NHL page (data, rink drawing, the NHL player card).
 
