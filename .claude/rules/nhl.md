@@ -226,6 +226,18 @@ on a replay, and the page keeps a record against the real prices.
 - **Expect a big "check" group until about game 20.** On the first slate (teams 5 games in) 33
   of 252 lines were 12+ points from the market: a model that has only seen this season against a
   book that knows who Cale Makar is. That is the rule working as chosen, not a bug.
+- **Power-play units: tested, not added** (`tools/backtest/nhl_pp_units.py`, 2026-10-14, the
+  owner: "look into adding power play units into the model ... at least rotowire has them").
+  The NHL's own shift charts (`api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId=...`,
+  open, about 0.25 s a game, kept in `data/nhl/shifts/<season>`) plus the play-by-play's
+  `situationCode` give every skater's power-play time in every past game. On 2025-26, his share
+  of the team's PP time last game (or last three) added nothing beyond the model (weight 0.01,
+  -2% to +1%): his rate and recent minutes already carry his PP role, and last game's share
+  was no better a guess at tonight's than his season share. Only tonight's real units would
+  help (at most -16% to +9%, an overstatement), and those come from morning practice reports.
+  Rotowire and Daily Faceoff publish them, but they are someone else's paid product (the
+  MoneyPuck rule: not scraped for a site with paying members); a licensed feed would be the
+  way. The NHL's projected-lineup story has no PP units.
 - **It has NOT been shown to beat the line.** No free history of shots-on-goal prices exists.
   Same rule as the GMG model: a talking point until the record says otherwise.
 
@@ -541,6 +553,6 @@ For King of the Crease: how many people pick each goalie (ask the user for a win
 payout), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: expected goals, a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
-For the Shots model: power-play units (the projected lineup has lines and pairs, not the power
-play; `shiftcharts` has past games' units); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); the expected starting goalie on
+For the Shots model: tonight's power-play units from a licensed morning-report feed (past units
+from `shiftcharts` were tested and add nothing: see "Power-play units" above); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); the expected starting goalie on
 Game Previews (it is already in `shots.json`).
