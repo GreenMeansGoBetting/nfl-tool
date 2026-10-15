@@ -150,9 +150,9 @@ const SLOT_LABEL = { F1: "L1", F2: "L2", F3: "L3", F4: "L4", D1: "D1", D2: "D2",
 function lineCell(r) {
   const slot = r.slot || r.usual_slot;
   if (!slot) return `<td class="num muted-label">--</td>`;
-  const arrow = r.move === "up" ? ` <span class="shots-move-up">&#9650;</span>` : r.move === "down" ? ` <span class="shots-move-down">&#9660;</span>` : "";
+  // Just the line, no up / down arrow (the owner: arrows spaced the column oddly).
   const tip = r.slot ? "Tonight's line in the NHL's projected lineup" : "The line his ice time says he has been on (tonight's lineup isn't posted yet)";
-  return `<td class="num" title="${tip}"><span class="ice-line${r.slot ? "" : " ice-line-usual"}">${SLOT_LABEL[slot] || slot}</span>${arrow}</td>`;
+  return `<td class="num" title="${tip}"><span class="ice-line${r.slot ? "" : " ice-line-usual"}">${SLOT_LABEL[slot] || slot}</span></td>`;
 }
 // DraftKings' first goal price only (the promo's book and bet; "only dk or
 // bust"). The column shows only once SmartStake sends DraftKings' prices.
