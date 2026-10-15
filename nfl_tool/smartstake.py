@@ -287,7 +287,10 @@ def add_first_goal(api_key: str, games: dict, team_of, player_key) -> dict:
         listed = fetch_markets(api_key, "nhl")
         keys = first_goal_market_keys(listed)
         if not keys:
-            return {"markets": [], "note": f"no first goal scorer market among {len(listed or [])}"}
+            # Name the likeliest ones, so version.json shows what the market is called (or that it isn't there).
+            named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed]
+            near = [n for n in named if any(w in n.lower() for w in ("goal", "first", "scorer"))] or named
+            return {"markets": [], "note": f"no first goal scorer market among {len(listed)}: {'; '.join(near)}"[:700]}
         quotes = fetch_quotes(api_key, "nhl", keys)
         found = build_book_odds(quotes, team_of, prop_markets={k: "first_goal" for k in keys}, td_market=None, line_markets={},
                                 player_key=player_key, yes_markets=set(keys))

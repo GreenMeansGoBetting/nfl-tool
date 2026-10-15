@@ -68,6 +68,11 @@ class NhlBookOdds(unittest.TestCase):
         self.assertEqual(debug["first_goal"]["markets"], ["hockey_first_goalscorer"])
         self.assertEqual(debug["first_goal"]["players"], 1)
 
+    def test_no_first_goal_market_names_the_nearest_ones(self):
+        listed = [{"key": "hockey_player_goals", "name": "Player Goals"}, {"key": "hockey_player_saves", "name": "Saves"}]
+        _, debug = self.build([quote("hockey_player_goals", "over", 0.5, 217, "SUZUKI, NICK", 2)], markets=lambda *a: listed)
+        self.assertEqual(debug["first_goal"]["note"], "no first goal scorer market among 2: hockey_player_goals (Player Goals)")
+
     def test_a_failed_first_goal_fetch_keeps_the_other_prices(self):
         def boom(*a):
             raise OSError("boom")
