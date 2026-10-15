@@ -372,8 +372,11 @@ on a replay, and the page keeps a record against the real prices.
     table says how many of the day's games have lineups, and each game in the strip is marked
     "Lineup" (with a check mark) or "No lineup yet" (`board.posted`). The breakdown shows the line as its own
     piece ("L1 tonight +13%"), his linemates, and who is injured or scratched.
-  - Columns: Line, the play, Avg (his season average) next to Proj, Model %, Fair price, Edge, Min
-    (arrow = a minute off his season average), then what moved the number: Opp, Pos, Spots, PP,
+  - Columns: Line, the play (**"o1.5" / "u2.5"** chip with Novig's price), **Rating** (the
+    record's bucket: Strong / Lean / Check / New line, plus "vs his avg"), Avg (his season
+    average) next to Proj, Fair price (the model's chance in its hover), Edge. Then the
+    **advanced stats**, folded away until "Expand advanced stats" (see "Trimmed tables" below):
+    Min (arrow = a minute off his season average) and what moved the number: Opp, Pos, Spots, PP,
     Home/rest. **Green = more shots for him, red = fewer** (the Over chip is green, the Under chip
     red, so a row agrees with itself). A piece is colored from 2.5%.
   - **A called play that goes against his own season average says so** ("vs his avg" next to the
@@ -694,11 +697,12 @@ on every NHL page (a test checks).
   edge cell is colored by the build's `size`, never the rounded edge (an edge of 2.996 rounds to
   3.0 but is "none" to the record). It also loads shots.json for the rink's defense boxes and
   tonight's linemates.
-- Columns: #, Player, Line, Anytime (Novig's Yes price chip; **"No odds"** outlined chip when
-  Novig hasn't priced him: the owner asked "no line as in odds or as in lineup?", so it says
-  odds; then the blue **ZONE** chip), G (/gp), xG, Proj (xG tonight), Model, Fair, Edge, Min, then
-  what moved it: Opp, Goalie, Finish, EV/PP, **Style** (net-front trim x off wing; the owner:
-  "Keep style"), Home/rest. Result column once a game is final (W/L only for a priced player).
+- Columns: #, Player, Line, Anytime (Novig's price alone in a green chip; **"No odds"** outlined
+  chip when Novig hasn't priced him: the owner asked "no line as in odds or as in lineup?", so it
+  says odds), **Rating** (the build's `size`: Strong / Lean / Check / New line), **Zone** (the blue
+  Zone Match chip, "LOW SLOT" / "SLOT"), G (/gp), xG, Fair (chance in its hover), Edge; then the
+  advanced stats, folded away: Min, Opp, Goalie, Finish, EV/PP, **Style** (net-front trim x off
+  wing; the owner: "Keep style"), Home/rest. Result column once a game is final (W/L only for a priced player).
 - **Ranking:** check first (amber), then priced plays by edge, then **"No odds yet"** players by
   their chance (the owner: "do it as shown"; prices and lineups fill in through the day with the
   hourly refresh). Filters: Skaters, Lineups, **Odds** (priced or not / priced only), **Zone Match**
@@ -744,8 +748,14 @@ Game Previews (it is already in `shots.json`).
   the owner's ask), the rink in the middle, every book's price on the right (`.has-odds`). Under
   1360px wide the odds sit under the rink; on phones everything stacks. A row with no book
   prices keeps the two-column layout. Goals' tabs read Scores / No goal (the 0.5 line).
-- Shots / Goals tables: Player, Play and Edge are only as wide as their contents (`width: 1%`; the
-  player cell is display:flex, so its header carries it); the number columns share the rest.
+- **Trimmed tables (2026-10-15, the owner: "too much info right now thrown at users").** No Model %
+  or (Goals) Proj column: "the odds show that / fair shows that". Every column is only as wide as
+  its contents (`width: 1%` on each header) and an empty last column (`.shots-spacer`) takes the
+  spare width, so folding columns away never stretches the rest. Each page's `COLUMNS` entry draws
+  its own cell (`cell`); `adv: true` marks an advanced stat, shown only after **Expand advanced
+  stats** (`advancedToggle`, `nhlAdvancedStats` in nhl-common.js: one per-device switch for both
+  pages). The Rating column's tags are the YTD record's (`ratingTag`). Tests find columns by their
+  header text, not position.
 
 ## Explanations behind an "i" (2026-10-14)
 

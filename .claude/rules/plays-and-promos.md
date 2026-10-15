@@ -41,6 +41,16 @@ Stories behind these rules: `docs/history.md`, "Possible Plays, picks and promos
   without a `week` fall back to their game's week in the schedule.
 - Pick Tracker buttons match the Summary card's My Picks strip.
 
+## The Promo Tools menu (every page, 2026-10-15)
+
+"Promo Tools" in the nav of every NFL, NBA and NHL page opens a dropdown of every promo tool on
+the site, whatever its sport (the owner: "have a drop down of all that is available so they can
+jump to it easier for any page"). `addPromoMenu` / `PROMOS` in sync.js; a new promo tool is one
+line there. The NBA suite has none of its own yet, so its nav gets the button from sync.js.
+Links cross sports by full address on nba./nhl. like the suite switcher. Styles `.promo-*` in
+style.css (not `.suite-item`: a test counts the switcher's items). Test: `PromoMenu` in
+tests/test_nhl_shots_site.py.
+
 ## Promo Tools: King of the Endzone (`promo-tools.html/.js`)
 
 DraftKings' weekly promo paying on the game's LONGEST TD, D/ST included.

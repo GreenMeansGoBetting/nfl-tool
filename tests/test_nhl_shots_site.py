@@ -26,12 +26,20 @@ SITE = PAGE = OPENED_ON = None
 TONIGHT, LAST_NIGHT = "2026-10-13", "2026-10-12"
 
 # Every row on the page as plain values.
-ROWS = """() => [...document.querySelectorAll('.shots-row')].map((tr) => {
-    const cell = (i) => tr.children[i].textContent.trim().replace(/\\s+/g, ' ');
+# Columns are found by their header (the advanced stats can be folded away). The model's chance
+# is in the Fair cell's hover since the Model column went (2026-10-15).
+HEADS = """const heads = [...document.querySelectorAll('.shots-table thead th')].map((th) => (th.childNodes[0] || {}).textContent || '');"""
+ROWS = """() => { """ + HEADS + """
+  return [...document.querySelectorAll('.shots-row')].map((tr) => {
+    const td = (label) => tr.children[heads.indexOf(label)];
+    const cell = (label) => td(label).textContent.trim().replace(/\\s+/g, ' ');
     const chip = tr.querySelector('.shots-play');
-    const play = chip ? `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}` : cell(3);
-    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell(0), line: cell(2), play, avg: cell(4), proj: cell(5), model: cell(6), fair: cell(7), edge: cell(8), check: /check|new line/.test(cell(8)), flag: (/(check|new line|thin)/.exec(cell(8)) || [''])[0], amber: tr.children[8].classList.contains('tier-mid'), green: tr.children[8].classList.contains('tier-good'), fade: !!tr.querySelector('.shots-fade') };
-})"""
+    const play = chip ? `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}` : cell('Play');
+    const rating = cell('Rating');
+    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell('#'), line: cell('Line'), play, rating, avg: cell('Avg'), proj: cell('Proj'), model: `${(/(\\d+)%/.exec(td('Fair').title) || [])[1]}%`, fair: cell('Fair'), edge: cell('Edge'), check: /^(Check|New line)/.test(rating), flag: /^Check/.test(rating) ? 'check' : /^New line/.test(rating) ? 'new line' : /thin/.test(cell('Edge')) ? 'thin' : '', amber: td('Edge').classList.contains('tier-mid'), green: td('Edge').classList.contains('tier-good'), fade: !!tr.querySelector('.shots-fade') };
+  });
+}"""
+HEADERS = "() => { " + HEADS + " return heads; }"
 
 
 def setUpModule():
@@ -57,7 +65,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true }, view);
+            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
             selectDay(days().indexOf(day));
         }""",
         [day, view],
@@ -109,7 +117,10 @@ class Ranking(unittest.TestCase):
         price = lambda n: f"+{n}" if n > 0 else str(n)
         for r in reset():
             play = plays[r["id"]]
-            self.assertEqual(r["play"], f"{'Over' if play['side'] == 'over' else 'Under'} {play['line']:.1f} {price(play['price'])}", r)
+            self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} {price(play['price'])}", r)
+            # The Rating column says the bucket the record grades the play in.
+            rating = {"strong": "Strong", "lean": "Lean", "none": "--", "check": "Check" if play["edge"] >= build_nhl.SHOTS_EDGES["check"] else "New line"}[play["size"]]
+            self.assertTrue(r["rating"].startswith(rating), (r, play["size"]))
             shown = r["edge"].replace("check", "").replace("new line", "").replace("thin", "").strip()
             self.assertLessEqual(abs(float(shown) - play["edge"] * 100), 0.05 + 1e-9, r)
             self.assertNotEqual(shown, "-0.0", r)
@@ -282,11 +293,46 @@ class ThisSeasonOnly(unittest.TestCase):
         self.assertNotIn("last season", text)
 
 
+class AdvancedStats(unittest.TestCase):
+    """The owner, 2026-10-15: "too much info right now thrown at users". Minutes and the pieces
+    that moved the number start folded away behind "Expand advanced stats"; no Model % column."""
+
+    def test_folded_away_until_expanded(self):
+        reset()
+        self.assertEqual(PAGE.evaluate(HEADERS), ["#", "Player", "Line", "Play", "Rating", "Avg", "Proj", "Fair", "Edge", ""])
+        self.assertEqual(PAGE.inner_text("#shots-adv-toggle"), "Expand advanced stats")
+        PAGE.click("#shots-adv-toggle")
+        self.assertEqual(PAGE.evaluate(HEADERS)[9:], ["Min", "Opp", "Pos", "Spots", "PP", "Home/rest", ""])
+        self.assertEqual(PAGE.inner_text("#shots-adv-toggle"), "Hide advanced stats")
+        # Remembered on this device (the Goals page reads the same switch).
+        self.assertEqual(PAGE.evaluate("() => nhlAdvancedStats()"), True)
+        # Every row and the group headings span the whole table, open breakdown included.
+        cells = PAGE.evaluate("() => [...document.querySelectorAll('.shots-table tbody tr')].map((tr) => [...tr.children].reduce((n, td) => n + td.colSpan, 0))")
+        self.assertEqual(set(cells), {16})
+        PAGE.click("#shots-adv-toggle")
+        self.assertEqual(len(PAGE.evaluate(HEADERS)), 10)
+        self.assertEqual(PAGE.evaluate("() => nhlAdvancedStats()"), False)
+
+
+class PromoMenu(unittest.TestCase):
+    def test_promo_tools_opens_every_sports_promo_tools(self):
+        """The owner, 2026-10-15: Promo Tools on any page (NFL, NBA, NHL) drops down every promo tool."""
+        reset()
+        menu = PAGE.locator(".promo-menu")
+        self.assertTrue(menu.is_hidden())
+        PAGE.click(".page-nav .promo-trigger")
+        self.assertTrue(menu.is_visible())
+        items = PAGE.evaluate("() => [...document.querySelectorAll('.promo-menu a')].map((a) => [a.textContent, a.getAttribute('href')])")
+        self.assertEqual(items, [["NFLKing of the Endzone", "/promo-tools.html"], ["NHLKing of the Crease", "/nhl/promo-tools.html"]])
+        PAGE.keyboard.press("Escape")
+        self.assertTrue(menu.is_hidden())
+
+
 class Filters(unittest.TestCase):
     def test_overs_and_unders(self):
-        self.assertTrue(all(r["play"].startswith("Over ") for r in reset(side="over")))
+        self.assertTrue(all(r["play"].startswith("o") for r in reset(side="over")))
         unders = reset(side="under")
-        self.assertTrue(all(r["play"].startswith("Under ") for r in unders))
+        self.assertTrue(all(r["play"].startswith("u") for r in unders))
         # The under of a line is 100% minus the over: Jack Hughes, over 3.5.
         data, shots = nhl_data(), nhl_shots()
         hughes = next(p for p in data["skaters"]["NJD"] if p["name"] == "Jack Hughes")
@@ -522,7 +568,7 @@ class FinishedGames(unittest.TestCase):
         # No line was saved for these games, and a player with no line is never listed.
         self.assertEqual(reset(LAST_NIGHT), [])
         self.assertIn("started", PAGE.inner_text("#shots-locked"))
-        result = lambda: PAGE.evaluate("(key) => document.querySelector(`.shots-row[data-row='${key}']`).lastElementChild.textContent.trim().replace(/\\s+/g, ' ')", f"{game['game_id']}:{benson['id']}")
+        result = lambda: PAGE.evaluate("(key) => document.querySelector(`.shots-row[data-row='${key}']`).querySelector('.shots-spacer').previousElementSibling.textContent.trim().replace(/\\s+/g, ' ')", f"{game['game_id']}:{benson['id']}")
         # With a line, the play is graded. He had 2: an under 2.5 won, an over 2.5 lost.
         sides = []
         for over, under in ((-400, 150), (150, -400)):
@@ -655,8 +701,8 @@ class GradedPlays(unittest.TestCase):
         plays = [row for row in seen["rows"] if len(row) > 1]
         self.assertEqual([row[0] for row in plays], ["Strong Winner", "Lean Loser", "Older Lean"])
         # Play, bucket, edge in points, projection, real shots, result, units.
-        self.assertEqual(plays[0][1:], ["Over 2.5-120", "Strong", "+8.0", "3.10", "4", "W", "+0.83"])
-        self.assertEqual(plays[1][1:], ["Under 1.5+105 vs his avg", "Lean", "+4.0", "1.20", "3", "L", "-1.00"])
+        self.assertEqual(plays[0][1:], ["o2.5-120", "Strong", "+8.0", "3.10", "4", "W", "+0.83"])
+        self.assertEqual(plays[1][1:], ["u1.5+105 vs his avg", "Lean", "+4.0", "1.20", "3", "L", "-1.00"])
         self.assertEqual(seen["total"], "2-1 · +0.74u")
 
     def test_the_buckets(self):

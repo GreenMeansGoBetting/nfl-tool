@@ -16,7 +16,8 @@ let SHOTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
 // checks: the "check first" plays shown (at the top) or hidden.
-const shotsView = { side: "best", pos: "all", lineup: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true };
+// adv: the "advanced stats" columns (minutes and what moved the number) shown or folded away.
+const shotsView = { side: "best", pos: "all", lineup: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -208,6 +209,7 @@ function renderToolbar() {
     menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup (projected from recent ice time). Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
     `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${shotsView.checks ? " active" : ""}" data-filter="checks" data-value="${!shotsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a play against tonight's line change. They lead the ranking; click to ${shotsView.checks ? "hide" : "show"} them.">Check plays: ${shotsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +
+    advancedToggle(shotsView.adv) +
     // Once some of the day's games have started: every play of the day stays listed (started ones
     // grayed, under the ones still to come), or just one kind.
     (dayIsMixed(days()[dayIndex])
@@ -218,10 +220,25 @@ function renderToolbar() {
         ])
       : "");
 }
-function playChip(play, r) {
+// The play as a bettor writes it: "o1.5" / "u2.5" (the owner, 2026-10-15), green over, red under.
+function playChip(play) {
+  return `<span class="shots-play shots-play-ou shots-play-${play.side}" title="${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)} shots on goal at Novig's price"><b>${play.side[0]}${fmt(play.line)}</b><span>${odds(play.price)}</span></span>`;
+}
+// The bucket the record grades a play in, said on the row (the owner, 2026-10-15: the YTD record
+// says Strong and Lean, the page didn't). A "check" play says why: a gap too big, or a line change.
+function ratingCell(x) {
+  const play = x.play;
+  const r = x.r;
+  const n = (size) => Math.round(edgeAt(size) * 100);
   // Said out loud when a play the page calls an edge goes against what his game log shows.
   const fade = play.fade && play.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} a game in ${r.games} games): the model thinks a small sample has run ${play.side === "under" ? "hot" : "cold"}. Click the row to see how much it discounts it.">vs his avg</span>` : "";
-  return `<span class="shots-play shots-play-${play.side}"><b>${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)}</b><span>${odds(play.price)}</span></span>${fade}`;
+  const tag = !needsCheck(x)
+    ? play.edge >= edgeAt("strong") ? ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`)
+      : play.edge >= edgeAt("lean") ? ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`) : ""
+    : play.edge >= edgeAt("check")
+      ? ratingTag("check", "Check", "A gap this big usually means the market knows something this season's few games don't: his usual level, a line change, a scratch, a new role. Check before you bet.")
+      : ratingTag("check", "New line", `${r.name} is on a ${r.move === "up" ? "higher" : "lower"} line tonight than his minutes this season say he has been on, and this play goes the other way. His games so far don't describe tonight's role.`);
+  return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}${fade}</td>`;
 }
 function edgeCell(x) {
   const play = x.play;
@@ -231,11 +248,8 @@ function edgeCell(x) {
   // A play is green; a gap that is set apart is amber, never green.
   const cls = needsCheck(x) ? "tier-mid" : edge >= lean ? "tier-good" : "";
   const alpha = cls === "tier-good" ? ` style="--tier-a:${Math.min(0.34, 0.08 + (edge - lean) * 3).toFixed(2)}"` : "";
-  const flag = !needsCheck(x)
-    ? thin ? `<span class="shots-flag" title="Barely traded on Novig: treat the price with care">thin</span>` : ""
-    : edge >= edgeAt("check")
-      ? `<span class="shots-flag" title="A gap this big usually means the market knows something this season's few games don't: his usual level, a line change, a scratch, a new role. Check before you bet.">check</span>`
-      : `<span class="shots-flag" title="${x.r.name} is on a ${x.r.move === "up" ? "higher" : "lower"} line tonight than his minutes this season say he has been on, and this play goes the other way. His games so far don't describe tonight's role.">new line</span>`;
+  // Check / New line are said in the Rating column.
+  const flag = thin ? `<span class="shots-flag" title="Barely traded on Novig: treat the price with care">thin</span>` : "";
   return `<td class="num shots-edge ${cls}"${alpha} title="The model's ${Math.round(play.chance * 100)}% minus the ${Math.round(breakEven(play.price) * 100)}% this price needs to break even">${points(edge)}${flag}</td>`;
 }
 function minutesCell(x) {
@@ -415,22 +429,25 @@ function detailRow(x, columns) {
     </td></tr>`;
 }
 
+// Each column draws its own cell. `adv`: an advanced stat (minutes and what moved the number),
+// folded away until "Expand advanced stats" (the owner, 2026-10-15: "too much info right now
+// thrown at users"). No Model % column: the Fair price says the same.
 const COLUMNS = [
-  { key: null, label: "#" },
-  { key: null, label: "Player", cls: "shots-th-player" },
-  { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow means it is above or below the line his own minutes say he has been on: green adds shots, red takes some away. -- = not posted yet." },
-  { key: null, label: "Play", title: "The side of his main line the model likes more, at Novig's price" },
-  { key: "avg", label: "Avg", title: "His shots on goal a game this season: what his game log says" },
-  { key: "proj", label: "Proj", title: "Shots on goal the model expects tonight" },
-  { key: "chance", label: "Model", title: "The model's chance the play wins" },
-  { key: null, label: "Fair", title: "The price with no cut at which that chance breaks even" },
-  { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points. Green from 3 points; from 12 it is set apart to be checked for news." },
-  { key: "minutes", label: "Min", title: "Ice time the model expects tonight, from his recent games. An arrow means a minute or more above or below his season average." },
-  { key: "opp", label: "Opp", title: "What the other team's defense does to the projection: shots on goal it allows against the league" },
-  { key: "pos", label: "Pos", title: "Beyond that: what the defense allows to his position (forwards or defensemen)" },
-  { key: "area", label: "Spots", title: "Beyond that: the parts of the ice he shoots from against where the defense gives shots up" },
-  { key: "pp", label: "PP", title: "Power-play shots the other team gives up, for the share of his shots that come on the power play" },
-  { key: "site", label: "Home/rest", title: "Home ice (+3%), the second night of a back-to-back (-3.5%), an opponent on one (+3.5%)" },
+  { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
+  { key: null, label: "Player", cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
+  { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow means it is above or below the line his own minutes say he has been on: green adds shots, red takes some away. -- = not posted yet.", cell: (x) => lineCell(x.r) },
+  { key: null, label: "Play", title: "The side of his main line the model likes more (o = over, u = under), at Novig's price", cell: (x) => `<td class="shots-play-cell">${playChip(x.play)}</td>` },
+  { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or against tonight's line change: look for news first)", cell: ratingCell },
+  { key: "avg", label: "Avg", title: "His shots on goal a game this season: what his game log says", cell: (x) => `<td class="num" title="${x.r.games} game${x.r.games === 1 ? "" : "s"} this season">${has(x.r.avg) ? fmt(x.r.avg, 2) : "--"}</td>` },
+  { key: "proj", label: "Proj", title: "Shots on goal the model expects tonight", cell: (x) => `<td class="num shots-proj"><b>${fmt(x.r.mean, 2)}</b></td>` },
+  { key: "chance", label: "Fair", title: "The price with no cut at which the model's chance breaks even", cell: (x) => `<td class="num" title="The model's chance: ${pct(x.play.chance, 0)}">${odds(fairPrice(x.play.chance)) || "--"}</td>` },
+  { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points. Green from 3 points; from 12 it is set apart to be checked for news.", cell: edgeCell },
+  { key: "minutes", label: "Min", adv: true, title: "Ice time the model expects tonight, from his recent games. An arrow means a minute or more above or below his season average.", cell: minutesCell },
+  { key: "opp", label: "Opp", adv: true, title: "What the other team's defense does to the projection: shots on goal it allows against the league", cell: (x) => liftCell(x.r.lift.opp, allowsTip(x.r.opp, "sog", "shots on goal")) },
+  { key: "pos", label: "Pos", adv: true, title: "Beyond that: what the defense allows to his position (forwards or defensemen)", cell: (x) => (positionGroup(x.r.pos) === "F" ? liftCell(x.r.lift.pos, allowsTip(x.r.opp, "f_sog", "shots on goal to forwards")) : liftCell(x.r.lift.pos, allowsTip(x.r.opp, "d_sog", "shots on goal to defensemen"))) },
+  { key: "area", label: "Spots", adv: true, title: "Beyond that: the parts of the ice he shoots from against where the defense gives shots up", cell: (x) => liftCell(x.r.lift.area, `Where he shoots from against where ${x.r.opp} gives shots up. Click the row for the rink.`) },
+  { key: "pp", label: "PP", adv: true, title: "Power-play shots the other team gives up, for the share of his shots that come on the power play", cell: (x) => liftCell(x.r.lift.pp, `${pct(x.r.pp_share, 0)} of his shots come on the power play. ${allowsTip(x.r.opp, "pp_unb", "power-play shots")}`) },
+  { key: "site", label: "Home/rest", adv: true, title: "Home ice (+3%), the second night of a back-to-back (-3.5%), an opponent on one (+3.5%)", cell: (x) => liftCell(siteLift(x.r), siteTip(x.r)) },
 ];
 // The record: every finished game's plays, graded by the build at the price
 // that was locked before puck drop and kept in the repo (model_history/nhl_shots).
@@ -486,7 +503,7 @@ function recordPlays(record) {
     const who = playerClick(play.id, `<b>${play.name}</b>`);
     body += `<tr>
         <td class="nba-player shots-player">${who}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
-        <td class="shots-play-cell">${playChip({ ...play, fade: false }, {})}${play.fade ? ` <span class="shots-fade" title="Against his own season average at the time">vs his avg</span>` : ""}</td>
+        <td class="shots-play-cell">${playChip(play)}${play.fade ? ` <span class="shots-fade" title="Against his own season average at the time">vs his avg</span>` : ""}</td>
         <td class="num"><span class="shots-record-size shots-record-${play.size}">${sizeTag[play.size]}</span></td>
         <td class="num">${points(play.edge)}</td>
         <td class="num">${fmt(play.mean, 2)}</td>
@@ -507,7 +524,9 @@ function renderTable() {
   const rows = sortedRows(date);
   const shown = gamesOn(date).filter((g) => boardFor(g) && (!gameId || g.game_id === gameId));
   const showResult = rows.some((x) => has(x.r.actual));
-  const columns = COLUMNS.length + (showResult ? 1 : 0);
+  const cols = shownColumns(COLUMNS, shotsView.adv);
+  // +1: the empty last column that takes the spare width, so the others stay narrow.
+  const columns = cols.length + (showResult ? 1 : 0) + 1;
   if (!rows.length) {
     const one = shown.length === 1;
     // Nothing under "Lineup Confirmed" but there is under "All": say why, and offer the switch.
@@ -521,16 +540,14 @@ function renderTable() {
         : `<p class="no-data-note">${shown.every((g) => boardFor(g).locked) ? `No shots-on-goal lines were saved for ${one ? "this game" : "these games"}.` : "No players match these filters. Shots-on-goal lines usually post the morning of the game."}</p>`;
     return;
   }
-  const head = COLUMNS.map((c) => {
+  const head = cols.map((c) => {
     const active = c.key && c.key === shotsView.sort;
     return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${active ? `<span class="shots-arrow">${shotsView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
   }).join("");
   const body = rows
     .map((x, i) => {
       const r = x.r;
-      const forward = positionGroup(r.pos) === "F";
       const open = shotsView.open === `${x.game.game_id}:${r.id}`;
-      const who = `${headshot(x.season || {})}<span>${r.name}</span>`;
       // The first started game's play starts its group (only when the list also has plays still to come).
       const stateHead = x.state !== "open" && i > 0 && rows[i - 1].state !== x.state && rows[0].state !== x.state
         ? `<tr class="group-gap"><td colspan="${columns}"></td></tr><tr class="group-row shots-state-head"><td colspan="${columns}">${x.state === "live" ? "Live now: these games have started. The play, price and projection are the last ones from before puck drop." : "Final: locked before puck drop and graded."}</td></tr>`
@@ -546,28 +563,14 @@ function renderTable() {
         : "";
       const divider = stateHead + checkHead + playsHead;
       const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
-        <td class="num shots-rank">${i + 1}</td>
-        <td class="nba-player shots-player">${playerClick(r.id, who)}<span class="muted-label">${r.pos}</span><span class="shots-vs">${logo(r.team, 16)}<span class="at">${r.home ? "vs" : "@"}</span>${logo(r.opp, 16)}</span></td>
-        ${lineCell(r)}
-        <td class="shots-play-cell">${playChip(x.play, r)}</td>
-        <td class="num" title="${r.games} game${r.games === 1 ? "" : "s"} this season">${has(r.avg) ? fmt(r.avg, 2) : "--"}</td>
-        <td class="num shots-proj"><b>${fmt(r.mean, 2)}</b></td>
-        <td class="num">${pct(x.play.chance, 0)}</td>
-        <td class="num">${odds(fairPrice(x.play.chance)) || "--"}</td>
-        ${edgeCell(x)}
-        ${minutesCell(x)}
-        ${liftCell(r.lift.opp, allowsTip(r.opp, "sog", "shots on goal"))}
-        ${liftCell(r.lift.pos, allowsTip(r.opp, forward ? "f_sog" : "d_sog", forward ? "shots on goal to forwards" : "shots on goal to defensemen"))}
-        ${liftCell(r.lift.area, `Where he shoots from against where ${r.opp} gives shots up. Click the row for the rink.`)}
-        ${liftCell(r.lift.pp, `${pct(r.pp_share, 0)} of his shots come on the power play. ${allowsTip(r.opp, "pp_unb", "power-play shots")}`)}
-        ${liftCell(siteLift(r), siteTip(r))}
-        ${showResult ? actualCell(x) : ""}
+        ${cols.map((c) => c.cell(x, i)).join("")}
+        ${showResult ? actualCell(x) : ""}<td class="shots-spacer"></td>
       </tr>`;
       return row + (open ? detailRow(x, columns) : "");
     })
     .join("");
   el("shots-content").innerHTML = `<div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table">
-      <thead><tr>${head}${showResult ? `<th title="His real shots on goal, and whether the play won">Result</th>` : ""}</tr></thead>
+      <thead><tr>${head}${showResult ? `<th title="His real shots on goal, and whether the play won">Result</th>` : ""}<th class="shots-spacer"></th></tr></thead>
       <tbody>${body}</tbody>
     </table></div></div>`;
 }
@@ -637,7 +640,8 @@ document.addEventListener("click", (e) => {
   if (filter) {
     const value = filter.dataset.value;
     shotsView[filter.dataset.filter] = value === "true" ? true : value === "false" ? false : value;
-    if (filter.dataset.filter !== "record") shotsView.open = null;
+    if (filter.dataset.filter === "adv") nhlAdvancedStats(shotsView.adv);
+    else if (filter.dataset.filter !== "record") shotsView.open = null;
     return render();
   }
   const sort = e.target.closest(".shots-sort");

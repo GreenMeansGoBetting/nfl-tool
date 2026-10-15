@@ -20,12 +20,19 @@ from site_browser import SiteBrowser
 SITE = PAGE = None
 TONIGHT, LAST_NIGHT = "2026-10-13", "2026-10-12"
 
-ROWS = """() => [...document.querySelectorAll('.shots-row')].map((tr) => {
-    const cell = (i) => tr.children[i].textContent.trim().replace(/\\s+/g, ' ');
-    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell(0), anytime: cell(3), model: cell(7), fair: cell(8), edge: cell(9),
-             zone: !!tr.querySelector('.goals-zone'), noodds: !!tr.querySelector('.goals-noodds'), amber: tr.children[9].classList.contains('tier-mid'),
-             green: tr.children[9].classList.contains('tier-good'), result: tr.children.length > 17 ? cell(17) : null };
-})"""
+# Columns are found by their header (the advanced stats can be folded away). The model's chance
+# is in the Fair cell's hover since the Model column went (2026-10-15).
+HEADS = """const heads = [...document.querySelectorAll('.shots-table thead th')].map((th) => (th.childNodes[0] || {}).textContent || '');"""
+ROWS = """() => { """ + HEADS + """
+  return [...document.querySelectorAll('.shots-row')].map((tr) => {
+    const td = (label) => tr.children[heads.indexOf(label)];
+    const cell = (label) => td(label).textContent.trim().replace(/\\s+/g, ' ');
+    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell('#'), anytime: cell('Anytime'), rating: cell('Rating'), model: `${(/(\\d+)%/.exec(td('Fair').title) || [])[1]}%`, fair: cell('Fair'), edge: cell('Edge'),
+             zone: !!tr.querySelector('.goals-zone'), noodds: !!tr.querySelector('.goals-noodds'), amber: td('Edge').classList.contains('tier-mid'),
+             green: td('Edge').classList.contains('tier-good'), result: heads.includes('Result') ? cell('Result') : null };
+  });
+}"""
+HEADERS = "() => { " + HEADS + " return heads; }"
 
 
 def setUpModule():
@@ -48,7 +55,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(goalsView, { pos: 'all', lineup: 'all', odds: 'all', zone: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true }, view);
+            Object.assign(goalsView, { pos: 'all', lineup: 'all', odds: 'all', zone: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -84,6 +91,19 @@ class Rows(unittest.TestCase):
                 self.assertEqual(row["amber"], r["size"] == "check")
                 self.assertEqual(row["green"], r["size"] in ("lean", "strong"))
             self.assertEqual(row["zone"], bool(r["zone"]))
+            # The Rating column says the build's bucket.
+            rating = {"strong": "Strong", "lean": "Lean", "none": "--", "check": "Check" if (r["edge"] or 0) >= nhl_goals()["edges"]["check"] else "New line"}.get(r["size"], "--")
+            self.assertEqual(row["rating"], rating, (r["name"], r["size"], r["edge"]))
+
+    def test_the_columns(self):
+        """The owner, 2026-10-15: no Proj or Model % (the fair price tells it), Rating beside Anytime,
+        Zone in its own column, the advanced stats folded away until asked for."""
+        reset()
+        self.assertEqual(PAGE.evaluate(HEADERS), ["#", "Player", "Line", "Anytime", "Rating", "Zone", "G", "xG", "Fair", "Edge", ""])
+        PAGE.click("#shots-adv-toggle")
+        self.assertEqual(PAGE.evaluate(HEADERS)[10:], ["Min", "Opp", "Goalie", "Finish", "EV/PP", "Style", "Home/rest", ""])
+        PAGE.click("#shots-adv-toggle")
+        self.assertEqual(len(PAGE.evaluate(HEADERS)), 11)
 
     def test_check_first_then_plays_by_edge_then_no_odds_by_chance(self):
         rows = reset()

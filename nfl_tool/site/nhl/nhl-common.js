@@ -36,6 +36,24 @@ function fmtTime(hhmm) {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"} ET`;
 }
 const shortDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
+// ---- the Shots / Goals tables ----
+// The "advanced stats" columns (minutes and each piece that moved the number) start folded
+// away (the owner, 2026-10-15: "too much info right now thrown at users"); the switch is
+// remembered on this device, the same for both pages. Called with a value, it saves it.
+const ADVANCED_KEY = "nfl-tool.nhl-advanced";
+function nhlAdvancedStats(on) {
+  try {
+    if (has(on)) localStorage.setItem(ADVANCED_KEY, on ? "1" : "0");
+    return localStorage.getItem(ADVANCED_KEY) === "1";
+  } catch (e) {
+    return !!on;
+  }
+}
+const shownColumns = (columns, adv) => columns.filter((c) => adv || !c.adv);
+const advancedToggle = (on) =>
+  `<span class="shots-filter"><button type="button" id="shots-adv-toggle" class="view-toggle-btn shots-filter-btn shots-adv-toggle${on ? " active" : ""}" data-filter="adv" data-value="${!on}" title="Minutes and what moved the number tonight: the other defense, his position, the power play, home ice and rest">${on ? "Hide advanced stats" : "Expand advanced stats"}</button></span>`;
+// The record's bucket on a row: Strong / Lean / Check, the same tags as the YTD record's table.
+const ratingTag = (size, label, tip) => `<span class="shots-record-size shots-record-${size}" title="${tip}">${label}</span>`;
 const headshot = (p, cls = "nhl-headshot") => (p.headshot ? `<img src="${p.headshot}" alt="" class="${cls}" loading="lazy">` : `<span class="${cls}"></span>`);
 
 // ---- league comparison ----

@@ -322,6 +322,57 @@
   if (SUITE_SWITCH_PUBLIC) document.documentElement.classList.add("suite-public");
   addSuiteSwitcher();
 
+  // ---- Promo Tools menu (the owner, 2026-10-15) ----
+  // "Promo Tools" in every page's nav (NFL, NBA, NHL) opens a list of every
+  // promo tool on the site, whichever sport it is for, to jump straight to it.
+  // A new promo tool is one line here. Links cross sports the suite switcher's way.
+  const PROMOS = [
+    { sport: "nfl", label: "NFL", name: "King of the Endzone", href: SPORT_HOST ? "https://nfl.gmgsports.org/promo-tools.html" : "/promo-tools.html" },
+    { sport: "nhl", label: "NHL", name: "King of the Crease", href: SPORT_HOST ? "https://nhl.gmgsports.org/promo-tools.html" : "/nhl/promo-tools.html" },
+  ];
+  function addPromoMenu() {
+    const nav = document.querySelector(".topbar .page-nav");
+    const bar = document.querySelector(".topbar");
+    if (!nav || !bar || bar.querySelector(".promo-menu")) return;
+    const sport = (document.querySelector(".topbar .brand") || {}).dataset?.suite || "nfl";
+    const onPromo = /promo-tools\.html$/.test(location.pathname);
+    let trigger = [...nav.children].find((item) => item.textContent.trim() === "Promo Tools");
+    if (!trigger) {
+      // A suite with no promo tool of its own (NBA): the menu still reaches the others.
+      trigger = document.createElement("a");
+      trigger.href = "#";
+      trigger.textContent = "Promo Tools";
+      nav.insertBefore(trigger, nav.querySelector(".page-nav-soon"));
+    }
+    trigger.classList.add("promo-trigger");
+    trigger.setAttribute("aria-haspopup", "true");
+    trigger.insertAdjacentHTML("beforeend", '<span class="promo-caret" aria-hidden="true">&#9662;</span>');
+    const menu = document.createElement("div");
+    menu.className = "promo-menu";
+    menu.hidden = true;
+    menu.innerHTML = PROMOS.map(
+      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === sport ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
+    ).join("");
+    bar.appendChild(menu);
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      // Under the button, inside the top bar (the nav scrolls sideways on phones and would clip it).
+      const at = trigger.getBoundingClientRect();
+      const box = bar.getBoundingClientRect();
+      menu.style.top = `${at.bottom - box.top + 4}px`;
+      menu.style.left = `${Math.max(8, Math.min(at.left - box.left, box.width - 250))}px`;
+      menu.hidden = !menu.hidden;
+      trigger.setAttribute("aria-expanded", String(!menu.hidden));
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".promo-trigger, .promo-menu")) menu.hidden = true;
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") menu.hidden = true;
+    });
+  }
+  addPromoMenu();
+
   // "Odds powered by SmartStake" (the owner's partner; written permission to
   // show their odds, 2026-10-14) beside the suite name, on every page. Links
   // to the owner's referral, the same one gmgsports.org's links.json uses.

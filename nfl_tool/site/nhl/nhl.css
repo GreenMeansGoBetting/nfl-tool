@@ -310,6 +310,23 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .goals-honest { max-width: 420px; margin-bottom: 12px; }
 .shots-table .group-row.goals-noodds-head td { white-space: normal; color: var(--muted); }
 
+/* ---- Shots + Goals tables, trimmed (the owner, 2026-10-15) ----
+   Every column only as wide as what's in it; an empty last column takes the spare width, so
+   folding the advanced stats away doesn't stretch Avg / Proj across the screen. */
+.shots-table thead th:not(.shots-spacer) { width: 1%; }
+.data-table.shots-table td.num, .data-table.shots-table th { padding-left: 14px; padding-right: 14px; }
+.data-table.shots-table td.shots-rating, .data-table.shots-table td.goals-zone-cell { padding-left: 10px; padding-right: 10px; }
+.shots-table .shots-spacer { padding: 0; }
+.shots-play-ou { gap: 5px; padding: 2px 7px; }
+.shots-play-ou b { text-transform: none; letter-spacing: 0.02em; }
+.shots-rating { text-align: center; }
+.shots-rating .shots-flag { margin-left: 4px; }
+.goals-price { padding: 2px 8px; }
+.goals-price b { letter-spacing: 0.02em; }
+.shots-table td.goals-zone-cell { text-align: center; }
+.goals-zone-cell .goals-zone { margin-left: 0; }
+.shots-adv-toggle:not(.active) { border-style: dashed; }
+
 @media (max-width: 760px) {
   .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
   .nhl-tiles .nba-tile { padding: 6px 2px 7px; }
