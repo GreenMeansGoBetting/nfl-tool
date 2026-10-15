@@ -3513,6 +3513,7 @@ def compute_injury_report(injuries_df: pd.DataFrame, teams, snap_shares: dict) -
     player hasn't logged a charted snap yet (name-format mismatch between
     the injury report and pbp, or truly hasn't played)."""
     result = {t: {} for t in teams}
+    team_lookups = {t: _snap_share_lookup(shares) for t, shares in snap_shares.items()}
     for row in injuries_df.itertuples(index=False):
         if row.team not in result:
             continue
@@ -3526,10 +3527,39 @@ def compute_injury_report(injuries_df: pd.DataFrame, teams, snap_shares: dict) -
             "practice_status": practice,
             "status": report or practice,
             "status_source": "report" if report else ("practice" if practice else None),
-            "snap_share": snap_shares.get(row.team, {}).get(row.full_name),
+            "snap_share": team_lookups.get(row.team, _snap_share_lookup({}))(row.full_name),
         }
         result[row.team].setdefault(str(int(row.week)), []).append(entry)
     return result
+
+
+def _snap_share_lookup(shares: dict):
+    """One team's name -> snap share, forgiving the spellings the injury
+    report and the snap counts disagree on: "Pat Surtain II" vs "Patrick
+    Surtain II", "Cam Lewis" vs "Cameron Lewis", "D.J. Moore" vs "DJ Moore",
+    "Michael Pittman" vs "Michael Pittman Jr.". Exact name first, then the
+    name without punctuation or suffix, then last name + first initial when
+    only one player on the team fits it. A miss hid injured starters from
+    the Summary card (snap_share None reads as "not a starter")."""
+    def last_and_initial(name):
+        words = re.sub(r"\b(jr|sr|ii|iii|iv|v)\b\.?", "", (name or "").lower()).replace(".", "").split()
+        return (words[-1], words[0][0]) if len(words) >= 2 else None
+
+    by_norm, by_last = {}, {}
+    for name, share in shares.items():
+        by_norm.setdefault(_norm_player(name), []).append(share)
+        key = last_and_initial(name)
+        if key:
+            by_last.setdefault(key, []).append(share)
+
+    def lookup(name):
+        if name in shares:
+            return shares[name]
+        for found in (by_norm.get(_norm_player(name)), by_last.get(last_and_initial(name))):
+            if found and len(found) == 1:
+                return found[0]
+        return None
+    return lookup
 
 
 def compute_possessions_to_score(pbp: pd.DataFrame, first_td_by_game: dict) -> dict:
