@@ -400,6 +400,26 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .ice-hist-list { margin: 0; padding-left: 18px; font-size: 0.86rem; line-height: 1.45; }
 .ice-hist-list li { margin-bottom: 5px; }
 
+/* ---- Best Plays (best.html / best.js): the Shots page's table, its own bits here ---- */
+.best-markets { align-items: center; }
+.best-filter-label { margin-right: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.best-market { display: inline-flex; align-items: center; gap: 6px; }
+.best-check { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border-strong); font-size: 0.7rem; line-height: 1; }
+.best-market.active .best-check { border-color: currentColor; }
+.best-banner { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; font-size: 0.86rem; color: var(--text); background: rgba(var(--mid-rgb), 0.1); border: 1px solid rgba(var(--mid-rgb), 0.4); border-left: 4px solid rgba(var(--mid-rgb), 0.9); }
+.best-count { margin: 12px 0 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
+.best-count .muted-label { margin-left: 8px; font-weight: 600; }
+.best-row { cursor: pointer; }
+.best-play { min-width: 92px; justify-content: center; }
+.best-table td.best-odds b { font-family: var(--font-display); font-size: 1rem; }
+.best-table td.best-notes { white-space: nowrap; text-align: center; }
+.best-note { display: inline-block; margin: 1px 3px 1px 0; padding: 1px 5px; border-radius: 999px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; vertical-align: middle; border: 1px solid var(--border-strong); color: var(--muted); background: var(--panel-2); }
+.best-note-warn { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.14); border-color: rgba(var(--mid-rgb), 0.45); }
+.best-note-wait { color: var(--muted); border-style: dashed; }
+.best-more a { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; color: var(--accent); white-space: nowrap; }
+.best-more a:hover { text-decoration: underline; }
+.best-table td.best-odds, .best-table td.shots-edge { min-width: 64px; }
+
 @media (max-width: 760px) {
   .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
   .nhl-tiles .nba-tile { padding: 6px 2px 7px; }
@@ -429,4 +449,9 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
   .ice-lab { width: 100%; }
   .ice-hist-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ice-winners { max-width: none; }
+  /* Best Plays: a narrower name column, so the play and the price show without scrolling. */
+  .best-table td.shots-player .nhl-headshot, .best-table td.shots-player > .muted-label { display: none; }
+  .best-table tbody td.shots-player { display: table-cell; vertical-align: middle; }
+  .best-table .best-play { min-width: 0; }
+  .best-table td.shots-rank { padding-left: 4px; padding-right: 4px; }
 }

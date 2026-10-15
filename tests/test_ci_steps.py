@@ -47,7 +47,7 @@ class DeploySteps(unittest.TestCase):
         for word in (".nhl-", ".shots-", ".crease-", ".nba-"):
             self.assertNotIn(word, shared, f"{word} rules belong in nhl/nhl.css or suite.css")
         self.assertNotIn(".nba-", (site / "nhl" / "nhl.css").read_text(encoding="utf-8").replace(" .nba-", "").replace(".nba-notag", ""))
-        for page in ("nhl/index.html", "nhl/shots.html", "nhl/promo-tools.html"):
+        for page in ("nhl/index.html", "nhl/best.html", "nhl/shots.html", "nhl/promo-tools.html"):
             html = (site / page).read_text(encoding="utf-8")
             order = [html.index(f'href="{name}"') for name in ("../style.css", "../suite.css", "nhl.css")]
             self.assertEqual(order, sorted(order), page)

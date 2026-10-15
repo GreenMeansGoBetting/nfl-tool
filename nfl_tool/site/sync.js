@@ -356,6 +356,7 @@
   // (Shots, Goals), the Promo Tools menu's way. A page marks the button with
   // data-nav-menu="props"; a new prop tool is one line here.
   const PROPS = [
+    { name: "Best Plays", href: "best.html" },
     { name: "Shots", href: "shots.html" },
     { name: "Goals", href: "goals.html" },
   ];

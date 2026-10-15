@@ -307,7 +307,7 @@ on a replay, and the page keeps a record against the real prices.
 ## Pages
 
 - **The top bar (the owner, 2026-10-15): Games, Player Props, Promo Tools.** "Games" is Game
-  Previews. Player Props (`data-nav-menu="props"`) opens a list of the prop tools (Shots, Goals:
+  Previews. Player Props (`data-nav-menu="props"`) opens a list of the prop tools (Best Plays, Shots, Goals:
   `PROPS` in sync.js, the Promo Tools menu's look, `navMenu`). A new NHL tool goes under one of
   these headers unless the owner decides it needs its own button. No "More tools coming" on any
   page. A test checks every NHL page's bar.
@@ -796,6 +796,42 @@ on every NHL page (a test checks).
   graded plays with bucket buttons (Every edge, Strong, Lean, Check first, Zone Match).
 - Tests: `tests/test_nhl_goals_site.py` on `tests/fixtures/nhl_goals.json.gz` (built from the same
   games as the data sample: as of 10/12 14:00 UTC, then 10/13 14:12 with that file as the live one).
+
+## Best Plays (`site/nhl/best.html` + `best.js`, built 2026-10-15)
+
+The owner: "I don't care about the noise, I am in a rush: what are my best overall bets
+tonight." First under Player Props. A short list that sends people to the Shots and Goals
+pages for the detail, not a copy of them.
+- **Every play the Shots and Goals pages call an edge (3+ points, `edges.lean`)**, both markets
+  in one table, biggest edge first. The Shots play is the Shots page's best side (the build's
+  `shots_play`, so the record grades the same play); the Goals play is goals.json's `edge`. A test
+  checks both against the build.
+- **No cap and no "Check" group.** The owner turned down a top-10 / two-a-game cap: "if the model
+  notices an edge, we shouldn't punish ourselves ... bettors have to make their own choice."
+  Plays the other pages file as "check" are ranked like any other. Through 10/14 Shots' check
+  bucket was 48-32 +8.4u, nearly all of it one night (within a standard error of break-even);
+  the record will say whether that holds.
+- **Notes say what the model may not know yet**, never a verdict: "No lineup" (that market's
+  board had no posted lineup), the line change ("L2 ▼", amber when the play goes against the
+  move), "N GP" under 5 games, "vs avg" (Shots: against his season average), "Thin". Centered
+  in their column (the owner).
+- **Lineup banner** when an open game has no lineup: "Lineups are in for X of Y games. Plays
+  marked No lineup can change when the NHL posts it." The page fills all day (lunch-break bets).
+- Columns: #, Player, Play ("u1.5 shots" / "Scores goal"), Odds, Edge, Notes, Puck drop, a
+  "Shots ›" / "Goals ›" link. **Every column with a key sorts; Odds = the biggest payout first**
+  (the owner's "return on $1"). No Win % (the owner: "unimportant and clutter"; the chance is in
+  the Edge hover). Market switches (Shots on goal, Anytime goal; at least one stays on); Points
+  joins as a third when it's built.
+- **A row opens its own row on the other page:** `shots.html#row=<game>:<player>` (or goals.html);
+  `linkedRow` / `scrollToRow` in nhl-common.js pick the game, open the row and scroll to it.
+- YTD Model Performance: strong + lean + check from each page's record, added up (shots, goals,
+  both). No record of its own: with no cap, its list is exactly those buckets.
+- Phone: the photo and position letter drop out of the Player cell so the play shows without
+  scrolling (last phone block of nhl.css).
+- Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after
+  a lineup or a price moved, with why). Needs the build to carry each play's first-seen edge
+  from the live file, the way `first_odds` is carried.
+- Tests: `tests/test_nhl_best_site.py`.
 
 ## Not built yet (waiting on the user's priorities)
 

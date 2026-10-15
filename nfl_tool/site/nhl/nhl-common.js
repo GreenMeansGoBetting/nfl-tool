@@ -329,6 +329,17 @@ function findPlayer(id) {
   }
   return null;
 }
+// A link from Best Plays ("shots.html#row=<game id>:<player id>") opens that
+// player's row: the Shots and Goals pages pick the game and open the row.
+function linkedRow() {
+  const m = /^#row=(\d+):(\d+)$/.exec(location.hash);
+  const game = m && DATA.schedule.find((g) => g.game_id === m[1]);
+  return game ? { game, row: `${m[1]}:${m[2]}` } : null;
+}
+function scrollToRow(row) {
+  const tr = document.querySelector(`.shots-row[data-row="${row}"]`);
+  if (tr) tr.scrollIntoView({ block: "center" });
+}
 function playerClick(id, inner) {
   return id && findPlayer(id) ? `<span class="player-click" data-player="${id}">${inner}</span>` : inner;
 }

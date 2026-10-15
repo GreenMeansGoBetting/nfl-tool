@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NHL Suite &mdash; Best Plays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="nhl.css">
+</head>
+<body class="nhl-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG's NHL Suite home"><span class="brand-mark">GMG</span><span class="brand-name">NHL <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="./">Games</a>
+    <span class="page-nav-current" data-nav-menu="props">Player Props</span>
+    <a href="promo-tools.html">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+    <a href="https://github.com/GreenMeansGoBetting/nfl-tool/actions/workflows/nhl-refresh.yml" target="_blank" rel="noopener" class="update-odds-link" title="Opens GitHub Actions in a new tab -- click &quot;Run workflow&quot; there for fresh NHL lineups and odds (the hockey-only refresh, about a minute)">&#128260; Update Odds</a>
+  </div>
+</div>
+
+<main>
+  <!-- The same launch guard as the other NHL pages (.nba-app / .nba-soon in suite.css). -->
+  <div class="nba-soon empty-state">
+    <p><b>GMG NHL Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NHL slate&hellip;</p></div>
+
+    <!-- Best Plays reuses the Shots page's layout and classes (.shots-* in nhl.css); its own are .best-*. -->
+    <div id="best-app" class="section-wrap" hidden>
+      <div class="shots-title-row">
+        <h2 class="section-title" id="best-title">Best Plays</h2>
+        <button type="button" class="info-i" aria-expanded="false" aria-controls="best-note-1" title="How to read this">i</button>
+        <button type="button" id="best-record-open" class="view-toggle-btn shots-record-open">YTD Model Performance</button>
+      </div>
+      <p class="section-note info-note" id="best-note-1" hidden>Every play the Shots and Goals pages call an edge, in one list, biggest edge first. <b>Edge</b> is the model's chance minus the chance the price needs to break even. Click a column to sort by it: <b>Odds</b> puts the biggest payouts first. <b>Notes</b> say what the model may not know yet: no projected lineup, a line change tonight, a small sample, a thin price. Click a row to see the full breakdown on its own page, a name for the player card.</p>
+      <div id="best-toolbar" class="view-toggle shots-toolbar"></div>
+      <p id="best-lineups" class="best-banner" hidden></p>
+      <p id="best-locked" class="no-data-note" hidden></p>
+      <div id="best-content"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: the NHL's public game feed (play-by-play, box scores, time on ice); injuries from ESPN. Prices: Novig.
+</footer>
+
+<!-- The record, drawn by best.js renderRecord. -->
+<div id="best-record-modal" class="modal-overlay" hidden>
+  <div class="modal-box shots-record-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <h2 class="section-title">YTD Model Performance <span class="muted-label">Every play listed here</span></h2>
+    <div id="best-results" class="shots-results"></div>
+  </div>
+</div>
+<script src="../sync.js"></script>
+<script src="nhl-common.js"></script>
+<script src="best.js"></script>
+</body>
+</html>

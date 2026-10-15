@@ -674,9 +674,17 @@ Promise.all([
     const withBoard = (d) => gamesOn(d).some((g) => boardFor(g));
     const day = all.find((d) => d >= today && withBoard(d)) || all.find((d) => d >= today) || all[all.length - 1];
     dayIndex = Math.max(0, all.indexOf(day));
+    // Opened from Best Plays: that player's game, his row open.
+    const link = linkedRow();
+    if (link) {
+      dayIndex = Math.max(0, all.indexOf(link.game.date));
+      gameId = link.game.game_id;
+      shotsView.open = link.row;
+    }
     el("empty-state").hidden = true;
     el("shots-app").hidden = false;
     render();
+    if (link) scrollToRow(link.row);
   })
   .catch((err) => {
     el("empty-state").innerHTML = "<p>Couldn't load the NHL data.</p>";

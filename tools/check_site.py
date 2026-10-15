@@ -48,6 +48,7 @@ PAGES = [
     ("Support", "support.html", None),
     ("NBA Game Previews", "nba/index.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
+    ("NHL Best Plays", "nhl/best.html", None),
     ("NHL Shots", "nhl/shots.html", None),
     ("NHL Goals", "nhl/goals.html", None),
     ("NHL Promo Tools", "nhl/promo-tools.html", None),
