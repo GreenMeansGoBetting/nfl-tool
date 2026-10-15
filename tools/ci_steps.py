@@ -149,6 +149,49 @@ def cmd_mark(args):
     return 0
 
 
+# ---- deploy.yml: the page-only fast lane (2026-10-15) ----
+# The owner: removing one small arrow "shouldnt take more than 45 seconds".
+# A push that changes only what the browser loads (pages, scripts, styles)
+# can't change a data file, so it publishes with the LIVE data instead of
+# rebuilding all three sports (about 4.5 of the 7 minutes). Every test and the
+# browser gate still run. It goes by every file changed since the version
+# that is live, not by which sport a file belongs to: that hand-kept list is
+# what failed twice before "every run does everything".
+PAGE_ONLY = ("nfl_tool/site/", "tests/", "docs/", ".claude/", "model_history/")
+PAGE_ONLY_FILES = ("CLAUDE.md", "README.md")
+
+
+def changed_since(sha):
+    """Every file that differs between the live commit and this one, or None
+    if it can't be told."""
+    if not sha or not have_commit(sha):
+        return None
+    out = git("diff", "--name-only", sha, "HEAD")
+    return None if out is None else [line for line in out.splitlines() if line.strip()]
+
+
+def lane_decision(event, changed):
+    """("pages" or "full", why). Only a push can take the fast lane: the
+    schedule and "Update Odds" are there to refresh the data."""
+    if event != "push":
+        return "full", "a scheduled or manual run refreshes the data"
+    if changed is None:
+        return "full", "couldn't tell what changed since the live version"
+    if not changed:
+        return "full", "nothing changed since the live version"
+    other = [f for f in changed if not f.startswith(PAGE_ONLY) and f not in PAGE_ONLY_FILES]
+    if other:
+        return "full", f"{len(other)} changed file(s) can change the data, e.g. {other[0]}"
+    return "pages", f"only page files changed ({len(changed)}): publishing with the live data"
+
+
+def cmd_lane(args):
+    lane, why = lane_decision(os.environ.get("GITHUB_EVENT_NAME", ""), changed_since(live_sha(live_version())))
+    output(lane=lane)
+    summary(f"Lane: {lane} ({why}).")
+    return 0
+
+
 # ---- version.json: whether the NBA and NHL builds worked ----
 def build_error(suite):
     """The last line a failed build wrote to its log (deploy.yml keeps
@@ -210,6 +253,8 @@ def cmd_note(args):
         version[suite] = suite_note(SITE, suite, failed=data[suite] not in (None, "built"))
     if any(data.values()):
         version["data"] = {suite: how for suite, how in data.items() if how}
+    if os.environ.get("LANE"):
+        version["lane"] = os.environ["LANE"]  # "pages" = published with the live data
     if timing_file().exists():
         version["timing"] = timings(timing_file().read_text(encoding="utf-8").splitlines())
     path.write_text(json.dumps(version) + "\n", encoding="utf-8")
@@ -562,6 +607,7 @@ def main(argv=None):
     mark.add_argument("name")
     mark.set_defaults(run=cmd_mark)
     sub.add_parser("note").set_defaults(run=cmd_note)
+    sub.add_parser("lane").set_defaults(run=cmd_lane)
     check = sub.add_parser("refresh-check")
     check.add_argument("--again", action="store_true", help="right before publishing: also stop if the site changed since the first check")
     check.set_defaults(run=cmd_refresh_check)

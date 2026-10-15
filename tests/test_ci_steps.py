@@ -69,6 +69,26 @@ class DeploySteps(unittest.TestCase):
         self.assertEqual(ci_steps.timings(["start 1000"]), {})
 
 
+class FastLane(unittest.TestCase):
+    """Which pushes may publish with the live data (ci_steps.lane_decision)."""
+
+    def test_page_files_tests_and_notes_take_the_fast_lane(self):
+        changed = ["nfl_tool/site/nhl/icebreaker.js", "nfl_tool/site/nhl/nhl.css", "tests/test_nhl_icebreaker_site.py", ".claude/rules/nhl.md", "CLAUDE.md", "model_history/nhl_goals/2026-10.json"]
+        self.assertEqual(ci_steps.lane_decision("push", changed)[0], "pages")
+
+    def test_anything_that_can_change_the_data_rebuilds(self):
+        for path in ("nfl_tool/nhl/build_nhl.py", "nfl_tool/smartstake.py", "nfl_tool/functions/_middleware.js", "tools/ci_steps.py",
+                     ".github/workflows/deploy.yml", "nfl_tool/requirements.txt", "nfl_tool/novig_event_markets.graphql", ".gitignore"):
+            self.assertEqual(ci_steps.lane_decision("push", ["nfl_tool/site/app.js", path])[0], "full", path)
+
+    def test_only_a_push_and_only_when_it_can_tell(self):
+        page = ["nfl_tool/site/app.js"]
+        self.assertEqual(ci_steps.lane_decision("schedule", page)[0], "full")
+        self.assertEqual(ci_steps.lane_decision("workflow_dispatch", page)[0], "full")
+        self.assertEqual(ci_steps.lane_decision("push", None)[0], "full")
+        self.assertEqual(ci_steps.lane_decision("push", [])[0], "full")
+
+
 class VersionNote(unittest.TestCase):
     def test_the_nhl_note(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -502,25 +522,46 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertIn('cron: "57 12 * * *"', self.check)
         self.assertNotIn("Refresh NHL lineups", self.check)
 
-    def test_every_push_to_main_runs_the_whole_deploy(self):
+    def test_every_push_to_main_runs_the_deploy(self):
         """Since 2026-10-15 (the repo is public, build minutes are free): no
-        folder filter, no per-sport plan, every test and every page checked.
-        A folder filter once left a fix to a failed deploy unpublished, and a
-        per-sport test list once failed a deploy."""
+        folder filter, no per-sport plan, every test and every page checked
+        on every run. A folder filter once left a fix to a failed deploy
+        unpublished, and a per-sport test list once failed a deploy."""
         trigger = self.deploy.split("permissions:")[0]
         self.assertIn("  push:\n    branches: [main]\n", trigger)
         self.assertNotIn("paths", trigger)
-        for gone in ("steps.plan", "ci_steps.py plan", "--only", "SCOPE", "HOUSEKEEPING", "Reuse the live"):
-            self.assertNotIn(gone, self.deploy.replace("fetch_live_data.py --only", ""))
+        for gone in ("steps.plan", "ci_steps.py plan", "SCOPE", "HOUSEKEEPING", "Reuse the live"):
+            self.assertNotIn(gone, self.deploy)
         self.assertIn('python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }', self.deploy)
         self.assertIn('python tools/check_site.py --gate || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate; }', self.deploy)
         steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
-        for always in ("Run the tests", "Build stats (nflverse needs no key; SGO_API_KEY is optional)", "Build NBA data", "Build NHL data", "Check the site before it goes live",
+        for always in ("Run the tests", "Choose the lane", "Check the site before it goes live",
                        "Push Discord secrets to Cloudflare", "Member profile database (D1)", "Refuse to publish without the member database", "Deploy to Cloudflare Pages"):
             self.assertFalse(any(line.startswith("        if:") for line in steps[always].splitlines()), always)
         self.assertNotIn("command: pages project create", self.deploy)
         # The tests come before anything is built.
         self.assertLess(self.deploy.index("- name: Run the tests"), self.deploy.index("- name: Build stats"))
+
+    def test_a_page_only_push_publishes_with_the_live_data(self):
+        """The fast lane (2026-10-15): the builds are skipped only when the
+        lane is "pages" AND every live data file arrived; otherwise they all
+        run. The tests and the gate run either way."""
+        steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
+        names = list(steps)
+        full = "        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'\n"
+        for build in ("Build stats (nflverse needs no key; SGO_API_KEY is optional)", "Build NBA data", "Restore saved NHL games", "Build NHL data", "Save NHL games", "Save GMG model record"):
+            self.assertIn(full, steps[build], build)
+        live = steps["Use the live data (page-only push)"]
+        self.assertIn("id: live_data", live)
+        self.assertIn("if: steps.lane.outputs.lane == 'pages'", live)
+        self.assertIn("continue-on-error: true", live)
+        self.assertIn("python tools/fetch_live_data.py --need nfl nba nhl", live)
+        self.assertIn("DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}", live)
+        self.assertIn("id: lane", steps["Choose the lane"])
+        self.assertLess(names.index("Run the tests"), names.index("Choose the lane"))
+        self.assertEqual(names.index("Use the live data (page-only push)"), names.index("Choose the lane") + 1)
+        self.assertLess(names.index("Use the live data (page-only push)"), names.index("Build stats (nflverse needs no key; SGO_API_KEY is optional)"))
+        self.assertIn("LANE: ${{ steps.lane.outputs.lane }}", steps["Note the run in version.json"])
 
     def test_the_nfl_build_is_tried_twice(self):
         """nflverse sometimes answers with a one-off 404; every push builds football."""
@@ -546,7 +587,7 @@ class WorkflowsInStep(unittest.TestCase):
             self.assertIn(f"run: python tools/fetch_live_data.py --only {suite} --need {suite} --replace", back)
             self.assertIn("DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}", back)
             self.assertEqual(names.index(back_name), names.index(f"Build {up} data") + 1)
-            self.assertIn(f"DATA_{up}: ${{{{ steps.build_{suite}.outcome == 'success' && 'built' || (steps.back_{suite}.outcome == 'success' && 'live copy' || 'missing') }}}}", steps["Note the run in version.json"])
+            self.assertIn(f"DATA_{up}: ${{{{ steps.build_{suite}.outcome == 'success' && 'built' || ((steps.back_{suite}.outcome == 'success' || steps.live_data.outcome == 'success') && 'live copy' || 'missing') }}}}", steps["Note the run in version.json"])
         # Both before the gate, so the live copy is checked like a fresh build.
         self.assertLess(names.index("Put the live NHL data back (the NHL build failed)"), names.index("Check the site before it goes live"))
 

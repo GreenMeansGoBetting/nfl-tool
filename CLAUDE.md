@@ -27,7 +27,7 @@ that, move detail into a rules file.
 2. `git pull --rebase` (a bot commits `model_history/gmg_model.json` to main), then **commit and
    push to `main`**. GitHub Actions rebuilds and deploys automatically. No branches or pull requests.
 3. Confirm it's live: `https://nfl.gmgsports.org/version.json` (public) shows the pushed commit's
-   `sha`, usually about 7 minutes after the push. The deploy runs the tests first, then opens every
+   `sha`, about 7 minutes after the push (about 3 for a page-only push: members-and-hosting.md). The deploy runs the tests first, then opens every
    page and Summary card in a browser (`check_site.py --gate`), and publishes nothing if a test
    fails or a page is broken, so if the sha never changes, the run failed: say so and look at why.
    After publishing it looks at the real site and puts the last version back if it is down.

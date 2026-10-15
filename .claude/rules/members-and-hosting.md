@@ -144,6 +144,20 @@ same on every run: every test, all three sports built fresh, every page and Summ
 the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from push to live
 (`timing` total ~400 s plus the queue). Two pushes close together: the second waits for the first.
 
+- **The page-only fast lane (2026-10-15).** The owner, after a one-arrow change took 7 minutes:
+  "removing one small thing ... shouldnt take more than 45 seconds". The ~4.5 minutes of data
+  rebuilds can't change on a push that changed only page files, so `ci_steps.py lane` compares
+  every file changed since the LIVE version (`version.json` sha, `git diff --name-only`): if all
+  are under `nfl_tool/site/`, `tests/`, `docs/`, `.claude/`, `model_history/` or are `CLAUDE.md`
+  / `README.md`, the lane is "pages" and "Use the live data" downloads all three sports' live
+  files (`fetch_live_data.py --need nfl nba nhl`) instead of building them. Anything else (build
+  code, `functions/`, `tools/`, workflows, `.gitignore`), a scheduled or manual run, or a live
+  version it can't read = "full". If the download fails, every build runs as usual. Every test
+  and the gate still run on both lanes, so it is about 2.5 to 3 minutes, not 45 seconds: the
+  owner was told publishing a file without the tests and the gate is how a broken page reaches
+  members. `version.json` `lane` says which ran. This is NOT a return of per-sport deploys: it
+  never decides which sport a file belongs to.
+
 - **Why** (2026-10-13 to 10-15 it was the other way): while the repo was private (2,000 free
   minutes a month) a push rebuilt, tested and browser-checked only the sport it changed, reused
   the other sports' live data, and pushes touching only `tests/` or `tools/` started no deploy.
