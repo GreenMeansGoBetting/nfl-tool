@@ -387,10 +387,11 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .ice-history-box { max-width: 760px; }
 .ice-history-box .ice-hist-tiles { margin-top: 12px; }
 
-.ice-hist-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.ice-hist-tile { padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); }
-.ice-hist-tile b { display: block; font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; color: var(--good-text); }
-.ice-hist-tile span { font-size: 0.72rem; color: var(--muted); }
+.ice-hist-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ice-hist-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 12px 8px; text-align: center; border: 1px solid rgba(var(--good-rgb), 0.35); border-radius: 12px; background: rgba(var(--good-rgb), 0.08); }
+.ice-hist-tile b { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1; color: var(--good-text); }
+.ice-hist-tile span { margin-top: 4px; font-size: 0.92rem; font-weight: 700; color: var(--text); }
+.ice-hist-tile i { font-style: normal; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .ice-hist-h { margin: 16px 0 6px; font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
 .ice-hist-table { border-collapse: separate; border-spacing: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 0.86rem; }
 .ice-hist-table th { padding: 6px 14px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); background: var(--panel-2); }
