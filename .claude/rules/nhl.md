@@ -611,7 +611,9 @@ a bad opponent) and players only (one player's matchup).
   is there, the next step is fetching the 7 PM slate's events once late in the day, not hourly.
 - **Historical Data** button beside the title: the replay's findings in a popup (`#ice-history-modal`,
   the owner's ask: "so users can get some background stats"). Its numbers are typed into
-  promo-tools.html: change them with the replay.
+  promo-tools.html: change them with the replay. Reworded to the owner's edits the same day: no lead line,
+  tiles "best pick scores first about 1 night in 50" / top 10 / top 20, columns "Typical night" /
+  "Slow night" with a note saying what each means, and "This promo is mostly luck ... GMG's advice: have fun."
 - **Lock and record:** a started game keeps the last build's rows (none saved = no rows). Once every
   7:00 PM game of a day is final, the day is written once to `model_history/nhl_icebreaker/<month>.json`
   (every player's locked rate, mean, mkt_mean, DraftKings price, and the winners: the quickest first

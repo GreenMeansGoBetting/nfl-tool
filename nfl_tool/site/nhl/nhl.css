@@ -327,7 +327,6 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .goals-zone-cell .goals-zone { margin-left: 0; }
 .shots-adv-toggle:not(.active) { border-style: dashed; }
 
-
 /* ---- Icebreaker (Promo Tools; icebreaker.js) ---- */
 .ice-intro { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ice-intro .koe-title { margin: 0; }
@@ -387,7 +386,8 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .ice-win-table th:nth-child(6) { width: 44px; }
 .ice-win-date { color: var(--muted); font-size: 0.74rem; }
 .ice-history-box { max-width: 760px; }
-.ice-hist-lead { margin: 4px 0 12px; color: var(--muted); font-size: 0.86rem; }
+.ice-history-box .ice-hist-tiles { margin-top: 12px; }
+
 .ice-hist-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .ice-hist-tile { padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); }
 .ice-hist-tile b { display: block; font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; color: var(--good-text); }
