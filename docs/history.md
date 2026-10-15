@@ -847,6 +847,18 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 
 ## Styles
 
+### The site font: Barlow to Sofia Sans (2026-10-15)
+
+    - A friend watching a video said the all-caps text and numbers felt "too tall and bunched",
+      and suggested a second font (monospace) for numbers. The owner agreed the text looked
+      "mushed". Causes: Barlow Condensed at 800 weight, all caps, and condensed digits.
+    - Tried first: Inter for digits only (a unicode-range face in front of Barlow). The numbers
+      read better, but the owner "hated the mismatch in word font and number font" and found
+      Barlow Semi "simply not good UI". Six single-family options were rendered on the real
+      SEA @ DEN Game Summary (Inter, Roboto Condensed, IBM Plex Sans Condensed, Archivo, Sofia
+      Sans, Saira), all capped at 700. Inter and Plex were wide enough to cut off labels; Sofia
+      Sans fit everything at full size and was chosen for every sport, letters and numbers.
+
 ### Phone layout
 
     - **Phone layout (added 2026-09-29):** **[corrected]** style.css now has four `@media (max-width: 760px)`

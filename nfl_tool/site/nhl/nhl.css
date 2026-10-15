@@ -132,7 +132,7 @@
 .shots-table .group-row.shots-state-head td { white-space: normal; }
 .shots-table td.shots-proj b { font-size: 1.12rem; }
 .shots-table td.shots-edge { font-size: 1.05rem; }
-.shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
+.shots-flag { margin-left: 5px; padding: 0 5px; border-radius: 999px; font-family: var(--font-body); font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; vertical-align: middle; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
 .shots-flag.shots-fade { margin-left: 6px; }
 .shots-table td.shots-line { font-size: 0.95rem; }
 .shots-lineup { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }

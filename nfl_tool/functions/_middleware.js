@@ -122,14 +122,14 @@ function gateEnabled(env) {
 function page(title, inner, status = 200, headers = {}, wide = false) {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow+Semi+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#070b13;--panel:#0d1422;--panel2:#111a2b;--border:#1d2a41;--text:#e7edf7;--muted:#8797b0;--accent:#22c55e}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 420px at 50% -80px,rgba(34,197,94,.12),transparent 70%),var(--bg);color:var(--text);font-family:"Barlow Semi Condensed",system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(1000px 420px at 50% -80px,rgba(34,197,94,.12),transparent 70%),var(--bg);color:var(--text);font-family:"Sofia Sans Semi Condensed",system-ui,sans-serif}
 .wide .box{max-width:900px}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:left;margin-top:14px}
 .col{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:18px 18px 16px}
-.col h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px}
+.col h2{font-family:"Sofia Sans Condensed",sans-serif;font-weight:800;font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px}
 .col.join{border-color:rgba(34,197,94,.55);background:linear-gradient(180deg,rgba(34,197,94,.08),transparent 60%),var(--panel2)}
 .col p{margin:0 0 12px}.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.8rem;margin:14px 0 2px}.or:before,.or:after{content:"";flex:1;height:1px;background:var(--border)}
 @media(max-width:720px){.cols{grid-template-columns:1fr}}
@@ -137,7 +137,7 @@ function page(title, inner, status = 200, headers = {}, wide = false) {
 body,button{text-transform:uppercase;letter-spacing:.02em}
 input,table{text-transform:none;letter-spacing:normal}input::placeholder{text-transform:uppercase;letter-spacing:.02em}
 .logo{display:block;width:170px;height:auto;margin:0 auto;filter:drop-shadow(0 0 1px rgba(255,255,255,.45)) drop-shadow(0 4px 14px rgba(0,0,0,.5))}
-h1{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 6px}h1 b{color:var(--accent)}
+h1{font-family:"Sofia Sans Condensed",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 6px}h1 b{color:var(--accent)}
 .col .sub{color:var(--text);font-weight:600}
 .join-btn{background:var(--accent);color:#03140a}.join-btn:hover{filter:brightness(1.08)}
 .alt{display:block;margin-top:14px;font-size:.85rem;color:var(--muted)}.alt a{color:var(--accent);font-weight:700}

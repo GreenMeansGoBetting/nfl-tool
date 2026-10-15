@@ -8,6 +8,21 @@ paths:
 
 Stories behind these rules: `docs/history.md`, "Styles".
 
+## One font: Sofia Sans (2026-10-15)
+
+- **Every word and number on every sport's pages is Sofia Sans** (the owner: "the new font style
+  moving forward for both letters and numbers"). `--font-body` = Sofia Sans Semi Condensed,
+  `--font-display` = Sofia Sans Condensed (style.css tokens). Never name a font family in a rule:
+  use `var(--font-body)` / `var(--font-display)`. The login page (`page()` in _middleware.js)
+  names it directly.
+- **Never a second font for numbers.** A digits-only Inter was tried first and the owner hated
+  the mismatch between letters and numbers.
+- Each page's Google Fonts link loads 400-700 only (Support adds 900 for the hub's Black look).
+  The old 800 weight made condensed text look "mushed"; rules asking for 800 draw at 700.
+- Tables line digits up in columns (`table { font-variant-numeric: tabular-nums }`).
+- Save image embeds the fonts from that same link (`summaryFontCSS`, NHL `embeddedFontCSS`), so a
+  new font only needs the link and the tokens.
+
 ## One look across the whole site (the summary-card look)
 
 It lives in the "Facelift v2" block of `style.css`. New UI should reuse these patterns rather

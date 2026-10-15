@@ -28,7 +28,12 @@
   --topbar-bg: rgba(7, 11, 19, 0.97);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   --row-hover: rgba(255, 255, 255, 0.035);
-  --font-display: "Barlow Condensed", "Barlow Semi Condensed", sans-serif;
+  /* The site's one font (2026-10-15): Sofia Sans for every word and number on
+     every sport's pages, Semi Condensed for text and its Condensed cut for the
+     display font. Each page loads it at 400-700 only: the old 800 weight
+     looked mushed, so anything asking for 800/900 draws at 700. */
+  --font-body: "Sofia Sans Semi Condensed", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Sofia Sans Condensed", "Sofia Sans Semi Condensed", sans-serif;
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -64,8 +69,11 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Barlow Semi Condensed", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   line-height: 1.4;
+}
+table {
+  font-variant-numeric: tabular-nums;
 }
 
 .topbar {
@@ -3095,7 +3103,7 @@ footer { border-top-color: var(--border); }
 
 /* Raw Stats / vs Opponents toggle sits in the General Stats header */
 .stats-mode-toggle { display: inline-flex; gap: 4px; margin-left: 14px; padding: 3px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); text-transform: none; letter-spacing: 0; }
-.stats-mode-toggle .view-toggle-btn { font-family: "Barlow Semi Condensed", sans-serif; font-size: 0.8rem; padding: 4px 14px; border: none; }
+.stats-mode-toggle .view-toggle-btn { font-family: var(--font-body); font-size: 0.8rem; padding: 4px 14px; border: none; }
 .summary-toolbar .stats-mode-toggle { margin-left: 0; flex: 0 0 auto; }
 
 /* Each matchup box's two columns fill the box -- no dead strip on the right */
@@ -3159,7 +3167,7 @@ html.local-dev .update-odds-link { display: inline-flex; }
 #player-card-modal .player-modal-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
 .pc-log-section, .pc-lane-section { margin-bottom: 16px; }
 .pc-log-title { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 6px; padding: 5px 10px; border-radius: 8px; background: var(--table-head); box-shadow: inset 3px 0 0 var(--accent); }
-.pc-vs { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; letter-spacing: 0.03em; color: var(--muted); text-transform: none; font-family: "Barlow Semi Condensed", sans-serif; }
+.pc-vs { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; letter-spacing: 0.03em; color: var(--muted); text-transform: none; font-family: var(--font-body); }
 .pc-log-scroll { overflow-x: auto; }
 .pc-log-table { width: auto; min-width: 100%; }
 .pc-log-table td, .pc-log-table th { white-space: nowrap; }
@@ -3533,7 +3541,7 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 }
 
 /* ---- Support page: links + codes from gmgsports.org/links.json, hub look (Black, ALL CAPS) ---- */
-.support { max-width: 980px; margin: 0 auto; font-family: "Barlow Semi Condensed", sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; }
+.support { max-width: 980px; margin: 0 auto; font-family: var(--font-body); font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; }
 .support-head h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; margin: 6px 0 4px; }
 .support-head .section-note { font-weight: 600; margin: 0 0 16px; }
 .support-socials { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
@@ -3603,7 +3611,7 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .g2-team-head b { font-weight: 800; overflow: hidden; text-overflow: ellipsis; }
 .g2-rec { margin-left: auto; display: inline-flex; gap: 12px; font-size: 1.1rem; font-weight: 800; }
 .g2-rec span { display: inline-flex; align-items: baseline; gap: 5px; }
-.g2-rec i, .g2-lbl, .g2-rt i { font-family: "Barlow Semi Condensed", sans-serif; font-style: normal; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.g2-rec i, .g2-lbl, .g2-rt i { font-family: var(--font-body); font-style: normal; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .g2-team-row { display: grid; grid-template-columns: 62px minmax(0, 1fr); align-items: center; gap: 6px; padding: 0 10px; min-height: 26px; }
 .g2-team .gs-inj-list { gap: 4px; }
 .g2-footer .g2-key { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 3px 0 8px; }
@@ -3624,6 +3632,8 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 /* The Line: title on the left of its tiles, like My Picks, to save a row of height */
 .gs-card .g2-line-sec { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; }
 .gs-card .g2-line-sec .sc-section-title { margin: 0; }
+/* Spread and Total take only the room they need, so the two-team tiles get the rest */
+.gs-card .g2-line { grid-template-columns: auto auto 1.6fr 1.75fr 2fr; }
 .g2-line-tile { flex-direction: row; justify-content: center; gap: 12px; padding: 6px 8px; }
 .gs-card .g2-teams + *, .g2-team { gap: 3px; }
 
