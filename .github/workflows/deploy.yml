@@ -37,8 +37,12 @@ on:
     paths:
       - "nfl_tool/**"
       - ".github/workflows/deploy.yml"
-      # tests/ and tools/ are left out on purpose: a push that only touches
-      # them doesn't rebuild the site. The tests still run on every deploy.
+      # The deploy's own plan: a fix to it is usually a fix to a failed
+      # deploy, which then needs a run (2026-10-15: one sat unpublished).
+      - "tools/ci_steps.py"
+      # Other tests/ and tools/ files are left out on purpose: a push that
+      # only touches them doesn't rebuild the site. The tests still run on
+      # every deploy.
 
 permissions:
   # write: the build commits model_history/gmg_model.json (see that step)

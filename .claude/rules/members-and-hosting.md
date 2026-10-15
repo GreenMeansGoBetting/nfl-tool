@@ -49,7 +49,9 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     players got odds (`player_odds`), how many games the Shots page has projections for
     (`shots`), or the failed build's last line (`error`). Their data files are behind the login, so this is the only way
     to see those builds from outside.
-- It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, and on manual dispatch. Pushes
+- It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, `deploy.yml` or `tools/ci_steps.py`,
+  and on manual dispatch. **Update Odds only opens the Actions page**; "Run workflow" starts it. A
+  re-run of a failed run uses that run's OLD commit, never newer fixes. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
   are free, so they're fetched fresh on every build.
 - Other steps: "Build NBA data" and "Build NHL data" (both `continue-on-error`; the NHL one
@@ -68,7 +70,10 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
 - `.github/workflows/cloudflare-domain.yml` attaches `nfl.`, `nba.` and `nhl.gmgsports.org` to the Pages project
   through the API. It can be re-run from the Actions tab and prints the verification status. (The
   Cloudflare connector for Claude can't manage Pages domains; the GitHub secret token can.)
-- **The repo is private and GitHub Pages is off** (2026-10-13). The Pages copy had served the
+- **The repo is PUBLIC again since 2026-10-15** (the owner's call, to let Claude read the runs:
+  `api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/runs` and each run's jobs/logs).
+  The history was scanned for keys first (none). The notes below are from the private period.
+- **The repo was private and GitHub Pages is off** (2026-10-13). The Pages copy had served the
   site without the login; it was dropped from the deploy, then the user made the repo private,
   which unpublished it (checked: GitHub's servers return 404 for the old copy). Because of that:
   - the public GitHub API no longer shows the runs, so confirm deploys with `version.json`;
