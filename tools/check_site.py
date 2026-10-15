@@ -51,6 +51,7 @@ PAGES = [
     ("NHL Shots", "nhl/shots.html", None),
     ("NHL Goals", "nhl/goals.html", None),
     ("NHL Promo Tools", "nhl/promo-tools.html", None),
+    ("NHL Icebreaker", "nhl/promo-tools.html#icebreaker", None),
 ]
 # The other suites' pages: they have a schedule strip to wait for, and their
 # data builds are allowed to fail without holding up the NFL site.
@@ -155,6 +156,14 @@ def settle(page, selector=None):
     page.wait_for_timeout(350)
 
 
+def ready_for(path, summary_btn):
+    """What says a page has drawn: the schedule strip, or for a promo opened
+    by its address (#icebreaker), which has no strip of its own, its table."""
+    if path.endswith("#icebreaker"):
+        return "#ice-players table"
+    return GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None
+
+
 def game_count(page, max_games):
     count = page.locator(GAME_CARDS).count()
     return min(count, max_games) if max_games else count
@@ -212,11 +221,11 @@ def run_check(browser, origin, shots_dir, max_games=None, gate=False):
     page = context.new_page()
     watcher = Watcher(page, origin, problems)
     for label, path, summary_btn in PAGES:
-        if not (SITE / path).exists():
+        if not (SITE / path.split("#")[0]).exists():
             continue
         watcher.label = label
         page.goto(f"{origin}/{path}")
-        settle(page, GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None)
+        settle(page, ready_for(path, summary_btn))
         if not summary_btn:
             continue
         if not click_in_page(page, summary_btn):
@@ -251,11 +260,11 @@ def run_check(browser, origin, shots_dir, max_games=None, gate=False):
     page = context.new_page()
     watcher = Watcher(page, origin, problems)
     for label, path, summary_btn in PAGES:
-        if not (SITE / path).exists():
+        if not (SITE / path.split("#")[0]).exists():
             continue
         watcher.label = f"{label} (phone)"
         page.goto(f"{origin}/{path}")
-        settle(page, GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None)
+        settle(page, ready_for(path, summary_btn))
         views = [("", None)] + ([(" Summary", summary_btn)] if summary_btn else [])
         for suffix, button in views:
             if button and click_in_page(page, button):
@@ -280,11 +289,11 @@ def take_screenshots(browser, origin, shots_dir, max_games=None):
             context.add_init_script(f"try {{ localStorage.setItem('nfl-tool.theme', '{theme}') }} catch (e) {{}}")
             page = context.new_page()
             for label, path, summary_btn in PAGES:
-                if not (SITE / path).exists():
+                if not (SITE / path.split("#")[0]).exists():
                     continue
                 slug = label.lower().replace(" ", "-")
                 page.goto(f"{origin}/{path}")
-                settle(page, GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None)
+                settle(page, ready_for(path, summary_btn))
                 page.wait_for_timeout(600)
                 page.screenshot(path=str(shots_dir / f"{theme}-{size_name}-{slug}.png"), full_page=True)
                 count += 1
@@ -380,7 +389,7 @@ def main():
     finally:
         server.shutdown()
 
-    pages = sum(1 for _, path, _ in PAGES if (SITE / path).exists())
+    pages = sum(1 for _, path, _ in PAGES if (SITE / path.split("#")[0]).exists())
     print(f"check_site: {pages} pages, {cards} summary cards, {len(problems)} problem{'' if len(problems) == 1 else 's'}" + (f", {shots} screenshots in {shots_dir}" if shots_dir else ""))
     for note in notes:
         print("  " + note)

@@ -19,3 +19,4 @@ __pycache__/
 *.pyc
 nfl_tool/site/nhl/crease.json
 nfl_tool/site/nhl/goals.json
+nfl_tool/site/nhl/icebreaker.json

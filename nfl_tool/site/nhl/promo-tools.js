@@ -1,4 +1,4 @@
-// ---- GMG NHL Suite: Promo Tools (King of the Crease) ----
+// ---- GMG NHL Suite: Promo Tools (King of the Crease; Icebreaker is icebreaker.js) ----
 // DraftKings' promo pays everyone whose goalie makes the MOST SAVES OF THE
 // DAY. This page lists every team's starter for the day with what decides
 // saves (how much the other team shoots, how many shots his own team gives
@@ -13,6 +13,9 @@
 
 let CREASE = null;
 let dayIndex = 0;
+// Which promo is open: King of the Crease, or Icebreaker (icebreaker.js).
+// The address keeps it (#icebreaker), so the Promo Tools menu can link to either.
+let promoView = location.hash === "#icebreaker" ? "icebreaker" : "crease";
 const creaseView = { sort: "top", dir: -1 };
 
 // ESPN's logos, not the NHL's own: the saved image can only carry pictures
@@ -383,7 +386,17 @@ function loadPayouts() {
     .catch(() => ({}));
 }
 
+function showPromo(view) {
+  promoView = view;
+  document.querySelectorAll(".promo-views [data-promo]").forEach((b) => b.classList.toggle("active", b.dataset.promo === view));
+  el("crease-app").hidden = view !== "crease";
+  el("ice-app").hidden = view !== "icebreaker";
+  if (view !== "crease") el("schedule-scroller").hidden = true;
+  history.replaceState(null, "", view === "icebreaker" ? "#icebreaker" : location.pathname + location.search);
+  render();
+}
 function render() {
+  if (promoView === "icebreaker") return typeof renderIce === "function" && renderIce();
   if (!DATA || !CREASE) return;
   renderSchedule();
   renderHead();
@@ -466,6 +479,8 @@ async function saveCreaseImage() {
   }, 2500);
 }
 
+// The Promo Tools menu's Icebreaker link on this same page only changes the address.
+window.addEventListener("hashchange", () => DATA && showPromo(location.hash === "#icebreaker" ? "icebreaker" : "crease"));
 document.addEventListener("input", (e) => {
   if (e.target.closest("#crease-log-text")) checkPayoutForm();
 });
@@ -473,6 +488,8 @@ document.addEventListener("change", (e) => {
   if (e.target.closest("#crease-log-date")) fillPayoutForm();
 });
 document.addEventListener("click", (e) => {
+  const promo = e.target.closest(".promo-views [data-promo]");
+  if (promo) return showPromo(promo.dataset.promo);
   if (e.target.closest("#crease-save")) return saveCreaseImage();
   if (e.target.closest("#crease-log-save")) return savePayouts();
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
@@ -492,7 +509,7 @@ Promise.all([
     .catch(() => null),
   loadPayouts(),
 ])
-  .then(([, crease, payouts]) => {
+  .then(async ([, crease, payouts]) => {
     CREASE = crease || { days: {}, record: null, rules: null, league: {} };
     PAYOUTS = payouts;
     // This page is this season only, so the player card opens on this season too.
@@ -501,9 +518,10 @@ Promise.all([
     const today = new Date().toLocaleDateString("en-CA");
     const day = all.find((d) => d >= today && dayBoard(d)) || all.find((d) => d >= today) || all[all.length - 1];
     dayIndex = Math.max(0, all.indexOf(day));
+    // icebreaker.js loads after this file, so its data is asked for once this is under way.
+    if (typeof loadIce === "function") await loadIce();
     el("empty-state").hidden = true;
-    el("crease-app").hidden = false;
-    render();
+    showPromo(promoView);
   })
   .catch((err) => {
     el("empty-state").innerHTML = "<p>Couldn't load the NHL data.</p>";

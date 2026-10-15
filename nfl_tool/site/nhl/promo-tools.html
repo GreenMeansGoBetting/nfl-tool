@@ -38,6 +38,7 @@
   <div class="nba-app">
     <div class="view-toggle promo-views">
       <button type="button" class="view-toggle-btn active" data-promo="crease">King of the Crease</button>
+      <button type="button" class="view-toggle-btn" data-promo="icebreaker">Icebreaker</button>
     </div>
 
     <div id="schedule-scroller" class="schedule-scroller" hidden>
@@ -107,6 +108,49 @@
         </div>
       </details>
     </section>
+
+    <section id="ice-app" class="koe ice" hidden>
+      <div class="koe-intro ice-intro">
+        <h2 class="koe-title">Icebreaker <button type="button" class="info-i" aria-expanded="false" aria-controls="ice-note-1" title="How to read this">i</button></h2>
+        <button type="button" id="ice-history-btn" class="view-toggle-btn ice-history-btn">Historical Data</button>
+      </div>
+      <p class="section-note info-note" id="ice-note-1" hidden>DraftKings splits a prize pool among everyone with a qualifying <b>first goal scorer</b> bet on the player who scores the <b>quickest goal of the 7:00 PM ET slate</b>, by game clock (a goal 0:10 into a 7:08 puck drop beats one 0:15 into a 7:02 one). <b>Chance</b> is each player's chance to be that player among the games picked: his expected goals tonight (our Goals model, moved toward his anytime price) over everyone's. A team's chance is its players' added up; click a team to see only its players. The <b>Fast starts</b> numbers are this season's, shown for context and <b>not counted</b>: on two past seasons they predicted nothing that a team's normal scoring didn't (see Historical Data). Prices are DraftKings' first goal scorer odds; a grey price is another book's when DraftKings has none yet.</p>
+
+      <div class="ice-slate">
+        <div class="ice-slate-row">
+          <span class="ice-lab">Day</span>
+          <span class="koe-week"><button type="button" id="ice-day-prev" class="week-nav-btn">&lsaquo;</button><span id="ice-day-label" class="week-label"></span><button type="button" id="ice-day-next" class="week-nav-btn">&rsaquo;</button></span>
+        </div>
+        <div class="ice-slate-row"><span class="ice-lab">Start time</span><span id="ice-slots" class="ice-chips"></span></div>
+        <div class="ice-slate-row"><span class="ice-lab">Games</span><span id="ice-games" class="ice-chips"></span></div>
+        <div id="ice-summary" class="ice-summary"></div>
+      </div>
+
+      <div class="koe-filters">
+        <button type="button" id="ice-save" class="summary-save-btn">Save image</button>
+      </div>
+      <p id="ice-note" class="no-data-note" hidden></p>
+
+      <div class="ice-main">
+        <div id="ice-capture" class="koe-capture ice-capture">
+          <div class="crease-capture-head ice-capture-head">
+            <span class="brand-mark">GMG</span>
+            <span class="crease-capture-titles"><span class="crease-capture-title">Icebreaker</span><span id="ice-capture-sub" class="crease-capture-sub"></span></span>
+            <span class="crease-capture-promo">Quickest goal of the slate wins</span>
+          </div>
+          <div class="ice-boards">
+            <div class="ice-board"><h3 class="ice-board-title">Teams <span>click a team to see only its players</span></h3><div id="ice-teams"></div></div>
+            <div class="ice-board"><h3 class="ice-board-title">Players <span>every skater in the games picked, most likely first</span></h3><div id="ice-players"></div></div>
+          </div>
+        </div>
+
+        <!-- Outside #ice-capture, so never in the saved image. -->
+        <aside class="crease-winners ice-winners">
+          <h3 class="crease-winners-title">Winners</h3>
+          <div id="ice-winners-list"></div>
+        </aside>
+      </div>
+    </section>
   </div>
 </main>
 
@@ -114,8 +158,47 @@
   Data: the NHL's public game feed (play-by-play, box scores). Lines: Novig. Not a pick: the chance to lead the day, and where the model and the market disagree.
 </footer>
 
+<div id="ice-history-modal" class="modal-overlay" hidden>
+  <div class="modal-box ice-history-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <h2 class="section-title">Historical Data <span class="muted-label">Icebreaker, 2024-25 and 2025-26</span></h2>
+    <p class="ice-hist-lead">Every night with a 7:00 PM ET slate over the last two full seasons (290 slates), replayed using only what was known before puck drop.</p>
+    <div class="ice-hist-tiles">
+      <div class="ice-hist-tile"><b>~2:00</b><span>When the quickest goal usually came on a 4-6 game slate</span></div>
+      <div class="ice-hist-tile"><b>~2%</b><span>The best pick's chance on a 5-game slate (about 1 in 50)</span></div>
+      <div class="ice-hist-tile"><b>11-22%</b><span>Slates where the winner was in a top 10 like this page's</span></div>
+      <div class="ice-hist-tile"><b>6%</b><span>Ten random picks, for comparison</span></div>
+    </div>
+    <h3 class="ice-hist-h">When the ice breaks</h3>
+    <table class="ice-hist-table">
+      <thead><tr><th>Games on the slate</th><th>Usual quickest goal</th><th>3 nights in 4 by</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>5:00 - 6:30</td><td>8:35 - 11:50</td></tr>
+        <tr><td>2</td><td>4:00 - 5:10</td><td>7:10 - 10:40</td></tr>
+        <tr><td>3</td><td>3:00 - 3:25</td><td>4:05 - 6:10</td></tr>
+        <tr><td>4</td><td>1:35 - 2:00</td><td>3:55 - 4:40</td></tr>
+        <tr><td>5</td><td>1:30 - 2:05</td><td>1:55 - 2:50</td></tr>
+        <tr><td>6</td><td>1:35 - 1:50</td><td>2:00 - 3:50</td></tr>
+      </tbody>
+    </table>
+    <p class="ice-hist-note">Each season's middle night, then the time 3 nights in 4 beat, game clock in the 1st period (the two seasons' ranges). No two goals tied for the quickest in two seasons.</p>
+    <h3 class="ice-hist-h">What predicted it, and what didn't</h3>
+    <ul class="ice-hist-list">
+      <li><b>Who scores early is who scores.</b> A player's scoring rate times his ice time picked the scorer of a team's early goal best. That is what the Chance column is built on.</li>
+      <li><b>Teams' fast starts didn't help.</b> Goals in the first 10 minutes, goals in the 1st period and the time of the first goal, for and against, predicted early scoring no better than a team's normal goals for and against. With a handful of games each they are mostly noise, so they are shown but not counted.</li>
+      <li><b>Early shots didn't help either.</b> A player's shots in the first 5 minutes picked his team's early scorer no better than a blind guess.</li>
+      <li><b>The first shift is a coin flip.</b> Only about 1 winner in 3 was on the ice for the opening faceoff, and coaches change who starts: a forward who started one game started the next only 40% of the time.</li>
+      <li><b>The first two minutes are slow.</b> About 15-20% fewer goals than the rest of the 1st period, for every team alike, so it doesn't change who to pick.</li>
+      <li><b>Defensemen</b> scored 10-15% of the winning goals, and about 1 in 5 came on a power play.</li>
+      <li><b>Picking the team first helps little.</b> The top-ranked team produced the winner 14% of the time (a random team: 10%) and its top three 40% (random: 30%). The edge is in the players.</li>
+    </ul>
+    <h3 class="ice-hist-h">How to use it</h3>
+    <p class="ice-hist-note">Even the best pick loses about 49 nights in 50. That is the promo, not the page. The list narrows 150-plus skaters down to the ones who carry the most of the slate's scoring; the rest is the bet and the price. The Winners list keeps this page's own record, night by night.</p>
+  </div>
+</div>
 <script src="../sync.js"></script>
 <script src="nhl-common.js"></script>
 <script src="promo-tools.js"></script>
+<script src="icebreaker.js"></script>
 </body>
 </html>

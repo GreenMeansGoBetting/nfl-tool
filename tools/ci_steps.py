@@ -188,6 +188,10 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["crease"] = len(crease.get("days") or {}) if crease else None  # King of the Crease: days with a board
         goals = read_json(site / "nhl" / "goals.json")
         note["goals"] = len(goals.get("games") or {}) if goals else None  # Goals: games with projections
+        ice = read_json(site / "nhl" / "icebreaker.json")
+        note["icebreaker"] = len(ice.get("days") or {}) if ice else None  # Icebreaker: days with a board
+        fg = (data.get("book_odds_debug") or {}).get("first_goal") or {}
+        note["first_goal"] = fg.get("players", fg.get("error") or fg.get("note") or fg.get("skipped"))  # SmartStake first goal scorer prices
     if failed:
         note["error"] = build_error(suite)
     return note

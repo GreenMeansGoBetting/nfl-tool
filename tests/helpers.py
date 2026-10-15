@@ -124,6 +124,19 @@ def nhl_crease():
     return json.loads(nhl_crease_bytes())
 
 
+def nhl_icebreaker_bytes():
+    """The Icebreaker sample (nhl/icebreaker.json): icebreaker_board run on the Goals sample and
+    the data sample's schedule and Novig prices, as of 2026-10-13 14:12 UTC, with `fast` from the
+    89 games before 10/13. Hand-made: no SmartStake prices but two on 10/15's 7:00 slate (its
+    first row: DraftKings +750, best FanDuel +800; its second: no DraftKings, BetMGM +900), and
+    an empty Winners `history` (the tests write their own)."""
+    return _fixture_bytes("nhl_icebreaker.json.gz")
+
+
+def nhl_icebreaker():
+    return json.loads(nhl_icebreaker_bytes())
+
+
 def nhl_lineup_story():
     """The saved projected-lineups story: {"game_id", "away", "home", "posted", "markdown"}."""
     return json.loads(_fixture_bytes("nhl_lineup_story.json.gz"))

@@ -329,6 +329,7 @@
   const PROMOS = [
     { sport: "nfl", label: "NFL", name: "King of the Endzone", href: SPORT_HOST ? "https://nfl.gmgsports.org/promo-tools.html" : "/promo-tools.html" },
     { sport: "nhl", label: "NHL", name: "King of the Crease", href: SPORT_HOST ? "https://nhl.gmgsports.org/promo-tools.html" : "/nhl/promo-tools.html" },
+    { sport: "nhl", label: "NHL", name: "Icebreaker", view: "icebreaker", href: SPORT_HOST ? "https://nhl.gmgsports.org/promo-tools.html#icebreaker" : "/nhl/promo-tools.html#icebreaker" },
   ];
   function addPromoMenu() {
     const nav = document.querySelector(".topbar .page-nav");
@@ -351,7 +352,7 @@
     menu.className = "promo-menu";
     menu.hidden = true;
     menu.innerHTML = PROMOS.map(
-      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === sport ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
+      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === sport && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
     ).join("");
     bar.appendChild(menu);
     trigger.addEventListener("click", (e) => {

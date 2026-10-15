@@ -323,7 +323,7 @@ class PromoMenu(unittest.TestCase):
         PAGE.click(".page-nav .promo-trigger")
         self.assertTrue(menu.is_visible())
         items = PAGE.evaluate("() => [...document.querySelectorAll('.promo-menu a')].map((a) => [a.textContent, a.getAttribute('href')])")
-        self.assertEqual(items, [["NFLKing of the Endzone", "/promo-tools.html"], ["NHLKing of the Crease", "/nhl/promo-tools.html"]])
+        self.assertEqual(items, [["NFLKing of the Endzone", "/promo-tools.html"], ["NHLKing of the Crease", "/nhl/promo-tools.html"], ["NHLIcebreaker", "/nhl/promo-tools.html#icebreaker"]])
         PAGE.keyboard.press("Escape")
         self.assertTrue(menu.is_hidden())
 

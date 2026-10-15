@@ -87,6 +87,7 @@ LIVE_DATA_URL = "https://nfl.gmgsports.org/nhl/data.json"
 LIVE_SHOTS_URL = "https://nfl.gmgsports.org/nhl/shots.json"
 LIVE_CREASE_URL = "https://nfl.gmgsports.org/nhl/crease.json"
 LIVE_GOALS_URL = "https://nfl.gmgsports.org/nhl/goals.json"
+LIVE_ICEBREAKER_URL = "https://nfl.gmgsports.org/nhl/icebreaker.json"
 # The Shots page projects games through this many days out (books post
 # shots-on-goal lines about a day ahead) and keeps the chance of 1+ ... 8+.
 SHOTS_DAYS_AHEAD = 2
@@ -173,6 +174,7 @@ DOT_Y = 22
 POST_Y = 3.5
 LOW_SLOT_Y = 9
 SHOT_EVENTS = ("goal", "shot-on-goal", "missed-shot", "blocked-shot")
+EARLY_SECONDS = 300  # "fast start" shots: the first five minutes of the 1st period
 # The feed's shot types, grouped for the player card (anything else is "other").
 SHOT_TYPES = {"wrist": "wrist", "snap": "snap", "slap": "slap", "backhand": "backhand", "tip-in": "tip", "deflected": "tip"}
 # One row per game in a player's log (the player files, see write_player_files).
@@ -319,6 +321,9 @@ def reduce_game(raw: dict) -> dict:
     directions = attack_directions(pbp.get("plays") or [], team_of, home["id"])
     teams = {home["abbrev"]: Counter(), away["abbrev"]: Counter()}
     skater_extra, goalie_extra = {}, {}
+    # Icebreaker (fast starts): each team's first goal, in seconds from the
+    # opening faceoff, and the game's first goal with its scorer.
+    first_goals, first_goal = {}, None
 
     for p in pbp.get("plays") or []:
         kind = p.get("typeDescKey")
@@ -351,8 +356,14 @@ def reduce_game(raw: dict) -> dict:
             if on_goal:
                 t["sog"] += 1
                 t["sog_5v5"] += even
+                if period.get("number") == 1 and clock_seconds(p.get("timeInPeriod")) < EARLY_SECONDS:
+                    t["sog_early"] += 1
             if kind == "goal":
                 t["g"] += 1
+                elapsed = ((period.get("number") or 1) - 1) * 1200 + clock_seconds(p.get("timeInPeriod"))
+                first_goals.setdefault(abbr[team_id], elapsed)
+                if first_goal is None:
+                    first_goal = {"t": elapsed, "team": abbr[team_id], "id": str(shooter) if shooter else None, "name": person_name(spots.get(shooter, {}))}
                 t[f"g_{man}"] += 1
                 if man == "pp":
                     for key in ("scoringPlayerId", "assist1PlayerId", "assist2PlayerId"):
@@ -444,6 +455,8 @@ def reduce_game(raw: dict) -> dict:
         "goalies": goalies,
         # Every unblocked shot on a goalie, for the goals model (game_shots).
         "shots": game_shots(raw),
+        "first_goal": first_goal,
+        "first_goals": first_goals,
     }
 
 
@@ -2306,6 +2319,198 @@ def crease_file(season: int, generated_at: str, records: list, games: list, toni
     }
 
 
+
+# ---- Icebreaker (the Promo Tools page) ----
+# DraftKings' promo: everyone with a qualifying first goal scorer bet on the
+# player who scores the QUICKEST goal of the 7:00 PM ET slate (game clock, not
+# wall clock) splits $250K. A replay of 2024-25 and 2025-26
+# (tools/backtest/nhl_icebreaker.py) found that who scores early is who scores:
+# a player's scoring rate x his ice time beat every "fast start" number, his
+# early shots and the first shift. Under a steady scoring rate, a player's
+# chance to score the slate's first goal is his expected goals tonight over
+# everyone's, so `rate` is the Goals model's mean, moved toward his anytime
+# price the way King of the Crease leans on the saves line. The page divides
+# by the games the member picks. The fast-start numbers are shown, never used.
+ICEBREAKER_RULES = {"blend": 0.5, "full_games": 20, "slot": "19:00"}
+ICEBREAKER_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_icebreaker"
+ICEBREAKER_RECORD_COLS = ("id", "name", "team", "rate", "mean", "mkt_mean", "fg")
+
+
+def fast_starts(records: list) -> dict:
+    """{team: {"gp", "first" (games it scored the game's first goal),
+    "first_time" (the middle game's time of its own first goal, in seconds;
+    None when it went scoreless in more than half), "sog5" / "sog5_against"
+    (shots on goal a game in the first five minutes, and allowed)}}.
+    This season's games; shown on the page, never in the chances."""
+    teams = {}
+    for r in records:
+        first = r.get("first_goal")
+        for team, opp in ((r["home"], r["away"]), (r["away"], r["home"])):
+            row = teams.setdefault(team, {"gp": 0, "first": 0, "times": [], "sog5": 0, "sog5_against": 0})
+            row["gp"] += 1
+            row["first"] += bool(first) and first["team"] == team
+            row["times"].append((r.get("first_goals") or {}).get(team))
+            row["sog5"] += (r["teams"].get(team) or {}).get("sog_early", 0)
+            row["sog5_against"] += (r["teams"].get(opp) or {}).get("sog_early", 0)
+    out = {}
+    for team, row in teams.items():
+        times = sorted(row["times"], key=lambda t: float("inf") if t is None else t)
+        out[team] = {
+            "gp": row["gp"], "first": row["first"], "first_time": times[(len(times) - 1) // 2],
+            "sog5": num(row["sog5"] / row["gp"]), "sog5_against": num(row["sog5_against"] / row["gp"]),
+        }
+    return out
+
+
+def first_goal_prices(book_odds: dict, game: dict, pid: str) -> dict:
+    """His first goal scorer prices from SmartStake: DraftKings' (the promo's
+    book) and the best US price with its book."""
+    entry = ((((book_odds or {}).get(f"{game['away']}_{game['home']}") or {}).get("props") or {}).get("first_goal") or {}).get(pid)
+    quotes = [q for q in (entry or {}).get("q") or [] if q[1] == "o"]
+    if not quotes:
+        return {"fg": None, "fg_best": None}
+    dk = next((q[3] for q in quotes if q[0] == "draftkings"), None)
+    best = max(quotes, key=lambda q: q[3])
+    return {"fg": dk, "fg_best": [smartstake.US_BOOKS.get(best[0], best[0]), best[3]]}
+
+
+def icebreaker_row(goal_row: dict, game: dict, odds: dict | None, book_odds: dict, games_played: int) -> dict:
+    """One skater's row: the Goals model's expected goals (`mean`), the
+    market's (`mkt_mean`, from Novig's anytime price), and `rate` = the
+    market moved toward the model by as much as the season has earned
+    (ICEBREAKER_RULES, as King of the Crease); the model alone without a price."""
+    chance = ((odds or {}).get("goal") or {}).get("chance")
+    mkt = round(-math.log(1 - chance), 4) if chance and 0 < chance < 1 else None
+    weight = ICEBREAKER_RULES["blend"] * min(1.0, games_played / ICEBREAKER_RULES["full_games"])
+    rate = goal_row["mean"] if mkt is None else mkt + weight * (goal_row["mean"] - mkt)
+    keep = ("id", "name", "team", "opp", "home", "pos", "slot", "usual_slot", "move", "games", "goals", "xg", "minutes")
+    return {
+        **{k: goal_row.get(k) for k in keep}, "game_id": game["game_id"],
+        "mean": goal_row["mean"], "mkt_mean": mkt, "rate": round(rate, 4),
+        **first_goal_prices(book_odds, game, goal_row["id"]),
+    }
+
+
+def icebreaker_board(goals_games: dict, games: list, records: list, player_odds: dict, book_odds: dict, previous: dict | None, now_utc: datetime) -> dict:
+    """{date: {"games": [...], "players": [rows]}} for the Goals page's days.
+    Same lock as everything else: a started game keeps the last build's rows
+    (none saved = no rows, never ones made after puck drop). A finished
+    game's entry gets `first`: its first goal's time and scorer."""
+    kept = {}
+    for day in ((previous or {}).get("days") or {}).values():
+        for row in day.get("players") or []:
+            kept.setdefault(row["game_id"], []).append(row)
+    finished = {str(r["id"]): r for r in records}
+    team_games = Counter()
+    for r in records:
+        team_games[r["home"]] += 1
+        team_games[r["away"]] += 1
+    days = {}
+    for g in games:
+        started = g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+        entry = goals_games.get(g["game_id"])
+        if started:
+            rows = kept.get(g["game_id"]) or []
+        elif entry:
+            played = min(team_games[g["away"]], team_games[g["home"]])
+            odds = player_odds.get(g["game_id"]) or {}
+            rows = [icebreaker_row(row, g, odds.get(row["id"]), book_odds, played) for row in entry["players"] if not row.get("out")]
+        else:
+            continue
+        if not rows and not started:
+            continue
+        record = finished.get(g["game_id"])
+        info = {
+            "game_id": g["game_id"], "away": g["away"], "home": g["home"], "time": g["time"], "start_utc": g["start_utc"],
+            "locked": started, "final": bool(record), "first": record.get("first_goal") if record else None,
+        }
+        day = days.setdefault(g["date"], {"games": [], "players": []})
+        day["games"].append(info)
+        day["players"] += rows
+    for day in days.values():
+        day["players"].sort(key=lambda row: -row["rate"])
+    return days
+
+
+def icebreaker_slate(day: dict) -> dict | None:
+    """The promo's own slate for a finished day: the 7:00 PM ET games
+    (ICEBREAKER_RULES "slot"), each player's chance among them, and who broke
+    the ice (ties: everyone on the quickest time). None until every one of
+    those games is final."""
+    games = [g for g in day["games"] if g["time"] == ICEBREAKER_RULES["slot"]]
+    if not games or not all(g["final"] for g in games):
+        return None
+    ids = {g["game_id"] for g in games}
+    rows = [row for row in day["players"] if row["game_id"] in ids]
+    total = sum(row["rate"] for row in rows)
+    firsts = [g["first"] for g in games if g.get("first")]
+    if not rows or not total or not firsts:
+        return None
+    quickest = min(f["t"] for f in firsts)
+    return {"games": len(games), "time": quickest, "winners": [f for f in firsts if f["t"] == quickest], "rows": rows, "total": total}
+
+
+def record_icebreaker_days(folder: Path, board: dict) -> int:
+    """Adds each finished 7:00 slate to the record once: every player's
+    locked rate and price, and who broke the ice. Returns how many were added."""
+    added = 0
+    for date, day in sorted(board.items()):
+        slate = icebreaker_slate(day)
+        if not slate:
+            continue
+        path = folder / f"{date[:7]}.json"
+        saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"cols": list(ICEBREAKER_RECORD_COLS), "days": {}}
+        if date in saved["days"]:
+            continue
+        saved["days"][date] = {
+            "games": slate["games"], "time": slate["time"], "winners": slate["winners"],
+            "players": [[row.get(col) for col in saved["cols"]] for row in slate["rows"]],
+        }
+        folder.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
+        added += 1
+    return added
+
+
+def icebreaker_history(folder: Path) -> list:
+    """Every recorded slate for the page's Winners list, newest first: who
+    broke the ice and when, his place before puck drop by chance (`rank` of
+    `players`), that chance, his DraftKings first goal price, and our top
+    pick. A winner the page didn't list (a late call-up) has no rank."""
+    out = []
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        for date, day in saved["days"].items():
+            rows = sorted((dict(zip(saved["cols"], values)) for values in day["players"]), key=lambda row: -row["rate"])
+            if not rows:
+                continue
+            total = sum(row["rate"] for row in rows) or 1
+            order = [row["id"] for row in rows]
+            winners = []
+            for w in day["winners"]:
+                row = rows[order.index(w["id"])] if w.get("id") in order else None
+                winners.append({**w, "rank": order.index(w["id"]) + 1 if row else None, "chance": round(row["rate"] / total, 4) if row else None, "fg": row["fg"] if row else None})
+            top = rows[0]
+            out.append({
+                "date": date, "games": day["games"], "time": day["time"], "players": len(rows), "winners": winners,
+                "top": {"id": top["id"], "name": top["name"], "team": top["team"], "chance": round(top["rate"] / total, 4)},
+            })
+    return sorted(out, key=lambda d: d["date"], reverse=True)
+
+
+def icebreaker_file(season: int, generated_at: str, records: list, goals_games: dict, games: list, player_odds: dict, book_odds: dict,
+                    previous: dict | None, now_utc: datetime, record_dir: Path) -> dict:
+    """site/nhl/icebreaker.json: the board, every team's fast starts and the Winners history."""
+    board = icebreaker_board(goals_games, games, records, player_odds, book_odds, previous, now_utc)
+    try:
+        record_icebreaker_days(record_dir, board)
+        history = icebreaker_history(record_dir)
+    except Exception as e:  # a damaged record file must never cost the page its board
+        print(f"WARNING: the Icebreaker record couldn't be updated ({e}).", file=sys.stderr)
+        history = None
+    return {"season": season, "generated_at": generated_at, "rules": ICEBREAKER_RULES, "days": board, "fast": fast_starts(records), "history": history}
+
+
 # ---- putting it together ----
 def season_label(season: int) -> str:
     return f"{season - 1}-{str(season)[2:]}"
@@ -2356,6 +2561,7 @@ def main():
     parser.add_argument("--record-dir", type=Path, default=SHOTS_RECORD_DIR, help="Where the Shots page's graded plays are kept")
     parser.add_argument("--crease-record-dir", type=Path, default=CREASE_RECORD_DIR, help="Where King of the Crease's finished days are kept")
     parser.add_argument("--goals-record-dir", type=Path, default=GOALS_RECORD_DIR, help="Where the Goals page's graded players are kept")
+    parser.add_argument("--icebreaker-record-dir", type=Path, default=ICEBREAKER_RECORD_DIR, help="Where Icebreaker's finished slates are kept")
     args = parser.parse_args()
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -2449,6 +2655,14 @@ def main():
         goals = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
     with open(args.out.parent / "goals.json", "w") as f:
         json.dump(goals, f, separators=(",", ":"))
+    try:
+        icebreaker = icebreaker_file(args.season, generated_at, stats["records"], goals.get("games") or {}, games, player_odds, book_odds,
+                                     fetch_previous(LIVE_ICEBREAKER_URL), now_utc, args.icebreaker_record_dir)
+    except Exception as e:  # Icebreaker must never cost the other NHL pages their data
+        print(f"WARNING: Icebreaker couldn't be built ({e}).", file=sys.stderr)
+        icebreaker = {"season": args.season, "generated_at": generated_at, "days": {}, "fast": {}, "history": None, "error": str(e)[:200]}
+    with open(args.out.parent / "icebreaker.json", "w") as f:
+        json.dump(icebreaker, f, separators=(",", ":"))
     d = stats["debug"]
     print(f"Wrote {args.out} -- {season_label(args.season)}: {d['games_loaded']} of {d['games_wanted']} finished games ({d['games_downloaded']} downloaded), {len(games)} on the schedule, lines for {novig_debug['matched']}")
     if d["errors"]:

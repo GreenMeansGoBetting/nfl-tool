@@ -428,7 +428,7 @@ on a replay, and the page keeps a record against the real prices.
   - "Confirmed" is the user's label for "the NHL's projected lineup is in". It is not the
     official sheet from warmups; the page's About box says so (95% of listed skaters played).
   - Names open the player card.
-- `site/nhl/promo-tools.html` + `promo-tools.js` = **Promo Tools: King of the Crease** (below).
+- `site/nhl/promo-tools.html` + `promo-tools.js` = **Promo Tools: King of the Crease**, and `icebreaker.js` = its **Icebreaker** tab (both below).
 - **Styles:** hockey-only rules go in `site/nhl/nhl.css` (never style.css: see styles.md); the
   layout shared with the NBA page is `site/suite.css`.
 - It reuses the NBA page's layout classes (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` /
@@ -555,6 +555,69 @@ means your payout will be smaller").
   assets.nhle.com sends no cross-origin header, so html-to-image can't carry the NHL's own files.
   No headshots for the same reason. The image is always the whole slate.
 
+## Icebreaker (Promo Tools; built 2026-10-15)
+
+DraftKings' promo: everyone with a qualifying **first goal scorer** bet (the owner's was $10; it
+varies) on the player who scores the **quickest goal of the 7:00 PM ET slate** splits $250K. Quickest
+by GAME clock: 0:10 into a 7:08 puck drop beats 0:15 into a 7:02 one. The owner's worry: "it feels
+awfully random ... like finding a needle in a haystack", with two ways in: team first (fast starts,
+a bad opponent) and players only (one player's matchup).
+
+- **The replay came first** (`python tools/backtest/nhl_icebreaker.py`, 2024-25 and 2025-26, about
+  290 nights with a 7:00 slate; findings in its header). The owner's ideas, tested: time of the first
+  goal for / against, fast / slow starts (goals in the first 10 minutes, 1st-period goals), early
+  shots, line 1 vs line 2, the first shift. **None of the team "fast start" numbers beat a team's
+  plain goals for / against**, early shots were no better than a blind guess at the player level,
+  and the opening shift was a coin flip (35% of winners were on it; 40% of opening forwards started
+  the next game too). **What picks the early scorer is his scoring rate x his ice time.** On 4-6
+  game slates the quickest goal came by about 2:00 of the 1st most nights; no ties in two seasons;
+  defensemen 10-15% of winners, about 20% not five a side. Our kind of ranking had the winner in its
+  top 10 on 11-22% of slates (ten random picks: 6%); the favorite is about 2%.
+- **The number** (`icebreaker_board` in build_nhl.py -> `site/nhl/icebreaker.json`, untracked): with a
+  steady scoring rate, a player's chance to score the slate's first goal is his expected goals tonight
+  over everyone's. `rate` = the Goals page's `mean` (goals.json, so lineups, matchup, goalie, home, rest
+  are all in), moved toward his Novig anytime price (`mkt_mean` = -ln(1 - chance)) the King of the
+  Crease way: market + `0.5 x min(1, games / 20)` of the way to the model (`ICEBREAKER_RULES`; the
+  fewer of the two teams' games). No price = the model alone. Players ESPN lists as out are left off.
+- **The page does one division** (`icebreaker.js`): his rate over everyone's in the games the member
+  picked; a team's chance = its players' added up (so the two views always agree); "Of team" = his
+  share of his team's. It has to follow the member's game picks, so it can't come from the build.
+- **The slate is picked on the page** (the owner: usually a select group of early games, and "it
+  changes"): Day arrows, then **Start time** chips grouping the day's games by puck drop (opens on
+  7:00 PM ET, else the day's first), then **Games** chips to add or remove any one game.
+- **Fast starts, this season** (the owner's label; `fast_starts`, from `reduce_game`'s `first_goal`,
+  `first_goals` and the teams' `sog_early`): games it scored first, the time of its own first goal in
+  its middle game ("1st 7:14", "none" = scoreless in more than half), shots on goal a game in the
+  first 5 minutes, and what tonight's opponent allows there. **Shown, never counted** (the replay);
+  colored on the eight colors by place among the picked teams.
+- Layout: Teams table (Chance, the top three as "Best bets", Fast starts) beside the Players table
+  (Line, Chance, "1 in N", Of team, G/GP, xG, Min, **DraftKings' first goal price**), the top 15
+  until "Show all"; clicking a team shows only its players. The Winners list beside them, never in
+  the saved image. Save image like King of the Crease (ESPN logos).
+- **First goal prices: SmartStake** (`smartstake.add_first_goal`): the market's key isn't in their
+  docs, so each build reads `/v1/markets?league=nhl` (`fetch_markets`) and takes player markets
+  named for the first goal, not a team's, a period's or the last (`first_goal_market_keys`). Yes is
+  kept as "o", No dropped; stored as data.json `book_odds[...].props.first_goal`, its own try (a
+  failure never costs the shots / goals prices). The row's `fg` is DraftKings', `fg_best` the best US
+  price; the page shows DraftKings' or, in grey, another book's. `version.json` `nhl.first_goal` =
+  players priced (or the error / note): **check it after the first deploy with the key**; if it
+  says no market was found, read the market names in `book_odds_debug.first_goal`.
+- **Historical Data** button beside the title: the replay's findings in a popup (`#ice-history-modal`,
+  the owner's ask: "so users can get some background stats"). Its numbers are typed into
+  promo-tools.html: change them with the replay.
+- **Lock and record:** a started game keeps the last build's rows (none saved = no rows). Once every
+  7:00 PM game of a day is final, the day is written once to `model_history/nhl_icebreaker/<month>.json`
+  (every player's locked rate, mean, mkt_mean, DraftKings price, and the winners: the quickest first
+  goal, ties included). `icebreaker_history` -> the Winners list: day, who broke the ice, when, his
+  place before puck drop ("12th/170"), his chance, his DraftKings price; our top pick in the hover.
+- Reached as `promo-tools.html#icebreaker` (the Promo Tools menu's "Icebreaker" item; `showPromo` in
+  promo-tools.js switches the tabs and the address).
+- Tests: `tests/test_nhl_icebreaker.py` (first goals from the saved game, fast starts, the blend,
+  prices, lock, record, history, SmartStake's market names) and `tests/test_nhl_icebreaker_site.py`
+  (the page on `tests/fixtures/nhl_icebreaker.json.gz`). `check_site.py` opens it by its address.
+- Not built yet: a payout estimate (the pool is split among everyone on the winner, so popular
+  stars pay less: King of the Crease's Value idea), once a few contests' payouts are known.
+
 ## Tests and checks
 
 - `tests/test_nhl.py` (the build, on one saved game and one saved Novig event) and
@@ -575,7 +638,8 @@ means your payout will be smaller").
 - `tools/check_site.py` opens both NHL pages; like the NBA page they can never block the deploy gate.
 - `https://nfl.gmgsports.org/version.json` shows whether the NHL build worked: `nhl.built`,
   `games` / `wanted`, `downloaded`, `lines`, `player_odds`, `shots` (games with projections),
-  `lineups` (games whose projected lineup was read), or
+  `lineups` (games whose projected lineup was read), `icebreaker` (days on its board), `first_goal`
+  (players with a SmartStake first goal price, or why not), or
   `error` (the build's last line) when it failed.
 
 ## Goals (anytime goal): step 1, the replay (2026-10-14; no page yet)
