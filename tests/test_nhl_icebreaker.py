@@ -7,7 +7,7 @@ rate is the market moved toward the model by as much as the season has earned, t
 alone without a price; DraftKings' first goal price and the best one; a started game keeps
 the last build's rows and never gets new ones; a finished 7:00 slate's Icebreaker is the
 quickest first goal, ties included, written once; the Winners history's place and chance;
-the first goal scorer market found by name, Yes kept and No dropped."""
+the first goal scorer market found by name, Yes kept and No dropped. Only DraftKings' price."""
 import json
 import math
 import tempfile
@@ -90,13 +90,13 @@ class Row(unittest.TestCase):
             self.assertAlmostEqual(row["mkt_mean"], mkt, places=4)
             self.assertAlmostEqual(row["rate"], mkt + weight * (0.4 - mkt), places=4)
 
-    def test_first_goal_prices_draftkings_and_the_best(self):
+    def test_first_goal_price_is_draftkings_or_nothing(self):
         books = {"AAA_BBB": {"props": {"first_goal": {"9": {"name": "P9", "q": [
             ["draftkings", "o", None, 700, ""], ["fanduel", "o", None, 800, ""], ["betmgm", "u", None, 2000, ""]]},
             "8": {"name": "P8", "q": [["betmgm", "o", None, 900, ""]]}}}}}
-        self.assertEqual(b.first_goal_prices(books, GAME, "9"), {"fg": 700, "fg_best": ["FanDuel", 800]})
-        self.assertEqual(b.first_goal_prices(books, GAME, "8"), {"fg": None, "fg_best": ["BetMGM", 900]})
-        self.assertEqual(b.first_goal_prices(books, GAME, "7"), {"fg": None, "fg_best": None})
+        self.assertEqual(b.first_goal_prices(books, GAME, "9"), {"fg": 700})
+        self.assertEqual(b.first_goal_prices(books, GAME, "8"), {"fg": None})  # another book's price never counts
+        self.assertEqual(b.first_goal_prices(books, GAME, "7"), {"fg": None})
 
 
 class Board(unittest.TestCase):
@@ -168,27 +168,6 @@ class Record(unittest.TestCase):
             b.record_icebreaker_days(Path(folder), day)
             w = b.icebreaker_history(Path(folder))[0]["winners"][0]
             self.assertEqual((w["rank"], w["chance"]), (None, None))
-
-
-class SgoProbe(unittest.TestCase):
-    def test_one_events_first_goal_prices_by_book(self):
-        def odd(pid, books, stat="firstToScore", side="yes"):
-            return {"statID": stat, "playerID": pid, "sideID": side, "byBookmaker": {b: {"available": True, "odds": o} for b, o in books.items()}}
-        event = {"eventID": "E1", "odds": {
-            "a": odd("P1", {"draftkings": "+700", "fanduel": "+750"}),
-            "b": odd("P2", {"fanduel": "+900"}),
-            "c": odd("P1", {"draftkings": "-2000"}, side="no"),
-            "d": odd(None, {"draftkings": "-130"}),  # a team to score first
-            "e": odd("P3", {"draftkings": "+200"}, stat="points"),
-        }}
-        got = b.sgo_first_goal_summary(event)
-        self.assertEqual((got["players"], got["draftkings"], got["sample"]), (2, 1, [["P1", "+700"]]))
-        self.assertEqual(got["books"], {"fanduel": 2, "draftkings": 1})
-
-    def test_it_asks_once_and_never_without_a_key(self):
-        found = {"event": "E1", "players": 30, "draftkings": 28}
-        self.assertEqual(b.probe_sgo_first_goal("key", {"book_odds_debug": {"sgo_first_goal": found}}), found)  # no call: already answered
-        self.assertEqual(b.probe_sgo_first_goal(None, None), {"skipped": "no SGO_API_KEY"})
 
 
 class FirstGoalMarket(unittest.TestCase):

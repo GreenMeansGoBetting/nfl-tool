@@ -38,7 +38,6 @@ import sys
 import time
 import unicodedata
 import urllib.error
-import urllib.parse
 import urllib.request
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -2322,47 +2321,6 @@ def crease_file(season: int, generated_at: str, records: list, games: list, toni
 
 
 
-# ---- SportsGameOdds: is DraftKings' first goal scorer price there? ----
-# The owner, 2026-10-15, after SmartStake turned out to have no NHL first
-# goal scorer market: "check sgo for dk first goal prices". SGO's docs list a
-# hockey statID `firstToScore` by player; whether its FREE tier carries
-# DraftKings' price for it is what this finds out. SGO bills per EVENT
-# returned and the free tier's 2,500 a month is shared with the NFL build, so
-# this asks for ONE event, and none at all once a build has seen a DraftKings
-# price (that answer rides forward in the live data.json). Only the deploy's
-# NHL step has the key, not the hourly refresh.
-SGO_EVENTS_URL = "https://api.sportsgameodds.com/v2/events"
-
-
-def sgo_first_goal_summary(event: dict) -> dict:
-    """What one SGO event says about player first goal prices: how many
-    players are priced, by which books, and a few of DraftKings' prices."""
-    odds = [o for o in (event.get("odds") or {}).values() if o.get("statID") == "firstToScore" and o.get("playerID") and o.get("sideID") == "yes"]
-    priced = lambda o, book: ((o.get("byBookmaker") or {}).get(book) or {})
-    books = Counter(book for o in odds for book, info in (o.get("byBookmaker") or {}).items() if info.get("available") and info.get("odds") is not None)
-    dk = [[o["playerID"], priced(o, "draftkings")["odds"]] for o in odds if priced(o, "draftkings").get("available") and priced(o, "draftkings").get("odds") is not None]
-    return {"event": event.get("eventID"), "players": len(odds), "books": dict(books.most_common()), "draftkings": len(dk), "sample": dk[:3]}
-
-
-def probe_sgo_first_goal(api_key: str | None, previous: dict | None) -> dict:
-    """book_odds_debug["sgo_first_goal"]: the answer so far (see above)."""
-    seen = ((previous or {}).get("book_odds_debug") or {}).get("sgo_first_goal") or {}
-    if seen.get("draftkings"):
-        return seen
-    if not api_key:
-        return {"skipped": "no SGO_API_KEY"}
-    try:
-        query = urllib.parse.urlencode({"leagueID": "NHL", "oddsAvailable": "true", "limit": 1, "apiKey": api_key})
-        req = urllib.request.Request(f"{SGO_EVENTS_URL}?{query}", headers={"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            payload = json.load(resp)
-        events = payload.get("data") or []
-        if not payload.get("success") or not events:
-            return {"note": str(payload.get("notice") or "no NHL events with odds")[:200]}
-        return sgo_first_goal_summary(events[0])
-    except Exception as e:  # never the URL: it carries the key
-        return {"error": f"{type(e).__name__}: {getattr(e, 'code', '')} {getattr(e, 'reason', '')}"[:200]}
-
 
 # ---- Icebreaker (the Promo Tools page) ----
 # DraftKings' promo: everyone with a qualifying first goal scorer bet on the
@@ -2407,15 +2365,11 @@ def fast_starts(records: list) -> dict:
 
 
 def first_goal_prices(book_odds: dict, game: dict, pid: str) -> dict:
-    """His first goal scorer prices from SmartStake: DraftKings' (the promo's
-    book) and the best US price with its book."""
+    """His DraftKings first goal scorer price from SmartStake (the promo's
+    book and bet). Only DraftKings: the owner, 2026-10-15, "other books don't
+    matter, its only dk or bust"."""
     entry = ((((book_odds or {}).get(f"{game['away']}_{game['home']}") or {}).get("props") or {}).get("first_goal") or {}).get(pid)
-    quotes = [q for q in (entry or {}).get("q") or [] if q[1] == "o"]
-    if not quotes:
-        return {"fg": None, "fg_best": None}
-    dk = next((q[3] for q in quotes if q[0] == "draftkings"), None)
-    best = max(quotes, key=lambda q: q[3])
-    return {"fg": dk, "fg_best": [smartstake.US_BOOKS.get(best[0], best[0]), best[3]]}
+    return {"fg": next((q[3] for q in (entry or {}).get("q") or [] if q[0] == "draftkings" and q[1] == "o"), None)}
 
 
 def icebreaker_row(goal_row: dict, game: dict, odds: dict | None, book_odds: dict, games_played: int) -> dict:
@@ -2638,7 +2592,6 @@ def main():
         lambda name, away, home: find(away, name) or find(home, name),
         (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         keep={f"{g['away']}_{g['home']}" for g in games})
-    book_odds_debug["sgo_first_goal"] = probe_sgo_first_goal(os.environ.get("SGO_API_KEY"), previous)
     # Tonight's lines, as the NHL posts them. Everyone in one is on the page's
     # skater list too, so a call-up on the top line still opens the player card.
     tonight, lineups_error = fetch_lineups(games, teams, player_finder(stats["skaters"], stats["goalies"]), {pid: s["pos"] for pid, s in stats["skaters"].items()}, now_utc)

@@ -154,13 +154,11 @@ function lineCell(r) {
   const tip = r.slot ? "Tonight's line in the NHL's projected lineup" : "The line his ice time says he has been on (tonight's lineup isn't posted yet)";
   return `<td class="num" title="${tip}"><span class="ice-line${r.slot ? "" : " ice-line-usual"}">${SLOT_LABEL[slot] || slot}</span>${arrow}</td>`;
 }
+// DraftKings' first goal price only (the promo's book and bet; "only dk or
+// bust"). The column shows only once SmartStake sends DraftKings' prices.
 function priceCell(r) {
-  if (!has(r.fg)) {
-    const other = r.fg_best ? ` title="No DraftKings price yet. Best first goal price: ${american(r.fg_best[1])} at ${r.fg_best[0]}"` : ` title="No first goal scorer price posted yet"`;
-    return `<td class="num muted-label"${other}>${r.fg_best ? `<span class="ice-odds ice-odds-other">${american(r.fg_best[1])}</span>` : "--"}</td>`;
-  }
-  const best = r.fg_best && r.fg_best[1] > r.fg ? ` Best: ${american(r.fg_best[1])} at ${r.fg_best[0]}.` : "";
-  return `<td class="num" title="DraftKings' first goal scorer price (the promo's qualifying bet).${best}"><span class="ice-odds">${american(r.fg)}</span></td>`;
+  if (!has(r.fg)) return `<td class="num muted-label" title="No DraftKings first goal price yet">--</td>`;
+  return `<td class="num" title="DraftKings' first goal scorer price (the promo's qualifying bet)"><span class="ice-odds">${american(r.fg)}</span></td>`;
 }
 
 function renderPlayers(rows) {
@@ -171,6 +169,7 @@ function renderPlayers(rows) {
   const rank = new Map(rows.map((r, i) => [r.id, i + 1]));
   const picked = iceView.team ? rows.filter((r) => r.team === iceView.team) : rows;
   const shown = iceView.all || iceView.team ? picked : picked.slice(0, ICE_SHOWN);
+  const dk = rows.some((r) => has(r.fg));
   const body = shown
     .map((r) => {
       const from = has(r.mkt_mean) ? `His anytime price (${fmt(r.mkt_mean, 2)} goals expected) moved toward the model's ${fmt(r.mean, 2)}.` : `No anytime price yet: the model's ${fmt(r.mean, 2)} goals expected alone.`;
@@ -185,7 +184,7 @@ function renderPlayers(rows) {
         <td class="num" title="Goals / games this season">${r.goals}<span class="muted-label">/${r.games}</span></td>
         <td class="num" title="Expected goals this season">${fmt(r.xg)}</td>
         <td class="num" title="Minutes a game">${fmt(r.minutes)}</td>
-        ${priceCell(r)}
+        ${dk ? priceCell(r) : ""}
       </tr>`;
     })
     .join("");
@@ -195,9 +194,9 @@ function renderPlayers(rows) {
       ? `${iceView.all ? `All ${picked.length}` : `The top ${ICE_SHOWN} of ${picked.length}`} &middot; <button type="button" class="ice-link" data-ice-all="${iceView.all ? "" : "1"}">${iceView.all ? "Show the top 15" : "Show all"}</button>`
       : "";
   box.innerHTML = `<table class="data-table koe-table ice-table ice-players-table">
-    <colgroup><col class="ice-c-rk"><col class="ice-c-player"><col class="ice-c-line"><col class="ice-c-pill"><col class="ice-c-stat"><col class="koe-c-gap"><col class="ice-c-stat"><col class="ice-c-stat"><col class="ice-c-small"><col class="ice-c-small"><col class="ice-c-odds"></colgroup>
-    <thead><tr class="koe-group-row"><th></th><th></th><th></th><th colspan="2" class="koe-group koe-g-up"><span>Icebreaker</span></th><th class="koe-gap"></th><th colspan="4" class="koe-group koe-g-role"><span>His season</span></th><th class="koe-group koe-g-td"><span>DraftKings</span></th></tr>
-    <tr class="koe-label-row"><th></th><th>Player</th><th class="num">Line</th><th class="num">Chance</th><th class="num" title="About 1 slate in this many">1 in</th><th class="koe-gap"></th><th class="num" title="His share of his team's chance">Of team</th><th class="num">G/GP</th><th class="num">xG</th><th class="num">Min</th><th class="num" title="First goal scorer price">1st goal</th></tr></thead>
+    <colgroup><col class="ice-c-rk"><col class="ice-c-player"><col class="ice-c-line"><col class="ice-c-pill"><col class="ice-c-stat"><col class="koe-c-gap"><col class="ice-c-stat"><col class="ice-c-stat"><col class="ice-c-small"><col class="ice-c-small">${dk ? `<col class="ice-c-odds">` : ""}</colgroup>
+    <thead><tr class="koe-group-row"><th></th><th></th><th></th><th colspan="2" class="koe-group koe-g-up"><span>Icebreaker</span></th><th class="koe-gap"></th><th colspan="4" class="koe-group koe-g-role"><span>His season</span></th>${dk ? `<th class="koe-group koe-g-td"><span>DraftKings</span></th>` : ""}</tr>
+    <tr class="koe-label-row"><th></th><th>Player</th><th class="num">Line</th><th class="num">Chance</th><th class="num" title="About 1 slate in this many">1 in</th><th class="koe-gap"></th><th class="num" title="His share of his team's chance">Of team</th><th class="num">G/GP</th><th class="num">xG</th><th class="num">Min</th>${dk ? `<th class="num" title="First goal scorer price">1st goal</th>` : ""}</tr></thead>
     <tbody>${body}</tbody></table>
     ${more ? `<div class="ice-more">${more}</div>` : ""}`;
 }

@@ -5,7 +5,7 @@ What is pinned: #icebreaker opens it and the tabs switch both ways; a day opens 
 ET games; each player's chance is his rate over everyone's in the games picked, and a team's
 is its players' added up; taking a game out (or picking another start time) does the sum
 again; clicking a team shows only its players; the fast-start cells are the build's
-numbers; DraftKings' first goal price, or another book's in grey; the Historical Data popup;
+numbers; only DraftKings' first goal price, its column only when it has one; the Historical Data popup;
 the Winners list from the build's history; logos from a host the saved image can carry."""
 import unittest
 
@@ -43,7 +43,7 @@ def built(day=DAY):
 
 PLAYERS = """() => [...document.querySelectorAll('#ice-players tbody tr')].map((tr) => ({
     name: tr.querySelector('.koe-name').textContent, chance: tr.querySelector('.ice-pill').textContent,
-    price: (tr.querySelector('.ice-odds') || { textContent: '' }).textContent, other: !!tr.querySelector('.ice-odds-other') }))"""
+    price: (tr.querySelector('.ice-odds') || { textContent: '' }).textContent }))"""
 TEAMS = """() => [...document.querySelectorAll('#ice-teams .ice-team-row')].map((tr) => {
     const cells = [...tr.children].filter((td) => !td.classList.contains('koe-gap'));
     return { team: tr.dataset.team, chance: parseFloat(tr.querySelector('.ice-pill').textContent), first: cells[4].textContent.trim(), sog: cells[6].textContent.trim() };
@@ -142,15 +142,16 @@ class Cells(unittest.TestCase):
             self.assertEqual(t["first"], f"{f['first']}/{f['gp']}")
             self.assertEqual(t["sog"], f"{f['sog5']:.1f}")
 
-    def test_draftkings_price_or_another_books_in_grey(self):
+    def test_draftkings_price_only_and_its_column_only_with_one(self):
         open_day()
         rows = {r["name"]: r for r in PAGE.evaluate(PLAYERS)}
-        priced = [r for r in built()["players"] if r.get("fg") or r.get("fg_best")]
-        self.assertEqual(len(priced), 2)
-        dk = next(r for r in priced if r["fg"])
-        other = next(r for r in priced if not r["fg"])
-        self.assertEqual((rows[dk["name"]]["price"], rows[dk["name"]]["other"]), ("+750", False))
-        self.assertEqual((rows[other["name"]]["price"], rows[other["name"]]["other"]), ("+900", True))
+        dk = next(r for r in built()["players"] if r.get("fg"))
+        other = next(r for r in built()["players"] if not r.get("fg") and r.get("fg_best"))
+        self.assertEqual(rows[dk["name"]]["price"], "+750")
+        self.assertEqual(rows[other["name"]]["price"], "")  # another book's price is never shown
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.ice-players-table th.koe-g-td').length"), 1)
+        PAGE.click("#ice-slots [data-slot='20:00']")  # no DraftKings price in these games: no column
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.ice-players-table th.koe-g-td').length"), 0)
 
     def test_logos_can_go_in_the_saved_image(self):
         open_day()

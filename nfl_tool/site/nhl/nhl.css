@@ -373,7 +373,6 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .ice-line { padding: 1px 5px; border-radius: 5px; font-size: 0.74rem; font-weight: 800; background: var(--panel-2); border: 1px solid var(--border-strong); }
 .ice-line-usual { font-weight: 600; color: var(--muted); border-style: dashed; }
 .ice-odds { padding: 1px 6px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.45); }
-.ice-odds-other { color: var(--muted); background: transparent; border-color: var(--border-strong); }
 .ice-live td { opacity: 0.55; }
 .ice-more { margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
 .ice-link { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
