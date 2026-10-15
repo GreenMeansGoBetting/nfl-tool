@@ -17,7 +17,7 @@ name: Refresh NHL lineups and odds
 #   * publish while a full rebuild is queued or running (one would overwrite
 #     the other; the full rebuild reads the lineups itself);
 #   * publish code that isn't live yet (a push whose deploy failed its tests).
-# Anything it can't check counts as "don't": the next run is an hour away.
+# Anything it can't check counts as "don't": the next run is half an hour away.
 #
 # It runs no tests and no page check: the code is already live, and only the
 # NHL data changes. If the NHL build fails, nothing is published.
@@ -26,14 +26,23 @@ name: Refresh NHL lineups and odds
 # many lineups) and "nhl_refresh" (when, the run, seconds before publishing).
 
 on:
+  # The real clock is Cloudflare's (2026-10-15): workers/nhl-timer presses
+  # "Run workflow" here at :17 and :47 from 16:17 to 02:47 UTC (12:17 pm to
+  # 10:47 pm Eastern in daylight time), with source "timer". GitHub's own
+  # timer was late or skipped most hours (that day it ran 1 of 6), so the
+  # schedule below is only a backup: it stands aside when the live NHL data
+  # is under 25 minutes old (tools/ci_steps.py, BACKUP_SKIP_MINUTES). A timed
+  # run with no game about to start stops in a few seconds.
   schedule:
-    # Hourly at :47 from 16:47 to 23:47 UTC, October to June: 12:47 pm to
-    # 7:47 pm Eastern in daylight time, 11:47 am to 6:47 pm in standard time.
-    # The full rebuild at 00:17 UTC covers the late West-coast games. A run
-    # with no game about to start stops in a few seconds.
     - cron: "47 16-23 * 1-6,10-12 *"
-  # The owner's "Update Odds" button on the NHL pages opens this.
-  workflow_dispatch: {}
+  # The owner's "Update Odds" button on the NHL pages opens this too.
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Who pressed it (the Cloudflare timer sends 'timer')"
+        required: false
+        default: "button"
+
   # A change to this file runs it once, so a mistake shows up right away.
   push:
     branches: [main]
@@ -59,6 +68,7 @@ jobs:
         id: check
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          REFRESH_SOURCE: ${{ inputs.source }}
         run: python3 tools/ci_steps.py refresh-check
 
       # The finished games the NHL build keeps (see deploy.yml). Only read
@@ -126,6 +136,7 @@ jobs:
         if: steps.check.outputs.go == 'yes'
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          REFRESH_SOURCE: ${{ inputs.source }}
         run: python3 tools/ci_steps.py refresh-check --again
 
       # Same publish as deploy.yml: from nfl_tool/ so the login gate

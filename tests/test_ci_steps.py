@@ -124,8 +124,8 @@ class VersionNote(unittest.TestCase):
 class HockeyRefresh(unittest.TestCase):
     """nhl-refresh.yml: when it may publish."""
 
-    def decide(self, event="schedule", live=LIVE, busy=False, code_is_live=True, ahead=5, first=None):
-        return ci_steps.refresh_decision(event, live, busy, code_is_live, ahead, first)[0]
+    def decide(self, event="schedule", live=LIVE, busy=False, code_is_live=True, ahead=5, first=None, now=None):
+        return ci_steps.refresh_decision(event, live, busy, code_is_live, ahead, first, now)[0]
 
     def test_it_goes_when_nothing_else_is_publishing_and_main_is_live(self):
         self.assertTrue(self.decide())
@@ -156,6 +156,25 @@ class HockeyRefresh(unittest.TestCase):
         # The owner's button and a change to the workflow always run.
         self.assertTrue(self.decide(event="workflow_dispatch", ahead=0))
         self.assertTrue(self.decide(event="push", ahead=0))
+        # The Cloudflare timer (a button press marked "timer") stops like the schedule.
+        self.assertFalse(self.decide(event="timer", ahead=0))
+        self.assertTrue(self.decide(event="timer", ahead=3))
+
+    def test_the_github_backup_skips_when_the_timer_just_ran(self):
+        """GitHub's hourly timer is only a backup for the Cloudflare one (it
+        ran 1 of 6 hours on 2026-10-15): it stays out of the way when the NHL
+        data is under 25 minutes old, and runs when it is older or unknown."""
+        live = {**LIVE, "nhl": {"built": "2026-10-15T21:29Z"}}
+        at = lambda hour, minute: datetime(2026, 10, 15, hour, minute, tzinfo=timezone.utc)
+        self.assertFalse(self.decide(live=live, now=at(21, 47)))   # 18 minutes old
+        self.assertTrue(self.decide(live=live, now=at(21, 59)))    # 30 minutes old
+        self.assertTrue(self.decide(live={**LIVE, "nhl": {"built": None}}, now=at(21, 47)))
+        self.assertTrue(self.decide(live=live))                    # the check right before publishing
+        # The Cloudflare timer and the owner's button never wait on it.
+        self.assertTrue(self.decide(event="timer", live=live, now=at(21, 47)))
+        self.assertTrue(self.decide(event="workflow_dispatch", live=live, now=at(21, 47)))
+        self.assertAlmostEqual(ci_steps.minutes_since("2026-10-15T21:29Z", at(21, 47)), 18)
+        self.assertIsNone(ci_steps.minutes_since(None, at(21, 47)))
 
     def test_games_about_to_start(self):
         schedule = {"gameWeek": [

@@ -55,8 +55,8 @@ launch switch"). More background: `docs/history.md`, "NHL".
   "<Team> projected lineup" heading, one line of text per forward line ("A -- B -- C") and defense
   pair ("A -- B"), the goalies one to a line (**the first is the expected starter**), then
   "Scratched:" and "Injured:", then a "Status report". Posted around midday Eastern on game day
-  (some West-coast games later), so the 8:17 am ET build has none; the hockey-only refresh (`nhl-refresh.yml`, hourly from
-  midday to puck drop: members-and-hosting.md, "Build minutes") picks each one up. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
+  (some West-coast games later), so the 8:17 am ET build has none; the hockey-only refresh (`nhl-refresh.yml`, every half hour from
+  midday to the last puck drop: members-and-hosting.md, "Build minutes") picks each one up. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
   stories are still served. `parse_lineups`, `lineup_slots`, `fetch_lineups`.
   - The story is typed by hand. Two things it does (both met 2026-10-13): a team dressing seven
     defensemen lists the seventh **on his own line above the goalies** (Victor Hedman was read as
@@ -301,8 +301,8 @@ on a replay, and the page keeps a record against the real prices.
     "final", from the build's `locked` AND the clock against `start_utc` (a build can be hours
     old at puck drop). Order is always open, live, final, whatever the sort; live rows are grayed
     (`.shots-live`) under a "Live now" heading; a day with both kinds gets the buttons **All
-    games** (how it opens) / **Not started** / **Live / final**. A finished day is not grayed. The lock is the last build before puck drop (since 2026-10-13 usually the hourly refresh
-  within the hour before it), not the closing line.
+    games** (how it opens) / **Not started** / **Live / final**. A finished day is not grayed. The lock is the last build before puck drop (since 2026-10-15 usually the half-hourly refresh
+  within the half hour before it), not the closing line.
 
 ## Pages
 
@@ -782,7 +782,7 @@ on every NHL page (a test checks).
   wing; the owner: "Keep style"), Home/rest. Result column once a game is final (W/L only for a priced player).
 - **Ranking:** check first (amber), then priced plays by edge, then **"No odds yet"** players by
   their chance (the owner: "do it as shown"; prices and lineups fill in through the day with the
-  hourly refresh). Filters: Skaters, Lineups, **Odds** (priced or not / priced only), **Zone Match**
+  half-hourly refresh). Filters: Skaters, Lineups, **Odds** (priced or not / priced only), **Zone Match**
   (everyone / only), the Check plays switch, and the live / final buttons, as on Shots.
 - **The Zone Match tag is blue, never green** (tracked; no edge in the replay). A tagged
   player's breakdown has a blue note above the rink: his share, his position's, what the defense
@@ -846,7 +846,7 @@ Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE
 tracking stats, playoffs.
 For the Shots model: tonight's power-play units from a licensed morning-report feed (past units
-from `shiftcharts` were tested and add nothing: see "Power-play units" above); a snapshot of the closing line (the hourly refresh now gets within an hour of puck drop); the expected starting goalie on
+from `shiftcharts` were tested and add nothing: see "Power-play units" above); a snapshot of the closing line (the refresh now gets within half an hour of puck drop); the expected starting goalie on
 Game Previews (it is already in `shots.json`).
 
 ## Every book's price in the Shots and Goals rows (SmartStake, 2026-10-14)

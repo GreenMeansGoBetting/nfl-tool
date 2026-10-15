@@ -178,9 +178,22 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
 - Pushes still set `SKIP_SGO_FETCH=1` (SGO's monthly quota, nothing to do with minutes).
 - `--only nfl|nba|nhl` on `run_tests.py` and `check_site.py` stays, for a local check while
   working on one sport. The deploy never passes it. A new test file needs no registering.
-- **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Hourly at :47 from 16:47 to
-  23:47 UTC, October to June, plus "Run workflow" (the NHL pages' Update Odds button) and a
-  push that edits the file. It rebuilds only the NHL files and republishes, on the machine's
+- **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Every half hour, at :17
+  and :47 from 16:17 to 02:47 UTC, October to June, plus "Run workflow" (the NHL pages' Update
+  Odds button) and a push that edits the file.
+  - **The clock is Cloudflare's, not GitHub's (2026-10-15).** GitHub's own timer was late or
+    dropped most hours (that day the hourly refresh ran 1 of 6 times; one run started two hours
+    late), so the Worker `gmg-nhl-timer` (`workers/nhl-timer/`, a Cron Trigger) presses "Run
+    workflow" with `source: timer`. It decides nothing: `refresh-check` treats a "timer" run like
+    a scheduled one (stops when no game starts in 14 hours). GitHub's hourly `schedule` stays as
+    a backup and stands aside when the live `nhl.built` is under 25 minutes old
+    (`BACKUP_SKIP_MINUTES`).
+  - `.github/workflows/nhl-timer.yml` installs the Worker (on a change to it, or by hand). It
+    needs the GitHub secret `NHL_TRIGGER_TOKEN` (a fine-grained token, this repo only, Actions
+    read and write; the owner made it with an expiry, so when the timer stops, make a new one,
+    replace the secret and run that workflow) and Workers Scripts Edit on `CLOUDFLARE_API_TOKEN`.
+    A failed press shows only in the Worker's logs (Cloudflare dashboard, Workers & Pages,
+    gmg-nhl-timer); the backup keeps the refresh going hourly meanwhile. It rebuilds only the NHL files and republishes, on the machine's
   own Python with nothing installed, no tests, no page check: about 80 seconds push to live
   on its first run. A publish replaces the whole site folder, so the NFL and NBA data are
   downloaded from the live site and put back (`--only nfl nba --strict`), and it asks twice

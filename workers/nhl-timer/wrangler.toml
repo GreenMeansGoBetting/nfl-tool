@@ -1,0 +1,12 @@
+# The NHL refresh's clock (index.js). Installed by .github/workflows/nhl-timer.yml.
+name = "gmg-nhl-timer"
+main = "index.js"
+compatibility_date = "2024-09-01"
+# No web address: it only runs on its timer.
+workers_dev = false
+
+[triggers]
+# UTC, at :17 and :47 from 16:17 to 02:47, October to June: 12:17 pm to
+# 10:47 pm Eastern in daylight time (11:17 am to 9:47 pm in standard time),
+# so the West-coast games get refreshed lineups and a lock close to puck drop.
+crons = ["17,47 0-2,16-23 * 1-6,10-12 *"]

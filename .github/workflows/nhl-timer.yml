@@ -1,0 +1,64 @@
+name: Install the NHL refresh timer
+
+# Puts workers/nhl-timer on Cloudflare (2026-10-15): the Worker that presses
+# "Run workflow" on nhl-refresh.yml every half hour, because GitHub's own
+# timer was late or skipped most hours. Runs only when the Worker or this
+# file changes (or by hand); the site itself is not touched.
+#
+# Needs two things the owner set up:
+#   * the GitHub secret NHL_TRIGGER_TOKEN: a fine-grained token for this repo
+#     only, Actions read and write (it expires: when the timer stops, make a
+#     new one, replace the secret and run this workflow by hand);
+#   * Workers Scripts Edit on the CLOUDFLARE_API_TOKEN (it already had Pages
+#     and D1).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/nhl-timer/**"
+      - ".github/workflows/nhl-timer.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nhl-timer
+  cancel-in-progress: false
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # The token is checked before anything is installed: it must be there
+      # and able to see the refresh workflow. (Only GitHub's answer code is
+      # printed, never the token.)
+      - name: The timer's GitHub token works
+        env:
+          TOKEN: ${{ secrets.NHL_TRIGGER_TOKEN }}
+        run: |
+          test -n "$TOKEN" || { echo "The secret NHL_TRIGGER_TOKEN is missing"; exit 1; }
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/nhl-refresh.yml)
+          echo "GitHub answered $code"
+          test "$code" = "200" || { echo "NHL_TRIGGER_TOKEN can't see this repo's workflows"; exit 1; }
+
+      - name: Install the Worker
+        working-directory: workers/nhl-timer
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx -y wrangler@3 deploy
+
+      - name: Give the Worker its token
+        working-directory: workers/nhl-timer
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TOKEN: ${{ secrets.NHL_TRIGGER_TOKEN }}
+        run: printf '%s' "$TOKEN" | npx -y wrangler@3 secret put DISPATCH_TOKEN

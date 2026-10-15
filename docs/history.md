@@ -749,6 +749,22 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 - A second chat was building the goalie saves tool in the same folder at the time, so this work
   was committed from a separate git worktree and only its own files were ever added.
 
+### The refresh's clock moves to Cloudflare (2026-10-15)
+
+- **How it came up.** The owner asked how reasonable it was to refresh every half hour instead
+  of every hour. Looking at the runs answered a different question: GitHub's timer had fired 1
+  of 6 hourly refreshes that afternoon (16:47 to 21:47 UTC), and one the night before started at
+  01:50 for a 23:47 slot. GitHub says timed runs may be delayed or dropped when it is busy. A
+  busy push day hid it (every push's deploy rebuilds hockey too); a quiet day would have had two
+  or three refreshes, and a lock hours before puck drop.
+- **The fix:** a Cloudflare Worker with a Cron Trigger (`workers/nhl-timer`) presses "Run
+  workflow" every half hour. The refresh and all its checks are unchanged; the Worker only keeps
+  time. The window also runs later (to 02:47 UTC) for West-coast games, which had only the 00:17
+  full rebuild. Half-hourly costs nothing extra: the repo is public (free minutes), a run is 1 to
+  2.5 minutes, and SmartStake allows 120 requests a minute.
+- The owner made a GitHub token (Actions read and write, this repo only) and gave the Cloudflare
+  key Workers Scripts Edit; no key ever passed through Claude.
+
 ## Data pipeline
 
 ### Odds lock at kickoff

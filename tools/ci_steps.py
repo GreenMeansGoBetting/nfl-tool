@@ -12,8 +12,8 @@
 Why they exist (2026-10-13): the repo had gone private, which put the builds
 on GitHub's 2,000 free minutes a month, and every run did everything: a
 lineup check rebuilt football, basketball and hockey. Hockey lineups and odds
-are refreshed hourly by a small job that rebuilds only the NHL files and
-republishes (`refresh-*`). The deploy itself builds and tests everything on
+are refreshed every half hour by a small job that rebuilds only the NHL
+files and republishes (`refresh-*`). The deploy itself builds and tests everything on
 every run again since 2026-10-15 (the repo is public, minutes are free, and
 rebuilding only what a push changed had failed a deploy).
 
@@ -44,8 +44,11 @@ SITE = ROOT / "nfl_tool" / "site"
 LIVE = "https://nfl.gmgsports.org"
 DEPLOY_YML = ".github/workflows/deploy.yml"
 SUITES = ("nfl", "nba", "nhl")
-# A scheduled refresh is skipped when no NHL game starts within this many hours.
+# A timed refresh is skipped when no NHL game starts within this many hours.
 REFRESH_WINDOW_HOURS = 14
+# GitHub's own hourly timer is only the backup for the Cloudflare timer
+# (workers/nhl-timer): it skips when the live NHL data is this fresh.
+BACKUP_SKIP_MINUTES = 25
 
 
 # ---- small plumbing ----
@@ -308,7 +311,17 @@ def games_ahead(schedule, now: datetime, hours=REFRESH_WINDOW_HOURS):
     return count
 
 
-def refresh_decision(event, live, busy, code_is_live, ahead, first=None):
+def minutes_since(stamp, now: datetime):
+    """Minutes from a version.json time ("2026-10-15T21:29Z") to now, or
+    None if it can't be read."""
+    try:
+        then = datetime.strptime(str(stamp), "%Y-%m-%dT%H:%MZ").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    return (now - then).total_seconds() / 60
+
+
+def refresh_decision(event, live, busy, code_is_live, ahead, first=None, now=None):
     """(go, why). The refresh republishes the whole site folder with only the
     NHL files rebuilt, so it must never run over a full rebuild or publish
     code that isn't already live:
@@ -321,10 +334,14 @@ def refresh_decision(event, live, busy, code_is_live, ahead, first=None):
         publishing (`first`), someone else published: stop.
 
     Anything that can't be checked counts as "no": a skipped refresh costs
-    nothing, the next one is an hour away.
+    nothing, the next one is half an hour away.
 
-    On the hourly schedule it is also skipped when no game is about to start
-    (a schedule that can't be read doesn't stop it).
+    A timed run ("timer": the Cloudflare timer every half hour; "schedule":
+    GitHub's hourly backup) is also skipped when no game is about to start (a
+    schedule that can't be read doesn't stop it). The backup is skipped too
+    when the live NHL data is under BACKUP_SKIP_MINUTES old: GitHub's timer
+    is late or dropped most hours (2026-10-15: 1 of 6 ran), which is why the
+    Cloudflare one exists.
     """
     if not live_sha(live):
         return False, "couldn't read what is live"
@@ -336,8 +353,12 @@ def refresh_decision(event, live, busy, code_is_live, ahead, first=None):
         return False, "the code on main isn't the code that is live (a deploy failed or hasn't run yet); the full rebuild goes first"
     if first is not None and live != first:
         return False, "the site was republished while this ran"
-    if event == "schedule" and ahead == 0:
+    if event in ("schedule", "timer") and ahead == 0:
         return False, f"no NHL game starts in the next {REFRESH_WINDOW_HOURS} hours"
+    if event == "schedule" and now is not None:
+        age = minutes_since(((live or {}).get("nhl") or {}).get("built"), now)
+        if age is not None and age < BACKUP_SKIP_MINUTES:
+            return False, f"the NHL data was rebuilt {int(age)} minutes ago (this is the backup timer)"
     return True, "nothing else is publishing and the live code is main's"
 
 
@@ -347,14 +368,16 @@ def refresh_state() -> Path:
 
 def cmd_refresh_check(args):
     event = os.environ.get("GITHUB_EVENT_NAME", "")
+    if event == "workflow_dispatch" and os.environ.get("REFRESH_SOURCE") == "timer":
+        event = "timer"  # the Cloudflare timer presses the same button as the owner
     live = live_version()
     first = None
     if args.again:
         first = (read_json(refresh_state()) or {}).get("live") or {}
     ahead = None
-    if event == "schedule" and not args.again:
+    if event in ("schedule", "timer") and not args.again:
         ahead = games_ahead(get_json("https://api-web.nhle.com/v1/schedule/now"), utc_now())
-    go, why = refresh_decision(event, live, deploy_busy(), same_code(live_sha(live)), ahead, first)
+    go, why = refresh_decision(event, live, deploy_busy(), same_code(live_sha(live)), ahead, first, None if args.again else utc_now())
     if not args.again:
         refresh_state().write_text(json.dumps({"live": live, "started": int(time.time())}), encoding="utf-8")
     output(go="yes" if go else "no")
