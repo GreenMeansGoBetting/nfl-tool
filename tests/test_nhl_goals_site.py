@@ -185,12 +185,20 @@ class Record(unittest.TestCase):
 
 
 class Nav(unittest.TestCase):
-    def test_every_nhl_page_links_to_goals(self):
+    def test_every_nhl_page_has_the_same_nav(self):
+        """The owner, 2026-10-15: Games, Player Props (a list: Shots, Goals), Promo Tools; no "More tools coming"."""
+        import re
         from pathlib import Path
-        site = Path(__file__).resolve().parents[1] / "nfl_tool" / "site" / "nhl"
-        for page in ("index.html", "shots.html", "promo-tools.html"):
-            self.assertIn('<a href="goals.html">Goals</a>', (site / page).read_text(encoding="utf-8"), page)
-        self.assertIn('<span class="page-nav-current">Goals</span>', (site / "goals.html").read_text(encoding="utf-8"))
+        site = Path(__file__).resolve().parents[1] / "nfl_tool" / "site"
+        for page in ("index.html", "shots.html", "goals.html", "promo-tools.html"):
+            nav = re.search(r'<nav class="page-nav">(.*?)</nav>', (site / "nhl" / page).read_text(encoding="utf-8"), re.S).group(1)
+            self.assertEqual(re.findall(r">([^<>]+)</(?:a|span)>", nav), ["Games", "Player Props", "Promo Tools"], page)
+            self.assertIn('data-nav-menu="props"', nav, page)
+        for page in ("nhl/index.html", "nhl/shots.html", "nhl/goals.html", "nhl/promo-tools.html", "nba/index.html"):
+            self.assertNotIn("More tools coming", (site / page).read_text(encoding="utf-8"), page)
+        sync = (site / "sync.js").read_text(encoding="utf-8")
+        self.assertIn('{ name: "Shots", href: "shots.html" }', sync)
+        self.assertIn('{ name: "Goals", href: "goals.html" }', sync)
 
 
 if __name__ == "__main__":

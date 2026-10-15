@@ -5,7 +5,6 @@
 .nba-soon { display: none; }
 html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-app { display: none; }
 html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: block; }
-.page-nav-soon { align-self: center; padding: 0 10px; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .nba-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .nba-line { max-width: 1100px; }
 .nba-line .g2-line-tile { flex-direction: column; gap: 3px; padding: 8px 10px 10px; }

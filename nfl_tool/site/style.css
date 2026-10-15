@@ -3695,12 +3695,14 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .suite-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text); border: 1px solid transparent; }
 .suite-item:hover { background: var(--panel-2); border-color: var(--border); }
 .suite-item.suite-current { background: rgba(var(--accent-rgb), 0.12); border-color: rgba(var(--accent-rgb), 0.5); }
-/* Promo Tools menu (sync.js addPromoMenu): every sport's promo tools from any page's nav */
-.promo-trigger { cursor: pointer; }
+/* Nav dropdowns (sync.js navMenu): Promo Tools (every sport's promo tools from any page's nav)
+   and the NHL's Player Props */
+.nav-trigger { cursor: pointer; }
 .promo-caret { margin-left: 4px; font-size: 0.75em; opacity: 0.8; }
 /* The suite switcher's menu look, under its own names (a test counts the switcher's items). */
-.promo-menu { position: absolute; z-index: 60; display: flex; flex-direction: column; gap: 2px; min-width: 230px; padding: 6px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border-strong); box-shadow: var(--shadow); }
-.promo-menu[hidden] { display: none; }
+.nav-menu { position: absolute; z-index: 60; display: flex; flex-direction: column; gap: 2px; min-width: 230px; padding: 6px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border-strong); box-shadow: var(--shadow); }
+.props-menu { min-width: 180px; }
+.nav-menu[hidden] { display: none; }
 .promo-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text); border: 1px solid transparent; font-family: var(--font-display); font-weight: 700; }
 .promo-item:hover { background: var(--panel-2); border-color: var(--border); }
 .promo-item.promo-current { background: rgba(var(--accent-rgb), 0.12); border-color: rgba(var(--accent-rgb), 0.5); }

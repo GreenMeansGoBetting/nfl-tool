@@ -343,17 +343,43 @@
       trigger = document.createElement("a");
       trigger.href = "#";
       trigger.textContent = "Promo Tools";
-      nav.insertBefore(trigger, nav.querySelector(".page-nav-soon"));
+      nav.appendChild(trigger);
     }
-    trigger.classList.add("promo-trigger");
+    navMenu(trigger, "promo", PROMOS.map(
+      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === sport && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
+    ).join(""));
+  }
+  addPromoMenu();
+
+  // ---- Player Props menu (the owner, 2026-10-15) ----
+  // On the NHL pages "Player Props" in the nav opens a list of the prop tools
+  // (Shots, Goals), the Promo Tools menu's way. A page marks the button with
+  // data-nav-menu="props"; a new prop tool is one line here.
+  const PROPS = [
+    { name: "Shots", href: "shots.html" },
+    { name: "Goals", href: "goals.html" },
+  ];
+  function addPropsMenu() {
+    const trigger = document.querySelector('.topbar .page-nav [data-nav-menu="props"]');
+    if (!trigger || document.querySelector(".props-menu")) return;
+    const page = location.pathname.split("/").pop();
+    navMenu(trigger, "props", PROPS.map(
+      (p) => `<a href="${p.href}" class="promo-item${p.href === page ? " promo-current" : ""}"><span class="promo-name">${p.name}</span></a>`
+    ).join(""));
+  }
+  addPropsMenu();
+
+  // A nav button that opens a list under it (Promo Tools, Player Props): `kind`
+  // names its classes (.promo-trigger / .promo-menu, .props-trigger / .props-menu).
+  function navMenu(trigger, kind, itemsHtml) {
+    const bar = document.querySelector(".topbar");
+    trigger.classList.add(`${kind}-trigger`, "nav-trigger");
     trigger.setAttribute("aria-haspopup", "true");
     trigger.insertAdjacentHTML("beforeend", '<span class="promo-caret" aria-hidden="true">&#9662;</span>');
     const menu = document.createElement("div");
-    menu.className = "promo-menu";
+    menu.className = `${kind}-menu nav-menu`;
     menu.hidden = true;
-    menu.innerHTML = PROMOS.map(
-      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === sport && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
-    ).join("");
+    menu.innerHTML = itemsHtml;
     bar.appendChild(menu);
     trigger.addEventListener("click", (e) => {
       e.preventDefault();
@@ -365,14 +391,14 @@
       menu.hidden = !menu.hidden;
       trigger.setAttribute("aria-expanded", String(!menu.hidden));
     });
+    // Any click outside this button and its list closes it (opening the other menu too).
     document.addEventListener("click", (e) => {
-      if (!e.target.closest(".promo-trigger, .promo-menu")) menu.hidden = true;
+      if (!trigger.contains(e.target) && !menu.contains(e.target)) menu.hidden = true;
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") menu.hidden = true;
     });
   }
-  addPromoMenu();
 
   // "Odds powered by SmartStake" (the owner's partner; written permission to
   // show their odds, 2026-10-14) beside the suite name, on every page. Links

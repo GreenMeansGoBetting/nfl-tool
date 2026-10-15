@@ -327,6 +327,21 @@ class PromoMenu(unittest.TestCase):
         PAGE.keyboard.press("Escape")
         self.assertTrue(menu.is_hidden())
 
+    def test_player_props_opens_shots_and_goals(self):
+        """The owner, 2026-10-15: Shots and Goals sit under one Player Props button, the Promo Tools way."""
+        reset()
+        menu = PAGE.locator(".props-menu")
+        self.assertTrue(menu.is_hidden())
+        PAGE.click(".page-nav .props-trigger")
+        self.assertTrue(menu.is_visible())
+        items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
+        self.assertEqual(items, [["Shots", "shots.html", True], ["Goals", "goals.html", False]])
+        # Opening Promo Tools closes it; only one list at a time.
+        PAGE.click(".page-nav .promo-trigger")
+        self.assertTrue(menu.is_hidden())
+        self.assertTrue(PAGE.locator(".promo-menu").is_visible())
+        PAGE.keyboard.press("Escape")
+
 
 class Filters(unittest.TestCase):
     def test_overs_and_unders(self):

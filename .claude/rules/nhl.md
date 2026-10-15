@@ -306,6 +306,11 @@ on a replay, and the page keeps a record against the real prices.
 
 ## Pages
 
+- **The top bar (the owner, 2026-10-15): Games, Player Props, Promo Tools.** "Games" is Game
+  Previews. Player Props (`data-nav-menu="props"`) opens a list of the prop tools (Shots, Goals:
+  `PROPS` in sync.js, the Promo Tools menu's look, `navMenu`). A new NHL tool goes under one of
+  these headers unless the owner decides it needs its own button. No "More tools coming" on any
+  page. A test checks every NHL page's bar.
 - **`site/nhl/nhl-common.js` is shared by every NHL page** and loads first: the data
   (`loadNhlData`), the season switch (`view`), helpers, the rink drawing (`rinkSvg`) and the
   player card. A new NHL page adds its own script after it and defines `render()` (called when
@@ -350,7 +355,7 @@ on a replay, and the page keeps a record against the real prices.
   - Odds: the lines above for the player's game (the open one, else his team's next), with
     `thin` tags and the ladders as "N or more" chips. A goalie's only line is Saves.
   - A team whose file can't be read still opens the card (season tiles and odds only).
-- `site/nhl/shots.html` + `shots.js` = **Shots** (the nav button next to Game Previews): one
+- `site/nhl/shots.html` + `shots.js` = **Shots** (under Player Props in the nav): one
   table for the day's slate, a row per skater, ranked best edge first.
   - **Edge = the model's chance minus the chance the price needs to break even**, for the better
     side of his main Novig line ("Best side"; Overs / Unders show one side for everyone). The page
@@ -763,7 +768,7 @@ zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fit
 
 The owner approved a mockup of one row and its breakdown ("looks great. push it"), built in the
 real Shots page from real numbers. The page REUSES the Shots page's layout, ids and classes
-(`#shots-app`, `.shots-*`); its own styles are `.goals-*` in nhl.css. Nav link "Goals" after Shots
+(`#shots-app`, `.shots-*`); its own styles are `.goals-*` in nhl.css. Under Player Props after Shots
 on every NHL page (a test checks).
 - **No goal math on the page:** chance, fair price, edge and bucket all come from goals.json; the
   edge cell is colored by the build's `size`, never the rounded edge (an edge of 2.996 rounds to
