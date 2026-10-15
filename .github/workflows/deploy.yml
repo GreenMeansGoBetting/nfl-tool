@@ -166,6 +166,9 @@ jobs:
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
+          # One event, once: does SGO's free tier carry DraftKings' first goal
+          # scorer price? (probe_sgo_first_goal in build_nhl.py)
+          SGO_API_KEY: ${{ secrets.SGO_API_KEY }}
         run: |
           set -o pipefail
           python nfl_tool/nhl/build_nhl.py --season 2027 --out nfl_tool/site/nhl/data.json --data-dir data/nhl 2>&1 | tee nhl_build.log

@@ -602,6 +602,13 @@ a bad opponent) and players only (one player's matchup).
   price; the page shows DraftKings' or, in grey, another book's. `version.json` `nhl.first_goal` =
   players priced (or the error / note): **check it after the first deploy with the key**; if it
   says no market was found, read the market names in `book_odds_debug.first_goal`.
+- **SmartStake has no NHL first goal scorer market** (the first deploy listed its 43 NHL markets:
+  totals, puck lines, period and player goals / shots, none for the first goal). The owner asked
+  about scraping DraftKings: no (their terms forbid it; the MoneyPuck rule). Next tried: SGO's
+  hockey `firstToScore` by player (`probe_sgo_first_goal`: ONE event per deploy until a DraftKings
+  price is seen, then none; SGO's free tier is 2,500 events a month shared with the NFL). Its
+  answer is `version.json` `nhl.sgo_first_goal` (players, books, `draftkings` count). If DraftKings
+  is there, the next step is fetching the 7 PM slate's events once late in the day, not hourly.
 - **Historical Data** button beside the title: the replay's findings in a popup (`#ice-history-modal`,
   the owner's ask: "so users can get some background stats"). Its numbers are typed into
   promo-tools.html: change them with the replay.

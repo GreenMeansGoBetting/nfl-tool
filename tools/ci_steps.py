@@ -192,6 +192,9 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["icebreaker"] = len(ice.get("days") or {}) if ice else None  # Icebreaker: days with a board
         fg = (data.get("book_odds_debug") or {}).get("first_goal") or {}
         note["first_goal"] = fg.get("players", fg.get("error") or fg.get("note") or fg.get("skipped"))  # SmartStake first goal scorer prices
+        sgo = (data.get("book_odds_debug") or {}).get("sgo_first_goal")
+        if sgo:
+            note["sgo_first_goal"] = sgo  # does SportsGameOdds carry DraftKings' first goal scorer price?
     if failed:
         note["error"] = build_error(suite)
     return note

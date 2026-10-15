@@ -170,6 +170,27 @@ class Record(unittest.TestCase):
             self.assertEqual((w["rank"], w["chance"]), (None, None))
 
 
+class SgoProbe(unittest.TestCase):
+    def test_one_events_first_goal_prices_by_book(self):
+        def odd(pid, books, stat="firstToScore", side="yes"):
+            return {"statID": stat, "playerID": pid, "sideID": side, "byBookmaker": {b: {"available": True, "odds": o} for b, o in books.items()}}
+        event = {"eventID": "E1", "odds": {
+            "a": odd("P1", {"draftkings": "+700", "fanduel": "+750"}),
+            "b": odd("P2", {"fanduel": "+900"}),
+            "c": odd("P1", {"draftkings": "-2000"}, side="no"),
+            "d": odd(None, {"draftkings": "-130"}),  # a team to score first
+            "e": odd("P3", {"draftkings": "+200"}, stat="points"),
+        }}
+        got = b.sgo_first_goal_summary(event)
+        self.assertEqual((got["players"], got["draftkings"], got["sample"]), (2, 1, [["P1", "+700"]]))
+        self.assertEqual(got["books"], {"fanduel": 2, "draftkings": 1})
+
+    def test_it_asks_once_and_never_without_a_key(self):
+        found = {"event": "E1", "players": 30, "draftkings": 28}
+        self.assertEqual(b.probe_sgo_first_goal("key", {"book_odds_debug": {"sgo_first_goal": found}}), found)  # no call: already answered
+        self.assertEqual(b.probe_sgo_first_goal(None, None), {"skipped": "no SGO_API_KEY"})
+
+
 class FirstGoalMarket(unittest.TestCase):
     def test_the_first_goal_scorer_market_is_found_by_name(self):
         listed = [
