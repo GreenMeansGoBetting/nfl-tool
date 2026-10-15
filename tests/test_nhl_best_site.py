@@ -24,7 +24,7 @@ LEAN = build_nhl.SHOTS_EDGES["lean"]
 ROWS = """() => [...document.querySelectorAll('.best-row')].map((tr) => {
   const text = (sel) => (tr.querySelector(sel) || {}).textContent?.trim().replace(/\\s+/g, ' ') || '';
   const chip = tr.querySelector('.best-play');
-  return { key: tr.dataset.key, href: tr.dataset.href, play: `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}`, odds: text('.best-odds'), edge: text('.shots-edge'), notes: text('.best-notes') };
+  return { key: tr.dataset.key, href: tr.dataset.href, play: `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}`, odds: text('.best-odds'), fair: text('.best-fair'), edge: text('.shots-edge'), notes: text('.best-notes') };
 })"""
 
 
@@ -73,8 +73,13 @@ def expected(day=TONIGHT):
                 out[f"sog:{gid}:{row['id']}"] = {**play, "row": row}
         for row in (goals["games"].get(gid) or {}).get("players", []):
             if not row["out"] and row["odds"] is not None and row["edge"] is not None and row["edge"] >= LEAN:
-                out[f"goal:{gid}:{row['id']}"] = {"price": row["odds"], "edge": row["edge"], "size": row["size"], "row": row}
+                out[f"goal:{gid}:{row['id']}"] = {"price": row["odds"], "edge": row["edge"], "size": row["size"], "fair": row["fair"], "row": row}
     return out
+
+
+def fair(p):
+    """shots.js fairPrice: the American price at which a chance p breaks even."""
+    return round(-100 * p / (1 - p)) if p >= 0.5 else round(100 * (1 - p) / p)
 
 
 def price(n):
@@ -95,6 +100,8 @@ class Listing(unittest.TestCase):
         for r in reset():
             play = plays[r["key"]]
             self.assertEqual(r["odds"], price(play["price"]), r)
+            # GMG Fair (the owner, 2026-10-15): the model's chance as a price with no cut, as the Shots / Goals pages show it.
+            self.assertEqual(r["fair"], price(play["fair"]) if r["key"].startswith("goal:") else price(fair(play["chance"])), r)
             self.assertLessEqual(abs(float(r["edge"]) - play["edge"] * 100), 0.05 + 1e-9, r)
             if r["key"].startswith("sog:"):
                 self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} shots", r)

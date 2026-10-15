@@ -817,7 +817,9 @@ pages for the detail, not a copy of them.
   in their column (the owner).
 - **Lineup banner** when an open game has no lineup: "Lineups are in for X of Y games. Plays
   marked No lineup can change when the NHL posts it." The page fills all day (lunch-break bets).
-- Columns: #, Player, Play ("u1.5 shots" / "Scores goal"), Odds, Edge, Notes, Puck drop, a
+- Columns: #, Player, Play ("u1.5 shots" / "Scores goal"), **GMG Fair** (the owner's name: the
+  model's chance as a no-cut price, the same number as the Shots / Goals pages' Fair; goals use
+  goals.json `fair`), Odds, Edge, Notes, Puck drop, a
   "Shots ›" / "Goals ›" link. **Every column with a key sorts; Odds = the biggest payout first**
   (the owner's "return on $1"). No Win % (the owner: "unimportant and clutter"; the chance is in
   the Edge hover). Market switches (Shots on goal, Anytime goal; at least one stays on); Points

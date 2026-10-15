@@ -28,6 +28,8 @@ const edgeAt = (size) => ((SHOTS || {}).edges || { lean: 0.03, strong: 0.06, che
 const breakEven = (price) => (has(price) ? (price < 0 ? -price / (100 - price) : 100 / (price + 100)) : null);
 // What $1 returns if it wins (the Odds sort: biggest payout first).
 const payout = (price) => (price > 0 ? price / 100 : 100 / -price);
+// The price with no cut at which the model's chance breaks even (the Shots and Goals pages' Fair).
+const fairPrice = (p) => (!has(p) || p <= 0 || p >= 1 ? null : p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p));
 function points(edge) {
   if (!has(edge)) return "--";
   const text = (edge * 100).toFixed(1);
@@ -94,7 +96,7 @@ function playsFor(date) {
     if (gb && bestView.markets.goal) {
       gb.players.forEach((r) => {
         if (r.out || !has(r.odds) || !has(r.edge) || r.edge < edgeAt("lean")) return;
-        const play = { side: "yes", price: r.odds, chance: r.chance, edge: r.edge };
+        const play = { side: "yes", price: r.odds, chance: r.chance, edge: r.edge, fair: r.fair };
         const result = has(r.actual) ? (r.actual > 0 ? "win" : "loss") : null;
         out.push({ market: "goal", r, g, posted: !!gb.posted, play, thin: !!r.thin, result, state });
       });
@@ -105,6 +107,7 @@ function playsFor(date) {
 const SORTS = {
   edge: (x) => x.play.edge,
   odds: (x) => payout(x.play.price),
+  fair: (x) => -x.play.chance, // most first = the longest fair price
   time: (x) => -Date.parse(x.g.start_utc || 0), // earliest first when "most first"
   market: (x) => (x.market === "sog" ? 1 : 0),
 };
@@ -205,6 +208,7 @@ const COLUMNS = [
     return `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>`;
   } },
   { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}</td>` },
+  { key: "fair", label: "GMG Fair", title: "The price the GMG model says this bet is worth, with no cut: its chance turned into odds. Odds longer than this are the edge", cell: (x) => `<td class="num best-fair" title="The GMG model gives it ${Math.round(x.play.chance * 100)}%">${odds(has(x.play.fair) ? x.play.fair : fairPrice(x.play.chance)) || "--"}</td>` },
   { key: "odds", label: "Odds", title: "Novig's price. Sort by it for the biggest payout first", cell: (x) => `<td class="num best-odds"><b>${odds(x.play.price)}</b></td>` },
   { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points", cell: edgeCell },
   { key: null, label: "Notes", title: "What the model may not know yet: no lineup, a line change tonight, a small sample, a thin price", cell: (x) => `<td class="best-notes">${notesFor(x) || `<span class="muted-label">--</span>`}</td>` },
