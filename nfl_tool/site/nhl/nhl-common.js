@@ -16,7 +16,7 @@ const fmt = (n, digits = 1) => (has(n) ? Number(n).toFixed(digits) : "--");
 const pct = (n, digits = 1) => (has(n) ? `${(n * 100).toFixed(digits)}%` : "--");
 const svPct = (n) => (has(n) ? n.toFixed(3).replace(/^0/, "") : "--");
 const signed = (n, digits = 1) => (has(n) ? `${n > 0 ? "+" : ""}${Number(n).toFixed(digits)}` : "--");
-const odds = (n) => (has(n) ? (n > 0 ? `+${n}` : `${n}`) : "");
+const odds = (n) => (has(n) ? showOdds(n) : ""); // the member's odds format (sync.js)
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, short: abbr, color: "555555", logo: "" };
 const isLight = () => document.documentElement.dataset.theme === "light";
 const logoUrl = (abbr) => (isLight() ? team(abbr).logo : team(abbr).logo_dark || team(abbr).logo) || "";
@@ -102,8 +102,8 @@ function rankBoxText(mostRank, total = teamCount()) {
 // 1st = the most = green and last = the fewest = red.
 const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
 const rankStep = (rank, total) => Math.min(RANK_SCALE.length - 1, Math.max(0, Math.floor(((rank - 1) / total) * RANK_SCALE.length)));
-const stepFill = (step) => `hsla(${RANK_SCALE[step][0]},78%,44%,${RANK_SCALE[step][1]})`;
-const stepEdge = (step) => `hsl(${RANK_SCALE[step][0]},78%,48%)`;
+const stepFill = (step) => scaleHsla(RANK_SCALE[step][0], 78, 44, RANK_SCALE[step][1]); // the member's color set (sync.js)
+const stepEdge = (step) => scaleHsla(RANK_SCALE[step][0], 78, 48);
 // A rink zone on a step (what rinkSvg's zoneFn hands back), and a table cell on one.
 const zoneOnStep = (step) => ({ cls: `nhl-zone-rank nhl-zone-step-${step + 1}`, style: `--zone-fill:${stepFill(step)};--zone-edge:${stepEdge(step)}` });
 const cellOnStep = (step) => ` style="background-color:${stepFill(step)};box-shadow:inset 0 0 0 1px ${stepEdge(step)}"`;

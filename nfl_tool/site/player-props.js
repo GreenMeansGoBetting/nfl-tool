@@ -1914,8 +1914,8 @@ function renderPropsMarketTable(awayTeam, homeTeam, market) {
       return `<tr style="${rowStyle}">
         <td>${teamLogoMini(p.team)} ${playerClick(p.team, p.name)} <span class="muted-label">(${p.position || "?"})</span></td>
         <td class="num props-line">${fmt(p.line, 1)}</td>
-        <td class="num">${ouCheckboxCell(fmtOddsSigned(p.over_odds), over)}</td>
-        <td class="num">${ouCheckboxCell(fmtOddsSigned(p.under_odds), under)}</td>
+        <td class="num">${ouCheckboxCell(showOdds(p.over_odds), over)}</td>
+        <td class="num">${ouCheckboxCell(showOdds(p.under_odds), under)}</td>
       </tr>`;
     })
     .join("");

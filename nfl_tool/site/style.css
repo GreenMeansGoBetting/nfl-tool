@@ -3756,15 +3756,14 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 }
 
 /* ---- Every book's price (book-odds.js): the best-price pill, the all-books
-   list with Play / Close / Pass, My Books ---- */
+   list with Play / Close / Pass ---- */
 .bo-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .bo-pill small { font-size: 0.72em; font-weight: 600; color: var(--muted); }
 .bo-pill:hover { border-color: var(--accent); }
 .bo-pill.bo-play { background: rgba(var(--good-rgb), 0.14); border-color: rgba(var(--good-rgb), 0.55); }
 .bo-pill.bo-check { background: rgba(var(--mid-rgb), 0.12); border-color: rgba(var(--mid-rgb), 0.5); }
-#book-odds-modal, #my-books-modal { z-index: 5000; } /* above the player card */
+#book-odds-modal, #settings-modal { z-index: 5000; } /* above the player card */
 #book-odds-modal .modal-box { max-width: 720px; }
-#my-books-modal .modal-box { max-width: 460px; }
 .bo-banner { border-radius: 8px; padding: 10px 14px; background: linear-gradient(90deg, var(--bo-team) 0 6px, var(--panel-2) 6px); margin-right: 24px; }
 .bo-banner h3, .bo-title { margin: 0; font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
 .bo-sub { color: var(--muted); font-size: 0.88rem; }
@@ -3799,7 +3798,7 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .bo-bet { display: inline-block; border: 1px solid var(--border-strong); border-radius: 5px; padding: 3px 12px; font-weight: 700; font-size: 0.88rem; color: var(--text); text-decoration: none; white-space: nowrap; }
 .bo-bet:hover { border-color: var(--accent); }
 .bo-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
-.bo-foot a, .my-books-link { color: var(--good-text); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.bo-foot a { color: var(--good-text); font-weight: 600; text-decoration: none; white-space: nowrap; }
 .bo-field { margin: 14px 0 8px; }
 .bo-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .bo-chip { display: flex; align-items: center; gap: 10px; border-radius: 6px; padding: 8px 10px; font: inherit; font-weight: 700; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; text-align: left; }
@@ -3807,6 +3806,28 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .bo-chip.bo-on { background: rgba(var(--good-rgb), 0.12); border-color: rgba(var(--good-rgb), 0.5); color: var(--text); }
 .bo-chip.bo-on .bo-box { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .bo-note { margin-top: 14px; font-size: 0.82rem; color: var(--muted); background: var(--panel-2); border-radius: 6px; padding: 9px 11px; border: 1px solid var(--border); }
+
+/* ---- Settings (the gear beside the account chip, sync.js): odds format,
+   colors, My Books ---- */
+.settings-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); color: var(--muted); cursor: pointer; flex: none; }
+.settings-btn:hover { color: var(--text); border-color: var(--border-strong); }
+#settings-modal .modal-box { max-width: 520px; max-height: 92vh; overflow-y: auto; }
+.set-hint { text-transform: none; letter-spacing: 0; font-family: var(--font-body); margin-left: 6px; }
+.set-odds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.set-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.set-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border-radius: 6px; padding: 8px 10px; font: inherit; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); cursor: pointer; text-align: left; }
+.set-opt b { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.set-opt small { font-size: 0.76rem; }
+.set-opt:hover { border-color: var(--border-strong); }
+.set-opt.set-on { background: rgba(var(--accent-rgb), 0.12); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.set-swatch { display: flex; gap: 2px; width: 100%; }
+.set-swatch i { flex: 1; height: 12px; border-radius: 2px; }
+.set-custom { display: flex; gap: 14px; margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--border); font-weight: 700; font-size: 0.88rem; }
+.set-custom label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.set-custom input[type="color"] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border-strong); border-radius: 4px; background: none; cursor: pointer; }
+.set-books { margin-top: 8px; }
+.set-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+.set-done { padding: 7px 22px; border-radius: 6px; border: none; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
 
 .brand-group { display: flex; align-items: center; min-width: 0; }
 .odds-credit { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font-size: 0.72rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
@@ -3829,6 +3850,7 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
   .gm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .feature-request-btn { padding: 6px 9px; }
   .feature-request-btn .fr-label { display: none; }
+  .settings-btn { width: 30px; height: 30px; }
 }
 
 /* TD banner: top TD scorers with a count bubble half over the photo's bottom-right */

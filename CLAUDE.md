@@ -69,7 +69,7 @@ that, move detail into a rules file.
 - `nfl_tool/build_stats.py`: the NFL data pipeline -> `nfl_tool/site/data.json` (untracked, built in CI).
 - `nfl_tool/gmg_model.py`: GMG score model, its picks and the locked record.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
-- `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> `book_odds` in data.json and nhl/data.json, shown by `site/book-odds.js` (shared: best-price pill, all-books list, My Books; tags only against our own model; data-pipeline.md, nhl.md).
+- `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> `book_odds` in data.json and nhl/data.json, shown by `site/book-odds.js` (shared: best-price pill, all-books list; tags only against our own model; data-pipeline.md, nhl.md).
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
 - `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`).
@@ -92,7 +92,7 @@ that, move detail into a rules file.
   - `possible-plays.html/.js`: Possible Plays (View Results, Photo Export, Parlay Wheel). `picks.js`: Pick Tracker.
   - `promo-tools.html/.js`: Promo Tools (King of the Endzone). `support.html`: Support tab.
   - `common.js`: shared helpers (tiers, matchup calls, saved plays, lineup weights, modals, summary-card fit / Save image).
-  - `sync.js`: member profiles, account chip, feature requests, suite switcher, the Promo Tools menu (`PROMOS`: every sport's promo tools from any page's nav), the NHL Player Props menu (`PROPS`). `teams.js`: names, colors, logos.
+  - `sync.js`: member profiles, account chip, the Settings gear (odds format, color set, My Books), feature requests, suite switcher, the Promo Tools menu (`PROMOS`: every sport's promo tools from any page's nav), the NHL Player Props menu (`PROPS`). `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
   - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/best.html` + `best.js`: Best Plays (both pages' edges in one list).
@@ -107,8 +107,7 @@ that, move detail into a rules file.
   the other side not pointing the other way (`MATCHUP_CONTRA`). An average alone is not enough.
   How often a defense shows a look (blitz %, box %) only decides whether the look matters, never
   which way it points. Rows where the sides don't act on each other (penalty yards) aren't matchups.
-- **Distrust small samples.** 2–3 games can be one weird matchup (a backup QB, bad weather).
-  Prefer approaches that discount flukes and lean on the market.
+- **Distrust small samples.** 2–3 games can be one weird matchup; prefer approaches that discount flukes and lean on the market.
 - **Audit habit:** any rule that blends parts into one score and then cuts on it can hide one
   strong part. Before shipping a new selection rule, list every candidate with its parts for a
   real week and check that no strong single part is dropped except by an intentional block.
@@ -119,16 +118,15 @@ that, move detail into a rules file.
 - **Props Summary is directional, never a pick sheet:** no projections, "model edge" numbers or
   model-picked players. The user draws the conclusions.
 - **The GMG model is a talking point, never "beats the line".** A 2024-25 replay had it at 50% against the spread.
-- **Any new place that shows a player must use `playerClick`** (the one player card; NHL pages
-  have their own in `nhl/nhl-common.js`).
+- **Any new place that shows a player must use `playerClick`** (NHL pages: their own in `nhl/nhl-common.js`).
 - **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color
   banners, filled tier cells) rather than adding a new one. One font, Sofia Sans, for letters AND numbers on every sport (styles.md).
 - **Odds lock at kickoff.** Books keep quoting in-game lines; the site must never show them as
   the line. A saved pick always shows the line it was made at.
-- **Lineup-aware usage:** never surface a backup off one fill-in game.
-- **No DST targets anywhere** (defensive / return TDs are random and not bet).
+- **Lineup-aware usage:** never surface a backup off one fill-in game. **No DST targets anywhere** (random, not bet).
+- **Settings gear** (sync.js, styles.md): every shown price goes through `showOdds`, every red-to-green shade through `scaleHsla` / the tier tokens; never name a state.
 - **Per-member data** goes in BOTH `SYNC_KEYS` (middleware) and `KEYS` (sync.js), and its save
-  function calls `window.NFLSync?.push(key, value)`. Display prefs (theme, views, selected game) stay per-device.
+  function calls `window.NFLSync?.push(key, value)`. Settings (odds format, colors) sync too; display prefs (theme, views, selected game) stay per-device.
 - **Phone layout:** phone-only rules go in the last `@media (max-width: 760px)` block of
   style.css so desktop stays pixel-identical; new wide tables must scroll inside their own box.
 - The TD Data page is considered solid; change it only when asked.
@@ -148,5 +146,4 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists):
 - `nba.md`: the NBA suite (data sources, build, pages, suite switcher, launch switch).
 - `nhl.md`: the NHL suite (the NHL's own feed, kept games, rink areas, pages, the Shots model and its record; never MoneyPuck).
 
-The engineering clean-up plan: `docs/foundation-plan.md` (one item per session). Background on past
-decisions and why rules exist: `docs/history.md` (search it when a reason matters; not loaded automatically).
+Clean-up plan: `docs/foundation-plan.md` (one item per session). Why rules exist: `docs/history.md` (search it; not loaded automatically).

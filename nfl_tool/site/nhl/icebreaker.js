@@ -20,7 +20,7 @@ const ICE_SLOT = "19:00";
 const iceDays = () => Object.keys((ICE || {}).days || {}).sort();
 const iceDay = () => ((ICE || {}).days || {})[iceDays()[iceView.day]] || null;
 const icePct = (n) => `${(n * 100).toFixed(1)}%`;
-const american = (n) => (has(n) ? (n > 0 ? `+${n}` : `${n}`) : "--");
+const american = (n) => (has(n) ? showOdds(n) : "--"); // the member's odds format (sync.js)
 // Game clock: "1st 0:15", "2nd 4:30" (seconds from the opening faceoff).
 function gameClock(t) {
   if (!has(t)) return "--";
@@ -72,7 +72,7 @@ function chosenTeams(rows) {
 function chancePill(value, lo, hi, title) {
   const f = hi > lo ? (value - lo) / (hi - lo) : 1;
   const hue = Math.round(120 * Math.max(0, Math.min(1, f)));
-  return `<span class="koe-upside crease-pill ice-pill" style="background:hsla(${hue},70%,45%,0.22);border-color:hsla(${hue},70%,45%,0.6)" title="${title}">${icePct(value)}</span>`;
+  return `<span class="koe-upside crease-pill ice-pill" style="background:${scaleHsla(hue, 70, 45, 0.22)};border-color:${scaleHsla(hue, 70, 45, 0.6)}" title="${title}">${icePct(value)}</span>`;
 }
 // Where a team stands among the picked teams, on the eight colors (1 = green).
 function slateCell(value, pool, higherIsBetter, text, tip) {

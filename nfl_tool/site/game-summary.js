@@ -627,7 +627,7 @@ function gsLineStrip(game) {
   const model = m ? pair(`${teamLogoMini(away, 20)} ${fmt(m.away_pts, 1)}`, `${teamLogoMini(home, 20)} ${fmt(m.home_pts, 1)}`) : "--";
   const implied = hasSpread && total ? pair(`${teamLogoMini(away, 20)} ${num((total + hs) / 2)}`, `${teamLogoMini(home, 20)} ${num((total - hs) / 2)}`) : "--";
   const hasMl = pv(game, "away_moneyline") !== null && pv(game, "away_moneyline") !== undefined;
-  const mlSide = (team, odds, prob) => `${teamLogoMini(team, 20)} ${fmtOddsSigned(odds)}${prob ? ` <small>${Math.round(prob * 100)}%</small>` : ""}`;
+  const mlSide = (team, odds, prob) => `${teamLogoMini(team, 20)} ${showOdds(odds)}${prob ? ` <small>${Math.round(prob * 100)}%</small>` : ""}`;
   const ml = hasMl ? pair(mlSide(away, pv(game, "away_moneyline"), pv(game, "away_ml_implied_prob")), mlSide(home, pv(game, "home_moneyline"), pv(game, "home_ml_implied_prob"))) : "--";
   return `<div class="g2-line">
     ${tile("Spread", fav ? `${teamLogoMini(fav, 22)} ${gsSigned(favLine)}` : "--")}
@@ -673,7 +673,7 @@ function gsSigned(n) {
 // Red (1) -> yellow (50) -> green (99); SOS rank 1 = toughest schedule so
 // far, colored red, 32 = easiest, green. ----
 function gsRatingStyle(hue) {
-  return `background:hsla(${hue},70%,45%,0.28);border-color:hsl(${hue},70%,45%)`;
+  return `background:${scaleHsla(hue, 70, 45, 0.28)};border-color:${scaleHsla(hue, 70, 45)}`;
 }
 function gsRatingTile(rating, raw) {
   if (rating === null || rating === undefined) return `<span class="gs-rt">--</span>`;
@@ -720,7 +720,7 @@ function gsPickMarket(game, m) {
       // A saved pick shows the line and price it was made at.
       const saved = pick && on;
       const price = saved && pick.odds_at_pick !== null && pick.odds_at_pick !== undefined ? pick.odds_at_pick : s.odds;
-      const odds = m.key === "moneyline" ? "" : ` <span class="gs-price">${fmtOddsSigned(price)}</span>`;
+      const odds = m.key === "moneyline" ? "" : ` <span class="gs-price">${showOdds(price)}</span>`;
       return `<button type="button" class="gs-pick-side${on ? ` gs-on${color ? ` pick-color-${color}` : " gs-pending"}` : ""}" data-market="${m.key}" data-side="${s.side}">${saved ? pickLabel(game, m.key, pick) : s.label}${odds}</button>`;
     })
     .join("");

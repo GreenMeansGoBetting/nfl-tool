@@ -728,17 +728,17 @@ function renderOddsBar(baseGame) {
   const spreadCell = (team, line, odds) => {
     if (!hasSpread) return "--";
     const best = pill("spread", team, sideOf(team), line, `${matchup} &middot; Spread`);
-    return `${fmtSigned(line)} ${best || `<span class="odds-price">(${fmtOdds(odds)})</span>`}`;
+    return `${fmtSigned(line)} ${best || `<span class="odds-price">(${showOdds(odds)})</span>`}`;
   };
   const totalCell = (label, odds) => {
     if (!hasTotal) return "--";
     const best = pill("total", game.home, label === "O" ? "o" : "u", game.total_line, `${matchup} &middot; Total`);
-    return `${label} ${fmt(game.total_line, 1)} ${best || `<span class="odds-price">(${fmtOdds(odds)})</span>`}`;
+    return `${label} ${fmt(game.total_line, 1)} ${best || `<span class="odds-price">(${showOdds(odds)})</span>`}`;
   };
   const mlCell = (odds, prob, team) => {
     if (!hasMl) return "--";
     const best = pill("ml", team, sideOf(team), null, `${matchup} &middot; Moneyline`);
-    return best ? `${best} <span class="odds-price">${fmtPct(prob)}</span>` : `${fmtOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>`;
+    return best ? `${best} <span class="odds-price">${fmtPct(prob)}</span>` : `${showOdds(odds)} <span class="odds-price">${fmtPct(prob)}</span>`;
   };
   // Ballpark projected score off the two numbers already shown (total split
   // by each team's own share of the spread) -- not a new data source, just
@@ -868,7 +868,7 @@ function renderGeneralOddsModalContent(away, home) {
           const cells = entries
             .map((e) => {
               const side = e.team || e.side.charAt(0).toUpperCase() + e.side.slice(1);
-              return `<span class="odds-price">${side}${fmtOddsLine(e.line, e.bet_type)} (${fmtOddsSigned(e.best_odds)})</span> <span class="muted-label">${e.best_book}</span>`;
+              return `<span class="odds-price">${side}${fmtOddsLine(e.line, e.bet_type)} (${showOdds(e.best_odds)})</span> <span class="muted-label">${e.best_book}</span>`;
             })
             .join("&nbsp;&nbsp;");
           return `<tr><td>${label}</td><td>${cells}</td></tr>`;
@@ -1548,8 +1548,8 @@ function marketSides(game, market) {
   const awayMl = pv(game, "away_moneyline");
   const homeMl = pv(game, "home_moneyline");
   return [
-    { side: "away", label: `${game.away} ${fmtOdds(awayMl)}`, line: null, odds: awayMl, available: awayMl !== null },
-    { side: "home", label: `${game.home} ${fmtOdds(homeMl)}`, line: null, odds: homeMl, available: homeMl !== null },
+    { side: "away", label: `${game.away} ${showOdds(awayMl)}`, line: null, odds: awayMl, available: awayMl !== null },
+    { side: "home", label: `${game.home} ${showOdds(homeMl)}`, line: null, odds: homeMl, available: homeMl !== null },
   ];
 }
 
@@ -1789,7 +1789,7 @@ function renderPickRevealContent(game) {
     const numberText =
       m.key === "moneyline"
         ? pickLabel(game, m.key, pick)
-        : `${pickLabel(game, m.key, pick)}${pick.odds_at_pick !== null && pick.odds_at_pick !== undefined ? ` (${fmtOdds(pick.odds_at_pick)})` : ""}`;
+        : `${pickLabel(game, m.key, pick)}${pick.odds_at_pick !== null && pick.odds_at_pick !== undefined ? ` (${showOdds(pick.odds_at_pick)})` : ""}`;
     return `<div class="reveal-section pick-color-${pick.color}">
       ${star}
       <div class="reveal-market-label">${MARKET_LABELS[m.key]}</div>
@@ -1818,7 +1818,7 @@ function pickLabel(game, market, pick) {
   const team = pick.side === "home" ? game.home : game.away;
   if (market === "spread" && pick.line_at_pick !== null && pick.line_at_pick !== undefined) return `${team} ${fmtSigned(pick.line_at_pick)}`;
   if (market === "total" && pick.line_at_pick !== null && pick.line_at_pick !== undefined) return `${pick.side === "over" ? "Over" : "Under"} ${fmt(pick.line_at_pick, 1)}`;
-  if (market === "moneyline" && pick.odds_at_pick !== null && pick.odds_at_pick !== undefined) return `${team} ${fmtOdds(pick.odds_at_pick)}`;
+  if (market === "moneyline" && pick.odds_at_pick !== null && pick.odds_at_pick !== undefined) return `${team} ${showOdds(pick.odds_at_pick)}`;
   return current ? current.label : pick.side;
 }
 

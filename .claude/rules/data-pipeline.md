@@ -63,7 +63,8 @@ imported by it (rules in game-previews.md).
   (their API terms otherwise allow internal use only). Key: GitHub secret `SMARTSTAKE_API_KEY`,
   passed to the NFL build step. Docs: https://www.smartstake.app/api (needs `Accept-Encoding: gzip`).
 - One league snapshot per build: `/v1/odds?league=nfl`, `alternate=false`, `live=false`, only the
-  markets used, `state=NJ` (without a state the bet links are Ontario's). Unfiltered it is ~40,000
+  markets used, `state=NJ` (without a state the bet links are Ontario's; NJ links open fine in other
+  states, so the site never mentions a state: the owner, 2026-10-15, members found the NJ note confusing). Unfiltered it is ~40,000
   quotes a game. Only `US_BOOKS` are kept (it also carries Canadian, offshore and pick'em apps).
 - data.json `book_odds["AWAY_HOME"]` = props by stat id and normName, Anytime TD (`td`, the 0.5
   line only; there is no First TD market), game `lines` (ml / spread / total); each quote is

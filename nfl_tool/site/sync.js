@@ -17,6 +17,214 @@
 // Off the Cloudflare site (local dev, profiles not set up) /api/state
 // isn't there and everything quietly stays local-only.
 
+// ---- Member settings (the gear beside the account chip; the owner, 2026-10-15) ----
+// One gear on every page opens Settings: how odds are shown, the color set
+// for good / middle / bad numbers, and My Books. Saved per member (synced
+// below), read by every page as it draws, so these are globals: showOdds()
+// for every price on the site, scaleHsla() for every red-to-green shade.
+const GMG_SETTINGS_KEY = "nfl-tool.settings.v1"; // { odds: "american"|"decimal"|"percent", colors: set id, custom: {good, mid, bad} }
+let gmgSettingsCache = null;
+function gmgSettings() {
+  if (!gmgSettingsCache) {
+    try { gmgSettingsCache = JSON.parse(localStorage.getItem(GMG_SETTINGS_KEY)) || {}; } catch (e) { gmgSettingsCache = {}; }
+  }
+  return gmgSettingsCache;
+}
+function saveGmgSettings(value) {
+  gmgSettingsCache = value;
+  try { localStorage.setItem(GMG_SETTINGS_KEY, JSON.stringify(value)); } catch (e) {}
+  window.NFLSync?.push(GMG_SETTINGS_KEY, value);
+}
+
+// A price (American odds: a number or text like "+150") the way this member
+// reads odds: American (the default), decimal, or the chance it implies.
+// Saved plays keep American; only what is shown changes.
+function showOdds(n) {
+  if (n === null || n === undefined || n === "") return "";
+  const v = typeof n === "number" ? n : parseFloat(String(n).replace(/[^\d.+-]/g, ""));
+  if (!Number.isFinite(v) || Math.abs(v) < 100) return String(n);
+  const mode = gmgSettings().odds;
+  const dec = v > 0 ? 1 + v / 100 : 1 + 100 / -v;
+  if (mode === "decimal") return dec.toFixed(2);
+  if (mode === "percent") return `${(100 / dec).toFixed(1)}%`;
+  return v > 0 ? `+${Math.round(v)}` : `${Math.round(v)}`;
+}
+
+// Color sets for good / middle / bad numbers. "standard" is the site's own
+// green / yellow / red and changes nothing; the others repaint the tier
+// tokens (--good, --mid, --bad) and every red-to-green shade.
+const GMG_COLOR_SETS = {
+  standard: { name: "Green / Red", good: "#22c55e", mid: "#eab308", bad: "#ef4444" },
+  blueorange: { name: "Blue / Orange", note: "Easiest with red-green color blindness", good: "#3b82f6", mid: "#eab308", bad: "#e2531d" },
+  bluered: { name: "Blue / Red", good: "#3b82f6", mid: "#eab308", bad: "#ef4444" },
+  tealpink: { name: "Teal / Pink", good: "#14b8a6", mid: "#eab308", bad: "#ec4899" },
+  custom: { name: "Pick my own", good: "#22c55e", mid: "#eab308", bad: "#ef4444" },
+};
+function gmgColorSet() {
+  const s = gmgSettings();
+  const id = GMG_COLOR_SETS[s.colors] ? s.colors : "standard";
+  if (id === "standard") return null;
+  return id === "custom" ? { ...GMG_COLOR_SETS.custom, ...(s.custom || {}) } : GMG_COLOR_SETS[id];
+}
+const gmgRgb = (hex) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+  const n = m ? parseInt(m[1], 16) : 0;
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const gmgMix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+
+// A shade on the site's red (hue 0) to yellow (60) to green (120+) scale.
+// With the standard colors it is exactly hsla(hue, s%, l%, a); with another
+// set, the same spot between that set's bad, middle and good colors.
+function scaleHsla(hue, s, l, a = 1) {
+  const set = gmgColorSet();
+  if (!set) return a === 1 ? `hsl(${hue},${s}%,${l}%)` : `hsla(${hue},${s}%,${l}%,${a})`;
+  const [good, mid, bad] = [gmgRgb(set.good), gmgRgb(set.mid), gmgRgb(set.bad)];
+  let rgb = hue >= 60 ? gmgMix(mid, good, Math.min(1, (hue - 60) / 60)) : gmgMix(bad, mid, Math.max(0, hue / 60));
+  if (l > 45) rgb = gmgMix(rgb, [255, 255, 255], (l - 45) / 55);
+  else if (l < 45) rgb = gmgMix(rgb, [0, 0, 0], (45 - l) / 45);
+  return `rgba(${rgb.join(",")},${a})`;
+}
+
+// The tier tokens for a chosen set, both themes (a style tag after the
+// stylesheets, so it wins without touching style.css).
+function applyGmgColors() {
+  let tag = document.getElementById("gmg-color-set");
+  const set = gmgColorSet();
+  if (!set) {
+    if (tag) tag.remove();
+    return;
+  }
+  if (!tag) {
+    tag = document.createElement("style");
+    tag.id = "gmg-color-set";
+    document.head.appendChild(tag);
+  }
+  const tokens = (light) => ["good", "mid", "bad"].map((k) => {
+    const rgb = gmgRgb(set[k]);
+    const text = light ? gmgMix(rgb, [0, 0, 0], 0.55) : gmgMix(rgb, [255, 255, 255], 0.4);
+    return `--${k}:rgb(${rgb});--${k}-rgb:${rgb.join(", ")};--${k}-text:rgb(${text});`;
+  }).join("");
+  tag.textContent = `html:root{${tokens(false)}}html:root[data-theme="light"]{${tokens(true)}}`;
+}
+applyGmgColors();
+
+// My Books (synced per member): the books a member hides. Every price list
+// and best price (book-odds.js) skips them.
+const GMG_BOOKS = {
+  draftkings: "DraftKings", fanduel: "FanDuel", betmgm: "BetMGM", caesars: "Caesars", fanatics: "Fanatics",
+  bet365: "bet365", thescore: "theScore", betrivers: "BetRivers", hard_rock: "Hard Rock", bally_bet: "Bally Bet",
+  circa: "Circa", pinnacle: "Pinnacle", novig: "Novig", prophetx: "ProphetX", kalshi: "Kalshi",
+  polymarket_us: "Polymarket", fliff: "Fliff",
+};
+const MY_BOOKS_KEY = "nfl-tool.my-books.v1"; // { hidden: [book ids] }
+function myBooks() {
+  try { return JSON.parse(localStorage.getItem(MY_BOOKS_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveMyBooks(value) {
+  try { localStorage.setItem(MY_BOOKS_KEY, JSON.stringify(value)); } catch (e) {}
+  window.NFLSync?.push(MY_BOOKS_KEY, value);
+}
+
+// The Settings window. Books change the open page at once; odds and colors
+// redraw it when the window closes (every page draws them as it renders).
+const GMG_ODDS_FORMATS = [
+  { id: "american", name: "American", sample: "-110 / +150" },
+  { id: "decimal", name: "Decimal", sample: "1.91 / 2.50" },
+  { id: "percent", name: "Percent", sample: "52.4% / 40.0%" },
+];
+let gmgSettingsOpenedWith = null;
+function gmgSettingsModal() {
+  let overlay = document.getElementById("settings-modal");
+  if (overlay) return overlay;
+  overlay = document.createElement("div");
+  overlay.id = "settings-modal";
+  overlay.className = "modal-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = '<div class="modal-box"><button type="button" class="modal-close" aria-label="Close">&times;</button><div class="set-content"></div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || e.target.closest(".modal-close, .set-done")) return closeGmgSettings();
+    const fmt = e.target.closest("[data-odds-format]");
+    if (fmt) {
+      saveGmgSettings({ ...gmgSettings(), odds: fmt.dataset.oddsFormat });
+      return drawGmgSettings();
+    }
+    const set = e.target.closest("[data-color-set]");
+    if (set) {
+      saveGmgSettings({ ...gmgSettings(), colors: set.dataset.colorSet });
+      applyGmgColors();
+      return drawGmgSettings();
+    }
+    const chip = e.target.closest(".bo-chip");
+    if (chip) {
+      const hidden = new Set(myBooks().hidden || []);
+      hidden.has(chip.dataset.book) ? hidden.delete(chip.dataset.book) : hidden.add(chip.dataset.book);
+      saveMyBooks({ hidden: [...hidden] });
+      drawGmgSettings();
+      document.dispatchEvent(new CustomEvent("my-books-changed"));
+    }
+  });
+  overlay.addEventListener("change", (e) => {
+    const pick = e.target.closest("[data-custom-color]");
+    if (!pick) return;
+    const s = gmgSettings();
+    const custom = { ...GMG_COLOR_SETS.custom, ...(s.custom || {}), [pick.dataset.customColor]: pick.value };
+    saveGmgSettings({ ...s, colors: "custom", custom });
+    applyGmgColors();
+    drawGmgSettings();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hidden) closeGmgSettings();
+  });
+  return overlay;
+}
+function drawGmgSettings() {
+  const overlay = gmgSettingsModal();
+  const s = gmgSettings();
+  const odds = GMG_ODDS_FORMATS.some((f) => f.id === s.odds) ? s.odds : "american";
+  const colors = GMG_COLOR_SETS[s.colors] ? s.colors : "standard";
+  const hidden = myBooks().hidden || [];
+  const swatches = (set) => {
+    const [good, mid, bad] = [gmgRgb(set.good), gmgRgb(set.mid), gmgRgb(set.bad)];
+    return [0, 1, 2, 3, 4, 5, 6].map((k) => {
+      const t = k / 6;
+      const rgb = t <= 0.5 ? gmgMix(good, mid, t * 2) : gmgMix(mid, bad, (t - 0.5) * 2);
+      return `<i style="background:rgb(${rgb})"></i>`;
+    }).join("");
+  };
+  const custom = { ...GMG_COLOR_SETS.custom, ...(s.custom || {}) };
+  overlay.querySelector(".set-content").innerHTML = `<h3 class="bo-title">Settings</h3>
+    <div class="bo-sub">Saved to your account, on every page and device.</div>
+    <div class="bo-lbl bo-field">Odds format</div>
+    <div class="set-odds">${GMG_ODDS_FORMATS.map((f) => `<button type="button" class="set-opt${f.id === odds ? " set-on" : ""}" data-odds-format="${f.id}"><b>${f.name}</b><small>${f.sample}</small></button>`).join("")}</div>
+    <div class="bo-lbl bo-field">Colors <span class="set-hint">good to bad</span></div>
+    <div class="set-colors">${Object.entries(GMG_COLOR_SETS).map(([id, set]) => {
+      const shown = id === "custom" ? custom : set;
+      return `<button type="button" class="set-opt set-color${id === colors ? " set-on" : ""}" data-color-set="${id}"><b>${set.name}</b><span class="set-swatch">${swatches(shown)}</span>${set.note ? `<small>${set.note}</small>` : ""}</button>`;
+    }).join("")}</div>
+    ${colors === "custom" ? `<div class="set-custom">${[["good", "Good"], ["mid", "Middle"], ["bad", "Bad"]].map(([k, label]) => `<label><input type="color" value="${custom[k]}" data-custom-color="${k}"> ${label}</label>`).join("")}</div>` : ""}
+    <div class="bo-lbl bo-field">My Books</div>
+    <div class="bo-sub">Only the books you turn on are shown and used for the best price.</div>
+    <div class="bo-chips set-books">${Object.entries(GMG_BOOKS).map(([id, name]) => `<button type="button" class="bo-chip${hidden.includes(id) ? "" : " bo-on"}" data-book="${id}"><span class="bo-box">${hidden.includes(id) ? "" : "&#10003;"}</span>${name}</button>`).join("")}</div>
+    <div class="set-actions"><button type="button" class="set-done">Done</button></div>`;
+}
+function openGmgSettings(section) {
+  const overlay = gmgSettingsModal();
+  gmgSettingsOpenedWith = JSON.stringify({ odds: gmgSettings().odds, colors: gmgSettings().colors, custom: gmgSettings().custom });
+  drawGmgSettings();
+  overlay.hidden = false;
+  if (section === "books") overlay.querySelector(".set-books")?.scrollIntoView({ block: "center" });
+}
+function closeGmgSettings() {
+  const overlay = document.getElementById("settings-modal");
+  if (!overlay || overlay.hidden) return;
+  overlay.hidden = true;
+  const now = JSON.stringify({ odds: gmgSettings().odds, colors: gmgSettings().colors, custom: gmgSettings().custom });
+  if (now !== gmgSettingsOpenedWith) location.reload(); // every price and shade is drawn with the page
+}
+window.GMGSettings = { open: openGmgSettings };
+
 (function () {
   const KEYS = [
     "nfl-tool.possible-plays.v1",
@@ -28,6 +236,7 @@
     "nfl-tool.summary-picks.v1",
     "nfl-tool.model-presets.v1",
     "nfl-tool.my-books.v1",
+    GMG_SETTINGS_KEY,
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;
@@ -100,6 +309,7 @@
     if (data.user && data.user.owner) document.documentElement.classList.add("is-owner");
     const server = data.state || {};
     const meta = readMeta();
+    const settingsBefore = localStorage.getItem(GMG_SETTINGS_KEY);
     let changed = false;
     applyingRemote = true;
     try {
@@ -141,6 +351,12 @@
       applyingRemote = false;
     }
     writeMeta(meta);
+    // Settings from another device: odds and colors are drawn with the page.
+    if (localStorage.getItem(GMG_SETTINGS_KEY) !== settingsBefore) {
+      gmgSettingsCache = null;
+      location.reload();
+      return true;
+    }
     if (changed) refreshPage();
     return true;
   }
@@ -155,10 +371,28 @@
     el.className = "acct-chip";
     el.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
     // Email members (Stripe) get Stripe's page for updating a card or cancelling.
-    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}${window.GMGBookOdds ? `<a href="#" class="my-books-link">My Books</a>` : ""}<a href="/auth/logout">Log out</a>`;
+    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}<a href="/auth/logout">Log out</a>`;
     el.querySelector(".acct-name").textContent = user.name || "Signed in";
     bar.prepend(el);
+    addSettingsButton();
     showRequestButton(user);
+  }
+
+  // The Settings gear, just left of the account chip (odds format, colors,
+  // My Books). Local testing has no account chip, so it gets the gear alone.
+  function addSettingsButton() {
+    const bar = document.querySelector(".topbar-actions");
+    if (!bar || document.getElementById("settings-btn")) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "settings-btn";
+    btn.className = "settings-btn";
+    btn.title = "Settings: odds format, colors, My Books";
+    btn.setAttribute("aria-label", "Settings");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94a7.07 7.07 0 0 0 .06-.94 7.07 7.07 0 0 0-.06-.94l2.03-1.58a.48.48 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54a7.3 7.3 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.73 8.87a.47.47 0 0 0 .12.61l2.03 1.58a7.4 7.4 0 0 0 0 1.88l-2.03 1.58a.48.48 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.04.7 1.62.94l.36 2.54c.05.24.25.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54a7.3 7.3 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>';
+    btn.addEventListener("click", () => openGmgSettings());
+    const chip = document.getElementById("acct-chip");
+    chip ? chip.before(btn) : bar.prepend(btn);
   }
 
   // "Request a feature" button beside the account chip. Members get a box to
@@ -270,7 +504,7 @@
     btn.innerHTML = `<span aria-hidden="true">&#128161;</span><span class="fr-label">${user.owner ? "Feature requests" : "Request a feature"}</span>`;
     btn.title = user.owner ? "See everyone's feature ideas" : "Send an idea for a tool, data point or feature";
     btn.addEventListener("click", user.owner ? openRequestList : openRequestForm);
-    chip.before(btn);
+    (document.getElementById("settings-btn") || chip).before(btn);
   }
 
   // ---- Suite switcher (added 2026-10-11) ----
@@ -445,7 +679,10 @@
     },
   };
 
-  if (["localhost", "127.0.0.1"].includes(location.hostname)) document.documentElement.classList.add("local-dev");
+  if (["localhost", "127.0.0.1"].includes(location.hostname)) {
+    document.documentElement.classList.add("local-dev");
+    addSettingsButton();
+  }
   pull();
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") pull();

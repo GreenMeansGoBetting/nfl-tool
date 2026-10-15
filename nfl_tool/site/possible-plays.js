@@ -537,7 +537,7 @@ function renderResultsModalContent() {
         <td>${p.matchup}</td>
         <td>${p.category}</td>
         <td>${p.team ? teamLogoMini(p.team) : ""} ${playDescriptionHtml(p)}</td>
-        <td class="num">${p.odds}</td>
+        <td class="num">${showOdds(p.odds)}</td>
         <td class="num">${unitsDisplay}</td>
         <td><span class="pick-result pick-result-${p.result || "pending"}">${resultLabel}</span></td>
         <td class="result-override-group">${overrideBtns}</td>
@@ -672,7 +672,7 @@ function renderExportCard() {
           (p) => `<div class="pe-row">
             <span class="pe-logo">${p.team ? teamLogoMini(p.team, 18) : ""}</span>
             <span class="pe-play">${p.description}</span>
-            <span class="pe-odds">${p.odds}</span>
+            <span class="pe-odds">${showOdds(p.odds)}</span>
           </div>`
         )
         .join("");
@@ -875,7 +875,7 @@ function renderPlaysList() {
             <td>${p.matchup}</td>
             <td>${p.category}</td>
             <td>${p.team ? teamLogoMini(p.team) : ""} ${playDescriptionHtml(p)}</td>
-            <td class="num">${p.odds}${pct !== null ? ` <span class="muted-label">(${pct}%)</span>` : ""}${p.book ? ` <span class="muted-label">(${p.book})</span>` : ""}</td>
+            <td class="num">${showOdds(p.odds)}${pct !== null ? ` <span class="muted-label">(${pct}%)</span>` : ""}${p.book ? ` <span class="muted-label">(${p.book})</span>` : ""}</td>
             <td><span class="pick-result pick-result-${p.result || "pending"}">${resultLabel}</span></td>
             <td><button type="button" class="pick-edit-btn" data-remove-id="${p.id}">Remove</button></td>
           </tr>`;
@@ -1112,7 +1112,7 @@ function openWheelModal(selectedPlays) {
 
 function renderWheelSlip(legs, targetCount) {
   const items = legs.length
-    ? legs.map((l) => `<li>${l.team ? teamLogoMini(l.team) : ""} ${l.description} <span class="muted-label">${l.odds}</span></li>`).join("")
+    ? legs.map((l) => `<li>${l.team ? teamLogoMini(l.team) : ""} ${l.description} <span class="muted-label">${showOdds(l.odds)}</span></li>`).join("")
     : `<li class="muted-label">No legs yet -- spin to add one.</li>`;
   return `<div class="wheel-slip"><h4>Your Parlay (${legs.length}/${targetCount})</h4><ul>${items}</ul></div>`;
 }

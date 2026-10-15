@@ -3,6 +3,8 @@ paths:
   - "nfl_tool/site/style.css"
   - "nfl_tool/site/common.js"
   - "nfl_tool/site/teams.js"
+  - "nfl_tool/site/sync.js"
+  - "nfl_tool/site/book-odds.js"
 ---
 # The site's look, phone layout and summary cards
 
@@ -22,6 +24,31 @@ Stories behind these rules: `docs/history.md`, "Styles".
 - Tables line digits up in columns (`table { font-variant-numeric: tabular-nums }`).
 - Save image embeds the fonts from that same link (`summaryFontCSS`, NHL `embeddedFontCSS`), so a
   new font only needs the link and the tokens.
+
+## Member Settings: the gear (sync.js, 2026-10-15)
+
+- A gear just left of the account chip on every page (local testing: the gear alone) opens
+  Settings: **Odds format** (American default, Decimal, Percent), **Colors** (Green / Red =
+  the site's own, Blue / Orange for red-green color blindness, Blue / Red, Teal / Pink, Pick my
+  own: good / middle / bad pickers) and **My Books** (moved here from the account chip and its
+  own popup; "Edit my books" in a price list opens this). Saved in `nfl-tool.settings.v1`
+  (synced; My Books keeps `nfl-tool.my-books.v1`). Book changes redraw price lists at once; odds
+  and colors reload the page when the window closes (a synced change from another device
+  reloads once too).
+- **Every price shown goes through `showOdds(n)`** (n = American, number or "+150" text):
+  `boOdds`, NHL `odds`, NBA `odds`, Icebreaker `american` and the NFL display spots call it.
+  `fmtOddsSigned` / `fmtOdds` stay American because their text is SAVED (Possible Plays `odds`,
+  parsed for units); a saved play is converted only where it is shown. A new place that shows a
+  price must use `showOdds`.
+- **Every red-to-green shade goes through `scaleHsla(hue, s, l, a)`** (hue 0 red, 60 yellow,
+  120+ green) or the tier tokens. With the standard set it returns the same `hsla()` text as
+  before (pixel-identical); another set mixes its bad / middle / good colors and a style tag
+  (`#gmg-color-set`) repaints `--good/--mid/--bad` (+ `-rgb`, `-text`) for both themes. The
+  middle stays the site's yellow in every preset: a gray middle made the "check" highlights look
+  dead. The brand accent green never changes.
+- Never mention a state for bet links (the owner: the "Links open for New Jersey" note confused
+  members, and the links opened fine in their own state).
+- Tests: `tests/test_settings_site.py`.
 
 ## One look across the whole site (the summary-card look)
 

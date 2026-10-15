@@ -540,7 +540,7 @@ function pcTdRow(market, label, team, name, game) {
   };
   // Anytime TD only: SmartStake has no First TD market.
   if (market !== "first_td") BOOK_SPECS.set(entry, { kind: "td", team, name: p.name, side: "o", line: 0.5, title: `${p.name} &middot; Anytime TD`, sub: entry.matchup });
-  return `<tr><td>${label}</td><td class="num">--</td><td class="num">${ouCheckboxCell(fmtOddsSigned(p.best_odds), entry)}</td><td class="num">--</td><td class="num pc-implied">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+  return `<tr><td>${label}</td><td class="num">--</td><td class="num">${ouCheckboxCell(showOdds(p.best_odds), entry)}</td><td class="num">--</td><td class="num pc-implied">${Math.round(p.implied_prob * 100)}%</td></tr>`;
 }
 
 function pcOddsView(team, name, oppTeam, game) {
@@ -579,7 +579,7 @@ function pcOddsView(team, name, oppTeam, game) {
         const pr = r.over_odds ? oddsToImpliedPct(fmtOddsSigned(r.over_odds)) : null;
         last = pr === null ? "--" : `${pr}%`;
       }
-      return `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(fmtOddsSigned(r.under_odds), under)}</td><td class="num${ctx ? "" : " pc-implied"}">${last}</td></tr>`;
+      return `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${ouCheckboxCell(showOdds(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(showOdds(r.under_odds), under)}</td><td class="num${ctx ? "" : " pc-implied"}">${last}</td></tr>`;
     })
     .join("");
   const tdRows = pcTdRow("anytime_td", "Anytime TD", team, name, game) + pcTdRow("first_td", "First TD", team, name, game);

@@ -278,6 +278,7 @@ const SYNC_KEYS = new Set([
   "nfl-tool.summary-picks.v1",
   "nfl-tool.model-presets.v1",
   "nfl-tool.my-books.v1",
+  "nfl-tool.settings.v1",
 ]);
 const SYNC_MAX_BYTES = 512 * 1024;
 

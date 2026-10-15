@@ -226,7 +226,7 @@ function koeCell(col, r, league) {
 function koeUpsideCell(r) {
   const hue = Math.round((r.upside / 100) * 120);
   const why = r.parts.map((p) => `${p.label}: ${p.z >= 0 ? "+" : ""}${p.z.toFixed(1)}`).join("\n");
-  return `<td class="num"><span class="koe-upside" style="background:hsla(${hue},70%,45%,0.22);border-color:hsla(${hue},70%,45%,0.6)" title="League percentile. Parts (z vs league):\n${why}">${r.upside}</span></td>`;
+  return `<td class="num"><span class="koe-upside" style="background:${scaleHsla(hue, 70, 45, 0.22)};border-color:${scaleHsla(hue, 70, 45, 0.6)}" title="League percentile. Parts (z vs league):\n${why}">${r.upside}</span></td>`;
 }
 
 function koeResultCell(res) {

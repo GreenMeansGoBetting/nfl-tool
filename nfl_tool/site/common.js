@@ -992,7 +992,7 @@ function renderTdPossiblePlaysList(away, home) {
     .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
     .map((p) => {
       const pct = oddsToImpliedPct(p.odds);
-      return `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${p.odds}${pct !== null ? ` <span class="td-pp-implied">(${pct}%)</span>` : ""}</span></div>`;
+      return `<div class="td-pp-row">${p.team ? teamLogoMini(p.team) : ""}<span class="td-pp-desc">${p.description}</span><span class="td-pp-category">${p.category || ""}</span><span class="td-pp-odds">${showOdds(p.odds)}${pct !== null ? ` <span class="td-pp-implied">(${pct}%)</span>` : ""}</span></div>`;
     })
     .join("");
   els.forEach((el) => (el.innerHTML = html));
@@ -1066,7 +1066,7 @@ function renderPlayerOddsModalContent(team, market) {
       const checked = isPossiblePlay(entry.id) ? " checked" : "";
       const rgb = teamAccentRgb(p.team);
       const rowStyle = `border-left:4px solid rgb(${rgb.join(",")}); background:rgba(${rgb.join(",")},0.07);`;
-      return `<tr style="${rowStyle}"><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name} <span class="muted-label">(${p.position || "?"})</span></label></td><td class="num">${fmtOddsSigned(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+      return `<tr style="${rowStyle}"><td><label class="pp-row-label"><input type="checkbox" class="pp-toggle" data-entry="${encodeDataAttr(entry)}"${checked}> ${p.name} <span class="muted-label">(${p.position || "?"})</span></label></td><td class="num">${showOdds(p.best_odds)}</td><td class="muted-label">${p.best_book}</td><td class="num">${Math.round(p.implied_prob * 100)}%</td></tr>`;
     })
     .join("");
   return `${heading}
@@ -1587,7 +1587,7 @@ const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36]
 function rankScaleStyle(rank, total) {
   if (!rank) return "";
   const [hue, fill] = RANK_SCALE[Math.min(RANK_SCALE.length - 1, Math.floor(((rank - 1) / total) * RANK_SCALE.length))];
-  return ` style="background:hsla(${hue},78%,44%,${fill});border-color:hsl(${hue},78%,48%)"`;
+  return ` style="background:${scaleHsla(hue, 78, 44, fill)};border-color:${scaleHsla(hue, 78, 48)}"`;
 }
 // 1 = best. valueOf(team) may return null (left out of the ranking).
 function leagueRank(team, valueOf, higherIsBetter) {

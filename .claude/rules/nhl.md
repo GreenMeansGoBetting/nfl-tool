@@ -855,7 +855,7 @@ Game Previews (it is already in `shots.json`).
   key `SMARTSTAKE_API_KEY` on the NHL build step of deploy.yml AND nhl-refresh.yml) and writes
   nhl/data.json `book_odds["AWAY_HOME"].props.{sog,goals}[player id]`; players are matched with
   `player_finder` on either team, trying every spelling the books use. Rules as for the NFL
-  (data-pipeline.md): US books, NJ links, odds lock. Each book is tagged against OUR model at its
+  (data-pipeline.md): US books, odds lock. Each book is tagged against OUR model at its
   own line (`bookPanelFor(x, stat, line, label, chanceAt, edges)`: shots `chanceOver`, goals
   `r.chance` / `twoPlus`), with the page's `edges`, so the panel's numbers match the Edge column.
 - The open row (`detailRow` in shots.js / goals.js, `bookPanelFor` in nhl-common.js) is three

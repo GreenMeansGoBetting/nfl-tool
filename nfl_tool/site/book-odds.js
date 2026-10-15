@@ -8,14 +8,11 @@
 // thresholds). The edge is the page's measure: the model's chance minus the
 // chance the price needs to break even, in points. With no model number (the
 // NFL pop-ups) the list just ranks the books; there is no market "fair" price.
-// My Books (synced per member): books to hide. Links are built for New Jersey.
+// My Books (books a member hides) and the book names live in sync.js, with
+// the rest of the Settings window; prices show in the member's odds format
+// (showOdds, sync.js).
 
-const BOOK_NAMES = {
-  draftkings: "DraftKings", fanduel: "FanDuel", betmgm: "BetMGM", caesars: "Caesars", fanatics: "Fanatics",
-  bet365: "bet365", thescore: "theScore", betrivers: "BetRivers", hard_rock: "Hard Rock", bally_bet: "Bally Bet",
-  circa: "Circa", pinnacle: "Pinnacle", novig: "Novig", prophetx: "ProphetX", kalshi: "Kalshi",
-  polymarket_us: "Polymarket", fliff: "Fliff",
-};
+const BOOK_NAMES = GMG_BOOKS;
 const BOOK_INITIALS = {
   draftkings: "DK", fanduel: "FD", betmgm: "MGM", caesars: "CZ", fanatics: "FAN", bet365: "365", thescore: "SC",
   betrivers: "BR", hard_rock: "HR", bally_bet: "BAL", circa: "CIR", pinnacle: "PIN", novig: "NV", prophetx: "PX",
@@ -25,17 +22,8 @@ const BOOK_INITIALS = {
 const boNorm = (n) => (n || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "").replace(/[^a-z]/g, "");
 const boEnc = (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o))));
 const boDec = (str) => JSON.parse(decodeURIComponent(escape(atob(str))));
-const boOdds = (n) => (n === null || n === undefined ? "--" : n > 0 ? `+${Math.round(n)}` : `${Math.round(n)}`);
+const boOdds = (n) => (n === null || n === undefined ? "--" : showOdds(n));
 const boNum = (n) => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
-const MY_BOOKS_KEY = "nfl-tool.my-books.v1"; // { hidden: [book ids] }
-
-function myBooks() {
-  try { return JSON.parse(localStorage.getItem(MY_BOOKS_KEY)) || {}; } catch (e) { return {}; }
-}
-function saveMyBooks(value) {
-  try { localStorage.setItem(MY_BOOKS_KEY, JSON.stringify(value)); } catch (e) {}
-  window.NFLSync?.push(MY_BOOKS_KEY, value);
-}
 const bookHidden = (book) => (myBooks().hidden || []).includes(book);
 
 const oddsDecimal = (o) => (o > 0 ? 1 + o / 100 : 1 + 100 / -o);
@@ -145,7 +133,7 @@ function renderBookOdds(spec) {
       ${main.map((q, i) => row(q, i, false)).join("")}
       ${others.length ? `<tr class="bo-group"><td colspan="${cols}">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
     </tbody></table>` : '<p class="no-data-note">None of your books has this bet right now.</p>'}
-    <div class="bo-foot"><span>Links open for New Jersey${hidden.length ? ` &middot; ${hidden.length} book${hidden.length === 1 ? "" : "s"} hidden (${hidden.map((b) => BOOK_NAMES[b] || b).join(", ")})` : ""}</span><a href="#" class="bo-edit-books">Edit my books &rsaquo;</a></div>`;
+    <div class="bo-foot"><span>${hidden.length ? `${hidden.length} book${hidden.length === 1 ? "" : "s"} hidden (${hidden.map((b) => BOOK_NAMES[b] || b).join(", ")})` : ""}</span><a href="#" class="bo-edit-books">Edit my books &rsaquo;</a></div>`;
 }
 
 // The same list inside a page (the NHL Shots / Goals open rows): "" when no
@@ -191,17 +179,6 @@ function openBookOdds(spec) {
   overlay.hidden = false;
 }
 
-function openMyBooks() {
-  const overlay = ensureBookModal("my-books-modal");
-  const hidden = myBooks().hidden || [];
-  overlay.querySelector(".bo-content").innerHTML = `<h3 class="bo-title">My Books</h3>
-    <div class="bo-sub">Only the books you turn on are shown and used for the best price.</div>
-    <div class="bo-lbl bo-field">Books</div>
-    <div class="bo-chips">${Object.entries(BOOK_NAMES).map(([id, name]) => `<button type="button" class="bo-chip${hidden.includes(id) ? "" : " bo-on"}" data-book="${id}"><span class="bo-box">${hidden.includes(id) ? "" : "&#10003;"}</span>${name}</button>`).join("")}</div>
-    <div class="bo-note">Hidden books drop out of every price list and the best price. Bet links open for New Jersey.</div>`;
-  overlay.hidden = false;
-}
-
 document.addEventListener("click", (e) => {
   const pill = e.target.closest(".bo-pill, .bo-tab");
   if (pill) {
@@ -215,28 +192,16 @@ document.addEventListener("click", (e) => {
     openBookOdds(boDec(pill.dataset.bo));
     return;
   }
-  if (e.target.closest(".bo-edit-books, .my-books-link")) {
+  if (e.target.closest(".bo-edit-books")) {
     e.preventDefault();
     const odds = document.getElementById("book-odds-modal");
     if (odds) odds.hidden = true;
-    openMyBooks();
-    return;
-  }
-  const chip = e.target.closest(".bo-chip");
-  if (chip) {
-    const hidden = new Set(myBooks().hidden || []);
-    hidden.has(chip.dataset.book) ? hidden.delete(chip.dataset.book) : hidden.add(chip.dataset.book);
-    saveMyBooks({ hidden: [...hidden] });
-    openMyBooks();
-    refreshBookPanels();
-    document.dispatchEvent(new CustomEvent("my-books-changed"));
+    window.GMGSettings?.open("books");
   }
 }, true); // capture: the player card stops clicks inside it from bubbling
+document.addEventListener("my-books-changed", refreshBookPanels);
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  ["book-odds-modal", "my-books-modal"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.hidden = true;
-  });
+  const el = document.getElementById("book-odds-modal");
+  if (el) el.hidden = true;
 });
-window.GMGBookOdds = { openMyBooks };

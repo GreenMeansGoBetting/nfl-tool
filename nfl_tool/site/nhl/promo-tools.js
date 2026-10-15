@@ -152,7 +152,7 @@ function upsideCell(r, pool) {
   const place = pool.filter((v) => v > r.top).length;
   const hue = pool.length > 1 ? Math.round(120 * (1 - place / (pool.length - 1))) : 120;
   const from = has(r.line) ? `From his line (${fmt(r.mkt_mean)} saves expected) moved ${Math.round(r.weight * 100)}% of the way to the model's ${fmt(r.mean)}.` : `No line posted yet: from the model's ${fmt(r.mean)} saves alone.`;
-  return `<td class="num"><span class="koe-upside crease-pill" style="background:hsla(${hue},70%,45%,0.22);border-color:hsla(${hue},70%,45%,0.6)" title="His chance to finish with the day's most saves, ties included. ${from}">${chanceText(r.top)}</span></td>`;
+  return `<td class="num"><span class="koe-upside crease-pill" style="background:${scaleHsla(hue, 70, 45, 0.22)};border-color:${scaleHsla(hue, 70, 45, 0.6)}" title="His chance to finish with the day's most saves, ties included. ${from}">${chanceText(r.top)}</span></td>`;
 }
 function valueCell(r) {
   if (!has(r.value)) return `<td class="num" title="No saves line posted for him yet"></td>`;
@@ -289,7 +289,7 @@ function winnerDay(day) {
     if (!has(g.worth)) return `<td></td>`;
     const place = worths.filter((v) => v > g.worth).length;
     const hue = worths.length > 1 ? Math.round(120 * (1 - place / (worths.length - 1))) : 120;
-    return `<td><span class="crease-worth" style="background:hsla(${hue},70%,45%,0.22);border-color:hsla(${hue},70%,45%,0.6)" title="His chance to lead the day (${chanceText(g.top)}) times what he paid">${money(g.worth)}</span></td>`;
+    return `<td><span class="crease-worth" style="background:${scaleHsla(hue, 70, 45, 0.22)};border-color:${scaleHsla(hue, 70, 45, 0.6)}" title="His chance to lead the day (${chanceText(g.top)}) times what he paid">${money(g.worth)}</span></td>`;
   };
   const crown = ` <span class="crease-crown">&#9733;</span>`;
   const rows = shown

@@ -1096,7 +1096,7 @@ function renderFirstTdTargets(awayTeam, homeTeam) {
     const rows = firstTdPlayerTargets(offTeam, defTeam, chance, week)
       .map((p) => {
         const edgeCls = p.edge === null ? "" : p.edge >= 1.25 ? " ftd-edge-strong" : p.edge >= 1 ? " ftd-edge-lean" : "";
-        const oddsCell = p.odds === null ? `<span class="muted">--</span>` : `${p.odds > 0 ? "+" : ""}${p.odds} <span class="muted">${pct(p.implied)}</span>`;
+        const oddsCell = p.odds === null ? `<span class="muted">--</span>` : `${showOdds(p.odds)} <span class="muted">${pct(p.implied)}</span>`;
         const inj = p.injury ? ` <span class="ftd-inj">${p.injury}</span>` : "";
         return `<tr class="${edgeCls.trim()}"><td>${playerClick(offTeam, p.name, p.name, defTeam)} <span class="muted">${p.position}</span>${inj}</td><td class="num ftd-est">${pct(p.est)}</td><td class="num">${oddsCell}</td></tr>`;
       })
@@ -1388,7 +1388,7 @@ function summaryOddsRail(away, home, week) {
     const rows = summaryTeamOdds(team)
       .filter((p) => chosen.has(p.key))
       .map((p) => {
-        const cell = (odds, market) => (odds ? summaryPlayCheck(summaryPlayEntry(week, matchup, market, team, p.name, odds), fmtOddsSigned(odds.best_odds)) : `<span class="muted">--</span>`);
+        const cell = (odds, market) => (odds ? summaryPlayCheck(summaryPlayEntry(week, matchup, market, team, p.name, odds), showOdds(odds.best_odds)) : `<span class="muted">--</span>`);
         return `<tr><td><span class="sc-player player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${summaryHeadshot(team, p.name, 26)}<span class="sc-odds-name">${p.name} <span class="muted">${p.position || ""}</span></span></span></td><td class="num">${cell(p.any, "anytime_td")}</td><td class="num">${cell(p.first, "first_td")}</td></tr>`;
       })
       .join("");
@@ -1440,7 +1440,7 @@ function renderSummaryPicker() {
       ? players
           .map((p) => {
             const on = chosen.has(p.key);
-            return `<tr class="${on ? "sc-picker-on" : ""}"><td><label class="pp-row-label"><input type="checkbox" class="sc-pick-toggle" data-team="${team}" data-key="${p.key}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${summaryHeadshot(team, p.name, 24)} ${p.name} <span class="muted-label">${p.position || ""}</span></label></td><td class="num">${p.any ? fmtOddsSigned(p.any.best_odds) : "--"}</td><td class="num">${p.first ? fmtOddsSigned(p.first.best_odds) : "--"}</td></tr>`;
+            return `<tr class="${on ? "sc-picker-on" : ""}"><td><label class="pp-row-label"><input type="checkbox" class="sc-pick-toggle" data-team="${team}" data-key="${p.key}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${summaryHeadshot(team, p.name, 24)} ${p.name} <span class="muted-label">${p.position || ""}</span></label></td><td class="num">${p.any ? showOdds(p.any.best_odds) : "--"}</td><td class="num">${p.first ? showOdds(p.first.best_odds) : "--"}</td></tr>`;
           })
           .join("")
       : `<tr><td colspan="3" class="no-data-note">No odds posted yet.</td></tr>`;

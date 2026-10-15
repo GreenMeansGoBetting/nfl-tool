@@ -13,7 +13,7 @@ const el = (id) => document.getElementById(id);
 const fmt = (n, digits = 1) => (n === null || n === undefined ? "--" : Number(n).toFixed(digits));
 const pct = (n, digits = 1) => (n === null || n === undefined ? "--" : `${(n * 100).toFixed(digits)}%`);
 const signed = (n) => (n === null || n === undefined ? "--" : n === 0 ? "PK" : `${n > 0 ? "+" : ""}${String(Number(n.toFixed(1))).replace(/\.0$/, "")}`);
-const odds = (n) => (n === null || n === undefined ? "" : n > 0 ? `+${n}` : `${n}`);
+const odds = (n) => (n === null || n === undefined ? "" : showOdds(n)); // the member's odds format (sync.js)
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, short: abbr, color: "555555", logo: "" };
 const logo = (abbr, size = 18) => `<img src="${team(abbr).logo}" alt="${abbr}" class="team-logo" style="width:${size}px;height:${size}px" loading="lazy">`;
 function teamRgb(abbr) {

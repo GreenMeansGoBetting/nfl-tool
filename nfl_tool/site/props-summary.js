@@ -876,7 +876,7 @@ function propPackages(offTeam, defTeam, game, lines) {
 function propRankShade(q) {
   const hue = Math.round(q * 120);
   const strength = Math.abs(q - 0.5) * 2; // 0 middle, 1 extreme
-  return `background:hsla(${hue},75%,45%,${(0.14 + 0.26 * strength).toFixed(2)});border:1px solid hsla(${hue},75%,45%,${(0.35 + 0.5 * strength).toFixed(2)});color:hsl(${hue},80%,${Math.round(72 - 10 * strength)}%)`;
+  return `background:${scaleHsla(hue, 75, 45, (0.14 + 0.26 * strength).toFixed(2))};border:1px solid ${scaleHsla(hue, 75, 45, (0.35 + 0.5 * strength).toFixed(2))};color:${scaleHsla(hue, 80, Math.round(72 - 10 * strength))}`;
 }
 function propPackageHtml(p, lines) {
   const players = p.players.length
@@ -931,7 +931,7 @@ function propSideButton(r, side) {
   const odds = side === "over" ? r.over : r.under;
   if (odds === null || odds === undefined) return `<span class="muted">--</span>`;
   const on = isPossiblePlay(entry.id);
-  return `<button type="button" class="sc-pp${on ? " sc-pp-on" : ""}" data-entry="${encodeDataAttr(entry)}" title="Add to Possible Plays"><span class="sc-pp-box">${on ? "&#10003;" : ""}</span>${side === "over" ? "O" : "U"} ${fmtOddsSigned(odds)}</button>`;
+  return `<button type="button" class="sc-pp${on ? " sc-pp-on" : ""}" data-entry="${encodeDataAttr(entry)}" title="Add to Possible Plays"><span class="sc-pp-box">${on ? "&#10003;" : ""}</span>${side === "over" ? "O" : "U"} ${showOdds(odds)}</button>`;
 }
 function propsRail(away, home, linesByTeam, gameKey) {
   const picks = loadPropsSummaryPicks(gameKey);
@@ -1224,7 +1224,7 @@ function renderPropsPicker() {
             .sort((a, b) => marketOrder.indexOf(a.marketKey) - marketOrder.indexOf(b.marketKey))
             .map((r) => {
               const on = chosen.has(propPickKey(r));
-              return `<tr class="${on ? "sc-picker-on" : ""}"><td class="ps-pick-mkt"><label class="pp-row-label"><input type="checkbox" class="ps-pick-toggle" data-team="${team}" data-key="${encodeDataAttr(propPickKey(r))}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${r.market}</label></td><td class="num">${fmt(r.line, 1)}</td><td class="num">${fmtOddsSigned(r.over)}</td><td class="num">${fmtOddsSigned(r.under)}</td><td class="ps-src">${r.source === "novig" ? `Novig${r.thin ? ` <span class="ps-thin" title="Barely traded on Novig right now -- prices are wide">thin</span>` : ""}` : "Books"}</td></tr>`;
+              return `<tr class="${on ? "sc-picker-on" : ""}"><td class="ps-pick-mkt"><label class="pp-row-label"><input type="checkbox" class="ps-pick-toggle" data-team="${team}" data-key="${encodeDataAttr(propPickKey(r))}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${r.market}</label></td><td class="num">${fmt(r.line, 1)}</td><td class="num">${showOdds(r.over)}</td><td class="num">${showOdds(r.under)}</td><td class="ps-src">${r.source === "novig" ? `Novig${r.thin ? ` <span class="ps-thin" title="Barely traded on Novig right now -- prices are wide">thin</span>` : ""}` : "Books"}</td></tr>`;
             })
             .join("");
           return head + body;
