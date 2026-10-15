@@ -1,27 +1,25 @@
 """The decisions the GitHub workflows make, kept here so they can be tested
 (tests/test_ci_steps.py) instead of living as shell inside the YAML.
 
-    python tools/ci_steps.py plan                  # deploy.yml: what does this run have to rebuild?
     python tools/ci_steps.py mark NAME             # deploy.yml: a stage just ended (for version.json's timing)
-    python tools/ci_steps.py note                  # deploy.yml: the NBA / NHL notes, what was reused, the timings
+    python tools/ci_steps.py note                  # deploy.yml: the NBA / NHL notes, a failed build's live copy, the timings
     python tools/ci_steps.py refresh-check         # nhl-refresh.yml: anything to refresh, and safe to publish?
     python tools/ci_steps.py refresh-check --again # nhl-refresh.yml: the same question right before publishing
     python tools/ci_steps.py refresh-stamp         # nhl-refresh.yml: check the new NHL files, note the refresh
     python tools/ci_steps.py live-check            # both, right after publishing: is the live site answering? if not, put the last version back
     python tools/ci_steps.py live-check --look     # anywhere, any time: is the live site answering? (changes nothing)
 
-Why they exist (2026-10-13): the repo went private, which put the builds on
-GitHub's 2,000 free minutes a month, and every run did everything: a lineup
-check or a one-line style change rebuilt football, basketball and hockey.
+Why they exist (2026-10-13): the repo had gone private, which put the builds
+on GitHub's 2,000 free minutes a month, and every run did everything: a
+lineup check rebuilt football, basketball and hockey. Hockey lineups and odds
+are refreshed hourly by a small job that rebuilds only the NHL files and
+republishes (`refresh-*`). The deploy itself builds and tests everything on
+every run again since 2026-10-15 (the repo is public, minutes are free, and
+rebuilding only what a push changed had failed a deploy).
 
-  * A push only rebuilds the suites whose build code it changed (`plan`); the
-    others' data is taken exactly as it is live (fetch_live_data.py).
-  * Hockey lineups and odds are refreshed hourly by a small job that rebuilds
-    only the NHL files and republishes (`refresh-*`).
-
-Nobody but the owner can read the repo's Actions page, so each run says what
-it did in the public version.json: `data` (built / reused per suite),
-`timing` (seconds per stage) and `nhl_refresh`.
+Each run says what it did in the public version.json: `data` (an NBA / NHL
+build that failed and had its live copy put back), `timing` (seconds per
+stage) and `nhl_refresh`.
 
 Standard library only: the hockey refresh runs on the machine's own Python
 with nothing installed.
@@ -126,110 +124,6 @@ def read_json(path):
     return found if isinstance(found, dict) else None
 
 
-# ---- deploy.yml: what does this run have to rebuild? ----
-BUILD_ALL = {"nfl": "build", "nba": "build", "nhl": "build", "housekeeping": "yes"}
-# Under nfl_tool/, everything that isn't the site itself, the login code or
-# another suite's build is the NFL build (build_stats.py, gmg_model.py,
-# line_grades.py, the Novig query, requirements.txt).
-NOT_THE_NFL_BUILD = ("nfl_tool/site/", "nfl_tool/functions/", "nfl_tool/nba/", "nfl_tool/nhl/")
-
-
-def plan(event, changed):
-    """{"nfl" / "nba" / "nhl": "build" or "reuse", "housekeeping": "yes" or "no"}.
-
-    `changed` is every file that differs between the code that is live and
-    the code being deployed (None when that can't be worked out).
-
-    The 6-hour refresh and "Update Odds" exist to get fresh data: they build
-    everything. A push exists to publish a code change: it rebuilds only the
-    suites whose build code changed, and the rest of the data goes out
-    exactly as it is live. Anything unclear builds everything.
-
-    Housekeeping is the Cloudflare upkeep that only matters when something
-    was changed outside the code (a secret, the member tables): it runs on
-    the scheduled and manual runs, and on a push that edits deploy.yml,
-    where the tables are defined.
-    """
-    if event != "push" or changed is None or DEPLOY_YML in changed:
-        return dict(BUILD_ALL)
-    touched = lambda folder: any(path.startswith(folder) for path in changed)
-    return {
-        "nfl": "build" if any(path.startswith("nfl_tool/") and not path.startswith(NOT_THE_NFL_BUILD) for path in changed) else "reuse",
-        "nba": "build" if touched("nfl_tool/nba/") else "reuse",
-        "nhl": "build" if touched("nfl_tool/nhl/") else "reuse",
-        "housekeeping": "no",
-    }
-
-
-# ---- deploy.yml: which sport is this push about? ----
-# The owner (2026-10-13): "if we are working on one sport ... no other sports
-# are ever rebuilt or tested or touched." plan() above already keeps the other
-# sports' DATA from being rebuilt; this keeps their tests and their pages'
-# browser check from running too.
-SPORT_FILES = {
-    "nhl": ("nfl_tool/nhl/", "nfl_tool/site/nhl/", "tests/test_nhl", "tests/fixtures/nhl_", "tools/backtest/nhl_", "model_history/nhl_"),
-    "nba": ("nfl_tool/nba/", "nfl_tool/site/nba/", "tests/test_nba", "tests/fixtures/nba_", "tools/backtest/nba_", "model_history/nba_"),
-    "nfl": ("tests/test_gmg_model.py", "tests/test_injury_names.py", "tests/test_koe_build.py", "tests/test_koe_site.py", "tests/test_novig_props.py", "tests/test_odds_lock.py", "tests/test_smartstake.py", "tests/test_site_js.py", "tests/fixtures/data.json.gz", "tests/fixtures/novig_event.json.gz", "tools/backtest/", "model_history/gmg_model.json", "model_history/nfl_koe/"),
-}
-# Files every sport's pages or builds lean on: a change to one checks everything.
-SHARED_FILES = (
-    "nfl_tool/site/style.css", "nfl_tool/site/suite.css", "nfl_tool/site/sync.js", "nfl_tool/site/book-odds.js", "nfl_tool/smartstake.py", "nfl_tool/functions/", "nfl_tool/novig_event_markets.graphql", "nfl_tool/requirements.txt",
-    "tools/", "tests/", ".github/",
-)
-# Notes and settings no test or page reads.
-NO_SPORT = (".claude/", "docs/", "CLAUDE.md", "README.md", ".gitignore")
-
-
-def sport_of(path):
-    """"nfl" / "nba" / "nhl" for a file that belongs to one sport, "all" for
-    one they share (or one nobody has classified), None for notes."""
-    for sport in ("nhl", "nba"):  # their folders sit inside nfl_tool/, so they are asked first
-        if path.startswith(SPORT_FILES[sport]):
-            return sport
-    if path.startswith(SPORT_FILES["nfl"]):
-        return "nfl"
-    if path.startswith(SHARED_FILES):
-        return "all"
-    if path.startswith(NO_SPORT):
-        return None
-    return "nfl" if path.startswith("nfl_tool/") else "all"
-
-
-def work_scope(event, changed):
-    """The one sport a push is about ("nfl" / "nba" / "nhl"), or "all".
-
-    Only that sport's tests run and only its pages are opened in the browser
-    check. "all" whenever more than one sport changed, a shared file changed
-    (style.css, the login code, the tools, the test helpers, the workflows),
-    the run is a scheduled or manual refresh, or the change can't be worked
-    out: when in doubt, everything is checked."""
-    if event != "push" or not changed:
-        return "all"
-    sports = {sport_of(path) for path in changed} - {None}
-    return sports.pop() if len(sports) == 1 else "all"
-
-
-def changed_since_live(live):
-    """Files that differ between the live code and this checkout, or None.
-    Compared with what is LIVE, not with the push before this one: if an
-    earlier push's deploy failed or was skipped, its changes still count."""
-    sha = live_sha(live)
-    if not sha or not have_commit(sha):
-        return None
-    names = git("diff", "--name-only", sha, "HEAD")
-    return None if names is None else [line for line in names.splitlines() if line]
-
-
-def cmd_plan(args):
-    event = os.environ.get("GITHUB_EVENT_NAME", "")
-    changed = changed_since_live(live_version()) if event == "push" else None
-    decided = plan(event, changed)
-    scope = work_scope(event, changed)
-    output(**decided, scope=scope)
-    summary(f"Run type: {event or 'unknown'}. " + ", ".join(f"{suite.upper()} data: {decided[suite]}" for suite in SUITES) + f". Cloudflare upkeep: {decided['housekeeping']}. Tests and browser check: {'every sport' if scope == 'all' else scope.upper() + ' only'}.")
-    return 0
-
-
 # ---- deploy.yml: how long each stage took ----
 def timing_file() -> Path:
     return state_dir() / "gmg-ci-timing.txt"
@@ -256,20 +150,28 @@ def cmd_mark(args):
 
 
 # ---- version.json: whether the NBA and NHL builds worked ----
-def suite_note(site: Path, suite: str) -> dict:
+def build_error(suite):
+    """The last line a failed build wrote to its log (deploy.yml keeps
+    nba_build.log and nhl_build.log), or None."""
+    log = ROOT / f"{suite}_build.log"
+    if not log.exists():
+        return None
+    lines = [line for line in log.read_text(errors="replace").splitlines() if line.strip()]
+    return lines[-1][:200] if lines else None
+
+
+def suite_note(site: Path, suite: str, failed=False) -> dict:
     """What version.json says about one suite's data: when it was built, how
     many lines it matched, and for NHL the games loaded, the players with
     odds, the games whose lineup was read and the games with shot
-    projections. {"built": None} when the file isn't there (the build failed);
-    the failed build's last line is added from its log if there is one."""
+    projections. {"built": None} when the file isn't there (the build failed
+    and its live copy couldn't be put back). When the build failed (`failed`,
+    or no file) its log's last line is added as "error"; a live copy put back
+    keeps its own, older, "built"."""
     data = read_json(site / suite / "data.json")
     if data is None:
-        note = {"built": None}
-        log = ROOT / f"{suite}_build.log"
-        if log.exists():
-            lines = [line for line in log.read_text(errors="replace").splitlines() if line.strip()]
-            note["error"] = lines[-1][:200] if lines else None
-        return note
+        error = build_error(suite)
+        return {"built": None, **({"error": error} if error else {})}
     feed = data.get("feed_debug") or {}
     novig = data.get("novig_debug") or {}
     note = {"built": data.get("generated_at"), "lines": novig.get("matched")}
@@ -286,6 +188,8 @@ def suite_note(site: Path, suite: str) -> dict:
         note["crease"] = len(crease.get("days") or {}) if crease else None  # King of the Crease: days with a board
         goals = read_json(site / "nhl" / "goals.json")
         note["goals"] = len(goals.get("games") or {}) if goals else None  # Goals: games with projections
+    if failed:
+        note["error"] = build_error(suite)
     return note
 
 
@@ -295,10 +199,11 @@ def cmd_note(args):
     if version is None:
         print("version.json isn't stamped yet.")
         return 1
-    for suite in ("nba", "nhl"):
-        version[suite] = suite_note(SITE, suite)
-    # What this run built and what it took as it was live (deploy.yml passes these in).
+    # Per suite: "built", "live copy" (the build failed, the live data was put
+    # back) or "missing" (deploy.yml passes these in).
     data = {suite: os.environ.get(f"DATA_{suite.upper()}") for suite in SUITES}
+    for suite in ("nba", "nhl"):
+        version[suite] = suite_note(SITE, suite, failed=data[suite] not in (None, "built"))
     if any(data.values()):
         version["data"] = {suite: how for suite, how in data.items() if how}
     if timing_file().exists():
@@ -649,7 +554,6 @@ def cmd_live_check(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Decisions the GitHub workflows make.")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("plan").set_defaults(run=cmd_plan)
     mark = sub.add_parser("mark")
     mark.add_argument("name")
     mark.set_defaults(run=cmd_mark)

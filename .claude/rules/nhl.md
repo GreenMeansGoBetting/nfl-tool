@@ -675,7 +675,7 @@ zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fit
   site saw, carried from the live goals.json), `edge` and `size` (`goals_play`, `GOALS_EDGES`
   3 / 6 / 12 points like Shots; a player moved DOWN a line is "check"). Also `defense`, `xg` (both
   tables), `league`, `weights`, `zone`, `record`. A failed Goals step still writes a goals.json
-  (`error`), so a reuse deploy's `--need nhl` never trips on it.
+  (`error`), so putting the live NHL copy back (`--need nhl`) never trips on it.
 - **The record** (`model_history/nhl_goals/<month>.json`, committed with the others): each
   finished game once, every projected player who played (priced or not), `GOALS_RECORD_COLS`, plus
   the game's locked total and moneylines (`market`, to test the market as an anchor later).

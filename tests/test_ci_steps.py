@@ -4,8 +4,9 @@ data download they rely on (tools/fetch_live_data.py).
 Nobody but the owner can read the repo's Actions page, so these can't be
 debugged from a log: they are pinned here instead.
 
-What is pinned: a push rebuilds only the suites whose build code changed and
-a scheduled or manual run rebuilds everything; the hockey-only refresh never
+What is pinned: every push to main runs the whole deploy (every test, every
+sport built, every page checked), and a failed NBA or NHL build has its live
+data put back instead of publishing without it; the hockey-only refresh never
 publishes over a full rebuild, never publishes code that isn't live, and
 never publishes a folder with a live data file missing; every publish is
 followed by a look at the real site, and one that leaves it down is undone;
@@ -34,54 +35,8 @@ SHA = "4259e69a38ebd031e33c9615bec3b3b59a93c0f8"
 LIVE = {"sha": SHA, "run": "38437162110", "built": "2026-10-13T17:17Z", "nba": {"built": "2026-10-13T17:17Z", "lines": 14}, "nhl": {"built": "2026-10-13T17:17Z", "lineups": 8, "shots": 29}}
 
 
-class Plan(unittest.TestCase):
-    """deploy.yml: what a run has to rebuild."""
-
-    def test_the_scheduled_refresh_and_update_odds_rebuild_everything(self):
-        for event in ("schedule", "workflow_dispatch"):
-            self.assertEqual(ci_steps.plan(event, ["nfl_tool/site/style.css"]), {"nfl": "build", "nba": "build", "nhl": "build", "housekeeping": "yes"})
-
-    def test_a_push_that_only_changes_the_site_rebuilds_no_data(self):
-        changed = ["nfl_tool/site/style.css", "nfl_tool/site/nhl/shots.js", "nfl_tool/site/game-summary.js", "nfl_tool/functions/_middleware.js"]
-        self.assertEqual(ci_steps.plan("push", changed), {"nfl": "reuse", "nba": "reuse", "nhl": "reuse", "housekeeping": "no"})
-
-    def test_a_push_rebuilds_only_the_suite_whose_build_code_changed(self):
-        only = lambda suite, changed: self.assertEqual({s: how for s, how in ci_steps.plan("push", changed).items() if how == "build"}, {suite: "build"}, changed)
-        only("nhl", ["nfl_tool/nhl/build_nhl.py", "nfl_tool/site/nhl/shots.js"])
-        only("nhl", ["nfl_tool/nhl/shots_model.py"])
-        only("nba", ["nfl_tool/nba/build_nba.py"])
-        for path in ("nfl_tool/build_stats.py", "nfl_tool/gmg_model.py", "nfl_tool/line_grades.py", "nfl_tool/novig_event_markets.graphql", "nfl_tool/requirements.txt"):
-            only("nfl", [path])
-
-    def test_files_outside_the_site_change_nothing(self):
-        # The record the deploy bot commits, the tests, the tools and the notes.
-        changed = ["model_history/gmg_model.json", "model_history/nhl_shots/2026-10.json", "tests/test_nhl.py", "tools/check_site.py", "docs/history.md", "CLAUDE.md"]
-        self.assertEqual(set(ci_steps.plan("push", changed).values()), {"reuse", "no"})
-        self.assertEqual(set(ci_steps.plan("push", []).values()), {"reuse", "no"})
-
-    def test_anything_unclear_rebuilds_everything(self):
-        everything = {"nfl": "build", "nba": "build", "nhl": "build", "housekeeping": "yes"}
-        self.assertEqual(ci_steps.plan("push", None), everything)  # the live version couldn't be read or compared
-        self.assertEqual(ci_steps.plan("", ["nfl_tool/site/style.css"]), everything)
-        # deploy.yml holds the build commands and the member tables: a change to it runs it all.
-        self.assertEqual(ci_steps.plan("push", [".github/workflows/deploy.yml", "nfl_tool/site/style.css"]), everything)
-
-    def test_a_push_about_one_sport_checks_that_sport_only(self):
-        """The owner: working on one sport must never test or touch another."""
-        scope = lambda *changed: ci_steps.work_scope("push", list(changed))
-        self.assertEqual(scope("nfl_tool/site/nhl/promo-tools.js", "nfl_tool/nhl/build_nhl.py", "tests/test_nhl_saves.py", "tests/fixtures/nhl_crease.json.gz", ".claude/rules/nhl.md", "docs/history.md", "CLAUDE.md"), "nhl")
-        self.assertEqual(scope("nfl_tool/nba/build_nba.py", "nfl_tool/site/nba/nba.js"), "nba")
-        self.assertEqual(scope("nfl_tool/site/game-summary.js", "nfl_tool/build_stats.py", "tests/test_site_js.py", "model_history/gmg_model.json"), "nfl")
-        self.assertEqual(scope("model_history/nhl_shots/2026-10.json", "nfl_tool/site/nhl/shots.js"), "nhl")
-
-    def test_shared_files_and_mixed_pushes_check_everything(self):
-        scope = lambda *changed: ci_steps.work_scope("push", list(changed))
-        for shared in ("nfl_tool/site/style.css", "nfl_tool/site/sync.js", "nfl_tool/functions/_middleware.js", "tools/check_site.py", "tests/helpers.py", "tests/site_browser.py", ".github/workflows/deploy.yml", "something/new.txt"):
-            self.assertEqual(scope("nfl_tool/site/nhl/shots.js", shared), "all", shared)
-        self.assertEqual(scope("nfl_tool/site/nhl/shots.js", "nfl_tool/site/app.js"), "all")
-        self.assertEqual(scope("docs/history.md"), "all")  # nothing to go on
-        self.assertEqual(ci_steps.work_scope("push", None), "all")
-        self.assertEqual(ci_steps.work_scope("schedule", ["nfl_tool/site/nhl/shots.js"]), "all")
+class DeploySteps(unittest.TestCase):
+    """deploy.yml's small helpers and the sports' separate styles."""
 
     def test_each_sports_styles_live_in_its_own_file(self):
         """Hockey's styles sat in the shared style.css, so every hockey change that
@@ -101,29 +56,10 @@ class Plan(unittest.TestCase):
         self.assertNotIn("nhl.css", nba)
         for nfl_page in site.glob("*.html"):
             self.assertNotIn("suite.css", nfl_page.read_text(encoding="utf-8"), nfl_page.name)
-        self.assertEqual(ci_steps.work_scope("push", ["nfl_tool/site/nhl/nhl.css", "nfl_tool/site/nhl/shots.js"]), "nhl")
-        self.assertEqual(ci_steps.work_scope("push", ["nfl_tool/site/suite.css"]), "all")
 
-    def test_every_test_file_belongs_to_a_sport_the_runner_knows(self):
-        import run_tests
-        files = sorted(path.name for path in (ROOT / "tests").glob("test_*.py"))
-        self.assertEqual({run_tests.sport_of(name) for name in files} - {"nfl", "nba", "nhl", "ci"}, set())
-        for name in files:
-            # The runner and the plan must agree on whose test it is.
-            planned = ci_steps.sport_of(f"tests/{name}")
-            self.assertEqual(planned, "all" if run_tests.sport_of(name) == "ci" else run_tests.sport_of(name), name)
-
-    def test_the_deploy_hands_the_scope_to_the_tests_and_the_browser_check(self):
-        deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
-        self.assertLess(deploy.index("- name: Plan the run"), deploy.index("- name: Run the tests"))
-        self.assertIn('python tools/run_tests.py --only "$SCOPE"', deploy)
-        self.assertIn('python tools/check_site.py --gate --only "$SCOPE"', deploy)
-        self.assertEqual(deploy.count("SCOPE: ${{ steps.plan.outputs.scope || 'all' }}"), 2)
-
-    def test_the_comparison_is_with_what_is_live(self):
-        """Not with the push before: a sha that isn't one stops the comparison."""
-        self.assertIsNone(ci_steps.changed_since_live(None))
-        self.assertIsNone(ci_steps.changed_since_live({"sha": "not a sha"}))
+    def test_only_a_whole_sha_counts_as_the_live_version(self):
+        self.assertIsNone(ci_steps.live_sha(None))
+        self.assertIsNone(ci_steps.live_sha({"sha": "not a sha"}))
         self.assertIsNone(ci_steps.live_sha({"sha": "4259e69"}))
         self.assertEqual(ci_steps.live_sha(LIVE), SHA)
 
@@ -148,6 +84,21 @@ class VersionNote(unittest.TestCase):
             self.assertEqual(note["games"], data["feed_debug"]["games_loaded"])
             # A build that failed left no file.
             self.assertIsNone(ci_steps.suite_note(site, "nba")["built"])
+
+    def test_a_failed_build_with_its_live_copy_says_why(self):
+        """The live copy keeps its own (older) build time, and the failed
+        build's last line is shown beside it."""
+        with tempfile.TemporaryDirectory() as folder:
+            site, root = Path(folder) / "site", Path(folder)
+            (site / "nhl").mkdir(parents=True)
+            (site / "nhl" / "data.json").write_text(json.dumps(nhl_data()), encoding="utf-8")
+            (root / "nhl_build.log").write_text("Loading games\nRuntimeError: the NHL feed timed out\n\n", encoding="utf-8")
+            with mock.patch.object(ci_steps, "ROOT", root):
+                note = ci_steps.suite_note(site, "nhl", failed=True)
+                self.assertEqual(note["built"], nhl_data()["generated_at"])
+                self.assertEqual(note["error"], "RuntimeError: the NHL feed timed out")
+                self.assertNotIn("error", ci_steps.suite_note(site, "nhl"))
+                self.assertEqual(ci_steps.suite_note(site, "nba"), {"built": None})
 
 
 class HockeyRefresh(unittest.TestCase):
@@ -358,6 +309,24 @@ class LiveData(unittest.TestCase):
         (self.site / "nba" / "data.json").unlink()
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
 
+    def test_replace_clears_what_a_failed_build_left(self):
+        """The deploy after a failed NHL build: a half-written file and a team
+        that is no longer in the data must not be published."""
+        (self.site / "nhl" / "players").mkdir(parents=True)
+        (self.site / "nhl" / "data.json").write_text('{"half": ', encoding="utf-8")
+        (self.site / "nhl" / "players" / "SEA.json").write_text("{}", encoding="utf-8")
+        (self.site / "data.json").write_text('{"built": "here"}', encoding="utf-8")
+        self.assertEqual(fetch_live_data.main(["--only", "nhl", "--need", "nhl", "--replace"]), 0)
+        self.assertEqual(self.here(), ["data.json"] + sorted(rel for rel in self.live if rel.startswith("nhl/")))
+        self.assertEqual(json.loads((self.site / "nhl" / "data.json").read_text()), self.live["nhl/data.json"])
+        self.assertEqual(json.loads((self.site / "data.json").read_text()), {"built": "here"})  # other suites untouched
+        # If the live copy can't be had, nothing half-built is left behind.
+        (self.site / "nba").mkdir(exist_ok=True)
+        (self.site / "nba" / "data.json").write_text('{"half": ', encoding="utf-8")
+        self.live["nba/data.json"] = 503
+        self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba", "--replace"]), 1)
+        self.assertFalse((self.site / "nba" / "data.json").exists())
+
     def test_a_file_already_here_is_left_alone(self):
         self.site.joinpath("data.json").write_text('{"local": true}', encoding="utf-8")
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
@@ -532,28 +501,53 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertIn('cron: "57 12 * * *"', self.check)
         self.assertNotIn("Refresh NHL lineups", self.check)
 
-    def test_the_deploy_builds_whatever_it_could_not_reuse(self):
-        """A "Reuse" step may fail (it is continue-on-error); the build after it
-        runs unless the reuse SUCCEEDED, so no plan and no download can leave a
-        suite without data."""
+    def test_every_push_to_main_runs_the_whole_deploy(self):
+        """Since 2026-10-15 (the repo is public, build minutes are free): no
+        folder filter, no per-sport plan, every test and every page checked.
+        A folder filter once left a fix to a failed deploy unpublished, and a
+        per-sport test list once failed a deploy."""
+        trigger = self.deploy.split("permissions:")[0]
+        self.assertIn("  push:\n    branches: [main]\n", trigger)
+        self.assertNotIn("paths", trigger)
+        for gone in ("steps.plan", "ci_steps.py plan", "--only", "SCOPE", "HOUSEKEEPING", "Reuse the live"):
+            self.assertNotIn(gone, self.deploy.replace("fetch_live_data.py --only", ""))
+        self.assertIn('python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }', self.deploy)
+        self.assertIn('python tools/check_site.py --gate || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate; }', self.deploy)
         steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
-        for suite, build in (("nfl", "Build stats (nflverse needs no key; SGO_API_KEY is optional)"), ("nba", "Build NBA data"), ("nhl", "Build NHL data")):
-            reuse = next(block for name, block in steps.items() if name.startswith(f"Reuse the live {suite.upper()} data"))
-            self.assertIn(f"if: steps.plan.outputs.{suite} == 'reuse'", reuse)
-            self.assertIn("continue-on-error: true", reuse)
-            self.assertIn(f"fetch_live_data.py --only {suite} --need {suite}", reuse)
-            self.assertIn(f"if: steps.reuse_{suite}.outcome != 'success'", steps[build])
-        # The plan itself can't stop a deploy, and the gate, the binding and the publish are never conditional.
-        self.assertIn("continue-on-error: true", steps["Plan the run"])
-        for always in ("Run the tests", "Check the site before it goes live", "Member profile database (D1)", "Refuse to publish without the member database", "Deploy to Cloudflare Pages"):
+        for always in ("Run the tests", "Build stats (nflverse needs no key; SGO_API_KEY is optional)", "Build NBA data", "Build NHL data", "Check the site before it goes live",
+                       "Push Discord secrets to Cloudflare", "Member profile database (D1)", "Refuse to publish without the member database", "Deploy to Cloudflare Pages"):
             self.assertFalse(any(line.startswith("        if:") for line in steps[always].splitlines()), always)
-        # Housekeeping is skipped only on a plain "no" (an empty plan runs it).
-        self.assertIn("if: steps.plan.outputs.housekeeping != 'no'", steps["Push Discord secrets to Cloudflare"])
-        self.assertIn('if [ "$HOUSEKEEPING" = "no" ]; then exit 0; fi', steps["Member profile database (D1)"])
-        binding, tables = steps["Member profile database (D1)"].split('if [ "$HOUSEKEEPING" = "no" ]')
-        self.assertIn("} > wrangler.toml", binding)
-        self.assertNotIn("wrangler.toml", tables)
         self.assertNotIn("command: pages project create", self.deploy)
+        # The tests come before anything is built.
+        self.assertLess(self.deploy.index("- name: Run the tests"), self.deploy.index("- name: Build stats"))
+
+    def test_the_nfl_build_is_tried_twice(self):
+        """nflverse sometimes answers with a one-off 404; every push builds football."""
+        build = "python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json"
+        self.assertIn(f'{build} || {{ echo "Retrying once..."; sleep 30; {build}; }}', self.deploy)
+
+    def test_a_failed_nba_or_nhl_build_puts_the_live_copy_back(self):
+        """Never publish the site without a sport's data: the step after each
+        build runs only if it failed, clears what it left and downloads the
+        live copy; version.json says which happened."""
+        steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
+        names = list(steps)
+        for suite in ("nba", "nhl"):
+            up = suite.upper()
+            back_name = f"Put the live {up} data back (the {up} build failed)"
+            build, back = steps[f"Build {up} data"], steps[back_name]
+            self.assertIn(f"id: build_{suite}", build)
+            self.assertIn("continue-on-error: true", build)
+            self.assertIn(f"| tee {suite}_build.log", build)
+            self.assertIn(f"id: back_{suite}", back)
+            self.assertIn(f"if: steps.build_{suite}.outcome == 'failure'", back)
+            self.assertIn("continue-on-error: true", back)
+            self.assertIn(f"run: python tools/fetch_live_data.py --only {suite} --need {suite} --replace", back)
+            self.assertIn("DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}", back)
+            self.assertEqual(names.index(back_name), names.index(f"Build {up} data") + 1)
+            self.assertIn(f"DATA_{up}: ${{{{ steps.build_{suite}.outcome == 'success' && 'built' || (steps.back_{suite}.outcome == 'success' && 'live copy' || 'missing') }}}}", steps["Note the run in version.json"])
+        # Both before the gate, so the live copy is checked like a fresh build.
+        self.assertLess(names.index("Put the live NHL data back (the NHL build failed)"), names.index("Check the site before it goes live"))
 
     def test_both_publishes_are_followed_by_the_live_check(self):
         """The last step of each workflow, straight after the publish, and in

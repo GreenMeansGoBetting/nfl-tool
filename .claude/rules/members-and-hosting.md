@@ -49,14 +49,17 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     players got odds (`player_odds`), how many games the Shots page has projections for
     (`shots`), or the failed build's last line (`error`). Their data files are behind the login, so this is the only way
     to see those builds from outside.
-- It runs on a cron every 6 h, on pushes touching `nfl_tool/**`, `deploy.yml` or `tools/ci_steps.py`,
-  and on manual dispatch. **Update Odds only opens the Actions page**; "Run workflow" starts it. A
+- It runs on a cron every 6 h, on **every push to main** (whatever it touched; the bot's
+  model-record commits don't start one), and on manual dispatch. Every run is the same: every
+  test, all three sports built fresh, every page checked ("Every run does everything" below). **Update Odds only opens the Actions page**; "Run workflow" starts it. A
   re-run of a failed run uses that run's OLD commit, never newer fixes. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
   are free, so they're fetched fresh on every build.
 - Other steps: "Build NBA data" and "Build NHL data" (both `continue-on-error`; the NHL one
-  sits between "Restore saved NHL games" and "Save NHL games", see nhl.md), "Note the NBA and NHL
-  builds in version.json", and "Save GMG model record" (commits everything in
+  sits between "Restore saved NHL games" and "Save NHL games", see nhl.md). If one fails, the
+  next step puts that sport's live data back ("Put the live ... data back": `fetch_live_data.py
+  --only X --need X --replace`) so the site is never published without it. "Note the run in
+  version.json", and "Save GMG model record" (commits everything in
   `model_history/` as github-actions[bot]: `gmg_model.json` and the NHL Shots record,
   `nhl_shots/<month>.json`; the workflow has `contents: write`).
 - **`.github/workflows/site-check.yml`** runs once a day (12:57 UTC) and on demand; until
@@ -79,8 +82,8 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   - the public GitHub API no longer shows the runs, so confirm deploys with `version.json`;
   - there is no `gh` on the user's PC, so a failed run can only be read by the user on the
     Actions page (or from the failure email); ask them for the red step's name;
-  - private repos get 2,000 free build minutes a month, which is why runs are kept lean
-    ("Build minutes" below);
+  - private repos get 2,000 free build minutes a month, which is why runs were kept lean
+    until the repo went public again ("Every run does everything" below);
   - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
 
 ## The site must never be left down (2026-10-13)
@@ -132,33 +135,35 @@ take the site offline until a push is completely ready."
   asking the owner for the red step's name.
 - Not built: something that watches the site BETWEEN publishes (a free uptime monitor such as
   UptimeRobot pointed at `https://nfl.gmgsports.org/auth/status`, which the owner would sign up
-  for; a watcher in GitHub Actions would use up the 2,000 build minutes).
+  for; a watcher in GitHub Actions is free now that the repo is public, but none is built).
 
-## Build minutes: an isolated task must not set off unrelated work (2026-10-13)
+## Every run does everything (2026-10-15)
 
-The repo going private put the builds on GitHub's 2,000 free minutes a month (a job is billed
-by the minute, rounded up). Every run used to do everything, and when the user was told a
-lineup check meant a whole-site rebuild: "Why is checking for lineups rebuilding the entire
-site? That doesn't even make sense ... fix anything else that would trigger unnecessary steps
-for an isolated task." If the minutes ever ran out the site would stay up; what stops is the
-refreshing and new code going live, until the 1st or about $0.008 a minute.
+Since the repo went public (2026-10-15) GitHub's build minutes are free, so the deploy is the
+same on every run: every test, all three sports built fresh, every page and Summary card checked,
+the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from push to live
+(`timing` total ~400 s plus the queue). Two pushes close together: the second waits for the first.
 
-- **`tools/ci_steps.py` holds the workflows' decisions** (tested in `tests/test_ci_steps.py`,
-  because nobody can read the Actions log from here). Each run reports itself in the public
-  `version.json`: `data` (per suite `built` or `reused`), `timing` (seconds per stage:
-  `install`, `tests`, `nfl`, `nhl`, `gate`, `cloudflare`, `total`), `nhl_refresh`.
-- **A push rebuilds only what it changed** (`plan`). It compares the code being deployed with
-  the code that is LIVE (`version.json`'s sha, so a push whose deploy failed still counts).
-  A suite whose build code is unchanged has its data taken exactly as it is live ("Reuse the
-  live ... data": `tools/fetch_live_data.py --only X --need X`); if that download isn't whole,
-  the build runs after all. NFL build code = everything under `nfl_tool/` outside `site/`,
-  `functions/`, `nba/`, `nhl/`. A push that edits `deploy.yml`, or anything unclear, builds
-  everything. So a push no longer refreshes odds as a side effect.
-- **The 6-hour cron and "Update Odds" always build everything** and run the housekeeping.
-- **Housekeeping** = pushing the secrets to Cloudflare and the member-table commands. Skipped
-  on a code push (a new secret value is live within 6 hours, or at once with "Update Odds").
-  The database binding itself is written on every run. The "create Pages project" step is
-  gone (it failed with "already exists" on every run; the recreate command is in deploy.yml).
+- **Why** (2026-10-13 to 10-15 it was the other way): while the repo was private (2,000 free
+  minutes a month) a push rebuilt, tested and browser-checked only the sport it changed, reused
+  the other sports' live data, and pushes touching only `tests/` or `tools/` started no deploy.
+  On 2026-10-15 that cost about 45 minutes: a new NFL test file missing from the hand-kept list
+  of each test's sport failed a deploy, and the fix touched only `tools/`, so no deploy ran. It
+  also hid a bug (`smartstake.py` feeds the hockey build but counted as football-only). The
+  owner approved the simple version: 3 to 4 more minutes per push for a deploy that always does
+  the same thing. Don't bring per-sport deploys back to save time.
+- **`tools/ci_steps.py` holds the workflows' decisions** (tested in `tests/test_ci_steps.py`).
+  Each run reports itself in the public `version.json`: `timing` (seconds per stage: `install`,
+  `tests`, `nfl`, `nhl`, `gate`, `cloudflare`, `total`), `data` (NBA / NHL: `built`, `live copy`
+  or `missing`), `nhl_refresh`.
+- **Safety nets for building everything on every push:** the NFL build is tried twice (nflverse
+  sometimes gives a one-off 404). A failed NBA or NHL build has its live data put back
+  (`fetch_live_data.py --only X --need X --replace`: whatever the build left is cleared first),
+  so the site is never published without a sport's data; version.json then shows `live copy`
+  and that sport's `error` (the build log's last line) beside the older `built`.
+- Pushes still set `SKIP_SGO_FETCH=1` (SGO's monthly quota, nothing to do with minutes).
+- `--only nfl|nba|nhl` on `run_tests.py` and `check_site.py` stays, for a local check while
+  working on one sport. The deploy never passes it. A new test file needs no registering.
 - **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Hourly at :47 from 16:47 to
   23:47 UTC, October to June, plus "Run workflow" (the NHL pages' Update Odds button) and a
   push that edits the file. It rebuilds only the NHL files and republishes, on the machine's
@@ -170,12 +175,12 @@ refreshing and new code going live, until the 1st or about $0.008 a minute.
   `refresh-stamp` refuses a folder with a live data file missing. `version.json` keeps the
   full rebuild's `sha` / `run` / `built`; `nhl` and `nhl_refresh` change.
 - **A new generated file in the site folder** goes in `.gitignore` AND `fetch_live_data.py`'s
-  `SUITES` (a test compares the two), or a refresh or a reused deploy would publish without it.
+  `SUITES` (a test compares the two), or a refresh or a live copy put back would publish without it.
 - The refresh shares the database binding, the NHL build command and the publish command with
   deploy.yml word for word (tests compare them): change both together.
-- Looked at and left alone: the tests on scheduled runs (they keep untested code from ever
-  being published), the browser's system install (dropping it could change fonts and with them
-  the card-fit checks), and pip caching (no real gain).
+- The "create Pages project" step is gone (it failed with "already exists" on every run; the
+  recreate command is in deploy.yml). Looked at and left alone: the browser's system install
+  (dropping it could change fonts and with them the card-fit checks) and pip caching (no real gain).
 
 ## Login gate (`nfl_tool/functions/_middleware.js`, Pages Functions)
 

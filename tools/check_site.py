@@ -336,7 +336,7 @@ def main():
     parser.add_argument("--site", metavar="DIR", help="check a copy of the site folder instead of nfl_tool/site")
     parser.add_argument("--games", type=int, metavar="N", help="only the first N games' Summary cards (default: every game this week)")
     parser.add_argument("--compare", nargs=2, metavar=("DIR_A", "DIR_B"), help="list which screenshots differ between two folders")
-    parser.add_argument("--only", choices=("nfl", "nba", "nhl", "all"), default="all", help="one sport's pages (the deploy passes it for a push that touched a single sport)")
+    parser.add_argument("--only", choices=("nfl", "nba", "nhl", "all"), default="all", help="one sport's pages, for a local check while working on one sport (the deploy checks them all)")
     parser.add_argument("--gate", action="store_true", help="for the deploy: exit 1 only when a page or card is broken (script error, missing file, empty card)")
     args = parser.parse_args()
     if args.compare:

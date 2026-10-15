@@ -2,7 +2,7 @@
 
     python tools/fetch_live_data.py                             # everything: the daily site check
     python tools/fetch_live_data.py --only nfl nba --strict     # the hockey-only refresh
-    python tools/fetch_live_data.py --only nhl --need nhl       # the deploy, reusing a suite's data
+    python tools/fetch_live_data.py --only nhl --need nhl --replace   # the deploy, after the NHL build failed
 
 Writes nfl_tool/site/data.json and the NBA and NHL data files exactly as
 members are being served them. Three jobs use it:
@@ -10,10 +10,10 @@ members are being served them. Three jobs use it:
   * the site check (.github/workflows/site-check.yml) runs against what is live;
   * the hockey-only refresh (nhl-refresh.yml) rebuilds the NHL files and
     publishes the rest of the site's data untouched (--only nfl nba --strict);
-  * the deploy (deploy.yml) takes a suite's data as it is live when a push
-    didn't change that suite's build code, instead of rebuilding it
-    (--only SUITE --need SUITE: exit 1, so the deploy builds it after all,
-    unless every one of the suite's files arrived).
+  * the deploy (deploy.yml) puts the NBA or NHL data back as it is live
+    when that suite's build failed, so the site is never published without
+    it (--only SUITE --need SUITE --replace: whatever the failed build left
+    is cleared first; exit 1 unless every one of the suite's files arrived).
 
 The site sits behind the member login; this proves itself the same way the
 data build does (a key derived from DISCORD_BOT_TOKEN, which only CI holds).
@@ -23,7 +23,7 @@ if it is real JSON. A wrong key gets the login page back with a 200, and that
 must never be saved as data.json.
 
 It refuses to overwrite a data file that already exists, so running it by
-accident never replaces a locally built one.
+accident never replaces a locally built one. Only --replace clears them.
 """
 import argparse
 import hashlib
@@ -49,6 +49,16 @@ SUITES = {
 }
 NHL_PLAYERS = "nhl/players/"
 TRIES = 3
+
+
+def clear(suite):
+    """Delete a suite's data files here (what a failed build may have left
+    half written), so the live copy replaces all of them."""
+    for rel in SUITES[suite]:
+        (SITE / rel).unlink(missing_ok=True)
+    if suite == "nhl":
+        for path in (SITE / NHL_PLAYERS).glob("*.json"):
+            path.unlink()
 
 
 def nhl_player_files():
@@ -104,6 +114,7 @@ def main(argv=None):
     parser.add_argument("--only", nargs="+", choices=sorted(SUITES), metavar="SUITE", help="just these suites' files (default: all of nfl nba nhl)")
     parser.add_argument("--need", nargs="+", choices=sorted(SUITES), default=[], metavar="SUITE", help="exit 1 unless every file of these suites arrived")
     parser.add_argument("--strict", action="store_true", help="exit 1 if any file failed for a reason other than not being on the live site")
+    parser.add_argument("--replace", action="store_true", help="first delete these suites' files here (the deploy, after a failed build)")
     args = parser.parse_args(argv)
     token = os.environ.get("DISCORD_BOT_TOKEN")
     if not token:
@@ -118,6 +129,8 @@ def main(argv=None):
     for suite in ("nfl", "nba", "nhl"):
         if suite not in wanted:
             continue
+        if args.replace:
+            clear(suite)
         got = [download(rel, headers) for rel in SUITES[suite]]
         if suite == "nhl" and got[0] == "ok":
             players = nhl_player_files()

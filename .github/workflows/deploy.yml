@@ -32,17 +32,13 @@ on:
     # the worst of that contention.
     - cron: "17 */6 * * *"
   workflow_dispatch: {}  # manual "Run workflow" button, for on-demand refresh
+  # Every push to main runs the whole deploy, whatever it touched (2026-10-15).
+  # The repo is public, so build minutes are free; the old "only these
+  # folders" filter once left a fix to a failed deploy unpublished. The bot's
+  # model-record commits don't start a run (GitHub never starts one for a push
+  # made with the workflow's own token).
   push:
     branches: [main]
-    paths:
-      - "nfl_tool/**"
-      - ".github/workflows/deploy.yml"
-      # The deploy's own plan: a fix to it is usually a fix to a failed
-      # deploy, which then needs a run (2026-10-15: one sat unpublished).
-      - "tools/ci_steps.py"
-      # Other tests/ and tools/ files are left out on purpose: a push that
-      # only touches them doesn't rebuild the site. The tests still run on
-      # every deploy.
 
 permissions:
   # write: the build commits model_history/gmg_model.json (see that step)
@@ -71,26 +67,11 @@ jobs:
           python -m playwright install --with-deps chromium
           python tools/ci_steps.py mark install
 
-      # What this run has to rebuild (2026-10-13, tools/ci_steps.py plan). Every
-      # run used to rebuild all three sports, so a one-line style change or a
-      # hockey fix re-downloaded football. The repo is private now (2,000 free
-      # build minutes a month), and the owner asked for an isolated task to
-      # stop setting off unrelated work:
-      #   - the 6-hour refresh and "Update Odds" exist to get fresh data: they
-      #     build everything, as before;
-      #   - a push exists to publish a code change: it rebuilds only the suites
-      #     whose build code differs from what is live, and the other suites'
-      #     data goes out exactly as it is live (the "Reuse" steps below).
-      # It compares with the LIVE version, not the previous push, so a push
-      # whose deploy failed still counts. If this step fails or can't tell, its
-      # outputs are empty and every "Reuse" step is skipped: everything is built.
-      # It also names the one sport a push is about ("scope": nfl, nba, nhl, or
-      # all when sports share the change): the tests and the browser check
-      # below then cover that sport only. So it runs before the tests.
-      - name: Plan the run
-        id: plan
-        continue-on-error: true
-        run: python tools/ci_steps.py plan
+      # Every run does the same thing (2026-10-15): every test, all three
+      # sports built fresh, every page checked. From 2026-10-13 to 10-15, while
+      # the repo was private and build minutes were limited, a push rebuilt
+      # and tested only the sport it changed; that needed a hand-kept list of
+      # every test file's sport, and a file missing from it failed a deploy.
 
       # The tests (2026-10-13): every rule and past bug the suite pins (the GMG
       # model's math in the build and in the browser, the 4-point pick rule,
@@ -100,29 +81,15 @@ jobs:
       # stops the run before anything is built, saved or published, so
       # members keep the last good version and GitHub emails the owner. One
       # retry, so a browser hiccup can't hold up an odds refresh.
-      # A push about one sport runs that sport's tests only (the plan's
-      # "scope"); with no plan, every test runs.
       - name: Run the tests
-        env:
-          SCOPE: ${{ steps.plan.outputs.scope || 'all' }}
         run: |
-          python tools/run_tests.py --only "$SCOPE" || { echo "Retrying once..."; sleep 5; python tools/run_tests.py --only "$SCOPE"; }
+          python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }
           python tools/ci_steps.py mark tests
 
-      # --need: only "success" if the file arrived whole and is real JSON;
-      # anything else and the build below runs after all.
-      - name: Reuse the live NFL data (a push that didn't change the NFL build)
-        id: reuse_nfl
-        if: steps.plan.outputs.nfl == 'reuse'
-        continue-on-error: true
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        run: |
-          python tools/fetch_live_data.py --only nfl --need nfl
-          python tools/ci_steps.py mark nfl
-
       - name: Build stats (nflverse needs no key; SGO_API_KEY is optional)
-        if: steps.reuse_nfl.outcome != 'success'
+        # One retry: nflverse sometimes answers a download with a one-off 404,
+        # and since every push builds football, a push about hockey could
+        # otherwise fail on it.
         # NOTE: bump the --season each year once the new season's data
         # exists on nflverse (typically as soon as Week 1 games are played).
         # SGO_API_KEY is optional -- player anytime-TD odds just don't
@@ -147,44 +114,42 @@ jobs:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           SKIP_SGO_FETCH: ${{ github.event_name == 'push' && '1' || '0' }}
         run: |
-          python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json
+          python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json || { echo "Retrying once..."; sleep 30; python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json; }
           python tools/ci_steps.py mark nfl
-
-      - name: Reuse the live NBA data (a push that didn't change the NBA build)
-        id: reuse_nba
-        if: steps.plan.outputs.nba == 'reuse'
-        continue-on-error: true
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        run: python tools/fetch_live_data.py --only nba --need nba
 
       # GMG NBA Suite data (site/nba/data.json). Separate script, separate
       # sources (hoopR season files + Novig NBA lines); if it fails the NFL
-      # site still deploys, just with no fresh NBA data.
+      # site still deploys, with the NBA data as it is live (next step).
+      # Its output is kept in nba_build.log for version.json, like the NHL's.
       - name: Build NBA data
-        if: steps.reuse_nba.outcome != 'success'
+        id: build_nba
         continue-on-error: true
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json
+        run: |
+          set -o pipefail
+          python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json 2>&1 | tee nba_build.log
+
+      # A failed build must not publish the site without that sport's data
+      # (2026-10-15): whatever it left is cleared (--replace) and the live
+      # copy is put back. If even that fails the deploy carries on as before,
+      # and version.json says "missing".
+      - name: Put the live NBA data back (the NBA build failed)
+        id: back_nba
+        if: steps.build_nba.outcome == 'failure'
+        continue-on-error: true
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python tools/fetch_live_data.py --only nba --need nba --replace
 
       # Between the full rebuilds, nhl-refresh.yml rebuilds just these NHL
       # files every hour from midday to puck drop (lineups and odds).
-      - name: Reuse the live NHL data (a push that didn't change the NHL build)
-        id: reuse_nhl
-        if: steps.plan.outputs.nhl == 'reuse'
-        continue-on-error: true
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-        run: python tools/fetch_live_data.py --only nhl --need nhl
-
       # GMG NHL Suite data (site/nhl/data.json, plus shots.json for the Shots
       # page and one file per team for the player card). Hockey has no season files:
       # the build downloads each finished game from the NHL's feed once and
       # keeps it in data/nhl. This cache carries that folder from one run to
       # the next; without it a run just downloads the season so far again.
       - name: Restore saved NHL games
-        if: steps.reuse_nhl.outcome != 'success'
         continue-on-error: true
         uses: actions/cache/restore@v4
         with:
@@ -196,7 +161,7 @@ jobs:
       # is kept in nhl_build.log so a failure's last line can be shown in
       # version.json (the step after "Stamp the version").
       - name: Build NHL data
-        if: steps.reuse_nhl.outcome != 'success'
+        id: build_nhl
         continue-on-error: true
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -206,10 +171,18 @@ jobs:
           python nfl_tool/nhl/build_nhl.py --season 2027 --out nfl_tool/site/nhl/data.json --data-dir data/nhl 2>&1 | tee nhl_build.log
           python tools/ci_steps.py mark nhl
 
+      # Like the NBA's: the NHL files as they are live, not none.
+      - name: Put the live NHL data back (the NHL build failed)
+        id: back_nhl
+        if: steps.build_nhl.outcome == 'failure'
+        continue-on-error: true
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python tools/fetch_live_data.py --only nhl --need nhl --replace
+
       # Saved under a name made from the games on disk, so a run that
       # downloaded nothing new doesn't store a second copy.
       - name: Save NHL games
-        if: steps.reuse_nhl.outcome != 'success'
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
@@ -249,12 +222,9 @@ jobs:
       # that are merely too full never block (site-check.yml reports those
       # after the deploy). One retry, so a hiccup can't hold up an odds refresh.
       # (Its browser is installed in the first step, for the tests.)
-      # A push about one sport opens that sport's pages only.
       - name: Check the site before it goes live
-        env:
-          SCOPE: ${{ steps.plan.outputs.scope || 'all' }}
         run: |
-          python tools/check_site.py --gate --only "$SCOPE" || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate --only "$SCOPE"; }
+          python tools/check_site.py --gate || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate; }
           python tools/ci_steps.py mark gate
 
       # Cloudflare Pages is the only host (the GitHub Pages copy was dropped
@@ -267,12 +237,9 @@ jobs:
       # Discord login gate secrets (nfl_tool/functions/_middleware.js):
       # copied from GitHub secrets into the Pages project (Pages picks up a
       # changed secret on the next deployment). Skipped while a secret doesn't
-      # exist yet -- the gate stays off until both do. A code push doesn't
-      # change a secret, so this runs on the scheduled and manual runs and on
-      # a push that edits this file ("housekeeping" in the plan): a new secret
-      # value is live within 6 hours, or right away with "Update Odds".
+      # exist yet -- the gate stays off until both do. Every run, so a new
+      # secret value is live with the next push, "Update Odds" or 6-hour run.
       - name: Push Discord secrets to Cloudflare
-        if: steps.plan.outputs.housekeeping != 'no'
         continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -295,15 +262,13 @@ jobs:
       # this fails the deploy still goes out, just without profiles
       # (/auth/status shows profiles:false and sync.js stays local-only).
       # Every run names the database and writes the binding (the publish
-      # needs it). The table commands below it only matter when a table or
-      # column is added in this file, so they are housekeeping too.
+      # needs it), then makes sure every table and column exists.
       - name: Member profile database (D1)
         continue-on-error: true
         working-directory: nfl_tool
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          HOUSEKEEPING: ${{ steps.plan.outputs.housekeeping }}
         run: |
           npx -y wrangler@3 d1 list --json > d1.json || echo "[]" > d1.json
           DBID=$(jq -r '.[] | select(.name=="gmg-nfl-users") | .uuid' d1.json)
@@ -323,7 +288,6 @@ jobs:
             echo 'database_name = "gmg-nfl-users"'
             echo "database_id = \"$DBID\""
           } > wrangler.toml
-          if [ "$HOUSEKEEPING" = "no" ]; then exit 0; fi
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS user_state (uid TEXT NOT NULL, k TEXT NOT NULL, v TEXT NOT NULL, updated INTEGER NOT NULL, PRIMARY KEY (uid, k))"
           # Email members (Stripe): live subscription status + password, one trial per card.
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS members (email TEXT PRIMARY KEY, customer TEXT, subscription TEXT, status TEXT, period_end INTEGER, trial_used INTEGER NOT NULL DEFAULT 0, manual_until INTEGER, note TEXT, updated INTEGER)"
@@ -342,18 +306,16 @@ jobs:
         run: grep -q "d1_databases" nfl_tool/wrangler.toml
 
       # What this run did, added to version.json: whether the NBA and NHL data
-      # builds worked (their data files sit behind the login), which suites
-      # were built and which were reused, and how many seconds each stage
-      # took. The repo's Actions page is private, so this is the one place a
-      # run can be read from outside. Last before the publish so the timings
-      # cover everything; never allowed to block the deploy (version.json
-      # stays as stamped above if this step fails).
+      # builds worked (their data files sit behind the login), whether a
+      # failed one's live copy was put back ("data": built / live copy /
+      # missing), and how many seconds each stage took. Last before the
+      # publish so the timings cover everything; never allowed to block the
+      # deploy (version.json stays as stamped above if this step fails).
       - name: Note the run in version.json
         continue-on-error: true
         env:
-          DATA_NFL: ${{ steps.reuse_nfl.outcome == 'success' && 'reused' || 'built' }}
-          DATA_NBA: ${{ steps.reuse_nba.outcome == 'success' && 'reused' || 'built' }}
-          DATA_NHL: ${{ steps.reuse_nhl.outcome == 'success' && 'reused' || 'built' }}
+          DATA_NBA: ${{ steps.build_nba.outcome == 'success' && 'built' || (steps.back_nba.outcome == 'success' && 'live copy' || 'missing') }}
+          DATA_NHL: ${{ steps.build_nhl.outcome == 'success' && 'built' || (steps.back_nhl.outcome == 'success' && 'live copy' || 'missing') }}
         run: |
           python tools/ci_steps.py mark cloudflare
           python tools/ci_steps.py note

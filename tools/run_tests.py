@@ -4,11 +4,10 @@
     python tools/run_tests.py -v     # ...naming each test as it runs
     python tools/run_tests.py --only nhl    # one sport's tests (nfl, nba or nhl); "all" = every test
 
-Working on one sport runs that sport's tests and nothing else: the deploy
-passes --only for a push that touched a single sport (tools/ci_steps.py
-work_scope), and so should a local check. A test file belongs to the sport
-in its name (test_nhl_*, test_nba_*); test_ci_steps.py (the deploy's own
-tools) runs only with every test; everything else is the NFL site's.
+Working on one sport, a local check runs that sport's tests (--only). A
+test file belongs to the sport in its name (test_nhl_*, test_nba_*); the
+deploy's own tests (test_ci_*) run only with every test; everything else is
+the NFL site's. The deploy always runs every test.
 
 The tests live in tests/ and read saved samples (tests/fixtures/), never this
 week's data, so they give the same answer every day. Each one pins a rule or
