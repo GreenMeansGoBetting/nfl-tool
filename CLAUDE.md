@@ -49,6 +49,11 @@ that, move detail into a rules file.
   code or the site's JavaScript. `tests/` pins the math and every past bug on saved samples
   (`tests/fixtures/`), so the answers never depend on this week's data. When a rule they pin
   changes on purpose, change its test in the same commit; a bug fix gets a test that fails without it.
+  A NEW NFL test file must be added to the "nfl" list in `tools/ci_steps.py` (NBA/NHL go by name
+  prefix), and run the full `run_tests.py` once (no `--only`): the deploy checks this and publishes nothing otherwise.
+  A push touching only `tests/` or `tools/` starts NO deploy; if it fixes a failed deploy, the site
+  needs a rebuild (Update Odds, or Actions → Run workflow). The public Actions API shows runs:
+  `api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/runs`.
 - Python: on the Carter PC `C:\Users\Carter\AppData\Local\Python\bin\python.exe` (there `py` can't
   see Playwright's browser); on the cdmcc PC `py`. Plain `python` is the Store stub on both.
 - To verify a change, run `python tools/check_site.py` once before a push. While iterating on a
