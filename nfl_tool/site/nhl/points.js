@@ -315,9 +315,12 @@ function detailRow(x, columns) {
 }
 
 // His best Line Stacks tonight (stacks.json, best Score first): the Line Stacks page's rows, short.
+// Not when his play is the under: every stack needs him to get a point (the owner, 2026-10-16:
+// "wont that be confusing to users").
 function stacksBox(x) {
   const board = ((STACKS || {}).games || {})[x.game.game_id];
   const r = x.r;
+  if (r.side === "under") return "";
   const mine = board && board.stacks ? board.stacks.filter((s) => s.legs.includes(r.id)).sort((a, b) => b.score - a.score || b.chance - a.chance).slice(0, 4) : [];
   if (!mine.length) return "";
   const last = (id) => ((board.players[id] || {}).name || "").split(" ").slice(-1)[0];

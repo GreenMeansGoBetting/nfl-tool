@@ -172,6 +172,13 @@ class PointsBox(unittest.TestCase):
         board = nhl_stacks()["games"][key[0]]
         last = board["players"][key[1]]["name"].split(" ")[-1]
         self.assertTrue(all(n.startswith(f"{last} + ") for n in names))
+        # A player whose play is the under gets no stacks box: every stack needs him to score.
+        shown = page.evaluate("""([game, id]) => {
+            const r = POINTS.games[game].players.find((p) => p.id === id);
+            r.side = 'under'; render();
+            return document.querySelectorAll('.stk-mini').length;
+        }""", key)
+        self.assertEqual(shown, 0)
         page.close()
 
 

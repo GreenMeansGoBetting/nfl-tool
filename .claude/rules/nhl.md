@@ -919,7 +919,7 @@ good. Finish the Points page"). It REUSES the Goals page's layout, ids and class
 
 The owner: "points parlays from players on the ice together ... When one scores, his linemates
 usually get the assists, so the legs win together far more often than separate bets would." Under
-Player Props after Points, and a "Best stacks with <player> tonight" box in the Points page's open row.
+Player Props after Points, and a "Best stacks with <player> tonight" box in the Points page's open row. The box is left out when his Points play is the under (the owner: every stack needs him to score, so it would confuse members).
 
 - **The replay** (`python tools/backtest/nhl_stacks.py --rows <folder>`, about 6 minutes; questions,
   bar and findings in its header): a whole line got all three points 16% of the time against 8% for
