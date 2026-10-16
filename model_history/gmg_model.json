@@ -312,6 +312,10 @@
  "2026_06_SEA_DEN": {
   "away": "SEA",
   "away_pts": 20.1,
+  "final": [
+   14,
+   17
+  ],
   "frozen": true,
   "home": "DEN",
   "home_pts": 19.7,
@@ -319,9 +323,11 @@
   "spread": 2.5,
   "spread_edge": 2.1,
   "spread_pick": "home",
+  "spread_result": "win",
   "total": 40.5,
   "total_edge": 0.7,
   "total_pick": "under",
+  "total_result": "win",
   "updated": "2026-10-15T22:33Z",
   "week": 6
  }
