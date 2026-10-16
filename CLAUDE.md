@@ -95,7 +95,7 @@ that, move detail into a rules file.
   - `sync.js`: member profiles, account chip, the Settings gear (odds format, color set, My Books), feature requests, suite switcher, the Promo Tools menu (`PROMOS`: every sport's promo tools from any page's nav), the NHL Player Props menu (`PROPS`). `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
-  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/best.html` + `best.js`: Best Plays (both pages' edges in one list).
+  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/points.html` + `points.js`: NHL Points (1+ point); `nhl/best.html` + `best.js`: Best Plays (the three pages' edges in one list).
   - `nhl/promo-tools.html` + `nhl/promo-tools.js`: NHL Promo Tools (King of the Crease: most saves of the day); `nhl/icebreaker.js`: its Icebreaker tab (quickest goal of the 7 PM slate).
   - `nhl/nhl-common.js`: shared by every NHL page (data, rink drawing, the NHL player card).
 

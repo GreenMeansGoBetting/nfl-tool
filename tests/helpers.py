@@ -120,6 +120,16 @@ def nhl_goals():
     return json.loads(nhl_goals_bytes())
 
 
+def nhl_points_bytes():
+    """The Points sample (nhl/points.json), built from the same games and prices as the data
+    sample at the Goals sample's two moments (tools/make_nhl_points_sample.py)."""
+    return _fixture_bytes("nhl_points.json.gz")
+
+
+def nhl_points():
+    return json.loads(nhl_points_bytes())
+
+
 def nhl_crease_bytes():
     """The King of the Crease sample (nhl/crease.json, built 2026-10-13 from the same games) as the page would download it."""
     return _fixture_bytes("nhl_crease.json.gz")

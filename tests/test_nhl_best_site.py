@@ -12,7 +12,7 @@ the Player Props menu."""
 import math
 import unittest
 
-from helpers import nhl_data, nhl_goals, nhl_shots  # first: puts tools/ on the import path
+from helpers import nhl_data, nhl_goals, nhl_points, nhl_shots  # first: puts tools/ on the import path
 
 import build_nhl
 from site_browser import SiteBrowser
@@ -48,7 +48,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(bestView, { markets: { sog: true, goal: true }, sort: 'edge', dir: -1, when: 'all' }, view);
+            Object.assign(bestView, { markets: { sog: true, goal: true, pts: true }, sort: 'edge', dir: -1, when: 'all' }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -60,7 +60,7 @@ def reset(day=TONIGHT, **view):
 
 def expected(day=TONIGHT):
     """{"market:game:player": play} for every play with an edge, as the build files them."""
-    data, shots, goals = nhl_data(), nhl_shots(), nhl_goals()
+    data, shots, goals, pts = nhl_data(), nhl_shots(), nhl_goals(), nhl_points()
     games = [g["game_id"] for g in data["schedule"] if g["date"] == day]
     out = {}
     for gid in games:
@@ -74,6 +74,11 @@ def expected(day=TONIGHT):
         for row in (goals["games"].get(gid) or {}).get("players", []):
             if not row["out"] and row["odds"] is not None and row["edge"] is not None and row["edge"] >= LEAN:
                 out[f"goal:{gid}:{row['id']}"] = {"price": row["odds"], "edge": row["edge"], "size": row["size"], "fair": row["fair"], "row": row}
+        # Points: the build's play as points.json files it.
+        for row in (pts["games"].get(gid) or {}).get("players", []):
+            if not row["out"] and row["side"] and row["edge"] is not None and row["edge"] >= LEAN:
+                chance = row["chance_over"] if row["side"] == "over" else 1 - row["chance_over"]
+                out[f"pts:{gid}:{row['id']}"] = {"side": row["side"], "line": row["line"], "price": row["price"], "edge": row["edge"], "size": row["size"], "chance": chance, "row": row}
     return out
 
 
@@ -91,11 +96,11 @@ class Listing(unittest.TestCase):
         rows = reset()
         plays = expected()
         self.assertEqual({r["key"] for r in rows}, set(plays))
-        self.assertTrue(any(k.startswith("sog:") for k in plays) and any(k.startswith("goal:") for k in plays))
+        self.assertTrue(all(any(k.startswith(f"{m}:") for k in plays) for m in ("sog", "goal", "pts")))
         self.assertEqual(SITE.errors, [])
 
     def test_the_plays_are_the_builds(self):
-        """Shots: the side, line, price and edge the record grades (build_nhl.shots_play). Goals: the build's edge."""
+        """Shots: the side, line, price and edge the record grades (build_nhl.shots_play). Goals and Points: the build's play and edge."""
         plays = expected()
         for r in reset():
             play = plays[r["key"]]
@@ -103,10 +108,10 @@ class Listing(unittest.TestCase):
             # GMG Fair (the owner, 2026-10-15): the model's chance as a price with no cut, as the Shots / Goals pages show it.
             self.assertEqual(r["fair"], price(play["fair"]) if r["key"].startswith("goal:") else price(fair(play["chance"])), r)
             self.assertLessEqual(abs(float(r["edge"]) - play["edge"] * 100), 0.05 + 1e-9, r)
-            if r["key"].startswith("sog:"):
-                self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} shots", r)
-            else:
+            if r["key"].startswith("goal:"):
                 self.assertEqual(r["play"], "Scores goal", r)
+            else:
+                self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} {'shots' if r['key'].startswith('sog:') else 'points'}", r)
 
     def test_no_cap_and_no_check_group_biggest_edge_first(self):
         """The owner: "if the model notices an edge, we shouldn't punish ourselves". The big gaps the
@@ -134,22 +139,23 @@ class Listing(unittest.TestCase):
     def test_market_switches(self):
         reset()
         PAGE.click('.best-market[data-market="sog"]')
+        PAGE.click('.best-market[data-market="pts"]')
         rows = PAGE.evaluate(ROWS)
         self.assertTrue(rows and all(r["key"].startswith("goal:") for r in rows))
         # The last market on can't be switched off.
         PAGE.click('.best-market[data-market="goal"]')
-        self.assertEqual(PAGE.evaluate("() => bestView.markets"), {"sog": False, "goal": True})
-        PAGE.click('.best-market[data-market="sog"]')
+        self.assertEqual(PAGE.evaluate("() => bestView.markets"), {"sog": False, "goal": True, "pts": False})
+        PAGE.click('.best-market[data-market="pts"]')
         PAGE.click('.best-market[data-market="goal"]')
         rows = PAGE.evaluate(ROWS)
-        self.assertTrue(rows and all(r["key"].startswith("sog:") for r in rows))
+        self.assertTrue(rows and all(r["key"].startswith("pts:") for r in rows))
 
 
 class Notes(unittest.TestCase):
     def test_no_lineup_and_line_change_notes_and_the_banner(self):
         rows = reset()
         # Each play says whether ITS projection had the lineup (its own page's board).
-        boards = {"sog": nhl_shots()["games"], "goal": nhl_goals()["games"]}
+        boards = {"sog": nhl_shots()["games"], "goal": nhl_goals()["games"], "pts": nhl_points()["games"]}
         plays = expected()
         for r in rows:
             market, gid, _ = r["key"].split(":")
@@ -170,33 +176,38 @@ class Record(unittest.TestCase):
     (the owner, 2026-10-16: "How are SOG Best plays with a 10% edge doing in the last 15 days")."""
 
     def setUp(self):
-        PAGE.evaluate("() => { try { localStorage.removeItem('nfl-tool.nhl-best-record.v1'); } catch (e) {} }")
+        # The Points sample was built with a ledger, the Shots and Goals samples before there was one.
+        PAGE.evaluate("() => { try { localStorage.removeItem('nfl-tool.nhl-best-record.v1'); } catch (e) {} delete POINTS.record.ledger; }")
 
     def tearDown(self):
-        PAGE.evaluate("() => { delete SHOTS.record.ledger; delete GOALS.record.ledger; Object.assign(recordView, { days: 0, sog: 3, goal: 3 }); document.getElementById('best-record-modal').hidden = true; }")
+        PAGE.evaluate("() => { delete SHOTS.record.ledger; delete GOALS.record.ledger; delete POINTS.record.ledger; Object.assign(recordView, { days: 0, sog: 3, goal: 3, pts: 3 }); document.getElementById('best-record-modal').hidden = true; }")
 
     def tiles(self):
-        return PAGE.evaluate("() => Object.fromEntries(['all', 'sog', 'goal'].map((k) => [k, document.querySelector(`[data-rec-body=\"${k}\"] b`).textContent]))")
+        return PAGE.evaluate("() => Object.fromEntries(['all', 'sog', 'goal', 'pts'].map((k) => [k, document.querySelector(`[data-rec-body=\"${k}\"] b`).textContent]))")
 
     def test_days_back_and_minimum_edge(self):
         PAGE.evaluate("""() => {
             const ago = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toLocaleDateString('en-CA'); };
             SHOTS.record.ledger = [[ago(40), 0.15, 1, 0.9], [ago(10), 0.04, 0, -1], [ago(10), 0.0996, 1, 0.8], [ago(2), 0.12, 0, -1], [ago(1), 0.03, 1, 1.1]];
             GOALS.record.ledger = [[ago(20), 0.05, 1, 4], [ago(3), 0.08, 0, -1]];
-            Object.assign(recordView, { days: 0, sog: 3, goal: 3 });
+            POINTS.record.ledger = [[ago(30), 0.07, 1, 0.9], [ago(5), 0.04, 1, 1.2]];
+            Object.assign(recordView, { days: 0, sog: 3, goal: 3, pts: 3 });
             renderRecord();
         }""")
         reset()
         PAGE.click("#best-record-open")
-        self.assertEqual(self.tiles(), {"all": "4-3", "sog": "3-2", "goal": "1-1"})
-        PAGE.click('[data-rec-days="15"]')  # the 40- and 20-day-old plays drop out
-        self.assertEqual(self.tiles(), {"all": "2-3", "sog": "2-2", "goal": "0-1"})
-        # 10+ points: 9.96 counts (the table shows it as 10.0); the goals slider is its own.
+        self.assertEqual(self.tiles(), {"all": "6-3", "sog": "3-2", "goal": "1-1", "pts": "2-0"})
+        PAGE.click('[data-rec-days="15"]')  # the 40-, 30- and 20-day-old plays drop out
+        self.assertEqual(self.tiles(), {"all": "3-3", "sog": "2-2", "goal": "0-1", "pts": "1-0"})
+        # 10+ points: 9.96 counts (the table shows it as 10.0); each market's slider is its own.
         PAGE.fill('[data-rec-edge="sog"]', "10")
-        self.assertEqual(self.tiles(), {"all": "1-2", "sog": "1-1", "goal": "0-1"})
+        self.assertEqual(self.tiles(), {"all": "2-2", "sog": "1-1", "goal": "0-1", "pts": "1-0"})
+        PAGE.fill('[data-rec-edge="pts"]', "5")
+        self.assertEqual(self.tiles()["pts"], "0-0")
         self.assertIn("SHOTS 10+", PAGE.inner_text('[data-rec-sub="all"]').upper())
+        self.assertIn("POINTS 5+", PAGE.inner_text('[data-rec-sub="all"]').upper())
         # Remembered on this device.
-        self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.nhl-best-record.v1'))"), {"days": 15, "sog": 10, "goal": 3})
+        self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.nhl-best-record.v1'))"), {"days": 15, "sog": 10, "goal": 3, "pts": 5})
         self.assertEqual(SITE.errors, [])
 
     def test_without_ledgers_the_season_buckets(self):
@@ -210,12 +221,13 @@ class Record(unittest.TestCase):
 
 
 class Links(unittest.TestCase):
-    def test_a_row_opens_his_row_on_the_shots_or_goals_page(self):
+    def test_a_row_opens_his_row_on_the_shots_goals_or_points_page(self):
         rows = reset()
+        pages = {"sog": "shots", "goal": "goals", "pts": "points"}
         for r in rows:
             market, gid, pid = r["key"].split(":")
-            self.assertEqual(r["href"], f"{'shots' if market == 'sog' else 'goals'}.html#row={gid}:{pid}")
-        for market, page, view in (("sog", "shots", "shotsView"), ("goal", "goals", "goalsView")):
+            self.assertEqual(r["href"], f"{pages[market]}.html#row={gid}:{pid}")
+        for market, page, view in (("sog", "shots", "shotsView"), ("goal", "goals", "goalsView"), ("pts", "points", "pointsView")):
             _, gid, pid = next(r["key"] for r in rows if r["key"].startswith(market + ":")).split(":")
             other = SITE.open(f"nhl/{page}.html#row={gid}:{pid}")
             try:
@@ -230,7 +242,7 @@ class Links(unittest.TestCase):
         reset()
         PAGE.click(".page-nav .props-trigger")
         items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", "best.html", True], ["Shots", "shots.html", False], ["Goals", "goals.html", False]])
+        self.assertEqual(items, [["Best Plays", "best.html", True], ["Shots", "shots.html", False], ["Goals", "goals.html", False], ["Points", "points.html", False]])
         PAGE.keyboard.press("Escape")
 
 

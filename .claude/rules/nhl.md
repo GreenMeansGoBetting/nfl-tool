@@ -797,7 +797,7 @@ on every NHL page (a test checks).
 - Tests: `tests/test_nhl_goals_site.py` on `tests/fixtures/nhl_goals.json.gz` (built from the same
   games as the data sample: as of 10/12 14:00 UTC, then 10/13 14:12 with that file as the live one).
 
-## Points (1+ point): step 1, the replay (2026-10-16; no model or page yet)
+## Points (1+ point): step 1, the replay (2026-10-16)
 
 The owner: "moving to points ... built in a similar fashion as SOG/ATG with a backtest and then
 a algorithm", under the Player Props menu and in Best Plays. Later: line / points stacks (3-4 leg
@@ -831,7 +831,7 @@ be re-tuned from the record (Points from day one; Shots and Goals later).
   power-play unit can't be tested (see "Power-play units").
 - Not testable: the price (no free history of points prices). The record grades it from launch.
 
-### Step 2: the model, points.json and the record (built 2026-10-16; no page yet)
+### Step 2: the model, points.json and the record (built 2026-10-16)
 
 - **`nfl_tool/nhl/points_model.py`** (standard library), exactly the replayed winner on top of the
   shipped Goals model: `PointsModel(goals)`, fed every game AFTER the Goals model (its table
@@ -871,15 +871,44 @@ be re-tuned from the record (Points from day one; Shots and Goals later).
 - Tests: `tests/test_nhl_points.py` (the saved game with its shift chart,
   `tests/fixtures/nhl_game_shifts.json.gz`).
 
+### Step 3: the Points page (`site/nhl/points.html` + `points.js`, built 2026-10-16)
+
+The owner approved a mockup of the table and one opened row on the day's real numbers ("Looks
+good. Finish the Points page"). It REUSES the Goals page's layout, ids and classes (`#shots-app`,
+`.shots-*`, `.goals-*`); under Player Props after Goals on every NHL page (`PROPS` in sync.js).
+- **No points math on the page:** the play (side, line, price), its chance (`chance_over` or 1 -
+  it), the edge and the bucket all come from points.json, so the page and the record can't
+  disagree. It also loads goals.json (the defense's expected goals allowed) and shots.json
+  (tonight's lines, injured, scratched).
+- Columns: #, Player, Line, **Play** (the Shots page's chip: "o0.5 +127" green / "u0.5 -150" red;
+  "No odds" when Novig has no points line), Rating (Strong / Lean / Check / New line, plus "vs his
+  avg"), **P** (points /gp, goals and assists in the hover), **Fair** (the fair price of the play's
+  side; 1+ point when unpriced), Edge; advanced: Min, xG, xA, Opp, Goalie, **Linemates** (the
+  tracked `mates`, a blue chip like Zone Match), Home/rest. Ranking, filters (Skaters, Lineups,
+  Odds, Check plays, live / final) and the Result column as on Goals.
+- Breakdown: season G / A / P -> goals tonight (the Goals page's number) -> his usual assists ->
+  line, defense, goalie, Scale (`spread`), home / rest -> tonight "G + A, chance"; the defense
+  tiles; a price table for o0.5 / u0.5 / o1.5 / u1.5 (model, fair, Novig, first seen, edge); and
+  **his line tonight** on the right: each linemate's points and chance tonight with his own play
+  chip (a first look at stacks), with the Linemates chip. Before the lineup is posted it says
+  when it fills in.
+- YTD Model Performance: tiles by bucket, overs, unders, against his avg, closing line value;
+  "Said vs got" (1+ point, everyone); graded plays with bucket buttons.
+- Tests: `tests/test_nhl_points_site.py` on `tests/fixtures/nhl_points.json.gz`, built by
+  `tools/make_nhl_points_sample.py` from the same games and prices as the data sample (as of 10/12
+  14:00 UTC, then 10/13 14:12 with that file as the live one, like the Goals sample). Rebuild it
+  with that script after a change to what points.json holds.
+
 ## Best Plays (`site/nhl/best.html` + `best.js`, built 2026-10-15)
 
 The owner: "I don't care about the noise, I am in a rush: what are my best overall bets
 tonight." First under Player Props. A short list that sends people to the Shots and Goals
 pages for the detail, not a copy of them.
-- **Every play the Shots and Goals pages call an edge (3+ points, `edges.lean`)**, both markets
-  in one table, biggest edge first. The Shots play is the Shots page's best side (the build's
-  `shots_play`, so the record grades the same play); the Goals play is goals.json's `edge`. A test
-  checks both against the build.
+- **Every play the Shots, Goals and Points pages call an edge (3+ points, `edges.lean`)**, all
+  three markets in one table, biggest edge first. The Shots play is the Shots page's best side
+  (the build's `shots_play`, so the record grades the same play); the Goals play is goals.json's
+  `edge`; the Points play is points.json's `side` / `price` / `edge` ("o0.5 points", "Points ›").
+  A test checks all three against the build.
 - **No cap and no "Check" group.** The owner turned down a top-10 / two-a-game cap: "if the model
   notices an edge, we shouldn't punish ourselves ... bettors have to make their own choice."
   Plays the other pages file as "check" are ranked like any other. Through 10/14 Shots' check
@@ -896,17 +925,16 @@ pages for the detail, not a copy of them.
   goals.json `fair`), Odds, Edge, Notes, Puck drop, a
   "Shots ›" / "Goals ›" link. **Every column with a key sorts; Odds = the biggest payout first**
   (the owner's "return on $1"). No Win % (the owner: "unimportant and clutter"; the chance is in
-  the Edge hover). Market switches (Shots on goal, Anytime goal; at least one stays on); Points
-  joins as a third when it's built.
+  the Edge hover). Market switches (Shots on goal, Anytime goal, Points; at least one stays on).
 - **A row opens its own row on the other page:** `shots.html#row=<game>:<player>` (or goals.html);
   `linkedRow` / `scrollToRow` in nhl-common.js pick the game, open the row and scroll to it.
 - YTD Model Performance: strong + lean + check from each page's record, added up (shots, goals,
-  both). No record of its own: with no cap, its list is exactly those buckets.
+  points, all). No record of its own: with no cap, its list is exactly those buckets.
   - **Filterable** (2026-10-16, the owner: "How are SOG Best plays with a 10% edge doing in the
     last 15 days"): each record's `ledger` (`record_ledger` in build_nhl.py) is EVERY graded play
     of the season as `[date, edge, won, units]` (`plays` stays capped at 14 days with the detail).
     The popup: Last 3 / 7 / 15 / 30 days / Season chips, a Min edge slider (3-20 points) in the
-    Shots and Goals tiles, All plays = both at their own minimums. An edge counts as the table
+    Shots, Goals and Points tiles, All plays = all three at their own minimums. An edge counts as the table
     rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
     ledger (an old shots.json) the plain season tiles show.
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
@@ -920,8 +948,9 @@ pages for the detail, not a copy of them.
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
-Built: Shots, Goals (anytime goal, with expected goals), both above. Points: replayed (above),
-the model and page next. For Goals: the market's team totals as an anchor once the record has them.
+Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Next on the
+owner's list: line / points stacks (linemates' points parlays; `PointsModel.linemates` and the
+`mates` factor are the start), then "learning which factors win" across Shots, Goals and Points. For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE

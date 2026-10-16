@@ -696,6 +696,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     { name: "Best Plays", href: "best.html" },
     { name: "Shots", href: "shots.html" },
     { name: "Goals", href: "goals.html" },
+    { name: "Points", href: "points.html" },
   ];
   function addPropsMenu() {
     const trigger = document.querySelector('.topbar .page-nav [data-nav-menu="props"]');
