@@ -209,6 +209,13 @@ on a replay, and the page keeps a record against the real prices.
     barely move (NHL.com lists lines in the team's order, not by ice time).
   - **The small-sample guard is not optional.** Raw this-season numbers with no guard missed by
     5% more at 5-9 games and 13% more in a player's first four.
+  - **Checked on two seasons (2026-10-16):** the same replay on 2024-25 (fitted there, then scored on
+    2025-26) put every weight back within its error range except power play: 2024-25 fit opp 1.11
+    +/- 0.11, pos 0.33 +/- 0.20, area 0.99 +/- 0.34, line 0.20 +/- 0.03, home +3.2%, b2b -2.7%,
+    opp_b2b +1.6%, spread 0.063. **Power play came out -0.09 +/- 0.34** (0.6 on the site); it swings
+    half to half within one season (2024-25: +0.51 then -0.84) and is 0.22 +/- 0.23 on both seasons
+    together: noise, worth under 1% of a projection. The 2024-25 weights scored 2025-26 no better
+    than the site's (deviance 1.2312 vs 1.2311), so the owner kept every weight as is.
   - **Fading a hot start has been right.** When a player's average after 5-9 games said "over"
     and the model said "under", he went over 36% of the time at 1.5 (the average implied 57%, the
     model 43%). Defensemen averaging 1.6-2.2 after 5-9 games went over 1.5 in 42% of their next
