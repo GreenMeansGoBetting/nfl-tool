@@ -228,6 +228,10 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
     if "lineups" in feed:
         note["lineups"] = feed["lineups"]  # games with the NHL's projected lineup read
     if suite == "nhl":
+        # The tripwire: players with a shots line on no prop page's list, and
+        # book names matching no player the site knows (one yet to play).
+        note["unlisted"] = [f"{p['name']} ({p['team']})" for p in feed.get("unlisted") or []]
+        note["unmatched"] = (novig.get("unmatched") or [])[:20]
         shots = read_json(site / "nhl" / "shots.json")
         note["shots"] = len(shots.get("games") or {}) if shots else None  # games with projections
         crease = read_json(site / "nhl" / "crease.json")

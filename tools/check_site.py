@@ -26,6 +26,7 @@ Needs data.json built first, and Playwright with its Chromium browser:
 """
 import argparse
 import functools
+import json
 import re
 import http.server
 import sys
@@ -214,6 +215,17 @@ def is_broken(problem):
     return any(marker in problem for marker in BROKEN_MARKERS) or bool(re.search(r": [45]\d\d for /", problem))
 
 
+def unlisted_players():
+    """The build's tripwire: a player with a shots-on-goal line who is on no
+    NHL prop page's list (Charlie McAvoy, 2026-10-16). Never blocks a deploy."""
+    try:
+        data = json.loads((SITE / "nhl" / "data.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return [f"NHL: {p['name']} ({p['team']}) has a shots line but is on no prop page's list"
+            for p in (data.get("feed_debug") or {}).get("unlisted") or []]
+
+
 def run_check(browser, origin, shots_dir, max_games=None, gate=False):
     problems, notes = [], []
     cards_checked = 0
@@ -388,6 +400,8 @@ def main():
                 print(f"{INSTALL_HELP}\n({str(e).splitlines()[0][:120]})")
                 return 2
             problems, notes, cards, shots = run_check(browser, origin, shots_dir, args.games, args.gate)
+            if args.only in ("nhl", "all"):
+                problems += unlisted_players()
             browser.close()
     finally:
         server.shutdown()

@@ -94,7 +94,8 @@ class VersionNote(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             site = Path(folder)
             (site / "nhl").mkdir()
-            data = {**nhl_data(), "feed_debug": {**nhl_data().get("feed_debug", {}), "lineups": 6}}
+            data = {**nhl_data(), "feed_debug": {**nhl_data().get("feed_debug", {}), "lineups": 6,
+                                                 "unlisted": [{"game": "1", "team": "BOS", "id": "8479325", "name": "Charlie McAvoy"}]}}
             (site / "nhl" / "data.json").write_text(json.dumps(data), encoding="utf-8")
             (site / "nhl" / "shots.json").write_text(json.dumps(nhl_shots()), encoding="utf-8")
             note = ci_steps.suite_note(site, "nhl")
@@ -102,6 +103,7 @@ class VersionNote(unittest.TestCase):
             self.assertEqual((note["lineups"], note["shots"]), (6, len(nhl_shots()["games"])))
             self.assertEqual(note["lines"], data["novig_debug"]["matched"])
             self.assertEqual(note["games"], data["feed_debug"]["games_loaded"])
+            self.assertEqual(note["unlisted"], ["Charlie McAvoy (BOS)"])  # the tripwire
             # A build that failed left no file.
             self.assertIsNone(ci_steps.suite_note(site, "nba")["built"])
 

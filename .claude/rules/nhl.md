@@ -131,7 +131,14 @@ launch switch"). More background: `docs/history.md`, "NHL".
   kill allows) is `1 - pk_pct`, so a power play row reads both sides.
 - Times use the offset the feed gives for each game (`easternUTCOffset`), so the November clock
   change is already right.
-- `lineup` discounts ice time for a player with only a game or two (the lineup-aware usage rule).
+- `lineup` discounts ice time for a player with only a game or two (the lineup-aware usage rule),
+  **never for one who dressed in his team's latest game** (`last_dressed`): Charlie McAvoy came back
+  2026-10-13 after six games out, played 24:41, and the discount ranked him 8th of Boston's 8
+  defensemen, so he was on no prop page until a lineup was posted (a member found it, 2026-10-16).
+- **Tripwire** (`unlisted_priced`): a player with a Novig shots line in a game not started who is on
+  no prop list goes to data.json `feed_debug.unlisted`, the build log, `version.json`
+  `nhl.unlisted`, and a (never blocking) PROBLEM in `check_site.py`, so the daily site check
+  reports it. `nhl.unmatched`: book names matching no player the site knows (one yet to play).
 - Team colors are `TEAM_COLORS` (ESPN's; teams whose main color is black use their second).
 
 ## This season only, everywhere (the user's rule, 2026-10-13, said three times)

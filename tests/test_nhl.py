@@ -214,6 +214,41 @@ class Lineup(unittest.TestCase):
         order = [s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 10}))["AAA"]]
         self.assertEqual(order, ["reg", "fill", "dman"])  # forwards first, then defense
 
+    def test_a_regular_back_from_injury_makes_the_list(self):
+        """Charlie McAvoy, 2026-10-16: back after six games out with 24:41,
+        his one game was discounted to last of Boston's eight defensemen.
+        Dressing in the team's latest game means he is in the lineup now; a
+        one-game fill-in who didn't dress last game is still held down."""
+        skaters = {f"d{i}": self.skater(f"d{i}", 20.0 - i, 7, "D") for i in range(6)}
+        skaters["back"] = self.skater("back", 24.7, 1, "D")
+        skaters["fill"] = self.skater("fill", 24.0, 1, "D")
+        dressed = {"AAA": {"back", "d0", "d1", "d2", "d3", "d4"}}
+        order = [s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 7}), dressed)["AAA"]]
+        self.assertEqual(order[0], "back")
+        self.assertNotIn("fill", order)
+        # Without knowing who dressed, the old discount drops him.
+        self.assertNotIn("back", [s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 7}))["AAA"]])
+
+    def test_last_dressed_is_each_teams_latest_game(self):
+        line = lambda team: {"team": team}
+        records = [
+            {"home": "AAA", "away": "BBB", "skaters": {"a1": line("AAA"), "a2": line("AAA"), "b1": line("BBB")}},
+            {"home": "CCC", "away": "AAA", "skaters": {"a1": line("AAA"), "a3": line("AAA"), "c1": line("CCC")}},
+        ]
+        self.assertEqual(build_nhl.last_dressed(records), {"AAA": {"a1", "a3"}, "BBB": {"b1"}, "CCC": {"c1"}})
+
+    def test_the_tripwire_names_a_priced_player_on_no_list(self):
+        now = datetime(2026, 10, 16, 18, 0)
+        games = [{"game_id": "1", "away": "BOS", "home": "ANA", "status": "scheduled", "start_utc": "2026-10-17T02:00Z"},
+                 {"game_id": "2", "away": "NJD", "home": "DET", "status": "scheduled", "start_utc": "2026-10-16T17:00Z"}]
+        lineups = {"BOS": [{"id": "pasta"}], "ANA": [], "NJD": [], "DET": []}
+        odds = {"1": {"pasta": {"name": "David Pastrnak", "team": "BOS", "sog": {"line": 3.5}},
+                      "chuck": {"name": "Charlie McAvoy", "team": "BOS", "sog": {"line": 1.5}},
+                      "goalie": {"name": "Jeremy Swayman", "team": "BOS", "saves": {"line": 27.5}}},
+                "2": {"x": {"name": "Started Game", "team": "NJD", "sog": {"line": 2.5}}}}
+        self.assertEqual(build_nhl.unlisted_priced(games, lineups, odds, now),
+                         [{"game": "1", "team": "BOS", "id": "chuck", "name": "Charlie McAvoy"}])
+
     def test_early_in_the_season_everyone_counts_in_full(self):
         skaters = {"a": self.skater("a", 18.0, 2), "b": self.skater("b", 22.0, 1)}
         self.assertEqual([s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 2}))["AAA"]], ["b", "a"])

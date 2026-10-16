@@ -917,20 +917,48 @@ def compute_goalies(records: list) -> dict:
     return out
 
 
-def lineup(skaters: dict, team_games: Counter) -> dict:
+def last_dressed(records: list) -> dict:
+    """{team: the ids of the skaters who dressed in its latest game}."""
+    out = {}
+    for r in records:  # in date order
+        for team in (r["home"], r["away"]):
+            out[team] = {pid for pid, line in r["skaters"].items() if line["team"] == team}
+    return out
+
+
+def lineup(skaters: dict, team_games: Counter, dressed: dict | None = None) -> dict:
     """{team: forwards then defensemen, most ice time first}. Ice time is
     discounted for a player with only a game or two, so a one-night fill-in
-    doesn't jump the list."""
+    doesn't jump the list, but never for one who dressed in his team's latest
+    game (`dressed`): he is in the lineup now. Charlie McAvoy missed Boston's
+    first six games, came back with 24:41, and the discount ranked him last
+    of eight defensemen and off every prop page (2026-10-16)."""
     by_team = {}
     for s in skaters.values():
         by_team.setdefault(s["team"], []).append(s)
     out = {}
     for team, rows in by_team.items():
         full = min(10, max(1, team_games.get(team, 1))) / 2
-        rank = lambda s: -(s["toi"] or 0) * min(1, s["games"] / full)
+        current = (dressed or {}).get(team) or set()
+        rank = lambda s: -(s["toi"] or 0) * (1 if s["id"] in current else min(1, s["games"] / full))
         forwards = sorted((s for s in rows if s["pos"] != "D"), key=rank)[:FORWARDS_SHOWN]
         defense = sorted((s for s in rows if s["pos"] == "D"), key=rank)[:DEFENSE_SHOWN]
         out[team] = forwards + defense
+    return out
+
+
+def unlisted_priced(games: list, lineups: dict, player_odds: dict, now_utc: datetime) -> list:
+    """The tripwire: players the book has a shots-on-goal line for in a game
+    not started yet who are on none of the prop pages' lists. Each one is a
+    player a member can bet and can't find (version.json `nhl.unlisted`)."""
+    out = []
+    for g in games:
+        if g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
+            continue
+        listed = {p["id"] for team in (g["away"], g["home"]) for p in lineups.get(team) or []}
+        for pid, odds in (player_odds.get(g["game_id"]) or {}).items():
+            if odds.get("sog") and pid not in listed:
+                out.append({"game": g["game_id"], "team": odds.get("team"), "id": pid, "name": odds.get("name")})
     return out
 
 
@@ -3173,12 +3201,23 @@ def main():
 
     games = fetch_schedule(now_utc)
     add_rest(games, stats["listing"], abbr_by_id)
-    novig, novig_players, novig_saves, novig_debug = fetch_novig_lines(games, teams, player_finder(stats["skaters"], stats["goalies"]))
+    # Book names that match no player the site knows (one yet to play this
+    # season, or a new spelling): kept for version.json, never guessed.
+    novig_find, unmatched = player_finder(stats["skaters"], stats["goalies"]), set()
+
+    def novig_lookup(team, name):
+        pid = novig_find(team, name)
+        if pid is None and name:
+            unmatched.add(f"{name} ({team})")
+        return pid
+
+    novig, novig_players, novig_saves, novig_debug = fetch_novig_lines(games, teams, novig_lookup)
+    novig_debug["unmatched"] = sorted(unmatched)
     previous = fetch_previous()
     apply_lines(games, novig, previous, now_utc)
     injuries, injuries_error = fetch_injuries(teams, stats["skaters"], stats["goalies"])
     generated_at = now_utc.strftime("%Y-%m-%dT%H:%MZ")
-    lineups = lineup(stats["skaters"], team_games)
+    lineups = lineup(stats["skaters"], team_games, last_dressed(stats["records"]))
     player_odds = locked_player_odds(games, novig_players, previous, now_utc)
     # Every US book's price (SmartStake) for the Shots and Goals rows' odds
     # panel. Optional: no key or a failed fetch = Novig's price only, as before.
@@ -3196,6 +3235,9 @@ def main():
             if team in lineups:
                 listed = {p["id"] for p in lineups[team]}
                 lineups[team].extend(stats["skaters"][pid] for pid in posted["skaters"] if pid in stats["skaters"] and pid not in listed)
+    unlisted = unlisted_priced(games, lineups, player_odds, now_utc)
+    for p in unlisted:
+        print(f"WARNING: {p['name']} ({p['team']}) has a shots line but is on no NHL prop list.", file=sys.stderr)
 
     blob = {
         "season": args.season,
@@ -3215,7 +3257,7 @@ def main():
         "book_odds": book_odds,
         "book_odds_debug": book_odds_debug,
         "novig_debug": novig_debug,
-        "feed_debug": {**stats["debug"], "injuries_error": injuries_error, "lineups": len(tonight), "lineups_error": lineups_error},
+        "feed_debug": {**stats["debug"], "injuries_error": injuries_error, "lineups": len(tonight), "lineups_error": lineups_error, "unlisted": unlisted},
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
