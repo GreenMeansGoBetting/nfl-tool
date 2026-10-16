@@ -81,6 +81,11 @@ def nhl_game():
     return json.loads(_fixture_bytes("nhl_game.json.gz"))
 
 
+def nhl_game_shifts():
+    """The saved NHL game's shift chart, as build_nhl.fetch_shifts keeps it on a game."""
+    return json.loads(_fixture_bytes("nhl_game_shifts.json.gz"))
+
+
 def nhl_novig_event():
     """A fresh copy of the saved NHL Novig game, same shape as novig_event()."""
     return json.loads(_fixture_bytes("nhl_novig_event.json.gz"))

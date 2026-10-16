@@ -831,6 +831,46 @@ be re-tuned from the record (Points from day one; Shots and Goals later).
   power-play unit can't be tested (see "Power-play units").
 - Not testable: the price (no free history of points prices). The record grades it from launch.
 
+### Step 2: the model, points.json and the record (built 2026-10-16; no page yet)
+
+- **`nfl_tool/nhl/points_model.py`** (standard library), exactly the replayed winner on top of the
+  shipped Goals model: `PointsModel(goals)`, fed every game AFTER the Goals model (its table
+  scores the shots). `tools/backtest/nhl_points_check.py` replays both seasons THROUGH this file
+  (held out: 0.59527, re-scaled 0.59496, matching the replay) and fits `WEIGHTS`, `SPREAD_MEAN`
+  and `CALIBRATION` on both seasons together; rerun it after any change.
+  - Assists numbers come only from games with a shift chart (this season's games 6-52 have none):
+    a game without one adds his minutes and points but no on-ice numbers or assists to the share.
+  - `chance_at_least`: 1+ point re-scaled on the logit (`CALIBRATION` 0.036 + 1.086 x); 2+ and up
+    a plain count. `chance_over(mean, line)`.
+  - **`mates`: tonight's projected linemates against the ones he has played with** (`with`: who
+    shared his line or pair, recent games counting more), both read by their EV points a minute
+    today, so the same line is 1.0. **Tracked, never in the number** (it failed the bar; the record
+    keeps it so the live season can say). `linemates(pid)` = who he plays with: for stacks later.
+- `reduce_game` now keeps `goal_events` (`game_goals`: team, `pp`, scorer, assists, `on`) and each
+  shot's `on` (the shooting team's players on the ice, goalie included), from the kept shift chart
+  (`on_ice_finder`: a shift counts from just after it starts to the moment it ends, so a goal
+  belongs to the players it ended the shift for). None without a chart.
+- **`site/nhl/points.json`** (not tracked; on fetch_live_data's list; `version.json` `nhl.points`
+  = games with projections): `games` = the Goals page's games, players and lock (`points_board`),
+  every skater priced or not: season `games` / `goals` / `assists` / `points` / `avg` (points a
+  game), `g_mean` (the Goals page's number), `a_mean`, `mean`, `chance` (1+), `two` (2+), `fair`,
+  `lift` (the assists pieces) and `g_lift` (the goals pieces), `mates`; Novig's points `line` /
+  `over` / `under` / `thin`, `first` (the first line and prices the site saw, carried from the live
+  points.json), `chance_over` (rounded, what everything grades), and the Shots page's better side
+  (`shots_play` with `POINTS_EDGES` 3 / 6 / 12): `side`, `price`, `edge`, `size`, `fade`. A
+  finished game's rows get `actual` (goals + assists). Also `weights`, `calibration`, `edges`,
+  `factors`, `record`. Main builds the Goals model once and hands it to both pages (`goals_file`'s
+  `model`); a failed Points step writes a points.json with `error`.
+- **The record** (`model_history/nhl_points/<month>.json`): each finished game once, every
+  projected player who played, `POINTS_RECORD_COLS`; a priced player's row ends with **`factors`**
+  (`POINTS_FACTORS`: position, games, avg, g_mean / a_mean, EV / PP minutes, tonight's slot and line
+  move, `mates`, home, and each piece's lift on assists `a_*` and goals `g_*`). That is the
+  owner's "learning which factors win": group graded plays by any factor once there are enough.
+  `points_record_summary`: the Shots record's buckets, over / under, fade / with, CLV, `days`,
+  `plays`, `ledger`, plus `honest` (1+ said vs got, everyone).
+- Tests: `tests/test_nhl_points.py` (the saved game with its shift chart,
+  `tests/fixtures/nhl_game_shifts.json.gz`).
+
 ## Best Plays (`site/nhl/best.html` + `best.js`, built 2026-10-15)
 
 The owner: "I don't care about the noise, I am in a rush: what are my best overall bets
