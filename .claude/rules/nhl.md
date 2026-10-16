@@ -797,6 +797,40 @@ on every NHL page (a test checks).
 - Tests: `tests/test_nhl_goals_site.py` on `tests/fixtures/nhl_goals.json.gz` (built from the same
   games as the data sample: as of 10/12 14:00 UTC, then 10/13 14:12 with that file as the live one).
 
+## Points (1+ point): step 1, the replay (2026-10-16; no model or page yet)
+
+The owner: "moving to points ... built in a similar fashion as SOG/ATG with a backtest and then
+a algorithm", under the Player Props menu and in Best Plays. Later: line / points stacks (3-4 leg
+parlays of linemates' points), and every graded play saving the parts behind it so the weights can
+be re-tuned from the record (Points from day one; Shots and Goals later).
+
+- `python tools/backtest/nhl_points.py` (about 3 minutes; `--rows <folder>` keeps each season's
+  rows to re-judge without replaying). 2024-25 and 2025-26, each walk-forward on its own games;
+  the candidates and the bar are in the script's header, written before each run. Weights fitted on
+  2024-25, judged on 2025-26 (log loss on "1+ point"); a piece stays only at 2+ standard errors on
+  2024-25 with the same sign on 2025-26 alone. Every point counts (empty net, short-handed).
+- A point in 35% of skater-games, 2+ in 9%; 0.46 points a game (0.17 goals, 0.29 assists).
+- **The winner: the Goals model's expected goals as shipped + on-ice assists.** Assists = the
+  expected goals his TEAMMATES make while he is on the ice (shift charts x the Goals model's
+  table; 50 / 15 EV / PP minutes of an average skater with his ice time mixed in) x his share of
+  their goals he assisted on (10 / 6 goals of his position's average mixed in), even strength and
+  power play apart, x tonight's EV / PP minutes, x the matchup: the defense's expected goals
+  allowed (1.54, the biggest), tonight's goalie (0.37), his line tonight (0.18), home, rest,
+  plus "spread" (0.08: log of the assists number over its average; the chances were a touch
+  bunched). Chance = 1 - e^-(goals + assists). 2025-26 log loss 0.59535; the bettor's points a
+  game 0.60284; one flat chance 0.64860. Honest: "45-55%" got a point 51%, "55-65%" 62%.
+  A re-scaling of the chance (logit x 1.09, the same both seasons) took it to 0.59505.
+- Lost: plain points a minute (0.60125), the Goals model + plain assists (0.59776), on-ice points
+  in one number (0.59669; 0.59623 with a blend toward his real points). His own team's strength
+  failed the bar (the on-ice number already carries it).
+- **Step 1b, both out** (the owner agreed to test them first): **tonight's linemates** (their EV
+  points a minute against the linemates he has played with, from the projected-lineup story;
+  read for 94% of skater-games, middle 80% 0.66x-1.36x): goals half z 1.7, assists half z 1.1,
+  log loss 0.59530 against 0.59535. Right direction both seasons, too small to count: a line move
+  is mostly carried by the minutes (`line`). **A second assist counted as half**: z 0.6. Tonight's
+  power-play unit can't be tested (see "Power-play units").
+- Not testable: the price (no free history of points prices). The record grades it from launch.
+
 ## Best Plays (`site/nhl/best.html` + `best.js`, built 2026-10-15)
 
 The owner: "I don't care about the noise, I am in a rush: what are my best overall bets
@@ -846,8 +880,8 @@ pages for the detail, not a copy of them.
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
-Built: Shots, Goals (anytime goal, with expected goals), both above. For Goals: a Points tool,
-and the market's team totals as an anchor once the record has them.
+Built: Shots, Goals (anytime goal, with expected goals), both above. Points: replayed (above),
+the model and page next. For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE

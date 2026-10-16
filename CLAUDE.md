@@ -83,7 +83,7 @@ that, move detail into a rules file.
 - `tools/run_tests.py` + `tests/`: the permanent tests. Plain Python for the build code; the site's
   JavaScript runs in a real browser on the saved data (`tests/site_browser.py`), like the site check.
 - `tools/backtest/`: week-by-week replay of the GMG model on past seasons (`features.py`, then `analyze.py`);
-  `nhl_shots.py` replays the NHL shots model the same way and fits its weights; `nhl_saves.py` the saves model; `nhl_goals*.py` the goals model; `nhl_icebreaker.py` what predicts the slate's quickest goal.
+  `nhl_shots.py` replays the NHL shots model the same way and fits its weights; `nhl_saves.py` the saves model; `nhl_goals*.py` the goals model; `nhl_points.py` the points model; `nhl_icebreaker.py` what predicts the slate's quickest goal.
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
