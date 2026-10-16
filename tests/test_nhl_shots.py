@@ -504,13 +504,32 @@ class Record(unittest.TestCase):
                 # ... the projection, the model's chance of the over, his real shots, his season average at the lock
                 # ... and whether tonight's line was a move up or down for him
                 # ... and the first line and prices the site saw (none on these hand-made rows)
-                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None],
-                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None],
+                # ... and the parts behind his number (SHOTS_FACTORS; mostly empty on these hand-made rows)
+                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None, build_nhl.shot_factors(board["9"]["players"][0])],
+                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None, build_nhl.shot_factors(board["9"]["players"][1])],
             ])
+            self.assertEqual((saved["cols"], saved["factors"]), (list(build_nhl.SHOTS_RECORD_COLS), list(build_nhl.SHOTS_FACTORS)))
+            self.assertEqual(dict(zip(build_nhl.SHOTS_FACTORS, saved["games"]["9"]["plays"][0][-1]))["vs_avg"], -0.4)  # 2.8 tonight, 3.2 a game
             # The next build sees the same finished game: nothing is added or rewritten.
             board["9"]["players"][0]["mean"] = 9.9
             self.assertEqual(build_nhl.record_finished_games(folder, board, odds, games), 0)
             self.assertEqual(json.loads((folder / "2026-10.json").read_text()), saved)
+
+    def test_the_record_keeps_the_parts_behind_each_number(self):
+        """A real board row's factors: usage, tonight's line, home / rest, where he shoots and each matchup piece's lift."""
+        record = build_nhl.reduce_game(helpers.nhl_game())
+        model = build_nhl.shots_model_for([record])
+        lineups = build_nhl.lineup(build_nhl.compute_skaters([record], {}), Counter(BUF=1, FLA=1))
+        games = [{"game_id": "77", "date": "2026-10-13", "start_utc": "2026-10-13T23:00Z", "away": "BUF", "home": "FLA", "status": "scheduled", "away_rest": 1, "home_rest": 3}]
+        board = build_nhl.shots_board(model, games, lineups, {}, [], None, datetime(2026, 10, 13, 14, 0))
+        row = next(r for r in board["77"]["players"] if r["id"] == BENSON)
+        f = dict(zip(build_nhl.SHOTS_FACTORS, build_nhl.shot_factors(row)))
+        self.assertEqual((f["pos"], f["games"], f["home"], f["rest"], f["opp_rest"], f["slot"], f["move"]), (row["pos"], 1, 0, 1, 3, None, None))
+        self.assertEqual(f["vs_avg"], round(row["mean"] - row["avg"], 3))
+        self.assertEqual({k: f[f"l_{k}"] for k in row["lift"]}, row["lift"])
+        self.assertEqual({a: f[f"s_{a}"] for a in row["shares"]}, row["shares"])
+        self.assertLess(f["l_b2b"], 1)  # BUF on the second night of a back-to-back
+        self.assertTrue(all(v is not None for k, v in f.items() if k not in ("slot", "move") and not k.startswith("s_")))  # no lineup posted; areas he shot from
 
     def test_the_record_by_edge_size(self):
         plays = [

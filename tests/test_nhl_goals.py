@@ -224,6 +224,25 @@ class Board(unittest.TestCase):
         benson = next(r for r in later["77"]["players"] if r["id"] == BENSON)
         self.assertEqual((benson["odds"], benson["first_odds"]), (330, 400))
 
+    def test_the_record_keeps_the_parts_behind_a_priced_players_number(self):
+        """A finished game: the priced player's row ends with GOALS_FACTORS, an unpriced one's with None."""
+        final = {**self.record, "id": 77}
+        entry = self.board(self.schedule(status="final", away_rest=1), records=[final], previous={"games": self.board(self.schedule(away_rest=1))})["77"]
+        with tempfile.TemporaryDirectory() as folder:
+            build_nhl.record_goal_games(Path(folder), {"77": entry}, self.schedule())
+            saved = json.loads((Path(folder) / "2026-10.json").read_text(encoding="utf-8"))
+        self.assertEqual(saved["factors"], list(build_nhl.GOALS_FACTORS))
+        plays = {p[0]: p for p in saved["games"]["77"]["plays"]}
+        row = next(r for r in entry["players"] if r["id"] == BENSON)
+        f = dict(zip(build_nhl.GOALS_FACTORS, plays[BENSON][-1]))
+        self.assertEqual((f["pos"], f["games"], f["goals"], f["home"], f["rest"], f["opp_rest"], f["zone"]), (row["pos"], 1, 0, 0, 1, 2, None))
+        self.assertEqual(f["vs_avg"], round(row["mean"] - 0, 3))  # no goals in his one game
+        self.assertEqual({k: f[f"l_{k}"] for k in row["lift"]}, row["lift"])
+        self.assertEqual({a: f[f"s_{a}"] for a in row["shares"]}, row["shares"])
+        self.assertTrue(all(p[-1] is None for pid, p in plays.items() if pid != BENSON))
+        # The record still reads it the same way.
+        self.assertEqual(len(plays[BENSON]), len(build_nhl.GOALS_RECORD_COLS))
+
     def test_a_game_that_has_started_keeps_the_last_builds_numbers(self):
         kept = json.loads(json.dumps(self.board()))
         kept["77"]["players"][0]["chance"] = 0.99
@@ -289,6 +308,15 @@ class Record(unittest.TestCase):
             # Best Plays' filterable record: every called play (check included), [date, edge, won, units].
             self.assertEqual(r["ledger"], [["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]])
             self.assertEqual(r["days"], [{"date": "2026-10-13", "wins": 1, "losses": 1, "units": 2.0}])
+
+    def test_rows_saved_before_the_factors_still_read(self):
+        old = ["1", "P1", "BUF", 0.32, 0.386, 300, 350, False, "low_slot", 1, None]  # 11 columns, no factors
+        new = ["2", *old[1:], [None] * len(build_nhl.GOALS_FACTORS)]  # 12, with them
+        with tempfile.TemporaryDirectory() as folder:
+            game = {"date": "2026-10-13", "away": "BUF", "home": "FLA", "plays": [old, new]}
+            (Path(folder) / "2026-10.json").write_text(json.dumps({"games": {"77": game}}))
+            r = build_nhl.goals_record_summary(Path(folder))
+        self.assertEqual(r["strong"], {"wins": 2, "losses": 0, "units": 6.0})
 
 
 if __name__ == "__main__":

@@ -277,7 +277,12 @@ on a replay, and the page keeps a record against the real prices.
   and played: `[id, name, team, line, over, under, projection, chance of the over, real shots,
   season average, line move, first line, first over, first under]`, all as locked before puck drop
   (the last three, since 2026-10-14: the first main line and prices the site saw, carried on each
-  board row as `first_sog` from the live shots.json; older rows don't have them).
+  board row as `first_sog` from the live shots.json; older rows don't have them), and since
+  2026-10-16 a 15th column, **`factors`** (`SHOTS_FACTORS`, `shot_factors`; the file's `cols` and
+  `factors` name them): position, games, season average, `vs_avg` (tonight's number minus it),
+  minutes, PP share, tonight's slot and line move, home, `rest` / `opp_rest` (days; now on every
+  board row too), his share from each rink area (`s_*`) and each matchup piece's lift (`l_*`).
+  See "Learning which factors win".
   - **Closing line value** (`record.clv`, the owner: "start saving the price on shots too"): on the
     plays with an edge, the play's price moved from first seen to locked, in points of chance, when
     the line didn't move (`points` = average over `priced`); a moved line counts by direction (an
@@ -766,6 +771,10 @@ zero on 2024-25, lowers 2025-26's log loss with 2024-25's weights, same sign fit
 - **The record** (`model_history/nhl_goals/<month>.json`, committed with the others): each
   finished game once, every projected player who played (priced or not), `GOALS_RECORD_COLS`, plus
   the game's locked total and moneylines (`market`, to test the market as an anchor later).
+  Since 2026-10-16 a priced player's row ends with **`factors`** (`GOALS_FACTORS`, `goal_factors`;
+  None for an unpriced one; older rows have 11 columns): position, games, goals, xG, `vs_avg`
+  (tonight's expected goals minus his goals a game), minutes, EV / PP minutes, slot, line move,
+  home, rest days, the Zone Match area, `s_*` shares and each piece's lift (`l_*`).
   `goals_record_summary`: buckets strong / lean / none / check, `zone`, `thin` (units at the locked
   Yes price); `clv` (called plays: average move in points of chance from the first price to the
   locked one, + = shortened, and how many shortened / drifted); `honest` (said vs scored, everyone);
@@ -906,6 +915,21 @@ good. Finish the Points page"). It REUSES the Goals page's layout, ids and class
   14:00 UTC, then 10/13 14:12 with that file as the live one, like the Goals sample). Rebuild it
   with that script after a change to what points.json holds.
 
+## Learning which factors win: the factor report (2026-10-16)
+
+The owner: bring Shots and Goals "up to the Points record's standard", then a report (a tool,
+not a member page). **Groundwork only: no weight was changed.**
+- All three records save the parts behind each graded play (`SHOTS_FACTORS`, `GOALS_FACTORS`,
+  `POINTS_FACTORS`), as locked before puck drop.
+- `python tools/nhl_factor_report.py` (`--market shots|goals|points`, `--every` adds the no-edge
+  plays, `--since`, `--min`, `--json`) grades every play the pages' way (`shots_play` /
+  `goals_play`; its totals match the record summaries) and groups them by each factor: plays,
+  W-L, win %, the win % the prices needed, units, return a play. A lift (and `mates`, `vs_avg`)
+  is grouped by whether it pushed toward the play's side, against it, or under 2%; labels by
+  value; other numbers by thirds. **Groups under 100 plays are marked "early"**: tell the owner
+  they can't be trusted yet. Old rows count where their own columns say enough (move, average, zone).
+- Tests: `tests/test_nhl_factor_report.py` (hand-made records, and the real ones read cleanly).
+
 ## Best Plays (`site/nhl/best.html` + `best.js`, built 2026-10-15)
 
 The owner: "I don't care about the noise, I am in a rush: what are my best overall bets
@@ -957,7 +981,7 @@ The user's next tools (2026-10-13), each built on the player card and `player_od
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
 Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Next on the
 owner's list: line / points stacks (linemates' points parlays; `PointsModel.linemates` and the
-`mates` factor are the start), then "learning which factors win" across Shots, Goals and Points. For Goals: the market's team totals as an anchor once the record has them.
+`mates` factor are the start), then re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE

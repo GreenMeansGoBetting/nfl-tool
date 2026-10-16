@@ -128,6 +128,18 @@ POINTS_HONEST = (0.0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 1.01)  # the record's 
 # matchup, and each piece's lift on his assists (a_*) and goals (g_*).
 POINTS_FACTORS = ("pos", "games", "avg", "g_mean", "a_mean", "ev_min", "pp_min", "slot", "move", "mates", "home",
                   "a_opp", "a_goalie", "a_line", "a_b2b", "a_opp_b2b", "a_spread", "g_opp", "g_goalie", "g_finish", "g_split", "g_low")
+# The same for every graded Shots play and every priced Goals player (the
+# owner, 2026-10-16: Shots and Goals "up to the Points record's standard"):
+# who he is and his usage, tonight's line, home and rest days, `vs_avg`
+# (tonight's number minus his season average a game), where he shoots
+# (`s_*`, his share from each rink area), and each matchup piece's lift
+# (`l_*`, 1.06 = +6%). tools/nhl_factor_report.py groups the record by them.
+SHOTS_FACTORS = ("pos", "games", "avg", "vs_avg", "minutes", "pp_share", "slot", "move", "home", "rest", "opp_rest",
+                 "s_low_slot", "s_slot", "s_left", "s_right", "s_point", "s_long",
+                 "l_opp", "l_pos", "l_area", "l_pp", "l_line", "l_home", "l_b2b", "l_opp_b2b")
+GOALS_FACTORS = ("pos", "games", "goals", "xg", "vs_avg", "minutes", "ev_min", "pp_min", "slot", "move", "home", "rest", "opp_rest", "zone",
+                 "s_low_slot", "s_slot", "s_left", "s_right", "s_point", "s_long",
+                 "l_opp", "l_goalie", "l_finish", "l_line", "l_home", "l_b2b", "l_opp_b2b", "l_split", "l_onetimer", "l_low")
 # King of the Crease (DraftKings' promo: the goalie with the most saves of the
 # day wins). The board covers the same days as the Shots page.
 #   blend   how far a goalie's chance to lead the day leans on the model's own
@@ -1575,6 +1587,7 @@ def shot_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: boo
         # Tonight's line, the one his own minutes say he has been on, what tonight's line
         # plays, and whether that is a move up or down.
         "slot": slot, "usual_slot": usual_slot, "line_minutes": num(proj["line_minutes"], 1), "move": line_move(slot, usual_slot),
+        "rest": rest, "opp_rest": opp_rest,
         "minutes": round(proj["minutes"], 1), "rate60": round(proj["rate"]["per_min"] * 60, 2), "att60": round(proj["rate"]["attempts"] * 60, 1),
         "thru": round(proj["rate"]["thru"], 3), "pp_share": round(proj["pp_share"], 3),
         "lift": {key: round(value, 3) for key, value in proj["lift"].items()},
@@ -1693,11 +1706,39 @@ def shots_play(chance_over: float, line: float, over, under, avg=None, move=None
     return {"side": side, "line": line, "price": price, "chance": chance, "edge": edge, "fade": fade, "against_move": against_move, "size": size}
 
 
+SHOTS_RECORD_COLS = ("id", "name", "team", "line", "over", "under", "mean", "chance_over", "actual", "avg", "move",
+                     "first_line", "first_over", "first_under", "factors")
+
+
+def factor_values(row: dict, names: tuple, average) -> list:
+    """The parts behind a Shots or Goals row's number, in `names` order
+    (SHOTS_FACTORS / GOALS_FACTORS). `average` = his season number a game,
+    for `vs_avg`. A row locked before a part was kept has None for it."""
+    lift, shares = row.get("lift") or {}, row.get("shares") or {}
+    mean = row.get("mean")
+    value = {**{k: row.get(k) for k in names}, "home": int(bool(row.get("home"))),
+             "vs_avg": round(mean - average, 3) if mean is not None and average is not None else None,
+             "zone": (row.get("zone") or {}).get("area"),
+             **{f"s_{area}": shares.get(area) for area in AREAS}, **{f"l_{k}": v for k, v in lift.items()}}
+    return [value.get(k) for k in names]
+
+
+def shot_factors(row: dict) -> list:
+    return factor_values(row, SHOTS_FACTORS, row.get("avg"))
+
+
+def goal_factors(row: dict) -> list:
+    games = row.get("games")
+    return factor_values(row, GOALS_FACTORS, row["goals"] / games if games and row.get("goals") is not None else None)
+
+
 def record_finished_games(folder: Path, board: dict, player_odds: dict, games: list) -> int:
     """Adds each newly finished game to the record: every player who had a
     main shots-on-goal line and played, with the projection and the prices
-    that were locked before puck drop and his real shots on goal. A game is
-    written once and never changed. Returns how many were added."""
+    that were locked before puck drop, his real shots on goal, and the parts
+    behind his number (`factors`, SHOTS_FACTORS order: what "learning which
+    factors win" reads; rows saved before 2026-10-16 end without it). A game
+    is written once and never changed. Returns how many were added."""
     by_month = {}
     for g in games:
         entry = board.get(g["game_id"]) or {}
@@ -1719,10 +1760,11 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
                     continue
                 first = row.get("first_sog") or {}
                 plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg"), row.get("move"),
-                              first.get("line"), first.get("over"), first.get("under")])
+                              first.get("line"), first.get("over"), first.get("under"), shot_factors(row)])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
+            saved.update(cols=SHOTS_RECORD_COLS, factors=SHOTS_FACTORS)  # older rows are just shorter
             folder.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
             added += len(saved["games"]) - before
@@ -1862,7 +1904,7 @@ def goal_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: boo
     play = goals_play(proj["chance"], price, move)
     return {
         "id": player["id"], "name": player["name"], "team": player["team"], "opp": opp, "home": home, "pos": player["pos"], "out": out,
-        "slot": slot, "usual_slot": usual_slot, "move": move, "goalie": goalie,
+        "slot": slot, "usual_slot": usual_slot, "move": move, "goalie": goalie, "rest": rest, "opp_rest": opp_rest,
         # What his season says, plain.
         "games": season.get("games", 0), "goals": season.get("goals", 0), "xg": round(season.get("xg", 0.0), 2), "shots": season.get("shots", 0),
         "minutes": round(proj["minutes"], 1), "ev_min": round(proj["ev_min"], 1), "pp_min": round(proj["pp_min"], 1), "xg60": round(proj["rate60"], 3),
@@ -1927,7 +1969,7 @@ def goals_board(model, games: list, lineups: dict, injuries: dict, records: list
     return out
 
 
-GOALS_RECORD_COLS = ("id", "name", "team", "chance", "mean", "odds", "first_odds", "thin", "zone", "actual", "move")
+GOALS_RECORD_COLS = ("id", "name", "team", "chance", "mean", "odds", "first_odds", "thin", "zone", "actual", "move", "factors")
 
 
 def record_goal_games(folder: Path, board: dict, games: list) -> int:
@@ -1936,7 +1978,9 @@ def record_goal_games(folder: Path, board: dict, games: list) -> int:
     can be graded on everyone), with the chance and the prices locked before
     puck drop, the first price the site saw (for closing line value), and
     the game's locked total and moneylines (to test the market as an anchor
-    later). Written once, never changed. Returns how many games were added."""
+    later), and for a priced player the parts behind his number (`factors`,
+    GOALS_FACTORS order; rows saved before 2026-10-16 end without it).
+    Written once, never changed. Returns how many games were added."""
     by_month = {}
     for g in games:
         entry = board.get(g["game_id"]) or {}
@@ -1951,11 +1995,13 @@ def record_goal_games(folder: Path, board: dict, games: list) -> int:
             if g["game_id"] in saved["games"]:
                 continue
             plays = [[row["id"], row["name"], row["team"], row["chance"], row["mean"], row.get("odds"), row.get("first_odds"), row.get("thin"),
-                      (row.get("zone") or {}).get("area"), row["actual"], row.get("move")] for row in entry["players"] if row.get("actual") is not None]
+                      (row.get("zone") or {}).get("area"), row["actual"], row.get("move"), goal_factors(row) if row.get("odds") is not None else None]
+                     for row in entry["players"] if row.get("actual") is not None]
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"],
                                                 "market": {k: g.get(k) for k in ("total_line", "away_ml_implied_prob", "home_ml_implied_prob")}, "plays": plays}
         if len(saved["games"]) > before:
+            saved.update(cols=GOALS_RECORD_COLS, factors=GOALS_FACTORS)  # older rows are just shorter
             folder.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
             added += len(saved["games"]) - before
@@ -1985,7 +2031,7 @@ def goals_record_summary(folder: Path) -> dict:
             out["games"] += 1
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
-            for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move in game["plays"]:
+            for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move, *_factors in game["plays"]:
                 scored = actual > 0
                 out["players"] += 1
                 for bucket in out["honest"]:
