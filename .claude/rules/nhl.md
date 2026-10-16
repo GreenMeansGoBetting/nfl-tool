@@ -828,6 +828,13 @@ pages for the detail, not a copy of them.
   `linkedRow` / `scrollToRow` in nhl-common.js pick the game, open the row and scroll to it.
 - YTD Model Performance: strong + lean + check from each page's record, added up (shots, goals,
   both). No record of its own: with no cap, its list is exactly those buckets.
+  - **Filterable** (2026-10-16, the owner: "How are SOG Best plays with a 10% edge doing in the
+    last 15 days"): each record's `ledger` (`record_ledger` in build_nhl.py) is EVERY graded play
+    of the season as `[date, edge, won, units]` (`plays` stays capped at 14 days with the detail).
+    The popup: Last 3 / 7 / 15 / 30 days / Season chips, a Min edge slider (3-20 points) in the
+    Shots and Goals tiles, All plays = both at their own minimums. An edge counts as the table
+    rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
+    ledger (an old shots.json) the plain season tiles show.
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
   scrolling (last phone block of nhl.css).
 - Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after

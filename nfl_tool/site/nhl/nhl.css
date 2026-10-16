@@ -419,6 +419,17 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .best-more a { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; color: var(--accent); white-space: nowrap; }
 .best-more a:hover { text-decoration: underline; }
 .best-table td.best-odds, .best-table td.shots-edge { min-width: 64px; }
+/* The record popup: days back, then each market's minimum edge on a slider in its tile. */
+.best-rec-windows { margin: 10px 0 0; flex-wrap: wrap; }
+.best-rec-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 760px; padding: 0; margin: 10px 0 0; }
+.best-rec-tiles .nba-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.best-rec-line { padding: 1px 8px; border-radius: 6px; }
+.best-rec-up { background: rgba(var(--good-rgb), 0.18); color: var(--text); }
+.best-rec-down { background: rgba(var(--bad-rgb), 0.16); color: var(--text); }
+.best-rec-sub { margin-top: 6px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.best-rec-edge { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.best-rec-edge input { flex: 1; min-width: 0; accent-color: var(--accent); cursor: pointer; }
+.best-rec-edge output { min-width: 34px; padding: 1px 6px; border-radius: 6px; text-align: center; font-size: 0.82rem; color: var(--text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.45); }
 
 @media (max-width: 760px) {
   .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
@@ -454,4 +465,7 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
   .best-table tbody td.shots-player { display: table-cell; vertical-align: middle; }
   .best-table .best-play { min-width: 0; }
   .best-table td.shots-rank { padding-left: 4px; padding-right: 4px; }
+  /* The record popup: one tile a row, so each slider has room to drag. */
+  .best-rec-tiles { grid-template-columns: minmax(0, 1fr); }
+  .best-rec-windows .view-toggle-btn { padding: 5px 9px; font-size: 0.78rem; }
 }

@@ -286,6 +286,8 @@ class Record(unittest.TestCase):
             self.assertAlmostEqual(r["clv"]["points"], ((0.25 - 100 / 450) + (0.25 - 100 / 350)) / 2, places=4)
             self.assertEqual(sum(b["players"] for b in r["honest"]), 5)
             self.assertEqual([p["id"] for p in r["plays"]], ["4", "1", "2"])
+            # Best Plays' filterable record: every called play (check included), [date, edge, won, units].
+            self.assertEqual(r["ledger"], [["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]])
             self.assertEqual(r["days"], [{"date": "2026-10-13", "wins": 1, "losses": 1, "units": 2.0}])
 
 

@@ -165,6 +165,50 @@ class Notes(unittest.TestCase):
             self.assertTrue(PAGE.locator("#best-lineups").is_hidden())
 
 
+class Record(unittest.TestCase):
+    """The YTD popup filters each market's season-long ledger by days back and a minimum edge
+    (the owner, 2026-10-16: "How are SOG Best plays with a 10% edge doing in the last 15 days")."""
+
+    def setUp(self):
+        PAGE.evaluate("() => { try { localStorage.removeItem('nfl-tool.nhl-best-record.v1'); } catch (e) {} }")
+
+    def tearDown(self):
+        PAGE.evaluate("() => { delete SHOTS.record.ledger; delete GOALS.record.ledger; Object.assign(recordView, { days: 0, sog: 3, goal: 3 }); document.getElementById('best-record-modal').hidden = true; }")
+
+    def tiles(self):
+        return PAGE.evaluate("() => Object.fromEntries(['all', 'sog', 'goal'].map((k) => [k, document.querySelector(`[data-rec-body=\"${k}\"] b`).textContent]))")
+
+    def test_days_back_and_minimum_edge(self):
+        PAGE.evaluate("""() => {
+            const ago = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toLocaleDateString('en-CA'); };
+            SHOTS.record.ledger = [[ago(40), 0.15, 1, 0.9], [ago(10), 0.04, 0, -1], [ago(10), 0.0996, 1, 0.8], [ago(2), 0.12, 0, -1], [ago(1), 0.03, 1, 1.1]];
+            GOALS.record.ledger = [[ago(20), 0.05, 1, 4], [ago(3), 0.08, 0, -1]];
+            Object.assign(recordView, { days: 0, sog: 3, goal: 3 });
+            renderRecord();
+        }""")
+        reset()
+        PAGE.click("#best-record-open")
+        self.assertEqual(self.tiles(), {"all": "4-3", "sog": "3-2", "goal": "1-1"})
+        PAGE.click('[data-rec-days="15"]')  # the 40- and 20-day-old plays drop out
+        self.assertEqual(self.tiles(), {"all": "2-3", "sog": "2-2", "goal": "0-1"})
+        # 10+ points: 9.96 counts (the table shows it as 10.0); the goals slider is its own.
+        PAGE.fill('[data-rec-edge="sog"]', "10")
+        self.assertEqual(self.tiles(), {"all": "1-2", "sog": "1-1", "goal": "0-1"})
+        self.assertIn("SHOTS 10+", PAGE.inner_text('[data-rec-sub="all"]').upper())
+        # Remembered on this device.
+        self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.nhl-best-record.v1'))"), {"days": 15, "sog": 10, "goal": 3})
+        self.assertEqual(SITE.errors, [])
+
+    def test_without_ledgers_the_season_buckets(self):
+        """A shots.json from before the ledger (the saved samples): the season's strong + lean + check, no filters."""
+        reset()
+        PAGE.click("#best-record-open")
+        self.assertEqual(PAGE.locator("[data-rec-days]").count(), 0)
+        rec = nhl_shots()["record"]
+        wins = sum(rec[k]["wins"] for k in ("strong", "lean", "check"))
+        self.assertIn(f"{wins}-", PAGE.inner_text("#best-results"))
+
+
 class Links(unittest.TestCase):
     def test_a_row_opens_his_row_on_the_shots_or_goals_page(self):
         rows = reset()

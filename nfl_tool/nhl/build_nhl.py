@@ -1658,6 +1658,15 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
     return added
 
 
+def record_ledger(plays: list) -> list:
+    """Every graded play that declared an edge, the whole season, as short rows
+    `[date, edge, won (1/0), units]`, oldest first: what Best Plays' record popup
+    filters by days back and minimum edge (the owner, 2026-10-16: "how are SOG
+    Best plays with a 10% edge doing in the last 15 days"). `plays` keeps only
+    the latest days, with every detail; this keeps every day, with only these."""
+    return [[p["date"], p["edge"], int(p["won"]), p["units"]] for p in sorted(plays, key=lambda p: (p["date"], -p["edge"]))]
+
+
 def shots_record_summary(folder: Path) -> dict:
     """The record so far, by how big the edge was when the game locked:
     wins, losses and units won risking 1 unit a play at the locked price.
@@ -1725,6 +1734,7 @@ def shots_record_summary(folder: Path) -> dict:
                 })
     out["clv"]["points"] = round(out["clv"]["points"] / out["clv"]["priced"], 4) if out["clv"]["priced"] else None  # average, per play on an unmoved line
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
+    out["ledger"] = record_ledger(plays)
     latest = set(sorted({play["date"] for play in plays})[-SHOTS_RECORD_DAYS:])
     out["plays"] = sorted((play for play in plays if play["date"] in latest), key=lambda play: (play["date"], play["edge"]), reverse=True)
     return out
@@ -1949,6 +1959,7 @@ def goals_record_summary(folder: Path) -> dict:
     n = out["clv"]["plays"]
     out["clv"]["points"] = round(out["clv"]["points"] / n, 4) if n else None  # average, per play
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
+    out["ledger"] = record_ledger(plays)
     latest = set(sorted({play["date"] for play in plays})[-GOALS_RECORD_DAYS:])
     out["plays"] = sorted((play for play in plays if play["date"] in latest), key=lambda play: (play["date"], play["edge"]), reverse=True)
     return out
