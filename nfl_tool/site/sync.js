@@ -225,6 +225,32 @@ function closeGmgSettings() {
 }
 window.GMGSettings = { open: openGmgSettings };
 
+// ---- What's new (the owner, 2026-10-15) ----
+// The site's updates, in a popup each member sees once: the first page they
+// open after a new update is posted shows the ones they haven't seen, with
+// the earlier ones folded underneath. "What's new" in the account chip opens
+// it again. A NEW UPDATE IS ONE ENTRY AT THE TOP of this list (id = the date;
+// a second one on the same day gets "2026-10-15b"). `text` is the owner's
+// wording; the first words in <b> name the feature.
+const GMG_UPDATES = [
+  {
+    id: "2026-10-15",
+    items: [
+      ["🏒", "<b>NHL Icebreaker</b> is live under NHL Promo Tools and helps you find the quickest goal of the 7 PM slate, with a Historical Data popup."],
+      ["🏒", "<b>NHL Best Plays</b> is a new page that puts every Shots and Goals edge in one list, with a GMG Fair price next to each play’s odds."],
+      ["🏒", "<b>NHL Shots &amp; Goals</b> pages are cleaner, with trimmed tables, a new Rating column and a toggle to show advanced stats."],
+      ["🏒", "<b>The NHL top bar</b> has been rebuilt with Games, a Player Props menu (Shots, Goals, Best Plays) and Promo Tools, so everything is one click away."],
+      ["⚙️", "<b>A Settings gear</b> on every page lets you pick your odds format, choose a color set and save “My Books” so the prices you see match where you bet."],
+      ["🎨", "<b>A new site-wide font</b> makes every page in NFL, NBA and NHL easier to read."],
+      ["🏈", "<b>NFL injury matching</b> is more reliable, so injured players get flagged even when the injury report spells a name differently."],
+      ["⚡", "<b>Updates go live faster</b> behind the scenes, so fixes and new features reach the site sooner."],
+    ],
+  },
+];
+// The newest update id the member has seen (synced: once per member, not
+// once per device or per sport address).
+const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
+
 (function () {
   const KEYS = [
     "nfl-tool.possible-plays.v1",
@@ -237,6 +263,7 @@ window.GMGSettings = { open: openGmgSettings };
     "nfl-tool.model-presets.v1",
     "nfl-tool.my-books.v1",
     GMG_SETTINGS_KEY,
+    GMG_UPDATES_SEEN_KEY,
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;
@@ -371,8 +398,12 @@ window.GMGSettings = { open: openGmgSettings };
     el.className = "acct-chip";
     el.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
     // Email members (Stripe) get Stripe's page for updating a card or cancelling.
-    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}<a href="/auth/logout">Log out</a>`;
+    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}<a href="#" class="acct-updates">What's new</a><a href="/auth/logout">Log out</a>`;
     el.querySelector(".acct-name").textContent = user.name || "Signed in";
+    el.querySelector(".acct-updates").addEventListener("click", (e) => {
+      e.preventDefault();
+      openUpdates();
+    });
     bar.prepend(el);
     addSettingsButton();
     showRequestButton(user);
@@ -506,6 +537,78 @@ window.GMGSettings = { open: openGmgSettings };
     btn.addEventListener("click", user.owner ? openRequestList : openRequestForm);
     (document.getElementById("settings-btn") || chip).before(btn);
   }
+
+  // ---- What's new popup (GMG_UPDATES above) ----
+  function updatesSeen() {
+    try {
+      return JSON.parse(localStorage.getItem(GMG_UPDATES_SEEN_KEY)) || "";
+    } catch (e) {
+      return "";
+    }
+  }
+  function updatesDue() {
+    return GMG_UPDATES.length > 0 && updatesSeen() < GMG_UPDATES[0].id;
+  }
+  function updateDate(id) {
+    return new Date(`${id.slice(0, 10)}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  }
+  function openUpdates() {
+    let overlay = document.getElementById("updates-modal");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "updates-modal";
+      overlay.className = "modal-overlay";
+      overlay.hidden = true;
+      overlay.innerHTML = '<div class="modal-box"><button type="button" class="modal-close" aria-label="Close">&times;</button><div class="upd-content"></div></div>';
+      const close = () => (overlay.hidden = true);
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay || e.target.closest(".modal-close, .upd-done")) return close();
+        if (e.target.closest(".upd-request")) {
+          close();
+          openRequestForm();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !overlay.hidden) close();
+      });
+      document.body.appendChild(overlay);
+    }
+    // The ones they haven't seen on top (or the latest, opened again by hand);
+    // everything older folded underneath.
+    const seen = updatesSeen();
+    const fresh = GMG_UPDATES.filter((u) => u.id > seen);
+    const shown = fresh.length ? fresh : GMG_UPDATES.slice(0, 1);
+    const earlier = GMG_UPDATES.slice(shown.length);
+    const block = (u, isNew) => `<section class="upd-day">
+      <div class="upd-date">${updateDate(u.id)}${isNew ? '<span class="upd-new">New</span>' : ""}</div>
+      <ul class="upd-list">${u.items.map(([icon, text]) => `<li><span class="upd-icon" aria-hidden="true">${icon}</span><span>${text}</span></li>`).join("")}</ul>
+    </section>`;
+    overlay.querySelector(".upd-content").innerHTML = `<h3 class="upd-title"><span class="upd-dot" aria-hidden="true"></span>What's new</h3>
+      <div class="upd-sub">GMG Sports Data Suite</div>
+      ${shown.map((u) => block(u, u.id > seen)).join("")}
+      ${earlier.length ? `<details class="upd-earlier"><summary>Earlier updates (${earlier.length})</summary>${earlier.map((u) => block(u, false)).join("")}</details>` : ""}
+      <div class="upd-foot">Feel free to click <button type="button" class="upd-request"><span aria-hidden="true">&#128161;</span> Request a feature</button> and send a message for what you'd like to see.</div>
+      <div class="set-actions"><button type="button" class="set-done upd-done">Got it</button></div>`;
+    overlay.hidden = false;
+    overlay.querySelector(".modal-box").scrollTop = 0;
+    // Seen once it has been shown, so leaving without closing it doesn't bring it back.
+    const newest = GMG_UPDATES[0]?.id;
+    if (newest && seen < newest) {
+      try {
+        localStorage.setItem(GMG_UPDATES_SEEN_KEY, JSON.stringify(newest));
+      } catch (e) {}
+      window.NFLSync?.push(GMG_UPDATES_SEEN_KEY, newest);
+    }
+  }
+  // After the profile has loaded (it knows what this member saw on another
+  // device). Never while a browser is driven by a script: the deploy's page
+  // check and the tests open every page fresh, and the popup would sit over them.
+  function maybeShowUpdates() {
+    if (navigator.webdriver || !updatesDue()) return;
+    if (document.querySelector(".modal-overlay:not([hidden])")) return; // another popup is open: next page
+    openUpdates();
+  }
+  window.GMGUpdates = { open: openUpdates, due: updatesDue };
 
   // ---- Suite switcher (added 2026-10-11) ----
   // The brand in the topbar ("GMG NFL SUITE") becomes a dropdown for moving
@@ -683,7 +786,7 @@ window.GMGSettings = { open: openGmgSettings };
     document.documentElement.classList.add("local-dev");
     addSettingsButton();
   }
-  pull();
+  pull().then(maybeShowUpdates, maybeShowUpdates);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") pull();
   });

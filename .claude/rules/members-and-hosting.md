@@ -311,6 +311,16 @@ For people who'd pay but won't join Discord. Password version: no email service,
   requests": it lists every idea newest first (name, date), with Mark added / Undo / Delete (a
   PATCH; delete is soft, status `deleted`) and "+ Add my own idea". Members can never read others'
   ideas.
+- **What's new popup** (2026-10-15): `GMG_UPDATES` at the top of sync.js. Each member sees it
+  once, on the first page they open after a new update is posted: unseen updates on top
+  ("New" tag), older ones folded under "Earlier updates", then "Feel free to click 💡 Request a
+  feature..." (opens the idea box) and "Got it". What they've seen is `nfl-tool.updates-seen.v1`
+  (synced, so once per member, not per device or sport address); it is marked seen as soon as it
+  shows. "What's new" in the account chip opens it again. It never opens on its own in a browser
+  driven by a script (`navigator.webdriver`: the gate, the tests). **To post an update:** add one
+  entry at the TOP (`id` = the date, `"2026-10-15b"` for a second that day; `items` =
+  `[emoji, "<b>Feature</b> rest of the line"]`), in the owner's wording. Test:
+  `tests/test_updates_site.py`.
 - **Promo payouts** (`PROMO_PAYOUTS`, 2026-10-14): `/api/crease-payouts` (NHL King of the
   Crease, keyed by `date`) and `/api/koe-payouts` (NFL King of the Endzone, keyed by nflverse
   `game` id). GET for any signed-in member, PUT owner-only (`{date|game, pool, payouts: [{id,

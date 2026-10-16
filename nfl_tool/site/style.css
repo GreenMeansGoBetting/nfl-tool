@@ -3829,6 +3829,25 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
 .set-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
 .set-done { padding: 7px 22px; border-radius: 6px; border: none; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }
 
+/* ---- What's new (sync.js GMG_UPDATES): once per member after each update ---- */
+#updates-modal .modal-box { max-width: 600px; width: 92vw; max-height: 90vh; overflow-y: auto; }
+.upd-title { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin: 0 28px 0 0; }
+.upd-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25); flex: none; }
+.upd-sub { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin: 2px 0 12px 22px; }
+.upd-day + .upd-day { margin-top: 14px; }
+.upd-date { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; background: var(--panel-2); border-left: 4px solid var(--accent); font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.upd-new { padding: 1px 8px; border-radius: 999px; background: rgba(var(--accent-rgb), 0.16); border: 1px solid rgba(var(--accent-rgb), 0.5); color: var(--good-text); font-size: 0.7rem; letter-spacing: 0.08em; }
+.upd-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.upd-list li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel-2); font-size: 0.93rem; line-height: 1.35; }
+.upd-list b { color: var(--text); font-weight: 700; }
+.upd-icon { flex: none; width: 22px; text-align: center; font-size: 1.05rem; line-height: 1.25; }
+.upd-earlier { margin-top: 14px; }
+.upd-earlier summary { cursor: pointer; color: var(--muted); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.upd-earlier[open] summary { margin-bottom: 10px; }
+.upd-foot { margin-top: 14px; padding: 10px 12px; border-radius: 6px; background: rgba(var(--accent-rgb), 0.08); border: 1px solid rgba(var(--accent-rgb), 0.35); font-size: 0.9rem; line-height: 1.6; }
+.upd-request { display: inline-flex; align-items: center; gap: 4px; margin: 0 2px; padding: 1px 10px; border-radius: 999px; border: 1px solid rgba(var(--mid-rgb), 0.45); background: rgba(var(--mid-rgb), 0.12); color: var(--mid-text); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.upd-request:hover { background: rgba(var(--mid-rgb), 0.22); }
+
 .brand-group { display: flex; align-items: center; min-width: 0; }
 .odds-credit { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font-size: 0.72rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .odds-credit:hover { color: var(--text); border-color: var(--border-strong); }
