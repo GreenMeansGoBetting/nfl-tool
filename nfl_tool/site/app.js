@@ -1389,7 +1389,7 @@ function summaryOddsRail(away, home, week) {
       .filter((p) => chosen.has(p.key))
       .map((p) => {
         const cell = (odds, market) => (odds ? summaryPlayCheck(summaryPlayEntry(week, matchup, market, team, p.name, odds), showOdds(odds.best_odds)) : `<span class="muted">--</span>`);
-        return `<tr><td><span class="sc-player player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${summaryHeadshot(team, p.name, 26)}<span class="sc-odds-name">${p.name} <span class="muted">${p.position || ""}</span></span></span></td><td class="num">${cell(p.any, "anytime_td")}</td><td class="num">${cell(p.first, "first_td")}</td></tr>`;
+        return `<tr><td><span class="sc-player player-click" data-entry="${encodeDataAttr({ team, name: p.name })}">${summaryHeadshot(team, p.name, 22)}<span class="sc-odds-name">${p.name} <span class="muted">${p.position || ""}</span></span></span></td><td class="num">${cell(p.any, "anytime_td")}</td><td class="num">${cell(p.first, "first_td")}</td></tr>`;
       })
       .join("");
     const rgb = teamAccentRgb(team);
@@ -1400,7 +1400,10 @@ function summaryOddsRail(away, home, week) {
         ? `<table class="sc-table sc-odds"><thead><tr><th>Player</th><th class="num">Anytime</th><th class="num">1st TD</th></tr></thead><tbody>${rows}</tbody></table>`
         : `<p class="sc-odds-empty">Click TD Odds to pick players</p>`}</div>`;
   };
-  return `<section class="sc-section sc-section-odds">
+  // 9+ players on a team (up to 20 in all) would push the card past its
+  // height and shrink everything, so a long list gets the tighter rows.
+  const many = Object.values(picks).reduce((n, l) => n + (l || []).length, 0) > 16;
+  return `<section class="sc-section sc-section-odds${many ? " td2-odds-dense" : ""}">
     <button type="button" class="sc-section-title sc-odds-open" title="Pick which players show here">TD Odds</button>
     ${block(away)}
     ${block(home)}
@@ -1617,7 +1620,7 @@ function td2TagRow(t) {
       const label = short(m[1].trim().replace(/:$/, ""));
       const unit = short(m[3].trim());
       const showUnit = unit && raw.length < 3 && !/^of /.test(unit);
-      return `<span class="td2-part"><small>${label}</small><b class="${t.kind === "good" ? "tier-good" : "tier-mid"}">${m[2]}</b>${showUnit ? `<small>${unit}</small>` : ""}</span>`;
+      return `<span class="td2-part"><small>${label}</small><b class="${t.kind === "good" ? "tier-good" : "tier-bad"}">${m[2]}</b>${showUnit ? `<small>${unit}</small>` : ""}</span>`;
     })
     .join("");
   return `<div class="td2-tag${raw.length > 2 ? " td2-tag-3" : ""}" title="${String(t.title).replace(/"/g, "&quot;")}"><span class="tag-chip tag-chip-${t.kind}">${t.label}</span><span class="td2-parts">${parts}</span></div>`;
@@ -1646,18 +1649,67 @@ function td2KeyPlayers(offTeam, defTeam, week, items, tags) {
     ? list.map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}" title="Fits ${e.n} of this team's targets / tags">${playerClick(offTeam, e.name, `${summaryHeadshot(offTeam, e.name, 22)}${names[e.name]}`, defTeam)}<span class="sc-stars">${"★".repeat(Math.min(5, e.n))}</span></span>`).join("")
     : `<span class="target-none">&mdash;</span>`;
 }
-function td2Main(away, home, week, pAway, game) {
-  const itemsAway = td2TargetItems(away, home);
-  const itemsHome = td2TargetItems(home, away);
-  const tagsAway = matchupTags(away, home).slice(0, TD2_TAGS_SHOWN);
-  const tagsHome = matchupTags(home, away).slice(0, TD2_TAGS_SHOWN);
+// The 1st TD position row (user 2026-10-16: "JAX has 4 of 5 WR first and
+// when HOU allows it's been WR 100% of the time"): the position that scored
+// this offense's game-opening TDs most, and how often that SAME position beat
+// the other defense to the first TD, so both sides read the same thing.
+// Ties go to the position the defense gives up more, then the offense's
+// overall TD share. Shaded like the tape (green = good for that team) only
+// with 3+ first TDs behind the share; fewer stays plain.
+const TD2_FIRST_POS_MIN = 3;
+function td2FirstPos(offTeam, defTeam) {
+  const off = (DATA.team_stats[offTeam] || {}).first_td_position || {};
+  const def = (DATA.team_stats[defTeam] || {}).first_td_position_allowed || {};
+  const all = (DATA.team_stats[offTeam] || {}).off_position_td || {};
+  const pos = POSITIONS.filter((p) => p !== "DST")
+    .sort((a, b) => (off[b] || 0) - (off[a] || 0) || (def[b] || 0) - (def[a] || 0) || (all[b] || 0) - (all[a] || 0))[0];
+  const sum = (d) => Object.values(d).reduce((a, b) => a + (b || 0), 0);
+  return { pos, off: off[pos] || 0, offOf: sum(off), def: def[pos] || 0, defOf: sum(def) };
+}
+function td2FirstPosCell(pos, n, of, side) {
+  if (!of) return `<span class="g5-cell"><span class="g5-grade td2-val">--</span><span class="g5-rank">0/0</span></span>`;
+  const share = n / of;
+  // Offense: a big share is good for it. Defense: allowing a big share is bad for it.
+  const good = side === "off" ? share >= 0.6 : share <= 0.2;
+  const bad = side === "off" ? share <= 0.2 : share >= 0.6;
+  const cls = of < TD2_FIRST_POS_MIN ? "" : good ? " tier-good" : bad ? " tier-bad" : " tier-mid";
+  const who = side === "off" ? "of its first TDs" : "of the first TDs it allowed";
+  return `<span class="g5-cell" title="${pos}: ${n} of ${of} ${who}"><span class="g5-grade td2-val td2-pos${cls}">${pos}</span><span class="g5-rank">${n}/${of}</span></span>`;
+}
+function td2FirstPosRow(away, home) {
+  const a = td2FirstPos(away, home);
+  const h = td2FirstPos(home, away);
+  const none = `<span class="g5-adv g5-adv-none">&ndash;</span>`;
+  return `<div class="g5-row">${none}${td2FirstPosCell(a.pos, a.off, a.offOf, "off")}${td2FirstPosCell(a.pos, a.def, a.defOf, "def")}<span class="g5-label">1st TD by</span>${td2FirstPosCell(h.pos, h.off, h.offOf, "off")}${td2FirstPosCell(h.pos, h.def, h.defOf, "def")}${none}</div>`;
+}
+// Each team's flagged rows and shown tags (Key Players are built from both).
+function td2Parts(away, home) {
+  return {
+    itemsAway: td2TargetItems(away, home),
+    itemsHome: td2TargetItems(home, away),
+    tagsAway: matchupTags(away, home).slice(0, TD2_TAGS_SHOWN),
+    tagsHome: matchupTags(home, away).slice(0, TD2_TAGS_SHOWN),
+  };
+}
+// Key Players at the top of the TD Odds rail (user 2026-10-16), each team's
+// pills on a block in its team color, like the odds rail's team headers.
+function td2KeyRail(away, home, week, parts) {
+  const block = (team, opp, items, tags) => {
+    const rgb = teamAccentRgb(team).join(",");
+    return `<div class="td2-keyteam" style="background:rgba(${rgb},0.22);border-left:4px solid rgb(${rgb})"><span class="td2-keyteam-logo">${teamLogoMini(team, 22)}</span><div class="td2-keys">${td2KeyPlayers(team, opp, week, items, tags)}</div></div>`;
+  };
+  return `<section class="sc-section td2-keyrail"><div class="sc-section-title">Key Players</div>${block(away, home, parts.itemsAway, parts.tagsAway)}${block(home, away, parts.itemsHome, parts.tagsHome)}</section>`;
+}
+// keysInMain: with the TD Odds rail hidden, Key Players close the main column.
+function td2Main(away, home, week, pAway, game, parts = td2Parts(away, home), keysInMain = true) {
+  const { itemsAway, itemsHome, tagsAway, tagsHome } = parts;
   const tagCol = (tags) => `<div class="td2-col">${tags.length ? tags.map(td2TagRow).join("") : `<span class="target-none">No tags this week</span>`}</div>`;
   const sec = (title, body, cls = "") => `<section class="td2-sec ${cls}"><div class="td2-h">${title}</div>${body}</section>`;
   return `<div class="td2-banners">${summaryTdTeamBanner(away, game, topTdScorers(away, week), home)}${summaryTdTeamBanner(home, game, topTdScorers(home, week), away)}</div>
     ${sec("TD Targets", `<div class="g5-tape">${td2Head(away, home, "scores", "allows")}${td2Tape(away, home, TD2_ROWS, itemsAway, itemsHome)}</div>`, "td2-targets")}
-    ${sec("First TD", `<div class="g5-tape">${td2ChanceRow(away, home, pAway)}${td2Tape(away, home, [{ metric: "first", label: "Scores first" }], itemsAway, itemsHome)}</div>`)}
+    ${sec("First TD", `<div class="g5-tape">${td2ChanceRow(away, home, pAway)}${td2Tape(away, home, [{ metric: "first", label: "Scores first" }], itemsAway, itemsHome)}${td2FirstPosRow(away, home)}</div>`)}
     ${sec("Matchup Tags", `<div class="td2-two">${tagCol(tagsAway)}${tagCol(tagsHome)}</div>`)}
-    ${sec("Key Players", `<div class="td2-two"><div class="td2-col td2-keys">${td2KeyPlayers(away, home, week, itemsAway, tagsAway)}</div><div class="td2-col td2-keys">${td2KeyPlayers(home, away, week, itemsHome, tagsHome)}</div></div>`)}`;
+    ${keysInMain ? sec("Key Players", `<div class="td2-two"><div class="td2-col td2-keys">${td2KeyPlayers(away, home, week, itemsAway, tagsAway)}</div><div class="td2-col td2-keys">${td2KeyPlayers(home, away, week, itemsHome, tagsHome)}</div></div>`) : ""}`;
 }
 
 function renderSummaryCard(away, home) {
@@ -1681,6 +1733,7 @@ function renderSummaryCard(away, home) {
   const rgbH = teamAccentRgb(home);
   const railHidden = summaryRailHidden("td");
   syncSummaryRailButton("td", "TD Odds");
+  const parts = td2Parts(away, home);
   card.innerHTML = `<div class="sc-inner td-card sc-grow${railHidden ? " sc-no-rail" : ""}">
     <div class="sc-header">
       <div class="sc-title-row">
@@ -1694,9 +1747,9 @@ function renderSummaryCard(away, home) {
 
     <div class="sc-body">
       <div class="sc-main sc-zoom-target td2">
-        ${td2Main(away, home, week, pAway, game)}
+        ${td2Main(away, home, week, pAway, game, parts, railHidden)}
       </div>
-      ${railHidden ? "" : summaryOddsRail(away, home, week)}
+      ${railHidden ? "" : `<div class="td2-rail">${td2KeyRail(away, home, week, parts)}${summaryOddsRail(away, home, week)}</div>`}
     </div>
 
     <div class="sc-footer">

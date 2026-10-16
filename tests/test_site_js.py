@@ -323,6 +323,33 @@ class PocketQuarterbacks(unittest.TestCase):
         self.assertTrue(any(where == "banner photo" for _, where in pocket), pocket)
 
 
+class TdFirstTdPosition(unittest.TestCase):
+    """The First TD section's "1st TD by" row (2026-10-16) reads both sides
+    for the SAME position: the one that scored this offense's game-opening
+    TDs most, and how often that position beat the other defense to it."""
+
+    def test_both_sides_show_the_offense_top_position(self):
+        rows = TD.evaluate("""() => DATA.schedule.filter((g) => g.week === DATA.current_week).flatMap((g) => [[g.away, g.home], [g.home, g.away]]).map(([o, d]) => {
+            const r = td2FirstPos(o, d);
+            const off = DATA.team_stats[o].first_td_position, def = DATA.team_stats[d].first_td_position_allowed;
+            return { o, d, ...r, offMax: Math.max(...POSITIONS.filter((p) => p !== "DST").map((p) => off[p] || 0)), defAt: def[r.pos] || 0, offGames: DATA.team_stats[o].first_td_games };
+        })""")
+        self.assertTrue(rows)
+        for r in rows:
+            self.assertNotEqual(r["pos"], "DST")
+            self.assertEqual(r["off"], r["offMax"], r)
+            self.assertEqual(r["def"], r["defAt"], r)
+        # Each offense's first TDs by position add up to its first-TD games.
+        self.assertTrue(any(r["offOf"] == r["offGames"] for r in rows))
+
+    def test_the_row_is_on_the_card(self):
+        labels = TD.evaluate("() => {" + TD_CARD_JS + """
+            return cards.map(({ doc }) => [...doc.querySelectorAll(".g5-label")].map((e) => e.textContent));
+        }""")
+        for card in labels:
+            self.assertIn("1st TD by", card)
+
+
 class TdSummaryTargets(unittest.TestCase):
     """No target chip on a TD Summary row where the defense's number on the
     card ranks in the league's top 8 (TD2_GOOD_DEF_RANK): a logo next to a

@@ -61,7 +61,7 @@ The user wants the whole offense's usage, not "who has scored before".
 
 Simplified 2026-10-12 at the user's call (the wall of tiles, different for each team, read as
 "so much data it's overwhelming"). Do not go back to tiles or add rows without asking. The TD
-Odds picks stay as a 250px right rail (team headers in team color). Main area, top to bottom:
+Odds picks stay in a 330px right rail (team headers in team color). Main area, top to bottom:
 
 - **Team banners** (`summaryTdTeamBanner`, the part the user loves): name/logo, Implied TDs
   (implied points from Novig spread + total, / 7), Top TD position, and photos of the team's
@@ -82,13 +82,23 @@ Odds picks stay as a 250px right rail (team headers in team color). Main area, t
     opponent-adjusted and usage numbers and could flag DAL's run game against a TB defense
     ranked #3 on the card, which read as a mistake.
   - **First TD**: the 1st TD chance for this game (one big box per team), then a "Scores first"
-    row (season rate vs how often the other team allows it), with a chip when First TD is a target.
+    row (season rate vs how often the other team allows it), with a chip when First TD is a target,
+    then a **"1st TD by"** row (`td2FirstPos`): the position that scored this offense's game-opening
+    TDs most ("WR 4/5") and how often that SAME position beat the other defense to the first TD
+    ("WR 2/2"). Shaded only with 3+ first TDs behind it (`TD2_FIRST_POS_MIN`).
   - **Matchup Tags**: one line each (`td2TagRow`: chip, then up to three of its numbers; sample
     sizes and league notes stay in the tooltip; a three-number tag drops its unit text, and
     `TD2_TAG_WORDS` shortens long wording, so every line fits its box),
-    at most `TD2_TAGS_SHOWN` 3 per team.
+    at most `TD2_TAGS_SHOWN` 3 per team. Warning tags (and their numbers) are red on this card:
+    they are roadblocks, and yellow read as "meh" (user 2026-10-16).
   - **Key Players**: up to `TD2_KEY_PLAYERS` 5 per team, stars = how many of the flagged rows and
-    shown tags the player fits.
+    shown tags the player fits. Since 2026-10-16 they sit at the TOP of the right rail, above TD
+    Odds, each team's pills on a block in its team color (`td2KeyRail`); they move back to the
+    bottom of the main column only when the rail is hidden.
+- **Width (2026-10-16, user: "way too wide"):** the narrower main column brings the four TD
+  Targets columns in ~25%. The rail must fit 16-20 picked players without growing the card
+  (a taller card shrinks everything): odds rows are one line, and past 16 picks they lose their
+  padding (`td2-odds-dense`).
 - **A QB is a TD-scoring option only if he runs** (`qbIsRunner`: 15+ rush yards or 5+ carries a
   game). Otherwise he never appears in Key Players or the banner photos. The user, on Stafford:
   "his TD was a fluke". His red-zone sneaks had also made him a top red-zone "usage" player.

@@ -3960,3 +3960,65 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .td2-tag-3 .td2-part b { font-size: 0.95rem; padding: 0 4px; }
 .td-card .td2 { justify-content: space-between; }
 .td2-keys { align-items: center; align-content: center; }
+
+/* TD Summary, 2026-10-16 (user: "way too wide now", the odds rail hung off the right):
+   the main column is narrower so the TD Targets columns come in ~25%, and the rail is
+   wider and holds Key Players (each team on its own team-color block) above TD Odds. */
+.td-card .sc-body { grid-template-columns: minmax(0, 1fr) 330px; align-items: stretch; }
+.td-card.sc-no-rail .sc-body { grid-template-columns: minmax(0, 1fr); }
+.td2-rail { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.td2-rail > .sc-section { padding: 8px 10px 10px; }
+.td2-rail > .sc-section .sc-section-title { margin-bottom: 6px; }
+.td2-rail > .sc-section-odds { flex: 1 1 auto; }
+.td2-keyteam { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; }
+.td2-keyteam + .td2-keyteam { margin-top: 6px; }
+.td2-keyteam-logo { flex: 0 0 auto; display: inline-flex; }
+.td2-keyteam .td2-keys { display: flex; flex: 1 1 auto; justify-content: flex-start; gap: 5px; min-width: 0; }
+.td2-keyteam .sc-key { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); background-color: var(--panel); background-image: linear-gradient(rgba(var(--good-rgb), 0.12), rgba(var(--good-rgb), 0.12)); }
+.td2-keyteam .sc-key-warn { background-image: linear-gradient(rgba(var(--mid-rgb), 0.14), rgba(var(--mid-rgb), 0.14)); }
+.td-card .td2-rail .sc-odds-team { margin: 4px 0 2px; padding: 4px 10px; }
+.td-card .td2-rail .sc-odds td { padding: 2px 3px; }
+.td-card .td2-rail .sc-odds-name { white-space: nowrap; }
+.td-card .td2-rail .sc-odds .sc-pp { font-size: 0.76rem; padding: 1px 6px; }
+.td-card .td2 { justify-content: flex-start; gap: 8px; }
+.td-card .td-banner { gap: 7px; padding: 11px 12px 12px; }
+.td2-targets { flex: 1 1 auto; }
+.td2 .g5-row { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 136px minmax(0, 1fr) minmax(0, 1fr) 44px; gap: 6px; }
+.td2 .td2-chance-row { grid-template-columns: 44px minmax(0, 1fr) 136px minmax(0, 1fr) 44px; }
+.td2 .g5-head { gap: 4px; font-size: 0.66rem; letter-spacing: 0.04em; }
+.td2 .g5-head b { font-size: 0.84rem; }
+.td2 .g5-edge-h { font-size: 0.54rem; letter-spacing: 0.04em; }
+.td2 .g5-label { font-size: 1rem; letter-spacing: 0.03em; }
+.td2 .g5-adv .team-logo-mini { width: 22px; height: 22px; }
+.td2 .td2-pos { font-size: 1.05rem; }
+.td2 .td2-pos.tier-good { border-color: rgba(var(--good-rgb), 0.6); }
+.td2 .td2-pos.tier-mid { border-color: rgba(var(--mid-rgb), 0.6); }
+.td2 .td2-pos.tier-bad { border-color: rgba(var(--bad-rgb), 0.6); }
+/* Warning tags are roadblocks: red, not a "meh" yellow (user 2026-10-16) */
+.td2-tag .tag-chip-warn { color: var(--bad-text); border-color: rgba(var(--bad-rgb), 0.6); background: rgba(var(--bad-rgb), 0.1); }
+.td2-part b.tier-bad { background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); }
+.td2-rail > .sc-section { padding: 7px 9px 8px; }
+.td2-rail > .sc-section .sc-section-title { margin-bottom: 5px; font-size: 0.98rem; }
+.td2-keyteam { padding: 5px 7px; gap: 7px; }
+.td2-keyteam .td2-keys { gap: 4px; }
+.td2-keyteam .sc-key { font-size: 0.8rem; padding: 1px 6px 1px 2px; }
+.td-card .td2-rail .sc-odds-team { margin: 3px 0 1px; padding: 3px 10px; }
+.td-card .td2-rail .sc-odds-team .sc-team-logo { width: 24px; height: 24px; }
+.td-card .td2-rail .sc-odds th { padding-top: 1px; padding-bottom: 1px; }
+.td-card .td2-rail .sc-odds td { padding: 1px 3px; }
+.td-card .td2-rail .sc-odds .sc-player { gap: 6px; vertical-align: middle; }
+.td-card .td2-rail .sc-odds .sc-pp { vertical-align: middle; }
+.td-card .td2-rail .td2-odds-dense .sc-odds td { padding-top: 0; padding-bottom: 0; }
+.td2-odds-dense .sc-odds .sc-pp { padding-top: 0; padding-bottom: 0; }
+/* Tag lines in the narrower main column: a smaller chip column and tighter numbers */
+.td2-tag { grid-template-columns: 100px minmax(0, 1fr); gap: 6px; padding: 1px 6px; }
+.td2-tag .tag-chip { font-size: 0.68rem; padding: 2px 6px; }
+.td2-parts { gap: 7px; }
+.td2-part { gap: 3px; }
+.td2-part small { font-size: 0.56rem; letter-spacing: 0.01em; }
+.td2-part b { font-size: 0.98rem; padding: 0 4px; }
+.td2-tag-3 .td2-parts { gap: 5px; }
+.td2-tag-3 .td2-part small { font-size: 0.5rem; }
+.td2-tag-3 .td2-part b { font-size: 0.9rem; padding: 0 3px; }
+.td-card .td-facts { grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 12px; }
+.td2-keyteam-logo .team-logo-mini { width: 26px; height: 26px; }
