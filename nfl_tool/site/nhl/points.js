@@ -12,6 +12,7 @@
 let POINTS = null;
 let GOALS = null; // goals.json: each defense's expected goals allowed
 let SHOTS = null; // shots.json: tonight's posted lineups
+let STACKS = null; // stacks.json: the Line Stacks page's stacks (his best ones in the open row)
 let dayIndex = 0;
 let gameId = null;
 // adv: the "advanced stats" columns shown or folded away (shared with the Shots and Goals pages, per device).
@@ -308,9 +309,25 @@ function detailRow(x, columns) {
           <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows <span class="muted-label">this season, and where that ranks</span></div>${tiles}
           <div class="shots-detail-label">The price, at the model's fair price</div>${ladder}
         </div>
-        <div class="shots-detail-rink points-mates-box">${matesBox}</div>
+        <div class="shots-detail-rink points-mates-box">${matesBox}${stacksBox(x)}</div>
       </div>
     </td></tr>`;
+}
+
+// His best Line Stacks tonight (stacks.json, best Score first): the Line Stacks page's rows, short.
+function stacksBox(x) {
+  const board = ((STACKS || {}).games || {})[x.game.game_id];
+  const r = x.r;
+  const mine = board && board.stacks ? board.stacks.filter((s) => s.legs.includes(r.id)).sort((a, b) => b.score - a.score || b.chance - a.chance).slice(0, 4) : [];
+  if (!mine.length) return "";
+  const last = (id) => ((board.players[id] || {}).name || "").split(" ").slice(-1)[0];
+  const rows = mine
+    .map((s) => `<tr><td class="num stk-score-cell">${stackScore(s)}</td><td class="stk-with"><b>${[r.id, ...s.legs.filter((p) => p !== r.id)].map(last).join(" + ")}</b></td>
+      <td class="muted-label stk-kind">${(STACKS.kinds || {})[s.kind] || s.kind}</td>
+      <td class="num"><span class="stk-tag">GMG fair</span> <span class="stk-fair-big">${odds(s.fair)}</span></td><td class="num">${stackCopyButton(s, board.players, x.game)}</td></tr>`)
+    .join("");
+  return `<div class="shots-detail-label">Best stacks with ${r.name.split(" ").slice(-1)[0]} tonight <a href="stacks.html" class="muted-label">All Line Stacks &rsaquo;</a></div>
+    <table class="data-table stk-mini"><tbody>${rows}</tbody></table>`;
 }
 
 // Each column draws its own cell. `adv`: folded away until "Expand advanced stats".
@@ -530,8 +547,9 @@ const getJson = (url) =>
   fetch(url)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
-Promise.all([loadNhlData(), getJson("points.json"), getJson("goals.json"), getJson("shots.json")])
-  .then(([, pts, goals, shots]) => {
+Promise.all([loadNhlData(), getJson("points.json"), getJson("goals.json"), getJson("shots.json"), getJson("stacks.json")])
+  .then(([, pts, goals, shots, stacks]) => {
+    STACKS = stacks || { games: {} };
     POINTS = pts || { games: {} };
     GOALS = goals || { defense: {} };
     SHOTS = shots || { lineups: {} };

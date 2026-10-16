@@ -733,3 +733,42 @@ function bookPanelFor(x, stat, line, label, chanceAt, edges, labels) {
   const panel = bookOddsPanel({ ...spec, model });
   return panel ? `<div class="shots-detail-odds"><div class="shots-detail-label">Every book <span class="muted-label">best price first, against our model</span></div>${panel}</div>` : "";
 }
+
+// ---- Line Stacks (stacks.json): shared by the Line Stacks page and the Points page's open row ----
+// GMG Score 1-100 (the build's stack_score: 50 = no edge against the market's
+// legs), on the eight rank colors: green = the best.
+const STACK_STEPS = [65, 58, 54, 51, 48, 44, 36, 0];
+const stackStep = (score) => STACK_STEPS.findIndex((lo) => score >= lo);
+const stackSlotWords = (slot) => (slot ? `${slot[0] === "F" ? "Line" : "Pair"} ${slot.slice(1)}` : "");
+const attrText = (text) => String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const STACK_SCORE_TIP =
+  "GMG Score, 1-100: how much our legs beat the market's prices, carried through the stack, if the book prices the correlation the way our model does. 50 = no edge; 60 = about 10% better. A talking point until the record says otherwise.";
+function stackScore(s) {
+  const unpriced = s.priced < s.legs.length ? `<div class="stk-priced">${s.priced} of ${s.legs.length} legs priced</div>` : "";
+  return `<span class="stk-score"${cellOnStep(stackStep(s.score))} title="${STACK_SCORE_TIP}">${s.score}</span>${unpriced}`;
+}
+function stackCopyText(s, players, g) {
+  return `${s.legs.map((p) => `${(players[p] || {}).name} 1+ Point`).join(" / ")} (${g.away} @ ${g.home})`;
+}
+function stackCopyButton(s, players, g) {
+  return `<button type="button" class="view-toggle-btn stk-copy" data-copy="${attrText(stackCopyText(s, players, g))}" title="Copies the legs as text, to paste into Pikkit or a book's SGP builder">Copy</button>`;
+}
+document.addEventListener("click", (e) => {
+  const button = e.target.closest(".stk-copy");
+  if (!button) return;
+  e.stopPropagation();
+  const text = button.dataset.copy;
+  const done = () => {
+    button.textContent = "Copied";
+    setTimeout(() => (button.textContent = "Copy"), 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else {
+    const area = Object.assign(document.createElement("textarea"), { value: text });
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    done();
+  }
+}, true);

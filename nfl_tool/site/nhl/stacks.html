@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NHL Suite &mdash; Line Stacks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="nhl.css">
+</head>
+<body class="nhl-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG's NHL Suite home"><span class="brand-mark">GMG</span><span class="brand-name">NHL <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="./">Games</a>
+    <span class="page-nav-current" data-nav-menu="props">Player Props</span>
+    <a href="promo-tools.html">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+    <a href="https://github.com/GreenMeansGoBetting/nfl-tool/actions/workflows/nhl-refresh.yml" target="_blank" rel="noopener" class="update-odds-link" title="Opens GitHub Actions in a new tab -- click &quot;Run workflow&quot; there for fresh NHL lineups and odds (the hockey-only refresh, about a minute)">&#128260; Update Odds</a>
+  </div>
+</div>
+
+<main>
+  <!-- The same launch guard as the other NHL pages (.nba-app / .nba-soon in style.css). -->
+  <div class="nba-soon empty-state">
+    <p><b>GMG NHL Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NHL slate&hellip;</p></div>
+
+    <!-- Line Stacks reuses the Points page's layout classes (.shots-* in nhl.css); its own are .stk-*. -->
+    <div id="shots-app" class="section-wrap" hidden>
+      <details class="shots-about">
+        <summary>How the number is made, and how far to trust it</summary>
+        <div class="shots-about-body">
+          <p><b>A stack is 2, 3 or 4 "1+ point" legs on teammates who are on the ice together</b>: a line, a defense pair, a line and its pair, or two of the first power-play unit. When one of them scores, his linemates usually get the assists, so the legs hit together far more often than separate bets would. Each leg is the Points page's chance.</p>
+          <p><b>Fair</b> is the price the stack's chance is worth, with no cut. The chance comes from "shared goals": each goal gives a point to a scorer and up to two assisters, so two legs hit together whenever one goal gives both a point. How often that happens was measured on two seasons of games for each kind of pair (linemates, a defense pair, a forward and his line's pair, power play), with the pair's own shared points this season mixed in, plus the power-play minutes the legs have played together and their combined expected goals. <b>Correlation</b> is how much more often the legs hit together than if they had nothing to do with each other; <b>Non-correlated</b> is that price, which no book will pay: every book prices correlation.</p>
+          <p><b>Score</b> (1-100) assumes the book prices the correlation the way our model does, on its own leg prices, so the edge left is in the legs: 50 = no edge against Novig's leg prices, 60 = about 10% better. A leg Novig hasn't priced counts as no edge ("2 of 3 legs priced"). Books price correlation differently from each other and from us: use <b>Copy</b> to paste the stack into Pikkit or a book's builder and compare its price with Fair.</p>
+          <p><b>What the replays showed</b> (2024-25 to fit, 2025-26 to check): a whole line got all three points twice as often as the legs multiplied; the chances were honest within about a point (the surest pairs a touch high). <b>Stacks are made only from the NHL's projected lineup</b>: it named the line that actually played 74% of the time, a player's usual linemates 31%. <b>What it has not shown:</b> that any stack beats the books. There is no free history of same-game parlay prices; the page keeps its own record.</p>
+        </div>
+      </details>
+      <div class="shots-title-row">
+        <h2 class="section-title" id="shots-title">Line Stacks</h2>
+        <button type="button" class="info-i" aria-expanded="false" aria-controls="stacks-note-1" title="How to read this">i</button>
+        <button type="button" id="shots-record-open" class="view-toggle-btn shots-record-open">YTD Model Performance</button>
+      </div>
+      <p class="section-note info-note" id="stacks-note-1" hidden>Every stack in the day's games with a posted lineup, best Score first. Each leg is 1+ point: <b>GMG fair</b> is the model's price for that leg, next to Novig's. <b>Fair</b> is the whole stack's price (its chance underneath). <b>Correlation</b> is how much more often the legs hit together than separate bets. <b>Copy</b> puts the legs on your clipboard. Click a game above to see only that game, a name for the player card.</p>
+      <div id="shots-toolbar" class="view-toggle shots-toolbar"></div>
+      <p id="shots-lineups" class="no-data-note" hidden></p>
+      <p id="shots-locked" class="no-data-note" hidden></p>
+      <div id="shots-content"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: the NHL's public game feed (play-by-play, box scores, shift charts, time on ice). Prices: Novig.
+</footer>
+
+<!-- The record, drawn by stacks.js renderRecord. -->
+<div id="shots-record-modal" class="modal-overlay" hidden>
+  <div class="modal-box shots-record-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <h2 class="section-title">YTD Model Performance <span class="muted-label">Line Stacks</span></h2>
+    <div id="shots-results" class="shots-results"></div>
+  </div>
+</div>
+<script src="../sync.js"></script>
+<script src="nhl-common.js"></script>
+<script src="stacks.js"></script>
+</body>
+</html>

@@ -161,3 +161,42 @@ def nhl_players():
     """The saved per-team player files (the player card's game logs and shot
     areas) from the same build as nhl_data(): {"NJD": {...}, "DET": {...}}."""
     return json.loads(_fixture_bytes("nhl_players.json.gz"))
+
+
+def nhl_stacks():
+    """The Line Stacks sample (nhl/stacks.json), built at test time from the Points sample by
+    the build's own game_stacks and record functions (no saved file: it can't drift from the
+    build). Each player's posted slot, or his usual one where the sample has no posted lineup,
+    so every game has stacks; no shared-ice history (stacks_model's rho alone). 10/12's games
+    are final: graded, written to a throwaway record and summed."""
+    if "nhl_stacks" not in _cache:
+        import tempfile
+
+        import build_nhl
+        import stacks_model
+
+        history = stacks_model.StacksHistory()
+        games, finals = {}, []
+        for gid, g in nhl_points()["games"].items():
+            rows = [{**r, "slot": r.get("slot") or r.get("usual_slot")} for r in g["players"] if not r.get("out") and (r.get("slot") or r.get("usual_slot"))]
+            away = next(r["team"] for r in g["players"] if not r["home"])
+            home = next(r["team"] for r in g["players"] if r["home"])
+            players, stacks = build_nhl.game_stacks(rows, away, home, history)
+            entry = {"locked": bool(g.get("locked")), "posted": True, "players": players, "stacks": stacks}
+            if g.get("final"):
+                actual = {r["id"]: r.get("actual") for r in g["players"]}
+                for pid, p in players.items():
+                    p["actual"] = actual.get(pid)
+                entry["final"] = True
+                entry["stacks"] = [{**s, "hit": build_nhl.stack_hit(s["legs"], players)} for s in stacks]
+                finals.append({"game_id": gid, "date": "2026-10-12", "away": away, "home": home})
+            games[gid] = entry
+        with tempfile.TemporaryDirectory() as folder:
+            build_nhl.record_stack_games(Path(folder), games, finals)
+            record = build_nhl.stacks_record_summary(Path(folder))
+        _cache["nhl_stacks"] = {"season": 2027, "generated_at": "2026-10-13T14:12Z", "kinds": stacks_model.KINDS, "games": games, "record": record}
+    return _cache["nhl_stacks"]
+
+
+def nhl_stacks_bytes():
+    return json.dumps(nhl_stacks()).encode("utf-8")

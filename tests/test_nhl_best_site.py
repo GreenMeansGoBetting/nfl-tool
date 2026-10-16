@@ -242,7 +242,7 @@ class Links(unittest.TestCase):
         reset()
         PAGE.click(".page-nav .props-trigger")
         items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", "best.html", True], ["Shots", "shots.html", False], ["Goals", "goals.html", False], ["Points", "points.html", False]])
+        self.assertEqual(items, [["Best Plays", "best.html", True], ["Shots", "shots.html", False], ["Goals", "goals.html", False], ["Points", "points.html", False], ["Line Stacks", "stacks.html", False]])
         PAGE.keyboard.press("Escape")
 
 

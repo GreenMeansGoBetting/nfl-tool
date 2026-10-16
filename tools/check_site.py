@@ -52,6 +52,7 @@ PAGES = [
     ("NHL Shots", "nhl/shots.html", None),
     ("NHL Goals", "nhl/goals.html", None),
     ("NHL Points", "nhl/points.html", None),
+    ("NHL Line Stacks", "nhl/stacks.html", None),
     ("NHL Promo Tools", "nhl/promo-tools.html", None),
     ("NHL Icebreaker", "nhl/promo-tools.html#icebreaker", None),
 ]

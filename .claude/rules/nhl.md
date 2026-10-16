@@ -915,6 +915,67 @@ good. Finish the Points page"). It REUSES the Goals page's layout, ids and class
   14:00 UTC, then 10/13 14:12 with that file as the live one, like the Goals sample). Rebuild it
   with that script after a change to what points.json holds.
 
+## Line Stacks (built 2026-10-16)
+
+The owner: "points parlays from players on the ice together ... When one scores, his linemates
+usually get the assists, so the legs win together far more often than separate bets would." Under
+Player Props after Points, and a "Best stacks with <player> tonight" box in the Points page's open row.
+
+- **The replay** (`python tools/backtest/nhl_stacks.py --rows <folder>`, about 6 minutes; questions,
+  bar and findings in its header): a whole line got all three points 16% of the time against 8% for
+  the Points chances multiplied (lift 1.9-2.1); line pairs 1.35-1.44, D pairs 1.3, line + D (4 legs)
+  2.2-2.35; first power-play unit across lines 1.2; forwards on different lines 1.05-1.12 and
+  opposite teams 1.03 (left out). The lower the line, the bigger the lift (L1 trios 1.6, L4 4.6).
+  **Tonight's projected line beat his usual linemates**: its trios played together 74% of the time
+  (usual 31%), and lifted more. What predicts a hit beyond the joint chance: power-play minutes
+  together (z 4.5) and the legs' expected goals (z 2.2); team total, defense, goalie, EV time
+  together: nothing.
+- **The model** (`nfl_tool/nhl/stacks_model.py`, standard library; `tools/backtest/nhl_stacks_check.py`
+  fits `RHO` / `WEIGHTS` / `XG_AVG` through it, plain Python matches the replay to 1e-16): "shared
+  goals". Each leg's points are a count at rate -ln(1 - the Points chance); a pair shares rho x
+  sqrt(rate1 x rate2) goals (a trio the cube root), rho per relation (same line 0.43, D pair 0.18,
+  forward + his line's pair 0.14, power-play pairs 0.12-0.26), with the pair's own shared points mixed
+  in after K = 32; all legs hit by inclusion-exclusion; then the two factors on the logit. 2025-26 on
+  2024-25's numbers: log loss 0.36474 vs 0.37544 multiplied; honest within a point except the surest
+  pairs (said 51%, hit 48.5%) and 4 legs said 15-20% (hit 14.4%). A per-legs re-scaling didn't help.
+- **Kinds** (`KINDS`): line pair, full line, D pair, forward + D, line pair + D, line + D, line pair
+  + D pair (the "matched" pair = the one that has shared the most EV ice with that line), power play
+  (two of the usual first unit, top 5 by PP minutes a game, not on the same line or pair).
+- **Shared ice** (`reduce_game`'s `ice`, `game_ice` -> `stacks_model.shared_ice`): each skater's
+  EV / PP seconds and every teammate pair's shared seconds, from the kept shift chart (None without
+  one: this season's games 6-52). `StacksHistory` keeps it per team, decayed 0.985 a team game.
+- **ONLY a posted projected lineup makes stacks** (the owner: "the projected line only"): a game
+  without one is `posted: false` with no stacks, and the page says it is waiting on the lineup.
+- **`site/nhl/stacks.json`** (not tracked; on fetch_live_data's list; `version.json` `nhl.stacks` =
+  games with stacks): `games[id] = {locked, posted, players: {id: name, team, pos, slot, chance,
+  fair, line, over, under}, stacks: [kind, team, line, legs, chance, fair, indep, lift, score,
+  priced, xg, pp]}`, best Score first. Built from points.json's rows (`game_stacks`), so a leg is
+  exactly the Points page's chance. Lock like Points; a final game gets `actual` and each stack's
+  `hit` (None = a leg didn't play: void).
+- **GMG Score 1-100** (`stack_score`): 50 + 100 x ln(our chance / the same stack on Novig's leg
+  prices through OUR correlation), so it assumes the book prices correlation like our model and the
+  edge left is in the legs (`market_point_chance`: the 0.5 line, or read off the 1.5 line as a
+  count). A leg Novig hasn't priced counts as no edge ("2 of 3 legs priced"). Eight colors
+  (`STACK_STEPS` in nhl-common.js: 65+, 58, 54, 51, 48, 44, 36). **Unproven**: the owner's first
+  SGP example (MacKinnon + Necas + Makar, 2026-10-16) had three books charging 1.17-1.29x over their
+  own legs against our 1.12x. Next: the SGP price log (stack, book, SGP price, leg prices) to measure
+  each book's markup by stack type and fold it into the Score.
+- **The page, the owner's mockup v4** (`stacks.js`; `.stk-*` in nhl.css): Score | Legs (headshot,
+  name, "C · Line 2", labeled **GMG fair** American price, Novig's o0.5 chip or "o1.5 only" / "no
+  price") | Stack (type, "Line 2 + Pair 1 · 3 legs", the game) | **Fair** (American bold, % under:
+  the owner, "its hard to juggle american odds vs percentage") | Correlation ("1.7x", small
+  "Non-correlated +568": books never pay it) | **Copy** (plain text "Name 1+ Point / Name 1+ Point
+  (AWAY @ HOME)" for Pikkit or a book's builder; the exact text is shown under each row). 50 rows,
+  then "Show more". Filters: type, legs, sort (score, chance, correlation, payout), live / final.
+  No stack math on the page. The record popup: said vs hit by Score band, by type, by legs.
+- **The record** (`model_history/nhl_stacks/<month>/<game id>.json`, **one file a game**, written
+  once: a slate is ~2,500 stacks, and a month file rewritten every build would grow the repository
+  ~100 MB a month): every stack shown (`STACKS_RECORD_COLS`) and each player's chance and points.
+  `stacks_record_summary`: said vs hit by legs, kind and Score band; no units until SGP prices exist.
+- Tests: `tests/test_nhl_stacks.py` (shared ice on the saved game, the joint chance, kinds, the board,
+  lock, grades, the Score, the record) and `tests/test_nhl_stacks_site.py` (the page and the Points
+  box on `helpers.nhl_stacks()`, built at test time from the Points sample by the build's own functions).
+
 ## Learning which factors win: the factor report (2026-10-16)
 
 The owner: bring Shots and Goals "up to the Points record's standard", then a report (a tool,
@@ -979,9 +1040,8 @@ pages for the detail, not a copy of them.
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
-Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Next on the
-owner's list: line / points stacks (linemates' points parlays; `PointsModel.linemates` and the
-`mates` factor are the start), then re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
+Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Line Stacks is built (above); next for it: the SGP price log. Next on the
+owner's list: re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
 Also open: a Summary card, a game model, shot-by-shot dot maps, the EDGE

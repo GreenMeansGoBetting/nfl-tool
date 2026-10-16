@@ -253,6 +253,7 @@ class LiveData(unittest.TestCase):
             "nhl/crease.json": {"days": {}},
             "nhl/goals.json": {"games": {}},
             "nhl/points.json": {"games": {}},
+            "nhl/stacks.json": {"games": {}},
             "nhl/icebreaker.json": {"days": {}},
             "nhl/players/NJD.json": {"season": {}},
             "nhl/players/DET.json": {"season": {}},
@@ -339,7 +340,7 @@ class LiveData(unittest.TestCase):
         """The deploy reuses a suite's live data only if all of it arrived."""
         self.assertEqual(fetch_live_data.main(["--only", "nhl", "--need", "nhl"]), 0)
         self.assertEqual(self.here(), sorted(rel for rel in self.live if rel.startswith("nhl/")))
-        for gone in ("nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/icebreaker.json", "nhl/players/DET.json", "nhl/data.json"):
+        for gone in ("nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/stacks.json", "nhl/icebreaker.json", "nhl/players/DET.json", "nhl/data.json"):
             for path in self.site.rglob("*.json"):
                 path.unlink()
             kept = self.live.pop(gone)

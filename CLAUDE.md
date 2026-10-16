@@ -72,18 +72,18 @@ that, move detail into a rules file.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> `book_odds` in data.json and nhl/data.json, shown by `site/book-odds.js` (shared: best-price pill, all-books list; tags only against our own model; data-pipeline.md, nhl.md).
 - `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`.
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
-- `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`); `points_model.py`: 1+ point, on top of goals (`nhl/points.json`).
+- `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`); `points_model.py`: 1+ point, on top of goals (`nhl/points.json`); `stacks_model.py`: Line Stacks, 2-4 linemates' point legs together (`nhl/stacks.json`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Update Odds" and every push to main;
   every run tests, builds and browser-checks all three sports (members-and-hosting.md, "Every run does everything"). `nhl-refresh.yml`: hockey-only refresh every half hour, pressed by the Cloudflare timer `workers/nhl-timer` (installed by `nhl-timer.yml`). `cloudflare-domain.yml`: one-off domain attach.
-- `model_history/`, committed by the deploy bot: `gmg_model.json` (locked projections), `nfl_koe/` (King of the Endzone's past weekly boards), `nhl_shots/<month>.json` (graded Shots plays), `nhl_goals/` (graded Goals players), `nhl_points/` (graded Points players, with the factors behind each number), `nhl_crease/` (King of the Crease's days), `nhl_icebreaker/` (Icebreaker's 7 PM slates).
+- `model_history/`, committed by the deploy bot: `gmg_model.json` (locked projections), `nfl_koe/` (King of the Endzone's past weekly boards), `nhl_shots/<month>.json` (graded Shots plays), `nhl_goals/` (graded Goals players), `nhl_points/` (graded Points players, with the factors behind each number), `nhl_stacks/<month>/<game>.json` (every Line Stack shown, one file a game), `nhl_crease/` (King of the Crease's days), `nhl_icebreaker/` (Icebreaker's 7 PM slates).
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
   optional screenshots and before/after compare). Outside `nfl_tool/`, so it never redeploys.
   `.github/workflows/site-check.yml` runs it against the live data once a day.
 - `tools/run_tests.py` + `tests/`: the permanent tests. Plain Python for the build code; the site's
   JavaScript runs in a real browser on the saved data (`tests/site_browser.py`), like the site check.
 - `tools/backtest/`: week-by-week replay of the GMG model on past seasons (`features.py`, then `analyze.py`);
-  `nhl_shots.py` replays the NHL shots model the same way and fits its weights; `nhl_saves.py` the saves model; `nhl_goals*.py` the goals model; `nhl_points*.py` the points model; `nhl_icebreaker.py` what predicts the slate's quickest goal. `tools/nhl_factor_report.py`: the NHL records grouped by each graded play's saved factors (nhl.md).
+  `nhl_shots.py` replays the NHL shots model the same way and fits its weights; `nhl_saves.py` the saves model; `nhl_goals*.py` the goals model; `nhl_points*.py` the points model; `nhl_stacks*.py` Line Stacks; `nhl_icebreaker.py` what predicts the slate's quickest goal. `tools/nhl_factor_report.py`: the NHL records grouped by each graded play's saved factors (nhl.md).
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
@@ -95,7 +95,7 @@ that, move detail into a rules file.
   - `sync.js`: member profiles, account chip, the Settings gear (odds format, color set, My Books), feature requests, suite switcher, the Promo Tools menu (`PROMOS`: every sport's promo tools from any page's nav), the NHL Player Props menu (`PROPS`). `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
-  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/points.html` + `points.js`: NHL Points (1+ point); `nhl/best.html` + `best.js`: Best Plays (the three pages' edges in one list).
+  - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/points.html` + `points.js`: NHL Points (1+ point); `nhl/stacks.html` + `stacks.js`: Line Stacks; `nhl/best.html` + `best.js`: Best Plays (the three pages' edges in one list).
   - `nhl/promo-tools.html` + `nhl/promo-tools.js`: NHL Promo Tools (King of the Crease: most saves of the day); `nhl/icebreaker.js`: its Icebreaker tab (quickest goal of the 7 PM slate).
   - `nhl/nhl-common.js`: shared by every NHL page (data, rink drawing, the NHL player card).
 

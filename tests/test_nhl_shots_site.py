@@ -335,7 +335,7 @@ class PromoMenu(unittest.TestCase):
         PAGE.click(".page-nav .props-trigger")
         self.assertTrue(menu.is_visible())
         items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", "best.html", False], ["Shots", "shots.html", True], ["Goals", "goals.html", False], ["Points", "points.html", False]])
+        self.assertEqual(items, [["Best Plays", "best.html", False], ["Shots", "shots.html", True], ["Goals", "goals.html", False], ["Points", "points.html", False], ["Line Stacks", "stacks.html", False]])
         # Opening Promo Tools closes it; only one list at a time.
         PAGE.click(".page-nav .promo-trigger")
         self.assertTrue(menu.is_hidden())

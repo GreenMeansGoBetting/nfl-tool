@@ -431,6 +431,38 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .best-rec-edge input { flex: 1; min-width: 0; accent-color: var(--accent); cursor: pointer; }
 .best-rec-edge output { min-width: 34px; padding: 1px 6px; border-radius: 6px; text-align: center; font-size: 0.82rem; color: var(--text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.45); }
 
+/* ---- Line Stacks (stacks.html; the Points page's "Best stacks" box) ---- */
+.stk-legs { min-width: 360px; }
+.stk-leg { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.stk-leg + .stk-leg { border-top: 1px dashed var(--border); }
+.stk-leg .nhl-headshot { width: 30px; height: 30px; }
+.stk-leg .player-click { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.stk-leg-fair { margin-left: auto; display: inline-flex; align-items: baseline; gap: 5px; min-width: 96px; justify-content: flex-end; }
+.stk-leg-fair b { font-size: 1.05em; }
+.stk-leg-price { font-size: 0.85em; }
+.stk-leg-actual { font-weight: 700; min-width: 30px; text-align: right; }
+.stk-tag { font-size: 0.7em; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.stk-noodds { font-size: 0.8em; color: var(--muted); border: 1px dashed var(--border-strong); border-radius: 8px; padding: 1px 7px; white-space: nowrap; }
+.stk-stack { padding: 6px 14px; }
+.stk-type { font-weight: 700; white-space: nowrap; font-size: 1.15em; }
+.stk-where { white-space: nowrap; font-size: 0.95em; color: var(--muted); margin-top: 2px; }
+.stk-sub { font-size: 0.82em; white-space: nowrap; }
+.stk-game { margin-top: 6px; display: flex; align-items: center; gap: 6px; font-size: 0.95em; }
+.stk-fair-big { font-weight: 700; font-size: 1.3em; }
+.stk-corr { display: inline-block; padding: 2px 9px; border-radius: 8px; font-weight: 700; border: 1px solid rgba(80, 150, 255, 0.55); background: rgba(80, 150, 255, 0.14); }
+.stk-score-cell { text-align: center; }
+.stk-score { display: inline-block; min-width: 46px; padding: 6px 0; border-radius: 10px; font-weight: 700; font-size: 1.35em; text-align: center; }
+.stk-priced { font-size: 0.72em; color: var(--muted); margin-top: 3px; white-space: nowrap; }
+.stk-copy { padding: 4px 12px; }
+.stk-copyline td { padding: 2px 10px 10px; border-top: 0; }
+.stk-copyline code { font-size: 0.85em; color: var(--text); background: var(--table-head); padding: 2px 6px; border-radius: 6px; }
+.stk-more { margin: 10px 0; display: flex; align-items: center; gap: 10px; }
+.stk-mini { width: 100%; }
+.stk-mini td { padding-top: 6px; padding-bottom: 6px; }
+.stk-mini .stk-score { min-width: 38px; padding: 3px 0; font-size: 1.05em; }
+.stk-with { white-space: nowrap; }
+.stk-kind { white-space: nowrap; font-size: .85em; }
+
 @media (max-width: 760px) {
   .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
   .nhl-tiles .nba-tile { padding: 6px 2px 7px; }

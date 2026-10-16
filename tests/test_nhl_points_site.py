@@ -184,7 +184,7 @@ class Nav(unittest.TestCase):
         reset()
         PAGE.click(".page-nav .props-trigger")
         items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", False], ["Shots", False], ["Goals", False], ["Points", True]])
+        self.assertEqual(items, [["Best Plays", False], ["Shots", False], ["Goals", False], ["Points", True], ["Line Stacks", False]])
         PAGE.keyboard.press("Escape")
 
 

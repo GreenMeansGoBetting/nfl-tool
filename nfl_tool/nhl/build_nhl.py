@@ -48,6 +48,7 @@ import goals_model
 import points_model
 import saves_model
 import shots_model
+import stacks_model
 
 sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, for smartstake.py
 import smartstake  # noqa: E402
@@ -90,6 +91,7 @@ LIVE_CREASE_URL = "https://nfl.gmgsports.org/nhl/crease.json"
 LIVE_GOALS_URL = "https://nfl.gmgsports.org/nhl/goals.json"
 LIVE_POINTS_URL = "https://nfl.gmgsports.org/nhl/points.json"
 LIVE_ICEBREAKER_URL = "https://nfl.gmgsports.org/nhl/icebreaker.json"
+LIVE_STACKS_URL = "https://nfl.gmgsports.org/nhl/stacks.json"
 # The Shots page projects games through this many days out (books post
 # shots-on-goal lines about a day ahead) and keeps the chance of 1+ ... 8+.
 SHOTS_DAYS_AHEAD = 2
@@ -122,6 +124,12 @@ POINTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
 POINTS_RECORD_DAYS = 14
 POINTS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_points"
 POINTS_HONEST = (0.0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 1.01)  # the record's "said vs got" buckets
+# Line Stacks (stacks_model.py): every stack of a posted projected lineup,
+# graded once its game is final (one file a month, like the others).
+STACKS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_stacks"
+STACKS_HONEST = (0.0, 0.03, 0.06, 0.10, 0.15, 0.20, 0.30, 0.45, 1.01)  # the record's "said vs hit" buckets
+# The Score's bands (stack_score: 50 = no edge against the market's legs).
+STACKS_SCORE_BANDS = (("58+", 58, 101), ("51-57", 51, 58), ("44-50", 44, 51), ("under 44", 0, 44))
 # What each priced player's record row keeps of the parts behind the number
 # (the owner, 2026-10-16: see which things "are leading to more wins ...
 # and weighting those"): who he is and his usage, tonight's line, the
@@ -334,6 +342,34 @@ def game_goals(raw: dict) -> list:
     return out
 
 
+def game_ice(raw: dict) -> dict | None:
+    """{team: stacks_model.shared_ice(...)}: each skater's even-strength and
+    power-play seconds and the seconds each pair of teammates shared, from
+    the kept shift chart (the Line Stacks model's history). None without one."""
+    shifts = raw.get("shifts")
+    if not shifts:
+        return None
+    pbp, box = raw["pbp"], raw.get("box") or {}
+    marks = []
+    for p in sorted(pbp.get("plays") or [], key=lambda p: p.get("sortOrder", 0)):
+        period = p.get("periodDescriptor") or {}
+        if period.get("periodType") == "SO" or not period.get("number") or period["number"] > 4:
+            continue
+        code = p.get("situationCode")
+        marks.append(((period["number"] - 1) * 1200 + clock_seconds(p.get("timeInPeriod")), strength(code, True), strength(code, False)))
+    even, pp = stacks_model.phases(marks, 4 * 1200)
+    out = {}
+    for side, key in (("homeTeam", "home"), ("awayTeam", "away")):
+        team = (box.get(side) or {}).get("abbrev") or pbp[side]["abbrev"]
+        stats = (box.get("playerByGameStats") or {}).get(side) or {}
+        spans = {str(s["playerId"]): [] for group in ("forwards", "defense") for s in stats.get(group) or []}
+        for pid, _team, period, on, off in shifts:
+            if str(pid) in spans and period <= 4:
+                spans[str(pid)].append(((period - 1) * 1200 + clock_seconds(on), (period - 1) * 1200 + clock_seconds(off)))
+        out[team] = stacks_model.shared_ice(spans, even, pp[key])
+    return out
+
+
 def game_shots(raw: dict) -> list:
     """Every unblocked shot with a goalie in net (no empty nets, penalty
     shots, own goalie pulled or shootouts), with what the goals model's
@@ -536,6 +572,8 @@ def reduce_game(raw: dict) -> dict:
         "shots": game_shots(raw),
         # Every goal with its points and who was on the ice, for the points model (game_goals).
         "goal_events": game_goals(raw),
+        # Who shared the ice, at even strength and on the power play (Line Stacks).
+        "ice": game_ice(raw),
         "first_goal": first_goal,
         "first_goals": first_goals,
     }
@@ -2372,6 +2410,183 @@ def points_file(season: int, generated_at: str, records: list, goals, games: lis
             "factors": POINTS_FACTORS, "games": board, "record": record}
 
 
+# ---- Line Stacks (stacks_model.py) ----
+def stacks_history_for(records: list) -> "stacks_model.StacksHistory":
+    """Who has shared the ice and the points, this season's games only."""
+    history = stacks_model.StacksHistory()
+    for record in records:
+        history.add_game(record)
+    return history
+
+
+def market_point_chance(row: dict) -> float | None:
+    """Novig's no-cut chance of 1+ point for a Points row: read from the 0.5
+    line, or off the 1.5 line as a count (2+ -> its rate -> 1+). None unpriced."""
+    over, under, line = row.get("over"), row.get("under"), row.get("line")
+    if over is None or line not in (0.5, 1.5):
+        return None
+    q = break_even(over) / (break_even(over) + break_even(under)) if under is not None else break_even(over) / 1.05
+    if line == 0.5:
+        return q
+    lo, hi = 0.001, 6.0
+    for _ in range(60):
+        m = (lo + hi) / 2
+        lo, hi = (m, hi) if 1 - math.exp(-m) * (1 + m) < q else (lo, m)
+    return 1 - math.exp(-lo)
+
+
+def stack_score(chance: float, market: float) -> int:
+    """GMG Score, 1-100: our chance against the same stack on the market's
+    leg prices through OUR correlation (books price correlation themselves,
+    so the edge left is in the legs). 50 = no edge; 60 = about 10% better."""
+    return max(1, min(100, round(50 + 100 * math.log(chance / market))))
+
+
+def stacks_board(points_games: dict, games: list, records: list, previous: dict | None, now_utc: datetime, history) -> dict:
+    """{game id: {"locked", "posted", "players", "stacks"}} for the Line Stacks
+    page, from the Points page's rows (each leg is its 1+ point chance) and
+    ONLY a posted projected lineup (the owner's rule: no stacks from usual
+    lines). A started game keeps the previous build's stacks (none saved =
+    none shown); a finished one gets each player's `actual` points and each
+    stack's `hit` (None if a leg didn't play)."""
+    prev_games = (previous or {}).get("games") or {}
+    finished = {str(r["id"]): r for r in records}
+    out = {}
+    for g in games:
+        started = g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+        if started:
+            kept = prev_games.get(g["game_id"])
+            if not kept:
+                continue
+            entry = {**kept, "locked": True}
+            record = finished.get(g["game_id"])
+            if record:
+                played = record["skaters"]
+                entry["final"] = True
+                entry["players"] = {pid: {**p, "actual": played[pid]["g"] + played[pid]["a"] if pid in played else None} for pid, p in kept["players"].items()}
+                entry["stacks"] = [{**s, "hit": stack_hit(s["legs"], entry["players"])} for s in kept["stacks"]]
+            out[g["game_id"]] = entry
+            continue
+        board = points_games.get(g["game_id"])
+        if not board:
+            continue
+        rows = [row for row in board["players"] if row.get("slot") and not row.get("out")]
+        if not rows:
+            out[g["game_id"]] = {"locked": False, "posted": False, "players": {}, "stacks": []}
+            continue
+        players, stacks = game_stacks(rows, g["away"], g["home"], history)
+        out[g["game_id"]] = {"locked": False, "posted": True, "players": players, "stacks": stacks}
+    return out
+
+
+def game_stacks(rows: list, away: str, home: str, history) -> tuple:
+    """(players, stacks) for one game from its Points rows that have a slot
+    in the posted lineup: every stack (stacks_model.team_stacks) with its
+    Score against the market's legs, best Score first."""
+    players, stacks = {}, []
+    for team in (away, home):
+        mine = [row for row in rows if row["team"] == team]
+        slots = {row["id"]: row["slot"] for row in mine}
+        proj = {row["id"]: {"chance": row["chance"], "goals": row["g_mean"]} for row in mine}
+        market = {row["id"]: market_point_chance(row) for row in mine}
+        at_market = {pid: {**p, "chance": market[pid] or p["chance"]} for pid, p in proj.items()}
+        book = {(s["kind"], tuple(s["legs"])): s for s in stacks_model.team_stacks(team, slots, at_market, history)}
+        for s in stacks_model.team_stacks(team, slots, proj, history):
+            stacks.append({
+                "kind": s["kind"], "team": team, "line": s["line"], "legs": s["legs"],
+                "chance": round(s["chance"], 4), "fair": s["fair"], "indep": round(s["indep"], 4), "lift": round(s["lift"], 3),
+                "score": stack_score(s["chance"], book[(s["kind"], tuple(s["legs"]))]["chance"]),
+                "priced": sum(market[p] is not None for p in s["legs"]),
+                "xg": round(s["factors"]["xg"], 3), "pp": round(s["factors"]["pp"], 3),
+            })
+        for row in mine:
+            players[row["id"]] = {"name": row["name"], "team": team, "pos": row["pos"], "slot": row["slot"], "chance": row["chance"],
+                                  "fair": row["fair"], "line": row.get("line"), "over": row.get("over"), "under": row.get("under")}
+    stacks.sort(key=lambda s: (-s["score"], -s["chance"]))
+    return players, stacks
+
+
+def stack_hit(legs: list, players: dict):
+    """True / False once final; None when a leg didn't play (a void leg)."""
+    actual = [(players.get(p) or {}).get("actual") for p in legs]
+    return None if any(a is None for a in actual) else all(a > 0 for a in actual)
+
+
+STACKS_RECORD_COLS = ("kind", "team", "line", "legs", "chance", "indep", "lift", "score", "priced", "xg", "pp")
+
+
+def record_stack_games(folder: Path, board: dict, games: list) -> int:
+    """Adds each newly finished game to the Line Stacks record, ONE FILE PER
+    GAME (<month>/<game id>.json), written once and never changed: a slate is
+    about 2,500 stacks, so a month file rewritten every build would grow the
+    repository by ~100 MB a month. Each holds every stack shown
+    (STACKS_RECORD_COLS, as locked before puck drop: its chance, the legs
+    multiplied, the Score, how many legs were priced, the two factors in the
+    number) and each player's chance and points."""
+    added = 0
+    for g in games:
+        entry = board.get(g["game_id"]) or {}
+        path = folder / g["date"][:7] / f"{g['game_id']}.json"
+        if not entry.get("final") or not entry.get("stacks") or path.exists():
+            continue
+        saved = {"cols": STACKS_RECORD_COLS, "date": g["date"], "away": g["away"], "home": g["home"],
+                 "players": {pid: [p["name"], p["team"], p["chance"], p.get("actual")] for pid, p in entry["players"].items()},
+                 "stacks": [[s[k] for k in STACKS_RECORD_COLS] for s in entry["stacks"]]}
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
+        added += 1
+    return added
+
+
+def stacks_record_summary(folder: Path) -> dict:
+    """The Line Stacks record so far: said vs hit for every graded stack, by
+    number of legs (`honest`), by kind and by Score band. No units: there is
+    no free history of same-game parlay prices (the SGP price log will add them)."""
+    def bucket():
+        return {"stacks": 0, "said": 0.0, "hit": 0}
+    out = {"since": None, "through": None, "games": 0, "stacks": 0,
+           "honest": {str(n): [{"lo": lo, "hi": hi, **bucket()} for lo, hi in zip(STACKS_HONEST, STACKS_HONEST[1:])] for n in (2, 3, 4)},
+           "kinds": {k: bucket() for k in stacks_model.KINDS}, "scores": [{"band": b, **bucket()} for b, _, _ in STACKS_SCORE_BANDS]}
+    for path in sorted(folder.glob("*/*.json")) if folder.exists() else []:
+        game = json.loads(path.read_text(encoding="utf-8"))
+        col = {k: i for i, k in enumerate(game["cols"])}
+        out["games"] += 1
+        out["since"] = min(out["since"] or game["date"], game["date"])
+        out["through"] = max(out["through"] or game["date"], game["date"])
+        actual = {pid: p[3] for pid, p in game["players"].items()}
+        for s in game["stacks"]:
+            legs = s[col["legs"]]
+            if any(actual.get(p) is None for p in legs):
+                continue
+            hit, chance = all(actual[p] > 0 for p in legs), s[col["chance"]]
+            score = s[col["score"]]
+            out["stacks"] += 1
+            targets = [out["kinds"].setdefault(s[col["kind"]], bucket())]
+            targets += [b for b in out["honest"].get(str(len(legs)), []) if b["lo"] <= chance < b["hi"]]
+            targets += [b for b, (_, lo, hi) in zip(out["scores"], STACKS_SCORE_BANDS) if lo <= score < hi]
+            for b in targets:
+                b["stacks"] += 1
+                b["said"] += chance
+                b["hit"] += hit
+    for b in [*out["kinds"].values(), *out["scores"], *(x for n in out["honest"].values() for x in n)]:
+        b["said"] = round(b["said"], 2)
+    return out
+
+
+def stacks_file(season: int, generated_at: str, records: list, points_games: dict, games: list, previous: dict | None,
+                now_utc: datetime, record_dir: Path) -> dict:
+    """site/nhl/stacks.json: the board, the model's numbers and the record."""
+    board = stacks_board(points_games, games, records, previous, now_utc, stacks_history_for(records))
+    try:
+        record_stack_games(record_dir, board, games)
+        record = stacks_record_summary(record_dir)
+    except Exception as e:  # a damaged record file must never cost the page its board
+        print(f"WARNING: the Line Stacks record couldn't be updated ({e}).", file=sys.stderr)
+        record = None
+    return {"season": season, "generated_at": generated_at, "kinds": stacks_model.KINDS, "rho": stacks_model.RHO, "weights": stacks_model.WEIGHTS,
+            "bands": [b for b, _, _ in STACKS_SCORE_BANDS], "games": board, "record": record}
+
+
 # ---- King of the Crease (the Promo Tools page) ----
 def saves_model_for(records: list):
     """The saves model fed every finished game of this season, and nothing
@@ -2939,6 +3154,7 @@ def main():
     parser.add_argument("--crease-record-dir", type=Path, default=CREASE_RECORD_DIR, help="Where King of the Crease's finished days are kept")
     parser.add_argument("--goals-record-dir", type=Path, default=GOALS_RECORD_DIR, help="Where the Goals page's graded players are kept")
     parser.add_argument("--points-record-dir", type=Path, default=POINTS_RECORD_DIR, help="Where the Points page's graded players are kept")
+    parser.add_argument("--stacks-record-dir", type=Path, default=STACKS_RECORD_DIR, help="Where Line Stacks' graded stacks are kept")
     parser.add_argument("--icebreaker-record-dir", type=Path, default=ICEBREAKER_RECORD_DIR, help="Where Icebreaker's finished slates are kept")
     args = parser.parse_args()
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -3045,6 +3261,14 @@ def main():
         points = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
     with open(args.out.parent / "points.json", "w") as f:
         json.dump(points, f, separators=(",", ":"))
+    try:
+        stacks = stacks_file(args.season, generated_at, stats["records"], points.get("games") or {}, games, fetch_previous(LIVE_STACKS_URL), now_utc,
+                             args.stacks_record_dir)
+    except Exception as e:  # Line Stacks must never cost the other NHL pages their data
+        print(f"WARNING: Line Stacks couldn't be built ({e}).", file=sys.stderr)
+        stacks = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
+    with open(args.out.parent / "stacks.json", "w") as f:
+        json.dump(stacks, f, separators=(",", ":"))
     try:
         icebreaker = icebreaker_file(args.season, generated_at, stats["records"], goals.get("games") or {}, games, player_odds, book_odds,
                                      fetch_previous(LIVE_ICEBREAKER_URL), now_utc, args.icebreaker_record_dir)
