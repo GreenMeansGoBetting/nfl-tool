@@ -100,6 +100,7 @@ function sortedRows(date, lineup = pointsView.lineup, checks = pointsView.checks
   const get = SORTS[pointsView.sort] || SORTS.edge;
   return rowsFor(date)
     .filter((x) => !x.r.out)
+    .filter((x) => nameMatches(x.r.name))
     .filter((x) => pointsView.pos === "all" || positionGroup(x.r.pos) === pointsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
     .filter((x) => pointsView.odds === "all" || has(x.r.line))
@@ -336,7 +337,7 @@ function stacksBox(x) {
 // Each column draws its own cell. `adv`: folded away until "Expand advanced stats".
 const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
-  { key: null, label: "Player", cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
+  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow = above or below the line his minutes say he has been on. -- = not posted yet.", cell: (x) => lineCell(x.r) },
   { key: null, label: "Play", title: "The better side of Novig's points line for him at its price (o0.5 = 1 or more points, u0.5 = none). No odds = not priced yet", cell: (x) => `<td class="shots-play-cell">${playChip(x.r)}</td>` },
   { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or against tonight's line change: look for news first)", cell: ratingCell },
@@ -359,7 +360,7 @@ function renderTable() {
   const cols = shownColumns(COLUMNS, pointsView.adv);
   // +1: the empty last column that takes the spare width, so the others stay narrow.
   const columns = cols.length + (showResult ? 1 : 0) + 1;
-  if (!rows.length) {
+  if (!rows.length && !nameSearching()) {
     const waiting = pointsView.lineup === "confirmed" && sortedRows(date, "all").length;
     el("shots-content").innerHTML = !shown.length
       ? `<p class="no-data-note">No projections for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.</p>`
@@ -370,7 +371,7 @@ function renderTable() {
   }
   const head = cols.map((c) => {
     const active = c.key && c.key === pointsView.sort;
-    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${active ? `<span class="shots-arrow">${pointsView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
+    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${c.search ? nameSearchBox() : ""}${active ? `<span class="shots-arrow">${pointsView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
   }).join("");
   const heading = (text, cls, i) => `${i > 0 ? `<tr class="group-gap"><td colspan="${columns}"></td></tr>` : ""}<tr class="group-row ${cls}"><td colspan="${columns}">${text}</td></tr>`;
   const body = rows
@@ -399,7 +400,7 @@ function renderTable() {
     .join("");
   el("shots-content").innerHTML = `<div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table goals-table points-table">
       <thead><tr>${head}${showResult ? `<th title="His real points, and whether the play won">Result</th>` : ""}<th class="shots-spacer"></th></tr></thead>
-      <tbody>${body}</tbody>
+      <tbody>${body || nameSearchMiss(columns)}</tbody>
     </table></div></div>`;
 }
 

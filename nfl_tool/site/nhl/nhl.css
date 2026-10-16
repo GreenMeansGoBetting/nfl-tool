@@ -431,6 +431,12 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .best-rec-edge input { flex: 1; min-width: 0; accent-color: var(--accent); cursor: pointer; }
 .best-rec-edge output { min-width: 34px; padding: 1px 6px; border-radius: 6px; text-align: center; font-size: 0.82rem; color: var(--text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.45); }
 
+/* ---- Player search (nhl-common.js nameSearchBox): in the Player header of every prop table ---- */
+.nhl-name-search { margin-left: 10px; width: 150px; padding: 3px 9px; border-radius: 8px; border: 1px solid var(--border-strong);
+  background: var(--table-head); color: var(--text); font: inherit; font-size: 0.95em; font-weight: 500; text-transform: none; letter-spacing: normal; vertical-align: middle; }
+.nhl-name-search:focus { outline: none; border-color: rgba(var(--good-rgb), 0.7); }
+.nhl-name-miss { padding: 14px 10px; }
+
 /* ---- Line Stacks (stacks.html; the Points page's "Best stacks" box) ---- */
 .stk-legs { min-width: 360px; }
 .stk-leg { display: flex; align-items: center; gap: 8px; padding: 3px 0; }

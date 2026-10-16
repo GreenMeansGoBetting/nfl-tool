@@ -53,6 +53,7 @@ function rowsFor(date) {
 function sortedRows(date) {
   const get = SORTS[stacksView.sort] || SORTS.score;
   return rowsFor(date)
+    .filter((x) => nameMatches(...x.s.legs.map((p) => (x.board.players[p] || {}).name)))
     .filter((x) => stacksView.kind === "all" || x.s.kind === stacksView.kind)
     .filter((x) => stacksView.legs === "all" || x.s.legs.length === Number(stacksView.legs))
     .filter((x) => !dayIsMixed(date) || stacksView.when === "all" || (stacksView.when === "open") === (x.state === "open"))
@@ -124,7 +125,9 @@ function renderTable() {
   const date = days()[dayIndex];
   const rows = sortedRows(date);
   const shownGames = gamesOn(date).filter((g) => boardFor(g) && (!gameId || g.game_id === gameId));
-  if (!rows.length) {
+  const showResult = rows.some((x) => "hit" in x.s);
+  const columns = 6 + (showResult ? 1 : 0);
+  if (!rows.length && !nameSearching()) {
     const waiting = shownGames.length && shownGames.every((g) => !boardFor(g).posted);
     el("shots-content").innerHTML = !shownGames.length
       ? `<p class="no-data-note">No stacks for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.</p>`
@@ -133,8 +136,6 @@ function renderTable() {
         : `<p class="no-data-note">No stacks match these filters.</p>`;
     return;
   }
-  const showResult = rows.some((x) => "hit" in x.s);
-  const columns = 6 + (showResult ? 1 : 0);
   const body = rows
     .slice(0, stacksView.shown)
     .map((x, i) => {
@@ -161,8 +162,8 @@ function renderTable() {
     .join("");
   const more = rows.length > stacksView.shown ? `<p class="stk-more"><button type="button" class="view-toggle-btn" id="stk-more">Show ${Math.min(PAGE, rows.length - stacksView.shown)} more</button> <span class="muted-label">${stacksView.shown} of ${rows.length} stacks shown</span></p>` : "";
   el("shots-content").innerHTML = `<div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table stk-table">
-      <thead><tr><th class="num" title="${STACK_SCORE_TIP}">Score</th><th>Legs (1+ point each)</th><th>Stack</th><th class="num" title="GMG's fair price for every leg hitting (no cut), with the chance under it">Fair</th><th class="num" title="How much more often the legs hit together than if they had nothing to do with each other">Correlation</th><th></th>${showResult ? `<th title="Hit = every leg got a point; Void = a leg didn't play">Result</th>` : ""}</tr></thead>
-      <tbody>${body}</tbody>
+      <thead><tr><th class="num" title="${STACK_SCORE_TIP}">Score</th><th>Legs (1+ point each)${nameSearchBox()}</th><th>Stack</th><th class="num" title="GMG's fair price for every leg hitting (no cut), with the chance under it">Fair</th><th class="num" title="How much more often the legs hit together than if they had nothing to do with each other">Correlation</th><th></th>${showResult ? `<th title="Hit = every leg got a point; Void = a leg didn't play">Result</th>` : ""}</tr></thead>
+      <tbody>${body || nameSearchMiss(columns)}</tbody>
     </table></div></div>${more}`;
 }
 const fairPrice = (p) => (!has(p) || p <= 0 || p >= 1 ? null : p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p));

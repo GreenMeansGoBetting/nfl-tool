@@ -772,3 +772,26 @@ document.addEventListener("click", (e) => {
     done();
   }
 }, true);
+
+// ---- Player search (the owner, 2026-10-16: "if i start typing in GEE it will only show names of players with that") ----
+// A box in the Player header of every prop table (Shots, Goals, Points, Best Plays; Line Stacks'
+// Legs header: a stack stays if any leg matches). Case and accents don't matter. One search for
+// the page; the page's renderTable redraws and the box keeps its cursor.
+let NAME_SEARCH = "";
+const searchText = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const nameSearching = () => !!searchText(NAME_SEARCH);
+const nameMatches = (...names) => !nameSearching() || names.some((n) => searchText(n).includes(searchText(NAME_SEARCH)));
+const nameSearchBox = () =>
+  `<input type="search" class="nhl-name-search" placeholder="Search players" aria-label="Search players" autocomplete="off" value="${String(NAME_SEARCH).replace(/&/g, "&amp;").replace(/"/g, "&quot;")}">`;
+const nameSearchMiss = (columns) => `<tr><td colspan="${columns}" class="no-data-note nhl-name-miss">No players match "${String(NAME_SEARCH).replace(/</g, "&lt;")}" with these filters.</td></tr>`;
+document.addEventListener("input", (e) => {
+  if (!e.target.classList || !e.target.classList.contains("nhl-name-search")) return;
+  NAME_SEARCH = e.target.value;
+  const at = e.target.selectionStart;
+  if (typeof renderTable === "function") renderTable();
+  const box = document.querySelector(".nhl-name-search");
+  if (box && box !== e.target) {
+    box.focus();
+    box.setSelectionRange(at, at);
+  }
+});

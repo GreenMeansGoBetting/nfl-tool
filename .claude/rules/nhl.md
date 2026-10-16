@@ -323,6 +323,12 @@ on a replay, and the page keeps a record against the real prices.
   `PROPS` in sync.js, the Promo Tools menu's look, `navMenu`). A new NHL tool goes under one of
   these headers unless the owner decides it needs its own button. No "More tools coming" on any
   page. A test checks every NHL page's bar.
+- **Player search** (the owner, 2026-10-16: "if i start typing in GEE it will only show names of players
+  with that"): a box in the Player header of Shots, Goals, Points and Best Plays, and in Line Stacks'
+  Legs header (a stack stays if any leg matches). Case and accents don't matter (`nameSearchBox`,
+  `nameMatches`, `NAME_SEARCH` in nhl-common.js; each page filters in its own sorted rows). A search
+  that matches nobody keeps the table and the box with a "No players match" line. A new prop table:
+  `search: true` on its Player column and `nameMatches` in its filter. Test: `tests/test_nhl_search_site.py`.
 - **`site/nhl/nhl-common.js` is shared by every NHL page** and loads first: the data
   (`loadNhlData`), the season switch (`view`), helpers, the rink drawing (`rinkSvg`) and the
   player card. A new NHL page adds its own script after it and defines `render()` (called when

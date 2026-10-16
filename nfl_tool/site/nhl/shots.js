@@ -155,6 +155,7 @@ function sortedRows(date, lineup = shotsView.lineup, checks = shotsView.checks) 
   const get = SORTS[shotsView.sort] || SORTS.edge;
   return rowsFor(date)
     .filter((x) => !x.r.out && x.play)
+    .filter((x) => nameMatches(x.r.name))
     .filter((x) => shotsView.pos === "all" || positionGroup(x.r.pos) === shotsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
     .filter((x) => checks || !needsCheck(x))
@@ -434,7 +435,7 @@ function detailRow(x, columns) {
 // thrown at users"). No Model % column: the Fair price says the same.
 const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
-  { key: null, label: "Player", cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
+  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow means it is above or below the line his own minutes say he has been on: green adds shots, red takes some away. -- = not posted yet.", cell: (x) => lineCell(x.r) },
   { key: null, label: "Play", title: "The side of his main line the model likes more (o = over, u = under), at Novig's price", cell: (x) => `<td class="shots-play-cell">${playChip(x.play)}</td>` },
   { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or against tonight's line change: look for news first)", cell: ratingCell },
@@ -527,7 +528,7 @@ function renderTable() {
   const cols = shownColumns(COLUMNS, shotsView.adv);
   // +1: the empty last column that takes the spare width, so the others stay narrow.
   const columns = cols.length + (showResult ? 1 : 0) + 1;
-  if (!rows.length) {
+  if (!rows.length && !nameSearching()) {
     const one = shown.length === 1;
     // Nothing under "Lineup Confirmed" but there is under "All": say why, and offer the switch.
     const waiting = shotsView.lineup === "confirmed" && sortedRows(date, "all").length;
@@ -542,7 +543,7 @@ function renderTable() {
   }
   const head = cols.map((c) => {
     const active = c.key && c.key === shotsView.sort;
-    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${active ? `<span class="shots-arrow">${shotsView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
+    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${c.search ? nameSearchBox() : ""}${active ? `<span class="shots-arrow">${shotsView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
   }).join("");
   const body = rows
     .map((x, i) => {
@@ -571,7 +572,7 @@ function renderTable() {
     .join("");
   el("shots-content").innerHTML = `<div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table">
       <thead><tr>${head}${showResult ? `<th title="His real shots on goal, and whether the play won">Result</th>` : ""}<th class="shots-spacer"></th></tr></thead>
-      <tbody>${body}</tbody>
+      <tbody>${body || nameSearchMiss(columns)}</tbody>
     </table></div></div>`;
 }
 function renderNote() {

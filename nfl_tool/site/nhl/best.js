@@ -129,6 +129,7 @@ const SORTS = {
 function sortedPlays(date) {
   const get = SORTS[bestView.sort] || SORTS.edge;
   return playsFor(date)
+    .filter((x) => nameMatches(x.r.name))
     .filter((x) => !dayIsMixed(date) || bestView.when === "all" || (bestView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
       // Plays still to come first, then games in progress, then finished ones, whatever the sort.
@@ -219,7 +220,7 @@ function bestResultCell(x) {
 }
 const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
-  { key: null, label: "Player", cls: "shots-th-player", cell: (x) => {
+  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => {
     const found = findPlayer(x.r.id);
     return `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>`;
   } },
@@ -236,14 +237,14 @@ function renderTable() {
   const rows = sortedPlays(date);
   const showResult = rows.some((x) => x.result);
   const width = COLUMNS.length + (showResult ? 1 : 0) + 1;
-  if (!rows.length) {
+  if (!rows.length && !nameSearching()) {
     const any = gamesOn(date).some(anyBoard);
     el("best-content").innerHTML = `<p class="no-data-note">${!any ? `No projections for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.` : "No plays with an edge right now. Prices and lineups fill in through the day as the page refreshes."}</p>`;
     return;
   }
   const head = COLUMNS.map((c) => {
     const active = c.key && c.key === bestView.sort;
-    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${active ? `<span class="shots-arrow">${bestView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
+    return `<th${c.key ? ` class="shots-sort${active ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${c.search ? nameSearchBox() : ""}${active ? `<span class="shots-arrow">${bestView.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
   }).join("");
   const heading = (text, i) => `${i > 0 ? `<tr class="group-gap"><td colspan="${width}"></td></tr>` : ""}<tr class="group-row shots-state-head"><td colspan="${width}">${text}</td></tr>`;
   const body = rows
@@ -261,7 +262,7 @@ function renderTable() {
   el("best-content").innerHTML = `<p class="best-count">${rows.length} plays with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">${counts}</span></p>
     <div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table best-table">
       <thead><tr>${head}${showResult ? `<th>Result</th>` : ""}<th class="shots-spacer"></th></tr></thead>
-      <tbody>${body}</tbody>
+      <tbody>${body || nameSearchMiss(width)}</tbody>
     </table></div></div>`;
 }
 
