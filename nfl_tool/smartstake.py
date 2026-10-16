@@ -71,8 +71,9 @@ NFL_PROP_MARKETS = {
 NFL_TD_MARKET = "football_player_touchdowns"  # Anytime TD, quoted as Over 0.5
 NFL_LINE_MARKETS = {"football_moneyline": "ml", "football_points_handicap": "spread", "football_points": "total"}
 
-# NHL: shots on goal and goals (anytime = the 0.5 line), keyed by the NHL's player id.
-NHL_PROP_MARKETS = {"hockey_player_shots_on_goal": "sog", "hockey_player_goals": "goals"}
+# NHL: shots on goal, goals (anytime = the 0.5 line) and points (1+ = the 0.5
+# line: Line Stacks shows only stacks a book prices every leg of), keyed by the NHL's player id.
+NHL_PROP_MARKETS = {"hockey_player_shots_on_goal": "sog", "hockey_player_goals": "goals", "hockey_player_points": "points"}
 # First goal scorer (Icebreaker: DraftKings' promo needs a first goal scorer
 # bet). Its key isn't in SmartStake's docs, so each build looks it up in
 # /v1/markets: a player market named for the game's first goal, not a team's,

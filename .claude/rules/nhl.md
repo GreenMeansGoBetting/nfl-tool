@@ -953,14 +953,25 @@ Player Props after Points, and a "Best stacks with <player> tonight" box in the 
   pairs (said 51%, hit 48.5%) and 4 legs said 15-20% (hit 14.4%). A per-legs re-scaling didn't help.
 - **Kinds** (`KINDS`): line pair, full line, D pair, forward + D, line pair + D, line + D, line pair
   + D pair (the "matched" pair = the one that has shared the most EV ice with that line), power play
-  (two of the usual first unit, top 5 by PP minutes a game, not on the same line or pair).
+  (two of the usual first unit, top 5 by PP minutes a game, not on the same line or pair), **power play
+  trio** (`pp_trio`, 2026-10-16, the owner: Rakell + Kindel + Karlsson came only as two pairs, "this has
+  to be a flaw?"): three of that unit, not all one line, and not a trio the lines already built (two
+  linemates + their matched D stays "Line pair + D"). Added after the replay: its pairs use the fitted
+  power-play rho, but no rho was fitted for three of the unit sharing one goal (`trio_other` = 0), so its
+  chance can only be too LOW. Refit it on the replay (needs the 2024-25 / 2025-26 data, on the Carter PC).
 - **Shared ice** (`reduce_game`'s `ice`, `game_ice` -> `stacks_model.shared_ice`): each skater's
   EV / PP seconds and every teammate pair's shared seconds, from the kept shift chart (None without
   one: this season's games 6-52). `StacksHistory` keeps it per team, decayed 0.985 a team game.
+- **Only stacks a book prices EVERY leg of** (the owner, 2026-10-16: the rest is clutter): SmartStake's
+  `hockey_player_points` (data.json `book_odds[..].props.points`, an over on the 0.5 line from any US
+  book; `book_priced_points`). Done in the BUILD, not the page: the record grades exactly the stacks
+  shown, the files stay small, the page does no stack math, and the lock keeps the filtered board. A
+  game's `unpriced` = stacks left out; posted with none left, the page says the books haven't priced it
+  yet. No SmartStake prices that run (no key, a failed fetch) = drop nothing (it can't tell).
 - **ONLY a posted projected lineup makes stacks** (the owner: "the projected line only"): a game
   without one is `posted: false` with no stacks, and the page says it is waiting on the lineup.
 - **`site/nhl/stacks.json`** (not tracked; on fetch_live_data's list; `version.json` `nhl.stacks` =
-  games with stacks): `games[id] = {locked, posted, players: {id: name, team, pos, slot, chance,
+  games with stacks): `games[id] = {locked, posted, unpriced, players: {id: name, team, pos, slot, chance,
   fair, line, over, under}, stacks: [kind, team, line, legs, chance, fair, indep, lift, score,
   priced, xg, pp]}`, best Score first. Built from points.json's rows (`game_stacks`), so a leg is
   exactly the Points page's chance. Lock like Points; a final game gets `actual` and each stack's

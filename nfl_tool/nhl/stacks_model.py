@@ -32,7 +32,13 @@ usual trio 31%). Stacks are made only from a posted projected lineup.
 Kinds: line_pair, line_trio, d_pair, line_fd (a forward + a D of his line's
 pair: the pair that has shared the most even-strength ice with that line),
 line_pair_d, line_trio_d, line_pair_dd, pp_pair (two of the team's usual
-first power-play unit who are not on the same line or pair). Forwards on
+first power-play unit who are not on the same line or pair), pp_trio (three
+of that unit, unless the three are a stack already built from the lines).
+pp_trio was added after the replay (the owner, 2026-10-16: "they are all on
+the same line"): its pairs use the fitted power-play rho, but the replay
+never fitted a rho for three of the unit sharing one goal, so it counts
+none (trio_other = 0), which can only make its chance too LOW, never too
+high. The record grades it by kind; refit on the replay before trusting it. Forwards on
 different lines and players on opposite teams were left out: their points
 barely move together (1.05-1.12x and 1.03x).
 
@@ -59,7 +65,7 @@ WEIGHTS = {"const": -0.08, "xg": 0.069, "pp": 0.125}
 XG_AVG = {2: 0.378, 3: 0.56, 4: 0.691}
 KINDS = {
     "line_pair": "Line pair", "line_trio": "Full line", "d_pair": "D pair", "line_fd": "Forward + D",
-    "line_pair_d": "Line pair + D", "line_trio_d": "Line + D", "line_pair_dd": "Line pair + D pair", "pp_pair": "Power play",
+    "line_pair_d": "Line pair + D", "line_trio_d": "Line + D", "line_pair_dd": "Line pair + D pair", "pp_pair": "Power play", "pp_trio": "Power play trio",
 }
 
 
@@ -281,10 +287,11 @@ def team_stacks(team: str, slots: dict, proj: dict, history: StacksHistory) -> l
     for s, g in lines.items():
         if s[0] == "F" and pairs_d:
             match[s] = max(sorted(pairs_d), key=lambda d: (sum(history.shared(team, f, x) for f in g for x in pairs_d[d]), -int(d[1:])))
-    out = []
+    out, built = [], set()
 
     def add(kind, legs, line):
-        if len(set(legs)) == len(legs) and all(p in proj for p in legs):
+        if len(set(legs)) == len(legs) and all(p in proj for p in legs) and not (kind == "pp_trio" and frozenset(legs) in built):
+            built.add(frozenset(legs))
             out.append({"kind": kind, "line": line, **stack_chance(team, list(legs), slots, match, proj, history)})
 
     for s in sorted(lines):
@@ -312,4 +319,7 @@ def team_stacks(team: str, slots: dict, proj: dict, history: StacksHistory) -> l
     for p, q in combinations(unit, 2):
         if slots.get(p) and slots.get(q) and slots[p] != slots[q]:
             add("pp_pair", (p, q), "PP1")
+    for trio in combinations(unit, 3):
+        if all(slots.get(p) for p in trio) and len({slots[p] for p in trio}) > 1:
+            add("pp_trio", trio, "PP1")  # a trio the lines already built is skipped by add()
     return out

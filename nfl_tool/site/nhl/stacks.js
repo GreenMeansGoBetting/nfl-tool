@@ -113,7 +113,7 @@ function legLine(id, players) {
     <span class="stk-leg-fair" title="GMG's fair price for him to get 1+ point"><span class="stk-tag">GMG fair</span><b>${odds(p.fair)}</b></span>${legNovig(p)}${has(p.actual) ? `<span class="stk-leg-actual${p.actual > 0 ? " tier-good" : " tier-bad"}">${p.actual} P</span>` : ""}</div>`;
 }
 function where(s) {
-  if (s.kind === "pp_pair") return "First power-play unit";
+  if (s.kind === "pp_pair" || s.kind === "pp_trio") return "First power-play unit";
   const [line, pair] = s.line.split("+");
   return `${stackSlotWords(line)}${pair ? ` + ${stackSlotWords(pair)}` : ""}`;
 }
@@ -129,11 +129,14 @@ function renderTable() {
   const columns = 6 + (showResult ? 1 : 0);
   if (!rows.length && !nameSearching()) {
     const waiting = shownGames.length && shownGames.every((g) => !boardFor(g).posted);
+    const unpriced = shownGames.length && !waiting && shownGames.every((g) => !boardFor(g).stacks.length) && shownGames.some((g) => boardFor(g).unpriced);
     el("shots-content").innerHTML = !shownGames.length
       ? `<p class="no-data-note">No stacks for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.</p>`
       : waiting
         ? `<p class="no-data-note shots-waiting">Stacks are made only from the NHL's projected lineup, and none is in yet for ${shownGames.length === 1 ? "this game" : "these games"}. The NHL posts each one around midday Eastern on game day; this page refreshes through the day.</p>`
-        : `<p class="no-data-note">No stacks match these filters.</p>`;
+        : unpriced
+          ? `<p class="no-data-note shots-waiting">Only stacks a sportsbook prices every leg of are listed, and the books haven't posted 1+ point prices for ${shownGames.length === 1 ? "this game" : "these games"} yet. This page refreshes through the day.</p>`
+          : `<p class="no-data-note">No stacks match these filters.</p>`;
     return;
   }
   const body = rows

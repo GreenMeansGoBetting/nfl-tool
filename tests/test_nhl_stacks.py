@@ -5,10 +5,11 @@ hand-made ones.
 What is pinned: shared ice (even strength and power play) read from the
 shift chart; the joint chance (no shared goals = the legs multiplied, shared
 goals = more, never above the weakest leg); every stack kind from a posted
-lineup, power-play pairs only across lines; the Score (50 = no edge against
+lineup, power-play pairs only across lines, power-play trios of the unit
+(not one the lines already built); the Score (50 = no edge against
 the market's legs; the market read off the 0.5 or the 1.5 line); the board
 (ONLY a posted projected lineup makes stacks, the lock, a finished game's
-hits and void legs); the record (one file per game, written once; said vs
+hits and void legs, only stacks a book prices every leg of); the record (one file per game, written once; said vs
 hit, voids left out)."""
 import json
 import math
@@ -82,7 +83,7 @@ class TeamStacks(unittest.TestCase):
         stacks = km.team_stacks("AAA", slots, proj, km.StacksHistory())
         kinds = {k: sum(s["kind"] == k for s in stacks) for k in km.KINDS}
         self.assertEqual(kinds, {"line_pair": 12, "line_trio": 4, "d_pair": 3, "line_fd": 24, "line_pair_d": 24, "line_trio_d": 8,
-                                 "line_pair_dd": 12, "pp_pair": 0})  # no power-play history yet
+                                 "line_pair_dd": 12, "pp_pair": 0, "pp_trio": 0})  # no power-play history yet
         trio = next(s for s in stacks if s["kind"] == "line_trio")
         self.assertGreater(trio["chance"], trio["indep"])
         self.assertEqual(trio["fair"], km.fair_american(trio["chance"]))
@@ -99,6 +100,24 @@ class TeamStacks(unittest.TestCase):
         pairs = [set(s["legs"]) for s in stacks if s["kind"] == "pp_pair"]
         self.assertEqual(len(pairs), 9)  # 10 pairs of the unit, less the one on the same line (f0 + f1)
         self.assertNotIn({"AAAf0", "AAAf1"}, pairs)
+
+    def test_power_play_trios_of_the_first_unit(self):
+        # The owner, 2026-10-16: Rakell (line 1), Kindel (line 3) and Karlsson (pair 1) are all on PIT's
+        # first unit and came as two pairs, never as the three together.
+        ids, slots = lineup()
+        history = km.StacksHistory()
+        unit = ["AAAf0", "AAAf1", "AAAf3", "AAAd0", "AAAd2"]
+        spans = {p: [(0, 1200)] if p in unit else [(1200, 2400)] for p in ids}
+        history.add_game({"home": "AAA", "away": "BBB", "skaters": {p: {"team": "AAA", "g": 0, "a": 0} for p in ids}, "goal_events": [],
+                          "ice": {"AAA": km.shared_ice(spans, [], [(0, 1200)])}})
+        stacks = km.team_stacks("AAA", slots, {p: {"chance": 0.4, "goals": 0.15} for p in ids}, history)
+        trios = [s for s in stacks if s["kind"] == "pp_trio"]
+        self.assertIn({"AAAf0", "AAAf3", "AAAd0"}, [set(s["legs"]) for s in trios])
+        self.assertEqual(len(trios), 9)  # 10 trios of the unit, less f0 + f1 + d0: already their line pair + D
+        self.assertEqual([s["kind"] for s in stacks if set(s["legs"]) == {"AAAf0", "AAAf1", "AAAd0"}], ["line_pair_d"])
+        for s in trios:
+            self.assertGreater(s["chance"], s["indep"])  # its pairs share power-play goals
+            self.assertLessEqual(s["chance"], 0.4)
 
 
 class Board(unittest.TestCase):
@@ -120,6 +139,25 @@ class Board(unittest.TestCase):
         self.assertTrue(board["1"]["posted"])
         self.assertEqual(len(board["1"]["stacks"]), 2 * 87)
         self.assertEqual([s["score"] for s in board["1"]["stacks"]], sorted((s["score"] for s in board["1"]["stacks"]), reverse=True))
+
+    def test_only_stacks_a_book_prices_every_leg_of(self):
+        now = datetime(2026, 10, 16, 15)
+        q = lambda line, side="o": ["fanduel", side, line, -150, ""]
+        book_odds = {"AAA_BBB": {"props": {"points": {"AAAf0": {"q": [q(0.5)]}, "AAAf1": {"q": [q(0.5), q(1.5)]},
+                                                      "AAAf2": {"q": [q(1.5)]}, "AAAd0": {"q": [q(0.5, "u")]}}}}}
+        priced = build_nhl.book_priced_points(book_odds, [self.game()])
+        self.assertEqual(priced, {"1": {"AAAf0", "AAAf1"}})  # the 1+ point over: not a 1.5 line, not an under
+        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory(), priced)["1"]
+        self.assertEqual([s["legs"] for s in board["stacks"]], [["AAAf0", "AAAf1"]])
+        self.assertEqual(board["unpriced"], 2 * 87 - 1)
+        # No SmartStake prices this run (no key, a failed fetch): nothing can be told, nothing is dropped.
+        self.assertIsNone(build_nhl.book_priced_points(None, [self.game()]))
+        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory(), None)["1"]
+        self.assertEqual(len(board["stacks"]), 2 * 87)
+        self.assertNotIn("unpriced", board)
+        # A game the books haven't priced yet: posted, but no stacks until they do.
+        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory(), {"1": set()})["1"]
+        self.assertEqual((board["posted"], board["stacks"], board["unpriced"]), (True, [], 2 * 87))
 
     def test_the_lock_and_the_grades(self):
         now = datetime(2026, 10, 16, 15)

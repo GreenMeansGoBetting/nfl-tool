@@ -2470,13 +2470,29 @@ def stack_score(chance: float, market: float) -> int:
     return max(1, min(100, round(50 + 100 * math.log(chance / market))))
 
 
-def stacks_board(points_games: dict, games: list, records: list, previous: dict | None, now_utc: datetime, history) -> dict:
+def book_priced_points(book_odds: dict | None, games: list) -> dict | None:
+    """{game id: the player ids at least one book (SmartStake) prices 1+ point
+    for: an over on the 0.5 line}. None = no SmartStake prices this run (no
+    key, or the fetch failed): then Line Stacks can't tell and drops nothing."""
+    if book_odds is None:
+        return None
+    out = {}
+    for g in games:
+        props = ((book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}).get("points") or {}
+        out[g["game_id"]] = {pid for pid, entry in props.items() if any(q[1] == "o" and q[2] == 0.5 for q in entry.get("q") or [])}
+    return out
+
+
+def stacks_board(points_games: dict, games: list, records: list, previous: dict | None, now_utc: datetime, history,
+                 book_priced: dict | None = None) -> dict:
     """{game id: {"locked", "posted", "players", "stacks"}} for the Line Stacks
     page, from the Points page's rows (each leg is its 1+ point chance) and
     ONLY a posted projected lineup (the owner's rule: no stacks from usual
     lines). A started game keeps the previous build's stacks (none saved =
     none shown); a finished one gets each player's `actual` points and each
-    stack's `hit` (None if a leg didn't play)."""
+    stack's `hit` (None if a leg didn't play). book_priced (book_priced_points)
+    keeps only stacks a book prices EVERY leg of (the owner, 2026-10-16: the
+    rest is clutter nobody can bet); `unpriced` = how many were left out."""
     prev_games = (previous or {}).get("games") or {}
     finished = {str(r["id"]): r for r in records}
     out = {}
@@ -2503,7 +2519,12 @@ def stacks_board(points_games: dict, games: list, records: list, previous: dict 
             out[g["game_id"]] = {"locked": False, "posted": False, "players": {}, "stacks": []}
             continue
         players, stacks = game_stacks(rows, g["away"], g["home"], history)
-        out[g["game_id"]] = {"locked": False, "posted": True, "players": players, "stacks": stacks}
+        entry = {"locked": False, "posted": True, "players": players, "stacks": stacks}
+        if book_priced is not None:
+            priced = book_priced.get(g["game_id"]) or set()
+            entry["stacks"] = [s for s in stacks if all(p in priced for p in s["legs"])]
+            entry["unpriced"] = len(stacks) - len(entry["stacks"])
+        out[g["game_id"]] = entry
     return out
 
 
@@ -2602,9 +2623,9 @@ def stacks_record_summary(folder: Path) -> dict:
 
 
 def stacks_file(season: int, generated_at: str, records: list, points_games: dict, games: list, previous: dict | None,
-                now_utc: datetime, record_dir: Path) -> dict:
+                now_utc: datetime, record_dir: Path, book_priced: dict | None = None) -> dict:
     """site/nhl/stacks.json: the board, the model's numbers and the record."""
-    board = stacks_board(points_games, games, records, previous, now_utc, stacks_history_for(records))
+    board = stacks_board(points_games, games, records, previous, now_utc, stacks_history_for(records), book_priced)
     try:
         record_stack_games(record_dir, board, games)
         record = stacks_record_summary(record_dir)
@@ -3305,7 +3326,7 @@ def main():
         json.dump(points, f, separators=(",", ":"))
     try:
         stacks = stacks_file(args.season, generated_at, stats["records"], points.get("games") or {}, games, fetch_previous(LIVE_STACKS_URL), now_utc,
-                             args.stacks_record_dir)
+                             args.stacks_record_dir, book_priced_points(None if "error" in book_odds_debug or "skipped" in book_odds_debug else book_odds, games))
     except Exception as e:  # Line Stacks must never cost the other NHL pages their data
         print(f"WARNING: Line Stacks couldn't be built ({e}).", file=sys.stderr)
         stacks = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
