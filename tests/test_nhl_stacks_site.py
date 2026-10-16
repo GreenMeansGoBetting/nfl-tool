@@ -8,6 +8,8 @@ fair price, the stack's fair price, the correlation; it does no stack math);
 best Score first; the filters; the exact text Copy puts on the clipboard; a
 finished game's Hit / Miss / Void; the record popup; the Points page's box
 (his stacks, best Score first); the nav and the Player Props menu."""
+import json
+import math
 import re
 import unittest
 from pathlib import Path
@@ -104,6 +106,53 @@ class LineStacksPage(unittest.TestCase):
         nav = re.search(r'<nav class="page-nav">(.*?)</nav>', (site / "stacks.html").read_text(encoding="utf-8"), re.S).group(1)
         self.assertEqual(re.findall(r">([^<>]+)</(?:a|span)>", nav), ["Games", "Player Props", "Promo Tools"])
         self.assertNotIn("confirmed", (site / "stacks.js").read_text(encoding="utf-8").lower())
+
+
+class SgpLog(unittest.TestCase):
+    """The owner's SGP price log: the logged prices on the stack (green = pays more
+    than GMG fair), each book's markup in the record popup, and the form's save."""
+
+    def test_logged_prices_markup_and_the_form(self):
+        rows = show()
+        top = PAGE.evaluate("() => { const x = sortedRows(days()[dayIndex])[0]; return { game: x.game.game_id, legs: x.s.legs, fair: x.s.fair, chance: x.s.chance, kind: x.s.kind }; }")
+        key = f"{top['game']}:{','.join(sorted(top['legs']))}"
+        legs = [-560, -290, -250, -200][: len(top["legs"])]
+        entry = {"game": top["game"], "legs": top["legs"], "kind": top["kind"], "chance": top["chance"], "fair": top["fair"],
+                 "books": [{"book": "FanDuel", "price": 100000, "legs": legs}, {"book": "DraftKings", "price": -100000, "legs": [None] * len(legs)}]}
+        sent = []
+
+        def answer(route):
+            if route.request.method == "PUT":
+                sent.append(json.loads(route.request.post_data))
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"stacks": {key: entry}, "books": ["DraftKings", "FanDuel", "BetMGM"]}))
+
+        PAGE.route("**/api/sgp-prices", answer)
+        PAGE.evaluate("() => loadSgp()")
+        chips = PAGE.eval_on_selector_all(".stk-row:first-of-type .stk-book", "(els) => els.map((e) => [e.textContent, e.className])")
+        self.assertEqual([c[0] for c in chips], ["FD +100000", "DK -100000"])
+        self.assertIn("tier-good", chips[0][1])  # pays far more than fair
+        self.assertIn("tier-bad", chips[1][1])
+        PAGE.click("#shots-record-open")
+        table = PAGE.inner_text(".stk-markup")
+        markup = (1 / 1001) / math.prod(1 / (1 + 100 / -x) for x in legs)
+        self.assertIn(f"{markup:.2f}x", table)
+        PAGE.keyboard.press("Escape")
+        # The form (shown on 127.0.0.1 like the owner sees it): one line per logged book; save sends them.
+        PAGE.click(".stk-row .stk-log")
+        self.assertFalse(PAGE.evaluate("() => el('stk-log-modal').hidden"))
+        self.assertEqual(PAGE.locator(".stk-log-book").count(), 2)
+        PAGE.click("#stk-log-add")
+        line = PAGE.locator(".stk-log-book").nth(2)
+        line.locator("select").select_option("BetMGM")
+        line.locator(".stk-log-price").fill("+325")
+        PAGE.click("#stk-log-save")
+        PAGE.wait_for_function("() => el('stk-log-modal').hidden")
+        self.assertEqual([b["book"] for b in sent[0]["books"]], ["FanDuel", "DraftKings", "BetMGM"])
+        self.assertEqual(sent[0]["books"][2], {"book": "BetMGM", "price": 325, "legs": [None] * len(legs)})
+        self.assertEqual((sent[0]["game"], sent[0]["legs"], sent[0]["fair"]), (top["game"], top["legs"], top["fair"]))
+        PAGE.unroute("**/api/sgp-prices")
+        PAGE.evaluate("() => loadSgp()")
+        self.assertEqual(rows[0]["legs"], len(top["legs"]))
 
 
 class PointsBox(unittest.TestCase):

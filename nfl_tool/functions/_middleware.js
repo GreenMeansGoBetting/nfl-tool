@@ -392,11 +392,75 @@ async function handlePromoPayouts(request, env, session, json, promo) {
   return json({ ok: true });
 }
 
+// ---- SGP price log (NHL Line Stacks, added 2026-10-16) ----
+// Books price a same-game parlay's correlation themselves, each its own way,
+// and no free history of those prices exists. So the owner logs what books
+// charge for a stack: each book's SGP price and, when known, its prices for
+// the legs alone. The Line Stacks page turns that into each book's markup by
+// stack type and its price against GMG's fair. One row per stack (game +
+// legs): the model's numbers when it was logged and [{book, price, legs}].
+// Members read it; only the owner saves. The table is made on first use.
+const SGP_BOOKS = ["DraftKings", "FanDuel", "BetMGM", "Caesars", "Fanatics", "bet365", "BetRivers", "ESPN BET", "Hard Rock", "Other"];
+const SGP_KINDS = ["line_pair", "line_trio", "d_pair", "line_fd", "line_pair_d", "line_trio_d", "line_pair_dd", "pp_pair"];
+const americanOdds = (n) => Number.isInteger(n) && Math.abs(n) >= 100 && Math.abs(n) <= 1000000;
+const chanceOk = (n) => Number.isFinite(n) && n > 0 && n < 1;
+
+async function handleSgpPrices(request, env, session, json) {
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS sgp_prices (k TEXT PRIMARY KEY, entry TEXT NOT NULL, updated INTEGER NOT NULL)").run();
+  if (request.method === "GET") {
+    const { results } = await env.DB.prepare("SELECT k, entry FROM sgp_prices ORDER BY k").all();
+    const stacks = {};
+    for (const r of results || []) {
+      try {
+        stacks[r.k] = JSON.parse(r.entry);
+      } catch (e) {
+        // a damaged row is skipped, never the whole log
+      }
+    }
+    return json({ stacks, books: SGP_BOOKS });
+  }
+  if (request.method !== "PUT") return json({ error: "method" }, 405);
+  if (!isOwnerSession(session)) return json({ error: "owner only" }, 403);
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: "bad json" }, 400);
+  }
+  const { game, date, legs, names, kind, chance, indep, fair, books } = body || {};
+  if (!/^\d{10}$/.test(game || "") || !/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return json({ error: "bad game" }, 400);
+  if (!Array.isArray(legs) || legs.length < 2 || legs.length > 4 || !legs.every((id) => /^\d{6,9}$/.test(String(id)))) return json({ error: "bad legs" }, 400);
+  if (!Array.isArray(names) || names.length !== legs.length || !names.every((n) => typeof n === "string" && n.trim() && n.length <= 80)) return json({ error: "bad names" }, 400);
+  if (!SGP_KINDS.includes(kind) || !chanceOk(chance) || !chanceOk(indep) || !americanOdds(fair)) return json({ error: "bad stack" }, 400);
+  if (!Array.isArray(books) || books.length > SGP_BOOKS.length) return json({ error: "bad books" }, 400);
+  const clean = [];
+  for (const b of books) {
+    const legPrices = (b && b.legs) || [];
+    if (!b || !SGP_BOOKS.includes(b.book) || clean.some((c) => c.book === b.book) || !americanOdds(b.price)) return json({ error: "bad book" }, 400);
+    if (!Array.isArray(legPrices) || legPrices.length !== legs.length || !legPrices.every((x) => x === null || americanOdds(x))) return json({ error: "bad leg prices" }, 400);
+    clean.push({ book: b.book, price: b.price, legs: legPrices });
+  }
+  const k = `${game}:${legs.map(String).sort().join(",")}`;
+  if (!clean.length) {
+    await env.DB.prepare("DELETE FROM sgp_prices WHERE k = ?").bind(k).run();
+    return json({ ok: true });
+  }
+  const entry = { game, date, legs: legs.map(String), names: names.map((n) => n.trim()), kind, chance, indep, fair, books: clean, logged: Date.now() };
+  await env.DB.prepare("INSERT INTO sgp_prices (k, entry, updated) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET entry = excluded.entry, updated = excluded.updated")
+    .bind(k, JSON.stringify(entry), Date.now())
+    .run();
+  return json({ ok: true });
+}
+
 async function handleApi(request, env, session, json) {
   const url = new URL(request.url);
   if (url.pathname === "/api/requests") {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleRequests(request, env, session, json);
+  }
+  if (url.pathname === "/api/sgp-prices") {
+    if (!env.DB) return json({ error: "no database" }, 503);
+    return handleSgpPrices(request, env, session, json);
   }
   if (PROMO_PAYOUTS[url.pathname]) {
     if (!env.DB) return json({ error: "no database" }, 503);

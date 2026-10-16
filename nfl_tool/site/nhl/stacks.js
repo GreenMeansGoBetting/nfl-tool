@@ -6,6 +6,8 @@
 // sorts them. This season's numbers only, like every NHL prop tool.
 
 let STACKS = null;
+// The owner's SGP price log (/api/sgp-prices, D1): what each book charged for a stack.
+let SGP = { stacks: {}, books: [] };
 let dayIndex = 0;
 let gameId = null;
 const PAGE = 50; // stacks drawn before "Show more"
@@ -151,7 +153,7 @@ function renderTable() {
           <div class="stk-game">${logo(a, 22)}<span class="at">${a === g.home ? "vs" : "@"}</span>${logo(z, 22)}<span>${g.status === "final" ? "Final" : fmtTime(g.time).replace(" ET", "")}</span></div></td>
         <td class="num"><div class="stk-fair-big">${odds(s.fair)}</div><div class="muted-label">${pct(s.chance, 1)}</div></td>
         <td class="num"><span class="stk-corr" title="How much more often these legs hit together than if they had nothing to do with each other">${fmt(s.lift, 1)}x</span><div class="muted-label stk-sub">Non-correlated ${odds(fairPrice(s.indep))}</div></td>
-        <td class="num">${stackCopyButton(s, x.board.players, g)}</td>
+        <td class="num stk-actions">${stackCopyButton(s, x.board.players, g)}<button type="button" class="view-toggle-btn stk-log" data-log="${g.game_id}|${s.legs.join(",")}" title="Log what books charge for this stack (owner only)">Log price</button>${loggedChips(g, s)}</td>
         ${showResult ? resultCell(s) : ""}
       </tr>
       <tr class="stk-copyline"><td></td><td colspan="${columns - 1}"><span class="stk-tag">Copy puts this on your clipboard:</span> <code>${stackCopyText(s, x.board.players, g)}</code></td></tr>`;
@@ -165,19 +167,143 @@ function renderTable() {
 }
 const fairPrice = (p) => (!has(p) || p <= 0 || p >= 1 ? null : p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p));
 
+// ---- the SGP price log (the owner's; /api/sgp-prices) ----
+// Books price a parlay's correlation themselves, each its own way. The owner
+// logs what they charge; the page shows it on the stack and, in the record
+// popup, each book's markup over its own legs and its price against GMG fair.
+const decimal = (price) => (price > 0 ? 1 + price / 100 : 1 + 100 / -price);
+const sgpKey = (gameId, legs) => `${gameId}:${[...legs].map(String).sort().join(",")}`;
+const BOOK_SHORT = { DraftKings: "DK", FanDuel: "FD", BetMGM: "MGM", Caesars: "CZR", Fanatics: "FAN", bet365: "365", BetRivers: "BR", "ESPN BET": "ESPN", "Hard Rock": "HR", Other: "Other" };
+function loadSgp() {
+  return fetch("/api/sgp-prices", { credentials: "same-origin", cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null)
+    .then((got) => {
+      SGP = got && got.stacks ? got : { stacks: {}, books: SGP.books };
+      if (STACKS) render();
+    });
+}
+// What the books charged, on the row: green = pays more than GMG fair, red = less.
+function loggedChips(g, s) {
+  const entry = SGP.stacks[sgpKey(g.game_id, s.legs)];
+  if (!entry) return "";
+  return `<div class="stk-logged">${entry.books
+    .map((b) => {
+      const better = decimal(b.price) > decimal(s.fair);
+      return `<span class="stk-book ${better ? "tier-good" : "tier-bad"}" title="${b.book} SGP ${odds(b.price)}: ${better ? "pays more" : "pays less"} than GMG fair ${odds(s.fair)}">${BOOK_SHORT[b.book] || b.book} ${odds(b.price)}</span>`;
+    })
+    .join("")}</div>`;
+}
+let LOGGING = null; // {g, stack, players} while the form is open
+function openLog(ref) {
+  const [gameId, legs] = ref.split("|");
+  const board = ((STACKS || {}).games || {})[gameId];
+  const stack = board && board.stacks.find((x) => x.legs.join(",") === legs);
+  if (!stack) return;
+  const g = DATA.schedule.find((x) => x.game_id === gameId);
+  LOGGING = { g, stack, players: board.players };
+  const entry = SGP.stacks[sgpKey(gameId, stack.legs)];
+  el("stk-log-title").textContent = stack.legs.map((p) => (board.players[p] || {}).name).join(" + ");
+  el("stk-log-sub").textContent = `${kindName(stack.kind)} · ${g.away} @ ${g.home} · GMG fair ${odds(stack.fair)}`;
+  el("stk-log-books").innerHTML = "";
+  (entry ? entry.books : [null]).forEach(addLogBook);
+  el("stk-log-error").textContent = "";
+  el("stk-log-modal").hidden = false;
+}
+const priceText = (n) => (has(n) ? `${n > 0 ? "+" : ""}${n}` : "");
+function addLogBook(book) {
+  if (!LOGGING) return;
+  const b = book && book.legs ? book : { book: "", price: null, legs: LOGGING.stack.legs.map(() => null) };
+  const books = SGP.books && SGP.books.length ? SGP.books : Object.keys(BOOK_SHORT);
+  const last = (p) => ((LOGGING.players[p] || {}).name || "").split(" ").slice(-1)[0];
+  const line = document.createElement("div");
+  line.className = "stk-log-book";
+  line.innerHTML = `<select class="shots-filter-select stk-log-name"><option value="">Book</option>${books.map((n) => `<option${n === b.book ? " selected" : ""}>${n}</option>`).join("")}</select>
+    <label>SGP <input class="stk-log-price" inputmode="numeric" placeholder="+250" value="${priceText(b.price)}"></label>
+    ${LOGGING.stack.legs.map((p, i) => `<label>${last(p)} <input class="stk-log-leg" inputmode="numeric" placeholder="optional" value="${priceText(b.legs[i])}"></label>`).join("")}`;
+  el("stk-log-books").appendChild(line);
+}
+function closeLog() {
+  LOGGING = null;
+  if (el("stk-log-modal")) el("stk-log-modal").hidden = true;
+}
+// "+250" / "-140" -> a number; blank -> null; anything else -> NaN.
+const readOdds = (text) => {
+  const clean = String(text).replace(/\s/g, "");
+  if (clean === "") return null;
+  const n = Number(clean);
+  return Number.isInteger(n) && Math.abs(n) >= 100 ? n : NaN;
+};
+async function saveLog(clear) {
+  if (!LOGGING) return;
+  const { g, stack, players } = LOGGING;
+  const books = [];
+  for (const line of clear ? [] : el("stk-log-books").querySelectorAll(".stk-log-book")) {
+    const book = line.querySelector(".stk-log-name").value;
+    const price = readOdds(line.querySelector(".stk-log-price").value);
+    const legs = [...line.querySelectorAll(".stk-log-leg")].map((i) => readOdds(i.value));
+    if (!book && price === null) continue;
+    if (!book || price === null || Number.isNaN(price) || legs.some(Number.isNaN) || books.some((b) => b.book === book)) {
+      el("stk-log-error").textContent = "Each line needs a book (once) and an American price like +250 or -140; leg prices are optional.";
+      return;
+    }
+    books.push({ book, price, legs });
+  }
+  const body = { game: g.game_id, date: g.date, legs: stack.legs, names: stack.legs.map((p) => players[p].name), kind: stack.kind, chance: stack.chance, indep: stack.indep, fair: stack.fair, books };
+  const res = await fetch("/api/sgp-prices", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+  if (!res || !res.ok) {
+    el("stk-log-error").textContent = res && res.status === 403 ? "Only the owner can log prices." : "Couldn't save. Try again.";
+    return;
+  }
+  closeLog();
+  loadSgp();
+}
+// Each book's markup over its own legs (only lines with every leg priced) and
+// its price against GMG fair (our chance x its payout - 1), overall and by stack type.
+function bookMarkup() {
+  const entries = Object.values(SGP.stacks || {});
+  const label = `<div class="shots-detail-label">Book markup <span class="muted-label">from the SGP price log${entries.length ? `, ${entries.length} stacks` : ""}</span></div>`;
+  if (!entries.length) return `${label}<p class="shots-record-note">No SGP prices logged yet. Log price on a stack records what each book charges, and builds each book's correlation markup by stack type here.</p>`;
+  const groups = {};
+  entries.forEach((e) =>
+    e.books.forEach((b) => {
+      const ev = e.chance * decimal(b.price) - 1;
+      const own = b.legs.every(has) ? 1 / decimal(b.price) / b.legs.reduce((a, x) => a / decimal(x), 1) : null;
+      [b.book, `${b.book}|${e.kind}`].forEach((k) => {
+        const t = (groups[k] = groups[k] || { n: 0, ev: 0, own: 0, owned: 0 });
+        t.n += 1;
+        t.ev += ev;
+        if (has(own)) {
+          t.own += own;
+          t.owned += 1;
+        }
+      });
+    })
+  );
+  const books = Object.keys(groups).filter((k) => !k.includes("|")).sort((a, b) => groups[b].n - groups[a].n);
+  const row = (name, t, sub) => `<tr${sub ? ' class="stk-markup-sub"' : ""}><td>${name}</td><td class="num">${t.n}</td>
+    <td class="num" title="Its SGP price against its own legs multiplied: 1.20x = it prices the parlay 20% likelier than the legs alone">${t.owned ? `${fmt(t.own / t.owned, 2)}x` : "--"}</td>
+    <td class="num ${t.ev >= 0 ? "tier-good" : "tier-bad"}" title="GMG's chance x the book's payout - 1, averaged: what its price is worth on our numbers">${signed((100 * t.ev) / t.n, 1)}%</td></tr>`;
+  const body = books
+    .map((b) => row(`<b>${b}</b>`, groups[b]) + Object.keys(groups).filter((k) => k.startsWith(`${b}|`)).map((k) => row(kindName(k.split("|")[1]), groups[k], true)).join(""))
+    .join("");
+  return `${label}<table class="data-table shots-ladder stk-markup"><thead><tr><th>Book</th><th>Prices</th><th title="SGP price against the book's own legs multiplied">Over its legs</th><th title="What its price is worth on GMG's numbers">vs GMG fair</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+
 // ---- the record (the build grades it: stacks_record_summary) ----
 function renderRecord() {
   const record = (STACKS || {}).record;
   const box = el("shots-results");
+  const markup = bookMarkup();
   if (!record || !record.stacks) {
-    box.innerHTML = `<p class="shots-record-note">The record starts with the first games that finish after this page went live: every stack shown, graded as locked before puck drop.</p>`;
+    box.innerHTML = `${markup}<p class="shots-record-note">The record starts with the first games that finish after this page went live: every stack shown, graded as locked before puck drop.</p>`;
     return;
   }
   const row = (label, b) => `<tr><td>${label}</td><td class="num">${b.stacks.toLocaleString()}</td><td class="num">${pct(b.said / b.stacks, 1)}</td><td class="num"><b>${pct(b.hit / b.stacks, 1)}</b></td></tr>`;
   const table = (title, rows) =>
     rows.length ? `<div class="shots-detail-label">${title}</div><table class="data-table shots-ladder"><thead><tr><th></th><th>Stacks</th><th title="The model's average chance">Said</th><th title="How often every leg got a point">Hit</th></tr></thead><tbody>${rows.join("")}</tbody></table>` : "";
   const honest = Object.entries(record.honest).flatMap(([n, bins]) => bins.filter((b) => b.stacks).map((b) => row(`${n} legs, said ${Math.round(b.lo * 100)}-${Math.min(100, Math.round(b.hi * 100))}%`, b)));
-  box.innerHTML = `<p class="shots-record-note">${record.stacks.toLocaleString()} stacks graded in ${record.games} games (${record.since} to ${record.through}). A stack with a leg who didn't play isn't counted. No units yet: there is no free history of same-game parlay prices.</p>
+  box.innerHTML = `${markup}<p class="shots-record-note">${record.stacks.toLocaleString()} stacks graded in ${record.games} games (${record.since} to ${record.through}). A stack with a leg who didn't play isn't counted. No units yet: there is no free history of same-game parlay prices.</p>
     ${table("By Score", record.scores.filter((b) => b.stacks).map((b) => row(b.band, b)))}
     ${table("By stack type", Object.entries(record.kinds).filter(([, b]) => b.stacks).map(([k, b]) => row(kindName(k), b)))}
     ${table("Said vs hit", honest)}`;
@@ -214,7 +340,10 @@ function showRecord(open) {
   el("shots-record-modal").hidden = !open;
 }
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") showRecord(false);
+  if (e.key === "Escape") {
+    showRecord(false);
+    closeLog();
+  }
 });
 document.addEventListener("change", (e) => {
   const menu = e.target.closest(".shots-filter-select");
@@ -226,6 +355,12 @@ document.addEventListener("change", (e) => {
 document.addEventListener("click", (e) => {
   if (e.target.closest("#shots-record-open")) return showRecord(true);
   if (e.target.id === "shots-record-modal" || e.target.closest("#shots-record-modal .modal-close")) return showRecord(false);
+  const log = e.target.closest(".stk-log");
+  if (log) return openLog(log.dataset.log);
+  if (e.target.closest("#stk-log-add")) return addLogBook();
+  if (e.target.closest("#stk-log-save")) return saveLog(false);
+  if (e.target.closest("#stk-log-clear")) return saveLog(true);
+  if (e.target.id === "stk-log-modal" || e.target.closest("#stk-log-modal .modal-close")) return closeLog();
   if (e.target.closest("#stk-more")) {
     stacksView.shown += PAGE;
     return renderTable();
@@ -245,6 +380,7 @@ document.addEventListener("click", (e) => {
   }
 });
 
+loadSgp();
 fetch("stacks.json")
   .then((r) => (r.ok ? r.json() : null))
   .catch(() => null)

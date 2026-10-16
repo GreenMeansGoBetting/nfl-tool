@@ -958,8 +958,19 @@ Player Props after Points, and a "Best stacks with <player> tonight" box in the 
   count). A leg Novig hasn't priced counts as no edge ("2 of 3 legs priced"). Eight colors
   (`STACK_STEPS` in nhl-common.js: 65+, 58, 54, 51, 48, 44, 36). **Unproven**: the owner's first
   SGP example (MacKinnon + Necas + Makar, 2026-10-16) had three books charging 1.17-1.29x over their
-  own legs against our 1.12x. Next: the SGP price log (stack, book, SGP price, leg prices) to measure
-  each book's markup by stack type and fold it into the Score.
+  own legs against our 1.12x.
+- **The SGP price log** (the owner, 2026-10-16: "a spot to log WHAT book it is because they all price
+  differently"): an owner-only **Log price** button on every stack (shown with `html.is-owner` and on
+  localhost; the server checks again) opens a form: one line per book (`SGP_BOOKS` in the middleware:
+  DraftKings, FanDuel, BetMGM, Caesars, Fanatics, bet365, BetRivers, ESPN BET, Hard Rock, Other), its
+  SGP price and, optionally, its price for each leg alone. Saved to D1 through `/api/sgp-prices`
+  (members-and-hosting.md) with the model's chance, fair and kind at the time. The row then shows
+  each logged price ("FD -111"), green when it pays more than GMG fair, red when less. The YTD popup
+  opens with **Book markup**: per book and per stack type, prices logged, **Over its legs** (its SGP
+  chance over its own legs multiplied, only lines with every leg priced: the book's correlation
+  markup) and **vs GMG fair** (our chance x its payout - 1, averaged). Next, once enough are logged:
+  fold each book's markup by stack type into the Score (a Score per book), and grade logged prices
+  against the record's hits (the record files are keyed by game, the log by game + legs).
 - **The page, the owner's mockup v4** (`stacks.js`; `.stk-*` in nhl.css): Score | Legs (headshot,
   name, "C · Line 2", labeled **GMG fair** American price, Novig's o0.5 chip or "o1.5 only" / "no
   price") | Stack (type, "Line 2 + Pair 1 · 3 legs", the game) | **Fair** (American bold, % under:
@@ -973,8 +984,9 @@ Player Props after Points, and a "Best stacks with <player> tonight" box in the 
   ~100 MB a month): every stack shown (`STACKS_RECORD_COLS`) and each player's chance and points.
   `stacks_record_summary`: said vs hit by legs, kind and Score band; no units until SGP prices exist.
 - Tests: `tests/test_nhl_stacks.py` (shared ice on the saved game, the joint chance, kinds, the board,
-  lock, grades, the Score, the record) and `tests/test_nhl_stacks_site.py` (the page and the Points
-  box on `helpers.nhl_stacks()`, built at test time from the Points sample by the build's own functions).
+  lock, grades, the Score, the record), `tests/test_nhl_stacks_site.py` (the page, the SGP log's chips,
+  markup and form, and the Points box on `helpers.nhl_stacks()`, built at test time from the Points
+  sample by the build's own functions) and `tests/test_ci_sgp_prices.py` (the endpoint).
 
 ## Learning which factors win: the factor report (2026-10-16)
 
@@ -1040,7 +1052,7 @@ pages for the detail, not a copy of them.
 
 The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
 saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
-Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Line Stacks is built (above); next for it: the SGP price log. Next on the
+Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
 owner's list: re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.

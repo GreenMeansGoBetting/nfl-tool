@@ -328,6 +328,12 @@ For people who'd pay but won't join Discord. Password version: no email service,
   `koe_payouts` (`<key>, pool, payouts JSON, updated`), each created by the endpoint on first use,
   so no deploy step. Used by the Promo Tools Winners lists (nhl.md, plays-and-promos.md). Test:
   `tests/test_ci_crease_payouts.py` (a D1 stand-in).
+- **SGP price log** (`/api/sgp-prices`, 2026-10-16, NHL Line Stacks): what each book charged for a
+  stack. GET for any signed-in member (`{stacks: {"<game>:<sorted leg ids>": entry}, books}`), PUT
+  owner-only (`{game, date, legs, names, kind, chance, indep, fair, books: [{book, price, legs:
+  [price|null]}]}`: the model's numbers when logged, then one line per book, `SGP_BOOKS` only, once
+  each; the same legs in any order replace the row; no books removes it). D1 table `sgp_prices`
+  (`k, entry JSON, updated`), made on first use. Test: `tests/test_ci_sgp_prices.py`.
 - **Suite switcher** (`addSuiteSwitcher`, `SUITE_SWITCH_PUBLIC`): see nba.md. It lists NFL, NBA
   and NHL (`SUITES`).
 

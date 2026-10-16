@@ -81,6 +81,20 @@
     <div id="shots-results" class="shots-results"></div>
   </div>
 </div>
+<!-- The owner's SGP price log for one stack (stacks.js openLog; saved to /api/sgp-prices). -->
+<div id="stk-log-modal" class="modal-overlay" hidden>
+  <div class="modal-box stk-log-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <h2 class="section-title">Log SGP price</h2>
+    <p><b id="stk-log-title"></b><br><span class="muted-label" id="stk-log-sub"></span></p>
+    <div id="stk-log-books"></div>
+    <p class="stk-log-actions"><button type="button" class="view-toggle-btn" id="stk-log-add">+ Add book</button>
+      <button type="button" class="view-toggle-btn active" id="stk-log-save">Save</button>
+      <button type="button" class="view-toggle-btn" id="stk-log-clear" title="Remove every price logged for this stack">Remove all</button></p>
+    <p class="muted-label">One line per book: its same-game parlay price, and its prices for each leg alone if you have them (they measure its correlation markup).</p>
+    <p class="no-data-note" id="stk-log-error"></p>
+  </div>
+</div>
 <script src="../sync.js"></script>
 <script src="nhl-common.js"></script>
 <script src="stacks.js"></script>
