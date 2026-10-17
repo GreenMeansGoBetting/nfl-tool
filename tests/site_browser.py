@@ -20,6 +20,7 @@ class SiteBrowser:
             raise RuntimeError(INSTALL_HELP) from None
         self.errors = []
         self.missing = set()  # paths a test wants answered "not built" (404), e.g. "/nhl/shots.json"
+        self.user = None  # a signed-in member for /api/state, e.g. {"name": "Pat Lee", "owner": False}
         self.server = start_server()
         self.origin = f"http://127.0.0.1:{self.server.server_address[1]}"
         self._playwright = sync_playwright().start()
@@ -38,6 +39,8 @@ class SiteBrowser:
         url = route.request.url.split("?")[0]
         if url[len(self.origin):] in self.missing:
             route.fulfill(status=404, body="")
+        elif url == f"{self.origin}/api/state" and self.user:
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"user": self.user, "state": {}}))
         elif url == f"{self.origin}/data.json":
             route.fulfill(status=200, content_type="application/json", body=site_data_bytes())
         elif url == f"{self.origin}/nhl/data.json":

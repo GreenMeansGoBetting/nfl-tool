@@ -90,24 +90,6 @@ table {
    so both land in the grid's 3rd column together instead of fighting over
    justify-self individually. */
 .topbar-actions { justify-self: end; display: flex; align-items: center; gap: 12px; }
-/* Deliberately not a same-page button -- see build_stats.py's
-   SKIP_SGO_FETCH comment. A real "fetch now" button would need a GitHub
-   token embedded in this public page's own JS for anyone to steal, so
-   this just deep-links to the Actions run page instead; clicking "Run
-   workflow" there is the actual trigger. Styled like the wheel/spin
-   buttons elsewhere so it still reads as a real action, not a plain nav
-   link. */
-.update-odds-link {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.update-odds-link:hover { filter: brightness(1.12); }
 
 /* Cross-device sync bar (firebase-sync.js) -- a slim strip above the
    normal topbar, signed-out (login form) or signed-in (status + sign
@@ -2057,14 +2039,6 @@ a { color: var(--accent); }
 .page-nav a:hover { background: var(--panel-2); color: var(--text); }
 .page-nav-current { background: var(--accent); color: var(--on-accent); }
 
-.update-odds-link {
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent);
-  border: 1px solid rgba(var(--accent-rgb), 0.45);
-  border-radius: 999px;
-  padding: 6px 14px;
-}
-.update-odds-link:hover { background: rgba(var(--accent-rgb), 0.2); filter: none; }
 .theme-toggle {
   width: 34px;
   height: 34px;
@@ -3147,16 +3121,7 @@ footer { border-top-color: var(--border); }
 .prk-table td.num { font-size: 1rem; }
 
 /* Logged-in Discord member (sync.js) */
-.acct-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
-.acct-chip .acct-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
-.acct-chip a { padding: 2px 10px; border-radius: 999px; background: var(--panel-2); color: var(--muted); text-decoration: none; font-size: 0.74rem; }
-.acct-chip a:hover { color: var(--text); }
 
-/* Update Odds runs the GitHub build -- only the owner can use it, so only
-   the owner sees it (sync.js adds .is-owner from the Discord profile).
-   Local dev (no profile server) shows it as before. */
-html:not(.is-owner) .update-odds-link { display: none; }
-html.local-dev .update-odds-link { display: inline-flex; }
 
 /* ---- Player card (player-card.js): one popup for every player ---- */
 #player-card-modal { z-index: 1200; }
@@ -3463,13 +3428,9 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
   html, body { overflow-x: clip; }
 
   .topbar { padding: 8px 12px; column-gap: 8px; }
-  /* Owner/member controls: just "Log out" (no name) and an icon-only
-     Update Odds, so the first row fits next to the logo. */
+  /* Account button: just the round initials (no name), so the first row
+     fits next to the logo. */
   .topbar-actions { gap: 6px; min-width: 0; }
-  .acct-chip { padding: 3px; }
-  .acct-chip .acct-name { display: none; }
-  .update-odds-link { font-size: 0; padding: 6px 9px; }
-  .update-odds-link::before { content: "🔄"; font-size: 1rem; line-height: 1; }
   .page-nav { width: 100%; justify-content: space-between; scrollbar-width: none; }
   .page-nav::-webkit-scrollbar { display: none; }
   .page-nav a, .page-nav-current { padding: 6px 10px; font-size: 0.8rem; flex: 0 0 auto; }
@@ -3569,8 +3530,6 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 @media (max-width: 700px) { .sup-grid { grid-template-columns: 1fr; } }
 
 /* "Request a feature" button + modal (sync.js; members send ideas, owner sees the list) */
-.feature-request-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: rgba(var(--mid-rgb), 0.12); border: 1px solid rgba(var(--mid-rgb), 0.45); color: var(--mid-text); font: inherit; font-size: 0.82rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
-.feature-request-btn:hover { background: rgba(var(--mid-rgb), 0.22); }
 #feature-request-modal .modal-box { max-width: 560px; width: 92vw; }
 .fr-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.15; margin: 0 28px 12px 0; }
 .fr-count { font-size: 0.8rem; color: var(--muted); font-weight: 700; margin-left: 6px; }
@@ -3686,15 +3645,7 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .mw-page .mw-preview { overflow-x: auto; }
 .mw-record { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--border); }
 
-/* ---- Suite switcher: the brand is a dropdown between NFL and NBA (owner / localhost until NBA launches) ---- */
-.suite-caret { display: none; margin-left: -2px; font-size: 0.8rem; color: var(--muted); }
-html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suite-caret { display: inline; }
 .topbar { position: sticky; }
-.suite-menu { position: absolute; top: calc(100% + 4px); left: 12px; z-index: 60; display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border-strong); box-shadow: var(--shadow); }
-.suite-menu[hidden] { display: none; }
-.suite-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text); border: 1px solid transparent; }
-.suite-item:hover { background: var(--panel-2); border-color: var(--border); }
-.suite-item.suite-current { background: rgba(var(--accent-rgb), 0.12); border-color: rgba(var(--accent-rgb), 0.5); }
 /* Nav dropdowns (sync.js navMenu): Promo Tools (every sport's promo tools from any page's nav)
    and the NHL's Player Props */
 .nav-trigger { cursor: pointer; }
@@ -3867,8 +3818,6 @@ html.is-owner .suite-caret, html.local-dev .suite-caret, html.suite-public .suit
   .mw-body { grid-template-columns: minmax(0, 1fr); }
   .mw-row { grid-template-columns: 112px minmax(0, 1fr) 54px; }
   .gm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .feature-request-btn { padding: 6px 9px; }
-  .feature-request-btn .fr-label { display: none; }
   .settings-btn { width: 30px; height: 30px; }
 }
 
@@ -4022,3 +3971,27 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .td2-tag-3 .td2-part b { font-size: 0.9rem; padding: 0 3px; }
 .td-card .td-facts { grid-template-columns: max-content minmax(0, 1fr) max-content; column-gap: 12px; }
 .td2-keyteam-logo .team-logo-mini { width: 26px; height: 26px; }
+
+/* ---- The top menu (the owner, 2026-10-17): NFL, NBA, NHL and Promo Tools, each a list;
+   the account button holds everything personal. The nav sits in the middle column of the
+   topbar grid (1fr auto 1fr), so it stays centered whatever is on either side. ---- */
+.page-nav a, .page-nav-current { padding: 7px 18px; font-size: 0.95rem; }
+.page-nav a.page-nav-current { background: var(--accent); color: var(--on-accent); }
+.page-nav a.page-nav-current:hover { background: var(--accent); color: var(--on-accent); }
+.page-nav a[aria-expanded="true"]:not(.page-nav-current) { background: var(--panel-2); color: var(--text); }
+.nav-menu-head { padding: 8px 12px 2px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.nav-menu-head:not(:first-child) { margin-top: 4px; border-top: 1px solid var(--border); padding-top: 10px; }
+.acct-chip { display: inline-flex; align-items: center; gap: 8px; padding: 3px 12px 3px 3px; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 0.85rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.acct-chip:hover, .acct-chip[aria-expanded="true"] { border-color: var(--border-strong); background: var(--panel-2); }
+.acct-chip .acct-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.acct-avatar { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; letter-spacing: 0.02em; }
+.acct-menu { min-width: 210px; }
+.acct-head { padding: 8px 12px 6px; margin-bottom: 2px; border-bottom: 1px solid var(--border); font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--muted); }
+.acct-menu button.promo-item { width: 100%; background: transparent; font-size: inherit; text-align: left; cursor: pointer; }
+.acct-dot { width: 8px; height: 8px; margin-left: auto; border-radius: 50%; background: var(--accent); }
+@media (max-width: 760px) {
+  .page-nav a, .page-nav-current { padding: 6px 10px; font-size: 0.8rem; }
+  .acct-chip { padding: 3px; }
+  .acct-chip .acct-name { display: none; }
+  .brand-name { font-size: 1.05rem; }
+}

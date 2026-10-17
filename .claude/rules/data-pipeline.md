@@ -123,7 +123,7 @@ imported by it (rules in game-previews.md).
   `nfl.com/injuries/league/{season}/reg{week}`, and `merge_live_injuries` swaps in NFL.com's rows
   for every team that has filed for the current week. Past weeks stay on nflverse. If the fetch or
   parse fails, the build keeps nflverse and logs why. NFL.com codes AZ/LAR are mapped to ARI/LA. A
-  rebuild (6-hour cron, or the Update Odds button) is still what pulls a newly filed report onto
+  rebuild (6-hour cron, or a manual run) is still what pulls a newly filed report onto
   the site.
 - **Injury `snap_share` (who counts as a starter)** joins the report to the snap counts by name,
   forgiving spelling (`_snap_share_lookup`: exact, then without punctuation/suffix, then last

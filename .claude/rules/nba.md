@@ -11,11 +11,11 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 
 ## Suite switcher and launch switch
 
-- `addSuiteSwitcher` (sync.js; `.suite-*` styles): the topbar brand ("GMG NFL SUITE") becomes a
-  dropdown listing every suite in `SUITES` (NFL, NBA, NHL since 2026-10-13).
+- The top menu (`addTopMenu`, sync.js, 2026-10-17): NFL, NBA, NHL and Promo Tools are buttons in
+  the middle of the topbar, each opening a list of that sport's pages (`SPORT_PAGES`). It replaced
+  the brand's suite dropdown; the brand now reads "GMG Sports Data Suite" on every sport.
 - **LAUNCHED 2026-10-13: both suites are open to every member** (`SUITE_SWITCH_PUBLIC = true`
-  in sync.js adds `html.suite-public`, which shows the dropdown to everyone and takes the guard
-  off the NBA and NHL pages). The owner had been advertising the NHL tools while the switch was
+  in sync.js adds `html.suite-public`, which takes the guard off the NBA and NHL pages). The owner had been advertising the NHL tools while the switch was
   still off, so members who opened an NHL link got the guard's note ("GMG NHL Suite is being
   built ... Check back soon") for over two hours and the owner took the site for broken:
   "YES! I have been advertising it! Get it up and going. You can open both to the public!"
@@ -25,7 +25,7 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 - Members now see these pages, so a broken NBA or NHL page is a broken page for paying members.
   The deploy's gate still leaves them out (their data builds may fail on their own): check them
   with `tools/check_site.py --only nhl` / `--only nba` before any push that touches them.
-- Still owner-only: the "Update Odds" buttons.
+- The owner-only "Update Odds" buttons were removed 2026-10-17 (the owner: the odds update on their own; ask Claude if one is needed).
 
 ## Data: sportsdataverse / hoopR
 

@@ -325,11 +325,12 @@ on a replay, and the page keeps a record against the real prices.
 
 ## Pages
 
-- **The top bar (the owner, 2026-10-15): Games, Player Props, Promo Tools.** "Games" is Game
-  Previews. Player Props (`data-nav-menu="props"`) opens a list of the prop tools (Best Plays, Shots, Goals:
-  `PROPS` in sync.js, the Promo Tools menu's look, `navMenu`). A new NHL tool goes under one of
-  these headers unless the owner decides it needs its own button. No "More tools coming" on any
-  page. A test checks every NHL page's bar.
+- **The top bar (the owner, 2026-10-17): NFL, NBA, NHL, Promo Tools on every page of every sport**
+  (it was Games / Player Props / Promo Tools on 2026-10-15). Each is a button that opens a list of
+  its pages (`SPORT_PAGES` in sync.js, built by `addTopMenu`). The NHL's list is Game Previews, then
+  a "Player props" heading over Best Plays, Shots, Goals, Points, Line Stacks (`PROPS`). A new NHL
+  tool is one line in `PROPS`. No "More tools coming" on any page. Tests check every NHL page's bar
+  (`test_header_site.py` the behavior).
 - **Player search** (the owner, 2026-10-16: "if i start typing in GEE it will only show names of players
   with that"): a box in the Player header of Shots, Goals, Points and Best Plays, and in Line Stacks'
   Legs header (a stack stays if any leg matches). Case and accents don't matter (`nameSearchBox`,

@@ -388,29 +388,46 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     return true;
   }
 
-  // Small "logged in as" chip + log out, in the topbar.
+  // The account button at the right of the topbar (the owner, 2026-10-17: the
+  // header was too wide on a small laptop). Everything personal lives in its
+  // menu: feature requests, What's new, Settings, Support, membership, Log out.
   function showAccount(user) {
     if (!user || document.getElementById("acct-chip")) return;
     const bar = document.querySelector(".topbar-actions");
     if (!bar) return;
-    const el = document.createElement("span");
-    el.id = "acct-chip";
-    el.className = "acct-chip";
-    el.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
-    // Email members (Stripe) get Stripe's page for updating a card or cancelling.
-    el.innerHTML = `<span class="acct-name"></span>${user.email ? `<a href="/account">Manage membership</a><a href="/set-password">Password</a>` : ""}<a href="#" class="acct-updates">What's new</a><a href="/auth/logout">Log out</a>`;
-    el.querySelector(".acct-name").textContent = user.name || "Signed in";
-    el.querySelector(".acct-updates").addEventListener("click", (e) => {
-      e.preventDefault();
-      openUpdates();
+    const name = user.name || "Signed in";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "acct-chip";
+    btn.className = "acct-chip";
+    btn.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
+    btn.innerHTML = '<span class="acct-avatar" aria-hidden="true"></span><span class="acct-name"></span>';
+    btn.querySelector(".acct-name").textContent = name;
+    btn.querySelector(".acct-avatar").textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+    bar.append(btn);
+    const onSupport = /support\.html$/.test(location.pathname);
+    navMenu(btn, "acct", `<div class="acct-head">${escHtml(name)}</div>
+      <button type="button" class="promo-item" data-act="request"><span class="promo-name">${user.owner ? "Feature requests" : "Request a feature"}</span></button>
+      <button type="button" class="promo-item" data-act="updates"><span class="promo-name">What's new</span>${updatesDue() ? '<span class="acct-dot" aria-label="New"></span>' : ""}</button>
+      <button type="button" class="promo-item" data-act="settings"><span class="promo-name">Settings</span></button>
+      <a class="promo-item${onSupport ? " promo-current" : ""}" href="${siteHref("nfl", "support.html")}"><span class="promo-name">Support</span></a>
+      ${user.email ? '<a class="promo-item" href="/account"><span class="promo-name">Manage membership</span></a><a class="promo-item" href="/set-password"><span class="promo-name">Password</span></a>' : ""}
+      <a class="promo-item" href="/auth/logout"><span class="promo-name">Log out</span></a>`, { right: true });
+    const menu = document.querySelector(".acct-menu");
+    menu.addEventListener("click", (e) => {
+      const item = e.target.closest("[data-act]");
+      if (!item) return;
+      menu.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+      const act = item.dataset.act;
+      if (act === "request") (user.owner ? openRequestList : openRequestForm)();
+      else if (act === "updates") openUpdates();
+      else openGmgSettings();
     });
-    bar.prepend(el);
-    addSettingsButton();
-    showRequestButton(user);
   }
 
-  // The Settings gear, just left of the account chip (odds format, colors,
-  // My Books). Local testing has no account chip, so it gets the gear alone.
+  // The Settings gear: local testing only (it has no account button). On the
+  // live site Settings is an item in the account menu.
   function addSettingsButton() {
     const bar = document.querySelector(".topbar-actions");
     if (!bar || document.getElementById("settings-btn")) return;
@@ -426,8 +443,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     chip ? chip.before(btn) : bar.prepend(btn);
   }
 
-  // "Request a feature" button beside the account chip. Members get a box to
-  // send an idea (POST /api/requests, saved in D1); the owner's button opens
+  // "Request a feature" (account menu). Members get a box to
+  // send an idea (POST /api/requests, saved in D1); the owner's item opens
   // the list of everyone's ideas instead, to mark added or delete.
   const escHtml = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -524,20 +541,6 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     );
   }
 
-  function showRequestButton(user) {
-    if (document.getElementById("feature-request-btn")) return;
-    const chip = document.getElementById("acct-chip");
-    if (!chip) return;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.id = "feature-request-btn";
-    btn.className = "feature-request-btn";
-    btn.innerHTML = `<span aria-hidden="true">&#128161;</span><span class="fr-label">${user.owner ? "Feature requests" : "Request a feature"}</span>`;
-    btn.title = user.owner ? "See everyone's feature ideas" : "Send an idea for a tool, data point or feature";
-    btn.addEventListener("click", user.owner ? openRequestList : openRequestForm);
-    (document.getElementById("settings-btn") || chip).before(btn);
-  }
-
   // ---- What's new popup (GMG_UPDATES above) ----
   function updatesSeen() {
     try {
@@ -610,9 +613,12 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
   }
   window.GMGUpdates = { open: openUpdates, due: updatesDue };
 
-  // ---- Suite switcher (added 2026-10-11) ----
-  // The brand in the topbar ("GMG NFL SUITE") becomes a dropdown for moving
-  // between suites. LAUNCHED 2026-10-13: the NBA and NHL suites are open to
+  // ---- The top menu: NFL, NBA, NHL, Promo Tools (the owner, 2026-10-17) ----
+  // The header was too wide on a small laptop, so every sport is one button that
+  // opens a list of its pages, and Promo Tools lists every sport's promo tools.
+  // The pages' own <nav> only holds four plain links; this builds the lists.
+  // (It replaced the brand's suite switcher, added 2026-10-11.)
+  // LAUNCHED 2026-10-13: the NBA and NHL suites are open to
   // every member (the owner: "I have been advertising it! Get it up and going.
   // You can open both to the public!"). While this was false, members who
   // opened an NHL link got the "being built" note (.nba-soon in suite.css) and
@@ -624,74 +630,19 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
   // addresses the menu links across by full address; anywhere else (the NFL
   // address, local testing) the folders work as they are.
   const SPORT_HOST = /^(nba|nhl)\.gmgsports\.org$/.exec(location.hostname);
-  const SUITES = [
-    { key: "nfl", label: "NFL", href: SPORT_HOST ? "https://nfl.gmgsports.org/game-overview.html" : "/game-overview.html" },
-    { key: "nba", label: "NBA", href: SPORT_HOST ? "https://nba.gmgsports.org/" : "/nba/" },
-    { key: "nhl", label: "NHL", href: SPORT_HOST ? "https://nhl.gmgsports.org/" : "/nhl/" },
-  ];
-  function suiteSwitchOn() {
-    const cls = document.documentElement.classList;
-    return SUITE_SWITCH_PUBLIC || cls.contains("is-owner") || cls.contains("local-dev");
+  const ORIGIN = { nfl: "https://nfl.gmgsports.org", nba: "https://nba.gmgsports.org", nhl: "https://nhl.gmgsports.org" };
+  function siteHref(sport, file) {
+    if (SPORT_HOST) return `${ORIGIN[sport]}/${file}`;
+    return sport === "nfl" ? `/${file}` : `/${sport}/${file}`;
   }
-  function addSuiteSwitcher() {
-    const brand = document.querySelector(".topbar .brand");
-    if (!brand || brand.dataset.suite) return;
-    const current = SPORT_HOST ? SPORT_HOST[1] : (SUITES.find((s) => s.key !== "nfl" && location.pathname.includes(s.href)) || SUITES[0]).key;
-    brand.dataset.suite = current;
-    brand.classList.add("suite-brand");
-    brand.insertAdjacentHTML("beforeend", '<span class="suite-caret" aria-hidden="true">&#9662;</span>');
-    const menu = document.createElement("div");
-    menu.className = "suite-menu";
-    menu.hidden = true;
-    menu.innerHTML = SUITES.map(
-      (s) => `<a href="${s.href}" class="suite-item${s.key === current ? " suite-current" : ""}"><span class="brand-mark">GMG</span><span class="brand-name">${s.label} <b>Suite</b></span></a>`
-    ).join("");
-    brand.after(menu);
-    brand.addEventListener("click", (e) => {
-      if (!suiteSwitchOn()) return; // plain link home until it's switched on
-      e.preventDefault();
-      menu.hidden = !menu.hidden;
-    });
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".suite-brand, .suite-menu")) menu.hidden = true;
-    });
-  }
+  const CURRENT_SPORT = SPORT_HOST ? SPORT_HOST[1] : (/\/(nba|nhl)\//.exec(location.pathname) || [0, "nfl"])[1];
+  const PAGE_FILE = location.pathname.split("/").pop() || "index.html";
   if (SUITE_SWITCH_PUBLIC) document.documentElement.classList.add("suite-public");
-  addSuiteSwitcher();
+  const brandLink = document.querySelector(".topbar .brand");
+  if (brandLink) brandLink.dataset.suite = CURRENT_SPORT;
 
-  // ---- Promo Tools menu (the owner, 2026-10-15) ----
-  // "Promo Tools" in every page's nav (NFL, NBA, NHL) opens a list of every
-  // promo tool on the site, whichever sport it is for, to jump straight to it.
-  // A new promo tool is one line here. Links cross sports the suite switcher's way.
-  const PROMOS = [
-    { sport: "nfl", label: "NFL", name: "King of the Endzone", href: SPORT_HOST ? "https://nfl.gmgsports.org/promo-tools.html" : "/promo-tools.html" },
-    { sport: "nhl", label: "NHL", name: "King of the Crease", href: SPORT_HOST ? "https://nhl.gmgsports.org/promo-tools.html" : "/nhl/promo-tools.html" },
-    { sport: "nhl", label: "NHL", name: "Icebreaker", view: "icebreaker", href: SPORT_HOST ? "https://nhl.gmgsports.org/promo-tools.html#icebreaker" : "/nhl/promo-tools.html#icebreaker" },
-  ];
-  function addPromoMenu() {
-    const nav = document.querySelector(".topbar .page-nav");
-    const bar = document.querySelector(".topbar");
-    if (!nav || !bar || bar.querySelector(".promo-menu")) return;
-    const sport = (document.querySelector(".topbar .brand") || {}).dataset?.suite || "nfl";
-    const onPromo = /promo-tools\.html$/.test(location.pathname);
-    let trigger = [...nav.children].find((item) => item.textContent.trim() === "Promo Tools");
-    if (!trigger) {
-      // A suite with no promo tool of its own (NBA): the menu still reaches the others.
-      trigger = document.createElement("a");
-      trigger.href = "#";
-      trigger.textContent = "Promo Tools";
-      nav.appendChild(trigger);
-    }
-    navMenu(trigger, "promo", PROMOS.map(
-      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === sport && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
-    ).join(""));
-  }
-  addPromoMenu();
-
-  // ---- Player Props menu (the owner, 2026-10-15) ----
-  // On the NHL pages "Player Props" in the nav opens a list of the prop tools
-  // (Shots, Goals), the Promo Tools menu's way. A page marks the button with
-  // data-nav-menu="props"; a new prop tool is one line here.
+  // The NHL's prop tools sit under a "Player props" heading in its list; a new
+  // NHL tool is one line here.
   const PROPS = [
     { name: "Best Plays", href: "best.html" },
     { name: "Shots", href: "shots.html" },
@@ -699,22 +650,63 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     { name: "Points", href: "points.html" },
     { name: "Line Stacks", href: "stacks.html" },
   ];
-  function addPropsMenu() {
-    const trigger = document.querySelector('.topbar .page-nav [data-nav-menu="props"]');
-    if (!trigger || document.querySelector(".props-menu")) return;
-    const page = location.pathname.split("/").pop();
-    navMenu(trigger, "props", PROPS.map(
-      (p) => `<a href="${p.href}" class="promo-item${p.href === page ? " promo-current" : ""}"><span class="promo-name">${p.name}</span></a>`
-    ).join(""));
+  const SPORT_PAGES = {
+    nfl: { label: "NFL", home: "game-overview.html", items: [
+      { name: "Game Previews", file: "game-overview.html" },
+      { name: "TD Data", file: "index.html" },
+      { name: "Player Props", file: "player-props.html" },
+      { name: "Possible Plays", file: "possible-plays.html" },
+    ] },
+    nba: { label: "NBA", home: "", items: [{ name: "Game Previews", file: "" }] },
+    nhl: { label: "NHL", home: "", items: [
+      { name: "Game Previews", file: "" },
+      { head: "Player props" },
+      ...PROPS.map((p) => ({ name: p.name, file: p.href })),
+    ] },
+  };
+  // "Promo Tools" lists every promo tool on the site, whichever sport it is
+  // for, to jump straight to it. A new promo tool is one line here.
+  const PROMOS = [
+    { sport: "nfl", label: "NFL", name: "King of the Endzone", href: siteHref("nfl", "promo-tools.html") },
+    { sport: "nhl", label: "NHL", name: "King of the Crease", href: siteHref("nhl", "promo-tools.html") },
+    { sport: "nhl", label: "NHL", name: "Icebreaker", view: "icebreaker", href: siteHref("nhl", "promo-tools.html#icebreaker") },
+  ];
+  function addTopMenu() {
+    const nav = document.querySelector(".topbar .page-nav");
+    const bar = document.querySelector(".topbar");
+    if (!nav || !bar || bar.querySelector(".nav-menu")) return;
+    const onPromo = /promo-tools\.html$/.test(location.pathname);
+    nav.textContent = "";
+    const add = (label, href, kind, itemsHtml, current) => {
+      const trigger = document.createElement("a");
+      trigger.href = href;
+      trigger.dataset.sport = kind;
+      trigger.textContent = label;
+      if (current) trigger.classList.add("page-nav-current");
+      nav.appendChild(trigger);
+      navMenu(trigger, kind, itemsHtml);
+    };
+    for (const sport of ["nfl", "nba", "nhl"]) {
+      const def = SPORT_PAGES[sport];
+      add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
+        if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
+        const current = sport === CURRENT_SPORT && !onPromo && (item.file || "index.html") === PAGE_FILE;
+        return `<a href="${siteHref(sport, item.file)}" class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span></a>`;
+      }).join(""), sport === CURRENT_SPORT && !onPromo);
+    }
+    add("Promo Tools", PROMOS[0].href, "promo", PROMOS.map(
+      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === CURRENT_SPORT && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
+    ).join(""), onPromo);
   }
-  addPropsMenu();
 
-  // A nav button that opens a list under it (Promo Tools, Player Props): `kind`
-  // names its classes (.promo-trigger / .promo-menu, .props-trigger / .props-menu).
-  function navMenu(trigger, kind, itemsHtml) {
+  // A nav button that opens a list under it: `kind` names its classes
+  // (.nfl-trigger / .nfl-menu, .promo-trigger / .promo-menu, .acct-trigger / .acct-menu).
+  // Only one list is open at a time (a click anywhere else closes it).
+  function navMenu(trigger, kind, itemsHtml, opts) {
     const bar = document.querySelector(".topbar");
     trigger.classList.add(`${kind}-trigger`, "nav-trigger");
     trigger.setAttribute("aria-haspopup", "true");
+    trigger.setAttribute("aria-expanded", "false");
     trigger.insertAdjacentHTML("beforeend", '<span class="promo-caret" aria-hidden="true">&#9662;</span>');
     const menu = document.createElement("div");
     menu.className = `${kind}-menu nav-menu`;
@@ -723,22 +715,32 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     bar.appendChild(menu);
     trigger.addEventListener("click", (e) => {
       e.preventDefault();
+      menu.hidden = !menu.hidden;
+      trigger.setAttribute("aria-expanded", String(!menu.hidden));
+      if (menu.hidden) return;
       // Under the button, inside the top bar (the nav scrolls sideways on phones and would clip it).
       const at = trigger.getBoundingClientRect();
       const box = bar.getBoundingClientRect();
+      const width = menu.offsetWidth;
+      const left = opts && opts.right ? at.right - box.left - width : at.left - box.left;
       menu.style.top = `${at.bottom - box.top + 4}px`;
-      menu.style.left = `${Math.max(8, Math.min(at.left - box.left, box.width - 250))}px`;
-      menu.hidden = !menu.hidden;
-      trigger.setAttribute("aria-expanded", String(!menu.hidden));
+      menu.style.left = `${Math.max(8, Math.min(left, box.width - width - 8))}px`;
     });
     // Any click outside this button and its list closes it (opening the other menu too).
     document.addEventListener("click", (e) => {
-      if (!trigger.contains(e.target) && !menu.contains(e.target)) menu.hidden = true;
+      if (!trigger.contains(e.target) && !menu.contains(e.target)) {
+        menu.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+      }
     });
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") menu.hidden = true;
+      if (e.key === "Escape") {
+        menu.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+      }
     });
   }
+  addTopMenu();
 
   // "Odds powered by SmartStake" (the owner's partner; written permission to
   // show their odds, 2026-10-14) beside the suite name, on every page. Links

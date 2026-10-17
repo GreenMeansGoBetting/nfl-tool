@@ -104,7 +104,7 @@ class LineStacksPage(unittest.TestCase):
     def test_nav_and_words(self):
         site = Path(__file__).resolve().parent.parent / "nfl_tool" / "site" / "nhl"
         nav = re.search(r'<nav class="page-nav">(.*?)</nav>', (site / "stacks.html").read_text(encoding="utf-8"), re.S).group(1)
-        self.assertEqual(re.findall(r">([^<>]+)</(?:a|span)>", nav), ["Games", "Player Props", "Promo Tools"])
+        self.assertEqual(re.findall(r">([^<>]+)</a>", nav), ["NFL", "NBA", "NHL", "Promo Tools"])
         self.assertNotIn("confirmed", (site / "stacks.js").read_text(encoding="utf-8").lower())
 
 

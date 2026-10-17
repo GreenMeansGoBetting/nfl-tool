@@ -182,9 +182,9 @@ class Record(unittest.TestCase):
 class Nav(unittest.TestCase):
     def test_points_is_in_the_player_props_menu(self):
         reset()
-        PAGE.click(".page-nav .props-trigger")
-        items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", False], ["Shots", False], ["Goals", False], ["Points", True], ["Line Stacks", False]])
+        PAGE.click(".page-nav .nhl-trigger")
+        items = PAGE.evaluate("() => [...document.querySelectorAll('.nhl-menu a')].map((a) => [a.textContent, a.classList.contains('promo-current')])")
+        self.assertEqual(items, [["Game Previews", False], ["Best Plays", False], ["Shots", False], ["Goals", False], ["Points", True], ["Line Stacks", False]])
         PAGE.keyboard.press("Escape")
 
 

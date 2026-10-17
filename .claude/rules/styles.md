@@ -27,8 +27,8 @@ Stories behind these rules: `docs/history.md`, "Styles".
 
 ## Member Settings: the gear (sync.js, 2026-10-15)
 
-- A gear just left of the account chip on every page (local testing: the gear alone) opens
-  Settings: **Odds format** (American default, Decimal, Percent), **Colors** (Green / Red =
+- **Settings** in the account menu on every page (local testing has no account, so it gets a gear
+  button, `#settings-btn`, alone) opens it: **Odds format** (American default, Decimal, Percent), **Colors** (Green / Red =
   the site's own, Blue / Orange for red-green color blindness, Blue / Red, Teal / Pink, Pick my
   own: good / middle / bad pickers) and **My Books** (moved here from the account chip and its
   own popup; "Edit my books" in a price list opens this). Saved in `nfl-tool.settings.v1`
@@ -94,11 +94,11 @@ than add a new look.
   menu tightens (edge fade under 380px).
 - New wide tables/grids should live inside `.stat-columns > section` (or get
   `min-width: 0; overflow-x: auto` in a phone block) so they don't widen the page on phones.
-- Phones also get: `html, body { overflow-x: clip }`; a compact topbar (acct name hidden, Update
-  Odds icon-only), since the live logged-in topbar is wider than the local copy's; and
+- Phones also get: `html, body { overflow-x: clip }`; a compact topbar (the account button is just
+  its initials), since the live logged-in topbar is wider than the local copy's; and
   `wrapWideTablesForPhone` (common.js), which wraps any table wider than its box in `.m-scroll` so
   only that table scrolls, not its whole section.
-- Test phone layout with the acct chip and `is-owner` class added, or the topbar overflow won't
+- Test phone layout with a signed-in account (`SiteBrowser.user`), or the topbar overflow won't
   show up locally.
 
 ## Summary cards (shared helpers in common.js)

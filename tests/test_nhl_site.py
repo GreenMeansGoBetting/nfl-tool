@@ -37,11 +37,11 @@ class PageDraws(unittest.TestCase):
             """() => {
                 document.documentElement.classList.remove("is-owner", "local-dev");
                 const shown = (selector) => getComputedStyle(document.querySelector(selector)).display !== "none";
-                return { app: shown(".nba-app"), wall: shown(".nba-soon"), open: document.documentElement.classList.contains("suite-public"), menu: document.querySelectorAll(".suite-menu .suite-item").length };
+                return { app: shown(".nba-app"), wall: shown(".nba-soon"), open: document.documentElement.classList.contains("suite-public"), menu: document.querySelectorAll(".page-nav .nav-trigger").length };
             }"""
         )
         page.close()
-        self.assertEqual(seen, {"app": True, "wall": False, "open": True, "menu": 3})  # NFL, NBA and NHL in the dropdown
+        self.assertEqual(seen, {"app": True, "wall": False, "open": True, "menu": 4})  # NFL, NBA, NHL and Promo Tools in the top menu
 
     def test_every_game_without_a_script_error(self):
         drawn = PAGE.evaluate(

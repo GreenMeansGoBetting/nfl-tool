@@ -74,7 +74,7 @@ that, move detail into a rules file.
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
 - `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (behind King of the Crease); `goals_model.py`: anytime goals (`nhl/goals.json`); `points_model.py`: 1+ point, on top of goals (`nhl/points.json`); `stacks_model.py`: Line Stacks, 2-4 linemates' point legs together (`nhl/stacks.json`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
-- `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Update Odds" and every push to main;
+- `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Run workflow" and every push to main;
   every run tests, builds and browser-checks all three sports (members-and-hosting.md, "Every run does everything"). `nhl-refresh.yml`: hockey-only refresh every half hour, pressed by the Cloudflare timer `workers/nhl-timer` (installed by `nhl-timer.yml`). `cloudflare-domain.yml`: one-off domain attach.
 - `model_history/`, committed by the deploy bot: `gmg_model.json` (locked projections), `nfl_koe/` (King of the Endzone's past weekly boards), `nhl_shots/<month>.json` (graded Shots plays), `nhl_goals/` (graded Goals players), `nhl_points/` (graded Points players, with the factors behind each number), `nhl_stacks/<month>/<game>.json` (every Line Stack shown, one file a game), `nhl_crease/` (King of the Crease's days), `nhl_icebreaker/` (Icebreaker's 7 PM slates).
 - `tools/check_site.py`: one-command local check (pages, every Summary card's fit, phone width,
@@ -92,7 +92,7 @@ that, move detail into a rules file.
   - `possible-plays.html/.js`: Possible Plays (View Results, Photo Export, Parlay Wheel). `picks.js`: Pick Tracker.
   - `promo-tools.html/.js`: Promo Tools (King of the Endzone). `support.html`: Support tab.
   - `common.js`: shared helpers (tiers, matchup calls, saved plays, lineup weights, modals, summary-card fit / Save image).
-  - `sync.js`: member profiles, account chip, the Settings gear (odds format, color set, My Books), feature requests, suite switcher, the Promo Tools menu (`PROMOS`: every sport's promo tools from any page's nav), the NHL Player Props menu (`PROPS`). `teams.js`: names, colors, logos.
+  - `sync.js`: member profiles, the top menu (NFL / NBA / NHL / Promo Tools, each a dropdown: `SPORT_PAGES`, `PROPS`, `PROMOS`, `navMenu`), the account button and its menu (feature requests, What's new, Settings, Support, Log out), the Settings window (odds format, color set, My Books). `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
   - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
   - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/points.html` + `points.js`: NHL Points (1+ point); `nhl/stacks.html` + `stacks.js`: Line Stacks; `nhl/best.html` + `best.js`: Best Plays (the three pages' edges in one list).

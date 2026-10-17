@@ -186,14 +186,13 @@ class Record(unittest.TestCase):
 
 class Nav(unittest.TestCase):
     def test_every_nhl_page_has_the_same_nav(self):
-        """The owner, 2026-10-15: Games, Player Props (a list: Best Plays, Shots, Goals, Points), Promo Tools; no "More tools coming"."""
+        """The owner, 2026-10-17: NFL, NBA, NHL, Promo Tools on every page, each a list (the NHL's holds Best Plays, Shots, Goals, Points); no "More tools coming"."""
         import re
         from pathlib import Path
         site = Path(__file__).resolve().parents[1] / "nfl_tool" / "site"
         for page in ("index.html", "best.html", "shots.html", "goals.html", "points.html", "stacks.html", "promo-tools.html"):
             nav = re.search(r'<nav class="page-nav">(.*?)</nav>', (site / "nhl" / page).read_text(encoding="utf-8"), re.S).group(1)
-            self.assertEqual(re.findall(r">([^<>]+)</(?:a|span)>", nav), ["Games", "Player Props", "Promo Tools"], page)
-            self.assertIn('data-nav-menu="props"', nav, page)
+            self.assertEqual(re.findall(r">([^<>]+)</a>", nav), ["NFL", "NBA", "NHL", "Promo Tools"], page)
         for page in ("nhl/index.html", "nhl/shots.html", "nhl/goals.html", "nhl/points.html", "nhl/stacks.html", "nhl/promo-tools.html", "nba/index.html"):
             self.assertNotIn("More tools coming", (site / page).read_text(encoding="utf-8"), page)
         sync = (site / "sync.js").read_text(encoding="utf-8")

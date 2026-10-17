@@ -243,7 +243,7 @@ class Winners(unittest.TestCase):
     def test_the_other_nhl_pages_link_here(self):
         for path in ("nhl/index.html", "nhl/shots.html"):
             page = SITE.open(path)
-            self.assertEqual(page.evaluate("() => !!document.querySelector('.page-nav a[href=\"promo-tools.html\"]')"), True)
+            self.assertEqual(page.evaluate("() => !!document.querySelector('.page-nav .promo-trigger')"), True)
             page.close()
 
 

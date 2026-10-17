@@ -51,7 +51,8 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     to see those builds from outside.
 - It runs on a cron every 6 h, on **every push to main** (whatever it touched; the bot's
   model-record commits don't start one), and on manual dispatch. Every run is the same: every
-  test, all three sports built fresh, every page checked ("Every run does everything" below). **Update Odds only opens the Actions page**; "Run workflow" starts it. A
+  test, all three sports built fresh, every page checked ("Every run does everything" below). There is no Update Odds button any more (removed 2026-10-17: the owner said the odds update on
+  their own and he will ask Claude); "Run workflow" on the Actions page still starts a run. A
   re-run of a failed run uses that run's OLD commit, never newer fixes. Pushes
   set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
   are free, so they're fetched fresh on every build.
@@ -84,7 +85,6 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     Actions page (or from the failure email); ask them for the red step's name;
   - private repos get 2,000 free build minutes a month, which is why runs were kept lean
     until the repo went public again ("Every run does everything" below);
-  - the owner-only "Update Odds" link still works (it opens the Actions page, signed in).
 
 ## The site must never be left down (2026-10-13)
 
@@ -179,8 +179,7 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
 - `--only nfl|nba|nhl` on `run_tests.py` and `check_site.py` stays, for a local check while
   working on one sport. The deploy never passes it. A new test file needs no registering.
 - **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Every half hour, at :17
-  and :47 from 16:17 to 02:47 UTC, October to June, plus "Run workflow" (the NHL pages' Update
-  Odds button) and a push that edits the file.
+  and :47 from 16:17 to 02:47 UTC, October to June, plus "Run workflow" on the Actions page and a push that edits the file.
   - **The clock is Cloudflare's, not GitHub's (2026-10-15).** GitHub's own timer was late or
     dropped most hours (that day the hourly refresh ran 1 of 6 times; one run started two hours
     late), so the Worker `gmg-nhl-timer` (`workers/nhl-timer/`, a Cron Trigger) presses "Run
@@ -301,13 +300,13 @@ For people who'd pay but won't join Discord. Password version: no email service,
   data to both**, and call `window.NFLSync?.push(key, value)` in its save function.
 - Display prefs (theme, views, selected game) stay per-device.
 - **Owner-only controls:** `OWNER_IDS` (the user's Discord ID `613105360286253076`) makes
-  `/api/state` return `user.owner`. sync.js then adds `html.is-owner`, and the **Update Odds**
-  button (which runs the GitHub build) is shown only then, plus on localhost (`html.local-dev`).
-- **Request a feature:** sync.js adds a yellow "💡 Request a feature" button just left of the
-  account chip (logged-in members only; icon-only on phones). It opens a box titled "Have an idea
+  `/api/state` return `user.owner`. sync.js then adds `html.is-owner` (owner-only boxes: payouts, SGP
+  price log). The Update Odds button that used to hang on it is gone.
+- **Request a feature:** an item in the account menu (logged-in members only; the 2026-10-17 header
+  moved it there from its own yellow button). It opens a box titled "Have an idea
   for a tool, data point, or feature? I will do my best to get it added!". The idea is POSTed to
   `/api/requests` and saved in the D1 table `feature_requests` (created by deploy.yml). Limits:
-  1000 characters per idea and 10 ideas per member per day. The owner's button reads "Feature
+  1000 characters per idea and 10 ideas per member per day. The owner's item reads "Feature
   requests": it lists every idea newest first (name, date), with Mark added / Undo / Delete (a
   PATCH; delete is soft, status `deleted`) and "+ Add my own idea". Members can never read others'
   ideas.
@@ -316,7 +315,7 @@ For people who'd pay but won't join Discord. Password version: no email service,
   ("New" tag), older ones folded under "Earlier updates", then "Feel free to click 💡 Request a
   feature..." (opens the idea box) and "Got it". What they've seen is `nfl-tool.updates-seen.v1`
   (synced, so once per member, not per device or sport address); it is marked seen as soon as it
-  shows. "What's new" in the account chip opens it again. It never opens on its own in a browser
+  shows. "What's new" in the account menu opens it again (with a dot while there is something unseen). It never opens on its own in a browser
   driven by a script (`navigator.webdriver`: the gate, the tests). **To post an update:** add one
   entry at the TOP (`id` = the date, `"2026-10-15b"` for a second that day; `items` =
   `[emoji, "<b>Feature</b> rest of the line"]`), in the owner's wording. Test:
@@ -339,7 +338,7 @@ For people who'd pay but won't join Discord. Password version: no email service,
 
 ## Support tab (`support.html`)
 
-Last in the nav after Promo Tools. Shows the user's socials (pill buttons) and codes/tools cards
+Reached from the account menu (the 2026-10-17 top menu has no Support button). Shows the user's socials (pill buttons) and codes/tools cards
 in the gmgsports.org hub look (Black, ALL CAPS, gold copy-code buttons, green "Free trial"
 badges). It fetches `https://gmgsports.org/links.json` live (CORS allows it; logo paths get the
 hub prefix), so to change a link, code or blurb edit `links.json` in the hub repo

@@ -330,12 +330,12 @@ class PromoMenu(unittest.TestCase):
     def test_player_props_opens_shots_and_goals(self):
         """The owner, 2026-10-15: Best Plays, Shots and Goals sit under one Player Props button, the Promo Tools way."""
         reset()
-        menu = PAGE.locator(".props-menu")
+        menu = PAGE.locator(".nhl-menu")
         self.assertTrue(menu.is_hidden())
-        PAGE.click(".page-nav .props-trigger")
+        PAGE.click(".page-nav .nhl-trigger")
         self.assertTrue(menu.is_visible())
-        items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", "best.html", False], ["Shots", "shots.html", True], ["Goals", "goals.html", False], ["Points", "points.html", False], ["Line Stacks", "stacks.html", False]])
+        items = PAGE.evaluate("() => [...document.querySelectorAll('.nhl-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
+        self.assertEqual(items, [["Game Previews", "/nhl/", False], ["Best Plays", "/nhl/best.html", False], ["Shots", "/nhl/shots.html", True], ["Goals", "/nhl/goals.html", False], ["Points", "/nhl/points.html", False], ["Line Stacks", "/nhl/stacks.html", False]])
         # Opening Promo Tools closes it; only one list at a time.
         PAGE.click(".page-nav .promo-trigger")
         self.assertTrue(menu.is_hidden())

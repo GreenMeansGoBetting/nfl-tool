@@ -240,9 +240,9 @@ class Links(unittest.TestCase):
 
     def test_best_plays_leads_the_player_props_menu(self):
         reset()
-        PAGE.click(".page-nav .props-trigger")
-        items = PAGE.evaluate("() => [...document.querySelectorAll('.props-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Best Plays", "best.html", True], ["Shots", "shots.html", False], ["Goals", "goals.html", False], ["Points", "points.html", False], ["Line Stacks", "stacks.html", False]])
+        PAGE.click(".page-nav .nhl-trigger")
+        items = PAGE.evaluate("() => [...document.querySelectorAll('.nhl-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
+        self.assertEqual(items, [["Game Previews", "/nhl/", False], ["Best Plays", "/nhl/best.html", True], ["Shots", "/nhl/shots.html", False], ["Goals", "/nhl/goals.html", False], ["Points", "/nhl/points.html", False], ["Line Stacks", "/nhl/stacks.html", False]])
         PAGE.keyboard.press("Escape")
 
 
