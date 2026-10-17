@@ -24,7 +24,7 @@ LEAN = build_nhl.SHOTS_EDGES["lean"]
 ROWS = """() => [...document.querySelectorAll('.best-row')].map((tr) => {
   const text = (sel) => (tr.querySelector(sel) || {}).textContent?.trim().replace(/\\s+/g, ' ') || '';
   const chip = tr.querySelector('.best-play');
-  return { key: tr.dataset.key, href: tr.dataset.href, play: `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}`, odds: text('.best-odds'), fair: text('.best-fair'), edge: text('.shots-edge'), notes: text('.best-notes') };
+  return { key: tr.dataset.key, href: tr.dataset.href, play: `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}`, odds: text('.best-odds b'), fair: text('.best-fair'), edge: text('.shots-edge'), notes: text('.best-notes') };
 })"""
 
 
@@ -48,7 +48,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(bestView, { markets: { sog: true, goal: true, pts: true }, sort: 'edge', dir: -1, when: 'all' }, view);
+            Object.assign(bestView, { markets: { sog: true, goal: true, pts: true }, sort: 'edge', dir: -1, when: 'all', minEdge: 3, lineup: 'all' }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -149,6 +149,30 @@ class Listing(unittest.TestCase):
         PAGE.click('.best-market[data-market="goal"]')
         rows = PAGE.evaluate(ROWS)
         self.assertTrue(rows and all(r["key"].startswith("pts:") for r in rows))
+
+
+class Filters(unittest.TestCase):
+    def test_every_price_names_its_book_with_a_logo(self):
+        rows = reset()
+        self.assertTrue(rows)
+        n = PAGE.evaluate("() => document.querySelectorAll('.best-odds .best-book-logo').length")
+        names = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('.best-odds .best-book-name')].map((e) => e.textContent))]")
+        self.assertEqual(n, len(rows))
+        self.assertEqual(names, ["Novig"])
+
+    def test_minimum_edge_and_lineup_filters(self):
+        every = reset()
+        high = reset(minEdge=7)
+        self.assertLess(len(high), len(every))
+        self.assertTrue(all(float(r["edge"].replace("+", "")) >= 7 for r in high))
+        posted = reset(lineup="posted")
+        self.assertTrue(all("No lineup" not in r["notes"] for r in posted))
+        self.assertEqual(sorted(r["key"] for r in posted), sorted(r["key"] for r in every if "No lineup" not in r["notes"]))
+        # the menus are on the page and change the table
+        reset()
+        PAGE.select_option('select[data-filter="minEdge"]', "10")
+        self.assertTrue(all(float(r["edge"].replace("+", "")) >= 10 for r in PAGE.evaluate(ROWS)))
+        reset()
 
 
 class Notes(unittest.TestCase):

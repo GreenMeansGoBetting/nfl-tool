@@ -518,3 +518,8 @@ html:not(.is-owner):not(.local-dev) .stk-log { display: none; }
   .best-rec-tiles { grid-template-columns: minmax(0, 1fr); }
   .best-rec-windows .view-toggle-btn { padding: 5px 9px; font-size: 0.78rem; }
 }
+
+/* Best Plays: which book the price is from (the owner's feature request, 2026-10-17). */
+.best-book { display: inline-flex; align-items: center; gap: 6px; }
+.best-book-logo { width: 18px; height: 18px; border-radius: 4px; display: block; }
+.best-book-name { display: block; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }

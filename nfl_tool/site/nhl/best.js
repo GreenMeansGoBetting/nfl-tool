@@ -17,7 +17,7 @@ let POINTS = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
 // markets: which markets are listed. sort / dir: the column and which way.
-const bestView = { markets: { sog: true, goal: true, pts: true }, sort: "edge", dir: -1, when: "all" };
+const bestView = { markets: { sog: true, goal: true, pts: true }, sort: "edge", dir: -1, when: "all", minEdge: 3, lineup: "all" };
 const MARKETS = [
   ["sog", "Shots on goal", "shots.html"],
   ["goal", "Anytime goal", "goals.html"],
@@ -130,6 +130,8 @@ function sortedPlays(date) {
   const get = SORTS[bestView.sort] || SORTS.edge;
   return playsFor(date)
     .filter((x) => nameMatches(x.r.name))
+    .filter((x) => Math.round(x.play.edge * 1000) / 10 >= bestView.minEdge)
+    .filter((x) => bestView.lineup === "all" || x.posted)
     .filter((x) => !dayIsMixed(date) || bestView.when === "all" || (bestView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
       // Plays still to come first, then games in progress, then finished ones, whatever the sort.
@@ -170,7 +172,13 @@ function renderToolbar() {
   const when = dayIsMixed(date)
     ? `<span class="shots-filter">${[["all", "All games"], ["open", "Not started"], ["started", "Live / final"]].map(([v, t]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bestView.when === v ? " active" : ""}" data-when="${v}">${t}</button>`).join("")}</span>`
     : "";
-  el("best-toolbar").innerHTML = `<span class="shots-filter best-markets"><span class="best-filter-label">Markets</span>${markets}</span>${when}`;
+  const menu = (key, label, options, tip) =>
+    `<label class="shots-menu" title="${tip}"><span>${label}</span><select class="shots-filter-select" data-filter="${key}">${options.map(([value, text]) => `<option value="${value}"${String(bestView[key]) === String(value) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
+  const lean = Math.round(edgeAt("lean") * 100);
+  const edges = [lean, 5, 7, 10, 15].filter((v, i, a) => v >= lean && a.indexOf(v) === i).map((v) => [v, `${v}+ points`]);
+  const filters = menu("minEdge", "Edge", edges, "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
+    menu("lineup", "Lineups", [["all", "All plays"], ["posted", "Lineup confirmed"]], "Lineup confirmed = the NHL's projected lineup for the game is in");
+  el("best-toolbar").innerHTML = `<span class="shots-filter best-markets"><span class="best-filter-label">Markets</span>${markets}</span>${filters}${when}`;
 }
 // The lineup banner: plays in a game whose lineup isn't in can still change.
 function renderNote() {
@@ -226,7 +234,7 @@ const COLUMNS = [
   } },
   { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}</td>` },
   { key: "fair", label: "GMG Fair", title: "The price the GMG model says this bet is worth, with no cut: its chance turned into odds. Odds longer than this are the edge", cell: (x) => `<td class="num best-fair" title="The GMG model gives it ${Math.round(x.play.chance * 100)}%">${odds(has(x.play.fair) ? x.play.fair : fairPrice(x.play.chance)) || "--"}</td>` },
-  { key: "odds", label: "Odds", title: "Novig's price. Sort by it for the biggest payout first", cell: (x) => `<td class="num best-odds"><b>${odds(x.play.price)}</b></td>` },
+  { key: "odds", label: "Odds", title: "The price, from Novig (logo and name under it). Sort by it for the biggest payout first", cell: (x) => `<td class="num best-odds"><span class="best-book" title="Price from Novig"><img src="../novig-logo.jpg" alt="Novig" class="best-book-logo" width="18" height="18"><b>${odds(x.play.price)}</b></span><small class="best-book-name">Novig</small></td>` },
   { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points", cell: edgeCell },
   { key: null, label: "Notes", title: "What the model may not know yet: no lineup, a line change tonight, a small sample, a thin price", cell: (x) => `<td class="best-notes">${notesFor(x) || `<span class="muted-label">--</span>`}</td>` },
   { key: "time", label: "Puck drop", cell: (x) => `<td class="num muted-label">${fmtTime(x.g.time).replace(" ET", "")}</td>` },
@@ -399,6 +407,13 @@ const showRecord = (open) => {
 };
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") showRecord(false);
+});
+document.addEventListener("change", (e) => {
+  const menu = e.target.closest(".shots-filter-select");
+  if (!menu) return;
+  const key = menu.dataset.filter;
+  bestView[key] = key === "minEdge" ? Number(menu.value) : menu.value;
+  render();
 });
 document.addEventListener("click", (e) => {
   if (e.target.closest("#best-record-open")) return showRecord(true);

@@ -206,13 +206,29 @@ function renderRink(g) {
 const outIds = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.id && p.status !== "Day-To-Day").map((p) => p.id));
 // Every player name and photo on the page opens the player card.
 const nameCell = (p, extra = "") => playerClick(p.id, `${headshot(p)}<span>${p.name}</span>`) + extra;
+// Who is expected in net (crease.json, King of the Crease's starter). Never "confirmed":
+// starters are official at warmups and no feed the site reads carries that.
+let CREASE = null;
+function starterRow(g, abbr) {
+  const days = (CREASE || {}).days || {};
+  const day = days[g.date] || {};
+  return (day.goalies || []).find((r) => r.game_id === g.game_id && r.team === abbr) || null;
+}
+function starterTag(r) {
+  if (r.source === "both") return `<span class="gs-inj-status tier-good" title="The NHL's projected lineup and the betting market both have him starting. Not official until warmups.">&#10003; Expected starter</span>`;
+  if (r.source === "split") return `<span class="gs-inj-status tier-mid" title="The sources disagree: the NHL's projected lineup has ${r.other}, the book has a saves line for ${r.name}. Check before you bet.">&#9888; Expected starter</span>`;
+  const why = { lineup: "Named by the NHL's projected lineup only (right about 92% of the time last season).", market: "The goalie Novig has a saves line for; the NHL's projected lineup isn't in yet.", usual: "The team's usual starter: no lineup or saves line is in yet." }[r.source] || "";
+  return `<span class="gs-inj-status tier-mid" title="${why}">Expected starter</span>`;
+}
 function renderGoalies(g) {
   const table = (abbr) => {
     const injured = outIds(abbr);
+    const start = starterRow(g, abbr);
     const rows = (DATA.goalies[abbr] || [])
       .map((p) => {
         const s = p;
-        const name = `<td class="nba-player">${nameCell(p, injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : "")}</td>`;
+        const tag = injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : start && start.id === p.id ? starterTag(start) : "";
+        const name = `<td class="nba-player">${nameCell(p, tag)}</td>`;
         if (!s) return `<tr>${name}<td class="num muted-label" colspan="7">No ${viewLabel()} games</td></tr>`;
         return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>${name}
           <td class="num">${s.games}</td><td class="num">${s.starts}</td><td class="num">${s.record}</td>
@@ -331,8 +347,10 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
 });
 
-loadNhlData()
-  .then(() => {
+const crease = fetch("crease.json").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+Promise.all([loadNhlData(), crease])
+  .then(([, c]) => {
+    CREASE = c;
     const all = days();
     let saved = null;
     try {
