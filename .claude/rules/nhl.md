@@ -65,7 +65,7 @@ launch switch"). More background: `docs/history.md`, "NHL".
     him as a skater and he is one of the last two; any other lone name is a skater in the lineup
     with no line or pair (`slot` None: on the Shots page he is under All, not Lineup Confirmed).
 - **Confirmed starting goalies:** not in any feed, but the expected starter is the first goalie
-  in that story (`shots.json` `lineups[game][team].goalie`). Game Previews doesn't show it yet.
+  in that story (`shots.json` `lineups[game][team].goalie`). Game Previews' Goalies table tags the expected starter from crease.json (`starterRow` / `starterTag` in nhl.js; owner's request 2026-10-17): "Expected starter", a check mark when the lineup and the book agree, never "confirmed".
 - **Not built:** expected goals (xG). It is a model on shot location and type, not a feed field;
   sportsdataverse publishes an open one (`nhl_xg_models`, license not checked).
 
@@ -1066,6 +1066,7 @@ pages for the detail, not a copy of them.
     Shots, Goals and Points tiles, All plays = all three at their own minimums. An edge counts as the table
     rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
     ledger (an old shots.json) the plain season tiles show.
+- **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); each Odds cell shows the Novig logo and name (every price is Novig's).
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
   scrolling (last phone block of nhl.css).
 - Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after
