@@ -62,7 +62,7 @@ class OddsFormat(unittest.TestCase):
 
     def test_the_page_draws_prices_in_the_members_format(self):
         # The sample's game day (test_nhl_best_site.py's TONIGHT).
-        script = "(dayIndex = days().indexOf('2026-10-13'), render(), [...document.querySelectorAll('.best-odds')].map((e) => e.textContent.trim()))"
+        script = "(dayIndex = days().indexOf('2026-10-13'), render(), [...document.querySelectorAll('.best-odds b')].map((e) => e.textContent.trim()))"
         american = with_settings({}, script)
         decimal = with_settings({"odds": "decimal"}, script)
         PAGE.evaluate("render()")
