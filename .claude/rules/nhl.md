@@ -1066,7 +1066,7 @@ pages for the detail, not a copy of them.
     Shots, Goals and Points tiles, All plays = all three at their own minimums. An edge counts as the table
     rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
     ledger (an old shots.json) the plain season tiles show.
-- **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); each Odds cell shows the Novig logo and name (every price is Novig's).
+- **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); each Odds cell shows the member's best price across books (SmartStake `book_odds`, `bookSpec` / `bestBook` in best.js, book-odds.js pill: click for every book) above Novig's price with its logo. Edge, the record and grading stay on Novig's price; the Odds sort uses the best book price.
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
   scrolling (last phone block of nhl.css).
 - Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after

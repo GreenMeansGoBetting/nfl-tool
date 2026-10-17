@@ -160,6 +160,20 @@ class Filters(unittest.TestCase):
         self.assertEqual(n, len(rows))
         self.assertEqual(names, ["Novig"])
 
+    def test_best_price_across_books_when_smartstake_has_it(self):
+        reset()
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.best-odds .bo-pill').length"), 0)
+        PAGE.evaluate("""() => {
+            const x = playsFor(days()[dayIndex])[0];
+            const sp = bookSpec(x);
+            DATA.book_odds = { [sp.game]: { props: { [sp.stat]: { [String(sp.pid)]: { q: [["fanduel", sp.side, sp.line, x.play.price - 15, null], ["draftkings", sp.side, sp.line, x.play.price + 40, null]] } } } } };
+            render();
+        }""")
+        pill = PAGE.evaluate("() => document.querySelector('.best-row .bo-pill').textContent.replace(/\s+/g, ' ').trim()")
+        self.assertIn("DraftKings", pill)
+        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.best-row .best-book-logo')"))
+        PAGE.evaluate("() => { delete DATA.book_odds; render(); }")
+
     def test_minimum_edge_and_lineup_filters(self):
         every = reset()
         high = reset(minEdge=7)
