@@ -167,7 +167,7 @@ function playChip(r) {
       ? `<span class="goals-noodds" title="Novig has a points line for him but no price on either side yet">No price</span>`
       : `<span class="goals-noodds" title="Novig has no points line for him yet. The fair price is there to shop elsewhere; prices fill in through the day.">No odds</span>`;
   }
-  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} points at Novig's price"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} points at the best price across books's price"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
 }
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {

@@ -523,3 +523,6 @@ html:not(.is-owner):not(.local-dev) .stk-log { display: none; }
 .best-book { display: inline-flex; align-items: center; gap: 6px; }
 .best-book-logo { width: 18px; height: 18px; border-radius: 4px; display: block; }
 .best-book-name { display: block; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.best-pill { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 8px; }
+.best-pill .best-book-name { color: inherit; opacity: 0.8; }
+.best-table td.best-goodto { color: var(--muted); }

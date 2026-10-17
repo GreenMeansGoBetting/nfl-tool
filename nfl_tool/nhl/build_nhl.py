@@ -1485,6 +1485,64 @@ def locked_player_odds(games: list, fresh: dict, previous: dict | None, now_utc:
     return out
 
 
+def decimal_odds(price) -> float:
+    return 1 + price / 100 if price > 0 else 1 + 100 / -price
+
+
+def best_book_prices(player_odds: dict, book_odds: dict | None, games: list) -> dict:
+    """player_odds with each main-line price swapped for the best price any US
+    book (SmartStake) quotes at the SAME line, when it beats Novig's (the owner,
+    2026-10-17: "we should be tracking via the best price available -- bettors
+    should be line shopping anyway"). Every edge, play and graded record reads
+    these prices, so they are all figured on the price a bettor can actually
+    get. The book's id rides along (`over_book`, `under_book`; goal `book`);
+    Novig's own price stays as `nv_*`. The chances are the model's or Novig's
+    fair chance and are left alone. A started game's book_odds are locked
+    (smartstake.lock_started), so this is the same price all night.
+    Idempotent: a locked game's player_odds were already swapped."""
+    if not book_odds:
+        return player_odds
+    keys = {g["game_id"]: f"{g['away']}_{g['home']}" for g in games}
+    out = {}
+    for gid, players in player_odds.items():
+        props = ((book_odds.get(keys.get(gid, "")) or {}).get("props")) or {}
+        if not props:
+            out[gid] = players
+            continue
+        swapped = {}
+        for pid, entry in players.items():
+            entry = dict(entry)
+
+            def best(stat, side, line):
+                found = [q for q in (((props.get(stat) or {}).get(pid) or {}).get("q") or []) if q[1] == side and q[2] == line and q[3] is not None]
+                return max(found, key=lambda q: decimal_odds(q[3])) if found else None
+
+            for stat, key in (("sog", "sog"), ("points", "points")):
+                m = entry.get(key)
+                if not m or m.get("line") is None:
+                    continue
+                m = dict(m)
+                for side, field in (("o", "over"), ("u", "under")):
+                    q = best(stat, side, m["line"])
+                    base = m.get(f"nv_{field}", m.get(field))
+                    m[f"nv_{field}"] = base
+                    if q and (base is None or decimal_odds(q[3]) > decimal_odds(base)):
+                        m[field], m[f"{field}_book"] = q[3], q[0]
+                entry[key] = m
+            goal = entry.get("goal")
+            if goal and goal.get("odds") is not None:
+                goal = dict(goal)
+                q = best("goals", "o", 0.5)
+                base = goal.get("nv_odds", goal["odds"])
+                goal["nv_odds"] = base
+                if q and decimal_odds(q[3]) > decimal_odds(base):
+                    goal["odds"], goal["book"] = q[3], q[0]
+                entry["goal"] = goal
+            swapped[pid] = entry
+        out[gid] = swapped
+    return out
+
+
 # ---- tonight's lines (the NHL's projected lineups) ----
 def parse_lineups(markdown: str) -> dict:
     """The NHL's "projected lineups" story as {team label: lineup}. The story
@@ -3256,6 +3314,7 @@ def main():
             if team in lineups:
                 listed = {p["id"] for p in lineups[team]}
                 lineups[team].extend(stats["skaters"][pid] for pid in posted["skaters"] if pid in stats["skaters"] and pid not in listed)
+    player_odds = best_book_prices(player_odds, None if "error" in book_odds_debug or "skipped" in book_odds_debug else book_odds, games)
     unlisted = unlisted_priced(games, lineups, player_odds, now_utc)
     for p in unlisted:
         print(f"WARNING: {p['name']} ({p['team']}) has a shots line but is on no NHL prop list.", file=sys.stderr)

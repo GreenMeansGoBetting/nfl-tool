@@ -80,7 +80,7 @@ const dayIsMixed = (date) => new Set(gamesOn(date).filter(anyBoard).map((g) => (
 // Each: the market, the player's row from that page's data, the play (side,
 // line, price, chance, edge), the game, and whether it won once final.
 // The best price across the member's books (SmartStake, book-odds.js) for this play's side and
-// line, or null. The Edge column and the record stay on Novig's price; this is where to bet it.
+// line (for the "every book" list a price opens).
 const BOOK_STAT = { sog: "sog", goal: "goals", pts: "points" };
 function bookSpec(x) {
   const p = x.play;
@@ -93,11 +93,14 @@ function bookSpec(x) {
     edges: (SHOTS || {}).edges, model: { [`${side}|${line}`]: p.chance },
   };
 }
-function bestBook(x) {
-  if (typeof bookQuotes !== "function" || !DATA.book_odds) return null;
-  const spec = bookSpec(x);
-  return bookBest(bookQuotes(spec), spec.side, spec.line);
+// Which book the build took this play's price from (it keeps the best price across every US book,
+// SmartStake; Novig's own price when no book beats it). Ids are book-odds.js's / GMG_BOOKS'.
+function priceBook(x) {
+  const m = (((DATA.player_odds || {})[x.g.game_id] || {})[x.r.id] || {})[{ sog: "sog", goal: "goal", pts: "points" }[x.market]] || {};
+  return (x.market === "goal" ? m.book : m[`${x.play.side === "under" ? "under" : "over"}_book`]) || "novig";
 }
+// The worst price this play still has the page's smallest edge at: the "good to" cutoff.
+const goodTo = (x) => fairPrice(x.play.chance - edgeAt("lean"));
 function playsFor(date) {
   const out = [];
   gamesOn(date).forEach((g) => {
@@ -140,7 +143,7 @@ function playsFor(date) {
 }
 const SORTS = {
   edge: (x) => x.play.edge,
-  odds: (x) => payout((bestBook(x) || [0, 0, 0, x.play.price])[3]),
+  odds: (x) => payout(x.play.price),
   fair: (x) => -x.play.chance, // most first = the longest fair price
   time: (x) => -Date.parse(x.g.start_utc || 0), // earliest first when "most first"
   market: (x) => ({ goal: 0, sog: 1, pts: 2 })[x.market],
@@ -226,7 +229,7 @@ function notesFor(x) {
   }
   if (has(r.games) && r.games < SMALL_SAMPLE) notes.push(["warn", `${r.games} GP`, `Only ${r.games} game${r.games === 1 ? "" : "s"} this season: a small sample.`]);
   if (x.market !== "goal" && x.play.fade) notes.push(["info", "vs avg", `Goes against his season average (${fmt(r.avg, 2)} ${x.market === "pts" ? "points" : "shots"} a game): the model thinks a small sample has run ${x.play.side === "under" ? "hot" : "cold"}.`]);
-  if (x.thin) notes.push(["warn", "Thin", "Barely traded on Novig: treat the price with care."]);
+  if (x.thin && priceBook(x) === "novig") notes.push(["warn", "Thin", "Barely traded on Novig, and no book beats it: treat the price with care."]);
   return notes.map(([kind, text, tip]) => `<span class="best-note best-note-${kind}" title="${tip}">${text}</span>`).join("");
 }
 function playCell(x) {
@@ -253,7 +256,14 @@ const COLUMNS = [
   } },
   { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}</td>` },
   { key: "fair", label: "GMG Fair", title: "The price the GMG model says this bet is worth, with no cut: its chance turned into odds. Odds longer than this are the edge", cell: (x) => `<td class="num best-fair" title="The GMG model gives it ${Math.round(x.play.chance * 100)}%">${odds(has(x.play.fair) ? x.play.fair : fairPrice(x.play.chance)) || "--"}</td>` },
-  { key: "odds", label: "Odds", title: "The best price across your books (click for every book), and Novig's price, which the Edge is figured on. Sort by it for the biggest payout first", cell: (x) => `<td class="num best-odds">${typeof bookPricePill === "function" && bestBook(x) ? bookPricePill(bookSpec(x)) : ""}<span class="best-book" title="Price from Novig"><img src="../novig-logo.jpg" alt="Novig" class="best-book-logo" width="18" height="18"><b>${odds(x.play.price)}</b></span><small class="best-book-name">Novig</small></td>` },
+  { key: "odds", label: "Odds", title: "The best price any US book has right now (the Edge is figured on it). Click for every book. Sort by it for the biggest payout first", cell: (x) => {
+    const book = priceBook(x);
+    const name = typeof GMG_BOOKS !== "undefined" && GMG_BOOKS[book] ? GMG_BOOKS[book] : book === "novig" ? "Novig" : book;
+    const logoImg = book === "novig" ? `<img src="../novig-logo.jpg" alt="" class="best-book-logo" width="18" height="18">` : "";
+    const inner = `<span class="best-book">${logoImg}<b>${odds(x.play.price)}</b></span><small class="best-book-name">${name}</small>`;
+    return `<td class="num best-odds">${typeof boEnc === "function" ? `<button type="button" class="bo-pill best-pill" data-bo="${boEnc(bookSpec(x))}" title="Best price across the US books. Click for every book.">${inner}</button>` : inner}</td>`;
+  } },
+  { key: null, label: "Good to", title: "The worst price this bet still has an edge at (the smallest edge the page lists). Past this, it is no longer a play", cell: (x) => `<td class="num best-goodto">${odds(goodTo(x)) || "--"}</td>` },
   { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points", cell: edgeCell },
   { key: null, label: "Notes", title: "What the model may not know yet: no lineup, a line change tonight, a small sample, a thin price", cell: (x) => `<td class="best-notes">${notesFor(x) || `<span class="muted-label">--</span>`}</td>` },
   { key: "time", label: "Puck drop", cell: (x) => `<td class="num muted-label">${fmtTime(x.g.time).replace(" ET", "")}</td>` },

@@ -223,7 +223,7 @@ function renderToolbar() {
 }
 // The play as a bettor writes it: "o1.5" / "u2.5" (the owner, 2026-10-15), green over, red under.
 function playChip(play) {
-  return `<span class="shots-play shots-play-ou shots-play-${play.side}" title="${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)} shots on goal at Novig's price"><b>${play.side[0]}${fmt(play.line)}</b><span>${odds(play.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${play.side}" title="${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)} shots on goal at the best price across books"><b>${play.side[0]}${fmt(play.line)}</b><span>${odds(play.price)}</span></span>`;
 }
 // The bucket the record grades a play in, said on the row (the owner, 2026-10-15: the YTD record
 // says Strong and Lean, the page didn't). A "check" play says why: a gap too big, or a line change.

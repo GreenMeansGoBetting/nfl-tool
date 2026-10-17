@@ -157,22 +157,24 @@ class Filters(unittest.TestCase):
         self.assertTrue(rows)
         n = PAGE.evaluate("() => document.querySelectorAll('.best-odds .best-book-logo').length")
         names = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('.best-odds .best-book-name')].map((e) => e.textContent))]")
-        self.assertEqual(n, len(rows))
+        self.assertEqual(n, len(rows))  # no book beats Novig in the saved sample: its logo and name
         self.assertEqual(names, ["Novig"])
 
-    def test_best_price_across_books_when_smartstake_has_it(self):
+    def test_the_price_names_the_book_it_came_from_and_good_to_is_a_cutoff(self):
         reset()
-        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.best-odds .bo-pill').length"), 0)
         PAGE.evaluate("""() => {
-            const x = playsFor(days()[dayIndex])[0];
-            const sp = bookSpec(x);
-            DATA.book_odds = { [sp.game]: { props: { [sp.stat]: { [String(sp.pid)]: { q: [["fanduel", sp.side, sp.line, x.play.price - 15, null], ["draftkings", sp.side, sp.line, x.play.price + 40, null]] } } } } };
+            const x = playsFor(days()[dayIndex]).find((p) => p.market === 'sog');
+            const m = DATA.player_odds[x.g.game_id][x.r.id].sog;
+            m[x.play.side === 'under' ? 'under_book' : 'over_book'] = 'draftkings';
             render();
+            window.__key = x.market + ':' + x.g.game_id + ':' + x.r.id;
         }""")
-        pill = PAGE.evaluate("() => document.querySelector('.best-row .bo-pill').textContent.replace(/\s+/g, ' ').trim()")
+        pill = PAGE.evaluate("() => document.querySelector(`.best-row[data-key='${window.__key}'] .best-odds`).textContent.replace(/ +/g, ' ').trim()")
         self.assertIn("DraftKings", pill)
-        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.best-row .best-book-logo')"))
-        PAGE.evaluate("() => { delete DATA.book_odds; render(); }")
+        # Good to: the worst price that keeps the smallest edge. Never shorter than the price being shown.
+        for r in PAGE.evaluate("() => [...document.querySelectorAll('.best-row')].map((tr) => [tr.querySelector('.best-odds b').textContent, tr.querySelector('.best-goodto').textContent])")[:5]:
+            self.assertNotEqual(r[1].strip(), "")
+        PAGE.evaluate("() => { const m = DATA.player_odds; Object.values(m).forEach((g) => Object.values(g).forEach((e) => { if (e.sog) { delete e.sog.over_book; delete e.sog.under_book; } })); render(); }")
 
     def test_minimum_edge_and_lineup_filters(self):
         every = reset()

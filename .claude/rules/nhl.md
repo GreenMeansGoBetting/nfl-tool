@@ -1066,7 +1066,7 @@ pages for the detail, not a copy of them.
     Shots, Goals and Points tiles, All plays = all three at their own minimums. An edge counts as the table
     rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
     ledger (an old shots.json) the plain season tiles show.
-- **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); each Odds cell shows the member's best price across books (SmartStake `book_odds`, `bookSpec` / `bestBook` in best.js, book-odds.js pill: click for every book) above Novig's price with its logo. Edge, the record and grading stay on Novig's price; the Odds sort uses the best book price.
+- **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); every price is the BEST price any US book quotes at Novig's line (see "Best book prices"); the Odds cell names the book (Novig keeps its logo) and opens every book; a **Good to** column = the worst price that still has the smallest (3-point) edge (`goodTo`).
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
   scrolling (last phone block of nhl.css).
 - Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after
@@ -1087,6 +1087,20 @@ tracking stats, playoffs.
 For the Shots model: tonight's power-play units from a licensed morning-report feed (past units
 from `shiftcharts` were tested and add nothing: see "Power-play units" above); a snapshot of the closing line (the refresh now gets within half an hour of puck drop); the expected starting goalie on
 Game Previews (it is already in `shots.json`).
+
+## Best book prices (the owner, 2026-10-17)
+
+"We should be tracking via the best price available -- bettors should be line shopping anyway."
+`best_book_prices` (build_nhl.py, after SmartStake's `book_odds`) swaps each main-line price in
+`player_odds` (shots, points over / under, anytime goal) for the best price ANY US book quotes at
+the SAME line when it beats Novig's; `over_book` / `under_book` / goal `book` name the book and
+`nv_*` keeps Novig's. So every edge, play, CLV first price and graded record (Shots, Goals, Points,
+Best Plays) is figured on that price. Chances stay the model's / Novig's fair chance. Build-wide: it
+ignores a member's My Books (the page's price list still honors them). Locks like the book odds
+(a started game keeps the last build's). **Records before 2026-10-17 were graded at Novig's price**,
+so the record mixes the two; CLV for that day compares a Novig first price with a best-price lock.
+No SmartStake run = Novig's price, as before. Pages say "best price across books" where they said
+Novig. Test: `tests/test_nhl_best_prices.py`.
 
 ## Every book's price in the Shots and Goals rows (SmartStake, 2026-10-14)
 
