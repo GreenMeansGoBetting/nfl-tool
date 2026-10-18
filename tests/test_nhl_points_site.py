@@ -54,7 +54,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(pointsView, { pos: 'all', lineup: 'all', odds: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
+            Object.assign(pointsView, { pos: 'all', lineup: 'all', minEdge: 'all', odds: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -132,6 +132,10 @@ class Rows(unittest.TestCase):
         self.assertLess(len(priced), len(everyone))
         defense = reset(pos="D")
         self.assertTrue(defense and all(sent[r["key"]]["pos"] == "D" for r in defense))
+        # Edge: the same menu as Best Plays (a member asked to filter "by above a score").
+        big = reset(minEdge="7")
+        self.assertTrue(big and all(round(sent[r["key"]]["edge"] * 1000) / 10 >= 7 for r in big))
+        self.assertLess(len(big), len(priced))
 
 
 class Breakdown(unittest.TestCase):
@@ -152,6 +156,28 @@ class Breakdown(unittest.TestCase):
             self.assertIn(price(r["first"]["over"]), table[0])
         # No lineup posted in the sample: the linemates box says when it fills in.
         self.assertIn("linemates tonight", PAGE.locator(".points-mates-box").inner_text().lower())
+
+    def test_an_open_row_lists_every_books_price(self):
+        # Like the Shots and Goals rows (a member: some prop pages show the odds when opened, some didn't).
+        rows = reset()
+        key = next(r["key"] for r in rows if not r["noodds"])
+        r = built()[key]
+        PAGE.evaluate(
+            """([pid, team]) => {
+                const g = gamesOn(days()[dayIndex]).find((x) => x.away === team || x.home === team);
+                DATA.book_odds = { [`${g.away}_${g.home}`]: { props: { points: { [pid]: { q: [["fanduel", "o", 0.5, 125], ["fanduel", "u", 0.5, -160]] } } } } };
+            }""",
+            [str(r["id"]), r["team"]],
+        )
+        try:
+            PAGE.click(f'.shots-row[data-row="{key}"] td.shots-rank')
+            odds = PAGE.locator(".shots-detail .shots-detail-odds")
+            self.assertIn("every book", odds.inner_text().lower())
+            self.assertEqual(PAGE.locator(".shots-detail .bo-panel").count(), 1)
+        finally:
+            PAGE.evaluate("() => { delete DATA.book_odds; }")
+            reset()
+        self.assertEqual(SITE.errors, [])
 
 
 class Finished(unittest.TestCase):

@@ -16,7 +16,7 @@ let SHOTS = null; // shots.json: each defense's shots allowed by area, and tonig
 let dayIndex = 0;
 let gameId = null;
 // adv: the "advanced stats" columns shown or folded away (shared with the Shots page, per device).
-const goalsView = { pos: "all", lineup: "all", odds: "all", zone: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
+const goalsView = { pos: "all", lineup: "all", minEdge: "all", odds: "all", zone: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
 
 const edgeAt = (size) => ((GOALS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
 // Set apart, the Shots page's way: a gap of 12+ points, or a player moved down a line tonight
@@ -106,6 +106,7 @@ function sortedRows(date, lineup = goalsView.lineup, checks = goalsView.checks) 
     .filter((x) => nameMatches(x.r.name))
     .filter((x) => goalsView.pos === "all" || positionGroup(x.r.pos) === goalsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
+    .filter((x) => edgeAtLeast(x.r.edge, goalsView.minEdge))
     .filter((x) => goalsView.odds === "all" || has(x.r.odds))
     .filter((x) => goalsView.zone === "all" || x.r.zone)
     .filter((x) => checks || !needsCheck(x))
@@ -153,6 +154,7 @@ function renderToolbar() {
   el("shots-toolbar").innerHTML =
     menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup. Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
+    menu("minEdge", "Edge", edgeOptions(), "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
     menu("odds", "Odds", [["all", "Priced or not"], ["priced", "Priced only"]], "Priced or not: every player, the ones Novig hasn't priced with the model's fair price only") +
     menu("zone", "Zone Match", [["all", "Everyone"], ["only", "Zone Match only"]], "His heavy shooting area against a defense that allows a lot from it. Tracked, not in the number") +
     `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${goalsView.checks ? " active" : ""}" data-filter="checks" data-value="${!goalsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a player moved down a line tonight. They lead the ranking; click to ${goalsView.checks ? "hide" : "show"} them.">Check plays: ${goalsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +

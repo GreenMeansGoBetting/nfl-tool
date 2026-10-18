@@ -65,7 +65,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
+            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', minEdge: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
             selectDay(days().indexOf(day));
         }""",
         [day, view],
@@ -354,6 +354,15 @@ class Filters(unittest.TestCase):
         row = next(r for entry in shots["games"].values() for r in entry["players"] if r["id"] == hughes["id"] and "actual" not in r)
         self.assertEqual(next(r for r in unders if r["id"] == hughes["id"])["model"], f"{(1 - row['chances'][3]) * 100:.0f}%")
 
+    def test_minimum_edge(self):
+        # The Edge menu, as on Best Plays: only plays at least that big, as the table rounds them.
+        everyone = reset()
+        big = reset(minEdge="10")
+        edges = PAGE.evaluate("() => sortedRows(days()[dayIndex]).map((x) => Math.round(x.play.edge * 1000) / 10)")
+        self.assertTrue(big and min(edges) >= 10)
+        self.assertLess(len(big), len(everyone))
+        self.assertEqual(PAGE.locator('#shots-toolbar select[data-filter="minEdge"]').count(), 1)
+
     def test_forwards_and_defense(self):
         positions = {p["id"]: p["pos"] for players in nhl_data()["skaters"].values() for p in players}
         self.assertEqual({positions[r["id"]] for r in reset(pos="D")}, {"D"})
@@ -368,8 +377,8 @@ class Filters(unittest.TestCase):
         opened = state()
         self.assertEqual(opened["lineup"], "all")
         self.assertEqual(opened["buttons"], [["All players", True], ["Lineup Confirmed", False]])
-        # Side, skaters and lineups are dropdowns (the owner: "to reduce the clutter").
-        self.assertEqual(page.evaluate("() => [...document.querySelectorAll('.shots-filter-select')].map((s) => s.dataset.filter)"), ["side", "pos", "lineup"])
+        # Side, skaters, lineups and edge are dropdowns (the owner: "to reduce the clutter").
+        self.assertEqual(page.evaluate("() => [...document.querySelectorAll('.shots-filter-select')].map((s) => s.dataset.filter)"), ["side", "pos", "lineup", "minEdge"])
         self.assertNotIn("Everyone", opened["toolbar"])
         self.assertNotIn("With a line", opened["toolbar"])
         # It opens on 10-12 (the sample's clock): three finished games with no line saved,

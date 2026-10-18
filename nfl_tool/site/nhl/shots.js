@@ -17,7 +17,7 @@ let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
 // checks: the "check first" plays shown (at the top) or hidden.
 // adv: the "advanced stats" columns (minutes and what moved the number) shown or folded away.
-const shotsView = { side: "best", pos: "all", lineup: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
+const shotsView = { side: "best", pos: "all", lineup: "all", minEdge: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
 
 // An edge is the model's chance minus the chance the price needs to break
 // even. The sizes that matter come from the build (SHOTS_EDGES in
@@ -158,6 +158,7 @@ function sortedRows(date, lineup = shotsView.lineup, checks = shotsView.checks) 
     .filter((x) => nameMatches(x.r.name))
     .filter((x) => shotsView.pos === "all" || positionGroup(x.r.pos) === shotsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
+    .filter((x) => edgeAtLeast(x.play.edge, shotsView.minEdge))
     .filter((x) => checks || !needsCheck(x))
     .filter((x) => !dayIsMixed(date) || shotsView.when === "all" || (shotsView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
@@ -209,6 +210,7 @@ function renderToolbar() {
     menu("side", "Side", [["best", "Best side"], ["over", "Overs"], ["under", "Unders"]], "Best side: the side of each line the model likes more. Overs / Unders: that side for everyone") +
     menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup (projected from recent ice time). Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
+    menu("minEdge", "Edge", edgeOptions(), "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
     `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${shotsView.checks ? " active" : ""}" data-filter="checks" data-value="${!shotsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a play against tonight's line change. They lead the ranking; click to ${shotsView.checks ? "hide" : "show"} them.">Check plays: ${shotsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +
     advancedToggle(shotsView.adv) +
     // Once some of the day's games have started: every play of the day stays listed (started ones

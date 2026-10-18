@@ -706,8 +706,14 @@ function loadNhlData() {
     });
 }
 
+// ---- The Edge menu: Shots, Goals, Points and Best Plays filter the same way ----
+// "all", or a minimum edge in points; an edge counts as the table rounds it (9.96 = 10.0).
+const EDGE_STEPS = [3, 5, 7, 10, 15];
+const edgeOptions = () => [["all", "Any edge"], ...EDGE_STEPS.map((v) => [String(v), `${v}+ points`])];
+const edgeAtLeast = (edge, min) => min === "all" || (has(edge) && Math.round(edge * 1000) / 10 >= Number(min));
+
 // ---- Every book's price (SmartStake; ../book-odds.js) ----
-// The Shots and Goals open rows' right column: every US book's price for this
+// The Shots, Goals and Points open rows' right column: every US book's price for this
 // player, best first, each tagged against OUR model (never a market "fair"
 // price): chanceAt(side, line) is the model's chance, and the tags use the
 // page's own edge sizes. "" when no book has him.
@@ -717,7 +723,7 @@ function bookPanelFor(x, stat, line, label, chanceAt, edges, labels) {
   const g = x.game;
   const spec = {
     // Opens on the side the row's play is on (an Under play shows the unders).
-    kind: "prop", stat, team: r.team, pid: r.id, name: r.name, side: x.play && x.play.side === "under" ? "u" : "o", line,
+    kind: "prop", stat, team: r.team, pid: r.id, name: r.name, side: (x.play ? x.play.side : r.side) === "under" ? "u" : "o", line,
     game: `${g.away}_${g.home}`, title: `${r.name} &middot; ${label}`, sub: `${g.away} @ ${g.home}`, color: `#${team(r.team).color}`,
     edges, ...(labels ? { labels, labelLine: line } : {}),
   };

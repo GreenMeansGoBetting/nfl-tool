@@ -49,7 +49,7 @@ def tearDownModule():
 def show(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
-            Object.assign(stacksView, { kind: 'all', legs: 'all', sort: 'score', when: 'all', shown: 50 }, view);
+            Object.assign(stacksView, { kind: 'all', legs: 'all', minScore: 'all', sort: 'score', when: 'all', shown: 50 }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -78,6 +78,11 @@ class LineStacksPage(unittest.TestCase):
         self.assertEqual(len(kinds), 7)  # every kind but power play (the sample has no shared-ice history)
         show(kind="d_pair")
         self.assertEqual(set(PAGE.evaluate("() => sortedRows(days()[dayIndex]).map((x) => x.s.kind)")), {"d_pair"})
+        show(minScore="55")
+        scores = PAGE.evaluate("() => sortedRows(days()[dayIndex]).map((x) => x.s.score)")
+        self.assertTrue(scores and min(scores) >= 55)
+        show()
+        self.assertGreater(len(PAGE.evaluate("() => sortedRows(days()[dayIndex])")), len(scores))
 
     def test_copy_says_exactly_what_is_shown(self):
         for r in show()[:5]:

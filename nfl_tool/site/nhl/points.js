@@ -16,7 +16,7 @@ let STACKS = null; // stacks.json: the Line Stacks page's stacks (his best ones 
 let dayIndex = 0;
 let gameId = null;
 // adv: the "advanced stats" columns shown or folded away (shared with the Shots and Goals pages, per device).
-const pointsView = { pos: "all", lineup: "all", odds: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
+const pointsView = { pos: "all", lineup: "all", minEdge: "all", odds: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
 
 const edgeAt = (size) => ((POINTS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
 // Set apart, the Shots page's way: a gap of 12+ points, or a play against tonight's line change
@@ -103,6 +103,7 @@ function sortedRows(date, lineup = pointsView.lineup, checks = pointsView.checks
     .filter((x) => nameMatches(x.r.name))
     .filter((x) => pointsView.pos === "all" || positionGroup(x.r.pos) === pointsView.pos)
     .filter((x) => lineup === "all" || x.r.slot)
+    .filter((x) => edgeAtLeast(x.r.edge, pointsView.minEdge))
     .filter((x) => pointsView.odds === "all" || has(x.r.line))
     .filter((x) => checks || !needsCheck(x))
     .filter((x) => !dayIsMixed(date) || pointsView.when === "all" || (pointsView.when === "open") === (x.state === "open"))
@@ -149,6 +150,7 @@ function renderToolbar() {
   el("shots-toolbar").innerHTML =
     menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup. Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
+    menu("minEdge", "Edge", edgeOptions(), "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
     menu("odds", "Odds", [["all", "Priced or not"], ["priced", "Priced only"]], "Priced or not: every player, the ones Novig hasn't priced with the model's fair price only") +
     `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${pointsView.checks ? " active" : ""}" data-filter="checks" data-value="${!pointsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a play against tonight's line change. They lead the ranking; click to ${pointsView.checks ? "hide" : "show"} them.">Check plays: ${pointsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +
     advancedToggle(pointsView.adv) +
@@ -303,14 +305,19 @@ function detailRow(x, columns) {
        ${mates.length ? `<table class="data-table shots-ladder points-mates-table"><thead><tr><th class="shots-th-player">Linemate</th><th title="Points this season">P</th><th title="The model's chance of 1 or more points tonight">1+ pt</th><th>Play</th></tr></thead><tbody>${mates.map(mateRow).join("")}</tbody></table>` : `<p class="shots-lineup">His linemates aren't on this game's list.</p>`}
        <p class="shots-lineup muted-label">Linemates is tracked in the record, not in the number: in two seasons of replays it pointed the right way, but too little to prove once his line and minutes were counted.</p>`
     : `<div class="shots-detail-label">Linemates tonight</div><p class="shots-lineup">Shown once the NHL posts ${r.team}'s projected lineup (usually around midday Eastern).</p>`;
+  // Every book's price, as on the Shots and Goals pages: the model's chance of over 0.5 / 1.5 points.
+  const overAt = (at) => (at === 0.5 ? r.chance : at === 1.5 ? r.two : null);
+  const bookCol = bookPanelFor(x, "points", has(r.line) ? r.line : 0.5, "Points",
+    (side, at) => (has(overAt(at)) ? (side === "o" ? overAt(at) : 1 - overAt(at)) : null), POINTS.edges);
   return `<tr class="shots-detail"><td colspan="${columns}">
-      <div class="shots-detail-grid">
+      <div class="shots-detail-grid${bookCol ? " has-odds" : ""}">
         <div class="shots-detail-main">
           <div class="shots-detail-label">How tonight's chance is built</div>${build}${lineNote}
           <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows <span class="muted-label">this season, and where that ranks</span></div>${tiles}
           <div class="shots-detail-label">The price, at the model's fair price</div>${ladder}
         </div>
         <div class="shots-detail-rink points-mates-box">${matesBox}${stacksBox(x)}</div>
+        ${bookCol}
       </div>
     </td></tr>`;
 }

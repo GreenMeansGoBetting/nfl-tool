@@ -11,7 +11,7 @@ let SGP = { stacks: {}, books: [] };
 let dayIndex = 0;
 let gameId = null;
 const PAGE = 50; // stacks drawn before "Show more"
-const stacksView = { kind: "all", legs: "all", sort: "score", when: "all", shown: PAGE };
+const stacksView = { kind: "all", legs: "all", minScore: "all", sort: "score", when: "all", shown: PAGE };
 
 // ---- schedule ----
 function days() {
@@ -56,6 +56,7 @@ function sortedRows(date) {
     .filter((x) => nameMatches(...x.s.legs.map((p) => (x.board.players[p] || {}).name)))
     .filter((x) => stacksView.kind === "all" || x.s.kind === stacksView.kind)
     .filter((x) => stacksView.legs === "all" || x.s.legs.length === Number(stacksView.legs))
+    .filter((x) => stacksView.minScore === "all" || x.s.score >= Number(stacksView.minScore))
     .filter((x) => !dayIsMixed(date) || stacksView.when === "all" || (stacksView.when === "open") === (x.state === "open"))
     .sort((a, b) => (a.state !== b.state ? STATE_ORDER[a.state] - STATE_ORDER[b.state] : get(b) - get(a) || b.s.chance - a.s.chance));
 }
@@ -93,6 +94,7 @@ function renderToolbar() {
   el("shots-toolbar").innerHTML =
     menu("kind", "Stack", [["all", "All stack types"], ...Object.entries((STACKS || {}).kinds || {})]) +
     menu("legs", "Legs", [["all", "2, 3 and 4 legs"], ["2", "2 legs"], ["3", "3 legs"], ["4", "4 legs"]]) +
+    menu("minScore", "Score", [["all", "Any score"], ...[50, 55, 60, 65].map((v) => [String(v), `${v}+`])], "Only stacks with at least this GMG Score (50 = no edge against the market's legs)") +
     menu("sort", "Sort", [["score", "Best score"], ["chance", "Best chance"], ["lift", "Most correlation"], ["payout", "Biggest payout"]]) +
     (dayIsMixed(days()[dayIndex])
       ? group("when", [

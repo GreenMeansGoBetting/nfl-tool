@@ -510,7 +510,7 @@ html:not(.is-owner):not(.local-dev) .stk-log { display: none; }
   .ice-hist-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ice-winners { max-width: none; }
   /* Best Plays: a narrower name column, so the play and the price show without scrolling. */
-  .best-table td.shots-player .nhl-headshot, .best-table td.shots-player > .muted-label { display: none; }
+  .best-table td.shots-player .nhl-headshot, .best-table td.shots-player .nba-player > .muted-label { display: none; }
   .best-table tbody td.shots-player { display: table-cell; vertical-align: middle; }
   .best-table .best-play { min-width: 0; }
   .best-table td.shots-rank { padding-left: 4px; padding-right: 4px; }
@@ -526,3 +526,8 @@ html:not(.is-owner):not(.local-dev) .stk-log { display: none; }
 .best-pill { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 8px; }
 .best-pill .best-book-name { color: inherit; opacity: 0.8; }
 .best-table td.best-goodto { color: var(--muted); }
+/* Best Plays' rows are taller (the book name under each price): the player is centered in them, a size up. */
+.best-table td.best-player { vertical-align: middle; }
+.best-player .nhl-headshot { width: 34px; height: 34px; }
+.best-player .player-click { font-size: 1rem; }
+.best-player .shots-vs { gap: 5px; }

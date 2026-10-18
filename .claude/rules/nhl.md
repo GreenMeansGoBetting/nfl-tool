@@ -1067,6 +1067,9 @@ pages for the detail, not a copy of them.
     rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
     ledger (an old shots.json) the plain season tiles show.
 - **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); every price is the BEST price any US book quotes at Novig's line (see "Best book prices"); the Odds cell names the book (Novig keeps its logo) and opens every book; a **Good to** column = the worst price that still has the smallest (3-point) edge (`goodTo`).
+- **Player cell (2026-10-18, the owner):** the rows are taller since the book name went under each
+  price, so the cell's flex box sits INSIDE the td (`.best-player`, a flex td can't center
+  vertically); photo 34px, logos 24px.
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
   scrolling (last phone block of nhl.css).
 - Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after
@@ -1102,7 +1105,14 @@ so the record mixes the two; CLV for that day compares a Novig first price with 
 No SmartStake run = Novig's price, as before. Pages say "best price across books" where they said
 Novig. Test: `tests/test_nhl_best_prices.py`.
 
-## Every book's price in the Shots and Goals rows (SmartStake, 2026-10-14)
+## Every book's price in the Shots, Goals and Points rows (SmartStake, 2026-10-14)
+
+- **Same filters and same open row on every prop page (2026-10-18, a member: "filter by above a
+  score, if lineups are out"; the owner: some pages showed odds when opened, some didn't).** Shots,
+  Goals, Points and Best Plays all have an **Edge** menu (`edgeOptions` / `edgeAtLeast` in
+  nhl-common.js; "Any edge" by default off Best Plays) and a Lineups menu; Line Stacks has a
+  **Score** menu (50+ to 65+; stacks only exist with a posted lineup, so no Lineups menu). The
+  Points open row has the every-book column too (`stat` "points"). A new prop page gets both.
 
 - `build_nhl.py` asks SmartStake for shots on goal and goals (`smartstake.fetch_nhl_book_odds`;
   key `SMARTSTAKE_API_KEY` on the NHL build step of deploy.yml AND nhl-refresh.yml) and writes

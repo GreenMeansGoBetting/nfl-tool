@@ -55,7 +55,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(goalsView, { pos: 'all', lineup: 'all', odds: 'all', zone: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
+            Object.assign(goalsView, { pos: 'all', lineup: 'all', minEdge: 'all', odds: 'all', zone: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
