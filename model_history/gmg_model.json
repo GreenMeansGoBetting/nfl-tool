@@ -309,6 +309,22 @@
   "updated": "2026-10-11T15:50Z",
   "week": 5
  },
+ "2026_06_HOU_JAX": {
+  "away": "HOU",
+  "away_pts": 18.8,
+  "frozen": true,
+  "home": "JAX",
+  "home_pts": 24.7,
+  "qb_out": [],
+  "spread": -2.5,
+  "spread_edge": 3.4,
+  "spread_pick": "home",
+  "total": 42.5,
+  "total_edge": 1.0,
+  "total_pick": "over",
+  "updated": "2026-10-18T11:14Z",
+  "week": 6
+ },
  "2026_06_SEA_DEN": {
   "away": "SEA",
   "away_pts": 20.1,
