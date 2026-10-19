@@ -234,6 +234,24 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-19",
+    items: [
+      ["🏒", "<b>NHL Points</b> is a new page for 1+ point plays, under Player Props and in Best Plays, with its own graded record."],
+      ["🏒", "<b>NHL Saves</b> is a new page for goalie saves over / under, with a graded record like Shots, Goals and Points."],
+      ["🏒", "<b>NHL Line Stacks</b> is live: 2-4 linemates’ point legs together, now including power-play trios, and only stacks a book prices every leg of."],
+      ["🏒", "<b>NHL Best Plays</b> now shows the best price across every US book, with a book logo, a “Good to” column, and edge and lineup filters."],
+      ["🏒", "<b>NHL Shots plays</b> have a higher bar (6+ point edge, player not moved down a line), and plays made before lineups are posted are tagged “no lineup yet”."],
+      ["🔎", "<b>Player search</b> on every NHL prop page: start typing a name in the Player header to filter the list. Every prop page also gets the same Edge filter and opens every book’s price on a row."],
+      ["🏒", "<b>NHL rink zones</b> now list the team’s shooters from that spot, with the player you clicked outlined, so you can see how he stacks up against his teammates."],
+      ["📊", "<b>NHL player stats</b> on the rinks and cards are his real counts (like 12 of 17), never mixed with averages. Model numbers are labeled as the model’s."],
+      ["📈", "<b>Best Plays records</b> can be filtered by the last 3 / 7 / 15 / 30 days and by minimum edge."],
+      ["🥅", "<b>NHL Game Previews</b> show each team’s expected goalie, and a regular back from injury is no longer left off the prop pages."],
+      ["🏈", "<b>King of the Endzone</b> Upside now counts what a player should do tonight, so a fullback with one long catch no longer ranks like a starter."],
+      ["🏈", "<b>TD Summary card</b> is narrower and cleaner, with Key Players in the side column and a new “1st TD by” position row."],
+      ["🧭", "<b>A simpler top bar</b>: NFL, NBA, NHL and Promo Tools are each one dropdown, and Settings, What’s new, feature requests and Support live in your account menu."],
+    ],
+  },
+  {
     id: "2026-10-15",
     items: [
       ["🏒", "<b>NHL Icebreaker</b> is live under NHL Promo Tools and helps you find the quickest goal of the 7 PM slate, with a Historical Data popup."],
