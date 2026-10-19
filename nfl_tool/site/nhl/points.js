@@ -262,7 +262,7 @@ function detailRow(x, columns) {
   const build = `<div class="shots-build">
       <span class="shots-step shots-step-end" title="Goals, assists and points this season"><small>Season &middot; ${r.games} gp</small><b>${r.goals} G &middot; ${r.assists} A &middot; ${r.points} P</b></span>
       <span class="shots-step shots-step-end" title="The Goals page's expected goals for him tonight"><small>Goals tonight</small><b>${fmt(r.g_mean, 2)}</b></span>
-      <span class="shots-step shots-step-end" title="The expected goals his teammates make while he is on the ice, times his share of their goals, times his minutes, before tonight's matchup"><small>His usual assists</small><b>${fmt(usual, 2)}</b></span>
+      <span class="shots-step shots-step-end" title="The expected goals his teammates make while he is on the ice, times his share of their goals, times his minutes, before tonight's matchup"><small>Model's usual assists</small><b>${fmt(usual, 2)}</b></span>
       ${r.slot ? step(`${slotName(r.slot)} tonight`, r.lift.line, lineTip(r)) : ""}
       ${step(`${r.opp} defense`, r.lift.opp, oppTip(r))}
       ${step(goalieName(r.goalie), r.lift.goalie, goalieTip(r))}

@@ -331,7 +331,9 @@ function detailRow(x, columns) {
   // From what his game log says to what the model believes: after a handful
   // of games it only partly trusts his average (a league-average skater at
   // his position is mixed in, and his rate is read mostly from his attempts).
-  const sampleTip = `After ${r.games} game${r.games === 1 ? "" : "s"} the model only partly trusts his average: it mixes in a league-average ${forward ? "forward" : "defenseman"} and reads his rate mostly from his shot attempts (${fmt(r.att60)} per 60 minutes, ${pct(r.thru, 0)} of them on goal), for the ${fmt(r.minutes)} minutes he should play. The more he plays, the less this moves him.`;
+  // His own numbers (seasonCounts: counted, never mixed) are said as his; the model's are said as the model's.
+  const mine = seasonCounts(r.team, r.id);
+  const sampleTip = `After ${r.games} game${r.games === 1 ? "" : "s"} the model only partly trusts his average: it mixes in a league-average ${forward ? "forward" : "defenseman"} and reads his rate mostly from his shot attempts, for the ${fmt(r.minutes)} minutes he should play. The more he plays, the less this moves him.${mine ? ` His real numbers this season: ${fmt(mine.att60)} shot attempts per 60 minutes, ${pct(mine.onGoal, 0)} of them on goal.` : ""}`;
   const start = r.avg
     ? `<span class="shots-step shots-step-end" title="Shots on goal a game this season"><small>Season avg &middot; ${r.games} gp</small><b>${fmt(r.avg, 2)}</b></span>${step(`${r.games}-game sample`, r.usual / r.avg, sampleTip)}`
     : `<span class="shots-step shots-step-end" title="${sampleTip}"><small>Model's rate &middot; ${r.games} gp</small><b>${fmt(r.usual, 2)}</b></span>`;
@@ -348,7 +350,7 @@ function detailRow(x, columns) {
       ${step(`${r.opp} defense`, r.lift.opp, allowsTip(r.opp, "sog", "shots on goal"))}
       ${step(forward ? "vs forwards" : "vs defensemen", r.lift.pos, allowsTip(r.opp, forward ? "f_sog" : "d_sog", forward ? "shots on goal to forwards" : "shots on goal to defensemen"))}
       ${step("His spots", r.lift.area, `Where he shoots from against where ${r.opp} gives shots up`)}
-      ${step("Power play", r.lift.pp, `${pct(r.pp_share, 0)} of his shots come on the power play. ${allowsTip(r.opp, "pp_unb", "power-play shots")}`)}
+      ${step("Power play", r.lift.pp, `${mine ? `${pct(mine.pp, 0)} of his shots this season came on the power play. ` : ""}${allowsTip(r.opp, "pp_unb", "power-play shots")}`)}
       ${step("Home / rest", siteLift(r), siteTip(r))}
       <span class="shots-step shots-step-end"><small>Tonight</small><b>${fmt(r.mean, 2)}</b></span>
     </div>`;
@@ -390,10 +392,11 @@ function detailRow(x, columns) {
   const teams = Object.keys(SHOTS.defense || {}).length || 32;
   const shares = areaShares();
   const rink = rinkSvg(`shots-rink-${r.id}`, `Where ${r.name} shoots from against what ${r.opp} allows`, (z) => {
-    const share = r.shares[z.key] || 0;
+    // His real share from each zone (seasonCounts), never the model's mixed-in one.
+    const share = mine ? mine.shares[z.key] : null;
     const d = defense[`a_${z.key}`];
     const of = (shares[r.opp] || {})[z.key];
-    if (!d) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots.` };
+    if (!d) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots this season${mine ? ` (${Math.round(share * mine.located)} of ${mine.located})` : ""}.` };
     const step = rankStep(d.season_rank, teams);
     // The rank is said from the nearer end, "2nd most" / "3rd fewest" (the owner read "8.0/g ...
     // 30th" as a soft defense, then "31st fewest" for a leaky one). The color is the shooter's:
@@ -404,7 +407,7 @@ function detailRow(x, columns) {
     const click = `Click for ${r.team}'s shooters from here and every team.`;
     const allowed = `${fmt(d.season)}/g`;
     const ofAll = of ? pct(of.share, 0) : "--";
-    const tip = `${z.label}: ${pct(share, 0)} of his shots. ${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)})${of ? `, ${pct(of.share, 0)} of all the shots it allows (${rankWord(of.rank)} share)` : ""}.`;
+    const tip = `${z.label}: ${pct(share, 0)} of his shots this season${mine ? ` (${Math.round(share * mine.located)} of ${mine.located})` : ""}. ${r.opp} allows ${fmt(d.season)} a game from here this season (${rankWord(d.season_rank)}; the league allows ${fmt(d.league)})${of ? `, ${pct(of.share, 0)} of all the shots it allows (${rankWord(of.rank)} share)` : ""}.`;
     if (z.small) return { big: pct(share, 0), small: `allows ${allowed} &middot; ${ofAll} &middot; ${rankWord(d.season_rank)}`, tip, league, click };
     return {
       ...zoneOnStep(step),
@@ -452,7 +455,7 @@ const COLUMNS = [
   { key: "opp", label: "Opp", adv: true, title: "What the other team's defense does to the projection: shots on goal it allows against the league", cell: (x) => liftCell(x.r.lift.opp, allowsTip(x.r.opp, "sog", "shots on goal")) },
   { key: "pos", label: "Pos", adv: true, title: "Beyond that: what the defense allows to his position (forwards or defensemen)", cell: (x) => (positionGroup(x.r.pos) === "F" ? liftCell(x.r.lift.pos, allowsTip(x.r.opp, "f_sog", "shots on goal to forwards")) : liftCell(x.r.lift.pos, allowsTip(x.r.opp, "d_sog", "shots on goal to defensemen"))) },
   { key: "area", label: "Spots", adv: true, title: "Beyond that: the parts of the ice he shoots from against where the defense gives shots up", cell: (x) => liftCell(x.r.lift.area, `Where he shoots from against where ${x.r.opp} gives shots up. Click the row for the rink.`) },
-  { key: "pp", label: "PP", adv: true, title: "Power-play shots the other team gives up, for the share of his shots that come on the power play", cell: (x) => liftCell(x.r.lift.pp, `${pct(x.r.pp_share, 0)} of his shots come on the power play. ${allowsTip(x.r.opp, "pp_unb", "power-play shots")}`) },
+  { key: "pp", label: "PP", adv: true, title: "Power-play shots the other team gives up, for the share of his shots that come on the power play", cell: (x) => { const mine = seasonCounts(x.r.team, x.r.id, false); return liftCell(x.r.lift.pp, `${mine ? `${pct(mine.pp, 0)} of his shots this season came on the power play. ` : ""}${allowsTip(x.r.opp, "pp_unb", "power-play shots")}`); } },
   { key: "site", label: "Home/rest", adv: true, title: "Home ice (+3%), the second night of a back-to-back (-3.5%), an opponent on one (+3.5%)", cell: (x) => liftCell(siteLift(x.r), siteTip(x.r)) },
 ];
 // The record: every finished game's plays, graded by the build at the price

@@ -282,7 +282,7 @@ function detailRow(x, columns) {
   const step = (label, lift, tip) => `<span class="shots-step ${liftTier(lift)}" title="${tip || ""}"><small>${label}</small><b>${liftText(lift)}</b></span>`;
   const build = `<div class="shots-build">
       <span class="shots-step shots-step-end" title="Goals and expected goals this season"><small>Season &middot; ${r.games} gp</small><b>${r.goals} G &middot; ${fmt(r.xg, 1)} xG</b></span>
-      <span class="shots-step shots-step-end" title="His expected goals a game at his rate and minutes, before tonight's matchup (${fmt(r.xg60, 2)} a 60 minutes)"><small>His usual xG</small><b>${fmt(usual, 2)}</b></span>
+      <span class="shots-step shots-step-end" title="The model's expected goals a game for him (his rate with an average skater mixed in, ${fmt(r.xg60, 2)} a 60 minutes) at his minutes, before tonight's matchup"><small>Model's usual xG</small><b>${fmt(usual, 2)}</b></span>
       ${r.slot ? step(`${slotName(r.slot)} tonight`, r.lift.line, lineTip(r)) : ""}
       ${step(`${r.opp} defense`, r.lift.opp, oppTip(r))}
       ${step(goalieName(r.goalie), r.lift.goalie, PIECE_TIPS.goalie(r))}
@@ -322,13 +322,15 @@ function detailRow(x, columns) {
   // The rink: his share from each zone, the defense's three boxes (shots.json), as on the Shots page.
   const shares = areaShares();
   const teams = teamsInLeague();
+  const mine = seasonCounts(r.team, r.id);
   const rink = rinkSvg(`goals-rink-${r.id}`, `Where ${r.name} shoots from against what ${r.opp} allows`, (z) => {
-    const share = r.shares[z.key] || 0;
+    // His real share from each zone (seasonCounts), never the model's mixed-in one.
+    const share = mine ? mine.shares[z.key] : null;
     const dd = (((SHOTS || {}).defense || {})[r.opp] || {})[`a_${z.key}`];
     const of = (shares[r.opp] || {})[z.key];
-    if (!dd) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots.` };
+    if (!dd) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots this season${mine ? ` (${Math.round(share * mine.located)} of ${mine.located})` : ""}.` };
     const st = rankStep(dd.season_rank, teams);
-    const tip = `${z.label}: ${pct(share, 0)} of his shots. ${r.opp} allows ${fmt(dd.season)} a game from here this season (${rankWord(dd.season_rank)}; the league allows ${fmt(dd.league)}).`;
+    const tip = `${z.label}: ${pct(share, 0)} of his shots this season${mine ? ` (${Math.round(share * mine.located)} of ${mine.located})` : ""}. ${r.opp} allows ${fmt(dd.season)} a game from here this season (${rankWord(dd.season_rank)}; the league allows ${fmt(dd.league)}).`;
     // A click lists his team's shooters from here (him outlined), then every defense.
     const league = leagueAttr({ area: z.key, def: r.opp, who: r.team, me: r.id });
     const click = `Click for ${r.team}'s shooters from here and every team.`;

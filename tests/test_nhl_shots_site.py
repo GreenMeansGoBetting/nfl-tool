@@ -17,7 +17,7 @@ and who is out in the breakdown, a play against the move set apart."""
 import math
 import unittest
 
-from helpers import nhl_data, nhl_shots, nhl_zone_shooters  # first: puts tools/ on the import path
+from helpers import nhl_data, nhl_players, nhl_shots, nhl_zone_shooters  # first: puts tools/ on the import path
 
 import build_nhl
 from site_browser import SiteBrowser
@@ -464,7 +464,8 @@ class Breakdown(unittest.TestCase):
     def open(self):
         reset()
         return PAGE.evaluate(
-            """(key) => {
+            """async (key) => {
+                await loadTeamPlayers("NJD"); // his real counts (seasonCounts) come from the team's file
                 document.querySelector(`.shots-row[data-row='${key}']`).children[3].click();
                 const box = document.querySelector('.shots-detail');
                 const text = (el) => el.textContent.trim().replace(/\\s+/g, ' ');
@@ -554,9 +555,15 @@ class Breakdown(unittest.TestCase):
         self.assertEqual([t[0] for t in detail["tiles"]], ["Shots on goal allowed", "To forwards", "Power-play shots allowed"])
         self.assertTrue(all(tag in ("Leaky", "Stingy", "Average") for tag in detail["tags"]), detail["tags"])
         self.assertEqual(len(detail["tags"]), 3)
-        # Six zones, each with the share of his shots from there.
+        # Six zones, each with the share of his shots from there: his REAL share, counted from his
+        # season file, never the model's mixed-in one (the owner, 2026-10-19: "The data is the data").
         self.assertEqual(len(detail["zones"]), 5)  # the strip outside the zone is one line of text, not a big number
-        self.assertIn(f"{self.hughes['shares']['slot'] * 100:.0f}%", detail["zones"])
+        areas = nhl_players()["NJD"]["skaters"][self.hughes["id"]]["season"]["areas"]
+        located = sum(v[0] for v in areas.values())
+        drawn_real = [f"{100 * (areas.get(a) or [0])[0] / located:.0f}%" for a in ["point", "left", "right", "slot", "low_slot"]]
+        self.assertEqual(detail["zones"], drawn_real)
+        if abs(self.hughes["shares"]["slot"] - areas["slot"][0] / located) >= 0.005:
+            self.assertNotIn(f"{self.hughes['shares']['slot'] * 100:.0f}%", detail["zones"][3:4])
         # No zone is left plain: each is on the eight rank colors (four teams to a step) by where DET
         # ranks for shots allowed from there, the same rank the zone says in words. 1st = the most = green.
         drawn = ["point", "left", "right", "slot", "low_slot"]  # the order the rink draws them, then the strip

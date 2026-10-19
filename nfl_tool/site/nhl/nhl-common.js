@@ -378,13 +378,48 @@ function openLeagueModal(p) {
 // or photo with playerClick(id, inner) and it opens the card: Game Log, Shot
 // Map and Odds.
 const PLAYER_FILES = {}; // team -> promise of its players file (null if it can't be read)
+const PLAYER_READY = {}; // team -> its players file once read (null if it can't be)
 function loadTeamPlayers(abbr) {
   if (!PLAYER_FILES[abbr]) {
     PLAYER_FILES[abbr] = fetch(`players/${abbr}.json`)
       .then((r) => (r.ok ? r.json() : null))
-      .catch(() => null);
+      .catch(() => null)
+      .then((file) => (PLAYER_READY[abbr] = file));
   }
   return PLAYER_FILES[abbr];
+}
+// A player's REAL numbers this season, counted from his team's file (the same counts as
+// the card): never mixed with a league average or anything the model believes (the owner,
+// 2026-10-19: "The data is the data - small sample or not"). The models mix in averages
+// for their projections; a number shown as HIS comes from here.
+//   { shares: { zone: share of his located shots }, located, pp (share of his shots on the
+//     power play), att60 (shot attempts per 60 minutes), onGoal (share of attempts on goal) }
+// undefined while the file is still loading (`load` reads it and draws the page again once
+// it's in), null if he has no season on file.
+const SEASON_WAIT = new Set();
+function seasonCounts(abbr, id, load = true) {
+  if (!(abbr in PLAYER_READY)) {
+    if (load && !SEASON_WAIT.has(abbr)) {
+      SEASON_WAIT.add(abbr);
+      loadTeamPlayers(abbr).then(() => typeof render === "function" && render());
+    }
+    return undefined;
+  }
+  const file = PLAYER_READY[abbr];
+  const s = file && file.skaters && file.skaters[id] && file.skaters[id].season;
+  if (!s) return null;
+  const areas = s.areas || {};
+  const located = RINK_ZONES.reduce((a, z) => a + ((areas[z.key] || [])[0] || 0), 0);
+  const cols = [...file.log_lead, ...file.skater_cols];
+  const sum = (key) => s.log.reduce((a, row) => a + (row[cols.indexOf(key)] || 0), 0);
+  const [toi, sog, att] = [sum("toi"), sum("sog"), sum("att")];
+  return {
+    shares: Object.fromEntries(RINK_ZONES.map((z) => [z.key, located ? ((areas[z.key] || [])[0] || 0) / located : null])),
+    located,
+    pp: s.unb ? s.pp_unb / s.unb : null,
+    att60: toi ? (att / toi) * 3600 : null,
+    onGoal: att ? sog / att : null,
+  };
 }
 // { kind: "skater" | "goalie", row } for a player id, from the page's data.
 function findPlayer(id) {

@@ -371,6 +371,15 @@ on a replay, and the page keeps a record against the real prices.
     his row is outlined, and below the top 8 he is added under "Nth on TEAM from here". The
     goalie map has no list. Tests: `test_a_zone_lists_his_teams_shooters` (Shots),
     `test_the_cards_shot_map_lists_his_teams_shooters`, the Goals breakdown test.
+- **A number shown as a player's stat is his REAL count, never mixed with an average** (the
+  owner, 2026-10-19: "The % should never be mixed with a model guess. The data is the data -
+  small sample or not"). The models still mix averages into their projections (`area_pad`,
+  `pp_pad`, `pad_minutes`...), but the pages take what they show as his from `seasonCounts`
+  (nhl-common.js: his team's players file, the card's counts): the Shots / Goals rink shares
+  (hover says "12 of 17"), the power-play share, attempts per 60 and on-goal share. A model
+  number is labeled as the model's ("Model's usual xG"). Never show `shares`, `pp_share`,
+  `thru` or `att60` from shots.json / goals.json as his. Whether the models should drop the
+  mixing is a replay question (raw vs mixed, per model), not settled yet.
 - **Every team, one number: the league-wide list** (`openLeagueModal` in nhl-common.js, the
   NFL site's stat-rank popup redone for hockey; the user asked for it "on all pages"). Any
   element with `data-league="${leagueAttr(p)}"` opens it: every rink zone (Game Previews both
