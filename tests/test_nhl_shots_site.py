@@ -17,7 +17,7 @@ and who is out in the breakdown, a play against the move set apart."""
 import math
 import unittest
 
-from helpers import nhl_data, nhl_shots  # first: puts tools/ on the import path
+from helpers import nhl_data, nhl_shots, nhl_zone_shooters  # first: puts tools/ on the import path
 
 import build_nhl
 from site_browser import SiteBrowser
@@ -485,6 +485,36 @@ class Breakdown(unittest.TestCase):
             }""",
             f"{self.game['game_id']}:{self.hughes['id']}",
         )
+
+    def test_a_zone_lists_his_teams_shooters(self):
+        # The owner, 2026-10-19: clicking a zone on his rink lists his team's shooters from
+        # there, him outlined, above every defense's number, so an over / under can be read
+        # against his teammates.
+        self.open()
+        shown = PAGE.evaluate(
+            """async () => {
+                const zone = [...document.querySelectorAll(".shots-detail svg .nhl-zone[data-league]")]
+                    .find((g) => JSON.parse(decodeURIComponent(g.dataset.league)).area === "slot");
+                zone.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+                await loadTeamPlayers("NJD");
+                await new Promise((r) => setTimeout(r, 0));
+                const box = document.getElementById("nhl-league-modal");
+                const shown = {
+                    titles: [...box.querySelectorAll("h3")].map((h) => h.textContent),
+                    names: [...box.querySelectorAll(".nhl-who-table tbody tr .player-click span")].map((s) => s.textContent),
+                    me: [...box.querySelectorAll(".nhl-who-table tr.nhl-who-me .player-click span")].map((s) => s.textContent),
+                    tip: zone.querySelector("title").textContent,
+                };
+                closeLeagueModal();
+                return shown;
+            }"""
+        )
+        top = [name for name, _ in nhl_zone_shooters(self.data, "NJD", "slot")[:8]]
+        self.assertEqual(shown["titles"], [f"Slot: {self.data['teams']['NJD']['name']} shooters", "Slot: every team"])
+        self.assertEqual(shown["names"], top if "Jack Hughes" in top else top + ["Jack Hughes"])
+        self.assertEqual(shown["me"], ["Jack Hughes"])
+        self.assertTrue(shown["tip"].endswith("Click for NJD's shooters from here and every team."))
+        self.assertEqual(SITE.errors, [])
 
     def test_the_pieces_multiply_out_to_tonights_number(self):
         detail = self.open()

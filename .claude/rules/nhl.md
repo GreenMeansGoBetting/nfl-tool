@@ -365,6 +365,12 @@ on a replay, and the page keeps a record against the real prices.
     shots a game from the zone (on goal or wide, from `players/<TEAM>.json`), share of his shots,
     on goal, goals, games; players Out / IR left off, 3+ games, ties share a color. A name opens
     the card in place of the list. Test: `test_a_zone_lists_its_shooters`.
+  - A player's rink does the same with HIS team (the user, 2026-10-19: "if calling for an
+    over/under, a user can see how they stack up vs team"): the Shots and Goals rows' rinks and
+    the card's Shot Map (zones and the "allows" column) pass `who: <his team>, me: <his id>`;
+    his row is outlined, and below the top 8 he is added under "Nth on TEAM from here". The
+    goalie map has no list. Tests: `test_a_zone_lists_his_teams_shooters` (Shots),
+    `test_the_cards_shot_map_lists_his_teams_shooters`, the Goals breakdown test.
 - **Every team, one number: the league-wide list** (`openLeagueModal` in nhl-common.js, the
   NFL site's stat-rank popup redone for hockey; the user asked for it "on all pages"). Any
   element with `data-league="${leagueAttr(p)}"` opens it: every rink zone (Game Previews both

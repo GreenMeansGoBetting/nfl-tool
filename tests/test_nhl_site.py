@@ -3,7 +3,7 @@ saved NHL data sample: every game draws, there is no last season anywhere,
 and the rink's "more / fewer shots from here" call reads both sides."""
 import unittest
 
-from helpers import nhl_data, nhl_players  # first: puts tools/ on the import path
+from helpers import nhl_data, nhl_players, nhl_zone_shooters  # first: puts tools/ on the import path
 
 from site_browser import SiteBrowser
 
@@ -439,17 +439,7 @@ class LeagueLists(unittest.TestCase):
         # The owner, 2026-10-19: clicking a zone lists which of the offense's players shoot most
         # from there. From the team's players file: shots a game from the zone, most first,
         # players out injured left off, 3+ games.
-        file = nhl_players()["NJD"]
-        out = {p["id"] for p in self.blob["injuries"].get("NJD", []) if p.get("id") and p["status"] != "Day-To-Day"}
-        rows = []
-        for p in self.blob["skaters"]["NJD"]:
-            season = (file["skaters"].get(p["id"]) or {}).get("season")
-            if p["id"] in out or not season or len(season["log"]) < 3:
-                continue
-            shots = (season["areas"].get("slot") or [0])[0]
-            if shots:
-                rows.append((-shots / len(season["log"]), -shots, p["name"]))
-        expect = [name for *_, name in sorted(rows, key=lambda r: r[:2])[:8]]
+        expect = [name for name, _ in nhl_zone_shooters(self.blob, "NJD", "slot")[:8]]
         shown = PAGE.evaluate(
             """async (id) => {
                 selectGame(id);
@@ -505,6 +495,49 @@ class LeagueLists(unittest.TestCase):
         self.assertEqual(state["open"], {"card": True, "list": True})
         self.assertEqual(state["top"], "nhl-league-modal")
         self.assertEqual(state["after"], {"card": True, "list": False})
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_cards_shot_map_lists_his_teams_shooters(self):
+        # The owner, 2026-10-19: a player's rink lists his own team's shooters from the zone,
+        # him outlined, so an over / under can be read against his teammates. Both the rink's
+        # zones and the table's "allows" column.
+        hughes = next(p for p in self.blob["skaters"]["NJD"] if p["name"] == "Jack Hughes")
+        state = PAGE.evaluate(
+            """async ([gameId, id]) => {
+                selectGame(gameId);
+                openPlayerCard(id, "map");
+                await loadTeamPlayers("NJD");
+                await new Promise((r) => setTimeout(r, 0));
+                const read = async (target) => {
+                    target.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+                    await new Promise((r) => setTimeout(r, 0));
+                    const box = document.getElementById("nhl-league-modal");
+                    const shown = {
+                        titles: [...box.querySelectorAll("h3")].map((h) => h.textContent),
+                        names: [...box.querySelectorAll(".nhl-who-table tbody tr .player-click span")].map((s) => s.textContent),
+                        me: [...box.querySelectorAll(".nhl-who-table tr.nhl-who-me .player-click span")].map((s) => s.textContent),
+                    };
+                    closeLeagueModal();
+                    return shown;
+                };
+                const zone = [...document.querySelectorAll("#player-card-modal svg .nhl-zone[data-league]")]
+                    .find((g) => JSON.parse(decodeURIComponent(g.dataset.league)).area === "slot");
+                const rink = await read(zone);
+                const cell = [...document.querySelectorAll("#player-card-modal .nhl-pc-areas tbody tr")]
+                    .find((tr) => tr.firstElementChild.textContent === "Slot").querySelector("td[data-league]");
+                const table = await read(cell);
+                closePlayerCard();
+                return { rink, table };
+            }""",
+            [self.game["game_id"], hughes["id"]],
+        )
+        expect = nhl_zone_shooters(self.blob, "NJD", "slot")
+        top = [name for name, _ in expect[:8]]
+        names = top if "Jack Hughes" in top else top + ["Jack Hughes"]  # him added below the top 8
+        for shown in (state["rink"], state["table"]):
+            self.assertEqual(shown["titles"], [f"Slot: {self.blob['teams']['NJD']['name']} shooters", "Slot: every team"])
+            self.assertEqual(shown["names"], names)
+            self.assertEqual(shown["me"], ["Jack Hughes"])
         self.assertEqual(SITE.errors, [])
 
 

@@ -329,14 +329,17 @@ function detailRow(x, columns) {
     if (!dd) return { big: pct(share, 0), tip: `${z.label}: ${pct(share, 0)} of his shots.` };
     const st = rankStep(dd.season_rank, teams);
     const tip = `${z.label}: ${pct(share, 0)} of his shots. ${r.opp} allows ${fmt(dd.season)} a game from here this season (${rankWord(dd.season_rank)}; the league allows ${fmt(dd.league)}).`;
-    const league = leagueAttr({ area: z.key, def: r.opp });
-    if (z.small) return { big: pct(share, 0), small: `allows ${fmt(dd.season)}/g &middot; ${rankWord(dd.season_rank)}`, tip, league };
+    // A click lists his team's shooters from here (him outlined), then every defense.
+    const league = leagueAttr({ area: z.key, def: r.opp, who: r.team, me: r.id });
+    const click = `Click for ${r.team}'s shooters from here and every team.`;
+    if (z.small) return { big: pct(share, 0), small: `allows ${fmt(dd.season)}/g &middot; ${rankWord(dd.season_rank)}`, tip, league, click };
     return {
       ...zoneOnStep(st),
       big: pct(share, 0),
       boxes: [{ text: `${fmt(dd.season)}/g`, step: st, w: 6.6 }, { text: of ? pct(of.share, 0) : "--", step: of ? rankStep(of.rank, teams) : null, w: 4.7 }, { ...rankBoxText(dd.season_rank, teams), step: st, w: 5.2 }],
       tip,
       league,
+      click,
     };
   });
   const callout = r.zone
@@ -355,7 +358,7 @@ function detailRow(x, columns) {
         </div>
         <div class="shots-detail-rink">
           <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span> <button type="button" class="info-i" aria-expanded="false" aria-controls="rink-key-${r.id}" title="How to read the rink">i</button></div>${callout}${rink}
-          <p class="shots-rink-key info-note" id="rink-key-${r.id}" hidden>Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> there. Click a zone to see every team. Colors are his side: ${rankScaleKey("most shots for him", "fewest")}</p>
+          <p class="shots-rink-key info-note" id="rink-key-${r.id}" hidden>Big number: the share of his shots from that spot. Boxes, what ${r.opp} allows from there: <b>shots a game</b>, the <b>share</b> of all the shots it allows, and its <b>league rank</b> there. Click a zone to see ${r.team}'s shooters from there (him outlined) and every team. Colors are his side: ${rankScaleKey("most shots for him", "fewest")}</p>
         </div>
         ${bookCol}
       </div>

@@ -270,13 +270,16 @@ function ensureLeagueModal() {
 function closeLeagueModal() {
   if (el("nhl-league-modal")) el("nhl-league-modal").hidden = true;
 }
-// Who on one offense shoots the most from one spot: Game Previews' rink zones carry
-// `who: true`, and their popup lists these players above every team's number. Shots a game
-// from there (on goal or wide, like the rink) from the team's players file. Players out
-// injured are left off (day-to-day stay), and a player needs a few games so one hot night
-// can't top the list.
+// Who on one team shoots the most from one spot: a rink zone with `who` (a team, or true for
+// the zone's `off`) lists these players above every team's number. Game Previews lists each
+// offense's; a player's rink (Shots and Goals rows, the card's Shot Map) lists his own team's
+// with `me` (his id) outlined, and adds his row with its place on the team if he isn't in the
+// top 8, so an over / under can be read against his teammates. Shots a game from there (on goal
+// or wide, like the rink) from the team's players file. Players out injured are left off
+// (day-to-day stay), and a player needs a few games so one hot night can't top the list.
 const SHOOTER_MIN_GAMES = 3;
 const SHOOTER_ROWS = 8;
+const whoTeam = (p) => (p.who === true ? p.off : p.who) || null;
 function zoneShooters(file, abbr, area) {
   const out = new Set((DATA.injuries[abbr] || []).filter((p) => p.id && p.status !== "Day-To-Day").map((p) => p.id));
   const rows = (DATA.skaters[abbr] || [])
@@ -294,32 +297,36 @@ function zoneShooters(file, abbr, area) {
   const min = Math.min(SHOOTER_MIN_GAMES, Math.max(0, ...rows.map((r) => r.games)));
   return rows
     .filter((r) => r.games >= min && r.shots > 0)
-    .sort((a, b) => b.pg - a.pg || b.shots - a.shots)
-    .slice(0, SHOOTER_ROWS);
+    .sort((a, b) => b.pg - a.pg || b.shots - a.shots);
 }
-function zoneShootersHtml(file, abbr, area) {
+function zoneShootersHtml(file, abbr, area, me) {
   if (!file) return `<p class="no-data-note">Couldn't load ${abbr}'s players.</p>`;
-  const list = zoneShooters(file, abbr, area);
-  if (!list.length) return `<p class="no-data-note">No ${abbr} shots from here yet.</p>`;
+  const all = zoneShooters(file, abbr, area);
+  if (!all.length) return `<p class="no-data-note">No ${abbr} shots from here yet.</p>`;
+  const list = all.slice(0, SHOOTER_ROWS);
   // Shots a game on the eight colors down the list (the most = green), like the rink; ties share a color.
-  const rankOf = (r) => 1 + list.filter((o) => fmt(o.pg) !== fmt(r.pg) && o.pg > r.pg).length;
-  const body = list
-    .map((r) => `<tr>
+  const rankOf = (r) => 1 + all.filter((o) => fmt(o.pg) !== fmt(r.pg) && o.pg > r.pg).length;
+  const row = (r) => `<tr${r.p.id === me ? ' class="nhl-who-me"' : ""}>
         <td class="nba-player">${playerClick(r.p.id, `${headshot(r.p)}<span>${r.p.name}</span>`)}<span class="muted-label">${r.p.pos || ""}</span></td>
-        <td class="num nhl-league-val"${list.length > 1 ? cellOnStep(rankStep(rankOf(r), list.length)) : ""}>${fmt(r.pg)}</td>
+        <td class="num nhl-league-val"${list.length > 1 ? cellOnStep(rankStep(Math.min(rankOf(r), list.length), list.length)) : ""}>${fmt(r.pg)}</td>
         <td class="num">${pct(r.share, 0)}</td><td class="num">${r.onGoal}</td><td class="num">${r.goals}</td><td class="num">${r.games}</td>
-      </tr>`)
-    .join("");
+      </tr>`;
+  // The opened player below the top 8: his own row, with his place on the team.
+  const mine = me && !list.some((r) => r.p.id === me) ? all.find((r) => r.p.id === me) : null;
+  const tail = me && !list.some((r) => r.p.id === me)
+    ? `<tr class="nhl-who-gap"><td colspan="6">${mine ? `${ordinal(rankOf(mine))} on ${abbr} from here` : `No shots from here yet${findPlayer(me) ? ` for ${findPlayer(me).row.name}` : ""}`}</td></tr>${mine ? row(mine) : ""}`
+    : "";
   return `<div class="nhl-league-scroll"><table class="data-table nhl-league-table nhl-who-table">
       <thead><tr><th>${logo(abbr, 16)} Player</th><th class="num" title="Shots a game from here, on goal or wide">Shots / g</th><th class="num" title="Share of all his shots that come from here">Share</th><th class="num" title="Shots on goal from here">On goal</th><th class="num">Goals</th><th class="num" title="Games played">GP</th></tr></thead>
-      <tbody>${body}</tbody>
+      <tbody>${list.map(row).join("")}${tail}</tbody>
     </table></div>`;
 }
 function openLeagueModal(p) {
   if (!DATA) return;
   ensureLeagueModal();
   const spec = leagueSpec(p);
-  const zone = p.who && p.off && p.area && RINK_ZONES.find((z) => z.key === p.area);
+  const shooters = whoTeam(p);
+  const zone = shooters && p.area && RINK_ZONES.find((z) => z.key === p.area);
   const sides = spec.sides.map((side) => ({ ...side, rows: leagueSideRows(side) }));
   const n = Math.max(...sides.map((s) => s.rows.length));
   const teamTd = (r, side) => `<td class="nhl-league-team${r.team === side.team ? " nhl-league-cur" : ""}">${logo(r.team, 18)} <span>${team(r.team).name}</span></td>`;
@@ -341,10 +348,11 @@ function openLeagueModal(p) {
     const name = `<th class="nhl-league-team-h">${logo(side.team, 16)} ${side.head}</th>`;
     return mirror ? cols.reverse().join("") + name : name + cols.join("");
   };
-  // A Game Previews zone: who on this offense shoots from here first, then every team.
+  // A zone with `who`: that team's shooters from here first, then every team.
+  const meName = p.me && findPlayer(p.me) ? findPlayer(p.me).row.name : "";
   const who = zone
-    ? `<h3>${zone.label}: ${team(p.off).name} shooters</h3>
-      <p class="section-note">Who shoots the most from here, a game this season (players out injured left off; ${SHOOTER_MIN_GAMES}+ games).</p>
+    ? `<h3>${zone.label}: ${team(shooters).name} shooters</h3>
+      <p class="section-note">Who shoots the most from here, a game this season${meName ? `; ${meName} outlined` : ""} (players out injured left off; ${SHOOTER_MIN_GAMES}+ games).</p>
       <div id="nhl-league-who"><p class="no-data-note">Loading&hellip;</p></div>
       <h3 class="nhl-who-next">${spec.title}</h3>`
     : `<h3>${spec.title}</h3>`;
@@ -359,8 +367,8 @@ function openLeagueModal(p) {
   overlay.hidden = false;
   if (zone) {
     const opened = el("nhl-league-who");
-    loadTeamPlayers(p.off).then((file) => {
-      if (el("nhl-league-who") === opened) opened.innerHTML = zoneShootersHtml(file, p.off, zone.key);
+    loadTeamPlayers(shooters).then((file) => {
+      if (el("nhl-league-who") === opened) opened.innerHTML = zoneShootersHtml(file, shooters, zone.key, p.me);
     });
   }
 }
@@ -518,16 +526,17 @@ const HEAT_MAX_ALPHA = 0.7;
 // beside it: green = allows the most from there, red = the fewest.
 const allowsRank = (opp, area) => (opp ? leagueRank(`def_${area}_pg`, opp, false) : null); // 1st = allows the most
 const teamCount = () => Object.keys(stats()).length || 32;
-function oppAllowsCell(opp, area) {
+function oppAllowsCell(opp, area, me) {
   if (!opp) return "";
   const value = (stats()[opp] || {})[`def_${area}_pg`];
   const rank = allowsRank(opp, area);
   // Like the strip on the rink, the row for shots from outside the zone is never colored: too rare to read.
   // Click it for every team's number from there.
   const words = rank ? rankWords(rank) : "";
-  return `<td class="num nhl-rank-cell nhl-league-click"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} data-league="${leagueAttr({ area, def: opp })}" title="${opp} allows ${words ? `the ${words.replace(/^the /, "")}` : "?"} shots from here. Click for every team.">${fmt(value)}<small class="nhl-pc-rank">${words ? ` ${words}` : ""}</small></td>`;
+  return `<td class="num nhl-rank-cell nhl-league-click"${rank && area !== "long" ? cellOnStep(rankStep(rank, teamCount())) : ""} data-league="${leagueAttr({ area, def: opp, ...(me || {}) })}" title="${opp} allows ${words ? `the ${words.replace(/^the /, "")}` : "?"} shots from here. Click for ${me ? `his team's shooters from here and ` : ""}every team.">${fmt(value)}<small class="nhl-pc-rank">${words ? ` ${words}` : ""}</small></td>`;
 }
-function skaterMapView(season, games, opp, uid) {
+function skaterMapView(season, games, opp, uid, me) {
+  // me ({ who: his team, me: his id }): a zone's list starts with his team's shooters, him outlined.
   const areas = season.areas || {};
   const located = RINK_ZONES.reduce((a, z) => a + ((areas[z.key] || [])[0] || 0), 0);
   if (!located) return `<p class="no-data-note">No ${viewLabel()} shots on file.</p>`;
@@ -540,7 +549,7 @@ function skaterMapView(season, games, opp, uid) {
     const lg = league[z.key] || {};
     expected += onGoal * (lg.sh_pct || 0);
     scored += goals;
-    return `<tr><td>${z.label}</td><td class="num"><b>${fmt(shots / games)}</b></td><td class="num">${pct(shots / located, 0)}</td><td class="num">${onGoal}</td><td class="num">${goals}</td><td class="num">${onGoal ? pct(goals / onGoal) : "--"}</td><td class="num muted-label">${pct(lg.sh_pct)}</td>${oppAllowsCell(opp, z.key)}</tr>`;
+    return `<tr><td>${z.label}</td><td class="num"><b>${fmt(shots / games)}</b></td><td class="num">${pct(shots / located, 0)}</td><td class="num">${onGoal}</td><td class="num">${goals}</td><td class="num">${onGoal ? pct(goals / onGoal) : "--"}</td><td class="num muted-label">${pct(lg.sh_pct)}</td>${oppAllowsCell(opp, z.key, me)}</tr>`;
   }).join("");
   // Every zone is colored by what the other team allows from there (the same
   // chart as the Shots page's "Where he shoots"). With no game to read it
@@ -556,7 +565,8 @@ function skaterMapView(season, games, opp, uid) {
       big: fmt(shots / games),
       small: z.small ? "" : `${pct(shots / located, 0)} &middot; ${goals} G`,
       tip: `${z.label}: ${shots} shots in ${games} games, ${goals} goals${rank ? `. ${opp} allows ${fmt((stats()[opp] || {})[`def_${z.key}_pg`])} a game from here, ${rankWords(rank)}` : ""}`,
-      league: opp && !z.small ? leagueAttr({ area: z.key, def: opp }) : "",
+      league: opp && !z.small ? leagueAttr({ area: z.key, def: opp, ...(me || {}) }) : "",
+      click: me ? "Click for his team's shooters from here and every team." : "",
     };
   });
   const colorNote = opp
@@ -706,7 +716,7 @@ function renderPlayerCard() {
     const { season, rows } = cardLog(file, kind, id);
     const small = rows.length && rows.length < SMALL_SAMPLE_GAMES ? `<p class="no-data-note">Small sample: ${rows.length} game${rows.length === 1 ? "" : "s"} this season.</p>` : "";
     if (!season) body = `<p class="no-data-note">No ${viewLabel()} games on file.</p>`;
-    else if (tab === "map") body = small + (kind === "goalie" ? goalieMapView(season, rows.length, "nhl-pc-rink-clip") : skaterMapView(season, rows.length, opp, "nhl-pc-rink-clip"));
+    else if (tab === "map") body = small + (kind === "goalie" ? goalieMapView(season, rows.length, "nhl-pc-rink-clip") : skaterMapView(season, rows.length, opp, "nhl-pc-rink-clip", { who: row.team, me: id }));
     else body = small + (kind === "goalie" ? goalieLogView(rows) : skaterLogView(rows));
   }
   return `${head}${tiles}

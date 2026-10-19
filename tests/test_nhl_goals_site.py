@@ -148,6 +148,10 @@ class Breakdown(unittest.TestCase):
         self.assertIn(f"+{r['first_odds']}", price)
         # Every zone of the rink is on the eight rank colors (the defense's numbers come from shots.json).
         self.assertGreaterEqual(PAGE.locator(".shots-detail .nhl-zone-rank").count(), 5)
+        # A zone's popup lists his own team's shooters, him outlined (the Shots page's test reads the list).
+        clicks = PAGE.evaluate("() => [...document.querySelectorAll('.shots-detail svg .nhl-zone[data-league]')].map((g) => JSON.parse(decodeURIComponent(g.dataset.league)))")
+        self.assertEqual(len(clicks), 6)
+        self.assertTrue(all(c["who"] == r["team"] and c["me"] == key.split(":")[1] for c in clicks))
 
     def test_the_zone_match_note(self):
         rows = reset(zone="only")

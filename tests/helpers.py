@@ -181,6 +181,23 @@ def nhl_players():
     return json.loads(_fixture_bytes("nhl_players.json.gz"))
 
 
+def nhl_zone_shooters(blob, team, area):
+    """What a rink zone's shooters list should show (nhl-common.js zoneShooters), worked out
+    here on its own: the team's skaters by shots a game from the zone, most first, players out
+    injured left off (day-to-day stay), 3+ games. [(name, id), ...], the whole team."""
+    file = nhl_players()[team]
+    out = {p["id"] for p in blob["injuries"].get(team, []) if p.get("id") and p["status"] != "Day-To-Day"}
+    rows = []
+    for p in blob["skaters"][team]:
+        season = (file["skaters"].get(p["id"]) or {}).get("season")
+        if p["id"] in out or not season or len(season["log"]) < 3:
+            continue
+        shots = (season["areas"].get(area) or [0])[0]
+        if shots:
+            rows.append((-shots / len(season["log"]), -shots, p["name"], p["id"]))
+    return [(name, pid) for *_, name, pid in sorted(rows, key=lambda r: r[:2])]
+
+
 def nhl_stacks():
     """The Line Stacks sample (nhl/stacks.json), built at test time from the Points sample by
     the build's own game_stacks and record functions (no saved file: it can't drift from the
