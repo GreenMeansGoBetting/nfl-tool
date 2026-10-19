@@ -10,15 +10,20 @@ const KOE_TEAMS_KEY = "nfl-tool.koe.teams"; // per-device view preference
 const KOE_POS = ["All", "RB", "WR", "TE", "QB"];
 const KOE_MIN_TOUCHES_PG = 1.5; // shown if this involved, or any TD / 20+ play
 // Upside = weighted z-scores vs every qualifying player in the league,
-// shown as a league percentile. Rates are shrunk toward the league average
-// by KOE_PRIOR_GAMES games so one long play in one game can't top the list.
-const KOE_PRIOR_GAMES = 2;
+// shown as a league percentile. Each part is what he should do TONIGHT:
+// touches per game x how often a touch becomes that play, the per-touch rate
+// pulled toward his position's average by KOE_PRIOR_TOUCHES touches, so a
+// 2-touch fullback with one long catch can't outrank a starter (2026-10-19:
+// Juszczyk over Diggs / McCaffrey). The defense part is sized to his touches.
+// Picked on a weeks 2-6 replay of every game's longest TD (it tied or beat the
+// old per-game blend; the longest TD is mostly random either way).
+const KOE_PRIOR_TOUCHES = 40;
 const KOE_UPSIDE_PARTS = [
-  { key: "big_pg", w: 0.35, label: "20+ yd plays / game" },
-  { key: "huge_pg", w: 0.15, label: "40+ yd plays / game" },
-  { key: "role", w: 0.15, label: "Deep role (deep targets or 10+ yd runs / game)" },
-  { key: "td_len", w: 0.1, label: "TD length (20+ yd TDs, avg TD yds)" },
-  { key: "opp", w: 0.25, label: "Opponent big plays allowed / game" },
+  { key: "e_big", w: 0.3, label: "Expected 20+ yd plays tonight" },
+  { key: "e_huge", w: 0.15, label: "Expected 40+ yd plays tonight" },
+  { key: "e_role", w: 0.15, label: "Expected deep role tonight (10+ yd runs or deep targets)" },
+  { key: "e_td", w: 0.2, label: "Expected TDs tonight" },
+  { key: "e_def", w: 0.2, label: "This week's defense's big plays allowed, sized to his touches" },
 ];
 
 let koePos = "All";
@@ -99,6 +104,8 @@ function koeRow(team, p, w = koeWeek(), k = koeData(w)) {
     pos: p.position,
     games: g,
     touches_pg: (p.carries + p.targets) / g,
+    touches: p.carries + p.targets,
+    role_n: p.position === "RB" || p.position === "QB" ? p.runs10 : p.deep_targets,
     tds: tds.length,
     avg_td: tds.length ? tds.reduce((a, b) => a + b, 0) / tds.length : null,
     long_td: tds.length ? tds[0] : null,
@@ -117,7 +124,6 @@ function koeRow(team, p, w = koeWeek(), k = koeData(w)) {
     deep_pg: p.deep_targets / g,
     role: p.position === "RB" || p.position === "QB" ? p.runs10 / g : p.deep_targets / g,
     long_tds: longTds,
-    td_len: longTds + (tds.length ? (tds.reduce((a, b) => a + b, 0) / tds.length) / 40 : 0),
     opp_big_pg: oppBig,
     opp_long_tds: oppLongTds,
     opp_avg_td: ot && ot.tds_allowed.length ? ot.tds_allowed.reduce((a, b) => a + b, 0) / ot.tds_allowed.length : null,
@@ -141,18 +147,30 @@ function koeLeague(w = koeWeek(), k = koeData(w)) {
       if (koeQualifies(r, p)) rows.push(r);
     })
   );
-  // Shrink per-game rates toward the league average (KOE_PRIOR_GAMES).
-  const avg = (key) => rows.reduce((s, r) => s + (r[key] || 0), 0) / (rows.length || 1);
-  const shrink = { big_pg: avg("big_pg"), huge_pg: avg("huge_pg"), role: avg("role") };
+  // Per-touch rates by position (the prior a thin sample is pulled toward).
+  const counts = { big: "big", huge: "huge", td: "tds", role: "role_n" };
+  const posRate = {};
   rows.forEach((r) => {
-    Object.entries(shrink).forEach(([key, m]) => (r[`${key}_s`] = (r[key] * r.games + m * KOE_PRIOR_GAMES) / (r.games + KOE_PRIOR_GAMES)));
-    r.opp_s = r.opp_big_pg === null ? null : r.opp_big_pg + (r.opp_long_tds || 0) / (r.opp_g || 1);
+    const a = (posRate[r.pos] = posRate[r.pos] || { touches: 0, big: 0, huge: 0, td: 0, role: 0 });
+    a.touches += r.touches;
+    Object.entries(counts).forEach(([key, src]) => (a[key] += r[src]));
   });
-  const vals = (key) => rows.map((r) => r[key]).filter((v) => v !== null && v !== undefined);
-  const pools = { big_pg: vals("big_pg_s"), huge_pg: vals("huge_pg_s"), role: vals("role_s"), td_len: vals("td_len"), opp: vals("opp_s") };
-  const src = { big_pg: "big_pg_s", huge_pg: "huge_pg_s", role: "role_s", td_len: "td_len", opp: "opp_s" };
+  const meanTouches = rows.reduce((s, r) => s + r.touches_pg, 0) / (rows.length || 1);
   rows.forEach((r) => {
-    r.parts = KOE_UPSIDE_PARTS.map((part) => ({ ...part, z: r[src[part.key]] === null ? 0 : zScore(r[src[part.key]], pools[part.key], false) || 0 }));
+    const a = posRate[r.pos];
+    const rate = (key) => (r[counts[key]] + (a.touches ? a[key] / a.touches : 0) * KOE_PRIOR_TOUCHES) / (r.touches + KOE_PRIOR_TOUCHES);
+    r.e_big = r.touches_pg * rate("big");
+    r.e_huge = r.touches_pg * rate("huge");
+    r.e_role = r.touches_pg * rate("role");
+    r.e_td = r.touches_pg * rate("td");
+    // The defense's big plays (and 20+ TDs) allowed per game, scaled by how
+    // much he has the ball (league-average touches = 1x, capped at 2x).
+    const opp = r.opp_big_pg === null ? 0 : r.opp_big_pg + (r.opp_long_tds || 0) / (r.opp_g || 1);
+    r.e_def = opp * Math.min(meanTouches ? r.touches_pg / meanTouches : 0, 2);
+  });
+  const pools = Object.fromEntries(KOE_UPSIDE_PARTS.map((part) => [part.key, rows.map((r) => r[part.key])]));
+  rows.forEach((r) => {
+    r.parts = KOE_UPSIDE_PARTS.map((part) => ({ ...part, z: zScore(r[part.key], pools[part.key], false) || 0 }));
     r.score = r.parts.reduce((s, part) => s + part.w * part.z, 0);
   });
   const scores = rows.map((r) => r.score).sort((a, b) => a - b);
@@ -269,7 +287,7 @@ function renderKoePlayers() {
   const gcls = (name) => `koe-g-${KOE_GROUP_CLASS[name]}`;
   const sortCls = (k) => (koeSort.key === k ? ` koe-sorted${koeSort.dir > 0 ? " koe-asc" : ""}` : "");
   const gap = (tag) => `<${tag} class="koe-gap"></${tag}>`;
-  const upTitle = "Long-TD upside: league percentile of 20+ yd plays (35%), 40+ yd plays (15%), deep role (15%), TD length (10%) and this week's defense's big plays allowed (25%)";
+  const upTitle = "Long-TD upside: league percentile of what he should do tonight (his touches x his per-touch rates): 20+ yd plays (30%), 40+ yd plays (15%), deep role (15%), TDs (20%) and this week's defense's big plays allowed, sized to his touches (20%)";
   // Once a game is final, his longest TD in it (a star for the game's longest).
   rows.forEach((r) => (r.result = koeResult(r, week)));
   const showResult = rows.some((r) => r.result);

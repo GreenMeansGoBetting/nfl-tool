@@ -149,5 +149,33 @@ class Winners(unittest.TestCase):
         self.assertIn("display: none", rule or "")
 
 
+def player(name, pos, games, carries=0, targets=0, runs10=0, runs20=0, catches20=0, deep=0, tds=()):
+    return {"name": name, "position": pos, "games": games, "carries": carries, "targets": targets, "receptions": targets,
+            "runs10": runs10, "runs20": runs20, "runs40": 0, "catches20": catches20, "catches40": 0, "long_rush": 0,
+            "long_rec": 0, "adot": 8.0, "deep_targets": deep, "deep_catches": 0, "tds": list(tds)}
+
+
+class Upside(unittest.TestCase):
+    """2026-10-19: a 2-touch fullback (one 20+ catch, all his touches catches,
+    facing a defense that gives up lots of 20+ catches) ranked over Diggs and
+    McCaffrey, because Upside was per GAME and the defense bonus ignored how
+    much a player has the ball. Now every part is touches x per-touch rate."""
+
+    def test_volume_beats_a_fullbacks_one_long_catch(self):
+        board = PAGE.evaluate("""() => {
+          const g = koeWeekGames()[0], w = koeLiveWeek();
+          const k = {big: 20, huge: 40, deep_air: 20, players: PLAYERS(g.home, g.away), teams: {
+            [g.away]: {games: 5, runs20_allowed: 2, catches20_allowed: 30, tds_allowed: [30, 40, 25]},
+            [g.home]: {games: 5, runs20_allowed: 5, catches20_allowed: 5, tds_allowed: []}}};
+          return koeLeague(w, k).filter((r) => r.team === g.home).sort((a, b) => b.score - a.score).map((r) => r.name);
+        }""".replace("PLAYERS(g.home, g.away)", "({[g.home]: %s, [g.away]: %s})" % (
+            [player("Fullback", "RB", 3, targets=6, catches20=1, tds=[6]),
+             player("Workhorse", "RB", 5, carries=61, targets=25, runs10=10, tds=[11, 1, 1, 1, 1]),
+             player("Deep WR", "WR", 4, targets=31, catches20=1, deep=6, tds=[20, 10, 4])],
+            [player("Their WR", "WR", 5, targets=30, catches20=3, deep=5, tds=[30]),
+             player("Their RB", "RB", 5, carries=70, targets=10, runs10=12, runs20=2, tds=[33, 1])])).replace("True", "true"))
+        self.assertEqual(board[-1], "Fullback")
+
+
 if __name__ == "__main__":
     unittest.main()

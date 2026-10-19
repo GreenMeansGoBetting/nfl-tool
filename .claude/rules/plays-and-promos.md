@@ -61,9 +61,14 @@ DraftKings' weekly promo paying on the game's LONGEST TD, D/ST included.
   targets/g), and this week's defense (20+ plays allowed/g matched to runs or catches by the
   player's mix, 20+ TDs allowed, avg TD length allowed). Colors vs the whole league. Ruled-out
   players hidden; QBs = current starter only.
-- **Upside** = league percentile of weighted z's (`KOE_UPSIDE_PARTS`: 20+ plays 35%, 40+ plays
-  15%, deep role 15%, TD length 10%, opponent big plays allowed 25%), rates shrunk by
-  `KOE_PRIOR_GAMES` 2. First-guess weights ("we can adjust if needed").
+- **Upside** = league percentile of weighted z's of what he should do TONIGHT: touches/game x
+  per-touch rate, each rate pulled toward his position's average by `KOE_PRIOR_TOUCHES` 40
+  (`KOE_UPSIDE_PARTS`: 20+ plays 30%, 40+ plays 15%, deep role 15%, TDs 20%, this week's defense's
+  big plays allowed x his touches vs league-average touches, capped 2x, 20%). Never per game:
+  2026-10-19 the per-game blend put a 2-touch fullback (Juszczyk) over Diggs and McCaffrey. The
+  owner picked this of three options on a weeks 2-6 replay of every game's longest TD (it tied or
+  beat the old blend; the longest TD is mostly random). About 35% of winning TDs are under 20 yds,
+  so TD volume counts.
 - Layout: each column group has a colored header bubble spanning its columns (`KOE_GROUP_CLASS`,
   `.koe-g-*` colors), empty 8px gap columns split the groups, and every stat box is a fixed 44px
   (TD distances 38px; `table-layout: fixed`, colgroup), rows 32px; the player column (214px) has
