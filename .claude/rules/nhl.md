@@ -378,8 +378,10 @@ on a replay, and the page keeps a record against the real prices.
   (nhl-common.js: his team's players file, the card's counts): the Shots / Goals rink shares
   (hover says "12 of 17"), the power-play share, attempts per 60 and on-goal share. A model
   number is labeled as the model's ("Model's usual xG"). Never show `shares`, `pp_share`,
-  `thru` or `att60` from shots.json / goals.json as his. Whether the models should drop the
-  mixing is a replay question (raw vs mixed, per model), not settled yet.
+  `thru` or `att60` from shots.json / goals.json as his. **The projections keep the mixing**
+  (the owner, 2026-10-19, after a raw-vs-mixed replay of all four models): raw data was clearly
+  worse under about 10 games and equal after (Goals' chance score 0.36 mixed vs 0.68 raw at 1-5
+  games; on this season's prices raw would have gone -51.5u on Goals, -21.4u on Points).
 - **Every team, one number: the league-wide list** (`openLeagueModal` in nhl-common.js, the
   NFL site's stat-rank popup redone for hockey; the user asked for it "on all pages"). Any
   element with `data-league="${leagueAttr(p)}"` opens it: every rink zone (Game Previews both
