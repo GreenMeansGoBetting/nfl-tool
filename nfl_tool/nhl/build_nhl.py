@@ -92,6 +92,7 @@ LIVE_GOALS_URL = "https://nfl.gmgsports.org/nhl/goals.json"
 LIVE_POINTS_URL = "https://nfl.gmgsports.org/nhl/points.json"
 LIVE_ICEBREAKER_URL = "https://nfl.gmgsports.org/nhl/icebreaker.json"
 LIVE_STACKS_URL = "https://nfl.gmgsports.org/nhl/stacks.json"
+LIVE_SAVES_URL = "https://nfl.gmgsports.org/nhl/saves.json"
 # The Shots page projects games through this many days out (books post
 # shots-on-goal lines about a day ahead) and keeps the chance of 1+ ... 8+.
 SHOTS_DAYS_AHEAD = 2
@@ -181,6 +182,17 @@ CREASE_RULES = {"blend": 0.5, "full_games": 20, "value": 1.15, "floor": 0.5, "ch
 # Every finished day, one file a month, committed by the deploy like the Shots record.
 CREASE_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_crease"
 CREASE_RECORD_COLS = ("id", "name", "team", "opp", "mean", "line", "over", "under", "mkt_mean", "blend", "top", "mkt_top", "tags", "actual")
+# The Saves page (goalie saves over / under; saves.json, from King of the
+# Crease's board): the Points page's buckets, plus "check" when the model and
+# the line are CREASE_RULES["check"] saves apart.
+SAVES_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
+SAVES_RECORD_DAYS = 14
+SAVES_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_saves"
+SAVES_HONEST = (0.0, 0.3, 0.4, 0.5, 0.6, 0.7, 1.01)  # the record's "said vs went over" buckets
+SAVES_RECORD_COLS = ("id", "name", "team", "line", "over", "under", "mean", "chance_over", "mkt_mean", "actual", "avg",
+                     "first_line", "first_over", "first_under", "factors")
+SAVES_FACTORS = ("starts", "saves_avg", "sv_pct", "opp_shots", "opp_shots_rank", "allowed", "allowed_rank", "home", "b2b", "opp_b2b",
+                 "source", "gap", "l_off", "l_def", "l_home", "l_b2b", "l_opp_b2b", "l_sv")
 LINE_FIELDS = (
     "away_team_spread", "home_team_spread", "away_spread_odds", "home_spread_odds", "total_line",
     "over_odds", "under_odds", "away_moneyline", "home_moneyline", "away_ml_implied_prob", "home_ml_implied_prob",
@@ -3031,6 +3043,194 @@ def crease_file(season: int, generated_at: str, records: list, games: list, toni
     }
 
 
+# ---- Saves (goalie saves over / under; the Saves page) ----
+# The same goalies, starters, projections and lock as King of the Crease (its
+# board is the input), read the Points page's way: the model's chance of the
+# over at Novig's main saves line against the better side's price. The model
+# is the King of the Crease one, unblended: the promo's ranking leans on the
+# line, a prop edge can't. Nothing on the page is worked out there.
+CREASE_ONLY_KEYS = ("blend", "weight", "big", "top", "mkt_top", "value", "tags", "led")
+
+
+def saves_play(chance_over: float, line: float, over, under, avg, mean: float, mkt_mean) -> dict | None:
+    """shots_play at SAVES_EDGES, with one more "check": a called play
+    where the model and what the line says are CREASE_RULES["check"] saves
+    apart (most often a starter the book knows about and the model doesn't)."""
+    play = shots_play(chance_over, line, over, under, avg, None, SAVES_EDGES)
+    if play and play["size"] in ("strong", "lean") and mkt_mean is not None and abs(mean - mkt_mean) >= CREASE_RULES["check"]:
+        play["size"] = "check"
+    return play
+
+
+def saves_row(row: dict, first) -> dict:
+    """One King of the Crease row as a saves prop: the chance of the over at
+    his main line and each of its other lines, the better side, its edge and
+    bucket, and the first line and prices the site saw (closing line value).
+    `void` = someone else started (a book voids the bet)."""
+    line = row.get("line")
+    # Rounded first, so the page, the record and this row grade the same number.
+    chance_over = round(saves_model.chance_over(row["mean"], line), 3) if line is not None else None
+    play = saves_play(chance_over, line, row.get("over"), row.get("under"), row.get("saves_avg"), row["mean"], row.get("mkt_mean")) if line is not None else None
+    chance = (play["chance"] if play else chance_over) if line is not None else None
+    started = row.get("started")
+    return {
+        **{k: v for k, v in row.items() if k not in CREASE_ONLY_KEYS},
+        "chance_over": chance_over,
+        "alts": [[at, price, round(saves_model.chance_over(row["mean"], at), 3)] for at, price in row.get("alts") or []],
+        "fair": shots_model.fair_american(chance) if chance is not None else None,
+        "gap": round(row["mean"] - row["mkt_mean"], 1) if row.get("mkt_mean") is not None else None,
+        "first": first if first is not None else ({k: row.get(k) for k in ("line", "over", "under")} if line is not None else None),
+        "side": play["side"] if play else None, "price": play["price"] if play else None,
+        "edge": round(play["edge"], 3) if play else None, "size": play["size"] if play else None, "fade": play["fade"] if play else None,
+        "void": bool(started) and plain(started) != plain(row.get("name") or ""),
+    }
+
+
+def saves_board(days: dict, previous: dict | None, records: list) -> dict:
+    """{game id: {"date", "locked", "final", "goalies": [rows]}} from King of
+    the Crease's board, best edge first (no line last). A row's first line
+    and prices are carried from the live saves.json while it names the same
+    goalie."""
+    seen = {(gid, row["team"]): row for gid, g in ((previous or {}).get("games") or {}).items() for row in g.get("goalies") or []}
+    finished = {str(r["id"]) for r in records}
+    out = {}
+    for date, day in sorted(days.items()):
+        for row in day["goalies"]:
+            kept = seen.get((row["game_id"], row["team"])) or {}
+            first = kept.get("first") if plain(kept.get("name") or "") == plain(row.get("name") or "") else None
+            entry = out.setdefault(row["game_id"], {"date": date, "locked": row["locked"], "final": row["game_id"] in finished, "goalies": []})
+            entry["goalies"].append(saves_row(row, first))
+    for entry in out.values():
+        entry["goalies"].sort(key=lambda r: -(r["edge"] if r["edge"] is not None else -1))
+    return out
+
+
+def saves_factors(row: dict) -> list:
+    """The parts behind a priced goalie's number, in SAVES_FACTORS order."""
+    lift = row.get("lift") or {}
+    value = {**{k: row.get(k) for k in SAVES_FACTORS}, "home": int(bool(row.get("home"))), "b2b": int(bool(row.get("b2b"))),
+             "opp_b2b": int(bool(row.get("opp_b2b"))), **{f"l_{k}": v for k, v in lift.items()}}
+    return [value.get(k) for k in SAVES_FACTORS]
+
+
+def record_saves_games(folder: Path, board: dict, games: list) -> int:
+    """Adds each newly finished game to the Saves record: every goalie with
+    a main line who started, at the line and prices locked before puck drop,
+    the first ones the site saw, his saves and the parts behind his number.
+    A goalie who didn't start isn't graded (the books void it). Written
+    once, never changed."""
+    by_month = {}
+    for g in games:
+        entry = board.get(g["game_id"]) or {}
+        if entry.get("final"):
+            by_month.setdefault(g["date"][:7], []).append((g, entry))
+    added = 0
+    for month, finals in by_month.items():
+        path = folder / f"{month}.json"
+        saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {"cols": SAVES_RECORD_COLS, "factors": SAVES_FACTORS, "games": {}}
+        before = len(saved["games"])
+        for g, entry in finals:
+            if g["game_id"] in saved["games"]:
+                continue
+            plays = []
+            for row in entry["goalies"]:
+                if row.get("line") is None or row.get("actual") is None or row.get("void"):
+                    continue
+                first = row.get("first") or {}
+                plays.append([row["id"], row["name"], row["team"], row["line"], row.get("over"), row.get("under"), row["mean"], row["chance_over"],
+                              row.get("mkt_mean"), row["actual"], row.get("saves_avg"), first.get("line"), first.get("over"), first.get("under"), saves_factors(row)])
+            if plays:
+                saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
+        if len(saved["games"]) > before:
+            folder.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
+            added += len(saved["games"]) - before
+    return added
+
+
+def saves_record_summary(folder: Path) -> dict:
+    """The Saves record so far, the Points record's way: the better side of
+    each main line by bucket (strong / lean / none / check), overs and
+    unders, `fade` / `with` (against or with his season saves a start),
+    closing line value, `days`, `plays` (latest SAVES_RECORD_DAYS days) and
+    `ledger`; plus `honest`: every graded goalie by the model's chance of
+    the over against how often he went over."""
+    tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
+    out = {"since": None, "through": None, "games": 0, "goalies": 0,
+           **{k: tally() for k in ("check", "strong", "lean", "none", "over", "under", "fade", "with")},
+           "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0},
+           "honest": [{"lo": lo, "hi": hi, "goalies": 0, "said": 0.0, "got": 0} for lo, hi in zip(SAVES_HONEST, SAVES_HONEST[1:])]}
+    days, plays = {}, []
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
+            out["games"] += 1
+            out["since"] = min(out["since"] or game["date"], game["date"])
+            out["through"] = max(out["through"] or game["date"], game["date"])
+            for pid, name, team, line, over, under, mean, chance_over, mkt_mean, actual, avg, first_line, first_over, first_under, _factors in game["plays"]:
+                out["goalies"] += 1
+                for bucket in out["honest"]:
+                    if bucket["lo"] <= chance_over < bucket["hi"]:
+                        bucket["goalies"] += 1
+                        bucket["said"] += chance_over
+                        bucket["got"] += actual > line
+                play = saves_play(chance_over, line, over, under, avg, mean, mkt_mean)
+                if play is None or actual == line:
+                    continue
+                won = (actual > line) == (play["side"] == "over")
+                units = (100 / -play["price"] if play["price"] < 0 else play["price"] / 100) if won else -1.0
+                size = play["size"]
+                called = [play["side"], "fade" if play["fade"] else "with"] if size in ("strong", "lean") else []
+                for key in (size, *called):
+                    out[key]["wins" if won else "losses"] += 1
+                    out[key]["units"] = round(out[key]["units"] + units, 2)
+                if size == "none":
+                    continue
+                if called and first_line is not None:
+                    # Closing line value, the Shots record's way.
+                    clv = out["clv"]
+                    clv["plays"] += 1
+                    first_price = first_over if play["side"] == "over" else first_under
+                    moved = None
+                    if first_line == line and first_price is not None:
+                        moved = break_even(play["price"]) - break_even(first_price)
+                        clv["priced"] += 1
+                        clv["points"] += moved
+                    elif first_line != line:
+                        moved = (line - first_line) * (1 if play["side"] == "over" else -1)
+                    if moved is not None and abs(moved) > 0.0005:
+                        clv["shortened" if moved > 0 else "drifted"] += 1
+                if called:
+                    day = days.setdefault(game["date"], tally())
+                    day["wins" if won else "losses"] += 1
+                    day["units"] = round(day["units"] + units, 2)
+                plays.append({
+                    "date": game["date"], "id": pid, "name": name, "team": team, "opp": game["home"] if team == game["away"] else game["away"], "home": team == game["home"],
+                    "side": play["side"], "line": line, "price": play["price"], "edge": round(play["edge"], 3), "size": size, "fade": play["fade"],
+                    "mean": mean, "actual": actual, "won": won, "units": round(units, 2),
+                })
+    for bucket in out["honest"]:
+        bucket["said"] = round(bucket["said"], 2)
+    out["clv"]["points"] = round(out["clv"]["points"] / out["clv"]["priced"], 4) if out["clv"]["priced"] else None
+    out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
+    out["ledger"] = record_ledger(plays)
+    latest = set(sorted({play["date"] for play in plays})[-SAVES_RECORD_DAYS:])
+    out["plays"] = sorted((play for play in plays if play["date"] in latest), key=lambda play: (play["date"], play["edge"]), reverse=True)
+    return out
+
+
+def saves_file(season: int, generated_at: str, crease: dict, records: list, games: list, previous: dict | None, record_dir: Path) -> dict:
+    """site/nhl/saves.json: the board (from crease.json's), the rules and the record."""
+    board = saves_board(crease.get("days") or {}, previous, records)
+    try:
+        record_saves_games(record_dir, board, games)
+        record = saves_record_summary(record_dir)
+    except Exception as e:  # a damaged record file must never cost the page its board
+        print(f"WARNING: the Saves record couldn't be updated ({e}).", file=sys.stderr)
+        record = None
+    return {"season": season, "generated_at": generated_at, "weights": crease.get("weights"), "league": crease.get("league"), "edges": SAVES_EDGES,
+            "check_saves": CREASE_RULES["check"], "factors": SAVES_FACTORS, "games": board, "record": record}
+
+
 
 
 
@@ -3272,6 +3472,7 @@ def main():
     parser.add_argument("--crease-record-dir", type=Path, default=CREASE_RECORD_DIR, help="Where King of the Crease's finished days are kept")
     parser.add_argument("--goals-record-dir", type=Path, default=GOALS_RECORD_DIR, help="Where the Goals page's graded players are kept")
     parser.add_argument("--points-record-dir", type=Path, default=POINTS_RECORD_DIR, help="Where the Points page's graded players are kept")
+    parser.add_argument("--saves-record-dir", type=Path, default=SAVES_RECORD_DIR, help="Where the Saves page's graded goalies are kept")
     parser.add_argument("--stacks-record-dir", type=Path, default=STACKS_RECORD_DIR, help="Where Line Stacks' graded stacks are kept")
     parser.add_argument("--icebreaker-record-dir", type=Path, default=ICEBREAKER_RECORD_DIR, help="Where Icebreaker's finished slates are kept")
     args = parser.parse_args()
@@ -3368,12 +3569,22 @@ def main():
     }
     with open(args.out.parent / "shots.json", "w") as f:
         json.dump(shots, f, separators=(",", ":"))
+    crease = None
     try:
         crease = crease_file(args.season, generated_at, stats["records"], games, tonight, novig_saves, goalies, fetch_previous(LIVE_CREASE_URL), now_utc, args.crease_record_dir)
         with open(args.out.parent / "crease.json", "w") as f:
             json.dump(crease, f, separators=(",", ":"))
     except Exception as e:  # King of the Crease must never cost the other NHL pages their data
         print(f"WARNING: King of the Crease couldn't be built ({e}).", file=sys.stderr)
+    try:
+        if crease is None:
+            raise RuntimeError("King of the Crease's board couldn't be built")
+        saves = saves_file(args.season, generated_at, crease, stats["records"], games, fetch_previous(LIVE_SAVES_URL), args.saves_record_dir)
+    except Exception as e:  # Saves must never cost the other NHL pages their data
+        print(f"WARNING: the Saves page couldn't be built ({e}).", file=sys.stderr)
+        saves = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
+    with open(args.out.parent / "saves.json", "w") as f:
+        json.dump(saves, f, separators=(",", ":"))
     gmodel = None
     try:
         gmodel = goals_model_for(stats["records"], model, goals_hand(stats["skaters"]))

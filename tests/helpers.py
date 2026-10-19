@@ -139,6 +139,24 @@ def nhl_crease():
     return json.loads(nhl_crease_bytes())
 
 
+def nhl_saves():
+    """The Saves sample (nhl/saves.json), built at test time from the King of the Crease sample
+    by the build's own saves_file (no saved file: it can't drift from the build). As of
+    2026-10-13 14:12 UTC: no game has started, the record is empty."""
+    if "nhl_saves" not in _cache:
+        import tempfile
+
+        import build_nhl
+
+        with tempfile.TemporaryDirectory() as folder:
+            _cache["nhl_saves"] = build_nhl.saves_file(2027, "2026-10-13T14:12Z", nhl_crease(), [], nhl_data()["schedule"], None, Path(folder))
+    return _cache["nhl_saves"]
+
+
+def nhl_saves_bytes():
+    return json.dumps(nhl_saves()).encode("utf-8")
+
+
 def nhl_icebreaker_bytes():
     """The Icebreaker sample (nhl/icebreaker.json): icebreaker_board run on the Goals sample and
     the data sample's schedule and Novig prices, as of 2026-10-13 14:12 UTC, with `fast` from the

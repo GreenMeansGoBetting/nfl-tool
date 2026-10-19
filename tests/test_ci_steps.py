@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest import mock
 
-from helpers import nhl_data, nhl_shots  # first: puts tools/ on the import path
+from helpers import nhl_data, nhl_saves, nhl_shots  # first: puts tools/ on the import path
 
 import ci_steps
 import fetch_live_data
@@ -98,7 +98,9 @@ class VersionNote(unittest.TestCase):
                                                  "unlisted": [{"game": "1", "team": "BOS", "id": "8479325", "name": "Charlie McAvoy"}]}}
             (site / "nhl" / "data.json").write_text(json.dumps(data), encoding="utf-8")
             (site / "nhl" / "shots.json").write_text(json.dumps(nhl_shots()), encoding="utf-8")
+            (site / "nhl" / "saves.json").write_text(json.dumps(nhl_saves()), encoding="utf-8")
             note = ci_steps.suite_note(site, "nhl")
+            self.assertEqual(note["saves"], sum(any(r["line"] is not None for r in g["goalies"]) for g in nhl_saves()["games"].values()))  # games with a saves line
             self.assertEqual(note["built"], data["generated_at"])
             self.assertEqual((note["lineups"], note["shots"]), (6, len(nhl_shots()["games"])))
             self.assertEqual(note["lines"], data["novig_debug"]["matched"])
@@ -256,6 +258,7 @@ class LiveData(unittest.TestCase):
             "nhl/goals.json": {"games": {}},
             "nhl/points.json": {"games": {}},
             "nhl/stacks.json": {"games": {}},
+            "nhl/saves.json": {"games": {}},
             "nhl/icebreaker.json": {"days": {}},
             "nhl/players/NJD.json": {"season": {}},
             "nhl/players/DET.json": {"season": {}},
@@ -342,7 +345,7 @@ class LiveData(unittest.TestCase):
         """The deploy reuses a suite's live data only if all of it arrived."""
         self.assertEqual(fetch_live_data.main(["--only", "nhl", "--need", "nhl"]), 0)
         self.assertEqual(self.here(), sorted(rel for rel in self.live if rel.startswith("nhl/")))
-        for gone in ("nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/stacks.json", "nhl/icebreaker.json", "nhl/players/DET.json", "nhl/data.json"):
+        for gone in ("nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/stacks.json", "nhl/icebreaker.json", "nhl/saves.json", "nhl/players/DET.json", "nhl/data.json"):
             for path in self.site.rglob("*.json"):
                 path.unlink()
             kept = self.live.pop(gone)

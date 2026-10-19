@@ -648,6 +648,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     { name: "Shots", href: "shots.html" },
     { name: "Goals", href: "goals.html" },
     { name: "Points", href: "points.html" },
+    { name: "Saves", href: "saves.html" },
     { name: "Line Stacks", href: "stacks.html" },
   ];
   const SPORT_PAGES = {

@@ -7,7 +7,7 @@ call the page's own functions.
 """
 import json
 
-from helpers import SAMPLE_BUILT_UTC, nhl_crease_bytes, nhl_data_bytes, nhl_goals_bytes, nhl_icebreaker_bytes, nhl_points_bytes, nhl_players, nhl_shots_bytes, nhl_stacks_bytes, site_data_bytes  # first: puts tools/ on the import path
+from helpers import SAMPLE_BUILT_UTC, nhl_crease_bytes, nhl_data_bytes, nhl_goals_bytes, nhl_icebreaker_bytes, nhl_points_bytes, nhl_players, nhl_saves_bytes, nhl_shots_bytes, nhl_stacks_bytes, site_data_bytes  # first: puts tools/ on the import path
 
 from check_site import INSTALL_HELP, start_server
 
@@ -51,6 +51,8 @@ class SiteBrowser:
             route.fulfill(status=200, content_type="application/json", body=nhl_goals_bytes())
         elif url == f"{self.origin}/nhl/points.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_points_bytes())
+        elif url == f"{self.origin}/nhl/saves.json":
+            route.fulfill(status=200, content_type="application/json", body=nhl_saves_bytes())
         elif url == f"{self.origin}/nhl/stacks.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_stacks_bytes())
         elif url == f"{self.origin}/nhl/crease.json":

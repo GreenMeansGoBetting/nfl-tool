@@ -483,6 +483,14 @@ html:not(.is-owner):not(.local-dev) .stk-log { display: none; }
 .stk-with { white-space: nowrap; }
 .stk-kind { white-space: nowrap; font-size: .85em; }
 
+/* Saves page (saves.js): the starter tag beside each goalie. Green = the NHL's lineup and the
+   book name the same goalie (never "confirmed"); amber = they differ, or he started last night;
+   gray = one source or none. */
+.shots-flag.saves-agree { color: var(--good-text); background: rgba(var(--good-rgb), 0.14); border-color: rgba(var(--good-rgb), 0.45); }
+.shots-flag.saves-plain { color: var(--muted); background: transparent; border-color: var(--border); }
+.saves-table .shots-rating .shots-flag:first-child { margin-left: 0; }
+.saves-gap-far { color: var(--mid-text); }
+
 @media (max-width: 760px) {
   .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
   .nhl-tiles .nba-tile { padding: 6px 2px 7px; }

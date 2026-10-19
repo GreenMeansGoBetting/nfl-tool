@@ -190,16 +190,17 @@ class Nav(unittest.TestCase):
         import re
         from pathlib import Path
         site = Path(__file__).resolve().parents[1] / "nfl_tool" / "site"
-        for page in ("index.html", "best.html", "shots.html", "goals.html", "points.html", "stacks.html", "promo-tools.html"):
+        for page in ("index.html", "best.html", "shots.html", "goals.html", "points.html", "saves.html", "stacks.html", "promo-tools.html"):
             nav = re.search(r'<nav class="page-nav">(.*?)</nav>', (site / "nhl" / page).read_text(encoding="utf-8"), re.S).group(1)
             self.assertEqual(re.findall(r">([^<>]+)</a>", nav), ["NFL", "NBA", "NHL", "Promo Tools"], page)
-        for page in ("nhl/index.html", "nhl/shots.html", "nhl/goals.html", "nhl/points.html", "nhl/stacks.html", "nhl/promo-tools.html", "nba/index.html"):
+        for page in ("nhl/index.html", "nhl/shots.html", "nhl/goals.html", "nhl/points.html", "nhl/saves.html", "nhl/stacks.html", "nhl/promo-tools.html", "nba/index.html"):
             self.assertNotIn("More tools coming", (site / page).read_text(encoding="utf-8"), page)
         sync = (site / "sync.js").read_text(encoding="utf-8")
         self.assertIn('{ name: "Best Plays", href: "best.html" }', sync)
         self.assertIn('{ name: "Shots", href: "shots.html" }', sync)
         self.assertIn('{ name: "Goals", href: "goals.html" }', sync)
         self.assertIn('{ name: "Points", href: "points.html" }', sync)
+        self.assertIn('{ name: "Saves", href: "saves.html" }', sync)
         self.assertIn('{ name: "Line Stacks", href: "stacks.html" }', sync)
 
 

@@ -338,7 +338,7 @@ on a replay, and the page keeps a record against the real prices.
 - **The top bar (the owner, 2026-10-17): NFL, NBA, NHL, Promo Tools on every page of every sport**
   (it was Games / Player Props / Promo Tools on 2026-10-15). Each is a button that opens a list of
   its pages (`SPORT_PAGES` in sync.js, built by `addTopMenu`). The NHL's list is Game Previews, then
-  a "Player props" heading over Best Plays, Shots, Goals, Points, Line Stacks (`PROPS`). A new NHL
+  a "Player props" heading over Best Plays, Shots, Goals, Points, Saves, Line Stacks (`PROPS`). A new NHL
   tool is one line in `PROPS`. No "More tools coming" on any page. Tests check every NHL page's bar
   (`test_header_site.py` the behavior).
 - **Player search** (the owner, 2026-10-16: "if i start typing in GEE it will only show names of players
@@ -1026,6 +1026,41 @@ Player Props after Points, and a "Best stacks with <player> tonight" box in the 
   markup and form, and the Points box on `helpers.nhl_stacks()`, built at test time from the Points
   sample by the build's own functions) and `tests/test_ci_sgp_prices.py` (the endpoint).
 
+## Saves (goalie saves over / under; built 2026-10-19)
+
+The owner: "give the goalie saves model its own Saves page like Shots/Goals/Points". No new model
+and no new replay: it is King of the Crease's saves model (above), read as a prop.
+- **`saves_file` -> `site/nhl/saves.json`** (not tracked; on fetch_live_data's list; `version.json`
+  `nhl.saves` = games with a saves line). Built FROM crease.json's board (`saves_board`), so the
+  goalies, the starter call (`source`, never "confirmed"), the projection and the lock are King of
+  the Crease's. A failed Crease step writes a saves.json with `error`.
+  - Row (`saves_row`): the crease row without its promo numbers (`CREASE_ONLY_KEYS`), plus
+    `chance_over` (the model's `mean` at Novig's main line, rounded once), `alts` with the model's
+    chance at each, `fair`, `gap` (model minus what the line and price say, `mkt_mean`), `first`
+    (carried from the live saves.json while the row names the same goalie), and the play
+    (`saves_play`: `shots_play` at `SAVES_EDGES` 3 / 6 / 12 points, plus **check** when the model is
+    `CREASE_RULES["check"]` = 4+ saves from `mkt_mean`). `void` = someone else started.
+  - **The raw model, not King of the Crease's `blend`**: the promo leans on the line; a prop edge can't.
+- **The record** (`model_history/nhl_saves/<month>.json`, `SAVES_RECORD_COLS`, `factors` =
+  `SAVES_FACTORS`): every starter with a main line, written once per finished game. **A goalie who
+  didn't start is left out** (books void it). `saves_record_summary`: the Points record's buckets,
+  overs / unders, fade / with (his saves a start), CLV, ledger, and `honest` (the chance of the
+  over said vs how often he went over).
+- **Before launch, on King of the Crease's record (10/13-10/18, 92 priced starters): the model ran
+  about 1 save BELOW what happened (the line: 0.2 above), and about 1.2 saves under the lines**, so
+  early on most plays are unders. Told the owner; the record will say whether it lasts.
+- **The page** (`saves.html` + `saves.js`; reuses `.shots-*` / `.goals-*`, its own `.saves-*` in
+  nhl.css): #, Goalie (search), **Starter** (green "agree" = lineup and book name him; amber = they
+  differ or he started last night; gray = one source), Play, Rating, Avg (saves a start), **Proj**
+  (green / red a save above / below the line), Fair, Edge; advanced: Shots, Opp shots, His D, Save
+  rate, Home/rest. Filters: Starters (all / lineup + book agree), Edge, Odds, Check plays, live /
+  final. Open row: league start -> each piece -> tonight; both sides' tiles on the eight rank colors
+  (green = more work for him); main line both ways and the other lines with the model's price and
+  first seen; "In net (expected)" with the gap note. Result column: saves + W/L, "Void" when someone
+  else started. No every-book column (no saves prices from SmartStake).
+- Tests: `tests/test_nhl_saves_page.py` (the build) and `tests/test_nhl_saves_site.py` (the page on
+  `helpers.nhl_saves()`, built at test time from the King of the Crease sample).
+
 ## Learning which factors win: the factor report (2026-10-16)
 
 The owner: bring Shots and Goals "up to the Points record's standard", then a report (a tool,
@@ -1093,9 +1128,8 @@ pages for the detail, not a copy of them.
 
 ## Not built yet (waiting on the user's priorities)
 
-The user's next tools (2026-10-13), each built on the player card and `player_odds`: a goalie
-saves prop tool (the saves model and Novig's saves lines now exist: see King of the Crease).
-Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), all above. Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
+Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), Saves (goalie saves), all above.
+For Saves: Best Plays doesn't list its plays yet; SmartStake has no saves market in its NHL list (Novig only). Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
 owner's list: re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.

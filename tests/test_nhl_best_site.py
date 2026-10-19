@@ -283,7 +283,7 @@ class Links(unittest.TestCase):
         reset()
         PAGE.click(".page-nav .nhl-trigger")
         items = PAGE.evaluate("() => [...document.querySelectorAll('.nhl-menu a')].map((a) => [a.textContent, a.getAttribute('href'), a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Game Previews", "/nhl/", False], ["Best Plays", "/nhl/best.html", True], ["Shots", "/nhl/shots.html", False], ["Goals", "/nhl/goals.html", False], ["Points", "/nhl/points.html", False], ["Line Stacks", "/nhl/stacks.html", False]])
+        self.assertEqual(items, [["Game Previews", "/nhl/", False], ["Best Plays", "/nhl/best.html", True], ["Shots", "/nhl/shots.html", False], ["Goals", "/nhl/goals.html", False], ["Points", "/nhl/points.html", False], ["Saves", "/nhl/saves.html", False], ["Line Stacks", "/nhl/stacks.html", False]])
         PAGE.keyboard.press("Escape")
 
 
