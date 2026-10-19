@@ -441,16 +441,21 @@ class Record(unittest.TestCase):
         self.assertFalse(fade(0.65, -110, -110, 2.4))
         self.assertFalse(fade(0.40, -122, 102, None))  # no games yet: nothing to go against
 
-    def test_a_play_against_tonights_line_change_is_not_a_play(self):
-        """An under on a player moved up a line (or an over on one moved down) is set apart, whatever its edge."""
+    def test_a_play_is_shown_or_left_out(self):
+        """The owner, 2026-10-19 (after auditing every graded play): a Shots play is an edge of
+        SHOTS_BAR (6 points) or more on a player NOT moved down a line tonight. No lean, no check."""
         size = lambda chance, over, under, move: build_nhl.shots_play(chance, 1.5, over, under, None, move)["size"]
-        self.assertEqual(size(0.40, -110, -110, None), "strong")   # under, edge 7.6
-        self.assertEqual(size(0.40, -110, -110, "up"), "check")    # ...but he is on a higher line tonight
-        self.assertEqual(size(0.40, -110, -110, "down"), "strong")  # a move down agrees with an under
-        self.assertEqual(size(0.62, -110, -110, "down"), "check")  # an over on a player moved down
-        self.assertEqual(size(0.62, -110, -110, "up"), "strong")
-        self.assertEqual(size(0.48, -110, -110, "up"), "none")     # no edge to begin with: nothing to set apart
-        self.assertEqual(size(0.25, -110, -110, None), "check")    # a gap of 22 points is "check" on its own
+        self.assertEqual(build_nhl.SHOTS_BAR, 0.06)
+        self.assertEqual(size(0.40, -110, -110, None), "play")     # under, edge 7.6
+        self.assertEqual(size(0.40, -110, -110, "up"), "play")     # an under on a player moved UP is a play now (45-23 in the audit)
+        self.assertEqual(size(0.40, -110, -110, "down"), "none")   # moved down a line: left out, whichever side
+        self.assertEqual(size(0.62, -110, -110, "down"), "none")
+        self.assertEqual(size(0.62, -110, -110, "up"), "play")
+        self.assertEqual(size(0.56, -110, -110, None), "none")     # edge 3.6: under the bar (no more "lean")
+        self.assertEqual(size(0.25, -110, -110, None), "play")     # a gap of 22 points is no longer set apart
+        # The Points page keeps its buckets (shots_play with POINTS_EDGES) until it has more games graded.
+        points = lambda chance, move: build_nhl.shots_play(chance, 0.5, -110, -110, None, move, build_nhl.POINTS_EDGES)["size"]
+        self.assertEqual((points(0.40, None), points(0.40, "up"), points(0.56, None), points(0.25, None)), ("strong", "check", "lean", "check"))
         self.assertEqual((build_nhl.line_move("F1", "F4"), build_nhl.line_move("D3", "D1"), build_nhl.line_move("F2", "F2")), ("up", "down", None))
         self.assertEqual((build_nhl.line_move(None, "F2"), build_nhl.line_move("F1", None), build_nhl.line_move("F1", "D1")), (None, None, None))
         self.assertEqual((build_nhl.break_even(-150), build_nhl.break_even(150), build_nhl.break_even(100)), (0.6, 0.4, 0.5))
@@ -462,12 +467,12 @@ class Record(unittest.TestCase):
         """From the first line and price the site saw to the locked ones, on the plays with an edge."""
         def game(plays):
             return {"date": "2026-10-13", "away": "AAA", "home": "BBB", "plays": plays}
-        # The model's chance of the over, set so each play has an edge of 3 to 12 points.
+        # The model's chance of the over, set so each play has an edge over the bar (6+ points).
         rows = [
-            ["a", "A", "AAA", 2.5, -110, -110, 3.0, 0.58, 4, 3.0, None, 2.5, 120, -140],   # over: +120 -> -110 on the same line
+            ["a", "A", "AAA", 2.5, -110, -110, 3.0, 0.62, 4, 3.0, None, 2.5, 120, -140],   # over: +120 -> -110 on the same line
             ["b", "B", "AAA", 2.5, 105, -125, 1.6, 0.36, 1, 1.6, None, 2.5, 100, -150],    # under: -150 -> -125, drifted
-            ["c", "C", "AAA", 3.5, -110, -110, 4.0, 0.58, 5, 4.0, None, 2.5, -110, -110],  # over, and the line went up
-            ["d", "D", "AAA", 2.5, -110, -110, 3.0, 0.58, 4, 3.0, None],                     # saved before first prices were kept
+            ["c", "C", "AAA", 3.5, -110, -110, 4.0, 0.62, 5, 4.0, None, 2.5, -110, -110],  # over, and the line went up
+            ["d", "D", "AAA", 2.5, -110, -110, 3.0, 0.62, 4, 3.0, None],                     # saved before first prices were kept
         ]
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp, "2026-10.json").write_text(json.dumps({"games": {"9": game(rows)}}))
@@ -534,53 +539,53 @@ class Record(unittest.TestCase):
     def test_the_record_by_edge_size(self):
         plays = [
             # id, name, team, line, over, under, projection, model's chance of the over, real shots, his season average
-            ["a", "A", "AAA", 2.5, -120, 100, 3.4, 0.70, 3, 3.6],   # over, edge 15.5: "check"; won
-            ["b", "B", "AAA", 2.5, -120, 100, 2.9, 0.62, 2, 3.0],   # over, edge 7.5: strong; lost; with his average
-            ["c", "C", "AAA", 2.5, 100, -110, 2.0, 0.40, 1, 2.8],   # under, edge 7.6: strong; won; AGAINST his average
-            ["d", "D", "AAA", 2.5, -118, 100, 2.7, 0.58, 4, 2.2],   # over, edge 3.9: lean; won; AGAINST his average
+            ["a", "A", "AAA", 2.5, -120, 100, 3.4, 0.70, 3, 3.6],   # over, edge 15.5: a play (big gaps aren't set apart); won
+            ["b", "B", "AAA", 2.5, -120, 100, 2.9, 0.62, 2, 3.0],   # over, edge 7.5: a play; lost; with his average
+            ["c", "C", "AAA", 2.5, 100, -110, 2.0, 0.40, 1, 2.8],   # under, edge 7.6: a play; won; AGAINST his average
+            ["d", "D", "AAA", 2.5, -118, 100, 2.7, 0.58, 4, 2.2],   # over, edge 3.9: under the bar; won
             ["e", "E", "AAA", 2.5, -115, -105, 2.6, 0.55, 3],       # over, edge 1.5: no edge; won (a row saved before averages were kept)
-            ["f", "F", "AAA", 1.5, -110, -110, 1.3, 0.42, 3, 1.2, "up"],  # under, edge 5.6, but he was moved UP a line: "check"; lost
+            ["f", "F", "AAA", 1.5, -110, -110, 1.3, 0.42, 3, 1.2, "up"],    # under, edge 5.6: under the bar; lost
+            ["g", "G", "AAA", 1.5, -110, -110, 1.3, 0.40, 3, 1.2, "down"],  # under, edge 7.6, but he was moved DOWN a line: left out; lost
+            ["h", "H", "AAA", 1.5, -110, -110, 1.3, 0.40, 1, 1.2, "up"],    # under, edge 7.6, moved UP a line: a play; won
         ]
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             self.assertEqual(build_nhl.shots_record_summary(folder / "missing")["games"], 0)
             (folder / "2026-10.json").write_text(json.dumps({"games": {"9": {"date": "2026-10-13", "away": "AAA", "home": "BBB", "plays": plays[:3]}}}))
-            (folder / "2026-11.json").write_text(json.dumps({"games": {"400": {"date": "2026-11-02", "away": "AAA", "home": "BBB", "plays": plays[3:]}}}))  # d, e, f
+            (folder / "2026-11.json").write_text(json.dumps({"games": {"400": {"date": "2026-11-02", "away": "AAA", "home": "BBB", "plays": plays[3:]}}}))  # d to h
             record = build_nhl.shots_record_summary(folder)
         self.assertEqual((record["since"], record["through"], record["games"]), ("2026-10-13", "2026-11-02", 2))
-        self.assertEqual(record["check"], {"wins": 1, "losses": 1, "units": -0.17})  # the gap too big to trust, and the under against a promotion
-        self.assertEqual(record["strong"], {"wins": 1, "losses": 1, "units": -0.09})  # -1 on the over, +0.91 on the under at -110
-        self.assertEqual(record["lean"], {"wins": 1, "losses": 0, "units": 0.85})
-        self.assertEqual(record["none"], {"wins": 1, "losses": 0, "units": 0.87})
-        # Overs against unders counts only the plays the page calls an edge (3 to 12 points).
-        self.assertEqual(record["over"], {"wins": 1, "losses": 1, "units": -0.15})
-        self.assertEqual(record["under"], {"wins": 1, "losses": 0, "units": 0.91})
+        self.assertNotIn("check", record)
+        self.assertEqual(record["play"], {"wins": 3, "losses": 1, "units": 1.65})   # a, b, c, h
+        self.assertEqual(record["none"], {"wins": 2, "losses": 2, "units": -0.28})  # d, e, f and g (moved down)
+        # Overs against unders counts only the plays.
+        self.assertEqual(record["over"], {"wins": 1, "losses": 1, "units": -0.17})
+        self.assertEqual(record["under"], {"wins": 2, "losses": 0, "units": 1.82})
         # ...and, among those, the plays that went against the player's own season average.
-        self.assertEqual(record["fade"], {"wins": 2, "losses": 0, "units": 1.76})
-        self.assertEqual(record["with"], {"wins": 0, "losses": 1, "units": -1.0})
-        # The plays themselves: everything that declared an edge (not "e", the no-edge line), newest
-        # day first and the biggest edge first within a day, each with what happened.
+        self.assertEqual(record["fade"], {"wins": 1, "losses": 0, "units": 0.91})
+        self.assertEqual(record["with"], {"wins": 2, "losses": 1, "units": 0.74})
+        # The plays themselves, newest day first and the biggest edge first within a day, each with what happened.
         self.assertEqual([(play["date"], play["name"], play["size"], play["won"]) for play in record["plays"]], [
-            ("2026-11-02", "F", "check", False), ("2026-11-02", "D", "lean", True),
-            ("2026-10-13", "A", "check", True), ("2026-10-13", "C", "strong", True), ("2026-10-13", "B", "strong", False),
+            ("2026-11-02", "H", "play", True),
+            ("2026-10-13", "A", "play", True), ("2026-10-13", "C", "play", True), ("2026-10-13", "B", "play", False),
         ])
         c = next(play for play in record["plays"] if play["name"] == "C")
         self.assertEqual({key: c[key] for key in ("id", "team", "opp", "home", "side", "line", "price", "mean", "actual", "units", "fade")},
                          {"id": "c", "team": "AAA", "opp": "BBB", "home": False, "side": "under", "line": 2.5, "price": -110, "mean": 2.0, "actual": 1, "units": 0.91, "fade": True})
         self.assertAlmostEqual(c["edge"], 0.076, places=3)
         # Best Plays' filterable record: the same plays, oldest first, [date, edge, won, units].
-        self.assertEqual([row[0] for row in record["ledger"]], ["2026-10-13"] * 3 + ["2026-11-02"] * 2)
+        self.assertEqual([row[0] for row in record["ledger"]], ["2026-10-13"] * 3 + ["2026-11-02"])
         self.assertEqual(sorted(tuple(row) for row in record["ledger"]), sorted((p["date"], p["edge"], int(p["won"]), p["units"]) for p in record["plays"]))
-        # Each day's tally of the plays with an edge (lean + strong; a "check" is not a play).
-        self.assertEqual(record["days"], [{"date": "2026-10-13", "wins": 1, "losses": 1, "units": -0.09}, {"date": "2026-11-02", "wins": 1, "losses": 0, "units": 0.85}])
+        # Each day's tally of the plays.
+        self.assertEqual(record["days"], [{"date": "2026-10-13", "wins": 2, "losses": 1, "units": 0.74}, {"date": "2026-11-02", "wins": 1, "losses": 0, "units": 0.91}])
 
     def test_the_page_lists_only_the_latest_days_of_plays(self):
-        play = ["a", "A", "AAA", 2.5, -120, 100, 2.9, 0.62, 3, 3.0]  # a strong over that won
+        play = ["a", "A", "AAA", 2.5, -120, 100, 2.9, 0.62, 3, 3.0]  # an over at a 7.5 edge (a play) that won
         with tempfile.TemporaryDirectory() as tmp:
             games = {str(day): {"date": f"2026-11-{day:02d}", "away": "AAA", "home": "BBB", "plays": [play]} for day in range(1, 21)}
             (Path(tmp) / "2026-11.json").write_text(json.dumps({"games": games}))
             record = build_nhl.shots_record_summary(Path(tmp))
-        self.assertEqual(record["strong"]["wins"], 20)   # the buckets and the days cover every game
+        self.assertEqual(record["play"]["wins"], 20)   # the tallies and the days cover every game
         self.assertEqual(len(record["days"]), 20)
         self.assertEqual(len(record["plays"]), build_nhl.SHOTS_RECORD_DAYS)
         # The short list Best Plays filters by days back and edge keeps every day.

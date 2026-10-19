@@ -22,7 +22,7 @@ from helpers import nhl_data, nhl_shots  # first: puts tools/ on the import path
 import build_nhl
 from site_browser import SiteBrowser
 
-SITE = PAGE = OPENED_ON = None
+SITE = PAGE = OPENED_ON = OPENED_EVERY = None
 TONIGHT, LAST_NIGHT = "2026-10-13", "2026-10-12"
 
 # Every row on the page as plain values.
@@ -36,19 +36,20 @@ ROWS = """() => { """ + HEADS + """
     const chip = tr.querySelector('.shots-play');
     const play = chip ? `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}` : cell('Play');
     const rating = cell('Rating');
-    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell('#'), line: cell('Line'), play, rating, avg: cell('Avg'), proj: cell('Proj'), model: `${(/(\\d+)%/.exec(td('Fair').title) || [])[1]}%`, fair: cell('Fair'), edge: cell('Edge'), check: /^(Check|New line)/.test(rating), flag: /^Check/.test(rating) ? 'check' : /^New line/.test(rating) ? 'new line' : /thin/.test(cell('Edge')) ? 'thin' : '', amber: td('Edge').classList.contains('tier-mid'), green: td('Edge').classList.contains('tier-good'), fade: !!tr.querySelector('.shots-fade') };
+    return { key: tr.dataset.row, id: tr.dataset.row.split(':')[1], rank: cell('#'), line: cell('Line'), play, rating, avg: cell('Avg'), proj: cell('Proj'), model: `${(/(\\d+)%/.exec(td('Fair').title) || [])[1]}%`, fair: cell('Fair'), edge: cell('Edge'), out: /^Lower line/.test(rating), flag: /thin/.test(cell('Edge')) ? 'thin' : '', amber: td('Edge').classList.contains('tier-mid'), green: td('Edge').classList.contains('tier-good'), fade: !!tr.querySelector('.shots-fade') };
   });
 }"""
 HEADERS = "() => { " + HEADS + " return heads; }"
 
 
 def setUpModule():
-    global SITE, PAGE, OPENED_ON
+    global SITE, PAGE, OPENED_ON, OPENED_EVERY
     SITE = SiteBrowser()
     try:
         PAGE = SITE.open("nhl/shots.html")
         PAGE.wait_for_function("() => typeof SHOTS !== 'undefined' && SHOTS !== null && !document.getElementById('shots-app').hidden")
         OPENED_ON = PAGE.evaluate("() => days()[dayIndex]")
+        OPENED_EVERY = PAGE.evaluate("() => shotsView.every")
     except Exception:
         SITE.close()
         raise
@@ -60,12 +61,12 @@ def tearDownModule():
 
 
 def reset(day=TONIGHT, **view):
-    """The whole slate ("All", how the page itself opens, see
-    Filters) on a day, or another filter, and the rows drawn."""
+    """Every line of the whole slate on a day ("Every line"; the page itself
+    opens on the plays only), or another filter, and the rows drawn."""
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', minEdge: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
+            Object.assign(shotsView, { side: 'best', pos: 'all', lineup: 'all', minEdge: 'all', sort: 'edge', dir: -1, open: null, when: 'all', every: true, adv: false }, view);
             selectDay(days().indexOf(day));
         }""",
         [day, view],
@@ -118,57 +119,51 @@ class Ranking(unittest.TestCase):
         for r in reset():
             play = plays[r["id"]]
             self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} {price(play['price'])}", r)
-            # The Rating column says the bucket the record grades the play in.
-            rating = {"strong": "Strong", "lean": "Lean", "none": "--", "check": "Check" if play["edge"] >= build_nhl.SHOTS_EDGES["check"] else "New line"}[play["size"]]
+            # The Rating column: a play says so; over the bar but moved down a line says why it is left out.
+            rating = "Play" if play["size"] == "play" else "Lower line" if play["edge"] >= build_nhl.SHOTS_BAR and play["move"] == "down" else "--"
             self.assertTrue(r["rating"].startswith(rating), (r, play["size"]))
-            shown = r["edge"].replace("check", "").replace("new line", "").replace("thin", "").strip()
+            shown = r["edge"].replace("thin", "").strip()
             self.assertLessEqual(abs(float(shown) - play["edge"] * 100), 0.05 + 1e-9, r)
             self.assertNotEqual(shown, "-0.0", r)
             self.assertLessEqual(abs(int(r["model"].rstrip("%")) - play["chance"] * 100), 0.5 + 1e-9, r)
             self.assertEqual(r["proj"], f"{play['mean']:.2f}", r)
             self.assertEqual(r["avg"], f"{play['avg']:.2f}", r)
-            # "vs his avg" is on exactly the called plays the build's record files as going against his average.
-            self.assertEqual(r["fade"], play["fade"] and play["edge"] >= build_nhl.SHOTS_EDGES["lean"], r)
-        self.assertGreater(sum(1 for play in plays.values() if play["fade"] and play["edge"] >= build_nhl.SHOTS_EDGES["lean"]), 5)
+            # "vs his avg" is on exactly the plays the build's record files as going against his average.
+            self.assertEqual(r["fade"], play["fade"] and play["size"] == "play", r)
+        self.assertGreater(sum(1 for play in plays.values() if play["fade"] and play["size"] == "play"), 5)
 
-    def test_the_check_plays_lead_then_the_rest_best_edge_first(self):
-        """The owner, 2026-10-14: the "check" plays were "hidden at the bottom when they may in
-        fact be the best plays". They lead the ranking under their own heading; the rest follow."""
+    def test_every_line_lists_the_plays_first_then_the_rest(self):
+        """The owner, 2026-10-19: a play is shown or left out, no "check" tier. Under "Every line"
+        the plays lead, best edge first; the rest follow under their own heading."""
         plays = expected_plays()
         rows = reset()
-        # The build files a play as "check" (a gap too big, or a play against tonight's line change); so must the page.
-        believable = [r for r in rows if plays[r["id"]]["size"] != "check"]
-        too_big = [r for r in rows if plays[r["id"]]["size"] == "check"]
-        self.assertGreater(len(too_big), 0)
-        self.assertEqual([r["id"] for r in rows], [r["id"] for r in too_big] + [r["id"] for r in believable])
-        for group in (believable, too_big):
+        shown = [r for r in rows if plays[r["id"]]["size"] == "play"]
+        rest = [r for r in rows if plays[r["id"]]["size"] != "play"]
+        self.assertGreater(len(shown), 0)
+        self.assertEqual([r["id"] for r in rows], [r["id"] for r in shown] + [r["id"] for r in rest])
+        for group in (shown, rest):
             edges = [plays[r["id"]]["edge"] for r in group]
             self.assertEqual(edges, sorted(edges, reverse=True))
-        self.assertEqual([r["check"] for r in rows], [True] * len(too_big) + [False] * len(believable))
-        # A play is green; a check play is amber, never green.
-        self.assertTrue(all(r["amber"] and not r["green"] for r in too_big))
-        self.assertTrue(all(r["green"] == (plays[r["id"]]["edge"] >= build_nhl.SHOTS_EDGES["lean"]) and not r["amber"] for r in believable))
+        # A play is green; nothing else is colored, and nothing is amber any more.
+        self.assertTrue(all(r["green"] == (plays[r["id"]]["size"] == "play") and not r["amber"] for r in rows))
         self.assertEqual([r["rank"] for r in rows[:3]], ["1", "2", "3"])
-        # One heading over the check plays, one over the rest.
-        self.assertEqual((len(PAGE.query_selector_all(".shots-check-head")), len(PAGE.query_selector_all(".shots-plays-head"))), (1, 1))
-        first = PAGE.evaluate("() => document.querySelector('.shots-check-head').nextElementSibling.dataset.row.split(':')[1]")
-        self.assertEqual(first, too_big[0]["id"])
-        after = PAGE.evaluate("() => document.querySelector('.shots-plays-head').nextElementSibling.dataset.row.split(':')[1]")
-        self.assertEqual(after, believable[0]["id"])
+        self.assertEqual(len(PAGE.query_selector_all(".shots-rest-head")), 1)
+        after = PAGE.evaluate("() => document.querySelector('.shots-rest-head').nextElementSibling.dataset.row.split(':')[1]")
+        self.assertEqual(after, rest[0]["id"])
+        self.assertEqual(SITE.errors, [])
 
-    def test_the_check_plays_switch_hides_them(self):
+    def test_it_opens_on_the_plays_only(self):
         plays = expected_plays()
-        reset()
-        too_big = sum(1 for play in plays.values() if play["size"] == "check")
-        label = lambda: PAGE.evaluate("() => document.querySelector('.shots-check-toggle').textContent")
-        self.assertEqual(label(), "Check plays: Shown")
-        PAGE.evaluate("() => document.querySelector('.shots-check-toggle').click()")
-        rows = PAGE.evaluate(ROWS)
-        self.assertEqual({r["id"] for r in rows}, {pid for pid, play in plays.items() if play["size"] != "check"})
-        self.assertEqual(label(), f"Check plays: Hidden ({too_big})")
-        self.assertEqual(len(PAGE.query_selector_all(".shots-check-head, .shots-plays-head")), 0)
-        PAGE.evaluate("() => document.querySelector('.shots-check-toggle').click()")
-        self.assertEqual(len(PAGE.evaluate(ROWS)), len(plays))
+        self.assertIs(OPENED_EVERY, False)
+        rows = reset(every=False)
+        self.assertEqual({r["id"] for r in rows}, {pid for pid, play in plays.items() if play["size"] == "play"})
+        self.assertTrue(all(r["rating"].startswith("Play") and r["green"] for r in rows))
+        self.assertEqual(len(PAGE.query_selector_all(".shots-rest-head")), 0)
+        active = lambda: PAGE.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"every\"].active').textContent")
+        self.assertEqual(active(), "Plays only")
+        PAGE.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"every\"][data-value=\"true\"]').click()")
+        self.assertEqual((len(PAGE.evaluate(ROWS)), active()), (len(plays), "Every line"))
+        self.assertEqual(PAGE.query_selector_all(".shots-check-toggle"), [])
 
     def test_sorting_by_another_column_drops_the_grouping(self):
         reset()
@@ -176,7 +171,7 @@ class Ranking(unittest.TestCase):
         rows = PAGE.evaluate(ROWS)
         projections = [float(r["proj"]) for r in rows]
         self.assertEqual(projections, sorted(projections, reverse=True))
-        self.assertEqual(len(PAGE.query_selector_all(".shots-check-head")), 0)
+        self.assertEqual(len(PAGE.query_selector_all(".shots-rest-head")), 0)
         PAGE.evaluate("() => document.querySelector('.shots-sort[data-sort=\"proj\"]').click()")
         self.assertEqual([float(r["proj"]) for r in PAGE.evaluate(ROWS)], sorted(projections))
 
@@ -258,16 +253,19 @@ class TonightsLines(unittest.TestCase):
         product = f["usual"] * lift["line"] * lift["opp"] * lift["pos"] * lift["area"] * lift["pp"] * lift["home"] * lift["b2b"] * lift["opp_b2b"]
         self.assertAlmostEqual(product, f["mean"], delta=0.02)
 
-    def test_an_under_on_a_player_moved_up_is_set_apart(self):
+    def test_a_player_moved_down_a_line_is_left_out(self):
+        """Over the bar but moved down a line tonight: left out (in the audit those lost on both
+        sides), said as "Lower line". A player moved UP keeps his play, whichever side."""
         plays = expected_plays()
-        against = {pid: p for pid, p in plays.items() if p["against_move"] and build_nhl.SHOTS_EDGES["lean"] <= p["edge"] < build_nhl.SHOTS_EDGES["check"]}
-        self.assertGreater(len(against), 0)
         rows = {r["id"]: r for r in reset()}
-        for pid, play in against.items():
-            self.assertEqual((rows[pid]["flag"], rows[pid]["amber"], rows[pid]["green"]), ("new line", True, False), play)
-        # A move that agrees with the play leaves it a play.
-        agree = [pid for pid, p in plays.items() if p["move"] and not p["against_move"] and p["size"] in ("lean", "strong")]
-        self.assertTrue(all(rows[pid]["green"] and rows[pid]["flag"] != "new line" for pid in agree))
+        down = {pid: p for pid, p in plays.items() if p["move"] == "down" and p["edge"] >= build_nhl.SHOTS_BAR}
+        up = {pid: p for pid, p in plays.items() if p["move"] == "up" and p["edge"] >= build_nhl.SHOTS_BAR}
+        self.assertGreater(len(down) + len(up), 0)
+        for pid, play in down.items():
+            self.assertEqual((play["size"], rows[pid]["out"], rows[pid]["green"]), ("none", True, False), play)
+        for pid, play in up.items():
+            self.assertEqual((play["size"], rows[pid]["out"], rows[pid]["green"]), ("play", False, True), play)
+        self.assertNotIn(set(down), {r["id"] for r in reset(every=False)})
 
 
 class ThisSeasonOnly(unittest.TestCase):
@@ -388,6 +386,9 @@ class Filters(unittest.TestCase):
         # Tonight: every game, the ones still waiting on a lineup too.
         page.evaluate("(day) => selectDay(days().indexOf(day))", TONIGHT)
         plays = expected_plays()
+        # It opens on the plays only; "Every line" lists everyone with a line.
+        self.assertEqual({r["id"] for r in page.evaluate(ROWS)}, {pid for pid, play in plays.items() if play["size"] == "play"})
+        page.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"every\"][data-value=\"true\"]').click()")
         self.assertEqual({r["id"] for r in page.evaluate(ROWS)}, set(plays))
         # "Lineup Confirmed" keeps only the one game whose lineup is in.
         page.evaluate("() => { const s = document.querySelector('.shots-filter-select[data-filter=\"lineup\"]'); s.value = 'confirmed'; s.dispatchEvent(new Event('change', { bubbles: true })); }")
@@ -404,9 +405,9 @@ class Filters(unittest.TestCase):
         self.assertNotIn("--", {r["line"] for r in rows})
         game = next(g for g in nhl_data()["schedule"] if g["away"] == "STL" and g["home"] == "OTT")
         self.assertTrue(all(r["key"].startswith(game["game_id"]) for r in rows))
-        # Still best edge first, the set-apart group underneath.
-        believable = [plays[r["id"]]["edge"] for r in rows if plays[r["id"]]["size"] != "check"]
-        self.assertEqual(believable, sorted(believable, reverse=True))
+        # Still best edge first, the plays ahead of the rest.
+        shown = [plays[r["id"]]["edge"] for r in rows if plays[r["id"]]["size"] == "play"]
+        self.assertEqual(shown, sorted(shown, reverse=True))
 
     def test_a_game_waiting_on_its_lineup_says_so_and_offers_all(self):
         reset(lineup="confirmed")
@@ -609,9 +610,17 @@ class FinishedGames(unittest.TestCase):
 
     def test_the_record_tiles(self):
         reset()
+        PAGE.evaluate("""() => {
+            window.keptRecord = SHOTS.record;
+            const t = (wins, losses, units) => ({ wins, losses, units });
+            SHOTS.record = { since: "2026-10-12", through: "2026-10-13", games: 21, play: t(9, 5, 3.4), none: t(14, 12, -1.2), over: t(1, 2, -1.1), under: t(15, 8, 4.5), fade: t(6, 3, 2.2), with: t(17, 14, 0.5), days: [], plays: [] };
+            render();
+        }""")
         text = PAGE.inner_text("#shots-results").upper().replace("\n", " ")
-        for piece in ("THE RECORD SO FAR", "21 GAMES", "EDGE 6 TO 12", "9-5", "64%", "+3.4U", "EDGE 3 TO 6", "14-12", "12+: CHECK FIRST", "1-2", "UNDERS WITH AN EDGE", "15-8", "AGAINST HIS AVERAGE", "6-3", "WITH HIS AVERAGE", "17-14"):
+        for piece in ("THE RECORD SO FAR", "21 GAMES", "PLAYS", "9-5", "64%", "+3.4U", "NOT PLAYS", "14-12", "OVERS", "1-2", "UNDERS", "15-8", "AGAINST HIS AVERAGE", "6-3", "WITH HIS AVERAGE", "17-14"):
             self.assertIn(piece, text)
+        self.assertNotIn("CHECK", text)
+        PAGE.evaluate("() => { SHOTS.record = window.keptRecord; render(); }")
         PAGE.evaluate("() => { window.keptRecord = SHOTS.record; SHOTS.record = null; render(); }")
         self.assertIn("The record starts", PAGE.inner_text("#shots-results"))
         PAGE.evaluate("() => { SHOTS.record = window.keptRecord; render(); }")
@@ -685,20 +694,20 @@ class StartedGames(unittest.TestCase):
 
 
 class GradedPlays(unittest.TestCase):
-    """Under the record's buckets: the plays that declared an edge, by day."""
+    """Under the record's tiles: the graded plays, by day."""
 
     PLAYS = [
-        {"date": "2026-10-13", "id": "x1", "name": "Strong Winner", "team": "NJD", "opp": "DET", "home": False, "side": "over", "line": 2.5, "price": -120, "edge": 0.08, "size": "strong", "fade": False, "mean": 3.1, "actual": 4, "won": True, "units": 0.83},
-        {"date": "2026-10-13", "id": "x2", "name": "Lean Loser", "team": "DET", "opp": "NJD", "home": True, "side": "under", "line": 1.5, "price": 105, "edge": 0.04, "size": "lean", "fade": True, "mean": 1.2, "actual": 3, "won": False, "units": -1.0},
-        {"date": "2026-10-13", "id": "x3", "name": "Check Winner", "team": "NJD", "opp": "DET", "home": False, "side": "over", "line": 1.5, "price": 110, "edge": 0.15, "size": "check", "fade": False, "mean": 2.4, "actual": 2, "won": True, "units": 1.1},
-        {"date": "2026-10-12", "id": "x4", "name": "Older Lean", "team": "DET", "opp": "NJD", "home": True, "side": "over", "line": 2.5, "price": -110, "edge": 0.05, "size": "lean", "fade": False, "mean": 2.9, "actual": 3, "won": True, "units": 0.91},
+        {"date": "2026-10-13", "id": "x1", "name": "Over Winner", "team": "NJD", "opp": "DET", "home": False, "side": "over", "line": 2.5, "price": -120, "edge": 0.08, "size": "play", "fade": False, "mean": 3.1, "actual": 4, "won": True, "units": 0.83},
+        {"date": "2026-10-13", "id": "x2", "name": "Under Loser", "team": "DET", "opp": "NJD", "home": True, "side": "under", "line": 1.5, "price": 105, "edge": 0.07, "size": "play", "fade": True, "mean": 1.2, "actual": 3, "won": False, "units": -1.0},
+        {"date": "2026-10-13", "id": "x3", "name": "Old Check", "team": "NJD", "opp": "DET", "home": False, "side": "over", "line": 1.5, "price": 110, "edge": 0.15, "size": "check", "fade": False, "mean": 2.4, "actual": 2, "won": True, "units": 1.1},
+        {"date": "2026-10-12", "id": "x4", "name": "Older Over", "team": "DET", "opp": "NJD", "home": True, "side": "over", "line": 2.5, "price": -110, "edge": 0.065, "size": "play", "fade": False, "mean": 2.9, "actual": 3, "won": True, "units": 0.91},
     ]
 
     def show(self, bucket=None):
         return PAGE.evaluate(
             """([plays, bucket]) => {
                 const tally = { wins: 1, losses: 1, units: 0 };
-                SHOTS.record = { since: "2026-10-12", through: "2026-10-13", games: 2, strong: tally, lean: tally, none: tally, check: tally, over: tally, under: tally, fade: tally, with: tally, days: [], plays };
+                SHOTS.record = { since: "2026-10-12", through: "2026-10-13", games: 2, play: tally, none: tally, over: tally, under: tally, fade: tally, with: tally, days: [], plays };
                 shotsView.record = "edge";
                 render();
                 if (bucket) document.querySelector(`.shots-filter-btn[data-filter="record"][data-value="${bucket}"]`).click();
@@ -717,24 +726,23 @@ class GradedPlays(unittest.TestCase):
     def tearDown(self):
         PAGE.evaluate("(record) => { SHOTS.record = record; shotsView.record = 'edge'; render(); }", nhl_shots().get("record"))
 
-    def test_it_opens_on_every_play_with_an_edge_grouped_by_day(self):
+    def test_it_opens_on_every_play_grouped_by_day(self):
         seen = self.show()
-        self.assertEqual((seen["tiles"], seen["active"]), (8, "Every edge"))
-        # Two days, newest first, each headed by its own record; the "check" play is not among them.
+        self.assertEqual((seen["tiles"], seen["active"]), (6, "All plays"))
+        # Two days, newest first, each headed by its own record; a row from an old build ("check") is not a play.
         self.assertEqual([row[0] for row in seen["rows"] if len(row) == 1], ["Tue, Oct 13 1-1 · -0.17u", "Mon, Oct 12 1-0 · +0.91u"])
         plays = [row for row in seen["rows"] if len(row) > 1]
-        self.assertEqual([row[0] for row in plays], ["Strong Winner", "Lean Loser", "Older Lean"])
-        # Play, bucket, edge in points, projection, real shots, result, units.
-        self.assertEqual(plays[0][1:], ["o2.5-120", "Strong", "+8.0", "3.10", "4", "W", "+0.83"])
-        self.assertEqual(plays[1][1:], ["u1.5+105 vs his avg", "Lean", "+4.0", "1.20", "3", "L", "-1.00"])
+        self.assertEqual([row[0] for row in plays], ["Over Winner", "Under Loser", "Older Over"])
+        # Play, edge in points, projection, real shots, result, units.
+        self.assertEqual(plays[0][1:], ["o2.5-120", "+8.0", "3.10", "4", "W", "+0.83"])
+        self.assertEqual(plays[1][1:], ["u1.5+105 vs his avg", "+7.0", "1.20", "3", "L", "-1.00"])
         self.assertEqual(seen["total"], "2-1 · +0.74u")
 
     def test_the_buckets(self):
         names = lambda seen: [row[0] for row in seen["rows"] if len(row) > 1]
-        self.assertEqual(names(self.show("strong")), ["Strong Winner"])
-        self.assertEqual(names(self.show("lean")), ["Lean Loser", "Older Lean"])
-        check = self.show("check")
-        self.assertEqual((names(check), check["total"], check["active"]), (["Check Winner"], "1-0 · +1.10u", "Check first"))
+        self.assertEqual(names(self.show("over")), ["Over Winner", "Older Over"])
+        under = self.show("under")
+        self.assertEqual((names(under), under["total"], under["active"]), (["Under Loser"], "0-1 · -1.00u", "Unders"))
 
     def test_ytd_model_performance_opens_it_as_a_popup(self):
         """The owner: a button next to the SHOTS ON GOAL title that says "YTD
@@ -749,7 +757,7 @@ class GradedPlays(unittest.TestCase):
         PAGE.evaluate("() => document.getElementById('shots-record-open').click()")
         self.assertFalse(PAGE.evaluate(read)["hidden"])
         # A bucket button redraws the record and leaves the popup open.
-        PAGE.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"record\"][data-value=\"strong\"]').click()")
+        PAGE.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"record\"][data-value=\"over\"]').click()")
         self.assertFalse(PAGE.evaluate(read)["hidden"])
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.evaluate(read)["hidden"])
@@ -766,7 +774,8 @@ class GradedPlays(unittest.TestCase):
                 return { tiles: document.querySelectorAll("#shots-results .shots-record .nba-tile").length, table: document.querySelectorAll("#shots-results .shots-record-table").length };
             }"""
         )
-        self.assertEqual(seen, {"tiles": 6, "table": 0})
+        # A record from before the bar (no "play" tally) still draws: Plays reads 0-0 until the next build.
+        self.assertEqual(seen, {"tiles": 4, "table": 0})
         self.assertEqual(SITE.errors, [])
 
 

@@ -59,7 +59,8 @@ def reset(day=TONIGHT, **view):
 
 
 def expected(day=TONIGHT):
-    """{"market:game:player": play} for every play with an edge, as the build files them."""
+    """{"market:game:player": play} for every play, as the build files them: Shots at its bar
+    (shots_play's "play": 6+ points, not moved down a line), Goals and Points from 3 points."""
     data, shots, goals, pts = nhl_data(), nhl_shots(), nhl_goals(), nhl_points()
     games = [g["game_id"] for g in data["schedule"] if g["date"] == day]
     out = {}
@@ -69,7 +70,7 @@ def expected(day=TONIGHT):
             if row["out"] or not market:
                 continue
             play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
-            if play and play["edge"] >= LEAN:
+            if play and play["size"] == "play":
                 out[f"sog:{gid}:{row['id']}"] = {**play, "row": row}
         for row in (goals["games"].get(gid) or {}).get("players", []):
             if not row["out"] and row["odds"] is not None and row["edge"] is not None and row["edge"] >= LEAN:
@@ -256,7 +257,7 @@ class Record(unittest.TestCase):
         PAGE.click("#best-record-open")
         self.assertEqual(PAGE.locator("[data-rec-days]").count(), 0)
         rec = nhl_shots()["record"]
-        wins = sum(rec[k]["wins"] for k in ("strong", "lean", "check"))
+        wins = sum(rec[k]["wins"] for k in ("play", "strong", "lean", "check") if k in rec)
         self.assertIn(f"{wins}-", PAGE.inner_text("#best-results"))
 
 

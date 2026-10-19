@@ -1,7 +1,8 @@
 // ---- GMG NHL Suite: Best Plays ----
 // The owner, 2026-10-15: "I don't care about the noise, I am in a rush: what
 // are my best overall bets tonight." Every play the Shots, Goals and Points
-// pages call an edge (3+ points), in one list, biggest edge first, every column sortable.
+// pages call a play (Shots: its bar, 6+ points on a player not moved down a line; Goals and
+// Points: 3+ points), in one list, biggest edge first, every column sortable.
 // No cap and no "Check" group: a big gap is ranked like any other (the owner:
 // "if the model notices an edge, we shouldn't punish ourselves"); what the
 // model may not know yet is said as a note on the row instead (no lineup, a
@@ -28,6 +29,10 @@ const PAGE_NAME = { sog: "Shots", goal: "Goals", pts: "Points" };
 const SMALL_SAMPLE = 5;
 
 const edgeAt = (size) => ((SHOTS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
+// The Shots page's bar (shots.js isPlay; SHOTS_BAR in build_nhl.py).
+const shotsBar = () => (SHOTS && has(SHOTS.bar) ? SHOTS.bar : 0.06);
+// The smallest edge a market lists.
+const floorFor = (market) => (market === "sog" ? shotsBar() : edgeAt("lean"));
 const breakEven = (price) => (has(price) ? (price < 0 ? -price / (100 - price) : 100 / (price + 100)) : null);
 // What $1 returns if it wins (the Odds sort: biggest payout first).
 const payout = (price) => (price > 0 ? price / 100 : 100 / -price);
@@ -90,7 +95,7 @@ function bookSpec(x) {
     kind: "prop", stat: BOOK_STAT[x.market], team: x.r.team, pid: x.r.id, name: x.r.name, side, line,
     game: `${x.g.away}_${x.g.home}`, title: `${x.r.name} &middot; ${{ sog: "Shots on goal", goal: "Anytime goal", pts: "Points" }[x.market]}`,
     sub: `${x.g.away} @ ${x.g.home}`, color: `#${team(x.r.team).color}`,
-    edges: (SHOTS || {}).edges, model: { [`${side}|${line}`]: p.chance },
+    edges: x.market === "sog" ? { lean: x.r.move === "down" ? Infinity : shotsBar(), check: Infinity } : (SHOTS || {}).edges, model: { [`${side}|${line}`]: p.chance },
   };
 }
 // Which book the build took this play's price from (it keeps the best price across every US book,
@@ -100,7 +105,7 @@ function priceBook(x) {
   return (x.market === "goal" ? m.book : m[`${x.play.side === "under" ? "under" : "over"}_book`]) || "novig";
 }
 // The worst price this play still has the page's smallest edge at: the "good to" cutoff.
-const goodTo = (x) => fairPrice(x.play.chance - edgeAt("lean"));
+const goodTo = (x) => fairPrice(x.play.chance - floorFor(x.market));
 function playsFor(date) {
   const out = [];
   gamesOn(date).forEach((g) => {
@@ -113,7 +118,7 @@ function playsFor(date) {
         if (r.out) return;
         const book = (gameOdds[r.id] || {}).sog;
         const play = shotsPlay(r, book);
-        if (!play || play.edge < edgeAt("lean")) return;
+        if (!play || play.edge < shotsBar() || r.move === "down") return;
         const result = has(r.actual) && r.actual !== play.line ? ((play.side === "over") === r.actual > play.line ? "win" : "loss") : null;
         out.push({ market: "sog", r, g, posted: !!sb.posted, play, thin: !!(book && book.thin), result, state });
       });
@@ -297,7 +302,7 @@ function renderTable() {
     })
     .join("");
   const counts = MARKETS.filter(([k]) => bestView.markets[k]).map(([k, label]) => `${rows.filter((x) => x.market === k).length} ${label.toLowerCase()}`).join(" &middot; ");
-  el("best-content").innerHTML = `<p class="best-count">${rows.length} plays with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">${counts}</span></p>
+  el("best-content").innerHTML = `<p class="best-count">${rows.length} plays <span class="muted-label">${counts}</span></p>
     <div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table best-table">
       <thead><tr>${head}${showResult ? `<th>Result</th>` : ""}<th class="shots-spacer"></th></tr></thead>
       <tbody>${body || nameSearchMiss(width)}</tbody>
@@ -353,7 +358,7 @@ function tileBody(t) {
 }
 // Before the build sent ledgers: the season's buckets, unfiltered.
 function renderRecordBuckets(box) {
-  const sum = (rec) => ["strong", "lean", "check"].reduce((t, k) => {
+  const sum = (rec) => ["play", "strong", "lean", "check"].reduce((t, k) => {
     const b = (rec || {})[k] || {};
     return { wins: t.wins + (b.wins || 0), losses: t.losses + (b.losses || 0), units: t.units + (b.units || 0) };
   }, { wins: 0, losses: 0, units: 0 });

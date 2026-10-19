@@ -31,7 +31,7 @@ class FactorReport(unittest.TestCase):
             ["c", "C", "AAA", 2.5, 100, -110, 2.0, 0.40, 3, 2.8, None, None, None, None,
              shots_factors(pos="D", slot="D1", home=0, rest=1, l_opp=1.05, l_line=1.0, games=4)],
             # Saved before the factors: still counted by its line move and season average.
-            ["d", "D", "AAA", 2.5, -118, 100, 2.7, 0.58, 4, 2.2, "up"],
+            ["d", "D", "AAA", 2.5, -118, 100, 2.7, 0.62, 4, 2.2, "up"],
             # No edge: left out unless --every.
             ["e", "E", "AAA", 2.5, -115, -105, 2.6, 0.55, 3, 2.5],
         ]

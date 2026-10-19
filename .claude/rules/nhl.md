@@ -237,9 +237,18 @@ on a replay, and the page keeps a record against the real prices.
   Foegele (0.33 shots a game, 11 minutes) was on Ottawa's top line that night and the model had
   him as a fourth-liner. The lineup closes part of that gap (0.67 -> 0.75), not all of it: most of
   what is left is a cold six-game start that this-season-only can't see past.
-- **Expect a big "check" group until about game 20.** On the first slate (teams 5 games in) 33
-  of 252 lines were 12+ points from the market: a model that has only seen this season against a
-  book that knows who Cale Makar is. That is the rule working as chosen, not a bug.
+- **The Shots bar (2026-10-19): a play is shown or left out, no Lean and no Check.** A play =
+  an edge of `SHOTS_BAR` (6 points) or more on a player NOT moved down a line tonight
+  (`shots_play`, `size` "play" / "none"). The owner asked for an audit of every graded play and
+  "only strong plays". On the first six nights (485 plays with an edge): edges of 3-6 went 50-72
+  (-20%); players moved down a line lost on BOTH sides (38-56, -22%) in both halves of the record;
+  12+ gaps were not worse (53-43) and unders on players moved UP won (45-23), so the old "check"
+  set-apart was dropped. The bar's plays went 154-117, +17.5u (+6.5%; 58.5% then 54.0% by half),
+  in sample, so expect less. **Not used, on purpose:** a cut on tonight's number against his
+  season average (it scored better, but the owner: fill-ins for injuries move a player's role,
+  "grading vs their own season average ... muddy waters"). **Points and Goals keep their
+  Lean / Strong / Check buckets** until they have more games graded (3 and 5 nights then; the
+  same two rules didn't help either). Re-run `tools/nhl_factor_report.py` before changing the bar.
 - **Power-play units: tested, not added** (`tools/backtest/nhl_pp_units.py`, 2026-10-14, the
   owner: "look into adding power play units into the model ... at least rotowire has them").
   The NHL's own shift charts (`api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId=...`,
@@ -278,7 +287,8 @@ on a replay, and the page keeps a record against the real prices.
 - `defense`: per team, what it allows a game for each stat the model reads: `season` and
   `season_rank` (1 = allows the most; what the page shows), `blend` / `factor` / `rank` (the
   steadied number the model uses), `league`, `games`.
-- `edges` (`SHOTS_EDGES`: lean 3 points, strong 6, check 12) and `record`.
+- `edges` (`SHOTS_EDGES`: lean 3, strong 6, check 12; now only the every-book price tags' sizes on
+  other pages and Best Plays' Goals / Points cutoff), `bar` (`SHOTS_BAR`, 0.06) and `record`.
 - **The record** (`model_history/nhl_shots/<month>.json`, committed by the deploy's "Save GMG
   model record" step): each finished game is written once, with every player who had a main line
   and played: `[id, name, team, line, over, under, projection, chance of the over, real shots,
@@ -294,15 +304,14 @@ on a replay, and the page keeps a record against the real prices.
     plays with an edge, the play's price moved from first seen to locked, in points of chance, when
     the line didn't move (`points` = average over `priced`); a moved line counts by direction (an
     over whose line went up = shortened). `shortened` / `drifted` / `plays`. A tile in the YTD popup. `shots_record_summary` grades the
-  better side of each line (`shots_play`, whose `size` is how the page files it) into `strong` /
-  `lean` / `none` / `check`; for edges of 3 to 12 it
+  better side of each line (`shots_play`, whose `size` is how the page files it) into `play` /
+  `none` (every saved game by today's bar, the ones before it too); for the plays it
   also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
   average (an under on a line he averages more than, or the reverse) next to plays with it.
   Wins, losses, units won risking 1 a play.
   - **The plays themselves** (the user, 2026-10-13: "a way to see plays that declared any edge and
     have a record of it. possibly grouped into buckets"): `record.days` = every day's tally of
-    the plays with an edge (lean + strong), and `record.plays` = each graded play that declared
-    an edge (lean, strong or check) on the latest `SHOTS_RECORD_DAYS` (14) days that have any:
+    the plays, and `record.plays` = each graded play on the latest `SHOTS_RECORD_DAYS` (14) days that have any:
     side, line, locked price, edge, projection, real shots, won, units, `fade`. The buckets cover
     the whole season; the list is capped so shots.json doesn't grow by a megabyte by spring.
   - On the page: the **"YTD Model Performance"** button beside the Shots on Goal title opens the
@@ -310,7 +319,8 @@ on a replay, and the page keeps a record against the real prices.
     sat at the bottom of the page first and they couldn't find it). In it, the tiles, then
     (`recordPlays` in shots.js) "Graded plays", newest day
     first, each day headed by its own W-L and units, with bucket buttons **Every edge** (how it
-    opens) / **Strong** / **Lean** / **Check first** and the shown bucket's total beside them.
+    opens) / **Overs** / **Unders** and the shown bucket's total beside them. Tiles: Plays, Not plays,
+    Overs, Unders, Against / With his average, Closing line value.
     Nothing is typed in by hand: each build adds the games that finished since the last one.
   - **Started games stay on the list, grayed, under the plays still to come** (the user, later
     the same evening, with a game under way and its players still ranked as plays: "keep all the
@@ -387,24 +397,22 @@ on a replay, and the page keeps a record against the real prices.
     side of his main Novig line ("Best side"; Overs / Unders show one side for everyone). The page
     does no shot math: it reads `chances` and compares them with prices. `pickSide` must agree
     with the build's `shots_play` (a test checks every row), since the record is graded by it.
-  - **"Check first" plays lead the ranking**, under their own heading, amber instead of green: a
-    gap of 12+ points (`check`: a handful of games against everything the market knows), and **a
-    play against tonight's line change** (`new line`: an under on a player moved up a line, an
-    over on one moved down). Then "Plays", best edge first. They sat at the bottom as "Not
-    plays" until the owner, 2026-10-14, after night one (check 44-29, +7.5u; lean 14-27): "These
-    are massive edges, and last night the top 10 plays went 9-1. I don't like that they are
-    hidden at the bottom". A **Check plays: Shown / Hidden (N)** switch (`shotsView.checks`)
-    drops them. The record still grades them as their own bucket.
+  - **It opens on the plays only** (`isPlay`: the build's bar, see "The Shots bar"), green, Rating
+    "Play". **Plays only / Every line** (`shotsView.every`) lists everyone with a line: the plays
+    first, then the rest under "Not plays", best edge first. A row over the bar on a player moved
+    down a line says **"Lower line"** (left out). No "check" group, nothing amber. A day with no
+    plays says so and offers "Show every line". The every-book tags use the same bar (`bookEdges`:
+    PLAY from 6, never on a player moved down, no CHECK).
   - **Toolbar:** Side, Skaters and Lineups are dropdowns (`.shots-filter-select`, the owner: "to
-    reduce the clutter"), then the Check plays switch. "How the number is made" sits at the top
+    reduce the clutter"), then Plays only / Every line. "How the number is made" sits at the top
     of the Shots panel, under the schedule strip.
   - **Line column:** L1-L4 / D1-D3 from the projected lineup, an arrow when it is above or below
     the line his minutes say he has been on, "--" until the lineup is posted. A note above the
     table says how many of the day's games have lineups, and each game in the strip is marked
     "Lineup" (with a check mark) or "No lineup yet" (`board.posted`). The breakdown shows the line as its own
     piece ("L1 tonight +13%"), his linemates, and who is injured or scratched.
-  - Columns: Line, the play (**"o1.5" / "u2.5"** chip with Novig's price), **Rating** (the
-    record's bucket: Strong / Lean / Check / New line, plus "vs his avg"), Avg (his season
+  - Columns: Line, the play (**"o1.5" / "u2.5"** chip with Novig's price), **Rating** (Play, or
+    Lower line when left out over the bar, plus "vs his avg" on a play), Avg (his season
     average) next to Proj, Fair price (the model's chance in its hover), Edge. Then the
     **advanced stats**, folded away until "Expand advanced stats" (see "Trimmed tables" below):
     Min (arrow = a minute off his season average) and what moved the number: Opp, Pos, Spots, PP,
@@ -1033,7 +1041,8 @@ not a member page). **Groundwork only: no weight was changed.**
 The owner: "I don't care about the noise, I am in a rush: what are my best overall bets
 tonight." First under Player Props. A short list that sends people to the Shots and Goals
 pages for the detail, not a copy of them.
-- **Every play the Shots, Goals and Points pages call an edge (3+ points, `edges.lean`)**, all
+- **Every play the Shots, Goals and Points pages call a play** (Shots: its bar, `shots.json` `bar`
+  and not moved down a line; Goals and Points: 3+ points, `edges.lean`), all
   three markets in one table, biggest edge first. The Shots play is the Shots page's best side
   (the build's `shots_play`, so the record grades the same play); the Goals play is goals.json's
   `edge`; the Points play is points.json's `side` / `price` / `edge` ("o0.5 points", "Points ›").

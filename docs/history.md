@@ -1244,6 +1244,20 @@ information."
   proof that nothing moved (every element's computed style, old file against new) is for a
   structural move like this one only, never for ordinary changes.
 
+## 2026-10-19: the NHL Shots bar (shown or left out)
+
+The owner asked for an audit of every graded Shots, Points and Goals play, to find the losing
+factors and raise the bar so "only strong plays show", with no "check" tier. The record held 6
+nights of Shots (485 plays with an edge), 3 of Points (162) and 5 of Goals (19 goals). To keep one
+fluky night from deciding it, only factors that pointed the same way in both halves of the record
+counted. Shots: 3-6 point edges and players moved down a line lost in both halves; big gaps and
+unders on players moved up did not. A third cut, the edge coming only from tonight's matchup
+adjustment against his season average, scored best (+14.5% in sample) but the owner turned it
+down: a fill-in for an injury rightly projects above his average, and grading against it is
+"muddy waters". The owner chose to change Shots only and leave Points and Goals until more games
+are graded (the same two rules didn't help them on so few nights). Shots, before: shown plays
+133-155, -31.6u; after: 154-117, +17.5u, in sample.
+
 ## 2026-10-13 evening: the outage, the live check, and last season leaving the NHL suite
 
 - The owner reported the site down for paying members for over two hours while their Claude

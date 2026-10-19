@@ -99,9 +99,18 @@ SHOTS_LADDER = 8
 # Injury statuses that mean "not playing" (everything but day-to-day).
 OUT_STATUSES = ("Out", "Injured Reserve", "Suspension")
 # An edge is the model's chance minus the chance the price needs to break
-# even. The page colors a play from "lean", and sets a play at "check" or more
-# apart: a gap that big is more often news the model can't see than a gift.
+# even. SHOTS_EDGES still sizes the every-book price tags (book-odds.js) and
+# Best Plays' Goals / Points cutoff; the Shots plays themselves use SHOTS_BAR.
 SHOTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
+# The Shots bar (the owner, 2026-10-19, after an audit of every graded play):
+# a play is shown or left out, no "lean" and no "check". Shown = an edge of
+# SHOTS_BAR or more on a player NOT moved down a line tonight. On the first six
+# nights, edges of 3-6 went 50-72 and moved-down players lost on both sides
+# (38-56) in both halves; the bar's plays went 154-117, +6.5% (in sample).
+# A gap of 12+ is no longer set apart (those went 53-43), and an under on a
+# player moved UP is a play (45-23). Points and Goals keep their buckets until
+# they have more games graded.
+SHOTS_BAR = 0.06
 # The Shots page lists the graded plays of the latest days that have any (the
 # buckets and the day-by-day line cover the whole season; listing every play
 # of a season would make shots.json a megabyte heavier by spring).
@@ -1810,13 +1819,12 @@ def shots_play(chance_over: float, line: float, over, under, avg=None, move=None
     `fade` = the play goes against his own season average (an under on a line
     he averages more than, or the other way round): the model thinks a small
     sample has run hot or cold.
-    `size` = how the page files it: "strong" / "lean" / "none" by the edge, or
-    "check" (set apart, not a play) when the gap is too big to take at face
+    `size` = how the page files it. Shots (no `edges`): "play" at an edge of
+    SHOTS_BAR or more on a player not moved down a line tonight, else "none".
+    Points (`edges` = POINTS_EDGES): "strong" / "lean" / "none" by the edge,
+    or "check" (set apart, not a play) when the gap is too big to take at face
     value OR the play goes against tonight's line change: an under on a
-    player moved up a line (`move` "up"), an over on one moved down. His games
-    so far don't describe the role he has tonight, and the book knows it.
-    `edges` = the page's buckets (Shots' by default; the Points page uses it too)."""
-    edges = edges or SHOTS_EDGES
+    player moved up a line (`move` "up"), an over on one moved down."""
     sides = [(side, price, chance) for side, price, chance in (("over", over, chance_over), ("under", under, 1 - chance_over)) if price is not None]
     if not sides:
         return None
@@ -1824,9 +1832,12 @@ def shots_play(chance_over: float, line: float, over, under, avg=None, move=None
     edge = chance - break_even(price)
     fade = avg is not None and (avg > line if side == "under" else avg < line)
     against_move = move == ("up" if side == "under" else "down")
-    size = next((key for key in ("check", "strong", "lean") if edge >= edges[key]), "none")
-    if against_move and size != "none":
-        size = "check"
+    if edges is None:
+        size = "play" if edge >= SHOTS_BAR and move != "down" else "none"
+    else:
+        size = next((key for key in ("check", "strong", "lean") if edge >= edges[key]), "none")
+        if against_move and size != "none":
+            size = "check"
     return {"side": side, "line": line, "price": price, "chance": chance, "edge": edge, "fade": fade, "against_move": against_move, "size": size}
 
 
@@ -1913,12 +1924,12 @@ def shots_record_summary(folder: Path) -> dict:
 
     Also the plays themselves (the owner, 2026-10-13: "a way to see plays that
     declared any edge and have a record of it, possibly grouped into buckets"):
-    `days` = every day's tally of the plays with an edge (lean + strong),
-    oldest first, and `plays` = each graded play that declared an edge
-    (lean, strong or check) on the latest SHOTS_RECORD_DAYS days, newest day
-    first and biggest edge first within a day."""
+    `days` = every day's tally of the plays (shots_play's "play": the bar),
+    oldest first, and `plays` = each graded play on the latest
+    SHOTS_RECORD_DAYS days, newest day first and biggest edge first within a
+    day. Every saved game is graded by today's bar, the games before it too."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
-    out = {"since": None, "through": None, "games": 0, "check": tally(), "strong": tally(), "lean": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally(),
+    out = {"since": None, "through": None, "games": 0, "play": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally(),
            "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0}}
     days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
@@ -1936,8 +1947,8 @@ def shots_record_summary(folder: Path) -> dict:
                 units = (100 / -play["price"] if play["price"] < 0 else play["price"] / 100) if won else -1.0
                 size = play["size"]
                 # Overs against unders, and plays against his season average
-                # ("fade") against plays with it: only the plays the page calls an edge.
-                called = [play["side"], "fade" if play["fade"] else "with"] if size in ("strong", "lean") else []
+                # ("fade") against plays with it: only the plays.
+                called = [play["side"], "fade" if play["fade"] else "with"] if size == "play" else []
                 for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
@@ -3352,7 +3363,7 @@ def main():
         print(f"WARNING: the Shots record couldn't be updated ({e}).", file=sys.stderr)
         record = None
     shots = {
-        "season": args.season, "generated_at": generated_at, "weights": model.w, "dispersion": shots_model.DISPERSION, "edges": SHOTS_EDGES,
+        "season": args.season, "generated_at": generated_at, "weights": model.w, "dispersion": shots_model.DISPERSION, "edges": SHOTS_EDGES, "bar": SHOTS_BAR,
         "games": board, "defense": shots_defense(model, teams), "record": record, "lineups": lineups_for_page(tonight, stats["goalies"]),
     }
     with open(args.out.parent / "shots.json", "w") as f:
