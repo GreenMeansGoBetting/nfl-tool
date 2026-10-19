@@ -156,8 +156,8 @@ function rinkSvg(uid, ariaLabel, zoneFn) {
   RINK_ZONES.forEach((z) => {
     const d = zoneFn(z) || {};
     const [x, y] = z.at;
-    // `league` (leagueAttr) makes the zone open the league-wide list for that spot.
-    shapes += `<g class="nhl-zone${d.cls ? ` ${d.cls}` : ""}${d.league ? " nhl-zone-click" : ""}"${d.style ? ` style="${d.style}"` : ""}${d.league ? ` data-league="${d.league}"` : ""}><title>${d.tip || z.label}${d.league ? ". Click for every team." : ""}</title>${z.shape}</g>`;
+    // `league` (leagueAttr) makes the zone open the league-wide list for that spot; `click` says what a click shows.
+    shapes += `<g class="nhl-zone${d.cls ? ` ${d.cls}` : ""}${d.league ? " nhl-zone-click" : ""}"${d.style ? ` style="${d.style}"` : ""}${d.league ? ` data-league="${d.league}"` : ""}><title>${(d.tip || z.label).replace(/\.$/, "")}${d.league ? `. ${d.click || "Click for every team."}` : ""}</title>${z.shape}</g>`;
     // The small print over a colored zone is drawn in the full text color so it stays readable.
     labels += `<g${d.cls ? ` class="nhl-zone-on-color"` : ""}>${z.small
       ? `<text class="nhl-zone-label" x="${x}" y="${y + 2.4}">${z.label}: ${d.big ?? "--"}${d.small ? ` &middot; ${d.small}` : ""}</text>`
@@ -270,10 +270,56 @@ function ensureLeagueModal() {
 function closeLeagueModal() {
   if (el("nhl-league-modal")) el("nhl-league-modal").hidden = true;
 }
+// Who on one offense shoots the most from one spot: Game Previews' rink zones carry
+// `who: true`, and their popup lists these players above every team's number. Shots a game
+// from there (on goal or wide, like the rink) from the team's players file. Players out
+// injured are left off (day-to-day stay), and a player needs a few games so one hot night
+// can't top the list.
+const SHOOTER_MIN_GAMES = 3;
+const SHOOTER_ROWS = 8;
+function zoneShooters(file, abbr, area) {
+  const out = new Set((DATA.injuries[abbr] || []).filter((p) => p.id && p.status !== "Day-To-Day").map((p) => p.id));
+  const rows = (DATA.skaters[abbr] || [])
+    .filter((p) => !out.has(p.id))
+    .map((p) => {
+      const season = file && file.skaters && file.skaters[p.id] && file.skaters[p.id].season;
+      const games = season ? season.log.length : 0;
+      if (!games) return null;
+      const areas = season.areas || {};
+      const located = RINK_ZONES.reduce((a, z) => a + ((areas[z.key] || [])[0] || 0), 0);
+      const [shots = 0, onGoal = 0, goals = 0] = areas[area] || [];
+      return { p, games, shots, onGoal, goals, pg: shots / games, share: located ? shots / located : null };
+    })
+    .filter(Boolean);
+  const min = Math.min(SHOOTER_MIN_GAMES, Math.max(0, ...rows.map((r) => r.games)));
+  return rows
+    .filter((r) => r.games >= min && r.shots > 0)
+    .sort((a, b) => b.pg - a.pg || b.shots - a.shots)
+    .slice(0, SHOOTER_ROWS);
+}
+function zoneShootersHtml(file, abbr, area) {
+  if (!file) return `<p class="no-data-note">Couldn't load ${abbr}'s players.</p>`;
+  const list = zoneShooters(file, abbr, area);
+  if (!list.length) return `<p class="no-data-note">No ${abbr} shots from here yet.</p>`;
+  // Shots a game on the eight colors down the list (the most = green), like the rink; ties share a color.
+  const rankOf = (r) => 1 + list.filter((o) => fmt(o.pg) !== fmt(r.pg) && o.pg > r.pg).length;
+  const body = list
+    .map((r) => `<tr>
+        <td class="nba-player">${playerClick(r.p.id, `${headshot(r.p)}<span>${r.p.name}</span>`)}<span class="muted-label">${r.p.pos || ""}</span></td>
+        <td class="num nhl-league-val"${list.length > 1 ? cellOnStep(rankStep(rankOf(r), list.length)) : ""}>${fmt(r.pg)}</td>
+        <td class="num">${pct(r.share, 0)}</td><td class="num">${r.onGoal}</td><td class="num">${r.goals}</td><td class="num">${r.games}</td>
+      </tr>`)
+    .join("");
+  return `<div class="nhl-league-scroll"><table class="data-table nhl-league-table nhl-who-table">
+      <thead><tr><th>${logo(abbr, 16)} Player</th><th class="num" title="Shots a game from here, on goal or wide">Shots / g</th><th class="num" title="Share of all his shots that come from here">Share</th><th class="num" title="Shots on goal from here">On goal</th><th class="num">Goals</th><th class="num" title="Games played">GP</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table></div>`;
+}
 function openLeagueModal(p) {
   if (!DATA) return;
   ensureLeagueModal();
   const spec = leagueSpec(p);
+  const zone = p.who && p.off && p.area && RINK_ZONES.find((z) => z.key === p.area);
   const sides = spec.sides.map((side) => ({ ...side, rows: leagueSideRows(side) }));
   const n = Math.max(...sides.map((s) => s.rows.length));
   const teamTd = (r, side) => `<td class="nhl-league-team${r.team === side.team ? " nhl-league-cur" : ""}">${logo(r.team, 18)} <span>${team(r.team).name}</span></td>`;
@@ -295,7 +341,14 @@ function openLeagueModal(p) {
     const name = `<th class="nhl-league-team-h">${logo(side.team, 16)} ${side.head}</th>`;
     return mirror ? cols.reverse().join("") + name : name + cols.join("");
   };
-  el("nhl-league-content").innerHTML = `<h3>${spec.title}</h3>
+  // A Game Previews zone: who on this offense shoots from here first, then every team.
+  const who = zone
+    ? `<h3>${zone.label}: ${team(p.off).name} shooters</h3>
+      <p class="section-note">Who shoots the most from here, a game this season (players out injured left off; ${SHOOTER_MIN_GAMES}+ games).</p>
+      <div id="nhl-league-who"><p class="no-data-note">Loading&hellip;</p></div>
+      <h3 class="nhl-who-next">${spec.title}</h3>`
+    : `<h3>${spec.title}</h3>`;
+  el("nhl-league-content").innerHTML = `${who}
     <p class="section-note">${spec.note}</p>
     <div class="nhl-league-scroll"><table class="data-table nhl-league-table">
       <thead><tr><th></th>${heads(left)}${right ? `<th></th>${heads(right, true)}` : ""}</tr></thead>
@@ -304,6 +357,12 @@ function openLeagueModal(p) {
   const overlay = el("nhl-league-modal");
   document.body.appendChild(overlay); // last in the page, so it opens over the player card
   overlay.hidden = false;
+  if (zone) {
+    const opened = el("nhl-league-who");
+    loadTeamPlayers(p.off).then((file) => {
+      if (el("nhl-league-who") === opened) opened.innerHTML = zoneShootersHtml(file, p.off, zone.key);
+    });
+  }
 }
 
 // ---- the player card ----
@@ -681,7 +740,10 @@ document.addEventListener("click", (e) => {
   const league = e.target.closest("[data-league]");
   if (league) return openLeagueModal(JSON.parse(decodeURIComponent(league.dataset.league)));
   const name = e.target.closest(".player-click[data-player]");
-  if (name) return openPlayerCard(name.dataset.player);
+  if (name) {
+    if (name.closest("#nhl-league-modal")) closeLeagueModal(); // a shooter's name: the card takes over
+    return openPlayerCard(name.dataset.player);
+  }
   if (e.target.closest("#theme-toggle")) {
     const light = !isLight();
     if (light) document.documentElement.dataset.theme = "light";

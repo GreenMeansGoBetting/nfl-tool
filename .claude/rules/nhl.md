@@ -359,6 +359,12 @@ on a replay, and the page keeps a record against the real prices.
     under it the Shots page's three boxes for the other DEFENSE (allows a game, share of all it
     allows, rank). The zone keeps its both-sides color (`rinkStep`); the boxes are on the
     defense's own rank colors.
+  - Clicking a zone there (the user, 2026-10-19: "lists which opposing players shoot most from
+    that zone") opens the every-team list with that offense's shooters above it
+    (`zoneShooters` in nhl-common.js, `who: true` in the zone's `leagueAttr`): up to 8 players,
+    shots a game from the zone (on goal or wide, from `players/<TEAM>.json`), share of his shots,
+    on goal, goals, games; players Out / IR left off, 3+ games, ties share a color. A name opens
+    the card in place of the list. Test: `test_a_zone_lists_its_shooters`.
 - **Every team, one number: the league-wide list** (`openLeagueModal` in nhl-common.js, the
   NFL site's stat-rank popup redone for hockey; the user asked for it "on all pages"). Any
   element with `data-league="${leagueAttr(p)}"` opens it: every rink zone (Game Previews both

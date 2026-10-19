@@ -405,12 +405,15 @@ class LeagueLists(unittest.TestCase):
                 document.querySelector(selector).dispatchEvent(new MouseEvent("click", { bubbles: true }));
                 const box = document.getElementById("nhl-league-modal");
                 const text = (el) => el.textContent.trim().replace(/\\s+/g, " ");
+                // The every-team list (a rink zone's shooters sit above it: test_a_zone_lists_its_shooters).
+                const table = box.querySelector(".nhl-league-table:not(.nhl-who-table)");
                 return {
                     open: !box.hidden,
-                    title: text(box.querySelector("h3")),
-                    head: [...box.querySelectorAll("thead th")].map(text),
-                    rows: [...box.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map(text)),
-                    current: [...box.querySelectorAll("tbody td.nhl-league-team.nhl-league-cur")].map(text),
+                    titles: [...box.querySelectorAll("h3")].map(text),
+                    title: text([...box.querySelectorAll("h3")].pop()),
+                    head: [...table.querySelectorAll("thead th")].map(text),
+                    rows: [...table.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map(text)),
+                    current: [...table.querySelectorAll("tbody td.nhl-league-team.nhl-league-cur")].map(text),
                 };
             }""",
             [self.game["game_id"], selector],
@@ -432,9 +435,49 @@ class LeagueLists(unittest.TestCase):
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.evaluate("() => document.getElementById('nhl-league-modal').hidden"))
 
+    def test_a_zone_lists_its_shooters(self):
+        # The owner, 2026-10-19: clicking a zone lists which of the offense's players shoot most
+        # from there. From the team's players file: shots a game from the zone, most first,
+        # players out injured left off, 3+ games.
+        file = nhl_players()["NJD"]
+        out = {p["id"] for p in self.blob["injuries"].get("NJD", []) if p.get("id") and p["status"] != "Day-To-Day"}
+        rows = []
+        for p in self.blob["skaters"]["NJD"]:
+            season = (file["skaters"].get(p["id"]) or {}).get("season")
+            if p["id"] in out or not season or len(season["log"]) < 3:
+                continue
+            shots = (season["areas"].get("slot") or [0])[0]
+            if shots:
+                rows.append((-shots / len(season["log"]), -shots, p["name"]))
+        expect = [name for *_, name in sorted(rows, key=lambda r: r[:2])[:8]]
+        shown = PAGE.evaluate(
+            """async (id) => {
+                selectGame(id);
+                const zone = [...document.querySelectorAll("#rink-content svg .nhl-zone[data-league]")]
+                    .find((g) => { const p = JSON.parse(decodeURIComponent(g.dataset.league)); return p.area === "slot" && p.off === "NJD"; });
+                zone.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+                await loadTeamPlayers("NJD");
+                await new Promise((r) => setTimeout(r, 0));
+                const box = document.getElementById("nhl-league-modal");
+                const names = [...box.querySelectorAll(".nhl-who-table tbody tr .player-click span")].map((s) => s.textContent);
+                const titles = [...box.querySelectorAll("h3")].map((h) => h.textContent);
+                // A name opens the player card in place of the list.
+                box.querySelector(".nhl-who-table .player-click").click();
+                const after = { list: !box.hidden, card: !document.getElementById("player-card-modal").hidden };
+                closePlayerCard();
+                return { names, titles, after };
+            }""",
+            self.game["game_id"],
+        )
+        self.assertTrue(expect)
+        self.assertEqual(shown["names"], expect)
+        self.assertEqual(shown["titles"], [f"Slot: {self.blob['teams']['NJD']['name']} shooters", "Slot: every team"])
+        self.assertEqual(shown["after"], {"list": False, "card": True})
+        self.assertEqual(SITE.errors, [])
+
     def test_an_offense_vs_defense_number_opens_its_row(self):
         shown = self.open_list("#matchups-content td[data-league]")
-        self.assertEqual(shown["title"], "Goals / game: every team")
+        self.assertEqual(shown["titles"], ["Goals / game: every team"])  # no shooters list here
         self.assertEqual(shown["head"], ["", "Offense", "For", "", "Allows", "Defense"])
         self.assertEqual(len(shown["current"]), 2)
         PAGE.evaluate("() => closeLeagueModal()")

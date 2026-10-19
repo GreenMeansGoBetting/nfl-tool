@@ -63,8 +63,10 @@ function rink(offTeam, defTeam, uid) {
     const allowed = `${fmt(allows)}/g`;
     const rankBox = allowsRank ? rankBoxText(allowsRank) : null;
     const tip = `${z.label}: ${offTeam} ${fmt(takes)} a game${takesRank ? `, ${rankWords(takesRank)}` : ""} (${pct(off[`off_${z.key}_share`], 0)} of its shots, ${off[`off_${z.key}_g`] ?? 0} goals). ${defTeam} allows ${fmt(allows)}${allowsRank ? `, ${rankWords(allowsRank)}` : ""} (${pct(share, 0)} of what it gives up, ${def[`def_${z.key}_g`] ?? 0} goals).`;
-    const league = leagueAttr({ area: z.key, off: offTeam, def: defTeam });
-    if (z.small) return { big: fmt(takes), small: `allows ${allowed} &middot; ${pct(share, 0)} &middot; ${allowsRank ? rankWords(allowsRank) : "--"}`, tip, league };
+    // A click lists who on this offense shoots the most from the zone, then every team.
+    const league = leagueAttr({ area: z.key, off: offTeam, def: defTeam, who: true });
+    const click = `Click for ${offTeam}'s shooters from here and every team.`;
+    if (z.small) return { big: fmt(takes), small: `allows ${allowed} &middot; ${pct(share, 0)} &middot; ${allowsRank ? rankWords(allowsRank) : "--"}`, tip, league, click };
     const own = allowsRank ? rankStep(allowsRank, teamCount()) : null;
     return {
       ...(step === null ? {} : zoneOnStep(step)),
@@ -72,6 +74,7 @@ function rink(offTeam, defTeam, uid) {
       boxes: [{ text: allowed, step: own, w: 6.6 }, { text: pct(share, 0), step: shareRank ? rankStep(shareRank, teamCount()) : null, w: 4.7 }, { text: rankBox ? rankBox.text : "--", sub: rankBox ? rankBox.sub : "", step: own, w: 5.2 }],
       tip,
       league,
+      click,
     };
   });
   return `<div class="nba-box nhl-rink-box">

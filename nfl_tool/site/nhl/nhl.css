@@ -57,6 +57,9 @@
 .nhl-league-table td.nhl-league-rank { background: transparent; color: var(--muted); font-size: 0.72rem; font-weight: 700; text-align: right; }
 .nhl-league-table td.nhl-league-gap, .nhl-league-table th:empty { background: transparent; min-width: 10px; padding: 0; }
 .nhl-league-table td.nhl-league-team span { font-weight: 600; }
+.nhl-who-table td.nba-player .player-click { display: inline-flex; align-items: center; gap: 6px; }
+.nhl-who-table td.nba-player .muted-label { margin-left: 6px; }
+#nhl-league-content h3.nhl-who-next { margin-top: 18px; }
 .nhl-league-table td.nhl-league-cur { box-shadow: inset 0 0 0 2px var(--text) !important; }
 .nhl-league-table td.nhl-league-team.nhl-league-cur { background-color: rgba(var(--accent-rgb), 0.16); }
 .nhl-league-table td.nhl-league-team.nhl-league-cur span { font-weight: 800; }
