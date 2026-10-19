@@ -95,7 +95,7 @@ def expected_plays(day=TONIGHT):
                 continue
             play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
             if play:
-                out[row["id"]] = {**play, "mean": row["mean"], "avg": row["avg"], "slot": row["slot"], "move": row["move"]}
+                out[row["id"]] = {**play, "mean": row["mean"], "avg": row["avg"], "slot": row["slot"], "move": row["move"], "posted": bool(shots["games"][g["game_id"]].get("posted"))}
     return out
 
 
@@ -119,9 +119,12 @@ class Ranking(unittest.TestCase):
         for r in reset():
             play = plays[r["id"]]
             self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} {price(play['price'])}", r)
-            # The Rating column: a play says so; over the bar but moved down a line says why it is left out.
-            rating = "Play" if play["size"] == "play" else "Lower line" if play["edge"] >= build_nhl.SHOTS_BAR and play["move"] == "down" else "--"
+            # The Rating column: a play says so (and, before its game's lineup is posted, that it assumes he
+            # stays on his usual line); over the bar but moved down a line says why it is left out.
+            rating = ("Play" if play["posted"] else "Play: no lineup yet") if play["size"] == "play" else "Lower line" if play["edge"] >= build_nhl.SHOTS_BAR and play["move"] == "down" else "--"
             self.assertTrue(r["rating"].startswith(rating), (r, play["size"]))
+            if rating == "Play":
+                self.assertNotIn("no lineup", r["rating"], r)
             shown = r["edge"].replace("thin", "").strip()
             self.assertLessEqual(abs(float(shown) - play["edge"] * 100), 0.05 + 1e-9, r)
             self.assertNotEqual(shown, "-0.0", r)
@@ -158,6 +161,12 @@ class Ranking(unittest.TestCase):
         rows = reset(every=False)
         self.assertEqual({r["id"] for r in rows}, {pid for pid, play in plays.items() if play["size"] == "play"})
         self.assertTrue(all(r["rating"].startswith("Play") and r["green"] for r in rows))
+        # Before a game's lineup is posted its plays are listed, tagged as assuming no line change;
+        # the one game with a posted lineup (STL @ OTT) has plain plays.
+        pending = {r["id"] for r in rows if "no lineup yet" in r["rating"]}
+        self.assertEqual(pending, {pid for pid, p in plays.items() if p["size"] == "play" and not p["posted"]})
+        self.assertGreater(len(pending), 0)
+        self.assertGreater(len(rows), len(pending))
         self.assertEqual(len(PAGE.query_selector_all(".shots-rest-head")), 0)
         active = lambda: PAGE.evaluate("() => document.querySelector('.shots-filter-btn[data-filter=\"every\"].active').textContent")
         self.assertEqual(active(), "Plays only")

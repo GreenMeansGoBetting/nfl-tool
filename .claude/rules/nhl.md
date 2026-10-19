@@ -400,7 +400,12 @@ on a replay, and the page keeps a record against the real prices.
   - **It opens on the plays only** (`isPlay`: the build's bar, see "The Shots bar"), green, Rating
     "Play". **Plays only / Every line** (`shotsView.every`) lists everyone with a line: the plays
     first, then the rest under "Not plays", best edge first. A row over the bar on a player moved
-    down a line says **"Lower line"** (left out). No "check" group, nothing amber. A day with no
+    down a line says **"Lower line"** (left out). **Before a game's lineup is posted** nobody can
+    have moved, so its plays are listed on the assumption he stays on his usual line, tagged
+    **"Play: no lineup yet"** (dashed, `pendingLineup`; the owner, 2026-10-19: "post them with the
+    assumption, but tag it as such"); once the lineup is in each stays a plain Play or drops off.
+    Every graded play through 10-18 had its lineup posted by puck drop. Best Plays says the same
+    with its "No lineup" note. No "check" group, nothing amber. A day with no
     plays says so and offers "Show every line". The every-book tags use the same bar (`bookEdges`:
     PLAY from 6, never on a player moved down, no CHECK).
   - **Toolbar:** Side, Skaters and Lineups are dropdowns (`.shots-filter-select`, the owner: "to

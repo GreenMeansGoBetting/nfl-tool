@@ -30,6 +30,10 @@ const bar = () => (SHOTS && has(SHOTS.bar) ? SHOTS.bar : 0.06);
 const isPlay = (x) => !!x.play && x.play.edge >= bar() && x.r.move !== "down";
 // Over the bar but left out: he is on a lower line tonight (those lost on both sides).
 const movedDown = (x) => !!x.play && x.play.edge >= bar() && x.r.move === "down";
+// Before the game's lineup is posted nobody can have moved: the play assumes he stays on his
+// usual line and says so (the owner, 2026-10-19: "post them with the assumption, but tag it as
+// such"). Once the lineup is in it stays a play, or drops off if he was moved down.
+const pendingLineup = (x) => isPlay(x) && !(x.board || {}).posted;
 // The every-book price tags at the same bar: PLAY from it (never on a player moved down), no CHECK.
 const bookEdges = (x) => ({ lean: x.r.move === "down" ? Infinity : bar(), check: Infinity });
 // A matchup piece is colored once it moves the projection this much.
@@ -231,7 +235,9 @@ function ratingCell(x) {
   const n = Math.round(bar() * 100);
   // Said out loud when a play goes against what his game log shows.
   const fade = play.fade && isPlay(x) ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} a game in ${r.games} games): the model thinks a small sample has run ${play.side === "under" ? "hot" : "cold"}. Click the row to see how much it discounts it.">vs his avg</span>` : "";
-  const tag = isPlay(x)
+  const tag = pendingLineup(x)
+    ? ratingTag("pending", "Play: no lineup yet", `An edge of ${n}+ points, assuming ${r.name} stays on his usual line. The NHL hasn't posted this game's projected lineup (usually around midday Eastern). Once it does, this stays a play, or drops off if he is moved down a line.`)
+    : isPlay(x)
     ? ratingTag("play", "Play", `An edge of ${n}+ points on a player not moved down a line tonight`)
     : movedDown(x)
       ? ratingTag("out", "Lower line", `Left out: ${r.name} is on a lower line tonight than his minutes this season say he has been on. In the record, players moved down a line lost on both sides.`)
