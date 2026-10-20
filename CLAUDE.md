@@ -70,7 +70,7 @@ that, move detail into a rules file.
 - `nfl_tool/gmg_model.py`: GMG score model, its picks and the locked record.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> `book_odds` in data.json and nhl/data.json, shown by `site/book-odds.js` (shared: best-price pill, all-books list; tags only against our own model; data-pipeline.md, nhl.md).
-- `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`. `nfl_tool/nba/kotc.py`: King of the Court; `first_basket.py`: First Basket (nba.md).
+- `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`. `nfl_tool/nba/kotc.py`: King of the Court; `first_basket.py`: First Basket (nba.md). `nfl_tool/nba/possessions.py`: the NBA engine (every possession with the ten on the floor; every new NBA tool reads it).
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
 - `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (King of the Crease and the Saves page, `nhl/saves.json`); `goals_model.py`: anytime goals (`nhl/goals.json`); `points_model.py`: 1+ point, on top of goals (`nhl/points.json`); `stacks_model.py`: Line Stacks, 2-4 linemates' point legs together (`nhl/stacks.json`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
@@ -130,7 +130,7 @@ that, move detail into a rules file.
 - **Phone layout:** phone-only rules go in the last `@media (max-width: 760px)` block of
   style.css so desktop stays pixel-identical; new wide tables must scroll inside their own box.
 - The TD Data page is considered solid; change it only when asked.
-- **The NHL suite is this season only**: no last-season data in any model or on any page, not even fading out (nhl.md).
+- **The NHL suite is this season only**: no last-season data in any model or on any page, not even fading out (nhl.md). **NBA: plays and projections come from this season only**; 2025-26 is for backtests and labeled reference data, never a number or a play (nba.md).
 
 ## Where the detail lives
 

@@ -9,6 +9,48 @@ Started 2026-10-11; the 2026-27 season tips off 2026-10-20. The user wants the N
 site on the same website, reached from a suite dropdown. The brand is "GMG Sports Data Suite";
 NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 
+## This season decides (the owner, 2026-10-20)
+
+**Every NBA play, projection, tag and pick comes from 2026-27 games only.** 2025-26 is used for
+backtests (fitting weights, measuring how many games a number needs before it means anything)
+and may be shown as reference data with a clear 2025-26 label, but it never feeds a number or a
+play, not even as a starting point that fades out. Before this season has enough games for a
+number, show the data, not a projection. The owner: "A team with a new starting lineup and players
+in and out (take boston - no brown add george - completely different) changes everything!"
+- **The one exception:** King of the Court keeps its built behavior (last-season default view and
+  `PRIOR_GAMES`) for its first week; the owner: "Keep King of the Court as built for its first
+  week, and apply the this-season-only rule to all new tools." Ask before changing it.
+
+## The engine (`nfl_tool/nba/possessions.py`, 2026-10-20)
+
+The foundation every new NBA tool reads instead of the raw play-by-play. `Season(pbp, box)`
+gives three tables: `possessions` (offense / defense, the five on the floor for each `o1..o5` /
+`d1..d5`, start type make / miss / steal / dead_to / period, `t0`, `secs`, `margin`, points,
+shots, free throws, turnovers, offensive rebounds, `first_secs`), `actions` (every shot, free
+throw, turnover, rebound and foul with both fives; shots carry `dist`, `zone` rim / short / mid /
+corner3 / above3, `kind2` catch / pullup / stepback / fade / drive / cut / post / floater /
+putback / lob, the assister and the blocker; turnovers the stealer) and `stints` (each five's
+time together). `py nfl_tool/nba/possessions.py --season 2026 --data-dir data/nba` prints the
+health check (about a minute).
+
+- **Lineups:** ESPN has every sub but not who starts a quarter. A player who does something (or
+  is subbed out) before being subbed in started it; a quarter a player plays all of silently is
+  filled from the box score (the teammate furthest above his rebuilt minutes). Technical fouls
+  and ejections don't count (bench players get them).
+- **ESPN's team_id is sometimes the wrong side** (401810560 gave CHI 9 points too many): a play's
+  team comes from its player's box-score team, and points from the scoreboard's change. A player
+  with no id in the box score (401810150) gets his team from his own plays.
+- **All-Star sides** are left out: a team needs half the games of the most-played team (at most
+  20), so opening week still counts.
+- 2025-26 health: 1,230 games, 99.5 possessions a team-game, minutes within 1 of the box score
+  99.99% (all within 2), team points match 2,459 of 2,460 (401810102: ESPN's play-by-play is
+  missing plays). Corner 3 = |y| 21.5+ and |x| 33+, a quarter of all threes (the NBA's split).
+- Not in the build yet: the first page that uses it hooks it in (pbp file 22 MB a season).
+- What it answered first (the owner's "when will a guy like Peyton Pritchard shoot more"):
+  Pritchard took 20.2% of Boston's shots with Jaylen Brown on the floor, 28.2% without.
+- Tests: `tests/test_nba_possessions.py` (two real games in `tests/fixtures/nba_*_games.csv.gz`
+  plus a hand-made one).
+
 ## Suite switcher and launch switch
 
 - The top menu (`addTopMenu`, sync.js, 2026-10-17): NFL, NBA, NHL and Promo Tools are buttons in
