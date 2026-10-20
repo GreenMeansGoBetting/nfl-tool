@@ -28,6 +28,9 @@ from pathlib import Path
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).parent))
+import kotc  # noqa: E402
+
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
     "schedule": "espn_nba_schedules/nba_schedule_{season}.parquet",
@@ -411,6 +414,110 @@ def apply_lines(games: list, novig: dict, previous: dict | None, now_utc: dateti
         g["lines_locked"] = started
 
 
+# ---- King of the Court (kotc.py) ----
+KOTC_SLATE_NIGHTS = 3
+KOTC_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_kotc"
+KOTC_DEFAULT_THIS_SEASON_AT = 4  # team games played (median) before the page opens on this season
+KOTC_RECORD_TOP = 30
+
+
+def season_label(season: int) -> str:
+    return f"{season - 1}-{str(season)[2:]}"
+
+
+def kotc_lines(season: int, games: list) -> dict:
+    """{game_id: [total, home spread]} for a season. Last season's are a saved
+    file (DraftKings' numbers from ESPN, nba/lines_<season>.json). This
+    season's are the Novig lines each game had at tip-off, kept in
+    model_history/nba_kotc/lines_<season>.json as games start."""
+    saved = Path(__file__).parent / f"lines_{season}.json"
+    if saved.exists():
+        return json.loads(saved.read_text())
+    path = KOTC_RECORD_DIR / f"lines_{season}.json"
+    lines = json.loads(path.read_text()) if path.exists() else {}
+    changed = False
+    for g in games:
+        if g.get("lines_locked") and g["game_id"] not in lines and (g.get("total_line") or g.get("home_team_spread") is not None):
+            lines[g["game_id"]] = [g.get("total_line"), g.get("home_team_spread")]
+            changed = True
+    if changed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(lines, indent=0, sort_keys=True))
+    return lines
+
+
+def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
+    """Both seasons' boards (the page's season toggle), the next few nights'
+    slates projected from each, and the record of each night's board."""
+    blocks = {}
+    prev_box = fetch_file("player_box", season - 1, data_dir, False)
+    if prev_box is not None:
+        pg = kotc.player_games(prev_box, teams)
+        blocks[season - 1] = kotc.season_block(pg, kotc_lines(season - 1, games), season_label(season - 1))
+    cur_box = fetch_file("player_box", season, data_dir, force)
+    if cur_box is not None:
+        pg = kotc.player_games(cur_box, teams)
+        if len(pg):
+            prior = blocks[season - 1]["players"] if season - 1 in blocks else None
+            blocks[season] = kotc.season_block(pg, kotc_lines(season, games), season_label(season), prior)
+
+    roster_team = {}
+    if rosters is not None:
+        roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
+    out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
+    today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
+    dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
+
+    slates = {}
+    for s, block in blocks.items():
+        # Last season's players sit on this season's roster; anyone not on one is gone.
+        teams_now = {pid: roster_team.get(pid) for pid in block["players"]} if s != season and roster_team else roster_team
+        slates[s] = kotc.slate(block, games, teams_now, out_ids, dates)
+
+    default = season - 1
+    if season in blocks:
+        played = sorted(d["games"] for d in blocks[season]["defense"].values())
+        if played and played[len(played) // 2] >= KOTC_DEFAULT_THIS_SEASON_AT:
+            default = season
+
+    record = kotc_record(season, slates.get(default, {}), default, blocks.get(default), games, now_utc)
+    for block in blocks.values():
+        block.pop("_league", None)
+    return {
+        "default": str(default),
+        "weights": kotc.WEIGHTS,
+        "thresholds": list(kotc.THRESHOLDS),
+        "seasons": {str(s): b for s, b in blocks.items()},
+        "slates": {str(s): v for s, v in slates.items()},
+        "record": record,
+    }
+
+
+def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: list, now_utc: datetime) -> dict:
+    """model_history/nba_kotc/<season>.json: each night's board as the last
+    build before its first tip-off had it (a night that has started is never
+    rewritten), so the page can show where each night's leader ranked."""
+    path = KOTC_RECORD_DIR / f"{season}.json"
+    record = json.loads(path.read_text()) if path.exists() else {}
+    first_tip = {}
+    for g in games:
+        first_tip[g["date"]] = min(first_tip.get(g["date"], g["start_utc"]), g["start_utc"])
+    changed = False
+    for date, rows in slate.items():
+        if not rows or not block or datetime.strptime(first_tip[date], "%Y-%m-%dT%H:%MZ") <= now_utc:
+            continue
+        live = sorted((r for r in rows if not r["out"]), key=lambda r: -r.get("lead", 0))[:KOTC_RECORD_TOP]
+        record[date] = {
+            "season_used": season_label(used),
+            "board": [{"id": r["id"], "name": block["players"][r["id"]]["name"], "team": r["team"], "proj": r["proj"], "lead": r.get("lead")} for r in live],
+        }
+        changed = True
+    if changed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(record, indent=1, sort_keys=True))
+    return record
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, required=True, help="Year the season ends (2027 = 2026-27)")
@@ -459,6 +566,7 @@ def main():
     games = compute_schedule(schedule, now_utc)
     novig, novig_debug = fetch_novig_lines(games, teams)
     apply_lines(games, novig, fetch_previous(), now_utc)
+    injury_list = compute_injuries(injuries, abbr_by_id)
 
     blob = {
         "season": args.season,
@@ -471,10 +579,16 @@ def main():
         "team_stats": compute_team_stats(rows),
         "recent_games": compute_recent_games(rows),
         "players": compute_players(player_box, rosters if is_fallback else None),
-        "injuries": compute_injuries(injuries, abbr_by_id),
+        "injuries": injury_list,
         "schedule": games,
         "novig_debug": novig_debug,
     }
+    # A King of the Court failure must not take Game Previews down with it.
+    try:
+        blob["kotc"] = compute_kotc(args.season, args.data_dir, force, teams, rosters, injury_list, games, now_utc)
+    except Exception as ex:
+        print(f"WARNING: King of the Court failed ({ex!r}).", file=sys.stderr)
+        blob["kotc"] = None
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)

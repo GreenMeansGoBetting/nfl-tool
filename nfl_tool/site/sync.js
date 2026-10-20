@@ -687,6 +687,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
   // for, to jump straight to it. A new promo tool is one line here.
   const PROMOS = [
     { sport: "nfl", label: "NFL", name: "King of the Endzone", href: siteHref("nfl", "promo-tools.html") },
+    { sport: "nba", label: "NBA", name: "King of the Court", href: siteHref("nba", "promo-tools.html") },
     { sport: "nhl", label: "NHL", name: "King of the Crease", href: siteHref("nhl", "promo-tools.html") },
     { sport: "nhl", label: "NHL", name: "Icebreaker", view: "icebreaker", href: siteHref("nhl", "promo-tools.html#icebreaker") },
   ];

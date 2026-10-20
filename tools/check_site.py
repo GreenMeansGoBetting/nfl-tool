@@ -48,6 +48,7 @@ PAGES = [
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
     ("NBA Game Previews", "nba/index.html", None),
+    ("NBA Promo Tools", "nba/promo-tools.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
     ("NHL Best Plays", "nhl/best.html", None),
     ("NHL Shots", "nhl/shots.html", None),
@@ -162,10 +163,12 @@ def settle(page, selector=None):
 
 
 def ready_for(path, summary_btn):
-    """What says a page has drawn: the schedule strip, or for a promo opened
-    by its address (#icebreaker), which has no strip of its own, its table."""
+    """What says a page has drawn: the schedule strip, or for a promo with no
+    strip of its own (Icebreaker, King of the Court), its table."""
     if path.endswith("#icebreaker"):
         return "#ice-players table"
+    if path == "nba/promo-tools.html":
+        return "#kotc-players table"
     return GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None
 
 

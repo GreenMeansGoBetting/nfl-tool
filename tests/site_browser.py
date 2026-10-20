@@ -21,6 +21,7 @@ class SiteBrowser:
         self.errors = []
         self.missing = set()  # paths a test wants answered "not built" (404), e.g. "/nhl/shots.json"
         self.user = None  # a signed-in member for /api/state, e.g. {"name": "Pat Lee", "owner": False}
+        self.nba = None  # a hand-made nba/data.json (dict) a test serves instead of the local file
         self.server = start_server()
         self.origin = f"http://127.0.0.1:{self.server.server_address[1]}"
         self._playwright = sync_playwright().start()
@@ -43,6 +44,8 @@ class SiteBrowser:
             route.fulfill(status=200, content_type="application/json", body=json.dumps({"user": self.user, "state": {}}))
         elif url == f"{self.origin}/data.json":
             route.fulfill(status=200, content_type="application/json", body=site_data_bytes())
+        elif url == f"{self.origin}/nba/data.json" and self.nba is not None:
+            route.fulfill(status=200, content_type="application/json", body=json.dumps(self.nba))
         elif url == f"{self.origin}/nhl/data.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_data_bytes())
         elif url == f"{self.origin}/nhl/shots.json":

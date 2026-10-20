@@ -75,3 +75,66 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   so check `site/nhl/` after changing them. Pace is shown without a good/bad color (fast or slow isn't good or bad).
 - **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
   play-by-play tools (shot zones, first basket, quarter splits).
+
+## King of the Court (Promo Tools; built 2026-10-19)
+
+DraftKings' promo paid on the night's most points + rebounds + assists (PRA). The owner ran it
+last season from a spreadsheet and wanted the same setup, built for the 2026-10-21 slate:
+- a **defense board** (each team's 40 / 45 / 50 / 55 / 60+ PRA games allowed, colored, with a
+  score: "do teams let certain stars beat them or do they play top to bottom solid D?"), plus
+  **position vulnerability** (their ask);
+- a **player board** (each player's games in those buckets, a score, the opponent's matchup score,
+  a blended GMG number);
+- a **2025-26 / 2026-27 toggle** ("after a week of the season, i think the new data (even with a
+  small sample) is better because of how many trades etc occur, but the toggle would still be great");
+- **historic stats on nightly leaders** (games on the night, the winner's PRA, and anything about
+  the game total / spread that narrows it down). They skipped the mockup to save usage: build it,
+  then small tweaks.
+
+- **Build:** `nfl_tool/nba/kotc.py`, called by `compute_kotc` in build_nba.py (its own try: a
+  failure leaves `kotc: null` and Game Previews still builds). Output `data.json` `kotc`:
+  `seasons[<year>]` (`label`, `league`, `defense`, `players`, `nights`, `summary`), `slates[<year>]`
+  (`{date: rows}` for the next 3 nights, each projected from that season), `default` (this season
+  once the middle team has played 4 games, else last season), `weights`, `thresholds`, `record`.
+- **Buckets are cumulative** (a 52 counts in 40+, 45+, 50+); Score = 1 x 40+ ... 5 x 60+.
+- **Positions are G / F / C:** ESPN labels nearly everyone that way (2025-26: G 13,010 player-games,
+  F 9,717, C 3,889; PG / SG / SF / PF about 100 in all). The owner asked "do they use SF/PF/PG/SG?":
+  no. A defense's position number is PRA per 48 minutes allowed to that group, steadied with 10 games
+  of the league's rate (`pos_f` = against the league).
+- **Last season on this season's rosters:** a player's last-season row sits on the team today's
+  roster file lists him with; not on a roster = off the board. In this season's view each average
+  starts with 5 games of his last season (`PRIOR_GAMES`, until 30 games).
+- **The projection** (`project`, `WEIGHTS`): base = half season average, half last 10; times the
+  other defense's `pos_f` (exponent 1.0); times (game total / league average total)^0.2. **Lead %**
+  (`lead_chances`): 6,000 runs of the slate with each PRA drawn around its projection (sd 4 + 0.22 x
+  proj); ties split. Players ESPN lists Out stay on the board, grayed, with no chance.
+- **The replay** (`py tools/backtest/nba_kotc.py`, about 2 minutes; findings in its header): every
+  2025-26 night after the first 15, projected only from games before it. Fitted: position matchup
+  0.99, total 0.17, blowout (spread past 6) -0.0025 a point, back-to-back +0.007: **blowouts and
+  back-to-backs are 0 in the number**, shown as tags only. The leader was the board's #1 30% of
+  nights, top 5 64-67%, top 10 83% (plain PRA average: 27 / 63 / 79). Lead % honest (said 14%, led
+  14%; said 26%, led 27%). The replay knew who played; the live page only has the injury report.
+- **Lines:** last season's are `nfl_tool/nba/lines_2026.json` (`{game id: [total, home spread]}`,
+  made once on 2026-10-19: DraftKings' closing total and spread from ESPN's `summary` endpoint's
+  `pickcenter` for 979 of 1,235 games, the play-by-play file's spread for the rest; ESPN's scoreboard
+  has no odds for past dates). This season's are each game's Novig line at tip-off, saved by the build
+  in `model_history/nba_kotc/lines_<season>.json` (committed by the deploy bot).
+- **The record** (`model_history/nba_kotc/<season>.json`): each night's top 30 by Lead % as the last
+  build before the night's first tip had it (`kotc_record`; a started night is never rewritten). The
+  page's Nightly leaders show the winner's place on it ("Pre 3"). NBA builds run every 6 hours and on
+  pushes (no half-hourly refresh like the NHL), so a night's board can be up to 6 hours old at tip.
+- **Historical Data** (`summary`, computed every build): winning PRA by slate size (typical, middle
+  half, best), the leader's game total and spread against the games on those nights (2025-26: 240+
+  totals 1.31x their share, under 220 0.37x; spreads 0-3 1.22x, 10+ 0.77x; the leader's team was
+  favored 70%), positions (guards 47%), most nights led. Shows last season's until this season has
+  20 nights.
+- **The page** (`site/nba/promo-tools.html` + `kotc.js` + `kotc.css`): night arrows, season buttons
+  (this season's disabled until it has games), Save image; the player board (top 25, "Show all"; Lead
+  %, Proj, Avg, L10, buckets, Score, Opp, Matchup, vs Pos, Total, Spread; green = good for him; B2B,
+  "from XXX" and blowout tags), Nightly leaders beside it (outside the image), then the defense board
+  (red = bad defense, the owner's sheet; teams not playing dimmed; its own Save image). It does no
+  projection math. Headshots and logos are ESPN's (html-to-image can carry them).
+- Tests: `tests/test_nba_kotc.py` (the build on a hand-made season) and `tests/test_nba_kotc_site.py`
+  (the page on a data.json built from it; `SiteBrowser.nba` serves it).
+- Not built yet: players' PRA lines from the books (SmartStake / Novig), a with/without-teammate
+  usage bump, DraftKings payouts (King of the Crease's Winners idea), pace.
