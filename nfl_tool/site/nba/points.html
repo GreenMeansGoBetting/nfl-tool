@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Points</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="points.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="pts-head">
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div class="pts-filters">
+        <select id="pts-game" aria-label="Game"></select>
+        <select id="pts-sort" aria-label="Sort">
+          <option value="line">Sort: line</option>
+          <option value="gap">Sort: projection vs line</option>
+          <option value="l10">Sort: last 10 over %</option>
+          <option value="season">Sort: season over %</option>
+        </select>
+        <input id="pts-search" type="search" placeholder="Find a player" aria-label="Find a player">
+      </div>
+    </div>
+    <div class="nba-season-bar"><span class="nba-seasons" id="pts-seasons"></span><span id="pts-season-note" class="no-data-note"></span></div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
+
+    <div id="pts-board" class="section-wrap" hidden>
+      <h2 class="section-title">Points <button type="button" class="info-i" aria-expanded="false" aria-controls="pts-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="pts-note" hidden><b>Line</b>: the middle main line across the books (SmartStake); the price buttons are the best Over and Under across your books, click one for every book. <b>Proj</b>: the line moved toward our own number by the share shown (none before a player's first game this season, up to half as his games come in); our number is his last-5 minutes &times; points a minute, then the pace, the other defense's points and transition allowed, and teammates listed Out, all from this season. <b>L5 / L10 / Season / H-A / vs</b>: how often he's gone over tonight's line in his last 5, last 10, the season, tonight's home or road games, and against tonight's opponent ("x of y"). <b>Min</b>: season minutes, last 5 under it. <b>Share</b>: his share of his team's shots while he's on the floor. <b>Mix</b>: rim / 3-point / off-the-dribble shares of his shots. Tags read both sides: <b>Zone fit</b> = this defense allows a high make rate where he shoots; <b>Tough zones</b> = the opposite; <b>Usage +</b> = rotation teammates listed Out tonight (their shot share); <b>Min &uarr; / &darr;</b> = his last 5 games' minutes moved 3+ from his season. Click a player for his game log, the alt-line ladder and with / without.</p>
+      <div class="pts-scroll"><table class="data-table pts-table" id="pts-table"></table></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Prices: <a href="https://www.smartstake.app/?via=GMG" target="_blank" rel="noopener">SmartStake</a> (every US book). Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play and box scores).
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="points.js"></script>
+</body>
+</html>

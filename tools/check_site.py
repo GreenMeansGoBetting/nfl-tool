@@ -52,6 +52,7 @@ PAGES = [
     ("NBA Promo Tools", "nba/promo-tools.html", None),
     ("NBA First Basket", "nba/first-basket.html", None),
     ("NBA Team Identity", "nba/identity.html", None),
+    ("NBA Points", "nba/points.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
     ("NHL Best Plays", "nhl/best.html", None),
     ("NHL Shots", "nhl/shots.html", None),

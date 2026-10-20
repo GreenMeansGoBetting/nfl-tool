@@ -126,6 +126,21 @@ options"), Novig only where SmartStake has no price.
   nights; `proj` = the settings. **PROJ_MAX stays 0.5 until a replay on the saved tip-off lines
   says otherwise** (the record keeps [line, proj, ours, w] per player for exactly that).
 - Tests: `tests/test_nba_props.py`.
+- **The Points page** (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
+  above First Basket; built 2026-10-20 from the owner's plan in words, no mockup): day arrows,
+  game / sort / search filters, season buttons (hit rates and splits only; the projection is always
+  this season). One row per player in props.json `slate`: Line (middle main line), best Over / Under
+  price (book-odds.js `bookPricePill`, every book on click), Proj (`w` as "x% ours", "= line" with
+  no games; green / red = above / below the line by 0.5+), L5 / L10 / Season / H-A / vs hit rates
+  against tonight's line as "x of y" (colored from 3 games: 60%+ green, 40%- red), Min (season, L5),
+  Share, Mix (rim / 3s / self-created), tags (Zone fit / Tough zones: his zones x this defense's
+  make rate allowed against the league's, 2.5 points either way; Usage +: `missing`; Min up / down:
+  last 5 moved 3+). Out players gray, last. Clicking a player opens his view: game log (O / U vs
+  tonight's line), alt-line ladder (round lines around it, last 10 and season), every book's prices,
+  and **with / without**: a teammate (most minutes first) and Out (any) / Out: rest / Out: injured
+  (games split by whether he played, box-score DNP reasons) or Off the floor (`with` minutes, points
+  and shots a 36). NBA pages have no `playerClick`; this open row is the player view.
+  Tests: `tests/test_nba_points_site.py` (`SiteBrowser.nba_props` serves a hand-made props.json).
 
 ## Game model: full-game score, spread, total (replayed 2026-10-20, NOT built)
 
