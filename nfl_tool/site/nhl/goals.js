@@ -180,17 +180,7 @@ function zoneCell(r) {
 }
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {
-  const r = x.r;
-  const n = (size) => Math.round(edgeAt(size) * 100);
-  const tag = r.size === "strong"
-    ? ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`)
-    : r.size === "lean"
-      ? ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`)
-      : !needsCheck(x)
-        ? ""
-        : has(r.edge) && r.edge >= edgeAt("check")
-          ? ratingTag("check", "Check", "A gap this big usually means the market knows something this season's few games don't. Check before you bet.")
-          : ratingTag("check", "New line", `${r.name} is on a lower line tonight than his minutes this season say he has been on: his games so far describe a bigger role.`);
+  const tag = bucketTag(x.r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") });
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}</td>`;
 }
 function edgeCell(x) {

@@ -174,17 +174,8 @@ function playChip(r) {
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {
   const r = x.r;
-  const n = (size) => Math.round(edgeAt(size) * 100);
   const fade = r.fade && r.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} points a game in ${r.games} games): the model thinks a small sample has run ${r.side === "under" ? "hot" : "cold"}.">vs his avg</span>` : "";
-  const tag = r.size === "strong"
-    ? ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`)
-    : r.size === "lean"
-      ? ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`)
-      : !needsCheck(x)
-        ? ""
-        : r.edge >= edgeAt("check")
-          ? ratingTag("check", "Check", "A gap this big usually means the market knows something this season's few games don't. Check before you bet.")
-          : ratingTag("check", "New line", `${r.name} is on a ${r.move === "up" ? "higher" : "lower"} line tonight than his minutes this season say he has been on, and this play goes the other way.`);
+  const tag = bucketTag(r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") });
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}${fade}</td>`;
 }
 function edgeCell(x) {

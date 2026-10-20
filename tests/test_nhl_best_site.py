@@ -5,7 +5,8 @@ What is pinned (the owner, 2026-10-15: "I am in a rush, what are my best overall
 bets tonight"): every play the Shots and Goals pages call an edge (3+ points) is
 listed, and nothing else; the Shots plays are the build's shots_play (the side,
 price and edge the record grades); no cap and no "Check" group, biggest edge
-first; every column sorts (Odds = the biggest payout first); the market
+first, but every row says its page's bucket (a member, 2026-10-20: a player in
+Check first on the Goals page looked like a sure play here); every column sorts (Odds = the biggest payout first); the market
 switches; the notes (no lineup yet, a line change); the lineup banner; a row
 opens that player's own row on the Shots or Goals page; and Best Plays leads
 the Player Props menu."""
@@ -19,12 +20,14 @@ from site_browser import SiteBrowser
 
 SITE = PAGE = None
 TONIGHT = "2026-10-13"
-LEAN = build_nhl.SHOTS_EDGES["lean"]
+# Goals and Points plays by the build's bucket, never the saved (rounded) edge: Dawson Mercer's
+# goal and Morgan Frost's under are saved at 3.0 points but filed "none" (their real edge was under 3).
+BUCKETS = ("strong", "lean", "check")
 
 ROWS = """() => [...document.querySelectorAll('.best-row')].map((tr) => {
   const text = (sel) => (tr.querySelector(sel) || {}).textContent?.trim().replace(/\\s+/g, ' ') || '';
   const chip = tr.querySelector('.best-play');
-  return { key: tr.dataset.key, href: tr.dataset.href, play: `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}`, odds: text('.best-odds b'), fair: text('.best-fair'), edge: text('.shots-edge'), notes: text('.best-notes') };
+  return { key: tr.dataset.key, href: tr.dataset.href, play: `${chip.querySelector('b').textContent} ${chip.querySelector('span').textContent}`, odds: text('.best-odds b'), fair: text('.best-fair'), edge: text('.shots-edge'), rating: text('.shots-rating'), amber: tr.querySelector('.shots-edge').classList.contains('tier-mid'), notes: text('.best-notes') };
 })"""
 
 
@@ -60,7 +63,7 @@ def reset(day=TONIGHT, **view):
 
 def expected(day=TONIGHT):
     """{"market:game:player": play} for every play, as the build files them: Shots at its bar
-    (shots_play's "play": 6+ points, not moved down a line), Goals and Points from 3 points."""
+    (shots_play's "play": 6+ points, not moved down a line), Goals and Points by the build's bucket."""
     data, shots, goals, pts = nhl_data(), nhl_shots(), nhl_goals(), nhl_points()
     games = [g["game_id"] for g in data["schedule"] if g["date"] == day]
     out = {}
@@ -73,11 +76,11 @@ def expected(day=TONIGHT):
             if play and play["size"] == "play":
                 out[f"sog:{gid}:{row['id']}"] = {**play, "row": row}
         for row in (goals["games"].get(gid) or {}).get("players", []):
-            if not row["out"] and row["odds"] is not None and row["edge"] is not None and row["edge"] >= LEAN:
+            if not row["out"] and row["odds"] is not None and row["edge"] is not None and row["size"] in BUCKETS:
                 out[f"goal:{gid}:{row['id']}"] = {"price": row["odds"], "edge": row["edge"], "size": row["size"], "fair": row["fair"], "row": row}
         # Points: the build's play as points.json files it.
         for row in (pts["games"].get(gid) or {}).get("players", []):
-            if not row["out"] and row["side"] and row["edge"] is not None and row["edge"] >= LEAN:
+            if not row["out"] and row["side"] and row["edge"] is not None and row["size"] in BUCKETS:
                 chance = row["chance_over"] if row["side"] == "over" else 1 - row["chance_over"]
                 out[f"pts:{gid}:{row['id']}"] = {"side": row["side"], "line": row["line"], "price": row["price"], "edge": row["edge"], "size": row["size"], "chance": chance, "row": row}
     return out
@@ -116,14 +119,27 @@ class Listing(unittest.TestCase):
 
     def test_no_cap_and_no_check_group_biggest_edge_first(self):
         """The owner: "if the model notices an edge, we shouldn't punish ourselves". The big gaps the
-        Shots and Goals pages set apart as "check" are ranked like any other play."""
+        Goals and Points pages set apart as "check" are ranked like any other play."""
         rows = reset()
         edges = [float(r["edge"]) for r in rows]
         self.assertEqual(edges, sorted(edges, reverse=True))
-        sizes = {expected()[r["key"]]["size"] for r in rows}
-        self.assertIn("check", sizes)
-        self.assertNotIn("check", PAGE.inner_text("#best-content").lower())
+        self.assertIn("check", {expected()[r["key"]]["size"] for r in rows})
         self.assertNotIn("Win %", PAGE.inner_text("#best-content"))
+
+    def test_every_row_says_its_pages_bucket(self):
+        """A member, 2026-10-20: a player in Check first on the Goals page showed here as a plain
+        play. Each row's Rating is the build's bucket, the tag its own page shows: Shots "Play",
+        Goals / Points Strong / Lean / Check (or New line), the edge amber only for a check."""
+        plays = expected()
+        words = {"strong": {"Strong"}, "lean": {"Lean"}, "check": {"Check", "New line"}}
+        seen = set()
+        for r in reset():
+            size = "play" if r["key"].startswith("sog:") else plays[r["key"]]["size"]
+            seen.add(size)
+            self.assertIn(r["rating"], {"Play"} if size == "play" else words[size], r)
+            self.assertEqual(r["amber"], size == "check", r)
+        self.assertTrue({"play", "check"} <= seen, seen)
+        self.assertEqual(SITE.errors, [])
 
     def test_every_column_sorts_and_odds_means_the_biggest_payout(self):
         reset()

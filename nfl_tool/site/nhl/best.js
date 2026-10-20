@@ -106,6 +106,9 @@ function priceBook(x) {
 }
 // The worst price this play still has the page's smallest edge at: the "good to" cutoff.
 const goodTo = (x) => fairPrice(x.play.chance - floorFor(x.market));
+// Goals and Points plays are picked by the build's bucket, never by the saved (rounded) edge:
+// an edge of 2.98 is saved as 3.0 but is no play on its own page or in the record.
+const BUCKETS = ["strong", "lean", "check"];
 function playsFor(date) {
   const out = [];
   gamesOn(date).forEach((g) => {
@@ -126,7 +129,7 @@ function playsFor(date) {
     const gb = goalsBoard(g);
     if (gb && bestView.markets.goal) {
       gb.players.forEach((r) => {
-        if (r.out || !has(r.odds) || !has(r.edge) || r.edge < edgeAt("lean")) return;
+        if (r.out || !has(r.odds) || !has(r.edge) || !BUCKETS.includes(r.size)) return;
         const play = { side: "yes", price: r.odds, chance: r.chance, edge: r.edge, fair: r.fair };
         const result = has(r.actual) ? (r.actual > 0 ? "win" : "loss") : null;
         out.push({ market: "goal", r, g, posted: !!gb.posted, play, thin: !!r.thin, result, state });
@@ -136,7 +139,7 @@ function playsFor(date) {
     const pb = pointsBoard(g);
     if (pb && bestView.markets.pts) {
       pb.players.forEach((r) => {
-        if (r.out || !r.side || !has(r.edge) || r.edge < edgeAt("lean")) return;
+        if (r.out || !r.side || !has(r.edge) || !BUCKETS.includes(r.size)) return;
         const chance = r.side === "over" ? r.chance_over : 1 - r.chance_over;
         const play = { side: r.side, line: r.line, price: r.price, chance, edge: r.edge, fade: !!r.fade };
         const result = has(r.actual) && r.actual !== r.line ? ((r.side === "over") === r.actual > r.line ? "win" : "loss") : null;
@@ -243,8 +246,19 @@ function playCell(x) {
   const what = x.market === "pts" ? "points" : "shots";
   return `<span class="shots-play shots-play-ou shots-play-${p.side} best-play" title="${p.side === "over" ? "Over" : "Under"} ${fmt(p.line)} ${x.market === "pts" ? "points" : "shots on goal"}"><b>${p.side[0]}${fmt(p.line)}</b><span>${what}</span></span>`;
 }
+// The same bucket the play's own page shows (and the record grades): Shots' "Play"; Goals' and
+// Points' Strong / Lean / Check. A play is never plainer here than on its page.
+const isCheck = (x) => x.market !== "sog" && x.r.size === "check";
+function ratingCell(x) {
+  const tag = x.market === "sog"
+    ? ratingTag("play", "Play", `An edge of ${Math.round(shotsBar() * 100)}+ points on a player not moved down a line tonight`)
+    : bucketTag(x.r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") });
+  return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}</td>`;
+}
 function edgeCell(x) {
   const edge = x.play.edge;
+  // Amber for a Check, as on the Goals and Points pages; green otherwise.
+  if (isCheck(x)) return `<td class="num shots-edge tier-mid" title="Check before you bet: the model's ${Math.round(x.play.chance * 100)}% minus the ${Math.round(breakEven(x.play.price) * 100)}% this price needs to break even">${points(edge)}</td>`;
   const alpha = Math.min(0.34, 0.08 + (edge - edgeAt("lean")) * 3).toFixed(2);
   return `<td class="num shots-edge tier-good" style="--tier-a:${alpha}" title="The model's ${Math.round(x.play.chance * 100)}% minus the ${Math.round(breakEven(x.play.price) * 100)}% this price needs to break even">${points(edge)}</td>`;
 }
@@ -261,6 +275,7 @@ const COLUMNS = [
     return `<td class="shots-player best-player"><div class="nba-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 24)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 24)}</span></div></td>`;
   } },
   { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}${nhlPlayBox(nhlPlayEntry({ market: x.market, g: x.g, r: x.r, side: x.play.side, line: x.play.line, price: x.play.price }))}</td>` },
+  { key: null, label: "Rating", title: "The play's bucket on its own page (the one the record grades). Shots: Play. Goals and Points: Strong, Lean, or Check (a gap too big to take at face value, or a player moved to a line that goes against the play: check the news first)", cell: ratingCell },
   { key: "fair", label: "GMG Fair", title: "The price the GMG model says this bet is worth, with no cut: its chance turned into odds. Odds longer than this are the edge", cell: (x) => `<td class="num best-fair" title="The GMG model gives it ${Math.round(x.play.chance * 100)}%">${odds(has(x.play.fair) ? x.play.fair : fairPrice(x.play.chance)) || "--"}</td>` },
   { key: "odds", label: "Odds", title: "The best price any US book has right now (the Edge is figured on it). Click for every book. Sort by it for the biggest payout first", cell: (x) => {
     const book = priceBook(x);

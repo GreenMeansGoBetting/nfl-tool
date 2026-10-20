@@ -1108,7 +1108,7 @@ The owner: "I don't care about the noise, I am in a rush: what are my best overa
 tonight." First under Player Props. A short list that sends people to the Shots and Goals
 pages for the detail, not a copy of them.
 - **Every play the Shots, Goals and Points pages call a play** (Shots: its bar, `shots.json` `bar`
-  and not moved down a line; Goals and Points: 3+ points, `edges.lean`), all
+  and not moved down a line; Goals and Points: the build's `size` strong / lean / check), all
   three markets in one table, biggest edge first. The Shots play is the Shots page's best side
   (the build's `shots_play`, so the record grades the same play); the Goals play is goals.json's
   `edge`; the Points play is points.json's `side` / `price` / `edge` ("o0.5 points", "Points ›").
@@ -1118,6 +1118,12 @@ pages for the detail, not a copy of them.
   Plays the other pages file as "check" are ranked like any other. Through 10/14 Shots' check
   bucket was 48-32 +8.4u, nearly all of it one night (within a standard error of break-even);
   the record will say whether that holds.
+- **Every row says its own page's bucket** (a member, 2026-10-20: a player in Check first on the
+  Goals page showed here as a plain play; the owner: "this can't happen"). A **Rating** column after
+  Play: Shots "Play", Goals / Points Strong / Lean / Check / New line from the build's `size`
+  (`bucketTag` in nhl-common.js, the ONE function the Goals and Points pages use too); a Check's
+  edge is amber, as on its page. Goals and Points plays are picked by `size` (strong / lean / check),
+  never by the saved edge: edges are saved rounded, so a 2.98 is "3.0" but "none" to the build.
 - **Notes say what the model may not know yet**, never a verdict: "No lineup" (that market's
   board had no posted lineup), the line change ("L2 ▼", amber when the play goes against the
   move), "N GP" under 5 games, "vs avg" (Shots: against his season average), "Thin". Centered

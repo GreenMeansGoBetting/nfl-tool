@@ -54,6 +54,18 @@ const advancedToggle = (on) =>
   `<span class="shots-filter"><button type="button" id="shots-adv-toggle" class="view-toggle-btn shots-filter-btn shots-adv-toggle${on ? " active" : ""}" data-filter="adv" data-value="${!on}" title="Minutes and what moved the number tonight: the other defense, his position, the power play, home ice and rest">${on ? "Hide advanced stats" : "Expand advanced stats"}</button></span>`;
 // The record's bucket on a row: Strong / Lean / Check, the same tags as the YTD record's table.
 const ratingTag = (size, label, tip) => `<span class="shots-record-size shots-record-${size}" title="${tip}">${label}</span>`;
+// The build's bucket for a Goals or Points row (`size`, the one the record grades), as one tag.
+// Every page that shows such a play draws it with this, so a "Check" on the Goals or Points
+// page is a "Check" on Best Plays too (a member caught one listed as a plain play, 2026-10-20).
+function bucketTag(r, edges) {
+  const n = (size) => Math.round(edges[size] * 100);
+  if (r.size === "strong") return ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`);
+  if (r.size === "lean") return ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`);
+  if (r.size !== "check") return "";
+  return has(r.edge) && r.edge >= edges.check
+    ? ratingTag("check", "Check", "A gap this big usually means the market knows something this season's few games don't. Check before you bet.")
+    : ratingTag("check", "New line", `${r.name} is on a ${r.move === "up" ? "higher" : "lower"} line tonight than his minutes this season say he has been on, and this play goes the other way: his games so far describe a different role.`);
+}
 const headshot = (p, cls = "nhl-headshot") => (p.headshot ? `<img src="${p.headshot}" alt="" class="${cls}" loading="lazy">` : `<span class="${cls}"></span>`);
 
 // ---- league comparison ----
