@@ -128,6 +128,19 @@ function saveMyBooks(value) {
 
 // The Settings window. Books change the open page at once; odds and colors
 // redraw it when the window closes (every page draws them as it renders).
+// ---- My Plays (my-plays.html; the owner, 2026-10-20) ----
+// The NHL pages' saved plays: the box beside each play (nhl-common.js
+// nhlPlayBox). The NFL's stay where they always were (common.js,
+// nfl-tool.possible-plays.v1, untouched); My Plays shows both, graded.
+const GMG_NHL_PLAYS_KEY = "nfl-tool.nhl-plays.v1";
+function loadNhlPlays() {
+  try { return JSON.parse(localStorage.getItem(GMG_NHL_PLAYS_KEY)) || []; } catch (e) { return []; }
+}
+function saveNhlPlays(list) {
+  try { localStorage.setItem(GMG_NHL_PLAYS_KEY, JSON.stringify(list)); } catch (e) {}
+  window.NFLSync?.push(GMG_NHL_PLAYS_KEY, list);
+}
+
 const GMG_ODDS_FORMATS = [
   { id: "american", name: "American", sample: "-110 / +150" },
   { id: "decimal", name: "Decimal", sample: "1.91 / 2.50" },
@@ -282,6 +295,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     "nfl-tool.my-books.v1",
     GMG_SETTINGS_KEY,
     GMG_UPDATES_SEEN_KEY,
+    GMG_NHL_PLAYS_KEY,
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;
@@ -674,7 +688,6 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Game Previews", file: "game-overview.html" },
       { name: "TD Data", file: "index.html" },
       { name: "Player Props", file: "player-props.html" },
-      { name: "Possible Plays", file: "possible-plays.html" },
     ] },
     nba: { label: "NBA", home: "", items: [{ name: "Game Previews", file: "" }] },
     nhl: { label: "NHL", home: "", items: [
@@ -696,6 +709,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     const bar = document.querySelector(".topbar");
     if (!nav || !bar || bar.querySelector(".nav-menu")) return;
     const onPromo = /promo-tools\.html$/.test(location.pathname);
+    // My Plays (every sport's saved plays) and the NFL Parlay Wheel page it links to.
+    const onMine = ["my-plays.html", "possible-plays.html"].includes(PAGE_FILE);
     nav.textContent = "";
     const add = (label, href, kind, itemsHtml, current) => {
       const trigger = document.createElement("a");
@@ -710,13 +725,21 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       const def = SPORT_PAGES[sport];
       add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
         if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
-        const current = sport === CURRENT_SPORT && !onPromo && (item.file || "index.html") === PAGE_FILE;
+        const current = sport === CURRENT_SPORT && !onPromo && !onMine && (item.file || "index.html") === PAGE_FILE;
         return `<a href="${siteHref(sport, item.file)}" class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span></a>`;
-      }).join(""), sport === CURRENT_SPORT && !onPromo);
+      }).join(""), sport === CURRENT_SPORT && !onPromo && !onMine);
     }
     add("Promo Tools", PROMOS[0].href, "promo", PROMOS.map(
       (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === CURRENT_SPORT && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
     ).join(""), onPromo);
+    // My Plays: a plain button, no list (the owner, 2026-10-20: saved plays in a tab of their own by Promo Tools).
+    const mine = document.createElement("a");
+    mine.href = siteHref("nfl", "my-plays.html");
+    mine.dataset.sport = "mine";
+    mine.className = "mine-trigger";
+    mine.textContent = "My Plays";
+    if (onMine) mine.classList.add("page-nav-current");
+    nav.appendChild(mine);
   }
 
   // A nav button that opens a list under it: `kind` names its classes

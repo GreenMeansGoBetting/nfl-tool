@@ -29,7 +29,7 @@ const ENFORCE = true;
 const NFL_HOST = "nfl.gmgsports.org";
 const SPORT_HOSTS = { "nba.gmgsports.org": "nba", "nhl.gmgsports.org": "nhl" };
 const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/book-odds.js", "/version.json"]; // + /brand/
-const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "support", "first-td"];
+const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "my-plays", "support", "first-td"];
 // On since 2026-10-14 (both addresses answer): nfl.gmgsports.org/nhl/
 // pages then move to nhl.gmgsports.org. Data files are never moved (the build reads them).
 const SPORT_HOSTS_LIVE = true;
@@ -280,6 +280,7 @@ const SYNC_KEYS = new Set([
   "nfl-tool.my-books.v1",
   "nfl-tool.settings.v1",
   "nfl-tool.updates-seen.v1",
+  "nfl-tool.nhl-plays.v1",
 ]);
 const SYNC_MAX_BYTES = 512 * 1024;
 

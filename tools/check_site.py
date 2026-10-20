@@ -45,6 +45,7 @@ PAGES = [
     ("TD Data", "index.html", '.view-toggle-btn[data-view="summary"]'),
     ("Player Props", "player-props.html", '.props-view-toggle-btn[data-view="summary"]'),
     ("Possible Plays", "possible-plays.html", None),
+    ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
     ("NBA Game Previews", "nba/index.html", None),

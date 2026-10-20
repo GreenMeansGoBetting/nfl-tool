@@ -550,3 +550,8 @@ html:not(.is-owner):not(.local-dev) .stk-log { display: none; }
 .best-player .nhl-headshot { width: 34px; height: 34px; }
 .best-player .player-click { font-size: 1rem; }
 .best-player .shots-vs { gap: 5px; }
+
+/* Save to My Plays: the box beside a play (nhl-common.js nhlPlayBox). */
+.nhl-save-box { display: inline-flex; align-items: center; margin-left: 6px; vertical-align: middle; cursor: pointer; }
+.nhl-save-box input { width: 15px; height: 15px; margin: 0; cursor: pointer; accent-color: var(--accent); }
+.stk-actions .nhl-save-box { margin: 0 6px 0 0; }

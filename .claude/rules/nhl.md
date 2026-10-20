@@ -335,6 +335,9 @@ on a replay, and the page keeps a record against the real prices.
 
 ## Pages
 
+- **Save to My Plays (2026-10-20):** every priced play on Shots, Goals, Points, Saves, Best Plays and
+  Line Stacks has a small box (`nhlPlayBox` in nhl-common.js; a new prop page adds it to its Play cell).
+  The plays, their grading and the page: plays-and-promos.md, "My Plays".
 - **The top bar (the owner, 2026-10-17): NFL, NBA, NHL, Promo Tools on every page of every sport**
   (it was Games / Player Props / Promo Tools on 2026-10-15). Each is a button that opens a list of
   its pages (`SPORT_PAGES` in sync.js, built by `addTopMenu`). The NHL's list is Game Previews, then

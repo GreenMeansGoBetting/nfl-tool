@@ -4,10 +4,39 @@ paths:
   - "nfl_tool/site/picks.js"
   - "nfl_tool/site/promo-tools.*"
   - "nfl_tool/site/common.js"
+  - "nfl_tool/site/my-plays.*"
+  - "nfl_tool/site/plays-grading.js"
 ---
 # Possible Plays, Pick Tracker and Promo Tools
 
 Stories behind these rules: `docs/history.md`, "Possible Plays, picks and promos".
+
+## My Plays (`my-plays.html/.js`; built 2026-10-20)
+
+The owner: "a checkbox to all plays across the site (NFL NBA NHL) and isolate the possible plays
+to its own tab by promo tools which would aggregate all plays ... These would all self grade as
+well. Nothing changes from history saved already." Built for NFL and NHL (NBA has no plays yet:
+its prop pages get the box from day one).
+
+- **Its own top-menu button**, "My Plays", after Promo Tools (sync.js `addTopMenu`, `.mine-trigger`,
+  no dropdown). Possible Plays left the NFL list; `possible-plays.html` (NFL list + Parlay Wheel)
+  is linked from My Plays and highlights My Plays in the menu. The page lives on the NFL address
+  (`my-plays` in the middleware's `NFL_PAGES`) and reads `nhl/data.json` + `nhl/players/` there.
+- **Storage:** NFL plays stay in `nfl-tool.possible-plays.v1`, untouched. NHL plays are
+  `nfl-tool.nhl-plays.v1` (sync.js `loadNhlPlays`/`saveNhlPlays`; in both sync key lists), saved
+  by the box beside each priced play on Shots, Goals, Points, Saves, Best Plays and Line Stacks
+  (nhl-common.js `nhlPlayBox` / `nhlPlayEntry`). Id `nhl:<market>:<game>:<player or legs>`: one per
+  player, market and game, so the box stays checked when the line moves and Best Plays and the
+  prop page share it. The price saved is the one shown when checked.
+- **Grading:** NFL through `plays-grading.js` (moved out of possible-plays.js, same rules). NHL
+  from the team's box score in `nhl/players/<TEAM>.json` once the schedule says final: SOG,
+  goals, points (G+A), saves (SA-GA); a player not in that night's log = Void; a Line Stack wins
+  when every leg has 1+ point, Void if a leg didn't play. Hand results win, like the NFL's.
+- **Line Stacks have no price** (SGPs are priced at the book): the row shows a Price box; until one
+  is typed in, the stack counts in the record but not the units (`unitsForPlay` gives 0).
+- Filters: sport chips (All / NFL / NHL) and When (NFL weeks, NHL days). Checked rows narrow the
+  record and the Photo Export (the Possible Plays card; groups say the sport when mixed).
+- Tests: `tests/test_my_plays_site.py`.
 
 ## Possible Plays (`possible-plays.js`; storage helpers in common.js)
 

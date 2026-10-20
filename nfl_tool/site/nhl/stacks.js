@@ -159,7 +159,7 @@ function renderTable() {
           <div class="stk-game">${logo(a, 22)}<span class="at">${a === g.home ? "vs" : "@"}</span>${logo(z, 22)}<span>${g.status === "final" ? "Final" : fmtTime(g.time).replace(" ET", "")}</span></div></td>
         <td class="num"><div class="stk-fair-big">${odds(s.fair)}</div><div class="muted-label">${pct(s.chance, 1)}</div></td>
         <td class="num"><span class="stk-corr" title="How much more often these legs hit together than if they had nothing to do with each other">${fmt(s.lift, 1)}x</span><div class="muted-label stk-sub">Non-correlated ${odds(fairPrice(s.indep))}</div></td>
-        <td class="num stk-actions">${stackCopyButton(s, x.board.players, g)}<button type="button" class="view-toggle-btn stk-log" data-log="${g.game_id}|${s.legs.join(",")}" title="Log what books charge for this stack (owner only)">Log price</button>${loggedChips(g, s)}</td>
+        <td class="num stk-actions">${nhlPlayBox(nhlPlayEntry({ market: "stack", g, legs: s.legs.map((id) => ({ id, name: (x.board.players[id] || {}).name || "", team: s.team })) }))}${stackCopyButton(s, x.board.players, g)}<button type="button" class="view-toggle-btn stk-log" data-log="${g.game_id}|${s.legs.join(",")}" title="Log what books charge for this stack (owner only)">Log price</button>${loggedChips(g, s)}</td>
         ${showResult ? resultCell(s) : ""}
       </tr>
       <tr class="stk-copyline"><td></td><td colspan="${columns - 1}"><span class="stk-tag">Copy puts this on your clipboard:</span> <code>${stackCopyText(s, x.board.players, g)}</code></td></tr>`;

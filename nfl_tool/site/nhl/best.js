@@ -260,7 +260,7 @@ const COLUMNS = [
     // The flex box sits inside the cell (a flex cell won't center in Best Plays' taller rows).
     return `<td class="shots-player best-player"><div class="nba-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 24)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 24)}</span></div></td>`;
   } },
-  { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}</td>` },
+  { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}${nhlPlayBox(nhlPlayEntry({ market: x.market, g: x.g, r: x.r, side: x.play.side, line: x.play.line, price: x.play.price }))}</td>` },
   { key: "fair", label: "GMG Fair", title: "The price the GMG model says this bet is worth, with no cut: its chance turned into odds. Odds longer than this are the edge", cell: (x) => `<td class="num best-fair" title="The GMG model gives it ${Math.round(x.play.chance * 100)}%">${odds(has(x.play.fair) ? x.play.fair : fairPrice(x.play.chance)) || "--"}</td>` },
   { key: "odds", label: "Odds", title: "The best price any US book has right now (the Edge is figured on it). Click for every book. Sort by it for the biggest payout first", cell: (x) => {
     const book = priceBook(x);

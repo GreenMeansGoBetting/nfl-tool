@@ -908,3 +908,44 @@ document.addEventListener("input", (e) => {
     box.setSelectionRange(at, at);
   }
 });
+
+// ---- Save to My Plays (../my-plays.html; the owner, 2026-10-20) ----
+// A small box beside every priced play (Shots, Goals, Points, Saves, Best
+// Plays, Line Stacks). Checking it saves the play as shown, at its price, to
+// the member's NHL plays (sync.js loadNhlPlays / saveNhlPlays); My Plays
+// grades it from the box score. One saved play per player, market and game,
+// so the box stays checked when the line moves.
+const NHL_PLAY_CATEGORY = { sog: "Shots on goal", goal: "Anytime goal", pts: "Points", saves: "Saves", stack: "Line stack" };
+const NHL_PLAY_UNIT = { sog: "SOG", pts: "points", saves: "saves" };
+const nhlPlayId = (market, gameId, who) => `nhl:${market}:${gameId}:${who}`;
+// g: the schedule game; r: the player row ({id, name, team}); side "over" / "under"
+// (Goals: none); legs: a stack's players [{id, name, team}].
+function nhlPlayEntry({ market, g, r, side, line, price, legs }) {
+  const sideWord = side === "under" ? "Under" : "Over";
+  const description = market === "goal" ? `${r.name} anytime goal`
+    : market === "stack" ? `${legs.map((p) => p.name.split(" ").slice(1).join(" ") || p.name).join(" + ")} (1+ point each)`
+    : `${r.name} ${sideWord} ${line} ${NHL_PLAY_UNIT[market]}`;
+  return {
+    id: nhlPlayId(market, g.game_id, market === "stack" ? legs.map((p) => p.id).sort().join("-") : r.id),
+    sport: "nhl", market, category: NHL_PLAY_CATEGORY[market],
+    date: g.date, game_id: g.game_id, matchup: `${g.away} @ ${g.home}`,
+    team: market === "stack" ? legs[0].team : r.team, player_id: market === "stack" ? null : r.id,
+    side: market === "goal" || market === "stack" ? null : side, line: has(line) ? line : null,
+    odds: has(price) ? price : null, description, legs: legs || null,
+  };
+}
+function nhlPlayBox(entry) {
+  const saved = loadNhlPlays().some((p) => p.id === entry.id);
+  return `<label class="nhl-save-box" title="Save to My Plays"><input type="checkbox" class="nhl-play-toggle" data-entry="${encodeURIComponent(JSON.stringify(entry))}"${saved ? " checked" : ""}></label>`;
+}
+// Capture: the box sits inside rows that open on a click.
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".nhl-save-box")) e.stopPropagation();
+}, true);
+document.addEventListener("change", (e) => {
+  const box = e.target.closest(".nhl-play-toggle");
+  if (!box) return;
+  const entry = JSON.parse(decodeURIComponent(box.dataset.entry));
+  const rest = loadNhlPlays().filter((p) => p.id !== entry.id);
+  saveNhlPlays(box.checked ? [...rest, { ...entry, added_at: new Date().toISOString() }] : rest);
+});

@@ -32,7 +32,7 @@ class TopMenu(unittest.TestCase):
         page = SITE.open("game-overview.html")
         try:
             page.wait_for_selector(".acct-chip")
-            self.assertEqual(page.evaluate(r"() => [...document.querySelectorAll('.page-nav > a')].map((a) => a.textContent.replace(/\W/g, '').trim())"), ["NFL", "NBA", "NHL", "PromoTools"])
+            self.assertEqual(page.evaluate(r"() => [...document.querySelectorAll('.page-nav > a')].map((a) => a.textContent.replace(/\W/g, '').trim())"), ["NFL", "NBA", "NHL", "PromoTools", "MyPlays"])
             mid = page.evaluate("() => { const r = document.querySelector('.page-nav').getBoundingClientRect(); return [r.left + r.width / 2, innerWidth / 2]; }")
             self.assertAlmostEqual(mid[0], mid[1], delta=1)
             self.assertEqual(page.evaluate("() => !!document.querySelector('.odds-credit')"), True)
@@ -45,7 +45,7 @@ class TopMenu(unittest.TestCase):
         page = SITE.open("game-overview.html")
         try:
             page.click(".page-nav .nfl-trigger")
-            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Player Props", "/player-props.html", False], ["Possible Plays", "/possible-plays.html", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Player Props", "/player-props.html", False]])
             self.assertTrue(page.evaluate("() => document.querySelector('.nfl-trigger').classList.contains('page-nav-current')"))
             page.click(".page-nav .nba-trigger")
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
