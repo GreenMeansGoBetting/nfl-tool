@@ -84,6 +84,45 @@ these two pages into one page."
   2025-26 shows as "reference: rosters have changed since".
 - Tests: `tests/test_nba_identity.py`.
 
+## Player props (data built 2026-10-20; the Points page is next)
+
+The owner's plan, approved in words (no mockup): Points first, then rebounds / assists / 3s on the
+same skeleton. **Pure data, no projection** until a projection is replayed against this season's
+real lines. **Prices: SmartStake** (the owner: "Use smartstake because they have the best odds
+options"), Novig only where SmartStake has no price.
+
+- **Build:** `nfl_tool/nba/props.py` (`season_block`, `on_rosters`), called by `compute_props` in
+  build_nba.py, written to **`site/nba/props.json`** (its own file: every player's game log; in
+  `.gitignore` and `fetch_live_data.py` SUITES). `seasons[<year>]`: `fields` (the log's columns),
+  `players[<espn id>]` (name, team, pos, `log` rows, `share` = his share of his team's shots
+  while on the floor, `zones`, `kinds` self / catch / drive / other, `assisted`, `with[<teammate>]`
+  = [min on, pts on, shots on, min off, pts off, shots off], teammates with `MIN_TOGETHER` 20+
+  minutes together), `out[<team>][<game id>]` = [[id, rest / injury / coach]]. `default`: this
+  season once the middle team has `THIS_SEASON_DEFAULT_AT` games. 2025-26 is saved in
+  `nfl_tool/nba/props_2026.json` (re-save after a formula change: `py nfl_tool/nba/props.py
+  --season 2026 --data-dir data/nba --write`), shown on today's rosters as reference.
+- 2025-26 check: Pritchard 16.1 points a 36 with Jaylen Brown on the floor, 24.1 with him off.
+- **SmartStake NBA** (`fetch_nba_book_odds`, smartstake.py): the market key is looked up in
+  `/v1/markets` (`nba_prop_market_keys`: a player market for the stat alone, never a combo,
+  quarter, half or first scorer), falling back to `basketball_player_points`. data.json
+  `book_odds` (same shape as the NFL / NHL, players by ESPN id, matched by name + team on
+  today's rosters) and `book_odds_debug`; locks at tip like every price. The deploy's NBA step
+  has `SMARTSTAKE_API_KEY`. `version.json` `nba.book_odds` = players with a points price (or the
+  reason), `book_markets`, `props` = players per season.
+- **Tip-off lines:** `model_history/nba_props/lines_<season>.json` = {game id: {player id:
+  [middle main points line across books, projection, our number, weight]}}, the last pregame
+  build's (never rewritten after tip): the line history, and what the projection is graded against.
+- **Points projection from day one, anchored to the line** (the owner: "I would like projections to
+  start day one - even if its weighing heavily towards the line. I want the framework in"):
+  `props.project_points` = line + w x (ours - line), w = `PROJ_MAX` 0.5 x games / (games +
+  `PROJ_K` 10) on THIS season's games (no games = the line). Ours (`our_points`) = last-5 minutes
+  x season points a minute x the game's pace (both teams' this-season `off_pace` against the
+  league) x the other defense's `def_ppp` against the league (Team Identity, this season). props.json
+  `slate` = {game id: {player id: line, proj, w, ours, min, ppm, games, out}} for the next 3
+  nights; `proj` = the settings. **PROJ_MAX stays 0.5 until a replay on the saved tip-off lines
+  says otherwise** (the record keeps [line, proj, ours, w] per player for exactly that).
+- Tests: `tests/test_nba_props.py`.
+
 ## Game model: full-game score, spread, total (replayed 2026-10-20, NOT built)
 
 The owner asked for a final score projection and fair spread / total / moneyline.

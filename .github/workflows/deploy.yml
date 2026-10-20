@@ -149,6 +149,7 @@ jobs:
         continue-on-error: true
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
         run: |
           set -o pipefail
           python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json 2>&1 | tee nba_build.log

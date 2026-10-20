@@ -80,6 +80,13 @@ NHL_PROP_MARKETS = {"hockey_player_shots_on_goal": "sog", "hockey_player_goals":
 # a period's or the last one. Stored as props["first_goal"], side "o" = Yes.
 FIRST_GOAL_SKIP = ("team", "period", "2nd", "3rd", "second", "third", "last", "method", "minute", "interval", "anytime", "both")
 
+# NBA player props (the Points page first; rebounds / assists / 3s later).
+# The keys aren't in SmartStake's docs page, so each build reads /v1/markets
+# (nba_prop_market_keys) and falls back to these, the NFL / NHL pattern.
+NBA_PROP_GUESS = {"points": "basketball_player_points"}
+NBA_PROP_SKIP = ("rebound", "assist", "three", "3pt", "first", "1st", "2nd", "3rd", "4th", "quarter", "half", "period",
+                 "q1", "q2", "q3", "q4", "team", "double", "triple", "steal", "block", "turnover", "+", "alternate", "milestone")
+
 NFL_TEAMS = {
     "arizona cardinals": "ARI", "atlanta falcons": "ATL", "baltimore ravens": "BAL", "buffalo bills": "BUF",
     "carolina panthers": "CAR", "chicago bears": "CHI", "cincinnati bengals": "CIN", "cleveland browns": "CLE",
@@ -270,6 +277,50 @@ def fetch_nhl_book_odds(api_key: str | None, team_of, player_key, previous: dict
         return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake NHL fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
+        return only_games(lock_started({}, previous, now_iso), keep), {"error": str(e)[:200]}
+
+
+def nba_prop_market_keys(listed, stats=("points",)) -> dict:
+    """{market key: stat} for the NBA player prop markets in a /v1/markets
+    reply: a player market named for the stat alone (no combos, quarters,
+    halves or firsts)."""
+    found = {}
+    for m in listed or []:
+        key = m if isinstance(m, str) else (m.get("key") or m.get("market_key") or m.get("id"))
+        name = m if isinstance(m, str) else (m.get("name") or m.get("market_name") or "")
+        text = f"{key} {name}".lower().replace("_", " ")
+        if not key or "player" not in text:
+            continue
+        for stat in stats:
+            if stat in text and not any(w in text for w in NBA_PROP_SKIP if w != stat):
+                found[key] = stat
+    return found
+
+
+def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict | None, now_iso: str, keep=None) -> tuple:
+    """The NBA's (book_odds, debug), same rules as fetch_nfl_book_odds.
+    team_of(full team name) -> abbreviation; player_key(name, away, home) ->
+    the ESPN player id, or None for a player the site doesn't list."""
+    if not api_key:
+        return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
+    try:
+        try:
+            listed = fetch_markets(api_key, "nba")
+        except Exception as e:
+            print(f"NOTE: SmartStake NBA market list failed ({e}); using the usual market names.", file=sys.stderr)
+            listed = []
+        markets = nba_prop_market_keys(listed) or {v: k for k, v in NBA_PROP_GUESS.items()}
+        quotes = fetch_quotes(api_key, "nba", list(markets))
+        games = build_book_odds(quotes, team_of, prop_markets=markets, td_market=None, line_markets={}, player_key=player_key)
+        priced = sum(len(g["props"].get("points") or {}) for g in games.values())
+        debug = {"quotes": len(quotes), "games": len(games), "players": priced, "markets": sorted(markets),
+                 "books": sorted({q["book"] for q in quotes}), "listed": len(listed)}
+        if not priced:
+            named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed]
+            debug["note"] = "; ".join(n for n in named if "point" in n.lower())[:500]
+        return only_games(lock_started(games, previous, now_iso), keep), debug
+    except Exception as e:
+        print(f"WARNING: SmartStake NBA fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
         return only_games(lock_started({}, previous, now_iso), keep), {"error": str(e)[:200]}
 
 

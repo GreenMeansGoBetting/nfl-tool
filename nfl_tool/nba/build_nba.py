@@ -31,7 +31,10 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, for smartstake.py
 import first_basket  # noqa: E402
+import props  # noqa: E402
+import smartstake  # noqa: E402
 import identity  # noqa: E402
 import kotc  # noqa: E402
 
@@ -636,6 +639,130 @@ def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: 
     return record
 
 
+PROPS_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_props"
+
+
+def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_utc: datetime) -> tuple:
+    """Every US book's NBA points prices from SmartStake (smartstake.py), keyed
+    "AWAY_HOME" with players by ESPN id; a started game keeps the last pregame
+    copy (odds lock at tip-off). Never raises."""
+    by_mascot = sorted(((t["mascot"].lower(), abbr) for abbr, t in teams.items()), key=lambda x: -len(x[0]))
+
+    def team_of(full):
+        text = (full or "").lower()
+        return next((abbr for mascot, abbr in by_mascot if text.endswith(mascot)), None)
+
+    ids = {}
+    if rosters is not None:
+        for r in rosters.itertuples(index=False):
+            ids.setdefault((smartstake.norm_player(r.display_name), r.team_abbreviation), str(r.athlete_id))
+
+    def player_key(name, away, home):
+        n = smartstake.norm_player(name)
+        return ids.get((n, away)) or ids.get((n, home))
+
+    keep = {f"{g['away']}_{g['home']}" for g in games}
+    return smartstake.fetch_nba_book_odds(os.environ.get("SMARTSTAKE_API_KEY"), team_of, player_key,
+                                          (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%MZ"), keep)
+
+
+def points_line(book_odds: dict, game: dict, pid: str):
+    """The middle main points line across the books for one player, or None."""
+    row = (((book_odds.get(f"{game['away']}_{game['home']}") or {}).get("props") or {}).get("points") or {}).get(pid)
+    ls = sorted(q[2] for q in (row or {}).get("q", []) if q[2] is not None)
+    return ls[len(ls) // 2] if ls else None
+
+
+def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
+    """model_history/nba_props/lines_<season>.json: {game id: {player id:
+    [line, projection, our number, weight on ours]}} as the last build before
+    tip-off had them (a started game is never rewritten): the line history,
+    and what the projection is graded against."""
+    path = PROPS_RECORD_DIR / f"lines_{season}.json"
+    record = json.loads(path.read_text()) if path.exists() else {}
+    changed = False
+    for g in games:
+        if datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
+            continue
+        rows = {pid: [r["line"], r["proj"], r["ours"], r["w"]] for pid, r in (slate.get(g["game_id"]) or {}).items() if r["line"] is not None}
+        if rows and record.get(g["game_id"]) != rows:
+            record[g["game_id"]] = rows
+            changed = True
+    if changed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(record, indent=1, sort_keys=True))
+    return record
+
+
+def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=(), identity_blob=None,
+                  injuries=None, now_utc=None) -> dict:
+    """site/nba/props.json (props.py): last season from its saved file on
+    today's rosters, this season from the engine; `default` this season once
+    the middle team has THIS_SEASON_DEFAULT_AT games; `slate` = the next few
+    nights' points projections (props.project_points), this season only."""
+    roster_team = {}
+    if rosters is not None:
+        roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
+    blocks = {}
+    saved = Path(str(props.REFERENCE).format(season=season - 1))
+    if saved.exists():
+        block = json.loads(saved.read_text(encoding="utf-8"))
+        blocks[season - 1] = props.on_rosters(block, roster_team) if roster_team else block
+    # First Basket has just downloaded this season's files (see compute_identity).
+    pbp = fetch_file("pbp", season, data_dir, False)
+    box = fetch_file("player_box", season, data_dir, False)
+    if pbp is not None and box is not None:
+        block = props.season_block(pbp, box, season_label(season))
+        if block:
+            blocks[season] = block
+    this = blocks.get(season)
+    team_games = 0
+    if this:
+        per_team = {}
+        for p in this["players"].values():
+            per_team.setdefault(p["team"], set()).update(row[1] for row in p["log"])
+        counts = sorted(len(v) for v in per_team.values())
+        team_games = counts[len(counts) // 2] if counts else 0
+    default = season if team_games >= THIS_SEASON_DEFAULT_AT else season - 1
+    return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()},
+            "slate": points_slate(season, this, book_odds or {}, list(games), identity_blob, injuries or {}, roster_team, now_utc),
+            "proj": {"k": props.PROJ_K, "max": props.PROJ_MAX, "last": props.PROJ_LAST}}
+
+
+def points_slate(season, this, book_odds, games, identity_blob, injuries, roster_team, now_utc) -> dict:
+    """{game id: {player id: {line, proj, w, ours, min, ppm, games, out}}} for
+    every player with a books' points line in the next KOTC_SLATE_NIGHTS
+    nights. Our number is this season's only; no games = the line."""
+    if now_utc is None:
+        return {}
+    ident = ((identity_blob or {}).get("seasons") or {}).get(str(season)) or {}
+    out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
+    today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
+    dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
+    players = (this or {}).get("players") or {}
+    fields = (this or {}).get("fields") or props.LOG_FIELDS
+    rnd = lambda v, d=1: None if v is None else round(v, d)  # noqa: E731
+    slate = {}
+    for g in games:
+        if g["date"] not in dates:
+            continue
+        priced = ((book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}).get("points") or {}
+        rows = {}
+        for pid in priced:
+            team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
+            opp = g["home"] if team == g["away"] else g["away"]
+            log = (players.get(pid) or {}).get("log") or []
+            teams_now = ident.get("teams") or {}
+            ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"))
+            line = points_line(book_odds, g, pid)
+            proj, w = props.project_points(line, len(log), ours)
+            rows[pid] = {"line": line, "proj": rnd(proj), "w": round(w, 3), "ours": rnd(ours), "min": rnd(minutes),
+                         "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids}
+        if rows:
+            slate[g["game_id"]] = rows
+    return slate
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, required=True, help="Year the season ends (2027 = 2026-27)")
@@ -687,7 +814,10 @@ def main():
 
     games = compute_schedule(schedule, now_utc)
     novig, novig_debug = fetch_novig_lines(games, teams)
-    apply_lines(games, novig, fetch_previous(), now_utc)
+    previous = fetch_previous()
+    apply_lines(games, novig, previous, now_utc)
+    book_odds, book_odds_debug = nba_book_odds(teams, rosters, games, previous, now_utc)
+    print(f"SmartStake NBA: {json.dumps(book_odds_debug)}")
     injury_list = compute_injuries(injuries, abbr_by_id)
 
     blob = {
@@ -706,6 +836,8 @@ def main():
         "injuries": injury_list,
         "schedule": games,
         "novig_debug": novig_debug,
+        "book_odds": book_odds,
+        "book_odds_debug": book_odds_debug,
     }
     # A King of the Court failure must not take Game Previews down with it.
     try:
@@ -727,6 +859,15 @@ def main():
     except Exception as ex:
         print(f"WARNING: Team Identity failed ({ex!r}).", file=sys.stderr)
         blob["identity"] = None
+    # Player props (props.json, its own file: every player's game log is too
+    # big for data.json). A failure leaves the file out; the pages say so.
+    try:
+        blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, blob.get("identity"), injury_list, now_utc)
+        props_lines_record(args.season, blob_props["slate"], games, now_utc)
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
+    except Exception as ex:
+        print(f"WARNING: NBA props failed ({ex!r}).", file=sys.stderr)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)

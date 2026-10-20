@@ -248,6 +248,12 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["icebreaker"] = len(ice.get("days") or {}) if ice else None  # Icebreaker: days with a board
         fg = (data.get("book_odds_debug") or {}).get("first_goal") or {}
         note["first_goal"] = fg.get("players", fg.get("error") or fg.get("note") or fg.get("skipped"))  # SmartStake first goal scorer prices
+    if suite == "nba":
+        bo = data.get("book_odds_debug") or {}
+        note["book_odds"] = bo.get("players", bo.get("error") or bo.get("note") or bo.get("skipped"))  # SmartStake: players with a points price
+        note["book_markets"] = bo.get("markets")
+        nba_props = read_json(site / "nba" / "props.json")
+        note["props"] = {s: len(b.get("players") or {}) for s, b in (nba_props.get("seasons") or {}).items()} if nba_props else None
     if failed:
         note["error"] = build_error(suite)
     return note
