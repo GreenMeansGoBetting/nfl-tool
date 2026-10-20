@@ -127,12 +127,19 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   jumps), first points = tip x the league's tip-winner rate, each starter's share from first points
   per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.
 - **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
-  under "Player props"): day strip, season buttons, The Tip (jumper cards, a split bar for who wins
-  it), Scoring First (home / away for tonight's side, after winning / losing the tip, Q1 margin),
-  Opening Trips (each offense next to what the other defense allows, colored from each side's own
-  view, league column), First Field Goal Allowed (G / F / C vs the league), Likely Starters (shot
-  early, 1st shot, scored 1st: % of starts with the count under), Fair Value Guess. Team numbers are
-  colored against all 30 teams, players against starters with 15+ starts.
+  under "Player props"): day strip, season buttons, then two pieces. **The Matchup** (`renderMatchup`,
+  `matchupRows`): ONE table, road team's value left, home team's right, the stat name + league
+  average in the middle with an **Edge** pill (better side's logo, when they're `edge` apart),
+  grouped The Tip / Scoring First / Opening Trips / First FG Allowed. The owner turned down the
+  first version (separate tile sections, team cards, a split bar) as "overwhelming ... so much dead
+  space ... too many numbers all spread everywhere" and asked for "stats stacked with team columns
+  and the data side by side" with "an edge column". **Every row is one fixed height (46 px; 62 px on
+  phones), centered, small notes BESIDE the number, never under it** (the owner: "keep them all
+  consistent"). Each value is colored against the league from its own team's side (green = good
+  for that team; First FG Allowed: red = that position scores first on them often). **Starters**:
+  one table per team (lineup tag on the banner), shot early / 1st shot / scored 1st as % with "x of
+  y" under, and the fair price as the last column, best first. Team numbers are colored against
+  all 30 teams, players against starters with 15+ starts (fewer: plain).
 - Tests: `tests/test_nba_first_basket.py` (the build on two hand-made games, and the page).
 - Not built yet: books' first-basket prices (SmartStake), a graded record of the guess, a Summary card.
 

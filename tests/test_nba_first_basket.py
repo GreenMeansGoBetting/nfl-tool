@@ -175,18 +175,33 @@ def tearDownModule():
 class Page(unittest.TestCase):
     def test_every_section_draws_with_no_script_errors(self):
         self.assertEqual(SITE.errors, [])
-        for section in ("fb-tip", "fb-first", "fb-trips", "fb-pos", "fb-starters", "fb-fair"):
+        for section in ("fb-matchup", "fb-starters"):
             self.assertTrue(PAGE.inner_text(f"#{section}").strip(), section)
 
-    def test_shows_the_builds_numbers(self):
-        tip = PAGE.inner_text("#fb-tip")
-        self.assertIn("1 of 2", tip)
-        self.assertIn("50%", tip)
-        starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => tr.children[0].innerText)")
-        self.assertTrue(starters[0].startswith("P12"))
-        self.assertIn("JUMPER", starters[1].upper())
-        trips = PAGE.inner_text("#fb-trips")
-        self.assertIn("1.50", trips)
+    def test_the_matchup_table_stacks_both_teams_side_by_side(self):
+        rows = PAGE.evaluate("""() => Object.fromEntries([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')]
+            .map((tr) => [tr.querySelector('.fb-m-label').firstChild.textContent, [tr.children[0].innerText, tr.children[2].innerText, !!tr.querySelector('.fb-edge')]]))""")
+        groups = PAGE.evaluate("() => [...document.querySelectorAll('#fb-matchup .fb-m-group')].map((tr) => tr.innerText.trim().toUpperCase())")
+        self.assertEqual(groups, ["THE TIP", "SCORING FIRST", "OPENING TRIPS", "FIRST FG ALLOWED"])
+        # Road (BBB) left, home (AAA) right.
+        self.assertEqual(["".join(v.split()) for v in rows["Jumper's tips won"][:2]], ["50%1of2", "50%1of2"])
+        # Every row the same height (the owner: "keep them all consistent").
+        heights = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')].map((r) => Math.round(r.getBoundingClientRect().height)))]")
+        self.assertEqual(len(heights), 1, heights)
+        self.assertEqual(rows["Trips to its first points"][:2], ["1.50", "1.50"])
+        self.assertFalse(rows["Trips to its first points"][2])  # level: no edge
+        # AAA scored first after winning the tip (100%), BBB too: no edge; AAA's 1st quarter -1.5 vs +1.5: BBB's edge.
+        self.assertTrue(rows["1st quarter margin"][2])
+        edge = PAGE.evaluate("() => [...document.querySelectorAll('#fb-matchup .fb-edge')].map((e) => e.title)")
+        self.assertIn("Edge: BBB", edge)
+
+    def test_starters_show_the_fair_price_best_first(self):
+        starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[4].innerText])")
+        names = [s[0].split("\n")[0] for s in starters]
+        self.assertEqual(set(names[:3]), {"P12", "P10", "P11"})
+        prices = [float(s[1].split("\n")[1].rstrip("%")) for s in starters]
+        self.assertEqual(prices, sorted(prices, reverse=True))
+        self.assertTrue(any("JUMPER" in s[0].upper() for s in starters))
 
     def test_season_buttons(self):
         buttons = PAGE.evaluate("() => [...document.querySelectorAll('#fb-seasons button')].map((b) => [b.textContent, b.disabled])")

@@ -48,40 +48,16 @@
 
     <div id="fb-game" hidden>
       <div class="section-wrap">
-        <h2 class="section-title">The Tip <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-tip" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="fb-note-tip" hidden>The jumper is the player who took the most opening tips for his team, among its likely starters. <b>Tips won</b> counts his opening jumps that his team came away with. <b>Team tip %</b> is how often the team won the opening tip in that spot (home or away). The bar is the head-to-head guess from the two jumpers, each steadied toward 50% so a handful of jumps can't run away with it.</p>
-        <div id="fb-tip"></div>
-      </div>
-
-      <div class="section-wrap">
-        <h2 class="section-title">Scoring First <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-first" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="fb-note-first" hidden>Any first points count, free throws included (how most books settle First Basket). <b>After winning / losing the tip</b> shows how much the tip matters for each team. <b>Q1 margin</b> is the average first-quarter score difference: do they start fast? Green = good for that team; the small line under each is the league.</p>
-        <div id="fb-first" class="nba-two"></div>
-      </div>
-
-      <div class="section-wrap">
-        <h2 class="section-title">Opening Trips <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-trips" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="fb-note-trips" hidden>How many possessions, and how many seconds, a team needs for its first points, next to what the other defense allows. Each side is colored from its own point of view: green offense = scores quickly, green defense = makes teams work for their first points.</p>
-        <div id="fb-trips" class="nba-two"></div>
-      </div>
-
-      <div class="section-wrap">
-        <h2 class="section-title">First Field Goal Allowed <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-pos" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="fb-note-pos" hidden>Who made the first field goal against each defense, by position (ESPN lists players only as guard, forward or center). Green = that position scores first against this defense more than it does league-wide.</p>
-        <div id="fb-pos" class="nba-two"></div>
+        <h2 class="section-title">The Matchup <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-matchup" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-matchup" hidden>Road team on the left, home team on the right, what the number is in the middle with the league average under it. Each number is colored against the league from its own team's side: <b>green = good for that team</b> (for First FG Allowed, red = that position scores first against them often). The <b>Edge</b> pill points at the better side when they're clearly apart. <b>The Tip:</b> the jumper is his team's most frequent jumper among tonight's starters; road / home rows use tonight's spot. <b>Scoring First:</b> any first points count, free throws included. <b>Opening Trips:</b> possessions and seconds to a team's first points, and what its defense lets opponents do (more = tougher D). <b>Wins the tip</b> and <b>Scores first</b> are the fair guess: the two jumpers (steadied toward 50%) and how often the tip winner scores first league-wide.</p>
+        <div id="fb-matchup"></div>
       </div>
 
       <div class="section-wrap">
         <h2 class="section-title">Starters <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-starters" title="How to read this">i</button></h2>
         <p class="section-note" id="fb-lineup-note"></p>
-        <p class="section-note info-note" id="fb-note-starters" hidden>The starting five from the NBA's lineup file: <b>Expected</b> until the team turns its five in, then <b>Confirmed</b> (about 30 minutes before tip); the page checks every minute. Before the NBA posts one, <b>Our guess</b>: the five who started most when they played, leaving out anyone listed Out. The jumper, the tip and the fair guess follow whichever five is shown. Every number is from his starts; <b>new</b> = no starts on file in this season's view. <b>Shot early</b>: starts where he took a shot before anyone scored. <b>1st shot</b>: he took the game's first shot. <b>Scored 1st</b>: he scored the game's first points.</p>
+        <p class="section-note info-note" id="fb-note-starters" hidden>The starting five from the NBA's lineup file: <b>Expected</b> until the team turns its five in, then <b>Confirmed</b> (about 30 minutes before tip); the page checks every minute. Before the NBA posts one, <b>Our guess</b>: the five who started most when they played, leaving out anyone listed Out. The jumper, the tip and the fair guess follow whichever five is shown. Every number is from his starts; <b>new</b> = no starts on file in this season's view. <b>Fair</b> is a rough guess at his price to score first, not a pick: his team's chance to score first, split by each starter's first scores per start (steadied toward his teammates'). It doesn't know about matchups; that part is yours. <b>Shot early</b>: starts where he took a shot before anyone scored. <b>1st shot</b>: he took the game's first shot. <b>Scored 1st</b>: he scored the game's first points.</p>
         <div id="fb-starters" class="nba-two"></div>
-      </div>
-
-      <div class="section-wrap">
-        <h2 class="section-title">Fair Value Guess <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-fair" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="fb-note-fair" hidden>A rough guess, not a pick. The tip from the two jumpers; the first score from the tip and how often the tip winner scores first league-wide; each starter's share from his first scores per start, steadied toward his teammates'. It doesn't know about matchups or the opening trips above. That part is yours.</p>
-        <div id="fb-fair"></div>
       </div>
     </div>
   </div>

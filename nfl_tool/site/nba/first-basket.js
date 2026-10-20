@@ -241,132 +241,147 @@ function renderHeader(g) {
 }
 
 // ---- sections ----
-const tile = (label, value, style = "", sub = "") => `<div class="nba-tile fb-tile"${style}><div class="gs-tile-label">${label}</div><b>${value}</b>${sub ? `<small>${sub}</small>` : ""}</div>`;
 const where = (g, abbr) => (abbr === g.home ? "home" : "away");
 
-function renderTip(g, p) {
-  const b = block();
-  const side = (abbr) => {
-    const jid = p[where(g, abbr)].jumper;
-    const j = jid ? player(jid) : null;
-    const t = b.teams[abbr] || {};
-    const spot = where(g, abbr);
-    const rate = j && j.jumps ? j.tips_won / j.jumps : null;
-    const [lo, hi] = range(Object.values(b.players).filter((x) => x.jumps >= 10).map((x) => x.tips_won / x.jumps));
-    return `<div class="nba-box fb-jumper">
-      ${banner(abbr)}
-      ${j ? `<div class="fb-jumper-who">${face(jid, "fb-face")}<div><b>${j.name}</b><span class="muted-label">${j.pos} &middot; jumper</span></div></div>` : `<p class="no-data-note">No regular jumper on file.</p>`}
-      <div class="fb-tiles">
-        ${tile("Tips won", j && j.jumps ? pct(rate) : "--", heat(rate, lo, hi), j ? `${j.tips_won} of ${j.jumps}` : "")}
-        ${tile(`Team tip % ${spot}`, pct(t[`tip_${spot}`]), teamHeat(`tip_${spot}`, t[`tip_${spot}`]), `${t[`tip_${spot}_n`] || 0} games`)}
-      </div>
-    </div>`;
-  };
-  const home = p.fair.tip_home;
-  const bar = home === null || home === undefined ? "" : `<div class="fb-split">
-      <div class="gs-tile-label">Wins the tip</div>
-      <div class="fb-split-bar">
-        <span style="flex:${1 - home};background:rgba(${teamRgb(g.away)},0.85)">${logo(g.away, 20)} ${pct(1 - home)}</span>
-        <span style="flex:${home};background:rgba(${teamRgb(g.home)},0.85)">${pct(home)} ${logo(g.home, 20)}</span>
-      </div>
-    </div>`;
-  el("fb-tip").innerHTML = `<div class="fb-tip-row">${side(g.away)}${bar}${side(g.home)}</div>`;
-}
-
-function renderFirst(g) {
+// The matchup table: one row per number, the away team's value on the left,
+// the home team's on the right, and in the middle what it is with an edge
+// pill pointing at the better side (the owner, 2026-10-20: "stacked with team
+// columns and the data side by side", "an edge column"). Each value is colored
+// against the league from its own team's side: green = good for that team.
+// better: which way is good; edge: how far apart before it's called an edge.
+function matchupRows(g, p) {
   const b = block();
   const lg = b.league;
-  const box = (abbr) => {
-    const t = b.teams[abbr];
-    if (!t) return `<div class="nba-box">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
-    const spot = where(g, abbr);
-    return `<div class="nba-box">${banner(abbr)}
-      <div class="fb-tiles fb-tiles-4">
-        ${tile(`Scored first ${spot}`, pct(t[`first_${spot}`]), teamHeat(`first_${spot}`, t[`first_${spot}`]), `${t[`first_${spot}_n`]} games &middot; all ${pct(t.first)}`)}
-        ${tile("After winning tip", pct(t.first_won_tip), teamHeat("first_won_tip", t.first_won_tip), `Lg ${pct(lg.first_won_tip)} &middot; ${t.first_won_tip_n} games`)}
-        ${tile("After losing tip", pct(t.first_lost_tip), teamHeat("first_lost_tip", t.first_lost_tip), `Lg ${pct(1 - lg.first_won_tip)} &middot; ${t.first_lost_tip_n} games`)}
-        ${tile("Q1 margin", signed(t.q1_margin), teamHeat("q1_margin", t.q1_margin), "Lg 0")}
-      </div>
-    </div>`;
+  const t = (abbr) => b.teams[abbr] || {};
+  const spot = (abbr) => where(g, abbr);
+  const jumperOf = (abbr) => {
+    const id = p[spot(abbr)].jumper;
+    return id ? { id, ...player(id) } : null;
   };
-  el("fb-first").innerHTML = box(g.away) + box(g.home);
+  const [jLo, jHi] = range(Object.values(b.players).filter((x) => x.jumps >= 10).map((x) => x.tips_won / x.jumps));
+  const tipHome = p.fair.tip_home;
+  const firstHome = p.fair.first_home;
+  const side = (abbr, home, away) => (abbr === g.home ? home : away);
+  const games = (n) => (n ? `${n} games` : "");
+  return [
+    { group: "The Tip" },
+    { label: "Jumper", jumper: true },
+    {
+      label: "Jumper's tips won", better: "high", edge: 0.05, show: pct,
+      value: (abbr) => { const j = jumperOf(abbr); return j && j.jumps ? j.tips_won / j.jumps : null; },
+      sub: (abbr) => { const j = jumperOf(abbr); return j && j.jumps ? `${j.tips_won} of ${j.jumps}` : ""; },
+      color: (abbr, v) => heat(v, jLo, jHi),
+    },
+    {
+      label: "Team tips won, road / home", better: "high", edge: 0.05, show: pct,
+      value: (abbr) => t(abbr)[`tip_${spot(abbr)}`], sub: (abbr) => games(t(abbr)[`tip_${spot(abbr)}_n`]),
+      color: (abbr, v) => teamHeat(`tip_${spot(abbr)}`, v),
+    },
+    {
+      label: "Wins the tip", lg: "fair guess", better: "high", edge: 0.05, show: pct, strong: true,
+      value: (abbr) => side(abbr, tipHome, 1 - tipHome), color: (abbr, v) => heat(v, 0.25, 0.75),
+    },
+    { group: "Scoring First" },
+    {
+      label: "Scores first", lg: "fair guess", better: "high", edge: 0.03, show: pct, strong: true,
+      value: (abbr) => side(abbr, firstHome, 1 - firstHome), color: (abbr, v) => heat(v, 0.35, 0.65),
+    },
+    {
+      label: "Scored first, road / home", lg: "Lg 50%", better: "high", edge: 0.05, show: pct,
+      value: (abbr) => t(abbr)[`first_${spot(abbr)}`], sub: (abbr) => games(t(abbr)[`first_${spot(abbr)}_n`]),
+      color: (abbr, v) => teamHeat(`first_${spot(abbr)}`, v),
+    },
+    {
+      label: "After winning the tip", lg: `Lg ${pct(lg.first_won_tip)}`, better: "high", edge: 0.05, show: pct,
+      value: (abbr) => t(abbr).first_won_tip, sub: (abbr) => games(t(abbr).first_won_tip_n), color: (abbr, v) => teamHeat("first_won_tip", v),
+    },
+    {
+      label: "After losing the tip", lg: `Lg ${pct(1 - lg.first_won_tip)}`, better: "high", edge: 0.05, show: pct,
+      value: (abbr) => t(abbr).first_lost_tip, sub: (abbr) => games(t(abbr).first_lost_tip_n), color: (abbr, v) => teamHeat("first_lost_tip", v),
+    },
+    {
+      label: "1st quarter margin", lg: "Lg 0", better: "high", edge: 1, show: signed,
+      value: (abbr) => t(abbr).q1_margin, color: (abbr, v) => teamHeat("q1_margin", v),
+    },
+    { group: "Opening Trips" },
+    {
+      label: "Trips to its first points", lg: `Lg ${fmt(lg.poss, 2)}`, better: "low", edge: 0.1, show: (v) => fmt(v, 2),
+      value: (abbr) => t(abbr).poss, color: (abbr, v) => teamHeat("poss", v, true),
+    },
+    {
+      label: "Trips its D allows", lg: `Lg ${fmt(lg.poss, 2)}`, better: "high", edge: 0.1, show: (v) => fmt(v, 2),
+      value: (abbr) => t(abbr).opp_poss, color: (abbr, v) => teamHeat("opp_poss", v),
+    },
+    {
+      label: "Seconds to its first points", lg: `Lg ${fmt(lg.secs, 0)}`, better: "low", edge: 4, show: (v) => fmt(v, 0),
+      value: (abbr) => t(abbr).secs, color: (abbr, v) => teamHeat("secs", v, true),
+    },
+    {
+      label: "Seconds its D allows", lg: `Lg ${fmt(lg.secs, 0)}`, better: "high", edge: 4, show: (v) => fmt(v, 0),
+      value: (abbr) => t(abbr).opp_secs, color: (abbr, v) => teamHeat("opp_secs", v),
+    },
+    { group: "First FG Allowed" },
+    ...[["G", "Guards"], ["F", "Forwards"], ["C", "Centers"]].map(([pos, name]) => ({
+      label: `${name} score it`, lg: `Lg ${pct(lg.fg_allowed[pos])}`, show: pct,
+      value: (abbr) => (t(abbr).fg_allowed || {})[pos],
+      color: (abbr, v) => teamHeat((x) => (x.fg_allowed || {})[pos], v, true),
+    })),
+  ];
 }
 
-function renderTrips(g) {
-  const b = block();
-  const lg = b.league;
-  const table = (off, def) => {
-    const o = b.teams[off] || {};
-    const d = b.teams[def] || {};
-    const row = (label, oKey, dKey, digits, lgValue) => `<tr><td>${label}</td>
-      <td class="num fb-cell"${teamHeat(oKey, o[oKey], true)}>${fmt(o[oKey], digits)}</td>
-      <td class="num fb-cell"${teamHeat(dKey, d[dKey])}>${fmt(d[dKey], digits)}</td>
-      <td class="num muted-label">${fmt(lgValue, digits)}</td></tr>`;
-    return `<div class="nba-box">
-      <div class="nba-box-title">${logo(off, 20)} ${off} offense <span class="at">vs</span> ${logo(def, 20)} ${def} defense</div>
-      <table class="data-table fb-table"><thead><tr><th></th><th>${off}</th><th>${def} allows</th><th>Lg</th></tr></thead><tbody>
-        ${row("Possessions to first points", "poss", "opp_poss", 2, lg.poss)}
-        ${row("Seconds to first points", "secs", "opp_secs", 0, lg.secs)}
-      </tbody></table>
-    </div>`;
+function renderMatchup(g, p) {
+  const cellFor = (row, abbr) => {
+    if (row.jumper) {
+      const id = p[where(g, abbr)].jumper;
+      return `<td class="fb-m-val fb-m-jumper">${id ? `${face(id)}<span>${player(id).name}</span>` : `<span class="muted-label">none on file</span>`}</td>`;
+    }
+    const v = row.value(abbr);
+    const sub = row.sub ? row.sub(abbr) : "";
+    return `<td class="fb-m-val${row.strong ? " fb-m-strong" : ""}"${v === null || v === undefined ? "" : row.color(abbr, v)}><b>${row.show(v)}</b>${sub ? `<small>${sub}</small>` : ""}</td>`;
   };
-  el("fb-trips").innerHTML = table(g.away, g.home) + table(g.home, g.away);
-}
-
-function renderPositions(g) {
-  const b = block();
-  const lg = b.league.fg_allowed;
-  const names = { G: "Guards", F: "Forwards", C: "Centers" };
-  const box = (def, off) => {
-    const t = b.teams[def];
-    if (!t) return `<div class="nba-box">${banner(def)}<p class="no-data-note">No games on file.</p></div>`;
-    return `<div class="nba-box">${banner(def, `allows &middot; ${logo(off, 18)} ${off} shoots`)}
-      <div class="fb-tiles fb-tiles-3">
-        ${["G", "F", "C"].map((pos) => tile(names[pos], pct(t.fg_allowed[pos]), teamHeat((x) => x.fg_allowed[pos], t.fg_allowed[pos]), `Lg ${pct(lg[pos])}`)).join("")}
-      </div>
-    </div>`;
+  const edgeFor = (row) => {
+    if (!row.better) return "";
+    const a = row.value(g.away);
+    const h = row.value(g.home);
+    if (a === null || a === undefined || h === null || h === undefined || Math.abs(a - h) < row.edge) return "";
+    const homeBetter = row.better === "high" ? h > a : h < a;
+    const abbr = homeBetter ? g.home : g.away;
+    return `<span class="fb-edge${homeBetter ? " fb-edge-home" : ""}" title="Edge: ${abbr}">${homeBetter ? "" : "&#9664;"}${logo(abbr, 16)}${homeBetter ? "&#9654;" : ""}</span>`;
   };
-  // Each offense's view: the defense it faces.
-  el("fb-pos").innerHTML = box(g.home, g.away) + box(g.away, g.home);
+  const body = matchupRows(g, p).map((row) => {
+    if (row.group) return `<tr class="fb-m-group"><td colspan="3">${row.group}</td></tr>`;
+    return `<tr>${cellFor(row, g.away)}<td class="fb-m-mid"><span class="fb-m-label">${row.label}${edgeFor(row)}</span>${row.lg ? `<small>${row.lg}</small>` : ""}</td>${cellFor(row, g.home)}</tr>`;
+  }).join("");
+  const head = (abbr) => `<th class="fb-m-team" style="background:rgba(${teamRgb(abbr)},0.22);border-bottom:3px solid rgb(${teamRgb(abbr)})">${logo(abbr, 26)}<span>${abbr}</span><small>${where(g, abbr) === "home" ? "home" : "road"}</small></th>`;
+  el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid">Edge</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
 function renderStarters(g, p) {
   const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((x) => x.status === "Out").map((x) => x.id));
+  const fair = p.fair.players;
   const box = (abbr) => {
     const side = p[where(g, abbr)];
     const injured = out(abbr);
-    const rows = side.starters.map((id) => {
+    // Best fair price first: the bottom line of the page.
+    const ids = side.starters.slice().sort((x, y) => ((fair[y] || {}).p || 0) - ((fair[x] || {}).p || 0));
+    const rows = ids.map((id) => {
       const pl = player(id);
       const rate = (n) => (pl.starts ? n / pl.starts : null);
       // Too few starts to color fairly (a rookie's 4): plain numbers.
-      const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]}</small></td>`;
+      const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]} of ${pl.starts}</small></td>`;
+      const f = fair[id];
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
         <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">new</span>`}</span></td>
-        <td class="num">${pl.starts}</td>${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}
+        ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}
+        <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b><small>${fmt(f.p * 100)}%</small>` : "--"}</td>
       </tr>`;
     }).join("");
     return `<div class="nba-box">${banner(abbr, lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th>Player</th><th>Starts</th><th title="Starts where he shot before anyone scored">Shot early</th><th title="Took the game's first shot">1st shot</th><th title="Scored the game's first points">Scored 1st</th></tr></thead>
+      <table class="data-table fb-table fb-starters"><thead><tr><th>Player</th><th title="Starts where he shot before anyone scored">Shot early</th><th title="Took the game's first shot">1st shot</th><th title="Scored the game's first points">Scored 1st</th><th title="Fair price to score first: a rough guess">Fair</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="5" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
   };
   el("fb-starters").innerHTML = box(g.away) + box(g.home);
-}
-
-function renderFair(g, p) {
-  const f = p.fair;
-  const firstHome = f.first_home;
-  const chips = (abbr) => p[where(g, abbr)].starters
-    .filter((id) => f.players[id])
-    .sort((x, y) => f.players[y].p - f.players[x].p)
-    .map((id) => `<div class="fb-chip">${face(id)}<span>${player(id).name}</span><b>${showOdds(f.players[id].fair)}</b><small>${fmt(f.players[id].p * 100)}%</small></div>`)
-    .join("");
-  el("fb-fair").innerHTML = `<div class="nba-two">
-      ${[g.away, g.home].map((abbr) => {
-        const first = abbr === g.home ? firstHome : 1 - firstHome;
-        return `<div class="nba-box">${banner(abbr, `scores first ${pct(first)}`)}<div class="fb-chips">${chips(abbr)}</div></div>`;
-      }).join("")}
-    </div>`;
 }
 
 function render() {
@@ -382,12 +397,8 @@ function render() {
     return;
   }
   renderHeader(g);
-  renderTip(g, p);
-  renderFirst(g);
-  renderTrips(g);
-  renderPositions(g);
+  renderMatchup(g, p);
   renderStarters(g, p);
-  renderFair(g, p);
   renderLineupNote(p);
 }
 function renderLineupNote(p) {
