@@ -127,21 +127,40 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   jumps), first points = tip x the league's tip-winner rate, each starter's share from first points
   per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.
 - **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
-  under "Player props"): day strip, season buttons, then two pieces. **The Matchup** (`renderMatchup`,
-  `matchupRows`): ONE table, road team's value left, home team's right, the stat name + league
-  average in the middle with an **Edge** pill (better side's logo, when they're `edge` apart),
-  grouped The Tip / Scoring First / Opening Trips / First FG Allowed. The owner turned down the
-  first version (separate tile sections, team cards, a split bar) as "overwhelming ... so much dead
-  space ... too many numbers all spread everywhere" and asked for "stats stacked with team columns
-  and the data side by side" with "an edge column". **Every row is one fixed height (46 px; 62 px on
-  phones), centered, small notes BESIDE the number, never under it** (the owner: "keep them all
-  consistent"). Each value is colored against the league from its own team's side (green = good
-  for that team; First FG Allowed: red = that position scores first on them often). **Starters**:
-  one table per team (lineup tag on the banner), shot early / 1st shot / scored 1st as % with "x of
-  y" under, and the fair price as the last column, best first. Team numbers are colored against
-  all 30 teams, players against starters with 15+ starts (fewer: plain).
+  under "Player props"): day strip, season buttons, then a two-column layout (one column under
+  1000 px): **The Matchup** on the left, **Targets** and both teams' **Starters** stacked on the right.
+  How it got here (2026-10-20): tile sections with team cards and a split bar were "overwhelming ...
+  so much dead space ... too many numbers all spread everywhere"; then one stacked table was
+  "significantly improved" but the owner wanted "Simple. KISS" and wrote the rows themself.
+- **The Matchup** (`renderMatchup`, `matchupRows`): ONE table, road team's value left, home team's
+  right, the stat name in the middle with an **Edge** pill (better side's logo, when they're `edge`
+  apart). The owner's rows, Title Case, nothing else: The Tip (Jumper, Tips Won, Home/Road), Scores
+  First (Scores First, Home/Road, After Winning Tip, After Losing Tip), Opening Trips (Avg Poss. To
+  Score, Avg Poss. To Allow), First FG Allowed (Guards, Forwards, Centers). **Removed on purpose:**
+  game-count subtext, league averages, "fair guess" rows ("Wins the tip": "you're making a guess
+  here and that's not evident. We can make predictions else where"), the 1st-quarter margin and
+  the seconds rows. Group headers centered over the middle. **Every row one fixed height (36 px;
+  44 px on phones), centered** (the owner: "keep them all consistent"). Each value colored against
+  the league from its own team's side (green = good for that team; First FG Allowed: red = that
+  position scores first on them often).
+- **Targets** (`targets`, the owner: "show position or players of weakness. Or team"), each
+  two-sided: a **position** when the defense gives it the first FG 5+ points above the league AND
+  the offense's own first FGs (`fg_made`) aren't 2+ points below the league there (lists the
+  offense's starters at it); the **Tip** when one jumper wins 15+ points more and his team wins
+  more tips in its spot; a **Quick Start** when the offense needs 0.1+ fewer trips than the league
+  and the other defense isn't tougher than average.
+- **Starters**: one compact table per team, both the width of the wider one (lineup tag on the
+  banner): Shot Early / 1st Shot / Scored 1st as % with "x of y" under, **Fair** (our guess) and
+  **Novig** (Novig's First Basket price), likeliest first. Team numbers are colored against all 30
+  teams, players against starters with 15+ starts (fewer: plain).
+- **Book prices: Novig, not SmartStake** (the owner, 2026-10-20: "SS bad idea - use novig first FG
+  market odds for now until SS can fix their offerings"). Novig's public NBA feed has a
+  `FIRST_BASKET` market per player (Yes / No, the ~10 likely starters a game); the build reads the
+  Yes price in `fetch_novig_lines` into each game's `first_basket` ({player name: American}), a
+  `LINE_FIELDS` member so it locks at tip like the lines. SmartStake does list
+  `basketball_first_points_scorer` ("1st Points Scorer"); leave it until the owner says otherwise.
 - Tests: `tests/test_nba_first_basket.py` (the build on two hand-made games, and the page).
-- Not built yet: books' first-basket prices (SmartStake), a graded record of the guess, a Summary card.
+- Not built yet: a graded record of the guess, a Summary card.
 
 ## King of the Court (Promo Tools; built 2026-10-19)
 

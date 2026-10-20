@@ -242,87 +242,51 @@ function renderHeader(g) {
 
 // ---- sections ----
 const where = (g, abbr) => (abbr === g.home ? "home" : "away");
+const POS_NAMES = { G: "Guards", F: "Forwards", C: "Centers" };
+const lastName = (name) => String(name || "").split(" ").slice(1).join(" ") || name;
 
-// The matchup table: one row per number, the away team's value on the left,
-// the home team's on the right, and in the middle what it is with an edge
-// pill pointing at the better side (the owner, 2026-10-20: "stacked with team
-// columns and the data side by side", "an edge column"). Each value is colored
-// against the league from its own team's side: green = good for that team.
-// better: which way is good; edge: how far apart before it's called an edge.
+// The matchup table: one row per number, the road team's value on the left,
+// the home team's on the right, the stat in the middle with an edge pill
+// pointing at the better side. Kept to the bare numbers (the owner,
+// 2026-10-20: "Simple. KISS"): no game counts, league averages or guesses.
+// Each value is colored against the league from its own team's side: green =
+// good for that team. better: which way is good; edge: how far apart before
+// it's called an edge.
 function matchupRows(g, p) {
   const b = block();
-  const lg = b.league;
   const t = (abbr) => b.teams[abbr] || {};
   const spot = (abbr) => where(g, abbr);
   const jumperOf = (abbr) => {
     const id = p[spot(abbr)].jumper;
-    return id ? { id, ...player(id) } : null;
+    return id ? player(id) : null;
   };
   const [jLo, jHi] = range(Object.values(b.players).filter((x) => x.jumps >= 10).map((x) => x.tips_won / x.jumps));
-  const tipHome = p.fair.tip_home;
-  const firstHome = p.fair.first_home;
-  const side = (abbr, home, away) => (abbr === g.home ? home : away);
-  const games = (n) => (n ? `${n} games` : "");
   return [
     { group: "The Tip" },
     { label: "Jumper", jumper: true },
     {
-      label: "Jumper's tips won", better: "high", edge: 0.05, show: pct,
+      label: "Tips Won", better: "high", edge: 0.05, show: pct,
       value: (abbr) => { const j = jumperOf(abbr); return j && j.jumps ? j.tips_won / j.jumps : null; },
-      sub: (abbr) => { const j = jumperOf(abbr); return j && j.jumps ? `${j.tips_won} of ${j.jumps}` : ""; },
       color: (abbr, v) => heat(v, jLo, jHi),
     },
     {
-      label: "Team tips won, road / home", better: "high", edge: 0.05, show: pct,
-      value: (abbr) => t(abbr)[`tip_${spot(abbr)}`], sub: (abbr) => games(t(abbr)[`tip_${spot(abbr)}_n`]),
-      color: (abbr, v) => teamHeat(`tip_${spot(abbr)}`, v),
+      label: "Home/Road", better: "high", edge: 0.05, show: pct,
+      value: (abbr) => t(abbr)[`tip_${spot(abbr)}`], color: (abbr, v) => teamHeat(`tip_${spot(abbr)}`, v),
     },
+    { group: "Scores First" },
+    { label: "Scores First", better: "high", edge: 0.05, show: pct, value: (abbr) => t(abbr).first, color: (abbr, v) => teamHeat("first", v) },
     {
-      label: "Wins the tip", lg: "fair guess", better: "high", edge: 0.05, show: pct, strong: true,
-      value: (abbr) => side(abbr, tipHome, 1 - tipHome), color: (abbr, v) => heat(v, 0.25, 0.75),
+      label: "Home/Road", better: "high", edge: 0.05, show: pct,
+      value: (abbr) => t(abbr)[`first_${spot(abbr)}`], color: (abbr, v) => teamHeat(`first_${spot(abbr)}`, v),
     },
-    { group: "Scoring First" },
-    {
-      label: "Scores first", lg: "fair guess", better: "high", edge: 0.03, show: pct, strong: true,
-      value: (abbr) => side(abbr, firstHome, 1 - firstHome), color: (abbr, v) => heat(v, 0.35, 0.65),
-    },
-    {
-      label: "Scored first, road / home", lg: "Lg 50%", better: "high", edge: 0.05, show: pct,
-      value: (abbr) => t(abbr)[`first_${spot(abbr)}`], sub: (abbr) => games(t(abbr)[`first_${spot(abbr)}_n`]),
-      color: (abbr, v) => teamHeat(`first_${spot(abbr)}`, v),
-    },
-    {
-      label: "After winning the tip", lg: `Lg ${pct(lg.first_won_tip)}`, better: "high", edge: 0.05, show: pct,
-      value: (abbr) => t(abbr).first_won_tip, sub: (abbr) => games(t(abbr).first_won_tip_n), color: (abbr, v) => teamHeat("first_won_tip", v),
-    },
-    {
-      label: "After losing the tip", lg: `Lg ${pct(1 - lg.first_won_tip)}`, better: "high", edge: 0.05, show: pct,
-      value: (abbr) => t(abbr).first_lost_tip, sub: (abbr) => games(t(abbr).first_lost_tip_n), color: (abbr, v) => teamHeat("first_lost_tip", v),
-    },
-    {
-      label: "1st quarter margin", lg: "Lg 0", better: "high", edge: 1, show: signed,
-      value: (abbr) => t(abbr).q1_margin, color: (abbr, v) => teamHeat("q1_margin", v),
-    },
+    { label: "After Winning Tip", better: "high", edge: 0.05, show: pct, value: (abbr) => t(abbr).first_won_tip, color: (abbr, v) => teamHeat("first_won_tip", v) },
+    { label: "After Losing Tip", better: "high", edge: 0.05, show: pct, value: (abbr) => t(abbr).first_lost_tip, color: (abbr, v) => teamHeat("first_lost_tip", v) },
     { group: "Opening Trips" },
-    {
-      label: "Trips to its first points", lg: `Lg ${fmt(lg.poss, 2)}`, better: "low", edge: 0.1, show: (v) => fmt(v, 2),
-      value: (abbr) => t(abbr).poss, color: (abbr, v) => teamHeat("poss", v, true),
-    },
-    {
-      label: "Trips its D allows", lg: `Lg ${fmt(lg.poss, 2)}`, better: "high", edge: 0.1, show: (v) => fmt(v, 2),
-      value: (abbr) => t(abbr).opp_poss, color: (abbr, v) => teamHeat("opp_poss", v),
-    },
-    {
-      label: "Seconds to its first points", lg: `Lg ${fmt(lg.secs, 0)}`, better: "low", edge: 4, show: (v) => fmt(v, 0),
-      value: (abbr) => t(abbr).secs, color: (abbr, v) => teamHeat("secs", v, true),
-    },
-    {
-      label: "Seconds its D allows", lg: `Lg ${fmt(lg.secs, 0)}`, better: "high", edge: 4, show: (v) => fmt(v, 0),
-      value: (abbr) => t(abbr).opp_secs, color: (abbr, v) => teamHeat("opp_secs", v),
-    },
+    { label: "Avg Poss. To Score", better: "low", edge: 0.1, show: (v) => fmt(v, 2), value: (abbr) => t(abbr).poss, color: (abbr, v) => teamHeat("poss", v, true) },
+    { label: "Avg Poss. To Allow", better: "high", edge: 0.1, show: (v) => fmt(v, 2), value: (abbr) => t(abbr).opp_poss, color: (abbr, v) => teamHeat("opp_poss", v) },
     { group: "First FG Allowed" },
-    ...[["G", "Guards"], ["F", "Forwards"], ["C", "Centers"]].map(([pos, name]) => ({
-      label: `${name} score it`, lg: `Lg ${pct(lg.fg_allowed[pos])}`, show: pct,
+    ...["G", "F", "C"].map((pos) => ({
+      label: POS_NAMES[pos], show: pct,
       value: (abbr) => (t(abbr).fg_allowed || {})[pos],
       color: (abbr, v) => teamHeat((x) => (x.fg_allowed || {})[pos], v, true),
     })),
@@ -333,11 +297,10 @@ function renderMatchup(g, p) {
   const cellFor = (row, abbr) => {
     if (row.jumper) {
       const id = p[where(g, abbr)].jumper;
-      return `<td class="fb-m-val fb-m-jumper">${id ? `${face(id)}<span>${player(id).name}</span>` : `<span class="muted-label">none on file</span>`}</td>`;
+      return `<td class="fb-m-val fb-m-jumper">${id ? `${face(id)}<span>${lastName(player(id).name)}</span>` : `<span class="muted-label">None</span>`}</td>`;
     }
     const v = row.value(abbr);
-    const sub = row.sub ? row.sub(abbr) : "";
-    return `<td class="fb-m-val${row.strong ? " fb-m-strong" : ""}"${v === null || v === undefined ? "" : row.color(abbr, v)}><b>${row.show(v)}</b>${sub ? `<small>${sub}</small>` : ""}</td>`;
+    return `<td class="fb-m-val"${v === null || v === undefined ? "" : row.color(abbr, v)}><b>${row.show(v)}</b></td>`;
   };
   const edgeFor = (row) => {
     if (!row.better) return "";
@@ -346,14 +309,87 @@ function renderMatchup(g, p) {
     if (a === null || a === undefined || h === null || h === undefined || Math.abs(a - h) < row.edge) return "";
     const homeBetter = row.better === "high" ? h > a : h < a;
     const abbr = homeBetter ? g.home : g.away;
-    return `<span class="fb-edge${homeBetter ? " fb-edge-home" : ""}" title="Edge: ${abbr}">${homeBetter ? "" : "&#9664;"}${logo(abbr, 16)}${homeBetter ? "&#9654;" : ""}</span>`;
+    return `<span class="fb-edge${homeBetter ? " fb-edge-home" : ""}" title="Edge: ${abbr}">${homeBetter ? "" : "&#9664;"}${logo(abbr, 14)}${homeBetter ? "&#9654;" : ""}</span>`;
   };
   const body = matchupRows(g, p).map((row) => {
-    if (row.group) return `<tr class="fb-m-group"><td colspan="3">${row.group}</td></tr>`;
-    return `<tr>${cellFor(row, g.away)}<td class="fb-m-mid"><span class="fb-m-label">${row.label}${edgeFor(row)}</span>${row.lg ? `<small>${row.lg}</small>` : ""}</td>${cellFor(row, g.home)}</tr>`;
+    if (row.group) return `<tr class="fb-m-group"><td></td><td>${row.group}</td><td></td></tr>`;
+    return `<tr>${cellFor(row, g.away)}<td class="fb-m-mid"><span class="fb-m-label">${row.label}</span>${edgeFor(row)}</td>${cellFor(row, g.home)}</tr>`;
   }).join("");
-  const head = (abbr) => `<th class="fb-m-team" style="background:rgba(${teamRgb(abbr)},0.22);border-bottom:3px solid rgb(${teamRgb(abbr)})">${logo(abbr, 26)}<span>${abbr}</span><small>${where(g, abbr) === "home" ? "home" : "road"}</small></th>`;
+  const head = (abbr) => `<th class="fb-m-team" style="background:rgba(${teamRgb(abbr)},0.22);border-bottom:3px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span>${abbr}</span></th>`;
   el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid">Edge</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+// ---- targets ----
+// Where tonight's first points look likeliest to come from. Every target
+// reads both sides (CLAUDE.md: a defense's weakness only counts when the
+// other offense leans that way too, and the reverse):
+//   position: the defense gives that position the first FG well above the
+//     league AND the offense's own first FGs don't run below the league there;
+//     its starters at that position are listed;
+//   tip: one jumper wins clearly more AND his team wins more tips in its spot;
+//   quick start: the offense scores in fewer trips than the league AND the
+//     other defense doesn't hold teams longer than the league.
+const TARGET_POS_GAP = 0.05;
+const TARGET_TIP_GAP = 0.15;
+const TARGET_POSS_GAP = 0.1;
+function targets(g, p) {
+  const b = block();
+  const lg = b.league;
+  const t = (abbr) => b.teams[abbr] || {};
+  const out = [];
+  for (const [off, def] of [[g.away, g.home], [g.home, g.away]]) {
+    const side = p[where(g, off)];
+    for (const pos of ["G", "F", "C"]) {
+      const allowed = (t(def).fg_allowed || {})[pos];
+      const made = (t(off).fg_made || {})[pos];
+      if (allowed === null || allowed === undefined || allowed - lg.fg_allowed[pos] < TARGET_POS_GAP) continue;
+      if (made !== null && made !== undefined && made < lg.fg_allowed[pos] - 0.02) continue;
+      const who = side.starters.filter((id) => player(id).pos === pos);
+      if (!who.length) continue;
+      out.push({ team: off, what: POS_NAMES[pos], why: `${def} allows ${pct(allowed)}`, who });
+    }
+  }
+  const tipRate = (abbr) => {
+    const id = p[where(g, abbr)].jumper;
+    const j = id ? player(id) : null;
+    return j && j.jumps ? { id, rate: j.tips_won / j.jumps } : null;
+  };
+  const a = tipRate(g.away);
+  const h = tipRate(g.home);
+  if (a && h && Math.abs(a.rate - h.rate) >= TARGET_TIP_GAP) {
+    const [win, lose] = h.rate > a.rate ? [g.home, g.away] : [g.away, g.home];
+    const teamTip = (abbr) => t(abbr)[`tip_${where(g, abbr)}`];
+    if ((teamTip(win) || 0) >= (teamTip(lose) || 0)) {
+      const w = win === g.home ? h : a;
+      out.push({ team: win, what: "Tip", why: `${lastName(player(w.id).name)} wins ${pct(w.rate)}`, who: [] });
+    }
+  }
+  for (const [off, def] of [[g.away, g.home], [g.home, g.away]]) {
+    const poss = t(off).poss;
+    const allows = t(def).opp_poss;
+    if (poss !== null && poss !== undefined && poss <= lg.poss - TARGET_POSS_GAP && allows !== null && allows !== undefined && allows <= lg.poss + TARGET_POSS_GAP && allows >= lg.poss - 0.02) {
+      out.push({ team: off, what: "Quick Start", why: `${fmt(poss, 2)} poss. to score`, who: [] });
+    }
+  }
+  return out;
+}
+function renderTargets(g, p) {
+  const list = targets(g, p);
+  el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
+    <div class="nba-box-title">Targets <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-targets" title="How to read this">i</button></div>
+    <p class="section-note info-note" id="fb-note-targets" hidden>Each target reads both sides. <b>Position:</b> the defense gives that position the first field goal at least 5 points more often than the league, and the offense's own first field goals don't come from it less than the league's; its starters there are listed. <b>Tip:</b> one jumper wins at least 15 points more often and his team wins more tips in tonight's spot. <b>Quick Start:</b> the offense scores in at least 0.1 fewer trips than the league and the other defense doesn't hold teams longer than average.</p>
+    ${list.length
+      ? list.map((x) => `<div class="fb-target">${logo(x.team, 20)}<b>${x.what}</b><span class="muted-label">${x.why}</span>${x.who.map((id) => `<span class="fb-target-who">${face(id)}${lastName(player(id).name)}</span>`).join("")}</div>`).join("")
+      : `<p class="no-data-note">No clear targets in this game.</p>`}
+  </div>`;
+}
+
+// Novig's First Basket "Yes" price for a player, matched by name.
+function novigPrice(g, id) {
+  const prices = g.first_basket || {};
+  const want = nameKey(player(id).name);
+  const name = Object.keys(prices).find((n) => nameKey(n) === want);
+  return name === undefined ? null : prices[name];
 }
 
 function renderStarters(g, p) {
@@ -370,15 +406,17 @@ function renderStarters(g, p) {
       // Too few starts to color fairly (a rookie's 4): plain numbers.
       const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]} of ${pl.starts}</small></td>`;
       const f = fair[id];
+      const nv = novigPrice(g, id);
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
-        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">new</span>`}</span></td>
+        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}
-        <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b><small>${fmt(f.p * 100)}%</small>` : "--"}</td>
+        <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
+        <td class="num fb-fair fb-novig">${nv === null ? "--" : `<b>${showOdds(nv)}</b>`}</td>
       </tr>`;
     }).join("");
-    return `<div class="nba-box">${banner(abbr, lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th>Player</th><th title="Starts where he shot before anyone scored">Shot early</th><th title="Took the game's first shot">1st shot</th><th title="Scored the game's first points">Scored 1st</th><th title="Fair price to score first: a rough guess">Fair</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="5" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
+    return `<div class="nba-box fb-starters-box">${banner(abbr, lineupTag(side))}
+      <table class="data-table fb-table fb-starters"><thead><tr><th>Player</th><th title="Starts where he shot before anyone scored">Shot Early</th><th title="Took the game's first shot">1st Shot</th><th title="Scored the game's first points">Scored 1st</th><th title="Our rough fair price to score first">Fair</th><th title="Novig's First Basket price (Yes)">Novig</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="6" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
   };
   el("fb-starters").innerHTML = box(g.away) + box(g.home);
@@ -398,6 +436,7 @@ function render() {
   }
   renderHeader(g);
   renderMatchup(g, p);
+  renderTargets(g, p);
   renderStarters(g, p);
   renderLineupNote(p);
 }

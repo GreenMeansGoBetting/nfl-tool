@@ -64,8 +64,10 @@ NOVIG_MARKET_FILTER = {
     ]
 }
 LIVE_DATA_URL = "https://nfl.gmgsports.org/nba/data.json"
+# first_basket: {player name: Novig's First Basket "Yes" price, American};
+# locked at tip like the lines (First Basket's Novig column).
 LINE_FIELDS = (
-    "away_team_spread", "home_team_spread", "away_spread_odds", "home_spread_odds", "total_line",
+    "first_basket", "away_team_spread", "home_team_spread", "away_spread_odds", "home_spread_odds", "total_line",
     "over_odds", "under_odds", "away_moneyline", "home_moneyline", "away_ml_implied_prob", "home_ml_implied_prob",
 )
 
@@ -376,6 +378,13 @@ def fetch_novig_lines(games: list, teams: dict) -> tuple:
             sides = {ev["game"]["awayTeam"]["symbol"]: "away", ev["game"]["homeTeam"]["symbol"]: "home"}
             lines = {}
             for m in ev.get("markets") or []:
+                # First Basket: one Yes / No market per player (any first points).
+                if m.get("type") == "FIRST_BASKET" and m.get("player"):
+                    yes = next((o for o in m.get("outcomes") or [] if (o.get("description") or "").lower() == "yes"), None)
+                    price = price_to_american(yes.get("available")) if yes else None
+                    if price is not None:
+                        lines.setdefault("first_basket", {})[m["player"].get("full_name") or ""] = price
+                    continue
                 if not m.get("is_consensus") or m.get("player"):
                     continue
                 outs = m.get("outcomes") or []

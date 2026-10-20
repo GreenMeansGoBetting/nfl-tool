@@ -129,6 +129,8 @@ def team_numbers(openings: list, positions: dict) -> tuple:
                 d["opp_secs"].append(o["first_pts"][opp][1])
             if opp in o["first_fg"]:
                 d["fg_pos"].append(positions.get(o["first_fg"][opp], "F"))
+            if team in o["first_fg"]:
+                d["fg_own"].append(positions.get(o["first_fg"][team], "F"))
     teams = {}
     for team, d in rows.items():
         t = {"games": len(d["first"])}
@@ -139,6 +141,8 @@ def team_numbers(openings: list, positions: dict) -> tuple:
             t[key] = _mean(d[key], digits)
         n = len(d["fg_pos"])
         t["fg_allowed"] = {p: num(d["fg_pos"].count(p) / n) if n else None for p in POSITIONS}
+        n = len(d["fg_own"])
+        t["fg_made"] = {p: num(d["fg_own"].count(p) / n) if n else None for p in POSITIONS}
         teams[team] = t
     games = [o for o in openings if o["tip"]]
     fg_all = [positions.get(pid, "F") for o in openings for pid in o["first_fg"].values()]

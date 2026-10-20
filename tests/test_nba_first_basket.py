@@ -25,6 +25,7 @@ from site_browser import SiteBrowser
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nba"))
+import build_nba  # noqa: E402
 import first_basket as fb  # noqa: E402
 
 TEAMS = {"AAA": 1, "BBB": 2}
@@ -114,6 +115,12 @@ class Build(unittest.TestCase):
         self.assertEqual(BLOCK["teams"]["AAA"]["fg_allowed"], {"G": 0.5, "F": 0.0, "C": 0.5})
         # Against BBB: 12 (F), then 11 (G).
         self.assertEqual(BLOCK["teams"]["BBB"]["fg_allowed"], {"G": 0.5, "F": 0.5, "C": 0.0})
+        # And each offense's own first field goals, the other half of a position target.
+        self.assertEqual(BLOCK["teams"]["AAA"]["fg_made"], {"G": 0.5, "F": 0.5, "C": 0.0})
+        self.assertEqual(BLOCK["teams"]["BBB"]["fg_made"], {"G": 0.5, "F": 0.0, "C": 0.5})
+
+    def test_novig_first_basket_prices_lock_at_tip_like_the_lines(self):
+        self.assertIn("first_basket", build_nba.LINE_FIELDS)
 
     def test_starters_shots_before_the_first_points(self):
         p = BLOCK["players"]
@@ -145,7 +152,9 @@ class Build(unittest.TestCase):
 
 
 SITE = PAGE = None
-GAME = {"game_id": "9", "date": "2026-10-21", "time": "19:30", "away": "BBB", "home": "AAA", "status": "scheduled"}
+# Novig's First Basket "Yes" prices by player name (build_nba.fetch_novig_lines).
+GAME = {"game_id": "9", "date": "2026-10-21", "time": "19:30", "away": "BBB", "home": "AAA", "status": "scheduled",
+        "first_basket": {"P12": 450, "P10": 600}}
 
 
 def setUpModule():
@@ -178,29 +187,44 @@ class Page(unittest.TestCase):
         for section in ("fb-matchup", "fb-starters"):
             self.assertTrue(PAGE.inner_text(f"#{section}").strip(), section)
 
-    def test_the_matchup_table_stacks_both_teams_side_by_side(self):
-        rows = PAGE.evaluate("""() => Object.fromEntries([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')]
-            .map((tr) => [tr.querySelector('.fb-m-label').firstChild.textContent, [tr.children[0].innerText, tr.children[2].innerText, !!tr.querySelector('.fb-edge')]]))""")
+    def test_the_matchup_table_is_the_bare_numbers_side_by_side(self):
+        rows = PAGE.evaluate("""() => [...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')]
+            .map((tr) => [tr.querySelector('.fb-m-label').textContent, tr.children[0].innerText.trim(), tr.children[2].innerText.trim(), !!tr.querySelector('.fb-edge')])""")
         groups = PAGE.evaluate("() => [...document.querySelectorAll('#fb-matchup .fb-m-group')].map((tr) => tr.innerText.trim().toUpperCase())")
-        self.assertEqual(groups, ["THE TIP", "SCORING FIRST", "OPENING TRIPS", "FIRST FG ALLOWED"])
-        # Road (BBB) left, home (AAA) right.
-        self.assertEqual(["".join(v.split()) for v in rows["Jumper's tips won"][:2]], ["50%1of2", "50%1of2"])
+        self.assertEqual(groups, ["THE TIP", "SCORES FIRST", "OPENING TRIPS", "FIRST FG ALLOWED"])
+        # The owner's rows, in order (2026-10-20): no game counts, league averages, guesses or seconds.
+        self.assertEqual([r[0] for r in rows], [
+            "Jumper", "Tips Won", "Home/Road", "Scores First", "Home/Road", "After Winning Tip", "After Losing Tip",
+            "Avg Poss. To Score", "Avg Poss. To Allow", "Guards", "Forwards", "Centers"])
+        by = {r[0]: r for r in rows}
+        # Road (BBB) left, home (AAA) right; just the number in each cell.
+        self.assertEqual(by["Tips Won"][1:3], ["50%", "50%"])
+        self.assertEqual(by["Avg Poss. To Score"][1:3], ["1.50", "1.50"])
+        self.assertEqual(by["Guards"][1:3], ["50%", "50%"])
+        self.assertFalse(any(r[3] for r in rows))  # a level game: no edge pills
         # Every row the same height (the owner: "keep them all consistent").
         heights = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')].map((r) => Math.round(r.getBoundingClientRect().height)))]")
         self.assertEqual(len(heights), 1, heights)
-        self.assertEqual(rows["Trips to its first points"][:2], ["1.50", "1.50"])
-        self.assertFalse(rows["Trips to its first points"][2])  # level: no edge
-        # AAA scored first after winning the tip (100%), BBB too: no edge; AAA's 1st quarter -1.5 vs +1.5: BBB's edge.
-        self.assertTrue(rows["1st quarter margin"][2])
-        edge = PAGE.evaluate("() => [...document.querySelectorAll('#fb-matchup .fb-edge')].map((e) => e.title)")
-        self.assertIn("Edge: BBB", edge)
 
-    def test_starters_show_the_fair_price_best_first(self):
-        starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[4].innerText])")
+    def test_targets_read_both_sides(self):
+        # League first FGs: guards 50%, forwards 25%, centers 25%. AAA gives centers 50% and
+        # BBB's own first FGs are half centers: BBB's center. BBB gives forwards 50% and
+        # AAA's own are half forwards: AAA's forward. Guards: 50% = the league, no target.
+        items = PAGE.evaluate("() => [...document.querySelectorAll('#fb-targets .fb-target')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim())")
+        self.assertEqual(len(items), 2, items)
+        self.assertTrue(any(i.startswith("Centers AAA allows 50%") and "P20" in i for i in items), items)
+        self.assertTrue(any(i.startswith("Forwards BBB allows 50%") and "P12" in i for i in items), items)
+
+    def test_starters_show_fair_and_novig_best_first(self):
+        starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[4].innerText.trim(), tr.children[5].innerText.trim()])")
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('th')].map((th) => th.textContent)")
+        self.assertEqual(heads, ["Player", "Shot Early", "1st Shot", "Scored 1st", "Fair", "Novig"])
         names = [s[0].split("\n")[0] for s in starters]
         self.assertEqual(set(names[:3]), {"P12", "P10", "P11"})
-        prices = [float(s[1].split("\n")[1].rstrip("%")) for s in starters]
-        self.assertEqual(prices, sorted(prices, reverse=True))
+        fair = [int(s[1].replace("+", "")) for s in starters]
+        self.assertEqual(fair, sorted(fair))  # shortest price (likeliest) first
+        novig = {s[0].split("\n")[0]: s[2] for s in starters}
+        self.assertEqual((novig["P12"], novig["P10"], novig["P11"]), ("+450", "+600", "--"))
         self.assertTrue(any("JUMPER" in s[0].upper() for s in starters))
 
     def test_season_buttons(self):

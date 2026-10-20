@@ -1,52 +1,68 @@
-/* NBA First Basket (first-basket.js). Builds on suite.css's .nba-box /
-   .nba-two; heat colors come inline from scaleHsla. */
+/* NBA First Basket (first-basket.js). Builds on suite.css's .nba-box;
+   heat colors come inline from scaleHsla. */
 
-/* The matchup table: road team | what it is + edge | home team. */
-.fb-matchup { width: 100%; max-width: 760px; margin: 0 auto; border-collapse: separate; border-spacing: 0 3px; }
-.fb-matchup th, .fb-matchup td { padding: 0; }
-.fb-m-team { width: 34%; padding: 8px 12px !important; border-radius: 10px 10px 0 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.04em; }
-.fb-m-team .team-logo { vertical-align: middle; margin-right: 6px; }
-.fb-m-team small { margin-left: 6px; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-th.fb-m-mid { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; vertical-align: bottom; padding-bottom: 6px !important; }
-.fb-m-group td { padding: 12px 4px 2px !important; font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent, var(--good-text)); border-bottom: 1px solid var(--border); }
-/* Every row the same height, everything centered; the small note sits beside
-   the number, never under it (the owner: "keep them all consistent"). */
-.fb-matchup tbody tr:not(.fb-m-group) td { height: 46px; vertical-align: middle; }
-.fb-m-val { text-align: center; padding: 0 8px !important; border-radius: 8px; background: var(--panel-2); white-space: nowrap; }
-.fb-m-val b { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; line-height: 1; vertical-align: middle; }
-.fb-m-val small { margin-left: 7px; font-size: 0.68rem; font-weight: 600; color: var(--muted); vertical-align: middle; }
-.fb-m-strong b { font-size: 1.45rem; }
-.fb-m-jumper .nba-headshot { vertical-align: middle; margin-right: 6px; }
-.fb-m-jumper span { font-weight: 700; vertical-align: middle; }
-.fb-m-mid { text-align: center; padding: 3px 8px !important; }
-.fb-m-label { display: block; font-size: 0.82rem; font-weight: 700; }
-.fb-m-mid small { display: block; font-size: 0.66rem; color: var(--muted); font-weight: 600; }
-.fb-edge { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; vertical-align: middle; padding: 1px 7px; border-radius: 999px; font-size: 0.7rem; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); }
+/* Matchup on the left; Targets and both starters tables stacked on the right. */
+.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, 470px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.fb-layout > .section-wrap { margin: 0; min-width: 0; }
+.fb-right { display: flex; flex-direction: column; gap: 10px; }
+.fb-right .section-title { margin-top: 4px; }
 
-/* Starters, with the fair price as the last column. */
+/* The matchup table: road team | stat + edge | home team. Every row one
+   height, everything centered (the owner: "keep them all consistent"). */
+.fb-matchup { width: 100%; border-collapse: separate; border-spacing: 0 3px; }
+.fb-matchup th, .fb-matchup td { padding: 0; text-align: center; }
+.fb-m-team { width: 30%; padding: 6px 8px !important; border-radius: 10px 10px 0 0; font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.04em; }
+.fb-m-team .team-logo { vertical-align: middle; margin-right: 5px; }
+th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; vertical-align: bottom; padding-bottom: 6px !important; }
+.fb-m-group td { padding: 10px 4px 3px !important; font-family: var(--font-display); font-size: 0.9rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent, var(--good-text)); border-bottom: 1px solid var(--border); }
+.fb-matchup tbody tr:not(.fb-m-group) td { height: 36px; vertical-align: middle; }
+.fb-m-val { border-radius: 8px; background: var(--panel-2); white-space: nowrap; }
+.fb-m-val b { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; line-height: 1; }
+.fb-m-jumper .nba-headshot { vertical-align: middle; margin-right: 5px; }
+.fb-m-jumper span { font-size: 0.85rem; font-weight: 700; vertical-align: middle; }
+.fb-m-jumper { max-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.fb-m-mid { padding: 0 6px !important; white-space: nowrap; }
+.fb-m-label { font-size: 0.8rem; font-weight: 700; vertical-align: middle; }
+.fb-edge { display: inline-flex; align-items: center; gap: 2px; margin-left: 5px; vertical-align: middle; padding: 1px 6px; border-radius: 999px; font-size: 0.66rem; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); }
+
+/* Targets */
+.fb-targets { padding-bottom: 8px; }
+.fb-targets .info-note { margin: 0 12px; }
+.fb-target { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; padding: 4px 12px; }
+.fb-target b { font-family: var(--font-display); font-size: 1rem; font-weight: 800; }
+.fb-target-who { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px 1px 2px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; }
+.fb-target-who .nba-headshot { width: 24px; height: 18px; }
+.fb-targets .no-data-note { margin: 0 12px; }
+
+/* Starters: compact, the numbers right beside the names. */
+.fb-starters-box { max-width: 100%; overflow-x: auto; }
+/* Both teams the width of the wider table, never past the column. */
+#fb-starters { display: grid; grid-template-columns: minmax(0, max-content); gap: 10px; }
 .fb-table { margin: 0 10px; width: auto; }
-.fb-table td.fb-cell { text-align: center; border-radius: 6px; }
-.fb-table td.fb-cell b, .fb-table td.fb-fair b { display: block; font-size: 1.02rem; }
-.fb-table td.fb-cell small, .fb-table td.fb-fair small { display: block; font-size: 0.66rem; color: var(--muted); font-weight: 600; }
-.fb-table td.fb-fair { text-align: center; }
+.fb-table th { white-space: nowrap; }
+.fb-table td.fb-cell, .fb-table td.fb-fair { width: 62px; text-align: center; padding-left: 4px; padding-right: 4px; }
+.fb-table td.fb-cell { border-radius: 6px; }
+.fb-table td.fb-cell b, .fb-table td.fb-fair b { display: block; font-size: 1rem; }
+.fb-table td.fb-cell small { display: block; font-size: 0.64rem; color: var(--muted); font-weight: 600; }
 .fb-starters td { vertical-align: middle; }
-.fb-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
+.fb-starters .nba-player { gap: 6px; }
+.fb-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
 
 .fb-lineup { padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
 .fb-lineup-confirmed { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
 .fb-lineup-expected { background: rgba(var(--mid-rgb), 0.2); color: var(--mid-text); }
 .fb-lineup-guess { background: var(--panel-2); color: var(--muted); }
-#fb-lineup-note { margin-top: -4px; }
+#fb-lineup-note { margin: -4px 0 0; }
 
+@media (max-width: 1000px) {
+  .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 760px) {
-  .fb-m-team { font-size: 1rem; padding: 6px 6px !important; }
-  .fb-m-team small { display: none; }
-  .fb-matchup tbody tr:not(.fb-m-group) td { height: 62px; }
-  .fb-m-val { padding: 0 4px !important; white-space: normal; }
-  .fb-m-val b { font-size: 1.1rem; }
-  .fb-m-strong b { font-size: 1.2rem; }
-  .fb-m-val small { display: block; margin: 2px 0 0; }
-  .fb-m-label { font-size: 0.7rem; }
+  .fb-m-team { font-size: 1rem; }
+  .fb-m-label { font-size: 0.72rem; }
   .fb-m-jumper .nba-headshot { display: none; }
+  .fb-m-mid { white-space: normal; }
+  .fb-matchup tbody tr:not(.fb-m-group) td { height: 44px; }
+  .fb-starters-box { overflow-x: auto; }
   .fb-table { margin: 0; }
 }
