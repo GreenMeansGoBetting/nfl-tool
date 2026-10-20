@@ -116,8 +116,12 @@ options"), Novig only where SmartStake has no price.
   start day one - even if its weighing heavily towards the line. I want the framework in"):
   `props.project_points` = line + w x (ours - line), w = `PROJ_MAX` 0.5 x games / (games +
   `PROJ_K` 10) on THIS season's games (no games = the line). Ours (`our_points`) = last-5 minutes
-  x season points a minute x the game's pace (both teams' this-season `off_pace` against the
-  league) x the other defense's `def_ppp` against the league (Team Identity, this season). props.json
+  x season points a minute x (1 + `LEAN` -0.03), then the factors the 2025-26 replay kept
+  (`tools/backtest/nba_points.py`), at its weights: the game's pace^0.9 (both teams' this-season
+  `off_pace` against the league), the other defense's `def_ppp`^0.35 and `def_trans_freq`^0.15
+  against the league (Team Identity, this season), x (1 + 0.5 x the season shot share of rotation
+  teammates listed Out: `missing` in the slate). Zone fit, free throws and turnovers forced added
+  nothing once those were in: tags only. Points miss by ~5.2 whatever we do; the factors cut it ~1%. props.json
   `slate` = {game id: {player id: line, proj, w, ours, min, ppm, games, out}} for the next 3
   nights; `proj` = the settings. **PROJ_MAX stays 0.5 until a replay on the saved tip-off lines
   says otherwise** (the record keeps [line, proj, ours, w] per player for exactly that).

@@ -742,6 +742,24 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
     players = (this or {}).get("players") or {}
     fields = (this or {}).get("fields") or props.LOG_FIELDS
     rnd = lambda v, d=1: None if v is None else round(v, d)  # noqa: E731
+    # each player's season shot share of his team (for teammates listed Out),
+    # rotation players only (20+ minutes a game)
+    # (a team-game is its game + opponent: a traded player's old games stay with his old team)
+    i_fga, i_game, i_min, i_opp = fields.index("fga"), fields.index("game"), fields.index("min"), fields.index("opp")
+    team_fga = {}
+    for p in players.values():
+        for r in p["log"]:
+            team_fga[(r[i_game], r[i_opp])] = team_fga.get((r[i_game], r[i_opp]), 0) + r[i_fga]
+    shot_share = {}
+    for pid, p in players.items():
+        tf = sum(team_fga.get((r[i_game], r[i_opp]), 0) for r in p["log"])
+        if p["log"] and tf and sum(r[i_min] for r in p["log"]) / len(p["log"]) >= 20:
+            shot_share[pid] = sum(r[i_fga] for r in p["log"]) / tf
+    out_by_team = {}
+    for pid in out_ids:
+        team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
+        if team and pid in shot_share:
+            out_by_team[team] = out_by_team.get(team, 0.0) + shot_share[pid]
     slate = {}
     for g in games:
         if g["date"] not in dates:
@@ -753,11 +771,12 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
             opp = g["home"] if team == g["away"] else g["away"]
             log = (players.get(pid) or {}).get("log") or []
             teams_now = ident.get("teams") or {}
-            ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"))
+            missing = out_by_team.get(team, 0.0) - (shot_share.get(pid, 0.0) if pid in out_ids else 0.0)
+            ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), missing)
             line = points_line(book_odds, g, pid)
             proj, w = props.project_points(line, len(log), ours)
             rows[pid] = {"line": line, "proj": rnd(proj), "w": round(w, 3), "ours": rnd(ours), "min": rnd(minutes),
-                         "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids}
+                         "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3)}
         if rows:
             slate[g["game_id"]] = rows
     return slate

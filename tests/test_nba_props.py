@@ -111,7 +111,8 @@ class SmartStakeNba(unittest.TestCase):
                   {"key": "basketball_player_points_rebounds_assists", "name": "Player Points + Rebounds + Assists"},
                   {"key": "basketball_player_points_q1", "name": "1st Quarter Player Points"},
                   {"key": "basketball_first_points_scorer", "name": "1st Points Scorer"},
-                  {"key": "basketball_team_points", "name": "Team Total Points"}]
+                  {"key": "basketball_team_points", "name": "Team Total Points"},
+                  {"key": "basketball_player_most_points_yes_no", "name": "Player Most Points"}]
         self.assertEqual(smartstake.nba_prop_market_keys(listed), {"basketball_player_points": "points"})
 
     def test_quotes_land_on_players_by_espn_id(self):
@@ -126,6 +127,25 @@ class SmartStakeNba(unittest.TestCase):
         row = games["BOS_DET"]["props"]["points"]["4066354"]
         self.assertEqual(sorted(x[1] for x in row["q"]), ["o", "u"])
         self.assertEqual(row["q"][0][2], 14.5)
+
+
+class TeammatesOut(unittest.TestCase):
+    def test_a_traded_players_share_counts_his_old_teams_shots(self):
+        # 1 and 2 played for AAA against BBB (game 10); 1 is on CCC now and Out tonight
+        # for CCC, where 3 plays. 1 took 10 of AAA's 20 shots: half, not all of CCC's.
+        f = props.LOG_FIELDS
+        row = lambda game, opp, fga: dict(zip(f, ["2026-10-01", game, opp, 1, 1, 30, 10, fga, 0, 0, 0]))  # noqa: E731
+        as_list = lambda d: [d[k] for k in f]  # noqa: E731
+        block = {"fields": f, "players": {
+            "1": {"team": "CCC", "log": [as_list(row(10, "BBB", 10))]},
+            "2": {"team": "AAA", "log": [as_list(row(10, "BBB", 10))]},
+            "3": {"team": "CCC", "log": [as_list(row(11, "DDD", 12))]},
+        }}
+        game = {"game_id": "20", "date": "2026-10-22", "away": "CCC", "home": "EEE"}
+        odds = {"CCC_EEE": {"props": {"points": {"3": {"name": "P3", "q": [["dk", "o", 9.5, -110, ""]]}}}}}
+        slate = build_nba.points_slate(2027, block, odds, [game], None, {"CCC": [{"id": "1", "status": "Out"}]},
+                                       {"1": "CCC", "2": "AAA", "3": "CCC"}, datetime(2026, 10, 22, 12, 0))
+        self.assertEqual(slate["20"]["3"]["missing"], 0.5)
 
 
 class LinesRecord(unittest.TestCase):
@@ -174,10 +194,13 @@ class Projection(unittest.TestCase):
         ours, minutes, ppm = props.our_points(log, props.LOG_FIELDS, None, None, None)
         self.assertAlmostEqual(ppm, 0.5)
         self.assertAlmostEqual(minutes, 80 / 3)
-        self.assertAlmostEqual(ours, 80 / 3 * 0.5)
-        league = {"off_pace": {"avg": 100.0}, "def_ppp": {"avg": 1.10}}
-        fast_soft = props.our_points(log, props.LOG_FIELDS, {"off_pace": 104.0}, {"off_pace": 106.0, "def_ppp": 1.21}, league)[0]
-        self.assertAlmostEqual(fast_soft, 80 / 3 * 0.5 * 1.05 * 1.1)
+        self.assertAlmostEqual(ours, 80 / 3 * 0.5 * (1 + props.LEAN))
+        league = {"off_pace": {"avg": 100.0}, "def_ppp": {"avg": 1.10}, "def_trans_freq": {"avg": 0.20}}
+        opp = {"off_pace": 106.0, "def_ppp": 1.21, "def_trans_freq": 0.24}
+        fast_soft = props.our_points(log, props.LOG_FIELDS, {"off_pace": 104.0}, opp, league, out_share=0.2)[0]
+        want = (80 / 3 * 0.5 * (1 + props.LEAN) * 1.05 ** props.W_PACE * 1.1 ** props.W_DEF * 1.2 ** props.W_TRANS
+                * (1 + props.W_OUT * 0.2))
+        self.assertAlmostEqual(fast_soft, want)
 
 
 if __name__ == "__main__":

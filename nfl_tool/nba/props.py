@@ -148,18 +148,28 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str) -> dict | Non
 # its weighing heavily towards the line. I want the framework in." So the
 # projection starts AT the line (no games = the line) and moves toward ours as
 # this season's games come in: weight = PROJ_MAX x games / (games + PROJ_K).
-# Ours: expected minutes (last 5) x points a minute (season) x the game's pace
-# against the league's x what the other defense allows a possession against
-# the league's, this season only. PROJ_MAX stays at half until a replay on this
-# season's saved tip-off lines says ours deserves more (or less).
+# Ours: expected minutes (last 5) x points a minute (season), then each factor
+# the 2025-26 replay kept (tools/backtest/nba_points.py), at its weight: the
+# game's pace, what the other defense allows a possession, its transition
+# share allowed (each against the league, this season), and teammates listed
+# Out (their shot share); the base's own 3% lean is taken off. Zone fit, free
+# throws and turnovers forced added nothing in the replay: tags only.
+# PROJ_MAX stays at half until a replay on this season's saved tip-off lines
+# says ours deserves more (or less).
 PROJ_K = 10
 PROJ_MAX = 0.5
 PROJ_LAST = 5
+W_PACE = 0.9
+W_DEF = 0.35
+W_TRANS = 0.15
+W_OUT = 0.5
+LEAN = -0.03
 
 
-def our_points(log: list, fields: list, team: dict | None, opp: dict | None, league: dict | None):
+def our_points(log: list, fields: list, team: dict | None, opp: dict | None, league: dict | None, out_share: float = 0.0):
     """(our points number, expected minutes, points a minute), or Nones
-    before he has played this season."""
+    before he has played this season. out_share: the season shot share of
+    rotation teammates listed Out tonight."""
     if not log:
         return None, None, None
     i_min, i_pts = fields.index("min"), fields.index("pts")
@@ -169,15 +179,20 @@ def our_points(log: list, fields: list, team: dict | None, opp: dict | None, lea
     ppm = sum(r[i_pts] for r in log) / total_min
     recent = log[-PROJ_LAST:]
     minutes = sum(r[i_min] for r in recent) / len(recent)
-    pace_f = matchup_f = 1.0
+    pace_f = def_f = trans_f = 1.0
     if team and opp and league:
         lg_pace = (league.get("off_pace") or {}).get("avg")
         lg_ppp = (league.get("def_ppp") or {}).get("avg")
+        lg_trans = (league.get("def_trans_freq") or {}).get("avg")
         if lg_pace and team.get("off_pace") and opp.get("off_pace"):
             pace_f = (team["off_pace"] + opp["off_pace"]) / 2 / lg_pace
         if lg_ppp and opp.get("def_ppp"):
-            matchup_f = opp["def_ppp"] / lg_ppp
-    return minutes * ppm * pace_f * matchup_f, minutes, ppm
+            def_f = opp["def_ppp"] / lg_ppp
+        if lg_trans and opp.get("def_trans_freq"):
+            trans_f = opp["def_trans_freq"] / lg_trans
+    ours = (minutes * ppm * (1 + LEAN) * pace_f ** W_PACE * def_f ** W_DEF * trans_f ** W_TRANS
+            * (1 + W_OUT * out_share))
+    return ours, minutes, ppm
 
 
 def project_points(line, games: int, ours):

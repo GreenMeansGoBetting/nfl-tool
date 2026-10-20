@@ -85,7 +85,8 @@ FIRST_GOAL_SKIP = ("team", "period", "2nd", "3rd", "second", "third", "last", "m
 # (nba_prop_market_keys) and falls back to these, the NFL / NHL pattern.
 NBA_PROP_GUESS = {"points": "basketball_player_points"}
 NBA_PROP_SKIP = ("rebound", "assist", "three", "3pt", "first", "1st", "2nd", "3rd", "4th", "quarter", "half", "period",
-                 "q1", "q2", "q3", "q4", "team", "double", "triple", "steal", "block", "turnover", "+", "alternate", "milestone")
+                 "q1", "q2", "q3", "q4", "team", "double", "triple", "steal", "block", "turnover", "+", "alternate", "milestone",
+                 "most", "yes no")  # "most points in the game, yes / no" (found 2026-10-20) is not the points line
 
 NFL_TEAMS = {
     "arizona cardinals": "ARI", "atlanta falcons": "ATL", "baltimore ravens": "BAL", "buffalo bills": "BUF",
