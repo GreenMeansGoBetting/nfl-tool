@@ -3,91 +3,91 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.1937,
+    "lead": 0.1969,
     "name": "Victor Wembanyama",
-    "proj": 41.9,
+    "proj": 42.0,
     "team": "SA"
    },
    {
     "id": "3917376",
-    "lead": 0.144,
+    "lead": 0.1422,
     "name": "Jaylen Brown",
-    "proj": 39.6,
+    "proj": 39.5,
     "team": "PHI"
    },
    {
     "id": "4278073",
-    "lead": 0.1352,
+    "lead": 0.1346,
     "name": "Shai Gilgeous-Alexander",
     "proj": 39.1,
     "team": "OKC"
    },
    {
     "id": "4065648",
-    "lead": 0.0868,
+    "lead": 0.0869,
     "name": "Jayson Tatum",
     "proj": 36.8,
     "team": "BOS"
    },
    {
     "id": "3934672",
-    "lead": 0.0733,
+    "lead": 0.0725,
     "name": "Jalen Brunson",
-    "proj": 36.0,
+    "proj": 35.9,
     "team": "NY"
    },
    {
     "id": "3136195",
-    "lead": 0.0697,
+    "lead": 0.0696,
     "name": "Karl-Anthony Towns",
     "proj": 35.3,
     "team": "NY"
    },
    {
     "id": "3059318",
-    "lead": 0.0683,
+    "lead": 0.0682,
     "name": "Joel Embiid",
     "proj": 35.7,
     "team": "PHI"
    },
    {
     "id": "4431678",
-    "lead": 0.0623,
+    "lead": 0.0626,
     "name": "Tyrese Maxey",
     "proj": 35.3,
     "team": "PHI"
    },
    {
     "id": "1966",
-    "lead": 0.0504,
+    "lead": 0.0499,
     "name": "LeBron James",
-    "proj": 34.1,
+    "proj": 34.0,
     "team": "PHI"
    },
    {
     "id": "4432166",
-    "lead": 0.0378,
+    "lead": 0.0382,
     "name": "Cade Cunningham",
     "proj": 33.1,
     "team": "DET"
    },
    {
     "id": "4433621",
-    "lead": 0.025,
+    "lead": 0.0248,
     "name": "Jalen Duren",
     "proj": 31.1,
     "team": "DET"
    },
    {
     "id": "4845367",
-    "lead": 0.0195,
+    "lead": 0.0196,
     "name": "Stephon Castle",
     "proj": 29.7,
     "team": "SA"
    },
    {
     "id": "4433255",
-    "lead": 0.0066,
+    "lead": 0.0068,
     "name": "Chet Holmgren",
     "proj": 27.2,
     "team": "OKC"
@@ -115,14 +115,14 @@
    },
    {
     "id": "5124612",
-    "lead": 0.003,
+    "lead": 0.0029,
     "name": "VJ Edgecombe",
-    "proj": 25.2,
+    "proj": 25.1,
     "team": "PHI"
    },
    {
     "id": "4066354",
-    "lead": 0.0024,
+    "lead": 0.0025,
     "name": "Payton Pritchard",
     "proj": 24.9,
     "team": "BOS"
