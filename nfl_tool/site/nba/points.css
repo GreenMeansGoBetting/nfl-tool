@@ -29,7 +29,12 @@
 
 /* the player view (an open row) */
 .pts-open > td { background: var(--panel); padding: 12px; }
-.pts-view { display: grid; grid-template-columns: minmax(300px, 1.1fr) minmax(260px, 0.9fr) minmax(300px, 1fr); gap: 14px; white-space: normal; }
+.pts-view { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; white-space: normal; max-width: 1100px; }
+.pts-court { width: 100%; max-width: 340px; display: block; margin: 0 auto 8px; border-radius: 8px; background: var(--bg); }
+.pts-court-lines { stroke: var(--muted); stroke-width: 0.18; opacity: 0.8; }
+.pts-zone-share { font-size: 2.3px; font-weight: 700; fill: var(--text); font-family: var(--font-display); }
+.pts-zone-made { font-size: 1.6px; fill: var(--muted); font-family: var(--font-body); }
+.pts-zone-table td small { font-size: 0.68rem; }
 .pts-view h4 { margin: 0 0 6px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .pts-view .data-table td, .pts-view .data-table th { padding: 4px 6px; font-size: 0.82rem; }
 .pts-ww-controls { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
@@ -39,7 +44,7 @@
 .pts-res-o { color: var(--good-text); font-weight: 700; }
 .pts-res-u { color: var(--bad-text); font-weight: 700; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
   .pts-view { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {

@@ -68,6 +68,8 @@ class SeasonBlock(unittest.TestCase):
         # home took 5 shots, all with 12-15 on the floor; 14 took 1 (a putback at the rim)
         self.assertAlmostEqual(self.p["14"]["share"], round(1 / 5, 3))
         self.assertEqual(self.p["14"]["zones"]["rim"], 1.0)
+        self.assertEqual(self.p["14"]["zone_pct"], {"rim": [1.0, 1]})  # his putback went in
+        self.assertEqual(self.p["21"]["zone_pct"], {"corner3": [0.0, 1]})
         self.assertEqual(self.p["23"]["kinds"]["self"], 1.0)  # a step-back 3
         self.assertEqual(self.p["23"]["assisted"], 0.0)
 

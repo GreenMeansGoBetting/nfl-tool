@@ -9,7 +9,7 @@ Per season (`seasons[<year>]`):
     throws tried);
   - `share`: his share of his team's shots while he's on the floor;
   - `zones` / `kinds`: where his shots come from (rim, short, mid, corner3,
-    above3) and how they're made (self = pull-up / step-back / fade, catch,
+    above3) and how they're made; `zone_pct[zone]`: [his make rate, shots] (self = pull-up / step-back / fade, catch,
     drive, other); `assisted`: share of his makes assisted;
   - `with[<teammate id>]`: [minutes with him on the floor, points then,
     shots then, minutes with him OFF the floor, points then, shots then],
@@ -90,6 +90,9 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str) -> dict | Non
         n = len(g)
         p["share"] = r3(n / team_shots_on[pid]) if team_shots_on.get(pid) else None
         p["zones"] = {z: r3((g["zone"] == z).mean()) for z in ("rim", "short", "mid", "corner3", "above3")}
+        # his make rate in each zone and how many shots it's from (the player view's zone chart)
+        p["zone_pct"] = {z: [r3(g.loc[g["zone"] == z, "made"].mean()), int((g["zone"] == z).sum())]
+                         for z in ("rim", "short", "mid", "corner3", "above3") if (g["zone"] == z).any()}
         kinds = g["kind2"]
         p["kinds"] = {"self": r3(kinds.isin(SELF_MADE).mean()), "catch": r3((kinds == "catch").mean()),
                       "drive": r3(kinds.isin(("drive", "cut", "floater", "lob", "putback")).mean()),

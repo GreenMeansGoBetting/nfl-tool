@@ -28,6 +28,7 @@ GAME = {"game_id": "900", "date": "2026-10-21", "time": "19:30", "away": "AAA", 
 P1 = {"name": "Player One", "team": "AAA", "pos": "G", "log": log([25, 18, 30, 22, 15, 21, 24, 12, 26, 19]),
       "share": 0.31, "zones": {"rim": 0.3, "short": 0.1, "mid": 0.2, "corner3": 0.1, "above3": 0.3},
       "kinds": {"self": 0.4, "catch": 0.3, "drive": 0.3, "other": 0.0}, "assisted": 0.4,
+      "zone_pct": {"rim": [0.62, 45], "mid": [0.41, 30], "above3": [0.36, 44]},
       "with": {"2": [200.0, 100, 80, 100.0, 70, 50]}}
 P2 = {"name": "Player Two", "team": "AAA", "pos": "C", "log": [r for r in log([10] * 10) if r[1] not in (3, 4)], "share": 0.2,
       "zones": {"rim": 0.8, "short": 0.2, "mid": 0, "corner3": 0, "above3": 0}, "kinds": {"self": 0, "catch": 0, "drive": 1, "other": 0}, "with": {}}
@@ -44,7 +45,12 @@ PROPS = {
     "proj": {"k": 10, "max": 0.5, "last": 5},
 }
 QUOTES = lambda line: [["draftkings", "o", line, -110, ""], ["fanduel", "o", line, 105, ""], ["draftkings", "u", line, -110, ""]]  # noqa: E731
-DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries": {}, "identity": None,
+# Tonight's defense (BBB) allows 65% at the rim (league 58%: softer) and 40% mid-range (league 45%: tougher).
+ZONE_KEYS = ("rim", "short", "mid", "corner3", "above3")
+IDENTITY = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "team_games": 5,
+            "teams": {"BBB": {f"def_{z}_pct": v for z, v in zip(ZONE_KEYS, (0.65, 0.50, 0.40, 0.38, 0.35))}},
+            "league": {f"def_{z}_pct": {"avg": v, "sd": 0.02} for z, v in zip(ZONE_KEYS, (0.58, 0.50, 0.45, 0.38, 0.35))}}}}
+DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries": {}, "identity": IDENTITY,
         "teams": {t: {"name": t, "short": t, "logo": "", "color": "336699"} for t in ("AAA", "BBB")},
         "book_odds": {"AAA_BBB": {"kickoff": "2026-10-21T23:30:00Z", "td": {}, "lines": {},
                                   "props": {"points": {"1": {"name": "Player One", "q": QUOTES(19.5)}, "3": {"name": "Player Three", "q": QUOTES(9.5)}}}}}}
@@ -101,13 +107,24 @@ class PlayerView(unittest.TestCase):
     def test_log_marks_each_game_and_the_ladder_counts_lines(self):
         results = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:first-child tbody tr')].map((tr) => tr.lastElementChild.innerText.trim())")
         self.assertEqual(results[:3], ["U", "O", "U"])  # newest first: 19, 26, 12
-        ladder = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(2) > table tbody tr')].map((tr) => [tr.children[0].innerText.split(' ')[0], tr.children[2].innerText])")
+        ladder = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(3) > table tbody tr')].map((tr) => [tr.children[0].innerText.split(' ')[0], tr.children[2].innerText])")
         self.assertIn(["19.5+", "6 of 10"], ladder)
         self.assertIn(["24.5+", "3 of 10"], ladder)
 
+    def test_the_zone_chart_reads_his_shots_and_tonights_defense(self):
+        rows = PAGE.evaluate("""() => [...document.querySelectorAll('.pts-zone-table tbody tr')]
+            .map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, ' ').trim()).concat(tr.lastElementChild.className))""")
+        by = {r[0]: r for r in rows}
+        self.assertEqual(len(rows), 5)
+        self.assertEqual(by["Rim"][1:4], ["30%", "62% 45", "65%"])
+        self.assertIn("tier-good", by["Rim"][4])  # softer than the league at the rim
+        self.assertIn("tier-bad", by["Mid-range"][4])  # tougher mid-range
+        self.assertEqual(by["Corner 3"][2], "--")  # no shots there
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-court text.pts-zone-share').length"), 6)
+
     def test_with_and_without_by_reason_and_on_the_floor(self):
         def table():
-            return PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(3) tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim()))")
+            return PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(4) tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim()))")
         rows = table()
         self.assertEqual(rows[0][:3], ["Played", "8", "20.0"])  # games 1, 2, 5-10
         self.assertEqual(rows[1][:3], ["Out", "2", "26.0"])  # games 3 (30) and 4 (22)

@@ -136,7 +136,11 @@ options"), Novig only where SmartStake has no price.
   Share, Mix (rim / 3s / self-created), tags (Zone fit / Tough zones: his zones x this defense's
   make rate allowed against the league's, 2.5 points either way; Usage +: `missing`; Min up / down:
   last 5 moved 3+). Out players gray, last. Clicking a player opens his view: game log (O / U vs
-  tonight's line), alt-line ladder (round lines around it, last 10 and season), every book's prices,
+  tonight's line), a **half-court shot-zone chart** (`zoneChart`: his share of shots and make rate
+  per zone, from props.json `zone_pct`; each zone shaded by what tonight's defense allows there
+  against the league, from Team Identity, full color at 6 points; a table of the same under it;
+  added 2026-10-20 when the owner saw "Tough zones" with no chart), alt-line ladder (round lines
+  around it, last 10 and season), every book's prices,
   and **with / without**: a teammate (most minutes first) and Out (any) / Out: rest / Out: injured
   (games split by whether he played, box-score DNP reasons) or Off the floor (`with` minutes, points
   and shots a 36). NBA pages have no `playerClick`; this open row is the player view.

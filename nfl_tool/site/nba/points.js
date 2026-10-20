@@ -166,6 +166,63 @@ function renderRow(r) {
   return `<tr class="${out ? "pts-row-out" : ""}" data-key="${r.g.game_id}:${r.pid}">${cells}</tr>${open ? `<tr class="pts-open"><td colspan="13">${playerView(r)}</td></tr>` : ""}`;
 }
 
+// ---- the zone chart (player view) ----
+// A half court in feet (50 wide, 47 deep, the basket 5.25 off the baseline).
+// Each zone is shaded by what tonight's defense allows there against the
+// league (green = softer than average for him, red = tougher; full color at
+// ZONE_FULL), and labeled with his share of his shots and his make rate.
+const ZONE_FULL = 0.06;
+const ZONE_NAMES = { rim: "Rim", short: "Paint", mid: "Mid-range", corner3: "Corner 3", above3: "Above-break 3" };
+function zoneEdge(opp, z) {
+  const ib = identityBlock();
+  if (!ib || !ib.teams[opp]) return null;
+  const a = ib.teams[opp][`def_${z}_pct`];
+  const l = (ib.league[`def_${z}_pct`] || {}).avg;
+  return a === null || a === undefined || !l ? null : a - l;
+}
+function zoneFill(edge) {
+  if (edge === null) return "rgba(127,127,127,0.12)";
+  const t = Math.max(-1, Math.min(1, edge / ZONE_FULL));
+  return scaleHsla(60 + t * 60, 70, 45, 0.18 + Math.abs(t) * 0.42);
+}
+function zoneChart(r) {
+  const p = r.p || {};
+  const share = p.zones || {};
+  const made = p.zone_pct || {};
+  const fill = Object.fromEntries(ZONES.map((z) => [z, zoneFill(zoneEdge(r.opp, z))]));
+  const label = (z, x, y) => {
+    const m = made[z];
+    return `<text x="${x}" y="${y}" text-anchor="middle" class="pts-zone-share">${pct(share[z] || 0)}</text>
+      <text x="${x}" y="${y + 2.3}" text-anchor="middle" class="pts-zone-made">${m && m[0] !== null ? `${pct(m[0])} FG` : "--"}</text>`;
+  };
+  const svg = `<svg viewBox="-2.5 -0.5 55 48" class="pts-court" role="img" aria-label="Shot zones">
+    <rect x="0" y="0" width="50" height="47" fill="${fill.above3}"/>
+    <rect x="0" y="0" width="3" height="14" fill="${fill.corner3}"/><rect x="47" y="0" width="3" height="14" fill="${fill.corner3}"/>
+    <path d="M3,0 L3,14 A23.75,23.75 0 0 0 47,14 L47,0 Z" fill="${fill.mid}"/>
+    <circle cx="25" cy="5.25" r="9" fill="${fill.short}"/>
+    <circle cx="25" cy="5.25" r="4" fill="${fill.rim}"/>
+    <g class="pts-court-lines" fill="none">
+      <rect x="0" y="0" width="50" height="47"/><path d="M3,0 L3,14 A23.75,23.75 0 0 0 47,14 L47,0"/>
+      <circle cx="25" cy="5.25" r="9"/><circle cx="25" cy="5.25" r="4"/><rect x="17" y="0" width="16" height="19"/>
+      <line x1="22" y1="4" x2="28" y2="4"/><circle cx="25" cy="5.25" r="0.75"/>
+    </g>
+    ${label("rim", 25, 7.6)}${label("short", 25, 12.4)}${label("mid", 25, 21.5)}
+    ${label("corner3", 1.5, 7)}${label("corner3", 48.5, 7)}${label("above3", 25, 36)}
+  </svg>`;
+  const rows = ZONES.map((z) => {
+    const edge = zoneEdge(r.opp, z);
+    const ib = identityBlock();
+    const allowed = ib && ib.teams[r.opp] ? ib.teams[r.opp][`def_${z}_pct`] : null;
+    const m = made[z];
+    const cls = edge === null ? "" : edge >= 0.02 ? "tier-good" : edge <= -0.02 ? "tier-bad" : "tier-mid";
+    return `<tr><td>${ZONE_NAMES[z]}</td><td class="num">${pct(share[z] || 0)}</td><td class="num">${m && m[0] !== null ? `${pct(m[0])} <small class="muted-label">${m[1]}</small>` : "--"}</td><td class="num ${cls}">${pct(allowed)}</td></tr>`;
+  }).join("");
+  const ib = identityBlock();
+  return `<div><h4>Shot zones vs ${r.opp}</h4>${svg}
+    <table class="data-table pts-zone-table"><thead><tr><th>Zone</th><th>His shots</th><th>His FG%</th><th>${r.opp} allows</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="pts-ww-note">${ib ? `Shaded by what ${r.opp} allows in each zone against the league in ${ib.label}: green = softer than average, red = tougher.` : "No defense numbers for this season yet."}</p></div>`;
+}
+
 // ---- the player view ----
 let ww = { mate: "", mode: "out" }; // with / without: teammate id, mode out | rest | injury | floor
 function playerView(r) {
@@ -191,7 +248,7 @@ function playerView(r) {
   }).join("");
   const ladderBox = `<div><h4>Alt-line ladder</h4><table class="data-table"><thead><tr><th>Points</th><th>Last 10</th><th>Season</th></tr></thead><tbody>${ladder}</tbody></table>
     ${bookOddsPanel({ kind: "prop", stat: "points", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: "o", line: r.line, title: `${r.name} points`, sub: `${r.tm} vs ${r.opp}` })}</div>`;
-  return `<div class="pts-view">${logBox}${ladderBox}<div><h4>With / without</h4>${withWithout(r)}</div></div>`;
+  return `<div class="pts-view">${logBox}${zoneChart(r)}${ladderBox}<div><h4>With / without</h4>${withWithout(r)}</div></div>`;
 }
 
 function teammates(r) {
