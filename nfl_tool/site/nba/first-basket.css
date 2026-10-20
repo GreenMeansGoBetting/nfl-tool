@@ -1,11 +1,12 @@
 /* NBA First Basket (first-basket.js). Builds on suite.css's .nba-box;
    heat colors come inline from scaleHsla. */
 
-/* Matchup on the left; Targets and both starters tables stacked on the right. */
-.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, 470px) minmax(0, 1fr); gap: 16px; align-items: start; }
+/* Three boxes side by side, tops in line: Matchup | Starters | Targets
+   (the owner: "box box box"). Targets drops under Starters on mid-size
+   screens, everything stacks on phones. */
+.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, max-content) minmax(220px, 1fr); gap: 16px; align-items: start; }
 .fb-layout > .section-wrap { margin: 0; min-width: 0; }
-.fb-right { display: flex; flex-direction: column; gap: 10px; }
-.fb-right .section-title { margin-top: 4px; }
+#fb-lineup-note { margin: -4px 0 8px; }
 
 /* The matchup table: road team | stat + edge | home team. Every row one
    height, everything centered (the owner: "keep them all consistent"). */
@@ -26,9 +27,11 @@ th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-tr
 .fb-edge { display: inline-flex; align-items: center; gap: 2px; margin-left: 5px; vertical-align: middle; padding: 1px 6px; border-radius: 999px; font-size: 0.66rem; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); }
 
 /* Targets */
-.fb-targets { padding-bottom: 8px; }
-.fb-targets .info-note { margin: 0 12px; }
-.fb-target { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; padding: 4px 12px; }
+.fb-targets { padding: 4px 0; gap: 0; }
+.fb-target { display: flex; flex-direction: column; gap: 5px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.fb-target:last-child { border-bottom: 0; }
+.fb-target-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.fb-target-list { display: flex; flex-wrap: wrap; gap: 5px; }
 .fb-target b { font-family: var(--font-display); font-size: 1rem; font-weight: 800; }
 .fb-target-who { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px 1px 2px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; }
 .fb-target-who .nba-headshot { width: 24px; height: 18px; }
@@ -52,10 +55,14 @@ th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-tr
 .fb-lineup-confirmed { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
 .fb-lineup-expected { background: rgba(var(--mid-rgb), 0.2); color: var(--mid-text); }
 .fb-lineup-guess { background: var(--panel-2); color: var(--muted); }
-#fb-lineup-note { margin: -4px 0 0; }
 
+@media (max-width: 1300px) {
+  .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); }
+  .fb-right { grid-column: 2; }
+}
 @media (max-width: 1000px) {
   .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
+  .fb-right { grid-column: auto; }
 }
 @media (max-width: 760px) {
   .fb-m-team { font-size: 1rem; }

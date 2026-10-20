@@ -127,8 +127,10 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   jumps), first points = tip x the league's tip-winner rate, each starter's share from first points
   per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.
 - **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
-  under "Player props"): day strip, season buttons, then a two-column layout (one column under
-  1000 px): **The Matchup** on the left, **Targets** and both teams' **Starters** stacked on the right.
+  under "Player props"): day strip, season buttons, then **three boxes side by side, tops in line:
+  The Matchup | Starters (both teams stacked) | Targets** (the owner: "box box box", after Targets
+  sat above Starters and looked "bizarre"). Under 1300 px Targets drops under Starters; under
+  1000 px everything stacks.
   How it got here (2026-10-20): tile sections with team cards and a split bar were "overwhelming ...
   so much dead space ... too many numbers all spread everywhere"; then one stacked table was
   "significantly improved" but the owner wanted "Simple. KISS" and wrote the rows themself.

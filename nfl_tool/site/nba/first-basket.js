@@ -376,10 +376,8 @@ function targets(g, p) {
 function renderTargets(g, p) {
   const list = targets(g, p);
   el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
-    <div class="nba-box-title">Targets <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-targets" title="How to read this">i</button></div>
-    <p class="section-note info-note" id="fb-note-targets" hidden>Each target reads both sides. <b>Position:</b> the defense gives that position the first field goal at least 5 points more often than the league, and the offense's own first field goals don't come from it less than the league's; its starters there are listed. <b>Tip:</b> one jumper wins at least 15 points more often and his team wins more tips in tonight's spot. <b>Quick Start:</b> the offense scores in at least 0.1 fewer trips than the league and the other defense doesn't hold teams longer than average.</p>
     ${list.length
-      ? list.map((x) => `<div class="fb-target">${logo(x.team, 20)}<b>${x.what}</b><span class="muted-label">${x.why}</span>${x.who.map((id) => `<span class="fb-target-who">${face(id)}${lastName(player(id).name)}</span>`).join("")}</div>`).join("")
+      ? list.map((x) => `<div class="fb-target"><div class="fb-target-head">${logo(x.team, 20)}<b>${x.what}</b><span class="muted-label">${x.why}</span></div>${x.who.length ? `<div class="fb-target-list">${x.who.map((id) => `<span class="fb-target-who">${face(id)}${lastName(player(id).name)}</span>`).join("")}</div>` : ""}</div>`).join("")
       : `<p class="no-data-note">No clear targets in this game.</p>`}
   </div>`;
 }
