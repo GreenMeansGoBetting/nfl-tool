@@ -699,6 +699,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     ] },
     nba: { label: "NBA", home: "", items: [
       { name: "Game Previews", file: "" },
+      { name: "Team Identity", file: "identity.html" },
       { head: "Player props" },
       { name: "First Basket", file: "first-basket.html" },
     ] },

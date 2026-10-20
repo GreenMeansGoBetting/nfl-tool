@@ -1,0 +1,33 @@
+/* NBA Team Identity (identity.html). The layout pieces come from suite.css. */
+.id-plain { color: var(--text); }
+.id-table td.num { white-space: nowrap; }
+.id-table .id-group td {
+  background: var(--surface-2, rgba(127, 127, 127, 0.1));
+  border-left: 3px solid var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.id-sub { margin: 14px 0 6px; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted); }
+.id-bar { display: inline-block; width: 46px; height: 7px; border-radius: 4px; background: rgba(127, 127, 127, 0.18); margin-right: 6px; vertical-align: middle; }
+.id-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); opacity: 0.75; }
+.id-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; align-items: center; }
+.id-chip-label { width: 64px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.id-chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(var(--mid-rgb), 0.14);
+  border: 1px solid rgba(var(--mid-rgb), 0.5);
+  color: var(--text);
+}
+.id-none { font-size: 0.8rem; color: var(--muted); }
+
+@media (max-width: 760px) {
+  .id-table { min-width: 0; }
+  .id-scroll { overflow-x: auto; }
+  .id-chip-label { width: 100%; }
+}

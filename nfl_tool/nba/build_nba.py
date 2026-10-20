@@ -32,6 +32,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 import first_basket  # noqa: E402
+import identity  # noqa: E402
 import kotc  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
@@ -531,6 +532,25 @@ def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters,
     }
 
 
+def compute_identity(season: int, data_dir: Path, force: bool) -> dict:
+    """Team Identity (identity.py): last season from its saved file (finished,
+    so it never changes), this season from the engine on every build. The page
+    opens on this season once the middle team has THIS_SEASON_DEFAULT_AT games."""
+    blocks = {}
+    saved = Path(str(identity.REFERENCE).format(season=season - 1))
+    if saved.exists():
+        blocks[season - 1] = json.loads(saved.read_text(encoding="utf-8"))
+    pbp = fetch_file("pbp", season, data_dir, force)
+    box = fetch_file("player_box", season, data_dir, force)
+    if pbp is not None and box is not None:
+        block = identity.season_block(pbp, box, season_label(season))
+        if block:
+            blocks[season] = block
+    this = blocks.get(season)
+    default = season if this and this["team_games"] >= THIS_SEASON_DEFAULT_AT else season - 1
+    return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()}}
+
+
 def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
     """First Basket: both seasons' numbers (the page's season buttons) and the
     next few nights' games (likely starters, jumpers, the fair-price guess)
@@ -699,6 +719,14 @@ def main():
     except Exception as ex:
         print(f"WARNING: First Basket failed ({ex!r}).", file=sys.stderr)
         blob["first_basket"] = None
+    # Nor Team Identity.
+    try:
+        # First Basket has just downloaded this season's play-by-play: reuse it (a
+        # fresh CI run has no older copy, so this is never stale there).
+        blob["identity"] = compute_identity(args.season, args.data_dir, False)
+    except Exception as ex:
+        print(f"WARNING: Team Identity failed ({ex!r}).", file=sys.stderr)
+        blob["identity"] = None
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)

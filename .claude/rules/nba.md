@@ -45,11 +45,44 @@ health check (about a minute).
 - 2025-26 health: 1,230 games, 99.5 possessions a team-game, minutes within 1 of the box score
   99.99% (all within 2), team points match 2,459 of 2,460 (401810102: ESPN's play-by-play is
   missing plays). Corner 3 = |y| 21.5+ and |x| 33+, a quarter of all threes (the NBA's split).
-- Not in the build yet: the first page that uses it hooks it in (pbp file 22 MB a season).
+- Read by Team Identity (below); First Basket still counts its own possessions.
 - What it answered first (the owner's "when will a guy like Peyton Pritchard shoot more"):
   Pritchard took 20.2% of Boston's shots with Jaylen Brown on the floor, 28.2% without.
 - Tests: `tests/test_nba_possessions.py` (two real games in `tests/fixtures/nba_*_games.csv.gz`
   plus a hand-made one).
+
+## Team Identity (built 2026-10-20)
+
+How each team plays, both sides of every matchup. The owner on the mockup: "This almost feels like
+a 'game preview' of sorts. for now, keep it as its own tab but i think eventually we will merge
+these two pages into one page."
+
+- **Build:** `nfl_tool/nba/identity.py` (`team_identity`, `season_block`) on the engine, called by
+  `compute_identity` in build_nba.py (its own try: a failure leaves `identity: null`). Output
+  `identity`: `default` (this season once the middle team has `THIS_SEASON_DEFAULT_AT` games, like
+  every NBA page) and `seasons[<year>]` (`label`, `team_games`, `teams{abbr: off_* / def_* / game
+  script}`, `league{key: avg, sd}`). `def_<key>` = what the team's OPPONENTS did against it, so
+  one team's offense in a game is the other's defense (a test pins it).
+- **Last season is saved, not rebuilt:** `nfl_tool/nba/identity_2026.json` (finished, so it never
+  changes; saves ~1.5 minutes a build). **Re-save it after changing a formula:**
+  `py nfl_tool/nba/identity.py --season 2026 --data-dir data/nba --write`. This season is rebuilt
+  every build from the play-by-play First Basket has just downloaded.
+- **Numbers:** pace (possessions a 48), seconds a possession, transition (a shot or turnover within
+  8 s of a defensive board or a steal) share and points, half-court points, shot share and make rate
+  by zone, 3-point share, assisted makes, pull-up / step-back / fade share, catch-and-shoot share,
+  turnover rate, steals' share of turnovers, offensive rebound rate, free throws a shot; game
+  script: share of games up / down 15+ in the 4th and the night's starters still on the floor then
+  (and in 4th quarters within 5), net points a 100 by quarter.
+- **The page** (`site/nba/identity.html` + `identity.js` + `identity.css`; NBA menu under Game
+  Previews): day strip, season buttons, **The Teams** (Offense / Defense identity tags: up to 4
+  each, a full league spread from average, biggest first; 4th-quarter table; quarters) and
+  **Offense vs Defense** (both directions, grouped rows, then "Where the shots come from").
+  Good / bad rows use Game Previews' tags (Mismatch / Tough / Good vs Good). **How-often rows (pace,
+  shares) are never colored good or bad**; their tags are **Fits** (offense does it a lot, this
+  defense allows it a lot, 0.7 spreads each) and **Takes away** (offense a lot, defense rarely).
+  The zone table's tag is the volume tag when there is one, else the make-rate matchup.
+  2025-26 shows as "reference: rosters have changed since".
+- Tests: `tests/test_nba_identity.py`.
 
 ## Suite switcher and launch switch
 
