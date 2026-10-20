@@ -38,8 +38,13 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   `espn_nba_schedules`, `espn_nba_rosters`, `espn_nba_depthcharts` and `espn_nba_injuries` (daily
   snapshots), plus `nba_stats_*` sets (shots, lineups, possessions).
 - Parquet only is practical (the pbp CSV is 275 MB), so `pyarrow` is in requirements.txt.
-- A season's box / pbp files don't exist until its first game (404); the build then uses last
-  season's stats (`is_fallback_season`) with players placed on this season's rosters.
+- A season's box / pbp files don't exist until its first game (404). Game Previews carries both
+  seasons (`stat_seasons`, built 2026-10-20, opening night): last season's with players placed on
+  this season's rosters, this season's once it has games. The top-level `team_stats` /
+  `recent_games` / `players` are the default season's (`stats_season`, `is_fallback_season`): this
+  season once the middle team has played `THIS_SEASON_DEFAULT_AT` (4) games, the same rule King of
+  the Court uses (the owner: "sooner than later default to this season"). Without this the page
+  would have jumped to 1-game numbers the morning after opening night.
 - Not usable: `cdn.nba.com` / stats.nba.com (blocked with 403 from the user's PC and commonly
   from cloud builders). ESPN's own API (`site.api.espn.com/.../basketball/nba/scoreboard`,
   `summary`) works and is what hoopR scrapes; use it if same-day freshness is ever needed.
@@ -69,12 +74,18 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   market score, win chance), The Teams (record, net / off / def rating, pace, home, away, last
   10), Offense vs Defense (13 rows, each offense next to what the other defense allows, colored vs
   the league from each unit's side, same two-sided Mismatch / Tough / Good vs Good tags as the NFL
-  cards), Rotations, Injuries, Recent Games.
+  cards), Rotations, Injuries, Recent Games. Season buttons under the game header (2025-26 /
+  2026-27, `renderSeasons`); a member's pick is remembered only until the build's default changes,
+  so nobody is left on last season after the switch. Tests: `tests/test_nba_previews_seasons.py`.
 - It does NOT load common.js (NFL-specific); it shares style.css and sync.js. New NBA styles are
   `.nba-*`. The NHL page reuses the layout ones (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app`),
   so check `site/nhl/` after changing them. Pace is shown without a good/bad color (fast or slow isn't good or bad).
 - **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
-  play-by-play tools (shot zones, first basket, quarter splits).
+  play-by-play tools (shot zones, quarter splits). **First Basket is next** (asked 2026-10-20):
+  the owner says most books now settle it on ANY first points, free throws included. 2025-26
+  play-by-play (`espn_nba_pbp/play_by_play_2026.parquet`, 22 MB): the opening `Jumpball` play names
+  both jumpers and its `team_id` is the team that got the ball; that team scored first 66.5% of
+  1,230 games; free throws were the first points in 9%.
 
 ## King of the Court (Promo Tools; built 2026-10-19)
 

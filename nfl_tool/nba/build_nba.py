@@ -10,8 +10,10 @@ The NBA twin of build_stats.py, started 2026-10-11. Sources (all free):
   * Novig -- game lines, the same public feed the NFL build reads
     (league=NBA), pregame numbers only.
 
-Before a season has games its stats come from the previous season
-(is_fallback_season), with players moved onto this season's rosters.
+Game Previews carries both seasons' stats (stat_seasons, the page's season
+buttons): last season's with players moved onto this season's rosters, and
+this season's once it has games. The page opens on this season once the
+middle team has played THIS_SEASON_DEFAULT_AT games (stats_default).
 
 Team keys are ESPN's abbreviations (NY, GS, SA, NO, UTAH, WSH ...).
 """
@@ -231,6 +233,31 @@ def compute_players(player_box: pd.DataFrame, rosters: pd.DataFrame | None) -> d
     return out
 
 
+def stats_block(season: int, team_box: pd.DataFrame, player_box: pd.DataFrame, teams: dict, rosters: pd.DataFrame | None) -> dict | None:
+    """One season's Game Previews numbers, or None before it has a regular-season
+    game. rosters = this season's roster file, to move last season's players
+    onto their current teams (None for this season: the box score team is current)."""
+    # All-Star and exhibition sides show up in the box scores; only real teams count.
+    rows = team_game_rows(team_box[team_box["team_abbreviation"].isin(teams) & team_box["opponent_team_abbreviation"].isin(teams)])
+    if rows.empty:
+        return None
+    team_stats = compute_team_stats(rows)
+    played = sorted(s["games_played"] for s in team_stats.values())
+    return {
+        "label": season_label(season),
+        "team_games": played[len(played) // 2],  # the middle team's games played
+        "team_stats": team_stats,
+        "recent_games": compute_recent_games(rows),
+        "players": compute_players(player_box, rosters),
+    }
+
+
+def stats_default(season: int, blocks: dict) -> int:
+    """This season once the middle team has THIS_SEASON_DEFAULT_AT games, else last season."""
+    this = blocks.get(season)
+    return season if this and this["team_games"] >= THIS_SEASON_DEFAULT_AT else season - 1
+
+
 # ---- injuries ----
 def compute_injuries(injuries: pd.DataFrame | None, abbr_by_id: dict) -> dict:
     """{team: [players]} from the newest daily snapshot."""
@@ -417,7 +444,7 @@ def apply_lines(games: list, novig: dict, previous: dict | None, now_utc: dateti
 # ---- King of the Court (kotc.py) ----
 KOTC_SLATE_NIGHTS = 3
 KOTC_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_kotc"
-KOTC_DEFAULT_THIS_SEASON_AT = 4  # team games played (median) before the page opens on this season
+THIS_SEASON_DEFAULT_AT = 4  # team games played (median) before a page opens on this season
 KOTC_RECORD_TOP = 30
 
 
@@ -477,7 +504,7 @@ def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters,
     default = season - 1
     if season in blocks:
         played = sorted(d["games"] for d in blocks[season]["defense"].values())
-        if played and played[len(played) // 2] >= KOTC_DEFAULT_THIS_SEASON_AT:
+        if played and played[len(played) // 2] >= THIS_SEASON_DEFAULT_AT:
             default = season
 
     record = kotc_record(season, slates.get(default, {}), default, blocks.get(default), games, now_utc)
@@ -534,17 +561,6 @@ def main():
     rosters = fetch_file("rosters", args.season, args.data_dir, force)
     injuries = fetch_file("injuries", args.season, args.data_dir, force)
 
-    # Stats: this season once it has games, otherwise last season.
-    stats_season = args.season
-    team_box = fetch_file("team_box", stats_season, args.data_dir, force)
-    if team_box is None or not (team_box["season_type"] == REGULAR_SEASON).any():
-        stats_season = args.season - 1
-        team_box = fetch_file("team_box", stats_season, args.data_dir, False)
-    player_box = fetch_file("player_box", stats_season, args.data_dir, force and stats_season == args.season)
-    if team_box is None or player_box is None:
-        sys.exit("No box scores available for this or last season.")
-    is_fallback = stats_season != args.season
-
     home = schedule.drop_duplicates("home_abbreviation")
     teams = {
         r.home_abbreviation: {
@@ -560,8 +576,23 @@ def main():
         if r.home_abbreviation != "TBD"
     }
     abbr_by_id = {t["id"]: abbr for abbr, t in teams.items()}
-    # All-Star and exhibition sides show up in the box scores; only real teams count.
-    rows = team_game_rows(team_box[team_box["team_abbreviation"].isin(teams) & team_box["opponent_team_abbreviation"].isin(teams)])
+
+    # Both seasons' stats (the page's season buttons); last season's players on today's rosters.
+    stat_seasons = {}
+    for s in (args.season - 1, args.season):
+        fresh = force and s == args.season
+        team_box = fetch_file("team_box", s, args.data_dir, fresh)
+        player_box = fetch_file("player_box", s, args.data_dir, fresh)
+        if team_box is not None and player_box is not None:
+            block = stats_block(s, team_box, player_box, teams, rosters if s != args.season else None)
+            if block:
+                stat_seasons[s] = block
+    if not stat_seasons:
+        sys.exit("No box scores available for this or last season.")
+    stats_season = stats_default(args.season, stat_seasons)
+    if stats_season not in stat_seasons:
+        stats_season = max(stat_seasons)
+    shown = stat_seasons[stats_season]
 
     games = compute_schedule(schedule, now_utc)
     novig, novig_debug = fetch_novig_lines(games, teams)
@@ -572,13 +603,15 @@ def main():
         "season": args.season,
         "season_label": f"{args.season - 1}-{str(args.season)[2:]}",
         "stats_season": stats_season,
-        "stats_season_label": f"{stats_season - 1}-{str(stats_season)[2:]}",
-        "is_fallback_season": is_fallback,
+        "stats_season_label": season_label(stats_season),
+        "is_fallback_season": stats_season != args.season,
         "generated_at": now_utc.strftime("%Y-%m-%dT%H:%MZ"),
         "teams": teams,
-        "team_stats": compute_team_stats(rows),
-        "recent_games": compute_recent_games(rows),
-        "players": compute_players(player_box, rosters if is_fallback else None),
+        # The season the page opens on, plus every season for its buttons.
+        "team_stats": shown["team_stats"],
+        "recent_games": shown["recent_games"],
+        "players": shown["players"],
+        "stat_seasons": {str(s): b for s, b in stat_seasons.items()},
         "injuries": injury_list,
         "schedule": games,
         "novig_debug": novig_debug,

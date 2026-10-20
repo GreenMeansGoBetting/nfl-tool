@@ -5,9 +5,12 @@
 // nfl_tool/nba/build_nba.py.
 
 let DATA = null;
+let STATS = null; // the season shown: team_stats, recent_games, players
+let statsSeason = null;
 let dayIndex = 0;
 let gameId = null;
 const NBA_GAME_KEY = "nba-tool.game.v1";
+const NBA_SEASON_KEY = "nba-tool.preview-season.v1";
 
 const el = (id) => document.getElementById(id);
 const fmt = (n, digits = 1) => (n === null || n === undefined ? "--" : Number(n).toFixed(digits));
@@ -33,8 +36,8 @@ function fmtTime(hhmm) {
 // z-score of one team's stat against all 30, flipped when lower is better,
 // so positive always means "good for the unit this number belongs to".
 function zScore(key, abbr, lowerIsBetter) {
-  const values = Object.values(DATA.team_stats).map((s) => s[key]).filter((v) => v !== null && v !== undefined);
-  const value = (DATA.team_stats[abbr] || {})[key];
+  const values = Object.values(STATS.team_stats).map((s) => s[key]).filter((v) => v !== null && v !== undefined);
+  const value = (STATS.team_stats[abbr] || {})[key];
   if (values.length < 3 || value === null || value === undefined) return null;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const sd = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
@@ -43,7 +46,7 @@ function zScore(key, abbr, lowerIsBetter) {
 }
 const tierClass = (z) => (z === null ? "" : z >= 0.5 ? "tier-good" : z <= -0.5 ? "tier-bad" : "tier-mid");
 function leagueRank(key, abbr, lowerIsBetter) {
-  const sorted = Object.entries(DATA.team_stats)
+  const sorted = Object.entries(STATS.team_stats)
     .filter(([, s]) => s[key] !== null && s[key] !== undefined)
     .sort((a, b) => (lowerIsBetter ? a[1][key] - b[1][key] : b[1][key] - a[1][key]));
   const i = sorted.findIndex(([t]) => t === abbr);
@@ -122,9 +125,38 @@ function renderHeader(g) {
       <span class="game-header-team">${team(g.home).name}</span><img src="${team(g.home).logo}" class="team-logo-lg" alt="${g.home}">
     </div>
     <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}</div>`;
-  const note = el("fallback-note");
-  note.hidden = !DATA.is_fallback_season;
-  note.textContent = `Team and player numbers are from the ${DATA.stats_season_label} season until ${DATA.season_label} games are played. Players are shown on their current team.`;
+  renderSeasons();
+}
+
+// ---- season buttons ----
+// Old data.json files have no stat_seasons: the page then shows the one season it has.
+const statSeasons = () => DATA.stat_seasons || { [String(DATA.stats_season)]: { label: DATA.stats_season_label, team_stats: DATA.team_stats, recent_games: DATA.recent_games, players: DATA.players } };
+function renderSeasons() {
+  const all = statSeasons();
+  const thisSeason = String(DATA.season);
+  el("nba-seasons").innerHTML = Object.keys(all)
+    .sort()
+    .map((s) => `<button type="button" class="view-toggle-btn${s === statsSeason ? " active" : ""}" data-season="${s}">${all[s].label}</button>`)
+    .join("") + (all[thisSeason] ? "" : `<button type="button" class="view-toggle-btn" disabled title="After the first games">${DATA.season_label}</button>`);
+  const games = all[thisSeason] ? all[thisSeason].team_games : 0;
+  el("fallback-note").textContent = statsSeason === thisSeason
+    ? `${DATA.season_label} numbers: ${games} game${games === 1 ? "" : "s"} a team so far, so small samples swing.`
+    : `${all[statsSeason].label} numbers, with players on their current teams.${all[thisSeason] ? ` ${DATA.season_label} has ${games} game${games === 1 ? "" : "s"} a team so far.` : ` ${DATA.season_label} numbers start after the first games.`}`;
+}
+function setSeason(s, remember) {
+  const all = statSeasons();
+  if (!all[s]) return;
+  statsSeason = s;
+  STATS = all[s];
+  if (remember) {
+    // The pick is kept only while the build's default stays the same, so the
+    // page still moves to this season on its own once it takes over.
+    try {
+      localStorage.setItem(NBA_SEASON_KEY, JSON.stringify({ season: s, default: String(DATA.stats_season) }));
+    } catch (e) {
+      // localStorage unavailable -- the pick just won't be remembered.
+    }
+  }
 }
 function renderLines(g) {
   const hs = g.home_team_spread;
@@ -146,12 +178,12 @@ function renderLines(g) {
 }
 function renderTeams(g) {
   const panel = (abbr) => {
-    const s = DATA.team_stats[abbr];
+    const s = STATS.team_stats[abbr];
     if (!s) return `<div>${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
     const tile = (label, value, key, low) => {
       const z = key ? zScore(key, abbr, low) : null;
       const rank = key ? leagueRank(key, abbr, low) : null;
-      return `<div class="nba-tile ${tierClass(z)}"${rank ? ` title="${ordinal(rank)} of ${Object.keys(DATA.team_stats).length}"` : ""}><div class="gs-tile-label">${label}</div><b>${value}</b>${rank ? `<small>${ordinal(rank)}</small>` : ""}</div>`;
+      return `<div class="nba-tile ${tierClass(z)}"${rank ? ` title="${ordinal(rank)} of ${Object.keys(STATS.team_stats).length}"` : ""}><div class="gs-tile-label">${label}</div><b>${value}</b>${rank ? `<small>${ordinal(rank)}</small>` : ""}</div>`;
     };
     return `<div class="nba-team">
       ${banner(abbr, `${s.wins}-${s.losses}`)}
@@ -174,7 +206,7 @@ function renderMatchups(g) {
       const offZ = zScore(r.off, offTeam, !!r.low);
       const defZ = zScore(r.def, defTeam, !r.low);
       const show = (abbr, key) => {
-        const v = (DATA.team_stats[abbr] || {})[key];
+        const v = (STATS.team_stats[abbr] || {})[key];
         return r.kind === "pct" ? pct(v) : fmt(v);
       };
       const cell = (abbr, key, z, low) => `<td class="num ${tierClass(z)}" title="${ordinal(leagueRank(key, abbr, low) || 0)} in the league">${show(abbr, key)}</td>`;
@@ -191,7 +223,7 @@ function renderPlayers(g) {
   const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.status === "Out").map((p) => p.id));
   const table = (abbr) => {
     const injured = out(abbr);
-    const rows = (DATA.players[abbr] || [])
+    const rows = (STATS.players[abbr] || [])
       .map((p) => {
         const trend = p.l5_pts !== null && p.pts !== null ? p.l5_pts - p.pts : 0;
         return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>
@@ -218,7 +250,7 @@ function renderInjuries(g) {
 }
 function renderRecent(g) {
   const table = (abbr) => {
-    const rows = (DATA.recent_games[abbr] || [])
+    const rows = (STATS.recent_games[abbr] || [])
       .slice()
       .reverse()
       .map((r) => `<tr><td>${new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${r.win ? "win" : "loss"}">${r.win ? "W" : "L"}</span></td><td class="num">${r.pf}-${r.pa}</td><td class="num">${r.pf + r.pa}</td><td class="num">${fmt(r.pace, 0)}</td></tr>`)
@@ -270,6 +302,11 @@ document.addEventListener("click", (e) => {
   if (card) return selectGame(card.dataset.game);
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
+  const seasonBtn = e.target.closest("#nba-seasons [data-season]");
+  if (seasonBtn) {
+    setSeason(seasonBtn.dataset.season, true);
+    return render();
+  }
   const theme = e.target.closest("#theme-toggle");
   if (theme) {
     const light = document.documentElement.dataset.theme !== "light";
@@ -287,6 +324,15 @@ fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;
+    let pick = null;
+    try {
+      pick = JSON.parse(localStorage.getItem(NBA_SEASON_KEY) || "null");
+    } catch (e) {
+      // localStorage unavailable or bad JSON.
+    }
+    const fallbackSeason = String(DATA.stats_season);
+    setSeason(pick && pick.default === fallbackSeason && statSeasons()[pick.season] ? pick.season : fallbackSeason, false);
+    if (!STATS) setSeason(Object.keys(statSeasons())[0], false);
     const all = days();
     let saved = null;
     try {

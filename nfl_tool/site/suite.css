@@ -39,3 +39,9 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .nba-line.g2-line { grid-template-columns: 1fr 1fr; }
   .nba-box { overflow-x: auto; }
 }
+
+/* NBA Game Previews' season buttons (nba.js renderSeasons). */
+.nba-season-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.nba-season-bar .no-data-note { margin: 0; }
+.nba-seasons { display: inline-flex; gap: 6px; }
+.nba-seasons .view-toggle-btn { padding: 4px 10px; }
