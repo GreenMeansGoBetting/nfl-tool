@@ -225,7 +225,7 @@
    },
    {
     "id": "6450",
-    "lead": 0.0748,
+    "lead": 0.0749,
     "name": "Kawhi Leonard",
     "proj": 40.1,
     "team": "TOR"
@@ -281,38 +281,38 @@
    },
    {
     "id": "4432573",
-    "lead": 0.0267,
+    "lead": 0.0268,
     "name": "Paolo Banchero",
     "proj": 35.6,
     "team": "ORL"
    },
    {
     "id": "6583",
-    "lead": 0.0253,
+    "lead": 0.0254,
     "name": "Anthony Davis",
     "proj": 35.5,
     "team": "WSH"
    },
    {
     "id": "4432816",
-    "lead": 0.0234,
+    "lead": 0.0235,
     "name": "LaMelo Ball",
     "proj": 35.3,
     "team": "MIN"
    },
    {
-    "id": "4066336",
-    "lead": 0.0212,
-    "name": "Lauri Markkanen",
-    "proj": 35.2,
-    "team": "UTAH"
-   },
-   {
     "id": "4066261",
-    "lead": 0.0212,
+    "lead": 0.0213,
     "name": "Bam Adebayo",
     "proj": 34.5,
     "team": "MIA"
+   },
+   {
+    "id": "4066336",
+    "lead": 0.0204,
+    "name": "Lauri Markkanen",
+    "proj": 35.1,
+    "team": "UTAH"
    },
    {
     "id": "3149673",
@@ -351,7 +351,7 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0097,
+    "lead": 0.0098,
     "name": "Keyonte George",
     "proj": 31.9,
     "team": "UTAH"
