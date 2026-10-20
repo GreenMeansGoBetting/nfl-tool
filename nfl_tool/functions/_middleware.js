@@ -453,8 +453,53 @@ async function handleSgpPrices(request, env, session, json) {
   return json({ ok: true });
 }
 
+// NBA starting lineups, live (First Basket, 2026-10-20; the owner: "nba is big on
+// lineups so making sure thats fast and accurate is key"). The NBA's own
+// daily file -- what nba.com's "Today's Lineups" reads -- lists each team's
+// five as Expected, then Confirmed once the team turns it in (about 30
+// minutes before tip). Read here, not at build time, so a member sees a
+// change within a minute instead of after a redeploy. Kept 60 seconds at
+// Cloudflare so every member opening the page costs the NBA one request a
+// minute. Passed through as the NBA sends it; the page reads it.
+const NBA_LINEUPS_URL = (day) => `https://stats.nba.com/js/data/leaders/00_daily_lineups_${day}.json`;
+const NBA_LINEUPS_TTL = 60;
+async function handleNbaLineups(request, json) {
+  const day = new URL(request.url).searchParams.get("date") || "";
+  if (!/^\d{8}$/.test(day)) return json({ error: "date" }, 400);
+  const cache = typeof caches !== "undefined" ? caches.default : null;
+  const key = new Request(`https://gmg-cache.invalid/nba-lineups/${day}`);
+  const hit = cache && (await cache.match(key));
+  if (hit) return hit;
+  let res;
+  try {
+    res = await fetch(NBA_LINEUPS_URL(day), {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+        Referer: "https://www.nba.com/",
+        Accept: "application/json",
+      },
+    });
+  } catch (e) {
+    return json({ error: "nba", status: 0 }, 502);
+  }
+  if (!res.ok) return json({ error: "nba", status: res.status }, 502);
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    return json({ error: "nba", status: "not json" }, 502);
+  }
+  const out = new Response(JSON.stringify({ fetched: new Date().toISOString(), games: data.games || [] }), {
+    status: 200,
+    headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${NBA_LINEUPS_TTL}` },
+  });
+  if (cache) await cache.put(key, out.clone());
+  return out;
+}
+
 async function handleApi(request, env, session, json) {
   const url = new URL(request.url);
+  if (url.pathname === "/api/nba-lineups") return handleNbaLineups(request, json);
   if (url.pathname === "/api/requests") {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleRequests(request, env, session, json);

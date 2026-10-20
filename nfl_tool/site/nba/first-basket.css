@@ -21,6 +21,12 @@
 .fb-starters td { vertical-align: middle; }
 .fb-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
 
+.fb-lineup { padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.fb-lineup-confirmed { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
+.fb-lineup-expected { background: rgba(var(--mid-rgb), 0.2); color: var(--mid-text); }
+.fb-lineup-guess { background: var(--panel-2); color: var(--muted); }
+#fb-lineup-note { margin-top: -4px; }
+
 .fb-chips { display: flex; flex-direction: column; gap: 6px; padding: 0 10px; }
 .fb-chip { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px; padding: 5px 10px 5px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); font-weight: 600; }
 .fb-chip b { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }

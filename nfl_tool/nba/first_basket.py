@@ -260,6 +260,12 @@ def fair_prices(block: dict, away: dict, home: dict) -> dict:
     return out
 
 
+def fair_weights() -> dict:
+    """The fair guess's settings, for the page: it redoes the guess in the
+    browser when the NBA's real lineup differs from the likely starters."""
+    return {"tip_prior": TIP_PRIOR, "share_prior": SHARE_PRIOR, "bench_share": BENCH_SHARE, "min_jumps": MIN_JUMPS}
+
+
 def slate(block: dict, games: list, team_of: dict, out_ids: set, dates: list) -> dict:
     """{game id: {away, home, fair}} for the games on `dates`."""
     out = {}

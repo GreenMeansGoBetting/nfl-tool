@@ -547,7 +547,39 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
     slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates) for s, b in blocks.items()}
     default = season if season in blocks and blocks[season]["games"] * 2 / max(1, len(teams)) >= THIS_SEASON_DEFAULT_AT else season - 1
-    return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()}, "slates": slates}
+    # Every rostered player (the page matches the NBA's lineup names to these),
+    # and the NBA's lineup files as of this build: the page reads them live
+    # (/api/nba-lineups) and falls back to these copies.
+    roster = {}
+    if rosters is not None:
+        for r in rosters.itertuples(index=False):
+            roster[str(r.athlete_id)] = [r.display_name, r.team_abbreviation, first_basket.POS_GROUP.get(r.position_abbreviation, "F")]
+    lineups = {}
+    for d in dates:
+        got = fetch_nba_lineups(d)
+        if got is not None:
+            lineups[d] = got
+    return {
+        "default": str(default), "seasons": {str(s): b for s, b in blocks.items()}, "slates": slates,
+        "roster": roster, "lineups": lineups, "fair_weights": first_basket.fair_weights(),
+    }
+
+
+NBA_LINEUPS_URL = "https://stats.nba.com/js/data/leaders/00_daily_lineups_{day}.json"
+
+
+def fetch_nba_lineups(date: str) -> dict | None:
+    """The NBA's daily lineups file for an Eastern date (YYYY-MM-DD), or None
+    (not posted yet, or the NBA turned the request away)."""
+    url = NBA_LINEUPS_URL.format(day=date.replace("-", ""))
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36", "Referer": "https://www.nba.com/"})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read())
+    except Exception as ex:
+        print(f"NOTE: NBA lineups for {date} not read ({ex!r}).", file=sys.stderr)
+        return None
+    return {"fetched": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "games": data.get("games") or []}
 
 
 def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: list, now_utc: datetime) -> dict:

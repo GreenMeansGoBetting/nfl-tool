@@ -104,10 +104,25 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   don't, so the count runs a hair low). 2025-26: the tip winner scored first 66.6%; free throws were
   the first points in 9%; 2.02 possessions and 55 seconds to a team's first points; first field
   goals by guards 44%, forwards 37%, centers 19%.
-- **Likely starters** (no lineups are confirmed before tip): on the team today (roster file), not
+- **Starting fives: the NBA's own lineup file** (the owner: "nba is big on lineups so making sure
+  thats fast and accurate is key"). `stats.nba.com/js/data/leaders/00_daily_lineups_<YYYYMMDD>.json`
+  (what nba.com's Today's Lineups reads; answers from the owner's PC though `cdn.nba.com` doesn't)
+  lists each team's five as `Expected`, then `Confirmed` once the team turns it in (~30 min before
+  tip), with position, `rosterStatus` and a timestamp. Only that day's file exists (later days 404).
+  Read **live**: `/api/nba-lineups?date=YYYYMMDD` in `_middleware.js` (members only) fetches it and
+  keeps it 60 s in Cloudflare's cache; the page asks on load and every minute while the night isn't
+  over. Fallbacks: the build's copy (`first_basket.lineups`, fetched every build), then the build's
+  likely starters ("Our guess"). Each team's banner says Confirmed / Expected / Our guess. Names are
+  matched to our players by team + name (`roster`: every rostered player's ESPN id); a starter with
+  no numbers (a rookie) shows with "new" and the NBA's headshot. The jumper, tip and fair guess
+  follow the five shown (`fairPrices` in the page = `fair_prices` in Python; a test pins them).
+  Twitter/X (Underdog NBA) was ruled out: reading it needs a paid API (~$200 a month) and scraping
+  breaks X's rules. On opening night the NBA had SA's Dylan Harper starting where our guess had
+  Tobias Harris.
+- **Likely starters** (our guess, before the NBA posts a five): on the team today (roster file), not
   listed Out, starting in at least half the games he played, most minutes first. Ranking by start
   counts dropped Wembanyama (missed games) from the 2025-26 Spurs. **Jumper:** most jumps among
-  them (at least `MIN_JUMPS` 2).
+  them (at least `MIN_JUMPS` 2); with the NBA's five and no jumper on file, its listed center.
 - **Fair value guess** (`fair_prices`): tip from the two jumpers (each steadied with 6 coin-flip
   jumps), first points = tip x the league's tip-winner rate, each starter's share from first points
   per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.

@@ -7,7 +7,12 @@ field goal allowed" is field goals only; possessions to first points; shots
 before the game's first points; the league's tip-winner rate; likely starters
 are regular starters by minutes (a star who missed games still starts) and
 skip players listed Out; the fair guess adds up; the page draws every section
-with the build's numbers, colors with no script errors, and is in the NBA menu."""
+with the build's numbers, colors with no script errors, and is in the NBA menu;
+the NBA's lineup file replaces the likely starters (Expected from the build's
+copy, Confirmed from the live /api/nba-lineups), names match our players, a
+starter we have no numbers for still shows, and the page's fair guess is the
+build's for the same five."""
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -150,7 +155,10 @@ def setUpModule():
         teams = {t: {"name": t, "short": t, "logo": "", "color": "336699"} for t in TEAMS}
         SITE.nba = {
             "season": 2027, "season_label": "2026-27", "teams": teams, "schedule": [GAME], "injuries": {}, "kotc": None,
-            "first_basket": {"default": "2026", "seasons": {"2026": BLOCK}, "slates": {"2026": fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"])}},
+            "first_basket": {
+                "default": "2026", "seasons": {"2026": BLOCK}, "slates": {"2026": fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"])},
+                "roster": {"10": ["P10", "AAA", "C"], "11": ["P11", "AAA", "G"]}, "lineups": {}, "fair_weights": fb.fair_weights(),
+            },
         }
         PAGE = SITE.open("nba/first-basket.html")
         PAGE.wait_for_function("() => FB && !document.getElementById('fb-game').hidden")
@@ -187,6 +195,68 @@ class Page(unittest.TestCase):
     def test_in_the_nba_menu(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nav-menu a')].map((a) => a.getAttribute('href'))")
         self.assertTrue(any(h and h.endswith("nba/first-basket.html") for h in links), links)
+
+
+def nba_file(status, rookie=True):
+    """The NBA's lineup file for GAME: AAA's five (one a rookie we have no numbers for), BBB's two (too few to use)."""
+    names = [("P12", "F"), ("P10", "C"), ("P11", "G"), ("P13", "G")] + ([("Rookie Guy", "SG")] if rookie else [("P14", "G")])
+    player = lambda i, n, pos: {"personId": 900 + i, "playerName": n, "position": pos, "lineupStatus": status, "rosterStatus": "Active"}
+    return {"games": [{
+        "gameId": "x", "awayTeam": {"teamAbbreviation": "BBB", "players": [player(10, "P20", "C"), player(11, "P21", "G")]},
+        "homeTeam": {"teamAbbreviation": "AAA", "players": [player(i, n, pos) for i, (n, pos) in enumerate(names)]},
+    }]}
+
+
+SIDES = """() => { const p = plan(); return {
+    away: p.away.source, home: p.home.source, starters: p.home.starters.map((id) => player(id).name), jumper: p.home.jumper,
+    tags: [...document.querySelectorAll('#fb-starters .fb-lineup')].map((t) => t.textContent),
+    fair: p.fair, note: document.getElementById('fb-lineup-note').textContent }; }"""
+
+
+def use_build_copy(status):
+    PAGE.evaluate("(file) => { FB.lineups = { '2026-10-21': { fetched: '2026-10-21T18:00:00Z', ...file } }; return loadLineups('2026-10-21').then(render); }", nba_file(status))
+
+
+class Lineups(unittest.TestCase):
+    def tearDown(self):
+        PAGE.unroute("**/api/nba-lineups*")
+        PAGE.evaluate("() => { for (const k in LINEUPS) delete LINEUPS[k]; FB.lineups = {}; render(); }")
+
+    def test_without_an_nba_lineup_the_page_uses_the_builds_guess_and_its_fair_prices(self):
+        got = PAGE.evaluate(SIDES)
+        self.assertEqual((got["away"], got["home"], got["tags"]), ("guess", "guess", ["Our guess", "Our guess"]))
+        built = fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"])["9"]["fair"]
+        self.assertAlmostEqual(got["fair"]["tip_home"], built["tip_home"], places=3)
+        self.assertAlmostEqual(got["fair"]["first_home"], built["first_home"], places=3)
+        for pid, v in built["players"].items():
+            self.assertAlmostEqual(got["fair"]["players"][pid]["p"], v["p"], places=3)
+            self.assertEqual(got["fair"]["players"][pid]["fair"], v["fair"])
+
+    def test_the_builds_copy_of_the_nba_file_gives_the_expected_five(self):
+        use_build_copy("Expected")
+        got = PAGE.evaluate(SIDES)
+        self.assertEqual((got["away"], got["home"]), ("guess", "expected"))  # BBB's two names aren't a five
+        self.assertEqual(got["starters"], ["P12", "P10", "P11", "P13", "Rookie Guy"])
+        self.assertEqual(got["jumper"], "10")
+        self.assertIn("Expected", got["tags"])
+        self.assertIn("as of the last site update", got["note"])
+        home = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')][1].innerText")
+        self.assertIn("Rookie Guy", home)
+        self.assertIn("NEW", home.upper())
+        five = PAGE.evaluate("() => plan().home.starters")
+        total = sum(got["fair"]["players"][pid]["p"] for pid in five)
+        self.assertAlmostEqual(total, got["fair"]["first_home"] * (1 - fb.BENCH_SHARE), places=3)
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_live_file_wins_and_shows_confirmed(self):
+        body = json.dumps({"fetched": "2026-10-21T23:05:00Z", **nba_file("Confirmed", rookie=False)})
+        PAGE.route("**/api/nba-lineups*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+        use_build_copy("Expected")
+        got = PAGE.evaluate(SIDES)
+        self.assertEqual(got["home"], "confirmed")
+        self.assertIn("Confirmed", got["tags"])
+        self.assertEqual(got["starters"][-1], "P14")
+        self.assertIn("every minute", got["note"])
 
 
 if __name__ == "__main__":

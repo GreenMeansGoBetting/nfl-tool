@@ -4,8 +4,11 @@
 // users to solve"): the tip, scoring first, opening trips, the first field
 // goal each defense allows by position, the likely starters, and a rough fair
 // price at the bottom. Everything comes from nba/data.json `first_basket`
-// (nfl_tool/nba/first_basket.py); the page picks a season and a game, then
-// colors.
+// (nfl_tool/nba/first_basket.py), except the starting fives: the NBA's own
+// lineup file, read live through /api/nba-lineups (the login middleware) every
+// minute, Expected until the team turns its five in, then Confirmed. Without
+// it (not posted yet, or the NBA turns the request away) the page uses the
+// build's copy of that file, then the build's likely starters.
 
 let DATA = null;
 let FB = null;
@@ -15,6 +18,10 @@ let gameId = null;
 const FB_GAME_KEY = "nba-tool.fb-game.v1";
 const FB_SEASON_KEY = "nba-tool.fb-season.v1";
 const MIN_STARTS = 15; // players colored against each other need this many starts
+const LINEUP_POLL_MS = 60 * 1000;
+const LINEUPS = {}; // {YYYY-MM-DD: {fetched, games, live}}
+// The NBA's team abbreviations that differ from ESPN's (our keys).
+const NBA_ABBR = { GSW: "GS", NOP: "NO", NYK: "NY", SAS: "SA", UTA: "UTAH", WAS: "WSH" };
 
 const el = (id) => document.getElementById(id);
 const pct = (n) => (n === null || n === undefined ? "--" : `${Math.round(n * 100)}%`);
@@ -23,7 +30,7 @@ const signed = (n) => (n === null || n === undefined ? "--" : `${n > 0 ? "+" : "
 const team = (abbr) => (DATA && DATA.teams[abbr]) || { name: abbr, short: abbr, logo: "", color: "555555" };
 const logo = (abbr, size = 18) => (abbr ? `<img src="${team(abbr).logo}" alt="${abbr}" class="team-logo" style="width:${size}px;height:${size}px" loading="lazy">` : "");
 const headshot = (id) => `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=96&h=70&scale=crop`;
-const face = (id, cls = "nba-headshot") => `<img src="${headshot(id)}" alt="" class="${cls}" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const face = (id, cls = "nba-headshot") => `<img src="${faceUrl(id)}" alt="" class="${cls}" loading="lazy" onerror="this.style.visibility='hidden'">`;
 function teamRgb(abbr) {
   const hex = team(abbr).color || "555555";
   return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
@@ -62,7 +69,122 @@ function playerHeat(key, value) {
 const block = () => FB.seasons[season];
 const slate = () => FB.slates[season] || {};
 const game = () => DATA.schedule.find((g) => g.game_id === gameId) || null;
-const plan = () => slate()[gameId] || null;
+// The game's two sides (real lineup when the NBA has one, else the build's
+// likely starters) and the fair guess from them.
+function plan() {
+  const g = game();
+  const built = slate()[gameId];
+  if (!g || !built) return null;
+  const away = sideFor(g, g.away, built.away);
+  const home = sideFor(g, g.home, built.home);
+  return { away, home, fair: fairPrices(away, home) };
+}
+
+// ---- lineups ----
+const nameKey = (n) => String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  .replace(/[^a-z0-9 ]/g, "").replace(/\b(jr|sr|ii|iii|iv)\b/g, "").replace(/\s+/g, " ").trim();
+let rosterIndex = null;
+// {team: {name key: ESPN id}} from the build's roster and season players.
+function rosterIds() {
+  if (rosterIndex) return rosterIndex;
+  rosterIndex = {};
+  const add = (id, name, abbr) => {
+    (rosterIndex[abbr] = rosterIndex[abbr] || {})[nameKey(name)] = id;
+  };
+  Object.values(FB.seasons).forEach((b) => Object.entries(b.players).forEach(([id, p]) => add(id, p.name, p.team)));
+  Object.entries(FB.roster || {}).forEach(([id, [name, abbr]]) => add(id, name, abbr));
+  return rosterIndex;
+}
+const extraPlayers = {}; // NBA-listed starters we have no numbers for (rookies, call-ups)
+const blankPlayer = (name, pos, abbr) => ({ name, pos, team: abbr, starts: 0, games: 0, shot_early: 0, first_shot: 0, first_pts: 0, jumps: 0, tips_won: 0 });
+function player(id) {
+  const p = block().players[id];
+  if (p) return p;
+  if (extraPlayers[id]) return extraPlayers[id];
+  const r = (FB.roster || {})[id];
+  return r ? blankPlayer(r[0], r[2], r[1]) : blankPlayer(String(id), "F", "");
+}
+const faceUrl = (id) => (String(id).startsWith("nba:") ? `https://cdn.nba.com/headshots/nba/latest/260x190/${String(id).slice(4)}.png` : headshot(id));
+function nbaTeam(g, abbr) {
+  const day = LINEUPS[g.date];
+  if (!day) return null;
+  const espn = (t) => NBA_ABBR[t.teamAbbreviation] || t.teamAbbreviation;
+  const match = (day.games || []).find((x) => espn(x.awayTeam) === g.away && espn(x.homeTeam) === g.home);
+  if (!match) return null;
+  return abbr === g.home ? match.homeTeam : match.awayTeam;
+}
+const POS_GROUP = { PG: "G", SG: "G", G: "G", SF: "F", PF: "F", F: "F", C: "C" };
+// One side of the game: {starters, jumper, source: confirmed | expected | guess, fetched, live}.
+function sideFor(g, abbr, built) {
+  const t = nbaTeam(g, abbr);
+  const listed = t ? (t.players || []).filter((x) => x.rosterStatus !== "Inactive" && ["Confirmed", "Expected"].includes(x.lineupStatus)).slice(0, 5) : [];
+  if (listed.length < 5) return { ...built, source: "guess" };
+  const ids = rosterIds()[abbr] || {};
+  const starters = listed.map((x) => {
+    const id = ids[nameKey(x.playerName)];
+    if (id) return id;
+    const nid = `nba:${x.personId}`;
+    extraPlayers[nid] = blankPlayer(x.playerName, POS_GROUP[x.position] || "F", abbr);
+    return nid;
+  });
+  const minJumps = (FB.fair_weights || {}).min_jumps || 2;
+  const jumpers = starters.filter((id) => player(id).jumps >= minJumps).sort((a, b) => player(b).jumps - player(a).jumps);
+  const center = listed.findIndex((x) => x.position === "C");
+  const jumper = jumpers[0] || (center >= 0 ? starters[center] : null);
+  const confirmed = listed.every((x) => x.lineupStatus === "Confirmed");
+  return { starters, jumper, source: confirmed ? "confirmed" : "expected", fetched: LINEUPS[g.date].fetched, live: LINEUPS[g.date].live };
+}
+async function loadLineups(date) {
+  if (!date) return;
+  try {
+    const res = await fetch(`/api/nba-lineups?date=${date.replace(/-/g, "")}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data.games)) throw new Error("no games");
+    LINEUPS[date] = { fetched: data.fetched, games: data.games, live: true };
+  } catch (e) {
+    // The build's copy, if it has one for that night.
+    if (!(LINEUPS[date] && LINEUPS[date].live) && (FB.lineups || {})[date]) LINEUPS[date] = { ...FB.lineups[date], live: false };
+  }
+}
+
+// The same guess as first_basket.py fair_prices, redone here so a real
+// lineup moves it. tests/test_nba_first_basket.py pins the two to agree.
+function fairPrices(away, home) {
+  const w = FB.fair_weights || { tip_prior: 6, share_prior: 10, bench_share: 0.04 };
+  const tipRate = (id) => {
+    const p = id ? player(id) : null;
+    return p ? (p.tips_won + w.tip_prior * 0.5) / (p.jumps + w.tip_prior) : 0.5;
+  };
+  const a = tipRate(away.jumper);
+  const h = tipRate(home.jumper);
+  const tipHome = (h * (1 - a)) / (h * (1 - a) + a * (1 - h));
+  const lead = block().league.first_won_tip || 0.66;
+  const firstHome = tipHome * lead + (1 - tipHome) * (1 - lead);
+  const out = { tip_home: tipHome, first_home: firstHome, players: {} };
+  [[away, 1 - firstHome], [home, firstHome]].forEach(([side, pTeam]) => {
+    const rows = side.starters.map(player);
+    if (!rows.length) return;
+    const avg = rows.reduce((t, r) => t + r.first_pts, 0) / Math.max(1, rows.reduce((t, r) => t + r.starts, 0));
+    const weights = rows.map((r) => (r.first_pts + w.share_prior * avg) / (r.starts + w.share_prior));
+    const total = weights.reduce((t, x) => t + x, 0) || 1;
+    side.starters.forEach((id, i) => {
+      const pr = (pTeam * (1 - w.bench_share) * weights[i]) / total;
+      out.players[id] = { p: pr, fair: american(pr) };
+    });
+  });
+  return out;
+}
+function american(p) {
+  if (!p || p <= 0 || p >= 1) return null;
+  return p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p);
+}
+const LINEUP_TAG = {
+  confirmed: ["Confirmed", "fb-lineup-confirmed", "The team has turned in this starting five (NBA)."],
+  expected: ["Expected", "fb-lineup-expected", "The NBA's expected starting five; it turns Confirmed about 30 minutes before tip."],
+  guess: ["Our guess", "fb-lineup-guess", "No NBA lineup yet: the five who started most when they played, leaving out anyone listed Out."],
+};
+const lineupTag = (side) => `<span class="fb-lineup ${LINEUP_TAG[side.source][1]}" title="${LINEUP_TAG[side.source][2]}">${LINEUP_TAG[side.source][0]}</span>`;
 const days = () => [...new Set(DATA.schedule.filter((g) => (FB.slates[FB.default] || {})[g.game_id]).map((g) => g.date))].sort();
 const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date && (FB.slates[FB.default] || {})[g.game_id]);
 
@@ -126,7 +248,7 @@ function renderTip(g, p) {
   const b = block();
   const side = (abbr) => {
     const jid = p[where(g, abbr)].jumper;
-    const j = b.players[jid];
+    const j = jid ? player(jid) : null;
     const t = b.teams[abbr] || {};
     const spot = where(g, abbr);
     const rate = j && j.jumps ? j.tips_won / j.jumps : null;
@@ -135,7 +257,7 @@ function renderTip(g, p) {
       ${banner(abbr)}
       ${j ? `<div class="fb-jumper-who">${face(jid, "fb-face")}<div><b>${j.name}</b><span class="muted-label">${j.pos} &middot; jumper</span></div></div>` : `<p class="no-data-note">No regular jumper on file.</p>`}
       <div class="fb-tiles">
-        ${tile("Tips won", j ? pct(rate) : "--", heat(rate, lo, hi), j ? `${j.tips_won} of ${j.jumps}` : "")}
+        ${tile("Tips won", j && j.jumps ? pct(rate) : "--", heat(rate, lo, hi), j ? `${j.tips_won} of ${j.jumps}` : "")}
         ${tile(`Team tip % ${spot}`, pct(t[`tip_${spot}`]), teamHeat(`tip_${spot}`, t[`tip_${spot}`]), `${t[`tip_${spot}_n`] || 0} games`)}
       </div>
     </div>`;
@@ -209,21 +331,21 @@ function renderPositions(g) {
 }
 
 function renderStarters(g, p) {
-  const b = block();
   const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((x) => x.status === "Out").map((x) => x.id));
   const box = (abbr) => {
     const side = p[where(g, abbr)];
     const injured = out(abbr);
     const rows = side.starters.map((id) => {
-      const pl = b.players[id];
+      const pl = player(id);
       const rate = (n) => (pl.starts ? n / pl.starts : null);
-      const cell = (key) => `<td class="num fb-cell"${playerHeat(key, rate(pl[key]))}><b>${pct(rate(pl[key]))}</b><small>${pl[key]}</small></td>`;
+      // Too few starts to color fairly (a rookie's 4): plain numbers.
+      const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]}</small></td>`;
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
-        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}</span></td>
+        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">new</span>`}</span></td>
         <td class="num">${pl.starts}</td>${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}
       </tr>`;
     }).join("");
-    return `<div class="nba-box">${banner(abbr)}
+    return `<div class="nba-box">${banner(abbr, lineupTag(side))}
       <table class="data-table fb-table fb-starters"><thead><tr><th>Player</th><th>Starts</th><th title="Starts where he shot before anyone scored">Shot early</th><th title="Took the game's first shot">1st shot</th><th title="Scored the game's first points">Scored 1st</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="5" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
@@ -232,13 +354,12 @@ function renderStarters(g, p) {
 }
 
 function renderFair(g, p) {
-  const b = block();
   const f = p.fair;
   const firstHome = f.first_home;
   const chips = (abbr) => p[where(g, abbr)].starters
     .filter((id) => f.players[id])
     .sort((x, y) => f.players[y].p - f.players[x].p)
-    .map((id) => `<div class="fb-chip">${face(id)}<span>${b.players[id].name}</span><b>${showOdds(f.players[id].fair)}</b><small>${fmt(f.players[id].p * 100)}%</small></div>`)
+    .map((id) => `<div class="fb-chip">${face(id)}<span>${player(id).name}</span><b>${showOdds(f.players[id].fair)}</b><small>${fmt(f.players[id].p * 100)}%</small></div>`)
     .join("");
   el("fb-fair").innerHTML = `<div class="nba-two">
       ${[g.away, g.home].map((abbr) => {
@@ -267,6 +388,14 @@ function render() {
   renderPositions(g);
   renderStarters(g, p);
   renderFair(g, p);
+  renderLineupNote(p);
+}
+function renderLineupNote(p) {
+  const real = [p.away, p.home].find((x) => x.source !== "guess");
+  const at = real && real.fetched ? new Date(real.fetched).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "";
+  el("fb-lineup-note").textContent = real
+    ? `Starting fives from the NBA${at ? `, checked ${at}` : ""}${real.live ? "; the page checks again every minute." : " (as of the last site update)."}`
+    : "No NBA lineup for this game yet, so these are our likely starters. The NBA's expected fives usually post the morning of the game.";
 }
 function selectGame(id) {
   gameId = id;
@@ -282,7 +411,15 @@ function selectDay(i) {
   dayIndex = Math.max(0, Math.min(all.length - 1, i));
   const first = gamesOn(all[dayIndex])[0];
   selectGame(first ? first.game_id : null);
+  loadLineups(all[dayIndex]).then(render);
 }
+// Every minute while the page is open on a night that hasn't finished.
+setInterval(() => {
+  if (!FB || document.hidden) return;
+  const date = days()[dayIndex];
+  if (!date || gamesOn(date).every((g) => g.status === "final")) return;
+  loadLineups(date).then(render);
+}, LINEUP_POLL_MS);
 
 document.addEventListener("click", (e) => {
   const card = e.target.closest(".matchup-card");
@@ -336,7 +473,9 @@ fetch("data.json")
     const day = savedGame ? savedGame.date : all.find((d) => d >= today) || all[all.length - 1];
     dayIndex = Math.max(0, all.indexOf(day));
     gameId = savedGame ? savedGame.game_id : (gamesOn(all[dayIndex])[0] || {}).game_id || null;
+    if ((FB.lineups || {})[all[dayIndex]]) LINEUPS[all[dayIndex]] = { ...FB.lineups[all[dayIndex]], live: false };
     render();
+    loadLineups(all[dayIndex]).then(render);
   })
   .catch((err) => {
     el("empty-state").innerHTML = "<p>Couldn't load the NBA data.</p>";
