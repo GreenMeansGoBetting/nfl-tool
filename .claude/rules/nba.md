@@ -144,7 +144,10 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   the seconds rows. Group headers centered over the middle. **Every row one fixed height (36 px;
   44 px on phones), centered** (the owner: "keep them all consistent"). Each value colored against
   the league from its own team's side (green = good for that team; First FG Allowed: red = that
-  position scores first on them often).
+  position scores first on them often). **Colors = distance from the league average in league
+  spreads** (`zHeat`, full color at 1.5 SD): picked over worst-to-best (one outlier stretched it)
+  and rank (near-ties a color apart); the owner asked if it would turn all yellow with more data:
+  no, the spread tightens with the league, so the color mix holds.
 - **Targets** (`targets`, the owner: "show position or players of weakness. Or team"), each
   two-sided: a **position** when the defense gives it the first FG 5+ points above the league AND
   the offense's own first FGs (`fg_made`) aren't 2+ points below the league there (lists the

@@ -44,26 +44,35 @@ function fmtTime(hhmm) {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"} ET`;
 }
 
-// Red (0) to green (120) through the member's color set (sync.js).
-function heat(value, lo, hi, flip) {
-  if (value === null || value === undefined || hi === lo) return "";
-  let t = Math.max(0, Math.min(1, (value - lo) / (hi - lo)));
-  if (flip) t = 1 - t;
-  return ` style="background:${scaleHsla(Math.round(t * 120), 70, 45, 0.3)}"`;
+// Colors: distance from the league average, measured in the league's own
+// spread (standard deviations), red (0) to green (120) through the member's
+// color set (sync.js). Average is yellow; full color at FULL_COLOR_SD either
+// side, smooth between. Chosen 2026-10-20 over worst-to-best (one outlier,
+// Wembanyama's 91% tips, washed everyone else out) and league rank (near-ties
+// in a noisy 50/50 market looked a full color apart). The scale tightens as
+// the league bunches up over a season, so the mix of colors stays about the same.
+const FULL_COLOR_SD = 1.5;
+function zHeat(value, values, flip) {
+  const v = values.filter((x) => x !== null && x !== undefined && !Number.isNaN(x));
+  if (value === null || value === undefined || v.length < 3) return "";
+  const mean = v.reduce((t, x) => t + x, 0) / v.length;
+  const sd = Math.sqrt(v.reduce((t, x) => t + (x - mean) ** 2, 0) / v.length);
+  if (!sd) return "";
+  let z = Math.max(-1, Math.min(1, (value - mean) / sd / FULL_COLOR_SD));
+  if (flip) z = -z;
+  return ` style="background:${scaleHsla(Math.round((z + 1) * 60), 70, 45, 0.3)}"`;
 }
-const range = (values) => {
-  const v = values.filter((x) => x !== null && x !== undefined);
-  return v.length ? [Math.min(...v), Math.max(...v)] : [0, 0];
-};
 // A team number's color against every team's same number.
 function teamHeat(key, value, flip) {
-  const [lo, hi] = range(Object.values(block().teams).map((t) => (typeof key === "function" ? key(t) : t[key])));
-  return heat(value, lo, hi, flip);
+  return zHeat(value, Object.values(block().teams).map((t) => (typeof key === "function" ? key(t) : t[key])), flip);
 }
 // A starter's rate against every regular starter's.
 function playerHeat(key, value) {
-  const [lo, hi] = range(Object.values(block().players).filter((p) => p.starts >= MIN_STARTS).map((p) => p[key] / p.starts));
-  return heat(value, lo, hi);
+  return zHeat(value, Object.values(block().players).filter((p) => p.starts >= MIN_STARTS).map((p) => p[key] / p.starts));
+}
+// A jumper's tips won against every regular jumper's.
+function jumperHeat(value) {
+  return zHeat(value, Object.values(block().players).filter((x) => x.jumps >= 10).map((x) => x.tips_won / x.jumps));
 }
 
 const block = () => FB.seasons[season];
@@ -260,14 +269,13 @@ function matchupRows(g, p) {
     const id = p[spot(abbr)].jumper;
     return id ? player(id) : null;
   };
-  const [jLo, jHi] = range(Object.values(b.players).filter((x) => x.jumps >= 10).map((x) => x.tips_won / x.jumps));
   return [
     { group: "The Tip" },
     { label: "Jumper", jumper: true },
     {
       label: "Tips Won", better: "high", edge: 0.05, show: pct,
       value: (abbr) => { const j = jumperOf(abbr); return j && j.jumps ? j.tips_won / j.jumps : null; },
-      color: (abbr, v) => heat(v, jLo, jHi),
+      color: (abbr, v) => jumperHeat(v),
     },
     {
       label: "Home/Road", better: "high", edge: 0.05, show: pct,
