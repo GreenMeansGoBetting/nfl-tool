@@ -3698,13 +3698,34 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
   border-radius: 6px; background: var(--panel); border: 1px solid var(--border);
   break-inside: avoid;
 }
-.pe-logo { display: inline-flex; width: 18px; flex: none; }
+.pe-logo { display: inline-flex; min-width: 18px; flex: none; gap: 2px; }
 .pe-play { flex: 1; min-width: 0; font-size: 0.86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pe-odds {
   flex: none; min-width: 50px; padding: 1px 6px; border-radius: 5px; text-align: center;
   font-family: var(--font-display); font-size: 0.98rem; font-weight: 800;
   background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.4); color: var(--good-text);
 }
+/* Show results: graded rows shaded green / red, units in their own box, the
+   record in the title bar. Pending, push and void stay plain. */
+.pe-units {
+  flex: none; min-width: 54px; padding: 1px 5px; border-radius: 5px; text-align: center;
+  font-family: var(--font-display); font-size: 0.98rem; font-weight: 800;
+}
+.pe-units-muted { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.pe-row-win { background: rgba(var(--good-rgb), 0.13); border-color: rgba(var(--good-rgb), 0.5); }
+.pe-row-win .pe-units { background: rgba(var(--good-rgb), 0.28); color: var(--good-text); }
+.pe-row-loss { background: rgba(var(--bad-rgb), 0.11); border-color: rgba(var(--bad-rgb), 0.45); }
+.pe-row-loss .pe-units { background: rgba(var(--bad-rgb), 0.24); color: var(--bad-text); }
+.pe-row-loss .pe-odds { background: rgba(var(--bad-rgb), 0.12); border-color: rgba(var(--bad-rgb), 0.4); color: var(--bad-text); }
+.pe-row-pending .pe-odds, .pe-row-push .pe-odds, .pe-row-void .pe-odds { background: var(--panel-2); border-color: var(--border-strong); color: var(--text); }
+.pe-record {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px; border-radius: 7px;
+  font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; white-space: nowrap;
+  background: var(--panel-2); border: 1px solid var(--border-strong);
+}
+.pe-record-up { background: rgba(var(--good-rgb), 0.18); border-color: rgba(var(--good-rgb), 0.55); color: var(--good-text); }
+.pe-record-down { background: rgba(var(--bad-rgb), 0.16); border-color: rgba(var(--bad-rgb), 0.5); color: var(--bad-text); }
+.pe-record + .pe-total { margin-left: 0; }
 
 /* ---- Every book's price (book-odds.js): the best-price pill, the all-books
    list with Play / Close / Pass ---- */

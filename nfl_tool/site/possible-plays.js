@@ -629,11 +629,35 @@ document.getElementById("view-results-btn").addEventListener("click", openResult
 // One compact image of the saved plays for chosen categories (the user's
 // Discord wants every TD play in one picture, not a stack of screenshots).
 // Each row is just team logo, play, odds; rows flow into columns so a long
-// list still fits one image. Per-visit state, nothing saved.
+// list still fits one image. Once games are graded, "Show results" shades
+// each row green / red with its units and puts the record in the title bar
+// (a member wanted a card of his bets with the greens and reds). Per-visit
+// state, nothing saved.
 let exportWeek = null;
 let exportCats = null; // Set of categories; null = pick the default on open
 let exportOnlyChecked = false;
 let exportCols = 0; // 0 = auto
+let exportShowResults = false;
+
+// A game line has no player, so its row names the game: a total shows both
+// teams ("BUF @ KC Over 54.5"), a spread / moneyline the picked side's logo.
+function exportPlayLogo(p) {
+  if (p.team) return teamLogoMini(p.team, 18);
+  const marketKey = GAME_LINE_CATEGORIES[p.category];
+  const parsed = marketKey && parseGameLineId(p.id, marketKey);
+  const [away, home] = (p.matchup || "").split(" @ ");
+  if (!parsed || !away || !home) return "";
+  if (marketKey === "total") return `${teamLogoMini(away, 18)}${teamLogoMini(home, 18)}`;
+  return teamLogoMini(parsed.side === "home" ? home : away, 18);
+}
+function exportPlayText(p) {
+  return p.category === "Total" && p.matchup ? `${p.matchup} ${p.description}` : p.description;
+}
+function exportResultCell(p) {
+  if (!exportShowResults) return "";
+  if (p.result === "win" || p.result === "loss") return `<span class="pe-units">${fmtUnits(unitsForPlay(p))}</span>`;
+  return `<span class="pe-units pe-units-muted">${p.result ? RESULT_LABELS[p.result] : "Pending"}</span>`;
+}
 
 function exportWeekPlays() {
   return loadPossiblePlays().filter((p) => p.week === exportWeek);
@@ -669,10 +693,10 @@ function renderExportCard() {
         .filter((p) => p.category === c)
         .sort((a, b) => a.matchup.localeCompare(b.matchup) || parseFloat(a.odds) - parseFloat(b.odds))
         .map(
-          (p) => `<div class="pe-row">
-            <span class="pe-logo">${p.team ? teamLogoMini(p.team, 18) : ""}</span>
-            <span class="pe-play">${p.description}</span>
-            <span class="pe-odds">${showOdds(p.odds)}</span>
+          (p) => `<div class="pe-row${exportShowResults ? ` pe-row-${p.result || "pending"}` : ""}">
+            <span class="pe-logo">${exportPlayLogo(p)}</span>
+            <span class="pe-play">${exportPlayText(p)}</span>
+            <span class="pe-odds">${showOdds(p.odds)}</span>${exportResultCell(p)}
           </div>`
         )
         .join("");
@@ -681,10 +705,19 @@ function renderExportCard() {
     })
     .join("");
   // Prop rows carry "Over 67.5" after the name, so they get wider columns.
-  const colWidth = list.some((p) => p.description.length > 20) ? 300 : 250;
-  const width = cols * colWidth + (cols - 1) * 14 + 28;
+  // A results column adds room for "+1.50u".
+  const colWidth = (list.some((p) => exportPlayText(p).length > 20) ? 300 : 250) + (exportShowResults ? 62 : 0);
+  // The record and "N pending" need the title bar wider than one column.
+  const width = Math.max(cols * colWidth + (cols - 1) * 14 + 28, exportShowResults ? 440 : 0);
+  let total = `<span class="pe-total">${list.length} plays</span>`;
+  if (exportShowResults) {
+    const t = tallyResults(list);
+    const pushVoid = t.push + t.void;
+    const tone = t.win + t.loss === 0 ? "" : t.units >= 0 ? " pe-record-up" : " pe-record-down";
+    total = `<span class="pe-record${tone}">${t.win}-${t.loss}${pushVoid ? `-${pushVoid}` : ""}<b>${fmtUnits(t.units)}</b></span>${t.pending ? `<span class="pe-total">${t.pending} pending</span>` : ""}`;
+  }
   return `<div id="plays-export-card" class="pe-card" style="width:${width}px">
-    <div class="pe-head"><span class="brand-mark">GMG</span><span class="pe-title">Week ${exportWeek} &middot; ${exportTitle(cats)}</span><span class="pe-total">${list.length} plays</span></div>
+    <div class="pe-head"><span class="brand-mark">GMG</span><span class="pe-title">Week ${exportWeek} &middot; ${exportTitle(cats)}</span>${total}</div>
     <div class="pe-body" style="column-count:${cols}">${groups}</div>
   </div>`;
 }
@@ -714,6 +747,7 @@ function renderExportModalContent() {
       <div class="pe-control-row"><span class="quick-select-label">Week:</span>${weekButtons}</div>
       <div class="pe-control-row"><span class="quick-select-label">Include:</span>${catChecks}</div>
       ${onlyChecked ? `<div class="pe-control-row">${onlyChecked}</div>` : ""}
+      <div class="pe-control-row"><label class="pe-check"><input type="checkbox" id="pe-show-results"${exportShowResults ? " checked" : ""}> Show results (wins, losses, units)</label></div>
       <div class="pe-control-row"><span class="quick-select-label">Columns:</span>${colButtons}
         <button type="button" id="pe-save-btn" class="wheel-spin-btn pe-save-btn">Save image</button></div>
     </div>
@@ -753,6 +787,7 @@ function openExportModal() {
   }
   if (!exportCats) exportDefaultCats();
   exportOnlyChecked = exportPlays().some((p) => wheelSelected.has(p.id));
+  exportShowResults = exportWeekPlays().some((p) => p.result);
   refreshExportModal();
   document.getElementById("export-modal").hidden = false;
 }
@@ -807,6 +842,7 @@ document.addEventListener("click", (e) => {
   if (weekBtn) {
     exportWeek = Number(weekBtn.dataset.week);
     exportDefaultCats();
+    exportShowResults = exportWeekPlays().some((p) => p.result);
     return refreshExportModal();
   }
   const colBtn = e.target.closest(".pe-col-btn");
@@ -825,6 +861,10 @@ document.addEventListener("change", (e) => {
   }
   if (e.target.closest("#pe-only-checked")) {
     exportOnlyChecked = e.target.checked;
+    refreshExportModal();
+  }
+  if (e.target.closest("#pe-show-results")) {
+    exportShowResults = e.target.checked;
     refreshExportModal();
   }
 });

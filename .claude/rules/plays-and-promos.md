@@ -24,6 +24,14 @@ Stories behind these rules: `docs/history.md`, "Possible Plays, picks and promos
   image**. The image (`#plays-export-card`, `.pe-*` styles) is just team logo, play, odds, grouped
   under category bars and flowed into columns so everything fits one picture. If plays are checked
   in the list, an "Only the N plays I checked" box appears, pre-checked.
+  - **Show results** (2026-10-20, a member: the saved card "is basically just listing all my
+    bets", he wanted the greens and reds and units): on when the week has any graded play.
+    Rows shade green / red (`.pe-row-<result>`) with their units (`unitsForPlay`, the same
+    tiered stakes as View Results); pending / push / void stay plain with a small label; the
+    title bar shows the record and units in a shaded box plus "N pending".
+  - **Game lines name their game:** a total reads "BUF @ KC Over 54.5" with both logos, a
+    spread / moneyline its side's logo (`exportPlayLogo` / `exportPlayText`; the play itself is
+    unchanged). Test: `tests/test_plays_export_site.py`.
 - **TD bets grade on a loose name match** (`gradeTdPlay`, `normName`): bets may carry a book's
   spelling ("Brian Robinson Jr.") while TD results use nflverse's ("Brian Robinson"). Already-
   graded auto losses flip to wins on next load. A manual result always beats a later auto re-grade.
