@@ -3,63 +3,63 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.1966,
+    "lead": 0.1938,
     "name": "Victor Wembanyama",
-    "proj": 42.0,
+    "proj": 41.9,
     "team": "SA"
    },
    {
     "id": "3917376",
-    "lead": 0.1437,
+    "lead": 0.1441,
     "name": "Jaylen Brown",
     "proj": 39.6,
     "team": "PHI"
    },
    {
     "id": "4278073",
-    "lead": 0.1346,
+    "lead": 0.1352,
     "name": "Shai Gilgeous-Alexander",
     "proj": 39.1,
     "team": "OKC"
    },
    {
     "id": "4065648",
-    "lead": 0.0864,
+    "lead": 0.0868,
     "name": "Jayson Tatum",
     "proj": 36.8,
     "team": "BOS"
    },
    {
     "id": "3934672",
-    "lead": 0.0731,
+    "lead": 0.0733,
     "name": "Jalen Brunson",
     "proj": 36.0,
     "team": "NY"
    },
    {
     "id": "3136195",
-    "lead": 0.0694,
+    "lead": 0.0697,
     "name": "Karl-Anthony Towns",
     "proj": 35.3,
     "team": "NY"
    },
    {
     "id": "3059318",
-    "lead": 0.0682,
+    "lead": 0.0684,
     "name": "Joel Embiid",
     "proj": 35.7,
     "team": "PHI"
    },
    {
     "id": "4431678",
-    "lead": 0.0622,
+    "lead": 0.0624,
     "name": "Tyrese Maxey",
     "proj": 35.3,
     "team": "PHI"
    },
    {
     "id": "1966",
-    "lead": 0.0503,
+    "lead": 0.0504,
     "name": "LeBron James",
     "proj": 34.1,
     "team": "PHI"
@@ -73,7 +73,7 @@
    },
    {
     "id": "4433621",
-    "lead": 0.0242,
+    "lead": 0.0245,
     "name": "Jalen Duren",
     "proj": 31.0,
     "team": "DET"
@@ -218,24 +218,24 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2998,
+    "lead": 0.2999,
     "name": "Luka Doncic",
     "proj": 50.8,
     "team": "LAL"
    },
    {
+    "id": "6450",
+    "lead": 0.0748,
+    "name": "Kawhi Leonard",
+    "proj": 40.1,
+    "team": "TOR"
+   },
+   {
     "id": "3032977",
-    "lead": 0.0735,
+    "lead": 0.0733,
     "name": "Giannis Antetokounmpo",
     "proj": 40.3,
     "team": "MIA"
-   },
-   {
-    "id": "6450",
-    "lead": 0.0732,
-    "name": "Kawhi Leonard",
-    "proj": 40.0,
-    "team": "TOR"
    },
    {
     "id": "3202",
@@ -246,7 +246,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0394,
+    "lead": 0.0393,
     "name": "Alperen Sengun",
     "proj": 37.5,
     "team": "HOU"
@@ -267,45 +267,38 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0349,
+    "lead": 0.0347,
     "name": "Devin Booker",
     "proj": 36.5,
     "team": "PHX"
    },
    {
     "id": "4683021",
-    "lead": 0.0325,
+    "lead": 0.0318,
     "name": "Deni Avdija",
-    "proj": 36.1,
+    "proj": 36.0,
     "team": "POR"
    },
    {
     "id": "4432573",
-    "lead": 0.0268,
+    "lead": 0.0267,
     "name": "Paolo Banchero",
     "proj": 35.6,
     "team": "ORL"
    },
    {
     "id": "6583",
-    "lead": 0.0254,
+    "lead": 0.0253,
     "name": "Anthony Davis",
     "proj": 35.5,
     "team": "WSH"
    },
    {
     "id": "4432816",
-    "lead": 0.0235,
+    "lead": 0.0234,
     "name": "LaMelo Ball",
     "proj": 35.3,
     "team": "MIN"
-   },
-   {
-    "id": "4066261",
-    "lead": 0.0213,
-    "name": "Bam Adebayo",
-    "proj": 34.5,
-    "team": "MIA"
    },
    {
     "id": "4066336",
@@ -315,8 +308,15 @@
     "team": "UTAH"
    },
    {
+    "id": "4066261",
+    "lead": 0.0212,
+    "name": "Bam Adebayo",
+    "proj": 34.5,
+    "team": "MIA"
+   },
+   {
     "id": "3149673",
-    "lead": 0.0176,
+    "lead": 0.0177,
     "name": "Pascal Siakam",
     "proj": 34.8,
     "team": "IND"
@@ -344,10 +344,17 @@
    },
    {
     "id": "3975",
-    "lead": 0.0116,
+    "lead": 0.0115,
     "name": "Stephen Curry",
     "proj": 32.2,
     "team": "GS"
+   },
+   {
+    "id": "4433627",
+    "lead": 0.0097,
+    "name": "Keyonte George",
+    "proj": 31.9,
+    "team": "UTAH"
    },
    {
     "id": "4278104",
@@ -355,13 +362,6 @@
     "name": "Michael Porter Jr.",
     "proj": 31.4,
     "team": "BKN"
-   },
-   {
-    "id": "4433627",
-    "lead": 0.0096,
-    "name": "Keyonte George",
-    "proj": 31.9,
-    "team": "UTAH"
    },
    {
     "id": "5041939",
@@ -393,7 +393,7 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0058,
+    "lead": 0.0059,
     "name": "Julius Randle",
     "proj": 30.2,
     "team": "BKN"
