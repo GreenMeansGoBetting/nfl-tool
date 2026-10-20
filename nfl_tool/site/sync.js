@@ -247,6 +247,14 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-20",
+    items: [
+      ["✅", "<b>My Plays</b> is a new tab next to Promo Tools with every play you saved, NFL and NHL together. Plays grade themselves, and you can filter by sport and week or day to see your record and units."],
+      ["🏒", "<b>Save NHL plays</b> with the new box beside each price on Shots, Goals, Points, Saves, Best Plays and Line Stacks. For a Line Stack, type in the price your book gave you."],
+      ["📷", "<b>Photo Export</b> now shows wins in green and losses in red, with the units for each play and your record at the top. Totals now say which game they’re from."],
+    ],
+  },
+  {
     id: "2026-10-19",
     items: [
       ["🏒", "<b>NHL Points</b> is a new page for 1+ point plays, under Player Props and in Best Plays, with its own graded record."],
