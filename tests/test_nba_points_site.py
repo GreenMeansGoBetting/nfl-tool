@@ -111,6 +111,11 @@ class PlayerView(unittest.TestCase):
         self.assertIn(["19.5+", "6 of 10"], ladder)
         self.assertIn(["24.5+", "3 of 10"], ladder)
 
+    def test_no_name_banner_over_the_books(self):
+        # the open row already says who it is (the owner, 2026-10-20); the books themselves still show
+        self.assertFalse(PAGE.is_visible(".pts-view .bo-banner"))
+        self.assertTrue(PAGE.is_visible(".pts-view .bo-table"))
+
     def test_the_zone_chart_reads_his_shots_and_tonights_defense(self):
         rows = PAGE.evaluate("""() => [...document.querySelectorAll('.pts-zone-table tbody tr')]
             .map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, ' ').trim()).concat(tr.lastElementChild.className))""")
