@@ -84,6 +84,19 @@ these two pages into one page."
   2025-26 shows as "reference: rosters have changed since".
 - Tests: `tests/test_nba_identity.py`.
 
+## Game model: full-game score, spread, total (replayed 2026-10-20, NOT built)
+
+The owner asked for a final score projection and fair spread / total / moneyline.
+`tools/backtest/nba_games.py` replayed 2025-26 night by night (this season's games only, like the
+live rule) with three models on the engine: team points a possession and pace, the same
+opponent-adjusted, and lineup-aware player ratings (all ten on the floor solved together; the
+replay even knew who played). **None beats DraftKings' closing line**: margin miss 11.5 vs the
+line's 10.9, total 15.3 vs 14.7, and where ours disagreed the result sided with the line. So no
+fair-value "edge" on full-game sides / totals. The line can show the market's own implied score
+(total / 2 +/- spread / 2). Next test: our record against Novig's OPENING lines this season
+(the build would have to save them). The engine's proven edge so far is player-level (King of
+the Court beat plain averages).
+
 ## Suite switcher and launch switch
 
 - The top menu (`addTopMenu`, sync.js, 2026-10-17): NFL, NBA, NHL and Promo Tools are buttons in
