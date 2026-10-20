@@ -1,0 +1,33 @@
+/* NBA First Basket (first-basket.js). Builds on suite.css's .nba-box /
+   .nba-tile / .nba-two; heat colors come inline from scaleHsla. */
+.fb-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 10px; }
+.fb-tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fb-tiles-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.fb-tile { padding: 8px 4px 9px; }
+.fb-tile b { font-size: 1.6rem; }
+
+.fb-tip-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 0.8fr) minmax(0, 1fr); gap: 14px; align-items: center; }
+.fb-jumper-who { display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+.fb-jumper-who b { display: block; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; }
+.fb-face { width: 64px; height: 47px; border-radius: 10px; object-fit: cover; background: var(--table-head); }
+.fb-split { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.fb-split-bar { display: flex; width: 100%; height: 42px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+.fb-split-bar span { display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 64px; font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55); }
+
+.fb-table { margin: 0 10px; width: auto; }
+.fb-table td.fb-cell { text-align: center; border-radius: 6px; }
+.fb-table td.fb-cell b { display: block; font-size: 1.02rem; }
+.fb-table td.fb-cell small { display: block; font-size: 0.66rem; color: var(--muted); font-weight: 600; }
+.fb-starters td { vertical-align: middle; }
+.fb-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
+
+.fb-chips { display: flex; flex-direction: column; gap: 6px; padding: 0 10px; }
+.fb-chip { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px; padding: 5px 10px 5px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); font-weight: 600; }
+.fb-chip b { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; }
+.fb-chip small { min-width: 42px; text-align: right; color: var(--muted); font-weight: 600; }
+
+@media (max-width: 760px) {
+  .fb-tip-row { grid-template-columns: minmax(0, 1fr); }
+  .fb-tiles-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fb-table { margin: 0; }
+}

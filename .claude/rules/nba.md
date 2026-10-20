@@ -81,11 +81,45 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   `.nba-*`. The NHL page reuses the layout ones (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app`),
   so check `site/nhl/` after changing them. Pace is shown without a good/bad color (fast or slow isn't good or bad).
 - **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
-  play-by-play tools (shot zones, quarter splits). **First Basket is next** (asked 2026-10-20):
-  the owner says most books now settle it on ANY first points, free throws included. 2025-26
-  play-by-play (`espn_nba_pbp/play_by_play_2026.parquet`, 22 MB): the opening `Jumpball` play names
-  both jumpers and its `team_id` is the team that got the ball; that team scored first 66.5% of
-  1,230 games; free throws were the first points in 9%.
+  play-by-play tools (shot zones, quarter splits).
+
+## First Basket (built 2026-10-20, opening night)
+
+Who scores a game's first points. The owner turned down a predictive pick board: "i would rather
+this page be the pieces of the puzzle with data for users to solve", with a fair-value guess at
+the bottom only. Then, on the plain data mockup: "very data heavy ... no color coding or player
+images. I like Team logos too", so it uses the site look (team-color banners, logos, ESPN
+headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
+
+- **Any first points count, free throws included** (the owner: most books settle it that way).
+  "First field goal allowed" is field goals only, as asked.
+- **Build:** `nfl_tool/nba/first_basket.py`, called by `compute_first_basket` in build_nba.py (its
+  own try: a failure leaves `first_basket: null`). Reads `espn_nba_pbp/play_by_play_<season>.parquet`
+  (22 MB a season) for both seasons. Output `first_basket`: `seasons[<year>]` (`label`, `games`,
+  `league`, `teams`, `players`), `slates[<year>]` (`{game id: {away, home, fair}}` for the next 3
+  nights: likely starters, jumper, fair guess), `default` (this season once there are 4 games a team).
+- **From the play-by-play:** the opening `Jumpball` names both jumpers; its `team_id` is the team
+  that got the ball, and the jumper on that team won it. Possessions to first points: a team starts
+  a possession on its first shot, turnover or rebound after the other team's (fouls without a shot
+  don't, so the count runs a hair low). 2025-26: the tip winner scored first 66.6%; free throws were
+  the first points in 9%; 2.02 possessions and 55 seconds to a team's first points; first field
+  goals by guards 44%, forwards 37%, centers 19%.
+- **Likely starters** (no lineups are confirmed before tip): on the team today (roster file), not
+  listed Out, starting in at least half the games he played, most minutes first. Ranking by start
+  counts dropped Wembanyama (missed games) from the 2025-26 Spurs. **Jumper:** most jumps among
+  them (at least `MIN_JUMPS` 2).
+- **Fair value guess** (`fair_prices`): tip from the two jumpers (each steadied with 6 coin-flip
+  jumps), first points = tip x the league's tip-winner rate, each starter's share from first points
+  per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.
+- **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
+  under "Player props"): day strip, season buttons, The Tip (jumper cards, a split bar for who wins
+  it), Scoring First (home / away for tonight's side, after winning / losing the tip, Q1 margin),
+  Opening Trips (each offense next to what the other defense allows, colored from each side's own
+  view, league column), First Field Goal Allowed (G / F / C vs the league), Likely Starters (shot
+  early, 1st shot, scored 1st: % of starts with the count under), Fair Value Guess. Team numbers are
+  colored against all 30 teams, players against starters with 15+ starts.
+- Tests: `tests/test_nba_first_basket.py` (the build on two hand-made games, and the page).
+- Not built yet: books' first-basket prices (SmartStake), a graded record of the guess, a Summary card.
 
 ## King of the Court (Promo Tools; built 2026-10-19)
 

@@ -70,7 +70,7 @@ that, move detail into a rules file.
 - `nfl_tool/gmg_model.py`: GMG score model, its picks and the locked record.
 - `nfl_tool/line_grades.py`: offensive line / defensive front grades.
 - `nfl_tool/novig_event_markets.graphql`: Novig's query text, sent verbatim. `nfl_tool/smartstake.py`: every US book's price -> `book_odds` in data.json and nhl/data.json, shown by `site/book-odds.js` (shared: best-price pill, all-books list; tags only against our own model; data-pipeline.md, nhl.md).
-- `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`. `nfl_tool/nba/kotc.py`: King of the Court (nba.md).
+- `nfl_tool/nba/build_nba.py`: NBA data build -> `nfl_tool/site/nba/data.json`. `nfl_tool/nba/kotc.py`: King of the Court; `first_basket.py`: First Basket (nba.md).
 - `nfl_tool/nhl/build_nhl.py`: NHL data build -> `nfl_tool/site/nhl/data.json`, `nhl/shots.json` + `nhl/players/<TEAM>.json` (games kept in `data/nhl`).
 - `nfl_tool/nhl/shots_model.py`: the NHL shots-on-goal model; `saves_model.py`: goalie saves (King of the Crease and the Saves page, `nhl/saves.json`); `goals_model.py`: anytime goals (`nhl/goals.json`); `points_model.py`: 1+ point, on top of goals (`nhl/points.json`); `stacks_model.py`: Line Stacks, 2-4 linemates' point legs together (`nhl/stacks.json`).
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
@@ -94,7 +94,7 @@ that, move detail into a rules file.
   - `common.js`: shared helpers (tiers, matchup calls, saved plays, lineup weights, modals, summary-card fit / Save image).
   - `sync.js`: member profiles, the top menu (NFL / NBA / NHL / Promo Tools dropdowns: `SPORT_PAGES`, `PROPS`, `PROMOS`, `navMenu`; then the My Plays button), `loadNhlPlays`/`saveNhlPlays`, the account button and its menu (feature requests, What's new, Settings, Support, Log out), the Settings window (odds format, color set, My Books). `teams.js`: names, colors, logos.
   - `style.css`: dark/light tokens and the NFL pages' styles. `suite.css`: the layout the NBA and NHL pages share. `nhl/nhl.css`: hockey only.
-  - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nba/promo-tools.html` + `kotc.js`: NBA Promo Tools (King of the Court). `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
+  - `nba/index.html` + `nba/nba.js`: NBA Game Previews. `nba/first-basket.html` + `first-basket.js`: First Basket. `nba/promo-tools.html` + `kotc.js`: NBA Promo Tools (King of the Court). `nhl/index.html` + `nhl/nhl.js`: NHL Game Previews.
   - `nhl/shots.html` + `nhl/shots.js`: NHL Shots (every skater ranked by shots-on-goal value); `nhl/goals.html` + `goals.js`: NHL Goals (anytime goal); `nhl/points.html` + `points.js`: NHL Points (1+ point); `nhl/saves.html` + `saves.js`: NHL Saves (goalie saves over / under); `nhl/stacks.html` + `stacks.js`: Line Stacks; `nhl/best.html` + `best.js`: Best Plays (the three pages' edges in one list).
   - `nhl/promo-tools.html` + `nhl/promo-tools.js`: NHL Promo Tools (King of the Crease: most saves of the day); `nhl/icebreaker.js`: its Icebreaker tab (quickest goal of the 7 PM slate).
   - `nhl/nhl-common.js`: shared by every NHL page (data, rink drawing, the NHL player card, the save-to-My-Plays box `nhlPlayBox`).

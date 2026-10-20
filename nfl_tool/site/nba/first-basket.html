@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; First Basket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="first-basket.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+
+    <div id="game-header" class="game-header" hidden></div>
+    <div class="nba-season-bar"><span class="nba-seasons" id="fb-seasons"></span><span id="fb-season-note" class="no-data-note"></span></div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
+
+    <div id="fb-game" hidden>
+      <div class="section-wrap">
+        <h2 class="section-title">The Tip <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-tip" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-tip" hidden>The jumper is the player who took the most opening tips for his team, among its likely starters. <b>Tips won</b> counts his opening jumps that his team came away with. <b>Team tip %</b> is how often the team won the opening tip in that spot (home or away). The bar is the head-to-head guess from the two jumpers, each steadied toward 50% so a handful of jumps can't run away with it.</p>
+        <div id="fb-tip"></div>
+      </div>
+
+      <div class="section-wrap">
+        <h2 class="section-title">Scoring First <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-first" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-first" hidden>Any first points count, free throws included (how most books settle First Basket). <b>After winning / losing the tip</b> shows how much the tip matters for each team. <b>Q1 margin</b> is the average first-quarter score difference: do they start fast? Green = good for that team; the small line under each is the league.</p>
+        <div id="fb-first" class="nba-two"></div>
+      </div>
+
+      <div class="section-wrap">
+        <h2 class="section-title">Opening Trips <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-trips" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-trips" hidden>How many possessions, and how many seconds, a team needs for its first points, next to what the other defense allows. Each side is colored from its own point of view: green offense = scores quickly, green defense = makes teams work for their first points.</p>
+        <div id="fb-trips" class="nba-two"></div>
+      </div>
+
+      <div class="section-wrap">
+        <h2 class="section-title">First Field Goal Allowed <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-pos" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-pos" hidden>Who made the first field goal against each defense, by position (ESPN lists players only as guard, forward or center). Green = that position scores first against this defense more than it does league-wide.</p>
+        <div id="fb-pos" class="nba-two"></div>
+      </div>
+
+      <div class="section-wrap">
+        <h2 class="section-title">Likely Starters <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-starters" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-starters" hidden>The five players with the most starts for the team, leaving out anyone listed Out (no lineups are confirmed before tip). Every number is from his starts. <b>Shot early</b>: starts where he took a shot before anyone scored. <b>1st shot</b>: he took the game's first shot. <b>Scored 1st</b>: he scored the game's first points.</p>
+        <div id="fb-starters" class="nba-two"></div>
+      </div>
+
+      <div class="section-wrap">
+        <h2 class="section-title">Fair Value Guess <button type="button" class="info-i" aria-expanded="false" aria-controls="fb-note-fair" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="fb-note-fair" hidden>A rough guess, not a pick. The tip from the two jumpers; the first score from the tip and how often the tip winner scores first league-wide; each starter's share from his first scores per start, steadied toward his teammates'. It doesn't know about matchups or the opening trips above. That part is yours.</p>
+        <div id="fb-fair"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play and box scores). Any first points count, free throws included.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="first-basket.js"></script>
+</body>
+</html>

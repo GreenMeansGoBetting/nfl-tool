@@ -31,6 +31,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
+import first_basket  # noqa: E402
 import kotc  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
@@ -40,6 +41,7 @@ FILES = {
     "player_box": "espn_nba_player_boxscores/player_box_{season}.parquet",
     "rosters": "espn_nba_rosters/rosters_{season}.parquet",
     "injuries": "espn_nba_injuries/injuries_{season}.parquet",
+    "pbp": "espn_nba_pbp/play_by_play_{season}.parquet",
 }
 REGULAR_SEASON = 2  # ESPN season_type
 SCHEDULE_DAYS_AHEAD = 14
@@ -520,6 +522,34 @@ def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters,
     }
 
 
+def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
+    """First Basket: both seasons' numbers (the page's season buttons) and the
+    next few nights' games (likely starters, jumpers, the fair-price guess)
+    from each."""
+    blocks = {}
+    for s in (season - 1, season):
+        fresh = force and s == season
+        pbp = fetch_file("pbp", s, data_dir, fresh)
+        box = fetch_file("player_box", s, data_dir, fresh)
+        if pbp is not None and box is not None:
+            block = first_basket.season_block(pbp, box, teams, season_label(s))
+            if block["games"]:
+                blocks[s] = block
+    roster_team = {}
+    if rosters is not None:
+        roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
+    # Players sit on today's roster; last season's players not on one are gone.
+    for s, block in blocks.items():
+        if s != season and roster_team:
+            block["players"] = {pid: {**p, "team": roster_team[pid]} for pid, p in block["players"].items() if pid in roster_team}
+    out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
+    today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
+    dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
+    slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates) for s, b in blocks.items()}
+    default = season if season in blocks and blocks[season]["games"] * 2 / max(1, len(teams)) >= THIS_SEASON_DEFAULT_AT else season - 1
+    return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()}, "slates": slates}
+
+
 def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: list, now_utc: datetime) -> dict:
     """model_history/nba_kotc/<season>.json: each night's board as the last
     build before its first tip-off had it (a night that has started is never
@@ -622,6 +652,12 @@ def main():
     except Exception as ex:
         print(f"WARNING: King of the Court failed ({ex!r}).", file=sys.stderr)
         blob["kotc"] = None
+    # Nor may First Basket.
+    try:
+        blob["first_basket"] = compute_first_basket(args.season, args.data_dir, force, teams, rosters, injury_list, games, now_utc)
+    except Exception as ex:
+        print(f"WARNING: First Basket failed ({ex!r}).", file=sys.stderr)
+        blob["first_basket"] = None
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)
