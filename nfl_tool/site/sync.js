@@ -150,6 +150,29 @@ function saveNbaPlays(list) {
   try { localStorage.setItem(GMG_NBA_PLAYS_KEY, JSON.stringify(list)); } catch (e) {}
   window.NFLSync?.push(GMG_NBA_PLAYS_KEY, list);
 }
+// The NBA player prop markets (book_odds props keys; the player card's Odds
+// tab saves them): stat -> [label, unit, the game log fields it adds up].
+// My Plays grades a saved one from nba/props.json's game logs.
+const GMG_NBA_PROP_STATS = {
+  points: ["Points", "points", ["pts"]],
+  rebounds: ["Rebounds", "rebounds", ["reb"]],
+  assists: ["Assists", "assists", ["ast"]],
+  threes: ["3-Pointers Made", "3s", ["fg3m"]],
+  pra: ["Pts + Reb + Ast", "PRA", ["pts", "reb", "ast"]],
+  pr: ["Pts + Reb", "P+R", ["pts", "reb"]],
+  pa: ["Pts + Ast", "P+A", ["pts", "ast"]],
+  ra: ["Reb + Ast", "R+A", ["reb", "ast"]],
+  steals: ["Steals", "steals", ["stl"]],
+  blocks: ["Blocks", "blocks", ["blk"]],
+  stocks: ["Steals + Blocks", "stl+blk", ["stl", "blk"]],
+  turnovers: ["Turnovers", "turnovers", ["tov"]],
+};
+// A log row's total for a stat, or null when the box score lacks a part.
+function gmgNbaStatValue(stat, row) {
+  const parts = (GMG_NBA_PROP_STATS[stat] || [])[2] || [];
+  if (!parts.length || parts.some((f) => row[f] === null || row[f] === undefined)) return null;
+  return parts.reduce((a, f) => a + row[f], 0);
+}
 
 const GMG_ODDS_FORMATS = [
   { id: "american", name: "American", sample: "-110 / +150" },

@@ -146,7 +146,7 @@ function renderRow(r) {
   const out = r.row.out;
   const minutes = r.minutes;
   const cells = `
-    <td><div class="pts-player" data-open="${r.pid}">${headshot(r.pid)}<span><b>${r.name}</b> <span class="muted-label">${(r.p && r.p.pos) || ""}</span>${out ? ' <span class="gs-inj-status tier-bad">Out</span>' : ""}<br><span class="muted-label">${logo(r.tm, 14)} ${r.tm} ${r.home ? "vs" : "@"} ${logo(r.opp, 14)} ${r.opp}</span></span></div></td>
+    <td><div class="pts-player" data-open="${r.pid}">${headshot(r.pid)}<span><b>${playerClick(r.pid, r.name)}</b> <span class="muted-label">${(r.p && r.p.pos) || ""}</span>${out ? ' <span class="gs-inj-status tier-bad">Out</span>' : ""}<br><span class="muted-label">${logo(r.tm, 14)} ${r.tm} ${r.home ? "vs" : "@"} ${logo(r.opp, 14)} ${r.opp}</span></span></div></td>
     <td class="num"><b>${fmt(r.line)}</b></td>
     ${pricesCell(r)}
     ${projCell(r)}

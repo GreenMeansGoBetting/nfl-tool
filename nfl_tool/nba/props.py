@@ -6,7 +6,9 @@ Per season (`seasons[<year>]`):
   position, and
   - `log`: one row a game, `LOG_FIELDS` order (date, game id, opponent,
     home 1/0, starter 1/0, minutes, points, shots, 3s made, 3s tried, free
-    throws tried);
+    throws tried, then for the player card: shots made, free throws made,
+    rebounds, assists, steals, blocks, turnovers, fouls, plus / minus, his
+    team's score, the other team's score; None where the box score lacks one);
   - `share`: his share of his team's shots while he's on the floor;
   - `zones` / `kinds`: where his shots come from (rim, short, mid, corner3,
     above3) and how they're made; `zone_pct[zone]`: [his make rate, shots] (self = pull-up / step-back / fade, catch,
@@ -32,7 +34,9 @@ import pandas as pd
 
 import possessions as P
 
-LOG_FIELDS = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta"]
+LOG_FIELDS = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta",
+              # the player card's game log (2026-10-21): kept after the first eleven so older files still read
+              "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score"]
 SELF_MADE = ("pullup", "stepback", "fade")
 REST_WORDS = ("REST", "LOAD", "MANAGEMENT")
 MIN_TOGETHER = 20  # minutes on the floor together before a teammate gets a with / without row
@@ -46,6 +50,21 @@ def why_out(reason) -> str:
     if any(w in text for w in REST_WORDS):
         return "rest"
     return "injury"
+
+
+# The box score columns behind the log's later fields, in LOG_FIELDS order.
+BOX_EXTRA = ("field_goals_made", "free_throws_made", "rebounds", "assists", "steals", "blocks", "turnovers", "fouls",
+             "plus_minus", "team_score", "opponent_team_score")
+
+
+def num(v):
+    """A box score count as an int, None when the box score doesn't have it."""
+    if v is None or isinstance(v, str) and not v.strip():
+        return None
+    try:
+        return None if pd.isna(v) else int(round(float(v)))
+    except (TypeError, ValueError):
+        return None
 
 
 def r3(v):
@@ -72,7 +91,8 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str) -> dict | Non
             "log": [[r.date, int(r.game_id), r.opponent_team_abbreviation, int(r.home_away == "home"), int(bool(r.starter)),
                      int(round(r.minutes or 0)), int(r.points or 0), int(r.field_goals_attempted or 0),
                      int(r.three_point_field_goals_made or 0), int(r.three_point_field_goals_attempted or 0),
-                     int(r.free_throws_attempted or 0)] for r in rows.itertuples(index=False)],
+                     int(r.free_throws_attempted or 0),
+                     *(num(getattr(r, c, None)) for c in BOX_EXTRA)] for r in rows.itertuples(index=False)],
         }
 
     acts = season.actions

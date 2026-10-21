@@ -45,3 +45,23 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-season-bar .no-data-note { margin: 0; }
 .nba-seasons { display: inline-flex; gap: 6px; }
 .nba-seasons .view-toggle-btn { padding: 4px 10px; }
+
+/* The NBA player card (nba/nba-card.js): the NFL / NHL cards' shell (.pc-box, .pc-head, .player-modal-toggle). */
+.nba-player > .player-click, .fb-value > .player-click { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.nba-pc-photo { flex: none; width: 70px; height: 52px; border-radius: 10px; object-fit: cover; background: var(--table-head); }
+.nba-pc-tiles { padding: 0; margin: 0 0 12px; }
+.nba-pc-tabs { align-items: center; flex-wrap: wrap; }
+.nba-pc-scroll { overflow-x: auto; }
+.nba-pc-log td { white-space: nowrap; }
+/* Date, opponent and result only as wide as they need; the stat columns share the rest. */
+.nba-pc-log th:nth-child(-n+3), .nba-pc-log td:nth-child(-n+3) { width: 1%; }
+.nba-pc-log .nba-pc-avg td { background: var(--table-head); font-weight: 800; }
+.nba-pc-bench { margin-left: 3px; padding: 0 4px; border-radius: 4px; font-size: 0.62rem; font-weight: 800; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border); }
+.nba-pc-odds { width: 100%; max-width: 760px; }
+.nba-pc-odds td { white-space: nowrap; }
+.nba-pc-odds td:first-child { font-weight: 600; }
+.nba-pc-save { margin-left: 6px; vertical-align: middle; }
+
+@media (max-width: 760px) {
+  .nba-pc-photo { width: 52px; height: 38px; }
+}

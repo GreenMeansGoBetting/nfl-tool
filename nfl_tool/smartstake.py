@@ -89,6 +89,24 @@ FIRST_GOAL_SKIP = ("team", "period", "2nd", "3rd", "second", "third", "last", "m
 # The keys aren't in SmartStake's docs page, so each build reads /v1/markets
 # (nba_prop_market_keys) and falls back to these, the NFL / NHL pattern.
 NBA_PROP_GUESS = {"points": "basketball_player_points"}
+# Every other player market the NBA player card prices (the owner, 2026-10-21:
+# "odds for all markets"). The keys are SmartStake's own (tools/smartstake_probe_result.json);
+# each is asked for only when /v1/markets lists it, so a renamed key can never
+# cost the other prices. Yes / no markets (double-double) and fouls are left out.
+NBA_PROP_MARKETS = {
+    "basketball_player_points": "points",
+    "basketball_player_rebounds": "rebounds",
+    "basketball_player_assists": "assists",
+    "basketball_player_made_threes": "threes",
+    "basketball_player_points_rebounds_assists": "pra",
+    "basketball_player_points_rebounds": "pr",
+    "basketball_player_points_assists": "pa",
+    "basketball_player_rebounds_assists": "ra",
+    "basketball_player_steals": "steals",
+    "basketball_player_blocks": "blocks",
+    "basketball_player_steals_blocks": "stocks",
+    "basketball_player_turnovers": "turnovers",
+}
 NBA_PROP_SKIP = ("rebound", "assist", "three", "3pt", "first", "1st", "2nd", "3rd", "4th", "quarter", "half", "period",
                  "q1", "q2", "q3", "q4", "team", "double", "triple", "steal", "block", "turnover", "+", "alternate", "milestone",
                  "most", "yes no")  # "most points in the game, yes / no" (found 2026-10-20) is not the points line
@@ -354,6 +372,12 @@ def nba_prop_market_keys(listed, stats=("points",)) -> dict:
     return found
 
 
+def nba_listed_markets(listed) -> dict:
+    """{market key: stat} for the NBA_PROP_MARKETS that /v1/markets lists."""
+    keys = {m if isinstance(m, str) else (m.get("key") or m.get("market_key") or m.get("id")) for m in listed or []}
+    return {k: v for k, v in NBA_PROP_MARKETS.items() if k in keys}
+
+
 def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict | None, now_iso: str, keep=None) -> tuple:
     """The NBA's (book_odds, debug), same rules as fetch_nfl_book_odds.
     team_of(full team name) -> abbreviation; player_key(name, away, home) ->
@@ -367,7 +391,8 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
             print(f"NOTE: SmartStake NBA market list failed ({e}); using the usual market names.", file=sys.stderr)
             listed = []
         markets = nba_prop_market_keys(listed) or {v: k for k, v in NBA_PROP_GUESS.items()}
-        quotes = fetch_quotes(api_key, "nba", list(markets))
+        markets.update(nba_listed_markets(listed))
+        quotes = fetch_quotes(api_key, "nba", list(markets), max_pages=60)
         games = build_book_odds(quotes, team_of, prop_markets=markets, td_market=None, line_markets={}, player_key=player_key)
         priced = sum(len(g["props"].get("points") or {}) for g in games.values())
         debug = {"quotes": len(quotes), "games": len(games), "players": priced, "markets": sorted(markets),

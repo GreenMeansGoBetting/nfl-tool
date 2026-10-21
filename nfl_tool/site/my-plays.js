@@ -100,6 +100,7 @@ function gradeNhlPlay(p) {
   if (p.market === "goal") return row.g > 0 ? "win" : "loss";
   if (p.market === "sog") return overUnder(p.side, row.sog, p.line);
   if (p.market === "pts") return overUnder(p.side, row.g + row.a, p.line);
+  if (p.market === "ast") return overUnder(p.side, row.a, p.line);
   if (p.market === "saves") return mpHas(row.sa) ? overUnder(p.side, row.sa - row.ga, p.line) : "void";
   return null;
 }
@@ -134,18 +135,49 @@ async function loadNhlForGrading() {
 }
 
 // ---- NBA grading ----
+// First Basket from nba/data.json first_basket.results; every other market (the
+// player card's Odds tab: points, rebounds, PRA...) from his box score in
+// nba/props.json's this-season game logs (sync.js GMG_NBA_PROP_STATS).
+let NBA_LOGS = null; // { block: this season's props.json block, games: game ids with box scores }
+function nbaGameRow(p) {
+  if (!NBA_LOGS || !NBA_LOGS.games.has(String(p.game_id))) return undefined; // no box score yet
+  const { block } = NBA_LOGS;
+  const me = block.players[String(p.player_id)];
+  const row = me && me.log.find((r) => String(r[block.fields.indexOf("game")]) === String(p.game_id));
+  return row ? Object.fromEntries(block.fields.map((f, i) => [f, row[i] === undefined ? null : row[i]])) : null;
+}
 function gradeNbaPlay(p) {
-  if (p.market !== "first_basket" || !NBA_RESULTS || !(p.game_id in NBA_RESULTS)) return null;
-  const scorer = NBA_RESULTS[p.game_id];
-  if (scorer === null) return "void";
-  return scorer === String(p.player_id) ? "win" : "loss";
+  if (p.market === "first_basket") {
+    if (!NBA_RESULTS || !(p.game_id in NBA_RESULTS)) return null;
+    const scorer = NBA_RESULTS[p.game_id];
+    if (scorer === null) return "void";
+    return scorer === String(p.player_id) ? "win" : "loss";
+  }
+  if (typeof GMG_NBA_PROP_STATS === "undefined" || !GMG_NBA_PROP_STATS[p.market]) return null;
+  const row = nbaGameRow(p);
+  if (row === undefined) return null;
+  if (row === null) return "void"; // the game is in, he didn't play
+  const actual = gmgNbaStatValue(p.market, row);
+  return mpHas(actual) ? overUnder(p.side, actual, p.line) : null;
 }
 async function loadNbaForGrading() {
   const plays = loadNbaPlays();
-  if (!plays.some((p) => !p.result)) return;
+  const open = plays.filter((p) => !p.result);
+  if (!open.length) return;
   const nba = await getJson("nba/data.json");
   NBA_RESULTS = (nba && nba.first_basket && nba.first_basket.results) || null;
-  if (!NBA_RESULTS) return;
+  const finals = new Set(((nba || {}).schedule || []).filter((g) => g.status === "final").map((g) => String(g.game_id)));
+  if (nba && open.some((p) => p.market !== "first_basket" && finals.has(String(p.game_id)))) {
+    const props = await getJson("nba/props.json");
+    const block = props && (props.seasons || {})[String(nba.season)];
+    if (block) {
+      const i = block.fields.indexOf("game");
+      const games = new Set();
+      Object.values(block.players).forEach((pl) => pl.log.forEach((r) => games.add(String(r[i]))));
+      NBA_LOGS = { block, games };
+    }
+  }
+  if (!NBA_RESULTS && !NBA_LOGS) return;
   let changed = false;
   const updated = plays.map((p) => {
     if (p.result_source === "manual") return p;

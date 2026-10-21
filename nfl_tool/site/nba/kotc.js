@@ -136,7 +136,7 @@ function renderPlayers() {
     const blow = r.spread !== null && Math.abs(r.spread) >= 10;
     return `<tr class="${r.out ? "kotc-out" : ""}" data-player="${p.id}">
       <td class="num kotc-rank">${r.out ? "" : i + 1}</td>
-      <td class="kotc-player"><img src="${headshot(p.id)}" alt="" class="kotc-face" loading="lazy" onerror="this.style.visibility='hidden'"><span class="kotc-who"><b>${p.name}</b><span class="kotc-sub">${logo(r.team, 14)} ${r.team} · ${p.pos} · ${p.games} GP</span></span>${tags.join("")}</td>
+      <td class="kotc-player"><img src="${headshot(p.id)}" alt="" class="kotc-face" loading="lazy" onerror="this.style.visibility='hidden'"><span class="kotc-who"><b>${playerClick(p.id, p.name)}</b><span class="kotc-sub">${logo(r.team, 14)} ${r.team} · ${p.pos} · ${p.games} GP</span></span>${tags.join("")}</td>
       <td class="num kotc-lead"${r.out ? "" : heat(r.lead, 0, leadMax)}>${r.out ? "--" : `${(r.lead * 100).toFixed(r.lead < 0.1 ? 1 : 0)}%`}</td>
       <td class="num"${r.out ? "" : heat(r.proj, pLo, pHi)}><b>${fmt(r.proj)}</b></td>
       <td class="num"${heat(p.pra, aLo, aHi)}>${fmt(p.pra)}</td>

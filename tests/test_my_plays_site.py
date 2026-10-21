@@ -75,6 +75,20 @@ class MyPlays(unittest.TestCase):
             page.close()
         self.assertEqual(SITE.errors, [])
 
+    def test_an_assists_play_from_the_player_card_grades(self):
+        # The NHL player card's Odds tab saves Assists too (2026-10-21): 8479996 had no assists.
+        play = {**GAME, "id": "nhl:ast:2026020088:8479996", "market": "ast", "category": "Assists", "player_id": "8479996",
+                "side": "over", "line": 0.5, "odds": 150, "description": "A Over 0.5 assists"}
+        page = SITE.open("my-plays.html")
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nhl-plays.v1', JSON.stringify(plays))", [play])
+            page.reload()
+            page.wait_for_function("() => loadNhlPlays().some((p) => p.result)")
+            self.assertEqual(page.evaluate("() => loadNhlPlays()[0].result"), "loss")
+        finally:
+            page.evaluate("() => localStorage.removeItem('nfl-tool.nhl-plays.v1')")
+            page.close()
+
     def test_sport_filter_record_and_hand_results(self):
         page = open_my_plays()
         try:
@@ -209,12 +223,9 @@ class SaveBox(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class NbaPlays(unittest.TestCase):
-    """NBA First Basket plays (saved from the every-book window) grade from nba/data.json first_basket.results."""
+    """NBA First Basket plays (saved from the every-book window) grade from nba/data.json first_basket.results;
+    the player card's other markets from nba/props.json's game logs."""
 
     def test_first_basket_plays_grade_from_who_scored_first(self):
         game = {"sport": "nba", "market": "first_basket", "category": "First Basket", "date": "2026-10-21", "game_id": "77",
@@ -236,3 +247,34 @@ class NbaPlays(unittest.TestCase):
             page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
             page.close()
 
+    def test_player_card_plays_grade_from_this_seasons_box_scores(self):
+        # The NBA player card's Odds tab (2026-10-21): any market, graded from nba/props.json's game log.
+        fields = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta",
+                  "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score"]
+        game = {"sport": "nba", "date": "2026-10-21", "game_id": "77", "matchup": "BBB @ AAA", "team": "AAA",
+                "logo": "", "color": "#336699", "book": "draftkings", "odds": -110}
+        plays = [{**game, "id": "nba:points:77:10", "market": "points", "category": "Points", "player_id": "10", "side": "over", "line": 24.5, "description": "P10 Over 24.5 points"},
+                 {**game, "id": "nba:pra:77:10", "market": "pra", "category": "Pts + Reb + Ast", "player_id": "10", "side": "under", "line": 40.5, "description": "P10 Under 40.5 PRA"},
+                 {**game, "id": "nba:threes:77:10", "market": "threes", "category": "3-Pointers Made", "player_id": "10", "side": "over", "line": 3, "description": "P10 Over 3 3s"},
+                 {**game, "id": "nba:rebounds:77:11", "market": "rebounds", "category": "Rebounds", "player_id": "11", "side": "over", "line": 8.5, "description": "P11 Over 8.5 rebounds"},
+                 {**game, "id": "nba:assists:78:10", "game_id": "78", "market": "assists", "category": "Assists", "player_id": "10", "side": "over", "line": 5.5, "description": "P10 Over 5.5 assists"}]
+        # P10 in game 77: 26 points, 9 rebounds, 7 assists (42 PRA), 3 threes; P11 didn't play; game 78 has no box score yet.
+        row = ["2026-10-21", 77, "BBB", 1, 1, 34, 26, 18, 3, 8, 6, 9, 5, 9, 7, 1, 0, 2, 3, 5, 110, 104]
+        SITE.nba = {"season": 2027, "schedule": [{"game_id": "77", "status": "final"}, {"game_id": "78", "status": "final"}], "first_basket": {"results": {}}}
+        SITE.nba_props = {"seasons": {"2027": {"fields": fields, "players": {"10": {"name": "P10", "team": "AAA", "log": [row]}}}}}
+        page = SITE.open("my-plays.html")
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify(plays))", plays)
+            page.reload()
+            page.wait_for_function("() => loadNbaPlays().some((p) => p.result)")
+            results = page.evaluate("() => Object.fromEntries(loadNbaPlays().map((p) => [p.id, p.result || null]))")
+            self.assertEqual(results, {"nba:points:77:10": "win", "nba:pra:77:10": "loss", "nba:threes:77:10": "push",
+                                       "nba:rebounds:77:11": "void", "nba:assists:78:10": None})
+        finally:
+            SITE.nba = SITE.nba_props = None
+            page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
+if __name__ == "__main__":
+    unittest.main()

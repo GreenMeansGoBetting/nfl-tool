@@ -118,9 +118,10 @@ options"), Novig only where SmartStake has no price.
   `nfl_tool/nba/props_2026.json` (re-save after a formula change: `py nfl_tool/nba/props.py
   --season 2026 --data-dir data/nba --write`), shown on today's rosters as reference.
 - 2025-26 check: Pritchard 16.1 points a 36 with Jaylen Brown on the floor, 24.1 with him off.
-- **SmartStake NBA** (`fetch_nba_book_odds`, smartstake.py): the market key is looked up in
+- **SmartStake NBA** (`fetch_nba_book_odds`, smartstake.py): the points key is looked up in
   `/v1/markets` (`nba_prop_market_keys`: a player market for the stat alone, never a combo,
-  quarter, half or first scorer), falling back to `basketball_player_points`. data.json
+  quarter, half or first scorer), falling back to `basketball_player_points`; the player card's
+  other markets are added from `NBA_PROP_MARKETS` when listed (the player card, below). data.json
   `book_odds` (same shape as the NFL / NHL, players by ESPN id, matched by name + team on
   today's rosters) and `book_odds_debug`; locks at tip like every price. The deploy's NBA step
   has `SMARTSTAKE_API_KEY`. `version.json` `nba.book_odds` = players with a points price (or the
@@ -157,13 +158,46 @@ options"), Novig only where SmartStake has no price.
   by whether he played, from box-score DNP reasons; Off the floor = `with` minutes, points and shots
   a 36) **and every book's price** (no name banner). The game log, alt-line ladder and a shot-zone
   chart were there for an hour and cut (the owner: "Bottom line, i hate the drop down player points
-  portion currently"); props.json keeps `zone_pct` for the zone redo. NBA pages have no
-  `playerClick` yet. Tests: `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
+  portion currently"); props.json keeps `zone_pct` for the zone redo. The player's NAME opens
+  the player card (below); the rest of the row opens with / without. Tests:
+  `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
+
+## The player card (`site/nba/nba-card.js`, 2026-10-21)
+
+The owner: "build the player functionality that exists for NFL and NHL so theres consistency ...
+game log and odds for all markets with checkboxes like NFL has ... game logs can be added only for
+this season, do not add past years." **Every place an NBA page shows a player wraps him with
+`playerClick(id, inner)`** (ESPN id): Game Previews' rotations and injuries, Points, First Basket's
+starters and Value list, King of the Court's board. Each of those pages loads `../book-odds.js`
+and `nba-card.js` (after the page's own script; every name in it starts `nbaCard` / `NBA_CARD` so
+it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#player-card-modal`).
+- Head (photo, position, team, next game) and this season's per-game tiles (Games, Min, Pts, Reb,
+  Ast, 3PM, PRA).
+- **Game Log** (opens here): this season's block of props.json ONLY (`DATA.season`), newest first,
+  a per-game row on top: Min (a "B" when he came off the bench), Pts, Reb, Ast, 3PM, 3PA, FG, FT,
+  PRA, Stl, Blk, TO, PF, +/-, shaded against his own games like the NHL card.
+- **Odds**: every market in `GMG_NBA_PROP_STATS` (sync.js) a book prices for his game, at the line
+  most books hang: best Over / Under across the member's books (`bookPricePill`), a box beside each
+  side, and "This Season" = games over that line ("x of y", colored from 3 games like Points). First
+  Basket too (same play id as the First Basket page). A box saves `{id: nba:<stat>:<game>:<player>,
+  market, category, side, line, book, odds, ...}` at the best price; Over and Under share the id, so
+  checking one side switches the play.
+- **Log fields** (props.py `LOG_FIELDS`, after the first eleven so older files still read): fgm, ftm,
+  reb, ast, stl, blk, tov, pf, pm, score, opp_score (`BOX_EXTRA`; None when a box score lacks one).
+  props_2026.json keeps the old eleven (the card never shows last season).
+- **Markets** (smartstake.py `NBA_PROP_MARKETS`): points, rebounds, assists, threes (made), pra, pr,
+  pa, ra, steals, blocks, stocks (steals + blocks), turnovers; each asked for only when `/v1/markets`
+  lists its key (`nba_listed_markets`), with `max_pages=60`. Yes / no markets and fouls left out.
+- **Grading** (my-plays.js `gradeNbaPlay`): First Basket as before; every other market from his row
+  for that game in props.json (`gmgNbaStatValue`, sync.js): the game in the box scores and him not in
+  it = Void; no box score yet = wait.
+- Not built: shot charts (the owner wants to revisit them after the first attempt), alt lines.
+- Tests: `tests/test_nba_player_card_site.py`, `test_my_plays_site.py` (NbaPlays), `test_nba_props.py`.
 
 ## The owner's list (2026-10-20, for when usage allows)
 
-1. **Clickable NBA players with a pop-up like the other sports** (game log, odds, etc.), "to make
-   it symmetrical to the whole site"; it replaces the Points open row's old game log.
+1. ~~Clickable NBA players with a pop-up like the other sports~~ built 2026-10-21 (the player
+   card above); shot charts on it still to come.
 2. **Shot zones overhaul:** "I dont understand what im looking at ... What about wing 3s? L vs R?
    I just dont look at this and feel confident in what im seeing." More areas (wings, corners, top,
    left / right), a design that reads at a glance.

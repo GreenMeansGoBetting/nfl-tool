@@ -712,28 +712,51 @@ function goalieMapView(season, games, uid) {
 }
 
 // ---- Odds tab ----
+// Each side: the best price across the member's books (SmartStake; click for
+// every book) or Novig's when no book lists it, and a box that saves the play
+// to My Plays at that price (the owner, 2026-10-21: checkboxes like the NFL card).
+// market: the saved play's market (nhlPlayEntry); stat: book_odds' key.
+const ODDS_MARKETS = [
+  ["sog", "Shots on goal", "sog", "sog"],
+  ["points", "Points", "pts", "points"],
+  ["assists", "Assists", "ast", null],
+  ["saves", "Saves", "saves", "saves"],
+];
+function oddsSide(row, game, market, stat, side, line, novig) {
+  const spec = stat && typeof bookPricePill === "function"
+    ? { kind: "prop", stat, team: row.team, pid: row.id, game: `${game.away}_${game.home}`, side: side === "under" ? "u" : "o", line, title: `${row.name} &middot; ${NHL_PLAY_CATEGORY[market]}`, sub: `${game.away} @ ${game.home}` }
+    : null;
+  const best = spec ? bookBest(bookQuotes(spec), spec.side, line) : null;
+  const pill = best ? bookPricePill(spec) : "";
+  const price = best ? best[3] : novig;
+  if (!has(price)) return "--";
+  const box = market ? nhlPlayBox(nhlPlayEntry({ market, g: game, r: row, side, line, price, book: best ? best[0] : "novig" })) : "";
+  return `${pill || `<b>${odds(price)}</b>`}${box}`;
+}
 function oddsView(id, game) {
   const o = game ? ((DATA.player_odds || {})[game.game_id] || {})[id] : null;
   if (!o) return `<p class="no-data-note">No lines posted for this player${game ? "" : " (no game on the schedule)"}.</p>`;
+  const row = findPlayer(id).row;
   const chance = (c) => (has(c) ? `${Math.round(c * 100)}%` : "--");
   const thin = (m) => (m.thin ? ` <span class="nhl-pc-thin" title="Barely traded: treat the price with care">thin</span>` : "");
   const rows = [];
-  if (o.goal) rows.push(`<tr><td>Anytime goal${thin(o.goal)}</td><td class="num props-line">--</td><td class="num"><b>${odds(o.goal.odds)}</b></td><td class="num">${odds(o.goal.no_odds) || "--"}</td><td class="num">${chance(o.goal.chance)}</td></tr>`);
+  if (o.goal) rows.push(`<tr><td>Anytime goal${thin(o.goal)}</td><td class="num props-line">--</td><td class="num">${oddsSide(row, game, "goal", "goals", "over", 0.5, o.goal.odds)}</td><td class="num">${odds(o.goal.no_odds) || "--"}</td><td class="num">${chance(o.goal.chance)}</td></tr>`);
   if (o.first_goal) rows.push(`<tr><td>First goal${thin(o.first_goal)}</td><td class="num props-line">--</td><td class="num"><b>${odds(o.first_goal.odds)}</b></td><td class="num">--</td><td class="num">${chance(o.first_goal.chance)}</td></tr>`);
-  [["sog", "Shots on goal"], ["points", "Points"], ["assists", "Assists"], ["saves", "Saves"]].forEach(([key, label]) => {
+  ODDS_MARKETS.forEach(([key, label, market, stat]) => {
     const m = o[key];
-    if (m) rows.push(`<tr><td>${label}${thin(m)}</td><td class="num props-line">${fmt(m.line)}</td><td class="num"><b>${odds(m.over) || "--"}</b></td><td class="num">${odds(m.under) || "--"}</td><td class="num">${chance(m.chance)}</td></tr>`);
+    if (m) rows.push(`<tr><td>${label}${thin(m)}</td><td class="num props-line">${fmt(m.line)}</td><td class="num">${oddsSide(row, game, market, stat, "over", m.line, m.over)}</td><td class="num">${oddsSide(row, game, market, stat, "under", m.line, m.under)}</td><td class="num">${chance(m.chance)}</td></tr>`);
   });
   // The other lines the book prices, as "N or more" (over 2.5 = 3+).
   const ladder = (label, alts) =>
     (alts || []).length ? `<div class="nhl-pc-facts"><span class="nhl-pc-ladder">${label}</span>${alts.map(([strike, price]) => `<span class="nhl-pc-chip"><b>${Math.ceil(strike)}+</b> ${odds(price)}</span>`).join("")}</div>` : "";
   if (!rows.length && !o.sog_alts && !o.goal_alts && !o.saves_alts) return `<p class="no-data-note">No lines posted for this player.</p>`;
-  return `<div class="nhl-pc-scroll"><table class="data-table player-odds-table nhl-pc-odds">
-      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over / Yes</th><th class="num">Under / No</th><th class="num" title="The price with the book's cut taken out">Chance</th></tr></thead>
+  return `<p class="no-data-note">Best price across your books (click it for every book; plain = Novig's). Checkboxes save a side to My Plays.</p>
+    <div class="nhl-pc-scroll"><table class="data-table player-odds-table nhl-pc-odds">
+      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over / Yes</th><th class="num">Under / No</th><th class="num" title="Novig's price with the cut taken out">Chance</th></tr></thead>
       <tbody>${rows.join("")}</tbody>
     </table></div>
     ${ladder("Shots on goal", o.sog_alts)}${ladder("Goals", o.goal_alts)}${ladder("Saves", o.saves_alts)}
-    <p class="section-note">Novig, ${game.away} @ ${game.home}${game.lines_locked ? ", locked at puck drop" : ""}.</p>`;
+    <p class="section-note">Lines from Novig, ${game.away} @ ${game.home}${game.lines_locked ? ", locked at puck drop" : ""}.</p>`;
 }
 
 function ensurePlayerCard() {
@@ -909,12 +932,12 @@ document.addEventListener("input", (e) => {
 // the member's NHL plays (sync.js loadNhlPlays / saveNhlPlays); My Plays
 // grades it from the box score. One saved play per player, market and game,
 // so the box stays checked when the line moves.
-const NHL_PLAY_CATEGORY = { sog: "Shots on goal", goal: "Anytime goal", pts: "Points", saves: "Saves", stack: "Line stack" };
-const NHL_PLAY_UNIT = { sog: "SOG", pts: "points", saves: "saves" };
+const NHL_PLAY_CATEGORY = { sog: "Shots on goal", goal: "Anytime goal", pts: "Points", ast: "Assists", saves: "Saves", stack: "Line stack" };
+const NHL_PLAY_UNIT = { sog: "SOG", pts: "points", ast: "assists", saves: "saves" };
 const nhlPlayId = (market, gameId, who) => `nhl:${market}:${gameId}:${who}`;
 // g: the schedule game; r: the player row ({id, name, team}); side "over" / "under"
 // (Goals: none); legs: a stack's players [{id, name, team}].
-function nhlPlayEntry({ market, g, r, side, line, price, legs }) {
+function nhlPlayEntry({ market, g, r, side, line, price, legs, book }) {
   const sideWord = side === "under" ? "Under" : "Over";
   const description = market === "goal" ? `${r.name} anytime goal`
     : market === "stack" ? `${legs.map((p) => p.name.split(" ").slice(1).join(" ") || p.name).join(" + ")} (1+ point each)`
@@ -926,6 +949,7 @@ function nhlPlayEntry({ market, g, r, side, line, price, legs }) {
     team: market === "stack" ? legs[0].team : r.team, player_id: market === "stack" ? null : r.id,
     side: market === "goal" || market === "stack" ? null : side, line: has(line) ? line : null,
     odds: has(price) ? price : null, description, legs: legs || null,
+    ...(book ? { book } : {}),
   };
 }
 function nhlPlayBox(entry) {

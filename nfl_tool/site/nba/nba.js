@@ -227,7 +227,7 @@ function renderPlayers(g) {
       .map((p) => {
         const trend = p.l5_pts !== null && p.pts !== null ? p.l5_pts - p.pts : 0;
         return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>
-          <td class="nba-player">${p.headshot ? `<img src="${p.headshot}" alt="" class="nba-headshot" loading="lazy">` : `<span class="nba-headshot"></span>`}<span>${p.name}</span><span class="muted-label">${p.position || ""}</span>${p.prev_team ? `<span class="nba-new" title="Numbers are from ${p.prev_team} last season">from ${p.prev_team}</span>` : ""}${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>
+          <td class="nba-player">${p.headshot ? `<img src="${p.headshot}" alt="" class="nba-headshot" loading="lazy">` : `<span class="nba-headshot"></span>`}<span>${playerClick(p.id, p.name)}</span><span class="muted-label">${p.position || ""}</span>${p.prev_team ? `<span class="nba-new" title="Numbers are from ${p.prev_team} last season">from ${p.prev_team}</span>` : ""}${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>
           <td class="num">${p.games}</td><td class="num">${fmt(p.min)}</td><td class="num"><b>${fmt(p.pts)}</b></td><td class="num">${fmt(p.reb)}</td><td class="num">${fmt(p.ast)}</td><td class="num">${fmt(p.threes)}</td>
           <td class="num ${trend >= 2 ? "tier-good" : trend <= -2 ? "tier-bad" : ""}">${fmt(p.l5_pts)}</td>
         </tr>`;
@@ -242,7 +242,7 @@ function renderPlayers(g) {
 function renderInjuries(g) {
   const list = (abbr) => {
     const rows = (DATA.injuries[abbr] || [])
-      .map((p) => `<div class="nba-inj"${p.note ? ` title="${p.note.replace(/"/g, "&quot;")}"` : ""}><span class="gs-inj-status ${p.status === "Out" ? "tier-bad" : "tier-mid"}">${p.status === "Out" ? "Out" : "DTD"}</span><b>${p.name}</b><span class="muted-label">${p.position || ""}</span><span class="nba-inj-what">${p.injury || ""}</span></div>`)
+      .map((p) => `<div class="nba-inj"${p.note ? ` title="${p.note.replace(/"/g, "&quot;")}"` : ""}><span class="gs-inj-status ${p.status === "Out" ? "tier-bad" : "tier-mid"}">${p.status === "Out" ? "Out" : "DTD"}</span><b>${playerClick(p.id, p.name)}</b><span class="muted-label">${p.position || ""}</span><span class="nba-inj-what">${p.injury || ""}</span></div>`)
       .join("");
     return `<div class="nba-box">${banner(abbr)}${rows || `<p class="no-data-note">Nobody listed.</p>`}</div>`;
   };

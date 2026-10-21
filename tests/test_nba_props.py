@@ -117,6 +117,14 @@ class SmartStakeNba(unittest.TestCase):
                   {"key": "basketball_player_most_points_yes_no", "name": "Player Most Points"}]
         self.assertEqual(smartstake.nba_prop_market_keys(listed), {"basketball_player_points": "points"})
 
+    def test_the_player_cards_markets_are_asked_for_only_when_listed(self):
+        # The NBA player card (2026-10-21) prices every market; a key SmartStake doesn't list is never sent.
+        listed = [{"key": "basketball_player_points"}, {"key": "basketball_player_rebounds"},
+                  {"key": "basketball_player_points_rebounds_assists"}, {"key": "basketball_player_fouls"}]
+        self.assertEqual(smartstake.nba_listed_markets(listed), {"basketball_player_points": "points",
+                         "basketball_player_rebounds": "rebounds", "basketball_player_points_rebounds_assists": "pra"})
+        self.assertEqual(smartstake.nba_listed_markets([]), {})
+
     def test_quotes_land_on_players_by_espn_id(self):
         q = {"event_id": 1, "book": "draftkings", "market_key": "basketball_player_points", "player_id": 7,
              "participant": "Payton Pritchard", "away": "Boston Celtics", "home": "Detroit Pistons",
@@ -131,13 +139,21 @@ class SmartStakeNba(unittest.TestCase):
         self.assertEqual(row["q"][0][2], 14.5)
 
 
+class GameLog(unittest.TestCase):
+    def test_the_card_fields_come_after_the_first_eleven(self):
+        # Older files and the Points page read the first eleven by position.
+        self.assertEqual(props.LOG_FIELDS[:11], ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta"])
+        self.assertEqual(len(props.LOG_FIELDS), 11 + len(props.BOX_EXTRA))
+        self.assertEqual([props.num(v) for v in (7.0, "+5", "-3", None, "", float("nan"))], [7, 5, -3, None, None, None])
+
+
 class TeammatesOut(unittest.TestCase):
     def test_a_traded_players_share_counts_his_old_teams_shots(self):
         # 1 and 2 played for AAA against BBB (game 10); 1 is on CCC now and Out tonight
         # for CCC, where 3 plays. 1 took 10 of AAA's 20 shots: half, not all of CCC's.
         f = props.LOG_FIELDS
         row = lambda game, opp, fga: dict(zip(f, ["2026-10-01", game, opp, 1, 1, 30, 10, fga, 0, 0, 0]))  # noqa: E731
-        as_list = lambda d: [d[k] for k in f]  # noqa: E731
+        as_list = lambda d: [d.get(k) for k in f]  # noqa: E731
         block = {"fields": f, "players": {
             "1": {"team": "CCC", "log": [as_list(row(10, "BBB", 10))]},
             "2": {"team": "AAA", "log": [as_list(row(10, "BBB", 10))]},

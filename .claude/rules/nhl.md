@@ -414,7 +414,11 @@ on a replay, and the page keeps a record against the real prices.
     standard deviations from what the league allows on them (`goalieAreaTier`): luck alone
     should not paint a zone.
   - Odds: the lines above for the player's game (the open one, else his team's next), with
-    `thin` tags and the ladders as "N or more" chips. A goalie's only line is Saves.
+    `thin` tags and the ladders as "N or more" chips. A goalie's only line is Saves. Since
+    2026-10-21 (the owner: "NHL is lacking checkboxes") each side shows the best price across the
+    member's books (`bookPricePill`, SmartStake) or Novig's when no book lists it, with an
+    `nhlPlayBox` beside it (anytime goal, shots, points, assists = market `ast`, saves; first goal
+    has no box, nothing grades it). Every NHL page loads `../book-odds.js` for this.
   - A team whose file can't be read still opens the card (season tiles and odds only).
 - `site/nhl/shots.html` + `shots.js` = **Shots** (under Player Props in the nav): one
   table for the day's slate, a row per skater, ranked best edge first.

@@ -386,7 +386,7 @@ function renderValue(g, p) {
     ? `<div class="fb-value-record"><span>Record</span><b>${rec.won} of ${rec.plays}</b><b class="${units >= 0 ? "fb-up" : "fb-down"}">${units > 0 ? "+" : ""}${units.toFixed(1)}u</b></div>`
     : `<div class="fb-value-record"><span>Record</span><span class="muted-label">Graded after tonight's games</span></div>`;
   el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
-    ${ids.length ? ids.map((id) => `<div class="fb-value">${face(id)}<span class="fb-value-name">${lastName(player(id).name)}</span>${logo(teamOf(g, p, id), 16)}
+    ${ids.length ? ids.map((id) => `<div class="fb-value">${playerClick(id, `${face(id)}<span class="fb-value-name">${lastName(player(id).name)}</span>`)}${logo(teamOf(g, p, id), 16)}
       <span class="fb-value-prices"><span><small>Fair</small>${showOdds(p.fair.players[id].fair)}</span><span><small>Best</small>${showOdds(bestOdds(g, id))}</span></span></div>`).join("")
       : `<p class="no-data-note">No Value In This Game</p>`}
     ${record}
@@ -480,7 +480,7 @@ function renderStarters(g, p) {
       const share = (key, side) => `<td class="num fb-cell fb-sh-${side}"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key] || 0)) : ""}><b>${pct(rate(pl[key] || 0))}</b><small>${pl[key] || 0} of ${pl.starts}</small></td>`;
       const f = fair[id];
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
-        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${tags.map(([t, cls, why]) => `<span class="fb-tag ${cls}" title="${why}">${t}</span>`).join("")}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
+        <td><span class="nba-player">${playerClick(id, `${face(id)}<span>${pl.name}</span>`)}<span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${tags.map(([t, cls, why]) => `<span class="fb-tag ${cls}" title="${why}">${t}</span>`).join("")}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
         <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
         ${bestCell(g, id)}
