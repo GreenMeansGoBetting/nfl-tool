@@ -565,7 +565,12 @@ class WorkflowsInStep(unittest.TestCase):
         unpublished, and a per-sport test list once failed a deploy."""
         trigger = self.deploy.split("permissions:")[0]
         self.assertIn("  push:\n    branches: [main]\n", trigger)
-        self.assertNotIn("paths", trigger)
+        # The one exception (the owner, 2026-10-21): a push of ONLY the SmartStake
+        # probe files, which never touch the site. Nothing else may be skipped,
+        # and never a folder ("paths:" would deploy only for listed files).
+        self.assertNotIn("    paths:", trigger)
+        ignored = [line.strip()[3:-1] for line in trigger.split("paths-ignore:")[1].splitlines() if line.strip().startswith("- ")]
+        self.assertEqual(ignored, ["tools/smartstake_probe.py", "tools/smartstake_probe_result.json", ".github/workflows/smartstake-probe.yml"])
         for gone in ("steps.plan", "ci_steps.py plan", "SCOPE", "HOUSEKEEPING", "Reuse the live"):
             self.assertNotIn(gone, self.deploy)
         self.assertIn('python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }', self.deploy)

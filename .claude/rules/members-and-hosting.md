@@ -50,7 +50,8 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     (`shots`), or the failed build's last line (`error`). Their data files are behind the login, so this is the only way
     to see those builds from outside.
 - It runs on a cron every 6 h, on **every push to main** (whatever it touched; the bot's
-  model-record commits don't start one), and on manual dispatch. Every run is the same: every
+  model-record commits don't start one; nor does a push that changes ONLY the SmartStake probe files,
+  `paths-ignore`, 2026-10-21), and on manual dispatch. Every run is the same: every
   test, all three sports built fresh, every page checked ("Every run does everything" below). There is no Update Odds button any more (removed 2026-10-17: the owner said the odds update on
   their own and he will ask Claude); "Run workflow" on the Actions page still starts a run. A
   re-run of a failed run uses that run's OLD commit, never newer fixes. Pushes

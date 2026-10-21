@@ -40,6 +40,14 @@ on:
   # made with the workflow's own token).
   push:
     branches: [main]
+    # A push that changes ONLY the SmartStake probe (it never touches the
+    # site) starts no rebuild (the owner, 2026-10-21: three probe pushes had
+    # each rebuilt and republished the whole site). Any other file in the
+    # same push still starts the full run.
+    paths-ignore:
+      - "tools/smartstake_probe.py"
+      - "tools/smartstake_probe_result.json"
+      - ".github/workflows/smartstake-probe.yml"
 
 permissions:
   # write: the build commits model_history/gmg_model.json (see that step)
