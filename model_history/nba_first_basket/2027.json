@@ -22,23 +22,23 @@
    "3059319": [
     "Andrew Wiggins",
     0.087,
-    891,
+    900,
     false,
-    "prophetx"
+    "novig"
    ],
    "4066261": [
     "Bam Adebayo",
     0.087,
-    565,
+    550,
     false,
     "fliff"
    ],
    "4278053": [
     "Davion Mitchell",
     0.087,
-    1139,
-    false,
-    "prophetx"
+    1233,
+    true,
+    "novig"
    ],
    "4431671": [
     "Jaden McDaniels",
@@ -107,7 +107,7 @@
    "4066436": [
     "De'Anthony Melton",
     0.079,
-    953,
+    1011,
     false,
     "novig"
    ],
@@ -121,8 +121,8 @@
    "4397014": [
     "Quentin Grimes",
     0.113,
-    840,
-    false,
+    920,
+    true,
     "fliff"
    ],
    "4397040": [
@@ -164,7 +164,7 @@
    "1966": [
     "LeBron James",
     0.102,
-    800,
+    785,
     false,
     "fliff"
    ],
@@ -185,7 +185,7 @@
    "3917376": [
     "Jaylen Brown",
     0.102,
-    650,
+    660,
     false,
     "fliff"
    ],
@@ -554,7 +554,7 @@
    "3133628": [
     "Myles Turner",
     0.094,
-    900,
+    852,
     false,
     "novig"
    ],
@@ -674,9 +674,9 @@
    "4433249": [
     "Moussa Diabate",
     0.096,
-    733,
+    715,
     false,
-    "novig"
+    "fliff"
    ],
    "4433287": [
     "Brandon Miller",
@@ -717,7 +717,7 @@
    "3134908": [
     "Jakob Poeltl",
     0.105,
-    809,
+    770,
     false,
     "novig"
    ],
@@ -894,9 +894,9 @@
    "4395628": [
     "Zion Williamson",
     0.089,
-    590,
+    614,
     false,
-    "novig"
+    "prophetx"
    ],
    "4395712": [
     "Andrew Nembhard",
@@ -915,7 +915,7 @@
    "4397688": [
     "Trey Murphy III",
     0.089,
-    809,
+    770,
     false,
     "novig"
    ],
@@ -951,7 +951,7 @@
    "3202": [
     "Kevin Durant",
     0.105,
-    564,
+    525,
     false,
     "prophetx"
    ],
@@ -1057,7 +1057,7 @@
    "4279888": [
     "Ja Morant",
     0.103,
-    852,
+    770,
     false,
     "novig"
    ],
@@ -1163,9 +1163,9 @@
    "4594327": [
     "Keegan Murray",
     0.089,
-    1150,
-    true,
-    "novig"
+    1085,
+    false,
+    "fliff"
    ]
   }
  },
