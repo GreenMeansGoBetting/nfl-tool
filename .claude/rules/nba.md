@@ -312,7 +312,12 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   spreads** (`zHeat`, full color at 1.5 SD): picked over worst-to-best (one outlier stretched it)
   and rank (near-ties a color apart); the owner asked if it would turn all yellow with more data:
   no, the spread tightens with the league, so the color mix holds.
-- **Targets** (`targets`, the owner: "show position or players of weakness. Or team"), each
+- **Targets: PAUSED 2026-10-21, the box says "Coming Soon"** (`TARGETS_LIVE = false`). On CHA-BKN
+  CHA led the tip, scores first and opening trips, yet the box listed BKN's forwards (the owner:
+  "Laughable"): the position rule says who scores first IF that team does, and never asked which
+  team is likelier to. A redo must start from the team's chance to score first. The old rule, kept
+  in `targets` for that redo
+  (`targets`, the owner: "show position or players of weakness. Or team"), each
   two-sided: a **position** when the defense gives it the first FG 5+ points above the league AND
   the offense's own first FGs (`fg_made`) aren't 2+ points below the league there (lists the
   offense's starters at it); the **Tip** when one jumper wins 15+ points more and his team wins

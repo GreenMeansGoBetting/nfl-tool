@@ -381,7 +381,15 @@ function targets(g, p) {
   }
   return out;
 }
+// Paused (the owner, 2026-10-21): the position rule listed BKN's forwards on a
+// night CHA led nearly every row, because "who scores first if this team
+// does" never asked which team scores first. targets() stays for the redo.
+const TARGETS_LIVE = false;
 function renderTargets(g, p) {
+  if (!TARGETS_LIVE) {
+    el("fb-targets").innerHTML = `<div class="nba-box fb-targets"><p class="no-data-note">Coming Soon</p></div>`;
+    return;
+  }
   const list = targets(g, p);
   el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
     ${list.length

@@ -206,14 +206,10 @@ class Page(unittest.TestCase):
         heights = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')].map((r) => Math.round(r.getBoundingClientRect().height)))]")
         self.assertEqual(len(heights), 1, heights)
 
-    def test_targets_read_both_sides(self):
-        # League first FGs: guards 50%, forwards 25%, centers 25%. AAA gives centers 50% and
-        # BBB's own first FGs are half centers: BBB's center. BBB gives forwards 50% and
-        # AAA's own are half forwards: AAA's forward. Guards: 50% = the league, no target.
-        items = PAGE.evaluate("() => [...document.querySelectorAll('#fb-targets .fb-target')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim())")
-        self.assertEqual(len(items), 2, items)
-        self.assertTrue(any(i.startswith("Centers AAA allows 50%") and "P20" in i for i in items), items)
-        self.assertTrue(any(i.startswith("Forwards BBB allows 50%") and "P12" in i for i in items), items)
+    def test_targets_box_says_coming_soon(self):
+        # Paused 2026-10-21 (CHA led nearly every row, yet BKN's forwards were the targets).
+        self.assertEqual(PAGE.evaluate("() => document.querySelector('#fb-targets').innerText.trim()"), "Coming Soon")
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('#fb-targets .fb-target').length"), 0)
 
     def test_starters_show_fair_and_novig_best_first(self):
         starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[4].innerText.trim(), tr.children[5].innerText.trim()])")
