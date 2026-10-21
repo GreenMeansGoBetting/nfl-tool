@@ -1131,6 +1131,13 @@ pages for the detail, not a copy of them.
   (`bucketTag` in nhl-common.js, the ONE function the Goals and Points pages use too); a Check's
   edge is amber, as on its page. Goals and Points plays are picked by `size` (strong / lean / check),
   never by the saved edge: edges are saved rounded, so a 2.98 is "3.0" but "none" to the build.
+  **Rating sorts** (Strong / Play, Lean, Check; flip it to put the Checks together).
+- **Saves (2026-10-20, the owner: "yes")**: a fourth market switch, "Goalie saves". Its plays are
+  saves.json's as the build files them (`size` strong / lean / check, a goalie the site knows, priced
+  at the best price across books), "o26.5 saves" chips, `savesGapCheck` for its other Check (model and
+  line 4+ saves apart), the Saves page's starter tag (`starterTag`, now in nhl-common.js) first in
+  Notes, "N GS" under 5 starts, a "Goalie saves" tile with its own slider in the YTD popup (the saves
+  record's `ledger`), and the row opens `saves.html#row=`.
 - **Notes say what the model may not know yet**, never a verdict: "No lineup" (that market's
   board had no posted lineup), the line change ("L2 ▼", amber when the play goes against the
   move), "N GP" under 5 games, "vs avg" (Shots: against his season average), "Thin". Centered
@@ -1168,7 +1175,7 @@ pages for the detail, not a copy of them.
 ## Not built yet (waiting on the user's priorities)
 
 Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), Saves (goalie saves), all above.
-For Saves: Best Plays doesn't list its plays yet. Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
+For Saves: Best Plays lists its plays (2026-10-20). Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
 owner's list: re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.

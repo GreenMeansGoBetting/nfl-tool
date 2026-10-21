@@ -1,8 +1,8 @@
 // ---- GMG NHL Suite: Best Plays ----
 // The owner, 2026-10-15: "I don't care about the noise, I am in a rush: what
-// are my best overall bets tonight." Every play the Shots, Goals and Points
-// pages call a play (Shots: its bar, 6+ points on a player not moved down a line; Goals and
-// Points: 3+ points), in one list, biggest edge first, every column sortable.
+// are my best overall bets tonight." Every play the Shots, Goals, Points and
+// Saves pages call a play (Shots: its bar, 6+ points on a player not moved down a line; Goals,
+// Points and Saves: the build's Strong / Lean / Check), in one list, biggest edge first, every column sortable.
 // No cap and no "Check" group: a big gap is ranked like any other (the owner:
 // "if the model notices an edge, we shouldn't punish ourselves"); what the
 // model may not know yet is said as a note on the row instead (no lineup, a
@@ -15,16 +15,18 @@
 let SHOTS = null;
 let GOALS = null;
 let POINTS = null;
+let SAVES = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
 // markets: which markets are listed. sort / dir: the column and which way.
-const bestView = { markets: { sog: true, goal: true, pts: true }, sort: "edge", dir: -1, when: "all", minEdge: 3, lineup: "all" };
+const bestView = { markets: { sog: true, goal: true, pts: true, saves: true }, sort: "edge", dir: -1, when: "all", minEdge: 3, lineup: "all" };
 const MARKETS = [
   ["sog", "Shots on goal", "shots.html"],
   ["goal", "Anytime goal", "goals.html"],
   ["pts", "Points", "points.html"],
+  ["saves", "Goalie saves", "saves.html"],
 ];
-const PAGE_NAME = { sog: "Shots", goal: "Goals", pts: "Points" };
+const PAGE_NAME = { sog: "Shots", goal: "Goals", pts: "Points", saves: "Saves" };
 // A play from this many games is said to be a small sample.
 const SMALL_SAMPLE = 5;
 
@@ -72,7 +74,8 @@ function currentGame() {
 const shotsBoard = (g) => ((SHOTS || {}).games || {})[g.game_id] || null;
 const goalsBoard = (g) => ((GOALS || {}).games || {})[g.game_id] || null;
 const pointsBoard = (g) => ((POINTS || {}).games || {})[g.game_id] || null;
-const anyBoard = (g) => shotsBoard(g) || goalsBoard(g) || pointsBoard(g);
+const savesBoard = (g) => ((SAVES || {}).games || {})[g.game_id] || null;
+const anyBoard = (g) => shotsBoard(g) || goalsBoard(g) || pointsBoard(g) || savesBoard(g);
 function gameState(g) {
   const board = anyBoard(g) || {};
   if (g.status === "final" || board.final) return "final";
@@ -86,21 +89,22 @@ const dayIsMixed = (date) => new Set(gamesOn(date).filter(anyBoard).map((g) => (
 // line, price, chance, edge), the game, and whether it won once final.
 // The best price across the member's books (SmartStake, book-odds.js) for this play's side and
 // line (for the "every book" list a price opens).
-const BOOK_STAT = { sog: "sog", goal: "goals", pts: "points" };
+const BOOK_STAT = { sog: "sog", goal: "goals", pts: "points", saves: "saves" };
 function bookSpec(x) {
   const p = x.play;
   const side = p.side === "under" ? "u" : "o";
   const line = x.market === "goal" ? 0.5 : p.line;
   return {
     kind: "prop", stat: BOOK_STAT[x.market], team: x.r.team, pid: x.r.id, name: x.r.name, side, line,
-    game: `${x.g.away}_${x.g.home}`, title: `${x.r.name} &middot; ${{ sog: "Shots on goal", goal: "Anytime goal", pts: "Points" }[x.market]}`,
+    game: `${x.g.away}_${x.g.home}`, title: `${x.r.name} &middot; ${{ sog: "Shots on goal", goal: "Anytime goal", pts: "Points", saves: "Saves" }[x.market]}`,
     sub: `${x.g.away} @ ${x.g.home}`, color: `#${team(x.r.team).color}`,
-    edges: x.market === "sog" ? { lean: x.r.move === "down" ? Infinity : shotsBar(), check: Infinity } : (SHOTS || {}).edges, model: { [`${side}|${line}`]: p.chance },
+    edges: x.market === "sog" ? { lean: x.r.move === "down" ? Infinity : shotsBar(), check: Infinity } : ((x.market === "saves" ? SAVES : SHOTS) || {}).edges, model: { [`${side}|${line}`]: p.chance },
   };
 }
 // Which book the build took this play's price from (it keeps the best price across every US book,
 // SmartStake; Novig's own price when no book beats it). Ids are book-odds.js's / GMG_BOOKS'.
 function priceBook(x) {
+  if (x.market === "saves") return x.r[`${x.play.side}_book`] || "novig";
   const m = (((DATA.player_odds || {})[x.g.game_id] || {})[x.r.id] || {})[{ sog: "sog", goal: "goal", pts: "points" }[x.market]] || {};
   return (x.market === "goal" ? m.book : m[`${x.play.side === "under" ? "under" : "over"}_book`]) || "novig";
 }
@@ -146,15 +150,29 @@ function playsFor(date) {
         out.push({ market: "pts", r, g, posted: !!pb.posted, play, thin: !!r.thin, result, state });
       });
     }
+    // Saves: saves.json's play as the build filed it (King of the Crease's goalie, the best price across books).
+    const vb = savesBoard(g);
+    if (vb && bestView.markets.saves) {
+      vb.goalies.forEach((r) => {
+        if (!r.id || !r.side || !has(r.price) || !has(r.edge) || !BUCKETS.includes(r.size)) return;
+        const chance = r.side === "over" ? r.chance_over : 1 - r.chance_over;
+        const play = { side: r.side, line: r.line, price: r.price, chance, edge: r.edge, fair: r.fair, fade: !!r.fade };
+        const result = r.void || !has(r.actual) || r.actual === r.line ? null : (r.side === "over") === r.actual > r.line ? "win" : "loss";
+        out.push({ market: "saves", r: { ...r, pos: "G", games: r.starts }, g, posted: true, play, thin: !!r.thin, result, state });
+      });
+    }
   });
   return out;
 }
+// The Rating sort: Strong and Shots' Play first, then Lean, then Check.
+const RATING_ORDER = { strong: 3, play: 3, lean: 2, check: 1 };
 const SORTS = {
   edge: (x) => x.play.edge,
   odds: (x) => payout(x.play.price),
   fair: (x) => -x.play.chance, // most first = the longest fair price
   time: (x) => -Date.parse(x.g.start_utc || 0), // earliest first when "most first"
-  market: (x) => ({ goal: 0, sog: 1, pts: 2 })[x.market],
+  market: (x) => ({ goal: 0, sog: 1, pts: 2, saves: 3 })[x.market],
+  rating: (x) => RATING_ORDER[x.market === "sog" ? "play" : x.r.size] || 0,
 };
 function sortedPlays(date) {
   const get = SORTS[bestView.sort] || SORTS.edge;
@@ -235,16 +253,18 @@ function notesFor(x) {
     const against = x.market === "goal" ? r.move === "down" : r.move === (x.play.side === "under" ? "up" : "down");
     notes.push([against ? "warn" : "info", `${slotName(r.slot)} ${r.move === "up" ? "&#9650;" : "&#9660;"}`, `On a ${r.move === "up" ? "higher" : "lower"} line tonight (${slotName(r.slot)}) than his minutes this season say.${against ? " This play goes the other way: his games so far don't describe tonight's role." : ""}`]);
   }
-  if (has(r.games) && r.games < SMALL_SAMPLE) notes.push(["warn", `${r.games} GP`, `Only ${r.games} game${r.games === 1 ? "" : "s"} this season: a small sample.`]);
-  if (x.market !== "goal" && x.play.fade) notes.push(["info", "vs avg", `Goes against his season average (${fmt(r.avg, 2)} ${x.market === "pts" ? "points" : "shots"} a game): the model thinks a small sample has run ${x.play.side === "under" ? "hot" : "cold"}.`]);
+  if (has(r.games) && r.games < SMALL_SAMPLE) notes.push(["warn", `${r.games} ${x.market === "saves" ? "GS" : "GP"}`, `Only ${r.games} ${x.market === "saves" ? "start" : "game"}${r.games === 1 ? "" : "s"} this season: a small sample.`]);
+  if (x.market === "saves" && x.play.fade) notes.push(["info", "vs avg", `Goes against his season average (${fmt(r.saves_avg, 1)} saves a start): the model reads tonight's matchup differently.`]);
+  else if (x.market !== "goal" && x.play.fade) notes.push(["info", "vs avg", `Goes against his season average (${fmt(r.avg, 2)} ${x.market === "pts" ? "points" : "shots"} a game): the model thinks a small sample has run ${x.play.side === "under" ? "hot" : "cold"}.`]);
   if (x.thin && priceBook(x) === "novig") notes.push(["warn", "Thin", "Barely traded on Novig, and no book beats it: treat the price with care."]);
-  return notes.map(([kind, text, tip]) => `<span class="best-note best-note-${kind}" title="${tip}">${text}</span>`).join("");
+  // A goalie's starter call, as the Saves page says it (if someone else starts, the bet is void).
+  return (x.market === "saves" ? starterTag(r) : "") + notes.map(([kind, text, tip]) => `<span class="best-note best-note-${kind}" title="${tip}">${text}</span>`).join("");
 }
 function playCell(x) {
   if (x.market === "goal") return `<span class="shots-play shots-play-over best-play" title="Anytime goal: he scores at least once"><b>Scores</b><span>goal</span></span>`;
   const p = x.play;
-  const what = x.market === "pts" ? "points" : "shots";
-  return `<span class="shots-play shots-play-ou shots-play-${p.side} best-play" title="${p.side === "over" ? "Over" : "Under"} ${fmt(p.line)} ${x.market === "pts" ? "points" : "shots on goal"}"><b>${p.side[0]}${fmt(p.line)}</b><span>${what}</span></span>`;
+  const what = { pts: "points", saves: "saves" }[x.market] || "shots";
+  return `<span class="shots-play shots-play-ou shots-play-${p.side} best-play" title="${p.side === "over" ? "Over" : "Under"} ${fmt(p.line)} ${{ pts: "points", saves: "saves" }[x.market] || "shots on goal"}"><b>${p.side[0]}${fmt(p.line)}</b><span>${what}</span></span>`;
 }
 // The same bucket the play's own page shows (and the record grades): Shots' "Play"; Goals' and
 // Points' Strong / Lean / Check. A play is never plainer here than on its page.
@@ -252,7 +272,7 @@ const isCheck = (x) => x.market !== "sog" && x.r.size === "check";
 function ratingCell(x) {
   const tag = x.market === "sog"
     ? ratingTag("play", "Play", `An edge of ${Math.round(shotsBar() * 100)}+ points on a player not moved down a line tonight`)
-    : bucketTag(x.r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") });
+    : bucketTag(x.r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") }, x.market === "saves" ? savesGapCheck(x.r, (SAVES || {}).check_saves || 4) : null);
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}</td>`;
 }
 function edgeCell(x) {
@@ -264,7 +284,7 @@ function edgeCell(x) {
 }
 function bestResultCell(x) {
   if (!x.result) return `<td class="num muted-label">--</td>`;
-  const got = `${x.r.actual} ${{ sog: "SOG", goal: "G", pts: "PTS" }[x.market]}`;
+  const got = `${x.r.actual} ${{ sog: "SOG", goal: "G", pts: "PTS", saves: "SV" }[x.market]}`;
   return `<td class="num"><span class="pick-result pick-result-${x.result}">${x.result === "win" ? "W" : "L"}</span> <small>${got}</small></td>`;
 }
 const COLUMNS = [
@@ -275,7 +295,7 @@ const COLUMNS = [
     return `<td class="shots-player best-player"><div class="nba-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 24)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 24)}</span></div></td>`;
   } },
   { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}${nhlPlayBox(nhlPlayEntry({ market: x.market, g: x.g, r: x.r, side: x.play.side, line: x.play.line, price: x.play.price }))}</td>` },
-  { key: null, label: "Rating", title: "The play's bucket on its own page (the one the record grades). Shots: Play. Goals and Points: Strong, Lean, or Check (a gap too big to take at face value, or a player moved to a line that goes against the play: check the news first)", cell: ratingCell },
+  { key: "rating", label: "Rating", title: "The play's bucket on its own page (the one the record grades). Shots: Play. Goals, Points and Saves: Strong, Lean, or Check (a gap too big to take at face value, a player moved to a line that goes against the play, or a goalie the model and the line are far apart on: check the news first). Sort it to put the Checks together", cell: ratingCell },
   { key: "fair", label: "GMG Fair", title: "The price the GMG model says this bet is worth, with no cut: its chance turned into odds. Odds longer than this are the edge", cell: (x) => `<td class="num best-fair" title="The GMG model gives it ${Math.round(x.play.chance * 100)}%">${odds(has(x.play.fair) ? x.play.fair : fairPrice(x.play.chance)) || "--"}</td>` },
   { key: "odds", label: "Odds", title: "The best price any US book has right now (the Edge is figured on it). Click for every book. Sort by it for the biggest payout first", cell: (x) => {
     const book = priceBook(x);
@@ -342,7 +362,7 @@ const recordView = (() => {
     }
   })();
   const minEdge = (v) => (Number.isFinite(v) ? Math.max(lean, Math.min(EDGE_MAX, v)) : lean);
-  return { days: RECORD_WINDOWS.some(([d]) => d === saved.days) ? saved.days : 0, sog: minEdge(saved.sog), goal: minEdge(saved.goal), pts: minEdge(saved.pts) };
+  return { days: RECORD_WINDOWS.some(([d]) => d === saved.days) ? saved.days : 0, sog: minEdge(saved.sog), goal: minEdge(saved.goal), pts: minEdge(saved.pts), saves: minEdge(saved.saves) };
 })();
 function saveRecordView() {
   try {
@@ -380,31 +400,34 @@ function renderRecordBuckets(box) {
   const shots = sum(SHOTS.record);
   const goals = sum(GOALS.record);
   const pts = sum(POINTS.record);
-  const all = { wins: shots.wins + goals.wins + pts.wins, losses: shots.losses + goals.losses + pts.losses, units: shots.units + goals.units + pts.units };
+  const saves = sum(SAVES.record);
+  const all = { wins: shots.wins + goals.wins + pts.wins + saves.wins, losses: shots.losses + goals.losses + pts.losses + saves.losses, units: shots.units + goals.units + pts.units + saves.units };
   const tile = (label, t, tip) => `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div>${tileBody(t)}</div>`;
-  box.innerHTML = `<div class="shots-detail-label">Every play with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">graded at the price locked before puck drop; u = units won risking 1 a play. The full records are on the Shots, Goals and Points pages.</span></div>
+  box.innerHTML = `<div class="shots-detail-label">Every play with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">graded at the price locked before puck drop; u = units won risking 1 a play. The full records are on the Shots, Goals, Points and Saves pages.</span></div>
     <div class="nba-tiles shots-record">
       ${tile("All plays", all, "Every play this page lists")}
       ${tile("Shots on goal", shots, "Shots plays with an edge")}
       ${tile("Anytime goal", goals, "Goal plays with an edge")}
       ${tile("Points", pts, "Points plays with an edge")}
+      ${tile("Goalie saves", saves, "Saves plays with an edge")}
     </div>`;
 }
-const LEDGERS = () => ({ sog: (SHOTS.record || {}).ledger, goal: (GOALS.record || {}).ledger, pts: (POINTS.record || {}).ledger });
+const LEDGERS = () => ({ sog: (SHOTS.record || {}).ledger, goal: (GOALS.record || {}).ledger, pts: (POINTS.record || {}).ledger, saves: (SAVES.record || {}).ledger });
 function renderRecord() {
   const box = el("best-results");
   const ledgers = LEDGERS();
-  if (!ledgers.sog && !ledgers.goal && !ledgers.pts) return renderRecordBuckets(box);
+  if (!ledgers.sog && !ledgers.goal && !ledgers.pts && !ledgers.saves) return renderRecordBuckets(box);
   const lean = Math.round(edgeAt("lean") * 100);
   const windows = RECORD_WINDOWS.map(([d, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${recordView.days === d ? " active" : ""}" data-rec-days="${d}">${label}</button>`).join("");
-  const slider = (key) => `<label class="best-rec-edge"><span>Min edge</span><input type="range" min="${lean}" max="${EDGE_MAX}" step="1" value="${recordView[key]}" data-rec-edge="${key}" aria-label="Minimum edge, ${{ sog: "shots on goal", goal: "anytime goal", pts: "points" }[key]}"><output data-rec-out="${key}"></output></label>`;
-  box.innerHTML = `<div class="shots-detail-label">Graded plays <span class="muted-label">at the price locked before puck drop; u = units won risking 1 a play. Slide a market's minimum edge (in points) to see how the bigger edges have done. The full records are on the Shots, Goals and Points pages.</span></div>
+  const slider = (key) => `<label class="best-rec-edge"><span>Min edge</span><input type="range" min="${lean}" max="${EDGE_MAX}" step="1" value="${recordView[key]}" data-rec-edge="${key}" aria-label="Minimum edge, ${{ sog: "shots on goal", goal: "anytime goal", pts: "points", saves: "goalie saves" }[key]}"><output data-rec-out="${key}"></output></label>`;
+  box.innerHTML = `<div class="shots-detail-label">Graded plays <span class="muted-label">at the price locked before puck drop; u = units won risking 1 a play. Slide a market's minimum edge (in points) to see how the bigger edges have done. The full records are on the Shots, Goals, Points and Saves pages.</span></div>
     <div class="view-toggle shots-filter best-rec-windows">${windows}</div>
     <div class="nba-tiles best-rec-tiles">
-      <div class="nba-tile" data-rec-tile="all" title="Both markets, each at its own minimum edge"><div class="gs-tile-label">All plays</div><div data-rec-body="all"></div><small class="best-rec-sub" data-rec-sub="all"></small></div>
+      <div class="nba-tile" data-rec-tile="all" title="Every market, each at its own minimum edge"><div class="gs-tile-label">All plays</div><div data-rec-body="all"></div><small class="best-rec-sub" data-rec-sub="all"></small></div>
       <div class="nba-tile" data-rec-tile="sog" title="Shots on goal plays at or above the minimum edge"><div class="gs-tile-label">Shots on goal</div><div data-rec-body="sog"></div>${slider("sog")}</div>
       <div class="nba-tile" data-rec-tile="goal" title="Anytime goal plays at or above the minimum edge"><div class="gs-tile-label">Anytime goal</div><div data-rec-body="goal"></div>${slider("goal")}</div>
       <div class="nba-tile" data-rec-tile="pts" title="Points plays at or above the minimum edge"><div class="gs-tile-label">Points</div><div data-rec-body="pts"></div>${slider("pts")}</div>
+      <div class="nba-tile" data-rec-tile="saves" title="Goalie saves plays at or above the minimum edge"><div class="gs-tile-label">Goalie saves</div><div data-rec-body="saves"></div>${slider("saves")}</div>
     </div>`;
   updateRecord();
 }
@@ -416,7 +439,8 @@ function updateRecord() {
   const sog = tally(ledgers.sog, since, recordView.sog);
   const goal = tally(ledgers.goal, since, recordView.goal);
   const pts = tally(ledgers.pts, since, recordView.pts);
-  const all = { wins: sog.wins + goal.wins + pts.wins, losses: sog.losses + goal.losses + pts.losses, units: sog.units + goal.units + pts.units };
+  const saves = tally(ledgers.saves, since, recordView.saves);
+  const all = { wins: sog.wins + goal.wins + pts.wins + saves.wins, losses: sog.losses + goal.losses + pts.losses + saves.losses, units: sog.units + goal.units + pts.units + saves.units };
   const put = (sel, html) => {
     const node = box.querySelector(sel);
     if (node) node.innerHTML = html;
@@ -425,10 +449,12 @@ function updateRecord() {
   put('[data-rec-body="sog"]', tileBody(sog));
   put('[data-rec-body="goal"]', tileBody(goal));
   put('[data-rec-body="pts"]', tileBody(pts));
+  put('[data-rec-body="saves"]', tileBody(saves));
+  put('[data-rec-out="saves"]', `${recordView.saves}+`);
   put('[data-rec-out="sog"]', `${recordView.sog}+`);
   put('[data-rec-out="goal"]', `${recordView.goal}+`);
   put('[data-rec-out="pts"]', `${recordView.pts}+`);
-  put('[data-rec-sub="all"]', `Shots ${recordView.sog}+ &middot; Goals ${recordView.goal}+ &middot; Points ${recordView.pts}+`);
+  put('[data-rec-sub="all"]', `Shots ${recordView.sog}+ &middot; Goals ${recordView.goal}+ &middot; Points ${recordView.pts}+ &middot; Saves ${recordView.saves}+`);
 }
 document.addEventListener("input", (e) => {
   const key = e.target.dataset && e.target.dataset.recEdge;
@@ -500,7 +526,7 @@ document.addEventListener("click", (e) => {
     else Object.assign(bestView, { sort: sort.dataset.sort, dir: -1 });
     return renderTable();
   }
-  // A row opens its own row on the Shots, Goals or Points page (a name opens the player card instead).
+  // A row opens its own row on the Shots, Goals, Points or Saves page (a name opens the player card instead).
   const row = e.target.closest(".best-row");
   if (row && !e.target.closest(".player-click, a")) location.href = row.dataset.href;
 });
@@ -509,11 +535,12 @@ const getJson = (url) =>
   fetch(url)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null);
-Promise.all([loadNhlData(), getJson("shots.json"), getJson("goals.json"), getJson("points.json")])
-  .then(([, shots, goals, pts]) => {
+Promise.all([loadNhlData(), getJson("shots.json"), getJson("goals.json"), getJson("points.json"), getJson("saves.json")])
+  .then(([, shots, goals, pts, saves]) => {
     SHOTS = shots || { games: {} };
     GOALS = goals || { games: {} };
     POINTS = pts || { games: {} };
+    SAVES = saves || { games: {} };
     const all = days();
     const today = new Date().toLocaleDateString("en-CA");
     const day = all.find((d) => d >= today && gamesOn(d).some(anyBoard)) || all.find((d) => d >= today) || all[all.length - 1];

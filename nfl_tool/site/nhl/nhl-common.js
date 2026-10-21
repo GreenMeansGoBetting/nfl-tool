@@ -54,16 +54,37 @@ const advancedToggle = (on) =>
   `<span class="shots-filter"><button type="button" id="shots-adv-toggle" class="view-toggle-btn shots-filter-btn shots-adv-toggle${on ? " active" : ""}" data-filter="adv" data-value="${!on}" title="Minutes and what moved the number tonight: the other defense, his position, the power play, home ice and rest">${on ? "Hide advanced stats" : "Expand advanced stats"}</button></span>`;
 // The record's bucket on a row: Strong / Lean / Check, the same tags as the YTD record's table.
 const ratingTag = (size, label, tip) => `<span class="shots-record-size shots-record-${size}" title="${tip}">${label}</span>`;
+// Saves (saves.js, best.js): who should start, and how much stands behind the name (crease_starter in build_nhl.py).
+function starterTip(r) {
+  return {
+    both: "The NHL's projected lineup and the goalie Novig prices agree. A projection, never a confirmation: starters are official at warmups.",
+    split: `Novig prices ${r.name}; the NHL's projected lineup has ${r.other}. The book's goalie is shown (it is the later of the two). If the other one starts, the bet is void.`,
+    lineup: `Only the NHL's projected lineup names him so far${r.doubt ? ". He started last night, so check before you bet" : ""}.`,
+    market: "Only Novig's saves line names him so far: the NHL hasn't posted this game's projected lineup.",
+    usual: "Neither the NHL's lineup nor a saves line names a starter yet: the goalie with the most starts, or his partner on the second night of a back-to-back.",
+  }[r.source] || "";
+}
+function starterTag(r) {
+  if (r.source === "both") return `<span class="shots-flag saves-agree" title="${starterTip(r)}">&#10003; agree</span>`;
+  if (r.source === "split") return `<span class="shots-flag shots-fade" title="${starterTip(r)}">Lineup: ${(r.other || "").split(" ").slice(-1)[0]}</span>`;
+  if (r.doubt) return `<span class="shots-flag shots-fade" title="${starterTip(r)}">Started last night</span>`;
+  return `<span class="shots-flag saves-plain" title="${starterTip(r)}">${{ lineup: "Lineup only", market: "Book only", usual: "Usual starter" }[r.source] || ""}</span>`;
+}
+// Saves' other "check": the model and what the line and price say are `apart`+ saves apart.
+const savesGapCheck = (r, apart) => ({ label: "Check", tip: `The model has ${fmt(r.mean, 1)} saves; the line and price say ${fmt(r.mkt_mean, 1)}. ${apart}+ saves apart is more often a starter or news the book knows. Check before you bet.` });
 // The build's bucket for a Goals or Points row (`size`, the one the record grades), as one tag.
 // Every page that shows such a play draws it with this, so a "Check" on the Goals or Points
 // page is a "Check" on Best Plays too (a member caught one listed as a plain play, 2026-10-20).
-function bucketTag(r, edges) {
+// `otherCheck` = {label, tip} for a page whose "check" below the check edge means something else
+// (Saves: the model and the line 4+ saves apart); by default a line move ("New line").
+function bucketTag(r, edges, otherCheck) {
   const n = (size) => Math.round(edges[size] * 100);
   if (r.size === "strong") return ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`);
   if (r.size === "lean") return ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`);
   if (r.size !== "check") return "";
   return has(r.edge) && r.edge >= edges.check
     ? ratingTag("check", "Check", "A gap this big usually means the market knows something this season's few games don't. Check before you bet.")
+    : otherCheck ? ratingTag("check", otherCheck.label, otherCheck.tip)
     : ratingTag("check", "New line", `${r.name} is on a ${r.move === "up" ? "higher" : "lower"} line tonight than his minutes this season say he has been on, and this play goes the other way: his games so far describe a different role.`);
 }
 const headshot = (p, cls = "nhl-headshot") => (p.headshot ? `<img src="${p.headshot}" alt="" class="${cls}" loading="lazy">` : `<span class="${cls}"></span>`);

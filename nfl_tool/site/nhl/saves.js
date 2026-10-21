@@ -162,36 +162,11 @@ function playChip(r) {
   }
   return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} saves at the best price across books (Novig's line)"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
 }
-// Who should start, and how much stands behind the name (crease_starter in build_nhl.py).
-function starterTip(r) {
-  return {
-    both: "The NHL's projected lineup and the goalie Novig prices agree. A projection, never a confirmation: starters are official at warmups.",
-    split: `Novig prices ${r.name}; the NHL's projected lineup has ${r.other}. The book's goalie is shown (it is the later of the two). If the other one starts, the bet is void.`,
-    lineup: `Only the NHL's projected lineup names him so far${r.doubt ? ". He started last night, so check before you bet" : ""}.`,
-    market: "Only Novig's saves line names him so far: the NHL hasn't posted this game's projected lineup.",
-    usual: "Neither the NHL's lineup nor a saves line names a starter yet: the goalie with the most starts, or his partner on the second night of a back-to-back.",
-  }[r.source] || "";
-}
-function starterTag(r) {
-  if (r.source === "both") return `<span class="shots-flag saves-agree" title="${starterTip(r)}">&#10003; agree</span>`;
-  if (r.source === "split") return `<span class="shots-flag shots-fade" title="${starterTip(r)}">Lineup: ${(r.other || "").split(" ").slice(-1)[0]}</span>`;
-  if (r.doubt) return `<span class="shots-flag shots-fade" title="${starterTip(r)}">Started last night</span>`;
-  return `<span class="shots-flag saves-plain" title="${starterTip(r)}">${{ lineup: "Lineup only", market: "Book only", usual: "Usual starter" }[r.source] || ""}</span>`;
-}
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {
   const r = x.r;
-  const n = (size) => Math.round(edgeAt(size) * 100);
   const fade = r.fade && r.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.saves_avg, 1)} saves a start in ${r.starts} starts): the model reads tonight's matchup differently.">vs his avg</span>` : "";
-  const tag = r.size === "strong"
-    ? ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`)
-    : r.size === "lean"
-      ? ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`)
-      : !needsCheck(x)
-        ? ""
-        : r.edge >= edgeAt("check")
-          ? ratingTag("check", "Check", "A gap this big usually means the market knows something this season's few games don't. Check before you bet.")
-          : ratingTag("check", "Check", `The model has ${fmt(r.mean, 1)} saves; the line and price say ${fmt(r.mkt_mean, 1)}. ${checkSaves()}+ saves apart is more often a starter or news the book knows. Check before you bet.`);
+  const tag = bucketTag(r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") }, savesGapCheck(r, checkSaves()));
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}${fade}</td>`;
 }
 function edgeCell(x) {
