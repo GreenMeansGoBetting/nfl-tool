@@ -99,6 +99,11 @@ class TopMenu(unittest.TestCase):
             self.assertTrue(page.locator(".acct-menu").is_hidden())
             self.assertFalse(page.evaluate("() => document.getElementById('updates-modal').hidden"))
             page.keyboard.press("Escape")
+            # A fresh browser hasn't seen the newest update, so an update's
+            # "Before you go" note (GMG_UPDATES `after`) follows: close it too.
+            if page.evaluate("() => GMG_UPDATES[0].after !== undefined"):
+                self.assertFalse(page.evaluate("() => document.getElementById('after-note-modal').hidden"))
+                page.keyboard.press("Escape")
             page.click(".acct-chip")
             page.click(".acct-menu [data-act=request]")
             self.assertTrue(page.evaluate("() => !document.getElementById('feature-request-modal').hidden"))
