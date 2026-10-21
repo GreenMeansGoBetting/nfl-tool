@@ -649,11 +649,14 @@ def first_basket_record(season: int, slate: dict, names: dict, games: list, open
                         book_odds: dict | None = None) -> dict:
     """model_history/nba_first_basket/<season>.json: each game's ten starters
     as the last build before tip had them ({game id: {date, away, home,
-    first_home, players: {id: [name, our chance, best price, Value, book]}}};
-    best price = the best Yes across SmartStake's books, else Novig's; a
-    started game is never rewritten), graded once its play-by-play is in
-    (`result`: the team and player who scored first). Returns the Value
-    record for the page: every Value tag bet one unit at its best price."""
+    first_home, tip_home, jumpers: [[id, name] away, home], players: {id:
+    [name, our chance, best price, Value, book]}}}; best price = the best Yes
+    across SmartStake's books, else Novig's; a started game is never
+    rewritten), graded once its play-by-play is in (`result`: the team that
+    won the opening tip, the team and player who scored first). Returns the
+    Value record for the page (every Value tag bet one unit at its best
+    price) and `history`, every graded game newest first, for its YTD
+    Performance window. tip_home / jumpers are saved from 2026-10-21 on."""
     path = FB_RECORD_DIR / f"{season}.json"
     record = json.loads(path.read_text()) if path.exists() else {}
     by_id = {g["game_id"]: g for g in games}
@@ -668,28 +671,45 @@ def first_basket_record(season: int, slate: dict, names: dict, games: list, open
             price, book = first_basket.best_price((book_odds or {}).get(f"{g['away']}_{g['home']}"), pid,
                                                   first_basket.book_price(g.get("first_basket"), name))
             rows[pid] = [name, f["p"], price, first_basket.is_value(f["p"], price), book]
-        record[gid] = {"date": g["date"], "away": g["away"], "home": g["home"], "first_home": game["fair"]["first_home"], "players": rows}
+        jumpers = [[j, names.get(j, j)] if j else None for j in (game["away"]["jumper"], game["home"]["jumper"])]
+        record[gid] = {"date": g["date"], "away": g["away"], "home": g["home"], "first_home": game["fair"]["first_home"],
+                       "tip_home": game["fair"]["tip_home"], "jumpers": jumpers, "players": rows}
         changed = True
     for gid, r in record.items():
         o = openings.get(gid)
-        if "result" not in r and o:
-            r["result"] = {"team": o["first_team"], "scorer": None if o["first_scorer"] is None else str(o["first_scorer"])}
+        if not o:
+            continue
+        if "result" not in r:
+            r["result"] = {"team": o["first_team"], "scorer": None if o["first_scorer"] is None else str(o["first_scorer"]), "tip": o.get("tip")}
+            changed = True
+        elif "tip" not in r["result"]:  # graded before the tip winner was kept
+            r["result"]["tip"] = o.get("tip")
             changed = True
     if changed:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(record, indent=1, sort_keys=True))
     plays = won = 0
     total = 0.0
-    for r in record.values():
+    history = []
+    for gid, r in sorted(record.items(), key=lambda x: (x[1]["date"], x[0]), reverse=True):
         if "result" not in r:
             continue
-        for pid, (_, _, price, value, *_) in r["players"].items():
-            if value and price is not None:
-                hit = r["result"]["scorer"] == pid
+        res = r["result"]
+        value = []
+        for pid, (name, _, price, is_value, *_) in r["players"].items():
+            if is_value and price is not None:
+                hit = res["scorer"] == pid
                 plays += 1
                 won += hit
                 total += first_basket.units(price, hit)
-    return {"plays": plays, "won": won, "units": round(total, 2), "games": sum("result" in r for r in record.values())}
+                value.append([pid, name, price, hit])
+        scorer = res["scorer"]
+        history.append({"game_id": gid, "date": r["date"], "away": r["away"], "home": r["home"],
+                        "tip_home": r.get("tip_home"), "jumpers": r.get("jumpers"), "tip": res.get("tip"),
+                        "first_home": r.get("first_home"), "first": res["team"],
+                        "scorer": [scorer, (r["players"].get(scorer) or [names.get(scorer, scorer)])[0]] if scorer else None,
+                        "value": value})
+    return {"plays": plays, "won": won, "units": round(total, 2), "games": len(history), "history": history}
 
 
 def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: list, now_utc: datetime) -> dict:

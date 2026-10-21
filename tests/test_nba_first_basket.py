@@ -238,11 +238,26 @@ class Build(unittest.TestCase):
                 self.assertEqual(got["plays"], 0)  # not graded yet
                 # After tip the prices may move; the saved ones stay, and the game is graded.
                 late = {**game, "status": "final", "first_basket": {"P12": 100}}
-                got = build_nba.first_basket_record(2027, slate_, names, [late], {"9": {"first_team": "AAA", "first_scorer": 12}}, after)
+                # The tip pick is saved too: its chance and both jumpers (road, home).
+                self.assertEqual(saved["tip_home"], slate_["9"]["fair"]["tip_home"])
+                self.assertEqual(saved["jumpers"], [["20", "P20"], ["10", "P10"]])
+                got = build_nba.first_basket_record(2027, slate_, names, [late], {"9": {"first_team": "AAA", "first_scorer": 12, "tip": "BBB"}}, after)
                 saved = json.loads((Path(tmp) / "2027.json").read_text())["9"]
                 self.assertEqual(saved["players"]["12"][2], 5000)
-                self.assertEqual(saved["result"], {"team": "AAA", "scorer": "12"})
+                self.assertEqual(saved["result"], {"team": "AAA", "scorer": "12", "tip": "BBB"})
+                history = got.pop("history")
                 self.assertEqual(got, {"plays": 2, "won": 1, "units": 49.0, "games": 1})  # 12 won (+50), 11 lost (-1)
+                # The YTD Performance window's row: picks as saved before tip, then what happened.
+                self.assertEqual(history, [{"game_id": "9", "date": "2026-10-21", "away": "BBB", "home": "AAA",
+                                            "tip_home": saved["tip_home"], "jumpers": saved["jumpers"], "tip": "BBB",
+                                            "first_home": saved["first_home"], "first": "AAA", "scorer": ["12", "P12"],
+                                            "value": [["11", "P11", 3000, False], ["12", "P12", 5000, True]]}])
+                # A game graded before the tip winner was kept gets it on the next build.
+                rec = json.loads((Path(tmp) / "2027.json").read_text())
+                del rec["9"]["result"]["tip"]
+                (Path(tmp) / "2027.json").write_text(json.dumps(rec))
+                build_nba.first_basket_record(2027, slate_, names, [late], {"9": {"first_team": "AAA", "first_scorer": 12, "tip": "BBB"}}, after)
+                self.assertEqual(json.loads((Path(tmp) / "2027.json").read_text())["9"]["result"]["tip"], "BBB")
             finally:
                 build_nba.FB_RECORD_DIR = old
 
@@ -353,6 +368,36 @@ class Page(unittest.TestCase):
     def test_season_buttons(self):
         buttons = PAGE.evaluate("() => [...document.querySelectorAll('#fb-seasons button')].map((b) => [b.textContent, b.disabled])")
         self.assertEqual(buttons, [["2025-26", False], ["2026-27", False]])
+
+    def test_ytd_performance_pill_opens_the_history(self):
+        # The owner, 2026-10-21: a "YTD Performance" pill beside the seasons.
+        got = PAGE.evaluate("""() => {
+            FB.record = { plays: 2, won: 1, units: 3.5, games: 2, history: [
+              { game_id: "8", date: "2026-10-21", away: "BBB", home: "AAA", tip_home: 0.7, jumpers: [["20", "P20"], ["10", "P10"]], tip: "AAA",
+                first_home: 0.6, first: "BBB", scorer: ["20", "P20"], value: [["12", "P12", 450, true], ["11", "P11", 900, false]] },
+              { game_id: "7", date: "2026-10-20", away: "AAA", home: "BBB", tip_home: null, jumpers: null, tip: "BBB",
+                first_home: 0.45, first: "AAA", scorer: null, value: [] }] };
+            render();
+            const pill = document.querySelector('#fb-seasons #fb-ytd');
+            const label = pill && pill.textContent;
+            pill.click();
+            const modal = document.getElementById('fb-ytd-modal');
+            const out = { label, open: !modal.hidden,
+              tiles: [...modal.querySelectorAll('.fb-ytd-tile')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim()),
+              rows: [...modal.querySelectorAll('tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim())) };
+            modal.hidden = true; delete FB.record; render(); return out; }""")
+        self.assertEqual(got["label"], "YTD Performance")
+        self.assertTrue(got["open"])
+        # Tip: picked AAA (70%) and AAA won it; the older game had no tip pick saved.
+        # Scores First: AAA (60%) but BBB did, then AAA (55% road) and AAA did.
+        self.assertEqual(got["tiles"][0], "TIP PREDICTION 1 of 1 100%")
+        self.assertEqual(got["tiles"][1], "SCORES FIRST 1 of 2 50%")
+        self.assertTrue(got["tiles"][2].startswith("VALUE PLAYS 1 of 2 50%"), got["tiles"][2])
+        self.assertIn("+3.5u", got["tiles"][2])
+        self.assertEqual(got["rows"][0][2].replace(" ", ""), "P1070%")  # home jumper and his chance
+        self.assertEqual(got["rows"][1][2], "--")
+        self.assertEqual(got["rows"][1][4].replace(" ", ""), "AAA55%")
+        self.assertEqual(SITE.errors, [])
 
     def test_in_the_nba_menu(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nav-menu a')].map((a) => a.getAttribute('href'))")

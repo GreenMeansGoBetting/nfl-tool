@@ -382,6 +382,14 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   ({id: [name, chance, Novig, Value]}, a started game never rewritten), `result` {team, scorer}
   from the play-by-play; `first_basket.record` = {plays, won, units (1u at Novig), games}. The
   record uses the build's starters (the NBA lineup copy isn't applied there), the page the live five.
+- **YTD Performance** (the owner, 2026-10-21: "a pill next to the years ... brings up a modal with
+  the history"): a pill after the season buttons opens a window (`renderYtd`, book-odds.js's
+  `ensureBookModal`) with three tiles (Tip Prediction, Scores First, Value Plays: x of y, %, units)
+  and every graded game newest first: our tip pick (jumper, chance) vs who won it, our Scores
+  First pick vs who did and the scorer, the Value plays at their price; right = green, wrong = red.
+  A pick = the side over 50% (exactly 50% = no pick). From `record.history` (build_nba.py
+  `first_basket_record`), which also saves `tip_home`, `jumpers` and `result.tip` from 2026-10-21
+  on (earlier games' result.tip is filled in on the next build; their tip pick shows "--").
 - **Tags** beside names (this season's numbers): **Value** (green), **Top Option** (most shots a
   start among the five), **First Look** (his team's first shot in 25%+ of 5+ starts), Jumper.
   Ideas not built: Usage + (a high-shot teammate Out), FT Early.
