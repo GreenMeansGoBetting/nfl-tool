@@ -7,7 +7,9 @@ field goal allowed" is field goals only; possessions to first points; shots
 before the game's first points; the league's tip-winner rate; likely starters
 are regular starters by minutes (a star who missed games still starts) and
 skip players listed Out; the tip chance reads every jump ball and who it was
-against, starting from height; the fair guess adds up; the page draws every section
+against, starting from height; the Fair (team chance x his share of his team's
+first points, this season only) adds up; the Value record saves before tip and
+grades after; the page draws every section
 with the build's numbers, colors with no script errors, and is in the NBA menu;
 the NBA's lineup file replaces the likely starters (Expected from the build's
 copy, Confirmed from the live /api/nba-lineups), names match our players, a
@@ -86,12 +88,13 @@ def box_rows():
     return pd.DataFrame([{
         "game_id": g, "athlete_id": pid, "team_abbreviation": t, "starter": s, "minutes": m, "season_type": 2,
         "game_date": f"2026-01-0{g}", "athlete_display_name": f"P{pid}", "athlete_position_abbreviation": POS.get(pid, "G"),
-        "athlete_headshot_href": None,
+        "athlete_headshot_href": None, "field_goals_attempted": 20 if pid == 12 else 8, "free_throws_attempted": 0,
     } for g, pid, t, s, m in rows])
 
 
 BLOCK = fb.season_block(PBP, box_rows(), set(TEAMS), "2025-26")
 TIP = fb.tip_block(fb.jump_balls(PBP, box_rows()), {})
+NOW = BLOCK["players"]  # the tests' "this season" (the Fair reads only this season)
 
 
 class Build(unittest.TestCase):
@@ -174,17 +177,64 @@ class Build(unittest.TestCase):
 
     def test_the_fair_guess_adds_up(self):
         games = [{"game_id": "9", "date": "2026-10-21", "away": "BBB", "home": "AAA"}]
-        g = fb.slate(BLOCK, games, {}, set(), ["2026-10-21"], TIP)["9"]
+        g = fb.slate(BLOCK, games, {}, set(), ["2026-10-21"], TIP, NOW)["9"]
         f = g["fair"]
         # AAA's 10 won 2 of his 3 jump balls: favored over BBB's 20.
         self.assertAlmostEqual(f["tip_home"], fb.tip_chance(TIP, "20", "10"), places=3)
         self.assertGreater(f["tip_home"], 0.5)
-        lead = BLOCK["league"]["first_won_tip"]
+        lead = fb.TIP_WINNER_SCORES
         self.assertAlmostEqual(f["first_home"], f["tip_home"] * lead + (1 - f["tip_home"]) * (1 - lead), places=3)
         total = sum(v["p"] for v in f["players"].values())
         self.assertAlmostEqual(total, 1 - fb.BENCH_SHARE, places=2)
         self.assertEqual(fb.american(0.2), 400)
         self.assertEqual(fb.american(0.6), -150)
+
+    def test_a_starters_share_is_half_shot_volume_half_team_share(self):
+        five = ["12", "10", "11", "13"]
+        shares = fb.first_shares(NOW, five)
+        self.assertAlmostEqual(sum(shares), 1.0, places=6)
+        # 12 shoots 20 a start and scored his team's first points in his one start: the most.
+        self.assertEqual(max(shares), shares[0])
+        # 11 scored AAA's first points once in 4 starts; 10 and 13 never, same volume: equal.
+        self.assertGreater(shares[2], shares[1])
+        self.assertAlmostEqual(shares[1], shares[3], places=6)
+        # No starts this season: an even split.
+        self.assertEqual([round(x, 6) for x in fb.first_shares({}, five)], [0.25] * 4)
+
+    def test_value_and_units(self):
+        # Value: our chance at least 10% above Novig's (+450 = 18.2%).
+        self.assertFalse(fb.is_value(0.199, 450))
+        self.assertTrue(fb.is_value(0.201, 450))
+        self.assertFalse(fb.is_value(0.5, None))
+        self.assertEqual((fb.units(450, True), fb.units(450, False)), (4.5, -1.0))
+        self.assertAlmostEqual(fb.units(-150, True), 2 / 3)
+
+    def test_the_value_record_saves_before_tip_and_grades_after(self):
+        import tempfile
+        from datetime import datetime
+        game = {**GAME, "start_utc": "2026-10-21T23:30Z", "first_basket": {"P12": 5000, "P10": 600}}
+        slate_ = fb.slate(BLOCK, [game], {}, set(), ["2026-10-21"], TIP, NOW)
+        names = {pid: p["name"] for pid, p in BLOCK["players"].items()}
+        before, after = datetime(2026, 10, 21, 18, 0), datetime(2026, 10, 22, 5, 0)
+        with tempfile.TemporaryDirectory() as tmp:
+            old = build_nba.FB_RECORD_DIR
+            build_nba.FB_RECORD_DIR = Path(tmp)
+            try:
+                got = build_nba.first_basket_record(2027, slate_, names, [game], {}, before)
+                saved = json.loads((Path(tmp) / "2027.json").read_text())["9"]
+                self.assertEqual(saved["players"]["12"][2], 5000)
+                self.assertTrue(saved["players"]["12"][3])  # +5000 = 2%: Value
+                self.assertFalse(saved["players"]["10"][3])
+                self.assertEqual(got["plays"], 0)  # not graded yet
+                # After tip the prices may move; the saved ones stay, and the game is graded.
+                late = {**game, "status": "final", "first_basket": {"P12": 100}}
+                got = build_nba.first_basket_record(2027, slate_, names, [late], {"9": {"first_team": "AAA", "first_scorer": 12}}, after)
+                saved = json.loads((Path(tmp) / "2027.json").read_text())["9"]
+                self.assertEqual(saved["players"]["12"][2], 5000)
+                self.assertEqual(saved["result"], {"team": "AAA", "scorer": "12"})
+                self.assertEqual(got, {"plays": 1, "won": 1, "units": 50.0, "games": 1})
+            finally:
+                build_nba.FB_RECORD_DIR = old
 
 
 SITE = PAGE = None
@@ -201,7 +251,7 @@ def setUpModule():
         SITE.nba = {
             "season": 2027, "season_label": "2026-27", "teams": teams, "schedule": [GAME], "injuries": {}, "kotc": None,
             "first_basket": {
-                "default": "2026", "seasons": {"2026": BLOCK}, "slates": {"2026": fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP)},
+                "default": "2026", "seasons": {"2026": BLOCK, "2027": {**BLOCK, "label": "2026-27"}}, "slates": {"2026": fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP, NOW)},
                 "roster": {"10": ["P10", "AAA", "C"], "11": ["P11", "AAA", "G"]}, "lineups": {}, "fair_weights": fb.fair_weights(), "tip": TIP,
             },
         }
@@ -249,10 +299,30 @@ class Page(unittest.TestCase):
         heights = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')].map((r) => Math.round(r.getBoundingClientRect().height)))]")
         self.assertEqual(len(heights), 1, heights)
 
-    def test_targets_box_says_coming_soon(self):
-        # Paused 2026-10-21 (CHA led nearly every row, yet BKN's forwards were the targets).
-        self.assertEqual(PAGE.evaluate("() => document.querySelector('#fb-targets').innerText.trim()"), "Coming Soon")
-        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('#fb-targets .fb-target').length"), 0)
+    def test_each_banner_has_the_teams_chance_to_score_first(self):
+        built = fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP, NOW)["9"]["fair"]
+        boxes = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .fb-chance b')].map((b) => b.textContent)")
+        home = round(built["first_home"] * 100)
+        self.assertEqual(boxes, [f"{100 - home}%", f"{home}%"])  # road (BBB) first, home (AAA)
+
+    def test_value_box_and_tags(self):
+        # Tonight's Novig prices are short of our Fair: no Value, and no record yet.
+        text = PAGE.evaluate("() => document.querySelector('#fb-targets').innerText")
+        self.assertIn("No Value In This Game", text)
+        self.assertIn("Graded after", text)
+        # A long price on the star: Value tag on his row, listed in the box; the record shows.
+        got = PAGE.evaluate("""() => { const g = game(); const keep = g.first_basket; g.first_basket = { P12: 5000, P10: 600 };
+            FB.record = { plays: 4, won: 1, units: 2.5, games: 3 }; render();
+            const out = { box: document.querySelector('#fb-targets').innerText,
+              tags: [...document.querySelectorAll('#fb-starters .fb-tag')].map((t) => [t.closest('tr').querySelector('.nba-player span').textContent, t.textContent]) };
+            g.first_basket = keep; delete FB.record; render(); return out; }""")
+        self.assertIn(["P12", "Value"], got["tags"])
+        self.assertNotIn(["P10", "Value"], got["tags"])
+        self.assertIn(["P12", "Top Option"], got["tags"])  # 20 shots a start, the most on AAA
+        self.assertIn("P12", got["box"])
+        self.assertIn("1 of 4", got["box"])
+        self.assertIn("+2.5u", got["box"])
+        self.assertEqual(SITE.errors, [])
 
     def test_starters_show_fair_and_novig_best_first(self):
         starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[6].innerText.trim(), tr.children[7].innerText.trim(), tr.children[4].innerText.trim(), tr.children[5].innerText.trim()])")
@@ -271,7 +341,7 @@ class Page(unittest.TestCase):
 
     def test_season_buttons(self):
         buttons = PAGE.evaluate("() => [...document.querySelectorAll('#fb-seasons button')].map((b) => [b.textContent, b.disabled])")
-        self.assertEqual(buttons, [["2025-26", False], ["2026-27", True]])
+        self.assertEqual(buttons, [["2025-26", False], ["2026-27", False]])
 
     def test_in_the_nba_menu(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nav-menu a')].map((a) => a.getAttribute('href'))")
@@ -306,7 +376,7 @@ class Lineups(unittest.TestCase):
     def test_without_an_nba_lineup_the_page_uses_the_builds_guess_and_its_fair_prices(self):
         got = PAGE.evaluate(SIDES)
         self.assertEqual((got["away"], got["home"], got["tags"]), ("guess", "guess", ["Our guess", "Our guess"]))
-        built = fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP)["9"]["fair"]
+        built = fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP, NOW)["9"]["fair"]
         self.assertAlmostEqual(got["fair"]["tip_home"], built["tip_home"], places=3)
         self.assertAlmostEqual(got["fair"]["first_home"], built["first_home"], places=3)
         for pid, v in built["players"].items():

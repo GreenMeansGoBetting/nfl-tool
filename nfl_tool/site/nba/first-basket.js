@@ -174,27 +174,47 @@ function tipChance(away, home) {
 }
 const feetInches = (h) => (h ? `${Math.floor(h / 12)}'${h % 12}"` : "");
 
-// The same guess as first_basket.py fair_prices, redone here so a real
-// lineup moves it. tests/test_nba_first_basket.py pins the two to agree.
+// This season's numbers: the Fair and the tags use only these (NBA rule:
+// this season decides), whichever season's numbers the table shows.
+const nowPlayers = () => (FB.seasons[String(DATA.season)] || { players: {} }).players;
+const W = () => FB.fair_weights || {};
+// The team's chance to score first (first_basket.py team_chance).
+const teamChance = (tipHome) => tipHome * (W().tip_winner_scores || 0.666) + (1 - tipHome) * (1 - (W().tip_winner_scores || 0.666));
+// Each starter's share of his team's first points (first_basket.py first_shares).
+function firstShares(ids) {
+  const blank = { starts: 0, shots: 0, team_first_pts: 0 };
+  const rows = ids.map((id) => nowPlayers()[id] || blank);
+  const starts = rows.reduce((t, r) => t + r.starts, 0);
+  const avg = starts ? rows.reduce((t, r) => t + (r.team_first_pts || 0), 0) / starts : 1 / Math.max(1, rows.length);
+  const vol = rows.filter((r) => r.starts).map((r) => (r.shots || 0) / r.starts);
+  const volAvg = vol.length ? vol.reduce((t, x) => t + x, 0) / vol.length : 10;
+  const k = W().team_share_prior || 20;
+  const usage = rows.map((r) => (r.starts ? (r.shots || 0) / r.starts : volAvg) ** (W().usage_power || 0.5));
+  const team = rows.map((r) => ((r.team_first_pts || 0) + k * avg) / (r.starts + k));
+  const su = usage.reduce((t, x) => t + x, 0) || 1;
+  const st = team.reduce((t, x) => t + x, 0) || 1;
+  const w = usage.map((u, i) => u / su + team[i] / st);
+  const total = w.reduce((t, x) => t + x, 0) || 1;
+  return w.map((x) => x / total);
+}
+
+// The Fair (first_basket.py fair_prices), redone here so a real lineup
+// moves it. tests/test_nba_first_basket.py pins the two to agree.
 function fairPrices(away, home) {
-  const w = FB.fair_weights || { share_prior: 10, bench_share: 0.04 };
   const tipHome = tipChance(away, home);
-  const lead = block().league.first_won_tip || 0.66;
-  const firstHome = tipHome * lead + (1 - tipHome) * (1 - lead);
+  const firstHome = teamChance(tipHome);
   const out = { tip_home: tipHome, first_home: firstHome, players: {} };
   [[away, 1 - firstHome], [home, firstHome]].forEach(([side, pTeam]) => {
-    const rows = side.starters.map(player);
-    if (!rows.length) return;
-    const avg = rows.reduce((t, r) => t + r.first_pts, 0) / Math.max(1, rows.reduce((t, r) => t + r.starts, 0));
-    const weights = rows.map((r) => (r.first_pts + w.share_prior * avg) / (r.starts + w.share_prior));
-    const total = weights.reduce((t, x) => t + x, 0) || 1;
-    side.starters.forEach((id, i) => {
-      const pr = (pTeam * (1 - w.bench_share) * weights[i]) / total;
-      out.players[id] = { p: pr, fair: american(pr) };
+    firstShares(side.starters).forEach((share, i) => {
+      const pr = pTeam * (1 - (W().bench_share ?? 0.04)) * share;
+      out.players[side.starters[i]] = { p: pr, fair: american(pr) };
     });
   });
   return out;
 }
+const implied = (price) => (price === null || price === undefined ? null : price > 0 ? 100 / (price + 100) : -price / (-price + 100));
+// Value: our chance at least value_edge above Novig's (first_basket.py is_value).
+const isValue = (pr, price) => pr !== undefined && implied(price) !== null && pr > implied(price) * (1 + (W().value_edge ?? 0.1));
 function american(p) {
   if (!p || p <= 0 || p >= 1) return null;
   return p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p);
@@ -351,76 +371,28 @@ function renderMatchup(g, p) {
   el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid fb-m-first">The Tip</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
-// ---- targets ----
-// Where tonight's first points look likeliest to come from. Every target
-// reads both sides (CLAUDE.md: a defense's weakness only counts when the
-// other offense leans that way too, and the reverse):
-//   position: the defense gives that position the first FG well above the
-//     league AND the offense's own first FGs don't run below the league there;
-//     its starters at that position are listed;
-//   tip: one jumper wins clearly more AND his team wins more tips in its spot;
-//   quick start: the offense scores in fewer trips than the league AND the
-//     other defense doesn't hold teams longer than the league.
-const TARGET_POS_GAP = 0.05;
-const TARGET_TIP_GAP = 0.15;
-const TARGET_POSS_GAP = 0.1;
-function targets(g, p) {
-  const b = block();
-  const lg = b.league;
-  const t = (abbr) => b.teams[abbr] || {};
-  const out = [];
-  for (const [off, def] of [[g.away, g.home], [g.home, g.away]]) {
-    const side = p[where(g, off)];
-    for (const pos of POSITIONS) {
-      const allowed = (t(def).fg_allowed || {})[pos];
-      const made = (t(off).fg_made || {})[pos];
-      if (allowed === null || allowed === undefined || allowed - lg.fg_allowed[pos] < TARGET_POS_GAP) continue;
-      if (made !== null && made !== undefined && made < lg.fg_allowed[pos] - 0.02) continue;
-      const who = side.starters.filter((id) => player(id).pos === pos);
-      if (!who.length) continue;
-      out.push({ team: off, what: POS_NAMES[pos], why: `${def} allows ${pct(allowed)}`, who });
-    }
-  }
-  const tipRate = (abbr) => {
-    const id = p[where(g, abbr)].jumper;
-    const j = id ? player(id) : null;
-    return j && j.jumps ? { id, rate: j.tips_won / j.jumps } : null;
-  };
-  const a = tipRate(g.away);
-  const h = tipRate(g.home);
-  if (a && h && Math.abs(a.rate - h.rate) >= TARGET_TIP_GAP) {
-    const [win, lose] = h.rate > a.rate ? [g.home, g.away] : [g.away, g.home];
-    const teamTip = (abbr) => t(abbr)[`tip_${where(g, abbr)}`];
-    if ((teamTip(win) || 0) >= (teamTip(lose) || 0)) {
-      const w = win === g.home ? h : a;
-      out.push({ team: win, what: "Tip", why: `${lastName(player(w.id).name)} wins ${pct(w.rate)}`, who: [] });
-    }
-  }
-  for (const [off, def] of [[g.away, g.home], [g.home, g.away]]) {
-    const poss = t(off).poss;
-    const allows = t(def).opp_poss;
-    if (poss !== null && poss !== undefined && poss <= lg.poss - TARGET_POSS_GAP && allows !== null && allows !== undefined && allows <= lg.poss + TARGET_POSS_GAP && allows >= lg.poss - 0.02) {
-      out.push({ team: off, what: "Quick Start", why: `${fmt(poss, 2)} poss. to score`, who: [] });
-    }
-  }
-  return out;
-}
-// Paused (the owner, 2026-10-21): the position rule listed BKN's forwards on a
-// night CHA led nearly every row, because "who scores first if this team
-// does" never asked which team scores first. targets() stays for the redo.
-const TARGETS_LIVE = false;
-function renderTargets(g, p) {
-  if (!TARGETS_LIVE) {
-    el("fb-targets").innerHTML = `<div class="nba-box fb-targets"><p class="no-data-note">Coming Soon</p></div>`;
-    return;
-  }
-  const list = targets(g, p);
+// ---- value ----
+// The Targets box became Value (the owner, 2026-10-21: "bake all the
+// projections and data and likelihood into a fair price"): the starters
+// whose Novig price pays more than our Fair, plus the record of every Value
+// tag so far (model_history/nba_first_basket, one unit at Novig's price).
+function renderValue(g, p) {
+  const ids = [...p.away.starters, ...p.home.starters]
+    .filter((id) => isValue(p.fair.players[id].p, novigPrice(g, id)))
+    .sort((a, b) => p.fair.players[b].p - p.fair.players[a].p);
+  const rec = FB.record || {};
+  const units = rec.units || 0;
+  const record = rec.plays
+    ? `<div class="fb-value-record"><span>Record</span><b>${rec.won} of ${rec.plays}</b><b class="${units >= 0 ? "fb-up" : "fb-down"}">${units > 0 ? "+" : ""}${units.toFixed(1)}u</b></div>`
+    : `<div class="fb-value-record"><span>Record</span><span class="muted-label">Graded after tonight's games</span></div>`;
   el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
-    ${list.length
-      ? list.map((x) => `<div class="fb-target"><div class="fb-target-head">${logo(x.team, 20)}<b>${x.what}</b><span class="muted-label">${x.why}</span></div>${x.who.length ? `<div class="fb-target-list">${x.who.map((id) => `<span class="fb-target-who">${face(id)}${lastName(player(id).name)}</span>`).join("")}</div>` : ""}</div>`).join("")
-      : `<p class="no-data-note">No clear targets in this game.</p>`}
+    ${ids.length ? ids.map((id) => `<div class="fb-value">${face(id)}<span class="fb-value-name">${lastName(player(id).name)}</span>${logo(teamOf(g, p, id), 16)}
+      <span class="fb-value-prices"><span><small>Fair</small>${showOdds(p.fair.players[id].fair)}</span><span><small>Novig</small>${showOdds(novigPrice(g, id))}</span></span></div>`).join("")
+      : `<p class="no-data-note">No Value In This Game</p>`}
+    ${record}
   </div>`;
 }
+const teamOf = (g, p, id) => (p.home.starters.includes(id) ? g.home : g.away);
 
 // Novig's First Basket "Yes" price for a player, matched by name.
 function novigPrice(g, id) {
@@ -438,8 +410,16 @@ function renderStarters(g, p) {
     const injured = out(abbr);
     // Best fair price first: the bottom line of the page.
     const ids = side.starters.slice().sort((x, y) => ((fair[y] || {}).p || 0) - ((fair[x] || {}).p || 0));
+    // Top Option: the most shots a start among the five (this season).
+    const vol = (id) => { const n = nowPlayers()[id]; return n && n.starts ? n.shots / n.starts : 0; };
+    const top = side.starters.reduce((a, b) => (vol(b) > vol(a) ? b : a), side.starters[0]);
     const rows = ids.map((id) => {
       const pl = player(id);
+      const now = nowPlayers()[id];
+      const tags = [];
+      if (isValue((fair[id] || {}).p, novigPrice(g, id))) tags.push(["Value", "fb-tag-value", "Novig pays more than our Fair"]);
+      if (id === top && vol(id)) tags.push(["Top Option", "fb-tag-plain", "Most shots a start on his team this season"]);
+      if (now && now.starts >= 5 && now.team_first_shot / now.starts >= 0.25) tags.push(["First Look", "fb-tag-plain", `Took his team's first shot in ${now.team_first_shot} of ${now.starts} starts this season`]);
       const rate = (n) => (pl.starts ? n / pl.starts : null);
       // Too few starts to color fairly (a rookie's 4): plain numbers.
       const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]} of ${pl.starts}</small></td>`;
@@ -450,13 +430,17 @@ function renderStarters(g, p) {
       const f = fair[id];
       const nv = novigPrice(g, id);
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
-        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
+        <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${tags.map(([t, cls, why]) => `<span class="fb-tag ${cls}" title="${why}">${t}</span>`).join("")}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
         <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
         <td class="num fb-fair fb-novig">${nv === null ? "--" : `<b>${showOdds(nv)}</b>`}</td>
       </tr>`;
     }).join("");
-    return `<div class="nba-box fb-starters-box">${banner(abbr, lineupTag(side))}
+    // The team's chance to score first, colored from 50/50 (full color at 62.5 / 37.5).
+    const chance = abbr === g.home ? p.fair.first_home : 1 - p.fair.first_home;
+    const hue = Math.round(Math.max(0, Math.min(120, 60 + (chance - 0.5) * 480)));
+    const chanceBox = `<span class="fb-chance" style="background:${scaleHsla(hue, 70, 45, 0.35)}" title="Our chance this team scores first: its jumper's Prediction x how often tip winners score first"><small>Scores First</small><b>${pct(chance)}</b></span>`;
+    return `<div class="nba-box fb-starters-box">${banner(abbr, chanceBox + lineupTag(side))}
       <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="Novig's First Basket price (Yes)">Novig</th></tr>
         <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="8" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
@@ -479,7 +463,7 @@ function render() {
   }
   renderHeader(g);
   renderMatchup(g, p);
-  renderTargets(g, p);
+  renderValue(g, p);
   renderStarters(g, p);
   renderLineupNote(p);
 }

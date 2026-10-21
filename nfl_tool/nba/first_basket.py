@@ -44,11 +44,25 @@ MIN_JUMPS = 2  # fewer jumps than this and a player isn't a team's jumper (low: 
 TIP_PER_INCH = 0.15
 TIP_PULL = 3.0
 TIP_MID_HEIGHT = 81  # 6'9": a rating of 0; only the difference between two jumpers matters
-# The fair-price guess: each starter's first-score rate is steadied with
-# SHARE_PRIOR starts at the starters' average; BENCH_SHARE of first scores go
-# to non-starters.
-SHARE_PRIOR = 10
+# The Fair price (rebuilt 2026-10-21 on a 2025-26 replay, each team-game
+# predicted from the games before it). A team scores first: its jumper's tip
+# chance x TIP_WINNER_SCORES (2025-26: the tip winner scored first 66.6%);
+# trips to score / allow and after-tip rates added nothing once the tip was
+# known. A starter's share of his team's first points: half his shot volume
+# a start (field goal tries + 0.44 x free throw tries) to the USAGE_POWER,
+# half his Team Share (his team's first points a start) steadied with
+# TEAM_SHARE_PRIOR starts at his teammates' rate. Who scores a team's first
+# points is close to random among its five: this blend picked him 25% of the
+# time (20% blind) with the best fit; the old Fair (the GAME's first points
+# a start) fit worse than an even split, and position vs the defense made
+# every version worse. BENCH_SHARE of first points go to non-starters.
+# Everything comes from this season's games (NBA rule), so early on the five
+# sit close to even. VALUE_EDGE: our chance this far above Novig's = Value.
+TIP_WINNER_SCORES = 0.666
+USAGE_POWER = 0.5
+TEAM_SHARE_PRIOR = 20
 BENCH_SHARE = 0.04
+VALUE_EDGE = 0.10
 
 
 def num(value, digits=3):
@@ -179,17 +193,23 @@ def team_numbers(openings: list, positions: dict) -> tuple:
 def player_numbers(openings: list, player_box: pd.DataFrame) -> dict:
     """{athlete id: games and minutes a game (every game he played), starts, shot_early (starts with a shot before the game's
     first points), first_shot (took the game's first shot), first_pts (scored
-    the game's first points), team_first_shot / team_first_pts (took his
+    the game's first points), shots (field goal tries + 0.44 x free throw
+    tries), team_first_shot / team_first_pts (took his
     team's first shot / scored its first points), jumps, tips_won} over his starts."""
     box = player_box[(player_box["season_type"] == 2) & (player_box["starter"] == True)]  # noqa: E712
     starts = defaultdict(set)
     for r in box[["game_id", "athlete_id"]].itertuples(index=False):
         starts[int(r.athlete_id)].add(str(r.game_id))
     team_of = {(str(r.game_id), int(r.athlete_id)): r.team_abbreviation for r in player_box[["game_id", "athlete_id", "team_abbreviation"]].itertuples(index=False)}
-    out = defaultdict(lambda: {"games": 0, "min": 0.0, "starts": 0, "shot_early": 0, "first_shot": 0, "first_pts": 0,
+    out = defaultdict(lambda: {"games": 0, "min": 0.0, "starts": 0, "shots": 0.0, "shot_early": 0, "first_shot": 0, "first_pts": 0,
                                "team_first_shot": 0, "team_first_pts": 0, "jumps": 0, "tips_won": 0})
     for pid, games in starts.items():
         out[pid]["starts"] = len(games)
+    # Shot volume over his starts (the Fair's usage half).
+    col = lambda name: pd.to_numeric(box[name], errors="coerce").fillna(0) if name in box else pd.Series(0.0, index=box.index)
+    tries = col("field_goals_attempted") + 0.44 * col("free_throws_attempted")
+    for pid, total in tries.groupby(box["athlete_id"]).sum().items():
+        out[int(pid)]["shots"] = round(float(total), 2)
     played = player_box[(player_box["season_type"] == 2) & (pd.to_numeric(player_box["minutes"], errors="coerce") > 0)]
     for pid, g in played.groupby("athlete_id"):
         out[int(pid)]["games"] = len(g)
@@ -337,43 +357,97 @@ def game_side(block: dict, team: str, team_of: dict, out_ids: set) -> dict:
     return {"starters": [pid for pid, _ in starters], "jumper": jumper}
 
 
-def fair_prices(block: dict, away: dict, home: dict, tip: dict) -> dict:
-    """The rough guess at the bottom of a game: the tip from the two jumpers'
-    ratings (this season's jump balls and height: tip_chance), the first score from the tip and the league's
-    tip-winner rate, each starter's share from his first scores per start
-    (steadied toward the starters' average)."""
-    players = block["players"]
+def team_chance(tip_home: float) -> float:
+    """The home team's chance to score first."""
+    return tip_home * TIP_WINNER_SCORES + (1 - tip_home) * (1 - TIP_WINNER_SCORES)
+
+
+def first_shares(players: dict, starters: list) -> list:
+    """Each starter's share of his team's first points among the five (adds
+    to 1). players = this season's numbers; a starter with no starts takes
+    his teammates' shot volume and the steadied team rate."""
+    blank = {"starts": 0, "shots": 0.0, "team_first_pts": 0}
+    rows = [players.get(pid) or blank for pid in starters]
+    starts = sum(r["starts"] for r in rows)
+    avg = sum(r["team_first_pts"] for r in rows) / starts if starts else 1 / max(1, len(rows))
+    vol = [r["shots"] / r["starts"] for r in rows if r["starts"]]
+    vol_avg = sum(vol) / len(vol) if vol else 10.0
+    usage = [((r["shots"] / r["starts"]) if r["starts"] else vol_avg) ** USAGE_POWER for r in rows]
+    team = [(r["team_first_pts"] + TEAM_SHARE_PRIOR * avg) / (r["starts"] + TEAM_SHARE_PRIOR) for r in rows]
+    weights = [u / (sum(usage) or 1) + t / (sum(team) or 1) for u, t in zip(usage, team)]
+    total = sum(weights) or 1
+    return [w / total for w in weights]
+
+
+def name_key(name) -> str:
+    """A name for matching across sources (the page's nameKey)."""
+    import re
+    import unicodedata
+    n = unicodedata.normalize("NFD", str(name or ""))
+    n = "".join(c for c in n if unicodedata.category(c) != "Mn").lower()
+    n = re.sub(r"[^a-z0-9 ]", "", n)
+    n = re.sub(r"\b(jr|sr|ii|iii|iv)\b", "", n)
+    return re.sub(r"\s+", " ", n).strip()
+
+
+def book_price(prices: dict, name: str):
+    """Novig's First Basket price for a player, matched by name."""
+    want = name_key(name)
+    return next((v for k, v in (prices or {}).items() if name_key(k) == want), None)
+
+
+def units(price, won: bool) -> float:
+    """One unit bet at an American price."""
+    if not won:
+        return -1.0
+    return price / 100 if price > 0 else 100 / -price
+
+
+def implied(price) -> float | None:
+    """A price's chance (American)."""
+    if price is None:
+        return None
+    return 100 / (price + 100) if price > 0 else -price / (-price + 100)
+
+
+def is_value(p: float, price) -> bool:
+    """Value: our chance at least VALUE_EDGE above the book's."""
+    book = implied(price)
+    return book is not None and p > book * (1 + VALUE_EDGE)
+
+
+def fair_prices(players: dict, away: dict, home: dict, tip: dict) -> dict:
+    """Fair prices for a game's ten starters: the team's chance to score
+    first (team_chance, from the jumpers' tip chance) x his share of his
+    team's first points (first_shares) x (1 - BENCH_SHARE). players = this
+    season's numbers (NBA rule: this season decides)."""
     tip_home = tip_chance(tip, away["jumper"], home["jumper"])
-    lead = block["league"]["first_won_tip"] or 0.66
-    first_home = tip_home * lead + (1 - tip_home) * (1 - lead)
+    first_home = team_chance(tip_home)
     out = {"tip_home": num(tip_home), "first_home": num(first_home), "players": {}}
     for side, p_team in ((away, 1 - first_home), (home, first_home)):
-        rows = [players[pid] for pid in side["starters"]]
-        if not rows:
-            continue
-        avg = sum(r["first_pts"] for r in rows) / max(1, sum(r["starts"] for r in rows))
-        weights = [(r["first_pts"] + SHARE_PRIOR * avg) / (r["starts"] + SHARE_PRIOR) for r in rows]
-        total = sum(weights) or 1
-        for pid, w in zip(side["starters"], weights):
-            p = p_team * (1 - BENCH_SHARE) * w / total
+        for pid, share in zip(side["starters"], first_shares(players, side["starters"])):
+            p = p_team * (1 - BENCH_SHARE) * share
             out["players"][pid] = {"p": num(p), "fair": american(p)}
     return out
 
 
 def fair_weights() -> dict:
-    """The fair guess's settings, for the page: it redoes the guess in the
-    browser when the NBA's real lineup differs from the likely starters."""
-    return {"share_prior": SHARE_PRIOR, "bench_share": BENCH_SHARE, "min_jumps": MIN_JUMPS, "tip_per_inch": TIP_PER_INCH, "tip_mid_height": TIP_MID_HEIGHT}
+    """The Fair's settings, for the page: it redoes the Fair in the browser
+    when the NBA's real lineup differs from the likely starters."""
+    return {"tip_winner_scores": TIP_WINNER_SCORES, "usage_power": USAGE_POWER, "team_share_prior": TEAM_SHARE_PRIOR,
+            "bench_share": BENCH_SHARE, "value_edge": VALUE_EDGE, "min_jumps": MIN_JUMPS,
+            "tip_per_inch": TIP_PER_INCH, "tip_mid_height": TIP_MID_HEIGHT}
 
 
-def slate(block: dict, games: list, team_of: dict, out_ids: set, dates: list, tip: dict) -> dict:
-    """{game id: {away, home, fair}} for the games on `dates`. tip = this
-    season's {ratings, heights} (every season's view uses this season's tip)."""
+def slate(block: dict, games: list, team_of: dict, out_ids: set, dates: list, tip: dict, now: dict) -> dict:
+    """{game id: {away, home, fair}} for the games on `dates`: the likely
+    starters from `block` (the season shown), the Fair from this season's
+    tip (`tip`) and players (`now`) in every season's view."""
     out = {}
     for g in games:
         if g["date"] not in dates:
             continue
         away = game_side(block, g["away"], team_of, out_ids)
         home = game_side(block, g["home"], team_of, out_ids)
-        out[g["game_id"]] = {"away": away, "home": home, "fair": fair_prices(block, away, home, tip)}
+        out[g["game_id"]] = {"away": away, "home": home, "fair": fair_prices(now, away, home, tip)}
     return out

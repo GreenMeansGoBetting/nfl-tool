@@ -571,6 +571,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     from each."""
     blocks = {}
     jumps = []  # this season's jump balls: the tip chance (NBA rule: this season decides)
+    openings = {}  # this season's games' firsts: grades the Value record
     for s in (season - 1, season):
         fresh = force and s == season
         pbp = fetch_file("pbp", s, data_dir, fresh)
@@ -581,6 +582,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
                 blocks[s] = block
             if s == season:
                 jumps = first_basket.jump_balls(pbp, box)
+                openings = {o["game_id"]: o for o in first_basket.game_openings(pbp, teams)}
     heights = {}
     if rosters is not None:
         heights = {str(r.athlete_id): h for r in rosters.itertuples(index=False) if (h := first_basket.inches(r.height))}
@@ -595,7 +597,8 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
-    slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates, tip) for s, b in blocks.items()}
+    now = blocks[season]["players"] if season in blocks else {}  # the Fair: this season's starts only
+    slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates, tip, now) for s, b in blocks.items()}
     default = season if season in blocks and blocks[season]["games"] * 2 / max(1, len(teams)) >= THIS_SEASON_DEFAULT_AT else season - 1
     # Every rostered player (the page matches the NBA's lineup names to these),
     # and the NBA's lineup files as of this build: the page reads them live
@@ -604,6 +607,9 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     if rosters is not None:
         for r in rosters.itertuples(index=False):
             roster[str(r.athlete_id)] = [r.display_name, r.team_abbreviation, r.position_abbreviation]
+    names = {pid: p["name"] for b in blocks.values() for pid, p in b["players"].items()}
+    names.update({pid: r[0] for pid, r in roster.items()})
+    record = first_basket_record(season, slates.get(str(default), {}), names, games, openings, now_utc)
     lineups = {}
     for d in dates:
         got = fetch_nba_lineups(d)
@@ -611,7 +617,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
             lineups[d] = got
     return {
         "default": str(default), "seasons": {str(s): b for s, b in blocks.items()}, "slates": slates,
-        "roster": roster, "lineups": lineups, "fair_weights": first_basket.fair_weights(), "tip": tip,
+        "roster": roster, "lineups": lineups, "fair_weights": first_basket.fair_weights(), "tip": tip, "record": record,
     }
 
 
@@ -630,6 +636,53 @@ def fetch_nba_lineups(date: str) -> dict | None:
         print(f"NOTE: NBA lineups for {date} not read ({ex!r}).", file=sys.stderr)
         return None
     return {"fetched": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "games": data.get("games") or []}
+
+
+FB_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_first_basket"
+
+
+def first_basket_record(season: int, slate: dict, names: dict, games: list, openings: dict, now_utc: datetime) -> dict:
+    """model_history/nba_first_basket/<season>.json: each game's ten starters
+    as the last build before tip had them ({game id: {date, away, home,
+    first_home, players: {id: [name, our chance, Novig price, Value]}}}; a
+    started game is never rewritten), graded once its play-by-play is in
+    (`result`: the team and player who scored first). Returns the Value
+    record for the page: every Value tag bet one unit at Novig's price."""
+    path = FB_RECORD_DIR / f"{season}.json"
+    record = json.loads(path.read_text()) if path.exists() else {}
+    by_id = {g["game_id"]: g for g in games}
+    changed = False
+    for gid, game in slate.items():
+        g = by_id.get(gid)
+        if not g or g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
+            continue
+        rows = {}
+        for pid, f in game["fair"]["players"].items():
+            name = names.get(pid, pid)
+            price = first_basket.book_price(g.get("first_basket"), name)
+            rows[pid] = [name, f["p"], price, first_basket.is_value(f["p"], price)]
+        record[gid] = {"date": g["date"], "away": g["away"], "home": g["home"], "first_home": game["fair"]["first_home"], "players": rows}
+        changed = True
+    for gid, r in record.items():
+        o = openings.get(gid)
+        if "result" not in r and o:
+            r["result"] = {"team": o["first_team"], "scorer": None if o["first_scorer"] is None else str(o["first_scorer"])}
+            changed = True
+    if changed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(record, indent=1, sort_keys=True))
+    plays = won = 0
+    total = 0.0
+    for r in record.values():
+        if "result" not in r:
+            continue
+        for pid, (_, _, price, value) in r["players"].items():
+            if value and price is not None:
+                hit = r["result"]["scorer"] == pid
+                plays += 1
+                won += hit
+                total += first_basket.units(price, hit)
+    return {"plays": plays, "won": won, "units": round(total, 2), "games": sum("result" in r for r in record.values())}
 
 
 def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: list, now_utc: datetime) -> dict:

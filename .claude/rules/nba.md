@@ -312,11 +312,31 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   replay (each tip from the jumps before it): 64% right / log loss 0.628, vs 61% / 0.644 for
   steadied Tips Won, 60% for height alone; 5+ inches taller won 84%, 1 inch 50%. Home teams won
   52.9% of tips (noise-sized), so the tip's Home/Road row was dropped.
-- **Fair value guess** (`fair_prices`): tip = Prediction (`tip_chance`), first points = tip x the league's tip-winner rate, each starter's share from first points
-  per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.
+- **Fair** (`fair_prices`, rebuilt 2026-10-21 on a 2025-26 replay, each team-game from the games
+  before it; the owner: "bake all the projections and data and likelihood into a fair price"):
+  **Scores First** (`team_chance`) = Prediction x `TIP_WINNER_SCORES` 0.666 + the rest; trips to
+  score / allow, after-tip rates and Scores First rates added nothing once the tip was known.
+  His share of his team's first points (`first_shares`) = half (shots a start, FGA + 0.44 FTA,
+  `shots`)^0.5, half Team Share 1st Pts steadied `TEAM_SHARE_PRIOR` 20 starts toward his
+  teammates; x 0.96 (`BENCH_SHARE`). Who scores a team's first points is near random: this blend
+  hit 25% (blind 20%); the OLD Fair (game first points a start) fit worse than an even split;
+  **position vs the defense made every version worse** (no Position tag). **This season's
+  players only** (`now` = this season's block, every season view; NBA rule), so before a team has
+  games its five sit even (opening week: every starter the same price).
+- **Value** (the owner chose "show value now", 2026-10-21: "as games are played it will level
+  out"): our chance `VALUE_EDGE` 10%+ above Novig's implied (`is_value`). Green Value tag on the
+  row; the third box (was Targets) lists the game's Value starters (Fair vs Novig) and the
+  **record**: `model_history/nba_first_basket/<season>.json` (`first_basket_record` in
+  build_nba.py; deploy bot commits it) = each game's ten as the last build before tip had them
+  ({id: [name, chance, Novig, Value]}, a started game never rewritten), `result` {team, scorer}
+  from the play-by-play; `first_basket.record` = {plays, won, units (1u at Novig), games}. The
+  record uses the build's starters (the NBA lineup copy isn't applied there), the page the live five.
+- **Tags** beside names (this season's numbers): **Value** (green), **Top Option** (most shots a
+  start among the five), **First Look** (his team's first shot in 25%+ of 5+ starts), Jumper.
+  Ideas not built: Usage + (a high-shot teammate Out), FT Early.
 - **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
   under "Player props"): day strip, season buttons, then **three boxes side by side, tops in line:
-  The Matchup | Starters (both teams stacked) | Targets** (the owner: "box box box", after Targets
+  The Matchup | Starters (both teams stacked) | Value** (the owner: "box box box", after Targets
   sat above Starters and looked "bizarre"). Under 1300 px Targets drops under Starters; under
   1000 px everything stacks.
   How it got here (2026-10-20): tile sections with team cards and a split bar were "overwhelming ...
@@ -338,19 +358,11 @@ since 2026-10-21). **Removed on purpose:**
   spreads** (`zHeat`, full color at 1.5 SD): picked over worst-to-best (one outlier stretched it)
   and rank (near-ties a color apart); the owner asked if it would turn all yellow with more data:
   no, the spread tightens with the league, so the color mix holds.
-- **Targets: PAUSED 2026-10-21, the box says "Coming Soon"** (`TARGETS_LIVE = false`). On CHA-BKN
-  CHA led the tip, scores first and opening trips, yet the box listed BKN's forwards (the owner:
-  "Laughable"): the position rule says who scores first IF that team does, and never asked which
-  team is likelier to. A redo must start from the team's chance to score first. The old rule, kept
-  in `targets` for that redo
-  (`targets`, the owner: "show position or players of weakness. Or team"), each
-  two-sided: a **position** when the defense gives it the first FG 5+ points above the league AND
-  the offense's own first FGs (`fg_made`) aren't 2+ points below the league there (lists the
-  offense's starters at it); the **Tip** when one jumper wins 15+ points more and his team wins
-  more tips in its spot; a **Quick Start** when the offense needs 0.1+ fewer trips than the league
-  and the other defense isn't tougher than average.
-- **Starters**: one compact table per team, both the width of the wider one (lineup tag on the
-  banner): Shot Early / 1st Shot / Scored 1st / **Team Share** (1st Shot, 1st Pts: his own team's
+- **Targets: retired 2026-10-21** for Value. On CHA-BKN CHA led the tip, scores first and opening
+  trips, yet Targets listed BKN's forwards ("Laughable"): who scores first IF a team does never
+  asked which team is likelier to. Its position / tip / quick-start rules are gone from the page.
+- **Starters**: one compact table per team, both the width of the wider one (banner: the team's
+  **Scores First** box, colored from 50/50, and the lineup tag): Shot Early / 1st Shot / Scored 1st / **Team Share** (1st Shot, 1st Pts: his own team's
   first shot and first points whatever the other team did, `team_first_shot` / `team_first_pts`, in
   a thin box; the owner, 2026-10-21) as % with "x of y" under, **Fair** (our guess) and
   **Novig** (Novig's First Basket price), likeliest first. Team numbers are colored against all 30
@@ -362,7 +374,7 @@ since 2026-10-21). **Removed on purpose:**
   `LINE_FIELDS` member so it locks at tip like the lines. SmartStake does list
   `basketball_first_points_scorer` ("1st Points Scorer"); leave it until the owner says otherwise.
 - Tests: `tests/test_nba_first_basket.py` (the build on two hand-made games, and the page).
-- Not built yet: a graded record of the guess, a Summary card.
+- Not built yet: a Summary card; the record on the page is Value tags only (no calibration view yet).
 
 ## King of the Court (Promo Tools; built 2026-10-19)
 
