@@ -7154,27 +7154,27 @@
   ]
  },
  "nba_first_basket": {
-  "generated_at": "2026-10-21T18:33:02Z",
-  "quotes": 440,
-  "more_pages": true,
+  "generated_at": "2026-10-21T18:34:27Z",
+  "quotes": 852,
+  "more_pages": false,
   "by_book": {
    "fliff": {
-    "quotes": 120,
+    "quotes": 254,
     "sides": {
-     "yes": 60,
-     "no": 60
+     "no": 127,
+     "yes": 127
     },
-    "player_id": 120,
-    "participant": 120,
+    "player_id": 254,
+    "participant": 254,
     "line": {
-     "None": 120
+     "None": 254
     },
     "labels": [
      "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
-     "side='no' label='Onyeka Okongwu No' participant='Onyeka Okongwu'",
+     "side='no' label='Franz Wagner No' participant='Franz Wagner'",
      "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
      "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
-     "side='yes' label='Onyeka Okongwu Yes' participant='Onyeka Okongwu'",
+     "side='yes' label='Franz Wagner Yes' participant='Franz Wagner'",
      "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
     ],
     "fields": [
@@ -7202,58 +7202,15 @@
     ]
    },
    "novig": {
-    "quotes": 116,
+    "quotes": 202,
     "sides": {
-     "yes": 58,
-     "no": 58
+     "no": 101,
+     "yes": 101
     },
-    "player_id": 116,
-    "participant": 116,
+    "player_id": 202,
+    "participant": 202,
     "line": {
-     "None": 116
-    },
-    "labels": [
-     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
-     "side='no' label='Jalen Johnson No' participant='Jalen Johnson'",
-     "side='no' label='Onyeka Okongwu No' participant='Onyeka Okongwu'",
-     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
-     "side='yes' label='Jalen Johnson Yes' participant='Jalen Johnson'",
-     "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
-    ],
-    "fields": [
-     "alternate",
-     "away",
-     "bet_url",
-     "book",
-     "event_id",
-     "home",
-     "label",
-     "league",
-     "line",
-     "live",
-     "market_key",
-     "market_name",
-     "max_bet",
-     "participant",
-     "player_id",
-     "quote_id",
-     "side",
-     "sport",
-     "starts_at",
-     "team_id",
-     "updated_at"
-    ]
-   },
-   "prophetx": {
-    "quotes": 104,
-    "sides": {
-     "no": 52,
-     "yes": 52
-    },
-    "player_id": 104,
-    "participant": 104,
-    "line": {
-     "None": 104
+     "None": 202
     },
     "labels": [
      "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
@@ -7288,23 +7245,66 @@
     ]
    },
    "stake": {
-    "quotes": 100,
+    "quotes": 200,
     "sides": {
-     "yes": 50,
-     "no": 50
+     "yes": 100,
+     "no": 100
     },
-    "player_id": 100,
-    "participant": 100,
+    "player_id": 200,
+    "participant": 200,
     "line": {
-     "None": 100
+     "None": 200
     },
     "labels": [
-     "side='no' label='Alexandre Sarr No' participant='Alexandre Sarr'",
-     "side='no' label='Anthony Davis No' participant='Anthony Davis'",
-     "side='no' label='Kyshawn George No' participant='Kyshawn George'",
-     "side='yes' label='Alexandre Sarr Yes' participant='Alexandre Sarr'",
-     "side='yes' label='Anthony Davis Yes' participant='Anthony Davis'",
-     "side='yes' label='Kyshawn George Yes' participant='Kyshawn George'"
+     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
+     "side='no' label='Franz Wagner No' participant='Franz Wagner'",
+     "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
+     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
+     "side='yes' label='Franz Wagner Yes' participant='Franz Wagner'",
+     "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
+    ],
+    "fields": [
+     "alternate",
+     "away",
+     "bet_url",
+     "book",
+     "event_id",
+     "home",
+     "label",
+     "league",
+     "line",
+     "live",
+     "market_key",
+     "market_name",
+     "max_bet",
+     "participant",
+     "player_id",
+     "quote_id",
+     "side",
+     "sport",
+     "starts_at",
+     "team_id",
+     "updated_at"
+    ]
+   },
+   "prophetx": {
+    "quotes": 196,
+    "sides": {
+     "yes": 98,
+     "no": 98
+    },
+    "player_id": 196,
+    "participant": 196,
+    "line": {
+     "None": 196
+    },
+    "labels": [
+     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
+     "side='no' label='Franz Wagner No' participant='Franz Wagner'",
+     "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
+     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
+     "side='yes' label='Franz Wagner Yes' participant='Franz Wagner'",
+     "side='yes' label='Jalen Johnson Yes' participant='Jalen Johnson'"
     ],
     "fields": [
      "alternate",
