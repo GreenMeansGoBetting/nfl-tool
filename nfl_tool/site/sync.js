@@ -696,6 +696,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Game Previews", file: "game-overview.html" },
       { name: "TD Data", file: "index.html" },
       { head: "Player props" },
+      { name: "Best Plays", file: "best-plays.html" },
       // One page, three views: the link's #view opens that tab (player-props.js).
       { name: "Receiving", file: "player-props.html#receiving" },
       { name: "Rushing", file: "player-props.html#rushing" },

@@ -87,7 +87,7 @@ that, move detail into a rules file.
 - `nfl_tool/site/`: static pages.
   - `game-overview.html/.js` + `game-summary.js`: **Game Previews** (Full Preview, Build Your Model, Summary card).
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
-  - `player-props.html/.js` + `props-summary.js`: **Player Props** (Receiving / Rushing / Passing + Summary card).
+  - `player-props.html/.js` + `props-summary.js`: **Player Props** (Receiving / Rushing / Passing + Summary card; the menu links each as `#view`). `best-plays.html/.js`: **NFL Best Plays** (player-props.md).
   - `player-card.js`: the player card popup, plus rush-lane and pass-zone drawing.
   - `my-plays.html/.js`: **My Plays** (top-menu button): every sport's saved plays, graded, Photo Export. `possible-plays.html/.js`: the NFL list + Parlay Wheel (linked from My Plays); `plays-grading.js`: NFL grading/units both share. `picks.js`: Pick Tracker.
   - `promo-tools.html/.js`: Promo Tools (King of the Endzone). `support.html`: Support tab.
@@ -116,7 +116,7 @@ that, move detail into a rules file.
   tags); the exceptions are the Game Summary's Matchups and the TD Summary's targets, which show league ranks. The card must never contradict itself. Give rows and boxes room: use the full card
   height and don't cram. **Never drop data to make a card bigger; rearrange into dead space.**
 - **Props Summary is directional, never a pick sheet:** no projections, "model edge" numbers or
-  model-picked players. The user draws the conclusions.
+  model-picked players. The user draws the conclusions. NFL Best Plays is the one page of model plays (owner, 2026-10-20).
 - **The GMG model is a talking point, never "beats the line".** A 2024-25 replay had it at 50% against the spread.
 - **Any new place that shows a player must use `playerClick`** (NHL pages: their own in `nhl/nhl-common.js`).
 - **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color

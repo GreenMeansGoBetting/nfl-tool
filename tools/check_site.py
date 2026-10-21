@@ -44,6 +44,7 @@ PAGES = [
     ("Game Previews", "game-overview.html", '.preview-view-btn[data-view="summary"]'),
     ("TD Data", "index.html", '.view-toggle-btn[data-view="summary"]'),
     ("Player Props", "player-props.html", '.props-view-toggle-btn[data-view="summary"]'),
+    ("Best Plays", "best-plays.html", None),
     ("Possible Plays", "possible-plays.html", None),
     ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),

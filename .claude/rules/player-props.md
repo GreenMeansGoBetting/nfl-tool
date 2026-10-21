@@ -3,6 +3,7 @@ paths:
   - "nfl_tool/site/player-props.*"
   - "nfl_tool/site/props-summary.js"
   - "nfl_tool/site/player-card.js"
+  - "nfl_tool/site/best-plays.*"
 ---
 # Player Props and the player card
 
@@ -16,7 +17,8 @@ Stories, example players and numbers behind these rules: `docs/history.md`, "Pla
 - Each package must agree with the betting market (spread for RB rushing, implied team total
   otherwise). A market is dropped if either side contradicts it (the two-sided rule).
 - Rank tags list offense first, shaded red → yellow → green by how good the rank is for that unit.
-- No projections, "model edge" numbers or model-picked players anywhere. The user draws the
+- No projections, "model edge" numbers or model-picked players anywhere on the card or the Props
+  tabs (Best Plays, below, is the one exception). The user draws the
   conclusions and adds players to the Prop Picks rail themselves.
 - **Packages are scored per direction** (`propPackages`): each direction is judged on its own
   markets, so a package can show a Target and a Fade on DIFFERENT markets (card splits by `dir`).
@@ -141,3 +143,26 @@ The ONE popup for every player name or photo on every page. Anything wrapped wit
 - **Rush/Catch Lanes tab:** RB/QB rushing first, WR/TE catch zones first.
 - The file also holds the rush-lane and pass-zone drawing code, so every page can draw them.
 - Injury lists and box scores link skill positions only (`SKILL_POSITIONS`).
+
+## NFL Best Plays (`best-plays.html/.js`, 2026-10-20)
+
+Members asked for "top plays" for props and TDs; the owner agreed with a small-sample warning on
+top (`#bp-warning`, the typical games played). First row under the NFL menu's "Player props".
+
+- **Props:** the projection engine in props-summary.js (`propTeamLines(..., withModel)`), which
+  starts from the books' no-vig line and moves toward the data by games played (`PROP_STABILITY`).
+  Then `bpCalibrate`: each market's average gap to the books this week (log-odds) comes off every
+  line in it (the engine leaned Over: receptions above the books on 47 of 58 players in Week 7),
+  and the model keeps only `BP_MODEL_TRUST` 0.5 of what is left. The shown projection moves with
+  the chance, so an Over never shows a projection under its line.
+- **Anytime TD:** implied team points x `BP_TD_PER_POINT` -> expected offensive TDs, split by
+  touches / RZ looks / xTD (First TD model's priors and defense-by-position factor), blended with
+  the market's own no-vig split by games / (games + 6). No market-wide lean found (checked).
+- **First TD:** TD Data's `firstTdPlayerTargets` as is. app.js only starts itself on TD Data
+  (`TD_DATA_PAGE`), so Best Plays can load it; the stars are the TD Summary's (`td2KeyList`).
+- Edge = model chance minus the best price's break-even (best across the member's books,
+  `bookBest`). Ratings `BP_EDGES` per market; Check = edge past `check` or a TD long shot at
+  `BP_CHECK_RATIO` 1.8x the price's chance (usually news the model lacks). Games that have kicked
+  off drop off (`bpStarted`). Save boxes are the shared `propOuEntries` / `ouCheckboxCell` ids.
+- No graded record yet (the engine runs in the browser; a record needs it in the build).
+- Test: `tests/test_best_plays_site.py`.

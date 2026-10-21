@@ -8,6 +8,12 @@
       "port": 8010
     },
     {
+      "name": "nfl-tool-py",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8037"],
+      "port": 8037
+    },
+    {
       "name": "nfl-tool-2",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8011"],

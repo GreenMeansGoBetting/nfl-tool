@@ -1632,7 +1632,9 @@ function qbIsRunner(team, name) {
   const prop = ((DATA.player_props || {})[team] || []).find((x) => normName(x.name) === normName(name));
   return !!prop && ((prop.rush_yards_per_g || 0) >= 15 || (prop.carries_per_g || 0) >= 5);
 }
-function td2KeyPlayers(offTeam, defTeam, week, items, tags) {
+// Each Key Player with n = how many of the team's flagged rows and shown tags
+// he fits (the card's stars; Best Plays shows the same stars).
+function td2KeyList(offTeam, defTeam, week, items, tags) {
   const pool = keyPlayerPool(offTeam, week).filter((p) => p.position !== "QB" || qbIsRunner(offTeam, p.name));
   const byPlayer = {};
   const link = (names, kind) =>
@@ -1643,7 +1645,10 @@ function td2KeyPlayers(offTeam, defTeam, week, items, tags) {
     });
   TD2_ROWS.forEach((r) => items[r.metric] && link(keyPlayersForTarget(r.metric, pool, offTeam, defTeam, week), "good"));
   tags.forEach((t) => link(keyPlayersForTag(t.label, pool, offTeam, week), t.kind));
-  const list = Object.values(byPlayer).sort((a, b) => b.n - a.n).slice(0, TD2_KEY_PLAYERS);
+  return Object.values(byPlayer).sort((a, b) => b.n - a.n).slice(0, TD2_KEY_PLAYERS);
+}
+function td2KeyPlayers(offTeam, defTeam, week, items, tags) {
+  const list = td2KeyList(offTeam, defTeam, week, items, tags);
   const names = uniqueShortNames(list.map((e) => e.name));
   return list.length
     ? list.map((e) => `<span class="sc-key${e.good ? "" : " sc-key-warn"}" title="Fits ${e.n} of this team's targets / tags">${playerClick(offTeam, e.name, `${summaryHeadshot(offTeam, e.name, 22)}${names[e.name]}`, defTeam)}<span class="sc-stars">${"★".repeat(Math.min(5, e.n))}</span></span>`).join("")
@@ -1794,7 +1799,10 @@ function setActiveView(view) {
   render();
 }
 
-document.querySelectorAll(".view-toggle-btn").forEach((btn) => {
+// Best Plays loads this file for the First TD model and the TD Summary's
+// stars; only TD Data itself starts the page.
+const TD_DATA_PAGE = !!document.getElementById("view-season");
+if (TD_DATA_PAGE) document.querySelectorAll(".view-toggle-btn").forEach((btn) => {
   btn.addEventListener("click", () => setActiveView(btn.dataset.view));
 });
 
@@ -1882,7 +1890,7 @@ function populateSelects() {
   homeSel.addEventListener("change", render);
 }
 
-fetch("data.json")
+if (TD_DATA_PAGE) fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;

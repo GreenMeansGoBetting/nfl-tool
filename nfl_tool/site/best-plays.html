@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Best Plays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="game-overview.html" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div id="empty-state" class="empty-state"><p>Loading this week's plays&hellip;</p></div>
+
+  <div id="bp-app" class="section-wrap" hidden>
+    <div class="bp-title-row">
+      <h2 class="section-title" id="bp-title">Best Plays</h2>
+      <button type="button" class="info-i" aria-expanded="false" aria-controls="bp-note" title="How to read this">i</button>
+    </div>
+    <p id="bp-warning" class="bp-warning"></p>
+    <p class="section-note info-note" id="bp-note" hidden>Every player prop and TD bet this week where the GMG number and the best price across your books disagree, biggest edge first. <b>GMG</b> is the model's projection (props) or chance (TDs). It starts from the books' own line and moves toward the player's games, the matchup (what this defense allows to his position, both sides read) and the spread and total, only as far as the games played back it up. <b>Fair</b> is the price that chance is worth with no cut; <b>Best price</b> is the best across your books (click it for every book). <b>Edge</b> is the model's chance minus the chance the price needs to break even, in points. <b>Rating</b>: Strong and Lean by the size of the edge; <b>Check</b> = the model is far from every book, which usually means news it doesn't know (an injury, a role change), so look before you bet. <b>&#9733;</b> = the TD Summary's Key Player stars. Games that have kicked off drop off. Click a column to sort by it, a name for the player card, the box to save a play to My Plays.</p>
+    <div id="bp-toolbar" class="view-toggle bp-toolbar"></div>
+    <div id="bp-content"></div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play, regular season only. Prices: Novig and every US book (SmartStake).
+</footer>
+
+<script src="sync.js"></script>
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script src="player-card.js"></script>
+<script src="book-odds.js"></script>
+<script src="props-summary.js"></script>
+<script src="app.js"></script>
+<script src="best-plays.js"></script>
+</body>
+</html>

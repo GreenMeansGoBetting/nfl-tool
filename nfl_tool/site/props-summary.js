@@ -3,8 +3,9 @@
 // Rushing / Receiving), each offense's and defense's strengths and
 // weaknesses vs the league (opponent-adjusted ranks) and the market leans
 // where they meet. Players only appear on the right, the lines YOU pick.
-// (The projection engine below is kept for later but no longer drives
-// anything on the card -- a few games is too little to trust it.)
+// (The projection engine below no longer drives anything on the card -- a
+// few games is too little to trust it on its own. NFL Best Plays,
+// best-plays.js, uses it with a market-wide correction and half trust.)
 //
 // Same 1160x980 card as TD Data's Summary. Every posted prop line in the
 // game gets a projection built from:
