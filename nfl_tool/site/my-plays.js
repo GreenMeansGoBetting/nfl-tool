@@ -185,7 +185,7 @@ function renderTable() {
   renderSummary(list);
   const box = document.getElementById("mp-content");
   if (!allPlays().length) {
-    box.innerHTML = `<div class="empty-state"><p>Nothing saved yet. Check the box beside a play on any page (NFL Game Previews, TD Data and Player Props; NHL Shots, Goals, Points, Saves, Best Plays and Line Stacks) and it shows up here.</p></div>`;
+    box.innerHTML = `<div class="empty-state"><p>Nothing saved yet. Check the box beside a play on any page (NFL Game Previews, TD Data and Player Props; NHL Shots, Goals, Points, Saves and Best Plays) and it shows up here.</p></div>`;
     return;
   }
   if (!list.length) {

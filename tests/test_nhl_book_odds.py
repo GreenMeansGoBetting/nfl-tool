@@ -49,7 +49,7 @@ class NhlBookOdds(unittest.TestCase):
         self.assertEqual(len(game["goals"]), 1)  # the player the site doesn't list is left out
         self.assertEqual(debug["games"], 1)
 
-    def test_points_prices_come_along_for_line_stacks(self):
+    def test_points_prices_come_along(self):
         odds, _ = self.build([quote("hockey_player_points", "over", 0.5, -150, "SUZUKI, NICK", 2)])
         self.assertEqual(odds["MTL_WSH"]["props"]["points"]["8480018"]["q"][0][:4], ["fanduel", "o", 0.5, -150])
 

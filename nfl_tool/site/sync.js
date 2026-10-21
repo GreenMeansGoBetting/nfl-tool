@@ -247,6 +247,13 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-21",
+    items: [
+      ["🏒", "<b>NHL Line Matchups</b> is a new page under NHL: tonight’s forward lines and defense pairs for each game, how each group has played together at 5-on-5 (shot share, goals, last 3 games), who’s hot or cold, the lines each home coach likes to send out against the other team’s lines, and past meetings."],
+      ["🏒", "<b>NHL Line Stacks</b> has been retired. Line Matchups replaces it."],
+    ],
+  },
+  {
     id: "2026-10-20b",
     items: [
       ["🏈", "<b>NFL Best Plays</b> is a new page under NFL → Player props: the week’s best player prop, Anytime TD and First TD plays in one list, with GMG’s fair price, the best price across your books, and Strong / Lean / Check ratings. It’s still a small sample this early, so read the note at the top and check injury news before you bet."],
@@ -734,7 +741,6 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     { name: "Goals", href: "goals.html" },
     { name: "Points", href: "points.html" },
     { name: "Saves", href: "saves.html" },
-    { name: "Line Stacks", href: "stacks.html" },
   ];
   const SPORT_PAGES = {
     nfl: { label: "NFL", home: "game-overview.html", items: [
@@ -756,6 +762,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     ] },
     nhl: { label: "NHL", home: "", items: [
       { name: "Game Previews", file: "" },
+      { name: "Line Matchups", file: "lines.html" },
       { head: "Player props" },
       ...PROPS.map((p) => ({ name: p.name, file: p.href })),
     ] },

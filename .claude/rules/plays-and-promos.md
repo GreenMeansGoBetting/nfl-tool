@@ -24,7 +24,7 @@ its prop pages get the box from day one).
   (`my-plays` in the middleware's `NFL_PAGES`) and reads `nhl/data.json` + `nhl/players/` there.
 - **Storage:** NFL plays stay in `nfl-tool.possible-plays.v1`, untouched. NHL plays are
   `nfl-tool.nhl-plays.v1` (sync.js `loadNhlPlays`/`saveNhlPlays`; in both sync key lists), saved
-  by the box beside each priced play on Shots, Goals, Points, Saves, Best Plays and Line Stacks
+  by the box beside each priced play on Shots, Goals, Points, Saves and Best Plays
   (nhl-common.js `nhlPlayBox` / `nhlPlayEntry`). Id `nhl:<market>:<game>:<player or legs>`: one per
   player, market and game, so the box stays checked when the line moves and Best Plays and the
   prop page share it. The price saved is the one shown when checked.
@@ -32,7 +32,7 @@ its prop pages get the box from day one).
   from the team's box score in `nhl/players/<TEAM>.json` once the schedule says final: SOG,
   goals, points (G+A), saves (SA-GA); a player not in that night's log = Void; a Line Stack wins
   when every leg has 1+ point, Void if a leg didn't play. Hand results win, like the NFL's.
-- **Line Stacks have no price** (SGPs are priced at the book): the row shows a Price box; until one
+- **Line Stacks (retired 2026-10-21; members' saved stacks still grade) have no price** (SGPs are priced at the book): the row shows a Price box; until one
   is typed in, the stack counts in the record but not the units (`unitsForPlay` gives 0).
 - Filters: sport chips (All / NFL / NHL) and When (NFL weeks, NHL days). Checked rows narrow the
   record and the Photo Export (the Possible Plays card; groups say the sport when mixed).

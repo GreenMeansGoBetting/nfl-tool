@@ -2,10 +2,9 @@
 nameSearchBox; the owner, 2026-10-16: "if i start typing in GEE it will only show
 names of players with that"), in a real browser on the saved samples.
 
-What is pinned, on Shots, Goals, Points, Saves, Best Plays and Line Stacks: typing keeps
-only rows whose player name contains the text (case and accents don't matter;
-on Line Stacks, a stack with any matching leg); the box keeps its cursor while
-the table redraws; a search that matches nobody keeps the table and the box,
+What is pinned, on Shots, Goals, Points, Saves and Best Plays: typing keeps
+only rows whose player name contains the text (case and accents don't matter);
+the box keeps its cursor while the table redraws; a search that matches nobody keeps the table and the box,
 with a "No players match" line; clearing it brings every row back."""
 import unicodedata
 import unittest
@@ -22,7 +21,6 @@ PAGES = {
     "nhl/points.html": ("POINTS", "(tr) => [tr.querySelector('.shots-player span').textContent]"),
     "nhl/saves.html": ("SAVES", "(tr) => [tr.querySelector('.shots-player span').textContent]"),
     "nhl/best.html": ("SHOTS", "(tr) => [tr.querySelector('.shots-player span').textContent]"),
-    "nhl/stacks.html": ("STACKS", "(tr) => [...tr.querySelectorAll('.stk-leg .player-click span')].map((s) => s.textContent)"),
 }
 
 

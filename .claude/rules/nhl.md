@@ -335,18 +335,17 @@ on a replay, and the page keeps a record against the real prices.
 
 ## Pages
 
-- **Save to My Plays (2026-10-20):** every priced play on Shots, Goals, Points, Saves, Best Plays and
-  Line Stacks has a small box (`nhlPlayBox` in nhl-common.js; a new prop page adds it to its Play cell).
+- **Save to My Plays (2026-10-20):** every priced play on Shots, Goals, Points, Saves and Best Plays
+  has a small box (`nhlPlayBox` in nhl-common.js; a new prop page adds it to its Play cell).
   The plays, their grading and the page: plays-and-promos.md, "My Plays".
 - **The top bar (the owner, 2026-10-17): NFL, NBA, NHL, Promo Tools on every page of every sport**
   (it was Games / Player Props / Promo Tools on 2026-10-15). Each is a button that opens a list of
-  its pages (`SPORT_PAGES` in sync.js, built by `addTopMenu`). The NHL's list is Game Previews, then
-  a "Player props" heading over Best Plays, Shots, Goals, Points, Saves, Line Stacks (`PROPS`). A new NHL
+  its pages (`SPORT_PAGES` in sync.js, built by `addTopMenu`). The NHL's list is Game Previews, Line Matchups, then
+  a "Player props" heading over Best Plays, Shots, Goals, Points, Saves (`PROPS`). A new NHL
   tool is one line in `PROPS`. No "More tools coming" on any page. Tests check every NHL page's bar
   (`test_header_site.py` the behavior).
 - **Player search** (the owner, 2026-10-16: "if i start typing in GEE it will only show names of players
-  with that"): a box in the Player header of Shots, Goals, Points and Best Plays, and in Line Stacks'
-  Legs header (a stack stays if any leg matches). Case and accents don't matter (`nameSearchBox`,
+  with that"): a box in the Player header of Shots, Goals, Points, Saves and Best Plays. Case and accents don't matter (`nameSearchBox`,
   `nameMatches`, `NAME_SEARCH` in nhl-common.js; each page filters in its own sorted rows). A search
   that matches nobody keeps the table and the box with a "No players match" line. A new prop table:
   `search: true` on its Player column and `nameMatches` in its filter. Test: `tests/test_nhl_search_site.py`.
@@ -968,89 +967,66 @@ good. Finish the Points page"). It REUSES the Goals page's layout, ids and class
   14:00 UTC, then 10/13 14:12 with that file as the live one, like the Goals sample). Rebuild it
   with that script after a change to what points.json holds.
 
-## Line Stacks (built 2026-10-16)
+## Line Matchups (`site/nhl/lines.html` + `lines.js`, built 2026-10-21; replaced Line Stacks)
 
-The owner: "points parlays from players on the ice together ... When one scores, his linemates
-usually get the assists, so the legs win together far more often than separate bets would." Under
-Player Props after Points, and a "Best stacks with <player> tonight" box in the Points page's open row. The box is left out when his Points play is the under (the owner: every stack needs him to score, so it would confuse members).
+The owner, after Line Stacks lost most nights: "Rather than making a tool that surfaces stacks and
+plays - which are not performing anyway and are overwhelming - maybe we can create something that
+just displays the lines for the night, the strong groups, the weak groups - more of a 'game
+preview' style tool." A member who "knows puck" asked for likely line matchups, how each line
+performs together, hot / cold streaks and past matchups. **A preview, never a pick sheet: no
+prices, no projections, no record.** Under NHL right after Game Previews (not under Player props).
+The owner approved a one-game mockup (FLA @ OTT) before the build.
 
-- **The replay** (`python tools/backtest/nhl_stacks.py --rows <folder>`, about 6 minutes; questions,
-  bar and findings in its header): a whole line got all three points 16% of the time against 8% for
-  the Points chances multiplied (lift 1.9-2.1); line pairs 1.35-1.44, D pairs 1.3, line + D (4 legs)
-  2.2-2.35; first power-play unit across lines 1.2; forwards on different lines 1.05-1.12 and
-  opposite teams 1.03 (left out). The lower the line, the bigger the lift (L1 trios 1.6, L4 4.6).
-  **Tonight's projected line beat his usual linemates**: its trios played together 74% of the time
-  (usual 31%), and lifted more. What predicts a hit beyond the joint chance: power-play minutes
-  together (z 4.5) and the legs' expected goals (z 2.2); team total, defense, goalie, EV time
-  together: nothing.
-- **The model** (`nfl_tool/nhl/stacks_model.py`, standard library; `tools/backtest/nhl_stacks_check.py`
-  fits `RHO` / `WEIGHTS` / `XG_AVG` through it, plain Python matches the replay to 1e-16): "shared
-  goals". Each leg's points are a count at rate -ln(1 - the Points chance); a pair shares rho x
-  sqrt(rate1 x rate2) goals (a trio the cube root), rho per relation (same line 0.43, D pair 0.18,
-  forward + his line's pair 0.14, power-play pairs 0.12-0.26), with the pair's own shared points mixed
-  in after K = 32; all legs hit by inclusion-exclusion; then the two factors on the logit. 2025-26 on
-  2024-25's numbers: log loss 0.36474 vs 0.37544 multiplied; honest within a point except the surest
-  pairs (said 51%, hit 48.5%) and 4 legs said 15-20% (hit 14.4%). A per-legs re-scaling didn't help.
-- **Kinds** (`KINDS`): line pair, full line, D pair, forward + D, line pair + D, line + D, line pair
-  + D pair (the "matched" pair = the one that has shared the most EV ice with that line), power play
-  (two of the usual first unit, top 5 by PP minutes a game, not on the same line or pair), **power play
-  trio** (`pp_trio`, 2026-10-16, the owner: Rakell + Kindel + Karlsson came only as two pairs, "this has
-  to be a flaw?"): three of that unit, not all one line, and not a trio the lines already built (two
-  linemates + their matched D stays "Line pair + D"). Added after the replay: its pairs use the fitted
-  power-play rho, but no rho was fitted for three of the unit sharing one goal (`trio_other` = 0), so its
-  chance can only be too LOW. Refit it on the replay (needs the 2024-25 / 2025-26 data, on the Carter PC).
-- **Shared ice** (`reduce_game`'s `ice`, `game_ice` -> `stacks_model.shared_ice`): each skater's
-  EV / PP seconds and every teammate pair's shared seconds, from the kept shift chart (None without
-  one: this season's games 6-52). `StacksHistory` keeps it per team, decayed 0.985 a team game.
-- **Only stacks a book prices EVERY leg of** (the owner, 2026-10-16: the rest is clutter): SmartStake's
-  `hockey_player_points` (data.json `book_odds[..].props.points`, an over on the 0.5 line from any US
-  book; `book_priced_points`). Done in the BUILD, not the page: the record grades exactly the stacks
-  shown, the files stay small, the page does no stack math, and the lock keeps the filtered board. A
-  game's `unpriced` = stacks left out; posted with none left, the page says the books haven't priced it
-  yet. No SmartStake prices that run (no key, a failed fetch) = drop nothing (it can't tell).
-- **ONLY a posted projected lineup makes stacks** (the owner: "the projected line only"): a game
-  without one is `posted: false` with no stacks, and the page says it is waiting on the lineup.
-- **`site/nhl/stacks.json`** (not tracked; on fetch_live_data's list; `version.json` `nhl.stacks` =
-  games with stacks): `games[id] = {locked, posted, unpriced, players: {id: name, team, pos, slot, chance,
-  fair, line, over, under}, stacks: [kind, team, line, legs, chance, fair, indep, lift, score,
-  priced, xg, pp]}`, best Score first. Built from points.json's rows (`game_stacks`), so a leg is
-  exactly the Points page's chance. Lock like Points; a final game gets `actual` and each stack's
-  `hit` (None = a leg didn't play: void).
-- **GMG Score 1-100** (`stack_score`): 50 + 100 x ln(our chance / the same stack on Novig's leg
-  prices through OUR correlation), so it assumes the book prices correlation like our model and the
-  edge left is in the legs (`market_point_chance`: the 0.5 line, or read off the 1.5 line as a
-  count). A leg Novig hasn't priced counts as no edge ("2 of 3 legs priced"). Eight colors
-  (`STACK_STEPS` in nhl-common.js: 65+, 58, 54, 51, 48, 44, 36). **Unproven**: the owner's first
-  SGP example (MacKinnon + Necas + Makar, 2026-10-16) had three books charging 1.17-1.29x over their
-  own legs against our 1.12x.
-- **The SGP price log** (the owner, 2026-10-16: "a spot to log WHAT book it is because they all price
-  differently"): an owner-only **Log price** button on every stack (shown with `html.is-owner` and on
-  localhost; the server checks again) opens a form: one line per book (`SGP_BOOKS` in the middleware:
-  DraftKings, FanDuel, BetMGM, Caesars, Fanatics, bet365, BetRivers, ESPN BET, Hard Rock, Other), its
-  SGP price and, optionally, its price for each leg alone. Saved to D1 through `/api/sgp-prices`
-  (members-and-hosting.md) with the model's chance, fair and kind at the time. The row then shows
-  each logged price ("FD -111"), green when it pays more than GMG fair, red when less. The YTD popup
-  opens with **Book markup**: per book and per stack type, prices logged, **Over its legs** (its SGP
-  chance over its own legs multiplied, only lines with every leg priced: the book's correlation
-  markup) and **vs GMG fair** (our chance x its payout - 1, averaged). Next, once enough are logged:
-  fold each book's markup by stack type into the Score (a Score per book), and grade logged prices
-  against the record's hits (the record files are keyed by game, the log by game + legs).
-- **The page, the owner's mockup v4** (`stacks.js`; `.stk-*` in nhl.css): Score | Legs (headshot,
-  name, "C · Line 2", labeled **GMG fair** American price, Novig's o0.5 chip or "o1.5 only" / "no
-  price") | Stack (type, "Line 2 + Pair 1 · 3 legs", the game) | **Fair** (American bold, % under:
-  the owner, "its hard to juggle american odds vs percentage") | Correlation ("1.7x", small
-  "Non-correlated +568": books never pay it) | **Copy** (plain text "Name 1+ Point / Name 1+ Point
-  (AWAY @ HOME)" for Pikkit or a book's builder; the exact text is shown under each row). 50 rows,
-  then "Show more". Filters: type, legs, sort (score, chance, correlation, payout), live / final.
-  No stack math on the page. The record popup: said vs hit by Score band, by type, by legs.
-- **The record** (`model_history/nhl_stacks/<month>/<game id>.json`, **one file a game**, written
-  once: a slate is ~2,500 stacks, and a month file rewritten every build would grow the repository
-  ~100 MB a month): every stack shown (`STACKS_RECORD_COLS`) and each player's chance and points.
-  `stacks_record_summary`: said vs hit by legs, kind and Score band; no units until SGP prices exist.
-- Tests: `tests/test_nhl_stacks.py` (shared ice on the saved game, the joint chance, kinds, the board,
-  lock, grades, the Score, the record), `tests/test_nhl_stacks_site.py` (the page, the SGP log's chips,
-  markup and form, and the Points box on `helpers.nhl_stacks()`, built at test time from the Points
-  sample by the build's own functions) and `tests/test_ci_sgp_prices.py` (the endpoint).
+- **The counting** (`nfl_tool/nhl/lines_model.py`, standard library): `game_units(raw)` from the
+  kept shift chart (`reduce_game`'s `lines5`; None without one, like games 6-52 of this season).
+  5-on-5 = exactly 3 F + 2 D + a goalie a side, read off the shifts each second (not the feed's
+  `situationCode`). Per team: `team` and every trio (`F`) and pair (`D`) as `[secs, attempts for,
+  against, goals for, against]` (attempts = goals, shots on goal, misses, blocked shots; OT counts
+  only if it is 5-on-5, so it never does in the regular season), and `vs` = home trio against away
+  trio seconds. A shift counts from just after it starts (`on_ice_finder`'s rule): a goal at the
+  last second of a shift belongs to the line it ended.
+- `LinesHistory` (this season's games only): `unit` (season + `l3` = last 3 games together; a game
+  "together" = 60+ seconds), `usual` (no lineup posted: from the players in the team's latest game,
+  `game_lines`' rule over its last 5 games; a team that dressed 11 F shows 3 lines), `deploy` (in
+  the home team's home games, seconds by the other team's line rank x his line rank, ranks = that
+  game's trios by 5-on-5 time, 0 = mixed groups), `meetings`. `likely_matchups`: for the other
+  team's lines 1-4, the home line most often sent out against it, its share, and the mixed share.
+- **`lines.json`** (`lines_file` in build_nhl.py; untracked; on fetch_live_data's list;
+  `version.json` `nhl.line_matchups` = games): games through `SHOTS_DAYS_AHEAD`, each `{locked, posted,
+  teams: {T: {source "posted" | "usual", games, team, lines, pairs}}, players: {id: [name, pos,
+  headshot]}, matchups: {games, rows}, meetings: {games, rows: [home ids, away ids, secs]}}`. A
+  posted lineup's groups in the story's order (an unknown name = a trio with no history: New
+  Together). A started game keeps the last build's entry (locked); none saved = left off.
+  `LINES_RULES` (sent as `rules`; the page's tags read them): Strong / Weak at 56% / 44% shot share
+  with 20+ minutes together, else Small Sample (New Together at 0); Hot / Cold when the last 3 games
+  (10+ minutes) are 5+ points of share from the season or +/-2 in goals, **Steady when the two
+  disagree** (the first draft called a line Cold with its share rising: the card can't contradict
+  itself).
+- **The page:** one game at a time from the day strip ("Lineup" / "Usual Lines" on each card): the
+  away team's tiles, a middle column (Likely Matchups with both lines' shot shares, Past Meetings,
+  Team 5-on-5), the home team's. A tile: Line / Pair N + tag, three names (`playerClick`), Min · GP,
+  Shot Share and Last 3 GP on the eight colors around 50% (`SHARE_STEPS`; shaded only past half the
+  Strong minutes), Goals, Form. Under 1180px the middle column goes on top in three; phones one
+  column, matchups first. The explanation is behind the "i".
+- **What the first look showed (2026-10-21, ~6 games a team with a chart):** trios had 20-60
+  minutes together, trio-vs-trio history only 2-8 minutes, and about a third of 5-on-5 time was
+  mixed groups, so Likely Matchups is a lean and says so. It firms up as the season goes.
+- Tests: `tests/test_nhl_line_matchups.py` (the counting on the saved game and a hand-made one, the
+  history, the file) and `tests/test_nhl_line_matchups_site.py` (the page on `helpers.nhl_lines()`,
+  built at test time from the saved FLA @ BUF game). `tests/test_nhl_lines.py` is the player card's
+  Line column (`game_lines`), not this page.
+
+## Line Stacks (built 2026-10-16, retired 2026-10-21)
+
+Points parlays of linemates (2-4 legs, a GMG Score from a "shared goals" model; the replay is
+`tools/backtest/nhl_stacks.py`, the model `nfl_tool/nhl/stacks_model.py`, both kept with
+`tests/test_nhl_stacks.py` for the model). **Retired because it lost:** 4,154 stacks graded over
+10/16-10/20, the Score 58+ band said 23% and hit 16%, 51-57 said 21% and hit 12%; with no way to know
+how each book prices a same-game parlay, the Score couldn't be fixed (the owner). Gone: the page,
+`stacks.json`, the Points page's "Best stacks" box, the build's board and record (`game_ice` /
+`ice` too). Kept: `model_history/nhl_stacks/` (the record), the SGP price log endpoint and its D1
+rows (members-and-hosting.md), and My Plays still grades members' saved stacks
+(plays-and-promos.md).
 
 ## Saves (goalie saves over / under; built 2026-10-19)
 
@@ -1175,7 +1151,7 @@ pages for the detail, not a copy of them.
 ## Not built yet (waiting on the user's priorities)
 
 Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), Saves (goalie saves), all above.
-For Saves: Best Plays lists its plays (2026-10-20). Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
+For Saves: Best Plays lists its plays (2026-10-20). Line Stacks was retired 2026-10-21 for Line Matchups (above). Next on the
 owner's list: re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
@@ -1204,8 +1180,7 @@ Novig. Test: `tests/test_nhl_best_prices.py`.
 - **Same filters and same open row on every prop page (2026-10-18, a member: "filter by above a
   score, if lineups are out"; the owner: some pages showed odds when opened, some didn't).** Shots,
   Goals, Points and Best Plays all have an **Edge** menu (`edgeOptions` / `edgeAtLeast` in
-  nhl-common.js; "Any edge" by default off Best Plays) and a Lineups menu; Line Stacks has a
-  **Score** menu (50+ to 65+; stacks only exist with a posted lineup, so no Lineups menu). The
+  nhl-common.js; "Any edge" by default off Best Plays) and a Lineups menu. The
   Points open row has the every-book column too (`stat` "points"). A new prop page gets both.
 
 - `build_nhl.py` asks SmartStake for shots on goal and goals (`smartstake.fetch_nhl_book_odds`;

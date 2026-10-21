@@ -1,16 +1,11 @@
-"""NHL Line Stacks: the model (nfl_tool/nhl/stacks_model.py) and its half of
-the build (build_nhl.py), on the saved game (with its shift chart) and
-hand-made ones.
+"""NHL Line Stacks' model (nfl_tool/nhl/stacks_model.py), kept for the replays
+(tools/backtest/nhl_stacks*.py) after the page was retired on 2026-10-21 for
+Line Matchups. Hand-made lineups only.
 
-What is pinned: shared ice (even strength and power play) read from the
-shift chart; the joint chance (no shared goals = the legs multiplied, shared
-goals = more, never above the weakest leg); every stack kind from a posted
-lineup, power-play pairs only across lines, power-play trios of the unit
-(not one the lines already built); the Score (50 = no edge against
-the market's legs; the market read off the 0.5 or the 1.5 line); the board
-(ONLY a posted projected lineup makes stacks, the lock, a finished game's
-hits and void legs, only stacks a book prices every leg of); the record (one file per game, written once; said vs
-hit, voids left out)."""
+What is pinned: shared ice (even strength and power play); the joint chance
+(no shared goals = the legs multiplied, shared goals = more, never above the
+weakest leg); every stack kind from a posted lineup, power-play pairs only
+across lines, power-play trios of the unit (not one the lines already built)."""
 import json
 import math
 import tempfile
@@ -45,18 +40,6 @@ class SharedIce(unittest.TestCase):
         ice = km.shared_ice({"a": [(0, 150)], "b": [(50, 300)]}, even, pp["home"])
         self.assertEqual(ice["toi"], {"a": [100, 50], "b": [130, 120]})
         self.assertEqual(ice["pairs"][("a", "b")], [50, 50])
-
-    def test_the_saved_game(self):
-        raw = helpers.nhl_game()
-        raw["shifts"] = helpers.nhl_game_shifts()
-        ice = build_nhl.reduce_game(raw)["ice"]
-        self.assertEqual(set(ice), {"FLA", "BUF"})
-        for team in ice.values():
-            self.assertGreaterEqual(len(team["toi"]), 18)
-            for ev, pp in team["toi"].values():
-                self.assertLessEqual(ev + pp, 30 * 60)
-            self.assertTrue(any(pp for _, pp in team["pairs"].values()))
-        self.assertIsNone(build_nhl.reduce_game(helpers.nhl_game())["ice"])  # no shift chart
 
 
 class JointChance(unittest.TestCase):
@@ -118,94 +101,6 @@ class TeamStacks(unittest.TestCase):
         for s in trios:
             self.assertGreater(s["chance"], s["indep"])  # its pairs share power-play goals
             self.assertLessEqual(s["chance"], 0.4)
-
-
-class Board(unittest.TestCase):
-    def game(self, gid="1", start="2026-10-16T23:00Z", status="scheduled"):
-        return {"game_id": gid, "date": "2026-10-16", "away": "AAA", "home": "BBB", "start_utc": start, "status": status}
-
-    def rows(self, posted=True):
-        out = []
-        for team, home in (("AAA", False), ("BBB", True)):
-            ids, slots = lineup(team)
-            out += [row(p, team, slots[p] if posted else None, home=home) for p in ids]
-        return out
-
-    def test_only_a_posted_lineup_makes_stacks(self):
-        now = datetime(2026, 10, 16, 15)
-        board = build_nhl.stacks_board({"1": {"players": self.rows(posted=False)}}, [self.game()], [], None, now, km.StacksHistory())
-        self.assertEqual(board["1"], {"locked": False, "posted": False, "players": {}, "stacks": []})
-        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory())
-        self.assertTrue(board["1"]["posted"])
-        self.assertEqual(len(board["1"]["stacks"]), 2 * 87)
-        self.assertEqual([s["score"] for s in board["1"]["stacks"]], sorted((s["score"] for s in board["1"]["stacks"]), reverse=True))
-
-    def test_only_stacks_a_book_prices_every_leg_of(self):
-        now = datetime(2026, 10, 16, 15)
-        q = lambda line, side="o": ["fanduel", side, line, -150, ""]
-        book_odds = {"AAA_BBB": {"props": {"points": {"AAAf0": {"q": [q(0.5)]}, "AAAf1": {"q": [q(0.5), q(1.5)]},
-                                                      "AAAf2": {"q": [q(1.5)]}, "AAAd0": {"q": [q(0.5, "u")]}}}}}
-        priced = build_nhl.book_priced_points(book_odds, [self.game()])
-        self.assertEqual(priced, {"1": {"AAAf0", "AAAf1"}})  # the 1+ point over: not a 1.5 line, not an under
-        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory(), priced)["1"]
-        self.assertEqual([s["legs"] for s in board["stacks"]], [["AAAf0", "AAAf1"]])
-        self.assertEqual(board["unpriced"], 2 * 87 - 1)
-        # No SmartStake prices this run (no key, a failed fetch): nothing can be told, nothing is dropped.
-        self.assertIsNone(build_nhl.book_priced_points(None, [self.game()]))
-        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory(), None)["1"]
-        self.assertEqual(len(board["stacks"]), 2 * 87)
-        self.assertNotIn("unpriced", board)
-        # A game the books haven't priced yet: posted, but no stacks until they do.
-        board = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory(), {"1": set()})["1"]
-        self.assertEqual((board["posted"], board["stacks"], board["unpriced"]), (True, [], 2 * 87))
-
-    def test_the_lock_and_the_grades(self):
-        now = datetime(2026, 10, 16, 15)
-        live = build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, now, km.StacksHistory())
-        later = datetime(2026, 10, 17, 3)
-        # Started with nothing saved: nothing shown, never numbers made after puck drop.
-        self.assertEqual(build_nhl.stacks_board({"1": {"players": self.rows()}}, [self.game()], [], None, later, km.StacksHistory()), {})
-        kept = build_nhl.stacks_board({}, [self.game()], [], {"games": live}, later, km.StacksHistory())
-        self.assertTrue(kept["1"]["locked"])
-        self.assertEqual(kept["1"]["stacks"], live["1"]["stacks"])
-        played = {p: {"g": 1 if p in ("AAAf0", "AAAf1") else 0, "a": 0} for p in live["1"]["players"] if p != "AAAf2"}
-        final = build_nhl.stacks_board({}, [self.game(status="final")], [{"id": 1, "skaters": played}], {"games": live}, later, km.StacksHistory())["1"]
-        self.assertTrue(final["final"])
-        by_legs = {tuple(s["legs"]): s["hit"] for s in final["stacks"]}
-        self.assertIs(by_legs[("AAAf0", "AAAf1")], True)
-        self.assertIs(by_legs[("AAAf0", "AAAd0")], False)
-        self.assertIsNone(by_legs[("AAAf0", "AAAf1", "AAAf2")])  # AAAf2 didn't play: void
-
-    def test_the_score_and_the_market(self):
-        self.assertEqual(build_nhl.stack_score(0.2, 0.2), 50)
-        self.assertEqual(build_nhl.stack_score(0.22, 0.2), 60)
-        self.assertEqual(build_nhl.stack_score(0.01, 0.9), 1)
-        self.assertAlmostEqual(build_nhl.market_point_chance({"line": 0.5, "over": -110, "under": -110}), 0.5)
-        lo = build_nhl.market_point_chance({"line": 1.5, "over": 200, "under": -250})
-        hi = build_nhl.market_point_chance({"line": 1.5, "over": 120, "under": -150})
-        self.assertTrue(0.5 < lo < hi < 0.9)
-        self.assertIsNone(build_nhl.market_point_chance({"line": None}))
-
-
-class Record(unittest.TestCase):
-    def test_one_file_a_game_written_once(self):
-        stacks = helpers.nhl_stacks()
-        final = {gid: g for gid, g in stacks["games"].items() if g.get("final")}
-        games = [{"game_id": gid, "date": "2026-10-12", "away": "X", "home": "Y"} for gid in final]
-        with tempfile.TemporaryDirectory() as folder:
-            folder = Path(folder)
-            self.assertEqual(build_nhl.record_stack_games(folder, stacks["games"], games), len(final))
-            self.assertEqual(build_nhl.record_stack_games(folder, stacks["games"], games), 0)
-            files = sorted(folder.glob("2026-10/*.json"))
-            self.assertEqual([f.stem for f in files], sorted(final))
-            saved = json.loads(files[0].read_text(encoding="utf-8"))
-            self.assertEqual(saved["cols"], list(build_nhl.STACKS_RECORD_COLS))
-            summary = build_nhl.stacks_record_summary(folder)
-        graded = [s for g in final.values() for s in g["stacks"] if s["hit"] is not None]
-        self.assertEqual(summary["stacks"], len(graded))
-        self.assertEqual(summary["games"], len(final))
-        self.assertEqual(sum(b["hit"] for b in summary["kinds"].values()), sum(s["hit"] for s in graded))
-        self.assertAlmostEqual(sum(b["said"] for b in summary["scores"]), sum(s["chance"] for s in graded), places=1)
 
 
 if __name__ == "__main__":

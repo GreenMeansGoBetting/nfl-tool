@@ -52,7 +52,7 @@ class TopMenu(unittest.TestCase):
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
             self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Game Previews", "/nba/", False], ["Team Identity", "/nba/identity.html", False], ["Points", "/nba/points.html", False], ["First Basket", "/nba/first-basket.html", False]])
             page.click(".page-nav .nhl-trigger")
-            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nhl-menu")], ["Game Previews", "Best Plays", "Shots", "Goals", "Points", "Saves", "Line Stacks"])
+            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nhl-menu")], ["Game Previews", "Line Matchups", "Best Plays", "Shots", "Goals", "Points", "Saves"])
             self.assertIn("player props", page.inner_text(".nhl-menu").lower())
             page.keyboard.press("Escape")
             self.assertTrue(page.locator(".nhl-menu").is_hidden())
@@ -99,9 +99,9 @@ class TopMenu(unittest.TestCase):
             self.assertTrue(page.locator(".acct-menu").is_hidden())
             self.assertFalse(page.evaluate("() => document.getElementById('updates-modal').hidden"))
             page.keyboard.press("Escape")
-            # A fresh browser hasn't seen the newest update, so an update's
-            # "Before you go" note (GMG_UPDATES `after`) follows: close it too.
-            if page.evaluate("() => GMG_UPDATES[0].after !== undefined"):
+            # A fresh browser has seen no update, so the newest one with a
+            # "Before you go" note (GMG_UPDATES `after`) adds it: close it too.
+            if page.evaluate("() => GMG_UPDATES.some((u) => u.after !== undefined)"):
                 self.assertFalse(page.evaluate("() => document.getElementById('after-note-modal').hidden"))
                 page.keyboard.press("Escape")
             page.click(".acct-chip")

@@ -1272,3 +1272,16 @@ are graded (the same two rules didn't help them on so few nights). Shots, before
   opening on it), and the "Where he shoots" rink's wording ("allows 3rd fewest") became three
   boxes per zone: shots a game, share, league rank. Zones are colored by the league-wide count.
 - This session ran on a second PC (`C:\Users\cdmcc`), where Python is `py`.
+
+## 2026-10-21: Line Matchups replaces Line Stacks
+
+- Line Stacks lost most nights. On its first five nights (4,154 stacks graded) the best-scored
+  stacks hit less often than the model said (Score 58+: said 23%, hit 16%). Same-game parlays are
+  priced by each book's own engine, so the Score had nothing reliable to compare against. The
+  owner retired it.
+- A member who "knows puck" asked for line-vs-line information instead: likely matchups, how each
+  line does together, hot / cold, past meetings. The owner wanted "more of a 'game preview' style
+  tool than a 'heres a pick' tool". The kept shift charts already held all of it, so nothing new
+  had to be downloaded. The owner approved a one-game mockup (FLA @ OTT) first.
+- Honest limits shown to the owner first: about 6 games a team with a shift chart, trios with 20-60
+  minutes together, trio-vs-trio history of a few minutes, and a third of 5-on-5 time played by mixed groups.
