@@ -433,70 +433,70 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.3119,
+    "lead": 0.3095,
     "name": "Nikola Jokic",
-    "proj": 47.8,
+    "proj": 47.7,
     "team": "DEN"
    },
    {
     "id": "3917376",
-    "lead": 0.1288,
+    "lead": 0.129,
     "name": "Jaylen Brown",
     "proj": 40.8,
     "team": "PHI"
    },
    {
     "id": "3059318",
-    "lead": 0.1273,
+    "lead": 0.1276,
     "name": "Joel Embiid",
     "proj": 40.4,
     "team": "PHI"
    },
    {
     "id": "4278073",
-    "lead": 0.1079,
+    "lead": 0.108,
     "name": "Shai Gilgeous-Alexander",
     "proj": 39.6,
     "team": "OKC"
    },
    {
     "id": "3908809",
-    "lead": 0.0717,
+    "lead": 0.0722,
     "name": "Donovan Mitchell",
     "proj": 37.2,
     "team": "CLE"
    },
    {
     "id": "4431678",
-    "lead": 0.0625,
+    "lead": 0.0626,
     "name": "Tyrese Maxey",
     "proj": 36.4,
     "team": "PHI"
    },
    {
     "id": "3936299",
-    "lead": 0.0609,
+    "lead": 0.0611,
     "name": "Jamal Murray",
     "proj": 36.6,
     "team": "DEN"
    },
    {
     "id": "1966",
-    "lead": 0.0591,
+    "lead": 0.0592,
     "name": "LeBron James",
     "proj": 35.8,
     "team": "PHI"
    },
    {
     "id": "3992",
-    "lead": 0.041,
+    "lead": 0.0415,
     "name": "James Harden",
     "proj": 34.4,
     "team": "CLE"
    },
    {
     "id": "4432158",
-    "lead": 0.0129,
+    "lead": 0.013,
     "name": "Evan Mobley",
     "proj": 30.7,
     "team": "CLE"
@@ -510,7 +510,7 @@
    },
    {
     "id": "5124612",
-    "lead": 0.0037,
+    "lead": 0.0038,
     "name": "VJ Edgecombe",
     "proj": 25.9,
     "team": "PHI"
@@ -533,7 +533,7 @@
     "id": "3978",
     "lead": 0.0018,
     "name": "DeMar DeRozan",
-    "proj": 24.7,
+    "proj": 24.6,
     "team": "DEN"
    },
    {

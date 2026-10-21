@@ -93,9 +93,9 @@
    "3945274": [
     "Luka Doncic",
     0.113,
-    426,
+    396,
     false,
-    "novig"
+    "prophetx"
    ],
    "3975": [
     "Stephen Curry",
@@ -121,9 +121,9 @@
    "4397014": [
     "Quentin Grimes",
     0.113,
-    802,
+    840,
     false,
-    "prophetx"
+    "fliff"
    ],
    "4397040": [
     "Brandon Williams",
@@ -256,7 +256,7 @@
    "3936299": [
     "Jamal Murray",
     0.093,
-    540,
+    535,
     false,
     "fliff"
    ],
@@ -291,7 +291,7 @@
    "4433255": [
     "Chet Holmgren",
     0.095,
-    590,
+    614,
     false,
     "novig"
    ],
@@ -305,7 +305,7 @@
    "4683692": [
     "Cason Wallace",
     0.087,
-    1150,
+    1076,
     false,
     "novig"
    ]
@@ -518,9 +518,9 @@
    "4566434": [
     "Franz Wagner",
     0.096,
-    809,
+    733,
     false,
-    "novig"
+    "prophetx"
    ],
    "4701230": [
     "Jalen Johnson",
@@ -617,7 +617,7 @@
    "6583": [
     "Anthony Davis",
     0.098,
-    456,
+    426,
     false,
     "novig"
    ]
@@ -717,7 +717,7 @@
    "3134908": [
     "Jakob Poeltl",
     0.105,
-    733,
+    809,
     false,
     "novig"
    ],
@@ -752,14 +752,14 @@
    "4433134": [
     "Scottie Barnes",
     0.105,
-    641,
+    604,
     false,
-    "novig"
+    "prophetx"
    ],
    "4711294": [
     "Matas Buzelis",
     0.087,
-    852,
+    809,
     false,
     "novig"
    ],
@@ -894,7 +894,7 @@
    "4395628": [
     "Zion Williamson",
     0.089,
-    614,
+    590,
     false,
     "novig"
    ],
@@ -915,7 +915,7 @@
    "4397688": [
     "Trey Murphy III",
     0.089,
-    770,
+    809,
     false,
     "novig"
    ],
@@ -951,16 +951,16 @@
    "3202": [
     "Kevin Durant",
     0.105,
-    525,
+    564,
     false,
     "prophetx"
    ],
    "4278078": [
     "P.J. Washington",
     0.087,
-    1139,
+    1076,
     false,
-    "prophetx"
+    "novig"
    ],
    "4278594": [
     "Naji Marshall",
@@ -1000,7 +1000,7 @@
    "5041939": [
     "Cooper Flagg",
     0.087,
-    641,
+    700,
     false,
     "novig"
    ],
