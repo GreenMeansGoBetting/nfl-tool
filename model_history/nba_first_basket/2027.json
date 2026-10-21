@@ -589,7 +589,7 @@
    "4591725": [
     "Ryan Rollins",
     0.094,
-    1011,
+    953,
     false,
     "novig"
    ],
@@ -724,7 +724,7 @@
    "4395625": [
     "RJ Barrett",
     0.105,
-    802,
+    663,
     false,
     "prophetx"
    ],
@@ -773,7 +773,7 @@
    "6450": [
     "Kawhi Leonard",
     0.105,
-    506,
+    488,
     false,
     "novig"
    ]
@@ -795,7 +795,7 @@
    "4065733": [
     "Ty Jerome",
     0.107,
-    565,
+    540,
     false,
     "fliff"
    ],
@@ -901,7 +901,7 @@
    "4395712": [
     "Andrew Nembhard",
     0.103,
-    852,
+    809,
     false,
     "novig"
    ],
@@ -1029,9 +1029,9 @@
    "3155526": [
     "Dillon Brooks",
     0.089,
-    669,
+    733,
     false,
-    "novig"
+    "prophetx"
    ],
    "3995": [
     "Jrue Holiday",
@@ -1057,7 +1057,7 @@
    "4279888": [
     "Ja Morant",
     0.103,
-    900,
+    852,
     false,
     "novig"
    ],
