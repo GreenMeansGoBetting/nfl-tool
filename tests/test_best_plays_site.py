@@ -93,6 +93,19 @@ class BestPlays(unittest.TestCase):
         self.assertEqual(chances, sorted(chances, reverse=True))
         page.click('.bp-sort[data-sort="edge"]')
 
+    def test_a_name_opens_the_player_card(self):
+        # Best Plays loads props-summary.js and app.js for their math, and both
+        # read the Player Props / TD Data game picker this page doesn't have:
+        # the card threw before it opened (the owner, 2026-10-21).
+        page = self.page
+        name = page.inner_text(".bp-player .player-click")
+        page.click(".bp-player .player-click")
+        page.wait_for_selector("#player-card-modal:not([hidden])", timeout=5000)
+        self.assertIn(name.upper(), page.inner_text("#player-card-modal").upper())
+        self.assertEqual(page.locator("#player-card-modal .ps-add-btn").count(), 0)
+        self.assertEqual(SITE.errors, [])
+        page.click("#player-card-modal .modal-close")
+
 
 if __name__ == "__main__":
     unittest.main()

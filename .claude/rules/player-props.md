@@ -165,4 +165,7 @@ top (`#bp-warning`, the typical games played). First row under the NFL menu's "P
   `BP_CHECK_RATIO` 1.8x the price's chance (usually news the model lacks). Games that have kicked
   off drop off (`bpStarted`). Save boxes are the shared `propOuEntries` / `ouCheckboxCell` ids.
 - No graded record yet (the engine runs in the browser; a record needs it in the build).
+- It loads props-summary.js and app.js for their math but has no game picker (`#away-select`):
+  their code that reads the picker must skip when it's missing. The player card shows
+  "+ Summary" only where the picker exists (it threw on Best Plays until 2026-10-21).
 - Test: `tests/test_best_plays_site.py`.

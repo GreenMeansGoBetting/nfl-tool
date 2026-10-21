@@ -547,7 +547,9 @@ function pcOddsView(team, name, oppTeam, game) {
   const rows = playerPropsAcrossMarkets(team, name);
   const matchup = game ? `${game.away} @ ${game.home}` : team;
   // "+ Summary" only where the Props Summary card lives (Player Props page).
-  const summaryOn = typeof propsSummaryContext === "function" && typeof propTeamLines === "function";
+  // Best Plays loads props-summary.js for its math but has no game picker.
+  const summaryOn = typeof propsSummaryContext === "function" && typeof propTeamLines === "function"
+    && !!document.getElementById("away-select");
   let model = {};
   let chosen = new Set();
   let ctx = null;

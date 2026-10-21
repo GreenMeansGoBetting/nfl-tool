@@ -760,8 +760,9 @@ function openTdBreakdownModal(kind, awayTeam, homeTeam, highlightKey) {
 }
 
 document.addEventListener("click", (e) => {
-  const away = document.getElementById("away-select").value;
-  const home = document.getElementById("home-select").value;
+  // Best Plays loads app.js too and has no game picker.
+  const away = document.getElementById("away-select")?.value;
+  const home = document.getElementById("home-select")?.value;
   if (!away || !home) return;
   const posBtn = e.target.closest(".pos-row-click");
   if (posBtn) {
