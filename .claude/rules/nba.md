@@ -127,24 +127,38 @@ options"), Novig only where SmartStake has no price.
   says otherwise** (the record keeps [line, proj, ours, w] per player for exactly that).
 - Tests: `tests/test_nba_props.py`.
 - **The Points page** (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
-  above First Basket; built 2026-10-20 from the owner's plan in words, no mockup): day arrows,
-  game / sort / search filters, season buttons (hit rates and splits only; the projection is always
-  this season). One row per player in props.json `slate`: Line (middle main line), best Over / Under
-  price (book-odds.js `bookPricePill`, every book on click), Proj (`w` as "x% ours", "= line" with
-  no games; green / red = above / below the line by 0.5+), L5 / L10 / Season / H-A / vs hit rates
-  against tonight's line as "x of y" (colored from 3 games: 60%+ green, 40%- red), Min (season, L5),
-  Share, Mix (rim / 3s / self-created), tags (Zone fit / Tough zones: his zones x this defense's
-  make rate allowed against the league's, 2.5 points either way; Usage +: `missing`; Min up / down:
-  last 5 moved 3+). Out players gray, last. Clicking a player opens his view: game log (O / U vs
-  tonight's line), a **half-court shot-zone chart** (`zoneChart`: his share of shots and make rate
-  per zone, from props.json `zone_pct`; each zone shaded by what tonight's defense allows there
-  against the league, from Team Identity, full color at 6 points; a table of the same under it;
-  added 2026-10-20 when the owner saw "Tough zones" with no chart), alt-line ladder (round lines
-  around it, last 10 and season), every book's prices,
-  and **with / without**: a teammate (most minutes first) and Out (any) / Out: rest / Out: injured
-  (games split by whether he played, box-score DNP reasons) or Off the floor (`with` minutes, points
-  and shots a 36). NBA pages have no `playerClick`; this open row is the player view.
-  Tests: `tests/test_nba_points_site.py` (`SiteBrowser.nba_props` serves a hand-made props.json).
+  above First Basket; built 2026-10-20 from the owner's plan in words, no mockup, then trimmed the
+  same night on the owner's notes): day arrows, game / sort / search filters, season buttons (hit
+  rates and splits only). One row per player in props.json `slate`: Player (narrow), Line (middle
+  main line), best Over **stacked on** Under (book-odds.js `bookPricePill`, book names hidden in
+  the cell, every book on click), **Proj = "Coming soon"** (the owner: "so theres no confusion";
+  the build still makes and records every projection for grading), L5 / L10 / Season / H-A / vs hit
+  rates against tonight's line as "x of y" (colored from 3 games: 60%+ green, 40%- red), Min
+  (season, L5), Share, Mix (rim / 3s / self-created), tags (Zone fit / Tough zones: his zones x
+  this defense's make rate allowed against the league's, 2.5 points either way; Usage +: `missing`;
+  Min up / down: last 5 moved 3+). Out players gray, last. Clicking a player opens **only with /
+  without** (a teammate, most minutes first; Out (any) / Out: rest / Out: injured split his games
+  by whether he played, from box-score DNP reasons; Off the floor = `with` minutes, points and shots
+  a 36) **and every book's price** (no name banner). The game log, alt-line ladder and a shot-zone
+  chart were there for an hour and cut (the owner: "Bottom line, i hate the drop down player points
+  portion currently"); props.json keeps `zone_pct` for the zone redo. NBA pages have no
+  `playerClick` yet. Tests: `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
+
+## The owner's list (2026-10-20, for when usage allows)
+
+1. **Clickable NBA players with a pop-up like the other sports** (game log, odds, etc.), "to make
+   it symmetrical to the whole site"; it replaces the Points open row's old game log.
+2. **Shot zones overhaul:** "I dont understand what im looking at ... What about wing 3s? L vs R?
+   I just dont look at this and feel confident in what im seeing." More areas (wings, corners, top,
+   left / right), a design that reads at a glance.
+3. **Alt-line ladder only with real alt prices** (SmartStake `alternate=true`) and narrow: "without
+   odds its just filler".
+4. **Rotation chart:** when a player usually subs in and out, who he plays the most minutes with,
+   production with certain combos (the engine's stints have it all).
+5. **Things to watch** per game: blend Team Identity's tags into a few conclusions on how a game
+   may go.
+6. Rebounds, assists and 3s on the Points skeleton; show the projection once it grades well
+   against this season's tip-off lines.
 
 ## Game model: full-game score, spread, total (replayed 2026-10-20, NOT built)
 

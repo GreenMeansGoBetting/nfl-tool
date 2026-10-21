@@ -3,8 +3,8 @@
 What is pinned: every priced player gets a row with the line, the best price
 from the books, the projection (and "= line" before his first game this
 season), hit rates against tonight's line as "x of y"; a player listed Out
-sorts last and is grayed; the player view's game log marks each game over /
-under, the alt-line ladder counts round lines, and with / without splits
+sorts last and is grayed; the player view (with / without and every book's
+price only, the owner's cut on 2026-10-20) splits
 his games by whether a teammate played (and why he sat) and his minutes by
 whether the teammate was on the floor; the page is in the NBA menu."""
 import sys
@@ -88,14 +88,16 @@ class Board(unittest.TestCase):
         c = cells(0)
         self.assertEqual(c[1], "19.5")
         self.assertIn("+105", c[2])  # the best Over (FanDuel)
-        self.assertEqual(c[3], "21.0 25% ours")
+        self.assertEqual(c[3], "Coming soon")  # the owner: projections are built and graded, not shown yet
         # over 19.5: last 5 = 21, 24, 12, 26, 19 -> 3; last 10 -> 6; road (home 0) games 1,3,5,7,9 -> 25, 30, 15, 24, 26 -> 4
         self.assertEqual(c[4], "60% 3 of 5")
         self.assertEqual(c[5], "60% 6 of 10")
         self.assertEqual(c[6], "60% 6 of 10")
         self.assertEqual(c[7], "80% 4 of 5")
         self.assertEqual(c[8], "60% 6 of 10")  # all against BBB
-        self.assertEqual(cells(1)[3], "9.5 = line")
+        prices = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table tbody tr[data-key]')[0].querySelectorAll('.pts-price')].map((d) => d.innerText.replace(/\s+/g, ' ').trim())")
+        self.assertEqual(len(prices), 2)  # Over on top of Under
+        self.assertTrue(prices[0].startswith("O") and prices[1].startswith("U"), prices)
 
 
 class PlayerView(unittest.TestCase):
@@ -104,32 +106,18 @@ class PlayerView(unittest.TestCase):
         PAGE.click("[data-key='900:1'] .pts-player")
         PAGE.wait_for_selector(".pts-open")
 
-    def test_log_marks_each_game_and_the_ladder_counts_lines(self):
-        results = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:first-child tbody tr')].map((tr) => tr.lastElementChild.innerText.trim())")
-        self.assertEqual(results[:3], ["U", "O", "U"])  # newest first: 19, 26, 12
-        ladder = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(3) > table tbody tr')].map((tr) => [tr.children[0].innerText.split(' ')[0], tr.children[2].innerText])")
-        self.assertIn(["19.5+", "6 of 10"], ladder)
-        self.assertIn(["24.5+", "3 of 10"], ladder)
+    def test_only_with_without_and_the_books(self):
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view h4')].map((h) => h.textContent)")
+        self.assertEqual(heads, ["With / without", "Every book"])
 
     def test_no_name_banner_over_the_books(self):
         # the open row already says who it is (the owner, 2026-10-20); the books themselves still show
         self.assertFalse(PAGE.is_visible(".pts-view .bo-banner"))
         self.assertTrue(PAGE.is_visible(".pts-view .bo-table"))
 
-    def test_the_zone_chart_reads_his_shots_and_tonights_defense(self):
-        rows = PAGE.evaluate("""() => [...document.querySelectorAll('.pts-zone-table tbody tr')]
-            .map((tr) => [...tr.children].map((td) => td.innerText.replace(/\s+/g, ' ').trim()).concat(tr.lastElementChild.className))""")
-        by = {r[0]: r for r in rows}
-        self.assertEqual(len(rows), 5)
-        self.assertEqual(by["Rim"][1:4], ["30%", "62% 45", "65%"])
-        self.assertIn("tier-good", by["Rim"][4])  # softer than the league at the rim
-        self.assertIn("tier-bad", by["Mid-range"][4])  # tougher mid-range
-        self.assertEqual(by["Corner 3"][2], "--")  # no shots there
-        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-court text.pts-zone-share').length"), 6)
-
     def test_with_and_without_by_reason_and_on_the_floor(self):
         def table():
-            return PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(4) tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim()))")
+            return PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(1) tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim()))")
         rows = table()
         self.assertEqual(rows[0][:3], ["Played", "8", "20.0"])  # games 1, 2, 5-10
         self.assertEqual(rows[1][:3], ["Out", "2", "26.0"])  # games 3 (30) and 4 (22)

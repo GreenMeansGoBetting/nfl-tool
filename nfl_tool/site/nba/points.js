@@ -121,22 +121,19 @@ function rosterTeam(pid, g) {
   return last ? last.team : g.away;
 }
 
-function projCell(r) {
-  const row = r.row;
-  if (row.proj === null || row.proj === undefined) return `<td class="num">--</td>`;
-  const gap = row.proj - row.line;
-  const cls = Math.abs(gap) < 0.5 ? "" : gap > 0 ? "tier-good" : "tier-bad";
-  const how = row.w > 0
-    ? `The line ${fmt(row.line)} moved ${Math.round(row.w * 100)}% toward our ${fmt(row.ours)} (${row.games} game${row.games === 1 ? "" : "s"} this season)`
-    : "No games this season yet: the projection is the line";
-  return `<td class="num pts-proj ${cls}" title="${how}"><b>${fmt(row.proj)}</b><small>${row.w > 0 ? `${Math.round(row.w * 100)}% ours` : "= line"}</small></td>`;
+// The owner, 2026-10-20: 'For PROJ just write (coming soon) so theres no
+// confusion.' The build still makes and records every projection (props.json
+// slate, model_history/nba_props) so it can be graded before it's shown.
+function projCell() {
+  return `<td class="num pts-soon">Coming soon</td>`;
 }
 
 function pricesCell(r) {
   const spec = (side) => ({ kind: "prop", stat: "points", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side, line: r.line, title: `${r.name} points`, sub: `${r.tm} vs ${r.opp}` });
   const o = bookPricePill(spec("o"));
   const u = bookPricePill(spec("u"));
-  return `<td><div class="pts-prices">${o ? `<span class="pts-side">O</span>${o}` : ""}${u ? `<span class="pts-side">U</span>${u}` : ""}${!o && !u ? "--" : ""}</div></td>`;
+  const line = (side, pill) => `<div class="pts-price"><span class="pts-side">${side}</span>${pill || "--"}</div>`;
+  return `<td class="pts-prices">${o || u ? line("O", o) + line("U", u) : "--"}</td>`;
 }
 
 function mixCell(p) {
@@ -166,89 +163,15 @@ function renderRow(r) {
   return `<tr class="${out ? "pts-row-out" : ""}" data-key="${r.g.game_id}:${r.pid}">${cells}</tr>${open ? `<tr class="pts-open"><td colspan="13">${playerView(r)}</td></tr>` : ""}`;
 }
 
-// ---- the zone chart (player view) ----
-// A half court in feet (50 wide, 47 deep, the basket 5.25 off the baseline).
-// Each zone is shaded by what tonight's defense allows there against the
-// league (green = softer than average for him, red = tougher; full color at
-// ZONE_FULL), and labeled with his share of his shots and his make rate.
-const ZONE_FULL = 0.06;
-const ZONE_NAMES = { rim: "Rim", short: "Paint", mid: "Mid-range", corner3: "Corner 3", above3: "Above-break 3" };
-function zoneEdge(opp, z) {
-  const ib = identityBlock();
-  if (!ib || !ib.teams[opp]) return null;
-  const a = ib.teams[opp][`def_${z}_pct`];
-  const l = (ib.league[`def_${z}_pct`] || {}).avg;
-  return a === null || a === undefined || !l ? null : a - l;
-}
-function zoneFill(edge) {
-  if (edge === null) return "rgba(127,127,127,0.12)";
-  const t = Math.max(-1, Math.min(1, edge / ZONE_FULL));
-  return scaleHsla(60 + t * 60, 70, 45, 0.18 + Math.abs(t) * 0.42);
-}
-function zoneChart(r) {
-  const p = r.p || {};
-  const share = p.zones || {};
-  const made = p.zone_pct || {};
-  const fill = Object.fromEntries(ZONES.map((z) => [z, zoneFill(zoneEdge(r.opp, z))]));
-  const label = (z, x, y) => {
-    const m = made[z];
-    return `<text x="${x}" y="${y}" text-anchor="middle" class="pts-zone-share">${pct(share[z] || 0)}</text>
-      <text x="${x}" y="${y + 2.3}" text-anchor="middle" class="pts-zone-made">${m && m[0] !== null ? `${pct(m[0])} FG` : "--"}</text>`;
-  };
-  const svg = `<svg viewBox="-2.5 -0.5 55 48" class="pts-court" role="img" aria-label="Shot zones">
-    <rect x="0" y="0" width="50" height="47" fill="${fill.above3}"/>
-    <rect x="0" y="0" width="3" height="14" fill="${fill.corner3}"/><rect x="47" y="0" width="3" height="14" fill="${fill.corner3}"/>
-    <path d="M3,0 L3,14 A23.75,23.75 0 0 0 47,14 L47,0 Z" fill="${fill.mid}"/>
-    <circle cx="25" cy="5.25" r="9" fill="${fill.short}"/>
-    <circle cx="25" cy="5.25" r="4" fill="${fill.rim}"/>
-    <g class="pts-court-lines" fill="none">
-      <rect x="0" y="0" width="50" height="47"/><path d="M3,0 L3,14 A23.75,23.75 0 0 0 47,14 L47,0"/>
-      <circle cx="25" cy="5.25" r="9"/><circle cx="25" cy="5.25" r="4"/><rect x="17" y="0" width="16" height="19"/>
-      <line x1="22" y1="4" x2="28" y2="4"/><circle cx="25" cy="5.25" r="0.75"/>
-    </g>
-    ${label("rim", 25, 7.6)}${label("short", 25, 12.4)}${label("mid", 25, 21.5)}
-    ${label("corner3", 1.5, 7)}${label("corner3", 48.5, 7)}${label("above3", 25, 36)}
-  </svg>`;
-  const rows = ZONES.map((z) => {
-    const edge = zoneEdge(r.opp, z);
-    const ib = identityBlock();
-    const allowed = ib && ib.teams[r.opp] ? ib.teams[r.opp][`def_${z}_pct`] : null;
-    const m = made[z];
-    const cls = edge === null ? "" : edge >= 0.02 ? "tier-good" : edge <= -0.02 ? "tier-bad" : "tier-mid";
-    return `<tr><td>${ZONE_NAMES[z]}</td><td class="num">${pct(share[z] || 0)}</td><td class="num">${m && m[0] !== null ? `${pct(m[0])} <small class="muted-label">${m[1]}</small>` : "--"}</td><td class="num ${cls}">${pct(allowed)}</td></tr>`;
-  }).join("");
-  const ib = identityBlock();
-  return `<div><h4>Shot zones vs ${r.opp}</h4>${svg}
-    <table class="data-table pts-zone-table"><thead><tr><th>Zone</th><th>His shots</th><th>His FG%</th><th>${r.opp} allows</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="pts-ww-note">${ib ? `Shaded by what ${r.opp} allows in each zone against the league in ${ib.label}: green = softer than average, red = tougher.` : "No defense numbers for this season yet."}</p></div>`;
-}
-
 // ---- the player view ----
+// The owner, 2026-10-20, cut it to two compact pieces: with / without and
+// every book's price. The game log, alt-line ladder and shot-zone chart are
+// gone until they're redone (a site-wide player pop-up, a zone overhaul, alt
+// lines with real prices: see nba.md, "The owner's list").
 let ww = { mate: "", mode: "out" }; // with / without: teammate id, mode out | rest | injury | floor
 function playerView(r) {
-  const f = F();
-  const log = r.log;
-  const recent = log.slice(-12).reverse();
-  const logRows = recent.map((x) => {
-    const res = r.line === null || r.line === undefined ? "" : x[f.pts] > r.line ? '<span class="pts-res-o">O</span>' : '<span class="pts-res-u">U</span>';
-    return `<tr><td>${new Date(`${x[f.date]}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${x[f.home] ? "vs" : "@"} ${logo(x[f.opp], 14)} ${x[f.opp]}</td><td class="num">${x[f.min]}</td><td class="num"><b>${x[f.pts]}</b></td><td class="num">${x[f.fga]}</td><td class="num">${x[f.fg3m]}/${x[f.fg3a]}</td><td class="num">${x[f.fta]}</td><td class="num">${res}</td></tr>`;
-  }).join("");
-  const logBox = `<div><h4>Game log (${block().label})</h4>${log.length
-    ? `<table class="data-table"><thead><tr><th>Date</th><th>Opp</th><th>Min</th><th>Pts</th><th>FGA</th><th>3PM</th><th>FTA</th><th>${fmt(r.line)}</th></tr></thead><tbody>${logRows}</tbody></table>`
-    : `<p class="no-data-note">No games in ${block().label} yet.</p>`}</div>`;
-
-  // alt-line ladder: tonight's line plus round numbers around it
-  const base = r.line !== null && r.line !== undefined ? Math.round(r.line / 5) * 5 : 15;
-  const steps = [...new Set([base - 10, base - 5, base, base + 5, base + 10].filter((x) => x >= 5).map((x) => x - 0.5).concat(r.line !== null && r.line !== undefined ? [r.line] : []))].sort((a, b) => a - b);
-  const ladder = steps.map((s) => {
-    const a = hits(log, s);
-    const t = hits(log.slice(-10), s);
-    const cls = (h) => (!h || h.of < 3 ? "" : h.over / h.of >= 0.6 ? "tier-good" : h.over / h.of <= 0.4 ? "tier-bad" : "tier-mid");
-    return `<tr${s === r.line ? ' class="bo-best"' : ""}><td>${fmt(s)}+${s === r.line ? " <small class='muted-label'>tonight</small>" : ""}</td><td class="num ${cls(t)}">${t ? `${t.over} of ${t.of}` : "--"}</td><td class="num ${cls(a)}">${a ? `${a.over} of ${a.of}` : "--"}</td></tr>`;
-  }).join("");
-  const ladderBox = `<div><h4>Alt-line ladder</h4><table class="data-table"><thead><tr><th>Points</th><th>Last 10</th><th>Season</th></tr></thead><tbody>${ladder}</tbody></table>
-    ${bookOddsPanel({ kind: "prop", stat: "points", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: "o", line: r.line, title: `${r.name} points`, sub: `${r.tm} vs ${r.opp}` })}</div>`;
-  return `<div class="pts-view">${logBox}${zoneChart(r)}${ladderBox}<div><h4>With / without</h4>${withWithout(r)}</div></div>`;
+  const books = bookOddsPanel({ kind: "prop", stat: "points", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: "o", line: r.line, title: `${r.name} points`, sub: `${r.tm} vs ${r.opp}` });
+  return `<div class="pts-view"><div><h4>With / without</h4>${withWithout(r)}</div><div><h4>Every book</h4>${books || '<p class="no-data-note">No book has this line right now.</p>'}</div></div>`;
 }
 
 function teammates(r) {
@@ -319,7 +242,6 @@ function rows() {
   const sort = el("pts-sort").value;
   const key = {
     line: (r) => r.line || 0,
-    gap: (r) => (r.row.proj !== null && r.line !== null ? r.row.proj - r.line : -99),
     l10: (r) => share(r.l10),
     season: (r) => share(r.all),
   }[sort] || ((r) => r.line || 0);
@@ -334,7 +256,7 @@ function renderBoard() {
     el("empty-state").innerHTML = "<p>No points lines posted for this day yet. The books usually post them the morning of the games.</p>";
     return;
   }
-  const head = `<thead><tr><th>Player</th><th>Line</th><th>Best price</th><th title="The line moved toward our number">Proj</th><th>L5</th><th>L10</th><th>Season</th><th>H/A</th><th>vs</th><th>Min</th><th>Share</th><th>Mix</th><th>Tags</th></tr></thead>`;
+  const head = `<thead><tr><th>Player</th><th>Line</th><th>Best price</th><th>Proj</th><th>L5</th><th>L10</th><th>Season</th><th>H/A</th><th>vs</th><th>Min</th><th>Share</th><th>Mix</th><th>Tags</th></tr></thead>`;
   el("pts-table").innerHTML = `${head}<tbody>${list.map(renderRow).join("")}</tbody>`;
 }
 
