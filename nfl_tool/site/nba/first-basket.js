@@ -307,7 +307,7 @@ function matchupRows(g, p) {
     const id = p[spot(abbr)].jumper;
     const rec = id && ((FB.tip || {}).record || {})[id];
     const h = id && ((FB.tip || {}).heights || {})[id];
-    return `${rec ? `This season: won ${rec[0]} of ${rec[1]} jump balls` : "No jump balls yet this season"}${h ? `, ${feetInches(h)}` : ""}`;
+    return `${rec ? `This season: won ${rec[0]} of ${rec[1]} opening tips` : "No opening tips yet this season"}${h ? `, ${feetInches(h)}` : ""}`;
   };
   return [
     { label: "Jumper", jumper: true },

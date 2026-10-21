@@ -355,12 +355,12 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   counts dropped Wembanyama (missed games) from the 2025-26 Spurs. **Jumper:** most jumps among
   them (at least `MIN_JUMPS` 2); with the NBA's five and no jumper on file, its listed center.
 - **Prediction** (the tip chance; 2026-10-21, the owner: a jumper who only met Wembanyama and one who only met
-  guards can't be read off Tips Won): `tip_ratings` = every jump ball of THIS season (opening,
-  held balls, overtimes; `jump_balls`, winner = the jumper on the side that got the ball, never
+  guards can't be read off Tips Won): `tip_ratings` = every OPENING tip of THIS season (held balls and overtime tips left out,
+  the owner 2026-10-21: "dirty data which can skew"; `jump_balls`, winner = the jumper on the side that got the ball, never
   ESPN's name order), opponent-adjusted (Bradley-Terry), each rating starting from height
   (`TIP_PER_INCH` 0.15 from the roster file's height, `TIP_PULL` 3). data.json `first_basket.tip`
   = {ratings, heights, record, jumps}; every season view uses this season's (NBA rule). 2025-26
-  replay (each tip from the jumps before it): 64% right / log loss 0.628, vs 61% / 0.644 for
+  replay (`tools/backtest/nba_tips.py`, each tip from the tips before it): opening tips only 63% right / log loss 0.627 (every jump ball was 64% / 0.627), vs 61% / 0.644 for
   steadied Tips Won, 60% for height alone; 5+ inches taller won 84%, 1 inch 50%. Home teams won
   52.9% of tips (noise-sized), so the tip's Home/Road row was dropped.
 - **Fair** (`fair_prices`, rebuilt 2026-10-21 on a 2025-26 replay, each team-game from the games

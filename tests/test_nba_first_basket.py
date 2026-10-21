@@ -67,7 +67,7 @@ PBP = pd.DataFrame(
     # Game 2 (AAA home again): 20 beats 10 to BBB. 21 is fouled and makes a free
     # throw at 705 (first points, not a field goal); AAA's 11 scores at 690;
     # BBB's 20 makes the first field goal for BBB at 680. Later a held ball:
-    # 10 beats 21 to AAA (a jump ball for the tip rating, not an opening tip).
+    # 10 beats 21 to AAA (not an opening tip: the tip rating leaves it out).
     + plays(2, [
         ("Jumpball", "BBB", 10, 20, False, False, 720, 0, 0),
         ("Free Throw - 1 of 2", "BBB", 21, None, True, True, 705, 0, 1),
@@ -158,10 +158,11 @@ class Build(unittest.TestCase):
         self.assertNotIn("10", out["starters"])
         self.assertIsNone(out["jumper"])  # nobody else on AAA has jumped
 
-    def test_every_jump_ball_counts_for_the_tip_rating(self):
-        # Two opening tips and the held ball; the side that got the ball won it.
-        self.assertEqual(fb.jump_balls(PBP, box_rows()), [(10, 20), (20, 10), (10, 21)])
-        self.assertEqual(TIP["record"], {"10": [2, 3], "20": [1, 2], "21": [0, 1]})
+    def test_only_opening_tips_count_for_the_tip_rating(self):
+        # The two opening tips; game 2's held ball (10 over 21) is left out (the
+        # owner, 2026-10-21: "dirty data"). The side that got the ball won it.
+        self.assertEqual(fb.jump_balls(PBP, box_rows()), [(10, 20), (20, 10)])
+        self.assertEqual(TIP["record"], {"10": [1, 2], "20": [1, 2]})
         self.assertEqual((BLOCK["players"]["10"]["jumps"], BLOCK["players"]["10"]["tips_won"]), (2, 1))  # Tips Won: opening tips only
 
     def test_the_tip_rating_counts_who_he_jumped_against(self):
@@ -181,9 +182,10 @@ class Build(unittest.TestCase):
         games = [{"game_id": "9", "date": "2026-10-21", "away": "BBB", "home": "AAA"}]
         g = fb.slate(BLOCK, games, {}, set(), ["2026-10-21"], TIP, NOW)["9"]
         f = g["fair"]
-        # AAA's 10 won 2 of his 3 jump balls: favored over BBB's 20.
+        # AAA's 10 and BBB's 20 split their two opening tips (the held ball 10
+        # won doesn't count) and have no heights: even.
         self.assertAlmostEqual(f["tip_home"], fb.tip_chance(TIP, "20", "10"), places=3)
-        self.assertGreater(f["tip_home"], 0.5)
+        self.assertAlmostEqual(f["tip_home"], 0.5, places=3)
         lead = fb.TIP_WINNER_SCORES
         self.assertAlmostEqual(f["first_home"], f["tip_home"] * lead + (1 - f["tip_home"]) * (1 - lead), places=3)
         total = sum(v["p"] for v in f["players"].values())

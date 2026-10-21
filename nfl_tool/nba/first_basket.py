@@ -34,11 +34,14 @@ STARTERS = 5
 MIN_JUMPS = 2  # fewer jumps than this and a player isn't a team's jumper (low: a new season has few)
 # Tip win chance (the owner, 2026-10-21: a jumper who only met Wembanyama and
 # one who only met guards can't be read off Tips Won): each jumper gets a
-# rating from every jump ball of the season (opening tips, held balls,
-# overtimes), counting who he jumped against, starting from his height.
-# A replay of 2025-26 (each tip predicted from the jumps before it) picked
-# the winner 64% of the time (log loss 0.628) against 61% (0.644) for the old
-# steadied Tips Won and 60% for height alone. TIP_PER_INCH: rating per inch
+# rating from every opening tip of the season (held balls and overtime tips
+# left out, the owner 2026-10-21: "dirty data which can skew"), counting who
+# he jumped against, starting from his height.
+# A replay of 2025-26 (each tip predicted from the tips before it,
+# tools/backtest/nba_tips.py) picked the winner 63% of the time on opening
+# tips only (log loss 0.627; every jump ball: 64%, 0.627, so no loss for
+# cleaner data) against 61% (0.644) for the old steadied Tips Won and 60%
+# for height alone; 0.15 / 3 still fit best. TIP_PER_INCH: rating per inch
 # of height (5+ inches taller won 84% of 2025-26's tips, 1 inch 50%);
 # TIP_PULL: how hard the jumps have to argue to move a rating off its height.
 TIP_PER_INCH = 0.15
@@ -278,12 +281,15 @@ def inches(height) -> int | None:
 
 
 def jump_balls(pbp: pd.DataFrame, player_box: pd.DataFrame) -> list:
-    """(winner id, loser id) for every regular-season jump ball, opening tips,
-    held balls and overtimes alike. The play's team_id is the side that got
-    the ball; the jumper on that side won it."""
+    """(winner id, loser id) for every regular-season game's OPENING tip (its
+    first jump ball of the 1st quarter). Held balls and overtime tips are left
+    out (the owner, 2026-10-21: "dirty data which can skew": a guard tied up
+    with a center isn't a planned tip). The play's team_id is the side that
+    got the ball; the jumper on that side won it."""
     box = player_box.dropna(subset=["athlete_id"])
     team_of = {(str(r.game_id), int(r.athlete_id)): r.team_abbreviation for r in box[["game_id", "athlete_id", "team_abbreviation"]].itertuples(index=False)}
-    jumps = pbp[(pbp["season_type"] == 2) & (pbp["type_text"] == "Jumpball")].sort_values(["game_id", "sequence_number"])
+    jumps = pbp[(pbp["season_type"] == 2) & (pbp["type_text"] == "Jumpball") & (pbp["period_number"] == 1)].sort_values(["game_id", "sequence_number"])
+    jumps = jumps.groupby("game_id", sort=False).head(1)
     out = []
     for r in jumps.itertuples(index=False):
         if pd.isna(r.athlete_id_1) or pd.isna(r.athlete_id_2) or pd.isna(r.team_id):
@@ -322,7 +328,7 @@ def tip_ratings(jumps: list, heights: dict) -> dict:
 def tip_block(jumps: list, heights: dict) -> dict:
     """data.json first_basket.tip: this season's ratings, every rostered
     player's height (a jumper with no jumps yet goes by it) and each jumper's
-    jump balls won / jumped (opening tips, held balls, overtimes)."""
+    opening tips won / jumped."""
     record = defaultdict(lambda: [0, 0])
     for win, lose in jumps:
         record[str(win)][0] += 1
