@@ -29,8 +29,8 @@ import build_nba  # noqa: E402
 import first_basket as fb  # noqa: E402
 
 TEAMS = {"AAA": 1, "BBB": 2}
-# AAA: 10 big (jumper), 11 guard, 12 star; BBB: 20 big (jumper), 21 guard.
-POS = {10: "C", 11: "G", 12: "F", 20: "C", 21: "G"}
+# AAA: 10 big (jumper), 11 point guard, 12 star; BBB: 20 big (jumper), 21 shooting guard.
+POS = {10: "C", 11: "PG", 12: "SF", 20: "C", 21: "SG"}
 
 
 def plays(game, rows):
@@ -111,13 +111,15 @@ class Build(unittest.TestCase):
         self.assertEqual((a["q1_margin"], b["q1_margin"]), (-1.5, 1.5))
 
     def test_first_field_goal_allowed_is_field_goals_only(self):
-        # Against AAA: 21 (G) in game 1; in game 2 the free throw doesn't count, 20 (C) does.
-        self.assertEqual(BLOCK["teams"]["AAA"]["fg_allowed"], {"G": 0.5, "F": 0.0, "C": 0.5})
-        # Against BBB: 12 (F), then 11 (G).
-        self.assertEqual(BLOCK["teams"]["BBB"]["fg_allowed"], {"G": 0.5, "F": 0.5, "C": 0.0})
+        # Five positions (the owner, 2026-10-21: PG and SG are different roles).
+        five = lambda **v: {p: v.get(p, 0.0) for p in ("PG", "SG", "SF", "PF", "C")}
+        # Against AAA: 21 (SG) in game 1; in game 2 the free throw doesn't count, 20 (C) does.
+        self.assertEqual(BLOCK["teams"]["AAA"]["fg_allowed"], five(SG=0.5, C=0.5))
+        # Against BBB: 12 (SF), then 11 (PG).
+        self.assertEqual(BLOCK["teams"]["BBB"]["fg_allowed"], five(PG=0.5, SF=0.5))
         # And each offense's own first field goals, the other half of a position target.
-        self.assertEqual(BLOCK["teams"]["AAA"]["fg_made"], {"G": 0.5, "F": 0.5, "C": 0.0})
-        self.assertEqual(BLOCK["teams"]["BBB"]["fg_made"], {"G": 0.5, "F": 0.0, "C": 0.5})
+        self.assertEqual(BLOCK["teams"]["AAA"]["fg_made"], five(PG=0.5, SF=0.5))
+        self.assertEqual(BLOCK["teams"]["BBB"]["fg_made"], five(SG=0.5, C=0.5))
 
     def test_novig_first_basket_prices_lock_at_tip_like_the_lines(self):
         self.assertIn("first_basket", build_nba.LINE_FIELDS)
@@ -195,12 +197,13 @@ class Page(unittest.TestCase):
         # The owner's rows, in order (2026-10-20): no game counts, league averages, guesses or seconds.
         self.assertEqual([r[0] for r in rows], [
             "Jumper", "Tips Won", "Home/Road", "Scores First", "Home/Road", "After Winning Tip", "After Losing Tip",
-            "Avg Poss. To Score", "Avg Poss. To Allow", "Guards", "Forwards", "Centers"])
+            "Avg Poss. To Score", "Avg Poss. To Allow", "Point Guards", "Shooting Guards", "Small Forwards", "Power Forwards", "Centers"])
         by = {r[0]: r for r in rows}
         # Road (BBB) left, home (AAA) right; just the number in each cell.
         self.assertEqual(by["Tips Won"][1:3], ["50%", "50%"])
         self.assertEqual(by["Avg Poss. To Score"][1:3], ["1.50", "1.50"])
-        self.assertEqual(by["Guards"][1:3], ["50%", "50%"])
+        self.assertEqual(by["Point Guards"][1:3][0], "50%")  # BBB gave AAA's PG a first FG
+        self.assertEqual(by["Shooting Guards"][1:3][1], "50%")  # AAA gave BBB's SG one
         self.assertFalse(any(r[3] for r in rows))  # a level game: no edge pills
         # Every row the same height (the owner: "keep them all consistent").
         heights = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')].map((r) => Math.round(r.getBoundingClientRect().height)))]")

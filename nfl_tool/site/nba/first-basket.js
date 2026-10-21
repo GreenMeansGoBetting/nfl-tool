@@ -111,7 +111,7 @@ function player(id) {
   if (p) return p;
   if (extraPlayers[id]) return extraPlayers[id];
   const r = (FB.roster || {})[id];
-  return r ? blankPlayer(r[0], r[2], r[1]) : blankPlayer(String(id), "F", "");
+  return r ? blankPlayer(r[0], r[2], r[1]) : blankPlayer(String(id), "SF", "");
 }
 const faceUrl = (id) => (String(id).startsWith("nba:") ? `https://cdn.nba.com/headshots/nba/latest/260x190/${String(id).slice(4)}.png` : headshot(id));
 function nbaTeam(g, abbr) {
@@ -122,7 +122,7 @@ function nbaTeam(g, abbr) {
   if (!match) return null;
   return abbr === g.home ? match.homeTeam : match.awayTeam;
 }
-const POS_GROUP = { PG: "G", SG: "G", G: "G", SF: "F", PF: "F", F: "F", C: "C" };
+const POS_GROUP = { PG: "PG", SG: "SG", SF: "SF", PF: "PF", C: "C", G: "SG", F: "SF" };
 // One side of the game: {starters, jumper, source: confirmed | expected | guess, fetched, live}.
 function sideFor(g, abbr, built) {
   const t = nbaTeam(g, abbr);
@@ -133,7 +133,7 @@ function sideFor(g, abbr, built) {
     const id = ids[nameKey(x.playerName)];
     if (id) return id;
     const nid = `nba:${x.personId}`;
-    extraPlayers[nid] = blankPlayer(x.playerName, POS_GROUP[x.position] || "F", abbr);
+    extraPlayers[nid] = blankPlayer(x.playerName, POS_GROUP[x.position] || "SF", abbr);
     return nid;
   });
   const minJumps = (FB.fair_weights || {}).min_jumps || 2;
@@ -251,7 +251,8 @@ function renderHeader(g) {
 
 // ---- sections ----
 const where = (g, abbr) => (abbr === g.home ? "home" : "away");
-const POS_NAMES = { G: "Guards", F: "Forwards", C: "Centers" };
+const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
+const POS_NAMES = { PG: "Point Guards", SG: "Shooting Guards", SF: "Small Forwards", PF: "Power Forwards", C: "Centers" };
 const lastName = (name) => String(name || "").split(" ").slice(1).join(" ") || name;
 
 // The matchup table: one row per number, the road team's value on the left,
@@ -293,7 +294,7 @@ function matchupRows(g, p) {
     { label: "Avg Poss. To Score", better: "low", edge: 0.1, show: (v) => fmt(v, 2), value: (abbr) => t(abbr).poss, color: (abbr, v) => teamHeat("poss", v, true) },
     { label: "Avg Poss. To Allow", better: "high", edge: 0.1, show: (v) => fmt(v, 2), value: (abbr) => t(abbr).opp_poss, color: (abbr, v) => teamHeat("opp_poss", v) },
     { group: "First FG Allowed" },
-    ...["G", "F", "C"].map((pos) => ({
+    ...POSITIONS.map((pos) => ({
       label: POS_NAMES[pos], show: pct,
       value: (abbr) => (t(abbr).fg_allowed || {})[pos],
       color: (abbr, v) => teamHeat((x) => (x.fg_allowed || {})[pos], v, true),
@@ -347,7 +348,7 @@ function targets(g, p) {
   const out = [];
   for (const [off, def] of [[g.away, g.home], [g.home, g.away]]) {
     const side = p[where(g, off)];
-    for (const pos of ["G", "F", "C"]) {
+    for (const pos of POSITIONS) {
       const allowed = (t(def).fg_allowed || {})[pos];
       const made = (t(off).fg_made || {})[pos];
       if (allowed === null || allowed === undefined || allowed - lg.fg_allowed[pos] < TARGET_POS_GAP) continue;

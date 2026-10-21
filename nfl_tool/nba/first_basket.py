@@ -25,8 +25,10 @@ from collections import defaultdict
 
 import pandas as pd
 
-POS_GROUP = {"PG": "G", "SG": "G", "G": "G", "SF": "F", "PF": "F", "F": "F", "C": "C"}
-POSITIONS = ("G", "F", "C")
+# PG / SG / SF / PF / C (positions.py: the build reads every box score with
+# ESPN's depth-chart positions); a bare G / F left over counts as SG / SF.
+POSITIONS = ("PG", "SG", "SF", "PF", "C")
+POS_GROUP = {**{p: p for p in POSITIONS}, "G": "SG", "F": "SF"}
 STARTERS = 5
 MIN_JUMPS = 2  # fewer jumps than this and a player isn't a team's jumper (low: a new season has few)
 # The fair-price guess: each jumper's tip rate is steadied with TIP_PRIOR
@@ -107,7 +109,7 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
 
 
 def team_numbers(openings: list, positions: dict) -> tuple:
-    """({team: numbers}, league numbers). positions = {athlete id: G/F/C}."""
+    """({team: numbers}, league numbers). positions = {athlete id: PG/SG/SF/PF/C}."""
     rows = defaultdict(lambda: defaultdict(list))
     for o in openings:
         for team, opp, where in ((o["home"], o["away"], "home"), (o["away"], o["home"], "away")):
@@ -128,9 +130,9 @@ def team_numbers(openings: list, positions: dict) -> tuple:
                 d["opp_poss"].append(o["first_pts"][opp][0])
                 d["opp_secs"].append(o["first_pts"][opp][1])
             if opp in o["first_fg"]:
-                d["fg_pos"].append(positions.get(o["first_fg"][opp], "F"))
+                d["fg_pos"].append(positions.get(o["first_fg"][opp], "SF"))
             if team in o["first_fg"]:
-                d["fg_own"].append(positions.get(o["first_fg"][team], "F"))
+                d["fg_own"].append(positions.get(o["first_fg"][team], "SF"))
     teams = {}
     for team, d in rows.items():
         t = {"games": len(d["first"])}
@@ -145,7 +147,7 @@ def team_numbers(openings: list, positions: dict) -> tuple:
         t["fg_made"] = {p: num(d["fg_own"].count(p) / n) if n else None for p in POSITIONS}
         teams[team] = t
     games = [o for o in openings if o["tip"]]
-    fg_all = [positions.get(pid, "F") for o in openings for pid in o["first_fg"].values()]
+    fg_all = [positions.get(pid, "SF") for o in openings for pid in o["first_fg"].values()]
     league = {
         "games": len(openings),
         "first_won_tip": num(sum(o["tip"] == o["first_team"] for o in games) / len(games)) if games else None,
@@ -194,7 +196,7 @@ def season_block(pbp: pd.DataFrame, player_box: pd.DataFrame, teams, label: str)
     from his last game in the box scores; the build moves them to today's team."""
     box = player_box[(player_box["season_type"] == 2) & player_box["athlete_id"].notna()].sort_values("game_date")
     last = box.drop_duplicates("athlete_id", keep="last")
-    positions = {int(r.athlete_id): POS_GROUP.get(r.athlete_position_abbreviation, "F") for r in last.itertuples(index=False)}
+    positions = {int(r.athlete_id): POS_GROUP.get(r.athlete_position_abbreviation, "SF") for r in last.itertuples(index=False)}
     openings = game_openings(pbp, teams)
     team_rows, league = team_numbers(openings, positions)
     players = {}
@@ -206,7 +208,7 @@ def season_block(pbp: pd.DataFrame, player_box: pd.DataFrame, teams, label: str)
         head = r.athlete_headshot_href
         players[str(pid)] = {
             "name": r.athlete_display_name,
-            "pos": positions.get(pid, "F"),
+            "pos": positions.get(pid, "SF"),
             "team": r.team_abbreviation,
             "headshot": None if head is None or (isinstance(head, float) and pd.isna(head)) else head,
             **p,

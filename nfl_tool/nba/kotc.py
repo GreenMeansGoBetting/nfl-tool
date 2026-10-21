@@ -6,7 +6,7 @@ page can show either season (the owner's 2025-26 / 2026-27 toggle):
 
   * defense board -- how many 40 / 45 / 50 / 55 / 60+ PRA games each team has
     given up, a weighted score of those, how much its best opponent each night
-    gets (`star`), and PRA per 48 minutes allowed to guards, forwards and bigs;
+    gets (`star`), and PRA per 48 minutes allowed to each position;
   * player board -- the same buckets for every player, his PRA average, last
     10 and last 5, minutes;
   * nights -- every finished night's leader, how many games were on, the
@@ -14,8 +14,8 @@ page can show either season (the owner's 2025-26 / 2026-27 toggle):
   * the slate -- each player's projected PRA for tonight and his chance to
     lead the night (`lead_chances`, a simulation of the whole slate).
 
-ESPN only labels positions G / F / C (a few PG / PF / SF slip through), so
-those are the three groups.
+Positions are PG / SG / SF / PF / C from ESPN's depth charts (positions.py;
+until 2026-10-21 ESPN's G / F / C).
 """
 import math
 
@@ -25,8 +25,16 @@ import pandas as pd
 REGULAR_SEASON = 2
 THRESHOLDS = (40, 45, 50, 55, 60)
 BUCKET_WEIGHTS = (1, 2, 3, 4, 5)  # 40+ counts once, 60+ five times (each bucket includes the ones above it)
-POS_GROUP = {"PG": "G", "SG": "G", "G": "G", "SF": "F", "PF": "F", "F": "F", "C": "C"}
-POSITIONS = ("G", "F", "C")
+# PG / SG / SF / PF / C (positions.py: the build reads every box score with
+# ESPN's depth-chart positions); a bare G / F left over counts as SG / SF.
+POSITIONS = ("PG", "SG", "SF", "PF", "C")
+POS_GROUP = {**{p: p for p in POSITIONS}, "G": "SG", "F": "SF"}
+# The projection's matchup still reads ESPN's guard / forward / center groups
+# (`grp`, the build's `espn_group`): on the 2025-26 replay the five positions
+# put the leader in the top 5 61% of nights against 64% (thinner samples; and
+# last season's players carry today's depth-chart spots). The owner decides.
+GROUPS = ("G", "F", "C")
+GROUP_OF = {"PG": "G", "SG": "G", "SF": "F", "PF": "F", "C": "C", "G": "G", "F": "F"}
 SHRINK_GAMES = 10  # a defense's position numbers start as 10 games of a league-average team
 PRIOR_GAMES = 5  # this season's PRA average starts as 5 games of last season's
 MIN_GAMES = 3  # fewer games than this and a player isn't on the board
@@ -68,7 +76,8 @@ def player_games(player_box: pd.DataFrame, teams) -> pd.DataFrame:
         "team": box["team_abbreviation"],
         "opp": box["opponent_team_abbreviation"],
         "home": box["home_away"] == "home",
-        "pos": box["athlete_position_abbreviation"].map(POS_GROUP).fillna("F"),
+        "pos": box["athlete_position_abbreviation"].map(POS_GROUP).fillna("SF"),
+        "grp": (box["espn_group"] if "espn_group" in box.columns else box["athlete_position_abbreviation"]).map(GROUP_OF).fillna("F"),
         "headshot": box["athlete_headshot_href"],
         "min": box["min"],
         "pts": box["points"].fillna(0).astype(int),
@@ -88,18 +97,21 @@ def bucket_score(counts) -> int:
 
 
 def league_numbers(pg: pd.DataFrame, lines: dict) -> dict:
-    """League-wide yardsticks: PRA per 48 by position, minutes a team plays at
-    each position a game, the average game total (from the lines)."""
+    """League-wide yardsticks: PRA per 48 by position (and by ESPN group, for
+    the projection), minutes a team plays at each a game, the average game
+    total (from the lines)."""
     team_games = max(1, pg.groupby(["game_id", "team"]).ngroups)
-    pos = {}
-    for p in POSITIONS:
-        sub = pg[pg["pos"] == p]
-        pos[p] = {
-            "per48": 48 * sub["pra"].sum() / sub["min"].sum() if len(sub) else None,
-            "min_per_game": sub["min"].sum() / team_games,
-        }
+    out = {}
+    for col, keys in (("pos", POSITIONS), ("grp", GROUPS)):
+        out[col] = {}
+        for p in keys:
+            sub = pg[pg[col] == p]
+            out[col][p] = {
+                "per48": 48 * sub["pra"].sum() / sub["min"].sum() if len(sub) else None,
+                "min_per_game": sub["min"].sum() / team_games,
+            }
     totals = [v[0] for v in lines.values() if v and v[0]]
-    return {"pos": pos, "total": float(np.mean(totals)) if totals else 228.0}
+    return {**out, "total": float(np.mean(totals)) if totals else 228.0}
 
 
 def compute_defense(pg: pd.DataFrame, league: dict) -> dict:
@@ -108,17 +120,19 @@ def compute_defense(pg: pd.DataFrame, league: dict) -> dict:
     for team, g in pg.groupby("opp"):
         games = g["game_id"].nunique()
         counts = bucket_counts(g["pra"])
-        pos, pos_f = {}, {}
-        for p in POSITIONS:
-            lg = league["pos"][p]
-            sub = g[g["pos"] == p]
-            if not lg["per48"]:
-                continue
-            pos[p] = num(48 * sub["pra"].sum() / sub["min"].sum()) if sub["min"].sum() else None
-            # Shrunk toward the league: SHRINK_GAMES games' worth of minutes at the league rate.
-            m0 = SHRINK_GAMES * lg["min_per_game"]
-            rate = (sub["pra"].sum() + lg["per48"] / 48 * m0) / (sub["min"].sum() + m0)
-            pos_f[p] = num(rate * 48 / lg["per48"], 3)
+        pos, pos_f, grp_f = {}, {}, {}
+        for col, keys, raw, factor in (("pos", POSITIONS, pos, pos_f), ("grp", GROUPS, None, grp_f)):
+            for p in keys:
+                lg = league[col][p]
+                sub = g[g[col] == p]
+                if not lg["per48"]:
+                    continue
+                if raw is not None:
+                    raw[p] = num(48 * sub["pra"].sum() / sub["min"].sum()) if sub["min"].sum() else None
+                # Shrunk toward the league: SHRINK_GAMES games' worth of minutes at the league rate.
+                m0 = SHRINK_GAMES * lg["min_per_game"]
+                rate = (sub["pra"].sum() + lg["per48"] / 48 * m0) / (sub["min"].sum() + m0)
+                factor[p] = num(rate * 48 / lg["per48"], 3)
         out[team] = {
             "games": games,
             "buckets": counts,
@@ -126,6 +140,7 @@ def compute_defense(pg: pd.DataFrame, league: dict) -> dict:
             "star": num(g.groupby("game_id")["pra"].max().mean()),
             "pos": pos,
             "pos_f": pos_f,
+            "grp_f": grp_f,
         }
     return out
 
@@ -150,6 +165,7 @@ def compute_players(pg: pd.DataFrame, prior: dict | None = None) -> dict:
             "name": last["name"],
             "team": last["team"],
             "pos": last["pos"],
+            "grp": last["grp"],
             "headshot": last["headshot"] if isinstance(last["headshot"], str) else None,
             "games": games,
             "min": num(g["min"].mean()),
@@ -171,8 +187,9 @@ def compute_players(pg: pd.DataFrame, prior: dict | None = None) -> dict:
 def project(player: dict, opp: dict | None, total, team_spread, b2b: bool, league: dict, w: dict = WEIGHTS) -> float:
     """Tonight's PRA: his base x the matchup, the game total, blowout risk, rest."""
     f = 1.0
-    if opp and opp.get("pos_f", {}).get(player["pos"]):
-        f *= opp["pos_f"][player["pos"]] ** w["opp"]
+    grp = player.get("grp") or GROUP_OF.get(player["pos"], "F")
+    if opp and opp.get("grp_f", {}).get(grp):
+        f *= opp["grp_f"][grp] ** w["opp"]
     if total:
         f *= (total / league["total"]) ** w["total"]
     if team_spread is not None:

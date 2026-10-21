@@ -37,6 +37,7 @@ import props  # noqa: E402
 import smartstake  # noqa: E402
 import identity  # noqa: E402
 import kotc  # noqa: E402
+import positions  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
@@ -76,6 +77,11 @@ LINE_FIELDS = (
 )
 
 
+# PG / SG / SF / PF / C by player (positions.py), set by main(); every box
+# score and roster file is read with these in place of ESPN's G / F / C.
+POSITION_TABLE: dict = {}
+
+
 # ---- files ----
 def fetch_file(kind: str, season: int, data_dir: Path, force: bool) -> pd.DataFrame | None:
     """One season file as a DataFrame, or None if hoopR hasn't published it
@@ -92,7 +98,12 @@ def fetch_file(kind: str, season: int, data_dir: Path, force: bool) -> pd.DataFr
             if e.code == 404:
                 return None
             raise
-    return pd.read_parquet(path)
+    frame = pd.read_parquet(path)
+    if kind == "player_box":
+        frame = positions.relabel(frame, POSITION_TABLE)
+    elif kind == "rosters":
+        frame = positions.relabel(frame, POSITION_TABLE, pos_col="position_abbreviation")
+    return frame
 
 
 def num(value, digits=1):
@@ -281,7 +292,7 @@ def compute_injuries(injuries: pd.DataFrame | None, abbr_by_id: dict) -> dict:
         out.setdefault(team, []).append({
             "id": str(r.athlete_id),
             "name": r.athlete_display_name,
-            "position": clean(r.athlete_position),
+            "position": POSITION_TABLE.get(str(r.athlete_id)) or clean(r.athlete_position),
             "status": r.status,
             "injury": " ".join(str(x) for x in (clean(r.detail_side), clean(r.detail_type)) if x) or None,
             "return_date": clean(r.detail_return_date),
@@ -585,7 +596,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     roster = {}
     if rosters is not None:
         for r in rosters.itertuples(index=False):
-            roster[str(r.athlete_id)] = [r.display_name, r.team_abbreviation, first_basket.POS_GROUP.get(r.position_abbreviation, "F")]
+            roster[str(r.athlete_id)] = [r.display_name, r.team_abbreviation, r.position_abbreviation]
     lineups = {}
     for d in dates:
         got = fetch_nba_lineups(d)
@@ -707,6 +718,8 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     saved = Path(str(props.REFERENCE).format(season=season - 1))
     if saved.exists():
         block = json.loads(saved.read_text(encoding="utf-8"))
+        for pid, p in block["players"].items():  # saved with ESPN's G / F / C
+            p["pos"] = POSITION_TABLE.get(pid) or kotc.POS_GROUP.get(p.get("pos"), p.get("pos"))
         blocks[season - 1] = props.on_rosters(block, roster_team) if roster_team else block
     # First Basket has just downloaded this season's files (see compute_identity).
     pbp = fetch_file("pbp", season, data_dir, False)
@@ -791,6 +804,7 @@ def main():
     args = parser.parse_args()
     force = not args.cached
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    POSITION_TABLE.update(positions.load())
 
     schedule = fetch_file("schedule", args.season, args.data_dir, force)
     if schedule is None:

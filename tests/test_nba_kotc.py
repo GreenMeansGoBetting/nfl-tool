@@ -43,14 +43,14 @@ def box(rows):
 SEASON = box([
     (1, "2026-01-01", 10, "Star A", "AAA", "BBB", True, "G", 36, 40, 10, 12),   # 62
     (1, "2026-01-01", 11, "Big A", "AAA", "BBB", True, "C", 30, 20, 15, 2),     # 37
-    (1, "2026-01-01", 20, "Star B", "BBB", "AAA", False, "PG", 34, 30, 8, 9),   # 47 (PG -> G)
-    (1, "2026-01-01", 21, "Wing B", "BBB", "AAA", False, "SF", 30, 10, 5, 2),   # 17 (SF -> F)
+    (1, "2026-01-01", 20, "Star B", "BBB", "AAA", False, "PG", 34, 30, 8, 9),   # 47
+    (1, "2026-01-01", 21, "Wing B", "BBB", "AAA", False, "SF", 30, 10, 5, 2),   # 17
     (2, "2026-01-01", 30, "Star C", "CCC", "DDD", True, "F", 35, 25, 12, 5),    # 42
     (2, "2026-01-01", 40, "Star D", "DDD", "CCC", False, "G", 33, 28, 6, 11),   # 45
     (3, "2026-01-02", 10, "Star A", "AAA", "CCC", False, "G", 37, 30, 9, 11),   # 50
     (3, "2026-01-02", 11, "Big A", "AAA", "CCC", False, "C", 28, 12, 12, 1),    # 25
     (3, "2026-01-02", 30, "Star C", "CCC", "AAA", True, "F", 36, 30, 15, 5),    # 50 (tie with Star A)
-    (4, "2026-01-02", 20, "Star B", "BBB", "DDD", False, "G", 30, 22, 5, 8),    # 35
+    (4, "2026-01-02", 20, "Star B", "BBB", "DDD", False, "PG", 30, 22, 5, 8),    # 35
     (4, "2026-01-02", 40, "Star D", "DDD", "BBB", True, "G", 34, 25, 4, 10),    # 39
 ])
 LINES = {"1": [230.0, -6.5], "2": [220.0, 2.0], "3": [240.0, -3.0], "4": [225.0, 11.0]}
@@ -63,10 +63,12 @@ class Buckets(unittest.TestCase):
     def test_score_weighs_the_buckets_one_to_five(self):
         self.assertEqual(kotc.bucket_score([4, 3, 3, 2, 2]), 4 + 6 + 9 + 8 + 10)
 
-    def test_positions_fold_into_guard_forward_big(self):
+    def test_five_positions_and_a_bare_g_or_f_counts_as_sg_or_sf(self):
+        # The build relabels every box score from ESPN's depth charts (positions.py);
+        # a G / F that slips through is a shooting guard / small forward.
         pg = kotc.player_games(SEASON, TEAMS)
         pos = dict(zip(pg["name"], pg["pos"]))
-        self.assertEqual((pos["Star B"], pos["Wing B"], pos["Big A"]), ("G", "F", "C"))
+        self.assertEqual((pos["Star B"], pos["Wing B"], pos["Big A"], pos["Star A"], pos["Star C"]), ("PG", "SF", "C", "SG", "SF"))
         self.assertEqual(pg.loc[pg["name"] == "Star A", "pra"].tolist(), [62, 50])
 
 
@@ -86,11 +88,11 @@ class Defense(unittest.TestCase):
         self.assertEqual(self.d["CCC"]["games"], 2)
 
     def test_position_numbers_are_per_48_and_steadied_toward_the_league(self):
-        raw = 48 * (62 + 39) / (36 + 34)  # guards against BBB: Star A, Star D
-        self.assertEqual(self.d["BBB"]["pos"]["G"], round(raw, 1))
-        league_g = self.league["pos"]["G"]["per48"]
+        raw = 48 * (62 + 39) / (36 + 34)  # shooting guards against BBB: Star A, Star D
+        self.assertEqual(self.d["BBB"]["pos"]["SG"], round(raw, 1))
+        league_g = self.league["pos"]["SG"]["per48"]
         self.assertGreater(raw, league_g)
-        f = self.d["BBB"]["pos_f"]["G"]
+        f = self.d["BBB"]["pos_f"]["SG"]
         self.assertTrue(1 < f < raw / league_g, f)  # pulled toward 1, not all the way
 
     def test_league_total_is_the_lines_average(self):
@@ -130,8 +132,10 @@ class Projection(unittest.TestCase):
     LEAGUE = {"total": 230.0}
 
     def test_pieces(self):
-        p = {"base": 40.0, "pos": "G"}
-        opp = {"pos_f": {"G": 1.1}}
+        # The matchup reads the guard / forward / center group (2026-10-21: five positions replayed worse),
+        # so a PG takes the defense's guard number, not its PG one.
+        p = {"base": 40.0, "pos": "PG", "grp": "G"}
+        opp = {"pos_f": {"PG": 1.5}, "grp_f": {"G": 1.1}}
         w = kotc.WEIGHTS
         self.assertAlmostEqual(kotc.project(p, opp, 230.0, -3, False, self.LEAGUE), 40 * 1.1 ** w["opp"])
         self.assertAlmostEqual(kotc.project(p, None, 253.0, None, False, self.LEAGUE), 40 * 1.1 ** w["total"])

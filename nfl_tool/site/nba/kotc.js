@@ -57,6 +57,10 @@ function renderSeasons() {
     : `${b.label} numbers, with players on their current teams.${KOTC.seasons[thisSeason] ? ` ${KOTC.seasons[thisSeason].label} has ${KOTC.seasons[thisSeason].games} games so far.` : ` ${DATA.season_label} numbers take over once teams have a few games in.`}`;
 }
 
+// PG / SG / SF / PF / C from ESPN's depth charts (positions.py).
+const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
+const POS_NAMES = { PG: "Point Guards", SG: "Shooting Guards", SF: "Small Forwards", PF: "Power Forwards", C: "Centers" };
+
 // ---- player board ----
 const PLAYER_COLS = [
   { key: "rank", label: "#", sort: false },
@@ -69,7 +73,7 @@ const PLAYER_COLS = [
   { key: "score", label: "Score", title: "40+ x1, 45+ x2, 50+ x3, 55+ x4, 60+ x5", value: (r) => r.p.score },
   { key: "opp", label: "Opp", value: (r) => r.opp },
   { key: "matchup", label: "Matchup", title: "The other team's Score for PRA given up (green = gives up the most)", value: (r) => r.def && r.def.score },
-  { key: "vspos", label: "vs Pos", title: "PRA a minute the other team allows his position, against the league", value: (r) => r.def && r.def.pos_f && r.def.pos_f[r.p.pos] },
+  { key: "vspos", label: "vs Pos", title: "PRA a minute the other team allows his position, against the league. The projection still reads guards / forwards / centers for now", value: (r) => r.def && r.def.pos_f && r.def.pos_f[r.p.pos] },
   { key: "total", label: "Total", title: "The game's total (Novig)", value: (r) => r.game.total_line },
   { key: "spread", label: "Spread", title: "His team's spread. 10+ point games produced fewer leaders last season (starters sit)", value: (r) => r.spread },
 ];
@@ -141,7 +145,7 @@ function renderPlayers() {
       <td class="num"${heat(p.score, sLo, sHi)}><b>${p.score}</b></td>
       <td class="kotc-opp">${r.home ? "vs" : "@"} ${logo(r.opp, 18)} ${r.opp}</td>
       <td class="num"${r.def ? heat(r.def.score, mLo, mHi) : ""}>${r.def ? r.def.score : "--"}</td>
-      <td class="num"${pf ? heat(pf, 0.9, 1.1) : ""} title="${pf ? `${r.opp} allows ${p.pos === "G" ? "guards" : p.pos === "F" ? "forwards" : "bigs"} ${fmt(r.def.pos[p.pos])} PRA per 48 minutes` : ""}">${pf ? `${pf >= 1 ? "+" : ""}${Math.round((pf - 1) * 100)}%` : "--"}</td>
+      <td class="num"${pf ? heat(pf, 0.9, 1.1) : ""} title="${pf ? `${r.opp} allows ${(POS_NAMES[p.pos] || p.pos).toLowerCase()} ${fmt(r.def.pos[p.pos])} PRA per 48 minutes` : ""}">${pf ? `${pf >= 1 ? "+" : ""}${Math.round((pf - 1) * 100)}%` : "--"}</td>
       <td class="num"${heat(r.game.total_line, tLo, tHi)}>${r.game.total_line ? fmt(r.game.total_line).replace(/\.0$/, "") : "--"}</td>
       <td class="num${blow ? " kotc-blowout" : ""}"${blow ? ' title="Blowout risk: stars can sit the 4th quarter"' : ""}>${signed(r.spread)}</td>
     </tr>`;
@@ -163,7 +167,7 @@ const DEF_COLS = [
   ...[0, 1, 2, 3, 4].map((i) => ({ key: `b${i}`, bucket: i, value: (t) => t.d.buckets[i] })),
   { key: "score", label: "Score", value: (t) => t.d.score },
   { key: "star", label: "Best opp", title: "Most PRA by one opponent, average a game", value: (t) => t.d.star },
-  ...["G", "F", "C"].map((p) => ({ key: `pos${p}`, label: `vs ${p}`, title: `PRA per 48 minutes allowed to ${p === "G" ? "guards" : p === "F" ? "forwards" : "bigs"}`, value: (t) => t.d.pos[p] })),
+  ...POSITIONS.map((p) => ({ key: `pos${p}`, label: `vs ${p}`, title: `PRA per 48 minutes allowed to ${POS_NAMES[p].toLowerCase()}`, value: (t) => t.d.pos[p] })),
   { key: "games", label: "GP", value: (t) => t.d.games },
   { key: "targets", label: "Targets", title: `Tonight's opponents in the top ${TARGET_TOP} on the player board (Lead %)`, value: (t) => t.targets.length },
 ];
@@ -190,7 +194,7 @@ function renderDefense() {
   const hi = [0, 1, 2, 3, 4].map((i) => range(rows.map((t) => t.d.buckets[i])));
   const sc = range(rows.map((t) => t.d.score));
   const st = range(rows.map((t) => t.d.star));
-  const pos = ["G", "F", "C"].map((p) => range(rows.map((t) => t.d.pos[p])));
+  const pos = POSITIONS.map((p) => range(rows.map((t) => t.d.pos[p])));
   // Hiding the idle teams keeps the colors against all 30 (ranges above use every row).
   const hide = defPlayingOnly && Object.keys(tonight).length > 0;
   el("kotc-def-playing").textContent = defPlayingOnly ? "Show All Teams" : "Hide Teams Not Playing";
@@ -207,7 +211,7 @@ function renderDefense() {
       ${t.d.buckets.map((c, k) => `<td class="num"${heat(c, hi[k][0], hi[k][1], true)}>${c}</td>`).join("")}
       <td class="num"${heat(t.d.score, sc[0], sc[1], true)}><b>${t.d.score}</b></td>
       <td class="num"${heat(t.d.star, st[0], st[1], true)}>${fmt(t.d.star)}</td>
-      ${["G", "F", "C"].map((p, k) => `<td class="num"${heat(t.d.pos[p], pos[k][0], pos[k][1], true)}>${fmt(t.d.pos[p])}</td>`).join("")}
+      ${POSITIONS.map((p, k) => `<td class="num"${heat(t.d.pos[p], pos[k][0], pos[k][1], true)}>${fmt(t.d.pos[p])}</td>`).join("")}
       <td class="num">${t.d.games}</td>
       <td class="kotc-targets">${t.targets.map((n) => `<span title="${n}">${n.split(" ").slice(1).join(" ") || n}</span>`).join(", ")}</td>
     </tr>`).join("");
@@ -274,7 +278,7 @@ function renderHistory() {
     <p class="kotc-hist-note">Totals and spreads are the pregame lines at tip-off, not the final score. <b>Leaders:</b> how often the night's leader played in that kind of game. <b>Games:</b> that kind of game's share of the games on those nights. <b>Rate</b> over 1 = more leaders than its share of games. High totals and close games produce more leaders; blowouts fewer (starters sit). The projection counts the total lightly: in the replay the matchup by position mattered far more, and the spread added nothing beyond it.</p>
     <div class="kotc-hist-two">
       <div><h3 class="kotc-hist-h">Who wins it</h3>
-        <table class="kotc-hist-table"><thead><tr><th>Position</th><th>Nights</th><th>Share</th></tr></thead><tbody>${[["G", "Guards"], ["F", "Forwards"], ["C", "Bigs"]].map(([k, n]) => `<tr><td>${n}</td><td>${sum.positions[k]}</td><td>${pct(sum.positions[k] / posTotal)}</td></tr>`).join("")}</tbody></table></div>
+        <table class="kotc-hist-table"><thead><tr><th>Position</th><th>Nights</th><th>Share</th></tr></thead><tbody>${POSITIONS.map((k) => [k, POS_NAMES[k]]).map(([k, n]) => `<tr><td>${n}</td><td>${sum.positions[k]}</td><td>${pct(sum.positions[k] / posTotal)}</td></tr>`).join("")}</tbody></table></div>
       <div><h3 class="kotc-hist-h">Most nights led</h3>
         <table class="kotc-hist-table"><thead><tr><th>Player</th><th>Nights</th></tr></thead><tbody>${sum.most.map((m) => `<tr><td>${m.name}</td><td>${m.nights}</td></tr>`).join("")}</tbody></table></div>
     </div>

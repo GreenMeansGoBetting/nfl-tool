@@ -21,6 +21,22 @@ in and out (take boston - no brown add george - completely different) changes ev
   `PRIOR_GAMES`) for its first week; the owner: "Keep King of the Court as built for its first
   week, and apply the this-season-only rule to all new tools." Ask before changing it.
 
+## Positions: PG / SG / SF / PF / C (`nfl_tool/nba/positions.py`, 2026-10-21)
+
+The owner: "Guards are drastically different roles and its unacceptable to not have PG vs SG
+established." ESPN's box scores and roster files say only G / F / C; **ESPN's depth charts**
+(`site.api.espn.com/.../basketball/nba/teams/<1-30>/depthcharts`, same player ids) list every
+rostered player under the five spots, often several. A player's position = the spot where he
+ranks highest (tie: first of PG, SG, SF, PF, C); Pritchard 2nd at PG, 3rd at SG = PG.
+- `positions.json` keeps every player ever placed (departed players keep theirs for last
+  season); each build adds today's charts on top (`load`). Re-save: `py nfl_tool/nba/positions.py --write`.
+- `fetch_file` in build_nba.py relabels every `player_box` and `rosters` file (`relabel`), so
+  every NBA tool sees the five; ESPN's G / F / C stays in `espn_group`. Players on no chart ever
+  (7.6% of 2025-26 minutes): G with 4.5+ assists a 36 = PG (82% right), F with 6.5+ rebounds a
+  36 = PF (65%); a roster row with no stats: SG / SF / C. Injuries take the table's position.
+- Last season's numbers use today's depth-chart spots (a player's role may have changed).
+- Tests: `tests/test_nba_positions.py`.
+
 ## The engine (`nfl_tool/nba/possessions.py`, 2026-10-20)
 
 The foundation every new NBA tool reads instead of the raw play-by-play. `Season(pbp, box)`
@@ -302,7 +318,8 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   right, the stat name in the middle with an **Edge** pill (better side's logo, when they're `edge`
   apart). The owner's rows, Title Case, nothing else: The Tip (Jumper, Tips Won, Home/Road), Scores
   First (Scores First, Home/Road, After Winning Tip, After Losing Tip), Opening Trips (Avg Poss. To
-  Score, Avg Poss. To Allow), First FG Allowed (Guards, Forwards, Centers). **Removed on purpose:**
+  Score, Avg Poss. To Allow), First FG Allowed (Point Guards, Shooting Guards, Small Forwards, Power Forwards, Centers; five
+since 2026-10-21). **Removed on purpose:**
   game-count subtext, league averages, "fair guess" rows ("Wins the tip": "you're making a guess
   here and that's not evident. We can make predictions else where"), the 1st-quarter margin and
   the seconds rows. Group headers centered over the middle. **Every row one fixed height (36 px;
@@ -357,10 +374,13 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   (`{date: rows}` for the next 3 nights, each projected from that season), `default` (this season
   once the middle team has played 4 games, else last season), `weights`, `thresholds`, `record`.
 - **Buckets are cumulative** (a 52 counts in 40+, 45+, 50+); Score = 1 x 40+ ... 5 x 60+.
-- **Positions are G / F / C:** ESPN labels nearly everyone that way (2025-26: G 13,010 player-games,
-  F 9,717, C 3,889; PG / SG / SF / PF about 100 in all). The owner asked "do they use SF/PF/PG/SG?":
-  no. A defense's position number is PRA per 48 minutes allowed to that group, steadied with 10 games
-  of the league's rate (`pos_f` = against the league).
+- **Positions are PG / SG / SF / PF / C** (positions.py, 2026-10-21): the board, vs Pos, the defense
+  board's five columns and Who wins it. A defense's position number is PRA per 48 minutes allowed to
+  that spot, steadied with 10 games of the league's rate (`pos_f` = against the league).
+- **The projection's matchup still reads ESPN's G / F / C** (`grp`, `grp_f`): on the 2025-26
+  replay the five positions put the leader in the top 5 61% of nights vs 64% (fit 0.68 vs 0.91),
+  thinner samples and last season's players on today's spots. Kept under the first-week rule;
+  **ask the owner** before switching (`py tools/backtest/nba_kotc.py --five-matchup` replays it).
 - **Last season on this season's rosters:** a player's last-season row sits on the team today's
   roster file lists him with; not on a roster = off the board. In this season's view each average
   starts with 5 games of his last season (`PRIOR_GAMES`, until 30 games).

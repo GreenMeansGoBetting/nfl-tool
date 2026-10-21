@@ -29,7 +29,9 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "nfl_tool" / "nba"))
 import kotc  # noqa: E402
+import positions  # noqa: E402
 
+FIVE_MATCHUP = False  # --five-matchup: the matchup by PG / SG / SF / PF / C instead of the build's G / F / C
 SKIP_NIGHTS = 15  # the first nights have too little to project from
 
 
@@ -55,7 +57,7 @@ def rows_for_season(pg: pd.DataFrame, lines: dict) -> pd.DataFrame:
             out.append({
                 "date": date, "id": r.id, "name": r.name, "pra": r.pra, "pos": r.pos,
                 "avg": p["pra"], "l10": p["l10"], "base": p["base"],
-                "pos_f": (opp.get("pos_f") or {}).get(r.pos) or 1.0,
+                "pos_f": ((opp.get("pos_f") or {}).get(r.pos) if FIVE_MATCHUP else (opp.get("grp_f") or {}).get(r.grp)) or 1.0,
                 "total_r": (line[0] / league["total"]) if line[0] else 1.0,
                 "has_total": line[0] is not None,
                 "excess": max(0.0, abs(spread) - kotc.WEIGHTS["blowout_from"]) if spread is not None else 0.0,
@@ -113,8 +115,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--season", type=int, default=2026)
     ap.add_argument("--data-dir", type=Path, default=Path("data/nba"))
+    ap.add_argument("--five-matchup", action="store_true", help="The matchup by the five positions (2026-10-21: top 5 61%% vs 64%%)")
+    ap.add_argument("--espn-groups", action="store_true", help="ESPN's G / F / C instead of the five positions (the pre-2026-10-21 build)")
     args = ap.parse_args()
     box = pd.read_parquet(args.data_dir / f"player_box_{args.season}.parquet")
+    global FIVE_MATCHUP
+    FIVE_MATCHUP = args.five_matchup
+    if not args.espn_groups:  # what the build does (positions.py)
+        box = positions.relabel(box, positions.load(live=False))
     teams = set(pd.read_parquet(args.data_dir / "nba_schedule_2027.parquet")["home_abbreviation"]) - {"TBD"}
     lines = json.loads((Path(__file__).resolve().parents[2] / "nfl_tool" / "nba" / f"lines_{args.season}.json").read_text())
     pg = kotc.player_games(box, teams)
