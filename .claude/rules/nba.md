@@ -195,9 +195,12 @@ it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#play
   filters", this season only): `site/nba/shot-chart.js` (`nbaShotView(id)`, every name `nbaShot` /
   `NBA_SHOT`; loaded before nba-card.js on every page with the card) reads **`site/nba/shots.json`**
   (`nfl_tool/nba/shots.py`, its own try in build_nba.py `main`; gitignored, in fetch_live_data.py):
-  `games` (this season's ids, oldest first), `players[<id>]` = [x, y, made, three, game index, flags
-  1 = 1st qtr / 2 = first 3 min, kind 1 self-created / 2 catch / 3 drive-cut-rim], `league` =
-  [x, y, three, made, tried] by spot. ESPN's spot to the foot; **x below 25 = the shooter's left**
+  `games` (this season's ids, oldest first), `teams` (abbreviations), `players[<id>]` = [x, y, made,
+  three, game index, flags 1 = 1st qtr / 2 = first 3 min, kind 1 self-created / 2 catch / 3
+  drive-cut-rim, his team, the defense (indexes into `teams`, -1 unknown)], `who[<id>]` = [name, team
+  of his latest box-score game], `league` = [x, y, three, made, tried] by spot. The two teams come
+  from his **box-score** team that game (never ESPN's play `team_id`); a player missing from the box
+  score gets the play's side. All-Star sides are left out (the engine's half-the-games rule). ESPN's spot to the foot; **x below 25 = the shooter's left**
   (checked against NBA.com's 2025-26 shot file: same side on 90% of 121k matched shots, the rest
   wrong matches); heaves 35+ ft and free throws out. Basket at the top, so Left Side is drawn left.
   **Zones** (12: At The Rim, Paint, mid-range Left / Right Baseline, Left / Right Wing, Top; Left /
@@ -208,16 +211,27 @@ it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#play
   Season / Last 10 / Last 5 (his games), 2PT / 3PT, Self-Created / Catch & Shoot / Drives & Cuts,
   1st Qtr / First 3 Min (for First Basket). A full season is ~4 MB, read only when the tab opens.
 - Not built: alt lines.
+- **Shot Charts page** (`site/nba/shot-charts.html` + `shot-charts.js` + `shot-charts.css`; NBA menu
+  right under Team Identity; built 2026-10-21, the owner on the mockup: "This looks phenomenal"):
+  pick an offense team + player and a defense (opens on tonight's first road team's top shooter vs
+  the home defense; a new player's defense = his team's next opponent; the address keeps the pick,
+  `#p=<id>&d=<TEAM>`). Left: his chart (`nbaShotZonesView` / `nbaShotHeatView`); right: every shot
+  that defense allowed (shot[8]), drawn with `{allowed: true}` so the colors flip (**red = it allows
+  more than the league**, legend Allows Less / Allows More). One set of filters for both (Last 10 =
+  each side's own last 10 games). **Zone By Zone** table: his FG / FG% / vs Lg / Share, the same
+  for the defense, the league's FG% and share, and a **Call**: Target / Tough when one side is
+  2.5+ points (shrunk by `NBA_SHOT_PRIOR`) from the league and the other isn't 0.75+ the other way
+  (matchupCall's rule), only on zones with 5%+ of his shots and 5+ tries. The page's own classes
+  are `shc-*` (`sc-*` is the NFL Summary card's). Its global `DATA` is data.json (the card reads it).
+  Tests: `tests/test_nba_shot_charts_site.py`, `tests/test_nba_shots.py`.
 - Tests: `tests/test_nba_player_card_site.py`, `test_my_plays_site.py` (NbaPlays), `test_nba_props.py`.
 
 ## The owner's list (2026-10-20, for when usage allows)
 
 1. ~~Clickable NBA players with a pop-up like the other sports~~ built 2026-10-21 (the player
    card above), with its Shot Chart.
-2. ~~Shot zones overhaul~~ built 2026-10-21 as the card's Shot Chart. **Next: a Shot Charts page**
-   under Team Identity (the owner: "pick an offensive player and then a defensive team to compare";
-   "That can come later"): the same shot-chart.js, plus each defense's shots allowed by spot (needs
-   the defending team on each shot in shots.json). Points / First Basket / threes read these zones.
+2. ~~Shot zones overhaul~~ built 2026-10-21 as the card's Shot Chart, and ~~a Shot Charts page~~
+   (shooter vs defense) the same day. Points / First Basket / threes could read these zones.
 3. **Alt-line ladder only with real alt prices** (SmartStake `alternate=true`) and narrow: "without
    odds its just filler".
 4. **Rotation chart:** when a player usually subs in and out, who he plays the most minutes with,

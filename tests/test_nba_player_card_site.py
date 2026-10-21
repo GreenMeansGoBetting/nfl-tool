@@ -227,7 +227,7 @@ class ShotChart(unittest.TestCase):
 
 class OtherPages(unittest.TestCase):
     def test_every_nba_page_with_players_loads_the_card(self):
-        for page in ("index.html", "points.html", "first-basket.html", "promo-tools.html"):
+        for page in ("index.html", "points.html", "first-basket.html", "promo-tools.html", "shot-charts.html"):
             html = (ROOT / "nfl_tool" / "site" / "nba" / page).read_text(encoding="utf-8")
             self.assertIn('<script src="shot-chart.js"></script>\n<script src="nba-card.js"></script>', html, page)
             self.assertIn('<script src="../book-odds.js"></script>', html, page)

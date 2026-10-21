@@ -992,7 +992,7 @@ def main():
     # tab opens): THIS season's shots only (the owner, 2026-10-21).
     try:
         pbp = fetch_file("pbp", args.season, args.data_dir, False)
-        block = shots.season_block(pbp, season_label(args.season)) if pbp is not None else None
+        block = shots.season_block(pbp, season_label(args.season), fetch_file("player_box", args.season, args.data_dir, False)) if pbp is not None else None
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "shots.json").write_text(json.dumps({"season": args.season, **(block or {"label": season_label(args.season), "games": [], "players": {}, "league": []})}, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:

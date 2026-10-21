@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Shot Charts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="shot-charts.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="section-wrap">
+      <h2 class="section-title">Shot Charts <button type="button" class="info-i" aria-expanded="false" aria-controls="shc-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="shc-note" hidden>Pick a shooter and a defense. <b>Left:</b> his shots, colored by his make rate against the league's from the same spot (green = he makes more). <b>Right:</b> every shot that defense has allowed, colored by the make rate it allows against the league's (<b>red = it allows more</b>, green = it holds shooters below the league). Share = how much of the shooting comes from that zone. <b>Target</b> / <b>Tough</b> read both sides: one side clearly points one way (2.5 points or more from the league) and the other doesn't point the other way; zones he rarely shoots from get no call. Areas with only a few shots are pulled toward the league for the colors and calls; the numbers shown are the real counts. The filters apply to both sides (Last 10 = his last 10 games, and the defense's last 10). This season's shots only; spots are ESPN's, to the nearest foot; heaves (35+ ft) and free throws are left out.</p>
+      <div id="shc-pickers" class="shc-pickers" hidden>
+        <label class="shc-pick"><span>Offense</span><select id="shc-team" aria-label="Offense team"></select><select id="shc-player" aria-label="Player"></select></label>
+        <span class="shc-vs">vs</span>
+        <label class="shc-pick"><span>Defense</span><select id="shc-def" aria-label="Defense team"></select></label>
+      </div>
+      <div id="shc-controls" class="nba-shot-controls"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state"><p>Loading shot charts&hellip;</p></div>
+
+    <div id="shc-body" hidden>
+      <div class="nba-two shc-two">
+        <div class="nba-box" id="shc-off"></div>
+        <div class="nba-box" id="shc-defbox"></div>
+      </div>
+      <div class="section-wrap">
+        <h2 class="section-title">Zone By Zone</h2>
+        <div class="shc-scroll" id="shc-table"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play): this season's shots, the shooter's team from the box score.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="shot-charts.js"></script>
+<script src="shot-chart.js"></script>
+<script src="nba-card.js"></script>
+</body>
+</html>

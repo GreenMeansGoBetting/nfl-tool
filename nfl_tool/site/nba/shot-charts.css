@@ -1,0 +1,26 @@
+/* NBA Shot Charts (shot-charts.html). The charts' own pieces are in suite.css (.nba-shot-*). */
+.shc-pickers { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 10px; }
+.shc-pick { display: inline-flex; align-items: center; gap: 6px; }
+.shc-pick > span { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.shc-pick select { padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); font: inherit; font-size: 0.88rem; font-weight: 600; }
+.shc-vs { font-weight: 800; color: var(--muted); }
+.shc-title { gap: 8px; }
+.shc-name { font-size: 1.1rem; }
+.shc-title .player-click { color: inherit; }
+.shc-sub { margin-left: auto; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.04em; }
+.shc-inner { padding: 0 10px; }
+.shc-chart { max-width: none; }
+.shc-scroll { overflow-x: auto; }
+.shc-table { width: 100%; }
+.shc-table .shc-split { border-left: 1px solid var(--border); }
+.shc-head th { text-align: center; font-size: 0.8rem; }
+.shc-head img { vertical-align: -3px; }
+.shc-lg { color: var(--muted); }
+.shc-lg small { font-size: 0.72rem; }
+.shc-tag { display: inline-block; padding: 1px 8px; border-radius: 6px; border: 1px solid transparent; font-size: 0.75rem; font-weight: 800; color: var(--text); }
+
+@media (max-width: 760px) {
+  .shc-pick { flex-wrap: wrap; }
+  .shc-pick select { max-width: 100%; }
+  .shc-table { min-width: 640px; }
+}

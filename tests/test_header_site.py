@@ -50,7 +50,7 @@ class TopMenu(unittest.TestCase):
             self.assertTrue(page.evaluate("() => document.querySelector('.nfl-trigger').classList.contains('page-nav-current')"))
             page.click(".page-nav .nba-trigger")
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
-            self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Game Previews", "/nba/", False], ["Team Identity", "/nba/identity.html", False], ["Points", "/nba/points.html", False], ["First Basket", "/nba/first-basket.html", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Game Previews", "/nba/", False], ["Team Identity", "/nba/identity.html", False], ["Shot Charts", "/nba/shot-charts.html", False], ["Points", "/nba/points.html", False], ["First Basket", "/nba/first-basket.html", False]])
             page.click(".page-nav .nhl-trigger")
             self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nhl-menu")], ["Game Previews", "Line Matchups", "Best Plays", "Shots", "Goals", "Points", "Saves"])
             self.assertIn("player props", page.inner_text(".nhl-menu").lower())

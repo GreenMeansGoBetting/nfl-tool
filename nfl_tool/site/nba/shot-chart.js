@@ -8,7 +8,9 @@
 // Filters: games (Season / Last 10 / Last 5), 2PT / 3PT, how the shot came
 // (self-created, catch and shoot, drives and cuts), time (1st Qtr, first 3 min).
 // The basket is at the top, so the left of the drawing is the shooter's left.
-// Used by the player card (nba-card.js); built to be reused by a Shot Charts page.
+// Used by the player card (nba-card.js) and the Shot Charts page (shot-charts.js).
+// opts.allowed: a DEFENSE's shots allowed, so the colors flip (red = it allows
+// more than the league from there, green = less).
 // Every name here starts with nbaShot / NBA_SHOT.
 
 let NBA_SHOT_FILE; // nba/shots.json: undefined until asked for, then a promise, then the file (null if it can't be read)
@@ -126,6 +128,9 @@ function nbaShotLines() {
 const nbaShotSvg = (uid, inner) =>
   `<svg class="nba-shot-svg" viewBox="0 0 ${NBA_SHOT_W} ${NBA_SHOT_H}" role="img">${nbaShotDefs(uid)}<g clip-path="url(#nbs-court${uid})"><rect class="nba-shot-floor" width="${NBA_SHOT_W}" height="${NBA_SHOT_H}"/>${inner}</g></svg>`;
 
+// Legend words and the color's sign: a shooter (green = makes more) or a defense (red = allows more).
+const nbaShotSide = (opts) => (opts && opts.allowed ? { sign: -1, lo: "Allows Less", hi: "Allows More", cold: "Allows Less", hot: "Allows More" } : { sign: 1, lo: "Below League", hi: "Above League", cold: "Colder", hot: "Hotter" });
+
 // ---- the numbers ----
 // His shots after the filters. shot = [x, y, made, three, game index, flags, kind].
 function nbaShotPick(shots, state) {
@@ -153,7 +158,8 @@ function nbaShotZoneTotals(rows, fromLeague) {
 }
 
 // ---- Zones ----
-function nbaShotZonesView(shots, league) {
+function nbaShotZonesView(shots, league, opts) {
+  const side = nbaShotSide(opts);
   const uid = ++nbaShotUid;
   const mine = nbaShotZoneTotals(shots, false);
   const lg = nbaShotZoneTotals(league, true);
@@ -165,7 +171,7 @@ function nbaShotZonesView(shots, league) {
     zones.forEach(([z, , [lx, ly]]) => {
       const [area, mask] = NBA_SHOT_AREAS[z];
       const [m, a] = mine[z] || [0, 0];
-      const fill = a ? nbaShotColor(nbaShotDiff(m, a, lgRate(z)), 0.78) : "rgba(135,151,176,0.14)";
+      const fill = a ? nbaShotColor(side.sign * nbaShotDiff(m, a, lgRate(z)), 0.78) : "rgba(135,151,176,0.14)";
       fills += `<path d="${area}" fill="${fill}"${mask ? ` mask="url(#nbs-${mask}${uid})"` : ""} class="nba-shot-zone" data-zone="${z}"/>`;
       if (!a) return;
       labels += `<g transform="translate(${nbaShotX(lx).toFixed(0)},${nbaShotY(ly).toFixed(0)})" class="nba-shot-tag">
@@ -174,7 +180,7 @@ function nbaShotZonesView(shots, league) {
         <text y="18" class="nba-shot-share">${Math.round((a / total) * 100)}% of FGA</text></g>`;
     }),
   );
-  const legend = `<div class="nba-shot-legend"><span>Below League</span><b class="nba-shot-scale">${[-1, -0.66, -0.33, 0, 0.33, 0.66, 1].map((t) => `<i style="background:${nbaShotColor(t * NBA_SHOT_FULL, 0.85)}"></i>`).join("")}</b><span>Above League</span></div>`;
+  const legend = `<div class="nba-shot-legend"><span>${side.lo}</span><b class="nba-shot-scale">${[-1, -0.66, -0.33, 0, 0.33, 0.66, 1].map((t) => `<i style="background:${nbaShotColor(side.sign * t * NBA_SHOT_FULL, 0.85)}"></i>`).join("")}</b><span>${side.hi}</span></div>`;
   return `${nbaShotSvg(uid, fills + nbaShotLines() + labels)}${legend}`;
 }
 // The zone table beside the drawing: every area named, his make rate vs the league's.
@@ -218,7 +224,8 @@ function nbaShotHexPath(cx, cy, size) {
   }
   return `M${pts.join(" L")}Z`;
 }
-function nbaShotHeatView(shots, league) {
+function nbaShotHeatView(shots, league, opts) {
+  const side = nbaShotSide(opts);
   const bins = new Map();
   shots.forEach((s) => {
     const [q, r] = nbaShotHexOf(s[0] - 25, s[1]);
@@ -245,17 +252,23 @@ function nbaShotHeatView(shots, league) {
         }
       });
       const made = his.reduce((n, s) => n + s[2], 0);
-      const diff = nbaShotDiff(made, his.length, la ? lm / la : null);
+      const diff = side.sign * nbaShotDiff(made, his.length, la ? lm / la : null);
       const size = NBA_SHOT_HEX * (0.3 + 0.7 * Math.sqrt(Math.min(b.shots.length / top, 1)));
       const own = b.shots.reduce((n, s) => n + s[2], 0);
       return `<path d="${nbaShotHexPath(cx, cy, size * 0.98)}" fill="${nbaShotColor(diff)}" class="nba-shot-hex"><title>${own}/${b.shots.length} here, ${nbaShotPct(made, his.length)} around this spot (league ${nbaShotPct(lm, la)})</title></path>`;
     })
     .join("");
   const hex = (size, fill) => `<svg width="22" height="20" viewBox="-11 -10 22 20"><path d="${[0, 1, 2, 3, 4, 5].map((k) => `${k ? "L" : "M"}${(size * Math.cos((Math.PI / 3) * k)).toFixed(1)},${(size * Math.sin((Math.PI / 3) * k)).toFixed(1)}`).join(" ")}Z" fill="${fill}"/></svg>`;
-  const legend = `<div class="nba-shot-legend"><span>Colder</span>${[-1, -0.5, 0, 0.5, 1].map((t) => hex(9, nbaShotColor(t * NBA_SHOT_FULL))).join("")}<span>Hotter</span>
+  const legend = `<div class="nba-shot-legend"><span>${side.cold}</span>${[-1, -0.5, 0, 0.5, 1].map((t) => hex(9, nbaShotColor(side.sign * t * NBA_SHOT_FULL))).join("")}<span>${side.hot}</span>
     <span class="nba-shot-gap"></span><span>Fewer</span>${[3.5, 6, 8, 10].map((s) => hex(s, "var(--muted)")).join("")}<span>More Shots</span></div>`;
   return `${nbaShotSvg(++nbaShotUid, nbaShotLines() + hexes)}${legend}`;
 }
+
+// The filter buttons (shared by every chart on a page: one NBA_SHOT_STATE).
+const nbaShotControls = (state = NBA_SHOT_STATE) =>
+  NBA_SHOT_OPTIONS.map(
+    ([key, opts]) => `<div class="nba-shot-seg">${opts.map(([v, label]) => `<button type="button" class="nba-shot-opt${state[key] === v ? " active" : ""}" data-shot-key="${key}" data-shot-value="${v}">${label}</button>`).join("")}</div>`,
+  ).join("");
 
 // ---- the whole view ----
 // id: ESPN player id. Returns HTML; buttons change NBA_SHOT_STATE and fire "nba-shot-changed".
@@ -267,9 +280,7 @@ function nbaShotView(id) {
   if (!all.length) return `<p class="no-data-note">No shots this season yet.</p>`;
   const state = NBA_SHOT_STATE;
   const shots = nbaShotPick(all, state);
-  const controls = NBA_SHOT_OPTIONS.map(
-    ([key, opts]) => `<div class="nba-shot-seg">${opts.map(([v, label]) => `<button type="button" class="nba-shot-opt${state[key] === v ? " active" : ""}" data-shot-key="${key}" data-shot-value="${v}">${label}</button>`).join("")}</div>`,
-  ).join("");
+  const controls = nbaShotControls(state);
   const games = new Set(shots.map((s) => s[4])).size;
   const made = shots.reduce((n, s) => n + s[2], 0);
   const threes = shots.filter((s) => s[3]);
