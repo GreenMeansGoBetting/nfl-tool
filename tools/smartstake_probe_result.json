@@ -7154,181 +7154,156 @@
   ]
  },
  "nba_first_basket": {
-  "generated_at": "2026-10-21T18:34:27Z",
-  "quotes": 852,
-  "more_pages": false,
-  "by_book": {
-   "fliff": {
-    "quotes": 254,
-    "sides": {
-     "no": 127,
-     "yes": 127
+  "generated_at": "2026-10-21T19:13:18Z",
+  "build_request": {
+   "pages": 8,
+   "more_pages": true,
+   "quotes": 492,
+   "books": {
+    "fliff": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 81,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 81
     },
-    "player_id": 254,
-    "participant": 254,
-    "line": {
-     "None": 254
+    "novig": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 76,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 76
     },
-    "labels": [
-     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
-     "side='no' label='Franz Wagner No' participant='Franz Wagner'",
-     "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
-     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
-     "side='yes' label='Franz Wagner Yes' participant='Franz Wagner'",
-     "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
-    ],
-    "fields": [
-     "alternate",
-     "away",
-     "bet_url",
-     "book",
-     "event_id",
-     "home",
-     "label",
-     "league",
-     "line",
-     "live",
-     "market_key",
-     "market_name",
-     "max_bet",
-     "participant",
-     "player_id",
-     "quote_id",
-     "side",
-     "sport",
-     "starts_at",
-     "team_id",
-     "updated_at"
-    ]
-   },
-   "novig": {
-    "quotes": 202,
-    "sides": {
-     "no": 101,
-     "yes": 101
+    "prophetx": {
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 69,
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 69
     },
-    "player_id": 202,
-    "participant": 202,
-    "line": {
-     "None": 202
+    "stake": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 20,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 20
+    }
+   }
+  },
+  "no_state": {
+   "pages": 8,
+   "more_pages": true,
+   "quotes": 452,
+   "books": {
+    "fliff": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 81,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 81
     },
-    "labels": [
-     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
-     "side='no' label='Jalen Johnson No' participant='Jalen Johnson'",
-     "side='no' label='Onyeka Okongwu No' participant='Onyeka Okongwu'",
-     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
-     "side='yes' label='Jalen Johnson Yes' participant='Jalen Johnson'",
-     "side='yes' label='Onyeka Okongwu Yes' participant='Onyeka Okongwu'"
-    ],
-    "fields": [
-     "alternate",
-     "away",
-     "bet_url",
-     "book",
-     "event_id",
-     "home",
-     "label",
-     "league",
-     "line",
-     "live",
-     "market_key",
-     "market_name",
-     "max_bet",
-     "participant",
-     "player_id",
-     "quote_id",
-     "side",
-     "sport",
-     "starts_at",
-     "team_id",
-     "updated_at"
-    ]
-   },
-   "stake": {
-    "quotes": 200,
-    "sides": {
-     "yes": 100,
-     "no": 100
+    "novig": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 76,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 76
     },
-    "player_id": 200,
-    "participant": 200,
-    "line": {
-     "None": 200
+    "prophetx": {
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 69,
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 69
+    }
+   }
+  },
+  "no_alternate_filter": {
+   "pages": 8,
+   "more_pages": true,
+   "quotes": 2523,
+   "books": {
+    "bet99": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
     },
-    "labels": [
-     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
-     "side='no' label='Franz Wagner No' participant='Franz Wagner'",
-     "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
-     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
-     "side='yes' label='Franz Wagner Yes' participant='Franz Wagner'",
-     "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
-    ],
-    "fields": [
-     "alternate",
-     "away",
-     "bet_url",
-     "book",
-     "event_id",
-     "home",
-     "label",
-     "league",
-     "line",
-     "live",
-     "market_key",
-     "market_name",
-     "max_bet",
-     "participant",
-     "player_id",
-     "quote_id",
-     "side",
-     "sport",
-     "starts_at",
-     "team_id",
-     "updated_at"
-    ]
-   },
-   "prophetx": {
-    "quotes": 196,
-    "sides": {
-     "yes": 98,
-     "no": 98
+    "betano": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
     },
-    "player_id": 196,
-    "participant": 196,
-    "line": {
-     "None": 196
+    "betinia": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
     },
-    "labels": [
-     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
-     "side='no' label='Franz Wagner No' participant='Franz Wagner'",
-     "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
-     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
-     "side='yes' label='Franz Wagner Yes' participant='Franz Wagner'",
-     "side='yes' label='Jalen Johnson Yes' participant='Jalen Johnson'"
-    ],
-    "fields": [
-     "alternate",
-     "away",
-     "bet_url",
-     "book",
-     "event_id",
-     "home",
-     "label",
-     "league",
-     "line",
-     "live",
-     "market_key",
-     "market_name",
-     "max_bet",
-     "participant",
-     "player_id",
-     "quote_id",
-     "side",
-     "sport",
-     "starts_at",
-     "team_id",
-     "updated_at"
-    ]
+    "boomfantasy": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 78
+    },
+    "bracco": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 79
+    },
+    "caesars": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 79
+    },
+    "comeon": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 78
+    },
+    "coolbet": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 79
+    },
+    "courtside": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "daznbet": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "draftkings": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "fanduel": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "fliff": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 81,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 81
+    },
+    "heritage": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "jazzsports": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "novig": {
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 76,
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 76,
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 5
+    },
+    "onyx": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 81
+    },
+    "parlayplay": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 81
+    },
+    "pointsbet_ca": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 82
+    },
+    "prophetx": {
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 69,
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 69,
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 14
+    },
+    "rebet": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 78
+    },
+    "sportzino": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "stake": {
+     "no|alt=False|live=False|key=basketball_first_points_scorer": 70,
+     "yes|alt=False|live=False|key=basketball_first_points_scorer": 70
+    },
+    "stnsports": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 79
+    },
+    "swiper": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "thescore": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    },
+    "tonybet": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 78
+    },
+    "tooniebet": {
+     "yes|alt=True|live=False|key=basketball_first_points_scorer": 80
+    }
+   }
+  },
+  "market_only": {
+   "error": {
+    "http_error": 429,
+    "body": "{\"error\":\"snapshot page limit exceeded\"}"
+   }
+  },
+  "other_state_PA": {
+   "error": {
+    "http_error": 429,
+    "body": "{\"error\":\"snapshot page limit exceeded\"}"
    }
   }
  }
