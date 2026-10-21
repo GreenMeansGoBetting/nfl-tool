@@ -203,7 +203,7 @@
    "3059318": [
     "Joel Embiid",
     0.104,
-    600,
+    550,
     false,
     "fanduel"
    ],
@@ -294,14 +294,14 @@
     0.093,
     1100,
     true,
-    "thescore"
+    "fanduel"
    ],
    "3936299": [
     "Jamal Murray",
     0.093,
     550,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3978": [
     "DeMar DeRozan",
@@ -350,7 +350,7 @@
     0.087,
     1100,
     false,
-    "thescore"
+    "fanduel"
    ]
   },
   "tip_home": 0.547
@@ -552,21 +552,21 @@
    "2490149": [
     "CJ McCollum",
     0.096,
-    891,
+    901,
     false,
     "prophetx"
    ],
    "4066320": [
     "Desmond Bane",
     0.096,
-    663,
+    545,
     false,
-    "prophetx"
+    "novig"
    ],
    "4277847": [
     "Wendell Carter Jr.",
     0.096,
-    723,
+    733,
     false,
     "prophetx"
    ],
@@ -587,9 +587,9 @@
    "4432573": [
     "Paolo Banchero",
     0.096,
-    693,
+    700,
     false,
-    "prophetx"
+    "novig"
    ],
    "4566434": [
     "Franz Wagner",
@@ -704,9 +704,9 @@
    "6583": [
     "Anthony Davis",
     0.098,
-    456,
+    475,
     false,
-    "novig"
+    "thescore"
    ]
   },
   "tip_home": 0.537
@@ -793,9 +793,9 @@
    "5175643": [
     "Egor Demin",
     0.096,
-    1000,
+    953,
     false,
-    "thescore"
+    "novig"
    ]
   },
   "tip_home": 0.5
@@ -826,14 +826,14 @@
    "3134908": [
     "Jakob Poeltl",
     0.105,
-    800,
+    770,
     false,
-    "fanduel"
+    "novig"
    ],
    "4395625": [
     "RJ Barrett",
     0.105,
-    790,
+    780,
     false,
     "draftkings"
    ],
@@ -915,7 +915,7 @@
    "4065733": [
     "Ty Jerome",
     0.107,
-    700,
+    650,
     false,
     "fanduel"
    ],
@@ -1184,7 +1184,7 @@
     0.089,
     750,
     false,
-    "thescore"
+    "fanduel"
    ],
    "3995": [
     "Jrue Holiday",
@@ -1210,7 +1210,7 @@
    "4279888": [
     "Ja Morant",
     0.103,
-    850,
+    900,
     false,
     "fanduel"
    ],
@@ -1292,9 +1292,9 @@
    "3936099": [
     "Derrick Jones Jr.",
     0.103,
-    900,
+    891,
     false,
-    "fanduel"
+    "prophetx"
    ],
    "4065732": [
     "De'Andre Hunter",
@@ -1327,9 +1327,9 @@
    "4594327": [
     "Keegan Murray",
     0.089,
-    1300,
+    1200,
     true,
-    "fanduel"
+    "hard_rock"
    ]
   },
   "tip_home": 0.611
