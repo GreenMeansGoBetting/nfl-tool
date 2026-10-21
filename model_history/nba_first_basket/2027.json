@@ -22,9 +22,9 @@
    "3059319": [
     "Andrew Wiggins",
     0.087,
-    950,
+    910,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4066261": [
     "Bam Adebayo",
@@ -38,7 +38,7 @@
     0.087,
     1300,
     true,
-    "draftkings"
+    "fanduel"
    ],
    "4431671": [
     "Jaden McDaniels",
@@ -50,9 +50,9 @@
    "4432816": [
     "LaMelo Ball",
     0.105,
-    990,
-    true,
-    "prophetx"
+    900,
+    false,
+    "novig"
    ],
    "4594268": [
     "Anthony Edwards",
@@ -107,7 +107,7 @@
    "4066436": [
     "De'Anthony Melton",
     0.079,
-    1100,
+    1200,
     false,
     "fanduel"
    ],
@@ -121,9 +121,9 @@
    "4397014": [
     "Quentin Grimes",
     0.113,
-    1000,
+    1011,
     true,
-    "thescore"
+    "novig"
    ],
    "4397040": [
     "Brandon Williams",
@@ -187,7 +187,7 @@
     0.102,
     750,
     false,
-    "thescore"
+    "fanduel"
    ],
    "3992": [
     "James Harden",
@@ -208,7 +208,7 @@
     0.125,
     800,
     true,
-    "thescore"
+    "fanduel"
    ],
    "4432158": [
     "Evan Mobley",
@@ -222,7 +222,7 @@
     0.087,
     1100,
     false,
-    "thescore"
+    "fanduel"
    ],
    "5124612": [
     "VJ Edgecombe",
@@ -251,7 +251,7 @@
     0.093,
     1100,
     true,
-    "thescore"
+    "fanduel"
    ],
    "3936299": [
     "Jamal Murray",
@@ -272,7 +272,7 @@
     0.087,
     900,
     false,
-    "thescore"
+    "fanduel"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
@@ -307,7 +307,7 @@
     0.087,
     1100,
     false,
-    "thescore"
+    "fanduel"
    ]
   }
  },
@@ -554,16 +554,16 @@
    "3133628": [
     "Myles Turner",
     0.094,
-    890,
+    900,
     false,
-    "draftkings"
+    "novig"
    ],
    "3134907": [
     "Kyle Kuzma",
     0.094,
-    1100,
+    1076,
     true,
-    "fanduel"
+    "novig"
    ],
    "4278129": [
     "Deandre Ayton",
@@ -591,7 +591,7 @@
     0.094,
     1000,
     false,
-    "draftkings"
+    "caesars"
    ],
    "4845374": [
     "Bub Carrington",
@@ -610,14 +610,14 @@
    "5174563": [
     "Kyshawn George",
     0.098,
-    1000,
+    1011,
     false,
-    "draftkings"
+    "novig"
    ],
    "6583": [
     "Anthony Davis",
     0.098,
-    460,
+    450,
     false,
     "fanduel"
    ]
@@ -674,7 +674,7 @@
    "4433249": [
     "Moussa Diabate",
     0.096,
-    740,
+    760,
     false,
     "draftkings"
    ],
@@ -710,16 +710,16 @@
    "2595516": [
     "Norman Powell",
     0.087,
-    1000,
+    900,
     false,
     "fanduel"
    ],
    "3134908": [
     "Jakob Poeltl",
     0.105,
-    770,
+    800,
     false,
-    "novig"
+    "fanduel"
    ],
    "4395625": [
     "RJ Barrett",
@@ -738,9 +738,9 @@
    "4395724": [
     "Immanuel Quickley",
     0.105,
-    800,
+    770,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4432822": [
     "Isaac Okoro",
@@ -766,9 +766,9 @@
    "4871145": [
     "Josh Giddey",
     0.087,
-    1080,
+    1100,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "6450": [
     "Kawhi Leonard",
@@ -795,9 +795,9 @@
    "4065733": [
     "Ty Jerome",
     0.107,
-    650,
+    700,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4066336": [
     "Lauri Markkanen",
@@ -818,7 +818,7 @@
     0.085,
     900,
     false,
-    "novig"
+    "thescore"
    ],
    "4600663": [
     "Zach Edey",
@@ -887,14 +887,14 @@
    "4277813": [
     "Herbert Jones",
     0.089,
-    1000,
+    1011,
     false,
-    "draftkings"
+    "novig"
    ],
    "4395628": [
     "Zion Williamson",
     0.089,
-    650,
+    600,
     false,
     "fanduel"
    ],
@@ -915,7 +915,7 @@
    "4397688": [
     "Trey Murphy III",
     0.089,
-    800,
+    850,
     false,
     "fanduel"
    ],
@@ -979,9 +979,9 @@
    "4432639": [
     "Jabari Smith Jr.",
     0.105,
-    900,
+    891,
     false,
-    "fanduel"
+    "prophetx"
    ],
    "4684740": [
     "Amen Thompson",
@@ -993,7 +993,7 @@
    "4871144": [
     "Alperen Sengun",
     0.105,
-    500,
+    550,
     false,
     "fanduel"
    ],
@@ -1128,9 +1128,9 @@
    "3936099": [
     "Derrick Jones Jr.",
     0.103,
-    900,
+    891,
     false,
-    "fanduel"
+    "prophetx"
    ],
    "4065732": [
     "De'Andre Hunter",
