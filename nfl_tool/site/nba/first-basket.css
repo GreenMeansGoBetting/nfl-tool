@@ -4,26 +4,29 @@
 /* Three boxes side by side, tops in line: Matchup | Starters | Targets
    (the owner: "box box box"). Targets drops under Starters on mid-size
    screens, everything stacks on phones. */
-.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, max-content) minmax(220px, 1fr); gap: 16px; align-items: start; }
+.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, max-content) minmax(220px, 1fr); gap: 16px; align-items: start; }
 .fb-layout > .section-wrap { margin: 0; min-width: 0; }
 #fb-lineup-note { margin: -4px 0 8px; }
 
 /* The matchup table: road team | stat + edge | home team. Every row one
-   height, everything centered (the owner: "keep them all consistent"). */
-.fb-matchup { width: 100%; border-collapse: separate; border-spacing: 0 3px; }
+   height, everything centered (the owner: "keep them all consistent").
+   Kept tight (the owner, 2026-10-21: the boxes were "too wide ... too tall"). */
+.fb-matchup { width: 100%; border-collapse: separate; border-spacing: 0 2px; }
 .fb-matchup th, .fb-matchup td { padding: 0; text-align: center; }
-.fb-m-team { width: 30%; padding: 6px 8px !important; border-radius: 10px 10px 0 0; font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.04em; }
+.fb-m-team { width: 31%; padding: 4px 6px !important; border-radius: 8px 8px 0 0; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; }
 .fb-m-team .team-logo { vertical-align: middle; margin-right: 5px; }
-th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; vertical-align: bottom; padding-bottom: 6px !important; }
-.fb-m-group td { padding: 10px 4px 3px !important; font-family: var(--font-display); font-size: 0.9rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent, var(--good-text)); border-bottom: 1px solid var(--border); }
-.fb-matchup tbody tr:not(.fb-m-group) td { height: 36px; vertical-align: middle; }
-.fb-m-val { border-radius: 8px; background: var(--panel-2); white-space: nowrap; }
-.fb-m-val b { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; line-height: 1; }
-.fb-m-jumper .nba-headshot { vertical-align: middle; margin-right: 5px; }
-.fb-m-jumper span { font-size: 0.85rem; font-weight: 700; vertical-align: middle; }
+/* The Tip's name between the team banners (no empty row under them). */
+th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent, var(--good-text)); vertical-align: middle; }
+.fb-m-group td { padding: 7px 4px 2px !important; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent, var(--good-text)); border-bottom: 1px solid var(--border); }
+.fb-matchup tbody tr:not(.fb-m-group) td { height: 28px; vertical-align: middle; }
+.fb-m-val { border-radius: 6px; background: var(--panel-2); white-space: nowrap; }
+.fb-m-val b { font-family: var(--font-display); font-size: 0.98rem; font-weight: 800; line-height: 1; }
+.fb-m-jumper .nba-headshot { vertical-align: middle; margin-right: 4px; width: 30px; height: 22px; }
+.fb-m-jumper span { font-size: 0.8rem; font-weight: 700; vertical-align: middle; }
+.fb-m-jumper small { margin-left: 4px; font-size: 0.68rem; font-weight: 600; color: var(--muted); vertical-align: middle; }
 .fb-m-jumper { max-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .fb-m-mid { padding: 0 6px !important; white-space: nowrap; }
-.fb-m-label { font-size: 0.8rem; font-weight: 700; vertical-align: middle; }
+.fb-m-label { font-size: 0.74rem; font-weight: 700; vertical-align: middle; }
 .fb-edge { display: inline-flex; align-items: center; gap: 2px; margin-left: 5px; vertical-align: middle; padding: 1px 6px; border-radius: 999px; font-size: 0.66rem; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); }
 
 /* Targets */
@@ -43,11 +46,23 @@ th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-tr
 #fb-starters { display: grid; grid-template-columns: minmax(0, max-content); gap: 10px; }
 .fb-table { margin: 0 10px; width: auto; }
 .fb-table th { white-space: nowrap; }
-.fb-table td.fb-cell, .fb-table td.fb-fair { width: 62px; text-align: center; padding-left: 4px; padding-right: 4px; }
+.fb-table td.fb-cell, .fb-table td.fb-fair { width: 52px; text-align: center; padding-left: 4px; padding-right: 4px; }
 .fb-table td.fb-cell { border-radius: 6px; }
-.fb-table td.fb-cell b, .fb-table td.fb-fair b { display: block; font-size: 1rem; }
-.fb-table td.fb-cell small { display: block; font-size: 0.64rem; color: var(--muted); font-weight: 600; }
-.fb-starters td { vertical-align: middle; }
+.fb-table td.fb-cell b, .fb-table td.fb-fair b { display: block; font-size: 0.9rem; }
+.fb-table td.fb-cell small { display: block; font-size: 0.6rem; color: var(--muted); font-weight: 600; }
+/* Team Share's thin box: each of its cells draws its side of the outline
+   out into the table's 3 px gaps, so the lines join into one box. */
+.fb-starters th.fb-share-head, .fb-starters .fb-sh-l, .fb-starters .fb-sh-r { position: relative; }
+.fb-starters th.fb-share-head { padding-bottom: 0; }
+.fb-starters th.fb-share-head::before, .fb-starters .fb-sh-l::before, .fb-starters .fb-sh-r::before {
+  content: ""; position: absolute; pointer-events: none; border: 0 solid var(--muted); opacity: 0.55;
+}
+.fb-starters th.fb-share-head::before { inset: -2px -3px -2px -3px; border-width: 1px 1px 0 1px; border-radius: 7px 7px 0 0; }
+.fb-starters .fb-sh-l::before { top: -2px; bottom: -2px; left: -3px; right: -2px; border-left-width: 1px; }
+.fb-starters .fb-sh-r::before { top: -2px; bottom: -2px; left: -2px; right: -3px; border-right-width: 1px; }
+.fb-starters tbody tr:last-child .fb-sh-l::before { bottom: -3px; border-bottom-width: 1px; border-bottom-left-radius: 7px; }
+.fb-starters tbody tr:last-child .fb-sh-r::before { bottom: -3px; border-bottom-width: 1px; border-bottom-right-radius: 7px; }
+.fb-starters td { vertical-align: middle; padding-top: 3px; padding-bottom: 3px; line-height: 1.15; }
 .fb-starters .nba-player { gap: 6px; }
 .fb-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
 
@@ -57,7 +72,7 @@ th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-tr
 .fb-lineup-guess { background: var(--panel-2); color: var(--muted); }
 
 @media (max-width: 1300px) {
-  .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); }
+  .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
   .fb-right { grid-column: 2; }
 }
 @media (max-width: 1000px) {
@@ -69,7 +84,7 @@ th.fb-m-mid { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-tr
   .fb-m-label { font-size: 0.72rem; }
   .fb-m-jumper .nba-headshot { display: none; }
   .fb-m-mid { white-space: normal; }
-  .fb-matchup tbody tr:not(.fb-m-group) td { height: 44px; }
+  .fb-matchup tbody tr:not(.fb-m-group) td { height: 38px; }
   .fb-starters-box { overflow-x: auto; }
   .fb-table { margin: 0; }
 }

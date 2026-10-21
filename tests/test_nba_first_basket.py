@@ -6,7 +6,8 @@ on that team won it; any first points count (a free throw too) while "first
 field goal allowed" is field goals only; possessions to first points; shots
 before the game's first points; the league's tip-winner rate; likely starters
 are regular starters by minutes (a star who missed games still starts) and
-skip players listed Out; the fair guess adds up; the page draws every section
+skip players listed Out; the tip chance reads every jump ball and who it was
+against, starting from height; the fair guess adds up; the page draws every section
 with the build's numbers, colors with no script errors, and is in the NBA menu;
 the NBA's lineup file replaces the likely starters (Expected from the build's
 copy, Confirmed from the live /api/nba-lineups), names match our players, a
@@ -61,12 +62,14 @@ PBP = pd.DataFrame(
     ])
     # Game 2 (AAA home again): 20 beats 10 to BBB. 21 is fouled and makes a free
     # throw at 705 (first points, not a field goal); AAA's 11 scores at 690;
-    # BBB's 20 makes the first field goal for BBB at 680.
+    # BBB's 20 makes the first field goal for BBB at 680. Later a held ball:
+    # 10 beats 21 to AAA (a jump ball for the tip rating, not an opening tip).
     + plays(2, [
         ("Jumpball", "BBB", 10, 20, False, False, 720, 0, 0),
         ("Free Throw - 1 of 2", "BBB", 21, None, True, True, 705, 0, 1),
         ("Jump Shot", "AAA", 11, None, True, True, 690, 2, 1),
         ("Dunk", "BBB", 20, None, True, True, 680, 2, 3),
+        ("Jumpball", "AAA", 21, 10, False, False, 400, 10, 12),
         ("End Period", "AAA", None, None, False, False, 0, 20, 28),
     ])
 )
@@ -88,6 +91,7 @@ def box_rows():
 
 
 BLOCK = fb.season_block(PBP, box_rows(), set(TEAMS), "2025-26")
+TIP = fb.tip_block(fb.jump_balls(PBP, box_rows()), {})
 
 
 class Build(unittest.TestCase):
@@ -131,6 +135,14 @@ class Build(unittest.TestCase):
         self.assertEqual(p["12"]["first_pts"], 1)
         self.assertEqual(p["10"]["shot_early"], 0)
 
+    def test_team_share_is_his_own_teams_first_shot_and_points(self):
+        # Game 1: AAA's first shot 11, first points 12; BBB's 21 both. Game 2:
+        # AAA's 11 both; BBB's first shot is 20's dunk (a free throw isn't a
+        # shot), its first points 21's free throw. Counted over his starts.
+        p = BLOCK["players"]
+        got = {pid: (p[pid]["team_first_shot"], p[pid]["team_first_pts"]) for pid in ("11", "12", "20", "21", "10")}
+        self.assertEqual(got, {"11": (2, 1), "12": (0, 1), "20": (1, 0), "21": (1, 2), "10": (0, 0)})
+
     def test_likely_starters_are_regular_starters_by_minutes(self):
         side = fb.game_side(BLOCK, "AAA", {}, set())
         # 12 started his only game: he starts, ahead of 13 (more starts, fewer minutes).
@@ -141,12 +153,34 @@ class Build(unittest.TestCase):
         self.assertNotIn("10", out["starters"])
         self.assertIsNone(out["jumper"])  # nobody else on AAA has jumped
 
+    def test_every_jump_ball_counts_for_the_tip_rating(self):
+        # Two opening tips and the held ball; the side that got the ball won it.
+        self.assertEqual(fb.jump_balls(PBP, box_rows()), [(10, 20), (20, 10), (10, 21)])
+        self.assertEqual(TIP["record"], {"10": [2, 3], "20": [1, 2], "21": [0, 1]})
+        self.assertEqual((BLOCK["players"]["10"]["jumps"], BLOCK["players"]["10"]["tips_won"]), (2, 1))  # Tips Won: opening tips only
+
+    def test_the_tip_rating_counts_who_he_jumped_against(self):
+        # The owner's case: the same record against a big and against a guard
+        # isn't the same jumper. 9 is a big who beat 7 four times; 8 lost to 7
+        # four times. 1 beat the big, 2 beat 8; both lost once to 7.
+        jumps = [(9, 7)] * 4 + [(7, 8)] * 4 + [(1, 9), (7, 1), (2, 8), (7, 2)]
+        r = fb.tip_ratings(jumps, {})
+        self.assertGreater(r["1"], r["2"])
+        # Height is the starting point: with no jumps, 4 inches taller wins 65%.
+        tip = fb.tip_block([], {"1": 84, "2": 80})
+        self.assertAlmostEqual(fb.tip_chance(tip, "2", "1"), 1 / (1 + 2.718281828 ** (-4 * fb.TIP_PER_INCH)), places=4)
+        self.assertEqual(fb.tip_chance(tip, "2", None), 0.5)
+        self.assertEqual(fb.inches("6' 11\""), 83)
+
     def test_the_fair_guess_adds_up(self):
         games = [{"game_id": "9", "date": "2026-10-21", "away": "BBB", "home": "AAA"}]
-        g = fb.slate(BLOCK, games, {}, set(), ["2026-10-21"])["9"]
+        g = fb.slate(BLOCK, games, {}, set(), ["2026-10-21"], TIP)["9"]
         f = g["fair"]
-        self.assertAlmostEqual(f["tip_home"], 0.5, places=3)
-        self.assertAlmostEqual(f["first_home"], 0.5, places=3)
+        # AAA's 10 won 2 of his 3 jump balls: favored over BBB's 20.
+        self.assertAlmostEqual(f["tip_home"], fb.tip_chance(TIP, "20", "10"), places=3)
+        self.assertGreater(f["tip_home"], 0.5)
+        lead = BLOCK["league"]["first_won_tip"]
+        self.assertAlmostEqual(f["first_home"], f["tip_home"] * lead + (1 - f["tip_home"]) * (1 - lead), places=3)
         total = sum(v["p"] for v in f["players"].values())
         self.assertAlmostEqual(total, 1 - fb.BENCH_SHARE, places=2)
         self.assertEqual(fb.american(0.2), 400)
@@ -167,8 +201,8 @@ def setUpModule():
         SITE.nba = {
             "season": 2027, "season_label": "2026-27", "teams": teams, "schedule": [GAME], "injuries": {}, "kotc": None,
             "first_basket": {
-                "default": "2026", "seasons": {"2026": BLOCK}, "slates": {"2026": fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"])},
-                "roster": {"10": ["P10", "AAA", "C"], "11": ["P11", "AAA", "G"]}, "lineups": {}, "fair_weights": fb.fair_weights(),
+                "default": "2026", "seasons": {"2026": BLOCK}, "slates": {"2026": fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP)},
+                "roster": {"10": ["P10", "AAA", "C"], "11": ["P11", "AAA", "G"]}, "lineups": {}, "fair_weights": fb.fair_weights(), "tip": TIP,
             },
         }
         PAGE = SITE.open("nba/first-basket.html")
@@ -193,18 +227,24 @@ class Page(unittest.TestCase):
         rows = PAGE.evaluate("""() => [...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')]
             .map((tr) => [tr.querySelector('.fb-m-label').textContent, tr.children[0].innerText.trim(), tr.children[2].innerText.trim(), !!tr.querySelector('.fb-edge')])""")
         groups = PAGE.evaluate("() => [...document.querySelectorAll('#fb-matchup .fb-m-group')].map((tr) => tr.innerText.trim().toUpperCase())")
-        self.assertEqual(groups, ["THE TIP", "SCORES FIRST", "OPENING TRIPS", "FIRST FG ALLOWED"])
-        # The owner's rows, in order (2026-10-20): no game counts, league averages, guesses or seconds.
+        # The Tip's name sits between the team banners: no empty row above the jumpers (the owner, 2026-10-21).
+        self.assertEqual(groups, ["SCORES FIRST", "OPENING TRIPS", "FIRST FG ALLOWED"])
+        self.assertEqual(PAGE.evaluate("() => document.querySelector('#fb-matchup thead .fb-m-mid').textContent"), "The Tip")
+        # The owner's rows, in order (2026-10-20; 2026-10-21: Prediction in under Tips Won, the tip's Home/Road out).
         self.assertEqual([r[0] for r in rows], [
-            "Jumper", "Tips Won", "Home/Road", "Scores First", "Home/Road", "After Winning Tip", "After Losing Tip",
+            "Jumper", "Tips Won", "Prediction", "Scores First", "Home/Road", "After Winning Tip", "After Losing Tip",
             "Avg Poss. To Score", "Avg Poss. To Allow", "Point Guards", "Shooting Guards", "Small Forwards", "Power Forwards", "Centers"])
         by = {r[0]: r for r in rows}
         # Road (BBB) left, home (AAA) right; just the number in each cell.
         self.assertEqual(by["Tips Won"][1:3], ["50%", "50%"])
+        # Tonight's tip chance adds to 100% and is the fair guess's tip.
+        home = round(fb.tip_chance(TIP, "20", "10") * 100)
+        self.assertEqual(by["Prediction"][1:3], [f"{100 - home}%", f"{home}%"])
         self.assertEqual(by["Avg Poss. To Score"][1:3], ["1.50", "1.50"])
         self.assertEqual(by["Point Guards"][1:3][0], "50%")  # BBB gave AAA's PG a first FG
         self.assertEqual(by["Shooting Guards"][1:3][1], "50%")  # AAA gave BBB's SG one
-        self.assertFalse(any(r[3] for r in rows))  # a level game: no edge pills
+        # A level game but for the tip: no other edge pills.
+        self.assertEqual([r[0] for r in rows if r[3]], ["Prediction"] if abs(home - 50) >= 10 else [])
         # Every row the same height (the owner: "keep them all consistent").
         heights = PAGE.evaluate("() => [...new Set([...document.querySelectorAll('#fb-matchup tbody tr:not(.fb-m-group)')].map((r) => Math.round(r.getBoundingClientRect().height)))]")
         self.assertEqual(len(heights), 1, heights)
@@ -215,9 +255,12 @@ class Page(unittest.TestCase):
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('#fb-targets .fb-target').length"), 0)
 
     def test_starters_show_fair_and_novig_best_first(self):
-        starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[4].innerText.trim(), tr.children[5].innerText.trim()])")
+        starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[6].innerText.trim(), tr.children[7].innerText.trim(), tr.children[4].innerText.trim(), tr.children[5].innerText.trim()])")
         heads = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('th')].map((th) => th.textContent)")
-        self.assertEqual(heads, ["Player", "Shot Early", "1st Shot", "Scored 1st", "Fair", "Novig"])
+        # Team Share (his own team's first shot / first points) between Scored 1st and Fair (the owner, 2026-10-21).
+        self.assertEqual(heads, ["Player", "Shot Early", "1st Shot", "Scored 1st", "Team Share", "Fair", "Novig", "1st Shot", "1st Pts"])
+        share = {s[0].split("\n")[0]: (s[3].split("\n")[0], s[4].split("\n")[0]) for s in starters}
+        self.assertEqual(share["P11"], ("50%", "25%"))  # 2 and 1 of his 4 starts
         names = [s[0].split("\n")[0] for s in starters]
         self.assertEqual(set(names[:3]), {"P12", "P10", "P11"})
         fair = [int(s[1].replace("+", "")) for s in starters]
@@ -263,7 +306,7 @@ class Lineups(unittest.TestCase):
     def test_without_an_nba_lineup_the_page_uses_the_builds_guess_and_its_fair_prices(self):
         got = PAGE.evaluate(SIDES)
         self.assertEqual((got["away"], got["home"], got["tags"]), ("guess", "guess", ["Our guess", "Our guess"]))
-        built = fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"])["9"]["fair"]
+        built = fb.slate(BLOCK, [GAME], {}, set(), ["2026-10-21"], TIP)["9"]["fair"]
         self.assertAlmostEqual(got["fair"]["tip_home"], built["tip_home"], places=3)
         self.assertAlmostEqual(got["fair"]["first_home"], built["first_home"], places=3)
         for pid, v in built["players"].items():

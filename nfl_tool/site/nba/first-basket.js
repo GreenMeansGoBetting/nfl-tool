@@ -105,7 +105,7 @@ function rosterIds() {
   return rosterIndex;
 }
 const extraPlayers = {}; // NBA-listed starters we have no numbers for (rookies, call-ups)
-const blankPlayer = (name, pos, abbr) => ({ name, pos, team: abbr, starts: 0, games: 0, shot_early: 0, first_shot: 0, first_pts: 0, jumps: 0, tips_won: 0 });
+const blankPlayer = (name, pos, abbr) => ({ name, pos, team: abbr, starts: 0, games: 0, shot_early: 0, first_shot: 0, first_pts: 0, team_first_shot: 0, team_first_pts: 0, jumps: 0, tips_won: 0 });
 function player(id) {
   const p = block().players[id];
   if (p) return p;
@@ -157,17 +157,28 @@ async function loadLineups(date) {
   }
 }
 
+// A jumper's tip rating (first_basket.py tip_ratings): this season's jump
+// balls against the jumpers he met, starting from his height; a jumper with
+// no jumps yet goes by his height alone, one we know nothing about is average.
+function tipRating(id) {
+  const tip = FB.tip || { ratings: {}, heights: {} };
+  const w = FB.fair_weights || {};
+  if (tip.ratings[id] !== undefined) return tip.ratings[id];
+  const h = tip.heights[id];
+  return h ? (w.tip_per_inch || 0.15) * (h - (w.tip_mid_height || 81)) : 0;
+}
+// The home jumper's chance to win the tip (first_basket.py tip_chance).
+function tipChance(away, home) {
+  if (!away.jumper || !home.jumper) return 0.5;
+  return 1 / (1 + Math.exp(tipRating(away.jumper) - tipRating(home.jumper)));
+}
+const feetInches = (h) => (h ? `${Math.floor(h / 12)}'${h % 12}"` : "");
+
 // The same guess as first_basket.py fair_prices, redone here so a real
 // lineup moves it. tests/test_nba_first_basket.py pins the two to agree.
 function fairPrices(away, home) {
-  const w = FB.fair_weights || { tip_prior: 6, share_prior: 10, bench_share: 0.04 };
-  const tipRate = (id) => {
-    const p = id ? player(id) : null;
-    return p ? (p.tips_won + w.tip_prior * 0.5) / (p.jumps + w.tip_prior) : 0.5;
-  };
-  const a = tipRate(away.jumper);
-  const h = tipRate(home.jumper);
-  const tipHome = (h * (1 - a)) / (h * (1 - a) + a * (1 - h));
+  const w = FB.fair_weights || { share_prior: 10, bench_share: 0.04 };
+  const tipHome = tipChance(away, home);
   const lead = block().league.first_won_tip || 0.66;
   const firstHome = tipHome * lead + (1 - tipHome) * (1 - lead);
   const out = { tip_home: tipHome, first_home: firstHome, players: {} };
@@ -270,8 +281,14 @@ function matchupRows(g, p) {
     const id = p[spot(abbr)].jumper;
     return id ? player(id) : null;
   };
+  const chance = (abbr) => (abbr === g.home ? p.fair.tip_home : 1 - p.fair.tip_home);
+  const tipRecord = (abbr) => {
+    const id = p[spot(abbr)].jumper;
+    const rec = id && ((FB.tip || {}).record || {})[id];
+    const h = id && ((FB.tip || {}).heights || {})[id];
+    return `${rec ? `This season: won ${rec[0]} of ${rec[1]} jump balls` : "No jump balls yet this season"}${h ? `, ${feetInches(h)}` : ""}`;
+  };
   return [
-    { group: "The Tip" },
     { label: "Jumper", jumper: true },
     {
       label: "Tips Won", better: "high", edge: 0.05, show: pct,
@@ -279,8 +296,10 @@ function matchupRows(g, p) {
       color: (abbr, v) => jumperHeat(v),
     },
     {
-      label: "Home/Road", better: "high", edge: 0.05, show: pct,
-      value: (abbr) => t(abbr)[`tip_${spot(abbr)}`], color: (abbr, v) => teamHeat(`tip_${spot(abbr)}`, v),
+      // Who wins tonight's tip (the owner, 2026-10-21; under Tips Won, named Prediction): the two jumpers'
+      // ratings, so a jumper who only met centers isn't marked down. Adds to 100%.
+      label: "Prediction", better: "high", edge: 0.1, show: pct, value: chance, title: tipRecord,
+      color: (abbr, v) => ` style="background:${scaleHsla(Math.round(Math.max(0, Math.min(120, 60 + (v - 0.5) * 240))), 70, 45, 0.3)}"`,
     },
     { group: "Scores First" },
     { label: "Scores First", better: "high", edge: 0.05, show: pct, value: (abbr) => t(abbr).first, color: (abbr, v) => teamHeat("first", v) },
@@ -306,10 +325,12 @@ function renderMatchup(g, p) {
   const cellFor = (row, abbr) => {
     if (row.jumper) {
       const id = p[where(g, abbr)].jumper;
-      return `<td class="fb-m-val fb-m-jumper">${id ? `${face(id)}<span>${lastName(player(id).name)}</span>` : `<span class="muted-label">None</span>`}</td>`;
+      const h = ((FB.tip || {}).heights || {})[id];
+      return `<td class="fb-m-val fb-m-jumper">${id ? `${face(id)}<span>${lastName(player(id).name)}</span>${h ? `<small>${feetInches(h)}</small>` : ""}` : `<span class="muted-label">None</span>`}</td>`;
     }
     const v = row.value(abbr);
-    return `<td class="fb-m-val"${v === null || v === undefined ? "" : row.color(abbr, v)}><b>${row.show(v)}</b></td>`;
+    const title = row.title ? ` title="${row.title(abbr).replace(/"/g, "&quot;")}"` : "";
+    return `<td class="fb-m-val"${v === null || v === undefined ? "" : row.color(abbr, v)}${title}><b>${row.show(v)}</b></td>`;
   };
   const edgeFor = (row) => {
     if (!row.better) return "";
@@ -325,7 +346,9 @@ function renderMatchup(g, p) {
     return `<tr>${cellFor(row, g.away)}<td class="fb-m-mid"><span class="fb-m-label">${row.label}</span>${edgeFor(row)}</td>${cellFor(row, g.home)}</tr>`;
   }).join("");
   const head = (abbr) => `<th class="fb-m-team" style="background:rgba(${teamRgb(abbr)},0.22);border-bottom:3px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span>${abbr}</span></th>`;
-  el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid">Edge</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
+  // The Tip's name sits between the team banners, so the jumpers sit right
+  // under them (the owner, 2026-10-21: an empty row there read as dead space).
+  el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid fb-m-first">The Tip</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
 // ---- targets ----
@@ -420,18 +443,23 @@ function renderStarters(g, p) {
       const rate = (n) => (pl.starts ? n / pl.starts : null);
       // Too few starts to color fairly (a rookie's 4): plain numbers.
       const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]} of ${pl.starts}</small></td>`;
+      // Team Share (the owner, 2026-10-21): how often he took HIS TEAM's first
+      // shot and scored its first points, whoever scored first in the game.
+      // Its own thin box (fb-sh-l / fb-sh-r draw it), between Scored 1st and Fair.
+      const share = (key, side) => `<td class="num fb-cell fb-sh-${side}"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key] || 0)) : ""}><b>${pct(rate(pl[key] || 0))}</b><small>${pl[key] || 0} of ${pl.starts}</small></td>`;
       const f = fair[id];
       const nv = novigPrice(g, id);
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
         <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
-        ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}
+        ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
         <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
         <td class="num fb-fair fb-novig">${nv === null ? "--" : `<b>${showOdds(nv)}</b>`}</td>
       </tr>`;
     }).join("");
     return `<div class="nba-box fb-starters-box">${banner(abbr, lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th>Player</th><th title="Starts where he shot before anyone scored">Shot Early</th><th title="Took the game's first shot">1st Shot</th><th title="Scored the game's first points">Scored 1st</th><th title="Our rough fair price to score first">Fair</th><th title="Novig's First Basket price (Yes)">Novig</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="6" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
+      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="Novig's First Basket price (Yes)">Novig</th></tr>
+        <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="8" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
   };
   el("fb-starters").innerHTML = box(g.away) + box(g.home);

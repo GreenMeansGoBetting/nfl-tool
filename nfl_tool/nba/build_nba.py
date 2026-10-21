@@ -570,6 +570,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     next few nights' games (likely starters, jumpers, the fair-price guess)
     from each."""
     blocks = {}
+    jumps = []  # this season's jump balls: the tip chance (NBA rule: this season decides)
     for s in (season - 1, season):
         fresh = force and s == season
         pbp = fetch_file("pbp", s, data_dir, fresh)
@@ -578,6 +579,12 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
             block = first_basket.season_block(pbp, box, teams, season_label(s))
             if block["games"]:
                 blocks[s] = block
+            if s == season:
+                jumps = first_basket.jump_balls(pbp, box)
+    heights = {}
+    if rosters is not None:
+        heights = {str(r.athlete_id): h for r in rosters.itertuples(index=False) if (h := first_basket.inches(r.height))}
+    tip = first_basket.tip_block(jumps, heights)
     roster_team = {}
     if rosters is not None:
         roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
@@ -588,7 +595,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
-    slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates) for s, b in blocks.items()}
+    slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates, tip) for s, b in blocks.items()}
     default = season if season in blocks and blocks[season]["games"] * 2 / max(1, len(teams)) >= THIS_SEASON_DEFAULT_AT else season - 1
     # Every rostered player (the page matches the NBA's lineup names to these),
     # and the NBA's lineup files as of this build: the page reads them live
@@ -604,7 +611,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
             lineups[d] = got
     return {
         "default": str(default), "seasons": {str(s): b for s, b in blocks.items()}, "slates": slates,
-        "roster": roster, "lineups": lineups, "fair_weights": first_basket.fair_weights(),
+        "roster": roster, "lineups": lineups, "fair_weights": first_basket.fair_weights(), "tip": tip,
     }
 
 

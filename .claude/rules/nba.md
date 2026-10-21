@@ -303,8 +303,16 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   listed Out, starting in at least half the games he played, most minutes first. Ranking by start
   counts dropped Wembanyama (missed games) from the 2025-26 Spurs. **Jumper:** most jumps among
   them (at least `MIN_JUMPS` 2); with the NBA's five and no jumper on file, its listed center.
-- **Fair value guess** (`fair_prices`): tip from the two jumpers (each steadied with 6 coin-flip
-  jumps), first points = tip x the league's tip-winner rate, each starter's share from first points
+- **Prediction** (the tip chance; 2026-10-21, the owner: a jumper who only met Wembanyama and one who only met
+  guards can't be read off Tips Won): `tip_ratings` = every jump ball of THIS season (opening,
+  held balls, overtimes; `jump_balls`, winner = the jumper on the side that got the ball, never
+  ESPN's name order), opponent-adjusted (Bradley-Terry), each rating starting from height
+  (`TIP_PER_INCH` 0.15 from the roster file's height, `TIP_PULL` 3). data.json `first_basket.tip`
+  = {ratings, heights, record, jumps}; every season view uses this season's (NBA rule). 2025-26
+  replay (each tip from the jumps before it): 64% right / log loss 0.628, vs 61% / 0.644 for
+  steadied Tips Won, 60% for height alone; 5+ inches taller won 84%, 1 inch 50%. Home teams won
+  52.9% of tips (noise-sized), so the tip's Home/Road row was dropped.
+- **Fair value guess** (`fair_prices`): tip = Prediction (`tip_chance`), first points = tip x the league's tip-winner rate, each starter's share from first points
   per start steadied 10 starts toward his teammates', 4% to the bench. Not replayed or tracked yet.
 - **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
   under "Player props"): day strip, season buttons, then **three boxes side by side, tops in line:
@@ -316,14 +324,15 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   "significantly improved" but the owner wanted "Simple. KISS" and wrote the rows themself.
 - **The Matchup** (`renderMatchup`, `matchupRows`): ONE table, road team's value left, home team's
   right, the stat name in the middle with an **Edge** pill (better side's logo, when they're `edge`
-  apart). The owner's rows, Title Case, nothing else: The Tip (Jumper, Tips Won, Home/Road), Scores
+  apart). The owner's rows, Title Case, nothing else: The Tip (Jumper with height, Tips Won, Prediction (the tip chance, named by the owner); its
+  name sits between the team banners so no empty row sits under them), Scores
   First (Scores First, Home/Road, After Winning Tip, After Losing Tip), Opening Trips (Avg Poss. To
   Score, Avg Poss. To Allow), First FG Allowed (Point Guards, Shooting Guards, Small Forwards, Power Forwards, Centers; five
 since 2026-10-21). **Removed on purpose:**
   game-count subtext, league averages, "fair guess" rows ("Wins the tip": "you're making a guess
   here and that's not evident. We can make predictions else where"), the 1st-quarter margin and
-  the seconds rows. Group headers centered over the middle. **Every row one fixed height (36 px;
-  44 px on phones), centered** (the owner: "keep them all consistent"). Each value colored against
+  the seconds rows. Group headers centered over the middle. **Every row one fixed height (28 px;
+  38 px on phones), centered**, column 380 px (tightened 2026-10-21: "too wide ... too tall") (the owner: "keep them all consistent"). Each value colored against
   the league from its own team's side (green = good for that team; First FG Allowed: red = that
   position scores first on them often). **Colors = distance from the league average in league
   spreads** (`zHeat`, full color at 1.5 SD): picked over worst-to-best (one outlier stretched it)
@@ -341,7 +350,9 @@ since 2026-10-21). **Removed on purpose:**
   more tips in its spot; a **Quick Start** when the offense needs 0.1+ fewer trips than the league
   and the other defense isn't tougher than average.
 - **Starters**: one compact table per team, both the width of the wider one (lineup tag on the
-  banner): Shot Early / 1st Shot / Scored 1st as % with "x of y" under, **Fair** (our guess) and
+  banner): Shot Early / 1st Shot / Scored 1st / **Team Share** (1st Shot, 1st Pts: his own team's
+  first shot and first points whatever the other team did, `team_first_shot` / `team_first_pts`, in
+  a thin box; the owner, 2026-10-21) as % with "x of y" under, **Fair** (our guess) and
   **Novig** (Novig's First Basket price), likeliest first. Team numbers are colored against all 30
   teams, players against starters with 15+ starts (fewer: plain).
 - **Book prices: Novig, not SmartStake** (the owner, 2026-10-20: "SS bad idea - use novig first FG

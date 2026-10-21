@@ -21,6 +21,7 @@ Possessions are counted from the plays: a team starts a new possession on its
 first shot, turnover or rebound after the other team's. Fouls with no shot
 don't start one, so the count is a hair low on whistle-heavy openings.
 """
+import math
 from collections import defaultdict
 
 import pandas as pd
@@ -31,10 +32,21 @@ POSITIONS = ("PG", "SG", "SF", "PF", "C")
 POS_GROUP = {**{p: p for p in POSITIONS}, "G": "SG", "F": "SF"}
 STARTERS = 5
 MIN_JUMPS = 2  # fewer jumps than this and a player isn't a team's jumper (low: a new season has few)
-# The fair-price guess: each jumper's tip rate is steadied with TIP_PRIOR
-# coin-flip jumps; each starter's first-score rate with SHARE_PRIOR starts at
-# the starters' average; BENCH_SHARE of first scores go to non-starters.
-TIP_PRIOR = 6
+# Tip win chance (the owner, 2026-10-21: a jumper who only met Wembanyama and
+# one who only met guards can't be read off Tips Won): each jumper gets a
+# rating from every jump ball of the season (opening tips, held balls,
+# overtimes), counting who he jumped against, starting from his height.
+# A replay of 2025-26 (each tip predicted from the jumps before it) picked
+# the winner 64% of the time (log loss 0.628) against 61% (0.644) for the old
+# steadied Tips Won and 60% for height alone. TIP_PER_INCH: rating per inch
+# of height (5+ inches taller won 84% of 2025-26's tips, 1 inch 50%);
+# TIP_PULL: how hard the jumps have to argue to move a rating off its height.
+TIP_PER_INCH = 0.15
+TIP_PULL = 3.0
+TIP_MID_HEIGHT = 81  # 6'9": a rating of 0; only the difference between two jumpers matters
+# The fair-price guess: each starter's first-score rate is steadied with
+# SHARE_PRIOR starts at the starters' average; BENCH_SHARE of first scores go
+# to non-starters.
 SHARE_PRIOR = 10
 BENCH_SHARE = 0.04
 
@@ -74,6 +86,7 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
         first_team = first_scorer = None
         first_ft = False
         early_shots = []  # shooters before the game's first points, in order
+        team_shot, team_scorer = {}, {}  # each team's first shooter / first scorer
         for p in g.itertuples(index=False):
             team = side.get(p.team_id)
             if team is None:
@@ -84,8 +97,10 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
                 if team != owner:
                     owner = team
                     poss[team] += 1
-            if p.shooting_play == True and first_team is None and not free_throw and not pd.isna(p.athlete_id_1):  # noqa: E712
-                early_shots.append(int(p.athlete_id_1))
+            if p.shooting_play == True and not free_throw and not pd.isna(p.athlete_id_1):  # noqa: E712
+                if first_team is None:
+                    early_shots.append(int(p.athlete_id_1))
+                team_shot.setdefault(team, int(p.athlete_id_1))
             if p.scoring_play == True:  # noqa: E712
                 secs = 720 - p.start_quarter_seconds_remaining if not pd.isna(p.start_quarter_seconds_remaining) else None
                 if first_team is None:
@@ -93,6 +108,8 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
                     first_scorer = None if pd.isna(p.athlete_id_1) else int(p.athlete_id_1)
                     first_ft = free_throw
                 first_pts.setdefault(team, (poss[team], secs))
+                if not pd.isna(p.athlete_id_1):
+                    team_scorer.setdefault(team, int(p.athlete_id_1))
                 if not free_throw and not pd.isna(p.athlete_id_1):
                     first_fg.setdefault(team, int(p.athlete_id_1))
             if len(first_pts) == 2 and len(first_fg) == 2:
@@ -103,7 +120,7 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
         out.append({
             "game_id": str(game_id), "home": home, "away": away, "tip": tip, "jumpers": jumpers,
             "first_team": first_team, "first_scorer": first_scorer, "first_ft": first_ft, "first_pts": first_pts, "first_fg": first_fg,
-            "early_shots": early_shots, "q1_margin": int(last.home_score) - int(last.away_score),
+            "early_shots": early_shots, "team_shot": team_shot, "team_scorer": team_scorer, "q1_margin": int(last.home_score) - int(last.away_score),
         })
     return out
 
@@ -162,13 +179,15 @@ def team_numbers(openings: list, positions: dict) -> tuple:
 def player_numbers(openings: list, player_box: pd.DataFrame) -> dict:
     """{athlete id: games and minutes a game (every game he played), starts, shot_early (starts with a shot before the game's
     first points), first_shot (took the game's first shot), first_pts (scored
-    the game's first points), jumps, tips_won} over his starts."""
+    the game's first points), team_first_shot / team_first_pts (took his
+    team's first shot / scored its first points), jumps, tips_won} over his starts."""
     box = player_box[(player_box["season_type"] == 2) & (player_box["starter"] == True)]  # noqa: E712
     starts = defaultdict(set)
     for r in box[["game_id", "athlete_id"]].itertuples(index=False):
         starts[int(r.athlete_id)].add(str(r.game_id))
     team_of = {(str(r.game_id), int(r.athlete_id)): r.team_abbreviation for r in player_box[["game_id", "athlete_id", "team_abbreviation"]].itertuples(index=False)}
-    out = defaultdict(lambda: {"games": 0, "min": 0.0, "starts": 0, "shot_early": 0, "first_shot": 0, "first_pts": 0, "jumps": 0, "tips_won": 0})
+    out = defaultdict(lambda: {"games": 0, "min": 0.0, "starts": 0, "shot_early": 0, "first_shot": 0, "first_pts": 0,
+                               "team_first_shot": 0, "team_first_pts": 0, "jumps": 0, "tips_won": 0})
     for pid, games in starts.items():
         out[pid]["starts"] = len(games)
     played = player_box[(player_box["season_type"] == 2) & (pd.to_numeric(player_box["minutes"], errors="coerce") > 0)]
@@ -184,6 +203,13 @@ def player_numbers(openings: list, player_box: pd.DataFrame) -> dict:
             out[o["early_shots"][0]]["first_shot"] += 1
         if o["first_scorer"] is not None:
             out[o["first_scorer"]]["first_pts"] += 1
+        # Team Share: his own team's first shot and first points (the owner, 2026-10-21).
+        for pid in o["team_shot"].values():
+            if gid in starts.get(pid, ()):
+                out[pid]["team_first_shot"] += 1
+        for pid in o["team_scorer"].values():
+            if gid in starts.get(pid, ()):
+                out[pid]["team_first_pts"] += 1
         for pid in o["jumpers"] or ():
             out[pid]["jumps"] += 1
             if team_of.get((gid, pid)) == o["tip"]:
@@ -222,10 +248,79 @@ def american(p):
     return round(-100 * p / (1 - p)) if p >= 0.5 else round(100 * (1 - p) / p)
 
 
-def _tip_rate(player: dict | None) -> float:
-    if not player:
+def inches(height) -> int | None:
+    """ESPN's roster height (6' 11") in inches."""
+    try:
+        feet, rest = str(height).replace('"', "").split("'")
+        return int(feet) * 12 + int(rest)
+    except (TypeError, ValueError):
+        return None
+
+
+def jump_balls(pbp: pd.DataFrame, player_box: pd.DataFrame) -> list:
+    """(winner id, loser id) for every regular-season jump ball, opening tips,
+    held balls and overtimes alike. The play's team_id is the side that got
+    the ball; the jumper on that side won it."""
+    box = player_box.dropna(subset=["athlete_id"])
+    team_of = {(str(r.game_id), int(r.athlete_id)): r.team_abbreviation for r in box[["game_id", "athlete_id", "team_abbreviation"]].itertuples(index=False)}
+    jumps = pbp[(pbp["season_type"] == 2) & (pbp["type_text"] == "Jumpball")].sort_values(["game_id", "sequence_number"])
+    out = []
+    for r in jumps.itertuples(index=False):
+        if pd.isna(r.athlete_id_1) or pd.isna(r.athlete_id_2) or pd.isna(r.team_id):
+            continue
+        got = {r.home_team_id: r.home_team_abbrev, r.away_team_id: r.away_team_abbrev}.get(r.team_id)
+        a, b = int(r.athlete_id_1), int(r.athlete_id_2)
+        ta, tb = team_of.get((str(r.game_id), a)), team_of.get((str(r.game_id), b))
+        if got is None or ta == tb or got not in (ta, tb):
+            continue
+        out.append((a, b) if got == ta else (b, a))
+    return out
+
+
+def tip_ratings(jumps: list, heights: dict) -> dict:
+    """{player id: rating} from (winner, loser) jump balls: a win over a big
+    rating counts for more than a win over a guard. Each rating starts at
+    TIP_PER_INCH a inch from TIP_MID_HEIGHT and the jumps pull it away
+    (TIP_PULL: the pull back to height). One jumper beats another
+    1 / (1 + e^-(his rating - the other's))."""
+    ids = sorted({x for j in jumps for x in j})
+    start = {pid: height_rating(heights.get(str(pid))) for pid in ids}
+    rating = dict(start)
+    for _ in range(100):
+        grad = {pid: -TIP_PULL * (rating[pid] - start[pid]) for pid in ids}
+        curve = dict.fromkeys(ids, TIP_PULL)
+        for win, lose in jumps:
+            p = 1 / (1 + math.exp(rating[lose] - rating[win]))
+            grad[win] += 1 - p
+            grad[lose] -= 1 - p
+            curve[win] += p * (1 - p)
+            curve[lose] += p * (1 - p)
+        rating = {pid: rating[pid] + grad[pid] / curve[pid] for pid in ids}
+    return {str(pid): round(r, 3) for pid, r in rating.items()}
+
+
+def tip_block(jumps: list, heights: dict) -> dict:
+    """data.json first_basket.tip: this season's ratings, every rostered
+    player's height (a jumper with no jumps yet goes by it) and each jumper's
+    jump balls won / jumped (opening tips, held balls, overtimes)."""
+    record = defaultdict(lambda: [0, 0])
+    for win, lose in jumps:
+        record[str(win)][0] += 1
+        record[str(win)][1] += 1
+        record[str(lose)][1] += 1
+    return {"ratings": tip_ratings(jumps, heights), "heights": heights, "record": dict(record), "jumps": len(jumps)}
+
+
+def height_rating(height: int | None) -> float:
+    return TIP_PER_INCH * (height - TIP_MID_HEIGHT) if height else 0.0
+
+
+def tip_chance(tip: dict, away_jumper, home_jumper) -> float:
+    """The home jumper's chance to win the tip (0.5 when either is unknown)."""
+    if not away_jumper or not home_jumper:
         return 0.5
-    return (player["tips_won"] + TIP_PRIOR * 0.5) / (player["jumps"] + TIP_PRIOR)
+    rating = lambda pid: tip["ratings"].get(str(pid), height_rating(tip["heights"].get(str(pid))))
+    return 1 / (1 + math.exp(rating(away_jumper) - rating(home_jumper)))
 
 
 def game_side(block: dict, team: str, team_of: dict, out_ids: set) -> dict:
@@ -242,14 +337,13 @@ def game_side(block: dict, team: str, team_of: dict, out_ids: set) -> dict:
     return {"starters": [pid for pid, _ in starters], "jumper": jumper}
 
 
-def fair_prices(block: dict, away: dict, home: dict) -> dict:
-    """The rough guess at the bottom of a game: the tip from the two jumpers
-    (each steadied toward 50%), the first score from the tip and the league's
+def fair_prices(block: dict, away: dict, home: dict, tip: dict) -> dict:
+    """The rough guess at the bottom of a game: the tip from the two jumpers'
+    ratings (this season's jump balls and height: tip_chance), the first score from the tip and the league's
     tip-winner rate, each starter's share from his first scores per start
     (steadied toward the starters' average)."""
     players = block["players"]
-    a, h = _tip_rate(players.get(away["jumper"])), _tip_rate(players.get(home["jumper"]))
-    tip_home = h * (1 - a) / (h * (1 - a) + a * (1 - h))
+    tip_home = tip_chance(tip, away["jumper"], home["jumper"])
     lead = block["league"]["first_won_tip"] or 0.66
     first_home = tip_home * lead + (1 - tip_home) * (1 - lead)
     out = {"tip_home": num(tip_home), "first_home": num(first_home), "players": {}}
@@ -269,16 +363,17 @@ def fair_prices(block: dict, away: dict, home: dict) -> dict:
 def fair_weights() -> dict:
     """The fair guess's settings, for the page: it redoes the guess in the
     browser when the NBA's real lineup differs from the likely starters."""
-    return {"tip_prior": TIP_PRIOR, "share_prior": SHARE_PRIOR, "bench_share": BENCH_SHARE, "min_jumps": MIN_JUMPS}
+    return {"share_prior": SHARE_PRIOR, "bench_share": BENCH_SHARE, "min_jumps": MIN_JUMPS, "tip_per_inch": TIP_PER_INCH, "tip_mid_height": TIP_MID_HEIGHT}
 
 
-def slate(block: dict, games: list, team_of: dict, out_ids: set, dates: list) -> dict:
-    """{game id: {away, home, fair}} for the games on `dates`."""
+def slate(block: dict, games: list, team_of: dict, out_ids: set, dates: list, tip: dict) -> dict:
+    """{game id: {away, home, fair}} for the games on `dates`. tip = this
+    season's {ratings, heights} (every season's view uses this season's tip)."""
     out = {}
     for g in games:
         if g["date"] not in dates:
             continue
         away = game_side(block, g["away"], team_of, out_ids)
         home = game_side(block, g["home"], team_of, out_ids)
-        out[g["game_id"]] = {"away": away, "home": home, "fair": fair_prices(block, away, home)}
+        out[g["game_id"]] = {"away": away, "home": home, "fair": fair_prices(block, away, home, tip)}
     return out
