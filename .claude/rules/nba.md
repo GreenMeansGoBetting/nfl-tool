@@ -389,7 +389,9 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   (this season's disabled until it has games), Save image; the player board (top 25, "Show all"; Lead
   %, Proj, Avg, L10, buckets, Score, Opp, Matchup, vs Pos, Total, Spread; green = good for him; B2B,
   "from XXX" and blowout tags), Nightly leaders beside it (outside the image), then the defense board
-  (red = bad defense, the owner's sheet; teams not playing dimmed; its own Save image). It does no
+  (red = bad defense, the owner's sheet; teams not playing dimmed; its own Save image; a "Hide teams
+  not playing" button for screenshots, colors still against all 30; a **Targets** column after GP:
+  last names of the other team's players in the night's top 100 by Lead %, the owner 2026-10-21). It does no
   projection math. Headshots and logos are ESPN's (html-to-image can carry them).
 - Tests: `tests/test_nba_kotc.py` (the build on a hand-made season) and `tests/test_nba_kotc_site.py`
   (the page on a data.json built from it; `SiteBrowser.nba` serves it).

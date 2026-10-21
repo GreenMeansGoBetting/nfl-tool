@@ -13,6 +13,7 @@ let showAll = false;
 let nightsShown = 15;
 const playerSort = { key: "lead", dir: -1 };
 const defSort = { key: "score", dir: -1 };
+let defPlayingOnly = false;  // defense board: only the night's teams (for screenshots)
 const SEASON_KEY = "nba-tool.kotc-season.v1";
 const TOP_ROWS = 25;
 
@@ -155,6 +156,7 @@ function renderPlayers() {
 }
 
 // ---- defense board ----
+const TARGET_TOP = 100;
 const DEF_COLS = [
   { key: "team", label: "Team", value: (t) => t.abbr },
   { key: "tonight", label: "Tonight", value: (t) => t.opp || "" },
@@ -163,6 +165,7 @@ const DEF_COLS = [
   { key: "star", label: "Best opp", title: "Most PRA by one opponent, average a game", value: (t) => t.d.star },
   ...["G", "F", "C"].map((p) => ({ key: `pos${p}`, label: `vs ${p}`, title: `PRA per 48 minutes allowed to ${p === "G" ? "guards" : p === "F" ? "forwards" : "bigs"}`, value: (t) => t.d.pos[p] })),
   { key: "games", label: "GP", value: (t) => t.d.games },
+  { key: "targets", label: "Targets", title: `Tonight's opponents in the top ${TARGET_TOP} on the player board (Lead %)`, value: (t) => t.targets.length },
 ];
 
 function renderDefense() {
@@ -173,7 +176,11 @@ function renderDefense() {
     tonight[r.team] = { opp: r.opp, home: r.home };
     if (r.b2b) b2b.add(r.team);
   }
-  const rows = Object.entries(block().defense).map(([abbr, d]) => ({ abbr, d, opp: tonight[abbr] ? tonight[abbr].opp : null, home: tonight[abbr] && tonight[abbr].home }));
+  // Targets: the player board's top 100 by Lead % (as it sorts by default), listed on the defense they face.
+  const targets = {};
+  playerRows(date).filter((r) => !r.out).sort((a, b) => b.lead - a.lead || b.proj - a.proj).slice(0, TARGET_TOP)
+    .forEach((r) => (targets[r.opp] = targets[r.opp] || []).push(r.p.name));
+  const rows = Object.entries(block().defense).map(([abbr, d]) => ({ abbr, d, opp: tonight[abbr] ? tonight[abbr].opp : null, home: tonight[abbr] && tonight[abbr].home, targets: targets[abbr] || [] }));
   const col = DEF_COLS.find((c) => c.key === defSort.key) || DEF_COLS[7];
   rows.sort((a, b) => {
     const va = col.value(a), vb = col.value(b);
@@ -184,14 +191,17 @@ function renderDefense() {
   const sc = range(rows.map((t) => t.d.score));
   const st = range(rows.map((t) => t.d.star));
   const pos = ["G", "F", "C"].map((p) => range(rows.map((t) => t.d.pos[p])));
-  el("kotc-def-sub").textContent = `${block().label} · ${date ? `teams playing ${dayWords(date)} in bold` : ""}`;
+  // Hiding the idle teams keeps the colors against all 30 (ranges above use every row).
+  const hide = defPlayingOnly && Object.keys(tonight).length > 0;
+  el("kotc-def-playing").textContent = defPlayingOnly ? "Show all teams" : "Hide teams not playing";
+  el("kotc-def-sub").textContent = `${block().label} · ${date ? `teams playing ${dayWords(date)}${hide ? "" : " in bold"}` : ""}`;
   const head = DEF_COLS.map((c) => {
     const label = c.bucket !== undefined ? `${KOTC.thresholds[c.bucket]}+` : c.label;
     const sorted = defSort.key === c.key ? (defSort.dir < 0 ? " &#9662;" : " &#9652;") : "";
     return `<th class="koe-sort${c.key === "team" ? "" : " num"}" data-defsort="${c.key}"${c.title ? ` title="${c.title}"` : ""}>${label}${sorted}</th>`;
   }).join("");
   // Defense view: red = gives up the most (bad defense), so the scale is flipped.
-  const body = rows.map((t) => `<tr class="${t.opp ? "kotc-playing" : "kotc-idle"}">
+  const body = rows.filter((t) => !hide || t.opp).map((t) => `<tr class="${t.opp ? "kotc-playing" : "kotc-idle"}">
       <td class="kotc-team">${logo(t.abbr, 20)} <b>${t.abbr}</b>${b2b.has(t.abbr) ? ` <span class="kotc-tag" title="Played last night">B2B</span>` : ""}</td>
       <td class="kotc-opp">${t.opp ? `${t.home ? "vs" : "@"} ${logo(t.opp, 16)} ${t.opp}` : ""}</td>
       ${t.d.buckets.map((c, k) => `<td class="num"${heat(c, hi[k][0], hi[k][1], true)}>${c}</td>`).join("")}
@@ -199,6 +209,7 @@ function renderDefense() {
       <td class="num"${heat(t.d.star, st[0], st[1], true)}>${fmt(t.d.star)}</td>
       ${["G", "F", "C"].map((p, k) => `<td class="num"${heat(t.d.pos[p], pos[k][0], pos[k][1], true)}>${fmt(t.d.pos[p])}</td>`).join("")}
       <td class="num">${t.d.games}</td>
+      <td class="kotc-targets">${t.targets.map((n) => `<span title="${n}">${n.split(" ").slice(1).join(" ") || n}</span>`).join(", ")}</td>
     </tr>`).join("");
   el("kotc-defense").innerHTML = `<table class="data-table kotc-table kotc-def-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
@@ -376,6 +387,7 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#kotc-more")) return (showAll = !showAll), renderPlayers();
   if (e.target.closest("#kotc-nights-more")) return (nightsShown += 30), renderNights();
   if (e.target.closest("#kotc-save")) return saveImage("kotc-save", "kotc-capture", "king-of-the-court");
+  if (e.target.closest("#kotc-def-playing")) return (defPlayingOnly = !defPlayingOnly), renderDefense();
   if (e.target.closest("#kotc-def-save")) return saveImage("kotc-def-save", "kotc-def-capture", "kotc-defense");
   if (e.target.closest("#kotc-history-btn")) {
     renderHistory();

@@ -102,6 +102,20 @@ class DefenseAndHistory(unittest.TestCase):
         self.assertEqual(sorted(t for t, _ in rows), sorted(TEAMS))
         self.assertEqual(sorted(t for t, playing in rows if playing), ["AAA", "BBB"])
 
+    def test_hide_teams_not_playing_and_back(self):
+        teams = "() => [...document.querySelectorAll('.kotc-def-table tbody .kotc-team b')].map((b) => b.textContent)"
+        PAGE.click("#kotc-def-playing")
+        self.assertEqual(sorted(PAGE.evaluate(teams)), ["AAA", "BBB"])
+        PAGE.click("#kotc-def-playing")
+        self.assertEqual(sorted(PAGE.evaluate(teams)), sorted(TEAMS))
+
+    def test_targets_list_the_top_players_on_the_defense_they_face(self):
+        cells = PAGE.evaluate("() => Object.fromEntries([...document.querySelectorAll('.kotc-def-table tbody tr')].map((tr) => [tr.querySelector('.kotc-team b').textContent, [...tr.querySelectorAll('.kotc-targets span')].map((s) => s.title)]))")
+        rows = [r for r in SITE.nba["kotc"]["slates"]["2026"][NIGHT] if not r.get("out")]  # fewer than 100: every one listed
+        names = SITE.nba["kotc"]["seasons"]["2026"]["players"]
+        for d in TEAMS:
+            self.assertEqual(sorted(cells[d]), sorted(names[r["id"]]["name"] for r in rows if r["opp"] == d), d)
+
     def test_nightly_leaders_newest_first_with_ties(self):
         names = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-night .koe-win-names')].map((e) => e.textContent)")
         self.assertEqual(names[0], "Star A / Star C")

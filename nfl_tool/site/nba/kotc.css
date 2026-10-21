@@ -40,6 +40,7 @@
 .kotc-group td { padding-top: 10px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
 .kotc-more { margin-top: 8px; padding: 4px 12px; }
 .kotc-def-table .kotc-idle td { opacity: 0.42; }
+.kotc-def-table .kotc-targets { text-align: left; font-weight: 700; }
 
 .kotc-side { flex: 1 1 320px; min-width: 0; max-width: 420px; display: flex; flex-direction: column; gap: 6px; }
 .kotc-side-title { display: flex; align-items: center; margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -50,7 +51,7 @@
 .kotc-night-line { font-size: 0.7rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
 .kotc-night .koe-win-yds { text-align: right; color: var(--good-text); }
 .kotc-def-head { display: flex; align-items: center; gap: 12px; margin: 6px 0 8px; }
-.kotc-def-head .summary-save-btn { margin-left: auto; }
+.kotc-def-head .kotc-def-playing { margin-left: auto; padding: 6px 12px; }
 
 .kotc-history-box { max-width: 820px; }
 .kotc-hist-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
