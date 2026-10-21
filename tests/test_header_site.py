@@ -45,7 +45,8 @@ class TopMenu(unittest.TestCase):
         page = SITE.open("game-overview.html")
         try:
             page.click(".page-nav .nfl-trigger")
-            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Player Props", "/player-props.html", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
+            self.assertIn("player props", page.inner_text(".nfl-menu").lower())
             self.assertTrue(page.evaluate("() => document.querySelector('.nfl-trigger').classList.contains('page-nav-current')"))
             page.click(".page-nav .nba-trigger")
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
@@ -55,6 +56,23 @@ class TopMenu(unittest.TestCase):
             self.assertIn("player props", page.inner_text(".nhl-menu").lower())
             page.keyboard.press("Escape")
             self.assertTrue(page.locator(".nhl-menu").is_hidden())
+        finally:
+            page.close()
+
+    def test_nfl_prop_types_open_their_own_tab_and_mark_it(self):
+        # The owner, 2026-10-20: Receiving / Rushing / Passing as their own rows, like NBA and NHL.
+        page = SITE.open("player-props.html#rushing")
+        try:
+            page.wait_for_selector('.props-view-toggle-btn.active[data-view="rushing"]')
+            self.assertFalse(page.locator("#section-rushing").is_hidden())
+            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nfl-menu") if x[2]], ["Rushing"])
+            page.click(".page-nav .nfl-trigger")
+            page.click('.nfl-menu a[data-view="passing"]')  # same page: only the #view changes
+            page.wait_for_selector('.props-view-toggle-btn.active[data-view="passing"]')
+            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nfl-menu") if x[2]], ["Passing"])
+            page.click('.props-view-toggle-btn[data-view="receiving"]')  # the tab buttons keep the address in step
+            self.assertEqual(page.evaluate("() => location.hash"), "#receiving")
+            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nfl-menu") if x[2]], ["Receiving"])
         finally:
             page.close()
 

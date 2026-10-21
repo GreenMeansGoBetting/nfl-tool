@@ -1982,7 +1982,16 @@ const ALL_SECTIONS = ["receiving", "rushing", "passing", "summary"];
 const PROPS_VIEW_KEY = "nfl-tool.props-view.v1";
 let currentPropsView = "receiving";
 
+// The NFL menu links each prop type as player-props.html#receiving / #rushing /
+// #passing, so the address's #view wins over the last tab used.
+function hashPropsView() {
+  const view = location.hash.slice(1);
+  return ALL_SECTIONS.includes(view) ? view : null;
+}
+
 function loadSavedPropsView() {
+  const fromLink = hashPropsView();
+  if (fromLink) return fromLink;
   try {
     return localStorage.getItem(PROPS_VIEW_KEY) || "receiving";
   } catch (e) {
@@ -1998,6 +2007,10 @@ function setActivePropsView(view) {
   document.querySelectorAll(".props-view-toggle-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.view === view);
   });
+  if (location.hash.slice(1) !== view) history.replaceState(null, "", `#${view}`);
+  document.querySelectorAll(".nfl-menu a[data-view]").forEach((a) => {
+    a.classList.toggle("promo-current", a.dataset.view === view);
+  });
   try {
     localStorage.setItem(PROPS_VIEW_KEY, view);
   } catch (e) {
@@ -2012,7 +2025,15 @@ document.querySelectorAll(".props-view-toggle-btn").forEach((btn) => {
   });
 });
 
-const backupQbToggleEl = document.getElementById("show-backup-qbs");
+// A menu link to another prop type while already on this page only changes the #view.
+window.addEventListener("hashchange", () => {
+  const view = hashPropsView();
+  if (!view || view === currentPropsView) return;
+  setActivePropsView(view);
+  if (view === "summary") render();
+});
+
+const backupQbToggleEl =document.getElementById("show-backup-qbs");
 if (backupQbToggleEl) {
   backupQbToggleEl.addEventListener("change", () => {
     setShowBackupQbs(backupQbToggleEl.checked);

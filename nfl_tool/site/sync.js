@@ -695,7 +695,11 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     nfl: { label: "NFL", home: "game-overview.html", items: [
       { name: "Game Previews", file: "game-overview.html" },
       { name: "TD Data", file: "index.html" },
-      { name: "Player Props", file: "player-props.html" },
+      { head: "Player props" },
+      // One page, three views: the link's #view opens that tab (player-props.js).
+      { name: "Receiving", file: "player-props.html#receiving" },
+      { name: "Rushing", file: "player-props.html#rushing" },
+      { name: "Passing", file: "player-props.html#passing" },
     ] },
     nba: { label: "NBA", home: "", items: [
       { name: "Game Previews", file: "" },
@@ -739,8 +743,9 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       const def = SPORT_PAGES[sport];
       add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
         if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
-        const current = sport === CURRENT_SPORT && !onPromo && !onMine && (item.file || "index.html") === PAGE_FILE;
-        return `<a href="${siteHref(sport, item.file)}" class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span></a>`;
+        const [file, view] = (item.file || "index.html").split("#");
+        const current = sport === CURRENT_SPORT && !onPromo && !onMine && file === PAGE_FILE && (!view || view === location.hash.slice(1));
+        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span></a>`;
       }).join(""), sport === CURRENT_SPORT && !onPromo && !onMine);
     }
     add("Promo Tools", PROMOS[0].href, "promo", PROMOS.map(
