@@ -273,6 +273,7 @@ def compute_summary(pg: pd.DataFrame, lines: dict, nights: list) -> dict:
     return {
         "nights": len(nights),
         "median": num(np.median([n["pra"] for n in nights]), 0) if nights else None,
+        "mean": num(np.mean([n["pra"] for n in nights]), 1) if nights else None,
         "ties": sum(len(n["leaders"]) > 1 for n in nights),
         "by_size": by_size,
         "by_total": mix(TOTAL_BUCKETS, total_of),

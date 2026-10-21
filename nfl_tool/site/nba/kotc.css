@@ -63,6 +63,8 @@
 .kotc-hist-table th { padding: 6px 12px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); background: var(--panel-2); }
 .kotc-hist-table td { padding: 5px 12px; text-align: center; border-top: 1px solid var(--border); white-space: nowrap; }
 .kotc-hist-two { display: flex; flex-wrap: wrap; gap: 0 24px; }
+.kotc-hist-center { margin-left: auto; margin-right: auto; text-align: center; }
+.kotc-hist-two.kotc-hist-center { justify-content: center; }
 .kotc-hist-note { margin: 6px 0 0; font-size: 0.8rem; color: var(--muted); }
 .kotc-hist-list { margin: 0; padding-left: 18px; font-size: 0.86rem; line-height: 1.45; }
 .kotc-hist-list li { margin-bottom: 5px; }

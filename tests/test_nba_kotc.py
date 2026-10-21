@@ -122,6 +122,7 @@ class Nights(unittest.TestCase):
         for rows in (s["by_total"], s["by_spread"]):
             self.assertAlmostEqual(sum(r["share"] for r in rows), 1, places=2)
             self.assertAlmostEqual(sum(r["fair"] for r in rows), 1, places=2)
+        self.assertEqual(s["mean"], round(sum(n["pra"] for n in self.nights) / 2, 1))  # the tile's "Avg winning PRA"
         self.assertEqual(s["favored"], 0.5)  # night 1's leader was favored, night 2's first (Star A, +3) wasn't
 
 

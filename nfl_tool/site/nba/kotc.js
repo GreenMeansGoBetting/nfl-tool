@@ -243,24 +243,24 @@ function renderHistory() {
     return `<tr><td>${r.label}</td><td>${pct(r.share)}</td><td>${pct(r.fair)}</td><td class="${x >= 1.15 ? "tier-good" : x <= 0.85 ? "tier-bad" : ""}">${x ? `${x.toFixed(2)}x` : "--"}</td></tr>`;
   }).join("");
   const posTotal = Object.values(sum.positions).reduce((a, v) => a + v, 0) || 1;
+  const typicalRange = range(sum.by_size.map((r) => r.median));  // greener = a bigger night needed
   el("kotc-hist-body").innerHTML = `
     <div class="kotc-hist-tiles">
-      <div class="kotc-hist-tile"><b>${fmt(sum.median, 0)}</b><span>Winning PRA</span><i>median night</i></div>
-      <div class="kotc-hist-tile"><b>${pct(sum.favored)}</b><span>On the favorite</span><i>the leader's team</i></div>
-      <div class="kotc-hist-tile"><b>${fmt(sum.leader_total, 0)}</b><span>Leader's game total</span><i>avg game ${fmt(sum.game_total, 0)}</i></div>
-      <div class="kotc-hist-tile"><b>64-67%</b><span>Leader in our top 5</span><i>2025-26 replay</i></div>
+      <div class="kotc-hist-tile"><b>${fmt(sum.mean ?? sum.median, 0)}</b><span>Avg winning PRA</span></div>
+      <div class="kotc-hist-tile"><b>${pct(sum.favored)}</b><span>Winner's team was favored</span></div>
+      <div class="kotc-hist-tile"><b>${fmt(sum.leader_total, 0)}</b><span>Winner's avg game total</span></div>
+      <div class="kotc-hist-tile"><b>65%</b><span>Winner in our top 5</span></div>
     </div>
-    <h3 class="kotc-hist-h">What it took to win</h3>
-    <table class="kotc-hist-table"><thead><tr><th>Games on the slate</th><th>Nights</th><th>Typical winner</th><th>Middle half</th><th>Best night</th></tr></thead>
-      <tbody>${sum.by_size.map((r) => `<tr><td>${r.games}</td><td>${r.nights}</td><td><b>${fmt(r.median, 0)}</b></td><td>${fmt(r.low, 0)} - ${fmt(r.high, 0)}</td><td>${r.max}</td></tr>`).join("")}</tbody></table>
-    <p class="kotc-hist-note"><b>Typical winner:</b> half the nights the top PRA was higher, half lower. <b>Middle half:</b> the middle 50% of nights. Bigger slates need more. ${sum.ties} nights ended in a tie.</p>
-    <div class="kotc-hist-two">
+    <h3 class="kotc-hist-h kotc-hist-center">What it took to win</h3>
+    <table class="kotc-hist-table kotc-hist-center"><thead><tr><th>Games on the slate</th><th>Nights</th><th>Typical winner</th><th>Middle half</th><th>Best night</th></tr></thead>
+      <tbody>${sum.by_size.map((r) => `<tr><td>${r.games}</td><td>${r.nights}</td><td${heat(r.median, ...typicalRange)}><b>${fmt(r.median, 0)}</b></td><td>${fmt(r.low, 0)} - ${fmt(r.high, 0)}</td><td>${r.max}</td></tr>`).join("")}</tbody></table>
+    <div class="kotc-hist-two kotc-hist-center">
       <div><h3 class="kotc-hist-h">The game total</h3>
         <table class="kotc-hist-table"><thead><tr><th>Total</th><th>Leaders</th><th>Games</th><th>Rate</th></tr></thead><tbody>${mixRows(sum.by_total)}</tbody></table></div>
       <div><h3 class="kotc-hist-h">The spread</h3>
         <table class="kotc-hist-table"><thead><tr><th>Spread</th><th>Leaders</th><th>Games</th><th>Rate</th></tr></thead><tbody>${mixRows(sum.by_spread)}</tbody></table></div>
     </div>
-    <p class="kotc-hist-note"><b>Leaders:</b> how often the night's leader played in that kind of game. <b>Games:</b> that kind of game's share of the games on those nights. <b>Rate</b> over 1 = more leaders than its share of games. High totals and close games produce more leaders; blowouts fewer (starters sit). The projection counts the total lightly: in the replay the matchup by position mattered far more, and the spread added nothing beyond it.</p>
+    <p class="kotc-hist-note">Totals and spreads are the pregame lines at tip-off, not the final score. <b>Leaders:</b> how often the night's leader played in that kind of game. <b>Games:</b> that kind of game's share of the games on those nights. <b>Rate</b> over 1 = more leaders than its share of games. High totals and close games produce more leaders; blowouts fewer (starters sit). The projection counts the total lightly: in the replay the matchup by position mattered far more, and the spread added nothing beyond it.</p>
     <div class="kotc-hist-two">
       <div><h3 class="kotc-hist-h">Who wins it</h3>
         <table class="kotc-hist-table"><thead><tr><th>Position</th><th>Nights</th><th>Share</th></tr></thead><tbody>${[["G", "Guards"], ["F", "Forwards"], ["C", "Bigs"]].map(([k, n]) => `<tr><td>${n}</td><td>${sum.positions[k]}</td><td>${pct(sum.positions[k] / posTotal)}</td></tr>`).join("")}</tbody></table></div>
@@ -269,7 +269,7 @@ function renderHistory() {
     </div>
     <h3 class="kotc-hist-h">How far to trust the board</h3>
     <ul class="kotc-hist-list">
-      <li>Replayed on 2025-26, each night projected only from the games before it: the night's leader was the board's #1 on 30% of nights, in its top 5 on 64-67% and its top 10 on 83%. A plain PRA average got 27% / 63% / 79%.</li>
+      <li>Replayed on 2025-26, each night projected only from the games before it: the night's leader was the board's #1 on 30% of nights, in its top 5 on 65% and its top 10 on 83%. A plain PRA average got 27% / 63% / 79%.</li>
       <li>The Lead % numbers were honest: players given about 14% led about 14% of the time; 26% led 27%.</li>
       <li>The matchup by position was the biggest addition. The game total helped a little. Back-to-backs and the spread added nothing once those were in, so they are tags, not part of the number.</li>
       <li>The replay knew who played. The live page only knows the injury report, so a late scratch can move a night.</li>

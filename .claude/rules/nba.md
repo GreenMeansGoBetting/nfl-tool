@@ -378,8 +378,10 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   build before the night's first tip had it (`kotc_record`; a started night is never rewritten). The
   page's Nightly leaders show the winner's place on it ("Pre 3"). NBA builds run every 6 hours and on
   pushes (no half-hourly refresh like the NHL), so a night's board can be up to 6 hours old at tip.
-- **Historical Data** (`summary`, computed every build): winning PRA by slate size (typical, middle
-  half, best), the leader's game total and spread against the games on those nights (2025-26: 240+
+- **Historical Data** (`summary`, computed every build): four tiles with one label each, no
+  subtext (the owner, 2026-10-21: Avg winning PRA = `mean`, Winner's team was favored, Winner's avg
+  game total, Winner in our top 5 as one number, 65%); winning PRA by slate size (typical, colored
+  low to high, middle half, best; centered, no note under it), the leader's game total and spread against the games on those nights (2025-26: 240+
   totals 1.31x their share, under 220 0.37x; spreads 0-3 1.22x, 10+ 0.77x; the leader's team was
   favored 70%), positions (guards 47%), most nights led. Shows last season's until this season has
   20 nights.
