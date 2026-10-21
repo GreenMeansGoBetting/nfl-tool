@@ -373,7 +373,10 @@ since 2026-10-21). **Removed on purpose:**
   `fetch_nba_book_odds`; keys from `first_basket_market_keys`: a player market for the game's first
   points / basket, no team / quarter / half / field-goal-only markets; falls back to
   `basketball_first_points_scorer`) puts every book's Yes into `book_odds["AWAY_HOME"].props.first_basket`
-  by ESPN id; `book_odds_debug.first_basket` says what came back. Locks at tip like every price.
+  by ESPN id; `book_odds_debug.first_basket` says what came back. **The sportsbooks (DraftKings, FanDuel,
+  Caesars, theScore...) send 1st Points Scorer as ALTERNATE quotes, Yes only; the exchanges (Novig,
+  ProphetX, Fliff) as a main Yes / No**, so it is fetched with `alternate=True` (the probe,
+  2026-10-21: main lines only got just the exchanges). Locks at tip like every price.
   The **Best** column = `bookPricePill` (best across the member's books); a player no book lists
   shows Novig's own price, labeled Novig, not clickable (Novig's public feed `FIRST_BASKET` market,
   read in `fetch_novig_lines` into each game's `first_basket`, a `LINE_FIELDS` member). Value and

@@ -107,3 +107,24 @@ class FirstBasket(unittest.TestCase):
         row = found["MIL_WSH"]["props"]["first_basket"]["3032976"]
         self.assertEqual(sorted((x[0], x[1], x[3]) for x in row["q"]), [("draftkings", "o", 900), ("fanduel", "o", 1000)])
 
+    def test_the_sportsbooks_alternate_quotes_are_asked_for_and_kept(self):
+        # The probe (2026-10-21): DraftKings, FanDuel and most books send 1st Points
+        # Scorer as alternate quotes; asking for main lines only left just the exchanges.
+        asked = []
+        page = {"data": [
+            {"book": "draftkings", "alternate": True, "live": False, "side": "yes"},
+            {"book": "novig", "alternate": False, "live": False, "side": "yes"},
+            {"book": "bet99", "alternate": True, "live": False, "side": "yes"},  # not a US book
+        ]}
+        old = smartstake._get
+        smartstake._get = lambda key, path, params: asked.append(params) or page
+        try:
+            got = smartstake.fetch_quotes("k", "nba", ["basketball_first_points_scorer"], alternate=True)
+            self.assertEqual([q["book"] for q in got], ["draftkings", "novig"])
+            self.assertIsNone(asked[-1]["alternate"])  # not "false": the alternate quotes come back
+            main = smartstake.fetch_quotes("k", "nba", ["basketball_player_points"])
+            self.assertEqual([q["book"] for q in main], ["novig"])  # every other market: main lines only
+            self.assertEqual(asked[-1]["alternate"], "false")
+        finally:
+            smartstake._get = old
+

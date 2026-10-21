@@ -150,15 +150,18 @@ def _get(api_key: str, path: str, params: dict) -> dict:
     raise RuntimeError("SmartStake kept asking to slow down")
 
 
-def fetch_quotes(api_key: str, league: str, markets, max_pages: int = 30) -> list:
-    """Every current pregame main-line quote from the US books for these markets."""
+def fetch_quotes(api_key: str, league: str, markets, max_pages: int = 30, alternate: bool = False) -> list:
+    """Every current pregame main-line quote from the US books for these
+    markets; alternate=True keeps the books' alternate quotes too (a
+    many-player market such as 1st Points Scorer: the sportsbooks list it as
+    alternate, Yes only; the exchanges as a main Yes / No)."""
     quotes, cursor = [], None
     for page in range(max_pages):
         body = _get(api_key, "/v1/odds", {
-            "league": league, "market": ",".join(markets), "alternate": "false", "live": "false",
+            "league": league, "market": ",".join(markets), "alternate": None if alternate else "false", "live": "false",
             "state": STATE, "cursor": cursor,
         })
-        quotes += [q for q in body.get("data") or [] if q.get("book") in US_BOOKS and not q.get("live") and not q.get("alternate")]
+        quotes += [q for q in body.get("data") or [] if q.get("book") in US_BOOKS and not q.get("live") and (alternate or not q.get("alternate"))]
         cursor = body.get("next_cursor")
         if not cursor:
             return quotes
@@ -420,7 +423,10 @@ def add_first_basket(api_key: str, games: dict, team_of, player_key, listed) -> 
     costs the points prices. Returns what it found, for the build's debug."""
     try:
         keys = first_basket_market_keys(listed) or [NBA_FIRST_BASKET_GUESS]
-        quotes = fetch_quotes(api_key, "nba", keys)
+        # DraftKings, FanDuel, Caesars, theScore... send this market as
+        # alternate quotes (the probe, 2026-10-21); main lines only got
+        # Fliff, Novig and ProphetX.
+        quotes = fetch_quotes(api_key, "nba", keys, alternate=True)
         found = build_book_odds(quotes, team_of, prop_markets={k: "first_basket" for k in keys}, td_market=None, line_markets={},
                                 player_key=player_key, yes_markets=set(keys))
         priced = 0
