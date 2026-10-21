@@ -1083,7 +1083,14 @@ and no new replay: it is King of the Crease's saves model (above), read as a pro
   final. Open row: league start -> each piece -> tonight; both sides' tiles on the eight rank colors
   (green = more work for him); main line both ways and the other lines with the model's price and
   first seen; "In net (expected)" with the gap note. Result column: saves + W/L, "Void" when someone
-  else started. No every-book column (no saves prices from SmartStake).
+  else started. The open row has the every-book column (`stat` "saves").
+- **Every book's saves price (2026-10-20, the owner: SmartStake has "Player Saves" on its odds
+  screen).** `smartstake.saves_market_keys` finds the market in `/v1/markets` by name (never a
+  guessed key: an unknown key in the odds call could cost every NHL price); `props.saves` like
+  shots. `best_saves_prices` swaps each Novig saves line's over / under for the best US book price
+  at the SAME line (`over_book` / `under_book` on the crease and saves rows, `nv_*` = Novig's) before
+  King of the Crease reads it; the fair `chance` stays Novig's, so King of the Crease's numbers
+  don't move. `version.json` `nhl.book_saves` = goalies a book prices (or why none).
 - Tests: `tests/test_nhl_saves_page.py` (the build) and `tests/test_nhl_saves_site.py` (the page on
   `helpers.nhl_saves()`, built at test time from the King of the Crease sample).
 
@@ -1161,7 +1168,7 @@ pages for the detail, not a copy of them.
 ## Not built yet (waiting on the user's priorities)
 
 Built: Shots, Goals (anytime goal, with expected goals), Points (1+ point), Saves (goalie saves), all above.
-For Saves: Best Plays doesn't list its plays yet; SmartStake has no saves market in its NHL list (Novig only). Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
+For Saves: Best Plays doesn't list its plays yet. Line Stacks and its SGP price log are built (above); next for it: a Score per book from the log. Next on the
 owner's list: re-weighting from the factor report once its groups pass 100+ plays (the records and the report exist: "Learning which factors win"). For Goals: the market's team totals as an anchor once the record has them.
 For King of the Crease: a payout estimate before puck drop from the logged payouts (see
 Winners), and a lone skater's place on the Shots page's Lineup Confirmed view.
@@ -1175,7 +1182,7 @@ Game Previews (it is already in `shots.json`).
 
 "We should be tracking via the best price available -- bettors should be line shopping anyway."
 `best_book_prices` (build_nhl.py, after SmartStake's `book_odds`) swaps each main-line price in
-`player_odds` (shots, points over / under, anytime goal) for the best price ANY US book quotes at
+`player_odds` (shots, points and saves over / under, anytime goal; the Saves page's own lines: `best_saves_prices`) for the best price ANY US book quotes at
 the SAME line when it beats Novig's; `over_book` / `under_book` / goal `book` name the book and
 `nv_*` keeps Novig's. So every edge, play, CLV first price and graded record (Shots, Goals, Points,
 Best Plays) is figured on that price. Chances stay the model's / Novig's fair chance. Build-wide: it

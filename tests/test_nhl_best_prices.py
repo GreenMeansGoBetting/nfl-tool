@@ -43,5 +43,35 @@ class BestPrices(unittest.TestCase):
         self.assertEqual(build_nhl.best_book_prices(ODDS, {}, GAMES), ODDS)
 
 
+SAVES = {"g1": {"AAA": [{"id": "77", "name": "Goalie One", "line": 26.5, "over": -115, "under": -105, "chance": 0.52, "thin": False, "alts": []},
+                        {"id": None, "name": "Unknown Two", "line": 24.5, "over": 100, "under": -120, "chance": 0.48, "thin": False, "alts": []}]}}
+SAVE_BOOKS = {"AAA_BBB": {"props": {"saves": {
+    "77": {"q": [["fanduel", "o", 26.5, -108, None], ["draftkings", "o", 27.5, 120, None], ["betmgm", "u", 26.5, -110, None]]},
+}}}}
+
+
+class BestSavesPrices(unittest.TestCase):
+    """The owner, 2026-10-20: SmartStake has "Player Saves" too, so the Saves page shops like the others."""
+
+    def test_best_price_at_novigs_line_and_novigs_fair_chance_kept(self):
+        out = build_nhl.best_saves_prices(SAVES, SAVE_BOOKS, GAMES)["g1"]["AAA"]
+        one, two = out
+        self.assertEqual((one["over"], one["over_book"]), (-108, "fanduel"))  # not the 27.5 line's +120
+        self.assertEqual(one["under"], -105)  # Novig's -105 beats the book's -110
+        self.assertNotIn("under_book", one)
+        self.assertEqual((one["nv_over"], one["chance"]), (-115, 0.52))  # King of the Crease's market number is Novig's
+        self.assertEqual((two["over"], two.get("over_book")), (100, None))  # a goalie the site doesn't know: Novig's
+        self.assertEqual(build_nhl.best_saves_prices(build_nhl.best_saves_prices(SAVES, SAVE_BOOKS, GAMES), SAVE_BOOKS, GAMES)["g1"]["AAA"], out)
+        self.assertEqual(SAVES["g1"]["AAA"][0]["over"], -115)
+        self.assertIs(build_nhl.best_saves_prices(SAVES, None, GAMES), SAVES)
+
+    def test_the_saves_market_is_found_by_name_never_guessed(self):
+        import smartstake
+        listed = [{"key": "hockey_player_saves", "name": "Player Saves"}, {"key": "hockey_period_1_player_saves", "name": "1st Period Player Saves"},
+                  {"key": "hockey_team_saves", "name": "Team Saves"}, {"key": "hockey_player_shots_on_goal", "name": "Player Shots On Goal"}]
+        self.assertEqual(smartstake.saves_market_keys(listed), ["hockey_player_saves"])
+        self.assertEqual(smartstake.saves_market_keys(None), [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1538,7 +1538,7 @@ def best_book_prices(player_odds: dict, book_odds: dict | None, games: list) -> 
                 found = [q for q in (((props.get(stat) or {}).get(pid) or {}).get("q") or []) if q[1] == side and q[2] == line and q[3] is not None]
                 return max(found, key=lambda q: decimal_odds(q[3])) if found else None
 
-            for stat, key in (("sog", "sog"), ("points", "points")):
+            for stat, key in (("sog", "sog"), ("points", "points"), ("saves", "saves")):
                 m = entry.get(key)
                 if not m or m.get("line") is None:
                     continue
@@ -1561,6 +1561,38 @@ def best_book_prices(player_odds: dict, book_odds: dict | None, games: list) -> 
                 entry["goal"] = goal
             swapped[pid] = entry
         out[gid] = swapped
+    return out
+
+
+def best_saves_prices(saves_lines: dict, book_odds: dict | None, games: list) -> dict:
+    """best_book_prices for Novig's goalie saves lines ({game id: {team:
+    [goalie]}}, what King of the Crease and the Saves page read): each main
+    line's over / under swapped for the best US book price at the SAME line
+    (`over_book`, `under_book`; Novig's stays as `nv_*`). The fair `chance`
+    (King of the Crease's market number) stays Novig's, so the promo is
+    unchanged; only the price a bettor gets moves. A goalie the site doesn't
+    know (`id` None) keeps Novig's price."""
+    if not book_odds:
+        return saves_lines
+    keys = {g["game_id"]: f"{g['away']}_{g['home']}" for g in games}
+    out = {}
+    for gid, teams in saves_lines.items():
+        priced = ((((book_odds.get(keys.get(gid, "")) or {}).get("props")) or {}).get("saves")) or {}
+        out[gid] = {}
+        for team, listed in teams.items():
+            rows = []
+            for row in listed:
+                row = dict(row)
+                quotes = ((priced.get(str(row["id"])) or {}).get("q") or []) if row.get("id") is not None else []
+                for side, field in (("o", "over"), ("u", "under")):
+                    base = row.get(f"nv_{field}", row.get(field))
+                    row[f"nv_{field}"] = base
+                    found = [q for q in quotes if q[1] == side and q[2] == row.get("line") and q[3] is not None]
+                    best = max(found, key=lambda q: decimal_odds(q[3])) if found else None
+                    if best and (base is None or decimal_odds(best[3]) > decimal_odds(base)):
+                        row[field], row[f"{field}_book"] = best[3], best[0]
+                rows.append(row)
+            out[gid][team] = rows
     return out
 
 
@@ -2832,6 +2864,8 @@ def crease_row(model, g: dict, team: str, opp: str, side: str, other: str, start
         "b2b": g.get(f"{side}_rest") == 1, "opp_b2b": g.get(f"{other}_rest") == 1,
         "shots": num(proj["shots"], 1), "mean": num(mean), "lift": {key: round(value, 3) for key, value in proj["lift"].items()},
         "line": line["line"] if line else None, "over": line["over"] if line else None, "under": line["under"] if line else None,
+        # The book each price came from (best_saves_prices; none = Novig's own).
+        "over_book": (line or {}).get("over_book"), "under_book": (line or {}).get("under_book"),
         "thin": line["thin"] if line else None, "alts": line["alts"] if line else [],
         "mkt_mean": num(mkt_mean), "blend": num(blend), "weight": round(weight, 3) if line else None,
         # Model and line too far apart to take at face value.
@@ -3526,7 +3560,9 @@ def main():
             if team in lineups:
                 listed = {p["id"] for p in lineups[team]}
                 lineups[team].extend(stats["skaters"][pid] for pid in posted["skaters"] if pid in stats["skaters"] and pid not in listed)
-    player_odds = best_book_prices(player_odds, None if "error" in book_odds_debug or "skipped" in book_odds_debug else book_odds, games)
+    shopped = None if "error" in book_odds_debug or "skipped" in book_odds_debug else book_odds
+    player_odds = best_book_prices(player_odds, shopped, games)
+    novig_saves = best_saves_prices(novig_saves, shopped, games)
     unlisted = unlisted_priced(games, lineups, player_odds, now_utc)
     for p in unlisted:
         print(f"WARNING: {p['name']} ({p['team']}) has a shots line but is on no NHL prop list.", file=sys.stderr)

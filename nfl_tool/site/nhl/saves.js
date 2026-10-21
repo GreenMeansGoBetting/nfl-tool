@@ -160,7 +160,7 @@ function playChip(r) {
       ? `<span class="goals-noodds" title="Novig has a saves line for him but no price on either side yet">No price</span>`
       : `<span class="goals-noodds" title="Novig has no saves line for him yet. The projection is there to shop elsewhere; lines fill in through the day.">No odds</span>`;
   }
-  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} saves at Novig's price"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} saves at the best price across books (Novig's line)"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
 }
 // Who should start, and how much stands behind the name (crease_starter in build_nhl.py).
 function starterTip(r) {
@@ -268,7 +268,7 @@ function detailRow(x, columns) {
   };
   const sameFirst = first.line === r.line;
   const ladder = has(r.line)
-    ? `<table class="data-table shots-ladder"><thead><tr><th>Saves</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>
+    ? `<table class="data-table shots-ladder"><thead><tr><th>Saves</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th title="The best price any US book has at this line">Best price</th><th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>
       ${priceRow(`Over ${fmt(r.line)}`, r.chance_over, r.over, sameFirst ? first.over : null, r.side === "over")}
       ${priceRow(`Under ${fmt(r.line)}`, 1 - r.chance_over, r.under, sameFirst ? first.under : null, r.side === "under")}
       ${(r.alts || []).map(([at, price, chance]) => priceRow(`Over ${fmt(at)}`, chance, price, null, false)).join("")}</tbody></table>
@@ -278,14 +278,20 @@ function detailRow(x, columns) {
   const net = `<div class="shots-detail-label">In net (expected) ${starterTag(r)}</div>
       <p class="shots-lineup">${starterTip(r)}</p>${gap}
       <p class="shots-lineup muted-label">Early in a season the model knows little: in the first two weeks of the replay it was barely better than calling every goalie average. It has not been shown to beat the line; the record says how it does.</p>`;
+  // Every book's price at his lines (SmartStake), tagged against the model's chance at that line.
+  const modelAt = (side, at) => {
+    const over = at === r.line ? r.chance_over : ((r.alts || []).find(([line]) => line === at) || [])[2];
+    return has(over) ? (side === "o" ? over : 1 - over) : null;
+  };
+  const bookCol = has(r.line) && has(r.id) ? bookPanelFor({ ...x, play: null }, "saves", r.line, "Saves", modelAt, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") }) : "";
   return `<tr class="shots-detail"><td colspan="${columns}">
-      <div class="shots-detail-grid">
+      <div class="shots-detail-grid${bookCol ? " has-odds" : ""}">
         <div class="shots-detail-main">
           <div class="shots-detail-label">How tonight's projection is built</div>${build}
           <div class="shots-detail-label">${logo(r.opp, 16)} Both sides of the matchup <span class="muted-label">this season, and where that ranks (green = more work for him)</span></div>${tiles}
           <div class="shots-detail-label">The price, at the model's fair price</div>${ladder}
         </div>
-        <div class="shots-detail-rink">${net}</div>
+        <div class="shots-detail-rink">${net}</div>${bookCol}
       </div>
     </td></tr>`;
 }
@@ -295,7 +301,7 @@ const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
   { key: null, label: "Goalie", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name || "Not named yet"}</span>`)}<span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
   { key: null, label: "Starter", title: "What stands behind the name: the NHL's projected lineup and the goalie Novig prices. A check mark = they agree. Never a confirmation: starters are official at warmups", cell: (x) => `<td class="shots-rating">${starterTag(x.r)}</td>` },
-  { key: null, label: "Play", title: "The better side of Novig's saves line for him at its price (o27.5 = 28 or more saves). No odds = not priced yet", cell: (x) => `<td class="shots-play-cell">${playChip(x.r)}${x.r.side && has(x.r.price) && x.r.name ? nhlPlayBox(nhlPlayEntry({ market: "saves", g: x.game, r: x.r, side: x.r.side, line: x.r.line, price: x.r.price })) : ""}</td>` },
+  { key: null, label: "Play", title: "The better side of Novig's saves line for him at the best price across books (o27.5 = 28 or more saves). No odds = not priced yet", cell: (x) => `<td class="shots-play-cell">${playChip(x.r)}${x.r.side && has(x.r.price) && x.r.name ? nhlPlayBox(nhlPlayEntry({ market: "saves", g: x.game, r: x.r, side: x.r.side, line: x.r.line, price: x.r.price })) : ""}</td>` },
   { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or the model 4+ saves from what the line says: look for news first)", cell: ratingCell },
   { key: "avg", label: "Avg", title: "His saves a start this season", cell: (x) => avgCell(x.r) },
   { key: "mean", label: "Proj", title: "The model's saves tonight (green / red: a save or more above / below the line)", cell: (x) => projCell(x.r) },

@@ -74,6 +74,11 @@ NFL_LINE_MARKETS = {"football_moneyline": "ml", "football_points_handicap": "spr
 # NHL: shots on goal, goals (anytime = the 0.5 line) and points (1+ = the 0.5
 # line: Line Stacks shows only stacks a book prices every leg of), keyed by the NHL's player id.
 NHL_PROP_MARKETS = {"hockey_player_shots_on_goal": "sog", "hockey_player_goals": "goals", "hockey_player_points": "points"}
+# Goalie saves (the Saves page; "Player Saves" on SmartStake's odds screen, the
+# owner 2026-10-20). Its key isn't in their docs either, so it is looked up in
+# /v1/markets by name, never guessed: an unknown key in the odds call could cost
+# every NHL price. Stored as props["saves"], over / under like shots.
+SAVES_SKIP = ("team", "period", "1st", "2nd", "3rd", "first", "second", "third", "alternate", "+", "against", "percent", "%")
 # First goal scorer (Icebreaker: DraftKings' promo needs a first goal scorer
 # bet). Its key isn't in SmartStake's docs, so each build looks it up in
 # /v1/markets: a player market named for the game's first goal, not a team's,
@@ -166,6 +171,19 @@ def first_goal_market_keys(markets) -> list:
         name = m if isinstance(m, str) else (m.get("name") or m.get("market_name") or "")
         text = f"{key} {name}".lower().replace("_", " ")
         if key and ("first" in text or "1st" in text) and "goal" in text and not any(word in text for word in FIRST_GOAL_SKIP):
+            keys.append(key)
+    return sorted(set(keys))
+
+
+def saves_market_keys(markets) -> list:
+    """The goalie saves market keys in a /v1/markets reply: a player market
+    named for saves, not a period's, a team's or save percentage."""
+    keys = []
+    for m in markets or []:
+        key = m if isinstance(m, str) else (m.get("key") or m.get("market_key") or m.get("id"))
+        name = m if isinstance(m, str) else (m.get("name") or m.get("market_name") or "")
+        text = f"{key} {name}".lower().replace("_", " ")
+        if key and "save" in text and not any(word in text for word in SAVES_SKIP):
             keys.append(key)
     return sorted(set(keys))
 
@@ -271,10 +289,23 @@ def fetch_nhl_book_odds(api_key: str | None, team_of, player_key, previous: dict
     if not api_key:
         return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
     try:
-        quotes = fetch_quotes(api_key, "nhl", list(NHL_PROP_MARKETS))
-        games = build_book_odds(quotes, team_of, prop_markets=NHL_PROP_MARKETS, td_market=None, line_markets={}, player_key=player_key)
+        try:
+            listed = fetch_markets(api_key, "nhl")
+        except Exception as e:
+            print(f"NOTE: SmartStake NHL market list failed ({e}); no saves prices this run.", file=sys.stderr)
+            listed = None
+        saves = saves_market_keys(listed)
+        markets = {**NHL_PROP_MARKETS, **{key: "saves" for key in saves}}
+        quotes = fetch_quotes(api_key, "nhl", list(markets))
+        games = build_book_odds(quotes, team_of, prop_markets=markets, td_market=None, line_markets={}, player_key=player_key)
         debug = {"quotes": len(quotes), "games": len(games), "books": sorted({q["book"] for q in quotes})}
-        debug["first_goal"] = add_first_goal(api_key, games, team_of, player_key)
+        if saves:
+            debug["saves"] = {"markets": saves, "goalies": sum(len(g["props"].get("saves") or {}) for g in games.values())}
+        else:
+            named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed or []]
+            near = [n for n in named if "save" in n.lower() or "goalie" in n.lower()]
+            debug["saves"] = {"note": "no market list" if listed is None else f"no saves market among {len(named)}: {'; '.join(near)}"[:500]}
+        debug["first_goal"] = add_first_goal(api_key, games, team_of, player_key, listed)
         return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake NHL fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
@@ -331,13 +362,13 @@ def fetch_markets(api_key: str, league: str) -> list:
     return (body.get("data") if isinstance(body, dict) else body) or []
 
 
-def add_first_goal(api_key: str, games: dict, team_of, player_key) -> dict:
+def add_first_goal(api_key: str, games: dict, team_of, player_key, listed=None) -> dict:
     """Adds every book's first goal scorer prices to the NHL games
     (props["first_goal"]), from markets found by first_goal_market_keys. Its
     own try: a failure here never costs the shots and goals prices. Returns
     what it found, for the build's debug."""
     try:
-        listed = fetch_markets(api_key, "nhl")
+        listed = fetch_markets(api_key, "nhl") if listed is None else listed
         keys = first_goal_market_keys(listed)
         if not keys:
             # Name the likeliest ones, so version.json shows what the market is called (or that it isn't there).

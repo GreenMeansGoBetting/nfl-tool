@@ -246,6 +246,8 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["stacks"] = sum(bool(g.get("stacks")) for g in (stacks.get("games") or {}).values()) if stacks else None  # Line Stacks: games with stacks
         ice = read_json(site / "nhl" / "icebreaker.json")
         note["icebreaker"] = len(ice.get("days") or {}) if ice else None  # Icebreaker: days with a board
+        sv = (data.get("book_odds_debug") or {}).get("saves") or {}
+        note["book_saves"] = sv.get("goalies", sv.get("note") or sv.get("error"))  # SmartStake: goalies with a saves price (or why none)
         fg = (data.get("book_odds_debug") or {}).get("first_goal") or {}
         note["first_goal"] = fg.get("players", fg.get("error") or fg.get("note") or fg.get("skipped"))  # SmartStake first goal scorer prices
     if suite == "nba":
