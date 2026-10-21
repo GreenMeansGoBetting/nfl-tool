@@ -247,6 +247,23 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-20b",
+    items: [
+      ["🏈", "<b>NFL Best Plays</b> is a new page under NFL → Player props: the week’s best player prop, Anytime TD and First TD plays in one list, with GMG’s fair price, the best price across your books, and Strong / Lean / Check ratings. It’s still a small sample this early, so read the note at the top and check injury news before you bet."],
+      ["🏈", "<b>NFL Player Props</b> now has Receiving, Rushing and Passing as their own rows in the NFL menu, like NBA and NHL."],
+      ["🏀", "<b>NBA Points</b> is a new page with every points line, the best price, projections, hit rates, how a player does with or without a teammate, and a shot-zone chart in each player’s view."],
+      ["🏀", "<b>NBA First Basket</b> is a new page with the tip, who scores first, expected and then confirmed starters, and Targets with Novig prices."],
+      ["🏀", "<b>NBA Team Identity</b> is a new page showing how each team plays, on both sides of every matchup."],
+      ["🏀", "<b>NBA Game Previews</b> can switch between the 2025-26 and 2026-27 seasons."],
+      ["🏒", "<b>NHL Saves</b> now shows every US book’s price, and <b>NHL Best Plays</b> adds Saves plays, shows each play’s Strong / Lean / Check, and sorts by Rating."],
+    ],
+    // Shown once, right after this update's popup is closed (openAfterNote).
+    after: {
+      title: "Before you go…",
+      text: "Thank you for your support and patience. I am adding a ton of new stuff and there will be bugs. If you ever feel like this wasn’t worth your money as I am in the process of building, I am happy to issue a refund. GMG to the moon - or whatever.",
+    },
+  },
+  {
     id: "2026-10-20",
     items: [
       ["✅", "<b>My Plays</b> is a new tab next to Promo Tools with every play you saved, NFL and NHL together. Plays grade themselves, and you can filter by sport and week or day to see your record and units."],
@@ -603,7 +620,13 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       overlay.className = "modal-overlay";
       overlay.hidden = true;
       overlay.innerHTML = '<div class="modal-box"><button type="button" class="modal-close" aria-label="Close">&times;</button><div class="upd-content"></div></div>';
-      const close = () => (overlay.hidden = true);
+      const close = () => {
+        overlay.hidden = true;
+        // An unseen update's "before you go" note follows, once.
+        const note = overlay.afterNote;
+        overlay.afterNote = null;
+        if (note) openAfterNote(note);
+      };
       overlay.addEventListener("click", (e) => {
         if (e.target === overlay || e.target.closest(".modal-close, .upd-done")) return close();
         if (e.target.closest(".upd-request")) {
@@ -632,6 +655,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       ${earlier.length ? `<details class="upd-earlier"><summary>Earlier updates (${earlier.length})</summary>${earlier.map((u) => block(u, false)).join("")}</details>` : ""}
       <div class="upd-foot">Feel free to click <button type="button" class="upd-request"><span aria-hidden="true">&#128161;</span> Request a feature</button> and send a message for what you'd like to see.</div>
       <div class="set-actions"><button type="button" class="set-done upd-done">Got it</button></div>`;
+    overlay.afterNote = fresh.find((u) => u.after)?.after || null;
     overlay.hidden = false;
     overlay.querySelector(".modal-box").scrollTop = 0;
     // Seen once it has been shown, so leaving without closing it doesn't bring it back.
@@ -642,6 +666,27 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       } catch (e) {}
       window.NFLSync?.push(GMG_UPDATES_SEEN_KEY, newest);
     }
+  }
+  // A short note from the owner after an update's popup (GMG_UPDATES `after`).
+  function openAfterNote(note) {
+    let overlay = document.getElementById("after-note-modal");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "after-note-modal";
+      overlay.className = "modal-overlay";
+      overlay.innerHTML = '<div class="modal-box"><button type="button" class="modal-close" aria-label="Close">&times;</button><div class="upd-content"></div></div>';
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay || e.target.closest(".modal-close, .upd-done")) overlay.hidden = true;
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !overlay.hidden) overlay.hidden = true;
+      });
+      document.body.appendChild(overlay);
+    }
+    overlay.querySelector(".upd-content").innerHTML = `<h3 class="upd-title"><span class="upd-dot" aria-hidden="true"></span>${note.title}</h3>
+      <p class="upd-note">${note.text}</p>
+      <div class="set-actions"><button type="button" class="set-done upd-done">Got it</button></div>`;
+    overlay.hidden = false;
   }
   // After the profile has loaded (it knows what this member saw on another
   // device). Never while a browser is driven by a script: the deploy's page

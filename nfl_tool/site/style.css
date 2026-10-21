@@ -3835,6 +3835,8 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .upd-earlier summary { cursor: pointer; color: var(--muted); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .upd-earlier[open] summary { margin-bottom: 10px; }
 .upd-foot { margin-top: 14px; padding: 10px 12px; border-radius: 6px; background: rgba(var(--accent-rgb), 0.08); border: 1px solid rgba(var(--accent-rgb), 0.35); font-size: 0.9rem; line-height: 1.6; }
+.upd-note { margin: 14px 0 6px; font-size: 1.02rem; line-height: 1.55; }
+#after-note-modal .modal-box { max-width: 480px; }
 .upd-request { display: inline-flex; align-items: center; gap: 4px; margin: 0 2px; padding: 1px 10px; border-radius: 999px; border: 1px solid rgba(var(--mid-rgb), 0.45); background: rgba(var(--mid-rgb), 0.12); color: var(--mid-text); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .upd-request:hover { background: rgba(var(--mid-rgb), 0.22); }
 

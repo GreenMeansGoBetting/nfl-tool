@@ -64,6 +64,32 @@ class Updates(unittest.TestCase):
         self.assertIn("Request a feature", text["text"])
         self.assertIn(KEY, PAGE.evaluate("Object.keys(JSON.parse(localStorage.getItem('nfl-tool.sync-meta.v1') || '{}'))"))
 
+    def test_before_you_go_note_follows_a_new_update_once(self):
+        # The owner, 2026-10-20: a "Before you go..." thank-you after the update popup.
+        out = PAGE.evaluate(f"""() => {{
+            const saved = GMG_UPDATES.slice();
+            GMG_UPDATES.unshift({{ id: '2099-01-01', items: [['x', '<b>Test</b> update']], after: {{ title: 'Before you go…', text: 'Thanks for the support.' }} }});
+            localStorage.setItem('{KEY}', JSON.stringify(saved[0].id));
+            try {{
+                const note = () => document.getElementById('after-note-modal');
+                GMGUpdates.open();
+                const before = !!note() && !note().hidden;
+                document.querySelector('#updates-modal .upd-done').click();
+                const after = note() && !note().hidden ? note().textContent : null;
+                note().querySelector('.upd-done').click();
+                GMGUpdates.open();  // opened again by hand: already seen, no note
+                document.querySelector('#updates-modal .upd-done').click();
+                return {{ before, after, again: !note().hidden }};
+            }} finally {{
+                GMG_UPDATES.length = 0; GMG_UPDATES.push(...saved);
+                localStorage.removeItem('{KEY}');
+            }}
+        }}""")
+        self.assertFalse(out["before"])
+        self.assertIn("Before you go", out["after"])
+        self.assertIn("Thanks for the support.", out["after"])
+        self.assertFalse(out["again"])
+
     def test_older_updates_fold_under_the_new_ones(self):
         out = PAGE.evaluate(f"""() => {{
             const saved = GMG_UPDATES.slice();

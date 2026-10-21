@@ -318,7 +318,8 @@ For people who'd pay but won't join Discord. Password version: no email service,
   shows. "What's new" in the account menu opens it again (with a dot while there is something unseen). It never opens on its own in a browser
   driven by a script (`navigator.webdriver`: the gate, the tests). **To post an update:** add one
   entry at the TOP (`id` = the date, `"2026-10-15b"` for a second that day; `items` =
-  `[emoji, "<b>Feature</b> rest of the line"]`), in the owner's wording. Test:
+  `[emoji, "<b>Feature</b> rest of the line"]`), in the owner's wording. An optional `after: {title, text}` is a
+  note from the owner shown once, right after that update's popup is closed (2026-10-20b: "Before you go…"). Test:
   `tests/test_updates_site.py`.
 - **Promo payouts** (`PROMO_PAYOUTS`, 2026-10-14): `/api/crease-payouts` (NHL King of the
   Crease, keyed by `date`) and `/api/koe-payouts` (NFL King of the Endzone, keyed by nflverse
