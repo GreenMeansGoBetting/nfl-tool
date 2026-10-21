@@ -2,55 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GMG's NFL Suite &mdash; Possible Plays</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
-<link rel="stylesheet" href="style.css">
+<meta http-equiv="refresh" content="0; url=my-plays.html">
+<title>GMG Sports Data Suite &mdash; My Plays</title>
 </head>
 <body>
-<div class="topbar">
-  <a class="brand" href="game-overview.html" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
-  <nav class="page-nav">
-    <a href="/game-overview.html" data-sport="nfl">NFL</a>
-    <a href="/nba/" data-sport="nba">NBA</a>
-    <a href="/nhl/" data-sport="nhl">NHL</a>
-    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
-  </nav>
-  <div class="topbar-actions">
-    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>    <a href="https://github.com/GreenMeansGoBetting/nfl-tool/actions/workflows/deploy.yml" target="_blank" rel="noopener" class="update-odds-link" title="Opens GitHub Actions in a new tab -- click &quot;Run workflow&quot; there to fetch fresh odds right now">&#128260; Update Odds</a>
-  </div>
-</div>
-
-<main>
-  <div id="empty-state" class="empty-state" hidden>
-    <p>Nothing saved yet. Check a player in an odds modal, or a side on Game Previews' Pick Tracker, and it'll show up here.</p>
-    <p class="pikkit-reminder">Always line shop with Pikkit! (Use Code "GMG")</p>
-  </div>
-  <p id="fallback-note" class="no-data-note" hidden>Anytime/First TD plays aren't auto-graded right now -- nflverse hasn't published this season's real play-by-play data yet, so there's nothing accurate to grade them against. Spread/Total/Moneyline plays still grade normally. This resolves itself automatically once the season's real data is live.</p>
-  <div class="results-bar">
-    <button type="button" id="view-results-btn" class="wheel-spin-btn">&#128202; View Results</button>
-    <button type="button" id="photo-export-btn" class="wheel-spin-btn">&#128247; Photo Export</button>
-  </div>
-  <div id="quick-select-bar" class="quick-select-bar" hidden></div>
-  <div id="wheel-action-bar" class="wheel-action-bar" hidden>
-    <span id="wheel-selected-count"></span>
-    <button type="button" id="open-wheel-btn" class="wheel-spin-btn">&#127920; Spin a Parlay</button>
-  </div>
-  <div id="plays-content"></div>
-</main>
-
-<footer>
-  Napkin-math notes, not a graded pick -- saved to this browser only.
-</footer>
-
-<script src="sync.js"></script>
-<script src="teams.js"></script>
-<script src="common.js"></script>
-<script src="player-card.js"></script>
-<script src="book-odds.js"></script>
-<script src="plays-grading.js"></script>
-<script src="possible-plays.js"></script>
+<p>Possible Plays has moved -- your plays and the Parlay Wheel are on <a href="my-plays.html">My Plays</a>.</p>
 </body>
 </html>

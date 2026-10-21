@@ -1,4 +1,5 @@
-"""Possible Plays' Photo Export (site/possible-plays.js), run in a real browser.
+"""My Plays' Photo Export (site/my-plays.js; it came from the retired Possible Plays
+page), run in a real browser.
 
 What is pinned (2026-10-20, a member: his saved card "is basically just listing
 all my bets", he wanted the greens and reds and the units): once a week's plays
@@ -35,11 +36,11 @@ def tearDownModule():
 
 class PhotoExport(unittest.TestCase):
     def open_export(self):
-        page = SITE.open("possible-plays.html")
-        page.evaluate("(plays) => localStorage.setItem('nfl-tool.possible-plays.v1', JSON.stringify(plays))", PLAYS)
+        page = SITE.open("my-plays.html")
+        page.evaluate("(plays) => { localStorage.setItem('nfl-tool.possible-plays.v1', JSON.stringify(plays)); localStorage.removeItem('nfl-tool.nhl-plays.v1'); }", PLAYS)
         page.reload()
         page.wait_for_function("() => typeof DATA !== 'undefined' && DATA !== null")
-        page.evaluate("() => { exportWeek = 99; exportCats = new Set(['Total', 'Spread', 'Anytime TD']); openExportModal(); }")
+        page.click("#photo-export-btn")
         return page
 
     def test_graded_week_shows_results_and_record(self):
@@ -69,3 +70,12 @@ class PhotoExport(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OldPage(unittest.TestCase):
+    def test_possible_plays_sends_you_to_my_plays(self):
+        page = SITE.open("possible-plays.html")
+        try:
+            page.wait_for_url("**/my-plays.html")
+        finally:
+            page.close()

@@ -3,33 +3,64 @@
 // plays-grading.js against data.json). NHL plays are the boxes on the NHL
 // prop pages (sync.js loadNhlPlays), graded here from each team's box scores
 // (nhl/players/<TEAM>.json). Both keep the price saved with them. Filter by
-// sport and week / day, check rows, and save a picture with the greens and
-// reds (Photo Export, the same card as Possible Plays').
+// sport, week / day and type, sort by any column, check rows, and save a
+// picture with the greens and reds (Photo Export). The Parlay Wheel (the
+// owner, 2026-10-21, replacing the old NFL-only Possible Plays page) asks
+// which plays go on the wheel, any sport, then spins (parlay-wheel.js).
 
 let NHL = null; // nhl/data.json (schedule, team logos)
 const nhlFiles = {}; // team -> nhl/players/<TEAM>.json, fetched for grading
-const mpView = { sport: "all", when: "all" };
+const mpView = { sport: "all", when: "all", type: "all" };
+const mpSort = { col: "when", dir: "desc" };
 const mpSelected = new Set(); // checked rows (ids), this visit only
-const MP_SPORTS = [["all", "All"], ["nfl", "NFL"], ["nhl", "NHL"]];
+// NBA has no saved plays yet: its prop pages bring a loadNbaPlays / saveNbaPlays
+// pair (like the NHL's in sync.js) and the plays show up here with a date.
+const MP_SPORTS = [["nfl", "NFL"], ["nba", "NBA"], ["nhl", "NHL"]];
+const hasNba = () => typeof loadNbaPlays === "function";
 
 const mpHas = (n) => n !== null && n !== undefined;
 const sportOf = (p) => p.sport || "nfl";
 const nhlDay = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-// "nfl:7" or "nhl:2026-10-18": a play's week (NFL) or day (NHL).
-const periodOf = (p) => (sportOf(p) === "nhl" ? `nhl:${p.date}` : `nfl:${p.week}`);
+// "nfl:7" or "nhl:2026-10-18": a play's week (NFL) or day (NBA, NHL).
+const periodOf = (p) => (sportOf(p) === "nfl" ? `nfl:${p.week}` : `${sportOf(p)}:${p.date}`);
 const periodName = (key) => {
   const [sport, v] = key.split(":");
-  return sport === "nhl" ? nhlDay(v) : `Week ${v}`;
+  return sport === "nfl" ? `Week ${v}` : nhlDay(v);
 };
+// The game's day, so plays from every sport sort together: an NFL play's from
+// data.json's schedule (its week), the others' saved with them.
+function playDate(p) {
+  if (sportOf(p) !== "nfl") return p.date || "";
+  const g = ((DATA || {}).schedule || []).find((x) => x.week === p.week && `${x.away} @ ${x.home}` === p.matchup);
+  return (g && g.date) || "";
+}
 
 function allPlays() {
-  return [...loadPossiblePlays().map((p) => ({ ...p, sport: "nfl" })), ...loadNhlPlays()];
+  return [...loadPossiblePlays().map((p) => ({ ...p, sport: "nfl" })), ...(hasNba() ? loadNbaPlays() : []), ...loadNhlPlays()];
+}
+const MP_SORTS = {
+  when: (p) => `${playDate(p)}|${String(p.week || 0).padStart(3, "0")}`,
+  sport: (p) => sportOf(p),
+  game: (p) => p.matchup || "",
+  type: (p) => p.category || "",
+  play: (p) => playText(p),
+  odds: (p) => (mpHas(p.odds) && p.odds !== "" ? Number(p.odds) : -Infinity),
+  units: (p) => (p.result === "win" || p.result === "loss" ? unitsForPlay(p) : -Infinity),
+  result: (p) => ({ win: 0, push: 1, void: 2, loss: 3 })[p.result] ?? 4,
+};
+const MP_SORT_FIRST_DIR = { when: "desc", odds: "desc", units: "desc" }; // the rest start A to Z
+function sortPlays(list) {
+  const key = MP_SORTS[mpSort.col];
+  const sign = mpSort.dir === "asc" ? 1 : -1;
+  const cmp = (a, b) => (typeof a === "number" ? a - b : String(a).localeCompare(String(b)));
+  // Ties: newest first, then game, then type.
+  return list.slice().sort((a, b) => sign * cmp(key(a), key(b)) || -cmp(MP_SORTS.when(a), MP_SORTS.when(b)) || cmp(a.matchup || "", b.matchup || "") || cmp(a.category || "", b.category || ""));
 }
 function shownPlays() {
-  return allPlays()
+  return sortPlays(allPlays()
     .filter((p) => mpView.sport === "all" || sportOf(p) === mpView.sport)
     .filter((p) => mpView.when === "all" || periodOf(p) === mpView.when)
-    .sort((a, b) => (sportOf(a) !== sportOf(b) ? (sportOf(a) === "nfl" ? -1 : 1) : sportOf(a) === "nhl" ? b.date.localeCompare(a.date) : b.week - a.week) || (a.matchup || "").localeCompare(b.matchup || ""));
+    .filter((p) => mpView.type === "all" || `${sportOf(p)}:${p.category}` === mpView.type));
 }
 
 // ---- NHL grading ----
@@ -103,6 +134,7 @@ async function loadNhlForGrading() {
 // ---- results by hand, prices, removing ----
 function updatePlay(p, change) {
   if (sportOf(p) === "nhl") saveNhlPlays(loadNhlPlays().map((x) => (x.id === p.id ? change(x) : x)));
+  else if (sportOf(p) === "nba") saveNbaPlays(loadNbaPlays().map((x) => (x.id === p.id ? change(x) : x)));
   else savePossiblePlays(loadPossiblePlays().map((x) => (x.id === p.id ? change(x) : x)));
 }
 function setResult(p, result) {
@@ -117,6 +149,7 @@ function setResult(p, result) {
 }
 function removePlay(p) {
   if (sportOf(p) === "nhl") saveNhlPlays(loadNhlPlays().filter((x) => x.id !== p.id));
+  else if (sportOf(p) === "nba") saveNbaPlays(loadNbaPlays().filter((x) => x.id !== p.id));
   else savePossiblePlays(loadPossiblePlays().filter((x) => x.id !== p.id));
   mpSelected.delete(p.id);
 }
@@ -137,25 +170,40 @@ function mpLogo(p, size = 18) {
 const playText = exportPlayText;
 function renderControls() {
   const plays = allPlays();
-  const sportChips = MP_SPORTS.map(([key, label]) => {
+  // A sport's chip shows once it has plays (NBA's once its pages save them).
+  const sportChips = [["all", "All"], ...MP_SPORTS].map(([key, label]) => {
     const n = key === "all" ? plays.length : plays.filter((p) => sportOf(p) === key).length;
+    if (key !== "all" && !n) return "";
     return `<button type="button" class="quick-select-week-btn mp-sport${mpView.sport === key ? " active" : ""}" data-sport="${key}">${label} <span class="muted-label">(${n})</span></button>`;
   }).join("");
   const inSport = plays.filter((p) => mpView.sport === "all" || sportOf(p) === mpView.sport);
-  const periods = [...new Set(inSport.map(periodOf))].sort((a, b) => {
-    const [sa, va] = a.split(":");
-    const [sb, vb] = b.split(":");
-    return sa !== sb ? (sa === "nfl" ? -1 : 1) : sa === "nfl" ? vb - va : vb.localeCompare(va);
-  });
+  const periods = [...new Set(inSport.map(periodOf))];
   if (mpView.when !== "all" && !periods.includes(mpView.when)) mpView.when = "all";
-  const group = (sport, label) => {
-    const opts = periods.filter((k) => k.startsWith(`${sport}:`)).map((k) => `<option value="${k}"${mpView.when === k ? " selected" : ""}>${periodName(k)}</option>`).join("");
-    return opts ? `<optgroup label="${label}">${opts}</optgroup>` : "";
-  };
+  const types = [...new Set(inSport.filter((p) => mpView.when === "all" || periodOf(p) === mpView.when).map((p) => `${sportOf(p)}:${p.category}`))];
+  if (mpView.type !== "all" && !types.includes(mpView.type)) mpView.type = "all";
   document.getElementById("mp-controls").innerHTML = `
     <div class="mp-chips">${sportChips}</div>
-    <label class="results-week-label">When <select id="mp-when"><option value="all"${mpView.when === "all" ? " selected" : ""}>Everything</option>${group("nfl", "NFL weeks")}${group("nhl", "NHL days")}</select></label>
-    <button type="button" id="photo-export-btn" class="wheel-spin-btn">&#128247; Photo Export</button>`;
+    <label class="results-week-label">When <select id="mp-when"><option value="all"${mpView.when === "all" ? " selected" : ""}>Everything</option>${periodOptions(periods, mpView.when)}</select></label>
+    <label class="results-week-label">Type <select id="mp-type"><option value="all"${mpView.type === "all" ? " selected" : ""}>Every Type</option>${typeOptions(types, mpView.type)}</select></label>
+    <div class="mp-actions">
+      <button type="button" id="mp-wheel-btn" class="wheel-spin-btn">&#127920; Parlay Wheel</button>
+      <button type="button" id="photo-export-btn" class="wheel-spin-btn">&#128247; Photo Export</button>
+    </div>`;
+}
+// <option>s for a When / Type select, grouped by sport (newest week / day first).
+function periodOptions(periods, current) {
+  return MP_SPORTS.map(([sport, label]) => {
+    const keys = periods.filter((k) => k.startsWith(`${sport}:`)).sort((a, b) => (sport === "nfl" ? b.split(":")[1] - a.split(":")[1] : b.localeCompare(a)));
+    const opts = keys.map((k) => `<option value="${k}"${current === k ? " selected" : ""}>${periodName(k)}</option>`).join("");
+    return opts ? `<optgroup label="${label} ${sport === "nfl" ? "Weeks" : "Days"}">${opts}</optgroup>` : "";
+  }).join("");
+}
+function typeOptions(types, current) {
+  return MP_SPORTS.map(([sport, label]) => {
+    const keys = types.filter((k) => k.startsWith(`${sport}:`)).sort();
+    const opts = keys.map((k) => `<option value="${k}"${current === k ? " selected" : ""}>${k.slice(sport.length + 1)}</option>`).join("");
+    return opts ? `<optgroup label="${label}">${opts}</optgroup>` : "";
+  }).join("");
 }
 function recordLine(label, list) {
   const t = tallyResults(list);
@@ -168,7 +216,7 @@ function renderSummary(list) {
   const use = picked.length ? picked : list;
   const lines = [recordLine(picked.length ? `${picked.length} checked` : "All shown", use)];
   if (mpView.sport === "all") {
-    ["nfl", "nhl"].forEach((s) => {
+    MP_SPORTS.map(([s]) => s).forEach((s) => {
       const part = use.filter((p) => sportOf(p) === s);
       if (part.length && part.length < use.length) lines.push(recordLine(s.toUpperCase(), part));
     });
@@ -179,6 +227,11 @@ function renderSummary(list) {
 function oddsCell(p) {
   if (mpHas(p.odds) && p.odds !== "") return `<td class="num">${showOdds(p.odds)}</td>`;
   return `<td class="num"><input type="text" class="mp-price" data-id="${encodeURIComponent(p.id)}" placeholder="Price" size="5" title="The price your book gave you for this stack"></td>`;
+}
+// A column header that sorts the list (click again to flip it).
+function sortHead(col, label, cls = "") {
+  const on = mpSort.col === col;
+  return `<th class="mp-sort${cls ? ` ${cls}` : ""}${on ? " mp-sort-on" : ""}" data-sort="${col}" title="Sort by ${label}">${label}${on ? (mpSort.dir === "asc" ? " &#9650;" : " &#9660;") : ""}</th>`;
 }
 function renderTable() {
   const list = shownPlays();
@@ -211,7 +264,7 @@ function renderTable() {
     </tr>`;
   }).join("");
   box.innerHTML = `<div class="results-table-scroll"><table class="data-table results-table mp-table">
-    <thead><tr><th><input type="checkbox" id="mp-select-all"${allOn ? " checked" : ""} aria-label="Check every play shown"></th><th>Sport</th><th>When</th><th>Game</th><th>Type</th><th>Play</th><th class="num">Odds</th><th class="num">Units</th><th>Result</th><th>Set result</th></tr></thead>
+    <thead><tr><th><input type="checkbox" id="mp-select-all"${allOn ? " checked" : ""} aria-label="Check every play shown"></th>${sortHead("sport", "Sport")}${sortHead("when", "When")}${sortHead("game", "Game")}${sortHead("type", "Type")}${sortHead("play", "Play")}${sortHead("odds", "Odds", "num")}${sortHead("units", "Units", "num")}${sortHead("result", "Result")}<th>Set Result</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 }
 function render() {
@@ -225,7 +278,7 @@ window.render = render; // sync.js redraws after another device's change
 // ---- Photo Export (the Possible Plays card, every sport) ----
 let exportShowResults = false;
 let exportCols = 0; // 0 = auto
-const exportOrder = (p) => `${sportOf(p) === "nfl" ? 0 : 1}|${p.category}`;
+const exportOrder = (p) => `${MP_SPORTS.findIndex(([s]) => s === sportOf(p))}|${p.category}`;
 function exportList() {
   const list = shownPlays();
   const picked = list.filter((p) => mpSelected.has(p.id));
@@ -346,6 +399,136 @@ async function saveImage() {
   }, 2500);
 }
 
+// ---- Parlay Wheel: pick the plays, then spin (parlay-wheel.js) ----
+// Opens on every pending play (or the rows checked in the list); narrow it
+// by sport, week / day and type, uncheck single plays, then pick the legs.
+const wheelPick = { sports: new Set(), when: "all", types: null, pending: true, off: new Set() };
+const wheelGameKey = (p) => `${periodOf(p)}|${p.matchup || p.id}`;
+const WHEEL_LOOK = {
+  gameKey: wheelGameKey,
+  text: (p) => playText(p),
+  // A slice has little room: "C. Makar Goal", "N. Kucherov O2.5 SOG".
+  short: (p) => playText(p).replace(/ anytime goal$/i, " Goal").replace(/ Over (\d)/, " O$1").replace(/ Under (\d)/, " U$1"),
+  logo(p) {
+    if (!p.team) return "";
+    if (sportOf(p) === "nfl") return teamLogoUrl(p.team);
+    const t = sportOf(p) === "nhl" && NHL && NHL.teams[p.team];
+    return (t && t.logo) || "";
+  },
+  color(p) {
+    if (!p.team) return "";
+    if (sportOf(p) === "nfl") return `rgb(${teamAccentRgb(p.team).join(",")})`;
+    const t = sportOf(p) === "nhl" && NHL && NHL.teams[p.team];
+    return t && t.color ? `#${t.color}` : "";
+  },
+  onRestart: () => renderWheelPicker(),
+};
+function wheelCandidates() {
+  return sortPlays(allPlays()
+    .filter((p) => !wheelPick.pending || !p.result)
+    .filter((p) => !wheelPick.sports.size || wheelPick.sports.has(sportOf(p)))
+    .filter((p) => wheelPick.when === "all" || periodOf(p) === wheelPick.when));
+}
+function wheelChosen() {
+  return wheelCandidates().filter((p) => (!wheelPick.types || wheelPick.types.has(`${sportOf(p)}:${p.category}`)) && !wheelPick.off.has(p.id));
+}
+function openWheelPicker() {
+  const checked = shownPlays().filter((p) => mpSelected.has(p.id));
+  wheelPick.sports = new Set();
+  wheelPick.when = "all";
+  wheelPick.types = null;
+  wheelPick.pending = !checked.length || checked.every((p) => !p.result);
+  wheelPick.off = new Set(checked.length ? allPlays().filter((p) => !mpSelected.has(p.id)).map((p) => p.id) : []);
+  renderWheelPicker();
+}
+function renderWheelPicker() {
+  const base = allPlays().filter((p) => !wheelPick.pending || !p.result);
+  const sports = MP_SPORTS.filter(([s]) => base.some((p) => sportOf(p) === s));
+  const sportChips = sports.length > 1 ? sports.map(([s, label]) => `<button type="button" class="quick-select-week-btn wp-sport${!wheelPick.sports.size || wheelPick.sports.has(s) ? " active" : ""}" data-sport="${s}">${label}</button>`).join("") : "";
+  const inSports = base.filter((p) => !wheelPick.sports.size || wheelPick.sports.has(sportOf(p)));
+  const periods = [...new Set(inSports.map(periodOf))];
+  if (wheelPick.when !== "all" && !periods.includes(wheelPick.when)) wheelPick.when = "all";
+  const cands = wheelCandidates();
+  const types = [...new Set(cands.map((p) => `${sportOf(p)}:${p.category}`))].sort();
+  const multiSport = new Set(cands.map(sportOf)).size > 1;
+  const typeChips = types.length > 1 ? types.map((k) => {
+    const on = !wheelPick.types || wheelPick.types.has(k);
+    const [s, name] = [k.split(":")[0], k.slice(k.indexOf(":") + 1)];
+    return `<button type="button" class="quick-select-week-btn wp-type${on ? " active" : ""}" data-type="${encodeURIComponent(k)}">${multiSport ? `${s.toUpperCase()} ` : ""}${name}</button>`;
+  }).join("") : "";
+  const shown = cands.filter((p) => !wheelPick.types || wheelPick.types.has(`${sportOf(p)}:${p.category}`));
+  const games = [...new Set(shown.map(wheelGameKey))];
+  const list = games.map((g) => {
+    const rows = shown.filter((p) => wheelGameKey(p) === g);
+    const head = `${multiSport ? `${sportOf(rows[0]).toUpperCase()} · ` : ""}${periodName(periodOf(rows[0]))} · ${rows[0].matchup || ""}`;
+    return `<div class="wp-game">${head}</div>${rows.map((p) => `<label class="wp-row">
+      <input type="checkbox" class="wp-play" data-id="${encodeURIComponent(p.id)}"${wheelPick.off.has(p.id) ? "" : " checked"}>
+      <span class="mp-play">${mpLogo(p)}<span>${playText(p)}</span></span>
+      <span class="muted-label">${p.category}</span>
+      <span class="wp-odds">${mpHas(p.odds) && p.odds !== "" ? showOdds(p.odds) : "--"}</span></label>`).join("")}`;
+  }).join("");
+  const chosen = wheelChosen();
+  const nGames = new Set(chosen.map(wheelGameKey)).size;
+  const scroll = (document.querySelector(".wp-list") || {}).scrollTop || 0; // keep the list where it was
+  showWheelModal(`<div class="wp-picker">
+    <h3>&#127920; Parlay Wheel</h3>
+    <p class="muted-label">Pick the plays that go on your wheel.</p>
+    <div class="wp-filters">
+      ${sportChips ? `<div class="wp-filter"><span class="quick-select-label">Sport:</span>${sportChips}</div>` : ""}
+      <div class="wp-filter">
+        <label class="results-week-label">When <select id="wp-when"><option value="all"${wheelPick.when === "all" ? " selected" : ""}>Everything</option>${periodOptions(periods, wheelPick.when)}</select></label>
+        <label class="pe-check"><input type="checkbox" id="wp-pending"${wheelPick.pending ? " checked" : ""}> Pending Plays Only</label>
+      </div>
+      ${typeChips ? `<div class="wp-filter"><span class="quick-select-label">Type:</span>${typeChips}</div>` : ""}
+    </div>
+    <div class="wp-bulk"><button type="button" class="results-clear-selection" id="wp-all">Check All</button><button type="button" class="results-clear-selection" id="wp-none">Uncheck All</button></div>
+    <div class="wp-list">${list || `<p class="no-data-note">No plays for this filter.${wheelPick.pending ? " Uncheck Pending Plays Only to use graded ones." : ""}</p>`}</div>
+    <div class="wp-foot"><span><b>${chosen.length}</b> plays &middot; <b>${nGames}</b> games</span>
+      <button type="button" id="wp-next" class="wheel-spin-btn"${chosen.length ? "" : " disabled"}>Pick Legs &rarr;</button></div>
+  </div>`);
+  document.querySelector(".wp-list").scrollTop = scroll;
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".wp-picker")) return;
+  const sport = e.target.closest(".wp-sport");
+  if (sport) {
+    // Every sport is on to start: the first click keeps just that one.
+    const s = sport.dataset.sport;
+    if (!wheelPick.sports.size) wheelPick.sports.add(s);
+    else if (wheelPick.sports.has(s)) wheelPick.sports.delete(s);
+    else wheelPick.sports.add(s);
+    wheelPick.types = null;
+    return renderWheelPicker();
+  }
+  const type = e.target.closest(".wp-type");
+  if (type) {
+    const all = [...new Set(wheelCandidates().map((p) => `${sportOf(p)}:${p.category}`))];
+    const k = decodeURIComponent(type.dataset.type);
+    wheelPick.types = wheelPick.types || new Set(all);
+    if (wheelPick.types.has(k)) wheelPick.types.delete(k);
+    else wheelPick.types.add(k);
+    if (all.every((t) => wheelPick.types.has(t))) wheelPick.types = null;
+    return renderWheelPicker();
+  }
+  if (e.target.closest("#wp-all, #wp-none")) {
+    const ids = [...document.querySelectorAll(".wp-play")].map((b) => decodeURIComponent(b.dataset.id));
+    ids.forEach((id) => (e.target.closest("#wp-all") ? wheelPick.off.delete(id) : wheelPick.off.add(id)));
+    return renderWheelPicker();
+  }
+  if (e.target.closest("#wp-next")) return openParlayWheel(wheelChosen(), WHEEL_LOOK);
+});
+document.addEventListener("change", (e) => {
+  if (!e.target.closest(".wp-picker")) return;
+  if (e.target.id === "wp-when") wheelPick.when = e.target.value;
+  else if (e.target.id === "wp-pending") wheelPick.pending = e.target.checked;
+  else if (e.target.classList.contains("wp-play")) {
+    const id = decodeURIComponent(e.target.dataset.id);
+    if (e.target.checked) wheelPick.off.delete(id);
+    else wheelPick.off.add(id);
+  } else return;
+  renderWheelPicker();
+});
+
 // ---- events ----
 const playById = (encoded) => allPlays().find((p) => p.id === decodeURIComponent(encoded));
 document.addEventListener("click", (e) => {
@@ -355,6 +538,14 @@ document.addEventListener("click", (e) => {
     return render();
   }
   if (e.target.closest("#photo-export-btn")) return openExport();
+  if (e.target.closest("#mp-wheel-btn")) return openWheelPicker();
+  const head = e.target.closest(".mp-sort");
+  if (head) {
+    const col = head.dataset.sort;
+    mpSort.dir = mpSort.col === col ? (mpSort.dir === "asc" ? "desc" : "asc") : MP_SORT_FIRST_DIR[col] || "asc";
+    mpSort.col = col;
+    return renderTable();
+  }
   if (e.target.closest("#pe-save-btn")) return saveImage();
   const col = e.target.closest(".pe-col-btn");
   if (col) {
@@ -381,6 +572,10 @@ document.addEventListener("click", (e) => {
 document.addEventListener("change", (e) => {
   if (e.target.id === "mp-when") {
     mpView.when = e.target.value;
+    return render();
+  }
+  if (e.target.id === "mp-type") {
+    mpView.type = e.target.value;
     return render();
   }
   if (e.target.id === "pe-show-results") {

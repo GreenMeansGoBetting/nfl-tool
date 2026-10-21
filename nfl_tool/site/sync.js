@@ -780,8 +780,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     const bar = document.querySelector(".topbar");
     if (!nav || !bar || bar.querySelector(".nav-menu")) return;
     const onPromo = /promo-tools\.html$/.test(location.pathname);
-    // My Plays (every sport's saved plays) and the NFL Parlay Wheel page it links to.
-    const onMine = ["my-plays.html", "possible-plays.html"].includes(PAGE_FILE);
+    // My Plays (every sport's saved plays and the Parlay Wheel).
+    const onMine = PAGE_FILE === "my-plays.html";
     nav.textContent = "";
     const add = (label, href, kind, itemsHtml, current) => {
       const trigger = document.createElement("a");

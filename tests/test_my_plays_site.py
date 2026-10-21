@@ -8,7 +8,13 @@ play saved from a page grades itself from the team's box score (shots, goals,
 points, saves, Line Stacks; a player who didn't play is a Void); the sport filter
 and the record; a hand result beats the grade; a stack's price can be typed in;
 the NHL box saves the play without opening the row; and My Plays is its own
-button in the top menu."""
+button in the top menu.
+
+The Parlay Wheel (the owner, 2026-10-21: the old NFL-only Possible Plays page
+goes, the wheel comes here and "prompt[s] users to select what they want in
+their wheel", any sport): the button asks which plays go on it (sport, day,
+type, single plays; rows checked in the list start it), a game is one sport's
+matchup on one day, and the column headers sort the list."""
 import unittest
 
 from helpers import nhl_data  # first: puts tools/ on the import path  # noqa: F401
@@ -105,6 +111,73 @@ class MyPlays(unittest.TestCase):
             self.assertEqual(page.get_attribute(".page-nav .mine-trigger", "href"), "/my-plays.html")
         finally:
             page.close()
+
+
+class ParlayWheel(unittest.TestCase):
+    PICKED = "() => [...document.querySelectorAll('.wp-play:checked')].map((b) => decodeURIComponent(b.dataset.id))"
+
+    def test_the_wheel_asks_which_plays_then_spins_one_leg_per_game(self):
+        page = open_my_plays()
+        try:
+            page.click("#mp-wheel-btn")
+            # Every play here is graded, so "Pending Plays Only" starts with none.
+            self.assertEqual(page.locator(".wp-play").count(), 0)
+            page.click("#wp-pending")
+            self.assertEqual(len(page.evaluate(self.PICKED)), 6)
+            self.assertIn("2</b> games", page.inner_html(".wp-foot"))  # NFL BUF @ KC and NHL OTT @ NJD
+            # Sport, then type, then one play by hand.
+            page.click('.wp-sport[data-sport="nhl"]')
+            self.assertEqual(len(page.evaluate(self.PICKED)), 5)
+            page.click('.wp-type[data-type="nhl%3ASaves"]')
+            self.assertNotIn("nhl:saves:2026020088:8482076", page.evaluate(self.PICKED))
+            page.click('.wp-play[data-id="nhl%3Asog%3A2026020088%3A8479996"]')
+            self.assertEqual(len(page.evaluate(self.PICKED)), 3)
+            page.click("#wp-next")
+            # One game left, so one leg at most.
+            self.assertEqual(page.eval_on_selector_all("#wheel-legs-select option", "(o) => o.map((x) => x.value)"), ["1"])
+            page.click("#wheel-start-btn")
+            self.assertEqual(page.locator("#wheel-spinner svg path").count(), 3)
+            page.click("#wheel-spin-btn")
+            page.wait_for_selector("#wheel-restart-btn", timeout=10000)
+            self.assertEqual(page.locator(".wheel-slip li").count(), 1)
+            self.assertIn("Parlay complete", page.inner_text("#wheel-arena"))
+            page.click("#wheel-restart-btn")
+            page.wait_for_selector(".wp-picker")
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
+    def test_checked_rows_start_the_wheel_and_both_sports_share_one(self):
+        page = open_my_plays()
+        try:
+            for pid in ["Josh Allen_Anytime TD_99", "nhl:sog:2026020088:8479996"]:
+                page.check(f'.mp-select[data-id="{pid.replace(":", "%3A").replace(" ", "%20")}"]')
+            page.click("#mp-wheel-btn")
+            self.assertEqual(sorted(page.evaluate(self.PICKED)), ["Josh Allen_Anytime TD_99", "nhl:sog:2026020088:8479996"])
+            page.click("#wp-next")
+            page.select_option("#wheel-legs-select", "2")
+            page.click("#wheel-start-btn")
+            self.assertEqual(page.locator("#wheel-spinner svg path").count(), 2)  # two slices, two games
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
+
+class Sorting(unittest.TestCase):
+    def test_a_column_header_sorts_and_flips(self):
+        page = open_my_plays()
+        odds = "() => [...document.querySelectorAll('.mp-table tbody tr')].map((r) => r.children[6].textContent.trim())"
+        try:
+            page.click('.mp-sort[data-sort="odds"]')
+            self.assertEqual(page.evaluate(odds)[:2], ["+300", "+200"])  # longest first
+            page.click('.mp-sort[data-sort="odds"]')
+            self.assertEqual(page.evaluate(odds)[1], "-120")
+            page.click('.mp-sort[data-sort="sport"]')
+            self.assertEqual(page.locator(".mp-table tbody tr").count(), 6)
+            self.assertEqual(page.evaluate("() => document.querySelector('.mp-table tbody tr td:nth-child(2)').textContent"), "NFL")
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])
 
 
 class SaveBox(unittest.TestCase):

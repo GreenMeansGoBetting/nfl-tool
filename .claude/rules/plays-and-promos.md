@@ -6,6 +6,7 @@ paths:
   - "nfl_tool/site/common.js"
   - "nfl_tool/site/my-plays.*"
   - "nfl_tool/site/plays-grading.js"
+  - "nfl_tool/site/parlay-wheel.js"
 ---
 # Possible Plays, Pick Tracker and Promo Tools
 
@@ -19,8 +20,8 @@ well. Nothing changes from history saved already." Built for NFL and NHL (NBA ha
 its prop pages get the box from day one).
 
 - **Its own top-menu button**, "My Plays", after Promo Tools (sync.js `addTopMenu`, `.mine-trigger`,
-  no dropdown). Possible Plays left the NFL list; `possible-plays.html` (NFL list + Parlay Wheel)
-  is linked from My Plays and highlights My Plays in the menu. The page lives on the NFL address
+  no dropdown). Possible Plays left the NFL list; `possible-plays.html` is a redirect to My Plays
+  (2026-10-21, the owner: "I don't want that reroute to exist"). The page lives on the NFL address
   (`my-plays` in the middleware's `NFL_PAGES`) and reads `nhl/data.json` + `nhl/players/` there.
 - **Storage:** NFL plays stay in `nfl-tool.possible-plays.v1`, untouched. NHL plays are
   `nfl-tool.nhl-plays.v1` (sync.js `loadNhlPlays`/`saveNhlPlays`; in both sync key lists), saved
@@ -34,29 +35,35 @@ its prop pages get the box from day one).
   when every leg has 1+ point, Void if a leg didn't play. Hand results win, like the NFL's.
 - **Line Stacks (retired 2026-10-21; members' saved stacks still grade) have no price** (SGPs are priced at the book): the row shows a Price box; until one
   is typed in, the stack counts in the record but not the units (`unitsForPlay` gives 0).
-- Filters: sport chips (All / NFL / NHL) and When (NFL weeks, NHL days). Checked rows narrow the
-  record and the Photo Export (the Possible Plays card; groups say the sport when mixed).
+- Filters: sport chips (All, then one per sport that has plays), When (NFL weeks, NBA / NHL days)
+  and Type. Every column header sorts (click again to flip); When sorts all sports by the game's
+  day (an NFL play's from data.json's schedule). Checked rows narrow the record and the Photo
+  Export (groups say the sport when mixed).
+- **Parlay Wheel** (2026-10-21, asked for by NHL members; the owner: "prompt users to select what
+  they want in their wheel"): the button opens a picker first (`renderWheelPicker`): sport chips,
+  When, Pending Plays Only (on), Type chips, then every play by game with its own box; rows
+  checked in the list start it. Then legs and spin (`parlay-wheel.js`, moved from
+  possible-plays.js, told how a play looks by `WHEEL_LOOK`). A game = sport + week / day +
+  matchup, so landing on a play clears only that game.
+- **NBA:** the page is ready for it: once the NBA prop pages bring `loadNbaPlays` / `saveNbaPlays`
+  (sync.js, both sync key lists), its plays show here with a `date`, chip, filters and wheel.
+  Grading, logos and wheel colors for NBA still need adding then (`gradeNhlPlay`'s twin, `WHEEL_LOOK`).
 - Tests: `tests/test_my_plays_site.py`.
 
-## Possible Plays (`possible-plays.js`; storage helpers in common.js)
+## Possible Plays storage (common.js; the page itself is gone, its parts live on My Plays)
 
 - Saved plays live in `nfl-tool.possible-plays.v1` (synced to the member's profile). A play's id
   has the player's name in it, so plays are matched by `possiblePlayKey` (common.js: the id
   without Jr./Sr./II-IV and punctuation), never by exact id: `isPossiblePlay` and
   `togglePossiblePlay` both use it. `dedupePossiblePlays` merges existing doubles on page load
   (newest kept; a result already on the older copy carries over).
-- **View Results:** checkboxes on each bet, a select-all box, and "Select by game" chips; when any
-  shown bet is checked, the summary covers only the checked ones ("Summary of N selected bets" +
-  Clear selection). In-memory per visit (`resultsSelected`).
-- **Photo Export:** a "📷 Photo Export" button beside View Results opens a box with week buttons,
-  a checkbox per category (TD categories pre-checked), a Columns choice (Auto / 1-4) and **Save
-  image**. The image (`#plays-export-card`, `.pe-*` styles) is just team logo, play, odds, grouped
-  under category bars and flowed into columns so everything fits one picture. If plays are checked
-  in the list, an "Only the N plays I checked" box appears, pre-checked.
+- **Photo Export** (My Plays): a Columns choice (Auto / 1-4) and **Save image**, of the plays
+  shown (or the ones checked). The image (`#plays-export-card`, `.pe-*` styles) is just team logo, play, odds, grouped
+  under category bars and flowed into columns so everything fits one picture.
   - **Show results** (2026-10-20, a member: the saved card "is basically just listing all my
     bets", he wanted the greens and reds and units): on when the week has any graded play.
     Rows shade green / red (`.pe-row-<result>`) with their units (`unitsForPlay`, the same
-    tiered stakes as View Results); pending / push / void stay plain with a small label; the
+    tiered stakes as the record); pending / push / void stay plain with a small label; the
     title bar shows the record and units in a shaded box plus "N pending".
   - **Game lines name their game:** a total reads "BUF @ KC Over 54.5" with both logos, a
     spread / moneyline its side's logo (`exportPlayLogo` / `exportPlayText`; the play itself is

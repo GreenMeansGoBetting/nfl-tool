@@ -89,7 +89,7 @@ that, move detail into a rules file.
   - `index.html` + `app.js`: **TD Data** (Season TDs, First TD, Summary card). `first-td.html` is an old redirect.
   - `player-props.html/.js` + `props-summary.js`: **Player Props** (Receiving / Rushing / Passing + Summary card; the menu links each as `#view`). `best-plays.html/.js`: **NFL Best Plays** (player-props.md).
   - `player-card.js`: the player card popup, plus rush-lane and pass-zone drawing.
-  - `my-plays.html/.js`: **My Plays** (top-menu button): every sport's saved plays, graded, Photo Export. `possible-plays.html/.js`: the NFL list + Parlay Wheel (linked from My Plays); `plays-grading.js`: NFL grading/units both share. `picks.js`: Pick Tracker.
+  - `my-plays.html/.js`: **My Plays** (top-menu button): every sport's saved plays, graded, sortable, Photo Export, Parlay Wheel (`parlay-wheel.js`). `possible-plays.html` is now a redirect there; `plays-grading.js`: NFL grading/units. `picks.js`: Pick Tracker.
   - `promo-tools.html/.js`: Promo Tools (King of the Endzone). `support.html`: Support tab.
   - `common.js`: shared helpers (tiers, matchup calls, saved plays, lineup weights, modals, summary-card fit / Save image).
   - `sync.js`: member profiles, the top menu (NFL / NBA / NHL / Promo Tools dropdowns: `SPORT_PAGES`, `PROPS`, `PROMOS`, `navMenu`; then the My Plays button), `loadNhlPlays`/`saveNhlPlays`, the account button and its menu (feature requests, What's new, Settings, Support, Log out), the Settings window (odds format, color set, My Books). `teams.js`: names, colors, logos.
