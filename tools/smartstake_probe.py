@@ -108,7 +108,7 @@ def first_basket_look():
     a player_id / participant / line, and the label / side text they use.
     Names and counts only, never prices."""
     quotes, cursor = [], None
-    for _ in range(6):
+    for _ in range(30):  # every page: does any sportsbook appear past the exchanges?
         page = get("/v1/odds", league="nba", market="basketball_first_points_scorer", alternate="false", live="false",
                    state="NJ", cursor=cursor)
         if "http_error" in page:
