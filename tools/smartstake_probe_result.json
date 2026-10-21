@@ -7152,5 +7152,184 @@
    "Alex Ovechkin Over 0.5",
    "Alex Ovechkin Over 1.5"
   ]
+ },
+ "nba_first_basket": {
+  "generated_at": "2026-10-21T18:33:02Z",
+  "quotes": 440,
+  "more_pages": true,
+  "by_book": {
+   "fliff": {
+    "quotes": 120,
+    "sides": {
+     "yes": 60,
+     "no": 60
+    },
+    "player_id": 120,
+    "participant": 120,
+    "line": {
+     "None": 120
+    },
+    "labels": [
+     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
+     "side='no' label='Onyeka Okongwu No' participant='Onyeka Okongwu'",
+     "side='no' label='Paolo Banchero No' participant='Paolo Banchero'",
+     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
+     "side='yes' label='Onyeka Okongwu Yes' participant='Onyeka Okongwu'",
+     "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
+    ],
+    "fields": [
+     "alternate",
+     "away",
+     "bet_url",
+     "book",
+     "event_id",
+     "home",
+     "label",
+     "league",
+     "line",
+     "live",
+     "market_key",
+     "market_name",
+     "max_bet",
+     "participant",
+     "player_id",
+     "quote_id",
+     "side",
+     "sport",
+     "starts_at",
+     "team_id",
+     "updated_at"
+    ]
+   },
+   "novig": {
+    "quotes": 116,
+    "sides": {
+     "yes": 58,
+     "no": 58
+    },
+    "player_id": 116,
+    "participant": 116,
+    "line": {
+     "None": 116
+    },
+    "labels": [
+     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
+     "side='no' label='Jalen Johnson No' participant='Jalen Johnson'",
+     "side='no' label='Onyeka Okongwu No' participant='Onyeka Okongwu'",
+     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
+     "side='yes' label='Jalen Johnson Yes' participant='Jalen Johnson'",
+     "side='yes' label='Paolo Banchero Yes' participant='Paolo Banchero'"
+    ],
+    "fields": [
+     "alternate",
+     "away",
+     "bet_url",
+     "book",
+     "event_id",
+     "home",
+     "label",
+     "league",
+     "line",
+     "live",
+     "market_key",
+     "market_name",
+     "max_bet",
+     "participant",
+     "player_id",
+     "quote_id",
+     "side",
+     "sport",
+     "starts_at",
+     "team_id",
+     "updated_at"
+    ]
+   },
+   "prophetx": {
+    "quotes": 104,
+    "sides": {
+     "no": 52,
+     "yes": 52
+    },
+    "player_id": 104,
+    "participant": 104,
+    "line": {
+     "None": 104
+    },
+    "labels": [
+     "side='no' label='Dyson Daniels No' participant='Dyson Daniels'",
+     "side='no' label='Jalen Johnson No' participant='Jalen Johnson'",
+     "side='no' label='Onyeka Okongwu No' participant='Onyeka Okongwu'",
+     "side='yes' label='Dyson Daniels Yes' participant='Dyson Daniels'",
+     "side='yes' label='Jalen Johnson Yes' participant='Jalen Johnson'",
+     "side='yes' label='Onyeka Okongwu Yes' participant='Onyeka Okongwu'"
+    ],
+    "fields": [
+     "alternate",
+     "away",
+     "bet_url",
+     "book",
+     "event_id",
+     "home",
+     "label",
+     "league",
+     "line",
+     "live",
+     "market_key",
+     "market_name",
+     "max_bet",
+     "participant",
+     "player_id",
+     "quote_id",
+     "side",
+     "sport",
+     "starts_at",
+     "team_id",
+     "updated_at"
+    ]
+   },
+   "stake": {
+    "quotes": 100,
+    "sides": {
+     "yes": 50,
+     "no": 50
+    },
+    "player_id": 100,
+    "participant": 100,
+    "line": {
+     "None": 100
+    },
+    "labels": [
+     "side='no' label='Alexandre Sarr No' participant='Alexandre Sarr'",
+     "side='no' label='Anthony Davis No' participant='Anthony Davis'",
+     "side='no' label='Kyshawn George No' participant='Kyshawn George'",
+     "side='yes' label='Alexandre Sarr Yes' participant='Alexandre Sarr'",
+     "side='yes' label='Anthony Davis Yes' participant='Anthony Davis'",
+     "side='yes' label='Kyshawn George Yes' participant='Kyshawn George'"
+    ],
+    "fields": [
+     "alternate",
+     "away",
+     "bet_url",
+     "book",
+     "event_id",
+     "home",
+     "label",
+     "league",
+     "line",
+     "live",
+     "market_key",
+     "market_name",
+     "max_bet",
+     "participant",
+     "player_id",
+     "quote_id",
+     "side",
+     "sport",
+     "starts_at",
+     "team_id",
+     "updated_at"
+    ]
+   }
+  }
  }
 }
