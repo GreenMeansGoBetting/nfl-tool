@@ -193,7 +193,7 @@ function renderDefense() {
   const pos = ["G", "F", "C"].map((p) => range(rows.map((t) => t.d.pos[p])));
   // Hiding the idle teams keeps the colors against all 30 (ranges above use every row).
   const hide = defPlayingOnly && Object.keys(tonight).length > 0;
-  el("kotc-def-playing").textContent = defPlayingOnly ? "Show all teams" : "Hide teams not playing";
+  el("kotc-def-playing").textContent = defPlayingOnly ? "Show All Teams" : "Hide Teams Not Playing";
   el("kotc-def-sub").textContent = `${block().label} · ${date ? `teams playing ${dayWords(date)}${hide ? "" : " in bold"}` : ""}`;
   const head = DEF_COLS.map((c) => {
     const label = c.bucket !== undefined ? `${KOTC.thresholds[c.bucket]}+` : c.label;
@@ -257,10 +257,10 @@ function renderHistory() {
   const typicalRange = range(sum.by_size.map((r) => r.median));  // greener = a bigger night needed
   el("kotc-hist-body").innerHTML = `
     <div class="kotc-hist-tiles">
-      <div class="kotc-hist-tile"><b>${fmt(sum.mean ?? sum.median, 0)}</b><span>Avg winning PRA</span></div>
-      <div class="kotc-hist-tile"><b>${pct(sum.favored)}</b><span>Winner's team was favored</span></div>
-      <div class="kotc-hist-tile"><b>${fmt(sum.leader_total, 0)}</b><span>Winner's avg game total</span></div>
-      <div class="kotc-hist-tile"><b>65%</b><span>Winner in our top 5</span></div>
+      <div class="kotc-hist-tile"><b>${fmt(sum.mean ?? sum.median, 0)}</b><span>AVG Winning PRA</span></div>
+      <div class="kotc-hist-tile"><b>${pct(sum.favored)}</b><span>Winners Team Favored</span></div>
+      <div class="kotc-hist-tile"><b>${fmt(sum.leader_total, 0)}</b><span>Winners AVG Game Total</span></div>
+      <div class="kotc-hist-tile"><b>65%</b><span>Winner in Top 5</span></div>
     </div>
     <h3 class="kotc-hist-h kotc-hist-center">What it took to win</h3>
     <table class="kotc-hist-table kotc-hist-center"><thead><tr><th>Games on the slate</th><th>Nights</th><th>Typical winner</th><th>Middle half</th><th>Best night</th></tr></thead>

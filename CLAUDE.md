@@ -121,6 +121,8 @@ that, move detail into a rules file.
 - **Any new place that shows a player must use `playerClick`** (NHL pages: their own in `nhl/nhl-common.js`).
 - **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color
   banners, filled tier cells) rather than adding a new one. One font, Sofia Sans, for letters AND numbers on every sport (styles.md).
+- **Title Case every header, label and button** without being asked (the owner, 2026-10-21: "If its
+  a header, every word needs capitalized"); when the owner gives exact wording, use it as written.
 - **Odds lock at kickoff.** Books keep quoting in-game lines; the site must never show them as
   the line. A saved pick always shows the line it was made at.
 - **Lineup-aware usage:** never surface a backup off one fill-in game. **No DST targets anywhere** (random, not bet).
