@@ -102,38 +102,39 @@ def summarize(quotes):
     }
 
 
-def first_basket_look():
-    """NBA First Basket (2026-10-21: only ProphetX and Novig reached the site):
-    per book, how many 1st Points Scorer quotes, which sides, whether each has
-    a player_id / participant / line, and the label / side text they use.
-    Names and counts only, never prices."""
-    quotes, cursor = [], None
-    for _ in range(30):  # every page: does any sportsbook appear past the exchanges?
-        page = get("/v1/odds", league="nba", market="basketball_first_points_scorer", alternate="false", live="false",
-                   state="NJ", cursor=cursor)
+def first_basket_variant(max_pages=8, **params):
+    """Books on the 1st Points Scorer market for one way of asking."""
+    quotes, cursor, pages = [], None, 0
+    while pages < max_pages:
+        page = get("/v1/odds", league="nba", cursor=cursor, **params)
+        pages += 1
         if "http_error" in page:
             return {"error": page}
-        quotes += page.get("data") or []
+        quotes += [q for q in page.get("data") or [] if q.get("market_key") == "basketball_first_points_scorer"
+                   or "points scorer" in str(q.get("market_name") or "").lower()]
         cursor = page.get("next_cursor")
         if not cursor:
             break
         time.sleep(7)
-    books = collections.defaultdict(lambda: {"quotes": 0, "sides": collections.Counter(), "player_id": 0, "participant": 0,
-                                             "line": collections.Counter(), "labels": set(), "fields": None})
+    books = collections.defaultdict(collections.Counter)
     for q in quotes:
-        b = books[q.get("book")]
-        b["quotes"] += 1
-        b["sides"][str(q.get("side"))] += 1
-        b["player_id"] += q.get("player_id") is not None
-        b["participant"] += bool(q.get("participant"))
-        b["line"][str(q.get("line"))] += 1
-        if len(b["labels"]) < 6:
-            b["labels"].add(f"side={q.get('side')!r} label={q.get('label')!r} participant={q.get('participant')!r}")
-        if b["fields"] is None:
-            b["fields"] = sorted(k for k in q if k not in ("odds", "price", "decimal_odds", "american_odds"))
-    return {"quotes": len(quotes), "more_pages": bool(cursor),
-            "by_book": {k: {**v, "sides": dict(v["sides"]), "line": dict(v["line"]), "labels": sorted(v["labels"])}
-                        for k, v in sorted(books.items(), key=lambda kv: -kv[1]["quotes"])}}
+        books[q.get("book")][f"{q.get('side')}|alt={q.get('alternate')}|live={q.get('live')}|key={q.get('market_key')}"] += 1
+    return {"pages": pages, "more_pages": bool(cursor), "quotes": len(quotes), "books": {b: dict(c) for b, c in sorted(books.items())}}
+
+
+def first_basket_look():
+    """NBA First Basket (2026-10-21): the Odds Screen shows DraftKings, FanDuel
+    and others on 1st Points Scorer, but the build's request (state=NJ,
+    alternate=false, live=false) got only Fliff, Novig, ProphetX and Stake.
+    Asks each way, dropping one filter at a time. Names and counts only."""
+    key = "basketball_first_points_scorer"
+    return {
+        "build_request": first_basket_variant(market=key, alternate="false", live="false", state="NJ"),
+        "no_state": first_basket_variant(market=key, alternate="false", live="false"),
+        "no_alternate_filter": first_basket_variant(market=key, live="false", state="NJ"),
+        "market_only": first_basket_variant(market=key),
+        "other_state_PA": first_basket_variant(market=key, alternate="false", live="false", state="PA"),
+    }
 
 
 def main():
