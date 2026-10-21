@@ -3766,6 +3766,12 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .bo-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .bo-pill small { font-size: 0.72em; font-weight: 600; color: var(--muted); }
 .bo-pill:hover { border-color: var(--accent); }
+/* A price that saves the play (NBA First Basket's window). */
+.bo-save { padding: 2px 9px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.bo-save:hover { border-color: var(--accent); }
+.bo-save.bo-saved { background: rgba(var(--good-rgb), 0.22); border-color: rgba(var(--good-rgb), 0.6); color: var(--good-text); }
+.bo-save small { font-size: 0.7em; text-transform: uppercase; }
+.bo-save-note { margin: 6px 0 8px; font-size: 0.82rem; color: var(--muted); }
 .bo-pill.bo-play { background: rgba(var(--good-rgb), 0.14); border-color: rgba(var(--good-rgb), 0.55); }
 .bo-pill.bo-check { background: rgba(var(--mid-rgb), 0.12); border-color: rgba(var(--mid-rgb), 0.5); }
 #book-odds-modal, #settings-modal { z-index: 5000; } /* above the player card */

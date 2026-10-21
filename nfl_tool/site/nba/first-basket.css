@@ -1,11 +1,14 @@
 /* NBA First Basket (first-basket.js). Builds on suite.css's .nba-box;
    heat colors come inline from scaleHsla. */
 
-/* Three boxes side by side, tops in line: Matchup | Starters | Targets
-   (the owner: "box box box"). Targets drops under Starters on mid-size
-   screens, everything stacks on phones. */
-.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, max-content) minmax(220px, 1fr); gap: 16px; align-items: start; }
-.fb-layout > .section-wrap { margin: 0; min-width: 0; }
+/* Starters on the left; The Matchup with Value under it on the right, the
+   same width (the owner, 2026-10-21). Both columns end level: the Starters
+   box stretches to the right column's height, and Value fills whatever the
+   Starters leave ("I don't like the different levels"). Stacks under 1000 px. */
+.fb-layout:not([hidden]) { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 380px); gap: 16px; align-items: stretch; }
+.fb-layout .section-wrap { margin: 0; min-width: 0; }
+.fb-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.fb-side > .fb-right { flex: 1; }
 #fb-lineup-note { margin: -4px 0 8px; }
 
 /* The matchup table: road team | stat + edge | home team. Every row one
@@ -82,13 +85,8 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
 .fb-lineup-expected { background: rgba(var(--mid-rgb), 0.2); color: var(--mid-text); }
 .fb-lineup-guess { background: var(--panel-2); color: var(--muted); }
 
-@media (max-width: 1300px) {
-  .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
-  .fb-right { grid-column: 2; }
-}
 @media (max-width: 1000px) {
   .fb-layout:not([hidden]) { grid-template-columns: minmax(0, 1fr); }
-  .fb-right { grid-column: auto; }
 }
 @media (max-width: 760px) {
   .fb-m-team { font-size: 1rem; }
@@ -99,3 +97,11 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
   .fb-starters-box { overflow-x: auto; }
   .fb-table { margin: 0; }
 }
+
+/* Best: the best price across the member's books (book-odds.js pill). */
+.fb-table td.fb-best { text-align: center; padding-left: 4px; padding-right: 4px; white-space: nowrap; }
+.fb-best .bo-pill { padding: 2px 6px; font-family: var(--font-display); font-size: 0.95rem; }
+.fb-best .bo-pill small { font-family: var(--font-body); }
+.fb-best-plain { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
+.fb-best-plain small { font-family: var(--font-body); font-size: 0.68em; color: var(--muted); font-weight: 600; }
+.fb-saved { margin-left: 4px; color: var(--good-text); font-weight: 800; }

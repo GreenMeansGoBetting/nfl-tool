@@ -8,6 +8,11 @@
 // thresholds). The edge is the page's measure: the model's chance minus the
 // chance the price needs to break even, in points. With no model number (the
 // NFL pop-ups) the list just ranks the books; there is no market "fair" price.
+// Saving a price (spec.save, NBA First Basket since 2026-10-21): each book's
+// price becomes a button that saves the play at that book and price; the
+// page provides window.bookPlaySaver {saved(entry) -> saved play or null,
+// toggle(entry, book, odds)}. spec.oneSide: a yes-only market (no other side
+// tab); spec.noLine: no Line column.
 // My Books (books a member hides) and the book names live in sync.js, with
 // the rest of the Settings window; prices show in the member's odds format
 // (showOdds, sync.js).
@@ -101,6 +106,9 @@ function bookSideLabel(spec, side, atLine) {
 function renderBookOdds(spec) {
   const quotes = bookQuotes(spec);
   const modelOn = !!spec.model;
+  const saver = spec.save && window.bookPlaySaver;
+  const savedPlay = saver ? saver.saved(spec.save) : null;
+  const lineCol = !spec.noLine;
   const chance = bookModelChance(spec, spec.side, spec.line);
   const rows = quotes.filter((q) => q[1] === spec.side && !bookHidden(q[0])).sort((a, b) => oddsDecimal(b[3]) - oddsDecimal(a[3]));
   const main = rows.filter((q) => sameBet(q, spec.side, spec.line));
@@ -112,24 +120,32 @@ function renderBookOdds(spec) {
       : modelOn ? '<span class="bo-tag bo-muted">No model line</span>' : "";
     const lineText = q[2] !== null && q[2] !== undefined ? bookSideLabel(spec, q[1], q[2]) : "";
     const link = q[4] ? `<a class="bo-bet" href="${q[4]}" target="_blank" rel="noopener">Bet &rsaquo;</a>` : "";
+    const isSaved = savedPlay && savedPlay.book === q[0] && Number(savedPlay.odds) === q[3];
+    const odds = saver
+      ? `<button type="button" class="bo-save${isSaved ? " bo-saved" : ""}" data-bo-save="${boEnc({ book: q[0], odds: q[3] })}" title="${isSaved ? "Saved: click to remove it from My Plays" : "Save to My Plays at this price"}">${boOdds(q[3])}${isSaved ? " <small>Saved</small>" : ""}</button>`
+      : boOdds(q[3]);
     return `<tr class="${!alt && i === 0 ? "bo-best" : ""}${alt ? " bo-alt" : ""}"><td><div class="bo-book"><span class="bo-ini">${BOOK_INITIALS[q[0]] || "?"}</span><span>${BOOK_NAMES[q[0]] || q[0]}${alt ? `<small class="bo-alt-line">${lineText}</small>` : ""}</span>${!alt && i === 0 ? ' <span class="bo-bestchip">BEST</span>' : ""}</div></td>
-      <td class="bo-line">${lineText}</td><td class="bo-odds">${boOdds(q[3])}</td>${modelOn ? `<td>${tagCell}</td>` : ""}<td class="bo-go">${link}</td></tr>`;
+      ${lineCol ? `<td class="bo-line">${lineText}</td>` : ""}<td class="bo-odds">${odds}</td>${modelOn ? `<td>${tagCell}</td>` : ""}<td class="bo-go">${link}</td></tr>`;
   };
   const TAB_ORDER = ["o", "u", "away", "home"];
-  const sides = spec.kind === "td" ? [spec.side] : [spec.side, OPPOSITE_SIDE[spec.side]].sort((a, b) => TAB_ORDER.indexOf(a) - TAB_ORDER.indexOf(b));
+  const sides = spec.kind === "td" || spec.oneSide ? [spec.side] : [spec.side, OPPOSITE_SIDE[spec.side]].sort((a, b) => TAB_ORDER.indexOf(a) - TAB_ORDER.indexOf(b));
   const tabs = sides.length > 1
     ? `<div class="bo-tabs">${sides.map((s) => `<button type="button" class="bo-tab${s === spec.side ? " bo-on" : ""}" data-bo="${boEnc({ ...spec, side: s, line: s === spec.side ? spec.line : otherLine(spec.side, spec.line) })}">${bookSideLabel(spec, s)}</button>`).join("")}</div>`
     : "";
   const hidden = myBooks().hidden || [];
   const color = spec.color || (typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[spec.team]) || "var(--accent)";
-  const cols = modelOn ? 5 : 4;
+  const cols = (modelOn ? 5 : 4) - (lineCol ? 0 : 1);
+  const saveNote = !saver ? "" : `<p class="bo-save-note">${savedPlay
+    ? `Saved to My Plays at <b>${boOdds(Number(savedPlay.odds))}</b> (${BOOK_NAMES[savedPlay.book] || savedPlay.book}). Click another price to switch, or the same one to remove it.`
+    : "Click a price to save it to <b>My Plays</b>."}</p>`;
   const modelBox = !modelOn ? "" : chance !== null
     ? `<div class="bo-fair"><div><div class="bo-lbl">GMG model</div><div class="bo-big">${(chance * 100).toFixed(0)}%</div></div><div><div class="bo-lbl">Its price</div><div class="bo-big">${boOdds(probToAmerican(chance))}</div></div><div class="bo-src">Tags: the model's chance minus<br>what each price needs, in points</div></div>`
     : `<div class="bo-fair"><div class="bo-src bo-src-left">The model has no number for this line, so these prices aren't tagged.</div></div>`;
   return `<div class="bo-banner" style="--bo-team:${color}"><h3>${spec.title}</h3><div class="bo-sub">${spec.sub || ""}${spec.sub ? " &middot; " : ""}${main.length + others.length} books</div></div>
     ${tabs}
     ${modelBox}
-    ${main.length || others.length ? `<table class="bo-table${modelOn ? "" : " bo-plain"}"><thead><tr><th>Book</th><th>Line</th><th>Odds</th>${modelOn ? "<th>vs our model</th>" : ""}<th></th></tr></thead><tbody>
+    ${saveNote}
+    ${main.length || others.length ? `<table class="bo-table${modelOn ? "" : " bo-plain"}"><thead><tr><th>Book</th>${lineCol ? "<th>Line</th>" : ""}<th>Odds</th>${modelOn ? "<th>vs our model</th>" : ""}<th></th></tr></thead><tbody>
       ${main.map((q, i) => row(q, i, false)).join("")}
       ${others.length ? `<tr class="bo-group"><td colspan="${cols}">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
     </tbody></table>` : '<p class="no-data-note">None of your books has this bet right now.</p>'}
@@ -180,6 +196,15 @@ function openBookOdds(spec) {
 }
 
 document.addEventListener("click", (e) => {
+  const save = e.target.closest(".bo-save");
+  if (save && bookOddsOpen && window.bookPlaySaver) {
+    e.preventDefault();
+    e.stopPropagation();
+    const { book, odds } = boDec(save.dataset.boSave);
+    window.bookPlaySaver.toggle(bookOddsOpen.save, book, odds);
+    openBookOdds(bookOddsOpen);
+    return;
+  }
   const pill = e.target.closest(".bo-pill, .bo-tab");
   if (pill) {
     e.preventDefault();

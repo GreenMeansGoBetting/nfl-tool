@@ -378,7 +378,7 @@ function renderMatchup(g, p) {
 // tag so far (model_history/nba_first_basket, one unit at Novig's price).
 function renderValue(g, p) {
   const ids = [...p.away.starters, ...p.home.starters]
-    .filter((id) => isValue(p.fair.players[id].p, novigPrice(g, id)))
+    .filter((id) => isValue(p.fair.players[id].p, bestOdds(g, id)))
     .sort((a, b) => p.fair.players[b].p - p.fair.players[a].p);
   const rec = FB.record || {};
   const units = rec.units || 0;
@@ -387,12 +387,63 @@ function renderValue(g, p) {
     : `<div class="fb-value-record"><span>Record</span><span class="muted-label">Graded after tonight's games</span></div>`;
   el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
     ${ids.length ? ids.map((id) => `<div class="fb-value">${face(id)}<span class="fb-value-name">${lastName(player(id).name)}</span>${logo(teamOf(g, p, id), 16)}
-      <span class="fb-value-prices"><span><small>Fair</small>${showOdds(p.fair.players[id].fair)}</span><span><small>Novig</small>${showOdds(novigPrice(g, id))}</span></span></div>`).join("")
+      <span class="fb-value-prices"><span><small>Fair</small>${showOdds(p.fair.players[id].fair)}</span><span><small>Best</small>${showOdds(bestOdds(g, id))}</span></span></div>`).join("")
       : `<p class="no-data-note">No Value In This Game</p>`}
     ${record}
   </div>`;
 }
 const teamOf = (g, p, id) => (p.home.starters.includes(id) ? g.home : g.away);
+
+// The best First Basket price across the member's books (SmartStake, the
+// owner, 2026-10-21: "relabel NOVIG to BEST"): {odds, book}, else Novig's
+// own price (book "novig"), else null.
+// The team a starter plays for tonight (the drawn plan: render() keeps it).
+let shownPlan = null;
+const sideTeam = (g, id) => (shownPlan && shownPlan.home.starters.includes(id) ? g.home : g.away);
+function bestPrice(g, id) {
+  const best = bookBest(bookQuotes(bookSpec(g, id)), "o", null);
+  if (best) return { odds: best[3], book: best[0] };
+  const nv = novigPrice(g, id);
+  return nv === null ? null : { odds: nv, book: "novig" };
+}
+const bestOdds = (g, id) => (bestPrice(g, id) || {}).odds ?? null;
+// The play a price saves to My Plays (sync.js loadNbaPlays; graded there from
+// first_basket.results).
+function playEntry(g, id) {
+  const abbr = sideTeam(g, id);
+  return {
+    id: `nba:fb:${g.game_id}:${id}`, sport: "nba", market: "first_basket", category: "First Basket",
+    date: g.date, game_id: g.game_id, matchup: `${g.away} @ ${g.home}`, team: abbr, player_id: String(id),
+    description: `${player(id).name} first basket`, logo: team(abbr).logo, color: `#${team(abbr).color || "555555"}`,
+  };
+}
+// The every-book window for one starter (book-odds.js): a yes-only market;
+// a book's price saves the play.
+function bookSpec(g, id) {
+  const abbr = sideTeam(g, id);
+  return {
+    kind: "prop", stat: "first_basket", team: abbr, game: `${g.away}_${g.home}`, pid: String(id), side: "o", line: null,
+    oneSide: true, noLine: true, title: `${player(id).name} First Basket`, sub: `${g.away} @ ${g.home}`,
+    color: `#${team(abbr).color || "555555"}`, save: playEntry(g, id),
+  };
+}
+const savedPlay = (entry) => (typeof loadNbaPlays === "function" ? loadNbaPlays().find((x) => x.id === entry.id) || null : null);
+window.bookPlaySaver = {
+  saved: savedPlay,
+  toggle(entry, book, odds) {
+    const now = savedPlay(entry);
+    const rest = loadNbaPlays().filter((x) => x.id !== entry.id);
+    saveNbaPlays(now && now.book === book && Number(now.odds) === odds ? rest : [...rest, { ...entry, book, odds, added_at: new Date().toISOString() }]);
+    render();
+  },
+};
+function bestCell(g, id) {
+  const pill = bookPricePill(bookSpec(g, id));
+  const saved = savedPlay(playEntry(g, id)) ? `<span class="fb-saved" title="In My Plays">&#10003;</span>` : "";
+  if (pill) return `<td class="num fb-best">${pill}${saved}</td>`;
+  const nv = novigPrice(g, id);
+  return `<td class="num fb-best">${nv === null ? "--" : `<span class="fb-best-plain" title="Novig's price; no other book lists him yet">${showOdds(nv)} <small>Novig</small></span>`}${saved}</td>`;
+}
 
 // Novig's First Basket "Yes" price for a player, matched by name.
 function novigPrice(g, id) {
@@ -417,7 +468,7 @@ function renderStarters(g, p) {
       const pl = player(id);
       const now = nowPlayers()[id];
       const tags = [];
-      if (isValue((fair[id] || {}).p, novigPrice(g, id))) tags.push(["Value", "fb-tag-value", "Novig pays more than our Fair"]);
+      if (isValue((fair[id] || {}).p, bestOdds(g, id))) tags.push(["Value", "fb-tag-value", "The best price pays more than our Fair"]);
       if (id === top && vol(id)) tags.push(["Top Option", "fb-tag-plain", "Most shots a start on his team this season"]);
       if (now && now.starts >= 5 && now.team_first_shot / now.starts >= 0.25) tags.push(["First Look", "fb-tag-plain", `Took his team's first shot in ${now.team_first_shot} of ${now.starts} starts this season`]);
       const rate = (n) => (pl.starts ? n / pl.starts : null);
@@ -428,12 +479,11 @@ function renderStarters(g, p) {
       // Its own thin box (fb-sh-l / fb-sh-r draw it), between Scored 1st and Fair.
       const share = (key, side) => `<td class="num fb-cell fb-sh-${side}"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key] || 0)) : ""}><b>${pct(rate(pl[key] || 0))}</b><small>${pl[key] || 0} of ${pl.starts}</small></td>`;
       const f = fair[id];
-      const nv = novigPrice(g, id);
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
         <td><span class="nba-player">${face(id)}<span>${pl.name}</span><span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${tags.map(([t, cls, why]) => `<span class="fb-tag ${cls}" title="${why}">${t}</span>`).join("")}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
         <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
-        <td class="num fb-fair fb-novig">${nv === null ? "--" : `<b>${showOdds(nv)}</b>`}</td>
+        ${bestCell(g, id)}
       </tr>`;
     }).join("");
     // The team's chance to score first, colored from 50/50 (full color at 62.5 / 37.5).
@@ -441,7 +491,7 @@ function renderStarters(g, p) {
     const hue = Math.round(Math.max(0, Math.min(120, 60 + (chance - 0.5) * 480)));
     const chanceBox = `<span class="fb-chance" style="background:${scaleHsla(hue, 70, 45, 0.35)}" title="Our chance this team scores first: its jumper's Prediction x how often tip winners score first"><small>Scores First</small><b>${pct(chance)}</b></span>`;
     return `<div class="nba-box fb-starters-box">${banner(abbr, chanceBox + lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="Novig's First Basket price (Yes)">Novig</th></tr>
+      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
         <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="8" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
@@ -454,6 +504,7 @@ function render() {
   renderSeasons();
   const g = game();
   const p = plan();
+  shownPlan = p;
   el("empty-state").hidden = !!(g && p);
   el("fb-game").hidden = !(g && p);
   if (!g || !p) {

@@ -82,3 +82,28 @@ class BookOdds(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FirstBasket(unittest.TestCase):
+    """NBA First Basket (the owner, 2026-10-21: SmartStake added the first points market)."""
+
+    def test_the_first_points_scorer_market_is_found_not_quarters_teams_or_field_goals(self):
+        listed = [{"key": "basketball_first_points_scorer", "name": "1st Points Scorer"},
+                  {"key": "basketball_first_team_to_score", "name": "First Team to Score"},
+                  {"key": "basketball_first_field_goal", "name": "First Field Goal Scorer"},
+                  {"key": "basketball_1q_first_basket", "name": "1st Quarter First Basket"},
+                  {"key": "basketball_player_points", "name": "Player Points"}]
+        self.assertEqual(smartstake.first_basket_market_keys(listed), ["basketball_first_points_scorer"])
+        self.assertEqual(smartstake.first_basket_market_keys([]), [])
+
+    def test_yes_prices_are_kept_by_player(self):
+        game = {"event_id": "evt_9", "away": "Milwaukee Bucks", "home": "Washington Wizards", "starts_at": "2026-10-21T23:00:00Z"}
+        q = lambda book, side, odds: {**game, "book": book, "market_key": "basketball_first_points_scorer", "side": side, "line": None,
+                                       "odds": odds, "participant": "Myles Turner", "player_id": 5, "bet_url": "", "alternate": False, "live": False}
+        teams = {"milwaukee bucks": "MIL", "washington wizards": "WSH"}
+        found = smartstake.build_book_odds([q("draftkings", "yes", 900), q("fanduel", "yes", 1000), q("fanduel", "no", -2000)], teams,
+                                           prop_markets={"basketball_first_points_scorer": "first_basket"}, td_market=None, line_markets={},
+                                           player_key=lambda name, away, home: "3032976", yes_markets={"basketball_first_points_scorer"})
+        row = found["MIL_WSH"]["props"]["first_basket"]["3032976"]
+        self.assertEqual(sorted((x[0], x[1], x[3]) for x in row["q"]), [("draftkings", "o", 900), ("fanduel", "o", 1000)])
+

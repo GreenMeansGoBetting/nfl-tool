@@ -140,6 +140,16 @@ function saveNhlPlays(list) {
   try { localStorage.setItem(GMG_NHL_PLAYS_KEY, JSON.stringify(list)); } catch (e) {}
   window.NFLSync?.push(GMG_NHL_PLAYS_KEY, list);
 }
+// The NBA pages' saved plays (First Basket's every-book window: click a price
+// to save it; 2026-10-21), graded on My Plays.
+const GMG_NBA_PLAYS_KEY = "nfl-tool.nba-plays.v1";
+function loadNbaPlays() {
+  try { return JSON.parse(localStorage.getItem(GMG_NBA_PLAYS_KEY)) || []; } catch (e) { return []; }
+}
+function saveNbaPlays(list) {
+  try { localStorage.setItem(GMG_NBA_PLAYS_KEY, JSON.stringify(list)); } catch (e) {}
+  window.NFLSync?.push(GMG_NBA_PLAYS_KEY, list);
+}
 
 const GMG_ODDS_FORMATS = [
   { id: "american", name: "American", sample: "-110 / +150" },
@@ -328,6 +338,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     GMG_SETTINGS_KEY,
     GMG_UPDATES_SEEN_KEY,
     GMG_NHL_PLAYS_KEY,
+    GMG_NBA_PLAYS_KEY,
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;

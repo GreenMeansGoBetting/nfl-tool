@@ -13,8 +13,10 @@ const nhlFiles = {}; // team -> nhl/players/<TEAM>.json, fetched for grading
 const mpView = { sport: "all", when: "all", type: "all" };
 const mpSort = { col: "when", dir: "desc" };
 const mpSelected = new Set(); // checked rows (ids), this visit only
-// NBA has no saved plays yet: its prop pages bring a loadNbaPlays / saveNbaPlays
-// pair (like the NHL's in sync.js) and the plays show up here with a date.
+// NBA plays (sync.js loadNbaPlays; First Basket's every-book window saves them
+// since 2026-10-21) carry their own logo and color, and are graded from
+// nba/data.json first_basket.results (who scored each game's first points).
+let NBA_RESULTS = null;
 const MP_SPORTS = [["nfl", "NFL"], ["nba", "NBA"], ["nhl", "NHL"]];
 const hasNba = () => typeof loadNbaPlays === "function";
 
@@ -131,6 +133,32 @@ async function loadNhlForGrading() {
   regradeNhlPlays();
 }
 
+// ---- NBA grading ----
+function gradeNbaPlay(p) {
+  if (p.market !== "first_basket" || !NBA_RESULTS || !(p.game_id in NBA_RESULTS)) return null;
+  const scorer = NBA_RESULTS[p.game_id];
+  if (scorer === null) return "void";
+  return scorer === String(p.player_id) ? "win" : "loss";
+}
+async function loadNbaForGrading() {
+  const plays = loadNbaPlays();
+  if (!plays.some((p) => !p.result)) return;
+  const nba = await getJson("nba/data.json");
+  NBA_RESULTS = (nba && nba.first_basket && nba.first_basket.results) || null;
+  if (!NBA_RESULTS) return;
+  let changed = false;
+  const updated = plays.map((p) => {
+    if (p.result_source === "manual") return p;
+    const result = gradeNbaPlay(p);
+    if (result && result !== p.result) {
+      changed = true;
+      return { ...p, result, result_source: "auto" };
+    }
+    return p;
+  });
+  if (changed) saveNbaPlays(updated);
+}
+
 // ---- results by hand, prices, removing ----
 function updatePlay(p, change) {
   if (sportOf(p) === "nhl") saveNhlPlays(loadNhlPlays().map((x) => (x.id === p.id ? change(x) : x)));
@@ -142,7 +170,8 @@ function setResult(p, result) {
   updatePlay(p, (x) => {
     if (x.result_source === "manual" && x.result === result) {
       const { result: _r, result_source: _rs, ...rest } = x;
-      return { ...rest, result: gradeNhlPlay(rest), result_source: gradeNhlPlay(rest) ? "auto" : null };
+      const auto = sportOf(x) === "nba" ? gradeNbaPlay(rest) : gradeNhlPlay(rest);
+      return { ...rest, result: auto, result_source: auto ? "auto" : null };
     }
     return { ...x, result, result_source: "manual" };
   });
@@ -162,6 +191,7 @@ function readPrice(text) {
 // ---- drawing ----
 function mpLogo(p, size = 18) {
   if (sportOf(p) === "nfl") return exportPlayLogo(p);
+  if (p.logo) return `<img src="${p.logo}" alt="${p.team}" class="team-logo-mini" width="${size}" height="${size}">`;
   const t = NHL && NHL.teams[p.team];
   const src = t && (document.documentElement.dataset.theme === "light" ? t.logo : t.logo_dark || t.logo);
   return src ? `<img src="${src}" alt="${p.team}" class="team-logo-mini" width="${size}" height="${size}">` : "";
@@ -412,12 +442,14 @@ const WHEEL_LOOK = {
   logo(p) {
     if (!p.team) return "";
     if (sportOf(p) === "nfl") return teamLogoUrl(p.team);
+    if (p.logo) return p.logo;
     const t = sportOf(p) === "nhl" && NHL && NHL.teams[p.team];
     return (t && t.logo) || "";
   },
   color(p) {
     if (!p.team) return "";
     if (sportOf(p) === "nfl") return `rgb(${teamAccentRgb(p.team).join(",")})`;
+    if (p.color) return p.color;
     const t = sportOf(p) === "nhl" && NHL && NHL.teams[p.team];
     return t && t.color ? `#${t.color}` : "";
   },
@@ -611,4 +643,5 @@ Promise.all([
     regradeAllPossiblePlays(DATA);
   }),
   loadNhlForGrading(),
+  loadNbaForGrading(),
 ]).then(render);

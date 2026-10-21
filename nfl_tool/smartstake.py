@@ -93,6 +93,15 @@ NBA_PROP_SKIP = ("rebound", "assist", "three", "3pt", "first", "1st", "2nd", "3r
                  "q1", "q2", "q3", "q4", "team", "double", "triple", "steal", "block", "turnover", "+", "alternate", "milestone",
                  "most", "yes no")  # "most points in the game, yes / no" (found 2026-10-20) is not the points line
 
+# NBA First Basket (the owner, 2026-10-21: SmartStake added the first points
+# market). Found in /v1/markets like the first goal: a player market for the
+# game's first points / basket, not a team's, a quarter's or a half's; field
+# goal only markets are left out (most books, and the page, count free
+# throws). Stored as props["first_basket"], side "o" = Yes.
+NBA_FIRST_BASKET_GUESS = "basketball_first_points_scorer"
+FIRST_BASKET_SKIP = ("team", "quarter", "half", "2nd", "3rd", "4th", "second", "third", "fourth", "last", "method",
+                     "exact", "both", "field goal", "three", "3pt", "rebound", "assist", "race", "wire")
+
 NFL_TEAMS = {
     "arizona cardinals": "ARI", "atlanta falcons": "ATL", "baltimore ravens": "BAL", "buffalo bills": "BUF",
     "carolina panthers": "CAR", "chicago bears": "CHI", "cincinnati bengals": "CIN", "cleveland browns": "CLE",
@@ -184,6 +193,19 @@ def saves_market_keys(markets) -> list:
         name = m if isinstance(m, str) else (m.get("name") or m.get("market_name") or "")
         text = f"{key} {name}".lower().replace("_", " ")
         if key and "save" in text and not any(word in text for word in SAVES_SKIP):
+            keys.append(key)
+    return sorted(set(keys))
+
+
+def first_basket_market_keys(markets) -> list:
+    """The NBA first points scorer market keys in a /v1/markets reply."""
+    keys = []
+    for m in markets or []:
+        key = m if isinstance(m, str) else (m.get("key") or m.get("market_key") or m.get("id"))
+        name = m if isinstance(m, str) else (m.get("name") or m.get("market_name") or "")
+        text = f"{key} {name}".lower().replace("_", " ")
+        if key and ("first" in text or "1st" in text) and ("point" in text or "basket" in text or "scorer" in text) \
+                and not any(word in text for word in FIRST_BASKET_SKIP):
             keys.append(key)
     return sorted(set(keys))
 
@@ -350,6 +372,7 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
         if not priced:
             named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed]
             debug["note"] = "; ".join(n for n in named if "point" in n.lower())[:500]
+        debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
         return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake NBA fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
@@ -390,3 +413,27 @@ def add_first_goal(api_key: str, games: dict, team_of, player_key, listed=None) 
         print(f"WARNING: SmartStake first goal prices failed ({e}).", file=sys.stderr)
         return {"error": str(e)[:200]}
 
+
+def add_first_basket(api_key: str, games: dict, team_of, player_key, listed) -> dict:
+    """Adds every book's First Basket (first points scorer) Yes prices to the
+    NBA games (props["first_basket"]). Its own try: a failure here never
+    costs the points prices. Returns what it found, for the build's debug."""
+    try:
+        keys = first_basket_market_keys(listed) or [NBA_FIRST_BASKET_GUESS]
+        quotes = fetch_quotes(api_key, "nba", keys)
+        found = build_book_odds(quotes, team_of, prop_markets={k: "first_basket" for k in keys}, td_market=None, line_markets={},
+                                player_key=player_key, yes_markets=set(keys))
+        priced = 0
+        for game_key, game in found.items():
+            prices = game["props"].get("first_basket")
+            if prices:
+                games.setdefault(game_key, {"kickoff": game["kickoff"], "props": {}, "td": {}, "lines": {}})["props"]["first_basket"] = prices
+                priced += len(prices)
+        out = {"markets": keys, "quotes": len(quotes), "players": priced, "books": sorted({q["book"] for q in quotes})}
+        if not priced:
+            named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed or []]
+            out["note"] = "; ".join(n for n in named if "first" in n.lower() or "1st" in n.lower())[:700]
+        return out
+    except Exception as e:
+        print(f"WARNING: SmartStake First Basket prices failed ({e}).", file=sys.stderr)
+        return {"error": str(e)[:200]}

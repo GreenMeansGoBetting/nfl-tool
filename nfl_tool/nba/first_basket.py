@@ -396,6 +396,16 @@ def book_price(prices: dict, name: str):
     return next((v for k, v in (prices or {}).items() if name_key(k) == want), None)
 
 
+def best_price(book_game: dict | None, pid: str, novig=None):
+    """(American price, book) of the best First Basket Yes across every book
+    SmartStake lists for this player, else Novig's own price, else (None, None)."""
+    quotes = [q for q in ((((book_game or {}).get("props") or {}).get("first_basket") or {}).get(str(pid)) or {}).get("q", []) if q[1] == "o"]
+    if quotes:
+        q = max(quotes, key=lambda q: q[3] / 100 if q[3] > 0 else 100 / -q[3])
+        return q[3], q[0]
+    return (novig, "novig") if novig is not None else (None, None)
+
+
 def units(price, won: bool) -> float:
     """One unit bet at an American price."""
     if not won:

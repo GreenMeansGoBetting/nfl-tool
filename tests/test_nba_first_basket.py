@@ -9,7 +9,9 @@ are regular starters by minutes (a star who missed games still starts) and
 skip players listed Out; the tip chance reads every jump ball and who it was
 against, starting from height; the Fair (team chance x his share of his team's
 first points, this season only) adds up; the Value record saves before tip and
-grades after; the page draws every section
+grades after (at the best price across the books, SmartStake, else Novig);
+Best shows the best price across the member's books, opens every book, and a
+book's price saves the play to My Plays (and again removes it); the page draws every section
 with the build's numbers, colors with no script errors, and is in the NBA menu;
 the NBA's lineup file replaces the likely starters (Expected from the build's
 copy, Confirmed from the live /api/nba-lineups), names match our players, a
@@ -201,6 +203,12 @@ class Build(unittest.TestCase):
         # No starts this season: an even split.
         self.assertEqual([round(x, 6) for x in fb.first_shares({}, five)], [0.25] * 4)
 
+    def test_best_price_is_the_best_book_else_novig(self):
+        book_game = {"props": {"first_basket": {"12": {"q": [["draftkings", "o", None, 900, ""], ["fanduel", "o", None, 1000, ""]]}}}}
+        self.assertEqual(fb.best_price(book_game, "12", 700), (1000, "fanduel"))
+        self.assertEqual(fb.best_price(book_game, "10", 700), (700, "novig"))
+        self.assertEqual(fb.best_price(None, "10", None), (None, None))
+
     def test_value_and_units(self):
         # Value: our chance at least 10% above Novig's (+450 = 18.2%).
         self.assertFalse(fb.is_value(0.199, 450))
@@ -220,9 +228,11 @@ class Build(unittest.TestCase):
             old = build_nba.FB_RECORD_DIR
             build_nba.FB_RECORD_DIR = Path(tmp)
             try:
-                got = build_nba.first_basket_record(2027, slate_, names, [game], {}, before)
+                books = {"BBB_AAA": {"props": {"first_basket": {"11": {"q": [["fanduel", "o", None, 3000, ""]]}}}}}
+                got = build_nba.first_basket_record(2027, slate_, names, [game], {}, before, books)
                 saved = json.loads((Path(tmp) / "2027.json").read_text())["9"]
-                self.assertEqual(saved["players"]["12"][2], 5000)
+                self.assertEqual(saved["players"]["11"][2:], [3000, True, "fanduel"])  # SmartStake's best
+                self.assertEqual(saved["players"]["12"][2], 5000)  # no book has him: Novig
                 self.assertTrue(saved["players"]["12"][3])  # +5000 = 2%: Value
                 self.assertFalse(saved["players"]["10"][3])
                 self.assertEqual(got["plays"], 0)  # not graded yet
@@ -232,7 +242,7 @@ class Build(unittest.TestCase):
                 saved = json.loads((Path(tmp) / "2027.json").read_text())["9"]
                 self.assertEqual(saved["players"]["12"][2], 5000)
                 self.assertEqual(saved["result"], {"team": "AAA", "scorer": "12"})
-                self.assertEqual(got, {"plays": 1, "won": 1, "units": 50.0, "games": 1})
+                self.assertEqual(got, {"plays": 2, "won": 1, "units": 49.0, "games": 1})  # 12 won (+50), 11 lost (-1)
             finally:
                 build_nba.FB_RECORD_DIR = old
 
@@ -328,7 +338,7 @@ class Page(unittest.TestCase):
         starters = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('tbody tr')].map((tr) => [tr.children[0].innerText, tr.children[6].innerText.trim(), tr.children[7].innerText.trim(), tr.children[4].innerText.trim(), tr.children[5].innerText.trim()])")
         heads = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')[1].querySelectorAll('th')].map((th) => th.textContent)")
         # Team Share (his own team's first shot / first points) between Scored 1st and Fair (the owner, 2026-10-21).
-        self.assertEqual(heads, ["Player", "Shot Early", "1st Shot", "Scored 1st", "Team Share", "Fair", "Novig", "1st Shot", "1st Pts"])
+        self.assertEqual(heads, ["Player", "Shot Early", "1st Shot", "Scored 1st", "Team Share", "Fair", "Best", "1st Shot", "1st Pts"])
         share = {s[0].split("\n")[0]: (s[3].split("\n")[0], s[4].split("\n")[0]) for s in starters}
         self.assertEqual(share["P11"], ("50%", "25%"))  # 2 and 1 of his 4 starts
         names = [s[0].split("\n")[0] for s in starters]
@@ -336,7 +346,8 @@ class Page(unittest.TestCase):
         fair = [int(s[1].replace("+", "")) for s in starters]
         self.assertEqual(fair, sorted(fair))  # shortest price (likeliest) first
         novig = {s[0].split("\n")[0]: s[2] for s in starters}
-        self.assertEqual((novig["P12"], novig["P10"], novig["P11"]), ("+450", "+600", "--"))
+        # No book on file in this test: Best falls back to Novig's own price, labeled.
+        self.assertEqual((novig["P12"], novig["P10"], novig["P11"]), ("+450 Novig", "+600 Novig", "--"))
         self.assertTrue(any("JUMPER" in s[0].upper() for s in starters))
 
     def test_season_buttons(self):
@@ -412,3 +423,63 @@ class Lineups(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+BOOKS = {"BBB_AAA": {"kickoff": "2026-10-21T23:30Z", "props": {"first_basket": {
+    "12": {"name": "P12", "q": [["draftkings", "o", None, 500, "https://dk.test/x"], ["fanduel", "o", None, 600, "https://fd.test/x"]]}}}, "td": {}, "lines": {}}}
+
+
+class Best(unittest.TestCase):
+    """Best (the owner, 2026-10-21: "relabel NOVIG to BEST and when clicked it brings up a modal
+    screen where users can add plays to their my plays by clicking one of the odds")."""
+
+    def setUp(self):
+        PAGE.evaluate("(books) => { DATA.book_odds = books; localStorage.removeItem('nfl-tool.nba-plays.v1'); render(); }", BOOKS)
+
+    def tearDown(self):
+        PAGE.evaluate("() => { DATA.book_odds = {}; localStorage.removeItem('nfl-tool.nba-plays.v1'); const m = document.getElementById('book-odds-modal'); if (m) m.hidden = true; render(); }")
+
+    def best_cells(self):
+        return PAGE.evaluate("() => Object.fromEntries([...document.querySelectorAll('#fb-starters tbody tr')].map((tr) => [tr.querySelector('.nba-player span').textContent, tr.querySelector('.fb-best').innerText.trim()]))")
+
+    def test_best_is_the_best_book_else_novig(self):
+        cells = self.best_cells()
+        self.assertTrue(cells["P12"].startswith("+600"), cells["P12"])  # FanDuel beats DraftKings
+        self.assertIn("FanDuel", cells["P12"])
+        self.assertTrue(cells["P10"].startswith("+600") and "Novig" in cells["P10"], cells["P10"])  # no book lists him
+        self.assertEqual(cells["P11"], "--")
+
+    def test_a_books_price_saves_the_play_and_again_removes_it(self):
+        PAGE.click("#fb-starters .fb-best .bo-pill")
+        PAGE.wait_for_selector("#book-odds-modal:not([hidden]) .bo-save")
+        modal = PAGE.inner_text("#book-odds-modal")
+        self.assertIn("P12 FIRST BASKET", modal.upper())
+        self.assertIn("Click a price to save it", modal)
+        self.assertNotIn("Under", modal)  # a yes-only market: no other side
+        PAGE.click("#book-odds-modal .bo-save >> nth=1")  # DraftKings +500 (second best)
+        plays = PAGE.evaluate("() => loadNbaPlays()")
+        self.assertEqual(len(plays), 1)
+        p = plays[0]
+        self.assertEqual((p["sport"], p["market"], p["category"], p["player_id"], p["book"], p["odds"], p["game_id"], p["team"]),
+                         ("nba", "first_basket", "First Basket", "12", "draftkings", 500, "9", "AAA"))
+        self.assertEqual(p["description"], "P12 first basket")
+        self.assertIn("Saved to My Plays at", PAGE.inner_text("#book-odds-modal"))
+        self.assertIn("\u2713", self.best_cells()["P12"])  # the row shows it's saved
+        # Another price switches it; the same price again removes it.
+        PAGE.click("#book-odds-modal .bo-save >> nth=0")
+        self.assertEqual([(x["book"], x["odds"]) for x in PAGE.evaluate("() => loadNbaPlays()")], [("fanduel", 600)])
+        PAGE.click("#book-odds-modal .bo-save >> nth=0")
+        self.assertEqual(PAGE.evaluate("() => loadNbaPlays()"), [])
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_layout_starters_left_matchup_and_value_right_level(self):
+        boxes = PAGE.evaluate("""() => Object.fromEntries(['.fb-mid', '.fb-left', '.fb-right'].map((s) => {
+            const r = document.querySelector(s).getBoundingClientRect(); return [s, [Math.round(r.left), Math.round(r.top), Math.round(r.bottom), Math.round(r.width)]]; }))""")
+        starters, matchup, value = boxes[".fb-mid"], boxes[".fb-left"], boxes[".fb-right"]
+        self.assertLess(starters[0], matchup[0])  # Starters on the left
+        self.assertEqual(matchup[0], value[0])  # Value under The Matchup
+        self.assertEqual(matchup[3], value[3])  # the same width
+        self.assertLess(matchup[2], value[1])
+        self.assertEqual(starters[1], matchup[1])  # tops level
+        self.assertEqual(starters[2], value[2])  # bottoms level
+

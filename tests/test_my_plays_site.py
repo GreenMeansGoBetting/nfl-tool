@@ -211,3 +211,28 @@ class SaveBox(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NbaPlays(unittest.TestCase):
+    """NBA First Basket plays (saved from the every-book window) grade from nba/data.json first_basket.results."""
+
+    def test_first_basket_plays_grade_from_who_scored_first(self):
+        game = {"sport": "nba", "market": "first_basket", "category": "First Basket", "date": "2026-10-21", "game_id": "77",
+                "matchup": "BBB @ AAA", "team": "AAA", "logo": "", "color": "#336699"}
+        plays = [{**game, "id": "nba:fb:77:12", "player_id": "12", "odds": 500, "book": "draftkings", "description": "P12 first basket"},
+                 {**game, "id": "nba:fb:77:10", "player_id": "10", "odds": 800, "book": "fanduel", "description": "P10 first basket"},
+                 {**game, "id": "nba:fb:78:10", "game_id": "78", "player_id": "10", "odds": 800, "book": "fanduel", "description": "P10 first basket"}]
+        SITE.nba = {"first_basket": {"results": {"77": "12"}}}
+        page = SITE.open("my-plays.html")
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify(plays))", plays)
+            page.reload()
+            page.wait_for_function("() => loadNbaPlays().some((p) => p.result)")
+            results = page.evaluate("() => Object.fromEntries(loadNbaPlays().map((p) => [p.id, p.result || null]))")
+            self.assertEqual(results, {"nba:fb:77:12": "win", "nba:fb:77:10": "loss", "nba:fb:78:10": None})
+            self.assertIn("P12 first basket", page.inner_text(".mp-table"))
+        finally:
+            SITE.nba = None
+            page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
+            page.close()
+

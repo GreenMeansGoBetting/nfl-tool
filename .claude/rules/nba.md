@@ -335,10 +335,11 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   start among the five), **First Look** (his team's first shot in 25%+ of 5+ starts), Jumper.
   Ideas not built: Usage + (a high-shot teammate Out), FT Early.
 - **The page** (`site/nba/first-basket.html` + `first-basket.js` + `first-basket.css`; NBA menu
-  under "Player props"): day strip, season buttons, then **three boxes side by side, tops in line:
-  The Matchup | Starters (both teams stacked) | Value** (the owner: "box box box", after Targets
-  sat above Starters and looked "bizarre"). Under 1300 px Targets drops under Starters; under
-  1000 px everything stacks.
+  under "Player props"): day strip, season buttons, then **Starters (both teams stacked) on the
+  left, The Matchup with Value under it on the right, the same width (380 px); tops and bottoms
+  level** (the owner, 2026-10-21: "I don't like the different levels": the Starters box stretches
+  to the right column's height and Value fills what's left; `.fb-side`). Under 1000 px it stacks.
+  Before 2026-10-21: three boxes side by side, Matchup | Starters | Targets ("box box box").
   How it got here (2026-10-20): tile sections with team cards and a split bar were "overwhelming ...
   so much dead space ... too many numbers all spread everywhere"; then one stacked table was
   "significantly improved" but the owner wanted "Simple. KISS" and wrote the rows themself.
@@ -367,12 +368,25 @@ since 2026-10-21). **Removed on purpose:**
   a thin box; the owner, 2026-10-21) as % with "x of y" under, **Fair** (our guess) and
   **Novig** (Novig's First Basket price), likeliest first. Team numbers are colored against all 30
   teams, players against starters with 15+ starts (fewer: plain).
-- **Book prices: Novig, not SmartStake** (the owner, 2026-10-20: "SS bad idea - use novig first FG
-  market odds for now until SS can fix their offerings"). Novig's public NBA feed has a
-  `FIRST_BASKET` market per player (Yes / No, the ~10 likely starters a game); the build reads the
-  Yes price in `fetch_novig_lines` into each game's `first_basket` ({player name: American}), a
-  `LINE_FIELDS` member so it locks at tip like the lines. SmartStake does list
-  `basketball_first_points_scorer` ("1st Points Scorer"); leave it until the owner says otherwise.
+- **Book prices: Best = SmartStake, then Novig** (the owner, 2026-10-21: SmartStake added the first
+  point market; "relabel NOVIG to BEST"). `smartstake.add_first_basket` (called by
+  `fetch_nba_book_odds`; keys from `first_basket_market_keys`: a player market for the game's first
+  points / basket, no team / quarter / half / field-goal-only markets; falls back to
+  `basketball_first_points_scorer`) puts every book's Yes into `book_odds["AWAY_HOME"].props.first_basket`
+  by ESPN id; `book_odds_debug.first_basket` says what came back. Locks at tip like every price.
+  The **Best** column = `bookPricePill` (best across the member's books); a player no book lists
+  shows Novig's own price, labeled Novig, not clickable (Novig's public feed `FIRST_BASKET` market,
+  read in `fetch_novig_lines` into each game's `first_basket`, a `LINE_FIELDS` member). Value and
+  the record use the best price (the record: best across ALL books, `best_price`, with its book).
+  (2026-10-20 it was Novig only: "SS bad idea ... until SS can fix their offerings".)
+- **Saving a play:** clicking Best opens book-odds.js's every-book window with `spec.save`; each
+  book's price is a button that saves the play to My Plays at that book and price (another price
+  switches it, the same one removes it; a check mark shows on the row). NBA plays:
+  `nfl-tool.nba-plays.v1` (sync.js `loadNbaPlays` / `saveNbaPlays`, in both sync key lists), entry
+  `{id: nba:fb:<game>:<player>, sport, market: first_basket, category: First Basket, date, game_id,
+  matchup, team, player_id, description, logo, color, book, odds}`. My Plays grades them from
+  `first_basket.results` ({game id: first scorer id}, this season's games): his id = win, anyone
+  else = loss, no scorer on file = void. A player who didn't play is graded a loss: set Void by hand.
 - Tests: `tests/test_nba_first_basket.py` (the build on two hand-made games, and the page).
 - Not built yet: a Summary card; the record on the page is Value tags only (no calibration view yet).
 

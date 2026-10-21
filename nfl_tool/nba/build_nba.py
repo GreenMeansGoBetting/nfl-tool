@@ -565,7 +565,8 @@ def compute_identity(season: int, data_dir: Path, force: bool) -> dict:
     return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()}}
 
 
-def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
+def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime,
+                         book_odds: dict | None = None) -> dict:
     """First Basket: both seasons' numbers (the page's season buttons) and the
     next few nights' games (likely starters, jumpers, the fair-price guess)
     from each."""
@@ -609,7 +610,7 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
             roster[str(r.athlete_id)] = [r.display_name, r.team_abbreviation, r.position_abbreviation]
     names = {pid: p["name"] for b in blocks.values() for pid, p in b["players"].items()}
     names.update({pid: r[0] for pid, r in roster.items()})
-    record = first_basket_record(season, slates.get(str(default), {}), names, games, openings, now_utc)
+    record = first_basket_record(season, slates.get(str(default), {}), names, games, openings, now_utc, book_odds)
     lineups = {}
     for d in dates:
         got = fetch_nba_lineups(d)
@@ -618,6 +619,8 @@ def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, 
     return {
         "default": str(default), "seasons": {str(s): b for s, b in blocks.items()}, "slates": slates,
         "roster": roster, "lineups": lineups, "fair_weights": first_basket.fair_weights(), "tip": tip, "record": record,
+        # Who scored each of this season's games first (My Plays grades First Basket plays with it).
+        "results": {gid: None if o["first_scorer"] is None else str(o["first_scorer"]) for gid, o in openings.items()},
     }
 
 
@@ -641,13 +644,15 @@ def fetch_nba_lineups(date: str) -> dict | None:
 FB_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_first_basket"
 
 
-def first_basket_record(season: int, slate: dict, names: dict, games: list, openings: dict, now_utc: datetime) -> dict:
+def first_basket_record(season: int, slate: dict, names: dict, games: list, openings: dict, now_utc: datetime,
+                        book_odds: dict | None = None) -> dict:
     """model_history/nba_first_basket/<season>.json: each game's ten starters
     as the last build before tip had them ({game id: {date, away, home,
-    first_home, players: {id: [name, our chance, Novig price, Value]}}}; a
+    first_home, players: {id: [name, our chance, best price, Value, book]}}};
+    best price = the best Yes across SmartStake's books, else Novig's; a
     started game is never rewritten), graded once its play-by-play is in
     (`result`: the team and player who scored first). Returns the Value
-    record for the page: every Value tag bet one unit at Novig's price."""
+    record for the page: every Value tag bet one unit at its best price."""
     path = FB_RECORD_DIR / f"{season}.json"
     record = json.loads(path.read_text()) if path.exists() else {}
     by_id = {g["game_id"]: g for g in games}
@@ -659,8 +664,9 @@ def first_basket_record(season: int, slate: dict, names: dict, games: list, open
         rows = {}
         for pid, f in game["fair"]["players"].items():
             name = names.get(pid, pid)
-            price = first_basket.book_price(g.get("first_basket"), name)
-            rows[pid] = [name, f["p"], price, first_basket.is_value(f["p"], price)]
+            price, book = first_basket.best_price((book_odds or {}).get(f"{g['away']}_{g['home']}"), pid,
+                                                  first_basket.book_price(g.get("first_basket"), name))
+            rows[pid] = [name, f["p"], price, first_basket.is_value(f["p"], price), book]
         record[gid] = {"date": g["date"], "away": g["away"], "home": g["home"], "first_home": game["fair"]["first_home"], "players": rows}
         changed = True
     for gid, r in record.items():
@@ -676,7 +682,7 @@ def first_basket_record(season: int, slate: dict, names: dict, games: list, open
     for r in record.values():
         if "result" not in r:
             continue
-        for pid, (_, _, price, value) in r["players"].items():
+        for pid, (_, _, price, value, *_) in r["players"].items():
             if value and price is not None:
                 hit = r["result"]["scorer"] == pid
                 plays += 1
@@ -940,7 +946,7 @@ def main():
         blob["kotc"] = None
     # Nor may First Basket.
     try:
-        blob["first_basket"] = compute_first_basket(args.season, args.data_dir, force, teams, rosters, injury_list, games, now_utc)
+        blob["first_basket"] = compute_first_basket(args.season, args.data_dir, force, teams, rosters, injury_list, games, now_utc, book_odds)
     except Exception as ex:
         print(f"WARNING: First Basket failed ({ex!r}).", file=sys.stderr)
         blob["first_basket"] = None
