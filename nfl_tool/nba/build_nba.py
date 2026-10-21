@@ -34,6 +34,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, for smartstake.py
 import first_basket  # noqa: E402
 import props  # noqa: E402
+import shots  # noqa: E402
 import smartstake  # noqa: E402
 import identity  # noqa: E402
 import kotc  # noqa: E402
@@ -967,6 +968,15 @@ def main():
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:
         print(f"WARNING: NBA props failed ({ex!r}).", file=sys.stderr)
+    # Shot charts (shots.json, its own file, read only when a card's Shot Chart
+    # tab opens): THIS season's shots only (the owner, 2026-10-21).
+    try:
+        pbp = fetch_file("pbp", args.season, args.data_dir, False)
+        block = shots.season_block(pbp, season_label(args.season)) if pbp is not None else None
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        (args.out.parent / "shots.json").write_text(json.dumps({"season": args.season, **(block or {"label": season_label(args.season), "games": [], "players": {}, "league": []})}, separators=(",", ":")), encoding="utf-8")
+    except Exception as ex:
+        print(f"WARNING: NBA shots failed ({ex!r}).", file=sys.stderr)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)

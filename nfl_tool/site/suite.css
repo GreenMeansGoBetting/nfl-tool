@@ -62,6 +62,39 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-pc-odds td:first-child { font-weight: 600; }
 .nba-pc-save { margin-left: 6px; vertical-align: middle; }
 
+/* Shot charts (shot-chart.js): Zones / Heat Map beside the zone table */
+.nba-shot-controls { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 10px; }
+.nba-shot-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.nba-shot-opt { padding: 4px 10px; border: 0; border-right: 1px solid var(--border); background: var(--panel-2); color: var(--muted); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.nba-shot-opt:last-child { border-right: 0; }
+.nba-shot-opt:hover { color: var(--text); }
+.nba-shot-opt.active { background: var(--accent); color: var(--on-accent); }
+.nba-shot-sum { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; font-size: 0.86rem; color: var(--muted); }
+.nba-shot-sum b { color: var(--text); }
+.nba-shot-body { display: flex; gap: 14px; align-items: flex-start; }
+.nba-shot-chart { flex: 0 1 470px; min-width: 0; padding: 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
+.nba-shot-svg { display: block; width: 100%; height: auto; }
+.nba-shot-floor { fill: var(--table-head); }
+.nba-shot-zone { stroke: var(--bg); stroke-width: 2; }
+.nba-shot-lines * { fill: none; stroke: var(--text); stroke-opacity: 0.5; stroke-width: 1.6; }
+.nba-shot-side { fill: var(--muted); font-size: 11px; font-weight: 700; }
+.nba-shot-tag rect { fill: rgba(7, 11, 19, 0.62); }
+.nba-shot-tag text { text-anchor: middle; fill: #fff; }
+.nba-shot-ma { font-size: 12px; font-weight: 600; }
+.nba-shot-pct { font-size: 16px; font-weight: 800; }
+.nba-shot-share { font-size: 9.5px; fill: #c3cddc !important; }
+.nba-shot-legend { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; margin-top: 6px; font-size: 0.75rem; color: var(--muted); }
+.nba-shot-scale { display: inline-flex; }
+.nba-shot-scale i { display: block; width: 16px; height: 11px; }
+.nba-shot-gap { width: 12px; }
+.nba-shot-table { flex: 1 1 260px; min-width: 0; font-size: 0.84rem; }
+.nba-shot-table td { padding-top: 3px; padding-bottom: 3px; white-space: nowrap; }
+.nba-shot-group td { background: var(--table-head); color: var(--muted); font-size: 0.72rem; font-weight: 800; }
+
 @media (max-width: 760px) {
   .nba-pc-photo { width: 52px; height: 38px; }
+  .nba-shot-body { flex-direction: column; }
+  .nba-shot-chart, .nba-shot-table { flex: none; width: 100%; }
+  .nba-shot-seg { flex-wrap: wrap; }
+  .nba-shot-opt { padding: 4px 8px; }
 }

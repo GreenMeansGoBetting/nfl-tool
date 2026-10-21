@@ -6,7 +6,9 @@ player's name opens the card (not the Points row under it); the Game Log is this
 only, newest first, with a per-game row on top; the Odds tab lists every market a book prices
 (main line, best price per side, how often he cleared the line this season) plus First Basket;
 a box saves the side to My Plays at the best price, and checking the other side switches the
-play; the card also opens from the other NBA pages."""
+play; the card also opens from the other NBA pages. The Shot Chart tab (2026-10-21, the owner:
+"both with toggle is great as well as filters", this season only): zones named by the shooter's
+side (x below 25 = left), Zones / Heat Map, and every filter."""
 import sys
 import unittest
 from pathlib import Path
@@ -53,11 +55,21 @@ DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries
         }}}}
 
 
+# shots.json: [x, y, made, three, game index, flags (1 = 1st qtr, 2 = first 3 min), kind (1 self, 2 catch, 3 drive)]
+SHOTS = {"season": 2027, "label": "2026-27", "games": [11, 12, 13, 14, 15, 16], "players": {"1": [
+    [25, 1, 1, 0, 0, 3, 3], [25, 2, 0, 0, 1, 1, 3],  # at the rim, the first in the game's first 3 minutes
+    [3, 2, 1, 1, 2, 0, 2], [2, 4, 0, 1, 3, 0, 2],  # left corner 3s (x below 25 = the shooter's left)
+    [47, 3, 1, 1, 4, 0, 2],  # right corner 3
+    [25, 26, 1, 1, 5, 0, 1], [25, 27, 0, 1, 5, 0, 1],  # top 3s, self-created, in the newest game
+    [12, 4, 0, 0, 5, 0, 1],  # left baseline mid-range
+]}, "league": [[25, 1, 0, 60, 100], [3, 2, 1, 40, 100], [47, 3, 1, 40, 100], [25, 26, 1, 35, 100], [12, 4, 0, 40, 100]]}
+
+
 def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        SITE.nba, SITE.nba_props = DATA, PROPS
+        SITE.nba, SITE.nba_props, SITE.nba_shots = DATA, PROPS, SHOTS
         PAGE = SITE.open("nba/points.html")
         PAGE.wait_for_function("() => !document.getElementById('pts-board').hidden")
         PAGE.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
@@ -158,11 +170,66 @@ class Odds(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
 
 
+class ShotChart(unittest.TestCase):
+    def zones(self):
+        """{"Zone|Group": "made/tried"} from the zone table."""
+        return PAGE.evaluate("""() => {
+            const out = {};
+            let group = "";
+            document.querySelectorAll('#player-card-modal .nba-shot-table tbody tr').forEach((tr) => {
+              if (tr.classList.contains('nba-shot-group')) group = tr.textContent.trim();
+              else out[`${tr.cells[0].textContent}|${group}`] = tr.cells[1].textContent;
+            });
+            return out;
+          }""")
+
+    def pick(self, key, value):
+        PAGE.click(f"#player-card-modal .nba-shot-opt[data-shot-key='{key}'][data-shot-value='{value}']")
+        PAGE.wait_for_selector(f"#player-card-modal .nba-shot-opt.active[data-shot-key='{key}'][data-shot-value='{value}']")
+
+    def shots(self):
+        return PAGE.inner_text("#player-card-modal .nba-shot-sum b")
+
+    def test_zones_heat_map_and_filters(self):
+        open_card("shots")
+        try:
+            PAGE.wait_for_selector("#player-card-modal .nba-shot-table")
+            z = self.zones()
+            self.assertEqual(z["At The Rim|Close"], "1/2")
+            self.assertEqual(z["Left Corner|Threes"], "1/2")  # x 2-3: the shooter's left
+            self.assertEqual(z["Right Corner|Threes"], "1/1")
+            self.assertEqual(z["Top|Threes"], "1/2")
+            self.assertEqual(z["Left Baseline|Mid-Range"], "0/1")
+            self.assertEqual(z["Right Wing|Threes"], "--")
+            self.assertEqual(self.shots(), "8")
+            # Heat Map: one hexagon a spot here, the zone table stays
+            self.pick("view", "heat")
+            self.assertEqual(PAGE.locator("#player-card-modal .nba-shot-hex").count(), 8)
+            self.pick("view", "zones")
+            self.pick("pts", "3")
+            self.assertEqual(self.shots(), "5")
+            self.pick("pts", "all")
+            self.pick("kind", "1")
+            self.assertEqual(self.shots(), "3")
+            self.pick("kind", "all")
+            self.pick("time", "open")
+            self.assertEqual(self.shots(), "1")
+            self.pick("time", "q1")
+            self.assertEqual(self.shots(), "2")
+            self.pick("time", "all")
+            self.pick("games", "5")  # his last 5 games: indexes 1-5
+            self.assertEqual(self.shots(), "7")
+            self.pick("games", "all")
+        finally:
+            close_card()
+        self.assertEqual(SITE.errors, [])
+
+
 class OtherPages(unittest.TestCase):
     def test_every_nba_page_with_players_loads_the_card(self):
         for page in ("index.html", "points.html", "first-basket.html", "promo-tools.html"):
             html = (ROOT / "nfl_tool" / "site" / "nba" / page).read_text(encoding="utf-8")
-            self.assertIn('<script src="nba-card.js"></script>', html, page)
+            self.assertIn('<script src="shot-chart.js"></script>\n<script src="nba-card.js"></script>', html, page)
             self.assertIn('<script src="../book-odds.js"></script>', html, page)
 
 

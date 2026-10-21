@@ -44,7 +44,7 @@ LIVE = "https://nfl.gmgsports.org"
 # a new generated file can't be left out of a republish.
 SUITES = {
     "nfl": ["data.json", "koe_weeks.json"],
-    "nba": ["nba/data.json", "nba/props.json"],
+    "nba": ["nba/data.json", "nba/props.json", "nba/shots.json"],
     "nhl": ["nhl/data.json", "nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/lines.json", "nhl/icebreaker.json", "nhl/saves.json"],
 }
 NHL_PLAYERS = "nhl/players/"

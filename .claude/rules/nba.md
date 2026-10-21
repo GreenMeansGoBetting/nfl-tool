@@ -191,16 +191,33 @@ it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#play
 - **Grading** (my-plays.js `gradeNbaPlay`): First Basket as before; every other market from his row
   for that game in props.json (`gmgNbaStatValue`, sync.js): the game in the box scores and him not in
   it = Void; no box score yet = wait.
-- Not built: shot charts (the owner wants to revisit them after the first attempt), alt lines.
+- **Shot Chart** (2026-10-21; the owner on the mockup: "both with toggle is great as well as
+  filters", this season only): `site/nba/shot-chart.js` (`nbaShotView(id)`, every name `nbaShot` /
+  `NBA_SHOT`; loaded before nba-card.js on every page with the card) reads **`site/nba/shots.json`**
+  (`nfl_tool/nba/shots.py`, its own try in build_nba.py `main`; gitignored, in fetch_live_data.py):
+  `games` (this season's ids, oldest first), `players[<id>]` = [x, y, made, three, game index, flags
+  1 = 1st qtr / 2 = first 3 min, kind 1 self-created / 2 catch / 3 drive-cut-rim], `league` =
+  [x, y, three, made, tried] by spot. ESPN's spot to the foot; **x below 25 = the shooter's left**
+  (checked against NBA.com's 2025-26 shot file: same side on 90% of 121k matched shots, the rest
+  wrong matches); heaves 35+ ft and free throws out. Basket at the top, so Left Side is drawn left.
+  **Zones** (12: At The Rim, Paint, mid-range Left / Right Baseline, Left / Right Wing, Top; Left /
+  Right Corner, Left / Right Wing, Top 3) with made/tried, %, % of FGA; **Heat Map** = hexagons
+  1.6 ft, size = his shots there (scale tops out at the 92nd percentile), color = his make rate
+  within 3.5 ft vs the league's there (same 2 / 3). Both: color pulled toward the league by 6 shots
+  (`NBA_SHOT_PRIOR`), full at 8 points; the zone table beside it (FG, FG%, vs Lg, Share). Filters:
+  Season / Last 10 / Last 5 (his games), 2PT / 3PT, Self-Created / Catch & Shoot / Drives & Cuts,
+  1st Qtr / First 3 Min (for First Basket). A full season is ~4 MB, read only when the tab opens.
+- Not built: alt lines.
 - Tests: `tests/test_nba_player_card_site.py`, `test_my_plays_site.py` (NbaPlays), `test_nba_props.py`.
 
 ## The owner's list (2026-10-20, for when usage allows)
 
 1. ~~Clickable NBA players with a pop-up like the other sports~~ built 2026-10-21 (the player
-   card above); shot charts on it still to come.
-2. **Shot zones overhaul:** "I dont understand what im looking at ... What about wing 3s? L vs R?
-   I just dont look at this and feel confident in what im seeing." More areas (wings, corners, top,
-   left / right), a design that reads at a glance.
+   card above), with its Shot Chart.
+2. ~~Shot zones overhaul~~ built 2026-10-21 as the card's Shot Chart. **Next: a Shot Charts page**
+   under Team Identity (the owner: "pick an offensive player and then a defensive team to compare";
+   "That can come later"): the same shot-chart.js, plus each defense's shots allowed by spot (needs
+   the defending team on each shot in shots.json). Points / First Basket / threes read these zones.
 3. **Alt-line ladder only with real alt prices** (SmartStake `alternate=true`) and narrow: "without
    odds its just filler".
 4. **Rotation chart:** when a player usually subs in and out, who he plays the most minutes with,
