@@ -218,7 +218,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3015,
+    "lead": 0.3014,
     "name": "Luka Doncic",
     "proj": 50.8,
     "team": "LAL"
@@ -337,7 +337,7 @@
    },
    {
     "id": "4871145",
-    "lead": 0.0133,
+    "lead": 0.0132,
     "name": "Josh Giddey",
     "proj": 32.7,
     "team": "CHI"
@@ -365,9 +365,9 @@
    },
    {
     "id": "4278104",
-    "lead": 0.008,
+    "lead": 0.0082,
     "name": "Michael Porter Jr.",
-    "proj": 31.3,
+    "proj": 31.4,
     "team": "BKN"
    },
    {
