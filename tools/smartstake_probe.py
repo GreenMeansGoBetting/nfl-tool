@@ -102,9 +102,50 @@ def summarize(quotes):
     }
 
 
+def first_basket_look():
+    """NBA First Basket (2026-10-21: only ProphetX and Novig reached the site):
+    per book, how many 1st Points Scorer quotes, which sides, whether each has
+    a player_id / participant / line, and the label / side text they use.
+    Names and counts only, never prices."""
+    quotes, cursor = [], None
+    for _ in range(6):
+        page = get("/v1/odds", league="nba", market="basketball_first_points_scorer", alternate="false", live="false",
+                   state="NJ", cursor=cursor)
+        if "http_error" in page:
+            return {"error": page}
+        quotes += page.get("data") or []
+        cursor = page.get("next_cursor")
+        if not cursor:
+            break
+        time.sleep(7)
+    books = collections.defaultdict(lambda: {"quotes": 0, "sides": collections.Counter(), "player_id": 0, "participant": 0,
+                                             "line": collections.Counter(), "labels": set(), "fields": None})
+    for q in quotes:
+        b = books[q.get("book")]
+        b["quotes"] += 1
+        b["sides"][str(q.get("side"))] += 1
+        b["player_id"] += q.get("player_id") is not None
+        b["participant"] += bool(q.get("participant"))
+        b["line"][str(q.get("line"))] += 1
+        if len(b["labels"]) < 6:
+            b["labels"].add(f"side={q.get('side')!r} label={q.get('label')!r} participant={q.get('participant')!r}")
+        if b["fields"] is None:
+            b["fields"] = sorted(k for k in q if k not in ("odds", "price", "decimal_odds", "american_odds"))
+    return {"quotes": len(quotes), "more_pages": bool(cursor),
+            "by_book": {k: {**v, "sides": dict(v["sides"]), "line": dict(v["line"]), "labels": sorted(v["labels"])}
+                        for k, v in sorted(books.items(), key=lambda kv: -kv[1]["quotes"])}}
+
+
 def main():
     if not os.environ.get("SMARTSTAKE_API_KEY"):
         sys.exit("SMARTSTAKE_API_KEY is not set")
+    if os.environ.get("PROBE") == "first_basket":
+        # Only the First Basket look; the rest of the saved result stays as it was.
+        result = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
+        result["nba_first_basket"] = {"generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **first_basket_look()}
+        OUT.write_text(json.dumps(result, indent=1, default=str), encoding="utf-8")
+        print(f"wrote {OUT.name}: First Basket {result['nba_first_basket'].get('quotes')} quotes")
+        return
     result = {"generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     result["status"] = shape(get("/v1/status"))
     result["books"] = get("/v1/books")
