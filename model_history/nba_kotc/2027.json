@@ -218,7 +218,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3014,
+    "lead": 0.3015,
     "name": "Luka Doncic",
     "proj": 50.8,
     "team": "LAL"
@@ -232,7 +232,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.0706,
+    "lead": 0.0705,
     "name": "Giannis Antetokounmpo",
     "proj": 40.2,
     "team": "MIA"
@@ -281,7 +281,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0254,
+    "lead": 0.0253,
     "name": "Deni Avdija",
     "proj": 36.0,
     "team": "POR"
@@ -294,18 +294,18 @@
     "team": "UTAH"
    },
    {
+    "id": "4432816",
+    "lead": 0.0241,
+    "name": "LaMelo Ball",
+    "proj": 35.2,
+    "team": "MIN"
+   },
+   {
     "id": "6583",
     "lead": 0.0236,
     "name": "Anthony Davis",
     "proj": 35.5,
     "team": "WSH"
-   },
-   {
-    "id": "4432816",
-    "lead": 0.0236,
-    "name": "LaMelo Ball",
-    "proj": 35.1,
-    "team": "MIN"
    },
    {
     "id": "3149673",
@@ -337,7 +337,7 @@
    },
    {
     "id": "4871145",
-    "lead": 0.0132,
+    "lead": 0.0133,
     "name": "Josh Giddey",
     "proj": 32.7,
     "team": "CHI"
@@ -365,9 +365,9 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0082,
+    "lead": 0.008,
     "name": "Michael Porter Jr.",
-    "proj": 31.4,
+    "proj": 31.3,
     "team": "BKN"
    },
    {
@@ -386,7 +386,7 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0066,
+    "lead": 0.0065,
     "name": "Ty Jerome",
     "proj": 31.1,
     "team": "MEM"
