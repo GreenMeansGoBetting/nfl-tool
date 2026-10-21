@@ -280,6 +280,17 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-21b",
+    items: [
+      ["🏀", "<b>NBA Shot Charts</b> is a new page under Team Identity: pick a player and a defense to see his shot chart next to where that defense gives up shots and makes, zone by zone, with Target / Tough calls when both sides agree."],
+      ["🏀", "<b>NBA player cards</b>: click any NBA player’s name for this season’s game log, every market’s odds with boxes to save a play, and a Shot Chart tab (Zones or Heat Map, with filters)."],
+      ["🏀", "<b>NBA First Basket</b> got a big upgrade: a tip Prediction, each team’s chance to score first, a new Fair price, Value tags with a graded record, a YTD Performance pill, and the best price across every book, which you can save straight to My Plays."],
+      ["🏀", "<b>NBA positions</b> are now PG / SG / SF / PF / C everywhere, from each team’s depth chart."],
+      ["✅", "<b>My Plays</b>: the Parlay Wheel works for every sport (with a No SGP / Yes SGP choice), columns sort, and there’s a Type filter."],
+      ["🏒", "<b>NHL player cards</b> now have save boxes beside each price, and NFL Best Plays names open the player card."],
+    ],
+  },
+  {
     id: "2026-10-21",
     items: [
       ["🏒", "<b>NHL Line Matchups</b> is a new page under NHL: tonight’s forward lines and defense pairs for each game, how each group has played together at 5-on-5 (shot share, goals, last 3 games), who’s hot or cold, the lines each home coach likes to send out against the other team’s lines, and past meetings."],
