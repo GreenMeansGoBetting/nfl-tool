@@ -133,8 +133,13 @@ class ParlayWheel(unittest.TestCase):
             page.click('.wp-play[data-id="nhl%3Asog%3A2026020088%3A8479996"]')
             self.assertEqual(len(page.evaluate(self.PICKED)), 3)
             page.click("#wp-next")
-            # One game left, so one leg at most.
-            self.assertEqual(page.eval_on_selector_all("#wheel-legs-select option", "(o) => o.map((x) => x.value)"), ["1"])
+            legs = "() => [...document.querySelectorAll('#wheel-legs-select option')].map((x) => x.value)"
+            # Yes SGP: every play can be a leg, even three from one game.
+            page.click('.wheel-sgp-btn[data-sgp="true"]')
+            self.assertEqual(page.evaluate(legs), ["1", "2", "3"])
+            # No SGP (the default): one game left, so one leg at most.
+            page.click('.wheel-sgp-btn[data-sgp="false"]')
+            self.assertEqual(page.evaluate(legs), ["1"])
             page.click("#wheel-start-btn")
             self.assertEqual(page.locator("#wheel-spinner svg path").count(), 3)
             page.click("#wheel-spin-btn")

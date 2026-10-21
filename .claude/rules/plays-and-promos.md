@@ -44,7 +44,9 @@ its prop pages get the box from day one).
   When, Pending Plays Only (on), Type chips, then every play by game with its own box; rows
   checked in the list start it. Then legs and spin (`parlay-wheel.js`, moved from
   possible-plays.js, told how a play looks by `WHEEL_LOOK`). A game = sport + week / day +
-  matchup, so landing on a play clears only that game.
+  matchup. The legs screen asks **No SGP** (default: one play per game, landing on a play clears
+  its game) or **Yes SGP** (any number per game, only that play leaves; legs up to the play
+  count, max 10).
 - **NBA:** the page is ready for it: once the NBA prop pages bring `loadNbaPlays` / `saveNbaPlays`
   (sync.js, both sync key lists), its plays show here with a `date`, chip, filters and wheel.
   Grading, logos and wheel colors for NBA still need adding then (`gradeNhlPlay`'s twin, `WHEEL_LOOK`).

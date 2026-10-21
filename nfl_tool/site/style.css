@@ -1188,6 +1188,9 @@ footer a { color: var(--accent); }
    "how many legs" screen still reads as a normal small dialog. */
 #wheel-modal .modal-box.wheel-modal-wide { max-width: 980px; width: 95vw; }
 .wheel-legs-label { display: block; margin: 10px 0; font-weight: 600; font-size: 0.9rem; }
+.wheel-sgp { display: flex; justify-content: center; gap: 8px; margin: 12px 0 4px; }
+.wheel-sgp-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 14px; min-width: 140px; }
+.wheel-sgp-btn small { font-size: 0.72rem; font-weight: 600; opacity: 0.85; }
 .wheel-legs-label select {
   margin-left: 6px;
   background: var(--panel);

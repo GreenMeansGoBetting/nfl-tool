@@ -155,10 +155,14 @@ function renderWheelSvg(pool) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${slices}</svg>`;
 }
 
-// The leg-count screen for the chosen plays.
-function openParlayWheel(plays, look) {
+// The leg-count screen for the chosen plays. No SGP (the default): one play
+// per game, so landing on a play clears the rest of its game. Yes SGP (the
+// owner, 2026-10-21: "8 picks across 2 games ... only allow you 2"): any
+// number per game, only the play landed on leaves the wheel.
+function openParlayWheel(plays, look, sgp = false) {
   wheelLook = look;
-  const maxLegs = Math.min(10, distinctGameCount(plays));
+  const games = distinctGameCount(plays);
+  const maxLegs = Math.min(10, sgp ? plays.length : games);
   if (maxLegs < 1) {
     showWheelModal(`<h3>&#127920; Parlay Wheel</h3><p class="no-data-note">Pick at least one play first.</p>`);
     return;
@@ -166,10 +170,12 @@ function openParlayWheel(plays, look) {
   const options = Array.from({ length: maxLegs }, (_, i) => i + 1)
     .map((n) => `<option value="${n}"${n === maxLegs ? " selected" : ""}>${n} Leg${n > 1 ? "s" : ""}</option>`)
     .join("");
+  const sgpBtn = (on, label, sub) => `<button type="button" class="quick-select-week-btn wheel-sgp-btn${sgp === on ? " active" : ""}" data-sgp="${on}"><b>${label}</b><small>${sub}</small></button>`;
   showWheelModal(`
     <div id="wheel-setup">
       <h3>&#127920; Parlay Wheel</h3>
-      <p class="no-data-note">${plays.length} plays across ${distinctGameCount(plays)} games. Landing on a play clears the rest of its game from the wheel before the next spin.</p>
+      <p class="no-data-note">${plays.length} plays across ${games} game${games === 1 ? "" : "s"}. ${sgp ? "Landing on a play takes just that play off the wheel." : "Landing on a play clears the rest of its game from the wheel before the next spin."}</p>
+      <div class="wheel-sgp">${sgpBtn(false, "No SGP", "One Play Per Game")}${sgpBtn(true, "Yes SGP", "Any Number Per Game")}</div>
       <label class="wheel-legs-label">Parlay Legs:
         <select id="wheel-legs-select">${options}</select>
       </label>
@@ -177,9 +183,10 @@ function openParlayWheel(plays, look) {
     </div>
     <div id="wheel-arena"></div>
   `);
+  document.querySelectorAll(".wheel-sgp-btn").forEach((b) => b.addEventListener("click", () => openParlayWheel(plays, look, b.dataset.sgp === "true")));
   document.getElementById("wheel-start-btn").addEventListener("click", () => {
     const targetCount = parseInt(document.getElementById("wheel-legs-select").value, 10);
-    wheelState = { pool: plays.slice(), legs: [], targetCount };
+    wheelState = { pool: plays.slice(), legs: [], targetCount, sgp };
     document.getElementById("wheel-setup").hidden = true;
     document.querySelector("#wheel-modal .modal-box").classList.add("wheel-modal-wide");
     renderWheelRound();
@@ -201,7 +208,7 @@ function renderWheelRound() {
   const arena = document.getElementById("wheel-arena");
 
   if (legs.length >= targetCount || pool.length === 0) {
-    const shortNote = pool.length === 0 && legs.length < targetCount ? `<p class="no-data-note">Ran out of distinct games before reaching ${targetCount} legs.</p>` : "";
+    const shortNote = pool.length === 0 && legs.length < targetCount ? `<p class="no-data-note">Ran out of ${wheelState.sgp ? "plays" : "distinct games"} before reaching ${targetCount} legs.</p>` : "";
     arena.innerHTML = `${renderWheelSlip(legs, targetCount)}${shortNote}<p class="wheel-done">&#127881; Parlay complete &mdash; ${legs.length} leg${legs.length === 1 ? "" : "s"}!</p>
       <button type="button" id="wheel-restart-btn" class="wheel-spin-btn">New Parlay</button>`;
     document.getElementById("wheel-restart-btn").addEventListener("click", () => wheelLook.onRestart());
@@ -251,7 +258,7 @@ function spinWheel() {
     const winner = pool[winIdx];
     const game = wheelLook.gameKey(winner);
     wheelState.legs = [...wheelState.legs, winner];
-    wheelState.pool = pool.filter((p) => wheelLook.gameKey(p) !== game);
+    wheelState.pool = wheelState.sgp ? pool.filter((p) => p !== winner) : pool.filter((p) => wheelLook.gameKey(p) !== game);
     renderWheelRound();
   }, 4200);
 }
