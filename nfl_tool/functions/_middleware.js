@@ -786,7 +786,7 @@ function accessPage({ env = null, session = null, next = "/", signinEmail = "", 
     : buildr
     ? `<section class="col join">
         <h2>Hate Discord? No problem</h2>
-        <p class="sub">Join on Buildr, then sign in here. Access to the entire site.</p>
+        <p class="sub">7-day free trial, then $5 a month or $45 a year. Access to the entire site.</p>
         ${signinNote}
         ${joinError ? `<p class="err">${esc(joinError)}</p>` : ""}
         <a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>
@@ -1032,7 +1032,9 @@ async function handleAdminMembers(request, env) {
 const BUILDR = "https://buildr.bet";
 const BUILDR_ISSUER = "https://auth.buildr.bet/api/oidc"; // as Buildr's discovery document names it
 const BUILDR_STATE_COOKIE = "gmg_buildr_state";
-const BUILDR_JOIN_URL = INVITE_URL; // the GMG store on Buildr
+// "GMG Data Site ONLY": no Discord role; its post-purchase redirect is
+// /auth/buildr/login, so buyers land signed in.
+const BUILDR_JOIN_URL = "https://gmgsports.buildr.bet/checkout/3e042f6f-d087-46ad-a4da-9ac1d7b7b4e1";
 // Products that give site access; empty = any active GMG subscription.
 const BUILDR_PRODUCT_IDS = [];
 const buildrReady = (env) => !!(env.BUILDR_CLIENT_ID && env.BUILDR_API_KEY);

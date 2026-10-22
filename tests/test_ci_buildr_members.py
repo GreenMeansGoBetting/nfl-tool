@@ -121,6 +121,8 @@ class BuildrMembers(unittest.TestCase):
     def test_sign_in_page_offers_buildr(self):
         body = go(NFL)["body"]
         self.assertIn("Sign in with Buildr", body)
+        # Join goes to the website-only product, never the Discord one
+        self.assertIn('href="https://gmgsports.buildr.bet/checkout/3e042f6f-d087-46ad-a4da-9ac1d7b7b4e1"', body)
         self.assertIn("Hate Discord? No problem", body)
         self.assertIn("Already joined with email?", body)  # Stripe members still sign in
         self.assertNotIn("/stripe/checkout", body)

@@ -275,8 +275,12 @@ For people who'd pay but won't join Discord. Password version: no email service,
 
 ## Buildr members (sign in with Buildr, built 2026-10-22)
 
-The replacement for Stripe Join: people join on Buildr (`BUILDR_JOIN_URL` = INVITE_URL) and sign
-in with Buildr. Code: the "Buildr members" block in the middleware.
+The replacement for Stripe Join: people join on Buildr and sign in with Buildr. `BUILDR_JOIN_URL`
+= the Buildr product **"GMG Data Site ONLY"** (no Discord role, $5/mo or $45/yr, 7-day trial; not
+listed on the public store, reached by this link). Its Post-Purchase Redirect is
+`https://nfl.gmgsports.org/auth/buildr/login`, so buyers skip Buildr's "Connect Discord –
+Required" screen (shown for products with a Discord role) and land signed in. The right box reads
+"Hate Discord? No problem" / "7-day free trial, then $5 a month or $45 a year. Access to the entire site." Code: the "Buildr members" block in the middleware.
 
 - **Off until the GitHub secrets `BUILDR_CLIENT_ID` + `BUILDR_API_KEY` exist** (`BUILDR_CLIENT_SECRET`
   too if Buildr gave the app one; then the token call uses client_secret_basic, else PKCE only).
