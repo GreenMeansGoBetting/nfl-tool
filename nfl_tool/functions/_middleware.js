@@ -581,8 +581,12 @@ const membersReady = (env) => !!(env.DB && env.STRIPE_SECRET_KEY);
 const stripeTestMode = (env) => (env.STRIPE_SECRET_KEY || "").startsWith("sk_test_");
 const priceId = (env, plan) => (STRIPE_PRICE_IDS[stripeTestMode(env) ? "test" : "live"] || {})[plan] || "";
 const pricesReady = (env) => Object.keys(PLANS).every((k) => priceId(env, k));
+// New Stripe signups closed 2026-10-22 (the owner is moving memberships to
+// Buildr). Existing email members still sign in, are re-checked with Stripe
+// and manage billing at /account; true reopens Join.
+const STRIPE_JOIN_OPEN = false;
 // Join is open: everyone in live mode; only the owner while Stripe is in test mode.
-const joinOpen = (env, session) => membersReady(env) && pricesReady(env) && (!stripeTestMode(env) || isOwnerSession(session));
+const joinOpen = (env, session) => STRIPE_JOIN_OPEN && membersReady(env) && pricesReady(env) && (!stripeTestMode(env) || isOwnerSession(session));
 const cleanEmail = (e) => String(e || "").trim().toLowerCase();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 

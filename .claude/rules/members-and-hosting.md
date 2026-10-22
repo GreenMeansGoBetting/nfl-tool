@@ -255,6 +255,10 @@ For people who'd pay but won't join Discord. Password version: no email service,
 - Turns on when `STRIPE_SECRET_KEY` + DB exist. With an `sk_test_` key only the owner (signed in
   with Discord) can check out and the login page hides Join; with the `sk_live_` key (in place
   now) Join is open to everyone.
+- **New signups CLOSED since 2026-10-22** (`STRIPE_JOIN_OPEN = false`; the owner is moving
+  memberships to Buildr, `buildr.bet/docs`: OIDC sign-in + members API, no webhooks, no Stripe
+  import). The right box shows the "coming soon" text; existing email members still sign in, are
+  re-checked with Stripe and use `/account`. Test: `tests/test_ci_stripe_join_closed.py`.
 - D1 tables `members` (+ `pw`, `fail_count`, `lock_until`, added by ALTERs in deploy.yml) and
   `trial_cards`.
 - **Free trial:** 7 days, card or bank required, $0 until it ends (Stripe's reminder email before
