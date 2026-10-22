@@ -509,7 +509,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     btn.type = "button";
     btn.id = "acct-chip";
     btn.className = "acct-chip";
-    btn.title = user.email ? "Your plays, picks and notes are saved to this email membership" : "Your plays, picks and notes are saved to this Discord account";
+    btn.title = user.email ? "Your plays, picks and notes are saved to this email membership" : user.buildr ? "Your plays, picks and notes are saved to this Buildr membership" : "Your plays, picks and notes are saved to this Discord account";
     btn.innerHTML = '<span class="acct-avatar" aria-hidden="true"></span><span class="acct-name"></span>';
     btn.querySelector(".acct-name").textContent = name;
     btn.querySelector(".acct-avatar").textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
@@ -521,6 +521,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       <button type="button" class="promo-item" data-act="settings"><span class="promo-name">Settings</span></button>
       <a class="promo-item${onSupport ? " promo-current" : ""}" href="${siteHref("nfl", "support.html")}"><span class="promo-name">Support</span></a>
       ${user.email ? '<a class="promo-item" href="/account"><span class="promo-name">Manage membership</span></a><a class="promo-item" href="/set-password"><span class="promo-name">Password</span></a>' : ""}
+      ${user.buildr ? '<a class="promo-item" href="https://gmgsports.buildr.bet/" target="_blank" rel="noopener"><span class="promo-name">Manage Membership</span></a>' : ""}
       <a class="promo-item" href="/auth/logout"><span class="promo-name">Log out</span></a>`, { right: true });
     const menu = document.querySelector(".acct-menu");
     menu.addEventListener("click", (e) => {

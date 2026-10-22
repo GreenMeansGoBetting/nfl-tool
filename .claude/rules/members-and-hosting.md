@@ -259,6 +259,27 @@ For people who'd pay but won't join Discord. Password version: no email service,
   memberships to Buildr, `buildr.bet/docs`: OIDC sign-in + members API, no webhooks, no Stripe
   import). The right box shows the "coming soon" text; existing email members still sign in, are
   re-checked with Stripe and use `/account`. Test: `tests/test_ci_stripe_join_closed.py`.
+
+## Buildr members (sign in with Buildr, built 2026-10-22)
+
+The replacement for Stripe Join: people join on Buildr (`BUILDR_JOIN_URL` = INVITE_URL) and sign
+in with Buildr. Code: the "Buildr members" block in the middleware.
+
+- **Off until the GitHub secrets `BUILDR_CLIENT_ID` + `BUILDR_API_KEY` exist** (`BUILDR_CLIENT_SECRET`
+  too if Buildr gave the app one; then the token call uses client_secret_basic, else PKCE only).
+  deploy.yml copies all three into Pages. `/auth/status` shows `buildr` on/off.
+- Owner setup in Buildr: Settings, Integrations, **Customer sign-in**, Register app, redirect URL
+  `https://nfl.gmgsports.org/auth/buildr/callback`; **Buildr API** key with `members:read`.
+- Flow: `/auth/buildr/login` (PKCE S256, state cookie `gmg_buildr_state`; on nba./nhl. sent to
+  the NFL address like Discord) -> Buildr -> `/auth/buildr/callback` (state + `iss` checked, token,
+  `/api/oidc/me`) -> members API: `GET members/{sub}`, else `POST members/lookup` by email. Access =
+  member `active` with a subscription `active`/`trialing` (`BUILDR_PRODUCT_IDS` empty = any
+  product). Session `kind: "buildr"`, uid `buildr:<member id>`, re-checked every RECHECK_MS with
+  the same 2 h outage grace as Discord. Account menu: Manage Membership -> the Buildr store.
+- Buildr has no webhooks and no Stripe import (buildr.bet/docs): Stripe members stay on Stripe.
+- Unverified until the owner's keys exist: whether `sub` equals the members API id (the email
+  lookup covers it) and the client's token auth method.
+- Test: `tests/test_ci_buildr_members.py` (a fake Buildr).
 - D1 tables `members` (+ `pw`, `fail_count`, `lock_until`, added by ALTERs in deploy.yml) and
   `trial_cards`.
 - **Free trial:** 7 days, card or bank required, $0 until it ends (Stripe's reminder email before

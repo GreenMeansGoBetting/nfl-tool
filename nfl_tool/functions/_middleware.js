@@ -519,7 +519,7 @@ async function handleApi(request, env, session, json) {
     const { results } = await env.DB.prepare("SELECT k, v, updated FROM user_state WHERE uid = ?").bind(session.uid).all();
     const state = {};
     for (const r of results || []) state[r.k] = { v: r.v, updated: r.updated };
-    return json({ user: { name: session.name, owner: isOwnerSession(session), email: session.kind === "email" }, state });
+    return json({ user: { name: session.name, owner: isOwnerSession(session), email: session.kind === "email", buildr: session.kind === "buildr" }, state });
   }
   if (request.method === "PUT") {
     let body;
@@ -747,7 +747,8 @@ function accessPage({ env = null, session = null, next = "/", signinEmail = "", 
   const join = email && joinOpen(env, session);
   const discordBtn = `<a class="btn discord" href="/auth/login?next=${encodeURIComponent(next)}">${DISCORD_ICON}Log in with Discord</a>`;
   const invite = INVITE_URL ? `<a class="btn ghost" href="${INVITE_URL}" target="_blank" rel="noopener">Not in the Discord yet? Join here</a>` : "";
-  if (!email) {
+  const buildr = !!(env && buildrReady(env));
+  if (!email && !buildr) {
     return page(
       "Sign in -- GMG's NFL Suite",
       `<p>Access is for members of the GMG Discord.</p>${discordBtn}${invite}
@@ -765,7 +766,7 @@ function accessPage({ env = null, session = null, next = "/", signinEmail = "", 
       <a class="btn discord" href="/auth/login?next=${encodeURIComponent(next)}">${DISCORD_ICON}Log in with Discord</a>
     </section>`;
   const signinNote = signinMsg ? `<p class="${status >= 400 ? "err" : "ok"}">${esc(signinMsg)}</p>` : "";
-  const emailSigninLink = `<span class="alt">Already joined with email? <a href="/auth/email${signinEmail ? `?email=${encodeURIComponent(signinEmail)}` : ""}">Sign in</a></span>`;
+  const emailSigninLink = email ? `<span class="alt">Already joined with email? <a href="/auth/email${signinEmail ? `?email=${encodeURIComponent(signinEmail)}` : ""}">Sign in</a></span>` : "";
   const plans = Object.entries(PLANS)
     .map(([key, p]) => `<button class="btn plan" name="plan" value="${key}">Start free trial &middot; then ${p.label}${p.note ? ` <span style="font-size:.8rem;opacity:.85">(${p.note})</span>` : ""}</button>`)
     .join("");
@@ -781,6 +782,16 @@ function accessPage({ env = null, session = null, next = "/", signinEmail = "", 
         </form>
         ${emailSigninLink}
         <small>Card or bank account required to start. You won't be charged until day ${TRIAL_DAYS + 1}, and Stripe emails a reminder first. Cancel anytime.${stripeTestMode(env) ? "<br><b>Stripe TEST mode:</b> only you can see this; use Stripe's test cards." : ""}</small>
+      </section>`
+    : buildr
+    ? `<section class="col join">
+        <h2>Hate Discord? No problem</h2>
+        <p class="sub">Join on Buildr, then sign in here. Access to the entire site.</p>
+        ${signinNote}
+        ${joinError ? `<p class="err">${esc(joinError)}</p>` : ""}
+        <a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>
+        <a class="btn ghost" href="/auth/buildr/login?next=${encodeURIComponent(next)}">Sign in with Buildr</a>
+        ${emailSigninLink}
       </section>`
     : `<section class="col">
         <h2>Hate Discord? No problem</h2>
@@ -1011,6 +1022,128 @@ async function handleAdminMembers(request, env) {
   );
 }
 
+// ---- Buildr members (sign in with Buildr, 2026-10-22) ----
+// For people who join on Buildr without Discord (Stripe Join closed the
+// same day). OpenID Connect sign-in with PKCE; access follows the member's
+// CURRENT Buildr subscriptions, looked up with the management key and
+// re-checked every RECHECK_MS like Discord roles. Off until
+// BUILDR_CLIENT_ID and BUILDR_API_KEY exist (BUILDR_CLIENT_SECRET too when
+// Buildr gave the app one). Docs: buildr.bet/docs (oauth, reference).
+const BUILDR = "https://buildr.bet";
+const BUILDR_ISSUER = "https://auth.buildr.bet/api/oidc"; // as Buildr's discovery document names it
+const BUILDR_STATE_COOKIE = "gmg_buildr_state";
+const BUILDR_JOIN_URL = INVITE_URL; // the GMG store on Buildr
+// Products that give site access; empty = any active GMG subscription.
+const BUILDR_PRODUCT_IDS = [];
+const buildrReady = (env) => !!(env.BUILDR_CLIENT_ID && env.BUILDR_API_KEY);
+
+async function buildrApi(env, method, path, body) {
+  const init = { method, headers: { Authorization: `Bearer ${env.BUILDR_API_KEY}` } };
+  if (body) {
+    init.headers["Content-Type"] = "application/json";
+    init.body = JSON.stringify(body);
+  }
+  return fetch(`${BUILDR}/api/v1/${path}`, init);
+}
+// { ok: true, member } / { ok: false, reason: "no-sub" | "not-member" | "api" }.
+// id first (the sign-in's subject, or the id saved in the session); an
+// email lookup finds the member when the two ids differ.
+async function buildrMember(env, id, email) {
+  let res = id ? await buildrApi(env, "GET", `members/${encodeURIComponent(id)}`) : null;
+  if ((!res || res.status === 404) && email) {
+    const look = await buildrApi(env, "POST", "members/lookup", { email });
+    if (!look.ok) return { ok: false, reason: "api" };
+    const found = await look.json();
+    if (!found.found || !found.member) return { ok: false, reason: "not-member" };
+    res = await buildrApi(env, "GET", `members/${encodeURIComponent(found.member.id)}`);
+  }
+  if (!res || res.status === 404) return { ok: false, reason: "not-member" };
+  if (!res.ok) return { ok: false, reason: "api" };
+  const m = await res.json();
+  const paid = (m.active_subscriptions || []).some(
+    (s) => MEMBER_STATUSES_IN.includes(s.status) && (!BUILDR_PRODUCT_IDS.length || BUILDR_PRODUCT_IDS.includes(s.product_id))
+  );
+  if (m.status !== "active" || !paid) return { ok: false, reason: "no-sub" };
+  return { ok: true, member: m };
+}
+
+function buildrDeniedPage(reason) {
+  const msg =
+    reason === "api"
+      ? "Buildr isn't answering right now, so we can't check your membership. Try again in a minute."
+      : "Your Buildr account doesn't have an active GMG membership.";
+  return page(
+    "No access -- GMG Sports Data Suite",
+    `<p>${msg}</p>
+     ${reason === "api" ? "" : `<a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>`}
+     <a class="btn ghost" href="/">Back to sign in</a>`,
+    403,
+    reason === "api" ? {} : { "Set-Cookie": setCookie(COOKIE, "", 0) }
+  );
+}
+
+async function handleBuildrLogin(request, env) {
+  const url = new URL(request.url);
+  const next = safeNext(url.searchParams.get("next") || "/");
+  const state = b64url(crypto.getRandomValues(new Uint8Array(18)));
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const challenge = b64url(await crypto.subtle.digest("SHA-256", enc.encode(verifier)));
+  const auth = new URL(`${BUILDR}/api/oidc/auth`);
+  auth.searchParams.set("client_id", env.BUILDR_CLIENT_ID);
+  auth.searchParams.set("response_type", "code");
+  auth.searchParams.set("scope", "openid email profile");
+  auth.searchParams.set("redirect_uri", `${url.origin}/auth/buildr/callback`);
+  auth.searchParams.set("state", state);
+  auth.searchParams.set("code_challenge", challenge);
+  auth.searchParams.set("code_challenge_method", "S256");
+  return new Response(null, {
+    status: 302,
+    headers: { Location: auth.toString(), "Set-Cookie": setCookie(BUILDR_STATE_COOKIE, JSON.stringify({ state, verifier, next }), 600) },
+  });
+}
+
+async function handleBuildrCallback(request, env) {
+  const url = new URL(request.url);
+  let saved = {};
+  try {
+    saved = JSON.parse(getCookie(request, BUILDR_STATE_COOKIE) || "{}");
+  } catch (e) {
+    saved = {};
+  }
+  const code = url.searchParams.get("code");
+  const iss = url.searchParams.get("iss");
+  if (!code || !saved.state || saved.state !== url.searchParams.get("state") || (iss && iss !== BUILDR_ISSUER)) return loginPage("/", env);
+  const headers = { "Content-Type": "application/x-www-form-urlencoded" };
+  const form = {
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: `${url.origin}/auth/buildr/callback`,
+    code_verifier: saved.verifier,
+  };
+  if (env.BUILDR_CLIENT_SECRET) headers.Authorization = `Basic ${btoa(`${encodeURIComponent(env.BUILDR_CLIENT_ID)}:${encodeURIComponent(env.BUILDR_CLIENT_SECRET)}`)}`;
+  else form.client_id = env.BUILDR_CLIENT_ID;
+  let me;
+  try {
+    const tokenRes = await fetch(`${BUILDR}/api/oidc/token`, { method: "POST", headers, body: new URLSearchParams(form) });
+    if (!tokenRes.ok) return buildrDeniedPage("api");
+    const { access_token } = await tokenRes.json();
+    const meRes = await fetch(`${BUILDR}/api/oidc/me`, { headers: { Authorization: `Bearer ${access_token}` } });
+    if (!meRes.ok) return buildrDeniedPage("api");
+    me = await meRes.json();
+  } catch (e) {
+    return buildrDeniedPage("api");
+  }
+  const check = await buildrMember(env, me.sub, cleanEmail(me.email));
+  if (!check.ok) return buildrDeniedPage(check.reason);
+  const m = check.member;
+  const now = Date.now();
+  const session = await sign(env, { uid: `buildr:${m.id}`, name: m.name || me.name || m.email || "Member", kind: "buildr", checked: now, exp: now + SESSION_DAYS * 864e5 });
+  const out = new Headers({ Location: safeNext(saved.next || "/") });
+  out.append("Set-Cookie", setCookie(COOKIE, session, SESSION_DAYS * 86400));
+  out.append("Set-Cookie", setCookie(BUILDR_STATE_COOKIE, "", 0));
+  return new Response(null, { status: 302, headers: out });
+}
+
 // ---- addresses ----
 const isPagePath = (path) => !/\.[a-z0-9]+$/i.test(path) || path.endsWith(".html");
 const inFolder = (path, sport) => path === `/${sport}` || path.startsWith(`/${sport}/`);
@@ -1021,9 +1154,9 @@ function movedTo(url, sport) {
   if (sport) {
     if (inFolder(p, sport)) return (p.slice(sport.length + 1) || "/") + url.search; // old /nhl/... links
     if (NFL_PAGES.includes(p.slice(1).replace(/\.html$/, ""))) return `https://${NFL_HOST}${p}${url.search}`;
-    if (p === "/auth/login") {
+    if (p === "/auth/login" || p === "/auth/buildr/login") {
       const back = safeNext(url.searchParams.get("next") || "/");
-      return `https://${NFL_HOST}/auth/login?next=${encodeURIComponent(back.startsWith("/") ? `https://${url.host}${back}` : back)}`;
+      return `https://${NFL_HOST}${p}?next=${encodeURIComponent(back.startsWith("/") ? `https://${url.host}${back}` : back)}`;
     }
     return null;
   }
@@ -1094,6 +1227,10 @@ async function gate(context, url, next) {
       emailMembers: membersReady(env) ? (stripeTestMode(env) ? "test mode" : "on") : "off",
       stripeKey: !!env.STRIPE_SECRET_KEY,
       stripeWebhook: !!env.STRIPE_WEBHOOK_SECRET,
+      buildr: buildrReady(env) ? "on" : "off",
+      buildrClientId: !!env.BUILDR_CLIENT_ID,
+      buildrClientSecret: !!env.BUILDR_CLIENT_SECRET,
+      buildrApiKey: !!env.BUILDR_API_KEY,
     };
     return new Response(JSON.stringify(status), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
   }
@@ -1115,6 +1252,8 @@ async function gate(context, url, next) {
     if (url.pathname === "/auth/callback") return handleCallback(request, env);
     if (url.pathname === "/auth/logout") return handleLogout();
     if (url.pathname === "/auth/check") return handleCheck(request, env);
+    if (buildrReady(env) && url.pathname === "/auth/buildr/login") return handleBuildrLogin(request, env);
+    if (buildrReady(env) && url.pathname === "/auth/buildr/callback") return handleBuildrCallback(request, env);
   }
   if (!gateEnabled(env)) return next(); // not configured / test mode: site stays open
   // Brand files (logo) are public: the sign-in screen shows them before login.
@@ -1145,6 +1284,14 @@ async function gate(context, url, next) {
     const m = await getMember(env, session.name);
     if (!isApi && !(m && m.pw)) return new Response(null, { status: 302, headers: { Location: "/set-password" } });
     refreshed = await sign(env, { ...session, checked: Date.now() });
+  } else if (age >= RECHECK_MS && session.kind === "buildr") {
+    const check = buildrReady(env) ? await buildrMember(env, session.uid.slice("buildr:".length), "") : { ok: false, reason: "api" };
+    if (!check.ok && check.reason === "api") {
+      if (age >= OUTAGE_GRACE_MS) return isApi ? json({ error: "buildr" }, 503) : buildrDeniedPage("api");
+    } else {
+      if (!check.ok) return isApi ? json({ error: check.reason }, 403) : buildrDeniedPage(check.reason);
+      refreshed = await sign(env, { ...session, checked: Date.now() });
+    }
   } else if (age >= RECHECK_MS) {
     const check = await memberRoles(env, session.uid);
     if (!check.ok && check.reason === "api") {

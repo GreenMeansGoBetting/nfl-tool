@@ -284,12 +284,19 @@ jobs:
           DBT: ${{ secrets.DISCORD_BOT_TOKEN }}
           SSK: ${{ secrets.STRIPE_SECRET_KEY }}
           SWS: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          BCI: ${{ secrets.BUILDR_CLIENT_ID }}
+          BCS: ${{ secrets.BUILDR_CLIENT_SECRET }}
+          BAK: ${{ secrets.BUILDR_API_KEY }}
         run: |
           if [ -n "$DCS" ]; then printf '%s' "$DCS" | npx -y wrangler@3 pages secret put DISCORD_CLIENT_SECRET --project-name=gmg-nfl; fi
           if [ -n "$DBT" ]; then printf '%s' "$DBT" | npx -y wrangler@3 pages secret put DISCORD_BOT_TOKEN --project-name=gmg-nfl; fi
           # Email members (Stripe; the webhook secret is optional); each skipped until it exists.
           if [ -n "$SSK" ]; then printf '%s' "$SSK" | npx -y wrangler@3 pages secret put STRIPE_SECRET_KEY --project-name=gmg-nfl; fi
           if [ -n "$SWS" ]; then printf '%s' "$SWS" | npx -y wrangler@3 pages secret put STRIPE_WEBHOOK_SECRET --project-name=gmg-nfl; fi
+          # Buildr members (sign in with Buildr; the client secret only if Buildr gave one).
+          if [ -n "$BCI" ]; then printf '%s' "$BCI" | npx -y wrangler@3 pages secret put BUILDR_CLIENT_ID --project-name=gmg-nfl; fi
+          if [ -n "$BCS" ]; then printf '%s' "$BCS" | npx -y wrangler@3 pages secret put BUILDR_CLIENT_SECRET --project-name=gmg-nfl; fi
+          if [ -n "$BAK" ]; then printf '%s' "$BAK" | npx -y wrangler@3 pages secret put BUILDR_API_KEY --project-name=gmg-nfl; fi
 
       # Member profiles (saved plays/picks/notes per Discord account): a D1
       # database, created on the first run, its table created if missing,
