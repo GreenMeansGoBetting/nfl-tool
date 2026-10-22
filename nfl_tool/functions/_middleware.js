@@ -28,7 +28,10 @@ const ENFORCE = true;
 // where they are, so local testing (folder paths) works unchanged.
 const NFL_HOST = "nfl.gmgsports.org";
 const SPORT_HOSTS = { "nba.gmgsports.org": "nba", "nhl.gmgsports.org": "nhl" };
-const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/book-odds.js", "/version.json"]; // + /brand/
+// Every root file an NBA / NHL page loads as "../x" must be here, or that
+// address answers it from the sport's folder (missing): ytd.js was left out
+// 2026-10-22 and the NHL prop pages drew no plays. tests/test_sport_hosts.py.
+const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/book-odds.js", "/ytd.js", "/version.json"]; // + /brand/
 const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "my-plays", "support", "first-td"];
 // On since 2026-10-14 (both addresses answer): nfl.gmgsports.org/nhl/
 // pages then move to nhl.gmgsports.org. Data files are never moved (the build reads them).

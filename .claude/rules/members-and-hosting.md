@@ -19,9 +19,9 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
 - **One address per sport (2026-10-14):** `nba.gmgsports.org` and `nhl.gmgsports.org` are the
   same Pages project (a CNAME each at Namecheap -> `gmg-nfl.pages.dev`). The files stay in
   `site/nba/` and `site/nhl/`; the middleware serves `nhl.gmgsports.org/x` from `/nhl/x`, except
-  `SHARED_FILES` (style.css, suite.css, sync.js, version.json) and `/brand/`, which come from the
+  `SHARED_FILES` (style.css, suite.css, sync.js, book-odds.js, ytd.js, version.json) and `/brand/`, which come from the
   root. **A sport page that starts loading another root file (`../x.js`) needs it added to
-  `SHARED_FILES`**, or it gets the sport folder's file / nothing. On a sport address, old
+  `SHARED_FILES`**, or it gets the sport folder's file / nothing (`tests/test_sport_hosts.py` fails it; ytd.js was missed 2026-10-22 and the NHL Shots and Best Plays pages drew no plays for about 40 minutes). On a sport address, old
   `/nhl/...` links drop the folder and NFL pages (`NFL_PAGES`) go to nfl.gmgsports.org.
   `SPORT_HOSTS_LIVE` (on since 2026-10-14, once both addresses answered) sends
   nfl.gmgsports.org/nba/ and /nhl/ pages to their own address; data files are never moved, the build reads them on the NFL
