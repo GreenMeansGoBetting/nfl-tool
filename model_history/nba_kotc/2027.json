@@ -433,49 +433,49 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.3095,
+    "lead": 0.3093,
     "name": "Nikola Jokic",
     "proj": 47.7,
     "team": "DEN"
    },
    {
     "id": "3917376",
-    "lead": 0.129,
+    "lead": 0.1289,
     "name": "Jaylen Brown",
     "proj": 40.8,
     "team": "PHI"
    },
    {
     "id": "3059318",
-    "lead": 0.1276,
+    "lead": 0.1274,
     "name": "Joel Embiid",
     "proj": 40.4,
     "team": "PHI"
    },
    {
     "id": "4278073",
-    "lead": 0.108,
+    "lead": 0.1077,
     "name": "Shai Gilgeous-Alexander",
     "proj": 39.6,
     "team": "OKC"
    },
    {
     "id": "3908809",
-    "lead": 0.0722,
+    "lead": 0.0734,
     "name": "Donovan Mitchell",
-    "proj": 37.2,
+    "proj": 37.3,
     "team": "CLE"
    },
    {
     "id": "4431678",
-    "lead": 0.0626,
+    "lead": 0.0625,
     "name": "Tyrese Maxey",
     "proj": 36.4,
     "team": "PHI"
    },
    {
     "id": "3936299",
-    "lead": 0.0611,
+    "lead": 0.0609,
     "name": "Jamal Murray",
     "proj": 36.6,
     "team": "DEN"
@@ -510,9 +510,9 @@
    },
    {
     "id": "5124612",
-    "lead": 0.0038,
+    "lead": 0.0039,
     "name": "VJ Edgecombe",
-    "proj": 25.9,
+    "proj": 26.0,
     "team": "PHI"
    },
    {
@@ -610,7 +610,7 @@
     "id": "5099752",
     "lead": 0.0,
     "name": "Rayan Rupert",
-    "proj": 16.1,
+    "proj": 16.2,
     "team": "PHI"
    },
    {
