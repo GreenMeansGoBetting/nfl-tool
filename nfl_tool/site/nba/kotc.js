@@ -280,19 +280,25 @@ function renderNights() {
     el("kotc-nights").innerHTML = `<p class="no-data-note">No finished nights yet this season.</p>`;
     return;
   }
+  // A tie: every co-leader gets his own line (DraftKings splits the pool among them).
   const list = nights.slice(0, nightsShown).map((n) => {
-    const lead = n.leaders[0];
     const board = (record[n.date] || {}).board;
-    const pre = board ? board.findIndex((b) => n.leaders.some((l) => l.id === b.id)) : -2;
-    const preTag = pre >= 0 ? `<span class="koe-win-rank" title="His place on this page's board before the first tip">Pre ${pre + 1}</span>` : pre === -1 ? `<span class="koe-win-rank" title="Not in the board's top ${board.length}">Pre ${board.length}+</span>` : "";
-    const line = [lead.total ? `O/U ${fmt(lead.total).replace(/\.0$/, "")}` : null, lead.spread !== null && lead.spread !== undefined ? `${lead.team} ${signed(lead.spread)}` : null].filter(Boolean).join(" · ");
-    return `<div class="kotc-night">
-      <span class="koe-win-date">${dayWords(n.date, { month: "numeric", day: "numeric" })}<small>${n.games} G</small></span>
-      <span class="koe-win-who">${logo(lead.team, 18)}<span class="koe-win-names">${n.leaders.map((l) => l.name).join(" / ")}</span></span>
-      <span class="kotc-night-line" title="${lead.pts} pts, ${lead.reb} reb, ${lead.ast} ast vs ${lead.opp}${n.second ? `; next best ${n.second}` : ""}">${line}</span>
-      ${preTag}
+    const tie = n.leaders.length > 1;
+    const one = (l) => {
+      const pre = board ? board.findIndex((b) => b.id === l.id) : -2;
+      const preTag = pre >= 0 ? `<span class="koe-win-rank" title="His place on this page's board before the first tip">Pre ${pre + 1}</span>` : pre === -1 ? `<span class="koe-win-rank" title="Not in the board's top ${board.length}">Pre ${board.length}+</span>` : "<span></span>";
+      const line = [l.total ? `O/U ${fmt(l.total).replace(/\.0$/, "")}` : null, l.spread !== null && l.spread !== undefined ? `${l.team} ${signed(l.spread)}` : null].filter(Boolean).join(" · ");
+      const paid = paidOn(l, n.date);
+      return `<div class="kotc-night-one" data-leader="${l.id}">
+        <span class="koe-win-who">${logo(l.team, 18)}<span class="kotc-night-name"><span class="koe-win-names" title="${l.name}">${l.name}</span><span class="kotc-night-line" title="${l.pts} pts, ${l.reb} reb, ${l.ast} ast vs ${l.opp}${n.second ? `; next best ${n.second}` : ""}">${line}</span></span></span>
+        ${preTag}
+        <span class="kotc-night-paid" title="What DraftKings paid each person on him (logged)${tie ? "; a tie splits the pool" : ""}">${paid !== null ? moneyShort(paid) : ""}</span>
+      </div>`;
+    };
+    return `<div class="kotc-night${tie ? " kotc-night-tie" : ""}">
+      <span class="koe-win-date">${dayWords(n.date, { month: "numeric", day: "numeric" })}<small>${n.games} G</small>${tie ? `<span class="kotc-tag kotc-tie-tag" title="${n.leaders.length} players tied for the most PRA">Tie</span>` : ""}</span>
+      <div class="kotc-night-who">${n.leaders.map(one).join("")}</div>
       <span class="koe-win-yds">${n.pra}</span>
-      <span class="kotc-night-paid" title="What DraftKings paid each person on him (logged)">${paidOn(lead, n.date) !== null ? moneyShort(paidOn(lead, n.date)) : ""}</span>
     </div>`;
   });
   el("kotc-nights").innerHTML = list.join("") + (nights.length > nightsShown ? `<button type="button" id="kotc-nights-more" class="view-toggle-btn kotc-more">Show more</button>` : "");
@@ -333,7 +339,7 @@ function renderHistory() {
     <p class="kotc-hist-note">Totals and spreads are the pregame lines at tip-off, not the final score. <b>Leaders:</b> how often the night's leader played in that kind of game. <b>Games:</b> that kind of game's share of the games on those nights. <b>Rate</b> over 1 = more leaders than its share of games. High totals and close games produce more leaders; blowouts fewer (starters sit). The projection counts the total lightly: in the replay the matchup by position mattered far more, and the spread added nothing beyond it.</p>
     <div class="kotc-hist-two">
       <div><h3 class="kotc-hist-h">Who wins it</h3>
-        <table class="kotc-hist-table"><thead><tr><th>Position</th><th>Nights</th><th>Share</th></tr></thead><tbody>${POSITIONS.map((k) => [k, POS_NAMES[k]]).map(([k, n]) => `<tr><td>${n}</td><td>${sum.positions[k]}</td><td>${pct(sum.positions[k] / posTotal)}</td></tr>`).join("")}</tbody></table></div>
+        <table class="kotc-hist-table"><thead><tr><th>Position</th><th>Nights</th><th>Share</th></tr></thead><tbody>${POSITIONS.map((k) => [k, POS_NAMES[k]]).map(([k, n]) => `<tr><td>${n}</td><td>${fmt(sum.positions[k], 1).replace(/\.0$/, "")}</td><td>${pct(sum.positions[k] / posTotal)}</td></tr>`).join("")}</tbody></table></div>
       <div><h3 class="kotc-hist-h">Most nights led</h3>
         <table class="kotc-hist-table"><thead><tr><th>Player</th><th>Nights</th></tr></thead><tbody>${sum.most.map((m) => `<tr><td>${m.name}</td><td>${m.nights}</td></tr>`).join("")}</tbody></table></div>
     </div>
@@ -391,8 +397,11 @@ function payoutFit() {
     const logged = PAYOUTS[date];
     if (!night || !logged.pool) continue;
     pool = logged.pool;
+    const tied = night.rows.filter((x) => x.pra !== null && x.pra === night.best).length > 1;
     for (const p of logged.payouts) {
       const r = night.rows.find((x) => String(x.id) === String(p.id));
+      // A tied winner was paid from a split pool, so his number says nothing about how many were on him alone.
+      if (tied && r && r.pra === night.best) continue;
       if (r && r.lead > 0 && p.paid > 0) pts.push([Math.log(r.lead), Math.log(p.paid / logged.pool)]);
     }
   }

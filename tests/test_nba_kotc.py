@@ -127,7 +127,12 @@ class Nights(unittest.TestCase):
             self.assertAlmostEqual(sum(r["share"] for r in rows), 1, places=2)
             self.assertAlmostEqual(sum(r["fair"] for r in rows), 1, places=2)
         self.assertEqual(s["mean"], round(sum(n["pra"] for n in self.nights) / 2, 1))  # the tile's "Avg winning PRA"
-        self.assertEqual(s["favored"], 0.5)  # night 1's leader was favored, night 2's first (Star A, +3) wasn't
+        # Night 1's leader was favored; night 2 tied Star A (+3) and Star C (-3): half a night each.
+        self.assertEqual(s["favored"], 0.75)
+        # Positions split the tie: Star A (SG) 1 + 0.5, Star C (SF) 0.5; most nights led gives both a full night.
+        self.assertEqual((s["positions"]["SG"], s["positions"]["SF"]), (1.5, 0.5))
+        self.assertEqual({m["name"]: m["nights"] for m in s["most"]}, {"Star A": 2, "Star C": 1})
+        self.assertEqual(s["leader_total"], round((230 + 0.5 * 240 + 0.5 * 240) / 2, 1))
 
 
 class Projection(unittest.TestCase):

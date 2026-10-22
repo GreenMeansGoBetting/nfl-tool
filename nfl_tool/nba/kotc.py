@@ -271,13 +271,12 @@ def compute_summary(pg: pd.DataFrame, lines: dict, nights: list) -> dict:
             share = fair = 0.0
             counted = 0
             for n in nights:
-                lead = n["leaders"][0]
-                v = value_of([lead.get("total"), lead.get("spread")])
+                vs = [v for lead in n["leaders"] if (v := value_of([lead.get("total"), lead.get("spread")])) is not None]
                 vals = [x for x in (value_of(lines.get(g)) for g in night_games.get(n["date"], [])) if x is not None]
-                if not vals or v is None:
+                if not vals or not vs:
                     continue
                 counted += 1
-                share += lo <= v < hi
+                share += sum(lo <= v < hi for v in vs) / len(vs)  # a tie splits the night
                 fair += sum(lo <= x < hi for x in vals) / len(vals)
             if counted:
                 out.append({"label": label, "share": num(share / counted, 3), "fair": num(fair / counted, 3)})
@@ -285,10 +284,14 @@ def compute_summary(pg: pd.DataFrame, lines: dict, nights: list) -> dict:
 
     total_of = lambda line: line[0] if line and line[0] else None  # noqa: E731
     spread_of = lambda line: abs(line[1]) if line and line[1] is not None else None  # noqa: E731
-    fav = [n["leaders"][0]["spread"] for n in nights if n["leaders"][0].get("spread") not in (None, 0)]
-    pos = pd.Series([n["leaders"][0]["pos"] for n in nights]).value_counts()
-    most = pd.Series([(n["leaders"][0]["id"], n["leaders"][0]["name"]) for n in nights]).value_counts().head(8)
-    totals = [n["leaders"][0]["total"] for n in nights if n["leaders"][0].get("total")]
+    # Every co-leader of a tie counts, each for his share of the night.
+    each = [(lead, 1 / len(n["leaders"])) for n in nights for lead in n["leaders"]]
+    fav = [(lead["spread"] < 0, w) for lead, w in each if lead.get("spread") not in (None, 0)]
+    pos = {}
+    for lead, w in each:
+        pos[lead["pos"]] = pos.get(lead["pos"], 0) + w
+    most = pd.Series([(lead["id"], lead["name"]) for lead, _ in each]).value_counts().head(8)  # a full night each: both won it
+    totals = [(lead["total"], w) for lead, w in each if lead.get("total")]
     all_totals = [v[0] for g in pg["game_id"].unique() if (v := lines.get(g)) and v[0]]
     return {
         "nights": len(nights),
@@ -298,10 +301,10 @@ def compute_summary(pg: pd.DataFrame, lines: dict, nights: list) -> dict:
         "by_size": by_size,
         "by_total": mix(TOTAL_BUCKETS, total_of),
         "by_spread": mix(SPREAD_BUCKETS, spread_of),
-        "leader_total": num(np.mean(totals)) if totals else None,
+        "leader_total": num(sum(t * w for t, w in totals) / sum(w for _, w in totals)) if totals else None,
         "game_total": num(np.mean(all_totals)) if all_totals else None,
-        "favored": num(np.mean([s < 0 for s in fav]), 3) if fav else None,
-        "positions": {p: int(pos.get(p, 0)) for p in POSITIONS},
+        "favored": num(sum(f * w for f, w in fav) / sum(w for _, w in fav), 3) if fav else None,
+        "positions": {p: num(pos.get(p, 0), 1) for p in POSITIONS},
         "most": [{"id": pid, "name": name, "nights": int(c)} for (pid, name), c in most.items()],
     }
 

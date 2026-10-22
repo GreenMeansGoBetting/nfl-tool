@@ -543,6 +543,12 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   by Lead % (of the night's top 100; the owner 2026-10-22, was every one of the top 100). On a finished
   night it shows today's numbers with that night's teams and pregame board. No projection math.
   Headshots and logos are ESPN's (html-to-image can carry them).
+- **Ties** (the owner, 2026-10-22: Edwards and Jerome tied at 58 and only Edwards showed): every
+  co-leader counts. Nightly Leaders gives each his own line (logo, name, O/U and spread under it,
+  his Pre, his Paid) and a Tie tag; a finished night stars every winner; Historical Data splits a
+  tie night between them for shares (positions, total / spread mix, favored, the winner's total) and
+  gives each a full night in Most nights led; Est Pay's fit leaves out a tied winner's payout (a
+  split pool says nothing about how many were on him alone).
 - **Payouts** (the owner, 2026-10-22: "a place to update what payouts were/could have been ... reverse
   engineer potential payouts based on prize pot, position on projections"): the owner's box (html.is-owner
   and localhost) picks a finished night, the Prize Pool, and DraftKings' pasted list ("Name - $140 in

@@ -20,13 +20,19 @@ from test_nba_kotc import LINES, SEASON, TEAMS, kotc
 
 SITE = PAGE = None
 NIGHT = "2026-10-20"
-PAST = "2026-01-02"  # a finished night in SEASON
+PAST = "2026-01-02"  # a finished night in SEASON (Star A and Star C tie at 50)
+FIRST = "2026-01-01"  # the night before (Star A alone, 62)
 RECORD = {PAST: {"season_used": "2026-27", "board": [{"id": "20", "name": "Star B", "team": "BBB", "proj": 41.0, "lead": 0.5},
                                                    {"id": "10", "name": "Star A", "team": "AAA", "proj": 38.0, "lead": 0.3},
                                                    {"id": "30", "name": "Star C", "team": "CCC", "proj": 33.0, "lead": 0.1},
                                                    {"id": "40", "name": "Star D", "team": "DDD", "proj": 32.0, "lead": 0.06},
                                                    {"id": "11", "name": "Big A", "team": "AAA", "proj": 25.0, "lead": 0.02},
-                                                   {"id": "99", "name": "Scratch Guy", "team": "DDD", "proj": 30.0, "lead": 0.02}]}}
+                                                   {"id": "99", "name": "Scratch Guy", "team": "DDD", "proj": 30.0, "lead": 0.02}]},
+          FIRST: {"season_used": "2026-27", "board": [{"id": "10", "name": "Star A", "team": "AAA", "proj": 40.0, "lead": 0.4},
+                                                    {"id": "20", "name": "Star B", "team": "BBB", "proj": 38.0, "lead": 0.3},
+                                                    {"id": "30", "name": "Star C", "team": "CCC", "proj": 34.0, "lead": 0.15},
+                                                    {"id": "40", "name": "Star D", "team": "DDD", "proj": 33.0, "lead": 0.1},
+                                                    {"id": "11", "name": "Big A", "team": "AAA", "proj": 26.0, "lead": 0.05}]}}
 
 
 def nba_data():
@@ -174,10 +180,11 @@ class Payouts(unittest.TestCase):
 
     def test_est_pay_shows_once_six_are_logged_and_follows_the_fit(self):
         show(NIGHT)
-        # Paid = 30 / Lead % on each of the night's board players: the fit must give it back.
-        PAGE.evaluate(f"""() => {{ PAYOUTS = {{ '{PAST}': {{ pool: 250000, payouts: past()['{PAST}'].rows.filter((r) => r.lead).slice(0, 5).map((r) => ({{ id: r.id, name: r.name, paid: Math.round(30 / r.lead) }})) }} }}; fitCache = undefined; render(); }}""")
+        # Paid = 30 / Lead % on each board player: the fit must give it back.
+        log = lambda date, keep: f"past()['{date}'].rows.filter((r) => r.lead && {keep}).map((r) => ({{ id: r.id, name: r.name, paid: Math.round(30 / r.lead) }}))"
+        PAGE.evaluate(f"() => {{ PAYOUTS = {{ '{FIRST}': {{ pool: 250000, payouts: {log(FIRST, 'true')} }} }}; fitCache = undefined; render(); }}")
         self.assertNotIn("Est Pay", PAGE.text_content("#kotc-players thead"))  # 5 is too few
-        PAGE.evaluate(f"""() => {{ PAYOUTS['{PAST}'].payouts = past()['{PAST}'].rows.filter((r) => r.lead).map((r) => ({{ id: r.id, name: r.name, paid: Math.round(30 / r.lead) }})); fitCache = undefined; render(); }}""")
+        PAGE.evaluate(f"() => {{ PAYOUTS['{PAST}'] = {{ pool: 250000, payouts: {log(PAST, 'r.pra !== 50')} }}; fitCache = undefined; render(); }}")
         self.assertIn("Est Pay", PAGE.text_content("#kotc-players thead"))
         self.assertAlmostEqual(PAGE.evaluate("() => estPay(0.1)"), 300, delta=3)
         self.assertEqual(SITE.errors, [])
@@ -225,9 +232,26 @@ class DefenseAndHistory(unittest.TestCase):
             PAGE.evaluate(f"() => {{ KOTC.slates['2027']['{NIGHT}'].splice(-2); render(); }}")
 
     def test_nightly_leaders_newest_first_with_ties(self):
-        names = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-night .koe-win-names')].map((e) => e.textContent)")
-        self.assertEqual(names[0], "Star A / Star C")
-        self.assertEqual(names[1], "Star A")
+        nights = PAGE.evaluate("""() => [...document.querySelectorAll('.kotc-night')].map((n) => ({
+            names: [...n.querySelectorAll('.koe-win-names')].map((e) => e.textContent), tie: !!n.querySelector('.kotc-tie-tag'),
+            cut: [...n.querySelectorAll('.koe-win-names')].some((e) => e.scrollWidth > e.clientWidth + 1),
+            pre: [...n.querySelectorAll('.kotc-night-one')].map((e) => (e.querySelector('.koe-win-rank') || {}).textContent || '') }))""")
+        # A tie: both co-leaders on their own line, each with his own Pre place, neither name cut off.
+        self.assertEqual(nights[0], {"names": ["Star A", "Star C"], "tie": True, "cut": False, "pre": ["Pre 2", "Pre 3"]})
+        self.assertEqual(nights[1]["names"], ["Star A"])
+        self.assertFalse(nights[1]["tie"])
+
+    def test_a_tie_shows_each_winners_payout_and_stays_out_of_the_fit(self):
+        PAGE.evaluate(f"() => {{ PAYOUTS = {{ '{PAST}': {{ pool: 250000, payouts: [{{ id: '10', name: 'Star A', paid: 600 }}, {{ id: '30', name: 'Star C', paid: 600 }}] }} }}; fitCache = undefined; render(); }}")
+        try:
+            paid = PAGE.evaluate("() => [...[...document.querySelectorAll('.kotc-night')][0].querySelectorAll('.kotc-night-paid')].map((e) => e.textContent.trim())")
+            self.assertEqual(paid, ["$600", "$600"])
+            # Four more: six logged, but the two tied winners don't count, so no fit yet (it needs 6).
+            PAGE.evaluate(f"() => {{ PAYOUTS['{PAST}'].payouts.push(...past()['{PAST}'].rows.filter((r) => r.lead && r.pra !== 50).map((r) => ({{ id: r.id, name: r.name, paid: Math.round(30 / r.lead) }}))); fitCache = undefined; }}")
+            self.assertEqual(PAGE.evaluate(f"() => PAYOUTS['{PAST}'].payouts.length"), 6)
+            self.assertIsNone(PAGE.evaluate("() => payoutFit()"))
+        finally:
+            PAGE.evaluate("() => { PAYOUTS = {}; fitCache = undefined; render(); }")
 
     def test_historical_data_opens_and_closes(self):
         PAGE.click("#kotc-history-btn")
