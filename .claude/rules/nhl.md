@@ -1212,10 +1212,12 @@ pages for the detail, not a copy of them.
   - **Filterable** (2026-10-16, the owner: "How are SOG Best plays with a 10% edge doing in the
     last 15 days"): each record's `ledger` (`record_ledger` in build_nhl.py) is EVERY graded play
     of the season as `[date, edge, won, units]` (`plays` stays capped at 14 days with the detail).
-    The popup: Last 3 / 7 / 15 / 30 days / Season chips, a Min edge slider (3-20 points) in the
-    Shots, Goals and Points tiles, All plays = all three at their own minimums. An edge counts as the table
-    rounds it (9.96 = 10.0). Remembered per device (`nfl-tool.nhl-best-record.v1`). With no
-    ledger (an old shots.json) the plain season tiles show.
+    The popup is the shared tracker (styles.md, "YTD Model Performance"; Yesterday added
+    2026-10-22): a Min Edge slider (3-20 points) in each market's tile, All Plays = every market at
+    its own minimum. An edge counts as the table rounds it (9.96 = 10.0). Remembered per device
+    (`nfl-tool.ytd.nhl-best.v1`). With no ledger (an old shots.json) the plain season tiles show.
+    Since 2026-10-22 the Shots, Goals, Points and Saves popups are the same tracker (`nhlYtd`), and
+    each ledger row carries its tags (side, bucket, fade / with, zone, thin) for their split tiles.
 - **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); every price is the BEST price any US book quotes at Novig's line (see "Best book prices"); the Odds cell names the book (Novig keeps its logo) and opens every book; a **Good to** column = the worst price that still has the smallest (3-point) edge (`goodTo`).
 - **Player cell (2026-10-18, the owner):** the rows are taller since the book name went under each
   price, so the cell's flex box sits INSIDE the td (`.best-player`, a flex td can't center

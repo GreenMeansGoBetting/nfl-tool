@@ -2061,8 +2061,17 @@ def record_ledger(plays: list) -> list:
     `[date, edge, won (1/0), units]`, oldest first: what Best Plays' record popup
     filters by days back and minimum edge (the owner, 2026-10-16: "how are SOG
     Best plays with a 10% edge doing in the last 15 days"). `plays` keeps only
-    the latest days, with every detail; this keeps every day, with only these."""
-    return [[p["date"], p["edge"], int(p["won"]), p["units"]] for p in sorted(plays, key=lambda p: (p["date"], -p["edge"]))]
+    the latest days, with every detail; this keeps every day, with only these.
+    A fifth column, the play's tags (side, bucket, with / against his average,
+    Zone Match, thin), feeds the split tiles of the shared YTD tracker (site
+    ytd.js: the same filters and sliders on every page, 2026-10-22)."""
+    def tags(p: dict) -> list:
+        out = [t for t in (p.get("side"), p.get("size")) if t]
+        if "fade" in p:
+            out.append("fade" if p["fade"] else "with")
+        out += [t for t in ("zone", "thin") if p.get(t)]
+        return out
+    return [[p["date"], p["edge"], int(p["won"]), p["units"], tags(p)] for p in sorted(plays, key=lambda p: (p["date"], -p["edge"]))]
 
 
 def shots_record_summary(folder: Path) -> dict:

@@ -472,32 +472,31 @@ function renderRecord() {
     return;
   }
   const n = Math.round(bar() * 100);
-  const tile = (label, t, tip) => {
-    t = t || { wins: 0, losses: 0, units: 0 };
-    const played = t.wins + t.losses;
-    return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div><b>${t.wins}-${t.losses}</b><small>${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signed(t.units)}u` : "none yet"}</small></div>`;
-  };
-  box.innerHTML = `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, graded at the price locked before puck drop; u = units won risking 1 a play</span></div>
-    <div class="nba-tiles shots-record">
-      ${tile("Plays", record.play, `Every play: an edge of ${n}+ points on a player not moved down a line. Every game is graded by today's rule, the ones before it too`)}
-      ${tile("Not plays", record.none, "The better side of every other line: about what blind betting does")}
-      ${tile("Overs", record.over, "The plays that were overs")}
-      ${tile("Unders", record.under, "The plays that were unders")}
-      ${record.fade ? tile("Against his average", record.fade, `Plays that went against the player's own season average: the model not believing a hot or cold start`) : ""}
-      ${record.with ? tile("With his average", record.with, `Plays that his own season average agreed with`) : ""}
-      ${record.clv ? clvTile(record.clv) : ""}
-    </div>
-    ${recordPlays(record)}`;
+  nhlYtd(box, {
+    record,
+    intro: `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, graded at the price locked before puck drop; u = units won risking 1 a play</span></div>`,
+    tracker: {
+      key: "nhl-shots",
+      markets: [{
+        key: "play", label: "Plays", ledger: record.ledger, min: n, max: Math.max(n, 20),
+        tip: `Every play: an edge of ${n}+ points on a player not moved down a line. Every game is graded by today's rule, the ones before it too`,
+        splits: [["over", "Overs", "The plays that were overs"], ["under", "Unders", "The plays that were unders"],
+          ["fade", "Against His Avg", "Plays that went against the player's own season average: the model not believing a hot or cold start"], ["with", "With His Avg", "Plays that his own season average agreed with"]],
+      }],
+    },
+    season: `${ytdSeasonTile("Not Plays", record.none, "The better side of every other line: about what blind betting does")}${record.clv ? clvTile(record.clv) : ""}`,
+    list: () => recordPlays(record),
+  });
 }
 // The graded plays themselves, under the tiles: every play on a finished game,
 // newest day first, each day headed by its own record. Buttons: every play
 // (how it opens), the overs, the unders.
-const RECORD_BUCKETS = [["edge", "All plays", () => true], ["over", "Overs", (play) => play.side === "over"], ["under", "Unders", (play) => play.side === "under"]];
+const RECORD_BUCKETS = [["edge", "All Plays", () => true], ["over", "Overs", (play) => play.side === "over"], ["under", "Unders", (play) => play.side === "under"]];
 function recordPlays(record) {
   const all = (record.plays || []).filter((play) => play.size === "play");
   if (!all.length) return "";
   const bucket = RECORD_BUCKETS.find(([key]) => key === shotsView.record) || RECORD_BUCKETS[0];
-  const shown = all.filter(bucket[2]);
+  const shown = all.filter(bucket[2]).filter((play) => ytdKeeps("nhl-shots", "play", play.date, play.edge));
   const sum = (plays) => plays.reduce((t, play) => ({ wins: t.wins + (play.won ? 1 : 0), losses: t.losses + (play.won ? 0 : 1), units: t.units + play.units }), { wins: 0, losses: 0, units: 0 });
   const line = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
   const buttons = RECORD_BUCKETS.map(([key, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bucket[0] === key ? " active" : ""}" data-filter="record" data-value="${key}">${label}</button>`).join("");

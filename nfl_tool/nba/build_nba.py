@@ -691,13 +691,14 @@ def first_basket_record(season: int, slate: dict, names: dict, games: list, open
             continue
         res = r["result"]
         value = []
-        for pid, (name, _, price, is_value, *_) in r["players"].items():
+        for pid, (name, chance, price, is_value, *_) in r["players"].items():
             if is_value and price is not None:
                 hit = res["scorer"] == pid
                 plays += 1
                 won += hit
                 total += first_basket.units(price, hit)
-                value.append([pid, name, price, hit])
+                # The edge (our chance over the price's, less 1) feeds the YTD tracker's slider.
+                value.append([pid, name, price, hit, round(chance / first_basket.implied(price) - 1, 3)])
         scorer = res["scorer"]
         history.append({"game_id": gid, "date": r["date"], "away": r["away"], "home": r["home"],
                         "tip_home": r.get("tip_home"), "jumpers": r.get("jumpers"), "tip": res.get("tip"),

@@ -111,10 +111,8 @@ that, move detail into a rules file.
 - **Audit habit:** any rule that blends parts into one score and then cuts on it can hide one
   strong part. Before shipping a new selection rule, list every candidate with its parts for a
   real week and check that no strong single part is dropped except by an intentional block.
-- **Summary cards direct attention and don't explain.** No wordy blurbs; use color and shaded
-  boxes, not plain colored text. No "#5" rank badges on the card (ranks go in hovers or small
-  tags); the exceptions are the Game Summary's Matchups and the TD Summary's targets, which show league ranks. The card must never contradict itself. Give rows and boxes room: use the full card
-  height and don't cram. **Never drop data to make a card bigger; rearrange into dead space.**
+- **Summary cards direct attention and don't explain.** No wordy blurbs; color and shaded boxes, not plain colored text. No "#5" rank badges (ranks in hovers or small tags; except the Game Summary's Matchups and the TD Summary's targets).
+  Never contradict itself; use the full card height, don't cram. **Never drop data to make a card bigger; rearrange into dead space.**
 - **Props Summary is directional, never a pick sheet:** no projections, "model edge" numbers or
   model-picked players. The user draws the conclusions. NFL Best Plays is the one page of model plays (owner, 2026-10-20).
 - **The GMG model is a talking point, never "beats the line".** A 2024-25 replay had it at 50% against the spread.
@@ -123,8 +121,9 @@ that, move detail into a rules file.
   banners, filled tier cells) rather than adding a new one. One font, Sofia Sans, for letters AND numbers on every sport (styles.md).
 - **Title Case every header, label and button** without being asked (the owner, 2026-10-21: "If its
   a header, every word needs capitalized"); when the owner gives exact wording, use it as written.
-- **Odds lock at kickoff.** Books keep quoting in-game lines; the site must never show them as
-  the line. A saved pick always shows the line it was made at.
+- **Odds lock at kickoff:** never show in-game lines as the line; a saved pick shows the line it was made at.
+- **Every model record is the shared YTD tracker** (`ytd.js` `ytdTracker`: Yesterday to Season, a
+  Min Edge slider per market, split tiles; the build sends a `ledger`). A new tool gets it (styles.md; `test_ytd_site.py`).
 - **Lineup-aware usage:** never surface a backup off one fill-in game. **No DST targets anywhere** (random, not bet).
 - **Settings gear** (sync.js, styles.md): every shown price goes through `showOdds`, every red-to-green shade through `scaleHsla` / the tier tokens; never name a state.
 - **Per-member data** goes in BOTH `SYNC_KEYS` (middleware) and `KEYS` (sync.js), and its save

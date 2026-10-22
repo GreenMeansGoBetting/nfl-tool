@@ -109,11 +109,6 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
 /* YTD Performance (the pill beside the seasons and its window). */
 .nba-seasons .fb-ytd-btn { border-radius: 999px; margin-left: 6px; font-weight: 700; }
 #fb-ytd-modal .modal-box { max-width: 1000px; }
-.fb-ytd-tiles { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
-.fb-ytd-tile { flex: 1 1 160px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2, rgba(127, 127, 127, 0.08)); }
-.fb-ytd-tile small { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.fb-ytd-tile b { font-family: var(--font-display); font-size: 1.5rem; }
-.fb-ytd-tile span { font-size: 0.8rem; color: var(--muted); }
 .fb-ytd-scroll { overflow-x: auto; }
 .fb-ytd-table td { white-space: nowrap; vertical-align: middle; }
 .fb-ytd-table .team-logo { vertical-align: middle; margin-right: 4px; }

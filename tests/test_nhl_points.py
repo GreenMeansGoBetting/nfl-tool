@@ -256,7 +256,7 @@ class Record(unittest.TestCase):
             self.assertEqual(sum(b["players"] for b in r["honest"]), 6)
             self.assertEqual(sum(b["got"] for b in r["honest"]), 3)
             self.assertEqual([p["id"] for p in r["plays"]], ["2", "1"])  # only the plays, biggest edge first
-            self.assertEqual(r["ledger"], sorted([["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]], key=lambda x: -x[1]))
+            self.assertEqual([row[:4] for row in r["ledger"]], sorted([["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]], key=lambda x: -x[1]))
             self.assertEqual(r["days"], [{"date": "2026-10-13", "wins": 2, "losses": 0, "units": 1.77}])
 
     def test_the_points_bar(self):

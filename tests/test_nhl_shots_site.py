@@ -678,7 +678,7 @@ class FinishedGames(unittest.TestCase):
             render();
         }""")
         text = PAGE.inner_text("#shots-results").upper().replace("\n", " ")
-        for piece in ("THE RECORD SO FAR", "21 GAMES", "PLAYS", "9-5", "64%", "+3.4U", "NOT PLAYS", "14-12", "OVERS", "1-2", "UNDERS", "15-8", "AGAINST HIS AVERAGE", "6-3", "WITH HIS AVERAGE", "17-14"):
+        for piece in ("THE RECORD SO FAR", "21 GAMES", "PLAYS", "9-5", "64%", "+3.4U", "NOT PLAYS", "14-12", "OVERS", "1-2", "UNDERS", "15-8", "AGAINST HIS AVG", "6-3", "WITH HIS AVG", "17-14"):
             self.assertIn(piece, text)
         self.assertNotIn("CHECK", text)
         PAGE.evaluate("() => { SHOTS.record = window.keptRecord; render(); }")
@@ -775,7 +775,7 @@ class GradedPlays(unittest.TestCase):
                 const text = (el) => el.textContent.trim().replace(/\\s+/g, " ");
                 const box = document.getElementById("shots-results");
                 return {
-                    tiles: box.querySelectorAll(".shots-record .nba-tile").length,
+                    tiles: box.querySelectorAll(".ytd-tile").length,
                     rows: [...box.querySelectorAll(".shots-record-table tbody tr")].map((tr) => [...tr.children].map((td, i) => text(i === 0 && td.querySelector("b") ? td.querySelector("b") : td))),
                     total: text(box.querySelector(".shots-record-total")),
                     active: text(box.querySelector(".shots-record-buckets .active")),
@@ -789,7 +789,7 @@ class GradedPlays(unittest.TestCase):
 
     def test_it_opens_on_every_play_grouped_by_day(self):
         seen = self.show()
-        self.assertEqual((seen["tiles"], seen["active"]), (6, "All plays"))
+        self.assertEqual((seen["tiles"], seen["active"]), (6, "All Plays"))
         # Two days, newest first, each headed by its own record; a row from an old build ("check") is not a play.
         self.assertEqual([row[0] for row in seen["rows"] if len(row) == 1], ["Tue, Oct 13 1-1 · -0.17u", "Mon, Oct 12 1-0 · +0.91u"])
         plays = [row for row in seen["rows"] if len(row) > 1]
@@ -832,11 +832,11 @@ class GradedPlays(unittest.TestCase):
                 const tally = { wins: 0, losses: 0, units: 0 };
                 SHOTS.record = { since: "2026-10-12", through: "2026-10-13", games: 2, strong: tally, lean: tally, none: tally, check: tally, over: tally, under: tally };
                 render();
-                return { tiles: document.querySelectorAll("#shots-results .shots-record .nba-tile").length, table: document.querySelectorAll("#shots-results .shots-record-table").length };
+                return { tiles: document.querySelectorAll("#shots-results .ytd-tile").length, table: document.querySelectorAll("#shots-results .shots-record-table").length };
             }"""
         )
         # A record from before the bar (no "play" tally) still draws: Plays reads 0-0 until the next build.
-        self.assertEqual(seen, {"tiles": 4, "table": 0})
+        self.assertEqual(seen, {"tiles": 6, "table": 0})
         self.assertEqual(SITE.errors, [])
 
 

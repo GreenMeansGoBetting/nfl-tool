@@ -347,52 +347,17 @@ function renderTable() {
     </table></div></div>`;
 }
 
-// ---- the record: every play this page lists, from the Shots, Goals and Points records ----
+// ---- the record: every play this page lists, from the Shots, Goals, Points and Saves records ----
 // The owner, 2026-10-16: "How are SOG Best plays with a 10% edge doing in the last
-// 15 days". Each record's `ledger` is every graded play of the season ([date,
-// edge, won, units]); the popup filters it by days back and, per market, a
-// minimum edge. A per-device choice, like the other views.
-const RECORD_KEY = "nfl-tool.nhl-best-record.v1";
-const RECORD_WINDOWS = [[3, "Last 3 days"], [7, "Last 7 days"], [15, "Last 15 days"], [30, "Last 30 days"], [0, "Season"]];
+// 15 days". Each record's `ledger` is every graded play of the season; the shared
+// tracker (../ytd.js, the same on every page) filters it by days back and, per
+// market, a minimum edge.
 const EDGE_MAX = 20;
-const recordView = (() => {
-  const lean = Math.round(edgeAt("lean") * 100);
-  const saved = (() => {
-    try {
-      return JSON.parse(localStorage.getItem(RECORD_KEY)) || {};
-    } catch (e) {
-      return {};
-    }
-  })();
-  const minEdge = (v) => (Number.isFinite(v) ? Math.max(lean, Math.min(EDGE_MAX, v)) : lean);
-  return { days: RECORD_WINDOWS.some(([d]) => d === saved.days) ? saved.days : 0, sog: minEdge(saved.sog), goal: minEdge(saved.goal), pts: minEdge(saved.pts), saves: minEdge(saved.saves) };
-})();
-function saveRecordView() {
-  try {
-    localStorage.setItem(RECORD_KEY, JSON.stringify(recordView));
-  } catch (e) {
-    /* private window: the choice just isn't remembered */
-  }
-}
 const signedU = (u) => `${u >= 0 ? "+" : ""}${u.toFixed(1)}u`;
-// The first day inside "the last N days", counting today.
-function windowStart(n) {
-  if (!n) return "";
-  const d = new Date();
-  d.setDate(d.getDate() - (n - 1));
-  return d.toLocaleDateString("en-CA");
-}
-// The ledger's plays from `since` on with an edge of `min`+ points (as the table rounds it: 9.96 shows as 10.0).
-function tally(ledger, since, min) {
-  return (ledger || []).reduce((t, [date, edge, won, units]) => {
-    if (date < since || Math.round(edge * 1000) / 10 < min) return t;
-    return { wins: t.wins + (won ? 1 : 0), losses: t.losses + (won ? 0 : 1), units: t.units + units };
-  }, { wins: 0, losses: 0, units: 0 });
-}
 function tileBody(t) {
   const played = t.wins + t.losses;
-  const kind = !played ? "" : t.units > 0.05 ? " best-rec-up" : t.units < -0.05 ? " best-rec-down" : "";
-  return `<b>${t.wins}-${t.losses}</b><small class="best-rec-line${kind}">${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signedU(t.units)}` : "no graded plays"}</small>`;
+  const kind = !played ? "" : t.units > 0.05 ? " ytd-up" : t.units < -0.05 ? " ytd-down" : "";
+  return `<b>${t.wins}-${t.losses}</b><small class="ytd-line${kind}">${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signedU(t.units)}` : "No Graded Plays"}</small>`;
 }
 // Before the build sent ledgers: the season's buckets, unfiltered.
 function renderRecordBuckets(box) {
@@ -405,67 +370,29 @@ function renderRecordBuckets(box) {
   const pts = sum(POINTS.record);
   const saves = sum(SAVES.record);
   const all = { wins: shots.wins + goals.wins + pts.wins + saves.wins, losses: shots.losses + goals.losses + pts.losses + saves.losses, units: shots.units + goals.units + pts.units + saves.units };
-  const tile = (label, t, tip) => `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div>${tileBody(t)}</div>`;
+  const tile = (label, t, tip) => `<div class="ytd-tile" title="${tip}"><div class="ytd-label">${label}</div>${tileBody(t)}</div>`;
   box.innerHTML = `<div class="shots-detail-label">Every play with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">graded at the price locked before puck drop; u = units won risking 1 a play. The full records are on the Shots, Goals, Points and Saves pages.</span></div>
-    <div class="nba-tiles shots-record">
-      ${tile("All plays", all, "Every play this page lists")}
-      ${tile("Shots on goal", shots, "Shots plays with an edge")}
-      ${tile("Anytime goal", goals, "Goal plays with an edge")}
+    <div class="ytd-tiles">
+      ${tile("All Plays", all, "Every play this page lists")}
+      ${tile("Shots On Goal", shots, "Shots plays with an edge")}
+      ${tile("Anytime Goal", goals, "Goal plays with an edge")}
       ${tile("Points", pts, "Points plays with an edge")}
-      ${tile("Goalie saves", saves, "Saves plays with an edge")}
+      ${tile("Goalie Saves", saves, "Saves plays with an edge")}
     </div>`;
 }
-const LEDGERS = () => ({ sog: (SHOTS.record || {}).ledger, goal: (GOALS.record || {}).ledger, pts: (POINTS.record || {}).ledger, saves: (SAVES.record || {}).ledger });
 function renderRecord() {
   const box = el("best-results");
-  const ledgers = LEDGERS();
-  if (!ledgers.sog && !ledgers.goal && !ledgers.pts && !ledgers.saves) return renderRecordBuckets(box);
+  const ledger = (rec) => (rec || {}).ledger;
+  if (![SHOTS, GOALS, POINTS, SAVES].some((f) => ledger(f.record))) return renderRecordBuckets(box);
   const lean = Math.round(edgeAt("lean") * 100);
-  const windows = RECORD_WINDOWS.map(([d, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${recordView.days === d ? " active" : ""}" data-rec-days="${d}">${label}</button>`).join("");
-  const slider = (key) => `<label class="best-rec-edge"><span>Min edge</span><input type="range" min="${lean}" max="${EDGE_MAX}" step="1" value="${recordView[key]}" data-rec-edge="${key}" aria-label="Minimum edge, ${{ sog: "shots on goal", goal: "anytime goal", pts: "points", saves: "goalie saves" }[key]}"><output data-rec-out="${key}"></output></label>`;
-  box.innerHTML = `<div class="shots-detail-label">Graded plays <span class="muted-label">at the price locked before puck drop; u = units won risking 1 a play. Slide a market's minimum edge (in points) to see how the bigger edges have done. The full records are on the Shots, Goals, Points and Saves pages.</span></div>
-    <div class="view-toggle shots-filter best-rec-windows">${windows}</div>
-    <div class="nba-tiles best-rec-tiles">
-      <div class="nba-tile" data-rec-tile="all" title="Every market, each at its own minimum edge"><div class="gs-tile-label">All plays</div><div data-rec-body="all"></div><small class="best-rec-sub" data-rec-sub="all"></small></div>
-      <div class="nba-tile" data-rec-tile="sog" title="Shots on goal plays at or above the minimum edge"><div class="gs-tile-label">Shots on goal</div><div data-rec-body="sog"></div>${slider("sog")}</div>
-      <div class="nba-tile" data-rec-tile="goal" title="Anytime goal plays at or above the minimum edge"><div class="gs-tile-label">Anytime goal</div><div data-rec-body="goal"></div>${slider("goal")}</div>
-      <div class="nba-tile" data-rec-tile="pts" title="Points plays at or above the minimum edge"><div class="gs-tile-label">Points</div><div data-rec-body="pts"></div>${slider("pts")}</div>
-      <div class="nba-tile" data-rec-tile="saves" title="Goalie saves plays at or above the minimum edge"><div class="gs-tile-label">Goalie saves</div><div data-rec-body="saves"></div>${slider("saves")}</div>
-    </div>`;
-  updateRecord();
+  const market = (key, label, short, f) => ({ key, label, short, ledger: ledger(f.record), min: lean, max: EDGE_MAX, tip: `${label} plays at or above the minimum edge` });
+  box.innerHTML = `<div class="shots-detail-label">Graded plays <span class="muted-label">at the price locked before puck drop; u = units won risking 1 a play. Slide a market's minimum edge (in points) to see how the bigger edges have done. The full records are on the Shots, Goals, Points and Saves pages.</span></div><div id="best-ytd"></div>`;
+  ytdTracker(el("best-ytd"), {
+    key: "nhl-best",
+    all: "All Plays",
+    markets: [market("sog", "Shots On Goal", "Shots", SHOTS), market("goal", "Anytime Goal", "Goals", GOALS), market("pts", "Points", "Points", POINTS), market("saves", "Goalie Saves", "Saves", SAVES)],
+  });
 }
-// Only the numbers: a slider being dragged keeps its place.
-function updateRecord() {
-  const box = el("best-results");
-  const ledgers = LEDGERS();
-  const since = windowStart(recordView.days);
-  const sog = tally(ledgers.sog, since, recordView.sog);
-  const goal = tally(ledgers.goal, since, recordView.goal);
-  const pts = tally(ledgers.pts, since, recordView.pts);
-  const saves = tally(ledgers.saves, since, recordView.saves);
-  const all = { wins: sog.wins + goal.wins + pts.wins + saves.wins, losses: sog.losses + goal.losses + pts.losses + saves.losses, units: sog.units + goal.units + pts.units + saves.units };
-  const put = (sel, html) => {
-    const node = box.querySelector(sel);
-    if (node) node.innerHTML = html;
-  };
-  put('[data-rec-body="all"]', tileBody(all));
-  put('[data-rec-body="sog"]', tileBody(sog));
-  put('[data-rec-body="goal"]', tileBody(goal));
-  put('[data-rec-body="pts"]', tileBody(pts));
-  put('[data-rec-body="saves"]', tileBody(saves));
-  put('[data-rec-out="saves"]', `${recordView.saves}+`);
-  put('[data-rec-out="sog"]', `${recordView.sog}+`);
-  put('[data-rec-out="goal"]', `${recordView.goal}+`);
-  put('[data-rec-out="pts"]', `${recordView.pts}+`);
-  put('[data-rec-sub="all"]', `Shots ${recordView.sog}+ &middot; Goals ${recordView.goal}+ &middot; Points ${recordView.pts}+ &middot; Saves ${recordView.saves}+`);
-}
-document.addEventListener("input", (e) => {
-  const key = e.target.dataset && e.target.dataset.recEdge;
-  if (!key) return;
-  recordView[key] = Number(e.target.value);
-  saveRecordView();
-  updateRecord();
-});
 
 function render() {
   if (!DATA) return;
@@ -497,12 +424,6 @@ document.addEventListener("change", (e) => {
 document.addEventListener("click", (e) => {
   if (e.target.closest("#best-record-open")) return showRecord(true);
   if (e.target.id === "best-record-modal" || e.target.closest("#best-record-modal .modal-close")) return showRecord(false);
-  const window_ = e.target.closest("[data-rec-days]");
-  if (window_) {
-    recordView.days = Number(window_.dataset.recDays);
-    saveRecordView();
-    return renderRecord();
-  }
   const card = e.target.closest(".matchup-card");
   if (card) {
     gameId = gameId === card.dataset.game ? null : card.dataset.game;

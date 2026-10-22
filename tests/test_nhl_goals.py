@@ -306,7 +306,9 @@ class Record(unittest.TestCase):
             self.assertEqual(sum(b["players"] for b in r["honest"]), 5)
             self.assertEqual([p["id"] for p in r["plays"]], ["4", "1", "2"])
             # Best Plays' filterable record: every called play (check included), [date, edge, won, units].
-            self.assertEqual(r["ledger"], [["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]])
+            self.assertEqual([row[:4] for row in r["ledger"]], [["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]])
+            # The fifth column: the YTD tracker's split tags (bucket, Zone Match, thin).
+            self.assertEqual([row[4][0] for row in r["ledger"]], [p["size"] for p in r["plays"]])
             self.assertEqual(r["days"], [{"date": "2026-10-13", "wins": 1, "losses": 1, "units": 2.0}])
 
     def test_rows_saved_before_the_factors_still_read(self):

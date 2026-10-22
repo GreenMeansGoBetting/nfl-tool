@@ -87,7 +87,39 @@ function clvTile(clv) {
   const tip = "Closing line value on the plays: how far Novig's own price moved toward the play from the first look to the lock before puck drop, both sides with the cut taken out, in points of chance (+ = the market moved toward the model). A line that moved counts by direction (an over whose line went up). Novig only: the best price across books moves with how many books have posted, not with the market. Plays Novig didn't price both times are left out.";
   const value = has(clv.points) ? `${clv.points > 0 ? "+" : ""}${(clv.points * 100).toFixed(1)}` : "--";
   const since = clv.since ? ` &middot; since ${shortDate(clv.since)}` : "";
-  return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">Closing Line Value</div><b>${value}</b><small>${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays${since}` : "none yet"}</small></div>`;
+  return `<div class="ytd-tile" title="${tip}"><div class="ytd-label">Closing Line Value</div><b>${value}</b><small class="ytd-line">${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays${since}` : "None Yet"}</small></div>`;
+}
+// Every NHL prop page's YTD Model Performance popup, one layout (2026-10-22): the shared
+// tracker (../ytd.js: time windows, a Min Edge slider, split tiles), then the season-only
+// tiles it can't filter (Not Plays, closing line value...), then `after` (Said vs scored),
+// then the page's graded plays from `list()`, which keeps them to the tracker's window and
+// slider with ytdKeeps and is redrawn whenever they change.
+// A record from before the build sent a `ledger` can't be filtered: the same tiles from its
+// season buckets (`record[key]`, a market's `only` buckets added up), with no window or slider.
+function nhlYtd(box, { intro, record, tracker, season, after, list }) {
+  box.innerHTML = `${intro}<div class="ytd-box"></div>
+    ${season ? `<div class="shots-detail-label ytd-season">Season To Date <span class="muted-label">not filtered by the window or slider</span></div><div class="ytd-tiles">${season}</div>` : ""}
+    ${after || ""}<div class="ytd-list"></div>`;
+  const draw = () => {
+    box.querySelector(".ytd-list").innerHTML = list();
+  };
+  if (tracker.markets.some((m) => m.ledger)) ytdTracker(box.querySelector(".ytd-box"), { ...tracker, onChange: draw });
+  else {
+    const add = (keys) => keys.reduce((t, k) => {
+      const b = record[k] || {};
+      return { wins: t.wins + (b.wins || 0), losses: t.losses + (b.losses || 0), units: t.units + (b.units || 0) };
+    }, { wins: 0, losses: 0, units: 0 });
+    box.querySelector(".ytd-box").innerHTML = `<div class="ytd-tiles">${tracker.markets.map((m) => ytdSeasonTile(m.label, add(m.only || [m.key]), m.tip || "")
+      + (m.splits || []).map(([tag, label, tip]) => ytdSeasonTile(label, add([tag]), tip || "")).join("")).join("")}</div>`;
+  }
+  draw();
+}
+// A season tile in the tracker's look.
+function ytdSeasonTile(label, t, tip) {
+  t = t || { wins: 0, losses: 0, units: 0 };
+  const played = t.wins + t.losses;
+  const kind = !played ? "" : t.units > 0.05 ? " ytd-up" : t.units < -0.05 ? " ytd-down" : "";
+  return `<div class="ytd-tile" title="${tip}"><div class="ytd-label">${label}</div><b>${t.wins}-${t.losses}</b><small class="ytd-line${kind}">${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${t.units >= 0 ? "+" : ""}${t.units.toFixed(1)}u` : "None Yet"}</small></div>`;
 }
 // The build's bucket for a Goals or Points row (`size`, the one the record grades), as one tag.
 // Every page that shows such a play draws it with this, so a "Check" on the Goals or Points

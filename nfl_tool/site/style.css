@@ -4076,10 +4076,28 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .bp-note { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; border: 1px dashed var(--border-strong); color: var(--muted); font-size: 0.72rem; font-weight: 700; }
 .bp-price { white-space: nowrap; }
 .bp-why { min-width: 220px; font-size: 0.8rem; color: var(--muted); }
+/* ---- YTD Model Performance (ytd.js): the same tracker on every sport ---- */
+.ytd-windows { margin: 10px 0 0; flex-wrap: wrap; }
+.ytd-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-width: 900px; margin: 10px 0 0; }
+.ytd-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 8px 9px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); text-align: center; }
+.ytd-tile [data-ytd-body] { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ytd-all { border-color: rgba(var(--good-rgb), 0.45); }
+.ytd-label { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.ytd-tile b { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; line-height: 1.1; color: var(--text); }
+.ytd-line { padding: 1px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+.ytd-up { background: rgba(var(--good-rgb), 0.18); color: var(--text); }
+.ytd-down { background: rgba(var(--bad-rgb), 0.16); color: var(--text); }
+.ytd-sub { margin-top: 6px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.ytd-slider { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.ytd-slider input { flex: 1; min-width: 0; accent-color: var(--accent); cursor: pointer; }
+.ytd-slider output { min-width: 34px; padding: 1px 6px; border-radius: 6px; text-align: center; font-size: 0.82rem; color: var(--text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.45); }
+.ytd-season { margin-top: 16px; }
 @media (max-width: 760px) {
   .page-nav a, .page-nav-current { padding: 6px 10px; font-size: 0.8rem; }
   .bp-game-pick { margin-left: 0; }
   .acct-chip { padding: 3px; }
   .acct-chip .acct-name { display: none; }
   .brand-name { font-size: 1.05rem; }
+  .ytd-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ytd-window { padding: 5px 9px; font-size: 0.78rem; }
 }

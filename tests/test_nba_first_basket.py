@@ -253,7 +253,8 @@ class Build(unittest.TestCase):
                 self.assertEqual(history, [{"game_id": "9", "date": "2026-10-21", "away": "BBB", "home": "AAA",
                                             "tip_home": saved["tip_home"], "jumpers": saved["jumpers"], "tip": "BBB",
                                             "first_home": saved["first_home"], "first": "AAA", "scorer": ["12", "P12"],
-                                            "value": [["11", "P11", 3000, False], ["12", "P12", 5000, True]]}])
+                                            "value": [["11", "P11", 3000, False, round(saved["players"]["11"][1] / fb.implied(3000) - 1, 3)],
+                                                      ["12", "P12", 5000, True, round(saved["players"]["12"][1] / fb.implied(5000) - 1, 3)]]}])
                 # A game graded before the tip winner was kept gets it on the next build.
                 rec = json.loads((Path(tmp) / "2027.json").read_text())
                 del rec["9"]["result"]["tip"]
@@ -372,8 +373,11 @@ class Page(unittest.TestCase):
         self.assertEqual(buttons, [["2025-26", False], ["2026-27", False]])
 
     def test_ytd_performance_pill_opens_the_history(self):
-        # The owner, 2026-10-21: a "YTD Performance" pill beside the seasons.
+        # The owner, 2026-10-21: a "YTD Performance" pill beside the seasons; since 2026-10-22 the
+        # shared tracker (ytd.js): a Min Chance slider on each pick, a Min Edge slider on Value Plays.
         got = PAGE.evaluate("""() => {
+            try { localStorage.removeItem('nfl-tool.ytd.nba-first-basket.v1'); } catch (e) {}
+            delete YTD_TRACKERS['nba-first-basket'];
             FB.record = { plays: 2, won: 1, units: 3.5, games: 2, history: [
               { game_id: "8", date: "2026-10-21", away: "BBB", home: "AAA", tip_home: 0.7, jumpers: [["20", "P20"], ["10", "P10"]], tip: "AAA",
                 first_home: 0.6, first: "BBB", scorer: ["20", "P20"], value: [["12", "P12", 450, true], ["11", "P11", 900, false]] },
@@ -385,16 +389,28 @@ class Page(unittest.TestCase):
             pill.click();
             const modal = document.getElementById('fb-ytd-modal');
             const out = { label, open: !modal.hidden,
-              tiles: [...modal.querySelectorAll('.fb-ytd-tile')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim()),
+              tiles: [...modal.querySelectorAll('.ytd-tile')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim()),
               rows: [...modal.querySelectorAll('tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim())) };
+            // Slide the tip pick's minimum to 75%: the 70% pick leaves its tile and the table.
+            const slider = modal.querySelector('[data-ytd-min="tip"]');
+            slider.value = 75; slider.dispatchEvent(new Event('input', { bubbles: true }));
+            out.tipAt75 = modal.querySelector('[data-ytd-body="tip"]').innerText.replace(/\\s+/g, ' ').trim();
+            out.rowAt75 = modal.querySelector('tbody tr').children[2].innerText.trim();
+            out.windows = [...modal.querySelectorAll('[data-ytd-days]')].map((b) => b.textContent);
+            try { localStorage.removeItem('nfl-tool.ytd.nba-first-basket.v1'); } catch (e) {}
+            delete YTD_TRACKERS['nba-first-basket'];
             modal.hidden = true; delete FB.record; render(); return out; }""")
-        self.assertEqual(got["label"], "YTD Performance")
+        self.assertEqual(got["label"], "YTD Model Performance")
         self.assertTrue(got["open"])
         # Tip: picked AAA (70%) and AAA won it; the older game had no tip pick saved.
         # Scores First: AAA (60%) but BBB did, then AAA (55% road) and AAA did.
-        self.assertEqual(got["tiles"][0], "TIP PREDICTION 1 of 1 100%")
-        self.assertEqual(got["tiles"][1], "SCORES FIRST 1 of 2 50%")
-        self.assertTrue(got["tiles"][2].startswith("VALUE PLAYS 1 of 2 50%"), got["tiles"][2])
+        self.assertEqual(got["tiles"][0], "TIP PREDICTION 1-0 100% MIN CHANCE 50%+")
+        self.assertEqual(got["tiles"][1], "SCORES FIRST 1-1 50% MIN CHANCE 50%+")
+        # Value plays saved before their edge was kept count at the tag's cutoff (10%).
+        self.assertTrue(got["tiles"][2].startswith("VALUE PLAYS 1-1 50%"), got["tiles"][2])
+        self.assertEqual(got["tipAt75"], "0-0 No Graded Plays")
+        self.assertEqual(got["rowAt75"], "--")
+        self.assertEqual(got["windows"], ["Yesterday", "Last 3 Days", "Last 7 Days", "Last 15 Days", "Last 30 Days", "Season"])
         self.assertIn("+3.5u", got["tiles"][2])
         self.assertEqual(got["rows"][0][2].replace(" ", ""), "P1070%")  # home jumper and his chance
         self.assertEqual(got["rows"][1][2], "--")

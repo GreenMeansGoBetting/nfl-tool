@@ -235,7 +235,7 @@ function renderSeasons() {
     .sort()
     .map((s) => `<button type="button" class="view-toggle-btn${s === season ? " active" : ""}" data-season="${s}">${FB.seasons[s].label}</button>`)
     .join("") + (FB.seasons[thisSeason] ? "" : `<button type="button" class="view-toggle-btn" disabled title="After the first games">${DATA.season_label}</button>`)
-    + (FB.record ? `<button type="button" class="view-toggle-btn fb-ytd-btn" id="fb-ytd">YTD Performance</button>` : "");
+    + (FB.record ? `<button type="button" class="view-toggle-btn fb-ytd-btn" id="fb-ytd">YTD Model Performance</button>` : "");
   const b = block();
   const cur = FB.seasons[thisSeason];
   el("fb-season-note").textContent = season === thisSeason
@@ -395,41 +395,54 @@ function renderValue(g, p) {
 }
 const teamOf = (g, p, id) => (p.home.starters.includes(id) ? g.home : g.away);
 
-// ---- YTD Performance ----
+// ---- YTD Model Performance ----
 // The owner, 2026-10-21: a pill beside the seasons opening the history.
 // Every graded game in model_history/nba_first_basket as the last build
 // before tip had it (first_basket.record.history): our tip pick against the
 // real tip, our Scores First pick against who did, and the Value plays.
 // A pick is the side over 50%; exactly 50% (a jumper unknown) is no pick.
 // The tip pick was first saved 2026-10-21, so earlier games show "--" there.
+// The tiles are the shared tracker (../ytd.js, the same on every page,
+// 2026-10-22): a pick's slider is its chance, a Value play's its edge.
 function ytdPick(homeChance, g) {
   if (homeChance === null || homeChance === undefined || homeChance === 0.5) return null;
   return homeChance > 0.5 ? { team: g.home, chance: homeChance, side: 1 } : { team: g.away, chance: 1 - homeChance, side: 0 };
 }
 const ytdShade = (hit) => ` style="background:${scaleHsla(hit ? 120 : 0, 70, 45, 0.3)}"`;
-function ytdTile(label, won, of, extra = "") {
-  return `<div class="fb-ytd-tile"><small>${label}</small><b>${of ? `${won} of ${of}` : "--"}</b><span>${of ? pct(won / of) : "No games yet"}${extra}</span></div>`;
+const fbUnits = (price, hit) => (!hit ? -1 : price > 0 ? price / 100 : 100 / -price);
+// A Value play saved before its edge was kept: worked out again from the price is not possible
+// (the chance isn't in the history), so it counts at the tag's own cutoff.
+const fbValueEdge = (v) => (v[4] === undefined ? FB_VALUE_EDGE : v[4]);
+const FB_VALUE_EDGE = 0.1;
+function fbLedgers(games) {
+  const tip = [], first = [], value = [];
+  games.forEach((g) => {
+    const t = ytdPick(g.tip_home, g);
+    const f = ytdPick(g.first_home, g);
+    if (t && g.tip) tip.push([g.date, t.chance, t.team === g.tip ? 1 : 0, null]);
+    if (f && g.first) first.push([g.date, f.chance, f.team === g.first ? 1 : 0, null]);
+    g.value.forEach((v) => value.push([g.date, fbValueEdge(v), v[3] ? 1 : 0, fbUnits(v[2], v[3])]));
+  });
+  return { tip, first, value };
 }
-function renderYtd() {
-  const rec = FB.record || {};
-  const games = rec.history || [];
-  let tipWon = 0, tipOf = 0, firstWon = 0, firstOf = 0;
-  const rows = games.map((g) => {
+function ytdTable(games) {
+  const rows = games.filter((g) => ytdKeeps("nba-first-basket", "tip", g.date, null)).map((g) => {
     const tip = ytdPick(g.tip_home, g);
     const first = ytdPick(g.first_home, g);
-    const tipHit = tip && g.tip ? tip.team === g.tip : null;
-    const firstHit = first && g.first ? first.team === g.first : null;
-    if (tipHit !== null) { tipOf += 1; tipWon += tipHit; }
-    if (firstHit !== null) { firstOf += 1; firstWon += firstHit; }
-    const jumper = tip && g.jumpers && g.jumpers[tip.side];
-    const tipCell = tip
-      ? `<td class="fb-ytd-pick"${tipHit === null ? "" : ytdShade(tipHit)}>${logo(tip.team, 16)}${jumper ? playerClick(jumper[0], lastName(jumper[1])) : tip.team}<b>${pct(tip.chance)}</b></td>`
+    const tipShown = tip && ytdKeeps("nba-first-basket", "tip", g.date, tip.chance) ? tip : null;
+    const firstShown = first && ytdKeeps("nba-first-basket", "first", g.date, first.chance) ? first : null;
+    const tipHit = tipShown && g.tip ? tipShown.team === g.tip : null;
+    const firstHit = firstShown && g.first ? firstShown.team === g.first : null;
+    const jumper = tipShown && g.jumpers && g.jumpers[tipShown.side];
+    const tipCell = tipShown
+      ? `<td class="fb-ytd-pick"${tipHit === null ? "" : ytdShade(tipHit)}>${logo(tipShown.team, 16)}${jumper ? playerClick(jumper[0], lastName(jumper[1])) : tipShown.team}<b>${pct(tipShown.chance)}</b></td>`
       : `<td class="fb-ytd-pick muted-label">--</td>`;
-    const firstCell = first
-      ? `<td class="fb-ytd-pick"${firstHit === null ? "" : ytdShade(firstHit)}>${logo(first.team, 16)}${first.team}<b>${pct(first.chance)}</b></td>`
+    const firstCell = firstShown
+      ? `<td class="fb-ytd-pick"${firstHit === null ? "" : ytdShade(firstHit)}>${logo(firstShown.team, 16)}${firstShown.team}<b>${pct(firstShown.chance)}</b></td>`
       : `<td class="fb-ytd-pick muted-label">--</td>`;
-    const value = g.value.length
-      ? g.value.map(([id, name, price, hit]) => `<span class="fb-ytd-play"${ytdShade(hit)}>${playerClick(id, lastName(name))} ${showOdds(price)}</span>`).join("")
+    const plays = g.value.filter((v) => ytdKeeps("nba-first-basket", "value", g.date, fbValueEdge(v)));
+    const value = plays.length
+      ? plays.map(([id, name, price, hit]) => `<span class="fb-ytd-play"${ytdShade(hit)}>${playerClick(id, lastName(name))} ${showOdds(price)}</span>`).join("")
       : `<span class="muted-label">--</span>`;
     const day = new Date(`${g.date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
     return `<tr><td class="muted-label">${day}</td><td class="fb-ytd-game">${logo(g.away, 16)}${g.away} @ ${logo(g.home, 16)}${g.home}</td>
@@ -437,13 +450,31 @@ function renderYtd() {
       ${firstCell}<td>${g.first ? `${logo(g.first, 16)}${g.scorer ? playerClick(g.scorer[0], lastName(g.scorer[1])) : g.first}` : "--"}</td>
       <td class="fb-ytd-value">${value}</td></tr>`;
   }).join("");
-  const units = rec.units || 0;
-  const unitText = rec.plays ? ` · <b class="${units >= 0 ? "fb-up" : "fb-down"}">${units > 0 ? "+" : ""}${units.toFixed(1)}u</b>` : "";
+  if (!games.length) return `<p class="no-data-note">Graded after tonight's games.</p>`;
+  if (!rows) return `<p class="no-data-note">No graded games in this window.</p>`;
+  return `<div class="fb-ytd-scroll"><table class="data-table fb-ytd-table"><thead><tr><th>Date</th><th>Game</th><th title="Our pick to win the opening tip (its jumper and chance), as the last update before tip had it">Tip Prediction</th><th>Won Tip</th><th title="Our pick to score the game's first points, as the last update before tip had it">Scores First</th><th>Scored First</th><th title="Value plays at the best price before tip">Value Plays</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderYtd() {
+  const rec = FB.record || {};
+  const games = rec.history || [];
+  const ledgers = fbLedgers(games);
   const overlay = ensureBookModal("fb-ytd-modal");
-  overlay.querySelector(".bo-content").innerHTML = `<h2 class="section-title">YTD Performance</h2>
-    <div class="fb-ytd-tiles">${ytdTile("Tip Prediction", tipWon, tipOf)}${ytdTile("Scores First", firstWon, firstOf)}${ytdTile("Value Plays", rec.won || 0, rec.plays || 0, unitText)}</div>
-    ${games.length ? `<div class="fb-ytd-scroll"><table class="data-table fb-ytd-table"><thead><tr><th>Date</th><th>Game</th><th title="Our pick to win the opening tip (its jumper and chance), as the last update before tip had it">Tip Prediction</th><th>Won Tip</th><th title="Our pick to score the game's first points, as the last update before tip had it">Scores First</th><th>Scored First</th><th title="Value plays at the best price before tip">Value Plays</th></tr></thead><tbody>${rows}</tbody></table></div>`
-      : `<p class="no-data-note">Graded after tonight's games.</p>`}`;
+  const content = overlay.querySelector(".bo-content");
+  content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="fb-ytd-tracker"></div><div class="fb-ytd-list"></div>`;
+  const draw = () => {
+    content.querySelector(".fb-ytd-list").innerHTML = ytdTable(games);
+  };
+  const pick = (key, label, tip) => ({ key, label, tip, ledger: ledgers[key], min: 50, max: 75, slider: "Min Chance", unit: "%+" });
+  ytdTracker(content.querySelector(".fb-ytd-tracker"), {
+    key: "nba-first-basket",
+    markets: [
+      pick("tip", "Tip Prediction", "Our pick to win the opening tip, at or above the minimum chance"),
+      pick("first", "Scores First", "Our pick to score the game's first points, at or above the minimum chance"),
+      { key: "value", label: "Value Plays", ledger: ledgers.value, min: 10, max: 100, step: 5, unit: "%+", tip: "Value plays at the best price before tip: our chance at least this much above the price's" },
+    ],
+    onChange: draw,
+  });
+  draw();
   overlay.hidden = false;
 }
 

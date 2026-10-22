@@ -578,7 +578,9 @@ class Record(unittest.TestCase):
         self.assertAlmostEqual(c["edge"], 0.076, places=3)
         # Best Plays' filterable record: the same plays, oldest first, [date, edge, won, units].
         self.assertEqual([row[0] for row in record["ledger"]], ["2026-10-13"] * 3 + ["2026-11-02"])
-        self.assertEqual(sorted(tuple(row) for row in record["ledger"]), sorted((p["date"], p["edge"], int(p["won"]), p["units"]) for p in record["plays"]))
+        self.assertEqual(sorted(tuple(row[:4]) for row in record["ledger"]), sorted((p["date"], p["edge"], int(p["won"]), p["units"]) for p in record["plays"]))
+        # The YTD tracker's split tags: side, bucket, against / with his average.
+        self.assertEqual(sorted(tuple(row[4]) for row in record["ledger"]), sorted((p["side"], "play", "fade" if p["fade"] else "with") for p in record["plays"]))
         # Each day's tally of the plays.
         self.assertEqual(record["days"], [{"date": "2026-10-13", "wins": 2, "losses": 1, "units": 0.74}, {"date": "2026-11-02", "wins": 1, "losses": 0, "units": 0.91}])
 
@@ -593,7 +595,7 @@ class Record(unittest.TestCase):
         self.assertEqual(len(record["plays"]), build_nhl.SHOTS_RECORD_DAYS)
         # The short list Best Plays filters by days back and edge keeps every day.
         self.assertEqual(len(record["ledger"]), 20)
-        self.assertEqual(record["ledger"][0], ["2026-11-01", round(record["plays"][0]["edge"], 3), 1, record["plays"][0]["units"]])
+        self.assertEqual(record["ledger"][0], ["2026-11-01", round(record["plays"][0]["edge"], 3), 1, record["plays"][0]["units"], ["over", "play", "with"]])
         self.assertEqual((record["plays"][0]["date"], record["plays"][-1]["date"]), ("2026-11-20", "2026-11-07"))
 
 

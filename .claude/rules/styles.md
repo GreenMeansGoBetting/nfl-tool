@@ -69,6 +69,31 @@ than add a new look.
 - Every color comes from the theme tokens at the top of style.css so dark and light both hold.
 - `teams.js`: team names, colors and logo URLs.
 
+## YTD Model Performance: one tracker on every sport (2026-10-22)
+
+The owner: "streamline all the YTD model performance functions to be identical with filters and
+sliders. Make this standard in the files so when we add new nba or nfl tools, this happens
+automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for every page.
+- **The look:** window chips **Yesterday / Last 3 / 7 / 15 / 30 Days / Season** ("Yesterday" =
+  that one date; "Last N" counts today), then a tile per market (W-L, win %, units) with its own
+  slider, an optional **All Plays** tile adding them up, and **split tiles** (Overs, Unders, Strong,
+  Lean, Against / With His Avg...) that follow their market's slider. Styles `.ytd-*` in style.css.
+  Choices remembered per device (`nfl-tool.ytd.<key>.v1`).
+- **What a page hands it** (`ytdTracker(box, {key, all, markets, onChange})`, header of ytd.js):
+  per market a `ledger` of every graded play of the season, `[date, value, won, units, tags]`.
+  `value` is what the slider cuts on (an edge, or a pick's chance), compared as the table rounds it;
+  `units` null = a pick with no price (win % only). `only` keeps a market to rows with those tags
+  (Goals / Saves: Plays = strong + lean, Check First its own tile).
+- The page's own list under the tiles follows the same window and slider (`ytdKeeps`), so they
+  always agree. Tiles the ledger can't filter (Not Plays, closing line value, Said vs scored) sit
+  under a "Season To Date" label (NHL: `nhlYtd` in nhl-common.js lays every prop page out the same).
+- NHL ledgers come from `record_ledger` (build_nhl.py); First Basket builds its own from
+  `record.history` (a Min Chance slider on the tip and Scores First picks, Min Edge on Value Plays).
+- **A new model tool:** send a ledger, load `../ytd.js`, call `ytdTracker`; button worded "YTD Model
+  Performance". `tests/test_ytd_site.py` fails a page that mentions YTD without it, a page that
+  builds its own window chips, or another button name. NFL Best Plays has no graded record yet
+  (its engine runs in the browser), so no popup until one exists.
+
 ## One stylesheet per sport (2026-10-13)
 
 - `style.css`: the tokens, the site-wide look and every NFL page. It holds no `.nba-*`, `.nhl-*`,

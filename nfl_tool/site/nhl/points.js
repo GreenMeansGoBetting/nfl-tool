@@ -403,30 +403,29 @@ function renderRecord() {
     return;
   }
   const n = Math.round(bar() * 100);
-  const tile = (label, t, tip) => {
-    const played = t.wins + t.losses;
-    return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div><b>${t.wins}-${t.losses}</b><small>${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signed(t.units)}u` : "none yet"}</small></div>`;
-  };
-  const clvBox = clvTile(record.clv);
   const honest = (record.honest || []).filter((b) => b.players).map((b) => `<tr><td>${Math.round(b.lo * 100)}-${Math.round(Math.min(b.hi, 1) * 100)}%</td><td class="num">${b.players}</td><td class="num">${pct(b.said / b.players, 0)}</td><td class="num"><b>${pct(b.got / b.players, 0)}</b></td></tr>`).join("");
-  box.innerHTML = `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; the better side of each points line at the price locked before puck drop; u = units won risking 1 a play</span></div>
-    <div class="nba-tiles shots-record">
-      ${tile("Plays", record.play, `An edge of ${n}+ points on the 0.5 line, not against tonight's line change. Every saved game is graded by today's rule`)}
-      ${tile("Not Plays", record.none, "Every other priced line: under the bar, the 1.5 line, or against tonight's line change")}
-      ${tile("Overs", record.over, "Plays on the over")}
-      ${tile("Unders", record.under, "Plays on the under")}
-      ${tile("Against his avg", record.fade, "Plays that went against his season points a game")}
-      ${clvBox}
-    </div>
-    <div class="shots-detail-label">Said vs got <span class="muted-label">every graded player, priced or not: the model's chance of 1 or more points against how often he got one</span></div>
-    ${honest ? `<table class="data-table shots-ladder goals-honest"><thead><tr><th>Model said</th><th>Players</th><th>Said</th><th>Got a point</th></tr></thead><tbody>${honest}</tbody></table>` : ""}
-    ${recordPlays(record)}`;
+  nhlYtd(box, {
+    record,
+    intro: `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; the better side of each points line at the price locked before puck drop; u = units won risking 1 a play</span></div>`,
+    tracker: {
+      key: "nhl-points",
+      markets: [{
+        key: "play", label: "Plays", ledger: record.ledger, min: n, max: Math.max(n, 20),
+        tip: `An edge of ${n}+ points on the 0.5 line, not against tonight's line change. Every saved game is graded by today's rule`,
+        splits: [["over", "Overs", "Plays on the over"], ["under", "Unders", "Plays on the under"], ["fade", "Against His Avg", "Plays that went against his season points a game"], ["with", "With His Avg", "Plays his season points a game agreed with"]],
+      }],
+    },
+    season: `${ytdSeasonTile("Not Plays", record.none, "Every other priced line: under the bar, the 1.5 line, or against tonight's line change")}${clvTile(record.clv)}`,
+    after: `<div class="shots-detail-label">Said vs got <span class="muted-label">every graded player, priced or not: the model's chance of 1 or more points against how often he got one</span></div>
+    ${honest ? `<table class="data-table shots-ladder goals-honest"><thead><tr><th>Model said</th><th>Players</th><th>Said</th><th>Got a point</th></tr></thead><tbody>${honest}</tbody></table>` : ""}`,
+    list: () => recordPlays(record),
+  });
 }
 function recordPlays(record) {
   const all = record.plays || [];
   if (!all.length) return "";
   const bucket = RECORD_BUCKETS.find(([key]) => key === pointsView.record) || RECORD_BUCKETS[0];
-  const shown = all.filter((play) => play.size === "play" && (!bucket[2] || play.side === bucket[2]));
+  const shown = all.filter((play) => play.size === "play" && (!bucket[2] || play.side === bucket[2]) && ytdKeeps("nhl-points", "play", play.date, play.edge));
   const sum = (plays) => plays.reduce((t, play) => ({ wins: t.wins + (play.won ? 1 : 0), losses: t.losses + (play.won ? 0 : 1), units: t.units + play.units }), { wins: 0, losses: 0, units: 0 });
   const line = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
   const buttons = RECORD_BUCKETS.map(([key, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bucket[0] === key ? " active" : ""}" data-filter="record" data-value="${key}">${label}</button>`).join("");
