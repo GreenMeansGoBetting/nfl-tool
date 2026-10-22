@@ -79,6 +79,16 @@ const unsureEdge = (file) => (file && has(file.unsure) ? file.unsure : 0.25);
 const unsureTip = (file) => `The model and the market are ${Math.round(unsureEdge(file) * 100)}+ points apart. That usually means the model is missing something (a game cut short by injury, a role it can't see yet), so this is not a play.`;
 const unsureTag = (file) => ratingTag("unsure", "Model Unsure", unsureTip(file));
 const unsureHead = (file) => `Model Unsure: ${unsureTip(file).replace("this is not a play", "these are not plays")}`;
+// Closing line value (clv_move in build_nhl.py, 2026-10-22): read on Novig's own prices only, both sides
+// with the cut taken out, at the first look and at the lock. Wins and units stay at the best price
+// across books; comparing best prices at two times read "drifted" by construction (more books by puck drop).
+function clvTile(clv) {
+  clv = clv || {};
+  const tip = "Closing line value on the plays: how far Novig's own price moved toward the play from the first look to the lock before puck drop, both sides with the cut taken out, in points of chance (+ = the market moved toward the model). A line that moved counts by direction (an over whose line went up). Novig only: the best price across books moves with how many books have posted, not with the market. Plays Novig didn't price both times are left out.";
+  const value = has(clv.points) ? `${clv.points > 0 ? "+" : ""}${(clv.points * 100).toFixed(1)}` : "--";
+  const since = clv.since ? ` &middot; since ${shortDate(clv.since)}` : "";
+  return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">Closing Line Value</div><b>${value}</b><small>${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays${since}` : "none yet"}</small></div>`;
+}
 // The build's bucket for a Goals or Points row (`size`, the one the record grades), as one tag.
 // Every page that shows such a play draws it with this, so a "Check" on the Goals or Points
 // page is a "Check" on Best Plays too (a member caught one listed as a plain play, 2026-10-20).

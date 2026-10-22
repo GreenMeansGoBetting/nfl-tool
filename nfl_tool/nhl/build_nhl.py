@@ -209,7 +209,7 @@ SAVES_RECORD_DAYS = 14
 SAVES_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_saves"
 SAVES_HONEST = (0.0, 0.3, 0.4, 0.5, 0.6, 0.7, 1.01)  # the record's "said vs went over" buckets
 SAVES_RECORD_COLS = ("id", "name", "team", "line", "over", "under", "mean", "chance_over", "mkt_mean", "actual", "avg",
-                     "first_line", "first_over", "first_under", "factors")
+                     "first_line", "first_over", "first_under", "factors", "nv")
 SAVES_FACTORS = ("starts", "saves_avg", "sv_pct", "opp_shots", "opp_shots_rank", "allowed", "allowed_rank", "home", "b2b", "opp_b2b",
                  "source", "gap", "l_off", "l_def", "l_home", "l_b2b", "l_opp_b2b", "l_sv")
 LINE_FIELDS = (
@@ -1851,11 +1851,14 @@ def shots_board(model, games: list, lineups: dict, injuries: dict, records: list
                 out_ids = {p["id"] for p in injuries.get(team) or [] if p.get("id") and p.get("status") in OUT_STATUSES}
                 dressed = [(player, None, player["id"] in out_ids) for player in lineups.get(team) or []]
             seen = {row["id"]: row.get("first_sog") for row in (prev_games.get(g["game_id"]) or {}).get("players") or []}
+            seen_nv = {row["id"]: row.get("first_nv") for row in (prev_games.get(g["game_id"]) or {}).get("players") or []}
             for player, slot, is_out in dressed:
                 row = shot_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot)
                 if row:
                     market = (((player_odds or {}).get(g["game_id"]) or {}).get(player["id"]) or {}).get("sog")
                     row["first_sog"] = seen.get(player["id"]) or ({k: market.get(k) for k in ("line", "over", "under")} if market else None)
+                    row["nv"] = novig_prices(market)
+                    row["first_nv"] = seen_nv.get(player["id"]) or row["nv"]
                     rows.append(row)
         if rows:
             out[g["game_id"]] = {"locked": False, "posted": posted.get("posted"), "players": sorted(rows, key=lambda row: -row["mean"])}
@@ -1866,6 +1869,95 @@ def shots_board(model, games: list, lineups: dict, injuries: dict, records: list
 def break_even(american: int) -> float:
     """The chance a price needs to break even (-150 -> 0.6, +150 -> 0.4)."""
     return -american / (100 - american) if american < 0 else 100 / (american + 100)
+
+
+# ---- closing line value: Novig's own prices (the owner, 2026-10-22) ----
+# Every record grades wins and units at the best price across books
+# (best_book_prices, from 2026-10-17), but closing line value compared the best
+# price at the first look with the best across many more books at the lock,
+# which reads "drifted" by construction (Goals: 145 drifted, 6 shortened). So
+# CLV reads Novig alone (an exchange: the cleanest single read of the market),
+# both sides with the cut taken out, at the first look and at the lock. Each
+# board row carries `nv` (Novig's line and prices at this build) and `first_nv`
+# (the first ones the site saw, carried from the live file); each record row
+# saves both in its last column, `nv` (CLV_COLS). Records before
+# BEST_PRICES_FROM were Novig's prices at both ends and count as they are;
+# rows between that and the `nv` column have nothing to compare and are left out.
+BEST_PRICES_FROM = "2026-10-17"
+CLV_COLS = {"ou": ("first_line", "first_over", "first_under", "over", "under"), "goal": ("first_yes", "first_no", "yes", "no")}
+
+
+def novig_prices(market: dict | None) -> dict | None:
+    """Novig's own main line and prices {line, over, under} from a player_odds
+    or saves entry (best_book_prices keeps Novig's as nv_*)."""
+    if not market or market.get("line") is None:
+        return None
+    return {"line": market["line"], "over": market.get("nv_over", market.get("over")), "under": market.get("nv_under", market.get("under"))}
+
+
+def novig_goal_prices(goal: dict | None) -> dict | None:
+    """Novig's own anytime goal prices {yes, no} (the No is always Novig's)."""
+    if not goal or goal.get("odds") is None:
+        return None
+    return {"yes": goal.get("nv_odds", goal["odds"]), "no": goal.get("no_odds")}
+
+
+def clv_move(first: dict | None, lock: dict | None, side: str, other: str) -> tuple:
+    """How far Novig moved toward the play from the first look to the lock:
+    (move, same line?). On the same line, the play side's chance with the cut
+    taken out (both sides priced at both times; else each time's own price),
+    lock minus first, in points (+ = the market moved to the model). A moved
+    line counts by direction only: an over whose line went up (+1), an under
+    whose line went down. (None, False) when either look has no price."""
+    if not first or not lock:
+        return None, False
+    if first.get("line") != lock.get("line"):
+        if first.get("line") is None or lock.get("line") is None:
+            return None, False
+        return (lock["line"] - first["line"]) * (1 if side == "over" else -1), False
+    if first.get(side) is None or lock.get(side) is None:
+        return None, False
+    both = all(x.get(other) is not None for x in (first, lock))
+    chance = lambda x: break_even(x[side]) / (break_even(x[side]) + break_even(x[other])) if both else break_even(x[side])
+    return chance(lock) - chance(first), True
+
+
+def clv_tally() -> dict:
+    return {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0, "since": None, "book": "novig"}
+
+
+def clv_add(clv: dict, date: str, moved, same_line: bool) -> None:
+    if moved is None:
+        return
+    clv["plays"] += 1
+    clv["since"] = min(clv["since"] or date, date)
+    if same_line:
+        clv["priced"] += 1
+        clv["points"] += moved
+    if abs(moved) > 0.0005:
+        clv["shortened" if moved > 0 else "drifted"] += 1
+
+
+def clv_done(clv: dict) -> dict:
+    clv["points"] = round(clv["points"] / clv["priced"], 4) if clv["priced"] else None  # average, per play on an unmoved line
+    return clv
+
+
+def ou_looks(date: str, nv, line, over, under, first_line, first_over, first_under) -> tuple:
+    """(first, lock) Novig looks for an over / under record row: its `nv`
+    column, or before BEST_PRICES_FROM the row's own prices (Novig's then)."""
+    if nv and nv[0] is not None:
+        fl, fo, fu, lo, lu = nv
+        return {"line": fl, "over": fo, "under": fu}, {"line": line, "over": lo, "under": lu}
+    if date < BEST_PRICES_FROM and first_line is not None:
+        return {"line": first_line, "over": first_over, "under": first_under}, {"line": line, "over": over, "under": under}
+    return None, None
+
+
+def ou_nv_col(row: dict) -> list:
+    """A record row's `nv` column for an over / under (CLV_COLS["ou"])."""
+    first, lock = row.get("first_nv") or {}, row.get("nv") or {}
+    return [first.get("line"), first.get("over"), first.get("under"), lock.get("over"), lock.get("under")]
 
 
 def shots_play(chance_over: float, line: float, over, under, avg=None, move=None, edges: dict | None = None) -> dict | None:
@@ -1900,7 +1992,7 @@ def shots_play(chance_over: float, line: float, over, under, avg=None, move=None
 
 
 SHOTS_RECORD_COLS = ("id", "name", "team", "line", "over", "under", "mean", "chance_over", "actual", "avg", "move",
-                     "first_line", "first_over", "first_under", "factors")
+                     "first_line", "first_over", "first_under", "factors", "nv")
 
 
 def factor_values(row: dict, names: tuple, average) -> list:
@@ -1953,11 +2045,11 @@ def record_finished_games(folder: Path, board: dict, player_odds: dict, games: l
                     continue
                 first = row.get("first_sog") or {}
                 plays.append([row["id"], row["name"], row["team"], market["line"], market.get("over"), market.get("under"), row["mean"], row["chances"][need - 1], row["actual"], row.get("avg"), row.get("move"),
-                              first.get("line"), first.get("over"), first.get("under"), shot_factors(row)])
+                              first.get("line"), first.get("over"), first.get("under"), shot_factors(row), ou_nv_col({**row, "nv": novig_prices(market)})])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
-            saved.update(cols=SHOTS_RECORD_COLS, factors=SHOTS_FACTORS)  # older rows are just shorter
+            saved.update(cols=SHOTS_RECORD_COLS, factors=SHOTS_FACTORS, nv=CLV_COLS["ou"])  # older rows are just shorter
             folder.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
             added += len(saved["games"]) - before
@@ -1988,7 +2080,7 @@ def shots_record_summary(folder: Path) -> dict:
     day. Every saved game is graded by today's bar, the games before it too."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "play": tally(), "none": tally(), "unsure": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally(),
-           "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0}}
+           "clv": clv_tally()}
     days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
         for game in json.loads(path.read_text(encoding="utf-8"))["games"].values():
@@ -1997,7 +2089,7 @@ def shots_record_summary(folder: Path) -> dict:
             out["through"] = max(out["through"] or game["date"], game["date"])
             for pid, name, team, line, over, under, mean, chance_over, actual, *rest in game["plays"]:
                 # Rows saved before these were kept have none of them.
-                avg, move, first_line, first_over, first_under = (*rest, None, None, None, None, None)[:5]
+                avg, move, first_line, first_over, first_under, _factors, nv = (*rest, None, None, None, None, None, None, None)[:7]
                 play = shots_play(chance_over, line, over, under, avg, move)
                 if play is None or actual == line:
                     continue
@@ -2012,23 +2104,10 @@ def shots_record_summary(folder: Path) -> dict:
                     out[key]["units"] = round(out[key]["units"] + units, 2)
                 if size in ("none", "unsure"):
                     continue
-                if called and first_line is not None:
-                    # Closing line value: from the first line and price the site saw to the locked one.
-                    # Same line: how far the play's price moved, in points of chance (+ = shortened,
-                    # the market moved to the model). A moved line counts by direction only (an over
-                    # whose line went up, an under whose line went down: the market agreed).
-                    clv = out["clv"]
-                    clv["plays"] += 1
-                    first_price = first_over if play["side"] == "over" else first_under
-                    moved = None
-                    if first_line == line and first_price is not None:
-                        moved = break_even(play["price"]) - break_even(first_price)
-                        clv["priced"] += 1
-                        clv["points"] += moved
-                    elif first_line != line:
-                        moved = (line - first_line) * (1 if play["side"] == "over" else -1)
-                    if moved is not None and abs(moved) > 0.0005:
-                        clv["shortened" if moved > 0 else "drifted"] += 1
+                if called:
+                    # Closing line value on Novig's own prices (clv_move).
+                    first, lock = ou_looks(game["date"], nv, line, over, under, first_line, first_over, first_under)
+                    clv_add(out["clv"], game["date"], *clv_move(first, lock, play["side"], "under" if play["side"] == "over" else "over"))
                 if called:
                     day = days.setdefault(game["date"], tally())
                     day["wins" if won else "losses"] += 1
@@ -2038,7 +2117,7 @@ def shots_record_summary(folder: Path) -> dict:
                     "side": play["side"], "line": line, "price": play["price"], "edge": round(play["edge"], 3), "size": size, "fade": play["fade"],
                     "mean": mean, "actual": actual, "won": won, "units": round(units, 2),
                 })
-    out["clv"]["points"] = round(out["clv"]["points"] / out["clv"]["priced"], 4) if out["clv"]["priced"] else None  # average, per play on an unmoved line
+    clv_done(out["clv"])
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
     out["ledger"] = record_ledger(plays)
     latest = set(sorted({play["date"] for play in plays})[-SHOTS_RECORD_DAYS:])
@@ -2086,7 +2165,7 @@ def goals_play(chance: float, odds, move=None) -> dict | None:
     return {"price": odds, "chance": chance, "edge": edge, "size": size, "against_move": against_move}
 
 
-def goal_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot, goalie, ranks: dict, odds: dict | None, first_odds) -> dict | None:
+def goal_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot, goalie, ranks: dict, odds: dict | None, first_odds, first_nv=None) -> dict | None:
     """One skater's anytime-goal projection for one game, what it is made
     of, the Zone Match tag, and the book's price (with the first price seen)."""
     proj = model.project(player["id"], opp, home, rest, opp_rest, player["team"], slot, goalie)
@@ -2110,6 +2189,8 @@ def goal_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: boo
         "zone": model.zone_match(player["id"], opp, ranks),
         "odds": price, "no_odds": (odds or {}).get("no_odds"), "thin": (odds or {}).get("thin"),
         "first_odds": first_odds if first_odds is not None else price,
+        # Novig's own Yes / No now and at the first look (closing line value).
+        "nv": novig_goal_prices(odds), "first_nv": first_nv or novig_goal_prices(odds),
         "edge": round(play["edge"], 3) if play else None, "size": play["size"] if play else None,
     }
 
@@ -2156,7 +2237,8 @@ def goals_board(model, games: list, lineups: dict, injuries: dict, records: list
             for player, slot, is_out in dressed:
                 mine = (odds.get(player["id"]) or {}).get("goal")
                 first = (seen.get(player["id"]) or {}).get("first_odds")
-                row = goal_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot, goalie, ranks, mine, first)
+                first_nv = (seen.get(player["id"]) or {}).get("first_nv")
+                row = goal_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot, goalie, ranks, mine, first, first_nv)
                 if row:
                     rows.append(row)
         if rows:
@@ -2164,7 +2246,7 @@ def goals_board(model, games: list, lineups: dict, injuries: dict, records: list
     return out
 
 
-GOALS_RECORD_COLS = ("id", "name", "team", "chance", "mean", "odds", "first_odds", "thin", "zone", "actual", "move", "factors")
+GOALS_RECORD_COLS = ("id", "name", "team", "chance", "mean", "odds", "first_odds", "thin", "zone", "actual", "move", "factors", "nv")
 
 
 def record_goal_games(folder: Path, board: dict, games: list) -> int:
@@ -2190,13 +2272,14 @@ def record_goal_games(folder: Path, board: dict, games: list) -> int:
             if g["game_id"] in saved["games"]:
                 continue
             plays = [[row["id"], row["name"], row["team"], row["chance"], row["mean"], row.get("odds"), row.get("first_odds"), row.get("thin"),
-                      (row.get("zone") or {}).get("area"), row["actual"], row.get("move"), goal_factors(row) if row.get("odds") is not None else None]
+                      (row.get("zone") or {}).get("area"), row["actual"], row.get("move"), goal_factors(row) if row.get("odds") is not None else None,
+                      [(row.get("first_nv") or {}).get("yes"), (row.get("first_nv") or {}).get("no"), (row.get("nv") or {}).get("yes"), (row.get("nv") or {}).get("no")]]
                      for row in entry["players"] if row.get("actual") is not None]
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"],
                                                 "market": {k: g.get(k) for k in ("total_line", "away_ml_implied_prob", "home_ml_implied_prob")}, "plays": plays}
         if len(saved["games"]) > before:
-            saved.update(cols=GOALS_RECORD_COLS, factors=GOALS_FACTORS)  # older rows are just shorter
+            saved.update(cols=GOALS_RECORD_COLS, factors=GOALS_FACTORS, nv=CLV_COLS["goal"])  # older rows are just shorter
             folder.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
             added += len(saved["games"]) - before
@@ -2217,7 +2300,7 @@ def goals_record_summary(folder: Path) -> dict:
       * `days` and `plays` (latest GOALS_RECORD_DAYS days), as the Shots record."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "players": 0, **{k: tally() for k in ("strong", "lean", "none", "check", "unsure", "zone", "thin")},
-           "clv": {"plays": 0, "points": 0.0, "shortened": 0, "drifted": 0},
+           "clv": clv_tally(),
            "honest": [{"lo": lo, "hi": hi, "players": 0, "said": 0.0, "scored": 0} for lo, hi in zip(GOALS_HONEST, GOALS_HONEST[1:])],
            "zone_all": {"players": 0, "said": 0.0, "scored": 0}}
     days, plays = {}, []
@@ -2226,7 +2309,8 @@ def goals_record_summary(folder: Path) -> dict:
             out["games"] += 1
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
-            for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move, *_factors in game["plays"]:
+            for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move, *more in game["plays"]:
+                nv = more[1] if len(more) > 1 else None
                 scored = actual > 0
                 out["players"] += 1
                 for bucket in out["honest"]:
@@ -2252,14 +2336,15 @@ def goals_record_summary(folder: Path) -> dict:
                     day = days.setdefault(game["date"], tally())
                     day["wins" if scored else "losses"] += 1
                     day["units"] = round(day["units"] + units, 2)
-                    if first_odds is not None:
-                        moved = break_even(odds) - break_even(first_odds)
-                        out["clv"]["plays"] += 1
-                        out["clv"]["points"] += moved
-                        if moved > 0.0005:
-                            out["clv"]["shortened"] += 1
-                        elif moved < -0.0005:
-                            out["clv"]["drifted"] += 1
+                    # Closing line value on Novig's own Yes / No (clv_move); before
+                    # BEST_PRICES_FROM the saved prices were Novig's Yes alone.
+                    if nv and nv[0] is not None:
+                        first, lock = {"line": 0.5, "over": nv[0], "under": nv[1]}, {"line": 0.5, "over": nv[2], "under": nv[3]}
+                    elif game["date"] < BEST_PRICES_FROM and first_odds is not None:
+                        first, lock = {"line": 0.5, "over": first_odds}, {"line": 0.5, "over": odds}
+                    else:
+                        first = lock = None
+                    clv_add(out["clv"], game["date"], *clv_move(first, lock, "over", "under"))
                 plays.append({
                     "date": game["date"], "id": pid, "name": name, "team": team, "opp": game["home"] if team == game["away"] else game["away"], "home": team == game["home"],
                     "price": odds, "first": first_odds, "chance": chance, "edge": round(play["edge"], 3), "size": size, "zone": zone, "thin": thin,
@@ -2268,8 +2353,7 @@ def goals_record_summary(folder: Path) -> dict:
     for bucket in out["honest"]:
         bucket["said"] = round(bucket["said"], 2)
     out["zone_all"]["said"] = round(out["zone_all"]["said"], 2)
-    n = out["clv"]["plays"]
-    out["clv"]["points"] = round(out["clv"]["points"] / n, 4) if n else None  # average, per play
+    clv_done(out["clv"])
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
     out["ledger"] = record_ledger(plays)
     latest = set(sorted({play["date"] for play in plays})[-GOALS_RECORD_DAYS:])
@@ -2343,7 +2427,7 @@ def points_play(chance_over: float, line: float, over, under, avg=None, move=Non
     return play
 
 
-def point_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot, goalie, market: dict | None, first, mates: list) -> dict | None:
+def point_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot, goalie, market: dict | None, first, mates: list, first_nv=None) -> dict | None:
     """One skater's points projection for one game, what it is made of, the
     better side of Novig's points line (points_play: the Points bar)
     and the first line and prices the site saw (for closing line value).
@@ -2379,6 +2463,8 @@ def point_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bo
         "mates": round(ratio, 3) if ratio else None,
         "line": line, "over": market.get("over"), "under": market.get("under"), "thin": market.get("thin"),
         "first": first if first is not None else ({k: market.get(k) for k in ("line", "over", "under")} if line is not None else None),
+        # Novig's own line and prices now and at the first look (closing line value).
+        "nv": novig_prices(market), "first_nv": first_nv or novig_prices(market),
         "chance_over": chance_over,
         "side": play["side"] if play else None, "price": play["price"] if play else None,
         "edge": round(play["edge"], 3) if play else None, "size": play["size"] if play else None, "fade": play["fade"] if play else None,
@@ -2428,7 +2514,7 @@ def points_board(model, games: list, lineups: dict, injuries: dict, records: lis
                 market = (odds.get(player["id"]) or {}).get("points")
                 first = (seen.get(player["id"]) or {}).get("first")
                 row = point_row(model, {**player, "team": team}, opp, side == "home", g.get(f"{side}_rest"), g.get(f"{other}_rest"), is_out, slot, goalie,
-                                market, first, mates)
+                                market, first, mates, (seen.get(player["id"]) or {}).get("first_nv"))
                 if row:
                     rows.append(row)
         if rows:
@@ -2437,7 +2523,7 @@ def points_board(model, games: list, lineups: dict, injuries: dict, records: lis
 
 
 POINTS_RECORD_COLS = ("id", "name", "team", "line", "over", "under", "mean", "chance", "chance_over", "actual", "avg", "move",
-                      "first_line", "first_over", "first_under", "factors")
+                      "first_line", "first_over", "first_under", "factors", "nv")
 
 
 def point_factors(row: dict) -> list:
@@ -2479,10 +2565,11 @@ def record_point_games(folder: Path, board: dict, games: list) -> int:
                 priced = row.get("line") is not None
                 plays.append([row["id"], row["name"], row["team"], row.get("line"), row.get("over"), row.get("under"), row["mean"], row["chance"],
                               row.get("chance_over"), row["actual"], row.get("avg"), row.get("move"),
-                              first.get("line"), first.get("over"), first.get("under"), point_factors(row) if priced else None])
+                              first.get("line"), first.get("over"), first.get("under"), point_factors(row) if priced else None, ou_nv_col(row) if priced else None])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
+            saved.update(cols=POINTS_RECORD_COLS, nv=CLV_COLS["ou"])  # older rows are just shorter
             folder.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
             added += len(saved["games"]) - before
@@ -2499,7 +2586,7 @@ def points_record_summary(folder: Path) -> dict:
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "players": 0,
            **{k: tally() for k in ("play", "none", "unsure", "over", "under", "fade", "with")},
-           "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0},
+           "clv": clv_tally(),
            "honest": [{"lo": lo, "hi": hi, "players": 0, "said": 0.0, "got": 0} for lo, hi in zip(POINTS_HONEST, POINTS_HONEST[1:])]}
     days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
@@ -2507,7 +2594,8 @@ def points_record_summary(folder: Path) -> dict:
             out["games"] += 1
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
-            for pid, name, team, line, over, under, mean, chance, chance_over, actual, avg, move, first_line, first_over, first_under, _factors in game["plays"]:
+            for pid, name, team, line, over, under, mean, chance, chance_over, actual, avg, move, first_line, first_over, first_under, _factors, *more in game["plays"]:
+                nv = more[0] if more else None
                 out["players"] += 1
                 for bucket in out["honest"]:
                     if bucket["lo"] <= chance < bucket["hi"]:
@@ -2528,20 +2616,10 @@ def points_record_summary(folder: Path) -> dict:
                     out[key]["units"] = round(out[key]["units"] + units, 2)
                 if size in ("none", "unsure"):
                     continue
-                if called and first_line is not None:
-                    # Closing line value, the Shots record's way.
-                    clv = out["clv"]
-                    clv["plays"] += 1
-                    first_price = first_over if play["side"] == "over" else first_under
-                    moved = None
-                    if first_line == line and first_price is not None:
-                        moved = break_even(play["price"]) - break_even(first_price)
-                        clv["priced"] += 1
-                        clv["points"] += moved
-                    elif first_line != line:
-                        moved = (line - first_line) * (1 if play["side"] == "over" else -1)
-                    if moved is not None and abs(moved) > 0.0005:
-                        clv["shortened" if moved > 0 else "drifted"] += 1
+                if called:
+                    # Closing line value on Novig's own prices (clv_move).
+                    first, lock = ou_looks(game["date"], nv, line, over, under, first_line, first_over, first_under)
+                    clv_add(out["clv"], game["date"], *clv_move(first, lock, play["side"], "under" if play["side"] == "over" else "over"))
                 if called:
                     day = days.setdefault(game["date"], tally())
                     day["wins" if won else "losses"] += 1
@@ -2553,7 +2631,7 @@ def points_record_summary(folder: Path) -> dict:
                 })
     for bucket in out["honest"]:
         bucket["said"] = round(bucket["said"], 2)
-    out["clv"]["points"] = round(out["clv"]["points"] / out["clv"]["priced"], 4) if out["clv"]["priced"] else None
+    clv_done(out["clv"])
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
     out["ledger"] = record_ledger(plays)
     latest = set(sorted({play["date"] for play in plays})[-POINTS_RECORD_DAYS:])
@@ -2762,6 +2840,7 @@ def crease_row(model, g: dict, team: str, opp: str, side: str, other: str, start
         "line": line["line"] if line else None, "over": line["over"] if line else None, "under": line["under"] if line else None,
         # The book each price came from (best_saves_prices; none = Novig's own).
         "over_book": (line or {}).get("over_book"), "under_book": (line or {}).get("under_book"),
+        "nv_over": (line or {}).get("nv_over", (line or {}).get("over")), "nv_under": (line or {}).get("nv_under", (line or {}).get("under")),
         "thin": line["thin"] if line else None, "alts": line["alts"] if line else [],
         "mkt_mean": num(mkt_mean), "blend": num(blend), "weight": round(weight, 3) if line else None,
         # Model and line too far apart to take at face value.
@@ -2992,7 +3071,7 @@ def saves_play(chance_over: float, line: float, over, under, avg, mean: float, m
     return play
 
 
-def saves_row(row: dict, first) -> dict:
+def saves_row(row: dict, first, first_nv=None) -> dict:
     """One King of the Crease row as a saves prop: the chance of the over at
     his main line and each of its other lines, the better side, its edge and
     bucket, and the first line and prices the site saw (closing line value).
@@ -3010,6 +3089,8 @@ def saves_row(row: dict, first) -> dict:
         "fair": shots_model.fair_american(chance) if chance is not None else None,
         "gap": round(row["mean"] - row["mkt_mean"], 1) if row.get("mkt_mean") is not None else None,
         "first": first if first is not None else ({k: row.get(k) for k in ("line", "over", "under")} if line is not None else None),
+        # Novig's own line and prices now and at the first look (closing line value).
+        "nv": novig_prices(row), "first_nv": first_nv or novig_prices(row),
         "side": play["side"] if play else None, "price": play["price"] if play else None,
         "edge": round(play["edge"], 3) if play else None, "size": play["size"] if play else None, "fade": play["fade"] if play else None,
         "void": bool(started) and plain(started) != plain(row.get("name") or ""),
@@ -3027,9 +3108,10 @@ def saves_board(days: dict, previous: dict | None, records: list) -> dict:
     for date, day in sorted(days.items()):
         for row in day["goalies"]:
             kept = seen.get((row["game_id"], row["team"])) or {}
-            first = kept.get("first") if plain(kept.get("name") or "") == plain(row.get("name") or "") else None
+            same = plain(kept.get("name") or "") == plain(row.get("name") or "")
+            first, first_nv = (kept.get("first"), kept.get("first_nv")) if same else (None, None)
             entry = out.setdefault(row["game_id"], {"date": date, "locked": row["locked"], "final": row["game_id"] in finished, "goalies": []})
-            entry["goalies"].append(saves_row(row, first))
+            entry["goalies"].append(saves_row(row, first, first_nv))
     for entry in out.values():
         entry["goalies"].sort(key=lambda r: -(r["edge"] if r["edge"] is not None else -1))
     return out
@@ -3068,10 +3150,11 @@ def record_saves_games(folder: Path, board: dict, games: list) -> int:
                     continue
                 first = row.get("first") or {}
                 plays.append([row["id"], row["name"], row["team"], row["line"], row.get("over"), row.get("under"), row["mean"], row["chance_over"],
-                              row.get("mkt_mean"), row["actual"], row.get("saves_avg"), first.get("line"), first.get("over"), first.get("under"), saves_factors(row)])
+                              row.get("mkt_mean"), row["actual"], row.get("saves_avg"), first.get("line"), first.get("over"), first.get("under"), saves_factors(row), ou_nv_col(row)])
             if plays:
                 saved["games"][g["game_id"]] = {"date": g["date"], "away": g["away"], "home": g["home"], "plays": plays}
         if len(saved["games"]) > before:
+            saved.update(cols=SAVES_RECORD_COLS, nv=CLV_COLS["ou"])  # older rows are just shorter
             folder.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(saved, separators=(",", ":")) + "\n", encoding="utf-8")
             added += len(saved["games"]) - before
@@ -3088,7 +3171,7 @@ def saves_record_summary(folder: Path) -> dict:
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "goalies": 0,
            **{k: tally() for k in ("check", "strong", "lean", "none", "unsure", "over", "under", "fade", "with")},
-           "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0},
+           "clv": clv_tally(),
            "honest": [{"lo": lo, "hi": hi, "goalies": 0, "said": 0.0, "got": 0} for lo, hi in zip(SAVES_HONEST, SAVES_HONEST[1:])]}
     days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
@@ -3096,7 +3179,8 @@ def saves_record_summary(folder: Path) -> dict:
             out["games"] += 1
             out["since"] = min(out["since"] or game["date"], game["date"])
             out["through"] = max(out["through"] or game["date"], game["date"])
-            for pid, name, team, line, over, under, mean, chance_over, mkt_mean, actual, avg, first_line, first_over, first_under, _factors in game["plays"]:
+            for pid, name, team, line, over, under, mean, chance_over, mkt_mean, actual, avg, first_line, first_over, first_under, _factors, *more in game["plays"]:
+                nv = more[0] if more else None
                 out["goalies"] += 1
                 for bucket in out["honest"]:
                     if bucket["lo"] <= chance_over < bucket["hi"]:
@@ -3115,20 +3199,10 @@ def saves_record_summary(folder: Path) -> dict:
                     out[key]["units"] = round(out[key]["units"] + units, 2)
                 if size in ("none", "unsure"):
                     continue
-                if called and first_line is not None:
-                    # Closing line value, the Shots record's way.
-                    clv = out["clv"]
-                    clv["plays"] += 1
-                    first_price = first_over if play["side"] == "over" else first_under
-                    moved = None
-                    if first_line == line and first_price is not None:
-                        moved = break_even(play["price"]) - break_even(first_price)
-                        clv["priced"] += 1
-                        clv["points"] += moved
-                    elif first_line != line:
-                        moved = (line - first_line) * (1 if play["side"] == "over" else -1)
-                    if moved is not None and abs(moved) > 0.0005:
-                        clv["shortened" if moved > 0 else "drifted"] += 1
+                if called:
+                    # Closing line value on Novig's own prices (clv_move).
+                    first, lock = ou_looks(game["date"], nv, line, over, under, first_line, first_over, first_under)
+                    clv_add(out["clv"], game["date"], *clv_move(first, lock, play["side"], "under" if play["side"] == "over" else "over"))
                 if called:
                     day = days.setdefault(game["date"], tally())
                     day["wins" if won else "losses"] += 1
@@ -3140,7 +3214,7 @@ def saves_record_summary(folder: Path) -> dict:
                 })
     for bucket in out["honest"]:
         bucket["said"] = round(bucket["said"], 2)
-    out["clv"]["points"] = round(out["clv"]["points"] / out["clv"]["priced"], 4) if out["clv"]["priced"] else None
+    clv_done(out["clv"])
     out["days"] = [{"date": date, **days[date]} for date in sorted(days)]
     out["ledger"] = record_ledger(plays)
     latest = set(sorted({play["date"] for play in plays})[-SAVES_RECORD_DAYS:])

@@ -462,7 +462,8 @@ class Record(unittest.TestCase):
         return {"id": pid, "name": pid.upper(), "team": "AAA", "mean": mean, "avg": avg, "chances": [round(shots_model.chance_at_least(mean, n), 3) for n in range(1, 9)], "actual": actual}
 
     def test_closing_line_value(self):
-        """From the first line and price the site saw to the locked ones, on the plays with an edge."""
+        """Rows saved before BEST_PRICES_FROM (2026-10-17) hold Novig's own prices, so they count as they
+        are: the play side's chance with the cut taken out, first look to lock."""
         def game(plays):
             return {"date": "2026-10-13", "away": "AAA", "home": "BBB", "plays": plays}
         # The model's chance of the over, set so each play has an edge over the bar (6+ points).
@@ -476,7 +477,9 @@ class Record(unittest.TestCase):
             Path(tmp, "2026-10.json").write_text(json.dumps({"games": {"9": game(rows)}}))
             clv = build_nhl.shots_record_summary(Path(tmp))["clv"]
         self.assertEqual((clv["plays"], clv["priced"], clv["shortened"], clv["drifted"]), (3, 2, 2, 1))
-        self.assertAlmostEqual(clv["points"], ((110 / 210 - 100 / 220) + (125 / 225 - 150 / 250)) / 2, places=4)
+        nv = lambda a, b: build_nhl.break_even(a) / (build_nhl.break_even(a) + build_nhl.break_even(b))
+        self.assertAlmostEqual(clv["points"], ((nv(-110, -110) - nv(120, -140)) + (nv(-125, 105) - nv(-150, 100))) / 2, places=4)
+        self.assertEqual((clv["since"], clv["book"]), ("2026-10-13", "novig"))
 
     def test_the_board_keeps_the_first_line_seen(self):
         record = build_nhl.reduce_game(helpers.nhl_game())
@@ -508,11 +511,13 @@ class Record(unittest.TestCase):
                 # ... and whether tonight's line was a move up or down for him
                 # ... and the first line and prices the site saw (none on these hand-made rows)
                 # ... and the parts behind his number (SHOTS_FACTORS; mostly empty on these hand-made rows)
-                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None, build_nhl.shot_factors(board["9"]["players"][0])],
-                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None, build_nhl.shot_factors(board["9"]["players"][1])],
+                # ... and Novig's own prices at the first look (none here) and the lock (CLV_COLS["ou"])
+                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None, build_nhl.shot_factors(board["9"]["players"][0]), [None, None, None, -120, 100]],
+                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None, build_nhl.shot_factors(board["9"]["players"][1]), [None, None, None, -140, 115]],
             ])
             self.assertEqual((saved["cols"], saved["factors"]), (list(build_nhl.SHOTS_RECORD_COLS), list(build_nhl.SHOTS_FACTORS)))
-            self.assertEqual(dict(zip(build_nhl.SHOTS_FACTORS, saved["games"]["9"]["plays"][0][-1]))["vs_avg"], -0.4)  # 2.8 tonight, 3.2 a game
+            self.assertEqual(saved["nv"], list(build_nhl.CLV_COLS["ou"]))
+            self.assertEqual(dict(zip(build_nhl.SHOTS_FACTORS, saved["games"]["9"]["plays"][0][-2]))["vs_avg"], -0.4)  # 2.8 tonight, 3.2 a game
             # The next build sees the same finished game: nothing is added or rewritten.
             board["9"]["players"][0]["mean"] = 9.9
             self.assertEqual(build_nhl.record_finished_games(folder, board, odds, games), 0)

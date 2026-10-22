@@ -407,8 +407,7 @@ function renderRecord() {
     const played = t.wins + t.losses;
     return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div><b>${t.wins}-${t.losses}</b><small>${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signed(t.units)}u` : "none yet"}</small></div>`;
   };
-  const clv = record.clv || {};
-  const clvTile = `<div class="nba-tile" title="Closing line value on the plays with an edge: how far the price moved from the first one the page saw to the one locked at puck drop, in points of chance (+ = the price shortened, the market moved toward the model)."><div class="gs-tile-label">Closing line value</div><b>${has(clv.points) ? points(clv.points) : "--"}</b><small>${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays` : "none yet"}</small></div>`;
+  const clvBox = clvTile(record.clv);
   const honest = (record.honest || []).filter((b) => b.players).map((b) => `<tr><td>${Math.round(b.lo * 100)}-${Math.round(Math.min(b.hi, 1) * 100)}%</td><td class="num">${b.players}</td><td class="num">${pct(b.said / b.players, 0)}</td><td class="num"><b>${pct(b.got / b.players, 0)}</b></td></tr>`).join("");
   box.innerHTML = `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; the better side of each points line at the price locked before puck drop; u = units won risking 1 a play</span></div>
     <div class="nba-tiles shots-record">
@@ -417,7 +416,7 @@ function renderRecord() {
       ${tile("Overs", record.over, "Plays on the over")}
       ${tile("Unders", record.under, "Plays on the under")}
       ${tile("Against his avg", record.fade, "Plays that went against his season points a game")}
-      ${clvTile}
+      ${clvBox}
     </div>
     <div class="shots-detail-label">Said vs got <span class="muted-label">every graded player, priced or not: the model's chance of 1 or more points against how often he got one</span></div>
     ${honest ? `<table class="data-table shots-ladder goals-honest"><thead><tr><th>Model said</th><th>Players</th><th>Said</th><th>Got a point</th></tr></thead><tbody>${honest}</tbody></table>` : ""}

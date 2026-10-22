@@ -227,9 +227,9 @@ class Record(unittest.TestCase):
             self.assertEqual((saved["cols"], saved["factors"]), (list(build_nhl.POINTS_RECORD_COLS), list(build_nhl.POINTS_FACTORS)))
             plays = saved["games"]["77"]["plays"]
             self.assertEqual([p[0] for p in plays], ["1", "2"])  # the scratch is left out, the unpriced player kept
-            factors = dict(zip(build_nhl.POINTS_FACTORS, plays[0][-1]))
+            factors = dict(zip(build_nhl.POINTS_FACTORS, plays[0][-2]))  # [-1] = Novig's prices (nv)
             self.assertEqual((factors["pos"], factors["slot"], factors["mates"], factors["a_opp"], factors["g_low"], factors["home"]), ("C", "F1", 1.1, 1.05, 0.97, 0))
-            self.assertIsNone(plays[1][-1])  # no price: no factors
+            self.assertEqual(plays[1][-2:], [None, None])  # no price: no factors, no Novig prices
 
     def test_the_record(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -250,7 +250,9 @@ class Record(unittest.TestCase):
             self.assertEqual((r["none"]["wins"], r["none"]["losses"]), (2, 1))
             self.assertEqual((r["over"]["wins"], r["under"]["wins"], r["with"]["wins"], r["fade"]["wins"]), (1, 1, 1, 1))
             self.assertEqual((r["clv"]["plays"], r["clv"]["priced"], r["clv"]["shortened"]), (2, 2, 1))
-            self.assertAlmostEqual(r["clv"]["points"], (0.5 - 100 / 220) / 2, places=4)
+            # Before BEST_PRICES_FROM the saved prices were Novig's: both sides, the cut taken out.
+            nv = lambda a, b: build_nhl.break_even(a) / (build_nhl.break_even(a) + build_nhl.break_even(b))
+            self.assertAlmostEqual(r["clv"]["points"], (nv(100, -120) - nv(120, -140)) / 2, places=4)
             self.assertEqual(sum(b["players"] for b in r["honest"]), 6)
             self.assertEqual(sum(b["got"] for b in r["honest"]), 3)
             self.assertEqual([p["id"] for p in r["plays"]], ["2", "1"])  # only the plays, biggest edge first

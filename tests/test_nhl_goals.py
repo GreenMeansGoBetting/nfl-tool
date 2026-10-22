@@ -234,12 +234,12 @@ class Board(unittest.TestCase):
         self.assertEqual(saved["factors"], list(build_nhl.GOALS_FACTORS))
         plays = {p[0]: p for p in saved["games"]["77"]["plays"]}
         row = next(r for r in entry["players"] if r["id"] == BENSON)
-        f = dict(zip(build_nhl.GOALS_FACTORS, plays[BENSON][-1]))
+        f = dict(zip(build_nhl.GOALS_FACTORS, plays[BENSON][-2]))  # [-1] = Novig's prices (nv)
         self.assertEqual((f["pos"], f["games"], f["goals"], f["home"], f["rest"], f["opp_rest"], f["zone"]), (row["pos"], 1, 0, 0, 1, 2, None))
         self.assertEqual(f["vs_avg"], round(row["mean"] - 0, 3))  # no goals in his one game
         self.assertEqual({k: f[f"l_{k}"] for k in row["lift"]}, row["lift"])
         self.assertEqual({a: f[f"s_{a}"] for a in row["shares"]}, row["shares"])
-        self.assertTrue(all(p[-1] is None for pid, p in plays.items() if pid != BENSON))
+        self.assertTrue(all(p[-2] is None for pid, p in plays.items() if pid != BENSON))
         # The record still reads it the same way.
         self.assertEqual(len(plays[BENSON]), len(build_nhl.GOALS_RECORD_COLS))
 

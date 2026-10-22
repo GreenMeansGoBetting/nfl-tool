@@ -120,7 +120,7 @@ class Record(unittest.TestCase):
             self.assertEqual(saved["cols"], list(build_nhl.SAVES_RECORD_COLS))
             plays = saved["games"]["9001"]["plays"]
             self.assertEqual(len(plays), 2)
-            self.assertEqual(len(plays[0][-1]), len(build_nhl.SAVES_FACTORS))
+            self.assertEqual(len(plays[0][-2]), len(build_nhl.SAVES_FACTORS))  # [-1] = Novig's prices (nv)
             summary = build_nhl.saves_record_summary(folder)
         self.assertEqual((summary["games"], summary["goalies"]), (1, 2))
         rows = {r["id"]: r for r in board["9001"]["goalies"]}

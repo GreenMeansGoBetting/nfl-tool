@@ -976,9 +976,8 @@ nights; z 1.3, so not proven, but one direction. The owner: "make a Points play 
   Re-graded the same way, the season so far is 56-49, +6.6u (in sample: expect less).
 - `POINTS_EDGES` still sizes the every-book price tags and the price table's green.
 - Closing line value read about -2.4 points on all three records (Goals 145 drifted, 6
-  shortened): the first price is the best price at first look and the lock is the best across
-  more books near puck drop, so it leans toward "drifted" by construction. Not fixed yet; don't
-  read it as the market moving away until the same book is compared at both times.
+  shortened): best price at first look against best across more books at the lock, "drifted" by
+  construction. Fixed the same day: see "Closing line value on Novig's prices".
 
 ### Step 3: the Points page (`site/nhl/points.html` + `points.js`, built 2026-10-16)
 
@@ -1126,6 +1125,29 @@ Goals alike), whatever else it is: the model is missing something, not the book 
   Sanderson's two losses left the plays' record (told to the owner).
 - When it was set, Sanderson's two were the only Shots / Points plays of the season past it (next:
   23.7); Goals had never passed 14; one Saves under (Wallstedt, 25.1, lost) also moved there.
+
+## Closing line value on Novig's prices (2026-10-22)
+
+The owner approved the plan after the audit above. Wins and units stay at the best price across
+books (what a bettor gets); **CLV reads Novig alone** (an exchange: the cleanest single read of the
+market), at the first look and at the lock.
+- `clv_move`: on the same line, the play side's chance with the cut taken out (both sides priced at
+  both looks; else that side's own price both times), lock minus first, + = the market moved to the
+  model. A moved line counts by direction. `clv_tally` / `clv_add` / `clv_done`: `plays`, `priced`,
+  `points` (average over `priced`), `shortened`, `drifted`, `since`, `book` "novig".
+- Every board row carries `nv` (`novig_prices` / `novig_goal_prices`: the `nv_*` prices
+  best_book_prices keeps, else the row's own) and `first_nv` (carried from the live file like
+  `first`; Saves only for the same goalie). Crease rows carry `nv_over` / `nv_under` for this.
+- Every record row ends with an `nv` column after `factors` (`CLV_COLS`: over / under
+  `[first_line, first_over, first_under, over, under]`, goals `[first_yes, first_no, yes, no]`);
+  each file's `nv` key names them. Rows before `BEST_PRICES_FROM` (2026-10-17) hold Novig's own
+  prices and count as they are (goals Yes only); rows from it without `nv` are left out.
+- One tile for all four pages: `clvTile` in nhl-common.js ("Closing Line Value", "since" date).
+- Re-graded when it shipped: Shots -0.4 points (38 shortened, 36 drifted, 74 plays: about even, so
+  the old -2.5 was mostly the measurement), Goals -1.4 (4 / 35, 43 plays: still leaning drifted),
+  Points 2 plays, Saves none yet. Small samples; it fills from 10/23 on.
+- Not the true close: the lock is the last refresh before puck drop (up to 30 minutes early).
+- Tests: `tests/test_nhl_clv.py`.
 
 ## Learning which factors win: the factor report (2026-10-16)
 

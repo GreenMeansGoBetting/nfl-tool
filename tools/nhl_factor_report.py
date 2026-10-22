@@ -92,7 +92,7 @@ def points_plays(folder: Path, since=None, every=False) -> list:
     out = []
     for saved, game in read_months(folder, since):
         names = saved.get("factors") or b.POINTS_FACTORS
-        for pid, name, team, line, over, under, mean, chance, chance_over, actual, avg, move, _fl, _fo, _fu, factors in game["plays"]:
+        for pid, name, team, line, over, under, mean, chance, chance_over, actual, avg, move, _fl, _fo, _fu, factors, *_nv in game["plays"]:
             if line is None or chance_over is None:
                 continue
             play = b.points_play(chance_over, line, over, under, avg, move)
