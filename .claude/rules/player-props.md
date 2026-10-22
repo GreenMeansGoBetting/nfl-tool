@@ -164,7 +164,18 @@ top (`#bp-warning`, the typical games played). First row under the NFL menu's "P
   `bookBest`). Ratings `BP_EDGES` per market; Check = edge past `check` or a TD long shot at
   `BP_CHECK_RATIO` 1.8x the price's chance (usually news the model lacks). Games that have kicked
   off drop off (`bpStarted`). Save boxes are the shared `propOuEntries` / `ouCheckboxCell` ids.
-- No graded record yet (the engine runs in the browser; a record needs it in the build).
+- **Graded record (2026-10-22, owner: "capture what members see", not the math ported to
+  Python):** the engine runs in the browser, so every deploy opens best-plays.html headless on the
+  fresh data (`tools/best_plays_capture.py`, step "NFL Best Plays record") and reads `bpCapture()`:
+  the page's own list, no member so no My Books (best price across every US book). Kept in
+  `model_history/nfl_best_plays/<season>.json` by `nfl_tool/best_plays_record.py`: a game not yet
+  started takes the latest list (a dropped play is dropped; an empty capture keeps the old ones);
+  a started game is never touched (odds lock at kickoff); `first_price` / `first_book` kept for CLV.
+  Graded every run from data.json (`player_game_logs`, `player_td_results`; no snap and no touch =
+  void, not a loss; an exact push = void). `site/best_plays_record.json` = `ledger` per group
+  (rec / rush / pass / any / first; tags group, side, rating) + the graded plays. Captures run on
+  the 6-hour cron and every push, so the "last pre-kickoff" price can be hours before kickoff.
+  Tests: `tests/test_best_plays_record.py`.
 - It loads props-summary.js and app.js for their math but has no game picker (`#away-select`):
   their code that reads the picker must skip when it's missing. The player card shows
   "+ Summary" only where the picker exists (it threw on Best Plays until 2026-10-21).

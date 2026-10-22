@@ -278,6 +278,7 @@ class LiveData(unittest.TestCase):
         self.live = {
             "data.json": {"teams": ["BUF"]},
             "koe_weeks.json": {"boards": {}, "results": {}},
+            "best_plays_record.json": {"ledger": {}, "plays": []},
             "nba/data.json": {"teams": {}},
             "nba/props.json": {"seasons": {}},
             "nba/shots.json": {"players": {}},
@@ -327,15 +328,15 @@ class LiveData(unittest.TestCase):
 
     def test_the_hockey_refresh_takes_the_other_suites_only(self):
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["data.json", "koe_weeks.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
-        self.assertEqual(self.asked, ["data.json", "koe_weeks.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
+        self.assertEqual(self.asked, ["data.json", "koe_weeks.json", "best_plays_record.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
 
     def test_nba_props_not_live_yet_is_not_an_error(self):
         """The first deploy after nba/props.json was added: a refresh before it
         must still put the rest back, and a reused deploy builds instead."""
         del self.live["nba/props.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["data.json", "koe_weeks.json", "nba/data.json", "nba/shots.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/shots.json"])
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
 
     def test_nba_shots_not_live_yet_is_not_an_error(self):
@@ -343,7 +344,7 @@ class LiveData(unittest.TestCase):
         before it must still put the rest back, and a reused deploy builds instead."""
         del self.live["nba/shots.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["data.json", "koe_weeks.json", "nba/data.json", "nba/props.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/props.json"])
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
 
     def test_king_of_the_endzones_weeks_not_live_yet_is_not_an_error(self):
@@ -351,7 +352,7 @@ class LiveData(unittest.TestCase):
         must still put the NFL data back."""
         del self.live["koe_weeks.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["data.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
         # A reused deploy needs every NFL file, so it builds instead.
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--need", "nfl"]), 1)
 
@@ -360,7 +361,7 @@ class LiveData(unittest.TestCase):
         del self.live["nba/props.json"]
         del self.live["nba/shots.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["data.json", "koe_weeks.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json"])
 
     def test_strict_stops_when_a_live_file_cannot_be_downloaded(self):
         self.live["nba/data.json"] = 503
@@ -372,7 +373,7 @@ class LiveData(unittest.TestCase):
     def test_a_hiccup_is_tried_again(self):
         self.live["data.json"] = [urllib.error.URLError("timed out"), 502, {"teams": ["BUF"]}]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
-        self.assertEqual(self.asked, ["data.json"] * 3 + ["koe_weeks.json"])
+        self.assertEqual(self.asked, ["data.json"] * 3 + ["koe_weeks.json", "best_plays_record.json"])
         self.assertEqual(json.loads((self.site / "data.json").read_text()), {"teams": ["BUF"]})
 
     def test_the_login_page_is_never_saved_as_data(self):
@@ -424,7 +425,7 @@ class LiveData(unittest.TestCase):
     def test_a_file_already_here_is_left_alone(self):
         self.site.joinpath("data.json").write_text('{"local": true}', encoding="utf-8")
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
-        self.assertEqual(self.asked, ["koe_weeks.json"])
+        self.assertEqual(self.asked, ["koe_weeks.json", "best_plays_record.json"])
         self.assertEqual(json.loads((self.site / "data.json").read_text()), {"local": True})
 
     def test_it_only_runs_with_the_build_key(self):
@@ -629,7 +630,12 @@ class WorkflowsInStep(unittest.TestCase):
         for build, sport in (("Build stats (nflverse needs no key; SGO_API_KEY is optional)", "nfl"), ("Build NBA data", "nba"), ("Restore saved NHL games", "nhl"),
                              ("Build NHL data", "nhl"), ("Save NHL games", "nhl")):
             self.assertIn(f"        if: contains(steps.lane.outputs.build, '{sport}') || steps.live_data.outcome == 'failure'\n", steps[build], build)
-        self.assertIn("        if: steps.lane.outputs.build != '' || steps.live_data.outcome == 'failure'\n", steps["Save GMG model record"])
+        # The records are saved on every run: Best Plays' record (2026-10-22)
+        # is captured from the page even on a page-only push.
+        for always in ("NFL Best Plays record", "Save GMG model record"):
+            self.assertFalse(any(line.startswith("        if:") for line in steps[always].splitlines()), always)
+        self.assertLess(names.index("Build stats (nflverse needs no key; SGO_API_KEY is optional)"), names.index("NFL Best Plays record"))
+        self.assertEqual(names.index("Save GMG model record"), names.index("NFL Best Plays record") + 1)
         live_name = "Use the live data (sports this push can't change)"
         live = steps[live_name]
         self.assertIn("id: live_data", live)

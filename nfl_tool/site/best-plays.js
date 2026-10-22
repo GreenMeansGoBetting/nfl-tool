@@ -156,6 +156,7 @@ function bpPropRows(lines) {
       out.push({
         group: r.section === "rush" ? "rush" : r.section === "pass" ? "pass" : "rec",
         kind: "prop", game, team, opp, name: r.name, position: r.position,
+        market: r.marketKey, side, line: r.line, book: best ? best[0] : "novig",
         bet: `${side === "over" ? "Over" : "Under"} ${fmt(r.line, 1)} ${r.market}`,
         gmg: `${fmt(r.proj, r.proj < 10 ? 1 : 0)} ${unit}`,
         chance, price, edge, rating, entry, priceText: showOdds(r.odds),
@@ -231,6 +232,7 @@ function bpAnytime(team, opp, game) {
     if (o.thin) notes.push(["Thin", "A thin market: few books, the price may move"]);
     out.push({
       group: "any", kind: "any", game, team, opp, name: o.name, position: p.position || o.position,
+      market: "anytime_td", side: "yes", line: 0.5, book: best ? best[0] : o.best_book || null,
       bet: "Anytime TD", gmg: `${fmt(lambda, 2)} TD`, chance, price, edge, rating, entry, priceText: showOdds(o.best_odds),
       hits: null, reasons, notes,
     });
@@ -251,6 +253,7 @@ function bpFirstTd(game) {
       const entry = { id: `${game.week}_first_td_${team}_${p.name}`, week: game.week, matchup: bpMatchup(game), category: "First TD", description: p.name, team, odds: fmtOddsSigned(p.odds) };
       out.push({
         group: "first", kind: "first", game, team, opp, name: p.name, position: p.position,
+        market: "first_td", side: "yes", line: null, book: p.book || null,
         bet: "First TD", gmg: `${(p.est * 100).toFixed(1)}%`, chance: p.est, price: p.odds, edge, rating, entry, priceText: showOdds(p.odds),
         hits: null, reasons: [`${team} scores first ${Math.round(teamChance * 100)}%`, `${fmt(p.xtd_pg || 0, 2)} xTD/g`],
         notes: p.injury === "Q" ? [["Q", "Questionable on the injury report"]] : [],
@@ -291,6 +294,24 @@ function bpBuild(games) {
     try { add(bpFirstTd(game)); } catch (e) { console.error("Best Plays: first TD", bpMatchup(game), e); }
   });
   return rows;
+}
+
+// What the deploy saves for the graded record (tools/best_plays_capture.py
+// reads it on a fresh browser: no member, so the best price is across every
+// US book). `games` = every game this list covered, so a play the page has
+// dropped since the last capture is dropped from the record too.
+function bpCapture() {
+  const games = (DATA.schedule || []).filter((g) => g.week === DATA.current_week && !bpStarted(g));
+  return {
+    week: DATA.current_week,
+    games: games.map((g) => `${bpGameKey(g)}_${g.week}`),
+    plays: bpRows.map((r) => ({
+      game: bpGameKey(r.game), game_id: r.game.game_id || null, week: r.game.week, date: r.game.date,
+      team: r.team, opp: r.opp, name: r.name, position: r.position || null, group: r.group,
+      market: r.market, bet: r.bet, side: r.side, line: r.line, price: r.price, book: r.book,
+      edge: r.edge, chance: r.chance, rating: r.rating,
+    })),
+  };
 }
 
 // ---- drawing ----

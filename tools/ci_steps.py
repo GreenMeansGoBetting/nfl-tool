@@ -181,6 +181,7 @@ SPORT_BUILD = {
     "nfl_tool/build_stats.py": ("nfl",),
     "nfl_tool/gmg_model.py": ("nfl",),
     "nfl_tool/line_grades.py": ("nfl",),
+    "nfl_tool/best_plays_record.py": ("nfl",),
 }
 
 

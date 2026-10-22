@@ -227,6 +227,16 @@ jobs:
           path: data/nhl
           key: nhl-games-${{ hashFiles('data/nhl/games/**') }}
 
+      # NFL Best Plays' graded record (2026-10-22, tools/best_plays_capture.py):
+      # open best-plays.html on this run's data.json, keep its plays for games
+      # not yet started (odds lock at kickoff), grade the finished games and
+      # write site/best_plays_record.json for its YTD Model Performance popup.
+      # Every run, the page-only lane too (it reads the live data.json then).
+      # Never allowed to block the deploy.
+      - name: NFL Best Plays record
+        continue-on-error: true
+        run: python tools/best_plays_capture.py --season 2026
+
       # The GMG model's locked projections and graded picks. The build
       # rewrites this file with every game that has kicked off; committing it
       # keeps the record in the repo, so it survives even if the next build
@@ -235,8 +245,8 @@ jobs:
       # The NHL Shots page's graded plays are kept the same way
       # (model_history/nhl_shots/<month>.json: a game is added once, when it
       # is final), so the whole folder is added.
+      # Every run: Best Plays' record (above) changes even on a page-only push.
       - name: Save GMG model record
-        if: steps.lane.outputs.build != '' || steps.live_data.outcome == 'failure'
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
