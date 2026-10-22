@@ -418,6 +418,76 @@ function bpStart() {
   bpRender();
 }
 
+// ---- YTD Model Performance (the graded record, 2026-10-22) ----
+// Every play this page showed, as it stood at the last capture before
+// kickoff (the deploy reads bpCapture: tools/best_plays_capture.py), graded
+// from the play-by-play. The tiles are the shared tracker (ytd.js); the list
+// under them follows its window and sliders (ytdKeeps).
+const BP_YTD_KEY = "nfl-best-plays";
+let bpRecord = null;
+const bpYtdDate = (d) => new Date(`${d}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+function bpYtdList() {
+  const plays = (bpRecord.plays || []).filter((p) => ytdKeeps(BP_YTD_KEY, p.group, p.date, p.edge));
+  if (!plays.length) return `<p class="no-data-note">No graded plays in this window yet.</p>`;
+  const rows = plays.map((p) => {
+    const rgb = teamAccentRgb(p.team).join(",");
+    const book = p.book ? ` <span class="muted-label">${BOOK_INITIALS[p.book] || p.book}</span>` : "";
+    const tier = p.rating === "Strong" ? "tier-good" : p.rating === "Lean" ? "tier-good bp-lean" : "tier-mid";
+    return `<tr style="border-left:4px solid rgb(${rgb})">
+      <td class="muted-label">${bpYtdDate(p.date)}</td>
+      <td class="bp-player">${teamLogoMini(p.team)} ${playerClick(p.team, p.name, p.name, p.opp)} <span class="muted-label">${p.position || ""}</span></td>
+      <td class="bp-bet"><b>${p.bet}</b></td>
+      <td class="num">${showOdds(p.price)}${book}</td>
+      <td class="num">+${(p.edge * 100).toFixed(1)}</td>
+      <td><span class="bp-rating ${tier}">${p.rating}</span></td>
+      <td class="num"><span class="pick-result pick-result-${p.won ? "win" : "loss"}">${p.won ? "Won" : "Lost"}</span></td>
+    </tr>`;
+  }).join("");
+  return `<div class="bp-table-wrap"><table class="data-table bp-table bp-ytd-table"><thead><tr><th>Date</th><th>Player</th><th>Bet</th><th class="num" title="The best price across every US book at the last look before kickoff">Price</th><th class="num">Edge</th><th>Rating</th><th class="num">Result</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function bpYtdOpen() {
+  const overlay = ensureBookModal("bp-ytd-modal");
+  const content = overlay.querySelector(".bo-content");
+  const ledger = bpRecord.ledger || {};
+  const graded = Object.values(ledger).reduce((n, rows) => n + rows.length, 0);
+  const first = Object.values(ledger).flat().map((r) => r[0]).sort()[0];
+  content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2>
+    <p class="bp-warning"><b>&#9888; New Record, Small Sample.</b> ${graded ? `${graded} graded play${graded === 1 ? "" : "s"} since ${bpYtdDate(first)}.` : "No graded plays yet: the first ones land when this week's games finish."} Plays are saved as they stood at the last check before kickoff (the build checks every few hours), at the best price across every US book, and graded from the play-by-play; a player who didn't play is left out. A few weeks of plays can swing either way.</p>
+    <div class="bp-ytd-tracker"></div><div class="bp-ytd-list"></div>`;
+  const draw = () => (content.querySelector(".bp-ytd-list").innerHTML = bpYtdList());
+  const market = (key, label, kind, splits) => ({
+    key, label, ledger: ledger[key] || [], min: BP_EDGES[kind].lean * 100, max: 20, step: 0.5, short: label.split(" ")[0],
+    tip: `${label} plays at an edge of at least the slider's points`,
+    splits,
+  });
+  const ou = (what) => [["over", "Overs", `${what} overs`], ["under", "Unders", `${what} unders`]];
+  ytdTracker(content.querySelector(".bp-ytd-tracker"), {
+    key: BP_YTD_KEY,
+    all: "All Plays",
+    markets: [
+      market("rec", "Receiving", "prop", ou("Receiving")),
+      market("rush", "Rushing", "prop", ou("Rushing")),
+      market("pass", "Passing", "prop", ou("Passing")),
+      market("any", "Anytime TD", "any"),
+      market("first", "First TD", "first"),
+    ],
+    onChange: draw,
+  });
+  draw();
+  overlay.hidden = false;
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#bp-ytd") && bpRecord) bpYtdOpen();
+});
+fetch("best_plays_record.json")
+  .then((r) => (r.ok ? r.json() : null))
+  .then((rec) => {
+    if (!rec || !rec.ledger) return;
+    bpRecord = rec;
+    document.getElementById("bp-ytd").hidden = false;
+  })
+  .catch(() => {});
+
 fetch("data.json")
   .then((r) => r.json())
   .then((data) => {

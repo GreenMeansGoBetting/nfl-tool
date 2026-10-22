@@ -78,5 +78,17 @@ def main(argv=None) -> int:
     return 0 if ok else 1
 
 
+def safe_main(argv=None) -> int:
+    """main(), but the site file is always left in place: the page check before
+    a publish fails on a missing file, and the record must never block a deploy."""
+    try:
+        return main(argv)
+    except Exception as e:
+        print(f"Best Plays record failed: {e}")
+        if not OUT.exists():
+            OUT.write_text(json.dumps({"season": None, "ledger": {g: [] for g in bpr.GROUPS}, "plays": []}), encoding="utf-8")
+        return 1
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(safe_main())

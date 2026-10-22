@@ -91,8 +91,12 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
   `record.history` (a Min Chance slider on the tip and Scores First picks, Min Edge on Value Plays).
 - **A new model tool:** send a ledger, load `../ytd.js`, call `ytdTracker`; button worded "YTD Model
   Performance". `tests/test_ytd_site.py` fails a page that mentions YTD without it, a page that
-  builds its own window chips, or another button name. NFL Best Plays has no graded record yet
-  (its engine runs in the browser), so no popup until one exists.
+  builds its own window chips, or another button name. NFL Best Plays (2026-10-22): the deploy
+  captures the page's own list and grades it (player-props.md); its popup is a tile per market
+  (Receiving / Rushing / Passing with Overs / Unders, Anytime TD, First TD) plus All Plays.
+- **A root file a sport page loads (`../ytd.js`) must be in the login gate's `SHARED_FILES`**
+  (members-and-hosting.md): ytd.js wasn't, and on 2026-10-22 the NHL prop pages drew no plays
+  for about 45 minutes. `tests/test_sport_hosts.py`.
 
 ## One stylesheet per sport (2026-10-13)
 

@@ -4076,6 +4076,9 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .bp-note { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; border: 1px dashed var(--border-strong); color: var(--muted); font-size: 0.72rem; font-weight: 700; }
 .bp-price { white-space: nowrap; }
 .bp-why { min-width: 220px; font-size: 0.8rem; color: var(--muted); }
+.bp-ytd-btn { margin-left: 10px; }
+#bp-ytd-modal .modal-box { max-width: 1000px; max-height: 92vh; overflow-y: auto; }
+.bp-ytd-list { margin-top: 14px; }
 /* ---- YTD Model Performance (ytd.js): the same tracker on every sport ---- */
 .ytd-windows { margin: 10px 0 0; flex-wrap: wrap; }
 .ytd-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-width: 900px; margin: 10px 0 0; }

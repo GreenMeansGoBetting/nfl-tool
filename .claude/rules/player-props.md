@@ -175,7 +175,12 @@ top (`#bp-warning`, the typical games played). First row under the NFL menu's "P
   void, not a loss; an exact push = void). `site/best_plays_record.json` = `ledger` per group
   (rec / rush / pass / any / first; tags group, side, rating) + the graded plays. Captures run on
   the 6-hour cron and every push, so the "last pre-kickoff" price can be hours before kickoff.
-  Tests: `tests/test_best_plays_record.py`.
+  The capture never blocks a deploy (`safe_main` always leaves the site file; the gate fails on a
+  missing one). **Popup:** "YTD Model Performance" beside the title (shown once the record file
+  loads) -> `ytdTracker` key `nfl-best-plays`, one market per group, Min Edge from that market's
+  Lean bar, a "New Record, Small Sample" note, and the graded plays (date, player, bet, price +
+  book, edge, rating, result) kept to the tracker with `ytdKeeps`. Tests:
+  `tests/test_best_plays_record.py`, `tests/test_best_plays_site.py`.
 - It loads props-summary.js and app.js for their math but has no game picker (`#away-select`):
   their code that reads the picker must skip when it's missing. The player card shows
   "+ Summary" only where the picker exists (it threw on Best Plays until 2026-10-21).

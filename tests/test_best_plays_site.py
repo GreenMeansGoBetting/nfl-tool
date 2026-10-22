@@ -93,6 +93,50 @@ class BestPlays(unittest.TestCase):
         self.assertEqual(chances, sorted(chances, reverse=True))
         page.click('.bp-sort[data-sort="edge"]')
 
+    def test_ytd_model_performance(self):
+        """The graded record (2026-10-22): the shared tracker, a tile per market
+        plus All Plays, Overs / Unders on the props, and the list under it kept
+        to the tracker's window and sliders."""
+        import json
+
+        record = {"season": 2026, "ledger": {
+            "rec": [["2026-10-08", 0.081, 1, 1.2, ["rec", "under", "strong"]], ["2026-10-08", 0.045, 0, -1.0, ["rec", "over", "lean"]]],
+            "rush": [], "pass": [],
+            "any": [["2026-10-08", 0.05, 0, -1.0, ["any", "yes", "strong"]]], "first": []},
+            "plays": [
+                {"date": "2026-10-08", "team": "TB", "opp": "DAL", "name": "Emeka Egbuka", "position": "WR", "group": "rec", "bet": "Under 45.5 Rec Yds", "side": "under", "price": 120, "book": "fanduel", "edge": 0.081, "rating": "Strong", "won": 1},
+                {"date": "2026-10-08", "team": "TB", "opp": "DAL", "name": "Cade Otton", "position": "TE", "group": "rec", "bet": "Over 30.5 Rec Yds", "side": "over", "price": -110, "book": "draftkings", "edge": 0.045, "rating": "Lean", "won": 0},
+                {"date": "2026-10-08", "team": "TB", "opp": "DAL", "name": "Bucky Irving", "position": "RB", "group": "any", "bet": "Anytime TD", "side": "yes", "price": 150, "book": "fanduel", "edge": 0.05, "rating": "Strong", "won": 0},
+            ]}
+        page = SITE.open("best-plays.html")
+        page.route("**/best_plays_record.json", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(record)))
+        page.evaluate("() => localStorage.removeItem('nfl-tool.ytd.nfl-best-plays.v1')")
+        page.reload()
+        page.wait_for_selector("#bp-ytd:not([hidden])", timeout=20000)
+        page.click("#bp-ytd")
+        modal = "#bp-ytd-modal:not([hidden])"
+        page.wait_for_selector(modal, timeout=5000)
+        self.assertIn("Small Sample", page.inner_text(modal))
+        labels = page.eval_on_selector_all(f"{modal} .ytd-label", "els => els.map((e) => e.textContent)")
+        self.assertEqual(labels, ["All Plays", "Receiving", "Overs", "Unders", "Rushing", "Overs", "Unders", "Passing", "Overs", "Unders", "Anytime TD", "First TD"])
+        body = lambda key: page.inner_text(f'{modal} [data-ytd-body="{key}"] b')  # noqa: E731
+        self.assertEqual((body("__all"), body("rec"), body("rec:under"), body("any")), ("1-2", "1-1", "1-0", "0-1"))
+        self.assertEqual(page.locator(f"{modal} .bp-ytd-table tbody tr").count(), 3)
+        # Receiving's slider past the Lean play: the tile and the list both drop it.
+        page.eval_on_selector(f'{modal} [data-ytd-min="rec"]', "el => { el.value = 6; el.dispatchEvent(new Event('input', { bubbles: true })); }")
+        self.assertEqual(body("rec"), "1-0")
+        self.assertEqual(page.locator(f"{modal} .bp-ytd-table tbody tr").count(), 2)
+        self.assertEqual(SITE.errors, [])
+        page.close()
+
+    def test_no_record_no_button(self):
+        page = SITE.open("best-plays.html")
+        page.route("**/best_plays_record.json", lambda r: r.fulfill(status=404, body=""))
+        page.reload()
+        page.wait_for_selector("#bp-app:not([hidden])", timeout=20000)
+        self.assertTrue(page.locator("#bp-ytd").is_hidden())
+        page.close()
+
     def test_a_name_opens_the_player_card(self):
         # Best Plays loads props-summary.js and app.js for their math, and both
         # read the Player Props / TD Data game picker this page doesn't have:

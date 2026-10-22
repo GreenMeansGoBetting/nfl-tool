@@ -98,6 +98,24 @@ class Grading(unittest.TestCase):
         self.assertEqual(len(bpr.site_file(rec)["plays"]), 2)
 
 
+class NeverBlocksADeploy(unittest.TestCase):
+    def test_a_failed_run_still_leaves_the_site_file(self):
+        """The page check before a publish fails on a missing file, so a broken
+        record step must still leave best_plays_record.json in place."""
+        import json
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        import best_plays_capture
+
+        with tempfile.TemporaryDirectory() as folder:
+            site = Path(folder)
+            with mock.patch.object(best_plays_capture, "SITE", site), mock.patch.object(best_plays_capture, "OUT", site / "best_plays_record.json"),                     mock.patch("sys.stdout"):
+                self.assertEqual(best_plays_capture.safe_main(["--season", "2026", "--no-capture"]), 1)  # no data.json here
+            self.assertEqual(json.loads((site / "best_plays_record.json").read_text())["plays"], [])
+
+
 class PageCapture(unittest.TestCase):
     """bpCapture() in a real browser: what the deploy saves is the page's own list."""
 
