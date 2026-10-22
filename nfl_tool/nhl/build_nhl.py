@@ -232,6 +232,7 @@ POST_Y = 3.5
 LOW_SLOT_Y = 9
 SHOT_EVENTS = ("goal", "shot-on-goal", "missed-shot", "blocked-shot")
 EARLY_SECONDS = 300  # "fast start" shots: the first five minutes of the 1st period
+FIRST_TEN = 600  # Icebreaker's player columns: the first ten minutes of the 1st period
 # The feed's shot types, grouped for the player card (anything else is "other").
 SHOT_TYPES = {"wrist": "wrist", "snap": "snap", "slap": "slap", "backhand": "backhand", "tip-in": "tip", "deflected": "tip"}
 # One row per game in a player's log (the player files, see write_player_files).
@@ -334,6 +335,19 @@ def on_ice_finder(raw: dict):
         return sorted({pid for a, z, pid in spans.get((team, period), []) if a < t <= z})
 
     return find
+
+
+def first_ten_toi(raw: dict) -> dict | None:
+    """{player id: seconds on the ice in the first ten minutes of the 1st
+    period}, from the kept shift chart; None when the game has no chart."""
+    shifts = raw.get("shifts")
+    if not shifts:
+        return None
+    out = Counter()
+    for pid, team, period, on, off in shifts:
+        if period == 1:
+            out[str(pid)] += max(0, min(clock_seconds(off), FIRST_TEN) - min(clock_seconds(on), FIRST_TEN))
+    return out
 
 
 def game_goals(raw: dict) -> list:
@@ -467,6 +481,9 @@ def reduce_game(raw: dict) -> dict:
                 t["sog_5v5"] += even
                 if period.get("number") == 1 and clock_seconds(p.get("timeInPeriod")) < EARLY_SECONDS:
                     t["sog_early"] += 1
+                if period.get("number") == 1 and clock_seconds(p.get("timeInPeriod")) < FIRST_TEN:
+                    mine["sog10"] += 1
+                    mine["g10"] += kind == "goal"
             if kind == "goal":
                 t["g"] += 1
                 elapsed = ((period.get("number") or 1) - 1) * 1200 + clock_seconds(p.get("timeInPeriod"))
@@ -517,6 +534,7 @@ def reduce_game(raw: dict) -> dict:
     skaters, goalies = {}, {}
     on_pp = raw.get("pp_toi")  # {player id: power-play seconds}, the league's report (fetch_pp_toi)
     lines = game_lines(raw)  # {player id: "L1".."D3"}, the line he played on (shift chart)
+    toi10 = first_ten_toi(raw)  # {player id: seconds in the first ten minutes}, None without a chart
     for side in ("homeTeam", "awayTeam"):
         team = box[side]["abbrev"]
         stats = (box.get("playerByGameStats") or {}).get(side) or {}
@@ -534,6 +552,8 @@ def reduce_game(raw: dict) -> dict:
                     "slot": lines.get(str(pid)),
                     # Seconds on the power play (the league's per-game report); None when the game has none.
                     "pp_toi": on_pp.get(str(pid), 0) if on_pp is not None else None,
+                    # The first ten minutes of the 1st period (Icebreaker): goals, shots on goal, seconds on the ice (None without a shift chart).
+                    "g10": extra.get("g10", 0), "sog10": extra.get("sog10", 0), "toi10": toi10.get(str(pid), 0) if toi10 is not None else None,
                     # Where he shot from: {area: [shots (on goal or wide), on goal, goals]}, and by shot type: {type: [shots, goals]}.
                     "areas": {a: [extra[f"a_{a}"], extra.get(f"s_{a}", 0), extra.get(f"g_{a}", 0)] for a in AREAS if extra.get(f"a_{a}")},
                     "types": {k: [extra[f"t_{k}"], extra.get(f"tg_{k}", 0)] for k in (*dict.fromkeys(SHOT_TYPES.values()), "other") if extra.get(f"t_{k}")},
@@ -3153,6 +3173,25 @@ def fast_starts(records: list) -> dict:
     return out
 
 
+def first_ten(records: list, ids: set) -> dict:
+    """{player id: [games, goals, shots on goal, games with a shift chart,
+    seconds on the ice]} in the first ten minutes of this season's games,
+    for the players on the board (`ids`). Shown, never in the chances."""
+    out = {}
+    for r in records:
+        for pid, s in r["skaters"].items():
+            if pid not in ids:
+                continue
+            row = out.setdefault(pid, [0, 0, 0, 0, 0])
+            row[0] += 1
+            row[1] += s.get("g10", 0)
+            row[2] += s.get("sog10", 0)
+            if s.get("toi10") is not None:
+                row[3] += 1
+                row[4] += s["toi10"]
+    return out
+
+
 def first_goal_prices(book_odds: dict, game: dict, pid: str) -> dict:
     """His DraftKings first goal scorer price from SmartStake (the promo's
     book and bet). Only DraftKings: the owner, 2026-10-15, "other books don't
@@ -3287,7 +3326,8 @@ def icebreaker_history(folder: Path) -> list:
 
 def icebreaker_file(season: int, generated_at: str, records: list, goals_games: dict, games: list, player_odds: dict, book_odds: dict,
                     previous: dict | None, now_utc: datetime, record_dir: Path) -> dict:
-    """site/nhl/icebreaker.json: the board, every team's fast starts and the Winners history."""
+    """site/nhl/icebreaker.json: the board, every team's fast starts, the
+    board's players' first ten minutes and the Winners history."""
     board = icebreaker_board(goals_games, games, records, player_odds, book_odds, previous, now_utc)
     try:
         record_icebreaker_days(record_dir, board)
@@ -3295,7 +3335,9 @@ def icebreaker_file(season: int, generated_at: str, records: list, goals_games: 
     except Exception as e:  # a damaged record file must never cost the page its board
         print(f"WARNING: the Icebreaker record couldn't be updated ({e}).", file=sys.stderr)
         history = None
-    return {"season": season, "generated_at": generated_at, "rules": ICEBREAKER_RULES, "days": board, "fast": fast_starts(records), "history": history}
+    ids = {row["id"] for day in board.values() for row in day["players"]}
+    return {"season": season, "generated_at": generated_at, "rules": ICEBREAKER_RULES, "days": board, "fast": fast_starts(records),
+            "first10": first_ten(records, ids), "history": history}
 
 
 # ---- putting it together ----

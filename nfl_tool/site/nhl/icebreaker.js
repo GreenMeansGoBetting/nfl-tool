@@ -13,7 +13,7 @@
 // and longDate it shares.
 
 let ICE = null;
-const iceView = { day: 0, slot: null, games: null, team: null, all: false };
+const iceView = { day: 0, slot: null, games: null, team: null, all: false, sort: "chance", dir: -1 };
 const ICE_SHOWN = 15;
 const ICE_SLOT = "19:00";
 
@@ -160,6 +160,49 @@ function priceCell(r) {
   if (!has(r.fg)) return `<td class="num muted-label" title="No DraftKings first goal price yet">--</td>`;
   return `<td class="num" title="DraftKings' first goal scorer price (the promo's qualifying bet)"><span class="ice-odds">${american(r.fg)}</span></td>`;
 }
+// His first ten minutes this season (first_ten in build_nhl.py): [games, goals,
+// shots on goal, games with a shift chart, seconds on the ice]. Real counts;
+// ice time only from games the league has a shift chart for.
+const firstTen = (r) => ((ICE || {}).first10 || {})[r.id] || [0, 0, 0, 0, 0];
+function firstTenCells(r) {
+  const [gp, g, sog, toiGames, toi] = firstTen(r);
+  if (!gp) return `<td class="num muted-label">--</td><td class="num muted-label">--</td><td class="num muted-label">--</td>`;
+  const per = toiGames ? Math.round(toi / toiGames) : null;
+  const clock = has(per) ? `${Math.floor(per / 60)}:${String(per % 60).padStart(2, "0")}` : "--";
+  return `<td class="num" title="Goals in the first 10 minutes / games this season">${g}<span class="muted-label">/${gp}</span></td>
+        <td class="num" title="${sog} shots on goal in the first 10 minutes of ${gp} games">${fmt(sog / gp)}</td>
+        <td class="num${has(per) ? "" : " muted-label"}" title="${has(per) ? `Ice time a game in the first 10 minutes, from the ${toiGames} game${toiGames === 1 ? "" : "s"} the league has a shift chart for` : "No shift chart for his games yet"}">${clock}</td>`;
+}
+
+// ---- sorting the Players table (every column; click again to flip) ----
+// What each column sorts on; a player with nothing there (no games, no
+// price) sinks whichever way it runs. Ties go to the bigger chance.
+const SLOT_ORDER = Object.keys(SLOT_LABEL);
+const ICE_SORT = {
+  name: (r) => r.name || "",
+  slot: (r) => (SLOT_ORDER.includes(r.slot || r.usual_slot) ? SLOT_ORDER.indexOf(r.slot || r.usual_slot) : null),
+  chance: (r) => r.chance,
+  oneIn: (r) => 1 / r.chance,
+  ofTeam: (r) => r.ofTeam,
+  gift: (r) => (firstTen(r)[0] ? firstTen(r)[1] : null),
+  sog: (r) => (firstTen(r)[0] ? firstTen(r)[2] / firstTen(r)[0] : null),
+  toi: (r) => (firstTen(r)[3] ? firstTen(r)[4] / firstTen(r)[3] : null),
+  fg: (r) => r.fg,
+};
+const ICE_SORT_UP = new Set(["name", "slot", "oneIn"]); // first click: A to Z, L1 first, smallest "1 in" first
+function iceSorted(rows) {
+  const get = ICE_SORT[iceView.sort] || ICE_SORT.chance;
+  const ok = (v) => has(v) && v !== "";
+  return [...rows].sort((a, b) => {
+    const [va, vb] = [get(a), get(b)];
+    if (!ok(va) || !ok(vb)) return ok(va) ? -1 : ok(vb) ? 1 : b.chance - a.chance;
+    return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * iceView.dir || b.chance - a.chance;
+  });
+}
+function sortTh(key, label, title, num = true) {
+  const on = iceView.sort === key ? ` koe-sorted${iceView.dir > 0 ? " koe-asc" : ""}` : "";
+  return `<th class="${num ? "num " : ""}koe-sort${on}" data-ice-sort="${key}"${title ? ` title="${title}"` : ""}>${label}</th>`;
+}
 
 function renderPlayers(rows) {
   const box = el("ice-players");
@@ -167,7 +210,7 @@ function renderPlayers(rows) {
   const lo = rows[rows.length - 1].chance;
   const hi = rows[0].chance;
   const rank = new Map(rows.map((r, i) => [r.id, i + 1]));
-  const picked = iceView.team ? rows.filter((r) => r.team === iceView.team) : rows;
+  const picked = iceSorted(iceView.team ? rows.filter((r) => r.team === iceView.team) : rows);
   const shown = iceView.all || iceView.team ? picked : picked.slice(0, ICE_SHOWN);
   const dk = rows.some((r) => has(r.fg));
   const body = shown
@@ -179,11 +222,9 @@ function renderPlayers(rows) {
         ${lineCell(r)}
         <td class="num">${chancePill(r.chance, lo, hi, `His chance to score the quickest goal of the games picked. ${from}`)}</td>
         <td class="num muted-label" title="About 1 slate in ${Math.round(1 / r.chance)}">${Math.round(1 / r.chance)}</td>
-        <td class="koe-gap"></td>
         <td class="num" title="His share of ${r.team}'s chance">${Math.round(r.ofTeam * 100)}%</td>
-        <td class="num" title="Goals / games this season">${r.goals}<span class="muted-label">/${r.games}</span></td>
-        <td class="num" title="Expected goals this season">${fmt(r.xg)}</td>
-        <td class="num" title="Minutes a game">${fmt(r.minutes)}</td>
+        <td class="koe-gap"></td>
+        ${firstTenCells(r)}
         ${dk ? priceCell(r) : ""}
       </tr>`;
     })
@@ -194,9 +235,9 @@ function renderPlayers(rows) {
       ? `${iceView.all ? `All ${picked.length}` : `The top ${ICE_SHOWN} of ${picked.length}`} &middot; <button type="button" class="ice-link" data-ice-all="${iceView.all ? "" : "1"}">${iceView.all ? "Show the top 15" : "Show all"}</button>`
       : "";
   box.innerHTML = `<table class="data-table koe-table ice-table ice-players-table">
-    <colgroup><col class="ice-c-rk"><col class="ice-c-player"><col class="ice-c-line"><col class="ice-c-pill"><col class="ice-c-stat"><col class="koe-c-gap"><col class="ice-c-stat"><col class="ice-c-stat"><col class="ice-c-small"><col class="ice-c-small">${dk ? `<col class="ice-c-odds">` : ""}</colgroup>
-    <thead><tr class="koe-group-row"><th></th><th></th><th></th><th colspan="2" class="koe-group koe-g-up"><span>Icebreaker</span></th><th class="koe-gap"></th><th colspan="4" class="koe-group koe-g-role"><span>His season</span></th>${dk ? `<th class="koe-group koe-g-td"><span>DraftKings</span></th>` : ""}</tr>
-    <tr class="koe-label-row"><th></th><th>Player</th><th class="num">Line</th><th class="num">Chance</th><th class="num" title="About 1 slate in this many">1 in</th><th class="koe-gap"></th><th class="num" title="His share of his team's chance">Of team</th><th class="num">G/GP</th><th class="num">xG</th><th class="num">Min</th>${dk ? `<th class="num" title="First goal scorer price">1st goal</th>` : ""}</tr></thead>
+    <colgroup><col class="ice-c-rk"><col class="ice-c-player"><col class="ice-c-line"><col class="ice-c-pill"><col class="ice-c-stat"><col class="ice-c-stat"><col class="koe-c-gap"><col class="ice-c-stat"><col class="ice-c-small"><col class="ice-c-small">${dk ? `<col class="ice-c-odds">` : ""}</colgroup>
+    <thead><tr class="koe-group-row"><th></th><th></th><th></th><th colspan="3" class="koe-group koe-g-up"><span>Icebreaker</span></th><th class="koe-gap"></th><th colspan="3" class="koe-group koe-g-role"><span>First 10 Minutes &middot; This Season</span></th>${dk ? `<th class="koe-group koe-g-td"><span>DraftKings</span></th>` : ""}</tr>
+    <tr class="koe-label-row"><th></th>${sortTh("name", "Player", "", false)}${sortTh("slot", "Line")}${sortTh("chance", "Chance")}${sortTh("oneIn", "1 In", "About 1 slate in this many")}${sortTh("ofTeam", "Of Team", "His share of his team's chance")}<th class="koe-gap"></th>${sortTh("gift", "GIFT", "Goals in the first 10 minutes / games played")}${sortTh("sog", "SOG", "Shots on goal a game in the first 10 minutes")}${sortTh("toi", "TOI", "Ice time a game in the first 10 minutes")}${dk ? sortTh("fg", "1st Goal", "DraftKings' first goal scorer price") : ""}</tr></thead>
     <tbody>${body}</tbody></table>
     ${more ? `<div class="ice-more">${more}</div>` : ""}`;
 }
@@ -304,6 +345,12 @@ document.addEventListener("click", (e) => {
   const reset = e.target.closest("[data-ice-team]");
   if (reset) {
     iceView.team = null;
+    return renderIce();
+  }
+  const sort = e.target.closest("[data-ice-sort]");
+  if (sort) {
+    const key = sort.dataset.iceSort;
+    Object.assign(iceView, iceView.sort === key ? { dir: -iceView.dir } : { sort: key, dir: ICE_SORT_UP.has(key) ? 1 : -1 });
     return renderIce();
   }
   const all = e.target.closest("[data-ice-all]");

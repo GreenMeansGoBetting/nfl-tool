@@ -494,7 +494,7 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#crease-log-save")) return savePayouts();
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
-  const sort = e.target.closest(".koe-sort");
+  const sort = e.target.closest(".koe-sort:not([data-ice-sort])"); // Icebreaker sorts its own (icebreaker.js)
   if (sort) {
     const key = sort.dataset.sort;
     Object.assign(creaseView, creaseView.sort === key ? { dir: -creaseView.dir } : { sort: key, dir: key === "name" ? 1 : -1 });

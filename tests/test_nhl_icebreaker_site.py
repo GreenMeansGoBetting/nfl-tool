@@ -179,5 +179,48 @@ class Extras(unittest.TestCase):
         self.assertIn("first finished", PAGE.inner_text("#ice-winners-list"))
 
 
+class FirstTenAndSorting(unittest.TestCase):
+    """The First 10 Minutes columns read icebreaker.json `first10`; every Players column
+    sorts on a click (again to flip), a player with nothing there sinks, and Icebreaker's
+    sort never touches King of the Crease's."""
+
+    def setUp(self):
+        open_day()
+        ids = [r["id"] for r in PAGE.evaluate("() => chosenRows()")][:3]
+        self.ids = ids
+        # [games, goals, shots on goal, charted games, seconds]: the 3rd has ice time from no charted game.
+        PAGE.evaluate("(ids) => { ICE.first10 = { [ids[0]]: [10, 1, 5, 8, 1600], [ids[1]]: [9, 3, 4, 7, 1400], [ids[2]]: [8, 0, 9, 0, 0] }; renderIce(); }", ids)
+
+    def tearDown(self):
+        PAGE.evaluate("() => { delete ICE.first10; Object.assign(iceView, { sort: 'chance', dir: -1 }); renderIce(); }")
+
+    def cells(self, i):
+        return PAGE.evaluate("(i) => [...document.querySelectorAll('#ice-players tbody tr')].slice(0, 3).map((tr) => tr.children[i].textContent.trim())", i)
+
+    def test_the_cells_are_his_real_counts(self):
+        self.assertEqual(self.cells(7), ["1/10", "3/9", "0/8"])
+        self.assertEqual(self.cells(8), ["0.5", "0.4", "1.1"])
+        self.assertEqual(self.cells(9), ["3:20", "3:20", "--"])
+
+    def test_every_column_sorts_and_flips(self):
+        crease = PAGE.evaluate("() => JSON.stringify(creaseView)")
+        PAGE.click("[data-ice-sort=gift]")
+        self.assertEqual(self.cells(7), ["3/9", "1/10", "0/8"])
+        PAGE.click("[data-ice-sort=sog]")
+        self.assertEqual(self.cells(8), ["1.1", "0.5", "0.4"])
+        PAGE.click("[data-ice-sort=toi]")
+        self.assertEqual(self.cells(9)[:2], ["3:20", "3:20"])  # the 3rd has no charted game: it sinks
+        self.assertNotIn(self.ids[2], PAGE.evaluate("() => iceSorted(chosenRows()).slice(0, 2).map((r) => r.id)"))
+        PAGE.click("[data-ice-sort=chance]")
+        self.assertEqual(PAGE.evaluate("() => iceView.dir"), -1)  # a new column starts biggest first
+        PAGE.click("[data-ice-sort=chance]")
+        chances = PAGE.evaluate("() => [...document.querySelectorAll('#ice-players .ice-pill')].map((p) => parseFloat(p.textContent))")
+        self.assertEqual(chances, sorted(chances))
+        PAGE.click("[data-ice-sort=name]")
+        names = PAGE.evaluate("() => [...document.querySelectorAll('#ice-players .koe-name')].map((n) => n.textContent)")
+        self.assertEqual(names, PAGE.evaluate("(n) => [...n].sort((a, b) => a.localeCompare(b))", names))
+        self.assertEqual(PAGE.evaluate("() => JSON.stringify(creaseView)"), crease)
+
+
 if __name__ == "__main__":
     unittest.main()

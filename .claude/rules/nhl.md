@@ -664,9 +664,18 @@ a bad opponent) and players only (one player's matchup).
   first 5 minutes, and what tonight's opponent allows there. **Shown, never counted** (the replay);
   colored on the eight colors by place among the picked teams.
 - Layout: Teams table (Chance, the top three as "Best bets", Fast starts) beside the Players table
-  (Line, Chance, "1 in N", Of team, G/GP, xG, Min, **DraftKings' first goal price**), the top 15
+  (Line, Chance, "1 In", Of Team, then **First 10 Minutes · This Season**: GIFT = goals in the first
+  10 minutes / games, SOG a game, TOI a game, then **DraftKings' first goal price**), the top 15
   until "Show all"; clicking a team shows only its players. The Winners list beside them, never in
-  the saved image. Save image like King of the Crease (ESPN logos).
+  the saved image.
+  - The first-10 columns (the owner, 2026-10-22, replacing G/GP, xG and Min) are icebreaker.json
+    `first10` (`first_ten`: `[games, goals, SOG, charted games, seconds]`, from `reduce_game`'s
+    per-skater `g10` / `sog10` / `toi10`, the 1st period before 10:00). TOI averages only games
+    with a shift chart (the league has none for games 6-52). Shown, never in the chances: the replay
+    found early-game numbers predict nothing beyond scoring rate x ice time.
+  - **Every Players column sorts on a click** (again to flip; `ICE_SORT`, `iceView.sort`), the
+    top-15 cut follows the sort, and a player with nothing in that column sinks. Its headers carry
+    `data-ice-sort`, which promo-tools.js's King of the Crease sort skips. Save image like King of the Crease (ESPN logos).
 - **First goal prices: SmartStake** (`smartstake.add_first_goal`): the market's key isn't in their
   docs, so each build reads `/v1/markets?league=nhl` (`fetch_markets`) and takes player markets
   named for the first goal, not a team's, a period's or the last (`first_goal_market_keys`). Yes is

@@ -44,6 +44,24 @@ class Game(unittest.TestCase):
                         and secs(p["timeInPeriod"]) < b.EARLY_SECONDS and team_of.get(p["details"].get("eventOwnerTeamId")) == team)
             self.assertEqual(r["teams"][team].get("sog_early", 0), early)
 
+    def test_each_skaters_first_ten_minutes_come_from_the_play_by_play_and_shift_chart(self):
+        raw = nhl_game()
+        r = b.reduce_game(raw)
+        early = [p for p in raw["pbp"]["plays"] if p["typeDescKey"] in ("goal", "shot-on-goal") and p["periodDescriptor"]["number"] == 1
+                 and secs(p["timeInPeriod"]) < b.FIRST_TEN]
+        self.assertEqual(sum(s["sog10"] for s in r["skaters"].values()), len(early))
+        self.assertEqual(sum(s["g10"] for s in r["skaters"].values()), sum(p["typeDescKey"] == "goal" for p in early))
+        self.assertIsNone(next(iter(r["skaters"].values()))["toi10"])  # no shift chart on this saved game
+        raw["shifts"] = [["1", "AAA", 1, "00:00", "00:45"], ["1", "AAA", 1, "09:30", "11:00"], ["1", "AAA", 2, "00:00", "05:00"]]
+        self.assertEqual(b.first_ten_toi(raw), {"1": 75})  # 45 s, then 30 s up to 10:00; the 2nd period never counts
+
+    def test_first_ten_adds_up_his_games_and_reads_ice_time_only_from_charted_games(self):
+        records = [
+            {"skaters": {"1": {"g10": 1, "sog10": 2, "toi10": 200}, "2": {"g10": 0, "sog10": 1, "toi10": 100}}},
+            {"skaters": {"1": {"g10": 0, "sog10": 1, "toi10": None}}},
+        ]
+        self.assertEqual(b.first_ten(records, {"1"}), {"1": [2, 1, 3, 1, 200]})
+
 
 def record(home, away, first=None, firsts=None, early=(0, 0)):
     return {"home": home, "away": away, "first_goal": first, "first_goals": firsts or {},
