@@ -261,8 +261,10 @@ For people who'd pay but won't join Discord. Password version: no email service,
   sends to `/set-password`), `/auth/email` (email + password; same reply for unknown email or
   wrong password; 5 misses = 15-min lock), `/set-password` (8+ chars; also the "Password" link in
   the account chip), `/account` (Stripe billing portal), `/admin/members` (owner-only: grant
-  access until a date for Zelle/Venmo payers; reset a password -> shows a temporary one to send
-  them). An optional `POST /stripe/webhook` works if `STRIPE_WEBHOOK_SECRET` is ever added.
+  access until a date for Zelle/Venmo payers; the email box takes a pasted list, commas / spaces /
+  one per line, for grant and remove since 2026-10-22, used to give the Stripe members 30 days
+  free while they move to Buildr; reset a password (one email) -> shows a temporary one to send
+  them; test `tests/test_ci_admin_members.py`). An optional `POST /stripe/webhook` works if `STRIPE_WEBHOOK_SECRET` is ever added.
 - Passwords: PBKDF2-SHA256, 100k iterations, random salt. Sessions `kind: "email"`, uid
   `email:<address>`; an email member with no password is redirected to `/set-password`.
 - Turns on when `STRIPE_SECRET_KEY` + DB exist. With an `sk_test_` key only the owner (signed in

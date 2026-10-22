@@ -135,7 +135,7 @@ function page(title, inner, status = 200, headers = {}, wide = false) {
 @media(max-width:720px){.cols{grid-template-columns:1fr}}
 .box{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px 26px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 body,button{text-transform:uppercase;letter-spacing:.02em}
-input,table{text-transform:none;letter-spacing:normal}input::placeholder{text-transform:uppercase;letter-spacing:.02em}
+input,textarea,table{text-transform:none;letter-spacing:normal}input::placeholder,textarea::placeholder{text-transform:uppercase;letter-spacing:.02em}
 .logo{display:block;width:170px;height:auto;margin:0 auto;filter:drop-shadow(0 0 1px rgba(255,255,255,.45)) drop-shadow(0 4px 14px rgba(0,0,0,.5))}
 h1{font-family:"Sofia Sans Condensed",sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:.03em;text-transform:uppercase;margin:12px 0 6px}h1 b{color:var(--accent)}
 .col .sub{color:var(--text);font-weight:600}
@@ -728,7 +728,7 @@ async function readSession(request, env) {
 }
 const isOwnerSession = (s) => !!(s && s.kind !== "email" && OWNER_IDS.includes(s.uid));
 const FORM_CSS = `<style>
-input[type=email],input[type=text],input[type=date]{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px}
+input[type=email],input[type=text],input[type=date],textarea{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font:inherit;font-size:1rem;margin-top:6px}
 button.btn{border:none;cursor:pointer;font:inherit;font-weight:700}
 .plan{background:var(--accent);color:#03140a}.plan:hover{filter:brightness(1.08)}
 .plans{margin-top:14px}.note{color:var(--accent);font-size:.82rem;margin-left:6px}
@@ -975,10 +975,32 @@ async function handleAdminMembers(request, env) {
   let msg = "";
   if (request.method === "POST") {
     const form = await request.formData();
-    const email = cleanEmail(form.get("email"));
+    // One email, or a pasted list (commas, spaces or one per line): grant and
+    // remove apply to every one, a password reset to a single member.
+    const emails = [...new Set(String(form.get("email") || "").split(/[\s,;]+/).map(cleanEmail).filter(Boolean))];
+    const bad = emails.filter((e) => !EMAIL_RE.test(e));
+    const email = emails[0] || "";
     const until = Date.parse(String(form.get("until") || "") + "T23:59:59");
-    if (!EMAIL_RE.test(email)) msg = "Enter a valid email.";
-    else if (form.get("action") === "reset") {
+    if (!emails.length || bad.length) msg = bad.length ? `Not a valid email: ${bad.join(", ")}` : "Enter a valid email.";
+    else if (emails.length > 1 && form.get("action") === "reset") msg = "Reset one password at a time.";
+    else if (emails.length > 1) {
+      if (form.get("action") === "remove") {
+        await env.DB.batch(emails.map((e) => env.DB.prepare("UPDATE members SET manual_until = NULL WHERE email = ?").bind(e)));
+        msg = `Removed manual access for ${emails.length} members.`;
+      } else if (!until) msg = "Pick an end date.";
+      else {
+        const note = String(form.get("note") || "").slice(0, 120);
+        await env.DB.batch(
+          emails.map((e) =>
+            env.DB.prepare(
+              `INSERT INTO members (email, manual_until, note, updated) VALUES (?, ?, ?, ?)
+               ON CONFLICT(email) DO UPDATE SET manual_until = excluded.manual_until, note = excluded.note, updated = excluded.updated`
+            ).bind(e, until, note, Date.now())
+          )
+        );
+        msg = `${emails.length} members have access through ${new Date(until).toLocaleDateString("en-US")}.`;
+      }
+    } else if (form.get("action") === "reset") {
       const temp = b64url(crypto.getRandomValues(new Uint8Array(6)));
       const hit = await getMember(env, email);
       if (!hit) msg = `No member with ${email}.`;
@@ -1007,10 +1029,10 @@ async function handleAdminMembers(request, env) {
     .join("");
   return page(
     "Members -- GMG's NFL Suite",
-    `${FORM_CSS}<p>Give someone access until a date (Zelle / Venmo payers), reset a forgotten password, or see every email member. For a manual-access member: grant access, then reset their password to get a temporary one to send them.</p>
+    `${FORM_CSS}<p>Give someone (or a pasted list of emails) access until a date (Zelle / Venmo payers), reset a forgotten password, or see every email member. For a manual-access member: grant access, then reset their password to get a temporary one to send them.</p>
      ${msg ? `<p class="ok">${esc(msg)}</p>` : ""}
      <form method="post" style="text-align:left">
-       <input type="email" name="email" required placeholder="member@example.com">
+       <textarea name="email" required rows="3" placeholder="member@example.com (or paste several, separated by commas or one per line)"></textarea>
        <input type="date" name="until">
        <input type="text" name="note" placeholder="Note (e.g. Zelle Oct)">
        <button class="btn plan" name="action" value="grant">Grant access until that date</button>
