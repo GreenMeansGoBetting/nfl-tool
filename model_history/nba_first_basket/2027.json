@@ -220,16 +220,16 @@
    "3908809": [
     "Donovan Mitchell",
     0.087,
-    650,
+    700,
     false,
     "fanduel"
    ],
    "3917376": [
     "Jaylen Brown",
     0.102,
-    790,
+    800,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3992": [
     "James Harden",
@@ -248,7 +248,7 @@
    "4431678": [
     "Tyrese Maxey",
     0.125,
-    850,
+    800,
     true,
     "fanduel"
    ],
@@ -264,14 +264,14 @@
     0.087,
     1200,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "5124612": [
     "VJ Edgecombe",
     0.093,
-    1400,
+    1337,
     true,
-    "fanduel"
+    "prophetx"
    ]
   },
   "tip_home": 0.644
@@ -325,7 +325,7 @@
     0.087,
     900,
     false,
-    "hard_rock"
+    "draftkings"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
@@ -339,7 +339,7 @@
     0.093,
     1000,
     false,
-    "thescore"
+    "hard_rock"
    ],
    "4433255": [
     "Chet Holmgren",
@@ -358,9 +358,9 @@
    "4683692": [
     "Cason Wallace",
     0.087,
-    1150,
+    1140,
     false,
-    "novig"
+    "draftkings"
    ]
   },
   "tip_home": 0.547
@@ -386,7 +386,7 @@
     0.088,
     1300,
     true,
-    "hard_rock"
+    "fanduel"
    ],
    "3078576": [
     "Derrick White",
@@ -421,7 +421,7 @@
     0.092,
     800,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4065648": [
     "Jayson Tatum",
