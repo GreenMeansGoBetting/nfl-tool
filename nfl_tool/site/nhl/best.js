@@ -143,7 +143,8 @@ function playsFor(date) {
     const pb = pointsBoard(g);
     if (pb && bestView.markets.pts) {
       pb.players.forEach((r) => {
-        if (r.out || !r.side || !has(r.edge) || !BUCKETS.includes(r.size)) return;
+        // Points files a play or not (the Points bar, 2026-10-22: the 0.5 line, 6+ points, not against the line change).
+        if (r.out || !r.side || !has(r.edge) || r.size !== "play") return;
         const chance = r.side === "over" ? r.chance_over : 1 - r.chance_over;
         const play = { side: r.side, line: r.line, price: r.price, chance, edge: r.edge, fade: !!r.fade };
         const result = has(r.actual) && r.actual !== r.line ? ((r.side === "over") === r.actual > r.line ? "win" : "loss") : null;
@@ -272,6 +273,8 @@ const isCheck = (x) => x.market !== "sog" && x.r.size === "check";
 function ratingCell(x) {
   const tag = x.market === "sog"
     ? ratingTag("play", "Play", `An edge of ${Math.round(shotsBar() * 100)}+ points on a player not moved down a line tonight`)
+    : x.market === "pts"
+    ? ratingTag("play", "Play", `An edge of ${Math.round(((POINTS || {}).bar || 0.06) * 100)}+ points on the 0.5 line, not against tonight's line change`)
     : bucketTag(x.r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") }, x.market === "saves" ? savesGapCheck(x.r, (SAVES || {}).check_saves || 4) : null);
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}</td>`;
 }

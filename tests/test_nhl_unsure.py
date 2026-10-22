@@ -124,18 +124,18 @@ class TheSafetyNet(unittest.TestCase):
     def test_sandersons_plays_are_unsure(self):
         self.assertEqual(build_nhl.UNSURE_EDGE, 0.25)
         # His locked rows: points 0.5 at -103 / -107, the model's over 1%; shots 2.5 at +153 / -165, the over 0%.
-        pts = build_nhl.shots_play(0.01, 0.5, -103, -107, 0.0, "up", build_nhl.POINTS_EDGES)
+        pts = build_nhl.points_play(0.01, 0.5, -103, -107, 0.0, "up")
         self.assertEqual((pts["side"], pts["size"]), ("under", "unsure"))
         self.assertAlmostEqual(pts["edge"], 0.473, places=3)
         sog = build_nhl.shots_play(0.0, 2.5, 153, -165, 0.0, "up")
         self.assertEqual((sog["side"], sog["size"]), ("under", "unsure"))
 
     def test_every_prop_uses_it(self):
-        # Just under the net is still a play (Shots) / a check (Points); from it, unsure.
+        # Just under the net is still a play; from it, unsure.
         self.assertEqual(build_nhl.shots_play(0.27, 1.5, -110, -110)["size"], "play")      # edge 20.6
         self.assertEqual(build_nhl.shots_play(0.22, 1.5, -110, -110)["size"], "unsure")    # edge 25.6
-        self.assertEqual(build_nhl.shots_play(0.22, 0.5, -110, -110, None, None, build_nhl.POINTS_EDGES)["size"], "unsure")
-        self.assertEqual(build_nhl.shots_play(0.22, 0.5, -110, -110, None, "down", build_nhl.POINTS_EDGES)["size"], "unsure")
+        self.assertEqual(build_nhl.points_play(0.22, 0.5, -110, -110)["size"], "unsure")
+        self.assertEqual(build_nhl.points_play(0.22, 1.5, -110, -110, None, "down")["size"], "unsure")
         self.assertEqual(build_nhl.goals_play(0.45, 300)["size"], "check")                  # +300 needs 25%: edge 20
         self.assertEqual(build_nhl.goals_play(0.52, 300)["size"], "unsure")
         self.assertEqual(build_nhl.saves_play(0.2, 26.5, -110, -110, 25, 22.0, 26.5)["size"], "unsure")
@@ -150,7 +150,7 @@ class TheSafetyNet(unittest.TestCase):
             ]}}}), encoding="utf-8")
             summary = build_nhl.points_record_summary(Path(tmp))
         self.assertEqual(summary["unsure"], {"wins": 0, "losses": 1, "units": -1.0})
-        self.assertEqual((summary["strong"]["wins"], summary["strong"]["losses"]), (1, 0))
+        self.assertEqual((summary["play"]["wins"], summary["play"]["losses"]), (1, 0))
         self.assertEqual(summary["under"]["losses"], 0)
         self.assertEqual([p["name"] for p in summary["plays"]], ["strong"])
         self.assertEqual(len(summary["ledger"]), 1)

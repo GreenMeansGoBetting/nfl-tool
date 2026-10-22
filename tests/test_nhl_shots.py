@@ -453,9 +453,7 @@ class Record(unittest.TestCase):
         self.assertEqual(size(0.62, -110, -110, "up"), "play")
         self.assertEqual(size(0.56, -110, -110, None), "none")     # edge 3.6: under the bar (no more "lean")
         self.assertEqual(size(0.25, -110, -110, None), "play")     # a gap of 22 points is no longer set apart
-        # The Points page keeps its buckets (shots_play with POINTS_EDGES) until it has more games graded.
-        points = lambda chance, move: build_nhl.shots_play(chance, 0.5, -110, -110, None, move, build_nhl.POINTS_EDGES)["size"]
-        self.assertEqual((points(0.40, None), points(0.40, "up"), points(0.56, None), points(0.25, None)), ("strong", "check", "lean", "check"))
+        # (Points has its own bar since 2026-10-22: points_play, test_nhl_points.py.)
         self.assertEqual((build_nhl.line_move("F1", "F4"), build_nhl.line_move("D3", "D1"), build_nhl.line_move("F2", "F2")), ("up", "down", None))
         self.assertEqual((build_nhl.line_move(None, "F2"), build_nhl.line_move("F1", None), build_nhl.line_move("F1", "D1")), (None, None, None))
         self.assertEqual((build_nhl.break_even(-150), build_nhl.break_even(150), build_nhl.break_even(100)), (0.6, 0.4, 0.5))

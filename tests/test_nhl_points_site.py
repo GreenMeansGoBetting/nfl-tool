@@ -4,9 +4,10 @@ same games and prices: tools/make_nhl_points_sample.py).
 
 What is pinned: the page shows what the build sent (the play's side, line and
 price, the fair price of that side, the edge and its bucket: it does no
-points math, so the record and the page can't disagree); the ranking (check
-first, then the priced plays by edge, then players with no odds by their
-chance); players who are out are left off; the columns and filters; the
+points math, so the record and the page can't disagree); the ranking (the
+plays by edge, then every other priced line, then Model Unsure, then players
+with no odds by their chance); a row over the Points bar but left out says
+why; players who are out are left off; the columns and filters; the
 breakdown (expected goals + expected assists, the price table with the first
 price seen, the linemates box); a finished game shows real points and a win
 or loss only for a player with a play; the record popup; the Points link in
@@ -54,7 +55,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(pointsView, { pos: 'all', lineup: 'all', minEdge: 'all', odds: 'all', sort: 'edge', dir: -1, open: null, when: 'all', checks: true, adv: false }, view);
+            Object.assign(pointsView, { pos: 'all', lineup: 'all', minEdge: 'all', odds: 'all', sort: 'edge', dir: -1, open: null, when: 'all', adv: false }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -69,6 +70,20 @@ def built(day=TONIGHT):
     data = nhl_points()
     games = PAGE.evaluate("(day) => gamesOn(day).map((g) => g.game_id)", day)
     return {f"{gid}:{r['id']}": r for gid in games if gid in data["games"] for r in data["games"][gid]["players"]}
+
+
+def rating_for(r):
+    """The Rating the page should show: Play, Model Unsure, or why a row over the Points bar is left out."""
+    if r["size"] == "play":
+        return "Play"
+    if r["size"] == "unsure":
+        return "Model Unsure"
+    if r["edge"] is not None and r["edge"] >= nhl_points()["bar"]:
+        if r["line"] != 0.5:
+            return "1.5 Line"
+        if r["move"] == ("up" if r["side"] == "under" else "down"):
+            return "New Line"
+    return "--"
 
 
 def price(n):
@@ -99,10 +114,9 @@ class Rows(unittest.TestCase):
             self.assertEqual(row["play"], f"{r['side'][0]}{r['line']:.1f}{price(r['price'])}")
             self.assertEqual(row["fair"], price(fair(chance)))
             self.assertTrue(row["edge"].startswith(f"{r['edge'] * 100:+.1f}".replace("+0.0", "0.0").replace("-0.0", "0.0")), (row, r["edge"]))
-            self.assertEqual(row["amber"], r["size"] == "check")
-            self.assertEqual(row["green"], r["size"] in ("lean", "strong"))
-            rating = {"strong": "Strong", "lean": "Lean", "none": "--", "check": "Check" if r["edge"] >= nhl_points()["edges"]["check"] else "New line"}[r["size"]]
-            self.assertTrue(row["rating"].startswith(rating), (r["name"], r["size"], row["rating"]))
+            self.assertFalse(row["amber"])
+            self.assertEqual(row["green"], r["size"] == "play")
+            self.assertEqual(rating_for(r), row["rating"].replace("vs his avg", ""), r["name"])
         self.assertEqual(SITE.errors, [])
 
     def test_the_columns(self):
@@ -113,21 +127,37 @@ class Rows(unittest.TestCase):
         PAGE.click("#shots-adv-toggle")
         self.assertEqual(len(PAGE.evaluate(HEADERS)), 9)
 
-    def test_check_first_then_plays_by_edge_then_no_odds_by_chance(self):
+    def test_plays_first_then_every_other_line_then_no_odds_by_chance(self):
         rows = reset()
         sent = built()
-        group = lambda r: 0 if r["size"] == "check" else 1 if r["edge"] is not None else 2
+        group = lambda r: 0 if r["size"] == "play" else 2 if r["size"] == "unsure" else 1 if r["edge"] is not None else 3
         groups = [group(sent[row["key"]]) for row in rows]
         self.assertEqual(groups, sorted(groups))
-        self.assertIn(1, groups)
-        for g, key in ((0, "edge"), (1, "edge"), (2, "chance")):
+        self.assertTrue({0, 1, 3} <= set(groups))
+        for g, key in ((0, "edge"), (1, "edge"), (3, "chance")):
             values = [sent[row["key"]][key] for row in rows if group(sent[row["key"]]) == g]
             self.assertEqual(values, sorted(values, reverse=True))
+
+    def test_a_play_against_tonights_line_change_is_left_out(self):
+        """The Points bar (2026-10-22): over the bar on the 0.5 line but against tonight's line change
+        (those went 42-57) is no play; the Rating says "New Line", never green."""
+        key = next(row["key"] for row in reset() if built()[row["key"]]["size"] == "play")
+        gid, pid = key.split(":")
+        r = built()[key]
+        against = "up" if r["side"] == "under" else "down"
+        change = "([gid, pid, size, move]) => { Object.assign(POINTS.games[gid].players.find((r) => r.id === pid), { size, move }); }"
+        PAGE.evaluate(change, [gid, pid, "none", against])
+        try:
+            row = next(x for x in reset() if x["key"] == key)
+            self.assertEqual((row["rating"], row["green"]), ("New Line", False))
+        finally:
+            PAGE.evaluate(change, [gid, pid, r["size"], r["move"]])
+            reset()
 
     def test_past_the_safety_net_is_listed_but_never_a_play(self):
         """Jake Sanderson, 2026-10-21: the build files an edge of 25+ points "unsure". The page
         tags it Model Unsure, never green or amber, under its own heading after the plays."""
-        key = next(row["key"] for row in reset() if built()[row["key"]]["size"] in ("strong", "lean"))
+        key = next(row["key"] for row in reset() if built()[row["key"]]["size"] == "play")
         gid, pid = key.split(":")
         set_size = "([gid, pid, size]) => { POINTS.games[gid].players.find((r) => r.id === pid).size = size; }"
         PAGE.evaluate(set_size, [gid, pid, "unsure"])
@@ -137,7 +167,7 @@ class Rows(unittest.TestCase):
             self.assertEqual((row["rating"], row["green"], row["amber"]), ("Model Unsure", False, False))
             order = [built()[r["key"]] for r in rows]
             order[[r["key"] for r in rows].index(key)] = {**order[0], "size": "unsure", "edge": 1}
-            group = lambda r: 0 if r["size"] == "check" else 2 if r["size"] == "unsure" else 1 if r["edge"] is not None else 3
+            group = lambda r: 0 if r["size"] == "play" else 2 if r["size"] == "unsure" else 1 if r["edge"] is not None else 3
             self.assertEqual([group(r) for r in order], sorted(group(r) for r in order))
             self.assertIn("Model Unsure", PAGE.evaluate("() => document.querySelector('.shots-table tbody').textContent"))
         finally:
@@ -221,6 +251,9 @@ class Record(unittest.TestCase):
         self.assertIn(f"{record['games']} games, {record['players']} players graded", text)
         self.assertIn("closing line value", text.lower())
         self.assertIn("said vs got", text.lower())
+        # The Points bar: Plays and Not Plays, no Strong / Lean / Check.
+        self.assertIn(f"{record['play']['wins']}-{record['play']['losses']}", text)
+        self.assertNotIn("check first", text.lower())
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.locator("#shots-record-modal").is_hidden())
 

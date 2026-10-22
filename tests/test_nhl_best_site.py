@@ -79,9 +79,9 @@ def expected(day=TONIGHT):
         for row in (goals["games"].get(gid) or {}).get("players", []):
             if not row["out"] and row["odds"] is not None and row["edge"] is not None and row["size"] in BUCKETS:
                 out[f"goal:{gid}:{row['id']}"] = {"price": row["odds"], "edge": row["edge"], "size": row["size"], "fair": row["fair"], "row": row}
-        # Points: the build's play as points.json files it.
+        # Points: the build's play as points.json files it (the Points bar: "play" or not).
         for row in (pts["games"].get(gid) or {}).get("players", []):
-            if not row["out"] and row["side"] and row["edge"] is not None and row["size"] in BUCKETS:
+            if not row["out"] and row["side"] and row["edge"] is not None and row["size"] == "play":
                 chance = row["chance_over"] if row["side"] == "over" else 1 - row["chance_over"]
                 out[f"pts:{gid}:{row['id']}"] = {"side": row["side"], "line": row["line"], "price": row["price"], "edge": row["edge"], "size": row["size"], "chance": chance, "row": row}
         # Saves: saves.json's play (a goalie the site knows, with a price).
@@ -135,8 +135,8 @@ class Listing(unittest.TestCase):
 
     def test_every_row_says_its_pages_bucket(self):
         """A member, 2026-10-20: a player in Check first on the Goals page showed here as a plain
-        play. Each row's Rating is the build's bucket, the tag its own page shows: Shots "Play",
-        Goals / Points Strong / Lean / Check (or New line), the edge amber only for a check."""
+        play. Each row's Rating is the build's bucket, the tag its own page shows: Shots and Points
+        "Play", Goals / Saves Strong / Lean / Check (or New line), the edge amber only for a check."""
         plays = expected()
         words = {"strong": {"Strong"}, "lean": {"Lean"}, "check": {"Check", "New line"}}
         seen = set()

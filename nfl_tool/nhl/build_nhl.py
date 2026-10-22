@@ -137,6 +137,18 @@ GOALS_HONEST = (0.0, 0.08, 0.12, 0.16, 0.2, 0.25, 0.3, 0.35, 1.01)  # the record
 # buckets and best side. Points prices sit near even money (a 0.5 line), so
 # a 3-point edge is about a 6% return.
 POINTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
+# The Points bar (the owner, 2026-10-22, after an audit of the first six nights'
+# 370 graded plays): a play is shown or left out, like Shots. A play = the 0.5
+# line, an edge of POINTS_BAR or more, never against tonight's line change (an
+# over on a player moved down, an under on one moved up). What it replaced:
+# Strong + Lean went 131-119 (+2.6u), but Check went 49-71 (-34.9u; 42-57 of it
+# plays against the line change), the 1.5 lines 8-20 (-17.5u; "2+ points" was
+# never calibrated) and edges of 3-6 92-102 (-23.5u). This rule would have gone
+# 61-50 (+10.7u), positive in both halves, but in sample: expect less. On the
+# priced 0.5 lines the market's own price predicted a point better than the
+# model on every one of the six nights: Points is a talking point until the
+# record says otherwise. POINTS_EDGES still sizes the every-book price tags.
+POINTS_BAR = 0.06
 POINTS_RECORD_DAYS = 14
 POINTS_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_points"
 POINTS_HONEST = (0.0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 1.01)  # the record's "said vs got" buckets
@@ -2321,9 +2333,19 @@ def points_model_for(records: list, goals: "goals_model.GoalsModel") -> "points_
     return model
 
 
+def points_play(chance_over: float, line: float, over, under, avg=None, move=None) -> dict | None:
+    """The better side of a points line (shots_play) filed by the Points bar:
+    "play" on the 0.5 line at an edge of POINTS_BAR or more, not against
+    tonight's line change; "unsure" past the safety net; else "none"."""
+    play = shots_play(chance_over, line, over, under, avg, move, POINTS_EDGES)
+    if play and play["size"] != "unsure":
+        play["size"] = "play" if line == 0.5 and play["edge"] >= POINTS_BAR and not play["against_move"] else "none"
+    return play
+
+
 def point_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bool, slot, goalie, market: dict | None, first, mates: list) -> dict | None:
     """One skater's points projection for one game, what it is made of, the
-    better side of Novig's points line (the Shots page's rule, POINTS_EDGES)
+    better side of Novig's points line (points_play: the Points bar)
     and the first line and prices the site saw (for closing line value).
     `mates` = tonight's projected linemates [(id, position)]: a TRACKED
     factor, never in the number."""
@@ -2340,7 +2362,7 @@ def point_row(model, player: dict, opp: str, home: bool, rest, opp_rest, out: bo
     line = market.get("line")
     # Rounded first, so the page, the record and this row grade the same number.
     chance_over = round(points_model.chance_over(proj["mean"], line, model.calibration), 3) if line is not None else None
-    play = shots_play(chance_over, line, market.get("over"), market.get("under"), avg, move, POINTS_EDGES) if chance_over is not None else None
+    play = points_play(chance_over, line, market.get("over"), market.get("under"), avg, move) if chance_over is not None else None
     ratio = model.mates(player["id"], mates)
     return {
         "id": player["id"], "name": player["name"], "team": player["team"], "opp": opp, "home": home, "pos": player["pos"], "out": out,
@@ -2469,14 +2491,14 @@ def record_point_games(folder: Path, board: dict, games: list) -> int:
 
 def points_record_summary(folder: Path) -> dict:
     """The Points record so far, the Shots record's way: the better side of
-    each priced line by bucket (strong / lean / none / check), overs and
+    each priced line by bucket (play / none / unsure: points_play), overs and
     unders, `fade` / `with` (against or with his season points a game),
     closing line value, `days`, `plays` (latest POINTS_RECORD_DAYS days) and
     `ledger`; plus `honest`: every graded player, priced or not, by the
     chance of 1+ point the model gave against how often he got one."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "players": 0,
-           **{k: tally() for k in ("check", "strong", "lean", "none", "unsure", "over", "under", "fade", "with")},
+           **{k: tally() for k in ("play", "none", "unsure", "over", "under", "fade", "with")},
            "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0},
            "honest": [{"lo": lo, "hi": hi, "players": 0, "said": 0.0, "got": 0} for lo, hi in zip(POINTS_HONEST, POINTS_HONEST[1:])]}
     days, plays = {}, []
@@ -2494,13 +2516,13 @@ def points_record_summary(folder: Path) -> dict:
                         bucket["got"] += actual > 0
                 if line is None or chance_over is None:
                     continue
-                play = shots_play(chance_over, line, over, under, avg, move, POINTS_EDGES)
+                play = points_play(chance_over, line, over, under, avg, move)
                 if play is None or actual == line:
                     continue
                 won = (actual > line) == (play["side"] == "over")
                 units = (100 / -play["price"] if play["price"] < 0 else play["price"] / 100) if won else -1.0
                 size = play["size"]
-                called = [play["side"], "fade" if play["fade"] else "with"] if size in ("strong", "lean") else []
+                called = [play["side"], "fade" if play["fade"] else "with"] if size == "play" else []
                 for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
@@ -2551,7 +2573,7 @@ def points_file(season: int, generated_at: str, records: list, goals, games: lis
     except Exception as e:  # a damaged record file must never cost the page its board
         print(f"WARNING: the Points record couldn't be updated ({e}).", file=sys.stderr)
         record = None
-    return {"season": season, "generated_at": generated_at, "weights": model.w, "calibration": list(model.calibration), "edges": POINTS_EDGES, "unsure": UNSURE_EDGE,
+    return {"season": season, "generated_at": generated_at, "weights": model.w, "calibration": list(model.calibration), "edges": POINTS_EDGES, "bar": POINTS_BAR, "unsure": UNSURE_EDGE,
             "factors": POINTS_FACTORS, "games": board, "record": record}
 
 

@@ -254,9 +254,9 @@ on a replay, and the page keeps a record against the real prices.
   set-apart was dropped. The bar's plays went 154-117, +17.5u (+6.5%; 58.5% then 54.0% by half),
   in sample, so expect less. **Not used, on purpose:** a cut on tonight's number against his
   season average (it scored better, but the owner: fill-ins for injuries move a player's role,
-  "grading vs their own season average ... muddy waters"). **Points and Goals keep their
-  Lean / Strong / Check buckets** until they have more games graded (3 and 5 nights then; the
-  same two rules didn't help either). Re-run `tools/nhl_factor_report.py` before changing the bar.
+  "grading vs their own season average ... muddy waters"). **Goals keeps its Lean / Strong /
+  Check buckets** until it has more games graded; Points got its own bar 2026-10-22 (see "The
+  Points bar"). Re-run `tools/nhl_factor_report.py` before changing the bar.
 - **Power-play units: tested, not added** (`tools/backtest/nhl_pp_units.py`, 2026-10-14, the
   owner: "look into adding power play units into the model ... at least rotowire has them").
   The NHL's own shift charts (`api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId=...`,
@@ -946,8 +946,8 @@ be re-tuned from the record (Points from day one; Shots and Goals later).
   `lift` (the assists pieces) and `g_lift` (the goals pieces), `mates`; Novig's points `line` /
   `over` / `under` / `thin`, `first` (the first line and prices the site saw, carried from the live
   points.json), `chance_over` (rounded, what everything grades), and the Shots page's better side
-  (`shots_play` with `POINTS_EDGES` 3 / 6 / 12): `side`, `price`, `edge`, `size`, `fade`. A
-  finished game's rows get `actual` (goals + assists). Also `weights`, `calibration`, `edges`,
+  (`points_play`: "play" / "none" / "unsure", see "The Points bar"): `side`, `price`, `edge`, `size`, `fade`. A
+  finished game's rows get `actual` (goals + assists). Also `weights`, `calibration`, `edges`, `bar`,
   `factors`, `record`. Main builds the Goals model once and hands it to both pages (`goals_file`'s
   `model`); a failed Points step writes a points.json with `error`.
 - **The record** (`model_history/nhl_points/<month>.json`): each finished game once, every
@@ -960,6 +960,26 @@ be re-tuned from the record (Points from day one; Shots and Goals later).
 - Tests: `tests/test_nhl_points.py` (the saved game with its shift chart,
   `tests/fixtures/nhl_game_shifts.json.gz`).
 
+### The Points bar (2026-10-22)
+
+The owner asked why Points was down (-32u on the first six nights' 370 graded plays). Strong +
+Lean were +2.6u; the losses were **Check** (49-71, -34.9u; 42-57 of it plays against tonight's line
+change), **the 1.5 lines** (8-20, -17.5u: `chance_at_least` for 2+ is a plain count, never tuned
+on results) and **edges of 3-6** (92-102, -23.5u). On the priced 0.5 lines the market's own no-vig
+price predicted a point better than the model (log loss 0.6348 vs 0.6446) on every one of the six
+nights; z 1.3, so not proven, but one direction. The owner: "make a Points play 0.5 line only, edge
+6+, never against tonight's line change."
+- `points_play` (build_nhl.py): `shots_play` at `POINTS_EDGES`, then "play" only on the 0.5 line at
+  `POINTS_BAR` (6 points) or more and not `against_move`; "unsure" from `UNSURE_EDGE`; else "none".
+  No lean, no check. The board, the record (`play` / `none` / `unsure` + over / under / fade /
+  with; `plays` and `ledger` hold only plays), Best Plays and the factor report all use it.
+  Re-graded the same way, the season so far is 56-49, +6.6u (in sample: expect less).
+- `POINTS_EDGES` still sizes the every-book price tags and the price table's green.
+- Closing line value read about -2.4 points on all three records (Goals 145 drifted, 6
+  shortened): the first price is the best price at first look and the lock is the best across
+  more books near puck drop, so it leans toward "drifted" by construction. Not fixed yet; don't
+  read it as the market moving away until the same book is compared at both times.
+
 ### Step 3: the Points page (`site/nhl/points.html` + `points.js`, built 2026-10-16)
 
 The owner approved a mockup of the table and one opened row on the day's real numbers ("Looks
@@ -970,19 +990,20 @@ good. Finish the Points page"). It REUSES the Goals page's layout, ids and class
   disagree. It also loads goals.json (the defense's expected goals allowed) and shots.json
   (tonight's lines, injured, scratched).
 - Columns: #, Player, Line, **Play** (the Shots page's chip: "o0.5 +127" green / "u0.5 -150" red;
-  "No odds" when Novig has no points line), Rating (Strong / Lean / Check / New line, plus "vs his
-  avg"), **P** (points /gp, goals and assists in the hover), **Fair** (the fair price of the play's
+  "No odds" when Novig has no points line), Rating (Play, plus "vs his avg"; over the bar but left
+  out: "1.5 Line" / "New Line"; Model Unsure), **P** (points /gp, goals and assists in the hover), **Fair** (the fair price of the play's
   side; 1+ point when unpriced), Edge; advanced: Min, xG, xA, Opp, Goalie, **Linemates** (the
   tracked `mates`, a blue chip like Zone Match), Home/rest. Ranking, filters (Skaters, Lineups,
-  Odds, Check plays, live / final) and the Result column as on Goals.
+  Odds, live / final; no Check switch) and the Result column as on Goals. Ranked: Plays, Not Plays
+  (every other priced line), Model Unsure, No odds.
 - Breakdown: season G / A / P -> goals tonight (the Goals page's number) -> his usual assists ->
   line, defense, goalie, Scale (`spread`), home / rest -> tonight "G + A, chance"; the defense
   tiles; a price table for o0.5 / u0.5 / o1.5 / u1.5 (model, fair, Novig, first seen, edge); and
   **his line tonight** on the right: each linemate's points and chance tonight with his own play
   chip (a first look at stacks), with the Linemates chip. Before the lineup is posted it says
   when it fills in.
-- YTD Model Performance: tiles by bucket, overs, unders, against his avg, closing line value;
-  "Said vs got" (1+ point, everyone); graded plays with bucket buttons.
+- YTD Model Performance: tiles Plays, Not Plays, Overs, Unders, Against his avg, closing line value;
+  "Said vs got" (1+ point, everyone); graded plays with buttons Every Play / Overs / Unders.
 - Tests: `tests/test_nhl_points_site.py` on `tests/fixtures/nhl_points.json.gz`, built by
   `tools/make_nhl_points_sample.py` from the same games and prices as the data sample (as of 10/12
   14:00 UTC, then 10/13 14:12 with that file as the live one, like the Goals sample). Rebuild it
@@ -1127,7 +1148,7 @@ The owner: "I don't care about the noise, I am in a rush: what are my best overa
 tonight." First under Player Props. A short list that sends people to the Shots and Goals
 pages for the detail, not a copy of them.
 - **Every play the Shots, Goals and Points pages call a play** (Shots: its bar, `shots.json` `bar`
-  and not moved down a line; Goals and Points: the build's `size` strong / lean / check), all
+  and not moved down a line; Points: the build's `size` "play"; Goals and Saves: `size` strong / lean / check), all
   three markets in one table, biggest edge first. The Shots play is the Shots page's best side
   (the build's `shots_play`, so the record grades the same play); the Goals play is goals.json's
   `edge`; the Points play is points.json's `side` / `price` / `edge` ("o0.5 points", "Points ›").
@@ -1139,7 +1160,7 @@ pages for the detail, not a copy of them.
   the record will say whether that holds.
 - **Every row says its own page's bucket** (a member, 2026-10-20: a player in Check first on the
   Goals page showed here as a plain play; the owner: "this can't happen"). A **Rating** column after
-  Play: Shots "Play", Goals / Points Strong / Lean / Check / New line from the build's `size`
+  Play: Shots and Points "Play", Goals / Saves Strong / Lean / Check / New line from the build's `size`
   (`bucketTag` in nhl-common.js, the ONE function the Goals and Points pages use too); a Check's
   edge is amber, as on its page. Goals and Points plays are picked by `size` (strong / lean / check),
   never by the saved edge: edges are saved rounded, so a 2.98 is "3.0" but "none" to the build.

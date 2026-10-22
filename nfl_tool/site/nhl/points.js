@@ -15,12 +15,22 @@ let SHOTS = null; // shots.json: tonight's posted lineups
 let dayIndex = 0;
 let gameId = null;
 // adv: the "advanced stats" columns shown or folded away (shared with the Shots and Goals pages, per device).
-const pointsView = { pos: "all", lineup: "all", minEdge: "all", odds: "all", sort: "edge", dir: -1, open: null, record: "edge", when: "all", checks: true, adv: nhlAdvancedStats() };
+const pointsView = { pos: "all", lineup: "all", minEdge: "all", odds: "all", sort: "edge", dir: -1, open: null, record: "play", when: "all", adv: nhlAdvancedStats() };
 
 const edgeAt = (size) => ((POINTS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
-// Set apart, the Shots page's way: a gap of 12+ points, or a play against tonight's line change
-// (the build's shots_play files both as "check").
-const needsCheck = (x) => x.r.size === "check";
+// The Points bar (POINTS_BAR in build_nhl.py, the owner 2026-10-22): a play is shown or left out,
+// like Shots. A play = the 0.5 line, an edge of the bar (6 points) or more, never against tonight's
+// line change. The build files it (points_play, `size` "play"), and the record grades the same.
+const bar = () => (POINTS && has(POINTS.bar) ? POINTS.bar : 0.06);
+const isPlay = (x) => x.r.size === "play";
+// Over the bar but left out, and why: the 1.5 line, or against tonight's line change.
+const againstMove = (r) => r.move === (r.side === "under" ? "up" : "down");
+function leftOut(r) {
+  if (r.size !== "none" || !has(r.edge) || r.edge < bar()) return null;
+  if (r.line !== 0.5) return ["1.5 Line", "Left out: only the 0.5 line is a play. On the first six nights the model's 1.5 lines went 8-20; its chance of 2+ points has not been tuned on results."];
+  if (againstMove(r)) return ["New Line", `Left out: ${r.name} is on a ${r.move === "up" ? "higher" : "lower"} line tonight than his minutes this season say he has been on, and this play goes the other way. Those went 42-57 on the first six nights.`];
+  return null;
+}
 const LIFT_CALL = 0.025;
 const MINUTES_TREND = 1.0;
 const breakEven = (price) => (has(price) ? (price < 0 ? -price / (100 - price) : 100 / (price + 100)) : null);
@@ -92,10 +102,10 @@ const SORTS = {
   line: (x) => (x.r.slot ? x.r.lift.line : null),
 };
 const rankedByEdge = () => pointsView.sort === "edge" && pointsView.dir < 0;
-// Ranked by edge: "check first" on top (as on the Shots page), then the plays, then Model Unsure, then
-// everyone with no odds by his chance of a point.
-const rankGroup = (x) => (needsCheck(x) ? 0 : x.r.size === "unsure" ? 2 : has(x.r.edge) ? 1 : 3);
-function sortedRows(date, lineup = pointsView.lineup, checks = pointsView.checks) {
+// Ranked by edge: the plays, then every other priced line, then Model Unsure, then everyone with
+// no odds by his chance of a point.
+const rankGroup = (x) => (isPlay(x) ? 0 : x.r.size === "unsure" ? 2 : has(x.r.edge) ? 1 : 3);
+function sortedRows(date, lineup = pointsView.lineup) {
   const get = SORTS[pointsView.sort] || SORTS.edge;
   return rowsFor(date)
     .filter((x) => !x.r.out)
@@ -104,7 +114,6 @@ function sortedRows(date, lineup = pointsView.lineup, checks = pointsView.checks
     .filter((x) => lineup === "all" || x.r.slot)
     .filter((x) => edgeAtLeast(x.r.edge, pointsView.minEdge))
     .filter((x) => pointsView.odds === "all" || has(x.r.line))
-    .filter((x) => checks || !needsCheck(x))
     .filter((x) => !dayIsMixed(date) || pointsView.when === "all" || (pointsView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
       if (a.state !== b.state) return STATE_ORDER[a.state] - STATE_ORDER[b.state];
@@ -145,13 +154,11 @@ function renderToolbar() {
     `<span class="shots-filter">${options.map(([value, label, tip]) => `<button type="button" class="view-toggle-btn shots-filter-btn${String(pointsView[key]) === String(value) ? " active" : ""}" data-filter="${key}" data-value="${value}"${tip ? ` title="${tip}"` : ""}>${label}</button>`).join("")}</span>`;
   const menu = (key, label, options, tip) =>
     `<label class="shots-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select class="shots-filter-select" data-filter="${key}">${options.map(([value, text]) => `<option value="${value}"${String(pointsView[key]) === String(value) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
-  const checks = sortedRows(days()[dayIndex], pointsView.lineup, true).filter(needsCheck).length;
   el("shots-toolbar").innerHTML =
     menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
     menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup. Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
     menu("minEdge", "Edge", edgeOptions(), "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
     menu("odds", "Odds", [["all", "Priced or not"], ["priced", "Priced only"]], "Priced or not: every player, the ones Novig hasn't priced with the model's fair price only") +
-    `<span class="shots-filter"><button type="button" class="view-toggle-btn shots-filter-btn shots-check-toggle${pointsView.checks ? " active" : ""}" data-filter="checks" data-value="${!pointsView.checks}" title="Check plays: a gap to the market of ${Math.round(edgeAt("check") * 100)}+ points, or a play against tonight's line change. They lead the ranking; click to ${pointsView.checks ? "hide" : "show"} them.">Check plays: ${pointsView.checks ? "Shown" : `Hidden${checks ? ` (${checks})` : ""}`}</button></span>` +
     advancedToggle(pointsView.adv) +
     (dayIsMixed(days()[dayIndex])
       ? group("when", [
@@ -170,20 +177,24 @@ function playChip(r) {
   }
   return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} points at the best price across books's price"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
 }
-// The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
+// The build's bucket (the one the record grades), said on the row: Play, or why a row over the bar is left out.
 function ratingCell(x) {
   const r = x.r;
-  const fade = r.fade && r.edge >= edgeAt("lean") && r.size !== "unsure" ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} points a game in ${r.games} games): the model thinks a small sample has run ${r.side === "under" ? "hot" : "cold"}.">vs his avg</span>` : "";
-  const tag = bucketTag(r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") });
+  const out = leftOut(r);
+  const fade = r.fade && isPlay(x) ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} points a game in ${r.games} games): the model thinks a small sample has run ${r.side === "under" ? "hot" : "cold"}.">vs his avg</span>` : "";
+  const tag = isPlay(x)
+    ? ratingTag("play", "Play", `An edge of ${Math.round(bar() * 100)}+ points on the 0.5 line, not against tonight's line change`)
+    : r.size === "unsure" ? unsureTag(POINTS)
+    : out ? ratingTag("out", out[0], out[1])
+    : "";
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}${fade}</td>`;
 }
 function edgeCell(x) {
   const r = x.r;
   if (!has(r.edge)) return `<td class="num muted-label shots-edge" title="No price to compare with">--</td>`;
-  const lean = edgeAt("lean");
-  // Colored by the build's bucket (the one the record grades), never by the rounded edge.
-  const cls = needsCheck(x) ? "tier-mid" : r.size === "lean" || r.size === "strong" ? "tier-good" : "";
-  const alpha = cls === "tier-good" ? ` style="--tier-a:${Math.min(0.34, 0.08 + (r.edge - lean) * 3).toFixed(2)}"` : "";
+  // A play is green (the build's bucket, never the rounded edge); nothing else is colored.
+  const cls = isPlay(x) ? "tier-good" : "";
+  const alpha = cls ? ` style="--tier-a:${Math.min(0.34, 0.14 + (r.edge - bar()) * 3).toFixed(2)}"` : "";
   const flag = r.thin ? `<span class="shots-flag" title="Barely traded on Novig: treat the price with care">thin</span>` : "";
   return `<td class="num shots-edge ${cls}"${alpha} title="The model's ${Math.round(playChance(r) * 100)}% minus the ${Math.round(breakEven(r.price) * 100)}% this price needs to break even">${points(r.edge)}${flag}</td>`;
 }
@@ -318,10 +329,10 @@ const COLUMNS = [
   { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow = above or below the line his minutes say he has been on. -- = not posted yet.", cell: (x) => lineCell(x.r) },
   { key: null, label: "Play", title: "The better side of Novig's points line for him at its price (o0.5 = 1 or more points, u0.5 = none). No odds = not priced yet", cell: (x) => `<td class="shots-play-cell">${playChip(x.r)}${x.r.side && has(x.r.price) ? nhlPlayBox(nhlPlayEntry({ market: "pts", g: x.game, r: x.r, side: x.r.side, line: x.r.line, price: x.r.price })) : ""}</td>` },
-  { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or against tonight's line change: look for news first)", cell: ratingCell },
+  { key: null, label: "Rating", title: "Play: an edge of 6+ points on the 0.5 line, not against tonight's line change. A row over the bar but left out says why (1.5 Line, New Line)", cell: ratingCell },
   { key: "points", label: "P", title: "His points this season", cell: (x) => `<td class="num" title="${x.r.goals} goals, ${x.r.assists} assists in ${x.r.games} games: ${fmt(x.r.avg, 2)} points a game">${x.r.points}<small class="muted-label"> /${x.r.games}gp</small></td>` },
   { key: "chance", label: "Fair", title: "The price with no cut at which the model's chance of the play breaks even (1 or more points when he has no price)", cell: fairCell },
-  { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points. Green from 3; from 12 it is set apart to be checked.", cell: edgeCell },
+  { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points. Green on a play", cell: edgeCell },
   { key: "minutes", label: "Min", adv: true, title: "Ice time the model expects tonight (even strength + power play)", cell: minutesCell },
   { key: "gmean", label: "xG", adv: true, title: "His expected goals tonight (the Goals page's number)", cell: (x) => `<td class="num">${fmt(x.r.g_mean, 2)}</td>` },
   { key: "amean", label: "xA", adv: true, title: "His expected assists tonight", cell: (x) => `<td class="num">${fmt(x.r.a_mean, 2)}</td>` },
@@ -361,14 +372,13 @@ function renderTable() {
       if (x.state !== "open" && i > 0 && prev.state !== x.state && rows[0].state !== x.state) {
         divider = heading(x.state === "live" ? "Live now: these games have started. The price and chance are the last ones from before puck drop." : "Final: locked before puck drop and graded.", "shots-state-head", i);
       } else if (rankedByEdge() && (!prev || prev.state !== x.state || rankGroup(prev) !== rankGroup(x))) {
-        const n = (size) => Math.round(edgeAt(size) * 100);
         const text = [
-          `Check first. The biggest gaps to the market (${n("check")}+ points: a handful of games against everything the book knows), or a play against tonight's line change. Look for news before you bet.`,
-          `Plays: Novig prices them; best edge first.`,
+          `Plays: an edge of ${Math.round(bar() * 100)}+ points on the 0.5 line; best edge first.`,
+          `Not Plays: every other priced line, best edge first.`,
           unsureHead(POINTS),
           `No odds yet: the model's fair price only, best chance first. Shop it elsewhere, or wait for Novig to post.`,
         ][rankGroup(x)];
-        if (i > 0 || rankGroup(x) !== 1) divider = heading(text, ["shots-check-head", "shots-plays-head", "goals-noodds-head", "goals-noodds-head"][rankGroup(x)], i);
+        divider = heading(text, ["shots-plays-head", "shots-plays-head", "goals-noodds-head", "goals-noodds-head"][rankGroup(x)], i);
       }
       const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
         ${cols.map((c) => c.cell(x, i)).join("")}
@@ -384,7 +394,7 @@ function renderTable() {
 }
 
 // ---- the record (the build grades it: points_record_summary) ----
-const RECORD_BUCKETS = [["edge", "Every edge", ["strong", "lean"]], ["strong", "Strong", ["strong"]], ["lean", "Lean", ["lean"]], ["check", "Check first", ["check"]]];
+const RECORD_BUCKETS = [["play", "Every Play", null], ["over", "Overs", "over"], ["under", "Unders", "under"]];
 function renderRecord() {
   const record = POINTS.record;
   const box = el("shots-results");
@@ -392,7 +402,7 @@ function renderRecord() {
     box.innerHTML = `<p class="shots-record-note">The record starts with the first games that finish after this page went live: every player graded at the line and price locked before puck drop, and how far that price moved from the first one the page saw.</p>`;
     return;
   }
-  const n = (size) => Math.round(edgeAt(size) * 100);
+  const n = Math.round(bar() * 100);
   const tile = (label, t, tip) => {
     const played = t.wins + t.losses;
     return `<div class="nba-tile" title="${tip}"><div class="gs-tile-label">${label}</div><b>${t.wins}-${t.losses}</b><small>${played ? `${Math.round((100 * t.wins) / played)}% &middot; ${signed(t.units)}u` : "none yet"}</small></div>`;
@@ -402,13 +412,11 @@ function renderRecord() {
   const honest = (record.honest || []).filter((b) => b.players).map((b) => `<tr><td>${Math.round(b.lo * 100)}-${Math.round(Math.min(b.hi, 1) * 100)}%</td><td class="num">${b.players}</td><td class="num">${pct(b.said / b.players, 0)}</td><td class="num"><b>${pct(b.got / b.players, 0)}</b></td></tr>`).join("");
   box.innerHTML = `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; the better side of each points line at the price locked before puck drop; u = units won risking 1 a play</span></div>
     <div class="nba-tiles shots-record">
-      ${tile(`Edge ${n("strong")} to ${n("check")}`, record.strong, "Plays the model liked most")}
-      ${tile(`Edge ${n("lean")} to ${n("strong")}`, record.lean, "Leans")}
-      ${tile(`Under ${n("lean")}: no edge`, record.none, "Every other priced line: about what blind betting does")}
-      ${tile(`${n("check")}+: check first`, record.check, "Gaps too big to take at face value, and plays against tonight's line change")}
-      ${tile("Overs", record.over, "Called plays (lean + strong) on the over")}
-      ${tile("Unders", record.under, "Called plays (lean + strong) on the under")}
-      ${tile("Against his avg", record.fade, "Called plays that went against his season points a game")}
+      ${tile("Plays", record.play, `An edge of ${n}+ points on the 0.5 line, not against tonight's line change. Every saved game is graded by today's rule`)}
+      ${tile("Not Plays", record.none, "Every other priced line: under the bar, the 1.5 line, or against tonight's line change")}
+      ${tile("Overs", record.over, "Plays on the over")}
+      ${tile("Unders", record.under, "Plays on the under")}
+      ${tile("Against his avg", record.fade, "Plays that went against his season points a game")}
       ${clvTile}
     </div>
     <div class="shots-detail-label">Said vs got <span class="muted-label">every graded player, priced or not: the model's chance of 1 or more points against how often he got one</span></div>
@@ -419,32 +427,30 @@ function recordPlays(record) {
   const all = record.plays || [];
   if (!all.length) return "";
   const bucket = RECORD_BUCKETS.find(([key]) => key === pointsView.record) || RECORD_BUCKETS[0];
-  const shown = all.filter((play) => bucket[2].includes(play.size));
+  const shown = all.filter((play) => play.size === "play" && (!bucket[2] || play.side === bucket[2]));
   const sum = (plays) => plays.reduce((t, play) => ({ wins: t.wins + (play.won ? 1 : 0), losses: t.losses + (play.won ? 0 : 1), units: t.units + play.units }), { wins: 0, losses: 0, units: 0 });
   const line = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
   const buttons = RECORD_BUCKETS.map(([key, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bucket[0] === key ? " active" : ""}" data-filter="record" data-value="${key}">${label}</button>`).join("");
-  const sizeTag = { strong: "Strong", lean: "Lean", check: "Check" };
   let body = "";
   let day = null;
   shown.forEach((play) => {
     if (play.date !== day) {
       day = play.date;
-      body += `<tr class="shots-record-day"><td colspan="7">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
+      body += `<tr class="shots-record-day"><td colspan="6">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
     }
     body += `<tr>
         <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
         <td class="shots-play-cell">${playChip({ side: play.side, line: play.line, price: play.price })}${play.fade ? ` <span class="shots-fade" title="Against his own season average at the time">vs his avg</span>` : ""}</td>
-        <td class="num"><span class="shots-record-size shots-record-${play.size}">${sizeTag[play.size] || ""}</span></td>
         <td class="num">${points(play.edge)}</td>
         <td class="num"><b>${play.actual}</b></td>
         <td class="num"><span class="pick-result pick-result-${play.won ? "win" : "loss"}">${play.won ? "W" : "L"}</span></td>
         <td class="num ${play.won ? "tier-good" : "tier-bad"}">${signed(play.units, 2)}</td>
       </tr>`;
   });
-  return `<div class="shots-detail-label shots-record-head">Graded plays <span class="muted-label">every priced line with an edge, at the price locked before puck drop</span></div>
+  return `<div class="shots-detail-label shots-record-head">Graded plays <span class="muted-label">every play, at the price locked before puck drop</span></div>
     <div class="view-toggle shots-toolbar shots-record-buckets">${buttons}<span class="shots-record-total">${shown.length ? line(sum(shown)) : "none yet"}</span></div>
     ${shown.length ? `<div class="shots-record-scroll"><table class="data-table shots-record-table">
-      <thead><tr><th class="shots-th-player">Player</th><th>Play</th><th>Bucket</th><th>Edge</th><th title="His real points">Points</th><th>Result</th><th title="Units won risking 1">Units</th></tr></thead>
+      <thead><tr><th class="shots-th-player">Player</th><th>Play</th><th>Edge</th><th title="His real points">Points</th><th>Result</th><th title="Units won risking 1">Units</th></tr></thead>
       <tbody>${body}</tbody></table></div>` : `<p class="shots-record-note">No graded plays in this bucket yet.</p>`}`;
 }
 

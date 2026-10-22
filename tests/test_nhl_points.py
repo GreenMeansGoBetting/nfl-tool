@@ -170,8 +170,8 @@ class Board(unittest.TestCase):
         benson = next(r for r in rows if r["id"] == BENSON)
         self.assertEqual((benson["line"], benson["over"], benson["under"], benson["first"]), (0.5, 150, -190, {"line": 0.5, "over": 150, "under": -190}))
         self.assertAlmostEqual(benson["mean"], benson["g_mean"] + benson["a_mean"], delta=0.002)
-        # The play is the Shots page's better side, at the Points buckets, on the row's own rounded chance.
-        play = build_nhl.shots_play(benson["chance_over"], 0.5, 150, -190, benson["avg"], benson["move"], build_nhl.POINTS_EDGES)
+        # The play is the Shots page's better side filed by the Points bar, on the row's own rounded chance.
+        play = build_nhl.points_play(benson["chance_over"], 0.5, 150, -190, benson["avg"], benson["move"])
         self.assertEqual((benson["side"], benson["price"], benson["size"]), (play["side"], play["price"], play["size"]))
         self.assertAlmostEqual(benson["edge"], play["edge"], places=3)
         self.assertEqual(benson["chance_over"], benson["chance"])  # a 0.5 line is 1+ point
@@ -235,25 +235,43 @@ class Record(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             folder = Path(folder)
             rows = [
-                self.row("1", 0.60, 0.5, 100, -120, 1, first={"line": 0.5, "over": 120, "under": -140}),  # over, strong: won +1, shortened 120 -> 100
-                self.row("2", 0.30, 0.5, 100, -130, 0, avg=0.8),   # under (needs 56.5%, has 70%): check, won
+                self.row("1", 0.60, 0.5, 100, -120, 1, first={"line": 0.5, "over": 120, "under": -140}),  # over, edge 10: a play, won +1, shortened 120 -> 100
+                self.row("2", 0.30, 0.5, 100, -130, 0, avg=0.8),   # under (needs 56.5%, has 70%): a play (no more "check" at 12+), won
                 self.row("3", 0.47, 0.5, -105, -115, 0),           # under 53% vs 53.5% needed: no edge
                 self.row("4", 0.25, None, None, None, 1),          # no price: graded for honesty only
+                self.row("5", 0.62, 0.5, 100, -120, 0, move="down"),  # over, edge 12, on a player moved DOWN a line: not a play
+                self.row("6", 0.25, 1.5, 120, -150, 1),            # under 1.5, edge 15: the 1.5 line is not a play
             ]
             build_nhl.record_point_games(folder, self.entry(rows), self.games())
             r = build_nhl.points_record_summary(folder)
-            self.assertEqual((r["games"], r["players"]), (1, 4))
-            self.assertEqual(r["strong"], {"wins": 1, "losses": 0, "units": 1.0})
-            self.assertEqual(r["check"]["wins"], 1)
-            self.assertEqual(r["none"]["losses"] + r["none"]["wins"], 1)
-            self.assertEqual((r["over"]["wins"], r["with"]["wins"]), (1, 1))
-            self.assertEqual((r["clv"]["plays"], r["clv"]["priced"], r["clv"]["shortened"]), (1, 1, 1))
-            self.assertAlmostEqual(r["clv"]["points"], 0.5 - 100 / 220, places=4)
-            self.assertEqual(sum(b["players"] for b in r["honest"]), 4)
-            self.assertEqual(sum(b["got"] for b in r["honest"]), 2)
-            self.assertEqual([p["id"] for p in r["plays"]], ["2", "1"])  # biggest edge first
+            self.assertEqual((r["games"], r["players"]), (1, 6))
+            self.assertNotIn("strong", r)
+            self.assertEqual(r["play"], {"wins": 2, "losses": 0, "units": 1.77})
+            self.assertEqual((r["none"]["wins"], r["none"]["losses"]), (2, 1))
+            self.assertEqual((r["over"]["wins"], r["under"]["wins"], r["with"]["wins"], r["fade"]["wins"]), (1, 1, 1, 1))
+            self.assertEqual((r["clv"]["plays"], r["clv"]["priced"], r["clv"]["shortened"]), (2, 2, 1))
+            self.assertAlmostEqual(r["clv"]["points"], (0.5 - 100 / 220) / 2, places=4)
+            self.assertEqual(sum(b["players"] for b in r["honest"]), 6)
+            self.assertEqual(sum(b["got"] for b in r["honest"]), 3)
+            self.assertEqual([p["id"] for p in r["plays"]], ["2", "1"])  # only the plays, biggest edge first
             self.assertEqual(r["ledger"], sorted([["2026-10-13", p["edge"], int(p["won"]), p["units"]] for p in r["plays"]], key=lambda x: -x[1]))
-            self.assertEqual(r["days"], [{"date": "2026-10-13", "wins": 1, "losses": 0, "units": 1.0}])
+            self.assertEqual(r["days"], [{"date": "2026-10-13", "wins": 2, "losses": 0, "units": 1.77}])
+
+    def test_the_points_bar(self):
+        """The owner, 2026-10-22, after the first six nights (Check 49-71, the 1.5 lines 8-20, edges of
+        3-6 92-102): a Points play is the 0.5 line, an edge of POINTS_BAR (6) or more, never against
+        tonight's line change. Everything else is "none"; 25+ is still "unsure"."""
+        size = lambda chance, line=0.5, move=None: build_nhl.points_play(chance, line, -110, -110, None, move)["size"]
+        self.assertEqual(build_nhl.POINTS_BAR, 0.06)
+        self.assertEqual(size(0.60), "play")                  # over, edge 7.6
+        self.assertEqual(size(0.40), "play")                  # under, edge 7.6
+        self.assertEqual(size(0.56), "none")                  # edge 3.6: under the bar (no more "lean")
+        self.assertEqual(size(0.33), "play")                  # edge 14.6: no more "check" at 12+
+        self.assertEqual(size(0.60, move="down"), "none")     # an over on a player moved down
+        self.assertEqual(size(0.40, move="up"), "none")       # an under on a player moved up
+        self.assertEqual((size(0.60, move="up"), size(0.40, move="down")), ("play", "play"))  # with the move
+        self.assertEqual((size(0.60, 1.5), size(0.40, 1.5)), ("none", "none"))  # the 1.5 line
+        self.assertEqual(size(0.20), "unsure")
 
 
 if __name__ == "__main__":

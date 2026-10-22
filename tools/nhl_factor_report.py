@@ -95,7 +95,7 @@ def points_plays(folder: Path, since=None, every=False) -> list:
         for pid, name, team, line, over, under, mean, chance, chance_over, actual, avg, move, _fl, _fo, _fu, factors in game["plays"]:
             if line is None or chance_over is None:
                 continue
-            play = b.shots_play(chance_over, line, over, under, avg, move, b.POINTS_EDGES)
+            play = b.points_play(chance_over, line, over, under, avg, move)
             if play is None or actual == line or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = (actual > line) == (play["side"] == "over")
