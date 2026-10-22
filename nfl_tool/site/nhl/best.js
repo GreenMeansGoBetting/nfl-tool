@@ -125,7 +125,7 @@ function playsFor(date) {
         if (r.out) return;
         const book = (gameOdds[r.id] || {}).sog;
         const play = shotsPlay(r, book);
-        if (!play || play.edge < shotsBar() || r.move === "down") return;
+        if (!play || play.edge < shotsBar() || play.edge >= unsureEdge(SHOTS) || r.move === "down") return;
         const result = has(r.actual) && r.actual !== play.line ? ((play.side === "over") === r.actual > play.line ? "win" : "loss") : null;
         out.push({ market: "sog", r, g, posted: !!sb.posted, play, thin: !!(book && book.thin), result, state });
       });

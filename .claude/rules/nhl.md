@@ -183,7 +183,15 @@ on a replay, and the page keeps a record against the real prices.
     on-goal share, pulled hard to the league's): attempts predicted shots on goal better than
     shots on goal did.
   - Minutes: his recent ice time (each game back counts 0.8); a game under 60% of his usual
-    ("left early") doesn't change it.
+    ("left early") doesn't change it. **Before he has 3 games**, a game under half the league's
+    last line / pair (`short_first`; about 5 min F, 7.5 min D) is "left early" too, and kept in
+    `ShotsModel.short` so the goals model skips it for EV / PP minutes. With no full game yet, his
+    minutes are tonight's line or pair's (`minutes_from` "line"; the goals model gives the power
+    play his position's league share of them), and with no posted lineup he has **no number at
+    all**. Three short games = he really plays that little (`short_games`). Why: Jake Sanderson
+    left the opener hurt after 4:29, missed 8 games, came back 2026-10-21 on Ottawa's top pair
+    and was projected as a 4.5-minute defenseman (0.07 shots, 1% for a point). On 2025-26's
+    replay the rule changed nothing else (deviance 1.23111 vs 1.23114). Tests: `test_nhl_unsure.py`.
   - Matchup pieces, each an exponent on "what the other team allows against the league"
     (`WEIGHTS`): overall shots on goal 1.0, his position (forwards / defensemen) 0.5, the rink
     areas he shoots from 0.5, power-play shots allowed x his power-play share 0.6; home ice +3%,
@@ -1082,6 +1090,21 @@ and no new replay: it is King of the Crease's saves model (above), read as a pro
   don't move. `version.json` `nhl.book_saves` = goalies a book prices (or why none).
 - Tests: `tests/test_nhl_saves_page.py` (the build) and `tests/test_nhl_saves_site.py` (the page on
   `helpers.nhl_saves()`, built at test time from the King of the Crease sample).
+
+## Model Unsure: the safety net (2026-10-22)
+
+The owner, after Sanderson's u0.5 points (+47.3) showed on Best Plays: "if a play like this can
+surface, then how can we trust that ANY of these plays are good?" An edge of `UNSURE_EDGE` (25
+points) or more is filed **"unsure"** by `shots_play` / `goals_play` (so Shots, Points, Saves and
+Goals alike), whatever else it is: the model is missing something, not the book 25 points off.
+- Never a play: Shots' `isPlay` and Best Plays leave it out; Goals / Points / Saves list it under
+  its own "Model Unsure" heading after the plays (dashed gray tag, `unsureTag` / `unsureHead` in
+  nhl-common.js; no "vs his avg"). Each file sends `unsure` for the pages.
+- The records grade it in its own `unsure` bucket, never in the plays, `days`, `plays` or
+  `ledger`; the factor report skips it like "none". Records are regraded by today's rules, so
+  Sanderson's two losses left the plays' record (told to the owner).
+- When it was set, Sanderson's two were the only Shots / Points plays of the season past it (next:
+  23.7); Goals had never passed 14; one Saves under (Wallstedt, 25.1, lost) also moved there.
 
 ## Learning which factors win: the factor report (2026-10-16)
 

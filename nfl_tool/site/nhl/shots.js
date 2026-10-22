@@ -27,7 +27,9 @@ const shotsView = { side: "best", pos: "all", lineup: "all", minEdge: "all", sor
 // which grades the record. edgeAt still sizes the every-book price tags.
 const edgeAt = (size) => ((SHOTS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
 const bar = () => (SHOTS && has(SHOTS.bar) ? SHOTS.bar : 0.06);
-const isPlay = (x) => !!x.play && x.play.edge >= bar() && x.r.move !== "down";
+// The safety net: an edge of `unsure` (25 points) or more is the model missing something, never a play.
+const unsure = (x) => !!x.play && x.play.edge >= unsureEdge(SHOTS);
+const isPlay = (x) => !!x.play && x.play.edge >= bar() && x.r.move !== "down" && !unsure(x);
 // Over the bar but left out: he is on a lower line tonight (those lost on both sides).
 const movedDown = (x) => !!x.play && x.play.edge >= bar() && x.r.move === "down";
 // Before the game's lineup is posted nobody can have moved: the play assumes he stays on his
@@ -239,6 +241,8 @@ function ratingCell(x) {
     ? ratingTag("pending", "Play: no lineup yet", `An edge of ${n}+ points, assuming ${r.name} stays on his usual line. The NHL hasn't posted this game's projected lineup (usually around midday Eastern). Once it does, this stays a play, or drops off if he is moved down a line.`)
     : isPlay(x)
     ? ratingTag("play", "Play", `An edge of ${n}+ points on a player not moved down a line tonight`)
+    : unsure(x)
+    ? unsureTag(SHOTS)
     : movedDown(x)
       ? ratingTag("out", "Lower line", `Left out: ${r.name} is on a lower line tonight than his minutes this season say he has been on. In the record, players moved down a line lost on both sides.`)
       : "";

@@ -112,6 +112,12 @@ SHOTS_EDGES = {"lean": 0.03, "strong": 0.06, "check": 0.12}
 # player moved UP is a play (45-23). Points and Goals keep their buckets until
 # they have more games graded.
 SHOTS_BAR = 0.06
+# The safety net, every NHL prop (the owner, 2026-10-22): an edge this big
+# means the model is missing something, not that the book is 25 points off.
+# Jake Sanderson's u0.5 points (+47.3) and u2.5 shots (+37.7) on 2026-10-21
+# were the only two Shots / Points plays past it; both lost. Such a play is
+# "unsure": listed, never a play, never in the plays' record (its own bucket).
+UNSURE_EDGE = 0.25
 # The Shots page lists the graded plays of the latest days that have any (the
 # buckets and the day-by-day line cover the whole season; listing every play
 # of a season would make shots.json a megabyte heavier by spring).
@@ -1861,7 +1867,8 @@ def shots_play(chance_over: float, line: float, over, under, avg=None, move=None
     Points (`edges` = POINTS_EDGES): "strong" / "lean" / "none" by the edge,
     or "check" (set apart, not a play) when the gap is too big to take at face
     value OR the play goes against tonight's line change: an under on a
-    player moved up a line (`move` "up"), an over on one moved down."""
+    player moved up a line (`move` "up"), an over on one moved down.
+    Either way, "unsure" from UNSURE_EDGE up (the safety net)."""
     sides = [(side, price, chance) for side, price, chance in (("over", over, chance_over), ("under", under, 1 - chance_over)) if price is not None]
     if not sides:
         return None
@@ -1875,6 +1882,8 @@ def shots_play(chance_over: float, line: float, over, under, avg=None, move=None
         size = next((key for key in ("check", "strong", "lean") if edge >= edges[key]), "none")
         if against_move and size != "none":
             size = "check"
+    if edge >= UNSURE_EDGE:
+        size = "unsure"
     return {"side": side, "line": line, "price": price, "chance": chance, "edge": edge, "fade": fade, "against_move": against_move, "size": size}
 
 
@@ -1966,7 +1975,7 @@ def shots_record_summary(folder: Path) -> dict:
     SHOTS_RECORD_DAYS days, newest day first and biggest edge first within a
     day. Every saved game is graded by today's bar, the games before it too."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
-    out = {"since": None, "through": None, "games": 0, "play": tally(), "none": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally(),
+    out = {"since": None, "through": None, "games": 0, "play": tally(), "none": tally(), "unsure": tally(), "over": tally(), "under": tally(), "fade": tally(), "with": tally(),
            "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0}}
     days, plays = {}, []
     for path in sorted(folder.glob("*.json")) if folder.exists() else []:
@@ -1989,7 +1998,7 @@ def shots_record_summary(folder: Path) -> dict:
                 for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
-                if size == "none":
+                if size in ("none", "unsure"):
                     continue
                 if called and first_line is not None:
                     # Closing line value: from the first line and price the site saw to the locked one.
@@ -2060,6 +2069,8 @@ def goals_play(chance: float, odds, move=None) -> dict | None:
     against_move = move == "down"
     if against_move and size != "none":
         size = "check"
+    if edge >= UNSURE_EDGE:
+        size = "unsure"
     return {"price": odds, "chance": chance, "edge": edge, "size": size, "against_move": against_move}
 
 
@@ -2193,7 +2204,7 @@ def goals_record_summary(folder: Path) -> dict:
         against how often he scored; `zone_all` the same for every tagged player.
       * `days` and `plays` (latest GOALS_RECORD_DAYS days), as the Shots record."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
-    out = {"since": None, "through": None, "games": 0, "players": 0, **{k: tally() for k in ("strong", "lean", "none", "check", "zone", "thin")},
+    out = {"since": None, "through": None, "games": 0, "players": 0, **{k: tally() for k in ("strong", "lean", "none", "check", "unsure", "zone", "thin")},
            "clv": {"plays": 0, "points": 0.0, "shortened": 0, "drifted": 0},
            "honest": [{"lo": lo, "hi": hi, "players": 0, "said": 0.0, "scored": 0} for lo, hi in zip(GOALS_HONEST, GOALS_HONEST[1:])],
            "zone_all": {"players": 0, "said": 0.0, "scored": 0}}
@@ -2223,7 +2234,7 @@ def goals_record_summary(folder: Path) -> dict:
                 for key in (size, *(["zone"] if zone else []), *(["thin"] if thin else [])):
                     out[key]["wins" if scored else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
-                if size == "none":
+                if size in ("none", "unsure"):
                     continue
                 if size in ("strong", "lean"):
                     day = days.setdefault(game["date"], tally())
@@ -2288,7 +2299,7 @@ def goals_file(season: int, generated_at: str, records: list, shots, games: list
         record = None
     lg = model.league
     return {
-        "season": season, "generated_at": generated_at, "weights": model.w, "edges": GOALS_EDGES, "zone": goals_model.ZONE,
+        "season": season, "generated_at": generated_at, "weights": model.w, "edges": GOALS_EDGES, "unsure": UNSURE_EDGE, "zone": goals_model.ZONE,
         "xg": {"names": goals_model.XG_NAMES, "base": model.xg[False], "wing": model.xg[True], "shots": sum(lg[f"n_{a}"] for a in AREAS)},
         "league": {"goals_per_shot": num(lg["g"] / sum(lg[f"n_{a}"] for a in AREAS), 4) if lg["g"] else None, "xg_per_team_game": num(lg["xg"] / lg["team_games"]) if lg["team_games"] else None},
         "games": board, "defense": goals_defense(model, list(model.teams)), "record": record,
@@ -2465,7 +2476,7 @@ def points_record_summary(folder: Path) -> dict:
     chance of 1+ point the model gave against how often he got one."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "players": 0,
-           **{k: tally() for k in ("check", "strong", "lean", "none", "over", "under", "fade", "with")},
+           **{k: tally() for k in ("check", "strong", "lean", "none", "unsure", "over", "under", "fade", "with")},
            "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0},
            "honest": [{"lo": lo, "hi": hi, "players": 0, "said": 0.0, "got": 0} for lo, hi in zip(POINTS_HONEST, POINTS_HONEST[1:])]}
     days, plays = {}, []
@@ -2493,7 +2504,7 @@ def points_record_summary(folder: Path) -> dict:
                 for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
-                if size == "none":
+                if size in ("none", "unsure"):
                     continue
                 if called and first_line is not None:
                     # Closing line value, the Shots record's way.
@@ -2540,7 +2551,7 @@ def points_file(season: int, generated_at: str, records: list, goals, games: lis
     except Exception as e:  # a damaged record file must never cost the page its board
         print(f"WARNING: the Points record couldn't be updated ({e}).", file=sys.stderr)
         record = None
-    return {"season": season, "generated_at": generated_at, "weights": model.w, "calibration": list(model.calibration), "edges": POINTS_EDGES,
+    return {"season": season, "generated_at": generated_at, "weights": model.w, "calibration": list(model.calibration), "edges": POINTS_EDGES, "unsure": UNSURE_EDGE,
             "factors": POINTS_FACTORS, "games": board, "record": record}
 
 
@@ -3054,7 +3065,7 @@ def saves_record_summary(folder: Path) -> dict:
     the over against how often he went over."""
     tally = lambda: {"wins": 0, "losses": 0, "units": 0.0}
     out = {"since": None, "through": None, "games": 0, "goalies": 0,
-           **{k: tally() for k in ("check", "strong", "lean", "none", "over", "under", "fade", "with")},
+           **{k: tally() for k in ("check", "strong", "lean", "none", "unsure", "over", "under", "fade", "with")},
            "clv": {"plays": 0, "points": 0.0, "priced": 0, "shortened": 0, "drifted": 0},
            "honest": [{"lo": lo, "hi": hi, "goalies": 0, "said": 0.0, "got": 0} for lo, hi in zip(SAVES_HONEST, SAVES_HONEST[1:])]}
     days, plays = {}, []
@@ -3080,7 +3091,7 @@ def saves_record_summary(folder: Path) -> dict:
                 for key in (size, *called):
                     out[key]["wins" if won else "losses"] += 1
                     out[key]["units"] = round(out[key]["units"] + units, 2)
-                if size == "none":
+                if size in ("none", "unsure"):
                     continue
                 if called and first_line is not None:
                     # Closing line value, the Shots record's way.
@@ -3124,7 +3135,7 @@ def saves_file(season: int, generated_at: str, crease: dict, records: list, game
     except Exception as e:  # a damaged record file must never cost the page its board
         print(f"WARNING: the Saves record couldn't be updated ({e}).", file=sys.stderr)
         record = None
-    return {"season": season, "generated_at": generated_at, "weights": crease.get("weights"), "league": crease.get("league"), "edges": SAVES_EDGES,
+    return {"season": season, "generated_at": generated_at, "weights": crease.get("weights"), "league": crease.get("league"), "edges": SAVES_EDGES, "unsure": UNSURE_EDGE,
             "check_saves": CREASE_RULES["check"], "factors": SAVES_FACTORS, "games": board, "record": record}
 
 
@@ -3484,7 +3495,7 @@ def main():
         print(f"WARNING: the Shots record couldn't be updated ({e}).", file=sys.stderr)
         record = None
     shots = {
-        "season": args.season, "generated_at": generated_at, "weights": model.w, "dispersion": shots_model.DISPERSION, "edges": SHOTS_EDGES, "bar": SHOTS_BAR,
+        "season": args.season, "generated_at": generated_at, "weights": model.w, "dispersion": shots_model.DISPERSION, "edges": SHOTS_EDGES, "bar": SHOTS_BAR, "unsure": UNSURE_EDGE,
         "games": board, "defense": shots_defense(model, teams), "record": record, "lineups": lineups_for_page(tonight, stats["goalies"]),
     }
     with open(args.out.parent / "shots.json", "w") as f:

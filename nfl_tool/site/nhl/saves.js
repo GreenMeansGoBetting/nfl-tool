@@ -86,9 +86,9 @@ const SORTS = {
   site: (x) => siteLift(x.r),
 };
 const rankedByEdge = () => savesView.sort === "edge" && savesView.dir < 0;
-// Ranked by edge: "check first" on top (as on the other prop pages), then the plays, then
+// Ranked by edge: "check first" on top (as on the other prop pages), then the plays, then Model Unsure, then
 // every goalie with no odds by his projection.
-const rankGroup = (x) => (needsCheck(x) ? 0 : has(x.r.edge) ? 1 : 2);
+const rankGroup = (x) => (needsCheck(x) ? 0 : x.r.size === "unsure" ? 2 : has(x.r.edge) ? 1 : 3);
 function sortedRows(date, starter = savesView.starter, checks = savesView.checks) {
   const get = SORTS[savesView.sort] || SORTS.edge;
   return rowsFor(date)
@@ -165,7 +165,7 @@ function playChip(r) {
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {
   const r = x.r;
-  const fade = r.fade && r.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.saves_avg, 1)} saves a start in ${r.starts} starts): the model reads tonight's matchup differently.">vs his avg</span>` : "";
+  const fade = r.fade && r.edge >= edgeAt("lean") && r.size !== "unsure" ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.saves_avg, 1)} saves a start in ${r.starts} starts): the model reads tonight's matchup differently.">vs his avg</span>` : "";
   const tag = bucketTag(r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") }, savesGapCheck(r, checkSaves()));
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}${fade}</td>`;
 }
@@ -323,9 +323,10 @@ function renderTable() {
         const text = [
           `Check first. The biggest gaps to the market (${n("check")}+ points), or the model ${checkSaves()}+ saves from what the line says. Look for news on the starter before you bet.`,
           `Plays: Novig prices them; best edge first.`,
+          unsureHead(SAVES),
           `No odds yet: the model's projection only. Shop it elsewhere, or wait for Novig to post.`,
         ][rankGroup(x)];
-        if (i > 0 || rankGroup(x) !== 1) divider = heading(text, ["shots-check-head", "shots-plays-head", "goals-noodds-head"][rankGroup(x)], i);
+        if (i > 0 || rankGroup(x) !== 1) divider = heading(text, ["shots-check-head", "shots-plays-head", "goals-noodds-head", "goals-noodds-head"][rankGroup(x)], i);
       }
       const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
         ${cols.map((c) => c.cell(x, i)).join("")}

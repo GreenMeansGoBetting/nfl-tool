@@ -124,6 +124,26 @@ class Rows(unittest.TestCase):
             values = [sent[row["key"]][key] for row in rows if group(sent[row["key"]]) == g]
             self.assertEqual(values, sorted(values, reverse=True))
 
+    def test_past_the_safety_net_is_listed_but_never_a_play(self):
+        """Jake Sanderson, 2026-10-21: the build files an edge of 25+ points "unsure". The page
+        tags it Model Unsure, never green or amber, under its own heading after the plays."""
+        key = next(row["key"] for row in reset() if built()[row["key"]]["size"] in ("strong", "lean"))
+        gid, pid = key.split(":")
+        set_size = "([gid, pid, size]) => { POINTS.games[gid].players.find((r) => r.id === pid).size = size; }"
+        PAGE.evaluate(set_size, [gid, pid, "unsure"])
+        try:
+            rows = reset()
+            row = next(r for r in rows if r["key"] == key)
+            self.assertEqual((row["rating"], row["green"], row["amber"]), ("Model Unsure", False, False))
+            order = [built()[r["key"]] for r in rows]
+            order[[r["key"] for r in rows].index(key)] = {**order[0], "size": "unsure", "edge": 1}
+            group = lambda r: 0 if r["size"] == "check" else 2 if r["size"] == "unsure" else 1 if r["edge"] is not None else 3
+            self.assertEqual([group(r) for r in order], sorted(group(r) for r in order))
+            self.assertIn("Model Unsure", PAGE.evaluate("() => document.querySelector('.shots-table tbody').textContent"))
+        finally:
+            PAGE.evaluate(set_size, [gid, pid, built()[key]["size"]])
+            reset()
+
     def test_the_filters(self):
         everyone = reset()
         priced = reset(odds="priced")

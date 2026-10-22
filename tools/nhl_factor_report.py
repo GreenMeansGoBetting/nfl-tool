@@ -64,7 +64,7 @@ def shots_plays(folder: Path, since=None, every=False) -> list:
         for pid, name, team, line, over, under, mean, chance_over, actual, *rest in game["plays"]:
             avg, move, _fl, _fo, _fu, factors = (*rest, None, None, None, None, None, None)[:6]
             play = b.shots_play(chance_over, line, over, under, avg, move)
-            if play is None or actual == line or (play["size"] == "none" and not every):
+            if play is None or actual == line or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = (actual > line) == (play["side"] == "over")
             f = {**factor_dict(names, factors), "move": move, **({"vs_avg": round(mean - avg, 3)} if avg is not None else {})}
@@ -79,7 +79,7 @@ def goals_plays(folder: Path, since=None, every=False) -> list:
         names = saved.get("factors") or b.GOALS_FACTORS
         for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move, *rest in game["plays"]:
             play = b.goals_play(chance, odds, move)
-            if play is None or (play["size"] == "none" and not every):
+            if play is None or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = actual > 0
             f = {**factor_dict(names, rest[0] if rest else None), "move": move, "zone": zone}
@@ -96,7 +96,7 @@ def points_plays(folder: Path, since=None, every=False) -> list:
             if line is None or chance_over is None:
                 continue
             play = b.shots_play(chance_over, line, over, under, avg, move, b.POINTS_EDGES)
-            if play is None or actual == line or (play["size"] == "none" and not every):
+            if play is None or actual == line or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = (actual > line) == (play["side"] == "over")
             f = {**factor_dict(names, factors), "move": move, **({"vs_avg": round(mean - avg, 3)} if avg is not None else {})}

@@ -120,8 +120,9 @@ class Ranking(unittest.TestCase):
             play = plays[r["id"]]
             self.assertEqual(r["play"], f"{play['side'][0]}{play['line']:.1f} {price(play['price'])}", r)
             # The Rating column: a play says so (and, before its game's lineup is posted, that it assumes he
-            # stays on his usual line); over the bar but moved down a line says why it is left out.
-            rating = ("Play" if play["posted"] else "Play: no lineup yet") if play["size"] == "play" else "Lower line" if play["edge"] >= build_nhl.SHOTS_BAR and play["move"] == "down" else "--"
+            # stays on his usual line); over the bar but moved down a line says why it is left out; past the
+            # safety net (UNSURE_EDGE) it is "Model Unsure", never a play.
+            rating = ("Play" if play["posted"] else "Play: no lineup yet") if play["size"] == "play" else "Model Unsure" if play["size"] == "unsure" else "Lower line" if play["edge"] >= build_nhl.SHOTS_BAR and play["move"] == "down" else "--"
             self.assertTrue(r["rating"].startswith(rating), (r, play["size"]))
             if rating == "Play":
                 self.assertNotIn("no lineup", r["rating"], r)
@@ -267,14 +268,28 @@ class TonightsLines(unittest.TestCase):
         sides), said as "Lower line". A player moved UP keeps his play, whichever side."""
         plays = expected_plays()
         rows = {r["id"]: r for r in reset()}
-        down = {pid: p for pid, p in plays.items() if p["move"] == "down" and p["edge"] >= build_nhl.SHOTS_BAR}
-        up = {pid: p for pid, p in plays.items() if p["move"] == "up" and p["edge"] >= build_nhl.SHOTS_BAR}
+        under_net = lambda p: build_nhl.SHOTS_BAR <= p["edge"] < build_nhl.UNSURE_EDGE
+        down = {pid: p for pid, p in plays.items() if p["move"] == "down" and under_net(p)}
+        up = {pid: p for pid, p in plays.items() if p["move"] == "up" and under_net(p)}
         self.assertGreater(len(down) + len(up), 0)
         for pid, play in down.items():
             self.assertEqual((play["size"], rows[pid]["out"], rows[pid]["green"]), ("none", True, False), play)
         for pid, play in up.items():
             self.assertEqual((play["size"], rows[pid]["out"], rows[pid]["green"]), ("play", False, True), play)
         self.assertNotIn(set(down), {r["id"] for r in reset(every=False)})
+
+    def test_past_the_safety_net_is_never_a_play(self):
+        """Jake Sanderson, 2026-10-21: an edge of UNSURE_EDGE (25 points) or more means the model is
+        missing something. The build files it "unsure"; the page lists it under Every line as
+        "Model Unsure", never green, never on the plays-only view."""
+        plays = expected_plays()
+        unsure = {pid for pid, p in plays.items() if p["edge"] >= build_nhl.UNSURE_EDGE}
+        self.assertGreater(len(unsure), 0)
+        self.assertTrue(all(plays[pid]["size"] == "unsure" for pid in unsure))
+        rows = {r["id"]: r for r in reset()}
+        for pid in unsure:
+            self.assertEqual((rows[pid]["rating"], rows[pid]["green"]), ("Model Unsure", False), rows[pid])
+        self.assertFalse(unsure & {r["id"] for r in reset(every=False)})
 
 
 class ThisSeasonOnly(unittest.TestCase):

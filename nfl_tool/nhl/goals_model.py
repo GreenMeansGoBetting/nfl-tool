@@ -240,10 +240,12 @@ class GoalsModel:
             for key, val in (("toi", line["toi"]), ("xg", xg), ("xg_ow", xg_ow), ("g", sum(s["goal"] for s in mine)), ("pp_xg", pp_xg), ("pp_toi", pp_secs)):
                 p[key] = p[key] * d + val
                 lg[f"{grp}_{key}"] += val
-            t = self.p["toi_decay"]
-            p["ev_num"] = p["ev_num"] * t + (line["toi"] - pp_secs)
-            p["pp_num"] = p["pp_num"] * t + pp_secs
-            p["min_den"] = p["min_den"] * t + 1
+            # His EV / PP minutes skip the early nights the shots model found he left early.
+            if (record.get("id"), pid) not in getattr(self.shots, "short", ()):
+                t = self.p["toi_decay"]
+                p["ev_num"] = p["ev_num"] * t + (line["toi"] - pp_secs)
+                p["pp_num"] = p["pp_num"] * t + pp_secs
+                p["min_den"] = p["min_den"] * t + 1
             for a in list(p["areas"]):
                 p["areas"][a] *= d
             for s in mine:
@@ -329,8 +331,13 @@ class GoalsModel:
         ow_rate = (p["xg_ow"] + pad * lg_ow * role) / (p["toi"] / 60 + pad)
         ev_lg = (lg("xg") - lg("pp_xg")) / max(lg("toi") - lg("pp_toi"), 1) * 60
         pp_lg = lg("pp_xg") / max(lg("pp_toi"), 1) * 60
-        ev_min = p["ev_num"] / p["min_den"] / 60 if p["min_den"] else minutes
-        pp_min = p["pp_num"] / p["min_den"] / 60 if p["min_den"] else 0.0
+        if p["min_den"] and sp.get("minutes_from") != "line":
+            ev_min, pp_min = p["ev_num"] / p["min_den"] / 60, p["pp_num"] / p["min_den"] / 60
+        else:
+            # No full game of his own (his minutes are tonight's line's): the
+            # power play gets his position's league share of them.
+            pp_min = minutes * (lg("pp_toi") / lg("toi") if lg("toi") else 0.0)
+            ev_min = minutes - pp_min
         ev_rate = (p["xg"] - p["pp_xg"] + pad * ev_lg * role) / ((p["toi"] - p["pp_toi"]) / 60 + pad)
         pp_rate = (p["pp_xg"] + self.p["pp_pad"] * pp_lg) / (p["pp_toi"] / 60 + self.p["pp_pad"])
         split = ev_rate * ev_min + pp_rate * pp_min

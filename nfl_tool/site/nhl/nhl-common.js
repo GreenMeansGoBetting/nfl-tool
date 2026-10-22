@@ -72,6 +72,13 @@ function starterTag(r) {
 }
 // Saves' other "check": the model and what the line and price say are `apart`+ saves apart.
 const savesGapCheck = (r, apart) => ({ label: "Check", tip: `The model has ${fmt(r.mean, 1)} saves; the line and price say ${fmt(r.mkt_mean, 1)}. ${apart}+ saves apart is more often a starter or news the book knows. Check before you bet.` });
+// The safety net (UNSURE_EDGE in build_nhl.py, sent as each file's `unsure`): an edge this big
+// means the model is missing something (Jake Sanderson, 2026-10-21: one game cut short by injury
+// read as his role). The build files it "unsure": listed, never a play.
+const unsureEdge = (file) => (file && has(file.unsure) ? file.unsure : 0.25);
+const unsureTip = (file) => `The model and the market are ${Math.round(unsureEdge(file) * 100)}+ points apart. That usually means the model is missing something (a game cut short by injury, a role it can't see yet), so this is not a play.`;
+const unsureTag = (file) => ratingTag("unsure", "Model Unsure", unsureTip(file));
+const unsureHead = (file) => `Model Unsure: ${unsureTip(file).replace("this is not a play", "these are not plays")}`;
 // The build's bucket for a Goals or Points row (`size`, the one the record grades), as one tag.
 // Every page that shows such a play draws it with this, so a "Check" on the Goals or Points
 // page is a "Check" on Best Plays too (a member caught one listed as a plain play, 2026-10-20).
@@ -79,6 +86,7 @@ const savesGapCheck = (r, apart) => ({ label: "Check", tip: `The model has ${fmt
 // (Saves: the model and the line 4+ saves apart); by default a line move ("New line").
 function bucketTag(r, edges, otherCheck) {
   const n = (size) => Math.round(edges[size] * 100);
+  if (r.size === "unsure") return unsureTag();
   if (r.size === "strong") return ratingTag("strong", "Strong", `An edge of ${n("strong")} to ${n("check")} points`);
   if (r.size === "lean") return ratingTag("lean", "Lean", `An edge of ${n("lean")} to ${n("strong")} points`);
   if (r.size !== "check") return "";

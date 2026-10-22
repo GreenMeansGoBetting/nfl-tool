@@ -218,6 +218,7 @@
 .shots-record-out { opacity: 0.8; }
 .shots-record-pending { background: rgba(var(--good-rgb), 0.1); border: 1px dashed rgba(var(--good-rgb), 0.6); white-space: nowrap; }
 .shots-record-check { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.55); }
+.shots-record-unsure { color: var(--muted); border-style: dashed; white-space: nowrap; }
 .shots-about { margin: 0 0 14px; padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
 .shots-about summary { cursor: pointer; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
 .shots-about-body { max-width: 900px; font-size: 0.9rem; line-height: 1.45; color: var(--text); }

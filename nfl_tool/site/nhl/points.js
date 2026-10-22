@@ -92,9 +92,9 @@ const SORTS = {
   line: (x) => (x.r.slot ? x.r.lift.line : null),
 };
 const rankedByEdge = () => pointsView.sort === "edge" && pointsView.dir < 0;
-// Ranked by edge: "check first" on top (as on the Shots page), then the plays, then
+// Ranked by edge: "check first" on top (as on the Shots page), then the plays, then Model Unsure, then
 // everyone with no odds by his chance of a point.
-const rankGroup = (x) => (needsCheck(x) ? 0 : has(x.r.edge) ? 1 : 2);
+const rankGroup = (x) => (needsCheck(x) ? 0 : x.r.size === "unsure" ? 2 : has(x.r.edge) ? 1 : 3);
 function sortedRows(date, lineup = pointsView.lineup, checks = pointsView.checks) {
   const get = SORTS[pointsView.sort] || SORTS.edge;
   return rowsFor(date)
@@ -173,7 +173,7 @@ function playChip(r) {
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {
   const r = x.r;
-  const fade = r.fade && r.edge >= edgeAt("lean") ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} points a game in ${r.games} games): the model thinks a small sample has run ${r.side === "under" ? "hot" : "cold"}.">vs his avg</span>` : "";
+  const fade = r.fade && r.edge >= edgeAt("lean") && r.size !== "unsure" ? `<span class="shots-flag shots-fade" title="This goes against his season average (${fmt(r.avg, 2)} points a game in ${r.games} games): the model thinks a small sample has run ${r.side === "under" ? "hot" : "cold"}.">vs his avg</span>` : "";
   const tag = bucketTag(r, { lean: edgeAt("lean"), strong: edgeAt("strong"), check: edgeAt("check") });
   return `<td class="shots-rating">${tag || `<span class="muted-label">--</span>`}${fade}</td>`;
 }
@@ -365,9 +365,10 @@ function renderTable() {
         const text = [
           `Check first. The biggest gaps to the market (${n("check")}+ points: a handful of games against everything the book knows), or a play against tonight's line change. Look for news before you bet.`,
           `Plays: Novig prices them; best edge first.`,
+          unsureHead(POINTS),
           `No odds yet: the model's fair price only, best chance first. Shop it elsewhere, or wait for Novig to post.`,
         ][rankGroup(x)];
-        if (i > 0 || rankGroup(x) !== 1) divider = heading(text, ["shots-check-head", "shots-plays-head", "goals-noodds-head"][rankGroup(x)], i);
+        if (i > 0 || rankGroup(x) !== 1) divider = heading(text, ["shots-check-head", "shots-plays-head", "goals-noodds-head", "goals-noodds-head"][rankGroup(x)], i);
       }
       const row = `${divider}<tr class="shots-row${open ? " shots-open" : ""}${x.state === "live" ? " shots-live" : ""}" data-state="${x.state}" data-row="${x.game.game_id}:${r.id}">
         ${cols.map((c) => c.cell(x, i)).join("")}

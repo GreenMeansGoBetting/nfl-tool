@@ -60,6 +60,8 @@ PARAMS = {
     "line_cap": 0.6,        # the most tonight's line can count: e^0.6 = a line playing 1.8x his own minutes
     "toi_prev_games": 1.5,  # last season's average ice time counts as this many recent games
     "short_night": 0.6,     # a game under this share of his usual ice time is "left early"
+    "short_first": 0.5,     # before he has a usual: a game under this share of the league's last line / pair is "left early"
+    "short_games": 3,       # with this many games and all of them short, he is a low-minute player after all
     # ---- what a defense allows ----
     "team_prev_games": 12,  # (replay only, when a prior is given) a defense's last season counts as this many games
     "team_pad_games": 20,   # a league-average defense counts as this many games
@@ -149,6 +151,7 @@ class ShotsModel:
         self.players = {}
         self.teams = {}
         self.slots = {}  # team -> {"F1": [minutes sum, games], ...}: what each line and pair plays
+        self.short = set()  # {(game id, player id)}: early-season nights he left early (the goals model skips them too)
         # The league's yardsticks: every game added so far (plus last season's
         # totals, when a prior is given).
         self.league = Counter(prior.get("league") or {})
@@ -164,7 +167,7 @@ class ShotsModel:
             s = self.players[pid] = {
                 "pos": pos, "games": 0, "prev_games": before["games"] if before else 0, "prev": before,
                 "toi": 0.0, "sog": 0.0, "att": 0.0, "unb": 0.0, "pp_unb": 0.0, "areas": {},
-                "toi_num": 0.0, "toi_den": 0.0, "season": Counter(), "recent": [],
+                "toi_num": 0.0, "toi_den": 0.0, "short_num": 0.0, "short_den": 0.0, "season": Counter(), "recent": [],
             }
             if before and before["games"]:
                 s["toi_num"] = self.p["toi_prev_games"] * before["toi"] / before["games"]
@@ -200,8 +203,22 @@ class ShotsModel:
             for area, counts in line["areas"].items():
                 self.league[f"{g}_a_{area}"] += counts[0]
             usual = s["toi_num"] / s["toi_den"] if s["toi_den"] else None
-            # A night he left early says nothing about his role.
-            if not (usual and s["games"] + s["prev_games"] >= 3 and line["toi"] < self.p["short_night"] * usual):
+            # A night he left early says nothing about his role. Before he has
+            # three games his own usual can't say what early is, so the
+            # league's last line or pair does: Jake Sanderson left the 2026-27
+            # opener hurt after 4:29, missed 8 games, and came back on Ottawa's
+            # top pair projected as a 4.5-minute defenseman (a 47-point "edge").
+            if s["games"] + s["prev_games"] >= 3:
+                short = bool(usual) and line["toi"] < self.p["short_night"] * usual
+            else:
+                floor = self.slot_minutes("*", f"{g}{4 if g == FORWARD else 3}")
+                short = bool(floor) and line["toi"] < self.p["short_first"] * floor * 60
+                if short:
+                    self.short.add((record.get("id"), pid))
+            if short:
+                s["short_num"] = s["short_num"] * self.p["toi_decay"] + line["toi"]
+                s["short_den"] = s["short_den"] * self.p["toi_decay"] + 1
+            else:
                 s["toi_num"] = s["toi_num"] * self.p["toi_decay"] + line["toi"]
                 s["toi_den"] = s["toi_den"] * self.p["toi_decay"] + 1
             s["games"] += 1
@@ -233,13 +250,13 @@ class ShotsModel:
         usual = self.league[f"{g}_toi"] / games / 60
         return (minutes / usual) ** self.p["role_power"] if usual else 1.0
 
-    def rate(self, s: dict) -> dict:
+    def rate(self, s: dict, his_minutes: float | None = None) -> dict:
         """His shots on goal per minute, two ways (see the top of the file)."""
         g = group(s["pos"])
         t = self.totals(s)
         pad = self.p["pad_minutes"] * 60
         minutes = (t["toi"] + pad) / 60
-        role = self.role(g, self.minutes(s))
+        role = self.role(g, his_minutes or self.minutes(s))
         direct = (t["sog"] + pad / 60 * self.league_rate(g) * role) / minutes
         attempts = (t["att"] + pad / 60 * self.league_rate(g, "att") * role) / minutes
         league_thru = self.league[f"{g}_sog"] / self.league[f"{g}_att"] if self.league[f"{g}_att"] else 0.5
@@ -248,7 +265,14 @@ class ShotsModel:
         return {"direct": direct, "attempts": attempts, "thru": thru, "per_min": (1 - blend) * direct + blend * attempts * thru}
 
     def minutes(self, s: dict) -> float | None:
-        return s["toi_num"] / s["toi_den"] / 60 if s["toi_den"] else None
+        """His usual ice time from the nights he played a full game; None while
+        every game so far was cut short (with `short_games` of them, he plays
+        that little)."""
+        if s["toi_den"]:
+            return s["toi_num"] / s["toi_den"] / 60
+        if s["short_den"] and s["games"] >= self.p["short_games"]:
+            return s["short_num"] / s["short_den"] / 60
+        return None
 
     def slot_minutes(self, team: str, slot: str) -> float | None:
         """What that line ("F1" = first line ... "F4") or pair ("D1" ... "D3")
@@ -313,16 +337,21 @@ class ShotsModel:
             if not before:
                 return None
             s = self._player(pid, before["pos"])
-        minutes = self.minutes(s)
-        if not minutes:
-            return None
         g = group(s["pos"])
+        line_minutes = self.slot_minutes(team, slot) if team and slot and slot[0] == g else None
+        minutes, minutes_from = self.minutes(s), "his"
+        if not minutes:
+            # Every game so far was cut short: his minutes are the line or pair
+            # tonight's lineup puts him on, and with no lineup there is no
+            # number at all (no play beats a play on a role we can't see).
+            if not line_minutes:
+                return None
+            minutes, minutes_from = line_minutes, "line"
         # Tonight's line against his own minutes: how much busier (or quieter) a
         # line he is on than the one he has been playing on.
-        line_minutes = self.slot_minutes(team, slot) if team and slot and slot[0] == g else None
         cap = self.p["line_cap"]
         line = max(-cap, min(cap, math.log(line_minutes / minutes))) if line_minutes else 0.0
-        rate = self.rate(s)
+        rate = self.rate(s, minutes)
         overall = self.allowed(opp, "sog")
         position = self.allowed(opp, "f_sog" if g == FORWARD else "d_sog")
         located = self.allowed(opp, "located")
@@ -333,7 +362,7 @@ class ShotsModel:
         pp_share = self.pp_share(s)
         return {
             "pos": s["pos"], "group": g, "games": s["games"], "prev_games": s["prev_games"],
-            "minutes": minutes, "line_minutes": line_minutes, "rate": rate, "base": rate["per_min"] * minutes,
+            "minutes": minutes, "minutes_from": minutes_from, "line_minutes": line_minutes, "rate": rate, "base": rate["per_min"] * minutes,
             "opp": overall, "position": position, "areas": by_area, "shares": shares, "pp": pp, "pp_share": pp_share,
             # The logs the weights multiply. Position and area are measured
             # against the defense's overall number, so each one only carries
