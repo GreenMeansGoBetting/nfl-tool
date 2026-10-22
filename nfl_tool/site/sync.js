@@ -280,6 +280,18 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-22",
+    items: [
+      ["🏈", "<b>NFL Best Plays</b> now keeps a graded record: every play on the page is saved at the best price before kickoff and graded when the game ends. Open it with the new <b>YTD Model Performance</b> button beside the title. It starts this week, so the record is small for now."],
+      ["📊", "<b>YTD Model Performance</b> looks the same on every page now (NHL Shots, Goals, Points, Saves and Best Plays, NBA First Basket, NFL Best Plays): pick Yesterday, the last 3 / 7 / 15 / 30 days or the Season, slide each market’s minimum edge, and the Overs / Unders tiles and the plays list follow along."],
+      ["🏒", "<b>NHL Points</b> plays are tighter: only the 0.5 line, an edge of 6+ points, and never against tonight’s line change."],
+      ["🏒", "<b>NHL props</b>: a player coming back from an injury no longer gets projected off the short game he got hurt in, and the record’s closing line value now reads Novig’s own prices."],
+      ["🏒", "<b>Icebreaker</b> shows each player’s first 10 minutes (goals, shots and ice time early in games), and every player column sorts."],
+      ["🏀", "<b>King of the Court</b>: step back to any past night to see its pregame board against what happened, a defense board beside the player board, this season only, and ties now show every co-leader."],
+      ["🔧", "The NHL pages showed no plays for about 45 minutes this afternoon. That’s fixed, sorry about that."],
+    ],
+  },
+  {
     id: "2026-10-21b",
     items: [
       ["🏀", "<b>NBA Shot Charts</b> is a new page under Team Identity: pick a player and a defense to see his shot chart next to where that defense gives up shots and makes, zone by zone, with Target / Tough calls when both sides agree."],
