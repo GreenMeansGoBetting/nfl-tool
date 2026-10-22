@@ -648,107 +648,114 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2739,
+    "lead": 0.2736,
     "name": "Luka Doncic",
     "proj": 50.1,
     "team": "LAL"
    },
    {
     "id": "6450",
-    "lead": 0.0629,
+    "lead": 0.0621,
     "name": "Kawhi Leonard",
     "proj": 40.2,
     "team": "TOR"
    },
    {
     "id": "5104157",
-    "lead": 0.0604,
+    "lead": 0.0575,
     "name": "Victor Wembanyama",
-    "proj": 39.9,
+    "proj": 39.7,
     "team": "SA"
    },
    {
     "id": "3032977",
-    "lead": 0.057,
+    "lead": 0.0569,
     "name": "Giannis Antetokounmpo",
     "proj": 39.6,
     "team": "MIA"
    },
    {
     "id": "4683021",
-    "lead": 0.048,
+    "lead": 0.0491,
     "name": "Deni Avdija",
-    "proj": 38.7,
+    "proj": 38.8,
     "team": "POR"
    },
    {
     "id": "4432166",
-    "lead": 0.0376,
+    "lead": 0.0374,
     "name": "Cade Cunningham",
     "proj": 37.2,
     "team": "DET"
    },
    {
     "id": "4065648",
-    "lead": 0.0316,
+    "lead": 0.0312,
     "name": "Jayson Tatum",
     "proj": 36.7,
     "team": "BOS"
    },
    {
     "id": "4701230",
-    "lead": 0.0307,
+    "lead": 0.0304,
     "name": "Jalen Johnson",
     "proj": 36.7,
     "team": "ATL"
    },
    {
     "id": "3202",
-    "lead": 0.0279,
+    "lead": 0.0269,
     "name": "Kevin Durant",
-    "proj": 36.2,
+    "proj": 36.1,
     "team": "HOU"
    },
    {
     "id": "4594268",
-    "lead": 0.0261,
+    "lead": 0.0259,
     "name": "Anthony Edwards",
     "proj": 35.9,
     "team": "MIN"
    },
    {
     "id": "4871144",
-    "lead": 0.0259,
+    "lead": 0.0247,
     "name": "Alperen Sengun",
-    "proj": 36.1,
+    "proj": 35.9,
     "team": "HOU"
    },
    {
     "id": "5041939",
-    "lead": 0.0241,
+    "lead": 0.024,
     "name": "Cooper Flagg",
     "proj": 35.5,
     "team": "DAL"
    },
    {
     "id": "3149673",
-    "lead": 0.0213,
+    "lead": 0.021,
     "name": "Pascal Siakam",
     "proj": 34.9,
     "team": "IND"
    },
    {
     "id": "4432816",
-    "lead": 0.0191,
+    "lead": 0.0192,
     "name": "LaMelo Ball",
     "proj": 34.1,
     "team": "MIN"
    },
    {
+    "id": "4066336",
+    "lead": 0.0183,
+    "name": "Lauri Markkanen",
+    "proj": 34.4,
+    "team": "UTAH"
+   },
+   {
     "id": "3975",
-    "lead": 0.0173,
+    "lead": 0.0176,
     "name": "Stephen Curry",
-    "proj": 34.1,
+    "proj": 34.2,
     "team": "GS"
    },
    {
@@ -760,28 +767,21 @@
    },
    {
     "id": "4871145",
-    "lead": 0.0169,
+    "lead": 0.0168,
     "name": "Josh Giddey",
     "proj": 34.6,
     "team": "CHI"
    },
    {
     "id": "4432573",
-    "lead": 0.0167,
+    "lead": 0.0168,
     "name": "Paolo Banchero",
     "proj": 34.2,
     "team": "ORL"
    },
    {
-    "id": "4066336",
-    "lead": 0.0153,
-    "name": "Lauri Markkanen",
-    "proj": 34.0,
-    "team": "UTAH"
-   },
-   {
     "id": "4433621",
-    "lead": 0.0152,
+    "lead": 0.0147,
     "name": "Jalen Duren",
     "proj": 33.9,
     "team": "DET"
@@ -808,31 +808,31 @@
     "team": "WSH"
    },
    {
+    "id": "4397688",
+    "lead": 0.0089,
+    "name": "Trey Murphy III",
+    "proj": 32.2,
+    "team": "NO"
+   },
+   {
     "id": "4684740",
-    "lead": 0.0092,
+    "lead": 0.0085,
     "name": "Amen Thompson",
-    "proj": 31.3,
+    "proj": 31.2,
     "team": "HOU"
    },
    {
     "id": "4066457",
-    "lead": 0.0083,
+    "lead": 0.0082,
     "name": "Austin Reaves",
     "proj": 31.5,
     "team": "LAL"
    },
    {
-    "id": "4397688",
-    "lead": 0.0081,
-    "name": "Trey Murphy III",
-    "proj": 31.9,
-    "team": "NO"
-   },
-   {
     "id": "3907497",
-    "lead": 0.0073,
+    "lead": 0.0081,
     "name": "Dejounte Murray",
-    "proj": 31.5,
+    "proj": 31.9,
     "team": "NO"
    },
    {
@@ -844,17 +844,17 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0059,
+    "lead": 0.0061,
     "name": "Domantas Sabonis",
-    "proj": 30.6,
+    "proj": 30.7,
     "team": "SAC"
    },
    {
-    "id": "4279888",
-    "lead": 0.0055,
-    "name": "Ja Morant",
-    "proj": 31.3,
-    "team": "POR"
+    "id": "4433627",
+    "lead": 0.0059,
+    "name": "Keyonte George",
+    "proj": 31.6,
+    "team": "UTAH"
    }
   ],
   "season_used": "2025-26"
