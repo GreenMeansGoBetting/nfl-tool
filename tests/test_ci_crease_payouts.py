@@ -1,4 +1,4 @@
-"""Promo payouts: /api/crease-payouts (NHL) and /api/koe-payouts (NFL) in the login middleware
+"""Promo payouts: /api/crease-payouts (NHL), /api/koe-payouts (NFL) and /api/court-payouts (NBA) in the login middleware
 (nfl_tool/functions/_middleware.js), added 2026-10-14.
 
 The owner pastes what DraftKings paid after each contest on the NHL Promo
@@ -129,6 +129,14 @@ class Payouts(unittest.TestCase):
         self.assertEqual(api(koe, uid=OWNER, method="PUT", body={**game, "game": "2026-10-13"})["status"], 400)
         self.assertEqual(api(koe, uid="123", method="PUT", body=game)["status"], 403)
         self.assertEqual(api(koe, uid="123")["body"]["days"], {"2026_04_ATL_NO": {"pool": 1000000, "payouts": game["payouts"]}})
+        self.assertEqual(api(uid="123")["body"]["days"], {})  # the hockey list is untouched
+
+    def test_king_of_the_court_is_its_own_list_keyed_by_night(self):
+        court = "https://nba.gmgsports.org/api/court-payouts"
+        night = {"date": "2026-10-21", "pool": 250000, "payouts": [{"id": "3112335", "name": "Nikola Jokic", "paid": 140}]}
+        self.assertEqual(api(court, uid=OWNER, method="PUT", body=night)["status"], 200)
+        self.assertEqual(api(court, uid="123", method="PUT", body=night)["status"], 403)
+        self.assertEqual(api(court, uid="123")["body"]["days"], {"2026-10-21": {"pool": 250000, "payouts": night["payouts"]}})
         self.assertEqual(api(uid="123")["body"]["days"], {})  # the hockey list is untouched
 
     def test_it_answers_on_the_hockey_address(self):

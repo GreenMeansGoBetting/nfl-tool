@@ -37,11 +37,10 @@
         <h2 class="koe-title">King of the Court <button type="button" class="info-i" aria-expanded="false" aria-controls="kotc-note-1" title="How to read this">i</button></h2>
         <button type="button" id="kotc-history-btn" class="view-toggle-btn kotc-history-btn">Historical Data</button>
       </div>
-      <p class="section-note info-note" id="kotc-note-1" hidden>DraftKings pays out on the player with the <b>most points + rebounds + assists (PRA) of the night</b>. <b>40+ ... 60+</b> count his games at or above each mark (a 52 counts in 40+, 45+ and 50+). <b>Score</b> weighs those counts 1 to 5, so big nights count more. <b>Matchup</b> is the other team's Score for what it has given up, and <b>vs Pos</b> what it allows to his position (guard, forward or big) per minute against the league: green = good for him. <b>Proj</b> is tonight's PRA: his season and last 10 games, times what the other defense allows his position, times the game total. <b>Lead %</b> is his chance to finish the night on top, from playing the whole slate out thousands of times. Players listed Out are left out of every chance.</p>
+      <p class="section-note info-note" id="kotc-note-1" hidden>DraftKings pays out on the player with the <b>most points + rebounds + assists (PRA) of the night</b>. <b>40+ ... 60+</b> count his games at or above each mark (a 52 counts in 40+, 45+ and 50+). <b>Opp Top</b> is what the other team lets the best player in its games have: the most PRA any one opponent had, on average a game. <b>vs Pos</b> is what it allows his position (guard, forward or big) per minute against the league: green = good for him. <b>Proj</b> is tonight's PRA: his season average and last 10 games, times what the other defense allows his position, times the game total. This season's games only. Step back with the arrow to see a finished night: the board as it stood before the first tip against what each player had. <b>Lead %</b> is his chance to finish the night on top, from playing the whole slate out thousands of times. Players listed Out are left out of every chance.</p>
 
       <div class="kotc-bar">
         <span class="koe-week"><button type="button" id="kotc-day-prev" class="week-nav-btn">&lsaquo;</button><span id="kotc-day-label" class="week-label"></span><button type="button" id="kotc-day-next" class="week-nav-btn">&rsaquo;</button></span>
-        <span class="kotc-seasons" id="kotc-seasons"></span>
         <button type="button" id="kotc-save" class="summary-save-btn">Save image</button>
       </div>
       <p id="kotc-note" class="no-data-note" hidden></p>
@@ -57,27 +56,38 @@
           <div id="kotc-players"></div>
         </div>
 
-        <!-- Outside the capture, so never in the saved image. -->
-        <aside class="kotc-side">
-          <h3 class="kotc-side-title">Nightly leaders <button type="button" class="info-i" aria-expanded="false" aria-controls="kotc-note-2" title="How to read this">i</button></h3>
-          <p class="section-note info-note" id="kotc-note-2" hidden>Who had the most PRA each night of the season picked above, newest first, with how many games were on, his game's total and his team's spread (DraftKings' closing numbers last season; Novig's at tip-off this season). <b>Pre</b> is where this page had him before the night's first tip, once this season's nights are recorded.</p>
-          <div id="kotc-nights"></div>
-        </aside>
+        <div class="kotc-def">
+          <div class="kotc-def-head">
+            <h3 class="kotc-side-title">Defense Board <button type="button" class="info-i" aria-expanded="false" aria-controls="kotc-note-3" title="How to read this">i</button></h3>
+            <button type="button" id="kotc-def-playing" class="view-toggle-btn kotc-def-playing">Hide Teams Not Playing</button>
+            <button type="button" id="kotc-def-save" class="summary-save-btn">Save image</button>
+          </div>
+          <p class="section-note info-note" id="kotc-note-3" hidden>What every team has given up this season. <b>40+ ... 60+</b>: opposing players' games at or above each mark. <b>Top Opp</b> is the most PRA any one opponent had against them, on average a game: a high one with few 40+ games = a team that lets one star beat it; lots of 40+ games = a team giving it up top to bottom. <b>vs PG ... C</b>: PRA per 48 minutes allowed to each position. <b>Targets</b>: the other team's top 3 on the board by Lead %. <b>Red = bad defense</b> (gives up the most). Teams not playing are dimmed.</p>
+          <div id="kotc-def-capture" class="koe-capture kotc-capture">
+            <div class="kotc-capture-head">
+              <span class="brand-mark">GMG</span>
+              <span class="kotc-capture-titles"><span class="kotc-capture-title">Teams allowing big PRA</span><span id="kotc-def-sub" class="kotc-capture-sub"></span></span>
+              <span class="kotc-capture-promo">Red = bad defense</span>
+            </div>
+            <div id="kotc-defense"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="kotc-def-head">
-        <h3 class="kotc-side-title">Defense board <button type="button" class="info-i" aria-expanded="false" aria-controls="kotc-note-3" title="How to read this">i</button></h3>
-        <button type="button" id="kotc-def-playing" class="view-toggle-btn kotc-def-playing">Hide Teams Not Playing</button>
-        <button type="button" id="kotc-def-save" class="summary-save-btn">Save image</button>
-      </div>
-      <p class="section-note info-note" id="kotc-note-3" hidden>What every team has given up. <b>40+ ... 60+</b>: opposing players' games at or above each mark. <b>Score</b> weighs them 1 to 5. <b>Best opp</b> is the most PRA any one opponent had, on average a game: a high one with a low Score = a team that lets one star beat it; a high Score = a team giving it up top to bottom. <b>vs G / F / C</b>: PRA per 48 minutes allowed to guards, forwards and bigs. <b>Red = bad defense</b> (gives up the most). Teams not playing tonight are dimmed.</p>
-      <div id="kotc-def-capture" class="koe-capture kotc-capture">
-        <div class="kotc-capture-head">
-          <span class="brand-mark">GMG</span>
-          <span class="kotc-capture-titles"><span class="kotc-capture-title">Teams allowing big PRA</span><span id="kotc-def-sub" class="kotc-capture-sub"></span></span>
-          <span class="kotc-capture-promo">Red = bad defense</span>
+      <!-- Outside both captures, so never in a saved image. -->
+      <div class="kotc-lower">
+        <aside class="kotc-side">
+          <h3 class="kotc-side-title">Nightly Leaders <button type="button" class="info-i" aria-expanded="false" aria-controls="kotc-note-2" title="How to read this">i</button></h3>
+          <p class="section-note info-note" id="kotc-note-2" hidden>Who had the most PRA each night this season, newest first, with how many games were on, his game's total and his team's spread (Novig's at tip-off). <b>Pre</b> is where this page had him before the night's first tip. The dollar figure is what DraftKings paid each person on him, once logged.</p>
+          <div id="kotc-nights"></div>
+        </aside>
+        <div id="kotc-log" class="kotc-log" hidden>
+          <div class="kotc-log-top">Log A Night's Payouts <select id="kotc-log-date" aria-label="Night"></select><span class="kotc-log-only">Only you see this</span></div>
+          <label class="kotc-log-pool">Prize Pool $<input id="kotc-log-pool" type="text" inputmode="numeric" placeholder="250,000"></label>
+          <textarea id="kotc-log-text" rows="6" placeholder="Nikola Jokic - $140 in Bonus Bets&#10;Luka Doncic - $95 in Bonus Bets"></textarea>
+          <div class="kotc-log-bot"><span id="kotc-log-status" class="kotc-log-status"></span><button type="button" id="kotc-log-save" class="summary-save-btn">Save</button></div>
+          <p id="kotc-fit" class="kotc-fit"></p>
         </div>
-        <div id="kotc-defense"></div>
       </div>
     </section>
   </div>

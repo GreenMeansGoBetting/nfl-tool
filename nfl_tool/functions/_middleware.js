@@ -340,9 +340,11 @@ async function handleRequests(request, env, session, json) {
 // so it needs no deploy step.
 //   King of the Crease (NHL): one contest a day, keyed by date.
 //   King of the Endzone (NFL): one contest a game, keyed by nflverse game id.
+//   King of the Court (NBA, 2026-10-22): one contest a night, keyed by date.
 const PROMO_PAYOUTS = {
   "/api/crease-payouts": { table: "crease_payouts", col: "date", key: /^\d{4}-\d{2}-\d{2}$/ },
   "/api/koe-payouts": { table: "koe_payouts", col: "game", key: /^\d{4}_\d{2}_[A-Z]{2,3}_[A-Z]{2,3}$/ },
+  "/api/court-payouts": { table: "court_payouts", col: "date", key: /^\d{4}-\d{2}-\d{2}$/ },
 };
 const PROMO_PAYOUTS_MAX = 64; // names a contest (32 starters, room to spare)
 

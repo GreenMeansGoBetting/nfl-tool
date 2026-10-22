@@ -17,9 +17,9 @@ and may be shown as reference data with a clear 2025-26 label, but it never feed
 play, not even as a starting point that fades out. Before this season has enough games for a
 number, show the data, not a projection. The owner: "A team with a new starting lineup and players
 in and out (take boston - no brown add george - completely different) changes everything!"
-- **The one exception:** King of the Court keeps its built behavior (last-season default view and
-  `PRIOR_GAMES`) for its first week; the owner: "Keep King of the Court as built for its first
-  week, and apply the this-season-only rule to all new tools." Ask before changing it.
+- King of the Court was the one exception for its first week; it went this-season-only on
+  2026-10-22 (the owner: "turn off 2025-2026 data because by next week, we will have every team
+  with data for this season"). No exceptions remain.
 
 ## Positions: PG / SG / SF / PF / C (`nfl_tool/nba/positions.py`, 2026-10-21)
 
@@ -475,18 +475,26 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   **position vulnerability** (their ask);
 - a **player board** (each player's games in those buckets, a score, the opponent's matchup score,
   a blended GMG number);
-- a **2025-26 / 2026-27 toggle** ("after a week of the season, i think the new data (even with a
-  small sample) is better because of how many trades etc occur, but the toggle would still be great");
+- a 2025-26 / 2026-27 toggle (removed 2026-10-22 with last season's data, below);
 - **historic stats on nightly leaders** (games on the night, the winner's PRA, and anything about
   the game total / spread that narrows it down). They skipped the mockup to save usage: build it,
   then small tweaks.
 
 - **Build:** `nfl_tool/nba/kotc.py`, called by `compute_kotc` in build_nba.py (its own try: a
   failure leaves `kotc: null` and Game Previews still builds). Output `data.json` `kotc`:
-  `seasons[<year>]` (`label`, `league`, `defense`, `players`, `nights`, `summary`), `slates[<year>]`
-  (`{date: rows}` for the next 3 nights, each projected from that season), `default` (this season
-  once the middle team has played 4 games, else last season), `weights`, `thresholds`, `record`.
-- **Buckets are cumulative** (a 52 counts in 40+, 45+, 50+); Score = 1 x 40+ ... 5 x 60+.
+  `seasons[<this season>]` (`label`, `league`, `defense`, `players`, `nights`, `summary`),
+  `slates[<this season>]` (`{date: rows}` for the next 3 nights), `default` (this season),
+  `past` (`{date: {season_used, games, best, rows}}`: every recorded night before today, `kotc.past_nights`:
+  everyone on its pregame board plus the night's 40 best PRA lines, each with pts / reb / ast /
+  pra (None = didn't play) and the board's `rank` / `lead` / `proj`), `reference` (last season's
+  `label` + `summary`, for the Historical Data popup only), `weights`, `thresholds`, `record`.
+- **This season only since 2026-10-22** (the owner's list that day): no season toggle, no
+  `PRIOR_GAMES` seed (the constant stays for the replay). Early on a player needs
+  min(`MIN_GAMES` 3, half his team's games rounded up) games, so a team two games in has players.
+- **Buckets are cumulative** (a 52 counts in 40+, 45+, 50+). Score (1 x 40+ ... 5 x 60+) is still
+  built but no longer shown: the owner, 2026-10-22, "Score and matchup feel arbitrary right now -
+  i dont know what they truly mean". Matchup (the other defense's Score) became **Opp Top**: the
+  other defense's `star`, the most PRA any one opponent had against it, average a game (real PRA).
 - **Positions are PG / SG / SF / PF / C** (positions.py, 2026-10-21): the board, vs Pos, the defense
   board's five columns and Who wins it. A defense's position number is PRA per 48 minutes allowed to
   that spot, steadied with 10 games of the league's rate (`pos_f` = against the league).
@@ -494,9 +502,7 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   replay the five positions put the leader in the top 5 61% of nights vs 64% (fit 0.68 vs 0.91),
   thinner samples and last season's players on today's spots. Kept under the first-week rule;
   **ask the owner** before switching (`py tools/backtest/nba_kotc.py --five-matchup` replays it).
-- **Last season on this season's rosters:** a player's last-season row sits on the team today's
-  roster file lists him with; not on a roster = off the board. In this season's view each average
-  starts with 5 games of his last season (`PRIOR_GAMES`, until 30 games).
+- Players sit on the team today's roster file lists them with.
 - **The projection** (`project`, `WEIGHTS`): base = half season average, half last 10; times the
   other defense's `pos_f` (exponent 1.0); times (game total / league average total)^0.2. **Lead %**
   (`lead_chances`): 6,000 runs of the slate with each PRA drawn around its projection (sd 4 + 0.22 x
@@ -512,7 +518,7 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   `pickcenter` for 979 of 1,235 games, the play-by-play file's spread for the rest; ESPN's scoreboard
   has no odds for past dates). This season's are each game's Novig line at tip-off, saved by the build
   in `model_history/nba_kotc/lines_<season>.json` (committed by the deploy bot).
-- **The record** (`model_history/nba_kotc/<season>.json`): each night's top 30 by Lead % as the last
+- **The record** (`model_history/nba_kotc/<season>.json`): each night's top 60 (30 until 2026-10-22; payouts on longer shots need their chance) by Lead % as the last
   build before the night's first tip had it (`kotc_record`; a started night is never rewritten). The
   page's Nightly leaders show the winner's place on it ("Pre 3"). NBA builds run every 6 hours and on
   pushes (no half-hourly refresh like the NHL), so a night's board can be up to 6 hours old at tip.
@@ -521,17 +527,32 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   Winners AVG Game Total, Winner in Top 5 as one number, 65%); winning PRA by slate size (typical, colored
   low to high, middle half, best; centered, no note under it), the leader's game total and spread against the games on those nights (2025-26: 240+
   totals 1.31x their share, under 220 0.37x; spreads 0-3 1.22x, 10+ 0.77x; the leader's team was
-  favored 70%), positions (guards 47%), most nights led. Shows last season's until this season has
-  20 nights.
-- **The page** (`site/nba/promo-tools.html` + `kotc.js` + `kotc.css`): night arrows, season buttons
-  (this season's disabled until it has games), Save image; the player board (top 25, "Show all"; Lead
-  %, Proj, Avg, L10, buckets, Score, Opp, Matchup, vs Pos, Total, Spread; green = good for him; B2B,
-  "from XXX" and blowout tags), Nightly leaders beside it (outside the image), then the defense board
-  (red = bad defense, the owner's sheet; teams not playing dimmed; its own Save image; a "Hide teams
-  not playing" button for screenshots, colors still against all 30; a **Targets** column after GP:
-  last names of the other team's players in the night's top 100 by Lead %, the owner 2026-10-21). It does no
-  projection math. Headshots and logos are ESPN's (html-to-image can carry them).
+  favored 70%), positions (guards 47%), most nights led. Shows last season's (`reference`, labeled
+  "last season, for reference") until this season has 20 nights.
+- **The page** (`site/nba/promo-tools.html` + `kotc.js` + `kotc.css`): night arrows that step back
+  through every finished night (`past`) and ahead through the slate, Save image; **the player board
+  and the defense board side by side** (the owner, 2026-10-22: "defense chart to sit up beside the
+  player data"; they wrap when the screen is too narrow), Nightly Leaders and the payout box below
+  (outside both images). Player board: top 25, "Show all"; Lead %, Proj, Avg, buckets, Opp, Opp Top,
+  vs Pos, Total, Spread (+ Est Pay, below); green = good for him; B2B and blowout tags. **L10 is
+  gone** ("so closely related" to Proj) and so is the "from XXX" tag ("by next week we know").
+  **A finished night** shows its pregame board against what happened: Pre (board place), PRA,
+  P / R / A, Lead %, Proj, Opp, Paid; the winner(s) starred, didn't-play last (DNP). Defense board:
+  red = bad defense (the owner's sheet); teams not playing dimmed; its own Save image; "Hide Teams Not
+  Playing" (colors still against all 30); default sort Top Opp; **Targets** = the other team's top 3
+  by Lead % (of the night's top 100; the owner 2026-10-22, was every one of the top 100). On a finished
+  night it shows today's numbers with that night's teams and pregame board. No projection math.
+  Headshots and logos are ESPN's (html-to-image can carry them).
+- **Payouts** (the owner, 2026-10-22: "a place to update what payouts were/could have been ... reverse
+  engineer potential payouts based on prize pot, position on projections"): the owner's box (html.is-owner
+  and localhost) picks a finished night, the Prize Pool, and DraftKings' pasted list ("Name - $140 in
+  Bonus Bets", matched to that night's `past` rows by name, accents dropped, else a unique last name).
+  Saved to `/api/court-payouts` (D1 `court_payouts`, the shared promo-payouts handler in _middleware.js;
+  members read, owner saves). Shown as Paid on the finished night and on Nightly Leaders. **Est Pay**:
+  once `FIT_MIN` 6 logged payouts have a pregame Lead %, log(paid / pool) is fit as a straight line on
+  log(Lead %) (favorites are on more entries, so they pay less) and the board gets an Est Pay column
+  at the latest logged pool. Unproven until it has a few weeks of nights.
 - Tests: `tests/test_nba_kotc.py` (the build on a hand-made season) and `tests/test_nba_kotc_site.py`
   (the page on a data.json built from it; `SiteBrowser.nba` serves it).
 - Not built yet: players' PRA lines from the books (SmartStake / Novig), a with/without-teammate
-  usage bump, DraftKings payouts (King of the Crease's Winners idea), pace.
+  usage bump, pace, Est Pay by slate size (one line for every night for now).

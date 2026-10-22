@@ -1,9 +1,11 @@
 // ---- GMG NBA Suite: Promo Tools, King of the Court ----
 // DraftKings pays out on the night's most points + rebounds + assists (PRA).
-// Everything comes from nba/data.json `kotc` (nfl_tool/nba/kotc.py): both
-// seasons' boards, the next few nights' slates projected from each, and the
+// Everything comes from nba/data.json `kotc` (nfl_tool/nba/kotc.py): this
+// season's board (this season only since 2026-10-22), the next few nights'
+// slates, every finished night as its pregame board had it (`past`), and the
 // record of each night's board. The page does no projection math; it picks a
-// season and a night, sorts and colors.
+// night, sorts and colors. The one fit here is the payout estimate, from the
+// payouts the owner logs (/api/court-payouts).
 
 let DATA = null;
 let KOTC = null;
@@ -12,9 +14,9 @@ let dayIndex = 0;
 let showAll = false;
 let nightsShown = 15;
 const playerSort = { key: "lead", dir: -1 };
-const defSort = { key: "score", dir: -1 };
+const pastSort = { key: "pra", dir: -1 };
+const defSort = { key: "star", dir: -1 };
 let defPlayingOnly = false;  // defense board: only the night's teams (for screenshots)
-const SEASON_KEY = "nba-tool.kotc-season.v1";
 const TOP_ROWS = 25;
 
 const el = (id) => document.getElementById(id);
@@ -39,23 +41,11 @@ const range = (values) => {
 
 const block = () => KOTC.seasons[season];
 const slate = () => KOTC.slates[season] || {};
-const days = () => Object.keys(KOTC.slates[KOTC.default] || slate()).sort();
+const past = () => KOTC.past || {};
+// Finished nights (as their pregame boards had them), then tonight and the next few.
+const days = () => [...new Set([...Object.keys(past()), ...Object.keys(slate())])].sort();
+const isPast = (date) => !!past()[date] && !slate()[date];
 const gameOf = (id) => DATA.schedule.find((g) => g.game_id === id) || {};
-
-// ---- season switch ----
-function renderSeasons() {
-  el("kotc-seasons").innerHTML = Object.keys(KOTC.seasons)
-    .sort()
-    .map((s) => `<button type="button" class="view-toggle-btn${s === season ? " active" : ""}" data-season="${s}">${KOTC.seasons[s].label}</button>`)
-    .join("") + (KOTC.seasons[DATA.season] ? "" : `<button type="button" class="view-toggle-btn" disabled title="After the first games">${DATA.season_label}</button>`);
-  const note = el("kotc-note");
-  const b = block();
-  const thisSeason = String(DATA.season);
-  note.hidden = false;
-  note.textContent = season === thisSeason
-    ? `${b.label} numbers: ${b.games} games so far. Each player's average starts with 5 games of his last season mixed in, so a hot first week can't run away with it.`
-    : `${b.label} numbers, with players on their current teams.${KOTC.seasons[thisSeason] ? ` ${KOTC.seasons[thisSeason].label} has ${KOTC.seasons[thisSeason].games} games so far.` : ` ${DATA.season_label} numbers take over once teams have a few games in.`}`;
-}
 
 // PG / SG / SF / PF / C from ESPN's depth charts (positions.py).
 const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
@@ -68,15 +58,15 @@ const PLAYER_COLS = [
   { key: "lead", label: "Lead %", title: "His chance to have the most PRA of the night", value: (r) => r.lead },
   { key: "proj", label: "Proj", title: "Tonight's projected PRA", value: (r) => r.proj },
   { key: "pra", label: "Avg", title: "PRA a game this season", value: (r) => r.p.pra },
-  { key: "l10", label: "L10", title: "PRA a game, last 10 games", value: (r) => r.p.l10 },
   ...[0, 1, 2, 3, 4].map((i) => ({ key: `b${i}`, label: "", bucket: i, value: (r) => r.p.buckets[i] })),
-  { key: "score", label: "Score", title: "40+ x1, 45+ x2, 50+ x3, 55+ x4, 60+ x5", value: (r) => r.p.score },
   { key: "opp", label: "Opp", value: (r) => r.opp },
-  { key: "matchup", label: "Matchup", title: "The other team's Score for PRA given up (green = gives up the most)", value: (r) => r.def && r.def.score },
+  { key: "oppTop", label: "Opp Top", title: "In the other team's games this season, the most PRA any one opponent had, on average (green = it lets the other team's best player go big)", value: (r) => r.def && r.def.star },
   { key: "vspos", label: "vs Pos", title: "PRA a minute the other team allows his position, against the league. The projection still reads guards / forwards / centers for now", value: (r) => r.def && r.def.pos_f && r.def.pos_f[r.p.pos] },
   { key: "total", label: "Total", title: "The game's total (Novig)", value: (r) => r.game.total_line },
   { key: "spread", label: "Spread", title: "His team's spread. 10+ point games produced fewer leaders last season (starters sit)", value: (r) => r.spread },
+  { key: "est", label: "Est Pay", fit: true, title: "About what DraftKings would pay each person on him if he wins, fit from the payouts logged so far", value: (r) => estPay(r.lead) },
 ];
+const playerCols = () => PLAYER_COLS.filter((c) => !c.fit || payoutFit());
 
 function playerRows(date) {
   const b = block();
@@ -93,14 +83,16 @@ function playerRows(date) {
 
 function renderPlayers() {
   const date = days()[dayIndex];
+  if (isPast(date)) return renderPast(date);
   const rows = playerRows(date);
+  const COLS = playerCols();
   const games = new Set(rows.map((r) => r.game_id)).size;
   el("kotc-capture-sub").textContent = date ? `${dayWords(date, { weekday: "long", month: "long", day: "numeric" })} · ${games} game${games === 1 ? "" : "s"} · ${block().label} numbers` : "";
   if (!rows.length) {
     el("kotc-players").innerHTML = `<p class="no-data-note">No players to show for this night.</p>`;
     return;
   }
-  const col = PLAYER_COLS.find((c) => c.key === playerSort.key) || PLAYER_COLS[2];
+  const col = COLS.find((c) => c.key === playerSort.key) || COLS[2];
   const live = rows.filter((r) => !r.out);
   const out = rows.filter((r) => r.out);
   const cmp = (a, b) => {
@@ -114,13 +106,12 @@ function renderPlayers() {
   const leadMax = Math.max(...live.map((r) => r.lead || 0), 0.0001);
   const [pLo, pHi] = scale((r) => r.proj);
   const [aLo, aHi] = scale((r) => r.p.pra);
-  const [sLo, sHi] = scale((r) => r.p.score);
   const bucketHi = [0, 1, 2, 3, 4].map((i) => Math.max(1, ...live.map((r) => r.p.buckets[i])));
-  const [mLo, mHi] = range(Object.values(block().defense).map((d) => d.score));
+  const [mLo, mHi] = range(Object.values(block().defense).map((d) => d.star));
   const [tLo, tHi] = scale((r) => r.game.total_line);
   const thresholds = KOTC.thresholds;
 
-  const head = PLAYER_COLS.map((c) => {
+  const head = COLS.map((c) => {
     const label = c.bucket !== undefined ? `${thresholds[c.bucket]}+` : c.label;
     const sorted = playerSort.key === c.key ? (playerSort.dir < 0 ? " &#9662;" : " &#9652;") : "";
     return c.sort === false ? `<th>${label}</th>` : `<th class="koe-sort${c.key === "name" ? "" : " num"}" data-sort="${c.key}"${c.title ? ` title="${c.title}"` : ""}>${label}${sorted}</th>`;
@@ -130,7 +121,6 @@ function renderPlayers() {
     const p = r.p;
     const tags = [];
     if (r.b2b) tags.push(`<span class="kotc-tag" title="His team played last night">B2B</span>`);
-    if (p.team && p.team !== r.team) tags.push(`<span class="kotc-tag kotc-tag-new" title="These numbers are from ${p.team}">from ${p.team}</span>`);
     if (r.out) tags.push(`<span class="gs-inj-status tier-bad">Out</span>`);
     const pf = r.def && r.def.pos_f && r.def.pos_f[p.pos];
     const blow = r.spread !== null && Math.abs(r.spread) >= 10;
@@ -140,14 +130,13 @@ function renderPlayers() {
       <td class="num kotc-lead"${r.out ? "" : heat(r.lead, 0, leadMax)}>${r.out ? "--" : `${(r.lead * 100).toFixed(r.lead < 0.1 ? 1 : 0)}%`}</td>
       <td class="num"${r.out ? "" : heat(r.proj, pLo, pHi)}><b>${fmt(r.proj)}</b></td>
       <td class="num"${heat(p.pra, aLo, aHi)}>${fmt(p.pra)}</td>
-      <td class="num">${fmt(p.l10)}</td>
       ${p.buckets.map((c, k) => `<td class="num"${heat(c, 0, bucketHi[k])}>${c}</td>`).join("")}
-      <td class="num"${heat(p.score, sLo, sHi)}><b>${p.score}</b></td>
       <td class="kotc-opp">${r.home ? "vs" : "@"} ${logo(r.opp, 18)} ${r.opp}</td>
-      <td class="num"${r.def ? heat(r.def.score, mLo, mHi) : ""}>${r.def ? r.def.score : "--"}</td>
+      <td class="num"${r.def ? heat(r.def.star, mLo, mHi) : ""}>${r.def ? fmt(r.def.star) : "--"}</td>
       <td class="num"${pf ? heat(pf, 0.9, 1.1) : ""} title="${pf ? `${r.opp} allows ${(POS_NAMES[p.pos] || p.pos).toLowerCase()} ${fmt(r.def.pos[p.pos])} PRA per 48 minutes` : ""}">${pf ? `${pf >= 1 ? "+" : ""}${Math.round((pf - 1) * 100)}%` : "--"}</td>
       <td class="num"${heat(r.game.total_line, tLo, tHi)}>${r.game.total_line ? fmt(r.game.total_line).replace(/\.0$/, "") : "--"}</td>
       <td class="num${blow ? " kotc-blowout" : ""}"${blow ? ' title="Blowout risk: stars can sit the 4th quarter"' : ""}>${signed(r.spread)}</td>
+      ${payoutFit() ? `<td class="num kotc-est">${r.out ? "--" : moneyShort(estPay(r.lead))}</td>` : ""}
     </tr>`;
   };
   const more = live.length > TOP_ROWS
@@ -155,50 +144,116 @@ function renderPlayers() {
     : "";
   el("kotc-players").innerHTML = `<table class="data-table kotc-table">
       <thead><tr>${head}</tr></thead>
-      <tbody>${shown.map(row).join("")}${out.length ? `<tr class="kotc-group"><td colspan="${PLAYER_COLS.length}">Out tonight</td></tr>${out.map((r) => row(r, 0)).join("")}` : ""}</tbody>
+      <tbody>${shown.map(row).join("")}${out.length ? `<tr class="kotc-group"><td colspan="${COLS.length}">Out tonight</td></tr>${out.map((r) => row(r, 0)).join("")}` : ""}</tbody>
     </table>${more}`;
+}
+
+// ---- a finished night: the pregame board against what happened ----
+const PAST_COLS = [
+  { key: "rank", label: "Pre", title: "His place on the board before the night's first tip (by Lead %)", value: (r) => r.rank },
+  { key: "name", label: "Player", value: (r) => r.name },
+  { key: "pra", label: "PRA", title: "What he had", value: (r) => r.pra },
+  { key: "line", label: "P / R / A", sort: false },
+  { key: "lead", label: "Lead %", title: "His chance to lead the night, before the first tip", value: (r) => r.lead },
+  { key: "proj", label: "Proj", title: "His projected PRA, before the first tip", value: (r) => r.proj },
+  { key: "opp", label: "Opp", value: (r) => r.opp || "" },
+  { key: "paid", label: "Paid", title: "What DraftKings paid (or would have paid) each person on him, as logged", value: (r) => paidOn(r) },
+];
+
+function renderPast(date) {
+  const night = past()[date];
+  const rows = night.rows.slice();
+  const best = night.best;
+  el("kotc-capture-sub").textContent = `${dayWords(date, { weekday: "long", month: "long", day: "numeric" })} · ${night.games} game${night.games === 1 ? "" : "s"} · final`;
+  if (!rows.length) {
+    el("kotc-players").innerHTML = `<p class="no-data-note">Nothing recorded for this night.</p>`;
+    return;
+  }
+  const col = PAST_COLS.find((c) => c.key === pastSort.key) || PAST_COLS[2];
+  rows.sort((a, b) => {
+    // Didn't play goes last whatever the sort.
+    if ((a.pra === null) !== (b.pra === null)) return a.pra === null ? 1 : -1;
+    const va = col.value(a), vb = col.value(b);
+    if (typeof va === "string" || typeof vb === "string") return String(va).localeCompare(String(vb)) * pastSort.dir;
+    const missing = pastSort.dir < 0 ? -Infinity : Infinity;
+    return ((va ?? missing) - (vb ?? missing)) * pastSort.dir || (b.pra ?? -1) - (a.pra ?? -1);
+  });
+  const shown = showAll ? rows : rows.slice(0, TOP_ROWS);
+  const [xLo, xHi] = range(rows.map((r) => r.pra));
+  const leadMax = Math.max(...rows.map((r) => r.lead || 0), 0.0001);
+  const [pLo, pHi] = range(rows.map((r) => r.proj));
+  const head = PAST_COLS.map((c) => {
+    const sorted = pastSort.key === c.key ? (pastSort.dir < 0 ? " &#9662;" : " &#9652;") : "";
+    return c.sort === false ? `<th class="num">${c.label}</th>` : `<th class="koe-sort${c.key === "name" ? "" : " num"}" data-pastsort="${c.key}"${c.title ? ` title="${c.title}"` : ""}>${c.label}${sorted}</th>`;
+  }).join("");
+  const has = (x) => x !== null && x !== undefined;
+  const body = shown.map((r) => {
+    const won = has(r.pra) && r.pra === best;
+    const paid = paidOn(r);
+    return `<tr class="${won ? "kotc-won" : has(r.pra) ? "" : "kotc-out"}" data-player="${r.id}">
+      <td class="num kotc-rank">${r.rank ?? ""}</td>
+      <td class="kotc-player"><img src="${headshot(r.id)}" alt="" class="kotc-face" loading="lazy" onerror="this.style.visibility='hidden'"><span class="kotc-who"><b>${playerClick(r.id, r.name)}</b><span class="kotc-sub">${logo(r.team, 14)} ${r.team || ""}</span></span>${won ? `<span class="kotc-crown" title="Most PRA of the night">&#9733;</span>` : ""}${has(r.pra) ? "" : `<span class="gs-inj-status tier-bad">DNP</span>`}</td>
+      <td class="num kotc-lead"${has(r.pra) ? heat(r.pra, xLo, xHi) : ""}>${r.pra ?? "--"}</td>
+      <td class="num kotc-pra-line">${has(r.pra) ? `${r.pts} / ${r.reb} / ${r.ast}` : ""}</td>
+      <td class="num"${has(r.lead) ? heat(r.lead, 0, leadMax) : ""}>${has(r.lead) ? `${(r.lead * 100).toFixed(r.lead < 0.1 ? 1 : 0)}%` : "--"}</td>
+      <td class="num"${has(r.proj) ? heat(r.proj, pLo, pHi) : ""}>${fmt(r.proj)}</td>
+      <td class="kotc-opp">${r.opp ? `${r.home ? "vs" : "@"} ${logo(r.opp, 18)} ${r.opp}` : ""}</td>
+      <td class="num kotc-est">${has(paid) ? moneyShort(paid) : ""}</td>
+    </tr>`;
+  }).join("");
+  const more = rows.length > TOP_ROWS
+    ? `<button type="button" id="kotc-more" class="view-toggle-btn kotc-more">${showAll ? `Show top ${TOP_ROWS}` : `Show all ${rows.length}`}</button>`
+    : "";
+  el("kotc-players").innerHTML = `<table class="data-table kotc-table kotc-past-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>${more}`;
 }
 
 // ---- defense board ----
 const TARGET_TOP = 100;
+const TARGETS_PER_TEAM = 3;
 const DEF_COLS = [
   { key: "team", label: "Team", value: (t) => t.abbr },
   { key: "tonight", label: "Tonight", value: (t) => t.opp || "" },
   ...[0, 1, 2, 3, 4].map((i) => ({ key: `b${i}`, bucket: i, value: (t) => t.d.buckets[i] })),
-  { key: "score", label: "Score", value: (t) => t.d.score },
-  { key: "star", label: "Best opp", title: "Most PRA by one opponent, average a game", value: (t) => t.d.star },
+  { key: "star", label: "Top Opp", title: "The most PRA any one opponent had against them, average a game", value: (t) => t.d.star },
   ...POSITIONS.map((p) => ({ key: `pos${p}`, label: `vs ${p}`, title: `PRA per 48 minutes allowed to ${POS_NAMES[p].toLowerCase()}`, value: (t) => t.d.pos[p] })),
   { key: "games", label: "GP", value: (t) => t.d.games },
-  { key: "targets", label: "Targets", title: `Tonight's opponents in the top ${TARGET_TOP} on the player board (Lead %)`, value: (t) => t.targets.length },
+  { key: "targets", label: "Targets", title: `The other team's top ${TARGETS_PER_TEAM} on the player board by Lead % (of the night's top ${TARGET_TOP})`, value: (t) => t.targets.length },
 ];
 
 function renderDefense() {
   const date = days()[dayIndex];
   const tonight = {};
   const b2b = new Set();
-  for (const r of slate()[date] || []) {
+  const finished = isPast(date);
+  // A finished night: its teams and pregame board; else tonight's slate.
+  const nightRows = finished
+    ? past()[date].rows.filter((r) => r.opp).map((r) => ({ ...r, out: false, lead: r.lead ?? 0, proj: r.proj ?? 0 }))
+    : playerRows(date).map((r) => ({ ...r, name: r.p.name }));
+  for (const r of nightRows) {
     tonight[r.team] = { opp: r.opp, home: r.home };
     if (r.b2b) b2b.add(r.team);
   }
-  // Targets: the player board's top 100 by Lead % (as it sorts by default), listed on the defense they face.
+  // Targets: each team's top 3 by Lead % (of the board's top 100), listed on the defense they face.
   const targets = {};
-  playerRows(date).filter((r) => !r.out).sort((a, b) => b.lead - a.lead || b.proj - a.proj).slice(0, TARGET_TOP)
-    .forEach((r) => (targets[r.opp] = targets[r.opp] || []).push(r.p.name));
+  nightRows.filter((r) => !r.out && (!finished || r.rank)).sort((a, b) => b.lead - a.lead || b.proj - a.proj).slice(0, TARGET_TOP)
+    .forEach((r) => {
+      const list = (targets[r.opp] = targets[r.opp] || []);
+      if (list.length < TARGETS_PER_TEAM) list.push(r.name);
+    });
   const rows = Object.entries(block().defense).map(([abbr, d]) => ({ abbr, d, opp: tonight[abbr] ? tonight[abbr].opp : null, home: tonight[abbr] && tonight[abbr].home, targets: targets[abbr] || [] }));
-  const col = DEF_COLS.find((c) => c.key === defSort.key) || DEF_COLS[7];
+  const col = DEF_COLS.find((c) => c.key === defSort.key) || DEF_COLS[7];  // 7 = Top Opp
   rows.sort((a, b) => {
     const va = col.value(a), vb = col.value(b);
     if (typeof va === "string" || typeof vb === "string") return String(va).localeCompare(String(vb)) * defSort.dir;
     return ((va ?? -Infinity) - (vb ?? -Infinity)) * defSort.dir;
   });
   const hi = [0, 1, 2, 3, 4].map((i) => range(rows.map((t) => t.d.buckets[i])));
-  const sc = range(rows.map((t) => t.d.score));
   const st = range(rows.map((t) => t.d.star));
   const pos = POSITIONS.map((p) => range(rows.map((t) => t.d.pos[p])));
   // Hiding the idle teams keeps the colors against all 30 (ranges above use every row).
   const hide = defPlayingOnly && Object.keys(tonight).length > 0;
   el("kotc-def-playing").textContent = defPlayingOnly ? "Show All Teams" : "Hide Teams Not Playing";
-  el("kotc-def-sub").textContent = `${block().label} · ${date ? `teams playing ${dayWords(date)}${hide ? "" : " in bold"}` : ""}`;
+  el("kotc-def-sub").textContent = `${block().label}${finished ? " as of today" : ""} · ${date ? `teams playing ${dayWords(date)}${hide ? "" : " in bold"}` : ""}`;
   const head = DEF_COLS.map((c) => {
     const label = c.bucket !== undefined ? `${KOTC.thresholds[c.bucket]}+` : c.label;
     const sorted = defSort.key === c.key ? (defSort.dir < 0 ? " &#9662;" : " &#9652;") : "";
@@ -209,8 +264,7 @@ function renderDefense() {
       <td class="kotc-team">${logo(t.abbr, 20)} <b>${t.abbr}</b>${b2b.has(t.abbr) ? ` <span class="kotc-tag" title="Played last night">B2B</span>` : ""}</td>
       <td class="kotc-opp">${t.opp ? `${t.home ? "vs" : "@"} ${logo(t.opp, 16)} ${t.opp}` : ""}</td>
       ${t.d.buckets.map((c, k) => `<td class="num"${heat(c, hi[k][0], hi[k][1], true)}>${c}</td>`).join("")}
-      <td class="num"${heat(t.d.score, sc[0], sc[1], true)}><b>${t.d.score}</b></td>
-      <td class="num"${heat(t.d.star, st[0], st[1], true)}>${fmt(t.d.star)}</td>
+      <td class="num"${heat(t.d.star, st[0], st[1], true)}><b>${fmt(t.d.star)}</b></td>
       ${POSITIONS.map((p, k) => `<td class="num"${heat(t.d.pos[p], pos[k][0], pos[k][1], true)}>${fmt(t.d.pos[p])}</td>`).join("")}
       <td class="num">${t.d.games}</td>
       <td class="kotc-targets">${t.targets.map((n) => `<span title="${n}">${n.split(" ").slice(1).join(" ") || n}</span>`).join(", ")}</td>
@@ -221,7 +275,7 @@ function renderDefense() {
 // ---- nightly leaders ----
 function renderNights() {
   const nights = (block().nights || []).slice().reverse();
-  const record = String(DATA.season) === season ? KOTC.record || {} : {};
+  const record = KOTC.record || {};
   if (!nights.length) {
     el("kotc-nights").innerHTML = `<p class="no-data-note">No finished nights yet this season.</p>`;
     return;
@@ -238,6 +292,7 @@ function renderNights() {
       <span class="kotc-night-line" title="${lead.pts} pts, ${lead.reb} reb, ${lead.ast} ast vs ${lead.opp}${n.second ? `; next best ${n.second}` : ""}">${line}</span>
       ${preTag}
       <span class="koe-win-yds">${n.pra}</span>
+      <span class="kotc-night-paid" title="What DraftKings paid each person on him (logged)">${paidOn(lead, n.date) !== null ? moneyShort(paidOn(lead, n.date)) : ""}</span>
     </div>`;
   });
   el("kotc-nights").innerHTML = list.join("") + (nights.length > nightsShown ? `<button type="button" id="kotc-nights-more" class="view-toggle-btn kotc-more">Show more</button>` : "");
@@ -246,11 +301,11 @@ function renderNights() {
 // ---- Historical Data ----
 function renderHistory() {
   // This season's popup needs a few weeks of nights; until then it shows last season's.
-  let s = season;
-  if ((KOTC.seasons[s].summary || {}).nights < 20) s = Object.keys(KOTC.seasons).sort()[0];
-  const b = KOTC.seasons[s];
+  // Last season's numbers are labeled reference data, shown only until this season has 20 nights.
+  const own = block();
+  const b = (own.summary || {}).nights >= 20 || !KOTC.reference ? own : KOTC.reference;
   const sum = b.summary;
-  el("kotc-hist-season").textContent = `${b.label}, ${sum.nights} nights`;
+  el("kotc-hist-season").textContent = `${b.label}, ${sum.nights} nights${b === own ? "" : " (last season, for reference)"}`;
   const pct = (x) => (x === null || x === undefined ? "--" : `${Math.round(x * 100)}%`);
   const ratio = (r) => (r.fair ? r.share / r.fair : null);
   const mixRows = (rows) => rows.map((r) => {
@@ -298,22 +353,155 @@ function render() {
   el("kotc-day-label").textContent = all[dayIndex] ? dayWords(all[dayIndex]) : "No games";
   el("kotc-day-prev").disabled = dayIndex <= 0;
   el("kotc-day-next").disabled = dayIndex >= all.length - 1;
-  renderSeasons();
+  el("kotc-note").hidden = false;
+  el("kotc-note").textContent = isPast(all[dayIndex])
+    ? "A finished night: the board as it stood before the first tip (Pre, Lead %, Proj) against what each player had."
+    : `${block().label} numbers only: ${block().games} games so far.`;
   renderPlayers();
   renderDefense();
   renderNights();
+  renderPayoutForm();
 }
 
-function setSeason(s) {
-  if (!KOTC.seasons[s]) return;
-  season = s;
-  nightsShown = 15;
-  try {
-    localStorage.setItem(SEASON_KEY, s);
-  } catch (e) {
-    // localStorage unavailable -- the choice just won't be remembered.
+// ---- payouts ----
+// After each night DraftKings shows what a few players paid (or would have
+// paid) each person on them; the pool is split evenly among everyone on the
+// winner, so pool / paid = about how many people were on him. The owner pastes
+// that list (/api/court-payouts, D1). With enough logged, paid / pool is fit
+// against each player's pregame Lead % (a straight line in logs: favorites
+// are on more entries, so they pay less), and the board shows Est Pay.
+let PAYOUTS = {};
+const FIT_MIN = 6;  // logged payouts with a pregame Lead % before Est Pay shows
+const plainName = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]+/g, " ").trim();
+const money = (n) => `$${Math.round(n).toLocaleString("en-US")}`;
+const moneyShort = (n) => (n === null || n === undefined ? "--" : n >= 10000 ? `$${(n / 1000).toFixed(n >= 100000 ? 0 : 1)}K` : money(n));
+function paidOn(r, date = days()[dayIndex]) {
+  const logged = PAYOUTS[date];
+  if (!logged || !r) return null;
+  const p = logged.payouts.find((x) => (x.id && r.id ? String(x.id) === String(r.id) : plainName(x.name) === plainName(r.name)));
+  return p ? p.paid : null;
+}
+let fitCache;
+function payoutFit() {
+  if (fitCache !== undefined) return fitCache;
+  const pts = [];
+  let pool = null;
+  for (const date of Object.keys(PAYOUTS).sort()) {
+    const night = past()[date];
+    const logged = PAYOUTS[date];
+    if (!night || !logged.pool) continue;
+    pool = logged.pool;
+    for (const p of logged.payouts) {
+      const r = night.rows.find((x) => String(x.id) === String(p.id));
+      if (r && r.lead > 0 && p.paid > 0) pts.push([Math.log(r.lead), Math.log(p.paid / logged.pool)]);
+    }
   }
-  render();
+  if (pts.length < FIT_MIN) return (fitCache = null);
+  const mx = pts.reduce((a, p) => a + p[0], 0) / pts.length;
+  const my = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+  const sxx = pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0);
+  const b = sxx ? pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / sxx : 0;
+  return (fitCache = { a: my - b * mx, b, n: pts.length, pool });
+}
+function estPay(lead) {
+  const f = payoutFit();
+  if (!f || !lead) return null;
+  return f.pool * Math.exp(f.a) * lead ** f.b;
+}
+// A pasted name to one of the night's players: the whole name with accents
+// dropped, else a last name only one of them has.
+function matchPlayer(name, rows) {
+  const want = plainName(name);
+  const exact = rows.find((r) => plainName(r.name) === want);
+  if (exact) return exact;
+  const last = want.split(" ").pop();
+  const hits = rows.filter((r) => plainName(r.name).split(" ").pop() === last);
+  return hits.length === 1 ? hits[0] : null;
+}
+// DraftKings' list, one player a line: "Nikola Jokic - $140 in Bonus Bets".
+function parsePayouts(text, rows) {
+  const read = [];
+  const missed = [];
+  for (const raw of String(text || "").split(/\r?\n/)) {
+    const m = raw.match(/\$\s*([\d,]+(?:\.\d+)?)/);
+    if (!m) continue;
+    const name = raw.slice(0, m.index).replace(/^[^\p{L}]+/u, "").replace(/[\s\-–—:|=]+$/, "").trim();
+    if (!name) continue;
+    const r = matchPlayer(name, rows);
+    if (r) read.push({ id: r.id, name: r.name, paid: Math.round(Number(m[1].replace(/,/g, ""))) });
+    else missed.push(name);
+  }
+  return { read, missed };
+}
+// The owner's box (html.is-owner, and on localhost; the server checks again).
+function renderPayoutForm() {
+  const pick = el("kotc-log-date");
+  const nights = Object.keys(past()).filter((d) => past()[d].best !== null).sort().reverse();
+  el("kotc-log").hidden = !nights.length;
+  const keep = isPast(days()[dayIndex]) ? days()[dayIndex] : pick.value || nights[0];
+  pick.innerHTML = nights.map((d) => `<option value="${d}">${dayWords(d)}</option>`).join("");
+  if (nights.includes(keep)) pick.value = keep;
+  if (pick.dataset.filled !== pick.value) fillPayoutForm();
+  const f = payoutFit();
+  const logged = Object.values(PAYOUTS).reduce((a, d) => a + d.payouts.length, 0);
+  el("kotc-fit").innerHTML = f
+    ? `<b>Est Pay</b> is on the board: fit from ${f.n} logged payouts against each player's pregame Lead %, at a ${moneyShort(f.pool)} pool. A 10% player pays about ${moneyShort(estPay(0.1))}, a 2% player about ${moneyShort(estPay(0.02))}.`
+    : `${logged} payout${logged === 1 ? "" : "s"} logged. <b>Est Pay</b> joins the board once ${FIT_MIN} are in for players who were on the pregame board.`;
+}
+function fillPayoutForm() {
+  const pick = el("kotc-log-date");
+  const logged = PAYOUTS[pick.value];
+  const lastPool = Object.keys(PAYOUTS).sort().map((d) => PAYOUTS[d].pool).filter(Boolean).pop();
+  const pool = (logged && logged.pool) || lastPool;
+  el("kotc-log-pool").value = pool ? pool.toLocaleString("en-US") : "";
+  el("kotc-log-text").value = logged ? logged.payouts.map((p) => `${p.name} - ${money(p.paid)}`).join("\n") : "";
+  pick.dataset.filled = pick.value;
+  checkPayoutForm();
+}
+function payoutFormRead() {
+  const night = past()[el("kotc-log-date").value];
+  return night ? parsePayouts(el("kotc-log-text").value, night.rows) : { read: [], missed: [] };
+}
+const poolTyped = () => Math.round(Number(el("kotc-log-pool").value.replace(/[^\d.]/g, ""))) || 0;
+function checkPayoutForm() {
+  const { read, missed } = payoutFormRead();
+  const pool = poolTyped();
+  const status = el("kotc-log-status");
+  status.className = `kotc-log-status${missed.length || !pool ? " kotc-log-bad" : read.length ? " kotc-log-good" : ""}`;
+  status.textContent = missed.length
+    ? `Not on that night's list: ${missed.join(", ")}`
+    : !pool ? "Type the prize pool" : read.length ? `✓ ${read.length} player${read.length === 1 ? "" : "s"} matched` : "Paste DraftKings' list: one player and $ amount a line";
+  el("kotc-log-save").disabled = !!missed.length || !pool;
+}
+async function savePayouts() {
+  const btn = el("kotc-log-save");
+  const date = el("kotc-log-date").value;
+  const pool = poolTyped();
+  const { read, missed } = payoutFormRead();
+  if (missed.length || !pool) return;
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  try {
+    const res = await fetch("/api/court-payouts", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date, pool, payouts: read }) });
+    if (!res.ok) throw new Error(String(res.status));
+    if (read.length) PAYOUTS[date] = { pool, payouts: read };
+    else delete PAYOUTS[date];
+    fitCache = undefined;
+    btn.textContent = "Saved";
+    render();
+  } catch (e) {
+    btn.textContent = "Couldn't save";
+  }
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = "Save";
+  }, 2000);
+}
+function loadPayouts() {
+  return fetch("/api/court-payouts", { credentials: "same-origin", cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => (d && d.days ? d.days : {}))
+    .catch(() => ({}));
 }
 
 // The image (same as King of the Crease: html-to-image, fonts inlined).
@@ -384,10 +572,9 @@ async function saveImage(btnId, cardId, name) {
 
 document.addEventListener("click", (e) => {
   if (!KOTC) return;
-  const s = e.target.closest("[data-season]");
-  if (s) return setSeason(s.dataset.season);
-  if (e.target.closest("#kotc-day-prev")) return (dayIndex = Math.max(0, dayIndex - 1)), render();
-  if (e.target.closest("#kotc-day-next")) return (dayIndex = Math.min(days().length - 1, dayIndex + 1)), render();
+  if (e.target.closest("#kotc-day-prev")) return (dayIndex = Math.max(0, dayIndex - 1)), (showAll = false), render();
+  if (e.target.closest("#kotc-day-next")) return (dayIndex = Math.min(days().length - 1, dayIndex + 1)), (showAll = false), render();
+  if (e.target.closest("#kotc-log-save")) return savePayouts();
   if (e.target.closest("#kotc-more")) return (showAll = !showAll), renderPlayers();
   if (e.target.closest("#kotc-nights-more")) return (nightsShown += 30), renderNights();
   if (e.target.closest("#kotc-save")) return saveImage("kotc-save", "kotc-capture", "king-of-the-court");
@@ -406,6 +593,12 @@ document.addEventListener("click", (e) => {
   if (sort) {
     const key = sort.dataset.sort;
     Object.assign(playerSort, playerSort.key === key ? { dir: -playerSort.dir } : { key, dir: key === "name" ? 1 : -1 });
+    return renderPlayers();
+  }
+  const psort = e.target.closest("[data-pastsort]");
+  if (psort) {
+    const key = psort.dataset.pastsort;
+    Object.assign(pastSort, pastSort.key === key ? { dir: -pastSort.dir } : { key, dir: key === "name" || key === "opp" || key === "rank" ? 1 : -1 });
     return renderPlayers();
   }
   const dsort = e.target.closest("[data-defsort]");
@@ -427,31 +620,33 @@ document.addEventListener("click", (e) => {
     render();
   }
 });
+document.addEventListener("input", (e) => {
+  if (e.target.id === "kotc-log-text" || e.target.id === "kotc-log-pool") checkPayoutForm();
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "kotc-log-date") fillPayoutForm();
+});
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !el("kotc-history-modal").hidden) el("kotc-history-modal").hidden = true;
 });
 
-fetch("data.json")
-  .then((r) => r.json())
-  .then((data) => {
+Promise.all([fetch("data.json").then((r) => r.json()), loadPayouts()])
+  .then(([data, payouts]) => {
+    PAYOUTS = payouts;
     DATA = data;
     KOTC = data.kotc;
     el("empty-state").hidden = true;
-    if (!KOTC || !Object.keys(KOTC.seasons || {}).length) {
+    if (!KOTC || !KOTC.seasons || !KOTC.seasons[KOTC.default]) {
       el("empty-state").hidden = false;
       el("empty-state").innerHTML = "<p>King of the Court isn't available right now. Check back after the next update.</p>";
       return;
     }
-    let saved = null;
-    try {
-      saved = localStorage.getItem(SEASON_KEY);
-    } catch (e) {
-      // localStorage unavailable.
-    }
-    season = KOTC.seasons[saved] ? saved : KOTC.default;
+    season = KOTC.default;
     const today = new Date().toLocaleDateString("en-CA");
     const all = days();
-    dayIndex = Math.max(0, all.indexOf(all.find((d) => d >= today) || all[0]));
+    // Tonight (or the next night with games); with none ahead, the last finished one.
+    const next = all.findIndex((d) => d >= today);
+    dayIndex = next >= 0 ? next : Math.max(0, all.length - 1);
     render();
   })
   .catch((err) => {

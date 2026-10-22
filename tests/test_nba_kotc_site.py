@@ -4,9 +4,13 @@ test_nba_kotc's small season.
 
 What is pinned: the page shows the build's projections and chances and does
 no math of its own; best chance first, Out players last with no chance; every
-column sorts; the season switch (a disabled 2026-27 until it has games); the
-defense board lists every team and dims the ones not playing; the nightly
-leaders list; the Historical Data popup; the Promo Tools menu links here."""
+column sorts; this season only (no season switch); stepping back to a
+finished night shows its pregame board against what happened; the defense
+board sits beside the player board, lists every team, dims the ones not
+playing and names each team's top 3 targets; the nightly leaders list; the
+payout box reads DraftKings' list, and Est Pay shows only once enough payouts
+are logged; the Historical Data popup (last season's, labeled, until this
+season has 20 nights); the Promo Tools menu links here."""
 import unittest
 
 from helpers import SAMPLE_BUILT_UTC  # noqa: F401  first: puts tools/ on the import path
@@ -16,16 +20,21 @@ from test_nba_kotc import LINES, SEASON, TEAMS, kotc
 
 SITE = PAGE = None
 NIGHT = "2026-10-20"
+PAST = "2026-01-02"  # a finished night in SEASON
+RECORD = {PAST: {"season_used": "2026-27", "board": [{"id": "20", "name": "Star B", "team": "BBB", "proj": 41.0, "lead": 0.5},
+                                                   {"id": "10", "name": "Star A", "team": "AAA", "proj": 38.0, "lead": 0.3},
+                                                   {"id": "30", "name": "Star C", "team": "CCC", "proj": 33.0, "lead": 0.1},
+                                                   {"id": "40", "name": "Star D", "team": "DDD", "proj": 32.0, "lead": 0.06},
+                                                   {"id": "11", "name": "Big A", "team": "AAA", "proj": 25.0, "lead": 0.02},
+                                                   {"id": "99", "name": "Scratch Guy", "team": "DDD", "proj": 30.0, "lead": 0.02}]}}
 
 
-def nba_data(with_this_season=False):
+def nba_data():
     old = kotc.MIN_GAMES
     kotc.MIN_GAMES = 1
     try:
         pg = kotc.player_games(SEASON, TEAMS)
-        blocks = {"2026": kotc.season_block(pg, LINES, "2025-26")}
-        if with_this_season:
-            blocks["2027"] = kotc.season_block(pg, LINES, "2026-27", blocks["2026"]["players"])
+        blocks = {"2027": kotc.season_block(pg, LINES, "2026-27")}
         games = [
             {"game_id": "9", "date": NIGHT, "time": "19:30", "start_utc": "2026-10-20T23:30Z", "away": "BBB", "home": "AAA", "status": "scheduled",
              "home_team_spread": -4.0, "away_team_spread": 4.0, "total_line": 232.0},
@@ -37,10 +46,12 @@ def nba_data(with_this_season=False):
         kotc.MIN_GAMES = old
     for b in blocks.values():
         b.pop("_league")
+    past = kotc.past_nights(pg, RECORD, NIGHT)
     teams = {t: {"name": t, "short": t, "logo": "", "color": "555555"} for t in TEAMS}
     return {
         "season": 2027, "season_label": "2026-27", "teams": teams, "schedule": games, "team_stats": {}, "players": {}, "injuries": {},
-        "kotc": {"default": "2026", "weights": kotc.WEIGHTS, "thresholds": list(kotc.THRESHOLDS), "seasons": blocks, "slates": slates, "record": {}},
+        "kotc": {"default": "2027", "weights": kotc.WEIGHTS, "thresholds": list(kotc.THRESHOLDS), "seasons": blocks, "slates": slates,
+                 "past": past, "reference": {"label": "2025-26", "summary": blocks["2027"]["summary"]}, "record": RECORD},
     }
 
 
@@ -65,16 +76,20 @@ ROWS = """() => [...document.querySelectorAll('#kotc-players tbody tr[data-playe
     id: tr.dataset.player, out: tr.classList.contains('kotc-out'), lead: tr.children[2].textContent.trim(), proj: tr.children[3].textContent.trim() }))"""
 
 
+def show(date):
+    PAGE.evaluate(f"() => {{ Object.assign(playerSort, {{ key: 'lead', dir: -1 }}); Object.assign(pastSort, {{ key: 'pra', dir: -1 }}); defPlayingOnly = false; dayIndex = days().indexOf('{date}'); render(); }}")
+
+
 class Board(unittest.TestCase):
     def setUp(self):
-        PAGE.evaluate("() => { Object.assign(playerSort, { key: 'lead', dir: -1 }); dayIndex = days().indexOf('2026-10-20'); render(); }")
+        show(NIGHT)
 
     def test_no_script_errors(self):
         self.assertEqual(SITE.errors, [])
 
     def test_shows_the_builds_numbers_best_chance_first_out_last(self):
         rows = PAGE.evaluate(ROWS)
-        built = {r["id"]: r for r in SITE.nba["kotc"]["slates"]["2026"][NIGHT]}
+        built = {r["id"]: r for r in SITE.nba["kotc"]["slates"]["2027"][NIGHT]}
         self.assertEqual({r["id"] for r in rows}, set(built))
         live = [r for r in rows if not r["out"]]
         self.assertEqual([r["id"] for r in live], [r["id"] for r in sorted((b for b in built.values() if not b["out"]), key=lambda b: -b["lead"])])
@@ -84,19 +99,101 @@ class Board(unittest.TestCase):
         self.assertEqual(rows[-1], {"id": "11", "out": True, "lead": "--", "proj": rows[-1]["proj"]})
 
     def test_every_column_sorts(self):
-        for key in ("name", "proj", "pra", "l10", "b0", "b4", "score", "opp", "matchup", "vspos", "total", "spread"):
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('#kotc-players thead th')].map((th) => th.textContent.replace(/[^A-Za-z0-9 %+]/g, '').trim())")
+        for gone in ("L10", "Score", "Matchup", "Est Pay"):  # Est Pay waits for logged payouts
+            self.assertNotIn(gone, heads)
+        self.assertIn("Opp Top", heads)
+        self.assertNotIn("from", PAGE.inner_text("#kotc-players"))
+        for key in ("name", "proj", "pra", "b0", "b4", "opp", "oppTop", "vspos", "total", "spread"):
             PAGE.evaluate(f"() => document.querySelector('[data-sort=\"{key}\"]').click()")
             rows = PAGE.evaluate(ROWS)
-            self.assertEqual(len(rows), len(SITE.nba["kotc"]["slates"]["2026"][NIGHT]), key)
+            self.assertEqual(len(rows), len(SITE.nba["kotc"]["slates"]["2027"][NIGHT]), key)
             self.assertEqual(rows[-1]["id"], "11", key)  # Out stays last whatever the sort
         self.assertEqual(SITE.errors, [])
 
-    def test_season_switch_waits_for_this_seasons_games(self):
-        buttons = PAGE.evaluate("() => [...document.querySelectorAll('#kotc-seasons button')].map((b) => [b.textContent, b.disabled])")
-        self.assertEqual(buttons, [["2025-26", False], ["2026-27", True]])
+    def test_this_season_only(self):
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('[data-season]').length"), 0)
+        self.assertEqual(PAGE.evaluate("() => season"), "2027")
+
+    def test_the_defense_board_sits_beside_the_players(self):
+        PAGE.set_viewport_size({"width": 1920, "height": 1000})
+        try:
+            box = PAGE.evaluate("() => [document.getElementById('kotc-capture'), document.querySelector('.kotc-def')].map((e) => e.getBoundingClientRect()).map((r) => [r.left, r.top, r.right])")
+            (pl, pt, pr), (dl, dt, _) = box
+            self.assertGreaterEqual(dl, pr)
+            self.assertAlmostEqual(pt, dt, delta=40)
+        finally:
+            PAGE.set_viewport_size({"width": 1280, "height": 900})
+
+
+class FinishedNight(unittest.TestCase):
+    def setUp(self):
+        show(PAST)
+
+    def test_back_arrow_reaches_it(self):
+        show(NIGHT)
+        PAGE.click("#kotc-day-prev")
+        self.assertEqual(PAGE.evaluate("() => days()[dayIndex]"), PAST)
+        self.assertTrue(PAGE.evaluate("() => document.getElementById('kotc-day-next').disabled === false"))
+
+    def test_pregame_board_against_what_happened(self):
+        rows = PAGE.evaluate("""() => [...document.querySelectorAll('.kotc-past-table tbody tr')].map((tr) => ({
+            id: tr.dataset.player, pre: tr.children[0].textContent.trim(), pra: tr.children[2].textContent.trim(), won: tr.classList.contains('kotc-won'), dnp: tr.textContent.includes('DNP') }))""")
+        self.assertEqual([r["pra"] for r in rows if not r["dnp"]], ["50", "50", "39", "35", "25"])
+        self.assertEqual(sorted(r["id"] for r in rows if r["won"]), ["10", "30"])  # the tie: both crowned
+        self.assertEqual(rows[-1], {"id": "99", "pre": "6", "pra": "--", "won": False, "dnp": True})  # didn't play: last
+        self.assertEqual({r["id"]: r["pre"] for r in rows}["20"], "1")
+        self.assertIn("final", PAGE.text_content("#kotc-capture-sub"))
+        self.assertEqual(SITE.errors, [])
+
+    def test_its_columns_sort_and_dnp_stays_last(self):
+        for key in ("rank", "name", "lead", "proj", "opp", "pra"):
+            PAGE.evaluate(f"() => document.querySelector('[data-pastsort=\"{key}\"]').click()")
+            last = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-past-table tbody tr')].pop().dataset.player")
+            self.assertEqual(last, "99", key)
+
+    def test_defense_board_shows_that_nights_teams(self):
+        playing = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-def-table tbody tr.kotc-playing .kotc-team b')].map((b) => b.textContent)")
+        self.assertEqual(sorted(playing), sorted(TEAMS))
+
+
+class Payouts(unittest.TestCase):
+    def tearDown(self):
+        PAGE.evaluate("() => { PAYOUTS = {}; fitCache = undefined; render(); }")
+
+    def test_the_box_reads_draftkings_list(self):
+        show(PAST)
+        PAGE.select_option("#kotc-log-date", PAST)
+        PAGE.fill("#kotc-log-pool", "250,000")
+        PAGE.fill("#kotc-log-text", "\u2b50 Star A - $1,250 in Bonus Bets\nStár C - $900\nNobody - $5")
+        self.assertIn("Nobody", PAGE.inner_text("#kotc-log-status"))
+        self.assertTrue(PAGE.evaluate("() => document.getElementById('kotc-log-save').disabled"))
+        PAGE.fill("#kotc-log-text", "Star A - $1,250 in Bonus Bets\nStar C - $900")
+        self.assertEqual(PAGE.evaluate("() => payoutFormRead().read"), [{"id": "10", "name": "Star A", "paid": 1250}, {"id": "30", "name": "Star C", "paid": 900}])
+        self.assertFalse(PAGE.evaluate("() => document.getElementById('kotc-log-save').disabled"))
+
+    def test_est_pay_shows_once_six_are_logged_and_follows_the_fit(self):
+        show(NIGHT)
+        # Paid = 30 / Lead % on each of the night's board players: the fit must give it back.
+        PAGE.evaluate(f"""() => {{ PAYOUTS = {{ '{PAST}': {{ pool: 250000, payouts: past()['{PAST}'].rows.filter((r) => r.lead).slice(0, 5).map((r) => ({{ id: r.id, name: r.name, paid: Math.round(30 / r.lead) }})) }} }}; fitCache = undefined; render(); }}""")
+        self.assertNotIn("Est Pay", PAGE.text_content("#kotc-players thead"))  # 5 is too few
+        PAGE.evaluate(f"""() => {{ PAYOUTS['{PAST}'].payouts = past()['{PAST}'].rows.filter((r) => r.lead).map((r) => ({{ id: r.id, name: r.name, paid: Math.round(30 / r.lead) }})); fitCache = undefined; render(); }}""")
+        self.assertIn("Est Pay", PAGE.text_content("#kotc-players thead"))
+        self.assertAlmostEqual(PAGE.evaluate("() => estPay(0.1)"), 300, delta=3)
+        self.assertEqual(SITE.errors, [])
+
+    def test_a_logged_payout_shows_on_the_night(self):
+        PAGE.evaluate(f"() => {{ PAYOUTS = {{ '{PAST}': {{ pool: 250000, payouts: [{{ id: '10', name: 'Star A', paid: 1250 }}] }} }}; render(); }}")
+        show(PAST)
+        paid = PAGE.evaluate("() => Object.fromEntries([...document.querySelectorAll('.kotc-past-table tbody tr')].map((tr) => [tr.dataset.player, tr.lastElementChild.textContent.trim()]))")
+        self.assertEqual(paid["10"], "$1,250")
+        self.assertEqual(paid["30"], "")
 
 
 class DefenseAndHistory(unittest.TestCase):
+    def setUp(self):
+        show(NIGHT)
+
     def test_defense_board_lists_every_team_and_dims_idle_ones(self):
         rows = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-def-table tbody tr')].map((tr) => [tr.querySelector('b').textContent, tr.classList.contains('kotc-playing')])")
         self.assertEqual(sorted(t for t, _ in rows), sorted(TEAMS))
@@ -109,12 +206,23 @@ class DefenseAndHistory(unittest.TestCase):
         PAGE.click("#kotc-def-playing")
         self.assertEqual(sorted(PAGE.evaluate(teams)), sorted(TEAMS))
 
-    def test_targets_list_the_top_players_on_the_defense_they_face(self):
+    def test_targets_are_the_top_3_by_lead_on_the_team_they_face(self):
         cells = PAGE.evaluate("() => Object.fromEntries([...document.querySelectorAll('.kotc-def-table tbody tr')].map((tr) => [tr.querySelector('.kotc-team b').textContent, [...tr.querySelectorAll('.kotc-targets span')].map((s) => s.title)]))")
-        rows = [r for r in SITE.nba["kotc"]["slates"]["2026"][NIGHT] if not r.get("out")]  # fewer than 100: every one listed
-        names = SITE.nba["kotc"]["seasons"]["2026"]["players"]
+        names = SITE.nba["kotc"]["seasons"]["2027"]["players"]
+        # Four players against AAA: only the 3 best chances are named, best first.
+        extra = [{"id": "30", "team": "BBB", "opp": "AAA", "game_id": "9", "home": False, "proj": 20.0, "b2b": False, "out": False, "lead": 0.001},
+                 {"id": "40", "team": "BBB", "opp": "AAA", "game_id": "9", "home": False, "proj": 19.0, "b2b": False, "out": False, "lead": 0.0005}]
+        rows = [r for r in SITE.nba["kotc"]["slates"]["2027"][NIGHT] if not r.get("out")]
         for d in TEAMS:
-            self.assertEqual(sorted(cells[d]), sorted(names[r["id"]]["name"] for r in rows if r["opp"] == d), d)
+            want = [names[r["id"]]["name"] for r in sorted((r for r in rows if r["opp"] == d), key=lambda r: -r["lead"])][:3]
+            self.assertEqual(cells[d], want, d)
+        PAGE.evaluate(f"() => {{ KOTC.slates['2027']['{NIGHT}'].push(...{extra!r}.map((r) => JSON.parse(JSON.stringify(r)))); render(); }}".replace("False", "false"))
+        try:
+            got = PAGE.evaluate("() => [...[...document.querySelectorAll('.kotc-def-table tbody tr')].find((tr) => tr.querySelector('.kotc-team b').textContent === 'AAA').querySelectorAll('.kotc-targets span')].map((s) => s.title)")
+            self.assertEqual(len(got), 3)
+            self.assertNotIn("Star D", got)
+        finally:
+            PAGE.evaluate(f"() => {{ KOTC.slates['2027']['{NIGHT}'].splice(-2); render(); }}")
 
     def test_nightly_leaders_newest_first_with_ties(self):
         names = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-night .koe-win-names')].map((e) => e.textContent)")
@@ -125,6 +233,7 @@ class DefenseAndHistory(unittest.TestCase):
         PAGE.click("#kotc-history-btn")
         self.assertFalse(PAGE.evaluate("() => document.getElementById('kotc-history-modal').hidden"))
         self.assertIn("2025-26", PAGE.inner_text("#kotc-hist-season"))
+        self.assertIn("for reference", PAGE.text_content("#kotc-hist-season"))  # this season has 2 nights, not 20
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.kotc-hist-tile').length"), 4)
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.evaluate("() => document.getElementById('kotc-history-modal').hidden"))
@@ -132,24 +241,6 @@ class DefenseAndHistory(unittest.TestCase):
     def test_promo_menu_links_here(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.promo-menu a')].map((a) => a.getAttribute('href'))")
         self.assertIn("/nba/promo-tools.html", links)
-
-
-class ThisSeason(unittest.TestCase):
-    def test_switching_to_this_season_and_back(self):
-        page = SITE.context.new_page()
-        SITE.nba = nba_data(with_this_season=True)
-        try:
-            page.goto(f"{SITE.origin}/nba/promo-tools.html")
-            page.wait_for_function("() => KOTC && document.querySelector('.kotc-table')")
-            page.click("#kotc-seasons [data-season='2027']")
-            self.assertEqual(page.evaluate("() => season"), "2027")
-            self.assertIn("2026-27 numbers", page.inner_text("#kotc-note"))
-            page.click("#kotc-seasons [data-season='2026']")
-            self.assertEqual(page.evaluate("() => season"), "2026")
-        finally:
-            page.evaluate("() => localStorage.clear()")
-            page.close()
-            SITE.nba = nba_data()
 
 
 if __name__ == "__main__":

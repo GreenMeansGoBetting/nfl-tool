@@ -1,8 +1,10 @@
 """King of the Court: DraftKings' NBA promo paid on the night's most points +
 rebounds + assists (PRA). Built 2026-10-19 for the NBA Promo Tools page.
 
-Everything here reads one season's player box scores (`player_games`), so the
-page can show either season (the owner's 2025-26 / 2026-27 toggle):
+Everything here reads one season's player box scores (`player_games`). The
+page shows this season only (the owner, 2026-10-22: "turn off 2025-2026
+data"); last season's is built once more for the Historical Data popup's
+labeled reference numbers and the replay:
 
   * defense board -- how many 40 / 45 / 50 / 55 / 60+ PRA games each team has
     given up, a weighted score of those, how much its best opponent each night
@@ -36,8 +38,9 @@ POS_GROUP = {**{p: p for p in POSITIONS}, "G": "SG", "F": "SF"}
 GROUPS = ("G", "F", "C")
 GROUP_OF = {"PG": "G", "SG": "G", "SF": "F", "PF": "F", "C": "C", "G": "G", "F": "F"}
 SHRINK_GAMES = 10  # a defense's position numbers start as 10 games of a league-average team
-PRIOR_GAMES = 5  # this season's PRA average starts as 5 games of last season's
-MIN_GAMES = 3  # fewer games than this and a player isn't on the board
+PRIOR_GAMES = 5  # the replay's seed only: the page no longer mixes in last season (2026-10-22)
+MIN_GAMES = 3  # fewer games than this and a player isn't on the board (or half his team's games, early on)
+PAST_ROWS = 40  # a finished night keeps its 40 best PRA lines, plus everyone on the pregame board
 MIN_MINUTES = 15
 SIMULATIONS = 6000
 
@@ -341,8 +344,11 @@ def slate(block: dict, games: list, rosters_team: dict, out_ids: set, dates: lis
                 team = g[side]
                 spread = g.get(f"{side}_team_spread")
                 b2b = played_yesterday(team_dates, team, date)
+                # This season only: a team two games in can't have 3-game players yet.
+                played = (block["defense"].get(team) or {}).get("games", MIN_GAMES)
+                need = min(MIN_GAMES, max(1, math.ceil(played / 2)))
                 for p in by_team.get(team, []):
-                    if p["games"] < MIN_GAMES or (p["min"] or 0) < MIN_MINUTES:
+                    if p["games"] < need or (p["min"] or 0) < MIN_MINUTES:
                         continue
                     proj = project(p, block["defense"].get(g[opp]), g.get("total_line"), spread, b2b, league)
                     rows.append({"id": p["id"], "team": team, "opp": g[opp], "game_id": g["game_id"], "home": side == "home",
@@ -352,4 +358,42 @@ def slate(block: dict, games: list, rosters_team: dict, out_ids: set, dates: lis
             r["lead"] = round(chance, 4)
         rows.sort(key=lambda r: -r["proj"])
         out[date] = rows
+    return out
+
+
+def past_nights(pg, record: dict, before: str, keep: int = PAST_ROWS) -> dict:
+    """{date: night} for every recorded night before `before` (today): what
+    each player on the pregame board (`record`, locked at the first tip) and
+    the night's other big lines actually did, so the page can step back to
+    any finished night. `rank` / `lead` / `proj` are the pregame board's
+    (None off it); `pra` is None for a board player who didn't play."""
+    by_date = {d: g for d, g in pg.groupby("date")} if pg is not None and len(pg) else {}
+    out = {}
+    for date, rec in sorted(record.items()):
+        if date >= before:
+            continue
+        board = rec.get("board") or []
+        pre = {b["id"]: (i + 1, b) for i, b in enumerate(board)}
+        g = by_date.get(date)
+        rows, seen = [], set()
+        if g is not None:
+            for k, r in enumerate(g.sort_values("pra", ascending=False).itertuples(index=False)):
+                if k >= keep and r.id not in pre:
+                    continue
+                rank, b = pre.get(r.id, (None, {}))
+                rows.append({"id": r.id, "name": r.name, "team": r.team, "opp": r.opp, "home": bool(r.home), "game_id": r.game_id,
+                             "pts": int(r.pts), "reb": int(r.reb), "ast": int(r.ast), "pra": int(r.pra),
+                             "rank": rank, "lead": b.get("lead"), "proj": b.get("proj")})
+                seen.add(r.id)
+        for pid, (rank, b) in pre.items():
+            if pid not in seen:
+                rows.append({"id": pid, "name": b.get("name"), "team": b.get("team"), "opp": None, "home": None, "game_id": None,
+                             "pts": None, "reb": None, "ast": None, "pra": None, "rank": rank, "lead": b.get("lead"), "proj": b.get("proj")})
+        played = [r["pra"] for r in rows if r["pra"] is not None]
+        out[date] = {
+            "season_used": rec.get("season_used"),
+            "games": int(g["game_id"].nunique()) if g is not None else 0,
+            "best": max(played) if played else None,
+            "rows": rows,
+        }
     return out

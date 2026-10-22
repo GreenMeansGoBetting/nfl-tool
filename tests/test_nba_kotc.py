@@ -5,10 +5,12 @@ What is pinned: the 40+ ... 60+ buckets count each game in every bucket it
 reaches and the Score weighs them 1 to 5; a defense is judged by what its
 OPPONENTS did, by position, steadied toward the league; a night's leader, ties
 and his team's spread (home and away); the projection's pieces; lead chances
-add up to 1 and skip players listed Out; last season's players move to this
-season's roster (gone = off the board); this season's average starts with
-last season's; the record never rewrites a night that has started; this
-season's lines are saved as games lock; the Historical Data shares."""
+add up to 1 and skip players listed Out; players move to today's roster
+(gone = off the board); early in the season a player needs only half his
+team's games; the replay's seed from last season; a finished night keeps its
+pregame board next to what happened; the record never rewrites a night that
+has started; this season's lines are saved as games lock; the Historical
+Data shares."""
 import json
 import math
 import sys
@@ -148,7 +150,8 @@ class Projection(unittest.TestCase):
         self.assertEqual(chances, sorted(chances, reverse=True))
         self.assertEqual(kotc.lead_chances([]), [])
 
-    def test_this_seasons_average_starts_with_last_seasons(self):
+    def test_the_replays_seed_from_last_season(self):
+        # The page no longer seeds with last season (2026-10-22); the replay still can.
         pg = kotc.player_games(SEASON, TEAMS)
         prior = {"10": {"base": 30.0}}
         alone = kotc.compute_players(pg)["10"]["base"]
@@ -184,6 +187,45 @@ class Slate(unittest.TestCase):
         # Night two: AAA played the night before.
         self.assertTrue(all(r["b2b"] for r in out["2026-01-03"] if r["team"] == "AAA"))
         self.assertFalse(any(r["b2b"] for r in out["2026-01-02"]))
+
+
+class EarlySeason(unittest.TestCase):
+    def test_a_player_needs_half_his_teams_games_until_it_has_six(self):
+        # Every team in SEASON has 2 games, so 1 game is enough (MIN_GAMES is 3).
+        pg = kotc.player_games(SEASON[SEASON["athlete_id"] != 21], TEAMS)
+        block = kotc.season_block(pg, LINES, "2026-27")
+        one = kotc.player_games(box([(5, "2026-01-02", 21, "Wing B", "BBB", "DDD", False, "SF", 30, 10, 5, 2)]), TEAMS)
+        block = kotc.season_block(pd.concat([pg, one]).sort_values(["date", "game_id"]).reset_index(drop=True), LINES, "2026-27")
+        games = [{"game_id": "9", "date": "2026-01-03", "away": "BBB", "home": "AAA", "total_line": 230.0}]
+        ids = {r["id"] for r in kotc.slate(block, games, {}, set(), ["2026-01-03"])["2026-01-03"]}
+        self.assertIn("21", ids)  # one game of two
+        block["defense"]["AAA"]["games"] = block["defense"]["BBB"]["games"] = 6
+        ids = {r["id"] for r in kotc.slate(block, games, {}, set(), ["2026-01-03"])["2026-01-03"]}
+        self.assertNotIn("21", ids)  # six games in: the full 3
+        self.assertNotIn("11", ids)  # Big A has 2
+
+
+class PastNights(unittest.TestCase):
+    def test_a_finished_night_keeps_its_pregame_board_next_to_what_happened(self):
+        pg = kotc.player_games(SEASON, TEAMS)
+        record = {
+            "2026-01-02": {"season_used": "2026-27", "board": [{"id": "20", "name": "Star B", "team": "BBB", "proj": 41.0, "lead": 0.5},
+                                                            {"id": "99", "name": "Scratch", "team": "DDD", "proj": 30.0, "lead": 0.2},
+                                                            {"id": "10", "name": "Star A", "team": "AAA", "proj": 38.0, "lead": 0.3}]},
+            "2026-01-03": {"season_used": "2026-27", "board": []},
+        }
+        out = kotc.past_nights(pg, record, "2026-01-03", keep=3)
+        self.assertEqual(list(out), ["2026-01-02"])  # tonight isn't past
+        night = out["2026-01-02"]
+        self.assertEqual((night["games"], night["best"]), (2, 50))
+        rows = {r["id"]: r for r in night["rows"]}
+        # The 3 best lines (Star A 50, Star C 50, Star D 39), plus Star B from the board (35), plus the scratch.
+        self.assertEqual(set(rows), {"10", "30", "40", "20", "99"})
+        self.assertEqual((rows["20"]["rank"], rows["20"]["lead"], rows["20"]["pra"], rows["20"]["opp"]), (1, 0.5, 35, "DDD"))
+        self.assertEqual((rows["10"]["rank"], rows["10"]["pts"], rows["10"]["reb"], rows["10"]["ast"]), (3, 30, 9, 11))
+        self.assertIsNone(rows["30"]["rank"])  # off the board
+        self.assertEqual((rows["99"]["rank"], rows["99"]["pra"]), (2, None))  # on the board, didn't play
+        self.assertEqual(kotc.past_nights(None, record, "2026-01-03")["2026-01-02"]["best"], None)
 
 
 class Record(unittest.TestCase):

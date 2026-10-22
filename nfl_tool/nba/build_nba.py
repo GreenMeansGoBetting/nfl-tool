@@ -472,7 +472,7 @@ def apply_lines(games: list, novig: dict, previous: dict | None, now_utc: dateti
 KOTC_SLATE_NIGHTS = 3
 KOTC_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_kotc"
 THIS_SEASON_DEFAULT_AT = 4  # team games played (median) before a page opens on this season
-KOTC_RECORD_TOP = 30
+KOTC_RECORD_TOP = 60  # 30 until 2026-10-22: payouts on longer shots need their pregame chance
 
 
 def season_label(season: int) -> str:
@@ -501,19 +501,23 @@ def kotc_lines(season: int, games: list) -> dict:
 
 
 def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
-    """Both seasons' boards (the page's season toggle), the next few nights'
-    slates projected from each, and the record of each night's board."""
-    blocks = {}
+    """This season's board (the page shows this season only since 2026-10-22,
+    the owner: "by next week, we will have every team with data for this
+    season"), the next few nights' slates, every finished night as its
+    pregame board had it (`past`), and last season's Historical Data as
+    labeled reference numbers (`reference`) until this season has enough nights."""
+    reference = None
     prev_box = fetch_file("player_box", season - 1, data_dir, False)
     if prev_box is not None:
         pg = kotc.player_games(prev_box, teams)
-        blocks[season - 1] = kotc.season_block(pg, kotc_lines(season - 1, games), season_label(season - 1))
+        ref = kotc.season_block(pg, kotc_lines(season - 1, games), season_label(season - 1))
+        reference = {"label": ref["label"], "summary": ref["summary"]}
+    blocks, pg_now = {}, None
     cur_box = fetch_file("player_box", season, data_dir, force)
     if cur_box is not None:
-        pg = kotc.player_games(cur_box, teams)
-        if len(pg):
-            prior = blocks[season - 1]["players"] if season - 1 in blocks else None
-            blocks[season] = kotc.season_block(pg, kotc_lines(season, games), season_label(season), prior)
+        pg_now = kotc.player_games(cur_box, teams)
+        if len(pg_now):
+            blocks[season] = kotc.season_block(pg_now, kotc_lines(season, games), season_label(season))
 
     roster_team = {}
     if rosters is not None:
@@ -521,28 +525,19 @@ def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters,
     out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
+    slates = {s: kotc.slate(block, games, roster_team, out_ids, dates) for s, block in blocks.items()}
 
-    slates = {}
-    for s, block in blocks.items():
-        # Last season's players sit on this season's roster; anyone not on one is gone.
-        teams_now = {pid: roster_team.get(pid) for pid in block["players"]} if s != season and roster_team else roster_team
-        slates[s] = kotc.slate(block, games, teams_now, out_ids, dates)
-
-    default = season - 1
-    if season in blocks:
-        played = sorted(d["games"] for d in blocks[season]["defense"].values())
-        if played and played[len(played) // 2] >= THIS_SEASON_DEFAULT_AT:
-            default = season
-
-    record = kotc_record(season, slates.get(default, {}), default, blocks.get(default), games, now_utc)
+    record = kotc_record(season, slates.get(season, {}), season, blocks.get(season), games, now_utc)
     for block in blocks.values():
         block.pop("_league", None)
     return {
-        "default": str(default),
+        "default": str(season),
         "weights": kotc.WEIGHTS,
         "thresholds": list(kotc.THRESHOLDS),
         "seasons": {str(s): b for s, b in blocks.items()},
         "slates": {str(s): v for s, v in slates.items()},
+        "past": kotc.past_nights(pg_now, record, today),
+        "reference": reference,
         "record": record,
     }
 

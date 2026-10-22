@@ -4,13 +4,16 @@
 .kotc-intro .koe-title { margin: 0; }
 .kotc-history-btn { padding: 6px 12px; }
 .kotc-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
-.kotc-seasons { display: inline-flex; gap: 6px; }
-.kotc-seasons .view-toggle-btn { padding: 4px 10px; }
 .kotc-bar .summary-save-btn { margin-left: auto; }
 #kotc-note { margin: 0 0 10px; }
 
+/* The player board and the defense board side by side (the owner, 2026-10-22);
+   they stack when the screen is too narrow for both. */
 .kotc-main { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; margin-bottom: 18px; }
 .kotc-main > .kotc-capture { flex: 0 1 auto; min-width: 0; overflow-x: auto; }
+.kotc-def { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.kotc-def .kotc-def-head { margin-top: 0; }
+.kotc-lower { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px 18px; margin-bottom: 18px; }
 .kotc-capture { max-width: 100%; overflow-x: auto; }
 .kotc-capture.kotc-capturing { max-width: none; overflow: visible; padding: 14px 16px; }
 .kotc-capture-head { display: none; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -34,7 +37,10 @@
 .kotc-opp, .kotc-team { white-space: nowrap; }
 .kotc-opp .team-logo, .kotc-team .team-logo, .kotc-sub .team-logo { vertical-align: middle; }
 .kotc-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
-.kotc-tag-new { color: var(--muted); background: var(--panel-2); border-color: var(--border); text-transform: none; }
+.kotc-won td { background: rgba(var(--good-rgb), 0.1); }
+.kotc-crown { color: var(--good-text); font-size: 1rem; }
+.kotc-pra-line { font-size: 0.74rem; color: var(--muted); }
+.kotc-est { font-weight: 700; color: var(--good-text); }
 .kotc-blowout { color: var(--bad-text); font-weight: 700; }
 .kotc-out td { opacity: 0.5; }
 .kotc-group td { padding-top: 10px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
@@ -45,12 +51,27 @@
 .kotc-side { flex: 1 1 320px; min-width: 0; max-width: 420px; display: flex; flex-direction: column; gap: 6px; }
 .kotc-side-title { display: flex; align-items: center; margin: 0; font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
 .kotc-side .info-note { margin: 0; }
-.kotc-night { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto 34px; align-items: center; gap: 8px; padding: 6px 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
+.kotc-night { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto 34px 46px; align-items: center; gap: 8px; padding: 6px 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; }
 .kotc-night .koe-win-date { display: flex; flex-direction: column; line-height: 1.1; }
 .kotc-night .koe-win-date small { font-size: 0.62rem; }
 .kotc-night-line { font-size: 0.7rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
 .kotc-night .koe-win-yds { text-align: right; color: var(--good-text); }
+.kotc-night-paid { font-size: 0.8rem; font-weight: 800; color: var(--good-text); text-align: right; white-space: nowrap; }
 .kotc-def-head { display: flex; align-items: center; gap: 12px; margin: 6px 0 8px; }
+.kotc-log { flex: 1 1 320px; max-width: 420px; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1.5px dashed var(--border-strong); border-radius: 12px; }
+html:not(.is-owner):not(.local-dev) .kotc-log { display: none; }
+.kotc-log-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 0.78rem; font-weight: 800; }
+.kotc-log-only { margin-left: auto; padding: 1px 6px; border-radius: 6px; font-size: 0.62rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--good-text); background: rgba(var(--accent-rgb), 0.15); }
+.kotc-log select, .kotc-log input, .kotc-log textarea { color: var(--text); background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 0.76rem; padding: 3px 6px; }
+.kotc-log-pool { font-size: 0.74rem; color: var(--muted); }
+.kotc-log-pool input { width: 110px; margin-left: 4px; }
+.kotc-log textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.kotc-log-bot { display: flex; align-items: center; gap: 8px; }
+.kotc-log-bot .summary-save-btn { margin-left: auto; }
+.kotc-log-status { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+.kotc-log-good { color: var(--good-text); }
+.kotc-log-bad { color: var(--bad-text); }
+.kotc-fit { margin: 0; font-size: 0.74rem; color: var(--muted); }
 .kotc-def-head .kotc-def-playing { margin-left: auto; padding: 6px 12px; }
 
 .kotc-history-box { max-width: 820px; }
