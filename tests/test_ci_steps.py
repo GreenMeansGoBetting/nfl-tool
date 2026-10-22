@@ -76,10 +76,37 @@ class FastLane(unittest.TestCase):
         changed = ["nfl_tool/site/nhl/icebreaker.js", "nfl_tool/site/nhl/nhl.css", "tests/test_nhl_icebreaker_site.py", ".claude/rules/nhl.md", "CLAUDE.md", "model_history/nhl_goals/2026-10.json"]
         self.assertEqual(ci_steps.lane_decision("push", changed)[0], "pages")
 
-    def test_anything_that_can_change_the_data_rebuilds(self):
-        for path in ("nfl_tool/nhl/build_nhl.py", "nfl_tool/smartstake.py", "nfl_tool/functions/_middleware.js", "tools/ci_steps.py",
-                     ".github/workflows/deploy.yml", "nfl_tool/requirements.txt", "nfl_tool/novig_event_markets.graphql", ".gitignore"):
-            self.assertEqual(ci_steps.lane_decision("push", ["nfl_tool/site/app.js", path])[0], "full", path)
+    def test_login_code_and_tools_make_no_data(self):
+        """The owner, 2026-10-22: a login-code push rebuilt all three sports."""
+        for path in ("nfl_tool/functions/_middleware.js", "tools/ci_steps.py", "tools/check_site.py"):
+            self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/site/app.js", path])[0], [], path)
+
+    def test_a_sports_build_code_rebuilds_only_that_sport(self):
+        """Pages of a scrapbook (the owner, 2026-10-22): NHL build code
+        rebuilds NHL; football and basketball publish with their live data."""
+        for path, sports in (("nfl_tool/nhl/build_nhl.py", ["nhl"]), ("nfl_tool/nhl/goals_model.py", ["nhl"]), ("nfl_tool/nba/possessions.py", ["nba"]),
+                             ("nfl_tool/build_stats.py", ["nfl"]), ("nfl_tool/gmg_model.py", ["nfl"]), ("nfl_tool/line_grades.py", ["nfl"])):
+            self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/site/app.js", path])[0], sports, path)
+        self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/nhl/build_nhl.py", "nfl_tool/build_stats.py"])[0], ["nfl", "nhl"])
+        self.assertEqual(ci_steps.lane_decision("push", ["nfl_tool/nhl/build_nhl.py"])[0], "partial")
+
+    def test_shared_or_unknown_files_rebuild_every_sport(self):
+        """smartstake.py and the Novig query feed more than one sport's build."""
+        for path in ("nfl_tool/smartstake.py", ".github/workflows/deploy.yml", "nfl_tool/requirements.txt", "nfl_tool/novig_event_markets.graphql", ".gitignore", "workers/nhl-timer/index.js"):
+            self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/site/app.js", path])[0], ["nfl", "nba", "nhl"], path)
+            self.assertEqual(ci_steps.lane_decision("push", [path])[0], "full", path)
+
+    def test_the_sport_map_matches_what_the_builds_import(self):
+        """A basketball or hockey build that starts importing a football file
+        (or any root file but smartstake.py) must move that file to every sport."""
+        import re
+        own = {"nba": "nfl_tool/nba", "nhl": "nfl_tool/nhl"}
+        roots = {p.stem for p in (ROOT / "nfl_tool").glob("*.py")}
+        for sport, folder in own.items():
+            for py in (ROOT / folder).glob("*.py"):
+                for mod in re.findall(r"^\s*(?:import|from)\s+(\w+)", py.read_text(encoding="utf-8"), re.M):
+                    if mod in roots:
+                        self.assertEqual(ci_steps.sports_for(f"nfl_tool/{mod}.py"), ci_steps.SPORTS, f"{py.name} imports {mod}")
 
     def test_only_a_push_and_only_when_it_can_tell(self):
         page = ["nfl_tool/site/app.js"]
@@ -594,24 +621,27 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertLess(self.deploy.index("- name: Run the tests"), self.deploy.index("- name: Build stats"))
 
     def test_a_page_only_push_publishes_with_the_live_data(self):
-        """The fast lane (2026-10-15): the builds are skipped only when the
-        lane is "pages" AND every live data file arrived; otherwise they all
-        run. The tests and the gate run either way."""
+        """Per sport (2026-10-22; page-only lane 2026-10-15): a sport is built
+        when the lane lists it, and every sport is built when the live copy
+        failed. The tests and the gate run either way."""
         steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
         names = list(steps)
-        full = "        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'\n"
-        for build in ("Build stats (nflverse needs no key; SGO_API_KEY is optional)", "Build NBA data", "Restore saved NHL games", "Build NHL data", "Save NHL games", "Save GMG model record"):
-            self.assertIn(full, steps[build], build)
-        live = steps["Use the live data (page-only push)"]
+        for build, sport in (("Build stats (nflverse needs no key; SGO_API_KEY is optional)", "nfl"), ("Build NBA data", "nba"), ("Restore saved NHL games", "nhl"),
+                             ("Build NHL data", "nhl"), ("Save NHL games", "nhl")):
+            self.assertIn(f"        if: contains(steps.lane.outputs.build, '{sport}') || steps.live_data.outcome == 'failure'\n", steps[build], build)
+        self.assertIn("        if: steps.lane.outputs.build != '' || steps.live_data.outcome == 'failure'\n", steps["Save GMG model record"])
+        live_name = "Use the live data (sports this push can't change)"
+        live = steps[live_name]
         self.assertIn("id: live_data", live)
-        self.assertIn("if: steps.lane.outputs.lane == 'pages'", live)
+        self.assertIn("if: steps.lane.outputs.live != ''", live)
         self.assertIn("continue-on-error: true", live)
-        self.assertIn("python tools/fetch_live_data.py --need nfl nba nhl", live)
+        self.assertIn("LIVE: ${{ steps.lane.outputs.live }}", live)
+        self.assertIn("python tools/fetch_live_data.py --only $LIVE --need $LIVE", live)
         self.assertIn("DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}", live)
         self.assertIn("id: lane", steps["Choose the lane"])
         self.assertLess(names.index("Run the tests"), names.index("Choose the lane"))
-        self.assertEqual(names.index("Use the live data (page-only push)"), names.index("Choose the lane") + 1)
-        self.assertLess(names.index("Use the live data (page-only push)"), names.index("Build stats (nflverse needs no key; SGO_API_KEY is optional)"))
+        self.assertEqual(names.index(live_name), names.index("Choose the lane") + 1)
+        self.assertLess(names.index(live_name), names.index("Build stats (nflverse needs no key; SGO_API_KEY is optional)"))
         self.assertIn("LANE: ${{ steps.lane.outputs.lane }}", steps["Note the run in version.json"])
 
     def test_the_nfl_build_is_tried_twice(self):

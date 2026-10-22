@@ -35,7 +35,7 @@ on:
   # Every push to main runs the deploy, whatever it touched (2026-10-15).
   # The repo is public, so build minutes are free; the old "only these
   # folders" filter once left a fix to a failed deploy unpublished. A push that
-  # changed only page files publishes with the live data (the fast lane, below). The bot's
+  # rebuilds only the sports its files can change; the rest publish with their live data (below). The bot's
   # model-record commits don't start a run (GitHub never starts one for a push
   # made with the workflow's own token).
   push:
@@ -95,28 +95,31 @@ jobs:
           python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }
           python tools/ci_steps.py mark tests
 
-      # The page-only fast lane (2026-10-15, tools/ci_steps.py lane): a push
-      # whose every changed file since the live version is a page, a test or
-      # a note can't change any data, so the live data files are downloaded
-      # instead of rebuilding all three sports (about 2.5 to 3 minutes push to
-      # live instead of 7). The tests above and the gate below still run. If
-      # the download fails, every build below runs as usual.
+      # Rebuild only what changed (tools/ci_steps.py lane; page-only fast lane
+      # 2026-10-15, per sport 2026-10-22): each file changed since the live
+      # version names the sports whose data it can change (pages, notes, the
+      # login code and tools/ change none). Those are rebuilt; every other
+      # sport's live data files are downloaded instead (a page or login push:
+      # about 3 minutes push to live instead of 7). The tests above and the
+      # gate below still run on everything. If the download fails, every
+      # build below runs as usual.
       - name: Choose the lane
         id: lane
         run: python tools/ci_steps.py lane
 
-      - name: Use the live data (page-only push)
+      - name: Use the live data (sports this push can't change)
         id: live_data
-        if: steps.lane.outputs.lane == 'pages'
+        if: steps.lane.outputs.live != ''
         continue-on-error: true
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          LIVE: ${{ steps.lane.outputs.live }}
         run: |
-          python tools/fetch_live_data.py --need nfl nba nhl
+          python tools/fetch_live_data.py --only $LIVE --need $LIVE
           python tools/ci_steps.py mark data
 
       - name: Build stats (nflverse needs no key; SGO_API_KEY is optional)
-        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'
+        if: contains(steps.lane.outputs.build, 'nfl') || steps.live_data.outcome == 'failure'
         # One retry: nflverse sometimes answers a download with a one-off 404,
         # and since every push builds football, a push about hockey could
         # otherwise fail on it.
@@ -153,7 +156,7 @@ jobs:
       # Its output is kept in nba_build.log for version.json, like the NHL's.
       - name: Build NBA data
         id: build_nba
-        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'
+        if: contains(steps.lane.outputs.build, 'nba') || steps.live_data.outcome == 'failure'
         continue-on-error: true
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -182,7 +185,7 @@ jobs:
       # keeps it in data/nhl. This cache carries that folder from one run to
       # the next; without it a run just downloads the season so far again.
       - name: Restore saved NHL games
-        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'
+        if: contains(steps.lane.outputs.build, 'nhl') || steps.live_data.outcome == 'failure'
         continue-on-error: true
         uses: actions/cache/restore@v4
         with:
@@ -195,7 +198,7 @@ jobs:
       # version.json (the step after "Stamp the version").
       - name: Build NHL data
         id: build_nhl
-        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'
+        if: contains(steps.lane.outputs.build, 'nhl') || steps.live_data.outcome == 'failure'
         continue-on-error: true
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
@@ -217,7 +220,7 @@ jobs:
       # Saved under a name made from the games on disk, so a run that
       # downloaded nothing new doesn't store a second copy.
       - name: Save NHL games
-        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'
+        if: contains(steps.lane.outputs.build, 'nhl') || steps.live_data.outcome == 'failure'
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
@@ -233,7 +236,7 @@ jobs:
       # (model_history/nhl_shots/<month>.json: a game is added once, when it
       # is final), so the whole folder is added.
       - name: Save GMG model record
-        if: steps.lane.outputs.lane != 'pages' || steps.live_data.outcome != 'success'
+        if: steps.lane.outputs.build != '' || steps.live_data.outcome == 'failure'
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"

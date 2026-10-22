@@ -158,6 +158,19 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   owner was told publishing a file without the tests and the gate is how a broken page reaches
   members. `version.json` `lane` says which ran. This is NOT a return of per-sport deploys: it
   never decides which sport a file belongs to.
+- **Rebuild only what changed (2026-10-22, replaces "pages or full").** The owner, after a
+  login-code push rebuilt all three sports: "if no data is getting messed with it does not need
+  to be altered and rebuilt" (pages of a scrapbook: adding to July never touches January).
+  `ci_steps.py build_plan`: each changed file names the sports whose DATA it can change
+  (`sports_for`): pages, notes, tests, `model_history/`, the login code (`nfl_tool/functions/`)
+  and `tools/` change none; `nfl_tool/nba/` = NBA, `nfl_tool/nhl/` = NHL, `build_stats.py`,
+  `gmg_model.py`, `line_grades.py` = NFL; `smartstake.py`, the Novig query, requirements, the
+  workflows and anything unknown = every sport. The lane step outputs `build` and `live`; the
+  sports in `live` are downloaded (`fetch_live_data.py --only $LIVE --need $LIVE`), and if that
+  fails every sport is built. `lane` in version.json: `pages` / `partial` / `full`. A test checks
+  the NBA / NHL builds import no root file except ones mapped to every sport. **Every test and the
+  gate still run on every push**: shared files (sync.js, style.css, the login code) load on every
+  sport's pages, so "it doesn't touch NHL" is not something the file list can promise.
 
 - **Why** (2026-10-13 to 10-15 it was the other way): while the repo was private (2,000 free
   minutes a month) a push rebuilt, tested and browser-checked only the sport it changed, reused

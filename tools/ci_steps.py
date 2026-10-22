@@ -152,7 +152,7 @@ def cmd_mark(args):
     return 0
 
 
-# ---- deploy.yml: the page-only fast lane (2026-10-15) ----
+# ---- deploy.yml: what to rebuild (page-only fast lane 2026-10-15, per sport 2026-10-22) ----
 # The owner: removing one small arrow "shouldnt take more than 45 seconds".
 # A push that changes only what the browser loads (pages, scripts, styles)
 # can't change a data file, so it publishes with the LIVE data instead of
@@ -160,8 +160,39 @@ def cmd_mark(args):
 # browser gate still run. It goes by every file changed since the version
 # that is live, not by which sport a file belongs to: that hand-kept list is
 # what failed twice before "every run does everything".
-PAGE_ONLY = ("nfl_tool/site/", "tests/", "docs/", ".claude/", "model_history/")
+#
+# Rebuild only what changed (2026-10-22). The owner, after a login-code
+# push rebuilt all three sports: "if no data is getting messed with it does
+# not need to be altered and rebuilt", and pages of a scrapbook: adding to
+# July never touches January. So each changed file names the sports whose
+# data it can change; every other sport is published with its live data.
+# The login code (functions/) and the deploy's own tools/ never make data.
+# A file this can't place rebuilds everything, and every test and the gate
+# still run on every push (they are what catch a shared file, like sync.js,
+# breaking another sport's pages).
+PAGE_ONLY = ("nfl_tool/site/", "nfl_tool/functions/", "tools/", "tests/", "docs/", ".claude/", "model_history/")
 PAGE_ONLY_FILES = ("CLAUDE.md", "README.md")
+SPORTS = ("nfl", "nba", "nhl")
+# Build code per sport. build_nba.py / build_nhl.py import only their own
+# folder plus smartstake.py and the Novig query, which stay "every sport".
+SPORT_BUILD = {
+    "nfl_tool/nba/": ("nba",),
+    "nfl_tool/nhl/": ("nhl",),
+    "nfl_tool/build_stats.py": ("nfl",),
+    "nfl_tool/gmg_model.py": ("nfl",),
+    "nfl_tool/line_grades.py": ("nfl",),
+}
+
+
+def sports_for(path):
+    """The sports whose data this file can change: () for pages, notes and
+    the login code, every sport for anything not known."""
+    if path.startswith(PAGE_ONLY) or path in PAGE_ONLY_FILES:
+        return ()
+    for prefix, sports in SPORT_BUILD.items():
+        if path == prefix or (prefix.endswith("/") and path.startswith(prefix)):
+            return sports
+    return SPORTS
 
 
 def changed_since(sha):
@@ -173,24 +204,34 @@ def changed_since(sha):
     return None if out is None else [line for line in out.splitlines() if line.strip()]
 
 
-def lane_decision(event, changed):
-    """("pages" or "full", why). Only a push can take the fast lane: the
-    schedule and "Update Odds" are there to refresh the data."""
+def build_plan(event, changed):
+    """(sports to rebuild, why). Only a push can skip a rebuild: the
+    schedule and "Run workflow" are there to refresh the data."""
     if event != "push":
-        return "full", "a scheduled or manual run refreshes the data"
+        return list(SPORTS), "a scheduled or manual run refreshes the data"
     if changed is None:
-        return "full", "couldn't tell what changed since the live version"
+        return list(SPORTS), "couldn't tell what changed since the live version"
     if not changed:
-        return "full", "nothing changed since the live version"
-    other = [f for f in changed if not f.startswith(PAGE_ONLY) and f not in PAGE_ONLY_FILES]
-    if other:
-        return "full", f"{len(other)} changed file(s) can change the data, e.g. {other[0]}"
-    return "pages", f"only page files changed ({len(changed)}): publishing with the live data"
+        return list(SPORTS), "nothing changed since the live version"
+    build = {s: f for f in changed for s in sports_for(f)}
+    if not build:
+        return [], f"only pages, notes or login code changed ({len(changed)} files): publishing with the live data"
+    sports = [s for s in SPORTS if s in build]
+    return sports, "rebuilding " + ", ".join(f"{s.upper()} ({build[s]})" for s in sports)
+
+
+def lane_decision(event, changed):
+    """("pages", "full" or "partial", why): what version.json's "lane" says."""
+    sports, why = build_plan(event, changed)
+    return ("pages" if not sports else "full" if len(sports) == len(SPORTS) else "partial"), why
 
 
 def cmd_lane(args):
-    lane, why = lane_decision(os.environ.get("GITHUB_EVENT_NAME", ""), changed_since(live_sha(live_version())))
-    output(lane=lane)
+    event, changed = os.environ.get("GITHUB_EVENT_NAME", ""), changed_since(live_sha(live_version()))
+    sports, why = build_plan(event, changed)
+    lane, _ = lane_decision(event, changed)
+    # build: the sports to rebuild; live: the ones published with their live data.
+    output(lane=lane, build=" ".join(sports), live=" ".join(s for s in SPORTS if s not in sports))
     summary(f"Lane: {lane} ({why}).")
     return 0
 
