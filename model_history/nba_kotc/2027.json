@@ -433,35 +433,35 @@
   "board": [
    {
     "id": "4278073",
-    "lead": 0.4312,
+    "lead": 0.4321,
     "name": "Shai Gilgeous-Alexander",
     "proj": 42.1,
     "team": "OKC"
    },
    {
     "id": "4431678",
-    "lead": 0.2369,
+    "lead": 0.2344,
     "name": "Tyrese Maxey",
-    "proj": 37.2,
+    "proj": 37.1,
     "team": "PHI"
    },
    {
     "id": "3917376",
-    "lead": 0.1321,
+    "lead": 0.1325,
     "name": "Jaylen Brown",
     "proj": 33.1,
     "team": "PHI"
    },
    {
     "id": "3059318",
-    "lead": 0.0833,
+    "lead": 0.084,
     "name": "Joel Embiid",
     "proj": 30.1,
     "team": "PHI"
    },
    {
     "id": "1966",
-    "lead": 0.0753,
+    "lead": 0.0757,
     "name": "LeBron James",
     "proj": 30.1,
     "team": "PHI"
@@ -475,7 +475,7 @@
    },
    {
     "id": "4433255",
-    "lead": 0.0127,
+    "lead": 0.0128,
     "name": "Chet Holmgren",
     "proj": 23.1,
     "team": "OKC"
@@ -519,7 +519,7 @@
     "id": "5124612",
     "lead": 0.0,
     "name": "VJ Edgecombe",
-    "proj": 14.1,
+    "proj": 14.0,
     "team": "PHI"
    },
    {
@@ -557,7 +557,7 @@
    },
    {
     "id": "4594268",
-    "lead": 0.258,
+    "lead": 0.2579,
     "name": "Anthony Edwards",
     "proj": 58.5,
     "team": "MIN"
@@ -606,9 +606,9 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0158,
+    "lead": 0.0161,
     "name": "Pascal Siakam",
-    "proj": 40.0,
+    "proj": 40.1,
     "team": "IND"
    },
    {
@@ -634,14 +634,14 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0082,
+    "lead": 0.0081,
     "name": "Alperen Sengun",
     "proj": 37.1,
     "team": "HOU"
    },
    {
     "id": "4396971",
-    "lead": 0.008,
+    "lead": 0.0079,
     "name": "Naz Reid",
     "proj": 38.4,
     "team": "CHA"
@@ -769,7 +769,7 @@
     "id": "4017837",
     "lead": 0.0015,
     "name": "Ivica Zubac",
-    "proj": 32.1,
+    "proj": 32.2,
     "team": "IND"
    },
    {
@@ -846,7 +846,7 @@
     "id": "4433627",
     "lead": 0.0003,
     "name": "Keyonte George",
-    "proj": 30.2,
+    "proj": 30.1,
     "team": "UTAH"
    },
    {
@@ -920,6 +920,13 @@
     "team": "TOR"
    },
    {
+    "id": "4278355",
+    "lead": 0.0001,
+    "name": "Obi Toppin",
+    "proj": 24.7,
+    "team": "IND"
+   },
+   {
     "id": "4278053",
     "lead": 0.0001,
     "name": "Davion Mitchell",
@@ -960,13 +967,6 @@
     "name": "Victor Wembanyama",
     "proj": 27.3,
     "team": "SA"
-   },
-   {
-    "id": "4431671",
-    "lead": 0.0,
-    "name": "Jaden McDaniels",
-    "proj": 26.7,
-    "team": "MIN"
    }
   ],
   "season_used": "2026-27"
