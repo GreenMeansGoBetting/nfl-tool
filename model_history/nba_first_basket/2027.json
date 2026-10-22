@@ -206,70 +206,70 @@
    "1966": [
     "LeBron James",
     0.102,
-    1000,
+    1076,
     true,
-    "fanduel"
+    "novig"
    ],
    "3059318": [
     "Joel Embiid",
     0.104,
-    535,
+    545,
     false,
-    "prophetx"
+    "novig"
    ],
    "3908809": [
     "Donovan Mitchell",
     0.087,
-    733,
+    770,
     false,
     "novig"
    ],
    "3917376": [
     "Jaylen Brown",
     0.102,
-    840,
+    852,
     false,
-    "draftkings"
+    "novig"
    ],
    "3992": [
     "James Harden",
     0.087,
-    920,
+    1011,
     false,
-    "draftkings"
+    "novig"
    ],
    "4066328": [
     "Jarrett Allen",
     0.087,
-    600,
+    641,
     false,
-    "fanduel"
+    "novig"
    ],
    "4431678": [
     "Tyrese Maxey",
     0.125,
-    900,
+    953,
     true,
     "novig"
    ],
    "4432158": [
     "Evan Mobley",
     0.087,
-    600,
+    641,
     false,
-    "fanduel"
+    "novig"
    ],
    "4576087": [
     "Peyton Watson",
     0.087,
-    1220,
+    1233,
     true,
-    "draftkings"
+    "novig"
    ],
    "5124612": [
     "VJ Edgecombe",
     0.093,
-    1436,
+    1535,
     true,
     "prophetx"
    ]
@@ -325,21 +325,21 @@
     0.087,
     900,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
     0.122,
-    567,
+    590,
     false,
     "novig"
    ],
    "4431767": [
     "Christian Braun",
     0.093,
-    1000,
-    false,
-    "fanduel"
+    1150,
+    true,
+    "novig"
    ],
    "4433255": [
     "Chet Holmgren",
@@ -384,9 +384,9 @@
    "3062679": [
     "Josh Hart",
     0.088,
-    1260,
+    1300,
     true,
-    "draftkings"
+    "hard_rock"
    ],
    "3078576": [
     "Derrick White",
@@ -494,7 +494,7 @@
    "4395630": [
     "Devin Vassell",
     0.103,
-    905,
+    810,
     false,
     "fliff"
    ],
@@ -522,9 +522,9 @@
    "4871144": [
     "Alperen Sengun",
     0.09,
-    750,
+    790,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5104157": [
     "Victor Wembanyama",
@@ -1408,7 +1408,7 @@
    "2490149": [
     "CJ McCollum",
     0.084,
-    700,
+    675,
     false,
     "fliff"
    ],
@@ -1586,9 +1586,9 @@
    "3032976": [
     "Rudy Gobert",
     0.076,
-    1100,
+    750,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4066320": [
     "Desmond Bane",
@@ -1600,9 +1600,9 @@
    "4277847": [
     "Wendell Carter Jr.",
     0.084,
-    900,
+    700,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4431671": [
     "Jaden McDaniels",
@@ -1696,9 +1696,9 @@
    "4395724": [
     "Immanuel Quickley",
     0.099,
-    null,
+    670,
     false,
-    null
+    "fliff"
    ],
    "4433134": [
     "Scottie Barnes",
@@ -1726,14 +1726,14 @@
     0.089,
     800,
     false,
-    "fanduel"
+    "fliff"
    ],
    "6450": [
     "Kawhi Leonard",
     0.106,
-    500,
+    535,
     false,
-    "fanduel"
+    "fliff"
    ],
    "6583": [
     "Anthony Davis",
@@ -1792,16 +1792,16 @@
    "4066261": [
     "Bam Adebayo",
     0.095,
-    620,
+    610,
     false,
     "fliff"
    ],
    "4278053": [
     "Davion Mitchell",
     0.086,
-    1170,
-    false,
-    "fliff"
+    1200,
+    true,
+    "hard_rock"
    ],
    "4432166": [
     "Cade Cunningham",
@@ -1860,9 +1860,9 @@
    "3133628": [
     "Myles Turner",
     0.081,
-    790,
+    850,
     false,
-    "fliff"
+    "hard_rock"
    ],
    "3134907": [
     "Kyle Kuzma",
@@ -1909,16 +1909,16 @@
    "4711294": [
     "Matas Buzelis",
     0.092,
-    700,
+    750,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4871145": [
     "Josh Giddey",
     0.079,
-    800,
+    900,
     false,
-    "fanduel"
+    "hard_rock"
    ]
   },
   "tip_home": 0.647
