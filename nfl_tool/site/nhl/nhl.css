@@ -70,7 +70,8 @@
 .nhl-league-table td.nhl-league-team.nhl-league-cur span { font-weight: 800; }
 /* The NHL player card (nhl-common.js): the NFL card's shell (.pc-box, .pc-head, .player-modal-toggle) with hockey tabs */
 .nhl-suite .player-click { cursor: pointer; }
-.nhl-suite .nba-player .player-click { display: inline-flex; align-items: center; gap: 7px; }
+/* min-width: auto undoes suite.css's NBA-card min-width: 0, which let the name shrink under the matchup logos. */
+.nhl-suite .nba-player .player-click { display: inline-flex; align-items: center; gap: 7px; min-width: auto; }
 .nhl-suite .player-click:hover span, .nhl-suite .player-click:hover b { text-decoration: underline; }
 .nhl-pc-photo { flex: none; width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: var(--table-head); }
 .nhl-pc-tiles { grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 0; margin: 0 0 12px; }
