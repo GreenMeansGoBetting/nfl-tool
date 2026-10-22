@@ -213,28 +213,28 @@
    "3059318": [
     "Joel Embiid",
     0.104,
-    590,
+    584,
     false,
-    "novig"
+    "prophetx"
    ],
    "3908809": [
     "Donovan Mitchell",
     0.087,
-    641,
+    650,
     false,
-    "novig"
+    "fanduel"
    ],
    "3917376": [
     "Jaylen Brown",
     0.102,
-    809,
+    790,
     false,
-    "novig"
+    "draftkings"
    ],
    "3992": [
     "James Harden",
     0.087,
-    1020,
+    1060,
     false,
     "draftkings"
    ],
@@ -248,16 +248,16 @@
    "4431678": [
     "Tyrese Maxey",
     0.125,
-    800,
+    850,
     true,
     "fanduel"
    ],
    "4432158": [
     "Evan Mobley",
     0.087,
-    630,
+    600,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4576087": [
     "Peyton Watson",
@@ -302,16 +302,16 @@
    "3138196": [
     "Cameron Johnson",
     0.093,
-    1300,
+    1340,
     true,
     "draftkings"
    ],
    "3936299": [
     "Jamal Murray",
     0.093,
-    600,
+    590,
     false,
-    "fanduel"
+    "novig"
    ],
    "3978": [
     "DeMar DeRozan",
@@ -325,12 +325,12 @@
     0.087,
     900,
     false,
-    "draftkings"
+    "hard_rock"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
     0.122,
-    547,
+    544,
     false,
     "draftkings"
    ],
@@ -339,28 +339,28 @@
     0.093,
     1000,
     false,
-    "hard_rock"
+    "thescore"
    ],
    "4433255": [
     "Chet Holmgren",
     0.095,
-    670,
+    660,
     false,
     "draftkings"
    ],
    "4593803": [
     "Jalen Williams",
     0.105,
-    870,
+    860,
     false,
     "draftkings"
    ],
    "4683692": [
     "Cason Wallace",
     0.087,
-    1140,
+    1150,
     false,
-    "draftkings"
+    "novig"
    ]
   },
   "tip_home": 0.547
@@ -391,37 +391,37 @@
    "3078576": [
     "Derrick White",
     0.086,
-    1120,
+    1000,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3136195": [
     "Karl-Anthony Towns",
     0.09,
     500,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3147657": [
     "Mikal Bridges",
     0.092,
-    850,
+    900,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3934672": [
     "Jalen Brunson",
     0.106,
     450,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3934719": [
     "OG Anunoby",
     0.092,
-    900,
+    800,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4065648": [
     "Jayson Tatum",
@@ -480,14 +480,14 @@
    "3202": [
     "Kevin Durant",
     0.086,
-    850,
+    800,
     false,
     "fanduel"
    ],
    "4066259": [
     "De'Aaron Fox",
     0.096,
-    700,
+    750,
     false,
     "fanduel"
    ],
@@ -496,7 +496,7 @@
     0.103,
     750,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4432639": [
     "Jabari Smith Jr.",
@@ -515,16 +515,16 @@
    "4845367": [
     "Stephon Castle",
     0.117,
-    750,
+    700,
     false,
     "fanduel"
    ],
    "4871144": [
     "Alperen Sengun",
     0.09,
-    810,
+    800,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "5104157": [
     "Victor Wembanyama",
@@ -1607,14 +1607,14 @@
    "4431671": [
     "Jaden McDaniels",
     0.088,
-    1000,
+    950,
     false,
     "fanduel"
    ],
    "4432573": [
     "Paolo Banchero",
     0.094,
-    700,
+    600,
     false,
     "fanduel"
    ],
@@ -1675,7 +1675,7 @@
    "3134908": [
     "Jakob Poeltl",
     0.066,
-    900,
+    850,
     false,
     "fanduel"
    ],
@@ -1703,7 +1703,7 @@
    "4433134": [
     "Scottie Barnes",
     0.106,
-    600,
+    650,
     false,
     "fanduel"
    ],
@@ -1724,7 +1724,7 @@
    "5174563": [
     "Kyshawn George",
     0.089,
-    1000,
+    850,
     false,
     "fanduel"
    ],
@@ -1764,21 +1764,21 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.122,
-    380,
+    390,
     false,
     "fanduel"
    ],
    "3059319": [
     "Andrew Wiggins",
     0.09,
-    900,
+    950,
     false,
     "fanduel"
    ],
    "3157465": [
     "Duncan Robinson",
     0.093,
-    1400,
+    1300,
     true,
     "fanduel"
    ],
@@ -1827,8 +1827,8 @@
    "4684742": [
     "Ausar Thompson",
     0.084,
-    1200,
-    false,
+    1300,
+    true,
     "fanduel"
    ]
   },
@@ -1902,14 +1902,14 @@
    "4591725": [
     "Ryan Rollins",
     0.111,
-    950,
+    900,
     true,
     "fanduel"
    ],
    "4711294": [
     "Matas Buzelis",
     0.092,
-    700,
+    750,
     false,
     "fanduel"
    ],
