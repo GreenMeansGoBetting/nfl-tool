@@ -598,7 +598,7 @@ function propTeamLines(team, defTeam, week, game, withModel = false) {
       const base = cache[key + "|n"];
       const def = PROP_MARKETS[marketKey];
       const section = def.section || (position === "RB" ? "rush" : "rec");
-      const row = { team, name: line.name, position, marketKey, market: def.label, section, line: line.line, over: line.over_odds, under: line.under_odds, injury: injuries[key]?.tag || null, proj: null, source: line.source || "sgo", thin: !!line.thin };
+      const row = { team, name: line.name, position, marketKey, market: def.label, section, line: line.line, over: line.over_odds, under: line.under_odds, injury: injuries[key]?.tag || null, proj: null, source: line.source || "novig", thin: !!line.thin };
       rows.push(row);
       if (!withModel) return;
       if (!proj || row.injury === "out") return;
@@ -1182,8 +1182,7 @@ function renderPropsSummaryCard(away, home) {
 
 // ---- Picker: every line in the game, by section, then by player ----
 // Passing / Rushing / Receiving / Other; inside each, one block per player
-// with his lines (Novig's line and price when Novig has it, SGO's
-// otherwise). No projections -- you draw the conclusions. Each player has
+// with his lines (Novig's line and price). No projections -- you draw the conclusions. Each player has
 // an Out switch for late news the injury report doesn't have yet.
 const PROP_SECTIONS = [
   ["pass", "Passing"],

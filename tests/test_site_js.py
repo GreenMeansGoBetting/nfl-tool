@@ -404,5 +404,29 @@ class TdSummaryTargets(unittest.TestCase):
             self.assertFalse(d["kept"], d)
 
 
+class SummaryOddsRailPrice(unittest.TestCase):
+    """The TD Summary's TD Odds rail and its picker show Anytime TD at the
+    best all-books price, the same number Best Plays and the player card
+    show. It once showed an old feed's "fair value" +154 for Jaleel McLaughlin
+    while FanDuel had +600 (2026-10-23)."""
+
+    def test_rail_uses_the_best_book_price(self):
+        got = TD.evaluate(
+            """() => {
+                const team = Object.keys(DATA.player_td_odds).find((t) => (DATA.player_td_odds[t] || []).length);
+                const o = DATA.player_td_odds[team][0];
+                const saved = DATA.book_odds;
+                DATA.book_odds = { [team + "_ZZZ"]: { td: { [boNorm(o.name)]: { q: [["fanduel", "o", 0.5, 600, null], ["draftkings", "o", 0.5, 450, null]] } }, lines: {}, props: {} } };
+                const row = summaryTeamOdds(team).find((p) => p.name === o.name);
+                const other = summaryTeamOdds(team).find((p) => p.name !== o.name && p.any);
+                DATA.book_odds = saved;
+                return { odds: row.any.best_odds, book: row.any.best_book, kept: other ? other.any.best_odds === DATA.player_td_odds[team].find((x) => x.name === other.name).best_odds : true };
+            }"""
+        )
+        self.assertEqual(got["odds"], 600)
+        self.assertEqual(got["book"], "FanDuel")
+        self.assertTrue(got["kept"])  # no book listing: Novig's price stays
+
+
 if __name__ == "__main__":
     unittest.main()

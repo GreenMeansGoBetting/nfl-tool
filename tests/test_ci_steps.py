@@ -627,14 +627,14 @@ class WorkflowsInStep(unittest.TestCase):
         failed. The tests and the gate run either way."""
         steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
         names = list(steps)
-        for build, sport in (("Build stats (nflverse needs no key; SGO_API_KEY is optional)", "nfl"), ("Build NBA data", "nba"), ("Restore saved NHL games", "nhl"),
+        for build, sport in (("Build stats", "nfl"), ("Build NBA data", "nba"), ("Restore saved NHL games", "nhl"),
                              ("Build NHL data", "nhl"), ("Save NHL games", "nhl")):
             self.assertIn(f"        if: contains(steps.lane.outputs.build, '{sport}') || steps.live_data.outcome == 'failure'\n", steps[build], build)
         # The records are saved on every run: Best Plays' record (2026-10-22)
         # is captured from the page even on a page-only push.
         for always in ("NFL Best Plays record", "Save GMG model record"):
             self.assertFalse(any(line.startswith("        if:") for line in steps[always].splitlines()), always)
-        self.assertLess(names.index("Build stats (nflverse needs no key; SGO_API_KEY is optional)"), names.index("NFL Best Plays record"))
+        self.assertLess(names.index("Build stats"), names.index("NFL Best Plays record"))
         self.assertEqual(names.index("Save GMG model record"), names.index("NFL Best Plays record") + 1)
         live_name = "Use the live data (sports this push can't change)"
         live = steps[live_name]
@@ -647,7 +647,7 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertIn("id: lane", steps["Choose the lane"])
         self.assertLess(names.index("Run the tests"), names.index("Choose the lane"))
         self.assertEqual(names.index(live_name), names.index("Choose the lane") + 1)
-        self.assertLess(names.index(live_name), names.index("Build stats (nflverse needs no key; SGO_API_KEY is optional)"))
+        self.assertLess(names.index(live_name), names.index("Build stats"))
         self.assertIn("LANE: ${{ steps.lane.outputs.lane }}", steps["Note the run in version.json"])
 
     def test_the_nfl_build_is_tried_twice(self):

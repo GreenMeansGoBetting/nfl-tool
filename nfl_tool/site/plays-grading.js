@@ -10,7 +10,7 @@
 // modal) -- these are the only two shapes of entry anything on the site
 // ever adds to Possible Plays. A manual override (win/loss/void, from the
 // Results modal below) always wins over a later auto re-grade, since a
-// name-format mismatch between SGO's odds names and nflverse's play-by-play
+// name-format mismatch between the books' odds names and nflverse's play-by-play
 // names is a known, accepted limitation everywhere else this site joins
 // the two sources (see build_roster_position_lookup's docstring).
 const GAME_LINE_CATEGORIES = { Spread: "spread", Total: "total", Moneyline: "moneyline" };
@@ -77,7 +77,7 @@ function gradeTdPlay(play, tdResults) {
 // above -- is built from standard pbp columns only, so it's real and
 // current the same week the game is played. "Fantasy Score" is deliberately left out:
 // no fixed scoring format (PPR/half/standard) has been confirmed against
-// SGO's own definition yet, and grading it against a guessed formula
+// the books' own definition yet, and grading it against a guessed formula
 // would be worse than leaving it Pending.
 const PLAYER_OU_STAT_FIELDS = {
   "Receiving Yards": (g) => g.rec_yards,
@@ -97,9 +97,9 @@ const PLAYER_OU_STAT_FIELDS = {
   "Pass + Rush Yards": (g) => g.pass_yards + g.rush_yards,
 };
 
-// Strips a trailing generational suffix for a looser name match -- SGO and
+// Strips a trailing generational suffix for a looser name match -- the books and
 // nflverse don't consistently agree on whether "Jr."/"II"/etc is part of a
-// player's name (confirmed: SGO's "Omar Cooper" vs nflverse's own "Omar
+// player's name (confirmed: a book's "Omar Cooper" vs nflverse's own "Omar
 // Cooper Jr." for the same person). A genuine nickname-vs-legal-name gap
 // (e.g. "Chig" vs "Chigoziem" Okonkwo) is NOT handled here -- too easy to
 // false-match a different player -- and stays the known, accepted

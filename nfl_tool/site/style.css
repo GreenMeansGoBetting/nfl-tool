@@ -1257,8 +1257,6 @@ footer a { color: var(--accent); }
   margin: 8px 0 0;
 }
 
-#general-odds-modal .modal-box { max-width: 1100px; width: 92vw; }
-
 .pos-row-click, .dist-row-click { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
 .pos-row-click:hover, .dist-row-click:hover { color: var(--accent); }
 
@@ -1371,28 +1369,6 @@ footer a { color: var(--accent); }
   color: #d4a017;
   font-size: 1rem;
 }
-.all-odds-btn {
-  margin-top: 8px;
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-}
-.all-odds-btn:hover { border-color: var(--accent); color: var(--accent); }
-.odds-period-heading {
-  margin: 14px 0 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--muted);
-}
-.odds-period-heading:first-of-type { margin-top: 8px; }
-.general-odds-table td { padding: 5px 6px; font-size: 0.8rem; }
-.general-odds-table td:first-child { font-weight: 600; width: 32%; }
 
 /* ---- Game Overviews ---- */
 
@@ -2142,8 +2118,7 @@ main { padding-top: 20px; }
 .box-score-team-toggle .box-score-team-btn,
 .pass-zone-mode-btn,
 .quick-select-btn,
-.quick-select-week-btn,
-.all-odds-btn {
+.quick-select-week-btn {
   border-radius: 999px;
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -2152,8 +2127,7 @@ main { padding-top: 20px; }
 }
 .view-toggle-btn:hover,
 .player-modal-toggle-btn:hover,
-.pass-zone-mode-btn:hover,
-.all-odds-btn:hover { background: var(--panel-2); border-color: var(--border-strong); color: var(--text); }
+.pass-zone-mode-btn:hover { background: var(--panel-2); border-color: var(--border-strong); color: var(--text); }
 .view-toggle-btn.active,
 .player-modal-toggle-btn.active,
 .box-score-team-toggle .box-score-team-btn.active,

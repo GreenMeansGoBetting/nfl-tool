@@ -1362,6 +1362,16 @@ function saveSummaryPicks(gameKey, picks) {
   }
 }
 
+// Anytime TD at the best price across the books (book-odds.js), the same
+// number Best Plays and the player card show. player_td_odds alone can be
+// an old feed's "fair value" stand-in far from any real book (McLaughlin +154 vs
+// FanDuel +600, 2026-10-23); it stays only when no book lists the player.
+function summaryAnytimeBest(team, o) {
+  if (typeof bookQuotes !== "function") return o;
+  const best = bookBest(bookQuotes({ kind: "td", team, name: o.name }), "o", 0.5);
+  return best ? { ...o, best_odds: best[3], best_book: BOOK_NAMES[best[0]] || best[0] } : o;
+}
+
 // Every player with Anytime or First TD odds for one team, merged by
 // name and sorted most likely first.
 function summaryTeamOdds(team) {
@@ -1369,7 +1379,7 @@ function summaryTeamOdds(team) {
   const first = {};
   const names = {};
   ((DATA.player_td_odds || {})[team] || []).forEach((o) => {
-    any[normName(o.name)] = o;
+    any[normName(o.name)] = summaryAnytimeBest(team, o);
     names[normName(o.name)] = names[normName(o.name)] || o;
   });
   ((DATA.player_first_td_odds || {})[team] || []).forEach((o) => {

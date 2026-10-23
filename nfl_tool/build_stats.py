@@ -42,7 +42,7 @@ import pandas as pd
 
 from gmg_model import compute_gmg_model, eastern_now, game_has_started, kickoff_utc
 from line_grades import compute_line_grades, load_ngs
-from smartstake import fetch_nfl_book_odds
+from smartstake import US_BOOKS, fetch_nfl_book_odds
 
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"
@@ -65,40 +65,6 @@ FTN_URL = "https://github.com/nflverse/nflverse-data/releases/download/ftn_chart
 # (confirmed: snap_counts_2026.csv created the same day as 2026's first
 # games), unlike the old participation file's own snap-participation columns.
 SNAP_COUNTS_URL = "https://github.com/nflverse/nflverse-data/releases/download/snap_counts/snap_counts_{season}.csv"
-
-# Anytime-touchdown-scorer odds, from SportsGameOdds' free tier (2,500
-# "objects"/month, billed per EVENT returned -- not per market or player --
-# so one pull of a full ~16-game week costs ~16 objects regardless of how
-# many players/books come back in it). Entirely optional: if SGO_API_KEY
-# isn't set, this whole feature just doesn't populate, same graceful
-# degradation as every other optional data source in this pipeline.
-#
-# The math is tight even at normal cadence: the deploy workflow's own
-# every-4-hours schedule alone is ~180 builds/month * ~16 objects =
-# ~2,880/month, already over the 2,500 budget before a single manual
-# rebuild. Confirmed directly: a run hit HTTP 429 (quota exceeded) with no
-# unusual activity beyond a day of more-frequent-than-normal manual
-# rebuilds. See fetch_previous_odds_snapshot for how a failed fetch
-# degrades instead of wiping every team's odds out, and deploy.yml's
-# cron comment for the schedule change made alongside this.
-SGO_EVENTS_URL = "https://api.sportsgameodds.com/v2/events"
-SGO_BOOK_NAMES = {
-    "draftkings": "DraftKings",
-    "fanduel": "FanDuel",
-    "caesars": "Caesars",
-    "betmgm": "BetMGM",
-    "espnbet": "ESPN BET",
-    "bovada": "Bovada",
-    "pointsbet": "PointsBet",
-    "betrivers": "BetRivers",
-    "wynnbet": "WynnBET",
-    # SGO carries Novig (the site's sponsor) as an ordinary bookmakerID
-    # alongside the sportsbooks above -- no separate request or
-    # integration needed, just a display name so it doesn't show up
-    # lowercase/unstyled on the rare market where its exchange price
-    # happens to be the best one returned.
-    "novig": "Novig",
-}
 
 TEAM_NAME_FIXES = {
     # nflverse occasionally uses different abbreviations across seasons for
@@ -809,16 +775,11 @@ def compute_current_week(schedule: list) -> int:
 
 def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
     """{full_name: {team, team, ...}} across the whole season on file --
-    used to catch SportsGameOdds' free tier occasionally tagging a player to
-    the wrong team WITHIN that team's own event data. MUST be built from the
+    which team a book's Anytime TD row belongs to (SmartStake's quotes name
+    the game, not the player's team; book_td_odds). MUST be built from the
     CURRENT (requested) season's roster, not whatever season the pbp-based
-    stats fell back to -- an earlier version used the fallback season's
-    roster here and it flagged A.J. Brown as wrongly listed on the Patriots,
-    when he'd actually been traded there that offseason and SGO had it
-    right; the stale prior-season roster just hadn't caught up. Only drops
-    entries we have POSITIVE evidence are wrong -- a name with no roster
-    match at all is left alone, since a name-format mismatch between the two
-    data sources is far more likely than an actual imposter."""
+    stats fell back to: the fallback season's roster once still had A.J.
+    Brown on his old team after an offseason trade."""
     lookup = {}
     for row in rosters.itertuples(index=False):
         if pd.isna(row.full_name):
@@ -829,7 +790,7 @@ def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
 
 def build_roster_position_lookup(rosters: pd.DataFrame) -> dict:
     """{full_name: position} from the most recent week on file -- same
-    name-keyed shape as build_roster_team_lookup (SGO's player odds only
+    name-keyed shape as build_roster_team_lookup (the books' player odds only
     carry a name, not a gsis_id), used to label player-odds modal rows by
     position instead of team (the row's own color/border already conveys
     team, so position is the more useful second identifier)."""
@@ -841,69 +802,16 @@ def build_roster_position_lookup(rosters: pd.DataFrame) -> dict:
     return lookup
 
 
-def fetch_sgo_events(api_keys: list, starts_after: str, starts_before: str) -> list | None:
-    """Raw SportsGameOdds events (every market, every player, every book the
-    free tier returns) for the given date window. Returns None if no API key
-    is configured (player props are entirely optional -- the site works
-    fine without them) or every configured key fails. Fetched ONCE and
-    shared across every player-prop market we extract from it (anytime-TD,
-    first-TD, and whatever gets added later) -- SportsGameOdds bills per
-    EVENT returned, not per market, so there's no reason to hit the API
-    again just to look at a different statID in the same response.
-
-    api_keys is tried in order (primary, then any backups) -- a quota-
-    exhausted primary key falls through to a backup automatically instead
-    of the whole feature going dark until the primary's own quota resets
-    (confirmed directly: a single account's 2,500-objects/month free tier
-    ran out well before a full month, see SGO_EVENTS_URL's comment). Only
-    reports failure once every key in the list has failed.
-    """
-    keys = [k for k in api_keys if k]
-    if not keys:
-        return None
-    last_error = None
-    for i, api_key in enumerate(keys):
-        which = "primary" if i == 0 else f"backup #{i}"
-        params = urllib.parse.urlencode(
-            {
-                "leagueID": "NFL",
-                "oddsAvailable": "true",
-                "startsAfter": starts_after,
-                "startsBefore": starts_before,
-                "limit": 50,
-                "apiKey": api_key,
-            }
-        )
-        url = f"{SGO_EVENTS_URL}?{params}"
-        # SportsGameOdds appears to reject urllib's default User-Agent
-        # string -- a normal browser-like one goes through fine.
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; nfl-tool/1.0)"})
-        try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                payload = json.load(resp)
-        except Exception as e:
-            last_error = str(e)
-            print(f"WARNING: SGO {which} key failed ({e}).", file=sys.stderr)
-            continue
-        if not payload.get("success"):
-            last_error = payload.get("notice")
-            print(f"WARNING: SGO {which} key request unsuccessful: {payload.get('notice')}.", file=sys.stderr)
-            continue
-        return payload.get("data", [])
-    print(f"WARNING: all {len(keys)} SGO key(s) failed (last error: {last_error}) -- skipping player props.", file=sys.stderr)
-    return None
-
-
-# ---- Novig: primary source for player prop lines ----
+# ---- Novig: player prop lines, First TD and its own game lines ----
 # Novig's public site reads every market for a game (main lines,
-# alternates, prices) from one GraphQL request per game, no login. SGO's
-# free tier leaves many player props without a book price (starters
-# included), so Novig goes first and SGO fills in any player Novig doesn't
-# list. Novig only accepts the exact query its own site sends, saved
+# alternates, prices) from one GraphQL request per game, no login. Every
+# book's price comes from SmartStake (smartstake.py); Novig adds the
+# over/under lines, First TD (SmartStake has no such market) and its own
+# game prices. Novig only accepts the exact query its own site sends, saved
 # verbatim in novig_event_markets.graphql -- if Novig changes its site the
-# request starts erroring, this returns nothing, and SGO carries the props
-# alone until the file is refreshed (copy the EventMarkets_Query request
-# body from the browser's network tab on any novig.com game page).
+# request starts erroring and this returns nothing until the file is
+# refreshed (copy the EventMarkets_Query request body from the browser's
+# network tab on any novig.com game page).
 NOVIG_EVENTS_URL = "https://api.novig.us/v3/public/catalog/events?league=NFL"
 NOVIG_GRAPHQL_URL = "https://api.novig.us/v1/graphql"
 NOVIG_QUERY_PATH = Path(__file__).parent / "novig_event_markets.graphql"
@@ -960,8 +868,8 @@ def novig_price_to_american(p):
 
 def fetch_novig_week(week_games: list, starts_after: str, starts_before: str) -> tuple:
     """Every market for this week's games, keyed by our (away, home).
-    Returns (games, debug). Never raises -- a Novig problem just means SGO
-    carries the props this run."""
+    Returns (games, debug). Never raises -- a Novig problem just means no
+    Novig props this run (SmartStake still has every book's price)."""
     debug = {"events": 0, "games": [], "error": None}
     out = {}
     try:
@@ -990,9 +898,9 @@ def fetch_novig_week(week_games: list, starts_after: str, starts_before: str) ->
                 continue
             out[key] = ev.get("markets") or []
             debug["games"].append(f"{key[0]}@{key[1]}:{len(out[key])}")
-    except Exception as ex:  # network, JSON, or a changed query -- SGO covers it
+    except Exception as ex:  # network, JSON, or a changed query
         debug["error"] = str(ex)
-        print(f"WARNING: Novig fetch failed ({ex}) -- player props fall back to SGO only.", file=sys.stderr)
+        print(f"WARNING: Novig fetch failed ({ex}) -- no Novig props this run.", file=sys.stderr)
     return out, debug
 
 
@@ -1007,9 +915,10 @@ TD_YES_MAX = {"TOUCHDOWNS": 0.95, "FIRST_TOUCHDOWN_SCORER": 0.5}
 
 
 def extract_novig_props(novig_games: dict, teams, roster_positions: dict, unavailable: set) -> tuple:
-    """(ou, anytime, first): ou is {stat_id: {team: [rows]}} shaped like
-    extract_player_ou_props; anytime/first are {team: [rows]} shaped like
-    extract_player_prop_odds. Main (consensus) lines only."""
+    """(ou, anytime, first): ou is {stat_id: {team: [rows]}}, each row
+    {name, position, line, over_odds, under_odds, source, thin}; anytime /
+    first are {team: [rows]}, each {name, position, best_odds, best_book,
+    fair_odds, implied_prob, thin}. Main (consensus) lines only."""
     ou = {stat: {t: [] for t in teams} for stat in PLAYER_OU_MARKETS}
     anytime = {t: [] for t in teams}
     first = {t: [] for t in teams}
@@ -1076,7 +985,7 @@ def _norm_player(name: str) -> str:
 
 def canonicalize_odds_names(blob: dict, roster_positions: dict | None) -> int:
     """Rewrites every odds row's player name to the site's own spelling.
-    Books disagree ("Brian Robinson Jr." on SGO, "Brian Robinson" on Novig
+    Books disagree ("Brian Robinson Jr." on one, "Brian Robinson" on Novig
     and in nflverse), and which book a row comes from can change from one
     build to the next -- so the same player's name flipped, a saved Possible
     Play stopped matching its checkbox, and saving it again listed him twice
@@ -1118,42 +1027,107 @@ def canonicalize_odds_names(blob: dict, roster_positions: dict | None) -> int:
     return changed
 
 
-def merge_prop_markets(novig: dict, sgo: dict | None) -> dict:
-    """Novig's line for every player it lists; SGO's for anyone it doesn't."""
-    merged = {}
-    for stat in PLAYER_OU_MARKETS:
-        n_by_team = (novig or {}).get(stat) or {}
-        s_by_team = (sgo or {}).get(stat) or {}
-        merged[stat] = {}
-        for team in set(n_by_team) | set(s_by_team):
-            rows = list(n_by_team.get(team) or [])
-            have = {_norm_player(r["name"]) for r in rows}
-            rows += [r for r in (s_by_team.get(team) or []) if _norm_player(r["name"]) not in have and r.get("source") != "novig"]
-            merged[stat][team] = sorted(rows, key=lambda r: -(r.get("line") or 0))
-    return merged
+def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | None, unavailable) -> dict:
+    """{team: [rows]} Anytime TD from SmartStake (every US book), shaped like
+    extract_novig_props' rows: the best Over 0.5 price and its book, and a
+    no-vig chance -- the median, across books quoting both sides, of
+    Yes / (Yes + No); with no two-sided book, the median Yes chance x 0.9.
+    A player's team is whichever side of the game his current roster lists."""
+    by_norm = {}
+    for name, teams in (roster_teams or {}).items():
+        by_norm.setdefault(_norm_player(name), set()).update(teams)
+    prob = moneyline_to_implied_prob
+    out = {}
+    for key, game in (book_odds or {}).items():
+        away, home = key.split("_", 1)
+        for row in (game.get("td") or {}).values():
+            name = row.get("name")
+            if not name or name in (unavailable or ()):
+                continue
+            side = [t for t in (away, home) if t in by_norm.get(_norm_player(name), ())]
+            if len(side) != 1:
+                continue
+            by_book = {}
+            for book, s, _line, odds, _url in row.get("q") or []:
+                if book in US_BOOKS and odds:
+                    by_book.setdefault(book, {})[s] = odds
+            overs = sorted(((b, p["o"]) for b, p in by_book.items() if "o" in p), key=lambda x: prob(x[1]))
+            if not overs:
+                continue
+            best_book, best = overs[0]  # the longest price pays the most
+            two = sorted(prob(p["o"]) / (prob(p["o"]) + prob(p["u"])) for p in by_book.values() if "o" in p and "u" in p)
+            yes = [prob(o) for _, o in overs]
+            fair = two[len(two) // 2] if two else min(yes[len(yes) // 2] * 0.9, 0.99)
+            out.setdefault(side[0], []).append({
+                "name": name, "position": (roster_positions or {}).get(name), "best_odds": int(best),
+                "best_book": US_BOOKS[best_book], "fair_odds": novig_price_to_american(fair), "implied_prob": round(fair, 3),
+            })
+    return out
 
 
-def merge_td_odds(novig: dict, sgo: dict | None) -> dict:
-    """Per player, whichever of SGO's best book or Novig pays more; players
-    only one source lists are kept as-is."""
+def merge_td_odds(book: dict, novig: dict) -> dict:
+    """Anytime TD per player: SmartStake's best price across the US books
+    leads (the owner, 2026-10-23: SmartStake "will always reign supreme"),
+    keeping Novig's no-vig chance when Novig lists him too; Novig's row
+    alone when no book lists him."""
     merged = {}
-    for team in set(novig or {}) | set(sgo or {}):
-        by_name = {}
-        for r in (sgo or {}).get(team) or []:
-            if r.get("best_book") != "Novig":
-                by_name[_norm_player(r["name"])] = dict(r)
-        for r in (novig or {}).get(team) or []:
-            k = _norm_player(r["name"])
-            cur = by_name.get(k)
+    for team in set(book or {}) | set(novig or {}):
+        by_name = {_norm_player(r["name"]): dict(r) for r in (novig or {}).get(team) or []}
+        for r in (book or {}).get(team) or []:
+            cur = by_name.get(_norm_player(r["name"]))
             if cur is None:
-                by_name[k] = dict(r)
-            elif cur.get("best_odds") is None or (r["best_odds"] is not None and r["best_odds"] > cur["best_odds"]):
-                cur["best_odds"], cur["best_book"] = r["best_odds"], "Novig"
+                by_name[_norm_player(r["name"])] = dict(r)
+            else:
+                cur["best_odds"], cur["best_book"] = r["best_odds"], r["best_book"]
         merged[team] = sorted(by_name.values(), key=lambda r: -(r.get("implied_prob") or 0))
     return merged
 
 
-# Behind the Discord login since 2026-09-28 -- see fetch_previous_odds_snapshot.
+def _consensus_line(quotes: list, side: str):
+    """The line most US books post for one side (ties: nearest the middle)."""
+    lines = [q[2] for q in quotes if q[1] == side and q[0] in US_BOOKS and q[3] and q[2] is not None]
+    if not lines:
+        return None
+    counts = Counter(lines)
+    mid = sorted(lines)[len(lines) // 2]
+    return sorted(counts, key=lambda ln: (-counts[ln], abs(ln - mid), ln))[0]
+
+
+def _best_at(quotes: list, side: str, line):
+    """The best US-book price for one side at one line (None = any line)."""
+    prices = [q[3] for q in quotes if q[1] == side and q[0] in US_BOOKS and q[3] and (line is None or q[2] == line)]
+    return min(prices, key=moneyline_to_implied_prob) if prices else None
+
+
+def apply_book_schedule_lines(schedule: list, book_odds: dict) -> None:
+    """Each game's top-level spread/total/moneyline from SmartStake (in place):
+    the line most US books post, at the best price there. nflverse's
+    games.csv line is only re-scraped a few times a day and sits behind the
+    market. A game or market no book lists keeps nflverse's number; Novig's
+    own copy rides in game["novig"] (extract_novig_game_lines)."""
+    for game in schedule:
+        lines = ((book_odds or {}).get(f"{game['away']}_{game['home']}") or {}).get("lines") or {}
+        spread = lines.get("spread") or []
+        away_line = _consensus_line(spread, "away")
+        if away_line is not None:
+            away_price, home_price = _best_at(spread, "away", away_line), _best_at(spread, "home", -away_line)
+            if away_price and home_price:
+                game["spread_line"] = game["away_team_spread"] = away_line
+                game["home_team_spread"] = -away_line
+                game["away_spread_odds"], game["home_spread_odds"] = away_price, home_price
+        total = lines.get("total") or []
+        total_line = _consensus_line(total, "o")
+        if total_line is not None:
+            over, under = _best_at(total, "o", total_line), _best_at(total, "u", total_line)
+            if over and under:
+                game["total_line"], game["over_odds"], game["under_odds"] = total_line, over, under
+        ml = lines.get("ml") or []
+        away_ml, home_ml = _best_at(ml, "away", None), _best_at(ml, "home", None)
+        if away_ml and home_ml:
+            game["away_moneyline"], game["home_moneyline"] = away_ml, home_ml
+            game["away_ml_implied_prob"], game["home_ml_implied_prob"] = novig_moneyline_probs(away_ml, home_ml)
+
+
 LIVE_SITE_DATA_URL = "https://nfl.gmgsports.org/data.json"
 
 
@@ -1161,16 +1135,10 @@ _PREVIOUS_SNAPSHOT: list = []  # one successful read is reused for the whole bui
 
 
 def fetch_previous_odds_snapshot() -> dict | None:
-    """Best-effort fallback for when THIS run's SGO fetch fails (quota
-    exceeded, timeout, outage) -- reuses whatever player_td_odds/
-    player_first_td_odds/general_odds/player_prop_markets are already live
-    on the deployed site instead of nulling every team's odds out. Before
-    this, a single failed fetch (e.g. one HTTP 429) wiped Anytime TD odds
-    for all 32 teams even though most of them hadn't changed since the
-    last successful pull -- stale-by-one-cycle odds are a far smaller
-    problem than no odds at all. Returns None (no fallback available) on
-    ANY failure -- reading the live site is a nice-to-have, never allowed
-    to break the build itself."""
+    """The deployed site's data.json (the previous build): the odds lock's
+    pregame copies, SmartStake's started games and ESPN's ratings when
+    ESPN fails. Returns None on ANY failure -- reading the live site is a
+    nice-to-have, never allowed to break the build itself."""
     if _PREVIOUS_SNAPSHOT:
         return _PREVIOUS_SNAPSHOT[0]
     try:
@@ -1207,7 +1175,7 @@ LOCK_FALLBACK_FIELDS = {"home_team_spread", "away_team_spread", "total_line"}
 
 def lock_started_game_odds(blob: dict, previous: dict | None, model_history: dict) -> list:
     """Once a game kicks off its odds stop moving on the site. Novig (and
-    SGO) keep quoting IN-GAME lines, and the build was publishing those as
+    the books) keep quoting IN-GAME lines, and the build was publishing those as
     if they were the pregame number: SF +3.5 / 46.5 turned into "SF -4.5,
     Under 56.5, SF -245" on the Pick Tracker mid-game (user 2026-10-11).
 
@@ -1215,7 +1183,7 @@ def lock_started_game_odds(blob: dict, previous: dict | None, model_history: dic
     build instead of this run's fetch -- but only when that build is known
     to hold pregame numbers: it had already locked the game, or it was
     generated before kickoff. Covers the schedule lines (top-level and
-    Novig), both teams' TD and prop odds, and the game's all-odds list.
+    Novig), and both teams' TD and prop odds (book_odds locks itself, smartstake.lock_started).
     When there's no trustworthy earlier copy (the previous build couldn't
     be read, or predates this feature), Novig's live copy is dropped and the
     spread/total fall back to the line the GMG model locked at kickoff, then
@@ -1256,9 +1224,6 @@ def lock_started_game_odds(blob: dict, previous: dict | None, model_history: dic
                     prev_rows = ((previous.get("player_prop_markets") or {}).get(stat) or {}).get(team)
                     if prev_rows is not None:
                         by_team[team] = prev_rows
-            key = f"{game['away']}_{game['home']}"
-            if isinstance(blob.get("general_odds"), dict) and key in (previous.get("general_odds") or {}):
-                blob["general_odds"][key] = previous["general_odds"][key]
         else:
             game.pop("novig", None)
             entry = model_history.get(gid) or {}
@@ -1376,179 +1341,9 @@ def compute_espn_ratings(season: int) -> dict | None:
     return rows
 
 
-def sgo_debug_summary(events: list, teams) -> dict:
-    """Per team: every player name SGO lists in the event, plus which
-    anytime-TD 'yes' rows exist for them and whether each has a live book
-    price. Exists only so a "why is X missing from the odds" question can be
-    answered straight from the live data.json instead of build logs."""
-    out = {}
-    for event in events:
-        players = event.get("players", {})
-        short = {
-            event["teams"][s]["teamID"]: normalize_team(event["teams"][s]["names"]["short"])
-            for s in ("home", "away")
-        }
-        td_rows = {}
-        for odd in event.get("odds", {}).values():
-            if odd.get("statID") == "touchdowns" and odd.get("betTypeID") == "yn" and odd.get("sideID") == "yes":
-                has_book = any(i.get("available") and i.get("odds") is not None for i in (odd.get("byBookmaker") or {}).values())
-                td_rows[odd.get("playerID")] = "book" if has_book else ("fair" if odd.get("fairOdds") is not None else "none")
-        for pid, pl in players.items():
-            t = short.get(pl.get("teamID"))
-            if t in teams:
-                out.setdefault(t, {})[pl.get("name")] = td_rows.get(pid, "no-row")
-    return out
-
-
-def sgo_ou_debug(events: list, teams, roster_teams: dict) -> dict:
-    """Per team, per player SGO lists: every over/under prop market it
-    sent and what happened to it -- "ok", or why extract_player_ou_props
-    skipped it ("no-book": no bookmaker price/line, "no-under": no matching
-    under at that book, "roster": team doesn't match the roster). Players
-    SGO sent no o/u markets for at all show as {}. Answers "why is X
-    missing from the props" straight from data.json."""
-    out: dict = {}
-    for event in events:
-        players = event.get("players", {})
-        odds = event.get("odds", {})
-        short = {
-            event["teams"][s]["teamID"]: normalize_team(event["teams"][s]["names"]["short"])
-            for s in ("home", "away")
-        }
-        for pid, pl in players.items():
-            t = short.get(pl.get("teamID"))
-            if t in teams:
-                out.setdefault(t, {}).setdefault(pl.get("name"), {})
-        for odd in odds.values():
-            stat = odd.get("statID")
-            if stat not in PLAYER_OU_MARKETS or odd.get("betTypeID") != "ou" or odd.get("sideID") != "over" or odd.get("periodID") != "game":
-                continue
-            player = players.get(odd.get("playerID"))
-            if not player:
-                continue
-            t = short.get(player.get("teamID"))
-            if t not in teams:
-                continue
-            name = player.get("name")
-            known = roster_teams.get(name)
-            books = {b: i for b, i in (odd.get("byBookmaker") or {}).items() if i.get("available") and i.get("odds") is not None and i.get("overUnder") is not None}
-            under = (odds.get(odd.get("opposingOddID")) or {}).get("byBookmaker") or {}
-            if known and t not in known:
-                status = "roster"
-            elif not books:
-                status = "no-book"
-            elif not any((under.get(b) or {}).get("available") and (under.get(b) or {}).get("odds") is not None for b in books):
-                status = "no-under"
-            else:
-                status = "ok"
-            out.setdefault(t, {}).setdefault(name, {})[stat] = status
-    return out
-
-
-def extract_player_prop_odds(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None, unavailable: set = None) -> dict:
-    """Every player's "yes/no" odds for one statID (e.g. "touchdowns" for
-    anytime-TD, "firstTouchdown" for first-TD) out of a fetch_sgo_events()
-    response -- ONLY players with an actual live book price. A player with
-    no book posting a line is almost always hurt/inactive (verified: every
-    such case checked was a player who'd since been ruled out or was
-    questionable/limited); showing SportsGameOdds' de-vigged "fair" number
-    for them anyway read as a real line when the real market had already
-    been pulled, so those are dropped entirely rather than falling back to it.
-
-    Picks the best (most favorable to a "yes" bettor) price across whatever
-    real sportsbooks the free tier returns for that player. The de-vigged
-    "fair" price/probability SportsGameOdds computes across all of them is
-    still stored (used to RANK players by true likelihood regardless of
-    which book happened to have the best number, so the ranking isn't
-    skewed by one book's outlier price) but no longer shown as a
-    stand-in price. roster_teams (see build_roster_team_lookup) drops
-    entries the free tier mis-tagged to the wrong team.
-    """
-    # Keyed by (team, player name) rather than playerID -- SportsGameOdds
-    # occasionally carries two different playerIDs for the same real person
-    # (data-vendor quirk), which would otherwise show the same player twice
-    # with two different prices. Keep whichever duplicate actually has a
-    # live book price; if neither/none do, keep the higher implied
-    # probability one.
-    best_by_key = {}
-    for event in events:
-        players = event.get("players", {})
-        odds = event.get("odds", {})
-        team_short_by_id = {
-            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
-            for side in ("home", "away")
-        }
-        for odd in odds.values():
-            if odd.get("statID") != stat_id or odd.get("betTypeID") != "yn" or odd.get("sideID") != "yes":
-                continue
-            player = players.get(odd.get("playerID"))
-            if not player:
-                continue
-            team_short = team_short_by_id.get(player.get("teamID"))
-            if team_short not in teams:
-                continue
-            known_teams = roster_teams.get(player.get("name"))
-            if known_teams and team_short not in known_teams:
-                continue
-
-            best_price, best_book = None, None
-            for book, info in (odd.get("byBookmaker") or {}).items():
-                if not info.get("available") or info.get("odds") is None:
-                    continue
-                price = float(info["odds"])
-                if best_price is None or price > best_price:
-                    best_price, best_book = price, book
-
-            fair_odds = odd.get("fairOdds")
-            fair_odds = float(fair_odds) if fair_odds is not None else None
-
-            # No live book price used to drop the player outright (a pulled
-            # market usually meant hurt/inactive, and SGO's de-vigged "fair"
-            # number can outlive the real market). That also silently hid
-            # healthy starters the free tier just has no book line for --
-            # Miami's Caleb Douglas (91% snaps) and Chris Bell (52%) were
-            # missing while practice-squad names showed up. So: keep the
-            # player on the fair number, labeled as such, unless he's
-            # confirmed out on the injury report.
-            if best_price is None:
-                if fair_odds is None or player.get("name") in (unavailable or ()):
-                    continue
-                best_price, best_book = fair_odds, "fair value"
-
-            row = {
-                "name": player.get("name"),
-                "position": (roster_positions or {}).get(player.get("name")),
-                "best_odds": int(best_price) if best_price is not None else None,
-                "best_book": SGO_BOOK_NAMES.get(best_book, best_book),
-                "fair_odds": int(fair_odds) if fair_odds is not None else None,
-                "implied_prob": round(moneyline_to_implied_prob(fair_odds if fair_odds is not None else best_price), 3),
-            }
-            key = (team_short, row["name"])
-            existing = best_by_key.get(key)
-            if existing is None:
-                best_by_key[key] = row
-                continue
-            if row["implied_prob"] > existing["implied_prob"]:
-                best_by_key[key] = row
-
-    result = {t: [] for t in teams}
-    for (team_short, _name), row in best_by_key.items():
-        result[team_short].append(row)
-    for t in result:
-        result[t].sort(key=lambda p: -p["implied_prob"])
-    return result
-
-
-# The full player-props catalog (Player Props page's per-market modal) --
-# distinct from extract_player_prop_odds above (yes/no anytime/first-TD
-# markets). Confirmed directly against a live SGO response (2026-09-11,
-# SF @ LA) rather than guessed from their marketing docs, which don't list
-# exact statID strings and aren't consistently cased (the existing
-# "touchdowns"/"firstTouchdown" markets already mix conventions). Kicking
-# and defense markets (fieldGoals_made, defense_sacks, etc.) also exist on
-# the free tier but are deliberately left out of this v1 -- this page is
-# scoped to skill-position offense, and each would need its own new
-# section/position-filtering the way Receiving/Rushing/Passing already do.
+# The player over/under markets Novig lists (Player Props page and the
+# player card), by the site's stat ids. The site's sections are
+# skill-position offense, plus kickers and defenders.
 PLAYER_OU_MARKETS = {
     "receiving_yards": "Receiving Yards",
     "receiving_receptions": "Receptions",
@@ -1566,337 +1361,18 @@ PLAYER_OU_MARKETS = {
     "rushing+receiving_yards": "Rush + Rec Yards",
     "passing+rushing_yards": "Pass + Rush Yards",
     "fantasyScore": "Fantasy Score",
-    # Novig-only (no SGO statID): kickers and defenders.
+    # Kickers and defenders.
     "kicking_points": "Kicking Points",
     "field_goals_made": "FGs Made",
     "defense_tackles_assists": "Tackles + Ast",
 }
 
 
-def extract_player_ou_props(events: list, stat_id: str, teams, roster_teams: dict, roster_positions: dict = None) -> dict:
-    """Every player's over/under LINE plus both sides' prices for one
-    statID (e.g. "receiving_yards") -- the general player-props catalog.
-    Unlike the yes/no anytime-TD markets above, an o/u market has a real
-    number attached (the line), and that number can differ slightly by
-    book -- so the line and BOTH prices are taken from the SAME bookmaker
-    (whichever has the best "over" price among books actually posting one)
-    rather than picking each side/line independently, since a line from one
-    book paired with a price from another isn't a real bettable number. No
-    book name is kept in the output -- the user line-shops themselves.
-
-    periodID must be filtered to "game" (full game) -- SGO returns the SAME
-    statID/betTypeID/sideID combo again for 1Q/2Q/3Q/4Q sub-markets (e.g.
-    Drake London's full-game 61.5 receiving yards line sits alongside a
-    separate 8.5 line for his 1st quarter ONLY), and without this filter
-    the best-price scan across ALL of them could just as easily land on a
-    quarter-specific line as the real full-game one -- confirmed live: this
-    was silently happening (caught via a user-reported "way off" ATL/PIT
-    receiving-yards line). Same period-scoping extract_general_odds already
-    does via GENERAL_ODDS_PERIODS, just missed here originally.
-    """
-    best_by_key = {}
-    for event in events:
-        players = event.get("players", {})
-        odds = event.get("odds", {})
-        team_short_by_id = {
-            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
-            for side in ("home", "away")
-        }
-        for odd in odds.values():
-            if odd.get("statID") != stat_id or odd.get("betTypeID") != "ou" or odd.get("sideID") != "over":
-                continue
-            if odd.get("periodID") != "game":
-                continue
-            player = players.get(odd.get("playerID"))
-            if not player:
-                continue
-            team_short = team_short_by_id.get(player.get("teamID"))
-            if team_short not in teams:
-                continue
-            known_teams = roster_teams.get(player.get("name"))
-            if known_teams and team_short not in known_teams:
-                continue
-
-            under_odd = odds.get(odd.get("opposingOddID"))
-            if not under_odd:
-                continue
-
-            best_book, best_over, line = None, None, None
-            for book, info in (odd.get("byBookmaker") or {}).items():
-                if not info.get("available") or info.get("odds") is None or info.get("overUnder") is None:
-                    continue
-                price = float(info["odds"])
-                if best_over is None or price > best_over:
-                    best_over, best_book, line = price, book, float(info["overUnder"])
-            if best_book is None:
-                continue
-
-            under_info = (under_odd.get("byBookmaker") or {}).get(best_book)
-            if not under_info or not under_info.get("available") or under_info.get("odds") is None:
-                continue
-
-            row = {
-                "name": player.get("name"),
-                "position": (roster_positions or {}).get(player.get("name")),
-                "line": line,
-                "over_odds": int(best_over),
-                "under_odds": int(float(under_info["odds"])),
-            }
-            best_by_key[(team_short, row["name"])] = row
-
-    result = {t: [] for t in teams}
-    for (team_short, _name), row in best_by_key.items():
-        result[team_short].append(row)
-    for t in result:
-        result[t].sort(key=lambda p: -(p["line"] or 0))
-    return result
-
-
-# Every non-player market SGO returns for full game + 1st half -- spread,
-# total, moneyline, each team's own point total, odd/even, plus a few
-# game-level derivatives (both teams to score, first team to score, team
-# touchdowns/field-goals over-under). Free: this reuses the SAME event
-# fetch already paid for by the player-prop pull above (SGO bills per
-# EVENT returned, not per market). Quarter-by-quarter and 2nd-half lines
-# exist in the same response but are deliberately left out here -- a much
-# deeper derivative than the "team totals, halftime lines" this was built
-# for. GENERAL_ODDS_PERIODS/MARKETS are isolated so widening the scope
-# later (2h, quarters, more derivatives) is additive, not a rewrite.
-GENERAL_ODDS_PERIODS = {"game": "Full Game", "1h": "1st Half"}
-GENERAL_ODDS_MARKETS = {
-    ("points", "sp"),
-    ("points", "ou"),
-    ("points", "ml"),
-    ("points", "eo"),
-    ("touchdowns", "ou"),
-    ("touchdowns", "yn"),
-    ("fieldGoals_made", "ou"),
-    ("bothTeamsScored", "yn"),
-    ("firstToScore", "ml"),
-}
-
-
-def _standard_line(by_bookmaker: dict, field: str):
-    """The line most books agree on for one market side (field is "spread"
-    or "overUnder" in SGO's byBookmaker schema) -- picking the single
-    number the majority of books are quoting, rather than whatever number
-    happens to come with the single best price. See extract_general_odds
-    for why this matters."""
-    counts = Counter()
-    for info in by_bookmaker.values():
-        if not info.get("available") or info.get("odds") is None:
-            continue
-        v = info.get(field)
-        if v is not None:
-            counts[float(v)] += 1
-    return counts.most_common(1)[0][0] if counts else None
-
-
-def _best_price_at_line(by_bookmaker: dict, field: str, line):
-    """Best price among books quoting EXACTLY `line` -- or, if `line` is
-    None (no standard could be determined), the best price anywhere,
-    same as the old unconstrained behavior. SGO returns odds/lines as
-    JSON strings, not numbers -- comparing a book's raw string value
-    straight against `line` (a float) would never match anything and
-    silently drop every market, so this casts before comparing."""
-    best_price, best_book = None, None
-    for book, info in by_bookmaker.items():
-        if not info.get("available") or info.get("odds") is None:
-            continue
-        if line is not None:
-            v = info.get(field)
-            if v is None or float(v) != line:
-                continue
-        price = float(info["odds"])
-        if best_price is None or price > best_price:
-            best_price, best_book = price, book
-    return best_price, best_book
-
-
-def extract_general_odds(events: list, teams) -> dict:
-    """{"AWAY_HOME": [ {period, period_label, stat_id, bet_type, side,
-    team, market_name, line, best_odds, best_book}, ... ]} -- team is None
-    for a whole-game side (the combined total, either side of a 2-way
-    market like odd/even or both-teams-to-score).
-
-    Spread and total each pick ONE standard line (the number most books
-    are quoting -- see _standard_line) and then find the best price at
-    THAT line for each side, rather than letting each side independently
-    chase whichever book happens to have the single best price at ITS OWN
-    number. Picking sides independently could -- and did -- pair, say,
-    HOU -3 (one book's best away price) with CIN +2.5 (a DIFFERENT book's
-    best home price), a combination no real book actually offers and one
-    that doesn't even sum to zero. Moneyline/odd-even/yes-no have no line
-    to reconcile, so those keep the old plain best-price-anywhere pick."""
-    result = {}
-    for event in events:
-        odds = event.get("odds", {})
-        team_short_by_id = {
-            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
-            for side in ("home", "away")
-        }
-        away_team = team_short_by_id.get(event["teams"]["away"]["teamID"])
-        home_team = team_short_by_id.get(event["teams"]["home"]["teamID"])
-        if away_team not in teams or home_team not in teams:
-            continue
-
-        # Group spread/total odds by market (period + stat + bet type +
-        # team, where team distinguishes a combined total from each team's
-        # own total) so the away/over and home/under sides of the SAME
-        # market can be reconciled together. Everything else (ml/eo/yn)
-        # has no line at all, so it's handled independently exactly as
-        # before.
-        line_groups = {}
-        loose_odds = []
-        for odd in odds.values():
-            if odd.get("playerID"):
-                continue
-            period = odd.get("periodID")
-            if period not in GENERAL_ODDS_PERIODS:
-                continue
-            stat_id, bet_type = odd.get("statID"), odd.get("betTypeID")
-            if (stat_id, bet_type) not in GENERAL_ODDS_MARKETS:
-                continue
-            if bet_type in ("sp", "ou"):
-                # "ou" needs team in the key -- it distinguishes three
-                # DIFFERENT sub-markets sharing one bet type (the combined
-                # total, and each team's own total). "sp" must NOT include
-                # team here: away and home spread are the two SIDES of one
-                # single market, and including team would put them in two
-                # separate groups instead of pairing them.
-                group_team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID")) if bet_type == "ou" else None
-                key = (period, stat_id, bet_type, group_team)
-                line_groups.setdefault(key, {})[odd.get("sideID")] = odd
-            else:
-                loose_odds.append(odd)
-
-        markets = []
-        for (period, stat_id, bet_type, _group_team), sides in line_groups.items():
-            field = "spread" if bet_type == "sp" else "overUnder"
-            # away/over is the reference side the standard line is measured
-            # from; home mirrors it (negated -- a spread is one number,
-            # signed opposite per side), under just reuses the same number.
-            ref_side = "away" if bet_type == "sp" else "over"
-            ref_by_book = (sides.get(ref_side) or {}).get("byBookmaker") or {}
-            standard_line = _standard_line(ref_by_book, field)
-
-            for side_name, odd in sides.items():
-                target_line = standard_line
-                if bet_type == "sp" and side_name == "home" and standard_line is not None:
-                    target_line = -standard_line
-                by_book = odd.get("byBookmaker") or {}
-                price, book = _best_price_at_line(by_book, field, target_line)
-                if price is None:
-                    continue
-                team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
-                markets.append(
-                    {
-                        "period": period,
-                        "period_label": GENERAL_ODDS_PERIODS[period],
-                        "stat_id": stat_id,
-                        "bet_type": bet_type,
-                        "side": side_name,
-                        "team": team,
-                        "market_name": odd.get("marketName"),
-                        "line": target_line,
-                        "best_odds": int(price),
-                        "best_book": SGO_BOOK_NAMES.get(book, book),
-                    }
-                )
-
-        for odd in loose_odds:
-            best_price, best_book = None, None
-            for book, info in (odd.get("byBookmaker") or {}).items():
-                if not info.get("available") or info.get("odds") is None:
-                    continue
-                price = float(info["odds"])
-                if best_price is None or price > best_price:
-                    best_price, best_book = price, book
-            if best_price is None:
-                continue
-            period = odd.get("periodID")
-            team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
-            markets.append(
-                {
-                    "period": period,
-                    "period_label": GENERAL_ODDS_PERIODS[period],
-                    "stat_id": odd.get("statID"),
-                    "bet_type": odd.get("betTypeID"),
-                    "side": odd.get("sideID"),
-                    "team": team,
-                    "market_name": odd.get("marketName"),
-                    "line": None,
-                    "best_odds": int(best_price),
-                    "best_book": SGO_BOOK_NAMES.get(best_book, best_book),
-                }
-            )
-
-        if markets:
-            result[f"{away_team}_{home_team}"] = markets
-    return result
-
-
-# Full-game spread/total/moneyline, specifically Novig's own price rather
-# than the best price found across every book (that's extract_general_odds'
-# job) -- for pick TRACKING, the number that matters is what a bet placed on
-# Novig itself actually pays, not a hypothetical best-of-all-books number
-# the user may not have gotten. Same shape as compute_schedule's own
-# spread/total/ml fields so apply_novig_pick_odds can drop it straight in.
-def extract_novig_schedule_odds(events: list, teams) -> dict:
-    result = {}
-    for event in events:
-        odds = event.get("odds", {})
-        team_short_by_id = {
-            event["teams"][side]["teamID"]: normalize_team(event["teams"][side]["names"]["short"])
-            for side in ("home", "away")
-        }
-        away_team = team_short_by_id.get(event["teams"]["away"]["teamID"])
-        home_team = team_short_by_id.get(event["teams"]["home"]["teamID"])
-        if away_team not in teams or home_team not in teams:
-            continue
-
-        game_odds = {}
-        for odd in odds.values():
-            if odd.get("playerID") or odd.get("periodID") != "game" or odd.get("statID") != "points":
-                continue
-            bet_type = odd.get("betTypeID")
-            if bet_type not in ("sp", "ou", "ml"):
-                continue
-            novig = (odd.get("byBookmaker") or {}).get("novig")
-            if not novig or not novig.get("available") or novig.get("odds") is None:
-                continue
-            price = float(novig["odds"])
-            line = novig.get("overUnder") if novig.get("overUnder") is not None else novig.get("spread")
-            team = {"home": home_team, "away": away_team}.get(odd.get("statEntityID"))
-            side = odd.get("sideID")
-
-            if bet_type == "sp" and team == away_team:
-                game_odds["away_team_spread"] = float(line) if line is not None else None
-                game_odds["away_spread_odds"] = int(price)
-            elif bet_type == "sp" and team == home_team:
-                game_odds["home_team_spread"] = float(line) if line is not None else None
-                game_odds["home_spread_odds"] = int(price)
-            elif bet_type == "ou" and side == "over":
-                game_odds["total_line"] = float(line) if line is not None else None
-                game_odds["over_odds"] = int(price)
-            elif bet_type == "ou" and side == "under":
-                game_odds["under_odds"] = int(price)
-            elif bet_type == "ml" and team == away_team:
-                game_odds["away_moneyline"] = int(price)
-            elif bet_type == "ml" and team == home_team:
-                game_odds["home_moneyline"] = int(price)
-
-        if game_odds:
-            result[f"{away_team}_{home_team}"] = game_odds
-    return result
-
-
 def extract_novig_game_lines(novig_games: dict) -> dict:
     """Novig's main (consensus) spread, total and moneyline per game, with
     Novig's own prices -- same field names as a schedule row, keyed
-    "AWAY_HOME" like extract_novig_schedule_odds. Straight from Novig's feed
-    (every build), so the Lines tiles and the Pick Tracker's frozen price
-    are Novig's real current number, not SGO's occasional copy of it."""
+    "AWAY_HOME". Straight from Novig's feed (every build), so the Lines
+    tiles and the Pick Tracker's frozen price are Novig's real current number."""
     out = {}
     for (away, home), markets in novig_games.items():
         odds = {}
@@ -1950,85 +1426,6 @@ def extract_novig_game_lines(novig_games: dict) -> dict:
         if clean:
             out[f"{away}_{home}"] = clean
     return out
-
-
-def apply_novig_pick_odds(schedule: list, novig_odds: dict) -> None:
-    """Attaches game["novig"] = {same field names as the top-level schedule
-    entry} wherever Novig has posted a price -- kept as a SEPARATE nested
-    object rather than overwriting the top-level (best-of-all-books) fields,
-    since the Odds bar/general handicapping numbers and the Pick Tracker's
-    frozen price now intentionally answer two different questions ("what's
-    the best price anywhere" vs "what would I actually get on Novig").
-    Absent entirely for a game/market Novig hasn't priced -- the picker
-    falls back to the top-level fields itself (see marketSides in
-    game-overview.js) rather than this leaving partial/None placeholders."""
-    if not novig_odds:
-        return
-    for game in schedule:
-        odds = novig_odds.get(f"{game['away']}_{game['home']}")
-        if odds:
-            game["novig"] = odds
-
-
-def apply_sgo_schedule_odds(schedule: list, general_odds: dict) -> None:
-    """Overwrites each game's spread/total/moneyline fields (in place) with
-    SportsGameOdds' full-game numbers -- the best price found across every
-    book SGO returns, refreshed on every run -- instead of leaving them on
-    nflverse's games.csv line. games.csv is only re-scraped by nflverse a
-    handful of times a day (confirmed directly: a line here has sat visibly
-    behind the real market by a point or more between those scrapes), while
-    this reuses the SAME SGO event fetch already paid for by player props/
-    general odds, so there's no extra API cost to keeping the number shown
-    here -- the one used for the Pick Tracker and the video -- as fresh as
-    everything else on the page already is.
-
-    Leaves nflverse's number in place, untouched, for any game SGO doesn't
-    have a line for yet (too far out, or the fetch failed/wasn't
-    configured) -- same optional, graceful-degradation shape as every
-    other SGO-derived field in this file."""
-    if not general_odds:
-        return
-    for game in schedule:
-        markets = general_odds.get(f"{game['away']}_{game['home']}")
-        if not markets:
-            continue
-
-        def find(stat_id, bet_type, **match):
-            for m in markets:
-                if m["stat_id"] != stat_id or m["bet_type"] != bet_type:
-                    continue
-                if all(m.get(k) == v for k, v in match.items()):
-                    return m
-            return None
-
-        away_spread = find("points", "sp", team=game["away"])
-        home_spread = find("points", "sp", team=game["home"])
-        if away_spread and away_spread["line"] is not None:
-            game["spread_line"] = away_spread["line"]
-            game["away_team_spread"] = away_spread["line"]
-            game["away_spread_odds"] = away_spread["best_odds"]
-        if home_spread and home_spread["line"] is not None:
-            game["home_team_spread"] = home_spread["line"]
-            game["home_spread_odds"] = home_spread["best_odds"]
-
-        over = find("points", "ou", side="over")
-        under = find("points", "ou", side="under")
-        if over and over["line"] is not None:
-            game["total_line"] = over["line"]
-            game["over_odds"] = over["best_odds"]
-        if under:
-            game["under_odds"] = under["best_odds"]
-
-        away_ml = find("points", "ml", team=game["away"])
-        home_ml = find("points", "ml", team=game["home"])
-        if away_ml:
-            game["away_moneyline"] = away_ml["best_odds"]
-        if home_ml:
-            game["home_moneyline"] = home_ml["best_odds"]
-        if away_ml or home_ml:
-            game["away_ml_implied_prob"], game["home_ml_implied_prob"] = novig_moneyline_probs(
-                game["away_moneyline"], game["home_moneyline"]
-            )
 
 
 def build_position_lookup(rosters: pd.DataFrame):
@@ -4130,7 +3527,7 @@ def compute_player_td_results(scoring_df, first_td_by_game) -> dict:
     and whoever scored that game's very first TD ("first_td") -- lets the
     Possible Plays page auto-grade saved Anytime TD / First TD plays once a
     week's pbp data is in. Keyed by full_name, NOT gsis_id, since that's the
-    only join key a saved play has (SGO's own odds rows carry a name, no
+    only join key a saved play has (the books' odds rows carry a name, no
     gsis_id -- same limitation build_roster_position_lookup already
     documents); a handful of name-format mismatches are possible, same
     accepted tradeoff as everywhere else that joins across the two sources.
@@ -5016,12 +4413,10 @@ def main():
     week_dates = sorted(g["date"] for g in week_games if g.get("date"))
     player_td_odds = None
     player_first_td_odds = None
-    general_odds = None
     player_prop_markets = None
-    sgo_debug = None
-    sgo_props_debug = None
     novig_debug = None
     roster_positions = None
+    book_odds, book_odds_debug = {}, {"skipped": "no games this week"}
     if week_dates:
         starts_after = week_dates[0]
         # A plain date+1 cutoff is midnight UTC on the day after the last
@@ -5047,88 +4442,34 @@ def main():
         current_rosters = load_rosters(args.data_dir, args.season, force=True)
         roster_teams = build_roster_team_lookup(current_rosters)
         roster_positions = build_roster_position_lookup(current_rosters)
-        # Routine code pushes (deploy.yml sets SKIP_SGO_FETCH=1 for the
-        # "push" trigger) skip hitting SGO entirely and fall straight to
-        # the last-known-good snapshot below -- a UI tweak doesn't need
-        # fresh odds, and every push used to spend real quota for nothing
-        # (confirmed: this exact pattern is what exhausted a 2,500/month
-        # budget in one active day). Only the 6-hour schedule and a manual
-        # "Run workflow" actually fetch fresh.
-        if os.environ.get("SKIP_SGO_FETCH") == "1":
-            sgo_events = None
-            print("INFO: SKIP_SGO_FETCH set (routine push) -- reusing last-known-good odds instead of fetching.", file=sys.stderr)
-        else:
-            sgo_api_keys = [os.environ.get("SGO_API_KEY"), os.environ.get("SGO_API_KEY_BACKUP")]
-            sgo_events = fetch_sgo_events(sgo_api_keys, starts_after, starts_before)
-        if sgo_events is not None:
-            # Confirmed-out players (official Out/Doubtful/IR designation) --
-            # the one case where a price-less player should stay hidden.
-            unavailable = {
-                row.full_name
-                for row in injuries_df.itertuples(index=False)
-                if isinstance(row.report_status, str)
-                and row.report_status.lower() in ("out", "doubtful", "injured reserve", "ir", "suspended")
-            }
-            sgo_debug = sgo_debug_summary(sgo_events, teams)
-            sgo_props_debug = sgo_ou_debug(sgo_events, teams, roster_teams)
-            player_td_odds = extract_player_prop_odds(sgo_events, "touchdowns", teams, roster_teams, roster_positions, unavailable)
-            player_first_td_odds = extract_player_prop_odds(sgo_events, "firstTouchdown", teams, roster_teams, roster_positions, unavailable)
-            general_odds = extract_general_odds(sgo_events, teams)
-            # Same event fetch already paid for above -- SGO bills per EVENT
-            # returned, not per market, so pulling all 16 of these costs
-            # nothing extra over the anytime-TD pull alone.
-            player_prop_markets = {
-                stat_id: extract_player_ou_props(sgo_events, stat_id, teams, roster_teams, roster_positions)
-                for stat_id in PLAYER_OU_MARKETS
-            }
-            # The Odds bar / Pick Tracker were still reading nflverse's
-            # games.csv line -- see apply_sgo_schedule_odds -- even though
-            # this same fetch already had a fresher, best-price number
-            # sitting right here the whole time.
-            apply_sgo_schedule_odds(week_games, general_odds)
-            # Separate from the best-of-books number above -- Pick Tracker
-            # unit tracking wants what Novig itself actually pays.
-            novig_schedule_odds = extract_novig_schedule_odds(sgo_events, teams)
-            apply_novig_pick_odds(week_games, novig_schedule_odds)
-        else:
-            prev = fetch_previous_odds_snapshot()
-            if prev:
-                player_td_odds = prev.get("player_td_odds")
-                player_first_td_odds = prev.get("player_first_td_odds")
-                general_odds = prev.get("general_odds")
-                player_prop_markets = prev.get("player_prop_markets")
-                sgo_debug = prev.get("sgo_debug")
-                sgo_props_debug = prev.get("sgo_props_debug")
-                if general_odds:
-                    apply_sgo_schedule_odds(week_games, general_odds)
-                print("WARNING: SGO fetch failed this run -- reused last-known-good odds from the live site instead of clearing them.", file=sys.stderr)
-            # Pick Tracker's own novig unit price isn't reused here (it's
-            # baked into last run's schedule rows, not a clean standalone
-            # blob field to pull back out) -- it already has its own
-            # documented fallback, quietly leaving nflverse's plain line in
-            # place untouched, so no odds bar / spread-total value goes
-            # missing either way.
-
-        # Novig first for player props (free, no quota -- so every build,
-        # routine pushes included, gets fresh lines), SGO filling gaps.
         unavailable_names = {
             row.full_name
             for row in injuries_df.itertuples(index=False)
             if isinstance(row.report_status, str)
             and row.report_status.lower() in ("out", "doubtful", "injured reserve", "ir", "suspended")
         }
+        # Every US book's price (SmartStake) leads: the clickable best price,
+        # the all-books list, Anytime TD and the schedule's lines. No key or
+        # a failed fetch = Novig only.
+        book_odds, book_odds_debug = fetch_nfl_book_odds(
+            os.environ.get("SMARTSTAKE_API_KEY"), list(roster_positions or {}),
+            (fetch_previous_odds_snapshot() or {}).get("book_odds"),
+            datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            keep={f"{g['away']}_{g['home']}" for g in week_games})
+        print(f"SmartStake book odds: {book_odds_debug}")
+        apply_book_schedule_lines(week_games, book_odds)
+        # Novig (free, every build): the player over/unders, First TD, and
+        # its own game prices in each game's "novig" object.
         novig_games, novig_debug = fetch_novig_week(week_games, starts_after, starts_before)
-        # Novig's own main lines take over each game's "novig" object
-        # (SGO's copy, if any, only fills markets Novig's feed didn't have).
+        novig_lines = extract_novig_game_lines(novig_games) if novig_games else {}
         for g in week_games:
-            direct = extract_novig_game_lines(novig_games).get(f"{g['away']}_{g['home']}") if novig_games else None
+            direct = novig_lines.get(f"{g['away']}_{g['home']}")
             if direct:
-                g["novig"] = {**(g.get("novig") or {}), **direct}
-        if novig_games:
-            n_ou, n_any, n_first = extract_novig_props(novig_games, teams, roster_positions, unavailable_names)
-            player_prop_markets = merge_prop_markets(n_ou, player_prop_markets)
-            player_td_odds = merge_td_odds(n_any, player_td_odds)
-            player_first_td_odds = merge_td_odds(n_first, player_first_td_odds)
+                g["novig"] = direct
+        n_ou, n_any, n_first = extract_novig_props(novig_games or {}, teams, roster_positions, unavailable_names)
+        player_prop_markets = n_ou
+        player_td_odds = merge_td_odds(book_td_odds(book_odds, roster_teams, roster_positions, unavailable_names), n_any)
+        player_first_td_odds = n_first
 
     espn_ratings = compute_espn_ratings(args.season)
     if espn_ratings is None:
@@ -5170,11 +4511,10 @@ def main():
         "injuries_max_week": int(injuries_df["week"].max()) if len(injuries_df) else None,
         "player_td_odds": player_td_odds,
         "player_first_td_odds": player_first_td_odds,
-        "general_odds": general_odds,
         "player_prop_markets": player_prop_markets,
-        "sgo_debug": sgo_debug,
-        "sgo_props_debug": sgo_props_debug,
         "novig_debug": novig_debug,
+        "book_odds": book_odds,
+        "book_odds_debug": book_odds_debug,
         "espn_ratings": espn_ratings,
         "player_prop_market_labels": PLAYER_OU_MARKETS,
     }
@@ -5182,14 +4522,6 @@ def main():
     model_history = previous_gmg_model()
     blob["lines_locked"] = lock_started_game_odds(blob, fetch_previous_odds_snapshot(), model_history)
     blob["generated_at"] = (eastern_now() + timedelta(hours=4)).strftime("%Y-%m-%dT%H:%MZ")  # UTC
-    # Every US book's price (SmartStake), for the clickable best price and the
-    # all-books list. Optional: no key or a failed fetch = Novig / SGO only.
-    blob["book_odds"], blob["book_odds_debug"] = fetch_nfl_book_odds(
-        os.environ.get("SMARTSTAKE_API_KEY"), list(roster_positions or {}),
-        (fetch_previous_odds_snapshot() or {}).get("book_odds"),
-        datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        keep={f"{g['away']}_{g['home']}" for g in schedule if g.get("week") == current_week})
-    print(f"SmartStake book odds: {blob['book_odds_debug']}")
     renamed = canonicalize_odds_names(blob, roster_positions)
     print(f"Odds names matched to the site's spelling: {renamed} changed")
     blob["gmg_model"] = compute_gmg_model(blob, model_history)

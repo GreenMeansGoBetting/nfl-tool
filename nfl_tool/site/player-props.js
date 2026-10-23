@@ -1848,7 +1848,7 @@ function renderQbCards(team, oppTeam) {
   return `${teamBannerHeader(team, true)}${cards}`;
 }
 
-// ---- Full player-props modal (every market SGO offers, per team header
+// ---- Full player-props modal (every market Novig lists, per team header
 // click) -- distinct from the anytime-TD odds modal in common.js, since
 // this one needs a market dropdown that re-renders in place while staying
 // open, rather than one fixed market per click. ----

@@ -36,7 +36,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "nfl_tool" / "site"
-BUILD_COMMAND = "SKIP_SGO_FETCH=1 python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json"
+BUILD_COMMAND = "python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json"
 INSTALL_HELP = "Playwright isn't set up on this computer. Run:\n  pip install -r tools/requirements-dev.txt\n  python -m playwright install chromium"
 
 # (label, path, selector of the button that switches to the Summary card or None)

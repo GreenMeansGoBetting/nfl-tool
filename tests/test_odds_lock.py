@@ -41,7 +41,6 @@ def player_odds(tag):
         "player_td_odds": {t: rows(t) for t in teams},
         "player_first_td_odds": {t: rows(t) for t in teams},
         "player_prop_markets": {"receiving_yards": {t: rows(t) for t in teams}},
-        "general_odds": {"AAA_HHH": [{"market": "Spread", "tag": tag}], "CCC_DDD": [{"market": "Spread", "tag": tag}]},
     }
 
 
@@ -73,7 +72,6 @@ class StartedGameKeepsItsStoredLine(unittest.TestCase):
             self.assertEqual(tags(blob["player_td_odds"][team]), {"pregame"})
             self.assertEqual(tags(blob["player_first_td_odds"][team]), {"pregame"})
             self.assertEqual(tags(blob["player_prop_markets"]["receiving_yards"][team]), {"pregame"})
-        self.assertEqual(tags(blob["general_odds"]["AAA_HHH"]), {"pregame"})
 
     def test_from_a_build_made_before_kickoff(self):
         blob = this_build()
@@ -92,7 +90,6 @@ class StartedGameKeepsItsStoredLine(unittest.TestCase):
         lock(blob, previous_build("2026-10-11T16:19Z"))
         self.assertEqual(blob["schedule"][1], untouched)
         self.assertEqual(tags(blob["player_td_odds"]["CCC"]), {"live"})
-        self.assertEqual(tags(blob["general_odds"]["CCC_DDD"]), {"live"})
 
 
 class NoTrustedPregameCopy(unittest.TestCase):

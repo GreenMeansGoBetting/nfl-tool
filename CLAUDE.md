@@ -35,7 +35,7 @@ that, move detail into a rules file.
 - **The site must never be left down or half-done** (members pay). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: members-and-hosting.md, "The site must never be left down".
 
 - Commit messages end with the Co-Authored-By line the environment specifies.
-- **Never view, print, or ask the user to paste API keys.** `SGO_API_KEY`, `SGO_API_KEY_BACKUP`,
+- **Never view, print, or ask the user to paste API keys.** `SMARTSTAKE_API_KEY`,
   `STRIPE_SECRET_KEY`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, `CLOUDFLARE_API_TOKEN` and any
   future key are GitHub Actions secrets, added by the user in GitHub Settings → Secrets.
 - Git safety: never force-push, never `git reset --hard`, never rewrite history. If a pull or push
@@ -56,7 +56,7 @@ that, move detail into a rules file.
 - `tools/check_site.py` (needs Playwright: `pip install -r tools/requirements-dev.txt`, then
   `python -m playwright install chromium`) is for chasing a specific page problem, never routine.
   Never the full all-games screenshot set (the user: it "takes way too long").
-- Build: `SKIP_SGO_FETCH=1 python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
+- Build: `python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
   A 404 is a transient nflverse error; re-run. The build only downloads a file that's missing
   (`download_if_missing`), so delete `data/*_2026*` and `data/games.csv` first when the latest
   games matter. CI always starts fresh.
@@ -141,7 +141,7 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists):
 - `player-props.md`: Props Summary packages, Zone Targets, zone popup and panel, QB cards, player card.
 - `plays-and-promos.md`: Possible Plays, Photo Export, View Results, Pick Tracker, King of the Endzone.
 - `members-and-hosting.md`: Discord gate, email / Stripe members, profiles, feature requests, Cloudflare, deploy.
-- `data-pipeline.md`: sources, Novig / SGO odds rules, odds lock, injuries, lineup-aware usage, opponent adjustment.
+- `data-pipeline.md`: sources, SmartStake / Novig odds rules (no SGO since 2026-10-23), odds lock, injuries, lineup-aware usage, opponent adjustment.
 - `styles.md`: the site-wide look, phone layout, summary-card fit / zoom / Save image.
 - `nba.md`: the NBA suite (data sources, build, pages, suite switcher, launch switch).
 - `nhl.md`: the NHL suite (the NHL's own feed, kept games, rink areas, pages, the Shots model and its record; never MoneyPuck).

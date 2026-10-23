@@ -9,21 +9,32 @@ paths:
 Stories and example players behind these rules: `docs/history.md`, "Data pipeline".
 
 `build_stats.py` reads nflverse play-by-play, rosters, injuries, snap counts, FTN charting and
-schedules, plus odds from Novig and SportsGameOdds and ESPN FPI, and writes
+schedules, plus odds from SmartStake (every US book) and Novig, and ESPN FPI, and writes
 `nfl_tool/site/data.json` (untracked; built in CI). `gmg_model.py` and `line_grades.py` are
 imported by it (rules in game-previews.md).
 
 ## Building locally
 
-- `SKIP_SGO_FETCH=1 python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
+- `python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
   A 404 is a transient nflverse error; re-run.
 - The build only downloads a data file if it's missing (`download_if_missing`), so a local
   `data/` folder goes stale. Delete `data/*_2026*` and `data/games.csv` (and `data/ngs_*.csv.gz`)
   before a local build that needs the latest games. CI always starts fresh.
-- Locally the previous-build read fails (401, no bot token), so SGO fallback odds, locked lines
-  and the live model entries aren't available; that's expected.
+- Locally the previous-build read fails (401, no bot token), so locked lines, SmartStake's started
+  games and the live model entries aren't available; that's expected.
 
-## Odds: Novig first, SGO fills gaps
+## Odds: SmartStake leads, Novig adds; no SGO
+
+- **SGO (SportsGameOdds) was removed 2026-10-23** (the owner: SmartStake "will always reign
+  supreme"). It once put Jaleel McLaughlin at +154 (its "fair value" stand-in) on the TD Summary
+  while FanDuel had +600. Never add it back. The All Odds list on Game Previews (SGO only) went
+  with it.
+- Anytime TD (`player_td_odds`): SmartStake's best US-book price (`book_td_odds`, team from the
+  current roster), merged with Novig's (`merge_td_odds`: the book price leads, Novig's no-vig
+  chance stays when it lists him, Novig alone when no book does).
+- First TD and the player over/unders: Novig only (SmartStake has no First TD market).
+- Schedule spread / total / moneyline (top level): the line most US books post at the best price
+  there (`apply_book_schedule_lines`), else nflverse's. `game.novig` is Novig's own (Pick Tracker).
 
 - Novig's public game feed is `POST https://api.novig.us/v1/graphql`, operation
   `EventMarkets_Query`. The query text is saved verbatim in `nfl_tool/novig_event_markets.graphql`.
@@ -32,7 +43,7 @@ imported by it (rules in game-previews.md).
     overwrite the file.
   - Games come from `GET https://api.novig.us/v3/public/catalog/events?league=NFL`.
   - `is_consensus` marks the main line; `outcomes[].available` is the price (0–1).
-- Player props, Anytime/First TD, and game spread/total/moneyline (`game.novig`) come from Novig.
+- From Novig: player props, First TD, Anytime TD's chance, and game spread/total/moneyline (`game.novig`).
   Thin books are flagged `thin`. Prop over/unders need at least one side priced.
 - **TD markets keep one-sided prices.** Most First TD markets, and about 40% of Anytime ones,
   have a Yes price but no No.
@@ -42,16 +53,12 @@ imported by it (rules in game-previews.md).
     median fair/Yes ratio.
   - Junk quotes are dropped: First TD Yes > 0.5, Anytime Yes > 0.95, or Yes+No > 1.5 (e.g.
     99.9¢/99.9¢ on a backup TE).
-- SGO (SportsGameOdds, free tier) leaves many props without a book price. See `sgo_props_debug`
-  in data.json. Pushes skip the SGO fetch (`SKIP_SGO_FETCH=1`) and reuse the live site's copy via
-  `fetch_previous_odds_snapshot`.
 - The user promotes Novig (code **GMGO**: deposit $10 → $50 in trade credits; QR at
   `site/novig-qr.png`) and says Novig is fine with outside tools reading its feed.
 - **Odds lock at kickoff** (`lock_started_game_odds`): a started game's odds come from the
   previous build instead of this run's fetch, but only when that build is known to be pregame (it
   had already locked the game, listed in `lines_locked`, or its `generated_at` is before kickoff).
-  Covers schedule lines (top-level + `novig`), both teams' TD and prop odds, and the all-odds
-  list. With no trustworthy earlier copy it drops Novig's live copy and uses the spread/total the
+  Covers schedule lines (top-level + `novig`) and both teams' TD and prop odds. With no trustworthy earlier copy it drops Novig's live copy and uses the spread/total the
   GMG model locked, then the schedule's closing line (and shows no moneyline until final).
 - **One spelling per player in the odds** (`canonicalize_odds_names`, runs last): rewrites every
   TD / prop odds row to the site's own spelling (team game logs, then unique roster / headshot
@@ -71,7 +78,7 @@ imported by it (rules in game-previews.md).
   `[book, side, line, odds, url]`. Players are grouped by the API's `player_id` (books spell names
   differently) and take the roster spelling. `book_odds_debug` says what came back.
 - Odds lock: a started game keeps the previous build's pregame copy or shows no book prices.
-  No key or a failed fetch = no book prices; the site falls back to Novig / SGO.
+  No key or a failed fetch = no book prices; the site falls back to Novig.
 - The site (`book-odds.js`): **tags only against OUR model, never a market "fair" price** (the
   owner, 2026-10-14: "we aren't top down betting ... we are trying to find an edge from our own
   number"; a Pinnacle + Novig no-vig yardstick shipped first and was removed). A caller passes

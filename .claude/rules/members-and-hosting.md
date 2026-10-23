@@ -54,9 +54,8 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   `paths-ignore`, 2026-10-21), and on manual dispatch. Every run is the same: every
   test, all three sports built fresh, every page checked ("Every run does everything" below). There is no Update Odds button any more (removed 2026-10-17: the owner said the odds update on
   their own and he will ask Claude); "Run workflow" on the Actions page still starts a run. A
-  re-run of a failed run uses that run's OLD commit, never newer fixes. Pushes
-  set `SKIP_SGO_FETCH=1`, so SGO odds are reused from the live site to save quota. Novig and ESPN
-  are free, so they're fetched fresh on every build.
+  re-run of a failed run uses that run's OLD commit, never newer fixes. Odds
+  (SmartStake, Novig) and ESPN are fetched fresh on every build.
 - Other steps: "Build NBA data" and "Build NHL data" (both `continue-on-error`; the NHL one
   sits between "Restore saved NHL games" and "Save NHL games", see nhl.md). If one fails, the
   next step puts that sport's live data back ("Put the live ... data back": `fetch_live_data.py
@@ -189,7 +188,6 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   (`fetch_live_data.py --only X --need X --replace`: whatever the build left is cleared first),
   so the site is never published without a sport's data; version.json then shows `live copy`
   and that sport's `error` (the build log's last line) beside the older `built`.
-- Pushes still set `SKIP_SGO_FETCH=1` (SGO's monthly quota, nothing to do with minutes).
 - `--only nfl|nba|nhl` on `run_tests.py` and `check_site.py` stays, for a local check while
   working on one sport. The deploy never passes it. A new test file needs no registering.
 - **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Every half hour, at :17
@@ -241,7 +239,7 @@ cancelling.
   `/auth/check` show whether an account would get in).
 - **The build gets through the gate:** `fetch_previous_odds_snapshot` sends
   `X-GMG-Build: HMAC-SHA256(bot token, "gmg-build-v1")`, and deploy.yml passes
-  `DISCORD_BOT_TOKEN` to the build steps. Push builds rely on this to reuse SGO odds; the model
+  `DISCORD_BOT_TOKEN` to the build steps. The model
   record and the odds lock rely on it to read the previous build.
 - Bot invite: `https://discord.com/oauth2/authorize?client_id=1554268816521957447&scope=bot&permissions=0&guild_id=1295760852892385290`.
 - `https://nfl.gmgsports.org/auth/status` shows which pieces are in place, never the values.

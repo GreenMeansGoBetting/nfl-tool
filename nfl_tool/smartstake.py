@@ -3,7 +3,7 @@
 Docs: https://www.smartstake.app/api. The owner is a SmartStake partner and has
 their written permission (2026-10-14) to show these odds to members. The key
 is the GitHub secret SMARTSTAKE_API_KEY; with no key, or any failure, the build
-carries on without it and the site shows Novig / SGO prices as before.
+carries on without it and the site shows Novig's prices.
 
 One league snapshot per build (`/v1/odds?league=`), main lines only
 (`alternate=false`), pregame only (`live=false`), and only the markets the site

@@ -2,28 +2,8 @@ name: Refresh data and deploy site
 
 on:
   schedule:
-    # Every 6 hours (00:17, 06:17, 12:17, 18:17 UTC) -- was every 4 hours
-    # (see below for why that was bumped from once daily), but the math
-    # didn't leave any real headroom: SGO's free tier is 2,500 objects/
-    # month, billed per event returned (~16 objects for a full week's
-    # fetch -- see build_stats.py's SGO_EVENTS_URL comment), and 4-hour
-    # cron alone is 180 builds/month * ~16 = ~2,880/month -- already over
-    # budget before a single manual rebuild. Confirmed directly: a day with
-    # more manual rebuilds than usual hit HTTP 429 (quota exceeded) and
-    # wiped every team's Anytime TD odds (see fetch_previous_odds_snapshot
-    # for the fallback added alongside this so a future quota hit degrades
-    # instead of zeroing everything out). 6-hour cron is 120 builds/month *
-    # ~16 = ~1,920/month, leaving real room for on-demand pushes.
-    #
-    # Original 4-hour reasoning, still true, just no longer worth the
-    # quota cost: nflverse's own games.csv (the free odds source
-    # build_stats.py reads from -- no live feed involved) gets re-scraped
-    # several times a day, not just once, so a full day's gap meant this
-    # site could sit noticeably behind the real market even right after a
-    # rebuild. This still narrows the average gap well below a full day --
-    # it can't do better than nflverse's OWN refresh rate no matter how
-    # often this polls, so if a line still looks off right after a run,
-    # nflverse just hasn't re-scraped it yet, not a bug here.
+    # Every 6 hours (00:17, 06:17, 12:17, 18:17 UTC): fresh odds (SmartStake,
+    # Novig), injuries and nflverse's games between pushes.
     # Offset 17 minutes past the hour on purpose -- GitHub's own docs warn
     # that on-the-hour schedules are the most likely to be delayed/dropped
     # during peak Actions load, and that's exactly what happened here
@@ -140,34 +120,19 @@ jobs:
           python tools/fetch_live_data.py --only $LIVE --need $LIVE
           python tools/ci_steps.py mark data
 
-      - name: Build stats (nflverse needs no key; SGO_API_KEY is optional)
+      - name: Build stats
         if: contains(steps.lane.outputs.build, 'nfl') || steps.live_data.outcome == 'failure'
         # One retry: nflverse sometimes answers a download with a one-off 404,
         # and since every push builds football, a push about hockey could
         # otherwise fail on it.
         # NOTE: bump the --season each year once the new season's data
         # exists on nflverse (typically as soon as Week 1 games are played).
-        # SGO_API_KEY is optional -- player anytime-TD odds just don't
-        # populate without it, everything else works the same.
-        # SGO_API_KEY_BACKUP is also optional -- a second SGO account's key,
-        # tried automatically if the primary key's quota runs out mid-month
-        # (see fetch_sgo_events). Add it as its own repository secret
-        # (Settings -> Secrets and variables -> Actions) with this exact
-        # name; nothing else needs to change for it to start being used.
-        # SKIP_SGO_FETCH only on the "push" trigger -- a routine code/UI
-        # push doesn't need fresh odds, and every one used to spend real
-        # SGO quota for nothing (confirmed: this is what burned a whole
-        # month's budget in one active day). The schedule (every 6 hours)
-        # and a manual "Run workflow" -- the site's actual "UPDATE ODDS"
-        # button, see the topbar link -- still fetch fresh every time.
+        # Odds: SmartStake (every US book) and Novig (free), fetched on every run.
         env:
-          SGO_API_KEY: ${{ secrets.SGO_API_KEY }}
-          SGO_API_KEY_BACKUP: ${{ secrets.SGO_API_KEY_BACKUP }}
           SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
           # Lets the build read the live data.json through the Discord login
           # (fetch_previous_odds_snapshot sends a key derived from it).
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-          SKIP_SGO_FETCH: ${{ github.event_name == 'push' && '1' || '0' }}
         run: |
           python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json || { echo "Retrying once..."; sleep 30; python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json; }
           python tools/ci_steps.py mark nfl

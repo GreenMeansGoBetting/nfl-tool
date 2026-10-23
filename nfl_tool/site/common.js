@@ -1025,9 +1025,8 @@ document.addEventListener("change", (e) => {
 // ---- Player prop odds modal ----
 const PLAY_MARKET_LABELS = { anytime_td: "Anytime TD", first_td: "First TD" };
 
-// From build_stats.py's SportsGameOdds pull -- entirely optional
-// (DATA.player_td_odds/player_first_td_odds are null if no API key was
-// configured at build time), so this degrades to a plain message rather
+// From build_stats.py's odds pull (SmartStake's books + Novig; null when
+// the week has no games), so this degrades to a plain message rather
 // than a broken modal when it's missing.
 // Shows BOTH teams in the game, not just whichever team header was clicked
 // -- clicking either side opens the same full list, merged and sorted by

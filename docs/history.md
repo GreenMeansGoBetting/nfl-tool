@@ -789,7 +789,17 @@ Facts that were out of date on 2026-10-11 are corrected in place and marked **[c
 
 ## Data sources and key models
 
-- **Odds: Novig first, SGO fills gaps.**
+- **2026-10-23: SGO removed, SmartStake leads.** The TD Summary's TD Odds rail showed Jaleel
+  McLaughlin at +154 while Best Plays, his player card and FanDuel all had +600. The rail read
+  `player_td_odds`, and that row was SportsGameOdds' "fair value" stand-in (SGO had no book price
+  for him; its duplicate-player rule also kept the higher-chance row, which favored the
+  stand-in). Best Plays and the card read SmartStake. The owner: "Lets remove all SGO
+  implications and data and code from the logic. We have Smartstake now which will always reign
+  supreme." SGO's fetch, keys, debug fields, the player prop fallback, the schedule-line refresh
+  and the Game Previews All Odds list (SGO only) went. Anytime TD prices and the schedule's lines
+  now come from SmartStake; Novig adds First TD, the over/unders and its own game prices. The
+  notes below on SGO are the earlier history.
+- **Odds: Novig first, SGO fills gaps** (until 2026-10-23).
   - Novig's public game feed is `POST https://api.novig.us/v1/graphql`, operation
     `EventMarkets_Query`. The query text is saved verbatim in
     `nfl_tool/novig_event_markets.graphql`.
