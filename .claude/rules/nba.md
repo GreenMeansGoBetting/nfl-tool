@@ -180,8 +180,14 @@ options"), Novig only where SmartStake has no price.
   by whether he played, from box-score DNP reasons; Off the floor = `with` minutes, points and shots
   a 36) **and every book's price** (no name banner). The game log, alt-line ladder and a shot-zone
   chart were there for an hour and cut (the owner: "Bottom line, i hate the drop down player points
-  portion currently"); props.json keeps `zone_pct` for the zone redo. The player's NAME opens
-  the player card (below); the rest of the row opens with / without. Tests:
+  portion currently"); props.json keeps `zone_pct` for the zone redo. **2026-10-23 redo** (the
+  owner: "incorporate the shot charts for player and opposing defense into the player drop downs
+  ... especially if we are addressing zone fit"): left column = With / Without stacked on Every Book
+  (main lines only; the rest behind **Show Other Lines (n)**, book-odds.js `spec.collapseOthers`,
+  only Points sets it), right = **Shot Zones**: his chart next to every shot tonight's defense
+  allowed (shot-chart.js, Shot Charts page look and filters, `nbaShotAllowed`), then the Target /
+  Tough zones (`nbaShotCall`, shared with the Shot Charts page) and a Zone By Zone link to that
+  page. The player's NAME opens the player card (below); the rest of the row opens the drop down. Tests:
   `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
 - **The testing banner** (2026-10-23, the owner: "a large header ... that until mid november we
   wont know for sure - but also provide checks and balances on the way with real info"): top of

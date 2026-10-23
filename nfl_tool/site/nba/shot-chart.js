@@ -157,6 +157,42 @@ function nbaShotZoneTotals(rows, fromLeague) {
   return out;
 }
 
+// Every shot a defense allowed this season (shot[8] = the defense, an index
+// into file.teams), kept per file. The Shot Charts page and Points' open row.
+const nbaShotAllowedCache = new Map();
+function nbaShotAllowed(file, abbr) {
+  const key = `${abbr}`;
+  if (nbaShotAllowedCache.get("file") !== file) {
+    nbaShotAllowedCache.clear();
+    nbaShotAllowedCache.set("file", file);
+  }
+  if (!nbaShotAllowedCache.has(key)) {
+    const t = (file.teams || []).indexOf(abbr);
+    const out = [];
+    if (t >= 0) Object.values(file.players || {}).forEach((list) => list.forEach((s) => s[8] === t && out.push(s)));
+    nbaShotAllowedCache.set(key, out);
+  }
+  return nbaShotAllowedCache.get(key);
+}
+// A zone's call, both sides (matchupCall's rule): his make rate and the make
+// rate this defense allows, each pulled toward the league by NBA_SHOT_PRIOR
+// shots, minus the league's; 1 = Target (one side 2.5+ points up, the other
+// not 0.75+ down), -1 = Tough, 0 = none. Zones under 5% of his shots or 5
+// tries get no call. mine / allowed = [made, tried]; lg = the league's rate.
+const NBA_SHOT_CALL = 0.025;
+const NBA_SHOT_CALL_SHARE = 0.05;
+const NBA_SHOT_CALL_TRIES = 5;
+function nbaShotCall(mine, allowed, lg, share) {
+  if (lg === null || !mine || mine[1] < NBA_SHOT_CALL_TRIES || share < NBA_SHOT_CALL_SHARE || !allowed || !allowed[1]) return 0;
+  const off = nbaShotDiff(mine[0], mine[1], lg) / NBA_SHOT_CALL;
+  const def = nbaShotDiff(allowed[0], allowed[1], lg) / NBA_SHOT_CALL;
+  const hi = Math.max(off, def);
+  const lo = Math.min(off, def);
+  if (hi >= 1 && lo > -0.3) return 1;
+  if (lo <= -1 && hi < 0.3) return -1;
+  return 0;
+}
+
 // ---- Zones ----
 function nbaShotZonesView(shots, league, opts) {
   const side = nbaShotSide(opts);

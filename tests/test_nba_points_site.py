@@ -47,7 +47,8 @@ PROPS = {
     "record": {"ledger": [["2026-10-20", 1.2, 1, None, ["over", "star"]], ["2026-10-20", 0.4, 0, None, ["under"]],
                           ["2026-10-21", 0.8, 1, None, ["under", "dip"]]]},
 }
-QUOTES = lambda line: [["draftkings", "o", line, -110, ""], ["fanduel", "o", line, 105, ""], ["draftkings", "u", line, -110, ""]]  # noqa: E731
+QUOTES = lambda line: [["draftkings", "o", line, -110, ""], ["fanduel", "o", line, 105, ""], ["draftkings", "u", line, -110, ""],  # noqa: E731
+                       ["betmgm", "o", line + 1, 120, ""]]  # an other line: behind "Show Other Lines"
 # Tonight's defense (BBB) allows 65% at the rim (league 58%: softer) and 40% mid-range (league 45%: tougher).
 ZONE_KEYS = ("rim", "short", "mid", "corner3", "above3")
 IDENTITY = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "team_games": 5,
@@ -59,11 +60,25 @@ DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries
                                   "props": {"points": {"1": {"name": "Player One", "q": QUOTES(19.5)}, "3": {"name": "Player Three", "q": QUOTES(9.5)}}}}}}
 
 
+# shots.json for the open row's Shot Zones: Player One (AAA) is hot at the rim and cold in the left
+# corner against BBB; Player Nine (CCC) shot the same way against BBB, so BBB allows the rim and holds the corner.
+def spot(where, made, tries, team, defense):
+    x, y, three = where
+    return [[x, y, 1 if i < made else 0, three, i % 5, 0, 2, team, defense] for i in range(tries)]
+
+
+RIM, CORNER = (25, 1, 0), (3, 2, 1)
+SHOTS = {"season": 2027, "label": "2026-27", "games": list(range(100, 110)), "teams": ["AAA", "BBB", "CCC"],
+         "players": {"1": spot(RIM, 9, 10, 0, 1) + spot(CORNER, 1, 10, 0, 1), "9": spot(RIM, 8, 10, 2, 1) + spot(CORNER, 1, 10, 2, 1)},
+         "who": {"1": ["Player One", "AAA"], "9": ["Player Nine", "CCC"]},
+         "league": [[25, 1, 0, 60, 100], [3, 2, 1, 40, 100]]}
+
+
 def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        SITE.nba, SITE.nba_props = DATA, PROPS
+        SITE.nba, SITE.nba_props, SITE.nba_shots = DATA, PROPS, SHOTS
         PAGE = SITE.open("nba/points.html")
         PAGE.wait_for_function("() => !document.getElementById('pts-board').hidden")
     except Exception:
@@ -140,9 +155,31 @@ class PlayerView(unittest.TestCase):
         PAGE.click("[data-key='900:1'] .pts-player")
         PAGE.wait_for_selector(".pts-open")
 
-    def test_only_with_without_and_the_books(self):
+    def test_with_without_and_the_books_stacked_then_the_zones(self):
         heads = PAGE.evaluate("() => [...document.querySelectorAll('.pts-view h4')].map((h) => h.textContent)")
-        self.assertEqual(heads, ["With / without", "Every book"])
+        self.assertEqual(heads, ["With / Without", "Every Book", "Shot Zones: Player One vs BBB Defense"])
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-view-left h4').length"), 2)
+
+    def test_main_lines_only_until_show_other_lines(self):
+        self.assertFalse(PAGE.is_visible(".pts-view .bo-others tr"))
+        btn = ".pts-view [data-bo-others]"
+        self.assertEqual(PAGE.inner_text(btn).upper(), "SHOW OTHER LINES (1)")
+        PAGE.click(btn)
+        self.assertTrue(PAGE.is_visible(".pts-view .bo-others tr"))
+        self.assertEqual(PAGE.inner_text(btn).upper(), "HIDE OTHER LINES (1)")
+        PAGE.click(btn)
+        self.assertFalse(PAGE.is_visible(".pts-view .bo-others tr"))
+
+    def test_his_zones_next_to_the_defense_with_both_sided_calls(self):
+        PAGE.wait_for_selector(".pts-zone-pair .nba-shot-chart")
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-zone-pair .nba-shot-chart').length"), 2)
+        calls = PAGE.evaluate("() => [...document.querySelectorAll('.pts-zone-call')].map((c) => c.textContent)")
+        self.assertEqual(calls, ["Target: At The Rim", "Tough: Left Corner 3"])
+        self.assertIn("shot-charts.html#p=1&d=BBB", PAGE.get_attribute(".pts-zone-more", "href"))
+        PAGE.click(".pts-view .nba-shot-opt[data-shot-value='heat']")
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-zone-pair .nba-shot-chart').length"), 2)
+        PAGE.click(".pts-view .nba-shot-opt[data-shot-value='zones']")
+        self.assertEqual(SITE.errors, [])
 
     def test_no_name_banner_over_the_books(self):
         # the open row already says who it is (the owner, 2026-10-20); the books themselves still show
@@ -151,7 +188,7 @@ class PlayerView(unittest.TestCase):
 
     def test_with_and_without_by_reason_and_on_the_floor(self):
         def table():
-            return PAGE.evaluate("() => [...document.querySelectorAll('.pts-view > div:nth-child(1) tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim()))")
+            return PAGE.evaluate("() => [...document.querySelectorAll('.pts-view-left > div:nth-child(1) tbody tr')].map((tr) => [...tr.children].map((td) => td.innerText.trim()))")
         rows = table()
         self.assertEqual(rows[0][:3], ["Played", "8", "20.0"])  # games 1, 2, 5-10
         self.assertEqual(rows[1][:3], ["Out", "2", "26.0"])  # games 3 (30) and 4 (22)

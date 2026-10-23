@@ -243,10 +243,50 @@ function renderRow(r) {
 // every book's price. The game log, alt-line ladder and shot-zone chart are
 // gone until they're redone (a site-wide player pop-up, a zone overhaul, alt
 // lines with real prices: see nba.md, "The owner's list").
+// 2026-10-23 (the owner: "incorporate the shot charts for player and opposing
+// defense into the player drop downs ... especially if we are addressing zone
+// fit. stack every book and with/without ... and add the zones to the right";
+// main lines only, the rest behind "Show Other Lines").
 let ww = { mate: "", mode: "out" }; // with / without: teammate id, mode out | rest | injury | floor
 function playerView(r) {
-  const books = bookOddsPanel({ kind: "prop", stat: "points", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: "o", line: r.line, title: `${r.name} points`, sub: `${r.tm} vs ${r.opp}` });
-  return `<div class="pts-view"><div><h4>With / without</h4>${withWithout(r)}</div><div><h4>Every book</h4>${books || '<p class="no-data-note">No book has this line right now.</p>'}</div></div>`;
+  const books = bookOddsPanel({ kind: "prop", stat: "points", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: "o", line: r.line, title: `${r.name} points`, sub: `${r.tm} vs ${r.opp}`, collapseOthers: true });
+  return `<div class="pts-view"><div class="pts-view-left"><div><h4>With / Without</h4>${withWithout(r)}</div><div><h4>Every Book</h4>${books || '<p class="no-data-note">No book has this line right now.</p>'}</div></div>
+    <div class="pts-view-zones"><h4>Shot Zones: ${r.name} vs ${r.opp} Defense</h4>${zonesView(r)}</div></div>`;
+}
+
+// His shots next to every shot tonight's defense has allowed (shot-chart.js,
+// the Shot Charts page's look: green = he makes more than the league there,
+// red = the defense allows more), one set of filters for both, then the zones
+// where both sides point the same way (nbaShotCall, the Shot Charts page's
+// Target / Tough rule).
+function zonesView(r) {
+  const file = nbaShotFile();
+  if (file === undefined) {
+    Promise.resolve(NBA_SHOT_FILE).then(() => renderBoard());
+    return `<p class="no-data-note">Loading&hellip;</p>`;
+  }
+  if (!file) return `<p class="no-data-note">Shot charts aren't available right now.</p>`;
+  const league = file.league || [];
+  const mine = nbaShotPick((file.players || {})[String(r.pid)] || [], NBA_SHOT_STATE);
+  const allowed = nbaShotPick(nbaShotAllowed(file, r.opp), NBA_SHOT_STATE);
+  const fg = (shots) => `${shots.length} Shots &middot; FG ${nbaShotPct(shots.reduce((n, s) => n + s[2], 0), shots.length)}`;
+  const chart = (shots, opts) => (!shots.length ? `<p class="no-data-note">No shots with these filters.</p>`
+    : `<div class="nba-shot-chart">${NBA_SHOT_STATE.view === "heat" ? nbaShotHeatView(shots, league, opts) : nbaShotZonesView(shots, league, opts)}</div>`);
+  const side = (abbr, label, shots, opts) => `<div class="pts-zone-side"><div class="pts-zone-head">${logo(abbr, 16)} <b>${label}</b><small>${fg(shots)}</small></div>${chart(shots, opts)}</div>`;
+  const ours = nbaShotZoneTotals(mine, false);
+  const theirs = nbaShotZoneTotals(allowed, false);
+  const lg = nbaShotZoneTotals(league, true);
+  const calls = [];
+  NBA_SHOT_GROUPS.forEach(([group, zones]) => zones.forEach(([z, name]) => {
+    const lr = lg[z] && lg[z][1] ? lg[z][0] / lg[z][1] : null;
+    const share = mine.length ? (ours[z] || [0, 0])[1] / mine.length : 0;
+    const call = nbaShotCall(ours[z], theirs[z], lr, share);
+    if (call) calls.push(`<span class="pts-zone-call" style="background:${nbaShotColor(call * NBA_SHOT_FULL, 0.3)};border-color:${nbaShotColor(call * NBA_SHOT_FULL, 0.8)}" title="${Math.round(share * 100)}% of his shots">${call === 1 ? "Target" : "Tough"}: ${group === "Threes" ? `${name} 3` : group === "Mid-Range" ? `Mid ${name}` : name}</span>`);
+  }));
+  return `<div class="nba-shot-controls">${nbaShotControls()}</div>
+    <div class="pts-zone-pair">${side(r.tm, r.name, mine)}${side(r.opp, `${r.opp} Defense Allows`, allowed, { allowed: true })}</div>
+    <div class="pts-zone-calls">${calls.length ? calls.join("") : '<span class="muted-label">No zone where both sides point the same way.</span>'}
+      <a class="pts-zone-more" href="shot-charts.html#p=${r.pid}&d=${r.opp}">Zone By Zone &rsaquo;</a></div>`;
 }
 
 function teammates(r) {
@@ -429,6 +469,10 @@ document.addEventListener("change", (e) => {
 });
 document.addEventListener("input", (e) => {
   if (e.target.matches("#pts-search")) renderBoard();
+});
+// a shot-chart filter in an open row (the player card redraws its own)
+document.addEventListener("nba-shot-changed", () => {
+  if (openId) renderBoard();
 });
 
 Promise.all([fetch("data.json").then((r) => r.json()), fetch("props.json").then((r) => r.json())])

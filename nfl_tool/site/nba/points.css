@@ -61,7 +61,21 @@
 
 /* the player view (an open row) */
 .pts-open > td { background: var(--panel); padding: 12px; }
-.pts-view { display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 420px); gap: 16px 24px; white-space: normal; }
+.pts-view { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 16px 24px; white-space: normal; }
+.pts-view-left { display: flex; flex-direction: column; gap: 16px; }
+.pts-view-zones .nba-shot-controls { margin-bottom: 8px; }
+.pts-zone-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pts-zone-side .nba-shot-chart { max-width: none; padding: 6px; }
+.pts-zone-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.85rem; }
+.pts-zone-head small { margin-left: auto; color: var(--muted); font-size: 0.72rem; }
+.pts-zone-calls { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; }
+.pts-zone-call { display: inline-block; padding: 1px 8px; border-radius: 6px; border: 1px solid transparent; font-size: 0.72rem; font-weight: 700; color: var(--text); }
+.pts-zone-more { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+.pts-view .bo-others-btn {
+  background: none; border: 1px solid var(--border-strong); border-radius: 999px; padding: 3px 10px; cursor: pointer;
+  font: inherit; font-family: var(--font-display); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+}
+.pts-view .bo-others-btn:hover { color: var(--text); border-color: var(--accent); }
 .pts-court { width: 100%; max-width: 340px; display: block; margin: 0 auto 8px; border-radius: 8px; background: var(--bg); }
 .pts-court-lines { stroke: var(--muted); stroke-width: 0.18; opacity: 0.8; }
 .pts-zone-share { font-size: 2.3px; font-weight: 700; fill: var(--text); font-family: var(--font-display); }
@@ -81,6 +95,7 @@
 }
 @media (max-width: 760px) {
   .pts-testing { grid-template-columns: 1fr; }
+  .pts-zone-pair { grid-template-columns: 1fr; }
   .pts-testing-title { font-size: 1.25rem; }
   .pts-testing-record { align-items: flex-start; text-align: left; }
   .pts-head { flex-direction: column; align-items: stretch; }

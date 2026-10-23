@@ -147,8 +147,9 @@ function renderBookOdds(spec) {
     ${saveNote}
     ${main.length || others.length ? `<table class="bo-table${modelOn ? "" : " bo-plain"}"><thead><tr><th>Book</th>${lineCol ? "<th>Line</th>" : ""}<th>Odds</th>${modelOn ? "<th>vs our model</th>" : ""}<th></th></tr></thead><tbody>
       ${main.map((q, i) => row(q, i, false)).join("")}
-      ${others.length ? `<tr class="bo-group"><td colspan="${cols}">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
-    </tbody></table>` : '<p class="no-data-note">None of your books has this bet right now.</p>'}
+      ${others.length && !spec.collapseOthers ? `<tr class="bo-group"><td colspan="${cols}">Other lines</td></tr>${others.map((q) => row(q, 1, true)).join("")}` : ""}
+      ${others.length && spec.collapseOthers ? `<tr class="bo-group bo-others-toggle"><td colspan="${cols}"><button type="button" class="bo-others-btn" data-bo-others aria-expanded="false">Show Other Lines (${others.length})</button></td></tr>` : ""}
+    </tbody>${others.length && spec.collapseOthers ? `<tbody class="bo-others" hidden>${others.map((q) => row(q, 1, true)).join("")}</tbody>` : ""}</table>` : '<p class="no-data-note">None of your books has this bet right now.</p>'}
     <div class="bo-foot"><span>${hidden.length ? `${hidden.length} book${hidden.length === 1 ? "" : "s"} hidden (${hidden.map((b) => BOOK_NAMES[b] || b).join(", ")})` : ""}</span><a href="#" class="bo-edit-books">Edit my books &rsaquo;</a></div>`;
 }
 
@@ -196,6 +197,17 @@ function openBookOdds(spec) {
 }
 
 document.addEventListener("click", (e) => {
+  // "Show Other Lines" (spec.collapseOthers: NBA Points, 2026-10-23): main lines only until asked.
+  const others = e.target.closest("[data-bo-others]");
+  if (others) {
+    e.stopPropagation();
+    const body = others.closest("table").querySelector(".bo-others");
+    const open = body.hidden;
+    body.hidden = !open;
+    others.setAttribute("aria-expanded", String(open));
+    others.textContent = others.textContent.replace(open ? "Show" : "Hide", open ? "Hide" : "Show");
+    return;
+  }
   const save = e.target.closest(".bo-save");
   if (save && bookOddsOpen && window.bookPlaySaver) {
     e.preventDefault();

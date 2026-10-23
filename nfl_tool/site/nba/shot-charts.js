@@ -12,9 +12,6 @@ let DATA = null; // data.json: teams (names, colors, logos), the schedule; the p
 let SC_FILE = null; // shots.json
 const SC = { player: null, def: null };
 const SC_KEY = "nba-tool.shot-charts.v1";
-const SC_CALL = 0.025; // a side "points" once it is 2.5 points of make rate from the league (Points' zone tags)
-const SC_MIN_SHARE = 0.05; // zones under 5% of his shots (or under 5 tries) get no call
-const SC_MIN_TRIES = 5;
 
 const scEl = (id) => document.getElementById(id);
 const scTeam = (abbr) => (DATA && DATA.teams[abbr]) || { name: abbr, short: abbr, logo: "", color: "555555" };
@@ -28,14 +25,8 @@ const scTitle = (abbr, inner) => `<div class="nba-box-title shc-title" style="ba
 // ---- the shots ----
 const scTeamIndex = (abbr) => (SC_FILE.teams || []).indexOf(abbr);
 const scPlayerShots = (id) => (SC_FILE.players || {})[String(id)] || [];
-// Every shot this defense allowed. shot[8] = the defense (an index into teams).
-function scAllowed(abbr) {
-  const t = scTeamIndex(abbr);
-  const out = [];
-  if (t < 0) return out;
-  Object.values(SC_FILE.players || {}).forEach((list) => list.forEach((s) => s[8] === t && out.push(s)));
-  return out;
-}
+// Every shot this defense allowed (shot-chart.js, shared with Points' open row).
+const scAllowed = (abbr) => nbaShotAllowed(SC_FILE, abbr);
 // Players on each team (his latest game's team), most shots first.
 function scRosters() {
   const out = {};
@@ -54,20 +45,8 @@ function scNextOpponent(abbr) {
   return g ? (g.away === abbr ? g.home : g.away) : null;
 }
 
-// ---- the call: both sides ----
-// His make rate and the make rate this defense allows, each pulled toward the
-// league by NBA_SHOT_PRIOR shots, minus the league's; a call needs one side 2.5+
-// points one way and the other not 0.75+ the other way (matchupCall's rule).
-function scCall(mine, allowed, lg, share) {
-  if (lg === null || !mine || mine[1] < SC_MIN_TRIES || share < SC_MIN_SHARE || !allowed || !allowed[1]) return 0;
-  const off = nbaShotDiff(mine[0], mine[1], lg) / SC_CALL;
-  const def = nbaShotDiff(allowed[0], allowed[1], lg) / SC_CALL;
-  const hi = Math.max(off, def);
-  const lo = Math.min(off, def);
-  if (hi >= 1 && lo > -0.3) return 1;
-  if (lo <= -1 && hi < 0.3) return -1;
-  return 0;
-}
+// ---- the call: both sides (shot-chart.js nbaShotCall, shared with Points) ----
+const scCall = (mine, allowed, lg, share) => nbaShotCall(mine, allowed, lg, share);
 
 // ---- drawing ----
 function scSummary(shots, label) {
