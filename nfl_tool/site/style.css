@@ -4058,6 +4058,7 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .bp-toolbar { flex-wrap: wrap; align-items: center; gap: 6px; }
 .bp-strong { margin-left: 10px; }
 .bp-game-pick { margin-left: auto; color: var(--muted); font-size: 0.85rem; }
+.bp-pick-next { margin-left: 10px; }
 .bp-count { margin: 12px 0 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
 .bp-table-wrap { overflow-x: auto; }
 .bp-table th.bp-sort { cursor: pointer; white-space: nowrap; }
@@ -4080,7 +4081,9 @@ td.gm-lean .pick-result { opacity: 0.5; }
 #bp-ytd-modal .modal-box { max-width: 1000px; max-height: 92vh; overflow-y: auto; }
 .bp-ytd-list { margin-top: 14px; }
 /* ---- YTD Model Performance (ytd.js): the same tracker on every sport ---- */
-.ytd-windows { margin: 10px 0 0; flex-wrap: wrap; }
+.ytd-windows { display: flex; margin: 10px 0 0; }
+.ytd-window-pick { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.ytd-window { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); font: inherit; font-size: 0.85rem; font-weight: 700; letter-spacing: 0; text-transform: none; cursor: pointer; }
 .ytd-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-width: 900px; margin: 10px 0 0; }
 .ytd-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 8px 9px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); text-align: center; }
 .ytd-tile [data-ytd-body] { display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -4102,5 +4105,4 @@ td.gm-lean .pick-result { opacity: 0.5; }
   .acct-chip .acct-name { display: none; }
   .brand-name { font-size: 1.05rem; }
   .ytd-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ytd-window { padding: 5px 9px; font-size: 0.78rem; }
 }

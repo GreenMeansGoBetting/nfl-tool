@@ -925,6 +925,30 @@ const EDGE_STEPS = [3, 5, 7, 10, 15];
 const edgeOptions = () => [["all", "Any edge"], ...EDGE_STEPS.map((v) => [String(v), `${v}+ points`])];
 const edgeAtLeast = (edge, min) => min === "all" || (has(edge) && Math.round(edge * 1000) / 10 >= Number(min));
 
+// ---- The member's own best price (the owner, 2026-10-23) ----
+// The build's price is the best across EVERY US book (the record grades it). When that book is
+// one the member turned off in My Books, the best price among their own books at the same line
+// takes its place on the page: {price, book}, or null to keep the build's (no books hidden, the
+// build's book is one of theirs, or none of theirs has the bet).
+function memberPrice(x, stat, side, line, price, book) {
+  if (!has(price) || typeof bookBest !== "function" || typeof myBooks !== "function") return null;
+  const hidden = myBooks().hidden || [];
+  if (!hidden.length || (book && !hidden.includes(book))) return null;
+  const g = x.game || x.g;
+  const spec = { kind: "prop", stat, team: x.r.team, pid: x.r.id, name: x.r.name, game: `${g.away}_${g.home}` };
+  const best = bookBest(bookQuotes(spec), side === "under" ? "u" : "o", line);
+  return best ? { price: best[3], book: best[0] } : null;
+}
+// A change in My Books redraws the page, so its prices follow at once.
+document.addEventListener("my-books-changed", () => {
+  if (typeof render === "function" && typeof DATA !== "undefined" && DATA) render();
+});
+// The book the build took a skater's price from (Novig's own when no book beat it).
+function buildBook(x, market, side) {
+  const m = (((DATA.player_odds || {})[(x.game || x.g).game_id] || {})[x.r.id] || {})[market] || {};
+  return (market === "goal" ? m.book : m[`${side === "under" ? "under" : "over"}_book`]) || "novig";
+}
+
 // ---- Every book's price (SmartStake; ../book-odds.js) ----
 // The Shots, Goals and Points open rows' right column: every US book's price for this
 // player, best first, each tagged against OUR model (never a market "fair"

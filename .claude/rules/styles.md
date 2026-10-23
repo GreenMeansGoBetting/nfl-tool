@@ -74,7 +74,8 @@ than add a new look.
 The owner: "streamline all the YTD model performance functions to be identical with filters and
 sliders. Make this standard in the files so when we add new nba or nfl tools, this happens
 automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for every page.
-- **The look:** window chips **Yesterday / Last 3 / 7 / 15 / 30 Days / Season** ("Yesterday" =
+- **The look:** a **Time Frame** dropdown (the owner, 2026-10-23: one menu, not a row of buttons;
+  `[data-ytd-window]`) of **Yesterday / Last 3 / 7 / 15 / 30 Days / Season** ("Yesterday" =
   that one date; "Last N" counts today), then a tile per market (W-L, win %, units) with its own
   slider, an optional **All Plays** tile adding them up, and **split tiles** (Overs, Unders, Strong,
   Lean, Against / With His Avg...) that follow their market's slider. Styles `.ytd-*` in style.css.

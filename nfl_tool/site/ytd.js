@@ -97,7 +97,8 @@ function ytdTracker(box, cfg) {
   const t = { cfg, state: (YTD_TRACKERS[cfg.key] || {}).state || ytdLoad(cfg), box };
   YTD_TRACKERS[cfg.key] = t;
   box.dataset.ytd = cfg.key;
-  const windows = YTD_WINDOWS.map(([d, label]) => `<button type="button" class="view-toggle-btn ytd-window${t.state.days === d ? " active" : ""}" data-ytd-days="${d}">${label}</button>`).join("");
+  // One dropdown for the time frame (the owner, 2026-10-23: not a row of buttons).
+  const windows = `<label class="ytd-window-pick"><span>Time Frame</span><select class="ytd-window" data-ytd-window aria-label="Time Frame">${YTD_WINDOWS.map(([d, label]) => `<option value="${d}" data-ytd-days="${d}"${t.state.days === d ? " selected" : ""}>${label}</option>`).join("")}</select></label>`;
   const slider = (m) => `<label class="ytd-slider"><span>${m.slider || "Min Edge"}</span><input type="range" min="${m.min}" max="${m.max}" step="${m.step || 1}" value="${t.state.min[m.key]}" data-ytd-min="${m.key}" aria-label="${m.slider || "Min Edge"}, ${m.label}"><output data-ytd-out="${m.key}"></output></label>`;
   const tiles = [];
   if (cfg.all && cfg.markets.length > 1) tiles.push(`<div class="ytd-tile ytd-all" title="Every market, each at its own minimum"><div class="ytd-label">${cfg.all}</div><div data-ytd-body="__all"></div><small class="ytd-sub" data-ytd-sub="__all"></small></div>`);
@@ -105,7 +106,7 @@ function ytdTracker(box, cfg) {
     tiles.push(`<div class="ytd-tile" title="${m.tip || ""}"><div class="ytd-label">${m.label}</div><div data-ytd-body="${m.key}"></div>${slider(m)}</div>`);
     (m.splits || []).forEach(([tag, label, tip]) => tiles.push(`<div class="ytd-tile ytd-split" title="${tip || ""}"><div class="ytd-label">${label}</div><div data-ytd-body="${m.key}:${tag}"></div><small class="ytd-sub" data-ytd-sub="${m.key}:${tag}"></small></div>`));
   });
-  box.innerHTML = `<div class="view-toggle ytd-windows">${windows}</div><div class="ytd-tiles">${tiles.join("")}</div>`;
+  box.innerHTML = `<div class="ytd-windows">${windows}</div><div class="ytd-tiles">${tiles.join("")}</div>`;
   ytdUpdate(t);
 }
 // Only the numbers: a slider being dragged keeps its place.
@@ -142,15 +143,14 @@ document.addEventListener("input", (e) => {
   ytdUpdate(t);
   if (t.cfg.onChange) t.cfg.onChange();
 });
-document.addEventListener("click", (e) => {
-  const chip = e.target.closest("[data-ytd-days]");
-  const box = chip && chip.closest("[data-ytd]");
+document.addEventListener("change", (e) => {
+  const pick = e.target.closest && e.target.closest("[data-ytd-window]");
+  const box = pick && pick.closest("[data-ytd]");
   const t = box && YTD_TRACKERS[box.dataset.ytd];
   if (!t) return;
-  const v = chip.dataset.ytdDays;
+  const v = pick.value;
   t.state.days = v === "yesterday" ? v : Number(v);
   ytdSave(t);
-  box.querySelectorAll("[data-ytd-days]").forEach((b) => b.classList.toggle("active", b === chip));
   ytdUpdate(t);
   if (t.cfg.onChange) t.cfg.onChange();
 });

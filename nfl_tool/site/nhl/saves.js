@@ -64,13 +64,18 @@ function gradePlay(r) {
   if (!has(r.actual) || r.void || !r.side || r.actual === r.line) return null;
   return (r.side === "over") === r.actual > r.line ? "win" : "loss";
 }
+// The member's own books first (memberPrice); the bucket stays the build's.
+function mineFirst(row, g) {
+  const mine = row.side && has(row.id) && memberPrice({ r: row, game: g }, "saves", row.side, row.line, row.price, row[`${row.side}_book`] || "novig");
+  return mine ? { ...row, price: mine.price, edge: playChance(row) - breakEven(mine.price) } : row;
+}
 function rowsFor(date) {
   const rows = [];
   gamesOn(date).forEach((g) => {
     if (gameId && g.game_id !== gameId) return;
     const board = boardFor(g);
     if (!board) return;
-    board.goalies.forEach((r) => rows.push({ r, game: g, board, season: seasonLine(r.id), result: gradePlay(r), state: gameState(g) }));
+    board.goalies.map((row) => mineFirst(row, g)).forEach((r) => rows.push({ r, game: g, board, season: seasonLine(r.id), result: gradePlay(r), state: gameState(g) }));
   });
   return rows;
 }
@@ -160,7 +165,7 @@ function playChip(r) {
       ? `<span class="goals-noodds" title="Novig has a saves line for him but no price on either side yet">No price</span>`
       : `<span class="goals-noodds" title="Novig has no saves line for him yet. The projection is there to shop elsewhere; lines fill in through the day.">No odds</span>`;
   }
-  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} saves at the best price across books (Novig's line)"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} saves at the best price across your books (Novig's line)"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
 }
 // The build's bucket (the one the record grades), said on the row: Strong / Lean / Check.
 function ratingCell(x) {

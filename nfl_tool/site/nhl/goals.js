@@ -73,7 +73,10 @@ function rowsFor(date) {
     if (gameId && g.game_id !== gameId) return;
     const board = boardFor(g);
     if (!board) return;
-    board.players.forEach((r) => {
+    board.players.forEach((row) => {
+      // The member's own books first (memberPrice); the bucket stays the build's.
+      const mine = memberPrice({ r: row, game: g }, "goals", "over", 0.5, row.odds, buildBook({ r: row, game: g }, "goal"));
+      const r = mine ? { ...row, odds: mine.price, edge: row.chance - breakEven(mine.price) } : row;
       const result = has(r.actual) && has(r.odds) ? (r.actual > 0 ? "win" : "loss") : null;
       rows.push({ r, game: g, board, season: seasonLine(r.id), result, state: gameState(g) });
     });
@@ -172,7 +175,7 @@ const zoneTip = (r) => `Zone Match: ${Math.round(r.zone.share * 100)}% of his sh
 // tag has its own column.
 function priceChip(r) {
   return has(r.odds)
-    ? `<span class="shots-play shots-play-over goals-price" title="Best anytime goal price across books"><b>${odds(r.odds)}</b></span>`
+    ? `<span class="shots-play shots-play-over goals-price" title="Best anytime goal price across your books"><b>${odds(r.odds)}</b></span>`
     : `<span class="goals-noodds" title="Novig has no anytime price for him yet. The fair price is there to shop elsewhere; prices fill in through the day.">No odds</span>`;
 }
 function zoneCell(r) {

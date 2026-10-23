@@ -164,6 +164,8 @@ top (`#bp-warning`, the typical games played). First row under the NFL menu's "P
   `bookBest`). Ratings `BP_EDGES` per market; Check = edge past `check` or a TD long shot at
   `BP_CHECK_RATIO` 1.8x the price's chance (usually news the model lacks). Games that have kicked
   off drop off (`bpStarted`). Save boxes are the shared `propOuEntries` / `ouCheckboxCell` ids.
+  Toolbar: market buttons, a **Rating** menu (All Ratings / Strong / Lean / Check; 2026-10-23,
+  replaced "Strong only") and the Game menu.
 - **Graded record (2026-10-22, owner: "capture what members see", not the math ported to
   Python):** the engine runs in the browser, so every deploy opens best-plays.html headless on the
   fresh data (`tools/best_plays_capture.py`, step "NFL Best Plays record") and reads `bpCapture()`:

@@ -1255,6 +1255,12 @@ ignores a member's My Books (the page's price list still honors them). Locks lik
 so the record mixes the two; CLV for that day compares a Novig first price with a best-price lock.
 No SmartStake run = Novig's price, as before. Pages say "best price across books" where they said
 Novig. Test: `tests/test_nhl_best_prices.py`.
+- **On the page, the member's books come first (the owner, 2026-10-23):** when the build's book is
+  one the member turned off in My Books, Shots, Goals, Points, Saves and Best Plays show the best
+  price among the member's own books at that line, and the edge on it (`memberPrice` /
+  `buildBook` in nhl-common.js; none of theirs has it = the build's price). Which plays are listed
+  and their buckets stay the build's (the record). No books off = the build's price, as before.
+  A My Books change redraws the page. Test: `test_a_member_sees_the_best_price_on_their_own_books`.
 
 ## Every book's price in the Shots, Goals and Points rows (SmartStake, 2026-10-14)
 

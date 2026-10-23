@@ -104,6 +104,7 @@ function bookSpec(x) {
 // Which book the build took this play's price from (it keeps the best price across every US book,
 // SmartStake; Novig's own price when no book beats it). Ids are book-odds.js's / GMG_BOOKS'.
 function priceBook(x) {
+  if (x.myBook) return x.myBook;
   if (x.market === "saves") return x.r[`${x.play.side}_book`] || "novig";
   const m = (((DATA.player_odds || {})[x.g.game_id] || {})[x.r.id] || {})[{ sog: "sog", goal: "goal", pts: "points" }[x.market]] || {};
   return (x.market === "goal" ? m.book : m[`${x.play.side === "under" ? "under" : "over"}_book`]) || "novig";
@@ -163,7 +164,15 @@ function playsFor(date) {
       });
     }
   });
-  return out;
+  return out.map(mineFirst);
+}
+// A member with books turned off in My Books sees the best price among their own books (and the
+// edge on it); the list itself stays the build's plays.
+function mineFirst(x) {
+  const line = x.market === "goal" ? 0.5 : x.play.line;
+  const mine = memberPrice(x, BOOK_STAT[x.market], x.play.side, line, x.play.price, priceBook(x));
+  if (!mine) return x;
+  return { ...x, myBook: mine.book, play: { ...x.play, price: mine.price, edge: x.play.chance - breakEven(mine.price) } };
 }
 // The Rating sort: Strong and Shots' Play first, then Lean, then Check.
 const RATING_ORDER = { strong: 3, play: 3, lean: 2, check: 1 };
@@ -305,7 +314,7 @@ const COLUMNS = [
     const name = typeof GMG_BOOKS !== "undefined" && GMG_BOOKS[book] ? GMG_BOOKS[book] : book === "novig" ? "Novig" : book;
     const logoImg = book === "novig" ? `<img src="../novig-logo.jpg" alt="" class="best-book-logo" width="18" height="18">` : "";
     const inner = `<span class="best-book">${logoImg}<b>${odds(x.play.price)}</b></span><small class="best-book-name">${name}</small>`;
-    return `<td class="num best-odds">${typeof boEnc === "function" ? `<button type="button" class="bo-pill best-pill" data-bo="${boEnc(bookSpec(x))}" title="Best price across the US books. Click for every book.">${inner}</button>` : inner}</td>`;
+    return `<td class="num best-odds">${typeof boEnc === "function" ? `<button type="button" class="bo-pill best-pill" data-bo="${boEnc(bookSpec(x))}" title="Best price across your books. Click for every book.">${inner}</button>` : inner}</td>`;
   } },
   { key: null, label: "Good to", title: "The worst price this bet still has an edge at (the smallest edge the page lists). Past this, it is no longer a play", cell: (x) => `<td class="num best-goodto">${odds(goodTo(x)) || "--"}</td>` },
   { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points", cell: edgeCell },

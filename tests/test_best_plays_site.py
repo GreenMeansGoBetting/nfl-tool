@@ -92,6 +92,14 @@ class BestPlays(unittest.TestCase):
         chances = page.evaluate("() => [...document.querySelectorAll('.bp-table tbody tr td:nth-child(5)')].map((td) => parseFloat(td.textContent))")
         self.assertEqual(chances, sorted(chances, reverse=True))
         page.click('.bp-sort[data-sort="edge"]')
+        # The Rating menu (the owner, 2026-10-23): only that rating's plays.
+        for rating in ("Strong", "Lean", "Check"):
+            page.select_option("#bp-rating", rating)
+            ratings = page.evaluate("() => [...document.querySelectorAll('.bp-table tbody tr .bp-rating')].map((s) => s.textContent)")
+            self.assertEqual(set(ratings) - {rating}, set(), rating)
+            self.assertEqual(len(ratings), page.evaluate(f"() => bpRows.filter((r) => r.rating === '{rating}').length"), rating)
+        page.select_option("#bp-rating", "")
+        self.assertEqual(shown(), before)
 
     def test_ytd_model_performance(self):
         """The graded record (2026-10-22): the shared tracker, a tile per market

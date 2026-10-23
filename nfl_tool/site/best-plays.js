@@ -43,9 +43,12 @@ const bpView = loadBpView();
 let bpRows = [];
 
 function loadBpView() {
-  const base = { groups: { rec: true, rush: true, pass: true, any: true, first: true }, game: "", strongOnly: false, sort: "edge", dir: -1 };
+  const base = { groups: { rec: true, rush: true, pass: true, any: true, first: true }, game: "", rating: "", sort: "edge", dir: -1 };
   try {
     const saved = JSON.parse(localStorage.getItem(BP_VIEW_KEY)) || {};
+    // The old "Strong only" button became the Rating menu (2026-10-23).
+    if (saved.strongOnly && !saved.rating) saved.rating = "Strong";
+    delete saved.strongOnly;
     return { ...base, ...saved, groups: { ...base.groups, ...(saved.groups || {}) } };
   } catch (e) {
     return base;
@@ -349,7 +352,7 @@ function bpRender() {
   const rows = bpRows
     .filter((r) => bpView.groups[r.group])
     .filter((r) => !bpView.game || bpGameKey(r.game) === bpView.game)
-    .filter((r) => !bpView.strongOnly || r.rating === "Strong")
+    .filter((r) => !bpView.rating || r.rating === bpView.rating)
     .sort((a, b) => bpView.dir * (BP_SORTS[bpView.sort](a) - BP_SORTS[bpView.sort](b)));
   const th = (key, label, cls = "num") => {
     const on = bpView.sort === key;
@@ -370,20 +373,16 @@ function bpToolbar(games) {
   const groupBtns = BP_GROUPS.map(([k, label]) => `<button type="button" class="view-toggle-btn bp-group${bpView.groups[k] ? " active" : ""}" data-group="${k}">${label}</button>`).join("");
   const gameOpts = games.map((g) => `<option value="${bpGameKey(g)}"${bpView.game === bpGameKey(g) ? " selected" : ""}>${bpMatchup(g)}</option>`).join("");
   bar.innerHTML = `${groupBtns}
-    <button type="button" class="view-toggle-btn bp-strong${bpView.strongOnly ? " active" : ""}">Strong only</button>
-    <label class="bp-game-pick">Game <select id="bp-game"><option value="">All games</option>${gameOpts}</select></label>`;
+    <label class="bp-game-pick">Rating <select id="bp-rating">${[["", "All Ratings"], ["Strong", "Strong"], ["Lean", "Lean"], ["Check", "Check"]].map(([v, t]) => `<option value="${v}"${bpView.rating === v ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+    <label class="bp-game-pick bp-pick-next">Game <select id="bp-game"><option value="">All games</option>${gameOpts}</select></label>`;
 }
 
 document.addEventListener("click", (e) => {
   const group = e.target.closest(".bp-group");
-  const strong = e.target.closest(".bp-strong");
   const sort = e.target.closest(".bp-sort");
   if (group) {
     bpView.groups[group.dataset.group] = !bpView.groups[group.dataset.group];
     group.classList.toggle("active", bpView.groups[group.dataset.group]);
-  } else if (strong) {
-    bpView.strongOnly = !bpView.strongOnly;
-    strong.classList.toggle("active", bpView.strongOnly);
   } else if (sort) {
     if (bpView.sort === sort.dataset.sort) bpView.dir = -bpView.dir;
     else Object.assign(bpView, { sort: sort.dataset.sort, dir: -1 });
@@ -392,8 +391,9 @@ document.addEventListener("click", (e) => {
   bpRender();
 });
 document.addEventListener("change", (e) => {
-  if (e.target.id !== "bp-game") return;
-  bpView.game = e.target.value;
+  if (e.target.id === "bp-rating") bpView.rating = e.target.value;
+  else if (e.target.id === "bp-game") bpView.game = e.target.value;
+  else return;
   saveBpView();
   bpRender();
 });

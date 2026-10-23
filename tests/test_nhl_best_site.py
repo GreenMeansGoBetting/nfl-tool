@@ -226,6 +226,43 @@ class Filters(unittest.TestCase):
             self.assertNotEqual(r[1].strip(), "")
         PAGE.evaluate("() => { const m = DATA.player_odds; Object.values(m).forEach((g) => Object.values(g).forEach((e) => { if (e.sog) { delete e.sog.over_book; delete e.sog.under_book; } })); render(); }")
 
+    def test_a_member_sees_the_best_price_on_their_own_books(self):
+        """The owner, 2026-10-23: with books turned off in My Books, the price is the best among the
+        member's own books (and the edge on it), never a book they turned off; no books turned off =
+        the build's best across every book, as before."""
+        reset()
+        got = PAGE.evaluate("""() => {
+            const x = playsFor(days()[dayIndex]).find((p) => p.market === 'sog');
+            const s = x.play.side === 'under' ? 'u' : 'o';
+            const key = `${x.g.away}_${x.g.home}`;
+            DATA.book_odds = DATA.book_odds || {};
+            const saved = DATA.book_odds[key];
+            DATA.book_odds[key] = { props: { sog: { [String(x.r.id)]: { q: [['draftkings', s, x.play.line, x.play.price + 40, null], ['fanduel', s, x.play.line, -400, null]] } } } };
+            const shown = () => { render(); const p = playsFor(days()[dayIndex]).find((y) => y.market === 'sog' && y.r.id === x.r.id);
+              return { price: p.play.price, edge: Math.round(p.play.edge * 1000), book: priceBook(p),
+                       cell: document.querySelector(`.best-row[data-key='sog:${x.g.game_id}:${x.r.id}'] .best-odds`).textContent }; };
+            bestView.minEdge = -100; // a worse price can take the edge under the page's minimum
+            let before, mine;
+            try {
+              before = shown();
+              localStorage.setItem(MY_BOOKS_KEY, JSON.stringify({ hidden: ['novig', 'draftkings'] }));
+              mine = shown();
+            } finally {
+              localStorage.removeItem(MY_BOOKS_KEY);
+              if (saved) DATA.book_odds[key] = saved; else delete DATA.book_odds[key];
+              bestView.minEdge = 3;
+              render();
+            }
+            return { build: x.play.price, buildEdge: Math.round(x.play.edge * 1000), before, mine, chance: x.play.chance };
+        }""")
+        self.assertEqual(got["before"]["price"], got["build"])
+        self.assertEqual(got["before"]["book"], "novig")
+        self.assertEqual(got["mine"]["price"], -400)
+        self.assertEqual(got["mine"]["book"], "fanduel")
+        self.assertIn("FanDuel", got["mine"]["cell"])
+        self.assertEqual(got["mine"]["edge"], round((got["chance"] - 0.8) * 1000))
+        self.assertEqual(SITE.errors, [])
+
     def test_minimum_edge_and_lineup_filters(self):
         every = reset()
         high = reset(minEdge=7)
@@ -291,7 +328,7 @@ class Record(unittest.TestCase):
         reset()
         PAGE.click("#best-record-open")
         self.assertEqual(self.tiles(), {"all": "7-4", "sog": "3-2", "goal": "1-1", "pts": "2-0", "saves": "1-1"})
-        PAGE.click('[data-ytd-days="15"]')  # the 40-, 30- and 20-day-old plays drop out
+        PAGE.select_option('[data-ytd-window]', "15")  # the 40-, 30- and 20-day-old plays drop out
         self.assertEqual(self.tiles(), {"all": "4-3", "sog": "2-2", "goal": "0-1", "pts": "1-0", "saves": "1-0"})
         # 10+ points: 9.96 counts (the table shows it as 10.0); each market's slider is its own.
         PAGE.fill('[data-ytd-min="sog"]', "10")
@@ -301,11 +338,11 @@ class Record(unittest.TestCase):
         self.assertIn("SHOTS 10+", PAGE.inner_text('[data-ytd-sub="__all"]').upper())
         self.assertIn("POINTS 5+", PAGE.inner_text('[data-ytd-sub="__all"]').upper())
         # Yesterday (the owner, 2026-10-22): only the 1-day-old play, a 3.0 edge, under the Shots slider's 10.
-        PAGE.click('[data-ytd-days="yesterday"]')
+        PAGE.select_option('[data-ytd-window]', "yesterday")
         self.assertEqual(self.tiles()["sog"], "0-0")
         PAGE.fill('[data-ytd-min="sog"]', "3")
         self.assertEqual(self.tiles(), {"all": "1-0", "sog": "1-0", "goal": "0-0", "pts": "0-0", "saves": "0-0"})
-        PAGE.click('[data-ytd-days="15"]')
+        PAGE.select_option('[data-ytd-window]', "15")
         PAGE.fill('[data-ytd-min="sog"]', "10")
         # Remembered on this device.
         self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.ytd.nhl-best.v1'))"), {"days": 15, "min": {"sog": 10, "goal": 3, "pts": 5, "saves": 3}})

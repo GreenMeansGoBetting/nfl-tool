@@ -28,10 +28,11 @@ const shotsView = { side: "best", pos: "all", lineup: "all", minEdge: "all", sor
 const edgeAt = (size) => ((SHOTS || {}).edges || { lean: 0.03, strong: 0.06, check: 0.12 })[size];
 const bar = () => (SHOTS && has(SHOTS.bar) ? SHOTS.bar : 0.06);
 // The safety net: an edge of `unsure` (25 points) or more is the model missing something, never a play.
-const unsure = (x) => !!x.play && x.play.edge >= unsureEdge(SHOTS);
-const isPlay = (x) => !!x.play && x.play.edge >= bar() && x.r.move !== "down" && !unsure(x);
+const buildEdge = (play) => (has(play.buildEdge) ? play.buildEdge : play.edge); // the build's price, not the member's
+const unsure = (x) => !!x.play && buildEdge(x.play) >= unsureEdge(SHOTS);
+const isPlay = (x) => !!x.play && buildEdge(x.play) >= bar() && x.r.move !== "down" && !unsure(x);
 // Over the bar but left out: he is on a lower line tonight (those lost on both sides).
-const movedDown = (x) => !!x.play && x.play.edge >= bar() && x.r.move === "down";
+const movedDown = (x) => !!x.play && buildEdge(x.play) >= bar() && x.r.move === "down";
 // Before the game's lineup is posted nobody can have moved: the play assumes he stays on his
 // usual line and says so (the owner, 2026-10-19: "post them with the assumption, but tag it as
 // such"). Once the lineup is in it stays a play, or drops off if he was moved down.
@@ -109,7 +110,10 @@ function rowsFor(date) {
     board.players.forEach((r) => {
       const book = gameOdds[r.id] || {};
       const sides = sidesFor(r, book.sog);
-      const play = pickSide(sides, shotsView.side);
+      let play = pickSide(sides, shotsView.side);
+      // The member's own books first (memberPrice); whether it is a play stays the build's call.
+      const mine = play && memberPrice({ r, game: g }, "sog", play.side, play.line, play.price, buildBook({ r, game: g }, "sog", play.side));
+      if (mine) play = { ...play, price: mine.price, edge: play.chance - breakEven(mine.price), buildEdge: play.edge };
       rows.push({ r, game: g, board, book, sides, play, season: seasonLine(r.id), result: gradePlay(play, r.actual), state: gameState(g) });
     });
   });
@@ -228,7 +232,7 @@ function renderToolbar() {
 }
 // The play as a bettor writes it: "o1.5" / "u2.5" (the owner, 2026-10-15), green over, red under.
 function playChip(play) {
-  return `<span class="shots-play shots-play-ou shots-play-${play.side}" title="${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)} shots on goal at the best price across books"><b>${play.side[0]}${fmt(play.line)}</b><span>${odds(play.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${play.side}" title="${play.side === "over" ? "Over" : "Under"} ${fmt(play.line)} shots on goal at the best price across your books"><b>${play.side[0]}${fmt(play.line)}</b><span>${odds(play.price)}</span></span>`;
 }
 // A play says so; a row over the bar but left out says why (he is on a lower line tonight).
 function ratingCell(x) {

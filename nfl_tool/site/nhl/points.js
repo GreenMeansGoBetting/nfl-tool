@@ -78,13 +78,18 @@ function gradePlay(r) {
   if (!has(r.actual) || !r.side || r.actual === r.line) return null;
   return (r.side === "over") === r.actual > r.line ? "win" : "loss";
 }
+// The member's own books first (memberPrice); the bucket stays the build's.
+function mineFirst(row, g) {
+  const mine = row.side && memberPrice({ r: row, game: g }, "points", row.side, row.line, row.price, buildBook({ r: row, game: g }, "points", row.side));
+  return mine ? { ...row, price: mine.price, edge: playChance(row) - breakEven(mine.price) } : row;
+}
 function rowsFor(date) {
   const rows = [];
   gamesOn(date).forEach((g) => {
     if (gameId && g.game_id !== gameId) return;
     const board = boardFor(g);
     if (!board) return;
-    board.players.forEach((r) => rows.push({ r, game: g, board, season: seasonLine(r.id), result: gradePlay(r), state: gameState(g) }));
+    board.players.map((row) => mineFirst(row, g)).forEach((r) => rows.push({ r, game: g, board, season: seasonLine(r.id), result: gradePlay(r), state: gameState(g) }));
   });
   return rows;
 }
@@ -175,7 +180,7 @@ function playChip(r) {
       ? `<span class="goals-noodds" title="Novig has a points line for him but no price on either side yet">No price</span>`
       : `<span class="goals-noodds" title="Novig has no points line for him yet. The fair price is there to shop elsewhere; prices fill in through the day.">No odds</span>`;
   }
-  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} points at the best price across books's price"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${r.side}" title="${r.side === "over" ? "Over" : "Under"} ${fmt(r.line)} points at the best price across your books"><b>${r.side[0]}${fmt(r.line)}</b><span>${odds(r.price)}</span></span>`;
 }
 // The build's bucket (the one the record grades), said on the row: Play, or why a row over the bar is left out.
 function ratingCell(x) {
