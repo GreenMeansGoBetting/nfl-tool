@@ -274,6 +274,11 @@
     "prophetx"
    ]
   },
+  "result": {
+   "scorer": "4066328",
+   "team": "CLE",
+   "tip": "CLE"
+  },
   "tip_home": 0.644
  },
  "401909094": {
@@ -363,12 +368,17 @@
     "draftkings"
    ]
   },
+  "result": {
+   "scorer": "4683692",
+   "team": "OKC",
+   "tip": "OKC"
+  },
   "tip_home": 0.547
  },
  "401909095": {
   "away": "NY",
   "date": "2026-10-23",
-  "first_home": 0.512,
+  "first_home": 0.513,
   "home": "BOS",
   "jumpers": [
    [
@@ -384,7 +394,7 @@
    "3062679": [
     "Josh Hart",
     0.088,
-    1300,
+    1600,
     true,
     "fanduel"
    ],
@@ -398,37 +408,37 @@
    "3136195": [
     "Karl-Anthony Towns",
     0.09,
-    516,
+    600,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3147657": [
     "Mikal Bridges",
     0.092,
-    890,
-    false,
-    "draftkings"
+    1100,
+    true,
+    "fanduel"
    ],
    "3934672": [
     "Jalen Brunson",
     0.106,
-    459,
+    550,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3934719": [
     "OG Anunoby",
     0.092,
-    940,
-    false,
-    "draftkings"
+    1100,
+    true,
+    "fanduel"
    ],
    "4065648": [
     "Jayson Tatum",
     0.107,
-    600,
+    508,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4066354": [
     "Payton Pritchard",
@@ -440,9 +450,9 @@
    "4251": [
     "Paul George",
     0.101,
-    750,
+    660,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4397424": [
     "Neemias Queta",
@@ -452,12 +462,12 @@
     null
    ]
   },
-  "tip_home": 0.536
+  "tip_home": 0.539
  },
  "401909096": {
   "away": "HOU",
   "date": "2026-10-23",
-  "first_home": 0.558,
+  "first_home": 0.559,
   "home": "SA",
   "jumpers": [
    [
@@ -486,7 +496,7 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.096,
+    0.097,
     700,
     false,
     "hard_rock"
@@ -494,14 +504,14 @@
    "4395630": [
     "Devin Vassell",
     0.103,
-    835,
+    920,
     false,
     "fliff"
    ],
    "4432639": [
     "Jabari Smith Jr.",
     0.085,
-    1400,
+    1500,
     true,
     "fanduel"
    ],
@@ -528,7 +538,7 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.111,
+    0.112,
     340,
     false,
     "fliff"
@@ -541,7 +551,7 @@
     null
    ]
   },
-  "tip_home": 0.675
+  "tip_home": 0.677
  },
  "401909834": {
   "away": "ATL",
@@ -1408,9 +1418,9 @@
    "2490149": [
     "CJ McCollum",
     0.084,
-    675,
+    650,
     false,
-    "fliff"
+    "fanduel"
    ],
    "2583632": [
     "Royce O'Neale",
@@ -1429,44 +1439,44 @@
    "4278039": [
     "Nickeil Alexander-Walker",
     0.102,
-    700,
+    670,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4431680": [
     "Onyeka Okongwu",
     0.083,
-    800,
+    850,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4433249": [
     "Moussa Diabate",
     0.091,
-    800,
+    720,
     false,
     "fliff"
    ],
    "4433287": [
     "Brandon Miller",
     0.1,
-    600,
+    550,
     false,
     "fanduel"
    ],
    "4701230": [
     "Jalen Johnson",
     0.116,
-    600,
+    610,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4869342": [
     "Dyson Daniels",
     0.095,
-    1100,
+    1200,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "5061575": [
     "Kon Knueppel",
@@ -1497,30 +1507,30 @@
    "3133603": [
     "Kelly Oubre Jr.",
     0.095,
-    1100,
-    true,
-    "fanduel"
+    1000,
+    false,
+    "draftkings"
    ],
    "3149673": [
     "Pascal Siakam",
     0.128,
-    600,
+    539,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4017837": [
     "Ivica Zubac",
     0.107,
-    575,
+    525,
     false,
-    "hard_rock"
+    "fliff"
    ],
    "4278078": [
     "P.J. Washington",
     0.081,
-    1000,
+    1100,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4278594": [
     "Naji Marshall",
@@ -1532,28 +1542,28 @@
    "4395712": [
     "Andrew Nembhard",
     0.105,
-    950,
-    true,
-    "fanduel"
+    930,
+    false,
+    "draftkings"
    ],
    "4396909": [
     "Aaron Nesmith",
     0.111,
-    850,
+    890,
     false,
-    "hard_rock"
+    "fliff"
    ],
    "4432582": [
     "Max Christie",
     0.072,
-    1040,
+    1240,
     false,
-    "fliff"
+    "draftkings"
    ],
    "5041939": [
     "Cooper Flagg",
     0.094,
-    550,
+    650,
     false,
     "fanduel"
    ],
@@ -1586,35 +1596,35 @@
    "3032976": [
     "Rudy Gobert",
     0.076,
-    915,
+    800,
     false,
-    "fliff"
+    "hard_rock"
    ],
    "4066320": [
     "Desmond Bane",
     0.101,
-    650,
+    630,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4277847": [
     "Wendell Carter Jr.",
     0.084,
-    770,
+    760,
     false,
     "fliff"
    ],
    "4431671": [
     "Jaden McDaniels",
     0.088,
-    1000,
+    950,
     false,
     "fanduel"
    ],
    "4432573": [
     "Paolo Banchero",
     0.094,
-    700,
+    650,
     false,
     "fanduel"
    ],
@@ -1635,7 +1645,7 @@
    "4594268": [
     "Anthony Edwards",
     0.116,
-    600,
+    650,
     false,
     "fanduel"
    ],
@@ -1677,7 +1687,7 @@
     0.066,
     900,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4278129": [
     "Deandre Ayton",
@@ -1689,23 +1699,23 @@
    "4395625": [
     "RJ Barrett",
     0.111,
-    800,
+    810,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4395724": [
     "Immanuel Quickley",
     0.099,
-    850,
+    950,
     false,
     "fanduel"
    ],
    "4433134": [
     "Scottie Barnes",
     0.106,
-    650,
+    700,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4845374": [
     "Bub Carrington",
@@ -1717,30 +1727,30 @@
    "5160992": [
     "Alex Sarr",
     0.071,
-    900,
+    920,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5174563": [
     "Kyshawn George",
     0.089,
     800,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "6450": [
     "Kawhi Leonard",
     0.106,
-    500,
+    550,
     false,
     "fanduel"
    ],
    "6583": [
     "Anthony Davis",
     0.12,
-    600,
+    577,
     false,
-    "fanduel"
+    "draftkings"
    ]
   },
   "tip_home": 0.474
@@ -1764,23 +1774,23 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.122,
-    390,
+    399,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3059319": [
     "Andrew Wiggins",
     0.09,
-    900,
+    850,
     false,
     "fanduel"
    ],
    "3157465": [
     "Duncan Robinson",
     0.093,
-    1300,
+    1420,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "3908845": [
     "John Collins",
@@ -1792,23 +1802,23 @@
    "4066261": [
     "Bam Adebayo",
     0.095,
-    610,
+    600,
     false,
-    "fliff"
+    "fanduel"
    ],
    "4278053": [
     "Davion Mitchell",
     0.086,
-    1200,
-    true,
+    1100,
+    false,
     "hard_rock"
    ],
    "4432166": [
     "Cade Cunningham",
     0.103,
-    600,
+    680,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4433621": [
     "Jalen Duren",
@@ -1827,9 +1837,9 @@
    "4684742": [
     "Ausar Thompson",
     0.084,
-    1100,
+    1200,
     false,
-    "hard_rock"
+    "fanduel"
    ]
   },
   "tip_home": 0.539
@@ -1853,16 +1863,16 @@
    "2595516": [
     "Norman Powell",
     0.089,
-    650,
+    700,
     false,
     "fanduel"
    ],
    "3133628": [
     "Myles Turner",
     0.081,
-    790,
+    760,
     false,
-    "draftkings"
+    "fliff"
    ],
    "3134907": [
     "Kyle Kuzma",
@@ -1911,7 +1921,7 @@
     0.092,
     700,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4871145": [
     "Josh Giddey",
@@ -1956,16 +1966,16 @@
    "4277961": [
     "Jaren Jackson Jr.",
     0.09,
-    700,
+    720,
     false,
-    "hard_rock"
+    "draftkings"
    ],
    "4395628": [
     "Zion Williamson",
     0.105,
     700,
     false,
-    "fanduel"
+    "thescore"
    ],
    "4397136": [
     "Saddiq Bey",
@@ -1977,16 +1987,16 @@
    "4397688": [
     "Trey Murphy III",
     0.082,
-    900,
+    950,
     false,
     "fanduel"
    ],
    "4433627": [
     "Keyonte George",
     0.104,
-    700,
+    750,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4683742": [
     "Julian Reese",
@@ -2038,16 +2048,16 @@
    "3975": [
     "Stephen Curry",
     0.101,
-    750,
+    780,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4065733": [
     "Ty Jerome",
     0.158,
-    600,
-    true,
-    "fanduel"
+    550,
+    false,
+    "hard_rock"
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -2066,14 +2076,14 @@
    "4600663": [
     "Zach Edey",
     0.094,
-    500,
+    645,
     false,
-    "fanduel"
+    "fliff"
    ],
    "4709138": [
     "Brandin Podziemski",
     0.078,
-    950,
+    900,
     false,
     "fanduel"
    ],
@@ -2087,16 +2097,16 @@
    "5112087": [
     "Jaylen Wells",
     0.113,
-    1000,
+    950,
     true,
     "fanduel"
    ],
    "6589": [
     "Draymond Green",
     0.064,
-    1200,
+    1300,
     false,
-    "fanduel"
+    "hard_rock"
    ]
   },
   "tip_home": 0.178
@@ -2141,7 +2151,7 @@
    "3945274": [
     "Luka Doncic",
     0.104,
-    418,
+    400,
     false,
     "draftkings"
    ],
@@ -2155,7 +2165,7 @@
    "4066648": [
     "Rui Hachimura",
     0.098,
-    880,
+    850,
     false,
     "draftkings"
    ],
@@ -2176,9 +2186,9 @@
    "4433136": [
     "Walker Kessler",
     0.099,
-    550,
+    530,
     false,
-    "hard_rock"
+    "fliff"
    ],
    "4592691": [
     "Jake LaRavia",
@@ -2209,16 +2219,16 @@
    "3064440": [
     "Zach LaVine",
     0.105,
-    850,
-    false,
+    950,
+    true,
     "fanduel"
    ],
    "3155942": [
     "Domantas Sabonis",
     0.084,
-    650,
+    700,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3995": [
     "Jrue Holiday",
@@ -2232,14 +2242,14 @@
     0.076,
     1000,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4279888": [
     "Ja Morant",
     0.095,
-    650,
+    700,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4395650": [
     "Leaky Black",
@@ -2251,30 +2261,30 @@
    "4431736": [
     "Toumani Camara",
     0.1,
-    950,
+    980,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4594327": [
     "Keegan Murray",
     0.079,
-    1300,
-    true,
+    1200,
+    false,
     "fanduel"
    ],
    "4683021": [
     "Deni Avdija",
     0.117,
-    550,
+    515,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5105565": [
     "Donovan Clingan",
     0.11,
-    750,
+    770,
     false,
-    "hard_rock"
+    "draftkings"
    ]
   },
   "tip_home": 0.35
@@ -2371,7 +2381,7 @@
  "401909854": {
   "away": "BKN",
   "date": "2026-10-24",
-  "first_home": 0.476,
+  "first_home": 0.491,
   "home": "CLE",
   "jumpers": [
    [
@@ -2386,81 +2396,81 @@
   "players": {
    "3064514": [
     "Julius Randle",
-    0.112,
+    0.109,
     null,
     false,
     null
    ],
    "3907823": [
     "Terance Mann",
-    0.101,
+    0.098,
     null,
     false,
     null
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.091,
+    0.106,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.091,
+    0.092,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.091,
+    0.099,
     null,
     false,
     null
    ],
    "4278104": [
     "Michael Porter Jr.",
-    0.104,
+    0.101,
     null,
     false,
     null
    ],
    "4432158": [
     "Evan Mobley",
-    0.091,
+    0.092,
     null,
     false,
     null
    ],
    "4576087": [
     "Peyton Watson",
-    0.091,
+    0.082,
     null,
     false,
     null
    ],
    "4712896": [
     "Noah Clowney",
-    0.101,
+    0.098,
     null,
     false,
     null
    ],
    "5175643": [
     "Egor Demin",
-    0.086,
+    0.083,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.427
+  "tip_home": 0.473
  },
  "401909855": {
   "away": "MIL",
   "date": "2026-10-24",
-  "first_home": 0.512,
+  "first_home": 0.497,
   "home": "PHI",
   "jumpers": [
    [
@@ -2475,76 +2485,76 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.095,
+    0.1,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.097,
+    0.092,
     null,
     false,
     null
    ],
    "3133628": [
     "Myles Turner",
-    0.072,
+    0.074,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.079,
+    0.082,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.095,
+    0.092,
     null,
     false,
     null
    ],
    "4395725": [
     "Tyler Herro",
-    0.123,
+    0.127,
     null,
     false,
     null
    ],
    "4397475": [
     "AJ Green",
-    0.095,
+    0.098,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.117,
+    0.111,
     null,
     false,
     null
    ],
    "4591725": [
     "Ryan Rollins",
-    0.099,
+    0.102,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.087,
+    0.082,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.535
+  "tip_home": 0.492
  },
  "401909856": {
   "away": "HOU",
@@ -2811,12 +2821,12 @@
     null
    ]
   },
-  "tip_home": 0.188
+  "tip_home": 0.187
  },
  "401909859": {
   "away": "NO",
   "date": "2026-10-24",
-  "first_home": 0.525,
+  "first_home": 0.514,
   "home": "DEN",
   "jumpers": [
    [
@@ -2831,76 +2841,76 @@
   "players": {
    "3112335": [
     "Nikola Jokic",
-    0.101,
+    0.137,
     null,
     false,
     null
    ],
    "3138196": [
     "Cameron Johnson",
-    0.101,
+    0.052,
     null,
     false,
     null
    ],
    "3936299": [
     "Jamal Murray",
-    0.101,
+    0.107,
     null,
     false,
     null
    ],
    "3978": [
     "DeMar DeRozan",
-    0.101,
+    0.102,
     null,
     false,
     null
    ],
    "4277813": [
     "Herbert Jones",
-    0.092,
+    0.094,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.102,
+    0.104,
     null,
     false,
     null
    ],
    "4397136": [
     "Saddiq Bey",
-    0.092,
+    0.094,
     null,
     false,
     null
    ],
    "4397688": [
     "Trey Murphy III",
-    0.08,
+    0.082,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.101,
+    0.095,
     null,
     false,
     null
    ],
    "4683742": [
     "Julian Reese",
-    0.092,
+    0.094,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.574
+  "tip_home": 0.542
  },
  "401909860": {
   "away": "GS",
@@ -3172,7 +3182,7 @@
  "401909863": {
   "away": "ORL",
   "date": "2026-10-25",
-  "first_home": 0.501,
+  "first_home": 0.5,
   "home": "NY",
   "jumpers": [
    [
@@ -3187,7 +3197,7 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.091,
+    0.09,
     null,
     false,
     null
@@ -3229,14 +3239,14 @@
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.085,
+    0.086,
     null,
     false,
     null
    ],
    "4432573": [
     "Paolo Banchero",
-    0.095,
+    0.096,
     null,
     false,
     null
@@ -3256,7 +3266,7 @@
     null
    ]
   },
-  "tip_home": 0.503
+  "tip_home": 0.5
  },
  "401909864": {
   "away": "TOR",
@@ -3350,7 +3360,7 @@
  "401909865": {
   "away": "LAC",
   "date": "2026-10-25",
-  "first_home": 0.491,
+  "first_home": 0.501,
   "home": "OKC",
   "jumpers": [
    [
@@ -3365,56 +3375,56 @@
   "players": {
    "2991139": [
     "Kris Dunn",
-    0.082,
+    0.08,
     null,
     false,
     null
    ],
    "3448": [
     "Brook Lopez",
-    0.1,
+    0.098,
     null,
     false,
     null
    ],
    "3936099": [
     "Derrick Jones Jr.",
-    0.079,
+    0.077,
     null,
     false,
     null
    ],
    "4066648": [
     "Rui Hachimura",
-    0.103,
+    0.101,
     null,
     false,
     null
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.083,
+    0.09,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.116,
+    0.11,
     null,
     false,
     null
    ],
    "4396907": [
     "Darius Garland",
-    0.125,
+    0.123,
     null,
     false,
     null
    ],
    "4433255": [
     "Chet Holmgren",
-    0.09,
+    0.088,
     null,
     false,
     null
@@ -3428,18 +3438,18 @@
    ],
    "4683692": [
     "Cason Wallace",
-    0.083,
+    0.093,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.472
+  "tip_home": 0.502
  },
  "401909866": {
   "away": "DET",
   "date": "2026-10-25",
-  "first_home": 0.546,
+  "first_home": 0.532,
   "home": "PHI",
   "jumpers": [
    [
@@ -3454,76 +3464,76 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.101,
+    0.107,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.103,
+    0.099,
     null,
     false,
     null
    ],
    "3157465": [
     "Duncan Robinson",
-    0.086,
+    0.089,
     null,
     false,
     null
    ],
    "3908845": [
     "John Collins",
-    0.084,
+    0.087,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.102,
+    0.098,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.125,
+    0.119,
     null,
     false,
     null
    ],
    "4432166": [
     "Cade Cunningham",
-    0.096,
+    0.099,
     null,
     false,
     null
    ],
    "4433621": [
     "Jalen Duren",
-    0.09,
+    0.093,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.079,
+    0.081,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.093,
+    0.088,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.638
+  "tip_home": 0.597
  },
  "401909867": {
   "away": "MEM",
