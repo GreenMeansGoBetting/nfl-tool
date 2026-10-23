@@ -471,7 +471,7 @@
    "2991230": [
     "Fred VanVleet",
     0.08,
-    1460,
+    1440,
     true,
     "draftkings"
    ],
@@ -485,9 +485,9 @@
    "4066259": [
     "De'Aaron Fox",
     0.085,
-    760,
+    750,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4395630": [
     "Devin Vassell",
@@ -527,7 +527,7 @@
    "5037871": [
     "Dylan Harper",
     0.099,
-    820,
+    810,
     false,
     "draftkings"
    ],
@@ -1414,7 +1414,7 @@
    "4278039": [
     "Nickeil Alexander-Walker",
     0.102,
-    650,
+    750,
     false,
     "fanduel"
    ],
@@ -1442,7 +1442,7 @@
    "4433287": [
     "Brandon Miller",
     0.104,
-    550,
+    600,
     false,
     "fanduel"
    ],
@@ -1451,14 +1451,14 @@
     0.079,
     1200,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4701230": [
     "Jalen Johnson",
     0.116,
-    650,
+    610,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4869342": [
     "Dyson Daniels",
@@ -1511,14 +1511,14 @@
    "4278078": [
     "P.J. Washington",
     0.106,
-    1300,
+    1200,
     true,
     "fanduel"
    ],
    "4395712": [
     "Andrew Nembhard",
     0.092,
-    800,
+    850,
     false,
     "fanduel"
    ],
@@ -1582,7 +1582,7 @@
     0.088,
     750,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4431671": [
     "Jaden McDaniels",
@@ -1663,21 +1663,21 @@
    "4395625": [
     "RJ Barrett",
     0.109,
-    810,
+    850,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4395724": [
     "Immanuel Quickley",
     0.097,
-    900,
+    850,
     false,
     "fanduel"
    ],
    "4433134": [
     "Scottie Barnes",
     0.104,
-    700,
+    650,
     false,
     "fanduel"
    ],
@@ -1755,7 +1755,7 @@
     0.093,
     1000,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4066261": [
     "Bam Adebayo",
@@ -1817,14 +1817,14 @@
     0.092,
     650,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3133628": [
     "Myles Turner",
     0.082,
     750,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3134907": [
     "Kyle Kuzma",
@@ -1836,16 +1836,16 @@
    "4395725": [
     "Tyler Herro",
     0.108,
-    620,
+    650,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4397189": [
     "Jalen Smith",
     0.102,
     700,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
@@ -1864,9 +1864,9 @@
    "4711294": [
     "Matas Buzelis",
     0.094,
-    750,
+    700,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4871145": [
     "Josh Giddey",
@@ -1878,9 +1878,9 @@
    "5095151": [
     "Caleb Wilson",
     0.104,
-    620,
+    650,
     false,
-    "draftkings"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
@@ -1990,7 +1990,7 @@
     0.13,
     550,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -2032,7 +2032,7 @@
     0.092,
     1000,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "5175737": [
     "Yaxel Lendeborg",
@@ -2044,7 +2044,7 @@
    "6589": [
     "Draymond Green",
     0.079,
-    1400,
+    1300,
     true,
     "fanduel"
    ]
@@ -2078,7 +2078,7 @@
    "3936099": [
     "Derrick Jones Jr.",
     0.078,
-    1200,
+    1300,
     false,
     "fanduel"
    ],
@@ -2099,9 +2099,9 @@
    "4066648": [
     "Rui Hachimura",
     0.103,
-    900,
+    830,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4396907": [
     "Darius Garland",
@@ -2122,14 +2122,14 @@
     0.11,
     500,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4433137": [
     "Ziaire Williams",
     0.083,
-    900,
+    950,
     false,
-    "hard_rock"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
@@ -2175,7 +2175,7 @@
    "4431736": [
     "Toumani Camara",
     0.09,
-    960,
+    940,
     false,
     "draftkings"
    ],
@@ -2189,14 +2189,14 @@
    "4683021": [
     "Deni Avdija",
     0.105,
-    512,
+    516,
     false,
     "draftkings"
    ],
    "5105565": [
     "Donovan Clingan",
     0.101,
-    780,
+    790,
     false,
     "draftkings"
    ],
