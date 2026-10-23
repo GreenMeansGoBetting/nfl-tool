@@ -32,6 +32,15 @@
   </div>
 
   <div class="nba-app">
+    <div class="pts-testing" id="pts-testing">
+      <div class="pts-testing-main">
+        <span class="pts-testing-kicker">Beta</span>
+        <h2 class="pts-testing-title">Projections In Testing Until Mid-November <button type="button" class="info-i" aria-expanded="false" aria-controls="pts-testing-note" title="What's in the projection">i</button></h2>
+        <p class="pts-testing-sub">What last season proved, plus edges we think are real. Every projection is graded against the tip-off line, live.</p>
+      </div>
+      <div class="pts-testing-record" id="pts-record"></div>
+      <p class="info-note pts-testing-note" id="pts-testing-note" hidden><b>Proven on last season's replay:</b> minutes x points a minute, both teams' pace, what the defense allows a possession and in transition, and teammates listed Out. <b>Being tested (treated as real for now):</b> a minutes dip over the last 5 games bounces back; teammates' missing shots go mostly to role players, not the star; the other team missing players helps. Early in the season the projection leans on the line and moves toward our number as games come in. About 2,000 graded lines (mid-November) is when the record starts to mean something; -110 needs 52.4% to break even. We'll adjust after a month.</p>
+    </div>
     <div class="pts-head">
       <div class="week-picker">
         <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
@@ -41,9 +50,10 @@
       <div class="pts-filters">
         <select id="pts-game" aria-label="Game"></select>
         <select id="pts-sort" aria-label="Sort">
-          <option value="line">Sort: line</option>
-          <option value="l10">Sort: last 10 over %</option>
-          <option value="season">Sort: season over %</option>
+          <option value="line">Sort: Line</option>
+          <option value="edge">Sort: Proj Edge</option>
+          <option value="l10">Sort: Last 10 Over %</option>
+          <option value="season">Sort: Season Over %</option>
         </select>
         <input id="pts-search" type="search" placeholder="Find a player" aria-label="Find a player">
       </div>
@@ -54,7 +64,7 @@
 
     <div id="pts-board" class="section-wrap" hidden>
       <h2 class="section-title">Points <button type="button" class="info-i" aria-expanded="false" aria-controls="pts-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="pts-note" hidden><b>Line</b>: the middle main line across the books (SmartStake); the price buttons are the best Over and Under across your books, click one for every book. <b>Proj</b>: coming soon. <b>L5 / L10 / Season / H-A / vs</b>: how often he's gone over tonight's line in his last 5, last 10, the season, tonight's home or road games, and against tonight's opponent ("x of y"). <b>Min</b>: season minutes, last 5 under it. <b>Share</b>: his share of his team's shots while he's on the floor. <b>Mix</b>: rim / 3-point / off-the-dribble shares of his shots. Tags read both sides: <b>Zone fit</b> = this defense allows a high make rate where he shoots; <b>Tough zones</b> = the opposite; <b>Usage +</b> = rotation teammates listed Out tonight (their shot share); <b>Min &uarr; / &darr;</b> = his last 5 games' minutes moved 3+ from his season. Click a player for with / without a teammate and every book's price.</p>
+      <p class="section-note info-note" id="pts-note" hidden><b>Line</b>: the middle main line across the books (SmartStake); the price buttons are the best Over and Under across your books, click one for every book. <b>Proj</b>: our projection (in testing) and which side of the line it leans, by how many points. <b>L5 / L10 / Season / H-A / vs</b>: how often he's gone over tonight's line in his last 5, last 10, the season, tonight's home or road games, and against tonight's opponent ("x of y"). <b>Min</b>: season minutes, last 5 under it. <b>Share</b>: his share of his team's shots while he's on the floor. <b>Mix</b>: the % of his shots at the rim, from 3 and self-created (off the dribble); each pill is colored by where that ranks among this season's players, green = uses it most. Tags read both sides: <b>Zone fit</b> = this defense allows a high make rate where he shoots; <b>Tough zones</b> = the opposite; <b>Usage +</b> = rotation teammates listed Out tonight (their shot share); <b>Min &uarr; / &darr;</b> = his last 5 games' minutes moved 3+ from his season. Click a player for with / without a teammate and every book's price.</p>
       <div class="pts-scroll"><table class="data-table pts-table" id="pts-table"></table></div>
     </div>
   </div>
@@ -66,6 +76,7 @@
 
 <script src="../sync.js"></script>
 <script src="../book-odds.js"></script>
+<script src="../ytd.js"></script>
 <script src="points.js"></script>
 <script src="shot-chart.js"></script>
 <script src="nba-card.js"></script>

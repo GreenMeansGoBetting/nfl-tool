@@ -179,20 +179,37 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str) -> dict | Non
 # throws and turnovers forced added nothing in the replay: tags only.
 # PROJ_MAX stays at half until a replay on this season's saved tip-off lines
 # says ours deserves more (or less).
+# 2026-10-23 (the owner: "start projecting today using what we know to be true
+# + what we think might be an edge ... then track to see real time if we are
+# onto something"): the replay's two new finds are in, refitted with the rest
+# on all of 2025-26: last-5 minutes overshoot (x (last 5 / season)^W_MIN: a
+# dip bounces back, a rise mostly sticks), and teammates' missing shots go to
+# role players (bump = W_OUT - W_OUT_SHARE x his shot share / 0.2, never
+# below 0: a 10% shooter gets +0.77 x the missing share, an 18%+ shooter
+# none; the replay had too few stars in that spot to cut theirs). The other
+# team's missing shot share (W_OPP_OUT, t +2.1) is in as a "might be true".
+# Graded live against the tip-off lines (props.json `record`, the Points
+# page's YTD Model Performance).
 PROJ_K = 10
 PROJ_MAX = 0.5
 PROJ_LAST = 5
 W_PACE = 0.9
-W_DEF = 0.35
-W_TRANS = 0.15
-W_OUT = 0.5
-LEAN = -0.03
+W_DEF = 0.56
+W_TRANS = 0.2
+W_OUT = 1.68
+W_OUT_SHARE = 1.83
+W_OPP_OUT = 0.1
+W_MIN = -0.365
+LEAN = -0.015
 
 
-def our_points(log: list, fields: list, team: dict | None, opp: dict | None, league: dict | None, out_share: float = 0.0):
+def our_points(log: list, fields: list, team: dict | None, opp: dict | None, league: dict | None, out_share: float = 0.0,
+               share: float = 0.0, opp_out: float = 0.0):
     """(our points number, expected minutes, points a minute), or Nones
     before he has played this season. out_share: the season shot share of
-    rotation teammates listed Out tonight."""
+    rotation teammates listed Out tonight; share: his own season shot share
+    of his team (FGA / team FGA in his games); opp_out: the other team's
+    out_share."""
     if not log:
         return None, None, None
     i_min, i_pts = fields.index("min"), fields.index("pts")
@@ -213,8 +230,11 @@ def our_points(log: list, fields: list, team: dict | None, opp: dict | None, lea
             def_f = opp["def_ppp"] / lg_ppp
         if lg_trans and opp.get("def_trans_freq"):
             trans_f = opp["def_trans_freq"] / lg_trans
+    season_min = total_min / len(log)
+    min_f = (minutes / season_min) ** W_MIN if minutes > 0 else 1.0
+    out_w = max(0.0, W_OUT - W_OUT_SHARE * share / 0.2)
     ours = (minutes * ppm * (1 + LEAN) * pace_f ** W_PACE * def_f ** W_DEF * trans_f ** W_TRANS
-            * (1 + W_OUT * out_share))
+            * min_f * (1 + out_w * out_share) * (1 + W_OPP_OUT * opp_out))
     return ours, minutes, ppm
 
 
@@ -226,6 +246,60 @@ def project_points(line, games: int, ours):
         return float(line), 0.0
     w = PROJ_MAX * games / (games + PROJ_K)
     return line + w * (ours - line), w
+
+
+# ---- the live record: every projection graded against its tip-off line ----
+# The owner, 2026-10-23: "start projecting today ... then track to see real
+# time if we are onto something. We can adjust after a month." A play = the
+# side the projection leans from the line (no lean = no play); a push or a
+# player who didn't play doesn't count. The split tags test each idea on its
+# own: STAR_LINE (the public's overs push stars' lines up, the owner's idea C),
+# a minutes dip (last 5 at DIP_RATIO of his season or less), a role player
+# with teammates Out (ROLE_MISSING of the team's shots out, his own share
+# under ROLE_SHARE), the other team missing OPP_MISSING of its shots.
+# The record starts the night this projection went on the page (earlier rows
+# were the pre-2026-10-23 formula, kept in the lines file but not graded here).
+RECORD_START = "2026-10-23"
+STAR_LINE = 24.5
+DIP_RATIO = 0.85
+ROLE_MISSING = 0.1
+ROLE_SHARE = 0.15
+OPP_MISSING = 0.15
+
+
+def record_ledger(lines: dict, block: dict | None) -> list:
+    """The shared YTD tracker's rows (site ytd.js): [date, edge (points the
+    projection sits off the line), won 1/0, units (None: no saved price),
+    tags], oldest first. `lines` = model_history/nba_props/lines_<season>.json;
+    `block` = this season's props block (the results)."""
+    if not block:
+        return []
+    f = {k: i for i, k in enumerate(block.get("fields") or LOG_FIELDS)}
+    played = {}
+    for pid, p in (block.get("players") or {}).items():
+        for r in p.get("log") or []:
+            played[(str(r[f["game"]]), pid)] = (r[f["date"]], r[f["pts"]])
+    out = []
+    for gid, rows in lines.items():
+        for pid, row in rows.items():
+            line, proj = row[0], row[1]
+            got = played.get((str(gid), pid))
+            if got is None or got[0] < RECORD_START or line is None or proj is None or proj == line or got[1] == line:
+                continue
+            over = proj > line
+            tags = ["over" if over else "under"]
+            extra = (list(row[4:8]) + [None] * 4)[:4]
+            min_ratio, missing, share, opp_missing = extra
+            if line >= STAR_LINE:
+                tags.append("star")
+            if min_ratio is not None and min_ratio <= DIP_RATIO:
+                tags.append("dip")
+            if missing is not None and share is not None and missing >= ROLE_MISSING and share < ROLE_SHARE:
+                tags.append("role")
+            if opp_missing is not None and opp_missing >= OPP_MISSING:
+                tags.append("opp_out")
+            out.append([got[0], round(abs(proj - line), 2), int((got[1] > line) == over), None, tags])
+    return sorted(out, key=lambda r: (r[0], -r[1]))
 
 
 def on_rosters(block: dict, roster_team: dict) -> dict:

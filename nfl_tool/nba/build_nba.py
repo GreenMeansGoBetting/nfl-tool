@@ -737,16 +737,19 @@ def points_line(book_odds: dict, game: dict, pid: str):
 
 def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
     """model_history/nba_props/lines_<season>.json: {game id: {player id:
-    [line, projection, our number, weight on ours]}} as the last build before
-    tip-off had them (a started game is never rewritten): the line history,
-    and what the projection is graded against."""
+    [line, projection, our number, weight on ours, last-5 / season minutes,
+    teammates' missing shot share, his shot share, the other team's missing
+    shot share]}} as the last build before tip-off had them (a started game is
+    never rewritten): the line history, and what the projection is graded
+    against (`props_record`). Rows saved before 2026-10-23 have the first four."""
     path = PROPS_RECORD_DIR / f"lines_{season}.json"
     record = json.loads(path.read_text()) if path.exists() else {}
     changed = False
     for g in games:
         if datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
             continue
-        rows = {pid: [r["line"], r["proj"], r["ours"], r["w"]] for pid, r in (slate.get(g["game_id"]) or {}).items() if r["line"] is not None}
+        rows = {pid: [r["line"], r["proj"], r["ours"], r["w"], r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("opp_missing")]
+                for pid, r in (slate.get(g["game_id"]) or {}).items() if r["line"] is not None}
         if rows and record.get(g["game_id"]) != rows:
             record[g["game_id"]] = rows
             changed = True
@@ -799,11 +802,13 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
     for p in players.values():
         for r in p["log"]:
             team_fga[(r[i_game], r[i_opp])] = team_fga.get((r[i_game], r[i_opp]), 0) + r[i_fga]
-    shot_share = {}
+    shot_share, own_share = {}, {}  # rotation players (for teammates Out); everyone (his own role)
     for pid, p in players.items():
         tf = sum(team_fga.get((r[i_game], r[i_opp]), 0) for r in p["log"])
-        if p["log"] and tf and sum(r[i_min] for r in p["log"]) / len(p["log"]) >= 20:
-            shot_share[pid] = sum(r[i_fga] for r in p["log"]) / tf
+        if p["log"] and tf:
+            own_share[pid] = sum(r[i_fga] for r in p["log"]) / tf
+            if sum(r[i_min] for r in p["log"]) / len(p["log"]) >= 20:
+                shot_share[pid] = own_share[pid]
     out_by_team = {}
     for pid in out_ids:
         team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
@@ -821,11 +826,17 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
             log = (players.get(pid) or {}).get("log") or []
             teams_now = ident.get("teams") or {}
             missing = out_by_team.get(team, 0.0) - (shot_share.get(pid, 0.0) if pid in out_ids else 0.0)
-            ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), missing)
+            opp_missing = out_by_team.get(opp, 0.0)
+            share = own_share.get(pid, 0.0)
+            ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), missing,
+                                                  share, opp_missing)
             line = points_line(book_odds, g, pid)
             proj, w = props.project_points(line, len(log), ours)
+            season_min = sum(r[i_min] for r in log) / len(log) if log else None
             rows[pid] = {"line": line, "proj": rnd(proj), "w": round(w, 3), "ours": rnd(ours), "min": rnd(minutes),
-                         "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3)}
+                         "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3),
+                         "share": rnd(share, 3), "opp_missing": rnd(opp_missing, 3),
+                         "min_ratio": rnd(minutes / season_min, 3) if minutes and season_min else None}
         if rows:
             slate[g["game_id"]] = rows
     return slate
@@ -928,7 +939,8 @@ def main():
     # big for data.json). A failure leaves the file out; the pages say so.
     try:
         blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, blob.get("identity"), injury_list, now_utc)
-        props_lines_record(args.season, blob_props["slate"], games, now_utc)
+        lines_record = props_lines_record(args.season, blob_props["slate"], games, now_utc)
+        blob_props["record"] = {"ledger": props.record_ledger(lines_record, blob_props["seasons"].get(str(args.season)))}
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:

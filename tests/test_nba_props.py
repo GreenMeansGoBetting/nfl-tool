@@ -180,7 +180,7 @@ class LinesRecord(unittest.TestCase):
                 build_nba.props_lines_record(2027, slate(14.5), games, datetime(2026, 10, 21, 20, 0))
                 build_nba.props_lines_record(2027, slate(20.5), games, datetime(2026, 10, 21, 23, 30))  # after tip
                 saved = json.loads((Path(tmp) / "lines_2027.json").read_text())
-                self.assertEqual(saved, {"1": {"7": [14.5, 14.5, None, 0.0]}})
+                self.assertEqual(saved, {"1": {"7": [14.5, 14.5, None, 0.0, None, None, None, None]}})
             finally:
                 build_nba.PROPS_RECORD_DIR = real
 
@@ -216,10 +216,56 @@ class Projection(unittest.TestCase):
         self.assertAlmostEqual(ours, 80 / 3 * 0.5 * (1 + props.LEAN))
         league = {"off_pace": {"avg": 100.0}, "def_ppp": {"avg": 1.10}, "def_trans_freq": {"avg": 0.20}}
         opp = {"off_pace": 106.0, "def_ppp": 1.21, "def_trans_freq": 0.24}
-        fast_soft = props.our_points(log, props.LOG_FIELDS, {"off_pace": 104.0}, opp, league, out_share=0.2)[0]
+        fast_soft = props.our_points(log, props.LOG_FIELDS, {"off_pace": 104.0}, opp, league, out_share=0.2, share=0.1, opp_out=0.3)[0]
         want = (80 / 3 * 0.5 * (1 + props.LEAN) * 1.05 ** props.W_PACE * 1.1 ** props.W_DEF * 1.2 ** props.W_TRANS
-                * (1 + props.W_OUT * 0.2))
+                * (1 + (props.W_OUT - props.W_OUT_SHARE * 0.5) * 0.2) * (1 + props.W_OPP_OUT * 0.3))
         self.assertAlmostEqual(fast_soft, want)
+
+    def test_a_minutes_dip_bounces_back(self):
+        # last 5 at 20 minutes, season 25: our minutes sit above the last 5 (the 2025-26 replay)
+        log = [self.row(30, 15)] * 5 + [self.row(20, 10)] * 5
+        ours, minutes, ppm = props.our_points(log, props.LOG_FIELDS, None, None, None)
+        self.assertAlmostEqual(minutes, 20)
+        self.assertAlmostEqual(ours, 20 * 0.5 * (1 + props.LEAN) * (20 / 25) ** props.W_MIN)
+        self.assertGreater(ours, 20 * 0.5)
+
+    def test_missing_teammates_lift_role_players_not_stars(self):
+        log = [self.row(30, 15)] * 3
+        none = props.our_points(log, props.LOG_FIELDS, None, None, None)[0]
+        role = props.our_points(log, props.LOG_FIELDS, None, None, None, out_share=0.2, share=0.1)[0]
+        star = props.our_points(log, props.LOG_FIELDS, None, None, None, out_share=0.2, share=0.3)[0]
+        self.assertGreater(role, none * 1.1)
+        self.assertAlmostEqual(star, none)  # never cut: too few stars in the replay to say
+
+
+class TestPointsRecord(unittest.TestCase):
+    """props.record_ledger: every projection graded against its tip-off line (the owner, 2026-10-23)."""
+
+    def block(self):
+        def row(game, pts):
+            return ["2026-10-24", game, "BBB", 1, 1, 30, pts, 10, 1, 3, 2]
+        return {"fields": props.LOG_FIELDS, "players": {"1": {"log": [row(10, 25), row(11, 20)]}, "2": {"log": [row(10, 30)]}}}
+
+    def test_the_lean_is_graded_and_tagged(self):
+        lines = {
+            "10": {"1": [24.5, 25.4, 30.0, 0.2, 0.8, 0.12, 0.1, 0.0],  # over, won; star line, minutes dip, role player
+                   "2": [28.5, 27.9, 25.0, 0.2]},                       # under, lost (old four-field row)
+            "11": {"1": [20.0, 21.0, 25.0, 0.2]},                       # a push: not a play
+        }
+        ledger = props.record_ledger(lines, self.block())
+        self.assertEqual(ledger, [["2026-10-24", 0.9, 1, None, ["over", "star", "dip", "role"]],
+                                  ["2026-10-24", 0.6, 0, None, ["under", "star"]]])
+
+    def test_no_lean_or_no_game_is_no_play(self):
+        lines = {"10": {"1": [24.5, 24.5, None, 0.0], "3": [12.5, 13.5, 15.0, 0.1]}, "99": {"1": [10.5, 11.0, 12.0, 0.1]}}
+        self.assertEqual(props.record_ledger(lines, self.block()), [])
+        self.assertEqual(props.record_ledger(lines, None), [])
+
+    def test_the_record_starts_when_the_projection_went_on_the_page(self):
+        block = self.block()
+        block["players"]["1"]["log"][0][0] = "2026-10-22"  # the old formula's night
+        lines = {"10": {"1": [24.5, 25.4, 30.0, 0.2]}}
+        self.assertEqual(props.record_ledger(lines, block), [])
 
 
 if __name__ == "__main__":

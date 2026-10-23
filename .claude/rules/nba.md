@@ -134,33 +134,46 @@ options"), Novig only where SmartStake has no price.
   start day one - even if its weighing heavily towards the line. I want the framework in"):
   `props.project_points` = line + w x (ours - line), w = `PROJ_MAX` 0.5 x games / (games +
   `PROJ_K` 10) on THIS season's games (no games = the line). Ours (`our_points`) = last-5 minutes
-  x season points a minute x (1 + `LEAN` -0.03), then the factors the 2025-26 replay kept
-  (`tools/backtest/nba_points.py`), at its weights: the game's pace^0.9 (both teams' this-season
-  `off_pace` against the league), the other defense's `def_ppp`^0.35 and `def_trans_freq`^0.15
-  against the league (Team Identity, this season), x (1 + 0.5 x the season shot share of rotation
-  teammates listed Out: `missing` in the slate). Zone fit, free throws and turnovers forced added
-  nothing once those were in: tags only. Points miss by ~5.2 whatever we do; the factors cut it ~1%. props.json
-  `slate` = {game id: {player id: line, proj, w, ours, min, ppm, games, out}} for the next 3
-  nights; `proj` = the settings. **PROJ_MAX stays 0.5 until a replay on the saved tip-off lines
-  says otherwise** (the record keeps [line, proj, ours, w] per player for exactly that).
+  x season points a minute x (1 + `LEAN`), then the factors the 2025-26 replay kept
+  (`tools/backtest/nba_points.py`), refitted together on all of 2025-26 on 2026-10-23: the game's
+  pace^0.9 (both teams' this-season `off_pace` against the league), the other defense's
+  `def_ppp`^0.56 and `def_trans_freq`^0.2 against the league (Team Identity, this season),
+  (last 5 / season minutes)^-0.365 (a minutes dip bounces back), x (1 + max(0, 1.68 - 1.83 x his
+  shot share / 0.2) x `missing`) (teammates listed Out: their shots go to role players, a star gets
+  no bump and no cut), x (1 + 0.1 x the other team's `opp_missing`). Zone fit, free throws and
+  turnovers forced added nothing once those were in: tags only. Points miss by ~5.2 whatever we do;
+  the factors cut it ~1%. props.json `slate` = {game id: {player id: line, proj, w, ours, min, ppm,
+  games, out, missing, share, opp_missing, min_ratio}} for the next 3 nights; `proj` = the settings.
+  **PROJ_MAX stays 0.5 until the live record says otherwise** (the lines record keeps [line, proj,
+  ours, w, min_ratio, missing, share, opp_missing] per player for exactly that).
+- **Shown and graded live since 2026-10-23** (the owner: "start projecting today using what we know
+  to be true + what we think might be true/an edge and pretend it is. Then track to see real time if
+  we are onto something. We can adjust after a month"). props.json `record.ledger` =
+  `props.record_ledger` (the shared YTD tracker's rows: the side the projection leans off the
+  tip-off line, edge in points, no units: no saved price), from `RECORD_START` 2026-10-23 (the older
+  rows were the earlier formula). Split tags test each idea alone: over / under, `star` (line 24.5+,
+  idea C), `dip` (last-5 minutes 85% of his season or less), `role` (10%+ of the team's shots Out,
+  his share under 15%), `opp_out` (the other team missing 15%+). **Revisit around 2026-11-23** with
+  ~2,000 graded plays: drop what isn't holding, raise PROJ_MAX if the record earns it.
 - **Factor research (2026-10-23, the owner's 10 ideas + minutes, referees, star lines, rest):** the
   replay (`tools/backtest/nba_points.py`, findings in its header) found two new things that predict
   points: last-5 minutes overshoot (a minutes dip bounces back, a rise sticks) and missing
   teammates' shots go mostly to role players. Referee crews, rest / schedule spots and the position
-  matchup added nothing. Nothing is in `project_points` yet: **every factor is graded against this
-  season's tip-off lines first** (`py tools/backtest/nba_points_lines.py --season 2027`; needs
-  `py tools/backtest/nba_refs.py --season 2027` for the crews; meaningful from ~2,000 lines, about
-  mid-November). Star lines (idea C) can only be tested there.
+  matchup added nothing. Each factor is also graded against this season's tip-off lines
+  (`py tools/backtest/nba_points_lines.py --season 2027`; needs `py tools/backtest/nba_refs.py
+  --season 2027` for the crews; meaningful from ~2,000 lines, about mid-November).
 - Tests: `tests/test_nba_props.py`.
 - **The Points page** (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
   above First Basket; built 2026-10-20 from the owner's plan in words, no mockup, then trimmed the
   same night on the owner's notes): day arrows, game / sort / search filters, season buttons (hit
   rates and splits only). One row per player in props.json `slate`: Player (narrow), Line (middle
   main line), best Over **stacked on** Under (book-odds.js `bookPricePill`, book names hidden in
-  the cell, every book on click), **Proj = "Coming soon"** (the owner: "so theres no confusion";
-  the build still makes and records every projection for grading), L5 / L10 / Season / H-A / vs hit
+  the cell, every book on click), **Proj** (was "Coming soon" until 2026-10-23: the number, then
+  "Over 1.5" / "Under 0.6" off the line, "No Games Yet" = the line; Sort: Proj Edge), L5 / L10 / Season / H-A / vs hit
   rates against tonight's line as "x of y" (colored from 3 games: 60%+ green, 40%- red), Min
-  (season, L5), Share, Mix (rim / 3s / self-created), tags (Zone fit / Tough zones: his zones x
+  (season, L5), Share, Mix (2026-10-23, the owner: half the width, pills colored "based on usage ...
+  on a 1-100 scale": Rim / 3s / Self pills, his % of shots, each shaded on the 8-step rank colors
+  by its percentile among this season's players with 20+ shots, green = uses it most), tags (Zone fit / Tough zones: his zones x
   this defense's make rate allowed against the league's, 2.5 points either way; Usage +: `missing`;
   Min up / down: last 5 moved 3+). Out players gray, last. Clicking a player opens **only with /
   without** (a teammate, most minutes first; Out (any) / Out: rest / Out: injured split his games
@@ -170,6 +183,14 @@ options"), Novig only where SmartStake has no price.
   portion currently"); props.json keeps `zone_pct` for the zone redo. The player's NAME opens
   the player card (below); the rest of the row opens with / without. Tests:
   `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
+- **The testing banner** (2026-10-23, the owner: "a large header ... that until mid november we
+  wont know for sure - but also provide checks and balances on the way with real info"): top of
+  the page, "Beta" + **Projections In Testing Until Mid-November** (what's proven vs being tested
+  behind the i), and on the right **Record So Far** (record.ledger W-L, %) with the **YTD Model
+  Performance** button (ytd.js: Points Projection with a Min Edge slider in points, splits Overs /
+  Unders / Star Lines (24.5+) / Minutes Dip / Role Player Usage + / Opponent Missing). The owner
+  wants the same banner on a Best Plays page "eventually" (the NBA has none yet). Take it down once
+  the record has spoken (mid-November) and the owner says so.
 
 ## The player card (`site/nba/nba-card.js`, 2026-10-21)
 

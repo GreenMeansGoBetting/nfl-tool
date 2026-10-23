@@ -43,6 +43,9 @@ PROPS = {
         "3": {"line": 9.5, "proj": 9.5, "w": 0.0, "ours": None, "min": None, "ppm": None, "games": 0, "out": True, "missing": 0},
     }},
     "proj": {"k": 10, "max": 0.5, "last": 5},
+    # three graded projections: 2-1, one an Over on a star line
+    "record": {"ledger": [["2026-10-20", 1.2, 1, None, ["over", "star"]], ["2026-10-20", 0.4, 0, None, ["under"]],
+                          ["2026-10-21", 0.8, 1, None, ["under", "dip"]]]},
 }
 QUOTES = lambda line: [["draftkings", "o", line, -110, ""], ["fanduel", "o", line, 105, ""], ["draftkings", "u", line, -110, ""]]  # noqa: E731
 # Tonight's defense (BBB) allows 65% at the rim (league 58%: softer) and 40% mid-range (league 45%: tougher).
@@ -88,7 +91,8 @@ class Board(unittest.TestCase):
         c = cells(0)
         self.assertEqual(c[1], "19.5")
         self.assertIn("+105", c[2])  # the best Over (FanDuel)
-        self.assertEqual(c[3], "Coming soon")  # the owner: projections are built and graded, not shown yet
+        self.assertEqual(c[3], "21.0 Over 1.5")  # shown since 2026-10-23, in testing
+        self.assertEqual(cells(1)[3], "9.5 No Games Yet")  # no games this season = the line
         # over 19.5: last 5 = 21, 24, 12, 26, 19 -> 3; last 10 -> 6; road (home 0) games 1,3,5,7,9 -> 25, 30, 15, 24, 26 -> 4
         self.assertEqual(c[4], "60% 3 of 5")
         self.assertEqual(c[5], "60% 6 of 10")
@@ -98,6 +102,36 @@ class Board(unittest.TestCase):
         prices = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table tbody tr[data-key]')[0].querySelectorAll('.pts-price')].map((d) => d.innerText.replace(/\s+/g, ' ').trim())")
         self.assertEqual(len(prices), 2)  # Over on top of Under
         self.assertTrue(prices[0].startswith("O") and prices[1].startswith("U"), prices)
+
+
+class Mix(unittest.TestCase):
+    def test_three_pills_ranked_on_a_1_to_100_scale(self):
+        pills = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table tbody tr[data-key]')[0].querySelectorAll('.pts-mix-pill')].map((p) => [p.innerText.replace(/\\s+/g, ' ').trim().toUpperCase(), p.title, p.style.background])")
+        self.assertEqual([p[0] for p in pills], ["RIM 30", "3S 40", "SELF 40"])
+        # Player One takes the most 3s of the three players (P2 and P3 take none): 67 of 100, colored
+        self.assertIn("(67 of 100", pills[1][1])
+        self.assertTrue(all(p[2] for p in pills))
+
+
+class TestingBanner(unittest.TestCase):
+    """The owner, 2026-10-23: a large header until mid-November, with the live record."""
+
+    def test_banner_shows_the_record_so_far(self):
+        text = PAGE.evaluate("() => document.getElementById('pts-testing').innerText.replace(/\\s+/g, ' ')")
+        self.assertIn("Projections In Testing Until Mid-November", text)
+        self.assertIn("2-1", text)
+        self.assertIn("67%", text)
+
+    def test_ytd_tracker_has_the_idea_splits(self):
+        PAGE.click("#pts-ytd")
+        tiles = PAGE.evaluate("() => [...document.querySelectorAll('#pts-ytd-modal .ytd-tile')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim())")
+        PAGE.click("#pts-ytd-modal .modal-close")
+        self.assertTrue(tiles[0].startswith("POINTS PROJECTION 2-1"), tiles)
+        star = next(t for t in tiles if t.startswith("STAR LINES"))
+        self.assertIn("1-0", star)
+        dip = next(t for t in tiles if t.startswith("MINUTES DIP"))
+        self.assertIn("1-0", dip)
+        self.assertEqual(SITE.errors, [])
 
 
 class PlayerView(unittest.TestCase):

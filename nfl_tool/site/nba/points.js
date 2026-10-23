@@ -1,5 +1,6 @@
 // GMG NBA Suite: Points. Every player with a points line on the night's slate,
-// pure data plus the line-anchored projection (nfl_tool/nba/props.py, build
+// data plus the line-anchored projection, in testing with its live record until
+// mid-November (the banner; nfl_tool/nba/props.py, build
 // side; site/nba/props.json + data.json). The page does no projection math:
 // it reads `slate`, and works out hit rates, tags and the player view from
 // the season's game logs.
@@ -121,11 +122,55 @@ function rosterTeam(pid, g) {
   return last ? last.team : g.away;
 }
 
-// The owner, 2026-10-20: 'For PROJ just write (coming soon) so theres no
-// confusion.' The build still makes and records every projection (props.json
-// slate, model_history/nba_props) so it can be graded before it's shown.
-function projCell() {
-  return `<td class="num pts-soon">Coming soon</td>`;
+// The projection, shown since 2026-10-23 (the owner: "let's start projecting
+// today using what we know to be true + what we think might be true ... then
+// track to see real time if we are onto something"): the number, and the side
+// of the line it leans by how many points. Graded live (props.json `record`,
+// the banner and YTD Model Performance). No games this season = the line.
+const projEdge = (r) => (r.row.proj === null || r.row.proj === undefined || r.line === null || r.line === undefined ? 0 : r.row.proj - r.line);
+function projCell(r) {
+  const proj = r.row.proj;
+  if (proj === null || proj === undefined) return `<td class="num pts-proj">--</td>`;
+  const edge = projEdge(r);
+  const lean = Math.abs(edge) < 0.05
+    ? `<small>${r.row.games ? "At The Line" : "No Games Yet"}</small>`
+    : `<small class="${edge > 0 ? "pts-res-o" : "pts-res-u"}">${edge > 0 ? "Over" : "Under"} ${fmt(Math.abs(edge))}</small>`;
+  const title = r.row.ours === null || r.row.ours === undefined ? "No games this season yet: the projection is the line"
+    : `Our number ${fmt(r.row.ours)}; the projection weighs it ${Math.round(r.row.w * 100)}% against the line (more as his games come in)`;
+  return `<td class="num pts-proj" title="${title}"><b>${fmt(proj)}</b>${lean}</td>`;
+}
+
+// ---- the live record (the testing banner + YTD Model Performance) ----
+// props.json record.ledger = [date, edge in points, won, units (none: no saved
+// price), tags] per graded projection (props.record_ledger).
+const PTS_SPLITS = [
+  ["over", "Overs"], ["under", "Unders"],
+  ["star", "Star Lines (24.5+)", "Lines of 24.5 or more: the public's overs may push these up"],
+  ["dip", "Minutes Dip", "His last 5 games' minutes 15%+ under his season: the replay says those bounce back"],
+  ["role", "Role Player Usage +", "Teammates taking 10%+ of the shots are Out and he takes under 15%: the replay says the shots go to him"],
+  ["opp_out", "Opponent Missing", "The other team's missing players took 15%+ of its shots"],
+];
+const ledger = () => (PROPS.record || {}).ledger || [];
+function renderRecord() {
+  const all = ledger();
+  const wins = all.filter((x) => x[2]).length;
+  const n = all.length;
+  el("pts-record").innerHTML = n
+    ? `<span class="pts-rec-label">Record So Far</span><span class="pts-rec-num">${wins}-${n - wins}<small>${Math.round((100 * wins) / n)}%</small></span>
+       <button type="button" class="view-toggle-btn" id="pts-ytd">YTD Model Performance</button>`
+    : `<span class="pts-rec-label">Record So Far</span><span class="pts-rec-num">0-0</span><small class="muted-label">First Grades After Tonight's Games</small>`;
+}
+function renderYtd() {
+  const overlay = ensureBookModal("pts-ytd-modal");
+  const content = overlay.querySelector(".bo-content");
+  content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="pts-ytd-tracker"></div>
+    <p class="no-data-note">Every projection that leaned off the tip-off line, graded Over / Under (pushes and players who sat don't count). -110 needs 52.4% to break even.</p>`;
+  ytdTracker(content.querySelector(".pts-ytd-tracker"), {
+    key: "nba-points",
+    markets: [{ key: "points", label: "Points Projection", ledger: ledger(), min: 0, max: 3, step: 0.5, scale: 1, unit: " Pts+",
+                tip: "Every projection that leaned off the line by at least the minimum", splits: PTS_SPLITS }],
+  });
+  overlay.hidden = false;
 }
 
 function pricesCell(r) {
@@ -136,10 +181,40 @@ function pricesCell(r) {
   return `<td class="pts-prices">${o || u ? line("O", o) + line("U", u) : "--"}</td>`;
 }
 
+// Mix: three pills (the owner, 2026-10-23: half the width, each colored by
+// his usage on a 1-100 scale): the share of his shots at the rim, from 3 and
+// self-created, each ranked as a percentile among this season's players with
+// MIX_MIN_FGA+ shots, on the shared 8-step rank colors (common.js RANK_SCALE,
+// which the NBA pages don't load: change both together). 100 = uses it most.
+const MIX_MIN_FGA = 20;
+const MIX_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
+const MIX_PARTS = [
+  ["rim", "Rim", "at the rim", (p) => p.zones.rim || 0],
+  ["threes", "3s", "from 3", (p) => (p.zones.corner3 || 0) + (p.zones.above3 || 0)],
+  ["self", "Self", "self-created (pull-ups, step-backs, fades)", (p) => (p.kinds || {}).self || 0],
+];
+const mixPools = {};
+function mixPool(key, value) {
+  if (!mixPools[season]) {
+    const f = F();
+    const players = Object.values(block().players).filter((p) => p.zones && (p.log || []).reduce((a, r) => a + r[f.fga], 0) >= MIX_MIN_FGA);
+    mixPools[season] = Object.fromEntries(MIX_PARTS.map(([k, , , get]) => [k, players.map(get).sort((a, b) => a - b)]));
+  }
+  const pool = mixPools[season][key];
+  if (!pool.length) return null;
+  const below = pool.filter((v) => v < value).length;
+  return Math.max(1, Math.min(100, Math.round((100 * below) / pool.length)));
+}
 function mixCell(p) {
   if (!p || !p.zones) return `<td class="pts-mix">--</td>`;
-  const threes = (p.zones.corner3 || 0) + (p.zones.above3 || 0);
-  return `<td class="pts-mix" title="Share of his shots: at the rim, 3-pointers, and pull-ups / step-backs / fades (made off the dribble)">Rim <b>${pct(p.zones.rim)}</b> &middot; 3s <b>${pct(threes)}</b> &middot; Self <b>${pct((p.kinds || {}).self)}</b></td>`;
+  const pills = MIX_PARTS.map(([key, label, what, get]) => {
+    const v = get(p);
+    const rank = mixPool(key, v);
+    const [hue, fill] = rank === null ? [60, 0] : MIX_SCALE[Math.min(7, Math.floor(((100 - rank) / 100) * 8))];
+    const style = rank === null ? "" : ` style="background:${scaleHsla(hue, 78, 44, fill)};border-color:${scaleHsla(hue, 78, 48)}"`;
+    return `<span class="pts-mix-pill"${style} title="${pct(v)} of his shots ${what}${rank === null ? "" : ` (${rank} of 100 among this season's players)`}"><small>${label}</small><b>${Math.round(v * 100)}</b></span>`;
+  });
+  return `<td class="pts-mix"><div class="pts-mix-pills">${pills.join("")}</div></td>`;
 }
 
 function renderRow(r) {
@@ -242,6 +317,7 @@ function rows() {
   const sort = el("pts-sort").value;
   const key = {
     line: (r) => r.line || 0,
+    edge: (r) => Math.abs(projEdge(r)),
     l10: (r) => share(r.l10),
     season: (r) => share(r.all),
   }[sort] || ((r) => r.line || 0);
@@ -288,6 +364,7 @@ function render() {
   el("day-next").disabled = dayIndex >= all.length - 1;
   renderSeasons();
   renderGamePicker();
+  renderRecord();
   renderBoard();
 }
 
@@ -310,6 +387,7 @@ document.addEventListener("click", (e) => {
     ww = { mate: "", mode: "out" };
     return renderBoard();
   }
+  if (e.target.closest("#pts-ytd")) return renderYtd();
   const mode = e.target.closest("[data-ww-mode]");
   if (mode) {
     ww.mode = mode.dataset.wwMode;
