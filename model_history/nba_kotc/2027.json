@@ -550,21 +550,21 @@
   "board": [
    {
     "id": "4065733",
-    "lead": 0.2722,
+    "lead": 0.2721,
     "name": "Ty Jerome",
     "proj": 58.9,
     "team": "MEM"
    },
    {
     "id": "4594268",
-    "lead": 0.2582,
+    "lead": 0.258,
     "name": "Anthony Edwards",
     "proj": 58.5,
     "team": "MIN"
    },
    {
     "id": "4432573",
-    "lead": 0.1211,
+    "lead": 0.121,
     "name": "Paolo Banchero",
     "proj": 51.9,
     "team": "ORL"
@@ -585,7 +585,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.0322,
+    "lead": 0.0321,
     "name": "Giannis Antetokounmpo",
     "proj": 43.4,
     "team": "MIA"
@@ -606,9 +606,9 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0161,
+    "lead": 0.0163,
     "name": "Pascal Siakam",
-    "proj": 40.1,
+    "proj": 40.2,
     "team": "IND"
    },
    {
@@ -619,6 +619,13 @@
     "team": "HOU"
    },
    {
+    "id": "5041939",
+    "lead": 0.0103,
+    "name": "Cooper Flagg",
+    "proj": 38.6,
+    "team": "DAL"
+   },
+   {
     "id": "3155942",
     "lead": 0.0103,
     "name": "Domantas Sabonis",
@@ -626,15 +633,8 @@
     "team": "SAC"
    },
    {
-    "id": "5041939",
-    "lead": 0.0098,
-    "name": "Cooper Flagg",
-    "proj": 38.5,
-    "team": "DAL"
-   },
-   {
     "id": "4871144",
-    "lead": 0.0084,
+    "lead": 0.0083,
     "name": "Alperen Sengun",
     "proj": 37.2,
     "team": "HOU"
@@ -762,7 +762,7 @@
     "id": "4017837",
     "lead": 0.0015,
     "name": "Ivica Zubac",
-    "proj": 32.1,
+    "proj": 32.2,
     "team": "IND"
    },
    {
@@ -895,7 +895,7 @@
     "id": "4395712",
     "lead": 0.0002,
     "name": "Andrew Nembhard",
-    "proj": 28.8,
+    "proj": 28.9,
     "team": "IND"
    },
    {
