@@ -93,16 +93,17 @@ class SeasonBlock(unittest.TestCase):
 
 
 class SeasonDefault(unittest.TestCase):
-    def test_last_season_until_this_one_has_enough_games(self):
+    def test_this_season_only(self):
+        # The owner, 2026-10-23: no last-season data on the site, even after one game.
         def block(games):
             return {"players": {"1": {"team": "AAA", "log": [["d", g] for g in range(games)]},
                                 "2": {"team": "BBB", "log": [["d", 100 + g] for g in range(games)]}}}
         real_fetch, real_block = build_nba.fetch_file, props.season_block
         try:
             build_nba.fetch_file = lambda kind, season, d, force: "x" if season == 2027 else None
-            for games, want in ((build_nba.THIS_SEASON_DEFAULT_AT - 1, "2026"), (build_nba.THIS_SEASON_DEFAULT_AT, "2027")):
-                props.season_block = lambda pbp, b, label, n=games: {"label": label, **block(n)}
-                self.assertEqual(build_nba.compute_props(2027, Path("."), None)["default"], want)
+            props.season_block = lambda pbp, b, label: {"label": label, **block(1)}
+            built = build_nba.compute_props(2027, Path("."), None)
+            self.assertEqual((built["default"], list(built["seasons"])), ("2027", ["2027"]))
         finally:
             build_nba.fetch_file, props.season_block = real_fetch, real_block
 

@@ -306,12 +306,10 @@ function renderNights() {
 
 // ---- Historical Data ----
 function renderHistory() {
-  // This season's popup needs a few weeks of nights; until then it shows last season's.
-  // Last season's numbers are labeled reference data, shown only until this season has 20 nights.
-  const own = block();
-  const b = (own.summary || {}).nights >= 20 || !KOTC.reference ? own : KOTC.reference;
+  // This season only (the owner, 2026-10-23: last season's reference numbers came off).
+  const b = block();
   const sum = b.summary;
-  el("kotc-hist-season").textContent = `${b.label}, ${sum.nights} nights${b === own ? "" : " (last season, for reference)"}`;
+  el("kotc-hist-season").textContent = `${b.label}, ${sum.nights} night${sum.nights === 1 ? "" : "s"}`;
   const pct = (x) => (x === null || x === undefined ? "--" : `${Math.round(x * 100)}%`);
   const ratio = (r) => (r.fair ? r.share / r.fair : null);
   const mixRows = (rows) => rows.map((r) => {

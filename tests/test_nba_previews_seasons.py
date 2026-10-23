@@ -64,12 +64,12 @@ class Build(unittest.TestCase):
         self.assertIn("BBB", last["players"])  # last season's players sit on today's roster
         self.assertIn("AAA", this["players"])  # this season's on the team he played for
 
-    def test_the_page_opens_on_this_season_at_four_games(self):
-        block = lambda n: {"team_games": n}
-        self.assertEqual(build_nba.THIS_SEASON_DEFAULT_AT, 4)
-        self.assertEqual(build_nba.stats_default(2027, {2026: block(82)}), 2026)
-        self.assertEqual(build_nba.stats_default(2027, {2026: block(82), 2027: block(3)}), 2026)
-        self.assertEqual(build_nba.stats_default(2027, {2026: block(82), 2027: block(4)}), 2027)
+    def test_the_site_never_reads_last_season(self):
+        # The owner, 2026-10-23: "i do not want flawed data entering this seasons numbers".
+        # Last season's files (box scores, saved identity / props / lines) are for backtests only.
+        src = (Path(build_nba.__file__)).read_text(encoding="utf-8")
+        for bad in ("season - 1, ", "season - 1)", "REFERENCE", "lines_2026", "stats_default"):
+            self.assertNotIn(bad, src.replace('f"{season - 1}-', "").replace('f"{args.season - 1}-', ""), bad)
 
 
 SITE = None

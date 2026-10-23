@@ -76,14 +76,12 @@ class SeasonDefault(unittest.TestCase):
         finally:
             build_nba.fetch_file, identity.season_block = real_fetch, real_block
 
-    def test_last_season_until_this_one_has_enough_games(self):
+    def test_this_season_only(self):
+        # The owner, 2026-10-23: no last-season data on the site, even after one game.
         before = self.build(0)
-        self.assertEqual(before["default"], "2026")
-        self.assertEqual(list(before["seasons"]), ["2026"])
-        early = self.build(build_nba.THIS_SEASON_DEFAULT_AT - 1)
-        self.assertEqual(early["default"], "2026")
-        self.assertEqual(sorted(early["seasons"]), ["2026", "2027"])
-        self.assertEqual(self.build(build_nba.THIS_SEASON_DEFAULT_AT)["default"], "2027")
+        self.assertEqual((before["default"], list(before["seasons"])), ("2027", []))
+        early = self.build(1)
+        self.assertEqual((early["default"], list(early["seasons"])), ("2027", ["2027"]))
 
 
 class SavedSeason(unittest.TestCase):

@@ -13,8 +13,11 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 
 **Every NBA play, projection, tag and pick comes from 2026-27 games only.** 2025-26 is used for
 backtests (fitting weights, measuring how many games a number needs before it means anything)
-and may be shown as reference data with a clear 2025-26 label, but it never feeds a number or a
-play, not even as a starting point that fades out. Before this season has enough games for a
+and **is not on the site at all since 2026-10-23** (the owner, once every team had played: "i do
+not want flawed data entering this seasons numbers"): no season buttons' 2025-26, no reference
+popups, no fallback while this season is young. build_nba.py reads only this season's files;
+`identity_2026.json`, `props_2026.json`, `lines_2026.json` and the 2025-26 downloads stay for the
+backtests (`test_the_site_never_reads_last_season` pins it). Before this season has enough games for a
 number, show the data, not a projection. The owner: "A team with a new starting lineup and players
 in and out (take boston - no brown add george - completely different) changes everything!"
 - King of the Court was the one exception for its first week; it went this-season-only on
@@ -79,8 +82,8 @@ these two pages into one page."
   every NBA page) and `seasons[<year>]` (`label`, `team_games`, `teams{abbr: off_* / def_* / game
   script}`, `league{key: avg, sd}`). `def_<key>` = what the team's OPPONENTS did against it, so
   one team's offense in a game is the other's defense (a test pins it).
-- **Last season is saved, not rebuilt:** `nfl_tool/nba/identity_2026.json` (finished, so it never
-  changes; saves ~1.5 minutes a build). **Re-save it after changing a formula:**
+- **Last season is saved for the backtests** (not on the site since 2026-10-23):
+  `nfl_tool/nba/identity_2026.json`. **Re-save it after changing a formula:**
   `py nfl_tool/nba/identity.py --season 2026 --data-dir data/nba --write`. This season is rebuilt
   every build from the play-by-play First Basket has just downloaded.
 - **Numbers:** pace (possessions a 48), seconds a possession, transition (a shot or turnover within
@@ -97,7 +100,6 @@ these two pages into one page."
   shares) are never colored good or bad**; their tags are **Fits** (offense does it a lot, this
   defense allows it a lot, 0.7 spreads each) and **Takes away** (offense a lot, defense rarely).
   The zone table's tag is the volume tag when there is one, else the make-rate matchup.
-  2025-26 shows as "reference: rosters have changed since".
 - Tests: `tests/test_nba_identity.py`.
 
 ## Player props (data built 2026-10-20; the Points page is next)
@@ -113,10 +115,9 @@ options"), Novig only where SmartStake has no price.
   `players[<espn id>]` (name, team, pos, `log` rows, `share` = his share of his team's shots
   while on the floor, `zones`, `kinds` self / catch / drive / other, `assisted`, `with[<teammate>]`
   = [min on, pts on, shots on, min off, pts off, shots off], teammates with `MIN_TOGETHER` 20+
-  minutes together), `out[<team>][<game id>]` = [[id, rest / injury / coach]]. `default`: this
-  season once the middle team has `THIS_SEASON_DEFAULT_AT` games. 2025-26 is saved in
-  `nfl_tool/nba/props_2026.json` (re-save after a formula change: `py nfl_tool/nba/props.py
-  --season 2026 --data-dir data/nba --write`), shown on today's rosters as reference.
+  minutes together), `out[<team>][<game id>]` = [[id, rest / injury / coach]]. This season only
+  (`default` is always it). 2025-26 is saved in `nfl_tool/nba/props_2026.json` for the backtests
+  (re-save after a formula change: `py nfl_tool/nba/props.py --season 2026 --data-dir data/nba --write`).
 - 2025-26 check: Pritchard 16.1 points a 36 with Jaylen Brown on the floor, 24.1 with him off.
 - **SmartStake NBA** (`fetch_nba_book_odds`, smartstake.py): the points key is looked up in
   `/v1/markets` (`nba_prop_market_keys`: a player market for the stat alone, never a combo,
@@ -283,13 +284,9 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   `espn_nba_schedules`, `espn_nba_rosters`, `espn_nba_depthcharts` and `espn_nba_injuries` (daily
   snapshots), plus `nba_stats_*` sets (shots, lineups, possessions).
 - Parquet only is practical (the pbp CSV is 275 MB), so `pyarrow` is in requirements.txt.
-- A season's box / pbp files don't exist until its first game (404). Game Previews carries both
-  seasons (`stat_seasons`, built 2026-10-20, opening night): last season's with players placed on
-  this season's rosters, this season's once it has games. The top-level `team_stats` /
-  `recent_games` / `players` are the default season's (`stats_season`, `is_fallback_season`): this
-  season once the middle team has played `THIS_SEASON_DEFAULT_AT` (4) games, the same rule King of
-  the Court uses (the owner: "sooner than later default to this season"). Without this the page
-  would have jumped to 1-game numbers the morning after opening night.
+- A season's box / pbp files don't exist until its first game (404). Game Previews carried both
+  seasons from opening night (`stat_seasons`, opening on last season until 4 games a team); since
+  2026-10-23 it is this season only (`stat_seasons` has one key, `is_fallback_season` always false).
 - Not usable: `cdn.nba.com` / stats.nba.com (blocked with 403 from the user's PC and commonly
   from cloud builders). ESPN's own API (`site.api.espn.com/.../basketball/nba/scoreboard`,
   `summary`) works and is what hoopR scrapes; use it if same-day freshness is ever needed.
@@ -342,7 +339,8 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   own try: a failure leaves `first_basket: null`). Reads `espn_nba_pbp/play_by_play_<season>.parquet`
   (22 MB a season) for both seasons. Output `first_basket`: `seasons[<year>]` (`label`, `games`,
   `league`, `teams`, `players`), `slates[<year>]` (`{game id: {away, home, fair}}` for the next 3
-  nights: likely starters, jumper, fair guess), `default` (this season once there are 4 games a team).
+  nights: likely starters, jumper, fair guess), `default` (this season; until 2026-10-23 last
+  season's block supplied the likely starters and the Value record while teams had under 4 games).
 - **From the play-by-play:** the opening `Jumpball` names both jumpers; its `team_id` is the team
   that got the ball, and the jumper on that team won it. Possessions to first points: a team starts
   a possession on its first shot, turnover or rebound after the other team's (fouls without a shot
@@ -489,8 +487,7 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   `slates[<this season>]` (`{date: rows}` for the next 3 nights), `default` (this season),
   `past` (`{date: {season_used, games, best, rows}}`: every recorded night before today, `kotc.past_nights`:
   everyone on its pregame board plus the night's 40 best PRA lines, each with pts / reb / ast /
-  pra (None = didn't play) and the board's `rank` / `lead` / `proj`), `reference` (last season's
-  `label` + `summary`, for the Historical Data popup only), `weights`, `thresholds`, `record`.
+  pra (None = didn't play) and the board's `rank` / `lead` / `proj`), `weights`, `thresholds`, `record`.
 - **This season only since 2026-10-22** (the owner's list that day): no season toggle, no
   `PRIOR_GAMES` seed (the constant stays for the replay). Early on a player needs
   min(`MIN_GAMES` 3, half his team's games rounded up) games, so a team two games in has players.
@@ -530,8 +527,8 @@ last season from a spreadsheet and wanted the same setup, built for the 2026-10-
   Winners AVG Game Total, Winner in Top 5 as one number, 65%); winning PRA by slate size (typical, colored
   low to high, middle half, best; centered, no note under it), the leader's game total and spread against the games on those nights (2025-26: 240+
   totals 1.31x their share, under 220 0.37x; spreads 0-3 1.22x, 10+ 0.77x; the leader's team was
-  favored 70%), positions (guards 47%), most nights led. Shows last season's (`reference`, labeled
-  "last season, for reference") until this season has 20 nights.
+  favored 70%), positions (guards 47%), most nights led. This season's only, however few nights (last season's
+  reference came off 2026-10-23).
 - **The page** (`site/nba/promo-tools.html` + `kotc.js` + `kotc.css`): night arrows that step back
   through every finished night (`past`) and ahead through the slate, Save image; **the player board
   and the defense board side by side** (the owner, 2026-10-22: "defense chart to sit up beside the

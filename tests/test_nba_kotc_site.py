@@ -256,8 +256,9 @@ class DefenseAndHistory(unittest.TestCase):
     def test_historical_data_opens_and_closes(self):
         PAGE.click("#kotc-history-btn")
         self.assertFalse(PAGE.evaluate("() => document.getElementById('kotc-history-modal').hidden"))
-        self.assertIn("2025-26", PAGE.inner_text("#kotc-hist-season"))
-        self.assertIn("for reference", PAGE.text_content("#kotc-hist-season"))  # this season has 2 nights, not 20
+        # This season only, however few nights (the owner, 2026-10-23: last season's reference came off).
+        self.assertIn("2026-27", PAGE.inner_text("#kotc-hist-season"))
+        self.assertNotIn("reference", PAGE.text_content("#kotc-hist-season"))
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.kotc-hist-tile').length"), 4)
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.evaluate("() => document.getElementById('kotc-history-modal').hidden"))

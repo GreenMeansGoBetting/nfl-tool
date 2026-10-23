@@ -10,10 +10,9 @@ The NBA twin of build_stats.py, started 2026-10-11. Sources (all free):
   * Novig -- game lines, the same public feed the NFL build reads
     (league=NBA), pregame numbers only.
 
-Game Previews carries both seasons' stats (stat_seasons, the page's season
-buttons): last season's with players moved onto this season's rosters, and
-this season's once it has games. The page opens on this season once the
-middle team has played THIS_SEASON_DEFAULT_AT games (stats_default).
+Every page shows THIS season only (the owner, 2026-10-23: "i do not want
+flawed data entering this seasons numbers"). Last season's files stay in
+nfl_tool/nba/ for the backtests, never on the site.
 
 Team keys are ESPN's abbreviations (NY, GS, SA, NO, UTAH, WSH ...).
 """
@@ -272,12 +271,6 @@ def stats_block(season: int, team_box: pd.DataFrame, player_box: pd.DataFrame, t
     }
 
 
-def stats_default(season: int, blocks: dict) -> int:
-    """This season once the middle team has THIS_SEASON_DEFAULT_AT games, else last season."""
-    this = blocks.get(season)
-    return season if this and this["team_games"] >= THIS_SEASON_DEFAULT_AT else season - 1
-
-
 # ---- injuries ----
 def compute_injuries(injuries: pd.DataFrame | None, abbr_by_id: dict) -> dict:
     """{team: [players]} from the newest daily snapshot."""
@@ -471,7 +464,6 @@ def apply_lines(games: list, novig: dict, previous: dict | None, now_utc: dateti
 # ---- King of the Court (kotc.py) ----
 KOTC_SLATE_NIGHTS = 3
 KOTC_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_kotc"
-THIS_SEASON_DEFAULT_AT = 4  # team games played (median) before a page opens on this season
 KOTC_RECORD_TOP = 60  # 30 until 2026-10-22: payouts on longer shots need their pregame chance
 
 
@@ -504,14 +496,8 @@ def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters,
     """This season's board (the page shows this season only since 2026-10-22,
     the owner: "by next week, we will have every team with data for this
     season"), the next few nights' slates, every finished night as its
-    pregame board had it (`past`), and last season's Historical Data as
-    labeled reference numbers (`reference`) until this season has enough nights."""
-    reference = None
-    prev_box = fetch_file("player_box", season - 1, data_dir, False)
-    if prev_box is not None:
-        pg = kotc.player_games(prev_box, teams)
-        ref = kotc.season_block(pg, kotc_lines(season - 1, games), season_label(season - 1))
-        reference = {"label": ref["label"], "summary": ref["summary"]}
+    pregame board had it (`past`). Historical Data is this season's too
+    (last season's reference numbers came off 2026-10-23)."""
     blocks, pg_now = {}, None
     cur_box = fetch_file("player_box", season, data_dir, force)
     if cur_box is not None:
@@ -537,66 +523,48 @@ def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters,
         "seasons": {str(s): b for s, b in blocks.items()},
         "slates": {str(s): v for s, v in slates.items()},
         "past": kotc.past_nights(pg_now, record, today),
-        "reference": reference,
         "record": record,
     }
 
 
 def compute_identity(season: int, data_dir: Path, force: bool) -> dict:
-    """Team Identity (identity.py): last season from its saved file (finished,
-    so it never changes), this season from the engine on every build. The page
-    opens on this season once the middle team has THIS_SEASON_DEFAULT_AT games."""
+    """Team Identity (identity.py): this season from the engine on every build
+    (last season's saved file is for the backtests only)."""
     blocks = {}
-    saved = Path(str(identity.REFERENCE).format(season=season - 1))
-    if saved.exists():
-        blocks[season - 1] = json.loads(saved.read_text(encoding="utf-8"))
     pbp = fetch_file("pbp", season, data_dir, force)
     box = fetch_file("player_box", season, data_dir, force)
     if pbp is not None and box is not None:
         block = identity.season_block(pbp, box, season_label(season))
         if block:
             blocks[season] = block
-    this = blocks.get(season)
-    default = season if this and this["team_games"] >= THIS_SEASON_DEFAULT_AT else season - 1
-    return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()}}
+    return {"default": str(season), "seasons": {str(s): b for s, b in blocks.items()}}
 
 
 def compute_first_basket(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime,
                          book_odds: dict | None = None) -> dict:
-    """First Basket: both seasons' numbers (the page's season buttons) and the
-    next few nights' games (likely starters, jumpers, the fair-price guess)
-    from each."""
+    """First Basket: this season's numbers and the next few nights' games
+    (likely starters, jumpers, the fair-price guess)."""
     blocks = {}
     jumps = []  # this season's jump balls: the tip chance (NBA rule: this season decides)
     openings = {}  # this season's games' firsts: grades the Value record
-    for s in (season - 1, season):
-        fresh = force and s == season
-        pbp = fetch_file("pbp", s, data_dir, fresh)
-        box = fetch_file("player_box", s, data_dir, fresh)
-        if pbp is not None and box is not None:
-            block = first_basket.season_block(pbp, box, teams, season_label(s))
-            if block["games"]:
-                blocks[s] = block
-            if s == season:
-                jumps = first_basket.jump_balls(pbp, box)
-                openings = {o["game_id"]: o for o in first_basket.game_openings(pbp, teams)}
+    pbp = fetch_file("pbp", season, data_dir, force)
+    box = fetch_file("player_box", season, data_dir, force)
+    if pbp is not None and box is not None:
+        block = first_basket.season_block(pbp, box, teams, season_label(season))
+        if block["games"]:
+            blocks[season] = block
+        jumps = first_basket.jump_balls(pbp, box)
+        openings = {o["game_id"]: o for o in first_basket.game_openings(pbp, teams)}
     heights = {}
     if rosters is not None:
         heights = {str(r.athlete_id): h for r in rosters.itertuples(index=False) if (h := first_basket.inches(r.height))}
     tip = first_basket.tip_block(jumps, heights)
-    roster_team = {}
-    if rosters is not None:
-        roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
-    # Players sit on today's roster; last season's players not on one are gone.
-    for s, block in blocks.items():
-        if s != season and roster_team:
-            block["players"] = {pid: {**p, "team": roster_team[pid]} for pid, p in block["players"].items() if pid in roster_team}
     out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
     now = blocks[season]["players"] if season in blocks else {}  # the Fair: this season's starts only
     slates = {str(s): first_basket.slate(b, games, {}, out_ids, dates, tip, now) for s, b in blocks.items()}
-    default = season if season in blocks and blocks[season]["games"] * 2 / max(1, len(teams)) >= THIS_SEASON_DEFAULT_AT else season - 1
+    default = season
     # Every rostered player (the page matches the NBA's lineup names to these),
     # and the NBA's lineup files as of this build: the page reads them live
     # (/api/nba-lineups) and falls back to these copies.
@@ -790,20 +758,13 @@ def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime)
 
 def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=(), identity_blob=None,
                   injuries=None, now_utc=None) -> dict:
-    """site/nba/props.json (props.py): last season from its saved file on
-    today's rosters, this season from the engine; `default` this season once
-    the middle team has THIS_SEASON_DEFAULT_AT games; `slate` = the next few
-    nights' points projections (props.project_points), this season only."""
+    """site/nba/props.json (props.py): this season from the engine (last
+    season's saved file is for the backtests only); `slate` = the next few
+    nights' points projections (props.project_points)."""
     roster_team = {}
     if rosters is not None:
         roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
     blocks = {}
-    saved = Path(str(props.REFERENCE).format(season=season - 1))
-    if saved.exists():
-        block = json.loads(saved.read_text(encoding="utf-8"))
-        for pid, p in block["players"].items():  # saved with ESPN's G / F / C
-            p["pos"] = POSITION_TABLE.get(pid) or kotc.POS_GROUP.get(p.get("pos"), p.get("pos"))
-        blocks[season - 1] = props.on_rosters(block, roster_team) if roster_team else block
     # First Basket has just downloaded this season's files (see compute_identity).
     pbp = fetch_file("pbp", season, data_dir, False)
     box = fetch_file("player_box", season, data_dir, False)
@@ -812,15 +773,7 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
         if block:
             blocks[season] = block
     this = blocks.get(season)
-    team_games = 0
-    if this:
-        per_team = {}
-        for p in this["players"].values():
-            per_team.setdefault(p["team"], set()).update(row[1] for row in p["log"])
-        counts = sorted(len(v) for v in per_team.values())
-        team_games = counts[len(counts) // 2] if counts else 0
-    default = season if team_games >= THIS_SEASON_DEFAULT_AT else season - 1
-    return {"default": str(default), "seasons": {str(s): b for s, b in blocks.items()},
+    return {"default": str(season), "seasons": {str(s): b for s, b in blocks.items()},
             "slate": points_slate(season, this, book_odds or {}, list(games), identity_blob, injuries or {}, roster_team, now_utc),
             "proj": {"k": props.PROJ_K, "max": props.PROJ_MAX, "last": props.PROJ_LAST}}
 
@@ -911,21 +864,17 @@ def main():
     }
     abbr_by_id = {t["id"]: abbr for abbr, t in teams.items()}
 
-    # Both seasons' stats (the page's season buttons); last season's players on today's rosters.
+    # This season's stats only (the owner, 2026-10-23: no last-season data on the site).
     stat_seasons = {}
-    for s in (args.season - 1, args.season):
-        fresh = force and s == args.season
-        team_box = fetch_file("team_box", s, args.data_dir, fresh)
-        player_box = fetch_file("player_box", s, args.data_dir, fresh)
-        if team_box is not None and player_box is not None:
-            block = stats_block(s, team_box, player_box, teams, rosters if s != args.season else None)
-            if block:
-                stat_seasons[s] = block
+    team_box = fetch_file("team_box", args.season, args.data_dir, force)
+    player_box = fetch_file("player_box", args.season, args.data_dir, force)
+    if team_box is not None and player_box is not None:
+        block = stats_block(args.season, team_box, player_box, teams, None)
+        if block:
+            stat_seasons[args.season] = block
     if not stat_seasons:
-        sys.exit("No box scores available for this or last season.")
-    stats_season = stats_default(args.season, stat_seasons)
-    if stats_season not in stat_seasons:
-        stats_season = max(stat_seasons)
+        sys.exit("No box scores available for this season yet.")
+    stats_season = args.season
     shown = stat_seasons[stats_season]
 
     games = compute_schedule(schedule, now_utc)
