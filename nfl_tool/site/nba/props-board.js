@@ -25,6 +25,7 @@ let season = null;
 let dayIndex = 0;
 let openId = null;
 let sortBy = { key: "edge", dir: -1 };
+let gameId = ""; // the game strip's pick ("" = All Games)
 const GOOD_TO = 0.03; // Good To: the worst price that still leaves this much edge; Edge is green from here
 const MIN_UP_MAX = 32; // a player already this many minutes a game gets no Min up tag
 
@@ -344,10 +345,9 @@ function withWithout(r) {
 // ---- the board ----
 function dayRows() {
   const date = days()[dayIndex];
-  const pick = el("pts-game").value;
   const out = [];
   for (const g of gamesOn(date)) {
-    if (pick && pick !== g.game_id) continue;
+    if (gameId && gameId !== g.game_id) continue;
     for (const [pid, row] of Object.entries(slate()[g.game_id] || {})) out.push(rowFor(g, pid, row));
   }
   return out;
@@ -417,12 +417,28 @@ function renderBoard() {
   el("pts-table").innerHTML = `<thead><tr class="pb-group-row">${groupRow}</tr><tr>${cols.map(th).join("")}</tr></thead><tbody>${list.map((r) => renderRow(r, cols)).join("")}</tbody>`;
 }
 
+// The game strip (the other NBA pages' look, the owner 2026-10-23: "the game header ... it is
+// missed"): day arrows, an All Games card, then a card per game; a picked game gets the big header.
 function renderGamePicker() {
   const date = days()[dayIndex];
-  const cur = el("pts-game").value;
   const games = gamesOn(date);
-  el("pts-game").innerHTML = `<option value="">All Games</option>${games.map((g) => `<option value="${g.game_id}">${g.away} @ ${g.home} &middot; ${fmtTime(g.time)}</option>`).join("")}`;
-  if (games.some((g) => g.game_id === cur)) el("pts-game").value = cur;
+  if (gameId && !games.some((g) => g.game_id === gameId)) gameId = "";
+  el("matchup-row").innerHTML = `<button type="button" class="matchup-card pb-all-games${gameId ? "" : " selected"}" data-game="">
+      <span class="matchup-teams-row"><b>All Games</b></span><span class="matchup-date">${games.length} game${games.length === 1 ? "" : "s"}</span></button>`
+    + games.map((g) => `<button type="button" class="matchup-card${g.game_id === gameId ? " selected" : ""}" data-game="${g.game_id}">
+        <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
+        <span class="matchup-date">${fmtTime(g.time).replace(" ET", "")}</span>
+      </button>`).join("");
+  const g = games.find((x) => x.game_id === gameId);
+  el("game-header").hidden = !g;
+  if (!g) return;
+  const dateLabel = new Date(`${g.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  el("game-header").innerHTML = `<div class="game-header-teams">
+      <img src="${team(g.away).logo}" class="team-logo-lg" alt="${g.away}"><span class="game-header-team">${team(g.away).name}</span>
+      <span class="at">@</span>
+      <span class="game-header-team">${team(g.home).name}</span><img src="${team(g.home).logo}" class="team-logo-lg" alt="${g.home}">
+    </div>
+    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}</div>`;
 }
 
 function renderSeasons() {
@@ -462,6 +478,13 @@ document.addEventListener("click", (e) => {
     const key = head.dataset.sort;
     // a new column starts high-to-low (names A-Z); the same one flips
     sortBy = sortBy.key === key ? { key, dir: -sortBy.dir } : { key, dir: key === "name" ? 1 : -1 };
+    return renderBoard();
+  }
+  const card = e.target.closest("#matchup-row [data-game]");
+  if (card) {
+    gameId = card.dataset.game;
+    openId = null;
+    renderGamePicker();
     return renderBoard();
   }
   const opener = e.target.closest("[data-open]");
@@ -509,7 +532,7 @@ document.addEventListener("change", (e) => {
     ww.mate = e.target.value;
     return renderBoard();
   }
-  if (e.target.matches("#pts-game, #pts-tag")) renderBoard();
+  if (e.target.matches("#pts-tag")) renderBoard();
 });
 document.addEventListener("input", (e) => {
   if (e.target.matches("#pts-search")) renderBoard();

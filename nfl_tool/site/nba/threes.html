@@ -43,14 +43,17 @@
       <div class="pts-testing-record" id="pts-record"></div>
       <p class="info-note pts-testing-note" id="pts-testing-note" hidden><b>Why tries come first:</b> on last season's replay, how many threes a player tries tonight was predictable; whether they go in mostly wasn't. So the projection is his tries x his make rate, and the make rate barely moves (his season, pulled 200 tries toward the league's). <b>What moved tries on last season's replay:</b> his minutes (a dip over the last 5 bounces back), teammates listed Out (their shots go to role players, not the star), both teams' pace, how many threes this defense allows, how many of them are catch-and-shoot (help defense leaving shooters), his team being the underdog (trailing teams shoot more), and a cold or hot last 5 (a cold run trims his tries a little; it doesn't change his make rate). <b>What didn't:</b> corner vs above-the-break threes, what % a defense allows, free-throw %, back-to-backs. <b>The ladder:</b> a night's threes swing wider than a plain average says, so 1+ hits a little less often and 3+ / 4+ more often than most expect. The play is the side our projection leans, graded at its best price at tip-off when that price leaves an edge. Early in the season the projection leans on the books and moves toward our number as games come in. About 2,000 graded lines (mid-November) is when the record starts to mean something.</p>
     </div>
-    <div class="pts-head">
+    <div id="schedule-scroller" class="schedule-scroller">
       <div class="week-picker">
         <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
         <span id="day-label" class="week-label">Day</span>
         <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
       </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+    <div id="game-header" class="game-header" hidden></div>
+    <div class="pts-head">
       <div class="pts-filters">
-        <select id="pts-game" aria-label="Game"></select>
         <select id="pts-tag" aria-label="Tags"><option value="">All Tags</option></select>
         <input id="pts-search" type="search" placeholder="Find a player" aria-label="Find a player">
       </div>

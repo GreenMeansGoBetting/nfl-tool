@@ -42,14 +42,17 @@
       <div class="pts-testing-record" id="pts-record"></div>
       <p class="info-note pts-testing-note" id="pts-testing-note" hidden><b>Proven on last season's replay:</b> minutes x points a minute, both teams' pace, what the defense allows a possession and in transition, and teammates listed Out. <b>Being tested (treated as real for now):</b> a minutes dip over the last 5 games bounces back; teammates' missing shots go mostly to role players, not the star; the other team missing players helps. Early in the season the projection leans on the line and moves toward our number as games come in. A night's points spread around the projection (wider for bigger scorers, fitted on last season) turns it into a chance of the Over; the play is the side it leans, graded when its best price leaves an edge. About 2,000 graded lines (mid-November) is when the record starts to mean something. We'll adjust after a month.</p>
     </div>
-    <div class="pts-head">
+    <div id="schedule-scroller" class="schedule-scroller">
       <div class="week-picker">
         <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
         <span id="day-label" class="week-label">Day</span>
         <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
       </div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+    <div id="game-header" class="game-header" hidden></div>
+    <div class="pts-head">
       <div class="pts-filters">
-        <select id="pts-game" aria-label="Game"></select>
         <select id="pts-tag" aria-label="Tags"><option value="">All Tags</option></select>
         <input id="pts-search" type="search" placeholder="Find a player" aria-label="Find a player">
       </div>

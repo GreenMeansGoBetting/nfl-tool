@@ -217,6 +217,9 @@ may be functions because the board's helpers load after):
   from 3 = a play, red below 0 = not good enough, not graded). The record grades the same rule
   (`props.threes_play(p_over, best_o, best_u, lean)`, best price across every book, positive only).
 - Negative-edge rows stay on the board for their data (hit rates, tags); the record never grades them.
+- **Game strip** (2026-10-23, the owner: "the game header ... it is missed"): the other NBA pages' day
+  arrows and matchup cards, an **All Games** card first (picked by default), and the big game header
+  when one game is picked (replaced the Game menu); the tag filter and search sit under it.
 - **Columns:** Player, Play, [page's `before`: Threes' Proj Att], Proj (narrow), GMG Fair, Odds, Good
   To, Edge, [page's `after`: 3PA / 3PM or Avg / FGA a game], then **Hit Rate - Based On 3PM / PTS**
   (one group box over L5, L10, Season, Home, Away: the rates count HIS numbers over the line,

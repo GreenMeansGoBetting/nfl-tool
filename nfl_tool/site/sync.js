@@ -280,6 +280,21 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-23",
+    items: [
+      ["🏀", "<b>NBA Threes</b> is a new page under Points for threes made. We tested 15 ideas on all of last season first: how many threes a player <i>tries</i> can be predicted, how many he <i>makes</i> mostly can’t, so the projection is his attempts (Proj Att) times his make rate. Click a player for the ladder (1+, 2+, 3+ threes) with our fair price next to every book’s."],
+      ["🏀", "<b>NBA Points and Threes</b> now read like the NHL pages: the Play, Proj, GMG Fair, the best Odds across your books, Good To and Edge (green is a play, red means the price isn’t good enough). Every column sorts (Edge first), a tag filter shows only the players with that tag, the headers stay on screen as you scroll, and a game strip at the top picks one game."],
+      ["📈", "<b>Hit Rate</b> on Points and Threes: last 5, last 10, season, home and away, each colored by its percentage. It counts his own points or makes over the line, whichever side the play is."],
+      ["🏷️", "<b>NBA tags</b>: 3s Allowed, Tough 3s D, Help D, Underdog, Cold Run and Hot Run on Threes; Min ↑ / Min ↓ from the injury report (a teammate at his spot is out, or one is back); every tag has one look."],
+      ["🧪", "<b>NBA projections are in testing until mid-November.</b> Points, Threes and First Basket each show a Beta banner with the record so far and the YTD Model Performance button. Please wager with caution until we have more data."],
+      ["🏀", "<b>NBA is this season only</b>: no 2025-26 numbers anywhere on the site. The First Basket record started fresh tonight, and every starter’s numbers are colored from his first start."],
+      ["🏀", "<b>NBA Points</b> drop down shows his shot chart next to where tonight’s defense gives up shots, with every book’s main line (the rest behind Show Other Lines)."],
+      ["💰", "<b>My Books</b> now applies to the NHL prices too: Shots, Goals, Points, Saves and Best Plays show the best price among your own books, and the edge on it."],
+      ["🏈", "<b>SmartStake prices lead</b> everywhere on the NFL side. One odds source that showed wrong prices on the TD Summary is gone. NFL Best Plays has a Rating menu (All / Strong / Lean / Check), and every YTD popup has one Time Frame dropdown."],
+      ["🏒", "<b>NHL lineups</b> now land on the right game every time (two late games had none last night)."],
+    ],
+  },
+  {
     id: "2026-10-22",
     items: [
       ["🏈", "<b>NFL Best Plays</b> now keeps a graded record: every play on the page is saved at the best price before kickoff and graded when the game ends. Open it with the new <b>YTD Model Performance</b> button beside the title. It starts this week, so the record is small for now."],

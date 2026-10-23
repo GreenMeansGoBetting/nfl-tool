@@ -190,6 +190,18 @@ class Board(unittest.TestCase):
         self.assertIn("MIN ↓", tags)  # Player Five sat the last game and isn't listed Out
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-min').length"), 0)  # no Min column
 
+    def test_the_game_strip(self):
+        # the owner, 2026-10-23: "the game header ... it is missed" (the other NBA pages' strip)
+        cards = PAGE.evaluate("() => [...document.querySelectorAll('#matchup-row .matchup-card')].map((c) => [c.dataset.game, c.classList.contains('selected')])")
+        self.assertEqual(cards, [["", True], ["900", False]])  # All Games first, picked
+        self.assertTrue(PAGE.evaluate("() => document.getElementById('game-header').hidden"))
+        PAGE.click("#matchup-row [data-game='900']")
+        self.assertFalse(PAGE.evaluate("() => document.getElementById('game-header').hidden"))
+        self.assertIn("AAA", PAGE.inner_text("#game-header"))
+        self.assertEqual(len(keys()), 3)
+        PAGE.click("#matchup-row [data-game='']")
+        self.assertTrue(PAGE.evaluate("() => document.getElementById('game-header').hidden"))
+
     def test_the_tag_filter(self):
         options = PAGE.evaluate("() => [...document.querySelectorAll('#pts-tag option')].map((o) => o.value)")
         self.assertIn("allowed", options)
