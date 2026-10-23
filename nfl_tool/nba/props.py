@@ -249,6 +249,27 @@ def project_points(line, games: int, ours):
     return line + w * (ours - line), w
 
 
+# A night's points spread around the projection (fitted on 2025-26's replay,
+# tools/backtest/nba_points.py's player-games: sd 5.6 at 8 points, 8.7 at 32):
+# sd = POINTS_SD_A + POINTS_SD_B x sqrt(projection), a normal count. It turns
+# the projection into a chance of the Over, so Points shows its play the NHL
+# pages' way (Play, GMG Fair, Odds, Good To, Edge; the owner, 2026-10-23).
+POINTS_SD_A = 2.73
+POINTS_SD_B = 1.07
+
+
+def points_chance(proj, line) -> float | None:
+    """Chance of going over the line (a whole-number line's push left out)."""
+    if proj is None or line is None:
+        return None
+    sd = POINTS_SD_A + POINTS_SD_B * math.sqrt(max(proj, 0.0))
+    cdf = lambda x: 0.5 * (1 + math.erf((x - proj) / (sd * math.sqrt(2))))  # noqa: E731
+    if float(line).is_integer():
+        under, push = cdf(line - 0.5), cdf(line + 0.5) - cdf(line - 0.5)
+        return (1 - under - push) / max(1 - push, 1e-9)
+    return 1 - cdf(line)
+
+
 # ---- the live record: every projection graded against its tip-off line ----
 # The owner, 2026-10-23: "start projecting today ... then track to see real
 # time if we are onto something. We can adjust after a month." A play = the
@@ -269,10 +290,13 @@ OPP_MISSING = 0.15
 
 
 def record_ledger(lines: dict, block: dict | None) -> list:
-    """The shared YTD tracker's rows (site ytd.js): [date, edge (points the
-    projection sits off the line), won 1/0, units (None: no saved price),
-    tags], oldest first. `lines` = model_history/nba_props/lines_<season>.json;
-    `block` = this season's props block (the results)."""
+    """The shared YTD tracker's rows (site ytd.js): [date, edge (our chance of
+    the play minus what its best price needs), won 1/0, units at that price,
+    tags], oldest first: the NHL pages' play rule (`threes_play`) since
+    2026-10-23, the same as Threes. A row saved without our chance and the
+    prices (before that change) isn't graded. `lines` =
+    model_history/nba_props/lines_<season>.json; `block` = this season's props
+    block (the results)."""
     if not block:
         return []
     f = {k: i for i, k in enumerate(block.get("fields") or LOG_FIELDS)}
@@ -283,11 +307,14 @@ def record_ledger(lines: dict, block: dict | None) -> list:
     out = []
     for gid, rows in lines.items():
         for pid, row in rows.items():
-            line, proj = row[0], row[1]
+            line = row[0]
+            p_over, best_o, best_u = (list(row[8:11]) + [None] * 3)[:3]
             got = played.get((str(gid), pid))
-            if got is None or got[0] < RECORD_START or line is None or proj is None or proj == line or got[1] == line:
+            play = threes_play(p_over, best_o, best_u)
+            if got is None or got[0] < RECORD_START or line is None or play is None or got[1] == line:
                 continue
-            over = proj > line
+            side, edge, price = play
+            over = side == "over"
             tags = ["over" if over else "under"]
             extra = (list(row[4:8]) + [None] * 4)[:4]
             min_ratio, missing, share, opp_missing = extra
@@ -299,7 +326,8 @@ def record_ledger(lines: dict, block: dict | None) -> list:
                 tags.append("role")
             if opp_missing is not None and opp_missing >= OPP_MISSING:
                 tags.append("opp_out")
-            out.append([got[0], round(abs(proj - line), 2), int((got[1] > line) == over), None, tags])
+            won = (got[1] > line) == over
+            out.append([got[0], round(edge, 4), int(won), units(price, won), tags])
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
 

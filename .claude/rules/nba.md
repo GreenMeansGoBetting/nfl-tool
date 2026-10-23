@@ -163,7 +163,8 @@ options"), Novig only where SmartStake has no price.
   (`py tools/backtest/nba_points_lines.py --season 2027`; needs `py tools/backtest/nba_refs.py
   --season 2027` for the crews; meaningful from ~2,000 lines, about mid-November).
 - Tests: `tests/test_nba_props.py`.
-- **The Points page** (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
+- **The Points page** (since 2026-10-23 on the shared props board above: the columns, sorting, tags and
+  Hit Rate group described there replace the Line / Best Price / Proj / Min columns below) (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
   above First Basket; built 2026-10-20 from the owner's plan in words, no mockup, then trimmed the
   same night on the owner's notes): day arrows, game / sort / search filters, season buttons (hit
   rates and splits only). One row per player in props.json `slate`: Player (narrow), Line (middle
@@ -198,6 +199,33 @@ options"), Novig only where SmartStake has no price.
   wants the same banner on a Best Plays page "eventually" (the NBA has none yet). Take it down once
   the record has spoken (mid-November) and the owner says so.
 
+## The NBA props board (`site/nba/props-board.js`, shared by Points and Threes, 2026-10-23)
+
+The owner: "we want users to feel comfortable to in rhythm with the design of this site moving from
+sport to sport. Everything we create should mimic the other tools in form and function." One board,
+each page a config (`PB_PAGE` in points.js / threes.js, loaded BEFORE props-board.js; column lists
+may be functions because the board's helpers load after):
+- **The play the NHL pages' way:** Play chip (`o19.5 PTS`, `o1.5 3PM`, green over / red under) = the
+  side of his main line our chance (`p_over` from the build) beats its best price across the
+  member's books by more; **GMG Fair** (our chance, no cut), **Odds** (`bookPricePill`, book name
+  under), **Good To** (fair at our chance - `GOOD_TO` 3 points), **Edge** (points, green from 3, gray
+  below 0). The record grades the same rule (`props.threes_play`, best price across every book).
+- **Columns:** Player, Play, [page's `before`: Threes' Proj Att], Proj (narrow), GMG Fair, Odds, Good
+  To, Edge, [page's `after`: 3PA / 3PM or PTS / FGA a game], then **Hit Rate** (one group box over
+  L5, L10, Season, Home, Away, vs; each colored by its % from red at 20% to green at 80%, from 3
+  games), [page's `end`: Points' Share, Mix], Tags. **Every column sorts** (click; again flips),
+  **Edge by default**; Out players always last. No Min column (2026-10-23).
+- **Tags** are `{key, label, cls, title}`; matchup tags green / red (`.gs-tag`), the rest amber
+  (`.pts-tag`, same shape). **Tag filter** (`#pts-tag`, replaced the Sort menu): only players with
+  that tag. Shared tags: Usage +, and minutes from the injury report: **Min up** = a rotation
+  teammate (20+ min) at his spot (guards / forwards / centers) listed Out tonight (not for a player
+  already at 32+ min); **Min down** = one who sat the team's last game and isn't listed Out tonight.
+  (The last-5 minutes trend tags went with the Min column; the trend is in the projection.)
+- **Points' chance of the Over** (`props.points_chance`): a normal count around the projection, sd =
+  2.73 + 1.07 x sqrt(proj) (fitted on 2025-26's replay). Points' lines record adds [p_over, best
+  Over, best Under] as fields 9-11; a row without them (saved before this) isn't graded.
+- Tests: `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py` (sorting, filter, minutes tags).
+
 ## Threes (threes made; built 2026-10-23 on the Points skeleton)
 
 The owner's 10 ideas + 5 of ours, replayed on 2025-26 first (`tools/backtest/nba_threes.py`,
@@ -227,20 +255,14 @@ he'll make"), so the projection is tries x make rate.
   dog (+6) / cold / hot (0.6 makes a game off his rate). props.json `threes_record.ledger`.
 - **Untested idea waiting on this season's lines:** do the books raise a line after lucky shooting
   (makes up, tries flat)? `luck` is saved per line for exactly that.
-- **The page** (`site/nba/threes.html` + `threes.js` + `threes.css` on top of `points.css`; NBA menu
-  under Points): the Points layout, but the price columns are the NHL pages' (the owner, 2026-10-23: "I
-  prefer how NHL looks where it shows the play, the fair, the odds, and the good to ... Everything we
-  create should mimic the other tools in form and function"): **Play** (o1.5 threes chip, green /
-  red), **Proj** (threes made), **GMG Fair**, **Odds** (best across the member's books, book name
-  under), **Good To** (fair at our chance - 3 points), **Edge** (points, green from 3); then Tries
-  (our tries, make rate under), hit rates on threes made, Min, 3PA (season, L5); tags: 3s Allowed / Tough 3s D (the
+- **The page** (`site/nba/threes.html` + `threes.js` + `threes.css`, on the shared board above; NBA
+  menu under Points): Proj Att (our tries; make rate on hover only, the owner: subtext "muddies the
+  page") between Play and Proj; 3PA / 3PM a game after Edge; tags 3s Allowed / Tough 3s D (the
   defense's `def_three_pp` 1+ league spread, and for 3s Allowed his threes 30%+ of his shots), Help
-  D (`def_catch3` 1+ spread and his catch share 35%+), Underdog +X (6+), Usage +, Min up / down,
-  Cold Run / Hot Run; **every tag one look** (points.css `.pts-tag` = `.gs-tag`'s shape and letters in
-  amber, Points too; a test compares them). Drop down: With / Without on threes (no Off the floor: `with` holds points
-  only), Every Book, **The Ladder** (Rung, Our Fair, Best Price, Edge shaded at 3 points), Shot Zones
-  opened on 3PT. Same testing banner ("Record So Far" in units). Tests: `tests/test_nba_threes_site.py`,
-  `tests/test_nba_props.py` (Threes).
+  D (`def_catch3` 1+ spread and his catch share 35%+), Underdog +X (6+), Cold Run / Hot Run. Drop
+  down: With / Without on threes (no Off the floor: `with` holds points only), Every Book, **The
+  Ladder** (Rung, Our Fair, Best Price, Edge shaded at 3 points), Shot Zones opened on 3PT. Same
+  testing banner ("Record So Far" in units).
 
 ## The player card (`site/nba/nba-card.js`, 2026-10-21)
 

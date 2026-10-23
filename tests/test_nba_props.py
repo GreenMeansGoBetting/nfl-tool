@@ -180,7 +180,7 @@ class LinesRecord(unittest.TestCase):
                 build_nba.props_lines_record(2027, slate(14.5), games, datetime(2026, 10, 21, 20, 0))
                 build_nba.props_lines_record(2027, slate(20.5), games, datetime(2026, 10, 21, 23, 30))  # after tip
                 saved = json.loads((Path(tmp) / "lines_2027.json").read_text())
-                self.assertEqual(saved, {"1": {"7": [14.5, 14.5, None, 0.0, None, None, None, None]}})
+                self.assertEqual(saved, {"1": {"7": [14.5, 14.5, None, 0.0, None, None, None, None, None, None, None]}})
             finally:
                 build_nba.PROPS_RECORD_DIR = real
 
@@ -246,26 +246,33 @@ class TestPointsRecord(unittest.TestCase):
             return ["2026-10-24", game, "BBB", 1, 1, 30, pts, 10, 1, 3, 2]
         return {"fields": props.LOG_FIELDS, "players": {"1": {"log": [row(10, 25), row(11, 20)]}, "2": {"log": [row(10, 30)]}}}
 
-    def test_the_lean_is_graded_and_tagged(self):
+    def test_the_play_is_graded_at_its_best_price_and_tagged(self):
+        # the NHL pages' play rule (2026-10-23): our chance vs what the best price needs
         lines = {
-            "10": {"1": [24.5, 25.4, 30.0, 0.2, 0.8, 0.12, 0.1, 0.0],  # over, won; star line, minutes dip, role player
-                   "2": [28.5, 27.9, 25.0, 0.2]},                       # under, lost (old four-field row)
-            "11": {"1": [20.0, 21.0, 25.0, 0.2]},                       # a push: not a play
+            "10": {"1": [24.5, 25.4, 30.0, 0.2, 0.8, 0.12, 0.1, 0.0, 0.56, 105, -125],  # over (+105 needs 48.8%), 25 scored: won 1.05u
+                   "2": [28.5, 27.9, 25.0, 0.2]},                                      # saved before the chance and prices: not graded
+            "11": {"1": [20.0, 21.0, 25.0, 0.2, None, None, None, 0.0, 0.6, -110, -110]},  # a push: not a play
         }
         ledger = props.record_ledger(lines, self.block())
-        self.assertEqual(ledger, [["2026-10-24", 0.9, 1, None, ["over", "star", "dip", "role"]],
-                                  ["2026-10-24", 0.6, 0, None, ["under", "star"]]])
+        self.assertEqual(ledger, [["2026-10-24", round(0.56 - 100 / 205, 4), 1, 1.05, ["over", "star", "dip", "role"]]])
 
-    def test_no_lean_or_no_game_is_no_play(self):
-        lines = {"10": {"1": [24.5, 24.5, None, 0.0], "3": [12.5, 13.5, 15.0, 0.1]}, "99": {"1": [10.5, 11.0, 12.0, 0.1]}}
+    def test_no_edge_or_no_game_is_no_play(self):
+        lines = {"10": {"1": [24.5, 24.5, None, 0.0, None, None, None, None, 0.5, -110, -110]},
+                 "99": {"1": [10.5, 11.0, 12.0, 0.1, None, None, None, None, 0.7, 100, -120]}}
         self.assertEqual(props.record_ledger(lines, self.block()), [])
         self.assertEqual(props.record_ledger(lines, None), [])
 
     def test_the_record_starts_when_the_projection_went_on_the_page(self):
         block = self.block()
         block["players"]["1"]["log"][0][0] = "2026-10-22"  # the old formula's night
-        lines = {"10": {"1": [24.5, 25.4, 30.0, 0.2]}}
+        lines = {"10": {"1": [24.5, 25.4, 30.0, 0.2, None, None, None, None, 0.6, 105, -125]}}
         self.assertEqual(props.record_ledger(lines, block), [])
+
+    def test_a_chance_of_the_over_from_the_projection(self):
+        self.assertAlmostEqual(props.points_chance(20, 20), 0.5)
+        self.assertGreater(props.points_chance(20, 19.5), 0.5)
+        self.assertLess(props.points_chance(10, 14.5), 0.3)
+        self.assertIsNone(props.points_chance(None, 14.5))
 
 
 class Threes(unittest.TestCase):

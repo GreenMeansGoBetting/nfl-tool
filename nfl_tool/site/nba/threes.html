@@ -50,13 +50,7 @@
       </div>
       <div class="pts-filters">
         <select id="pts-game" aria-label="Game"></select>
-        <select id="pts-sort" aria-label="Sort">
-          <option value="line">Sort: Line</option>
-          <option value="edge">Sort: Edge</option>
-          <option value="tries">Sort: Tries</option>
-          <option value="l10">Sort: Last 10 Over %</option>
-          <option value="season">Sort: Season Over %</option>
-        </select>
+        <select id="pts-tag" aria-label="Tags"><option value="">All Tags</option></select>
         <input id="pts-search" type="search" placeholder="Find a player" aria-label="Find a player">
       </div>
     </div>
@@ -66,7 +60,7 @@
 
     <div id="pts-board" class="section-wrap" hidden>
       <h2 class="section-title">Threes <button type="button" class="info-i" aria-expanded="false" aria-controls="pts-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="pts-note" hidden><b>Play</b>: the side of his main threes-made line (SmartStake) our chance beats its best price by more. <b>Proj</b>: threes made we project (in testing). <b>GMG Fair</b>: our chance as a price with no cut. <b>Odds</b>: the best price across your books; click it for every book. <b>Good To</b>: the worst price that still leaves a 3-point edge. <b>Edge</b>: our chance minus the chance that price needs to break even, in points; green from 3. <b>Tries</b>: threes we expect him to try tonight, his make rate under it. <b>L5 / L10 / Season / H-A / vs</b>: how often he's gone over tonight's line in his last 5, last 10, the season, tonight's home or road games, and against tonight's opponent ("x of y"). <b>Min</b>: season minutes, last 5 under it. <b>3PA</b>: threes tried a game this season, last 5 under it. Tags read both sides: <b>3s Allowed</b> = this defense gives up a lot of threes and he shoots them; <b>Tough 3s D</b> = it gives up few; <b>Help D</b> = its threes allowed are mostly catch-and-shoot and he lives on them; <b>Underdog</b> = his team is getting 6+ (trailing teams shoot more); <b>Usage +</b> = rotation teammates listed Out tonight; <b>Min &uarr; / &darr;</b> = his last 5 games' minutes moved 3+; <b>Cold Run / Hot Run</b> = his last 5 made well under / over his own rate. Click a player for with / without a teammate, every book's price, the ladder and his threes against this defense.</p>
+      <p class="section-note info-note" id="pts-note" hidden><b>Play</b>: the side of his main threes-made line (SmartStake) our chance beats its best price by more. <b>Proj Att</b>: threes we expect him to try tonight (the predictable part; hover for his make rate). <b>Proj</b>: threes made we project (in testing). <b>GMG Fair</b>: our chance as a price with no cut. <b>Odds</b>: the best price across your books; click it for every book. <b>Good To</b>: the worst price that still leaves a 3-point edge. <b>Edge</b>: our chance minus the chance that price needs to break even, in points; green from 3. <b>3PA / 3PM</b>: a game this season. <b>Hit Rate</b>: how often he's gone over tonight's line in his last 5, last 10, the season, at home, on the road and against tonight's opponent ("x of y"), colored by the percentage. Tags read both sides: <b>3s Allowed</b> = this defense gives up a lot of threes and he shoots them; <b>Tough 3s D</b> = it gives up few; <b>Help D</b> = its threes allowed are mostly catch-and-shoot and he lives on them; <b>Underdog</b> = his team is getting 6+ (trailing teams shoot more); <b>Usage +</b> = rotation teammates listed Out tonight; <b>Min &uarr;</b> = a rotation player at his spot is listed Out tonight; <b>Min &darr;</b> = one sat the last game and isn't listed Out tonight; <b>Cold Run / Hot Run</b> = his last 5 made well under / over his own rate. Click any column to sort; pick a tag to see only those players. Click a player for with / without a teammate, every book's price, the ladder and his threes against this defense.</p>
       <div class="pts-scroll"><table class="data-table pts-table" id="pts-table"></table></div>
     </div>
   </div>
@@ -80,6 +74,7 @@
 <script src="../book-odds.js"></script>
 <script src="../ytd.js"></script>
 <script src="threes.js"></script>
+<script src="props-board.js"></script>
 <script src="shot-chart.js"></script>
 <script src="nba-card.js"></script>
 </body>

@@ -1,9 +1,10 @@
-"""The NBA Points page (site/nba/points.html + points.js) on hand-made data.
+"""The NBA Points page (site/nba/points.html + points.js on the shared
+props-board.js) on hand-made data.
 
-What is pinned: every priced player gets a row with the line, the best price
-from the books, the projection (and "= line" before his first game this
-season), hit rates against tonight's line as "x of y"; a player listed Out
-sorts last and is grayed; the player view (with / without and every book's
+What is pinned: every priced player gets a row with the play the NHL pages'
+way (Play chip "o19.5 PTS", Proj, GMG Fair, Odds, Good To, Edge; 2026-10-23),
+PTS / FGA a game, hit rates against tonight's line as "x of y" under one Hit
+Rate header (Home and Away apart); a player listed Out sorts last and is grayed; the player view (with / without and every book's
 price only, the owner's cut on 2026-10-20) splits
 his games by whether a teammate played (and why he sat) and his minutes by
 whether the teammate was on the floor; the page is in the NBA menu."""
@@ -39,8 +40,8 @@ PROPS = {
     "seasons": {"2027": {"label": "2026-27", "fields": FIELDS, "players": {"1": P1, "2": P2, "3": P3},
                          "out": {"AAA": {"3": [["2", "rest"]], "4": [["2", "injury"]]}}}},
     "slate": {"900": {
-        "1": {"line": 19.5, "proj": 21.0, "w": 0.25, "ours": 25.5, "min": 30, "ppm": 0.7, "games": 10, "out": False, "missing": 0},
-        "3": {"line": 9.5, "proj": 9.5, "w": 0.0, "ours": None, "min": None, "ppm": None, "games": 0, "out": True, "missing": 0},
+        "1": {"line": 19.5, "proj": 21.0, "w": 0.25, "ours": 25.5, "min": 30, "ppm": 0.7, "games": 10, "out": False, "missing": 0, "p_over": 0.6},
+        "3": {"line": 9.5, "proj": 9.5, "w": 0.0, "ours": None, "min": None, "ppm": None, "games": 0, "out": True, "missing": 0, "p_over": 0.5},
     }},
     "proj": {"k": 10, "max": 0.5, "last": 5},
     # three graded projections: 2-1, one an Over on a star line
@@ -102,21 +103,21 @@ class Board(unittest.TestCase):
         self.assertEqual(keys, ["900:1", "900:3"])
         self.assertIn("pts-row-out", PAGE.evaluate("() => document.querySelectorAll('#pts-table tbody tr[data-key]')[1].className"))
 
-    def test_line_best_price_projection_and_hit_rates(self):
+    def test_the_play_the_nhl_way_and_hit_rates(self):
         c = cells(0)
-        self.assertEqual(c[1], "19.5")
-        self.assertIn("+105", c[2])  # the best Over (FanDuel)
-        self.assertEqual(c[3], "21.0 Over 1.5")  # shown since 2026-10-23, in testing
-        self.assertEqual(cells(1)[3], "9.5 No Games Yet")  # no games this season = the line
-        # over 19.5: last 5 = 21, 24, 12, 26, 19 -> 3; last 10 -> 6; road (home 0) games 1,3,5,7,9 -> 25, 30, 15, 24, 26 -> 4
-        self.assertEqual(c[4], "60% 3 of 5")
-        self.assertEqual(c[5], "60% 6 of 10")
-        self.assertEqual(c[6], "60% 6 of 10")
-        self.assertEqual(c[7], "80% 4 of 5")
-        self.assertEqual(c[8], "60% 6 of 10")  # all against BBB
-        prices = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table tbody tr[data-key]')[0].querySelectorAll('.pts-price')].map((d) => d.innerText.replace(/\s+/g, ' ').trim())")
-        self.assertEqual(len(prices), 2)  # Over on top of Under
-        self.assertTrue(prices[0].startswith("O") and prices[1].startswith("U"), prices)
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table thead tr:last-child th')].map((th) => th.firstChild.textContent.trim())")
+        self.assertEqual(heads, ["Player", "Play", "Proj", "GMG Fair", "Odds", "Good To", "Edge", "PTS", "FGA",
+                                 "L5", "L10", "Season", "Home", "Away", "vs", "Share", "Mix", "Tags"])
+        # our 60% Over vs FanDuel's +105 (needs 48.8%)
+        self.assertEqual(c[1].upper(), "O19.5 PTS")
+        self.assertEqual(c[2], "21.0")
+        self.assertEqual(c[3], "-150")
+        self.assertIn("+105", c[4])
+        self.assertEqual(c[6], "+11.2")
+        self.assertEqual(cells(1)[2], "9.5 No Games")  # no games this season = the line
+        # over 19.5: last 5 = 21, 24, 12, 26, 19 -> 3; last 10 -> 6; home (odd games) 18, 22, 21, 12, 19 -> 2; road 25, 30, 15, 24, 26 -> 4
+        self.assertEqual(c[9:15], ["60% 3 of 5", "60% 6 of 10", "60% 6 of 10", "40% 2 of 5", "80% 4 of 5", "60% 6 of 10"])
+        self.assertEqual(c[7], "21.2")  # points a game
 
 
 class Mix(unittest.TestCase):
@@ -141,7 +142,7 @@ class TestingBanner(unittest.TestCase):
         PAGE.click("#pts-ytd")
         tiles = PAGE.evaluate("() => [...document.querySelectorAll('#pts-ytd-modal .ytd-tile')].map((t) => t.innerText.replace(/\\s+/g, ' ').trim())")
         PAGE.click("#pts-ytd-modal .modal-close")
-        self.assertTrue(tiles[0].startswith("POINTS PROJECTION 2-1"), tiles)
+        self.assertTrue(tiles[0].startswith("POINTS PLAYS 2-1"), tiles)
         star = next(t for t in tiles if t.startswith("STAR LINES"))
         self.assertIn("1-0", star)
         dip = next(t for t in tiles if t.startswith("MINUTES DIP"))

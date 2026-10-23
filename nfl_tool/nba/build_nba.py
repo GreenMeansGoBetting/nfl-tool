@@ -744,11 +744,14 @@ def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime)
     """model_history/nba_props/lines_<season>.json: {game id: {player id:
     [line, projection, our number, weight on ours, last-5 / season minutes,
     teammates' missing shot share, his shot share, the other team's missing
-    shot share]}} as the last build before tip-off had them (a started game is
-    never rewritten): the line history, and what the projection is graded
-    against (`props_record`). Rows saved before 2026-10-23 have the first four."""
+    shot share, our chance of the Over, best Over price, best Under price]}} as
+    the last build before tip-off had them (a started game is never
+    rewritten): the line history, and what the projection is graded against
+    (`props.record_ledger`). Rows saved before 2026-10-23 have the first four;
+    the chance and prices since the NHL-style play went in (2026-10-23)."""
     return tipoff_record(PROPS_RECORD_DIR / f"lines_{season}.json", slate, games, now_utc,
-                         lambda r: [r["line"], r["proj"], r["ours"], r["w"], r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("opp_missing")])
+                         lambda r: [r["line"], r["proj"], r["ours"], r["w"], r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("opp_missing"),
+                                    r.get("p_over"), r.get("best_o"), r.get("best_u")])
 
 
 def threes_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
@@ -866,8 +869,11 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
                                                   share, opp_missing)
             line = points_line(book_odds, g, pid)
             proj, w = props.project_points(line, len(log), ours)
+            quotes = (priced.get(pid) or {}).get("q") or []
+            p_over = props.points_chance(proj, line)
             season_min = sum(r[i_min] for r in log) / len(log) if log else None
             rows[pid] = {"line": line, "proj": rnd(proj), "w": round(w, 3), "ours": rnd(ours), "min": rnd(minutes),
+                         "p_over": rnd(p_over, 3), "best_o": props.best_price(quotes, "o", line), "best_u": props.best_price(quotes, "u", line),
                          "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3),
                          "share": rnd(share, 3), "opp_missing": rnd(opp_missing, 3),
                          "min_ratio": rnd(minutes / season_min, 3) if minutes and season_min else None}

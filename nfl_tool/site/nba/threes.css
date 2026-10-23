@@ -1,21 +1,6 @@
 /* NBA Threes (threes.html): everything else comes from points.css (the Points page's skeleton). */
-.pts-table td.th-tries b { font-family: var(--font-display); font-size: 0.98rem; }
-.pts-table td.th-tries small { display: block; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
 .th-ladder td small { display: block; font-size: 0.68rem; color: var(--muted); }
 .th-ladder td.num { text-align: center; }
 .pts-view .th-ladder { margin-bottom: 14px; }
 .pts-view h4.th-zones-head { margin-top: 4px; }
 .pts-view h4 .info-i { vertical-align: middle; }
-/* Play / GMG Fair / Odds / Good To / Edge: the NHL pages' look (nhl.css .shots-play, .best-pill), the owner 2026-10-23 */
-.pts-table td.th-play-cell { text-align: center; width: 1%; }
-.th-play { display: inline-flex; align-items: baseline; gap: 5px; padding: 2px 7px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--table-head); font-family: var(--font-display); }
-.th-play b { font-size: 0.98rem; font-weight: 800; letter-spacing: 0.02em; }
-.th-play span { font-size: 0.92rem; font-weight: 700; color: var(--muted); }
-.th-play-o { border-color: rgba(var(--good-rgb), 0.5); background: rgba(var(--good-rgb), 0.1); }
-.th-play-u { border-color: rgba(var(--bad-rgb), 0.5); background: rgba(var(--bad-rgb), 0.1); }
-.pts-table td.th-proj b, .pts-table td.th-fair { font-family: var(--font-display); font-size: 0.98rem; }
-.pts-table td.th-proj small { display: block; font-size: 0.68rem; color: var(--muted); }
-.th-odds .bo-pill { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 8px; font-family: var(--font-display); font-size: 1rem; font-weight: 700; }
-.th-odds .bo-pill small { display: block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; }
-.pts-table td.th-goodto { color: var(--muted); }
-.pts-table td.th-edge { font-family: var(--font-display); font-size: 1.05rem; min-width: 56px; }
