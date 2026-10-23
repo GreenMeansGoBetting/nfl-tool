@@ -73,6 +73,25 @@ function mixCell(p) {
   return `<td class="pts-mix"><div class="pts-mix-pills">${pills.join("")}</div></td>`;
 }
 
+// Share colored like Mix (the owner, 2026-10-23): its percentile among this
+// season's players with MIX_MIN_FGA+ shots on the 8-step rank colors, green = most.
+const sharePools = {};
+function shareCell(r) {
+  const v = r.p ? r.p.share : null;
+  if (v === null || v === undefined) return `<td class="num">--</td>`;
+  if (!sharePools[season]) {
+    const f = F();
+    sharePools[season] = Object.values(block().players)
+      .filter((p) => p.share !== null && p.share !== undefined && (p.log || []).reduce((a, x) => a + x[f.fga], 0) >= MIX_MIN_FGA)
+      .map((p) => p.share).sort((a, b) => a - b);
+  }
+  const pool = sharePools[season];
+  const rank = pool.length ? Math.max(1, Math.min(100, Math.round((100 * pool.filter((x) => x < v).length) / pool.length))) : null;
+  const [hue, fill] = rank === null ? [60, 0] : MIX_SCALE[Math.min(7, Math.floor(((100 - rank) / 100) * 8))];
+  const style = rank === null ? "" : ` style="background:${scaleHsla(hue, 78, 44, fill)}"`;
+  return `<td class="num pts-share"${style} title="His share of his team's shots while he's on the floor${rank === null ? "" : ` (${rank} of 100 among this season's players)`}">${pct(v)}</td>`;
+}
+
 const PB_PAGE = {
   title: "Points",
   stat: "points",
@@ -86,10 +105,10 @@ const PB_PAGE = {
   zonesPts: null,
   wwFloor: true,
   wwCols: [["pts", "Pts"], ["min", "Min"], ["fga", "FGA"]],
-  after: () => [avgCol("ppg", "pts", "PTS", "Points a game this season"), avgCol("fga", "fga", "FGA", "Shots a game this season")],
+  after: () => [avgCol("ppg", "pts", "Avg", "Points a game this season"), avgCol("fga", "fga", "FGA", "Shots a game this season")],
   end: [
     { key: "share", label: "Share", title: "His share of his team's shots while he's on the floor", value: (r) => (r.p ? r.p.share : null),
-      cell: (r) => `<td class="num" title="His share of his team's shots while he's on the floor">${r.p ? pct(r.p.share) : "--"}</td>` },
+      cell: shareCell },
     { key: "mix", label: "Mix", title: "The % of his shots at the rim, from 3 and self-created; sorts by his 3s", value: (r) => (r.p && r.p.zones ? (r.p.zones.corner3 || 0) + (r.p.zones.above3 || 0) : null),
       cell: (r) => mixCell(r.p) },
   ],

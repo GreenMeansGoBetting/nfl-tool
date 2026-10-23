@@ -109,9 +109,9 @@ class Board(unittest.TestCase):
     def test_columns_in_order_with_the_hit_rate_group(self):
         self.assertEqual(SITE.errors, [])
         self.assertEqual(heads(), ["Player", "Play", "Proj Att", "Proj", "GMG Fair", "Odds", "Good To", "Edge", "3PA", "3PM",
-                                   "L5", "L10", "Season", "Home", "Away", "vs", "Tags"])
+                                   "L5", "L10", "Season", "Home", "Away", "Tags"])
         group = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table .pb-group-row th')].map((th) => [th.colSpan, th.innerText.trim().toUpperCase()])")
-        self.assertIn([6, "HIT RATE"], group)
+        self.assertIn([5, "HIT RATE - BASED ON 3PM"], group)  # the rates count makes, not the play
 
     def test_sorted_by_edge_by_default_out_last(self):
         self.assertEqual(keys(), ["900:1", "900:3", "900:2"])  # +8.3, 0.0, then Out
@@ -125,7 +125,7 @@ class Board(unittest.TestCase):
         self.assertEqual(c[3], "2.03")
         self.assertEqual(c[4], "-133")  # 57.1% with no cut
         self.assertIn("+105", c[5])
-        self.assertIn("FANDUEL", c[5].upper())
+        self.assertIn("FD", c[5].upper())  # the book's initials keep Odds narrow
         self.assertEqual(c[6], "-118")  # 54.1% (3 points under ours)
         self.assertEqual(c[7], "+8.3")
         self.assertIn("tier-good", PAGE.evaluate("() => document.querySelector(\"tr[data-key='900:1'] .th-edge\").className"))
@@ -143,12 +143,17 @@ class Board(unittest.TestCase):
     def test_hit_rates_home_and_away_apart_colored_by_the_percentage(self):
         c = row(1)
         # over 1.5: last 5 = 2, 3, 1, 2, 1 -> 3; all 10 -> 6; home (odd games) 1,2,2,1,1 -> 2; road 3,4,0,3,2 -> 4
-        self.assertEqual(c[10:16], ["60% 3 of 5", "60% 6 of 10", "60% 6 of 10", "40% 2 of 5", "80% 4 of 5", "60% 6 of 10"])
+        self.assertEqual(c[10:15], ["60% 3 of 5", "60% 6 of 10", "60% 6 of 10", "40% 2 of 5", "80% 4 of 5"])  # no vs column
         colors = PAGE.evaluate("() => [...document.querySelectorAll(\"tr[data-key='900:1'] .pts-hit\")].map((td) => td.style.background)")
         self.assertTrue(all(colors), colors)
         # every cell, however few games (Player Three's 2 home games too)
         self.assertTrue(PAGE.evaluate("() => [...document.querySelectorAll(\"tr[data-key='900:3'] .pts-hit\")].every((td) => td.style.background)"))
         self.assertEqual(len(set(colors[3:5])), 2)  # 40% and 80% differ
+
+    def test_headers_stay_on_screen(self):
+        # the owner, 2026-10-23: "freeze the headers ... impossible to tell what the numbers mean" further down
+        self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('#pts-table thead')).position"), "sticky")
+        self.assertIn(PAGE.evaluate("() => getComputedStyle(document.querySelector('.pts-scroll')).overflowY"), ("auto", "scroll"))
 
     def test_every_column_sorts_and_flips(self):
         PAGE.click("#pts-table th[data-sort='att']")
@@ -163,12 +168,12 @@ class Board(unittest.TestCase):
         self.assertEqual(keys(), ["900:1", "900:3", "900:2"])
 
     def test_two_sided_tags_in_one_look(self):
-        tags = row(1)[16].upper()
+        tags = row(1)[15].upper()
         self.assertIn("3S ALLOWED", tags)  # BBB gives up threes and 70% of his shots are threes
         self.assertNotIn("HELP D", tags)  # BBB's catch share is average
         self.assertIn("UNDERDOG +7.5", tags)
         self.assertIn("COLD RUN", tags)
-        self.assertNotIn("3S ALLOWED", row(3)[16].upper())  # AAA's defense: no numbers
+        self.assertNotIn("3S ALLOWED", row(3)[15].upper())  # AAA's defense: no numbers
         looks = PAGE.evaluate("""() => [...document.querySelectorAll("tr[data-key='900:1'] .pts-tags > span")].map((t) => {
             const s = getComputedStyle(t);
             return [s.fontSize, s.fontWeight, s.height, s.borderRadius, s.textTransform, s.fontFamily].join('|');
@@ -177,7 +182,7 @@ class Board(unittest.TestCase):
         self.assertEqual(len(set(looks)), 1, looks)
 
     def test_minutes_tags_from_the_injury_report(self):
-        tags = row(1)[16].upper()
+        tags = row(1)[15].upper()
         self.assertIn("MIN ↑", tags)  # Player Two (a guard) is listed Out tonight
         self.assertIn("MIN ↓", tags)  # Player Five sat the last game and isn't listed Out
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-min').length"), 0)  # no Min column
@@ -212,7 +217,7 @@ class TestingBanner(unittest.TestCase):
 class PlayerView(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        PAGE.click("[data-key='900:1'] .pts-player")
+        PAGE.click("[data-key='900:1'] .pts-player", position={"x": 4, "y": 4})  # the row, not the name (that opens the player card)
         PAGE.wait_for_selector(".pts-open")
 
     def test_the_sections(self):

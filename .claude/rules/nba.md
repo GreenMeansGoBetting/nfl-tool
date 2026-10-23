@@ -211,16 +211,22 @@ may be functions because the board's helpers load after):
   books. Until 2026-10-23 it was "the side that beats its price by more", which with the books' cut
   often showed the less-bad side we lean AGAINST (the owner, on Pippen: "why is the play over 1.5 at
   a negative edge - why not list that as an under?"). **GMG Fair** (our chance, no cut), **Odds**
-  (`bookPricePill`, book name under), **Good To** (fair at our chance - `GOOD_TO` 3 points; only on a
+  (the best price, the book's INITIALS under it, full name on hover; click = every book), **Good To** (fair at our chance - `GOOD_TO` 3 points; only on a
   play, edge 3+: on less it named a price better than the books', "weird"), **Edge** (points, green
   from 3 = a play, red below 0 = not good enough, not graded). The record grades the same rule
   (`props.threes_play(p_over, best_o, best_u, lean)`, best price across every book, positive only).
 - Negative-edge rows stay on the board for their data (hit rates, tags); the record never grades them.
 - **Columns:** Player, Play, [page's `before`: Threes' Proj Att], Proj (narrow), GMG Fair, Odds, Good
-  To, Edge, [page's `after`: 3PA / 3PM or PTS / FGA a game], then **Hit Rate** (one group box over
-  L5, L10, Season, Home, Away, vs; every cell colored by its % from red at 20% to green at 80%, however
+  To, Edge, [page's `after`: 3PA / 3PM or Avg / FGA a game], then **Hit Rate - Based On 3PM / PTS**
+  (one group box over L5, L10, Season, Home, Away: the rates count HIS numbers over the line,
+  whichever side the play is, so an Under's red isn't bad news; no vs column, "relevant 3 times a
+  year"; every cell colored by its % from red at 20% to green at 80%, however
   few games: the "x of y" says how many), [page's `end`: Points' Share, Mix], Tags. **Every column sorts** (click; again flips),
-  **Edge by default**; Out players always last. No Min column (2026-10-23).
+  **Edge by default**; Out players always last. No Min column (2026-10-23). The price columns and
+  the numbers (Proj Att, Proj, GMG Fair, Odds, Good To, Edge, the averages) are `th-tight` (as narrow
+  as their numbers; the owner: Odds "absolutely too wide"). **Frozen headers:** the board scrolls in
+  its own box (`.pts-scroll`, at most the window's height) with `thead` sticky. Points' Share is
+  colored by its percentile on Mix's 8-step scale.
 - **Tags** are `{key, label, cls, title}`; matchup tags green / red (`.gs-tag`), the rest amber
   (`.pts-tag`, same shape). **Tag filter** (`#pts-tag`, replaced the Sort menu): only players with
   that tag. Shared tags: Usage +, and minutes from the injury report: **Min up** = a rotation

@@ -74,9 +74,9 @@ const PB_PAGE = {
   wwFloor: false,
   wwCols: [["fg3m", "3PM"], ["fg3a", "3PA"], ["min", "Min"]],
   // Proj Att: the threes we expect him to try (the predictable part), between Play and Proj
-  before: [{ key: "att", label: "Proj Att", title: "Threes we expect him to try tonight: the part last season's replay could predict", cls: "th-narrow",
+  before: [{ key: "att", label: "Proj Att", title: "Threes we expect him to try tonight: the part last season's replay could predict", cls: "th-tight",
              value: (r) => r.row.tries,
-             cell: (r) => `<td class="num th-proj" title="His make rate: ${pct(r.row.pct)} (his season, pulled 200 tries toward the league's)"><b>${fmt(r.row.tries)}</b></td>` }],
+             cell: (r) => `<td class="num th-proj th-tight" title="His make rate: ${pct(r.row.pct)} (his season, pulled 200 tries toward the league's)"><b>${fmt(r.row.tries)}</b></td>` }],
   after: () => [avgCol("a3", "fg3a", "3PA", "Threes tried a game this season"), avgCol("m3", "fg3m", "3PM", "Threes made a game this season")],
   tags: threesTags,
   viewTop: ladderView,

@@ -5,7 +5,12 @@
   background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
   padding: 6px 10px; font: inherit; font-size: 0.9rem;
 }
-.pts-scroll { overflow-x: auto; }
+/* frozen headers (the owner, 2026-10-23: "I scroll down and its impossible to tell what the numbers mean"):
+   the board scrolls in its own box, at most the window's height, with the header rows stuck on top */
+.pts-scroll { overflow: auto; max-height: calc(100vh - 96px); }
+.pts-table thead { position: sticky; top: 0; z-index: 3; }
+.pts-table thead th { background: linear-gradient(var(--table-head), var(--table-head)), var(--panel); }
+.pts-table thead tr.pb-group-row th { background: var(--panel); }
 .pts-table { min-width: 940px; }
 .pts-table td, .pts-table th { white-space: nowrap; }
 .pts-table td.num { text-align: center; }
@@ -106,17 +111,22 @@
 .th-play-u { border-color: rgba(var(--bad-rgb), 0.5); background: rgba(var(--bad-rgb), 0.1); }
 .pts-table td.th-proj b, .pts-table td.th-fair { font-family: var(--font-display); font-size: 0.98rem; }
 .pts-table td.th-proj small { display: block; font-size: 0.68rem; color: var(--muted); }
-.th-odds .bo-pill { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 8px; font-family: var(--font-display); font-size: 1rem; font-weight: 700; }
+.th-odds .bo-pill { display: inline-flex; flex-direction: column; align-items: center; gap: 0; font-family: var(--font-display); font-weight: 700; }
 .th-odds .bo-pill small { display: block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; }
 .pts-table td.th-goodto { color: var(--muted); }
 .pts-table td.th-edge { font-family: var(--font-display); font-size: 1.05rem; width: 1%; }
 /* sortable headers (the NHL pages' .shots-sort) and the "Hit Rate" group box (Icebreaker's .koe-group) */
 .pts-table th.pb-sort { cursor: pointer; user-select: none; }
 .pts-table th.pb-sort:hover, .pts-table th.pb-sort.active { color: var(--accent); }
-.pb-group-row th { background: transparent; border: 0; padding: 0 0 2px; }
+.pb-group-row th { border: 0; padding: 0 0 2px; }
 .pb-group-row th.pb-group span { display: block; padding: 4px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.2); text-align: center; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text); }
 .pts-table th.pb-g { background: rgba(var(--accent-rgb), 0.08); box-shadow: inset 0 -2px 0 rgba(var(--accent-rgb), 0.55); }
 .pts-table td.th-narrow, .pts-table th.th-narrow { width: 1%; padding-left: 6px; padding-right: 6px; }
+/* the price columns as narrow as their numbers (the owner: Odds "absolutely too wide", GMG Fair and Good To too) */
+.pts-table td.th-tight, .pts-table th.th-tight { width: 1%; padding-left: 4px; padding-right: 4px; }
+.pts-table th.th-tight { white-space: normal; line-height: 1.1; }
+.pts-table td.th-odds .bo-pill { padding: 1px 6px; font-size: 0.92rem; line-height: 1.1; }
+.pts-table td.th-odds .bo-pill small { font-size: 0.56rem; letter-spacing: 0.02em; }
 .pts-table td.th-avg { font-family: var(--font-display); }
 
 @media (max-width: 1000px) {

@@ -162,7 +162,6 @@ function rowFor(g, pid, row) {
     all: hits(log, line),
     homeH: hits(log.filter((x) => x[f.home] === 1), line),
     awayH: hits(log.filter((x) => x[f.home] === 0), line),
-    vs: hits(log.filter((x) => x[f.opp] === opp), line),
   };
   r.play = playFor(r);
   r.tags = tagsFor(r);
@@ -175,21 +174,23 @@ const COL = {
   player: { key: "name", label: "Player", value: (r) => r.name, cell: (r) => `<td><div class="pts-player" data-open="${r.pid}">${headshot(r.pid)}<span><b>${playerClick(r.pid, r.name)}</b> <span class="muted-label">${(r.p && r.p.pos) || ""}</span>${r.row.out ? ' <span class="gs-inj-status tier-bad">Out</span>' : ""}<br><span class="muted-label">${logo(r.tm, 14)} ${r.tm} ${r.home ? "vs" : "@"} ${logo(r.opp, 14)} ${r.opp}</span></span></div></td>` },
   play: { key: "play", label: "Play", title: "The side of his main line our projection leans; green / red Edge says if the price is good enough", value: (r) => (r.play ? r.play.edge : null),
     cell: (r) => (r.play ? `<td class="th-play-cell"><span class="th-play th-play-${r.play.side}" title="${r.play.side === "o" ? "Over" : "Under"} ${fmt(r.line)} ${PB_PAGE.unit}: the side our projection leans"><b>${r.play.side}${fmt(r.line)}</b><span>${PB_PAGE.unit}</span></span></td>` : `<td class="th-play-cell">--</td>`) },
-  proj: { key: "proj", label: "Proj", title: "What we project tonight (in testing)", cls: "th-narrow", value: (r) => r.row.proj,
-    cell: (r) => `<td class="num th-proj" title="${projTitle(r)}"><b>${r.row.proj === null || r.row.proj === undefined ? "--" : fmt(r.row.proj, PB_PAGE.projDigits || 1)}</b>${r.row.games ? "" : "<small>No Games</small>"}</td>` },
-  fair: { key: "fair", label: "GMG Fair", title: "Our chance as a price with no cut. Odds longer than this are the edge", value: (r) => (r.play ? r.play.chance : null),
-    cell: (r) => `<td class="num th-fair"${r.play ? ` title="Our chance: ${pct(r.play.chance)}"` : ""}>${r.play && fairPrice(r.play.chance) !== null ? showOdds(fairPrice(r.play.chance)) : "--"}</td>` },
-  odds: { key: "odds", label: "Odds", title: "The best price across your books. Click for every book", value: (r) => (r.play ? oddsDecimal(r.play.price) : null),
+  proj: { key: "proj", label: "Proj", title: "What we project tonight (in testing)", cls: "th-tight", value: (r) => r.row.proj,
+    cell: (r) => `<td class="num th-proj th-tight" title="${projTitle(r)}"><b>${r.row.proj === null || r.row.proj === undefined ? "--" : fmt(r.row.proj, PB_PAGE.projDigits || 1)}</b>${r.row.games ? "" : "<small>No Games</small>"}</td>` },
+  fair: { key: "fair", label: "GMG Fair", cls: "th-tight", title: "Our chance as a price with no cut. Odds longer than this are the edge", value: (r) => (r.play ? r.play.chance : null),
+    cell: (r) => `<td class="num th-fair th-tight"${r.play ? ` title="Our chance: ${pct(r.play.chance)}"` : ""}>${r.play && fairPrice(r.play.chance) !== null ? showOdds(fairPrice(r.play.chance)) : "--"}</td>` },
+  odds: { key: "odds", label: "Odds", cls: "th-tight", title: "The best price across your books. Click for every book", value: (r) => (r.play ? oddsDecimal(r.play.price) : null),
     cell: (r) => {
       if (!r.play) return `<td class="num th-odds">--</td>`;
       const spec = { kind: "prop", stat: PB_PAGE.stat, team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: r.play.side, line: r.line, title: `${r.name} ${PB_PAGE.unit}`, sub: `${r.tm} vs ${r.opp}` };
-      return `<td class="num th-odds">${bookPricePill(spec) || "--"}</td>`;
+      // the book's initials under the price (its name on hover) keep the column narrow (the owner, 2026-10-23)
+      const book = BOOK_NAMES[r.play.book] || r.play.book;
+      return `<td class="num th-odds th-tight"><button type="button" class="bo-pill" data-bo="${boEnc(spec)}" title="Best price across your books: ${book}. Click for every book.">${showOdds(r.play.price)}<small>${BOOK_INITIALS[r.play.book] || book}</small></button></td>`;
     } },
   // Good To only on a play (an edge of GOOD_TO+ at today's price): on anything less it would name a
   // price better than the books offer, which reads backwards (the owner, 2026-10-23: "weird").
-  goodto: { key: "goodto", label: "Good To", title: `The worst price this still has a ${Math.round(GOOD_TO * 100)}-point edge at. Past this, it is no longer a play`,
+  goodto: { key: "goodto", label: "Good To", cls: "th-tight", title: `The worst price this still has a ${Math.round(GOOD_TO * 100)}-point edge at. Past this, it is no longer a play`,
     value: (r) => (r.play && r.play.edge >= GOOD_TO ? r.play.chance : null),
-    cell: (r) => { const v = r.play && r.play.edge >= GOOD_TO ? fairPrice(r.play.chance - GOOD_TO) : null; return `<td class="num th-goodto">${v === null ? "--" : showOdds(v)}</td>`; } },
+    cell: (r) => { const v = r.play && r.play.edge >= GOOD_TO ? fairPrice(r.play.chance - GOOD_TO) : null; return `<td class="num th-goodto th-tight">${v === null ? "--" : showOdds(v)}</td>`; } },
   // Green from GOOD_TO (a play), red below 0 (no play: the record grades only positive edges), deeper the farther.
   edge: { key: "edge", label: "Edge", title: "Our chance minus the chance the price needs to break even, in points. Green from 3 (a play), red below 0", cls: "th-narrow", value: (r) => (r.play ? r.play.edge : null),
     cell: (r) => {
@@ -205,15 +206,14 @@ const COL = {
   season: { key: "season", label: "Season", group: "hit", title: "This season's games over tonight's line", value: (r) => hitShare(r.all), cell: (r) => hitCell(r.all, "This season's games over tonight's line") },
   homeH: { key: "home", label: "Home", group: "hit", title: "Home games over tonight's line", value: (r) => hitShare(r.homeH), cell: (r) => hitCell(r.homeH, "Home games over tonight's line") },
   awayH: { key: "away", label: "Away", group: "hit", title: "Road games over tonight's line", value: (r) => hitShare(r.awayH), cell: (r) => hitCell(r.awayH, "Road games over tonight's line") },
-  vs: { key: "vs", label: "vs", group: "hit", title: "Games against tonight's opponent over tonight's line", value: (r) => hitShare(r.vs), cell: (r) => hitCell(r.vs, `Games against ${r.opp} over tonight's line`) },
   tags: { key: "tags", label: "Tags", value: (r) => r.tags.length, cell: (r) => `<td><div class="pts-tags">${r.tags.map(tagHtml).join("")}</div></td>` },
 };
 // a per-game average column from the log
-const avgCol = (key, field, label, title) => ({ key, label, title, value: (r) => r.avg(field), cell: (r) => `<td class="num th-avg">${fmt(r.avg(field))}</td>` });
+const avgCol = (key, field, label, title) => ({ key, label, title, cls: "th-tight", value: (r) => r.avg(field), cell: (r) => `<td class="num th-avg th-tight">${fmt(r.avg(field))}</td>` });
 // (a page's column list may be a function: its config is read before this file's helpers exist)
 const part = (x) => (typeof x === "function" ? x() : x || []);
 const columns = () => [COL.player, COL.play, ...part(PB_PAGE.before), COL.proj, COL.fair, COL.odds, COL.goodto, COL.edge,
-  ...part(PB_PAGE.after), COL.l5, COL.l10, COL.season, COL.homeH, COL.awayH, COL.vs, ...part(PB_PAGE.end), COL.tags];
+  ...part(PB_PAGE.after), COL.l5, COL.l10, COL.season, COL.homeH, COL.awayH, ...part(PB_PAGE.end), COL.tags];
 
 // ---- the live record (the testing banner + YTD Model Performance) ----
 // props.json <recordKey>.ledger = [date, edge (our chance minus what the price
@@ -395,13 +395,14 @@ function renderBoard() {
     const on = c.key === sortBy.key;
     return `<th class="pb-sort${on ? " active" : ""}${c.cls ? ` ${c.cls}` : ""}${c.group ? " pb-g" : ""}" data-sort="${c.key}"${c.title ? ` title="${c.title}"` : ""}>${c.label}${on ? `<span class="shots-arrow">${sortBy.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
   };
-  // the group row: one "Hit Rate" box over its cells (Icebreaker's look)
+  // the group row: one "Hit Rate - Based On 3PM" box over its cells (Icebreaker's look; the owner,
+// 2026-10-23: the rates count his makes over the line, not the play, so an Under's red isn't bad news)
   let groupRow = "";
   for (let i = 0; i < cols.length; i += 1) {
     if (cols[i].group) {
       let n = 0;
       while (cols[i + n] && cols[i + n].group) n += 1;
-      groupRow += `<th colspan="${n}" class="pb-group"><span>Hit Rate</span></th>`;
+      groupRow += `<th colspan="${n}" class="pb-group" title="How often he went OVER tonight's line (${PB_PAGE.unit}), whichever side the play is"><span>Hit Rate - Based On ${PB_PAGE.unit}</span></th>`;
       i += n - 1;
     } else groupRow += "<th></th>";
   }

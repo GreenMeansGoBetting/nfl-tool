@@ -106,8 +106,8 @@ class Board(unittest.TestCase):
     def test_the_play_the_nhl_way_and_hit_rates(self):
         c = cells(0)
         heads = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table thead tr:last-child th')].map((th) => th.firstChild.textContent.trim())")
-        self.assertEqual(heads, ["Player", "Play", "Proj", "GMG Fair", "Odds", "Good To", "Edge", "PTS", "FGA",
-                                 "L5", "L10", "Season", "Home", "Away", "vs", "Share", "Mix", "Tags"])
+        self.assertEqual(heads, ["Player", "Play", "Proj", "GMG Fair", "Odds", "Good To", "Edge", "Avg", "FGA",
+                                 "L5", "L10", "Season", "Home", "Away", "Share", "Mix", "Tags"])
         # our 60% Over vs FanDuel's +105 (needs 48.8%)
         self.assertEqual(c[1].upper(), "O19.5 PTS")
         self.assertEqual(c[2], "21.0")
@@ -116,7 +116,10 @@ class Board(unittest.TestCase):
         self.assertEqual(c[6], "+11.2")
         self.assertEqual(cells(1)[2], "9.5 No Games")  # no games this season = the line
         # over 19.5: last 5 = 21, 24, 12, 26, 19 -> 3; last 10 -> 6; home (odd games) 18, 22, 21, 12, 19 -> 2; road 25, 30, 15, 24, 26 -> 4
-        self.assertEqual(c[9:15], ["60% 3 of 5", "60% 6 of 10", "60% 6 of 10", "40% 2 of 5", "80% 4 of 5", "60% 6 of 10"])
+        self.assertEqual(c[9:14], ["60% 3 of 5", "60% 6 of 10", "60% 6 of 10", "40% 2 of 5", "80% 4 of 5"])
+        # Share colored by its rank (Player One's 31% is the most of the three)
+        self.assertEqual(c[14], "31%")
+        self.assertTrue(PAGE.evaluate("() => document.querySelector('#pts-table tbody tr[data-key] .pts-share').style.background"))
         self.assertEqual(c[7], "21.2")  # points a game
 
 
@@ -153,7 +156,7 @@ class TestingBanner(unittest.TestCase):
 class PlayerView(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        PAGE.click("[data-key='900:1'] .pts-player")
+        PAGE.click("[data-key='900:1'] .pts-player", position={"x": 4, "y": 4})  # the row, not the name (that opens the player card)
         PAGE.wait_for_selector(".pts-open")
 
     def test_with_without_and_the_books_stacked_then_the_zones(self):
