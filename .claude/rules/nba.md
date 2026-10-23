@@ -190,7 +190,8 @@ options"), Novig only where SmartStake has no price.
   Tough zones (`nbaShotCall`, shared with the Shot Charts page) and a Zone By Zone link to that
   page. The player's NAME opens the player card (below); the rest of the row opens the drop down. Tests:
   `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
-- **The testing banner** (2026-10-23, the owner: "a large header ... that until mid november we
+- **The testing banner** (2026-10-23; under its title, the owner's words as written: **PLEASE WAGER WITH
+  CAUTION UNTIL WE HAVE MORE DATA.**, on Points and Threes; the owner: "a large header ... that until mid november we
   wont know for sure - but also provide checks and balances on the way with real info"): top of
   the page, "Beta" + **Projections In Testing Until Mid-November** (what's proven vs being tested
   behind the i), and on the right **Record So Far** (record.ledger W-L, %) with the **YTD Model
@@ -226,7 +227,9 @@ may be functions because the board's helpers load after):
   the numbers (Proj Att, Proj, GMG Fair, Odds, Good To, Edge, the averages) are `th-tight` (as narrow
   as their numbers; the owner: Odds "absolutely too wide"). **Frozen headers:** the board scrolls in
   its own box (`.pts-scroll`, at most the window's height) with `thead` sticky. Points' Share is
-  colored by its percentile on Mix's 8-step scale.
+  colored by its percentile on Mix's 8-step scale. On PC (1100px+) the board is 10% bigger (`zoom`), the
+  page scrolls and the header sticks under the site's top bar (`--pb-top`, measured); smaller screens
+  keep the scroll box. Threes' Proj is labeled **Proj Make** (`PB_PAGE.projLabel`).
 - **Tags** are `{key, label, cls, title}`; matchup tags green / red (`.gs-tag`), the rest amber
   (`.pts-tag`, same shape). **Tag filter** (`#pts-tag`, replaced the Sort menu): only players with
   that tag. Shared tags: Usage +, and minutes from the injury report: **Min up** = a rotation
@@ -504,7 +507,9 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   row; the third box (was Targets) lists the game's Value starters (Fair vs Novig) and the
   **record**: `model_history/nba_first_basket/<season>.json` (`first_basket_record` in
   build_nba.py; deploy bot commits it) = each game's ten as the last build before tip had them
-  ({id: [name, chance, Novig, Value]}, a started game never rewritten), `result` {team, scorer}
+  ({id: [name, chance, Novig, Value]}, a started game never rewritten), **from `FB_RECORD_START`
+  2026-10-23** (the owner: "start fresh tonight" now that it's this season only; earlier nights are
+  dropped from the file on the next build), `result` {team, scorer}
   from the play-by-play; `first_basket.record` = {plays, won, units (1u at Novig), games}. The
   record uses the build's starters (the NBA lineup copy isn't applied there), the page the live five.
 - **YTD Performance** (the owner, 2026-10-21: "a pill next to the years ... brings up a modal with
@@ -554,7 +559,9 @@ since 2026-10-21). **Removed on purpose:**
   first shot and first points whatever the other team did, `team_first_shot` / `team_first_pts`, in
   a thin box; the owner, 2026-10-21) as % with "x of y" under, **Fair** (our guess) and
   **Novig** (Novig's First Basket price), likeliest first. Team numbers are colored against all 30
-  teams, players against starters with 15+ starts (fewer: plain).
+  teams, players against every starter **from his first start** (`MIN_STARTS` 1 since 2026-10-23, the
+  owner: "the color coding is not showing"; at 15 nobody qualified this early; jumpers from 1 jump).
+  The Matchup's jumper name shortens ("..."), never his height.
 - **Book prices: Best = SmartStake, then Novig** (the owner, 2026-10-21: SmartStake added the first
   point market; "relabel NOVIG to BEST"). `smartstake.add_first_basket` (called by
   `fetch_nba_book_odds`; keys from `first_basket_market_keys`: a player market for the game's first

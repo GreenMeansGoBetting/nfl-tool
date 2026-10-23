@@ -606,6 +606,7 @@ def fetch_nba_lineups(date: str) -> dict | None:
 
 
 FB_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_first_basket"
+FB_RECORD_START = "2026-10-23"  # the First Basket record's first night (this season's numbers only)
 
 
 def first_basket_record(season: int, slate: dict, names: dict, games: list, openings: dict, now_utc: datetime,
@@ -622,11 +623,15 @@ def first_basket_record(season: int, slate: dict, names: dict, games: list, open
     Performance window. tip_home / jumpers are saved from 2026-10-21 on."""
     path = FB_RECORD_DIR / f"{season}.json"
     record = json.loads(path.read_text()) if path.exists() else {}
+    # The record starts clean on FB_RECORD_START (the owner, 2026-10-23: the earlier nights' picks
+    # leaned on last season's numbers; "start fresh tonight" now that it's this season only).
+    kept = {gid: r for gid, r in record.items() if r.get("date", "") >= FB_RECORD_START}
+    changed = len(kept) != len(record)
+    record = kept
     by_id = {g["game_id"]: g for g in games}
-    changed = False
     for gid, game in slate.items():
         g = by_id.get(gid)
-        if not g or g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
+        if not g or g["date"] < FB_RECORD_START or g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
             continue
         rows = {}
         for pid, f in game["fair"]["players"].items():

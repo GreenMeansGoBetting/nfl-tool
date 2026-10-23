@@ -9,8 +9,11 @@
    the board scrolls in its own box, at most the window's height, with the header rows stuck on top */
 .pts-scroll { overflow: auto; max-height: calc(100vh - 96px); }
 .pts-table thead { position: sticky; top: 0; z-index: 3; }
-.pts-table thead th { background: linear-gradient(var(--table-head), var(--table-head)), var(--panel); }
+/* solid, with the 3px gaps between header tiles filled (rows showed through them), and a line under
+   the header so it reads as one bar (the owner, 2026-10-23: "hard to see without an outline") */
+.pts-table thead th { background: linear-gradient(var(--table-head), var(--table-head)), var(--panel); box-shadow: 0 0 0 3px var(--panel); }
 .pts-table thead tr.pb-group-row th { background: var(--panel); }
+.pts-table thead tr:last-child th { box-shadow: 0 0 0 3px var(--panel), 0 5px 0 0 var(--border-strong); }
 .pts-table { min-width: 940px; }
 .pts-table td, .pts-table th { white-space: nowrap; }
 .pts-table td.num { text-align: center; }
@@ -120,7 +123,18 @@
 .pts-table th.pb-sort:hover, .pts-table th.pb-sort.active { color: var(--accent); }
 .pb-group-row th { border: 0; padding: 0 0 2px; }
 .pb-group-row th.pb-group span { display: block; padding: 4px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.2); text-align: center; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text); }
-.pts-table th.pb-g { background: rgba(var(--accent-rgb), 0.08); box-shadow: inset 0 -2px 0 rgba(var(--accent-rgb), 0.55); }
+.pts-table thead tr:last-child th.pb-g { background: linear-gradient(rgba(var(--accent-rgb), 0.08), rgba(var(--accent-rgb), 0.08)), linear-gradient(var(--table-head), var(--table-head)), var(--panel);
+  box-shadow: inset 0 -2px 0 rgba(var(--accent-rgb), 0.55), 0 0 0 3px var(--panel), 0 5px 0 0 var(--border-strong); }
+/* PC: everything on the board 10% bigger (the owner, 2026-10-23: Tags has the room) */
+/* PC: the page scrolls and the header sticks just under the site's sticky top bar (--pb-top, measured by
+   props-board.js; / 1.1 because the zoom scales it); narrower screens keep the board's own scroll box */
+@media (min-width: 1100px) {
+  .pts-table { zoom: 1.1; }
+  .pts-scroll { overflow: visible; max-height: none; }
+  .pts-table thead { top: calc(var(--pb-top, 84px) / 1.1); }
+}
+/* the caution line under the testing banner's title (the owner's words, as written) */
+.pts-caution { margin: 4px 0 2px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; color: var(--mid-text); }
 .pts-table td.th-narrow, .pts-table th.th-narrow { width: 1%; padding-left: 6px; padding-right: 6px; }
 /* the price columns as narrow as their numbers (the owner: Odds "absolutely too wide", GMG Fair and Good To too) */
 .pts-table td.th-tight, .pts-table th.th-tight { width: 1%; padding-left: 4px; padding-right: 4px; }

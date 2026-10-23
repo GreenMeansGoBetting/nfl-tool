@@ -227,8 +227,8 @@ class Build(unittest.TestCase):
         names = {pid: p["name"] for pid, p in BLOCK["players"].items()}
         before, after = datetime(2026, 10, 21, 18, 0), datetime(2026, 10, 22, 5, 0)
         with tempfile.TemporaryDirectory() as tmp:
-            old = build_nba.FB_RECORD_DIR
-            build_nba.FB_RECORD_DIR = Path(tmp)
+            old, old_start = build_nba.FB_RECORD_DIR, build_nba.FB_RECORD_START
+            build_nba.FB_RECORD_DIR, build_nba.FB_RECORD_START = Path(tmp), "2026-10-01"
             try:
                 books = {"BBB_AAA": {"props": {"first_basket": {"11": {"q": [["fanduel", "o", None, 3000, ""]]}}}}}
                 got = build_nba.first_basket_record(2027, slate_, names, [game], {}, before, books)
@@ -262,7 +262,24 @@ class Build(unittest.TestCase):
                 build_nba.first_basket_record(2027, slate_, names, [late], {"9": {"first_team": "AAA", "first_scorer": 12, "tip": "BBB"}}, after)
                 self.assertEqual(json.loads((Path(tmp) / "2027.json").read_text())["9"]["result"]["tip"], "BBB")
             finally:
-                build_nba.FB_RECORD_DIR = old
+                build_nba.FB_RECORD_DIR, build_nba.FB_RECORD_START = old, old_start
+
+    def test_the_record_starts_clean_on_its_first_night(self):
+        # the owner, 2026-10-23: the earlier nights leaned on last season's numbers; start fresh
+        import tempfile
+        from datetime import datetime
+        with tempfile.TemporaryDirectory() as tmp:
+            old, old_start = build_nba.FB_RECORD_DIR, build_nba.FB_RECORD_START
+            build_nba.FB_RECORD_DIR, build_nba.FB_RECORD_START = Path(tmp), "2026-10-23"
+            try:
+                graded = {"date": "2026-10-21", "away": "BBB", "home": "AAA", "first_home": 0.5, "players": {},
+                          "result": {"team": "AAA", "scorer": "12", "tip": "AAA"}}
+                (Path(tmp) / "2027.json").write_text(json.dumps({"1": graded, "2": {**graded, "date": "2026-10-23"}}))
+                got = build_nba.first_basket_record(2027, {}, {}, [], {}, datetime(2026, 10, 24, 5, 0))
+                self.assertEqual(list(json.loads((Path(tmp) / "2027.json").read_text())), ["2"])
+                self.assertEqual([h["game_id"] for h in got["history"]], ["2"])
+            finally:
+                build_nba.FB_RECORD_DIR, build_nba.FB_RECORD_START = old, old_start
 
 
 SITE = PAGE = None

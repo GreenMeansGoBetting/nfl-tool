@@ -108,7 +108,7 @@ def heads():
 class Board(unittest.TestCase):
     def test_columns_in_order_with_the_hit_rate_group(self):
         self.assertEqual(SITE.errors, [])
-        self.assertEqual(heads(), ["Player", "Play", "Proj Att", "Proj", "GMG Fair", "Odds", "Good To", "Edge", "3PA", "3PM",
+        self.assertEqual(heads(), ["Player", "Play", "Proj Att", "Proj Make", "GMG Fair", "Odds", "Good To", "Edge", "3PA", "3PM",
                                    "L5", "L10", "Season", "Home", "Away", "Tags"])
         group = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table .pb-group-row th')].map((th) => [th.colSpan, th.innerText.trim().toUpperCase()])")
         self.assertIn([5, "HIT RATE - BASED ON 3PM"], group)  # the rates count makes, not the play
@@ -153,7 +153,10 @@ class Board(unittest.TestCase):
     def test_headers_stay_on_screen(self):
         # the owner, 2026-10-23: "freeze the headers ... impossible to tell what the numbers mean" further down
         self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('#pts-table thead')).position"), "sticky")
-        self.assertIn(PAGE.evaluate("() => getComputedStyle(document.querySelector('.pts-scroll')).overflowY"), ("auto", "scroll"))
+        # on PC it sticks just under the site's own sticky top bar (measured), so the page scrolls normally
+        top = PAGE.evaluate("() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pb-top'))")
+        self.assertEqual(top, PAGE.evaluate("() => document.querySelector('.topbar').offsetHeight"))
+        self.assertGreater(top, 0)
 
     def test_every_column_sorts_and_flips(self):
         PAGE.click("#pts-table th[data-sort='att']")

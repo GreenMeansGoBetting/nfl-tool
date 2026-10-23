@@ -174,7 +174,7 @@ const COL = {
   player: { key: "name", label: "Player", value: (r) => r.name, cell: (r) => `<td><div class="pts-player" data-open="${r.pid}">${headshot(r.pid)}<span><b>${playerClick(r.pid, r.name)}</b> <span class="muted-label">${(r.p && r.p.pos) || ""}</span>${r.row.out ? ' <span class="gs-inj-status tier-bad">Out</span>' : ""}<br><span class="muted-label">${logo(r.tm, 14)} ${r.tm} ${r.home ? "vs" : "@"} ${logo(r.opp, 14)} ${r.opp}</span></span></div></td>` },
   play: { key: "play", label: "Play", title: "The side of his main line our projection leans; green / red Edge says if the price is good enough", value: (r) => (r.play ? r.play.edge : null),
     cell: (r) => (r.play ? `<td class="th-play-cell"><span class="th-play th-play-${r.play.side}" title="${r.play.side === "o" ? "Over" : "Under"} ${fmt(r.line)} ${PB_PAGE.unit}: the side our projection leans"><b>${r.play.side}${fmt(r.line)}</b><span>${PB_PAGE.unit}</span></span></td>` : `<td class="th-play-cell">--</td>`) },
-  proj: { key: "proj", label: "Proj", title: "What we project tonight (in testing)", cls: "th-tight", value: (r) => r.row.proj,
+  proj: { key: "proj", label: PB_PAGE.projLabel || "Proj", title: "What we project tonight (in testing)", cls: "th-tight", value: (r) => r.row.proj,
     cell: (r) => `<td class="num th-proj th-tight" title="${projTitle(r)}"><b>${r.row.proj === null || r.row.proj === undefined ? "--" : fmt(r.row.proj, PB_PAGE.projDigits || 1)}</b>${r.row.games ? "" : "<small>No Games</small>"}</td>` },
   fair: { key: "fair", label: "GMG Fair", cls: "th-tight", title: "Our chance as a price with no cut. Odds longer than this are the edge", value: (r) => (r.play ? r.play.chance : null),
     cell: (r) => `<td class="num th-fair th-tight"${r.play ? ` title="Our chance: ${pct(r.play.chance)}"` : ""}>${r.play && fairPrice(r.play.chance) !== null ? showOdds(fairPrice(r.play.chance)) : "--"}</td>` },
@@ -380,7 +380,15 @@ function renderTagPicker(all) {
   if (seen.has(cur)) el("pts-tag").value = cur;
 }
 
+// The site's top bar is sticky; on PC the board's header sticks right under it (points.css).
+function measureTopbar() {
+  const bar = document.querySelector(".topbar");
+  document.documentElement.style.setProperty("--pb-top", `${bar ? bar.offsetHeight : 0}px`);
+}
+window.addEventListener("resize", measureTopbar);
+
 function renderBoard() {
+  measureTopbar();
   const all = dayRows();
   renderTagPicker(all);
   const list = rows(all);

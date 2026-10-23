@@ -17,7 +17,10 @@ let dayIndex = 0;
 let gameId = null;
 const FB_GAME_KEY = "nba-tool.fb-game.v1";
 const FB_SEASON_KEY = "nba-tool.fb-season.v1";
-const MIN_STARTS = 15; // players colored against each other need this many starts
+// Every starter is colored from his first start (the owner, 2026-10-23: "the color coding is not
+// showing": at 15 starts nobody qualified this early); the "x of y" under each says how many.
+const MIN_STARTS = 1;
+const MIN_JUMPS_HEAT = 1; // jumpers colored against each other
 const LINEUP_POLL_MS = 60 * 1000;
 const LINEUPS = {}; // {YYYY-MM-DD: {fetched, games, live}}
 // The NBA's team abbreviations that differ from ESPN's (our keys).
@@ -72,7 +75,7 @@ function playerHeat(key, value) {
 }
 // A jumper's tips won against every regular jumper's.
 function jumperHeat(value) {
-  return zHeat(value, Object.values(block().players).filter((x) => x.jumps >= 10).map((x) => x.tips_won / x.jumps));
+  return zHeat(value, Object.values(block().players).filter((x) => x.jumps >= MIN_JUMPS_HEAT).map((x) => x.tips_won / x.jumps));
 }
 
 const block = () => FB.seasons[season];
@@ -347,7 +350,8 @@ function renderMatchup(g, p) {
     if (row.jumper) {
       const id = p[where(g, abbr)].jumper;
       const h = ((FB.tip || {}).heights || {})[id];
-      return `<td class="fb-m-val fb-m-jumper">${id ? `${face(id)}<span>${lastName(player(id).name)}</span>${h ? `<small>${feetInches(h)}</small>` : ""}` : `<span class="muted-label">None</span>`}</td>`;
+      // the name gives way (ellipsis), never the height (the owner: long names hid it)
+      return `<td class="fb-m-val fb-m-jumper">${id ? `<div class="fb-jumper-in">${face(id)}<span title="${player(id).name}">${lastName(player(id).name)}</span>${h ? `<small>${feetInches(h)}</small>` : ""}</div>` : `<span class="muted-label">None</span>`}</td>`;
     }
     const v = row.value(abbr);
     const title = row.title ? ` title="${row.title(abbr).replace(/"/g, "&quot;")}"` : "";

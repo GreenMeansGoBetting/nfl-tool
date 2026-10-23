@@ -68,6 +68,7 @@ const PB_PAGE = {
   made: "fg3m",
   unit: "3PM",
   projDigits: 2,
+  projLabel: "Proj Make", // next to Proj Att (the owner, 2026-10-23)
   noun: "threes lines",
   seasonKey: "nba-tool.threes-season.v1",
   zonesPts: "3",
