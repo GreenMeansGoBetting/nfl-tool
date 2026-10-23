@@ -143,6 +143,14 @@ options"), Novig only where SmartStake has no price.
   `slate` = {game id: {player id: line, proj, w, ours, min, ppm, games, out}} for the next 3
   nights; `proj` = the settings. **PROJ_MAX stays 0.5 until a replay on the saved tip-off lines
   says otherwise** (the record keeps [line, proj, ours, w] per player for exactly that).
+- **Factor research (2026-10-23, the owner's 10 ideas + minutes, referees, star lines, rest):** the
+  replay (`tools/backtest/nba_points.py`, findings in its header) found two new things that predict
+  points: last-5 minutes overshoot (a minutes dip bounces back, a rise sticks) and missing
+  teammates' shots go mostly to role players. Referee crews, rest / schedule spots and the position
+  matchup added nothing. Nothing is in `project_points` yet: **every factor is graded against this
+  season's tip-off lines first** (`py tools/backtest/nba_points_lines.py --season 2027`; needs
+  `py tools/backtest/nba_refs.py --season 2027` for the crews; meaningful from ~2,000 lines, about
+  mid-November). Star lines (idea C) can only be tested there.
 - Tests: `tests/test_nba_props.py`.
 - **The Points page** (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
   above First Basket; built 2026-10-20 from the owner's plan in words, no mockup, then trimmed the
