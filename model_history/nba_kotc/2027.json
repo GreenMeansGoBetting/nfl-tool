@@ -550,51 +550,51 @@
   "board": [
    {
     "id": "4065733",
-    "lead": 0.2721,
+    "lead": 0.2724,
     "name": "Ty Jerome",
     "proj": 58.9,
     "team": "MEM"
    },
    {
     "id": "4594268",
-    "lead": 0.258,
+    "lead": 0.2583,
     "name": "Anthony Edwards",
     "proj": 58.5,
     "team": "MIN"
    },
    {
     "id": "4432573",
-    "lead": 0.121,
+    "lead": 0.1214,
     "name": "Paolo Banchero",
     "proj": 51.9,
     "team": "ORL"
    },
    {
     "id": "6583",
-    "lead": 0.0885,
+    "lead": 0.0886,
     "name": "Anthony Davis",
     "proj": 49.1,
     "team": "WSH"
    },
    {
     "id": "4251",
-    "lead": 0.0467,
+    "lead": 0.046,
     "name": "Paul George",
-    "proj": 45.8,
+    "proj": 45.7,
     "team": "BOS"
    },
    {
     "id": "3032977",
-    "lead": 0.0321,
+    "lead": 0.0322,
     "name": "Giannis Antetokounmpo",
     "proj": 43.4,
     "team": "MIA"
    },
    {
     "id": "3945274",
-    "lead": 0.0302,
+    "lead": 0.0298,
     "name": "Luka Doncic",
-    "proj": 42.6,
+    "proj": 42.5,
     "team": "LAL"
    },
    {
@@ -613,9 +613,9 @@
    },
    {
     "id": "3202",
-    "lead": 0.0108,
+    "lead": 0.0107,
     "name": "Kevin Durant",
-    "proj": 38.6,
+    "proj": 38.5,
     "team": "HOU"
    },
    {
@@ -634,9 +634,9 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0083,
+    "lead": 0.0082,
     "name": "Alperen Sengun",
-    "proj": 37.2,
+    "proj": 37.1,
     "team": "HOU"
    },
    {
@@ -648,9 +648,9 @@
    },
    {
     "id": "4396993",
-    "lead": 0.0062,
+    "lead": 0.0063,
     "name": "Tyrese Haliburton",
-    "proj": 36.8,
+    "proj": 36.9,
     "team": "IND"
    },
    {
@@ -664,14 +664,14 @@
     "id": "4433136",
     "lead": 0.0047,
     "name": "Walker Kessler",
-    "proj": 35.9,
+    "proj": 35.8,
     "team": "LAL"
    },
    {
     "id": "4432639",
-    "lead": 0.0047,
+    "lead": 0.0044,
     "name": "Jabari Smith Jr.",
-    "proj": 35.6,
+    "proj": 35.5,
     "team": "HOU"
    },
    {
@@ -683,7 +683,7 @@
    },
    {
     "id": "4396907",
-    "lead": 0.004,
+    "lead": 0.0041,
     "name": "Darius Garland",
     "proj": 35.2,
     "team": "LAC"
@@ -734,7 +734,7 @@
     "id": "4845367",
     "lead": 0.0018,
     "name": "Stephon Castle",
-    "proj": 31.6,
+    "proj": 31.5,
     "team": "SA"
    },
    {
@@ -748,7 +748,7 @@
     "id": "4066457",
     "lead": 0.0017,
     "name": "Austin Reaves",
-    "proj": 32.7,
+    "proj": 32.6,
     "team": "LAL"
    },
    {
@@ -811,7 +811,7 @@
     "id": "4684740",
     "lead": 0.0008,
     "name": "Amen Thompson",
-    "proj": 30.3,
+    "proj": 30.2,
     "team": "HOU"
    },
    {
@@ -823,9 +823,9 @@
    },
    {
     "id": "6585",
-    "lead": 0.0007,
+    "lead": 0.0006,
     "name": "Andre Drummond",
-    "proj": 30.7,
+    "proj": 30.6,
     "team": "NY"
    },
    {
@@ -888,7 +888,7 @@
     "id": "4432816",
     "lead": 0.0002,
     "name": "LaMelo Ball",
-    "proj": 29.3,
+    "proj": 29.2,
     "team": "MIN"
    },
    {
@@ -958,14 +958,14 @@
     "id": "4066259",
     "lead": 0.0,
     "name": "De'Aaron Fox",
-    "proj": 27.7,
+    "proj": 27.6,
     "team": "SA"
    },
    {
     "id": "5104157",
     "lead": 0.0,
     "name": "Victor Wembanyama",
-    "proj": 27.3,
+    "proj": 27.2,
     "team": "SA"
    }
   ],
