@@ -455,8 +455,22 @@ def units(price, won: bool) -> float | None:
     return price / 100 if price > 0 else 100 / -price
 
 
-# The threes record: the side our chance leans off the books' (no lean = no
-# play), graded at the best price at tip-off, 1 unit. The split tags test each
+def threes_play(p_over, best_o, best_u):
+    """(side "over" / "under", edge, price) of the side our chance beats its
+    best price by more (the NHL pages' rule: our chance minus the chance the
+    price needs to break even), or None with no price or no positive edge."""
+    if p_over is None:
+        return None
+    sides = [(side, chance - implied(price), price) for side, chance, price in (("over", p_over, best_o), ("under", 1 - p_over, best_u))
+             if price is not None]
+    best = max(sides, key=lambda x: x[1], default=None)
+    return best if best and best[1] > 0 else None
+
+
+# The threes record (changed 2026-10-23 to the NHL pages' play rule, the
+# owner: "mimic the other tools in form and function"): the side our chance
+# beats its best price by more, graded only on a positive edge, at that best
+# price at tip-off, 1 unit. The split tags test each
 # idea on its own: a minutes dip, a role player with teammates Out, an
 # underdog of THREES_DOG+, a cold / hot last 5 (THREES_STREAK makes a game off
 # his own rate), and the 0.5 line (one make = Over).
@@ -467,7 +481,7 @@ THREES_STREAK = 0.6
 
 def threes_ledger(lines: dict, block: dict | None) -> list:
     """The shared YTD tracker's rows: [date, edge (our chance of the side
-    minus the books'), won 1/0, units, tags], oldest first. `lines` =
+    minus what its best price needs), won 1/0, units, tags], oldest first. `lines` =
     model_history/nba_props/threes_<season>.json."""
     if not block:
         return []
@@ -479,11 +493,13 @@ def threes_ledger(lines: dict, block: dict | None) -> list:
     out = []
     for gid, rows in lines.items():
         for pid, row in rows.items():
-            line, p_over, p_mkt, best_o, best_u = row[0], row[4], row[5], row[6], row[7]
+            line, p_over, best_o, best_u = row[0], row[4], row[6], row[7]
             got = played.get((str(gid), pid))
-            if got is None or got[0] < THREES_RECORD_START or line is None or p_over is None or p_mkt is None or p_over == p_mkt or got[1] == line:
+            play = threes_play(p_over, best_o, best_u)
+            if got is None or got[0] < THREES_RECORD_START or line is None or play is None or got[1] == line:
                 continue
-            over = p_over > p_mkt
+            side, edge, price = play
+            over = side == "over"
             won = (got[1] > line) == over
             min_ratio, missing, share, luck, spread = (list(row[8:13]) + [None] * 5)[:5]
             tags = ["over" if over else "under"]
@@ -499,7 +515,7 @@ def threes_ledger(lines: dict, block: dict | None) -> list:
                 tags.append("hot")
             if line == 0.5:
                 tags.append("half")
-            out.append([got[0], round(abs(p_over - p_mkt), 4), int(won), units(best_o if over else best_u, won), tags])
+            out.append([got[0], round(edge, 4), int(won), units(price, won), tags])
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
 

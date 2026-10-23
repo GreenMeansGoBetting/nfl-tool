@@ -19,6 +19,7 @@ const CATCH_SHARE = 0.35; // his share of shots that are catch-and-shoot, for He
 const DOG = 6; // his team getting this many points = Underdog (the replay: trailing teams shoot more)
 const STREAK = 0.6; // makes a game off his own rate over the last 5 = Cold Run / Hot Run
 const LADDER_EDGE = 0.03; // our chance this far over / under a rung's price = shaded
+const GOOD_TO = 0.03; // Good To: the worst price that still leaves this much edge; Edge is green from here
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => (DATA && DATA.teams[abbr]) || { name: abbr, short: abbr, logo: "", color: "555555" };
@@ -100,15 +101,17 @@ function rowFor(g, pid, row) {
   const avg = (rows, k) => rows.reduce((a, r) => a + r[f[k]], 0) / rows.length;
   const minutes = log.length ? { avg: avg(log, "min"), l5: avg(log.slice(-5), "min"), games: log.length } : null;
   const tries = log.length ? { avg: avg(log, "fg3a"), l5: avg(log.slice(-5), "fg3a") } : null;
-  return {
+  const r = {
     pid, g, tm, opp, home, p, row, line, log, minutes, tries,
     name: (p && p.name) || bookName(g, pid) || pid,
     l5: hits(log.slice(-5), line),
     l10: hits(log.slice(-10), line),
     all: hits(log, line),
-    ha: hits(log.filter((r) => r[f.home] === (home ? 1 : 0)), line),
-    vs: hits(log.filter((r) => r[f.opp] === opp), line),
+    ha: hits(log.filter((x) => x[f.home] === (home ? 1 : 0)), line),
+    vs: hits(log.filter((x) => x[f.opp] === opp), line),
   };
+  r.play = playFor(r);
+  return r;
 }
 function rosterTeam(pid, g) {
   const cur = (PROPS.seasons[thisSeason()] || { players: {} }).players[pid];
@@ -117,20 +120,52 @@ function rosterTeam(pid, g) {
   return last ? last.team : g.away;
 }
 
-// The projection: threes made, and the side it leans by how many points our
-// chance of the Over beats the books' no-vig chance (the edge). Graded live
-// (props.json `threes_record`). No games this season = the books' number.
-const projEdge = (r) => (r.row.edge === null || r.row.edge === undefined ? 0 : r.row.edge);
-function projCell(r) {
+// The play, the NHL pages' way (the owner, 2026-10-23: "I prefer how NHL looks
+// where it shows the play, the fair, the odds, and the good to"): of Over and
+// Under at his main line, the side our chance beats its best price (across the
+// member's books) by more. GMG Fair = our chance as a price with no cut; Good
+// To = the worst price that still leaves GOOD_TO of edge; Edge = our chance
+// minus the chance the price needs to break even, in points. The record grades
+// the same rule (props.threes_play, at the best price across every book).
+const fairPrice = (p) => (p === null || p === undefined || p <= 0 || p >= 1 ? null : probToAmerican(p));
+const points = (edge) => `${edge > 0 ? "+" : ""}${(edge * 100).toFixed(1)}`;
+function playFor(r) {
+  const p = r.row.p_over;
+  if (p === null || p === undefined || r.line === null || r.line === undefined) return null;
+  const quotes = (bookRow(r.g, r.pid) || {}).q || [];
+  return [["o", p], ["u", 1 - p]]
+    .map(([side, chance]) => {
+      const best = bookBest(quotes, side, r.line);
+      return best ? { side, chance, price: best[3], book: best[0], edge: chance - oddsProb(best[3]) } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.edge - a.edge)[0] || null;
+}
+const playEdge = (r) => (r.play ? r.play.edge : -1);
+function playCells(r) {
+  const x = r.play;
+  if (!x) return `<td class="th-play-cell">--</td><td class="num th-proj">${projText(r)}</td><td class="num">--</td><td class="num">--</td><td class="num">--</td><td class="num">--</td>`;
+  const word = x.side === "o" ? "Over" : "Under";
+  const spec = { kind: "prop", stat: "threes", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: x.side, line: r.line, title: `${r.name} threes`, sub: `${r.tm} vs ${r.opp}` };
+  const need = oddsProb(x.price);
+  const cls = x.edge >= GOOD_TO ? "tier-good" : x.edge < 0 ? "muted-label" : "";
+  const alpha = x.edge >= GOOD_TO ? ` style="--tier-a:${Math.min(0.34, 0.08 + (x.edge - GOOD_TO) * 3).toFixed(2)}"` : "";
+  const goodTo = fairPrice(x.chance - GOOD_TO);
+  return `<td class="th-play-cell"><span class="th-play th-play-${x.side}" title="${word} ${fmt(r.line)} threes made: the side our chance beats its best price by more"><b>${x.side}${fmt(r.line)}</b><span>threes</span></span></td>
+    <td class="num th-proj">${projText(r)}</td>
+    <td class="num th-fair" title="The price our chance (${pct(x.chance)}) is worth with no cut. Odds longer than this are the edge">${fairPrice(x.chance) === null ? "--" : showOdds(fairPrice(x.chance))}</td>
+    <td class="num th-odds">${bookPricePill(spec) || "--"}</td>
+    <td class="num th-goodto" title="The worst price this still has a ${Math.round(GOOD_TO * 100)}-point edge at. Past this, it is no longer a play">${goodTo === null ? "--" : showOdds(goodTo)}</td>
+    <td class="num th-edge ${cls}"${alpha} title="Our ${pct(x.chance)} minus the ${pct(need)} this price needs to break even">${points(x.edge)}</td>`;
+}
+// Proj: the threes made we project. Early on it leans on the books' number and
+// moves toward ours as his games come in (props.project_threes).
+function projText(r) {
   const proj = r.row.proj;
-  if (proj === null || proj === undefined) return `<td class="num pts-proj">--</td>`;
-  const edge = projEdge(r);
-  const lean = r.row.edge === null || r.row.edge === undefined ? `<small>No Price</small>`
-    : Math.abs(edge) < 0.005 ? `<small>${r.row.games ? "At The Line" : "No Games Yet"}</small>`
-      : `<small class="${edge > 0 ? "pts-res-o" : "pts-res-u"}">${edge > 0 ? "Over" : "Under"} +${Math.round(Math.abs(edge) * 100)}%</small>`;
+  if (proj === null || proj === undefined) return "--";
   const title = r.row.ours === null || r.row.ours === undefined ? "No games this season yet: the projection is the books' number"
-    : `Our number ${fmt(r.row.ours, 2)} made; the projection weighs it ${Math.round(r.row.w * 100)}% against the books' (more as his games come in). Our chance of the Over ${pct(r.row.p_over)}, the books' ${pct(r.row.p_mkt)} (no vig)`;
-  return `<td class="num pts-proj" title="${title}"><b>${fmt(proj)}</b>${lean}</td>`;
+    : `Our number ${fmt(r.row.ours, 2)} made; the projection weighs it ${Math.round(r.row.w * 100)}% against the books' (more as his games come in)`;
+  return `<b title="${title}">${fmt(proj, 2)}</b>${r.row.games ? "" : "<small>No Games Yet</small>"}`;
 }
 function triesCell(r) {
   const t = r.row.tries;
@@ -174,22 +209,12 @@ function renderYtd() {
   overlay.hidden = false;
 }
 
-function pricesCell(r) {
-  const spec = (side) => ({ kind: "prop", stat: "threes", team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side, line: r.line, title: `${r.name} threes`, sub: `${r.tm} vs ${r.opp}` });
-  const o = bookPricePill(spec("o"));
-  const u = bookPricePill(spec("u"));
-  const line = (side, pill) => `<div class="pts-price"><span class="pts-side">${side}</span>${pill || "--"}</div>`;
-  return `<td class="pts-prices">${o || u ? line("O", o) + line("U", u) : "--"}</td>`;
-}
-
 function renderRow(r) {
   const out = r.row.out;
   const minutes = r.minutes;
   const cells = `
     <td><div class="pts-player" data-open="${r.pid}">${headshot(r.pid)}<span><b>${playerClick(r.pid, r.name)}</b> <span class="muted-label">${(r.p && r.p.pos) || ""}</span>${out ? ' <span class="gs-inj-status tier-bad">Out</span>' : ""}<br><span class="muted-label">${logo(r.tm, 14)} ${r.tm} ${r.home ? "vs" : "@"} ${logo(r.opp, 14)} ${r.opp}</span></span></div></td>
-    <td class="num"><b>${fmt(r.line)}</b></td>
-    ${pricesCell(r)}
-    ${projCell(r)}
+    ${playCells(r)}
     ${triesCell(r)}
     ${hitCell(r.l5, "Last 5 games over tonight's line")}
     ${hitCell(r.l10, "Last 10 games over tonight's line")}
@@ -200,7 +225,7 @@ function renderRow(r) {
     <td class="num pts-min" title="Threes tried a game: season, last 5 under it">${r.tries ? `${fmt(r.tries.avg)}<small>L5 ${fmt(r.tries.l5)}</small>` : "--"}</td>
     <td><div class="pts-tags">${tags(r.p || {}, r.row, r.opp, minutes)}</div></td>`;
   const open = openId === `${r.g.game_id}:${r.pid}`;
-  return `<tr class="${out ? "pts-row-out" : ""}" data-key="${r.g.game_id}:${r.pid}">${cells}</tr>${open ? `<tr class="pts-open"><td colspan="13">${playerView(r)}</td></tr>` : ""}`;
+  return `<tr class="${out ? "pts-row-out" : ""}" data-key="${r.g.game_id}:${r.pid}">${cells}</tr>${open ? `<tr class="pts-open"><td colspan="16">${playerView(r)}</td></tr>` : ""}`;
 }
 
 // ---- the player view ----
@@ -327,7 +352,7 @@ function rows() {
   const sort = el("pts-sort").value;
   const key = {
     line: (r) => r.line || 0,
-    edge: (r) => Math.abs(projEdge(r)),
+    edge: playEdge,
     tries: (r) => r.row.tries || 0,
     l10: (r) => share(r.l10),
     season: (r) => share(r.all),
@@ -343,7 +368,7 @@ function renderBoard() {
     el("empty-state").innerHTML = "<p>No threes lines posted for this day yet. The books usually post them the morning of the games.</p>";
     return;
   }
-  const head = `<thead><tr><th>Player</th><th>Line</th><th>Best Price</th><th>Proj</th><th>Tries</th><th>L5</th><th>L10</th><th>Season</th><th>H/A</th><th>vs</th><th>Min</th><th>3PA</th><th>Tags</th></tr></thead>`;
+  const head = `<thead><tr><th>Player</th><th title="The side our chance beats its best price by more">Play</th><th title="Threes made we project tonight">Proj</th><th title="Our chance as a price with no cut">GMG Fair</th><th title="The best price across your books. Click for every book">Odds</th><th title="The worst price this still has a ${Math.round(GOOD_TO * 100)}-point edge at">Good To</th><th title="Our chance minus the chance the price needs to break even, in points">Edge</th><th>Tries</th><th>L5</th><th>L10</th><th>Season</th><th>H/A</th><th>vs</th><th>Min</th><th>3PA</th><th>Tags</th></tr></thead>`;
   el("pts-table").innerHTML = `${head}<tbody>${list.map(renderRow).join("")}</tbody>`;
 }
 

@@ -92,26 +92,49 @@ class Board(unittest.TestCase):
         keys = PAGE.evaluate("() => [...document.querySelectorAll('#pts-table tbody tr[data-key]')].map((tr) => tr.dataset.key)")
         self.assertEqual(keys, ["900:1", "900:2"])
 
-    def test_line_price_projection_tries_and_hit_rates(self):
+    def test_play_fair_odds_good_to_and_edge_the_nhl_way(self):
+        # Player One: our 57.1% Over. Over's best is +105 (needs 48.8%): +8.3; Under's -110 (needs 52.4%
+        # for our 42.9%): worse. So the play is o1.5 at +105.
         c = cells(0)
-        self.assertEqual(c[1], "1.5")
-        self.assertIn("+105", c[2])  # the best Over (FanDuel)
-        self.assertEqual(c[3], "2.0 Over +5%")  # our 57% vs the books' 52%
-        self.assertEqual(c[4], "6.4 35% Make")
-        self.assertEqual(cells(1)[3], "0.6 No Games Yet")
+        self.assertEqual(c[1].upper(), "O1.5 THREES")
+        self.assertEqual(c[2], "2.03")
+        self.assertEqual(c[3], "-133")  # 57.1% with no cut
+        self.assertIn("+105", c[4])
+        self.assertIn("FANDUEL", c[4].upper())
+        self.assertEqual(c[5], "-118")  # 54.1% (3 points under ours)
+        self.assertEqual(c[6], "+8.3")
+        self.assertIn("tier-good", PAGE.evaluate("() => document.querySelector('#pts-table tbody tr[data-key] .th-edge').className"))
+        # Player Two: only an Over price, and no edge at it: shown, not green
+        c2 = cells(1)
+        self.assertEqual(c2[1].upper(), "O0.5 THREES")
+        self.assertEqual(c2[2], "0.60 No Games Yet")
+        self.assertEqual(c2[6], "-0.5")
+
+    def test_tries_and_hit_rates(self):
+        c = cells(0)
+        self.assertEqual(c[7], "6.4 35% Make")
         # over 1.5 (2+ made): last 5 = 2, 3, 1, 2, 1 -> 3; all 10 -> 3,4,2,2,3,2 = 6; road (home 0) games 1,3,5,7,9 -> 3,4,0,3,2 -> 4
-        self.assertEqual(c[5], "60% 3 of 5")
-        self.assertEqual(c[6], "60% 6 of 10")
-        self.assertEqual(c[8], "80% 4 of 5")
-        self.assertEqual(c[11], "6.0 L5 6.0")  # threes tried a game
+        self.assertEqual(c[8], "60% 3 of 5")
+        self.assertEqual(c[9], "60% 6 of 10")
+        self.assertEqual(c[11], "80% 4 of 5")
+        self.assertEqual(c[14], "6.0 L5 6.0")  # threes tried a game
 
     def test_two_sided_tags(self):
-        tags = cells(0)[12].upper()
+        tags = cells(0)[15].upper()
         self.assertIn("3S ALLOWED", tags)  # BBB gives up threes and 70% of his shots are threes
         self.assertNotIn("HELP D", tags)  # BBB's catch share is average
         self.assertIn("UNDERDOG +7.5", tags)
         self.assertIn("COLD RUN", tags)
-        self.assertNotIn("3S ALLOWED", cells(1)[12].upper())  # a center who doesn't shoot them
+        self.assertNotIn("3S ALLOWED", cells(1)[15].upper())  # a center who doesn't shoot them
+
+    def test_every_tag_one_look(self):
+        # the owner, 2026-10-23: Hot Run next to TOUGH 3s D was a different font, size and shape
+        looks = PAGE.evaluate("""() => [...document.querySelectorAll('#pts-table tbody tr[data-key]')[0].querySelectorAll('.pts-tags > span')].map((t) => {
+            const s = getComputedStyle(t);
+            return [s.fontSize, s.fontWeight, s.height, s.borderRadius, s.textTransform, s.fontFamily].join('|');
+        })""")
+        self.assertGreaterEqual(len(looks), 3)
+        self.assertEqual(len(set(looks)), 1, looks)
 
 
 class TestingBanner(unittest.TestCase):

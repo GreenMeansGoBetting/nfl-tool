@@ -340,21 +340,30 @@ class Threes(unittest.TestCase):
         self.assertEqual(s["games"], 5)
         self.assertAlmostEqual(s["edge"], s["p_over"] - s["p_mkt"], places=2)
 
-    def test_the_record_grades_the_lean_at_the_best_price(self):
+    def test_the_play_is_the_side_that_beats_its_best_price(self):
+        # the NHL pages' rule: our chance minus what the price needs, the bigger side, positive only
+        self.assertEqual(props.threes_play(0.6, 110, -130)[:2], ("over", 0.6 - 100 / 210))
+        side, edge, price = props.threes_play(0.4, -110, 120)
+        self.assertEqual((side, price), ("under", 120))
+        self.assertAlmostEqual(edge, 0.6 - 100 / 220)
+        self.assertIsNone(props.threes_play(0.5, -115, -115))  # the vig eats both sides
+        self.assertIsNone(props.threes_play(0.6, None, None))
+
+    def test_the_record_grades_the_play_at_its_best_price(self):
         def row(game, made):
             return ["2026-10-24", game, "BBB", 1, 1, 30, 10, 10, made, 6, 2]
         block = {"fields": props.LOG_FIELDS, "players": {"1": {"log": [row(10, 3), row(11, 1)]}, "2": {"log": [row(10, 2)]}}}
         lines = {
-            # over (ours 0.58 vs 0.52), 3 made: won at +110; underdog, cold run
+            # over: 58% vs +110's 47.6%, 3 made: won 1.1u; underdog, cold run
             "10": {"1": [1.5, 1.9, 2.2, 0.25, 0.58, 0.52, 110, -130, 1.0, 0.0, 0.2, -0.8, 7.5],
-                   # under (0.40 vs 0.45), 2 made on 1.5: lost at -1
-                   "2": [1.5, 1.4, 1.2, 0.25, 0.40, 0.45, -105, -120, 1.0, 0.0, 0.2, 0.0, -3.0]},
-            # no lean: not a play
+                   # under: 60% vs +105's 48.8%, 2 made on 1.5: lost 1u
+                   "2": [1.5, 1.4, 1.2, 0.25, 0.40, 0.45, -150, 105, 1.0, 0.0, 0.2, 0.0, -3.0]},
+            # no positive edge on either side: not a play
             "11": {"1": [0.5, 1.0, 1.0, 0.0, 0.6, 0.6, -150, 120]},
         }
         ledger = props.threes_ledger(lines, block)
-        self.assertEqual(ledger, [["2026-10-24", 0.06, 1, 1.1, ["over", "dog", "cold"]],
-                                  ["2026-10-24", 0.05, 0, -1.0, ["under"]]])
+        self.assertEqual(ledger, [["2026-10-24", round(0.6 - 100 / 205, 4), 0, -1.0, ["under"]],
+                                  ["2026-10-24", round(0.58 - 100 / 210, 4), 1, 1.1, ["over", "dog", "cold"]]])
         self.assertEqual(props.threes_ledger(lines, None), [])
 
     def test_a_started_game_is_never_rewritten(self):

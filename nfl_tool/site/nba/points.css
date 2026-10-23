@@ -29,7 +29,14 @@
 .pts-mix-pill b { font-family: var(--font-display); font-size: 0.82rem; color: var(--text); }
 .pts-tags { display: flex; gap: 4px; flex-wrap: wrap; max-width: 240px; white-space: normal; }
 .pts-tags .gs-tag, .pts-tags .pts-tag { font-size: 0.66rem; }
-.pts-tag { padding: 2px 6px; border-radius: 999px; border: 1px solid rgba(var(--mid-rgb), 0.5); background: rgba(var(--mid-rgb), 0.12); color: var(--text); font-weight: 600; }
+/* Every tag one look (the owner, 2026-10-23: "Make all the tags the same style"): style.css .gs-tag's
+   shape, size and letters; the info tags in amber (.gs-tag-strong's colors), matchup tags green / red. */
+.pts-tag {
+  display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 6px; border-radius: 6px;
+  font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
+  color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.55);
+}
+.pts-tags .gs-tag { height: 22px; }
 .pts-prices { width: 1%; }
 .pts-price { display: flex; align-items: center; gap: 3px; }
 .pts-price + .pts-price { margin-top: 3px; }

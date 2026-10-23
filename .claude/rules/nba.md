@@ -221,17 +221,23 @@ he'll make"), so the projection is tries x make rate.
   `nba.threes_alt` says what came back. The page shows only rungs a book prices (owner's list #3).
 - **Record:** `model_history/nba_props/threes_<season>.json` ({game: {player: [line, proj, ours, w,
   p_over, p_mkt, best Over, best Under, min_ratio, missing, share, luck, spread]}}, never rewritten
-  after tip); `props.threes_ledger` grades the side our chance leans at the best price at tip, 1u,
+  after tip); `props.threes_ledger` grades the play (`threes_play`, the NHL pages' rule since 2026-10-23:
+  the side our chance beats its best price by more, a positive edge only) at that price, 1u,
   from `THREES_RECORD_START` 2026-10-23; split tags over / under / half (0.5 lines) / dip / role /
   dog (+6) / cold / hot (0.6 makes a game off his rate). props.json `threes_record.ledger`.
 - **Untested idea waiting on this season's lines:** do the books raise a line after lucky shooting
   (makes up, tries flat)? `luck` is saved per line for exactly that.
 - **The page** (`site/nba/threes.html` + `threes.js` + `threes.css` on top of `points.css`; NBA menu
-  under Points): the Points layout with Proj (threes made + "Over +5%"), Tries (our tries, make
-  rate under), hit rates on threes made, Min, 3PA (season, L5); tags: 3s Allowed / Tough 3s D (the
+  under Points): the Points layout, but the price columns are the NHL pages' (the owner, 2026-10-23: "I
+  prefer how NHL looks where it shows the play, the fair, the odds, and the good to ... Everything we
+  create should mimic the other tools in form and function"): **Play** (o1.5 threes chip, green /
+  red), **Proj** (threes made), **GMG Fair**, **Odds** (best across the member's books, book name
+  under), **Good To** (fair at our chance - 3 points), **Edge** (points, green from 3); then Tries
+  (our tries, make rate under), hit rates on threes made, Min, 3PA (season, L5); tags: 3s Allowed / Tough 3s D (the
   defense's `def_three_pp` 1+ league spread, and for 3s Allowed his threes 30%+ of his shots), Help
   D (`def_catch3` 1+ spread and his catch share 35%+), Underdog +X (6+), Usage +, Min up / down,
-  Cold Run / Hot Run. Drop down: With / Without on threes (no Off the floor: `with` holds points
+  Cold Run / Hot Run; **every tag one look** (points.css `.pts-tag` = `.gs-tag`'s shape and letters in
+  amber, Points too; a test compares them). Drop down: With / Without on threes (no Off the floor: `with` holds points
   only), Every Book, **The Ladder** (Rung, Our Fair, Best Price, Edge shaded at 3 points), Shot Zones
   opened on 3PT. Same testing banner ("Record So Far" in units). Tests: `tests/test_nba_threes_site.py`,
   `tests/test_nba_props.py` (Threes).
