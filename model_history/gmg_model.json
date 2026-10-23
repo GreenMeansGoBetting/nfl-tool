@@ -622,5 +622,27 @@
   "total_result": "loss",
   "updated": "2026-10-19T22:28Z",
   "week": 6
+ },
+ "2026_07_NE_CHI": {
+  "away": "NE",
+  "away_pts": 22.5,
+  "final": [
+   24,
+   30
+  ],
+  "frozen": true,
+  "home": "CHI",
+  "home_pts": 24.1,
+  "qb_out": [],
+  "spread": -2.5,
+  "spread_edge": 0.9,
+  "spread_pick": "away",
+  "spread_result": "loss",
+  "total": 50.5,
+  "total_edge": 3.9,
+  "total_pick": "under",
+  "total_result": "loss",
+  "updated": "2026-10-22T21:43Z",
+  "week": 7
  }
 }
