@@ -385,6 +385,13 @@ class Page(unittest.TestCase):
         self.assertEqual((novig["P12"], novig["P10"], novig["P11"]), ("+450 Novig", "+600 Novig", "--"))
         self.assertTrue(any("JUMPER" in s[0].upper() for s in starters))
 
+    def test_the_beta_banner(self):
+        # the owner, 2026-10-23: "add the beta header on first basket" (Points' and Threes' banner)
+        text = PAGE.evaluate(r"() => document.getElementById('fb-testing').innerText.replace(/\s+/g, ' ')")
+        self.assertIn("Projections In Testing Until Mid-November", text)
+        self.assertIn("PLEASE WAGER WITH CAUTION UNTIL WE HAVE MORE DATA.", text)
+        self.assertIn("VALUE RECORD SO FAR", text.upper())
+
     def test_season_buttons(self):
         buttons = PAGE.evaluate("() => [...document.querySelectorAll('#fb-seasons button')].map((b) => [b.textContent, b.disabled])")
         self.assertEqual(buttons, [["2025-26", False], ["2026-27", False]])
@@ -401,7 +408,7 @@ class Page(unittest.TestCase):
               { game_id: "7", date: "2026-10-20", away: "AAA", home: "BBB", tip_home: null, jumpers: null, tip: "BBB",
                 first_home: 0.45, first: "AAA", scorer: null, value: [] }] };
             render();
-            const pill = document.querySelector('#fb-seasons #fb-ytd');
+            const pill = document.querySelector('#fb-testing #fb-ytd');  // in the testing banner since 2026-10-23
             const label = pill && pill.textContent;
             pill.click();
             const modal = document.getElementById('fb-ytd-modal');

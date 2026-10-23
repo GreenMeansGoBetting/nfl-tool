@@ -512,6 +512,10 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   dropped from the file on the next build), `result` {team, scorer}
   from the play-by-play; `first_basket.record` = {plays, won, units (1u at Novig), games}. The
   record uses the build's starters (the NBA lineup copy isn't applied there), the page the live five.
+- **Testing banner** (2026-10-23, the owner: "add the beta header on first basket"): the Points /
+  Threes banner (styles in suite.css since then) at the top: Beta, Projections In Testing Until
+  Mid-November, the caution line, and on the right the **Value Record So Far** with the YTD Model
+  Performance button (it sat beside the season buttons before).
 - **YTD Performance** (the owner, 2026-10-21: "a pill next to the years ... brings up a modal with
   the history"): a pill after the season buttons ("YTD Model Performance" since 2026-10-22) opens a
   window (`renderYtd`, book-odds.js's `ensureBookModal`) with the shared tracker (styles.md, "YTD

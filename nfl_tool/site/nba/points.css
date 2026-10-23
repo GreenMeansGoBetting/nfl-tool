@@ -50,24 +50,6 @@
 .pts-price + .pts-price { margin-top: 3px; }
 .pts-prices .bo-pill { font-size: 0.74rem; padding: 2px 6px; }
 .pts-prices .bo-pill small { display: none; }
-/* the testing banner (the owner, 2026-10-23: a large header until mid-November, with the live record) */
-.pts-testing {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 18px; align-items: center;
-  margin: 10px 0 8px; padding: 14px 18px; border-radius: 12px;
-  background: rgba(var(--mid-rgb), 0.12); border: 1px solid rgba(var(--mid-rgb), 0.55); border-left: 6px solid rgb(var(--mid-rgb));
-}
-.pts-testing-kicker {
-  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 2px 8px; border-radius: 999px; background: rgb(var(--mid-rgb)); color: #111;
-}
-.pts-testing-title { margin: 6px 0 2px; font-family: var(--font-display); font-size: 1.6rem; line-height: 1.1; }
-.pts-testing-sub { margin: 0; color: var(--muted); font-size: 0.9rem; }
-.pts-testing-record { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
-.pts-rec-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; line-height: 1; }
-.pts-rec-num small { font-size: 0.95rem; color: var(--muted); margin-left: 6px; }
-.pts-rec-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.pts-testing-record .view-toggle-btn { border-radius: 999px; font-weight: 700; }
-.pts-testing-note { grid-column: 1 / -1; margin: 4px 0 0; }
 #pts-ytd-modal .modal-box { max-width: 900px; }
 .pts-table td.pts-proj b { font-family: var(--font-display); font-size: 0.98rem; }
 .pts-table td.pts-proj small { white-space: nowrap; }
@@ -133,8 +115,6 @@
   .pts-scroll { overflow: visible; max-height: none; }
   .pts-table thead { top: calc(var(--pb-top, 84px) / 1.1); }
 }
-/* the caution line under the testing banner's title (the owner's words, as written) */
-.pts-caution { margin: 4px 0 2px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; color: var(--mid-text); }
 .pts-table td.th-narrow, .pts-table th.th-narrow { width: 1%; padding-left: 6px; padding-right: 6px; }
 /* the price columns as narrow as their numbers (the owner: Odds "absolutely too wide", GMG Fair and Good To too) */
 .pts-table td.th-tight, .pts-table th.th-tight { width: 1%; padding-left: 4px; padding-right: 4px; }
@@ -147,10 +127,7 @@
   .pts-view { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
-  .pts-testing { grid-template-columns: 1fr; }
   .pts-zone-pair { grid-template-columns: 1fr; }
-  .pts-testing-title { font-size: 1.25rem; }
-  .pts-testing-record { align-items: flex-start; text-align: left; }
   .pts-head { flex-direction: column; align-items: stretch; }
   .pts-filters select, .pts-filters input { flex: 1 1 140px; }
 }

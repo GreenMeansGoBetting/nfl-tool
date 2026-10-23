@@ -237,8 +237,7 @@ function renderSeasons() {
   el("fb-seasons").innerHTML = Object.keys(FB.seasons)
     .sort()
     .map((s) => `<button type="button" class="view-toggle-btn${s === season ? " active" : ""}" data-season="${s}">${FB.seasons[s].label}</button>`)
-    .join("") + (FB.seasons[thisSeason] ? "" : `<button type="button" class="view-toggle-btn" disabled title="After the first games">${DATA.season_label}</button>`)
-    + (FB.record ? `<button type="button" class="view-toggle-btn fb-ytd-btn" id="fb-ytd">YTD Model Performance</button>` : "");
+    .join("") + (FB.seasons[thisSeason] ? "" : `<button type="button" class="view-toggle-btn" disabled title="After the first games">${DATA.season_label}</button>`);
   const b = block();
   const cur = FB.seasons[thisSeason];
   el("fb-season-note").textContent = season === thisSeason
@@ -587,9 +586,22 @@ function renderStarters(g, p) {
   el("fb-starters").innerHTML = box(g.away) + box(g.home);
 }
 
+// The testing banner's right side (Points' and Threes' look): the Value record
+// so far and the YTD Model Performance button (it sat beside the season
+// buttons until the banner came, 2026-10-23).
+function renderRecord() {
+  const rec = FB.record;
+  const units = (rec && rec.units) || 0;
+  el("fb-rec").innerHTML = rec && rec.plays
+    ? `<span class="pts-rec-label">Value Record So Far</span><span class="pts-rec-num">${rec.won}-${rec.plays - rec.won}<small>${Math.round((100 * rec.won) / rec.plays)}% &middot; ${units >= 0 ? "+" : ""}${units.toFixed(1)}u</small></span>
+       <button type="button" class="view-toggle-btn" id="fb-ytd">YTD Model Performance</button>`
+    : `<span class="pts-rec-label">Value Record So Far</span><span class="pts-rec-num">0-0</span><small class="muted-label">First Grades After Tonight's Games</small>${rec ? '<button type="button" class="view-toggle-btn" id="fb-ytd">YTD Model Performance</button>' : ""}`;
+}
+
 function render() {
   renderSchedule();
   renderSeasons();
+  renderRecord();
   const g = game();
   const p = plan();
   shownPlan = p;

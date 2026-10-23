@@ -98,3 +98,30 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .nba-shot-seg { flex-wrap: wrap; }
   .nba-shot-opt { padding: 4px 8px; }
 }
+
+/* The NBA testing banner (Points, Threes, First Basket; moved here from points.css 2026-10-23 when
+   First Basket got it: the owner, "add the beta header on first basket") */
+.pts-testing {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 18px; align-items: center;
+  margin: 10px 0 8px; padding: 14px 18px; border-radius: 12px;
+  background: rgba(var(--mid-rgb), 0.12); border: 1px solid rgba(var(--mid-rgb), 0.55); border-left: 6px solid rgb(var(--mid-rgb));
+}
+.pts-testing-kicker {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px; background: rgb(var(--mid-rgb)); color: #111;
+}
+.pts-testing-title { margin: 6px 0 2px; font-family: var(--font-display); font-size: 1.6rem; line-height: 1.1; }
+.pts-testing-sub { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.pts-testing-record { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+.pts-rec-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; line-height: 1; }
+.pts-rec-num small { font-size: 0.95rem; color: var(--muted); margin-left: 6px; }
+.pts-rec-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.pts-testing-record .view-toggle-btn { border-radius: 999px; font-weight: 700; }
+.pts-testing-note { grid-column: 1 / -1; margin: 4px 0 0; }
+/* the caution line under its title (the owner's words, as written) */
+.pts-caution { margin: 4px 0 2px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; color: var(--mid-text); }
+@media (max-width: 760px) {
+  .pts-testing { grid-template-columns: 1fr; }
+  .pts-testing-title { font-size: 1.25rem; }
+  .pts-testing-record { align-items: flex-start; text-align: left; }
+}
