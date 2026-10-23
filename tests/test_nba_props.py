@@ -268,5 +268,111 @@ class TestPointsRecord(unittest.TestCase):
         self.assertEqual(props.record_ledger(lines, block), [])
 
 
+class Threes(unittest.TestCase):
+    """The threes projection (2026-10-23, tools/backtest/nba_threes.py): tries x
+    make rate, a night's count wider than Poisson, anchored to the books."""
+
+    def row(self, minutes, made, tried, game=1):
+        return ["2026-10-21", game, "BBB", 1, 1, minutes, 10, 10, made, tried, 2]
+
+    def test_a_nights_threes_spread_wider_than_poisson(self):
+        import math
+        poisson = lambda m, k: math.exp(-m) * m ** k / math.factorial(k)  # noqa: E731
+        self.assertAlmostEqual(sum(props.nb_pmf(1.8, k) for k in range(40)), 1.0, places=6)
+        # the replay: 1+ hits less often than Poisson, 4+ more often
+        self.assertLess(props.chance_over(1.0, 0.5), 1 - poisson(1.0, 0))
+        self.assertGreater(props.chance_over(1.0, 3.5), 1 - sum(poisson(1.0, k) for k in range(4)))
+
+    def test_the_books_chance_and_the_mean_it_implies(self):
+        q = [["dk", "o", 1.5, -130, ""], ["fd", "o", 1.5, -120, ""], ["dk", "u", 1.5, 100, ""], ["fd", "u", 1.5, -105, ""], ["mgm", "o", 2.5, 190, ""]]
+        p = props.market_chance(q, 1.5)
+        self.assertTrue(0.5 < p < 0.56)
+        self.assertAlmostEqual(props.chance_over(props.mean_for(p, 1.5), 1.5), p, places=4)
+        self.assertEqual(props.best_price(q, "o", 1.5), -120)
+        self.assertIsNone(props.market_chance(q, 3.5))
+        # one side only: its price less a 4.5% vig
+        self.assertAlmostEqual(props.market_chance([["dk", "o", 0.5, -300, ""]], 0.5), 0.75 / 1.045)
+
+    def test_day_one_is_the_books_and_ours_moves_it(self):
+        q = [["dk", "o", 1.5, -110, ""], ["dk", "u", 1.5, -110, ""]]
+        day1 = props.project_threes(1.5, q, 0, None)
+        self.assertAlmostEqual(day1["p_over"], 0.5, places=4)
+        self.assertAlmostEqual(day1["edge"], 0.0, places=4)
+        later = props.project_threes(1.5, q, 10, 3.0)
+        self.assertAlmostEqual(later["w"], props.PROJ_MAX / 2)
+        self.assertGreater(later["edge"], 0.05)
+        self.assertEqual(len(later["ladder"]), 5)
+        self.assertTrue(all(a > b for a, b in zip(later["ladder"], later["ladder"][1:])))
+        self.assertIsNone(props.project_threes(1.5, [], 10, 3.0)["edge"])  # no price: no edge
+
+    def test_tries_times_a_make_rate_pulled_toward_the_league(self):
+        log = [self.row(30, 3, 6)] * 4  # 24 tries, 12 made in 120 minutes
+        t = props.our_threes(log, props.LOG_FIELDS, None, None, None, 0.36)
+        self.assertAlmostEqual(t["pct"], (12 + props.THREES_K * 0.36) / (24 + props.THREES_K))
+        luck = 3 - 6 * t["pct"]
+        self.assertAlmostEqual(t["tries"], 30 * 0.2 * (1 + props.T_LEAN) * (1 + props.T_LUCK * luck))
+        self.assertAlmostEqual(t["makes"], t["tries"] * t["pct"])
+
+    def test_threes_allowed_help_defense_and_underdogs_raise_tries(self):
+        log = [self.row(30, 2, 6)] * 4
+        league = {"off_pace": {"avg": 100.0}, "def_three_pp": {"avg": 0.38}, "def_catch3": {"avg": 0.6}}
+        avg = {"off_pace": 100.0, "def_three_pp": 0.38, "def_catch3": 0.6}
+        base = props.our_threes(log, props.LOG_FIELDS, avg, avg, league, 0.36)["tries"]
+        loose = props.our_threes(log, props.LOG_FIELDS, avg, {**avg, "def_three_pp": 0.42, "def_catch3": 0.66}, league, 0.36)["tries"]
+        self.assertAlmostEqual(loose / base, (0.42 / 0.38) ** props.T_DEF3 * 1.1 ** props.T_CATCH3)
+        dog = props.our_threes(log, props.LOG_FIELDS, avg, avg, league, 0.36, spread=10)["tries"]
+        self.assertAlmostEqual(dog / base, 1 + props.T_DOG)
+        role = props.our_threes(log, props.LOG_FIELDS, avg, avg, league, 0.36, out_share=0.2, share=0.1)["tries"]
+        star = props.our_threes(log, props.LOG_FIELDS, avg, avg, league, 0.36, out_share=0.2, share=0.3)["tries"]
+        self.assertGreater(role, base * 1.1)
+        self.assertAlmostEqual(star, base)
+
+    def test_the_slate_reads_the_threes_market_and_his_teams_spread(self):
+        f = props.LOG_FIELDS
+        block = {"fields": f, "players": {"3": {"team": "CCC", "log": [self.row(30, 2, 6, game=g) for g in range(5)]}}}
+        game = {"game_id": "20", "date": "2026-10-22", "away": "CCC", "home": "EEE", "home_team_spread": -8.5}
+        q = [["dk", "o", 1.5, -125, ""], ["fd", "o", 1.5, -115, ""], ["dk", "u", 1.5, 105, ""]]
+        odds = {"CCC_EEE": {"props": {"threes": {"3": {"name": "P3", "q": q}}}}}
+        s = build_nba.threes_slate(2027, block, odds, [game], None, {}, {"3": "CCC"}, datetime(2026, 10, 22, 12, 0))["20"]["3"]
+        self.assertEqual(s["line"], 1.5)
+        self.assertEqual(s["spread"], 8.5)  # the road team is getting 8.5
+        self.assertEqual((s["best_o"], s["best_u"]), (-115, 105))
+        self.assertEqual(s["games"], 5)
+        self.assertAlmostEqual(s["edge"], s["p_over"] - s["p_mkt"], places=2)
+
+    def test_the_record_grades_the_lean_at_the_best_price(self):
+        def row(game, made):
+            return ["2026-10-24", game, "BBB", 1, 1, 30, 10, 10, made, 6, 2]
+        block = {"fields": props.LOG_FIELDS, "players": {"1": {"log": [row(10, 3), row(11, 1)]}, "2": {"log": [row(10, 2)]}}}
+        lines = {
+            # over (ours 0.58 vs 0.52), 3 made: won at +110; underdog, cold run
+            "10": {"1": [1.5, 1.9, 2.2, 0.25, 0.58, 0.52, 110, -130, 1.0, 0.0, 0.2, -0.8, 7.5],
+                   # under (0.40 vs 0.45), 2 made on 1.5: lost at -1
+                   "2": [1.5, 1.4, 1.2, 0.25, 0.40, 0.45, -105, -120, 1.0, 0.0, 0.2, 0.0, -3.0]},
+            # no lean: not a play
+            "11": {"1": [0.5, 1.0, 1.0, 0.0, 0.6, 0.6, -150, 120]},
+        }
+        ledger = props.threes_ledger(lines, block)
+        self.assertEqual(ledger, [["2026-10-24", 0.06, 1, 1.1, ["over", "dog", "cold"]],
+                                  ["2026-10-24", 0.05, 0, -1.0, ["under"]]])
+        self.assertEqual(props.threes_ledger(lines, None), [])
+
+    def test_a_started_game_is_never_rewritten(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            real = build_nba.PROPS_RECORD_DIR
+            build_nba.PROPS_RECORD_DIR = Path(tmp)
+            try:
+                games = [{"game_id": "1", "away": "BOS", "home": "DET", "start_utc": "2026-10-21T23:00Z"}]
+
+                def slate(line):
+                    return {"1": {"7": {"line": line, "proj": 1.8, "ours": 2.0, "w": 0.2, "p_over": 0.55, "p_mkt": 0.5, "best_o": -110, "best_u": -110}}}
+                build_nba.threes_lines_record(2027, slate(1.5), games, datetime(2026, 10, 21, 20, 0))
+                build_nba.threes_lines_record(2027, slate(2.5), games, datetime(2026, 10, 21, 23, 30))  # after tip
+                saved = json.loads((Path(tmp) / "threes_2027.json").read_text())
+                self.assertEqual(saved["1"]["7"][:8], [1.5, 1.8, 2.0, 0.2, 0.55, 0.5, -110, -110])
+            finally:
+                build_nba.PROPS_RECORD_DIR = real
+
+
 if __name__ == "__main__":
     unittest.main()

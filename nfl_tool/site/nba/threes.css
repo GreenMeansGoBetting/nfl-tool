@@ -1,0 +1,8 @@
+/* NBA Threes (threes.html): everything else comes from points.css (the Points page's skeleton). */
+.pts-table td.th-tries b { font-family: var(--font-display); font-size: 0.98rem; }
+.pts-table td.th-tries small { display: block; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+.th-ladder td small { display: block; font-size: 0.68rem; color: var(--muted); }
+.th-ladder td.num { text-align: center; }
+.pts-view .th-ladder { margin-bottom: 14px; }
+.pts-view h4.th-zones-head { margin-top: 4px; }
+.pts-view h4 .info-i { vertical-align: middle; }

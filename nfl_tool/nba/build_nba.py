@@ -728,11 +728,16 @@ def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_
                                           (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%MZ"), keep)
 
 
-def points_line(book_odds: dict, game: dict, pid: str):
-    """The middle main points line across the books for one player, or None."""
-    row = (((book_odds.get(f"{game['away']}_{game['home']}") or {}).get("props") or {}).get("points") or {}).get(pid)
+def stat_line(book_odds: dict, game: dict, pid: str, stat: str):
+    """The middle main line across the books for one player's market, or None."""
+    row = (((book_odds.get(f"{game['away']}_{game['home']}") or {}).get("props") or {}).get(stat) or {}).get(pid)
     ls = sorted(q[2] for q in (row or {}).get("q", []) if q[2] is not None)
     return ls[len(ls) // 2] if ls else None
+
+
+def points_line(book_odds: dict, game: dict, pid: str):
+    """The middle main points line across the books for one player, or None."""
+    return stat_line(book_odds, game, pid, "points")
 
 
 def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
@@ -742,14 +747,31 @@ def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime)
     shot share]}} as the last build before tip-off had them (a started game is
     never rewritten): the line history, and what the projection is graded
     against (`props_record`). Rows saved before 2026-10-23 have the first four."""
-    path = PROPS_RECORD_DIR / f"lines_{season}.json"
+    return tipoff_record(PROPS_RECORD_DIR / f"lines_{season}.json", slate, games, now_utc,
+                         lambda r: [r["line"], r["proj"], r["ours"], r["w"], r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("opp_missing")])
+
+
+def threes_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
+    """model_history/nba_props/threes_<season>.json: {game id: {player id:
+    [line, projection (makes), our makes, weight on ours, our chance of the
+    Over, the books' no-vig chance, best Over price, best Under price, last-5
+    / season minutes, teammates' missing shot share, his shot share, last-5
+    makes above his rate a game, his team's spread]}} as the last build before
+    tip-off had them: what props.threes_ledger grades."""
+    return tipoff_record(PROPS_RECORD_DIR / f"threes_{season}.json", slate, games, now_utc,
+                         lambda r: [r["line"], r["proj"], r["ours"], r["w"], r["p_over"], r["p_mkt"], r["best_o"], r["best_u"],
+                                    r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("luck"), r.get("spread")])
+
+
+def tipoff_record(path: Path, slate: dict, games: list, now_utc: datetime, row) -> dict:
+    """A props slate's rows saved per game as the last build before tip-off
+    had them (a started game is never rewritten)."""
     record = json.loads(path.read_text()) if path.exists() else {}
     changed = False
     for g in games:
         if datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
             continue
-        rows = {pid: [r["line"], r["proj"], r["ours"], r["w"], r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("opp_missing")]
-                for pid, r in (slate.get(g["game_id"]) or {}).items() if r["line"] is not None}
+        rows = {pid: row(r) for pid, r in (slate.get(g["game_id"]) or {}).items() if r["line"] is not None}
         if rows and record.get(g["game_id"]) != rows:
             record[g["game_id"]] = rows
             changed = True
@@ -781,42 +803,54 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
             "proj": {"k": props.PROJ_K, "max": props.PROJ_MAX, "last": props.PROJ_LAST}}
 
 
-def points_slate(season, this, book_odds, games, identity_blob, injuries, roster_team, now_utc) -> dict:
-    """{game id: {player id: {line, proj, w, ours, min, ppm, games, out}}} for
-    every player with a books' points line in the next KOTC_SLATE_NIGHTS
-    nights. Our number is this season's only; no games = the line."""
+def slate_parts(season, this, games, identity_blob, injuries, roster_team, now_utc) -> dict | None:
+    """What every props slate reads: the next KOTC_SLATE_NIGHTS nights, this
+    season's players and log fields, Team Identity, each player's season shot
+    share of his team (`own`; `rotation` = 20+ minutes a game, for teammates
+    listed Out) and each team's missing shot share tonight."""
     if now_utc is None:
-        return {}
+        return None
     ident = ((identity_blob or {}).get("seasons") or {}).get(str(season)) or {}
     out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
     players = (this or {}).get("players") or {}
     fields = (this or {}).get("fields") or props.LOG_FIELDS
-    rnd = lambda v, d=1: None if v is None else round(v, d)  # noqa: E731
-    # each player's season shot share of his team (for teammates listed Out),
-    # rotation players only (20+ minutes a game)
     # (a team-game is its game + opponent: a traded player's old games stay with his old team)
     i_fga, i_game, i_min, i_opp = fields.index("fga"), fields.index("game"), fields.index("min"), fields.index("opp")
     team_fga = {}
     for p in players.values():
         for r in p["log"]:
             team_fga[(r[i_game], r[i_opp])] = team_fga.get((r[i_game], r[i_opp]), 0) + r[i_fga]
-    shot_share, own_share = {}, {}  # rotation players (for teammates Out); everyone (his own role)
+    rotation, own = {}, {}  # rotation players (for teammates Out); everyone (his own role)
     for pid, p in players.items():
         tf = sum(team_fga.get((r[i_game], r[i_opp]), 0) for r in p["log"])
         if p["log"] and tf:
-            own_share[pid] = sum(r[i_fga] for r in p["log"]) / tf
+            own[pid] = sum(r[i_fga] for r in p["log"]) / tf
             if sum(r[i_min] for r in p["log"]) / len(p["log"]) >= 20:
-                shot_share[pid] = own_share[pid]
+                rotation[pid] = own[pid]
     out_by_team = {}
     for pid in out_ids:
         team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
-        if team and pid in shot_share:
-            out_by_team[team] = out_by_team.get(team, 0.0) + shot_share[pid]
+        if team and pid in rotation:
+            out_by_team[team] = out_by_team.get(team, 0.0) + rotation[pid]
+    return {"ident": ident, "out_ids": out_ids, "dates": dates, "players": players, "fields": fields,
+            "rotation": rotation, "own": own, "out_by_team": out_by_team}
+
+
+def points_slate(season, this, book_odds, games, identity_blob, injuries, roster_team, now_utc) -> dict:
+    """{game id: {player id: {line, proj, w, ours, min, ppm, games, out}}} for
+    every player with a books' points line in the next KOTC_SLATE_NIGHTS
+    nights. Our number is this season's only; no games = the line."""
+    s = slate_parts(season, this, games, identity_blob, injuries, roster_team, now_utc)
+    if s is None:
+        return {}
+    ident, out_ids, players, fields = s["ident"], s["out_ids"], s["players"], s["fields"]
+    i_min = fields.index("min")
+    rnd = lambda v, d=1: None if v is None else round(v, d)  # noqa: E731
     slate = {}
     for g in games:
-        if g["date"] not in dates:
+        if g["date"] not in s["dates"]:
             continue
         priced = ((book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}).get("points") or {}
         rows = {}
@@ -825,9 +859,9 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
             opp = g["home"] if team == g["away"] else g["away"]
             log = (players.get(pid) or {}).get("log") or []
             teams_now = ident.get("teams") or {}
-            missing = out_by_team.get(team, 0.0) - (shot_share.get(pid, 0.0) if pid in out_ids else 0.0)
-            opp_missing = out_by_team.get(opp, 0.0)
-            share = own_share.get(pid, 0.0)
+            missing = s["out_by_team"].get(team, 0.0) - (s["rotation"].get(pid, 0.0) if pid in out_ids else 0.0)
+            opp_missing = s["out_by_team"].get(opp, 0.0)
+            share = s["own"].get(pid, 0.0)
             ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), missing,
                                                   share, opp_missing)
             line = points_line(book_odds, g, pid)
@@ -837,6 +871,50 @@ def points_slate(season, this, book_odds, games, identity_blob, injuries, roster
                          "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3),
                          "share": rnd(share, 3), "opp_missing": rnd(opp_missing, 3),
                          "min_ratio": rnd(minutes / season_min, 3) if minutes and season_min else None}
+        if rows:
+            slate[g["game_id"]] = rows
+    return slate
+
+
+def threes_slate(season, this, book_odds, games, identity_blob, injuries, roster_team, now_utc) -> dict:
+    """{game id: {player id: {line, proj, w, ours, tries, pct, p_over, p_mkt,
+    edge, ladder, best_o, best_u, games, out, missing, share, luck, spread,
+    min_ratio}}} for every player with a books' threes line in the next
+    KOTC_SLATE_NIGHTS nights (props.our_threes / project_threes)."""
+    s = slate_parts(season, this, games, identity_blob, injuries, roster_team, now_utc)
+    if s is None:
+        return {}
+    ident, out_ids, players, fields = s["ident"], s["out_ids"], s["players"], s["fields"]
+    i_a, i_m = fields.index("fg3a"), fields.index("fg3m")
+    tried = sum(r[i_a] for p in players.values() for r in p["log"])
+    league_pct = sum(r[i_m] for p in players.values() for r in p["log"]) / tried if tried else 0.36
+    rnd = lambda v, d=2: None if v is None else round(v, d)  # noqa: E731
+    slate = {}
+    for g in games:
+        if g["date"] not in s["dates"]:
+            continue
+        priced = ((book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}).get("threes") or {}
+        rows = {}
+        for pid, book_row in priced.items():
+            team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
+            opp = g["home"] if team == g["away"] else g["away"]
+            log = (players.get(pid) or {}).get("log") or []
+            teams_now = ident.get("teams") or {}
+            missing = s["out_by_team"].get(team, 0.0) - (s["rotation"].get(pid, 0.0) if pid in out_ids else 0.0)
+            share = s["own"].get(pid, 0.0)
+            home_spread = g.get("home_team_spread")
+            spread = None if home_spread is None else (home_spread if team == g["home"] else -home_spread)
+            ours = props.our_threes(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), league_pct,
+                                    missing, share, spread)
+            quotes = book_row.get("q") or []
+            line = stat_line(book_odds, g, pid, "threes")
+            proj = props.project_threes(line, quotes, len(log), ours and ours["makes"])
+            rows[pid] = {"line": line, "proj": rnd(proj["proj"]), "w": round(proj["w"], 3), "ours": rnd(ours and ours["makes"]),
+                         "tries": rnd(ours and ours["tries"], 1), "pct": rnd(ours and ours["pct"], 3),
+                         "p_over": rnd(proj["p_over"], 3), "p_mkt": rnd(proj["p_mkt"], 3), "edge": rnd(proj["edge"], 3),
+                         "ladder": proj["ladder"], "best_o": props.best_price(quotes, "o", line), "best_u": props.best_price(quotes, "u", line),
+                         "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3), "share": rnd(share, 3),
+                         "luck": rnd(ours and ours["luck"]), "spread": spread, "min_ratio": rnd(ours and ours["min_ratio"], 3)}
         if rows:
             slate[g["game_id"]] = rows
     return slate
@@ -941,6 +1019,15 @@ def main():
         blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, blob.get("identity"), injury_list, now_utc)
         lines_record = props_lines_record(args.season, blob_props["slate"], games, now_utc)
         blob_props["record"] = {"ledger": props.record_ledger(lines_record, blob_props["seasons"].get(str(args.season)))}
+        # Threes (its own try: a failure leaves the Threes page empty, never Points).
+        try:
+            this = blob_props["seasons"].get(str(args.season))
+            roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)} if rosters is not None else {}
+            blob_props["threes_slate"] = threes_slate(args.season, this, book_odds, games, blob.get("identity"), injury_list, roster_team, now_utc)
+            threes_record = threes_lines_record(args.season, blob_props["threes_slate"], games, now_utc)
+            blob_props["threes_record"] = {"ledger": props.threes_ledger(threes_record, this)}
+        except Exception as ex:
+            print(f"WARNING: NBA threes failed ({ex!r}).", file=sys.stderr)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:

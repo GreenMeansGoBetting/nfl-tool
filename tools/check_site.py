@@ -54,6 +54,7 @@ PAGES = [
     ("NBA Team Identity", "nba/identity.html", None),
     ("NBA Shot Charts", "nba/shot-charts.html", None),
     ("NBA Points", "nba/points.html", None),
+    ("NBA Threes", "nba/threes.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
     ("NHL Best Plays", "nhl/best.html", None),
     ("NHL Shots", "nhl/shots.html", None),

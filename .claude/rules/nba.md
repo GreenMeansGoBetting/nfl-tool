@@ -198,6 +198,44 @@ options"), Novig only where SmartStake has no price.
   wants the same banner on a Best Plays page "eventually" (the NBA has none yet). Take it down once
   the record has spoken (mid-November) and the owner says so.
 
+## Threes (threes made; built 2026-10-23 on the Points skeleton)
+
+The owner's 10 ideas + 5 of ours, replayed on 2025-26 first (`tools/backtest/nba_threes.py`,
+findings in its header). **Tries are predictable, makes mostly aren't** (the owner wants this line
+in the page's explainer: "we can predict how many threes a player will try, but not how many
+he'll make"), so the projection is tries x make rate.
+- **Build:** `props.our_threes` (tries = last-5 minutes x season threes tried a minute, x pace^1.43,
+  the other defense's `def_three_pp`^0.52 and `def_catch3`^0.59 (Team Identity, added for this:
+  threes a possession, catch-and-shoot share of threes), (last 5 / season minutes)^-0.446, (1 +
+  0.037 x his team's spread / 10: underdogs shoot more), (1 + 0.05 x `luck`: last-5 makes above his
+  own rate a game, a cold run trims tries), teammates Out like Points (1.51 - 1.725 x share / 0.2);
+  make rate = his season's pulled `THREES_K` 200 tries toward the league's). A night's count is a
+  negative binomial `THREES_SPREAD` 1.25 x wider than Poisson (the replay: 1+ hits less, 3+ / 4+
+  more). **Anchored to the books:** the books' no-vig chance of the Over at the middle line
+  (`market_chance`, one side only = its price less 4.5%) -> the makes it implies (`mean_for`), moved
+  `PROJ_MAX` x games / (games + `PROJ_K`) toward ours (`project_threes`); edge = our chance of the
+  Over - the books'. props.json `threes_slate` (build_nba.py `threes_slate`, its own try: a failure
+  never costs Points) with `ladder` = our chance of 1+ .. 5+.
+- **Ladder prices:** `smartstake.add_threes_ladder` fetches the threes market with alternates into
+  `props["threes_alt"]` (kept apart so the middle main line stays the main line); version.json
+  `nba.threes_alt` says what came back. The page shows only rungs a book prices (owner's list #3).
+- **Record:** `model_history/nba_props/threes_<season>.json` ({game: {player: [line, proj, ours, w,
+  p_over, p_mkt, best Over, best Under, min_ratio, missing, share, luck, spread]}}, never rewritten
+  after tip); `props.threes_ledger` grades the side our chance leans at the best price at tip, 1u,
+  from `THREES_RECORD_START` 2026-10-23; split tags over / under / half (0.5 lines) / dip / role /
+  dog (+6) / cold / hot (0.6 makes a game off his rate). props.json `threes_record.ledger`.
+- **Untested idea waiting on this season's lines:** do the books raise a line after lucky shooting
+  (makes up, tries flat)? `luck` is saved per line for exactly that.
+- **The page** (`site/nba/threes.html` + `threes.js` + `threes.css` on top of `points.css`; NBA menu
+  under Points): the Points layout with Proj (threes made + "Over +5%"), Tries (our tries, make
+  rate under), hit rates on threes made, Min, 3PA (season, L5); tags: 3s Allowed / Tough 3s D (the
+  defense's `def_three_pp` 1+ league spread, and for 3s Allowed his threes 30%+ of his shots), Help
+  D (`def_catch3` 1+ spread and his catch share 35%+), Underdog +X (6+), Usage +, Min up / down,
+  Cold Run / Hot Run. Drop down: With / Without on threes (no Off the floor: `with` holds points
+  only), Every Book, **The Ladder** (Rung, Our Fair, Best Price, Edge shaded at 3 points), Shot Zones
+  opened on 3PT. Same testing banner ("Record So Far" in units). Tests: `tests/test_nba_threes_site.py`,
+  `tests/test_nba_props.py` (Threes).
+
 ## The player card (`site/nba/nba-card.js`, 2026-10-21)
 
 The owner: "build the player functionality that exists for NFL and NHL so theres consistency ...
@@ -274,7 +312,7 @@ it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#play
    production with certain combos (the engine's stints have it all).
 5. **Things to watch** per game: blend Team Identity's tags into a few conclusions on how a game
    may go.
-6. Rebounds, assists and 3s on the Points skeleton; show the projection once it grades well
+6. Rebounds and assists on the Points skeleton (~~3s~~ built 2026-10-23 as Threes); show the projection once it grades well
    against this season's tip-off lines.
 
 ## Game model: full-game score, spread, total (replayed 2026-10-20, NOT built)

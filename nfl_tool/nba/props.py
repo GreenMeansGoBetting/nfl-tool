@@ -1,5 +1,5 @@
-"""NBA player props data (site/nba/props.json): what the Points page (and
-later Rebounds / Assists / 3s) shows, all pure data, no projection.
+"""NBA player props data (site/nba/props.json): what the Points and Threes pages (and
+later Rebounds / Assists) show: the data, plus the projections below.
 
 Per season (`seasons[<year>]`):
 - `players[<espn id>]`: name, team (today's roster team for a past season),
@@ -27,6 +27,7 @@ re-save after changing a formula:
 from __future__ import annotations
 
 import argparse
+import math
 import json
 from pathlib import Path
 
@@ -299,6 +300,206 @@ def record_ledger(lines: dict, block: dict | None) -> list:
             if opp_missing is not None and opp_missing >= OPP_MISSING:
                 tags.append("opp_out")
             out.append([got[0], round(abs(proj - line), 2), int((got[1] > line) == over), None, tags])
+    return sorted(out, key=lambda r: (r[0], -r[1]))
+
+
+# ---- the threes projection (built 2026-10-23 from tools/backtest/nba_threes.py) ----
+# Threes made = threes TRIED x make rate, kept apart because tries are steady
+# and make rate is mostly a night's luck (the replay: the tries number improves
+# 2% with the factors below, makes 0.4%; the owner: "we can predict how many
+# threes a player will try, but not how many he'll make"). Tries = last-5
+# minutes x season threes tried a minute, then the factors that held on
+# 2025-26 (refitted together on the whole season): the game's pace, the other
+# defense's threes allowed a possession and its catch-and-shoot share of them
+# (help defense leaving shooters), his team's spread (underdogs shoot more), a
+# minutes dip bouncing back, a cold / hot last 5 (makes above or below his own
+# rate: a cold run trims his tries a little), and teammates listed Out (their
+# shots go to role players). Make rate = his season's, pulled THREES_K tries
+# toward the league's (the replay's best). A night's count spreads
+# THREES_SPREAD x wider than Poisson (the replay: 1.2-1.4), so every chance
+# is a negative binomial: 1+ / 2+ hit less often and 3+ / 4+ more often than
+# a plain Poisson count.
+# Anchored to the market from day one like Points: the books' no-vig chance of
+# the Over at the middle line is turned into the number of makes it implies,
+# the projection moves PROJ_MAX x games / (games + PROJ_K) of the way to ours,
+# and the edge is our chance of the Over minus the books'.
+THREES_K = 200
+THREES_SPREAD = 1.25
+T_PACE = 1.43
+T_DEF3 = 0.52
+T_CATCH3 = 0.59
+T_DOG = 0.037      # a 10 points of spread
+T_LUCK = 0.05      # a make a game above / below his own rate, last 5
+T_MIN = -0.446
+T_OUT = 1.51
+T_OUT_SHARE = 1.725
+T_LEAN = -0.006
+LADDER = (1, 2, 3, 4, 5)
+
+
+def nb_pmf(mean: float, k: int, spread: float = THREES_SPREAD) -> float:
+    """Chance of exactly k makes when a night averages `mean` and spreads
+    `spread` x wider than Poisson (negative binomial)."""
+    if mean <= 0:
+        return 1.0 if k == 0 else 0.0
+    r = mean / (spread - 1)
+    p = 1 / spread
+    return math.exp(math.lgamma(k + r) - math.lgamma(r) - math.lgamma(k + 1) + r * math.log(p) + k * math.log(1 - p))
+
+
+def chance_over(mean: float, line: float) -> float:
+    """Chance of going over the line (a whole-number line's push left out)."""
+    below = sum(nb_pmf(mean, k) for k in range(int(math.floor(line)) + 1))
+    if float(line).is_integer():
+        push = nb_pmf(mean, int(line))
+        return (1 - below) / max(1 - push, 1e-9)
+    return 1 - below
+
+
+def mean_for(chance: float, line: float) -> float:
+    """The average makes that gives this chance of the Over."""
+    lo, hi = 0.01, 15.0
+    for _ in range(50):
+        mid = (lo + hi) / 2
+        if chance_over(mid, line) < chance:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def implied(price) -> float | None:
+    if price is None:
+        return None
+    return 100 / (price + 100) if price > 0 else -price / (-price + 100)
+
+
+def market_chance(quotes: list, line) -> float | None:
+    """The books' no-vig chance of the Over at this line: every book's Over
+    and Under prices there averaged, the vig split off. One side only: its
+    price less a 4.5% vig."""
+    o = [implied(q[3]) for q in quotes if q[1] == "o" and q[2] == line]
+    u = [implied(q[3]) for q in quotes if q[1] == "u" and q[2] == line]
+    if o and u:
+        po, pu = sum(o) / len(o), sum(u) / len(u)
+        return po / (po + pu)
+    if o:
+        return min(0.99, sum(o) / len(o) / 1.045)
+    if u:
+        return max(0.01, 1 - sum(u) / len(u) / 1.045)
+    return None
+
+
+def our_threes(log: list, fields: list, team: dict | None, opp: dict | None, league: dict | None, league_pct: float,
+               out_share: float = 0.0, share: float = 0.0, spread: float | None = None) -> dict | None:
+    """{tries, pct, makes, luck} (our numbers, before the market anchor), or
+    None before he has played this season. spread: his team's (+ = underdog)."""
+    if not log:
+        return None
+    f = {k: i for i, k in enumerate(fields)}
+    total_min = sum(r[f["min"]] for r in log)
+    if total_min <= 0:
+        return None
+    tried = sum(r[f["fg3a"]] for r in log)
+    made = sum(r[f["fg3m"]] for r in log)
+    rate = tried / total_min
+    pct = (made + THREES_K * league_pct) / (tried + THREES_K)
+    recent = log[-PROJ_LAST:]
+    minutes = sum(r[f["min"]] for r in recent) / len(recent)
+    luck = sum(r[f["fg3m"]] - r[f["fg3a"]] * pct for r in recent) / len(recent)
+    factor = 1 + T_LEAN
+    if team and opp and league:
+        lg = lambda k: (league.get(k) or {}).get("avg")  # noqa: E731
+        if lg("off_pace") and team.get("off_pace") and opp.get("off_pace"):
+            factor *= ((team["off_pace"] + opp["off_pace"]) / 2 / lg("off_pace")) ** T_PACE
+        if lg("def_three_pp") and opp.get("def_three_pp"):
+            factor *= (opp["def_three_pp"] / lg("def_three_pp")) ** T_DEF3
+        if lg("def_catch3") and opp.get("def_catch3"):
+            factor *= (opp["def_catch3"] / lg("def_catch3")) ** T_CATCH3
+    season_min = total_min / len(log)
+    if minutes > 0:
+        factor *= (minutes / season_min) ** T_MIN
+    if spread is not None:
+        factor *= 1 + T_DOG * spread / 10
+    factor *= 1 + T_LUCK * luck
+    factor *= 1 + max(0.0, T_OUT - T_OUT_SHARE * share / 0.2) * out_share
+    tries = minutes * rate * factor
+    return {"tries": tries, "pct": pct, "makes": tries * pct, "luck": luck, "min": minutes, "min_ratio": minutes / season_min}
+
+
+def project_threes(line, quotes: list, games: int, ours: float | None) -> dict:
+    """{proj (makes), w, p_over (ours), p_mkt (the books'), edge, ladder}: the
+    market's number moved toward ours by the weight. No price = the line read
+    as a coin flip."""
+    if line is None:
+        return {"proj": None, "w": 0.0, "p_over": None, "p_mkt": None, "edge": None, "ladder": None}
+    p_mkt = market_chance(quotes, line)
+    market = mean_for(p_mkt if p_mkt is not None else 0.5, line)
+    w = PROJ_MAX * games / (games + PROJ_K) if ours is not None and games > 0 else 0.0
+    proj = market + w * ((ours if ours is not None else market) - market)
+    p_over = chance_over(proj, line)
+    return {"proj": proj, "w": w, "p_over": p_over, "p_mkt": p_mkt, "edge": None if p_mkt is None else p_over - p_mkt,
+            "ladder": [round(chance_over(proj, k - 0.5), 3) for k in LADDER]}
+
+
+def best_price(quotes: list, side: str, line):
+    prices = [q[3] for q in quotes if q[1] == side and q[2] == line]
+    return max(prices, key=lambda a: (1 / implied(a))) if prices else None
+
+
+def units(price, won: bool) -> float | None:
+    if price is None:
+        return None
+    if not won:
+        return -1.0
+    return price / 100 if price > 0 else 100 / -price
+
+
+# The threes record: the side our chance leans off the books' (no lean = no
+# play), graded at the best price at tip-off, 1 unit. The split tags test each
+# idea on its own: a minutes dip, a role player with teammates Out, an
+# underdog of THREES_DOG+, a cold / hot last 5 (THREES_STREAK makes a game off
+# his own rate), and the 0.5 line (one make = Over).
+THREES_RECORD_START = "2026-10-23"
+THREES_DOG = 6
+THREES_STREAK = 0.6
+
+
+def threes_ledger(lines: dict, block: dict | None) -> list:
+    """The shared YTD tracker's rows: [date, edge (our chance of the side
+    minus the books'), won 1/0, units, tags], oldest first. `lines` =
+    model_history/nba_props/threes_<season>.json."""
+    if not block:
+        return []
+    f = {k: i for i, k in enumerate(block.get("fields") or LOG_FIELDS)}
+    played = {}
+    for pid, p in (block.get("players") or {}).items():
+        for r in p.get("log") or []:
+            played[(str(r[f["game"]]), pid)] = (r[f["date"]], r[f["fg3m"]])
+    out = []
+    for gid, rows in lines.items():
+        for pid, row in rows.items():
+            line, p_over, p_mkt, best_o, best_u = row[0], row[4], row[5], row[6], row[7]
+            got = played.get((str(gid), pid))
+            if got is None or got[0] < THREES_RECORD_START or line is None or p_over is None or p_mkt is None or p_over == p_mkt or got[1] == line:
+                continue
+            over = p_over > p_mkt
+            won = (got[1] > line) == over
+            min_ratio, missing, share, luck, spread = (list(row[8:13]) + [None] * 5)[:5]
+            tags = ["over" if over else "under"]
+            if min_ratio is not None and min_ratio <= DIP_RATIO:
+                tags.append("dip")
+            if missing is not None and share is not None and missing >= ROLE_MISSING and share < ROLE_SHARE:
+                tags.append("role")
+            if spread is not None and spread >= THREES_DOG:
+                tags.append("dog")
+            if luck is not None and luck <= -THREES_STREAK:
+                tags.append("cold")
+            if luck is not None and luck >= THREES_STREAK:
+                tags.append("hot")
+            if line == 0.5:
+                tags.append("half")
+            out.append([got[0], round(abs(p_over - p_mkt), 4), int(won), units(best_o if over else best_u, won), tags])
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
 

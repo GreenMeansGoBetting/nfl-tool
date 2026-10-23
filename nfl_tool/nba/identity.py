@@ -72,6 +72,11 @@ def side_numbers(poss: pd.DataFrame, acts: pd.DataFrame, games_secs: pd.Series) 
         out[f"{z}_share"] = share(len(zs), fga)
         out[f"{z}_pct"] = zs["made"].mean() if len(zs) else None
     out["three_rate"] = share(shots["three"].sum(), fga)
+    # for the Threes projection (props.our_threes): threes tried a possession and
+    # the catch-and-shoot share of them (def_: allowed; help defense leaving shooters)
+    threes = shots[shots["three"]]
+    out["three_pp"] = share(len(threes), n)
+    out["catch3"] = share((threes["kind2"] == "catch").sum(), len(threes))
     makes = shots[shots["made"]]
     out["assisted"] = share(makes["assist"].notna().sum(), len(makes))
     out["self_made"] = share(shots["kind2"].isin(SELF_MADE).sum(), fga)
