@@ -448,7 +448,7 @@ function renderRecord() {
   const honest = (record.honest || []).filter((b) => b.players).map((b) => `<tr><td>${Math.round(b.lo * 100)}-${Math.round(Math.min(b.hi, 1) * 100)}%</td><td class="num">${b.players}</td><td class="num">${pct(b.said / b.players, 0)}</td><td class="num"><b>${pct(b.scored / b.players, 0)}</b></td></tr>`).join("");
   nhlYtd(box, {
     record,
-    intro: `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; anytime bets at the price locked before puck drop; u = units won risking 1 a play</span></div>`,
+    intro: `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, ${record.players} players graded; anytime bets at the price at the last refresh before puck drop, up to 30 minutes before; u = units won risking 1 a play</span></div>`,
     tracker: {
       key: "nhl-goals",
       markets: [

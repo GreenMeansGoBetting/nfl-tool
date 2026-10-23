@@ -380,7 +380,7 @@ function renderRecordBuckets(box) {
   const saves = sum(SAVES.record);
   const all = { wins: shots.wins + goals.wins + pts.wins + saves.wins, losses: shots.losses + goals.losses + pts.losses + saves.losses, units: shots.units + goals.units + pts.units + saves.units };
   const tile = (label, t, tip) => `<div class="ytd-tile" title="${tip}"><div class="ytd-label">${label}</div>${tileBody(t)}</div>`;
-  box.innerHTML = `<div class="shots-detail-label">Every play with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">graded at the price locked before puck drop; u = units won risking 1 a play. The full records are on the Shots, Goals, Points and Saves pages.</span></div>
+  box.innerHTML = `<div class="shots-detail-label">Every play with an edge of ${Math.round(edgeAt("lean") * 100)}+ points <span class="muted-label">each play picked on the model's own number and graded at the price at the last refresh before puck drop, up to 30 minutes before; u = units won risking 1 a play. The full records are on the Shots, Goals, Points and Saves pages.</span></div>
     <div class="ytd-tiles">
       ${tile("All Plays", all, "Every play this page lists")}
       ${tile("Shots On Goal", shots, "Shots plays with an edge")}

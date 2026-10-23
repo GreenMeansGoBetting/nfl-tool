@@ -478,7 +478,7 @@ function renderRecord() {
   const n = Math.round(bar() * 100);
   nhlYtd(box, {
     record,
-    intro: `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, graded at the price locked before puck drop; u = units won risking 1 a play</span></div>`,
+    intro: `<div class="shots-detail-label">The record so far <span class="muted-label">${shortDate(record.since)} to ${shortDate(record.through)}, ${record.games} games, each play picked on the model's own number against the best price across books at the last refresh before puck drop, up to 30 minutes before, and graded at that price; u = units won risking 1 a play</span></div>`,
     tracker: {
       key: "nhl-shots",
       markets: [{

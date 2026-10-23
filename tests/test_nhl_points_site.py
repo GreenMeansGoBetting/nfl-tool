@@ -249,7 +249,7 @@ class Record(unittest.TestCase):
         text = PAGE.locator("#shots-results").inner_text()
         record = nhl_points()["record"]
         self.assertIn(f"{record['games']} games, {record['players']} players graded", text)
-        self.assertIn("closing line value", text.lower())
+        self.assertIn("early price move", text.lower())
         self.assertIn("said vs got", text.lower())
         # The Points bar: Plays and Not Plays, no Strong / Lean / Check.
         self.assertIn(f"{record['play']['wins']}-{record['play']['losses']}", text)

@@ -182,7 +182,7 @@ class Record(unittest.TestCase):
         text = PAGE.locator("#shots-results").inner_text()
         record = nhl_goals()["record"]
         self.assertIn(f"{record['games']} games, {record['players']} players graded", text)
-        self.assertIn("closing line value", text.lower())
+        self.assertIn("early price move", text.lower())
         self.assertIn("said vs scored", text.lower())
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.locator("#shots-record-modal").is_hidden())

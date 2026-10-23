@@ -82,12 +82,15 @@ const unsureHead = (file) => `Model Unsure: ${unsureTip(file).replace("this is n
 // Closing line value (clv_move in build_nhl.py, 2026-10-22): read on Novig's own prices only, both sides
 // with the cut taken out, at the first look and at the lock. Wins and units stay at the best price
 // across books; comparing best prices at two times read "drifted" by construction (more books by puck drop).
+// Shown as "Early Price Move", context only (the owner, 2026-10-23): the pages are a bottom-up model for
+// members betting in the last hour or two, judged by wins and units at the puck-drop price; the first
+// look is usually before lineups, so how the price moved since then is not the test.
 function clvTile(clv) {
   clv = clv || {};
-  const tip = "Closing line value on the plays: how far Novig's own price moved toward the play from the first look to the lock before puck drop, both sides with the cut taken out, in points of chance (+ = the market moved toward the model). A line that moved counts by direction (an over whose line went up). Novig only: the best price across books moves with how many books have posted, not with the market. Plays Novig didn't price both times are left out.";
+  const tip = "Context, not the test. The model is judged by the wins and units above: each play picked on the model's own number against the price at puck drop and graded at that price. This tile is closing line value from the first look: how far Novig's own price moved toward the play from the first look to the lock before puck drop, both sides with the cut taken out, in points of chance (+ = the market moved toward the model). A line that moved counts by direction (an over whose line went up). Novig only: the best price across books moves with how many books have posted, not with the market. Plays Novig didn't price both times are left out.";
   const value = has(clv.points) ? `${clv.points > 0 ? "+" : ""}${(clv.points * 100).toFixed(1)}` : "--";
   const since = clv.since ? ` &middot; since ${shortDate(clv.since)}` : "";
-  return `<div class="ytd-tile" title="${tip}"><div class="ytd-label">Closing Line Value</div><b>${value}</b><small class="ytd-line">${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays${since}` : "None Yet"}</small></div>`;
+  return `<div class="ytd-tile" title="${tip}"><div class="ytd-label">Early Price Move</div><b>${value}</b><small class="ytd-line">${clv.plays ? `${clv.shortened} shortened &middot; ${clv.drifted} drifted &middot; ${clv.plays} plays${since}` : "None Yet"}</small></div>`;
 }
 // Every NHL prop page's YTD Model Performance popup, one layout (2026-10-22): the shared
 // tracker (../ytd.js: time windows, a Min Edge slider, split tiles), then the season-only

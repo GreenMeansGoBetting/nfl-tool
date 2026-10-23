@@ -315,7 +315,7 @@ on a replay, and the page keeps a record against the real prices.
   - **Closing line value** (`record.clv`, the owner: "start saving the price on shots too"): on the
     plays with an edge, the play's price moved from first seen to locked, in points of chance, when
     the line didn't move (`points` = average over `priced`); a moved line counts by direction (an
-    over whose line went up = shortened). `shortened` / `drifted` / `plays`. A tile in the YTD popup. `shots_record_summary` grades the
+    over whose line went up = shortened). `shortened` / `drifted` / `plays`. A tile in the YTD popup, labeled **Early Price Move** and worded as context only (the owner, 2026-10-23): the prop pages are a BOTTOM UP model for members betting in the last hour or two, judged by wins and units on the model's own number at the puck-drop price; the first look is usually before lineups, so morning CLV is not the test (and plays picked at the lock lean toward prices that drifted). `shots_record_summary` grades the
   better side of each line (`shots_play`, whose `size` is how the page files it) into `play` /
   `none` (every saved game by today's bar, the ones before it too); for the plays it
   also splits `over` / `under` and **`fade` / `with`**: plays against the player's own season
