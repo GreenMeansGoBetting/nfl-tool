@@ -564,7 +564,7 @@
    },
    {
     "id": "4432573",
-    "lead": 0.121,
+    "lead": 0.1211,
     "name": "Paolo Banchero",
     "proj": 51.9,
     "team": "ORL"
@@ -682,18 +682,18 @@
     "team": "MIL"
    },
    {
-    "id": "4432166",
-    "lead": 0.004,
-    "name": "Cade Cunningham",
-    "proj": 35.7,
-    "team": "DET"
-   },
-   {
     "id": "4396907",
     "lead": 0.004,
     "name": "Darius Garland",
     "proj": 35.2,
     "team": "LAC"
+   },
+   {
+    "id": "4432166",
+    "lead": 0.0039,
+    "name": "Cade Cunningham",
+    "proj": 35.6,
+    "team": "DET"
    },
    {
     "id": "3064440",
