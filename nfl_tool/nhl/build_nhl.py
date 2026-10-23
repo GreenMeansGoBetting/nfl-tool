@@ -1684,17 +1684,48 @@ def lineup_slots(lineup: dict, team: str, find, positions: dict) -> dict:
     }
 
 
-def fetch_lineup_story(game_id) -> dict | None:
+def _lineup_story(item: dict) -> dict | None:
+    story = _request(item["selfUrl"], tries=2, timeout=12)
+    text = "\n".join(part.get("content") or "" for part in story.get("parts") or [] if part.get("type") == "markdown")
+    if "projected lineup" not in text.lower():
+        return None
+    return {"posted": utc_text((item.get("lastUpdatedDate") or item["contentDate"])[:19] + "Z"), "markdown": text}
+
+
+def fetch_lineup_story(game_id, wanted=None, fallback=None) -> dict | None:
     """{"posted", "markdown"} for one game's projected-lineups story, or None
     if it isn't up yet. Short waits: this is asked for every game on the
-    slate, and a slow day at NHL.com must not hold up the deploy."""
+    slate, and a slow day at NHL.com must not hold up the deploy.
+    `wanted(markdown)` says whether a story is about THIS game: NHL.com tags
+    them by hand, and on 2026-10-22 it tagged Red Wings at Canucks with Utah at
+    Seattle's game id (and gave the Canucks game none), so both games went the
+    night with no lineup. `fallback()` = the day's other preview stories, read
+    when this game's own tag has no story that fits."""
     listing = _request(f"{STORIES}?tags.slug=gameid-{game_id}&tags.slug=game-preview&context.slug=nhl&$limit=5", tries=2, timeout=12)
     for item in listing.get("items") or []:
-        story = _request(item["selfUrl"], tries=2, timeout=12)
-        text = "\n".join(part.get("content") or "" for part in story.get("parts") or [] if part.get("type") == "markdown")
-        if "projected lineup" in text.lower():
-            return {"posted": utc_text((item.get("lastUpdatedDate") or item["contentDate"])[:19] + "Z"), "markdown": text}
+        story = _lineup_story(item)
+        if story and (wanted is None or wanted(story["markdown"])):
+            return story
+    for story in (fallback() if fallback and wanted else []):
+        if wanted(story["markdown"]):
+            return story
     return None
+
+
+def day_lineup_stories(date: str) -> list:
+    """Every projected-lineups story NHL.com has posted for one day's games (its
+    slugs end "-game-preview-october-22-2026"), newest first."""
+    stamp = datetime.strptime(date, "%Y-%m-%d")
+    suffix = f"-game-preview-{stamp.strftime('%B').lower()}-{stamp.day}-{stamp.year}"
+    listing = _request(f"{STORIES}?tags.slug=game-preview&context.slug=nhl&$limit=40", tries=2, timeout=12)
+    stories = []
+    for item in listing.get("items") or []:
+        if not (item.get("selfUrl") or "").endswith(suffix):
+            continue
+        story = _lineup_story(item)
+        if story:
+            stories.append(story)
+    return stories
 
 
 def fetch_lineups(games: list, teams: dict, find, positions: dict, now_utc: datetime) -> tuple:
@@ -1704,13 +1735,24 @@ def fetch_lineups(games: list, teams: dict, find, positions: dict, now_utc: date
     team_of = team_namer(teams)
     last_day = (now_utc - timedelta(hours=4) + timedelta(days=1)).strftime("%Y-%m-%d")
     out, error, failed = {}, None, 0
+    by_day = {}  # the day's preview stories, read once and only if a game's own tag misses
+
+    def day_stories(date):
+        if date not in by_day:
+            by_day[date] = day_lineup_stories(date)
+        return by_day[date]
+
     for g in games:
         if g["status"] == "final" or g["date"] > last_day or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
             continue
         if failed >= 2:
             break  # the stories aren't answering: stop asking, the rest fall back too
         try:
-            story = fetch_lineup_story(g["game_id"])
+            # A story is this game's only if every team it lists plays in it.
+            def wanted(text, g=g):
+                named = {team_of(label) for label in parse_lineups(text)} - {None}
+                return bool(named) and named <= {g["away"], g["home"]}
+            story = fetch_lineup_story(g["game_id"], wanted, lambda g=g: day_stories(g["date"]))
             failed = 0
             if not story:
                 continue

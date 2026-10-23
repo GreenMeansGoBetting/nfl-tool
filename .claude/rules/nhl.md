@@ -54,7 +54,11 @@ launch switch"). More background: `docs/history.md`, "NHL".
   lists the story, its `selfUrl` has the text (`parts`, type `markdown`). Plain text: a
   "<Team> projected lineup" heading, one line of text per forward line ("A -- B -- C") and defense
   pair ("A -- B"), the goalies one to a line (**the first is the expected starter**), then
-  "Scratched:" and "Injured:", then a "Status report". Posted around midday Eastern on game day
+  "Scratched:" and "Injured:", then a "Status report". **The game tag is typed by hand:** on
+  2026-10-22 Red Wings at Canucks was tagged with Utah at Seattle's id and the Canucks game had
+  none, so both went without a lineup. A story counts for a game only if every team it lists plays
+  in it, and a game whose tag has no fitting story is matched from the day's preview stories (slug
+  ends "-game-preview-october-22-2026"; `day_lineup_stories`). Test: `test_nhl_lineup_stories.py`. Posted around midday Eastern on game day
   (some West-coast games later), so the 8:17 am ET build has none; the hockey-only refresh (`nhl-refresh.yml`, every half hour from
   midday to the last puck drop: members-and-hosting.md, "Build minutes") picks each one up. 1,300 of 2025-26's 1,312 games had one; 95% of the skaters listed did play. Old seasons'
   stories are still served. `parse_lineups`, `lineup_slots`, `fetch_lineups`.
