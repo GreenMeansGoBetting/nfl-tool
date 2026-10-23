@@ -26,11 +26,10 @@ that, move detail into a rules file.
 1. Make the change and verify it locally (below).
 2. `git pull --rebase` (a bot commits `model_history/gmg_model.json` to main), then **commit and
    push to `main`**. GitHub Actions rebuilds and deploys automatically. No branches or pull requests.
-3. Confirm it's live: `https://nfl.gmgsports.org/version.json` (public) shows the pushed commit's
-   `sha`, about 7 minutes after the push (about 3 for a push that changes no data, e.g. pages or login code; only the sports whose build code changed are rebuilt: members-and-hosting.md). The deploy runs the tests first, then opens every
-   page and Summary card in a browser (`check_site.py --gate`), and publishes nothing if a test
-   fails or a page is broken, so if the sha never changes, the run failed: say so and look at why.
-   After publishing it looks at the real site and puts the last version back if it is down.
+3. Confirm it's live with ONE look at `https://nfl.gmgsports.org/version.json` (public) about 7
+   minutes after the push (3 for pages / login code only): it shows the pushed `sha`. The deploy runs every test and
+   opens every page and Summary card (`check_site.py --gate`) before publishing, and puts the last
+   version back if the live site is down after; if the sha never changes, the run failed: say so and look at why.
 4. Tell the user to hard refresh (Ctrl+Shift+R).
 
 - **The site must never be left down or half-done** (members pay). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: members-and-hosting.md, "The site must never be left down".
@@ -44,19 +43,19 @@ that, move detail into a rules file.
 
 ### Local verification
 
-- **One sport at a time** (the user's rule): add `--only nfl|nba|nhl` to both checks below. The deploy always runs everything.
-- **Tests:** `python tools/run_tests.py` before any push that touches the build
-  code or the site's JavaScript. `tests/` pins the math and every past bug on saved samples
-  (`tests/fixtures/`), so the answers never depend on this week's data. When a rule they pin
-  changes on purpose, change its test in the same commit; a bug fix gets a test that fails without it.
-  Every push to main starts the full deploy (all tests, all sports). The public Actions API
-  shows runs: `api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/runs`.
+- **Lean checking (the owner, 2026-10-23: save usage, the deploy's gate already opens every page).**
+  Locally, test only the area touched: `run_tests.py --only <sport>`; the full set only for a
+  site-wide UI change or a shared file (common.js, sync.js, style.css, suite.css, ytd.js,
+  book-odds.js, my-plays, the login code, tools/, workflows). No local `check_site.py` run; a
+  visual change gets ONE screenshot of that one thing. Batch related small fixes into one push.
+- **Tests** (`tests/`, on saved samples in `tests/fixtures/`) pin the math and every past bug. When a
+  rule they pin changes on purpose, change its test in the same commit; a bug fix gets a test that
+  fails without it. Runs (public): `api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/runs`.
 - Python: on the Carter PC `C:\Users\Carter\AppData\Local\Python\bin\python.exe` (there `py` can't
   see Playwright's browser); on the cdmcc PC `py`. Plain `python` is the Store stub on both.
-- To verify a change, run `python tools/check_site.py` once before a push. While iterating on a
-  design, screenshot ONE game's card, never the full all-games screenshot set (the user: it
-  "takes way too long"). Use the browser only to look at something specific. It needs Playwright
-  (`pip install -r tools/requirements-dev.txt`, then `python -m playwright install chromium`).
+- `tools/check_site.py` (needs Playwright: `pip install -r tools/requirements-dev.txt`, then
+  `python -m playwright install chromium`) is for chasing a specific page problem, never routine.
+  Never the full all-games screenshot set (the user: it "takes way too long").
 - Build: `SKIP_SGO_FETCH=1 python nfl_tool/build_stats.py --season 2026 --out nfl_tool/site/data.json`.
   A 404 is a transient nflverse error; re-run. The build only downloads a file that's missing
   (`download_if_missing`), so delete `data/*_2026*` and `data/games.csv` first when the latest

@@ -219,8 +219,12 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
 - The refresh shares the database binding, the NHL build command and the publish command with
   deploy.yml word for word (tests compare them): change both together.
 - The "create Pages project" step is gone (it failed with "already exists" on every run; the
-  recreate command is in deploy.yml). Looked at and left alone: the browser's system install
-  (dropping it could change fonts and with them the card-fit checks) and pip caching (no real gain).
+  recreate command is in deploy.yml). **Install speed (2026-10-23):** on 2026-10-22 "Install
+  dependencies" took 10 to 14 minutes on several runs (normally under 1). Now pip packages
+  (`setup-python` `cache: pip`) and the browser (`~/.cache/ms-playwright`, keyed on Playwright's
+  version) are kept between runs, and the browser's system libraries and fonts
+  (`playwright install-deps`) still run every time, so fonts stay the same, but get 180 s
+  (`timeout`); past that the run warns and goes on with the runner's own libraries.
 
 ## Login gate (`nfl_tool/functions/_middleware.js`, Pages Functions)
 

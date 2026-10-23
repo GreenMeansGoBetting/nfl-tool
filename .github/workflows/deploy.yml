@@ -66,14 +66,36 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            nfl_tool/requirements.txt
+            tools/requirements-dev.txt
 
       # The build's own packages, plus the browser the tests and the site
-      # check (the gate, further down) both drive.
+      # check (the gate, further down) both drive. Install is usually under a
+      # minute, but on 2026-10-22 it took 10 to 14 minutes on several runs
+      # (slow downloads on GitHub's side), so the packages and the browser are
+      # kept between runs, and the browser's system libraries and fonts get
+      # three minutes: past that the run goes on with the ones GitHub's machine
+      # already has (it ships with Chrome), rather than hold up a publish.
       - name: Install dependencies
+        id: deps
         run: |
           python tools/ci_steps.py mark start
           pip install -r nfl_tool/requirements.txt -r tools/requirements-dev.txt
-          python -m playwright install --with-deps chromium
+          pip show playwright | sed -n 's/^Version: /playwright=/p' >> "$GITHUB_OUTPUT"
+
+      - name: Restore the saved browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.deps.outputs.playwright }}
+
+      - name: Install the browser
+        run: |
+          python -m playwright install chromium
+          timeout 180 python -m playwright install-deps chromium \
+            || echo "::warning::Browser system install was slow or failed; using the runner's own libraries"
           python tools/ci_steps.py mark install
 
       # Every run does the same thing (2026-10-15): every test, all three
