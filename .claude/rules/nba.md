@@ -205,15 +205,21 @@ The owner: "we want users to feel comfortable to in rhythm with the design of th
 sport to sport. Everything we create should mimic the other tools in form and function." One board,
 each page a config (`PB_PAGE` in points.js / threes.js, loaded BEFORE props-board.js; column lists
 may be functions because the board's helpers load after):
-- **The play the NHL pages' way:** Play chip (`o19.5 PTS`, `o1.5 3PM`, green over / red under) = the
-  side of his main line our chance (`p_over` from the build) beats its best price across the
-  member's books by more; **GMG Fair** (our chance, no cut), **Odds** (`bookPricePill`, book name
-  under), **Good To** (fair at our chance - `GOOD_TO` 3 points), **Edge** (points, green from 3, gray
-  below 0). The record grades the same rule (`props.threes_play`, best price across every book).
+- **The play the NHL pages' way:** Play chip (`o19.5 PTS`, `u0.5 3PM`, green over / red under) = the
+  side our projection **leans** (Threes: our chance of the Over vs the books' no-vig `p_mkt`; Points:
+  the projection vs the line; no lean = no chip), priced at its best price across the member's
+  books. Until 2026-10-23 it was "the side that beats its price by more", which with the books' cut
+  often showed the less-bad side we lean AGAINST (the owner, on Pippen: "why is the play over 1.5 at
+  a negative edge - why not list that as an under?"). **GMG Fair** (our chance, no cut), **Odds**
+  (`bookPricePill`, book name under), **Good To** (fair at our chance - `GOOD_TO` 3 points; only on a
+  play, edge 3+: on less it named a price better than the books', "weird"), **Edge** (points, green
+  from 3 = a play, red below 0 = not good enough, not graded). The record grades the same rule
+  (`props.threes_play(p_over, best_o, best_u, lean)`, best price across every book, positive only).
+- Negative-edge rows stay on the board for their data (hit rates, tags); the record never grades them.
 - **Columns:** Player, Play, [page's `before`: Threes' Proj Att], Proj (narrow), GMG Fair, Odds, Good
   To, Edge, [page's `after`: 3PA / 3PM or PTS / FGA a game], then **Hit Rate** (one group box over
-  L5, L10, Season, Home, Away, vs; each colored by its % from red at 20% to green at 80%, from 3
-  games), [page's `end`: Points' Share, Mix], Tags. **Every column sorts** (click; again flips),
+  L5, L10, Season, Home, Away, vs; every cell colored by its % from red at 20% to green at 80%, however
+  few games: the "x of y" says how many), [page's `end`: Points' Share, Mix], Tags. **Every column sorts** (click; again flips),
   **Edge by default**; Out players always last. No Min column (2026-10-23).
 - **Tags** are `{key, label, cls, title}`; matchup tags green / red (`.gs-tag`), the rest amber
   (`.pts-tag`, same shape). **Tag filter** (`#pts-tag`, replaced the Sort menu): only players with

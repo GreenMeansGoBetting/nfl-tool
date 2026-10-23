@@ -310,7 +310,7 @@ def record_ledger(lines: dict, block: dict | None) -> list:
             line = row[0]
             p_over, best_o, best_u = (list(row[8:11]) + [None] * 3)[:3]
             got = played.get((str(gid), pid))
-            play = threes_play(p_over, best_o, best_u)
+            play = threes_play(p_over, best_o, best_u, lean(row[1], line))  # Points: the projection vs the line
             if got is None or got[0] < RECORD_START or line is None or play is None or got[1] == line:
                 continue
             side, edge, price = play
@@ -483,16 +483,27 @@ def units(price, won: bool) -> float | None:
     return price / 100 if price > 0 else 100 / -price
 
 
-def threes_play(p_over, best_o, best_u):
-    """(side "over" / "under", edge, price) of the side our chance beats its
-    best price by more (the NHL pages' rule: our chance minus the chance the
-    price needs to break even), or None with no price or no positive edge."""
-    if p_over is None:
+def threes_play(p_over, best_o, best_u, over):
+    """(side "over" / "under", edge, price): the side our projection LEANS
+    (`over`: True / False, None = no lean), priced the NHL pages' way (our
+    chance minus the chance its best price needs to break even); None with no
+    lean, no price on that side or no positive edge. Changed 2026-10-23 from
+    "whichever side beats its price by more": with the books' cut both sides
+    are often negative, and the less-bad side could be the one we lean against
+    (the owner: Pippen, "we project 2 attempts and his line is 1.5, why is the
+    play over 1.5 at a negative edge - why not list that as an under?")."""
+    if p_over is None or over is None:
         return None
-    sides = [(side, chance - implied(price), price) for side, chance, price in (("over", p_over, best_o), ("under", 1 - p_over, best_u))
-             if price is not None]
-    best = max(sides, key=lambda x: x[1], default=None)
-    return best if best and best[1] > 0 else None
+    chance, price = (p_over, best_o) if over else (1 - p_over, best_u)
+    if price is None:
+        return None
+    edge = chance - implied(price)
+    return ("over" if over else "under", edge, price) if edge > 0 else None
+
+
+def lean(a, b):
+    """True (over) / False (under) / None: which way `a` sits from `b`."""
+    return None if a is None or b is None or a == b else a > b
 
 
 # The threes record (changed 2026-10-23 to the NHL pages' play rule, the
@@ -523,7 +534,7 @@ def threes_ledger(lines: dict, block: dict | None) -> list:
         for pid, row in rows.items():
             line, p_over, best_o, best_u = row[0], row[4], row[6], row[7]
             got = played.get((str(gid), pid))
-            play = threes_play(p_over, best_o, best_u)
+            play = threes_play(p_over, best_o, best_u, lean(p_over, row[5]))  # Threes: our chance vs the books' no-vig
             if got is None or got[0] < THREES_RECORD_START or line is None or play is None or got[1] == line:
                 continue
             side, edge, price = play

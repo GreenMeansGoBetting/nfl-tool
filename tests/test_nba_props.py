@@ -349,12 +349,15 @@ class Threes(unittest.TestCase):
 
     def test_the_play_is_the_side_that_beats_its_best_price(self):
         # the NHL pages' rule: our chance minus what the price needs, the bigger side, positive only
-        self.assertEqual(props.threes_play(0.6, 110, -130)[:2], ("over", 0.6 - 100 / 210))
-        side, edge, price = props.threes_play(0.4, -110, 120)
+        self.assertEqual(props.threes_play(0.6, 110, -130, True)[:2], ("over", 0.6 - 100 / 210))
+        side, edge, price = props.threes_play(0.4, -110, 120, False)
         self.assertEqual((side, price), ("under", 120))
         self.assertAlmostEqual(edge, 0.6 - 100 / 220)
-        self.assertIsNone(props.threes_play(0.5, -115, -115))  # the vig eats both sides
-        self.assertIsNone(props.threes_play(0.6, None, None))
+        self.assertIsNone(props.threes_play(0.5, -115, -115, True))  # the vig eats it
+        self.assertIsNone(props.threes_play(0.6, None, None, True))
+        self.assertIsNone(props.threes_play(0.6, 110, -130, None))  # no lean, no play
+        # Pippen: we lean Under; the Over's price is the less-bad one, but it isn't our side
+        self.assertIsNone(props.threes_play(0.24, 300, -500, False))
 
     def test_the_record_grades_the_play_at_its_best_price(self):
         def row(game, made):

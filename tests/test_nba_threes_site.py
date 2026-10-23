@@ -46,8 +46,8 @@ PROPS = {
         "1": {"line": 1.5, "proj": 2.03, "w": 0.25, "ours": 2.4, "tries": 6.4, "pct": 0.351, "p_over": 0.571, "p_mkt": 0.524,
               "edge": 0.047, "ladder": [0.84, 0.571, 0.33, 0.16, 0.07], "best_o": 105, "best_u": -110, "games": 10, "out": False,
               "missing": 0, "share": 0.2, "luck": -0.7, "spread": 7.5, "min_ratio": 1.0},
-        "2": {"line": 0.5, "proj": 0.6, "w": 0.0, "ours": None, "tries": None, "pct": None, "p_over": 0.45, "p_mkt": 0.45,
-              "edge": 0.0, "ladder": [0.45, 0.13, 0.03, 0.01, 0.0], "best_o": 120, "best_u": -150, "games": 0, "out": True,
+        "2": {"line": 0.5, "proj": 0.6, "w": 0.0, "ours": None, "tries": None, "pct": None, "p_over": 0.45, "p_mkt": 0.47,
+              "edge": -0.02, "ladder": [0.45, 0.13, 0.03, 0.01, 0.0], "best_o": 120, "best_u": -150, "games": 0, "out": True,
               "missing": 0, "share": 0.2, "luck": None, "spread": 7.5, "min_ratio": None},
         "3": {"line": 2.5, "proj": 2.9, "w": 0.2, "ours": 3.1, "tries": 8.0, "pct": 0.36, "p_over": 0.5, "p_mkt": 0.48,
               "edge": 0.02, "ladder": [0.9, 0.75, 0.5, 0.3, 0.15], "best_o": 100, "best_u": -120, "games": 5, "out": False,
@@ -68,7 +68,7 @@ DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "identity
         "teams": {t: {"name": t, "short": t, "logo": "", "color": "336699"} for t in ("AAA", "BBB")},
         "book_odds": {"AAA_BBB": {"kickoff": "2026-10-21T23:30:00Z", "td": {}, "lines": {},
                                   "props": {"threes": {"1": {"name": "Player One", "q": MAIN},
-                                                       "2": {"name": "Player Two", "q": [["draftkings", "o", 0.5, 120, ""]]},
+                                                       "2": {"name": "Player Two", "q": [["draftkings", "o", 0.5, 120, ""], ["draftkings", "u", 0.5, -150, ""]]},
                                                        "3": {"name": "Player Three", "q": [["draftkings", "o", 2.5, 100, ""], ["draftkings", "u", 2.5, -120, ""]]}},
                                             "threes_alt": {"1": {"name": "Player One", "q": ALT}}}}}}
 SHOTS = {"season": 2027, "label": "2026-27", "games": list(range(100, 110)), "teams": ["AAA", "BBB"],
@@ -130,10 +130,15 @@ class Board(unittest.TestCase):
         self.assertEqual(c[7], "+8.3")
         self.assertIn("tier-good", PAGE.evaluate("() => document.querySelector(\"tr[data-key='900:1'] .th-edge\").className"))
         self.assertEqual((c[8], c[9]), ("6.0", "1.9"))  # 3PA / 3PM a game
+        # Player Two (Pippen's case, the owner 2026-10-23): we lean Under (45% Over vs the books' 47%).
+        # The Over's +120 is the less-bad price (-0.5), but the play is our side: Under at -150 (needs 60%
+        # for our 55%) = -5.0, red, no Good To.
         c2 = row(2)
-        self.assertEqual(c2[1].upper(), "O0.5 3PM")
+        self.assertEqual(c2[1].upper(), "U0.5 3PM")
         self.assertEqual(c2[3], "0.60 No Games")
-        self.assertEqual(c2[7], "-0.5")
+        self.assertEqual((c2[6], c2[7]), ("--", "-5.0"))
+        self.assertIn("tier-bad", PAGE.evaluate("() => document.querySelector(\"tr[data-key='900:2'] .th-edge\").className"))
+        self.assertEqual(row(3)[6], "--")  # an edge of 0.0: not a play either
 
     def test_hit_rates_home_and_away_apart_colored_by_the_percentage(self):
         c = row(1)
@@ -141,6 +146,8 @@ class Board(unittest.TestCase):
         self.assertEqual(c[10:16], ["60% 3 of 5", "60% 6 of 10", "60% 6 of 10", "40% 2 of 5", "80% 4 of 5", "60% 6 of 10"])
         colors = PAGE.evaluate("() => [...document.querySelectorAll(\"tr[data-key='900:1'] .pts-hit\")].map((td) => td.style.background)")
         self.assertTrue(all(colors), colors)
+        # every cell, however few games (Player Three's 2 home games too)
+        self.assertTrue(PAGE.evaluate("() => [...document.querySelectorAll(\"tr[data-key='900:3'] .pts-hit\")].every((td) => td.style.background)"))
         self.assertEqual(len(set(colors[3:5])), 2)  # 40% and 80% differ
 
     def test_every_column_sorts_and_flips(self):

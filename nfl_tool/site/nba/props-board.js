@@ -60,35 +60,42 @@ function hits(rows, line) {
   return { over: rows.filter((x) => x[f[PB_PAGE.made]] > line).length, of: rows.length };
 }
 const hitShare = (h) => (h ? h.over / h.of : -1);
-// Colored by the percentage itself (from 3 games): red at 20% or less, yellow
-// at 50%, green at 80% or more, stronger the farther from 50%.
+// Every cell colored by its percentage (the owner, 2026-10-23): red at 20% or
+// less, yellow at 50%, green at 80% or more, stronger the farther from 50%.
+// The "x of y" under it says how many games it is.
 function hitCell(h, title) {
   if (!h) return `<td class="num pts-hit">--</td>`;
   const share = h.over / h.of;
   const hue = Math.round(Math.max(0, Math.min(1, (share - 0.2) / 0.6)) * 135);
-  const style = h.of < 3 ? "" : ` style="background:${scaleHsla(hue, 78, 44, 0.2 + Math.min(0.3, Math.abs(share - 0.5)) * 1.1)}"`;
+  const style = ` style="background:${scaleHsla(hue, 78, 44, 0.24 + Math.min(0.3, Math.abs(share - 0.5)) * 1.1)}"`;
   return `<td class="num pts-hit"${style} title="${title}">${Math.round(share * 100)}%<small>${h.over} of ${h.of}</small></td>`;
 }
 
 // ---- the play (the NHL pages' way) ----
-// Of Over and Under at his main line, the side our chance beats its best price
-// (across the member's books) by more. GMG Fair = our chance as a price with no
-// cut; Good To = the worst price that still leaves GOOD_TO of edge; Edge = our
-// chance minus the chance the price needs to break even, in points. The record
-// grades the same rule (props.threes_play, at the best price across every book).
+// The side our projection LEANS (our chance of the Over vs the books' no-vig
+// chance; Points: the projection vs the line), priced at its best price across
+// the member's books. With the books' cut both sides are often negative; this
+// never shows the less-bad side we lean against (the owner, 2026-10-23, on
+// Pippen: "why is the play over 1.5 at a negative edge - why not list that as
+// an under?"). GMG Fair = our chance as a price with no cut; Good To = the
+// worst price that still leaves GOOD_TO of edge; Edge = our chance minus the
+// chance the price needs to break even, in points. The record grades the same
+// rule (props.threes_play, at the best price across every book).
+function leanSide(r) {
+  const row = r.row;
+  const [a, b] = row.p_mkt !== null && row.p_mkt !== undefined ? [row.p_over, row.p_mkt] : [row.proj, r.line];
+  return a === null || a === undefined || b === null || b === undefined || a === b ? null : a > b ? "o" : "u";
+}
 const fairPrice = (p) => (p === null || p === undefined || p <= 0 || p >= 1 ? null : probToAmerican(p));
 const points = (edge) => `${edge > 0 ? "+" : ""}${(edge * 100).toFixed(1)}`;
 function playFor(r) {
   const p = r.row.p_over;
   if (p === null || p === undefined || r.line === null || r.line === undefined) return null;
-  const quotes = (bookRow(r.g, r.pid) || {}).q || [];
-  return [["o", p], ["u", 1 - p]]
-    .map(([side, chance]) => {
-      const best = bookBest(quotes, side, r.line);
-      return best ? { side, chance, price: best[3], book: best[0], edge: chance - oddsProb(best[3]) } : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.edge - a.edge)[0] || null;
+  const side = leanSide(r);
+  if (!side) return null;
+  const chance = side === "o" ? p : 1 - p;
+  const best = bookBest((bookRow(r.g, r.pid) || {}).q || [], side, r.line);
+  return best ? { side, chance, price: best[3], book: best[0], edge: chance - oddsProb(best[3]) } : null;
 }
 function projTitle(r) {
   return r.row.ours === null || r.row.ours === undefined ? "No games this season yet: the projection is the books' number"
@@ -166,8 +173,8 @@ function rowFor(g, pid, row) {
 const num = (v) => (v === null || v === undefined || Number.isNaN(v) ? -Infinity : v);
 const COL = {
   player: { key: "name", label: "Player", value: (r) => r.name, cell: (r) => `<td><div class="pts-player" data-open="${r.pid}">${headshot(r.pid)}<span><b>${playerClick(r.pid, r.name)}</b> <span class="muted-label">${(r.p && r.p.pos) || ""}</span>${r.row.out ? ' <span class="gs-inj-status tier-bad">Out</span>' : ""}<br><span class="muted-label">${logo(r.tm, 14)} ${r.tm} ${r.home ? "vs" : "@"} ${logo(r.opp, 14)} ${r.opp}</span></span></div></td>` },
-  play: { key: "play", label: "Play", title: "The side of his main line our chance beats its best price by more", value: (r) => (r.play ? r.play.edge : null),
-    cell: (r) => (r.play ? `<td class="th-play-cell"><span class="th-play th-play-${r.play.side}" title="${r.play.side === "o" ? "Over" : "Under"} ${fmt(r.line)} ${PB_PAGE.unit}: the side our chance beats its best price by more"><b>${r.play.side}${fmt(r.line)}</b><span>${PB_PAGE.unit}</span></span></td>` : `<td class="th-play-cell">--</td>`) },
+  play: { key: "play", label: "Play", title: "The side of his main line our projection leans; green / red Edge says if the price is good enough", value: (r) => (r.play ? r.play.edge : null),
+    cell: (r) => (r.play ? `<td class="th-play-cell"><span class="th-play th-play-${r.play.side}" title="${r.play.side === "o" ? "Over" : "Under"} ${fmt(r.line)} ${PB_PAGE.unit}: the side our projection leans"><b>${r.play.side}${fmt(r.line)}</b><span>${PB_PAGE.unit}</span></span></td>` : `<td class="th-play-cell">--</td>`) },
   proj: { key: "proj", label: "Proj", title: "What we project tonight (in testing)", cls: "th-narrow", value: (r) => r.row.proj,
     cell: (r) => `<td class="num th-proj" title="${projTitle(r)}"><b>${r.row.proj === null || r.row.proj === undefined ? "--" : fmt(r.row.proj, PB_PAGE.projDigits || 1)}</b>${r.row.games ? "" : "<small>No Games</small>"}</td>` },
   fair: { key: "fair", label: "GMG Fair", title: "Our chance as a price with no cut. Odds longer than this are the edge", value: (r) => (r.play ? r.play.chance : null),
@@ -178,14 +185,19 @@ const COL = {
       const spec = { kind: "prop", stat: PB_PAGE.stat, team: r.tm, game: `${r.g.away}_${r.g.home}`, pid: r.pid, side: r.play.side, line: r.line, title: `${r.name} ${PB_PAGE.unit}`, sub: `${r.tm} vs ${r.opp}` };
       return `<td class="num th-odds">${bookPricePill(spec) || "--"}</td>`;
     } },
-  goodto: { key: "goodto", label: "Good To", title: `The worst price this still has a ${Math.round(GOOD_TO * 100)}-point edge at. Past this, it is no longer a play`, value: (r) => (r.play ? r.play.chance : null),
-    cell: (r) => { const v = r.play ? fairPrice(r.play.chance - GOOD_TO) : null; return `<td class="num th-goodto">${v === null ? "--" : showOdds(v)}</td>`; } },
-  edge: { key: "edge", label: "Edge", title: "Our chance minus the chance the price needs to break even, in points. Green from 3", cls: "th-narrow", value: (r) => (r.play ? r.play.edge : null),
+  // Good To only on a play (an edge of GOOD_TO+ at today's price): on anything less it would name a
+  // price better than the books offer, which reads backwards (the owner, 2026-10-23: "weird").
+  goodto: { key: "goodto", label: "Good To", title: `The worst price this still has a ${Math.round(GOOD_TO * 100)}-point edge at. Past this, it is no longer a play`,
+    value: (r) => (r.play && r.play.edge >= GOOD_TO ? r.play.chance : null),
+    cell: (r) => { const v = r.play && r.play.edge >= GOOD_TO ? fairPrice(r.play.chance - GOOD_TO) : null; return `<td class="num th-goodto">${v === null ? "--" : showOdds(v)}</td>`; } },
+  // Green from GOOD_TO (a play), red below 0 (no play: the record grades only positive edges), deeper the farther.
+  edge: { key: "edge", label: "Edge", title: "Our chance minus the chance the price needs to break even, in points. Green from 3 (a play), red below 0", cls: "th-narrow", value: (r) => (r.play ? r.play.edge : null),
     cell: (r) => {
       const x = r.play;
       if (!x) return `<td class="num th-edge">--</td>`;
-      const cls = x.edge >= GOOD_TO ? "tier-good" : x.edge < 0 ? "muted-label" : "";
-      const alpha = x.edge >= GOOD_TO ? ` style="--tier-a:${Math.min(0.34, 0.08 + (x.edge - GOOD_TO) * 3).toFixed(2)}"` : "";
+      const cls = x.edge >= GOOD_TO ? "tier-good" : x.edge < 0 ? "tier-bad" : "";
+      const depth = x.edge >= GOOD_TO ? x.edge - GOOD_TO : -x.edge;
+      const alpha = cls ? ` style="--tier-a:${Math.min(0.34, 0.1 + depth * 3).toFixed(2)}"` : "";
       return `<td class="num th-edge ${cls}"${alpha} title="Our ${pct(x.chance)} minus the ${pct(oddsProb(x.price))} this price needs to break even">${points(x.edge)}</td>`;
     } },
   l5: { key: "l5", label: "L5", group: "hit", title: "His last 5 games over tonight's line", value: (r) => hitShare(r.l5), cell: (r) => hitCell(r.l5, "Last 5 games over tonight's line") },
