@@ -225,7 +225,9 @@ may be functions because the board's helpers load after):
   few games: the "x of y" says how many), [page's `end`: Points' Share, Mix], Tags. **Every column sorts** (click; again flips),
   **Edge by default**; Out players always last. No Min column (2026-10-23). The price columns and
   the numbers (Proj Att, Proj, GMG Fair, Odds, Good To, Edge, the averages) are `th-tight` (as narrow
-  as their numbers; the owner: Odds "absolutely too wide"). **Frozen headers:** the board scrolls in
+  as their numbers + 9px each side, like Proj; the hit rates and Share too, so Tags takes the spare
+  width; the owner: Odds "absolutely too wide", then "a nice simple dead space overhang like whats in
+  PROJ"). **Frozen headers:** the board scrolls in
   its own box (`.pts-scroll`, at most the window's height) with `thead` sticky. Points' Share is
   colored by its percentile on Mix's 8-step scale. On PC (1100px+) the board is 10% bigger (`zoom`), the
   page scrolls and the header sticks under the site's top bar (`--pb-top`, measured); smaller screens

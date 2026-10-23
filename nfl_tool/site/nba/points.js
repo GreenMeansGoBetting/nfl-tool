@@ -107,7 +107,7 @@ const PB_PAGE = {
   wwCols: [["pts", "Pts"], ["min", "Min"], ["fga", "FGA"]],
   after: () => [avgCol("ppg", "pts", "Avg", "Points a game this season"), avgCol("fga", "fga", "FGA", "Shots a game this season")],
   end: [
-    { key: "share", label: "Share", title: "His share of his team's shots while he's on the floor", value: (r) => (r.p ? r.p.share : null),
+    { key: "share", label: "Share", cls: "th-tight", title: "His share of his team's shots while he's on the floor", value: (r) => (r.p ? r.p.share : null),
       cell: shareCell },
     { key: "mix", label: "Mix", title: "The % of his shots at the rim, from 3 and self-created; sorts by his 3s", value: (r) => (r.p && r.p.zones ? (r.p.zones.corner3 || 0) + (r.p.zones.above3 || 0) : null),
       cell: (r) => mixCell(r.p) },

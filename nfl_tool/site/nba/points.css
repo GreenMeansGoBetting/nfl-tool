@@ -117,10 +117,15 @@
 }
 .pts-table td.th-narrow, .pts-table th.th-narrow { width: 1%; padding-left: 6px; padding-right: 6px; }
 /* the price columns as narrow as their numbers (the owner: Odds "absolutely too wide", GMG Fair and Good To too) */
-.pts-table td.th-tight, .pts-table th.th-tight { width: 1%; padding-left: 4px; padding-right: 4px; }
+/* Every number column only as wide as its numbers plus a little on each side, the way Proj looked (the
+   owner, 2026-10-23: "a nice simple dead space overhang like whats in PROJ ... Just a little on each side");
+   the hit rates and Share too. The leftover width goes to Tags. */
+.pts-table td.th-tight, .pts-table th.th-tight,
+.pts-table td.pts-hit, .pts-table th.pb-g, .pts-table td.pts-share { width: 1%; padding-left: 9px; padding-right: 9px; }
+.pts-table td.pts-hit { min-width: 50px; }
 .pts-table th.th-tight { white-space: normal; line-height: 1.1; }
-.pts-table td.th-odds .bo-pill { padding: 1px 6px; font-size: 0.92rem; line-height: 1.1; }
-.pts-table td.th-odds .bo-pill small { font-size: 0.56rem; letter-spacing: 0.02em; }
+.pts-table td.th-odds .bo-pill { padding: 2px 7px; font-size: 1rem; line-height: 1.1; }
+.pts-table td.th-odds .bo-pill small { font-size: 0.6rem; letter-spacing: 0.02em; }
 .pts-table td.th-avg { font-family: var(--font-display); }
 
 @media (max-width: 1000px) {
