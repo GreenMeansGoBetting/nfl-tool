@@ -179,7 +179,8 @@ class Plays(unittest.TestCase):
     def test_each_players_best_price_then_each_games_best(self):
         pts = [10] * 30 + [20] * 40 + [30] * 30  # 70% for 15.5+, 30% for 25.5+
         sim_game = {"players": {"1": game_row(pts), "2": game_row(pts), "3": game_row(pts, minutes=12)}, "dials": {"home": ["b2b"], "away": []}}
-        props = {"points": {"1": {"q": [["dk", "o", 15.5, -110], ["fd", "o", 15.5, -105], ["dk", "u", 15.5, -110]]},
+        # SmartStake's quotes carry a fifth field, the bet link
+        props = {"points": {"1": {"q": [["dk", "o", 15.5, -110, ""], ["fd", "o", 15.5, -105, "https://fd"], ["dk", "u", 15.5, -110, ""]]},
                             "2": {"q": [["dk", "o", 15.5, -200]]},
                             "3": {"q": [["dk", "o", 15.5, 300]]}},  # 12 minutes: never a play
                  "points_alt": {"1": {"q": [["dk", "o", 25.5, 300], ["dk", "o", 35.5, 2000]]}}}
@@ -228,7 +229,7 @@ class Build(unittest.TestCase):
         games = [{"game_id": "77", "date": "2026-10-20", "time": "19:00", "away": "AAA", "home": "BBB", "start_utc": "2026-10-20T23:00Z"}]
 
         def odds(price):
-            return {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", 9.5, price], ["dk", "u", 9.5, -110]]}}}}}
+            return {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", 9.5, price, ""], ["dk", "u", 9.5, -110, ""]]}}}}}
         with tempfile.TemporaryDirectory() as tmp:
             real = build_nba.PROPS_RECORD_DIR
             build_nba.PROPS_RECORD_DIR = Path(tmp)

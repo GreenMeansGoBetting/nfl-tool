@@ -634,9 +634,9 @@ def implied(price) -> float:
 
 def best_prices(quotes: list) -> dict:
     """{(side, line): (price, book)}: the best price across the books at each
-    line ("o" / "u"); quotes are [book, side, line, price]."""
+    line ("o" / "u"); quotes are [book, side, line, price, (the bet link)]."""
     out = {}
-    for book, side_, line, price in quotes:
+    for book, side_, line, price in (q[:4] for q in quotes):
         if line is None or price is None:
             continue
         key = (side_, float(line))
