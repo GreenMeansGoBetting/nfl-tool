@@ -1400,44 +1400,44 @@
   "board": [
    {
     "id": "3064514",
-    "lead": 0.2029,
+    "lead": 0.2034,
     "name": "Julius Randle",
     "proj": 48.0,
     "team": "BKN"
    },
    {
     "id": "3155942",
-    "lead": 0.1889,
+    "lead": 0.1894,
     "name": "Domantas Sabonis",
     "proj": 47.4,
     "team": "SAC"
    },
    {
     "id": "4065733",
-    "lead": 0.1845,
+    "lead": 0.1847,
     "name": "Ty Jerome",
     "proj": 47.1,
     "team": "MEM"
    },
    {
     "id": "3945274",
-    "lead": 0.0696,
+    "lead": 0.0698,
     "name": "Luka Doncic",
     "proj": 41.0,
     "team": "LAL"
    },
    {
     "id": "4594268",
-    "lead": 0.0636,
+    "lead": 0.0628,
     "name": "Anthony Edwards",
-    "proj": 40.7,
+    "proj": 40.6,
     "team": "MIN"
    },
    {
     "id": "4433134",
-    "lead": 0.0604,
+    "lead": 0.0598,
     "name": "Scottie Barnes",
-    "proj": 39.8,
+    "proj": 39.7,
     "team": "TOR"
    },
    {
@@ -1449,7 +1449,7 @@
    },
    {
     "id": "4066457",
-    "lead": 0.0331,
+    "lead": 0.0332,
     "name": "Austin Reaves",
     "proj": 37.4,
     "team": "LAL"
@@ -1463,7 +1463,7 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0137,
+    "lead": 0.0138,
     "name": "Cameron Boozer",
     "proj": 34.0,
     "team": "MEM"
@@ -1505,7 +1505,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0093,
+    "lead": 0.0094,
     "name": "Shai Gilgeous-Alexander",
     "proj": 32.1,
     "team": "OKC"
@@ -1526,9 +1526,9 @@
    },
    {
     "id": "4395625",
-    "lead": 0.0062,
+    "lead": 0.0061,
     "name": "RJ Barrett",
-    "proj": 31.0,
+    "proj": 30.9,
     "team": "TOR"
    },
    {
@@ -1554,17 +1554,10 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0035,
+    "lead": 0.0036,
     "name": "Joel Embiid",
     "proj": 28.9,
     "team": "PHI"
-   },
-   {
-    "id": "6450",
-    "lead": 0.0027,
-    "name": "Kawhi Leonard",
-    "proj": 28.0,
-    "team": "TOR"
    },
    {
     "id": "4277961",
@@ -1572,6 +1565,13 @@
     "name": "Jaren Jackson Jr.",
     "proj": 28.4,
     "team": "UTAH"
+   },
+   {
+    "id": "6450",
+    "lead": 0.0026,
+    "name": "Kawhi Leonard",
+    "proj": 27.9,
+    "team": "TOR"
    },
    {
     "id": "4432166",
@@ -1591,7 +1591,7 @@
     "id": "4397002",
     "lead": 0.0016,
     "name": "Ayo Dosunmu",
-    "proj": 27.2,
+    "proj": 27.1,
     "team": "MIN"
    },
    {
@@ -1617,7 +1617,7 @@
    },
    {
     "id": "4433255",
-    "lead": 0.001,
+    "lead": 0.0011,
     "name": "Chet Holmgren",
     "proj": 27.1,
     "team": "OKC"
@@ -1668,7 +1668,7 @@
     "id": "4395724",
     "lead": 0.0003,
     "name": "Immanuel Quickley",
-    "proj": 25.6,
+    "proj": 25.5,
     "team": "TOR"
    },
    {
@@ -1770,18 +1770,18 @@
     "team": "LAC"
    },
    {
-    "id": "4433247",
-    "lead": 0.0,
-    "name": "Jonathan Kuminga",
-    "proj": 19.3,
-    "team": "MIN"
-   },
-   {
     "id": "4432165",
     "lead": 0.0,
     "name": "Jalen Suggs",
     "proj": 19.3,
     "team": "ORL"
+   },
+   {
+    "id": "4433247",
+    "lead": 0.0,
+    "name": "Jonathan Kuminga",
+    "proj": 19.2,
+    "team": "MIN"
    },
    {
     "id": "4600663",
