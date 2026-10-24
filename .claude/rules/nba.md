@@ -155,6 +155,11 @@ options"), Novig only where SmartStake has no price.
   idea C), `dip` (last-5 minutes 85% of his season or less), `role` (10%+ of the team's shots Out,
   his share under 15%), `opp_out` (the other team missing 15%+). **Revisit around 2026-11-23** with
   ~2,000 graded plays: drop what isn't holding, raise PROJ_MAX if the record earns it.
+- **Situational spots (2026-10-24, the owner's restart of Points / Threes as a game simulation):**
+  `tools/backtest/nba_spots.py` measures 31 schedule / last-game / streak / lineup spots on ten
+  past seasons against each team's normal and 2025-26's spreads and totals (findings in its
+  header). Real ones (rest, back-to-backs, OT, close-win letdown) are 1-3 points and mostly
+  priced; the sim's dials take their sizes from it.
 - **Factor research (2026-10-23, the owner's 10 ideas + minutes, referees, star lines, rest):** the
   replay (`tools/backtest/nba_points.py`, findings in its header) found two new things that predict
   points: last-5 minutes overshoot (a minutes dip bounces back, a rise sticks) and missing
