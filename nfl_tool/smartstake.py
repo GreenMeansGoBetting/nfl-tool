@@ -401,9 +401,11 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
             named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed]
             debug["note"] = "; ".join(n for n in named if "point" in n.lower())[:500]
         debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
-        threes_key = next((k for k, v in markets.items() if v == "threes"), None)
-        if threes_key:
-            debug["threes_alt"] = add_threes_ladder(api_key, games, team_of, player_key, threes_key)
+        # every rung of the points and threes ladders (the NBA game sim prices them all, 2026-10-24)
+        for stat in ("threes", "points"):
+            key = next((k for k, v in markets.items() if v == stat), None)
+            if key:
+                debug[f"{stat}_alt"] = add_ladder(api_key, games, team_of, player_key, key, f"{stat}_alt")
         return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake NBA fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
@@ -445,25 +447,26 @@ def add_first_goal(api_key: str, games: dict, team_of, player_key, listed=None) 
         return {"error": str(e)[:200]}
 
 
-def add_threes_ladder(api_key: str, games: dict, team_of, player_key, key: str) -> dict:
-    """Adds every book's threes prices at EVERY line, alternates included, to
-    the NBA games (props["threes_alt"]): the Threes page's ladder (1+ / 2+ /
-    3+ ...) shows only rungs a book really prices (the owner: an alt ladder
-    "without odds its just filler"). Kept apart from props["threes"] so the
-    main line stays the books' main line. Its own try: a failure here never
-    costs the other prices."""
+def add_ladder(api_key: str, games: dict, team_of, player_key, key: str, name: str) -> dict:
+    """Adds every book's prices for one NBA player market at EVERY line,
+    alternates included, to the games (props[name], "threes_alt" /
+    "points_alt"): the Points and Threes ladders (20+ / 25+ ..., 1+ / 2+ ...)
+    show only rungs a book really prices (the owner: an alt ladder "without
+    odds its just filler"). Kept apart from the main market so the main line
+    stays the books' main line. Its own try: a failure here never costs the
+    other prices."""
     try:
-        quotes = fetch_quotes(api_key, "nba", [key], alternate=True)
-        found = build_book_odds(quotes, team_of, prop_markets={key: "threes_alt"}, td_market=None, line_markets={}, player_key=player_key)
+        quotes = fetch_quotes(api_key, "nba", [key], max_pages=60, alternate=True)
+        found = build_book_odds(quotes, team_of, prop_markets={key: name}, td_market=None, line_markets={}, player_key=player_key)
         priced = 0
         for game_key, game in found.items():
-            prices = game["props"].get("threes_alt")
+            prices = game["props"].get(name)
             if prices:
-                games.setdefault(game_key, {"kickoff": game["kickoff"], "props": {}, "td": {}, "lines": {}})["props"]["threes_alt"] = prices
+                games.setdefault(game_key, {"kickoff": game["kickoff"], "props": {}, "td": {}, "lines": {}})["props"][name] = prices
                 priced += len(prices)
         return {"quotes": len(quotes), "players": priced, "lines": sorted({q.get("line") for q in quotes if q.get("line") is not None})[:12]}
     except Exception as e:
-        print(f"WARNING: SmartStake threes ladder failed ({e}).", file=sys.stderr)
+        print(f"WARNING: SmartStake {name} ladder failed ({e}).", file=sys.stderr)
         return {"error": str(e)[:200]}
 
 

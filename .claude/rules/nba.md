@@ -102,7 +102,7 @@ these two pages into one page."
   The zone table's tag is the volume tag when there is one, else the make-rate matchup.
 - Tests: `tests/test_nba_identity.py`.
 
-## Player props (data built 2026-10-20; the Points page is next)
+## Player props data (built 2026-10-20)
 
 The owner's plan, approved in words (no mockup): Points first, then rebounds / assists / 3s on the
 same skeleton. **Pure data, no projection** until a projection is replayed against this season's
@@ -127,167 +127,97 @@ options"), Novig only where SmartStake has no price.
   today's rosters) and `book_odds_debug`; locks at tip like every price. The deploy's NBA step
   has `SMARTSTAKE_API_KEY`. `version.json` `nba.book_odds` = players with a points price (or the
   reason), `book_markets`, `props` = players per season.
-- **Tip-off lines:** `model_history/nba_props/lines_<season>.json` = {game id: {player id:
-  [middle main points line across books, projection, our number, weight]}}, the last pregame
-  build's (never rewritten after tip): the line history, and what the projection is graded against.
-- **Points projection from day one, anchored to the line** (the owner: "I would like projections to
-  start day one - even if its weighing heavily towards the line. I want the framework in"):
-  `props.project_points` = line + w x (ours - line), w = `PROJ_MAX` 0.5 x games / (games +
-  `PROJ_K` 10) on THIS season's games (no games = the line). Ours (`our_points`) = last-5 minutes
-  x season points a minute x (1 + `LEAN`), then the factors the 2025-26 replay kept
-  (`tools/backtest/nba_points.py`), refitted together on all of 2025-26 on 2026-10-23: the game's
-  pace^0.9 (both teams' this-season `off_pace` against the league), the other defense's
-  `def_ppp`^0.56 and `def_trans_freq`^0.2 against the league (Team Identity, this season),
-  (last 5 / season minutes)^-0.365 (a minutes dip bounces back), x (1 + max(0, 1.68 - 1.83 x his
-  shot share / 0.2) x `missing`) (teammates listed Out: their shots go to role players, a star gets
-  no bump and no cut), x (1 + 0.1 x the other team's `opp_missing`). Zone fit, free throws and
-  turnovers forced added nothing once those were in: tags only. Points miss by ~5.2 whatever we do;
-  the factors cut it ~1%. props.json `slate` = {game id: {player id: line, proj, w, ours, min, ppm,
-  games, out, missing, share, opp_missing, min_ratio}} for the next 3 nights; `proj` = the settings.
-  **PROJ_MAX stays 0.5 until the live record says otherwise** (the lines record keeps [line, proj,
-  ours, w, min_ratio, missing, share, opp_missing] per player for exactly that).
-- **Shown and graded live since 2026-10-23** (the owner: "start projecting today using what we know
-  to be true + what we think might be true/an edge and pretend it is. Then track to see real time if
-  we are onto something. We can adjust after a month"). props.json `record.ledger` =
-  `props.record_ledger` (the shared YTD tracker's rows: the side the projection leans off the
-  tip-off line, edge in points, no units: no saved price), from `RECORD_START` 2026-10-23 (the older
-  rows were the earlier formula). Split tags test each idea alone: over / under, `star` (line 24.5+,
-  idea C), `dip` (last-5 minutes 85% of his season or less), `role` (10%+ of the team's shots Out,
-  his share under 15%), `opp_out` (the other team missing 15%+). **Revisit around 2026-11-23** with
-  ~2,000 graded plays: drop what isn't holding, raise PROJ_MAX if the record earns it.
-- **Situational spots (2026-10-24, the owner's restart of Points / Threes as a game simulation):**
-  `tools/backtest/nba_spots.py` measures 31 schedule / last-game / streak / lineup spots on ten
-  past seasons against each team's normal and 2025-26's spreads and totals (findings in its
-  header). Real ones (rest, back-to-backs, OT, close-win letdown) are 1-3 points and mostly
-  priced; the sim's dials take their sizes from it.
-- **Factor research (2026-10-23, the owner's 10 ideas + minutes, referees, star lines, rest):** the
-  replay (`tools/backtest/nba_points.py`, findings in its header) found two new things that predict
-  points: last-5 minutes overshoot (a minutes dip bounces back, a rise sticks) and missing
-  teammates' shots go mostly to role players. Referee crews, rest / schedule spots and the position
-  matchup added nothing. Each factor is also graded against this season's tip-off lines
-  (`py tools/backtest/nba_points_lines.py --season 2027`; needs `py tools/backtest/nba_refs.py
-  --season 2027` for the crews; meaningful from ~2,000 lines, about mid-November).
+- **Retired 2026-10-24: the line-anchored projections** (Points from 2026-10-20, Threes from
+  2026-10-23: the books' line moved at most halfway toward ours, the props board, the testing
+  banner, `lines_` / `threes_<season>.json`). The owner, after a night of 170 plays down 50 units:
+  "I am sick of taking the vegas line and just basing our picks off that ... I want to 'start over'
+  with both points and threes." Their records stay in model_history; the replays below stay.
+- **Situational spots (2026-10-24):** `tools/backtest/nba_spots.py` measures 31 schedule /
+  last-game / streak / lineup spots on ten past seasons against each team's normal and 2025-26's
+  spreads and totals (findings in its header). Real ones (rest, back-to-backs, OT, close-win
+  letdown) are 1-3 points and mostly priced; the sim's dials take their sizes from it. National TV,
+  revenge, lookahead, streaks, time zones and altitude measured zero.
+- **Factor research (2026-10-23):** `tools/backtest/nba_points.py` (findings in its header): last-5
+  minutes overshoot (a dip bounces back) is real and is in the sim's minutes; referee crews added
+  nothing.
 - Tests: `tests/test_nba_props.py`.
-- **The Points page** (since 2026-10-23 on the shared props board above: the columns, sorting, tags and
-  Hit Rate group described there replace the Line / Best Price / Proj / Min columns below) (`site/nba/points.html` + `points.js` + `points.css`; NBA menu, Player props,
-  above First Basket; built 2026-10-20 from the owner's plan in words, no mockup, then trimmed the
-  same night on the owner's notes): day arrows, game / sort / search filters, season buttons (hit
-  rates and splits only). One row per player in props.json `slate`: Player (narrow), Line (middle
-  main line), best Over **stacked on** Under (book-odds.js `bookPricePill`, book names hidden in
-  the cell, every book on click), **Proj** (was "Coming soon" until 2026-10-23: the number, then
-  "Over 1.5" / "Under 0.6" off the line, "No Games Yet" = the line; Sort: Proj Edge), L5 / L10 / Season / H-A / vs hit
-  rates against tonight's line as "x of y" (colored from 3 games: 60%+ green, 40%- red), Min
-  (season, L5), Share, Mix (2026-10-23, the owner: half the width, pills colored "based on usage ...
-  on a 1-100 scale": Rim / 3s / Self pills, his % of shots, each shaded on the 8-step rank colors
-  by its percentile among this season's players with 20+ shots, green = uses it most), tags (Zone fit / Tough zones: his zones x
-  this defense's make rate allowed against the league's, 2.5 points either way; Usage +: `missing`;
-  Min up / down: last 5 moved 3+). Out players gray, last. Clicking a player opens **only with /
-  without** (a teammate, most minutes first; Out (any) / Out: rest / Out: injured split his games
-  by whether he played, from box-score DNP reasons; Off the floor = `with` minutes, points and shots
-  a 36) **and every book's price** (no name banner). The game log, alt-line ladder and a shot-zone
-  chart were there for an hour and cut (the owner: "Bottom line, i hate the drop down player points
-  portion currently"); props.json keeps `zone_pct` for the zone redo. **2026-10-23 redo** (the
-  owner: "incorporate the shot charts for player and opposing defense into the player drop downs
-  ... especially if we are addressing zone fit"): left column = With / Without stacked on Every Book
-  (main lines only; the rest behind **Show Other Lines (n)**, book-odds.js `spec.collapseOthers`,
-  only Points sets it), right = **Shot Zones**: his chart next to every shot tonight's defense
-  allowed (shot-chart.js, Shot Charts page look and filters, `nbaShotAllowed`), then the Target /
-  Tough zones (`nbaShotCall`, shared with the Shot Charts page) and a Zone By Zone link to that
-  page. The player's NAME opens the player card (below); the rest of the row opens the drop down. Tests:
-  `tests/test_nba_points_site.py` (`SiteBrowser.nba_props`).
-- **The testing banner** (2026-10-23; under its title, the owner's words as written: **PLEASE WAGER WITH
-  CAUTION UNTIL WE HAVE MORE DATA.**, on Points and Threes; the owner: "a large header ... that until mid november we
-  wont know for sure - but also provide checks and balances on the way with real info"): top of
-  the page, "Beta" + **Projections In Testing Until Mid-November** (what's proven vs being tested
-  behind the i), and on the right **Record So Far** (record.ledger W-L, %) with the **YTD Model
-  Performance** button (ytd.js: Points Projection with a Min Edge slider in points, splits Overs /
-  Unders / Star Lines (24.5+) / Minutes Dip / Role Player Usage + / Opponent Missing). The owner
-  wants the same banner on a Best Plays page "eventually" (the NBA has none yet). Take it down once
-  the record has spoken (mid-November) and the owner says so.
 
-## The NBA props board (`site/nba/props-board.js`, shared by Points and Threes, 2026-10-23)
+## Points and Threes: the game sim (`nfl_tool/nba/sim.py`, 2026-10-24)
 
-The owner: "we want users to feel comfortable to in rhythm with the design of this site moving from
-sport to sport. Everything we create should mimic the other tools in form and function." One board,
-each page a config (`PB_PAGE` in points.js / threes.js, loaded BEFORE props-board.js; column lists
-may be functions because the board's helpers load after):
-- **The play the NHL pages' way:** Play chip (`o19.5 PTS`, `u0.5 3PM`, green over / red under) = the
-  side our projection **leans** (Threes: our chance of the Over vs the books' no-vig `p_mkt`; Points:
-  the projection vs the line; no lean = no chip), priced at its best price across the member's
-  books. Until 2026-10-23 it was "the side that beats its price by more", which with the books' cut
-  often showed the less-bad side we lean AGAINST (the owner, on Pippen: "why is the play over 1.5 at
-  a negative edge - why not list that as an under?"). **GMG Fair** (our chance, no cut), **Odds**
-  (the best price, the book's INITIALS under it, full name on hover; click = every book), **Good To** (fair at our chance - `GOOD_TO` 3 points; only on a
-  play, edge 3+: on less it named a price better than the books', "weird"), **Edge** (points, green
-  from 3 = a play, red below 0 = not good enough, not graded). The record grades the same rule
-  (`props.threes_play(p_over, best_o, best_u, lean)`, best price across every book, positive only).
-- Negative-edge rows stay on the board for their data (hit rates, tags); the record never grades them.
-- **Game strip** (2026-10-23, the owner: "the game header ... it is missed"): the other NBA pages' day
-  arrows and matchup cards, an **All Games** card first (picked by default), and the big game header
-  when one game is picked (replaced the Game menu); the tag filter and search sit under it.
-- **Columns:** Player, Play, [page's `before`: Threes' Proj Att], Proj (narrow), GMG Fair, Odds, Good
-  To, Edge, [page's `after`: 3PA / 3PM or Avg / FGA a game], then **Hit Rate - Based On 3PM / PTS**
-  (one group box over L5, L10, Season, Home, Away: the rates count HIS numbers over the line,
-  whichever side the play is, so an Under's red isn't bad news; no vs column, "relevant 3 times a
-  year"; every cell colored by its % from red at 20% to green at 80%, however
-  few games: the "x of y" says how many), [page's `end`: Points' Share, Mix], Tags. **Every column sorts** (click; again flips),
-  **Edge by default**; Out players always last. No Min column (2026-10-23). The price columns and
-  the numbers (Proj Att, Proj, GMG Fair, Odds, Good To, Edge, the averages) are `th-tight` (as narrow
-  as their numbers + 9px each side, like Proj; the hit rates and Share too, so Tags takes the spare
-  width; the owner: Odds "absolutely too wide", then "a nice simple dead space overhang like whats in
-  PROJ"). **Frozen headers:** the board scrolls in
-  its own box (`.pts-scroll`, at most the window's height) with `thead` sticky. Points' Share is
-  colored by its percentile on Mix's 8-step scale. On PC (1100px+) the board is 10% bigger (`zoom`), the
-  page scrolls and the header sticks under the site's top bar (`--pb-top`, measured); smaller screens
-  keep the scroll box. Threes' Proj is labeled **Proj Make** (`PB_PAGE.projLabel`).
-- **Tags** are `{key, label, cls, title}`; matchup tags green / red (`.gs-tag`), the rest amber
-  (`.pts-tag`, same shape). **Tag filter** (`#pts-tag`, replaced the Sort menu): only players with
-  that tag. Shared tags: Usage +, and minutes from the injury report: **Min up** = a rotation
-  teammate (20+ min) at his spot (guards / forwards / centers) listed Out tonight (not for a player
-  already at 32+ min); **Min down** = one who sat the team's last game and isn't listed Out tonight.
-  (The last-5 minutes trend tags went with the Min column; the trend is in the projection.)
-- **Points' chance of the Over** (`props.points_chance`): a normal count around the projection, sd =
-  2.73 + 1.07 x sqrt(proj) (fitted on 2025-26's replay). Points' lines record adds [p_over, best
-  Over, best Under] as fields 9-11; a row without them (saved before this) isn't graded.
-- Tests: `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py` (sorting, filter, minutes tags).
-
-## Threes (threes made; built 2026-10-23 on the Points skeleton)
-
-The owner's 10 ideas + 5 of ours, replayed on 2025-26 first (`tools/backtest/nba_threes.py`,
-findings in its header). **Tries are predictable, makes mostly aren't** (the owner wants this line
-in the page's explainer: "we can predict how many threes a player will try, but not how many
-he'll make"), so the projection is tries x make rate.
-- **Build:** `props.our_threes` (tries = last-5 minutes x season threes tried a minute, x pace^1.43,
-  the other defense's `def_three_pp`^0.52 and `def_catch3`^0.59 (Team Identity, added for this:
-  threes a possession, catch-and-shoot share of threes), (last 5 / season minutes)^-0.446, (1 +
-  0.037 x his team's spread / 10: underdogs shoot more), (1 + 0.05 x `luck`: last-5 makes above his
-  own rate a game, a cold run trims tries), teammates Out like Points (1.51 - 1.725 x share / 0.2);
-  make rate = his season's pulled `THREES_K` 200 tries toward the league's). A night's count is a
-  negative binomial `THREES_SPREAD` 1.25 x wider than Poisson (the replay: 1+ hits less, 3+ / 4+
-  more). **Anchored to the books:** the books' no-vig chance of the Over at the middle line
-  (`market_chance`, one side only = its price less 4.5%) -> the makes it implies (`mean_for`), moved
-  `PROJ_MAX` x games / (games + `PROJ_K`) toward ours (`project_threes`); edge = our chance of the
-  Over - the books'. props.json `threes_slate` (build_nba.py `threes_slate`, its own try: a failure
-  never costs Points) with `ladder` = our chance of 1+ .. 5+.
-- **Ladder prices:** `smartstake.add_threes_ladder` fetches the threes market with alternates into
-  `props["threes_alt"]` (kept apart so the middle main line stays the main line); version.json
-  `nba.threes_alt` says what came back. The page shows only rungs a book prices (owner's list #3).
-- **Record:** `model_history/nba_props/threes_<season>.json` ({game: {player: [line, proj, ours, w,
-  p_over, p_mkt, best Over, best Under, min_ratio, missing, share, luck, spread]}}, never rewritten
-  after tip); `props.threes_ledger` grades the play (`threes_play`, the NHL pages' rule since 2026-10-23:
-  the side our chance beats its best price by more, a positive edge only) at that price, 1u,
-  from `THREES_RECORD_START` 2026-10-23; split tags over / under / half (0.5 lines) / dip / role /
-  dog (+6) / cold / hot (0.6 makes a game off his rate). props.json `threes_record.ledger`.
-- **Untested idea waiting on this season's lines:** do the books raise a line after lucky shooting
-  (makes up, tries flat)? `luck` is saved per line for exactly that.
-- **The page** (`site/nba/threes.html` + `threes.js` + `threes.css`, on the shared board above; NBA
-  menu under Points): Proj Att (our tries; make rate on hover only, the owner: subtext "muddies the
-  page") between Play and Proj; 3PA / 3PM a game after Edge; tags 3s Allowed / Tough 3s D (the
-  defense's `def_three_pp` 1+ league spread, and for 3s Allowed his threes 30%+ of his shots), Help
-  D (`def_catch3` 1+ spread and his catch share 35%+), Underdog +X (6+), Cold Run / Hot Run. Drop
-  down: With / Without on threes (no Off the floor: `with` holds points only), Every Book, **The
-  Ladder** (Rung, Our Fair, Best Price, Edge shaded at 3 points), Shot Zones opened on 3PT. Same
-  testing banner ("Record So Far" in units).
+The owner: "I just dont want to mimic the vegas line again and be back where we started." Every
+game is played 10,000 times, possession by possession; **the books' line is never an input**, only
+the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays + Game Board).
+- **One game** (`simulate`, numpy, all 10,000 at once, ~1 s a game): the teams' pace sets the
+  possessions; each goes to one of the five on the floor (his minutes x his plays a minute); the
+  play is a zone shot (rim / short / mid / corner 3 / above 3), a trip to the line or a turnover, by
+  his mix tilted toward what this defense allows (`DEF_MIX_W` 0.5, both sides); it goes in at his
+  zone make rate x what this defense allows there x the dials x home court (`HOME_EDGE` 2.2) x
+  `LEVEL`; a miss can come back (offensive rebound: his team's rate x what the defense allows,
+  against the league). After 3 quarters a blowout sends the starters to the bench (`GARBAGE_*`);
+  from the 2nd quarter a lead shrinks a little (`LEAD_DRAG`: the team ahead eases off; real margins
+  swing less than independent possessions would). Ties play overtime. Nights: minutes (wider for
+  bench players, `SHORT_NIGHT` 4% an early exit), shooting, the game's pace and shooting.
+- **This season only** (the NBA site rule): `season_inputs` from the engine; early on a player's
+  rates lean on the league's numbers for his position THIS season (`K_*`), never last season's.
+- **Minutes:** season^0.365 x last-5^0.635 (the overshoot), fit to 240 (`fill_minutes`: too many,
+  the small roles give up the most; too few, everyone up in proportion, cap 40). **Out** (the
+  injury report) leaves the rotation; the 2025-26 replay preferred handing his minutes to everyone
+  in proportion over his own position first (minutes miss 4.8 vs 5.1-6.3). A fringe player who
+  missed the team's last 3 games sits. **Starting fives:** the NBA's lineups file (First Basket's
+  copies, `lineup_starters`, names matched with an accent fallback): a listed starter plays at
+  least `STARTER_TRUST` 0.8 of his team's usual starter minutes (the owner: "a roleplayer who has 10
+  minutes per game but tonight is starting"; the replay's fill-in starters played 25.5: no floor
+  gave 19.9, 0.9 gave 28.2, 0.8 gives 25.9).
+- **Injuries: ESPN's live list** (`live_injuries`, build_nba.py; the hoopR file is a daily snapshot,
+  the fallback). The owner, 2026-10-24: ESPN still had LeBron Questionable an hour after Underdog
+  reported him out, "that is not going to cut it". Next (its own push): the NBA's official injury
+  report, books pulling a player's props, a Mark Out button for the owner, and a 3-minute news
+  check that starts an NBA-only refresh when something changes (the build runs every 6 hours now).
+- **The dials** (`SCHEDULE_DIALS`, `LAST_GAME_DIALS`, sizes from nba_spots.py: [own points, the
+  other team's points]): Rest Edge (B2B vs 2+ days off, -0.72 / +1.89), Back-To-Back, 3 In 4,
+  4 In 6; Letdown: OT Win, Overtime Legs, Letdown: Close Win (1-3 in regulation), Off A 20+ Win
+  (+0.25 / -0.58: no letdown, the opposite). One of each kind a team at most, in that order. Turned
+  into a make-rate change (/ `PTS_BASE` 113).
+- **Checked on 2025-26** (`tools/backtest/nba_sim.py`, findings in its header: each night from that
+  season's earlier games only, the players who sat taken out): team points +0.4 high, player points
+  +0.25, threes +0.04; real results inside the sims' 10-90% range 80% (margin), 84% (total), 77%
+  (player points); PIT deciles flat within a few points. The closing lines still beat it (total
+  miss 14.5 vs 15.2, margin 11.2 vs 12.4): a play is where the two disagree by enough, and the record
+  says whether that's an edge.
+- **props.json** (compute_sim in build_nba.py, its own try: a failure leaves the pages empty, never
+  the game logs): `sim` {game id: median margin / total, `scripts` (away by 10+ / close / home by
+  10+), `base` (the same without the dials, `SIM_BASE_N` games), `dials` {home, away}, `starters`,
+  `lineup` (the NBA's five was posted), `players` {id: team, min, pts / fg3m: med by script, mean,
+  `lad` by script = [first k, permille of k or more ...] (`ladder`)}}, `sim_plays` {points, threes},
+  `sim_record` {market: {ledger}}, `sim_meta` (dial names, MIN_EDGE, MAX_PLAYS).
+- **Prices:** every book's main line and every rung (`smartstake.add_ladder`: `points_alt` and
+  `threes_alt`, alternates included). `version.json` `nba.points_alt` / `threes_alt`.
+- **Tonight's Plays** (`game_candidates`, `pick_plays`): every price a book has for a player (main
+  and rungs, Over and Under, `PRICE_RANGE` -250 to +400) against the sim's chance; his best, each
+  game's best, the night's best `MAX_PLAYS` 8 with `MIN_EDGE` 4 points (counting plays locked at tip
+  tonight); 3+ games this season and 18+ sim minutes. The night's biggest edge = **Top Play**, the
+  rest **Strong**. **Script-Proof** (beats its price in every script), **Chaos** (loses in a close
+  game, wins when it goes sideways), **Needs A Close Game**.
+- **The record:** `model_history/nba_props/sim_<season>.json` {game: {date, points: [play],
+  threes: [play]}} (`PLAY_FIELDS`), rewritten until tip, never after; `sim.ledger` grades each play
+  at its best price across every book, 1u; a push or a player who sat isn't graded. Split tags: top /
+  strong, proof / chaos / close, over / under, main / alt, dials.
+- **The pages** (`site/nba/points.html` / `threes.html` + `points.js` / `threes.js` = `SIM_PAGE`
+  config, on the shared `sim-board.js` + `sim.css`; Points / Threes tabs): hero (what it is, the
+  steps, the long how-it-works behind the i; record tiles Yesterday / Top Plays / Season in units
+  + YTD Model Performance, the shared YTD tracker with the split tags); **Tonight's Plays** cards (team
+  banner, the play as a rung "30+ Points" or "Over 27.5", the best price on the member's books with
+  its book (every-book list on click), Hit In x of 10,000, GMG Fair, Edge at that price, the three
+  scripts shaded against what the price needs, the Top Play's histogram, kind + dial tags with
+  the team, Locked At Tip), then the games with no play; the day arrows and game cards ("Play" on a
+  game with one); **Game Board**: team-color banner, The 10,000 Games (our median margin and total,
+  the book's second, the script bar with "without the dials"), Dials Tonight (each with both teams'
+  points; the ones not on), Script Picker (All / a blowout / Close: every chance on the board from
+  that script's games only), the starting-five source; the table: player (playerClick, S =
+  starting), Min, Median, median by script, Main Line (our side's chance and best price), rungs
+  (Points 10+ to 40+, Threes 1+ to 6+: our chance and the best price, shaded at 3 points of edge,
+  tonight's play outlined).
+- Tests: `tests/test_nba_sim.py`, `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py`.
 
 ## The player card (`site/nba/nba-card.js`, 2026-10-21)
 
@@ -522,8 +452,8 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   dropped from the file on the next build), `result` {team, scorer}
   from the play-by-play; `first_basket.record` = {plays, won, units (1u at Novig), games}. The
   record uses the build's starters (the NBA lineup copy isn't applied there), the page the live five.
-- **Testing banner** (2026-10-23, the owner: "add the beta header on first basket"): the Points /
-  Threes banner (styles in suite.css since then) at the top: Beta, Projections In Testing Until
+- **Testing banner** (2026-10-23, the owner: "add the beta header on first basket"): the testing
+  banner (styles in suite.css; Points / Threes had it until their sim, 2026-10-24) at the top: Beta, Projections In Testing Until
   Mid-November, the caution line, and on the right the **Value Record So Far** with the YTD Model
   Performance button (it sat beside the season buttons before).
 - **YTD Performance** (the owner, 2026-10-21: "a pill next to the years ... brings up a modal with

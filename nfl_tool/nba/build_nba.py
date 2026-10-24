@@ -38,6 +38,8 @@ import smartstake  # noqa: E402
 import identity  # noqa: E402
 import kotc  # noqa: E402
 import positions  # noqa: E402
+import possessions as P  # noqa: E402
+import sim  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
@@ -295,6 +297,48 @@ def compute_injuries(injuries: pd.DataFrame | None, abbr_by_id: dict) -> dict:
     for team in out:
         out[team].sort(key=lambda p: (p["status"] != "Out", p["name"]))
     return out
+
+
+ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries"
+
+
+def live_injuries(abbr_by_id: dict) -> dict | None:
+    """{team: [players]} from ESPN's live injury list, the same shape as
+    compute_injuries: the hoopR file is a daily snapshot, too slow for a game
+    sim that has to know who sits tonight (the owner, 2026-10-24: "if lebron
+    is ruled out at 3pm"). None if it can't be read (the build falls back to
+    the file)."""
+    import re
+    try:
+        req = urllib.request.Request(ESPN_INJURIES_URL, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            body = json.loads(resp.read())
+    except Exception as ex:
+        print(f"NOTE: ESPN live injuries not read ({ex!r}); using the daily file.", file=sys.stderr)
+        return None
+    out = {}
+    for t in body.get("injuries") or []:
+        team = abbr_by_id.get(int(t.get("id") or 0))
+        if not team:
+            continue
+        for i in t.get("injuries") or []:
+            found = re.search(r"/athletes/(\d+)", json.dumps(i.get("athlete") or {}))
+            if not found:
+                continue
+            pid = found.group(1)
+            d = i.get("details") or {}
+            out.setdefault(team, []).append({
+                "id": pid,
+                "name": (i.get("athlete") or {}).get("displayName"),
+                "position": POSITION_TABLE.get(pid) or ((i.get("athlete") or {}).get("position") or {}).get("abbreviation"),
+                "status": i.get("status"),
+                "injury": " ".join(str(x) for x in (d.get("side"), d.get("type")) if x) or None,
+                "return_date": d.get("returnDate"),
+                "note": i.get("shortComment"),
+            })
+    for team in out:
+        out[team].sort(key=lambda p: (p["status"] != "Out", p["name"] or ""))
+    return out if out else None
 
 
 # ---- schedule + lines ----
@@ -733,202 +777,124 @@ def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_
                                           (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%MZ"), keep)
 
 
-def stat_line(book_odds: dict, game: dict, pid: str, stat: str):
-    """The middle main line across the books for one player's market, or None."""
-    row = (((book_odds.get(f"{game['away']}_{game['home']}") or {}).get("props") or {}).get(stat) or {}).get(pid)
-    ls = sorted(q[2] for q in (row or {}).get("q", []) if q[2] is not None)
-    return ls[len(ls) // 2] if ls else None
-
-
-def points_line(book_odds: dict, game: dict, pid: str):
-    """The middle main points line across the books for one player, or None."""
-    return stat_line(book_odds, game, pid, "points")
-
-
-def props_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
-    """model_history/nba_props/lines_<season>.json: {game id: {player id:
-    [line, projection, our number, weight on ours, last-5 / season minutes,
-    teammates' missing shot share, his shot share, the other team's missing
-    shot share, our chance of the Over, best Over price, best Under price]}} as
-    the last build before tip-off had them (a started game is never
-    rewritten): the line history, and what the projection is graded against
-    (`props.record_ledger`). Rows saved before 2026-10-23 have the first four;
-    the chance and prices since the NHL-style play went in (2026-10-23)."""
-    return tipoff_record(PROPS_RECORD_DIR / f"lines_{season}.json", slate, games, now_utc,
-                         lambda r: [r["line"], r["proj"], r["ours"], r["w"], r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("opp_missing"),
-                                    r.get("p_over"), r.get("best_o"), r.get("best_u")])
-
-
-def threes_lines_record(season: int, slate: dict, games: list, now_utc: datetime) -> dict:
-    """model_history/nba_props/threes_<season>.json: {game id: {player id:
-    [line, projection (makes), our makes, weight on ours, our chance of the
-    Over, the books' no-vig chance, best Over price, best Under price, last-5
-    / season minutes, teammates' missing shot share, his shot share, last-5
-    makes above his rate a game, his team's spread]}} as the last build before
-    tip-off had them: what props.threes_ledger grades."""
-    return tipoff_record(PROPS_RECORD_DIR / f"threes_{season}.json", slate, games, now_utc,
-                         lambda r: [r["line"], r["proj"], r["ours"], r["w"], r["p_over"], r["p_mkt"], r["best_o"], r["best_u"],
-                                    r.get("min_ratio"), r.get("missing"), r.get("share"), r.get("luck"), r.get("spread")])
-
-
-def tipoff_record(path: Path, slate: dict, games: list, now_utc: datetime, row) -> dict:
-    """A props slate's rows saved per game as the last build before tip-off
-    had them (a started game is never rewritten)."""
-    record = json.loads(path.read_text()) if path.exists() else {}
-    changed = False
-    for g in games:
-        if datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc:
-            continue
-        rows = {pid: row(r) for pid, r in (slate.get(g["game_id"]) or {}).items() if r["line"] is not None}
-        if rows and record.get(g["game_id"]) != rows:
-            record[g["game_id"]] = rows
-            changed = True
-    if changed:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(record, indent=1, sort_keys=True))
-    return record
-
-
-def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=(), identity_blob=None,
-                  injuries=None, now_utc=None) -> dict:
-    """site/nba/props.json (props.py): this season from the engine (last
-    season's saved file is for the backtests only); `slate` = the next few
-    nights' points projections (props.project_points)."""
+def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=(), injuries=None, now_utc=None,
+                  lineups=None) -> dict:
+    """site/nba/props.json: this season's block (props.py: every player's game
+    log, shot mix, with / without) and the game sim (sim.py, `compute_sim`:
+    Points and Threes, since 2026-10-24). Last season's saved file is for the
+    backtests only."""
     roster_team = {}
     if rosters is not None:
         roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)}
     blocks = {}
+    out = {"default": str(season), "seasons": blocks}
     # First Basket has just downloaded this season's files (see compute_identity).
     pbp = fetch_file("pbp", season, data_dir, False)
     box = fetch_file("player_box", season, data_dir, False)
-    if pbp is not None and box is not None:
-        block = props.season_block(pbp, box, season_label(season))
-        if block:
-            blocks[season] = block
-    this = blocks.get(season)
-    return {"default": str(season), "seasons": {str(s): b for s, b in blocks.items()},
-            "slate": points_slate(season, this, book_odds or {}, list(games), identity_blob, injuries or {}, roster_team, now_utc),
-            "proj": {"k": props.PROJ_K, "max": props.PROJ_MAX, "last": props.PROJ_LAST}}
+    if pbp is None or box is None:
+        return out
+    engine = P.Season(pbp, box)
+    block = props.season_block(pbp, box, season_label(season), engine)
+    if block:
+        blocks[str(season)] = block
+    # The sim (its own try: a failure leaves Points and Threes empty, never the game logs).
+    try:
+        out.update(compute_sim(season, sim.season_inputs(engine, box), block, book_odds or {}, list(games),
+                               injuries or {}, roster_team, now_utc, lineups or {}))
+    except Exception as ex:
+        print(f"WARNING: NBA game sim failed ({ex!r}).", file=sys.stderr)
+    return out
 
 
-def slate_parts(season, this, games, identity_blob, injuries, roster_team, now_utc) -> dict | None:
-    """What every props slate reads: the next KOTC_SLATE_NIGHTS nights, this
-    season's players and log fields, Team Identity, each player's season shot
-    share of his team (`own`; `rotation` = 20+ minutes a game, for teammates
-    listed Out) and each team's missing shot share tonight."""
+SIM_BASE_N = 3000  # the same game without the dials, for "a normal night" (fewer games: a comparison only)
+
+
+def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, games: list, injuries: dict,
+                roster_team: dict, now_utc: datetime, lineups: dict | None = None) -> dict:
+    """props.json `sim` ({game id: the game's 10,000 (sim.summary) + date,
+    teams and `base`, the script shares without the dials}), `sim_plays`
+    ({market: [play]}: tonight's plays, sim.pick_plays) and `sim_record`
+    ({market: {ledger}}) for the next KOTC_SLATE_NIGHTS nights. lineups =
+    {date: the NBA's lineups file} (First Basket's copies), for the starting
+    fives. The plays are saved at tip-off in model_history/nba_props/sim_<season>.json."""
     if now_utc is None:
-        return None
-    ident = ((identity_blob or {}).get("seasons") or {}).get(str(season)) or {}
-    out_ids = {p["id"] for team in injuries.values() for p in team if p["status"] == "Out"}
+        return {}
+    out_ids = {str(p["id"]) for team in injuries.values() for p in team if p["status"] == "Out"}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
-    players = (this or {}).get("players") or {}
-    fields = (this or {}).get("fields") or props.LOG_FIELDS
-    # (a team-game is its game + opponent: a traded player's old games stay with his old team)
-    i_fga, i_game, i_min, i_opp = fields.index("fga"), fields.index("game"), fields.index("min"), fields.index("opp")
-    team_fga = {}
-    for p in players.values():
-        for r in p["log"]:
-            team_fga[(r[i_game], r[i_opp])] = team_fga.get((r[i_game], r[i_opp]), 0) + r[i_fga]
-    rotation, own = {}, {}  # rotation players (for teammates Out); everyone (his own role)
-    for pid, p in players.items():
-        tf = sum(team_fga.get((r[i_game], r[i_opp]), 0) for r in p["log"])
-        if p["log"] and tf:
-            own[pid] = sum(r[i_fga] for r in p["log"]) / tf
-            if sum(r[i_min] for r in p["log"]) / len(p["log"]) >= 20:
-                rotation[pid] = own[pid]
-    out_by_team = {}
-    for pid in out_ids:
-        team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
-        if team and pid in rotation:
-            out_by_team[team] = out_by_team.get(team, 0.0) + rotation[pid]
-    return {"ident": ident, "out_ids": out_ids, "dates": dates, "players": players, "fields": fields,
-            "rotation": rotation, "own": own, "out_by_team": out_by_team}
-
-
-def points_slate(season, this, book_odds, games, identity_blob, injuries, roster_team, now_utc) -> dict:
-    """{game id: {player id: {line, proj, w, ours, min, ppm, games, out}}} for
-    every player with a books' points line in the next KOTC_SLATE_NIGHTS
-    nights. Our number is this season's only; no games = the line."""
-    s = slate_parts(season, this, games, identity_blob, injuries, roster_team, now_utc)
-    if s is None:
-        return {}
-    ident, out_ids, players, fields = s["ident"], s["out_ids"], s["players"], s["fields"]
-    i_min = fields.index("min")
-    rnd = lambda v, d=1: None if v is None else round(v, d)  # noqa: E731
-    slate = {}
+    names = {pid: p["name"] for pid, p in inputs["players"].items()}
+    played = {str(pid): len(p["dates"]) for pid, p in inputs["players"].items()}
+    sims = {}
     for g in games:
-        if g["date"] not in s["dates"]:
+        if g["date"] not in dates:
             continue
-        priced = ((book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}).get("points") or {}
-        rows = {}
-        for pid in priced:
-            team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
-            opp = g["home"] if team == g["away"] else g["away"]
-            log = (players.get(pid) or {}).get("log") or []
-            teams_now = ident.get("teams") or {}
-            missing = s["out_by_team"].get(team, 0.0) - (s["rotation"].get(pid, 0.0) if pid in out_ids else 0.0)
-            opp_missing = s["out_by_team"].get(opp, 0.0)
-            share = s["own"].get(pid, 0.0)
-            ours, minutes, ppm = props.our_points(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), missing,
-                                                  share, opp_missing)
-            line = points_line(book_odds, g, pid)
-            proj, w = props.project_points(line, len(log), ours)
-            quotes = (priced.get(pid) or {}).get("q") or []
-            p_over = props.points_chance(proj, line)
-            season_min = sum(r[i_min] for r in log) / len(log) if log else None
-            rows[pid] = {"line": line, "proj": rnd(proj), "w": round(w, 3), "ours": rnd(ours), "min": rnd(minutes),
-                         "p_over": rnd(p_over, 3), "best_o": props.best_price(quotes, "o", line), "best_u": props.best_price(quotes, "u", line),
-                         "ppm": rnd(ppm, 3), "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3),
-                         "share": rnd(share, 3), "opp_missing": rnd(opp_missing, 3),
-                         "min_ratio": rnd(minutes / season_min, 3) if minutes and season_min else None}
-        if rows:
-            slate[g["game_id"]] = rows
-    return slate
+        day = (lineups or {}).get(g["date"])
+        run = sim.game(inputs, g["home"], g["away"], g["date"], out_ids, roster_team, seed=int(g["game_id"]) % (2 ** 31), lineups=day)
+        row = sim.summary(run, names)
+        base = row["scripts"]
+        if run["home_dials"] or run["away_dials"]:
+            plain = sim.game(inputs, g["home"], g["away"], g["date"], out_ids, roster_team, n=SIM_BASE_N, seed=1, dials=False, lineups=day)
+            base = {k: round(float(m.mean()), 3) for k, m in sim.scripts(plain["margin"]).items() if k != "all"}
+        sims[g["game_id"]] = {**row, "date": g["date"], "home": g["home"], "away": g["away"], "base": base,
+                              "starters": {k: sorted(str(p) for p, st in zip(run[k]["s"]["pids"], run[k]["s"]["starter"]) if st)
+                                           for k in ("home", "away")},
+                              "lineup": bool(sim.lineup_starters(day, g["home"], g["home"], g["away"],
+                                                                 sim.team_now(inputs, g["home"], g["date"], roster_team)))}
+
+    path = PROPS_RECORD_DIR / f"sim_{season}.json"
+    record = json.loads(path.read_text()) if path.exists() else {}
+    started = {g["game_id"] for g in games if datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc}
+    plays = {m: [] for m in sim.STATS}
+    changed = False
+    for date in dates:
+        tonight = [g for g in games if g["date"] == date and g["game_id"] in sims]
+        for market in sim.STATS:
+            locked = []
+            for g in tonight:
+                if g["game_id"] in started:
+                    for r in (record.get(g["game_id"]) or {}).get(market) or []:
+                        locked.append(locked_play(dict(zip(sim.PLAY_FIELDS, r)), g, market, sims[g["game_id"]]))
+            cands = []
+            for g in tonight:
+                if g["game_id"] not in started:
+                    props_now = (book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}
+                    cands += sim.game_candidates(g["game_id"], g, sims[g["game_id"]], props_now, played, market)
+            picked = sim.pick_plays(cands, locked)
+            plays[market] += locked + picked
+            for g in tonight:
+                if g["game_id"] in started:
+                    continue
+                rows = [[p[k] for k in sim.PLAY_FIELDS] for p in picked if p["game"] == g["game_id"]]
+                saved = record.setdefault(g["game_id"], {"date": g["date"]})
+                if saved.get(market, []) != rows:
+                    saved[market] = rows
+                    changed = True
+    if changed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(record, indent=1, sort_keys=True))
+    logs = {m: {} for m in sim.STATS}
+    if block:
+        f = {k: i for i, k in enumerate(block.get("fields") or props.LOG_FIELDS)}
+        for pid, p in block["players"].items():
+            for r in p.get("log") or []:
+                for market, stat in (("points", "pts"), ("threes", "fg3m")):
+                    logs[market][(str(r[f["game"]]), pid)] = r[f[stat]]
+    return {"sim": sims, "sim_plays": plays,
+            "sim_record": {m: {"ledger": sim.ledger(record, logs[m], m)} for m in sim.STATS},
+            "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE, "max_plays": sim.MAX_PLAYS,
+                         "dials": {k: [label, own, opp] for k, (label, own, opp) in sim.DIAL_INFO.items()}}}
 
 
-def threes_slate(season, this, book_odds, games, identity_blob, injuries, roster_team, now_utc) -> dict:
-    """{game id: {player id: {line, proj, w, ours, tries, pct, p_over, p_mkt,
-    edge, ladder, best_o, best_u, games, out, missing, share, luck, spread,
-    min_ratio}}} for every player with a books' threes line in the next
-    KOTC_SLATE_NIGHTS nights (props.our_threes / project_threes)."""
-    s = slate_parts(season, this, games, identity_blob, injuries, roster_team, now_utc)
-    if s is None:
-        return {}
-    ident, out_ids, players, fields = s["ident"], s["out_ids"], s["players"], s["fields"]
-    i_a, i_m = fields.index("fg3a"), fields.index("fg3m")
-    tried = sum(r[i_a] for p in players.values() for r in p["log"])
-    league_pct = sum(r[i_m] for p in players.values() for r in p["log"]) / tried if tried else 0.36
-    rnd = lambda v, d=2: None if v is None else round(v, d)  # noqa: E731
-    slate = {}
-    for g in games:
-        if g["date"] not in s["dates"]:
-            continue
-        priced = ((book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}).get("threes") or {}
-        rows = {}
-        for pid, book_row in priced.items():
-            team = roster_team.get(pid) or (players.get(pid) or {}).get("team")
-            opp = g["home"] if team == g["away"] else g["away"]
-            log = (players.get(pid) or {}).get("log") or []
-            teams_now = ident.get("teams") or {}
-            missing = s["out_by_team"].get(team, 0.0) - (s["rotation"].get(pid, 0.0) if pid in out_ids else 0.0)
-            share = s["own"].get(pid, 0.0)
-            home_spread = g.get("home_team_spread")
-            spread = None if home_spread is None else (home_spread if team == g["home"] else -home_spread)
-            ours = props.our_threes(log, fields, teams_now.get(team), teams_now.get(opp), ident.get("league"), league_pct,
-                                    missing, share, spread)
-            quotes = book_row.get("q") or []
-            line = stat_line(book_odds, g, pid, "threes")
-            proj = props.project_threes(line, quotes, len(log), ours and ours["makes"])
-            rows[pid] = {"line": line, "proj": rnd(proj["proj"]), "w": round(proj["w"], 3), "ours": rnd(ours and ours["makes"]),
-                         "tries": rnd(ours and ours["tries"], 1), "pct": rnd(ours and ours["pct"], 3),
-                         "p_over": rnd(proj["p_over"], 3), "p_mkt": rnd(proj["p_mkt"], 3), "edge": rnd(proj["edge"], 3),
-                         "ladder": proj["ladder"], "best_o": props.best_price(quotes, "o", line), "best_u": props.best_price(quotes, "u", line),
-                         "games": len(log), "out": pid in out_ids, "missing": rnd(missing, 3), "share": rnd(share, 3),
-                         "luck": rnd(ours and ours["luck"]), "spread": spread, "min_ratio": rnd(ours and ours["min_ratio"], 3)}
-        if rows:
-            slate[g["game_id"]] = rows
-    return slate
+def locked_play(p: dict, g: dict, market: str, sim_game: dict) -> dict:
+    """A play saved at tip-off, with what the page shows next to it."""
+    row = sim_game["players"].get(str(p["pid"])) or {}
+    side_key = row.get("team")
+    team = g["home"] if side_key == "home" else g["away"]
+    lad = (row.get(sim.STATS[market]) or {}).get("lad") or {}
+    return {**p, "pid": str(p["pid"]), "game": g["game_id"], "date": g["date"], "stat": market, "team": team,
+            "opp": g["away"] if team == g["home"] else g["home"], "med": ((row.get(sim.STATS[market]) or {}).get("med") or {}).get("all"),
+            "scripts": {k: (round(sim.side_chance(lad[k], p["side"], p["line"]), 4) if k in lad else None) for k in ("away", "close", "home")},
+            "locked": True}
 
 
 def main():
@@ -983,7 +949,7 @@ def main():
     apply_lines(games, novig, previous, now_utc)
     book_odds, book_odds_debug = nba_book_odds(teams, rosters, games, previous, now_utc)
     print(f"SmartStake NBA: {json.dumps(book_odds_debug)}")
-    injury_list = compute_injuries(injuries, abbr_by_id)
+    injury_list = live_injuries(abbr_by_id) or compute_injuries(injuries, abbr_by_id)
 
     blob = {
         "season": args.season,
@@ -1027,18 +993,8 @@ def main():
     # Player props (props.json, its own file: every player's game log is too
     # big for data.json). A failure leaves the file out; the pages say so.
     try:
-        blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, blob.get("identity"), injury_list, now_utc)
-        lines_record = props_lines_record(args.season, blob_props["slate"], games, now_utc)
-        blob_props["record"] = {"ledger": props.record_ledger(lines_record, blob_props["seasons"].get(str(args.season)))}
-        # Threes (its own try: a failure leaves the Threes page empty, never Points).
-        try:
-            this = blob_props["seasons"].get(str(args.season))
-            roster_team = {str(r.athlete_id): r.team_abbreviation for r in rosters.itertuples(index=False)} if rosters is not None else {}
-            blob_props["threes_slate"] = threes_slate(args.season, this, book_odds, games, blob.get("identity"), injury_list, roster_team, now_utc)
-            threes_record = threes_lines_record(args.season, blob_props["threes_slate"], games, now_utc)
-            blob_props["threes_record"] = {"ledger": props.threes_ledger(threes_record, this)}
-        except Exception as ex:
-            print(f"WARNING: NBA threes failed ({ex!r}).", file=sys.stderr)
+        blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, injury_list, now_utc,
+                                   (blob.get("first_basket") or {}).get("lineups"))
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:

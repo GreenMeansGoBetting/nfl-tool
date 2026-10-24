@@ -30,12 +30,18 @@ GAME = {"game_id": "900", "date": "2026-10-25", "time": "19:30", "away": "AAA", 
 P1 = {"name": "Player One", "team": "AAA", "pos": "PG", "share": 0.3, "zones": {}, "kinds": {}, "with": {},
       "log": [row(20, 1, 25, 6, 5), row(21, 2, 18, 9, 7, start=0), row(23, 3, 30, 4, 3)]}
 LAST_SEASON = {"name": "Player One", "team": "AAA", "pos": "PG", "log": [["2026-03-01", 500, "CCC", 1, 1, 30, 40, 15, 2, 5, 4]] * 20}
+LAD = [20, [1000, 500, 500, 500, 500, 500, 500, 500, 500, 0]]  # sim.ladder: half 20, half 28
 PROPS = {
     "default": "2027",
     "seasons": {"2027": {"label": "2026-27", "fields": FIELDS, "players": {"1": P1}, "out": {}},
                 "2026": {"label": "2025-26", "fields": FIELDS[:11], "players": {"1": LAST_SEASON}, "out": {}}},
-    "slate": {"900": {"1": {"line": 24.5, "proj": 24.5, "w": 0, "ours": None, "min": 30, "ppm": 0.8, "games": 3, "out": False, "missing": 0}}},
-    "proj": {"k": 10, "max": 0.5, "last": 5},
+    # the Points page's game sim: Player One in game 900
+    "sim": {"900": {"date": "2026-10-25", "home": "BBB", "away": "AAA", "margin": 2.0, "total": 220.0, "scripts": {"away": 0.2, "close": 0.6, "home": 0.2},
+                    "base": {"away": 0.2, "close": 0.6, "home": 0.2}, "dials": {"away": [], "home": []}, "starters": {"away": ["1"], "home": []}, "lineup": False,
+                    "players": {"1": {"team": "away", "min": 30.0, "name": "Player One",
+                                      "pts": {"med": {"all": 24, "away": 24, "close": 24, "home": 24}, "mean": 24, "lad": {"all": LAD}},
+                                      "fg3m": {"med": {"all": 2, "away": 2, "close": 2, "home": 2}, "mean": 2, "lad": {"all": [0, [1000]]}}}}}},
+    "sim_plays": {"points": [], "threes": []}, "sim_record": {}, "sim_meta": {"dials": {}},
 }
 
 
@@ -71,7 +77,7 @@ def setUpModule():
     try:
         SITE.nba, SITE.nba_props, SITE.nba_shots = DATA, PROPS, SHOTS
         PAGE = SITE.open("nba/points.html")
-        PAGE.wait_for_function("() => !document.getElementById('pts-board').hidden")
+        PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
         PAGE.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
     except Exception:
         SITE.close()
@@ -84,7 +90,7 @@ def tearDownModule():
 
 
 def open_card(tab=None):
-    PAGE.click("#pts-table .player-click[data-nba-player='1']")
+    PAGE.click(".sim-table .player-click[data-nba-player='1']")
     PAGE.wait_for_selector("#player-card-modal:not([hidden]) .pc-name")
     if tab:
         PAGE.click(f"#player-card-modal .nba-pc-tab[data-tab='{tab}']")
@@ -103,7 +109,6 @@ class GameLog(unittest.TestCase):
         open_card()
         try:
             self.assertEqual(PAGE.text_content("#player-card-modal .pc-name"), "Player One")
-            self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.pts-open').length"), 0)
         finally:
             close_card()
         self.assertEqual(SITE.errors, [])

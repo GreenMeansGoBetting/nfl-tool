@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GMG's NBA Suite &mdash; Threes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700;800&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../suite.css">
-<link rel="stylesheet" href="points.css">
-<link rel="stylesheet" href="threes.css">
+<link rel="stylesheet" href="sim.css">
 </head>
 <body class="nba-suite">
 <div class="topbar">
@@ -33,52 +32,46 @@
   </div>
 
   <div class="nba-app">
-    <div class="pts-testing" id="pts-testing">
-      <div class="pts-testing-main">
-        <span class="pts-testing-kicker">Beta</span>
-        <h2 class="pts-testing-title">Projections In Testing Until Mid-November <button type="button" class="info-i" aria-expanded="false" aria-controls="pts-testing-note" title="What's in the projection">i</button></h2>
-        <p class="pts-caution">PLEASE WAGER WITH CAUTION UNTIL WE HAVE MORE DATA.</p>
-        <p class="pts-testing-sub">We can predict how many threes a player will try, but not how many he'll make. Every projection is graded against the tip-off line, live.</p>
-      </div>
-      <div class="pts-testing-record" id="pts-record"></div>
-      <p class="info-note pts-testing-note" id="pts-testing-note" hidden><b>Why tries come first:</b> on last season's replay, how many threes a player tries tonight was predictable; whether they go in mostly wasn't. So the projection is his tries x his make rate, and the make rate barely moves (his season, pulled 200 tries toward the league's). <b>What moved tries on last season's replay:</b> his minutes (a dip over the last 5 bounces back), teammates listed Out (their shots go to role players, not the star), both teams' pace, how many threes this defense allows, how many of them are catch-and-shoot (help defense leaving shooters), his team being the underdog (trailing teams shoot more), and a cold or hot last 5 (a cold run trims his tries a little; it doesn't change his make rate). <b>What didn't:</b> corner vs above-the-break threes, what % a defense allows, free-throw %, back-to-backs. <b>The ladder:</b> a night's threes swing wider than a plain average says, so 1+ hits a little less often and 3+ / 4+ more often than most expect. The play is the side our projection leans, graded at its best price at tip-off when that price leaves an edge. Early in the season the projection leans on the books and moves toward our number as games come in. About 2,000 graded lines (mid-November) is when the record starts to mean something.</p>
-    </div>
-    <div id="schedule-scroller" class="schedule-scroller">
-      <div class="week-picker">
-        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
-        <span id="day-label" class="week-label">Day</span>
-        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
-      </div>
-      <div id="matchup-row" class="matchup-row"></div>
-    </div>
-    <div id="game-header" class="game-header" hidden></div>
-    <div class="pts-head">
-      <div class="pts-filters">
-        <select id="pts-tag" aria-label="Tags"><option value="">All Tags</option></select>
-        <input id="pts-search" type="search" placeholder="Find a player" aria-label="Find a player">
-      </div>
-    </div>
-    <div class="nba-season-bar"><span class="nba-seasons" id="pts-seasons"></span><span id="pts-season-note" class="no-data-note"></span></div>
-
+    <div class="sim-tabs"><a href="points.html">Points</a><a href="threes.html" class="on">Threes</a></div>
     <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
+    <div id="sim-app" hidden>
+      <div class="sim-hero">
+        <div>
+          <div class="sim-kicker sim-kicker-on">New Model &middot; Built From Scratch</div>
+          <h1>Every Game Played 10,000 Times <button type="button" class="info-i" aria-expanded="false" aria-controls="sim-how" title="How it works">i</button></h1>
+          <p>Each game is played out possession by possession from this season's games: tonight's players, who shoots, from where, against this defense. The spots that proved real over ten seasons tilt the dice. The books' line is never an input; it shows up only at the end, as the price.</p>
+          <div class="sim-steps"><span>1 &middot; Who's On The Floor</span><span>2 &middot; Who Shoots</span><span>3 &middot; From Where</span><span>4 &middot; Does It Go In</span><span>5 &middot; Repeat 10,000&times;</span></div>
+          <p class="info-note" id="sim-how" hidden><b>One game, a quarter at a time:</b> the two teams' pace sets the possessions. Each possession goes to one of the five on the floor, by his minutes and how much he shoots when he's out there. His play is a shot from a zone (rim, short, mid-range, corner three, above-the-break three), a trip to the line or a turnover, by his own mix tilted toward what this defense gives up. Whether it goes in is his make rate there times what this defense allows there. A missed shot can come back as an offensive rebound. Down the stretch a blowout sends the starters to the bench, and a lead shrinks a little (the team ahead eases off). Every player also gets a minutes night and a shooting night, so the spread of outcomes is a real game's. <b>Injuries and starters:</b> a player listed Out leaves his minutes to his own position first; a player in the NBA's starting five tonight plays starter minutes. <b>The dials</b> are the spots that changed how teams played over ten seasons (rest, back-to-backs, overtime, close-win letdowns, blowout wins); the rest tested at zero and stay off. <b>Checked on last season</b> (each night from that season's earlier games only): team scores, player points and threes landed where the sims said as often as they should. <b>This season only:</b> early on, a player's rates lean on the league's numbers for his position this season, less as his own games come in. The books still predict the final score a little better than the sims do; a play is where the two disagree by enough.</p>
+        </div>
+        <div class="sim-rec" id="sim-record"></div>
+      </div>
 
-    <div id="pts-board" class="section-wrap" hidden>
-      <h2 class="section-title">Threes <button type="button" class="info-i" aria-expanded="false" aria-controls="pts-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="pts-note" hidden><b>Play</b>: the side of his main threes-made line (SmartStake) our projection leans. <b>Proj Att</b>: threes we expect him to try tonight (the predictable part; hover for his make rate). <b>Proj Make</b>: threes made we project (in testing). <b>GMG Fair</b>: our chance as a price with no cut. <b>Odds</b>: the best price across your books; click it for every book. <b>Good To</b>: the worst price that still leaves a 3-point edge. <b>Edge</b>: our chance minus the chance that price needs to break even, in points; green from 3 (a play), red below 0 (the price isn't good enough: not a play, not graded). <b>3PA / 3PM</b>: a game this season. <b>Hit Rate</b>: how often he's gone over tonight's line in his last 5, last 10, the season at home and on the road ("x of y"), colored by the percentage. They count his own numbers over the line, whichever side the play is. Tags read both sides: <b>3s Allowed</b> = this defense gives up a lot of threes and he shoots them; <b>Tough 3s D</b> = it gives up few; <b>Help D</b> = its threes allowed are mostly catch-and-shoot and he lives on them; <b>Underdog</b> = his team is getting 6+ (trailing teams shoot more); <b>Usage +</b> = rotation teammates listed Out tonight; <b>Min &uarr;</b> = a rotation player at his spot is listed Out tonight; <b>Min &darr;</b> = one sat the last game and isn't listed Out tonight; <b>Cold Run / Hot Run</b> = his last 5 made well under / over his own rate. Click any column to sort; pick a tag to see only those players. Click a player for with / without a teammate, every book's price, the ladder and his threes against this defense.</p>
-      <div class="pts-scroll"><table class="data-table pts-table" id="pts-table"></table></div>
+      <h2 class="sim-sec">Tonight's Plays <small id="sim-plays-note"></small></h2>
+      <div id="sim-plays"></div>
+
+      <div id="schedule-scroller" class="schedule-scroller">
+        <div class="week-picker">
+          <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+          <span id="day-label" class="week-label">Day</span>
+          <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+        </div>
+        <div id="matchup-row" class="matchup-row"></div>
+      </div>
+      <h2 class="sim-sec">Game Board <small>Every player's threes in all 10,000 games</small></h2>
+      <div id="sim-board"></div>
     </div>
   </div>
 </main>
 
 <footer>
-  Prices: <a href="https://www.smartstake.app/?via=GMG" target="_blank" rel="noopener">SmartStake</a> (every US book). Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play and box scores).
+  Prices: <a href="https://www.smartstake.app/?via=GMG" target="_blank" rel="noopener">SmartStake</a> (every US book). Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play and box scores), ESPN injuries, NBA starting lineups.
 </footer>
 
 <script src="../sync.js"></script>
 <script src="../book-odds.js"></script>
 <script src="../ytd.js"></script>
 <script src="threes.js"></script>
-<script src="props-board.js"></script>
+<script src="sim-board.js"></script>
 <script src="shot-chart.js"></script>
 <script src="nba-card.js"></script>
 </body>

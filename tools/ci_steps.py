@@ -298,7 +298,9 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["book_markets"] = bo.get("markets")
         nba_props = read_json(site / "nba" / "props.json")
         note["props"] = {s: len(b.get("players") or {}) for s, b in (nba_props.get("seasons") or {}).items()} if nba_props else None
-        note["threes"] = sum(len(g) for g in (nba_props.get("threes_slate") or {}).values()) if nba_props else None  # Threes: players with a projection
+        note["sim"] = len(nba_props.get("sim") or {}) if nba_props else None  # the Points / Threes game sim: games simulated
+        note["sim_plays"] = {m: len(v) for m, v in (nba_props.get("sim_plays") or {}).items()} if nba_props else None
+        note["points_alt"] = bo.get("points_alt")
         note["threes_alt"] = bo.get("threes_alt")
     if failed:
         note["error"] = build_error(suite)
