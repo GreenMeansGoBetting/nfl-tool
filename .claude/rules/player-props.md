@@ -48,6 +48,10 @@ Stories, example players and numbers behind these rules: `docs/history.md`, "Pla
   `prop_matchup_model.teams[t][side][metric].gt` (passing counts only) and `.gt_median` (the
   league mean, despite the name).
 - The Prop Picks rail's team headers use the same team-color fill + left stripe as the banners.
+- **Package header chips fill the rest of the row** (`.ps-pk-mkts` is `flex: 1 1 0`, chips /
+  names / players `nowrap`): Save image freezes every box at its on-screen size and text draws a
+  hair wider in the copy, so a row that hugged its chips wrapped "Long Comp" onto the player line
+  (2026-10-24). Never make that row shrink-to-fit again (`tests/test_props_summary_site.py`).
 
 ## Zone Targets (`zoneTargets` / `renderZoneTargets` in props-summary.js)
 

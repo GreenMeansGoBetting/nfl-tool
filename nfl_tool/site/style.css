@@ -2662,8 +2662,14 @@ footer { border-top-color: var(--border); }
 .ps-tf-fade .sc-section-title::before { background: rgb(var(--bad-rgb)); }
 .ps-pk { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
 .ps-pk-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.ps-pk-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.02em; }
-.ps-pk-mkts { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.ps-pk-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.02em; white-space: nowrap; }
+/* Save image (html-to-image) freezes every box at its on-screen size, and
+   text can draw a hair wider in the copy. A shrink-to-fit chip row then
+   wrapped its last chip ("Long Comp") onto the player line below. So the
+   row takes the rest of the header's width instead of hugging its chips,
+   and no chip or name can break inside its own box. */
+.ps-pk-mkts { display: flex; flex: 1 1 0; min-width: 0; flex-wrap: wrap; gap: 4px; }
+.ps-pk-mkts span, .ps-pk-player, .ps-pk-tags span { white-space: nowrap; }
 .ps-pk-mkts span { padding: 1px 7px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; background: var(--table-head); border: 1px solid var(--border-strong); }
 .ps-tf-target .ps-pk-mkts span { color: var(--good-text); border-color: rgba(var(--good-rgb), 0.5); background: rgba(var(--good-rgb), 0.1); }
 .ps-tf-fade .ps-pk-mkts span { color: var(--bad-text); border-color: rgba(var(--bad-rgb), 0.45); background: rgba(var(--bad-rgb), 0.08); }
