@@ -975,51 +975,51 @@
   "board": [
    {
     "id": "6583",
-    "lead": 0.2789,
+    "lead": 0.2797,
     "name": "Anthony Davis",
-    "proj": 52.8,
+    "proj": 52.9,
     "team": "WSH"
    },
    {
     "id": "3064514",
-    "lead": 0.1784,
+    "lead": 0.1783,
     "name": "Julius Randle",
     "proj": 48.4,
     "team": "BKN"
    },
    {
     "id": "3908809",
-    "lead": 0.0969,
+    "lead": 0.0965,
     "name": "Donovan Mitchell",
     "proj": 44.4,
     "team": "CLE"
    },
    {
     "id": "3032977",
-    "lead": 0.0835,
+    "lead": 0.082,
     "name": "Giannis Antetokounmpo",
-    "proj": 43.1,
+    "proj": 43.0,
     "team": "MIA"
    },
    {
     "id": "3202",
-    "lead": 0.0471,
+    "lead": 0.0469,
     "name": "Kevin Durant",
     "proj": 39.8,
     "team": "HOU"
    },
    {
     "id": "4701230",
-    "lead": 0.0391,
+    "lead": 0.0393,
     "name": "Jalen Johnson",
     "proj": 39.1,
     "team": "ATL"
    },
    {
     "id": "4431678",
-    "lead": 0.0356,
+    "lead": 0.0361,
     "name": "Tyrese Maxey",
-    "proj": 38.7,
+    "proj": 38.8,
     "team": "PHI"
    },
    {
@@ -1031,21 +1031,21 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0323,
+    "lead": 0.032,
     "name": "Cooper Flagg",
     "proj": 38.7,
     "team": "DAL"
    },
    {
     "id": "4278039",
-    "lead": 0.028,
+    "lead": 0.0279,
     "name": "Nickeil Alexander-Walker",
     "proj": 37.7,
     "team": "ATL"
    },
    {
     "id": "4396971",
-    "lead": 0.0245,
+    "lead": 0.0243,
     "name": "Naz Reid",
     "proj": 37.3,
     "team": "CHA"
@@ -1059,9 +1059,9 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0133,
+    "lead": 0.0139,
     "name": "Tyler Herro",
-    "proj": 34.0,
+    "proj": 34.1,
     "team": "MIL"
    },
    {
@@ -1073,9 +1073,9 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0096,
+    "lead": 0.0097,
     "name": "Trae Young",
-    "proj": 33.5,
+    "proj": 33.6,
     "team": "WSH"
    },
    {
@@ -1094,9 +1094,16 @@
    },
    {
     "id": "1966",
-    "lead": 0.0057,
+    "lead": 0.0059,
     "name": "LeBron James",
-    "proj": 31.9,
+    "proj": 32.0,
+    "team": "PHI"
+   },
+   {
+    "id": "3059318",
+    "lead": 0.0057,
+    "name": "Joel Embiid",
+    "proj": 31.1,
     "team": "PHI"
    },
    {
@@ -1114,13 +1121,6 @@
     "team": "SA"
    },
    {
-    "id": "3059318",
-    "lead": 0.0053,
-    "name": "Joel Embiid",
-    "proj": 31.0,
-    "team": "PHI"
-   },
-   {
     "id": "4432848",
     "lead": 0.0041,
     "name": "Jaime Jaquez Jr.",
@@ -1128,18 +1128,18 @@
     "team": "MIL"
    },
    {
-    "id": "3032979",
-    "lead": 0.0032,
-    "name": "Dennis Schroder",
-    "proj": 30.3,
-    "team": "CHA"
-   },
-   {
     "id": "5037871",
     "lead": 0.0032,
     "name": "Dylan Harper",
     "proj": 29.7,
     "team": "SA"
+   },
+   {
+    "id": "3032979",
+    "lead": 0.0031,
+    "name": "Dennis Schroder",
+    "proj": 30.3,
+    "team": "CHA"
    },
    {
     "id": "4684740",
@@ -1150,9 +1150,9 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0017,
+    "lead": 0.0016,
     "name": "Devin Booker",
-    "proj": 29.2,
+    "proj": 29.0,
     "team": "PHX"
    },
    {
@@ -1215,7 +1215,7 @@
     "id": "3135045",
     "lead": 0.0006,
     "name": "Grayson Allen",
-    "proj": 29.3,
+    "proj": 29.2,
     "team": "CHA"
    },
    {
@@ -1229,7 +1229,7 @@
     "id": "3975",
     "lead": 0.0006,
     "name": "Stephen Curry",
-    "proj": 26.1,
+    "proj": 26.0,
     "team": "GS"
    },
    {
@@ -1289,13 +1289,6 @@
     "team": "CLE"
    },
    {
-    "id": "4433287",
-    "lead": 0.0,
-    "name": "Brandon Miller",
-    "proj": 21.5,
-    "team": "CHA"
-   },
-   {
     "id": "2595516",
     "lead": 0.0,
     "name": "Norman Powell",
@@ -1303,18 +1296,18 @@
     "team": "CHI"
    },
    {
+    "id": "4433287",
+    "lead": 0.0,
+    "name": "Brandon Miller",
+    "proj": 21.4,
+    "team": "CHA"
+   },
+   {
     "id": "4278053",
     "lead": 0.0,
     "name": "Davion Mitchell",
-    "proj": 21.3,
+    "proj": 21.2,
     "team": "MIA"
-   },
-   {
-    "id": "4397040",
-    "lead": 0.0,
-    "name": "Brandon Williams",
-    "proj": 21.1,
-    "team": "GS"
    },
    {
     "id": "4869780",
@@ -1324,17 +1317,24 @@
     "team": "NO"
    },
    {
+    "id": "4397040",
+    "lead": 0.0,
+    "name": "Brandon Williams",
+    "proj": 21.0,
+    "team": "GS"
+   },
+   {
     "id": "5214640",
     "lead": 0.0,
     "name": "Kasparas Jakucionis",
-    "proj": 20.4,
+    "proj": 20.5,
     "team": "MIL"
    },
    {
     "id": "3133628",
     "lead": 0.0,
     "name": "Myles Turner",
-    "proj": 20.1,
+    "proj": 20.2,
     "team": "MIL"
    },
    {
