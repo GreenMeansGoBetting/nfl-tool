@@ -195,7 +195,7 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
 - **Tonight's Plays** (`game_candidates`, `pick_plays`): every price a book has for a player (main
   and rungs, Over and Under, `PRICE_RANGE` -250 to +400) against the sim's chance; his best, each
   game's best, the night's best `MAX_PLAYS` 8 with `MIN_EDGE` 4 points (counting plays locked at tip
-  tonight); 3+ games this season and 18+ sim minutes. The night's biggest edge = **Top Play**, the
+  tonight); 2+ games this season (3 left no plays on opening week) and 18+ sim minutes. The night's biggest edge = **Top Play**, the
   rest **Strong**. **Script-Proof** (beats its price in every script), **Chaos** (loses in a close
   game, wins when it goes sideways), **Needs A Close Game**.
 - **The record:** `model_history/nba_props/sim_<season>.json` {game: {date, points: [play],

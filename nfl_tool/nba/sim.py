@@ -623,7 +623,8 @@ STATS = {"points": "pts", "threes": "fg3m"}  # book market -> the sim's stat
 MIN_EDGE = 0.04
 MAX_PLAYS = 8
 PRICE_RANGE = (-250, 400)  # past +400 a rung's chance rests on a few hundred sims' tails
-MIN_GAMES = 3              # games this season before his numbers can make a play
+MIN_GAMES = 2              # games this season before his numbers can make a play (3 left no one on 2026-10-24:
+                           # every team had played 2; his rates already lean on his position's league numbers)
 MIN_MINUTES = 18           # minutes the sim gives him
 
 

@@ -192,7 +192,7 @@ class Plays(unittest.TestCase):
         self.assertAlmostEqual(c["edge"], 0.7 - 105 / 205, places=3)
         self.assertEqual(c["kind"], "proof")
         self.assertEqual((c["team"], c["opp"], c["dials"]), ("BBB", "AAA", ["b2b"]))
-        self.assertEqual(sim.game_candidates("9", g, sim_game, props, {"1": 2}, "points"), [])  # under 3 games
+        self.assertEqual(sim.game_candidates("9", g, sim_game, props, {"1": 1}, "points"), [])  # one game isn't enough
 
     def test_one_a_game_the_nights_best_and_the_locked_ones_count(self):
         cands = [{"game": str(i % 5), "edge": 0.04 + i / 100, "pid": str(i)} for i in range(10)]
