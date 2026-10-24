@@ -1088,7 +1088,7 @@
    "3059319": [
     "Andrew Wiggins",
     0.095,
-    800,
+    850,
     false,
     "fanduel"
    ],
@@ -1111,7 +1111,7 @@
     0.095,
     1000,
     false,
-    "thescore"
+    "fanduel"
    ],
    "4433249": [
     "Moussa Diabate",
@@ -1123,14 +1123,14 @@
    "4433287": [
     "Brandon Miller",
     0.096,
-    700,
+    750,
     false,
     "fanduel"
    ],
    "4602025": [
     "Sion James",
     0.075,
-    1400,
+    1500,
     true,
     "fanduel"
    ],
@@ -1139,7 +1139,7 @@
     0.088,
     1000,
     false,
-    "draftkings"
+    "hard_rock"
    ]
   },
   "tip_home": 0.395
@@ -1208,7 +1208,7 @@
     0.084,
     1000,
     false,
-    "thescore"
+    "fanduel"
    ],
    "4702177": [
     "Keon Ellis",
@@ -1260,9 +1260,9 @@
    "3134907": [
     "Kyle Kuzma",
     0.084,
-    1400,
+    1320,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "3917376": [
     "Jaylen Brown",
@@ -1290,7 +1290,7 @@
     0.101,
     1000,
     true,
-    "thescore"
+    "fanduel"
    ],
    "4591725": [
     "Ryan Rollins",
@@ -1302,9 +1302,9 @@
    "5124612": [
     "VJ Edgecombe",
     0.105,
-    900,
+    850,
     false,
-    "fanduel"
+    "hard_rock"
    ]
   },
   "tip_home": 0.532
@@ -1419,7 +1419,7 @@
     0.111,
     700,
     false,
-    "draftkings"
+    "hard_rock"
    ],
    "4397189": [
     "Jalen Smith",
@@ -1454,7 +1454,7 @@
     0.113,
     1100,
     true,
-    "thescore"
+    "fanduel"
    ],
    "5160992": [
     "Alex Sarr",
@@ -1499,16 +1499,16 @@
    "4066259": [
     "De'Aaron Fox",
     0.102,
-    730,
+    740,
     false,
     "draftkings"
    ],
    "4278049": [
     "Daniel Gafford",
     0.082,
-    1100,
+    1040,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4278078": [
     "P.J. Washington",
@@ -1520,28 +1520,28 @@
    "4395630": [
     "Devin Vassell",
     0.109,
-    750,
+    760,
     false,
     "draftkings"
    ],
    "4432582": [
     "Max Christie",
     0.096,
-    1500,
+    1700,
     true,
     "fanduel"
    ],
    "4845367": [
     "Stephon Castle",
     0.115,
-    810,
+    800,
     false,
     "draftkings"
    ],
    "5037871": [
     "Dylan Harper",
     0.114,
-    820,
+    810,
     false,
     "draftkings"
    ],
@@ -1555,9 +1555,9 @@
    "6442": [
     "Kyrie Irving",
     0.101,
-    950,
-    false,
-    "fanduel"
+    1000,
+    true,
+    "hard_rock"
    ]
   },
   "tip_home": 0.206
@@ -1682,7 +1682,7 @@
    "4066436": [
     "De'Anthony Melton",
     0.069,
-    850,
+    900,
     false,
     "fanduel"
    ],
@@ -1712,12 +1712,12 @@
     0.067,
     850,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "6589": [
     "Draymond Green",
     0.085,
-    1300,
+    1200,
     true,
     "fanduel"
    ]
