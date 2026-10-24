@@ -23,7 +23,7 @@
    "first_price": 1150,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|anytime_td|CIN|chasebrown": {
    "game": "CIN_BAL",
@@ -47,7 +47,7 @@
    "first_price": 113,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|first_td|BAL|devontezwalker": {
    "game": "CIN_BAL",
@@ -65,13 +65,13 @@
    "line": null,
    "price": 5456,
    "book": null,
-   "edge": 0.017840499533958637,
-   "chance": 0.03583905964914942,
+   "edge": 0.01777222759851385,
+   "chance": 0.035770787713704635,
    "rating": "Check",
    "first_price": 5163,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|first_td|BAL|markandrews": {
    "game": "CIN_BAL",
@@ -89,13 +89,13 @@
    "line": null,
    "price": 1567,
    "book": null,
-   "edge": 0.030977602053646275,
-   "chance": 0.09096560445316637,
+   "edge": 0.030806926025682482,
+   "chance": 0.09079492842520258,
    "rating": "Strong",
    "first_price": 1400,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|receiving_receptions|CIN|dohntemeyers": {
    "game": "CIN_BAL",
@@ -113,13 +113,13 @@
    "line": 1.5,
    "price": -133,
    "book": "prophetx",
-   "edge": 0.08984207109793607,
-   "chance": 0.6606575217417129,
+   "edge": 0.09190223820778831,
+   "chance": 0.6627176888515651,
    "rating": "Strong",
    "first_price": -110,
    "first_book": "thescore",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|receiving_receptions|CIN|samajeperine": {
    "game": "CIN_BAL",
@@ -137,13 +137,13 @@
    "line": 1.5,
    "price": 119,
    "book": "draftkings",
-   "edge": 0.06828411379584898,
-   "chance": 0.524905118362059,
+   "edge": 0.0613385882161277,
+   "chance": 0.5179595927823377,
    "rating": "Lean",
    "first_price": 116,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|receiving_yards|CIN|dohntemeyers": {
    "game": "CIN_BAL",
@@ -159,15 +159,15 @@
    "bet": "Over 14.5 Rec Yds",
    "side": "over",
    "line": 14.5,
-   "price": -112,
-   "book": "kalshi",
-   "edge": 0.09392487391207882,
-   "chance": 0.6222267607045316,
-   "rating": "Strong",
+   "price": 100,
+   "book": "thescore",
+   "edge": 0.12160093109357861,
+   "chance": 0.6216009310935786,
+   "rating": "Check",
    "first_price": 102,
    "first_book": "caesars",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|rushing_attempts|CIN|chasebrown": {
    "game": "CIN_BAL",
@@ -185,13 +185,13 @@
    "line": 11.5,
    "price": 117,
    "book": "novig",
-   "edge": 0.06757431376878464,
-   "chance": 0.5284038068563423,
+   "edge": 0.06276521769980747,
+   "chance": 0.5235947107873651,
    "rating": "Lean",
    "first_price": -125,
    "first_book": "thescore",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CIN_BAL|rushing_attempts|CIN|samajeperine": {
    "game": "CIN_BAL",
@@ -207,15 +207,15 @@
    "bet": "Under 8.5 Rush Att",
    "side": "under",
    "line": 8.5,
-   "price": -125,
+   "price": -130,
    "book": "hard_rock",
-   "edge": 0.0770538253289762,
-   "chance": 0.6326093808845318,
+   "edge": 0.07186338942128734,
+   "chance": 0.6370807807256351,
    "rating": "Strong",
    "first_price": -130,
    "first_book": "hard_rock",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|anytime_td|CLE|deshaunwatson": {
    "game": "CLE_TEN",
@@ -231,15 +231,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 390,
-   "book": "circa",
-   "edge": 0.0327510095656397,
-   "chance": 0.23683264221870093,
+   "price": 400,
+   "book": "fanduel",
+   "edge": 0.03635038791605155,
+   "chance": 0.23635038791605156,
    "rating": "Lean",
    "first_price": 410,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|anytime_td|CLE|isaiahbond": {
    "game": "CLE_TEN",
@@ -255,15 +255,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 1329,
+   "price": 1900,
    "book": "novig",
-   "edge": 0.07690196141461784,
-   "chance": 0.1468809677127284,
+   "edge": 0.08776618941527885,
+   "chance": 0.13776618941527885,
    "rating": "Check",
    "first_price": 1074,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|anytime_td|TEN|elicayomanor": {
    "game": "CLE_TEN",
@@ -281,13 +281,13 @@
    "line": 0.5,
    "price": 750,
    "book": "fanduel",
-   "edge": 0.04955024793357879,
-   "chance": 0.1671973067571082,
+   "edge": 0.04907773572918342,
+   "chance": 0.16672479455271283,
    "rating": "Lean",
    "first_price": 756,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|anytime_td|TEN|tonypollard": {
    "game": "CLE_TEN",
@@ -311,7 +311,7 @@
    "first_price": 144,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|first_td|TEN|elicayomanor": {
    "game": "CLE_TEN",
@@ -329,37 +329,13 @@
    "line": null,
    "price": 2678,
    "book": null,
-   "edge": 0.037943838606845026,
-   "chance": 0.0739409588372266,
+   "edge": 0.03763156811944127,
+   "chance": 0.07362868834982284,
    "rating": "Check",
    "first_price": 2900,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "CLE_TEN|passing_attempts|TEN|camward": {
-   "game": "CLE_TEN",
-   "game_id": "2026_07_CLE_TEN",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "TEN",
-   "opp": "CLE",
-   "name": "Cam Ward",
-   "position": "QB",
-   "group": "pass",
-   "market": "passing_attempts",
-   "bet": "Under 31.5 Pass Att",
-   "side": "under",
-   "line": 31.5,
-   "price": -113,
-   "book": "draftkings",
-   "edge": 0.05024480743127324,
-   "chance": 0.5807612393561559,
-   "rating": "Lean",
-   "first_price": -110,
-   "first_book": "fanatics",
-   "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|passing_completions|TEN|camward": {
    "game": "CLE_TEN",
@@ -377,13 +353,13 @@
    "line": 19.5,
    "price": -134,
    "book": "pinnacle",
-   "edge": 0.0538836028299754,
-   "chance": 0.626533175479548,
+   "edge": 0.058403707005214356,
+   "chance": 0.631053279654787,
    "rating": "Lean",
    "first_price": -136,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_longestReception|CLE|haroldfannin": {
    "game": "CLE_TEN",
@@ -399,15 +375,15 @@
    "bet": "Under 15.5 Long Rec",
    "side": "under",
    "line": 15.5,
-   "price": -117,
+   "price": -105,
    "book": "draftkings",
-   "edge": 0.055862383995871845,
-   "chance": 0.5950328909083142,
-   "rating": "Lean",
+   "edge": 0.08190331296612963,
+   "chance": 0.5940984349173491,
+   "rating": "Strong",
    "first_price": -117,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_receptions|CLE|haroldfannin": {
    "game": "CLE_TEN",
@@ -423,15 +399,39 @@
    "bet": "Under 3.5 Receptions",
    "side": "under",
    "line": 3.5,
-   "price": -127,
+   "price": -130,
    "book": "novig",
-   "edge": 0.06470506829613087,
-   "chance": 0.6241764339348974,
+   "edge": 0.0584540031630586,
+   "chance": 0.6236713944674064,
    "rating": "Lean",
    "first_price": -122,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "CLE_TEN|receiving_receptions|CLE|jerryjeudy": {
+   "game": "CLE_TEN",
+   "game_id": "2026_07_CLE_TEN",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "CLE",
+   "opp": "TEN",
+   "name": "Jerry Jeudy",
+   "position": "WR",
+   "group": "rec",
+   "market": "receiving_receptions",
+   "bet": "Over 1.5 Receptions",
+   "side": "over",
+   "line": 1.5,
+   "price": -144,
+   "book": "novig",
+   "edge": 0.046198563386371516,
+   "chance": 0.636362497812601,
+   "rating": "Lean",
+   "first_price": -144,
+   "first_book": "novig",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_receptions|CLE|quinshonjudkins": {
    "game": "CLE_TEN",
@@ -448,14 +448,14 @@
    "side": "over",
    "line": 2.5,
    "price": 140,
-   "book": "bet365",
-   "edge": 0.0945513117736066,
-   "chance": 0.5112179784402733,
+   "book": "caesars",
+   "edge": 0.08980267028179939,
+   "chance": 0.5064693369484661,
    "rating": "Strong",
    "first_price": 100,
    "first_book": "novig",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_receptions|TEN|gunnarhelm": {
    "game": "CLE_TEN",
@@ -471,15 +471,15 @@
    "bet": "Under 2.5 Receptions",
    "side": "under",
    "line": 2.5,
-   "price": -180,
-   "book": "fanatics",
-   "edge": 0.07700422081902425,
-   "chance": 0.7198613636761672,
-   "rating": "Strong",
+   "price": -188,
+   "book": "fanduel",
+   "edge": 0.06522393685066519,
+   "chance": 0.718001714628443,
+   "rating": "Lean",
    "first_price": -180,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_receptions|TEN|tyjaespears": {
    "game": "CLE_TEN",
@@ -497,37 +497,13 @@
    "line": 2.5,
    "price": 125,
    "book": "prophetx",
-   "edge": 0.04493906962827926,
-   "chance": 0.4893835140727237,
+   "edge": 0.04765382999893347,
+   "chance": 0.4920982744433779,
    "rating": "Lean",
    "first_price": 125,
    "first_book": "prophetx",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "CLE_TEN|receiving_receptions|TEN|wandalerobinson": {
-   "game": "CLE_TEN",
-   "game_id": "2026_07_CLE_TEN",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "TEN",
-   "opp": "CLE",
-   "name": "Wan'Dale Robinson",
-   "position": "WR",
-   "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Under 4.5 Receptions",
-   "side": "under",
-   "line": 4.5,
-   "price": -130,
-   "book": "bet365",
-   "edge": 0.04291625789974329,
-   "chance": 0.6081336492040911,
-   "rating": "Lean",
-   "first_price": -130,
-   "first_book": "bet365",
-   "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_yards|CLE|haroldfannin": {
    "game": "CLE_TEN",
@@ -545,13 +521,13 @@
    "line": 28.5,
    "price": -106,
    "book": "novig",
-   "edge": 0.06318489404404148,
-   "chance": 0.577748000840158,
+   "edge": 0.06056613423752344,
+   "chance": 0.5751292410336399,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|receiving_yards|CLE|jerryjeudy": {
    "game": "CLE_TEN",
@@ -569,13 +545,37 @@
    "line": 20.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.050285879926769694,
-   "chance": 0.5600898014953971,
+   "edge": 0.04979325109849497,
+   "chance": 0.5595971726671224,
    "rating": "Lean",
    "first_price": -110,
    "first_book": "fanatics",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "CLE_TEN|receiving_yards|CLE|quinshonjudkins": {
+   "game": "CLE_TEN",
+   "game_id": "2026_07_CLE_TEN",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "CLE",
+   "opp": "TEN",
+   "name": "Quinshon Judkins",
+   "position": "RB",
+   "group": "rec",
+   "market": "receiving_yards",
+   "bet": "Over 10.5 Rec Yds",
+   "side": "over",
+   "line": 10.5,
+   "price": -113,
+   "book": "fanduel",
+   "edge": 0.04468036908086859,
+   "chance": 0.5751968010057512,
+   "rating": "Lean",
+   "first_price": -113,
+   "first_book": "fanduel",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|rushing_attempts|CLE|quinshonjudkins": {
    "game": "CLE_TEN",
@@ -591,15 +591,15 @@
    "bet": "Over 14.5 Rush Att",
    "side": "over",
    "line": 14.5,
-   "price": 102,
+   "price": 103,
    "book": "prophetx",
-   "edge": 0.08784370456058077,
-   "chance": 0.5828932095110758,
+   "edge": 0.08558537366424429,
+   "chance": 0.578196211102668,
    "rating": "Strong",
    "first_price": -102,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T15:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|rushing_attempts|TEN|tonypollard": {
    "game": "CLE_TEN",
@@ -617,13 +617,13 @@
    "line": 16.5,
    "price": 100,
    "book": "fanatics",
-   "edge": 0.04202108600499388,
-   "chance": 0.5420210860049939,
+   "edge": 0.04680517266213813,
+   "chance": 0.5468051726621381,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "fanatics",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "CLE_TEN|rushing_longestRush|CLE|quinshonjudkins": {
    "game": "CLE_TEN",
@@ -639,15 +639,15 @@
    "bet": "Over 11.5 Long Rush",
    "side": "over",
    "line": 11.5,
-   "price": -105,
+   "price": 100,
    "book": "bet365",
-   "edge": 0.04342109794059801,
-   "chance": 0.5556162198918175,
+   "edge": 0.0524800354390359,
+   "chance": 0.5524800354390359,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|first_td|PHI|dariuscooper": {
    "game": "DAL_PHI",
@@ -663,15 +663,15 @@
    "bet": "First TD",
    "side": "yes",
    "line": null,
-   "price": 2532,
+   "price": 2464,
    "book": null,
-   "edge": 0.01578796534023187,
-   "chance": 0.05378188631287625,
+   "edge": 0.015049199232562802,
+   "chance": 0.0540507592949653,
    "rating": "Lean",
    "first_price": 2532,
    "first_book": null,
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|passing_attempts|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -689,13 +689,13 @@
    "line": 36.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.05900763218581384,
-   "chance": 0.5590076321858138,
+   "edge": 0.05749868156100202,
+   "chance": 0.557498681561002,
    "rating": "Lean",
    "first_price": 102,
    "first_book": "caesars",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|passing_completions|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -713,13 +713,13 @@
    "line": 23.5,
    "price": -106,
    "book": "novig",
-   "edge": 0.044913736096527934,
-   "chance": 0.5594768428926444,
+   "edge": 0.043310553646597305,
+   "chance": 0.5578736604427138,
    "rating": "Lean",
    "first_price": -106,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|passing_completions|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -737,13 +737,13 @@
    "line": 19.5,
    "price": -124,
    "book": "pinnacle",
-   "edge": 0.08780746718636667,
-   "chance": 0.6413788957577953,
+   "edge": 0.08761469523419396,
+   "chance": 0.6411861238056226,
    "rating": "Strong",
    "first_price": 106,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|passing_interceptions|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -760,14 +760,14 @@
    "side": "under",
    "line": 0.5,
    "price": 140,
-   "book": "draftkings",
-   "edge": 0.06435836066146478,
-   "chance": 0.48102502732813146,
+   "book": "bet365",
+   "edge": 0.06451910171401426,
+   "chance": 0.48118576838068094,
    "rating": "Lean",
    "first_price": 140,
    "first_book": "bet365",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|passing_yards|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -780,18 +780,18 @@
    "position": "QB",
    "group": "pass",
    "market": "passing_yards",
-   "bet": "Over 206.5 Pass Yds",
+   "bet": "Over 197.5 Pass Yds",
    "side": "over",
-   "line": 206.5,
-   "price": -106,
-   "book": "novig",
-   "edge": 0.056868216882404954,
-   "chance": 0.5714313236785215,
+   "line": 197.5,
+   "price": -102,
+   "book": "caesars",
+   "edge": 0.06502959545997611,
+   "chance": 0.5699800905094811,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|rushing_attempts|DAL|javontewilliams": {
    "game": "DAL_PHI",
@@ -809,13 +809,13 @@
    "line": 16.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.04573318115247105,
-   "chance": 0.5555371027210985,
+   "edge": 0.050490615917410775,
+   "chance": 0.5602945374860382,
    "rating": "Lean",
    "first_price": -108,
    "first_book": "pinnacle",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|rushing_attempts|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -832,14 +832,14 @@
    "side": "under",
    "line": 16.5,
    "price": 102,
-   "book": "novig",
-   "edge": 0.06642769210986166,
-   "chance": 0.5614771970603567,
-   "rating": "Lean",
+   "book": "caesars",
+   "edge": 0.07309150883857796,
+   "chance": 0.568141013789073,
+   "rating": "Strong",
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DAL_PHI|rushing_longestRush|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -855,15 +855,15 @@
    "bet": "Under 6.5 Long Rush",
    "side": "under",
    "line": 6.5,
-   "price": -109,
-   "book": "draftkings",
-   "edge": 0.05394398840104553,
-   "chance": 0.5754750888795144,
+   "price": -110,
+   "book": "hard_rock",
+   "edge": 0.054763523927263025,
+   "chance": 0.5785730477367869,
    "rating": "Lean",
    "first_price": -104,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T11:52Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|anytime_td|ARI|michaelwilson": {
    "game": "DEN_ARI",
@@ -880,14 +880,14 @@
    "side": "yes",
    "line": 0.5,
    "price": 270,
-   "book": "novig",
+   "book": "circa",
    "edge": 0.05993871965895081,
    "chance": 0.3302089899292211,
    "rating": "Strong",
    "first_price": 270,
    "first_book": "circa",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|anytime_td|DEN|jkdobbins": {
    "game": "DEN_ARI",
@@ -905,13 +905,13 @@
    "line": 0.5,
    "price": 150,
    "book": "novig",
-   "edge": 0.10673111085420184,
-   "chance": 0.5067311108542019,
+   "edge": 0.10592047942952221,
+   "chance": 0.5059204794295222,
    "rating": "Strong",
    "first_price": 125,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|anytime_td|DEN|rjharvey": {
    "game": "DEN_ARI",
@@ -935,7 +935,7 @@
    "first_price": 280,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|first_td|ARI|michaelwilson": {
    "game": "DEN_ARI",
@@ -953,13 +953,13 @@
    "line": null,
    "price": 1233,
    "book": null,
-   "edge": 0.02134802659195155,
-   "chance": 0.09636678128062372,
+   "edge": 0.02130815718916694,
+   "chance": 0.09632691187783911,
    "rating": "Lean",
    "first_price": 1233,
    "first_book": null,
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|first_td|DEN|jkdobbins": {
    "game": "DEN_ARI",
@@ -977,13 +977,13 @@
    "line": null,
    "price": 700,
    "book": null,
-   "edge": 0.015923180488967625,
-   "chance": 0.14092318048896763,
+   "edge": 0.016019033748671613,
+   "chance": 0.1410190337486716,
    "rating": "Lean",
    "first_price": 700,
    "first_book": null,
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_attempts|ARI|jacobybrissett": {
    "game": "DEN_ARI",
@@ -1001,13 +1001,13 @@
    "line": 37.5,
    "price": 104,
    "book": "novig",
-   "edge": 0.09245459682917995,
-   "chance": 0.5826506752605525,
+   "edge": 0.09096593160348204,
+   "chance": 0.5811620100348546,
    "rating": "Strong",
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_attempts|DEN|bonix": {
    "game": "DEN_ARI",
@@ -1025,13 +1025,13 @@
    "line": 33.5,
    "price": -149,
    "book": "pinnacle",
-   "edge": 0.22099232860959128,
-   "chance": 0.81938590290678,
+   "edge": 0.2218961062971193,
+   "chance": 0.8202896805943081,
    "rating": "Check",
    "first_price": -110,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_completions|ARI|jacobybrissett": {
    "game": "DEN_ARI",
@@ -1049,13 +1049,13 @@
    "line": 23.5,
    "price": 108,
    "book": "novig",
-   "edge": 0.04886316602690205,
-   "chance": 0.5296323967961328,
+   "edge": 0.04865439770083918,
+   "chance": 0.52942362847007,
    "rating": "Lean",
    "first_price": 108,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_completions|DEN|bonix": {
    "game": "DEN_ARI",
@@ -1073,13 +1073,13 @@
    "line": 20.5,
    "price": -105,
    "book": "pinnacle",
-   "edge": 0.17104114236168877,
-   "chance": 0.6832362643129083,
+   "edge": 0.17122247733157403,
+   "chance": 0.6834175992827936,
    "rating": "Check",
    "first_price": -105,
    "first_book": "fanatics",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_interceptions|ARI|jacobybrissett": {
    "game": "DEN_ARI",
@@ -1097,13 +1097,13 @@
    "line": 0.5,
    "price": -101,
    "book": "draftkings",
-   "edge": 0.07125721606362567,
-   "chance": 0.5737447782526804,
+   "edge": 0.0710997392950714,
+   "chance": 0.5735873014841262,
    "rating": "Strong",
    "first_price": 101,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_touchdowns|ARI|jacobybrissett": {
    "game": "DEN_ARI",
@@ -1121,13 +1121,13 @@
    "line": 1.5,
    "price": -156,
    "book": "novig",
-   "edge": 0.04258780922260064,
-   "chance": 0.6519628092226006,
+   "edge": 0.04271108433232962,
+   "chance": 0.6520860843323296,
    "rating": "Lean",
    "first_price": -156,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|passing_yards|DEN|bonix": {
    "game": "DEN_ARI",
@@ -1145,13 +1145,13 @@
    "line": 219.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.07799184188890274,
-   "chance": 0.5877957634575302,
+   "edge": 0.07764878567858191,
+   "chance": 0.5874527072472093,
    "rating": "Strong",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_longestReception|DEN|troyfranklin": {
    "game": "DEN_ARI",
@@ -1168,14 +1168,14 @@
    "side": "under",
    "line": 11.5,
    "price": -115,
-   "book": "bet365",
-   "edge": 0.04557107703768837,
-   "chance": 0.5804547979679209,
+   "book": "draftkings",
+   "edge": 0.04462675365910351,
+   "chance": 0.579510474589336,
    "rating": "Lean",
    "first_price": -115,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_receptions|ARI|michaelwilson": {
    "game": "DEN_ARI",
@@ -1193,13 +1193,13 @@
    "line": 4.5,
    "price": 110,
    "book": "bet365",
-   "edge": 0.052777985902665026,
-   "chance": 0.5289684620931412,
+   "edge": 0.056486418193583465,
+   "chance": 0.5326768943840596,
    "rating": "Lean",
    "first_price": 110,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_receptions|ARI|tylerallgeier": {
    "game": "DEN_ARI",
@@ -1215,15 +1215,15 @@
    "bet": "Under 2.5 Receptions",
    "side": "under",
    "line": 2.5,
-   "price": -133,
-   "book": "pinnacle",
-   "edge": 0.05387853316521396,
-   "chance": 0.6246939838089908,
+   "price": -135,
+   "book": "fanatics",
+   "edge": 0.05192356795031294,
+   "chance": 0.626391653056696,
    "rating": "Lean",
    "first_price": -136,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_receptions|DEN|courtlandsutton": {
    "game": "DEN_ARI",
@@ -1241,13 +1241,13 @@
    "line": 2.5,
    "price": 138,
    "book": "novig",
-   "edge": 0.089910258730525,
-   "chance": 0.5100783259574158,
+   "edge": 0.08761022985571437,
+   "chance": 0.5077782970826051,
    "rating": "Strong",
    "first_price": 132,
    "first_book": "pinnacle",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_receptions|DEN|jaylenwaddle": {
    "game": "DEN_ARI",
@@ -1265,13 +1265,37 @@
    "line": 4.5,
    "price": 104,
    "book": "draftkings",
-   "edge": 0.11181722841607017,
-   "chance": 0.6020133068474427,
+   "edge": 0.10811252480002725,
+   "chance": 0.5983086032313998,
    "rating": "Strong",
    "first_price": 104,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "DEN_ARI|receiving_receptions|DEN|marvinmims": {
+   "game": "DEN_ARI",
+   "game_id": "2026_07_DEN_ARI",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "DEN",
+   "opp": "ARI",
+   "name": "Marvin Mims Jr.",
+   "position": "WR",
+   "group": "rec",
+   "market": "receiving_receptions",
+   "bet": "Under 1.5 Receptions",
+   "side": "under",
+   "line": 1.5,
+   "price": 115,
+   "book": "bet365",
+   "edge": 0.04104420265643188,
+   "chance": 0.5061604817261993,
+   "rating": "Lean",
+   "first_price": 115,
+   "first_book": "bet365",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_receptions|DEN|rjharvey": {
    "game": "DEN_ARI",
@@ -1289,13 +1313,13 @@
    "line": 3.5,
    "price": -105,
    "book": "fanatics",
-   "edge": 0.07025705980700003,
-   "chance": 0.5824521817582196,
-   "rating": "Strong",
+   "edge": 0.06801717518391515,
+   "chance": 0.5802122971351347,
+   "rating": "Lean",
    "first_price": -106,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_receptions|DEN|troyfranklin": {
    "game": "DEN_ARI",
@@ -1311,15 +1335,15 @@
    "bet": "Under 1.5 Receptions",
    "side": "under",
    "line": 1.5,
-   "price": -106,
-   "book": "draftkings",
-   "edge": 0.11239206814118052,
-   "chance": 0.626955174937297,
-   "rating": "Strong",
+   "price": -105,
+   "book": "thescore",
+   "edge": 0.12025056515445165,
+   "chance": 0.6324456871056712,
+   "rating": "Check",
    "first_price": -105,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_yards|DEN|courtlandsutton": {
    "game": "DEN_ARI",
@@ -1337,13 +1361,13 @@
    "line": 33.5,
    "price": 104,
    "book": "novig",
-   "edge": 0.09205965085859796,
-   "chance": 0.5822557292899705,
+   "edge": 0.09254583279152323,
+   "chance": 0.5827419112228958,
    "rating": "Strong",
    "first_price": -114,
    "first_book": "pinnacle",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_yards|DEN|jaylenwaddle": {
    "game": "DEN_ARI",
@@ -1361,13 +1385,13 @@
    "line": 50.5,
    "price": 106,
    "book": "novig",
-   "edge": 0.08569107384939456,
-   "chance": 0.5711279670532781,
+   "edge": 0.08618067829960951,
+   "chance": 0.571617571503493,
    "rating": "Strong",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_yards|DEN|rjharvey": {
    "game": "DEN_ARI",
@@ -1383,15 +1407,15 @@
    "bet": "Under 24.5 Rec Yds",
    "side": "under",
    "line": 24.5,
-   "price": -104,
-   "book": "novig",
-   "edge": 0.06623424497093855,
-   "chance": 0.576038166539566,
-   "rating": "Lean",
+   "price": -105,
+   "book": "thescore",
+   "edge": 0.07067435348570705,
+   "chance": 0.5828694754369266,
+   "rating": "Strong",
    "first_price": -114,
    "first_book": "pinnacle",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|receiving_yards|DEN|troyfranklin": {
    "game": "DEN_ARI",
@@ -1409,13 +1433,13 @@
    "line": 14.5,
    "price": 108,
    "book": "novig",
-   "edge": 0.0704218933173189,
-   "chance": 0.5511911240865497,
+   "edge": 0.07091639202731032,
+   "chance": 0.5516856227965411,
    "rating": "Strong",
    "first_price": -112,
    "first_book": "caesars",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing+receiving_yards|ARI|tylerallgeier": {
    "game": "DEN_ARI",
@@ -1433,13 +1457,13 @@
    "line": 45.5,
    "price": 100,
    "book": "fanatics",
-   "edge": 0.04355490244868121,
-   "chance": 0.5435549024486812,
+   "edge": 0.04433858169070415,
+   "chance": 0.5443385816907041,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "fanatics",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing_attempts|ARI|tylerallgeier": {
    "game": "DEN_ARI",
@@ -1457,13 +1481,13 @@
    "line": 9.5,
    "price": 100,
    "book": "bet365",
-   "edge": 0.17808284971673993,
-   "chance": 0.6780828497167399,
+   "edge": 0.172709481398863,
+   "chance": 0.672709481398863,
    "rating": "Check",
    "first_price": 100,
    "first_book": "fanatics",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing_attempts|DEN|jkdobbins": {
    "game": "DEN_ARI",
@@ -1481,13 +1505,13 @@
    "line": 13.5,
    "price": -114,
    "book": "fanduel",
-   "edge": 0.11741038322893638,
-   "chance": 0.6501206636027681,
+   "edge": 0.11301030057772776,
+   "chance": 0.6457205809515595,
    "rating": "Strong",
    "first_price": -110,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing_longestRush|DEN|bonix": {
    "game": "DEN_ARI",
@@ -1505,13 +1529,13 @@
    "line": 8.5,
    "price": -112,
    "book": "draftkings",
-   "edge": 0.051178592468821615,
-   "chance": 0.5794804792612744,
+   "edge": 0.05426852396273574,
+   "chance": 0.5825704107551886,
    "rating": "Lean",
    "first_price": -112,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T16:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing_yards|ARI|tylerallgeier": {
    "game": "DEN_ARI",
@@ -1529,13 +1553,13 @@
    "line": 30.5,
    "price": -110,
    "book": "fanatics",
-   "edge": 0.06351972294613539,
-   "chance": 0.5873292467556592,
+   "edge": 0.06286250017455886,
+   "chance": 0.5866720239840827,
    "rating": "Lean",
    "first_price": -106,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing_yards|DEN|bonix": {
    "game": "DEN_ARI",
@@ -1553,13 +1577,13 @@
    "line": 10.5,
    "price": -106,
    "book": "novig",
-   "edge": 0.08236888109683704,
-   "chance": 0.5969319878929535,
+   "edge": 0.08302098009217374,
+   "chance": 0.5975840868882902,
    "rating": "Strong",
    "first_price": -107,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "DEN_ARI|rushing_yards|DEN|jkdobbins": {
    "game": "DEN_ARI",
@@ -1575,15 +1599,15 @@
    "bet": "Over 47.5 Rush Yds",
    "side": "over",
    "line": 47.5,
-   "price": -107,
-   "book": "caesars",
-   "edge": 0.04860359102598011,
-   "chance": 0.5655118035863665,
+   "price": -106,
+   "book": "novig",
+   "edge": 0.045233359718711785,
+   "chance": 0.5597964665148283,
    "rating": "Lean",
    "first_price": -107,
    "first_book": "caesars",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|anytime_td|GB|kalebjohnson": {
    "game": "GB_DET",
@@ -1607,7 +1631,7 @@
    "first_price": 525,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|anytime_td|GB|marshawnlloyd": {
    "game": "GB_DET",
@@ -1623,15 +1647,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 426,
+   "price": 456,
    "book": "novig",
-   "edge": 0.11592489331831066,
-   "chance": 0.3060389617593753,
-   "rating": "Strong",
+   "edge": 0.12278522027804029,
+   "chance": 0.30264133538595395,
+   "rating": "Check",
    "first_price": 376,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|first_td|GB|marshawnlloyd": {
    "game": "GB_DET",
@@ -1649,13 +1673,13 @@
    "line": null,
    "price": 1900,
    "book": null,
-   "edge": 0.04776262837128076,
-   "chance": 0.09776262837128076,
+   "edge": 0.047415848775033395,
+   "chance": 0.0974158487750334,
    "rating": "Check",
    "first_price": 2200,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|first_td|GB|matthewgolden": {
    "game": "GB_DET",
@@ -1673,13 +1697,13 @@
    "line": null,
    "price": 1233,
    "book": null,
-   "edge": 0.020847848483197748,
-   "chance": 0.09586660317186992,
+   "edge": 0.020903318035484203,
+   "chance": 0.09592207272415637,
    "rating": "Lean",
    "first_price": 1233,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|first_td|GB|tuckerkraft": {
    "game": "GB_DET",
@@ -1697,13 +1721,13 @@
    "line": null,
    "price": 1233,
    "book": null,
-   "edge": 0.02467768878556914,
-   "chance": 0.09969644347424131,
+   "edge": 0.024931625984080386,
+   "chance": 0.09995038067275255,
    "rating": "Lean",
    "first_price": 1233,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|passing_attempts|GB|jordanlove": {
    "game": "GB_DET",
@@ -1719,15 +1743,15 @@
    "bet": "Over 37.5 Pass Att",
    "side": "over",
    "line": 37.5,
-   "price": -111,
-   "book": "prophetx",
-   "edge": 0.07197057689870001,
-   "chance": 0.5980369276096005,
-   "rating": "Strong",
+   "price": -113,
+   "book": "novig",
+   "edge": 0.06604871146274771,
+   "chance": 0.5965651433876303,
+   "rating": "Lean",
    "first_price": -105,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|passing_completions|GB|jordanlove": {
    "game": "GB_DET",
@@ -1745,13 +1769,13 @@
    "line": 23.5,
    "price": -108,
    "book": "novig",
-   "edge": 0.06977275696329777,
-   "chance": 0.589003526194067,
+   "edge": 0.06816605014485855,
+   "chance": 0.5873968193756278,
    "rating": "Lean",
    "first_price": 103,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|passing_touchdowns|GB|jordanlove": {
    "game": "GB_DET",
@@ -1769,13 +1793,13 @@
    "line": 1.5,
    "price": -174,
    "book": "pinnacle",
-   "edge": 0.06483027661356144,
-   "chance": 0.6998667729639264,
+   "edge": 0.06471613621244787,
+   "chance": 0.6997526325628128,
    "rating": "Lean",
    "first_price": -160,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|passing_yards|DET|jaredgoff": {
    "game": "GB_DET",
@@ -1793,13 +1817,13 @@
    "line": 278.5,
    "price": 108,
    "book": "novig",
-   "edge": 0.04872995435770039,
-   "chance": 0.5294991851269312,
+   "edge": 0.04916255820372145,
+   "chance": 0.5299317889729522,
    "rating": "Lean",
    "first_price": 108,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|passing_yards|GB|jordanlove": {
    "game": "GB_DET",
@@ -1817,13 +1841,13 @@
    "line": 281.5,
    "price": -113,
    "book": "novig",
-   "edge": 0.0602188911232483,
-   "chance": 0.5907353230481309,
+   "edge": 0.0597989846343997,
+   "chance": 0.5903154165592823,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_longestReception|DET|jahmyrgibbs": {
    "game": "GB_DET",
@@ -1841,13 +1865,13 @@
    "line": 15.5,
    "price": -114,
    "book": "draftkings",
-   "edge": 0.05174608062727026,
-   "chance": 0.584456361001102,
-   "rating": "Lean",
+   "edge": 0.13339696761254294,
+   "chance": 0.6661072479863747,
+   "rating": "Check",
    "first_price": -114,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_longestReception|DET|jamesonwilliams": {
    "game": "GB_DET",
@@ -1865,37 +1889,13 @@
    "line": 22.5,
    "price": -108,
    "book": "draftkings",
-   "edge": 0.12926546761030366,
-   "chance": 0.6484962368410729,
+   "edge": 0.1301431754449639,
+   "chance": 0.6493739446757332,
    "rating": "Check",
    "first_price": -108,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "GB_DET|receiving_longestReception|GB|christianwatson": {
-   "game": "GB_DET",
-   "game_id": "2026_07_GB_DET",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "GB",
-   "opp": "DET",
-   "name": "Christian Watson",
-   "position": "WR",
-   "group": "rec",
-   "market": "receiving_longestReception",
-   "bet": "Over 27.5 Long Rec",
-   "side": "over",
-   "line": 27.5,
-   "price": -116,
-   "book": "draftkings",
-   "edge": 0.09928262838721624,
-   "chance": 0.6363196654242533,
-   "rating": "Strong",
-   "first_price": -116,
-   "first_book": "draftkings",
-   "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_longestReception|GB|matthewgolden": {
    "game": "GB_DET",
@@ -1913,37 +1913,13 @@
    "line": 25.5,
    "price": -108,
    "book": "draftkings",
-   "edge": 0.04479358898133745,
-   "chance": 0.5640243582121067,
+   "edge": 0.04574658353687511,
+   "chance": 0.5649773527676444,
    "rating": "Lean",
    "first_price": -108,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "GB_DET|receiving_longestReception|GB|tuckerkraft": {
-   "game": "GB_DET",
-   "game_id": "2026_07_GB_DET",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "GB",
-   "opp": "DET",
-   "name": "Tucker Kraft",
-   "position": "TE",
-   "group": "rec",
-   "market": "receiving_longestReception",
-   "bet": "Over 18.5 Long Rec",
-   "side": "over",
-   "line": 18.5,
-   "price": -103,
-   "book": "kalshi",
-   "edge": 0.055174503244707074,
-   "chance": 0.5625636658062835,
-   "rating": "Lean",
-   "first_price": -103,
-   "first_book": "kalshi",
-   "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_receptions|DET|isaacteslaa": {
    "game": "GB_DET",
@@ -1959,15 +1935,15 @@
    "bet": "Over 1.5 Receptions",
    "side": "over",
    "line": 1.5,
-   "price": -115,
+   "price": -113,
    "book": "novig",
-   "edge": 0.06292194344622459,
-   "chance": 0.5978056643764571,
+   "edge": 0.06463333769587942,
+   "chance": 0.595149769620762,
    "rating": "Lean",
    "first_price": -120,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_receptions|GB|matthewgolden": {
    "game": "GB_DET",
@@ -1985,13 +1961,13 @@
    "line": 4.5,
    "price": -144,
    "book": "novig",
-   "edge": 0.04889549721696573,
-   "chance": 0.6390594316431952,
+   "edge": 0.051015571068879995,
+   "chance": 0.6411795054951095,
    "rating": "Lean",
    "first_price": -138,
    "first_book": "novig",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_receptions|GB|pierrestrong": {
    "game": "GB_DET",
@@ -2009,13 +1985,13 @@
    "line": 1.5,
    "price": 133,
    "book": "novig",
-   "edge": 0.11447165106644708,
-   "chance": 0.5436562004226703,
+   "edge": 0.11675394476486312,
+   "chance": 0.5459384941210863,
    "rating": "Strong",
    "first_price": 127,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_receptions|GB|tuckerkraft": {
    "game": "GB_DET",
@@ -2033,13 +2009,13 @@
    "line": 4.5,
    "price": 100,
    "book": "bet365",
-   "edge": 0.07259796811257702,
-   "chance": 0.572597968112577,
+   "edge": 0.07620499253997381,
+   "chance": 0.5762049925399738,
    "rating": "Strong",
    "first_price": 100,
    "first_book": "fanatics",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_yards|DET|isaacteslaa": {
    "game": "GB_DET",
@@ -2057,13 +2033,37 @@
    "line": 24.5,
    "price": 100,
    "book": "prophetx",
-   "edge": 0.051807814394085105,
-   "chance": 0.5518078143940851,
+   "edge": 0.0535264016683038,
+   "chance": 0.5535264016683038,
    "rating": "Lean",
    "first_price": -107,
    "first_book": "kalshi",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "GB_DET|receiving_yards|DET|samlaporta": {
+   "game": "GB_DET",
+   "game_id": "2026_07_GB_DET",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "DET",
+   "opp": "GB",
+   "name": "Sam LaPorta",
+   "position": "TE",
+   "group": "rec",
+   "market": "receiving_yards",
+   "bet": "Under 49.5 Rec Yds",
+   "side": "under",
+   "line": 49.5,
+   "price": 102,
+   "book": "prophetx",
+   "edge": 0.04130376212171738,
+   "chance": 0.5363532670722124,
+   "rating": "Lean",
+   "first_price": 102,
+   "first_book": "prophetx",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_yards|GB|matthewgolden": {
    "game": "GB_DET",
@@ -2081,13 +2081,13 @@
    "line": 73.5,
    "price": -110,
    "book": "circa",
-   "edge": 0.05545771810938549,
-   "chance": 0.5792672419189093,
+   "edge": 0.05928436680764293,
+   "chance": 0.5830938906171668,
    "rating": "Lean",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_yards|GB|pierrestrong": {
    "game": "GB_DET",
@@ -2105,13 +2105,13 @@
    "line": 6.5,
    "price": -112,
    "book": "pinnacle",
-   "edge": 0.046580022037645996,
-   "chance": 0.5748819088300988,
+   "edge": 0.046091370577193036,
+   "chance": 0.5743932573696459,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|receiving_yards|GB|tuckerkraft": {
    "game": "GB_DET",
@@ -2127,15 +2127,15 @@
    "bet": "Over 49.5 Rec Yds",
    "side": "over",
    "line": 49.5,
-   "price": -115,
-   "book": "bet365",
-   "edge": 0.054398244697598575,
-   "chance": 0.5892819656278311,
+   "price": -106,
+   "book": "novig",
+   "edge": 0.06327815153144944,
+   "chance": 0.5778412583275659,
    "rating": "Lean",
    "first_price": -111,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|rushing+receiving_yards|GB|pierrestrong": {
    "game": "GB_DET",
@@ -2151,15 +2151,39 @@
    "bet": "Over 17.5 Rush+Rec Yds",
    "side": "over",
    "line": 17.5,
-   "price": -118,
-   "book": "fanduel",
-   "edge": 0.05253894399882186,
-   "chance": 0.5938233476685466,
+   "price": -115,
+   "book": "caesars",
+   "edge": 0.05970137180711954,
+   "chance": 0.594585092737352,
    "rating": "Lean",
    "first_price": -118,
    "first_book": "fanduel",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "GB_DET|rushing_yards|GB|jordanlove": {
+   "game": "GB_DET",
+   "game_id": "2026_07_GB_DET",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "GB",
+   "opp": "DET",
+   "name": "Jordan Love",
+   "position": "QB",
+   "group": "rush",
+   "market": "rushing_yards",
+   "bet": "Under 7.5 Rush Yds",
+   "side": "under",
+   "line": 7.5,
+   "price": -110,
+   "book": "circa",
+   "edge": 0.04039496443368751,
+   "chance": 0.5642044882432113,
+   "rating": "Lean",
+   "first_price": -110,
+   "first_book": "circa",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|rushing_yards|GB|marshawnlloyd": {
    "game": "GB_DET",
@@ -2177,13 +2201,13 @@
    "line": 10.5,
    "price": 102,
    "book": "novig",
-   "edge": 0.1076033585606132,
-   "chance": 0.6026528635111082,
+   "edge": 0.10579790740424777,
+   "chance": 0.6008474123547428,
    "rating": "Strong",
    "first_price": -105,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "GB_DET|rushing_yards|GB|pierrestrong": {
    "game": "GB_DET",
@@ -2201,13 +2225,13 @@
    "line": 7.5,
    "price": -112,
    "book": "pinnacle",
-   "edge": 0.06129171970791969,
-   "chance": 0.5895936065003725,
+   "edge": 0.060635579224771696,
+   "chance": 0.5889374660172245,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|anytime_td|IND|jonathantaylor": {
    "game": "IND_MIN",
@@ -2225,13 +2249,13 @@
    "line": 0.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.03655574823030494,
-   "chance": 0.5365557482303049,
+   "edge": 0.038810964785293445,
+   "chance": 0.5388109647852934,
    "rating": "Lean",
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|anytime_td|MIN|aaronjones": {
    "game": "IND_MIN",
@@ -2255,7 +2279,7 @@
    "first_price": 150,
    "first_book": "novig",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|anytime_td|MIN|gavinbartholomew": {
    "game": "IND_MIN",
@@ -2271,15 +2295,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 1150,
-   "book": "novig",
-   "edge": 0.03506635468685455,
+   "price": 1176,
+   "book": "prophetx",
+   "edge": 0.036696448730741696,
    "chance": 0.11506635468685456,
    "rating": "Lean",
    "first_price": 1074,
    "first_book": "kalshi",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|first_td|IND|joshdowns": {
    "game": "IND_MIN",
@@ -2297,13 +2321,13 @@
    "line": null,
    "price": 1900,
    "book": null,
-   "edge": 0.0229495414476157,
-   "chance": 0.0729495414476157,
+   "edge": 0.02342435457679115,
+   "chance": 0.07342435457679115,
    "rating": "Lean",
    "first_price": 1718,
    "first_book": null,
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|passing_attempts|IND|danieljones": {
    "game": "IND_MIN",
@@ -2319,15 +2343,15 @@
    "bet": "Over 33.5 Pass Att",
    "side": "over",
    "line": 33.5,
-   "price": 115,
+   "price": 117,
    "book": "novig",
-   "edge": 0.12478335005672464,
-   "chance": 0.5898996291264921,
+   "edge": 0.12616003799215014,
+   "chance": 0.5869895310797077,
    "rating": "Check",
    "first_price": 113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|passing_completions|IND|danieljones": {
    "game": "IND_MIN",
@@ -2343,15 +2367,15 @@
    "bet": "Over 19.5 Completions",
    "side": "over",
    "line": 19.5,
-   "price": 108,
-   "book": "novig",
-   "edge": 0.06897567478478611,
-   "chance": 0.5497449055540169,
+   "price": 105,
+   "book": "polymarket_us",
+   "edge": 0.06325769720994578,
+   "chance": 0.5510625752587263,
    "rating": "Lean",
    "first_price": 108,
    "first_book": "novig",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|passing_completions|MIN|kylermurray": {
    "game": "IND_MIN",
@@ -2369,13 +2393,13 @@
    "line": 20.5,
    "price": -109,
    "book": "draftkings",
-   "edge": 0.08470958926732675,
-   "chance": 0.6062406897457956,
+   "edge": 0.0849096118979995,
+   "chance": 0.6064407123764683,
    "rating": "Strong",
    "first_price": -104,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|passing_interceptions|IND|danieljones": {
    "game": "IND_MIN",
@@ -2393,13 +2417,13 @@
    "line": 0.5,
    "price": -122,
    "book": "pinnacle",
-   "edge": 0.06419779125827085,
-   "chance": 0.6137473408078205,
+   "edge": 0.06422654795881377,
+   "chance": 0.6137760975083634,
    "rating": "Lean",
    "first_price": -119,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|passing_touchdowns|IND|danieljones": {
    "game": "IND_MIN",
@@ -2415,15 +2439,15 @@
    "bet": "Under 0.5 Pass TDs",
    "side": "under",
    "line": 0.5,
-   "price": 182,
-   "book": "bet365",
-   "edge": 0.057841035363187354,
-   "chance": 0.41245096444120155,
+   "price": 181,
+   "book": "caesars",
+   "edge": 0.05169724914220181,
+   "chance": 0.40756913526319827,
    "rating": "Lean",
    "first_price": 182,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|passing_yards|IND|danieljones": {
    "game": "IND_MIN",
@@ -2441,13 +2465,13 @@
    "line": 189.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.06875385722288263,
-   "chance": 0.5687538572228826,
-   "rating": "Lean",
+   "edge": 0.07023677313747445,
+   "chance": 0.5702367731374745,
+   "rating": "Strong",
    "first_price": -114,
    "first_book": "pinnacle",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_longestReception|MIN|justinjefferson": {
    "game": "IND_MIN",
@@ -2463,15 +2487,15 @@
    "bet": "Under 25.5 Long Rec",
    "side": "under",
    "line": 25.5,
-   "price": -115,
-   "book": "bet365",
-   "edge": 0.12879835138303786,
-   "chance": 0.6636820723132704,
-   "rating": "Check",
+   "price": -119,
+   "book": "draftkings",
+   "edge": 0.11943726435334745,
+   "chance": 0.6628162597871374,
+   "rating": "Strong",
    "first_price": -115,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_receptions|IND|joshdowns": {
    "game": "IND_MIN",
@@ -2489,13 +2513,13 @@
    "line": 4.5,
    "price": -102,
    "book": "pinnacle",
-   "edge": 0.05816422058138837,
-   "chance": 0.5631147156308933,
+   "edge": 0.05035526294859061,
+   "chance": 0.5553057579980956,
    "rating": "Lean",
    "first_price": 128,
    "first_book": "pinnacle",
    "first_seen": "2026-10-22T21:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_receptions|IND|laquontreadwell": {
    "game": "IND_MIN",
@@ -2511,15 +2535,15 @@
    "bet": "Over 1.5 Receptions",
    "side": "over",
    "line": 1.5,
-   "price": -145,
+   "price": -150,
    "book": "bet365",
-   "edge": 0.048576693916290825,
-   "chance": 0.6404134286101684,
+   "edge": 0.042529998107179834,
+   "chance": 0.6425299981071798,
    "rating": "Lean",
    "first_price": -145,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_receptions|MIN|aaronjones": {
    "game": "IND_MIN",
@@ -2535,15 +2559,15 @@
    "bet": "Over 2.5 Receptions",
    "side": "over",
    "line": 2.5,
-   "price": 122,
+   "price": 120,
    "book": "bet365",
-   "edge": 0.04179636551339533,
-   "chance": 0.4922468159638458,
+   "edge": 0.0415791459493286,
+   "chance": 0.49612460049478313,
    "rating": "Lean",
    "first_price": 122,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_receptions|MIN|jauanjennings": {
    "game": "IND_MIN",
@@ -2559,15 +2583,15 @@
    "bet": "Under 0.5 Receptions",
    "side": "under",
    "line": 0.5,
-   "price": 183,
-   "book": "draftkings",
-   "edge": 0.07835094316123542,
-   "chance": 0.4317078336205994,
-   "rating": "Strong",
+   "price": 171,
+   "book": "pinnacle",
+   "edge": 0.060447732544850585,
+   "chance": 0.42945142258175095,
+   "rating": "Lean",
    "first_price": 170,
    "first_book": "fliff",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_receptions|MIN|jordanaddison": {
    "game": "IND_MIN",
@@ -2585,13 +2609,13 @@
    "line": 3.5,
    "price": -138,
    "book": "novig",
-   "edge": 0.07536682990503529,
-   "chance": 0.6551987626781446,
+   "edge": 0.07328477532493383,
+   "chance": 0.6531167080980431,
    "rating": "Strong",
    "first_price": -138,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_receptions|MIN|justinjefferson": {
    "game": "IND_MIN",
@@ -2609,13 +2633,13 @@
    "line": 5.5,
    "price": 104,
    "book": "pinnacle",
-   "edge": 0.13209928059092607,
-   "chance": 0.6222953590222986,
+   "edge": 0.12993373449627693,
+   "chance": 0.6201298129276495,
    "rating": "Check",
    "first_price": 120,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|receiving_yards|MIN|justinjefferson": {
    "game": "IND_MIN",
@@ -2633,13 +2657,13 @@
    "line": 72.5,
    "price": 106,
    "book": "novig",
-   "edge": 0.09704530840001335,
-   "chance": 0.5824822016038969,
+   "edge": 0.0983788047322105,
+   "chance": 0.583815697936094,
    "rating": "Strong",
    "first_price": 102,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|rushing+receiving_yards|MIN|aaronjones": {
    "game": "IND_MIN",
@@ -2657,13 +2681,13 @@
    "line": 57.5,
    "price": -110,
    "book": "hard_rock",
-   "edge": 0.10930765739763859,
-   "chance": 0.6331171812071624,
+   "edge": 0.11004114876810278,
+   "chance": 0.6338506725776266,
    "rating": "Strong",
    "first_price": -113,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|rushing_attempts|MIN|aaronjones": {
    "game": "IND_MIN",
@@ -2679,15 +2703,15 @@
    "bet": "Over 10.5 Rush Att",
    "side": "over",
    "line": 10.5,
-   "price": 120,
-   "book": "novig",
-   "edge": 0.3495774138425613,
-   "chance": 0.8041228683880158,
+   "price": 121,
+   "book": "caesars",
+   "edge": 0.34948615119458654,
+   "chance": 0.801974838977392,
    "rating": "Check",
    "first_price": -108,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|rushing_attempts|MIN|kylermurray": {
    "game": "IND_MIN",
@@ -2705,13 +2729,37 @@
    "line": 5.5,
    "price": 115,
    "book": "bet365",
-   "edge": 0.06410567545987961,
-   "chance": 0.529221954529647,
+   "edge": 0.059297413334653826,
+   "chance": 0.5244136924044213,
    "rating": "Lean",
    "first_price": 111,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "IND_MIN|rushing_yards|IND|jonathantaylor": {
+   "game": "IND_MIN",
+   "game_id": "2026_07_IND_MIN",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "IND",
+   "opp": "MIN",
+   "name": "Jonathan Taylor",
+   "position": "RB",
+   "group": "rush",
+   "market": "rushing_yards",
+   "bet": "Under 70.5 Rush Yds",
+   "side": "under",
+   "line": 70.5,
+   "price": 100,
+   "book": "fanatics",
+   "edge": 0.05915012232746286,
+   "chance": 0.5591501223274629,
+   "rating": "Lean",
+   "first_price": 100,
+   "first_book": "fanatics",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "IND_MIN|rushing_yards|MIN|aaronjones": {
    "game": "IND_MIN",
@@ -2729,13 +2777,13 @@
    "line": 38.5,
    "price": -112,
    "book": "pinnacle",
-   "edge": 0.1497487121968174,
-   "chance": 0.6780505989892702,
+   "edge": 0.15034175238312686,
+   "chance": 0.6786436391755797,
    "rating": "Check",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|anytime_td|KC|kennethwalker": {
    "game": "KC_SEA",
@@ -2752,14 +2800,14 @@
    "side": "yes",
    "line": 0.5,
    "price": -120,
-   "book": "circa",
-   "edge": 0.07171544767647009,
-   "chance": 0.6171699931310155,
+   "book": "fanduel",
+   "edge": 0.0680584986851358,
+   "chance": 0.6135130441396812,
    "rating": "Strong",
    "first_price": -126,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|anytime_td|SEA|emanuelwilson": {
    "game": "KC_SEA",
@@ -2783,7 +2831,7 @@
    "first_price": 147,
    "first_book": "prophetx",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|anytime_td|SEA|georgeholani": {
    "game": "KC_SEA",
@@ -2807,7 +2855,7 @@
    "first_price": 529,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|first_td|KC|kennethwalker": {
    "game": "KC_SEA",
@@ -2825,13 +2873,13 @@
    "line": null,
    "price": 471,
    "book": null,
-   "edge": 0.042250406336025004,
-   "chance": 0.21738175484740854,
+   "edge": 0.04414625779915671,
+   "chance": 0.21927760631054025,
    "rating": "Strong",
    "first_price": 460,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|passing_attempts|KC|patrickmahomes": {
    "game": "KC_SEA",
@@ -2849,13 +2897,13 @@
    "line": 31.5,
    "price": 106,
    "book": "novig",
-   "edge": 0.06417512502366396,
-   "chance": 0.5496120182275475,
+   "edge": 0.06711580288972452,
+   "chance": 0.552552696093608,
    "rating": "Lean",
    "first_price": -104,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|passing_attempts|SEA|samdarnold": {
    "game": "KC_SEA",
@@ -2873,13 +2921,13 @@
    "line": 31.5,
    "price": -109,
    "book": "pinnacle",
-   "edge": 0.14360494883644837,
-   "chance": 0.6651360493149172,
+   "edge": 0.14286838092483634,
+   "chance": 0.6643994814033052,
    "rating": "Check",
    "first_price": -119,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|passing_completions|SEA|samdarnold": {
    "game": "KC_SEA",
@@ -2895,39 +2943,15 @@
    "bet": "Over 19.5 Completions",
    "side": "over",
    "line": 19.5,
-   "price": -126,
-   "book": "kalshi",
-   "edge": 0.08997569210628276,
-   "chance": 0.647497816000088,
+   "price": -125,
+   "book": "prophetx",
+   "edge": 0.09777646558204844,
+   "chance": 0.653332021137604,
    "rating": "Strong",
    "first_price": -125,
    "first_book": "fanatics",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "KC_SEA|passing_interceptions|KC|patrickmahomes": {
-   "game": "KC_SEA",
-   "game_id": "2026_07_KC_SEA",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "KC",
-   "opp": "SEA",
-   "name": "Patrick Mahomes",
-   "position": "QB",
-   "group": "pass",
-   "market": "passing_interceptions",
-   "bet": "Over 0.5 INTs",
-   "side": "over",
-   "line": 0.5,
-   "price": 102,
-   "book": "novig",
-   "edge": 0.044882618089571724,
-   "chance": 0.5399321230400668,
-   "rating": "Lean",
-   "first_price": 102,
-   "first_book": "novig",
-   "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|passing_interceptions|SEA|samdarnold": {
    "game": "KC_SEA",
@@ -2945,13 +2969,13 @@
    "line": 0.5,
    "price": -112,
    "book": "pinnacle",
-   "edge": 0.04614839276370042,
-   "chance": 0.5744502795561532,
+   "edge": 0.04599098324603579,
+   "chance": 0.5742928700384886,
    "rating": "Lean",
    "first_price": 108,
    "first_book": "prophetx",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|passing_yards|KC|patrickmahomes": {
    "game": "KC_SEA",
@@ -2964,18 +2988,18 @@
    "position": "QB",
    "group": "pass",
    "market": "passing_yards",
-   "bet": "Under 217.5 Pass Yds",
+   "bet": "Under 216.5 Pass Yds",
    "side": "under",
-   "line": 217.5,
-   "price": -111,
-   "book": "novig",
-   "edge": 0.04444798027868957,
-   "chance": 0.57051433098959,
+   "line": 216.5,
+   "price": -114,
+   "book": "fanduel",
+   "edge": 0.04102872317517092,
+   "chance": 0.5737390035490026,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|receiving_longestReception|KC|xavierworthy": {
    "game": "KC_SEA",
@@ -2991,15 +3015,15 @@
    "bet": "Under 20.5 Long Rec",
    "side": "under",
    "line": 20.5,
-   "price": -120,
-   "book": "hard_rock",
-   "edge": 0.10998154807857241,
-   "chance": 0.6554360935331178,
+   "price": -115,
+   "book": "bet365",
+   "edge": 0.11967638087539101,
+   "chance": 0.6545601018056235,
    "rating": "Strong",
    "first_price": -120,
    "first_book": "hard_rock",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|receiving_receptions|SEA|cooperkupp": {
    "game": "KC_SEA",
@@ -3017,37 +3041,13 @@
    "line": 2.5,
    "price": 105,
    "book": "bet365",
-   "edge": 0.043220474214781146,
-   "chance": 0.5310253522635616,
+   "edge": 0.046262481018857105,
+   "chance": 0.5340673590676376,
    "rating": "Lean",
    "first_price": 105,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "KC_SEA|receiving_receptions|SEA|emanuelwilson": {
-   "game": "KC_SEA",
-   "game_id": "2026_07_KC_SEA",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "SEA",
-   "opp": "KC",
-   "name": "Emanuel Wilson",
-   "position": "RB",
-   "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Under 1.5 Receptions",
-   "side": "under",
-   "line": 1.5,
-   "price": -115,
-   "book": "bet365",
-   "edge": 0.0774929144190678,
-   "chance": 0.6123766353493003,
-   "rating": "Strong",
-   "first_price": -115,
-   "first_book": "bet365",
-   "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|receiving_yards|KC|traviskelce": {
    "game": "KC_SEA",
@@ -3065,13 +3065,13 @@
    "line": 46.5,
    "price": -108,
    "book": "novig",
-   "edge": 0.10809432669697372,
-   "chance": 0.627325095927743,
+   "edge": 0.10856158629502699,
+   "chance": 0.6277923555257963,
    "rating": "Strong",
    "first_price": -106,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|receiving_yards|KC|xavierworthy": {
    "game": "KC_SEA",
@@ -3089,13 +3089,13 @@
    "line": 49.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.04311885146341177,
-   "chance": 0.5431188514634118,
+   "edge": 0.04898790223199856,
+   "chance": 0.5489879022319986,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|rushing_attempts|SEA|emanuelwilson": {
    "game": "KC_SEA",
@@ -3113,13 +3113,13 @@
    "line": 14.5,
    "price": -105,
    "book": "prophetx",
-   "edge": 0.06214787878384598,
-   "chance": 0.5743430007350655,
+   "edge": 0.06732142908937344,
+   "chance": 0.579516551040593,
    "rating": "Lean",
    "first_price": -115,
    "first_book": "fanatics",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|rushing_longestRush|KC|kennethwalker": {
    "game": "KC_SEA",
@@ -3136,14 +3136,14 @@
    "side": "over",
    "line": 16.5,
    "price": -120,
-   "book": "draftkings",
-   "edge": 0.15149084026944493,
-   "chance": 0.6969453857239903,
-   "rating": "Check",
+   "book": "hard_rock",
+   "edge": 0.06313887082658831,
+   "chance": 0.6085934162811337,
+   "rating": "Lean",
    "first_price": -115,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|rushing_longestRush|KC|patrickmahomes": {
    "game": "KC_SEA",
@@ -3159,15 +3159,15 @@
    "bet": "Under 10.5 Long Rush",
    "side": "under",
    "line": 10.5,
-   "price": -105,
+   "price": -110,
    "book": "hard_rock",
-   "edge": 0.06663501136087957,
-   "chance": 0.5788301333120991,
+   "edge": 0.058111871992931996,
+   "chance": 0.5819213958024558,
    "rating": "Lean",
    "first_price": -110,
    "first_book": "hard_rock",
    "first_seen": "2026-10-23T21:39Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "KC_SEA|rushing_yards|KC|patrickmahomes": {
    "game": "KC_SEA",
@@ -3185,13 +3185,13 @@
    "line": 17.5,
    "price": -106,
    "book": "novig",
-   "edge": 0.10034955467966644,
-   "chance": 0.6149126614757829,
+   "edge": 0.10099129873879475,
+   "chance": 0.6155544055349113,
    "rating": "Strong",
    "first_price": -106,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|anytime_td|LA|colbyparkinson": {
    "game": "LA_LV",
@@ -3215,7 +3215,7 @@
    "first_price": 374,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|first_td|LA|colbyparkinson": {
    "game": "LA_LV",
@@ -3233,13 +3233,13 @@
    "line": null,
    "price": 1329,
    "book": null,
-   "edge": 0.027525641317720145,
-   "chance": 0.0975046476158307,
+   "edge": 0.02760626361311183,
+   "chance": 0.09758526991122239,
    "rating": "Lean",
    "first_price": 2000,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|passing_attempts|LA|matthewstafford": {
    "game": "LA_LV",
@@ -3257,13 +3257,13 @@
    "line": 34.5,
    "price": -107,
    "book": "pinnacle",
-   "edge": 0.1110867681095109,
-   "chance": 0.6279949806698973,
+   "edge": 0.10965617996578358,
+   "chance": 0.62656439252617,
    "rating": "Strong",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|passing_completions|LA|matthewstafford": {
    "game": "LA_LV",
@@ -3281,13 +3281,13 @@
    "line": 22.5,
    "price": -122,
    "book": "fanduel",
-   "edge": 0.10275530381429221,
-   "chance": 0.6523048533638418,
+   "edge": 0.10306538599859238,
+   "chance": 0.652614935548142,
    "rating": "Strong",
    "first_price": -102,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|passing_interceptions|LV|kirkcousins": {
    "game": "LA_LV",
@@ -3305,13 +3305,13 @@
    "line": 0.5,
    "price": 100,
    "book": "draftkings",
-   "edge": 0.06833470196409297,
-   "chance": 0.568334701964093,
+   "edge": 0.0612188770042682,
+   "chance": 0.5612188770042682,
    "rating": "Lean",
    "first_price": -103,
    "first_book": "polymarket_us",
    "first_seen": "2026-10-23T16:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|passing_touchdowns|LA|matthewstafford": {
    "game": "LA_LV",
@@ -3327,15 +3327,15 @@
    "bet": "Over 1.5 Pass TDs",
    "side": "over",
    "line": 1.5,
-   "price": -131,
-   "book": "prophetx",
-   "edge": 0.07843949127591543,
-   "chance": 0.6455390583754825,
+   "price": -133,
+   "book": "novig",
+   "edge": 0.07459927426816138,
+   "chance": 0.6454147249119382,
    "rating": "Strong",
    "first_price": -147,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|passing_yards|LA|matthewstafford": {
    "game": "LA_LV",
@@ -3353,13 +3353,13 @@
    "line": 253.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.07048586418003311,
-   "chance": 0.5802897857486605,
+   "edge": 0.07006286262059791,
+   "chance": 0.5798667841892253,
    "rating": "Strong",
    "first_price": -104,
    "first_book": "novig",
    "first_seen": "2026-10-23T15:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|receiving_receptions|LA|blakecorum": {
    "game": "LA_LV",
@@ -3377,13 +3377,13 @@
    "line": 1.5,
    "price": 145,
    "book": "bet365",
-   "edge": 0.054270722112984726,
-   "chance": 0.4624339874191072,
+   "edge": 0.05655927630634716,
+   "chance": 0.4647225416124696,
    "rating": "Lean",
    "first_price": 145,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|receiving_receptions|LA|kyrenwilliams": {
    "game": "LA_LV",
@@ -3401,37 +3401,13 @@
    "line": 3.5,
    "price": -123,
    "book": "pinnacle",
-   "edge": 0.10606698224354161,
-   "chance": 0.657636488969999,
+   "edge": 0.10813604311990643,
+   "chance": 0.6597055498463639,
    "rating": "Strong",
    "first_price": -106,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "LA_LV|receiving_receptions|LA|tylerhigbee": {
-   "game": "LA_LV",
-   "game_id": "2026_07_LA_LV",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "LA",
-   "opp": "LV",
-   "name": "Tyler Higbee",
-   "position": "TE",
-   "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Over 4.5 Receptions",
-   "side": "over",
-   "line": 4.5,
-   "price": 143,
-   "book": "pinnacle",
-   "edge": 0.07305963795862164,
-   "chance": 0.4845822717034776,
-   "rating": "Strong",
-   "first_price": 143,
-   "first_book": "pinnacle",
-   "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|receiving_receptions|LV|brockbowers": {
    "game": "LA_LV",
@@ -3447,15 +3423,15 @@
    "bet": "Under 6.5 Receptions",
    "side": "under",
    "line": 6.5,
-   "price": -135,
+   "price": -133,
    "book": "novig",
-   "edge": 0.051829268932618966,
-   "chance": 0.626297354039002,
+   "edge": 0.052249317828570785,
+   "chance": 0.6230647684723476,
    "rating": "Lean",
    "first_price": -135,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|receiving_yards|LV|ashtonjeanty": {
    "game": "LA_LV",
@@ -3471,15 +3447,15 @@
    "bet": "Over 25.5 Rec Yds",
    "side": "over",
    "line": 25.5,
-   "price": -106,
-   "book": "novig",
-   "edge": 0.06236741725466066,
-   "chance": 0.5769305240507772,
+   "price": -110,
+   "book": "fanatics",
+   "edge": 0.05812664216339858,
+   "chance": 0.5819361659729224,
    "rating": "Lean",
    "first_price": -105,
    "first_book": "fanatics",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|receiving_yards|LV|brockbowers": {
    "game": "LA_LV",
@@ -3497,13 +3473,13 @@
    "line": 70.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.06992801992232578,
-   "chance": 0.5797319414909532,
-   "rating": "Lean",
+   "edge": 0.07041502147619827,
+   "chance": 0.5802189430448257,
+   "rating": "Strong",
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "LA_LV|rushing_yards|LV|ashtonjeanty": {
    "game": "LA_LV",
@@ -3521,13 +3497,13 @@
    "line": 53.5,
    "price": 102,
    "book": "novig",
-   "edge": 0.05266901754972286,
-   "chance": 0.5477185225002179,
+   "edge": 0.05334049975219535,
+   "chance": 0.5483900047026904,
    "rating": "Lean",
    "first_price": 102,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|anytime_td|MIA|olliegordon": {
    "game": "MIA_NYJ",
@@ -3551,7 +3527,7 @@
    "first_price": 208,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|first_td|MIA|olliegordon": {
    "game": "MIA_NYJ",
@@ -3567,15 +3543,15 @@
    "bet": "First TD",
    "side": "yes",
    "line": null,
-   "price": 770,
+   "price": 852,
    "book": null,
-   "edge": 0.02237113505163868,
-   "chance": 0.13731366378727086,
-   "rating": "Lean",
+   "edge": 0.03222928411623578,
+   "chance": 0.13727130092295847,
+   "rating": "Strong",
    "first_price": 800,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|passing_attempts|NYJ|genosmith": {
    "game": "MIA_NYJ",
@@ -3593,13 +3569,13 @@
    "line": 29.5,
    "price": 108,
    "book": "novig",
-   "edge": 0.07406323200876447,
-   "chance": 0.5548324627779953,
+   "edge": 0.07303119674172293,
+   "chance": 0.5538004275109537,
    "rating": "Strong",
    "first_price": 104,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|passing_completions|MIA|malikwillis": {
    "game": "MIA_NYJ",
@@ -3617,13 +3593,37 @@
    "line": 16.5,
    "price": -112,
    "book": "draftkings",
-   "edge": 0.06633741958107298,
-   "chance": 0.5946393063735258,
+   "edge": 0.06328608059963148,
+   "chance": 0.5915879673920843,
    "rating": "Lean",
    "first_price": -105,
    "first_book": "fanatics",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "MIA_NYJ|passing_completions|NYJ|genosmith": {
+   "game": "MIA_NYJ",
+   "game_id": "2026_07_MIA_NYJ",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "NYJ",
+   "opp": "MIA",
+   "name": "Geno Smith",
+   "position": "QB",
+   "group": "pass",
+   "market": "passing_completions",
+   "bet": "Under 20.5 Completions",
+   "side": "under",
+   "line": 20.5,
+   "price": 108,
+   "book": "novig",
+   "edge": 0.04568353748574211,
+   "chance": 0.5264527682549729,
+   "rating": "Lean",
+   "first_price": 108,
+   "first_book": "novig",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|passing_interceptions|MIA|malikwillis": {
    "game": "MIA_NYJ",
@@ -3639,15 +3639,15 @@
    "bet": "Under 0.5 INTs",
    "side": "under",
    "line": 0.5,
-   "price": 100,
+   "price": -110,
    "book": "bet365",
-   "edge": 0.10544066360075854,
-   "chance": 0.6054406636007585,
+   "edge": 0.0953616996523381,
+   "chance": 0.6191712234618619,
    "rating": "Strong",
    "first_price": 102,
    "first_book": "bally_bet",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|passing_touchdowns|MIA|malikwillis": {
    "game": "MIA_NYJ",
@@ -3663,15 +3663,15 @@
    "bet": "Under 0.5 Pass TDs",
    "side": "under",
    "line": 0.5,
-   "price": 182,
+   "price": 170,
    "book": "bet365",
-   "edge": 0.062307189286909426,
-   "chance": 0.4169171183649236,
+   "edge": 0.04667883570156672,
+   "chance": 0.4170492060719371,
    "rating": "Lean",
    "first_price": 182,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|passing_yards|MIA|malikwillis": {
    "game": "MIA_NYJ",
@@ -3689,13 +3689,13 @@
    "line": 183.5,
    "price": -110,
    "book": "circa",
-   "edge": 0.055812046440637864,
-   "chance": 0.5796215702501617,
+   "edge": 0.0562351160850606,
+   "chance": 0.5800446398945844,
    "rating": "Lean",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_receptions|MIA|chrisbell": {
    "game": "MIA_NYJ",
@@ -3713,13 +3713,13 @@
    "line": 1.5,
    "price": 100,
    "book": "bet365",
-   "edge": 0.050413173543216505,
-   "chance": 0.5504131735432165,
+   "edge": 0.04813475546491697,
+   "chance": 0.548134755464917,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_receptions|MIA|olliegordon": {
    "game": "MIA_NYJ",
@@ -3735,15 +3735,39 @@
    "bet": "Under 1.5 Receptions",
    "side": "under",
    "line": 1.5,
-   "price": 105,
+   "price": 100,
    "book": "bet365",
-   "edge": 0.08777344969037659,
-   "chance": 0.5755783277391571,
-   "rating": "Strong",
+   "edge": 0.06936652411261002,
+   "chance": 0.56936652411261,
+   "rating": "Lean",
    "first_price": 100,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "MIA_NYJ|receiving_receptions|NYJ|adonaimitchell": {
+   "game": "MIA_NYJ",
+   "game_id": "2026_07_MIA_NYJ",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "NYJ",
+   "opp": "MIA",
+   "name": "Adonai Mitchell",
+   "position": "WR",
+   "group": "rec",
+   "market": "receiving_receptions",
+   "bet": "Over 1.5 Receptions",
+   "side": "over",
+   "line": 1.5,
+   "price": -168,
+   "book": "polymarket_us",
+   "edge": 0.042768078331382964,
+   "chance": 0.669633749973174,
+   "rating": "Lean",
+   "first_price": -168,
+   "first_book": "polymarket_us",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_receptions|NYJ|garrettwilson": {
    "game": "MIA_NYJ",
@@ -3759,15 +3783,15 @@
    "bet": "Under 5.5 Receptions",
    "side": "under",
    "line": 5.5,
-   "price": 108,
+   "price": 104,
    "book": "novig",
-   "edge": 0.18771988656396227,
-   "chance": 0.668489117333193,
+   "edge": 0.1815983093150601,
+   "chance": 0.6717943877464326,
    "rating": "Check",
    "first_price": -113,
    "first_book": "caesars",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_receptions|NYJ|kenyonsadiq": {
    "game": "MIA_NYJ",
@@ -3785,13 +3809,13 @@
    "line": 2.5,
    "price": -145,
    "book": "bet365",
-   "edge": 0.06154197436816622,
-   "chance": 0.6533787090620438,
+   "edge": 0.05782628050033334,
+   "chance": 0.6496630151942109,
    "rating": "Lean",
    "first_price": -135,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_receptions|NYJ|masontaylor": {
    "game": "MIA_NYJ",
@@ -3807,15 +3831,39 @@
    "bet": "Under 2.5 Receptions",
    "side": "under",
    "line": 2.5,
-   "price": 118,
-   "book": "fanduel",
-   "edge": 0.04464418753123878,
-   "chance": 0.503359783861514,
+   "price": 113,
+   "book": "novig",
+   "edge": 0.047156622851816876,
+   "chance": 0.5166401909269343,
    "rating": "Lean",
    "first_price": 118,
    "first_book": "fanduel",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "MIA_NYJ|receiving_yards|MIA|chrisbell": {
+   "game": "MIA_NYJ",
+   "game_id": "2026_07_MIA_NYJ",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "MIA",
+   "opp": "NYJ",
+   "name": "Chris Bell",
+   "position": "WR",
+   "group": "rec",
+   "market": "receiving_yards",
+   "bet": "Under 19.5 Rec Yds",
+   "side": "under",
+   "line": 19.5,
+   "price": -105,
+   "book": "thescore",
+   "edge": 0.05021796060007189,
+   "chance": 0.5624130825512914,
+   "rating": "Lean",
+   "first_price": -105,
+   "first_book": "thescore",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_yards|NYJ|garrettwilson": {
    "game": "MIA_NYJ",
@@ -3833,13 +3881,13 @@
    "line": 62.5,
    "price": -102,
    "book": "novig",
-   "edge": 0.17096858838420137,
-   "chance": 0.6759190834337063,
+   "edge": 0.17055793517869766,
+   "chance": 0.6755084302282026,
    "rating": "Check",
    "first_price": -108,
    "first_book": "caesars",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|receiving_yards|NYJ|kenyonsadiq": {
    "game": "MIA_NYJ",
@@ -3857,13 +3905,13 @@
    "line": 18.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.04228634500200834,
-   "chance": 0.5520902665706358,
+   "edge": 0.04121004719418764,
+   "chance": 0.551013968762815,
    "rating": "Lean",
    "first_price": -106,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|rushing_attempts|MIA|malikwillis": {
    "game": "MIA_NYJ",
@@ -3881,13 +3929,13 @@
    "line": 6.5,
    "price": -120,
    "book": "bet365",
-   "edge": 0.05640438463996722,
-   "chance": 0.6018589300945126,
+   "edge": 0.06381034288114118,
+   "chance": 0.6092648883356866,
    "rating": "Lean",
    "first_price": -120,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|rushing_attempts|MIA|olliegordon": {
    "game": "MIA_NYJ",
@@ -3903,39 +3951,15 @@
    "bet": "Over 13.5 Rush Att",
    "side": "over",
    "line": 13.5,
-   "price": -140,
+   "price": -125,
    "book": "fanatics",
-   "edge": 0.07820822763486834,
-   "chance": 0.6615415609682017,
+   "edge": 0.08921403682348439,
+   "chance": 0.64476959237904,
    "rating": "Strong",
    "first_price": -115,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "MIA_NYJ|rushing_yards|MIA|olliegordon": {
-   "game": "MIA_NYJ",
-   "game_id": "2026_07_MIA_NYJ",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "MIA",
-   "opp": "NYJ",
-   "name": "Ollie Gordon II",
-   "position": "RB",
-   "group": "rush",
-   "market": "rushing_yards",
-   "bet": "Over 54.5 Rush Yds",
-   "side": "over",
-   "line": 54.5,
-   "price": -111,
-   "book": "novig",
-   "edge": 0.051256452823820076,
-   "chance": 0.5773228035347205,
-   "rating": "Lean",
-   "first_price": -114,
-   "first_book": "pinnacle",
-   "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "MIA_NYJ|rushing_yards|NYJ|genosmith": {
    "game": "MIA_NYJ",
@@ -3953,13 +3977,13 @@
    "line": 5.5,
    "price": 120,
    "book": "novig",
-   "edge": 0.046701501666290224,
-   "chance": 0.5012469562117448,
+   "edge": 0.04627841983724196,
+   "chance": 0.5008238743826965,
    "rating": "Lean",
    "first_price": -102,
    "first_book": "fanduel",
    "first_seen": "2026-10-23T16:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NE_CHI|anytime_td|NE|coreykiner": {
    "game": "NE_CHI",
@@ -4425,15 +4449,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 450,
-   "book": "draftkings",
-   "edge": 0.03990936622954283,
+   "price": 456,
+   "book": "kalshi",
+   "edge": 0.04187143293981099,
    "chance": 0.22172754804772465,
    "rating": "Lean",
    "first_price": 456,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|anytime_td|HOU|xavierhutchinson": {
    "game": "NYG_HOU",
@@ -4449,15 +4473,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 756,
-   "book": "kalshi",
-   "edge": 0.042254947937995294,
-   "chance": 0.15907737784453735,
+   "price": 733,
+   "book": "novig",
+   "edge": 0.03998009113095022,
+   "chance": 0.1600281103386333,
    "rating": "Lean",
    "first_price": 756,
    "first_book": "kalshi",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|anytime_td|NYG|camskattebo": {
    "game": "NYG_HOU",
@@ -4475,13 +4499,13 @@
    "line": 0.5,
    "price": 376,
    "book": "novig",
-   "edge": 0.0731990055385782,
-   "chance": 0.2832830391520236,
+   "edge": 0.07365105033968092,
+   "chance": 0.2837350839531263,
    "rating": "Strong",
    "first_price": 335,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|anytime_td|NYG|maliknabers": {
    "game": "NYG_HOU",
@@ -4499,13 +4523,13 @@
    "line": 0.5,
    "price": 252,
    "book": "kalshi",
-   "edge": 0.0340924468117369,
-   "chance": 0.318183355902646,
+   "edge": 0.03599431005362458,
+   "chance": 0.3200852191445337,
    "rating": "Lean",
    "first_price": 252,
    "first_book": "kalshi",
    "first_seen": "2026-10-23T11:52Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|first_td|NYG|camskattebo": {
    "game": "NYG_HOU",
@@ -4523,13 +4547,13 @@
    "line": null,
    "price": 1567,
    "book": null,
-   "edge": 0.01772644962755432,
-   "chance": 0.07771445202707442,
+   "edge": 0.01767925663721852,
+   "chance": 0.07766725903673861,
    "rating": "Lean",
    "first_price": 1567,
    "first_book": null,
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|first_td|NYG|maliknabers": {
    "game": "NYG_HOU",
@@ -4547,13 +4571,13 @@
    "line": null,
    "price": 1438,
    "book": null,
-   "edge": 0.02148573981986364,
-   "chance": 0.08650524567161917,
+   "edge": 0.021556402930498722,
+   "chance": 0.08657590878225425,
    "rating": "Lean",
    "first_price": 1438,
    "first_book": null,
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|passing+rushing_yards|HOU|cjstroud": {
    "game": "NYG_HOU",
@@ -4571,13 +4595,13 @@
    "line": 268.5,
    "price": -113,
    "book": "draftkings",
-   "edge": 0.0883837098908905,
-   "chance": 0.6189001418157731,
+   "edge": 0.08893894151208903,
+   "chance": 0.6194553734369717,
    "rating": "Strong",
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|passing_attempts|HOU|cjstroud": {
    "game": "NYG_HOU",
@@ -4593,15 +4617,15 @@
    "bet": "Under 33.5 Pass Att",
    "side": "under",
    "line": 33.5,
-   "price": -120,
-   "book": "fanatics",
-   "edge": 0.1449145938049845,
-   "chance": 0.6903691392595299,
+   "price": -105,
+   "book": "bet365",
+   "edge": 0.17799610281919265,
+   "chance": 0.6901912247704122,
    "rating": "Check",
    "first_price": -107,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|passing_attempts|NYG|jjmccarthy": {
    "game": "NYG_HOU",
@@ -4619,13 +4643,13 @@
    "line": 32.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.052313192189413216,
-   "chance": 0.5523131921894132,
+   "edge": 0.05382567380475667,
+   "chance": 0.5538256738047567,
    "rating": "Lean",
    "first_price": -102,
    "first_book": "bally_bet",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|passing_completions|HOU|cjstroud": {
    "game": "NYG_HOU",
@@ -4641,15 +4665,15 @@
    "bet": "Under 21.5 Completions",
    "side": "under",
    "line": 21.5,
-   "price": -105,
-   "book": "fanatics",
-   "edge": 0.16961445374015516,
-   "chance": 0.6818095756913747,
+   "price": -104,
+   "book": "novig",
+   "edge": 0.1707818463303069,
+   "chance": 0.6805857678989343,
    "rating": "Check",
    "first_price": -104,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|passing_interceptions|NYG|jjmccarthy": {
    "game": "NYG_HOU",
@@ -4667,13 +4691,13 @@
    "line": 0.5,
    "price": 170,
    "book": "bet365",
-   "edge": 0.05221564028916059,
-   "chance": 0.42258601065953094,
+   "edge": 0.052372760292568876,
+   "chance": 0.4227431306629392,
    "rating": "Lean",
    "first_price": 166,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|passing_yards|HOU|cjstroud": {
    "game": "NYG_HOU",
@@ -4689,15 +4713,15 @@
    "bet": "Under 255.5 Pass Yds",
    "side": "under",
    "line": 255.5,
-   "price": -104,
+   "price": -102,
    "book": "novig",
-   "edge": 0.10166422265726105,
-   "chance": 0.6114681442258885,
+   "edge": 0.10752555153927812,
+   "chance": 0.6124760465887831,
    "rating": "Strong",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|HOU|marvinharrison": {
    "game": "NYG_HOU",
@@ -4713,15 +4737,15 @@
    "bet": "Under 2.5 Receptions",
    "side": "under",
    "line": 2.5,
-   "price": -108,
-   "book": "draftkings",
-   "edge": 0.07935825559411769,
-   "chance": 0.598589024824887,
+   "price": -104,
+   "book": "novig",
+   "edge": 0.07988358684141927,
+   "chance": 0.5896875084100467,
    "rating": "Strong",
    "first_price": -102,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|HOU|nicocollins": {
    "game": "NYG_HOU",
@@ -4738,14 +4762,14 @@
    "side": "under",
    "line": 4.5,
    "price": 120,
-   "book": "bet365",
-   "edge": 0.1004042712294087,
-   "chance": 0.5549497257748632,
+   "book": "novig",
+   "edge": 0.09813015909500283,
+   "chance": 0.5526756136404574,
    "rating": "Strong",
    "first_price": 117,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|HOU|woodymarks": {
    "game": "NYG_HOU",
@@ -4763,13 +4787,13 @@
    "line": 2.5,
    "price": -130,
    "book": "fanduel",
-   "edge": 0.08483207310116325,
-   "chance": 0.650049464405511,
+   "edge": 0.086335549626812,
+   "chance": 0.6515529409311598,
    "rating": "Strong",
    "first_price": 164,
    "first_book": "fanduel",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|HOU|xavierhutchinson": {
    "game": "NYG_HOU",
@@ -4785,15 +4809,15 @@
    "bet": "Over 1.5 Receptions",
    "side": "over",
    "line": 1.5,
-   "price": 169,
-   "book": "prophetx",
-   "edge": 0.07046140782664134,
-   "chance": 0.4422086197225521,
-   "rating": "Strong",
+   "price": 160,
+   "book": "thescore",
+   "edge": 0.05986445679907043,
+   "chance": 0.44447984141445507,
+   "rating": "Lean",
    "first_price": 166,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|NYG|isaiahlikely": {
    "game": "NYG_HOU",
@@ -4811,13 +4835,13 @@
    "line": 5.5,
    "price": 108,
    "book": "novig",
-   "edge": 0.09380549403121058,
-   "chance": 0.5745747248004414,
+   "edge": 0.09605352002866446,
+   "chance": 0.5768227507978952,
    "rating": "Strong",
    "first_price": 106,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|NYG|malachifields": {
    "game": "NYG_HOU",
@@ -4834,14 +4858,14 @@
    "side": "over",
    "line": 1.5,
    "price": -125,
-   "book": "novig",
-   "edge": 0.05575999182846203,
-   "chance": 0.6113155473840176,
+   "book": "prophetx",
+   "edge": 0.054377595924770206,
+   "chance": 0.6099331514803258,
    "rating": "Lean",
    "first_price": -135,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_receptions|NYG|maliknabers": {
    "game": "NYG_HOU",
@@ -4859,13 +4883,13 @@
    "line": 5.5,
    "price": -119,
    "book": "draftkings",
-   "edge": 0.13744617846937135,
-   "chance": 0.6808251739031613,
+   "edge": 0.14505990755123432,
+   "chance": 0.6884389029850243,
    "rating": "Check",
    "first_price": -125,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_yards|HOU|marvinharrison": {
    "game": "NYG_HOU",
@@ -4881,15 +4905,15 @@
    "bet": "Under 29.5 Rec Yds",
    "side": "under",
    "line": 29.5,
-   "price": -102,
+   "price": 100,
    "book": "novig",
-   "edge": 0.07536521099414428,
-   "chance": 0.5803157060436492,
+   "edge": 0.07652147930353537,
+   "chance": 0.5765214793035354,
    "rating": "Strong",
    "first_price": 100,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_yards|HOU|nicocollins": {
    "game": "NYG_HOU",
@@ -4907,13 +4931,13 @@
    "line": 68.5,
    "price": -106,
    "book": "novig",
-   "edge": 0.13162773875382894,
-   "chance": 0.6461908455499454,
+   "edge": 0.1320846679540313,
+   "chance": 0.6466477747501478,
    "rating": "Check",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_yards|HOU|woodymarks": {
    "game": "NYG_HOU",
@@ -4931,13 +4955,13 @@
    "line": 14.5,
    "price": -111,
    "book": "draftkings",
-   "edge": 0.07837163399797675,
-   "chance": 0.6044379847088772,
+   "edge": 0.0788495170374145,
+   "chance": 0.604915867748315,
    "rating": "Strong",
    "first_price": -112,
    "first_book": "caesars",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_yards|HOU|xavierhutchinson": {
    "game": "NYG_HOU",
@@ -4955,13 +4979,13 @@
    "line": 13.5,
    "price": 106,
    "book": "novig",
-   "edge": 0.044676331505808076,
-   "chance": 0.5301132247096916,
+   "edge": 0.04417832621138251,
+   "chance": 0.529615219415266,
    "rating": "Lean",
    "first_price": 108,
    "first_book": "novig",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_yards|NYG|malachifields": {
    "game": "NYG_HOU",
@@ -4977,15 +5001,15 @@
    "bet": "Over 19.5 Rec Yds",
    "side": "over",
    "line": 19.5,
-   "price": -104,
-   "book": "novig",
-   "edge": 0.08355346911914185,
-   "chance": 0.5933573906877693,
+   "price": 100,
+   "book": "thescore",
+   "edge": 0.09344997671595534,
+   "chance": 0.5934499767159553,
    "rating": "Strong",
    "first_price": -110,
    "first_book": "fanatics",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|receiving_yards|NYG|maliknabers": {
    "game": "NYG_HOU",
@@ -5001,15 +5025,15 @@
    "bet": "Over 68.5 Rec Yds",
    "side": "over",
    "line": 68.5,
-   "price": -111,
-   "book": "novig",
-   "edge": 0.07691545219558849,
-   "chance": 0.602981802906489,
+   "price": -113,
+   "book": "caesars",
+   "edge": 0.07632633479242967,
+   "chance": 0.6068427667173123,
    "rating": "Strong",
    "first_price": -113,
    "first_book": "caesars",
    "first_seen": "2026-10-23T11:52Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing+receiving_yards|NYG|tyronetracy": {
    "game": "NYG_HOU",
@@ -5025,15 +5049,15 @@
    "bet": "Under 38.5 Rush+Rec Yds",
    "side": "under",
    "line": 38.5,
-   "price": -114,
+   "price": -113,
    "book": "fanduel",
-   "edge": 0.0749792960962532,
-   "chance": 0.6076895764700849,
+   "edge": 0.07641974467597101,
+   "chance": 0.6069361766008536,
    "rating": "Strong",
    "first_price": -115,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_attempts|HOU|woodymarks": {
    "game": "NYG_HOU",
@@ -5051,13 +5075,13 @@
    "line": 16.5,
    "price": 105,
    "book": "draftkings",
-   "edge": 0.06786347292348427,
-   "chance": 0.5556683509722647,
+   "edge": 0.06309610459620996,
+   "chance": 0.5509009826449904,
    "rating": "Lean",
    "first_price": -115,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_attempts|NYG|jjmccarthy": {
    "game": "NYG_HOU",
@@ -5075,13 +5099,13 @@
    "line": 5.5,
    "price": -122,
    "book": "draftkings",
-   "edge": 0.17523310181848928,
-   "chance": 0.7247826513680389,
+   "edge": 0.17906394130673842,
+   "chance": 0.728613490856288,
    "rating": "Check",
    "first_price": -123,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T05:07Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_longestRush|HOU|woodymarks": {
    "game": "NYG_HOU",
@@ -5099,13 +5123,13 @@
    "line": 14.5,
    "price": -110,
    "book": "fliff",
-   "edge": 0.05794671265537499,
-   "chance": 0.5817562364648988,
+   "edge": 0.054855113169195224,
+   "chance": 0.5786646369787191,
    "rating": "Lean",
    "first_price": -105,
    "first_book": "hard_rock",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_longestRush|NYG|jjmccarthy": {
    "game": "NYG_HOU",
@@ -5123,13 +5147,13 @@
    "line": 11.5,
    "price": -110,
    "book": "bet365",
-   "edge": 0.04046627097554012,
-   "chance": 0.564275794785064,
+   "edge": 0.043584519503280794,
+   "chance": 0.5673940433128046,
    "rating": "Lean",
    "first_price": -110,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_yards|HOU|woodymarks": {
    "game": "NYG_HOU",
@@ -5145,15 +5169,15 @@
    "bet": "Over 63.5 Rush Yds",
    "side": "over",
    "line": 63.5,
-   "price": -108,
+   "price": -104,
    "book": "novig",
-   "edge": 0.05314495581385814,
-   "chance": 0.5723757250446274,
+   "edge": 0.05460877126826846,
+   "chance": 0.5644126928368959,
    "rating": "Lean",
    "first_price": -109,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_yards|NYG|camskattebo": {
    "game": "NYG_HOU",
@@ -5171,13 +5195,13 @@
    "line": 28.5,
    "price": -107,
    "book": "caesars",
-   "edge": 0.08410397531483071,
-   "chance": 0.6010121878752172,
+   "edge": 0.08148599582298865,
+   "chance": 0.5983942083833751,
    "rating": "Strong",
    "first_price": 102,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_yards|NYG|jjmccarthy": {
    "game": "NYG_HOU",
@@ -5193,15 +5217,15 @@
    "bet": "Under 22.5 Rush Yds",
    "side": "under",
    "line": 22.5,
-   "price": -114,
+   "price": -113,
    "book": "fanduel",
-   "edge": 0.04492817607855115,
-   "chance": 0.5776384564523829,
+   "edge": 0.04531428240541857,
+   "chance": 0.5758307143303012,
    "rating": "Lean",
    "first_price": -105,
    "first_book": "pinnacle",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "NYG_HOU|rushing_yards|NYG|tyronetracy": {
    "game": "NYG_HOU",
@@ -5219,13 +5243,37 @@
    "line": 23.5,
    "price": -108,
    "book": "draftkings",
-   "edge": 0.11763825142522599,
-   "chance": 0.6368690206559953,
+   "edge": 0.11826497605874697,
+   "chance": 0.6374957452895162,
    "rating": "Strong",
    "first_price": -111,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "PIT_NO|anytime_td|PIT|travishomer": {
+   "game": "PIT_NO",
+   "game_id": "2026_07_PIT_NO",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "PIT",
+   "opp": "NO",
+   "name": "Travis Homer",
+   "position": "RB",
+   "group": "any",
+   "market": "anytime_td",
+   "bet": "Anytime TD",
+   "side": "yes",
+   "line": 0.5,
+   "price": 2500,
+   "book": "draftkings",
+   "edge": 0.03147155145657396,
+   "chance": 0.06993308991811242,
+   "rating": "Check",
+   "first_price": 2500,
+   "first_book": "draftkings",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|first_td|PIT|germiebernard": {
    "game": "PIT_NO",
@@ -5243,13 +5291,13 @@
    "line": null,
    "price": 1329,
    "book": null,
-   "edge": 0.016679277200564627,
-   "chance": 0.08665828349867519,
+   "edge": 0.017597158454438974,
+   "chance": 0.08757616475254953,
    "rating": "Lean",
    "first_price": 1329,
    "first_book": null,
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|passing_attempts|PIT|aaronrodgers": {
    "game": "PIT_NO",
@@ -5267,13 +5315,13 @@
    "line": 34.5,
    "price": -119,
    "book": "draftkings",
-   "edge": 0.07768402073292857,
-   "chance": 0.6210630161667186,
+   "edge": 0.07680565660945882,
+   "chance": 0.6201846520432488,
    "rating": "Strong",
    "first_price": -104,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|passing_completions|PIT|aaronrodgers": {
    "game": "PIT_NO",
@@ -5291,13 +5339,37 @@
    "line": 21.5,
    "price": -114,
    "book": "fanduel",
-   "edge": 0.07832373984689589,
-   "chance": 0.6110340202207276,
+   "edge": 0.07812455362199933,
+   "chance": 0.610834833995831,
    "rating": "Strong",
    "first_price": 101,
    "first_book": "kalshi",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "PIT_NO|receiving_receptions|NO|juwanjohnson": {
+   "game": "PIT_NO",
+   "game_id": "2026_07_PIT_NO",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "NO",
+   "opp": "PIT",
+   "name": "Juwan Johnson",
+   "position": "TE",
+   "group": "rec",
+   "market": "receiving_receptions",
+   "bet": "Under 3.5 Receptions",
+   "side": "under",
+   "line": 3.5,
+   "price": 100,
+   "book": "thescore",
+   "edge": 0.040676823211592605,
+   "chance": 0.5406768232115926,
+   "rating": "Lean",
+   "first_price": 100,
+   "first_book": "thescore",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|receiving_receptions|PIT|dkmetcalf": {
    "game": "PIT_NO",
@@ -5313,15 +5385,15 @@
    "bet": "Over 4.5 Receptions",
    "side": "over",
    "line": 4.5,
-   "price": -120,
+   "price": -122,
    "book": "novig",
-   "edge": 0.05243752760314302,
-   "chance": 0.5978920730576884,
+   "edge": 0.055306734934212565,
+   "chance": 0.6048562844837622,
    "rating": "Lean",
    "first_price": -120,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|receiving_receptions|PIT|germiebernard": {
    "game": "PIT_NO",
@@ -5337,39 +5409,39 @@
    "bet": "Over 4.5 Receptions",
    "side": "over",
    "line": 4.5,
-   "price": -141,
+   "price": -147,
    "book": "novig",
-   "edge": 0.10837892841590813,
-   "chance": 0.6934411690798086,
+   "edge": 0.10433699242626049,
+   "chance": 0.6994786928311187,
    "rating": "Strong",
    "first_price": -150,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
-  "PIT_NO|receiving_receptions|PIT|ricodowdle": {
+  "PIT_NO|receiving_yards|NO|juwanjohnson": {
    "game": "PIT_NO",
    "game_id": "2026_07_PIT_NO",
    "week": 7,
    "date": "2026-10-25",
-   "team": "PIT",
-   "opp": "NO",
-   "name": "Rico Dowdle",
-   "position": "RB",
+   "team": "NO",
+   "opp": "PIT",
+   "name": "Juwan Johnson",
+   "position": "TE",
    "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Over 1.5 Receptions",
-   "side": "over",
-   "line": 1.5,
-   "price": 106,
-   "book": "draftkings",
-   "edge": 0.04452965682054644,
-   "chance": 0.5299665500244299,
+   "market": "receiving_yards",
+   "bet": "Under 32.5 Rec Yds",
+   "side": "under",
+   "line": 32.5,
+   "price": 102,
+   "book": "prophetx",
+   "edge": 0.040131345589322964,
+   "chance": 0.535180850539818,
    "rating": "Lean",
-   "first_price": 105,
-   "first_book": "bet365",
-   "first_seen": "2026-10-23T16:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "first_price": 102,
+   "first_book": "prophetx",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|receiving_yards|PIT|germiebernard": {
    "game": "PIT_NO",
@@ -5385,17 +5457,17 @@
    "bet": "Over 53.5 Rec Yds",
    "side": "over",
    "line": 53.5,
-   "price": -106,
+   "price": -104,
    "book": "novig",
-   "edge": 0.050845358412164976,
-   "chance": 0.5654084652082815,
+   "edge": 0.05436849184472503,
+   "chance": 0.5641724134133524,
    "rating": "Lean",
    "first_price": -110,
    "first_book": "circa",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
-  "PIT_NO|rushing_attempts|PIT|jaylenwarren": {
+  "PIT_NO|rushing+receiving_yards|PIT|jaylenwarren": {
    "game": "PIT_NO",
    "game_id": "2026_07_PIT_NO",
    "week": 7,
@@ -5405,19 +5477,67 @@
    "name": "Jaylen Warren",
    "position": "RB",
    "group": "rush",
-   "market": "rushing_attempts",
-   "bet": "Over 14.5 Rush Att",
+   "market": "rushing+receiving_yards",
+   "bet": "Over 95.5 Rush+Rec Yds",
    "side": "over",
-   "line": 14.5,
-   "price": 100,
-   "book": "novig",
-   "edge": 0.04451109746622439,
-   "chance": 0.5445110974662244,
+   "line": 95.5,
+   "price": -105,
+   "book": "fanatics",
+   "edge": 0.042830259015275485,
+   "chance": 0.555025380966495,
    "rating": "Lean",
-   "first_price": 100,
-   "first_book": "novig",
-   "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "first_price": -105,
+   "first_book": "fanatics",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "PIT_NO|rushing_longestRush|NO|tylershough": {
+   "game": "PIT_NO",
+   "game_id": "2026_07_PIT_NO",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "NO",
+   "opp": "PIT",
+   "name": "Tyler Shough",
+   "position": "QB",
+   "group": "rush",
+   "market": "rushing_longestRush",
+   "bet": "Under 8.5 Long Rush",
+   "side": "under",
+   "line": 8.5,
+   "price": 103,
+   "book": "draftkings",
+   "edge": 0.07201605159818308,
+   "chance": 0.5646268890366067,
+   "rating": "Strong",
+   "first_price": 103,
+   "first_book": "draftkings",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "PIT_NO|rushing_longestRush|PIT|jaylenwarren": {
+   "game": "PIT_NO",
+   "game_id": "2026_07_PIT_NO",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "PIT",
+   "opp": "NO",
+   "name": "Jaylen Warren",
+   "position": "RB",
+   "group": "rush",
+   "market": "rushing_longestRush",
+   "bet": "Over 15.5 Long Rush",
+   "side": "over",
+   "line": 15.5,
+   "price": -107,
+   "book": "kalshi",
+   "edge": 0.046016750933957185,
+   "chance": 0.5629249634943436,
+   "rating": "Lean",
+   "first_price": -107,
+   "first_book": "kalshi",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "PIT_NO|rushing_yards|PIT|jaylenwarren": {
    "game": "PIT_NO",
@@ -5433,39 +5553,15 @@
    "bet": "Over 64.5 Rush Yds",
    "side": "over",
    "line": 64.5,
-   "price": -108,
-   "book": "novig",
-   "edge": 0.04111787211532125,
-   "chance": 0.5603486413460905,
+   "price": -110,
+   "book": "circa",
+   "edge": 0.040458457921963675,
+   "chance": 0.5642679817314875,
    "rating": "Lean",
    "first_price": -108,
    "first_book": "novig",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "SF_ATL|anytime_td|ATL|jahandotson": {
-   "game": "SF_ATL",
-   "game_id": "2026_07_SF_ATL",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "ATL",
-   "opp": "SF",
-   "name": "Jahan Dotson",
-   "position": "WR",
-   "group": "any",
-   "market": "anytime_td",
-   "bet": "Anytime TD",
-   "side": "yes",
-   "line": 0.5,
-   "price": 456,
-   "book": "novig",
-   "edge": 0.0353340722204365,
-   "chance": 0.21519018732835016,
-   "rating": "Lean",
-   "first_price": 441,
-   "first_book": "novig",
-   "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|anytime_td|SF|kaelonblack": {
    "game": "SF_ATL",
@@ -5481,15 +5577,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 441,
+   "price": 426,
    "book": "novig",
-   "edge": 0.055345985597490266,
-   "chance": 0.24018886914647364,
+   "edge": 0.05193253241146753,
+   "chance": 0.24204660085253216,
    "rating": "Strong",
    "first_price": 426,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|first_td|SF|kaelonblack": {
    "game": "SF_ATL",
@@ -5505,15 +5601,15 @@
    "bet": "First TD",
    "side": "yes",
    "line": null,
-   "price": 1983,
+   "price": 2028,
    "book": null,
-   "edge": 0.02238948099059719,
-   "chance": 0.07039716221959383,
+   "edge": 0.02362316891109359,
+   "chance": 0.0706156501141011,
    "rating": "Lean",
    "first_price": 2173,
    "first_book": null,
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|passing_attempts|SF|brockpurdy": {
    "game": "SF_ATL",
@@ -5531,13 +5627,13 @@
    "line": 30.5,
    "price": 120,
    "book": "novig",
-   "edge": 0.05182967237943542,
-   "chance": 0.50637512692489,
+   "edge": 0.05505383078621401,
+   "chance": 0.5095992853316685,
    "rating": "Lean",
    "first_price": 120,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|passing_interceptions|SF|brockpurdy": {
    "game": "SF_ATL",
@@ -5555,13 +5651,13 @@
    "line": 0.5,
    "price": -114,
    "book": "pinnacle",
-   "edge": 0.1054429763443816,
-   "chance": 0.6381532567182133,
+   "edge": 0.10559164466699655,
+   "chance": 0.6383019250408283,
    "rating": "Strong",
    "first_price": -116,
    "first_book": "draftkings",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|receiving_receptions|SF|christianmccaffrey": {
    "game": "SF_ATL",
@@ -5579,13 +5675,13 @@
    "line": 5.5,
    "price": -102,
    "book": "fanduel",
-   "edge": 0.07279915028646644,
-   "chance": 0.5777496453359714,
+   "edge": 0.07007734918476904,
+   "chance": 0.575027844234274,
    "rating": "Strong",
    "first_price": 100,
    "first_book": "bet365",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|receiving_receptions|SF|kylejuszczyk": {
    "game": "SF_ATL",
@@ -5601,15 +5697,15 @@
    "bet": "Over 1.5 Receptions",
    "side": "over",
    "line": 1.5,
-   "price": 125,
-   "book": "bet365",
-   "edge": 0.044155552993502545,
-   "chance": 0.48859999743794696,
+   "price": 130,
+   "book": "novig",
+   "edge": 0.04429414301841966,
+   "chance": 0.4790767517140718,
    "rating": "Lean",
    "first_price": 125,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|rushing_attempts|ATL|bijanrobinson": {
    "game": "SF_ATL",
@@ -5627,13 +5723,37 @@
    "line": 18.5,
    "price": -120,
    "book": "fanatics",
-   "edge": 0.0607138707256073,
-   "chance": 0.6061684161801527,
+   "edge": 0.056099809757641284,
+   "chance": 0.6015543552121867,
    "rating": "Lean",
    "first_price": -120,
    "first_book": "fanatics",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "SF_ATL|rushing_attempts|SF|brockpurdy": {
+   "game": "SF_ATL",
+   "game_id": "2026_07_SF_ATL",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "SF",
+   "opp": "ATL",
+   "name": "Brock Purdy",
+   "position": "QB",
+   "group": "rush",
+   "market": "rushing_attempts",
+   "bet": "Under 4.5 Rush Att",
+   "side": "under",
+   "line": 4.5,
+   "price": -121,
+   "book": "kalshi",
+   "edge": 0.044241563574595855,
+   "chance": 0.5917528757917905,
+   "rating": "Lean",
+   "first_price": -121,
+   "first_book": "kalshi",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|rushing_attempts|SF|christianmccaffrey": {
    "game": "SF_ATL",
@@ -5649,15 +5769,15 @@
    "bet": "Under 15.5 Rush Att",
    "side": "under",
    "line": 15.5,
-   "price": -114,
-   "book": "fanduel",
-   "edge": 0.10668791876306694,
-   "chance": 0.6393981991368987,
+   "price": -118,
+   "book": "pinnacle",
+   "edge": 0.10973756598735884,
+   "chance": 0.6510219696570836,
    "rating": "Strong",
    "first_price": -110,
    "first_book": "bet365",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|rushing_yards|SF|brockpurdy": {
    "game": "SF_ATL",
@@ -5675,13 +5795,13 @@
    "line": 19.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.06490379982458161,
-   "chance": 0.5649037998245816,
+   "edge": 0.06557000473958718,
+   "chance": 0.5655700047395872,
    "rating": "Lean",
    "first_price": -108,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|rushing_yards|SF|christianmccaffrey": {
    "game": "SF_ATL",
@@ -5694,18 +5814,18 @@
    "position": "RB",
    "group": "rush",
    "market": "rushing_yards",
-   "bet": "Under 60.5 Rush Yds",
+   "bet": "Under 59.5 Rush Yds",
    "side": "under",
-   "line": 60.5,
-   "price": -106,
-   "book": "novig",
-   "edge": 0.05432698631539368,
-   "chance": 0.5688900931115102,
+   "line": 59.5,
+   "price": -103,
+   "book": "polymarket_us",
+   "edge": 0.05140836192853693,
+   "chance": 0.5587975244901133,
    "rating": "Lean",
    "first_price": -108,
    "first_book": "novig",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "SF_ATL|rushing_yards|SF|kaelonblack": {
    "game": "SF_ATL",
@@ -5723,13 +5843,13 @@
    "line": 28.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.04634830007563673,
-   "chance": 0.5561522216442641,
+   "edge": 0.05026900654975619,
+   "chance": 0.5600729281183836,
    "rating": "Lean",
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|anytime_td|TB|buckyirving": {
    "game": "TB_CAR",
@@ -5753,7 +5873,7 @@
    "first_price": 130,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|passing_attempts|CAR|bryceyoung": {
    "game": "TB_CAR",
@@ -5771,13 +5891,13 @@
    "line": 35.5,
    "price": -103,
    "book": "pinnacle",
-   "edge": 0.06535128309002003,
-   "chance": 0.5727404456515964,
+   "edge": 0.0638532811946726,
+   "chance": 0.571242443756249,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|passing_attempts|TB|bakermayfield": {
    "game": "TB_CAR",
@@ -5795,13 +5915,13 @@
    "line": 33.5,
    "price": 100,
    "book": "novig",
-   "edge": 0.04306242792113024,
-   "chance": 0.5430624279211302,
+   "edge": 0.041543663343263426,
+   "chance": 0.5415436633432634,
    "rating": "Lean",
    "first_price": 115,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|passing_completions|CAR|bryceyoung": {
    "game": "TB_CAR",
@@ -5819,13 +5939,13 @@
    "line": 22.5,
    "price": 102,
    "book": "prophetx",
-   "edge": 0.05440367834236126,
-   "chance": 0.5494531832928563,
+   "edge": 0.04647329236207809,
+   "chance": 0.5415227973125731,
    "rating": "Lean",
    "first_price": -103,
    "first_book": "caesars",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|receiving_longestReception|CAR|chubahubbard": {
    "game": "TB_CAR",
@@ -5843,37 +5963,13 @@
    "line": 9.5,
    "price": -110,
    "book": "bet365",
-   "edge": 0.04493716818732263,
-   "chance": 0.5687466919968465,
+   "edge": 0.04398611417123277,
+   "chance": 0.5677956379807566,
    "rating": "Lean",
    "first_price": -110,
    "first_book": "bet365",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "TB_CAR|receiving_receptions|CAR|chubahubbard": {
-   "game": "TB_CAR",
-   "game_id": "2026_07_TB_CAR",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "CAR",
-   "opp": "TB",
-   "name": "Chuba Hubbard",
-   "position": "RB",
-   "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Under 2.5 Receptions",
-   "side": "under",
-   "line": 2.5,
-   "price": -115,
-   "book": "novig",
-   "edge": 0.04166574278999624,
-   "chance": 0.5765494637202287,
-   "rating": "Lean",
-   "first_price": -115,
-   "first_book": "novig",
-   "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|receiving_receptions|CAR|jalencoker": {
    "game": "TB_CAR",
@@ -5891,13 +5987,13 @@
    "line": 5.5,
    "price": 117,
    "book": "novig",
-   "edge": 0.06326403691561677,
-   "chance": 0.5240935300031744,
+   "edge": 0.06427796197801772,
+   "chance": 0.5251074550655753,
    "rating": "Lean",
    "first_price": 106,
    "first_book": "fanduel",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|receiving_receptions|TB|chrisgodwin": {
    "game": "TB_CAR",
@@ -5915,37 +6011,13 @@
    "line": 4.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.07186981665227787,
-   "chance": 0.5816737382209053,
+   "edge": 0.0741074954980977,
+   "chance": 0.5839114170667251,
    "rating": "Strong",
    "first_price": 110,
    "first_book": "pinnacle",
    "first_seen": "2026-10-23T17:19Z",
-   "last_seen": "2026-10-24T16:57Z"
-  },
-  "TB_CAR|receiving_receptions|TB|tedhurst": {
-   "game": "TB_CAR",
-   "game_id": "2026_07_TB_CAR",
-   "week": 7,
-   "date": "2026-10-25",
-   "team": "TB",
-   "opp": "CAR",
-   "name": "Ted Hurst III",
-   "position": "WR",
-   "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Over 2.5 Receptions",
-   "side": "over",
-   "line": 2.5,
-   "price": -146,
-   "book": "draftkings",
-   "edge": 0.04099064614913894,
-   "chance": 0.6344865811084885,
-   "rating": "Lean",
-   "first_price": -138,
-   "first_book": "novig",
-   "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|receiving_yards|CAR|johnmetchie": {
    "game": "TB_CAR",
@@ -5961,15 +6033,39 @@
    "bet": "Over 10.5 Rec Yds",
    "side": "over",
    "line": 10.5,
-   "price": -104,
-   "book": "novig",
-   "edge": 0.04051540379991392,
-   "chance": 0.5503193253685413,
+   "price": 100,
+   "book": "fanatics",
+   "edge": 0.05784459988810553,
+   "chance": 0.5578445998881055,
    "rating": "Lean",
    "first_price": 117,
    "first_book": "novig",
    "first_seen": "2026-10-23T16:34Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
+  },
+  "TB_CAR|receiving_yards|CAR|tommytremble": {
+   "game": "TB_CAR",
+   "game_id": "2026_07_TB_CAR",
+   "week": 7,
+   "date": "2026-10-25",
+   "team": "CAR",
+   "opp": "TB",
+   "name": "Tommy Tremble",
+   "position": "TE",
+   "group": "rec",
+   "market": "receiving_yards",
+   "bet": "Over 16.5 Rec Yds",
+   "side": "over",
+   "line": 16.5,
+   "price": 100,
+   "book": "thescore",
+   "edge": 0.052310961319536164,
+   "chance": 0.5523109613195362,
+   "rating": "Lean",
+   "first_price": 100,
+   "first_book": "thescore",
+   "first_seen": "2026-10-24T18:21Z",
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|receiving_yards|TB|chrisgodwin": {
    "game": "TB_CAR",
@@ -5987,13 +6083,13 @@
    "line": 44.5,
    "price": -110,
    "book": "circa",
-   "edge": 0.058933982226138104,
-   "chance": 0.5827435060356619,
+   "edge": 0.05844780081936263,
+   "chance": 0.5822573246288865,
    "rating": "Lean",
    "first_price": -110,
    "first_book": "circa",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|receiving_yards|TB|tedhurst": {
    "game": "TB_CAR",
@@ -6009,15 +6105,15 @@
    "bet": "Over 36.5 Rec Yds",
    "side": "over",
    "line": 36.5,
-   "price": -106,
+   "price": -108,
    "book": "novig",
-   "edge": 0.060316750923822826,
-   "chance": 0.5748798577199393,
+   "edge": 0.057352394608130575,
+   "chance": 0.5765831638388998,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-24T04:47Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|rushing_attempts|CAR|chubahubbard": {
    "game": "TB_CAR",
@@ -6033,15 +6129,15 @@
    "bet": "Over 17.5 Rush Att",
    "side": "over",
    "line": 17.5,
-   "price": 101,
-   "book": "kalshi",
-   "edge": 0.15096964514781436,
-   "chance": 0.6484820829587596,
-   "rating": "Check",
+   "price": 100,
+   "book": "hard_rock",
+   "edge": 0.0419083429840611,
+   "chance": 0.5419083429840611,
+   "rating": "Lean",
    "first_price": 101,
    "first_book": "kalshi",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|rushing_longestRush|CAR|bryceyoung": {
    "game": "TB_CAR",
@@ -6059,13 +6155,13 @@
    "line": 8.5,
    "price": -114,
    "book": "draftkings",
-   "edge": 0.06083239222502368,
-   "chance": 0.5935426725988554,
+   "edge": 0.063890926503539,
+   "chance": 0.5966012068773707,
    "rating": "Lean",
    "first_price": -114,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|rushing_longestRush|CAR|chubahubbard": {
    "game": "TB_CAR",
@@ -6083,13 +6179,13 @@
    "line": 15.5,
    "price": 100,
    "book": "draftkings",
-   "edge": 0.05136609964129035,
-   "chance": 0.5513660996412904,
+   "edge": 0.04822430940148126,
+   "chance": 0.5482243094014813,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "draftkings",
    "first_seen": "2026-10-24T16:10Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   },
   "TB_CAR|rushing_yards|CAR|bryceyoung": {
    "game": "TB_CAR",
@@ -6107,13 +6203,13 @@
    "line": 10.5,
    "price": -108,
    "book": "novig",
-   "edge": 0.109759026053172,
-   "chance": 0.6289897952839413,
+   "edge": 0.10856996797097052,
+   "chance": 0.6278007372017398,
    "rating": "Strong",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-24T16:57Z"
+   "last_seen": "2026-10-24T18:21Z"
   }
  }
 }
