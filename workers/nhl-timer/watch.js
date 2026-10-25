@@ -10,6 +10,12 @@
 // source "watch". The fingerprints are nfl_tool/nba/watch.py's, to the letter
 // (tests/test_nba_watch.py runs both on the same sample).
 //
+// The NBA's official injury report (a PDF every 15 minutes) can't be read
+// here, so a newly posted one presses the refresh with source "report" and
+// its first step (nba_report.py --changed) reads it and stops unless tonight's
+// statuses changed (version.json nba.watch.rep). Once per report: not again
+// after a refresh that started after the report was posted.
+//
 // It never stacks runs: nothing is pressed while an NBA refresh or a full
 // rebuild is queued or running (the full rebuild reads the injuries itself),
 // or within REPRESS_MINUTES of the last refresh starting (a refresh that
@@ -19,6 +25,7 @@ const REPO = "https://api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/
 const VERSION = "https://nfl.gmgsports.org/version.json";
 const ESPN_INJURIES = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries";
 const NBA_LINEUPS = (day) => `https://stats.nba.com/js/data/leaders/00_daily_lineups_${day}.json`;
+const NBA_REPORT = "https://ak-static.cms.nba.com/referee/injury/Injury-Report_";
 const LISTED = ["Confirmed", "Expected"];
 export const REPRESS_MINUTES = 4;
 
@@ -59,6 +66,30 @@ export function lineupRows(day, abbrs) {
   return rows;
 }
 
+// ---- the NBA's report (nba_report.py slot_url / slot_utc) ----
+// The address of the 15-minute slot at or before `at`, Eastern time, and that slot as UTC "YYYY-MM-DDTHH:MMZ".
+export function reportSlot(at) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: true }).formatToParts(at).map((p) => [p.type, p.value]));
+  const mm = String(Number(parts.minute) - (Number(parts.minute) % 15)).padStart(2, "0");
+  const hh = String(Number(parts.hour)).padStart(2, "0");
+  const url = `${NBA_REPORT}${parts.year}-${parts.month}-${parts.day}_${hh}_${mm}${parts.dayPeriod.toUpperCase()}.pdf`;
+  const slot = new Date(Math.floor(at.getTime() / 900000) * 900000);
+  return { url, at: slot.toISOString().slice(0, 16) + "Z" };
+}
+
+// A report posted since the one the live build read: { at, posted } or null.
+async function newReport(watch) {
+  const now = new Date(Date.now());
+  for (const back of [0, 1]) {
+    const { url, at } = reportSlot(new Date(now.getTime() - back * 900000));
+    if (watch.rep_at && at <= watch.rep_at) return null;
+    const resp = await fetch(url, { method: "HEAD", headers: { "User-Agent": "Mozilla/5.0" }, cf: { cacheTtl: 0 } }).catch(() => null);
+    if (resp && resp.ok) return { at, posted: Date.parse(resp.headers.get("Last-Modified") || "") || now.getTime() };
+  }
+  return null;
+}
+
 // ---- once a minute ----
 async function getJson(url, headers = {}) {
   const resp = await fetch(url, { headers: { "User-Agent": "gmg-nba-watch", ...headers }, cf: { cacheTtl: 0 } });
@@ -85,13 +116,20 @@ export async function nbaWatch(env, github) {
     getJson(NBA_LINEUPS(watch.day), { Referer: "https://www.nba.com/", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36" }).catch(() => null),
   ]);
   const changed = await changes(watch, injuries, lineups);
-  if (!changed) return "nothing changed";
+  const report = changed ? null : await newReport(watch);
+  if (!changed && !report) return "nothing changed";
   const [refreshes, deploys] = await Promise.all([github("nba-refresh.yml/runs?per_page=1"), github("deploy.yml/runs?per_page=5")]);
   const busy = (runs) => (runs.workflow_runs || []).some((r) => r.status !== "completed");
   if (busy(deploys)) return "a full rebuild is running";
   if (busy(refreshes)) return "an NBA refresh is running";
   const last = (refreshes.workflow_runs || [])[0];
   if (last && Date.now() - Date.parse(last.created_at) < REPRESS_MINUTES * 60000) return "the last refresh started under 4 minutes ago";
+  if (!changed) {
+    // the report: once, by the first refresh that starts after it was posted (which reads it)
+    if (last && Date.parse(last.created_at) > report.posted) return `the ${report.at} report was already read`;
+    await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "report" } });
+    return `refresh started (a new NBA report, ${report.at})`;
+  }
   await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "watch" } });
   return `refresh started (${Object.keys(changed).filter((k) => changed[k]).join(", ")} changed)`;
 }

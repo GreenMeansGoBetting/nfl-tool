@@ -70,10 +70,21 @@ jobs:
         if: steps.check.outputs.go == 'yes'
         run: pip install -r nfl_tool/requirements.txt
 
+      # Pressed for a newly posted NBA injury report (the watch can't read a
+      # PDF): read it and stop here unless tonight's statuses changed since
+      # the live build (version.json nba.watch.rep). Every 15 minutes a report
+      # is posted; most change nothing for tonight.
+      - name: Anything new in the NBA's report?
+        id: report
+        if: steps.check.outputs.go == 'yes' && inputs.source == 'report'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python nfl_tool/nba/nba_report.py --changed
+
       # --strict: a file that is live but can't be downloaded stops the run,
       # so a hiccup can never publish the site with a data file missing.
       - name: Take the NFL and NHL data exactly as they are live
-        if: steps.check.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: python tools/fetch_live_data.py --only nfl nhl --strict
@@ -84,21 +95,21 @@ jobs:
       # build's 4.5 minutes), the rest carried from the live build.
       # Not continue-on-error here: a failed build publishes nothing.
       - name: Build NBA data
-        if: steps.check.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
         run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json --fast-odds
 
       - name: Check the new files and note the refresh in version.json
-        if: steps.check.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no'
         run: python tools/ci_steps.py refresh-stamp --sport nba
 
       # The member database binding, written exactly as deploy.yml writes it
       # (a test keeps the two the same). Publishing without it would lock
       # email members out, so a run that can't name the database stops here.
       - name: Member database binding (D1)
-        if: steps.check.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no'
         working-directory: nfl_tool
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -119,12 +130,12 @@ jobs:
           } > wrangler.toml
 
       - name: Refuse to publish without the member database
-        if: steps.check.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no'
         run: grep -q "d1_databases" nfl_tool/wrangler.toml
 
       - name: Still safe to publish?
         id: still
-        if: steps.check.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           REFRESH_SOURCE: ${{ inputs.source }}
@@ -133,7 +144,7 @@ jobs:
       # Same publish as deploy.yml: from nfl_tool/ so the login gate
       # (nfl_tool/functions) is bundled with the site folder.
       - name: Publish
-        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -144,7 +155,7 @@ jobs:
       # Only what was published: tonight's NBA plays as members now see them.
       # Never allowed to fail the run.
       - name: Save the NBA records
-        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes'
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
@@ -159,7 +170,7 @@ jobs:
       # After the publish (tools/ci_steps.py live-check, as nhl-refresh.yml):
       # if the site isn't answering, the version from before is put back.
       - name: Check the live site (and put the last version back if it is down)
-        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -62,7 +62,7 @@ def setUpModule():
         PAGE = SITE.context.new_page()
         PAGE.goto(f"{SITE.origin}/style.css")  # any page on 127.0.0.1: crypto.subtle needs a secure address
         src = (WORKER / "watch.js").read_text(encoding="utf-8")
-        PAGE.evaluate("(src) => { window.W = new Function(src.replace(/^export /gm, '') + '; return { digest, injuryRows, lineupRows, changes, nbaWatch, REPRESS_MINUTES };')(); }", src)
+        PAGE.evaluate("(src) => { window.W = new Function(src.replace(/^export /gm, '') + '; return { digest, injuryRows, lineupRows, changes, nbaWatch, reportSlot, REPRESS_MINUTES };')(); }", src)
     except Exception:
         SITE.close()
         raise
@@ -115,13 +115,17 @@ class Fingerprints(unittest.TestCase):
 class Timer(unittest.TestCase):
     """nbaWatch with ESPN, the NBA, version.json and GitHub stood in for."""
 
-    def run_watch(self, espn=ESPN, lineups=LINEUPS, refresh=None, deploy=None, now="2026-10-25T19:10:00Z", watch_block=None):
-        w = watch_block if watch_block is not None else block()
-        return PAGE.evaluate("""async ([w, espn, lu, refresh, deploy, now]) => {
+    def run_watch(self, espn=ESPN, lineups=LINEUPS, refresh=None, deploy=None, now="2026-10-25T19:10:00Z", watch_block=None, reports=None):
+        w = watch_block if watch_block is not None else {**block(), "rep_at": "2026-10-25T19:00Z"}
+        return PAGE.evaluate("""async ([w, espn, lu, refresh, deploy, now, reports]) => {
             const pressed = [];
             const realFetch = window.fetch, realNow = Date.now;
             Date.now = () => Date.parse(now);
             window.fetch = async (url) => {
+              if (url.includes('ak-static.cms.nba.com')) {
+                const posted = (reports || {})[url.split('Injury-Report_')[1]];
+                return new Response('', { status: posted ? 200 : 404, headers: posted ? { 'Last-Modified': posted } : {} });
+              }
               const body = url.startsWith('https://nfl.gmgsports.org/version.json') ? { nba: { watch: w } }
                 : url.includes('espn.com') ? espn : url.includes('stats.nba.com') ? lu : null;
               if (body === 'fail') return new Response('', { status: 500 });
@@ -134,7 +138,7 @@ class Timer(unittest.TestCase):
             };
             try { return { said: await W.nbaWatch({}, github), pressed }; }
             finally { window.fetch = realFetch; Date.now = realNow; }
-        }""", [w, espn, lineups, refresh, deploy, now])
+        }""", [w, espn, lineups, refresh, deploy, now, reports])
 
     def test_nothing_changed_nothing_pressed(self):
         self.assertEqual(self.run_watch(), {"said": "nothing changed", "pressed": []})
@@ -161,6 +165,37 @@ class Timer(unittest.TestCase):
         self.assertEqual(self.run_watch(watch_block={**block(), "teams": []})["said"], "no game left tonight")
         # the lineups not posted yet (404) on both sides: no change
         self.assertEqual(self.run_watch(lineups=None, watch_block=block(lineups=None))["pressed"], [])
+
+
+class Report(unittest.TestCase):
+    """The NBA's report (2026-10-25): a newly posted one presses the refresh
+    once, with source "report" (its first step reads the PDF)."""
+
+    def test_the_same_slot_address_as_python(self):
+        import nba_report
+        from datetime import datetime, timezone
+        for iso in ("2026-10-25T17:08:00Z", "2026-10-25T16:00:00Z", "2026-10-26T03:59:00Z", "2026-10-25T04:14:00Z", "2026-11-02T18:31:00Z"):
+            at = datetime.strptime(iso, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            js = PAGE.evaluate("(iso) => W.reportSlot(new Date(iso))", iso)
+            self.assertEqual(js["url"], nba_report.slot_url(at), iso)
+            self.assertEqual(js["at"], nba_report.slot_utc(js["url"]), iso)
+
+    def test_a_new_report_presses_once(self):
+        posted = {"2026-10-25_03_15PM.pdf": "Sun, 25 Oct 2026 19:17:00 GMT"}  # 3:15 pm Eastern, up at 3:17
+        # the live build read the 3:00 one; nothing else changed
+        got = Timer.run_watch(self, now="2026-10-25T19:20:00Z", reports=posted, refresh=[{"status": "completed", "created_at": "2026-10-25T19:05:00Z"}])
+        self.assertEqual(got["pressed"], [["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "report"}}]])
+        # a refresh started after it was posted has read it
+        got = Timer.run_watch(self, now="2026-10-25T19:25:00Z", reports=posted, refresh=[{"status": "completed", "created_at": "2026-10-25T19:20:00Z"}])
+        self.assertEqual((got["pressed"], got["said"]), ([], "the 2026-10-25T19:15Z report was already read"))
+        # the live build already has it, or nothing newer is posted
+        self.assertEqual(Timer.run_watch(self, now="2026-10-25T19:20:00Z", reports=posted, watch_block={**block(), "rep_at": "2026-10-25T19:15Z"})["said"], "nothing changed")
+        self.assertEqual(Timer.run_watch(self, now="2026-10-25T19:20:00Z")["said"], "nothing changed")
+        # an injury change goes as "watch" (it reads the report too)
+        later = copy.deepcopy(ESPN)
+        later["injuries"][1]["injuries"][0]["status"] = "Out"
+        got = Timer.run_watch(self, espn=later, now="2026-10-25T19:20:00Z", reports=posted, refresh=[{"status": "completed", "created_at": "2026-10-25T19:05:00Z"}])
+        self.assertEqual(got["pressed"][0][1]["inputs"]["source"], "watch")
 
 
 class Install(unittest.TestCase):

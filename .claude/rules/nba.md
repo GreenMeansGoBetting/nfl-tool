@@ -217,9 +217,18 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   `nba_outs`, middleware) and presses nba-refresh.yml (Pages secret `DISPATCH_TOKEN` = the timer's
   `NHL_TRIGGER_TOKEN`, copied by deploy.yml); the build reads the night's list with its key
   (`fetch_marked_out`, `add_marked_out`: Out whatever ESPN says, `marked`), and the Out Tonight row
-  reads "Out (GMG)" with an Undo. Next (its own push): the NBA's official report (a PDF every 15 minutes at
-  `ak-static.cms.nba.com/referee/injury/Injury-Report_<date>_<hh_mmAM>.pdf`; on 10-25 its 1:00 pm
-  report had Embiid Out 8 minutes before ESPN).
+  reads "Out (GMG)" with an Undo.
+- **The NBA's official injury report** (`nfl_tool/nba/nba_report.py`, 2026-10-25): a PDF every 15
+  minutes at `ak-static.cms.nba.com/referee/injury/Injury-Report_<YYYY-MM-DD>_<hh>_<mm><AM|PM>.pdf`
+  (Eastern); on 10-25 its 1:00 pm report had Embiid Out 8 minutes before ESPN. Read with `pypdf` by
+  column position (the team and the name share a line; later pages have no header, the first page's
+  columns carry), names matched to tonight's rotation players (`players_of`: data.json `players`), a
+  player's first row. `add_report` (build): the newer of ESPN (its `updated`) and the report's slot
+  wins; Available takes him off the list; Probable adds no one; the owner's marks come last. The
+  watch HEADs the newest slot each minute and presses the refresh with `source: report` once per new
+  report (not after a refresh that started after it was posted); that run's first step
+  (`nba_report.py --changed`) stops unless tonight's rows changed (`watch.rep`, `rep_at`). Test:
+  `tests/test_nba_report.py` on the 1:00 pm report (`tests/fixtures`).
 - **The dials** (`SCHEDULE_DIALS`, `LAST_GAME_DIALS`, sizes from nba_spots.py: [own points, the
   other team's points]): Rest Edge (B2B vs 2+ days off, -0.72 / +1.89), Back-To-Back, 3 In 4,
   4 In 6; Letdown: OT Win, Overtime Legs, Letdown: Close Win (1-3 in regulation), Off A 20+ Win

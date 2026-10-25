@@ -652,7 +652,12 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertIn("workingDirectory: nfl_tool", nba)
         # asks twice, publishes only on two yeses, every step after the first check waits on it
         self.assertEqual(nba.count("tools/ci_steps.py refresh-check --sport nba"), 2)
-        self.assertIn("if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'", nba)
+        self.assertIn("if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes'", nba)
+        # pressed for a new NBA report: its first step stops the run unless tonight's statuses changed
+        self.assertIn("if: steps.check.outputs.go == 'yes' && inputs.source == 'report'\n        env:", nba)
+        self.assertIn("python nfl_tool/nba/nba_report.py --changed", nba)
+        after = nba.split("python nfl_tool/nba/nba_report.py --changed")[1].split("      - name: ")[1:]
+        self.assertTrue(all("steps.report.outputs.go != 'no'" in step for step in after), [s.splitlines()[0] for s in after])
         steps = nba.split("      - name: ")[2:]
         self.assertTrue(all("steps.check.outputs.go == 'yes'" in step for step in steps), [s.splitlines()[0] for s in steps])
         self.assertIn("python tools/fetch_live_data.py --only nfl nhl --strict", nba)

@@ -42,6 +42,7 @@ import positions  # noqa: E402
 import possessions as P  # noqa: E402
 import sim  # noqa: E402
 import watch  # noqa: E402
+import nba_report  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
@@ -342,6 +343,7 @@ def live_injuries(abbr_by_id: dict) -> dict | None:
                 "injury": " ".join(str(x) for x in (d.get("side"), d.get("type")) if x) or None,
                 "return_date": d.get("returnDate"),
                 "note": i.get("shortComment"),
+                "updated": i.get("date"),  # when ESPN last changed it: the newer of ESPN and the NBA's report wins (add_report)
             })
     for team in out:
         out[team].sort(key=lambda p: (p["status"] != "Out", p["name"] or ""))
@@ -516,6 +518,35 @@ def fetch_marked_out(day: str) -> list:
     except Exception as e:
         print(f"NOTE: the owner's Mark Out list not read ({e}).", file=sys.stderr)
         return []
+
+
+def add_report(injuries: dict, report: dict, at: str | None, players: dict) -> dict:
+    """The injury list with the NBA's official report (nba_report.py; report
+    = {id: status} for tonight's teams, at = its slot, players = {id: (name,
+    team)}): where the report is newer than ESPN's entry (or ESPN has none)
+    its status wins; Available takes a player off the list; Probable adds no
+    one. The owner's marks come after (add_marked_out)."""
+    for pid, status in report.items():
+        name, team = players.get(pid, (None, None))
+        if not team:
+            continue
+        rows = injuries.setdefault(team, [])
+        row = next((r for r in rows if str(r["id"]) == pid), None)
+        if row is not None and row.get("updated") and at and row["updated"] > at:
+            continue  # ESPN changed it after this report
+        if status == "Available":
+            if row is not None:
+                rows.remove(row)
+            continue
+        if row is None:
+            if status == "Probable":
+                continue
+            row = {"id": pid, "name": name, "position": POSITION_TABLE.get(pid), "status": status, "injury": None,
+                   "return_date": None, "note": f"NBA injury report: {status}"}
+            rows.append(row)
+        row.update(status=status, source="nba")
+        rows.sort(key=lambda p: (p["status"] != "Out", p["name"] or ""))
+    return injuries
 
 
 def add_marked_out(injuries: dict, marked: list) -> dict:
@@ -871,7 +902,7 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
         return {}
     out_ids = {str(p["id"]) for team in injuries.values() for p in team if p["status"] == "Out"}
     # on the report but not Out: sits if he usually starts and isn't in the NBA's posted five (sim.game)
-    hurt = {str(p["id"]) for team in injuries.values() for p in team if p["status"] not in ("Out", "Probable")}
+    hurt = {str(p["id"]) for team in injuries.values() for p in team if p["status"] not in ("Out", "Probable", "Available")}
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
     names = {pid: p["name"] for pid, p in inputs["players"].items()}
@@ -1047,6 +1078,20 @@ def main():
     print(f"SmartStake NBA: {json.dumps(book_odds_debug)}")
     lap("smartstake")
     injury_list = live_injuries(abbr_by_id) or compute_injuries(injuries, abbr_by_id)
+    lap("injuries")
+    # The NBA's official report (a PDF every 15 minutes; it had Embiid Out 8 minutes before ESPN on 10-25)
+    now_iso = now_utc.strftime("%Y-%m-%dT%H:%MZ")
+    today = eastern(now_iso).strftime("%Y-%m-%d")
+    tonight_teams = {g[k] for g in games if g["date"] == today and g.get("start_utc", "") > now_iso for k in ("home", "away")}
+    report_pdf, report_url = None, None
+    try:
+        report_pdf, report_url = nba_report.fetch_latest(now_utc)
+        report = nba_report.tonight(report_pdf, nba_report.players_of(shown), tonight_teams)
+    except Exception as ex:
+        print(f"WARNING: the NBA injury report wasn't read ({ex!r}).", file=sys.stderr)
+        report = {}
+    injury_list = add_report(injury_list, report, nba_report.slot_utc(report_url), nba_report.players_of(shown))
+    lap("nba_report")
     injury_list = add_marked_out(injury_list, fetch_marked_out(eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")))
 
     blob = {
@@ -1116,6 +1161,9 @@ def main():
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     blob["watch"] = watch.block(games, teams, sim.NBA_ABBR, today, now_utc.strftime("%Y-%m-%dT%H:%MZ"), LAST_INJURY_BODY.get("body"),
                                 ((blob.get("first_basket") or {}).get("lineups") or {}).get(today))
+    # the NBA report the sims read: the watch presses a refresh for a newer one, whose first step
+    # (nba_report.py --changed) compares tonight's rows with `rep`
+    blob["watch"].update(rep=nba_report.digest(report), rep_at=nba_report.slot_utc(report_url))
     blob["timing"] = timing
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
