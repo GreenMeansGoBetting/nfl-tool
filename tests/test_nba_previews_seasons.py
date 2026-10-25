@@ -67,7 +67,11 @@ class Build(unittest.TestCase):
     def test_the_site_never_reads_last_season(self):
         # The owner, 2026-10-23: "i do not want flawed data entering this seasons numbers".
         # Last season's files (box scores, saved identity / props / lines) are for backtests only.
+        # One exception (the owner, 2026-10-25, "3 is a wise call"): the game sim's per-player
+        # starting point, sim_prior_<last season>.json, faded out by this season's games.
         src = (Path(build_nba.__file__)).read_text(encoding="utf-8")
+        self.assertEqual(src.replace('f"{season - 1}-', "").replace('f"{args.season - 1}-', "").count("season - 1}"), 1)
+        self.assertIn('f"sim_prior_{season - 1}.json"', src)
         for bad in ("season - 1, ", "season - 1)", "REFERENCE", "lines_2026", "stats_default"):
             self.assertNotIn(bad, src.replace('f"{season - 1}-', "").replace('f"{args.season - 1}-', ""), bad)
 

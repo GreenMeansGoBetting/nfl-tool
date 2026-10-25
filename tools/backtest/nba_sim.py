@@ -41,6 +41,20 @@ player-games, about 4 minutes). The constants in sim.py were set here:
             with no starting five, 28.2 with a floor of 0.9 of the team's
             starter minutes, 25.9 with 0.8 (STARTER_TRUST, their points 10.7
             against 9.9 real).
+
+Run 2026-10-25 on 2025-26's opening month (--start 2025-10-22 --end
+2025-11-21 --every 2: 117 games, 2,161 player-games; team totals there are
+off because teams that hadn't played yet have no players: ignore them), with
+--prior-season 2025 (each player starting from his own 2024-25) against the
+position averages alone:
+  points    miss 4.72 -> 4.57; players with 0-2 games 5.18 -> 4.71. Scorers
+            the sim had at 18-25: 20.6 vs 21.6 real -> 20.9 vs 20.9; 25+:
+            27.3 vs 28.4 -> 28.2 vs 27.9 (the position average read stars as
+            average players: opening week 2026's unders on Miller, Wembanyama).
+  threes    players the sim had under 1: 0.55 vs 0.48 real -> 0.49 vs 0.47
+            (non-shooters given an average forward's threes: Zion, Giannis).
+  fade      last season worth 120 minutes / 80 plays (about 4 games) scored a
+            little better than 240 / 150 and 500 / 300 on every measure.
 """
 import argparse
 import json
@@ -71,6 +85,8 @@ def main():
     ap.add_argument("--data-dir", default="data/nba")
     ap.add_argument("--every", type=int, default=3, help="test every Nth game night")
     ap.add_argument("--start", default="2025-12-01")
+    ap.add_argument("--end", default="9999")
+    ap.add_argument("--prior-season", type=int, help="start each player from his own numbers that season (sim.prior_block)")
     ap.add_argument("--n", type=int, default=4000)
     ap.add_argument("--set", action="append", default=[], help="override a sim constant, NAME=value")
     ap.add_argument("--starters", action="store_true", help="hand the sim each game's real starting fives, as the NBA's lineups file would")
@@ -84,16 +100,24 @@ def main():
     season = P.Season(pd.read_parquet(d / f"play_by_play_{args.season}.parquet"), box)
     lines_path = ROOT / "nfl_tool" / "nba" / f"lines_{args.season}.json"
     lines = json.loads(lines_path.read_text()) if lines_path.exists() else {}
+    prior = None
+    if args.prior_season:
+        cache = d / f"sim_prior_{args.prior_season}.json"
+        if not cache.exists():
+            pbox = pd.read_parquet(d / f"player_box_{args.prior_season}.parquet")
+            pseason = P.Season(pd.read_parquet(d / f"play_by_play_{args.prior_season}.parquet"), pbox)
+            cache.write_text(json.dumps(sim.prior_block(sim.season_inputs(pseason, pbox))))
+        prior = json.loads(cache.read_text())
     print(f"engine built in {time.time() - t0:.0f}s", file=sys.stderr)
 
     reg = box[(box["season_type"] == P.REGULAR_SEASON) & box["athlete_id"].notna()].copy()
     reg["date"] = pd.to_datetime(reg["game_date"]).dt.strftime("%Y-%m-%d")
     games = reg.drop_duplicates(["game_id", "team_id"])
-    nights = sorted(d for d in games["date"].unique() if d >= args.start)[::args.every]
+    nights = sorted(d for d in games["date"].unique() if args.start <= d < args.end)[::args.every]
     rng = np.random.default_rng(7)
     team_rows, player_rows = [], []
     for night in nights:
-        inputs = sim.season_inputs(season, box, night)
+        inputs = sim.season_inputs(season, box, night, prior)
         tonight = reg[reg["date"] == night]
         for gid, rows in tonight.groupby("game_id"):
             home = rows[rows["home_away"] == "home"]
@@ -133,6 +157,10 @@ def main():
                         "pts_sim": pts.mean(), "pts": int(r.points), "pts_pit": pit(pts, int(r.points), rng),
                         "pts_lo": np.percentile(pts, 10), "pts_hi": np.percentile(pts, 90),
                         "f3_sim": f3.mean(), "f3": int(r.three_point_field_goals_made), "f3_pit": pit(f3, int(r.three_point_field_goals_made), rng),
+                        "games": len(inputs["players"][pid]["min"]),
+                        # how likely the sim found what really happened (higher = better)
+                        "pts_ll": np.log(max(1e-4, (pts == int(r.points)).mean() * 0.5 + (np.abs(pts - int(r.points)) <= 2).mean() * 0.1)),
+                        "f3_ll": np.log(max(1e-4, (f3 == int(r.three_point_field_goals_made)).mean())),
                         "starter": bool(r.starter), "usual_min": sim.project_minutes(inputs["players"][pid]["min"]),
                     })
         print(f"{night}: {len(team_rows) // 2} games so far, {time.time() - t0:.0f}s", file=sys.stderr)
@@ -160,6 +188,9 @@ def main():
         s = Pl[(Pl.pts_sim >= lo) & (Pl.pts_sim < hi)]
         if len(s):
             print(f"  sim {label:8} {len(s):5}: sim {s.pts_sim.mean():5.1f} real {s.pts.mean():5.1f}; inside 10-90% {s.pts_pit.between(0.1, 0.9).mean():.0%}; PIT {deciles(s.pts_pit)}")
+    print(f"  points miss by his games so far: " + ", ".join(f"{lo}-{hi}: {np.abs(s.pts_sim - s.pts).mean():.2f} ({len(s)})" for lo, hi in ((0, 3), (3, 6), (6, 10), (10, 99))
+                                                            for s in [Pl[(Pl.games >= lo) & (Pl.games < hi)]] if len(s)))
+    print(f"  threes miss {np.abs(Pl.f3_sim - Pl.f3).mean():.3f}; points log score {Pl.pts_ll.mean():.4f}, threes log score {Pl.f3_ll.mean():.4f}")
     print(f"Threes: sim {Pl.f3_sim.mean():.2f} real {Pl.f3.mean():.2f} (bias {Pl.f3_sim.mean() - Pl.f3.mean():+.2f}); PIT {deciles(Pl.f3_pit)}")
     for lo, hi, label in ((0, 1, "under 1"), (1, 2, "1-2"), (2, 99, "2+")):
         s = Pl[(Pl.f3_sim >= lo) & (Pl.f3_sim < hi)]

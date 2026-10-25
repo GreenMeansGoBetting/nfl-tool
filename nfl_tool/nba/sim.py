@@ -24,15 +24,21 @@ Every player also gets a minutes night and a shooting night (some nights he
 plays 30 instead of 34, some nights everything drops), and each team a team
 night, so the spread of outcomes is a real game's, not a coin flip's.
 
-Every rate is THIS season's only (the owner's rule for the NBA site). Early on
-a player's rates lean on the league's numbers for his position this season,
-less as his own come in (`K_*`): never on last season, never on the line.
+Early on a player's rates lean on HIS OWN LAST SEASON (`prior_block`, saved in
+sim_prior_<season>.json), less as this season's games come in (`K_PRIOR_*`);
+a player with no last season (a rookie) leans on the league's numbers for his
+position this season (`K_*`). Minutes, pace and defenses are this season's
+only. Never the line. (Until 2026-10-25 every player leaned on his position:
+opening week's plays read stars as average players, unders on Brandon Miller
+and Wembanyama, threes overs on Zion and Giannis. The owner: "some players who
+moved teams or have a new role may find issues, but should overall be a cure.")
 
     py nfl_tool/nba/sim.py --season 2027 --data-dir data/nba --game <espn id>
 """
 from __future__ import annotations
 
 import argparse
+import json
 import math
 from datetime import date as Date
 from pathlib import Path
@@ -57,6 +63,15 @@ K_USE = 60          # minutes, for his plays a minute
 K_TEAM = 5          # games, for a team's pace and plays a possession
 K_DEF = 150         # shots allowed in a zone, for a defense's make rate there
 K_OREB = 150        # misses, for a team's offensive rebound rate (and a defense's allowed)
+# His own last season as the starting point (2026-10-25): what it counts like,
+# on top of this season's own (fitted on the 2025-26 opening weeks with
+# 2024-25 as the prior, tools/backtest/nba_sim.py --prior-season).
+# A quick fade (about 4 games) beat a slow one (16) a little on every measure:
+# new roles show up fast.
+K_PRIOR_MIX = 80       # plays
+K_PRIOR_ZONE = {"rim": 80, "short": 120, "mid": 160, "corner3": 300, "above3": 300}  # shots
+K_PRIOR_FT = 40        # free throws
+K_PRIOR_USE = 120      # minutes
 DEF_MIX_W = 0.5     # how hard a defense's shot mix allowed tilts a player's (half: both sides count)
 # Minutes: the 2025-26 replay's last-5 overshoot (tools/backtest/nba_points.py): a dip bounces back, a rise mostly sticks.
 MIN_LAST = 5
@@ -120,7 +135,7 @@ DIAL_INFO = {k: (label, own, opp) for k, label, own, opp in SCHEDULE_DIALS + LAS
 
 
 # ---- this season's inputs ----
-def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None) -> dict:
+def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None, prior: dict | None = None) -> dict:
     """Everything the sim reads, from this season's engine tables and box
     scores: players (minutes log, plays, what they turn into, make rates),
     teams (pace, plays a possession, history for the dials), defenses (what
@@ -237,7 +252,34 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
             continue
         history.setdefault(r.team_abbreviation, []).append(
             {"date": r.date, "game": int(r.game_id), "margin": int(r.team_score) - int(r.opponent_team_score), "ot": int(r.game_id) in ot_games})
-    return {"players": players, "teams": teams, "league": league, "history": history}
+    return {"players": players, "teams": teams, "league": league, "history": history, "prior": prior or {}}
+
+
+def prior_block(inputs: dict) -> dict:
+    """Last season's rates for next season's start (sim_prior_<season>.json):
+    {player id: [position group, minutes, counts (OUTCOMES), made (ZONES),
+    ftm, fta]} from a full season's season_inputs."""
+    return {str(pid): [p["group"], round(p["minutes"], 1), [round(float(x), 1) for x in p["counts"]],
+                       [int(x) for x in p["made"]], int(p["ftm"]), int(p["fta"])]
+            for pid, p in inputs["players"].items() if p["minutes"] > 0}
+
+
+def starting_point(lg: dict, group: str, last) -> tuple:
+    """What a player's rates shrink toward and how hard: his last season
+    (itself steadied toward the league's position numbers by the K_*), or with
+    no last season the league's position numbers alone. Returns (mix, k_mix,
+    pct, k_zone, ft, k_ft, use, k_use)."""
+    g = lg["groups"][group]
+    kz = np.array([K_ZONE[z] for z in ZONES], float)
+    if not last:
+        return g["mix"], K_MIX, g["pct"], kz, lg["ft"], K_FT, g["use"], K_USE
+    _, minutes, counts, made, ftm, fta = last
+    counts, made = np.array(counts, float), np.array(made, float)
+    mix = (counts + K_MIX * g["mix"]) / (counts.sum() + K_MIX)
+    pct = (made + kz * g["pct"]) / (counts[:5] + kz)
+    ft = (ftm + K_FT * lg["ft"]) / (fta + K_FT)
+    use = (counts.sum() + K_USE * g["use"]) / (minutes + K_USE)
+    return mix, K_PRIOR_MIX, pct, np.array([K_PRIOR_ZONE[z] for z in ZONES], float), ft, K_PRIOR_FT, use, K_PRIOR_USE
 
 
 # ---- the dials ----
@@ -402,16 +444,16 @@ def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = f
     for pid in pids:
         p = inputs["players"][pid]
         mins = p["min"]
-        g = lg["groups"][p["group"]]
         counts, made = p["counts"], p["made"]
         minutes = sum(mins)
-        mix = (counts + K_MIX * g["mix"]) / (counts.sum() + K_MIX)
+        mix0, k_mix, pct0, k_zone, ft0, k_ft, use0, k_use = starting_point(lg, p["group"], inputs.get("prior", {}).get(str(pid)))
+        mix = (counts + k_mix * mix0) / (counts.sum() + k_mix)
         mix = mix * tilt ** DEF_MIX_W
         mix = mix / mix.sum()
-        pct = (made + np.array([K_ZONE[z] for z in ZONES]) * g["pct"]) / (counts[:5] + np.array([K_ZONE[z] for z in ZONES]))
+        pct = (made + k_zone * pct0) / (counts[:5] + k_zone)
         pct = np.clip(pct * dz * make_mult * LEVEL, 0.02, 0.95)
-        ft = (p["ftm"] + K_FT * lg["ft"]) / (p["fta"] + K_FT)
-        use = (counts.sum() + K_USE * g["use"]) / (minutes + K_USE)
+        ft = (p["ftm"] + k_ft * ft0) / (p["fta"] + k_ft)
+        use = (counts.sum() + k_use * use0) / (minutes + k_use)
         rows.append({"pid": pid, "min": project_minutes(mins), "use": use, "mix": mix, "pct": pct, "ft": ft})
     m = np.array([r["min"] for r in rows], float)
     listed = np.array([pid in starters for pid in pids], bool)
@@ -769,11 +811,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--season", type=int, default=2027)
     ap.add_argument("--data-dir", default="data/nba")
-    ap.add_argument("--home", required=True)
-    ap.add_argument("--away", required=True)
-    ap.add_argument("--date", required=True)
+    ap.add_argument("--home")
+    ap.add_argument("--away")
+    ap.add_argument("--date")
+    ap.add_argument("--write-prior", action="store_true", help="save this (finished) season as next season's starting point")
     args = ap.parse_args()
     d = Path(__file__).resolve().parents[2] / args.data_dir
+    if args.write_prior:
+        box = pd.read_parquet(d / f"player_box_{args.season}.parquet")
+        block = prior_block(season_inputs(P.Season(pd.read_parquet(d / f"play_by_play_{args.season}.parquet"), box), box))
+        out = Path(__file__).resolve().parent / f"sim_prior_{args.season}.json"
+        out.write_text(json.dumps(block, separators=(",", ":")))
+        print(f"{len(block)} players -> {out.name}")
+        return
     box = pd.read_parquet(d / f"player_box_{args.season}.parquet")
     season = P.Season(pd.read_parquet(d / f"play_by_play_{args.season}.parquet"), box)
     inputs = season_inputs(season, box, args.date)

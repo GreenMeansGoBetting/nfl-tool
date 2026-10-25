@@ -20,9 +20,15 @@ popups, no fallback while this season is young. build_nba.py reads only this sea
 backtests (`test_the_site_never_reads_last_season` pins it). Before this season has enough games for a
 number, show the data, not a projection. The owner: "A team with a new starting lineup and players
 in and out (take boston - no brown add george - completely different) changes everything!"
+- **The one exception (2026-10-25): the game sim's starting point.** Each player's rates (shot volume,
+  mix, zone make rates, free throws) start from his own last season (`nfl_tool/nba/sim_prior_<last
+  season>.json`) and fade out as this season's games come in (about 4 games' worth). Opening week's
+  plays read stars as average players (unders on Brandon Miller and Wembanyama, threes overs on Zion
+  and Giannis; 10/24 went 5-9); the owner chose it: "some players who moved teams or have a new role
+  may find issues, but should overall be a cure". Minutes, pace and defenses stay this season only.
 - King of the Court was the one exception for its first week; it went this-season-only on
   2026-10-22 (the owner: "turn off 2025-2026 data because by next week, we will have every team
-  with data for this season"). No exceptions remain.
+  with data for this season").
 
 ## Positions: PG / SG / SF / PF / C (`nfl_tool/nba/positions.py`, 2026-10-21)
 
@@ -157,8 +163,12 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   from the 2nd quarter a lead shrinks a little (`LEAD_DRAG`: the team ahead eases off; real margins
   swing less than independent possessions would). Ties play overtime. Nights: minutes (wider for
   bench players, `SHORT_NIGHT` 4% an early exit), shooting, the game's pace and shooting.
-- **This season only** (the NBA site rule): `season_inputs` from the engine; early on a player's
-  rates lean on the league's numbers for his position THIS season (`K_*`), never last season's.
+- **Early season:** `season_inputs` from the engine; a player's rates lean on his own last season
+  (`starting_point`, `K_PRIOR_*`: 120 minutes / 80 plays, about 4 games, which beat slower fades on
+  the replay), itself steadied toward the position's numbers; a rookie leans on his position's numbers
+  THIS season (`K_*`). Re-save the file each summer: `py nfl_tool/nba/sim.py --season <finished season>
+  --data-dir data/nba --write-prior`. Replay with `tools/backtest/nba_sim.py --prior-season`
+  (findings in its header: points miss 4.72 -> 4.57, players with 0-2 games 5.18 -> 4.71).
 - **Minutes:** season^0.365 x last-5^0.635 (the overshoot), fit to 240 (`fill_minutes`: too many,
   the small roles give up the most; too few, everyone up in proportion, cap 40). **Out** (the
   injury report) leaves the rotation; the 2025-26 replay preferred handing his minutes to everyone
@@ -202,6 +212,10 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   threes: [play]}} (`PLAY_FIELDS`), rewritten until tip, never after; `sim.ledger` grades each play
   at its best price across every book, 1u; a push or a player who sat isn't graded. Split tags: top /
   strong, proof / chaos / close, over / under, main / alt, dials.
+- **Past nights** (2026-10-25, the owner: "I have no way to go back and see how anything
+  performed"): props.json `sim_past` {market: [play + `got`, `result` won / lost / push / sat /
+  None]} (`past_plays`); the day arrows step back to them and show Results (record, units, Top Play,
+  each play as locked at tip with Hit / Miss). The page opens on tonight's slate.
 - **The pages** (`site/nba/points.html` / `threes.html` + `points.js` / `threes.js` = `SIM_PAGE`
   config, on the shared `sim-board.js` + `sim.css`; Points / Threes tabs): hero (what it is, the
   steps, the long how-it-works behind the i; record tiles Yesterday / Top Plays / Season in units

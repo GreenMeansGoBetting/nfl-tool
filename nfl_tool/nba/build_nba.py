@@ -798,8 +798,14 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     if block:
         blocks[str(season)] = block
     # The sim (its own try: a failure leaves Points and Threes empty, never the game logs).
+    # Its one look at last season: each player's starting point, faded out by
+    # this season's games (the owner, 2026-10-25; sim.py `starting_point`).
     try:
-        out.update(compute_sim(season, sim.season_inputs(engine, box), block, book_odds or {}, list(games),
+        prior_path = Path(__file__).resolve().parent / f"sim_prior_{season - 1}.json"
+        prior = json.loads(prior_path.read_text()) if prior_path.exists() else None
+        if prior is None:
+            print(f"WARNING: {prior_path.name} missing: every player starts from his position's numbers.", file=sys.stderr)
+        out.update(compute_sim(season, sim.season_inputs(engine, box, prior=prior), block, book_odds or {}, list(games),
                                injuries or {}, roster_team, now_utc, lineups or {}))
     except Exception as ex:
         print(f"WARNING: NBA game sim failed ({ex!r}).", file=sys.stderr)

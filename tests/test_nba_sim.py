@@ -223,6 +223,24 @@ class Record(unittest.TestCase):
         self.assertEqual(sim.ledger(record, logs, "threes"), [])
 
 
+class LastSeasonStart(unittest.TestCase):
+    """2026-10-25: a player starts from his own last season, not his position's
+    average (opening week read Zion as an average forward: threes overs)."""
+
+    def test_a_non_shooter_keeps_his_own_shot_mix(self):
+        lg = {"ft": 0.78, "groups": {"F": {"mix": np.array([0.3, 0.15, 0.1, 0.1, 0.25, 0.05, 0.05]),
+                                           "pct": np.array([0.65, 0.45, 0.42, 0.38, 0.36]), "use": 0.5}}}
+        # last season: 2,000 minutes, 1,000 plays, two threes
+        last = ["F", 2000.0, [600, 150, 50, 1, 1, 150, 48], [400, 60, 20, 0, 0], 220, 300]
+        mix, k_mix, *_rest, use, k_use = sim.starting_point(lg, "F", last)
+        self.assertLess(mix[3] + mix[4], 0.02)  # his threes, not the 35% an average forward takes
+        self.assertEqual((k_mix, k_use), (sim.K_PRIOR_MIX, sim.K_PRIOR_USE))
+        self.assertAlmostEqual(use, (1000 + sim.K_USE * 0.5) / (2000 + sim.K_USE))
+        rookie = sim.starting_point(lg, "F", None)
+        self.assertAlmostEqual(rookie[0][4], 0.25)  # no last season: the position's numbers
+        self.assertEqual(rookie[1], sim.K_MIX)
+
+
 class PastPlays(unittest.TestCase):
     def test_past_nights_graded_for_the_day_arrows(self):
         row = lambda pid, side, line: [pid, side, line, 150, "dk", 0.5, 0.06, "strong", None, True, []]  # noqa: E731
