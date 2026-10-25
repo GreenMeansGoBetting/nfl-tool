@@ -650,6 +650,10 @@
  "2026_07_CLE_TEN": {
   "away": "CLE",
   "away_pts": 19.5,
+  "final": [
+   27,
+   24
+  ],
   "frozen": true,
   "home": "TEN",
   "home_pts": 17.9,
@@ -657,9 +661,11 @@
   "spread": 1.5,
   "spread_edge": 0.2,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 36.5,
   "total_edge": 0.9,
   "total_pick": "over",
+  "total_result": "win",
   "updated": "2026-10-25T16:30Z",
   "week": 7
  },
@@ -677,6 +683,22 @@
   "total_edge": 1.0,
   "total_pick": "over",
   "updated": "2026-10-25T19:52Z",
+  "week": 7
+ },
+ "2026_07_GB_DET": {
+  "away": "GB",
+  "away_pts": 25.3,
+  "frozen": true,
+  "home": "DET",
+  "home_pts": 26.8,
+  "qb_out": [],
+  "spread": -3.5,
+  "spread_edge": 2.0,
+  "spread_pick": "away",
+  "total": 55.5,
+  "total_edge": 3.4,
+  "total_pick": "under",
+  "updated": "2026-10-25T20:20Z",
   "week": 7
  },
  "2026_07_IND_MIN": {
@@ -699,6 +721,22 @@
   "total_pick": "under",
   "total_result": "win",
   "updated": "2026-10-25T16:30Z",
+  "week": 7
+ },
+ "2026_07_LA_LV": {
+  "away": "LA",
+  "away_pts": 25.5,
+  "frozen": true,
+  "home": "LV",
+  "home_pts": 22.2,
+  "qb_out": [],
+  "spread": 3.5,
+  "spread_edge": 0.1,
+  "spread_pick": "home",
+  "total": 48.5,
+  "total_edge": 0.8,
+  "total_pick": "under",
+  "updated": "2026-10-25T20:20Z",
   "week": 7
  },
  "2026_07_MIA_NYJ": {
@@ -748,6 +786,10 @@
  "2026_07_NYG_HOU": {
   "away": "NYG",
   "away_pts": 16.9,
+  "final": [
+   27,
+   21
+  ],
   "frozen": true,
   "home": "HOU",
   "home_pts": 26.7,
@@ -755,9 +797,11 @@
   "spread": -10.5,
   "spread_edge": 0.7,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 42.5,
   "total_edge": 1.1,
   "total_pick": "over",
+  "total_result": "win",
   "updated": "2026-10-25T16:30Z",
   "week": 7
  },
@@ -786,6 +830,10 @@
  "2026_07_SF_ATL": {
   "away": "SF",
   "away_pts": 28.2,
+  "final": [
+   20,
+   29
+  ],
   "frozen": true,
   "home": "ATL",
   "home_pts": 21.1,
@@ -793,9 +841,11 @@
   "spread": 2.5,
   "spread_edge": 4.6,
   "spread_pick": "away",
+  "spread_result": "loss",
   "total": 49.5,
   "total_edge": 0.2,
   "total_pick": "under",
+  "total_result": "win",
   "updated": "2026-10-25T16:30Z",
   "week": 7
  },
