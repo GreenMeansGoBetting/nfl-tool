@@ -1887,43 +1887,43 @@
    "4278104": [
     "Michael Porter Jr.",
     0.101,
-    490,
+    500,
     false,
     "fanduel"
    ],
    "4395712": [
     "Andrew Nembhard",
     0.096,
-    750,
+    700,
     false,
     "fanduel"
    ],
    "4396993": [
     "Tyrese Haliburton",
     0.104,
-    1080,
+    1060,
     true,
     "draftkings"
    ],
    "4432194": [
     "Day'Ron Sharpe",
     0.078,
-    1000,
+    950,
     false,
     "fanduel"
    ],
    "4702177": [
     "Keon Ellis",
     0.086,
-    1240,
+    1220,
     true,
     "draftkings"
    ],
    "5175643": [
     "Egor Demin",
     0.086,
-    1100,
-    false,
+    1200,
+    true,
     "fanduel"
    ]
   },
@@ -1950,14 +1950,14 @@
     0.085,
     1500,
     true,
-    "draftkings"
+    "fanduel"
    ],
    "3136195": [
     "Karl-Anthony Towns",
     0.098,
-    610,
+    600,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3147657": [
     "Mikal Bridges",
@@ -1990,16 +1990,16 @@
    "4277847": [
     "Wendell Carter Jr.",
     0.112,
-    850,
+    800,
     false,
-    "draftkings"
+    "thescore"
    ],
    "4432165": [
     "Jalen Suggs",
     0.113,
-    910,
-    true,
-    "draftkings"
+    800,
+    false,
+    "caesars"
    ],
    "4566434": [
     "Franz Wagner",
@@ -2093,9 +2093,9 @@
    "6450": [
     "Kawhi Leonard",
     0.102,
-    610,
+    600,
     false,
-    "draftkings"
+    "fanduel"
    ]
   },
   "tip_home": 0.471
@@ -2202,7 +2202,7 @@
    "1966": [
     "LeBron James",
     0.103,
-    800,
+    750,
     false,
     "fanduel"
    ],
@@ -2232,35 +2232,35 @@
     0.097,
     600,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4431678": [
     "Tyrese Maxey",
     0.112,
-    564,
+    500,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4432166": [
     "Cade Cunningham",
     0.124,
-    549,
+    525,
     false,
-    "draftkings"
+    "caesars"
    ],
    "4684742": [
     "Ausar Thompson",
     0.102,
     1000,
     true,
-    "fanduel"
+    "thescore"
    ],
    "5124612": [
     "VJ Edgecombe",
     0.086,
-    1020,
+    1000,
     false,
-    "draftkings"
+    "caesars"
    ]
   },
   "tip_home": 0.5
@@ -2302,9 +2302,9 @@
    "4065733": [
     "Ty Jerome",
     0.131,
-    566,
+    550,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4594327": [
     "Keegan Murray",
@@ -2344,9 +2344,9 @@
    "5142620": [
     "Darius Acuff Jr.",
     0.113,
-    730,
+    700,
     false,
-    "draftkings"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
