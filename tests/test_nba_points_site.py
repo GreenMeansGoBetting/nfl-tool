@@ -195,10 +195,10 @@ class Plays(unittest.TestCase):
 
     def test_thin_columns_and_tags_on_one_line(self):
         # the owner, 2026-10-25: "every column to always be a thin comfortable overhang ... I NEVER want
-        # tags to stack ... just do a +1 or +2 etc tag that can be hovered over"
+        # tags to stack" into taller rows; two lines are fine, the rest "a +1 or +2 etc tag that can be hovered over"
         PAGE.set_viewport_size({"width": 1400, "height": 900})
         PAGE.click("[data-list-every='true']")
-        PAGE.evaluate("""() => { const old = tagsFor; window.tagsFor = (x) => [...old(x), ...['One Long Tag Here', 'Another Long Tag', 'Tough 3s D', 'Help D', 'More Words In A Tag']
+        PAGE.evaluate("""() => { const old = tagsFor; window.tagsFor = (x) => [...old(x), ...['One Long Tag Here', 'Another Long Tag', 'Tough 3s D', 'Help D', 'Words', 'Some More Words', 'Yet Another Long Tag', 'Tag Ten Here', 'Eleven', 'More Words In A Tag']
             .map((l) => ({key: l, label: l, title: l, cls: '', filter: l}))]; render(); }""")
         try:
             widths = PAGE.evaluate("() => [...document.querySelectorAll('#sim-list thead tr:last-child th')].map((th) => th.getBoundingClientRect().width)")

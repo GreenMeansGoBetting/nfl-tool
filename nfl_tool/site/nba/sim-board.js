@@ -602,14 +602,14 @@ function renderList() {
   el("sim-list").innerHTML = `<div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list">${listHead(COLS)}<tbody>${body}</tbody></table></div></div>`;
   fitTags();
 }
-// Tags stay on one line (the owner: "I NEVER want tags to stack ... just do a +1 or +2 etc tag that
+// Tags fill at most two lines, the same box on every row (the owner: "I NEVER want tags to stack" into taller rows, "just do a +1 or +2 etc tag that
 // can be hovered over"): the ones that don't fit fold into a "+N" pill naming them on hover.
 function fitTags() {
   document.querySelectorAll("#sim-list .sim-rtags").forEach((box) => {
     box.querySelectorAll(".sim-rtag.more").forEach((m) => m.remove());
     const tags = [...box.children];
     tags.forEach((t) => (t.hidden = false));
-    if (box.scrollWidth <= box.clientWidth + 1) return;
+    if (box.scrollHeight <= box.clientHeight + 1) return;
     const more = document.createElement("span");
     more.className = "sim-rtag more";
     box.appendChild(more);
@@ -620,7 +620,7 @@ function fitTags() {
       const rest = tags.slice(shown);
       more.textContent = `+${rest.length}`;
       more.title = rest.map((t) => t.textContent.trim()).join(" \u00b7 ");
-      if (box.scrollWidth <= box.clientWidth + 1) break;
+      if (box.scrollHeight <= box.clientHeight + 1) break;
     }
   });
 }
