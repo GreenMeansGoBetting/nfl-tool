@@ -2036,23 +2036,23 @@
    ],
    "3134908": [
     "Jakob Poeltl",
-    0.067,
+    0.084,
     900,
     false,
     "fanduel"
    ],
    "4395625": [
     "RJ Barrett",
-    0.119,
+    0.146,
     850,
     true,
     "fanduel"
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.095,
+    0.122,
     950,
-    false,
+    true,
     "fanduel"
    ],
    "4431671": [
@@ -2071,7 +2071,7 @@
    ],
    "4433134": [
     "Scottie Barnes",
-    0.106,
+    0.136,
     650,
     false,
     "fanduel"
@@ -2087,13 +2087,6 @@
     "Anthony Edwards",
     0.109,
     650,
-    false,
-    "fanduel"
-   ],
-   "6450": [
-    "Kawhi Leonard",
-    0.102,
-    600,
     false,
     "fanduel"
    ]
@@ -2208,14 +2201,14 @@
    ],
    "3157465": [
     "Duncan Robinson",
-    0.119,
+    0.153,
     1100,
     true,
     "fanduel"
    ],
    "3908845": [
     "John Collins",
-    0.135,
+    0.168,
     910,
     true,
     "draftkings"
@@ -2243,17 +2236,10 @@
    ],
    "4432166": [
     "Cade Cunningham",
-    0.124,
+    0.159,
     553,
     false,
     "draftkings"
-   ],
-   "4684742": [
-    "Ausar Thompson",
-    0.102,
-    1000,
-    true,
-    "thescore"
    ],
    "5124612": [
     "VJ Edgecombe",
@@ -3271,14 +3257,14 @@
    ],
    "3157465": [
     "Duncan Robinson",
-    0.119,
+    0.153,
     null,
     false,
     null
    ],
    "3908845": [
     "John Collins",
-    0.135,
+    0.168,
     null,
     false,
     null
@@ -3299,14 +3285,7 @@
    ],
    "4432166": [
     "Cade Cunningham",
-    0.124,
-    null,
-    false,
-    null
-   ],
-   "4684742": [
-    "Ausar Thompson",
-    0.102,
+    0.159,
     null,
     false,
     null
