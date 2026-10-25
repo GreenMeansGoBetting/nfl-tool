@@ -3,6 +3,11 @@
 // ... I just dont want to mimic the vegas line again"). Every game is played
 // 10,000 times from this season's possessions (nfl_tool/nba/sim.py); the
 // books' line is never an input, only the price a play is judged against.
+// Two views (2026-10-25, the owner: "player view would show the best edges
+// regardless of team like the NHL setup ... Matchup view would allow users to
+// look at entire lineups across a game"): Player View, one list sorted by
+// edge with a row that opens The Model / Shot Chart, and Matchup View, the
+// game board. Plays are main lines only; a better rung is a Ladder tag.
 //
 // A page loads this after its own config, `SIM_PAGE`:
 //   { market: "points" | "threes",       // book_odds market (and its "_alt" ladder)
@@ -136,7 +141,7 @@ function renderYtd() {
   overlay.hidden = false;
 }
 
-// ---- tonight's plays ----
+// ---- scripts and shades ----
 const SCRIPT_KEYS = ["away", "close", "home"];
 function scriptLabel(g, k, long) {
   if (k === "close") return long ? "Close Game" : "Close";
@@ -148,130 +153,296 @@ function shade(diff) {
   const a = Math.min(0.42, 0.1 + Math.abs(diff) * 2.2).toFixed(2);
   return Math.abs(diff) < 0.01 ? "" : ` style="background:rgba(var(--${diff > 0 ? "good" : "bad"}-rgb),${a})"`;
 }
-function playCard(p, top) {
-  const g = DATA.schedule.find((x) => x.game_id === p.game);
-  if (!g) return "";
-  const live = bestPrice(g, p.pid, p.side, p.line);
-  const price = live ? live.price : p.price;
-  const book = live ? live.book : p.book;
-  const needs = oddsProb(price);
-  const edge = p.chance - needs;
-  const kind = { proof: ["Script-Proof", "sim-t-proof", "Beats its price in every script the 10,000 games play"],
-    chaos: ["Chaos Play", "sim-t-chaos", "Loses in a close game; cashes when the game goes sideways"],
-    close: ["Needs A Close Game", "sim-t-why", "Only beats its price when the game stays close"] }[p.kind];
-  const sim = sims()[p.game];
-  // the dials on in this game, with whose they are ("CHA Back-To-Back")
-  const dials = sim ? ["away", "home"].flatMap((k) => (sim.dials[k] || []).map((d) => `${g[k]} ${(PROPS.sim_meta.dials[d] || [d])[0]}`)) : [];
-  const row = sim && sim.players[p.pid];
-  const color = `#${team(p.team).color || "555555"}`;
-  const spec = priceSpec(g, p.pid, p.side, p.line, p.team);
-  const scripts = SCRIPT_KEYS.map((k) => {
-    const v = (p.scripts || {})[k];
-    return `<div${v === null || v === undefined ? "" : shade(v - needs)}><small>${scriptLabel(g, k, true)}</small><b>${v === null || v === undefined ? "--" : pct(v)}</b></div>`;
-  }).join("");
-  let extra = "";
-  if (top && row) {
-    const lad = row[SIM_PAGE.stat].lad.all;
-    const [lo, xs] = lad;
-    const bars = xs.map((x, i) => {
-      const k = lo + i;
-      const exact = (x - (xs[i + 1] || 0)) / 1000;
-      const hit = p.side === "o" ? k > p.line : k < p.line;
-      return { k, exact, hit };
-    });
-    const peak = Math.max(...bars.map((b) => b.exact), 0.0001);
-    extra = `<div class="sim-nums">
-        <div><small>Our Median</small><b>${fmt(row[SIM_PAGE.stat].med.all, 0)}</b><i>${SIM_PAGE.unit.toLowerCase()}</i></div>
-        <div><small>Book Line</small><b>${fmt(mainLine(g, p.pid))}</b><i>main</i></div>
-        <div><small>Minutes</small><b>${fmt(row.min)}</b><i>in the sims</i></div>
-      </div>
-      <div><div class="sim-kicker">His ${SIM_PAGE.unit} In The 10,000 Games &middot; Green = This Play Wins</div>
-        <div class="sim-hist">${bars.map((b) => `<div class="${b.hit ? "hit" : ""}" style="height:${Math.max(2, Math.round((100 * b.exact) / peak))}%" title="${b.k}: ${(b.exact * 100).toFixed(1)}%"></div>`).join("")}</div>
-        <div class="sim-hlab">${bars.map((b, i) => `<span>${i % Math.ceil(bars.length / 9) === 0 ? b.k : ""}</span>`).join("")}</div></div>`;
+// ---- Player View: every player in one list, sorted by edge (the NHL pages' setup) ----
+// The owner, 2026-10-25: "I like how we have NHL where it shows players in one list
+// sorted by edge ... It needs to be brainless for people who want brainless, but deep
+// for people who want deep." A row: the play at his main line, its edge, a Ladder tag
+// when a rung on the same side has more edge; a click opens The Model / Shot Chart.
+// Opens on the plays only, like the NHL pages ("If users want the detailed look,
+// theyll click").
+const LIST = { side: "best", minEdge: 0, every: false, sort: "edge", dir: -1, open: null, tab: "model", game: "" };
+const PRICE_RANGE = [-250, 400]; // the build's: past +400 a rung's chance rests on a few hundred sims' tails
+const minEdge = () => (PROPS.sim_meta || {}).min_edge || 0.04;
+// A game has started once its tip time has passed (times are Eastern, fixed UTC-4 like the build).
+const started = (g) => Boolean(g.time) && Date.now() >= Date.parse(`${g.date}T${g.time}:00-04:00`);
+// Over / Under with the line, as a bettor writes it: "o31.5" / "u25.5"; a rung over a half line reads "30+".
+const chipText = (side, line, main) => (side === "o" && !main && Number.isInteger(line - 0.5) ? `${line + 0.5}+` : `${side}${fmt(line)}`);
+function chip(side, line, price, book, main = true) {
+  return `<span class="sim-chip sim-chip-${side}" title="${side === "o" ? "Over" : "Under"} ${fmt(line)} ${SIM_PAGE.unit.toLowerCase()} at the best price across your books"><b>${chipText(side, line, main)}</b><span>${price === null || price === undefined ? "--" : showOdds(price)}</span>${book ? `<small>${BOOK_INITIALS[book] || book}</small>` : ""}</span>`;
+}
+// Script-Proof / Chaos / Needs A Close Game (sim.py kind_of), from the chances by script and what the price needs.
+function kindOf(scripts, needs) {
+  const have = Object.entries(scripts).filter(([, v]) => v !== null && v !== undefined);
+  if (!have.length) return null;
+  if (have.every(([, v]) => v >= needs)) return "proof";
+  const close = scripts.close;
+  const sideways = have.filter(([k]) => k !== "close").map(([, v]) => v);
+  if (close !== null && close !== undefined && close < needs && sideways.some((v) => v >= needs)) return "chaos";
+  if (close !== null && close !== undefined && close >= needs) return "close";
+  return null;
+}
+const KINDS = {
+  proof: ["Script-Proof", "sim-t-proof", "Beats its price in every script the 10,000 games play"],
+  chaos: ["Chaos Play", "sim-t-chaos", "Loses in a close game; cashes when the game goes sideways"],
+  close: ["Needs A Close Game", "sim-t-why", "Only beats its price when the game stays close"],
+};
+// Every line a book prices on one side for him (the main market and the ladder), lowest first.
+function sideLines(g, pid, side) {
+  return [...new Set(quotesFor(g, pid).filter((q) => q[1] === side && q[2] !== null && q[2] !== undefined).map((q) => q[2]))].sort((a, b) => a - b);
+}
+// The Ladder tag: the rung on the play's side with the most edge, when it beats the main line's
+// edge and clears the play bar (the owner: "would be interested in knowing the ladder down may have an edge").
+function ladderBest(g, pid, lad, side, main, mainEdge) {
+  let best = null;
+  for (const line of sideLines(g, pid, side)) {
+    if (line === main) continue;
+    const price = bestPrice(g, pid, side, line);
+    if (!price || price.price < PRICE_RANGE[0] || price.price > PRICE_RANGE[1]) continue;
+    const edge = sideChance(lad, side, line) - oddsProb(price.price);
+    if (!best || edge > best.edge) best = { line, edge, ...price };
   }
-  return `<div class="sim-play${top ? " top" : ""}">
-    <div class="sim-banner" style="background:${color}">${logo(p.team, top ? 20 : 18)} ${g.away} @ ${g.home} &middot; ${fmtTime(g.time)}<span class="sim-tier">${p.tier === "top" ? "Top Play" : "Strong"}</span></div>
-    <div class="sim-pbody">
-      <div class="sim-who">${headshot(p.pid)}<div><b>${playerClick(p.pid, nameOf(p.pid))}</b><span>${posOf(p.pid)} &middot; ${team(p.team).name}${row ? ` &middot; ${fmt(row.min)} min in the sims` : ""}</span></div></div>
-      <div class="sim-bet">${playName(p)} <button type="button" class="bo-pill sim-price" data-bo="${boEnc(spec)}" title="Best price across your books. Click for every book.">${showOdds(price)}<small>${BOOK_INITIALS[book] || book}</small></button></div>
-      <div class="sim-nums">
-        <div><small>Hit In</small><b>${Math.round(p.chance * 1000) * 10 >= 10000 ? "9,990" : (Math.round(p.chance * 1000) * 10).toLocaleString()}</b><i>of 10,000</i></div>
-        <div><small>GMG Fair</small><b>${fair(p.chance) === null ? "--" : showOdds(fair(p.chance))}</b><i>${pct(p.chance)}</i></div>
-        <div class="${edge > 0 ? "sim-edge" : "sim-edge-gone"}"><small>Edge</small><b>${signed(edge * 100)}</b><i>needs ${(needs * 100).toFixed(1)}%</i></div>
+  return best && best.edge >= minEdge() && best.edge > (mainEdge === null ? -1 : mainEdge) ? best : null;
+}
+// One row a player: his main line, the side shown (the build's play, else the better side or
+// the side picked in Side), the best price on the member's books, our chance, the edge.
+function listRows(date) {
+  const plays = playsOn(date);
+  const out = [];
+  for (const g of gamesOn(date)) {
+    if (LIST.game && g.game_id !== LIST.game) continue;
+    const sim = sims()[g.game_id];
+    const live = started(g);
+    for (const [pid, r] of Object.entries(sim.players)) {
+      const play = plays.find((p) => p.game === g.game_id && p.pid === pid);
+      const ml = play ? play.line : mainLine(g, pid);
+      if (ml === null || r.min < 6) continue;
+      const lad = r[SIM_PAGE.stat].lad.all;
+      const sides = ["o", "u"].map((side) => {
+        const best = bestPrice(g, pid, side, ml) || (play && play.side === side ? { price: play.price, book: play.book } : null);
+        const chance = sideChance(lad, side, ml);
+        return { side, chance, price: best ? best.price : null, book: best ? best.book : null, edge: best ? chance - oddsProb(best.price) : null };
+      });
+      const want = LIST.side === "best" ? (play ? play.side : null) : LIST.side;
+      const pick = want ? sides.find((s) => s.side === want) : sides.filter((s) => s.edge !== null).sort((a, b) => b.edge - a.edge)[0];
+      if (!pick || pick.price === null) continue;
+      const tm = r.team === "home" ? g.home : g.away;
+      out.push({ g, pid, r, team: tm, opp: tm === g.home ? g.away : g.home, home: tm === g.home, line: ml, ...pick, lad,
+        play: play && play.side === pick.side ? play : null, live, ladder: live ? null : ladderBest(g, pid, lad, pick.side, ml, pick.edge) });
+    }
+  }
+  return out;
+}
+const SORTS = {
+  edge: (x) => x.edge,
+  med: (x) => x.r[SIM_PAGE.stat].med.all,
+  chance: (x) => x.chance,
+  min: (x) => x.r.min,
+};
+function sortedList(date) {
+  const key = SORTS[LIST.sort] || SORTS.edge;
+  return listRows(date)
+    .filter((x) => (LIST.every || x.play) && (!LIST.minEdge || (x.edge !== null && x.edge >= LIST.minEdge)))
+    .sort((a, b) => (a.live - b.live) || (LIST.every && LIST.sort === "edge" ? !!b.play - !!a.play : 0) || LIST.dir * ((key(a) ?? -99) - (key(b) ?? -99)));
+}
+function renderToolbar() {
+  const menu = (key, label, options, tip) =>
+    `<label class="sim-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select data-list="${key}">${options.map(([v, text]) => `<option value="${v}"${String(LIST[key]) === String(v) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
+  const bar = Math.round(minEdge() * 100);
+  el("sim-toolbar").innerHTML =
+    menu("side", "Side", [["best", "Best Side"], ["o", "Overs"], ["u", "Unders"]], "Best Side: the play's side, or the better side of his main line. Overs / Unders: that side for everyone") +
+    menu("minEdge", "Edge", [[0, "Any"], ...[4, 6, 8, 10, 15].filter((n) => n >= bar).map((n) => [n / 100, `${n}+ Points`])], "Only rows with at least this much edge (our chance minus the chance the price needs, in points)") +
+    `<span class="sim-seg">${[[false, "Plays Only", `Only the plays: ${bar}+ points of edge on his main line`], [true, "Every Player", "Every player with a main line: the plays first, then the rest"]]
+      .map(([v, label, tip]) => `<button type="button" class="view-toggle-btn${LIST.every === v ? " active" : ""}" data-list-every="${v}" title="${tip}">${label}</button>`).join("")}</span>` +
+    (LIST.game ? `<button type="button" class="view-toggle-btn" data-list-game="" title="Show every game again">${(() => { const g = DATA.schedule.find((x) => x.game_id === LIST.game); return g ? `${g.away} @ ${g.home}` : ""; })()} &times;</button>` : "");
+}
+const COLS = [
+  { label: "#" },
+  { label: "Player", cls: "sim-th-player" },
+  { label: "Play", title: "His main line, the side the model likes (o = over, u = under), at the best price across your books. The box saves it to My Plays." },
+  { label: "Rating", title: `Top Play: the night's biggest edge. Strong: every other play (4+ points of edge on his main line).` },
+  { label: "Ladder", title: "A rung of the ladder on the same side with more edge than his main line. Click the row for every rung." },
+  { label: "Median", key: "med", title: `His median ${SIM_PAGE.unit.toLowerCase()} in the 10,000 games` },
+  { label: "Hit %", key: "chance", title: "How often this side wins in the 10,000 games" },
+  { label: "Fair", title: "The price with no cut at which our chance breaks even" },
+  { label: "Edge", key: "edge", title: "Our chance minus the chance the price needs to break even, in points" },
+  { label: "Min", key: "min", title: "His minutes in the sims" },
+];
+function edgeCell(x) {
+  const e = x.edge;
+  const cls = x.play ? " tier-good" : "";
+  const alpha = x.play ? ` style="--tier-a:${Math.min(0.36, 0.14 + (e - minEdge()) * 2.5).toFixed(2)}"` : "";
+  return `<td class="num sim-edgec${cls}"${alpha} title="Our ${pct(x.chance)} minus the ${(oddsProb(x.price) * 100).toFixed(1)}% this price needs">${e === null ? "--" : signed(e * 100)}</td>`;
+}
+function playerCell(pid, team, opp, home) {
+  return `<td class="sim-plcell"><span class="sim-pl-in">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="muted-label">${posOf(pid)}</span><span class="sim-vs">${logo(team, 16)}<span>${home ? "vs" : "@"}</span>${logo(opp, 16)}</span></span></td>`;
+}
+function ratingTag(play, live) {
+  if (!play) return '<span class="muted-label">--</span>';
+  return `<span class="sim-rate${play.tier === "top" ? " top" : ""}"${live ? ' title="Locked at tip: this is the play the record grades"' : ""}>${play.tier === "top" ? "Top Play" : "Strong"}</span>`;
+}
+function listRow(x, i, cols) {
+  const key = `${x.g.game_id}:${x.pid}`;
+  const open = LIST.open === key;
+  const save = typeof nbaCardSaveBox === "function"
+    ? nbaCardSaveBox(nbaCardEntry(SIM_PAGE.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, x.side, x.line, [x.book, x.side, x.line, x.price]))
+    : "";
+  const lad = x.ladder
+    ? `<span class="sim-ladtag" title="${playName({ side: x.side, line: x.ladder.line, main: false })} at ${showOdds(x.ladder.price)} (${BOOK_INITIALS[x.ladder.book] || x.ladder.book}): ${signed(x.ladder.edge * 100)} points of edge">${chipText(x.side, x.ladder.line, false)} ${showOdds(x.ladder.price)} <span>${signed(x.ladder.edge * 100)}</span></span>`
+    : '<span class="muted-label">--</span>';
+  const f = fair(x.chance);
+  return `<tr class="sim-row${open ? " open" : ""}${x.live ? " live" : ""}" data-row="${key}">
+    <td class="num sim-rank">${i + 1}</td>${playerCell(x.pid, x.team, x.opp, x.home)}
+    <td class="sim-playc">${chip(x.side, x.line, x.price, x.book)}${x.live ? "" : save}</td>
+    <td>${ratingTag(x.play, x.live)}</td><td>${lad}</td>
+    <td class="num"><b>${fmt(x.r[SIM_PAGE.stat].med.all, 0)}</b></td><td class="num">${pct(x.chance)}</td>
+    <td class="num">${f === null ? "--" : showOdds(f)}</td>${edgeCell(x)}<td class="num">${fmt(x.r.min)}</td><td class="sim-spacer"></td></tr>
+    ${open ? `<tr class="sim-detail"><td colspan="${cols}">${detail(x)}</td></tr>` : ""}`;
+}
+// ---- the open row: The Model (the 10,000 games and every rung) and the Shot Chart ----
+function hist(lad, side, line) {
+  const [lo, xs] = lad;
+  const bars = xs.map((x, i) => ({ k: lo + i, exact: (x - (xs[i + 1] || 0)) / 1000, hit: side === "o" ? lo + i > line : lo + i < line }));
+  const peak = Math.max(...bars.map((b) => b.exact), 0.0001);
+  return `<div class="sim-hist">${bars.map((b) => `<div class="${b.hit ? "hit" : ""}" style="height:${Math.max(2, Math.round((100 * b.exact) / peak))}%" title="${b.k}: ${(b.exact * 100).toFixed(1)}%"></div>`).join("")}</div>
+    <div class="sim-hlab">${bars.map((b, i) => `<span>${i % Math.ceil(bars.length / 9) === 0 ? b.k : ""}</span>`).join("")}</div>`;
+}
+function ladderTable(x) {
+  const ml = x.line;
+  const rows = sideLines(x.g, x.pid, x.side).map((line) => [x.side, line]);
+  if (!rows.some(([, l]) => l === ml)) rows.push([x.side, ml]);
+  rows.sort((a, b) => (x.side === "o" ? a[1] - b[1] : b[1] - a[1]));
+  rows.push([x.side === "o" ? "u" : "o", ml]); // the main line's other side, last (the NHL ladder's way)
+  const body = rows.map(([side, line]) => {
+    const c = sideChance(x.lad, side, line);
+    const best = bestPrice(x.g, x.pid, side, line);
+    const edge = best ? c - oddsProb(best.price) : null;
+    const f = fair(c);
+    const spec = priceSpec(x.g, x.pid, side, line, x.team);
+    const isMain = line === ml;
+    const isLadder = x.ladder && side === x.side && line === x.ladder.line;
+    return `<tr class="${isMain ? "main" : ""}${isLadder ? " best" : ""}"><td>${side === "o" ? "Over" : "Under"} ${fmt(line)}${isMain ? '<span class="sim-mn">Main</span>' : ""}</td>
+      <td class="num">${pct(c)}</td><td class="num">${f === null ? "--" : showOdds(f)}</td>
+      <td class="num">${best ? `<button type="button" class="sim-mini" data-bo="${boEnc(spec)}" title="Every book">${showOdds(best.price)} <small>${BOOK_INITIALS[best.book] || best.book}</small></button>` : "--"}</td>
+      <td class="num"${edge === null || Math.abs(edge) < EDGE_SHADE ? "" : shade(edge)}>${edge === null ? "--" : signed(edge * 100)}</td></tr>`;
+  }).join("");
+  return `<table class="sim-ladt"><thead><tr><th>Line</th><th>Our Chance</th><th>Fair</th><th>Best Price</th><th>Edge</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+function detail(x) {
+  const tabs = `<div class="sim-itabs">${[["model", "The Model"], ["shots", "Shot Chart"]].map(([k, label]) => `<button type="button" class="${LIST.tab === k ? "on" : ""}" data-sim-tab="${k}">${label}</button>`).join("")}</div>`;
+  if (LIST.tab === "shots") {
+    const view = typeof nbaShotView === "function" ? nbaShotView(x.pid) : "";
+    return `${tabs}<div class="sim-shots">${view}<p class="sim-noplay"><a href="shot-charts.html#p=${x.pid}&d=${x.opp}">His Shots Against ${team(x.opp).name}'s Defense &rsaquo;</a></p></div>`;
+  }
+  const sim = sims()[x.g.game_id];
+  const needs = oddsProb(x.price);
+  const all = x.r[SIM_PAGE.stat].lad;
+  const scripts = Object.fromEntries(SCRIPT_KEYS.map((k) => [k, all[k] ? sideChance(all[k], x.side, x.line) : null]));
+  const kind = KINDS[kindOf(scripts, needs)];
+  const dials = ["away", "home"].flatMap((k) => (sim.dials[k] || []).map((d) => `${x.g[k]} ${((PROPS.sim_meta.dials || {})[d] || [d])[0]}`));
+  const starts = ((sim.starters || {})[x.r.team] || []).includes(x.pid);
+  const hits = Math.min(9990, Math.round(x.chance * 1000) * 10);
+  const f = fair(x.chance);
+  return `${tabs}<div class="sim-dgrid">
+    <div>
+      <div class="sim-kicker">${playName({ side: x.side, line: x.line, main: true })} &middot; ${SIM_PAGE.unit} In The 10,000 Games</div>
+      <div class="sim-nums sim-nums4">
+        <div><small>Hit In</small><b>${hits.toLocaleString()}</b><i>of 10,000</i></div>
+        <div><small>GMG Fair</small><b>${f === null ? "--" : showOdds(f)}</b><i>${pct(x.chance)}</i></div>
+        <div class="${x.edge > 0 ? "sim-edge" : "sim-edge-gone"}"><small>Edge</small><b>${signed(x.edge * 100)}</b><i>needs ${(needs * 100).toFixed(1)}%</i></div>
+        <div><small>Book Line</small><b>${fmt(x.line)}</b><i>our median ${fmt(x.r[SIM_PAGE.stat].med.all, 0)}</i></div>
       </div>
-      <div><div class="sim-kicker">How Often It Hits In Each Script</div><div class="sim-scripts">${scripts}</div></div>
-      ${extra}
-      <div class="sim-tags">${kind ? `<span class="sim-tag ${kind[1]}" title="${kind[2]}">${kind[0]}</span>` : ""}${dials.map((d) => `<span class="sim-tag sim-t-dial">${d}</span>`).join("")}${p.locked ? '<span class="sim-tag sim-t-why" title="Saved at tip-off: this is the play the record grades">Locked At Tip</span>' : ""}</div>
-    </div></div>`;
+      <div class="sim-kicker">How Often It Hits In Each Script</div>
+      <div class="sim-scripts">${SCRIPT_KEYS.map((k) => `<div${scripts[k] === null ? "" : shade(scripts[k] - needs)}><small>${scriptLabel(x.g, k, true)}</small><b>${scripts[k] === null ? "--" : pct(scripts[k])}</b></div>`).join("")}</div>
+      <div class="sim-kicker">His ${SIM_PAGE.unit} In The 10,000 Games &middot; Green = This Side Wins</div>
+      ${hist(all.all, x.side, x.line)}
+      <div class="sim-tags">${kind ? `<span class="sim-tag ${kind[1]}" title="${kind[2]}">${kind[0]}</span>` : ""}${dials.map((d) => `<span class="sim-tag sim-t-dial">${d}</span>`).join("")}${starts ? `<span class="sim-tag sim-t-why" title="${sim.lineup ? "In the NBA's starting five" : "One of his team's five with the most minutes (the NBA's five isn't posted yet)"}">Starting</span>` : ""}${x.live ? '<span class="sim-tag sim-t-why" title="Saved at tip-off: this is the play the record grades">Locked At Tip</span>' : ""}</div>
+    </div>
+    <div>
+      <div class="sim-kicker">The Ladder &middot; ${x.side === "o" ? "Overs" : "Unders"}, Then The Other Side</div>
+      ${ladderTable(x)}
+      <p class="sim-off">Best Price: the best across your books; click it for every book. Shaded at ${Math.round(EDGE_SHADE * 100)}+ points either way.</p>
+    </div>
+  </div>`;
+}
+function listHead(cols, result) {
+  return `<thead><tr>${cols.map((c) => {
+    const on = c.key && c.key === LIST.sort;
+    return `<th${c.key ? ` class="sim-sort${on ? " on" : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${on ? `<span class="sim-arrow">${LIST.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
+  }).join("")}${result || ""}<th class="sim-spacer"></th></tr></thead>`;
+}
+function renderList() {
+  const date = days()[dayIndex];
+  if (isPast(date)) return renderPast(date);
+  el("sim-toolbar").hidden = false;
+  renderToolbar();
+  const rows = sortedList(date);
+  const bar = Math.round(minEdge() * 100);
+  const all = playsOn(date).length;
+  el("sim-list-note").innerHTML = `${all} play${all === 1 ? "" : "s"} tonight &middot; ${bar}+ points of edge on his main line, at the best price &middot; click a row for the model, the ladder and his shot chart`;
+  const cols = COLS.length + 1;
+  if (!rows.length) {
+    const noOdds = !Object.keys(DATA.book_odds || {}).length;
+    el("sim-list").innerHTML = `<p class="sim-noplay">${noOdds ? "The books haven't posted these lines yet. Plays show up once they do." : LIST.every ? "No player matches these filters." : `No plays${LIST.game ? " in this game" : " tonight"}: no main line has ${bar}+ points of edge.`}${!LIST.every ? ' <button type="button" class="view-toggle-btn" data-list-every="true">Show Every Player</button>' : ""}</p>`;
+    return;
+  }
+  const body = rows.map((x, i) => {
+    const prev = rows[i - 1];
+    const liveHead = x.live && i > 0 && !prev.live
+      ? `<tr class="sim-group"><td colspan="${cols}">Started: locked at tip, the price and the play the record grades.</td></tr>` : "";
+    const restHead = LIST.every && LIST.sort === "edge" && !x.play && (!prev || prev.play || prev.live !== x.live)
+      ? `<tr class="sim-group"><td colspan="${cols}">Not plays: under ${bar} points of edge on his main line, or not enough games or minutes yet.</td></tr>` : "";
+    return liveHead + restHead + listRow(x, i, cols);
+  }).join("");
+  el("sim-list").innerHTML = `<div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list">${listHead(COLS)}<tbody>${body}</tbody></table></div></div>`;
 }
 // ---- a past night: each play as locked at tip, Hit / Miss and what he got ----
 const unitsWon = (p) => (p.price > 0 ? p.price / 100 : 100 / -p.price);
-function resultCard(p) {
-  const color = `#${team(p.team).color || "555555"}`;
-  const vs = p.opp ? `${p.home ? "vs" : "@"} ${p.opp}` : "";
-  const done = p.result === "won" || p.result === "lost";
-  const final = { won: ["sim-won", "Hit"], lost: ["sim-lost", "Miss"], push: ["", "Push"], sat: ["", "Didn't Play"] }[p.result] || ["", "Waiting"];
-  const units = p.result === "won" ? unitsWon(p) : p.result === "lost" ? -1 : 0;
-  const kind = { proof: ["Script-Proof", "sim-t-proof"], chaos: ["Chaos Play", "sim-t-chaos"], close: ["Needs A Close Game", "sim-t-why"] }[p.kind];
-  const dials = [...new Set(p.dials || [])].map((d) => ((PROPS.sim_meta || {}).dials || {})[d] || [d]).map((d) => d[0]);
-  return `<div class="sim-play past${done ? ` ${p.result}` : ""}">
-    <div class="sim-banner" style="background:${color}">${logo(p.team, 18)} ${p.team || ""} ${vs}<span class="sim-tier">${p.tier === "top" ? "Top Play" : "Strong"}</span></div>
-    <div class="sim-pbody">
-      <div class="sim-who">${headshot(p.pid)}<div><b>${playerClick(p.pid, nameOf(p.pid))}</b><span>${posOf(p.pid)}${p.team ? ` &middot; ${team(p.team).name}` : ""}</span></div></div>
-      <div class="sim-bet">${playName(p)} <span class="bo-pill sim-price" title="The best price across every book at tip-off: what the record grades">${showOdds(p.price)}<small>${BOOK_INITIALS[p.book] || p.book}</small></span></div>
-      <div class="sim-nums">
-        <div class="${final[0]}"><small>${final[1]}</small><b>${p.got === null || p.got === undefined ? "--" : fmt(p.got, 0)}</b><i>${SIM_PAGE.unit.toLowerCase()}</i></div>
-        <div><small>Hit In</small><b>${(Math.round(p.chance * 1000) * 10).toLocaleString()}</b><i>of 10,000</i></div>
-        <div><small>Edge At Tip</small><b>${signed(p.edge * 100)}</b><i>${done ? `${units >= 0 ? "+" : "&minus;"}${Math.abs(units).toFixed(2)}u` : "&nbsp;"}</i></div>
-      </div>
-      <div class="sim-tags">${done ? `<span class="sim-tag sim-t-${p.result}">${final[1]}</span>` : ""}${kind ? `<span class="sim-tag ${kind[1]}">${kind[0]}</span>` : ""}${dials.map((d) => `<span class="sim-tag sim-t-dial">${d}</span>`).join("")}</div>
-    </div></div>`;
-}
 function renderPast(date) {
-  const plays = pastOn(date);
+  el("sim-toolbar").hidden = true;
+  const plays = pastOn(date).sort((a, b) => (a.tier === "top" ? -1 : b.tier === "top" ? 1 : b.edge - a.edge));
   const graded = plays.filter((p) => p.result === "won" || p.result === "lost");
   const w = graded.filter((p) => p.result === "won").length;
   const u = graded.reduce((a, p) => a + (p.result === "won" ? unitsWon(p) : -1), 0);
   const waiting = plays.filter((p) => !p.result).length;
-  el("sim-plays-title").textContent = "Results";
-  el("sim-plays-note").innerHTML = `${plays.length} play${plays.length === 1 ? "" : "s"} &middot; locked at tip &middot; graded at the best price across every book, 1 unit${waiting ? ` &middot; ${waiting} waiting on the box score` : ""}`;
+  el("sim-list-note").innerHTML = `Results &middot; ${plays.length} play${plays.length === 1 ? "" : "s"}, locked at tip, graded at the best price across every book, 1 unit${waiting ? ` &middot; ${waiting} waiting on the box score` : ""}`;
   if (!plays.length) {
-    el("sim-plays").innerHTML = '<p class="sim-noplay">No plays this night.</p>';
+    el("sim-list").innerHTML = '<p class="sim-noplay">No plays this night.</p>';
     return;
   }
-  const top = plays.filter((p) => p.tier === "top" && (p.result === "won" || p.result === "lost"));
-  el("sim-plays").innerHTML = `<div class="sim-night">
+  const top = plays.find((p) => p.tier === "top" && (p.result === "won" || p.result === "lost"));
+  const rows = plays.map((p, i) => {
+    const final = { won: ["sim-won", "Hit"], lost: ["sim-lost", "Miss"], push: ["", "Push"], sat: ["", "Didn't Play"] }[p.result] || ["", "Waiting"];
+    const units = p.result === "won" ? unitsWon(p) : p.result === "lost" ? -1 : 0;
+    const done = p.result === "won" || p.result === "lost";
+    return `<tr class="sim-row past${done ? ` ${p.result}` : ""}"><td class="num sim-rank">${i + 1}</td>${playerCell(p.pid, p.team, p.opp, p.home)}
+      <td class="sim-playc">${chip(p.side, p.line, p.price, p.book, p.main !== false)}</td><td>${ratingTag(p, false)}</td>
+      <td class="num sim-result ${final[0]}"><b>${final[1]}</b>${p.got === null || p.got === undefined ? "" : ` <span>${fmt(p.got, 0)}</span>`}</td>
+      <td class="num">${pct(p.chance)}</td><td class="num">${signed(p.edge * 100)}</td>
+      <td class="num ${units > 0 ? "sim-up" : units < 0 ? "sim-down" : ""}">${done ? `${units >= 0 ? "+" : "&minus;"}${Math.abs(units).toFixed(2)}u` : "--"}</td><td class="sim-spacer"></td></tr>`;
+  }).join("");
+  const head = `<thead><tr><th>#</th><th class="sim-th-player">Player</th><th>Play</th><th>Rating</th><th title="Hit / Miss and his ${SIM_PAGE.unit.toLowerCase()}">Result</th><th>Hit %</th><th title="Edge at the price locked at tip">Edge</th><th>Units</th><th class="sim-spacer"></th></tr></thead>`;
+  el("sim-list").innerHTML = `<div class="sim-night">
       <div><small>Record</small><b>${graded.length ? `${w}-${graded.length - w}` : "--"}</b></div>
       <div><small>Units</small><b class="${u >= 0 ? "sim-up" : "sim-down"}">${graded.length ? `${u >= 0 ? "+" : "&minus;"}${Math.abs(u).toFixed(2)}u` : "--"}</b></div>
-      <div><small>Top Play</small><b class="${top.length ? (top[0].result === "won" ? "sim-up" : "sim-down") : ""}">${top.length ? (top[0].result === "won" ? "Hit" : "Miss") : "--"}</b></div>
+      <div><small>Top Play</small><b class="${top ? (top.result === "won" ? "sim-up" : "sim-down") : ""}">${top ? (top.result === "won" ? "Hit" : "Miss") : "--"}</b></div>
     </div>
-    <div class="sim-plays-grid sim-past-grid">${plays.map(resultCard).join("")}</div>`;
-}
-
-function renderPlays() {
-  const date = days()[dayIndex];
-  if (isPast(date)) return renderPast(date);
-  el("sim-plays-title").textContent = "Tonight's Plays";
-  const plays = playsOn(date).sort((a, b) => (a.tier === "top" ? -1 : b.tier === "top" ? 1 : b.edge - a.edge));
-  const games = gamesOn(date);
-  const without = games.filter((g) => !plays.some((p) => p.game === g.game_id));
-  const meta = PROPS.sim_meta || {};
-  el("sim-plays-note").innerHTML = `${plays.length} play${plays.length === 1 ? "" : "s"} &middot; one per game at most &middot; ${Math.round((meta.min_edge || 0.04) * 100)}+ points of edge at the best price`;
-  if (!plays.length) {
-    el("sim-plays").innerHTML = `<p class="sim-noplay">${Object.keys(DATA.book_odds || {}).length ? "Nothing cleared the edge tonight. Every player's numbers are in the game board below." : "The books haven't posted these lines yet. Plays show up once they do; every player's numbers are in the game board below."}</p>`;
-    return;
-  }
-  el("sim-plays").innerHTML = `<div class="sim-plays-grid">${plays.map((p, i) => playCard(p, i === 0 && p.tier === "top")).join("")}</div>
-    ${without.length ? `<p class="sim-noplay">No play in ${without.map((g) => `${g.away} @ ${g.home}`).join(", ")}: nothing cleared the edge at the best price.</p>` : ""}`;
+    <div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list">${head}<tbody>${rows}</tbody></table></div></div>`;
 }
 
 // ---- the game board ----
+// The game cards: in Player View a card narrows the list to that game (again = every game,
+// the NHL pages' way); in Matchup View it picks the game board's game.
 function renderGamePicker() {
   const games = gamesOn(days()[dayIndex]);
   if (!games.some((g) => g.game_id === gameId)) gameId = games.length ? games[0].game_id : "";
-  el("matchup-row").innerHTML = games.map((g) => `<button type="button" class="matchup-card${g.game_id === gameId ? " selected" : ""}" data-game="${g.game_id}">
+  if (!games.some((g) => g.game_id === LIST.game)) LIST.game = "";
+  const on = view === "matchup" ? gameId : LIST.game;
+  el("matchup-row").innerHTML = games.map((g) => {
+    const n = playsOn(g.date).filter((p) => p.game === g.game_id).length;
+    return `<button type="button" class="matchup-card${g.game_id === on ? " selected" : ""}" data-game="${g.game_id}">
       <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
-      <span class="matchup-date">${fmtTime(g.time)}${playsOn(g.date).some((p) => p.game === g.game_id) ? " &middot; Play" : ""}</span></button>`).join("");
+      <span class="matchup-date">${fmtTime(g.time)}${n ? ` &middot; ${n} Play${n === 1 ? "" : "s"}` : ""}</span></button>`;
+  }).join("");
 }
 function dialRows(g, sim) {
   const meta = PROPS.sim_meta.dials;
@@ -298,7 +469,7 @@ function renderBoard() {
   const g = DATA.schedule.find((x) => x.game_id === gameId);
   const sim = g && sims()[g.game_id];
   if (!sim) {
-    el("sim-board").innerHTML = `<p class="sim-noplay">${isPast(days()[dayIndex]) ? "The game board is for upcoming games. This night's plays are graded above." : "No game on this day."}</p>`;
+    el("sim-board").innerHTML = `<p class="sim-noplay">${isPast(days()[dayIndex]) ? "The game board is for upcoming games. This night's plays are graded in Player View." : "No game on this day."}</p>`;
     return;
   }
   const lean = sim.margin === 0 ? "Even" : `${sim.margin > 0 ? g.home : g.away} By ${Math.abs(sim.margin)}`;
@@ -375,17 +546,87 @@ function render() {
   el("day-prev").disabled = dayIndex <= 0;
   el("day-next").disabled = dayIndex >= all.length - 1;
   renderRecord();
-  renderPlays();
+  document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === view));
+  el("sim-player").hidden = view !== "player";
+  el("sim-matchup").hidden = view !== "matchup";
   renderGamePicker();
-  renderBoard();
+  if (view === "player") renderList();
+  else renderBoard();
 }
 
+// Player View / Matchup View (the owner, 2026-10-25): a display pref, kept per device.
+let view = "player";
+try {
+  if (localStorage.getItem("nfl-tool.nba-sim-view") === "matchup") view = "matchup";
+} catch (err) {
+  // localStorage unavailable -- opens on Player View.
+}
+document.addEventListener("change", (e) => {
+  const sel = e.target.closest("[data-list]");
+  if (sel) {
+    LIST[sel.dataset.list] = sel.dataset.list === "minEdge" ? Number(sel.value) : sel.value;
+    LIST.open = null;
+    return renderList();
+  }
+  // a play saved to My Plays from a row (nba-card.js saves it): keep the boxes in step
+  if (e.target.closest("#sim-list .nba-pc-toggle")) renderList();
+});
+document.addEventListener("nba-shot-changed", () => view === "player" && LIST.tab === "shots" && renderList());
 document.addEventListener("click", (e) => {
+  const v = e.target.closest("[data-view]");
+  if (v) {
+    view = v.dataset.view;
+    try {
+      localStorage.setItem("nfl-tool.nba-sim-view", view);
+    } catch (err) {
+      // localStorage unavailable -- the view just won't stick.
+    }
+    return render();
+  }
   const card = e.target.closest("#matchup-row [data-game]");
   if (card) {
-    gameId = card.dataset.game;
+    if (view === "matchup") {
+      gameId = card.dataset.game;
+      renderGamePicker();
+      return renderBoard();
+    }
+    LIST.game = LIST.game === card.dataset.game ? "" : card.dataset.game;
+    LIST.open = null;
     renderGamePicker();
-    return renderBoard();
+    return renderList();
+  }
+  const clear = e.target.closest("[data-list-game]");
+  if (clear) {
+    LIST.game = "";
+    renderGamePicker();
+    return renderList();
+  }
+  const every = e.target.closest("[data-list-every]");
+  if (every) {
+    LIST.every = every.dataset.listEvery === "true";
+    LIST.open = null;
+    return renderList();
+  }
+  const sort = e.target.closest("#sim-list [data-sort]");
+  if (sort) {
+    if (LIST.sort === sort.dataset.sort) LIST.dir = -LIST.dir;
+    else {
+      LIST.sort = sort.dataset.sort;
+      LIST.dir = -1;
+    }
+    return renderList();
+  }
+  const tab = e.target.closest("[data-sim-tab]");
+  if (tab) {
+    LIST.tab = tab.dataset.simTab;
+    if (LIST.tab === "shots" && typeof nbaShotFile === "function" && nbaShotFile() === undefined) Promise.resolve(NBA_SHOT_FILE).then(renderList);
+    return renderList();
+  }
+  // a click on a row (anywhere but the name, a price or the save box) opens its detail
+  const row = e.target.closest("#sim-list tr.sim-row[data-row]");
+  if (row && !e.target.closest("a, button, label, input, .player-click, [data-bo]")) {
+    LIST.open = LIST.open === row.dataset.row ? null : row.dataset.row;
+    return renderList();
   }
   const pick = e.target.closest("[data-script]");
   if (pick && !pick.disabled) {
@@ -396,11 +637,13 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#day-prev") && dayIndex > 0) {
     dayIndex -= 1;
     script = "all";
+    LIST.open = null;
     return render();
   }
   if (e.target.closest("#day-next") && dayIndex < days().length - 1) {
     dayIndex += 1;
     script = "all";
+    LIST.open = null;
     return render();
   }
   if (e.target.closest("#theme-toggle")) {

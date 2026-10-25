@@ -654,16 +654,19 @@ def summary(out: dict, names: dict) -> dict:
             "scripts": shares, "dials": {"home": out["home_dials"], "away": out["away_dials"]}, "players": players}
 
 
-# ---- tonight's plays (the owner, 2026-10-24: a short list, not 170 rows) ----
-# Every price a book has for a player (the main line and every rung of the
-# ladder, Over and Under) against the sim's chance there; each player's best,
-# then each game's best, then the night's best MAX_PLAYS with MIN_EDGE+ (points
-# of chance over what the best price needs to break even). The night's biggest
-# edge is the Top Play, the rest Strong. A play is graded at its best price at
-# tip-off, 1 unit, Points and Threes apart.
+# ---- tonight's plays ----
+# Every player's main line (the line most books hang), Over and Under, at the
+# best price across the books, against the sim's chance there. A play = his
+# better side with MIN_EDGE+ (points of chance over what the price needs to
+# break even), every one of them, like the NHL pages (the owner, 2026-10-25:
+# "Why only 8 plays?! display everything with its edge just like hockey is";
+# main lines only, "most users are going to play his under X - x being his
+# main line": a ladder rung is a tag on the page, never the play). The night's
+# biggest edge is the Top Play, the rest Strong. A play is graded at its best
+# price at tip-off, 1 unit, Points and Threes apart. (2026-10-24 and 10-25:
+# the best of every rung, one a game, 8 a night.)
 STATS = {"points": "pts", "threes": "fg3m"}  # book market -> the sim's stat
 MIN_EDGE = 0.04
-MAX_PLAYS = 8
 PRICE_RANGE = (-250, 400)  # past +400 a rung's chance rests on a few hundred sims' tails
 MIN_GAMES = 2              # games this season before his numbers can make a play (3 left no one on 2026-10-24:
                            # every team had played 2; his rates already lean on his position's league numbers)
@@ -711,19 +714,18 @@ def kind_of(script_chances: dict, needs: float) -> str | None:
 
 
 def player_best(row: dict, stat_key: str, quotes: list, main_line) -> dict | None:
-    """His best priced play for one market, or None."""
+    """His better side at the main line for one market, or None."""
     lad = row[stat_key]["lad"]
     if "all" not in lad:
         return None
     best = None
     for (side_, line), (price, book) in best_prices(quotes).items():
-        if not PRICE_RANGE[0] <= price <= PRICE_RANGE[1]:
+        if main_line is None or line != float(main_line) or not PRICE_RANGE[0] <= price <= PRICE_RANGE[1]:
             continue
         chance = side_chance(lad["all"], side_, line)
         edge = chance - implied(price)
         if best is None or edge > best["edge"]:
-            best = {"side": side_, "line": line, "price": price, "book": book, "chance": round(chance, 4), "edge": round(edge, 4),
-                    "main": main_line is not None and float(main_line) == line}
+            best = {"side": side_, "line": line, "price": price, "book": book, "chance": round(chance, 4), "edge": round(edge, 4), "main": True}
     if best is None:
         return None
     needs = implied(best["price"])
@@ -738,19 +740,20 @@ def middle_line(quotes: list):
 
 
 def game_candidates(gid: str, game_row: dict, sim_game: dict, props: dict, games_played: dict, market: str) -> list:
-    """Every eligible player's best play in one game for one market (points /
-    threes), best first. props = the game's book_odds props."""
+    """Every eligible player's play in one game for one market (points /
+    threes): his better side at the main line, MIN_EDGE+, best first. props =
+    the game's book_odds props; only the main market is read (a ladder rung
+    is never the play)."""
     stat = STATS[market]
     main = props.get(market) or {}
-    alt = props.get(f"{market}_alt") or {}
     out = []
     for pid, row in sim_game["players"].items():
         if row["min"] < MIN_MINUTES or games_played.get(pid, 0) < MIN_GAMES:
             continue
-        quotes = [*((main.get(pid) or {}).get("q") or []), *((alt.get(pid) or {}).get("q") or [])]
+        quotes = (main.get(pid) or {}).get("q") or []
         if not quotes:
             continue
-        best = player_best(row, stat, quotes, middle_line((main.get(pid) or {}).get("q") or []))
+        best = player_best(row, stat, quotes, middle_line(quotes))
         if best is None or best["edge"] < MIN_EDGE:
             continue
         team = game_row["home"] if row["team"] == "home" else game_row["away"]
@@ -762,16 +765,10 @@ def game_candidates(gid: str, game_row: dict, sim_game: dict, props: dict, games
 
 
 def pick_plays(candidates: list, locked: list) -> list:
-    """The night's plays: one per game (its best), the best MAX_PLAYS
-    counting the plays already locked at tip-off tonight. The night's
-    biggest edge is the Top Play (unless a locked one already is)."""
-    taken_games = {p["game"] for p in locked}
-    per_game = {}
-    for c in candidates:
-        if c["game"] not in taken_games and (c["game"] not in per_game or c["edge"] > per_game[c["game"]]["edge"]):
-            per_game[c["game"]] = c
-    room = max(0, MAX_PLAYS - len(locked))
-    picked = sorted(per_game.values(), key=lambda c: -c["edge"])[:room]
+    """The night's plays: every candidate (each MIN_EDGE+ already), best
+    first. The night's biggest edge is the Top Play (unless a play locked at
+    tip-off tonight already is)."""
+    picked = sorted(candidates, key=lambda c: -c["edge"])
     has_top = any(p.get("tier") == "top" for p in locked)
     for i, p in enumerate(picked):
         p["tier"] = "top" if i == 0 and not has_top else "strong"

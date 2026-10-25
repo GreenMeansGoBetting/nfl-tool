@@ -8,8 +8,8 @@ to his position first); a player in the NBA's starting five plays starter minute
 names match across sources with accents; the dials (one schedule, one
 last-game, in their order) and their size; a dial costs the tired team
 points in the sims; the ladder's chances (a whole-number line's push left
-out); Script-Proof / Chaos / Close; the plays (each player's best price,
-each game's best, MAX_PLAYS a night counting the ones locked at tip, MIN_EDGE,
+out); Script-Proof / Chaos / Close; the plays (each player's main line only, at
+its best price, every one with MIN_EDGE, no cap a night or a game,
 the price range, the games and minutes floors); the record (graded at its
 price, a push or a player who sat not graded, the split tags); the build
 saves the plays until tip and never rewrites a started game; and on the
@@ -176,35 +176,37 @@ def game_row(pts, minutes=30):
 
 
 class Plays(unittest.TestCase):
-    def test_each_players_best_price_then_each_games_best(self):
+    def test_the_main_line_only_at_its_best_price(self):
         pts = [10] * 30 + [20] * 40 + [30] * 30  # 70% for 15.5+, 30% for 25.5+
         sim_game = {"players": {"1": game_row(pts), "2": game_row(pts), "3": game_row(pts, minutes=12)}, "dials": {"home": ["b2b"], "away": []}}
         # SmartStake's quotes carry a fifth field, the bet link
         props = {"points": {"1": {"q": [["dk", "o", 15.5, -110, ""], ["fd", "o", 15.5, -105, "https://fd"], ["dk", "u", 15.5, -110, ""]]},
                             "2": {"q": [["dk", "o", 15.5, -200]]},
                             "3": {"q": [["dk", "o", 15.5, 300]]}},  # 12 minutes: never a play
-                 "points_alt": {"1": {"q": [["dk", "o", 25.5, 300], ["dk", "o", 35.5, 2000]]}}}
+                 # a rung is never the play (2026-10-25): 2's 25.5 at +300 has +5 of edge, 1's +600 more than his main line
+                 "points_alt": {"1": {"q": [["dk", "o", 25.5, 600]]}, "2": {"q": [["dk", "o", 25.5, 300]]}}}
         g = {"date": "2026-10-24", "home": "BBB", "away": "AAA"}
         cands = sim.game_candidates("9", g, sim_game, props, {"1": 5, "2": 5, "3": 5}, "points")
         self.assertEqual([c["pid"] for c in cands], ["1"])  # 2: -200 needs 66.7% (70%: +3.3, under the minimum)
         c = cands[0]
-        # his best: 70% at FanDuel's -105 (needs 51.2%), over 25.5's 30% at +300 (needs 25%); +2000 is past the range
+        # his main line's better side: 70% at FanDuel's -105 (needs 51.2%)
         self.assertEqual((c["side"], c["line"], c["price"], c["book"], c["main"]), ("o", 15.5, -105, "fd", True))
         self.assertAlmostEqual(c["edge"], 0.7 - 105 / 205, places=3)
         self.assertEqual(c["kind"], "proof")
         self.assertEqual((c["team"], c["opp"], c["dials"]), ("BBB", "AAA", ["b2b"]))
         self.assertEqual(sim.game_candidates("9", g, sim_game, props, {"1": 1}, "points"), [])  # one game isn't enough
 
-    def test_one_a_game_the_nights_best_and_the_locked_ones_count(self):
-        cands = [{"game": str(i % 5), "edge": 0.04 + i / 100, "pid": str(i)} for i in range(10)]
+    def test_every_play_with_its_edge_no_cap(self):
+        # the owner, 2026-10-25: "Why only 8 plays?! display everything with its edge just like hockey is"
+        cands = [{"game": str(i % 2), "edge": 0.04 + i / 100, "pid": str(i)} for i in range(12)]
         picked = sim.pick_plays(cands, [])
-        self.assertEqual(len(picked), 5)
-        self.assertEqual(len({p["game"] for p in picked}), 5)
+        self.assertEqual(len(picked), 12)  # several in one game, more than 8 a night
+        self.assertEqual([p["pid"] for p in picked[:2]], ["11", "10"])
+        self.assertEqual([p["tier"] for p in picked].count("top"), 1)
         self.assertEqual(picked[0]["tier"], "top")
-        self.assertEqual(picked[0]["pid"], "9")
-        locked = [{"game": str(g), "tier": "top"} for g in range(10, 17)]  # 7 already locked tonight, the Top Play among them
+        locked = [{"game": "5", "tier": "top"}]  # the Top Play already locked at tip tonight
         picked = sim.pick_plays(cands, locked)
-        self.assertEqual(len(picked), sim.MAX_PLAYS - 7)
+        self.assertEqual(len(picked), 12)
         self.assertEqual(picked[0]["tier"], "strong")
 
 

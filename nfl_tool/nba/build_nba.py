@@ -888,7 +888,7 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
     return {"sim": sims, "sim_plays": plays,
             "sim_record": {m: {"ledger": sim.ledger(record, logs[m], m)} for m in sim.STATS},
             "sim_past": {m: past_plays(record, logs[m], m, today, block) for m in sim.STATS},
-            "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE, "max_plays": sim.MAX_PLAYS,
+            "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE,
                          "dials": {k: [label, own, opp] for k, (label, own, opp) in sim.DIAL_INFO.items()}}}
 
 

@@ -78,6 +78,7 @@ def setUpModule():
         SITE.nba, SITE.nba_props, SITE.nba_shots = DATA, PROPS, SHOTS
         PAGE = SITE.open("nba/points.html")
         PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
+        PAGE.click("[data-view='matchup']")  # the game board: every player of the game, the card on each name
         PAGE.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
     except Exception:
         SITE.close()

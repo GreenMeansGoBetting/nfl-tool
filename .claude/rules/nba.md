@@ -199,14 +199,18 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   10+), `base` (the same without the dials, `SIM_BASE_N` games), `dials` {home, away}, `starters`,
   `lineup` (the NBA's five was posted), `players` {id: team, min, pts / fg3m: med by script, mean,
   `lad` by script = [first k, permille of k or more ...] (`ladder`)}}, `sim_plays` {points, threes},
-  `sim_record` {market: {ledger}}, `sim_meta` (dial names, MIN_EDGE, MAX_PLAYS).
+  `sim_record` {market: {ledger}}, `sim_meta` (dial names, MIN_EDGE).
 - **Prices:** every book's main line and every rung (`smartstake.add_ladder`: `points_alt` and
   `threes_alt`, alternates included). `version.json` `nba.points_alt` / `threes_alt`.
-- **Tonight's Plays** (`game_candidates`, `pick_plays`): every price a book has for a player (main
-  and rungs, Over and Under, `PRICE_RANGE` -250 to +400) against the sim's chance; his best, each
-  game's best, the night's best `MAX_PLAYS` 8 with `MIN_EDGE` 4 points (counting plays locked at tip
-  tonight); 2+ games this season (3 left no plays on opening week) and 18+ sim minutes. The night's biggest edge = **Top Play**, the
-  rest **Strong**. **Script-Proof** (beats its price in every script), **Chaos** (loses in a close
+- **The plays** (`game_candidates`, `pick_plays`; since 2026-10-25): each player's **main line
+  only** (the middle of the books' lines), Over and Under at the best price (`PRICE_RANGE` -250 to
+  +400), against the sim's chance; **every one with `MIN_EDGE` 4+ points is a play, no cap a night or
+  a game** (the owner: "Why only 8 plays?! display everything with its edge just like hockey is";
+  main lines: "Most users are going to play his under X - x being his main line"); 2+ games this
+  season and 18+ sim minutes. The night's biggest edge = **Top Play**, the rest **Strong**. A rung
+  is never the play: the page shows it as the **Ladder** tag. (2026-10-24 to 10-25: the best of every
+  rung, one a game, 8 a night; Luka u25.5 +295 was a Top Play that way. Those plays stay in the record,
+  tagged alt.) **Script-Proof** (beats its price in every script), **Chaos** (loses in a close
   game, wins when it goes sideways), **Needs A Close Game**.
 - **The record:** `model_history/nba_props/sim_<season>.json` {game: {date, points: [play],
   threes: [play]}} (`PLAY_FIELDS`), rewritten until tip, never after; `sim.ledger` grades each play
@@ -215,16 +219,31 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
 - **Past nights** (2026-10-25, the owner: "I have no way to go back and see how anything
   performed"): props.json `sim_past` {market: [play + `got`, `result` won / lost / push / sat /
   None]} (`past_plays`); the day arrows step back to them and show Results (record, units, Top Play,
-  each play as locked at tip with Hit / Miss). The page opens on tonight's slate.
+  each play as locked at tip in the list with Hit / Miss, what he got, units). The page opens on tonight's slate.
 - **The pages** (`site/nba/points.html` / `threes.html` + `points.js` / `threes.js` = `SIM_PAGE`
-  config, on the shared `sim-board.js` + `sim.css`; Points / Threes tabs): hero (what it is, the
-  steps, the long how-it-works behind the i; record tiles Yesterday / Top Plays / Season in units
-  + YTD Model Performance, the shared YTD tracker with the split tags); **Tonight's Plays** cards (team
-  banner, the play as a rung "30+ Points" or "Over 27.5", the best price on the member's books with
-  its book (every-book list on click), Hit In x of 10,000, GMG Fair, Edge at that price, the three
-  scripts shaded against what the price needs, the Top Play's histogram, kind + dial tags with
-  the team, Locked At Tip), then the games with no play; the day arrows and game cards ("Play" on a
-  game with one); **Game Board**: team-color banner, The 10,000 Games (our median margin and total,
+  config, on the shared `sim-board.js` + `sim.css`; Points / Threes tabs). **Rebuilt 2026-10-25** (the
+  owner: the play cards and charts "feel busy to be thrown at a user immediately ... it goes against
+  what i've built so far and the effort to be consistent across pages"; "brainless for people who
+  want brainless, but deep for people who want deep"): the **Beta banner** back (suite.css
+  `.pts-testing`, the caution line, the how-it-works behind its i; record tiles Yesterday / Top Plays /
+  Season in units + YTD Model Performance, the shared YTD tracker with the split tags on its right),
+  then **Player View | Matchup View** (a display pref per device, `nfl-tool.nba-sim-view`), the day
+  arrows and game cards ("n Plays").
+  - **Player View** = the NHL Shots page's list: **opens on Plays Only** (the owner: "This is about
+    consistency. If users want the detailed look, theyll click"), Every Player adds the rest under
+    "Not plays"; Side (Best Side / Overs / Unders) and Edge menus; a game card narrows the list (again
+    = every game). Columns: #, Player (playerClick, logos), Play chip "o31.5 -110 FD" (green over, red
+    under; best price on the member's books) + save box (nba-card.js `nbaCardSaveBox`), Rating (Top
+    Play / Strong), **Ladder** (the rung on the same side with the most edge, when it clears 4 and
+    beats the main line's: "u25.5 +295 +9.4"), Median, Hit %, Fair, Edge, Min (Median / Hit / Edge /
+    Min sort). Started games gray under the rest. A click opens **The Model** (Hit In x of 10,000, GMG
+    Fair, Edge and what the price needs, Book Line, the three scripts shaded, the histogram, Script-
+    Proof / Chaos / Close + dial tags with the team, Starting, Locked At Tip; and **the ladder**: every
+    line on the play's side then the main line's other side, our chance, fair, best price with every
+    book on click, edge) and **Shot Chart** (`nbaShotView`, a link to the Shot Charts page vs tonight's
+    defense).
+  - **Matchup View** = the **Game Board** (the owner likes it; its columns get cleaned up next):
+    team-color banner, The 10,000 Games (our median margin and total,
   the book's second, the script bar with "without the dials"), Dials Tonight (each with both teams'
   points; the ones not on), Script Picker (All / a blowout / Close: every chance on the board from
   that script's games only), the starting-five source; the table: player (playerClick, S =
@@ -467,7 +486,7 @@ headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
   from the play-by-play; `first_basket.record` = {plays, won, units (1u at Novig), games}. The
   record uses the build's starters (the NBA lineup copy isn't applied there), the page the live five.
 - **Testing banner** (2026-10-23, the owner: "add the beta header on first basket"): the testing
-  banner (styles in suite.css; Points / Threes had it until their sim, 2026-10-24) at the top: Beta, Projections In Testing Until
+  banner (styles in suite.css; Points / Threes had it until their sim, 2026-10-24, and again from 2026-10-25) at the top: Beta, Projections In Testing Until
   Mid-November, the caution line, and on the right the **Value Record So Far** with the YTD Model
   Performance button (it sat beside the season buttons before).
 - **YTD Performance** (the owner, 2026-10-21: "a pill next to the years ... brings up a modal with
