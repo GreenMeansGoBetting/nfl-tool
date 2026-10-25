@@ -79,13 +79,16 @@ jobs:
         run: python tools/fetch_live_data.py --only nfl nhl --strict
 
       # The same command as deploy.yml's "Build NBA data" (bump the season in
-      # both). Not continue-on-error here: a failed build publishes nothing.
+      # both), with --fast-odds: only the Points and Threes prices fetched
+      # fresh (SmartStake gives 10 pages a minute; the full set is 3.5 of the
+      # build's 4.5 minutes), the rest carried from the live build.
+      # Not continue-on-error here: a failed build publishes nothing.
       - name: Build NBA data
         if: steps.check.outputs.go == 'yes'
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
-        run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json
+        run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json --fast-odds
 
       - name: Check the new files and note the refresh in version.json
         if: steps.check.outputs.go == 'yes'

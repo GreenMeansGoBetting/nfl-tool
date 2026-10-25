@@ -797,7 +797,7 @@ def kotc_record(season: int, slate: dict, used: int, block: dict | None, games: 
 PROPS_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_props"
 
 
-def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_utc: datetime) -> tuple:
+def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_utc: datetime, fast: bool = False) -> tuple:
     """Every US book's NBA points prices from SmartStake (smartstake.py), keyed
     "AWAY_HOME" with players by ESPN id; a started game keeps the last pregame
     copy (odds lock at tip-off). Never raises."""
@@ -818,7 +818,7 @@ def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_
 
     keep = {f"{g['away']}_{g['home']}" for g in games}
     return smartstake.fetch_nba_book_odds(os.environ.get("SMARTSTAKE_API_KEY"), team_of, player_key,
-                                          (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%MZ"), keep)
+                                          (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%MZ"), keep, fast=fast)
 
 
 def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=(), injuries=None, now_utc=None,
@@ -989,6 +989,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--data-dir", type=Path, default=Path("data/nba"))
     parser.add_argument("--cached", action="store_true", help="Reuse downloaded files (local testing)")
+    parser.add_argument("--fast-odds", action="store_true", help="The injury refresh: only Points / Threes odds fresh, the rest from the live build")
     args = parser.parse_args()
     force = not args.cached
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -1042,7 +1043,7 @@ def main():
     previous = fetch_previous()
     apply_lines(games, novig, previous, now_utc)
     lap("lines")
-    book_odds, book_odds_debug = nba_book_odds(teams, rosters, games, previous, now_utc)
+    book_odds, book_odds_debug = nba_book_odds(teams, rosters, games, previous, now_utc, fast=args.fast_odds)
     print(f"SmartStake NBA: {json.dumps(book_odds_debug)}")
     lap("smartstake")
     injury_list = live_injuries(abbr_by_id) or compute_injuries(injuries, abbr_by_id)

@@ -378,10 +378,46 @@ def nba_listed_markets(listed) -> dict:
     return {k: v for k, v in NBA_PROP_MARKETS.items() if k in keys}
 
 
-def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict | None, now_iso: str, keep=None) -> tuple:
+FAST_STATS = ("points", "threes")  # what the injury refresh fetches fresh (the sim's two markets)
+
+
+def carry_previous(games: dict, previous: dict | None, fresh=FAST_STATS) -> dict:
+    """The injury refresh's odds (fast=True): the sim's markets just fetched,
+    everything else (the player card's other markets, First Basket, the alt
+    ladders) carried from the live build. A player's carried ladder is
+    dropped when his main line moved (the news moved it: the old rungs are
+    stale prices); a game with no fresh prices keeps its old ones."""
+    def lines(entry):
+        return sorted({q[2] for q in (entry or {}).get("q") or [] if len(q) > 2})
+    for key, old in (previous or {}).items():
+        g = games.get(key)
+        if g is None:
+            games[key] = old
+            continue
+        for market, prices in (old.get("props") or {}).items():
+            if market in fresh:
+                continue
+            base = market[:-4] if market.endswith("_alt") else None
+            if base in fresh:
+                kept = {pid: v for pid, v in prices.items()
+                        if lines((g["props"].get(base) or {}).get(pid)) == lines(((old.get("props") or {}).get(base) or {}).get(pid))}
+                if kept:
+                    g["props"][market] = kept
+            else:
+                g["props"].setdefault(market, prices)
+        for part in ("td", "lines"):
+            if old.get(part) and not g.get(part):
+                g[part] = old[part]
+    return games
+
+
+def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict | None, now_iso: str, keep=None, fast=False) -> tuple:
     """The NBA's (book_odds, debug), same rules as fetch_nfl_book_odds.
     team_of(full team name) -> abbreviation; player_key(name, away, home) ->
-    the ESPN player id, or None for a player the site doesn't list."""
+    the ESPN player id, or None for a player the site doesn't list. fast =
+    the injury refresh (nba-refresh.yml): only Points and Threes main lines
+    fresh, the rest carried (carry_previous). SmartStake gives 10 pages a
+    minute, and the full set took 216 of the build's 275 seconds on 10-25."""
     if not api_key:
         return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
     try:
@@ -392,6 +428,8 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
             listed = []
         markets = nba_prop_market_keys(listed) or {v: k for k, v in NBA_PROP_GUESS.items()}
         markets.update(nba_listed_markets(listed))
+        if fast:
+            markets = {k: v for k, v in markets.items() if v in FAST_STATS}
         quotes = fetch_quotes(api_key, "nba", list(markets), max_pages=60)
         games = build_book_odds(quotes, team_of, prop_markets=markets, td_market=None, line_markets={}, player_key=player_key)
         priced = sum(len(g["props"].get("points") or {}) for g in games.values())
@@ -400,6 +438,10 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
         if not priced:
             named = [m if isinstance(m, str) else f"{m.get('key') or m.get('market_key')} ({m.get('name') or m.get('market_name') or ''})" for m in listed]
             debug["note"] = "; ".join(n for n in named if "point" in n.lower())[:500]
+        if fast:
+            debug["fast"] = True
+            games = carry_previous(games, previous)  # previous = the live build's book_odds here
+            return only_games(lock_started(games, previous, now_iso), keep), debug
         debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
         # every rung of the points and threes ladders (the NBA game sim prices them all, 2026-10-24)
         for stat in ("threes", "points"):

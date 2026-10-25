@@ -206,7 +206,11 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   tonight's untipped teams, fingerprints of ESPN's statuses `inj` and the NBA's posted fives `lu`,
   `nfl_tool/nba/watch.py`) and `timing` (seconds per part). The Cloudflare Worker gmg-nhl-timer
   (`workers/nhl-timer/watch.js`, every minute 11 am to 1 am ET) works out the same fingerprints and
-  on a change presses `.github/workflows/nba-refresh.yml` (members-and-hosting.md). The two sides
+  on a change presses `.github/workflows/nba-refresh.yml` (members-and-hosting.md). The refresh builds
+  with `--fast-odds` (smartstake `fetch_nba_book_odds(fast=True)`, `carry_previous`): only Points /
+  Threes main lines fresh, every other market and the ladders from the live build, a player's ladder
+  dropped when his main line moved. SmartStake gives 10 pages a minute: the full odds were 216 of the
+  build's 275 seconds on 10-25. The two sides
   must match to the letter (`tests/test_nba_watch.py`). Paid sources were turned down (the owner:
   "i dont want to pay": X's API for Underdog's posts). **Mark Out** (the owner's, 2026-10-25): a
   button on every Matchup View row (owner only, `.sim-markout`) saves `/api/nba-outs` (D1

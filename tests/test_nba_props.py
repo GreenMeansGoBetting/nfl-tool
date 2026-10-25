@@ -139,6 +139,46 @@ class SmartStakeNba(unittest.TestCase):
         self.assertEqual(row["q"][0][2], 14.5)
 
 
+class FastOdds(unittest.TestCase):
+    """The injury refresh's odds (2026-10-25, smartstake fetch_nba_book_odds fast=True):
+    only Points and Threes main lines fetched, the rest carried from the live build."""
+
+    def test_only_the_sims_markets_are_fetched_and_the_rest_carried(self):
+        asked = []
+
+        def fake_get(key, path, params):
+            if path == "/v1/markets":
+                return {"data": [{"key": "basketball_player_points"}, {"key": "basketball_player_made_threes"}, {"key": "basketball_player_rebounds"}]}
+            asked.append(params)
+            q = {"event_id": 1, "book": "draftkings", "market_key": "basketball_player_points", "player_id": 9, "participant": "LeBron James",
+                 "away": "Detroit Pistons", "home": "Philadelphia 76ers", "side": "over", "line": 26.5, "odds": -115, "starts_at": "2026-10-25T23:30:00Z"}
+            maxey = {**q, "player_id": 10, "participant": "Tyrese Maxey", "line": 25.5}
+            return {"data": [q, {**q, "side": "under", "odds": -105}, maxey, {**maxey, "side": "under"}]}
+
+        old_q = lambda line: {"name": "x", "q": [["draftkings", "o", line, -110], ["draftkings", "u", line, -110]]}  # noqa: E731
+        previous = {"DET_PHI": {"kickoff": "2026-10-25T23:30:00Z", "td": {}, "lines": {}, "props": {
+            "points": {"1966": old_q(23.5), "4431678": old_q(25.5)},
+            "rebounds": {"1966": old_q(7.5)},
+            "points_alt": {"1966": old_q(30.5), "4431678": old_q(30.5)}}},
+            "BOS_NY": {"kickoff": "2026-10-26T00:00:00Z", "td": {}, "lines": {}, "props": {"points": {"5": old_q(20.5)}}}}
+        ids = {"lebronjames": "1966", "tyresemaxey": "4431678"}
+        real = smartstake._get
+        smartstake._get = fake_get
+        try:
+            games, debug = smartstake.fetch_nba_book_odds("k", lambda full: {"detroit pistons": "DET", "philadelphia 76ers": "PHI"}.get(full.lower()),
+                                                          lambda name, a, h: ids.get(smartstake.norm_player(name)), previous, "2026-10-25T20:00Z", fast=True)
+        finally:
+            smartstake._get = real
+        self.assertTrue(debug["fast"])
+        self.assertEqual([p["market"] for p in asked], ["basketball_player_points,basketball_player_made_threes"])  # no rebounds, no ladders
+        g = games["DET_PHI"]["props"]
+        self.assertEqual(g["points"]["1966"]["q"][0][2], 26.5)  # fresh
+        self.assertEqual(g["rebounds"], previous["DET_PHI"]["props"]["rebounds"])  # carried
+        self.assertNotIn("1966", g["points_alt"])  # his line moved 23.5 -> 26.5: the old rungs are stale
+        self.assertIn("4431678", g["points_alt"])  # Maxey's line didn't move: his ladder is kept
+        self.assertIn("BOS_NY", games)  # a game with no fresh prices keeps its old ones
+
+
 class GameLog(unittest.TestCase):
     def test_the_card_fields_come_after_the_first_eleven(self):
         # Older files and the Points page read the first eleven by position.
