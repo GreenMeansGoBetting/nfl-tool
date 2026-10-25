@@ -6,11 +6,13 @@ What is pinned: the Beta banner with the record tiles (Yesterday / Top Plays /
 Season, units) and the Model Performance popup's splits; Player View, the NHL
 pages' list (the owner, 2026-10-25): opens on the plays only, each at his main
 line ("o19.5") with the best price across the member's books and its book,
-Top Play, the Ladder tag (a rung on the same side with more edge: "30+ +300
-+11.0"), Median, Hit %, Fair, Edge, Min; Every Player adds the rest under
+Top Play, Fair, Edge, the hit rates (L5 / L10 / Season / Home / Away over
+tonight's line, "x of y") and the tags (the Ladder: a rung on the same side
+with more edge, "30+ +300 +11.0"; Script-Proof; whose dial); Every Player adds the rest under
 their own heading; a click opens The Model (Hit In x of 10,000, what the
 price needs, the scripts, Script-Proof, whose dial, Starting, the histogram,
-the ladder with the main line and the tagged rung) and the Shot Chart tab;
+the ladder with the main line and the tagged rung) and the Shot Chart tab (his
+chart beside what tonight's defense allows);
 My Books changes the price and the edge; a game card narrows the list; a
 past night lists its plays graded. Matchup View: the game picker (a card per
 game) and the game board (both teams, minutes, medians by script, the main
@@ -60,7 +62,10 @@ def build(market, stat, line, rung_line, play_name_line):
             "scripts": {"away": 0.66, "close": 0.66, "home": 0.80}, "dials": ["rest_edge"], "med": 20}
     props = {
         "default": "2027",
-        "seasons": {"2027": {"label": "2026-27", "fields": [], "players": {"1": {"name": "Player One", "team": "AAA", "pos": "SF", "log": []},
+        # player one's games: points 10, 25, 30, 15, 22, 18 (home, road, ...); threes 0, 1, 2, 0, 1, 3
+        "seasons": {"2027": {"label": "2026-27", "fields": ["game", "home", "min", "pts", "fg3m", "fg3a"],
+                             "players": {"1": {"name": "Player One", "team": "AAA", "pos": "SF",
+                                               "log": [[str(700 + i), 1 - i % 2, 34, pts, m, m + 3] for i, (pts, m) in enumerate(zip([10, 25, 30, 15, 22, 18], [0, 1, 2, 0, 1, 3]))]},
                                                                             "2": {"name": "Player Two", "team": "BBB", "pos": "C", "log": []}}, "out": {}}},
         "sim": {"900": game, "901": quiet},
         "sim_plays": {market: [play], ("threes" if market == "points" else "points"): []},
@@ -132,11 +137,20 @@ class Plays(unittest.TestCase):
         self.assertIn("Player One", row)
         self.assertIn("o19.5 -150 FD", row)  # FanDuel's -150 beats DraftKings' -160
         self.assertIn("TOP PLAY", row.upper())
-        self.assertIn("30+ +300 +11.0", row)  # the Ladder tag: 36% at +300 beats the main line's +6.0
-        self.assertIn("66%", row)
         self.assertIn("-194", row)  # 66% with no cut
         self.assertIn("+6.0", row)
-        self.assertIn("34.5", row)
+        heads = text("#sim-list thead tr:last-child th")
+        self.assertEqual(heads[:5], ["#", "PLAYER", "PLAY", "RATING", "FAIR"])
+        self.assertTrue(heads[5].startswith("EDGE"), heads)
+        self.assertEqual(heads[6:], ["L5", "L10", "SEASON", "HOME", "AWAY", "TAGS"])
+        self.assertIn("HIT RATE - BASED ON PTS", PAGE.inner_text("#sim-list thead").upper())
+        # over 19.5: last 5 (25, 30, 15, 22, 18) 3 of 5; last 10 = the season, 3 of 6; home (10, 30, 22) 2 of 3; road 1 of 3
+        cells = PAGE.evaluate("() => [...document.querySelectorAll('#sim-list tr.sim-row td.sim-hit')].map((td) => td.innerText.replace(/\\s+/g, ' '))")
+        self.assertEqual(cells, ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6", "67% 2 of 3", "33% 1 of 3"])
+        tags = " ".join(text("#sim-list tr.sim-row .sim-rtag")).upper()
+        self.assertIn("LADDER 30+ +300 +11.0", tags)  # 36% at +300 beats the main line's +6.0
+        self.assertIn("SCRIPT-PROOF", tags)  # 66 / 66 / 80% against the 60% -150 needs
+        self.assertIn("AAA REST EDGE", tags)
 
     def test_every_player_adds_the_rest(self):
         PAGE.click("[data-list-every='true']")
@@ -167,14 +181,24 @@ class Plays(unittest.TestCase):
             self.assertIn("MAIN", ladder[0].upper())
             self.assertIn("+11.0", PAGE.inner_text("#sim-list .sim-ladt tr.best"))
             PAGE.click("[data-sim-tab='shots']")
-            PAGE.wait_for_function("() => document.querySelector('#sim-list .nba-shot-sum')")
-            self.assertIn("1 SHOTS", " ".join(PAGE.inner_text("#sim-list tr.sim-detail").upper().split()))
-            self.assertIn("TEAM BBB'S DEFENSE", PAGE.inner_text("#sim-list tr.sim-detail").upper())
+            PAGE.wait_for_function("() => document.querySelector('#sim-list .sim-zone-pair')")
+            heads = [h.upper() for h in text("#sim-list .sim-zone-head")]
+            self.assertEqual(len(heads), 2)  # his chart, then what BBB's defense allows
+            self.assertIn("1 SHOTS", heads[0])
+            self.assertIn("BBB DEFENSE ALLOWS", heads[1])
+            self.assertEqual(PAGE.query_selector("#sim-list .nba-shot-table"), None)  # no zone table under the chart
             PAGE.click("[data-sim-tab='model']")
         finally:
             PAGE.click("#sim-list tr.sim-row .sim-rank")
         self.assertEqual(PAGE.query_selector("#sim-list tr.sim-detail"), None)
         self.assertEqual(SITE.errors, [])
+
+    def test_the_tag_menu(self):
+        PAGE.select_option("[data-list='tag']", "proof")
+        try:
+            self.assertEqual(len(rows()), 1)
+        finally:
+            PAGE.select_option("[data-list='tag']", "")
 
     def test_my_books_set_the_price_and_the_edge(self):
         PAGE.evaluate("() => { localStorage.setItem('nfl-tool.my-books.v1', JSON.stringify({hidden: ['fanduel']})); render(); }")

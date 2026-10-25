@@ -160,7 +160,7 @@ function shade(diff) {
 // when a rung on the same side has more edge; a click opens The Model / Shot Chart.
 // Opens on the plays only, like the NHL pages ("If users want the detailed look,
 // theyll click").
-const LIST = { side: "best", minEdge: 0, every: false, sort: "edge", dir: -1, open: null, tab: "model", game: "" };
+const LIST = { side: "best", minEdge: 0, every: false, tag: "", sort: "edge", dir: -1, open: null, tab: "model", game: "" };
 const PRICE_RANGE = [-250, 400]; // the build's: past +400 a rung's chance rests on a few hundred sims' tails
 const minEdge = () => (PROPS.sim_meta || {}).min_edge || 0.04;
 // A game has started once its tip time has passed (times are Eastern, fixed UTC-4 like the build).
@@ -230,48 +230,211 @@ function listRows(date) {
         play: play && play.side === pick.side ? play : null, live, ladder: live ? null : ladderBest(g, pid, lad, pick.side, ml, pick.edge) });
     }
   }
+  out.forEach((x) => {
+    x.hits = hitsFor(x);
+    x.tags = tagsFor(x);
+  });
   return out;
 }
+
+// ---- hit rates: his games over tonight's line (a push isn't over), "x of y" ----
+// Back from the old props board (the owner, 2026-10-25: "install the old hit rates tab we used to
+// show on points and 3s, with all the sub columns"): L5, L10, Season, Home, Away, counting HIS
+// numbers over the line whichever side the play is, so an Under's red isn't bad news.
+const seasonBlock = () => (PROPS.seasons || {})[String(DATA.season)] || { players: {}, out: {}, fields: [] };
+const logFields = () => Object.fromEntries((seasonBlock().fields || []).map((f, i) => [f, i]));
+const logOf = (pid) => (seasonBlock().players[pid] || {}).log || [];
+function hits(rows, line, f) {
+  if (line === null || line === undefined || !rows.length) return null;
+  return { over: rows.filter((x) => x[f[SIM_PAGE.stat]] > line).length, of: rows.length };
+}
+function hitsFor(x) {
+  const f = logFields();
+  const log = logOf(x.pid);
+  return {
+    l5: hits(log.slice(-5), x.line, f),
+    l10: hits(log.slice(-10), x.line, f),
+    all: hits(log, x.line, f),
+    home: hits(log.filter((r) => r[f.home]), x.line, f),
+    away: hits(log.filter((r) => !r[f.home]), x.line, f),
+  };
+}
+const hitShare = (h) => (h ? h.over / h.of : -1);
+// Every cell colored by its percentage: red at 20% or less, yellow at 50%, green at 80% or more,
+// stronger the farther from 50%. The "x of y" under it says how many games it is.
+function hitCell(h, title) {
+  if (!h) return '<td class="num sim-hit">--</td>';
+  const share = h.over / h.of;
+  const hue = Math.round(Math.max(0, Math.min(1, (share - 0.2) / 0.6)) * 135);
+  const style = ` style="background:${scaleHsla(hue, 78, 44, 0.24 + Math.min(0.3, Math.abs(share - 0.5)) * 1.1)}"`;
+  return `<td class="num sim-hit"${style} title="${title}">${Math.round(share * 100)}%<small>${h.over} of ${h.of}</small></td>`;
+}
+
+// ---- tags (each {key, label, title, cls}; the Tag menu lists the night's keys) ----
+// The owner, 2026-10-25: "add the tags back that are relevant". The old board's (minutes from the
+// injury report; Points' zone fit; Threes' defense, underdog and hot / cold runs) plus the sim's own
+// (the Ladder, Script-Proof / Chaos / Needs A Close Game, the spot dials). Matchup tags read both
+// sides (his shots and what this defense allows).
+const TAG = (key, label, title, cls = "", filter = "") => ({ key, label, title, cls, filter: filter || label });
+const POS_GROUP = { PG: "G", SG: "G", G: "G", SF: "F", PF: "F", F: "F", C: "C" };
+const MIN_UP_MAX = 32; // a player already this many minutes a game gets no Min up tag
+const ZONE_FIT = 0.025; // weighted make rate allowed this far from the league's = Zone Fit / Tough Zones
+const ZONES = ["rim", "short", "mid", "corner3", "above3"];
+const TAG_Z = 1; // a defense this many league spreads from average = 3s Allowed / Tough 3s D / Help D
+const SHOOTER_SHARE = 0.3; // his share of shots from 3 at which a defense's threes matter to him
+const CATCH_SHARE = 0.35; // his share of shots that are catch-and-shoot, for Help D
+const DOG = 6; // his team getting this many points = Underdog (last season's replay: trailing teams shoot more threes)
+const STREAK = 0.6; // makes a game off his own rate over the last 5 = Cold Run / Hot Run
+const identityNow = () => {
+  const d = DATA.identity;
+  return d && d.seasons ? d.seasons[d.default] || Object.values(d.seasons)[0] || null : null;
+};
+function defZ(opp, key) {
+  const ib = identityNow();
+  const v = ib && ib.teams[opp] ? ib.teams[opp][key] : null;
+  const lg = ib ? ib.league[key] : null;
+  return v === null || v === undefined || !lg || !lg.sd ? null : (v - lg.avg) / lg.sd;
+}
+// his shot zones x what tonight's defense allows there, against the league's make rate in those zones
+function zoneFit(p, opp) {
+  const ib = identityNow();
+  if (!ib || !p.zones || !ib.teams[opp]) return null;
+  let allowed = 0;
+  let league = 0;
+  let total = 0;
+  for (const z of ZONES) {
+    const s = p.zones[z] || 0;
+    const a = ib.teams[opp][`def_${z}_pct`];
+    const l = (ib.league[`def_${z}_pct`] || {}).avg;
+    if (a === null || a === undefined || !l) continue;
+    allowed += s * a;
+    league += s * l;
+    total += s;
+  }
+  return total ? (allowed - league) / total : null;
+}
+// Minutes from injuries: a rotation teammate at his spot listed Out tonight = more minutes; one who
+// sat the team's last game and isn't listed Out tonight = back, fewer minutes.
+function minutesTags(x) {
+  const blk = seasonBlock();
+  const me = blk.players[x.pid];
+  if (!me) return [];
+  const f = logFields();
+  const group = POS_GROUP[me.pos] || "";
+  const avgMin = (p) => ((p.log || []).length ? p.log.reduce((a, r) => a + r[f.min], 0) / p.log.length : 0);
+  const mates = Object.entries(blk.players).filter(([id, p]) => id !== x.pid && p.team === x.team && POS_GROUP[p.pos] === group && avgMin(p) >= 20);
+  const out = new Set(((DATA.injuries || {})[x.team] || []).filter((i) => i.status === "Out").map((i) => String(i.id)));
+  const tags = [];
+  const gone = mates.filter(([id]) => out.has(id));
+  if (gone.length && avgMin(me) < MIN_UP_MAX) {
+    tags.push(TAG("min_up", "Min &uarr;", `${gone.map(([, p]) => p.name).join(", ")} (${gone.length > 1 ? "rotation players" : "a rotation player"} at his spot) ${gone.length > 1 ? "are" : "is"} listed Out tonight`, "", "Min Up"));
+  }
+  const log = me.log || [];
+  const lastGame = log.length ? log[log.length - 1][f.game] : null;
+  const sat = new Set((((blk.out || {})[x.team] || {})[String(lastGame)] || []).map(([id]) => String(id)));
+  const back = mates.filter(([id]) => sat.has(id) && !out.has(id));
+  if (back.length) tags.push(TAG("min_down", "Min &darr;", `${back.map(([, p]) => p.name).join(", ")} sat the last game and ${back.length > 1 ? "aren't" : "isn't"} listed Out tonight`, "", "Min Down"));
+  return tags;
+}
+function pointsTags(x, p) {
+  const fit = zoneFit(p, x.opp);
+  if (fit !== null && fit >= ZONE_FIT) return [TAG("zone_fit", "Zone Fit", `${x.opp} allows ${(fit * 100).toFixed(1)} points of make rate above the league where he shoots`, "good")];
+  if (fit !== null && fit <= -ZONE_FIT) return [TAG("tough_zones", "Tough Zones", `${x.opp} allows ${(-fit * 100).toFixed(1)} points of make rate below the league where he shoots`, "bad")];
+  return [];
+}
+function threesTags(x, p) {
+  const out = [];
+  const threes = p.zones ? (p.zones.corner3 || 0) + (p.zones.above3 || 0) : null;
+  const z3 = defZ(x.opp, "def_three_pp");
+  if (z3 !== null && z3 >= TAG_Z && threes !== null && threes >= SHOOTER_SHARE) out.push(TAG("allowed", "3s Allowed", `${x.opp} allows ${fmt(z3)} league spreads more threes a possession than average, and ${pct(threes)} of his shots are threes`, "good"));
+  if (z3 !== null && z3 <= -TAG_Z) out.push(TAG("tough", "Tough 3s D", `${x.opp} allows ${fmt(-z3)} league spreads fewer threes a possession than average`, "bad"));
+  const zc = defZ(x.opp, "def_catch3");
+  const catchShare = (p.kinds || {}).catch;
+  if (zc !== null && zc >= TAG_Z && catchShare !== undefined && catchShare >= CATCH_SHARE) out.push(TAG("help", "Help D", `Threes against ${x.opp} are catch-and-shoot ${fmt(zc)} league spreads more than average (help defense leaving shooters), and ${pct(catchShare)} of his shots are catch-and-shoot`, "good"));
+  const hs = x.g.home_team_spread;
+  const spread = hs === null || hs === undefined ? null : x.home ? hs : -hs;
+  if (spread !== null && spread >= DOG) out.push(TAG("dog", `Underdog +${fmt(spread)}`, `His team is getting ${fmt(spread)}: trailing teams shoot more threes (last season's replay)`, "", "Underdog"));
+  // hot / cold: his last 5 games' makes against his own make rate on the same tries
+  const f = logFields();
+  const log = logOf(x.pid);
+  const tried = log.reduce((a, r) => a + (r[f.fg3a] || 0), 0);
+  if (log.length >= 5 && tried) {
+    const rate = log.reduce((a, r) => a + (r[f.fg3m] || 0), 0) / tried;
+    const luck = log.slice(-5).reduce((a, r) => a + (r[f.fg3m] || 0) - (r[f.fg3a] || 0) * rate, 0) / 5;
+    if (luck <= -STREAK) out.push(TAG("cold", "Cold Run", `His last 5 games: ${fmt(-luck)} fewer makes a game than his own make rate says. Last season's replay: he tries a few % fewer next game; his make rate doesn't change`));
+    if (luck >= STREAK) out.push(TAG("hot", "Hot Run", `His last 5 games: ${fmt(luck)} more makes a game than his own make rate says. Last season's replay: he tries a few % more next game; his make rate doesn't change`));
+  }
+  return out;
+}
+function tagsFor(x) {
+  const tags = [];
+  if (x.ladder) tags.push(TAG("ladder", `Ladder ${chipText(x.side, x.ladder.line, false)} ${showOdds(x.ladder.price)} <span>${signed(x.ladder.edge * 100)}</span>`,
+    `${playName({ side: x.side, line: x.ladder.line, main: false })} at ${showOdds(x.ladder.price)} (${BOOK_INITIALS[x.ladder.book] || x.ladder.book}): ${signed(x.ladder.edge * 100)} points of edge, more than his main line. Click the row for every rung.`, "lad", "Ladder"));
+  const all = x.r[SIM_PAGE.stat].lad;
+  if (x.price !== null) {
+    const scripts = Object.fromEntries(SCRIPT_KEYS.map((k) => [k, all[k] ? sideChance(all[k], x.side, x.line) : null]));
+    const kind = kindOf(scripts, oddsProb(x.price));
+    if (kind) tags.push(TAG(kind, KINDS[kind][0], KINDS[kind][2], kind === "proof" ? "good" : kind === "chaos" ? "chaos" : ""));
+  }
+  const sim = sims()[x.g.game_id];
+  ["away", "home"].forEach((k) => (sim.dials[k] || []).forEach((d) => {
+    const [label] = ((PROPS.sim_meta || {}).dials || {})[d] || [d];
+    tags.push(TAG("dial", `${x.g[k]} ${label}`, `A spot dial is on for ${x.g[k]} tonight (it moves the sims; the Game Board in Matchup View has its size)`, "", "Spot Dial"));
+  }));
+  const p = seasonBlock().players[x.pid] || {};
+  tags.push(...minutesTags(x), ...(SIM_PAGE.market === "threes" ? threesTags(x, p) : pointsTags(x, p)));
+  return tags;
+}
+const tagHtml = (t) => `<span class="sim-rtag${t.cls ? ` ${t.cls}` : ""}" title="${t.title}">${t.label}</span>`;
 const SORTS = {
   edge: (x) => x.edge,
-  med: (x) => x.r[SIM_PAGE.stat].med.all,
   chance: (x) => x.chance,
-  min: (x) => x.r.min,
+  l5: (x) => hitShare(x.hits.l5),
+  l10: (x) => hitShare(x.hits.l10),
+  all: (x) => hitShare(x.hits.all),
+  home: (x) => hitShare(x.hits.home),
+  away: (x) => hitShare(x.hits.away),
+  tags: (x) => x.tags.length,
 };
 function sortedList(date) {
   const key = SORTS[LIST.sort] || SORTS.edge;
   return listRows(date)
-    .filter((x) => (LIST.every || x.play) && (!LIST.minEdge || (x.edge !== null && x.edge >= LIST.minEdge)))
+    .filter((x) => (LIST.every || x.play) && (!LIST.minEdge || (x.edge !== null && x.edge >= LIST.minEdge)) && (!LIST.tag || x.tags.some((t) => t.key === LIST.tag)))
     .sort((a, b) => (a.live - b.live) || (LIST.every && LIST.sort === "edge" ? !!b.play - !!a.play : 0) || LIST.dir * ((key(a) ?? -99) - (key(b) ?? -99)));
 }
-function renderToolbar() {
+function renderToolbar(rows) {
   const menu = (key, label, options, tip) =>
     `<label class="sim-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select data-list="${key}">${options.map(([v, text]) => `<option value="${v}"${String(LIST[key]) === String(v) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
   const bar = Math.round(minEdge() * 100);
   el("sim-toolbar").innerHTML =
     menu("side", "Side", [["best", "Best Side"], ["o", "Overs"], ["u", "Unders"]], "Best Side: the play's side, or the better side of his main line. Overs / Unders: that side for everyone") +
     menu("minEdge", "Edge", [[0, "Any"], ...[4, 6, 8, 10, 15].filter((n) => n >= bar).map((n) => [n / 100, `${n}+ Points`])], "Only rows with at least this much edge (our chance minus the chance the price needs, in points)") +
+    menu("tag", "Tag", [["", "All Tags"], ...[...new Map(rows.flatMap((x) => x.tags).map((t) => [t.key, t.filter]))]], "Only players with this tag") +
     `<span class="sim-seg">${[[false, "Plays Only", `Only the plays: ${bar}+ points of edge on his main line`], [true, "Every Player", "Every player with a main line: the plays first, then the rest"]]
       .map(([v, label, tip]) => `<button type="button" class="view-toggle-btn${LIST.every === v ? " active" : ""}" data-list-every="${v}" title="${tip}">${label}</button>`).join("")}</span>` +
     (LIST.game ? `<button type="button" class="view-toggle-btn" data-list-game="" title="Show every game again">${(() => { const g = DATA.schedule.find((x) => x.game_id === LIST.game); return g ? `${g.away} @ ${g.home}` : ""; })()} &times;</button>` : "");
 }
+// The owner, 2026-10-25: "Make it go PLAY, RATING, FAIR, EDGE, and then install the old hit rates
+// tab"; every number column only as wide as its numbers plus a little each side, Tags takes the rest.
 const COLS = [
   { label: "#" },
   { label: "Player", cls: "sim-th-player" },
   { label: "Play", title: "His main line, the side the model likes (o = over, u = under), at the best price across your books. The box saves it to My Plays." },
-  { label: "Rating", title: `Top Play: the night's biggest edge. Strong: every other play (4+ points of edge on his main line).` },
-  { label: "Ladder", title: "A rung of the ladder on the same side with more edge than his main line. Click the row for every rung." },
-  { label: "Median", key: "med", title: `His median ${SIM_PAGE.unit.toLowerCase()} in the 10,000 games` },
-  { label: "Hit %", key: "chance", title: "How often this side wins in the 10,000 games" },
-  { label: "Fair", title: "The price with no cut at which our chance breaks even" },
+  { label: "Rating", title: "Top Play: the night's biggest edge. Strong: every other play (4+ points of edge on his main line)." },
+  { label: "Fair", key: "chance", title: "The price with no cut at which our chance breaks even (our chance on hover)" },
   { label: "Edge", key: "edge", title: "Our chance minus the chance the price needs to break even, in points" },
-  { label: "Min", key: "min", title: "His minutes in the sims" },
+  { label: "L5", key: "l5", hit: true, title: "His last 5 games over tonight's line" },
+  { label: "L10", key: "l10", hit: true, title: "His last 10 games over tonight's line" },
+  { label: "Season", key: "all", hit: true, title: "This season's games over tonight's line" },
+  { label: "Home", key: "home", hit: true, title: "Home games over tonight's line" },
+  { label: "Away", key: "away", hit: true, title: "Road games over tonight's line" },
+  { label: "Tags", key: "tags", cls: "sim-th-tags", title: "The Ladder, how the play does in each script, the spot dials, minutes from the injury report and the matchup" },
 ];
 function edgeCell(x) {
   const e = x.edge;
   const cls = x.play ? " tier-good" : "";
   const alpha = x.play ? ` style="--tier-a:${Math.min(0.36, 0.14 + (e - minEdge()) * 2.5).toFixed(2)}"` : "";
-  return `<td class="num sim-edgec${cls}"${alpha} title="Our ${pct(x.chance)} minus the ${(oddsProb(x.price) * 100).toFixed(1)}% this price needs">${e === null ? "--" : signed(e * 100)}</td>`;
+  return `<td class="num sim-tight sim-edgec${cls}"${alpha} title="Our ${pct(x.chance)} minus the ${(oddsProb(x.price) * 100).toFixed(1)}% this price needs">${e === null ? "--" : signed(e * 100)}</td>`;
 }
 function playerCell(pid, team, opp, home) {
   return `<td class="sim-plcell"><span class="sim-pl-in">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="muted-label">${posOf(pid)}</span><span class="sim-vs">${logo(team, 16)}<span>${home ? "vs" : "@"}</span>${logo(opp, 16)}</span></span></td>`;
@@ -286,16 +449,14 @@ function listRow(x, i, cols) {
   const save = typeof nbaCardSaveBox === "function"
     ? nbaCardSaveBox(nbaCardEntry(SIM_PAGE.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, x.side, x.line, [x.book, x.side, x.line, x.price]))
     : "";
-  const lad = x.ladder
-    ? `<span class="sim-ladtag" title="${playName({ side: x.side, line: x.ladder.line, main: false })} at ${showOdds(x.ladder.price)} (${BOOK_INITIALS[x.ladder.book] || x.ladder.book}): ${signed(x.ladder.edge * 100)} points of edge">${chipText(x.side, x.ladder.line, false)} ${showOdds(x.ladder.price)} <span>${signed(x.ladder.edge * 100)}</span></span>`
-    : '<span class="muted-label">--</span>';
   const f = fair(x.chance);
   return `<tr class="sim-row${open ? " open" : ""}${x.live ? " live" : ""}" data-row="${key}">
     <td class="num sim-rank">${i + 1}</td>${playerCell(x.pid, x.team, x.opp, x.home)}
     <td class="sim-playc">${chip(x.side, x.line, x.price, x.book)}${x.live ? "" : save}</td>
-    <td>${ratingTag(x.play, x.live)}</td><td>${lad}</td>
-    <td class="num"><b>${fmt(x.r[SIM_PAGE.stat].med.all, 0)}</b></td><td class="num">${pct(x.chance)}</td>
-    <td class="num">${f === null ? "--" : showOdds(f)}</td>${edgeCell(x)}<td class="num">${fmt(x.r.min)}</td><td class="sim-spacer"></td></tr>
+    <td class="sim-tight">${ratingTag(x.play, x.live)}</td>
+    <td class="num sim-tight" title="Our chance: ${pct(x.chance)}">${f === null ? "--" : showOdds(f)}</td>${edgeCell(x)}
+    ${hitCell(x.hits.l5, "Last 5 games over tonight's line")}${hitCell(x.hits.l10, "Last 10 games over tonight's line")}${hitCell(x.hits.all, "This season's games over tonight's line")}${hitCell(x.hits.home, "Home games over tonight's line")}${hitCell(x.hits.away, "Road games over tonight's line")}
+    <td class="sim-tagc"><div class="sim-rtags">${x.tags.map(tagHtml).join("")}</div></td></tr>
     ${open ? `<tr class="sim-detail"><td colspan="${cols}">${detail(x)}</td></tr>` : ""}`;
 }
 // ---- the open row: The Model (the 10,000 games and every rung) and the Shot Chart ----
@@ -330,8 +491,7 @@ function ladderTable(x) {
 function detail(x) {
   const tabs = `<div class="sim-itabs">${[["model", "The Model"], ["shots", "Shot Chart"]].map(([k, label]) => `<button type="button" class="${LIST.tab === k ? "on" : ""}" data-sim-tab="${k}">${label}</button>`).join("")}</div>`;
   if (LIST.tab === "shots") {
-    const view = typeof nbaShotView === "function" ? nbaShotView(x.pid) : "";
-    return `${tabs}<div class="sim-shots">${view}<p class="sim-noplay"><a href="shot-charts.html#p=${x.pid}&d=${x.opp}">His Shots Against ${team(x.opp).name}'s Defense &rsaquo;</a></p></div>`;
+    return `${tabs}<div class="sim-shots">${zonesView(x)}</div>`;
   }
   const sim = sims()[x.g.game_id];
   const needs = oddsProb(x.price);
@@ -364,22 +524,67 @@ function detail(x) {
     </div>
   </div>`;
 }
-function listHead(cols, result) {
-  return `<thead><tr>${cols.map((c) => {
+// His shots next to every shot tonight's defense has allowed (shot-chart.js), one set of filters
+// for both, then the zones where both sides point the same way (nbaShotCall, the Shot Charts page's
+// Target / Tough rule). Back from the old board (the owner, 2026-10-25: "instead of the list of
+// columns and rows that regurgitate the chart anyway, can you add back the defensive chart for allowed").
+function zonesView(x) {
+  if (typeof nbaShotFile !== "function") return "";
+  const file = nbaShotFile();
+  if (file === undefined) {
+    Promise.resolve(NBA_SHOT_FILE).then(() => renderList());
+    return '<p class="no-data-note">Loading&hellip;</p>';
+  }
+  if (!file) return `<p class="no-data-note">Shot charts aren't available right now.</p>`;
+  const league = file.league || [];
+  const mine = nbaShotPick((file.players || {})[String(x.pid)] || [], NBA_SHOT_STATE);
+  const allowed = nbaShotPick(nbaShotAllowed(file, x.opp), NBA_SHOT_STATE);
+  const fg = (shots) => `${shots.length} Shots &middot; FG ${nbaShotPct(shots.reduce((n, s) => n + s[2], 0), shots.length)}`;
+  const chart = (shots, opts) => (!shots.length ? '<p class="no-data-note">No shots with these filters.</p>'
+    : `<div class="nba-shot-chart">${NBA_SHOT_STATE.view === "heat" ? nbaShotHeatView(shots, league, opts) : nbaShotZonesView(shots, league, opts)}</div>`);
+  const side = (abbr, label, shots, opts) => `<div class="sim-zone-side"><div class="sim-zone-head">${logo(abbr, 16)} <b>${label}</b><small>${fg(shots)}</small></div>${chart(shots, opts)}</div>`;
+  const ours = nbaShotZoneTotals(mine, false);
+  const theirs = nbaShotZoneTotals(allowed, false);
+  const lg = nbaShotZoneTotals(league, true);
+  const calls = [];
+  NBA_SHOT_GROUPS.forEach(([group, zones]) => zones.forEach(([z, name]) => {
+    const lr = lg[z] && lg[z][1] ? lg[z][0] / lg[z][1] : null;
+    const share = mine.length ? (ours[z] || [0, 0])[1] / mine.length : 0;
+    const call = nbaShotCall(ours[z], theirs[z], lr, share);
+    if (call) calls.push(`<span class="sim-zone-call" style="background:${nbaShotColor(call * NBA_SHOT_FULL, 0.3)};border-color:${nbaShotColor(call * NBA_SHOT_FULL, 0.8)}" title="${Math.round(share * 100)}% of his shots">${call === 1 ? "Target" : "Tough"}: ${group === "Threes" ? `${name} 3` : group === "Mid-Range" ? `Mid ${name}` : name}</span>`);
+  }));
+  return `<div class="nba-shot-controls">${nbaShotControls()}</div>
+    <div class="sim-zone-pair">${side(x.team, nameOf(x.pid), mine)}${side(x.opp, `${x.opp} Defense Allows`, allowed, { allowed: true })}</div>
+    <div class="sim-zone-calls">${calls.length ? calls.join("") : '<span class="muted-label">No zone where both sides point the same way.</span>'}
+      <a class="sim-zone-more" href="shot-charts.html#p=${x.pid}&d=${x.opp}">Zone By Zone &rsaquo;</a></div>`;
+}
+// The header: one "Hit Rate - Based On PTS / 3PM" box over the hit rate columns (the old board's look).
+function listHead(cols) {
+  let group = "";
+  for (let i = 0; i < cols.length; i += 1) {
+    if (cols[i].hit) {
+      let n = 0;
+      while (cols[i + n] && cols[i + n].hit) n += 1;
+      group += `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line (${SIM_PAGE.short}), whichever side the play is"><span>Hit Rate - Based On ${SIM_PAGE.short}</span></th>`;
+      i += n - 1;
+    } else group += "<th></th>";
+  }
+  return `<thead><tr class="sim-group-row">${group}</tr><tr>${cols.map((c) => {
     const on = c.key && c.key === LIST.sort;
-    return `<th${c.key ? ` class="sim-sort${on ? " on" : ""}" data-sort="${c.key}"` : c.cls ? ` class="${c.cls}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${on ? `<span class="sim-arrow">${LIST.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
-  }).join("")}${result || ""}<th class="sim-spacer"></th></tr></thead>`;
+    const cls = [c.key ? "sim-sort" : "", on ? "on" : "", c.cls || "", c.hit ? "sim-hit-th" : ""].filter(Boolean).join(" ");
+    return `<th${cls ? ` class="${cls}"` : ""}${c.key ? ` data-sort="${c.key}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${on ? `<span class="sim-arrow">${LIST.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
+  }).join("")}</tr></thead>`;
 }
 function renderList() {
   const date = days()[dayIndex];
   if (isPast(date)) return renderPast(date);
   el("sim-toolbar").hidden = false;
-  renderToolbar();
+  renderToolbar(listRows(date));
   const rows = sortedList(date);
   const bar = Math.round(minEdge() * 100);
   const all = playsOn(date).length;
   el("sim-list-note").innerHTML = `${all} play${all === 1 ? "" : "s"} tonight &middot; ${bar}+ points of edge on his main line, at the best price &middot; click a row for the model, the ladder and his shot chart`;
-  const cols = COLS.length + 1;
+  const cols = COLS.length;
   if (!rows.length) {
     const noOdds = !Object.keys(DATA.book_odds || {}).length;
     el("sim-list").innerHTML = `<p class="sim-noplay">${noOdds ? "The books haven't posted these lines yet. Plays show up once they do." : LIST.every ? "No player matches these filters." : `No plays${LIST.game ? " in this game" : " tonight"}: no main line has ${bar}+ points of edge.`}${!LIST.every ? ' <button type="button" class="view-toggle-btn" data-list-every="true">Show Every Player</button>' : ""}</p>`;

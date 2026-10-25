@@ -232,16 +232,26 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   - **Player View** = the NHL Shots page's list: **opens on Plays Only** (the owner: "This is about
     consistency. If users want the detailed look, theyll click"), Every Player adds the rest under
     "Not plays"; Side (Best Side / Overs / Unders) and Edge menus; a game card narrows the list (again
-    = every game). Columns: #, Player (playerClick, logos), Play chip "o31.5 -110 FD" (green over, red
-    under; best price on the member's books) + save box (nba-card.js `nbaCardSaveBox`), Rating (Top
-    Play / Strong), **Ladder** (the rung on the same side with the most edge, when it clears 4 and
-    beats the main line's: "u25.5 +295 +9.4"), Median, Hit %, Fair, Edge, Min (Median / Hit / Edge /
-    Min sort). Started games gray under the rest. A click opens **The Model** (Hit In x of 10,000, GMG
+    = every game). Columns (the owner, same day: "Make it go PLAY, RATING, FAIR, EDGE, and then install
+    the old hit rates tab"; Median / Hit % / Min dropped, "cramped"): #, Player (playerClick, logos),
+    Play chip "o31.5 -110 FD" (green over, red under; best price on the member's books) + save box
+    (nba-card.js `nbaCardSaveBox`), Rating (Top Play / Strong), Fair, Edge, then **Hit Rate - Based On
+    PTS / 3PM** (L5, L10, Season, Home, Away: his games OVER tonight's line whichever side the play is,
+    "x of y", colored red 20% to green 80% with `scaleHsla`), **Tags** (takes the spare width; every
+    other column is its contents + 10px a side). Tags (`tagsFor`, a Tag menu filters): **Ladder** (the
+    rung on the same side with the most edge, when it clears 4 and beats the main line's: "Ladder
+    u25.5 +295 +9.4"), Script-Proof / Chaos Play / Needs A Close Game, each dial on with its team, Min ↑ /
+    Min ↓ (a 20+ minute teammate at his spot Out tonight / back from sitting the last game), Points:
+    Zone Fit / Tough Zones (his zones x what this defense allows, 2.5 points); Threes: 3s Allowed /
+    Tough 3s D / Help D (Team Identity, 1 league spread), Underdog +6, Cold / Hot Run (last 5 makes
+    0.6 a game off his own rate). Every column but Player / Play / Rating sorts. Started games gray
+    under the rest. A click opens **The Model** (Hit In x of 10,000, GMG
     Fair, Edge and what the price needs, Book Line, the three scripts shaded, the histogram, Script-
     Proof / Chaos / Close + dial tags with the team, Starting, Locked At Tip; and **the ladder**: every
     line on the play's side then the main line's other side, our chance, fair, best price with every
-    book on click, edge) and **Shot Chart** (`nbaShotView`, a link to the Shot Charts page vs tonight's
-    defense).
+    book on click, edge) and **Shot Chart** (`zonesView`: his chart beside every shot tonight's defense
+    allowed, one set of filters, the Target / Tough zones where both point the same way, Zone By Zone =
+    the Shot Charts page; no zone table: the owner, it "regurgitate[s] the chart").
   - **Matchup View** = the **Game Board** (the owner likes it; its columns get cleaned up next):
     team-color banner, The 10,000 Games (our median margin and total,
   the book's second, the script bar with "without the dials"), Dials Tonight (each with both teams'

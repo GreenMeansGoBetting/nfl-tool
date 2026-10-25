@@ -39,7 +39,9 @@ class Threes(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
         row = PAGE.inner_text("#sim-list tr.sim-row")
         self.assertIn("o0.5", row)
-        self.assertIn("3+ +300 +11.0", " ".join(row.split()))
+        self.assertIn("LADDER 3+ +300 +11.0", " ".join(row.upper().split()))
+        self.assertIn("HIT RATE - BASED ON 3PM", PAGE.inner_text("#sim-list thead").upper())
+        self.assertIn("80%", row)  # last 5 games over 0.5 threes: 4 of 5
         self.assertIn("+6.0", row)
         PAGE.click("#sim-list tr.sim-row .sim-rank")
         try:

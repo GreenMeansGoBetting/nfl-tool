@@ -171,8 +171,6 @@
 .sim-playc .nba-pc-save { margin-left: 6px; vertical-align: middle; }
 .sim-rate { display: inline-block; font: 800 0.66rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; color: var(--good-text); background: rgba(var(--good-rgb), 0.1); border: 1px solid rgba(var(--good-rgb), 0.4); }
 .sim-rate.top { background: rgba(var(--good-rgb), 0.26); border-color: rgba(var(--good-rgb), 0.7); }
-.sim-ladtag { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border-radius: 7px; border: 1px dashed rgba(var(--mid-rgb), 0.75); background: rgba(var(--mid-rgb), 0.1); color: var(--mid-text); font: 800 0.82rem var(--font-display); }
-.sim-ladtag span { color: var(--muted); font-weight: 700; }
 .sim-list td.sim-edgec { font: 800 1.05rem var(--font-display); }
 .sim-list td.num b { font: 800 1.05rem var(--font-display); }
 .sim-list tr.sim-group td { background: var(--panel-2); color: var(--muted); font-size: 0.76rem; font-weight: 700; text-align: left; padding: 6px 10px; white-space: normal; }
@@ -204,4 +202,39 @@
 @media (max-width: 900px) {
   .sim-dgrid { grid-template-columns: 1fr; }
   .sim-nums4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 2026-10-25, second pass (the owner: "the edge column looks cramped - no standard overhang"): every
+   column but Tags only as wide as its contents plus 10px each side; Tags takes the rest. The hit rates
+   under one "Hit Rate - Based On PTS / 3PM" box, back from the old props board. */
+.sim-list td, .sim-list th { width: 1%; padding-left: 10px; padding-right: 10px; }
+.sim-list td.sim-tagc, .sim-list th.sim-th-tags { width: auto; text-align: left; }
+.sim-list td.sim-hit { min-width: 52px; font: 700 0.98rem var(--font-display); }
+.sim-hit small { display: block; font: 600 0.68rem var(--font-body); opacity: 0.75; }
+.sim-list thead tr.sim-group-row th { background: none; border: 0; padding: 0 0 2px; }
+.sim-group-row th.sim-hitgroup span { display: block; padding: 4px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.2); text-align: center; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text); }
+.sim-list thead tr:last-child th.sim-hit-th { background: linear-gradient(rgba(var(--accent-rgb), 0.08), rgba(var(--accent-rgb), 0.08)), var(--table-head); box-shadow: inset 0 -2px 0 rgba(var(--accent-rgb), 0.55); }
+/* every tag one look (the old board's: style.css .gs-tag's shape), amber for information, green / red
+   for a matchup, purple for Chaos, dashed for the Ladder */
+.sim-rtags { display: flex; gap: 4px; flex-wrap: wrap; white-space: normal; min-width: 180px; }
+.sim-rtag {
+  display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 6px; border-radius: 6px; font: 800 0.64rem var(--font-body);
+  letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
+  color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.55);
+}
+.sim-rtag.good { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
+.sim-rtag.bad { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.5); }
+.sim-rtag.chaos { color: var(--text); background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.6); }
+.sim-rtag.lad { border-style: dashed; font: 800 0.8rem var(--font-display); text-transform: none; letter-spacing: 0.02em; }
+.sim-rtag.lad span { color: var(--muted); }
+/* the Shot Chart tab: his chart beside what tonight's defense allows */
+.sim-zone-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sim-zone-side .nba-shot-chart { max-width: none; padding: 6px; }
+.sim-zone-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 0.85rem; }
+.sim-zone-head small { margin-left: auto; color: var(--muted); font-size: 0.72rem; }
+.sim-zone-calls { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; }
+.sim-zone-call { display: inline-block; padding: 1px 8px; border-radius: 6px; border: 1px solid transparent; font-size: 0.72rem; font-weight: 700; color: var(--text); }
+.sim-zone-more { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+@media (max-width: 900px) {
+  .sim-zone-pair { grid-template-columns: 1fr; }
 }
