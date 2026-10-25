@@ -1772,7 +1772,7 @@
     0.077,
     1200,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3945274": [
     "Luka Doncic",
@@ -1798,7 +1798,7 @@
    "4277961": [
     "Jaren Jackson Jr.",
     0.098,
-    750,
+    850,
     false,
     "fanduel"
    ],
@@ -1821,14 +1821,14 @@
     0.081,
     1000,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4433627": [
     "Keyonte George",
     0.117,
-    900,
-    true,
-    "fanduel"
+    810,
+    false,
+    "draftkings"
    ],
    "5041955": [
     "Darryn Peterson",
@@ -1859,7 +1859,7 @@
    "3064514": [
     "Julius Randle",
     0.109,
-    650,
+    700,
     false,
     "fanduel"
    ],
@@ -1896,7 +1896,7 @@
     0.096,
     700,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4396993": [
     "Tyrese Haliburton",
@@ -1922,9 +1922,9 @@
    "5175643": [
     "Egor Demin",
     0.086,
-    1200,
-    true,
-    "fanduel"
+    1100,
+    false,
+    "hard_rock"
    ]
   },
   "tip_home": 0.434
@@ -1976,16 +1976,16 @@
    "3934719": [
     "OG Anunoby",
     0.09,
-    1000,
+    900,
     false,
-    "fanduel"
+    "caesars"
    ],
    "4066320": [
     "Desmond Bane",
     0.133,
-    550,
+    600,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4277847": [
     "Wendell Carter Jr.",
@@ -2004,9 +2004,9 @@
    "4566434": [
     "Franz Wagner",
     0.142,
-    750,
+    710,
     true,
-    "fanduel"
+    "draftkings"
    ]
   },
   "tip_home": 0.437
@@ -2119,7 +2119,7 @@
    "2991139": [
     "Kris Dunn",
     0.076,
-    1600,
+    1500,
     true,
     "fanduel"
    ],
@@ -2184,7 +2184,7 @@
     0.107,
     700,
     false,
-    "fanduel"
+    "hard_rock"
    ]
   },
   "tip_home": 0.727
@@ -2219,9 +2219,9 @@
    "3908845": [
     "John Collins",
     0.135,
-    950,
+    900,
     true,
-    "fanduel"
+    "thescore"
    ],
    "3912848": [
     "Dean Wade",
@@ -2240,30 +2240,30 @@
    "4431678": [
     "Tyrese Maxey",
     0.116,
-    560,
+    568,
     false,
     "draftkings"
    ],
    "4432166": [
     "Cade Cunningham",
     0.124,
-    566,
+    554,
     false,
     "draftkings"
    ],
    "4684742": [
     "Ausar Thompson",
     0.102,
-    1100,
+    1000,
     true,
-    "fanduel"
+    "thescore"
    ],
    "5124612": [
     "VJ Edgecombe",
     0.085,
-    1020,
+    1100,
     false,
-    "draftkings"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
@@ -2284,9 +2284,9 @@
    "3064440": [
     "Zach LaVine",
     0.102,
-    860,
+    900,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3155942": [
     "Domantas Sabonis",
@@ -2298,14 +2298,14 @@
    "4065732": [
     "De'Andre Hunter",
     0.074,
-    800,
+    750,
     false,
     "fanduel"
    ],
    "4065733": [
     "Ty Jerome",
     0.131,
-    555,
+    554,
     false,
     "draftkings"
    ],
@@ -2328,7 +2328,7 @@
     0.1,
     800,
     false,
-    "fanduel"
+    "thescore"
    ],
    "5105550": [
     "GG Jackson",
@@ -2342,7 +2342,7 @@
     0.09,
     1000,
     false,
-    "fanduel"
+    "thescore"
    ],
    "5142620": [
     "Darius Acuff Jr.",
