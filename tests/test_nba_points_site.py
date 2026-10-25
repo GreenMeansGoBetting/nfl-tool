@@ -143,7 +143,7 @@ class Plays(unittest.TestCase):
         self.assertEqual(heads[:5], ["#", "PLAYER", "PLAY", "RATING", "FAIR"])
         self.assertTrue(heads[5].startswith("EDGE"), heads)
         self.assertEqual(heads[6:], ["L5", "L10", "SEASON", "HOME", "AWAY", "TAGS"])
-        self.assertIn("HIT RATE - BASED ON PTS", PAGE.inner_text("#sim-list thead").upper())
+        self.assertIn("HIT RATE - BASED ON OVER POINTS", PAGE.inner_text("#sim-list thead").upper())
         # over 19.5: last 5 (25, 30, 15, 22, 18) 3 of 5; last 10 = the season, 3 of 6; home (10, 30, 22) 2 of 3; road 1 of 3
         cells = PAGE.evaluate("() => [...document.querySelectorAll('#sim-list tr.sim-row td.sim-hit')].map((td) => td.innerText.replace(/\\s+/g, ' '))")
         self.assertEqual(cells, ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6", "67% 2 of 3", "33% 1 of 3"])
@@ -192,6 +192,29 @@ class Plays(unittest.TestCase):
             PAGE.click("#sim-list tr.sim-row .sim-rank")
         self.assertEqual(PAGE.query_selector("#sim-list tr.sim-detail"), None)
         self.assertEqual(SITE.errors, [])
+
+    def test_thin_columns_and_tags_on_one_line(self):
+        # the owner, 2026-10-25: "every column to always be a thin comfortable overhang ... I NEVER want
+        # tags to stack ... just do a +1 or +2 etc tag that can be hovered over"
+        PAGE.set_viewport_size({"width": 1400, "height": 900})
+        PAGE.click("[data-list-every='true']")
+        PAGE.evaluate("""() => { const old = tagsFor; window.tagsFor = (x) => [...old(x), ...['One Long Tag Here', 'Another Long Tag', 'Tough 3s D', 'Help D', 'More Words In A Tag']
+            .map((l) => ({key: l, label: l, title: l, cls: '', filter: l}))]; render(); }""")
+        try:
+            widths = PAGE.evaluate("() => [...document.querySelectorAll('#sim-list thead tr:last-child th')].map((th) => th.getBoundingClientRect().width)")
+            self.assertLess(widths[0], 40)  # "#": its digits plus the padding, never the spare width
+            self.assertLess(max(widths[6:11]), 75)  # the hit rates
+            self.assertGreater(widths[-1], 300)  # Tags takes the spare width
+            heights = PAGE.evaluate("() => [...document.querySelectorAll('#sim-list tr.sim-row')].map((tr) => Math.round(tr.getBoundingClientRect().height))")
+            self.assertEqual(len(set(heights)), 1, heights)  # no row taller from stacked tags
+            more = PAGE.query_selector("#sim-list .sim-rtag.more")
+            self.assertIsNotNone(more)
+            self.assertRegex(more.inner_text(), r"^\+\d+$")
+            self.assertIn("More Words In A Tag", more.get_attribute("title"))
+        finally:
+            PAGE.evaluate("() => { window.tagsFor = undefined; }")
+            PAGE.reload()
+            PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
 
     def test_the_tag_menu(self):
         PAGE.select_option("[data-list='tag']", "proof")

@@ -238,7 +238,8 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
     (nba-card.js `nbaCardSaveBox`), Rating (Top Play / Strong), Fair, Edge, then **Hit Rate - Based On
     PTS / 3PM** (L5, L10, Season, Home, Away: his games OVER tonight's line whichever side the play is,
     "x of y", colored red 20% to green 80% with `scaleHsla`), **Tags** (takes the spare width; every
-    other column is its contents + 10px a side). Tags (`tagsFor`, a Tag menu filters): **Ladder** (the
+    other column is its contents + 11px a side, centered; the hit rates one width, 62px; the header reads
+    "Hit Rate - Based On Over Points / Threes"; tags on one line, the rest in a "+N" pill, `fitTags`). Tags (`tagsFor`, a Tag menu filters): **Ladder** (the
     rung on the same side with the most edge, when it clears 4 and beats the main line's: "Ladder
     u25.5 +295 +9.4"), Script-Proof / Chaos Play / Needs A Close Game, each dial on with its team, Min ↑ /
     Min ↓ (a 20+ minute teammate at his spot Out tonight / back from sitting the last game), Points:

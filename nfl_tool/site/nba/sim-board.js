@@ -558,14 +558,15 @@ function zonesView(x) {
     <div class="sim-zone-calls">${calls.length ? calls.join("") : '<span class="muted-label">No zone where both sides point the same way.</span>'}
       <a class="sim-zone-more" href="shot-charts.html#p=${x.pid}&d=${x.opp}">Zone By Zone &rsaquo;</a></div>`;
 }
-// The header: one "Hit Rate - Based On PTS / 3PM" box over the hit rate columns (the old board's look).
+// The header: one "Hit Rate - Based On Over Points / Threes" box over the hit rate columns (the old
+// board's look; the owner, 2026-10-25: "make title (based on over points)").
 function listHead(cols) {
   let group = "";
   for (let i = 0; i < cols.length; i += 1) {
     if (cols[i].hit) {
       let n = 0;
       while (cols[i + n] && cols[i + n].hit) n += 1;
-      group += `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line (${SIM_PAGE.short}), whichever side the play is"><span>Hit Rate - Based On ${SIM_PAGE.short}</span></th>`;
+      group += `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line (${SIM_PAGE.unit.toLowerCase()}), whichever side the play is"><span>Hit Rate - Based On Over ${SIM_PAGE.unit}</span></th>`;
       i += n - 1;
     } else group += "<th></th>";
   }
@@ -599,7 +600,34 @@ function renderList() {
     return liveHead + restHead + listRow(x, i, cols);
   }).join("");
   el("sim-list").innerHTML = `<div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list">${listHead(COLS)}<tbody>${body}</tbody></table></div></div>`;
+  fitTags();
 }
+// Tags stay on one line (the owner: "I NEVER want tags to stack ... just do a +1 or +2 etc tag that
+// can be hovered over"): the ones that don't fit fold into a "+N" pill naming them on hover.
+function fitTags() {
+  document.querySelectorAll("#sim-list .sim-rtags").forEach((box) => {
+    box.querySelectorAll(".sim-rtag.more").forEach((m) => m.remove());
+    const tags = [...box.children];
+    tags.forEach((t) => (t.hidden = false));
+    if (box.scrollWidth <= box.clientWidth + 1) return;
+    const more = document.createElement("span");
+    more.className = "sim-rtag more";
+    box.appendChild(more);
+    let shown = tags.length;
+    while (shown > 0) {
+      shown -= 1;
+      tags[shown].hidden = true;
+      const rest = tags.slice(shown);
+      more.textContent = `+${rest.length}`;
+      more.title = rest.map((t) => t.textContent.trim()).join(" \u00b7 ");
+      if (box.scrollWidth <= box.clientWidth + 1) break;
+    }
+  });
+}
+window.addEventListener("resize", () => {
+  clearTimeout(fitTags.wait);
+  fitTags.wait = setTimeout(fitTags, 120);
+});
 // ---- a past night: each play as locked at tip, Hit / Miss and what he got ----
 const unitsWon = (p) => (p.price > 0 ? p.price / 100 : 100 / -p.price);
 function renderPast(date) {

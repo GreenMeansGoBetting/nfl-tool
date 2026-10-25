@@ -118,6 +118,10 @@ that, move detail into a rules file.
 - **Any new place that shows a player must use `playerClick`** (NHL pages: their own in `nhl/nhl-common.js`).
 - **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color
   banners, filled tier cells) rather than adding a new one. One font, Sofia Sans, for letters AND numbers on every sport (styles.md).
+- **Tables: every column its contents + one small even padding, centered** (names / tags read left);
+  ONE column takes the spare width (`width: 100%`; at `auto` the browser spreads it over every column),
+  tags never wrap (extras fold into a "+N" pill with a hover list). The owner, 2026-10-25: "I hate always
+  having to come back to this". Pattern: `table.data-table.sim-list` rules + `fitTags` (nba/sim.css, sim-board.js).
 - **Title Case every header, label and button** without being asked (the owner, 2026-10-21: "If its
   a header, every word needs capitalized"); when the owner gives exact wording, use it as written.
 - **Odds lock at kickoff:** never show in-game lines as the line; a saved pick shows the line it was made at.

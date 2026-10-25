@@ -207,16 +207,32 @@
 /* 2026-10-25, second pass (the owner: "the edge column looks cramped - no standard overhang"): every
    column but Tags only as wide as its contents plus 10px each side; Tags takes the rest. The hit rates
    under one "Hit Rate - Based On PTS / 3PM" box, back from the old props board. */
-.sim-list td, .sim-list th { width: 1%; padding-left: 10px; padding-right: 10px; }
-.sim-list td.sim-tagc, .sim-list th.sim-th-tags { width: auto; text-align: left; }
-.sim-list td.sim-hit { min-width: 52px; font: 700 0.98rem var(--font-display); }
+/* The column rule, one place for every column (the owner, again: "I just want every column to always
+   be a thin comfortable overhang ... Build something in the logic that always centers things in
+   columns and makes the edges consistent"): every column is its contents + SIM_PAD each side, centered;
+   Player and Tags read left; Tags is the one column that takes the spare width (width: 100%), so the
+   browser never spreads it over the others (it did with Tags at auto: # was 79px, L5 114px). The
+   selectors out-rank style.css's .data-table:not(.pass-zone-grid) th / td padding. */
+.sim-list { --sim-pad: 11px; }
+table.data-table.sim-list th, table.data-table.sim-list td { width: 1%; padding: 5px var(--sim-pad); text-align: center; white-space: nowrap; }
+table.data-table.sim-list th.sim-th-player, table.data-table.sim-list td.sim-plcell { text-align: left; }
+table.data-table.sim-list th.sim-th-tags, table.data-table.sim-list td.sim-tagc { width: 100%; text-align: left; max-width: 0; }
+table.data-table.sim-list tr.sim-group td, table.data-table.sim-list tr.sim-detail > td { width: auto; max-width: none; text-align: left; white-space: normal; }
+table.data-table.sim-list thead tr.sim-group-row th { padding: 0 0 2px; }
+.sim-list td.sim-hit { font: 700 0.98rem var(--font-display); }
+/* the five hit rates one width (the widest, Season), so the group reads as one block */
+table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { min-width: 62px; }
 .sim-hit small { display: block; font: 600 0.68rem var(--font-body); opacity: 0.75; }
 .sim-list thead tr.sim-group-row th { background: none; border: 0; padding: 0 0 2px; }
 .sim-group-row th.sim-hitgroup span { display: block; padding: 4px; border-radius: 8px; border: 1px solid rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.2); text-align: center; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--text); }
 .sim-list thead tr:last-child th.sim-hit-th { background: linear-gradient(rgba(var(--accent-rgb), 0.08), rgba(var(--accent-rgb), 0.08)), var(--table-head); box-shadow: inset 0 -2px 0 rgba(var(--accent-rgb), 0.55); }
 /* every tag one look (the old board's: style.css .gs-tag's shape), amber for information, green / red
    for a matchup, purple for Chaos, dashed for the Ladder */
-.sim-rtags { display: flex; gap: 4px; flex-wrap: wrap; white-space: normal; min-width: 180px; }
+/* one line always (the owner: "I NEVER want tags to stack"): what doesn't fit folds into a "+N" pill
+   (fitTags in sim-board.js) that lists the rest on hover */
+.sim-rtags { display: flex; gap: 4px; flex-wrap: nowrap; overflow: hidden; }
+.sim-rtag[hidden] { display: none; }
+.sim-rtag.more { cursor: pointer; color: var(--text); background: var(--panel-2); border-color: var(--border-strong); flex: none; }
 .sim-rtag {
   display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 6px; border-radius: 6px; font: 800 0.64rem var(--font-body);
   letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
