@@ -9,6 +9,23 @@ Started 2026-10-11; the 2026-27 season tips off 2026-10-20. The user wants the N
 site on the same website, reached from a suite dropdown. The brand is "GMG Sports Data Suite";
 NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 
+## Files (moved here from CLAUDE.md, 2026-10-25)
+
+- Build: `nfl_tool/nba/build_nba.py` -> `site/nba/data.json`. `possessions.py`: the engine (every
+  possession with the ten on the floor; every new NBA tool reads it). `identity.py`: Team Identity.
+  `props.py`: player props data (`nba/props.json`). `sim.py`: the Points / Threes game sim (every
+  game 10,000 times, tonight's plays, the record). `positions.py`: PG / SG / SF / PF / C from ESPN's
+  depth charts. `shots.py`: this season's shot spots (`nba/shots.json`). `kotc.py`: King of the
+  Court. `first_basket.py`: First Basket.
+- Pages (`site/nba/`): `index.html` + `nba.js` Game Previews; `identity.html/.js` Team Identity;
+  `points.html` / `threes.html` + `points.js` / `threes.js` on `sim-board.js` + `sim.css` (Player
+  View list + Matchup View game board); `best.html/.js` NBA Best Plays (both markets by edge, same
+  sim-board.js); `first-basket.html/.js`; `shot-charts.html/.js` (a shooter vs a defense);
+  `nba-card.js` the player card (`playerClick(id)`: game log, every market's odds with save boxes,
+  Shot Chart from `shot-chart.js`); `promo-tools.html` + `kotc.js` King of the Court.
+- Records: `model_history/nba_kotc/` (nightly boards, tip-off lines), `nba_props/sim_<season>.json`
+  (Points and Threes plays at tip, graded).
+
 ## This season decides (the owner, 2026-10-20)
 
 **Every NBA play, projection, tag and pick comes from 2026-27 games only.** 2025-26 is used for

@@ -10,6 +10,26 @@ Third suite on the same site, reached from the suite dropdown. **Open to every m
 the evening of 2026-10-13** (one switch with the NBA suite: see nba.md, "Suite switcher and
 launch switch"). More background: `docs/history.md`, "NHL".
 
+## Files (moved here from CLAUDE.md, 2026-10-25)
+
+- Build: `nfl_tool/nhl/build_nhl.py` -> `site/nhl/data.json`, `nhl/shots.json` +
+  `nhl/players/<TEAM>.json` (games kept in `data/nhl`). Models: `shots_model.py` (shots on goal),
+  `saves_model.py` (King of the Crease + Saves page, `nhl/saves.json`), `goals_model.py` (anytime,
+  `nhl/goals.json`), `points_model.py` (1+ point on top of goals, `nhl/points.json`),
+  `lines_model.py` (Line Matchups, 5-on-5 lines and pairs from the shift charts, `nhl/lines.json`;
+  replaced Line Stacks 2026-10-21, whose `stacks_model.py` stays for the replays).
+- Pages (`site/nhl/`): `index.html` + `nhl.js` Game Previews; `shots`, `goals`, `points`, `saves`
+  (`.html` + `.js` each); `lines.html/.js` Line Matchups (a preview, no picks); `best.html/.js` Best
+  Plays (the pages' edges in one list); `promo-tools.html/.js` King of the Crease + `icebreaker.js`
+  (quickest goal of the 7 PM slate); `nhl-common.js` shared by every page (data, rink drawing, the
+  NHL player card, the save box `nhlPlayBox`); `nhl.css`.
+- Records (`model_history/`): `nhl_shots/<month>.json`, `nhl_goals/`, `nhl_points/` (with each
+  number's factors), `nhl_saves/`, `nhl_stacks/` (retired), `nhl_crease/`, `nhl_icebreaker/`.
+- Replays: `tools/backtest/nhl_*.py` (shots, saves, goals, points, stacks, icebreaker);
+  `tools/nhl_factor_report.py` groups the records by each graded play's saved factors.
+- Hockey refresh: `.github/workflows/nhl-refresh.yml` every half hour, pressed by the Cloudflare
+  timer `workers/nhl-timer` (installed by `nhl-timer.yml`).
+
 ## Data: the NHL's own public feed (no key)
 
 - **Do not use MoneyPuck** (moneypuck.com). Its data page allows non-commercial use only and says
