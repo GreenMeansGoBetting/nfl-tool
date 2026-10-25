@@ -644,5 +644,21 @@
   "total_result": "loss",
   "updated": "2026-10-22T21:43Z",
   "week": 7
+ },
+ "2026_07_PIT_NO": {
+  "away": "PIT",
+  "away_pts": 23.7,
+  "frozen": true,
+  "home": "NO",
+  "home_pts": 21.9,
+  "qb_out": [],
+  "spread": 2.5,
+  "spread_edge": 0.7,
+  "spread_pick": "home",
+  "total": 43.5,
+  "total_edge": 2.1,
+  "total_pick": "over",
+  "updated": "2026-10-25T11:40Z",
+  "week": 7
  }
 }
