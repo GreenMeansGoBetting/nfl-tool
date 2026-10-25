@@ -29,7 +29,6 @@ let DATA = null;
 let PROPS = null;
 let dayIndex = 0;
 let gameId = "";
-let script = "all"; // the Script Picker: all / away / close / home
 const EDGE_SHADE = 0.03; // a rung's edge this far over / under = shaded green / red
 const MARKETS = SIM_PAGE.markets || [SIM_PAGE];
 const BEST = Boolean(SIM_PAGE.markets);
@@ -708,30 +707,22 @@ function renderGamePicker() {
       <span class="matchup-date">${fmtTime(g.time)}${n ? ` &middot; ${n} Play${n === 1 ? "" : "s"}` : ""}</span></button>`;
   }).join("");
 }
-function dialRows(g, sim) {
-  const meta = PROPS.sim_meta.dials;
-  const rows = [];
-  for (const k of ["away", "home"]) {
-    const abbr = g[k];
-    const other = k === "home" ? g.away : g.home;
-    for (const key of sim.dials[k] || []) {
-      const [label, own, opp] = meta[key] || [key, 0, 0];
-      rows.push(`<div class="sim-dial"><div><b>${abbr} &middot; ${label}</b><em>${abbr} ${signed(own)} points scored, ${other} ${signed(opp)}</em></div><span class="sim-dial-v"${shade((own - opp) / 10)}>${signed(own - opp)}</span><small>margin</small></div>`);
-    }
-  }
-  // only the dials that are on (the owner, 2026-10-25); they are in every one of the 10,000 games
-  return rows.join("") || '<p class="sim-off">No dial is on: both teams play as their normal.</p>';
-}
-function scriptBar(g, shares, label) {
+function scriptBar(g, shares) {
   const part = (k, color) => `<div style="width:${Math.max(6, shares[k] * 100)}%;background:${color}"><small>${scriptLabel(g, k)}</small>${pct(shares[k])}</div>`;
-  return `<div class="sim-sbar">${part("away", `#${team(g.away).color || "444"}`)}${part("close", "var(--border-strong)")}${part("home", `#${team(g.home).color || "444"}`)}</div>
-    ${label ? `<div class="sim-sbase"><span>${label}</span></div>` : ""}`;
+  return `<div class="sim-sbar">${part("away", `#${team(g.away).color || "444"}`)}${part("close", "var(--border-strong)")}${part("home", `#${team(g.home).color || "444"}`)}</div>`;
 }
 // A price cell's shade: green / red past EDGE_SHADE, yellow near fair, gray with no price.
 function priceShade(edge) {
   if (edge === null || edge === undefined) return ' style="background:var(--panel-2);color:var(--muted)"';
   return Math.abs(edge) < EDGE_SHADE ? ' style="background:rgba(var(--mid-rgb),.2)"' : shade(edge);
 }
+// The game board (rebuilt 2026-10-25, the owner): one strip on top (Spread / Sim, Total / Sim and
+// the script bar), then the two teams side by side, each its own table: Min, the sim's median
+// (PTS / 3PM), Line (our side of his main line + the best price), Diff (median minus the line),
+// Edge, and the Our Chance ladder, opened one team at a time. The Script Picker, the Script and %
+// columns and Dials Tonight came off (the owner: the dials are in every sim, the scripts barely
+// move a median; the scripts stay in the bar, the Player View tags and The Model).
+const LADDER_OPEN = { away: false, home: false };
 function renderBoard() {
   const g = DATA.schedule.find((x) => x.game_id === gameId);
   const sim = g && sims()[g.game_id];
@@ -745,19 +736,13 @@ function renderBoard() {
   const plays = playsOn(g.date).filter((p) => p.game === g.game_id);
   const isPlay = (pid, line, side) => plays.some((p) => p.pid === pid && p.line === line && p.side === side);
   const rungs = MK.rungs;
-  // Per player (rebuilt 2026-10-25, the owner): Min, the sim's median (PTS / 3PM), Script (his
-  // median in the picked script's games), Line (our side of his main line + best price), our %,
-  // Diff (Script minus the line), Edge, then the rungs.
   const rows = (k) => Object.entries(sim.players).filter(([, r]) => r.team === k && r.min >= 6).sort((a, b) => b[1].min - a[1].min).map(([pid, r]) => {
     const s = r[MK.stat];
-    const lad = s.lad[script] || s.lad.all;
-    const med = (key) => (s.med[key] === null || s.med[key] === undefined ? null : s.med[key]);
-    const base = med("all");
-    const now = med(script);
-    const scriptCell = `<td class="sim-sp${script === "all" ? "" : " on"}"${script === "all" || now === null || base === null ? "" : shade((now - base) / Math.max(4, base) / 2)}><b>${now === null ? "--" : fmt(now, 0)}</b></td>`;
+    const lad = s.lad.all;
+    const med = s.med.all === null || s.med.all === undefined ? null : s.med.all;
     const tm = g[k];
     const ml = mainLine(g, pid);
-    let mainCell = '<td class="sim-rung main" style="background:var(--panel-2);color:var(--muted)">--</td><td>--</td><td>--</td><td>--</td>';
+    let mainCell = '<td class="sim-rung main" style="background:var(--panel-2);color:var(--muted)">--</td><td>--</td><td>--</td>';
     if (ml !== null) {
       const sides = ["o", "u"].map((side) => {
         const best = bestPrice(g, pid, side, ml);
@@ -767,45 +752,43 @@ function renderBoard() {
       const pick = sides.filter((x) => x.edge !== null).sort((a, b) => b.edge - a.edge)[0] || sides[0];
       const spec = priceSpec(g, pid, pick.side, ml, tm);
       // Diff: his median past the line on our side, deeper the farther (a 4 floor so a 2.5 line isn't all color)
-      const diff = now === null ? null : now - ml;
+      const diff = med === null ? null : med - ml;
       const diffShade = diff === null ? "" : shade((pick.side === "o" ? diff : -diff) / Math.max(4, ml) / 2);
       mainCell = `<td class="sim-rung main${isPlay(pid, ml, pick.side) ? " pick" : ""}"><b>${pick.side === "o" ? "O" : "U"} ${fmt(ml)}</b>${pick.best ? `<button type="button" class="sim-mini" data-bo="${boEnc(spec)}">${showOdds(pick.best.price)}</button>` : "<small>--</small>"}</td>
-        <td class="sim-pc"><b>${pct(pick.c)}</b></td><td class="sim-pc"${diffShade}><b>${diff === null ? "--" : signed(diff)}</b></td>
+        <td class="sim-pc"${diffShade}><b>${diff === null ? "--" : signed(diff)}</b></td>
         <td class="sim-pc"${priceShade(pick.edge)}><b>${pick.edge === null ? "--" : signed(pick.edge * 100)}</b></td>`;
     }
-    const rungCells = rungs.map((n) => {
+    const rungCells = LADDER_OPEN[k] ? rungs.map((n) => {
       const line = n - 0.5;
       const c = chanceOver(lad, line);
       const best = bestPrice(g, pid, "o", line);
       const edge = best ? c - oddsProb(best.price) : null;
       const spec = priceSpec(g, pid, "o", line, tm);
       return `<td class="sim-rung${isPlay(pid, line, "o") ? " pick" : ""}"${priceShade(edge)}><b>${pct(c)}</b>${best ? `<button type="button" class="sim-mini" data-bo="${boEnc(spec)}">${showOdds(best.price)}</button>` : "<small>&mdash;</small>"}</td>`;
-    }).join("");
+    }).join("") : "";
     return `<tr><td class="sim-pl">${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span>${posOf(pid)}</span>${(sim.starters || {})[k] && sim.starters[k].includes(pid) ? '<span class="sim-st" title="Starts tonight">S</span>' : ""}</td>
-      <td>${fmt(r.min)}</td><td class="sim-med"><b>${base === null ? "--" : fmt(base, 0)}</b></td>${scriptCell}${mainCell}${rungCells}<td class="sim-spacer"></td></tr>`;
+      <td>${fmt(r.min)}</td><td class="sim-med"><b>${med === null ? "--" : fmt(med, 0)}</b></td>${mainCell}${rungCells}</tr>`;
   }).join("");
-  // each team gets its own header row (logo + team where Name was); the dials sit in Dials Tonight only
-  const headRow = (k) => `<tr class="sim-thead"><th class="sim-th-team">${logo(g[k], 16)} ${team(g[k]).short || g[k]}</th><th>Min</th><th>${MK.short}</th><th title="His median in the picked script's games">Script</th><th>Line</th><th title="Our chance on that side">%</th><th title="His median (Script) minus the line">Diff</th><th title="Our chance minus what the best price needs">Edge</th>${rungs.map((n) => `<th>${n}+</th>`).join("")}<th class="sim-spacer"></th></tr>`;
-  const pickBtn = (k, label) => `<button type="button" class="sim-pick${script === k ? " on" : ""}" data-script="${k}"${k !== "all" && !(sim.scripts[k] > 0.02) ? " disabled" : ""}>${label}</button>`;
-  const dialsMoved = JSON.stringify(sim.base) !== JSON.stringify(sim.scripts);
+  // one team's table: the team over its names, the ladder's button under it
+  const teamTable = (k) => {
+    const open = LADDER_OPEN[k];
+    return `<div class="sim-tablewrap"><table class="sim-table" data-team="${k}">
+      <thead><tr><th class="grp sim-th-team" style="background:#${team(g[k]).color || "333"}">${logo(g[k], 18)} ${team(g[k]).name}</th><th class="grp" colspan="2">The Sims</th><th class="grp" colspan="3">Main Line</th>${open ? `<th class="grp" colspan="${rungs.length}">Our Chance &middot; Best Price</th>` : ""}</tr>
+        <tr class="sim-thead"><th><button type="button" class="sim-ladder-btn${open ? " on" : ""}" data-ladder="${k}">${open ? "Hide Ladder &#9666;" : "Show Ladder &#9656;"}</button></th><th>Min</th><th>${MK.short}</th><th>Line</th><th title="His median minus the line">Diff</th><th title="Our chance minus what the best price needs">Edge</th>${open ? rungs.map((n) => `<th>${n}+</th>`).join("") : ""}</tr></thead>
+      <tbody>${rows(k)}</tbody></table></div>`;
+  };
   el("sim-board").innerHTML = `<div class="sim-game">
     <div class="sim-gbar"><div style="background:#${team(g.away).color || "333"}">${logo(g.away, 34)} ${team(g.away).name}</div>
       <div class="sim-gmid"><small>${new Date(`${g.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short" })} ${fmtTime(g.time)}</small>@</div>
       <div style="background:#${team(g.home).color || "333"}">${team(g.home).name} ${logo(g.home, 34)}</div></div>
-    <div class="sim-top">
-      <div class="sim-box"><h3>The 10,000 Games <span>The Books Second</span></h3>
-        <div class="sim-score"><div><small>Spread</small><b>${book}</b></div><div class="sim-sim"><small>Sim</small><b>${lean}</b></div>
-          <div><small>Total</small><b>${g.total_line === null || g.total_line === undefined ? "--" : fmt(g.total_line)}</b></div><div class="sim-sim"><small>Sim</small><b>${fmt(sim.total, 0)}</b></div></div>
-        ${scriptBar(g, sim.scripts, dialsMoved ? `Without the dials: ${SCRIPT_KEYS.map((k) => pct(sim.base[k])).join(" / ")}` : "")}
-      </div>
-      <div class="sim-box"><h3>Dials Tonight <span>In Every Sim</span></h3>${dialRows(g, sim)}</div>
-      <div class="sim-box"><h3>Script Picker</h3><div class="sim-picks">${pickBtn("all", "All")}${pickBtn("away", scriptLabel(g, "away"))}${pickBtn("close", "Close")}${pickBtn("home", scriptLabel(g, "home"))}</div></div>
+    <div class="sim-strip">
+      <div class="sim-score"><div><small>Spread</small><b>${book}</b></div><div class="sim-sim"><small>Sim</small><b>${lean}</b></div>
+        <div><small>Total</small><b>${g.total_line === null || g.total_line === undefined ? "--" : fmt(g.total_line)}</b></div><div class="sim-sim"><small>Sim</small><b>${fmt(sim.total, 0)}</b></div></div>
+      ${scriptBar(g, sim.scripts)}
     </div>
-    <div class="sim-tablewrap"><table class="sim-table">
-      <thead><tr><th class="grp" style="text-align:left">Player</th><th class="grp" colspan="3">The Sims${script === "all" ? "" : ` &middot; Script: ${scriptLabel(g, script)}`}</th><th class="grp" colspan="4">Main Line</th><th class="grp" colspan="${rungs.length}">Our Chance &middot; Best Price${script === "all" ? "" : ` &middot; ${script === "close" ? "Close Games Only" : `${scriptLabel(g, script, true)}s Only`}`}</th><th class="sim-spacer"></th></tr></thead>
-      <tbody>${headRow("away")}${rows("away")}${headRow("home")}${rows("home")}</tbody></table>
-      <div class="sim-legend"><span><i style="background:rgba(var(--good-rgb),.34)"></i>Our chance beats the best price by ${Math.round(EDGE_SHADE * 100)}+</span><span><i style="background:rgba(var(--mid-rgb),.3)"></i>Near fair</span><span><i style="background:rgba(var(--bad-rgb),.3)"></i>The price beats our chance</span><span><i style="background:var(--panel-2);border:1px solid var(--border)"></i>No price</span><span><i class="sim-legend-pick"></i>Tonight's play</span><span>Script: green = he scores more in that script, red = less</span></div>
-    </div></div>`;
+    <div class="sim-teams">${teamTable("away")}${teamTable("home")}</div>
+    <div class="sim-legend"><span><i style="background:rgba(var(--good-rgb),.34)"></i>Our chance beats the best price by ${Math.round(EDGE_SHADE * 100)}+</span><span><i style="background:rgba(var(--mid-rgb),.3)"></i>Near fair</span><span><i style="background:rgba(var(--bad-rgb),.3)"></i>The price beats our chance</span><span><i style="background:var(--panel-2);border:1px solid var(--border)"></i>No price</span><span><i class="sim-legend-pick"></i>Tonight's play</span></div>
+  </div>`;
 }
 
 function render() {
@@ -907,21 +890,19 @@ document.addEventListener("click", (e) => {
     LIST.open = LIST.open === row.dataset.row ? null : row.dataset.row;
     return renderList();
   }
-  const pick = e.target.closest("[data-script]");
-  if (pick && !pick.disabled) {
-    script = pick.dataset.script;
+  const ladder = e.target.closest("[data-ladder]");
+  if (ladder) {
+    LADDER_OPEN[ladder.dataset.ladder] = !LADDER_OPEN[ladder.dataset.ladder];
     return renderBoard();
   }
   if (e.target.closest("#sim-ytd")) return renderYtd();
   if (e.target.closest("#day-prev") && dayIndex > 0) {
     dayIndex -= 1;
-    script = "all";
     LIST.open = null;
     return render();
   }
   if (e.target.closest("#day-next") && dayIndex < days().length - 1) {
     dayIndex += 1;
-    script = "all";
     LIST.open = null;
     return render();
   }
