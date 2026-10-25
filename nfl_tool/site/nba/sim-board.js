@@ -785,7 +785,7 @@ function renderBoard() {
       <td>${fmt(r.min)}</td><td class="sim-med"><b>${base === null ? "--" : fmt(base, 0)}</b></td>${scriptCell}${mainCell}${rungCells}<td class="sim-spacer"></td></tr>`;
   }).join("");
   // each team gets its own header row (logo + team where Name was); the dials sit in Dials Tonight only
-  const headRow = (k) => `<tr class="sim-head"><th class="sim-th-team">${logo(g[k], 16)} ${team(g[k]).short || g[k]}</th><th>Min</th><th>${MK.short}</th><th title="His median in the picked script's games">Script</th><th>Line</th><th title="Our chance on that side">%</th><th title="His median (Script) minus the line">Diff</th><th title="Our chance minus what the best price needs">Edge</th>${rungs.map((n) => `<th>${n}+</th>`).join("")}<th class="sim-spacer"></th></tr>`;
+  const headRow = (k) => `<tr class="sim-thead"><th class="sim-th-team">${logo(g[k], 16)} ${team(g[k]).short || g[k]}</th><th>Min</th><th>${MK.short}</th><th title="His median in the picked script's games">Script</th><th>Line</th><th title="Our chance on that side">%</th><th title="His median (Script) minus the line">Diff</th><th title="Our chance minus what the best price needs">Edge</th>${rungs.map((n) => `<th>${n}+</th>`).join("")}<th class="sim-spacer"></th></tr>`;
   const pickBtn = (k, label) => `<button type="button" class="sim-pick${script === k ? " on" : ""}" data-script="${k}"${k !== "all" && !(sim.scripts[k] > 0.02) ? " disabled" : ""}>${label}</button>`;
   const dialsMoved = JSON.stringify(sim.base) !== JSON.stringify(sim.scripts);
   el("sim-board").innerHTML = `<div class="sim-game">
@@ -799,9 +799,7 @@ function renderBoard() {
         ${scriptBar(g, sim.scripts, dialsMoved ? `Without the dials: ${SCRIPT_KEYS.map((k) => pct(sim.base[k])).join(" / ")}` : "")}
       </div>
       <div class="sim-box"><h3>Dials Tonight <span>In Every Sim</span></h3>${dialRows(g, sim)}</div>
-      <div class="sim-box"><h3>Script Picker</h3><div class="sim-picks">${pickBtn("all", "All")}${pickBtn("away", scriptLabel(g, "away"))}${pickBtn("close", "Close")}${pickBtn("home", scriptLabel(g, "home"))}</div>
-        <p class="sim-off">The Script column and every chance come from that script's games only.</p>
-        <p class="sim-off">Starting fives: ${sim.lineup ? "the NBA's (Expected, then Confirmed about 30 minutes before tip)" : "not posted yet: the five with the most minutes"}.</p></div>
+      <div class="sim-box"><h3>Script Picker</h3><div class="sim-picks">${pickBtn("all", "All")}${pickBtn("away", scriptLabel(g, "away"))}${pickBtn("close", "Close")}${pickBtn("home", scriptLabel(g, "home"))}</div></div>
     </div>
     <div class="sim-tablewrap"><table class="sim-table">
       <thead><tr><th class="grp" style="text-align:left">Player</th><th class="grp" colspan="3">The Sims${script === "all" ? "" : ` &middot; Script: ${scriptLabel(g, script)}`}</th><th class="grp" colspan="4">Main Line</th><th class="grp" colspan="${rungs.length}">Our Chance &middot; Best Price${script === "all" ? "" : ` &middot; ${script === "close" ? "Close Games Only" : `${scriptLabel(g, script, true)}s Only`}`}</th><th class="sim-spacer"></th></tr></thead>

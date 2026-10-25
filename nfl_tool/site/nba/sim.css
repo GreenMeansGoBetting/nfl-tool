@@ -89,7 +89,7 @@
 .sim-table td.sim-pl { text-align: left; background: none; border: 0; }
 .sim-table th.sim-th-team { text-align: left; color: var(--text); font-size: 0.7rem; }
 .sim-table th.sim-th-team img { vertical-align: -3px; }
-.sim-table tr.sim-head:not(:first-child) th { border-top: 10px solid var(--panel); }
+.sim-table tr.sim-thead:not(:first-child) th { border-top: 10px solid var(--panel); }
 .sim-table .sim-spacer { width: 100%; padding: 0; background: none; border: 0; }
 .sim-table td.sim-pc b { font: 800 0.86rem var(--font-display); }
 .sim-pl b { font-size: 0.9rem; }

@@ -272,8 +272,10 @@ class Board(unittest.TestCase):
         self.assertNotIn("Play", cards[1])
 
     def test_both_teams_medians_main_line_and_rungs(self):
-        heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table tr.sim-head')].map((tr) => [...tr.querySelectorAll('th')].map((th) => th.innerText.trim().toUpperCase()))")
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table tr.sim-thead')].map((tr) => [...tr.querySelectorAll('th')].map((th) => th.innerText.trim().toUpperCase()))")
         self.assertEqual(len(heads), 2)  # each team its own header row
+        # a real table row (2026-10-25: named .sim-head it took the toolbar's flex and stacked in the Name cell)
+        self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('.sim-table tr.sim-thead')).display"), "table-row")
         self.assertEqual(heads[0][1:], ["MIN", "PTS", "SCRIPT", "LINE", "%", "DIFF", "EDGE", "10+", "15+", "20+", "25+", "30+", "35+", "40+", ""])
         self.assertIn("AAA", heads[0][0])
         self.assertIn("BBB", heads[1][0])
