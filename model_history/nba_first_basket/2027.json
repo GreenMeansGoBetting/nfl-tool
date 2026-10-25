@@ -1772,7 +1772,7 @@
     0.077,
     1200,
     false,
-    "draftkings"
+    "fliff"
    ],
    "3945274": [
     "Luka Doncic",
@@ -1798,7 +1798,7 @@
    "4277961": [
     "Jaren Jackson Jr.",
     0.098,
-    750,
+    800,
     false,
     "fanduel"
    ],
@@ -1812,7 +1812,7 @@
    "4433136": [
     "Walker Kessler",
     0.107,
-    600,
+    550,
     false,
     "fanduel"
    ],
@@ -1821,7 +1821,7 @@
     0.081,
     1000,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4433627": [
     "Keyonte George",
@@ -1859,9 +1859,9 @@
    "3064514": [
     "Julius Randle",
     0.109,
-    700,
+    660,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3133603": [
     "Kelly Oubre Jr.",
@@ -1894,9 +1894,9 @@
    "4395712": [
     "Andrew Nembhard",
     0.096,
-    700,
+    750,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4396993": [
     "Tyrese Haliburton",
@@ -1908,7 +1908,7 @@
    "4432194": [
     "Day'Ron Sharpe",
     0.078,
-    950,
+    1000,
     false,
     "fanduel"
    ],
@@ -1922,8 +1922,8 @@
    "5175643": [
     "Egor Demin",
     0.086,
-    1100,
-    false,
+    1200,
+    true,
     "fanduel"
    ]
   },
@@ -2039,7 +2039,7 @@
     0.067,
     900,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4395625": [
     "RJ Barrett",
@@ -2177,7 +2177,7 @@
     0.115,
     700,
     false,
-    "fanduel"
+    "thescore"
    ],
    "4683692": [
     "Cason Wallace",
@@ -2209,14 +2209,14 @@
    "3157465": [
     "Duncan Robinson",
     0.119,
-    1080,
+    1100,
     true,
-    "draftkings"
+    "fanduel"
    ],
    "3908845": [
     "John Collins",
     0.135,
-    920,
+    910,
     true,
     "draftkings"
    ],
@@ -2244,9 +2244,9 @@
    "4432166": [
     "Cade Cunningham",
     0.124,
-    557,
+    550,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4684742": [
     "Ausar Thompson",
@@ -2258,9 +2258,9 @@
    "5124612": [
     "VJ Edgecombe",
     0.086,
-    1000,
+    1100,
     false,
-    "thescore"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
@@ -2325,7 +2325,7 @@
     0.1,
     800,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5105550": [
     "GG Jackson",
