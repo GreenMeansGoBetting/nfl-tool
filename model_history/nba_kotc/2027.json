@@ -1400,21 +1400,21 @@
   "board": [
    {
     "id": "3064514",
-    "lead": 0.1969,
+    "lead": 0.1967,
     "name": "Julius Randle",
     "proj": 47.8,
     "team": "BKN"
    },
    {
     "id": "3155942",
-    "lead": 0.1904,
+    "lead": 0.1903,
     "name": "Domantas Sabonis",
     "proj": 47.4,
     "team": "SAC"
    },
    {
     "id": "4065733",
-    "lead": 0.1772,
+    "lead": 0.1771,
     "name": "Ty Jerome",
     "proj": 47.2,
     "team": "MEM"
@@ -1491,9 +1491,9 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0115,
+    "lead": 0.0117,
     "name": "Darius Garland",
-    "proj": 32.8,
+    "proj": 32.9,
     "team": "LAC"
    },
    {
@@ -1526,9 +1526,9 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0067,
+    "lead": 0.0071,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 32.1,
+    "proj": 32.2,
     "team": "OKC"
    },
    {
@@ -1581,18 +1581,18 @@
     "team": "NY"
    },
    {
+    "id": "4433255",
+    "lead": 0.0018,
+    "name": "Chet Holmgren",
+    "proj": 27.2,
+    "team": "OKC"
+   },
+   {
     "id": "3934719",
     "lead": 0.0018,
     "name": "OG Anunoby",
     "proj": 27.2,
     "team": "NY"
-   },
-   {
-    "id": "4433255",
-    "lead": 0.0018,
-    "name": "Chet Holmgren",
-    "proj": 27.1,
-    "team": "OKC"
    },
    {
     "id": "5142620",
@@ -1626,7 +1626,7 @@
     "id": "3448",
     "lead": 0.0008,
     "name": "Brook Lopez",
-    "proj": 26.3,
+    "proj": 26.4,
     "team": "LAC"
    },
    {
@@ -1717,7 +1717,7 @@
     "id": "5254165",
     "lead": 0.0,
     "name": "Keaton Wagler",
-    "proj": 21.5,
+    "proj": 21.6,
     "team": "LAC"
    },
    {
@@ -1759,7 +1759,7 @@
     "id": "3936099",
     "lead": 0.0,
     "name": "Derrick Jones Jr.",
-    "proj": 19.3,
+    "proj": 19.4,
     "team": "LAC"
    },
    {
