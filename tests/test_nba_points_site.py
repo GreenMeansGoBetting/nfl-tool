@@ -89,7 +89,7 @@ def build(market, stat, line, rung_line, play_name_line):
     two_q = [["draftkings", "o", two_line, -110], ["draftkings", "u", two_line, -110]]
     alt_q = [["draftkings", "o", rung_line, 300], ["fanduel", "o", rung_line, 280]]
     data = {"season": 2027, "season_label": "2026-27", "players": {},
-            "injuries": {"AAA": [{"id": "3", "name": "Player Three", "status": "Out", "injury": "Foot Plantar Fasciitis", "note": "Ruled out for Sunday"},
+            "injuries": {"AAA": [{"id": "3", "name": "Player Three", "status": "Out", "injury": "Foot Plantar Fasciitis", "note": "Ruled out for Sunday", "marked": True},
                                  {"id": "4", "name": "Player Four", "status": "Questionable", "injury": "Ankle"}]},
             "schedule": [{"game_id": "900", "date": "2026-10-21", "time": "19:30", "away": "AAA", "home": "BBB", "status": "scheduled",
                           "home_team_spread": -4.5, "total_line": 221.5},
@@ -307,6 +307,28 @@ class Board(unittest.TestCase):
         self.assertIn("not in the NBA's posted five", body[-1])
         self.assertLess(float(PAGE.evaluate("() => getComputedStyle(document.querySelector('tr.sim-outrow td.sim-min')).opacity")), 1)
         self.assertNotIn("OUT TONIGHT", PAGE.inner_text(".sim-tcard[data-team='home']").upper())
+
+    def test_the_owners_mark_out_and_undo(self):
+        # 2026-10-25: Mark Out on every playing row, Undo on the owner's own marks (owner only; local-dev here)
+        self.assertIn("Out (GMG)", PAGE.inner_text("tr.sim-outrow:has([data-mo-out='0'])"))
+        self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('tr.sim-outrow [data-mo]')].map((b) => b.dataset.mo)"), ["3"])
+        sent = PAGE.evaluate("""async () => {
+            const real = window.fetch, realConfirm = window.confirm;
+            let body = null;
+            window.confirm = () => true;
+            window.fetch = async (url, init) => { body = [url, init.method, JSON.parse(init.body)]; return new Response(JSON.stringify({ ok: true, refresh: 'started' }), { status: 200 }); };
+            const btn = [...document.querySelectorAll('.sim-tcard[data-team="away"] [data-mo-out="1"]')][0];
+            btn.click();
+            await new Promise((r) => setTimeout(r, 50));
+            window.fetch = real; window.confirm = realConfirm;
+            return { body, label: btn.textContent, disabled: btn.disabled };
+        }""")
+        self.assertEqual(sent["body"], ["/api/nba-outs", "PUT", {"day": "2026-10-21", "pid": "1", "name": "Player One", "team": "AAA", "out": True}])
+        self.assertTrue(sent["disabled"])
+        self.assertIn("Rerunning", sent["label"])
+        PAGE.evaluate("() => renderBoard()")  # back as it was for the other tests
+        hidden = PAGE.evaluate("() => { document.documentElement.classList.remove('local-dev'); const d = getComputedStyle(document.querySelector('.sim-markout')).display; document.documentElement.classList.add('local-dev'); return d; }")
+        self.assertEqual(hidden, "none")  # members never see it
 
     def test_each_team_opens_its_own_ladder(self):
         PAGE.click("[data-ladder='away']")

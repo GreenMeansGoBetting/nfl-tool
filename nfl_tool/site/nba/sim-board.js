@@ -777,7 +777,8 @@ function renderBoard() {
       const spec = priceSpec(g, pid, "o", line, tm);
       return `<td class="sim-rung${isPlay(pid, line, "o") ? " pick" : ""}"${priceShade(edge)}><b>${pct(c)}</b>${best ? `<button type="button" class="sim-mini" data-bo="${boEnc(spec)}">${showOdds(best.price)}</button>` : "<small>&mdash;</small>"}</td>`;
     }).join("") : "";
-    return `<tr><td class="sim-pl">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="sim-pos">${posOf(pid)}</span></td>
+    const mark = `<button type="button" class="sim-markout" data-mo="${pid}" data-mo-team="${k}" data-mo-out="1" title="Mark him Out tonight: the sims rerun without him in about 5 minutes">Mark Out</button>`;
+    return `<tr><td class="sim-pl">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="sim-pos">${posOf(pid)}</span>${mark}</td>
       <td class="sim-min">${fmt(r.min)}</td><td class="sim-num sim-med">${med === null ? "--" : fmt(med)}</td>${mainCells}${rungCells}</tr>`;
   };
   // a player who sits tonight (sim.out: listed Out, or a usual starter on the injury report who
@@ -791,7 +792,9 @@ function renderBoard() {
     const f = logFields();
     const avg = log.length ? log.reduce((a, r) => a + r[f.min], 0) / log.length : null;
     const note = inj.note ? ` title="${inj.note.replace(/"/g, "&quot;")}"` : "";
-    return `<tr class="sim-outrow"${note}><td class="sim-pl">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="sim-pos">${posOf(pid)}</span><span class="gs-inj-status ${status === "Out" ? "tier-bad" : "tier-mid"}">${label}</span></td>
+    // the owner's own mark (Mark Out): an Undo, owner only
+    const undo = inj.marked ? `<button type="button" class="sim-markout" data-mo="${pid}" data-mo-team="${k}" data-mo-out="0" title="Take your mark off: the sims rerun with him">Undo</button>` : "";
+    return `<tr class="sim-outrow"${note}><td class="sim-pl">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="sim-pos">${posOf(pid)}</span><span class="gs-inj-status ${status === "Out" ? "tier-bad" : "tier-mid"}">${inj.marked ? "Out (GMG)" : label}</span>${undo}</td>
       <td class="sim-min" title="His minutes a game this season">${fmt(avg)}</td><td class="sim-noline sim-outwhy" colspan="${cols - 2}">${why}</td></tr>`;
   };
   // one team's card: its banner (with the ladder switch), then starters, the bench and who sits tonight
@@ -828,6 +831,28 @@ function renderBoard() {
     <div class="sim-teams${LADDER_OPEN.away || LADDER_OPEN.home ? " stacked" : ""}">${teamCard("away")}${teamCard("home")}</div>
     <div class="sim-legend"><span><i style="background:rgba(var(--good-rgb),.34)"></i>Our chance beats the best price by ${Math.round(EDGE_SHADE * 100)}+</span><span><i style="background:rgba(var(--mid-rgb),.3)"></i>Near fair</span><span><i style="background:rgba(var(--bad-rgb),.3)"></i>The price beats our chance</span><span><i style="background:var(--panel-2);border:1px solid var(--border)"></i>No price</span><span><i class="sim-legend-pick"></i>Tonight's play</span></div>
   </div>`;
+}
+
+// The owner's Mark Out (2026-10-25): /api/nba-outs saves it and starts the NBA refresh, so the
+// sims rerun without him (the build reads the list). The page shows the new sims after a reload.
+async function markOut(btn) {
+  const g = DATA.schedule.find((x) => x.game_id === gameId);
+  if (!g || btn.disabled) return;
+  const out = btn.dataset.moOut === "1";
+  const pid = btn.dataset.mo;
+  if (out && !confirm(`Mark ${nameOf(pid)} Out tonight? The sims rerun without him in about 5 minutes.`)) return;
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  try {
+    const res = await fetch("/api/nba-outs", { method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ day: g.date, pid, name: nameOf(pid), team: g[btn.dataset.moTeam], out }) });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || res.status);
+    btn.textContent = body.refresh === "started" ? "Rerunning: Reload In ~5 Min" : `Saved (Refresh: ${body.refresh})`;
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = `Failed (${err.message}): Try Again`;
+  }
 }
 
 function render() {
@@ -929,6 +954,8 @@ document.addEventListener("click", (e) => {
     LIST.open = LIST.open === row.dataset.row ? null : row.dataset.row;
     return renderList();
   }
+  const mo = e.target.closest("[data-mo]");
+  if (mo) return markOut(mo);
   const ladder = e.target.closest("[data-ladder]");
   if (ladder) {
     LADDER_OPEN[ladder.dataset.ladder] = !LADDER_OPEN[ladder.dataset.ladder];

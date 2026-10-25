@@ -208,8 +208,12 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   (`workers/nhl-timer/watch.js`, every minute 11 am to 1 am ET) works out the same fingerprints and
   on a change presses `.github/workflows/nba-refresh.yml` (members-and-hosting.md). The two sides
   must match to the letter (`tests/test_nba_watch.py`). Paid sources were turned down (the owner:
-  "i dont want to pay": X's API for Underdog's posts). Next, each its own push: the owner's Mark
-  Out button, then the NBA's official report (a PDF every 15 minutes at
+  "i dont want to pay": X's API for Underdog's posts). **Mark Out** (the owner's, 2026-10-25): a
+  button on every Matchup View row (owner only, `.sim-markout`) saves `/api/nba-outs` (D1
+  `nba_outs`, middleware) and presses nba-refresh.yml (Pages secret `DISPATCH_TOKEN` = the timer's
+  `NHL_TRIGGER_TOKEN`, copied by deploy.yml); the build reads the night's list with its key
+  (`fetch_marked_out`, `add_marked_out`: Out whatever ESPN says, `marked`), and the Out Tonight row
+  reads "Out (GMG)" with an Undo. Next (its own push): the NBA's official report (a PDF every 15 minutes at
   `ak-static.cms.nba.com/referee/injury/Injury-Report_<date>_<hh_mmAM>.pdf`; on 10-25 its 1:00 pm
   report had Embiid Out 8 minutes before ESPN).
 - **The dials** (`SCHEDULE_DIALS`, `LAST_GAME_DIALS`, sizes from nba_spots.py: [own points, the

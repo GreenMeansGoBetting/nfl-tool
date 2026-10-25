@@ -96,8 +96,12 @@ table.data-table.sim-bt tr.sim-bgroup td { width: auto; text-align: left; paddin
 /* who sits tonight: grayed under the bench, his status pill kept in color */
 .sim-bt tr.sim-outrow td { opacity: 0.5; }
 .sim-bt tr.sim-outrow td.sim-pl { opacity: 1; }
-.sim-bt tr.sim-outrow td.sim-pl > :not(.gs-inj-status) { opacity: 0.5; filter: grayscale(1); }
+.sim-bt tr.sim-outrow td.sim-pl > :not(.gs-inj-status):not(.sim-markout) { opacity: 0.5; filter: grayscale(1); }
 .sim-bt tr.sim-outrow .gs-inj-status { margin-left: 8px; }
+/* the owner's Mark Out / Undo (html.is-owner; the server checks again) */
+.sim-markout { margin-left: 8px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel-2); color: var(--muted); font: 700 0.66rem var(--font-body); cursor: pointer; }
+.sim-markout:hover:not(:disabled) { color: var(--bad-text, var(--text)); border-color: rgba(var(--bad-rgb), 0.6); }
+html:not(.is-owner):not(.local-dev) .sim-markout { display: none; }
 .sim-bt td.sim-noline.sim-outwhy { text-transform: none; letter-spacing: 0; font-size: 0.78rem; text-align: left; }
 .sim-bt td.sim-min { font: 700 0.92rem var(--font-display); color: var(--muted); }
 .sim-bt td.sim-num { font: 800 1rem var(--font-display); min-width: 46px; }

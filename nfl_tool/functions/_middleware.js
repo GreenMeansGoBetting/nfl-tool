@@ -459,6 +459,57 @@ async function handleSgpPrices(request, env, session, json) {
   return json({ ok: true });
 }
 
+// The owner's Mark Out (2026-10-25, the NBA Matchup View): a player the owner
+// knows is out before ESPN or the NBA say so (an Underdog post). GET
+// (?day=YYYY-MM-DD, members and the NBA build): that night's list. PUT (owner
+// only, {day, pid, name, team, out}) adds one or takes it off, then presses
+// nba-refresh.yml so the sims rerun without him (DISPATCH_TOKEN, the timer's
+// GitHub token, copied by deploy.yml). D1 table nba_outs, made on first use.
+const NBA_OUTS_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const NBA_REFRESH_DISPATCH = "https://api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/workflows/nba-refresh.yml/dispatches";
+async function handleNbaOuts(request, env, session, json) {
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS nba_outs (day TEXT NOT NULL, pid TEXT NOT NULL, name TEXT, team TEXT, updated INTEGER NOT NULL, PRIMARY KEY (day, pid))").run();
+  if (request.method === "GET") {
+    const day = new URL(request.url).searchParams.get("day") || "";
+    if (!NBA_OUTS_DAY.test(day)) return json({ error: "bad day" }, 400);
+    const { results } = await env.DB.prepare("SELECT pid, name, team, updated FROM nba_outs WHERE day = ? ORDER BY updated").bind(day).all();
+    return json({ day, outs: results || [] });
+  }
+  if (request.method !== "PUT") return json({ error: "method" }, 405);
+  if (!isOwnerSession(session)) return json({ error: "owner only" }, 403);
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: "bad json" }, 400);
+  }
+  const { day, pid, name, team, out } = body || {};
+  if (!NBA_OUTS_DAY.test(day || "") || !/^\d{1,12}$/.test(pid || "") || !/^[A-Z]{2,4}$/.test(team || "") || typeof out !== "boolean") {
+    return json({ error: "bad item" }, 400);
+  }
+  if (out) {
+    await env.DB.prepare("INSERT INTO nba_outs (day, pid, name, team, updated) VALUES (?, ?, ?, ?, ?) ON CONFLICT(day, pid) DO UPDATE SET name = excluded.name, team = excluded.team, updated = excluded.updated")
+      .bind(day, pid, String(name || "").slice(0, 80), team, Date.now())
+      .run();
+  } else {
+    await env.DB.prepare("DELETE FROM nba_outs WHERE day = ? AND pid = ?").bind(day, pid).run();
+  }
+  let refresh = "no token";
+  if (env.DISPATCH_TOKEN) {
+    try {
+      const res = await fetch(NBA_REFRESH_DISPATCH, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${env.DISPATCH_TOKEN}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "gmg-mark-out", "Content-Type": "application/json" },
+        body: JSON.stringify({ ref: "main", inputs: { source: "markout" } }),
+      });
+      refresh = res.status === 204 ? "started" : `GitHub ${res.status}`;
+    } catch (e) {
+      refresh = "GitHub unreachable";
+    }
+  }
+  return json({ ok: true, refresh });
+}
+
 // NBA starting lineups, live (First Basket, 2026-10-20; the owner: "nba is big on
 // lineups so making sure thats fast and accurate is key"). The NBA's own
 // daily file -- what nba.com's "Today's Lineups" reads -- lists each team's
@@ -506,6 +557,10 @@ async function handleNbaLineups(request, json) {
 async function handleApi(request, env, session, json) {
   const url = new URL(request.url);
   if (url.pathname === "/api/nba-lineups") return handleNbaLineups(request, json);
+  if (url.pathname === "/api/nba-outs") {
+    if (!env.DB) return json({ error: "no database" }, 503);
+    return handleNbaOuts(request, env, session, json);
+  }
   if (url.pathname === "/api/requests") {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleRequests(request, env, session, json);
@@ -1290,10 +1345,13 @@ async function gate(context, url, next) {
   // Which build is live (commit + time, written by deploy.yml). Public so a
   // deploy can be confirmed without a login; it holds nothing else.
   if (url.pathname === "/version.json") return next();
-  if (await isBuildRequest(request, env)) return next();
-
   const isApi = url.pathname.startsWith("/api/");
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+  if (await isBuildRequest(request, env)) {
+    // the NBA build reads the owner's Mark Out list (only reads: a PUT needs the owner)
+    if (url.pathname === "/api/nba-outs" && request.method === "GET" && env.DB) return handleNbaOuts(request, env, null, json);
+    return next();
+  }
 
   let session = null;
   try {

@@ -287,6 +287,7 @@ jobs:
           BCI: ${{ secrets.BUILDR_CLIENT_ID }}
           BCS: ${{ secrets.BUILDR_CLIENT_SECRET }}
           BAK: ${{ secrets.BUILDR_API_KEY }}
+          DPT: ${{ secrets.NHL_TRIGGER_TOKEN }}
         run: |
           if [ -n "$DCS" ]; then printf '%s' "$DCS" | npx -y wrangler@3 pages secret put DISCORD_CLIENT_SECRET --project-name=gmg-nfl; fi
           if [ -n "$DBT" ]; then printf '%s' "$DBT" | npx -y wrangler@3 pages secret put DISCORD_BOT_TOKEN --project-name=gmg-nfl; fi
@@ -297,6 +298,8 @@ jobs:
           if [ -n "$BCI" ]; then printf '%s' "$BCI" | npx -y wrangler@3 pages secret put BUILDR_CLIENT_ID --project-name=gmg-nfl; fi
           if [ -n "$BCS" ]; then printf '%s' "$BCS" | npx -y wrangler@3 pages secret put BUILDR_CLIENT_SECRET --project-name=gmg-nfl; fi
           if [ -n "$BAK" ]; then printf '%s' "$BAK" | npx -y wrangler@3 pages secret put BUILDR_API_KEY --project-name=gmg-nfl; fi
+          # The owner's NBA Mark Out button presses nba-refresh.yml with the timer's token (the middleware).
+          if [ -n "$DPT" ]; then printf '%s' "$DPT" | npx -y wrangler@3 pages secret put DISPATCH_TOKEN --project-name=gmg-nfl; fi
 
       # Member profiles (saved plays/picks/notes per Discord account): a D1
       # database, created on the first run, its table created if missing,

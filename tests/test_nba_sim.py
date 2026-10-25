@@ -106,6 +106,15 @@ class Rotation(unittest.TestCase):
         self.assertGreater(listed[4], plain[4] + 8)
         self.assertGreaterEqual(listed[4], sim.STARTER_TRUST * 31.8 - 3)  # AAA's starters average 31.8
 
+    def test_the_owners_mark_out_counts_as_out(self):
+        # the Matchup View's Mark Out (2026-10-25): whatever ESPN says, with the mark kept for the page's Undo
+        injuries = {"PHI": [{"id": "3059318", "name": "Joel Embiid", "status": "Questionable", "note": "Plantar fasciitis"}]}
+        got = build_nba.add_marked_out(injuries, [{"pid": "3059318", "name": "Joel Embiid", "team": "PHI"},
+                                                  {"pid": "4431678", "name": "VJ Edgecombe", "team": "PHI"}, {"pid": "", "team": "PHI"}])
+        self.assertEqual([(r["id"], r["status"], r.get("marked")) for r in got["PHI"]], [("3059318", "Out", True), ("4431678", "Out", True)])
+        self.assertEqual(got["PHI"][0]["note"], "Plantar fasciitis")
+        self.assertEqual(got["PHI"][1]["note"], "Marked out by GMG")
+
     def test_a_hurt_starter_not_in_the_posted_five_sits(self):
         # the owner, 2026-10-25: Embiid Questionable, Bona in the posted five, the sim had Embiid 30 minutes off the bench
         five = ["P9", "P2", "P1", "P5", "P6"]  # the 18-minute center P9 starts; the starting center P8 isn't listed

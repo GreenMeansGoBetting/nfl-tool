@@ -499,6 +499,43 @@ def fetch_previous() -> dict | None:
         return None
 
 
+MARKED_OUT_URL = "https://nfl.gmgsports.org/api/nba-outs?day={day}"
+
+
+def fetch_marked_out(day: str) -> list:
+    """The owner's Mark Out list for an Eastern date (the Matchup View's Out
+    button, /api/nba-outs in the login middleware): [{pid, name, team}]. Empty
+    on any failure (the injury report stands)."""
+    try:
+        headers = {"User-Agent": USER_AGENT}
+        token = os.environ.get("DISCORD_BOT_TOKEN")
+        if token:
+            headers["X-GMG-Build"] = hmac.new(token.encode(), b"gmg-build-v1", hashlib.sha256).hexdigest()
+        with urllib.request.urlopen(urllib.request.Request(MARKED_OUT_URL.format(day=day), headers=headers), timeout=20) as resp:
+            return list(json.load(resp).get("outs") or [])
+    except Exception as e:
+        print(f"NOTE: the owner's Mark Out list not read ({e}).", file=sys.stderr)
+        return []
+
+
+def add_marked_out(injuries: dict, marked: list) -> dict:
+    """The injury list with the owner's marks as Out (`marked`: the page shows
+    the owner an Undo), whatever ESPN says."""
+    for m in marked:
+        pid, team = str(m.get("pid") or ""), m.get("team")
+        if not pid or not team:
+            continue
+        rows = injuries.setdefault(team, [])
+        row = next((r for r in rows if str(r["id"]) == pid), None)
+        if row is None:
+            row = {"id": pid, "name": m.get("name"), "position": POSITION_TABLE.get(pid), "status": "Out", "injury": None,
+                   "return_date": None, "note": None}
+            rows.append(row)
+        row.update(status="Out", marked=True, note=row.get("note") or "Marked out by GMG")
+        rows.sort(key=lambda p: (p["status"] != "Out", p["name"] or ""))
+    return injuries
+
+
 def apply_lines(games: list, novig: dict, previous: dict | None, now_utc: datetime) -> None:
     """Fresh Novig lines for games that haven't tipped; a game that has
     started keeps whatever the last build before tip-off stored."""
@@ -1009,6 +1046,7 @@ def main():
     print(f"SmartStake NBA: {json.dumps(book_odds_debug)}")
     lap("smartstake")
     injury_list = live_injuries(abbr_by_id) or compute_injuries(injuries, abbr_by_id)
+    injury_list = add_marked_out(injury_list, fetch_marked_out(eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")))
 
     blob = {
         "season": args.season,
