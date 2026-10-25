@@ -9,4 +9,6 @@ workers_dev = false
 # UTC, at :17 and :47 from 16:17 to 02:47, October to June: 12:17 pm to
 # 10:47 pm Eastern in daylight time (11:17 am to 9:47 pm in standard time),
 # so the West-coast games get refreshed lineups and a lock close to puck drop.
-crons = ["17,47 0-2,16-23 * 1-6,10-12 *"]
+# The NBA injury watch (watch.js), every minute from 11 am to 12:59 am
+# Eastern (daylight time): the cron must match index.js NBA_WATCH_CRON.
+crons = ["17,47 0-2,16-23 * 1-6,10-12 *", "* 0-4,15-23 * 1-6,10-12 *"]

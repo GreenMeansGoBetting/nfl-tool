@@ -200,9 +200,18 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   bench minutes, and LeBron / Brown / Edgecombe all read big unders; ESPN ruled him Out 40 minutes later).
 - **Injuries: ESPN's live list** (`live_injuries`, build_nba.py; the hoopR file is a daily snapshot,
   the fallback). The owner, 2026-10-24: ESPN still had LeBron Questionable an hour after Underdog
-  reported him out, "that is not going to cut it". Next (its own push): the NBA's official injury
-  report, books pulling a player's props, a Mark Out button for the owner, and a 3-minute news
-  check that starts an NBA-only refresh when something changes (the build runs every 6 hours now).
+  reported him out, "that is not going to cut it".
+- **The injury watch (2026-10-25,** the owner: "Within 5 minutes of a player being ruled out for
+  their team, sims rerun"). Every build writes data.json `watch` (version.json `nba.watch`:
+  tonight's untipped teams, fingerprints of ESPN's statuses `inj` and the NBA's posted fives `lu`,
+  `nfl_tool/nba/watch.py`) and `timing` (seconds per part). The Cloudflare Worker gmg-nhl-timer
+  (`workers/nhl-timer/watch.js`, every minute 11 am to 1 am ET) works out the same fingerprints and
+  on a change presses `.github/workflows/nba-refresh.yml` (members-and-hosting.md). The two sides
+  must match to the letter (`tests/test_nba_watch.py`). Paid sources were turned down (the owner:
+  "i dont want to pay": X's API for Underdog's posts). Next, each its own push: the owner's Mark
+  Out button, then the NBA's official report (a PDF every 15 minutes at
+  `ak-static.cms.nba.com/referee/injury/Injury-Report_<date>_<hh_mmAM>.pdf`; on 10-25 its 1:00 pm
+  report had Embiid Out 8 minutes before ESPN).
 - **The dials** (`SCHEDULE_DIALS`, `LAST_GAME_DIALS`, sizes from nba_spots.py: [own points, the
   other team's points]): Rest Edge (B2B vs 2+ days off, -0.72 / +1.89), Back-To-Back, 3 In 4,
   4 In 6; Letdown: OT Win, Overtime Legs, Letdown: Close Win (1-3 in regulation), Off A 20+ Win

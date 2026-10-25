@@ -54,7 +54,7 @@ permissions:
   actions: read  # to ask whether a full rebuild is queued or running
 
 concurrency:
-  group: nhl-refresh
+  group: site-refresh  # shared with nba-refresh.yml: the two never publish over each other
   cancel-in-progress: false
 
 jobs:

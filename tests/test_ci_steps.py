@@ -254,6 +254,55 @@ class HockeyRefresh(unittest.TestCase):
             self.assertTrue(ci_steps.refresh_problems(site, None))
 
 
+class BasketballRefresh(unittest.TestCase):
+    """nba-refresh.yml (2026-10-25, the injury watch): the same rules as the
+    hockey refresh, with the NBA files the ones rebuilt."""
+
+    def test_the_stamp_replaces_only_the_nba_note(self):
+        stamped = ci_steps.refresh_stamp(LIVE, {"built": "2026-10-25T17:10Z", "watch": {"inj": "ab"}}, datetime(2026, 10, 25, 17, 11, tzinfo=timezone.utc), 888, 140, "nba")
+        self.assertEqual((stamped["sha"], stamped["run"], stamped["built"], stamped["nhl"]), (SHA, LIVE["run"], LIVE["built"], LIVE["nhl"]))
+        self.assertEqual(stamped["nba"], {"built": "2026-10-25T17:10Z", "watch": {"inj": "ab"}})
+        self.assertEqual(stamped["nba_refresh"], {"at": "2026-10-25T17:11Z", "run": "888", "seconds": 140})
+        self.assertNotIn("nhl_refresh", stamped)
+
+    def test_a_folder_with_a_live_file_missing_is_never_published(self):
+        with tempfile.TemporaryDirectory() as folder:
+            site = Path(folder)
+            teams = {"NJD": {}, "DET": {}}
+            write = lambda rel, value: ((site / rel).parent.mkdir(parents=True, exist_ok=True), (site / rel).write_text(json.dumps(value), encoding="utf-8"))
+            write("data.json", {"teams": []})
+            write("nba/data.json", {"teams": {"PHI": {}}, "schedule": [], "generated_at": "2026-10-25T17:10Z"})
+            write("nba/props.json", {"seasons": {"2027": {}}})
+            write("nba/shots.json", {"games": []})
+            write("nhl/data.json", {"teams": teams, "schedule": [], "generated_at": "2026-10-13T18:48Z"})
+            write("nhl/shots.json", {"games": {}})
+            for abbr in teams:
+                write(f"nhl/players/{abbr}.json", {})
+            self.assertEqual(ci_steps.refresh_problems(site, LIVE, "nba"), [])
+            for rel, word in (("nhl/players/DET.json", "player file"), ("nhl/shots.json", "Shots"), ("nhl/data.json", "NHL"),
+                              ("nba/props.json", "props"), ("nba/shots.json", "shot charts"), ("nba/data.json", "NBA"), ("data.json", "NFL")):
+                kept = (site / rel).read_text(encoding="utf-8")
+                (site / rel).unlink()
+                problems = ci_steps.refresh_problems(site, LIVE, "nba")
+                self.assertTrue(any(word in p for p in problems), (rel, problems))
+                (site / rel).write_text(kept, encoding="utf-8")
+            # an NBA build that wrote nothing usable; hockey not live is fine
+            write("nba/data.json", {"teams": {}, "schedule": []})
+            self.assertTrue(ci_steps.refresh_problems(site, LIVE, "nba"))
+            write("nba/data.json", {"teams": {"PHI": {}}, "schedule": [], "generated_at": "2026-10-25T17:10Z"})
+            (site / "nhl" / "data.json").unlink()
+            self.assertEqual(ci_steps.refresh_problems(site, {**LIVE, "nhl": {"built": None}}, "nba"), [])
+
+    def test_the_note_carries_the_watch_and_the_timing(self):
+        with tempfile.TemporaryDirectory() as folder:
+            site = Path(folder)
+            (site / "nba").mkdir()
+            w = {"day": "20261025", "teams": [20], "nba": ["PHI"], "inj": "0123456789abcdef", "lu": "fedcba9876543210"}
+            (site / "nba" / "data.json").write_text(json.dumps({"generated_at": "2026-10-25T17:10Z", "watch": w, "timing": {"smartstake": 90.5}}), encoding="utf-8")
+            note = ci_steps.suite_note(site, "nba")
+            self.assertEqual((note["watch"], note["timing"]), (w, {"smartstake": 90.5}))
+
+
 class Reply:
     def __init__(self, body):
         self.body = body
@@ -590,6 +639,29 @@ class WorkflowsInStep(unittest.TestCase):
         # It installs nothing: the machine's own Python, the standard library.
         self.assertNotIn("pip install", self.refresh)
         self.assertNotIn("playwright", self.refresh)
+
+    def test_the_nba_refresh_builds_and_publishes_like_the_deploy(self):
+        nba = (ROOT / ".github" / "workflows" / "nba-refresh.yml").read_text(encoding="utf-8")
+        binding = lambda text: re.findall(r"^\s+echo (['\"].*)$", text, flags=re.M)
+        self.assertEqual(binding(nba), binding(self.deploy))
+        self.assertIn('grep -q "d1_databases" nfl_tool/wrangler.toml', nba)
+        build = lambda text: re.search(r"python3? (nfl_tool/nba/build_nba\.py --season \d+ --out \S+)", text).group(1)
+        publish = lambda text: re.search(r"command: (pages deploy .*)", text).group(1)
+        self.assertEqual(build(nba), build(self.deploy))
+        self.assertEqual(publish(nba), publish(self.deploy))
+        self.assertIn("workingDirectory: nfl_tool", nba)
+        # asks twice, publishes only on two yeses, every step after the first check waits on it
+        self.assertEqual(nba.count("tools/ci_steps.py refresh-check --sport nba"), 2)
+        self.assertIn("if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'", nba)
+        steps = nba.split("      - name: ")[2:]
+        self.assertTrue(all("steps.check.outputs.go == 'yes'" in step for step in steps), [s.splitlines()[0] for s in steps])
+        self.assertIn("python tools/fetch_live_data.py --only nfl nhl --strict", nba)
+        self.assertIn("refresh-stamp --sport nba", nba)
+        self.assertIn("python tools/ci_steps.py live-check", nba)
+        # one queue with the hockey refresh: the two never publish over each other
+        for text in (nba, self.refresh):
+            self.assertIn("  group: site-refresh", text)
+            self.assertIn("cancel-in-progress: false", text)
 
     def test_the_site_check_runs_once_a_day_not_after_every_deploy(self):
         self.assertNotIn("workflow_run", self.check)

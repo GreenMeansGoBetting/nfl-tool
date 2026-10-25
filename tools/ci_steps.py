@@ -300,6 +300,10 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["props"] = {s: len(b.get("players") or {}) for s, b in (nba_props.get("seasons") or {}).items()} if nba_props else None
         note["sim"] = len(nba_props.get("sim") or {}) if nba_props else None  # the Points / Threes game sim: games simulated
         note["sim_plays"] = {m: len(v) for m, v in (nba_props.get("sim_plays") or {}).items()} if nba_props else None
+        # what tonight's sims read about who plays: the Cloudflare timer compares it with ESPN and the
+        # NBA every minute and starts nba-refresh.yml on a change (workers/nhl-timer/watch.js)
+        note["watch"] = data.get("watch")
+        note["timing"] = data.get("timing")  # seconds each part of the build took
         note["points_alt"] = bo.get("points_alt")
         note["threes_alt"] = bo.get("threes_alt")
     if failed:
@@ -426,8 +430,8 @@ def refresh_decision(event, live, busy, code_is_live, ahead, first=None, now=Non
     return True, "nothing else is publishing and the live code is main's"
 
 
-def refresh_state() -> Path:
-    return state_dir() / "gmg-nhl-refresh.json"
+def refresh_state(sport="nhl") -> Path:
+    return state_dir() / f"gmg-{sport}-refresh.json"
 
 
 def cmd_refresh_check(args):
@@ -437,57 +441,79 @@ def cmd_refresh_check(args):
     live = live_version()
     first = None
     if args.again:
-        first = (read_json(refresh_state()) or {}).get("live") or {}
+        first = (read_json(refresh_state(args.sport)) or {}).get("live") or {}
     ahead = None
-    if event in ("schedule", "timer") and not args.again:
+    # the NBA refresh is pressed by the injury watch only when tonight's games have a change
+    if args.sport == "nhl" and event in ("schedule", "timer") and not args.again:
         ahead = games_ahead(get_json("https://api-web.nhle.com/v1/schedule/now"), utc_now())
     go, why = refresh_decision(event, live, deploy_busy(), same_code(live_sha(live)), ahead, first, None if args.again else utc_now())
     if not args.again:
-        refresh_state().write_text(json.dumps({"live": live, "started": int(time.time())}), encoding="utf-8")
+        refresh_state(args.sport).write_text(json.dumps({"live": live, "started": int(time.time())}), encoding="utf-8")
     output(go="yes" if go else "no")
     summary(f"{'Publishing' if args.again else 'Refreshing'}: {'yes' if go else 'no'} ({why}).")
     return 0
 
 
-def refresh_stamp(version, nhl_note, now: datetime, run_id, seconds):
-    """The live version.json with the NHL note replaced and the refresh
-    noted. `sha`, `run` and `built` stay the full rebuild's: the code and the
-    rest of the data are still that build's."""
-    return {**version, "nhl": nhl_note, "nhl_refresh": {"at": now.strftime("%Y-%m-%dT%H:%MZ"), "run": str(run_id or ""), "seconds": seconds}}
+def refresh_stamp(version, note, now: datetime, run_id, seconds, sport="nhl"):
+    """The live version.json with the refreshed sport's note replaced and the
+    refresh noted (`nhl_refresh` / `nba_refresh`). `sha`, `run` and `built`
+    stay the full rebuild's: the code and the rest of the data are still that
+    build's."""
+    return {**version, sport: note, f"{sport}_refresh": {"at": now.strftime("%Y-%m-%dT%H:%MZ"), "run": str(run_id or ""), "seconds": seconds}}
 
 
-def refresh_problems(site: Path, version) -> list:
+def nhl_problems(site: Path, version, rebuilt: bool) -> list:
+    """The NHL files: real if this run rebuilt them, else all there if they are live."""
+    if not rebuilt and not ((version or {}).get("nhl") or {}).get("built"):
+        return []
+    nhl = read_json(site / "nhl" / "data.json")
+    if nhl is None or not nhl.get("teams") or not isinstance(nhl.get("schedule"), list) or not nhl.get("generated_at"):
+        return ["the NHL build didn't write a usable data.json" if rebuilt else "the NHL data is live but isn't here"]
+    problems = []
+    if not all((site / "nhl" / "players" / f"{abbr}.json").exists() for abbr in nhl["teams"]):
+        problems.append("a team's player file is missing")
+    if (((version or {}).get("nhl") or {}).get("shots")) and read_json(site / "nhl" / "shots.json") is None:
+        problems.append("the Shots page's file is live but wasn't rebuilt" if rebuilt else "the Shots page's file is live but isn't here")
+    return problems
+
+
+def refresh_problems(site: Path, version, sport="nhl") -> list:
     """Why this folder must NOT be published (empty = fine). It is about to
     replace the whole live site, so every data file that is live has to be
-    here, and the new NHL files have to be real."""
+    here, and the refreshed sport's new files have to be real."""
     problems = []
     if not live_sha(version):
         problems.append("the live version.json wasn't saved by the first check")
     if read_json(site / "data.json") is None:
         problems.append("the NFL data.json is missing")
-    if ((version or {}).get("nba") or {}).get("built") and read_json(site / "nba" / "data.json") is None:
+    if sport == "nba":
+        nba = read_json(site / "nba" / "data.json")
+        if nba is None or not nba.get("teams") or not isinstance(nba.get("schedule"), list) or not nba.get("generated_at"):
+            problems.append("the NBA build didn't write a usable data.json")
+        props = read_json(site / "nba" / "props.json")
+        if props is None or not props.get("seasons"):
+            problems.append("the NBA build didn't write a usable props.json")
+        if read_json(site / "nba" / "shots.json") is None:
+            problems.append("the NBA shot charts file is missing")
+    elif ((version or {}).get("nba") or {}).get("built") and read_json(site / "nba" / "data.json") is None:
         problems.append("the NBA data is live but isn't here")
-    nhl = read_json(site / "nhl" / "data.json")
-    if nhl is None or not nhl.get("teams") or not isinstance(nhl.get("schedule"), list) or not nhl.get("generated_at"):
-        problems.append("the NHL build didn't write a usable data.json")
-    elif not all((site / "nhl" / "players" / f"{abbr}.json").exists() for abbr in nhl["teams"]):
-        problems.append("a team's player file is missing")
-    if (((version or {}).get("nhl") or {}).get("shots")) and read_json(site / "nhl" / "shots.json") is None:
-        problems.append("the Shots page's file is live but wasn't rebuilt")
-    return problems
+    return problems + nhl_problems(site, version, sport == "nhl")
 
 
 def cmd_refresh_stamp(args):
-    state = read_json(refresh_state()) or {}
+    state = read_json(refresh_state(args.sport)) or {}
     version = state.get("live")
-    problems = refresh_problems(SITE, version)
+    problems = refresh_problems(SITE, version, args.sport)
     if problems:
         summary("Not publishing: " + "; ".join(problems) + ".")
         return 1
-    note = suite_note(SITE, "nhl")
-    stamped = refresh_stamp(version, note, utc_now(), os.environ.get("GITHUB_RUN_ID"), int(time.time()) - int(state.get("started") or time.time()))
+    note = suite_note(SITE, args.sport)
+    stamped = refresh_stamp(version, note, utc_now(), os.environ.get("GITHUB_RUN_ID"), int(time.time()) - int(state.get("started") or time.time()), args.sport)
     (SITE / "version.json").write_text(json.dumps(stamped) + "\n", encoding="utf-8")
-    summary(f"NHL data rebuilt: lineups read for {note.get('lineups')} games, odds for {note.get('player_odds')} players, {note.get('shots')} games with shot projections.")
+    if args.sport == "nba":
+        summary(f"NBA data rebuilt: {note.get('sim')} games simmed, plays {note.get('sim_plays')}, build parts (seconds) {note.get('timing')}.")
+    else:
+        summary(f"NHL data rebuilt: lineups read for {note.get('lineups')} games, odds for {note.get('player_odds')} players, {note.get('shots')} games with shot projections.")
     return 0
 
 
@@ -697,8 +723,11 @@ def main(argv=None):
     sub.add_parser("lane").set_defaults(run=cmd_lane)
     check = sub.add_parser("refresh-check")
     check.add_argument("--again", action="store_true", help="right before publishing: also stop if the site changed since the first check")
+    check.add_argument("--sport", choices=("nhl", "nba"), default="nhl", help="which refresh: nhl-refresh.yml or nba-refresh.yml")
     check.set_defaults(run=cmd_refresh_check)
-    sub.add_parser("refresh-stamp").set_defaults(run=cmd_refresh_stamp)
+    stamp = sub.add_parser("refresh-stamp")
+    stamp.add_argument("--sport", choices=("nhl", "nba"), default="nhl")
+    stamp.set_defaults(run=cmd_refresh_stamp)
     live = sub.add_parser("live-check")
     live.add_argument("--look", action="store_true", help="only look and report: expects no particular version and never goes back")
     live.set_defaults(run=cmd_live_check)

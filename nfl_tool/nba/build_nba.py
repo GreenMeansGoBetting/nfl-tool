@@ -22,6 +22,7 @@ import hmac
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -40,6 +41,7 @@ import kotc  # noqa: E402
 import positions  # noqa: E402
 import possessions as P  # noqa: E402
 import sim  # noqa: E402
+import watch  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
@@ -302,6 +304,9 @@ def compute_injuries(injuries: pd.DataFrame | None, abbr_by_id: dict) -> dict:
 ESPN_INJURIES_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries"
 
 
+LAST_INJURY_BODY = {}  # ESPN's list as live_injuries read it: the refresh's watch fingerprints it (watch.py)
+
+
 def live_injuries(abbr_by_id: dict) -> dict | None:
     """{team: [players]} from ESPN's live injury list, the same shape as
     compute_injuries: the hoopR file is a daily snapshot, too slow for a game
@@ -309,6 +314,7 @@ def live_injuries(abbr_by_id: dict) -> dict | None:
     is ruled out at 3pm"). None if it can't be read (the build falls back to
     the file)."""
     import re
+    LAST_INJURY_BODY.clear()
     try:
         req = urllib.request.Request(ESPN_INJURIES_URL, headers={"User-Agent": USER_AGENT})
         with urllib.request.urlopen(req, timeout=20) as resp:
@@ -316,6 +322,7 @@ def live_injuries(abbr_by_id: dict) -> dict | None:
     except Exception as ex:
         print(f"NOTE: ESPN live injuries not read ({ex!r}); using the daily file.", file=sys.stderr)
         return None
+    LAST_INJURY_BODY["body"] = body
     out = {}
     for t in body.get("injuries") or []:
         team = abbr_by_id.get(int(t.get("id") or 0))
@@ -948,6 +955,13 @@ def main():
     args = parser.parse_args()
     force = not args.cached
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    # Seconds each part took (data.json `timing`, version.json nba.timing): the
+    # injury refresh (nba-refresh.yml) has minutes, not hours, to work in.
+    timing, clock = {}, [time.time()]
+
+    def lap(name):
+        timing[name] = round(time.time() - clock[0], 1)
+        clock[0] = time.time()
     POSITION_TABLE.update(positions.load())
 
     schedule = fetch_file("schedule", args.season, args.data_dir, force)
@@ -982,6 +996,7 @@ def main():
             stat_seasons[args.season] = block
     if not stat_seasons:
         sys.exit("No box scores available for this season yet.")
+    lap("files")
     stats_season = args.season
     shown = stat_seasons[stats_season]
 
@@ -989,8 +1004,10 @@ def main():
     novig, novig_debug = fetch_novig_lines(games, teams)
     previous = fetch_previous()
     apply_lines(games, novig, previous, now_utc)
+    lap("lines")
     book_odds, book_odds_debug = nba_book_odds(teams, rosters, games, previous, now_utc)
     print(f"SmartStake NBA: {json.dumps(book_odds_debug)}")
+    lap("smartstake")
     injury_list = live_injuries(abbr_by_id) or compute_injuries(injuries, abbr_by_id)
 
     blob = {
@@ -1018,12 +1035,14 @@ def main():
     except Exception as ex:
         print(f"WARNING: King of the Court failed ({ex!r}).", file=sys.stderr)
         blob["kotc"] = None
+    lap("kotc")
     # Nor may First Basket.
     try:
         blob["first_basket"] = compute_first_basket(args.season, args.data_dir, force, teams, rosters, injury_list, games, now_utc, book_odds)
     except Exception as ex:
         print(f"WARNING: First Basket failed ({ex!r}).", file=sys.stderr)
         blob["first_basket"] = None
+    lap("first_basket")
     # Nor Team Identity.
     try:
         # First Basket has just downloaded this season's play-by-play: reuse it (a
@@ -1032,6 +1051,7 @@ def main():
     except Exception as ex:
         print(f"WARNING: Team Identity failed ({ex!r}).", file=sys.stderr)
         blob["identity"] = None
+    lap("identity")
     # Player props (props.json, its own file: every player's game log is too
     # big for data.json). A failure leaves the file out; the pages say so.
     try:
@@ -1041,6 +1061,7 @@ def main():
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:
         print(f"WARNING: NBA props failed ({ex!r}).", file=sys.stderr)
+    lap("props_and_sim")
     # Shot charts (shots.json, its own file, read only when a card's Shot Chart
     # tab opens): THIS season's shots only (the owner, 2026-10-21).
     try:
@@ -1050,6 +1071,13 @@ def main():
         (args.out.parent / "shots.json").write_text(json.dumps({"season": args.season, **(block or {"label": season_label(args.season), "games": [], "players": {}, "league": []})}, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:
         print(f"WARNING: NBA shots failed ({ex!r}).", file=sys.stderr)
+    lap("shots")
+    # What tonight's sims read about who plays: the Cloudflare timer compares it
+    # with ESPN and the NBA every minute and starts nba-refresh.yml on a change.
+    today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
+    blob["watch"] = watch.block(games, teams, sim.NBA_ABBR, today, now_utc.strftime("%Y-%m-%dT%H:%MZ"), LAST_INJURY_BODY.get("body"),
+                                ((blob.get("first_basket") or {}).get("lineups") or {}).get(today))
+    blob["timing"] = timing
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:
         json.dump(blob, f, indent=1)

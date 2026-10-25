@@ -1,0 +1,164 @@
+name: Refresh NBA sims (injury watch)
+
+# The basketball-only refresh (2026-10-25). The owner: "Within 5 minutes of a
+# player being ruled out for their team, sims rerun and give new lines with
+# the more accurate game." Embiid was ruled out at 1:08 pm Eastern that day
+# and the sims kept him until the next full rebuild, almost two hours later.
+#
+# Who presses it: the Cloudflare Worker gmg-nhl-timer (workers/nhl-timer/
+# watch.js) checks ESPN's injury list and the NBA's posted starting fives
+# every minute against what the last NBA build read (version.json
+# nba.watch), and presses "Run workflow" here with source "watch" when
+# tonight's games have a change. "Run workflow" on the Actions page works too.
+#
+# It rebuilds the NBA files (the same build command as deploy.yml: injuries,
+# lineups, odds, every sim) and republishes. Like nhl-refresh.yml, everything
+# else is put back exactly as it is live, and it never publishes while a full
+# rebuild is queued or running, never publishes code that isn't live, and
+# stops if the site was republished while it ran (tools/ci_steps.py
+# refresh-check --sport nba, before starting and right before publishing).
+# It shares its queue with the hockey refresh (concurrency "site-refresh"), so
+# the two never publish over each other. No tests and no page check: the code
+# is already live, only the NBA data changes. A failed NBA build publishes
+# nothing.
+#
+# The NBA records (model_history/nba_*: tonight's plays are rewritten until
+# tip) are committed like deploy.yml's, so a play shown after a late
+# scratch is the play that gets graded.
+#
+# What it did is in the public version.json: "nba" (when it was built, the
+# watch fingerprints, seconds per part of the build) and "nba_refresh".
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Who pressed it (the Cloudflare watch sends 'watch')"
+        required: false
+        default: "button"
+
+permissions:
+  contents: write  # the NBA records (model_history/nba_*)
+  actions: read  # to ask whether a full rebuild is queued or running
+
+concurrency:
+  group: site-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Safe to publish?
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REFRESH_SOURCE: ${{ inputs.source }}
+        run: python3 tools/ci_steps.py refresh-check --sport nba
+
+      - uses: actions/setup-python@v5
+        if: steps.check.outputs.go == 'yes'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: nfl_tool/requirements.txt
+
+      - name: Install the build's packages
+        if: steps.check.outputs.go == 'yes'
+        run: pip install -r nfl_tool/requirements.txt
+
+      # --strict: a file that is live but can't be downloaded stops the run,
+      # so a hiccup can never publish the site with a data file missing.
+      - name: Take the NFL and NHL data exactly as they are live
+        if: steps.check.outputs.go == 'yes'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        run: python tools/fetch_live_data.py --only nfl nhl --strict
+
+      # The same command as deploy.yml's "Build NBA data" (bump the season in
+      # both). Not continue-on-error here: a failed build publishes nothing.
+      - name: Build NBA data
+        if: steps.check.outputs.go == 'yes'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
+        run: python nfl_tool/nba/build_nba.py --season 2027 --out nfl_tool/site/nba/data.json
+
+      - name: Check the new files and note the refresh in version.json
+        if: steps.check.outputs.go == 'yes'
+        run: python tools/ci_steps.py refresh-stamp --sport nba
+
+      # The member database binding, written exactly as deploy.yml writes it
+      # (a test keeps the two the same). Publishing without it would lock
+      # email members out, so a run that can't name the database stops here.
+      - name: Member database binding (D1)
+        if: steps.check.outputs.go == 'yes'
+        working-directory: nfl_tool
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx -y wrangler@3 d1 list --json > d1.json
+          DBID=$(jq -r '.[] | select(.name=="gmg-nfl-users") | .uuid' d1.json)
+          rm -f d1.json
+          test -n "$DBID"
+          {
+            echo 'name = "gmg-nfl"'
+            echo 'pages_build_output_dir = "site"'
+            echo 'compatibility_date = "2024-09-01"'
+            echo '[[d1_databases]]'
+            echo 'binding = "DB"'
+            echo 'database_name = "gmg-nfl-users"'
+            echo "database_id = \"$DBID\""
+          } > wrangler.toml
+
+      - name: Refuse to publish without the member database
+        if: steps.check.outputs.go == 'yes'
+        run: grep -q "d1_databases" nfl_tool/wrangler.toml
+
+      - name: Still safe to publish?
+        id: still
+        if: steps.check.outputs.go == 'yes'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REFRESH_SOURCE: ${{ inputs.source }}
+        run: python tools/ci_steps.py refresh-check --sport nba --again
+
+      # Same publish as deploy.yml: from nfl_tool/ so the login gate
+      # (nfl_tool/functions) is bundled with the site folder.
+      - name: Publish
+        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: nfl_tool
+          command: pages deploy site --project-name=gmg-nfl --branch=main --commit-dirty=true
+
+      # Only what was published: tonight's NBA plays as members now see them.
+      # Never allowed to fail the run.
+      - name: Save the NBA records
+        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add model_history/nba_*
+          if ! git diff --cached --quiet; then
+            git commit -m "Model records: NBA injury refresh"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      # After the publish (tools/ci_steps.py live-check, as nhl-refresh.yml):
+      # if the site isn't answering, the version from before is put back.
+      - name: Check the live site (and put the last version back if it is down)
+        if: steps.check.outputs.go == 'yes' && steps.still.outputs.go == 'yes'
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python tools/ci_steps.py live-check
