@@ -1772,7 +1772,7 @@
     0.077,
     1200,
     false,
-    "draftkings"
+    "hard_rock"
    ],
    "3945274": [
     "Luka Doncic",
@@ -1955,9 +1955,9 @@
    "3136195": [
     "Karl-Anthony Towns",
     0.098,
-    600,
+    610,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3147657": [
     "Mikal Bridges",
@@ -1990,16 +1990,16 @@
    "4277847": [
     "Wendell Carter Jr.",
     0.112,
-    800,
+    850,
     false,
-    "thescore"
+    "draftkings"
    ],
    "4432165": [
     "Jalen Suggs",
     0.113,
-    800,
-    false,
-    "caesars"
+    910,
+    true,
+    "draftkings"
    ],
    "4566434": [
     "Franz Wagner",
@@ -2039,7 +2039,7 @@
     0.067,
     900,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4395625": [
     "RJ Barrett",
@@ -2093,9 +2093,9 @@
    "6450": [
     "Kawhi Leonard",
     0.102,
-    600,
+    610,
     false,
-    "fanduel"
+    "draftkings"
    ]
   },
   "tip_home": 0.471
@@ -2202,7 +2202,7 @@
    "1966": [
     "LeBron James",
     0.103,
-    750,
+    800,
     false,
     "fanduel"
    ],
@@ -2216,9 +2216,9 @@
    "3908845": [
     "John Collins",
     0.135,
-    950,
+    910,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "3912848": [
     "Dean Wade",
@@ -2230,37 +2230,37 @@
    "3917376": [
     "Jaylen Brown",
     0.097,
-    600,
+    561,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4431678": [
     "Tyrese Maxey",
     0.112,
-    500,
+    581,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4432166": [
     "Cade Cunningham",
     0.124,
-    525,
+    553,
     false,
-    "caesars"
+    "draftkings"
    ],
    "4684742": [
     "Ausar Thompson",
     0.102,
-    1000,
+    1100,
     true,
-    "thescore"
+    "fanduel"
    ],
    "5124612": [
     "VJ Edgecombe",
     0.086,
-    1000,
+    1100,
     false,
-    "caesars"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
@@ -2302,9 +2302,9 @@
    "4065733": [
     "Ty Jerome",
     0.131,
-    550,
+    568,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4594327": [
     "Keegan Murray",
@@ -2316,9 +2316,9 @@
    "4903027": [
     "Cedric Coward",
     0.079,
-    800,
+    810,
     false,
-    "thescore"
+    "draftkings"
    ],
    "5041935": [
     "Cameron Boozer",
@@ -2344,9 +2344,9 @@
    "5142620": [
     "Darius Acuff Jr.",
     0.113,
-    700,
+    730,
     false,
-    "fanduel"
+    "draftkings"
    ]
   },
   "tip_home": 0.5

@@ -704,6 +704,10 @@
  "2026_07_MIA_NYJ": {
   "away": "MIA",
   "away_pts": 18.7,
+  "final": [
+   28,
+   25
+  ],
   "frozen": true,
   "home": "NYJ",
   "home_pts": 24.1,
@@ -711,9 +715,11 @@
   "spread": -3.5,
   "spread_edge": 1.9,
   "spread_pick": "home",
+  "spread_result": "loss",
   "total": 39.5,
   "total_edge": 3.2,
   "total_pick": "over",
+  "total_result": "win",
   "updated": "2026-10-25T16:30Z",
   "week": 7
  },
