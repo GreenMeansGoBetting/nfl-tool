@@ -56,16 +56,17 @@
 .sim-gbar > div:last-child { justify-content: flex-end; }
 .sim-gbar .sim-gmid { background: var(--panel); color: var(--text); font-size: 0.9rem; flex-direction: column; justify-content: center; gap: 0; padding: 6px 18px; }
 .sim-gmid small { font: 700 0.62rem var(--font-body); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
-.sim-ginner { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 14px; padding: 12px 14px 14px; }
-.sim-side { display: flex; flex-direction: column; gap: 10px; }
+/* the game, the dials and the Script Picker across the top, the table under them (2026-10-25) */
+.sim-top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.9fr); gap: 10px; padding: 12px 14px 8px; align-items: start; }
 .sim-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; }
 .sim-box h3 { font: 800 0.78rem var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 7px; display: flex; justify-content: space-between; gap: 8px; }
-.sim-score { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 9px; }
-.sim-score > div { text-align: center; border-radius: 8px; padding: 5px; border: 1px solid var(--border); background: var(--panel); }
+.sim-score { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 8px; }
+.sim-score > div { text-align: center; border-radius: 8px; padding: 3px 4px; border: 1px solid var(--border); background: var(--panel); white-space: nowrap; }
+.sim-score > div.sim-sim { background: rgba(var(--accent-rgb), 0.12); border-color: rgba(var(--accent-rgb), 0.45); }
 .sim-score small { display: block; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.sim-score b { font: 800 1.2rem var(--font-display); }
+.sim-score b { font: 800 1.05rem var(--font-display); }
 .sim-score i { display: block; font-style: normal; font-size: 0.68rem; color: var(--muted); }
-.sim-sbar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; font: 800 0.74rem var(--font-body); }
+.sim-sbar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; font: 800 0.74rem var(--font-body); }
 .sim-sbar div { display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; line-height: 1.05; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .sim-sbar small { font-size: 0.56rem; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.9; white-space: nowrap; }
 .sim-sbase { font-size: 0.66rem; color: var(--muted); margin-top: 4px; }
@@ -75,26 +76,28 @@
 .sim-dial-v { font: 800 0.9rem var(--font-display); padding: 1px 7px; border-radius: 6px; border: 1px solid var(--border); }
 .sim-dial small { font-size: 0.66rem; color: var(--muted); }
 .sim-off { color: var(--muted); font-size: 0.72rem; margin: 6px 0 0; }
-.sim-picks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
-.sim-pick { border-radius: 7px; text-align: center; padding: 4px 2px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; font: inherit; }
-.sim-pick small { display: block; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.sim-pick b { font: 800 0.88rem var(--font-display); }
+.sim-picks { display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: 4px; }
+.sim-pick { border-radius: 6px; text-align: center; padding: 2px 8px; font-weight: 800; font-size: 0.74rem; white-space: nowrap; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; font: inherit; }
 .sim-pick.on { outline: 2px solid var(--accent); border-color: var(--accent); }
 .sim-pick:disabled { opacity: 0.4; cursor: default; }
 /* the board scrolls in its own box on narrow screens */
-.sim-tablewrap { overflow-x: auto; min-width: 0; }
+.sim-tablewrap { overflow-x: auto; min-width: 0; padding: 0 14px 14px; }
 .sim-table { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 0.82rem; }
 .sim-table th { font: 800 0.62rem var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); background: var(--table-head); border-radius: 6px; padding: 5px 4px; white-space: nowrap; }
 .sim-table th.grp { background: none; color: var(--text); font-size: 0.66rem; border-bottom: 2px solid var(--border-strong); border-radius: 0; }
 .sim-table td { text-align: center; padding: 4px 3px; border-radius: 6px; background: var(--panel); border: 1px solid var(--border); white-space: nowrap; }
 .sim-table td.sim-pl { text-align: left; background: none; border: 0; }
+.sim-table th.sim-th-team { text-align: left; color: var(--text); font-size: 0.7rem; }
+.sim-table th.sim-th-team img { vertical-align: -3px; }
+.sim-table tr.sim-head:not(:first-child) th { border-top: 10px solid var(--panel); }
+.sim-table .sim-spacer { width: 100%; padding: 0; background: none; border: 0; }
+.sim-table td.sim-pc b { font: 800 0.86rem var(--font-display); }
 .sim-pl b { font-size: 0.9rem; }
 .sim-pl > span { font-size: 0.7rem; color: var(--muted); margin-left: 4px; }
 .sim-pl .sim-st { display: inline-block; font: 800 0.58rem var(--font-body); color: var(--text); border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 3px; margin-left: 4px; }
 .sim-table td.sim-med b { font: 800 1rem var(--font-display); }
 .sim-table td.sim-sp b { font: 800 0.9rem var(--font-display); }
 .sim-table td.sim-sp.on { outline: 2px solid var(--accent); }
-.sim-table tr.sim-team td { background: none; border: 0; text-align: left; font: 800 0.72rem var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 9px; }
 .sim-rung b { font: 800 0.86rem var(--font-display); display: block; line-height: 1.1; }
 .sim-rung small { font-size: 0.62rem; color: var(--muted); }
 .sim-table td.sim-rung.main { outline: 1px solid var(--border-strong); }
@@ -107,7 +110,7 @@
 #sim-ytd-modal .modal-box { max-width: 900px; }
 
 @media (max-width: 1100px) {
-  .sim-ginner { grid-template-columns: 1fr; }
+  .sim-top { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .sim-gbar > div { font-size: 1rem; padding: 8px 10px; }

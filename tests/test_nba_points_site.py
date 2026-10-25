@@ -272,15 +272,19 @@ class Board(unittest.TestCase):
         self.assertNotIn("Play", cards[1])
 
     def test_both_teams_medians_main_line_and_rungs(self):
-        heads = text(".sim-table thead tr:last-child th")
-        self.assertEqual(heads, ["NAME", "MIN", "MEDIAN", "AAA BY 10+", "CLOSE", "BBB BY 10+", "MAIN LINE", "10+", "15+", "20+", "25+", "30+", "35+", "40+"])
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table tr.sim-head')].map((tr) => [...tr.querySelectorAll('th')].map((th) => th.innerText.trim().toUpperCase()))")
+        self.assertEqual(len(heads), 2)  # each team its own header row
+        self.assertEqual(heads[0][1:], ["MIN", "PTS", "SCRIPT", "LINE", "%", "DIFF", "EDGE", "10+", "15+", "20+", "25+", "30+", "35+", "40+", ""])
+        self.assertIn("AAA", heads[0][0])
+        self.assertIn("BBB", heads[1][0])
         rows = text(".sim-table tbody tr")
-        self.assertIn("TEAM AAA", rows[0].upper())
-        self.assertIn("REST EDGE", rows[0].upper())
+        self.assertNotIn("REST EDGE", rows[0].upper())  # the dials sit in Dials Tonight only
+        self.assertIn("REST EDGE", PAGE.inner_text(".sim-top").upper())
+        self.assertNotIn("CHECKED", PAGE.inner_text(".sim-top").upper())
         one = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table tbody tr')][1].innerText.replace(/\\s+/g, ' ')")
         self.assertIn("Player One", one)
-        self.assertIn("34.5 20 17 20 22", one)  # minutes, median, then by script
-        self.assertIn("O 19.5 · 66%", one)  # 66% over 19.5 at -150: the better side
+        self.assertIn("34.5 20 20 O 19.5", one)  # minutes, median, Script (All), then the line
+        self.assertIn("66% +0.5", one)  # 66% over 19.5 at -150: the better side, then Diff
         self.assertIn("36%", one)  # 30+
         self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.sim-table td.sim-rung.main.pick')"))  # tonight's play outlined
         self.assertIn("-150", PAGE.inner_text(".sim-table td.sim-rung.pick"))
@@ -288,11 +292,11 @@ class Board(unittest.TestCase):
     def test_the_script_picker_reprices_from_one_script(self):
         PAGE.click("[data-script='home']")
         try:
-            self.assertIn("80%", PAGE.inner_text(".sim-table td.sim-rung.pick"))  # BBB blowouts only
+            self.assertIn("80%", PAGE.inner_text(".sim-table td.sim-rung.pick + td"))  # our % beside the line: BBB blowouts only
             self.assertIn("BBB BLOWOUTS ONLY", PAGE.inner_text(".sim-table thead").upper())
         finally:
             PAGE.click("[data-script='all']")
-        self.assertIn("66%", PAGE.inner_text(".sim-table td.sim-rung.pick"))
+        self.assertIn("66%", PAGE.inner_text(".sim-table td.sim-rung.pick + td"))
 
     def test_another_game(self):
         PAGE.click("#matchup-row [data-game='901']")

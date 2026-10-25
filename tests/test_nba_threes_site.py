@@ -52,8 +52,8 @@ class Threes(unittest.TestCase):
     def test_the_ladder_is_one_to_six(self):
         PAGE.click("[data-view='matchup']")
         try:
-            heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table thead tr:last-child th')].map((th) => th.innerText.trim())")
-            self.assertEqual(heads[-6:], ["1+", "2+", "3+", "4+", "5+", "6+"])
+            heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table tr.sim-head th')].map((th) => th.innerText.trim())")
+            self.assertEqual(heads[-7:-1], ["1+", "2+", "3+", "4+", "5+", "6+"])
             self.assertIn("-150", PAGE.inner_text(".sim-table td.sim-rung.pick"))
         finally:
             PAGE.click("[data-view='player']")
