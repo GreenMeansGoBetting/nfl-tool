@@ -15,6 +15,10 @@
 //     unit: "Points", short: "PTS",      // words for a play ("30+ Points", "Over 27.5")
 //     rungs: [10, 15, ...],              // the ladder's columns on the game board
 //     ytd: {key, label} }
+// Best Plays (2026-10-25, the owner: "a best plays page ... aggregating from these two
+// categories", sorted by edge) loads it with `SIM_PAGE = {markets: [points config, threes
+// config], ytd}`: Player View only, every market's rows in one list with a Market column.
+// `MK` is the market being worked on (each row sets it before it is drawn).
 // From props.json: `sim` {game id: the game's 10,000}, `sim_plays` {market:
 // [play]}, `sim_record` {market: {ledger}}, `sim_meta` (dial names).
 // Prices: every book's (data.json book_odds), the best across the member's
@@ -27,6 +31,9 @@ let dayIndex = 0;
 let gameId = "";
 let script = "all"; // the Script Picker: all / away / close / home
 const EDGE_SHADE = 0.03; // a rung's edge this far over / under = shaded green / red
+const MARKETS = SIM_PAGE.markets || [SIM_PAGE];
+const BEST = Boolean(SIM_PAGE.markets);
+let MK = MARKETS[0];
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => (DATA && DATA.teams[abbr]) || { name: abbr, short: abbr, logo: "", color: "555555" };
@@ -43,12 +50,15 @@ function fmtTime(hhmm) {
 const sims = () => PROPS.sim || {};
 const simDays = () => new Set(Object.values(sims()).map((g) => g.date));
 // past nights (props.json `sim_past`): the saved plays, graded, so the arrows can step back
-const pastAll = () => (PROPS.sim_past || {})[SIM_PAGE.market] || [];
-const days = () => [...new Set([...simDays(), ...pastAll().map((p) => p.date)])].sort();
+// Every market's rows carry `mk` (its config); Best Plays' Market switches leave some out.
+const marketsOn = () => MARKETS.filter((m) => !BEST || LIST.markets[m.market] !== false);
+const tagged = (key) => MARKETS.flatMap((m) => ((PROPS[key] || {})[m.market] || []).map((p) => ({ ...p, mk: m })));
+const pastAll = () => tagged("sim_past").filter((p) => marketsOn().includes(p.mk));
+const days = () => [...new Set([...simDays(), ...tagged("sim_past").map((p) => p.date)])].sort();
 const isPast = (date) => !simDays().has(date);
 const pastOn = (date) => pastAll().filter((p) => p.date === date);
 const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date && sims()[g.game_id]);
-const playsOn = (date) => ((PROPS.sim_plays || {})[SIM_PAGE.market] || []).filter((p) => p.date === date);
+const playsOn = (date) => tagged("sim_plays").filter((p) => p.date === date && marketsOn().includes(p.mk));
 const nameOf = (pid) => {
   const s = (PROPS.seasons || {})[String(DATA.season)];
   return (s && s.players[pid] && s.players[pid].name) || Object.values(sims()).map((g) => (g.players[pid] || {}).name).find(Boolean) || pid;
@@ -84,16 +94,16 @@ function bookGame(g) {
 }
 function quotesFor(g, pid) {
   const props = bookGame(g);
-  return [...(((props[SIM_PAGE.market] || {})[pid] || {}).q || []), ...(((props[`${SIM_PAGE.market}_alt`] || {})[pid] || {}).q || [])];
+  return [...(((props[MK.market] || {})[pid] || {}).q || []), ...(((props[`${MK.market}_alt`] || {})[pid] || {}).q || [])];
 }
 function mainLine(g, pid) {
-  const ls = ((((bookGame(g)[SIM_PAGE.market] || {})[pid] || {}).q) || []).map((q) => q[2]).filter((x) => x !== null && x !== undefined).sort((a, b) => a - b);
+  const ls = ((((bookGame(g)[MK.market] || {})[pid] || {}).q) || []).map((q) => q[2]).filter((x) => x !== null && x !== undefined).sort((a, b) => a - b);
   return ls.length ? ls[Math.floor(ls.length / 2)] : null;
 }
 // The every-book list for one price: the main market when it has this line, else the ladder's.
 function priceSpec(g, pid, side, line, tm) {
-  const inMain = ((((bookGame(g)[SIM_PAGE.market] || {})[pid] || {}).q) || []).some((q) => q[2] === line);
-  return { kind: "prop", stat: inMain ? SIM_PAGE.market : `${SIM_PAGE.market}_alt`, team: tm, game: `${g.away}_${g.home}`, pid, side, line, title: `${nameOf(pid)} ${SIM_PAGE.unit}`, sub: `${g.away} @ ${g.home}` };
+  const inMain = ((((bookGame(g)[MK.market] || {})[pid] || {}).q) || []).some((q) => q[2] === line);
+  return { kind: "prop", stat: inMain ? MK.market : `${MK.market}_alt`, team: tm, game: `${g.away}_${g.home}`, pid, side, line, title: `${nameOf(pid)} ${MK.unit}`, sub: `${g.away} @ ${g.home}` };
 }
 // The best price on the member's books for one side at one line, the main market and the ladder together.
 function bestPrice(g, pid, side, line) {
@@ -102,12 +112,13 @@ function bestPrice(g, pid, side, line) {
 }
 function playName(p) {
   const rung = p.side === "o" && !p.main && Number.isInteger(p.line - 0.5);
-  if (rung) return `${p.line + 0.5}+ ${SIM_PAGE.unit}`;
-  return `${p.side === "o" ? "Over" : "Under"} ${fmt(p.line)}${p.main ? "" : ` ${SIM_PAGE.short}`}`;
+  if (rung) return `${p.line + 0.5}+ ${MK.unit}`;
+  return `${p.side === "o" ? "Over" : "Under"} ${fmt(p.line)}${p.main ? "" : ` ${MK.short}`}`;
 }
 
 // ---- the record: hero tiles and the YTD popup ----
-const ledger = () => (((PROPS.sim_record || {})[SIM_PAGE.market]) || {}).ledger || [];
+const ledgerOf = (m) => (((PROPS.sim_record || {})[m.market]) || {}).ledger || [];
+const ledger = () => MARKETS.flatMap(ledgerOf);
 function dayBack(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -130,13 +141,16 @@ function renderYtd() {
   const content = overlay.querySelector(".bo-content");
   content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="sim-ytd-tracker"></div>
     <p class="no-data-note">Every one of tonight's plays, graded at its best price across every book at tip-off, 1 unit. A push or a player who sat doesn't count.</p>`;
+  // Best Plays: one tile a market plus All Plays, and only the main splits (each page has the rest)
+  const splits = BEST ? [["top", "Top Play"], ["over", "Overs"], ["under", "Unders"]]
+    : [["top", "Top Play"], ["strong", "Strong Plays"], ["proof", "Script-Proof", "Beat its price in every script"], ["chaos", "Chaos Plays", "Lost in a close game, won when it went sideways"],
+      ["close", "Needs A Close Game"], ["over", "Overs"], ["under", "Unders"], ["main", "Main Lines"], ["alt", "Ladder Rungs"],
+      ["dials", "Spot Dials", "A schedule or last-game dial was on for one of the teams"]];
   ytdTracker(content.querySelector(".sim-ytd-tracker"), {
     key: SIM_PAGE.ytd.key,
-    markets: [{ key: SIM_PAGE.ytd.key, label: SIM_PAGE.ytd.label, ledger: ledger(), min: 0, max: 15, step: 1, scale: 100, unit: "%+",
-      tip: "Every play with at least the minimum edge (points of our chance over what its price needs)",
-      splits: [["top", "Top Play"], ["strong", "Strong Plays"], ["proof", "Script-Proof", "Beat its price in every script"], ["chaos", "Chaos Plays", "Lost in a close game, won when it went sideways"],
-        ["close", "Needs A Close Game"], ["over", "Overs"], ["under", "Unders"], ["main", "Main Lines"], ["alt", "Ladder Rungs"],
-        ["dials", "Spot Dials", "A schedule or last-game dial was on for one of the teams"]] }],
+    all: BEST ? "All Plays" : "",
+    markets: MARKETS.map((m) => ({ key: m.ytd.key, label: m.ytd.label, short: m.unit, ledger: ledgerOf(m), min: 0, max: 15, step: 1, scale: 100, unit: "%+",
+      tip: "Every play with at least the minimum edge (points of our chance over what its price needs)", splits })),
   });
   overlay.hidden = false;
 }
@@ -160,7 +174,8 @@ function shade(diff) {
 // when a rung on the same side has more edge; a click opens The Model / Shot Chart.
 // Opens on the plays only, like the NHL pages ("If users want the detailed look,
 // theyll click").
-const LIST = { side: "best", minEdge: 0, every: false, tag: "", sort: "edge", dir: -1, open: null, tab: "model", game: "" };
+const LIST = { side: "best", minEdge: 0, every: false, tag: "", sort: "edge", dir: -1, open: null, tab: "model", game: "",
+  markets: Object.fromEntries(MARKETS.map((m) => [m.market, true])) };
 const PRICE_RANGE = [-250, 400]; // the build's: past +400 a rung's chance rests on a few hundred sims' tails
 const minEdge = () => (PROPS.sim_meta || {}).min_edge || 0.04;
 // A game has started once its tip time has passed (times are Eastern, fixed UTC-4 like the build).
@@ -168,7 +183,7 @@ const started = (g) => Boolean(g.time) && Date.now() >= Date.parse(`${g.date}T${
 // Over / Under with the line, as a bettor writes it: "o31.5" / "u25.5"; a rung over a half line reads "30+".
 const chipText = (side, line, main) => (side === "o" && !main && Number.isInteger(line - 0.5) ? `${line + 0.5}+` : `${side}${fmt(line)}`);
 function chip(side, line, price, book, main = true) {
-  return `<span class="sim-chip sim-chip-${side}" title="${side === "o" ? "Over" : "Under"} ${fmt(line)} ${SIM_PAGE.unit.toLowerCase()} at the best price across your books"><b>${chipText(side, line, main)}</b><span>${price === null || price === undefined ? "--" : showOdds(price)}</span>${book ? `<small>${BOOK_INITIALS[book] || book}</small>` : ""}</span>`;
+  return `<span class="sim-chip sim-chip-${side}" title="${side === "o" ? "Over" : "Under"} ${fmt(line)} ${MK.unit.toLowerCase()} at the best price across your books"><b>${chipText(side, line, main)}</b><span>${price === null || price === undefined ? "--" : showOdds(price)}</span>${book ? `<small>${BOOK_INITIALS[book] || book}</small>` : ""}</span>`;
 }
 // Script-Proof / Chaos / Needs A Close Game (sim.py kind_of), from the chances by script and what the price needs.
 function kindOf(scripts, needs) {
@@ -206,31 +221,36 @@ function ladderBest(g, pid, lad, side, main, mainEdge) {
 // One row a player: his main line, the side shown (the build's play, else the better side or
 // the side picked in Side), the best price on the member's books, our chance, the edge.
 function listRows(date) {
-  const plays = playsOn(date);
   const out = [];
-  for (const g of gamesOn(date)) {
-    if (LIST.game && g.game_id !== LIST.game) continue;
-    const sim = sims()[g.game_id];
-    const live = started(g);
-    for (const [pid, r] of Object.entries(sim.players)) {
-      const play = plays.find((p) => p.game === g.game_id && p.pid === pid);
-      const ml = play ? play.line : mainLine(g, pid);
-      if (ml === null || r.min < 6) continue;
-      const lad = r[SIM_PAGE.stat].lad.all;
-      const sides = ["o", "u"].map((side) => {
-        const best = bestPrice(g, pid, side, ml) || (play && play.side === side ? { price: play.price, book: play.book } : null);
-        const chance = sideChance(lad, side, ml);
-        return { side, chance, price: best ? best.price : null, book: best ? best.book : null, edge: best ? chance - oddsProb(best.price) : null };
-      });
-      const want = LIST.side === "best" ? (play ? play.side : null) : LIST.side;
-      const pick = want ? sides.find((s) => s.side === want) : sides.filter((s) => s.edge !== null).sort((a, b) => b.edge - a.edge)[0];
-      if (!pick || pick.price === null) continue;
-      const tm = r.team === "home" ? g.home : g.away;
-      out.push({ g, pid, r, team: tm, opp: tm === g.home ? g.away : g.home, home: tm === g.home, line: ml, ...pick, lad,
-        play: play && play.side === pick.side ? play : null, live, ladder: live ? null : ladderBest(g, pid, lad, pick.side, ml, pick.edge) });
+  for (const mk of marketsOn()) {
+    MK = mk;
+    const plays = playsOn(date).filter((p) => p.mk === mk);
+    for (const g of gamesOn(date)) {
+      if (LIST.game && g.game_id !== LIST.game) continue;
+      const sim = sims()[g.game_id];
+      const live = started(g);
+      for (const [pid, r] of Object.entries(sim.players)) {
+        if (!r[MK.stat]) continue;
+        const play = plays.find((p) => p.game === g.game_id && p.pid === pid);
+        const ml = play ? play.line : mainLine(g, pid);
+        if (ml === null || r.min < 6) continue;
+        const lad = r[MK.stat].lad.all;
+        const sides = ["o", "u"].map((side) => {
+          const best = bestPrice(g, pid, side, ml) || (play && play.side === side ? { price: play.price, book: play.book } : null);
+          const chance = sideChance(lad, side, ml);
+          return { side, chance, price: best ? best.price : null, book: best ? best.book : null, edge: best ? chance - oddsProb(best.price) : null };
+        });
+        const want = LIST.side === "best" ? (play ? play.side : null) : LIST.side;
+        const pick = want ? sides.find((s) => s.side === want) : sides.filter((s) => s.edge !== null).sort((a, b) => b.edge - a.edge)[0];
+        if (!pick || pick.price === null) continue;
+        const tm = r.team === "home" ? g.home : g.away;
+        out.push({ mk, g, pid, r, team: tm, opp: tm === g.home ? g.away : g.home, home: tm === g.home, line: ml, ...pick, lad,
+          play: play && play.side === pick.side ? play : null, live, ladder: live ? null : ladderBest(g, pid, lad, pick.side, ml, pick.edge) });
+      }
     }
   }
   out.forEach((x) => {
+    MK = x.mk;
     x.hits = hitsFor(x);
     x.tags = tagsFor(x);
   });
@@ -246,7 +266,7 @@ const logFields = () => Object.fromEntries((seasonBlock().fields || []).map((f, 
 const logOf = (pid) => (seasonBlock().players[pid] || {}).log || [];
 function hits(rows, line, f) {
   if (line === null || line === undefined || !rows.length) return null;
-  return { over: rows.filter((x) => x[f[SIM_PAGE.stat]] > line).length, of: rows.length };
+  return { over: rows.filter((x) => x[f[MK.stat]] > line).length, of: rows.length };
 }
 function hitsFor(x) {
   const f = logFields();
@@ -370,7 +390,7 @@ function tagsFor(x) {
   const tags = [];
   if (x.ladder) tags.push(TAG("ladder", `Ladder ${chipText(x.side, x.ladder.line, false)} ${showOdds(x.ladder.price)} <span>${signed(x.ladder.edge * 100)}</span>`,
     `${playName({ side: x.side, line: x.ladder.line, main: false })} at ${showOdds(x.ladder.price)} (${BOOK_INITIALS[x.ladder.book] || x.ladder.book}): ${signed(x.ladder.edge * 100)} points of edge, more than his main line. Click the row for every rung.`, "lad", "Ladder"));
-  const all = x.r[SIM_PAGE.stat].lad;
+  const all = x.r[MK.stat].lad;
   if (x.price !== null) {
     const scripts = Object.fromEntries(SCRIPT_KEYS.map((k) => [k, all[k] ? sideChance(all[k], x.side, x.line) : null]));
     const kind = kindOf(scripts, oddsProb(x.price));
@@ -382,7 +402,7 @@ function tagsFor(x) {
     tags.push(TAG("dial", `${x.g[k]} ${label}`, `A spot dial is on for ${x.g[k]} tonight (it moves the sims; the Game Board in Matchup View has its size)`, "", "Spot Dial"));
   }));
   const p = seasonBlock().players[x.pid] || {};
-  tags.push(...minutesTags(x), ...(SIM_PAGE.market === "threes" ? threesTags(x, p) : pointsTags(x, p)));
+  tags.push(...minutesTags(x), ...(MK.market === "threes" ? threesTags(x, p) : pointsTags(x, p)));
   return tags;
 }
 const tagHtml = (t) => `<span class="sim-rtag${t.cls ? ` ${t.cls}` : ""}" title="${t.title}">${t.label}</span>`;
@@ -395,6 +415,7 @@ const SORTS = {
   home: (x) => hitShare(x.hits.home),
   away: (x) => hitShare(x.hits.away),
   tags: (x) => x.tags.length,
+  market: (x) => -MARKETS.indexOf(x.mk),
 };
 function sortedList(date) {
   const key = SORTS[LIST.sort] || SORTS.edge;
@@ -406,7 +427,12 @@ function renderToolbar(rows) {
   const menu = (key, label, options, tip) =>
     `<label class="sim-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select data-list="${key}">${options.map(([v, text]) => `<option value="${v}"${String(LIST[key]) === String(v) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
   const bar = Math.round(minEdge() * 100);
-  el("sim-toolbar").innerHTML =
+  // Best Plays: one switch a market, each on or off on its own, at least one on (NHL Best Plays' way)
+  const markets = BEST ? `<span class="sim-seg sim-markets">${MARKETS.map((m) => {
+    const on = LIST.markets[m.market] !== false;
+    return `<button type="button" class="view-toggle-btn${on ? " active" : ""}" data-list-market="${m.market}" aria-pressed="${on}" title="${on ? "Hide" : "Show"} the ${m.unit} plays">${on ? "&#10003; " : ""}${m.unit}</button>`;
+  }).join("")}</span>` : "";
+  el("sim-toolbar").innerHTML = markets +
     menu("side", "Side", [["best", "Best Side"], ["o", "Overs"], ["u", "Unders"]], "Best Side: the play's side, or the better side of his main line. Overs / Unders: that side for everyone") +
     menu("minEdge", "Edge", [[0, "Any"], ...[4, 6, 8, 10, 15].filter((n) => n >= bar).map((n) => [n / 100, `${n}+ Points`])], "Only rows with at least this much edge (our chance minus the chance the price needs, in points)") +
     menu("tag", "Tag", [["", "All Tags"], ...[...new Map(rows.flatMap((x) => x.tags).map((t) => [t.key, t.filter]))]], "Only players with this tag") +
@@ -419,6 +445,7 @@ function renderToolbar(rows) {
 const COLS = [
   { label: "#" },
   { label: "Player", cls: "sim-th-player" },
+  ...(BEST ? [{ label: "Market", key: "market", title: "Points or Threes: the page the play comes from" }] : []),
   { label: "Play", title: "His main line, the side the model likes (o = over, u = under), at the best price across your books. The box saves it to My Plays." },
   { label: "Rating", title: "Top Play: the night's biggest edge. Strong: every other play (4+ points of edge on his main line)." },
   { label: "Fair", key: "chance", title: "The price with no cut at which our chance breaks even (our chance on hover)" },
@@ -443,15 +470,18 @@ function ratingTag(play, live) {
   if (!play) return '<span class="muted-label">--</span>';
   return `<span class="sim-rate${play.tier === "top" ? " top" : ""}"${live ? ' title="Locked at tip: this is the play the record grades"' : ""}>${play.tier === "top" ? "Top Play" : "Strong"}</span>`;
 }
+// Best Plays' Market cell: which page the play is from (its page's tab look, small)
+const marketCell = (mk) => (BEST ? `<td class="sim-tight"><span class="sim-mkt sim-mkt-${mk.market}">${mk.unit}</span></td>` : "");
 function listRow(x, i, cols) {
-  const key = `${x.g.game_id}:${x.pid}`;
+  MK = x.mk;
+  const key = `${MK.market}:${x.g.game_id}:${x.pid}`;
   const open = LIST.open === key;
   const save = typeof nbaCardSaveBox === "function"
-    ? nbaCardSaveBox(nbaCardEntry(SIM_PAGE.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, x.side, x.line, [x.book, x.side, x.line, x.price]))
+    ? nbaCardSaveBox(nbaCardEntry(MK.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, x.side, x.line, [x.book, x.side, x.line, x.price]))
     : "";
   const f = fair(x.chance);
   return `<tr class="sim-row${open ? " open" : ""}${x.live ? " live" : ""}" data-row="${key}">
-    <td class="num sim-rank">${i + 1}</td>${playerCell(x.pid, x.team, x.opp, x.home)}
+    <td class="num sim-rank">${i + 1}</td>${playerCell(x.pid, x.team, x.opp, x.home)}${marketCell(x.mk)}
     <td class="sim-playc">${chip(x.side, x.line, x.price, x.book)}${x.live ? "" : save}</td>
     <td class="sim-tight">${ratingTag(x.play, x.live)}</td>
     <td class="num sim-tight" title="Our chance: ${pct(x.chance)}">${f === null ? "--" : showOdds(f)}</td>${edgeCell(x)}
@@ -495,7 +525,7 @@ function detail(x) {
   }
   const sim = sims()[x.g.game_id];
   const needs = oddsProb(x.price);
-  const all = x.r[SIM_PAGE.stat].lad;
+  const all = x.r[MK.stat].lad;
   const scripts = Object.fromEntries(SCRIPT_KEYS.map((k) => [k, all[k] ? sideChance(all[k], x.side, x.line) : null]));
   const kind = KINDS[kindOf(scripts, needs)];
   const dials = ["away", "home"].flatMap((k) => (sim.dials[k] || []).map((d) => `${x.g[k]} ${((PROPS.sim_meta.dials || {})[d] || [d])[0]}`));
@@ -504,16 +534,16 @@ function detail(x) {
   const f = fair(x.chance);
   return `${tabs}<div class="sim-dgrid">
     <div>
-      <div class="sim-kicker">${playName({ side: x.side, line: x.line, main: true })} &middot; ${SIM_PAGE.unit} In The 10,000 Games</div>
+      <div class="sim-kicker">${playName({ side: x.side, line: x.line, main: true })} &middot; ${MK.unit} In The 10,000 Games</div>
       <div class="sim-nums sim-nums4">
         <div><small>Hit In</small><b>${hits.toLocaleString()}</b><i>of 10,000</i></div>
         <div><small>GMG Fair</small><b>${f === null ? "--" : showOdds(f)}</b><i>${pct(x.chance)}</i></div>
         <div class="${x.edge > 0 ? "sim-edge" : "sim-edge-gone"}"><small>Edge</small><b>${signed(x.edge * 100)}</b><i>needs ${(needs * 100).toFixed(1)}%</i></div>
-        <div><small>Book Line</small><b>${fmt(x.line)}</b><i>our median ${fmt(x.r[SIM_PAGE.stat].med.all, 0)}</i></div>
+        <div><small>Book Line</small><b>${fmt(x.line)}</b><i>our median ${fmt(x.r[MK.stat].med.all, 0)}</i></div>
       </div>
       <div class="sim-kicker">How Often It Hits In Each Script</div>
       <div class="sim-scripts">${SCRIPT_KEYS.map((k) => `<div${scripts[k] === null ? "" : shade(scripts[k] - needs)}><small>${scriptLabel(x.g, k, true)}</small><b>${scripts[k] === null ? "--" : pct(scripts[k])}</b></div>`).join("")}</div>
-      <div class="sim-kicker">His ${SIM_PAGE.unit} In The 10,000 Games &middot; Green = This Side Wins</div>
+      <div class="sim-kicker">His ${MK.unit} In The 10,000 Games &middot; Green = This Side Wins</div>
       ${hist(all.all, x.side, x.line)}
       <div class="sim-tags">${kind ? `<span class="sim-tag ${kind[1]}" title="${kind[2]}">${kind[0]}</span>` : ""}${dials.map((d) => `<span class="sim-tag sim-t-dial">${d}</span>`).join("")}${starts ? `<span class="sim-tag sim-t-why" title="${sim.lineup ? "In the NBA's starting five" : "One of his team's five with the most minutes (the NBA's five isn't posted yet)"}">Starting</span>` : ""}${x.live ? '<span class="sim-tag sim-t-why" title="Saved at tip-off: this is the play the record grades">Locked At Tip</span>' : ""}</div>
     </div>
@@ -566,7 +596,7 @@ function listHead(cols) {
     if (cols[i].hit) {
       let n = 0;
       while (cols[i + n] && cols[i + n].hit) n += 1;
-      group += `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line (${SIM_PAGE.unit.toLowerCase()}), whichever side the play is"><span>Hit Rate - Based On Over ${SIM_PAGE.unit}</span></th>`;
+      group += `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line (${BEST ? "the play's market" : MK.unit.toLowerCase()}), whichever side the play is"><span>Hit Rate - Based On Over ${BEST ? "His Line" : MK.unit}</span></th>`;
       i += n - 1;
     } else group += "<th></th>";
   }
@@ -644,16 +674,17 @@ function renderPast(date) {
   }
   const top = plays.find((p) => p.tier === "top" && (p.result === "won" || p.result === "lost"));
   const rows = plays.map((p, i) => {
+    MK = p.mk;
     const final = { won: ["sim-won", "Hit"], lost: ["sim-lost", "Miss"], push: ["", "Push"], sat: ["", "Didn't Play"] }[p.result] || ["", "Waiting"];
     const units = p.result === "won" ? unitsWon(p) : p.result === "lost" ? -1 : 0;
     const done = p.result === "won" || p.result === "lost";
-    return `<tr class="sim-row past${done ? ` ${p.result}` : ""}"><td class="num sim-rank">${i + 1}</td>${playerCell(p.pid, p.team, p.opp, p.home)}
+    return `<tr class="sim-row past${done ? ` ${p.result}` : ""}"><td class="num sim-rank">${i + 1}</td>${playerCell(p.pid, p.team, p.opp, p.home)}${marketCell(p.mk)}
       <td class="sim-playc">${chip(p.side, p.line, p.price, p.book, p.main !== false)}</td><td>${ratingTag(p, false)}</td>
       <td class="num sim-result ${final[0]}"><b>${final[1]}</b>${p.got === null || p.got === undefined ? "" : ` <span>${fmt(p.got, 0)}</span>`}</td>
       <td class="num">${pct(p.chance)}</td><td class="num">${signed(p.edge * 100)}</td>
       <td class="num ${units > 0 ? "sim-up" : units < 0 ? "sim-down" : ""}">${done ? `${units >= 0 ? "+" : "&minus;"}${Math.abs(units).toFixed(2)}u` : "--"}</td><td class="sim-spacer"></td></tr>`;
   }).join("");
-  const head = `<thead><tr><th>#</th><th class="sim-th-player">Player</th><th>Play</th><th>Rating</th><th title="Hit / Miss and his ${SIM_PAGE.unit.toLowerCase()}">Result</th><th>Hit %</th><th title="Edge at the price locked at tip">Edge</th><th>Units</th><th class="sim-spacer"></th></tr></thead>`;
+  const head = `<thead><tr><th>#</th><th class="sim-th-player">Player</th>${BEST ? "<th>Market</th>" : ""}<th>Play</th><th>Rating</th><th title="Hit / Miss and his ${BEST ? "number" : MK.unit.toLowerCase()}">Result</th><th>Hit %</th><th title="Edge at the price locked at tip">Edge</th><th>Units</th><th class="sim-spacer"></th></tr></thead>`;
   el("sim-list").innerHTML = `<div class="sim-night">
       <div><small>Record</small><b>${graded.length ? `${w}-${graded.length - w}` : "--"}</b></div>
       <div><small>Units</small><b class="${u >= 0 ? "sim-up" : "sim-down"}">${graded.length ? `${u >= 0 ? "+" : "&minus;"}${Math.abs(u).toFixed(2)}u` : "--"}</b></div>
@@ -710,9 +741,9 @@ function renderBoard() {
   const book = spread === null || spread === undefined ? "--" : spread === 0 ? "Pick" : `${spread < 0 ? g.home : g.away} &minus;${fmt(Math.abs(spread))}`;
   const plays = playsOn(g.date).filter((p) => p.game === g.game_id);
   const isPlay = (pid, line, side) => plays.some((p) => p.pid === pid && p.line === line && p.side === side);
-  const rungs = SIM_PAGE.rungs;
+  const rungs = MK.rungs;
   const rows = (k) => Object.entries(sim.players).filter(([, r]) => r.team === k && r.min >= 6).sort((a, b) => b[1].min - a[1].min).map(([pid, r]) => {
-    const s = r[SIM_PAGE.stat];
+    const s = r[MK.stat];
     const lad = s.lad[script] || s.lad.all;
     const med = (key) => (s.med[key] === null || s.med[key] === undefined ? null : s.med[key]);
     const base = med("all");
@@ -764,7 +795,7 @@ function renderBoard() {
           <p class="sim-off">Starting fives: ${sim.lineup ? "the NBA's (Expected, then Confirmed about 30 minutes before tip)" : "not posted yet: the five with the most minutes"}.</p></div>
       </div>
       <div class="sim-tablewrap"><table class="sim-table">
-        <thead><tr><th class="grp" style="text-align:left">Player</th><th class="grp" colspan="2">The Sims</th><th class="grp" colspan="3">Median ${SIM_PAGE.unit} By Script</th><th class="grp" colspan="${1 + rungs.length}">Our Chance &middot; Best Price${script === "all" ? "" : ` &middot; ${script === "close" ? "Close Games Only" : `${scriptLabel(g, script, true)}s Only`}`}</th></tr>
+        <thead><tr><th class="grp" style="text-align:left">Player</th><th class="grp" colspan="2">The Sims</th><th class="grp" colspan="3">Median ${MK.unit} By Script</th><th class="grp" colspan="${1 + rungs.length}">Our Chance &middot; Best Price${script === "all" ? "" : ` &middot; ${script === "close" ? "Close Games Only" : `${scriptLabel(g, script, true)}s Only`}`}</th></tr>
           <tr><th style="text-align:left">Name</th><th>Min</th><th>Median</th>${SCRIPT_KEYS.map((k) => `<th>${scriptLabel(g, k)}</th>`).join("")}<th>Main Line</th>${rungs.map((n) => `<th>${n}+</th>`).join("")}</tr></thead>
         <tbody>${teamRow("away")}${rows("away")}${teamRow("home")}${rows("home")}</tbody></table>
         <div class="sim-legend"><span><i style="background:rgba(var(--good-rgb),.34)"></i>Our chance beats the best price by ${Math.round(EDGE_SHADE * 100)}+</span><span><i style="background:rgba(var(--bad-rgb),.3)"></i>The price beats our chance</span><span><i class="sim-legend-pick"></i>Tonight's play</span><span>Script columns: green = he scores more in that script, red = less</span></div>
@@ -781,7 +812,7 @@ function render() {
   renderRecord();
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === view));
   el("sim-player").hidden = view !== "player";
-  el("sim-matchup").hidden = view !== "matchup";
+  if (el("sim-matchup")) el("sim-matchup").hidden = view !== "matchup"; // Best Plays has no Matchup View
   renderGamePicker();
   if (view === "player") renderList();
   else renderBoard();
@@ -790,7 +821,7 @@ function render() {
 // Player View / Matchup View (the owner, 2026-10-25): a display pref, kept per device.
 let view = "player";
 try {
-  if (localStorage.getItem("nfl-tool.nba-sim-view") === "matchup") view = "matchup";
+  if (!BEST && localStorage.getItem("nfl-tool.nba-sim-view") === "matchup") view = "matchup";
 } catch (err) {
   // localStorage unavailable -- opens on Player View.
 }
@@ -831,6 +862,16 @@ document.addEventListener("click", (e) => {
   const clear = e.target.closest("[data-list-game]");
   if (clear) {
     LIST.game = "";
+    renderGamePicker();
+    return renderList();
+  }
+  const mkt = e.target.closest("[data-list-market]");
+  if (mkt) {
+    const key = mkt.dataset.listMarket;
+    const on = LIST.markets[key] !== false;
+    if (on && MARKETS.filter((m) => LIST.markets[m.market] !== false).length === 1) return; // the last one stays on
+    LIST.markets[key] = !on;
+    LIST.open = null;
     renderGamePicker();
     return renderList();
   }

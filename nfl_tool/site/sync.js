@@ -831,6 +831,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Team Identity", file: "identity.html" },
       { name: "Shot Charts", file: "shot-charts.html" },
       { head: "Player props" },
+      { name: "Best Plays", file: "best.html" },
       { name: "Points", file: "points.html" },
       { name: "Threes", file: "threes.html" },
       { name: "First Basket", file: "first-basket.html" },

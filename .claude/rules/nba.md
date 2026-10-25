@@ -261,7 +261,15 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   starting), Min, Median, median by script, Main Line (our side's chance and best price), rungs
   (Points 10+ to 40+, Threes 1+ to 6+: our chance and the best price, shaded at 3 points of edge,
   tonight's play outlined).
-- Tests: `tests/test_nba_sim.py`, `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py`.
+- **Best Plays** (`site/nba/best.html` + `best.js`, 2026-10-25, the owner: "Keep the consistency present
+  in those individual categories, but sort the best plays by edge, aggregating from these two
+  categories"): sim-board.js with `SIM_PAGE.markets` = [points.js's, threes.js's config] (each page's
+  config sits in `SIM_MARKETS`; `MK` = the market a row is drawn for). Player View only (no Matchup
+  View), every market's rows in one list by edge with a **Market** column, Market switches (each on or
+  off, the last stays on), hit rates over each row's own stat ("Based On Over His Line"), the record
+  tiles and past nights across both, the YTD popup with All Plays + a tile a market (top / over /
+  under splits). A new market = its page's config in `markets`. Best Plays / Points / Threes tabs on all three.
+- Tests: `tests/test_nba_sim.py`, `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py`, `tests/test_nba_best_site.py`.
 
 ## The player card (`site/nba/nba-card.js`, 2026-10-21)
 

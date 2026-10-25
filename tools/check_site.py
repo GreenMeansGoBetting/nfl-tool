@@ -53,6 +53,7 @@ PAGES = [
     ("NBA First Basket", "nba/first-basket.html", None),
     ("NBA Team Identity", "nba/identity.html", None),
     ("NBA Shot Charts", "nba/shot-charts.html", None),
+    ("NBA Best Plays", "nba/best.html", None),
     ("NBA Points", "nba/points.html", None),
     ("NBA Threes", "nba/threes.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
