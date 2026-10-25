@@ -2194,9 +2194,9 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.103,
+    0.125,
     800,
-    false,
+    true,
     "fanduel"
    ],
    "3157465": [
@@ -2215,21 +2215,21 @@
    ],
    "3912848": [
     "Dean Wade",
-    0.081,
+    0.098,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.097,
+    0.12,
     600,
     false,
     "fanduel"
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.112,
+    0.137,
     581,
     false,
     "draftkings"
@@ -2238,13 +2238,6 @@
     "Cade Cunningham",
     0.159,
     553,
-    false,
-    "draftkings"
-   ],
-   "5124612": [
-    "VJ Edgecombe",
-    0.086,
-    1040,
     false,
     "draftkings"
    ]
