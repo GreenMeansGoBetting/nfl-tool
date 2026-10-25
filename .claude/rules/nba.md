@@ -270,17 +270,21 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
     book on click, edge) and **Shot Chart** (`zonesView`: his chart beside every shot tonight's defense
     allowed, one set of filters, the Target / Tough zones where both point the same way, Zone By Zone =
     the Shot Charts page; no zone table: the owner, it "regurgitate[s] the chart").
-  - **Matchup View** = the **Game Board** (rebuilt 2026-10-25 by the owner, step by step): team-color
-    banner, ONE strip (Spread / Sim, Total / Sim pills, then the By 10+ / Close script bar), then the
-    two teams **side by side**, each its own table: player (playerClick, S = starting), Min, PTS / 3PM
-    (the sim's median), Line (our side of his main line + best price, tonight's play outlined), Diff
-    (median minus the line, green when it sits on our side), Edge, and **the ladder** (Points 10+ to
-    40+, Threes 1+ to 6+: our chance and best price; green / red at 3 points of edge, yellow near
-    fair, gray with no price), **closed by default and opened one team at a time** (Show Ladder).
-    **Removed on purpose:** the Script Picker and the by-script / Script columns (the owner: "its
-    almost common sense and the numbers dont move much"; the scripts live on in the bar, the Player
-    View tags and The Model), the % column (Diff and Edge say it), Dials Tonight (the dials are in
-    every sim; they show as Player View tags), the box titles.
+  - **Matchup View** = the **Game Board** (rebuilt 2026-10-25 by the owner, step by step; then "give
+    this a UI improvement to the max. Fill the space and make it enjoyable to read"): team-color
+    banner, ONE strip (Spread / Sim, Total / Sim pills, then a big By 10+ / Close script bar filling the
+    row), then **a card a team, side by side, half the width each** (team-tint banner with a 4px edge
+    and the **Show Ladder** button; Player View's tile table: headshot + name, Starters / Bench group
+    rows): Min, PTS / 3PM (**his median to a tenth**, `smoothMedian` off the ladder: the sim's own is
+    a whole number, so every Threes Diff read -0.5), Line (Player View's chip, our side of his main
+    line at the best price, a click = every book; tonight's play ringed), Diff (median minus the line,
+    green on our side), Edge; "No Line" when no book has him. **The ladder** (Points 10+ to 40+, Threes
+    1+ to 6+: our chance and best price; green / red at 3 points of edge, yellow near fair, gray with no
+    price) is closed by default and opens one team at a time; while one is open both cards stack full
+    width (no dead half). **Removed on purpose:** the Script Picker and by-script / Script columns (the
+    owner: "its almost common sense and the numbers dont move much"; the scripts live on in the bar,
+    the Player View tags and The Model), the % column, Dials Tonight (the dials are in every sim; Player
+    View tags them), the box titles. Classes: `.sim-tcard`, `.sim-bt` (not `.sim-head`: the toolbar's).
 - **Best Plays** (`site/nba/best.html` + `best.js`, 2026-10-25, the owner: "Keep the consistency present
   in those individual categories, but sort the best plays by edge, aggregating from these two
   categories"): sim-board.js with `SIM_PAGE.markets` = [points.js's, threes.js's config] (each page's

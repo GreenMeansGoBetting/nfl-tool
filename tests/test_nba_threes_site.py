@@ -53,9 +53,9 @@ class Threes(unittest.TestCase):
         PAGE.click("[data-view='matchup']")
         PAGE.click("[data-ladder='away']")
         try:
-            heads = PAGE.evaluate("() => [...document.querySelectorAll(\".sim-table[data-team='away'] tr.sim-thead th\")].map((th) => th.innerText.trim())")
+            heads = PAGE.evaluate("() => [...document.querySelectorAll(\".sim-tcard[data-team='away'] tr.sim-thead th\")].map((th) => th.innerText.trim())")
             self.assertEqual(heads[-6:], ["1+", "2+", "3+", "4+", "5+", "6+"])
-            self.assertIn("-150", PAGE.inner_text(".sim-table td.sim-rung.pick"))
+            self.assertIn("-150", PAGE.inner_text(".sim-bt td.sim-rung.pick"))
         finally:
             PAGE.click("[data-ladder='away']")
             PAGE.click("[data-view='player']")

@@ -272,35 +272,35 @@ class Board(unittest.TestCase):
         self.assertNotIn("Play", cards[1])
 
     def test_both_teams_side_by_side_main_line_and_ladder(self):
-        heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table tr.sim-thead')].map((tr) => [...tr.querySelectorAll('th')].map((th) => th.innerText.trim().toUpperCase()))")
+        heads = PAGE.evaluate("() => [...document.querySelectorAll('.sim-bt tr.sim-thead')].map((tr) => [...tr.querySelectorAll('th')].map((th) => th.innerText.trim().toUpperCase()))")
         self.assertEqual(len(heads), 2)  # each team its own table
         # a real table row (2026-10-25: named .sim-head it took the toolbar's flex and stacked in the Name cell)
-        self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('.sim-table tr.sim-thead')).display"), "table-row")
+        self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('.sim-bt tr.sim-thead')).display"), "table-row")
         self.assertEqual(heads[0][1:], ["MIN", "PTS", "LINE", "DIFF", "EDGE"])  # the ladder starts closed
-        self.assertIn("TEAM AAA", PAGE.inner_text(".sim-table[data-team='away'] thead").upper())
-        self.assertIn("TEAM BBB", PAGE.inner_text(".sim-table[data-team='home'] thead").upper())
-        tops = PAGE.evaluate("() => [...document.querySelectorAll('.sim-table')].map((t) => Math.round(t.getBoundingClientRect().top))")
+        self.assertIn("TEAM AAA", PAGE.inner_text(".sim-tcard[data-team='away'] .sim-tbar").upper())
+        self.assertIn("TEAM BBB", PAGE.inner_text(".sim-tcard[data-team='home'] .sim-tbar").upper())
+        tops = PAGE.evaluate("() => [...document.querySelectorAll('.sim-tcard')].map((t) => Math.round(t.getBoundingClientRect().top))")
         self.assertEqual(tops[0], tops[1])  # side by side
         board = PAGE.inner_text("#sim-board").upper()
         for gone in ("SCRIPT PICKER", "DIALS TONIGHT", "THE 10,000 GAMES", "REST EDGE"):
             self.assertNotIn(gone, board)
-        one = PAGE.evaluate("() => document.querySelector('.sim-table tbody tr').innerText.replace(/\\s+/g, ' ')")
+        one = PAGE.evaluate("() => [...document.querySelectorAll('.sim-bt tbody tr')].find((r) => r.innerText.includes('Player One')).innerText.replace(/\\s+/g, ' ')")
         self.assertIn("Player One", one)
-        self.assertIn("34.5 20 O 19.5", one)  # minutes, median, then the line
+        self.assertIn("34.5 20.0 o19.5 -150", one)  # minutes, median to a tenth, then the line chip
         self.assertIn("+0.5 +6.0", one)  # Diff, then Edge: 66% over 19.5 at -150 (needs 60%)
-        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.sim-table td.sim-rung.main.pick')"))  # tonight's play outlined
-        self.assertIn("-150", PAGE.inner_text(".sim-table td.sim-rung.pick"))
+        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.sim-bt td.sim-rung.main.pick')"))  # tonight's play outlined
+        self.assertIn("-150", PAGE.inner_text(".sim-bt td.sim-rung.pick"))
 
     def test_each_team_opens_its_own_ladder(self):
         PAGE.click("[data-ladder='away']")
         try:
-            away = PAGE.evaluate("() => [...document.querySelectorAll(\".sim-table[data-team='away'] tr.sim-thead th\")].map((th) => th.innerText.trim())")
+            away = PAGE.evaluate("() => [...document.querySelectorAll(\".sim-tcard[data-team='away'] tr.sim-thead th\")].map((th) => th.innerText.trim())")
             self.assertEqual(away[-7:], ["10+", "15+", "20+", "25+", "30+", "35+", "40+"])
-            self.assertIn("36%", PAGE.inner_text(".sim-table[data-team='away'] tbody tr"))  # 30+
-            self.assertNotIn("10+", PAGE.inner_text(".sim-table[data-team='home'] thead"))  # the other team stays closed
+            self.assertIn("36%", PAGE.inner_text(".sim-tcard[data-team='away'] tbody"))  # 30+
+            self.assertNotIn("10+", PAGE.inner_text(".sim-tcard[data-team='home'] thead"))  # the other team stays closed
         finally:
             PAGE.click("[data-ladder='away']")
-        self.assertNotIn("10+", PAGE.inner_text(".sim-table[data-team='away'] thead"))
+        self.assertNotIn("10+", PAGE.inner_text(".sim-tcard[data-team='away'] thead"))
 
     def test_another_game(self):
         PAGE.click("#matchup-row [data-game='901']")

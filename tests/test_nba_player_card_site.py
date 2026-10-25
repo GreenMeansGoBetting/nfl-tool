@@ -91,7 +91,7 @@ def tearDownModule():
 
 
 def open_card(tab=None):
-    PAGE.click(".sim-table .player-click[data-nba-player='1']")
+    PAGE.click(".sim-bt .player-click[data-nba-player='1']")
     PAGE.wait_for_selector("#player-card-modal:not([hidden]) .pc-name")
     if tab:
         PAGE.click(f"#player-card-modal .nba-pc-tab[data-tab='{tab}']")
