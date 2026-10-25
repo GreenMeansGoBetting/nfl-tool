@@ -59,6 +59,13 @@ def build(market, stat, line, rung_line, play_name_line):
         "sim_plays": {market: [play], ("threes" if market == "points" else "points"): []},
         "sim_record": {market: {"ledger": [["2026-10-11", 0.08, 1, 3.0, ["top", "over", "alt", "chaos"]],
                                            ["2026-10-05", 0.05, 0, -1.0, ["strong", "under", "main", "proof"]]]}},
+        # a past night (2026-10-25): the saved plays graded, reached with the day arrows
+        "sim_past": {market: [{**play, "game": "800", "date": "2026-10-20", "price": 150, "book": "fanduel", "opp": "BBB", "home": False,
+                               "got": 31 if stat == "pts" else 4, "result": "won", "locked": True},
+                              {**play, "game": "801", "date": "2026-10-20", "pid": "2", "team": "BBB", "opp": "CCC", "home": True, "tier": "strong",
+                               "kind": "proof", "side": "u", "line": 12.5, "main": True, "price": -110, "got": 15 if stat == "pts" else 3,
+                               "result": "lost", "dials": [], "locked": True}],
+                     ("threes" if market == "points" else "points"): []},
         "sim_meta": {"n": 10000, "script_margin": 10, "min_edge": 0.04, "max_plays": 8,
                      "dials": {"rest_edge": ["Rest Edge", -0.72, 1.89], "b2b": ["Back-To-Back", -0.84, 0.58]}},
     }
@@ -180,6 +187,30 @@ class Board(unittest.TestCase):
             self.assertIn("Team CCC", PAGE.inner_text(".sim-gbar"))
         finally:
             PAGE.click("#matchup-row [data-game='900']")
+
+
+class PastNight(unittest.TestCase):
+    def test_the_arrows_step_back_to_a_graded_night(self):
+        PAGE.click("#day-prev")
+        try:
+            self.assertEqual(PAGE.text_content("#sim-plays-title"), "Results")
+            night = text(".sim-night")[0].upper()
+            self.assertIn("1-1", night)
+            self.assertIn("+0.50U", night)  # +1.50 at +150, -1 at -110
+            self.assertIn("TOP PLAY HIT", night)
+            cards = [c.upper() for c in text(".sim-play")]
+            self.assertEqual(len(cards), 2)
+            self.assertIn("HIT", cards[0])
+            self.assertIn("+150", cards[0])  # the price locked at tip, not tonight's
+            self.assertIn("AAA @ BBB", cards[0])
+            self.assertIn("MISS", cards[1])
+            self.assertIn("UNDER 12.5", cards[1])
+            self.assertTrue(PAGE.evaluate("() => document.querySelector('.sim-play.past').classList.contains('won')"))
+            self.assertIn("upcoming games", PAGE.inner_text("#sim-board"))
+            self.assertEqual(SITE.errors, [])
+        finally:
+            PAGE.click("#day-next")
+        self.assertEqual(PAGE.text_content("#sim-plays-title"), "Tonight's Plays")
 
 
 class Menu(unittest.TestCase):

@@ -36,7 +36,12 @@ function fmtTime(hhmm) {
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 const sims = () => PROPS.sim || {};
-const days = () => [...new Set(Object.values(sims()).map((g) => g.date))].sort();
+const simDays = () => new Set(Object.values(sims()).map((g) => g.date));
+// past nights (props.json `sim_past`): the saved plays, graded, so the arrows can step back
+const pastAll = () => (PROPS.sim_past || {})[SIM_PAGE.market] || [];
+const days = () => [...new Set([...simDays(), ...pastAll().map((p) => p.date)])].sort();
+const isPast = (date) => !simDays().has(date);
+const pastOn = (date) => pastAll().filter((p) => p.date === date);
 const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date && sims()[g.game_id]);
 const playsOn = (date) => ((PROPS.sim_plays || {})[SIM_PAGE.market] || []).filter((p) => p.date === date);
 const nameOf = (pid) => {
@@ -199,8 +204,54 @@ function playCard(p, top) {
       <div class="sim-tags">${kind ? `<span class="sim-tag ${kind[1]}" title="${kind[2]}">${kind[0]}</span>` : ""}${dials.map((d) => `<span class="sim-tag sim-t-dial">${d}</span>`).join("")}${p.locked ? '<span class="sim-tag sim-t-why" title="Saved at tip-off: this is the play the record grades">Locked At Tip</span>' : ""}</div>
     </div></div>`;
 }
+// ---- a past night: each play as locked at tip, Hit / Miss and what he got ----
+const unitsWon = (p) => (p.price > 0 ? p.price / 100 : 100 / -p.price);
+function resultCard(p) {
+  const color = `#${team(p.team).color || "555555"}`;
+  const vs = p.opp ? `${p.home ? "vs" : "@"} ${p.opp}` : "";
+  const done = p.result === "won" || p.result === "lost";
+  const final = { won: ["sim-won", "Hit"], lost: ["sim-lost", "Miss"], push: ["", "Push"], sat: ["", "Didn't Play"] }[p.result] || ["", "Waiting"];
+  const units = p.result === "won" ? unitsWon(p) : p.result === "lost" ? -1 : 0;
+  const kind = { proof: ["Script-Proof", "sim-t-proof"], chaos: ["Chaos Play", "sim-t-chaos"], close: ["Needs A Close Game", "sim-t-why"] }[p.kind];
+  const dials = [...new Set(p.dials || [])].map((d) => ((PROPS.sim_meta || {}).dials || {})[d] || [d]).map((d) => d[0]);
+  return `<div class="sim-play past${done ? ` ${p.result}` : ""}">
+    <div class="sim-banner" style="background:${color}">${logo(p.team, 18)} ${p.team || ""} ${vs}<span class="sim-tier">${p.tier === "top" ? "Top Play" : "Strong"}</span></div>
+    <div class="sim-pbody">
+      <div class="sim-who">${headshot(p.pid)}<div><b>${playerClick(p.pid, nameOf(p.pid))}</b><span>${posOf(p.pid)}${p.team ? ` &middot; ${team(p.team).name}` : ""}</span></div></div>
+      <div class="sim-bet">${playName(p)} <span class="bo-pill sim-price" title="The best price across every book at tip-off: what the record grades">${showOdds(p.price)}<small>${BOOK_INITIALS[p.book] || p.book}</small></span></div>
+      <div class="sim-nums">
+        <div class="${final[0]}"><small>${final[1]}</small><b>${p.got === null || p.got === undefined ? "--" : fmt(p.got, 0)}</b><i>${SIM_PAGE.unit.toLowerCase()}</i></div>
+        <div><small>Hit In</small><b>${(Math.round(p.chance * 1000) * 10).toLocaleString()}</b><i>of 10,000</i></div>
+        <div><small>Edge At Tip</small><b>${signed(p.edge * 100)}</b><i>${done ? `${units >= 0 ? "+" : "&minus;"}${Math.abs(units).toFixed(2)}u` : "&nbsp;"}</i></div>
+      </div>
+      <div class="sim-tags">${done ? `<span class="sim-tag sim-t-${p.result}">${final[1]}</span>` : ""}${kind ? `<span class="sim-tag ${kind[1]}">${kind[0]}</span>` : ""}${dials.map((d) => `<span class="sim-tag sim-t-dial">${d}</span>`).join("")}</div>
+    </div></div>`;
+}
+function renderPast(date) {
+  const plays = pastOn(date);
+  const graded = plays.filter((p) => p.result === "won" || p.result === "lost");
+  const w = graded.filter((p) => p.result === "won").length;
+  const u = graded.reduce((a, p) => a + (p.result === "won" ? unitsWon(p) : -1), 0);
+  const waiting = plays.filter((p) => !p.result).length;
+  el("sim-plays-title").textContent = "Results";
+  el("sim-plays-note").innerHTML = `${plays.length} play${plays.length === 1 ? "" : "s"} &middot; locked at tip &middot; graded at the best price across every book, 1 unit${waiting ? ` &middot; ${waiting} waiting on the box score` : ""}`;
+  if (!plays.length) {
+    el("sim-plays").innerHTML = '<p class="sim-noplay">No plays this night.</p>';
+    return;
+  }
+  const top = plays.filter((p) => p.tier === "top" && (p.result === "won" || p.result === "lost"));
+  el("sim-plays").innerHTML = `<div class="sim-night">
+      <div><small>Record</small><b>${graded.length ? `${w}-${graded.length - w}` : "--"}</b></div>
+      <div><small>Units</small><b class="${u >= 0 ? "sim-up" : "sim-down"}">${graded.length ? `${u >= 0 ? "+" : "&minus;"}${Math.abs(u).toFixed(2)}u` : "--"}</b></div>
+      <div><small>Top Play</small><b class="${top.length ? (top[0].result === "won" ? "sim-up" : "sim-down") : ""}">${top.length ? (top[0].result === "won" ? "Hit" : "Miss") : "--"}</b></div>
+    </div>
+    <div class="sim-plays-grid sim-past-grid">${plays.map(resultCard).join("")}</div>`;
+}
+
 function renderPlays() {
   const date = days()[dayIndex];
+  if (isPast(date)) return renderPast(date);
+  el("sim-plays-title").textContent = "Tonight's Plays";
   const plays = playsOn(date).sort((a, b) => (a.tier === "top" ? -1 : b.tier === "top" ? 1 : b.edge - a.edge));
   const games = gamesOn(date);
   const without = games.filter((g) => !plays.some((p) => p.game === g.game_id));
@@ -247,7 +298,7 @@ function renderBoard() {
   const g = DATA.schedule.find((x) => x.game_id === gameId);
   const sim = g && sims()[g.game_id];
   if (!sim) {
-    el("sim-board").innerHTML = '<p class="sim-noplay">No game on this day.</p>';
+    el("sim-board").innerHTML = `<p class="sim-noplay">${isPast(days()[dayIndex]) ? "The game board is for upcoming games. This night's plays are graded above." : "No game on this day."}</p>`;
     return;
   }
   const lean = sim.margin === 0 ? "Even" : `${sim.margin > 0 ? g.home : g.away} By ${Math.abs(sim.margin)}`;
@@ -377,7 +428,9 @@ Promise.all([fetch("data.json").then((r) => r.json()), fetch("props.json").then(
     el("sim-app").hidden = false;
     const all = days();
     const today = new Date().toLocaleDateString("en-CA");
-    dayIndex = Math.max(0, all.indexOf(all.find((d) => d >= today) || all[all.length - 1]));
+    // open on tonight's slate (past nights are a click back)
+    const ahead = all.filter((d) => !isPast(d));
+    dayIndex = Math.max(0, all.indexOf(ahead.find((d) => d >= today) || ahead[0] || all[all.length - 1]));
     render();
   })
   .catch((err) => {

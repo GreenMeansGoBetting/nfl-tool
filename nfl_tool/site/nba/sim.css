@@ -39,6 +39,7 @@
 
 /* tonight's plays */
 .sim-plays-grid { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 10px; }
+.sim-past-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .sim-play { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
 .sim-play.top { grid-row: span 2; border-color: rgba(var(--good-rgb), 0.7); box-shadow: 0 0 0 1px rgba(var(--good-rgb), 0.35); }
 .sim-banner { display: flex; align-items: center; gap: 8px; padding: 6px 10px; color: #fff; font: 800 0.74rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; }
@@ -152,3 +153,16 @@
   .sim-gbar > div { font-size: 1rem; padding: 8px 10px; }
   .sim-gbar img { width: 24px !important; height: 24px !important; }
 }
+
+/* a past night's plays, graded (2026-10-25) */
+.sim-play.won { border-color: rgba(var(--good-rgb), 0.7); }
+.sim-play.lost { border-color: rgba(var(--bad-rgb), 0.6); }
+.sim-play.past .sim-bet { background: var(--panel-2); border-color: var(--border-strong); color: var(--text); }
+.sim-nums .sim-won { background: rgba(var(--good-rgb), 0.24); border-color: rgba(var(--good-rgb), 0.6); }
+.sim-nums .sim-lost { background: rgba(var(--bad-rgb), 0.2); border-color: rgba(var(--bad-rgb), 0.55); }
+.sim-t-won { color: var(--good-text); background: rgba(var(--good-rgb), 0.2); border: 1px solid rgba(var(--good-rgb), 0.6); }
+.sim-t-lost { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.18); border: 1px solid rgba(var(--bad-rgb), 0.55); }
+.sim-night { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.sim-night > div { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 6px 14px; text-align: center; }
+.sim-night small { display: block; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.sim-night b { font: 800 1.15rem var(--font-display); }

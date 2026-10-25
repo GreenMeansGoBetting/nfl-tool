@@ -881,8 +881,41 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
                     logs[market][(str(r[f["game"]]), pid)] = r[f[stat]]
     return {"sim": sims, "sim_plays": plays,
             "sim_record": {m: {"ledger": sim.ledger(record, logs[m], m)} for m in sim.STATS},
+            "sim_past": {m: past_plays(record, logs[m], m, today, block) for m in sim.STATS},
             "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE, "max_plays": sim.MAX_PLAYS,
                          "dials": {k: [label, own, opp] for k, (label, own, opp) in sim.DIAL_INFO.items()}}}
+
+
+def past_plays(record: dict, logs: dict, market: str, today: str, block: dict | None) -> list:
+    """props.json `sim_past` {market: [play]}: every saved play from the nights
+    before today, as locked at tip, with `got` (his stat, None until the box
+    score has the game) and `result` won / lost / push / sat / None (waiting),
+    so the page's day arrows can step back and show how each one did (the
+    owner, 2026-10-25: "I have no way to go back and see how anything performed")."""
+    players = (block or {}).get("players") or {}
+    f = {k: i for i, k in enumerate((block or {}).get("fields") or props.LOG_FIELDS)}
+    rows = {}  # (game, player) -> his log row, for the opponent and home / road
+    for pid, p in players.items():
+        for r in p.get("log") or []:
+            rows[(str(r[f["game"]]), pid)] = r
+    boxed = {gid for gid, _ in logs}
+    out = []
+    for gid, g in record.items():
+        if g.get("date", today) >= today:
+            continue
+        for row in g.get(market) or []:
+            p = dict(zip(sim.PLAY_FIELDS, row))
+            pid = str(p["pid"])
+            got = logs.get((str(gid), pid))
+            if got is not None:
+                result = "push" if got == p["line"] else "won" if (got > p["line"]) == (p["side"] == "o") else "lost"
+            else:
+                result = "sat" if str(gid) in boxed else None
+            log = rows.get((str(gid), pid))
+            out.append({**p, "pid": pid, "game": str(gid), "date": g["date"], "stat": market,
+                        "team": (players.get(pid) or {}).get("team"), "opp": log[f["opp"]] if log else None,
+                        "home": bool(log[f["home"]]) if log else None, "got": got, "result": result, "locked": True})
+    return sorted(out, key=lambda p: (p["date"], p["tier"] != "top", -p["edge"]))
 
 
 def locked_play(p: dict, g: dict, market: str, sim_game: dict) -> dict:

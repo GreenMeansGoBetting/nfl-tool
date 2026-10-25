@@ -223,6 +223,20 @@ class Record(unittest.TestCase):
         self.assertEqual(sim.ledger(record, logs, "threes"), [])
 
 
+class PastPlays(unittest.TestCase):
+    def test_past_nights_graded_for_the_day_arrows(self):
+        row = lambda pid, side, line: [pid, side, line, 150, "dk", 0.5, 0.06, "strong", None, True, []]  # noqa: E731
+        record = {"9": {"date": "2026-10-24", "points": [row("1", "o", 20.5), row("2", "o", 9.5), row("3", "u", 10.0), row("4", "o", 5.5)]},
+                  "10": {"date": "2026-10-24", "points": [row("5", "o", 12.5)]},  # no box score yet
+                  "11": {"date": "2026-10-25", "points": [row("1", "o", 30.5)]}}  # tonight: not past
+        logs = {("9", "1"): 25, ("9", "2"): 8, ("9", "3"): 10}
+        block = {"fields": ["date", "game", "opp", "home"], "players": {"1": {"team": "AAA", "log": [["2026-10-24", "9", "BBB", 0]]}}}
+        out = build_nba.past_plays(record, logs, "points", "2026-10-25", block)
+        self.assertEqual([(p["pid"], p["result"], p["got"]) for p in out],
+                         [("1", "won", 25), ("2", "lost", 8), ("3", "push", 10), ("4", "sat", None), ("5", None, None)])
+        self.assertEqual((out[0]["team"], out[0]["opp"], out[0]["home"], out[0]["price"]), ("AAA", "BBB", False, 150))
+
+
 class Build(unittest.TestCase):
     def test_plays_are_saved_until_tip_and_never_after(self):
         inp = inputs(roster())
