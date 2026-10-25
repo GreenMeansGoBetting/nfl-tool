@@ -106,6 +106,23 @@ class Rotation(unittest.TestCase):
         self.assertGreater(listed[4], plain[4] + 8)
         self.assertGreaterEqual(listed[4], sim.STARTER_TRUST * 31.8 - 3)  # AAA's starters average 31.8
 
+    def test_a_hurt_starter_not_in_the_posted_five_sits(self):
+        # the owner, 2026-10-25: Embiid Questionable, Bona in the posted five, the sim had Embiid 30 minutes off the bench
+        five = ["P9", "P2", "P1", "P5", "P6"]  # the 18-minute center P9 starts; the starting center P8 isn't listed
+        day = {"games": [{"homeTeam": {"teamAbbreviation": "BBB", "players": []},
+                          "awayTeam": {"teamAbbreviation": "AAA", "players": [{"playerName": n, "firstName": n, "lastName": n, "lineupStatus": "Expected", "rosterStatus": "Active"} for n in five]}}]}
+        inp = inputs(roster())
+        run = sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=200, seed=1, lineups=day, hurt={"8"})
+        self.assertNotIn(8, run["away"]["s"]["pids"])
+        self.assertEqual(run["sat"]["away"], [8])
+        # healthy and left out of the five: he plays off the bench; hurt with no five posted yet: he plays
+        self.assertIn(8, sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=200, seed=1, lineups=day)["away"]["s"]["pids"])
+        self.assertIn(8, sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=200, seed=1, hurt={"8"})["away"]["s"]["pids"])
+        # listed Out: in "sat" too, a bench player on the report still plays
+        run = sim.game(inp, "BBB", "AAA", "2026-10-20", {"1"}, n=200, seed=1, lineups=day, hurt={"7"})
+        self.assertEqual(sorted(run["sat"]["away"]), [1])
+        self.assertEqual(run["sat"]["home"], [])
+
     def test_names_match_across_sources(self):
         names = {7: "Dennis Schröder", 8: "Jaren Jackson Jr.", 9: "Naz Reid", 10: "Sion James", 11: "Moussa Diabaté"}
         day = {"games": [{"homeTeam": {"teamAbbreviation": "CHA", "players": [

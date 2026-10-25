@@ -780,7 +780,21 @@ function renderBoard() {
     return `<tr><td class="sim-pl">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="sim-pos">${posOf(pid)}</span></td>
       <td class="sim-min">${fmt(r.min)}</td><td class="sim-num sim-med">${med === null ? "--" : fmt(med)}</td>${mainCells}${rungCells}</tr>`;
   };
-  // one team's card: its banner (with the ladder switch), then starters and the bench
+  // a player who sits tonight (sim.out: listed Out, or a usual starter on the injury report who
+  // isn't in the NBA's posted five): grayed under the bench with his status, his minutes this season
+  const outRow = (k, pid, cols) => {
+    const inj = ((DATA.injuries || {})[g[k]] || []).find((i) => String(i.id) === pid) || {};
+    const status = inj.status || "Out";
+    const label = status === "Out" ? "Out" : status === "Doubtful" ? "Doubtful" : status === "Questionable" ? "Questionable" : "Day-To-Day";
+    const why = status === "Out" ? (inj.injury || "Listed Out") : `${label} and not in the NBA's posted five: the sim sits him`;
+    const log = logOf(pid);
+    const f = logFields();
+    const avg = log.length ? log.reduce((a, r) => a + r[f.min], 0) / log.length : null;
+    const note = inj.note ? ` title="${inj.note.replace(/"/g, "&quot;")}"` : "";
+    return `<tr class="sim-outrow"${note}><td class="sim-pl">${headshot(pid)}${playerClick(pid, `<b>${nameOf(pid)}</b>`)}<span class="sim-pos">${posOf(pid)}</span><span class="gs-inj-status ${status === "Out" ? "tier-bad" : "tier-mid"}">${label}</span></td>
+      <td class="sim-min" title="His minutes a game this season">${fmt(avg)}</td><td class="sim-noline sim-outwhy" colspan="${cols - 2}">${why}</td></tr>`;
+  };
+  // one team's card: its banner (with the ladder switch), then starters, the bench and who sits tonight
   const teamCard = (k) => {
     const open = LADDER_OPEN[k];
     const all = Object.entries(sim.players).filter(([, r]) => r.team === k && r.min >= 6).sort((a, b) => b[1].min - a[1].min);
@@ -789,9 +803,10 @@ function renderBoard() {
     const bench = all.filter(([pid]) => !five.includes(pid));
     const cols = 6 + (open ? rungs.length : 0);
     const group = (label) => `<tr class="group-row sim-bgroup"><td colspan="${cols}">${label}</td></tr>`;
-    const body = starters.length
+    const sat = ((sim.out || {})[k] || []).filter((pid) => !sim.players[pid]);
+    const body = (starters.length
       ? `${group("Starters")}${starters.map(([pid, r]) => row(k, pid, r)).join("")}${bench.length ? group("Bench") : ""}${bench.map(([pid, r]) => row(k, pid, r)).join("")}`
-      : all.map(([pid, r]) => row(k, pid, r)).join("");
+      : all.map(([pid, r]) => row(k, pid, r)).join("")) + (sat.length ? `${group("Out Tonight")}${sat.map((pid) => outRow(k, pid, cols)).join("")}` : "");
     const color = team(g[k]).color || "555555";
     return `<section class="sim-tcard${open ? " wide" : ""}" data-team="${k}">
       <div class="sim-tbar" style="--tc:#${color}">${logo(g[k], 28)}<b>${team(g[k]).name}</b>

@@ -93,6 +93,12 @@ table.data-table.sim-bt tr.sim-bgroup td { width: auto; text-align: left; paddin
 .sim-pl .nba-headshot { width: 40px; height: 29px; object-fit: cover; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--border); vertical-align: middle; margin-right: 8px; }
 .sim-pl b { font: 800 1rem var(--font-display); }
 .sim-pl .sim-pos { font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-left: 5px; }
+/* who sits tonight: grayed under the bench, his status pill kept in color */
+.sim-bt tr.sim-outrow td { opacity: 0.5; }
+.sim-bt tr.sim-outrow td.sim-pl { opacity: 1; }
+.sim-bt tr.sim-outrow td.sim-pl > :not(.gs-inj-status) { opacity: 0.5; filter: grayscale(1); }
+.sim-bt tr.sim-outrow .gs-inj-status { margin-left: 8px; }
+.sim-bt td.sim-noline.sim-outwhy { text-transform: none; letter-spacing: 0; font-size: 0.78rem; text-align: left; }
 .sim-bt td.sim-min { font: 700 0.92rem var(--font-display); color: var(--muted); }
 .sim-bt td.sim-num { font: 800 1rem var(--font-display); min-width: 46px; }
 .sim-bt td.sim-med { font-size: 1.08rem; }

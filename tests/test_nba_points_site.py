@@ -52,7 +52,7 @@ def build(market, stat, line, rung_line, play_name_line):
     blank = {"med": {"all": 0, "away": 0, "close": 0, "home": 0}, "mean": 0, "lad": {"all": [0, [1000]]}}
     game = {"date": "2026-10-21", "home": "BBB", "away": "AAA", "margin": 4.0, "total": 224.0, "margin_mean": 4.1, "total_mean": 224.3,
             "scripts": {"away": 0.15, "close": 0.55, "home": 0.30}, "base": {"away": 0.2, "close": 0.55, "home": 0.25},
-            "dials": {"away": ["rest_edge"], "home": []}, "starters": {"away": ["1"], "home": ["2"]}, "lineup": True,
+            "dials": {"away": ["rest_edge"], "home": []}, "starters": {"away": ["1"], "home": ["2"]}, "lineup": True, "out": {"away": ["3", "4"], "home": []},
             "players": {"1": {"team": "away", "min": 34.5, "name": "Player One", stat: stat_row(one_all, one_home, 20), other: blank},
                         "2": {"team": "home", "min": 30.0, "name": "Player Two", stat: stat_row(two, two, 12), other: blank}}}
     quiet = {**game, "home": "DDD", "away": "CCC", "dials": {"away": [], "home": []}, "players": {}}
@@ -66,7 +66,10 @@ def build(market, stat, line, rung_line, play_name_line):
         "seasons": {"2027": {"label": "2026-27", "fields": ["game", "home", "min", "pts", "fg3m", "fg3a"],
                              "players": {"1": {"name": "Player One", "team": "AAA", "pos": "SF",
                                                "log": [[str(700 + i), 1 - i % 2, 34, pts, m, m + 3] for i, (pts, m) in enumerate(zip([10, 25, 30, 15, 22, 18], [0, 1, 2, 0, 1, 3]))]},
-                                                                            "2": {"name": "Player Two", "team": "BBB", "pos": "C", "log": []}}, "out": {}}},
+                                                                            "2": {"name": "Player Two", "team": "BBB", "pos": "C", "log": []},
+                                               # who sits tonight (sim.out): one listed Out, one Questionable and not in the posted five
+                                               "3": {"name": "Player Three", "team": "AAA", "pos": "C", "log": [["700", 1, 31, 20, 0, 0], ["701", 0, 29, 18, 0, 0]]},
+                                               "4": {"name": "Player Four", "team": "AAA", "pos": "PF", "log": [["700", 1, 28, 12, 1, 3]]}}, "out": {}}},
         "sim": {"900": game, "901": quiet},
         "sim_plays": {market: [play], ("threes" if market == "points" else "points"): []},
         "sim_record": {market: {"ledger": [["2026-10-11", 0.08, 1, 3.0, ["top", "over", "alt", "chaos"]],
@@ -85,7 +88,9 @@ def build(market, stat, line, rung_line, play_name_line):
     two_line = 12.5 if stat == "pts" else 1.5  # player two: 50/50, -110 both sides (not a play)
     two_q = [["draftkings", "o", two_line, -110], ["draftkings", "u", two_line, -110]]
     alt_q = [["draftkings", "o", rung_line, 300], ["fanduel", "o", rung_line, 280]]
-    data = {"season": 2027, "season_label": "2026-27", "injuries": {}, "players": {},
+    data = {"season": 2027, "season_label": "2026-27", "players": {},
+            "injuries": {"AAA": [{"id": "3", "name": "Player Three", "status": "Out", "injury": "Foot Plantar Fasciitis", "note": "Ruled out for Sunday"},
+                                 {"id": "4", "name": "Player Four", "status": "Questionable", "injury": "Ankle"}]},
             "schedule": [{"game_id": "900", "date": "2026-10-21", "time": "19:30", "away": "AAA", "home": "BBB", "status": "scheduled",
                           "home_team_spread": -4.5, "total_line": 221.5},
                          {"game_id": "901", "date": "2026-10-21", "time": "20:00", "away": "CCC", "home": "DDD", "status": "scheduled"}],
@@ -290,6 +295,18 @@ class Board(unittest.TestCase):
         self.assertIn("+0.5 +6.0", one)  # Diff, then Edge: 66% over 19.5 at -150 (needs 60%)
         self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.sim-bt td.sim-rung.main.pick')"))  # tonight's play outlined
         self.assertIn("-150", PAGE.inner_text(".sim-bt td.sim-rung.pick"))
+
+    def test_who_sits_tonight_grayed_at_the_bottom(self):
+        # the owner, 2026-10-25 (Embiid ruled out): an injury mark, last in the list, grayed
+        body = PAGE.evaluate("() => [...document.querySelectorAll(\".sim-tcard[data-team='away'] tbody tr\")].map((r) => r.innerText.replace(/\\s+/g, ' ').trim())")
+        self.assertEqual(body[-3].upper(), "OUT TONIGHT")
+        self.assertIn("Player Three", body[-2])
+        self.assertIn("Out", body[-2])
+        self.assertIn("30.0 Foot Plantar Fasciitis", body[-2])  # his minutes this season, then the injury
+        self.assertIn("Questionable", body[-1])
+        self.assertIn("not in the NBA's posted five", body[-1])
+        self.assertLess(float(PAGE.evaluate("() => getComputedStyle(document.querySelector('tr.sim-outrow td.sim-min')).opacity")), 1)
+        self.assertNotIn("OUT TONIGHT", PAGE.inner_text(".sim-tcard[data-team='home']").upper())
 
     def test_each_team_opens_its_own_ladder(self):
         PAGE.click("[data-ladder='away']")

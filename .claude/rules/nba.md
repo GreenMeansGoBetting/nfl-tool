@@ -194,7 +194,10 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   copies, `lineup_starters`, names matched with an accent fallback): a listed starter plays at
   least `STARTER_TRUST` 0.8 of his team's usual starter minutes (the owner: "a roleplayer who has 10
   minutes per game but tonight is starting"; the replay's fill-in starters played 25.5: no floor
-  gave 19.9, 0.9 gave 28.2, 0.8 gives 25.9).
+  gave 19.9, 0.9 gave 28.2, 0.8 gives 25.9). **Once the five is posted, a usual starter (half his
+  games) on the injury report but not Out (Questionable / Doubtful / Day-To-Day) who isn't in it sits
+  too** (`hurt`, 2026-10-25: Embiid Questionable with Bona in the posted five at the noon build got 30
+  bench minutes, and LeBron / Brown / Edgecombe all read big unders; ESPN ruled him Out 40 minutes later).
 - **Injuries: ESPN's live list** (`live_injuries`, build_nba.py; the hoopR file is a daily snapshot,
   the fallback). The owner, 2026-10-24: ESPN still had LeBron Questionable an hour after Underdog
   reported him out, "that is not going to cut it". Next (its own push): the NBA's official injury
@@ -214,7 +217,7 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
 - **props.json** (compute_sim in build_nba.py, its own try: a failure leaves the pages empty, never
   the game logs): `sim` {game id: median margin / total, `scripts` (away by 10+ / close / home by
   10+), `base` (the same without the dials, `SIM_BASE_N` games), `dials` {home, away}, `starters`,
-  `lineup` (the NBA's five was posted), `players` {id: team, min, pts / fg3m: med by script, mean,
+  `out` {home, away: who'd be in the rotation but sits tonight}, `lineup` (the NBA's five was posted), `players` {id: team, min, pts / fg3m: med by script, mean,
   `lad` by script = [first k, permille of k or more ...] (`ladder`)}}, `sim_plays` {points, threes},
   `sim_record` {market: {ledger}}, `sim_meta` (dial names, MIN_EDGE).
 - **Prices:** every book's main line and every rung (`smartstake.add_ladder`: `points_alt` and
@@ -275,7 +278,8 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
     banner, ONE strip (Spread / Sim, Total / Sim pills, then a big By 10+ / Close script bar filling the
     row), then **a card a team, side by side, half the width each** (team-tint banner with a 4px edge
     and the **Show Ladder** button; Player View's tile table: headshot + name, Starters / Bench group
-    rows): Min, PTS / 3PM (**his median to a tenth**, `smoothMedian` off the ladder: the sim's own is
+    rows, then **Out Tonight**: `sim.out` grayed at the bottom with Game Previews' status pill, his
+    season minutes and the injury, the owner 2026-10-25): Min, PTS / 3PM (**his median to a tenth**, `smoothMedian` off the ladder: the sim's own is
     a whole number, so every Threes Diff read -0.5), Line (Player View's chip, our side of his main
     line at the best price, a click = every book; tonight's play ringed), Diff (median minus the line,
     green on our side), Edge; "No Line" when no book has him. **The ladder** (Points 10+ to 40+, Threes

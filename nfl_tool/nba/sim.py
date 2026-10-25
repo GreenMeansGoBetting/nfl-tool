@@ -11,7 +11,8 @@ One simulated game, a quarter at a time (all 10,000 at once, numpy):
    defense.
 3. Who: each play goes to one of the players on the floor, by his minutes
    (who's on the floor) x his plays a minute (how much he shoots when there).
-   Players listed Out aren't in it; their minutes go to the rest.
+   Players listed Out aren't in it; their minutes go to the rest. So is a
+   usual starter on the injury report who isn't in the NBA's posted five.
 4. What: the play is a shot from a zone (rim, short, mid, corner 3, above the
    break 3), a trip to the line or a turnover, by his own mix, tilted toward
    what this defense gives up.
@@ -85,7 +86,12 @@ ROTATION_GONE = 3   # a player under 20 minutes who missed his team's last 3 gam
 # his own position first missed minutes by more, 5.1-6.3 against 4.8); a
 # player in the NBA's starting five for tonight (Expected, then Confirmed ~30
 # minutes before tip) plays at least STARTER_TRUST of his team's usual
-# starter minutes.
+# starter minutes. Once the five is posted, a usual starter on the injury
+# report (Questionable, Doubtful, Day-To-Day) who isn't in it sits too: the
+# owner, 2026-10-25, Embiid was Questionable with Bona in the posted five at
+# the noon build, so the sim had him playing 30 minutes off the bench and his
+# teammates (LeBron, Brown, Edgecombe) all read unders; ESPN ruled him Out 40
+# minutes later.
 STARTER_TRUST = 0.8  # the 2025-26 replay: fill-in starters played 25.5 minutes (0.8 gives 25.9, 0.9 gave 28.2, no floor 19.9)
 NBA_ABBR = {"GSW": "GS", "NOP": "NO", "NYK": "NY", "SAS": "SA", "UTA": "UTAH", "WAS": "WSH"}
 # The nights (fitted on the 2025-26 replay, tools/backtest/nba_sim.py)
@@ -421,6 +427,12 @@ def lineup_starters(day: dict | None, team: str, home: str, away: str, names: di
     return set()
 
 
+def usual_starter(p: dict, date: str) -> bool:
+    """He started at least half his games this season before the date."""
+    st = [s for d, s in zip(p["dates"], p["start"]) if d < date]
+    return bool(st) and 2 * sum(st) >= len(st)
+
+
 def starter_minutes(inputs: dict, team: str) -> float:
     """A team's usual minutes for a starter this season."""
     mins = [m for p in inputs["players"].values() if p["team"] == team for m, st in zip(p["min"], p["start"]) if st]
@@ -570,24 +582,30 @@ def team_now(inputs: dict, team: str, date: str, roster_team: dict | None) -> di
 
 
 def game(inputs: dict, home: str, away: str, date: str, out_ids: set, roster_team: dict | None = None,
-         n: int = N_SIMS, seed: int = 0, dials: bool = True, lineups: dict | None = None) -> dict:
+         n: int = N_SIMS, seed: int = 0, dials: bool = True, lineups: dict | None = None, hurt: set = frozenset()) -> dict:
     """One game, start to finish: tonight's rotations (lineups = the NBA's
-    lineups file for the night, for the starting fives), the dials, the sim."""
+    lineups file for the night, for the starting fives; hurt = ids on the
+    injury report but not Out), the dials, the sim. "sat" = {home, away: the
+    players who'd be in the rotation but sit tonight}."""
     hd = team_dials(inputs["history"].get(home, []), date, inputs["history"].get(away, [])) if dials else []
     ad = team_dials(inputs["history"].get(away, []), date, inputs["history"].get(home, [])) if dials else []
     h_mult = 1 + (HOME_EDGE / 2 + dial_points(hd, ad)) / PTS_BASE
     a_mult = 1 + (-HOME_EDGE / 2 + dial_points(ad, hd)) / PTS_BASE
-    built = {}
+    built, sat = {}, {}
     for team, opp, mult in ((home, away, h_mult), (away, home, a_mult)):
         names = team_now(inputs, team, date, roster_team)
         starters = lineup_starters(lineups, team, home, away, {pid: nm for pid, nm in names.items() if str(pid) not in out_ids})
-        pids = rotation(inputs, team, date, out_ids, roster_team)
+        gone = set(out_ids)
+        if starters:  # the five is posted: a usual starter on the injury report who isn't in it sits
+            gone |= {str(pid) for pid in names if str(pid) in hurt and pid not in starters and usual_starter(inputs["players"][pid], date)}
+        pids = rotation(inputs, team, date, gone, roster_team)
         pids += [pid for pid in starters if pid not in pids]  # a listed starter plays, whatever his last few games
+        sat[team] = [pid for pid in rotation(inputs, team, date, set(), roster_team) if pid not in pids]
         built[team] = side(inputs, pids, opp, mult, starters, starter_minutes(inputs, team))
     hs, aw = built[home], built[away]
     pace = (team_pace(inputs, home) + team_pace(inputs, away)) / 2
     out = simulate(hs, aw, pace, (oreb_rate(inputs, home, away), oreb_rate(inputs, away, home)), n, seed)
-    out.update({"home_dials": hd, "away_dials": ad})
+    out.update({"home_dials": hd, "away_dials": ad, "sat": {"home": sat[home], "away": sat[away]}})
     return out
 
 
