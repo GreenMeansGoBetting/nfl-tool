@@ -1993,9 +1993,9 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0063,
+    "lead": 0.0064,
     "name": "Yaxel Lendeborg",
-    "proj": 31.1,
+    "proj": 31.2,
     "team": "GS"
    },
    {
@@ -2163,7 +2163,7 @@
     "id": "3992",
     "lead": 0.0,
     "name": "James Harden",
-    "proj": 24.6,
+    "proj": 24.5,
     "team": "CLE"
    },
    {
@@ -2184,7 +2184,7 @@
     "id": "4397002",
     "lead": 0.0,
     "name": "Ayo Dosunmu",
-    "proj": 23.3,
+    "proj": 23.2,
     "team": "MIN"
    },
    {
@@ -2223,18 +2223,18 @@
     "team": "MEM"
    },
    {
+    "id": "3064290",
+    "lead": 0.0,
+    "name": "Aaron Gordon",
+    "proj": 21.3,
+    "team": "DEN"
+   },
+   {
     "id": "5105623",
     "lead": 0.0,
     "name": "Kel'el Ware",
     "proj": 21.2,
     "team": "MIL"
-   },
-   {
-    "id": "3064290",
-    "lead": 0.0,
-    "name": "Aaron Gordon",
-    "proj": 21.2,
-    "team": "DEN"
    },
    {
     "id": "5112087",
