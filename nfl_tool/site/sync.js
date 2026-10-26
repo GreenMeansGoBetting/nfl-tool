@@ -831,10 +831,13 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Team Identity", file: "identity.html" },
       { name: "Shot Charts", file: "shot-charts.html" },
       { head: "Player props" },
+      { name: "First Basket", file: "first-basket.html" },
+      // Kept reachable but set aside while the NBA suite turns toward matchup
+      // research (the owner, 2026-10-26).
+      { head: "🚨 UNDER CONSTRUCTION 🚨" },
       { name: "Best Plays", file: "best.html" },
       { name: "Points", file: "points.html" },
       { name: "Threes", file: "threes.html" },
-      { name: "First Basket", file: "first-basket.html" },
     ] },
     nhl: { label: "NHL", home: "", items: [
       { name: "Game Previews", file: "" },
