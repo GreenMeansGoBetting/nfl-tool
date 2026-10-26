@@ -136,17 +136,19 @@ class Build(unittest.TestCase):
     def test_starters_shots_before_the_first_points(self):
         p = BLOCK["players"]
         self.assertEqual((p["11"]["shot_early"], p["11"]["first_shot"]), (1, 1))
-        self.assertEqual((p["21"]["shot_early"], p["21"]["first_shot"], p["21"]["first_pts"]), (1, 0, 1))
+        # Game 2's free throw is the game's first shot and an early shot (the owner, 2026-10-26: free
+        # throws count for first shot like they do for first points).
+        self.assertEqual((p["21"]["shot_early"], p["21"]["first_shot"], p["21"]["first_pts"]), (2, 1, 1))
         self.assertEqual(p["12"]["first_pts"], 1)
         self.assertEqual(p["10"]["shot_early"], 0)
 
     def test_team_share_is_his_own_teams_first_shot_and_points(self):
         # Game 1: AAA's first shot 11, first points 12; BBB's 21 both. Game 2:
-        # AAA's 11 both; BBB's first shot is 20's dunk (a free throw isn't a
-        # shot), its first points 21's free throw. Counted over his starts.
+        # AAA's 11 both; BBB's 21 both (his free throw is BBB's first shot, not
+        # 20's later dunk). Counted over his starts.
         p = BLOCK["players"]
         got = {pid: (p[pid]["team_first_shot"], p[pid]["team_first_pts"]) for pid in ("11", "12", "20", "21", "10")}
-        self.assertEqual(got, {"11": (2, 1), "12": (0, 1), "20": (1, 0), "21": (1, 2), "10": (0, 0)})
+        self.assertEqual(got, {"11": (2, 1), "12": (0, 1), "20": (0, 0), "21": (2, 2), "10": (0, 0)})
 
     def test_likely_starters_are_regular_starters_by_minutes(self):
         side = fb.game_side(BLOCK, "AAA", {}, set())

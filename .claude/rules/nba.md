@@ -522,7 +522,7 @@ the bottom only. Then, on the plain data mockup: "very data heavy ... no color c
 images. I like Team logos too", so it uses the site look (team-color banners, logos, ESPN
 headshots, red-to-green `scaleHsla` cells, "i" bubbles for the explanations).
 
-- **Any first points count, free throws included** (the owner: most books settle it that way).
+- **Any first points count, free throws included** (the owner: most books settle it that way), **and so does every "shot" count** (Shot Early, 1st Shot, Team Share 1st Shot, First Look; the owner, 2026-10-26: "Why on earth would we count them in one category but not another"). Fair never read them (its shot volume was already FGA + 0.44 FTA).
   "First field goal allowed" is field goals only, as asked.
 - **Build:** `nfl_tool/nba/first_basket.py`, called by `compute_first_basket` in build_nba.py (its
   own try: a failure leaves `first_basket: null`). Reads `espn_nba_pbp/play_by_play_<season>.parquet`

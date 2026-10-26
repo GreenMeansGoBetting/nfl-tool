@@ -9,8 +9,9 @@ scores. A rough fair price sits at the bottom of each game and is labeled a
 guess.
 
 Most books now settle First Basket on ANY first points, free throws included
-(the owner), so "scored first" counts free throws; "first field goal allowed"
-is field goals only, as asked.
+(the owner), so "scored first" and every "first shot" count free throws (a
+trip to the line is a shot try, 2026-10-26); "first field goal allowed" is
+field goals only, as asked.
 
 Everything comes from hoopR's play-by-play (espn_nba_pbp). The opening
 `Jumpball` names both jumpers and its team_id is the team that got the ball.
@@ -114,7 +115,10 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
                 if team != owner:
                     owner = team
                     poss[team] += 1
-            if p.shooting_play == True and not free_throw and not pd.isna(p.athlete_id_1):  # noqa: E712
+            # A free throw is a shot try too (the owner, 2026-10-26: it counts for
+            # first points, so it counts for first shot; a shooting foul on a miss
+            # leaves no field goal try in ESPN's plays, only the free throws).
+            if p.shooting_play == True and not pd.isna(p.athlete_id_1):  # noqa: E712
                 if first_team is None:
                     early_shots.append(int(p.athlete_id_1))
                 team_shot.setdefault(team, int(p.athlete_id_1))
