@@ -136,9 +136,15 @@ these two pages into one page."
   it, tonight's opponent's types first with a Tonight tag. **Game Previews** shows only the types
   tonight's opponent is where a number is colored (section under The Line). Both draw from
   `site/nba/extremes.js` (`exTable`, `exCell`; Game Previews loads identity.css for its look). Not built: big lineups / small-ball (need
-  heights), schedule situations
-  (the owner's 13: B2B, 3 in 4, 4 in 6, rest edge, long layoff, road trip game 1 / 4+, first home
-  after a trip, home stand 4+, altitude, after a blowout loss / win, Cup / national TV).
+  heights).
+- **Schedule Spots** (2026-10-26, the owner's 13; second to the types): `identity.situation_tags`
+  (from the season schedule file alone: B2B, 3 in 4, 4 in 6, rest edge 2+ days, layoff 3+ days, road
+  trip game 1 / 4+, first home game after a trip, home stand 4+, altitude at DEN / UTAH, after a 20+
+  loss / win, national TV or NBA Cup) and `schedule_spots` (Pts, Opp Pts a 100, pace: in the spot
+  minus overall, next to the league's); season_block `spots` (+ `tonight` {game id: {team: keys}} for
+  the next 15 days). `compute_identity` passes the schedule. Identity: its own section; Game
+  Previews: under the extremes, tonight's spots with a colored number (`spotTable`). Dropped by the
+  owner: OT the night before, body clock, miles, close loss, revenge, same opponent twice, star out.
 - Tests: `tests/test_nba_identity.py`.
 
 ## Player props data (built 2026-10-20)

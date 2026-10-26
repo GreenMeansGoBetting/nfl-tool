@@ -28,7 +28,7 @@
 /* Matchup Extremes: the type name takes the spare width, numbers their contents. */
 .ex-table { width: 100%; }
 .ex-table td.ex-type { width: 100%; text-align: left; white-space: nowrap; }
-.ex-table th, .ex-table td.num { padding: 0 8px; text-align: center; }
+.ex-table th, .ex-table td.num { padding: 0 8px; text-align: center; white-space: nowrap; }
 .ex-table tr.ex-tonight td.ex-type { font-weight: 700; }
 
 @media (max-width: 760px) {

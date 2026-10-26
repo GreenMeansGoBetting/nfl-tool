@@ -180,10 +180,11 @@ function renderLines(g) {
 // this team has been far from normal against them (the owner, 2026-10-26).
 function renderExtremes(g) {
   const id = DATA.identity;
-  const ex = id && id.seasons && id.seasons[id.default] && id.seasons[id.default].extremes;
+  const b = id && id.seasons && id.seasons[id.default];
+  const ex = b && b.extremes;
   const box = (abbr, opp) => {
-    const table = ex ? exTable(ex, abbr, opp, true) : "";
-    return `<div class="nba-box">${banner(abbr)}${table || `<p class="no-data-note">Nothing far from normal against ${opp}'s types yet.</p>`}</div>`;
+    const table = (ex ? exTable(ex, abbr, opp, true) : "") + (b ? spotTable(b.spots, abbr, g.game_id, true) : "");
+    return `<div class="nba-box">${banner(abbr)}${table || `<p class="no-data-note">Nothing far from normal against ${opp}'s types or in tonight's spots yet.</p>`}</div>`;
   };
   el("extremes-content").innerHTML = box(g.away, g.home) + box(g.home, g.away);
 }

@@ -177,12 +177,20 @@ class Page(unittest.TestCase):
               "teams": {"AAA": {"fast": cell(9.0), "threes": cell(2.0), "foulers": cell(0.0)},
                         "BBB": {"fast": cell(0.0), "threes": cell(0.0), "foulers": cell(1.0)}}}
         data = nba_data("2027")
-        data["identity"] = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "teams": {}, "league": {}, "extremes": ex}}}
+        # Schedule Spots: AAA is on a back-to-back tonight and scores 10 fewer a 100 on them
+        # (league -2: gap -8, red); BBB's spot tonight (a long road trip) is close to normal.
+        spot = lambda pts: {"n": 3, "pts": [105.0, pts], "opp": [112.0, 0.0], "pace": [99.0, 0.0]}
+        slg = {"pts": -2.0, "opp": 0.0, "pace": 0.0}
+        spots = {"types": [{"key": "b2b", "label": "Back-To-Back (2nd Night)"}, {"key": "road_long", "label": "Road Trip: Game 4+"}],
+                 "league": {"b2b": slg, "road_long": slg},
+                 "teams": {"AAA": {"b2b": spot(-10.0), "road_long": spot(-10.0)}, "BBB": {"b2b": spot(0.0), "road_long": spot(0.0)}},
+                 "tonight": {"9": {"AAA": ["b2b"], "BBB": ["road_long"]}}}
+        data["identity"] = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "teams": {}, "league": {}, "extremes": ex, "spots": spots}}}
         page = self.open(data)
         try:
             rows = page.evaluate("""() => [...document.querySelectorAll('#extremes-content .nba-box')].map((b) =>
                 [...b.querySelectorAll('tbody tr:not(.id-group)')].map((r) => [...r.children].map((td) => td.innerText.trim())))""")
-            self.assertEqual(rows[1], [["Fast Teams", "2", "+8.0", "+1.5", "0.0", "0.0", "0.0"]])  # AAA, the home team
+            self.assertEqual(rows[1], [["Fast Teams", "2", "+8.0", "+1.5", "0.0", "0.0", "0.0"], ["Back-To-Back (2nd Night)", "3", "-8.0", "0.0", "0.0"]])  # AAA, the home team
             self.assertEqual(rows[0], [])
             self.assertIn("Nothing far from normal", page.inner_text("#extremes-content"))
             self.assertIn("tier-bad", page.evaluate("() => document.querySelectorAll('#extremes-content .nba-box')[1].querySelector('tbody tr:not(.id-group) td:nth-child(3)').className"))

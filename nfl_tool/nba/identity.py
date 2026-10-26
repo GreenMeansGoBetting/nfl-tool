@@ -261,6 +261,115 @@ def matchup_extremes(season, ident: dict, abbr_of: dict) -> dict:
     return {"types": out_types, "league": league, "teams": teams}
 
 
+# ---- Schedule Spots (the owner, 2026-10-26: second to the opponent types) ----
+# The same idea for the schedule: a team's games in a spot vs its games overall,
+# next to the league's. The owner's 13 (dropped that day: overtime the night
+# before, body clock, miles traveled, close loss, revenge, the same opponent
+# twice, star out). [key, label]
+SITUATIONS = [
+    ["b2b", "Back-To-Back (2nd Night)"],
+    ["three_in_four", "3 In 4 Nights"],
+    ["four_in_six", "4 In 6 Nights"],
+    ["rest_edge", "Rest Edge (2+ More Days)"],
+    ["layoff", "Long Layoff (3+ Days Off)"],
+    ["road_first", "Road Trip: Game 1"],
+    ["road_long", "Road Trip: Game 4+"],
+    ["home_after_trip", "First Home Game After A Trip"],
+    ["homestand_long", "Home Stand: Game 4+"],
+    ["altitude", "At Altitude (DEN / UTAH)"],
+    ["after_blowout_loss", "After A 20+ Loss"],
+    ["after_blowout_win", "After A 20+ Win"],
+    ["spotlight", "National TV / NBA Cup"],
+]
+SIT_OUTCOMES = ("pts", "opp", "pace")
+ALTITUDE = ("DEN", "UTAH")
+SPOTS_DAYS_AHEAD = 15  # the pages' schedule runs 14 days out
+
+
+def situation_tags(schedule: pd.DataFrame) -> dict:
+    """{(game id, team abbreviation): [situation keys]} for every regular-season
+    game on the schedule, played or not (a spot needs only dates, sites and
+    the last game's score)."""
+    s = schedule[(schedule["season_type"] == 2) & (schedule["home_abbreviation"] != "TBD")].copy()
+    s["day"] = pd.to_datetime(s["game_date"])
+    rows = []
+    for r in s.itertuples(index=False):
+        done = bool(r.status_type_completed)
+        notes = str(r.notes_headline or "")
+        spot = r.broadcast_market == "national" or "Cup" in notes
+        for team, opp, home, pts, opp_pts in ((r.home_abbreviation, r.away_abbreviation, True, r.home_score, r.away_score),
+                                              (r.away_abbreviation, r.home_abbreviation, False, r.away_score, r.home_score)):
+            rows.append({"game_id": int(r.game_id), "day": r.day, "team": team, "opp": opp, "home": home, "spot": spot,
+                         "margin": float(pts) - float(opp_pts) if done else None})
+    g = pd.DataFrame(rows).sort_values(["team", "day"])
+    out, rest_of = {}, {}
+    for team, t in g.groupby("team"):
+        days = list(t["day"])
+        homes = list(t["home"])
+        margins = list(t["margin"])
+        streak = 0
+        for i, r in enumerate(t.itertuples(index=False)):
+            tags = []
+            rest = (days[i] - days[i - 1]).days - 1 if i else None
+            rest_of[(r.game_id, team)] = rest
+            within = lambda n: sum(1 for d in days[:i + 1] if (days[i] - d).days < n)  # noqa: E731
+            if rest == 0:
+                tags.append("b2b")
+            if within(4) >= 3:
+                tags.append("three_in_four")
+            if within(6) >= 4:
+                tags.append("four_in_six")
+            if rest is not None and rest >= 3:
+                tags.append("layoff")
+            streak = streak + 1 if i and homes[i - 1] == r.home else 1
+            if not r.home and streak == 1:
+                tags.append("road_first")
+            if not r.home and streak >= 4:
+                tags.append("road_long")
+            if r.home and i and not homes[i - 1] and streak == 1:
+                tags.append("home_after_trip")
+            if r.home and streak >= 4:
+                tags.append("homestand_long")
+            if not r.home and r.opp in ALTITUDE:
+                tags.append("altitude")
+            last = margins[i - 1] if i else None
+            if last is not None and last <= -20:
+                tags.append("after_blowout_loss")
+            if last is not None and last >= 20:
+                tags.append("after_blowout_win")
+            if r.spot:
+                tags.append("spotlight")
+            out[(r.game_id, team)] = tags
+    opp_of = dict(zip(zip(g["game_id"], g["team"]), g["opp"]))
+    for (gid, team), tags in out.items():
+        mine, theirs = rest_of.get((gid, team)), rest_of.get((gid, opp_of[(gid, team)]))
+        if mine is not None and theirs is not None and mine - theirs >= 2:
+            tags.append("rest_edge")
+    return out
+
+
+def schedule_spots(season, abbr_of: dict, tags: dict) -> dict:
+    """{types: [{key, label}], league: {key: {outcome: split}}, teams: {abbr:
+    {key: {n, outcome: [in the spot, split]}}}}: pts = the team's points a
+    100, opp = allowed a 100, pace; split = in the spot minus overall."""
+    g = game_rows(season)
+    g["team"] = g["off"].map(lambda t: abbr_of.get(t, str(t)))
+    allowed = g.set_index(["game_id", "def"])["pts"]
+    g["opp"] = [allowed.get((gid, team), np.nan) for gid, team in zip(g["game_id"], g["off"])]
+    g["tags"] = [tags.get((int(gid), team), []) for gid, team in zip(g["game_id"], g["team"])]
+    league, teams = {}, {}
+    for key, _ in SITUATIONS:
+        hit = g["tags"].map(lambda ts, k=key: k in ts)
+        league[key] = {o: r1(g.loc[hit, o].mean() - g[o].mean()) if hit.any() else None for o in SIT_OUTCOMES}
+        for team, mine in g.groupby("team"):
+            v = mine[hit[mine.index]]
+            cell = {"n": int(len(v))}
+            for o in SIT_OUTCOMES:
+                cell[o] = [r1(v[o].mean()), r1(v[o].mean() - mine[o].mean())] if len(v) else None
+            teams.setdefault(team, {})[key] = cell
+    return {"types": [{"key": k, "label": label} for k, label in SITUATIONS], "league": league, "teams": teams}
+
+
 def r1(v):
     return None if v is None or pd.isna(v) else round(float(v), 1)
 
@@ -269,7 +378,7 @@ def rounded(v):
     return None if v is None else round(float(v), 4)
 
 
-def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str) -> dict | None:
+def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str, schedule: pd.DataFrame | None = None) -> dict | None:
     """One season for the page: {label, team_games (the middle team's games),
     teams {abbr: numbers}, league {key: {avg, sd}}}; None before any game."""
     import possessions as P
@@ -287,7 +396,24 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str) -> dict | Non
         "teams": teams,
         "league": {k: {"avg": rounded(v["avg"]), "sd": rounded(v["sd"])} for k, v in ident["league"].items()},
         "extremes": matchup_extremes(season, ident, abbr),
+        **({"spots": spots_block(season, abbr, schedule)} if schedule is not None else {}),
     }
+
+
+def spots_block(season, abbr: dict, schedule: pd.DataFrame) -> dict:
+    """Schedule Spots plus `tonight`: {game id: {team: [keys]}} for the games
+    of the next SPOTS_DAYS_AHEAD days (the pages mark the spots a team is in)."""
+    tags = situation_tags(schedule)
+    out = schedule_spots(season, abbr, tags)
+    soon = pd.Timestamp.now(tz="America/New_York").date() + pd.Timedelta(days=SPOTS_DAYS_AHEAD)
+    left = schedule[(schedule["season_type"] == 2) & ~schedule["status_type_completed"].astype(bool)
+                    & (pd.to_datetime(schedule["game_date"]).dt.date <= soon)]
+    upcoming = set(left["game_id"].astype(int))
+    out["tonight"] = {}
+    for (gid, team), keys in tags.items():
+        if gid in upcoming and keys:
+            out["tonight"].setdefault(str(gid), {})[team] = keys
+    return out
 
 
 REFERENCE = Path(__file__).parent / "identity_{season}.json"

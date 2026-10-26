@@ -652,8 +652,9 @@ def compute_identity(season: int, data_dir: Path, force: bool) -> dict:
     blocks = {}
     pbp = fetch_file("pbp", season, data_dir, force)
     box = fetch_file("player_box", season, data_dir, force)
+    schedule = fetch_file("schedule", season, data_dir, force)
     if pbp is not None and box is not None:
-        block = identity.season_block(pbp, box, season_label(season))
+        block = identity.season_block(pbp, box, season_label(season), schedule)
         if block:
             blocks[season] = block
     return {"default": str(season), "seasons": {str(s): b for s, b in blocks.items()}}

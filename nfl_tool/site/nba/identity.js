@@ -196,9 +196,13 @@ function teamBox(abbr) {
     </div>`;
 }
 
-// ---- Matchup Extremes (extremes.js) ----
+// ---- Matchup Extremes and Schedule Spots (extremes.js) ----
 function extremesBox(abbr, opp) {
   const table = exTable(block().extremes, abbr, opp, false);
+  return `<div class="nba-box">${banner(abbr)}${table || '<p class="no-data-note">No games on file.</p>'}</div>`;
+}
+function spotsBox(abbr, g) {
+  const table = spotTable(block().spots, abbr, g.game_id, false);
   return `<div class="nba-box">${banner(abbr)}${table || '<p class="no-data-note">No games on file.</p>'}</div>`;
 }
 
@@ -270,6 +274,7 @@ function render() {
   }
   renderHeader(g);
   el("id-extremes").innerHTML = extremesBox(g.away, g.home) + extremesBox(g.home, g.away);
+  el("id-spots").innerHTML = spotsBox(g.away, g) + spotsBox(g.home, g);
   el("id-teams").innerHTML = teamBox(g.away) + teamBox(g.home);
   el("id-matchups").innerHTML = matchupBox(g.away, g.home) + matchupBox(g.home, g.away);
 }

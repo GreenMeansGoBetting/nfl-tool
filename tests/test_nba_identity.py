@@ -99,12 +99,37 @@ class Extremes(unittest.TestCase):
         self.assertTrue(all(len(t["teams"]) == 10 for t in ex["types"]))
 
 
+class Spots(unittest.TestCase):
+    """Schedule Spots (the owner, 2026-10-26): which spot each team is in, from the schedule."""
+
+    def test_spots_from_dates_sites_and_the_last_score(self):
+        import pandas as pd
+        games = [  # id, date, home, away, home score, away score (None = not played)
+            (1, "2026-10-20", "BOS", "AAA", 130, 100),  # AAA loses by 30 on the road
+            (2, "2026-10-21", "CCC", "AAA", 100, 101),  # back-to-back, 2nd road game
+            (3, "2026-10-23", "DEN", "AAA", 110, 112),  # 3 in 4, altitude, 3rd road game
+            (4, "2026-10-24", "UTAH", "AAA", 90, 95),   # b2b, 4 in 6 (21, 23, 24 + 20), road game 4
+            (5, "2026-10-26", "AAA", "BOS", None, None),  # first home game after the trip; BOS rested 5 days
+        ]
+        sched = pd.DataFrame([{"game_id": g, "game_date": d, "home_abbreviation": h, "away_abbreviation": a, "home_score": hs or 0,
+                               "away_score": as_ or 0, "status_type_completed": hs is not None, "season_type": 2,
+                               "notes_headline": "NBA Cup - Group Play" if g == 5 else "", "broadcast_market": "home"}
+                              for g, d, h, a, hs, as_ in games])
+        tags = identity.situation_tags(sched)
+        self.assertEqual(sorted(tags[(1, "AAA")]), ["road_first"])
+        self.assertEqual(sorted(tags[(2, "AAA")]), ["after_blowout_loss", "b2b"])
+        self.assertEqual(sorted(tags[(3, "AAA")]), ["altitude", "three_in_four"])
+        self.assertEqual(sorted(tags[(4, "AAA")]), ["altitude", "b2b", "four_in_six", "road_long", "three_in_four"])
+        self.assertEqual(sorted(tags[(5, "AAA")]), ["four_in_six", "home_after_trip", "spotlight", "three_in_four"])  # 23, 24, 26 and 21
+        self.assertEqual(sorted(tags[(5, "BOS")]), ["after_blowout_win", "layoff", "rest_edge", "road_first", "spotlight"])
+
+
 class SeasonDefault(unittest.TestCase):
     def build(self, this_season_games):
         def fake_fetch(kind, season, data_dir, force):
             return "pbp" if this_season_games and season == 2027 else None
 
-        def fake_block(pbp, box_, label):
+        def fake_block(pbp, box_, label, schedule=None):
             return {"label": label, "team_games": this_season_games, "teams": {}, "league": {}}
 
         real_fetch, real_block = build_nba.fetch_file, identity.season_block
