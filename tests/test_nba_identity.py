@@ -61,6 +61,44 @@ class HandMadeGame(unittest.TestCase):
             self.assertAlmostEqual(self.b[f"off_{key}"], self.a[f"def_{key}"], msg=key)
 
 
+class Extremes(unittest.TestCase):
+    """Matchup Extremes (the owner, 2026-10-26): a team's games against a type
+    of opponent vs its games against everyone, next to the league's split."""
+
+    def test_split_and_league_split_by_hand(self):
+        import pandas as pd
+        # three teams, so a type is one team (the top third). CCC shoots the most 3s.
+        ident = {"teams": {t: {"off_three_rate": r} for t, r in (("AAA", 0.3), ("BBB", 0.35), ("CCC", 0.5))}}
+        rows = pd.DataFrame([
+            # game, offense, defense, points a 100 (pace etc. alike)
+            ("g1", "CCC", "AAA", 130), ("g1", "AAA", "CCC", 100),
+            ("g2", "BBB", "AAA", 100), ("g2", "AAA", "BBB", 110),
+            ("g3", "CCC", "BBB", 110), ("g3", "BBB", "CCC", 120),
+        ], columns=["game_id", "off", "def", "pts"])
+        for k in ("pace", "fg3m", "fta", "tov"):
+            rows[k] = 1.0
+        real = identity.game_rows, identity.shot_shares
+        identity.game_rows, identity.shot_shares = (lambda season: rows.copy()), (lambda season: {})
+        try:
+            ex = identity.matchup_extremes(None, ident, {})
+        finally:
+            identity.game_rows, identity.shot_shares = real
+        threes = next(t for t in ex["types"] if t["key"] == "threes")
+        self.assertEqual((threes["teams"], threes["side"]), (["CCC"], "off"))
+        # AAA allowed 130 to CCC, 115 on average: +15. The league: CCC scored 120 vs 111.67 overall.
+        self.assertEqual(ex["teams"]["AAA"]["threes"]["n"], 1)
+        self.assertEqual(ex["teams"]["AAA"]["threes"]["pts"], [130.0, 15.0])
+        self.assertEqual(ex["teams"]["BBB"]["threes"]["pts"], [110.0, 0.0])  # 110 to CCC, 110 on average
+        self.assertEqual(ex["league"]["threes"]["pts"], 8.3)
+        self.assertEqual(ex["teams"]["CCC"]["threes"]["n"], 0)
+
+    def test_every_type_in_the_saved_season(self):
+        ex = REFERENCE["extremes"]
+        self.assertEqual(len(ex["types"]), 18)
+        self.assertEqual(len(ex["teams"]), 30)
+        self.assertTrue(all(len(t["teams"]) == 10 for t in ex["types"]))
+
+
 class SeasonDefault(unittest.TestCase):
     def build(self, this_season_games):
         def fake_fetch(kind, season, data_dir, force):
@@ -150,6 +188,24 @@ class Page(unittest.TestCase):
             .filter((r) => r.children[0].innerText.trim() === 'Possessions / 48')
             .map((r) => r.children[1].className)""")
         self.assertTrue(all("tier-" not in c for c in plain), plain)
+
+    def test_matchup_extremes(self):
+        # BOS vs DET: Detroit is a turnover-prone team (2025-26), so that row has a Tonight
+        # tag, tonight's types lead the group; each number = BOS's split minus the league's.
+        rows = PAGE.evaluate("""() => [...document.querySelectorAll('#id-extremes .nba-box')[0].querySelectorAll('tbody tr')]
+            .map((r) => [...r.children].map((td) => td.innerText.trim()))""")
+        self.assertTrue(rows[0][0].upper().startswith("FACING OFFENSES"), rows[0])
+        group = rows[1:next(i for i, r in enumerate(rows) if r[0].upper().startswith("FACING DEFENSES"))]
+        tonight = [r[0].split()[-1].upper() == "TONIGHT" for r in group]
+        self.assertEqual(tonight, sorted(tonight, reverse=True))
+        sloppy = next(r for r in group if r[0].startswith("Turnover-Prone Teams"))
+        self.assertEqual(sloppy[0].split()[-1].upper(), "TONIGHT")
+        ex = REFERENCE["extremes"]
+        want = ex["teams"]["BOS"]["sloppy"]["pts"][1] - ex["league"]["sloppy"]["pts"]
+        self.assertEqual(float(sloppy[2]), round(want, 1))
+        self.assertEqual(int(sloppy[1]), ex["teams"]["BOS"]["sloppy"]["n"])
+        pace = PAGE.evaluate("() => [...document.querySelectorAll('#id-extremes .ex-table tbody tr:not(.id-group)')].map((r) => r.children[3].className)")
+        self.assertTrue(pace and all("tier-" not in c for c in pace), pace)
 
     def test_identity_tags(self):
         bos = PAGE.evaluate("() => [...document.querySelectorAll('#id-teams .nba-box')[0].querySelectorAll('.id-chip')].map((c) => c.textContent)")

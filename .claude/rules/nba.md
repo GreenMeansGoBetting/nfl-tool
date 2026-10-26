@@ -123,6 +123,20 @@ these two pages into one page."
   shares) are never colored good or bad**; their tags are **Fits** (offense does it a lot, this
   defense allows it a lot, 0.7 spreads each) and **Takes away** (offense a lot, defense rarely).
   The zone table's tag is the volume tag when there is one, else the make-rate matchup.
+- **Matchup Extremes** (2026-10-26, the first section on the page; the owner: "find the black and
+  white of these teams", how a team does against a TYPE of opponent is "our bread and butter",
+  relevant every night; UI left to the owner to adjust): `identity.matchup_extremes` (in
+  `season_block` as `extremes`). 18 `TYPES` (top / bottom third of the 30 in one identity number:
+  fast, slow, high 3s, rim, mid-range, corner 3, line, glass, transition, turnover-prone, pull-up /
+  iso, ball movement, one-star (`star_share`), deep bench (`bench_share`, shots by non-starters);
+  facing defenses: ball-hawk, foulers, rim protection, take away 3s). Per team-game (`game_rows`):
+  points, 3PM, FTA, turnovers a 100 and pace. A team's split = its average against the type minus
+  against everyone (offense types: what those opponents did to its defense); the page shows split
+  minus the league's split, colored past 6 pts / 3 3PM / 6 FTA / 3 TOV a 100 (pace never), GP beside
+  it, tonight's opponent's types first with a Tonight tag. Not built: big lineups / small-ball (need
+  heights), the Game Previews piece (only the collisions that fit tonight), schedule situations
+  (the owner's 13: B2B, 3 in 4, 4 in 6, rest edge, long layoff, road trip game 1 / 4+, first home
+  after a trip, home stand 4+, altitude, after a blowout loss / win, Cup / national TV).
 - Tests: `tests/test_nba_identity.py`.
 
 ## Player props data (built 2026-10-20)

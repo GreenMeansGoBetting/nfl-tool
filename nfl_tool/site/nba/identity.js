@@ -196,6 +196,44 @@ function teamBox(abbr) {
     </div>`;
 }
 
+// ---- Matchup Extremes (identity.py matchup_extremes, the owner 2026-10-26) ----
+// Each number = the team's split against a type of opponent minus the
+// league's split against that type. [key, label, a gap this big gets colored,
+// +1 = more is good for the team's offense]
+const EX_OUTCOMES = [["pts", "Pts", 6, 1], ["pace", "Pace", 3, 0], ["fg3m", "3PM", 3, 1], ["fta", "FTA", 6, 1], ["tov", "TOV", 3, -1]];
+const EX_WORDS = { pts: "points", pace: "possessions a 48", fg3m: "3s made", fta: "free throws", tov: "turnovers" };
+function extremesBox(abbr, opp) {
+  const ex = block().extremes;
+  const mine = ex && ex.teams[abbr];
+  if (!mine) return `<div class="nba-box">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
+  const row = (t) => {
+    const c = mine[t.key] || { n: 0 };
+    const tonight = t.teams.includes(opp);
+    const cells = EX_OUTCOMES.map(([o, , at, way]) => {
+      const v = c[o];
+      const lg = ex.league[t.key] && ex.league[t.key][o];
+      if (!c.n || !v || v[1] === null || lg === null || lg === undefined) return `<td class="num id-plain">--</td>`;
+      const gap = v[1] - lg;
+      // positive = good for this team: its offense up (def types), or its opponents down (off types)
+      const good = way === 0 ? 0 : gap * way * (t.side === "def" ? 1 : -1);
+      const cls = way === 0 || Math.abs(gap) < at ? "id-plain" : good > 0 ? "tier-good" : "tier-bad";
+      const who = t.side === "off" ? `${t.label} had` : `${abbr} had`;
+      const title = `${who} ${v[0]} ${EX_WORDS[o]}${o === "pace" ? "" : " a 100"} in ${c.n} game${c.n === 1 ? "" : "s"}: ${v[1] > 0 ? "+" : ""}${v[1]} vs ${abbr}'s usual. League: ${lg > 0 ? "+" : ""}${lg}.`;
+      return `<td class="num ${cls}" title="${title}">${gap > 0 ? "+" : ""}${gap.toFixed(1)}</td>`;
+    }).join("");
+    return [tonight, `<tr${tonight ? ' class="ex-tonight"' : ""}><td class="ex-type" title="${t.teams.join(", ")}">${t.label}${tonight ? ' <span class="gs-tag gs-tag-strong">Tonight</span>' : ""}</td><td class="num id-plain">${c.n}</td>${cells}</tr>`];
+  };
+  const group = (side, title) => {
+    const rows = ex.types.filter((t) => t.side === side).map(row);
+    rows.sort((a, b) => b[0] - a[0]); // tonight's types first, the rest in their usual order
+    return `<tr class="id-group"><td colspan="${EX_OUTCOMES.length + 2}">${title}</td></tr>${rows.map((r) => r[1]).join("")}`;
+  };
+  return `<div class="nba-box">${banner(abbr)}
+      <div class="id-scroll"><table class="data-table id-table ex-table"><thead><tr><th>Facing</th><th>GP</th>${EX_OUTCOMES.map(([, l]) => `<th>${l}</th>`).join("")}</tr></thead>
+      <tbody>${group("off", `Facing Offenses: ${abbr} Defense`)}${group("def", `Facing Defenses: ${abbr} Offense`)}</tbody></table></div>
+    </div>`;
+}
+
 // ---- season buttons ----
 function renderSeasons() {
   const thisSeason = String(DATA.season);
@@ -263,6 +301,7 @@ function render() {
     return;
   }
   renderHeader(g);
+  el("id-extremes").innerHTML = extremesBox(g.away, g.home) + extremesBox(g.home, g.away);
   el("id-teams").innerHTML = teamBox(g.away) + teamBox(g.home);
   el("id-matchups").innerHTML = matchupBox(g.away, g.home) + matchupBox(g.home, g.away);
 }
