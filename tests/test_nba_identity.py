@@ -234,6 +234,8 @@ class Page(unittest.TestCase):
         self.assertEqual(int(sloppy[1]), ex["teams"]["BOS"]["sloppy"]["n"])
         pace = PAGE.evaluate("() => [...document.querySelectorAll('#id-extremes .ex-table tbody tr:not(.id-group):not(.ex-unseen)')].map((r) => r.children[3].className)")
         self.assertTrue(pace and all("tier-" not in c for c in pace), pace)
+        # no rows of "--": a type not faced yet is only named on the Not Faced Yet line
+        self.assertNotIn("--", PAGE.inner_text("#id-extremes"))
 
     def test_identity_tags(self):
         bos = PAGE.evaluate("() => [...document.querySelectorAll('#id-teams .nba-box')[0].querySelectorAll('.id-chip')].map((c) => c.textContent)")

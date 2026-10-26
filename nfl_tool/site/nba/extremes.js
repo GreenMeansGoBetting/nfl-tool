@@ -55,7 +55,7 @@ function exRows(ex, abbr, opts) {
     const hover = t.teams ? ` title="${t.teams.join(", ")}"` : "";
     const tags = (tonight && !opts.tonightOnly ? ' <span class="gs-tag gs-tag-strong">Tonight</span>' : "") + verdict;
     const html = `<tr class="${tonight ? "ex-tonight" : ""}"><td class="ex-type"${hover}><span class="ex-name">${t.label}</span>${tags}</td><td class="num id-plain${n < EX_MIN_GP ? " ex-thin" : ""}">${n}</td>${cells
-      .map((c) => (c ? `<td class="num ${c.cls}" title="${c.title}">${c.gap > 0 ? "+" : ""}${c.gap.toFixed(1)}</td>` : `<td class="num id-plain ex-thin">--</td>`))
+      .map((c) => (c ? `<td class="num ${c.cls}" title="${c.title}">${c.gap > 0 ? "+" : ""}${c.gap.toFixed(1)}</td>` : `<td class="num"></td>`))
       .join("")}</tr>`;
     return { tonight, far, n, label: t.label, html };
   };
@@ -64,13 +64,14 @@ function exRows(ex, abbr, opts) {
     let unseen = [];
     if (opts.tonightOnly) rows = rows.filter((r) => r.tonight && r.far);
     else {
-      // Tonight's types first; types not faced yet fold into one line at the bottom.
-      unseen = rows.filter((r) => !r.n && !r.tonight).map((r) => r.label);
-      rows = rows.filter((r) => r.n || r.tonight).sort((a, b) => b.tonight - a.tonight);
+      // Tonight's types first; types not faced yet (tonight's too) fold into one
+      // line at the bottom instead of a row of blanks (the owner: "it clutters it").
+      unseen = rows.filter((r) => !r.n).map((r) => (r.tonight ? `<b>${r.label} (Tonight)</b>` : r.label));
+      rows = rows.filter((r) => r.n).sort((a, b) => b.tonight - a.tonight);
       const last = rows.filter((r) => r.tonight).length;
       if (last && last < rows.length) rows[last - 1].html = rows[last - 1].html.replace('class="ex-tonight"', 'class="ex-tonight ex-tonight-last"');
     }
-    if (!rows.length) return "";
+    if (!rows.length && !unseen.length) return "";
     const head = `<tr class="id-group ex-head"><td>${title}</td><td>GP</td>${heads.map((h) => `<td>${h}</td>`).join("")}</tr>`;
     const tail = unseen.length ? `<tr class="ex-unseen"><td colspan="${outs.length + 2}">Not Faced Yet: ${unseen.join(", ")}</td></tr>` : "";
     return head + rows.map((r) => r.html).join("") + tail;

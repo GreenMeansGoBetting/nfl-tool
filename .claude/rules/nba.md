@@ -138,7 +138,7 @@ these two pages into one page."
   columns ("WSH Defense Vs These Offenses": Pts Allowed / 3s Allowed / FTs Allowed / TOs Forced;
   offense: Pts Scored / 3s Made...), a **Strength / Weak Spot** tag when the points cell is colored,
   **under `EX_MIN_GP` 3 games faded and never colored** (1-game cells were colored), types not faced
-  yet fold into one "Not Faced Yet" line. **Game Previews** shows only the types
+  yet (tonight's too, bold) fold into one "Not Faced Yet" line; no "--" cells (the owner: "it clutters it"). **Game Previews** shows only the types
   tonight's opponent is where a number is colored (section under The Line). Both draw from
   `site/nba/extremes.js` (`exTable`, `exCell`; Game Previews loads identity.css for its look). Not built: big lineups / small-ball (need
   heights).
