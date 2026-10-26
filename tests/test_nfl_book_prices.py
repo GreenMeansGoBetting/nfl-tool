@@ -53,16 +53,64 @@ class BookTdOdds(unittest.TestCase):
         self.assertEqual([r["name"] for r in rows["DEN"]], ["Jaleel McLaughlin"])
 
 
+    def test_exchange_only_player_left_off(self):
+        # Jaydon Blue, DAL @ PHI 2026-10-26: Novig +100 and a ProphetX Yes at
+        # -286, no sportsbook -- the one-sided rule made him a 67% favorite.
+        books = {"DEN_ARI": {"td": {"x": td("Jaleel McLaughlin", ("novig", "o", 100), ("prophetx", "o", -286))}}}
+        self.assertEqual(build_stats.book_td_odds(books, ROSTER, POS, set()), {})
+
+
 class MergeWithNovig(unittest.TestCase):
-    def test_book_price_leads_and_novig_chance_stays(self):
-        novig = {"DEN": [{"name": "Bo Nix", "position": "QB", "best_odds": 300, "best_book": "Novig", "implied_prob": 0.22}],
-                 "ARI": [{"name": "Marvin Harrison Jr.", "position": "WR", "best_odds": 200, "best_book": "Novig", "implied_prob": 0.31}]}
-        merged = build_stats.merge_td_odds(build_stats.book_td_odds(BOOKS, ROSTER, POS, set()), novig)
+    NOVIG = {"DEN": [{"name": "Bo Nix", "position": "QB", "best_odds": 300, "best_book": "Novig", "implied_prob": 0.22},
+                     {"name": "Jaydon Blue", "position": "RB", "best_odds": 100, "best_book": "Novig", "implied_prob": 0.334}],
+             "KC": [{"name": "Travis Kelce", "position": "TE", "best_odds": 150, "best_book": "Novig", "implied_prob": 0.38}]}
+
+    def test_smartstake_list_leads(self):
+        merged = build_stats.merge_td_odds(build_stats.book_td_odds(BOOKS, ROSTER, POS, set()), self.NOVIG)
         by = {r["name"]: r for rows in merged.values() for r in rows}
-        self.assertEqual((by["Bo Nix"]["best_odds"], by["Bo Nix"]["best_book"], by["Bo Nix"]["implied_prob"]), (320, "FanDuel", 0.22))
-        self.assertEqual(by["Jaleel McLaughlin"]["best_odds"], 600)  # books only
-        self.assertEqual(by["Marvin Harrison Jr."]["best_book"], "Novig")  # Novig only
+        self.assertEqual((by["Bo Nix"]["best_odds"], by["Bo Nix"]["best_book"]), (320, "FanDuel"))
+        self.assertAlmostEqual(by["Bo Nix"]["implied_prob"], round(100 / 420 * 0.9, 3))  # the books' chance, not Novig's
+        self.assertNotIn("Jaydon Blue", by)  # Novig alone, on a team SmartStake prices
         self.assertEqual([r["name"] for r in merged["DEN"]], ["Bo Nix", "Jaleel McLaughlin"])  # most likely first
+
+    def test_novig_only_where_smartstake_has_nothing(self):
+        merged = build_stats.merge_td_odds({}, self.NOVIG)
+        self.assertEqual([r["name"] for r in merged["KC"]], ["Travis Kelce"])
+        self.assertEqual(len(merged["DEN"]), 2)
+
+
+class FirstTdOnBookList(unittest.TestCase):
+    def test_only_players_smartstake_lists(self):
+        book = {"PHI": [{"name": "Saquon Barkley"}, {"name": "Marquise Brown"}, {"name": "A.J. Brown Jr."}],
+                "DAL": [{"name": "CeeDee Lamb"}]}
+        first = {"PHI": [{"name": "Saquon Barkley", "best_odds": 500}, {"name": "E.J. Jenkins", "best_odds": 900},
+                         {"name": "Hollywood Brown", "best_odds": 2000}],
+                 "DAL": [{"name": "CeeDee Lamb", "best_odds": 600}, {"name": "Jaydon Blue", "best_odds": 900}],
+                 "KC": [{"name": "Travis Kelce", "best_odds": 700}]}
+        out = build_stats.first_td_on_book_list(first, book)
+        self.assertEqual([r["name"] for r in out["PHI"]], ["Saquon Barkley"])  # two Browns: no guessing
+        self.assertEqual([r["name"] for r in out["DAL"]], ["CeeDee Lamb"])
+        self.assertEqual(out["KC"], first["KC"])  # no SmartStake list: Novig as is
+
+    def test_same_last_name_takes_the_book_spelling(self):
+        out = build_stats.first_td_on_book_list({"PHI": [{"name": "Hollywood Brown", "best_odds": 2000}]},
+                                                {"PHI": [{"name": "Marquise Brown"}, {"name": "Kenneth Walker III"}]})
+        self.assertEqual(out["PHI"], [{"name": "Marquise Brown", "best_odds": 2000}])
+
+
+class OddsUnavailable(unittest.TestCase):
+    def test_only_the_latest_report_counts(self):
+        import pandas as pd
+        inj = pd.DataFrame([
+            {"team": "PHI", "week": 5, "full_name": "Saquon Barkley", "report_status": "Out"},
+            {"team": "PHI", "week": 6, "full_name": "Saquon Barkley", "report_status": "Out"},
+            {"team": "PHI", "week": 7, "full_name": "Saquon Barkley", "report_status": "Questionable"},
+            {"team": "PHI", "week": 7, "full_name": "DeVonta Smith", "report_status": "Out"},
+            {"team": "DAL", "week": 6, "full_name": "CeeDee Lamb", "report_status": "Doubtful"},  # DAL hasn't filed Week 7
+            {"team": "PHI", "week": 8, "full_name": "A.J. Brown", "report_status": "Out"},  # next week's
+        ])
+        out = build_stats.odds_unavailable_names(inj, 7, {"PHI": [{"name": "E.J. Jenkins", "status": "released"}]})
+        self.assertEqual(out, {"DeVonta Smith", "CeeDee Lamb", "E.J. Jenkins"})
 
 
 class ScheduleLines(unittest.TestCase):

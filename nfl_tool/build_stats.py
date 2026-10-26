@@ -1027,11 +1027,39 @@ def canonicalize_odds_names(blob: dict, roster_positions: dict | None) -> int:
     return changed
 
 
+ODDS_OUT_STATUSES = ("out", "doubtful", "injured reserve", "ir", "suspended")
+
+
+def odds_unavailable_names(injuries_df: pd.DataFrame, week: int, roster_out: dict | None) -> set:
+    """Who the TD odds leave off: ruled out on his team's LATEST report up to
+    this week (Mon-Wed that is last week's final one), or on reserve / cut
+    (roster_out). Never an earlier week's report: Barkley, Out in Weeks 5-6,
+    was missing from every Week 7 TD list while FanDuel priced him (the
+    owner, 2026-10-26)."""
+    out = {r["name"] for rows in (roster_out or {}).values() for r in rows}
+    if injuries_df is None or not len(injuries_df):
+        return out
+    df = injuries_df[injuries_df["week"] <= week]
+    latest = df.groupby("team")["week"].transform("max")
+    for row in df[df["week"] == latest].itertuples(index=False):
+        if isinstance(row.report_status, str) and row.report_status.lower() in ODDS_OUT_STATUSES:
+            out.add(row.full_name)
+    return out
+
+
+# Exchanges, where a stale resting order can be the only "price" on a fringe
+# player (Jaydon Blue: Novig +100, ProphetX Yes -286, no sportsbook). A row
+# needs a sportsbook's price; the exchanges still count toward the best price
+# and the two-sided no-vig chance.
+TD_EXCHANGES = {"novig", "prophetx", "kalshi", "polymarket_us"}
+
+
 def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | None, unavailable) -> dict:
     """{team: [rows]} Anytime TD from SmartStake (every US book), shaped like
     extract_novig_props' rows: the best Over 0.5 price and its book, and a
     no-vig chance -- the median, across books quoting both sides, of
-    Yes / (Yes + No); with no two-sided book, the median Yes chance x 0.9.
+    Yes / (Yes + No); with no two-sided book, the median sportsbook Yes
+    chance x 0.9. A player only an exchange prices is left off (TD_EXCHANGES).
     A player's team is whichever side of the game his current roster lists."""
     by_norm = {}
     for name, teams in (roster_teams or {}).items():
@@ -1052,11 +1080,11 @@ def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | N
                 if book in US_BOOKS and odds:
                     by_book.setdefault(book, {})[s] = odds
             overs = sorted(((b, p["o"]) for b, p in by_book.items() if "o" in p), key=lambda x: prob(x[1]))
-            if not overs:
+            yes = [prob(o) for b, o in overs if b not in TD_EXCHANGES]
+            if not yes:
                 continue
             best_book, best = overs[0]  # the longest price pays the most
             two = sorted(prob(p["o"]) / (prob(p["o"]) + prob(p["u"])) for p in by_book.values() if "o" in p and "u" in p)
-            yes = [prob(o) for _, o in overs]
             fair = two[len(two) // 2] if two else min(yes[len(yes) // 2] * 0.9, 0.99)
             out.setdefault(side[0], []).append({
                 "name": name, "position": (roster_positions or {}).get(name), "best_odds": int(best),
@@ -1066,21 +1094,48 @@ def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | N
 
 
 def merge_td_odds(book: dict, novig: dict) -> dict:
-    """Anytime TD per player: SmartStake's best price across the US books
-    leads (the owner, 2026-10-23: SmartStake "will always reign supreme"),
-    keeping Novig's no-vig chance when Novig lists him too; Novig's row
-    alone when no book lists him."""
+    """Anytime TD per team: SmartStake's list whenever it prices the team (the
+    owner, 2026-10-23: SmartStake "will always reign supreme"; 2026-10-26:
+    "reroute ... to smartstake, not novig default"), its own best price and
+    chance (Novig is one of its books). Novig's own feed only for a team
+    SmartStake has nothing on (no key, a failed fetch)."""
     merged = {}
     for team in set(book or {}) | set(novig or {}):
-        by_name = {_norm_player(r["name"]): dict(r) for r in (novig or {}).get(team) or []}
-        for r in (book or {}).get(team) or []:
-            cur = by_name.get(_norm_player(r["name"]))
-            if cur is None:
-                by_name[_norm_player(r["name"])] = dict(r)
-            else:
-                cur["best_odds"], cur["best_book"] = r["best_odds"], r["best_book"]
-        merged[team] = sorted(by_name.values(), key=lambda r: -(r.get("implied_prob") or 0))
+        rows = (book or {}).get(team) or (novig or {}).get(team) or []
+        merged[team] = sorted((dict(r) for r in rows), key=lambda r: -(r.get("implied_prob") or 0))
     return merged
+
+
+def _last_name(name: str) -> str:
+    words = [w for w in (name or "").replace(".", " ").split() if w.lower() not in ("jr", "sr", "ii", "iii", "iv")]
+    return _norm_player(words[-1]) if words else ""
+
+
+def first_td_on_book_list(first: dict, book: dict) -> dict:
+    """Novig's First TD rows (SmartStake has no First TD market), kept only
+    for players on SmartStake's Anytime list when it prices that team, in
+    its spelling; a different first name with the same last name on that
+    team is the same player (Novig "Hollywood Brown" = "Marquise Brown").
+    Keeps Novig's leftovers off the TD Summary (E.J. Jenkins, released, at
+    +900 for PHI, 2026-10-26)."""
+    out = {}
+    for team, rows in (first or {}).items():
+        listed = [r["name"] for r in (book or {}).get(team) or []]
+        if not listed:
+            out[team] = rows
+            continue
+        by_norm = {_norm_player(n): n for n in listed}
+        by_last = {}
+        for n in listed:
+            by_last.setdefault(_last_name(n), []).append(n)
+        kept = []
+        for r in rows:
+            same = by_last.get(_last_name(r["name"])) or []
+            name = by_norm.get(_norm_player(r["name"])) or (same[0] if len(same) == 1 else None)
+            if name:
+                kept.append({**r, "name": name})
+        out[team] = kept
+    return out
 
 
 def _consensus_line(quotes: list, side: str):
@@ -4442,12 +4497,7 @@ def main():
         current_rosters = load_rosters(args.data_dir, args.season, force=True)
         roster_teams = build_roster_team_lookup(current_rosters)
         roster_positions = build_roster_position_lookup(current_rosters)
-        unavailable_names = {
-            row.full_name
-            for row in injuries_df.itertuples(index=False)
-            if isinstance(row.report_status, str)
-            and row.report_status.lower() in ("out", "doubtful", "injured reserve", "ir", "suspended")
-        }
+        unavailable_names = odds_unavailable_names(injuries_df, current_week, roster_out)
         # Every US book's price (SmartStake) leads: the clickable best price,
         # the all-books list, Anytime TD and the schedule's lines. No key or
         # a failed fetch = Novig only.
@@ -4468,8 +4518,9 @@ def main():
                 g["novig"] = direct
         n_ou, n_any, n_first = extract_novig_props(novig_games or {}, teams, roster_positions, unavailable_names)
         player_prop_markets = n_ou
-        player_td_odds = merge_td_odds(book_td_odds(book_odds, roster_teams, roster_positions, unavailable_names), n_any)
-        player_first_td_odds = n_first
+        book_any = book_td_odds(book_odds, roster_teams, roster_positions, unavailable_names)
+        player_td_odds = merge_td_odds(book_any, n_any)
+        player_first_td_odds = first_td_on_book_list(n_first, book_any)
 
     espn_ratings = compute_espn_ratings(args.season)
     if espn_ratings is None:

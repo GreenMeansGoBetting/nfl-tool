@@ -29,10 +29,15 @@ imported by it (rules in game-previews.md).
   supreme"). It once put Jaleel McLaughlin at +154 (its "fair value" stand-in) on the TD Summary
   while FanDuel had +600. Never add it back. The All Odds list on Game Previews (SGO only) went
   with it.
-- Anytime TD (`player_td_odds`): SmartStake's best US-book price (`book_td_odds`, team from the
-  current roster), merged with Novig's (`merge_td_odds`: the book price leads, Novig's no-vig
-  chance stays when it lists him, Novig alone when no book does).
-- First TD and the player over/unders: Novig only (SmartStake has no First TD market).
+- Anytime TD (`player_td_odds`): SmartStake's list (`book_td_odds`, team from the current roster;
+  its best price and its own no-vig chance). Novig's own feed only for a team SmartStake has
+  nothing on (`merge_td_odds`; the owner, 2026-10-26: "smartstake, not novig default"). A player
+  only an exchange prices (`TD_EXCHANGES`: Novig, ProphetX, Kalshi, Polymarket) is left off.
+- Who the odds leave off (`odds_unavailable_names`): Out / Doubtful / IR on his team's LATEST
+  report up to this week, plus `roster_out`. Never an earlier week's (Barkley, Out Weeks 5-6, was
+  missing from the Week 7 TD Summary).
+- First TD and the player over/unders: Novig only (SmartStake has no First TD market). First TD
+  rows are kept only for players on SmartStake's Anytime list for that team (`first_td_on_book_list`).
 - Schedule spread / total / moneyline (top level): the line most US books post at the best price
   there (`apply_book_schedule_lines`), else nflverse's. `game.novig` is Novig's own (Pick Tracker).
 
