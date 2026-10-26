@@ -132,7 +132,8 @@ function tile(label, rows) {
 function renderRecord() {
   const all = ledger();
   // (other windows live in the shared YTD popup, ytd.js)
-  el("sim-record").innerHTML = `${tile("Yesterday", all.filter((r) => r[0] === dayBack(1)))}${tile("Top Plays", all.filter((r) => r[4].includes("top")))}${tile("Season", all)}
+  // (no Top Plays tile since 2026-10-26: every play is Strong)
+  el("sim-record").innerHTML = `${tile("Yesterday", all.filter((r) => r[0] === dayBack(1)))}${tile("Last 7 Days", all.filter((r) => r[0] >= dayBack(7)))}${tile("Season", all)}
     <button type="button" class="sim-ytd-btn" id="sim-ytd">${all.length ? "YTD Model Performance" : "Record Starts With Tonight's Plays"}</button>`;
 }
 function renderYtd() {
@@ -141,8 +142,8 @@ function renderYtd() {
   content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="sim-ytd-tracker"></div>
     <p class="no-data-note">Every one of tonight's plays, graded at its best price across every book at tip-off, 1 unit. A push or a player who sat doesn't count.</p>`;
   // Best Plays: one tile a market plus All Plays, and only the main splits (each page has the rest)
-  const splits = BEST ? [["top", "Top Play"], ["over", "Overs"], ["under", "Unders"]]
-    : [["top", "Top Play"], ["strong", "Strong Plays"], ["proof", "Script-Proof", "Beat its price in every script"], ["chaos", "Chaos Plays", "Lost in a close game, won when it went sideways"],
+  const splits = BEST ? [["over", "Overs"], ["under", "Unders"]]
+    : [["proof", "Script-Proof", "Beat its price in every script"], ["chaos", "Chaos Plays", "Lost in a close game, won when it went sideways"],
       ["close", "Needs A Close Game"], ["over", "Overs"], ["under", "Unders"], ["main", "Main Lines"], ["alt", "Ladder Rungs"],
       ["dials", "Spot Dials", "A schedule or last-game dial was on for one of the teams"]];
   ytdTracker(content.querySelector(".sim-ytd-tracker"), {
@@ -446,7 +447,7 @@ const COLS = [
   { label: "Player", cls: "sim-th-player" },
   ...(BEST ? [{ label: "Market", key: "market", title: "Points or Threes: the page the play comes from" }] : []),
   { label: "Play", title: "His main line, the side the model likes (o = over, u = under), at the best price across your books. The box saves it to My Plays." },
-  { label: "Rating", title: "Top Play: the night's biggest edge. Strong: every other play (4+ points of edge on his main line)." },
+  { label: "Rating", title: "Strong: 4+ points of edge on his main line" },
   { label: "Fair", key: "chance", title: "The price with no cut at which our chance breaks even (our chance on hover)" },
   { label: "Edge", key: "edge", title: "Our chance minus the chance the price needs to break even, in points" },
   { label: "L5", key: "l5", hit: true, title: "His last 5 games over tonight's line" },
@@ -467,7 +468,8 @@ function playerCell(pid, team, opp, home) {
 }
 function ratingTag(play, live) {
   if (!play) return '<span class="muted-label">--</span>';
-  return `<span class="sim-rate${play.tier === "top" ? " top" : ""}"${live ? ' title="Locked at tip: this is the play the record grades"' : ""}>${play.tier === "top" ? "Top Play" : "Strong"}</span>`;
+  // every play is Strong (the owner, 2026-10-26: "can we not say TOP PLAY anymore")
+  return `<span class="sim-rate"${live ? ' title="Locked at tip: this is the play the record grades"' : ""}>Strong</span>`;
 }
 // Best Plays' Market cell: which page the play is from (its page's tab look, small)
 const marketCell = (mk) => (BEST ? `<td class="sim-tight"><span class="sim-mkt sim-mkt-${mk.market}">${mk.unit}</span></td>` : "");
@@ -661,7 +663,7 @@ window.addEventListener("resize", () => {
 const unitsWon = (p) => (p.price > 0 ? p.price / 100 : 100 / -p.price);
 function renderPast(date) {
   el("sim-toolbar").hidden = true;
-  const plays = pastOn(date).sort((a, b) => (a.tier === "top" ? -1 : b.tier === "top" ? 1 : b.edge - a.edge));
+  const plays = pastOn(date).sort((a, b) => b.edge - a.edge);
   const graded = plays.filter((p) => p.result === "won" || p.result === "lost");
   const w = graded.filter((p) => p.result === "won").length;
   const u = graded.reduce((a, p) => a + (p.result === "won" ? unitsWon(p) : -1), 0);
@@ -671,7 +673,6 @@ function renderPast(date) {
     el("sim-list").innerHTML = '<p class="sim-noplay">No plays this night.</p>';
     return;
   }
-  const top = plays.find((p) => p.tier === "top" && (p.result === "won" || p.result === "lost"));
   const rows = plays.map((p, i) => {
     MK = p.mk;
     const final = { won: ["sim-won", "Hit"], lost: ["sim-lost", "Miss"], push: ["", "Push"], sat: ["", "Didn't Play"] }[p.result] || ["", "Waiting"];
@@ -687,7 +688,7 @@ function renderPast(date) {
   el("sim-list").innerHTML = `<div class="sim-night">
       <div><small>Record</small><b>${graded.length ? `${w}-${graded.length - w}` : "--"}</b></div>
       <div><small>Units</small><b class="${u >= 0 ? "sim-up" : "sim-down"}">${graded.length ? `${u >= 0 ? "+" : "&minus;"}${Math.abs(u).toFixed(2)}u` : "--"}</b></div>
-      <div><small>Top Play</small><b class="${top ? (top.result === "won" ? "sim-up" : "sim-down") : ""}">${top ? (top.result === "won" ? "Hit" : "Miss") : "--"}</b></div>
+      <div><small>Hit %</small><b>${graded.length ? `${Math.round((w / graded.length) * 100)}%` : "--"}</b></div>
     </div>
     <div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list">${head}<tbody>${rows}</tbody></table></div></div>`;
 }

@@ -679,8 +679,10 @@ def summary(out: dict, names: dict) -> dict:
 # break even), every one of them, like the NHL pages (the owner, 2026-10-25:
 # "Why only 8 plays?! display everything with its edge just like hockey is";
 # main lines only, "most users are going to play his under X - x being his
-# main line": a ladder rung is a tag on the page, never the play). The night's
-# biggest edge is the Top Play, the rest Strong. A play is graded at its best
+# main line": a ladder rung is a tag on the page, never the play). Every play
+# is Strong (the owner, 2026-10-26: "can we not say TOP PLAY anymore - just
+# call everything STRONG"; 10-24 to 10-25's Top Plays count as Strong in the
+# record). A play is graded at its best
 # price at tip-off, 1 unit, Points and Threes apart. (2026-10-24 and 10-25:
 # the best of every rung, one a game, 8 a night.)
 STATS = {"points": "pts", "threes": "fg3m"}  # book market -> the sim's stat
@@ -782,14 +784,12 @@ def game_candidates(gid: str, game_row: dict, sim_game: dict, props: dict, games
     return sorted(out, key=lambda c: -c["edge"])
 
 
-def pick_plays(candidates: list, locked: list) -> list:
+def pick_plays(candidates: list) -> list:
     """The night's plays: every candidate (each MIN_EDGE+ already), best
-    first. The night's biggest edge is the Top Play (unless a play locked at
-    tip-off tonight already is)."""
+    first, every one Strong."""
     picked = sorted(candidates, key=lambda c: -c["edge"])
-    has_top = any(p.get("tier") == "top" for p in locked)
-    for i, p in enumerate(picked):
-        p["tier"] = "top" if i == 0 and not has_top else "strong"
+    for p in picked:
+        p["tier"] = "strong"
     return picked
 
 
@@ -813,7 +813,7 @@ def ledger(record: dict, logs: dict, market: str) -> list:
             over = p["side"] == "o"
             won = (got > p["line"]) == over
             units = (p["price"] / 100 if p["price"] > 0 else 100 / -p["price"]) if won else -1.0
-            tags = [p["tier"], "over" if over else "under", "main" if p["main"] else "alt"]
+            tags = ["strong", "over" if over else "under", "main" if p["main"] else "alt"]  # a 10-24 / 10-25 "top" too
             if p["kind"]:
                 tags.append(p["kind"])
             if p["dials"]:

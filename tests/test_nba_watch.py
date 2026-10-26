@@ -198,6 +198,34 @@ class Report(unittest.TestCase):
         self.assertEqual(got["pressed"][0][1]["inputs"]["source"], "watch")
 
 
+class Grade(unittest.TestCase):
+    """Last night's plays (2026-10-26: 10-25's sat ungraded all morning, the box
+    scores land about 7:35 am Eastern): while version.json nba.watch.ungraded is
+    above 0 the refresh is pressed with source "grade", at most once an hour."""
+
+    def test_waiting_plays_press_a_grading_refresh(self):
+        morning = {**block(), "teams": [], "ungraded": 71}  # 8 am: tonight's teams are listed too, or not
+        got = Timer.run_watch(self, watch_block=morning, refresh=[{"status": "completed", "created_at": "2026-10-25T04:45:00Z"}])
+        self.assertEqual(got["pressed"], [["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "grade"}}]])
+        got = Timer.run_watch(self, watch_block={**block(), "rep_at": "2026-10-25T19:00Z", "ungraded": 3}, refresh=[])
+        self.assertEqual(got["pressed"][0][1]["inputs"]["source"], "grade")
+
+    def test_once_an_hour_and_never_when_graded(self):
+        morning = {**block(), "teams": [], "ungraded": 71}
+        got = Timer.run_watch(self, watch_block=morning, refresh=[{"status": "completed", "created_at": "2026-10-25T18:20:00Z"}])
+        self.assertEqual(got["pressed"], [])  # 50 minutes ago: the box scores weren't there yet
+        self.assertEqual(Timer.run_watch(self, watch_block={**morning, "ungraded": 0})["said"], "no game left tonight")
+        self.assertEqual(Timer.run_watch(self, deploy=[{"status": "queued"}], watch_block=morning)["pressed"], [])
+
+    def test_the_build_counts_the_last_two_nights_only(self):
+        import build_nba
+        past = {"points": [{"date": "2026-10-25", "result": None}, {"date": "2026-10-25", "result": "won"},
+                           {"date": "2026-10-20", "result": None}],  # a box score that never came: no hourly refresh forever
+                "threes": [{"date": "2026-10-24", "result": None}, {"date": "2026-10-25", "result": "sat"}]}
+        self.assertEqual(build_nba.ungraded(past, "2026-10-26"), 2)
+        self.assertEqual(build_nba.ungraded(None, "2026-10-26"), 0)
+
+
 class Install(unittest.TestCase):
     def test_the_crons_match(self):
         toml = (WORKER / "wrangler.toml").read_text(encoding="utf-8")
@@ -205,7 +233,7 @@ class Install(unittest.TestCase):
         crons = json.loads(re.search(r"^crons = (\[.*\])$", toml, flags=re.M).group(1))
         nba = re.search(r'NBA_WATCH_CRON = "([^"]+)"', index).group(1)
         self.assertEqual(crons, ["17,47 0-2,16-23 * 1-6,10-12 *", nba])
-        self.assertEqual(nba, "* 0-4,15-23 * 1-6,10-12 *")
+        self.assertEqual(nba, "* 0-4,12-23 * 1-6,10-12 *")  # from 8 am Eastern: last night's grading
         self.assertIn('import { githubClient, nbaWatch } from "./watch.js";', index)
 
 

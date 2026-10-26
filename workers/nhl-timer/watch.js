@@ -16,6 +16,12 @@
 // statuses changed (version.json nba.watch.rep). Once per report: not again
 // after a refresh that started after the report was posted.
 //
+// Last night's plays are graded the same way (2026-10-26: 10-25's sat ungraded
+// all morning). The box scores land about 7:35 am Eastern and nothing rebuilt
+// the NBA until the day's injury news, so while version.json nba.watch.ungraded
+// is above 0 this presses the refresh with source "grade", at most once every
+// GRADE_MINUTES (the box scores may be late), from 8 am Eastern (wrangler.toml).
+//
 // It never stacks runs: nothing is pressed while an NBA refresh or a full
 // rebuild is queued or running (the full rebuild reads the injuries itself),
 // or within REPRESS_MINUTES of the last refresh starting (a refresh that
@@ -28,6 +34,7 @@ const NBA_LINEUPS = (day) => `https://stats.nba.com/js/data/leaders/00_daily_lin
 const NBA_REPORT = "https://ak-static.cms.nba.com/referee/injury/Injury-Report_";
 const LISTED = ["Confirmed", "Expected"];
 export const REPRESS_MINUTES = 4;
+export const GRADE_MINUTES = 60;
 
 // ---- the fingerprints (watch.py's digest / injury_rows / lineup_rows) ----
 export async function digest(rows) {
@@ -109,21 +116,28 @@ export async function changes(watch, injuryBody, lineupDay) {
 export async function nbaWatch(env, github) {
   const version = await getJson(`${VERSION}?t=${Date.now()}`);
   const watch = version && version.nba && version.nba.watch;
-  if (!watch || !(watch.teams || []).length) return "no game left tonight";
+  if (!watch) return "no NBA watch in version.json";
+  const grade = (watch.ungraded || 0) > 0;
+  if (!(watch.teams || []).length && !grade) return "no game left tonight";
   // Either source may fail on its own; the other is still compared.
-  const [injuries, lineups] = await Promise.all([
+  const [injuries, lineups] = !(watch.teams || []).length ? [null, null] : await Promise.all([
     getJson(ESPN_INJURIES).catch(() => null),
     getJson(NBA_LINEUPS(watch.day), { Referer: "https://www.nba.com/", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36" }).catch(() => null),
   ]);
   const changed = await changes(watch, injuries, lineups);
-  const report = changed ? null : await newReport(watch);
-  if (!changed && !report) return "nothing changed";
+  const report = changed || !(watch.teams || []).length ? null : await newReport(watch);
+  if (!changed && !report && !grade) return "nothing changed";
   const [refreshes, deploys] = await Promise.all([github("nba-refresh.yml/runs?per_page=1"), github("deploy.yml/runs?per_page=5")]);
   const busy = (runs) => (runs.workflow_runs || []).some((r) => r.status !== "completed");
   if (busy(deploys)) return "a full rebuild is running";
   if (busy(refreshes)) return "an NBA refresh is running";
   const last = (refreshes.workflow_runs || [])[0];
   if (last && Date.now() - Date.parse(last.created_at) < REPRESS_MINUTES * 60000) return "the last refresh started under 4 minutes ago";
+  if (!changed && !report) {
+    if (last && Date.now() - Date.parse(last.created_at) < GRADE_MINUTES * 60000) return `${watch.ungraded} plays wait on a box score; the last refresh was under an hour ago`;
+    await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "grade" } });
+    return `refresh started (${watch.ungraded} plays to grade)`;
+  }
   if (!changed) {
     // the report: once, by the first refresh that starts after it was posted (which reads it)
     if (last && Date.parse(last.created_at) > report.posted) return `the ${report.at} report was already read`;

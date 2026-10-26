@@ -225,15 +225,11 @@ class Plays(unittest.TestCase):
     def test_every_play_with_its_edge_no_cap(self):
         # the owner, 2026-10-25: "Why only 8 plays?! display everything with its edge just like hockey is"
         cands = [{"game": str(i % 2), "edge": 0.04 + i / 100, "pid": str(i)} for i in range(12)]
-        picked = sim.pick_plays(cands, [])
+        picked = sim.pick_plays(cands)
         self.assertEqual(len(picked), 12)  # several in one game, more than 8 a night
         self.assertEqual([p["pid"] for p in picked[:2]], ["11", "10"])
-        self.assertEqual([p["tier"] for p in picked].count("top"), 1)
-        self.assertEqual(picked[0]["tier"], "top")
-        locked = [{"game": "5", "tier": "top"}]  # the Top Play already locked at tip tonight
-        picked = sim.pick_plays(cands, locked)
-        self.assertEqual(len(picked), 12)
-        self.assertEqual(picked[0]["tier"], "strong")
+        # the owner, 2026-10-26: "can we not say TOP PLAY anymore - just call everything STRONG"
+        self.assertEqual({p["tier"] for p in picked}, {"strong"})
 
 
 class Record(unittest.TestCase):
@@ -245,7 +241,7 @@ class Record(unittest.TestCase):
                                                          row("4", "o", 10.5, -110, "strong", None, True, [])]}}  # sat
         logs = {("9", "1"): 27, ("9", "2"): 16, ("9", "3"): 20}
         self.assertEqual(sim.ledger(record, logs, "points"), [
-            ["2026-10-24", 0.06, 1, 3.0, ["top", "over", "alt", "chaos", "dials"]],
+            ["2026-10-24", 0.06, 1, 3.0, ["strong", "over", "alt", "chaos", "dials"]],  # a saved "top" counts as Strong
             ["2026-10-24", 0.06, 0, -1.0, ["strong", "under", "main", "proof"]],
         ])
         self.assertEqual(sim.ledger(record, logs, "threes"), [])
@@ -297,14 +293,14 @@ class Build(unittest.TestCase):
                 before = build_nba.compute_sim(2027, inp, None, odds(300), games, {}, {}, datetime(2026, 10, 20, 15, 0))
                 saved = json.loads((Path(tmp) / "sim_2027.json").read_text())
                 self.assertEqual(saved["77"]["points"][0][:4], ["1", "o", 9.5, 300])
-                self.assertEqual(before["sim_plays"]["points"][0]["tier"], "top")
+                self.assertEqual(before["sim_plays"]["points"][0]["tier"], "strong")
                 self.assertIn("77", before["sim"])
                 self.assertEqual(set(before["sim"]["77"]["scripts"]), {"away", "close", "home"})
                 after = build_nba.compute_sim(2027, inp, None, odds(-300), games, {}, {}, datetime(2026, 10, 20, 23, 30))
                 self.assertEqual(json.loads((Path(tmp) / "sim_2027.json").read_text()), saved)  # never rewritten after tip
                 locked = after["sim_plays"]["points"][0]
                 self.assertTrue(locked["locked"])
-                self.assertEqual((locked["price"], locked["tier"]), (300, "top"))
+                self.assertEqual((locked["price"], locked["tier"]), (300, "strong"))
             finally:
                 build_nba.PROPS_RECORD_DIR = real
 

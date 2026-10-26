@@ -943,7 +943,7 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
                 if g["game_id"] not in started:
                     props_now = (book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}
                     cands += sim.game_candidates(g["game_id"], g, sims[g["game_id"]], props_now, played, market)
-            picked = sim.pick_plays(cands, locked)
+            picked = sim.pick_plays(cands)
             plays[market] += locked + picked
             for g in tonight:
                 if g["game_id"] in started:
@@ -998,8 +998,17 @@ def past_plays(record: dict, logs: dict, market: str, today: str, block: dict | 
             log = rows.get((str(gid), pid))
             out.append({**p, "pid": pid, "game": str(gid), "date": g["date"], "stat": market,
                         "team": (players.get(pid) or {}).get("team"), "opp": log[f["opp"]] if log else None,
-                        "home": bool(log[f["home"]]) if log else None, "got": got, "result": result, "locked": True})
-    return sorted(out, key=lambda p: (p["date"], p["tier"] != "top", -p["edge"]))
+                        "home": bool(log[f["home"]]) if log else None, "got": got, "result": result, "locked": True,
+                        "tier": "strong"})  # a 10-24 / 10-25 Top Play too (the owner, 2026-10-26: "just call everything STRONG")
+    return sorted(out, key=lambda p: (p["date"], -p["edge"]))
+
+
+def ungraded(sim_past: dict | None, today: str) -> int:
+    """version.json nba.watch.ungraded: plays from the last two nights still
+    waiting on the box score (older ones never press the timer again: a game
+    the box scores never get can't keep a refresh running every hour)."""
+    since = (datetime.strptime(today, "%Y-%m-%d") - timedelta(days=2)).strftime("%Y-%m-%d")
+    return sum(1 for plays in (sim_past or {}).values() for p in plays if p.get("result") is None and p.get("date", "") >= since)
 
 
 def locked_play(p: dict, g: dict, market: str, sim_game: dict) -> dict:
@@ -1138,6 +1147,7 @@ def main():
     lap("identity")
     # Player props (props.json, its own file: every player's game log is too
     # big for data.json). A failure leaves the file out; the pages say so.
+    blob_props = {}
     try:
         blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, injury_list, now_utc,
                                    (blob.get("first_basket") or {}).get("lineups"))
@@ -1164,6 +1174,10 @@ def main():
     # the NBA report the sims read: the watch presses a refresh for a newer one, whose first step
     # (nba_report.py --changed) compares tonight's rows with `rep`
     blob["watch"].update(rep=nba_report.digest(report), rep_at=nba_report.slot_utc(report_url))
+    # last night's plays still waiting on a box score: the box scores land about 7:35 am Eastern and
+    # nothing else rebuilt the NBA until the injury news started (10-25's plays sat ungraded all
+    # morning, 2026-10-26), so the timer presses a refresh while this is above 0
+    blob["watch"]["ungraded"] = ungraded((blob_props or {}).get("sim_past"), today)
     blob["timing"] = timing
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:

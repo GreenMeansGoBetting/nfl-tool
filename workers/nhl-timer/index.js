@@ -17,7 +17,7 @@
 import { githubClient, nbaWatch } from "./watch.js";
 
 const DISPATCH = "https://api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/workflows/nhl-refresh.yml/dispatches";
-export const NBA_WATCH_CRON = "* 0-4,15-23 * 1-6,10-12 *";
+export const NBA_WATCH_CRON = "* 0-4,12-23 * 1-6,10-12 *";
 
 export default {
   async scheduled(controller, env) {

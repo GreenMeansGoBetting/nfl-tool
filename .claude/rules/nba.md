@@ -205,13 +205,17 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   their team, sims rerun"). Every build writes data.json `watch` (version.json `nba.watch`:
   tonight's untipped teams, fingerprints of ESPN's statuses `inj` and the NBA's posted fives `lu`,
   `nfl_tool/nba/watch.py`) and `timing` (seconds per part). The Cloudflare Worker gmg-nhl-timer
-  (`workers/nhl-timer/watch.js`, every minute 11 am to 1 am ET) works out the same fingerprints and
+  (`workers/nhl-timer/watch.js`, every minute 8 am to 1 am ET) works out the same fingerprints and
   on a change presses `.github/workflows/nba-refresh.yml` (members-and-hosting.md). The refresh builds
   with `--fast-odds` (smartstake `fetch_nba_book_odds(fast=True)`, `carry_previous`): only Points /
   Threes main lines fresh, every other market and the ladders from the live build, a player's ladder
   dropped when his main line moved. SmartStake gives 10 pages a minute: the full odds were 216 of the
   build's 275 seconds on 10-25. The two sides
-  must match to the letter (`tests/test_nba_watch.py`). Paid sources were turned down (the owner:
+  must match to the letter (`tests/test_nba_watch.py`). **Grading (2026-10-26):** the box scores land about 7:35 am ET
+  and nothing rebuilt the NBA until the day's injury news (10-25's plays sat ungraded all morning;
+  GitHub's 6-hour cron skipped 06:17 and 12:17). `watch.ungraded` (build_nba.py `ungraded`: the last
+  two nights' plays still waiting on a box score) above 0 makes the watch press nba-refresh.yml with
+  source `grade`, at most once an hour (`GRADE_MINUTES`), from 8 am ET. Paid sources were turned down (the owner:
   "i dont want to pay": X's API for Underdog's posts). **Mark Out** (the owner's, 2026-10-25): a
   button on every Matchup View row (owner only, `.sim-markout`) saves `/api/nba-outs` (D1
   `nba_outs`, middleware) and presses nba-refresh.yml (Pages secret `DISPATCH_TOKEN` = the timer's
@@ -253,7 +257,8 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   +400), against the sim's chance; **every one with `MIN_EDGE` 4+ points is a play, no cap a night or
   a game** (the owner: "Why only 8 plays?! display everything with its edge just like hockey is";
   main lines: "Most users are going to play his under X - x being his main line"); 2+ games this
-  season and 18+ sim minutes. The night's biggest edge = **Top Play**, the rest **Strong**. A rung
+  season and 18+ sim minutes. **Every play is Strong** (no Top Play since 2026-10-26, the owner: "just
+  call everything STRONG"; old "top" rows count as Strong in the ledger and past nights). A rung
   is never the play: the page shows it as the **Ladder** tag. (2026-10-24 to 10-25: the best of every
   rung, one a game, 8 a night; Luka u25.5 +295 was a Top Play that way. Those plays stay in the record,
   tagged alt.) **Script-Proof** (beats its price in every script), **Chaos** (loses in a close
@@ -264,14 +269,14 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   strong, proof / chaos / close, over / under, main / alt, dials.
 - **Past nights** (2026-10-25, the owner: "I have no way to go back and see how anything
   performed"): props.json `sim_past` {market: [play + `got`, `result` won / lost / push / sat /
-  None]} (`past_plays`); the day arrows step back to them and show Results (record, units, Top Play,
+  None]} (`past_plays`); the day arrows step back to them and show Results (record, units, Hit %,
   each play as locked at tip in the list with Hit / Miss, what he got, units). The page opens on tonight's slate.
 - **The pages** (`site/nba/points.html` / `threes.html` + `points.js` / `threes.js` = `SIM_PAGE`
   config, on the shared `sim-board.js` + `sim.css`; Points / Threes tabs). **Rebuilt 2026-10-25** (the
   owner: the play cards and charts "feel busy to be thrown at a user immediately ... it goes against
   what i've built so far and the effort to be consistent across pages"; "brainless for people who
   want brainless, but deep for people who want deep"): the **Beta banner** back (suite.css
-  `.pts-testing`, the caution line, the how-it-works behind its i; record tiles Yesterday / Top Plays /
+  `.pts-testing`, the caution line, the how-it-works behind its i; record tiles Yesterday / Last 7 Days /
   Season in units + YTD Model Performance, the shared YTD tracker with the split tags on its right),
   then **Player View | Matchup View** (a display pref per device, `nfl-tool.nba-sim-view`), the day
   arrows and game cards ("n Plays").
@@ -281,7 +286,7 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
     = every game). Columns (the owner, same day: "Make it go PLAY, RATING, FAIR, EDGE, and then install
     the old hit rates tab"; Median / Hit % / Min dropped, "cramped"): #, Player (playerClick, logos),
     Play chip "o31.5 -110 FD" (green over, red under; best price on the member's books) + save box
-    (nba-card.js `nbaCardSaveBox`), Rating (Top Play / Strong), Fair, Edge, then **Hit Rate - Based On
+    (nba-card.js `nbaCardSaveBox`), Rating (Strong), Fair, Edge, then **Hit Rate - Based On
     PTS / 3PM** (L5, L10, Season, Home, Away: his games OVER tonight's line whichever side the play is,
     "x of y", colored red 20% to green 80% with `scaleHsla`), **Tags** (takes the spare width; every
     other column is its contents + 11px a side, centered; the hit rates one width, 62px; the header reads

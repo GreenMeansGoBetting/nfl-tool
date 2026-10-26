@@ -2,11 +2,11 @@
 shared sim-board.js, 2026-10-24; Player View / Matchup View 2026-10-25) on
 hand-made data.
 
-What is pinned: the Beta banner with the record tiles (Yesterday / Top Plays /
+What is pinned: the Beta banner with the record tiles (Yesterday / Last 7 Days /
 Season, units) and the Model Performance popup's splits; Player View, the NHL
 pages' list (the owner, 2026-10-25): opens on the plays only, each at his main
 line ("o19.5") with the best price across the member's books and its book,
-Top Play, Fair, Edge, the hit rates (L5 / L10 / Season / Home / Away over
+Strong (every play since 2026-10-26), Fair, Edge, the hit rates (L5 / L10 / Season / Home / Away over
 tonight's line, "x of y") and the tags (the Ladder: a rung on the same side
 with more edge, "30+ +300 +11.0"; Script-Proof; whose dial); Every Player adds the rest under
 their own heading; a click opens The Model (Hit In x of 10,000, what the
@@ -141,7 +141,8 @@ class Plays(unittest.TestCase):
         row = rows()[0]
         self.assertIn("Player One", row)
         self.assertIn("o19.5 -150 FD", row)  # FanDuel's -150 beats DraftKings' -160
-        self.assertIn("TOP PLAY", row.upper())
+        self.assertIn("STRONG", row.upper())
+        self.assertNotIn("TOP PLAY", row.upper())  # the owner, 2026-10-26: "just call everything STRONG"
         self.assertIn("-194", row)  # 66% with no cut
         self.assertIn("+6.0", row)
         heads = text("#sim-list thead tr:last-child th")
@@ -163,7 +164,7 @@ class Plays(unittest.TestCase):
             self.assertEqual(len(rows()), 2)
             self.assertIn("Player Two", rows()[1])
             self.assertIn("NOT PLAYS", PAGE.inner_text("#sim-list tr.sim-group").upper())
-            self.assertNotIn("TOP PLAY", rows()[1].upper())
+            self.assertNotIn("STRONG", rows()[1].upper())
         finally:
             PAGE.click("[data-list-every='false']")
         self.assertEqual(len(rows()), 1)
@@ -251,12 +252,13 @@ class Record(unittest.TestCase):
     def test_tiles_and_the_popup(self):
         tiles = text("#sim-record > div")
         self.assertTrue(tiles[0].endswith("1-0 +3.0u"), tiles)  # yesterday
-        self.assertTrue(tiles[1].endswith("1-0 +3.0u"), tiles)  # Top Plays
+        self.assertIn("LAST 7 DAYS", tiles[1].upper())
         self.assertTrue(tiles[2].endswith("1-1 +2.0u"), tiles)  # season
         PAGE.click("#sim-ytd")
         PAGE.wait_for_selector("#sim-ytd-modal:not([hidden]) .ytd-box, #sim-ytd-modal:not([hidden]) .sim-ytd-tracker")
         body = PAGE.inner_text("#sim-ytd-modal").upper()
-        for split in ("TOP PLAY", "STRONG PLAYS", "SCRIPT-PROOF", "CHAOS PLAYS", "NEEDS A CLOSE GAME", "LADDER RUNGS", "SPOT DIALS"):
+        self.assertNotIn("TOP PLAY", body)
+        for split in ("SCRIPT-PROOF", "CHAOS PLAYS", "NEEDS A CLOSE GAME", "LADDER RUNGS", "SPOT DIALS"):
             self.assertIn(split, body)
         PAGE.evaluate("() => { document.getElementById('sim-ytd-modal').hidden = true; }")
 
@@ -357,7 +359,8 @@ class PastNight(unittest.TestCase):
             night = text(".sim-night")[0].upper()
             self.assertIn("1-1", night)
             self.assertIn("+0.50U", night)  # +1.50 at +150, -1 at -110
-            self.assertIn("TOP PLAY HIT", night)
+            self.assertIn("HIT % 50%", night)
+            self.assertNotIn("TOP PLAY", night)
             past = [r.upper() for r in rows()]
             self.assertEqual(len(past), 2)
             self.assertIn("HIT 31", past[0])
