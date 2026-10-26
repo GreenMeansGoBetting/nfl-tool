@@ -1832,42 +1832,42 @@
    },
    {
     "id": "4065648",
-    "lead": 0.1002,
+    "lead": 0.1003,
     "name": "Jayson Tatum",
     "proj": 42.6,
     "team": "BOS"
    },
    {
     "id": "3136193",
-    "lead": 0.0877,
+    "lead": 0.0878,
     "name": "Devin Booker",
     "proj": 42.1,
     "team": "PHX"
    },
    {
     "id": "3112335",
-    "lead": 0.0835,
+    "lead": 0.0837,
     "name": "Nikola Jokic",
     "proj": 41.5,
     "team": "DEN"
    },
    {
     "id": "4701230",
-    "lead": 0.0734,
+    "lead": 0.0735,
     "name": "Jalen Johnson",
     "proj": 41.4,
     "team": "ATL"
    },
    {
     "id": "3032977",
-    "lead": 0.0638,
+    "lead": 0.0628,
     "name": "Giannis Antetokounmpo",
-    "proj": 40.2,
+    "proj": 40.1,
     "team": "MIA"
    },
    {
     "id": "4871144",
-    "lead": 0.0456,
+    "lead": 0.0457,
     "name": "Alperen Sengun",
     "proj": 39.0,
     "team": "HOU"
@@ -1881,14 +1881,14 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0325,
+    "lead": 0.0326,
     "name": "Jamal Murray",
     "proj": 36.9,
     "team": "DEN"
    },
    {
     "id": "4251",
-    "lead": 0.0315,
+    "lead": 0.0316,
     "name": "Paul George",
     "proj": 37.3,
     "team": "BOS"
@@ -1993,7 +1993,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0063,
+    "lead": 0.0064,
     "name": "Yaxel Lendeborg",
     "proj": 31.2,
     "team": "GS"
@@ -2170,7 +2170,7 @@
     "id": "4066261",
     "lead": 0.0,
     "name": "Bam Adebayo",
-    "proj": 24.1,
+    "proj": 24.0,
     "team": "MIA"
    },
    {
