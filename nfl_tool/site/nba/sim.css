@@ -9,7 +9,7 @@
 .sim-tabs a.on { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
 
 .sim-kicker { font: 800 0.66rem var(--font-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-.sim-rec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.sim-rec { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .sim-rec > div { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; text-align: center; padding: 6px 4px; }
 .sim-rec small { display: block; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .sim-rec b { font: 800 1.15rem var(--font-display); }

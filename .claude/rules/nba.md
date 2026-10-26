@@ -276,7 +276,7 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   owner: the play cards and charts "feel busy to be thrown at a user immediately ... it goes against
   what i've built so far and the effort to be consistent across pages"; "brainless for people who
   want brainless, but deep for people who want deep"): the **Beta banner** back (suite.css
-  `.pts-testing`, the caution line, the how-it-works behind its i; record tiles Yesterday / Last 7 Days /
+  `.pts-testing`, the caution line, the how-it-works behind its i; record tiles Yesterday /
   Season in units + YTD Model Performance, the shared YTD tracker with the split tags on its right),
   then **Player View | Matchup View** (a display pref per device, `nfl-tool.nba-sim-view`), the day
   arrows and game cards ("n Plays").

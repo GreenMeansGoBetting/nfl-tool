@@ -133,7 +133,7 @@ function renderRecord() {
   const all = ledger();
   // (other windows live in the shared YTD popup, ytd.js)
   // (no Top Plays tile since 2026-10-26: every play is Strong)
-  el("sim-record").innerHTML = `${tile("Yesterday", all.filter((r) => r[0] === dayBack(1)))}${tile("Last 7 Days", all.filter((r) => r[0] >= dayBack(7)))}${tile("Season", all)}
+  el("sim-record").innerHTML = `${tile("Yesterday", all.filter((r) => r[0] === dayBack(1)))}${tile("Season", all)}
     <button type="button" class="sim-ytd-btn" id="sim-ytd">${all.length ? "YTD Model Performance" : "Record Starts With Tonight's Plays"}</button>`;
 }
 function renderYtd() {

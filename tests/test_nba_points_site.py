@@ -2,8 +2,8 @@
 shared sim-board.js, 2026-10-24; Player View / Matchup View 2026-10-25) on
 hand-made data.
 
-What is pinned: the Beta banner with the record tiles (Yesterday / Last 7 Days /
-Season, units) and the Model Performance popup's splits; Player View, the NHL
+What is pinned: the Beta banner with the record tiles (Yesterday / Season, units;
+no Top Plays tile since 2026-10-26) and the Model Performance popup's splits; Player View, the NHL
 pages' list (the owner, 2026-10-25): opens on the plays only, each at his main
 line ("o19.5") with the best price across the member's books and its book,
 Strong (every play since 2026-10-26), Fair, Edge, the hit rates (L5 / L10 / Season / Home / Away over
@@ -252,8 +252,8 @@ class Record(unittest.TestCase):
     def test_tiles_and_the_popup(self):
         tiles = text("#sim-record > div")
         self.assertTrue(tiles[0].endswith("1-0 +3.0u"), tiles)  # yesterday
-        self.assertIn("LAST 7 DAYS", tiles[1].upper())
-        self.assertTrue(tiles[2].endswith("1-1 +2.0u"), tiles)  # season
+        self.assertTrue(tiles[1].endswith("1-1 +2.0u"), tiles)  # season
+        self.assertEqual(len(tiles), 2, tiles)  # no Top Plays tile
         PAGE.click("#sim-ytd")
         PAGE.wait_for_selector("#sim-ytd-modal:not([hidden]) .ytd-box, #sim-ytd-modal:not([hidden]) .sim-ytd-tracker")
         body = PAGE.inner_text("#sim-ytd-modal").upper()
