@@ -1825,7 +1825,7 @@
   "board": [
    {
     "id": "4065733",
-    "lead": 0.202,
+    "lead": 0.2023,
     "name": "Ty Jerome",
     "proj": 47.5,
     "team": "MEM"
@@ -1839,28 +1839,28 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0866,
+    "lead": 0.0869,
     "name": "Devin Booker",
     "proj": 42.1,
     "team": "PHX"
    },
    {
-    "id": "4701230",
-    "lead": 0.0754,
-    "name": "Jalen Johnson",
-    "proj": 41.5,
-    "team": "ATL"
-   },
-   {
     "id": "3112335",
-    "lead": 0.0752,
+    "lead": 0.0754,
     "name": "Nikola Jokic",
     "proj": 41.5,
     "team": "DEN"
    },
    {
+    "id": "4701230",
+    "lead": 0.0743,
+    "name": "Jalen Johnson",
+    "proj": 41.4,
+    "team": "ATL"
+   },
+   {
     "id": "3032977",
-    "lead": 0.0668,
+    "lead": 0.0669,
     "name": "Giannis Antetokounmpo",
     "proj": 40.1,
     "team": "MIA"
@@ -1888,14 +1888,14 @@
    },
    {
     "id": "3936299",
-    "lead": 0.033,
+    "lead": 0.0331,
     "name": "Jamal Murray",
     "proj": 36.9,
     "team": "DEN"
    },
    {
     "id": "4594268",
-    "lead": 0.0315,
+    "lead": 0.0316,
     "name": "Anthony Edwards",
     "proj": 36.9,
     "team": "MIN"
@@ -1909,7 +1909,7 @@
    },
    {
     "id": "4396993",
-    "lead": 0.0246,
+    "lead": 0.0247,
     "name": "Tyrese Haliburton",
     "proj": 36.0,
     "team": "IND"
@@ -1923,7 +1923,7 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0171,
+    "lead": 0.0172,
     "name": "Keyonte George",
     "proj": 34.7,
     "team": "UTAH"
@@ -1971,18 +1971,18 @@
     "team": "MEM"
    },
    {
+    "id": "5041939",
+    "lead": 0.0084,
+    "name": "Cooper Flagg",
+    "proj": 32.4,
+    "team": "DAL"
+   },
+   {
     "id": "4684740",
     "lead": 0.0084,
     "name": "Amen Thompson",
     "proj": 31.9,
     "team": "HOU"
-   },
-   {
-    "id": "5041939",
-    "lead": 0.0083,
-    "name": "Cooper Flagg",
-    "proj": 32.4,
-    "team": "DAL"
    },
    {
     "id": "4432158",
@@ -2065,7 +2065,7 @@
     "id": "4432816",
     "lead": 0.0008,
     "name": "LaMelo Ball",
-    "proj": 25.0,
+    "proj": 24.9,
     "team": "MIN"
    },
    {
@@ -2091,9 +2091,9 @@
    },
    {
     "id": "4066328",
-    "lead": 0.0006,
+    "lead": 0.0004,
     "name": "Jarrett Allen",
-    "proj": 24.9,
+    "proj": 24.8,
     "team": "CLE"
    },
    {
@@ -2177,7 +2177,7 @@
     "id": "4432639",
     "lead": 0.0,
     "name": "Jabari Smith Jr.",
-    "proj": 23.5,
+    "proj": 23.4,
     "team": "HOU"
    },
    {
