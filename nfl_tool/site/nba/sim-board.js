@@ -695,10 +695,38 @@ function renderPast(date) {
 // ---- the game board ----
 // The game cards: in Player View a card narrows the list to that game (again = every game,
 // the NHL pages' way); in Matchup View it picks the game board's game.
+// One pick for both views and every sim page (the owner, 2026-10-25: switching views or going
+// Points to Threes should "stay on the same game instead of resetting"): a card click in either
+// view picks it for both, and the night + game ride along to the next page for this tab.
+const PICK_KEY = "nfl-tool.nba-sim-pick";
+function pickGame(id) {
+  LIST.game = id;
+  if (id) gameId = id;
+}
+function savePick() {
+  try {
+    sessionStorage.setItem(PICK_KEY, JSON.stringify({ date: days()[dayIndex], game: LIST.game, board: gameId }));
+  } catch (err) {
+    // sessionStorage unavailable -- the next page opens on its own default.
+  }
+}
+function loadPick() {
+  try {
+    const p = JSON.parse(sessionStorage.getItem(PICK_KEY) || "null");
+    const at = p ? days().indexOf(p.date) : -1;
+    if (at < 0) return;
+    dayIndex = at;
+    LIST.game = p.game || "";
+    gameId = p.board || "";
+  } catch (err) {
+    // nothing saved, or sessionStorage unavailable
+  }
+}
 function renderGamePicker() {
   const games = gamesOn(days()[dayIndex]);
   if (!games.some((g) => g.game_id === gameId)) gameId = games.length ? games[0].game_id : "";
   if (!games.some((g) => g.game_id === LIST.game)) LIST.game = "";
+  savePick();
   const on = view === "matchup" ? gameId : LIST.game;
   el("matchup-row").innerHTML = games.map((g) => {
     const n = playsOn(g.date).filter((p) => p.game === g.game_id).length;
@@ -902,11 +930,11 @@ document.addEventListener("click", (e) => {
   const card = e.target.closest("#matchup-row [data-game]");
   if (card) {
     if (view === "matchup") {
-      gameId = card.dataset.game;
+      pickGame(card.dataset.game);
       renderGamePicker();
       return renderBoard();
     }
-    LIST.game = LIST.game === card.dataset.game ? "" : card.dataset.game;
+    pickGame(LIST.game === card.dataset.game ? "" : card.dataset.game);
     LIST.open = null;
     renderGamePicker();
     return renderList();
@@ -1000,6 +1028,7 @@ Promise.all([fetch("data.json").then((r) => r.json()), fetch("props.json").then(
     // open on tonight's slate (past nights are a click back)
     const ahead = all.filter((d) => !isPast(d));
     dayIndex = Math.max(0, all.indexOf(ahead.find((d) => d >= today) || ahead[0] || all[all.length - 1]));
+    loadPick(); // the night and game picked on the last sim page, if any
     render();
   })
   .catch((err) => {

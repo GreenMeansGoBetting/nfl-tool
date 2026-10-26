@@ -372,6 +372,28 @@ class PastNight(unittest.TestCase):
         self.assertNotIn("RESULTS", PAGE.inner_text("#sim-list-note").upper())
 
 
+class SameGame(unittest.TestCase):
+    # the owner, 2026-10-25: Player View to Matchup View, or Points to Threes, should "stay on the same game instead of resetting"
+    def test_the_pick_follows_the_view_and_the_page(self):
+        try:
+            PAGE.click("#matchup-row [data-game='901']")  # Player View narrows to it
+            PAGE.click("[data-view='matchup']")
+            self.assertIn("Team CCC", PAGE.inner_text(".sim-gbar"))  # the board opens on it
+            PAGE.click("#matchup-row [data-game='900']")
+            PAGE.click("[data-view='player']")
+            self.assertTrue(PAGE.query_selector("[data-list-game]"))  # back in Player View, still narrowed
+            self.assertIn("selected", PAGE.get_attribute("#matchup-row [data-game='900']", "class"))
+            PAGE.reload()  # the next sim page in the same tab (Threes reads the same pick)
+            PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
+            self.assertIn("selected", PAGE.get_attribute("#matchup-row [data-game='900']", "class"))
+            self.assertTrue(PAGE.query_selector("[data-list-game]"))
+            self.assertEqual(SITE.errors, [])
+        finally:
+            PAGE.evaluate("() => { sessionStorage.clear(); localStorage.removeItem('nfl-tool.nba-sim-view'); }")
+            PAGE.reload()
+            PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
+
+
 class Menu(unittest.TestCase):
     def test_in_the_nba_menu(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nav-menu a')].map((a) => a.getAttribute('href'))")
