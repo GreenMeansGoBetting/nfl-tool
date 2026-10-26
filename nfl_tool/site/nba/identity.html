@@ -48,35 +48,25 @@
 
     <div id="id-game" hidden>
       <div class="section-wrap">
-        <h2 class="section-title">Tonight's Edges <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-edges" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="id-note-edges" hidden><b>Each card is something that favors that team tonight</b>, biggest first, with the proof from both sides under it. <b>Offense Vs Defense</b> cards need the offense's number and the other defense's allowed number to agree (one clearly, a 0.6 league spread from average, and the other not pointing the other way). <b>Opponent Type</b> cards: tonight's opponent is a type this team plays far better or worse against than normal (3+ games). <b>Schedule Spot</b> cards: the same for a spot the team is in tonight. <b>Big Edge</b> = the two sides average a full league spread (or a type / spot gap far past the color line). Ranks are out of the 30 teams this season. The details are in the tables further down.</p>
-        <div id="id-edges" class="nba-two"></div>
+        <h2 class="section-title">The Verdict <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-verdict" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="id-note-verdict" hidden><b>Edges</b> = things that favor a team tonight; every one is a row in The Matchup below, with both sides' numbers. A season edge needs the offense AND the other defense to agree. <b>Expect</b> = what the game should have more or less of (Fits / Takes Away): style, not a winner. <b>How They Play</b> = what each team does far more or less than the league.</p>
+        <div id="id-verdict"></div>
       </div>
       <div class="section-wrap">
-        <h2 class="section-title">The Angles <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-angles" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="id-note-angles" hidden><b>How the game is likely to look, not who wins it.</b> How often a team does something (pace, where it shoots) isn't good or bad on its own. <b>Fits</b> = the offense does it a lot and this defense gives it up a lot, so expect more of it (think overs on that player's props). <b>Takes Away</b> = the offense does it a lot and this defense rarely allows it, so expect less. Ranks are out of the 30 teams this season.</p>
-        <div id="id-angles"></div>
+        <h2 class="section-title">The Matchup <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-board" title="How to read this">i</button><span id="id-view" class="view-toggle iv-view"></span></h2>
+        <p class="section-note info-note" id="id-note-board" hidden>Every table reads the same: <b>road team left, home team right</b>, the stat in the middle. When a team has the ball, its offense sits across from what the other defense allows. <b>Green = good for that team</b>, colored against the league; the small number is its rank of 30 (1 = best; for how-often rows, 1 = most). <b>Edge</b> (with the logo) = both sides point to that team; <b>Fits</b> / <b>Takes Away</b> = how often (pace, shot mix), never good or bad. <b>Key Stats</b> shows only the rows with a call; <b>Every Stat</b> shows them all. <b>Tonight's Types &amp; Spots</b>: how far each team runs from its normal against the types tonight's opponent is and in tonight's schedule spots, beyond what the league does (3+ games to count). Transition = a shot or turnover within 8 seconds of a defensive rebound or a steal.</p>
+        <div id="id-board" class="nba-two"></div>
+        <div id="id-extra" class="nba-two iv-extra"></div>
       </div>
-      <div class="section-wrap">
-        <h2 class="section-title">Matchup Extremes <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-extremes" title="How to read this">i</button></h2>
+      <details class="section-wrap iv-more">
+        <summary class="section-title">Every Type &amp; Spot</summary>
+        <h3 class="id-sub">Matchup Extremes <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-extremes" title="How to read this">i</button></h3>
         <p class="section-note info-note" id="id-note-extremes" hidden><b>What it asks:</b> does this team play differently against a certain <b>type</b> of opponent (fast teams, 3-point teams, a defense that fouls...) than the rest of the league does? <b>Top block = its defense</b> against those offenses (Pts Allowed, 3s Allowed...). <b>Bottom block = its offense</b> against those defenses (Pts Scored, 3s Made...). <b>Every number = how much further from its own normal it ran than the league does</b>, a 100 possessions: <b>+8 Pts Allowed</b> = it gives up 8 more than you'd expect against these teams. <b>Green = good for this team, red = bad</b>; <b>Strength</b> / <b>Weak Spot</b> tags call out the points. <b>Tonight</b> = tonight's opponent is that type, so those rows are the ones that matter for this game. GP = games against that type; under 3 games is faded and never colored (one odd night isn't a pattern). Pace is never good or bad. Hover a number for the real numbers, a type name for its teams.</p>
         <div id="id-extremes" class="nba-two"></div>
-      </div>
-      <div class="section-wrap">
-        <h2 class="section-title">Schedule Spots <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-spots" title="How to read this">i</button></h2>
+        <h3 class="id-sub">Schedule Spots <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-spots" title="How to read this">i</button></h3>
         <p class="section-note info-note" id="id-note-spots" hidden>The same idea for the schedule: how each team does in a spot (back-to-backs, long road trips, altitude...) compared with its own games overall, <b>next to how the whole league moves</b> in that spot. <b>Pts Scored</b> / <b>Pts Allowed</b> a 100 possessions, each = how much further from its own normal it ran in that spot than the league does (green = good for this team, red = bad); pace isn't colored. <b>Tonight</b> = the team is in that spot in this game. GP = games in that spot this season; under 3 is faded and never colored. Rest Edge = 2+ more days off than the opponent; a road trip or home stand counts games in a row away or at home; National TV / NBA Cup = a national broadcast or a Cup game.</p>
         <div id="id-spots" class="nba-two"></div>
-      </div>
-      <div class="section-wrap">
-        <h2 class="section-title">The Teams <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-teams" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="id-note-teams" hidden><b>Offense / Defense tags:</b> up to four things each team does far more or less than the league (a full standard deviation or more), biggest first. <b>4th quarter:</b> how often the team was up or down 15+ in the 4th, and how many of that night's starters were on the floor then on average (low = the coach empties the bench); "Within 5" is the same in close 4th quarters. <b>By quarter:</b> points scored minus allowed per 100 possessions in each quarter, colored against the league.</p>
-        <div id="id-teams" class="nba-two"></div>
-      </div>
-      <div class="section-wrap">
-        <h2 class="section-title">Offense Vs Defense <button type="button" class="info-i" aria-expanded="false" aria-controls="id-note-matchup" title="How to read this">i</button></h2>
-        <p class="section-note info-note" id="id-note-matchup" hidden>Every row reads both sides: what the offense does next to what this defense lets its opponents do. <b>Green = good for that side</b>, colored against the league; hover a number for its league rank. <b>Mismatch</b> / <b>Tough</b> = the two sides are a full standard deviation apart one way or the other; <b>Good vs Good</b> = both clearly good. How OFTEN a team does something (pace, shot shares) isn't good or bad, so it isn't colored: <b>Fits</b> = the offense does it a lot and this defense gives it up a lot; <b>Takes away</b> = the offense does it a lot and this defense rarely allows it. <b>Transition</b> = a shot or turnover within 8 seconds of a defensive rebound or a steal.</p>
-        <div id="id-matchups" class="nba-two"></div>
-      </div>
+      </details>
     </div>
   </div>
 </main>

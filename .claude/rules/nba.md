@@ -123,19 +123,27 @@ these two pages into one page."
   shares) are never colored good or bad**; their tags are **Fits** (offense does it a lot, this
   defense allows it a lot, 0.7 spreads each) and **Takes away** (offense a lot, defense rarely).
   The zone table's tag is the volume tag when there is one, else the make-rate matchup.
-- **Tonight's Edges + The Angles** (2026-10-26, the top of the page; the owner: "revamp the entire
-  identities page in a way where a user can't possibly miss what the page is trying to say. establish
-  the matchup the edges and the angles and make no mistakes"; identity.js `edgesSection` /
-  `anglesSection`). One column a team ("N Edges For WSH", green when it has more), a card an edge,
-  biggest first, each with both sides' numbers, their rank ("3rd Best" / "2nd Worst") and the league
-  average. Edges: season Offense Vs Defense rows (`EDGE_ROWS`, matchupCall's rule: one side 0.6
-  spreads, the other not 0.3 against; half-court skipped when points / possession already called it,
-  transition scoring only for a team that runs, a zone's make rate only where the offense shoots at
-  least the league's share), tonight's colored Matchup Extremes points cells, tonight's colored
-  Schedule Spots. Big Edge = the sides average 1 spread (a type / spot: a 6+ point gap).
-  Angles (never a winner: how-often rows) = Fits / Takes Away (`ANGLE_ROWS`, FREQ_GAP). The tables
-  below are the proof. Test: `test_tonights_edges_follow_the_two_sided_rule` recomputes every call.
-- **Matchup Extremes** (2026-10-26, the first section on the page until the Edges; the owner: "find the black and
+- **The page, rebuilt 2026-10-26 for "a bettor who has 5 minutes"** (the owner, after the Edges
+  version: "still so much to read and sort through. like 6 different sections. no consistency. too
+  wordy"). **Every table reads road team left, stat + call in the middle, home team right** (First
+  Basket's matchup look, `iv-*` in identity.css). Top to bottom:
+  **The Verdict** (`verdictBox`): edge count each side with a team-color bar, each team's edges as
+  one-line chips (biggest first, Big Edge darker), **Expect** chips (Fits = "More BOS 3s", Takes Away
+  = "Fewer DET Rim Shots"), **How They Play** (the identity chips, Title Case).
+  **The Matchup**: "BOS Has The Ball" | "DET Has The Ball" (`M_ROWS`: Scoring, Ball Control, Shot Mix,
+  Shooting; the offense's number across from the other defense's allowed number, each with its rank of
+  30 in small type, green = good for that team; the call in the middle: Edge pill with the logo of the
+  team it favors / Fits / Takes Away). **Key Stats** (default; rows with a call + Pts / Possession and
+  Pace) or **Every Stat** (display pref per device, `nba-tool.id-view.v1`). Under them **Tonight's Types
+  & Spots** (each team's tonight-only Matchup Extremes points and Schedule Spots rows, its own column)
+  and **Game Script** (quarter nets, 4th-quarter blowouts and starters). The full Matchup Extremes /
+  Schedule Spots tables fold into **Every Type & Spot** at the bottom.
+  Edges (`rowCall`): matchupCall's rule (one side 0.6 spreads, the other not 0.3 against); half-court
+  skipped when points / possession already called it, transition scoring only for a team that runs, a
+  zone's make rate only where the offense shoots at least the league's share; Big Edge = the sides
+  average 1 spread (a type / spot: a 6+ point gap). Types / spots count only colored cells (3+ games).
+  Test: `test_edges_follow_the_two_sided_rule` recomputes every call.
+- **Matchup Extremes** (2026-10-26; now feeds The Verdict and Tonight's Types & Spots, full tables folded; the owner: "find the black and
   white of these teams", how a team does against a TYPE of opponent is "our bread and butter",
   relevant every night; UI left to the owner to adjust): `identity.matchup_extremes` (in
   `season_block` as `extremes`). 18 `TYPES` (top / bottom third of the 30 in one identity number:

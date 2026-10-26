@@ -39,29 +39,53 @@
 .ex-table td.ex-thin { opacity: 0.45; }
 .ex-table tr.ex-unseen td { font-size: 0.78rem; color: var(--muted); text-align: left; padding: 6px 8px; white-space: normal; }
 
-/* Tonight's Edges: one column a team, a card an edge, the proof from both sides under it. */
-.ed-col { padding-bottom: 12px; }
-.ed-count { margin: 2px 12px 0; padding: 8px 12px; border-radius: 10px; background: var(--table-head); border: 1px solid var(--border); font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
-.ed-count b { font-size: 1.35rem; margin-right: 4px; color: var(--text); }
-.ed-count.ed-lead { background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); color: var(--good-text); }
-.ed-count.ed-lead b { color: var(--good-text); }
-.ed-card { margin: 0 12px; padding: 9px 12px; border-radius: 10px; background: rgba(var(--good-rgb), 0.08); border: 1px solid rgba(var(--good-rgb), 0.35); border-left: 4px solid rgb(var(--good-rgb)); display: flex; flex-direction: column; gap: 4px; }
-.ed-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ed-kind { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
-.ed-title { font-size: 1.05rem; font-weight: 800; color: var(--text); }
-.ed-proof { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text); }
-.ed-proof .team-logo { flex: none; }
-.ed-league { padding-left: 22px; font-size: 0.75rem; color: var(--muted); }
-/* The Angles: one row a style clash, the two sides side by side. */
-.ed-angles { padding: 6px 0; gap: 0; }
-.ed-angle { display: grid; grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 12px; padding: 7px 14px; border-bottom: 1px solid var(--border); }
-.ed-angle:last-child { border-bottom: 0; }
-.ed-angle .gs-tag { justify-self: start; }
-.ed-angle-side { display: flex; align-items: center; gap: 6px; font-size: 0.92rem; }
-.ed-rank { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+/* The page (2026-10-26): every table reads road | stat + call | home, like
+   First Basket's matchup (fb-matchup); one row height everywhere. */
+.iv-verdict { padding: 12px 14px 14px; gap: 10px; }
+.iv-score { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 1.2fr) minmax(0, 1fr); align-items: center; gap: 14px; }
+.iv-side { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.iv-side.iv-right { flex-direction: row-reverse; text-align: right; }
+.iv-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.iv-num { margin: 0 6px; display: flex; flex-direction: column; align-items: center; line-height: 1; font-family: var(--font-display); font-size: 2.1rem; font-weight: 800; color: var(--muted); }
+.iv-num small { font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.iv-lead .iv-num { color: var(--good-text); }
+.iv-side:not(.iv-right) .iv-num { margin-left: auto; }
+.iv-side.iv-right .iv-num { margin-right: auto; }
+.iv-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--panel-2); }
+.iv-bar i { display: block; height: 100%; }
+.iv-lists { gap: 14px; }
+.iv-list { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+.iv-list:last-child { justify-content: flex-end; }
+.iv-chip { padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: var(--good-text); background: rgba(var(--good-rgb), 0.12); border: 1px solid rgba(var(--good-rgb), 0.45); }
+.iv-chip.iv-big { background: rgba(var(--good-rgb), 0.24); border-color: rgb(var(--good-rgb)); font-weight: 800; }
+.iv-expect { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+.iv-label { margin-right: 4px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.iv-sub { padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.iv-play { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+.iv-play .iv-label { width: 92px; }
+.iv-view { margin-left: auto; }
+.iv-extra { margin-top: 14px; }
+.iv-box { padding-bottom: 8px; }
+.iv-table { width: calc(100% - 20px); margin: 0 10px; border-collapse: separate; border-spacing: 0 2px; }
+.iv-table th { padding: 6px 4px 2px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; white-space: nowrap; }
+.iv-table td { height: 28px; padding: 0 8px; text-align: center; vertical-align: middle; }
+.iv-table td.iv-v { width: 28%; border-radius: 6px; background: var(--panel-2); font-family: var(--font-display); font-size: 0.98rem; font-weight: 800; white-space: nowrap; }
+.iv-table td.iv-v small { margin-left: 5px; font-size: 0.66rem; font-weight: 600; color: var(--muted); }
+.iv-table td.iv-stat { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.iv-table tr.iv-called td.iv-stat { font-weight: 800; }
+.iv-table tr.iv-group td { height: auto; padding: 8px 4px 2px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent, var(--good-text)); border-bottom: 1px solid var(--border); background: none; }
+.iv-table .gs-tag { height: 20px; margin-left: 6px; vertical-align: middle; }
+.iv-edge { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; vertical-align: middle; padding: 1px 7px; border-radius: 999px; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); }
+.iv-edge.iv-big { background: rgba(var(--good-rgb), 0.3); }
+.iv-none { color: var(--muted); font-size: 0.82rem; }
+.iv-more > summary { cursor: pointer; }
+.iv-more[open] > summary { margin-bottom: 8px; }
 
 @media (max-width: 760px) {
-  .ed-angle { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .iv-score { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .iv-bar { grid-column: 1 / -1; order: 3; }
+  .iv-name { font-size: 0.95rem; }
+  .iv-table td.iv-stat { white-space: normal; }
   .id-table { min-width: 0; }
   .id-scroll { overflow-x: auto; }
   .id-chip-label { width: 100%; }

@@ -57,108 +57,215 @@ function fmt(v, kind) {
   return v.toFixed(1);
 }
 
-// Two-sided tags. good / bad rows: the same rule as Game Previews (a full
-// spread apart = Mismatch / Tough; both clearly good = Good vs Good). How-often
-// rows (no good or bad): Fits = the offense does it a lot and this defense
-// gives it up a lot; Takes away = the offense does it a lot and this defense
-// rarely allows it.
+// ---- The page (rebuilt 2026-10-26; the owner: "still so much to read and sort
+// through. like 6 different sections. no consistency. too wordy. Imagine you
+// are a bettor who has 5 minutes"). Every table reads the same way, like First
+// Basket's matchup: road team left, the stat and its call in the middle, home
+// team right. The Verdict on top gathers every call.
+//
+// An EDGE favors one team and always reads both sides: the offense's number and
+// the other defense's allowed number, called with the site's matchup rule (one
+// side EDGE_Z league spreads toward a team, the other not EDGE_CONTRA the other
+// way, like common.js matchupCall); or tonight's opponent is a type this team
+// plays far from normal against (Matchup Extremes' colored points cell,
+// EX_MIN_GP+ games); or a schedule spot the team is in tonight, the same way.
+// How OFTEN a team does something (pace, shot mix) is never good or bad: Fits /
+// Takes Away say what to expect more or less of, never who wins.
 const FREQ_GAP = 0.7;
-function tag(offZ, defZ, often) {
-  if (offZ === null || defZ === null) return "";
-  if (often) {
-    if (offZ >= FREQ_GAP && defZ >= FREQ_GAP) return `<span class="gs-tag gs-tag-mismatch">Fits</span>`;
-    if (offZ >= FREQ_GAP && defZ <= -FREQ_GAP) return `<span class="gs-tag gs-tag-tough">Takes away</span>`;
-    return "";
-  }
-  if (offZ >= 0.4 && defZ >= 0.4) return `<span class="gs-tag gs-tag-strong">Good vs Good</span>`;
-  if (offZ - defZ >= 1) return `<span class="gs-tag gs-tag-mismatch">Mismatch</span>`;
-  if (offZ - defZ <= -1) return `<span class="gs-tag gs-tag-tough">Tough</span>`;
-  return `<span class="nba-notag">Even</span>`;
-}
+const EDGE_Z = 0.6;
+const EDGE_CONTRA = 0.3;
+const EDGE_BIG = 1.0; // the two sides average a full league spread = Big Edge
+const IV_VIEW_KEY = "nba-tool.id-view.v1";
+let ivAll = false; // Every Stat (true) or Key Stats (false): a display pref per device
 
-// key (identity.py, without off_ / def_), label, how it prints, way: +1 the
-// offense wants it high, -1 low, 0 = how often (no good or bad).
-const GROUPS = [
-  ["Pace & Transition", [
-    ["pace", "Possessions / 48", "num", 0],
-    ["poss_secs", "Seconds / possession", "secs", 0],
-    ["trans_freq", "Transition (shot in 8s)", "pct", 0],
-    ["trans_ppp", "Pts / transition poss.", "ppp", 1],
-    ["half_ppp", "Pts / half-court poss.", "ppp", 1],
-  ]],
-  ["Shot Creation", [
-    ["three_rate", "Shots that are 3s", "pct", 0],
-    ["assisted", "Makes assisted", "pct", 0],
-    ["self_made", "Pull-up / step-back / fade", "pct", 0],
-    ["catch", "Catch-and-shoot jumpers", "pct", 0],
-  ]],
-  ["Ball Security & Extras", [
-    ["tov_rate", "Possessions ending in a TO", "pct", -1],
-    ["steal_share", "TOs that are steals", "pct", -1],
-    ["oreb_rate", "Offensive rebound %", "pct", 1],
-    ["fta_rate", "Free throws / shot", "pct", 1],
-  ]],
+// key, label, how it prints, way (+1 the offense wants it high, -1 low, 0 = how
+// often), group, then for good / bad rows the headlines [offense edge, defense
+// edge] and for a zone's make rate the share it needs (the offense takes at
+// least the league's usual share there); for how-often rows what to expect more
+// or less of.
+const M_ROWS = [
+  ["ppp", "Pts / Possession", "ppp", 1, "Scoring", [(o) => `${o} Scores Efficiently`, (o, d) => `${d} Slows ${o} Down`]],
+  ["half_ppp", "Half-Court Pts / Poss", "ppp", 1, "Scoring", [(o) => `${o} Scores In The Half Court`, (o, d) => `${d} Locks Up The Half Court`]],
+  ["trans_ppp", "Transition Pts / Poss", "ppp", 1, "Scoring", [(o) => `${o} Scores In Transition`, (o, d) => `${d} Stops ${o}'s Transition`]],
+  ["pace", "Pace (Poss / 48)", "num", 0, "Scoring", "Pace"],
+  ["poss_secs", "Seconds / Possession", "secs", 0, "Scoring", null],
+  ["trans_freq", "Transition Share", "pct", 0, "Scoring", "Transition"],
+  ["tov_rate", "Turnover Rate", "pct", -1, "Ball Control", [(o) => `${o} Protects The Ball`, (o, d) => `${d} Forces ${o} Turnovers`]],
+  ["steal_share", "TOs That Are Steals", "pct", -1, "Ball Control", [(o) => `${o} Avoids Steals`, (o, d) => `${d} Gets Steals`]],
+  ["oreb_rate", "Offensive Rebound %", "pct", 1, "Ball Control", [(o) => `${o} Wins The Offensive Glass`, (o, d) => `${d} Owns The Defensive Glass`]],
+  ["fta_rate", "Free Throws / Shot", "pct", 1, "Ball Control", [(o) => `${o} Gets To The Line`, (o, d) => `${d} Keeps ${o} Off The Line`]],
+  ["three_rate", "3-Point Share", "pct", 0, "Shot Mix", "3s"],
+  ["rim_share", "Rim Share", "pct", 0, "Shot Mix", "Rim Shots"],
+  ["short_share", "Paint Share", "pct", 0, "Shot Mix", "Paint Shots"],
+  ["mid_share", "Mid-Range Share", "pct", 0, "Shot Mix", "Mid-Range"],
+  ["corner3_share", "Corner 3 Share", "pct", 0, "Shot Mix", "Corner 3s"],
+  ["above3_share", "Above-Break 3 Share", "pct", 0, "Shot Mix", "Above-Break 3s"],
+  ["self_made", "Pull-Up / Step-Back", "pct", 0, "Shot Mix", "Pull-Ups"],
+  ["catch", "Catch-And-Shoot", "pct", 0, "Shot Mix", "Catch-And-Shoot"],
+  ["assisted", "Makes Assisted", "pct", 0, "Shot Mix", "Ball Movement"],
+  ["rim_pct", "FG% At The Rim", "pct", 1, "Shooting", [(o) => `${o} Finishes At The Rim`, (o, d) => `${d} Protects The Rim`], "rim_share"],
+  ["short_pct", "FG% In The Paint", "pct", 1, "Shooting", [(o) => `${o} Scores In The Paint`, (o, d) => `${d} Defends The Paint`], "short_share"],
+  ["mid_pct", "Mid-Range FG%", "pct", 1, "Shooting", [(o) => `${o} Hits Mid-Range Shots`, (o, d) => `${d} Defends The Mid-Range`], "mid_share"],
+  ["corner3_pct", "Corner 3 FG%", "pct", 1, "Shooting", [(o) => `${o} Hits Corner 3s`, (o, d) => `${d} Defends Corner 3s`], "corner3_share"],
+  ["above3_pct", "Above-Break 3 FG%", "pct", 1, "Shooting", [(o) => `${o} Hits Above-Break 3s`, (o, d) => `${d} Defends Above-Break 3s`], "above3_share"],
 ];
-const ZONES = [["rim", "Rim (0-4 ft)"], ["short", "Paint (5-9 ft)"], ["mid", "Mid-range"], ["corner3", "Corner 3"], ["above3", "Above-break 3"]];
+const M_GROUPS = ["Scoring", "Ball Control", "Shot Mix", "Shooting"];
+const M_ALWAYS = ["ppp", "pace"]; // shown in Key Stats even with no call
 
-function matchupRow(off, de, key, label, kind, way) {
-  const o = stats(off)[`off_${key}`];
-  const d = stats(de)[`def_${key}`];
+// The call on one row with `off` on offense: null, or {kind: edge / fits /
+// takes, team, size, text}. `called` carries this direction's earlier edges.
+function rowCall(off, de, r, called) {
+  const [key, , , way, , words, shareKey] = r;
   const oz = z(off, `off_${key}`);
   const dz = z(de, `def_${key}`);
+  if (oz === null || dz === null) return null;
   if (way === 0) {
-    const oTitle = `${ordinal(rank(off, `off_${key}`, true) || 0)} most in the league`;
-    const dTitle = `${ordinal(rank(de, `def_${key}`, true) || 0)} most allowed`;
-    return `<tr><td>${label}</td><td class="num id-plain" title="${oTitle}">${fmt(o, kind)}</td><td class="num id-plain" title="${dTitle}">${fmt(d, kind)}</td><td class="nba-tag-cell">${tag(oz, dz, true)}</td></tr>`;
+    if (!words || oz < FREQ_GAP) return null;
+    if (dz >= FREQ_GAP) return { kind: "fits", size: oz + dz, text: key === "pace" ? "Fast Pace" : `More ${off} ${words}` };
+    if (dz <= -FREQ_GAP) return { kind: "takes", size: oz - dz, text: key === "pace" ? `${de} Slows The Pace` : `Fewer ${off} ${words}` };
+    return null;
   }
-  // positive = good for the offense / bad for this defense
-  const ozz = oz === null ? null : oz * way;
-  const dzz = dz === null ? null : dz * way;
-  const oTitle = `${ordinal(rank(off, `off_${key}`, way > 0) || 0)} in the league`;
-  const dTitle = `${ordinal(rank(de, `def_${key}`, way < 0) || 0)} in the league`;
-  return `<tr><td>${label}</td><td class="num ${tierClass(ozz)}" title="${oTitle}">${fmt(o, kind)}</td><td class="num ${tierClass(dzz === null ? null : -dzz)}" title="${dTitle}">${fmt(d, kind)}</td><td class="nba-tag-cell">${tag(ozz, dzz === null ? null : -dzz, false)}</td></tr>`;
+  if (shareKey && (z(off, `off_${shareKey}`) ?? -1) < 0) return null; // a zone it rarely shoots from
+  const a = oz * way; // + = good for the offense
+  const b = dz * way; // + = this defense allows a lot (good for the offense)
+  const hi = Math.max(a, b);
+  const lo = Math.min(a, b);
+  const dir = hi >= EDGE_Z && lo > -EDGE_CONTRA ? 1 : lo <= -EDGE_Z && hi < EDGE_CONTRA ? -1 : 0;
+  if (!dir) return null;
+  if (key === "half_ppp" && called.ppp === dir) return null; // half-court is most of all scoring
+  if (key === "trans_ppp" && dir === 1 && (z(off, "off_trans_freq") ?? -1) < 0) return null; // only helps a team that runs
+  called[key] = dir;
+  return { kind: "edge", team: dir > 0 ? off : de, size: Math.abs(a + b) / 2, text: dir > 0 ? words[0](off, de) : words[1](off, de) };
 }
 
-function matchupBox(off, de) {
-  if (!stats(off) || !stats(de)) return `<div class="nba-box"><div class="nba-box-title">${logo(off, 20)} ${off} offense <span class="at">vs</span> ${logo(de, 20)} ${de} defense</div><p class="no-data-note">No games on file.</p></div>`;
-  const rows = [matchupRow(off, de, "ppp", "<b>Points / possession</b>", "ppp", 1)];
-  for (const [title, items] of GROUPS) {
-    rows.push(`<tr class="id-group"><td colspan="4">${title}</td></tr>`);
-    for (const item of items) rows.push(matchupRow(off, de, ...item));
+const pill = (c) => !c ? "" : c.kind === "edge"
+  ? `<span class="iv-edge${c.size >= EDGE_BIG ? " iv-big" : ""}">${logo(c.team, 14)}${c.size >= EDGE_BIG ? "Big Edge" : "Edge"}</span>`
+  : `<span class="gs-tag ${c.kind === "fits" ? "gs-tag-strong" : "gs-tag-weak"}">${c.kind === "fits" ? "Fits" : "Takes Away"}</span>`;
+// One value cell: the number, a small rank (1 = best; how-often rows: 1 = most) and its hover.
+function valCell(abbr, key, kind, cls, bestHigh, what) {
+  const v = (stats(abbr) || {})[key];
+  const r = rank(abbr, key, bestHigh);
+  const words = what === "often" ? rankWords(abbr, key, bestHigh, ["Most", "Fewest"]) : rankWords(abbr, key, bestHigh);
+  return `<td class="iv-v ${cls}" title="${words} of the 30">${fmt(v, kind)}${r ? `<small>${ordinal(r)}</small>` : ""}</td>`;
+}
+// "3rd Best" / "2nd Worst" among the teams with the number.
+function rankWords(abbr, key, bestHigh, words = ["Best", "Worst"]) {
+  const n = rank(abbr, key, bestHigh);
+  const of = Object.values(block().teams).filter((s) => s[key] !== null && s[key] !== undefined).length;
+  if (!n) return "";
+  if (n === 1) return words[0];
+  if (n === of) return words[1];
+  return n <= of / 2 ? `${ordinal(n)} ${words[0]}` : `${ordinal(of + 1 - n)} ${words[1]}`;
+}
+
+// Every row of one direction ({group, html, call, key}) with `off` on offense.
+function directionRows(g, off, de) {
+  const called = {};
+  const rows = [];
+  if (!stats(off) || !stats(de)) return rows;
+  for (const r of M_ROWS) {
+    const [key, label, kind, way, group] = r;
+    const call = rowCall(off, de, r, called);
+    const oz = z(off, `off_${key}`);
+    const dz = z(de, `def_${key}`);
+    const oCls = way === 0 || oz === null ? "id-plain" : tierClass(oz * way);
+    const dCls = way === 0 || dz === null ? "id-plain" : tierClass(-dz * way);
+    const oCell = valCell(off, `off_${key}`, kind, oCls, way === 0 ? true : way > 0, way === 0 ? "often" : "");
+    const dCell = valCell(de, `def_${key}`, kind, dCls, way === 0 ? true : way < 0, way === 0 ? "often" : "");
+    const [left, right] = off === g.away ? [oCell, dCell] : [dCell, oCell];
+    rows.push({ key, group, call, html: `<tr${call ? ' class="iv-called"' : ""}>${left}<td class="iv-stat">${label}${pill(call)}</td>${right}</tr>` });
   }
-  const bar = (v) => `<span class="id-bar"><i style="width:${Math.min((v || 0) / 0.45, 1) * 100}%"></i></span>`;
-  const zoneRows = ZONES.map(([k, label]) => {
-    const share = stats(off)[`off_${k}_share`];
-    const allowed = stats(de)[`def_${k}_share`];
-    const made = stats(off)[`off_${k}_pct`];
-    const madeAllowed = stats(de)[`def_${k}_pct`];
-    const sz = z(off, `off_${k}_share`);
-    const az = z(de, `def_${k}_share`);
-    const mz = z(off, `off_${k}_pct`);
-    const maz = z(de, `def_${k}_pct`);
-    // a volume tag (Fits / Takes away) when the offense lives there, else the make-rate matchup
-    const t = tag(sz, az, true) || tag(mz, maz === null ? null : -maz, false);
-    return `<tr><td>${label}</td><td class="num id-plain" title="${ordinal(rank(off, `off_${k}_share`, true) || 0)} most">${bar(share)}${fmt(share, "pct")}</td><td class="num id-plain" title="${ordinal(rank(de, `def_${k}_share`, true) || 0)} most allowed">${bar(allowed)}${fmt(allowed, "pct")}</td><td class="num ${tierClass(mz)}">${fmt(made, "pct")}</td><td class="num ${tierClass(maz === null ? null : -maz)}">${fmt(madeAllowed, "pct")}</td><td class="nba-tag-cell">${t}</td></tr>`;
+  return rows;
+}
+function directionBox(g, off, de, rows) {
+  const head = (t) => (t === off ? `${t} Offense` : `${t} Defense Allows`);
+  const body = M_GROUPS.map((grp) => {
+    const shown = rows.filter((r) => r.group === grp && (ivAll || r.call || M_ALWAYS.includes(r.key)));
+    return shown.length ? `<tr class="iv-group"><td colspan="3">${grp}</td></tr>${shown.map((r) => r.html).join("")}` : "";
   }).join("");
-  return `<div class="nba-box">
-      <div class="nba-box-title">${logo(off, 20)} ${off} offense <span class="at">vs</span> ${logo(de, 20)} ${de} defense</div>
-      <div class="id-scroll"><table class="data-table nba-matchup-table id-table id-main"><thead><tr><th></th><th>${off} does</th><th>${de} allows</th><th></th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
-      <div class="id-sub">Where the shots come from</div>
-      <div class="id-scroll"><table class="data-table nba-matchup-table id-table id-zones"><thead><tr><th></th><th>${off} shots</th><th>${de} allows</th><th>${off} FG%</th><th>${de} allows FG%</th><th></th></tr></thead><tbody>${zoneRows}</tbody></table></div>
-    </div>`;
+  return `<div class="nba-box iv-box"><div class="team-banner" style="background:rgba(${teamRgb(off)},0.22);border-left:4px solid rgb(${teamRgb(off)})">${logo(off, 22)}<span class="team-banner-name">${off} Has The Ball</span></div>
+    <table class="iv-table"><thead><tr><th>${head(g.away)}</th><th></th><th>${head(g.home)}</th></tr></thead><tbody>${body || '<tr><td colspan="3" class="no-data-note">No games on file.</td></tr>'}</tbody></table></div>`;
+}
+
+// Tonight's types and spots: each row is one team's own split (the other
+// column stays empty); the call goes to whoever it favors.
+function typeRows(g) {
+  const rows = [];
+  const ex = block().extremes;
+  const spots = block().spots;
+  const cell = (c, n) => (c ? `<td class="iv-v ${c.cls}" title="${c.title}">${c.gap > 0 ? "+" : ""}${c.gap.toFixed(1)}<small>${n} GP</small></td>` : `<td class="iv-v"></td>`);
+  for (const [t, opp] of [[g.away, g.home], [g.home, g.away]]) {
+    const add = (c, n, label, head) => {
+      const call = c && c.far ? { kind: "edge", team: c.good > 0 ? t : opp, size: Math.abs(c.gap) / 6, text: head } : null;
+      const mine = cell(c, n);
+      const [left, right] = t === g.away ? [mine, '<td class="iv-v"></td>'] : ['<td class="iv-v"></td>', mine];
+      rows.push({ call, html: `<tr${call ? ' class="iv-called"' : ""}>${left}<td class="iv-stat">${label}${pill(call)}</td>${right}</tr>` });
+    };
+    if (ex && ex.teams[t]) {
+      for (const type of ex.types.filter((x) => x.teams.includes(opp))) {
+        const n = (ex.teams[t][type.key] || {}).n || 0;
+        if (!n) continue;
+        const c = exCell(ex, t, type, EX_OUTCOMES[0]);
+        const d = type.side === "off";
+        const good = c && c.good > 0;
+        add(c, n, `${t} ${d ? "Pts Allowed" : "Pts Scored"} Vs ${type.label}`,
+          d ? (good ? `${t} D Shuts Down ${type.label}` : `${t} D Leaks Vs ${type.label}`) : (good ? `${t} O Thrives Vs ${type.label}` : `${t} O Stalls Vs ${type.label}`));
+      }
+    }
+    if (spots && spots.teams[t]) {
+      const now = ((spots.tonight || {})[g.game_id] || {})[t] || [];
+      for (const type of spots.types.filter((x) => now.includes(x.key))) {
+        const n = (spots.teams[t][type.key] || {}).n || 0;
+        if (!n) continue;
+        for (const o of SPOT_OUTCOMES.slice(0, 2)) {
+          const c = exCell(spots, t, type, o);
+          const good = c && c.good > 0;
+          const pts = o[0] === "pts";
+          add(c, n, `${t} ${pts ? "Pts Scored" : "Pts Allowed"}: ${type.label}`,
+            pts ? (good ? `${t} O Thrives: ${type.label}` : `${t} O Sags: ${type.label}`) : (good ? `${t} D Steps Up: ${type.label}` : `${t} D Sags: ${type.label}`));
+        }
+      }
+    }
+  }
+  return rows;
+}
+function typesBox(g, rows) {
+  const shown = rows.filter((r) => ivAll || r.call);
+  const body = shown.map((r) => r.html).join("") || `<tr><td colspan="3" class="iv-none">${rows.length ? "Nothing Far From Normal Tonight" : "No Games Yet Vs Tonight's Types"}</td></tr>`;
+  return `<div class="nba-box iv-box"><div class="nba-box-title">Tonight's Types &amp; Spots</div>
+    <table class="iv-table"><thead><tr><th>${g.away}</th><th>Vs Normal, League-Adjusted, A 100 Poss</th><th>${g.home}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+// Game script: each team's own numbers side by side (quarters colored vs the league).
+function scriptBox(g) {
+  const sa = stats(g.away);
+  const sh = stats(g.home);
+  if (!sa || !sh) return "";
+  const pct = (v) => (v === null || v === undefined ? "" : `${Math.round(v * 100)}%`);
+  const of5 = (v) => (v === null || v === undefined ? "" : `${v.toFixed(1)} Of 5`);
+  const net = (v) => (v === null || v === undefined ? "" : `${v > 0 ? "+" : ""}${v.toFixed(1)}`);
+  const row = (label, f, key, colored) => `<tr><td class="iv-v ${colored ? tierClass(z(g.away, key)) : "id-plain"}">${f(sa[key])}</td><td class="iv-stat">${label}</td><td class="iv-v ${colored ? tierClass(z(g.home, key)) : "id-plain"}">${f(sh[key])}</td></tr>`;
+  return `<div class="nba-box iv-box"><div class="nba-box-title">Game Script</div>
+    <table class="iv-table"><thead><tr><th>${g.away}</th><th></th><th>${g.home}</th></tr></thead><tbody>
+      <tr class="iv-group"><td colspan="3">Net Pts / 100 By Quarter</td></tr>
+      ${[1, 2, 3, 4].map((q) => row(`Q${q}`, net, `q${q}_net`, true)).join("")}
+      <tr class="iv-group"><td colspan="3">4th Quarter</td></tr>
+      ${row("Games Up 15+", pct, "blowout_up_share")}${row("Games Down 15+", pct, "blowout_down_share")}
+      ${row("Starters On Floor: Up 15+", of5, "blowout_up_starters")}${row("Starters On Floor: Down 15+", of5, "blowout_down_starters")}${row("Starters On Floor: Within 5", of5, "close_starters")}
+    </tbody></table></div>`;
 }
 
 // Identity tags: [key, way, tag when far above the league, tag when far below].
 // way -1 = the key is good when low, so "above" means far better.
 const CHIPS = [
-  ["off_pace", 1, "Fast pace", "Slow pace"], ["off_three_rate", 1, "3-point heavy", "Few 3s"],
-  ["off_rim_share", 1, "Attacks the rim", "Avoids the rim"], ["off_mid_share", 1, "Mid-range team", null],
-  ["off_self_made", 1, "Off the dribble", null], ["off_assisted", 1, "Ball movement", "Low assist rate"],
-  ["off_trans_freq", 1, "Runs in transition", "Walks it up"], ["off_tov_rate", -1, "Protects the ball", "Turnover prone"],
-  ["off_oreb_rate", 1, "Crashes the glass", "Gets back, no crash"], ["off_fta_rate", 1, "Lives at the line", null],
-  ["def_tov_rate", 1, "Forces turnovers", null], ["def_rim_share", -1, "Walls off the rim", "Gives up the rim"],
-  ["def_three_rate", -1, "Runs teams off the line", "Gives up 3s"], ["def_ppp", -1, "Elite defense", "Leaky defense"],
-  ["def_oreb_rate", -1, "Ends possessions", "Gives up 2nd chances"],
+  ["off_pace", 1, "Fast Pace", "Slow Pace"], ["off_three_rate", 1, "3-Point Heavy", "Few 3s"],
+  ["off_rim_share", 1, "Attacks The Rim", "Avoids The Rim"], ["off_mid_share", 1, "Mid-Range Team", null],
+  ["off_self_made", 1, "Off The Dribble", null], ["off_assisted", 1, "Ball Movement", "Low Assist Rate"],
+  ["off_trans_freq", 1, "Runs In Transition", "Walks It Up"], ["off_tov_rate", -1, "Protects The Ball", "Turnover Prone"],
+  ["off_oreb_rate", 1, "Crashes The Glass", "Gets Back, No Crash"], ["off_fta_rate", 1, "Lives At The Line", null],
+  ["def_tov_rate", 1, "Forces Turnovers", null], ["def_rim_share", -1, "Walls Off The Rim", "Gives Up The Rim"],
+  ["def_three_rate", -1, "Runs Teams Off The Line", "Gives Up 3s"], ["def_ppp", -1, "Elite Defense", "Leaky Defense"],
+  ["def_oreb_rate", -1, "Ends Possessions", "Gives Up 2nd Chances"],
 ];
 const CHIP_AT = 1;
 const CHIP_MAX = 4;
@@ -172,197 +279,41 @@ function chips(abbr, side) {
     else if (zv * way <= -CHIP_AT && low) out.push([Math.abs(zv), low]);
   }
   out.sort((a, b) => b[0] - a[0]);
-  return out.slice(0, CHIP_MAX).map(([, t]) => `<span class="id-chip">${t}</span>`).join("") || `<span class="id-none">Nothing far from average</span>`;
+  return out.slice(0, CHIP_MAX).map(([, t]) => `<span class="id-chip">${t}</span>`).join("") || `<span class="id-none">Nothing Far From Average</span>`;
 }
 
-function teamBox(abbr) {
-  const s = stats(abbr);
-  if (!s) return `<div class="nba-box">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
-  const pct = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
-  const of5 = (v) => (v === null || v === undefined ? "--" : `${v.toFixed(1)} of 5`);
-  const quarters = [1, 2, 3, 4].map((q) => {
-    const v = s[`q${q}_net`];
-    return `<td class="num ${tierClass(z(abbr, `q${q}_net`))}">${v === null || v === undefined ? "--" : `${v > 0 ? "+" : ""}${v.toFixed(1)}`}</td>`;
-  }).join("");
-  return `<div class="nba-box">${banner(abbr)}
-      <div class="id-chips"><span class="id-chip-label">Offense</span>${chips(abbr, "off")}</div>
-      <div class="id-chips"><span class="id-chip-label">Defense</span>${chips(abbr, "def")}</div>
-      <table class="data-table id-table id-script"><thead><tr><th>4th quarter</th><th>Games</th><th>Starters on floor</th></tr></thead><tbody>
-        <tr><td>Up 15+</td><td class="num">${pct(s.blowout_up_share)}</td><td class="num">${of5(s.blowout_up_starters)}</td></tr>
-        <tr><td>Down 15+</td><td class="num">${pct(s.blowout_down_share)}</td><td class="num">${of5(s.blowout_down_starters)}</td></tr>
-        <tr><td>Within 5</td><td class="num"></td><td class="num">${of5(s.close_starters)}</td></tr>
-      </tbody></table>
-      <table class="data-table id-table id-quarters"><thead><tr><th>By quarter</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr></thead><tbody><tr><td>Net pts / 100</td>${quarters}</tr></tbody></table>
-    </div>`;
-}
-
-// ---- Tonight's Edges and The Angles (the owner, 2026-10-26: "revamp the
-// entire identities page in a way where a user can't possibly miss what the
-// page is trying to say. establish the matchup the edges and the angles") ----
-// An EDGE favors one team and always reads both sides:
-//   season matchups: the offense's number and the other defense's allowed
-//   number, called with the site's matchup rule (one side clearly pointing one
-//   way, EDGE_Z league spreads, the other not pointing the other way past
-//   EDGE_CONTRA, like common.js matchupCall);
-//   types: tonight's opponent is a type this team plays far from normal against
-//   (Matchup Extremes' colored points cell, EX_MIN_GP+ games);
-//   schedule spots: the same for a spot the team is in tonight.
-// An ANGLE favors no one: how OFTEN a team does something (pace, shot mix) is
-// never good or bad, so Fits / Takes Away describe the game, not a winner.
-const EDGE_Z = 0.6;
-const EDGE_CONTRA = 0.3;
-const EDGE_BIG = 1.0; // the two sides' average this far = Big Edge
-// key, stat name on the proof line, how it prints, way (+1 offense wants it
-// high, -1 low), headline when the offense has the edge, when the defense
-// does, and for a zone's make rate the share it needs (the offense takes at
-// least the league's usual share of its shots there).
-const EDGE_ROWS = [
-  ["ppp", "Pts / Possession", "ppp", 1, (o) => `${o} Should Score Efficiently`, (o, d) => `${d} Should Slow ${o} Down`],
-  ["half_ppp", "Half-Court Pts / Poss", "ppp", 1, (o) => `${o} Scores In The Half Court`, (o, d) => `${d} Locks Up The Half Court`],
-  ["trans_ppp", "Transition Pts / Poss", "ppp", 1, (o) => `${o} Scores In Transition`, (o, d) => `${d} Shuts Down ${o}'s Transition`],
-  ["tov_rate", "Turnover Rate", "pct", -1, (o) => `${o} Takes Care Of The Ball`, (o, d) => `${d} Forces ${o} Turnovers`],
-  ["steal_share", "TOs That Are Steals", "pct", -1, (o) => `${o} Avoids Live-Ball Steals`, (o, d) => `${d} Gets Steals`],
-  ["oreb_rate", "Offensive Rebound %", "pct", 1, (o) => `${o} Wins The Offensive Glass`, (o, d) => `${d} Cleans The Defensive Glass`],
-  ["fta_rate", "Free Throws / Shot", "pct", 1, (o) => `${o} Gets To The Line`, (o, d) => `${d} Keeps ${o} Off The Line`],
-  ["rim_pct", "FG% At The Rim", "pct", 1, (o) => `${o} Finishes At The Rim`, (o, d) => `${d} Protects The Rim`, "rim_share"],
-  ["short_pct", "FG% In The Paint", "pct", 1, (o) => `${o} Scores In The Paint`, (o, d) => `${d} Defends The Paint`, "short_share"],
-  ["mid_pct", "Mid-Range FG%", "pct", 1, (o) => `${o} Hits Mid-Range Shots`, (o, d) => `${d} Defends The Mid-Range`, "mid_share"],
-  ["corner3_pct", "Corner 3 FG%", "pct", 1, (o) => `${o} Hits Corner 3s`, (o, d) => `${d} Defends Corner 3s`, "corner3_share"],
-  ["above3_pct", "Above-Break 3 FG%", "pct", 1, (o) => `${o} Hits Above-Break 3s`, (o, d) => `${d} Defends Above-Break 3s`, "above3_share"],
-];
-// How-often rows for The Angles: key, the offense does it a lot, the defense
-// allows it a lot, the defense rarely allows it.
-const ANGLE_ROWS = [
-  ["pace", "Plays Fast", "Lets Teams Play Fast", "Slows Teams Down"],
-  ["trans_freq", "Runs In Transition", "Gives Up Transition Chances", "Shuts Off Transition"],
-  ["three_rate", "Lives Beyond The Arc", "Gives Up A Lot Of 3s", "Runs Teams Off The Line"],
-  ["rim_share", "Attacks The Rim", "Gives Up The Rim", "Walls Off The Rim"],
-  ["short_share", "Lives In The Paint", "Gives Up Paint Shots", "Takes Away The Paint"],
-  ["mid_share", "Shoots Mid-Range", "Allows Mid-Range Shots", "Takes Away The Mid-Range"],
-  ["corner3_share", "Hunts Corner 3s", "Gives Up Corner 3s", "Takes Away Corner 3s"],
-  ["self_made", "Creates Off The Dribble", "Allows Pull-Ups", "Takes Away Pull-Ups"],
-  ["catch", "Lives On Catch-And-Shoot", "Allows Catch-And-Shoot", "Takes Away Catch-And-Shoot"],
-  ["assisted", "Moves The Ball", "Lets Teams Move The Ball", "Breaks Up Ball Movement"],
-];
-
-// "3rd Best" / "2nd Worst" among the teams with the number (1 = best for that
-// unit); `words` renames the pair (the angles say Most / Fewest).
-function rankWords(abbr, key, bestHigh, words = ["Best", "Worst"]) {
-  const n = rank(abbr, key, bestHigh);
-  const of = Object.values(block().teams).filter((s) => s[key] !== null && s[key] !== undefined).length;
-  if (!n) return "";
-  if (n === 1) return words[0];
-  if (n === of) return words[1];
-  return n <= of / 2 ? `${ordinal(n)} ${words[0]}` : `${ordinal(of + 1 - n)} ${words[1]}`;
-}
-const proofLine = (abbr, text) => `<div class="ed-proof">${logo(abbr, 16)}<span>${text}</span></div>`;
-function edgeCard(headline, proof, size, kind) {
-  const big = size >= EDGE_BIG ? '<span class="gs-tag gs-tag-mismatch">Big Edge</span>' : "";
-  return { size, html: `<div class="ed-card"><div class="ed-head"><span class="ed-kind">${kind}</span>${big}</div><div class="ed-title">${headline}</div>${proof}</div>` };
-}
-
-// Season matchup edges for `off`'s offense against `de`'s defense: {team: [cards]}.
-function seasonEdges(off, de) {
-  const out = { [off]: [], [de]: [] };
-  if (!stats(off) || !stats(de)) return out;
-  const called = {};
-  for (const [key, name, kind, way, offHead, defHead, shareKey] of EDGE_ROWS) {
-    const oz = z(off, `off_${key}`);
-    const dz = z(de, `def_${key}`);
-    if (oz === null || dz === null) continue;
-    if (shareKey && (z(off, `off_${shareKey}`) ?? -1) < 0) continue;
-    const a = oz * way; // + = good for the offense
-    const b = dz * way; // + = this defense allows a lot (good for the offense)
-    const hi = Math.max(a, b);
-    const lo = Math.min(a, b);
-    const dir = hi >= EDGE_Z && lo > -EDGE_CONTRA ? 1 : lo <= -EDGE_Z && hi < EDGE_CONTRA ? -1 : 0;
-    if (!dir) continue;
-    // Half-court scoring is most of all scoring: no second card the same way.
-    if (key === "half_ppp" && called.ppp === dir) continue;
-    // Transition scoring only helps a team that runs.
-    if (key === "trans_ppp" && dir === 1 && (z(off, "off_trans_freq") ?? -1) < 0) continue;
-    called[key] = dir;
-    const o = stats(off)[`off_${key}`];
-    const d = stats(de)[`def_${key}`];
-    const proof = proofLine(off, `${off} Offense: <b>${fmt(o, kind)}</b> ${name} &middot; ${rankWords(off, `off_${key}`, way > 0)}`)
-      + proofLine(de, `${de} Defense Allows: <b>${fmt(d, kind)}</b> &middot; ${rankWords(de, `def_${key}`, way < 0)}`)
-      + `<div class="ed-proof ed-league">League Average: ${fmt((block().league[`off_${key}`] || {}).avg, kind)}</div>`;
-    out[dir > 0 ? off : de].push(edgeCard(dir > 0 ? offHead(off, de) : defHead(off, de), proof, Math.abs(a + b) / 2, `${off} Offense Vs ${de} Defense`));
-  }
-  return out;
-}
-
-// Opponent-type and schedule-spot edges for team `t` (tonight's opponent `opp`).
-// A type / spot card's size: the gap over its color line (6 points a 100).
-function typeEdges(t, opp, g) {
-  const out = { [t]: [], [opp]: [] };
-  const ex = block().extremes;
-  const num = (c) => `<b>${c.gap > 0 ? "+" : ""}${c.gap.toFixed(1)}</b>`;
-  if (ex && ex.teams[t]) {
-    for (const type of ex.types.filter((x) => x.teams.includes(opp))) {
-      const c = exCell(ex, t, type, EX_OUTCOMES[0]);
-      if (!c || !c.far) continue;
-      const good = c.good > 0;
-      const head = type.side === "off"
-        ? (good ? `${t} Defense Shuts Down ${type.label}` : `${t} Defense Leaks Vs ${type.label}`)
-        : (good ? `${t} Offense Thrives Vs ${type.label}` : `${t} Offense Stalls Vs ${type.label}`);
-      const proof = proofLine(opp, `${opp} Is One Of The ${type.label}`)
-        + proofLine(t, `${t} Vs Them: ${num(c)} ${type.side === "off" ? "Pts Allowed" : "Pts Scored"} / 100 Beyond Its Normal (League-Adjusted) &middot; ${ex.teams[t][type.key].n} Games`);
-      out[good ? t : opp].push(edgeCard(head, proof, Math.abs(c.gap) / 6, "Opponent Type"));
-    }
-  }
-  const spots = block().spots;
-  if (spots && spots.teams[t]) {
-    const now = ((spots.tonight || {})[g.game_id] || {})[t] || [];
-    for (const type of spots.types.filter((x) => now.includes(x.key))) {
-      for (const o of SPOT_OUTCOMES.slice(0, 2)) {
-        const c = exCell(spots, t, type, o);
-        if (!c || !c.far) continue;
-        const good = c.good > 0;
-        const head = o[0] === "pts" ? (good ? `${t} Offense Thrives In This Spot` : `${t} Offense Sags In This Spot`) : (good ? `${t} Defense Steps Up In This Spot` : `${t} Defense Sags In This Spot`);
-        const proof = proofLine(t, `${t} Tonight: ${type.label}`)
-          + proofLine(t, `In This Spot: ${num(c)} ${o[0] === "pts" ? "Pts Scored" : "Pts Allowed"} / 100 Beyond Its Normal (League-Adjusted) &middot; ${spots.teams[t][type.key].n} Games`);
-        out[good ? t : opp].push(edgeCard(head, proof, Math.abs(c.gap) / 6, "Schedule Spot"));
-      }
-    }
-  }
-  return out;
-}
-
-function edgesSection(g) {
+// The Verdict: the edge count, each team's edges (biggest first), what to
+// expect, and how each team plays.
+function verdictBox(g, calls) {
   const a = g.away;
   const h = g.home;
-  const all = { [a]: [], [h]: [] };
-  for (const part of [seasonEdges(a, h), seasonEdges(h, a), typeEdges(a, h, g), typeEdges(h, a, g)]) {
-    for (const t of [a, h]) all[t].push(...part[t]);
-  }
-  const col = (t, other) => {
-    const cards = all[t].sort((x, y) => y.size - x.size);
-    const n = cards.length;
-    const lead = n > all[other].length ? " ed-lead" : "";
-    return `<div class="nba-box ed-col">${banner(t)}<div class="ed-count${lead}"><b>${n}</b> Edge${n === 1 ? "" : "s"} For ${t}</div>${cards.map((c) => c.html).join("") || '<p class="no-data-note">No Clear Edges</p>'}</div>`;
-  };
-  return col(a, h) + col(h, a);
+  const edges = (t) => calls.filter((c) => c.kind === "edge" && c.team === t).sort((x, y) => y.size - x.size);
+  const ea = edges(a);
+  const eh = edges(h);
+  const total = ea.length + eh.length;
+  const share = total ? (ea.length / total) * 100 : 50;
+  const list = (es) => es.map((c) => `<span class="iv-chip${c.size >= EDGE_BIG ? " iv-big" : ""}">${c.text}</span>`).join("") || '<span class="id-none">No Clear Edges</span>';
+  const expect = calls.filter((c) => c.kind !== "edge").sort((x, y) => y.size - x.size);
+  const side = (t, es, right) => `<div class="iv-side${right ? " iv-right" : ""}${es.length > (t === a ? eh : ea).length ? " iv-lead" : ""}">${logo(t, 34)}<span class="iv-name">${team(t).name}</span><span class="iv-num">${es.length}<small>Edge${es.length === 1 ? "" : "s"}</small></span></div>`;
+  const play = (t) => `<div class="iv-play"><span class="iv-label">${t} Offense</span>${chips(t, "off")}</div><div class="iv-play"><span class="iv-label">${t} Defense</span>${chips(t, "def")}</div>`;
+  return `<div class="nba-box iv-verdict">
+    <div class="iv-score">${side(a, ea)}<div class="iv-bar"><i style="width:${share}%;background:rgb(${teamRgb(a)})"></i><i style="width:${100 - share}%;background:rgb(${teamRgb(h)})"></i></div>${side(h, eh, true)}</div>
+    <div class="nba-two iv-lists"><div class="iv-list">${list(ea)}</div><div class="iv-list">${list(eh)}</div></div>
+    <div class="iv-expect"><span class="iv-label">Expect</span>${expect.map((c) => `<span class="gs-tag ${c.kind === "fits" ? "gs-tag-strong" : "gs-tag-weak"}">${c.text}</span>`).join("") || '<span class="id-none">No Style Clashes</span>'}</div>
+    <div class="iv-sub">How They Play</div>
+    <div class="nba-two iv-lists"><div>${play(a)}</div><div>${play(h)}</div></div>
+  </div>`;
 }
 
-function anglesSection(g) {
-  const rows = [];
-  for (const [off, de] of [[g.away, g.home], [g.home, g.away]]) {
-    if (!stats(off) || !stats(de)) continue;
-    for (const [key, does, allows, rarely] of ANGLE_ROWS) {
-      const oz = z(off, `off_${key}`);
-      const dz = z(de, `def_${key}`);
-      if (oz === null || dz === null || oz < FREQ_GAP) continue;
-      const fits = dz >= FREQ_GAP;
-      if (!fits && dz > -FREQ_GAP) continue;
-      const words = ["Most", "Fewest"];
-      rows.push({ size: oz + Math.abs(dz), html: `<div class="ed-angle"><span class="gs-tag ${fits ? "gs-tag-strong" : "gs-tag-weak"}">${fits ? "Fits" : "Takes Away"}</span>
-        <span class="ed-angle-side">${logo(off, 18)}<b>${off}</b> ${does} <span class="ed-rank">${rankWords(off, `off_${key}`, true, words)}</span></span>
-        <span class="ed-angle-side">${logo(de, 18)}<b>${de}</b> ${fits ? allows : rarely} <span class="ed-rank">${rankWords(de, `def_${key}`, true, ["Most Allowed", "Fewest Allowed"])}</span></span></div>` });
-    }
-  }
-  rows.sort((x, y) => y.size - x.size);
-  return `<div class="nba-box ed-angles">${rows.map((r) => r.html).join("") || '<p class="no-data-note">No Style Clashes Stand Out In This Game.</p>'}</div>`;
+function renderBoard(g) {
+  const ra = directionRows(g, g.away, g.home);
+  const rh = directionRows(g, g.home, g.away);
+  const rt = typeRows(g);
+  const calls = [...ra, ...rh, ...rt].map((r) => r.call).filter(Boolean);
+  el("id-verdict").innerHTML = verdictBox(g, calls);
+  el("id-view").innerHTML = [["key", "Key Stats"], ["all", "Every Stat"]].map(([k, l]) => `<button type="button" class="view-toggle-btn${(k === "all") === ivAll ? " active" : ""}" data-view="${k}">${l}</button>`).join("");
+  el("id-board").innerHTML = directionBox(g, g.away, g.home, ra) + directionBox(g, g.home, g.away, rh);
+  el("id-extra").innerHTML = typesBox(g, rt) + scriptBox(g);
 }
 
 // ---- Matchup Extremes and Schedule Spots (extremes.js) ----
@@ -442,12 +393,9 @@ function render() {
     return;
   }
   renderHeader(g);
-  el("id-edges").innerHTML = edgesSection(g);
-  el("id-angles").innerHTML = anglesSection(g);
+  renderBoard(g);
   el("id-extremes").innerHTML = extremesBox(g.away, g.home) + extremesBox(g.home, g.away);
   el("id-spots").innerHTML = spotsBox(g.away, g) + spotsBox(g.home, g);
-  el("id-teams").innerHTML = teamBox(g.away) + teamBox(g.home);
-  el("id-matchups").innerHTML = matchupBox(g.away, g.home) + matchupBox(g.home, g.away);
 }
 function selectGame(id) {
   gameId = id;
@@ -471,6 +419,16 @@ document.addEventListener("click", (e) => {
   if (card) return selectGame(card.dataset.game);
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
+  const v = e.target.closest("#id-view [data-view]");
+  if (v) {
+    ivAll = v.dataset.view === "all";
+    try {
+      localStorage.setItem(IV_VIEW_KEY, ivAll ? "all" : "key");
+    } catch (err) {
+      // localStorage unavailable -- the view just won't be remembered.
+    }
+    return render();
+  }
   const s = e.target.closest("#id-seasons [data-season]");
   if (s) {
     setSeason(s.dataset.season, true);
@@ -508,6 +466,7 @@ fetch("data.json")
     if (!season) setSeason(Object.keys(ID.seasons)[0], false);
     let saved = null;
     try {
+      ivAll = localStorage.getItem(IV_VIEW_KEY) === "all";
       saved = localStorage.getItem(ID_GAME_KEY);
     } catch (e) {
       // localStorage unavailable.
