@@ -873,7 +873,7 @@
    "first_price": 117,
    "first_book": "novig",
    "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|first_td|DAL|ryanflournoy": {
    "game": "DAL_PHI",
@@ -897,7 +897,7 @@
    "first_price": 1718,
    "first_book": null,
    "first_seen": "2026-10-25T20:13Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|first_td|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -921,7 +921,7 @@
    "first_price": 641,
    "first_book": null,
    "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|passing_attempts|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -945,7 +945,7 @@
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-26T05:02Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|passing_attempts|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -969,7 +969,7 @@
    "first_price": -111,
    "first_book": "novig",
    "first_seen": "2026-10-25T20:27Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|passing_completions|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -993,7 +993,7 @@
    "first_price": 106,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|passing_yards|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -1017,7 +1017,7 @@
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|receiving_receptions|PHI|dallasgoedert": {
    "game": "DAL_PHI",
@@ -1041,7 +1041,7 @@
    "first_price": 125,
    "first_book": "prophetx",
    "first_seen": "2026-10-24T21:07Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|receiving_receptions|PHI|makailemon": {
    "game": "DAL_PHI",
@@ -1065,7 +1065,7 @@
    "first_price": -161,
    "first_book": "polymarket_us",
    "first_seen": "2026-10-24T21:07Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|receiving_receptions|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -1089,7 +1089,7 @@
    "first_price": 100,
    "first_book": "bet365",
    "first_seen": "2026-10-24T21:07Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|rushing_attempts|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -1113,7 +1113,7 @@
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|rushing_longestRush|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -1137,7 +1137,7 @@
    "first_price": -104,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T11:52Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DAL_PHI|rushing_yards|PHI|dameonpierce": {
    "game": "DAL_PHI",
@@ -1161,7 +1161,7 @@
    "first_price": -112,
    "first_book": "kalshi",
    "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T13:13Z"
+   "last_seen": "2026-10-26T15:31Z"
   },
   "DEN_ARI|anytime_td|ARI|michaelwilson": {
    "game": "DEN_ARI",
