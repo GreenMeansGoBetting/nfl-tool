@@ -2729,9 +2729,9 @@
   "players": {
    "3133603": [
     "Kelly Oubre Jr.",
-    0.101,
+    0.09,
     1000,
-    true,
+    false,
     "fanduel"
    ],
    "3133628": [
@@ -2750,17 +2750,10 @@
    ],
    "3149673": [
     "Pascal Siakam",
-    0.103,
+    0.111,
     460,
     false,
     "fanduel"
-   ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.088,
-    null,
-    false,
-    null
    ],
    "4395725": [
     "Tyler Herro",
@@ -2771,14 +2764,14 @@
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.09,
+    0.096,
     650,
     false,
     "fanduel"
    ],
    "4396993": [
     "Tyrese Haliburton",
-    0.098,
+    0.105,
     750,
     false,
     "fanduel"
@@ -2796,6 +2789,13 @@
     1120,
     false,
     "draftkings"
+   ],
+   "5106060": [
+    "Jarace Walker",
+    0.078,
+    null,
+    false,
+    null
    ]
   },
   "tip_home": 0.5
@@ -3778,14 +3778,14 @@
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.101,
+    0.09,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.103,
+    0.111,
     null,
     false,
     null
@@ -3797,23 +3797,16 @@
     false,
     null
    ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.088,
-    null,
-    false,
-    null
-   ],
    "4396909": [
     "Aaron Nesmith",
-    0.09,
+    0.096,
     null,
     false,
     null
    ],
    "4396993": [
     "Tyrese Haliburton",
-    0.098,
+    0.105,
     null,
     false,
     null
@@ -3821,6 +3814,13 @@
    "4431678": [
     "Tyrese Maxey",
     0.107,
+    null,
+    false,
+    null
+   ],
+   "5106060": [
+    "Jarace Walker",
+    0.078,
     null,
     false,
     null
