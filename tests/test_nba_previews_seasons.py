@@ -164,6 +164,32 @@ class Page(unittest.TestCase):
         finally:
             page.close()
 
+    def test_matchup_extremes_show_only_tonights_types_that_are_far_from_normal(self):
+        # BBB is a fast team and a 3-point team; AAA allows 9 more points a 100 to fast
+        # teams than usual (league +1 = gap +8, red) but nothing much to 3-point teams.
+        # AAA is a fouling defense, and BBB's numbers against fouling defenses are normal.
+        cell = lambda pts: {"n": 2, "pts": [120.0, pts], "pace": [101.0, 2.0], "fg3m": [13.0, 0.0], "fta": [20.0, 0.0], "tov": [14.0, 0.0]}
+        lg = {"pts": 1.0, "pace": 0.5, "fg3m": 0.0, "fta": 0.0, "tov": 0.0}
+        ex = {"types": [{"key": "fast", "label": "Fast Teams", "side": "off", "teams": ["BBB"]},
+                        {"key": "threes", "label": "High 3-Point Volume", "side": "off", "teams": ["BBB"]},
+                        {"key": "foulers", "label": "Defenses That Foul", "side": "def", "teams": ["AAA"]}],
+              "league": {"fast": lg, "threes": lg, "foulers": lg},
+              "teams": {"AAA": {"fast": cell(9.0), "threes": cell(2.0), "foulers": cell(0.0)},
+                        "BBB": {"fast": cell(0.0), "threes": cell(0.0), "foulers": cell(1.0)}}}
+        data = nba_data("2027")
+        data["identity"] = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "teams": {}, "league": {}, "extremes": ex}}}
+        page = self.open(data)
+        try:
+            rows = page.evaluate("""() => [...document.querySelectorAll('#extremes-content .nba-box')].map((b) =>
+                [...b.querySelectorAll('tbody tr:not(.id-group)')].map((r) => [...r.children].map((td) => td.innerText.trim())))""")
+            self.assertEqual(rows[1], [["Fast Teams", "2", "+8.0", "+1.5", "0.0", "0.0", "0.0"]])  # AAA, the home team
+            self.assertEqual(rows[0], [])
+            self.assertIn("Nothing far from normal", page.inner_text("#extremes-content"))
+            self.assertIn("tier-bad", page.evaluate("() => document.querySelectorAll('#extremes-content .nba-box')[1].querySelector('tbody tr:not(.id-group) td:nth-child(3)').className"))
+            self.assertEqual(SITE.errors, [])
+        finally:
+            page.close()
+
     def test_an_old_data_file_shows_its_one_season(self):
         page = self.open(nba_data("2026", legacy=True))
         try:

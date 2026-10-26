@@ -176,6 +176,17 @@ function renderLines(g) {
       </div>${g.lines_locked ? `<p class="section-note">Locked at tip-off.</p>` : ""}`
     : `<p class="no-data-note">No line posted yet.</p>`;
 }
+// Matchup Extremes (extremes.js): only the types tonight's opponent is, where
+// this team has been far from normal against them (the owner, 2026-10-26).
+function renderExtremes(g) {
+  const id = DATA.identity;
+  const ex = id && id.seasons && id.seasons[id.default] && id.seasons[id.default].extremes;
+  const box = (abbr, opp) => {
+    const table = ex ? exTable(ex, abbr, opp, true) : "";
+    return `<div class="nba-box">${banner(abbr)}${table || `<p class="no-data-note">Nothing far from normal against ${opp}'s types yet.</p>`}</div>`;
+  };
+  el("extremes-content").innerHTML = box(g.away, g.home) + box(g.home, g.away);
+}
 function renderTeams(g) {
   const panel = (abbr) => {
     const s = STATS.team_stats[abbr];
@@ -265,7 +276,7 @@ function renderRecent(g) {
 function render() {
   renderSchedule();
   const g = currentGame();
-  const sections = ["lines", "teams", "matchups", "players", "injuries", "recent"];
+  const sections = ["lines", "extremes", "teams", "matchups", "players", "injuries", "recent"];
   el("empty-state").hidden = !!g;
   sections.forEach((s) => (el(`section-${s}`).hidden = !g));
   if (!g) {
@@ -275,6 +286,7 @@ function render() {
   }
   renderHeader(g);
   renderLines(g);
+  renderExtremes(g);
   renderTeams(g);
   renderMatchups(g);
   renderPlayers(g);

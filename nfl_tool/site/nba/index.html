@@ -9,6 +9,7 @@
 <script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="identity.css">
 </head>
 <body class="nba-suite">
 <div class="topbar">
@@ -51,6 +52,12 @@
       <div id="lines-content"></div>
     </div>
 
+    <div id="section-extremes" class="section-wrap" hidden>
+      <h2 class="section-title">Matchup Extremes <button type="button" class="info-i" aria-expanded="false" aria-controls="ex-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="ex-note" hidden>Only the types of team tonight's opponent <b>is</b> (fast, high 3-point volume, a defense that fouls...) where this team has been <b>far from normal</b> against that type, next to how the whole league moves. <b>+12 Pts</b> = this team's games against these opponents ran 12 points a 100 possessions further from its normal than the league's do. <b>Facing Offenses</b> = this team's defense (red = it struggles); <b>Facing Defenses</b> = its offense (green = it thrives). Pace isn't colored. GP = games against that type: early in the season these are small samples. Every type for both teams: Team Identity.</p>
+      <div id="extremes-content" class="nba-two"></div>
+    </div>
+
     <div id="section-teams" class="section-wrap" hidden>
       <h2 class="section-title">The Teams</h2>
       <div id="teams-content" class="nba-two"></div>
@@ -86,6 +93,7 @@
 
 <script src="../sync.js"></script>
 <script src="../book-odds.js"></script>
+<script src="extremes.js"></script>
 <script src="nba.js"></script>
 <script src="shot-chart.js"></script>
 <script src="nba-card.js"></script>
