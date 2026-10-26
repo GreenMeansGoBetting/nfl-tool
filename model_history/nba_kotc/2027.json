@@ -1825,7 +1825,7 @@
   "board": [
    {
     "id": "4065733",
-    "lead": 0.1921,
+    "lead": 0.1924,
     "name": "Ty Jerome",
     "proj": 47.5,
     "team": "MEM"
@@ -1853,14 +1853,14 @@
    },
    {
     "id": "4701230",
-    "lead": 0.073,
+    "lead": 0.0731,
     "name": "Jalen Johnson",
     "proj": 41.5,
     "team": "ATL"
    },
    {
     "id": "3032977",
-    "lead": 0.0628,
+    "lead": 0.063,
     "name": "Giannis Antetokounmpo",
     "proj": 40.1,
     "team": "MIA"
@@ -1909,7 +1909,7 @@
    },
    {
     "id": "4396993",
-    "lead": 0.0206,
+    "lead": 0.0207,
     "name": "Tyrese Haliburton",
     "proj": 36.0,
     "team": "IND"
@@ -1923,9 +1923,9 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0175,
+    "lead": 0.0172,
     "name": "Pascal Siakam",
-    "proj": 34.9,
+    "proj": 34.8,
     "team": "IND"
    },
    {
@@ -1937,15 +1937,8 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0128,
+    "lead": 0.0126,
     "name": "Tyler Herro",
-    "proj": 33.2,
-    "team": "MIL"
-   },
-   {
-    "id": "4432848",
-    "lead": 0.0122,
-    "name": "Jaime Jaquez Jr.",
     "proj": 33.1,
     "team": "MIL"
    },
@@ -1957,8 +1950,15 @@
     "team": "HOU"
    },
    {
+    "id": "4432848",
+    "lead": 0.0116,
+    "name": "Jaime Jaquez Jr.",
+    "proj": 33.0,
+    "team": "MIL"
+   },
+   {
     "id": "6583",
-    "lead": 0.0108,
+    "lead": 0.0109,
     "name": "Anthony Davis",
     "proj": 33.1,
     "team": "WSH"
@@ -2000,14 +2000,14 @@
    },
    {
     "id": "4684740",
-    "lead": 0.006,
+    "lead": 0.0061,
     "name": "Amen Thompson",
     "proj": 31.9,
     "team": "HOU"
    },
    {
     "id": "4396971",
-    "lead": 0.0051,
+    "lead": 0.0052,
     "name": "Naz Reid",
     "proj": 30.2,
     "team": "CHA"
@@ -2044,7 +2044,7 @@
     "id": "4278053",
     "lead": 0.0017,
     "name": "Davion Mitchell",
-    "proj": 27.0,
+    "proj": 27.1,
     "team": "MIA"
    },
    {
@@ -2167,18 +2167,18 @@
     "team": "IND"
    },
    {
+    "id": "4591725",
+    "lead": 0.0002,
+    "name": "Ryan Rollins",
+    "proj": 21.5,
+    "team": "MIL"
+   },
+   {
     "id": "2991230",
     "lead": 0.0002,
     "name": "Fred VanVleet",
     "proj": 20.0,
     "team": "HOU"
-   },
-   {
-    "id": "4591725",
-    "lead": 0.0001,
-    "name": "Ryan Rollins",
-    "proj": 21.6,
-    "team": "MIL"
    },
    {
     "id": "4431671",
