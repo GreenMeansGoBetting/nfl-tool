@@ -2250,58 +2250,58 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3255,
+    "lead": 0.3277,
     "name": "Luka Doncic",
-    "proj": 48.3,
+    "proj": 48.4,
     "team": "LAL"
    },
    {
     "id": "3155942",
-    "lead": 0.1594,
+    "lead": 0.1589,
     "name": "Domantas Sabonis",
     "proj": 42.2,
     "team": "SAC"
    },
    {
     "id": "4065648",
-    "lead": 0.1139,
+    "lead": 0.1135,
     "name": "Jayson Tatum",
     "proj": 40.1,
     "team": "BOS"
    },
    {
     "id": "3064440",
-    "lead": 0.0552,
+    "lead": 0.055,
     "name": "Zach LaVine",
     "proj": 35.9,
     "team": "SAC"
    },
    {
     "id": "4251",
-    "lead": 0.044,
+    "lead": 0.0439,
     "name": "Paul George",
     "proj": 35.0,
     "team": "BOS"
    },
    {
-    "id": "3064514",
-    "lead": 0.0421,
-    "name": "Julius Randle",
-    "proj": 35.4,
-    "team": "BKN"
-   },
-   {
     "id": "4066457",
-    "lead": 0.042,
+    "lead": 0.0419,
     "name": "Austin Reaves",
     "proj": 34.4,
     "team": "LAL"
    },
    {
+    "id": "3064514",
+    "lead": 0.0418,
+    "name": "Julius Randle",
+    "proj": 35.4,
+    "team": "BKN"
+   },
+   {
     "id": "4683021",
-    "lead": 0.0382,
+    "lead": 0.0385,
     "name": "Deni Avdija",
-    "proj": 34.4,
+    "proj": 34.5,
     "team": "POR"
    },
    {
@@ -2313,42 +2313,42 @@
    },
    {
     "id": "3136195",
-    "lead": 0.026,
+    "lead": 0.0258,
     "name": "Karl-Anthony Towns",
     "proj": 33.0,
     "team": "NY"
    },
    {
     "id": "4432166",
-    "lead": 0.0221,
+    "lead": 0.022,
     "name": "Cade Cunningham",
     "proj": 32.4,
     "team": "DET"
    },
    {
     "id": "4066259",
-    "lead": 0.0178,
+    "lead": 0.0176,
     "name": "De'Aaron Fox",
     "proj": 30.9,
     "team": "SA"
    },
    {
     "id": "6606",
-    "lead": 0.0153,
+    "lead": 0.0152,
     "name": "Damian Lillard",
     "proj": 30.6,
     "team": "POR"
    },
    {
     "id": "4845367",
-    "lead": 0.0152,
+    "lead": 0.0151,
     "name": "Stephon Castle",
     "proj": 30.6,
     "team": "SA"
    },
    {
     "id": "5142620",
-    "lead": 0.0131,
+    "lead": 0.0129,
     "name": "Darius Acuff Jr.",
     "proj": 29.6,
     "team": "SAC"
@@ -2362,7 +2362,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0064,
+    "lead": 0.0063,
     "name": "Michael Porter Jr.",
     "proj": 27.4,
     "team": "BKN"
@@ -2476,7 +2476,7 @@
     "id": "3995",
     "lead": 0.0,
     "name": "Jrue Holiday",
-    "proj": 17.3,
+    "proj": 17.4,
     "team": "POR"
    },
    {
