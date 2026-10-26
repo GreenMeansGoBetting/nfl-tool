@@ -1832,42 +1832,42 @@
    },
    {
     "id": "4065648",
-    "lead": 0.1003,
+    "lead": 0.1004,
     "name": "Jayson Tatum",
     "proj": 42.6,
     "team": "BOS"
    },
    {
     "id": "3136193",
-    "lead": 0.0878,
+    "lead": 0.0879,
     "name": "Devin Booker",
     "proj": 42.1,
     "team": "PHX"
    },
    {
     "id": "3112335",
-    "lead": 0.0837,
+    "lead": 0.0838,
     "name": "Nikola Jokic",
     "proj": 41.5,
     "team": "DEN"
    },
    {
     "id": "4701230",
-    "lead": 0.0735,
+    "lead": 0.0738,
     "name": "Jalen Johnson",
     "proj": 41.4,
     "team": "ATL"
    },
    {
     "id": "3032977",
-    "lead": 0.0628,
+    "lead": 0.0629,
     "name": "Giannis Antetokounmpo",
     "proj": 40.1,
     "team": "MIA"
    },
    {
     "id": "4871144",
-    "lead": 0.0457,
+    "lead": 0.0458,
     "name": "Alperen Sengun",
     "proj": 39.0,
     "team": "HOU"
@@ -1888,14 +1888,14 @@
    },
    {
     "id": "4251",
-    "lead": 0.0316,
+    "lead": 0.0317,
     "name": "Paul George",
     "proj": 37.3,
     "team": "BOS"
    },
    {
     "id": "3908809",
-    "lead": 0.0301,
+    "lead": 0.0302,
     "name": "Donovan Mitchell",
     "proj": 36.7,
     "team": "CLE"
@@ -1909,7 +1909,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0286,
+    "lead": 0.0288,
     "name": "Shai Gilgeous-Alexander",
     "proj": 36.2,
     "team": "OKC"
@@ -1930,9 +1930,9 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0164,
+    "lead": 0.0157,
     "name": "Trae Young",
-    "proj": 34.4,
+    "proj": 34.3,
     "team": "WSH"
    },
    {
@@ -1944,9 +1944,9 @@
    },
    {
     "id": "6583",
-    "lead": 0.0118,
+    "lead": 0.0119,
     "name": "Anthony Davis",
-    "proj": 33.1,
+    "proj": 33.0,
     "team": "WSH"
    },
    {
@@ -1958,7 +1958,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0099,
+    "lead": 0.01,
     "name": "Kevin Durant",
     "proj": 33.0,
     "team": "HOU"
@@ -2000,9 +2000,9 @@
    },
    {
     "id": "4396971",
-    "lead": 0.0062,
+    "lead": 0.0057,
     "name": "Naz Reid",
-    "proj": 30.2,
+    "proj": 30.1,
     "team": "CHA"
    },
    {
@@ -2086,7 +2086,7 @@
     "id": "4433287",
     "lead": 0.0005,
     "name": "Brandon Miller",
-    "proj": 25.8,
+    "proj": 25.7,
     "team": "CHA"
    },
    {
@@ -2114,7 +2114,7 @@
     "id": "3032979",
     "lead": 0.0003,
     "name": "Dennis Schroder",
-    "proj": 25.0,
+    "proj": 24.9,
     "team": "CHA"
    },
    {
