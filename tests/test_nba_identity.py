@@ -217,19 +217,22 @@ class Page(unittest.TestCase):
     def test_matchup_extremes(self):
         # BOS vs DET: Detroit is a turnover-prone team (2025-26), so that row has a Tonight
         # tag, tonight's types lead the group; each number = BOS's split minus the league's.
+        # Each group's header row names its columns (Allowed on defense).
         rows = PAGE.evaluate("""() => [...document.querySelectorAll('#id-extremes .nba-box')[0].querySelectorAll('tbody tr')]
             .map((r) => [...r.children].map((td) => td.innerText.trim()))""")
-        self.assertTrue(rows[0][0].upper().startswith("FACING OFFENSES"), rows[0])
-        group = rows[1:next(i for i, r in enumerate(rows) if r[0].upper().startswith("FACING DEFENSES"))]
-        tonight = [r[0].split()[-1].upper() == "TONIGHT" for r in group]
+        self.assertEqual(rows[0][0].upper(), "BOS DEFENSE VS THESE OFFENSES")
+        self.assertEqual(rows[0][2].upper(), "PTS ALLOWED")
+        group = rows[1:next(i for i, r in enumerate(rows) if r[0].upper().startswith("BOS OFFENSE VS"))]
+        group = [r for r in group if len(r) > 1]  # the Not Faced Yet line
+        tonight = ["TONIGHT" in r[0].upper().split() for r in group]
         self.assertEqual(tonight, sorted(tonight, reverse=True))
         sloppy = next(r for r in group if r[0].startswith("Turnover-Prone Teams"))
-        self.assertEqual(sloppy[0].split()[-1].upper(), "TONIGHT")
+        self.assertIn("TONIGHT", sloppy[0].upper().split())
         ex = REFERENCE["extremes"]
         want = ex["teams"]["BOS"]["sloppy"]["pts"][1] - ex["league"]["sloppy"]["pts"]
         self.assertEqual(float(sloppy[2]), round(want, 1))
         self.assertEqual(int(sloppy[1]), ex["teams"]["BOS"]["sloppy"]["n"])
-        pace = PAGE.evaluate("() => [...document.querySelectorAll('#id-extremes .ex-table tbody tr:not(.id-group)')].map((r) => r.children[3].className)")
+        pace = PAGE.evaluate("() => [...document.querySelectorAll('#id-extremes .ex-table tbody tr:not(.id-group):not(.ex-unseen)')].map((r) => r.children[3].className)")
         self.assertTrue(pace and all("tier-" not in c for c in pace), pace)
 
     def test_identity_tags(self):

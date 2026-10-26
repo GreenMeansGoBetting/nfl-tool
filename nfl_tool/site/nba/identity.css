@@ -30,6 +30,14 @@
 .ex-table td.ex-type { width: 100%; text-align: left; white-space: nowrap; }
 .ex-table th, .ex-table td.num { padding: 0 8px; text-align: center; white-space: nowrap; }
 .ex-table tr.ex-tonight td.ex-type { font-weight: 700; }
+/* Each group's header names its own columns (Allowed on defense, Scored on offense). */
+.ex-table tr.ex-head td { text-align: center; white-space: nowrap; padding: 6px 8px; }
+.ex-table tr.ex-head td:first-child { text-align: left; }
+.ex-table td.ex-type .gs-tag { margin-left: 6px; vertical-align: middle; }
+.ex-table tr.ex-tonight-last td { border-bottom: 2px solid var(--border-strong); }
+/* Under EX_MIN_GP games: shown, never colored. */
+.ex-table td.ex-thin { opacity: 0.45; }
+.ex-table tr.ex-unseen td { font-size: 0.78rem; color: var(--muted); text-align: left; padding: 6px 8px; white-space: normal; }
 
 @media (max-width: 760px) {
   .id-table { min-width: 0; }

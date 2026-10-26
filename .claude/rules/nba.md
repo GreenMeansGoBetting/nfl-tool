@@ -133,7 +133,12 @@ these two pages into one page."
   points, 3PM, FTA, turnovers a 100 and pace. A team's split = its average against the type minus
   against everyone (offense types: what those opponents did to its defense); the page shows split
   minus the league's split, colored past 6 pts / 3 3PM / 6 FTA / 3 TOV a 100 (pace never), GP beside
-  it, tonight's opponent's types first with a Tonight tag. **Game Previews** shows only the types
+  it, tonight's opponent's types first with a Tonight tag. **Readability pass (2026-10-26,** the owner:
+  "so unclear as to what the hell this is even trying to say"): each block's header row names its own
+  columns ("WSH Defense Vs These Offenses": Pts Allowed / 3s Allowed / FTs Allowed / TOs Forced;
+  offense: Pts Scored / 3s Made...), a **Strength / Weak Spot** tag when the points cell is colored,
+  **under `EX_MIN_GP` 3 games faded and never colored** (1-game cells were colored), types not faced
+  yet fold into one "Not Faced Yet" line. **Game Previews** shows only the types
   tonight's opponent is where a number is colored (section under The Line). Both draw from
   `site/nba/extremes.js` (`exTable`, `exCell`; Game Previews loads identity.css for its look). Not built: big lineups / small-ball (need
   heights).
