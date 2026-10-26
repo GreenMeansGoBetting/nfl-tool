@@ -2032,6 +2032,23 @@ a { color: var(--accent); }
   cursor: pointer;
 }
 .theme-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+/* The owner's diary (sync.js addDiary): a faint easter egg, not a feature. */
+.diary-btn {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+.diary-btn:hover { opacity: 1; filter: none; }
+.diary-box { width: min(640px, 92vw); max-height: 80vh; overflow-y: auto; }
+.diary-entry + .diary-entry { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+.diary-date { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.diary-title { margin: 6px 0 12px; font-size: 1.2rem; font-weight: 600; text-transform: none; letter-spacing: 0; }
+.diary-entry p { margin: 0 0 12px; line-height: 1.6; color: var(--text); }
 
 .sync-bar { background: var(--panel); color: var(--muted); }
 .sync-login-form input { background: var(--panel-2); border-radius: 6px; padding: 4px 8px; }

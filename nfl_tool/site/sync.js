@@ -950,6 +950,49 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
   }
   addOddsCredit();
 
+  // The owner's diary: a faint pilot beside the theme button, an easter egg
+  // for members who click around (the owner, 2026-10-26: no attention drawn,
+  // never in What's new). Newest entry first; each is { date, title, body }
+  // with one paragraph per line of body.
+  const GMG_DIARY = [
+    {
+      date: "October 26th, 2026",
+      title: "Maybe a clown can change the world after all",
+      body: [
+        "I am not sure what I expected when I started this project, but I've learned a lot along the way. Truthfully, I feel overwhelmed trying to build something that is tied so closely with productive results. Almost as if people are relying on this (and me) to perform a certain way. I've always loved solving puzzles, playing games, and the feeling that comes with winning. These traits are likely why I love to sports bet, but ironically hate to be spoon-fed +EV or model based plays. But if that's the case, why am I building another replica of what's already ubiquitous in this industry?",
+        "Because I've fallen into the trap. As I so often do in this industry, until something wakes me up. I've never been one who can compartmentalize feelings or ignore how I'm truly feeling. So, here's how I'm feeling:",
+        "I'm overwhelmed knowing people are paying for a tool that may lose them money.<br>I'm overwhelmed at the daily updates and existing bugs - as it relates to paying customers.<br>I have no interest building a tool that blindly feeds me plays.<br>I have no interest building a tool that I'm not passionate about, even if others are.",
+        "Is that selfish? Yes. But it's also sincere. I wouldn't want someone to build something they don't love just for my benefit. There are a lot of inventions that are birthed out of a 'need'. I don't think this industry 'needs' another whatever it is I'm building.",
+        "I don't think it's best to pull the rug. Afterall, no one has complained about anything. People have found the site useful and told me as much. But I can't ignore my inner tension and where the site seems to be heading.",
+        "To sum up my 'end goal' - I want to build a tool that allows people to solve the mystery, not spoil the ending. I want to think about sports betting in a new and unique way ~ which I'm not even sure is possible. If Claude can run a model or 10,000 simulations in seconds, so can the sportsbooks - with far more resources. Betting sports for a living is wholly uninteresting to me - creating content around sports betting, and being a unique voice in an industry that can be evil is where I gravitate.",
+        'If you\'re unhappy with this product at any time, send me an email at <a href="mailto:gmgobetting@gmail.com">gmgobetting@gmail.com</a>, or write in "Feature Requests" and I\'ll happily refund you. Otherwise, I suppose the best way to continue is to continue. But with a little more self awareness.',
+      ],
+    },
+  ];
+  function addDiary() {
+    const theme = document.getElementById("theme-toggle");
+    if (!theme || document.getElementById("gmg-diary-btn")) return;
+    theme.insertAdjacentHTML("afterend", '<button type="button" class="diary-btn" id="gmg-diary-btn" aria-label="Diary">&#129489;&#127996;&#8205;&#9992;&#65039;</button>');
+    document.getElementById("gmg-diary-btn").addEventListener("click", () => {
+      let overlay = document.getElementById("diary-modal");
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "diary-modal";
+        overlay.className = "modal-overlay";
+        overlay.innerHTML = `<div class="modal-box diary-box"><button type="button" class="modal-close" aria-label="Close">&times;</button>${GMG_DIARY.map((d) => `<article class="diary-entry"><div class="diary-date">${d.date}</div><h3 class="diary-title"><em>"${d.title}"</em></h3>${d.body.map((p) => `<p>${p}</p>`).join("")}</article>`).join("")}</div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay || e.target.closest(".modal-close")) overlay.hidden = true;
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") overlay.hidden = true;
+        });
+      }
+      overlay.hidden = false;
+    });
+  }
+  addDiary();
+
   // The "i" beside a heading opens its explanation (the long notes stay out of
   // the way until someone asks; the owner, 2026-10-14). Capture: it sits inside
   // rows and cards that react to clicks themselves.
