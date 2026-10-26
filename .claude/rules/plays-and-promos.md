@@ -119,6 +119,11 @@ DraftKings' weekly promo paying on the game's LONGEST TD, D/ST included.
   owner picked this of three options on a weeks 2-6 replay of every game's longest TD (it tied or
   beat the old blend; the longest TD is mostly random). About 35% of winning TDs are under 20 yds,
   so TD volume counts.
+- **Touches tonight are lineup-aware** (`koeTouchesNow`, 2026-10-26): touches per team game with
+  common.js `lineupWeights` (a fill-in game for a regular who's healthy now counts 15%, a game he
+  left early doesn't count). Raw Tch/g put Dameon Pierce (2 games as Barkley's fill-in) over
+  Darius Cooper with Barkley back. The Tch/g column stays the real count; the Upside hover shows
+  the touches used.
 - Layout: each column group has a colored header bubble spanning its columns (`KOE_GROUP_CLASS`,
   `.koe-g-*` colors), empty 8px gap columns split the groups, and every stat box is a fixed 44px
   (TD distances 38px; `table-layout: fixed`, colgroup), rows 32px; the player column (214px) has

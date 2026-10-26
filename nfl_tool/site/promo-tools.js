@@ -83,6 +83,22 @@ function saveKoeTeams() {
 }
 
 // ---- per-player numbers ----
+// Touches he should get TONIGHT: his touches per team game with the site's
+// lineup weights (common.js lineupWeights): a game he filled in for a regular
+// who's healthy now counts 15%, a game he left early doesn't count. Raw Tch/g
+// (2 games as Barkley's fill-in, 16/g) put Dameon Pierce over Darius Cooper
+// with Barkley back (2026-10-26). The Tch/g column stays the real count.
+function koeTouchesNow(team, p, w) {
+  const raw = (p.carries + p.targets) / (p.games || 1);
+  const logs = ((DATA.player_game_logs || {})[team] || {})[p.name];
+  if (!logs) return raw;
+  const weights = lineupWeights(team, p.name, p.position, w);
+  const weeks = Object.keys(weights);
+  const wSum = weeks.reduce((s, wk) => s + weights[wk], 0);
+  if (!wSum) return raw;
+  const byWeek = Object.fromEntries(logs.map((x) => [x.week, (x.carries || 0) + (x.targets || 0)]));
+  return weeks.reduce((s, wk) => s + weights[wk] * (byWeek[wk] || 0), 0) / wSum;
+}
 function koeRow(team, p, w = koeWeek(), k = koeData(w)) {
   const g = p.games || 1;
   const opp = koeOpponent(team, w);
@@ -104,6 +120,7 @@ function koeRow(team, p, w = koeWeek(), k = koeData(w)) {
     pos: p.position,
     games: g,
     touches_pg: (p.carries + p.targets) / g,
+    touches_now: koeTouchesNow(team, p, w),
     touches: p.carries + p.targets,
     role_n: p.position === "RB" || p.position === "QB" ? p.runs10 : p.deep_targets,
     tds: tds.length,
@@ -155,18 +172,18 @@ function koeLeague(w = koeWeek(), k = koeData(w)) {
     a.touches += r.touches;
     Object.entries(counts).forEach(([key, src]) => (a[key] += r[src]));
   });
-  const meanTouches = rows.reduce((s, r) => s + r.touches_pg, 0) / (rows.length || 1);
+  const meanTouches = rows.reduce((s, r) => s + r.touches_now, 0) / (rows.length || 1);
   rows.forEach((r) => {
     const a = posRate[r.pos];
     const rate = (key) => (r[counts[key]] + (a.touches ? a[key] / a.touches : 0) * KOE_PRIOR_TOUCHES) / (r.touches + KOE_PRIOR_TOUCHES);
-    r.e_big = r.touches_pg * rate("big");
-    r.e_huge = r.touches_pg * rate("huge");
-    r.e_role = r.touches_pg * rate("role");
-    r.e_td = r.touches_pg * rate("td");
+    r.e_big = r.touches_now * rate("big");
+    r.e_huge = r.touches_now * rate("huge");
+    r.e_role = r.touches_now * rate("role");
+    r.e_td = r.touches_now * rate("td");
     // The defense's big plays (and 20+ TDs) allowed per game, scaled by how
     // much he has the ball (league-average touches = 1x, capped at 2x).
     const opp = r.opp_big_pg === null ? 0 : r.opp_big_pg + (r.opp_long_tds || 0) / (r.opp_g || 1);
-    r.e_def = opp * Math.min(meanTouches ? r.touches_pg / meanTouches : 0, 2);
+    r.e_def = opp * Math.min(meanTouches ? r.touches_now / meanTouches : 0, 2);
   });
   const pools = Object.fromEntries(KOE_UPSIDE_PARTS.map((part) => [part.key, rows.map((r) => r[part.key])]));
   rows.forEach((r) => {
@@ -244,7 +261,7 @@ function koeCell(col, r, league) {
 function koeUpsideCell(r) {
   const hue = Math.round((r.upside / 100) * 120);
   const why = r.parts.map((p) => `${p.label}: ${p.z >= 0 ? "+" : ""}${p.z.toFixed(1)}`).join("\n");
-  return `<td class="num"><span class="koe-upside" style="background:${scaleHsla(hue, 70, 45, 0.22)};border-color:${scaleHsla(hue, 70, 45, 0.6)}" title="League percentile. Parts (z vs league):\n${why}">${r.upside}</span></td>`;
+  return `<td class="num"><span class="koe-upside" style="background:${scaleHsla(hue, 70, 45, 0.22)};border-color:${scaleHsla(hue, 70, 45, 0.6)}" title="League percentile. Touches tonight: ${fmt(r.touches_now, 1)} (fill-in games count 15%)\nParts (z vs league):\n${why}">${r.upside}</span></td>`;
 }
 
 function koeResultCell(res) {
@@ -287,7 +304,7 @@ function renderKoePlayers() {
   const gcls = (name) => `koe-g-${KOE_GROUP_CLASS[name]}`;
   const sortCls = (k) => (koeSort.key === k ? ` koe-sorted${koeSort.dir > 0 ? " koe-asc" : ""}` : "");
   const gap = (tag) => `<${tag} class="koe-gap"></${tag}>`;
-  const upTitle = "Long-TD upside: league percentile of what he should do tonight (his touches x his per-touch rates): 20+ yd plays (30%), 40+ yd plays (15%), deep role (15%), TDs (20%) and this week's defense's big plays allowed, sized to his touches (20%)";
+  const upTitle = "Long-TD upside: league percentile of what he should do tonight (his touches, with fill-in games for a starter who's back counting 15%, x his per-touch rates): 20+ yd plays (30%), 40+ yd plays (15%), deep role (15%), TDs (20%) and this week's defense's big plays allowed, sized to his touches (20%)";
   // Once a game is final, his longest TD in it (a star for the game's longest).
   rows.forEach((r) => (r.result = koeResult(r, week)));
   const showResult = rows.some((r) => r.result);

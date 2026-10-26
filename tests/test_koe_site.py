@@ -176,6 +176,41 @@ class Upside(unittest.TestCase):
              player("Their RB", "RB", 5, carries=70, targets=10, runs10=12, runs20=2, tds=[33, 1])])).replace("True", "true"))
         self.assertEqual(board[-1], "Fullback")
 
+    def test_a_fill_in_back_is_sized_to_his_role_with_the_starter_back(self):
+        """2026-10-26: Dameon Pierce (two games as Barkley's fill-in, ~16
+        touches each) ranked over Darius Cooper (fewer touches, the long TDs)
+        with Barkley back, because touches/game counted only the fill-in
+        games. Those now count 15% (lineupWeights), like TD Data."""
+        fill_in = player("Test Fill-In", "RB", 2, carries=23, targets=10, tds=[2])
+        deep_wr = player("Test Deep WR", "WR", 4, targets=15, catches20=2, deep=2, tds=[62, 18, 10, 3])
+        deep_wr["catches40"] = 1
+        got = PAGE.evaluate("""([fillIn, deepWr]) => {
+          const g = koeWeekGames()[0], w = koeLiveWeek(), t = g.home;
+          const weeks = teamPlayedWeeks(t, w), last2 = weeks.slice(-2);
+          const starter = {pos: "RB", w: {}}, fill = {pos: "RB", w: {}}, sLogs = [], fLogs = [];
+          weeks.forEach((wk) => {
+            if (last2.includes(wk)) { fill.w[wk] = 0.85; fLogs.push({week: wk, carries: 12, targets: 5}); }
+            else { starter.w[wk] = 0.7; sLogs.push({week: wk, carries: 16, targets: 2}); }
+          });
+          const snaps = (DATA.player_snaps[t] = DATA.player_snaps[t] || {}), logs = (DATA.player_game_logs[t] = DATA.player_game_logs[t] || {});
+          Object.assign(snaps, {"Test Starter": starter, "Test Fill-In": fill});
+          Object.assign(logs, {"Test Starter": sLogs, "Test Fill-In": fLogs});
+          lineupSnapIndex.cache = {};
+          try {
+            const k = {...DATA.koe, players: {...DATA.koe.players, [t]: [fillIn, deepWr]}};
+            const rows = koeLeague(w, k);
+            const r = rows.find((x) => x.name === "Test Fill-In");
+            const mine = rows.filter((x) => x.team === t).sort((a, b) => b.score - a.score);
+            return {raw: r.touches_pg, now: r.touches_now, order: mine.map((x) => x.name), up: mine.map((x) => [x.upside, x.touches_now, x.parts.map((p) => p.z.toFixed(2))])};
+          } finally {
+            ["Test Starter", "Test Fill-In"].forEach((n) => { delete snaps[n]; delete logs[n]; });
+            lineupSnapIndex.cache = {};
+          }
+        }""", [fill_in, deep_wr])
+        self.assertGreater(got["raw"], 15)
+        self.assertLess(got["now"], 6)
+        self.assertEqual(got["order"], ["Test Deep WR", "Test Fill-In"], got["up"])
+
 
 if __name__ == "__main__":
     unittest.main()
