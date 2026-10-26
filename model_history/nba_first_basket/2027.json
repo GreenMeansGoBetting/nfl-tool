@@ -2717,91 +2717,88 @@
  "401909872": {
   "away": "IND",
   "date": "2026-10-26",
-  "first_home": 0.45,
+  "first_home": 0.5,
   "home": "MIL",
   "jumpers": [
-   [
-    "4017837",
-    "Ivica Zubac"
-   ],
+   null,
    [
     "3133628",
     "Myles Turner"
    ]
   ],
   "players": {
+   "3133603": [
+    "Kelly Oubre Jr.",
+    0.101,
+    null,
+    false,
+    null
+   ],
    "3133628": [
     "Myles Turner",
-    0.08,
+    0.089,
     1000,
     false,
     "thescore"
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.077,
+    0.086,
     1100,
     false,
     "fanduel"
    ],
    "3149673": [
     "Pascal Siakam",
-    0.112,
+    0.103,
     500,
     false,
     "fanduel"
    ],
-   "4017837": [
-    "Ivica Zubac",
-    0.116,
-    null,
-    false,
-    null
-   ],
    "4395712": [
     "Andrew Nembhard",
-    0.096,
+    0.088,
     650,
     false,
     "fanduel"
    ],
    "4395725": [
     "Tyler Herro",
-    0.092,
+    0.102,
     700,
     false,
     "fanduel"
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.098,
+    0.09,
     780,
     false,
     "draftkings"
    ],
    "4396993": [
     "Tyrese Haliburton",
-    0.106,
+    0.098,
     850,
     false,
     "fanduel"
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.102,
+    0.113,
     900,
-    false,
+    true,
     "fanduel"
    ],
    "4591725": [
     "Ryan Rollins",
-    0.081,
+    0.09,
     950,
     false,
     "fanduel"
    ]
   },
-  "tip_home": 0.349
+  "tip_home": 0.5
  },
  "401909873": {
   "away": "PHX",
@@ -2813,10 +2810,7 @@
     "5203685",
     "Khaman Maluach"
    ],
-   [
-    "4433255",
-    "Chet Holmgren"
-   ]
+   null
   ],
   "players": {
    "3136193": [
@@ -2842,24 +2836,17 @@
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.122,
+    0.221,
     800,
-    false,
+    true,
     "fanduel"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.141,
+    0.259,
     551,
-    false,
+    true,
     "draftkings"
-   ],
-   "4433255": [
-    "Chet Holmgren",
-    0.109,
-    600,
-    false,
-    "fanduel"
    ],
    "4437244": [
     "Jalen Green",
@@ -2867,13 +2854,6 @@
     700,
     false,
     "hard_rock"
-   ],
-   "4683692": [
-    "Cason Wallace",
-    0.107,
-    800,
-    false,
-    "fanduel"
    ],
    "5203685": [
     "Khaman Maluach",
@@ -2883,7 +2863,7 @@
     "fliff"
    ]
   },
-  "tip_home": 0.499
+  "tip_home": 0.5
  },
  "401909874": {
   "away": "ATL",
@@ -3772,91 +3752,88 @@
  "401909884": {
   "away": "PHI",
   "date": "2026-10-28",
-  "first_home": 0.522,
+  "first_home": 0.5,
   "home": "IND",
   "jumpers": [
    [
     "3059318",
     "Joel Embiid"
    ],
-   [
-    "4017837",
-    "Ivica Zubac"
-   ]
+   null
   ],
   "players": {
    "1966": [
     "LeBron James",
-    0.095,
+    0.099,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.088,
+    0.092,
+    null,
+    false,
+    null
+   ],
+   "3133603": [
+    "Kelly Oubre Jr.",
+    0.101,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.106,
+    0.103,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.097,
-    null,
-    false,
-    null
-   ],
-   "4017837": [
-    "Ivica Zubac",
-    0.11,
+    0.101,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.091,
+    0.088,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.093,
+    0.09,
     null,
     false,
     null
    ],
    "4396993": [
     "Tyrese Haliburton",
-    0.101,
+    0.098,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.102,
+    0.107,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.077,
+    0.081,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.566
+  "tip_home": 0.5
  },
  "401909885": {
   "away": "ORL",
@@ -4392,13 +4369,10 @@
  "401909891": {
   "away": "OKC",
   "date": "2026-10-28",
-  "first_home": 0.435,
+  "first_home": 0.5,
   "home": "DAL",
   "jumpers": [
-   [
-    "4433255",
-    "Chet Holmgren"
-   ],
+   null,
    [
     "4278049",
     "Daniel Gafford"
@@ -4407,69 +4381,55 @@
   "players": {
    "4222252": [
     "Isaiah Hartenstein",
-    0.138,
+    0.221,
     null,
     false,
     null
    ],
    "4278049": [
     "Daniel Gafford",
-    0.077,
+    0.089,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.159,
+    0.259,
     null,
     false,
     null
    ],
    "4278078": [
     "P.J. Washington",
-    0.092,
+    0.106,
     null,
     false,
     null
    ],
    "4432582": [
     "Max Christie",
-    0.077,
-    null,
-    false,
-    null
-   ],
-   "4433255": [
-    "Chet Holmgren",
-    0.124,
-    null,
-    false,
-    null
-   ],
-   "4683692": [
-    "Cason Wallace",
-    0.122,
+    0.088,
     null,
     false,
     null
    ],
    "5041939": [
     "Cooper Flagg",
-    0.087,
+    0.1,
     null,
     false,
     null
    ],
    "6442": [
     "Kyrie Irving",
-    0.084,
+    0.096,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.304
+  "tip_home": 0.5
  },
  "401909892": {
   "away": "LAL",
