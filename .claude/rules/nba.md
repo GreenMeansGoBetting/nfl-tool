@@ -123,7 +123,19 @@ these two pages into one page."
   shares) are never colored good or bad**; their tags are **Fits** (offense does it a lot, this
   defense allows it a lot, 0.7 spreads each) and **Takes away** (offense a lot, defense rarely).
   The zone table's tag is the volume tag when there is one, else the make-rate matchup.
-- **Matchup Extremes** (2026-10-26, the first section on the page; the owner: "find the black and
+- **Tonight's Edges + The Angles** (2026-10-26, the top of the page; the owner: "revamp the entire
+  identities page in a way where a user can't possibly miss what the page is trying to say. establish
+  the matchup the edges and the angles and make no mistakes"; identity.js `edgesSection` /
+  `anglesSection`). One column a team ("N Edges For WSH", green when it has more), a card an edge,
+  biggest first, each with both sides' numbers, their rank ("3rd Best" / "2nd Worst") and the league
+  average. Edges: season Offense Vs Defense rows (`EDGE_ROWS`, matchupCall's rule: one side 0.6
+  spreads, the other not 0.3 against; half-court skipped when points / possession already called it,
+  transition scoring only for a team that runs, a zone's make rate only where the offense shoots at
+  least the league's share), tonight's colored Matchup Extremes points cells, tonight's colored
+  Schedule Spots. Big Edge = the sides average 1 spread (a type / spot: a 6+ point gap).
+  Angles (never a winner: how-often rows) = Fits / Takes Away (`ANGLE_ROWS`, FREQ_GAP). The tables
+  below are the proof. Test: `test_tonights_edges_follow_the_two_sided_rule` recomputes every call.
+- **Matchup Extremes** (2026-10-26, the first section on the page until the Edges; the owner: "find the black and
   white of these teams", how a team does against a TYPE of opponent is "our bread and butter",
   relevant every night; UI left to the owner to adjust): `identity.matchup_extremes` (in
   `season_block` as `extremes`). 18 `TYPES` (top / bottom third of the 30 in one identity number:

@@ -39,7 +39,29 @@
 .ex-table td.ex-thin { opacity: 0.45; }
 .ex-table tr.ex-unseen td { font-size: 0.78rem; color: var(--muted); text-align: left; padding: 6px 8px; white-space: normal; }
 
+/* Tonight's Edges: one column a team, a card an edge, the proof from both sides under it. */
+.ed-col { padding-bottom: 12px; }
+.ed-count { margin: 2px 12px 0; padding: 8px 12px; border-radius: 10px; background: var(--table-head); border: 1px solid var(--border); font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.ed-count b { font-size: 1.35rem; margin-right: 4px; color: var(--text); }
+.ed-count.ed-lead { background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); color: var(--good-text); }
+.ed-count.ed-lead b { color: var(--good-text); }
+.ed-card { margin: 0 12px; padding: 9px 12px; border-radius: 10px; background: rgba(var(--good-rgb), 0.08); border: 1px solid rgba(var(--good-rgb), 0.35); border-left: 4px solid rgb(var(--good-rgb)); display: flex; flex-direction: column; gap: 4px; }
+.ed-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ed-kind { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.ed-title { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+.ed-proof { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text); }
+.ed-proof .team-logo { flex: none; }
+.ed-league { padding-left: 22px; font-size: 0.75rem; color: var(--muted); }
+/* The Angles: one row a style clash, the two sides side by side. */
+.ed-angles { padding: 6px 0; gap: 0; }
+.ed-angle { display: grid; grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 12px; padding: 7px 14px; border-bottom: 1px solid var(--border); }
+.ed-angle:last-child { border-bottom: 0; }
+.ed-angle .gs-tag { justify-self: start; }
+.ed-angle-side { display: flex; align-items: center; gap: 6px; font-size: 0.92rem; }
+.ed-rank { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
 @media (max-width: 760px) {
+  .ed-angle { grid-template-columns: minmax(0, 1fr); gap: 4px; }
   .id-table { min-width: 0; }
   .id-scroll { overflow-x: auto; }
   .id-chip-label { width: 100%; }

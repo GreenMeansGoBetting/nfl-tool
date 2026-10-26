@@ -237,6 +237,42 @@ class Page(unittest.TestCase):
         # no rows of "--": a type not faced yet is only named on the Not Faced Yet line
         self.assertNotIn("--", PAGE.inner_text("#id-extremes"))
 
+    def test_tonights_edges_follow_the_two_sided_rule(self):
+        # Worked out again here from the saved season: an edge needs one side 0.6 league
+        # spreads toward a team and the other not 0.3 the other way; every card lands in
+        # the column of the team it favors, with both teams on its proof lines.
+        T, L = REFERENCE["teams"], REFERENCE["league"]
+        zz = lambda t, k: None if T[t].get(k) is None else (T[t][k] - L[k]["avg"]) / (L[k]["sd"] or 1)
+        rows = [("ppp", 1, None), ("half_ppp", 1, None), ("trans_ppp", 1, None), ("tov_rate", -1, None), ("steal_share", -1, None),
+                ("oreb_rate", 1, None), ("fta_rate", 1, None), ("rim_pct", 1, "rim_share"), ("short_pct", 1, "short_share"),
+                ("mid_pct", 1, "mid_share"), ("corner3_pct", 1, "corner3_share"), ("above3_pct", 1, "above3_share")]
+        want = {"BOS": 0, "DET": 0}
+        for off, de in (("BOS", "DET"), ("DET", "BOS")):
+            called = {}
+            for key, way, share in rows:
+                a, b = zz(off, f"off_{key}"), zz(de, f"def_{key}")
+                if a is None or b is None or (share and (zz(off, f"off_{share}") or -1) < 0):
+                    continue
+                a, b = a * way, b * way
+                hi, lo = max(a, b), min(a, b)
+                d = 1 if hi >= 0.6 and lo > -0.3 else -1 if lo <= -0.6 and hi < 0.3 else 0
+                if not d or (key == "half_ppp" and called.get("ppp") == d) or (key == "trans_ppp" and d == 1 and zz(off, "off_trans_freq") < 0):
+                    continue
+                called[key] = d
+                want[off if d > 0 else de] += 1
+        cols = PAGE.evaluate("""() => [...document.querySelectorAll('#id-edges .ed-col')].map((c) => [...c.querySelectorAll('.ed-card')]
+            .filter((k) => k.querySelector('.ed-kind').textContent.includes('Offense Vs'))
+            .map((k) => [...k.querySelectorAll('.ed-proof img')].map((i) => i.alt)))""")
+        self.assertEqual([len(cols[0]), len(cols[1])], [want["BOS"], want["DET"]])
+        self.assertGreater(want["BOS"] + want["DET"], 0)
+        for col in cols:
+            for proof in col:
+                self.assertEqual(sorted(proof), ["BOS", "DET"])
+        counts = PAGE.evaluate("() => [...document.querySelectorAll('#id-edges .ed-col')].map((c) => [c.querySelector('.ed-count b').textContent, c.querySelectorAll('.ed-card').length])")
+        for shown, cards in counts:
+            self.assertEqual(int(shown), cards)
+        self.assertEqual(SITE.errors, [])
+
     def test_identity_tags(self):
         bos = PAGE.evaluate("() => [...document.querySelectorAll('#id-teams .nba-box')[0].querySelectorAll('.id-chip')].map((c) => c.textContent)")
         self.assertIn("Slow pace", bos)
