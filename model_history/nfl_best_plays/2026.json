@@ -867,13 +867,13 @@
    "line": 0.5,
    "price": 117,
    "book": "novig",
-   "edge": 0.11408262996208407,
-   "chance": 0.5749121230496417,
+   "edge": 0.11056783344186649,
+   "chance": 0.5713973265294241,
    "rating": "Strong",
    "first_price": 117,
    "first_book": "novig",
    "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|first_td|DAL|ryanflournoy": {
    "game": "DAL_PHI",
@@ -891,13 +891,13 @@
    "line": null,
    "price": 1718,
    "book": null,
-   "edge": 0.01862730091574267,
-   "chance": 0.07363280146579768,
+   "edge": 0.01875336737814854,
+   "chance": 0.07375886792820355,
    "rating": "Lean",
    "first_price": 1718,
    "first_book": null,
    "first_seen": "2026-10-25T20:13Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|first_td|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -915,13 +915,13 @@
    "line": null,
    "price": 641,
    "book": null,
-   "edge": 0.03665113049759253,
-   "chance": 0.17160389702930642,
+   "edge": 0.03583903401824509,
+   "chance": 0.170791800549959,
    "rating": "Strong",
    "first_price": 641,
    "first_book": null,
    "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|passing_attempts|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -939,13 +939,13 @@
    "line": 36.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.08387813902652042,
-   "chance": 0.5936820605951478,
+   "edge": 0.08233823195790102,
+   "chance": 0.5921421535265284,
    "rating": "Strong",
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-26T05:02Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|passing_attempts|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -961,15 +961,15 @@
    "bet": "Over 33.5 Pass Att",
    "side": "over",
    "line": 33.5,
-   "price": -115,
-   "book": "fanatics",
-   "edge": 0.09167573206667035,
-   "chance": 0.6265594529969029,
+   "price": -116,
+   "book": "pinnacle",
+   "edge": 0.08939232492880178,
+   "chance": 0.6264293619658389,
    "rating": "Strong",
    "first_price": -111,
    "first_book": "novig",
    "first_seen": "2026-10-25T20:27Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|passing_completions|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -993,7 +993,7 @@
    "first_price": 106,
    "first_book": "novig",
    "first_seen": "2026-10-24T11:15Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|passing_yards|PHI|tannermckee": {
    "game": "DAL_PHI",
@@ -1009,15 +1009,15 @@
    "bet": "Over 198.5 Pass Yds",
    "side": "over",
    "line": 198.5,
-   "price": -102,
+   "price": -104,
    "book": "novig",
-   "edge": 0.06963090707246178,
-   "chance": 0.5745814021219667,
+   "edge": 0.06598515635195235,
+   "chance": 0.5757890779205798,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-10-22T21:14Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|receiving_receptions|PHI|dallasgoedert": {
    "game": "DAL_PHI",
@@ -1035,13 +1035,13 @@
    "line": 5.5,
    "price": 125,
    "book": "novig",
-   "edge": 0.0851602406993911,
-   "chance": 0.5296046851438355,
+   "edge": 0.08405452964727167,
+   "chance": 0.5284989740917161,
    "rating": "Strong",
    "first_price": 125,
    "first_book": "prophetx",
    "first_seen": "2026-10-24T21:07Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|receiving_receptions|PHI|makailemon": {
    "game": "DAL_PHI",
@@ -1057,15 +1057,15 @@
    "bet": "Over 3.5 Receptions",
    "side": "over",
    "line": 3.5,
-   "price": -155,
+   "price": -160,
    "book": "thescore",
-   "edge": 0.06929065904934084,
-   "chance": 0.6771337963042428,
+   "edge": 0.06420597215709645,
+   "chance": 0.6795905875417119,
    "rating": "Lean",
    "first_price": -161,
    "first_book": "polymarket_us",
    "first_seen": "2026-10-24T21:07Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|receiving_receptions|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -1081,39 +1081,15 @@
    "bet": "Under 2.5 Receptions",
    "side": "under",
    "line": 2.5,
-   "price": 100,
+   "price": 108,
    "book": "novig",
-   "edge": 0.04786680835456958,
-   "chance": 0.5478668083545696,
+   "edge": 0.05703820988615488,
+   "chance": 0.5378074406553857,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "bet365",
    "first_seen": "2026-10-24T21:07Z",
-   "last_seen": "2026-10-26T12:32Z"
-  },
-  "DAL_PHI|receiving_yards|PHI|makailemon": {
-   "game": "DAL_PHI",
-   "game_id": "2026_07_DAL_PHI",
-   "week": 7,
-   "date": "2026-10-26",
-   "team": "PHI",
-   "opp": "DAL",
-   "name": "Makai Lemon",
-   "position": "WR",
-   "group": "rec",
-   "market": "receiving_yards",
-   "bet": "Over 38.5 Rec Yds",
-   "side": "over",
-   "line": 38.5,
-   "price": -110,
-   "book": "bet365",
-   "edge": 0.04523786887491732,
-   "chance": 0.5690473926844412,
-   "rating": "Lean",
-   "first_price": -110,
-   "first_book": "bet365",
-   "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|rushing_attempts|PHI|saquonbarkley": {
    "game": "DAL_PHI",
@@ -1131,13 +1107,13 @@
    "line": 16.5,
    "price": 101,
    "book": "pinnacle",
-   "edge": 0.06170947223413331,
-   "chance": 0.5592219100450786,
+   "edge": 0.0597456178492794,
+   "chance": 0.5572580556602247,
    "rating": "Lean",
    "first_price": -102,
    "first_book": "novig",
    "first_seen": "2026-10-23T18:25Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|rushing_longestRush|DAL|dakprescott": {
    "game": "DAL_PHI",
@@ -1161,7 +1137,7 @@
    "first_price": -104,
    "first_book": "draftkings",
    "first_seen": "2026-10-23T11:52Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DAL_PHI|rushing_yards|PHI|dameonpierce": {
    "game": "DAL_PHI",
@@ -1179,13 +1155,13 @@
    "line": 14.5,
    "price": -112,
    "book": "kalshi",
-   "edge": 0.0513888551195637,
-   "chance": 0.5796907419120165,
+   "edge": 0.05082886346306359,
+   "chance": 0.5791307502555164,
    "rating": "Lean",
    "first_price": -112,
    "first_book": "kalshi",
    "first_seen": "2026-10-26T12:32Z",
-   "last_seen": "2026-10-26T12:32Z"
+   "last_seen": "2026-10-26T13:13Z"
   },
   "DEN_ARI|anytime_td|ARI|michaelwilson": {
    "game": "DEN_ARI",
