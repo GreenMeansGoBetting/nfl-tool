@@ -1825,23 +1825,23 @@
   "board": [
    {
     "id": "4065733",
-    "lead": 0.183,
+    "lead": 0.1831,
     "name": "Ty Jerome",
     "proj": 47.5,
     "team": "MEM"
    },
    {
     "id": "4065648",
-    "lead": 0.1009,
+    "lead": 0.0995,
     "name": "Jayson Tatum",
-    "proj": 42.7,
+    "proj": 42.6,
     "team": "BOS"
    },
    {
     "id": "4701230",
-    "lead": 0.0898,
+    "lead": 0.0897,
     "name": "Jalen Johnson",
-    "proj": 41.5,
+    "proj": 41.4,
     "team": "ATL"
    },
    {
@@ -1853,28 +1853,28 @@
    },
    {
     "id": "3112335",
-    "lead": 0.0851,
+    "lead": 0.0852,
     "name": "Nikola Jokic",
     "proj": 41.5,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.0617,
+    "lead": 0.0619,
     "name": "Giannis Antetokounmpo",
     "proj": 40.1,
     "team": "MIA"
    },
    {
     "id": "4871144",
-    "lead": 0.0519,
+    "lead": 0.0521,
     "name": "Alperen Sengun",
     "proj": 39.0,
     "team": "HOU"
    },
    {
     "id": "3936299",
-    "lead": 0.0315,
+    "lead": 0.0316,
     "name": "Jamal Murray",
     "proj": 36.9,
     "team": "DEN"
@@ -1888,7 +1888,7 @@
    },
    {
     "id": "4594268",
-    "lead": 0.0307,
+    "lead": 0.0308,
     "name": "Anthony Edwards",
     "proj": 36.9,
     "team": "MIN"
@@ -1916,7 +1916,7 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0187,
+    "lead": 0.0188,
     "name": "Pascal Siakam",
     "proj": 34.8,
     "team": "IND"
@@ -1937,7 +1937,7 @@
    },
    {
     "id": "6583",
-    "lead": 0.0127,
+    "lead": 0.0129,
     "name": "Anthony Davis",
     "proj": 33.1,
     "team": "WSH"
@@ -1958,21 +1958,21 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0098,
+    "lead": 0.01,
     "name": "Cooper Flagg",
     "proj": 32.4,
     "team": "DAL"
    },
    {
     "id": "5095151",
-    "lead": 0.0094,
+    "lead": 0.0092,
     "name": "Caleb Wilson",
-    "proj": 32.1,
+    "proj": 32.0,
     "team": "CHI"
    },
    {
     "id": "4432848",
-    "lead": 0.0086,
+    "lead": 0.0087,
     "name": "Jaime Jaquez Jr.",
     "proj": 33.0,
     "team": "MIL"
@@ -2037,7 +2037,7 @@
     "id": "4278053",
     "lead": 0.0011,
     "name": "Davion Mitchell",
-    "proj": 27.0,
+    "proj": 27.1,
     "team": "MIA"
    },
    {
@@ -2163,7 +2163,7 @@
     "id": "4432639",
     "lead": 0.0002,
     "name": "Jabari Smith Jr.",
-    "proj": 23.5,
+    "proj": 23.4,
     "team": "HOU"
    },
    {
@@ -2212,7 +2212,7 @@
     "id": "4711294",
     "lead": 0.0,
     "name": "Matas Buzelis",
-    "proj": 22.3,
+    "proj": 22.2,
     "team": "CHI"
    },
    {
