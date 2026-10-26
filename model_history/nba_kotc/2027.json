@@ -2250,14 +2250,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3277,
+    "lead": 0.3279,
     "name": "Luka Doncic",
     "proj": 48.5,
     "team": "LAL"
    },
    {
     "id": "3155942",
-    "lead": 0.1576,
+    "lead": 0.1577,
     "name": "Domantas Sabonis",
     "proj": 42.1,
     "team": "SAC"
@@ -2285,16 +2285,16 @@
    },
    {
     "id": "4251",
-    "lead": 0.0452,
+    "lead": 0.0453,
     "name": "Paul George",
     "proj": 35.0,
     "team": "BOS"
    },
    {
     "id": "4683021",
-    "lead": 0.0419,
+    "lead": 0.0409,
     "name": "Deni Avdija",
-    "proj": 34.6,
+    "proj": 34.5,
     "team": "POR"
    },
    {
@@ -2320,21 +2320,21 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0249,
+    "lead": 0.0251,
     "name": "Cade Cunningham",
     "proj": 32.3,
     "team": "DET"
    },
    {
     "id": "4066259",
-    "lead": 0.0149,
+    "lead": 0.015,
     "name": "De'Aaron Fox",
     "proj": 30.9,
     "team": "SA"
    },
    {
     "id": "4845367",
-    "lead": 0.0141,
+    "lead": 0.0142,
     "name": "Stephon Castle",
     "proj": 30.5,
     "team": "SA"
@@ -2361,18 +2361,18 @@
     "team": "SA"
    },
    {
+    "id": "3934672",
+    "lead": 0.0057,
+    "name": "Jalen Brunson",
+    "proj": 28.1,
+    "team": "NY"
+   },
+   {
     "id": "4278104",
     "lead": 0.0057,
     "name": "Michael Porter Jr.",
     "proj": 27.4,
     "team": "BKN"
-   },
-   {
-    "id": "3934672",
-    "lead": 0.0056,
-    "name": "Jalen Brunson",
-    "proj": 28.1,
-    "team": "NY"
    },
    {
     "id": "3934719",
@@ -2413,7 +2413,7 @@
     "id": "3062679",
     "lead": 0.0012,
     "name": "Josh Hart",
-    "proj": 23.4,
+    "proj": 23.3,
     "team": "NY"
    },
    {
