@@ -17,7 +17,30 @@ const EX_OFF_HEADS = ["Pts Scored", "Pace", "3s Made", "FTs Taken", "Turnovers"]
 const EX_DEF_HEADS = ["Pts Allowed", "Pace", "3s Allowed", "FTs Allowed", "TOs Forced"];
 const SPOT_OUTCOMES = [["pts", 6, 1], ["opp", 6, -1], ["pace", 3, 0]];
 const SPOT_HEADS = ["Pts Scored", "Pts Allowed", "Pace"];
-const EX_WORDS = { pts: "points", opp: "points allowed", pace: "possessions a 48", fg3m: "3s made", fta: "free throws", tov: "turnovers" };
+// Hover wording, plain English (the owner, 2026-10-26: "had 116 points a 100
+// against them? what does that even mean"). [verb, noun, more, fewer, verb now] by who
+// the number is about: the team's defense, its offense, or a schedule spot;
+// the last word is the verb for "the average team ...".
+const EX_SAY = {
+  def: { pts: ["allowed", "points", "more", "fewer", "allows"], fg3m: ["allowed", "made 3s", "more", "fewer", "allows"], fta: ["allowed", "free throw tries", "more", "fewer", "allows"], tov: ["forced", "turnovers", "more", "fewer", "forces"] },
+  off: { pts: ["scored", "points", "more", "fewer", "scores"], fg3m: ["made", "3s", "more", "fewer", "makes"], fta: ["took", "free throws", "more", "fewer", "takes"], tov: ["committed", "turnovers", "more", "fewer", "commits"], opp: ["allowed", "points", "more", "fewer", "allows"] },
+  pace: ["played at", "possessions a 48 minutes", "faster", "slower", "plays"],
+};
+const exNum = (x) => Math.abs(x).toFixed(1);
+// "Vs Fast Teams (3 games): WSH allowed 121.4 points per 100 possessions, 7.3 more
+// than its usual. The average team allows 2.4 more than usual vs them. Net: WSH 4.9
+// worse than the average team vs them."
+function exHover(abbr, t, o, n, v, lg, gap, good, thin) {
+  const say = o === "pace" ? EX_SAY.pace : EX_SAY[t.side === "off" ? "def" : "off"][o];
+  const [verb, noun, up, down, lgVerb] = say;
+  const per = o === "pace" ? "" : " per 100 possessions";
+  const where = t.side === undefined ? `In the spot "${t.label}"` : `Vs ${t.label}`;
+  const move = (x) => (Math.abs(x) < 0.05 ? "the same as" : `${exNum(x)} ${x > 0 ? up : down} than`);
+  const lgMove = Math.abs(lg) < 0.05 ? "the same as usual" : `${exNum(lg)} ${lg > 0 ? up : down} than usual`;
+  const vs = t.side === undefined ? "in this spot" : "vs them";
+  const verdict = `Net: ${abbr} ${exNum(gap)} ${good === 0 ? (gap > 0 ? up : down) : good > 0 ? "better" : "worse"} than the average team ${vs}.`;
+  return `${where} (${n} game${n === 1 ? "" : "s"}): ${abbr} ${verb} ${v[0].toFixed(1)} ${noun}${per}, ${move(v[1])} its usual. The average team ${lgVerb} ${lgMove} ${vs}. ${verdict}${thin ? ` Under ${EX_MIN_GP} games, so not colored yet.` : ""}`;
+}
 // Fewer games than this against a type (or in a spot) is one odd night, not a
 // pattern: the number shows faded and never colored or tagged.
 const EX_MIN_GP = 3;
@@ -32,9 +55,7 @@ function exCell(ex, abbr, t, [o, at, way]) {
   const good = way === 0 ? 0 : gap * way * (t.side === "off" ? -1 : 1);
   const thin = c.n < EX_MIN_GP;
   const far = !thin && way !== 0 && Math.abs(gap) >= at;
-  const who = t.side === "off" ? `${t.label} had` : `${abbr} had`;
-  const where = t.side === undefined ? "in this spot" : "against them";
-  const title = `${who} ${v[0]} ${EX_WORDS[o]}${o === "pace" ? "" : " a 100"} ${where} (${c.n} game${c.n === 1 ? "" : "s"}): ${v[1] > 0 ? "+" : ""}${v[1]} vs ${abbr}'s usual. League: ${lg > 0 ? "+" : ""}${lg}.${thin ? ` Under ${EX_MIN_GP} games: not colored yet.` : ""}`;
+  const title = exHover(abbr, t, o, c.n, v, lg, gap, good, thin);
   return { gap, far, good, title, cls: far ? (good > 0 ? "tier-good" : "tier-bad") : thin ? "id-plain ex-thin" : "id-plain" };
 }
 

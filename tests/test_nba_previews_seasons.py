@@ -195,6 +195,10 @@ class Page(unittest.TestCase):
             self.assertEqual(rows[0], [])
             self.assertIn("Nothing far from normal", page.inner_text("#extremes-content"))
             self.assertIn("tier-bad", page.evaluate("() => document.querySelectorAll('#extremes-content .nba-box')[1].querySelector('tbody tr:not(.id-group) td:nth-child(3)').className"))
+            # the hover in plain words (AAA allowed 120 points a 100 to fast teams, 9 over its usual)
+            hover = page.evaluate("() => document.querySelectorAll('#extremes-content .nba-box')[1].querySelector('tbody tr:not(.id-group) td:nth-child(3)').title")
+            self.assertEqual(hover, "Vs Fast Teams (3 games): AAA allowed 120.0 points per 100 possessions, 9.0 more than its usual. "
+                                    "The average team allows 1.0 more than usual vs them. Net: AAA 8.0 worse than the average team vs them.")
             self.assertEqual(SITE.errors, [])
         finally:
             page.close()
