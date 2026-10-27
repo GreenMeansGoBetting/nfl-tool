@@ -3659,6 +3659,7 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .promo-item.promo-current { background: rgba(var(--accent-rgb), 0.12); border-color: rgba(var(--accent-rgb), 0.5); }
 .promo-sport { min-width: 38px; padding: 2px 6px; border-radius: 6px; text-align: center; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; background: var(--panel-2); border: 1px solid var(--border-strong); color: var(--muted); }
 .promo-name { font-size: 0.95rem; }
+.nav-new { margin-left: auto; font-size: 0.62rem; padding: 0 6px; }
 
 /* .sc-tight: a Summary card too full to fit near full size gives up padding and gaps before
    its text is shrunk (fitSummaryCard, SUMMARY_TIGHT_BELOW). Nothing is hidden. */

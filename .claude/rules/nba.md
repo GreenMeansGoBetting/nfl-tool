@@ -463,6 +463,39 @@ it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#play
   Tests: `tests/test_nba_shot_charts_site.py`, `tests/test_nba_shots.py`.
 - Tests: `tests/test_nba_player_card_site.py`, `test_my_plays_site.py` (NbaPlays), `test_nba_props.py`.
 
+## Zone Matchup Targets (built 2026-10-27)
+
+The owner: "Vegas is perfect ... But there's one gap - Shot Zone." Sabonis 24 of 26 shots in the
+paint, Duncan Robinson 28 of 34 from three: where and HOW (self-created / catch and shoot / drive) a
+player shoots against what tonight's defense allows **players like him** (guards / forwards / bigs:
+a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 15-question Q&A:
+- **Raw, no pulling toward the league, no minimum sample** ("then we just are recreating the
+  sportsbooks numbers"); every read shows its shot counts and a His Shots filter. The page sets
+  `NBA_SHOT_PRIOR = 0` (`let` in shot-chart.js); other pages still pull (the owner: raw everywhere
+  "eventually", not yet).
+- **Never priced:** no edge / EV; the main line (middle of the books) is reference only.
+- **Every player with a points or threes line** on the next slate gets a read per market, OVER /
+  UNDER / Toss Up (the owner: "Maybe we call these OVERS and UNDERS"), Strong past 12%.
+- Build: `nfl_tool/nba/zone_matchups.py` (`block`, in build_nba.py's shots try, its own try) ->
+  shots.json `matchups` {date, games, players{id: name, team, opp, group, points / threes: score,
+  shots, makes, side, strong, n, dn, line, zones[], kinds[]}, defense{team: {group: {zone: [made,
+  tried, FG% rank, shots rank]}}}, league, league_n, pos{id: group}}. Score = (1 + Shots) x (1 +
+  Makes) - 1: Shots = his zone shares x (the share of his group's shots this defense gives up there /
+  the league's share - 1); Makes = the make rate allowed his group minus the league's, x points, by
+  his zones and by his shot kinds, averaged, over his diet's league points a shot. High volume + low
+  makes lands near Toss Up (the owner: show both, "i fear concluding that for a user"). Threes: his
+  threes only. `zone()` = shot-chart.js nbaShotZone (a test pins it).
+- Page (`site/nba/zones.html` + `zones.js` + `zones.css`; NBA menu under Shot Charts with a small
+  New tag, `tag` in SPORT_PAGES / `.nav-new`): opens on **Best & Worst Spots** (Overs / Unders, top
+  15, Show All; started games left out), **Matchup View** (game cards; both teams' players and each
+  defense's Soft / Tough zone per group, rank of 30), Points / Threes, His Shots filter; a row click
+  opens his chart and the defense's chart allowed to his group (both vs his group's league) and the
+  Why table (zones and shot types). Display prefs per device (`nba-tool.zones.v1`).
+- Defense chart legends read Less Makes / More Makes, Fewer Shots / More Shots (the owner, same day).
+- **Not built yet:** the locked, graded record by score bucket (the owner said yes; second push);
+  a key defender Out chip (with / without him on the floor; the owner flagged starters vs bench).
+- Tests: `tests/test_nba_zone_matchups.py`.
+
 ## The owner's list (2026-10-20, for when usage allows)
 
 1. ~~Clickable NBA players with a pop-up like the other sports~~ built 2026-10-21 (the player

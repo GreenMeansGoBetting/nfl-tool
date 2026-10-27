@@ -280,6 +280,13 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-27",
+    items: [
+      ["🏀", "<b>NBA Zone Matchup Targets</b> is a new page under Shot Charts: every player with a points or threes line tonight, where and how he shoots (zones, self-created, catch and shoot, drives) against what tonight’s defense gives up to players like him from those spots. It opens on the night’s Best and Worst Spots; Matchup View shows every player in a game and each defense’s soft and tough spots. Click a player for both shot charts. The numbers are raw: check the sample."],
+      ["🏀", "<b>NBA Shot Charts</b>: the day’s games sit on top; click a team for its roster with the defense it plays filled in. Defense charts now read Less Makes / More Makes."],
+    ],
+  },
+  {
     id: "2026-10-23",
     items: [
       ["🏀", "<b>NBA Threes</b> is a new page under Points for threes made. We tested 15 ideas on all of last season first: how many threes a player <i>tries</i> can be predicted, how many he <i>makes</i> mostly can’t, so the projection is his attempts (Proj Att) times his make rate. Click a player for the ladder (1+, 2+, 3+ threes) with our fair price next to every book’s."],
@@ -830,6 +837,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Game Previews", file: "" },
       { name: "Team Identity", file: "identity.html" },
       { name: "Shot Charts", file: "shot-charts.html" },
+      { name: "Zone Matchup Targets", file: "zones.html", tag: "New" },
       // Kept reachable but set aside while the NBA suite turns toward matchup
       // research (the owner, 2026-10-26).
       { head: "🚨 UNDER CONSTRUCTION 🚨" },
@@ -876,7 +884,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
         if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
         const [file, view] = (item.file || "index.html").split("#");
         const current = sport === CURRENT_SPORT && !onPromo && !onMine && file === PAGE_FILE && (!view || view === location.hash.slice(1));
-        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span></a>`;
+        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span>${item.tag ? `<span class="upd-new nav-new">${item.tag}</span>` : ""}</a>`;
       }).join(""), sport === CURRENT_SPORT && !onPromo && !onMine);
     }
     add("Promo Tools", PROMOS[0].href, "promo", PROMOS.map(

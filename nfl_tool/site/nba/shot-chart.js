@@ -26,7 +26,7 @@ const NBA_SHOT_PX = 9; // pixels a foot
 const NBA_SHOT_W = 50 * NBA_SHOT_PX;
 const NBA_SHOT_H = 36 * NBA_SHOT_PX; // baseline to 30.75 ft out from the basket
 const NBA_SHOT_ARC_Y = Math.sqrt(23.75 ** 2 - 22 ** 2); // where the 3-point arc meets the corner lines
-const NBA_SHOT_PRIOR = 6; // color only: his make rate is pulled toward the league's by 6 shots
+let NBA_SHOT_PRIOR = 6; // color only: his make rate is pulled toward the league's by 6 shots (Zone Matchup Targets sets 0: raw, the owner 2026-10-27)
 const NBA_SHOT_FULL = 0.08; // full color at 8 points above / below the league
 const NBA_SHOT_HEX = 1.6; // hexagon size, feet
 const NBA_SHOT_NEAR = 3.5; // the heat map's color reads every shot this close to a hexagon
@@ -129,7 +129,7 @@ const nbaShotSvg = (uid, inner) =>
   `<svg class="nba-shot-svg" viewBox="0 0 ${NBA_SHOT_W} ${NBA_SHOT_H}" role="img">${nbaShotDefs(uid)}<g clip-path="url(#nbs-court${uid})"><rect class="nba-shot-floor" width="${NBA_SHOT_W}" height="${NBA_SHOT_H}"/>${inner}</g></svg>`;
 
 // Legend words and the color's sign: a shooter (green = makes more) or a defense (red = allows more).
-const nbaShotSide = (opts) => (opts && opts.allowed ? { sign: -1, lo: "Allows Less", hi: "Allows More", cold: "Allows Less", hot: "Allows More" } : { sign: 1, lo: "Below League", hi: "Above League", cold: "Colder", hot: "Hotter" });
+const nbaShotSide = (opts) => (opts && opts.allowed ? { sign: -1, lo: "Less Makes", hi: "More Makes", cold: "Less Makes", hot: "More Makes" } : { sign: 1, lo: "Below League", hi: "Above League", cold: "Colder", hot: "Hotter" });
 
 // ---- the numbers ----
 // His shots after the filters. shot = [x, y, made, three, game index, flags, kind].
@@ -296,7 +296,7 @@ function nbaShotHeatView(shots, league, opts) {
     .join("");
   const hex = (size, fill) => `<svg width="22" height="20" viewBox="-11 -10 22 20"><path d="${[0, 1, 2, 3, 4, 5].map((k) => `${k ? "L" : "M"}${(size * Math.cos((Math.PI / 3) * k)).toFixed(1)},${(size * Math.sin((Math.PI / 3) * k)).toFixed(1)}`).join(" ")}Z" fill="${fill}"/></svg>`;
   const legend = `<div class="nba-shot-legend"><span>${side.cold}</span>${[-1, -0.5, 0, 0.5, 1].map((t) => hex(9, nbaShotColor(side.sign * t * NBA_SHOT_FULL))).join("")}<span>${side.hot}</span>
-    <span class="nba-shot-gap"></span><span>Fewer</span>${[3.5, 6, 8, 10].map((s) => hex(s, "var(--muted)")).join("")}<span>More Shots</span></div>`;
+    <span class="nba-shot-gap"></span><span>Fewer Shots</span>${[3.5, 6, 8, 10].map((s) => hex(s, "var(--muted)")).join("")}<span>More Shots</span></div>`;
   return `${nbaShotSvg(++nbaShotUid, nbaShotLines() + hexes)}${legend}`;
 }
 

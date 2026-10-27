@@ -108,7 +108,7 @@ class ShotCharts(unittest.TestCase):
         hue = "(sel) => parseFloat(document.querySelector(sel).getAttribute('fill').match(/hsla?\\(([-\\d.]+)/)[1])"
         self.assertLess(PAGE.evaluate(f"({hue})('#shc-defbox .nba-shot-zone[data-zone=\"ra\"]')"), 60)
         self.assertGreater(PAGE.evaluate(f"({hue})('#shc-off .nba-shot-zone[data-zone=\"ra\"]')"), 60)
-        self.assertIn("Allows More", PAGE.inner_text("#shc-defbox .nba-shot-legend"))
+        self.assertIn("More Makes", PAGE.inner_text("#shc-defbox .nba-shot-legend"))
 
     def test_filters_apply_to_both_sides(self):
         try:

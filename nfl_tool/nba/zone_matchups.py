@@ -1,0 +1,222 @@
+"""Zone Matchup Targets (site/nba/zones.html): where each player's shots come
+from against where tonight's defense gives them up (the owner, 2026-10-27).
+
+The idea, in the owner's words: Vegas is perfect except for one gap, shot
+zone. Sabonis takes 24 of his 26 shots in the paint; Duncan Robinson 28 of 34
+from three, mostly the top and the right. So: where (and how: self-created,
+catch and shoot, drive) does HE shoot, and what does tonight's defense allow
+to players like him (guards / forwards / bigs: a team can wall off bigs at the
+rim and still bleed blow-by layups to guards) from those same spots, in shots
+and in makes?
+
+**Raw numbers, no pulling toward the league** (the owner: "We have to stop
+taking data and drawing it to the average or setting minimums because then we
+just are recreating the sportsbooks numbers"); every read carries its shot
+counts, and the user judges the sample. **Never priced:** no edge, no EV; the
+main line is shown for reference and grades the record.
+
+For a player, one market (points: every shot; threes: his threes):
+- `s[z]` = his share of shots in each of the 12 zones (shot-chart.js
+  nbaShotZone), `t[k]` = his share by kind (1 self-created, 2 catch and shoot,
+  3 drive / cut / finish).
+- Makes: the make rate this defense allows his group in each zone, minus the
+  league's for his group there, x the shot's points, weighted by s; the same by
+  kind, weighted by t; the two averaged (the same shots, two ways of cutting
+  them), as a share of the points a shot his diet is worth at league rates.
+- Shots: the share of his group's shots this defense gives up in each zone
+  over the league's share for his group there, weighted by s (more shots from
+  his spots = more chances).
+- Score = (1 + shots) x (1 + makes) - 1: a defense that gives up lots of his
+  shots but makes few of them lands near Toss Up, which the owner chose over
+  deciding it for the user.
+- Read: OVER / UNDER past `LEAN` (Strong past `STRONG`), Toss Up between.
+"""
+from __future__ import annotations
+
+import math
+
+LEAN = 0.05
+STRONG = 0.12
+MARKETS = ("points", "threes")
+GROUP = {"PG": "G", "SG": "G", "G": "G", "SF": "F", "PF": "F", "F": "F", "C": "C"}
+THREES = ("c3L", "c3R", "w3L", "w3R", "t3")
+ZONE_NAMES = {"ra": "At The Rim", "paint": "Paint", "mBL": "Left Baseline Mid", "mWL": "Left Wing Mid", "mT": "Top Mid",
+              "mWR": "Right Wing Mid", "mBR": "Right Baseline Mid", "c3L": "Left Corner 3", "w3L": "Left Wing 3",
+              "t3": "Top 3", "w3R": "Right Wing 3", "c3R": "Right Corner 3"}
+KINDS = {1: "Self-Created", 2: "Catch & Shoot", 3: "Drives & Cuts"}
+
+
+def zone(x: float, y: float, three: int) -> str:
+    """shot-chart.js nbaShotZone, to the letter (a test pins both)."""
+    dx = x - 25
+    deg = math.degrees(math.atan2(max(y, 0), dx))
+    if three:
+        if abs(dx) >= 22 and y <= 9:
+            return "c3R" if dx > 0 else "c3L"
+        return "w3R" if deg < 60 else "t3" if deg < 120 else "w3L"
+    if math.hypot(dx, y) <= 4:
+        return "ra"
+    if abs(dx) <= 8 and y <= 13.75:
+        return "paint"
+    return ["mBR", "mWR", "mT", "mWL", "mBL"][min(int(deg // 36), 4)]
+
+
+def group_of(pos) -> str:
+    return GROUP.get(str(pos or "").upper(), "F")
+
+
+def middle_line(quotes: list):
+    ls = sorted(float(q[2]) for q in quotes or [] if len(q) > 2 and q[2] is not None)
+    return ls[len(ls) // 2] if ls else None
+
+
+class Tally:
+    """[made, tried] by zone and by kind, and the shot total, for a set of shots."""
+
+    def __init__(self):
+        self.zone, self.kind, self.n = {}, {}, 0
+
+    def add(self, z, k, made):
+        for table, key in ((self.zone, z), (self.kind, k)):
+            t = table.setdefault(key, [0, 0])
+            t[0] += made
+            t[1] += 1
+        self.n += 1
+
+
+def tallies(block: dict, pos: dict) -> tuple:
+    """({(defense, group, scope): Tally}, {(group, scope): Tally}) over every
+    shot this season; scope "all" or "3" (threes only)."""
+    teams = block.get("teams") or []
+    allowed, league = {}, {}
+    for pid, shots in (block.get("players") or {}).items():
+        g = group_of(pos.get(str(pid)))
+        for s in shots:
+            z, made, three, kind, d = zone(s[0], s[1], s[3]), s[2], s[3], s[6], s[8] if len(s) > 8 else -1
+            for scope in ("all", "3") if three else ("all",):
+                league.setdefault((g, scope), Tally()).add(z, kind, made)
+                if 0 <= d < len(teams):
+                    allowed.setdefault((teams[d], g, scope), Tally()).add(z, kind, made)
+    return allowed, league
+
+
+def rate(t) -> float | None:
+    return t[0] / t[1] if t and t[1] else None
+
+
+def read(shots: list, market: str, d: Tally | None, lg: Tally | None, d_all: Tally | None, lg_all: Tally | None) -> dict | None:
+    """One player's read in one market (see the module note), or None with no shots."""
+    mine = [s for s in shots if market == "points" or s[3]]
+    if not mine or lg is None:
+        return None
+    n = len(mine)
+    zs, ks, value = {}, {}, {}
+    for s in mine:
+        z = zone(s[0], s[1], s[3])
+        zs[z] = zs.get(z, 0) + 1
+        ks[s[6]] = ks.get(s[6], 0) + 1
+        value.setdefault(s[6], []).append(3 if s[3] else 2)
+    d = d or Tally()
+    d_all = d_all or Tally()
+    base = make_z = shots_ = 0.0
+    zones = []
+    for z, c in sorted(zs.items(), key=lambda kv: -kv[1]):
+        share, pts = c / n, 3 if z in THREES else 2
+        lr = rate(lg.zone.get(z))
+        dr = rate(d.zone.get(z))
+        if lr is not None:
+            base += share * pts * lr
+            if dr is not None:
+                make_z += share * pts * (dr - lr)
+        # the share of his group's shots this defense gives up here, against the league's share
+        lq = (lg_all.zone.get(z, [0, 0])[1] / lg_all.n) if lg_all and lg_all.n else 0
+        dq = (d_all.zone.get(z, [0, 0])[1] / d_all.n) if d_all.n else None
+        vol = dq / lq - 1 if dq is not None and lq else None
+        if vol is not None:
+            shots_ += share * vol
+        zones.append({"z": z, "n": c, "share": round(share, 3), "dmade": (d.zone.get(z) or [0, 0])[0], "dtried": (d.zone.get(z) or [0, 0])[1],
+                      "fg": None if dr is None or lr is None else round(dr - lr, 3), "vol": None if vol is None else round(vol, 3)})
+    make_k, kinds = 0.0, []
+    counted = sum(c for k, c in ks.items() if k in KINDS)
+    for k, c in sorted(ks.items(), key=lambda kv: -kv[1]):
+        if k not in KINDS:
+            continue
+        share, pts = c / counted, sum(value[k]) / len(value[k])
+        lr, dr = rate(lg.kind.get(k)), rate(d.kind.get(k))
+        if lr is not None and dr is not None:
+            make_k += share * pts * (dr - lr)
+        kinds.append({"k": k, "n": c, "share": round(c / n, 3), "dmade": (d.kind.get(k) or [0, 0])[0], "dtried": (d.kind.get(k) or [0, 0])[1],
+                      "fg": None if dr is None or lr is None else round(dr - lr, 3)})
+    makes = ((make_z + make_k) / 2) / base if base else 0.0
+    score = (1 + shots_) * (1 + makes) - 1
+    side = "over" if score >= LEAN else "under" if score <= -LEAN else "toss"
+    return {"score": round(score, 4), "makes": round(makes, 4), "shots": round(shots_, 4), "side": side,
+            "strong": abs(score) >= STRONG, "n": n, "dn": d.n, "zones": zones, "kinds": kinds}
+
+
+def slate_date(games: list, today: str) -> str | None:
+    days = sorted({g["date"] for g in games if g.get("date", "") >= today})
+    return days[0] if days else None
+
+
+def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, today: str, now_iso: str) -> dict | None:
+    """shots.json `matchups`: {date, games: [{game_id, away, home, started}], players: {id: {name,
+    team, opp, game_id, group, points / threes: read + line}}, defense: {team: {group: {zone: [made,
+    tried, rank by make rate allowed (1 = least), rank by shot share allowed (1 = fewest)]}}}}."""
+    if not shots_block or not shots_block.get("players"):
+        return None
+    date = slate_date(games, today)
+    if not date:
+        return None
+    allowed, league = tallies(shots_block, pos)
+    who = shots_block.get("who") or {}
+    tonight = [g for g in games if g.get("date") == date]
+    out_games, players = [], {}
+    for g in tonight:
+        key = f"{g['away']}_{g['home']}"
+        props = (book_odds.get(key) or {}).get("props") or {}
+        out_games.append({"game_id": g["game_id"], "away": g["away"], "home": g["home"], "time": g.get("time"),
+                          "started": bool(g.get("start_utc")) and g["start_utc"] <= now_iso})
+        ids = {pid for m in MARKETS for pid in (props.get(m) or {})}
+        for pid in ids:
+            shots = (shots_block["players"] or {}).get(str(pid))
+            if not shots or str(pid) not in who:
+                continue
+            team = who[str(pid)][1]
+            opp = g["home"] if team == g["away"] else g["away"] if team == g["home"] else None
+            if not opp:
+                continue
+            grp = group_of(pos.get(str(pid)))
+            row = {"name": who[str(pid)][0], "team": team, "opp": opp, "game_id": g["game_id"], "group": grp,
+                   "pos": pos.get(str(pid))}
+            for m in MARKETS:
+                q = ((props.get(m) or {}).get(pid) or {}).get("q")
+                scope = "3" if m == "threes" else "all"
+                r = read(shots, m, allowed.get((opp, grp, scope)), league.get((grp, scope)),
+                         allowed.get((opp, grp, "all")), league.get((grp, "all"))) if q else None
+                if r:
+                    r["line"] = middle_line(q)
+                    row[m] = r
+            if any(m in row for m in MARKETS):
+                players[str(pid)] = row
+    # each defense, each group: its make rate and shot share allowed by zone, ranked across the league
+    defense = {}
+    teams = sorted({t for (t, _, scope) in allowed if scope == "all"})
+    for grp in ("G", "F", "C"):
+        for z in ZONE_NAMES:
+            rows = []
+            for t in teams:
+                tl = allowed.get((t, grp, "all"))
+                c = (tl.zone.get(z) if tl else None) or [0, 0]
+                rows.append((t, c[0], c[1], c[1] / tl.n if tl and tl.n else 0))
+            by_rate = sorted([r for r in rows if r[2]], key=lambda r: r[1] / r[2])
+            by_share = sorted(rows, key=lambda r: r[3])
+            rr = {r[0]: i + 1 for i, r in enumerate(by_rate)}
+            rs = {r[0]: i + 1 for i, r in enumerate(by_share)}
+            for t, m, a, _ in rows:
+                defense.setdefault(t, {}).setdefault(grp, {})[z] = [m, a, rr.get(t), rs.get(t)]
+    lg = {grp: {z: (league.get((grp, "all")) or Tally()).zone.get(z, [0, 0]) for z in ZONE_NAMES} for grp in ("G", "F", "C")}
+    lg_n = {grp: (league.get((grp, "all")) or Tally()).n for grp in ("G", "F", "C")}
+    return {"date": date, "games": out_games, "players": players, "defense": defense, "league": lg, "league_n": lg_n,
+            "pos": {str(k): group_of(v) for k, v in pos.items() if str(k) in (shots_block.get("players") or {})},
+            "lean": LEAN, "strong": STRONG}

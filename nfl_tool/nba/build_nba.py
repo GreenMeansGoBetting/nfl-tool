@@ -35,6 +35,7 @@ sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, fo
 import first_basket  # noqa: E402
 import props  # noqa: E402
 import shots  # noqa: E402
+import zone_matchups  # noqa: E402
 import smartstake  # noqa: E402
 import identity  # noqa: E402
 import kotc  # noqa: E402
@@ -1159,6 +1160,13 @@ def main():
     try:
         pbp = fetch_file("pbp", args.season, args.data_dir, False)
         block = shots.season_block(pbp, season_label(args.season), fetch_file("player_box", args.season, args.data_dir, False)) if pbp is not None else None
+        # Zone Matchup Targets (zones.html): tonight's players' shot diets against the
+        # defense they face; its own try so a failure never costs the shot charts.
+        try:
+            if block:
+                block["matchups"] = zone_matchups.block(block, POSITION_TABLE, games, book_odds, today, now_iso)
+        except Exception as ex:
+            print(f"WARNING: NBA zone matchups failed ({ex!r}).", file=sys.stderr)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "shots.json").write_text(json.dumps({"season": args.season, **(block or {"label": season_label(args.season), "games": [], "players": {}, "league": []})}, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:

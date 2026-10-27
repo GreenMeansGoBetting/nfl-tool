@@ -1,0 +1,43 @@
+/* NBA Zone Matchup Targets (zones.html). Charts and banners reuse shot-charts.css (.shc-*) and suite.css (.nba-shot-*). */
+.zm-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 4px 0 10px; }
+.zm-bar .view-toggle { margin: 0; }
+.zm-filter { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.zm-filter select { padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); font: inherit; font-size: 0.85rem; font-weight: 600; text-transform: none; }
+.zm-spots, .zm-game { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-bottom: 12px; }
+.zm-head { display: flex; align-items: center; gap: 8px; }
+.zm-head span { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
+.zm-head-over { border-left: 4px solid var(--good-text); }
+.zm-head-under { border-left: 4px solid var(--bad-text); }
+.zm-inner { padding: 0 8px 8px; }
+
+/* Tables: every column its contents + one small even padding, centered; names / chips read left; the Diet column takes the spare width. */
+.zm-table, .zm-why { width: 100%; }
+.zm-table th, .zm-table td, .zm-why th, .zm-why td { padding: 5px 8px; text-align: center; white-space: nowrap; }
+.zm-table .zm-name, .zm-why td:first-child, .zm-why th:first-child, .zm-table th:first-child { text-align: left; }
+.zm-name small { color: var(--muted); font-size: 0.72rem; margin-left: 2px; }
+.zm-name .team-logo { vertical-align: -4px; }
+.zm-table .zm-diet { width: 100%; text-align: left; white-space: normal; }
+.zm-table th:nth-last-child(2) { text-align: left; }
+.zm-n { color: var(--muted); font-size: 0.8rem; }
+.zm-row { cursor: pointer; }
+.zm-row:hover td { background-color: rgba(var(--accent-rgb), 0.06); }
+.zm-row.selected td { box-shadow: inset 0 -2px 0 var(--accent); }
+.zm-started { opacity: 0.5; }
+.zm-split { border-left: 1px solid var(--border); }
+
+.zm-read { display: inline-block; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.75rem; font-weight: 800; color: var(--text); white-space: nowrap; }
+.zm-toss { background: var(--panel-2); color: var(--muted); }
+.zm-chip { display: inline-block; margin: 1px 4px 1px 0; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.74rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+
+.zm-def-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 8px 0 4px; }
+.zm-def { display: grid; gap: 4px; margin-bottom: 10px; }
+.zm-def-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.zm-def-g { min-width: 92px; font-size: 0.8rem; font-weight: 800; }
+.zm-sum { font-size: 0.9rem; color: var(--muted); }
+.zm-sum b { color: var(--text); }
+#zm-detail .section-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#zm-detail .section-title .team-logo { vertical-align: -4px; }
+
+@media (max-width: 1100px) {
+  .zm-spots, .zm-game { grid-template-columns: 1fr; }
+}

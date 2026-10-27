@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Zone Matchup Targets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="shot-charts.css">
+<link rel="stylesheet" href="zones.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="section-wrap">
+      <h2 class="section-title">Zone Matchup Targets <button type="button" class="info-i" aria-expanded="false" aria-controls="zm-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="zm-note" hidden>Where each player shoots from, and how (Self-Created, Catch &amp; Shoot, Drives &amp; Cuts), against what tonight's defense gives up to <b>players like him</b> (guards, forwards or bigs) from those same spots. <b>Shots</b> = how much more (or less) of that group's shooting this defense gives up from his spots than the league does: more chances. <b>Makes</b> = how much more (or less) those shots go in against this defense, from his zones and his shot types, in points a shot. <b>Score</b> = the two together: a defense that gives up lots of his shots but few makes lands near <b>Toss Up</b>, and you decide which matters. <b>Over</b> / <b>Under</b> past 5%, <b>Strong</b> past 12%. Every number is raw, this season only, nothing pulled toward the league: check the shot counts and judge the sample yourself. Not priced: the line is shown for reference only. Click a player for both shot charts.</p>
+      <div class="zm-bar">
+        <div class="view-toggle" id="zm-view">
+          <button type="button" class="view-toggle-btn" data-view="spots">Best &amp; Worst Spots</button>
+          <button type="button" class="view-toggle-btn" data-view="matchup">Matchup View</button>
+        </div>
+        <div class="view-toggle" id="zm-market">
+          <button type="button" class="view-toggle-btn" data-market="points">Points</button>
+          <button type="button" class="view-toggle-btn" data-market="threes">Threes</button>
+        </div>
+        <label class="zm-filter">His Shots <select id="zm-min" aria-label="His shots this season"><option value="0">Any</option><option value="20">20+</option><option value="50">50+</option><option value="100">100+</option></select></label>
+      </div>
+    </div>
+
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker"><span id="day-label" class="week-label"></span></div>
+      <div id="matchup-row" class="matchup-row"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
+    <div id="zm-body"></div>
+    <div id="zm-detail" class="section-wrap" hidden></div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play): this season's shots; lines: SmartStake.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="zones.js"></script>
+<script src="shot-chart.js"></script>
+<script src="nba-card.js"></script>
+</body>
+</html>
