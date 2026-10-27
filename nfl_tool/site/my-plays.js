@@ -67,8 +67,8 @@ function shownPlays() {
 
 // ---- NHL grading ----
 // A player's line in one game from his team's file: the box score row, null
-// when the game is final and he isn't in it (didn't play), undefined when
-// it can't be told yet.
+// when his team's box score for that day is in and he isn't in it (didn't
+// play), undefined when it can't be told yet.
 function nhlGameRow(pid, teamAbbr, date) {
   const file = nhlFiles[teamAbbr];
   if (!file) return undefined;
@@ -79,15 +79,20 @@ function nhlGameRow(pid, teamAbbr, date) {
     const row = who && who.season.log.find((r) => r[0] === date);
     return row ? Object.fromEntries(cols.map((c, i) => [c, row[lead + i]])) : null;
   };
-  return find(skater, file.skater_cols) || find(goalie, file.goalie_cols);
+  const row = find(skater, file.skater_cols) || find(goalie, file.goalie_cols);
+  if (row) return row;
+  const teamPlayed = Object.values(file.skaters || {}).some((s) => s.season.log.some((r) => r[0] === date));
+  return teamPlayed ? null : undefined;
 }
 function overUnder(side, actual, line) {
   if (actual === line) return "push";
   return (side === "under") === actual < line ? "win" : "loss";
 }
 function gradeNhlPlay(p) {
+  // nhl/data.json's schedule starts yesterday, so an older game is off it and
+  // its box score alone decides (a play two days old stayed Pending, 2026-10-27).
   const game = ((NHL || {}).schedule || []).find((g) => g.game_id === p.game_id);
-  if (!game || game.status !== "final") return null;
+  if (game && game.status !== "final") return null;
   if (p.market === "stack") {
     const rows = p.legs.map((l) => nhlGameRow(l.id, l.team, p.date));
     if (rows.some((r) => r === undefined)) return null;
@@ -118,15 +123,15 @@ function regradeNhlPlays() {
   if (changed) saveNhlPlays(updated);
 }
 const getJson = (url) => fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-// Only the teams with an ungraded play in a finished game.
+// Only the teams with an ungraded play in a game that isn't still to come.
 async function loadNhlForGrading() {
   const plays = loadNhlPlays();
   if (!plays.length) return;
   NHL = NHL || (await getJson("nhl/data.json"));
   if (!NHL) return;
-  const finals = new Set(NHL.schedule.filter((g) => g.status === "final").map((g) => g.game_id));
+  const upcoming = new Set(NHL.schedule.filter((g) => g.status !== "final").map((g) => g.game_id));
   const teams = new Set();
-  plays.filter((p) => !p.result && finals.has(p.game_id)).forEach((p) => (p.legs || [p]).forEach((l) => teams.add(l.team)));
+  plays.filter((p) => !p.result && !upcoming.has(p.game_id)).forEach((p) => (p.legs || [p]).forEach((l) => teams.add(l.team)));
   await Promise.all([...teams].filter((t) => !nhlFiles[t]).map(async (t) => {
     const file = await getJson(`nhl/players/${t}.json`);
     if (file) nhlFiles[t] = file;
@@ -166,8 +171,9 @@ async function loadNbaForGrading() {
   if (!open.length) return;
   const nba = await getJson("nba/data.json");
   NBA_RESULTS = (nba && nba.first_basket && nba.first_basket.results) || null;
-  const finals = new Set(((nba || {}).schedule || []).filter((g) => g.status === "final").map((g) => String(g.game_id)));
-  if (nba && open.some((p) => p.market !== "first_basket" && finals.has(String(p.game_id)))) {
+  // The schedule starts yesterday: a game off it is an older one, graded from its box score.
+  const upcoming = new Set(((nba || {}).schedule || []).filter((g) => g.status !== "final").map((g) => String(g.game_id)));
+  if (nba && open.some((p) => p.market !== "first_basket" && !upcoming.has(String(p.game_id)))) {
     const props = await getJson("nba/props.json");
     const block = props && (props.seasons || {})[String(nba.season)];
     if (block) {

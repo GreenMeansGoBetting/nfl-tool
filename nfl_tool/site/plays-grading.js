@@ -96,6 +96,22 @@ const PLAYER_OU_STAT_FIELDS = {
   "Rush + Rec Yards": (g) => g.rush_yards + g.rec_yards,
   "Pass + Rush Yards": (g) => g.pass_yards + g.rush_yards,
 };
+// NFL Best Plays saves its props under props-summary.js's short labels
+// (PROP_MARKETS), so those grade too (they stayed Pending, 2026-10-27).
+Object.assign(PLAYER_OU_STAT_FIELDS, {
+  "Rec Yds": PLAYER_OU_STAT_FIELDS["Receiving Yards"],
+  "Long Rec": PLAYER_OU_STAT_FIELDS["Longest Reception"],
+  "Rush Yds": PLAYER_OU_STAT_FIELDS["Rushing Yards"],
+  "Rush Att": PLAYER_OU_STAT_FIELDS["Rush Attempts"],
+  "Long Rush": PLAYER_OU_STAT_FIELDS["Longest Rush"],
+  "Pass Yds": PLAYER_OU_STAT_FIELDS["Passing Yards"],
+  "Pass Att": PLAYER_OU_STAT_FIELDS["Pass Attempts"],
+  "INTs": PLAYER_OU_STAT_FIELDS["INTs Thrown"],
+  "Long Comp": PLAYER_OU_STAT_FIELDS["Longest Completion"],
+  "Pass TDs": PLAYER_OU_STAT_FIELDS["Passing TDs"],
+  "Rush+Rec Yds": PLAYER_OU_STAT_FIELDS["Rush + Rec Yards"],
+  "Pass+Rush Yds": PLAYER_OU_STAT_FIELDS["Pass + Rush Yards"],
+});
 
 // Strips a trailing generational suffix for a looser name match -- the books and
 // nflverse don't consistently agree on whether "Jr."/"II"/etc is part of a

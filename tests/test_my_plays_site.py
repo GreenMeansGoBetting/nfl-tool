@@ -89,6 +89,39 @@ class MyPlays(unittest.TestCase):
             page.evaluate("() => localStorage.removeItem('nfl-tool.nhl-plays.v1')")
             page.close()
 
+    def test_a_game_off_the_schedule_still_grades(self):
+        # nhl/data.json's schedule starts yesterday, so a play two days old has no
+        # schedule game: it grades from the box score (it stayed Pending, 2026-10-27).
+        old = {**GAME, "game_id": "2026019999", "id": "nhl:sog:2026019999:8479996", "market": "sog", "category": "Shots on goal",
+               "player_id": "8479996", "side": "over", "line": 2.5, "odds": -120, "description": "A Over 2.5 SOG"}
+        unplayed = {**old, "date": "2026-09-01", "game_id": "2026019998", "id": "nhl:sog:2026019998:8479996"}  # no NJD box score that day
+        page = SITE.open("my-plays.html")
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nhl-plays.v1', JSON.stringify(plays))", [old, unplayed])
+            page.reload()
+            page.wait_for_function("() => loadNhlPlays().some((p) => p.result)")
+            results = page.evaluate("() => Object.fromEntries(loadNhlPlays().map((p) => [p.id, p.result || null]))")
+            self.assertEqual(results, {old["id"]: "win", unplayed["id"]: None})
+        finally:
+            page.evaluate("() => localStorage.removeItem('nfl-tool.nhl-plays.v1')")
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
+    def test_best_plays_short_labels_grade(self):
+        # NFL Best Plays saves props as "Rec Yds", "Pass Att"... (they stayed Pending, 2026-10-27).
+        # The sample: Trey McBride, week 5, 66 receiving yards.
+        play = {"id": "5_receiving_yards_ARI_Trey McBride_over", "week": 5, "matchup": "ARI @ DET", "category": "Rec Yds",
+                "team": "ARI", "description": "Trey McBride Over 60.5", "odds": "-110"}
+        page = SITE.open("my-plays.html")
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.possible-plays.v1', JSON.stringify(plays))", [play])
+            page.reload()
+            page.wait_for_function("() => loadPossiblePlays().some((p) => p.result)")
+            self.assertEqual(page.evaluate("() => loadPossiblePlays()[0].result"), "win")
+        finally:
+            page.evaluate("() => localStorage.removeItem('nfl-tool.possible-plays.v1')")
+            page.close()
+
     def test_sport_filter_record_and_hand_results(self):
         page = open_my_plays()
         try:
@@ -270,6 +303,32 @@ class NbaPlays(unittest.TestCase):
             results = page.evaluate("() => Object.fromEntries(loadNbaPlays().map((p) => [p.id, p.result || null]))")
             self.assertEqual(results, {"nba:points:77:10": "win", "nba:pra:77:10": "loss", "nba:threes:77:10": "push",
                                        "nba:rebounds:77:11": "void", "nba:assists:78:10": None})
+        finally:
+            SITE.nba = SITE.nba_props = None
+            page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
+    def test_nba_game_off_the_schedule_still_grades(self):
+        # nba/data.json's schedule starts yesterday: game 77 is off it but has a box
+        # score, game 79 is still to come (a play two days old stayed Pending, 2026-10-27).
+        fields = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta",
+                  "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score"]
+        game = {"sport": "nba", "date": "2026-10-21", "game_id": "77", "matchup": "BBB @ AAA", "team": "AAA",
+                "logo": "", "color": "#336699", "book": "draftkings", "odds": -110, "market": "threes", "category": "3-Pointers Made",
+                "player_id": "10", "side": "over", "line": 2.5}
+        plays = [{**game, "id": "nba:threes:77:10", "description": "P10 Over 2.5 3s"},
+                 {**game, "id": "nba:threes:79:10", "game_id": "79", "date": "2026-10-27", "description": "P10 Over 2.5 3s"}]
+        row = ["2026-10-21", 77, "BBB", 1, 1, 34, 26, 18, 3, 8, 6, 9, 5, 9, 7, 1, 0, 2, 3, 5, 110, 104]
+        SITE.nba = {"season": 2027, "schedule": [{"game_id": "79", "status": "scheduled"}], "first_basket": {"results": {}}}
+        SITE.nba_props = {"seasons": {"2027": {"fields": fields, "players": {"10": {"name": "P10", "team": "AAA", "log": [row]}}}}}
+        page = SITE.open("my-plays.html")
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify(plays))", plays)
+            page.reload()
+            page.wait_for_function("() => loadNbaPlays().some((p) => p.result)")
+            results = page.evaluate("() => Object.fromEntries(loadNbaPlays().map((p) => [p.id, p.result || null]))")
+            self.assertEqual(results, {"nba:threes:77:10": "win", "nba:threes:79:10": None})
         finally:
             SITE.nba = SITE.nba_props = None
             page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
