@@ -235,10 +235,13 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   replay only.
 - **Blowout minutes** (`blowout_starts`, `minutes_before`, `role_min`; the owner, 2026-10-27, Derrick
   White's 18 minutes in a 35-point win): a game whose lead hit 20 and stayed there in regulation (from
-  the 2nd half) counts a player's minutes before then, scaled to 48. Built and **switched off**
-  (`BLOWOUT_SHARE` 0): on the replay it didn't beat leaving his real minutes (threes miss 0.895 at
-  half strength vs 0.896, chances a little worse, starters 30.4 vs 29.9 real). The sims already play
-  tonight's blowouts. Replay it with `--set BLOWOUT_SHARE=0.5`.
+  the 2nd half) counts a player's minutes before then, scaled to 48 (`role_minutes`), **only ever
+  down**: garbage-time minutes aren't a role. The owner, same day, on BOS-BKN: the sim's total was 3
+  over the line yet every player but one read under; it gave 14-15 players a team minutes every night
+  (Garza, Harper, Conley: blowout-only minutes), about 21 of Boston's 113 points. With it: Tatum 32.6
+  -> 35.1 minutes, 23.6 -> 25.4 points, same total. Replay (this season, `--injury-report`): starters'
+  points 15.2 -> 15.6 (real 15.7), points miss 4.74 -> 4.66. Raising a pulled starter (`BLOWOUT_UP` 1,
+  the first version) overshot: starters 30.4-30.7 minutes vs 29.9 on 2025-26's opening month.
 - **Minutes:** season^0.365 x last-5^0.635 (the overshoot), fit to 240 (`fill_minutes`: too many,
   the small roles give up the most; too few, everyone up in proportion, cap 40). **Out** (the
   injury report) leaves the rotation; the 2025-26 replay preferred handing his minutes to everyone

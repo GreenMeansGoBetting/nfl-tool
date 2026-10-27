@@ -110,6 +110,12 @@ class Blowouts(unittest.TestCase):
         self.assertAlmostEqual(before[(1, 1)], 30.0)
         self.assertAlmostEqual(before[(1, 6)], 6.0)  # the bench's 18 minutes, only 6 before it
 
+    def test_garbage_minutes_come_off_a_pulled_starter_keeps_his(self):
+        # 2026-10-27, BOS-BKN: deep-bench players' garbage minutes read as a nightly role
+        self.assertAlmostEqual(sim.role_minutes(12.0, 0.0, 2160.0), 0.0)  # all 12 after the blowout began
+        self.assertAlmostEqual(sim.role_minutes(18.0, 18.0, 2160.0), 18.0)  # a starter pulled at 36: not raised to 24
+        self.assertAlmostEqual(sim.role_minutes(20.0, 9.0, 2160.0), 12.0)  # 9 of 36 minutes = 12 a game
+
     def test_a_blowout_night_doesnt_cut_his_minutes(self):
         ps = roster()
         ps[10] = player("P10", "AAA", "F", [28] * 5, start=False)  # a full bench: minutes compete for the 240

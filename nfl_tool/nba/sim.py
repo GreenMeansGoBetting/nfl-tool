@@ -88,12 +88,18 @@ MIN_W_SEASON = 0.365
 # over; his minutes before then, scaled to 48, are his minutes that night.
 BLOWOUT_LEAD = 20
 BLOWOUT_FROM = 24 * 60
-# How far toward that full-game number his night moves: OFF. On 2025-26's opening
-# month it didn't help (threes miss 0.896 off, 0.895 at half, 0.912 at full with the
-# old trust levels; log score worse each time; starters' minutes 30.4-30.7 vs 29.9
-# real): the sims already play tonight's blowouts, and teams that blow teams out keep
-# doing it. Kept as a dial for the replay (--set BLOWOUT_SHARE=0.5).
-BLOWOUT_SHARE = 0.0
+# Only ever DOWN (2026-10-27, second look): garbage-time minutes aren't a role.
+# The owner on BOS-BKN: the sim's total was 3 over the line yet every player but
+# one read under. It gave 14-15 players minutes every night (Garza, Harper,
+# Conley... who had played only in blowouts' garbage time), about 21 of Boston's
+# 113 points, so Tatum, George, White, Pritchard all came up short. Replayed on
+# this season's first 5 nights with the morning injury report: starters' points
+# 15.2 -> 15.6 (real 15.7), points miss 4.74 -> 4.66, threes 0.929 -> 0.925 (the
+# exact-number log score a little worse on that small sample). Raising a pulled
+# starter to 48 minutes' worth (BLOWOUT_UP 1) overshot: 2025-26's opening month,
+# starters 30.4-30.7 minutes vs 29.9 real.
+BLOWOUT_SHARE = 1.0
+BLOWOUT_UP = 0
 REG_SECS = 48 * 60
 MIN_CAP = 40.0
 ROTATION_GONE = 3   # a player under 20 minutes who missed his team's last 3 games isn't in tonight's rotation
@@ -220,7 +226,7 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
     starts = blowout_starts(poss)
     before_min = minutes_before(season.stints, starts)
     for pid, p in players.items():
-        p["role_min"] = [m + BLOWOUT_SHARE * (before_min.get((g, pid), 0.0) * REG_SECS / starts[g] - m) if g in starts else m
+        p["role_min"] = [role_minutes(m, before_min.get((g, pid), 0.0), starts[g]) if g in starts else m
                          for g, m in zip(p["games"], p["min"])]
     for p in players.values():
         p["counts"][5] = p["fta"] / 2  # trips to the line, two shots each
@@ -310,6 +316,15 @@ def blowout_starts(poss: pd.DataFrame) -> dict:
         if start < REG_SECS:
             out[int(gid)] = start
     return out
+
+
+def role_minutes(played: float, before: float, start: float) -> float:
+    """A blowout night's minutes as his role: his minutes before the blowout
+    scaled to 48, only ever DOWN from what he played (BLOWOUT_UP 0)."""
+    role = before * REG_SECS / start
+    if role >= played and not BLOWOUT_UP:
+        return played
+    return played + BLOWOUT_SHARE * (role - played)
 
 
 def minutes_before(stints: pd.DataFrame, starts: dict) -> dict:
