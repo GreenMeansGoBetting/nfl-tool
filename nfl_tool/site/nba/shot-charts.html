@@ -32,6 +32,16 @@
   </div>
 
   <div class="nba-app">
+    <div id="schedule-scroller" class="schedule-scroller" hidden>
+      <div class="week-picker">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="matchup-row" class="matchup-row"></div>
+      <div id="shc-roster" class="shc-roster" hidden></div>
+    </div>
+
     <div class="section-wrap">
       <h2 class="section-title">Shot Charts <button type="button" class="info-i" aria-expanded="false" aria-controls="shc-note" title="How to read this">i</button></h2>
       <p class="section-note info-note" id="shc-note" hidden>Pick a shooter and a defense. <b>Left:</b> his shots, colored by his make rate against the league's from the same spot (green = he makes more). <b>Right:</b> every shot that defense has allowed, colored by the make rate it allows against the league's (<b>red = it allows more</b>, green = it holds shooters below the league). Share = how much of the shooting comes from that zone. <b>Target</b> / <b>Tough</b> read both sides: one side clearly points one way (2.5 points or more from the league) and the other doesn't point the other way; zones he rarely shoots from get no call. Areas with only a few shots are pulled toward the league for the colors and calls; the numbers shown are the real counts. The filters apply to both sides (Last 10 = his last 10 games, and the defense's last 10). This season's shots only; spots are ESPN's, to the nearest foot; heaves (35+ ft) and free throws are left out.</p>

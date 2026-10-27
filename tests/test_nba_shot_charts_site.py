@@ -137,6 +137,25 @@ class ShotCharts(unittest.TestCase):
             PAGE.select_option("#shc-def", "BBB")
         self.assertEqual(SITE.errors, [])
 
+    def test_the_slate_picks_a_team_and_its_opponent(self):
+        """The owner, 2026-10-27: click a team in the day's games, get its roster, the defense it plays fills in."""
+        try:
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('.shc-slate-team')].map((b) => b.dataset.team)"), ["AAA", "BBB"])
+            self.assertEqual(PAGE.get_attribute(".shc-slate-team.selected", "data-team"), "AAA")
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('.shc-roster-btn')].map((b) => b.dataset.player)"), ["1", "3"])
+            PAGE.click(".shc-roster-btn[data-player='3']")
+            PAGE.wait_for_function("() => document.getElementById('shc-player').value === '3'")
+            self.assertEqual(PAGE.input_value("#shc-def"), "BBB")
+            PAGE.select_option("#shc-def", "CCC")  # no team on the slate is selected now
+            PAGE.wait_for_function("() => !document.querySelector('.shc-slate-team.selected')")
+            PAGE.click(".shc-slate-team[data-team='AAA']")  # back: AAA's top shooter vs BBB
+            PAGE.wait_for_function("() => location.hash === '#p=1&d=BBB'")
+            self.assertEqual(PAGE.get_attribute(".shc-roster-btn.selected", "data-player"), "1")
+        finally:
+            PAGE.select_option("#shc-team", "AAA")
+            PAGE.select_option("#shc-def", "BBB")
+        self.assertEqual(SITE.errors, [])
+
 
 if __name__ == "__main__":
     unittest.main()

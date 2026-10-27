@@ -45,6 +45,49 @@ function scNextOpponent(abbr) {
   return g ? (g.away === abbr ? g.home : g.away) : null;
 }
 
+// ---- the slate: the day's games, each team its own button (the owner, 2026-10-27:
+// click a team, get its roster, the defense it plays fills in) ----
+let scDayIndex = 0;
+const scDays = () => [...new Set(((DATA && DATA.schedule) || []).map((g) => g.date))].sort();
+const scGamesOn = (date) => ((DATA && DATA.schedule) || []).filter((g) => g.date === date).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+function scTime(hhmm) {
+  if (!hhmm) return "";
+  const [h, m] = hhmm.split(":").map(Number);
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+}
+function scFirstDay() {
+  const all = scDays();
+  const today = new Date().toLocaleDateString("en-CA");
+  scDayIndex = Math.max(0, all.indexOf(all.find((d) => d >= today) || all[all.length - 1]));
+}
+function scRenderSlate() {
+  const all = scDays();
+  const date = all[scDayIndex];
+  scEl("schedule-scroller").hidden = !all.length;
+  if (!all.length) return;
+  const off = SC.player && SC_FILE.who[SC.player] ? SC_FILE.who[SC.player][1] : null;
+  scEl("day-label").textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  scEl("day-prev").disabled = scDayIndex <= 0;
+  scEl("day-next").disabled = scDayIndex >= all.length - 1;
+  const side = (abbr, opp) =>
+    `<button type="button" class="shc-slate-team${abbr === off && opp === SC.def ? " selected" : ""}" data-team="${abbr}" data-opp="${opp}" title="${scTeam(abbr).name} shooters vs the ${scTeam(opp).name} defense">${scLogo(abbr, 28)}<span>${abbr}</span></button>`;
+  scEl("matchup-row").innerHTML = scGamesOn(date)
+    .map((g) => {
+      const on = (g.away === off && g.home === SC.def) || (g.home === off && g.away === SC.def);
+      return `<div class="matchup-card shc-slate-game${on ? " selected" : ""}">
+        <span class="matchup-teams-row">${side(g.away, g.home)}<span class="at">@</span>${side(g.home, g.away)}</span>
+        <span class="matchup-date">${scTime(g.time)}</span>
+      </div>`;
+    })
+    .join("");
+  // The offense team's roster, most shots first: one click picks the shooter.
+  const roster = off ? scRosters()[off] || [] : [];
+  scEl("shc-roster").hidden = !roster.length;
+  scEl("shc-roster").innerHTML = `<span class="shc-roster-label">${scLogo(off, 18)}${scTeam(off).short || off} Roster</span>${roster
+    .map((p) => `<button type="button" class="shc-roster-btn${p.id === SC.player ? " selected" : ""}" data-player="${p.id}" title="${p.n} shots this season">${p.name}</button>`)
+    .join("")}`;
+}
+
 // ---- the call: both sides (shot-chart.js nbaShotCall, shared with Points) ----
 const scCall = (mine, allowed, lg, share) => nbaShotCall(mine, allowed, lg, share);
 
@@ -101,6 +144,7 @@ function scRender() {
   scEl("shc-team").innerHTML = teams.map((t) => `<option value="${t}"${t === who[1] ? " selected" : ""}>${scTeam(t).name}</option>`).join("");
   scEl("shc-player").innerHTML = (rosters[who[1]] || []).map((p) => `<option value="${p.id}"${p.id === SC.player ? " selected" : ""}>${p.name} (${p.n})</option>`).join("");
   scEl("shc-def").innerHTML = (SC_FILE.teams || []).slice().sort((a, b) => scTeam(a).name.localeCompare(scTeam(b).name)).map((t) => `<option value="${t}"${t === SC.def ? " selected" : ""}>${scTeam(t).name}</option>`).join("");
+  scRenderSlate();
   scEl("shc-controls").innerHTML = nbaShotControls();
   const mine = nbaShotPick(scPlayerShots(SC.player), NBA_SHOT_STATE);
   const allowed = nbaShotPick(scAllowed(SC.def), NBA_SHOT_STATE);
@@ -161,6 +205,23 @@ document.addEventListener("change", (e) => {
 });
 document.addEventListener("nba-shot-changed", scRender);
 document.addEventListener("click", (e) => {
+  if (!SC_FILE) return;
+  const team = e.target.closest(".shc-slate-team");
+  if (team) {
+    const top = (scRosters()[team.dataset.team] || [])[0];
+    if (top) scPick(top.id, team.dataset.opp);
+    return;
+  }
+  const player = e.target.closest(".shc-roster-btn");
+  if (player) return scPick(player.dataset.player, SC.def);
+  const all = scDays();
+  const step = e.target.closest("#day-prev") ? -1 : e.target.closest("#day-next") ? 1 : 0;
+  if (step && all[scDayIndex + step]) {
+    scDayIndex += step;
+    scRenderSlate();
+  }
+});
+document.addEventListener("click", (e) => {
   const theme = e.target.closest("#theme-toggle");
   if (!theme) return;
   const light = document.documentElement.dataset.theme !== "light";
@@ -184,6 +245,7 @@ window.addEventListener("load", () => {
       scEl("empty-state").innerHTML = `<p>${file ? "No shots this season yet." : "Shot charts aren't available right now."}</p>`;
       return;
     }
+    scFirstDay();
     scFirstPick();
   });
 });

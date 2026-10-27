@@ -449,7 +449,10 @@ it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#play
   right under Team Identity; built 2026-10-21, the owner on the mockup: "This looks phenomenal"):
   pick an offense team + player and a defense (opens on tonight's first road team's top shooter vs
   the home defense; a new player's defense = his team's next opponent; the address keeps the pick,
-  `#p=<id>&d=<TEAM>`). Left: his chart (`nbaShotZonesView` / `nbaShotHeatView`); right: every shot
+  `#p=<id>&d=<TEAM>`). **Day strip** (2026-10-27, the owner: "have each team be selectable"): the
+  site's day arrows + game cards, each team its own button (`.shc-slate-team`: its top shooter vs
+  the other team's defense), and under it that team's roster as buttons (`.shc-roster-btn`, most
+  shots first); the dropdowns stay. Left: his chart (`nbaShotZonesView` / `nbaShotHeatView`); right: every shot
   that defense allowed (shot[8]), drawn with `{allowed: true}` so the colors flip (**red = it allows
   more than the league**, legend Allows Less / Allows More). One set of filters for both (Last 10 =
   each side's own last 10 games). **Zone By Zone** table: his FG / FG% / vs Lg / Share, the same
