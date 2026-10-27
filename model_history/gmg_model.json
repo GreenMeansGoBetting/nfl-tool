@@ -669,6 +669,30 @@
   "updated": "2026-10-25T16:30Z",
   "week": 7
  },
+ "2026_07_DAL_PHI": {
+  "away": "DAL",
+  "away_pts": 25.3,
+  "final": [
+   38,
+   21
+  ],
+  "frozen": true,
+  "home": "PHI",
+  "home_pts": 18.9,
+  "qb_out": [
+   "PHI"
+  ],
+  "spread": 4.5,
+  "spread_edge": 2.0,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 43.5,
+  "total_edge": 0.7,
+  "total_pick": "over",
+  "total_result": "win",
+  "updated": "2026-10-26T22:50Z",
+  "week": 7
+ },
  "2026_07_DEN_ARI": {
   "away": "DEN",
   "away_pts": 25.2,
