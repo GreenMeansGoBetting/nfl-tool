@@ -41,3 +41,13 @@
 @media (max-width: 1100px) {
   .zm-spots, .zm-game { grid-template-columns: 1fr; }
 }
+
+/* Tags: two lines at most, the same box on every row; the rest fold into "+N" (zmFitTags). */
+.zm-tags { display: flex; flex-wrap: wrap; align-content: center; gap: 3px 4px; height: 44px; overflow: hidden; }
+.zm-tags .zm-chip { margin: 0; cursor: help; }
+.zm-chip[hidden] { display: none; }
+.zm-more { cursor: pointer; background: var(--panel-2); border-color: var(--border-strong); flex: none; }
+.zm-line { font-weight: 700; }
+.zm-price { font-size: 0.8rem; }
+.zm-legend { margin: 0 0 8px; font-size: 0.8rem; color: var(--muted); }
+#zm-detail .zm-bar .view-toggle { flex-wrap: wrap; }

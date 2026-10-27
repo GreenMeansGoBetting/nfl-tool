@@ -492,6 +492,14 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
   opens his chart and the defense's chart allowed to his group (both vs his group's league) and the
   Why table (zones and shot types). Display prefs per device (`nba-tool.zones.v1`).
 - Defense chart legends read Less Makes / More Makes, Fewer Shots / More Shots (the owner, same day).
+- **Fixes the same day (the owner):** no Read cell ("redundant"); Score, Shots and Makes cells shaded
+  green / red, deeper = stronger (`zmShade`, through nbaShotColor); the **line = the player card's
+  rule** (most books, ties lower: `main_line` / `nbaCardMainLine`, read live from data.json
+  `book_odds`; the middle line had shown Walsh 1.5 threes his card didn't) with **Odds** = best price
+  on the read's side across the member's books, no book name, click for every book; diet tags colored
+  by that spot's Shots + Makes together for him (a red tag on an Over = the counterpoint) with a
+  plain-words hover (`zmZoneWhy`); tags two lines max, same height every row, "+N" (`zmFitTags`);
+  the charts get Every Type / Self-Created / Catch & Shoot / Drives & Cuts.
 - **The record** (the owner: "grade based on score buckets"): `model_history/nba_zones/<season>.json`
   {game: {date, points / threes: [READ_FIELDS]}}, Over / Under reads only (no Toss Ups), rewritten until
   tip, never after (`update_record`); graded from the box scores (`box_logs`: played minutes > 0)

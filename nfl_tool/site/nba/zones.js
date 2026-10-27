@@ -12,7 +12,7 @@
 let DATA = null; // data.json: teams, schedule; the player card reads it too
 let ZF = null; // shots.json
 const ZM_KEY = "nba-tool.zones.v1"; // display prefs on this device: view, market, his-shots filter
-const ZM = { view: "spots", market: "points", min: 0, game: null, player: null, all: false, chart: "zones" };
+const ZM = { view: "spots", market: "points", min: 0, game: null, player: null, all: false, chart: "zones", kind: "all" };
 const ZM_GROUP = { G: "Guards", F: "Forwards", C: "Bigs" };
 const ZM_ZONE = { ra: "At The Rim", paint: "Paint", mBL: "Left Baseline Mid", mWL: "Left Wing Mid", mT: "Top Mid", mWR: "Right Wing Mid", mBR: "Right Baseline Mid", c3L: "Left Corner 3", w3L: "Left Wing 3", t3: "Top 3", w3R: "Right Wing 3", c3R: "Right Corner 3" };
 const ZM_KIND = { 1: "Self-Created", 2: "Catch & Shoot", 3: "Drives & Cuts" };
@@ -29,26 +29,61 @@ function zmRgb(abbr) {
 const zmBanner = (abbr, inner) => `<div class="nba-box-title shc-title" style="background:rgba(${zmRgb(abbr)},0.22);border-left:4px solid rgb(${zmRgb(abbr)})">${zmLogo(abbr, 24)}${inner}</div>`;
 const zmPct = (v, digits = 0) => (v === null || v === undefined ? "--" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(digits)}%`);
 const zmPts = (v) => (v === null || v === undefined ? "--" : `${v > 0 ? "+" : ""}${Math.round(v * 100)}`);
-// green = good for the shooter; full color at 25% (the score) or 10 points (a make rate)
-const zmShade = (v, full, alpha = 0.32) => (v === null || v === undefined ? "" : nbaShotColor((Math.max(-1, Math.min(1, v / full)) * NBA_SHOT_FULL), alpha));
-const zmGame = (id) => (zmM().games || []).find((g) => g.game_id === id) || null;
-
-function zmRead(r) {
-  if (!r) return "";
-  const word = r.side === "over" ? "Over" : r.side === "under" ? "Under" : "Toss Up";
-  const strong = r.strong && r.side !== "toss" ? "Strong " : "";
-  const tint = r.side === "toss" ? "" : ` style="background:${zmShade(r.score, 0.25, 0.3)};border-color:${zmShade(r.score, 0.25, 0.85)}"`;
-  return `<span class="zm-read zm-${r.side}"${tint}>${strong}${word}</span>`;
+// Strength shading (the owner, 2026-10-27: "a color fading darkening system"): green helps the
+// shooter, red hurts, deeper = stronger; full at `full` (25% for a score). Through nbaShotColor, so
+// the member's color set applies.
+function zmShade(v, full, alpha = 0.6) {
+  if (v === null || v === undefined || !Number.isFinite(v) || Math.abs(v) < 0.005) return "";
+  const t = Math.min(1, Math.abs(v) / full);
+  return nbaShotColor(Math.sign(v) * NBA_SHOT_FULL, (0.08 + alpha * t).toFixed(2));
 }
-// His biggest zones (15%+ of his shots, at least one) and his main shot type, each shaded by what this defense allows there.
-function zmDiet(p, r) {
+const zmGame = (id) => (zmM().games || []).find((g) => g.game_id === id) || null;
+const zmWord = (r) => (r.side === "over" ? "OVER" : r.side === "under" ? "UNDER" : "TOSS UP");
+
+// A zone's Shots and Makes together for him (the score's own rule): + helps, - hurts.
+const zmZoneEffect = (z) => (z.vol === null && z.fg === null ? null : (1 + (z.vol || 0)) * (1 + (z.fg !== null && z.lg ? z.fg / z.lg : 0)) - 1);
+const zmKindEffect = (k) => (k.fg !== null && k.lg ? k.fg / k.lg : null);
+const zmMakeRate = (m, a) => (a ? `${Math.round((m / a) * 100)}%` : "--");
+const zmLgRate = (lg) => (lg === null || lg === undefined ? "--" : `${Math.round(lg * 100)}%`);
+const zmMakesWords = (fg) => (fg === null ? "" : ` That's ${Math.abs(Math.round(fg * 100))} points ${fg >= 0 ? "MORE makes: helps him" : "FEWER makes: hurts him"}.`);
+// The hover: what each number means, in words, and which way it points for him.
+function zmZoneWhy(p, z) {
   const g = ZM_GROUP[p.group].toLowerCase();
-  const zones = r.zones.filter((z, i) => i === 0 || z.share >= 0.15).slice(0, 3);
-  const chip = (label, share, fg, title) => `<span class="zm-chip" style="background:${zmShade(fg, 0.1, 0.28) || "var(--panel-2)"}" title="${title}">${Math.round(share * 100)}% ${label}</span>`;
-  const out = zones.map((z) => chip(ZM_ZONE[z.z], z.share, z.fg, `${p.opp} allows ${g} ${z.dmade}/${z.dtried} here (${zmPts(z.fg)} vs league), ${zmPct(z.vol)} shots vs league share`));
-  const k = r.kinds[0];
-  if (k) out.push(chip(ZM_KIND[k.k], k.share, k.fg, `${p.opp} allows ${g} ${k.dmade}/${k.dtried} on these (${zmPts(k.fg)} vs league)`));
+  const lines = [`${Math.round(z.share * 100)}% of his ${ZM.market === "threes" ? "threes" : "shots"} come from here (${z.n}).`];
+  if (z.dtried) lines.push(`Makes: ${p.opp} has let ${g} make ${z.dmade} of ${z.dtried} here (${zmMakeRate(z.dmade, z.dtried)}); league ${g} make ${zmLgRate(z.lg)}.${zmMakesWords(z.fg)}`);
+  else lines.push(`Makes: ${p.opp} hasn't faced a shot by ${g} here yet.`);
+  if (z.vol !== null) lines.push(`Shots: ${g} take ${Math.abs(Math.round(z.vol * 100))}% ${z.vol >= 0 ? "MORE" : "FEWER"} of their shots here against ${p.opp} than against the league: ${z.vol >= 0 ? "more chances, helps him" : "fewer chances, hurts him"}.`);
+  const e = zmZoneEffect(z);
+  if (e !== null) lines.push(`Together: ${zmPct(e)} for him here.`);
+  return lines.join("\n");
+}
+function zmKindWhy(p, k) {
+  const g = ZM_GROUP[p.group].toLowerCase();
+  const head = `${Math.round(k.share * 100)}% of his ${ZM.market === "threes" ? "threes" : "shots"} are ${ZM_KIND[k.k]} (${k.n}).`;
+  if (!k.dtried) return `${head}\n${p.opp} hasn't faced one by ${g} yet.`;
+  return `${head}\nMakes: ${p.opp} has let ${g} make ${k.dmade} of ${k.dtried} of these (${zmMakeRate(k.dmade, k.dtried)}); league ${g} ${zmLgRate(k.lg)}.${zmMakesWords(k.fg)}`;
+}
+// His biggest zones (15%+ of his shots, at least one) and his main shot types. A tag's color =
+// that spot for him (green helps, red hurts): a red tag on an Over is the counterpoint.
+function zmDiet(p, r) {
+  const chip = (label, share, effect, why) => `<span class="zm-chip" style="background:${zmShade(effect, 0.3, 0.5) || "var(--panel-2)"}" title="${why.replace(/"/g, "&quot;")}">${Math.round(share * 100)}% ${label}</span>`;
+  const out = r.zones.filter((z, i) => i === 0 || z.share >= 0.15).slice(0, 3).map((z) => chip(ZM_ZONE[z.z], z.share, zmZoneEffect(z), zmZoneWhy(p, z)));
+  r.kinds.filter((k, i) => i === 0 || k.share >= 0.3).slice(0, 2).forEach((k) => out.push(chip(ZM_KIND[k.k], k.share, zmKindEffect(k), zmKindWhy(p, k))));
   return out.join("");
+}
+// The main line (the player card's rule: the line most books hang) and the best price on the read's
+// side across the member's books, live from data.json's odds; a click shows every book. Falls back to
+// the build's line.
+function zmPrice(id, p, r) {
+  const g = zmGame(p.game_id);
+  const spec = { kind: "prop", team: p.team, pid: id, stat: ZM.market, game: g ? `${g.away}_${g.home}` : undefined, title: `${p.name} &middot; ${ZM.market === "threes" ? "3-Pointers Made" : "Points"}`, sub: g ? `${g.away} @ ${g.home}` : "" };
+  const quotes = typeof bookQuotes === "function" ? bookQuotes(spec) : [];
+  const line = quotes.length && typeof nbaCardMainLine === "function" ? nbaCardMainLine(quotes) : r.line;
+  if (line === null || line === undefined) return { line: "--", price: "--" };
+  const side = r.side === "under" ? "u" : "o";
+  const best = quotes.length ? bookBest(quotes, side, line) : null;
+  const price = best ? `<button type="button" class="bo-pill zm-price" data-bo="${boEnc({ ...spec, side, line })}" title="Best price across your books. Click for every book.">${boOdds(best[3])}</button>` : "--";
+  return { line: `${side}${line}`, price };
 }
 
 function zmRows(filter) {
@@ -62,29 +97,57 @@ function zmTable(rows, opts = {}) {
   const body = rows
     .map(({ id, p, r }) => {
       const g = zmGame(p.game_id);
+      const { line, price } = zmPrice(id, p, r);
       return `<tr class="zm-row${id === ZM.player ? " selected" : ""}${g && g.started ? " zm-started" : ""}" data-player="${id}">
         <td class="zm-name">${zmLogo(p.team, 18)} ${playerClick(id, p.name)} <small>${p.pos || ZM_GROUP[p.group]}</small></td>
         ${opts.noVs ? "" : `<td>${zmLogo(p.opp, 18)}</td>`}
-        <td>${zmRead(r)}</td>
-        <td class="num" style="background:${zmShade(r.score, 0.25)}"><b>${zmPct(r.score)}</b></td>
-        <td class="num">${zmPct(r.shots)}</td>
-        <td class="num">${zmPct(r.makes)}</td>
-        <td class="num">${r.line === null || r.line === undefined ? "--" : r.line}</td>
-        <td class="zm-diet">${zmDiet(p, r)}</td>
+        <td class="num" style="background:${zmShade(r.score, 0.25)}" title="${zmWord(r)}"><b>${zmPct(r.score)}</b></td>
+        <td class="num" style="background:${zmShade(r.shots, 0.25)}">${zmPct(r.shots)}</td>
+        <td class="num" style="background:${zmShade(r.makes, 0.25)}">${zmPct(r.makes)}</td>
+        <td class="num zm-line">${line}</td>
+        <td class="num">${price}</td>
+        <td class="zm-diet"><div class="zm-tags">${zmDiet(p, r)}</div></td>
         <td class="num zm-n" title="His ${ZM.market === "threes" ? "threes" : "shots"} this season / the shots this defense has allowed ${ZM_GROUP[p.group].toLowerCase()}">${r.n} / ${r.dn}</td>
       </tr>`;
     })
     .join("");
   return `<div class="shc-scroll"><table class="data-table zm-table"><thead><tr>
-    <th>Player</th>${opts.noVs ? "" : "<th>Vs</th>"}<th>Read</th>
-    <th class="num" title="Shots and Makes together">Score</th>
-    <th class="num" title="How much more of his group's shooting this defense gives up from his spots than the league does">Shots</th>
+    <th>Player</th>${opts.noVs ? "" : "<th>Vs</th>"}
+    <th class="num" title="Shots and Makes together: green = Over, red = Under, deeper = stronger">Score</th>
+    <th class="num" title="How much more of his group's shooting this defense gives up from his spots than the league does (more chances)">Shots</th>
     <th class="num" title="How much more his kind of shots go in against this defense, from his zones and shot types">Makes</th>
-    <th class="num" title="The main line, for reference only (never priced)">Line</th>
-    <th>His Diet vs This Defense</th>
+    <th class="num" title="The line most books hang, on the read's side">Line</th>
+    <th class="num" title="The best price on that side across your books (click for every book). Never priced by us.">Odds</th>
+    <th title="Share of his shots from each spot / shot type. Green = this defense helps him there, red = hurts (the counterpoint). Hover a tag for why.">His Diet vs This Defense</th>
     <th class="num" title="His shots this season / shots this defense allowed his group">Sample</th>
   </tr></thead><tbody>${body}</tbody></table></div>`;
 }
+// Tags fill at most two lines, the same box on every row; the ones that don't fit fold into a
+// "+N" pill naming them on hover (sim-board.js fitTags, the site's table rule).
+function zmFitTags() {
+  document.querySelectorAll(".zm-tags").forEach((box) => {
+    box.querySelectorAll(".zm-more").forEach((m) => m.remove());
+    const tags = [...box.children];
+    tags.forEach((t) => (t.hidden = false));
+    if (box.scrollHeight <= box.clientHeight + 1) return;
+    const more = document.createElement("span");
+    more.className = "zm-chip zm-more";
+    box.appendChild(more);
+    let shown = tags.length;
+    while (shown > 0) {
+      shown -= 1;
+      tags[shown].hidden = true;
+      const rest = tags.slice(shown);
+      more.textContent = `+${rest.length}`;
+      more.title = rest.map((t) => `${t.textContent.trim()}: ${t.title}`).join("\n\n");
+      if (box.scrollHeight <= box.clientHeight + 1) break;
+    }
+  });
+}
+window.addEventListener("resize", () => {
+  clearTimeout(zmFitTags.wait);
+  zmFitTags.wait = setTimeout(zmFitTags, 120);
+});
 
 function zmSpots() {
   const live = (x) => !(zmGame(x.p.game_id) || {}).started;
@@ -92,7 +155,7 @@ function zmSpots() {
   const worst = zmRows((x) => live(x) && x.r.side === "under").sort((a, b) => a.r.score - b.r.score);
   const cut = (list) => (ZM.all ? list : list.slice(0, ZM_TOP));
   const more = best.length > ZM_TOP || worst.length > ZM_TOP ? `<button type="button" class="view-toggle-btn zm-all">${ZM.all ? "Show Top 15" : "Show All"}</button>` : "";
-  return `<div class="zm-spots">
+  return `<p class="zm-legend">Green helps him, red hurts, deeper = stronger. A red tag on an Over (or green on an Under) is the counterpoint: hover any tag for the numbers in words.</p><div class="zm-spots">
       <div class="nba-box"><div class="nba-box-title zm-head zm-head-over">Best Spots &middot; Overs <span>${best.length}</span></div>${zmTable(cut(best))}</div>
       <div class="nba-box"><div class="nba-box-title zm-head zm-head-under">Worst Spots &middot; Unders <span>${worst.length}</span></div>${zmTable(cut(worst))}</div>
     </div>${more}`;
@@ -172,8 +235,9 @@ function zmDetail() {
   }
   const threes = ZM.market === "threes";
   const keep = (s) => !threes || s[3];
-  const mine = (ZF.players[ZM.player] || []).filter(keep);
-  const allowed = zmAllowed(p.opp, p.group).filter(keep);
+  const kindOk = (s) => ZM.kind === "all" || s[6] === Number(ZM.kind);
+  const mine = (ZF.players[ZM.player] || []).filter((s) => keep(s) && kindOk(s));
+  const allowed = zmAllowed(p.opp, p.group).filter((s) => keep(s) && kindOk(s));
   const league = zmGroupLeague(p.group).filter((s) => !threes || s[2]);
   const view = (shots, opts) => (!shots.length ? `<p class="no-data-note">No shots.</p>` : `<div class="nba-shot-chart shc-chart">${ZM.chart === "heat" ? nbaShotHeatView(shots, league, opts) : nbaShotZonesView(shots, league, opts)}</div>`);
   const g = ZM_GROUP[p.group];
@@ -182,15 +246,16 @@ function zmDetail() {
     .map((z) => {
       const rk = d[z.z] || [];
       return `<tr><td>${ZM_ZONE[z.z]}</td><td class="num">${z.n}</td><td class="num">${Math.round(z.share * 100)}%</td>
-        <td class="num zm-split">${z.dtried ? `${z.dmade}/${z.dtried}` : "--"}</td><td class="num" style="background:${zmShade(z.fg, 0.1)}">${zmPts(z.fg)}</td><td class="num">${zmPct(z.vol)}</td><td class="num">${rk[2] ? `${rk[2]}${zmOrd(rk[2])}` : "--"}</td><td class="num">${rk[3] ? `${rk[3]}${zmOrd(rk[3])}` : "--"}</td></tr>`;
+        <td class="num zm-split">${z.dtried ? `${z.dmade}/${z.dtried}` : "--"}</td><td class="num" style="background:${zmShade(z.fg, 0.1)}">${zmPts(z.fg)}</td><td class="num" style="background:${zmShade(z.vol, 0.5)}">${zmPct(z.vol)}</td><td class="num">${rk[2] ? `${rk[2]}${zmOrd(rk[2])}` : "--"}</td><td class="num">${rk[3] ? `${rk[3]}${zmOrd(rk[3])}` : "--"}</td></tr>`;
     })
     .join("");
   const kindRows = r.kinds
     .map((k) => `<tr><td>${ZM_KIND[k.k]}</td><td class="num">${k.n}</td><td class="num">${Math.round(k.share * 100)}%</td><td class="num zm-split">${k.dtried ? `${k.dmade}/${k.dtried}` : "--"}</td><td class="num" style="background:${zmShade(k.fg, 0.1)}">${zmPts(k.fg)}</td><td class="num">--</td><td class="num">--</td><td class="num">--</td></tr>`)
     .join("");
   box.hidden = false;
-  box.innerHTML = `<h2 class="section-title">${zmLogo(p.team, 22)} ${p.name} vs ${zmLogo(p.opp, 22)} ${p.opp} Defense &middot; ${threes ? "Threes" : "Points"} ${zmRead(r)}</h2>
+  box.innerHTML = `<h2 class="section-title">${zmLogo(p.team, 22)} ${p.name} vs ${zmLogo(p.opp, 22)} ${p.opp} Defense &middot; ${threes ? "Threes" : "Points"} <span class="zm-read" style="background:${zmShade(r.score, 0.25)}">${zmWord(r)}</span></h2>
     <div class="zm-bar"><div class="view-toggle" id="zm-chart"><button type="button" class="view-toggle-btn${ZM.chart === "zones" ? " active" : ""}" data-chart="zones">Zones</button><button type="button" class="view-toggle-btn${ZM.chart === "heat" ? " active" : ""}" data-chart="heat">Heat Map</button></div>
+    <div class="view-toggle" id="zm-kind">${[["all", "Every Type"], ["1", "Self-Created"], ["2", "Catch & Shoot"], ["3", "Drives & Cuts"]].map(([k, label]) => `<button type="button" class="view-toggle-btn${ZM.kind === k ? " active" : ""}" data-kind="${k}">${label}</button>`).join("")}</div>
     <span class="zm-sum">Score <b>${zmPct(r.score)}</b> &middot; Shots <b>${zmPct(r.shots)}</b> &middot; Makes <b>${zmPct(r.makes)}</b> &middot; Line <b>${r.line ?? "--"}</b></span></div>
     <div class="nba-two shc-two">
       <div class="nba-box">${zmBanner(p.team, `${playerClick(ZM.player, `<span class="shc-name">${p.name}</span>`)}<span class="shc-sub">${threes ? "His Threes" : "His Shots"} &middot; ${mine.length} &middot; vs League ${g}</span>`)}<div class="shc-inner">${view(mine)}</div></div>
@@ -238,6 +303,7 @@ function zmRender() {
   zmEl("zm-min").value = String(ZM.min);
   zmSlate();
   zmEl("zm-body").innerHTML = ZM.view === "matchup" ? zmMatchup() : zmSpots();
+  zmFitTags();
   zmDetail();
   try {
     localStorage.setItem(ZM_KEY, JSON.stringify({ view: ZM.view, market: ZM.market, min: ZM.min }));
@@ -254,6 +320,8 @@ document.addEventListener("click", (e) => {
   if (mk) return ((ZM.market = mk.dataset.market), zmRender());
   const card = e.target.closest(".matchup-card[data-game]");
   if (card) return ((ZM.game = card.dataset.game), zmRender());
+  const kd = e.target.closest("#zm-kind [data-kind]");
+  if (kd) return ((ZM.kind = kd.dataset.kind), zmDetail());
   const ch = e.target.closest("#zm-chart [data-chart]");
   if (ch) return ((ZM.chart = ch.dataset.chart), zmDetail());
   if (e.target.closest(".zm-all")) return ((ZM.all = !ZM.all), zmRender());

@@ -67,9 +67,15 @@ def group_of(pos) -> str:
     return GROUP.get(str(pos or "").upper(), "F")
 
 
-def middle_line(quotes: list):
-    ls = sorted(float(q[2]) for q in quotes or [] if len(q) > 2 and q[2] is not None)
-    return ls[len(ls) // 2] if ls else None
+def main_line(quotes: list):
+    """The line most books hang, ties to the lower one: the player card's rule (nba-card.js
+    nbaCardMainLine), so the page, the card and the record agree (the owner, 2026-10-27: Walsh's
+    1.5 threes here, no line on his card)."""
+    count = {}
+    for q in quotes or []:
+        if len(q) > 2 and q[2] is not None:
+            count[float(q[2])] = count.get(float(q[2]), 0) + 1
+    return min(count, key=lambda line: (-count[line], line)) if count else None
 
 
 class Tally:
@@ -137,7 +143,8 @@ def read(shots: list, market: str, d: Tally | None, lg: Tally | None, d_all: Tal
         if vol is not None:
             shots_ += share * vol
         zones.append({"z": z, "n": c, "share": round(share, 3), "dmade": (d.zone.get(z) or [0, 0])[0], "dtried": (d.zone.get(z) or [0, 0])[1],
-                      "fg": None if dr is None or lr is None else round(dr - lr, 3), "vol": None if vol is None else round(vol, 3)})
+                      "fg": None if dr is None or lr is None else round(dr - lr, 3), "vol": None if vol is None else round(vol, 3),
+                      "lg": None if lr is None else round(lr, 3)})
     make_k, kinds = 0.0, []
     counted = sum(c for k, c in ks.items() if k in KINDS)
     for k, c in sorted(ks.items(), key=lambda kv: -kv[1]):
@@ -148,7 +155,7 @@ def read(shots: list, market: str, d: Tally | None, lg: Tally | None, d_all: Tal
         if lr is not None and dr is not None:
             make_k += share * pts * (dr - lr)
         kinds.append({"k": k, "n": c, "share": round(c / n, 3), "dmade": (d.kind.get(k) or [0, 0])[0], "dtried": (d.kind.get(k) or [0, 0])[1],
-                      "fg": None if dr is None or lr is None else round(dr - lr, 3)})
+                      "fg": None if dr is None or lr is None else round(dr - lr, 3), "lg": None if lr is None else round(lr, 3)})
     makes = ((make_z + make_k) / 2) / base if base else 0.0
     score = (1 + shots_) * (1 + makes) - 1
     side = "over" if score >= LEAN else "under" if score <= -LEAN else "toss"
@@ -197,7 +204,7 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
                 r = read(shots, m, allowed.get((opp, grp, scope)), league.get((grp, scope)),
                          allowed.get((opp, grp, "all")), league.get((grp, "all"))) if q else None
                 if r:
-                    r["line"] = middle_line(q)
+                    r["line"] = main_line(q)
                     row[m] = r
             if any(m in row for m in MARKETS):
                 players[str(pid)] = row

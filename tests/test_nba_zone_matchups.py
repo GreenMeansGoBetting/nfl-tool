@@ -69,7 +69,7 @@ class Reads(unittest.TestCase):
 
     def test_never_priced_the_line_is_reference(self):
         r = build()["players"]["1"]["points"]
-        self.assertEqual(r["line"], 12.5)  # the middle of the books' lines
+        self.assertEqual(r["line"], 12.5)  # the line most books hang (two of three), the player card's rule
         self.assertNotIn("edge", r)
 
     def test_guards_are_read_against_guards(self):
@@ -126,7 +126,7 @@ def setUpModule():
     SITE = SiteBrowser()
     try:
         shots = dict(SHOTS, matchups=build())
-        SITE.nba = {"season": 2027, "season_label": "2026-27", "injuries": {}, "players": {}, "schedule": GAMES,
+        SITE.nba = {"season": 2027, "season_label": "2026-27", "injuries": {}, "players": {}, "schedule": GAMES, "book_odds": ODDS,
                     "teams": {t: {"name": f"Team {t}", "short": t, "logo": "", "color": "336699"} for t in TEAMS}}
         SITE.nba_shots, SITE.nba_props = shots, {"default": "2027", "seasons": {}}
         PAGE = SITE.open("nba/zones.html")
@@ -144,16 +144,27 @@ def tearDownModule():
 class Page(unittest.TestCase):
     def test_opens_on_best_and_worst_spots(self):
         self.assertEqual(PAGE.get_attribute(".zm-head-over + * .zm-row, .zm-head-over ~ * .zm-row", "data-player"), "1")
-        self.assertIn("Strong Over", PAGE.inner_text(".zm-row[data-player='1']"))
+        row = PAGE.inner_text(".zm-row[data-player='1']")
+        self.assertNotIn("Strong", row)  # the owner, 2026-10-27: no read cell; the shade says how strong
+        self.assertIn("o12.5", row)  # the line most books hang, the player card's rule
+        self.assertIn("-110", row)  # the best Over price across the books (dk -110 beats mgm -115), no book name
+        self.assertEqual(PAGE.locator(".zm-row[data-player='1'] .zm-chip").count(), 2)
+        heights = PAGE.evaluate("() => [...document.querySelectorAll('.zm-row')].map((r) => r.getBoundingClientRect().height)")
+        self.assertEqual(len(set(heights)), 1)  # every row the same height
         self.assertEqual(SITE.errors, [])
 
     def test_a_click_opens_both_charts_raw(self):
-        PAGE.click(".zm-row[data-player='1'] .zm-read")
+        PAGE.click(".zm-row[data-player='1'] .zm-n")
         PAGE.wait_for_selector("#zm-detail:not([hidden]) .nba-shot-zone")
         self.assertEqual(PAGE.locator("#zm-detail .nba-shot-legend").count(), 2)
         self.assertIn("More Makes", PAGE.inner_text("#zm-detail .nba-box:nth-child(2) .nba-shot-legend"))
         self.assertEqual(PAGE.evaluate("() => NBA_SHOT_PRIOR"), 0)
         self.assertIn("15/20", PAGE.inner_text("#zm-detail .zm-why"))
+        PAGE.click("#zm-kind [data-kind='2']")  # Catch & Shoot: Big One has none; BBB allowed Big Two's 10 top threes
+        PAGE.wait_for_selector("#zm-kind .active[data-kind='2']")
+        self.assertIn("No shots", PAGE.inner_text("#zm-detail .nba-box:nth-child(1)"))
+        self.assertIn("allowed to bigs · 10", PAGE.inner_text("#zm-detail .nba-box:nth-child(2) .shc-sub").lower())
+        PAGE.click("#zm-kind [data-kind='all']")
         self.assertEqual(SITE.errors, [])
 
     def test_matchup_view_lists_every_player_and_the_defense(self):
