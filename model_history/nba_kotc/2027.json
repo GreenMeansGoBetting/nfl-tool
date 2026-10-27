@@ -2675,7 +2675,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2569,
+    "lead": 0.2568,
     "name": "Luka Doncic",
     "proj": 50.2,
     "team": "LAL"
@@ -2703,7 +2703,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0597,
+    "lead": 0.0596,
     "name": "Joel Embiid",
     "proj": 40.5,
     "team": "PHI"
@@ -2787,7 +2787,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0157,
+    "lead": 0.0156,
     "name": "Yaxel Lendeborg",
     "proj": 33.9,
     "team": "GS"
@@ -2822,9 +2822,9 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0102,
+    "lead": 0.0105,
     "name": "Karl-Anthony Towns",
-    "proj": 33.6,
+    "proj": 33.7,
     "team": "NY"
    },
    {
@@ -2871,14 +2871,14 @@
    },
    {
     "id": "5095151",
-    "lead": 0.0049,
+    "lead": 0.005,
     "name": "Caleb Wilson",
-    "proj": 31.1,
+    "proj": 31.2,
     "team": "CHI"
    },
    {
     "id": "3934672",
-    "lead": 0.0046,
+    "lead": 0.0045,
     "name": "Jalen Brunson",
     "proj": 30.5,
     "team": "NY"
@@ -3006,7 +3006,7 @@
     "id": "3062679",
     "lead": 0.0005,
     "name": "Josh Hart",
-    "proj": 25.3,
+    "proj": 25.4,
     "team": "NY"
    },
    {

@@ -90,7 +90,7 @@
     -0.3558,
     "under",
     true,
-    7.5
+    8.5
    ]
   ],
   "threes": [
@@ -497,16 +497,6 @@
     20.5
    ],
    [
-    "3064560",
-    "Luke Kornet",
-    "SA",
-    "SAC",
-    -0.1825,
-    "under",
-    true,
-    3.5
-   ],
-   [
     "3155942",
     "Domantas Sabonis",
     "SAC",
@@ -599,16 +589,6 @@
     2.5
    ],
    [
-    "3155942",
-    "Domantas Sabonis",
-    "SAC",
-    "SA",
-    -0.1844,
-    "under",
-    true,
-    0.5
-   ],
-   [
     "4066259",
     "De'Aaron Fox",
     "SA",
@@ -626,27 +606,7 @@
     0.2191,
     "over",
     true,
-    1.5
-   ],
-   [
-    "4395723",
-    "Keldon Johnson",
-    "SA",
-    "SAC",
-    0.2139,
-    "over",
-    true,
-    0.5
-   ],
-   [
-    "4431679",
-    "Precious Achiuwa",
-    "SAC",
-    "SA",
-    -0.2418,
-    "under",
-    true,
-    0.5
+    2.5
    ],
    [
     "4592479",
