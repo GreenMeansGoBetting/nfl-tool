@@ -2250,70 +2250,70 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3444,
+    "lead": 0.3424,
     "name": "Luka Doncic",
-    "proj": 48.5,
+    "proj": 48.4,
     "team": "LAL"
    },
    {
     "id": "3155942",
-    "lead": 0.1653,
+    "lead": 0.1661,
     "name": "Domantas Sabonis",
     "proj": 42.1,
     "team": "SAC"
    },
    {
     "id": "4065648",
-    "lead": 0.0937,
+    "lead": 0.0942,
     "name": "Jayson Tatum",
     "proj": 38.6,
     "team": "BOS"
    },
    {
     "id": "3064440",
-    "lead": 0.0602,
+    "lead": 0.0607,
     "name": "Zach LaVine",
     "proj": 36.0,
     "team": "SAC"
    },
    {
     "id": "4066457",
-    "lead": 0.0462,
+    "lead": 0.0457,
     "name": "Austin Reaves",
-    "proj": 34.5,
+    "proj": 34.4,
     "team": "LAL"
    },
    {
     "id": "3064514",
-    "lead": 0.0449,
+    "lead": 0.0451,
     "name": "Julius Randle",
     "proj": 35.0,
     "team": "BKN"
    },
    {
     "id": "4683021",
-    "lead": 0.0395,
+    "lead": 0.0391,
     "name": "Deni Avdija",
-    "proj": 34.5,
+    "proj": 34.4,
     "team": "POR"
    },
    {
     "id": "5104157",
-    "lead": 0.0346,
+    "lead": 0.0349,
     "name": "Victor Wembanyama",
     "proj": 33.6,
     "team": "SA"
    },
    {
     "id": "3136195",
-    "lead": 0.0279,
+    "lead": 0.0281,
     "name": "Karl-Anthony Towns",
     "proj": 32.9,
     "team": "NY"
    },
    {
     "id": "4432166",
-    "lead": 0.0212,
+    "lead": 0.0213,
     "name": "Cade Cunningham",
     "proj": 32.4,
     "team": "DET"
@@ -2327,17 +2327,24 @@
    },
    {
     "id": "4251",
-    "lead": 0.0182,
+    "lead": 0.0183,
     "name": "Paul George",
     "proj": 31.0,
     "team": "BOS"
    },
    {
     "id": "4845367",
-    "lead": 0.0172,
+    "lead": 0.0173,
     "name": "Stephon Castle",
     "proj": 30.6,
     "team": "SA"
+   },
+   {
+    "id": "6606",
+    "lead": 0.0144,
+    "name": "Damian Lillard",
+    "proj": 30.7,
+    "team": "POR"
    },
    {
     "id": "5142620",
@@ -2345,13 +2352,6 @@
     "name": "Darius Acuff Jr.",
     "proj": 29.6,
     "team": "SAC"
-   },
-   {
-    "id": "6606",
-    "lead": 0.0143,
-    "name": "Damian Lillard",
-    "proj": 30.7,
-    "team": "POR"
    },
    {
     "id": "5037871",
@@ -2539,7 +2539,7 @@
     "id": "4397014",
     "lead": 0.0,
     "name": "Quentin Grimes",
-    "proj": 15.0,
+    "proj": 14.9,
     "team": "LAL"
    },
    {
