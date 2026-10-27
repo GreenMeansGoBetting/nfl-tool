@@ -98,6 +98,29 @@ class Reads(unittest.TestCase):
         self.assertLess(abs(r["score"]), abs(r["shots"]))
 
 
+class Record(unittest.TestCase):
+    """Reads lock at tip (a started game is never rewritten), Toss Ups aren't saved, and the grade is
+    against his main line with no price (units None), split Strong / Lean and Over / Under."""
+
+    def test_locks_at_tip_and_grades_by_bucket(self):
+        import json
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "2027.json"
+            m = build()
+            rec = Z.update_record(2027, m, path)
+            self.assertEqual([r[0] for r in rec["900"]["points"]], ["1"])  # Guard Three's read is a Toss Up: not saved
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            started = dict(m, games=[dict(m["games"][0], started=True)])
+            started["players"] = {"1": dict(m["players"]["1"], points=dict(m["players"]["1"]["points"], side="under"))}
+            self.assertEqual(Z.update_record(2027, started, path), saved)  # after tip: unchanged
+        logs = {"points": {("900", "1"): 14.0}}
+        rows = Z.ledger(rec, logs["points"], "points")
+        self.assertEqual(rows, [["2099-10-25", round(abs(m["players"]["1"]["points"]["score"]), 4), 1, None, ["strong", "over"]]])
+        self.assertEqual(Z.ledger(rec, {("900", "1"): 12.5}, "points"), [])  # a push
+        self.assertEqual(Z.ledger(rec, {}, "points"), [])  # sat / no box score yet
+
+
 def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
@@ -144,6 +167,15 @@ class Page(unittest.TestCase):
         finally:
             PAGE.click("#zm-market [data-market='points']")
             PAGE.click("#zm-view [data-view='spots']")
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_ytd_tracker_opens(self):
+        PAGE.click("#zm-ytd")
+        try:
+            PAGE.wait_for_selector("#zm-ytd-modal:not([hidden]) .ytd-tile")
+            self.assertIn("min score", PAGE.inner_text("#zm-ytd-modal").lower())
+        finally:
+            PAGE.keyboard.press("Escape")
         self.assertEqual(SITE.errors, [])
 
 

@@ -33,7 +33,9 @@ For a player, one market (points: every shot; threes: his threes):
 """
 from __future__ import annotations
 
+import json
 import math
+from pathlib import Path
 
 LEAN = 0.05
 STRONG = 0.12
@@ -220,3 +222,60 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
     return {"date": date, "games": out_games, "players": players, "defense": defense, "league": lg, "league_n": lg_n,
             "pos": {str(k): group_of(v) for k, v in pos.items() if str(k) in (shots_block.get("players") or {})},
             "lean": LEAN, "strong": STRONG}
+
+
+# ---- the record (the owner, 2026-10-27: "grade based on score buckets") ----
+# model_history/nba_zones/<season>.json {game id: {date, points: [read], threes: [read]}}: each
+# game's OVER / UNDER reads as the last build before tip had them (a started game is never
+# rewritten; Toss Ups aren't saved). Graded against his main line at the time (never a price:
+# units are None, the tracker shows the win % alone), split Strong / Lean and Over / Under.
+RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_zones"
+READ_FIELDS = ("pid", "name", "team", "opp", "score", "side", "strong", "line")
+
+
+def update_record(season: int, matchups: dict | None, path: Path | None = None) -> dict:
+    path = path or RECORD_DIR / f"{season}.json"
+    record = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    if not matchups:
+        return record
+    for g in matchups.get("games") or []:
+        if g.get("started"):
+            continue
+        entry = {"date": matchups["date"]}
+        for m in MARKETS:
+            entry[m] = [[pid, p["name"], p["team"], p["opp"], p[m]["score"], p[m]["side"], p[m]["strong"], p[m]["line"]]
+                        for pid, p in sorted(matchups["players"].items())
+                        if p["game_id"] == g["game_id"] and m in p and p[m]["side"] != "toss" and p[m].get("line") is not None]
+        record[str(g["game_id"])] = entry
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(record, indent=1, sort_keys=True), encoding="utf-8")
+    return record
+
+
+def box_logs(box) -> dict:
+    """{market: {(game id, player id): the stat}} for players who played, from the box scores."""
+    out = {m: {} for m in MARKETS}
+    if box is None or box.empty:
+        return out
+    played = box[box["minutes"].fillna(0).astype(float) > 0]
+    for r in played[["game_id", "athlete_id", "points", "three_point_field_goals_made"]].dropna().itertuples(index=False):
+        key = (str(int(r.game_id)), str(int(r.athlete_id)))
+        out["points"][key] = float(r.points)
+        out["threes"][key] = float(r.three_point_field_goals_made)
+    return out
+
+
+def ledger(record: dict, logs: dict, market: str) -> list:
+    """The shared YTD tracker's rows (ytd.js): [date, |score|, won 1/0, None, [strong | lean, over | under]];
+    a push or a player who sat isn't graded."""
+    out = []
+    for gid, g in record.items():
+        for row in g.get(market) or []:
+            p = dict(zip(READ_FIELDS, row))
+            got = logs.get((str(gid), str(p["pid"])))
+            if got is None or p["line"] is None or got == p["line"]:
+                continue
+            over = p["side"] == "over"
+            out.append([g["date"], round(abs(p["score"]), 4), int((got > p["line"]) == over), None,
+                        ["strong" if p["strong"] else "lean", "over" if over else "under"]])
+    return sorted(out, key=lambda r: (r[0], -r[1]))

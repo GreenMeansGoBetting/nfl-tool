@@ -1165,6 +1165,11 @@ def main():
         try:
             if block:
                 block["matchups"] = zone_matchups.block(block, POSITION_TABLE, games, book_odds, today, now_iso)
+                # the record: reads locked at tip, graded from the box scores (deploy bot commits model_history/)
+                rec = zone_matchups.update_record(args.season, block["matchups"])
+                logs = zone_matchups.box_logs(player_box)
+                if block["matchups"]:
+                    block["matchups"]["record"] = {m: {"ledger": zone_matchups.ledger(rec, logs[m], m)} for m in zone_matchups.MARKETS}
         except Exception as ex:
             print(f"WARNING: NBA zone matchups failed ({ex!r}).", file=sys.stderr)
         args.out.parent.mkdir(parents=True, exist_ok=True)

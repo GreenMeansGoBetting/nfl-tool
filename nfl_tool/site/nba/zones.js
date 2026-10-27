@@ -202,6 +202,23 @@ function zmDetail() {
     </thead><tbody>${zoneRows}<tr class="nba-shot-group"><td colspan="8">How He Shoots</td></tr>${kindRows}</tbody></table></div>`;
 }
 
+// ---- the record: every OVER / UNDER read locked at tip, graded against his main line (never a price) ----
+function zmYtd() {
+  const overlay = ensureBookModal("zm-ytd-modal");
+  const content = overlay.querySelector(".bo-content");
+  content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="zm-ytd-tracker"></div>
+    <p class="no-data-note">Every Over / Under read as it stood at tip, graded against his main line then (never priced: hit rate only). Toss Ups, pushes and players who sat don't count. The slider cuts on the read's score.</p>`;
+  const rec = zmM().record || {};
+  const splits = [["strong", "Strong", "Score 12%+"], ["lean", "Lean", "Score 5-12%"], ["over", "Overs"], ["under", "Unders"]];
+  ytdTracker(content.querySelector(".zm-ytd-tracker"), {
+    key: "nba-zones",
+    all: "All Reads",
+    markets: [["points", "Points"], ["threes", "Threes"]].map(([key, label]) => ({ key: `zones-${key}`, label, short: label, ledger: (rec[key] || {}).ledger || [],
+      min: 5, max: 30, step: 1, scale: 100, unit: "%+", slider: "Min Score", tip: "Every read with at least the minimum score", splits })),
+  });
+  overlay.hidden = false;
+}
+
 // ---- the page ----
 function zmSlate() {
   const m = zmM();
@@ -240,6 +257,7 @@ document.addEventListener("click", (e) => {
   const ch = e.target.closest("#zm-chart [data-chart]");
   if (ch) return ((ZM.chart = ch.dataset.chart), zmDetail());
   if (e.target.closest(".zm-all")) return ((ZM.all = !ZM.all), zmRender());
+  if (e.target.closest("#zm-ytd")) return zmYtd();
   const row = e.target.closest(".zm-row");
   if (row && !e.target.closest(".player-click")) {
     ZM.player = row.dataset.player;

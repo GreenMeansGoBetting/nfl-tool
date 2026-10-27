@@ -306,6 +306,10 @@ def suite_note(site: Path, suite: str, failed=False) -> dict:
         note["timing"] = data.get("timing")  # seconds each part of the build took
         note["points_alt"] = bo.get("points_alt")
         note["threes_alt"] = bo.get("threes_alt")
+        shots = read_json(site / "nba" / "shots.json")
+        zm = (shots or {}).get("matchups") or {}
+        # Zone Matchup Targets: players read tonight, and graded reads in the record (None = the block failed)
+        note["zones"] = {"players": len(zm.get("players") or {}), "graded": sum(len((v or {}).get("ledger") or []) for v in (zm.get("record") or {}).values())} if zm else None
     if failed:
         note["error"] = build_error(suite)
     return note

@@ -492,8 +492,13 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
   opens his chart and the defense's chart allowed to his group (both vs his group's league) and the
   Why table (zones and shot types). Display prefs per device (`nba-tool.zones.v1`).
 - Defense chart legends read Less Makes / More Makes, Fewer Shots / More Shots (the owner, same day).
-- **Not built yet:** the locked, graded record by score bucket (the owner said yes; second push);
-  a key defender Out chip (with / without him on the floor; the owner flagged starters vs bench).
+- **The record** (the owner: "grade based on score buckets"): `model_history/nba_zones/<season>.json`
+  {game: {date, points / threes: [READ_FIELDS]}}, Over / Under reads only (no Toss Ups), rewritten until
+  tip, never after (`update_record`); graded from the box scores (`box_logs`: played minutes > 0)
+  against his main line then, push / sat not graded; `ledger` rows carry |score| and units None (never
+  priced: hit rate only), tags strong / lean, over / under. shots.json `matchups.record` {market:
+  {ledger}}; the page's YTD Model Performance button = the shared tracker (Min Score slider 5-30%).
+- **Not built yet:** a key defender Out chip (with / without him on the floor; the owner flagged starters vs bench).
 - Tests: `tests/test_nba_zone_matchups.py`.
 
 ## The owner's list (2026-10-20, for when usage allows)
