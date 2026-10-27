@@ -40,7 +40,17 @@
     0.6736,
     "over",
     true,
-    6.5
+    5.5
+   ],
+   [
+    "4397424",
+    "Neemias Queta",
+    "BOS",
+    "BKN",
+    0.3424,
+    "over",
+    true,
+    5.5
    ],
    [
     "4712896",
@@ -115,6 +125,16 @@
     2.5
    ],
    [
+    "4683689",
+    "Jordan Walsh",
+    "BOS",
+    "BKN",
+    0.9461,
+    "over",
+    true,
+    0.5
+   ],
+   [
     "4702177",
     "Keon Ellis",
     "BKN",
@@ -132,6 +152,16 @@
     0.1111,
     "over",
     false,
+    1.5
+   ],
+   [
+    "5101761",
+    "Mikel Brown Jr.",
+    "BKN",
+    "BOS",
+    0.3834,
+    "over",
+    true,
     1.5
    ],
    [
@@ -207,7 +237,7 @@
     -0.2463,
     "under",
     true,
-    7.5
+    6.5
    ],
    [
     "3934672",
@@ -407,6 +437,16 @@
     21.5
    ],
    [
+    "3064560",
+    "Luke Kornet",
+    "SA",
+    "SAC",
+    -0.1825,
+    "under",
+    true,
+    3.5
+   ],
+   [
     "3155942",
     "Domantas Sabonis",
     "SAC",
@@ -499,6 +539,16 @@
     2.5
    ],
    [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "SA",
+    -0.1844,
+    "under",
+    true,
+    0.5
+   ],
+   [
     "4066259",
     "De'Aaron Fox",
     "SA",
@@ -519,6 +569,26 @@
     2.5
    ],
    [
+    "4395723",
+    "Keldon Johnson",
+    "SA",
+    "SAC",
+    0.2139,
+    "over",
+    true,
+    0.5
+   ],
+   [
+    "4431679",
+    "Precious Achiuwa",
+    "SAC",
+    "SA",
+    -0.2418,
+    "under",
+    true,
+    0.5
+   ],
+   [
     "4592479",
     "Julian Champagnie",
     "SA",
@@ -526,7 +596,7 @@
     0.1133,
     "over",
     false,
-    2.5
+    1.5
    ],
    [
     "4845367",
@@ -764,16 +834,6 @@
     "under",
     true,
     1.5
-   ],
-   [
-    "5105565",
-    "Donovan Clingan",
-    "POR",
-    "LAL",
-    -0.0999,
-    "under",
-    false,
-    0.5
    ],
    [
     "6606",

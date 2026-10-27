@@ -3198,7 +3198,7 @@
     0.103,
     850,
     false,
-    "bet365"
+    "fanduel"
    ],
    "3078576": [
     "Derrick White",
@@ -3231,16 +3231,16 @@
    "4351852": [
     "Mitchell Robinson",
     0.075,
-    690,
+    700,
     false,
-    "draftkings"
+    "thescore"
    ],
    "4432194": [
     "Day'Ron Sharpe",
     0.085,
-    1180,
-    false,
-    "draftkings"
+    1200,
+    true,
+    "fanduel"
    ],
    "4683689": [
     "Jordan Walsh",
@@ -3296,7 +3296,7 @@
    "3147657": [
     "Mikal Bridges",
     0.088,
-    930,
+    920,
     false,
     "draftkings"
    ],
@@ -3305,7 +3305,7 @@
     0.092,
     1000,
     false,
-    "fanduel"
+    "thescore"
    ],
    "3908845": [
     "John Collins",
@@ -3415,7 +3415,7 @@
     0.109,
     700,
     false,
-    "thescore"
+    "fanduel"
    ],
    "5037871": [
     "Dylan Harper",
@@ -3462,26 +3462,26 @@
     0.076,
     1200,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3945274": [
     "Luka Doncic",
     0.121,
-    454,
+    480,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4066457": [
     "Austin Reaves",
     0.105,
-    700,
+    750,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4279888": [
     "Ja Morant",
     0.099,
-    950,
+    1000,
     false,
     "fanduel"
    ],
@@ -3495,37 +3495,37 @@
    "4433136": [
     "Walker Kessler",
     0.095,
-    591,
+    700,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4433137": [
     "Ziaire Williams",
     0.08,
-    950,
+    1100,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4683021": [
     "Deni Avdija",
     0.103,
     700,
     false,
-    "fanduel"
+    "thescore"
    ],
    "5105565": [
     "Donovan Clingan",
     0.093,
-    950,
+    900,
     false,
-    "fanduel"
+    "bet365"
    ],
    "6606": [
     "Damian Lillard",
     0.099,
-    780,
+    850,
     false,
-    "draftkings"
+    "bet365"
    ]
   },
   "tip_home": 0.491
