@@ -29,14 +29,15 @@ function zmRgb(abbr) {
 const zmBanner = (abbr, inner) => `<div class="nba-box-title shc-title" style="background:rgba(${zmRgb(abbr)},0.22);border-left:4px solid rgb(${zmRgb(abbr)})">${zmLogo(abbr, 24)}${inner}</div>`;
 const zmPct = (v, digits = 0) => (v === null || v === undefined ? "--" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(digits)}%`);
 const zmPts = (v) => (v === null || v === undefined ? "--" : `${v > 0 ? "+" : ""}${Math.round(v * 100)}`);
-// Strength shading (the owner, 2026-10-27: "a color fading darkening system"): green helps the
-// shooter, red hurts, deeper = stronger; full at `full` (25% for a score). Through nbaShotColor, so
-// the member's color set applies.
-function zmShade(v, full, alpha = 0.6) {
-  if (v === null || v === undefined || !Number.isFinite(v) || Math.abs(v) < 0.005) return "";
-  const t = Math.min(1, Math.abs(v) / full);
-  return nbaShotColor(Math.sign(v) * NBA_SHOT_FULL, (0.08 + alpha * t).toFixed(2));
+// The site's red-to-green scale (the owner, 2026-10-27: the full Green / Red scale, "less on only
+// shades of green and red"): red hurts the shooter, yellow about even, green helps; the end colors at
+// `full` (25% for a score). Through nbaShotColor / scaleHsla, so the member's color set applies.
+function zmShade(v, full, alpha = 0.5) {
+  if (v === null || v === undefined || !Number.isFinite(v)) return "";
+  return nbaShotColor(Math.max(-1, Math.min(1, v / full)) * NBA_SHOT_FULL, alpha);
 }
+// The read in words, Matchup View only (the owner: "it was helpful there").
+const zmReadWord = (r) => (r.side === "toss" ? "Toss Up" : `${r.strong ? "Strong " : ""}${r.side === "over" ? "Over" : "Under"}`);
 const zmGame = (id) => (zmM().games || []).find((g) => g.game_id === id) || null;
 const zmWord = (r) => (r.side === "over" ? "OVER" : r.side === "under" ? "UNDER" : "TOSS UP");
 
@@ -66,7 +67,7 @@ function zmKindWhy(p, k) {
 // His biggest zones (15%+ of his shots, at least one) and his main shot types. A tag's color =
 // that spot for him (green helps, red hurts): a red tag on an Over is the counterpoint.
 function zmDiet(p, r) {
-  const chip = (label, share, effect, why) => `<span class="zm-chip" style="background:${zmShade(effect, 0.3, 0.5) || "var(--panel-2)"}" title="${why.replace(/"/g, "&quot;")}">${Math.round(share * 100)}% ${label}</span>`;
+  const chip = (label, share, effect, why) => `<span class="zm-chip" style="background:${zmShade(effect, 0.3, 0.45) || "var(--panel-2)"}" title="${why.replace(/"/g, "&quot;")}">${Math.round(share * 100)}% ${label}</span>`;
   const out = r.zones.filter((z, i) => i === 0 || z.share >= 0.15).slice(0, 3).map((z) => chip(ZM_ZONE[z.z], z.share, zmZoneEffect(z), zmZoneWhy(p, z)));
   r.kinds.filter((k, i) => i === 0 || k.share >= 0.3).slice(0, 2).forEach((k) => out.push(chip(ZM_KIND[k.k], k.share, zmKindEffect(k), zmKindWhy(p, k))));
   return out.join("");
@@ -101,6 +102,7 @@ function zmTable(rows, opts = {}) {
       return `<tr class="zm-row${id === ZM.player ? " selected" : ""}${g && g.started ? " zm-started" : ""}" data-player="${id}">
         <td class="zm-name">${zmLogo(p.team, 18)} ${playerClick(id, p.name)} <small>${p.pos || ZM_GROUP[p.group]}</small></td>
         ${opts.noVs ? "" : `<td>${zmLogo(p.opp, 18)}</td>`}
+        ${opts.read ? `<td><span class="zm-read" style="background:${zmShade(r.score, 0.25)}">${zmReadWord(r)}</span></td>` : ""}
         <td class="num" style="background:${zmShade(r.score, 0.25)}" title="${zmWord(r)}"><b>${zmPct(r.score)}</b></td>
         <td class="num" style="background:${zmShade(r.shots, 0.25)}">${zmPct(r.shots)}</td>
         <td class="num" style="background:${zmShade(r.makes, 0.25)}">${zmPct(r.makes)}</td>
@@ -112,7 +114,7 @@ function zmTable(rows, opts = {}) {
     })
     .join("");
   return `<div class="shc-scroll"><table class="data-table zm-table"><thead><tr>
-    <th>Player</th>${opts.noVs ? "" : "<th>Vs</th>"}
+    <th>Player</th>${opts.noVs ? "" : "<th>Vs</th>"}${opts.read ? '<th title="Strong past 12%, Toss Up inside 5%">Read</th>' : ""}
     <th class="num" title="Shots and Makes together: green = Over, red = Under, deeper = stronger">Score</th>
     <th class="num" title="How much more of his group's shooting this defense gives up from his spots than the league does (more chances)">Shots</th>
     <th class="num" title="How much more his kind of shots go in against this defense, from his zones and shot types">Makes</th>
@@ -155,7 +157,7 @@ function zmSpots() {
   const worst = zmRows((x) => live(x) && x.r.side === "under").sort((a, b) => a.r.score - b.r.score);
   const cut = (list) => (ZM.all ? list : list.slice(0, ZM_TOP));
   const more = best.length > ZM_TOP || worst.length > ZM_TOP ? `<button type="button" class="view-toggle-btn zm-all">${ZM.all ? "Show Top 15" : "Show All"}</button>` : "";
-  return `<p class="zm-legend">Green helps him, red hurts, deeper = stronger. A red tag on an Over (or green on an Under) is the counterpoint: hover any tag for the numbers in words.</p><div class="zm-spots">
+  return `<p class="zm-legend">Green helps him, yellow is about even, red hurts. A red tag on an Over (or green on an Under) is the counterpoint: hover any tag for the numbers in words.</p><div class="zm-spots">
       <div class="nba-box"><div class="nba-box-title zm-head zm-head-over">Best Spots &middot; Overs <span>${best.length}</span></div>${zmTable(cut(best))}</div>
       <div class="nba-box"><div class="nba-box-title zm-head zm-head-under">Worst Spots &middot; Unders <span>${worst.length}</span></div>${zmTable(cut(worst))}</div>
     </div>${more}`;
@@ -189,7 +191,7 @@ function zmMatchup() {
   const side = (team, opp) => {
     const rows = zmRows((x) => x.p.game_id === g.game_id && x.p.team === team).sort((a, b) => b.r.score - a.r.score);
     return `<div class="nba-box">${zmBanner(team, `<span class="shc-name">${zmTeam(team).name}</span><span class="shc-sub">Shooters vs ${opp} Defense</span>`)}
-      <div class="zm-inner"><div class="zm-def-title">${zmLogo(opp, 16)} ${opp} Defense By Group (rank of 30 in make rate allowed; 30th = gives up the most)</div>${zmDefense(opp)}${zmTable(rows, { noVs: true })}</div></div>`;
+      <div class="zm-inner"><div class="zm-def-title">${zmLogo(opp, 16)} ${opp} Defense By Group (rank of 30 in make rate allowed; 30th = gives up the most)</div>${zmDefense(opp)}${zmTable(rows, { noVs: true, read: true })}</div></div>`;
   };
   return `<div class="zm-game">${side(g.away, g.home)}${side(g.home, g.away)}</div>`;
 }

@@ -492,8 +492,8 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
   opens his chart and the defense's chart allowed to his group (both vs his group's league) and the
   Why table (zones and shot types). Display prefs per device (`nba-tool.zones.v1`).
 - Defense chart legends read Less Makes / More Makes, Fewer Shots / More Shots (the owner, same day).
-- **Fixes the same day (the owner):** no Read cell ("redundant"); Score, Shots and Makes cells shaded
-  green / red, deeper = stronger (`zmShade`, through nbaShotColor); the **line = the player card's
+- **Fixes the same day (the owner):** no Read cell ("redundant"; back in Matchup View only, Strong Over ... Strong Under: "it was helpful there"); Score, Shots and Makes cells on the site's full red-yellow-green scale (not green / red shades),
+  (`zmShade`, through nbaShotColor); the **line = the player card's
   rule** (most books, ties lower: `main_line` / `nbaCardMainLine`, read live from data.json
   `book_odds`; the middle line had shown Walsh 1.5 threes his card didn't) with **Odds** = best price
   on the read's side across the member's books, no book name, click for every book; diet tags colored

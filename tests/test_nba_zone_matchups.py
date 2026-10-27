@@ -173,6 +173,8 @@ class Page(unittest.TestCase):
             PAGE.wait_for_selector(".zm-game")
             self.assertEqual(sorted(PAGE.evaluate("() => [...document.querySelectorAll('.zm-game .zm-row')].map((r) => r.dataset.player)")), ["1", "3"])
             self.assertGreater(PAGE.locator(".zm-game .zm-def-row").count(), 0)
+            self.assertIn("Strong Over", PAGE.inner_text(".zm-game .zm-row[data-player='1']"))  # the read words, Matchup View only
+            self.assertIn("Toss Up", PAGE.inner_text(".zm-game .zm-row[data-player='3']"))
             PAGE.click("#zm-market [data-market='threes']")
             PAGE.wait_for_function("() => [...document.querySelectorAll('.zm-game .zm-row')].map((r) => r.dataset.player).join() === '3'")
         finally:
