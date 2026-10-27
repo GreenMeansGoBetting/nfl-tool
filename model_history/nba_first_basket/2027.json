@@ -3198,28 +3198,28 @@
     0.103,
     850,
     false,
-    "draftkings"
+    "bet365"
    ],
    "3078576": [
     "Derrick White",
     0.094,
-    700,
+    800,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4065648": [
     "Jayson Tatum",
     0.146,
-    408,
+    420,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4251": [
     "Paul George",
     0.125,
     500,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4278104": [
     "Michael Porter Jr.",
@@ -3231,21 +3231,21 @@
    "4351852": [
     "Mitchell Robinson",
     0.075,
-    690,
+    730,
     false,
     "draftkings"
    ],
    "4432194": [
     "Day'Ron Sharpe",
     0.085,
-    1160,
-    false,
+    1220,
+    true,
     "draftkings"
    ],
    "4683689": [
     "Jordan Walsh",
     0.077,
-    1130,
+    1110,
     false,
     "fliff"
    ],
@@ -3282,7 +3282,7 @@
    "3062679": [
     "Josh Hart",
     0.086,
-    1300,
+    1400,
     true,
     "fanduel"
    ],
@@ -3296,15 +3296,15 @@
    "3147657": [
     "Mikal Bridges",
     0.088,
-    910,
+    940,
     false,
     "draftkings"
    ],
    "3157465": [
     "Duncan Robinson",
     0.092,
-    1000,
-    false,
+    1100,
+    true,
     "fanduel"
    ],
    "3908845": [
@@ -3324,7 +3324,7 @@
    "3934719": [
     "OG Anunoby",
     0.09,
-    940,
+    960,
     false,
     "draftkings"
    ],
@@ -3338,7 +3338,7 @@
    "4684742": [
     "Ausar Thompson",
     0.08,
-    1250,
+    1200,
     false,
     "bet365"
    ],
@@ -3371,21 +3371,21 @@
    "3064440": [
     "Zach LaVine",
     0.092,
-    1400,
+    1300,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "3155942": [
     "Domantas Sabonis",
     0.084,
-    940,
+    970,
     false,
     "draftkings"
    ],
    "4065732": [
     "De'Andre Hunter",
     0.061,
-    1550,
+    1500,
     false,
     "bet365"
    ],
@@ -3399,7 +3399,7 @@
    "4395630": [
     "Devin Vassell",
     0.104,
-    800,
+    850,
     false,
     "bet365"
    ],
@@ -3420,7 +3420,7 @@
    "5037871": [
     "Dylan Harper",
     0.108,
-    780,
+    860,
     false,
     "draftkings"
    ],
@@ -3467,51 +3467,51 @@
    "3945274": [
     "Luka Doncic",
     0.121,
-    454,
+    470,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4066457": [
     "Austin Reaves",
     0.105,
-    700,
+    750,
     false,
-    "thescore"
+    "bet365"
    ],
    "4279888": [
     "Ja Morant",
     0.099,
-    1000,
+    950,
     false,
     "fanduel"
    ],
    "4431736": [
     "Toumani Camara",
     0.088,
-    1160,
+    1200,
     true,
-    "draftkings"
+    "fanduel"
    ],
    "4433136": [
     "Walker Kessler",
     0.095,
-    591,
+    700,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4433137": [
     "Ziaire Williams",
     0.08,
-    1000,
+    1100,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4683021": [
     "Deni Avdija",
     0.103,
-    750,
+    700,
     false,
-    "fanduel"
+    "thescore"
    ],
    "5105565": [
     "Donovan Clingan",
@@ -3523,9 +3523,9 @@
    "6606": [
     "Damian Lillard",
     0.099,
-    780,
+    900,
     false,
-    "draftkings"
+    "bet365"
    ]
   },
   "tip_home": 0.491
@@ -3797,91 +3797,88 @@
  "401909884": {
   "away": "PHI",
   "date": "2026-10-28",
-  "first_home": 0.52,
+  "first_home": 0.5,
   "home": "IND",
   "jumpers": [
    [
     "3059318",
     "Joel Embiid"
    ],
-   [
-    "4017837",
-    "Ivica Zubac"
-   ]
+   null
   ],
   "players": {
    "1966": [
     "LeBron James",
-    0.095,
+    0.099,
     1000,
     false,
     "fanduel"
    ],
    "3059318": [
     "Joel Embiid",
-    0.089,
-    550,
+    0.092,
+    500,
     false,
     "fanduel"
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.101,
+    0.095,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.105,
+    0.099,
     550,
     false,
     "fanduel"
    ],
    "3917376": [
     "Jaylen Brown",
-    0.097,
-    650,
+    0.101,
+    700,
     false,
     "fanduel"
    ],
-   "4017837": [
-    "Ivica Zubac",
-    0.1,
-    null,
-    false,
-    null
-   ],
    "4395712": [
     "Andrew Nembhard",
-    0.092,
+    0.087,
+    800,
+    false,
+    "fanduel"
+   ],
+   "4396909": [
+    "Aaron Nesmith",
+    0.103,
     800,
     false,
     "fanduel"
    ],
    "4396993": [
     "Tyrese Haliburton",
-    0.101,
-    800,
+    0.095,
+    900,
     false,
     "fanduel"
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.103,
-    750,
+    0.107,
+    700,
     false,
     "fanduel"
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.077,
-    1000,
+    0.081,
+    1100,
     false,
     "fanduel"
    ]
   },
-  "tip_home": 0.56
+  "tip_home": 0.5
  },
  "401909885": {
   "away": "ORL",
@@ -4404,91 +4401,88 @@
  "401909891": {
   "away": "OKC",
   "date": "2026-10-28",
-  "first_home": 0.428,
+  "first_home": 0.5,
   "home": "DAL",
   "jumpers": [
-   [
-    "4433255",
-    "Chet Holmgren"
-   ],
+   null,
    [
     "4278049",
     "Daniel Gafford"
    ]
   ],
   "players": {
+   "3133626": [
+    "Kenrich Williams",
+    0.078,
+    null,
+    false,
+    null
+   ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.106,
+    0.091,
     null,
     false,
     null
    ],
    "4278049": [
     "Daniel Gafford",
-    0.072,
+    0.084,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.125,
+    0.111,
     null,
     false,
     null
    ],
    "4278078": [
     "P.J. Washington",
-    0.099,
+    0.115,
     null,
     false,
     null
    ],
    "4432582": [
     "Max Christie",
-    0.071,
-    null,
-    false,
-    null
-   ],
-   "4433255": [
-    "Chet Holmgren",
-    0.094,
+    0.083,
     null,
     false,
     null
    ],
    "4683778": [
     "Jared McCain",
-    0.108,
+    0.096,
     null,
     false,
     null
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.116,
+    0.104,
     null,
     false,
     null
    ],
    "5041939": [
     "Cooper Flagg",
-    0.087,
+    0.102,
     null,
     false,
     null
    ],
    "6442": [
     "Kyrie Irving",
-    0.082,
+    0.096,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.284
+  "tip_home": 0.5
  },
  "401909892": {
   "away": "LAL",
