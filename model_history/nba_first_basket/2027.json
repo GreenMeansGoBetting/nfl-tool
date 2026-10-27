@@ -3198,14 +3198,14 @@
     0.103,
     850,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3078576": [
     "Derrick White",
     0.094,
-    800,
+    700,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4065648": [
     "Jayson Tatum",
@@ -3219,7 +3219,7 @@
     0.125,
     500,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4278104": [
     "Michael Porter Jr.",
@@ -3231,21 +3231,21 @@
    "4351852": [
     "Mitchell Robinson",
     0.075,
-    700,
+    690,
     false,
-    "thescore"
+    "draftkings"
    ],
    "4432194": [
     "Day'Ron Sharpe",
     0.085,
-    1200,
-    true,
-    "fanduel"
+    1160,
+    false,
+    "draftkings"
    ],
    "4683689": [
     "Jordan Walsh",
     0.077,
-    1105,
+    1130,
     false,
     "fliff"
    ],
@@ -3296,7 +3296,7 @@
    "3147657": [
     "Mikal Bridges",
     0.088,
-    920,
+    910,
     false,
     "draftkings"
    ],
@@ -3305,12 +3305,12 @@
     0.092,
     1000,
     false,
-    "thescore"
+    "fanduel"
    ],
    "3908845": [
     "John Collins",
     0.115,
-    1000,
+    950,
     true,
     "fanduel"
    ],
@@ -3371,7 +3371,7 @@
    "3064440": [
     "Zach LaVine",
     0.092,
-    1500,
+    1400,
     true,
     "fanduel"
    ],
@@ -3406,7 +3406,7 @@
    "4431679": [
     "Precious Achiuwa",
     0.079,
-    1700,
+    1600,
     true,
     "fanduel"
    ],
@@ -3467,16 +3467,16 @@
    "3945274": [
     "Luka Doncic",
     0.121,
-    480,
+    454,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4066457": [
     "Austin Reaves",
     0.105,
-    750,
+    700,
     false,
-    "bet365"
+    "thescore"
    ],
    "4279888": [
     "Ja Morant",
@@ -3495,37 +3495,37 @@
    "4433136": [
     "Walker Kessler",
     0.095,
-    700,
+    591,
     false,
-    "bet365"
+    "draftkings"
    ],
    "4433137": [
     "Ziaire Williams",
     0.08,
-    1100,
+    1000,
     false,
-    "bet365"
+    "fanduel"
    ],
    "4683021": [
     "Deni Avdija",
     0.103,
-    700,
+    750,
     false,
-    "thescore"
+    "fanduel"
    ],
    "5105565": [
     "Donovan Clingan",
     0.093,
-    900,
+    950,
     false,
-    "bet365"
+    "fanduel"
    ],
    "6606": [
     "Damian Lillard",
     0.099,
-    850,
+    780,
     false,
-    "bet365"
+    "draftkings"
    ]
   },
   "tip_home": 0.491
