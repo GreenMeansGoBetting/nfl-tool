@@ -89,6 +89,7 @@ def main():
     ap.add_argument("--prior-season", type=int, help="start each player from his own numbers that season (sim.prior_block)")
     ap.add_argument("--n", type=int, default=4000)
     ap.add_argument("--set", action="append", default=[], help="override a sim constant, NAME=value")
+    ap.add_argument("--no-blowout", action="store_true", help="minutes from the box score as before 2026-10-27 (blowout nights counted as they were)")
     ap.add_argument("--starters", action="store_true", help="hand the sim each game's real starting fives, as the NBA's lineups file would")
     args = ap.parse_args()
     for kv in args.set:
@@ -118,6 +119,10 @@ def main():
     team_rows, player_rows = [], []
     for night in nights:
         inputs = sim.season_inputs(season, box, night, prior)
+        for p in inputs["players"].values():
+            p["blown"] = any(abs(x - y) > 1 for x, y in zip(p["min"][-sim.MIN_LAST:], p["role_min"][-sim.MIN_LAST:]))
+            if args.no_blowout:
+                p["role_min"] = list(p["min"])
         tonight = reg[reg["date"] == night]
         for gid, rows in tonight.groupby("game_id"):
             home = rows[rows["home_away"] == "home"]
@@ -161,7 +166,8 @@ def main():
                         # how likely the sim found what really happened (higher = better)
                         "pts_ll": np.log(max(1e-4, (pts == int(r.points)).mean() * 0.5 + (np.abs(pts - int(r.points)) <= 2).mean() * 0.1)),
                         "f3_ll": np.log(max(1e-4, (f3 == int(r.three_point_field_goals_made)).mean())),
-                        "starter": bool(r.starter), "usual_min": sim.project_minutes(inputs["players"][pid]["min"]),
+                        "starter": bool(r.starter), "usual_min": sim.project_minutes(inputs["players"][pid]["role_min"]),
+                        "blown": inputs["players"][pid]["blown"],
                     })
         print(f"{night}: {len(team_rows) // 2} games so far, {time.time() - t0:.0f}s", file=sys.stderr)
 
@@ -190,6 +196,8 @@ def main():
             print(f"  sim {label:8} {len(s):5}: sim {s.pts_sim.mean():5.1f} real {s.pts.mean():5.1f}; inside 10-90% {s.pts_pit.between(0.1, 0.9).mean():.0%}; PIT {deciles(s.pts_pit)}")
     print(f"  points miss by his games so far: " + ", ".join(f"{lo}-{hi}: {np.abs(s.pts_sim - s.pts).mean():.2f} ({len(s)})" for lo, hi in ((0, 3), (3, 6), (6, 10), (10, 99))
                                                             for s in [Pl[(Pl.games >= lo) & (Pl.games < hi)]] if len(s)))
+    print(f"  threes miss / log score by his games so far: " + ", ".join(f"{lo}-{hi}: {np.abs(s.f3_sim - s.f3).mean():.3f} / {s.f3_ll.mean():.3f}" for lo, hi in ((0, 3), (3, 6), (6, 10), (10, 99))
+                                                                         for s in [Pl[(Pl.games >= lo) & (Pl.games < hi)]] if len(s)))
     print(f"  threes miss {np.abs(Pl.f3_sim - Pl.f3).mean():.3f}; points log score {Pl.pts_ll.mean():.4f}, threes log score {Pl.f3_ll.mean():.4f}")
     print(f"Threes: sim {Pl.f3_sim.mean():.2f} real {Pl.f3.mean():.2f} (bias {Pl.f3_sim.mean() - Pl.f3.mean():+.2f}); PIT {deciles(Pl.f3_pit)}")
     for lo, hi, label in ((0, 1, "under 1"), (1, 2, "1-2"), (2, 99, "2+")):
@@ -197,6 +205,9 @@ def main():
         if len(s):
             print(f"  sim {label:8} {len(s):5}: sim {s.f3_sim.mean():4.2f} real {s.f3.mean():4.2f}; PIT {deciles(s.f3_pit)}")
     st = Pl[Pl.starter]
+    bl = Pl[Pl.blown]
+    print(f"Off a blowout (one in his last {sim.MIN_LAST}): {len(bl)}; minutes miss {np.abs(bl.min_sim - bl['min']).mean():.2f} (sim {bl.min_sim.mean():.1f} real {bl['min'].mean():.1f}), "
+          f"points miss {np.abs(bl.pts_sim - bl.pts).mean():.2f}, threes miss {np.abs(bl.f3_sim - bl.f3).mean():.3f}, threes log score {bl.f3_ll.mean():.4f}")
     print(f"Starters: minutes sim {st.min_sim.mean():.1f} real {st['min'].mean():.1f}; points sim {st.pts_sim.mean():.1f} real {st.pts.mean():.1f}")
     fill = Pl[Pl.starter & (Pl.usual_min < 20)]
     print(f"Fill-in starters (usually under 20 minutes, started): {len(fill)}; minutes sim {fill.min_sim.mean():.1f} real {fill['min'].mean():.1f}; "

@@ -37,12 +37,12 @@ popups, no fallback while this season is young. build_nba.py reads only this sea
 backtests (`test_the_site_never_reads_last_season` pins it). Before this season has enough games for a
 number, show the data, not a projection. The owner: "A team with a new starting lineup and players
 in and out (take boston - no brown add george - completely different) changes everything!"
-- **The one exception (2026-10-25): the game sim's starting point.** Each player's rates (shot volume,
-  mix, zone make rates, free throws) start from his own last season (`nfl_tool/nba/sim_prior_<last
-  season>.json`) and fade out as this season's games come in (about 4 games' worth). Opening week's
-  plays read stars as average players (unders on Brandon Miller and Wembanyama, threes overs on Zion
-  and Giannis; 10/24 went 5-9); the owner chose it: "some players who moved teams or have a new role
-  may find issues, but should overall be a cure". Minutes, pace and defenses stay this season only.
+- **No exceptions since 2026-10-27.** The game sim's per-player starting point from last season
+  (2026-10-25 to 10-27, `sim_prior_2026.json`, deleted) read Toumani Camara (17 threes in 2 games, a
+  new role) and Damian Lillard (missed 2025-26, new team, so an average guard) as unders. The owner:
+  "stop using last seasons data i've told you 10000 times its not relevant". **Never suggest last
+  season as a fix again**; when a young sample is thin, lean on this season's league / position
+  numbers and let the replay pick how fast a player's own games take over.
 - King of the Court was the one exception for its first week; it went this-season-only on
   2026-10-22 (the owner: "turn off 2025-2026 data because by next week, we will have every team
   with data for this season").
@@ -227,12 +227,18 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   from the 2nd quarter a lead shrinks a little (`LEAD_DRAG`: the team ahead eases off; real margins
   swing less than independent possessions would). Ties play overtime. Nights: minutes (wider for
   bench players, `SHORT_NIGHT` 4% an early exit), shooting, the game's pace and shooting.
-- **Early season:** `season_inputs` from the engine; a player's rates lean on his own last season
-  (`starting_point`, `K_PRIOR_*`: 120 minutes / 80 plays, about 4 games, which beat slower fades on
-  the replay), itself steadied toward the position's numbers; a rookie leans on his position's numbers
-  THIS season (`K_*`). Re-save the file each summer: `py nfl_tool/nba/sim.py --season <finished season>
-  --data-dir data/nba --write-prior`. Replay with `tools/backtest/nba_sim.py --prior-season`
-  (findings in its header: points miss 4.72 -> 4.57, players with 0-2 games 5.18 -> 4.71).
+- **Early season (this season only since 2026-10-27):** `season_inputs` from the engine; a player's
+  rates lean on his position's numbers THIS season (`K_*`). Shot mix and shots a minute trust his own
+  games fast (`K_MIX` 5 plays, `K_USE` 10 minutes: Camara's 17 threes in 2 games read as a shooter);
+  make rates stay slow (`K_ZONE`, threes 200 shots). Replayed on 2025-26's opening month with no
+  prior: threes miss 0.912 -> 0.896, points 4.65 -> 4.58 vs 40 / 60. `--prior-season` stays in the
+  replay only.
+- **Blowout minutes** (`blowout_starts`, `minutes_before`, `role_min`; the owner, 2026-10-27, Derrick
+  White's 18 minutes in a 35-point win): a game whose lead hit 20 and stayed there in regulation (from
+  the 2nd half) counts a player's minutes before then, scaled to 48. Built and **switched off**
+  (`BLOWOUT_SHARE` 0): on the replay it didn't beat leaving his real minutes (threes miss 0.895 at
+  half strength vs 0.896, chances a little worse, starters 30.4 vs 29.9 real). The sims already play
+  tonight's blowouts. Replay it with `--set BLOWOUT_SHARE=0.5`.
 - **Minutes:** season^0.365 x last-5^0.635 (the overshoot), fit to 240 (`fill_minutes`: too many,
   the small roles give up the most; too few, everyone up in proportion, cap 40). **Out** (the
   injury report) leaves the rotation; the 2025-26 replay preferred handing his minutes to everyone

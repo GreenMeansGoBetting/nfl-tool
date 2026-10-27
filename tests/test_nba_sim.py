@@ -81,9 +81,66 @@ class Minutes(unittest.TestCase):
         self.assertTrue(24 < dip < 30)
 
 
+class Blowouts(unittest.TestCase):
+    """The owner, 2026-10-27: Derrick White's 18 minutes in a 35-point win read
+    his threes under. A blowout's minutes count as his minutes before it, scaled to 48."""
+
+    @staticmethod
+    def poss(game, margins, step=60, period_of=lambda t: min(4, int(t // 720) + 1)):
+        return pd.DataFrame([{"game_id": game, "t0": float(i * step), "margin": m, "period": period_of(i * step)}
+                             for i, m in enumerate(margins)])
+
+    def test_the_lead_that_held_starts_the_blowout(self):
+        # 48 one-minute possessions: close for 32 minutes, a 22 at 32 that drops to 18 at 34,
+        # then 21+ from minute 35 to the end
+        margins = [5] * 32 + [22, 22, 18] + [21] * 13
+        self.assertEqual(sim.blowout_starts(self.poss(1, margins)), {1: 35 * 60.0})
+        # up 25 from the opening minutes: never before the second half
+        self.assertEqual(sim.blowout_starts(self.poss(2, [25] * 48)), {2: float(sim.BLOWOUT_FROM)})
+        # a 20-point lead that didn't hold, a close game, an overtime game: no blowout
+        self.assertEqual(sim.blowout_starts(self.poss(3, [24] * 40 + [12] * 8)), {})
+        self.assertEqual(sim.blowout_starts(self.poss(4, [-6] * 48)), {})
+        ot = self.poss(5, [25] * 53, period_of=lambda t: 5 if t >= 2880 else min(4, int(t // 720) + 1))
+        self.assertEqual(sim.blowout_starts(ot), {})
+
+    def test_his_minutes_before_it_scaled_to_48(self):
+        stints = pd.DataFrame([{"game_id": 1, "team": 9, "t0": 0.0, "t1": 1800.0, "five": (1, 2, 3, 4, 5)},
+                               {"game_id": 1, "team": 9, "t0": 1800.0, "t1": 2880.0, "five": (6, 7, 8, 9, 10)}])
+        before = sim.minutes_before(stints, {1: 2160.0})  # pulled at 30 minutes, blowout from 36
+        self.assertAlmostEqual(before[(1, 1)], 30.0)
+        self.assertAlmostEqual(before[(1, 6)], 6.0)  # the bench's 18 minutes, only 6 before it
+
+    def test_a_blowout_night_doesnt_cut_his_minutes(self):
+        ps = roster()
+        ps[10] = player("P10", "AAA", "F", [28] * 5, start=False)  # a full bench: minutes compete for the 240
+        ps[1]["min"][-1] = 18.0  # AAA's 34-minute guard sat the 4th of a blowout
+        normal = Rotation().side_minutes(set(), players=ps)[1]
+        ps[1]["role_min"] = ps[1]["min"][:-1] + [34.0]
+        self.assertGreater(Rotation().side_minutes(set(), players=ps)[1], normal + 3)
+
+
+class ThisSeasonOnly(unittest.TestCase):
+    """The owner, 2026-10-27: Toumani Camara, 17 threes and 4 twos in 2 games, read as a
+    threes under ("Kid lives behind the arc"). This season only, and his shot mix trusts
+    his own games fast."""
+
+    def test_two_games_of_threes_read_as_a_shooter(self):
+        ps = roster()
+        ps[6] = player("P6", "AAA", "F", [27, 27], start=True, mix=np.array([2, 1, 1, 8, 9, 1, 1], float),
+                       made=np.array([1, 0, 1, 4, 5], float))
+        s = sim.side(inputs(ps), [1, 2, 3, 5, 6, 7, 8, 9], "BBB", 1.0)
+        mix = s["mix"][s["pids"].index(6)]
+        self.assertGreater(mix[3] + mix[4], 0.6)  # the league's forward: 31%
+
+    def test_the_build_gives_the_sim_no_last_season(self):
+        src = (ROOT / "nfl_tool" / "nba" / "build_nba.py").read_text(encoding="utf-8")
+        self.assertIn("sim.season_inputs(engine, box)", src)
+        self.assertFalse((ROOT / "nfl_tool" / "nba" / "sim_prior_2026.json").exists())
+
+
 class Rotation(unittest.TestCase):
-    def side_minutes(self, out_ids, lineups=None, n=400):
-        inp = inputs(roster())
+    def side_minutes(self, out_ids, lineups=None, n=400, players=None):
+        inp = inputs(players or roster())
         out = sim.game(inp, "BBB", "AAA", "2026-10-20", out_ids, n=n, seed=1, lineups=lineups)
         st = out["away"]  # AAA
         return {pid: st["min"][:, j].mean() for j, pid in enumerate(st["s"]["pids"])}
@@ -248,8 +305,8 @@ class Record(unittest.TestCase):
 
 
 class LastSeasonStart(unittest.TestCase):
-    """2026-10-25: a player starts from his own last season, not his position's
-    average (opening week read Zion as an average forward: threes overs)."""
+    """The replay's --prior-season only since 2026-10-27 (the live build is this
+    season only): a player starts from his own last season, not his position's average."""
 
     def test_a_non_shooter_keeps_his_own_shot_mix(self):
         lg = {"ft": 0.78, "groups": {"F": {"mix": np.array([0.3, 0.15, 0.1, 0.1, 0.25, 0.05, 0.05]),

@@ -25,14 +25,13 @@ Every player also gets a minutes night and a shooting night (some nights he
 plays 30 instead of 34, some nights everything drops), and each team a team
 night, so the spread of outcomes is a real game's, not a coin flip's.
 
-Early on a player's rates lean on HIS OWN LAST SEASON (`prior_block`, saved in
-sim_prior_<season>.json), less as this season's games come in (`K_PRIOR_*`);
-a player with no last season (a rookie) leans on the league's numbers for his
-position this season (`K_*`). Minutes, pace and defenses are this season's
-only. Never the line. (Until 2026-10-25 every player leaned on his position:
-opening week's plays read stars as average players, unders on Brandon Miller
-and Wembanyama, threes overs on Zion and Giannis. The owner: "some players who
-moved teams or have a new role may find issues, but should overall be a cure.")
+THIS SEASON ONLY: early on a player's rates lean on the league's numbers for
+his position this season (`K_*`), less as his own games come in. Never the
+line. (2026-10-25 to 10-27 each player started from his own last season,
+`prior_block` / `K_PRIOR_*`, now only for the replay's --prior-season. It read
+Toumani Camara's 17 threes in 2 games and Damian Lillard, back from a missed
+season on a new team, as last season's players: unders. The owner: "stop using
+last seasons data i've told you 10000 times its not relevant".)
 
     py nfl_tool/nba/sim.py --season 2027 --data-dir data/nba --game <espn id>
 """
@@ -57,10 +56,15 @@ POS_GROUP = {"PG": "G", "SG": "G", "G": "G", "SF": "F", "PF": "F", "F": "F", "C"
 
 # Early-season shrink: a player's own rate counts like this many plays /
 # shots / minutes of the league's (his position, this season) on top of his own.
-K_MIX = 40          # plays, for what his plays turn into
+# What he shoots and how often shows up within a game or two (Camara: 17 threes,
+# 4 twos), so it trusts him fast; whether it goes in is mostly luck, so make
+# rates stay slow. 2025-26's opening month replayed this season only (2026-10-27):
+# 5 plays / 10 minutes beat 40 / 60 (threes miss 0.912 -> 0.896, log score
+# -1.355 -> -1.334; points miss 4.65 -> 4.58) and 15 / 20.
+K_MIX = 5           # plays, for what his plays turn into
 K_ZONE = {"rim": 40, "short": 60, "mid": 80, "corner3": 200, "above3": 200}  # shots (threes: mostly luck)
 K_FT = 40           # free throws
-K_USE = 60          # minutes, for his plays a minute
+K_USE = 10          # minutes, for his plays a minute
 K_TEAM = 5          # games, for a team's pace and plays a possession
 K_DEF = 150         # shots allowed in a zone, for a defense's make rate there
 K_OREB = 150        # misses, for a team's offensive rebound rate (and a defense's allowed)
@@ -77,6 +81,20 @@ DEF_MIX_W = 0.5     # how hard a defense's shot mix allowed tilts a player's (ha
 # Minutes: the 2025-26 replay's last-5 overshoot (tools/backtest/nba_points.py): a dip bounces back, a rise mostly sticks.
 MIN_LAST = 5
 MIN_W_SEASON = 0.365
+# A blowout's minutes aren't a player's role (the owner, 2026-10-27: Derrick White's
+# 18 minutes in a 35-point win read his threes under). From the moment a lead
+# reaches BLOWOUT_LEAD and never drops back under it in regulation (looked for
+# from BLOWOUT_FROM on: nobody empties the bench in the first half), the game is
+# over; his minutes before then, scaled to 48, are his minutes that night.
+BLOWOUT_LEAD = 20
+BLOWOUT_FROM = 24 * 60
+# How far toward that full-game number his night moves: OFF. On 2025-26's opening
+# month it didn't help (threes miss 0.896 off, 0.895 at half, 0.912 at full with the
+# old trust levels; log score worse each time; starters' minutes 30.4-30.7 vs 29.9
+# real): the sims already play tonight's blowouts, and teams that blow teams out keep
+# doing it. Kept as a dial for the replay (--set BLOWOUT_SHARE=0.5).
+BLOWOUT_SHARE = 0.0
+REG_SECS = 48 * 60
 MIN_CAP = 40.0
 ROTATION_GONE = 3   # a player under 20 minutes who missed his team's last 3 games isn't in tonight's rotation
 # Injuries and the starting five (the owner, 2026-10-24: "is this going to be
@@ -188,6 +206,13 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
         p = players.get(pid)
         if p is not None:
             p["counts"][6] += 1
+    poss = season.possessions
+    poss = poss[poss["game_id"].isin(kept)]
+    starts = blowout_starts(poss)
+    before_min = minutes_before(season.stints, starts)
+    for pid, p in players.items():
+        p["role_min"] = [m + BLOWOUT_SHARE * (before_min.get((g, pid), 0.0) * REG_SECS / starts[g] - m) if g in starts else m
+                         for g, m in zip(p["games"], p["min"])]
     for p in players.values():
         p["counts"][5] = p["fta"] / 2  # trips to the line, two shots each
         p["plays"] = float(p["counts"].sum())
@@ -215,8 +240,6 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
 
     # teams: pace (possessions a team gets in 48 regulation minutes), how
     # often a miss comes back (offensive rebounds), and what each defense allows
-    poss = season.possessions
-    poss = poss[poss["game_id"].isin(kept)]
     reg_poss = poss[poss["period"] <= 4]
     per_game = reg_poss.groupby(["game_id", "off"]).size().rename("n").reset_index()
     game_pace = per_game.groupby("game_id")["n"].mean()
@@ -259,6 +282,39 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
         history.setdefault(r.team_abbreviation, []).append(
             {"date": r.date, "game": int(r.game_id), "margin": int(r.team_score) - int(r.opponent_team_score), "ot": int(r.game_id) in ot_games})
     return {"players": players, "teams": teams, "league": league, "history": history, "prior": prior or {}}
+
+
+def blowout_starts(poss: pd.DataFrame) -> dict:
+    """{game id: seconds into the game it became a blowout for good}: the
+    first possession after the last one with the lead under BLOWOUT_LEAD
+    (never before BLOWOUT_FROM), for games that end in regulation that way."""
+    out = {}
+    for gid, g in poss.groupby("game_id"):
+        if (g["period"] > 4).any():
+            continue
+        g = g.sort_values("t0")
+        close = np.flatnonzero(np.abs(g["margin"].to_numpy()) < BLOWOUT_LEAD)
+        first = close[-1] + 1 if len(close) else 0  # the first possession of the lead that held
+        if first >= len(g):
+            continue
+        start = max(float(g["t0"].iloc[first]), BLOWOUT_FROM)
+        if start < REG_SECS:
+            out[int(gid)] = start
+    return out
+
+
+def minutes_before(stints: pd.DataFrame, starts: dict) -> dict:
+    """{(game id, player id): his minutes on the floor before the game's
+    blowout start}, for the blowout games."""
+    out = {}
+    st = stints[stints["game_id"].isin(starts.keys())] if len(stints) else stints
+    for gid, a, b, five in zip(st["game_id"], st["t0"], st["t1"], st["five"]):
+        secs = min(b, starts[gid]) - a
+        if secs <= 0:
+            continue
+        for pid in five:
+            out[(int(gid), int(pid))] = out.get((int(gid), int(pid)), 0.0) + secs / 60
+    return out
 
 
 def prior_block(inputs: dict) -> dict:
@@ -435,7 +491,7 @@ def usual_starter(p: dict, date: str) -> bool:
 
 def starter_minutes(inputs: dict, team: str) -> float:
     """A team's usual minutes for a starter this season."""
-    mins = [m for p in inputs["players"].values() if p["team"] == team for m, st in zip(p["min"], p["start"]) if st]
+    mins = [m for p in inputs["players"].values() if p["team"] == team for m, st in zip(p.get("role_min", p["min"]), p["start"]) if st]
     return sum(mins) / len(mins) if mins else 30.0
 
 
@@ -466,7 +522,7 @@ def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = f
         pct = np.clip(pct * dz * make_mult * LEVEL, 0.02, 0.95)
         ft = (p["ftm"] + k_ft * ft0) / (p["fta"] + k_ft)
         use = (counts.sum() + k_use * use0) / (minutes + k_use)
-        rows.append({"pid": pid, "min": project_minutes(mins), "use": use, "mix": mix, "pct": pct, "ft": ft})
+        rows.append({"pid": pid, "min": project_minutes(p.get("role_min", mins)), "use": use, "mix": mix, "pct": pct, "ft": ft})
     m = np.array([r["min"] for r in rows], float)
     listed = np.array([pid in starters for pid in pids], bool)
     m = np.where(listed, np.maximum(m, STARTER_TRUST * starter_min), m)
