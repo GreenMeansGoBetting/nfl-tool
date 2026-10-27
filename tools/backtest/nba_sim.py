@@ -89,6 +89,7 @@ def main():
     ap.add_argument("--prior-season", type=int, help="start each player from his own numbers that season (sim.prior_block)")
     ap.add_argument("--n", type=int, default=4000)
     ap.add_argument("--set", action="append", default=[], help="override a sim constant, NAME=value")
+    ap.add_argument("--injury-report", action="store_true", help="Out = that morning's ESPN injury snapshot (Out only), as the live build sees it, not who really sat")
     ap.add_argument("--no-blowout", action="store_true", help="minutes from the box score as before 2026-10-27 (blowout nights counted as they were)")
     ap.add_argument("--starters", action="store_true", help="hand the sim each game's real starting fives, as the NBA's lineups file would")
     args = ap.parse_args()
@@ -111,6 +112,7 @@ def main():
         prior = json.loads(cache.read_text())
     print(f"engine built in {time.time() - t0:.0f}s", file=sys.stderr)
 
+    inj = pd.read_parquet(d / f"injuries_{args.season}.parquet").assign(as_of_date=lambda f: f["as_of_date"].astype(str)) if args.injury_report else None
     reg = box[(box["season_type"] == P.REGULAR_SEASON) & box["athlete_id"].notna()].copy()
     reg["date"] = pd.to_datetime(reg["game_date"]).dt.strftime("%Y-%m-%d")
     games = reg.drop_duplicates(["game_id", "team_id"])
@@ -134,12 +136,18 @@ def main():
             # entirely; the live build has the injury report)
             played = {int(x) for x in rows.loc[~rows["did_not_play"].astype(bool) & (rows["minutes"].fillna(0) > 0), "athlete_id"]}
             out_ids = {str(pid) for pid in inputs["players"] if pid not in played}
+            status = None
+            if args.injury_report:
+                snap = inj[inj["as_of_date"] <= night]
+                snap = snap[snap["as_of_date"] == snap["as_of_date"].max()]
+                out_ids = {str(int(x)) for x in snap.loc[snap["status"] == "Out", "athlete_id"]}
+                status = {str(int(x)): st_ for x, st_ in zip(snap["athlete_id"], snap["status"])}
             lineups = None
             if args.starters:
                 five = lambda side: [{"playerName": r.athlete_display_name, "firstName": "", "lastName": "", "lineupStatus": "Confirmed",  # noqa: E731
                                       "rosterStatus": "Active"} for r in side.itertuples(index=False) if r.starter]
                 lineups = {"games": [{"homeTeam": {"teamAbbreviation": h, "players": five(home)}, "awayTeam": {"teamAbbreviation": a, "players": five(away)}}]}
-            out = sim.game(inputs, h, a, night, out_ids, n=args.n, seed=int(gid) % 100000, lineups=lineups)
+            out = sim.game(inputs, h, a, night, out_ids, n=args.n, seed=int(gid) % 100000, lineups=lineups, status=status)
             hs, as_ = int(home["team_score"].iloc[0]), int(away["team_score"].iloc[0])
             line = lines.get(str(gid)) or [None, None]
             for key, score, opp_score in (("home", hs, as_), ("away", as_, hs)):
@@ -156,9 +164,12 @@ def main():
                     r = actual.get(pid)
                     if r is None:
                         continue
-                    pts, f3 = st["pts"][:, j], st["fg3m"][:, j]
+                    on = st["on"][:, j]  # the games he plays (a book voids a no-show)
+                    if not on.any():
+                        continue
+                    pts, f3 = st["pts"][on, j], st["fg3m"][on, j]
                     player_rows.append({
-                        "night": night, "min_sim": st["min"][:, j].mean(), "min": float(r.minutes),
+                        "night": night, "min_sim": st["min"][on, j].mean(), "min": float(r.minutes),
                         "pts_sim": pts.mean(), "pts": int(r.points), "pts_pit": pit(pts, int(r.points), rng),
                         "pts_lo": np.percentile(pts, 10), "pts_hi": np.percentile(pts, 90),
                         "f3_sim": f3.mean(), "f3": int(r.three_point_field_goals_made), "f3_pit": pit(f3, int(r.three_point_field_goals_made), rng),

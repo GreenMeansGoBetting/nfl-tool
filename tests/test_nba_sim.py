@@ -119,6 +119,35 @@ class Blowouts(unittest.TestCase):
         self.assertGreater(Rotation().side_minutes(set(), players=ps)[1], normal + 3)
 
 
+class WhoPlays(unittest.TestCase):
+    """The owner, 2026-10-27: 80% of plays were unders. The sim gave full minutes to
+    Day-To-Day players and fringe bench players who then sat (about 13 minutes a team
+    a night), so everyone else read low. Each player now plays in only some games."""
+
+    def test_the_chance_to_play(self):
+        ps = roster()
+        inp = inputs(ps)
+        self.assertEqual(sim.play_chance(inp, 1, "AAA", "2026-10-20", None, False), 1.0)  # a usual starter
+        self.assertAlmostEqual(sim.play_chance(inp, 1, "AAA", "2026-10-20", "Day-To-Day", False), sim.PLAY_CHANCE["Day-To-Day"])
+        self.assertEqual(sim.play_chance(inp, 1, "AAA", "2026-10-20", "Day-To-Day", True), 1.0)  # in the posted five
+        ps[9] = player("P9", "AAA", "C", [12, 12], start=False)  # played 2 of the team's 5 games
+        ps[9]["dates"] = ["2026-10-10", "2026-10-14"]
+        self.assertAlmostEqual(sim.play_chance(inputs(ps), 9, "AAA", "2026-10-20", None, False), (2 + sim.SHOWS_K) / (5 + sim.SHOWS_K))
+
+    def test_a_maybe_leaves_minutes_to_the_rest_and_counts_only_his_games(self):
+        inp = inputs(roster())
+        sure = sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=2000, seed=3)
+        maybe = sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=2000, seed=3, status={"1": "Questionable"})
+        j1, j2 = maybe["away"]["s"]["pids"].index(1), maybe["away"]["s"]["pids"].index(2)
+        on = maybe["away"]["on"][:, j1]
+        self.assertAlmostEqual(on.mean(), sim.PLAY_CHANCE["Questionable"], delta=0.03)
+        self.assertGreater(maybe["away"]["pts"][:, j2].mean(), sure["away"]["pts"][:, j2].mean() + 0.5)  # his teammate gains
+        row = sim.summary(maybe, {})["players"]["1"]
+        self.assertAlmostEqual(row["plays"], on.mean(), places=2)
+        self.assertGreater(row["min"], 25)  # his minutes when he plays, not averaged with the nights he sits
+        self.assertGreater(row["pts"]["mean"], 0.8 * sure["away"]["pts"][:, sure["away"]["s"]["pids"].index(1)].mean())
+
+
 class ThisSeasonOnly(unittest.TestCase):
     """The owner, 2026-10-27: Toumani Camara, 17 threes and 4 twos in 2 games, read as a
     threes under ("Kid lives behind the arc"). This season only, and his shot mix trusts

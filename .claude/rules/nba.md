@@ -243,7 +243,17 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   the small roles give up the most; too few, everyone up in proportion, cap 40). **Out** (the
   injury report) leaves the rotation; the 2025-26 replay preferred handing his minutes to everyone
   in proportion over his own position first (minutes miss 4.8 vs 5.1-6.3). A fringe player who
-  missed the team's last 3 games sits. **Starting fives:** the NBA's lineups file (First Basket's
+  missed the team's last 3 games sits. **Chance to play (2026-10-27,** the owner: 80% of plays were
+  unders): the sim had given full minutes to players who then sat (about 13 a team a night: Day-To-Day
+  stars, rest nights, fringe bench), so everyone else read low; graded 10/24-26, unders the sim called
+  62% hit 49%. Now each player plays in only some of the 10,000 games (`play_chance`, `PLAY_CHANCE`:
+  Day-To-Day 0.45, measured 42% on this season's morning reports; Questionable 0.55, Doubtful 0.15,
+  Probable 0.95; a bench player x his share of the team's games played, `SHOWS_K` 2; a usual starter
+  off the report and anyone in the posted five always). A game he sits gives his minutes to the rest;
+  his own numbers (props.json `plays` = his chance, min, med, ladder) count only the games he plays
+  (books void a no-show). Replay `tools/backtest/nba_sim.py --injury-report` (Out = the morning's
+  ESPN snapshot, not who really sat) on this season's first 5 nights: points -0.34 -> -0.03 a player,
+  threes -0.13 -> -0.09, starters' minutes 28.7 -> 29.5 (real 29.9). **Starting fives:** the NBA's lineups file (First Basket's
   copies, `lineup_starters`, names matched with an accent fallback): a listed starter plays at
   least `STARTER_TRUST` 0.8 of his team's usual starter minutes (the owner: "a roleplayer who has 10
   minutes per game but tonight is starting"; the replay's fill-in starters played 25.5: no floor

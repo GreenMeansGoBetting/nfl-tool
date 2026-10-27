@@ -900,6 +900,7 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
     out_ids = {str(p["id"]) for team in injuries.values() for p in team if p["status"] == "Out"}
     # on the report but not Out: sits if he usually starts and isn't in the NBA's posted five (sim.game)
     hurt = {str(p["id"]) for team in injuries.values() for p in team if p["status"] not in ("Out", "Probable", "Available")}
+    status = {str(p["id"]): p["status"] for team in injuries.values() for p in team}  # each one's chance to play (sim.PLAY_CHANCE)
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
     dates = sorted({g["date"] for g in games if g["date"] >= today})[:KOTC_SLATE_NIGHTS]
     names = {pid: p["name"] for pid, p in inputs["players"].items()}
@@ -909,11 +910,11 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
         if g["date"] not in dates:
             continue
         day = (lineups or {}).get(g["date"])
-        run = sim.game(inputs, g["home"], g["away"], g["date"], out_ids, roster_team, seed=int(g["game_id"]) % (2 ** 31), lineups=day, hurt=hurt)
+        run = sim.game(inputs, g["home"], g["away"], g["date"], out_ids, roster_team, seed=int(g["game_id"]) % (2 ** 31), lineups=day, hurt=hurt, status=status)
         row = sim.summary(run, names)
         base = row["scripts"]
         if run["home_dials"] or run["away_dials"]:
-            plain = sim.game(inputs, g["home"], g["away"], g["date"], out_ids, roster_team, n=SIM_BASE_N, seed=1, dials=False, lineups=day, hurt=hurt)
+            plain = sim.game(inputs, g["home"], g["away"], g["date"], out_ids, roster_team, n=SIM_BASE_N, seed=1, dials=False, lineups=day, hurt=hurt, status=status)
             base = {k: round(float(m.mean()), 3) for k, m in sim.scripts(plain["margin"]).items() if k != "all"}
         sims[g["game_id"]] = {**row, "date": g["date"], "home": g["home"], "away": g["away"], "base": base,
                               "starters": {k: sorted(str(p) for p, st in zip(run[k]["s"]["pids"], run[k]["s"]["starter"]) if st)

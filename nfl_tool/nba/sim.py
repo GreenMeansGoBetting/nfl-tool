@@ -110,6 +110,15 @@ ROTATION_GONE = 3   # a player under 20 minutes who missed his team's last 3 gam
 # the noon build, so the sim had him playing 30 minutes off the bench and his
 # teammates (LeBron, Brown, Edgecombe) all read unders; ESPN ruled him Out 40
 # minutes later.
+# Who plays (the owner, 2026-10-27: 80% of plays were unders). The sim gave full
+# minutes to players who then sat, about 13 minutes a team a night, so everyone
+# else read low. Now each player plays in only some of the 10,000 games: a listed
+# player by his status (Day-To-Day measured on this season's morning reports: 42%
+# of 85 played), a bench player by the share of his team's games he has played
+# (steadied by SHOWS_K games of playing); a usual starter not on the report, or
+# anyone in the NBA's posted five, always. His own numbers count only the games he plays.
+PLAY_CHANCE = {"Probable": 0.95, "Questionable": 0.55, "Day-To-Day": 0.45, "Doubtful": 0.15}
+SHOWS_K = 2
 STARTER_TRUST = 0.8  # the 2025-26 replay: fill-in starters played 25.5 minutes (0.8 gives 25.9, 0.9 gave 28.2, no floor 19.9)
 NBA_ABBR = {"GSW": "GS", "NOP": "NO", "NYK": "NY", "SAS": "SA", "UTA": "UTAH", "WAS": "WSH"}
 # The nights (fitted on the 2025-26 replay, tools/backtest/nba_sim.py)
@@ -495,10 +504,24 @@ def starter_minutes(inputs: dict, team: str) -> float:
     return sum(mins) / len(mins) if mins else 30.0
 
 
-def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = frozenset(), starter_min: float = 30.0) -> dict:
+def play_chance(inputs: dict, pid: int, team: str, date: str, status: str | None, posted: bool) -> float:
+    """His chance to play tonight (PLAY_CHANCE, SHOWS_K)."""
+    if posted:
+        return 1.0
+    chance = PLAY_CHANCE.get(status, 1.0) if status else 1.0
+    p = inputs["players"][pid]
+    if not usual_starter(p, date):
+        mine = [d for d in p["dates"] if d < date]
+        team_games = sum(1 for h in inputs["history"].get(team, []) if mine and mine[0] <= h["date"] < date)
+        chance *= min(1.0, (len(mine) + SHOWS_K) / (max(team_games, len(mine)) + SHOWS_K))
+    return chance
+
+
+def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = frozenset(), starter_min: float = 30.0,
+         chance: list | None = None) -> dict:
     """One team's arrays for the sim: minutes, plays a minute, play mix
-    (tilted to this defense), make rates (x this defense, the dials, home).
-    starters = tonight's listed five."""
+    (tilted to this defense), make rates (x this defense, the dials, home),
+    the chance each plays. starters = tonight's listed five."""
     lg = inputs["league"]
     d = inputs["teams"].get(opp) or {}
     allowed = d.get("allowed")
@@ -533,7 +556,8 @@ def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = f
         starter = np.zeros(len(rows), bool)
         starter[np.argsort(-m)[:5]] = True
     return {"pids": pids, "min": m, "use": np.array([r["use"] for r in rows]), "mix": np.array([r["mix"] for r in rows]),
-            "pct": np.array([r["pct"] for r in rows]), "ft": np.array([r["ft"] for r in rows]), "starter": starter}
+            "pct": np.array([r["pct"] for r in rows]), "ft": np.array([r["ft"] for r in rows]), "starter": starter,
+            "avail": np.array(chance if chance is not None else [1.0] * len(rows), float)}
 
 
 def team_pace(inputs: dict, team: str) -> float:
@@ -563,10 +587,12 @@ def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, 
     state = []
     for s, back in zip(sides, oreb):
         k = len(s["pids"])
+        # who plays in each game: a player who sits leaves his minutes to the rest (each period's share fills the five)
+        on = rng.random((n, k)) < s.get("avail", np.ones(k))[None, :]
         state.append({
-            "s": s, "oreb": back,
+            "s": s, "oreb": back, "on": on,
             "minnight": np.exp(rng.normal(0, 1, (n, k)) * (SD_MIN + SD_MIN_STEP * np.maximum(0, SD_MIN_AT - s["min"]))[None, :])
-            * np.where(rng.random((n, k)) < SHORT_NIGHT, rng.uniform(*SHORT_KEEP, (n, k)), 1.0),
+            * np.where(rng.random((n, k)) < SHORT_NIGHT, rng.uniform(*SHORT_KEEP, (n, k)), 1.0) * on,
             "night": np.exp(rng.normal(0, SD_SHOOT, (n, k)) + rng.normal(0, SD_TEAM, (n, 1))),
             "pts": np.zeros((n, k), np.int32), "fg3m": np.zeros((n, k), np.int32), "fg3a": np.zeros((n, k), np.int32),
             "min": np.zeros((n, k)),
@@ -638,11 +664,13 @@ def team_now(inputs: dict, team: str, date: str, roster_team: dict | None) -> di
 
 
 def game(inputs: dict, home: str, away: str, date: str, out_ids: set, roster_team: dict | None = None,
-         n: int = N_SIMS, seed: int = 0, dials: bool = True, lineups: dict | None = None, hurt: set = frozenset()) -> dict:
+         n: int = N_SIMS, seed: int = 0, dials: bool = True, lineups: dict | None = None, hurt: set = frozenset(),
+         status: dict | None = None) -> dict:
     """One game, start to finish: tonight's rotations (lineups = the NBA's
     lineups file for the night, for the starting fives; hurt = ids on the
-    injury report but not Out), the dials, the sim. "sat" = {home, away: the
-    players who'd be in the rotation but sit tonight}."""
+    injury report but not Out; status = {id: injury status} for the chance to
+    play), the dials, the sim. "sat" = {home, away: the players who'd be in the
+    rotation but sit tonight}."""
     hd = team_dials(inputs["history"].get(home, []), date, inputs["history"].get(away, [])) if dials else []
     ad = team_dials(inputs["history"].get(away, []), date, inputs["history"].get(home, [])) if dials else []
     h_mult = 1 + (HOME_EDGE / 2 + dial_points(hd, ad)) / PTS_BASE
@@ -657,7 +685,8 @@ def game(inputs: dict, home: str, away: str, date: str, out_ids: set, roster_tea
         pids = rotation(inputs, team, date, gone, roster_team)
         pids += [pid for pid in starters if pid not in pids]  # a listed starter plays, whatever his last few games
         sat[team] = [pid for pid in rotation(inputs, team, date, set(), roster_team) if pid not in pids]
-        built[team] = side(inputs, pids, opp, mult, starters, starter_minutes(inputs, team))
+        chance = [play_chance(inputs, pid, team, date, (status or {}).get(str(pid)), pid in starters) for pid in pids]
+        built[team] = side(inputs, pids, opp, mult, starters, starter_minutes(inputs, team), chance)
     hs, aw = built[home], built[away]
     pace = (team_pace(inputs, home) + team_pace(inputs, away)) / 2
     out = simulate(hs, aw, pace, (oreb_rate(inputs, home, away), oreb_rate(inputs, away, home)), n, seed)
@@ -706,21 +735,28 @@ def chance_over(lad: list, line: float) -> float:
 
 def summary(out: dict, names: dict) -> dict:
     """props.json `sim[<game>]`: the game (median margin and total, the script
-    shares) and every player: minutes, and per stat the median in each script
-    and the ladder (all / away / close / home)."""
+    shares) and every player: minutes, his chance to play (`plays`), and per
+    stat the median in each script and the ladder (all / away / close / home),
+    all from the games he plays."""
     masks = scripts(out["margin"])
     shares = {k: round(float(m.mean()), 3) for k, m in masks.items() if k != "all"}
     players = {}
     for key in ("home", "away"):
         st = out[key]
         for j, pid in enumerate(st["s"]["pids"]):
-            row = {"team": key, "min": round(float(st["min"][:, j].mean()), 1), "name": names.get(pid, str(pid))}
+            on = st["on"][:, j]  # his numbers: only the games he plays (a book voids a no-show)
+            if not on.any():
+                continue
+            row = {"team": key, "min": round(float(st["min"][on, j].mean()), 1), "name": names.get(pid, str(pid)),
+                   "plays": round(float(on.mean()), 2)}
             for stat in ("pts", "fg3m"):
                 v = st[stat][:, j]
+                masks_on = {k: m & on for k, m in masks.items()}
+                v_on = v[on]
                 row[stat] = {
-                    "med": {k: (float(np.median(v[m])) if m.sum() else None) for k, m in masks.items()},
-                    "mean": round(float(v.mean()), 2),
-                    "lad": {k: ladder(v[m]) for k, m in masks.items() if m.sum() >= 200},
+                    "med": {k: (float(np.median(v[m])) if m.sum() else None) for k, m in masks_on.items()},
+                    "mean": round(float(v_on.mean()), 2),
+                    "lad": {k: ladder(v[m]) for k, m in masks_on.items() if m.sum() >= 200},
                 }
             players[str(pid)] = row
     return {"margin": float(np.median(out["margin"])), "total": float(np.median(out["total"])),
