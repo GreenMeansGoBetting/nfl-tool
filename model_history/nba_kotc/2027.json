@@ -2473,18 +2473,18 @@
     "team": "DET"
    },
    {
-    "id": "4432194",
-    "lead": 0.0,
-    "name": "Day'Ron Sharpe",
-    "proj": 17.4,
-    "team": "BKN"
-   },
-   {
     "id": "3995",
     "lead": 0.0,
     "name": "Jrue Holiday",
     "proj": 17.4,
     "team": "POR"
+   },
+   {
+    "id": "4432194",
+    "lead": 0.0,
+    "name": "Day'Ron Sharpe",
+    "proj": 17.3,
+    "team": "BKN"
    },
    {
     "id": "5081727",
@@ -2515,13 +2515,6 @@
     "team": "LAL"
    },
    {
-    "id": "4397424",
-    "lead": 0.0,
-    "name": "Neemias Queta",
-    "proj": 15.5,
-    "team": "BOS"
-   },
-   {
     "id": "4395723",
     "lead": 0.0,
     "name": "Keldon Johnson",
@@ -2529,10 +2522,17 @@
     "team": "SA"
    },
    {
+    "id": "4397424",
+    "lead": 0.0,
+    "name": "Neemias Queta",
+    "proj": 15.4,
+    "team": "BOS"
+   },
+   {
     "id": "4687718",
     "lead": 0.0,
     "name": "Josh Minott",
-    "proj": 15.4,
+    "proj": 15.3,
     "team": "BKN"
    },
    {
@@ -2581,7 +2581,7 @@
     "id": "3150844",
     "lead": 0.0,
     "name": "Moritz Wagner",
-    "proj": 12.3,
+    "proj": 12.2,
     "team": "BKN"
    },
    {

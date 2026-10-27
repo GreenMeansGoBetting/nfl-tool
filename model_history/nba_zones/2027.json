@@ -1,0 +1,860 @@
+{
+ "401909877": {
+  "date": "2026-10-27",
+  "points": [
+   [
+    "3064514",
+    "Julius Randle",
+    "BKN",
+    "BOS",
+    -0.1393,
+    "under",
+    true,
+    19.5
+   ],
+   [
+    "4251",
+    "Paul George",
+    "BOS",
+    "BKN",
+    -0.0601,
+    "under",
+    false,
+    18.5
+   ],
+   [
+    "4278104",
+    "Michael Porter Jr.",
+    "BKN",
+    "BOS",
+    -0.0853,
+    "under",
+    false,
+    22.5
+   ],
+   [
+    "4351852",
+    "Mitchell Robinson",
+    "BOS",
+    "BKN",
+    0.6736,
+    "over",
+    true,
+    6.5
+   ],
+   [
+    "4397424",
+    "Neemias Queta",
+    "BOS",
+    "BKN",
+    0.3424,
+    "over",
+    true,
+    9.5
+   ],
+   [
+    "4712896",
+    "Noah Clowney",
+    "BKN",
+    "BOS",
+    -0.1461,
+    "under",
+    true,
+    7.5
+   ],
+   [
+    "5175643",
+    "Egor Demin",
+    "BKN",
+    "BOS",
+    0.1259,
+    "over",
+    true,
+    10.5
+   ]
+  ],
+  "threes": [
+   [
+    "3064514",
+    "Julius Randle",
+    "BKN",
+    "BOS",
+    -0.1737,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3078576",
+    "Derrick White",
+    "BOS",
+    "BKN",
+    -0.1118,
+    "under",
+    false,
+    2.5
+   ],
+   [
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "BKN",
+    0.6902,
+    "over",
+    true,
+    3.5
+   ],
+   [
+    "4066354",
+    "Payton Pritchard",
+    "BOS",
+    "BKN",
+    0.0885,
+    "over",
+    false,
+    2.5
+   ],
+   [
+    "4278104",
+    "Michael Porter Jr.",
+    "BKN",
+    "BOS",
+    -0.1888,
+    "under",
+    true,
+    2.5
+   ],
+   [
+    "4683689",
+    "Jordan Walsh",
+    "BOS",
+    "BKN",
+    0.9461,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "4702177",
+    "Keon Ellis",
+    "BKN",
+    "BOS",
+    0.4399,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "4712896",
+    "Noah Clowney",
+    "BKN",
+    "BOS",
+    0.1111,
+    "over",
+    false,
+    1.5
+   ],
+   [
+    "5101761",
+    "Mikel Brown Jr.",
+    "BKN",
+    "BOS",
+    0.3834,
+    "over",
+    true,
+    2.5
+   ],
+   [
+    "5175643",
+    "Egor Demin",
+    "BKN",
+    "BOS",
+    0.4516,
+    "over",
+    true,
+    2.5
+   ]
+  ]
+ },
+ "401909878": {
+  "date": "2026-10-27",
+  "points": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "DET",
+    0.1287,
+    "over",
+    true,
+    11.5
+   ],
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "DET",
+    -0.2383,
+    "under",
+    true,
+    19.5
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "DET",
+    -0.1844,
+    "under",
+    true,
+    11.5
+   ],
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "NY",
+    -0.0891,
+    "under",
+    false,
+    12.5
+   ],
+   [
+    "3908845",
+    "John Collins",
+    "DET",
+    "NY",
+    0.1074,
+    "over",
+    false,
+    15.5
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "DET",
+    -0.2463,
+    "under",
+    true,
+    7.5
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "DET",
+    -0.115,
+    "under",
+    false,
+    25.5
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "DET",
+    -0.2423,
+    "under",
+    true,
+    16.5
+   ],
+   [
+    "4278562",
+    "Paul Reed",
+    "DET",
+    "NY",
+    0.0759,
+    "over",
+    false,
+    12.5
+   ],
+   [
+    "4431823",
+    "Miles McBride",
+    "NY",
+    "DET",
+    0.0649,
+    "over",
+    false,
+    7.5
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "NY",
+    -0.0884,
+    "under",
+    false,
+    23.5
+   ],
+   [
+    "4684742",
+    "Ausar Thompson",
+    "DET",
+    "NY",
+    -0.1648,
+    "under",
+    true,
+    9.5
+   ]
+  ],
+  "threes": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "DET",
+    0.3474,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "DET",
+    -0.5557,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "DET",
+    -0.2279,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "NY",
+    -0.0658,
+    "under",
+    false,
+    2.5
+   ],
+   [
+    "3908845",
+    "John Collins",
+    "DET",
+    "NY",
+    0.0814,
+    "over",
+    false,
+    1.5
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "DET",
+    -0.3712,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "DET",
+    0.0707,
+    "over",
+    false,
+    2.5
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "DET",
+    -0.3592,
+    "under",
+    true,
+    2.5
+   ],
+   [
+    "4278562",
+    "Paul Reed",
+    "DET",
+    "NY",
+    1.7527,
+    "over",
+    true,
+    0.5
+   ],
+   [
+    "4431823",
+    "Miles McBride",
+    "NY",
+    "DET",
+    0.2023,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "NY",
+    -0.0583,
+    "under",
+    false,
+    1.5
+   ],
+   [
+    "4684742",
+    "Ausar Thompson",
+    "DET",
+    "NY",
+    0.5607,
+    "over",
+    true,
+    0.5
+   ]
+  ]
+ },
+ "401909879": {
+  "date": "2026-10-27",
+  "points": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "SA",
+    0.162,
+    "over",
+    true,
+    21.5
+   ],
+   [
+    "3064560",
+    "Luke Kornet",
+    "SA",
+    "SAC",
+    -0.1825,
+    "under",
+    true,
+    6.5
+   ],
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "SA",
+    -0.1433,
+    "under",
+    true,
+    15.5
+   ],
+   [
+    "4065732",
+    "De'Andre Hunter",
+    "SAC",
+    "SA",
+    0.2448,
+    "over",
+    true,
+    9.5
+   ],
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "SAC",
+    0.2983,
+    "over",
+    true,
+    15.5
+   ],
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "SAC",
+    0.2218,
+    "over",
+    true,
+    11.5
+   ],
+   [
+    "4431679",
+    "Precious Achiuwa",
+    "SAC",
+    "SA",
+    0.1913,
+    "over",
+    true,
+    10.5
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "SAC",
+    0.0653,
+    "over",
+    false,
+    17.5
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "SAC",
+    -0.1172,
+    "under",
+    false,
+    17.5
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "SA",
+    0.1586,
+    "over",
+    true,
+    20.5
+   ]
+  ],
+  "threes": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "SA",
+    0.0586,
+    "over",
+    false,
+    2.5
+   ],
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "SA",
+    -0.1844,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "SAC",
+    0.1877,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "SAC",
+    0.2191,
+    "over",
+    true,
+    2.5
+   ],
+   [
+    "4395723",
+    "Keldon Johnson",
+    "SA",
+    "SAC",
+    0.2139,
+    "over",
+    true,
+    2.5
+   ],
+   [
+    "4431679",
+    "Precious Achiuwa",
+    "SAC",
+    "SA",
+    -0.2418,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4592479",
+    "Julian Champagnie",
+    "SA",
+    "SAC",
+    0.1133,
+    "over",
+    false,
+    2.5
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "SAC",
+    0.2666,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "SAC",
+    0.191,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "SA",
+    -0.0925,
+    "under",
+    false,
+    2.5
+   ]
+  ]
+ },
+ "401909880": {
+  "date": "2026-10-27",
+  "points": [
+   [
+    "3907498",
+    "Matisse Thybulle",
+    "LAL",
+    "POR",
+    -0.5532,
+    "under",
+    true,
+    6.5
+   ],
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "POR",
+    -0.1648,
+    "under",
+    true,
+    32.5
+   ],
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "LAL",
+    -0.1311,
+    "under",
+    true,
+    10.5
+   ],
+   [
+    "4066211",
+    "Robert Williams III",
+    "POR",
+    "LAL",
+    0.2595,
+    "over",
+    true,
+    6.5
+   ],
+   [
+    "4278580",
+    "Sandro Mamukelashvili",
+    "LAL",
+    "POR",
+    -0.2346,
+    "under",
+    true,
+    7.5
+   ],
+   [
+    "4279888",
+    "Ja Morant",
+    "POR",
+    "LAL",
+    0.0866,
+    "over",
+    false,
+    16.5
+   ],
+   [
+    "4397014",
+    "Quentin Grimes",
+    "LAL",
+    "POR",
+    -0.3728,
+    "under",
+    true,
+    8.5
+   ],
+   [
+    "4433136",
+    "Walker Kessler",
+    "LAL",
+    "POR",
+    0.1523,
+    "over",
+    true,
+    12.5
+   ],
+   [
+    "4433137",
+    "Ziaire Williams",
+    "LAL",
+    "POR",
+    -0.4584,
+    "under",
+    true,
+    8.5
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "LAL",
+    0.0947,
+    "over",
+    false,
+    10.5
+   ]
+  ],
+  "threes": [
+   [
+    "3907498",
+    "Matisse Thybulle",
+    "LAL",
+    "POR",
+    -0.7293,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "POR",
+    -0.4405,
+    "under",
+    true,
+    3.5
+   ],
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "LAL",
+    -0.2225,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4066457",
+    "Austin Reaves",
+    "LAL",
+    "POR",
+    -0.352,
+    "under",
+    true,
+    2.5
+   ],
+   [
+    "4278580",
+    "Sandro Mamukelashvili",
+    "LAL",
+    "POR",
+    -0.686,
+    "under",
+    true,
+    0.5
+   ],
+   [
+    "4279888",
+    "Ja Morant",
+    "POR",
+    "LAL",
+    -0.1597,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4397014",
+    "Quentin Grimes",
+    "LAL",
+    "POR",
+    -0.6093,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "LAL",
+    -0.1341,
+    "under",
+    true,
+    2.5
+   ],
+   [
+    "4433137",
+    "Ziaire Williams",
+    "LAL",
+    "POR",
+    -0.7449,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "LAL",
+    -0.1804,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "LAL",
+    -0.0999,
+    "under",
+    false,
+    2.5
+   ],
+   [
+    "6606",
+    "Damian Lillard",
+    "POR",
+    "LAL",
+    -0.1806,
+    "under",
+    true,
+    3.5
+   ]
+  ]
+ }
+}
