@@ -12,7 +12,7 @@
 let DATA = null; // data.json: teams, schedule; the player card reads it too
 let ZF = null; // shots.json
 const ZM_KEY = "nba-tool.zones.v1"; // display prefs on this device: view, market, his-shots filter
-const ZM = { view: "spots", market: "points", min: 0, game: null, player: null, all: false, chart: "zones", kind: "all" };
+const ZM = { view: "spots", market: "points", min: 0, game: null, player: null, all: false, chart: "zones", kind: "all", grid: "make" };
 const ZM_GROUP = { G: "Guards", F: "Forwards", C: "Bigs" };
 const ZM_ZONE = { ra: "At The Rim", paint: "Paint", mBL: "Left Baseline Mid", mWL: "Left Wing Mid", mT: "Top Mid", mWR: "Right Wing Mid", mBR: "Right Baseline Mid", c3L: "Left Corner 3", w3L: "Left Wing 3", t3: "Top 3", w3R: "Right Wing 3", c3R: "Right Corner 3" };
 const ZM_KIND = { 1: "Self-Created", 2: "Catch & Shoot", 3: "Drives & Cuts" };
@@ -163,26 +163,51 @@ function zmSpots() {
     </div>${more}`;
 }
 
-// A defense's softest and toughest zone for each group, among zones that
-// group shoots 8%+ of its shots from league-wide (rank of 30 by make rate allowed: 30 = most).
-function zmDefense(abbr) {
-  const m = zmM();
-  const d = (m.defense || {})[abbr] || {};
-  const teams = Object.keys(m.defense || {}).length;
-  const chips = ["G", "F", "C"].map((g) => {
-    const lg = m.league[g] || {};
-    const n = (m.league_n || {})[g] || 0;
-    const zones = Object.keys(ZM_ZONE).filter((z) => n && (lg[z] || [0, 0])[1] / n >= 0.08 && d[g] && d[g][z] && d[g][z][2]);
-    if (!zones.length) return "";
-    zones.sort((a, b) => d[g][b][2] - d[g][a][2]);
-    const tag = (z, kind) => {
-      const [made, tried, rank, shareRank] = d[g][z];
-      return `<span class="zm-chip" style="background:${nbaShotColor((kind === "soft" ? -1 : 1) * NBA_SHOT_FULL, 0.28)};border-color:${nbaShotColor((kind === "soft" ? -1 : 1) * NBA_SHOT_FULL, 0.8)}" title="${made}/${tried} allowed to ${ZM_GROUP[g].toLowerCase()} here; ${shareRank}${zmOrd(shareRank)} of ${teams} in shots allowed here (30 = most)">${kind === "soft" ? "Soft" : "Tough"}: ${ZM_ZONE[z]} <b>${rank}${zmOrd(rank)}</b></span>`;
-    };
-    return `<div class="zm-def-row"><span class="zm-def-g">vs ${ZM_GROUP[g]}</span>${tag(zones[0], "soft")}${tag(zones[zones.length - 1], "tough")}</div>`;
-  });
-  return `<div class="zm-def">${chips.join("")}</div>`;
+// ---- the defense grid (the owner, 2026-10-27: "a color coded layout/chart where i can know 'this is
+// BOS weakness vs this position'"): the five positions down, where / how they shoot across (the
+// market's columns), each cell the defense's rank of 30 (30th = gives up the most), red = gives up the
+// most, green = takes it away; Overall at the end; each row's worst spot outlined. Makes / Shots /
+// Points Per Shot toggle. Raw counts on hover. ----
+const ZM_POS = ["PG", "SG", "SF", "PF", "C"];
+const ZM_POS_NAME = { PG: "Point Guards", SG: "Shooting Guards", SF: "Small Forwards", PF: "Power Forwards", C: "Centers" };
+const ZM_METRIC = { make: ["Makes", 3, "make rate allowed"], share: ["Shots", 4, "share of shots allowed"], pps: ["Points Per Shot", 5, "points a shot allowed"] };
+// A rank of 30 as a color: 30th (gives up the most) red, 1st green (the defense charts' sides).
+const zmRankShade = (rank, teams) => (rank ? nbaShotColor(-(((rank - 1) / Math.max(1, teams - 1)) * 2 - 1) * NBA_SHOT_FULL, 0.5) : "");
+function zmGridWhy(abbr, p, label, c, lg, metric) {
+  const name = ZM_POS_NAME[p];
+  const rate = (m, a) => (a ? `${Math.round((m / a) * 100)}%` : "--");
+  const where = label === "Overall" ? "overall" : label.match(/Self|Catch|Drives/) ? `on ${label} shots` : `from ${label}`;
+  if (!c[1]) return `${name} haven't shot ${where} against ${abbr} yet.`;
+  const lines = [`${name} made ${c[0]} of ${c[1]} ${where} against ${abbr} (${rate(c[0], c[1])}); league ${name.toLowerCase()} ${rate(lg[0], lg[1])}.`];
+  if (label === "Overall") lines.push(`${Math.round(c[2] * 100)}% of the shots ${abbr} allows are by ${name.toLowerCase()} (league ${Math.round(lg[2] * 100)}%).`);
+  else lines.push(`${Math.round(c[2] * 100)}% of ${name.toLowerCase()}' shots against ${abbr} come ${where.replace(/^from |^on /, label.match(/Self|Catch|Drives/) ? "as " : "from ")} (league ${Math.round(lg[2] * 100)}%).`);
+  lines.push(`Ranks of 30 (30th = gives up the most): makes ${c[3] || "--"}, shots ${c[4] || "--"}, points per shot ${c[5] || "--"}.`);
+  return lines.join("\n");
 }
+function zmGrid(abbr) {
+  const gr = zmM().grid;
+  const d = gr && gr.teams[abbr] && gr.teams[abbr][ZM.market];
+  if (!d) return "";
+  const teams = Object.keys(gr.teams).length;
+  const cols = gr.cols[ZM.market];
+  const [, at] = ZM_METRIC[ZM.grid];
+  const lg = gr.league[ZM.market];
+  const rows = ZM_POS.map((p) => {
+    const worst = cols.reduce((best, [k]) => ((d[p][k][at] || 0) > ((d[p][best] || [])[at] || 0) ? k : best), cols[0][0]);
+    const cell = (k, label, extra = "") => {
+      const c = d[p][k];
+      const rank = c[at];
+      const why = zmGridWhy(abbr, p, label, c, lg[p][k], ZM.grid).replace(/"/g, "&quot;");
+      return `<td class="num zm-gcell${extra}${k === worst && rank ? " zm-worst" : ""}" style="background:${zmRankShade(rank, teams)}" title="${why}">${rank ? `${rank}${zmOrd(rank)}` : "--"}<small>${c[1]}</small></td>`;
+    };
+    return `<tr><th class="zm-gpos" title="${ZM_POS_NAME[p]}">${p}</th>${cols.map(([k, label]) => cell(k, label)).join("")}${cell("all", "Overall", " zm-goverall")}</tr>`;
+  }).join("");
+  const toggle = Object.entries(ZM_METRIC).map(([k, [label]]) => `<button type="button" class="view-toggle-btn${ZM.grid === k ? " active" : ""}" data-grid="${k}">${label}</button>`).join("");
+  return `<div class="zm-grid-head"><span class="zm-def-title">${zmLogo(abbr, 16)} ${abbr} Defense By Position &middot; ${ZM.market === "threes" ? "Threes" : "Every Shot"}</span><div class="view-toggle zm-grid-toggle">${toggle}</div></div>
+    <div class="shc-scroll"><table class="data-table zm-grid"><thead><tr><th></th>${cols.map(([, label]) => `<th class="num">${label}</th>`).join("")}<th class="num zm-goverall">Overall</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="zm-legend">Rank of 30 by ${ZM_METRIC[ZM.grid][2]}: <b>30th = gives up the most</b> (red), 1st = takes it away (green). Outlined = that position's biggest weak spot. Small number = shots faced; hover for the numbers.</p>`;
+}
+
 const zmOrd = (n) => (n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
 
 function zmMatchup() {
@@ -191,7 +216,7 @@ function zmMatchup() {
   const side = (team, opp) => {
     const rows = zmRows((x) => x.p.game_id === g.game_id && x.p.team === team).sort((a, b) => b.r.score - a.r.score);
     return `<div class="nba-box">${zmBanner(team, `<span class="shc-name">${zmTeam(team).name}</span><span class="shc-sub">Shooters vs ${opp} Defense</span>`)}
-      <div class="zm-inner"><div class="zm-def-title">${zmLogo(opp, 16)} ${opp} Defense By Group (rank of 30 in make rate allowed; 30th = gives up the most)</div>${zmDefense(opp)}${zmTable(rows, { noVs: true, read: true })}</div></div>`;
+      <div class="zm-inner">${zmGrid(opp)}${zmTable(rows, { noVs: true, read: true })}</div></div>`;
   };
   return `<div class="zm-game">${side(g.away, g.home)}${side(g.home, g.away)}</div>`;
 }
@@ -308,7 +333,7 @@ function zmRender() {
   zmFitTags();
   zmDetail();
   try {
-    localStorage.setItem(ZM_KEY, JSON.stringify({ view: ZM.view, market: ZM.market, min: ZM.min }));
+    localStorage.setItem(ZM_KEY, JSON.stringify({ view: ZM.view, market: ZM.market, min: ZM.min, grid: ZM.grid }));
   } catch (e) {
     // localStorage unavailable -- the view just won't stick.
   }
@@ -322,6 +347,8 @@ document.addEventListener("click", (e) => {
   if (mk) return ((ZM.market = mk.dataset.market), zmRender());
   const card = e.target.closest(".matchup-card[data-game]");
   if (card) return ((ZM.game = card.dataset.game), zmRender());
+  const gd = e.target.closest(".zm-grid-toggle [data-grid]");
+  if (gd) return ((ZM.grid = gd.dataset.grid), zmRender());
   const kd = e.target.closest("#zm-kind [data-kind]");
   if (kd) return ((ZM.kind = kd.dataset.kind), zmDetail());
   const ch = e.target.closest("#zm-chart [data-chart]");
@@ -365,6 +392,7 @@ window.addEventListener("load", () => {
   }
   if (!["spots", "matchup"].includes(ZM.view)) ZM.view = "spots";
   if (!["points", "threes"].includes(ZM.market)) ZM.market = "points";
+  if (!ZM_METRIC[ZM.grid]) ZM.grid = "make";
   Promise.all([
     fetch("data.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
     fetch("shots.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),

@@ -98,6 +98,22 @@ class Reads(unittest.TestCase):
         self.assertLess(abs(r["score"]), abs(r["shots"]))
 
 
+class Grid(unittest.TestCase):
+    """Matchup View's defense grid: five positions x where / how they shoot, by market; ranks of 30
+    with 30th = gives up the most (here of 2 defenses)."""
+
+    def test_ranks_and_counts(self):
+        g = build()["grid"]
+        rim = g["teams"]["BBB"]["points"]["C"]["rim"]
+        self.assertEqual(rim[:2], [15, 20])  # Big Two's 9/10 and Big One's 6/10 at BBB
+        self.assertEqual(rim[3], 2)  # more makes allowed than CCC's 9/20: ranked last (gives up the most)
+        self.assertEqual(g["teams"]["CCC"]["points"]["C"]["rim"][3], 1)
+        self.assertAlmostEqual(g["teams"]["BBB"]["points"]["C"]["rim"][2], 20 / 30, places=3)  # 20 of the 30 bigs' shots at BBB
+        self.assertNotIn("rim", g["teams"]["BBB"]["threes"]["C"])  # the threes grid has only threes' columns
+        self.assertEqual(g["teams"]["BBB"]["threes"]["C"]["t3"][:2], [1, 10])
+        self.assertIsNone(g["teams"]["BBB"]["points"]["PG"]["rim"][3])  # never faced: no rank
+
+
 class Record(unittest.TestCase):
     """Reads lock at tip (a started game is never rewritten), Toss Ups aren't saved, and the grade is
     against his main line with no price (units None), split Strong / Lean and Over / Under."""
@@ -172,7 +188,11 @@ class Page(unittest.TestCase):
             PAGE.click("#zm-view [data-view='matchup']")
             PAGE.wait_for_selector(".zm-game")
             self.assertEqual(sorted(PAGE.evaluate("() => [...document.querySelectorAll('.zm-game .zm-row')].map((r) => r.dataset.player)")), ["1", "3"])
-            self.assertGreater(PAGE.locator(".zm-game .zm-def-row").count(), 0)
+            self.assertEqual(PAGE.locator(".zm-game .zm-grid").count(), 1)  # BBB's grid; AAA hasn't defended a shot here
+            self.assertEqual(PAGE.locator(".zm-game .zm-grid tbody tr").count(), 5)  # the five positions
+            self.assertIn("2nd", PAGE.inner_text(".zm-game .nba-box:nth-child(1) .zm-grid tbody tr:last-child"))  # BBB vs centers at the rim
+            PAGE.click(".zm-game .zm-grid-toggle [data-grid='share']")
+            PAGE.wait_for_selector(".zm-grid-toggle .active[data-grid='share']")
             self.assertIn("Strong Over", PAGE.inner_text(".zm-game .zm-row[data-player='1']"))  # the read words, Matchup View only
             self.assertIn("Toss Up", PAGE.inner_text(".zm-game .zm-row[data-player='3']"))
             PAGE.click("#zm-market [data-market='threes']")

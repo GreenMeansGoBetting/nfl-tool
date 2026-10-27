@@ -227,6 +227,7 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
     lg = {grp: {z: (league.get((grp, "all")) or Tally()).zone.get(z, [0, 0]) for z in ZONE_NAMES} for grp in ("G", "F", "C")}
     lg_n = {grp: (league.get((grp, "all")) or Tally()).n for grp in ("G", "F", "C")}
     return {"date": date, "games": out_games, "players": players, "defense": defense, "league": lg, "league_n": lg_n,
+            "grid": grid(shots_block, pos),
             "pos": {str(k): group_of(v) for k, v in pos.items() if str(k) in (shots_block.get("players") or {})},
             "lean": LEAN, "strong": STRONG}
 
@@ -286,3 +287,75 @@ def ledger(record: dict, logs: dict, market: str) -> list:
             out.append([g["date"], round(abs(p["score"]), 4), int((got > p["line"]) == over), None,
                         ["strong" if p["strong"] else "lean", "over" if over else "under"]])
     return sorted(out, key=lambda r: (r[0], -r[1]))
+
+
+# ---- the defense grid (Matchup View; the owner, 2026-10-27: "a color coded layout/chart where i can
+# know 'this is BOS weakness vs this position'") ----
+# Each defense x the five positions x where / how they shoot, changing with the market. A cell:
+# [made, tried, share, rank by make rate, rank by share, rank by points a shot]; ranks of the 30,
+# 30 = gives up the most (None when the defense hasn't faced that shot). "all" = every shot in the
+# market (share = that position's share of all the shots this defense allows). Raw, like the page.
+POSITIONS = ("PG", "SG", "SF", "PF", "C")
+GRID_COLS = {
+    "points": [("rim", "Rim", ("ra",), None), ("paint", "Paint", ("paint",), None),
+               ("mid", "Mid", ("mBL", "mWL", "mT", "mWR", "mBR"), None), ("c3", "Corner 3", ("c3L", "c3R"), None),
+               ("ab3", "Above-Break 3", ("w3L", "t3", "w3R"), None), ("self", "Self-Created", None, 1),
+               ("catch", "Catch & Shoot", None, 2), ("drive", "Drives", None, 3)],
+    "threes": [("c3L", "Left Corner", ("c3L",), None), ("c3R", "Right Corner", ("c3R",), None),
+               ("w3L", "Left Wing", ("w3L",), None), ("t3", "Top", ("t3",), None), ("w3R", "Right Wing", ("w3R",), None),
+               ("catch", "Catch & Shoot", None, 2), ("self", "Self-Created", None, 1)],
+}
+
+
+def grid(block: dict, pos: dict) -> dict:
+    teams = block.get("teams") or []
+    # cells[(team | None for the league, market, position, col)] = [made, tried, points]
+    cells, totals = {}, {}
+    for pid, shots in (block.get("players") or {}).items():
+        p = str(pos.get(str(pid)) or "").upper()
+        if p not in POSITIONS:
+            continue
+        for s in shots:
+            d = s[8] if len(s) > 8 else -1
+            team = teams[d] if 0 <= d < len(teams) else None
+            z, made, three, kind = zone(s[0], s[1], s[3]), s[2], s[3], s[6]
+            pts = made * (3 if three else 2)
+            for market, cols in GRID_COLS.items():
+                if market == "threes" and not three:
+                    continue
+                for who in {team, None}:
+                    totals[(who, market)] = totals.get((who, market), 0) + 1
+                    keys = ["all"] + [k for k, _, zs, kd in cols if (zs and z in zs) or (kd is not None and kd == kind)]
+                    for k in keys:
+                        c = cells.setdefault((who, market, p, k), [0, 0, 0])
+                        c[0] += made
+                        c[1] += 1
+                        c[2] += pts
+    real = sorted({t for (t, *_ ) in cells if t})
+    out = {"cols": {m: [[k, label] for k, label, *_ in cols] for m, cols in GRID_COLS.items()}, "teams": {}, "league": {}}
+
+    def share(who, market, p, k):
+        c = cells.get((who, market, p, k))
+        if not c:
+            return 0.0
+        base = totals.get((who, market), 0) if k == "all" else (cells.get((who, market, p, "all")) or [0, 1])[1]
+        return c[1] / base if base else 0.0
+
+    for market, cols in GRID_COLS.items():
+        for p in POSITIONS:
+            for k in ["all"] + [c[0] for c in cols]:
+                lc = cells.get((None, market, p, k)) or [0, 0, 0]
+                out["league"].setdefault(market, {}).setdefault(p, {})[k] = [lc[0], lc[1], round(share(None, market, p, k), 3)]
+                rows = []
+                for t in real:
+                    c = cells.get((t, market, p, k)) or [0, 0, 0]
+                    rows.append((t, c, share(t, market, p, k)))
+                faced = [r for r in rows if r[1][1]]
+                rank = lambda key, pool: {r[0]: i + 1 for i, r in enumerate(sorted(pool, key=key))}  # noqa: E731
+                by_make = rank(lambda r: r[1][0] / r[1][1], faced)
+                by_share = rank(lambda r: r[2], rows)
+                by_pps = rank(lambda r: r[1][2] / r[1][1], faced)
+                for t, c, sh in rows:
+                    out["teams"].setdefault(t, {}).setdefault(market, {}).setdefault(p, {})[k] = [
+                        c[0], c[1], round(sh, 3), by_make.get(t), by_share.get(t), by_pps.get(t)]
+    return out

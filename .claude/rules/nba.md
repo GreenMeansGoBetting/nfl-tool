@@ -488,7 +488,11 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
 - Page (`site/nba/zones.html` + `zones.js` + `zones.css`; NBA menu under Shot Charts with a small
   New tag, `tag` in SPORT_PAGES / `.nav-new`): opens on **Best & Worst Spots** (Overs / Unders, top
   15, Show All; started games left out), **Matchup View** (game cards; both teams' players and each
-  defense's Soft / Tough zone per group, rank of 30), Points / Threes, His Shots filter; a row click
+  defense's **position grid**: `grid()` / `zmGrid`, PG-C down, the market's columns across (Points: Rim,
+  Paint, Mid, Corner 3, Above-Break 3, Self-Created, Catch & Shoot, Drives; Threes: the five 3 zones,
+  Catch & Shoot, Self-Created) + Overall, each cell its rank of 30 (30th = gives up the most, red) by
+  Makes / Shots / Points Per Shot (toggle), shots faced small, each row's worst cell outlined; the
+  owner, 2026-10-27: "this is BOS weakness vs this position"), Points / Threes, His Shots filter; a row click
   opens his chart and the defense's chart allowed to his group (both vs his group's league) and the
   Why table (zones and shot types). Display prefs per device (`nba-tool.zones.v1`).
 - Defense chart legends read Less Makes / More Makes, Fewer Shots / More Shots (the owner, same day).
