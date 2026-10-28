@@ -17,7 +17,8 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
   game 10,000 times, tonight's plays, the record). `positions.py`: PG / SG / SF / PF / C from ESPN's
   depth charts. `shots.py`: this season's shot spots (`nba/shots.json`). `kotc.py`: King of the
   Court. `first_basket.py`: First Basket.
-- Pages (`site/nba/`): `index.html` + `nba.js` Game Previews; `identity.html/.js` Team Identity;
+- Pages (`site/nba/`): `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (Game Previews and Team
+  Identity merged 2026-10-28; `identity.html` only forwards to it);
   `points.html` / `threes.html` + `points.js` / `threes.js` on `sim-board.js` + `sim.css` (Player
   View list + Matchup View game board); `best.html/.js` NBA Best Plays (both markets by edge, same
   sim-board.js); `first-basket.html/.js`; `shot-charts.html/.js` (a shooter vs a defense);
@@ -87,7 +88,7 @@ health check (about a minute).
 - 2025-26 health: 1,230 games, 99.5 possessions a team-game, minutes within 1 of the box score
   99.99% (all within 2), team points match 2,459 of 2,460 (401810102: ESPN's play-by-play is
   missing plays). Corner 3 = |y| 21.5+ and |x| 33+, a quarter of all threes (the NBA's split).
-- Read by Team Identity (below); First Basket still counts its own possessions.
+- Read by Team Identity (below, shown on Matchup Breakdown); First Basket still counts its own possessions.
 - What it answered first (the owner's "when will a guy like Peyton Pritchard shoot more"):
   Pritchard took 20.2% of Boston's shots with Jaylen Brown on the floor, 28.2% without.
 - Tests: `tests/test_nba_possessions.py` (two real games in `tests/fixtures/nba_*_games.csv.gz`
@@ -115,34 +116,13 @@ these two pages into one page."
   turnover rate, steals' share of turnovers, offensive rebound rate, free throws a shot; game
   script: share of games up / down 15+ in the 4th and the night's starters still on the floor then
   (and in 4th quarters within 5), net points a 100 by quarter.
-- **The page** (`site/nba/identity.html` + `identity.js` + `identity.css`; NBA menu under Game
-  Previews): day strip, season buttons, **The Teams** (Offense / Defense identity tags: up to 4
-  each, a full league spread from average, biggest first; 4th-quarter table; quarters) and
-  **Offense vs Defense** (both directions, grouped rows, then "Where the shots come from").
-  Good / bad rows use Game Previews' tags (Mismatch / Tough / Good vs Good). **How-often rows (pace,
-  shares) are never colored good or bad**; their tags are **Fits** (offense does it a lot, this
-  defense allows it a lot, 0.7 spreads each) and **Takes away** (offense a lot, defense rarely).
-  The zone table's tag is the volume tag when there is one, else the make-rate matchup.
-- **The page, rebuilt 2026-10-26 for "a bettor who has 5 minutes"** (the owner, after the Edges
-  version: "still so much to read and sort through. like 6 different sections. no consistency. too
-  wordy"). **Every table reads road team left, stat + call in the middle, home team right** (First
-  Basket's matchup look, `iv-*` in identity.css). Top to bottom:
-  **The Verdict** (`verdictBox`): edge count each side with a team-color bar, each team's edges as
-  one-line chips (biggest first, Big Edge darker), **Expect** chips (Fits = "More BOS 3s", Takes Away
-  = "Fewer DET Rim Shots"), **How They Play** (the identity chips, Title Case).
-  **The Matchup**: "BOS Has The Ball" | "DET Has The Ball" (`M_ROWS`: Scoring, Ball Control, Shot Mix,
-  Shooting; the offense's number across from the other defense's allowed number, each with its rank of
-  30 in small type, green = good for that team; the call in the middle: Edge pill with the logo of the
-  team it favors / Fits / Takes Away). **Key Stats** (default; rows with a call + Pts / Possession and
-  Pace) or **Every Stat** (display pref per device, `nba-tool.id-view.v1`). Under them **Tonight's Types
-  & Spots** (each team's tonight-only Matchup Extremes points and Schedule Spots rows, its own column)
-  and **Game Script** (quarter nets, 4th-quarter blowouts and starters). The full Matchup Extremes /
-  Schedule Spots tables fold into **Every Type & Spot** at the bottom.
-  Edges (`rowCall`): matchupCall's rule (one side 0.6 spreads, the other not 0.3 against); half-court
-  skipped when points / possession already called it, transition scoring only for a team that runs, a
-  zone's make rate only where the offense shoots at least the league's share; Big Edge = the sides
-  average 1 spread (a type / spot: a 6+ point gap). Types / spots count only colored cells (3+ games).
-  Test: `test_edges_follow_the_two_sided_rule` recomputes every call.
+- **Numbers added 2026-10-28 for Matchup Breakdown:** `paint_share` / `paint_pct` (rim + short paint
+  together), `ball_move` (makes assisted and catch-and-shoot share, averaged), `q<n>_ppq` (net points a
+  game in each quarter), season_block `wl` {team: nw, nl, w / l: the `WL_KEYS` numbers over its wins /
+  its losses}; each extremes type carries `order` (every team, most of the trait first).
+- **The page is Matchup Breakdown since 2026-10-28** (below, "Matchup Breakdown"). Team Identity's
+  own pages (2026-10-20 tags; 2026-10-26 Verdict with an edge count, Key / Every Stat, Every Type &
+  Spot) are gone; the owner: "8 edges vs one" hid how big each edge was.
 - **Matchup Extremes** (2026-10-26; now feeds The Verdict and Tonight's Types & Spots, full tables folded; the owner: "find the black and
   white of these teams", how a team does against a TYPE of opponent is "our bread and butter",
   relevant every night; UI left to the owner to adjust): `identity.matchup_extremes` (in
@@ -158,17 +138,15 @@ these two pages into one page."
   columns ("WSH Defense Vs These Offenses": Pts Allowed / 3s Allowed / FTs Allowed / TOs Forced;
   offense: Pts Scored / 3s Made...), a **Strength / Weak Spot** tag when the points cell is colored,
   **under `EX_MIN_GP` 3 games faded and never colored** (1-game cells were colored), types not faced
-  yet (tonight's too, bold) fold into one "Not Faced Yet" line; no "--" cells (the owner: "it clutters it"). **Game Previews** shows only the types
-  tonight's opponent is where a number is colored (section under The Line). Both draw from
-  `site/nba/extremes.js` (`exTable`, `exCell`; Game Previews loads identity.css for its look). Not built: big lineups / small-ball (need
-  heights).
+  yet (tonight's too, bold) fold into one "Not Faced Yet" line; no "--" cells (the owner: "it clutters it"). Matchup Breakdown shows tonight's types as rows of
+  The Matchup (`exCell` in `site/nba/extremes.js`). Not built: big lineups / small-ball (need heights).
 - **Schedule Spots** (2026-10-26, the owner's 13; second to the types): `identity.situation_tags`
   (from the season schedule file alone: B2B, 3 in 4, 4 in 6, rest edge 2+ days, layoff 3+ days, road
   trip game 1 / 4+, first home game after a trip, home stand 4+, altitude at DEN / UTAH, after a 20+
   loss / win, national TV or NBA Cup) and `schedule_spots` (Pts, Opp Pts a 100, pace: in the spot
   minus overall, next to the league's); season_block `spots` (+ `tonight` {game id: {team: keys}} for
-  the next 15 days). `compute_identity` passes the schedule. Identity: its own section; Game
-  Previews: under the extremes, tonight's spots with a colored number (`spotTable`). Dropped by the
+  the next 15 days). `compute_identity` passes the schedule. Shown in Matchup Breakdown's Head To Head
+  (Tonight's Spots, 3+ games). Dropped by the
   owner: OT the night before, body clock, miles, close loss, revenge, same opponent twice, star out.
 - Tests: `tests/test_nba_identity.py`.
 
@@ -401,7 +379,7 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
 The owner: "build the player functionality that exists for NFL and NHL so theres consistency ...
 game log and odds for all markets with checkboxes like NFL has ... game logs can be added only for
 this season, do not add past years." **Every place an NBA page shows a player wraps him with
-`playerClick(id, inner)`** (ESPN id): Game Previews' rotations and injuries, Points, First Basket's
+`playerClick(id, inner)`** (ESPN id): Matchup Breakdown's rotations and injuries, Points, First Basket's
 starters and Value list, King of the Court's board. Each of those pages loads `../book-odds.js`
 and `nba-card.js` (after the page's own script; every name in it starts `nbaCard` / `NBA_CARD` so
 it can't clash with a page's helpers). Same shell as the NFL / NHL cards (`#player-card-modal`).
@@ -607,18 +585,44 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
 
 ## Pages
 
-- `site/nba/index.html` + `nba.js` = NBA Game Previews v1: day strip, The Line (spread, total,
-  market score, win chance), The Teams (record, net / off / def rating, pace, home, away, last
-  10), Offense vs Defense (13 rows, each offense next to what the other defense allows, colored vs
-  the league from each unit's side, same two-sided Mismatch / Tough / Good vs Good tags as the NFL
-  cards), Rotations, Injuries, Recent Games. Season buttons under the game header (2025-26 /
-  2026-27, `renderSeasons`); a member's pick is remembered only until the build's default changes,
-  so nobody is left on last season after the switch. Tests: `tests/test_nba_previews_seasons.py`.
-- It does NOT load common.js (NFL-specific); it shares style.css and sync.js. New NBA styles are
-  `.nba-*`. The NHL page reuses the layout ones (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app`),
-  so check `site/nhl/` after changing them. Pace is shown without a good/bad color (fast or slow isn't good or bad).
-- **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
-  play-by-play tools (shot zones, quarter splits).
+## Matchup Breakdown (`site/nba/index.html` + `nba.js` + `matchup.css`, 2026-10-28)
+
+Game Previews and Team Identity in one page (the owner: "after 3 minutes on this page i understand how
+these teams win, why they lose, and what the matchup may have in store for tonight"). Agreed in a
+20-question Q&A, no mockup. NBA menu: "Matchup Breakdown" (first); `identity.html` forwards here.
+- **One cell language everywhere** (the owner: "Rank first then number ... so the user can always look
+  for the same thing"): every cell = a rank of 30 big, its number small, shaded red to green by rank
+  (`cellTd`, `scaleHsla`); green = good for that team. **How-often rows ARE colored** (the owner chose
+  it): offense 1st = does it most, defense 1st = allows it least, so green against red = the offense
+  gets its way. `rankIn` ranks a number among the teams' season numbers (also a wins / losses number).
+- Top to bottom: **The Line** beside a compact **Injuries** (hover = the injury); **Biggest Edges**
+  (each team's 3 biggest Edge calls as a chart: Off / Def tag, stat, offense cell, defense cell with
+  logos, Edge / Big Edge; never a count); **How They Win / How They Lose** (per team the 3 `WL_KEYS`
+  numbers, off or def, that move most between wins and losses in league spreads, each ranked where it
+  would sit among the 30 season numbers; "No Losses Yet" until both exist); **Head To Head** (mirrored:
+  record, net / off / def rating, pace, home, away, last 10; Points Per Quarter (`q<n>_ppq`); Blowout
+  Data (4th quarter, starters rows uncolored); Tonight's Spots with 3+ games, net points vs normal minus
+  the league's) beside **The Matchup**; then Rotations and Recent Games (boxes as wide as their tables;
+  Recent Games' Spread / Total at tip, green = covered / over, from King of the Court's
+  `lines_<season>.json` via `add_recent_lines`).
+- **The Matchup**: one table, `[Call][Away Off][Home Def] Stat [Home Off][Away Def][Call]`, team-tinted
+  "X Has The Ball" heads, every row always (no Key / Every switch). Rows (`M_ROWS`, the owner's cuts
+  2026-10-28): Scoring = Pts / Possession, Pace, Transition Share, Transition Pts / Poss; Possessions =
+  Turnovers, Rebounding (offensive rebound % vs the defense's own defensive rebound %), Free Throws /
+  Shot; Shot Diet = 3-Point Share (no 3P%: "it will level out"), Paint Share, Paint FG%, Mid-Range
+  Share, Mid-Range FG%, Ball Movement. Dropped: half-court, seconds a possession, steals' share, the
+  corner / above-break split, rim vs paint split, pull-up / catch / assisted rows, 3P%, clutch,
+  second-chance points. **Vs Tonight's Types**: the team that IS the type gets its rank in the trait
+  (`order`), the other its points vs normal against teams like that minus the league's, ranked among
+  teams with `EX_MIN_GP` 3+ games; under 3 games the row isn't shown.
+- Calls (`rowCall`): matchupCall's rule (one side 0.6 spreads, the other not 0.3 against); transition
+  scoring only for a team that runs; a make rate only where the offense shoots at least the league's
+  share; Big Edge = the sides average 1 spread (a type: a 6+ point gap); how-often rows: Fits / Takes
+  Away at 0.7 spreads each.
+- This season only: no season buttons. It does NOT load common.js; it shares style.css, suite.css and
+  sync.js (`.mb-*` styles in matchup.css). The NHL reuses suite.css's `.nba-two`, `.nba-box`, `.nba-app`.
+- Tests: `tests/test_nba_matchup_site.py` (BOS @ DET on `identity_2026.json`), `test_nba_identity.py`
+  (the numbers), `test_nba_previews_seasons.py` (stats blocks, Recent Games' lines).
 
 ## First Basket (built 2026-10-20, opening night)
 

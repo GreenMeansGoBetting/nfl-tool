@@ -50,7 +50,7 @@ class TopMenu(unittest.TestCase):
             self.assertTrue(page.evaluate("() => document.querySelector('.nfl-trigger').classList.contains('page-nav-current')"))
             page.click(".page-nav .nba-trigger")
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
-            self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Game Previews", "/nba/", False], ["Team Identity", "/nba/identity.html", False], ["Shot Charts", "/nba/shot-charts.html", False], ["Zone Matchup TargetsNew", "/nba/zones.html", False], ["Best Plays", "/nba/best.html", False], ["Points", "/nba/points.html", False], ["Threes", "/nba/threes.html", False], ["First Basket", "/nba/first-basket.html", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Matchup Breakdown", "/nba/", False], ["Shot Charts", "/nba/shot-charts.html", False], ["Zone Matchup TargetsNew", "/nba/zones.html", False], ["Best Plays", "/nba/best.html", False], ["Points", "/nba/points.html", False], ["Threes", "/nba/threes.html", False], ["First Basket", "/nba/first-basket.html", False]])
             self.assertEqual(page.inner_text(".nba-menu a[href='/nba/zones.html'] .nav-new"), "New")  # the owner, 2026-10-27: a small New tag for now
             self.assertIn("under construction", page.inner_text(".nba-menu").lower())  # set aside, still reachable (2026-10-26)
             page.click(".page-nav .nhl-trigger")

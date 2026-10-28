@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GMG's NBA Suite &mdash; Game Previews</title>
+<title>GMG's NBA Suite &mdash; Matchup Breakdown</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
 <link rel="stylesheet" href="../style.css">
 <link rel="stylesheet" href="../suite.css">
-<link rel="stylesheet" href="identity.css">
+<link rel="stylesheet" href="matchup.css">
 </head>
 <body class="nba-suite">
 <div class="topbar">
@@ -43,46 +43,47 @@
     </div>
 
     <div id="game-header" class="game-header" hidden></div>
-    <div class="nba-season-bar"><span class="nba-seasons" id="nba-seasons"></span><span id="fallback-note" class="no-data-note"></span></div>
 
     <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
 
-    <div id="section-lines" class="section-wrap" hidden>
-      <h2 class="section-title">The Line</h2>
-      <div id="lines-content"></div>
+    <div id="section-top" class="section-wrap" hidden>
+      <div id="top-content" class="mb-top"></div>
     </div>
 
-    <div id="section-extremes" class="section-wrap" hidden>
-      <h2 class="section-title">Matchup Extremes <button type="button" class="info-i" aria-expanded="false" aria-controls="ex-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="ex-note" hidden>Only the types of team tonight's opponent <b>is</b> (fast, high 3-point volume, a defense that fouls...) where this team plays <b>far from normal</b> against that type, compared with how the rest of the league does. <b>Defense block</b> = what it allows to those offenses; <b>Offense block</b> = what it does against those defenses. <b>+8 Pts Allowed</b> = it gives up 8 more a 100 possessions than you'd expect against these teams. <b>Green / Strength = good for this team, red / Weak Spot = bad.</b> Under them, the <b>Schedule Spots</b> it's in tonight (back-to-back, long road trip, altitude...) where it's far from its normal. Only 3+ games count. Every type and spot for both teams: Team Identity.</p>
-      <div id="extremes-content" class="nba-two"></div>
+    <div id="section-edges" class="section-wrap" hidden>
+      <h2 class="section-title">Biggest Edges <button type="button" class="info-i" aria-expanded="false" aria-controls="edges-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="edges-note" hidden>Each team's <b>3 biggest edges</b> from The Matchup below, biggest first. <b>Offense</b> = the team with the ball, <b>Defense</b> = the team guarding it, each as a <b>rank of 30</b> (1st = best) with its number small. <b>Big Edge</b> = the two sides together sit a full league spread toward that team.</p>
+      <div id="edges-content" class="nba-two"></div>
     </div>
 
-    <div id="section-teams" class="section-wrap" hidden>
-      <h2 class="section-title">The Teams</h2>
-      <div id="teams-content" class="nba-two"></div>
+    <div id="section-story" class="section-wrap" hidden>
+      <h2 class="section-title">How They Win / How They Lose <button type="button" class="info-i" aria-expanded="false" aria-controls="wl-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="wl-note" hidden>The <b>3 numbers that change most</b> between each team's wins and its losses this season. Each is ranked where it would sit among all 30 teams' season numbers, so <b>green in wins and red in losses</b> = the thing that decides its games. Small samples this early.</p>
+      <div id="wl-content" class="nba-two"></div>
     </div>
 
-    <div id="section-matchups" class="section-wrap" hidden>
-      <h2 class="section-title">Offense vs Defense</h2>
-      <p class="section-note">Each offense next to what the other defense allows. Colors compare a team with the league from its own side: green is good for that unit. Ratings are points per 100 possessions.</p>
-      <div id="matchups-content" class="nba-two"></div>
+    <div id="section-duo" class="section-wrap" hidden>
+      <div class="mb-duo">
+        <div>
+          <h2 class="section-title">Head To Head</h2>
+          <div id="h2h-content"></div>
+        </div>
+        <div class="mb-duo-main">
+          <h2 class="section-title">The Matchup <button type="button" class="info-i" aria-expanded="false" aria-controls="matchup-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="matchup-note" hidden>Each row: the offense's number across from what the other defense allows, both directions side by side. <b>Every cell is a rank of 30</b> (big) with its number (small), shaded <b>green = good for that team</b>. How-often rows (Pace, the Shares, Ball Movement): green offense = does it a lot, green defense = takes it away, so <b>green against red = the offense gets its way</b>. <b>Edge</b> = one side clearly points one way and the other doesn't push back (the logo = who it favors; Big Edge = a full league spread). <b>Fits</b> = the offense does it a lot and this defense allows it a lot; <b>Takes Away</b> = this defense rarely allows it. <b>Rebounding</b> = offensive rebound % against the defense's defensive rebound %. <b>Vs Tonight's Types</b>: the team that is the type (fast, rim attackers, a ball-hawk defense...) shows its rank in that trait; the other shows its points vs normal against teams like that, minus the league's (only once it has 3+ games against them).</p>
+          <div id="matchup-content"></div>
+        </div>
+      </div>
     </div>
 
     <div id="section-players" class="section-wrap" hidden>
       <h2 class="section-title">Rotations</h2>
-      <p class="section-note">Per-game numbers, most minutes first. L5 is the last five games.</p>
-      <div id="players-content" class="nba-two"></div>
-    </div>
-
-    <div id="section-injuries" class="section-wrap" hidden>
-      <h2 class="section-title">Injuries</h2>
-      <div id="injuries-content" class="nba-two"></div>
+      <div id="players-content" class="mb-fitrow"></div>
     </div>
 
     <div id="section-recent" class="section-wrap" hidden>
       <h2 class="section-title">Recent Games</h2>
-      <div id="recent-content" class="nba-two"></div>
+      <div id="recent-content" class="mb-fitrow"></div>
     </div>
   </div>
 </main>

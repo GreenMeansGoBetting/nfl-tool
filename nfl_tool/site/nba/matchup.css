@@ -1,0 +1,81 @@
+/* NBA Matchup Breakdown (nba/index.html + nba.js; Game Previews and Team Identity
+   merged, 2026-10-28). The layout pieces (.nba-box, .nba-two, banners) come from
+   suite.css. Every table is only as wide as its contents (the owner: Recent Games
+   was "far far far wider than it needs to be"); every value cell is a rank of 30
+   in big type with its number small, shaded by nba.js (scaleHsla). */
+
+/* Top row: The Line beside Injuries */
+.mb-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: stretch; }
+.mb-linebox { padding-bottom: 10px; }
+.mb-line { display: grid; grid-template-columns: repeat(2, auto); gap: 6px; padding: 0 10px; }
+.mb-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 6px 14px 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); text-align: center; }
+.mb-tile b { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; white-space: nowrap; }
+.mb-tile small { font-size: 0.7rem; font-weight: 700; color: var(--muted); }
+.mb-tile .team-logo { vertical-align: -3px; }
+.mb-pair { display: inline-flex; align-items: center; gap: 4px; }
+.mb-linebox .section-note { margin: 0 10px; }
+.mb-injs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 18px; padding: 0 12px; }
+.mb-inj-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-family: var(--font-display); font-weight: 800; letter-spacing: 0.04em; }
+.mb-inj { display: flex; align-items: center; gap: 7px; padding: 2px 0; font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-inj .gs-inj-status { min-width: 34px; text-align: center; }
+.mb-inj small { color: var(--muted); font-weight: 600; }
+
+/* The shared table look */
+.mb-table { border-collapse: separate; border-spacing: 3px 3px; margin: 0 auto; }
+.mb-table th { padding: 4px 6px 2px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; white-space: nowrap; }
+.mb-table th .team-logo { vertical-align: -4px; }
+.mb-v { height: 30px; min-width: 84px; padding: 0 10px; border-radius: 7px; background: var(--panel-2); text-align: center; vertical-align: middle; white-space: nowrap; font-family: var(--font-display); color: var(--text); }
+.mb-v b { font-size: 1.08rem; font-weight: 800; }
+.mb-v small { margin-left: 6px; font-size: 0.74rem; font-weight: 600; opacity: 0.78; }
+.mb-v .team-logo { margin-right: 6px; vertical-align: -3px; }
+.mb-v.mb-empty { background: transparent; }
+.mb-v.mb-faded { opacity: 0.5; }
+.mb-v.mb-rec b { font-size: 1rem; }
+.mb-stat { padding: 0 12px; font-size: 0.88rem; font-weight: 700; text-align: center; white-space: nowrap; }
+.mb-stat.mb-left { text-align: left; padding-left: 6px; }
+.mb-call { min-width: 92px; padding: 0 4px; text-align: center; vertical-align: middle; }
+.mb-group td { padding: 12px 4px 3px; font-family: var(--font-display); font-size: 0.84rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-align: left; color: var(--accent, var(--good-text)); border-bottom: 2px solid var(--border); }
+.mb-group-note { margin-left: 8px; font-family: var(--font-body, inherit); font-size: 0.74rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.mb-none { display: block; padding: 6px 12px; font-size: 0.84rem; font-weight: 700; color: var(--muted); text-align: center; }
+.mb-edge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.4); }
+.mb-edge.mb-big { background: rgba(var(--good-rgb), 0.32); border-color: rgb(var(--good-rgb)); }
+.mb-call .gs-tag { height: 20px; }
+.mb-scroll { overflow-x: auto; }
+
+/* The Matchup: two directions, a hard line between them (the owner: "make sure theres
+   a hard differentiaon so we can see the matchups clearly"). */
+.mb-matchup .mb-pairs th { padding: 7px 12px; font-family: var(--font-display); font-size: 1rem; color: var(--text); border-radius: 8px; }
+.mb-matchup .mb-pairs th.mb-gap { background: none; }
+.mb-matchup td.mb-stat { min-width: 170px; background: var(--table-head); border-radius: 7px; }
+.mb-matchup td.mb-pa-in { box-shadow: inset -3px 0 0 var(--border-strong); }
+.mb-matchup td.mb-ph-in { box-shadow: inset 3px 0 0 var(--border-strong); }
+.mb-matchup td.mb-pa-in, .mb-matchup td.mb-ph-in { border-radius: 7px; }
+.mb-matchup tr.mb-called td.mb-stat { font-weight: 800; }
+.mb-matchup .mb-group td { padding-top: 14px; }
+
+/* Head To Head beside The Matchup: about the same height, so neither leaves dead space */
+.mb-duo { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; }
+.mb-duo-main { min-width: 0; }
+.mb-h2h { padding: 8px 6px 10px; }
+.mb-mirror .mb-v { min-width: 108px; }
+.mb-mirror thead th { font-family: var(--font-display); font-size: 1rem; color: var(--text); }
+.mb-wl .mb-v { min-width: 104px; }
+.mb-side { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 5px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: 1px; background: var(--panel-2); border: 1px solid var(--border-strong); color: var(--muted); }
+
+/* Rotations and Recent Games: each box only as wide as its table */
+.mb-fitrow { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.mb-fitrow > .nba-box { flex: 0 1 auto; max-width: 100%; overflow-x: auto; }
+.mb-fit { width: auto; }
+.mb-fit th, .mb-fit td { padding-left: 9px; padding-right: 9px; white-space: nowrap; }
+.mb-recent td.mb-res { border-radius: 6px; font-weight: 700; text-align: center; }
+
+@media (max-width: 1300px) {
+  .mb-duo { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .mb-top, .mb-injs { grid-template-columns: minmax(0, 1fr); }
+  .mb-line { grid-template-columns: minmax(0, 1fr); }
+  .mb-h2h { overflow-x: auto; }
+  .mb-v { min-width: 64px; padding: 0 6px; }
+  .mb-matchup td.mb-stat { min-width: 120px; white-space: normal; }
+}

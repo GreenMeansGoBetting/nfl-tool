@@ -280,6 +280,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-28",
+    items: [
+      ["🏀", "<b>NBA Matchup Breakdown</b> replaces Game Previews and Team Identity: one page per game with the line and injuries up top, each team’s Biggest Edges, Head To Head, How They Win / How They Lose, then The Matchup (both offenses against both defenses, side by side). Every number is a rank of 30, shaded green to red, so a mismatch reads the same everywhere. Recent Games now shows each game’s spread and total, colored by cover and over / under."],
+    ],
+  },
+  {
     id: "2026-10-27",
     items: [
       ["🏀", "<b>NBA Zone Matchup Targets</b> is a new page under Shot Charts: every player with a points or threes line tonight, where and how he shoots (zones, self-created, catch and shoot, drives) against what tonight’s defense gives up to players like him from those spots. It opens on the night’s Best and Worst Spots; Matchup View shows every player in a game and each defense’s soft and tough spots. Click a player for both shot charts. The numbers are raw: check the sample."],
@@ -834,8 +840,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Passing", file: "player-props.html#passing" },
     ] },
     nba: { label: "NBA", home: "", items: [
-      { name: "Game Previews", file: "" },
-      { name: "Team Identity", file: "identity.html" },
+      { name: "Matchup Breakdown", file: "" },
       { name: "Shot Charts", file: "shot-charts.html" },
       { name: "Zone Matchup Targets", file: "zones.html", tag: "New" },
       // Kept reachable but set aside while the NBA suite turns toward matchup

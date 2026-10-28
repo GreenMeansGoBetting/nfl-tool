@@ -1,21 +1,27 @@
-// ---- GMG NBA Suite: Game Previews ----
-// Stands on its own (no common.js -- that file is NFL through and through)
-// but uses the same stylesheet, so it looks like the NFL pages: tiles, shaded
-// boxes, team-color banners. Data comes from nba/data.json, built by
-// nfl_tool/nba/build_nba.py.
+// ---- GMG NBA Suite: Matchup Breakdown ----
+// Game Previews and Team Identity in one page (the owner, 2026-10-28: "after 3
+// minutes on this page i understand how these teams win, why they lose, and
+// what the matchup may have in store for tonight"). Stands on its own (no
+// common.js) but uses the site's stylesheet. Data: nba/data.json (build_nba.py;
+// the matchup numbers are identity.py's).
+//
+// One language everywhere (the owner: "Rank first then number ... so the user
+// can always look for the same thing"): every cell is a rank of 30 in big type,
+// its number small, shaded red to green by the rank. Green = good for that team;
+// on how-often rows (pace, shot shares) green offense = does it a lot, green
+// defense = takes it away, so green against red still reads "the offense gets
+// its way". Every matchup row reads both sides (the offense's number across
+// from the other defense's allowed number) and is called with the site's
+// two-sided rule (common.js matchupCall).
 
 let DATA = null;
-let STATS = null; // the season shown: team_stats, recent_games, players
-let statsSeason = null;
 let dayIndex = 0;
 let gameId = null;
 const NBA_GAME_KEY = "nba-tool.game.v1";
-const NBA_SEASON_KEY = "nba-tool.preview-season.v1";
 
 const el = (id) => document.getElementById(id);
 const fmt = (n, digits = 1) => (n === null || n === undefined ? "--" : Number(n).toFixed(digits));
-const pct = (n, digits = 1) => (n === null || n === undefined ? "--" : `${(n * 100).toFixed(digits)}%`);
-const signed = (n) => (n === null || n === undefined ? "--" : n === 0 ? "PK" : `${n > 0 ? "+" : ""}${String(Number(n.toFixed(1))).replace(/\.0$/, "")}`);
+const signed = (n, digits = 1) => (n === null || n === undefined ? "--" : n === 0 ? "PK" : `${n > 0 ? "+" : ""}${String(Number(n.toFixed(digits))).replace(/\.0$/, "")}`);
 const odds = (n) => (n === null || n === undefined ? "" : showOdds(n)); // the member's odds format (sync.js)
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, short: abbr, color: "555555", logo: "" };
 const logo = (abbr, size = 18) => `<img src="${team(abbr).logo}" alt="${abbr}" class="team-logo" style="width:${size}px;height:${size}px" loading="lazy">`;
@@ -23,76 +29,441 @@ function teamRgb(abbr) {
   const hex = team(abbr).color || "555555";
   return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
 }
-function banner(abbr, right = "") {
-  return `<div class="team-banner" style="background:rgba(${teamRgb(abbr)},0.22);border-left:4px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span class="team-banner-name">${team(abbr).name}</span>${right ? `<span class="nba-banner-right">${right}</span>` : ""}</div>`;
+function banner(abbr, text, right = "") {
+  return `<div class="team-banner" style="background:rgba(${teamRgb(abbr)},0.22);border-left:4px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span class="team-banner-name">${text || team(abbr).name}</span>${right ? `<span class="nba-banner-right">${right}</span>` : ""}</div>`;
 }
 function fmtTime(hhmm) {
   if (!hhmm) return "";
   const [h, m] = hhmm.split(":").map(Number);
   return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"} ET`;
 }
-
-// ---- league comparison ----
-// z-score of one team's stat against all 30, flipped when lower is better,
-// so positive always means "good for the unit this number belongs to".
-function zScore(key, abbr, lowerIsBetter) {
-  const values = Object.values(STATS.team_stats).map((s) => s[key]).filter((v) => v !== null && v !== undefined);
-  const value = (STATS.team_stats[abbr] || {})[key];
-  if (values.length < 3 || value === null || value === undefined) return null;
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-  const sd = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
-  if (!sd) return 0;
-  return ((value - mean) / sd) * (lowerIsBetter ? -1 : 1);
-}
-const tierClass = (z) => (z === null ? "" : z >= 0.5 ? "tier-good" : z <= -0.5 ? "tier-bad" : "tier-mid");
-function leagueRank(key, abbr, lowerIsBetter) {
-  const sorted = Object.entries(STATS.team_stats)
-    .filter(([, s]) => s[key] !== null && s[key] !== undefined)
-    .sort((a, b) => (lowerIsBetter ? a[1][key] - b[1][key] : b[1][key] - a[1][key]));
-  const i = sorted.findIndex(([t]) => t === abbr);
-  return i === -1 ? null : i + 1;
-}
 const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
-// Offense vs defense rows. off / def = data keys; `low` = the OFFENSE wants
-// this number low (turnovers). The defense always wants the opposite of the
-// offense for the same stat. kind: how the value prints.
-const MATCHUP_ROWS = [
-  { label: "Rating (pts / 100 poss)", off: "off_rating", def: "def_rating", kind: "num" },
-  { label: "Points / game", off: "off_ppg", def: "def_ppg", kind: "num" },
-  { label: "Effective FG %", off: "off_efg", def: "def_efg", kind: "pct" },
-  { label: "Turnover %", off: "off_tov_pct", def: "def_tov_pct", kind: "pct", low: true },
-  { label: "Off. rebound %", off: "oreb_pct", def: "opp_oreb_pct", kind: "pct" },
-  { label: "Free throw rate", off: "off_ft_rate", def: "def_ft_rate", kind: "pct" },
-  { label: "3-point attempt rate", off: "off_three_rate", def: "def_three_rate", kind: "pct" },
-  { label: "3-point %", off: "off_three_pct", def: "def_three_pct", kind: "pct" },
-  { label: "3-pointers / game", off: "off_threes_pg", def: "def_threes_pg", kind: "num" },
-  { label: "Paint points / game", off: "off_paint_pg", def: "def_paint_pg", kind: "num" },
-  { label: "Fast break points / game", off: "off_fast_break_pg", def: "def_fast_break_pg", kind: "num" },
-  { label: "Points off turnovers / game", off: "off_pts_off_tov_pg", def: "def_pts_off_tov_pg", kind: "num" },
-  { label: "Assists / game", off: "off_ast_pg", def: "def_ast_pg", kind: "num" },
+// ---- ranks and cells ----
+// Where value v sits among `table` (team -> numbers) on `key`: 1 + the teams
+// better than it. hi = bigger is first. Works for a team's own number and for a
+// number from part of its season (wins, losses).
+function rankIn(table, key, v, hi) {
+  if (v === null || v === undefined || !table) return null;
+  const vals = Object.values(table).map((s) => s[key]).filter((x) => x !== null && x !== undefined);
+  if (!vals.length) return null;
+  return Math.min(vals.length, 1 + vals.filter((x) => (hi ? x > v : x < v)).length);
+}
+const teamsOf = (table) => Object.values(table || {}).filter((s) => s && Object.keys(s).length).length;
+// One cell: {r, n, num, title, plain (never colored), abbr (logo in it), faded}.
+function cellTd(c, extra = "") {
+  if (!c) return `<td class="mb-v mb-empty${extra}"></td>`;
+  const hue = c.n > 1 ? Math.round((120 * (c.n - c.r)) / (c.n - 1)) : 60;
+  const style = c.plain || !c.r ? "" : ` style="background:${scaleHsla(hue, 70, 45, 0.32)}"`;
+  const lg = c.abbr ? logo(c.abbr, 16) : "";
+  const big = c.r ? `<b>${ordinal(c.r)}</b>` : "";
+  return `<td class="mb-v${c.faded ? " mb-faded" : ""}${extra}"${style} title="${esc(c.title || "")}">${lg}${big}${c.num ? `<small>${c.num}</small>` : ""}</td>`;
+}
+
+// ---- the identity numbers (identity.py) ----
+const block = () => {
+  const id = DATA.identity;
+  return (id && id.seasons && id.seasons[id.default]) || null;
+};
+const idTeams = () => (block() || {}).teams || {};
+const idStats = (abbr) => idTeams()[abbr] || null;
+// How far a team's number sits from the league average, in league spreads.
+function z(abbr, key) {
+  const s = idStats(abbr);
+  const lg = (block() || {}).league && block().league[key];
+  if (!s || !lg || s[key] === null || s[key] === undefined) return null;
+  return (s[key] - lg.avg) / (lg.sd || 1);
+}
+function pctFmt(v) {
+  return `${(v * 100).toFixed(1)}%`;
+}
+const FORMATS = { ppp: (v) => v.toFixed(2), pct: pctFmt, num: (v) => v.toFixed(1) };
+
+// The matchup rows: key, label, how it prints, way (+1 the offense wants it
+// high, -1 low, 0 = how often), group, how-often noun (Fits / Takes Away), the
+// share a make-rate row needs (the offense takes at least the league's usual
+// share there). The owner's cuts, 2026-10-28: half-court and seconds a
+// possession (repeat scoring and pace), steals' share, the two 3-point zones
+// (3PT share only; "3pt% is going to level out"), rim + paint as one Paint
+// (both shares count), pull-up / catch / assisted as one Ball Movement.
+const M_ROWS = [
+  ["ppp", "Pts / Possession", "ppp", 1, "Scoring"],
+  ["pace", "Pace", "num", 0, "Scoring", "Pace"],
+  ["trans_freq", "Transition Share", "pct", 0, "Scoring", "Transition"],
+  ["trans_ppp", "Transition Pts / Poss", "ppp", 1, "Scoring"],
+  ["tov_rate", "Turnovers", "pct", -1, "Possessions"],
+  ["oreb_rate", "Rebounding", "pct", 1, "Possessions"],
+  ["fta_rate", "Free Throws / Shot", "pct", 1, "Possessions"],
+  ["three_rate", "3-Point Share", "pct", 0, "Shot Diet", "3s"],
+  ["paint_share", "Paint Share", "pct", 0, "Shot Diet", "Paint Shots"],
+  ["paint_pct", "Paint FG%", "pct", 1, "Shot Diet", null, "paint_share"],
+  ["mid_share", "Mid-Range Share", "pct", 0, "Shot Diet", "Mid-Range"],
+  ["mid_pct", "Mid-Range FG%", "pct", 1, "Shot Diet", null, "mid_share"],
+  ["ball_move", "Ball Movement", "pct", 0, "Shot Diet", "Ball Movement"],
 ];
-// Same two-sided rule as the NFL cards: a gap of a full standard deviation
-// between the two units is an edge; both clearly good / bad is its own tag.
-function matchupTag(offZ, defZ) {
-  if (offZ === null || defZ === null) return "";
-  if (offZ >= 0.4 && defZ >= 0.4) return `<span class="gs-tag gs-tag-strong">Good vs Good</span>`;
-  if (offZ <= -0.4 && defZ <= -0.4) return `<span class="nba-notag">Bad vs Bad</span>`;
-  if (offZ - defZ >= 1) return `<span class="gs-tag gs-tag-mismatch">Mismatch</span>`;
-  if (offZ - defZ <= -1) return `<span class="gs-tag gs-tag-tough">Tough</span>`;
-  return `<span class="nba-notag">Even</span>`;
+const M_GROUPS = ["Scoring", "Possessions", "Shot Diet"];
+// The defense side of a row reads as the defense's own number where that's plainer:
+// Rebounding = the offense's offensive boards vs the defense's defensive boards.
+const DEF_SHOW = { oreb_rate: (v) => 1 - v };
+const ROW_HOVER = {
+  ppp: ["Points a possession", "Points a possession allowed"],
+  pace: ["Possessions a 48 minutes", "Possessions a 48 minutes its games run at"],
+  trans_freq: ["Share of possessions in transition (a shot or turnover within 8 s of a defensive board or steal)", "Share of opponents' possessions in transition"],
+  trans_ppp: ["Points a transition possession", "Points allowed a transition possession"],
+  tov_rate: ["Share of possessions ending in a turnover (1st = fewest)", "Share of opponents' possessions it forces a turnover (1st = most)"],
+  oreb_rate: ["Offensive rebound % (its misses it gets back)", "Defensive rebound % (opponents' misses it gets)"],
+  fta_rate: ["Free throws a shot", "Free throws a shot allowed"],
+  three_rate: ["Share of shots that are 3s (1st = most)", "Share of opponents' shots that are 3s (1st = fewest)"],
+  paint_share: ["Share of shots at the rim or in the paint (1st = most)", "Share of opponents' shots in the paint (1st = fewest)"],
+  paint_pct: ["FG% at the rim and in the paint", "FG% allowed at the rim and in the paint"],
+  mid_share: ["Share of shots from mid-range (1st = most)", "Share of opponents' shots from mid-range (1st = fewest)"],
+  mid_pct: ["Mid-range FG%", "Mid-range FG% allowed"],
+  ball_move: ["Makes assisted and catch-and-shoot shots, averaged (1st = most)", "The same for its opponents (1st = fewest)"],
+};
+
+// Calls (the site's two-sided rule, like common.js matchupCall): an EDGE needs one
+// side EDGE_Z league spreads toward a team and the other not EDGE_CONTRA the other
+// way; a how-often row with both sides FREQ_GAP out is Fits (the offense does it a
+// lot, this defense allows it a lot) or Takes Away (it rarely allows it).
+const FREQ_GAP = 0.7;
+const EDGE_Z = 0.6;
+const EDGE_CONTRA = 0.3;
+const EDGE_BIG = 1.0; // the two sides average a full league spread = Big Edge
+function rowCall(off, de, r) {
+  const [key, , , way, , noun, shareKey] = r;
+  const oz = z(off, `off_${key}`);
+  const dz = z(de, `def_${key}`);
+  if (oz === null || dz === null) return null;
+  if (way === 0) {
+    if (!noun || oz < FREQ_GAP) return null;
+    if (dz >= FREQ_GAP) return { kind: "fits", size: oz + dz };
+    if (dz <= -FREQ_GAP) return { kind: "takes", size: oz - dz };
+    return null;
+  }
+  if (shareKey && (z(off, `off_${shareKey}`) ?? -1) < 0) return null; // a zone it rarely shoots from
+  const a = oz * way; // + = good for the offense
+  const b = dz * way; // + = this defense allows a lot (good for the offense)
+  const hi = Math.max(a, b);
+  const lo = Math.min(a, b);
+  const dir = hi >= EDGE_Z && lo > -EDGE_CONTRA ? 1 : lo <= -EDGE_Z && hi < EDGE_CONTRA ? -1 : 0;
+  if (!dir) return null;
+  if (key === "trans_ppp" && dir === 1 && (z(off, "off_trans_freq") ?? -1) < 0) return null; // only helps a team that runs
+  return { kind: "edge", team: dir > 0 ? off : de, size: Math.abs(a + b) / 2 };
+}
+const callPill = (c) => !c ? "" : c.kind === "edge"
+  ? `<span class="mb-edge${c.size >= EDGE_BIG ? " mb-big" : ""}">${logo(c.team, 14)}${c.size >= EDGE_BIG ? "Big Edge" : "Edge"}</span>`
+  : `<span class="gs-tag ${c.kind === "fits" ? "gs-tag-strong" : "gs-tag-weak"}">${c.kind === "fits" ? "Fits" : "Takes Away"}</span>`;
+
+// One side's cell on a row: the offense ranks 1st = best (how often: most), the
+// defense 1st = best (how often: allows the fewest).
+function sideCell(abbr, side, r, opts = {}) {
+  const [key, label, kind, way] = r;
+  const k = `${side}_${key}`;
+  const v = opts.value !== undefined ? opts.value : (idStats(abbr) || {})[k];
+  if (v === null || v === undefined) return null;
+  const up = way >= 0; // the offense wants it high (how often: "most" is 1st)
+  const hi = side === "off" ? up : !up;
+  const n = teamsOf(idTeams());
+  const shown = side === "def" && DEF_SHOW[key] ? DEF_SHOW[key](v) : v;
+  const words = ROW_HOVER[key] ? ROW_HOVER[key][side === "off" ? 0 : 1] : label;
+  const r0 = rankIn(idTeams(), k, v, hi);
+  return { r: r0, n, num: FORMATS[kind](shown), title: `${abbr} ${side === "off" ? "Offense" : "Defense"}${opts.when ? ` (${opts.when})` : ""}: ${words}, ${FORMATS[kind](shown)}${r0 ? ` (${ordinal(r0)} of ${n})` : ""}`, abbr: opts.abbr ? abbr : null };
+}
+
+// ---- tonight's types (Matchup Extremes, extremes.js) ----
+// A type row: the side that IS the type gets its rank in that trait; the other
+// side gets its split against teams like that (points vs normal, minus the
+// league's), ranked among teams with EX_MIN_GP+ games against the type. Under
+// that many games the row isn't shown.
+function splitCell(ex, abbr, t) {
+  const c = exCell(ex, abbr, t, EX_OUTCOMES[0]);
+  if (!c) return null;
+  const n = ((ex.teams[abbr] || {})[t.key] || {}).n || 0;
+  const sign = t.side === "off" ? -1 : 1; // facing an offense type, fewer allowed is good
+  const all = Object.keys(ex.teams)
+    .map((x) => [x, exCell(ex, x, t, EX_OUTCOMES[0]), ((ex.teams[x] || {})[t.key] || {}).n || 0])
+    .filter(([, cc, nn]) => cc && nn >= EX_MIN_GP)
+    .map(([x, cc]) => [x, cc.gap * sign]);
+  const mine = c.gap * sign;
+  const r = n >= EX_MIN_GP ? 1 + all.filter(([, g]) => g > mine).length : null;
+  return { r, n: all.length, num: n >= EX_MIN_GP ? `${signed(c.gap)} Pts` : `${n} GP`, title: c.title, faded: n < EX_MIN_GP, call: c.far ? { kind: "edge", team: c.good > 0 ? abbr : null, size: Math.abs(c.gap) / 6 } : null };
+}
+function traitCell(t, abbr) {
+  const i = (t.order || []).indexOf(abbr);
+  if (i < 0) return null;
+  return { r: i + 1, n: t.order.length, num: "", title: `${abbr}: ${ordinal(i + 1)} of ${t.order.length} as one of the ${t.label}` };
+}
+// The pair of cells (offense, defense) a type gives the direction `off` has the ball, or null.
+function typePair(ex, t, off, de) {
+  if (t.side === "off" && t.teams.includes(off)) {
+    const d = splitCell(ex, de, t);
+    if (!d || d.faded) return null;
+    return { o: traitCell(t, off), d, call: d.call && { ...d.call, team: d.call.team || off } };
+  }
+  if (t.side === "def" && t.teams.includes(de)) {
+    const o = splitCell(ex, off, t);
+    if (!o || o.faded) return null;
+    return { o, d: traitCell(t, de), call: o.call && { ...o.call, team: o.call.team || de } };
+  }
+  return null;
+}
+
+// ---- The Matchup: every row, both directions side by side ----
+// Returns {html, edges: [{team, size, label, o, d}]}.
+function matchup(g) {
+  const a = g.away;
+  const h = g.home;
+  const edges = [];
+  const rowHtml = (label, A, H, cls = "") => {
+    const cA = A && A.call;
+    const cH = H && H.call;
+    return `<tr class="${cls}${cA || cH ? " mb-called" : ""}">
+      <td class="mb-call mb-ca">${callPill(cA)}</td>${cellTd(A && A.o, " mb-pa")}${cellTd(A && A.d, " mb-pa mb-pa-in")}
+      <td class="mb-stat">${label}</td>
+      ${cellTd(H && H.o, " mb-ph mb-ph-in")}${cellTd(H && H.d, " mb-ph")}<td class="mb-call mb-ch">${callPill(cH)}</td></tr>`;
+  };
+  const note = (label, P, off, de) => {
+    if (P && P.call && P.call.kind === "edge") edges.push({ team: P.call.team, side: P.call.team === off ? "off" : "def", size: P.call.size, label, o: { ...P.o, abbr: off }, d: { ...P.d, abbr: de } });
+  };
+  let body = "";
+  for (const grp of M_GROUPS) {
+    body += `<tr class="mb-group"><td colspan="7">${grp}</td></tr>`;
+    for (const r of M_ROWS.filter((x) => x[4] === grp)) {
+      const pair = (off, de) => {
+        const o = sideCell(off, "off", r);
+        const d = sideCell(de, "def", r);
+        return o || d ? { o, d, call: rowCall(off, de, r) } : null;
+      };
+      const A = pair(a, h);
+      const H = pair(h, a);
+      note(r[1], A, a, h);
+      note(r[1], H, h, a);
+      body += rowHtml(r[1], A, H);
+    }
+  }
+  const ex = (block() || {}).extremes;
+  if (ex) {
+    const rows = ex.types.map((t) => [t, typePair(ex, t, a, h), typePair(ex, t, h, a)]).filter(([, A, H]) => A || H);
+    if (rows.length) {
+      body += `<tr class="mb-group"><td colspan="7">Vs Tonight's Types <span class="mb-group-note">Their rank in the type, and the other team's points vs normal against teams like them</span></td></tr>`;
+      for (const [t, A, H] of rows) {
+        note(`Vs ${t.label}`, A, a, h);
+        note(`Vs ${t.label}`, H, h, a);
+        body += rowHtml(t.label, A, H);
+      }
+    }
+  }
+  const head = `<thead><tr class="mb-pairs">
+      <th colspan="3" style="background:rgba(${teamRgb(a)},0.22);border-left:4px solid rgb(${teamRgb(a)})">${logo(a, 20)} ${a} Has The Ball</th><th class="mb-gap"></th>
+      <th colspan="3" style="background:rgba(${teamRgb(h)},0.22);border-right:4px solid rgb(${teamRgb(h)})">${h} Has The Ball ${logo(h, 20)}</th></tr>
+    <tr class="mb-cols"><th>Call</th><th>${a} Off</th><th>${h} Def</th><th></th><th>${h} Off</th><th>${a} Def</th><th>Call</th></tr></thead>`;
+  return { html: `<div class="mb-scroll"><table class="mb-table mb-matchup">${head}<tbody>${body}</tbody></table></div>`, edges };
+}
+
+const sideTag = (side) => `<span class="mb-side">${side === "off" ? "Off" : "Def"}</span>`;
+
+// ---- Biggest Edges: each team's top 3, as a chart (the owner: a count of 8 vs 1 hid sizes) ----
+const EDGES_SHOWN = 3;
+function edgesBox(g, edges) {
+  const side = (t) => {
+    const mine = edges.filter((e) => e.team === t).sort((x, y) => y.size - x.size).slice(0, EDGES_SHOWN);
+    const rows = mine.map((e) => `<tr><td class="mb-stat mb-left">${sideTag(e.side)}${e.label}</td>${cellTd(e.o)}${cellTd(e.d)}<td class="mb-call">${callPill({ kind: "edge", team: t, size: e.size })}</td></tr>`).join("");
+    return `<div class="nba-box">${banner(t, `${team(t).name} Edges`)}
+      <table class="mb-table mb-edges"><thead><tr><th></th><th>Offense</th><th>Defense</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="mb-none">No Clear Edges</td></tr>'}</tbody></table></div>`;
+  };
+  return side(g.away) + side(g.home);
+}
+
+// ---- How They Win / How They Lose: the numbers that move most between wins and losses ----
+const WL_SHOWN = 3;
+function winLossBox(abbr) {
+  const wl = ((block() || {}).wl || {})[abbr];
+  if (!wl) return `<div class="nba-box">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
+  const head = banner(abbr, `How ${team(abbr).short || abbr} Wins / Loses`, `${wl.nw}-${wl.nl}`);
+  if (!wl.nw || !wl.nl) return `<div class="nba-box">${head}<p class="mb-none">${wl.nw ? "No Losses Yet" : "No Wins Yet"}</p></div>`;
+  const lg = (block() || {}).league || {};
+  const cands = [];
+  for (const r of M_ROWS) {
+    for (const side of ["off", "def"]) {
+      const k = `${side}_${r[0]}`;
+      const w = wl.w[k];
+      const l = wl.l[k];
+      if (w === null || w === undefined || l === null || l === undefined || !lg[k]) continue;
+      cands.push({ r, side, gap: Math.abs(w - l) / (lg[k].sd || 1), w, l });
+    }
+  }
+  cands.sort((x, y) => y.gap - x.gap);
+  const rows = cands.slice(0, WL_SHOWN).map((c) => {
+    return `<tr><td class="mb-stat mb-left">${sideTag(c.side)}${c.r[1]}</td>${cellTd(sideCell(abbr, c.side, c.r, { value: c.w, when: "in wins" }))}${cellTd(sideCell(abbr, c.side, c.r, { value: c.l, when: "in losses" }))}</tr>`;
+  }).join("");
+  return `<div class="nba-box">${head}
+    <table class="mb-table mb-wl"><thead><tr><th></th><th>In Wins (${wl.nw})</th><th>In Losses (${wl.nl})</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ---- Head To Head: both teams' basics mirrored, then quarters, blowouts and tonight's spots ----
+function headToHead(g) {
+  const a = g.away;
+  const h = g.home;
+  const ts = DATA.team_stats || {};
+  const n = teamsOf(ts);
+  const sa = ts[a];
+  const sh = ts[h];
+  const rec = (s) => {
+    if (!s) return null;
+    const [w, l] = String(s).split("-").map(Number);
+    const share = w + l ? w / (w + l) : 0.5;
+    return `<td class="mb-v mb-rec" style="background:${scaleHsla(Math.round(share * 120), 70, 45, 0.32)}"><b>${s}</b></td>`;
+  };
+  const tsCell = (abbr, key, hi, show) => {
+    const s = ts[abbr];
+    if (!s || s[key] === null || s[key] === undefined) return null;
+    const r = rankIn(ts, key, s[key], hi);
+    return { r, n, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${n})` };
+  };
+  const idCell = (abbr, key, hi, show, plain) => {
+    const s = idStats(abbr);
+    if (!s || s[key] === null || s[key] === undefined) return null;
+    const r = rankIn(idTeams(), key, s[key], hi);
+    const nn = teamsOf(idTeams());
+    return { r, n: nn, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${nn})`, plain };
+  };
+  const raw = (A, H, label) => `<tr>${A || '<td class="mb-v mb-empty"></td>'}<td class="mb-stat">${label}</td>${H || '<td class="mb-v mb-empty"></td>'}</tr>`;
+  const both = (label, f) => `<tr>${cellTd(f(a))}<td class="mb-stat">${label}</td>${cellTd(f(h))}</tr>`;
+  const grp = (t) => `<tr class="mb-group"><td colspan="3">${t}</td></tr>`;
+  const pts = (v) => `${v.toFixed(1)}`;
+  const pctS = (v) => `${Math.round(v * 100)}%`;
+  const of5 = (v) => `${v.toFixed(1)} Of 5`;
+  let body = "";
+  if (sa || sh) {
+    body += raw(rec(sa && `${sa.wins}-${sa.losses}`), rec(sh && `${sh.wins}-${sh.losses}`), "Record");
+    body += both("Net Rating", (t) => tsCell(t, "net_rating", true, (v) => signed(v)));
+    body += both("Offense", (t) => tsCell(t, "off_rating", true, pts));
+    body += both("Defense", (t) => tsCell(t, "def_rating", false, pts));
+    body += both("Pace", (t) => tsCell(t, "pace", true, pts));
+    body += raw(rec(sa && sa.home_record), rec(sh && sh.home_record), "Home");
+    body += raw(rec(sa && sa.away_record), rec(sh && sh.away_record), "Away");
+    body += raw(rec(sa && sa.last10), rec(sh && sh.last10), "Last 10");
+  }
+  if (idStats(a) || idStats(h)) {
+    body += grp("Points Per Quarter <span class=\"mb-group-note\">Margin a game</span>");
+    for (const q of [1, 2, 3, 4]) body += both(`Q${q}`, (t) => idCell(t, `q${q}_ppq`, true, (v) => signed(v)));
+    body += grp("Blowout Data <span class=\"mb-group-note\">4th quarter</span>");
+    body += both("Games Up 15+", (t) => idCell(t, "blowout_up_share", true, pctS));
+    body += both("Games Down 15+", (t) => idCell(t, "blowout_down_share", false, pctS));
+    body += both("Starters In: Up 15+", (t) => idCell(t, "blowout_up_starters", true, of5, true));
+    body += both("Starters In: Down 15+", (t) => idCell(t, "blowout_down_starters", true, of5, true));
+    body += both("Starters In: Within 5", (t) => idCell(t, "close_starters", true, of5, true));
+  }
+  body += spotRows(g);
+  return `<div class="nba-box mb-h2h">
+    <table class="mb-table mb-mirror"><thead><tr><th>${logo(a, 20)} ${a}</th><th></th><th>${h} ${logo(h, 20)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+// Tonight's Schedule Spots (back-to-back, long road trip...): the team's net points
+// a game vs its normal in that spot, minus the league's, ranked among teams with
+// EX_MIN_GP+ games in it; fewer games than that and the spot isn't shown.
+function spotRows(g) {
+  const spots = (block() || {}).spots;
+  if (!spots) return "";
+  const now = (spots.tonight || {})[g.game_id] || {};
+  const keys = [...new Set([...(now[g.away] || []), ...(now[g.home] || [])])];
+  const net = (abbr, t) => {
+    const p = exCell(spots, abbr, t, SPOT_OUTCOMES[0]);
+    const o = exCell(spots, abbr, t, SPOT_OUTCOMES[1]);
+    return p && o ? { v: p.gap - o.gap, title: `${p.title} ${o.title}` } : null;
+  };
+  const cell = (abbr, t) => {
+    if (!(now[abbr] || []).includes(t.key)) return null;
+    const n = ((spots.teams[abbr] || {})[t.key] || {}).n || 0;
+    const mine = net(abbr, t);
+    if (!mine || n < EX_MIN_GP) return null; // a thin spot is one odd night
+
+    const all = Object.keys(spots.teams).filter((x) => (((spots.teams[x] || {})[t.key] || {}).n || 0) >= EX_MIN_GP).map((x) => net(x, t)).filter(Boolean).map((x) => x.v);
+    return { r: 1 + all.filter((v) => v > mine.v).length, n: all.length, num: `${signed(mine.v)} Net`, title: mine.title };
+  };
+  const rows = spots.types.filter((t) => keys.includes(t.key)).map((t) => [t, cell(g.away, t), cell(g.home, t)]).filter(([, A, H]) => A || H)
+    .map(([t, A, H]) => `<tr>${cellTd(A)}<td class="mb-stat">${t.label}</td>${cellTd(H)}</tr>`).join("");
+  return rows ? `<tr class="mb-group"><td colspan="3">Tonight's Spots <span class="mb-group-note">Net pts vs normal</span></td></tr>${rows}` : "";
+}
+
+// ---- The Line and Injuries (top row) ----
+function lineBox(g) {
+  const hs = g.home_team_spread;
+  const total = g.total_line;
+  const has = hs !== null && hs !== undefined;
+  const fav = has ? (hs <= 0 ? g.home : g.away) : null;
+  const tile = (label, body) => `<div class="mb-tile"><span class="gs-tile-label">${label}</span><b>${body}</b></div>`;
+  const pair = (x, y) => `<span class="mb-pair">${x}</span><span class="mb-pair">${y}</span>`;
+  const ml = (abbr, price, prob) => `${logo(abbr, 18)} ${odds(price) || "--"}${prob ? ` <small>${Math.round(prob * 100)}%</small>` : ""}`;
+  const body = has || total
+    ? `<div class="mb-line">
+        ${tile("Spread", fav ? `${logo(fav, 20)} ${signed(fav === g.home ? hs : g.away_team_spread)}` : "--")}
+        ${tile("Total", total ? fmt(total).replace(/\.0$/, "") : "--")}
+        ${tile("Market Score", has && total ? pair(`${logo(g.away, 18)} ${fmt((total + hs) / 2)}`, `${logo(g.home, 18)} ${fmt((total - hs) / 2)}`) : "--")}
+        ${tile("Win Chance", pair(ml(g.away, g.away_moneyline, g.away_ml_implied_prob), ml(g.home, g.home_moneyline, g.home_ml_implied_prob)))}
+      </div>${g.lines_locked ? `<p class="section-note">Locked at tip-off.</p>` : ""}`
+    : `<p class="no-data-note">No line posted yet.</p>`;
+  return `<div class="nba-box mb-linebox"><div class="nba-box-title">The Line</div>${body}</div>`;
+}
+function injuriesBox(g) {
+  const list = (abbr) => {
+    const rows = (DATA.injuries[abbr] || [])
+      .map((p) => `<div class="mb-inj" title="${esc([p.injury, p.note].filter(Boolean).join(": "))}"><span class="gs-inj-status ${p.status === "Out" ? "tier-bad" : "tier-mid"}">${p.status === "Out" ? "Out" : "DTD"}</span><b>${playerClick(p.id, p.name)}</b><small>${p.position || ""}</small></div>`)
+      .join("");
+    return `<div class="mb-inj-col"><div class="mb-inj-head">${logo(abbr, 18)} ${abbr}</div>${rows || '<span class="mb-none">Nobody Listed</span>'}</div>`;
+  };
+  return `<div class="nba-box"><div class="nba-box-title">Injuries</div><div class="mb-injs">${list(g.away)}${list(g.home)}</div></div>`;
+}
+
+// ---- Rotations and Recent Games (bottom) ----
+function renderPlayers(g) {
+  const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.status === "Out").map((p) => p.id));
+  const table = (abbr) => {
+    const injured = out(abbr);
+    const rows = ((DATA.players || {})[abbr] || [])
+      .map((p) => {
+        const trend = p.l5_pts !== null && p.pts !== null ? p.l5_pts - p.pts : 0;
+        return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>
+          <td class="nba-player">${p.headshot ? `<img src="${p.headshot}" alt="" class="nba-headshot" loading="lazy">` : `<span class="nba-headshot"></span>`}<span>${playerClick(p.id, p.name)}</span><span class="muted-label">${p.position || ""}</span>${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>
+          <td class="num">${p.games}</td><td class="num">${fmt(p.min)}</td><td class="num"><b>${fmt(p.pts)}</b></td><td class="num">${fmt(p.reb)}</td><td class="num">${fmt(p.ast)}</td><td class="num">${fmt(p.threes)}</td>
+          <td class="num ${trend >= 2 ? "tier-good" : trend <= -2 ? "tier-bad" : ""}">${fmt(p.l5_pts)}</td>
+        </tr>`;
+      })
+      .join("");
+    return `<div class="nba-box">${banner(abbr)}
+      <table class="data-table nba-player-table mb-fit"><thead><tr><th>Player</th><th>GP</th><th>Min</th><th>Pts</th><th>Reb</th><th>Ast</th><th>3PM</th><th title="Points per game, last five games">L5 Pts</th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="no-data-note">No players on file.</td></tr>`}</tbody></table>
+    </div>`;
+  };
+  el("players-content").innerHTML = table(g.away) + table(g.home);
+}
+// Each game's line at tip: the spread green when the team covered, red when it
+// didn't; the total green over, red under (gray on a push).
+function renderRecent(g) {
+  const table = (abbr) => {
+    const rows = ((DATA.recent_games || {})[abbr] || [])
+      .slice()
+      .reverse()
+      .map((r) => {
+        const margin = r.pf - r.pa;
+        const cover = r.spread === null || r.spread === undefined ? null : Math.sign(margin + r.spread);
+        const ou = r.total === null || r.total === undefined ? null : Math.sign(r.pf + r.pa - r.total);
+        const shade = (s) => (s === null ? "" : ` style="background:${s === 0 ? "var(--panel-2)" : scaleHsla(s > 0 ? 120 : 0, 70, 45, 0.32)}"`);
+        const ats = cover === null ? "<td></td>" : `<td class="num mb-res"${shade(cover)} title="${cover > 0 ? "Covered" : cover < 0 ? "Didn't cover" : "Push"}">${signed(r.spread)}</td>`;
+        const tot = ou === null ? "<td></td>" : `<td class="num mb-res"${shade(ou)} title="${ou > 0 ? "Over" : ou < 0 ? "Under" : "Push"}">${ou > 0 ? "O" : ou < 0 ? "U" : "P"} ${fmt(r.total).replace(/\.0$/, "")}</td>`;
+        return `<tr><td>${new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${r.win ? "win" : "loss"}">${r.win ? "W" : "L"}</span></td><td class="num">${r.pf}-${r.pa}</td>${ats}${tot}<td class="num">${fmt(r.pace, 0)}</td></tr>`;
+      })
+      .join("");
+    return `<div class="nba-box">${banner(abbr)}
+      <table class="data-table mb-fit mb-recent"><thead><tr><th>Date</th><th>Opp</th><th></th><th>Score</th><th title="The line at tip: green = covered">Spread</th><th title="The total at tip: green = over">Total</th><th title="Possessions in the game">Pace</th></tr></thead><tbody>${rows || `<tr><td colspan="7" class="no-data-note">No games on file.</td></tr>`}</tbody></table>
+    </div>`;
+  };
+  el("recent-content").innerHTML = table(g.away) + table(g.home);
 }
 
 // ---- schedule ----
-function days() {
-  return [...new Set(DATA.schedule.map((g) => g.date))].sort();
-}
-function gamesOn(date) {
-  return DATA.schedule.filter((g) => g.date === date);
-}
-function currentGame() {
-  return DATA.schedule.find((g) => g.game_id === gameId) || null;
-}
+const days = () => [...new Set(DATA.schedule.map((g) => g.date))].sort();
+const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date);
+const currentGame = () => DATA.schedule.find((g) => g.game_id === gameId) || null;
 function renderSchedule() {
   const all = days();
   const date = all[dayIndex];
@@ -114,184 +485,37 @@ function renderSchedule() {
     })
     .join("");
 }
-
-// ---- sections ----
 function renderHeader(g) {
   const dateLabel = new Date(`${g.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  const games = (block() || {}).team_games;
   el("game-header").hidden = false;
   el("game-header").innerHTML = `<div class="game-header-teams">
       <img src="${team(g.away).logo}" class="team-logo-lg" alt="${g.away}"><span class="game-header-team">${team(g.away).name}</span>
       <span class="at">@</span>
       <span class="game-header-team">${team(g.home).name}</span><img src="${team(g.home).logo}" class="team-logo-lg" alt="${g.home}">
     </div>
-    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}</div>`;
-  renderSeasons();
+    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${games ? ` &middot; ${DATA.season_label}: ${games} game${games === 1 ? "" : "s"} a team so far` : ""}</div>`;
 }
 
-// ---- season buttons ----
-// Old data.json files have no stat_seasons: the page then shows the one season it has.
-const statSeasons = () => DATA.stat_seasons || { [String(DATA.stats_season)]: { label: DATA.stats_season_label, team_stats: DATA.team_stats, recent_games: DATA.recent_games, players: DATA.players } };
-function renderSeasons() {
-  const all = statSeasons();
-  const thisSeason = String(DATA.season);
-  el("nba-seasons").innerHTML = Object.keys(all)
-    .sort()
-    .map((s) => `<button type="button" class="view-toggle-btn${s === statsSeason ? " active" : ""}" data-season="${s}">${all[s].label}</button>`)
-    .join("") + (all[thisSeason] ? "" : `<button type="button" class="view-toggle-btn" disabled title="After the first games">${DATA.season_label}</button>`);
-  const games = all[thisSeason] ? all[thisSeason].team_games : 0;
-  el("fallback-note").textContent = statsSeason === thisSeason
-    ? `${DATA.season_label} numbers: ${games} game${games === 1 ? "" : "s"} a team so far, so small samples swing.`
-    : `${all[statsSeason].label} numbers, with players on their current teams.${all[thisSeason] ? ` ${DATA.season_label} has ${games} game${games === 1 ? "" : "s"} a team so far.` : ` ${DATA.season_label} numbers start after the first games.`}`;
-}
-function setSeason(s, remember) {
-  const all = statSeasons();
-  if (!all[s]) return;
-  statsSeason = s;
-  STATS = all[s];
-  if (remember) {
-    // The pick is kept only while the build's default stays the same, so the
-    // page still moves to this season on its own once it takes over.
-    try {
-      localStorage.setItem(NBA_SEASON_KEY, JSON.stringify({ season: s, default: String(DATA.stats_season) }));
-    } catch (e) {
-      // localStorage unavailable -- the pick just won't be remembered.
-    }
-  }
-}
-function renderLines(g) {
-  const hs = g.home_team_spread;
-  const total = g.total_line;
-  const has = hs !== null && hs !== undefined;
-  const fav = has ? (hs <= 0 ? g.home : g.away) : null;
-  const tile = (label, body, wide) => `<div class="g2-line-tile${wide ? " g2-line-wide" : ""}"><div class="gs-tile-label">${label}</div><div class="g2-line-big">${body}</div></div>`;
-  const pair = (a, b) => `<span class="g2-line-side">${a}</span><span class="g2-line-side">${b}</span>`;
-  const implied = has && total ? pair(`${logo(g.away, 20)} ${fmt((total + hs) / 2)}`, `${logo(g.home, 20)} ${fmt((total - hs) / 2)}`) : "--";
-  const ml = (abbr, price, prob) => `${logo(abbr, 20)} ${odds(price) || "--"}${prob ? ` <small>${Math.round(prob * 100)}%</small>` : ""}`;
-  el("lines-content").innerHTML = has || total
-    ? `<div class="g2-line nba-line">
-        ${tile("Spread", fav ? `${logo(fav, 22)} ${signed(fav === g.home ? hs : g.away_team_spread)}` : "--")}
-        ${tile("Total", total ? fmt(total).replace(/\.0$/, "") : "--")}
-        ${tile("Market score", implied, true)}
-        ${tile("Win chance", pair(ml(g.away, g.away_moneyline, g.away_ml_implied_prob), ml(g.home, g.home_moneyline, g.home_ml_implied_prob)), true)}
-      </div>${g.lines_locked ? `<p class="section-note">Locked at tip-off.</p>` : ""}`
-    : `<p class="no-data-note">No line posted yet.</p>`;
-}
-// Matchup Extremes (extremes.js): only the types tonight's opponent is, where
-// this team has been far from normal against them (the owner, 2026-10-26).
-function renderExtremes(g) {
-  const id = DATA.identity;
-  const b = id && id.seasons && id.seasons[id.default];
-  const ex = b && b.extremes;
-  const box = (abbr, opp) => {
-    const table = (ex ? exTable(ex, abbr, opp, true) : "") + (b ? spotTable(b.spots, abbr, g.game_id, true) : "");
-    return `<div class="nba-box">${banner(abbr)}${table || `<p class="no-data-note">Nothing far from normal against ${opp}'s types or in tonight's spots yet.</p>`}</div>`;
-  };
-  el("extremes-content").innerHTML = box(g.away, g.home) + box(g.home, g.away);
-}
-function renderTeams(g) {
-  const panel = (abbr) => {
-    const s = STATS.team_stats[abbr];
-    if (!s) return `<div>${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
-    const tile = (label, value, key, low) => {
-      const z = key ? zScore(key, abbr, low) : null;
-      const rank = key ? leagueRank(key, abbr, low) : null;
-      return `<div class="nba-tile ${tierClass(z)}"${rank ? ` title="${ordinal(rank)} of ${Object.keys(STATS.team_stats).length}"` : ""}><div class="gs-tile-label">${label}</div><b>${value}</b>${rank ? `<small>${ordinal(rank)}</small>` : ""}</div>`;
-    };
-    return `<div class="nba-team">
-      ${banner(abbr, `${s.wins}-${s.losses}`)}
-      <div class="nba-tiles">
-        ${tile("Net rating", signed(s.net_rating), "net_rating")}
-        ${tile("Offense", fmt(s.off_rating), "off_rating")}
-        ${tile("Defense", fmt(s.def_rating), "def_rating", true)}
-        ${tile("Pace", fmt(s.pace))}
-        ${tile("Home", s.home_record)}
-        ${tile("Away", s.away_record)}
-        ${tile("Last 10", s.last10)}
-      </div>
-    </div>`;
-  };
-  el("teams-content").innerHTML = panel(g.away) + panel(g.home);
-}
-function renderMatchups(g) {
-  const table = (offTeam, defTeam) => {
-    const rows = MATCHUP_ROWS.map((r) => {
-      const offZ = zScore(r.off, offTeam, !!r.low);
-      const defZ = zScore(r.def, defTeam, !r.low);
-      const show = (abbr, key) => {
-        const v = (STATS.team_stats[abbr] || {})[key];
-        return r.kind === "pct" ? pct(v) : fmt(v);
-      };
-      const cell = (abbr, key, z, low) => `<td class="num ${tierClass(z)}" title="${ordinal(leagueRank(key, abbr, low) || 0)} in the league">${show(abbr, key)}</td>`;
-      return `<tr><td>${r.label}</td>${cell(offTeam, r.off, offZ, !!r.low)}${cell(defTeam, r.def, defZ, !r.low)}<td class="nba-tag-cell">${matchupTag(offZ, defZ)}</td></tr>`;
-    }).join("");
-    return `<div class="nba-box">
-      <div class="nba-box-title">${logo(offTeam, 20)} ${offTeam} offense <span class="at">vs</span> ${logo(defTeam, 20)} ${defTeam} defense</div>
-      <table class="data-table nba-matchup-table"><thead><tr><th></th><th>${offTeam} OFF</th><th>${defTeam} allows</th><th></th></tr></thead><tbody>${rows}</tbody></table>
-    </div>`;
-  };
-  el("matchups-content").innerHTML = table(g.away, g.home) + table(g.home, g.away);
-}
-function renderPlayers(g) {
-  const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.status === "Out").map((p) => p.id));
-  const table = (abbr) => {
-    const injured = out(abbr);
-    const rows = (STATS.players[abbr] || [])
-      .map((p) => {
-        const trend = p.l5_pts !== null && p.pts !== null ? p.l5_pts - p.pts : 0;
-        return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>
-          <td class="nba-player">${p.headshot ? `<img src="${p.headshot}" alt="" class="nba-headshot" loading="lazy">` : `<span class="nba-headshot"></span>`}<span>${playerClick(p.id, p.name)}</span><span class="muted-label">${p.position || ""}</span>${p.prev_team ? `<span class="nba-new" title="Numbers are from ${p.prev_team} last season">from ${p.prev_team}</span>` : ""}${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>
-          <td class="num">${p.games}</td><td class="num">${fmt(p.min)}</td><td class="num"><b>${fmt(p.pts)}</b></td><td class="num">${fmt(p.reb)}</td><td class="num">${fmt(p.ast)}</td><td class="num">${fmt(p.threes)}</td>
-          <td class="num ${trend >= 2 ? "tier-good" : trend <= -2 ? "tier-bad" : ""}">${fmt(p.l5_pts)}</td>
-        </tr>`;
-      })
-      .join("");
-    return `<div class="nba-box">${banner(abbr)}
-      <table class="data-table nba-player-table"><thead><tr><th>Player</th><th>GP</th><th>Min</th><th>Pts</th><th>Reb</th><th>Ast</th><th>3PM</th><th title="Points per game, last five games">L5 Pts</th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="no-data-note">No players on file.</td></tr>`}</tbody></table>
-    </div>`;
-  };
-  el("players-content").innerHTML = table(g.away) + table(g.home);
-}
-function renderInjuries(g) {
-  const list = (abbr) => {
-    const rows = (DATA.injuries[abbr] || [])
-      .map((p) => `<div class="nba-inj"${p.note ? ` title="${p.note.replace(/"/g, "&quot;")}"` : ""}><span class="gs-inj-status ${p.status === "Out" ? "tier-bad" : "tier-mid"}">${p.status === "Out" ? "Out" : "DTD"}</span><b>${playerClick(p.id, p.name)}</b><span class="muted-label">${p.position || ""}</span><span class="nba-inj-what">${p.injury || ""}</span></div>`)
-      .join("");
-    return `<div class="nba-box">${banner(abbr)}${rows || `<p class="no-data-note">Nobody listed.</p>`}</div>`;
-  };
-  el("injuries-content").innerHTML = list(g.away) + list(g.home);
-}
-function renderRecent(g) {
-  const table = (abbr) => {
-    const rows = (STATS.recent_games[abbr] || [])
-      .slice()
-      .reverse()
-      .map((r) => `<tr><td>${new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${r.win ? "win" : "loss"}">${r.win ? "W" : "L"}</span></td><td class="num">${r.pf}-${r.pa}</td><td class="num">${r.pf + r.pa}</td><td class="num">${fmt(r.pace, 0)}</td></tr>`)
-      .join("");
-    return `<div class="nba-box">${banner(abbr)}
-      <table class="data-table"><thead><tr><th>Date</th><th>Opp</th><th></th><th>Score</th><th>Total</th><th title="Possessions in the game">Pace</th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="no-data-note">No games on file.</td></tr>`}</tbody></table>
-    </div>`;
-  };
-  el("recent-content").innerHTML = table(g.away) + table(g.home);
-}
-
+const SECTIONS = ["top", "edges", "story", "duo", "players", "recent"];
 function render() {
   renderSchedule();
   const g = currentGame();
-  const sections = ["lines", "extremes", "teams", "matchups", "players", "injuries", "recent"];
   el("empty-state").hidden = !!g;
-  sections.forEach((s) => (el(`section-${s}`).hidden = !g));
+  SECTIONS.forEach((s) => (el(`section-${s}`).hidden = !g));
   if (!g) {
     el("game-header").hidden = true;
     el("empty-state").innerHTML = "<p>No games in the next two weeks.</p>";
     return;
   }
   renderHeader(g);
-  renderLines(g);
-  renderExtremes(g);
-  renderTeams(g);
-  renderMatchups(g);
+  el("top-content").innerHTML = lineBox(g) + injuriesBox(g);
+  const m = block() ? matchup(g) : null;
+  el("edges-content").innerHTML = m ? edgesBox(g, m.edges) : `<p class="no-data-note">The matchup numbers aren't available right now.</p>`;
+  el("h2h-content").innerHTML = headToHead(g);
+  el("wl-content").innerHTML = block() ? winLossBox(g.away) + winLossBox(g.home) : "";
+  el("matchup-content").innerHTML = m ? m.html : "";
   renderPlayers(g);
-  renderInjuries(g);
   renderRecent(g);
 }
 function selectGame(id) {
@@ -315,11 +539,6 @@ document.addEventListener("click", (e) => {
   if (card) return selectGame(card.dataset.game);
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
-  const seasonBtn = e.target.closest("#nba-seasons [data-season]");
-  if (seasonBtn) {
-    setSeason(seasonBtn.dataset.season, true);
-    return render();
-  }
   const theme = e.target.closest("#theme-toggle");
   if (theme) {
     const light = document.documentElement.dataset.theme !== "light";
@@ -337,15 +556,6 @@ fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;
-    let pick = null;
-    try {
-      pick = JSON.parse(localStorage.getItem(NBA_SEASON_KEY) || "null");
-    } catch (e) {
-      // localStorage unavailable or bad JSON.
-    }
-    const fallbackSeason = String(DATA.stats_season);
-    setSeason(pick && pick.default === fallbackSeason && statSeasons()[pick.season] ? pick.season : fallbackSeason, false);
-    if (!STATS) setSeason(Object.keys(statSeasons())[0], false);
     const all = days();
     let saved = null;
     try {

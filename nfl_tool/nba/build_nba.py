@@ -198,6 +198,7 @@ def compute_recent_games(rows: pd.DataFrame) -> dict:
     for team, g in rows.groupby("team_abbreviation"):
         out[team] = [
             {
+                "game_id": str(r.game_id),
                 "date": str(r.game_date),
                 "opp": r.opponent_team_abbreviation,
                 "home": r.team_home_away == "home",
@@ -610,6 +611,17 @@ def kotc_lines(season: int, games: list) -> dict:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(lines, indent=0, sort_keys=True))
     return lines
+
+
+def add_recent_lines(recent: dict, lines: dict) -> None:
+    """Each recent game gets its line at tip: `spread` (the team's own) and `total`."""
+    for rows in recent.values():
+        for r in rows:
+            line = lines.get(r.get("game_id"))
+            if line:
+                total, home_spread = line
+                r["total"] = total
+                r["spread"] = None if home_spread is None else (home_spread if r["home"] else -home_spread)
 
 
 def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
@@ -1128,6 +1140,12 @@ def main():
         print(f"WARNING: King of the Court failed ({ex!r}).", file=sys.stderr)
         blob["kotc"] = None
     lap("kotc")
+    # Recent Games' closing line (Matchup Breakdown colors covers and overs), from the
+    # lines King of the Court saves at tip; never blocks the build.
+    try:
+        add_recent_lines(shown["recent_games"], kotc_lines(args.season, games))
+    except Exception as ex:
+        print(f"WARNING: Recent Games lines failed ({ex!r}).", file=sys.stderr)
     # Nor may First Basket.
     try:
         blob["first_basket"] = compute_first_basket(args.season, args.data_dir, force, teams, rosters, injury_list, games, now_utc, book_odds)

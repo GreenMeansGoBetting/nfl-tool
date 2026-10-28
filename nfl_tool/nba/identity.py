@@ -71,6 +71,12 @@ def side_numbers(poss: pd.DataFrame, acts: pd.DataFrame, games_secs: pd.Series) 
         zs = shots[shots["zone"] == z]
         out[f"{z}_share"] = share(len(zs), fga)
         out[f"{z}_pct"] = zs["made"].mean() if len(zs) else None
+    # Matchup Breakdown's merged rows (the owner, 2026-10-28): the paint = the rim
+    # and the short paint together (both shares count, the rim is most of it);
+    # ball movement = makes assisted and catch-and-shoot shots, averaged.
+    paint = shots[shots["zone"].isin(("rim", "short"))]
+    out["paint_share"] = share(len(paint), fga)
+    out["paint_pct"] = paint["made"].mean() if len(paint) else None
     out["three_rate"] = share(shots["three"].sum(), fga)
     # threes tried a possession and
     # the catch-and-shoot share of them (def_: allowed; help defense leaving shooters)
@@ -81,6 +87,8 @@ def side_numbers(poss: pd.DataFrame, acts: pd.DataFrame, games_secs: pd.Series) 
     out["assisted"] = share(makes["assist"].notna().sum(), len(makes))
     out["self_made"] = share(shots["kind2"].isin(SELF_MADE).sum(), fga)
     out["catch"] = share((shots["kind2"] == "catch").sum(), fga)
+    if out["assisted"] is not None and out["catch"] is not None:
+        out["ball_move"] = (out["assisted"] + out["catch"]) / 2
 
     tos = acts[acts["kind"] == "to"]
     out["tov_rate"] = share((poss["tov"] > 0).sum(), n)
@@ -101,22 +109,24 @@ def team_identity(season, abbr_of: dict) -> dict:
     acts = acts[(acts["team"] == acts["off"]) & (acts["kind"] != "foul")]
     boards = season.actions[season.actions["kind"].isin(("oreb", "dreb"))]
 
-    out = {}
+    out, wl = {}, {}
     for team in sorted(set(poss["off"])):
         gids = poss.loc[poss["off"] == team, "game_id"].unique()
-        b = boards[boards["game_id"].isin(gids)]
         row = {"games": int(len(gids))}
-        for side, col in (("off", "off"), ("def", "def")):
-            nums = side_numbers(poss[poss[col] == team], acts[acts[col] == team], games_secs)
-            # offensive rebound rate: the offense's offensive boards against the defense's defensive ones
-            attackers = (b["team"] == team) if side == "off" else (b["team"] != team)
-            o = int(((b["kind"] == "oreb") & attackers).sum())
-            d = int(((b["kind"] == "dreb") & ~attackers).sum())
-            nums["oreb_rate"] = share(o, o + d)
-            for k, v in nums.items():
-                row[f"{side}_{k}"] = None if v is None or pd.isna(v) else float(v)
+        row.update(team_numbers(poss, acts, boards, games_secs, team, gids))
         row.update(game_script(poss, team))
         out[abbr_of.get(team, str(team))] = row
+        # How it wins / loses: the same numbers over its wins and over its losses
+        mine = poss[(poss["off"] == team) | (poss["def"] == team)]
+        scored = mine.assign(us=np.where(mine["off"] == team, mine["pts"], 0), them=np.where(mine["def"] == team, mine["pts"], 0))
+        by_game = scored.groupby("game_id")[["us", "them"]].sum()
+        won = by_game.index[by_game["us"] > by_game["them"]]
+        lost = by_game.index[by_game["us"] < by_game["them"]]
+        wl[abbr_of.get(team, str(team))] = {
+            "nw": int(len(won)), "nl": int(len(lost)),
+            "w": team_numbers(poss, acts, boards, games_secs, team, won, WL_KEYS) if len(won) else {},
+            "l": team_numbers(poss, acts, boards, games_secs, team, lost, WL_KEYS) if len(lost) else {},
+        }
 
     keys = sorted({k for r in out.values() for k in r if k != "games"})
     league = {}
@@ -124,7 +134,29 @@ def team_identity(season, abbr_of: dict) -> dict:
         vals = np.array([r[k] for r in out.values() if r.get(k) is not None], dtype=float)
         if len(vals):
             league[k] = {"avg": float(vals.mean()), "sd": float(vals.std()) or 1.0}
-    return {"teams": out, "league": league}
+    return {"teams": out, "league": league, "wl": wl}
+
+
+# The numbers Matchup Breakdown's How They Win / How They Lose compares (its matchup rows).
+WL_KEYS = ("ppp", "pace", "trans_freq", "trans_ppp", "tov_rate", "oreb_rate", "fta_rate", "three_rate",
+           "paint_share", "paint_pct", "mid_share", "mid_pct", "ball_move")
+
+
+def team_numbers(poss, acts, boards, games_secs, team, gids, keep=None) -> dict:
+    """{off_<key>, def_<key>} for `team` over the games `gids` (`keep`: only these keys)."""
+    row = {}
+    p, a, b = (x[x["game_id"].isin(gids)] for x in (poss, acts, boards))
+    for side, col in (("off", "off"), ("def", "def")):
+        nums = side_numbers(p[p[col] == team], a[a[col] == team], games_secs)
+        # offensive rebound rate: the offense's offensive boards against the defense's defensive ones
+        attackers = (b["team"] == team) if side == "off" else (b["team"] != team)
+        o = int(((b["kind"] == "oreb") & attackers).sum())
+        d = int(((b["kind"] == "dreb") & ~attackers).sum())
+        nums["oreb_rate"] = share(o, o + d)
+        for k, v in nums.items():
+            if keep is None or k in keep:
+                row[f"{side}_{k}"] = None if v is None or pd.isna(v) else float(v)
+    return row
 
 
 def game_script(poss: pd.DataFrame, team: int) -> dict:
@@ -156,6 +188,8 @@ def game_script(poss: pd.DataFrame, team: int) -> dict:
         o, d = (period == q) & is_off, (period == q) & ~is_off
         if o.any() and d.any():
             out[f"q{q}_net"] = float((pts[o].mean() - pts[d].mean()) * 100)
+            # the same as plain points a game in that quarter (the owner, 2026-10-28: "100 by quarter" is too wordy)
+            out[f"q{q}_ppq"] = float((pts[o].sum() - pts[d].sum()) / games)
     return out
 
 
@@ -247,7 +281,8 @@ def matchup_extremes(season, ident: dict, abbr_of: dict) -> dict:
     for key, label, pkey, end, side in TYPES:
         vals = sorted(((r[pkey], t) for t, r in prof.items() if r.get(pkey) is not None), reverse=(end == "top"))
         members = {t for _, t in vals[:third]}
-        out_types.append({"key": key, "label": label, "side": side, "teams": sorted(members)})
+        # order: every team, most of the trait first (Matchup Breakdown's rank of the type side)
+        out_types.append({"key": key, "label": label, "side": side, "teams": sorted(members), "order": [t for _, t in vals]})
         # side off: the opponent is on offense -> rows where `off` is the opponent, judged for `def`
         me, them = ("def", "off") if side == "off" else ("off", "def")
         vs = rows[rows[them].isin(members)]
@@ -395,6 +430,8 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str, schedule: pd.
         "team_games": played[len(played) // 2] if played else 0,
         "teams": teams,
         "league": {k: {"avg": rounded(v["avg"]), "sd": rounded(v["sd"])} for k, v in ident["league"].items()},
+        "wl": {t: {**s, "w": {k: rounded(v) for k, v in s["w"].items()}, "l": {k: rounded(v) for k, v in s["l"].items()}}
+               for t, s in ident["wl"].items()},
         "extremes": matchup_extremes(season, ident, abbr),
         **({"spots": spots_block(season, abbr, schedule)} if schedule is not None else {}),
     }

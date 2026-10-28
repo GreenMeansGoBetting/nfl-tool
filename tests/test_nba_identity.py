@@ -1,14 +1,12 @@
-"""NBA Team Identity (nfl_tool/nba/identity.py, its part of build_nba.py and
-site/nba/identity.js).
+"""NBA Team Identity numbers (nfl_tool/nba/identity.py and its part of
+build_nba.py), read by Matchup Breakdown (site/nba/nba.js; its page tests are
+test_nba_matchup_site.py).
 
 What is pinned: on the engine's hand-made game every number is worked out by
 hand, and one team's offense equals the other team's defense (both sides are
-the same possessions); the build opens on last season until the middle team
-has THIS_SEASON_DEFAULT_AT games (the owner's rule: plays and projections
-come from this season, last season is reference); last season's saved file
-has every number the page reads; the page draws both teams and both matchup
-boxes with no script errors, its two-sided tags, its season buttons, and its
-place in the NBA menu."""
+the same possessions); the merged Paint and Ball Movement numbers, points per
+quarter and the win / loss splits; the build is this season only; last
+season's saved file has every number the page reads."""
 import json
 import sys
 import unittest
@@ -20,7 +18,6 @@ sys.path.insert(0, str(ROOT / "tests"))
 import build_nba  # noqa: E402
 import identity  # noqa: E402
 import possessions as P  # noqa: E402
-from site_browser import SiteBrowser  # noqa: E402
 from test_nba_possessions import EVENTS, MINUTES, box, game  # noqa: E402
 
 REFERENCE = json.loads((ROOT / "nfl_tool" / "nba" / "identity_2026.json").read_text(encoding="utf-8"))
@@ -54,6 +51,30 @@ class HandMadeGame(unittest.TestCase):
         self.assertAlmostEqual(self.b["off_three_rate"], 2 / 3)
         # home misses: 13's (14 got the offensive board) and 12's 3 (21 got the defensive one)
         self.assertAlmostEqual(self.a["off_oreb_rate"], 1 / 2)
+
+    def test_merged_rows(self):
+        # Matchup Breakdown's Paint = the rim and the short paint together; Ball Movement =
+        # makes assisted and catch-and-shoot, averaged (the owner, 2026-10-28)
+        for t in (self.a, self.b):
+            self.assertAlmostEqual(t["off_paint_share"], t["off_rim_share"] + t["off_short_share"])
+            self.assertAlmostEqual(t["off_ball_move"], (t["off_assisted"] + t["off_catch"]) / 2)
+        rim, short = self.a["off_rim_share"], self.a["off_short_share"]
+        made = rim * (self.a["off_rim_pct"] or 0) + short * (self.a["off_short_pct"] or 0)
+        self.assertAlmostEqual(self.a["off_paint_pct"], made / (rim + short))
+
+    def test_points_per_quarter_and_wins_and_losses(self):
+        # one game, AAA 7 BBB 3: the quarters add up to the margin, each the other's opposite
+        quarters = [k for k in self.a if k.endswith("_ppq")]
+        self.assertTrue(quarters)
+        self.assertAlmostEqual(sum(self.a[k] for k in quarters), 7 - 3)
+        for k in quarters:
+            self.assertAlmostEqual(self.a[k], -self.b[k])
+        wl = self.ident["wl"]
+        self.assertEqual((wl["AAA"]["nw"], wl["AAA"]["nl"], wl["BBB"]["nw"], wl["BBB"]["nl"]), (1, 0, 0, 1))
+        self.assertAlmostEqual(wl["AAA"]["w"]["off_ppp"], 7 / 5)
+        self.assertAlmostEqual(wl["BBB"]["l"]["def_ppp"], 7 / 5)
+        self.assertEqual((wl["AAA"]["l"], wl["BBB"]["w"]), ({}, {}))
+        self.assertEqual(sorted(k[4:] for k in wl["AAA"]["w"] if k.startswith("off_")), sorted(identity.WL_KEYS))
 
     def test_one_teams_offense_is_the_others_defense(self):
         for key in ("ppp", "pace", "poss_secs", "trans_freq", "rim_share", "three_rate", "tov_rate", "oreb_rate", "fta_rate"):
@@ -152,159 +173,21 @@ class SavedSeason(unittest.TestCase):
         self.assertEqual(REFERENCE["label"], "2025-26")
         self.assertEqual(len(REFERENCE["teams"]), 30)
         self.assertEqual(REFERENCE["team_games"], 82)
-        js = (ROOT / "nfl_tool" / "site" / "nba" / "identity.js").read_text(encoding="utf-8")
+        js = (ROOT / "nfl_tool" / "site" / "nba" / "nba.js").read_text(encoding="utf-8")
         for row in REFERENCE["teams"].values():
             for side in ("off", "def"):
-                for key in ("ppp", "pace", "trans_ppp", "rim_share", "rim_pct", "corner3_share", "self_made", "tov_rate", "oreb_rate"):
+                for key in ("ppp", "pace", "trans_ppp", "paint_share", "paint_pct", "ball_move", "tov_rate", "oreb_rate"):
                     self.assertIsNotNone(row.get(f"{side}_{key}"), f"{side}_{key}")
-        for key in ("pace", "poss_secs", "trans_freq", "half_ppp", "assisted", "catch", "steal_share", "fta_rate"):
-            self.assertIn(f'"{key}"', js)
+            self.assertIsNotNone(row.get("q1_ppq"))
+        # every matchup row the page reads is a number the build makes
+        rows = js[js.index("const M_ROWS"):js.index("const M_GROUPS")]
+        for key in identity.WL_KEYS:
+            self.assertIn(f'["{key}"', rows)
+        self.assertEqual(rows.count('\n  ["'), len(identity.WL_KEYS))
+        self.assertEqual(len(REFERENCE["wl"]), 30)
         # the league's possessions a game and corner-3 share, as the engine measured them
         self.assertAlmostEqual(REFERENCE["league"]["off_pace"]["avg"], 99, delta=1.5)
         self.assertAlmostEqual(REFERENCE["league"]["off_corner3_share"]["avg"], 0.105, delta=0.01)
-
-
-GAME = {"game_id": "9", "date": "2026-10-21", "time": "19:30", "away": "BOS", "home": "DET", "status": "scheduled"}
-
-
-def setUpModule():
-    global SITE, PAGE
-    SITE = SiteBrowser()
-    try:
-        teams = {t: {"name": n, "short": t, "logo": "", "color": c} for t, n, c in (("BOS", "Boston Celtics", "007a33"), ("DET", "Detroit Pistons", "c8102e"))}
-        SITE.nba = {"season": 2027, "season_label": "2026-27", "teams": teams, "schedule": [GAME], "injuries": {}, "kotc": None,
-                    "first_basket": None, "identity": {"default": "2026", "seasons": {"2026": REFERENCE}}}
-        PAGE = SITE.open("nba/identity.html")
-        PAGE.wait_for_function("() => ID && !document.getElementById('id-game').hidden")
-    except Exception:
-        SITE.close()
-        raise
-
-
-def tearDownModule():
-    if SITE:
-        SITE.close()
-
-
-def row(box_index, label):
-    """[road cell, stat cell, home cell] of the row whose stat starts with `label`
-    in The Matchup's box `box_index` (0 = the road team has the ball)."""
-    return PAGE.evaluate("""([i, label]) => {
-        const tr = [...document.querySelectorAll('#id-board .iv-box')[i].querySelectorAll('tbody tr')]
-            .find((r) => r.querySelector('.iv-stat') && r.querySelector('.iv-stat').textContent.startsWith(label));
-        return tr ? [...tr.children].map((td) => td.textContent.trim()) : null;
-    }""", [box_index, label])
-
-
-class Page(unittest.TestCase):
-    def test_every_table_reads_road_left_home_right(self):
-        self.assertEqual(SITE.errors, [])
-        heads = PAGE.evaluate("""() => [...document.querySelectorAll('#id-board .iv-box, #id-extra .iv-box')]
-            .map((b) => [...b.querySelectorAll('thead th')].map((th) => th.textContent.trim()))""")
-        self.assertEqual(heads[0], ["BOS Offense", "", "DET Defense Allows"])
-        self.assertEqual(heads[1], ["BOS Defense Allows", "", "DET Offense"])
-        for h in heads[2:]:
-            self.assertEqual([h[0], h[2]], ["BOS", "DET"])
-        titles = PAGE.evaluate("() => [...document.querySelectorAll('#id-board .team-banner-name')].map((t) => t.textContent)")
-        self.assertEqual(titles, ["BOS Has The Ball", "DET Has The Ball"])
-        self.assertNotIn("--", PAGE.inner_text("#id-board"))
-
-    def test_rows_read_both_sides(self):
-        # 2025-26: Boston took 46.9% of its shots as 3s and Detroit allowed 43.4% (both a lot: Fits)
-        threes = row(0, "3-Point Share")
-        self.assertTrue(threes[0].startswith("46.9%") and threes[2].startswith("43.4%"), threes)
-        self.assertIn("Fits", threes[1])
-        self.assertTrue(row(0, "Pts / Possession")[0].startswith("1.21"))
-        self.assertTrue(row(0, "Pts / Possession")[2].startswith("1.10"))
-        # DET with the ball: Boston's defense on the left, Detroit's offense on the right
-        ppp = row(1, "Pts / Possession")
-        self.assertTrue(ppp[0].startswith(f"{REFERENCE['teams']['BOS']['def_ppp']:.2f}"), ppp)
-        self.assertTrue(ppp[2].startswith(f"{REFERENCE['teams']['DET']['off_ppp']:.2f}"), ppp)
-        # how often a team does something is never colored good or bad
-        plain = PAGE.evaluate("""() => [...document.querySelectorAll('#id-board tbody tr')]
-            .filter((r) => r.querySelector('.iv-stat') && r.querySelector('.iv-stat').textContent.startsWith('Pace'))
-            .flatMap((r) => [r.children[0].className, r.children[2].className])""")
-        self.assertTrue(plain and all("tier-" not in c for c in plain), plain)
-
-    def test_every_stat_shows_every_row(self):
-        key = PAGE.evaluate("() => document.querySelectorAll('#id-board .iv-box')[0].querySelectorAll('tbody tr:not(.iv-group)').length")
-        PAGE.click("#id-view [data-view=all]")
-        every = PAGE.evaluate("() => document.querySelectorAll('#id-board .iv-box')[0].querySelectorAll('tbody tr:not(.iv-group)').length")
-        js = (ROOT / "nfl_tool" / "site" / "nba" / "identity.js").read_text(encoding="utf-8")
-        self.assertEqual(every, js[js.index("const M_ROWS"):js.index("const M_GROUPS")].count('\n  ["'))
-        self.assertLess(key, every)
-        PAGE.click("#id-view [data-view=key]")
-        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('#id-board .iv-box')[0].querySelectorAll('tbody tr:not(.iv-group)').length"), key)
-
-    def test_matchup_extremes(self):
-        # BOS vs DET: Detroit is a turnover-prone team (2025-26), so that row has a Tonight
-        # tag, tonight's types lead the group; each number = BOS's split minus the league's.
-        # Each group's header row names its columns (Allowed on defense). The full tables
-        # sit folded in Every Type & Spot, so the text is read with textContent.
-        rows = PAGE.evaluate("""() => [...document.querySelectorAll('#id-extremes .nba-box')[0].querySelectorAll('tbody tr')]
-            .map((r) => [...r.children].map((td) => td.textContent.replace(/\\s+/g, ' ').trim()))""")
-        self.assertEqual(rows[0][0].upper(), "BOS DEFENSE VS THESE OFFENSES")
-        self.assertEqual(rows[0][2].upper(), "PTS ALLOWED")
-        group = rows[1:next(i for i, r in enumerate(rows) if r[0].upper().startswith("BOS OFFENSE VS"))]
-        group = [r for r in group if len(r) > 1]  # the Not Faced Yet line
-        tonight = ["TONIGHT" in r[0].upper().split() for r in group]
-        self.assertEqual(tonight, sorted(tonight, reverse=True))
-        sloppy = next(r for r in group if r[0].startswith("Turnover-Prone Teams"))
-        self.assertIn("TONIGHT", sloppy[0].upper().split())
-        ex = REFERENCE["extremes"]
-        want = ex["teams"]["BOS"]["sloppy"]["pts"][1] - ex["league"]["sloppy"]["pts"]
-        self.assertEqual(float(sloppy[2]), round(want, 1))
-        self.assertEqual(int(sloppy[1]), ex["teams"]["BOS"]["sloppy"]["n"])
-        pace = PAGE.evaluate("() => [...document.querySelectorAll('#id-extremes .ex-table tbody tr:not(.id-group):not(.ex-unseen)')].map((r) => r.children[3].className)")
-        self.assertTrue(pace and all("tier-" not in c for c in pace), pace)
-        # no rows of "--": a type not faced yet is only named on the Not Faced Yet line
-        self.assertNotIn("--", PAGE.text_content("#id-extremes"))
-
-    def test_edges_follow_the_two_sided_rule(self):
-        # Worked out again here from the saved season: an edge needs one side 0.6 league
-        # spreads toward a team and the other not 0.3 the other way; its Edge pill carries
-        # the logo of the team it favors, and The Verdict counts and lists every one.
-        T, L = REFERENCE["teams"], REFERENCE["league"]
-        zz = lambda t, k: None if T[t].get(k) is None else (T[t][k] - L[k]["avg"]) / (L[k]["sd"] or 1)
-        rows = [("ppp", 1, None), ("half_ppp", 1, None), ("trans_ppp", 1, None), ("tov_rate", -1, None), ("steal_share", -1, None),
-                ("oreb_rate", 1, None), ("fta_rate", 1, None), ("rim_pct", 1, "rim_share"), ("short_pct", 1, "short_share"),
-                ("mid_pct", 1, "mid_share"), ("corner3_pct", 1, "corner3_share"), ("above3_pct", 1, "above3_share")]
-        want = {"BOS": 0, "DET": 0}
-        for off, de in (("BOS", "DET"), ("DET", "BOS")):
-            called = {}
-            for key, way, share in rows:
-                a, b = zz(off, f"off_{key}"), zz(de, f"def_{key}")
-                if a is None or b is None or (share and (zz(off, f"off_{share}") or -1) < 0):
-                    continue
-                a, b = a * way, b * way
-                hi, lo = max(a, b), min(a, b)
-                d = 1 if hi >= 0.6 and lo > -0.3 else -1 if lo <= -0.6 and hi < 0.3 else 0
-                if not d or (key == "half_ppp" and called.get("ppp") == d) or (key == "trans_ppp" and d == 1 and zz(off, "off_trans_freq") < 0):
-                    continue
-                called[key] = d
-                want[off if d > 0 else de] += 1
-        pills = PAGE.evaluate("() => [...document.querySelectorAll('#id-board .iv-edge img')].map((i) => i.alt)")
-        self.assertEqual([pills.count("BOS"), pills.count("DET")], [want["BOS"], want["DET"]])
-        self.assertGreater(want["BOS"] + want["DET"], 0)
-        types = PAGE.evaluate("() => [...document.querySelectorAll('#id-extra .iv-edge img')].map((i) => i.alt)")
-        shown = PAGE.evaluate("() => [...document.querySelectorAll('#id-verdict .iv-num')].map((n) => parseInt(n.textContent))")
-        self.assertEqual(shown, [want["BOS"] + types.count("BOS"), want["DET"] + types.count("DET")])
-        chips = PAGE.evaluate("() => [...document.querySelectorAll('#id-verdict .iv-lists')[0].querySelectorAll('.iv-list')].map((l) => l.querySelectorAll('.iv-chip').length)")
-        self.assertEqual(chips, shown)
-        self.assertEqual(SITE.errors, [])
-
-    def test_identity_tags(self):
-        bos = PAGE.evaluate("() => [...document.querySelectorAll('#id-verdict .iv-lists')[1].children[0].querySelectorAll('.id-chip')].map((c) => c.textContent)")
-        self.assertIn("Slow Pace", bos)
-        self.assertLessEqual(len(bos), 8)
-
-    def test_season_buttons(self):
-        buttons = PAGE.evaluate("() => [...document.querySelectorAll('#id-seasons button')].map((b) => [b.textContent, b.disabled])")
-        self.assertEqual(buttons, [["2025-26", False], ["2026-27", True]])
-
-    def test_in_the_nba_menu(self):
-        links = PAGE.evaluate("() => [...document.querySelectorAll('.nav-menu a')].map((a) => a.getAttribute('href'))")
-        self.assertTrue(any(h and h.endswith("nba/identity.html") for h in links), links)
 
 
 if __name__ == "__main__":
