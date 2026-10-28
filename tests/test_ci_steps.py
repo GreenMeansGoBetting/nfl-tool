@@ -69,6 +69,36 @@ class DeploySteps(unittest.TestCase):
         self.assertEqual(ci_steps.timings(["start 1000"]), {})
 
 
+class FileSizes(unittest.TestCase):
+    # 2026-10-28: deploys that rebuilt the NBA data failed at Cloudflare's upload, the reason only in the
+    # signed-in log; the sizes step names the biggest files and fails on one over Cloudflare's 25 MB
+    def run_sizes(self, sizes):
+        with tempfile.TemporaryDirectory() as d:
+            for name, size in sizes.items():
+                f = Path(d) / name
+                f.parent.mkdir(parents=True, exist_ok=True)
+                with open(f, "wb") as out:
+                    out.truncate(size)
+            with mock.patch("sys.stdout", new_callable=io.StringIO) as out:
+                code = ci_steps.main(["sizes", "--site", d])
+            return code, out.getvalue()
+
+    def test_under_the_limit_passes_and_names_the_biggest(self):
+        code, out = self.run_sizes({"nba/props.json": 3 * 1024 * 1024, "index.html": 10})
+        self.assertEqual(code, 0)
+        self.assertIn("::notice title=Biggest files::nba/props.json 3.0 MB", out)
+        self.assertNotIn("::error", out)
+
+    def test_a_file_over_25_mb_fails_and_is_named(self):
+        code, out = self.run_sizes({"nba/props.json": 26 * 1024 * 1024})
+        self.assertEqual(code, 1)
+        self.assertIn("::error title=Too big for Cloudflare::nba/props.json is 26.0 MB", out)
+
+    def test_the_deploy_runs_it_right_before_the_upload(self):
+        steps = re.findall(r"- name: (.+)", (ROOT / ".github/workflows/deploy.yml").read_text(encoding="utf-8"))
+        self.assertEqual(steps[steps.index("Deploy to Cloudflare Pages") - 1], "Check file sizes for Cloudflare")
+
+
 class FastLane(unittest.TestCase):
     """Which pushes may publish with the live data (ci_steps.lane_decision)."""
 

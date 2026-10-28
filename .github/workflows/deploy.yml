@@ -370,6 +370,10 @@ jobs:
       # Deployed from nfl_tool/ so wrangler bundles nfl_tool/functions (the
       # login gate) alongside the static site folder. Not continue-on-error:
       # this is the only host, so a failed publish must show as a failed run.
+      # The biggest files in the run's annotations; one over Cloudflare's 25 MB fails here, named (2026-10-28)
+      - name: Check file sizes for Cloudflare
+        run: python tools/ci_steps.py sizes
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

@@ -719,6 +719,30 @@ def cmd_live_check(args):
     return 1
 
 
+# Cloudflare Pages refuses any one file over 25 MiB, and wrangler's error is only
+# in the step's log (signed-in GitHub). 2026-10-28: two deploys that rebuilt the
+# NBA data failed at the upload while a pages-only one went through. So before
+# the upload the biggest files go into the run's annotations (readable from the
+# public API), and a file over the limit fails here, naming it.
+PAGES_FILE_LIMIT = 25 * 1024 * 1024
+
+
+def biggest_files(site: Path, n=5):
+    files = [(f.stat().st_size, f.relative_to(site).as_posix()) for f in site.rglob("*") if f.is_file()]
+    return sorted(files, reverse=True)[:n]
+
+
+def cmd_sizes(args):
+    site = Path(args.site)
+    top = biggest_files(site)
+    mb = lambda b: f"{b / 1024 / 1024:.1f} MB"  # noqa: E731
+    print("::notice title=Biggest files::" + ", ".join(f"{name} {mb(size)}" for size, name in top))
+    over = [(size, name) for size, name in top if size > PAGES_FILE_LIMIT]
+    for size, name in over:
+        print(f"::error title=Too big for Cloudflare::{name} is {mb(size)}; Cloudflare Pages takes at most 25 MB a file")
+    return 1 if over else 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Decisions the GitHub workflows make.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -734,6 +758,9 @@ def main(argv=None):
     stamp = sub.add_parser("refresh-stamp")
     stamp.add_argument("--sport", choices=("nhl", "nba"), default="nhl")
     stamp.set_defaults(run=cmd_refresh_stamp)
+    sizes = sub.add_parser("sizes")
+    sizes.add_argument("--site", default=str(SITE))
+    sizes.set_defaults(run=cmd_sizes)
     live = sub.add_parser("live-check")
     live.add_argument("--look", action="store_true", help="only look and report: expects no particular version and never goes back")
     live.set_defaults(run=cmd_live_check)

@@ -324,12 +324,24 @@ class Plays(unittest.TestCase):
         self.assertEqual({p["tier"] for p in picked}, {"strong"})
 
 
+    def test_a_line_only_one_book_has_is_never_a_play(self):
+        # the owner, 2026-10-28: a stale bet365 line no other book had made Best Plays; "at least two ... have it listed"
+        pts = [10] * 30 + [20] * 40 + [30] * 30  # 70% for 15.5+
+        sim_game = {"players": {"1": game_row(pts)}, "dials": {"home": [], "away": []}}
+        g = {"date": "2026-10-28", "home": "BBB", "away": "AAA"}
+        lone = {"points": {"1": {"q": [["b365", "o", 15.5, -105, ""], ["dk", "u", 15.5, -110, ""]]}}}
+        self.assertEqual(sim.game_candidates("9", g, sim_game, lone, {"1": 5}, "points"), [])
+        two = {"points": {"1": {"q": [["b365", "o", 15.5, -105, ""], ["dk", "o", 15.5, -120, ""]]}}}
+        c = sim.game_candidates("9", g, sim_game, two, {"1": 5}, "points")[0]
+        self.assertEqual((c["side"], c["book"], c["price"]), ("o", "b365", -105))  # two books list it: still the best price
+
+
 class StartFromTheLine(unittest.TestCase):
     # the owner, 2026-10-28: "Start from the line" (reverses 2026-10-24's "the line is never an input")
     def test_a_sim_far_from_the_line_no_longer_makes_a_huge_edge(self):
         pts = list(range(20, 41)) * 50  # the sim's median 30, the book's line 15.5
         sim_game = {"players": {"1": game_row(pts)}, "dials": {"home": [], "away": []}}
-        props = {"points": {"1": {"q": [["dk", "o", 15.5, -110, ""], ["dk", "u", 15.5, -110, ""]]}}}
+        props = {"points": {"1": {"q": [["dk", "o", 15.5, -110, ""], ["dk", "u", 15.5, -110, ""], ["fd", "o", 15.5, -110, ""], ["fd", "u", 15.5, -110, ""]]}}}
         g = {"date": "2026-10-28", "home": "BBB", "away": "AAA"}
         raw = sim.game_candidates("9", g, sim_game, props, {"1": 5}, "points")
         self.assertGreater(raw[0]["edge"], 0.4)  # the sim alone: Over 15.5 "100%"
@@ -499,7 +511,7 @@ class Build(unittest.TestCase):
         games = [{"game_id": "77", "date": "2026-10-20", "time": "19:00", "away": "AAA", "home": "BBB", "start_utc": "2026-10-20T23:00Z"}]
 
         def odds(price):
-            return {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", 9.5, price, ""], ["dk", "u", 9.5, -110, ""]]}}}}}
+            return {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", 9.5, price, ""], ["dk", "u", 9.5, -110, ""], ["fd", "o", 9.5, price, ""], ["fd", "u", 9.5, -110, ""]]}}}}}
         with tempfile.TemporaryDirectory() as tmp:
             real = build_nba.PROPS_RECORD_DIR
             build_nba.PROPS_RECORD_DIR = Path(tmp)
@@ -524,7 +536,7 @@ class Build(unittest.TestCase):
         # P1's line was first seen: P1's play is held (sim_held), not a play and not saved, until the line moves.
         inp = inputs(roster())
         games = [{"game_id": "77", "date": "2026-10-20", "time": "19:00", "away": "AAA", "home": "BBB", "start_utc": "2026-10-20T23:00Z"}]
-        odds = lambda line: {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", line, 300, ""], ["dk", "u", line, -110, ""]]}}}}}  # noqa: E731
+        odds = lambda line: {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", line, 300, ""], ["dk", "u", line, -110, ""], ["fd", "o", line, 300, ""], ["fd", "u", line, -110, ""]]}}}}}  # noqa: E731
         out = {"AAA": [{"id": "2", "status": "Out"}]}
         prev = {"outs": {}, "lines": {"77:points:1": [9.5, "2026-10-20T14:00Z"]}}
         with tempfile.TemporaryDirectory() as tmp:
