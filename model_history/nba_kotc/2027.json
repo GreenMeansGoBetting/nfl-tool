@@ -2675,14 +2675,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2882,
+    "lead": 0.2883,
     "name": "Luka Doncic",
     "proj": 51.7,
     "team": "LAL"
    },
    {
     "id": "3112335",
-    "lead": 0.1133,
+    "lead": 0.1135,
     "name": "Nikola Jokic",
     "proj": 44.2,
     "team": "DEN"
@@ -2696,9 +2696,9 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0533,
+    "lead": 0.0526,
     "name": "Joel Embiid",
-    "proj": 40.5,
+    "proj": 40.4,
     "team": "PHI"
    },
    {
@@ -2717,9 +2717,9 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0336,
+    "lead": 0.0332,
     "name": "Tyrese Maxey",
-    "proj": 37.6,
+    "proj": 37.5,
     "team": "PHI"
    },
    {
@@ -2738,7 +2738,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0242,
+    "lead": 0.0243,
     "name": "Trae Young",
     "proj": 36.6,
     "team": "WSH"
@@ -2759,7 +2759,7 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0171,
+    "lead": 0.0172,
     "name": "Pascal Siakam",
     "proj": 35.3,
     "team": "IND"
@@ -2794,7 +2794,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0118,
+    "lead": 0.0119,
     "name": "Yaxel Lendeborg",
     "proj": 34.0,
     "team": "GS"
@@ -2815,7 +2815,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0108,
+    "lead": 0.0109,
     "name": "Kevin Durant",
     "proj": 34.0,
     "team": "HOU"
@@ -2836,7 +2836,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0073,
+    "lead": 0.0074,
     "name": "Cade Cunningham",
     "proj": 32.7,
     "team": "DET"
@@ -2850,7 +2850,7 @@
    },
    {
     "id": "4433287",
-    "lead": 0.0052,
+    "lead": 0.0053,
     "name": "Brandon Miller",
     "proj": 30.8,
     "team": "CHA"
@@ -2863,18 +2863,18 @@
     "team": "CHA"
    },
    {
-    "id": "3917376",
-    "lead": 0.0043,
-    "name": "Jaylen Brown",
-    "proj": 31.3,
-    "team": "PHI"
-   },
-   {
     "id": "4432158",
     "lead": 0.0043,
     "name": "Evan Mobley",
     "proj": 30.5,
     "team": "CLE"
+   },
+   {
+    "id": "3917376",
+    "lead": 0.0042,
+    "name": "Jaylen Brown",
+    "proj": 31.2,
+    "team": "PHI"
    },
    {
     "id": "3934672",
@@ -2899,7 +2899,7 @@
    },
    {
     "id": "5095151",
-    "lead": 0.003,
+    "lead": 0.0031,
     "name": "Caleb Wilson",
     "proj": 30.7,
     "team": "CHI"
@@ -3080,18 +3080,18 @@
     "team": "MIN"
    },
    {
-    "id": "5124612",
-    "lead": 0.0002,
-    "name": "VJ Edgecombe",
-    "proj": 23.4,
-    "team": "PHI"
-   },
-   {
     "id": "4869780",
     "lead": 0.0002,
     "name": "Derik Queen",
     "proj": 23.4,
     "team": "NO"
+   },
+   {
+    "id": "5124612",
+    "lead": 0.0002,
+    "name": "VJ Edgecombe",
+    "proj": 23.3,
+    "team": "PHI"
    }
   ],
   "season_used": "2026-27"
