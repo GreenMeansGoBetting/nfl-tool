@@ -510,6 +510,9 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
   against his main line then, push / sat not graded; `ledger` rows carry |score| and units None (never
   priced: hit rate only), tags strong / lean, over / under. shots.json `matchups.record` {market:
   {ledger}}; the page's YTD Model Performance button = the shared tracker (Min Score slider 5-30%).
+- **Past nights** (2026-10-28, the owner: "no back button to look at yesterday to analyze results"): shots.json
+  `matchups.past` {market: [read + got, result hit / miss / push / sat / None]} (`zone_matchups.past`); the day
+  arrows step back to Results (All Reads / Strong / Overs / Unders records, Overs and Unders lists, Strong Only).
 - **Not built yet:** a key defender Out chip (with / without him on the floor; the owner flagged starters vs bench).
 - Tests: `tests/test_nba_zone_matchups.py`.
 
