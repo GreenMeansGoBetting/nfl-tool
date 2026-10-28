@@ -12,8 +12,10 @@ and in makes?
 **Raw numbers, no pulling toward the league** (the owner: "We have to stop
 taking data and drawing it to the average or setting minimums because then we
 just are recreating the sportsbooks numbers"); every read carries its shot
-counts, and the user judges the sample. **Never priced:** no edge, no EV; the
-main line is shown for reference and grades the record.
+counts, and the user judges the sample. **No EV:** no edge, no chance of
+hitting (the owner, 2026-10-28: not "calculate ev based on an artform"); the
+main line and its best price are shown, and the record grades each read W / L
+and in units at that price "just for the sake of seeing".
 
 For a player, one market (points: every shot; threes: his threes):
 - `s[z]` = his share of shots in each of the 12 zones (shot-chart.js
@@ -76,6 +78,13 @@ def main_line(quotes: list):
         if len(q) > 2 and q[2] is not None:
             count[float(q[2])] = count.get(float(q[2]), 0) + 1
     return min(count, key=lambda line: (-count[line], line)) if count else None
+
+
+def best_price(quotes: list, side: str, line) -> tuple:
+    """(price, book): the best American price on one side of one line across every book, or (None, None)."""
+    got = [(q[3], q[0]) for q in quotes or [] if len(q) > 3 and q[1] == side and q[2] is not None
+           and line is not None and float(q[2]) == float(line) and q[3] is not None]
+    return max(got) if got else (None, None)
 
 
 class Tally:
@@ -205,6 +214,7 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
                          allowed.get((opp, grp, "all")), league.get((grp, "all"))) if q else None
                 if r:
                     r["line"] = main_line(q)
+                    r["price"], r["book"] = best_price(q, "u" if r["side"] == "under" else "o", r["line"])
                     row[m] = r
             if any(m in row for m in MARKETS):
                 players[str(pid)] = row
@@ -235,10 +245,18 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
 # ---- the record (the owner, 2026-10-27: "grade based on score buckets") ----
 # model_history/nba_zones/<season>.json {game id: {date, points: [read], threes: [read]}}: each
 # game's OVER / UNDER reads as the last build before tip had them (a started game is never
-# rewritten; Toss Ups aren't saved). Graded against his main line at the time (never a price:
-# units are None, the tracker shows the win % alone), split Strong / Lean and Over / Under.
+# rewritten; Toss Ups aren't saved). Graded W / L against his main line at the time, and in units
+# at the best price across every book then (since 2026-10-28; older reads have no price: units None),
+# split Strong / Lean and Over / Under.
 RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_zones"
-READ_FIELDS = ("pid", "name", "team", "opp", "score", "side", "strong", "line")
+READ_FIELDS = ("pid", "name", "team", "opp", "score", "side", "strong", "line", "price", "book")
+
+
+def units_won(price, won: bool):
+    """1 unit at the American price: None with no price."""
+    if price is None:
+        return None
+    return round((price / 100 if price > 0 else 100 / -price) if won else -1.0, 3)
 
 
 def update_record(season: int, matchups: dict | None, path: Path | None = None) -> dict:
@@ -251,7 +269,8 @@ def update_record(season: int, matchups: dict | None, path: Path | None = None) 
             continue
         entry = {"date": matchups["date"]}
         for m in MARKETS:
-            entry[m] = [[pid, p["name"], p["team"], p["opp"], p[m]["score"], p[m]["side"], p[m]["strong"], p[m]["line"]]
+            entry[m] = [[pid, p["name"], p["team"], p["opp"], p[m]["score"], p[m]["side"], p[m]["strong"], p[m]["line"],
+                         p[m].get("price"), p[m].get("book")]
                         for pid, p in sorted(matchups["players"].items())
                         if p["game_id"] == g["game_id"] and m in p and p[m]["side"] != "toss" and p[m].get("line") is not None]
         record[str(g["game_id"])] = entry
@@ -274,8 +293,9 @@ def box_logs(box) -> dict:
 
 
 def ledger(record: dict, logs: dict, market: str) -> list:
-    """The shared YTD tracker's rows (ytd.js): [date, |score|, won 1/0, None, [strong | lean, over | under]];
-    a push or a player who sat isn't graded."""
+    """The shared YTD tracker's rows (ytd.js): [date, |score|, won 1/0, units at the price locked at tip
+    (None for a read saved before prices were), [strong | lean, over | under]]; a push or a player who
+    sat isn't graded."""
     out = []
     for gid, g in record.items():
         for row in g.get(market) or []:
@@ -284,7 +304,8 @@ def ledger(record: dict, logs: dict, market: str) -> list:
             if got is None or p["line"] is None or got == p["line"]:
                 continue
             over = p["side"] == "over"
-            out.append([g["date"], round(abs(p["score"]), 4), int((got > p["line"]) == over), None,
+            won = (got > p["line"]) == over
+            out.append([g["date"], round(abs(p["score"]), 4), int(won), units_won(p.get("price"), won),
                         ["strong" if p["strong"] else "lean", "over" if over else "under"]])
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
@@ -309,7 +330,8 @@ def past(record: dict, logs: dict, date: str | None) -> dict:
                     result = "push"
                 else:
                     result = "hit" if (got > p["line"]) == (p["side"] == "over") else "miss"
-                out[m].append({**p, "pid": str(p["pid"]), "game": str(gid), "date": g["date"], "got": got, "result": result})
+                units = units_won(p.get("price"), result == "hit") if result in ("hit", "miss") else None
+                out[m].append({"price": None, "book": None, **p, "units": units, "pid": str(p["pid"]), "game": str(gid), "date": g["date"], "got": got, "result": result})
         out[m].sort(key=lambda p: (p["date"], -abs(p["score"])))
     return out
 

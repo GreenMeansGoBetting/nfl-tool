@@ -79,3 +79,6 @@
 .zm-result.zm-miss b { color: var(--bad-text); }
 .zm-legend .zm-strong { margin-left: 8px; }
 #zm-view[hidden], #matchup-row[hidden] { display: none; }
+.zm-night em { font-style: normal; }
+.zm-up { color: var(--good-text); font-weight: 800; }
+.zm-down { color: var(--bad-text); font-weight: 800; }

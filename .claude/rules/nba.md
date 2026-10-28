@@ -473,7 +473,8 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
   sportsbooks numbers"); every read shows its shot counts and a His Shots filter. The page sets
   `NBA_SHOT_PRIOR = 0` (`let` in shot-chart.js); other pages still pull (the owner: raw everywhere
   "eventually", not yet).
-- **Never priced:** no edge / EV; the main line (middle of the books) is reference only.
+- **No EV** (the owner, 2026-10-28: "i didn't want to try and calculate ev based on an artform"): no
+  chance or edge ever; the main line and its best price are shown, and the record tracks W / L AND units.
 - **Every player with a points or threes line** on the next slate gets a read per market, OVER /
   UNDER / Toss Up (the owner: "Maybe we call these OVERS and UNDERS"), Strong past 12%.
 - Build: `nfl_tool/nba/zone_matchups.py` (`block`, in build_nba.py's shots try, its own try) ->
@@ -507,8 +508,9 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
 - **The record** (the owner: "grade based on score buckets"): `model_history/nba_zones/<season>.json`
   {game: {date, points / threes: [READ_FIELDS]}}, Over / Under reads only (no Toss Ups), rewritten until
   tip, never after (`update_record`); graded from the box scores (`box_logs`: played minutes > 0)
-  against his main line then, push / sat not graded; `ledger` rows carry |score| and units None (never
-  priced: hit rate only), tags strong / lean, over / under. shots.json `matchups.record` {market:
+  against his main line then, push / sat not graded; `ledger` rows carry |score| and units at the best
+  price across every book at tip (`best_price`, saved as READ_FIELDS price / book since 2026-10-28, the
+  owner: "track the units for just the sake of seeing"; older reads units None), tags strong / lean, over / under. shots.json `matchups.record` {market:
   {ledger}}; the page's YTD Model Performance button = the shared tracker (Min Score slider 5-30%).
 - **Past nights** (2026-10-28, the owner: "no back button to look at yesterday to analyze results"): shots.json
   `matchups.past` {market: [read + got, result hit / miss / push / sat / None]} (`zone_matchups.past`); the day

@@ -116,7 +116,9 @@ class Grid(unittest.TestCase):
 
 class Record(unittest.TestCase):
     """Reads lock at tip (a started game is never rewritten), Toss Ups aren't saved, and the grade is
-    against his main line with no price (units None), split Strong / Lean and Over / Under."""
+    against his main line, in units at the best price across every book at tip (the owner, 2026-10-28:
+    "give them a W/L and also track the units for just the sake of seeing"; never an EV), split Strong /
+    Lean and Over / Under; a read saved before prices were has units None."""
 
     def test_locks_at_tip_and_grades_by_bucket(self):
         import json
@@ -132,7 +134,11 @@ class Record(unittest.TestCase):
             self.assertEqual(Z.update_record(2027, started, path), saved)  # after tip: unchanged
         logs = {"points": {("900", "1"): 14.0}}
         rows = Z.ledger(rec, logs["points"], "points")
-        self.assertEqual(rows, [["2099-10-25", round(abs(m["players"]["1"]["points"]["score"]), 4), 1, None, ["strong", "over"]]])
+        self.assertEqual(rec["900"]["points"][0][-2:], [-110, "fd"])  # main line 12.5: fd -110 beats mgm -115 (dk's 11.5 isn't it)
+        self.assertEqual(rows, [["2099-10-25", round(abs(m["players"]["1"]["points"]["score"]), 4), 1, 0.909, ["strong", "over"]]])
+        self.assertEqual(Z.ledger(rec, {("900", "1"): 10.0}, "points")[0][2:4], [0, -1.0])
+        old = {"900": {"date": "2099-10-25", "points": [rec["900"]["points"][0][:8]]}}  # saved before prices were
+        self.assertIsNone(Z.ledger(old, logs["points"], "points")[0][3])
         self.assertEqual(Z.ledger(rec, {("900", "1"): 12.5}, "points"), [])  # a push
         self.assertEqual(Z.ledger(rec, {}, "points"), [])  # sat / no box score yet
 
@@ -142,7 +148,9 @@ class Record(unittest.TestCase):
                                                         ["3", "Guard Three", "AAA", "BBB", -0.07, "under", False, 9.5]], "threes": []},
                "901": {"date": "2099-10-25", "points": [["1", "Big One", "AAA", "BBB", 0.2, "over", True, 12.5]]}}
         got = Z.past(rec, {"points": {("900", "1"): 14.0, ("900", "9"): 3.0}, "threes": {}}, "2099-10-25")
-        self.assertEqual([(p["pid"], p["got"], p["result"]) for p in got["points"]], [("1", 14.0, "hit"), ("3", None, "sat")])  # tonight's left out
+        self.assertEqual([(p["pid"], p["got"], p["result"], p["units"]) for p in got["points"]], [("1", 14.0, "hit", None), ("3", None, "sat", None)])  # tonight's left out; no price saved
+        rec["900"]["points"][0] += [120, "dk"]
+        self.assertEqual(Z.past(rec, {"points": {("900", "1"): 14.0}}, "2099-10-25")["points"][0]["units"], 1.2)
         self.assertEqual(Z.past(rec, {"points": {}, "threes": {}}, "2099-10-25")["points"][0]["result"], None)  # waiting on the box score
         self.assertEqual(Z.past(rec, {"points": {("900", "1"): 11.0, ("900", "3"): 9.0}}, "2099-10-25")["points"][1]["result"], "hit")  # the under
 
@@ -152,9 +160,9 @@ def setUpModule():
     SITE = SiteBrowser()
     try:
         past = {"points": [{"pid": "1", "name": "Big One", "team": "AAA", "opp": "BBB", "score": 0.2, "side": "over", "strong": True,
-                            "line": 12.5, "game": "800", "date": "2099-10-24", "got": 14.0, "result": "hit"},
+                            "line": 12.5, "game": "800", "date": "2099-10-24", "got": 14.0, "result": "hit", "price": 150, "book": "dk", "units": 1.5},
                            {"pid": "3", "name": "Guard Three", "team": "AAA", "opp": "BBB", "score": -0.07, "side": "under", "strong": False,
-                            "line": 9.5, "game": "800", "date": "2099-10-24", "got": 12.0, "result": "miss"}], "threes": []}
+                            "line": 9.5, "game": "800", "date": "2099-10-24", "got": 12.0, "result": "miss", "price": -110, "book": "fd", "units": -1.0}], "threes": []}
         shots = dict(SHOTS, matchups=dict(build(), past=past))
         SITE.nba = {"season": 2027, "season_label": "2026-27", "injuries": {}, "players": {}, "schedule": GAMES, "book_odds": ODDS,
                     "teams": {t: {"name": f"Team {t}", "short": t, "logo": "", "color": "336699"} for t in TEAMS}}
@@ -223,6 +231,8 @@ class Page(unittest.TestCase):
         try:
             PAGE.wait_for_selector(".zm-night")
             self.assertIn("1-1", PAGE.inner_text(".zm-night"))
+            self.assertIn("+0.50u", PAGE.inner_text(".zm-night"))  # +1.5 at +150, -1 at -110
+            self.assertIn("+1.50u", PAGE.inner_text(".zm-past.zm-hit"))
             self.assertIn("Hit", PAGE.inner_text(".zm-past.zm-hit"))
             self.assertIn("14", PAGE.inner_text(".zm-past.zm-hit"))
             self.assertIn("Miss", PAGE.inner_text(".zm-past.zm-miss"))

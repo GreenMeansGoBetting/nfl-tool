@@ -6,8 +6,8 @@
 // bigs) from those spots. The reads are built in nfl_tool/nba/zone_matchups.py
 // (shots.json `matchups`); this page lists them (Best & Worst Spots, Matchup
 // View) and opens both shot charts for a player. RAW numbers, nothing pulled
-// toward the league (NBA_SHOT_PRIOR = 0 here). Never priced: the line is for
-// reference. Loads before shot-chart.js / nba-card.js. Every name starts zm / ZM.
+// toward the league (NBA_SHOT_PRIOR = 0 here). No EV (the owner, 2026-10-28: not
+// "calculate ev based on an artform"); the record grades W / L and in units at the best price at tip. Loads before shot-chart.js / nba-card.js. Every name starts zm / ZM.
 
 let DATA = null; // data.json: teams, schedule; the player card reads it too
 let ZF = null; // shots.json
@@ -119,7 +119,7 @@ function zmTable(rows, opts = {}) {
     <th class="num" title="How much more of his group's shooting this defense gives up from his spots than the league does (more chances)">Shots</th>
     <th class="num" title="How much more his kind of shots go in against this defense, from his zones and shot types">Makes</th>
     <th class="num" title="The line most books hang, on the read's side">Line</th>
-    <th class="num" title="The best price on that side across your books (click for every book). Never priced by us.">Odds</th>
+    <th class="num" title="The best price on that side across your books (click for every book). No EV from us.">Odds</th>
     <th title="Share of his shots from each spot / shot type. Green = this defense helps him there, red = hurts (the counterpoint). Hover a tag for why.">His Diet vs This Defense</th>
     <th class="num" title="His shots this season / shots this defense allowed his group">Sample</th>
   </tr></thead><tbody>${body}</tbody></table></div>`;
@@ -294,12 +294,12 @@ function zmDetail() {
     </thead><tbody>${zoneRows}<tr class="nba-shot-group"><td colspan="8">How He Shoots</td></tr>${kindRows}</tbody></table></div>`;
 }
 
-// ---- the record: every OVER / UNDER read locked at tip, graded against his main line (never a price) ----
+// ---- the record: every OVER / UNDER read locked at tip, graded against his main line, units at the best price then ----
 function zmYtd() {
   const overlay = ensureBookModal("zm-ytd-modal");
   const content = overlay.querySelector(".bo-content");
   content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="zm-ytd-tracker"></div>
-    <p class="no-data-note">Every Over / Under read as it stood at tip, graded against his main line then (never priced: hit rate only). Toss Ups, pushes and players who sat don't count. The slider cuts on the read's score.</p>`;
+    <p class="no-data-note">Every Over / Under read as it stood at tip, graded against his main line then, 1 unit at the best price across every book at tip (reads from before Oct 28 have no price: W / L only). No EV: the units are just for seeing. Toss Ups, pushes and players who sat don't count. The slider cuts on the read's score.</p>`;
   const rec = zmM().record || {};
   const splits = [["strong", "Strong", "Score 12%+"], ["lean", "Lean", "Score 5-12%"], ["over", "Overs"], ["under", "Unders"]];
   ytdTracker(content.querySelector(".zm-ytd-tracker"), {
@@ -322,10 +322,14 @@ const zmDay = () => zmDays()[ZM.day] || zmM().date;
 function zmPast(date) {
   const reads = ((zmM().past || {})[ZM.market] || []).filter((p) => p.date === date && (!ZM.strongOnly || p.strong));
   const graded = reads.filter((p) => p.result === "hit" || p.result === "miss");
+  const zmUnits = (u) => `${u >= 0 ? "+" : "&minus;"}${Math.abs(u).toFixed(2)}u`;
   const tile = (label, list) => {
     const g = list.filter((p) => p.result === "hit" || p.result === "miss");
     const w = g.filter((p) => p.result === "hit").length;
-    return `<div><small>${label}</small><b>${g.length ? `${w}-${g.length - w}` : "--"}</b><span>${g.length ? `${Math.round((w / g.length) * 100)}%` : ""}</span></div>`;
+    const priced = g.filter((p) => p.units !== null && p.units !== undefined);
+    const u = priced.reduce((a, p) => a + p.units, 0);
+    const units = priced.length ? ` &middot; <em class="${u >= 0 ? "zm-up" : "zm-down"}">${zmUnits(u)}</em>` : "";
+    return `<div><small>${label}</small><b>${g.length ? `${w}-${g.length - w}` : "--"}</b><span>${g.length ? `${Math.round((w / g.length) * 100)}%${units}` : ""}</span></div>`;
   };
   const waiting = reads.filter((p) => !p.result).length;
   const table = (list) => {
@@ -336,16 +340,19 @@ function zmPast(date) {
         <td><span class="zm-read" style="background:${zmShade(p.score, 0.25)}">${zmReadWord(p)}</span></td>
         <td class="num" style="background:${zmShade(p.score, 0.25)}"><b>${zmPct(p.score)}</b></td>
         <td class="num zm-line">${p.side === "under" ? "u" : "o"}${p.line ?? "--"}</td>
-        <td class="num zm-result ${cls}"><b>${word}</b>${p.got === null || p.got === undefined ? "" : ` <span>${p.got}</span>`}</td></tr>`;
+        <td class="num" title="${p.book ? `Best price across every book at tip: ${p.book}` : "Saved before prices were"}">${p.price === null || p.price === undefined ? "--" : boOdds(p.price)}</td>
+        <td class="num zm-result ${cls}"><b>${word}</b>${p.got === null || p.got === undefined ? "" : ` <span>${p.got}</span>`}</td>
+        <td class="num ${p.units > 0 ? "zm-up" : p.units < 0 ? "zm-down" : ""}">${p.units === null || p.units === undefined ? "--" : zmUnits(p.units)}</td></tr>`;
     }).join("");
     return `<div class="shc-scroll"><table class="data-table zm-table"><thead><tr><th>Player</th><th>Vs</th><th>Read</th>
       <th class="num" title="The read's score at tip">Score</th><th class="num" title="His main line at tip, on the read's side">Line</th>
-      <th class="num" title="Hit / Miss and his ${ZM.market === "threes" ? "threes" : "points"}">Result</th></tr></thead><tbody>${body}</tbody></table></div>`;
+      <th class="num" title="The best price across every book at tip">Odds</th>
+      <th class="num" title="Hit / Miss and his ${ZM.market === "threes" ? "threes" : "points"}">Result</th><th class="num" title="1 unit at the price at tip (no EV: just for seeing)">Units</th></tr></thead><tbody>${body}</tbody></table></div>`;
   };
   const over = reads.filter((p) => p.side === "over").sort((a, b) => b.score - a.score);
   const under = reads.filter((p) => p.side === "under").sort((a, b) => a.score - b.score);
   const strongBtn = `<button type="button" class="view-toggle-btn zm-strong${ZM.strongOnly ? " active" : ""}">Strong Only</button>`;
-  return `<p class="zm-legend">Results &middot; ${reads.length} read${reads.length === 1 ? "" : "s"} as locked at tip, graded against his main line then (never priced: hit rate only)${waiting ? ` &middot; ${waiting} waiting on the box score` : ""} ${strongBtn}</p>
+  return `<p class="zm-legend">Results &middot; ${reads.length} read${reads.length === 1 ? "" : "s"} as locked at tip, graded against his main line then, 1 unit at the best price at tip${waiting ? ` &middot; ${waiting} waiting on the box score` : ""} ${strongBtn}</p>
     <div class="zm-night">${tile("All Reads", reads)}${tile("Strong", reads.filter((p) => p.strong))}${tile("Overs", over)}${tile("Unders", under)}</div>
     ${reads.length ? `<div class="zm-spots">
       <div class="nba-box"><div class="nba-box-title zm-head zm-head-over">Overs <span>${over.length}</span></div>${table(over)}</div>
