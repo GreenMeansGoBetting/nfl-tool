@@ -4579,8 +4579,10 @@ def main():
     save_gmg_history(blob["gmg_model"])
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    # compact (2026-10-28): indented it was 18.2 MB in week 8 and growing, and Cloudflare Pages
+    # takes at most 25 MB a file (ci_steps.py sizes); compact is about 40% smaller
     with open(args.out, "w") as f:
-        json.dump(blob, f, indent=1)
+        json.dump(blob, f, separators=(",", ":"))
 
     print(f"Wrote {args.out} -- season {season}, through week {max_week}, {len(teams)} teams")
 

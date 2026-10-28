@@ -24,6 +24,7 @@ class SiteBrowser:
         self.nba = None  # a hand-made nba/data.json (dict) a test serves instead of the local file
         self.nba_props = None  # a hand-made nba/props.json (dict), the same way
         self.nba_shots = None  # a hand-made nba/shots.json (dict), the same way
+        self.nba_ladders = None  # a hand-made nba/ladders.json (dict); {} with a hand-made data.json
         self.server = start_server()
         self.origin = f"http://127.0.0.1:{self.server.server_address[1]}"
         self._playwright = sync_playwright().start()
@@ -50,6 +51,8 @@ class SiteBrowser:
             route.fulfill(status=200, content_type="application/json", body=json.dumps(self.nba))
         elif url == f"{self.origin}/nba/props.json" and self.nba_props is not None:
             route.fulfill(status=200, content_type="application/json", body=json.dumps(self.nba_props))
+        elif url == f"{self.origin}/nba/ladders.json" and (self.nba_ladders is not None or self.nba is not None):
+            route.fulfill(status=200, content_type="application/json", body=json.dumps(self.nba_ladders or {}))
         elif url == f"{self.origin}/nba/shots.json" and self.nba_shots is not None:
             route.fulfill(status=200, content_type="application/json", body=json.dumps(self.nba_shots))
         elif url == f"{self.origin}/nhl/data.json":

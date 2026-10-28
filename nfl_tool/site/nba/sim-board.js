@@ -1088,9 +1088,20 @@ document.addEventListener("click", (e) => {
   }
 });
 
-Promise.all([fetch("data.json").then((r) => r.json()), fetch("props.json").then((r) => r.json())])
-  .then(([data, props]) => {
-    DATA = data;
+// the alt ladders ("points_alt" ...) come in their own ladders.json (the build splits them out to keep
+// data.json under Cloudflare's 25 MB a file) and go back into book_odds here
+const mergeLadders = (data, ladders) => {
+  for (const [key, game] of Object.entries(ladders || {})) {
+    const into = (data.book_odds || {})[key];
+    if (into) into.props = { ...(into.props || {}), ...(game.props || {}) };
+  }
+  return data;
+};
+
+Promise.all([fetch("data.json").then((r) => r.json()), fetch("props.json").then((r) => r.json()),
+  fetch("ladders.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({}))])
+  .then(([data, props, ladders]) => {
+    DATA = mergeLadders(data, ladders);
     PROPS = props;
     if (!PROPS || !Object.keys(PROPS.sim || {}).length) {
       el("sim-app").hidden = true;

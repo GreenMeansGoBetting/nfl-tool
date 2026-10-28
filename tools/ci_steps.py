@@ -725,6 +725,9 @@ def cmd_live_check(args):
 # the upload the biggest files go into the run's annotations (readable from the
 # public API), and a file over the limit fails here, naming it.
 PAGES_FILE_LIMIT = 25 * 1024 * 1024
+# past this a file gets a warning (the deploy still goes): time to slim it before
+# the season grows it over the limit
+PAGES_FILE_WARN = 20 * 1024 * 1024
 
 
 def biggest_files(site: Path, n=5):
@@ -738,6 +741,9 @@ def cmd_sizes(args):
     mb = lambda b: f"{b / 1024 / 1024:.1f} MB"  # noqa: E731
     print("::notice title=Biggest files::" + ", ".join(f"{name} {mb(size)}" for size, name in top))
     over = [(size, name) for size, name in top if size > PAGES_FILE_LIMIT]
+    for size, name in top:
+        if PAGES_FILE_WARN < size <= PAGES_FILE_LIMIT:
+            print(f"::warning title=Close to Cloudflare's limit::{name} is {mb(size)}; Cloudflare Pages takes at most 25 MB a file, slim it before it grows past that")
     for size, name in over:
         print(f"::error title=Too big for Cloudflare::{name} is {mb(size)}; Cloudflare Pages takes at most 25 MB a file")
     return 1 if over else 0

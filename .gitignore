@@ -11,6 +11,7 @@ nfl_tool/site/best_plays_record.json
 nfl_tool/site/nba/data.json
 nfl_tool/site/nba/props.json
 nfl_tool/site/nba/shots.json
+nfl_tool/site/nba/ladders.json
 nfl_tool/site/nhl/data.json
 nfl_tool/site/nhl/shots.json
 nfl_tool/site/nhl/players/

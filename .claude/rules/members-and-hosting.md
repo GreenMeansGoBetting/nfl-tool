@@ -42,6 +42,16 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
   - It also refuses to publish if the member database step could not write the database binding
     (publishing without it would lock email members out).
   - The publish step is NOT `continue-on-error`: a failed publish is a failed run.
+  - **Cloudflare Pages refuses any one file over 25 MiB** (wrangler's error is only in the
+    signed-in log). "Check file sizes for Cloudflare" (`python tools/ci_steps.py sizes`, right
+    before the publish) puts the 5 biggest files in the run's annotations ("Biggest files", public:
+    `api.github.com/repos/GreenMeansGoBetting/nfl-tool/check-runs/<job id>/annotations`), warns on
+    one past 20 MB and fails naming one over 25. Keep every data file well under: data files are
+    written compact (`separators=(",", ":")`, never `indent`), and the NBA alt ladders (`*_alt`
+    in `book_odds`, most of the quotes) live in `nba/ladders.json` (`split_ladders` /
+    `merge_ladders` in build_nba.py; sim-board.js and the build's read of the live copy merge them
+    back). A big new block goes in its own file read only by the page that needs it (a new
+    generated file: .gitignore AND fetch_live_data.py SUITES).
   - `version.json` (commit sha, run id, build time) is written into the site and served without
     a login (`/version.json` is let through by the middleware). It is how a deploy is confirmed.
     It also carries `nba` and `nhl`: when each of those builds last worked (`built`, null if it

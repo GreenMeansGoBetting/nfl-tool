@@ -1312,3 +1312,16 @@ are graded (the same two rules didn't help them on so few nights). Shots, before
   had to be downloaded. The owner approved a one-game mockup (FLA @ OTT) first.
 - Honest limits shown to the owner first: about 6 games a team with a shift chart, trios with 20-60
   minutes together, trio-vs-trio history of a few minutes, and a third of 5-on-5 time played by mixed groups.
+
+## 2026-10-28: the NBA data file outgrew Cloudflare's 25 MB a file
+
+- Adding the Rebounds and Assists ladders to the NBA odds took `nba/data.json` to 27.8 MB.
+  Cloudflare Pages refuses any one file over 25 MiB, so three deploys failed at the upload and
+  members went about an hour and a half without the night's new features (the live site itself
+  never went down: the old version stayed up). The error was only in the signed-in log.
+- Fix, same night: the NBA file written compact (19.6 MB), then a "Check file sizes" step that
+  names the biggest files in the public annotations and fails before the upload. Then, for room
+  as the season grows: the NBA alt ladders (about 72,000 of 110,000 quotes, each with a bet link)
+  moved to `nba/ladders.json`, and the NFL data.json (18.2 MB indented in week 8, and growing
+  weekly) written compact. The step now warns past 20 MB so the next one is caught early.
+

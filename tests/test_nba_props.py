@@ -11,6 +11,7 @@ NBA points market is found by name and never a combo, quarter or first
 scorer, and its quotes land on players by ESPN id. (The line-anchored
 projections these tests also pinned were retired 2026-10-24 for the game sim:
 tests/test_nba_sim.py.)"""
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -178,6 +179,21 @@ class FastOdds(unittest.TestCase):
         self.assertNotIn("1966", g["points_alt"])  # his line moved 23.5 -> 26.5: the old rungs are stale
         self.assertIn("4431678", g["points_alt"])  # Maxey's line didn't move: his ladder is kept
         self.assertIn("BOS_NY", games)  # a game with no fresh prices keeps its old ones
+
+
+class LaddersFile(unittest.TestCase):
+    # 2026-10-28: data.json reached 27.8 MB (Cloudflare takes 25 MB a file); the alt ladders, most of
+    # the quotes, go in nba/ladders.json and come back whole when the build reads the live copy
+    def test_split_and_merge_round_trip(self):
+        q = {"name": "x", "q": [["draftkings", "o", 25.5, -110, "https://bet"]]}
+        odds = {"DET_PHI": {"kickoff": "k", "td": {}, "lines": {}, "props": {"points": {"1": q}, "points_alt": {"1": q}, "threes_alt": {"1": q}}},
+                "BOS_NY": {"kickoff": "k", "td": {}, "lines": {}, "props": {"points": {"2": q}}}}
+        whole = json.loads(json.dumps(odds))
+        main, ladders = build_nba.split_ladders(odds)
+        self.assertEqual(sorted(main["DET_PHI"]["props"]), ["points"])
+        self.assertEqual(sorted(ladders["DET_PHI"]["props"]), ["points_alt", "threes_alt"])
+        self.assertNotIn("BOS_NY", ladders)
+        self.assertEqual(build_nba.merge_ladders(main, ladders), whole)
 
 
 class GameLog(unittest.TestCase):

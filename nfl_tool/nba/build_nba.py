@@ -488,19 +488,51 @@ def fetch_novig_lines(games: list, teams: dict) -> tuple:
     return out, debug
 
 
+def split_ladders(book_odds: dict) -> tuple:
+    """(book_odds without the alt ladders, {game: {"props": {"points_alt": ...}}}):
+    the ladders are most of the NBA's quotes (72,000 of ~110,000 on 2026-10-28)
+    and go in their own nba/ladders.json, read only by the sim pages, so
+    data.json stays well under Cloudflare's 25 MB a file."""
+    main, ladders = {}, {}
+    for key, game in (book_odds or {}).items():
+        props = game.get("props") or {}
+        alt = {m: v for m, v in props.items() if m.endswith("_alt")}
+        main[key] = {**game, "props": {m: v for m, v in props.items() if m not in alt}}
+        if alt:
+            ladders[key] = {"props": alt}
+    return main, ladders
+
+
+def merge_ladders(book_odds: dict | None, ladders: dict | None) -> dict | None:
+    """split_ladders undone: ladders.json's markets back into book_odds."""
+    for key, game in (ladders or {}).items():
+        if book_odds is not None and key in book_odds:
+            book_odds[key].setdefault("props", {}).update(game.get("props") or {})
+    return book_odds
+
+
 def fetch_previous() -> dict | None:
     """The deployed nba/data.json (behind the member login; the build proves
-    itself the same way build_stats.py does). None on any failure."""
+    itself the same way build_stats.py does), its ladders.json merged back
+    into book_odds (the injury refresh carries them, and started games keep
+    them locked). None on any failure."""
     try:
         headers = {"User-Agent": USER_AGENT}
         token = os.environ.get("DISCORD_BOT_TOKEN")
         if token:
             headers["X-GMG-Build"] = hmac.new(token.encode(), b"gmg-build-v1", hashlib.sha256).hexdigest()
         with urllib.request.urlopen(urllib.request.Request(LIVE_DATA_URL, headers=headers), timeout=20) as resp:
-            return json.load(resp)
+            previous = json.load(resp)
     except Exception as e:
         print(f"NOTE: no previous NBA data to carry lines from ({e}).", file=sys.stderr)
         return None
+    try:
+        url = LIVE_DATA_URL.rsplit("/", 1)[0] + "/ladders.json"
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=20) as resp:
+            merge_ladders(previous.get("book_odds"), json.load(resp))
+    except Exception as e:  # before the first build that wrote one, the ladders were inside data.json
+        print(f"NOTE: no previous NBA ladders file ({e}).", file=sys.stderr)
+    return previous
 
 
 MARKED_OUT_URL = "https://nfl.gmgsports.org/api/nba-outs?day={day}"
@@ -1248,10 +1280,13 @@ def main():
     blob["watch"]["recheck"] = watch.recheck(blob.get("market_watch") or {}, now_utc.strftime("%Y-%m-%dT%H:%MZ"))
     blob["timing"] = timing
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    # compact, like props.json: with every market's odds and ladders the indented file reached 27.8 MB
-    # (2026-10-28) and Cloudflare Pages takes at most 25 MB a file (ci_steps.py sizes)
+    # compact, like props.json, and the alt ladders in their own file: with every market's odds and
+    # ladders the indented file reached 27.8 MB (2026-10-28) and Cloudflare Pages takes at most 25 MB
+    # a file (ci_steps.py sizes)
+    blob["book_odds"], ladders = split_ladders(blob.get("book_odds") or {})
     with open(args.out, "w") as f:
         json.dump(blob, f, separators=(",", ":"))
+    (args.out.parent / "ladders.json").write_text(json.dumps(ladders, separators=(",", ":")), encoding="utf-8")
     print(f"Wrote {args.out} -- {args.season} schedule ({len(games)} games), stats from {stats_season}, lines for {novig_debug['matched']} games")
 
 

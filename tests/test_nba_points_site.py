@@ -108,7 +108,10 @@ def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        SITE.nba, SITE.nba_props = DATA, PROPS
+        # the ladder comes in its own ladders.json, as the build writes it (2026-10-28: data.json near 25 MB)
+        main = {k: {**g, "props": {m: v for m, v in g["props"].items() if not m.endswith("_alt")}} for k, g in DATA["book_odds"].items()}
+        SITE.nba, SITE.nba_props = {**DATA, "book_odds": main}, PROPS
+        SITE.nba_ladders = {k: {"props": {m: v for m, v in g["props"].items() if m.endswith("_alt")}} for k, g in DATA["book_odds"].items()}
         # one shot for player one: the Shot Chart tab has something to draw
         SITE.nba_shots = {"games": ["900"], "teams": ["AAA", "BBB"], "players": {"1": [[25, 5, 1, 0, 0, 0, 1, 0, 1]]}, "who": {}, "league": []}
         PAGE = SITE.open("nba/points.html")
