@@ -849,6 +849,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Best Plays", file: "best.html" },
       { name: "Points", file: "points.html" },
       { name: "Threes", file: "threes.html" },
+      { name: "Rebounds", file: "rebounds.html" },
+      { name: "Assists", file: "assists.html" },
       { name: "First Basket", file: "first-basket.html" },
     ] },
     nhl: { label: "NHL", home: "", items: [

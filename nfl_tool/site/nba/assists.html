@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Assists</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700;800&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="sim.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="sim-tabs"><a href="best.html">Best Plays</a><a href="points.html">Points</a><a href="threes.html">Threes</a><a href="rebounds.html">Rebounds</a><a href="assists.html" class="on">Assists</a></div>
+    <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
+    <div id="sim-app" hidden>
+      <div class="pts-testing" id="sim-testing">
+        <div class="pts-testing-main">
+          <span class="pts-testing-kicker">Testing</span>
+          <h2 class="pts-testing-title">Projections In Testing: Model Being Tested Against Its Record <button type="button" class="info-i" aria-expanded="false" aria-controls="sim-how" title="How it works">i</button></h2>
+          <p class="pts-caution">PLEASE WAGER WITH CAUTION UNTIL WE HAVE MORE DATA.</p>
+          <p class="pts-testing-sub">Every game played 10,000 times, possession by possession, from this season's games, then started from the books' line: each player's middle sits near his main line, moved 35% of the way toward the sim's own number.</p>
+        </div>
+        <div class="pts-testing-record"><div class="sim-rec" id="sim-record"></div></div>
+        <p class="info-note pts-testing-note" id="sim-how" hidden><b>One game, a quarter at a time:</b> the two teams' pace sets the possessions. Each possession goes to one of the five on the floor, by his minutes and how much he shoots when he's out there. His play is a shot from a zone (rim, short, mid-range, corner three, above-the-break three), a trip to the line or a turnover, by his own mix tilted toward what this defense gives up. Whether it goes in is his make rate there times what this defense allows there. A missed shot can come back as an offensive rebound. Down the stretch a blowout sends the starters to the bench, and a lead shrinks a little (the team ahead eases off). Every player also gets a minutes night and a shooting night, so the spread of outcomes is a real game's. <b>Assists:</b> every make can be assisted: how often depends on how often the shooter's makes are assisted, times how often this defense gives up assisted makes against the league. The assist goes to a teammate on the floor (never the shooter) by his floor time and his assists a minute, and every player gets a passing night. A defense that gives up more makes means more assists to hand out. <b>Injuries and starters:</b> a player listed Out leaves his minutes to the rest of the rotation; a player in the NBA's starting five tonight plays starter minutes. <b>The dials</b> are the spots that changed how teams played over ten seasons (rest, back-to-backs, overtime, close-win letdowns, blowout wins); the rest tested at zero and stay off. <b>Checked on last season</b> (each night from that season's earlier games only): team scores, player points and threes landed where the sims said as often as they should. <b>Early in the season</b> a player's rates lean on this season's numbers for his position, less as his own games come in. <b>Start from the line</b> (since October 28): the sim's 10,000 outcomes for a player keep their spread and shape, but their middle is moved to his main line plus 35% of the gap to the sim's own middle. A four-night replay of this was about break-even, not a proven edge; the record grades it. <b>A play</b> is his main line's side with 4+ points of edge at the best price; the Ladder tag shows a rung on the same side with more. The books still predict the final score a little better than the sims do; a play is where the two disagree by enough.</p>
+      </div>
+
+      <div class="sim-head">
+        <div class="sim-views"><button type="button" data-view="player" class="on">Player View</button><button type="button" data-view="matchup">Matchup View</button></div>
+      </div>
+      <div id="schedule-scroller" class="schedule-scroller">
+        <div class="week-picker">
+          <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+          <span id="day-label" class="week-label">Day</span>
+          <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+        </div>
+        <div id="matchup-row" class="matchup-row"></div>
+      </div>
+
+      <div id="sim-player">
+        <div class="sim-toolbar" id="sim-toolbar"></div>
+        <p class="sim-noplay" id="sim-list-note"></p>
+        <div id="sim-list"></div>
+      </div>
+      <div id="sim-matchup" hidden>
+        <h2 class="sim-sec">Game Board <small>Every player's threes in all 10,000 games</small></h2>
+        <div id="sim-board"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Prices: <a href="https://www.smartstake.app/?via=GMG" target="_blank" rel="noopener">SmartStake</a> (every US book). Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play and box scores), ESPN injuries, NBA starting lineups.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="../ytd.js"></script>
+<script src="assists.js"></script>
+<script src="sim-board.js"></script>
+<script src="shot-chart.js"></script>
+<script src="nba-card.js"></script>
+</body>
+</html>

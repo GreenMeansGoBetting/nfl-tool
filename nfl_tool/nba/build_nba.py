@@ -974,12 +974,14 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
         f = {k: i for i, k in enumerate(block.get("fields") or props.LOG_FIELDS)}
         for pid, p in block["players"].items():
             for r in p.get("log") or []:
-                for market, stat in (("points", "pts"), ("threes", "fg3m")):
-                    logs[market][(str(r[f["game"]]), pid)] = r[f[stat]]
+                for market, stat in sim.STATS.items():  # the sim's stat = the log's field
+                    if stat in f and r[f[stat]] is not None:
+                        logs[market][(str(r[f["game"]]), pid)] = r[f[stat]]
     return {"sim": sims, "sim_plays": plays,
             "sim_record": {m: {"ledger": sim.ledger(record, logs[m], m)} for m in sim.STATS},
             "sim_past": {m: past_plays(record, logs[m], m, today, block) for m in sim.STATS},
             "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE, "line_nudge": sim.LINE_NUDGE,
+                         "miss_pg": round(float(inputs["league"].get("miss_pg") or 0), 1),  # the Misses Coming tag's yardstick
                          "dials": {k: [label, own, opp] for k, (label, own, opp) in sim.DIAL_INFO.items()}}}
 
 
@@ -1042,7 +1044,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--data-dir", type=Path, default=Path("data/nba"))
     parser.add_argument("--cached", action="store_true", help="Reuse downloaded files (local testing)")
-    parser.add_argument("--fast-odds", action="store_true", help="The injury refresh: only Points / Threes odds fresh, the rest from the live build")
+    parser.add_argument("--fast-odds", action="store_true", help="The injury refresh: only the sim's markets' odds fresh (Points / Threes / Rebounds / Assists), the rest from the live build")
     args = parser.parse_args()
     force = not args.cached
     now_utc = datetime.now(timezone.utc).replace(tzinfo=None)

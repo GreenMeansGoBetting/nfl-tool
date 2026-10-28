@@ -55,6 +55,15 @@ position averages alone:
             (non-shooters given an average forward's threes: Zion, Giannis).
   fade      last season worth 120 minutes / 80 plays (about 4 games) scored a
             little better than 240 / 150 and 500 / 300 on every measure.
+
+Run 2026-10-28 on this season's first 6 nights (--season 2027 --start
+2026-10-22 --every 1, 42 games, 808 player-games), for Rebounds and Assists:
+  rebounds  4.34 vs 4.33 real with REB_LEVEL 0.965 (+0.16 without); no night
+            noise put 14% of real results past each end of the sims' 10-90%,
+            SD_REB 0.4 gives 80% inside and flat deciles. Position tilt
+            K_POS_REB 80 miss 2.16, 400 2.11, off 2.10 (five games: noise).
+  assists   2.56 vs 2.59; SD_AST 0.4 (79% inside). K_AST 60: players the sim
+            had at 4-6 really got 5.53; 25: 4.88 vs 5.15; 10 overshot 6+.
 """
 import argparse
 import json
@@ -67,6 +76,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nba"))
+import positions  # noqa: E402
 import possessions as P  # noqa: E402
 import sim  # noqa: E402
 
@@ -98,7 +108,8 @@ def main():
         setattr(sim, k, float(v))
     d = ROOT / args.data_dir
     t0 = time.time()
-    box = pd.read_parquet(d / f"player_box_{args.season}.parquet")
+    # the five positions, as the live build's box scores have them (Rebounds read by position)
+    box = positions.relabel(pd.read_parquet(d / f"player_box_{args.season}.parquet"), positions.load(live=False))
     season = P.Season(pd.read_parquet(d / f"play_by_play_{args.season}.parquet"), box)
     lines_path = ROOT / "nfl_tool" / "nba" / f"lines_{args.season}.json"
     lines = json.loads(lines_path.read_text()) if lines_path.exists() else {}
@@ -168,7 +179,11 @@ def main():
                     if not on.any():
                         continue
                     pts, f3 = st["pts"][on, j], st["fg3m"][on, j]
+                    rb, asst = st["reb"][on, j], st["ast"][on, j]
+                    real_rb, real_ast = int(r.rebounds or 0), int(r.assists or 0)
                     player_rows.append({
+                        "reb_sim": rb.mean(), "reb": real_rb, "reb_pit": pit(rb, real_rb, rng), "pos": inputs["players"][pid].get("pos"),
+                        "ast_sim": asst.mean(), "ast": real_ast, "ast_pit": pit(asst, real_ast, rng),
                         "night": night, "min_sim": st["min"][on, j].mean(), "min": float(r.minutes),
                         "pts_sim": pts.mean(), "pts": int(r.points), "pts_pit": pit(pts, int(r.points), rng),
                         "pts_lo": np.percentile(pts, 10), "pts_hi": np.percentile(pts, 90),
@@ -215,6 +230,15 @@ def main():
         s = Pl[(Pl.f3_sim >= lo) & (Pl.f3_sim < hi)]
         if len(s):
             print(f"  sim {label:8} {len(s):5}: sim {s.f3_sim.mean():4.2f} real {s.f3.mean():4.2f}; PIT {deciles(s.f3_pit)}")
+    for stat, label, cuts in (("reb", "Rebounds", (0, 3, 6, 9, 99)), ("ast", "Assists", (0, 2, 4, 6, 99))):
+        sim_, real = Pl[f"{stat}_sim"], Pl[stat]
+        print(f"{label}: sim {sim_.mean():.2f} real {real.mean():.2f} (bias {sim_.mean() - real.mean():+.2f}), miss {np.abs(sim_ - real).mean():.2f}; "
+              f"inside 10-90% {Pl[f'{stat}_pit'].between(0.1, 0.9).mean():.0%}; PIT {deciles(Pl[f'{stat}_pit'])}")
+        for lo, hi in zip(cuts, cuts[1:]):
+            s = Pl[(sim_ >= lo) & (sim_ < hi)]
+            if len(s):
+                print(f"  sim {lo}-{hi:<3} {len(s):5}: sim {s[f'{stat}_sim'].mean():5.2f} real {s[stat].mean():5.2f}; PIT {deciles(s[f'{stat}_pit'])}")
+        print("  by position: " + ", ".join(f"{pos} {s[f'{stat}_sim'].mean():.2f} / {s[stat].mean():.2f}" for pos in sim.POS5 for s in [Pl[Pl.pos == pos]] if len(s)))
     st = Pl[Pl.starter]
     bl = Pl[Pl.blown]
     print(f"Off a blowout (one in his last {sim.MIN_LAST}): {len(bl)}; minutes miss {np.abs(bl.min_sim - bl['min']).mean():.2f} (sim {bl.min_sim.mean():.1f} real {bl['min'].mean():.1f}), "

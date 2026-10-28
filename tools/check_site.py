@@ -56,6 +56,8 @@ PAGES = [
     ("NBA Best Plays", "nba/best.html", None),
     ("NBA Points", "nba/points.html", None),
     ("NBA Threes", "nba/threes.html", None),
+    ("NBA Rebounds", "nba/rebounds.html", None),
+    ("NBA Assists", "nba/assists.html", None),
     ("NHL Game Previews", "nhl/index.html", None),
     ("NHL Best Plays", "nhl/best.html", None),
     ("NHL Shots", "nhl/shots.html", None),

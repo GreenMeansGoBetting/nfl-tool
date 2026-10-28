@@ -1,6 +1,6 @@
 """The NBA game simulation (the owner, 2026-10-24): every game played 10,000
-times, possession by possession, so Points and Threes come from the game
-itself, not from the books' line ("I just dont want to mimic the vegas
+times, possession by possession, so Points, Threes, Rebounds and Assists
+come from the game itself, not from the books' line ("I just dont want to mimic the vegas
 line again and be back where we started"). Since 2026-10-28 (the owner: "Start
 from the line") the line comes in at the very end: each player's outcomes are
 moved so their middle sits near his main line, 35% of the way toward the sim's
@@ -70,6 +70,23 @@ K_USE = 10          # minutes, for his plays a minute
 K_TEAM = 5          # games, for a team's pace and plays a possession
 K_DEF = 150         # shots allowed in a zone, for a defense's make rate there
 K_OREB = 150        # misses, for a team's offensive rebound rate (and a defense's allowed)
+# Rebounds and Assists (2026-10-28, the owner: "build it in the exact same way and structure as
+# the current points and threes"). Who grabs a board: the five on the floor by their floor time x
+# their boards a minute (his own, leaning on his position's this season), x what tonight's other
+# team gives up to his POSITION (PG / SG / SF / PF / C; the owner: "if you can do actual position
+# rather than bigs forwards and guards"): its opponents' share of the boards at each spot against
+# the league's. How many boards there are comes from the game itself: the other team's misses
+# (its shooting x this defense) and the offensive rebound rate (both teams). Who gets the assist on
+# a make: the shooter's assisted share by zone (his own, leaning on his group's) x how often this
+# defense gives up assisted makes, then a teammate on the floor by his assists a minute.
+K_REB = 60          # minutes, for his rebounds a minute (a role shows fast)
+K_AST = 25          # minutes, for his assists a minute (60 read a playmaking PF like Jalen Johnson, 8.5 a game, at 5.9: players the sim had at 4-6 really got 5.5; 25 gives 4.9 vs 5.2, 10 overshoots the top)
+K_AST_SHOT = 30     # makes, for his assisted share in a zone
+K_DEF_AST = 150     # makes allowed, for a defense's assisted share
+K_POS_REB = 400     # rebounds, for a team's boards given up at one position (80 read 5 games' noise: miss 2.16 vs 2.11)
+POS5 = ("PG", "SG", "SF", "PF", "C")
+DEFAULT_RATES = {"oreb": 0.035, "dreb": 0.12, "ast": 0.08}  # a minute, before any games (tests, a new league)
+DEFAULT_SHARES = {"oreb_player": 0.8, "dreb_player": 0.9, "ft_oreb": 0.1, "ft_dreb": 0.75, "assisted": 0.62}
 # His own last season as the starting point (2026-10-25): what it counts like,
 # on top of this season's own (fitted on the 2025-26 opening weeks with
 # 2024-25 as the prior, tools/backtest/nba_sim.py --prior-season).
@@ -136,6 +153,12 @@ SD_MIN_STEP = 0.012  # ... and this much wider a minute less (a bench player's m
 SHORT_NIGHT = 0.04  # the chance a player's night ends early (an injury, fouls, a benching) ...
 SHORT_KEEP = (0.2, 0.6)  # ... keeping this share of his minutes
 SD_SHOOT = 0.10     # a player's shooting night
+# A player's rebounding and passing nights (his share of the boards / assists). This season's
+# first 6 nights (tools/backtest/nba_sim.py, 42 games): with none, 14% of real results fell under
+# the sims' 10th percentile and 14% over the 90th; 0.4 gives 9-12% each end, 79% inside 10-90%.
+SD_REB = 0.4
+SD_AST = 0.4
+REB_LEVEL = 0.965   # every credited board x this: the same replay ran +0.16 rebounds a player high without it
 SD_TEAM = 0.035     # a team's shooting night
 SD_GAME = 0.03      # the game's shooting night, both teams (refs, rims, a fast or slow night)
 # A lead shrinks: the team ahead eases off and the team behind presses (real
@@ -206,14 +229,22 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
             "dates": list(rows["date"]), "games": [int(g) for g in rows["game_id"]],
             "min": [float(m) for m in rows["minutes"]], "start": [bool(s) for s in rows["starter"]],
             "counts": np.zeros(len(OUTCOMES)), "made": np.zeros(len(ZONES)), "ftm": 0.0, "fta": 0.0,
+            "pos": pos5(last.get("athlete_position_abbreviation")),
+            "oreb": 0.0, "dreb": 0.0, "ast": 0.0, "amade": np.zeros(len(ZONES)),
         }
     zi = {z: i for i, z in enumerate(ZONES)}
-    for pid, z, made in zip(shots["player"].astype(int), shots["zone"], shots["made"]):
+    assisted = shots["assist"].notna() & shots["made"].astype(bool)
+    for pid, z, made, helped in zip(shots["player"].astype(int), shots["zone"], shots["made"], assisted):
         p = players.get(pid)
         if p is None or z not in zi:
             continue
         p["counts"][zi[z]] += 1
         p["made"][zi[z]] += bool(made)
+        p["amade"][zi[z]] += bool(helped)
+    for pid in shots.loc[assisted, "assist"].astype(int):
+        p = players.get(pid)
+        if p is not None:
+            p["ast"] += 1
     for pid, made in zip(fts["player"].astype(int), fts["made"]):
         p = players.get(pid)
         if p is not None:
@@ -254,6 +285,12 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
     ftm = sum(p["ftm"] for p in players.values())
     fta = sum(p["fta"] for p in players.values())
     league["ft"] = ftm / fta if fta else 0.78
+    # assists a minute by position, and the assisted share of makes by group and zone
+    for g in ("G", "F", "C"):
+        ps = [p for p in players.values() if p["group"] == g]
+        made = sum((p["made"] for p in ps), np.zeros(len(ZONES)))
+        amade = sum((p["amade"] for p in ps), np.zeros(len(ZONES)))
+        league["groups"][g]["assisted"] = np.where(made > 0, amade / np.maximum(made, 1), DEFAULT_SHARES["assisted"])
 
     # teams: pace (possessions a team gets in 48 regulation minutes), how
     # often a miss comes back (offensive rebounds), and what each defense allows
@@ -278,6 +315,42 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
     td = tos.assign(defense=def_of(tos))
     od = orebs.assign(defense=def_of(orebs))
     md = missed.assign(defense=def_of(missed))
+    # rebounds: each player's boards, the share of each pool a player is credited with (the rest
+    # are team rebounds, which no box score gives anyone), and each team's boards given up at each
+    # position (its opponents' boards there: offensive off its defense, defensive off its misses)
+    rebs = every[every["kind"].isin(("oreb", "dreb")) & every["player"].notna()]
+    for pid, kind in zip(rebs["player"].astype(int), rebs["kind"]):
+        p = players.get(pid)
+        if p is not None:
+            p[kind] += 1
+    league["pos"] = {}
+    for pos in POS5:
+        ps = [p for p in players.values() if p["pos"] == pos]
+        mins = sum(p["minutes"] for p in ps)
+        league["pos"][pos] = {k: (sum(p[k] for p in ps) / mins if mins else DEFAULT_RATES[k]) for k in ("oreb", "dreb", "ast")}
+    prev_kind = every["kind"].shift(1)
+    prev_made = every["made"].shift(1).fillna(False).astype(bool)
+    same = every["game_id"].shift(1) == every["game_id"]
+    off_miss = same & (prev_kind == "shot") & ~prev_made
+    last_ft = every["type"].fillna("").str.match(r"^Free Throw - (\d) of \1$")
+    ft_miss = same & (prev_kind == "ft") & ~prev_made & last_ft.shift(1).fillna(False).astype(bool)
+    is_o, is_d, by = every["kind"] == "oreb", every["kind"] == "dreb", every["player"].notna()
+    miss_n = float(len(missed))
+    o_any = float((off_miss & is_o).sum())
+    ft_n = float(((every["kind"] == "ft") & ~every["made"].astype(bool) & last_ft).sum())
+    if miss_n and o_any:
+        league["oreb_player"] = float((off_miss & is_o & by).sum()) / o_any
+        league["dreb_player"] = float((off_miss & is_d & by).sum()) / max(miss_n - o_any, 1)
+    if ft_n:
+        league["ft_oreb"] = float((ft_miss & is_o & by).sum()) / ft_n
+        league["ft_dreb"] = float((ft_miss & is_d & by).sum()) / ft_n
+    pos_of = {pid: p["pos"] for pid, p in players.items()}
+    rd = rebs.assign(defense=def_of(rebs), pos=[pos_of.get(int(x)) for x in rebs["player"]])
+    league["reb_share"] = {}
+    for kind in ("oreb", "dreb"):
+        k = rd[rd["kind"] == kind]
+        total = max(len(k), 1)
+        league["reb_share"][kind] = {pos: float((k["pos"] == pos).sum()) / total for pos in POS5}
     for tid, name in abbr.items():
         t = teams.setdefault(name, {"pace_games": []})
         t["oreb"] = [float((orebs["team"] == tid).sum()), float((missed["team"] == tid).sum())]
@@ -286,7 +359,14 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
         counts = np.array([(a["zone"] == z).sum() for z in ZONES] + [(fd["defense"] == tid).sum() / 2, (td["defense"] == tid).sum()], float)
         t["allowed"] = counts
         t["allowed_made"] = np.array([a.loc[a["zone"] == z, "made"].sum() for z in ZONES], float)
+        made_a = a[a["made"].astype(bool)]
+        t["allowed_assisted"] = [float(made_a["assist"].notna().sum()), float(len(made_a))]
+        r = rd[rd["defense"] == tid]  # the boards this team's opponents grabbed, by position
+        t["reb_pos"] = {kind: {pos: float(((r["kind"] == kind) & (r["pos"] == pos)).sum()) for pos in POS5} for kind in ("oreb", "dreb")}
     league["oreb"] = len(orebs) / max(len(missed), 1)
+    made_all = shots[shots["made"].astype(bool)]
+    league["assisted"] = float(made_all["assist"].notna().mean()) if len(made_all) else DEFAULT_SHARES["assisted"]
+    league["miss_pg"] = len(missed) / max(len(per_game), 1)  # missed shots a team-game (the Misses Coming tag)
     league["pace"] = float(game_pace.mean()) if len(game_pace) else 99.0
 
     # each team's games for the dials: date, margin, overtime
@@ -299,6 +379,38 @@ def season_inputs(season: P.Season, box: pd.DataFrame, before: str | None = None
         history.setdefault(r.team_abbreviation, []).append(
             {"date": r.date, "game": int(r.game_id), "margin": int(r.team_score) - int(r.opponent_team_score), "ot": int(r.game_id) in ot_games})
     return {"players": players, "teams": teams, "league": league, "history": history, "prior": prior or {}}
+
+
+def pos5(pos) -> str:
+    """One of the five positions (the build relabels box scores to them;
+    ESPN's G / F / C read as SG / SF / C)."""
+    pos = str(pos or "")
+    return pos if pos in POS5 else {"G": "SG", "F": "SF", "C": "C"}.get(pos[:1], "SF")
+
+
+def reb_tilt(inputs: dict, opp: str, pos: str, kind: str) -> float:
+    """How much more of the boards (kind oreb / dreb) players at `pos` get
+    against `opp` than the league's share there, shrunk by K_POS_REB."""
+    share = ((inputs["league"].get("reb_share") or {}).get(kind) or {}).get(pos)
+    got = ((inputs["teams"].get(opp) or {}).get("reb_pos") or {}).get(kind)
+    if not share or not got:
+        return 1.0
+    return float((got.get(pos, 0.0) + K_POS_REB * share) / (sum(got.values()) + K_POS_REB) / share)
+
+
+def glass(inputs: dict, pid: int, opp: str) -> list:
+    """[the position tilt tonight (by his offensive / defensive boards' mix),
+    his boards a minute against his position's]: the Glass Fit / Tough Glass
+    tag reads both sides."""
+    p = inputs["players"].get(pid) or {}
+    pos = p.get("pos") or pos5(p.get("group"))
+    lgp = (inputs["league"].get("pos") or {}).get(pos) or DEFAULT_RATES
+    o, d = p.get("oreb", 0.0), p.get("dreb", 0.0)
+    w = (o + K_REB * lgp["oreb"]) / max(o + d + K_REB * (lgp["oreb"] + lgp["dreb"]), 1e-9)
+    tilt = w * reb_tilt(inputs, opp, pos, "oreb") + (1 - w) * reb_tilt(inputs, opp, pos, "dreb")
+    both = lgp["oreb"] + lgp["dreb"]
+    own = (o + d) / p["minutes"] / both if p.get("minutes") and both else None
+    return [round(tilt, 3), None if own is None else round(own, 3)]
 
 
 def blowout_starts(poss: pd.DataFrame) -> dict:
@@ -548,6 +660,10 @@ def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = f
     else:
         tilt = np.ones(len(OUTCOMES))
         dz = np.ones(len(ZONES))
+    # how often this defense's makes allowed come off a pass, against the league
+    lg_assisted = lg.get("assisted", DEFAULT_SHARES["assisted"])
+    aa = d.get("allowed_assisted") or [0.0, 0.0]
+    ast_tilt = (aa[0] + K_DEF_AST * lg_assisted) / (aa[1] + K_DEF_AST) / lg_assisted
     rows = []
     for pid in pids:
         p = inputs["players"][pid]
@@ -562,7 +678,18 @@ def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = f
         pct = np.clip(pct * dz * make_mult * LEVEL, 0.02, 0.95)
         ft = (p["ftm"] + k_ft * ft0) / (p["fta"] + k_ft)
         use = (counts.sum() + k_use * use0) / (minutes + k_use)
-        rows.append({"pid": pid, "min": project_minutes(p.get("role_min", mins)), "use": use, "mix": mix, "pct": pct, "ft": ft})
+        pos = p.get("pos") or pos5(p["group"])
+        lgp = (lg.get("pos") or {}).get(pos) or DEFAULT_RATES
+        rate = lambda k, kk: (p.get(k, 0.0) + kk * lgp[k]) / (minutes + kk)  # noqa: E731
+        lg_ast = (lg["groups"].get(p["group"]) or {}).get("assisted")
+        lg_ast = np.full(len(ZONES), DEFAULT_SHARES["assisted"]) if lg_ast is None else lg_ast
+        amade = p.get("amade", np.zeros(len(ZONES)))
+        helped = np.clip((amade + K_AST_SHOT * lg_ast) / (made + K_AST_SHOT) * ast_tilt, 0.02, 0.98)
+        rows.append({"pid": pid, "min": project_minutes(p.get("role_min", mins)), "use": use, "mix": mix, "pct": pct, "ft": ft,
+                     "oreb": rate("oreb", K_REB) * reb_tilt(inputs, opp, pos, "oreb"),
+                     "dreb": rate("dreb", K_REB) * reb_tilt(inputs, opp, pos, "dreb"),
+                     "pass": rate("ast", K_AST), "helped": helped,
+                     "helped_all": float((mix[:5] * pct * helped).sum() / max((mix[:5] * pct).sum(), 1e-9))})
     m = np.array([r["min"] for r in rows], float)
     listed = np.array([pid in starters for pid in pids], bool)
     m = np.where(listed, np.maximum(m, STARTER_TRUST * starter_min), m)
@@ -574,6 +701,8 @@ def side(inputs: dict, pids: list, opp: str, make_mult: float, starters: set = f
         starter[np.argsort(-m)[:5]] = True
     return {"pids": pids, "min": m, "use": np.array([r["use"] for r in rows]), "mix": np.array([r["mix"] for r in rows]),
             "pct": np.array([r["pct"] for r in rows]), "ft": np.array([r["ft"] for r in rows]), "starter": starter,
+            "oreb": np.array([r["oreb"] for r in rows]), "dreb": np.array([r["dreb"] for r in rows]),
+            "pass": np.array([r["pass"] for r in rows]), "helped_all": np.array([r["helped_all"] for r in rows]),
             "avail": np.array(chance if chance is not None else [1.0] * len(rows), float)}
 
 
@@ -595,11 +724,17 @@ def oreb_rate(inputs: dict, team: str, opp: str) -> float:
 
 
 # ---- the game ----
-def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, seed: int = 0) -> dict:
+SIM_STATS = ("pts", "fg3m", "fg3a", "reb", "ast", "min")  # per player, n x players
+POOL_KEYS = ("oreb_player", "dreb_player", "ft_oreb", "ft_dreb")
+
+
+def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, seed: int = 0, shares: dict | None = None) -> dict:
     """Plays one game n times. home / away from `side`; oreb = (home's chance
-    a miss comes back, away's). Returns per-team arrays: pts (n x players),
-    fg3m, fg3a, min, and the home margin."""
+    a miss comes back, away's); shares = the league's credited-rebound shares
+    (POOL_KEYS, from season_inputs' league). Returns per-team arrays: pts (n x
+    players), fg3m, fg3a, reb, ast, min, the team's missed shots, and the home margin."""
     rng = np.random.default_rng(seed)
+    sh = {k: (shares or {}).get(k, DEFAULT_SHARES[k]) for k in POOL_KEYS}
     sides = (home, away)
     state = []
     for s, back in zip(sides, oreb):
@@ -611,8 +746,10 @@ def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, 
             "minnight": np.exp(rng.normal(0, 1, (n, k)) * (SD_MIN + SD_MIN_STEP * np.maximum(0, SD_MIN_AT - s["min"]))[None, :])
             * np.where(rng.random((n, k)) < SHORT_NIGHT, rng.uniform(*SHORT_KEEP, (n, k)), 1.0) * on,
             "night": np.exp(rng.normal(0, SD_SHOOT, (n, k)) + rng.normal(0, SD_TEAM, (n, 1))),
+            "rebnight": np.exp(rng.normal(0, SD_REB, (n, k))), "astnight": np.exp(rng.normal(0, SD_AST, (n, k))),
             "pts": np.zeros((n, k), np.int32), "fg3m": np.zeros((n, k), np.int32), "fg3a": np.zeros((n, k), np.int32),
-            "min": np.zeros((n, k)),
+            "reb": np.zeros((n, k), np.int32), "ast": np.zeros((n, k), np.int32), "miss": np.zeros(n, np.int32),
+            "min": np.zeros((n, k)), "f": None,
         })
     game_pace = pace * np.exp(rng.normal(0, SD_PACE, n))
     game_night = np.exp(rng.normal(0, SD_GAME, n))
@@ -624,6 +761,8 @@ def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, 
         poss = np.floor(want + rng.random(n)).astype(np.int64)
         lead = (score(state[0]) - score(state[1])).astype(float)
         tilt = np.clip(LEAD_DRAG * lead, -LEAD_DRAG_MAX, LEAD_DRAG_MAX) if drag else np.zeros(n)
+        for st in state:
+            st["f"] = None
         for side_i, st in enumerate(state):
             s = st["s"]
             if not len(s["pids"]):
@@ -634,7 +773,12 @@ def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, 
                 cut = np.clip((garbage - GARBAGE_FROM) / (GARBAGE_FULL - GARBAGE_FROM), 0, 1)
                 f = np.where(s["starter"][None, :], f * (1 - cut[:, None] * (1 - GARBAGE_FLOOR)), f)
             f = f * 5.0 / f.sum(axis=1, keepdims=True)
+            st["f"] = f
             st["min"] += f * length_min
+            made_nk = np.zeros((n, len(s["pids"])), np.int64)  # made shots by shooter this period
+            trips_nk = np.zeros((n, len(s["pids"])), np.int64)  # trips to the line
+            o_pool = np.zeros(n, np.int64)  # offensive boards a player is credited with
+            d_pool = np.zeros(n, np.int64)  # defensive boards for the other team's players
             share = f * s["use"][None, :]
             share = share / share.sum(axis=1, keepdims=True)
             # every possession is a play; a missed shot that comes back
@@ -648,13 +792,41 @@ def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, 
                     p = np.clip(s["pct"][j][None, :] * (st["night"][:, j] * mood)[:, None], 0.01, 0.97)
                     made = rng.binomial(out[:, :5], p)
                     ftm = rng.binomial(2 * out[:, 5], min(0.99, s["ft"][j]))
+                    made_nk[:, j] += made.sum(axis=1)
+                    trips_nk[:, j] += out[:, 5]
                     st["pts"][:, j] += (made * np.where(THREE, 3, 2)).sum(axis=1) + ftm
                     st["fg3m"][:, j] += made[:, 3] + made[:, 4]
                     st["fg3a"][:, j] += out[:, 3] + out[:, 4]
                     misses += (out[:, :5] - made).sum(axis=1)
+                st["miss"] += misses.astype(np.int32)
                 plays = rng.binomial(misses, st["oreb"])
+                o_pool += rng.binomial(plays, sh["oreb_player"] * REB_LEVEL)
+                d_pool += rng.binomial(misses - plays, sh["dreb_player"] * REB_LEVEL)
                 if not plays.any():
                     break
+            # once a period (one draw each, not one a play: the sim's speed): the assisted makes
+            # (his assisted share over his makes' usual zones) and the boards off a missed last free throw
+            helped = rng.binomial(made_nk, s["helped_all"][None, :]) if "helped_all" in s else np.zeros_like(made_nk)
+            last_miss = rng.binomial(trips_nk, np.clip(1 - s["ft"], 0.01, 0.99)[None, :]).sum(axis=1)
+            ft_o = rng.binomial(last_miss, sh["ft_oreb"] * REB_LEVEL)
+            o_pool += ft_o
+            d_pool += rng.binomial(last_miss - ft_o, min(1.0, REB_LEVEL * sh["ft_dreb"] / max(1 - sh["ft_oreb"], 1e-9)))
+            st["pools"] = (helped, o_pool, d_pool)
+        # the boards and the assists, to the players on the floor this period
+        for side_i, st in enumerate(state):
+            s, other = st["s"], state[1 - side_i]
+            if st["f"] is None or "oreb" not in s:
+                continue
+            helped, o_pool, d_pool = st["pools"]
+            st["reb"] += draw(rng, o_pool, st["f"] * s["oreb"][None, :] * st["rebnight"])
+            if other["f"] is not None and "dreb" in other["s"]:
+                other["reb"] += draw(rng, d_pool, other["f"] * other["s"]["dreb"][None, :] * other["rebnight"])
+            # a teammate on the floor gets it, never the shooter: passer i's share of shooter j's
+            # assisted makes is w_i / (W - w_j), so one draw a period with each passer's expected
+            # count exactly that (sum over the other shooters; 13 draws a period cost a second a game)
+            w = st["f"] * s["pass"][None, :] * st["astnight"]
+            r = helped / np.maximum(w.sum(axis=1, keepdims=True) - w, 1e-12)
+            st["ast"] += draw(rng, helped.sum(axis=1), w * (r.sum(axis=1, keepdims=True) - r))
 
     for q in range(4):
         garbage = np.abs(score(state[0]) - score(state[1])) if q == 3 else None
@@ -663,15 +835,21 @@ def simulate(home: dict, away: dict, pace: float, oreb: tuple, n: int = N_SIMS, 
         tied = score(state[0]) == score(state[1])
         if not tied.any():
             break
-        before = [(st["pts"].copy(), st["fg3m"].copy(), st["fg3a"].copy(), st["min"].copy()) for st in state]
+        before = [{k: st[k].copy() for k in SIM_STATS + ("miss",)} for st in state]
         period(5.0, None, False)
-        for st, (p0, m0, a0, n0) in zip(state, before):  # only the tied games play it
-            st["pts"] = np.where(tied[:, None], st["pts"], p0)
-            st["fg3m"] = np.where(tied[:, None], st["fg3m"], m0)
-            st["fg3a"] = np.where(tied[:, None], st["fg3a"], a0)
-            st["min"] = np.where(tied[:, None], st["min"], n0)
+        for st, b in zip(state, before):  # only the tied games play it
+            for k in SIM_STATS:
+                st[k] = np.where(tied[:, None], st[k], b[k])
+            st["miss"] = np.where(tied, st["miss"], b["miss"])
     return {"home": state[0], "away": state[1], "margin": score(state[0]) - score(state[1]),
             "total": score(state[0]) + score(state[1])}
+
+
+def draw(rng, counts: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    """counts (n,) handed out over the players by weights (n x players)."""
+    total = weights.sum(axis=1, keepdims=True)
+    p = np.where(total > 0, weights / np.where(total > 0, total, 1), 1.0 / weights.shape[1])
+    return rng.multinomial(counts, p).astype(np.int32)
 
 
 def team_now(inputs: dict, team: str, date: str, roster_team: dict | None) -> dict:
@@ -706,8 +884,9 @@ def game(inputs: dict, home: str, away: str, date: str, out_ids: set, roster_tea
         built[team] = side(inputs, pids, opp, mult, starters, starter_minutes(inputs, team), chance)
     hs, aw = built[home], built[away]
     pace = (team_pace(inputs, home) + team_pace(inputs, away)) / 2
-    out = simulate(hs, aw, pace, (oreb_rate(inputs, home, away), oreb_rate(inputs, away, home)), n, seed)
-    out.update({"home_dials": hd, "away_dials": ad, "sat": {"home": sat[home], "away": sat[away]}})
+    out = simulate(hs, aw, pace, (oreb_rate(inputs, home, away), oreb_rate(inputs, away, home)), n, seed, inputs["league"])
+    out.update({"home_dials": hd, "away_dials": ad, "sat": {"home": sat[home], "away": sat[away]},
+                "glass": {str(pid): glass(inputs, pid, opp) for side_, opp in ((hs, away), (aw, home)) for pid in side_["pids"]}})
     return out
 
 
@@ -766,7 +945,8 @@ def summary(out: dict, names: dict) -> dict:
                 continue
             row = {"team": key, "min": round(float(st["min"][on, j].mean()), 1), "name": names.get(pid, str(pid)),
                    "plays": round(float(on.mean()), 2)}
-            for stat in ("pts", "fg3m"):
+            row["glass"] = (out.get("glass") or {}).get(str(pid))
+            for stat in STATS.values():
                 v = st[stat][:, j]
                 masks_on = {k: m & on for k, m in masks.items()}
                 v_on = v[on]
@@ -776,7 +956,8 @@ def summary(out: dict, names: dict) -> dict:
                     "lad": {k: ladder(v[m]) for k, m in masks_on.items() if m.sum() >= 200},
                 }
             players[str(pid)] = row
-    return {"margin": float(np.median(out["margin"])), "total": float(np.median(out["total"])),
+    misses = {k: round(float(out[k]["miss"].mean()), 1) for k in ("home", "away") if "miss" in out[k]}
+    return {"margin": float(np.median(out["margin"])), "total": float(np.median(out["total"])), "misses": misses,
             "margin_mean": round(float(out["margin"].mean()), 1), "total_mean": round(float(out["total"].mean()), 1),
             "scripts": shares, "dials": {"home": out["home_dials"], "away": out["away_dials"]}, "players": players}
 
@@ -794,7 +975,7 @@ def summary(out: dict, names: dict) -> dict:
 # record). A play is graded at its best
 # price at tip-off, 1 unit, Points and Threes apart. (2026-10-24 and 10-25:
 # the best of every rung, one a game, 8 a night.)
-STATS = {"points": "pts", "threes": "fg3m"}  # book market -> the sim's stat
+STATS = {"points": "pts", "threes": "fg3m", "rebounds": "reb", "assists": "ast"}  # book market -> the sim's stat (= the game log's field)
 MIN_EDGE = 0.04
 PRICE_RANGE = (-250, 400)  # past +400 a rung's chance rests on a few hundred sims' tails
 MIN_GAMES = 2              # games this season before his numbers can make a play (3 left no one on 2026-10-24:
@@ -1018,7 +1199,7 @@ def main():
     print(f"home margin median {s['margin']:+.0f} (mean {s['margin_mean']:+.1f}), total {s['total']:.0f}; scripts {s['scripts']}")
     for pid, r in sorted(s["players"].items(), key=lambda kv: -kv[1]["pts"]["mean"]):
         print(f"  {r['team']:4} {r['name']:26} {r['min']:5.1f} min  pts {r['pts']['mean']:5.1f} (med {r['pts']['med']['all']:.0f})"
-              f"  3PM {r['fg3m']['mean']:.2f}")
+              f"  3PM {r['fg3m']['mean']:.2f}  reb {r['reb']['mean']:.1f}  ast {r['ast']['mean']:.1f}")
 
 
 if __name__ == "__main__":

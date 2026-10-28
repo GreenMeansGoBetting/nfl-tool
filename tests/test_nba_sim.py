@@ -376,6 +376,91 @@ class Record(unittest.TestCase):
         self.assertEqual(sim.ledger(record, logs, "threes"), [])
 
 
+class ReboundsAndAssists(unittest.TestCase):
+    """Rebounds and Assists on the same sim (2026-10-28): every board goes to a
+    player on the floor by his rebounds a minute x what tonight's other team
+    gives up at his POSITION (the owner: "actual position rather than bigs
+    forwards and guards"); every assisted make to a teammate on the floor,
+    never the shooter."""
+
+    RATES = {"PG": (0.02, 0.10, 0.20), "SG": (0.02, 0.11, 0.10), "SF": (0.03, 0.14, 0.07), "PF": (0.05, 0.18, 0.06), "C": (0.09, 0.24, 0.05)}
+
+    @classmethod
+    def roster_with(cls):
+        ps = roster()
+        for pid, p in ps.items():
+            pos = {"G": "PG" if pid % 10 in (1, 3) else "SG", "F": "SF" if pid % 10 in (5, 7) else "PF", "C": "C"}[p["group"]]
+            o, d, a = cls.RATES[pos]
+            p.update(pos=pos, oreb=o * p["minutes"], dreb=d * p["minutes"], ast=a * p["minutes"], amade=p["made"] * 0.6)
+        return ps
+
+    def test_boards_and_assists_add_up(self):
+        out = sim.game(inputs(self.roster_with()), "BBB", "AAA", "2026-10-20", set(), n=3000, seed=4)
+        for k, other in (("home", "away"), ("away", "home")):
+            st = out[k]
+            reb, ast = st["reb"].sum(axis=1), st["ast"].sum(axis=1)
+            self.assertTrue(35 < reb.mean() < 55, reb.mean())
+            self.assertTrue(15 < ast.mean() < 35, ast.mean())
+            self.assertTrue((ast <= st["pts"].sum(axis=1) / 2).all())  # every assist is off a make
+            # boards come from both teams' misses (and missed free throws), one board each at most
+            self.assertTrue((reb <= st["miss"] + out[other]["miss"] + 30).all())
+        s = sim.summary(out, {})
+        center, guard = s["players"]["8"], s["players"]["1"]  # AAA's starting C and PG
+        self.assertGreater(center["reb"]["mean"], 1.5 * guard["reb"]["mean"])  # 0.33 boards a minute vs 0.12, both leaning on the league
+        self.assertGreater(guard["ast"]["mean"], 1.5 * center["ast"]["mean"])
+        self.assertIn("all", center["reb"]["lad"])
+        self.assertEqual(len(center["glass"]), 2)
+        self.assertEqual(set(s["misses"]), {"home", "away"})
+
+    def test_a_lone_shooter_never_assists_himself(self):
+        ps = self.roster_with()
+        for pid, p in ps.items():  # AAA: only player 1 shoots; he is also by far the best passer
+            if p["team"] == "AAA":
+                keep = 1.0 if pid == 1 else 0.0
+                p["counts"] = p["counts"] * keep
+                p["made"] = p["made"] * keep
+                p["amade"] = p["made"] * 0.6
+                p["ast"] = 300.0 if pid == 1 else 0.0
+                p["plays"] = float(p["counts"].sum())
+        inp = inputs(ps)
+        for g in inp["league"]["groups"].values():
+            g["use"] = 1e-6  # no pull toward the league: the others never shoot
+        st = sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=1000, seed=5)["away"]
+        j = st["s"]["pids"].index(1)
+        self.assertGreater(st["pts"][:, j].mean(), 40)  # he takes nearly every shot
+        self.assertEqual(int(st["ast"][:, j].sum()), 0)  # ... and never assists his own
+        self.assertGreater(st["ast"].sum(axis=1).mean(), 5)  # his makes still get assisted, by the others
+
+    def test_a_defense_that_gives_up_boards_to_centers(self):
+        inp = inputs(self.roster_with())
+        inp["league"]["reb_share"] = {k: {"PG": 0.1, "SG": 0.12, "SF": 0.18, "PF": 0.25, "C": 0.35} for k in ("oreb", "dreb")}
+        even = {k: {"PG": 100.0, "SG": 120.0, "SF": 180.0, "PF": 250.0, "C": 350.0} for k in ("oreb", "dreb")}
+        inp["teams"]["BBB"]["reb_pos"] = even
+
+        def center():
+            return sim.summary(sim.game(inp, "BBB", "AAA", "2026-10-20", set(), n=3000, seed=6), {})["players"]["8"]["reb"]["mean"]
+        base = center()
+        inp["teams"]["BBB"]["reb_pos"] = {k: {**v, "C": 1400.0} for k, v in even.items()}  # centers grab 4x their share against BBB
+        self.assertAlmostEqual(sim.reb_tilt(inp, "BBB", "C", "dreb"), (1400 + sim.K_POS_REB * 0.35) / (2050 + sim.K_POS_REB) / 0.35)
+        self.assertGreater(center(), base + 0.5)
+        self.assertEqual(sim.reb_tilt(inp, "AAA", "C", "dreb"), 1.0)  # a team with no boards counted yet: no tilt
+
+    def test_the_inputs_from_real_games(self):
+        lg = RealGames.inputs_once()["league"]
+        for k in sim.POOL_KEYS:
+            self.assertTrue(0 <= lg[k] <= 1, (k, lg[k]))  # two games: no offensive board off a free throw
+        self.assertTrue(0.4 < lg["assisted"] < 0.8)
+        self.assertTrue(30 < lg["miss_pg"] < 60)
+        self.assertTrue(0.9 < sum(lg["reb_share"]["dreb"].values()) <= 1.0)  # a board by a player with no box-score row has no position
+
+    def test_every_market_is_graded_from_the_log(self):
+        self.assertEqual(sim.STATS, {"points": "pts", "threes": "fg3m", "rebounds": "reb", "assists": "ast"})
+        import props
+        self.assertTrue(set(sim.STATS.values()) <= set(props.LOG_FIELDS))
+        record = {"9": {"date": "2026-10-27", "rebounds": [["1", "o", 8.5, -110, "dk", 0.6, 0.08, "strong", None, True, []]]}}
+        self.assertEqual(sim.ledger(record, {("9", "1"): 11}, "rebounds"), [["2026-10-27", 0.08, 1, 0.909, ["strong", "over", "main"]]])
+
+
 class LastSeasonStart(unittest.TestCase):
     """The replay's --prior-season only since 2026-10-27 (the live build is this
     season only): a player starts from his own last season, not his position's average."""
@@ -437,17 +522,25 @@ class Build(unittest.TestCase):
 class RealGames(unittest.TestCase):
     """The engine's two saved real games, start to finish."""
 
+    _inputs = None
+
+    @classmethod
+    def inputs_once(cls):
+        if RealGames._inputs is None:
+            box = pd.read_csv(FIX / "nba_box_games.csv.gz")
+            # the saved sample keeps only what the engine reads: add the rest of a box score
+            box["game_date"] = box["game_id"].map({g: f"2026-01-{5 + i:02d}" for i, g in enumerate(sorted(box["game_id"].unique()))})
+            box["team_abbreviation"] = "T" + box["team_id"].astype(str)
+            box["athlete_position_abbreviation"] = "G"
+            box["starter"] = box.groupby(["game_id", "team_id"])["minutes"].rank(ascending=False, method="first") <= 5
+            scores = box.drop_duplicates(["game_id", "team_id"]).set_index(["game_id", "team_id"])["team_score"]
+            box["opponent_team_score"] = [next(v for (g, t), v in scores.items() if g == gid and t != tid) for gid, tid in zip(box["game_id"], box["team_id"])]
+            RealGames._inputs = sim.season_inputs(P.Season(pd.read_csv(FIX / "nba_pbp_games.csv.gz"), box), box)
+        return RealGames._inputs
+
     @classmethod
     def setUpClass(cls):
-        box = pd.read_csv(FIX / "nba_box_games.csv.gz")
-        # the saved sample keeps only what the engine reads: add the rest of a box score
-        box["game_date"] = box["game_id"].map({g: f"2026-01-{5 + i:02d}" for i, g in enumerate(sorted(box["game_id"].unique()))})
-        box["team_abbreviation"] = "T" + box["team_id"].astype(str)
-        box["athlete_position_abbreviation"] = "G"
-        box["starter"] = box.groupby(["game_id", "team_id"])["minutes"].rank(ascending=False, method="first") <= 5
-        scores = box.drop_duplicates(["game_id", "team_id"]).set_index(["game_id", "team_id"])["team_score"]
-        box["opponent_team_score"] = [next(v for (g, t), v in scores.items() if g == gid and t != tid) for gid, tid in zip(box["game_id"], box["team_id"])]
-        cls.inputs = sim.season_inputs(P.Season(pd.read_csv(FIX / "nba_pbp_games.csv.gz"), box), box)
+        cls.inputs = cls.inputs_once()
         cls.teams = sorted(cls.inputs["teams"])
 
     def test_inputs(self):
@@ -468,6 +561,9 @@ class RealGames(unittest.TestCase):
         self.assertAlmostEqual(sum(s["scripts"].values()), 1.0, places=2)
         row = next(iter(s["players"].values()))
         self.assertIn("all", row["pts"]["lad"])
+        for k in ("home", "away"):  # real games' boards and assists (an NBA team: about 44 and 26)
+            self.assertTrue(30 < out[k]["reb"].sum(axis=1).mean() < 60)
+            self.assertTrue(12 < out[k]["ast"].sum(axis=1).mean() < 38)
 
 
 if __name__ == "__main__":

@@ -158,7 +158,7 @@ class FastOdds(unittest.TestCase):
         old_q = lambda line: {"name": "x", "q": [["draftkings", "o", line, -110], ["draftkings", "u", line, -110]]}  # noqa: E731
         previous = {"DET_PHI": {"kickoff": "2026-10-25T23:30:00Z", "td": {}, "lines": {}, "props": {
             "points": {"1966": old_q(23.5), "4431678": old_q(25.5)},
-            "rebounds": {"1966": old_q(7.5)},
+            "steals": {"1966": old_q(7.5)},
             "points_alt": {"1966": old_q(30.5), "4431678": old_q(30.5)}}},
             "BOS_NY": {"kickoff": "2026-10-26T00:00:00Z", "td": {}, "lines": {}, "props": {"points": {"5": old_q(20.5)}}}}
         ids = {"lebronjames": "1966", "tyresemaxey": "4431678"}
@@ -170,10 +170,11 @@ class FastOdds(unittest.TestCase):
         finally:
             smartstake._get = real
         self.assertTrue(debug["fast"])
-        self.assertEqual([p["market"] for p in asked], ["basketball_player_points,basketball_player_made_threes"])  # no rebounds, no ladders
+        # the sim's markets (rebounds and assists too since 2026-10-28: an Out teammate moves those lines), no ladders
+        self.assertEqual([p["market"] for p in asked], ["basketball_player_points,basketball_player_rebounds,basketball_player_made_threes"])
         g = games["DET_PHI"]["props"]
         self.assertEqual(g["points"]["1966"]["q"][0][2], 26.5)  # fresh
-        self.assertEqual(g["rebounds"], previous["DET_PHI"]["props"]["rebounds"])  # carried
+        self.assertEqual(g["steals"], previous["DET_PHI"]["props"]["steals"])  # carried (not a sim market)
         self.assertNotIn("1966", g["points_alt"])  # his line moved 23.5 -> 26.5: the old rungs are stale
         self.assertIn("4431678", g["points_alt"])  # Maxey's line didn't move: his ladder is kept
         self.assertIn("BOS_NY", games)  # a game with no fresh prices keeps its old ones

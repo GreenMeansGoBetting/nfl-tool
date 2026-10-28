@@ -378,7 +378,8 @@ def nba_listed_markets(listed) -> dict:
     return {k: v for k, v in NBA_PROP_MARKETS.items() if k in keys}
 
 
-FAST_STATS = ("points", "threes")  # what the injury refresh fetches fresh (the sim's two markets)
+FAST_STATS = ("points", "threes", "rebounds", "assists")  # what the injury refresh fetches fresh (the sim's markets: an Out
+# teammate moves a rebounds / assists line as much as a points one, and a stale price would read as an edge)
 
 
 def carry_previous(games: dict, previous: dict | None, fresh=FAST_STATS) -> dict:
@@ -443,8 +444,9 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
             games = carry_previous(games, previous)  # previous = the live build's book_odds here
             return only_games(lock_started(games, previous, now_iso), keep), debug
         debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
-        # every rung of the points and threes ladders (the NBA game sim prices them all, 2026-10-24)
-        for stat in ("threes", "points"):
+        # every rung of the sim's ladders (the NBA game sim prices them all: points / threes 2026-10-24,
+        # rebounds / assists 2026-10-28)
+        for stat in ("threes", "points", "rebounds", "assists"):
             key = next((k for k, v in markets.items() if v == stat), None)
             if key:
                 debug[f"{stat}_alt"] = add_ladder(api_key, games, team_of, player_key, key, f"{stat}_alt")

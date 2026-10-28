@@ -13,19 +13,19 @@ NFL and NBA are suites inside it. More background: `docs/history.md`, "NBA".
 
 - Build: `nfl_tool/nba/build_nba.py` -> `site/nba/data.json`. `possessions.py`: the engine (every
   possession with the ten on the floor; every new NBA tool reads it). `identity.py`: Team Identity.
-  `props.py`: player props data (`nba/props.json`). `sim.py`: the Points / Threes game sim (every
-  game 10,000 times, tonight's plays, the record). `positions.py`: PG / SG / SF / PF / C from ESPN's
+  `props.py`: player props data (`nba/props.json`). `sim.py`: the Points / Threes / Rebounds /
+  Assists game sim (every game 10,000 times, tonight's plays, the record). `positions.py`: PG / SG / SF / PF / C from ESPN's
   depth charts. `shots.py`: this season's shot spots (`nba/shots.json`). `kotc.py`: King of the
   Court. `first_basket.py`: First Basket.
 - Pages (`site/nba/`): `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (Game Previews and Team
   Identity merged 2026-10-28; `identity.html` only forwards to it);
-  `points.html` / `threes.html` + `points.js` / `threes.js` on `sim-board.js` + `sim.css` (Player
-  View list + Matchup View game board); `best.html/.js` NBA Best Plays (both markets by edge, same
-  sim-board.js); `first-basket.html/.js`; `shot-charts.html/.js` (a shooter vs a defense);
+  `points.html` / `threes.html` / `rebounds.html` / `assists.html` + the same-named `.js` configs on
+  `sim-board.js` + `sim.css` (Player View list + Matchup View game board); `best.html/.js` NBA Best
+  Plays (all four markets by edge, same sim-board.js); `first-basket.html/.js`; `shot-charts.html/.js` (a shooter vs a defense);
   `nba-card.js` the player card (`playerClick(id)`: game log, every market's odds with save boxes,
   Shot Chart from `shot-chart.js`); `promo-tools.html` + `kotc.js` King of the Court.
 - Records: `model_history/nba_kotc/` (nightly boards, tip-off lines), `nba_props/sim_<season>.json`
-  (Points and Threes plays at tip, graded).
+  (Points / Threes / Rebounds / Assists plays at tip, graded).
 
 ## This season decides (the owner, 2026-10-20)
 
@@ -382,7 +382,42 @@ game is played 10,000 times, possession by possession. Mockup approved 2026-10-2
   off, the last stays on), hit rates over each row's own stat ("Based On Over His Line"), the record
   tiles and past nights across both, the YTD popup with All Plays + a tile a market (top / over /
   under splits). A new market = its page's config in `markets`. Best Plays / Points / Threes tabs on all three.
-- Tests: `tests/test_nba_sim.py`, `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py`, `tests/test_nba_best_site.py`.
+- **Rebounds and Assists (2026-10-28,** the owner: "build it in the exact same way and structure as
+  the current points and threes", "a highly requested feature"; agreed in a 4-question Q&A): the same
+  sim, pages (`rebounds.html` / `assists.html`, Under Construction in the NBA menu, tabs on all five),
+  record (`sim_<season>.json` `rebounds` / `assists`), Best Plays (four markets) and YTD trackers.
+  - **Boards:** every missed shot (and a missed LAST free throw, `ft_oreb` / `ft_dreb`) is a board; the
+    shooting team's back at its oreb rate (both teams, as before), else the defense's. A credited share
+    goes to players (`oreb_player` / `dreb_player`: the rest are team rebounds), each to the five on the
+    floor by floor time x his rebounds a minute (`K_REB` 60 toward his POSITION's this season) x
+    `reb_tilt`: how much of the boards tonight's other team gives up at his position, PG / SG / SF / PF /
+    C (the owner: "actual position rather than bigs forwards and guards"), shrunk by `K_POS_REB` 400 (80
+    read five games' noise: miss 2.16 vs 2.11; it grows as teams' games come in). `REB_LEVEL` 0.965.
+  - **Assists:** a make is assisted at the shooter's assisted share (his zones' usual makes, `K_AST_SHOT`
+    toward his group) x how often this defense gives up assisted makes (`K_DEF_AST`); the assist goes
+    to a teammate on the floor, never the shooter, by his assists a minute (`K_AST` 25 toward his
+    position: 60 read Jalen Johnson, a PF at 8.5 a game, at 5.9). One draw a team a period whose
+    expected count per passer is exactly the per-shooter one (13 draws a period cost a second a game;
+    each player keeps his own rate: the owner checked, "anthony davis and trae young are not the same").
+  - **Nights:** `SD_REB` / `SD_AST` 0.4 (none: 14% of real results under the sims' 10th percentile and
+    14% over the 90th). Replay on this season's first 6 nights (`nba_sim.py --injury-report`, 42 games,
+    808 player-games): rebounds 4.24 vs 4.33 real, 80% inside 10-90%, by position PG 3.00 / 2.98 ... C
+    5.85 / 5.91; assists 2.51 vs 2.59, 78%. Players the sim has at 9+ boards got about 1 fewer (32
+    player-games; Points' 25+ does the same): watch it.
+  - props.json: each sim player `reb` / `ast` like `pts`, `glass` [position tilt, his boards a minute
+    vs his position's]; each game `misses` {home, away}; `sim_meta.miss_pg`. SmartStake: `rebounds_alt`
+    / `assists_alt` ladders, and both in `FAST_STATS` (the injury refresh: an Out teammate moves these
+    lines too, a stale price would read as an edge; about a minute more on the refresh).
+  - **Tags** (sim-board.js `reboundsTags` / `assistsTags`): **Glass Fit / Tough Glass** (the position
+    tilt 10%+ either way, his own rate not 10% the other way), **Misses Coming** (the other team's misses
+    in tonight's sims 3+ over the league's a game), **Ball Movement Fit / Tough Passing D** (Team
+    Identity `def_assisted` 1 league spread, his team's `off_assisted` not 0.3 the other way), **Hot /
+    Cold Run** (last 5 games vs the games before them, at his minutes: 2 boards / 1.5 assists; 7+ games).
+  - Ladder columns: Rebounds 4+ to 14+, Assists 2+ to 12+. The Shot Chart tab stays (same structure).
+  - **Start from the line** applies to them too (`nudge_to_line` loops `STATS`; the owner, same day: "I dont
+    love starting from the line, but we determined that was most reliable and will cause less destruction
+    as we gather data").
+- Tests: `tests/test_nba_sim.py`, `tests/test_nba_points_site.py`, `tests/test_nba_threes_site.py`, `tests/test_nba_best_site.py`. `tests/test_nba_rebounds_assists_site.py`.
 
 ## The player card (`site/nba/nba-card.js`, 2026-10-21)
 
@@ -522,8 +557,7 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
    production with certain combos (the engine's stints have it all).
 5. **Things to watch** per game: blend Team Identity's tags into a few conclusions on how a game
    may go.
-6. Rebounds and assists on the Points skeleton (~~3s~~ built 2026-10-23 as Threes); show the projection once it grades well
-   against this season's tip-off lines.
+6. ~~Rebounds and assists on the Points skeleton~~ built 2026-10-28 on the game sim (below).
 
 ## Game model: full-game score, spread, total (replayed 2026-10-20, NOT built)
 

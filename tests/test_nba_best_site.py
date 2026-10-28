@@ -90,10 +90,16 @@ class BestPlays(unittest.TestCase):
             got = rows()
             self.assertEqual(len(got), 1, got)
             self.assertIn("POINTS", got[0].upper())
-            PAGE.click("[data-list-market='points']")  # the last one on stays on
+            # four markets since 2026-10-28: with Rebounds and Assists off too, Points is the last one on and stays on
+            PAGE.click("[data-list-market='rebounds']")
+            PAGE.click("[data-list-market='assists']")
+            PAGE.click("[data-list-market='points']")
             self.assertEqual(len(rows()), 1)
         finally:
             PAGE.click("[data-list-market='threes']")
+            PAGE.click("[data-list-market='rebounds']")
+            PAGE.click("[data-list-market='assists']")
+        self.assertEqual(PAGE.locator("[data-list-market][aria-pressed='true']").count(), 4)
         self.assertEqual(len(rows()), 2)
 
     def test_the_open_row_is_its_own_market(self):

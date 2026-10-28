@@ -10,8 +10,8 @@
 // game board. Plays are main lines only; a better rung is a Ladder tag.
 //
 // A page loads this after its own config, `SIM_PAGE`:
-//   { market: "points" | "threes",       // book_odds market (and its "_alt" ladder)
-//     stat: "pts" | "fg3m",              // the sim's stat in props.json `sim`
+//   { market: "points" | "threes" | "rebounds" | "assists",  // book_odds market (and its "_alt" ladder)
+//     stat: "pts" | "fg3m" | "reb" | "ast",  // the sim's stat in props.json `sim` (= the game log's field)
 //     unit: "Points", short: "PTS",      // words for a play ("30+ Points", "Over 27.5")
 //     rungs: [10, 15, ...],              // the ladder's columns on the game board
 //     ytd: {key, label} }
@@ -305,6 +305,12 @@ const SHOOTER_SHARE = 0.3; // his share of shots from 3 at which a defense's thr
 const CATCH_SHARE = 0.35; // his share of shots that are catch-and-shoot, for Help D
 const DOG = 6; // his team getting this many points = Underdog (last season's replay: trailing teams shoot more threes)
 const STREAK = 0.6; // makes a game off his own rate over the last 5 = Cold Run / Hot Run
+// Rebounds / Assists (2026-10-28): the sim's own matchup inputs, both sides each
+const GLASS_TILT = 0.1; // tonight's defense gives his position this much more / less of the boards than the league = Glass Fit / Tough Glass
+const GLASS_OWN = 0.1; // ... unless his own boards a minute (his position's = 1) point the other way this much
+const MISSES_UP = 3; // the other team's missed shots in tonight's sims this many over the league's a game = Misses Coming
+const RUN = { reb: 2, ast: 1.5 }; // his last 5 games this many a game over / under his games before them (at his minutes) = Hot / Cold Run
+const RUN_GAMES = 7; // games before a run can show (the last 5 against at least 2 before them)
 const identityNow = () => {
   const d = DATA.identity;
   return d && d.seasons ? d.seasons[d.default] || Object.values(d.seasons)[0] || null : null;
@@ -386,6 +392,54 @@ function threesTags(x, p) {
   }
   return out;
 }
+// Hot / Cold Run for a counting stat: his last 5 games a minute against the games before them, at his recent minutes
+function runTags(x, stat, unit) {
+  const f = logFields();
+  const log = logOf(x.pid).filter((r) => (r[f.min] || 0) > 0);
+  if (log.length < RUN_GAMES || f[stat] === undefined) return [];
+  const per = (rows) => rows.reduce((a, r) => a + (r[f[stat]] || 0), 0) / Math.max(rows.reduce((a, r) => a + (r[f.min] || 0), 0), 1);
+  const last = log.slice(-5);
+  const gap = (per(last) - per(log.slice(0, -5))) * (last.reduce((a, r) => a + r[f.min], 0) / last.length);
+  if (gap >= RUN[stat]) return [TAG("hot", "Hot Run", `His last 5 games: ${fmt(gap)} more ${unit} a game than his games before them, at his minutes`)];
+  if (gap <= -RUN[stat]) return [TAG("cold", "Cold Run", `His last 5 games: ${fmt(-gap)} fewer ${unit} a game than his games before them, at his minutes`)];
+  return [];
+}
+// Glass Fit / Tough Glass: what tonight's defense gives up at his position (props.json sim player `glass`
+// = [the position tilt the sim uses, his own boards a minute against his position's]); Misses Coming: the
+// other team's misses in tonight's sims (its shooting x this defense) against the league's a game
+function reboundsTags(x, p) {
+  const out = [];
+  const [tilt, own] = x.r.glass || [null, null];
+  const pos = p.pos || "his position";
+  if (tilt !== null && tilt >= 1 + GLASS_TILT && (own === null || own >= 1 - GLASS_OWN)) {
+    out.push(TAG("glass_fit", "Glass Fit", `Against ${x.opp}, ${pos}s grab ${Math.round((tilt - 1) * 100)}% more of the boards than the league's ${pos}s do (as the sim weighs it this early)${own === null ? "" : `, and he rebounds at ${pct(own)} of his position's rate`}`, "good"));
+  }
+  if (tilt !== null && tilt <= 1 - GLASS_TILT && (own === null || own <= 1 + GLASS_OWN)) {
+    out.push(TAG("tough_glass", "Tough Glass", `Against ${x.opp}, ${pos}s grab ${Math.round((1 - tilt) * 100)}% fewer of the boards than the league's ${pos}s do (as the sim weighs it this early)${own === null ? "" : `, and he rebounds at ${pct(own)} of his position's rate`}`, "bad"));
+  }
+  const misses = ((sims()[x.g.game_id] || {}).misses || {})[x.home ? "away" : "home"];
+  const avg = (PROPS.sim_meta || {}).miss_pg;
+  if (misses !== undefined && misses !== null && avg && misses - avg >= MISSES_UP) {
+    out.push(TAG("misses", "Misses Coming", `${x.opp} misses ${fmt(misses)} shots a game in tonight's sims (its shooting against ${x.team}'s defense), ${fmt(misses - avg)} over the league's ${fmt(avg)}: more boards to grab`, "good"));
+  }
+  return [...out, ...runTags(x, "reb", "rebounds")];
+}
+// Ball Movement Fit / Tough Passing D: how often this defense's makes allowed are assisted (Team Identity),
+// with his team's own assisted share not pointing the other way (0.3 league spreads)
+function assistsTags(x) {
+  const out = [];
+  const zd = defZ(x.opp, "def_assisted");
+  const zo = defZ(x.team, "off_assisted");
+  const own = zo === null ? "" : `, and ${x.team}'s own makes are assisted ${signed(zo)} spreads from average`;
+  if (zd !== null && zd >= TAG_Z && (zo === null || zo > -0.3)) {
+    out.push(TAG("movement", "Ball Movement Fit", `${x.opp} gives up assisted makes ${fmt(zd)} league spreads more than average${own}`, "good"));
+  }
+  if (zd !== null && zd <= -TAG_Z && (zo === null || zo < 0.3)) {
+    out.push(TAG("tough_pass", "Tough Passing D", `${x.opp} gives up assisted makes ${fmt(-zd)} league spreads less than average${own}`, "bad"));
+  }
+  return [...out, ...runTags(x, "ast", "assists")];
+}
+const MARKET_TAGS = { points: pointsTags, threes: threesTags, rebounds: reboundsTags, assists: assistsTags };
 function tagsFor(x) {
   const tags = [];
   if (x.ladder) tags.push(TAG("ladder", `Ladder ${chipText(x.side, x.ladder.line, false)} ${showOdds(x.ladder.price)} <span>${signed(x.ladder.edge * 100)}</span>`,
@@ -402,7 +456,7 @@ function tagsFor(x) {
     tags.push(TAG("dial", `${x.g[k]} ${label}`, `A spot dial is on for ${x.g[k]} tonight (it moves the sims; the Game Board in Matchup View has its size)`, "", "Spot Dial"));
   }));
   const p = seasonBlock().players[x.pid] || {};
-  tags.push(...minutesTags(x), ...(MK.market === "threes" ? threesTags(x, p) : pointsTags(x, p)));
+  tags.push(...minutesTags(x), ...(MARKET_TAGS[MK.market] || pointsTags)(x, p));
   return tags;
 }
 const tagHtml = (t) => `<span class="sim-rtag${t.cls ? ` ${t.cls}` : ""}" title="${t.title}">${t.label}</span>`;
