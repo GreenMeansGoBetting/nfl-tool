@@ -2675,7 +2675,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2878,
+    "lead": 0.2879,
     "name": "Luka Doncic",
     "proj": 51.7,
     "team": "LAL"
@@ -2696,7 +2696,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.053,
+    "lead": 0.0531,
     "name": "Joel Embiid",
     "proj": 40.5,
     "team": "PHI"
@@ -2717,7 +2717,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0335,
+    "lead": 0.0336,
     "name": "Tyrese Maxey",
     "proj": 37.6,
     "team": "PHI"
@@ -2786,13 +2786,6 @@
     "team": "DEN"
    },
    {
-    "id": "4395725",
-    "lead": 0.0124,
-    "name": "Tyler Herro",
-    "proj": 34.0,
-    "team": "MIL"
-   },
-   {
     "id": "4433627",
     "lead": 0.0119,
     "name": "Keyonte George",
@@ -2805,6 +2798,13 @@
     "name": "Yaxel Lendeborg",
     "proj": 34.0,
     "team": "GS"
+   },
+   {
+    "id": "4395725",
+    "lead": 0.0117,
+    "name": "Tyler Herro",
+    "proj": 33.9,
+    "team": "MIL"
    },
    {
     "id": "5104157",
@@ -2843,7 +2843,7 @@
    },
    {
     "id": "3907497",
-    "lead": 0.0063,
+    "lead": 0.0064,
     "name": "Dejounte Murray",
     "proj": 32.1,
     "team": "NO"
