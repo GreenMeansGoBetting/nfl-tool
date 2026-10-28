@@ -62,15 +62,28 @@
 .zm-grid { width: 100%; min-width: 640px; margin-bottom: 4px; table-layout: fixed; }
 .zm-grid .zm-gpos-col { width: 34px; }
 .zm-grid .zm-ggap-col { width: 4px; }
-.zm-grid th, .zm-grid td { padding: 4px 3px; text-align: center; }
+/* Each group on its own tint, one unbroken block (no gaps between its cells; the tiles sit inside with
+   3px around them), rounded at its four corners; the gap column between groups stays clear. */
+.data-table.zm-grid { border-spacing: 0; }
+.data-table.zm-grid th, .data-table.zm-grid td { padding: 3px; text-align: center; border-radius: 0; background-color: transparent; }
 .zm-grid td { white-space: nowrap; }
-.zm-grid .zm-glabels th { font-size: 0.64rem; line-height: 1.15; white-space: normal; vertical-align: bottom; }
-.zm-grid .zm-ggroups th { padding: 3px 4px; }
-.zm-grid .zm-ggroups th.zm-gname { background: var(--panel-2); border-left: 3px solid var(--accent); color: var(--text); }
+.zm-grid .zm-g0 { --zg: var(--accent-rgb); }
+.zm-grid .zm-g1 { --zg: 70, 130, 220; }
+.zm-grid .zm-g2 { --zg: 150, 100, 220; }
+.zm-grid .zm-g3 { --zg: 128, 128, 128; }
+.data-table.zm-grid :is(.zm-g0, .zm-g1, .zm-g2, .zm-g3) { background-color: rgba(var(--zg), 0.13); }
+.data-table.zm-grid .zm-ggroups th:is(.zm-g0, .zm-g1, .zm-g2, .zm-g3) { background-color: rgba(var(--zg), 0.26); color: var(--text); padding: 5px 4px; border-radius: 10px 10px 0 0; }
+.zm-grid tbody tr:last-child td.zm-gl { border-bottom-left-radius: 10px; }
+.zm-grid tbody tr:last-child td.zm-gr { border-bottom-right-radius: 10px; }
+.zm-grid tbody td.zm-gl, .zm-grid .zm-glabels th.zm-gl { padding-left: 5px; }
+.zm-grid tbody td.zm-gr, .zm-grid .zm-glabels th.zm-gr { padding-right: 5px; }
+.zm-grid tbody tr:last-child td { padding-bottom: 5px; }
+.zm-grid .zm-glabels th { font-size: 0.64rem; line-height: 1.15; white-space: normal; vertical-align: bottom; padding-top: 6px; }
 .zm-grid .zm-gpos { font-weight: 800; text-align: left; }
 .zm-gcell { font-weight: 800; font-size: 0.85rem; cursor: help; }
+.zm-gtile { padding: 4px 3px; border-radius: 6px; background: var(--panel-2); }
 .zm-gcell small { display: block; font-weight: 600; font-size: 0.62rem; color: var(--muted); line-height: 1; }
-.zm-gcell.zm-worst { box-shadow: inset 0 0 0 2px var(--text); }
+.zm-gcell.zm-worst .zm-gtile { box-shadow: inset 0 0 0 2px var(--text); }
 /* a past night's Results (Best Plays' look: sim.css .sim-night / .sim-result) */
 .zm-night { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .zm-night > div { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 6px 14px; text-align: center; }

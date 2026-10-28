@@ -201,21 +201,25 @@ function zmGrid(abbr) {
     else groups.push({ name: g || "", cols: [[k, label]] });
   });
   groups.push({ name: "", cols: [["all", "Overall"]], overall: true });
+  // Each group sits on its own tint (the owner, 2026-10-28: "background shading grouping"): every cell
+  // of a group (header, labels, ranks) carries zm-g<i>, the rank is a tile inside it, ends rounded.
+  const edge = (grp, i) => `zm-g${groups.indexOf(grp)}${i === 0 ? " zm-gl" : ""}${i === grp.cols.length - 1 ? " zm-gr" : ""}`;
   const gap = `<td class="zm-ggap"></td>`;
   const rows = ZM_POS.map((p) => {
     const worst = cols.reduce((best, [k]) => ((d[p][k][at] || 0) > ((d[p][best] || [])[at] || 0) ? k : best), cols[0][0]);
-    const cell = (k, label, extra = "") => {
+    const cell = (k, label, cls) => {
       const c = d[p][k];
       const rank = c[at];
       const why = zmGridWhy(abbr, p, label, c, lg[p][k], ZM.grid).replace(/"/g, "&quot;");
-      return `<td class="num zm-gcell${extra}${k === worst && rank ? " zm-worst" : ""}" style="background:${zmRankShade(rank, teams)}" title="${why}">${rank ? `${rank}${zmOrd(rank)}` : "--"}<small>${c[1]}</small></td>`;
+      const shade = zmRankShade(rank, teams);
+      return `<td class="num zm-gcell ${cls}${k === worst && rank ? " zm-worst" : ""}" title="${why}"><div class="zm-gtile"${shade ? ` style="background:linear-gradient(${shade},${shade}),var(--panel-2)"` : ""}>${rank ? `${rank}${zmOrd(rank)}` : "--"}<small>${c[1]}</small></div></td>`;
     };
-    return `<tr><th class="zm-gpos" title="${ZM_POS_NAME[p]}">${p}</th>${groups.map((grp) => gap + grp.cols.map(([k, label]) => cell(k, label, grp.overall ? " zm-goverall" : "")).join("")).join("")}</tr>`;
+    return `<tr><th class="zm-gpos" title="${ZM_POS_NAME[p]}">${p}</th>${groups.map((grp) => gap + grp.cols.map(([k, label], i) => cell(k, label, edge(grp, i))).join("")).join("")}</tr>`;
   }).join("");
   const colgroup = `<colgroup><col class="zm-gpos-col">${groups.map((grp) => `<col class="zm-ggap-col">${grp.cols.map(() => "<col>").join("")}`).join("")}</colgroup>`;
   const gapTh = `<th class="zm-ggap"></th>`;
-  const groupRow = `<tr class="zm-ggroups"><th></th>${groups.map((grp) => `${gapTh}<th colspan="${grp.cols.length}"${grp.name ? ` class="zm-gname"` : ""}>${grp.name}</th>`).join("")}</tr>`;
-  const labelRow = `<tr class="zm-glabels"><th></th>${groups.map((grp) => gapTh + grp.cols.map(([, label]) => `<th class="num${grp.overall ? " zm-goverall" : ""}">${label}</th>`).join("")).join("")}</tr>`;
+  const groupRow = `<tr class="zm-ggroups"><th></th>${groups.map((grp) => `${gapTh}<th colspan="${grp.cols.length}" class="zm-g${groups.indexOf(grp)} zm-gl zm-gr${grp.name ? " zm-gname" : ""}">${grp.name}</th>`).join("")}</tr>`;
+  const labelRow = `<tr class="zm-glabels"><th></th>${groups.map((grp) => gapTh + grp.cols.map(([, label], i) => `<th class="num ${edge(grp, i)}">${label}</th>`).join("")).join("")}</tr>`;
   const toggle = Object.entries(ZM_METRIC).map(([k, [label]]) => `<button type="button" class="view-toggle-btn${ZM.grid === k ? " active" : ""}" data-grid="${k}">${label}</button>`).join("");
   return `<div class="zm-grid-head"><span class="zm-def-title">${zmLogo(abbr, 16)} ${abbr} Defense By Position &middot; ${ZM.market === "threes" ? "Threes" : "Every Shot"}</span><div class="view-toggle zm-grid-toggle">${toggle}</div></div>
     <div class="shc-scroll"><table class="data-table zm-grid">${colgroup}<thead>${groupRow}${labelRow}</thead><tbody>${rows}</tbody></table></div>

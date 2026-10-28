@@ -219,6 +219,8 @@ class Page(unittest.TestCase):
             self.assertEqual(PAGE.locator(".zm-game .zm-grid .zm-gname").count(), 3)  # the three boxed groups
             widths = PAGE.evaluate("() => [...document.querySelectorAll('.zm-game .zm-grid tbody tr:first-child .zm-gcell')].map((c) => Math.round(c.getBoundingClientRect().width))")
             self.assertLessEqual(max(widths) - min(widths), 1)  # every column the same width
+            tints = PAGE.evaluate("() => [0, 1, 2].map((i) => getComputedStyle(document.querySelector(`.zm-game .zm-grid tbody td.zm-g${i}`)).backgroundColor)")
+            self.assertEqual(len(set(tints)), 3)  # each group on its own shade (the owner, 2026-10-28)
             self.assertIn("2nd", PAGE.inner_text(".zm-game .nba-box:nth-child(1) .zm-grid tbody tr:last-child"))  # BBB vs centers at the rim
             PAGE.click(".zm-game .zm-grid-toggle [data-grid='share']")
             PAGE.wait_for_selector(".zm-grid-toggle .active[data-grid='share']")
