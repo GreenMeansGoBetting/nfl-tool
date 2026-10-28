@@ -2675,14 +2675,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2883,
+    "lead": 0.2884,
     "name": "Luka Doncic",
     "proj": 51.7,
     "team": "LAL"
    },
    {
     "id": "3112335",
-    "lead": 0.1135,
+    "lead": 0.1136,
     "name": "Nikola Jokic",
     "proj": 44.2,
     "team": "DEN"
@@ -2703,7 +2703,7 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0496,
+    "lead": 0.0497,
     "name": "Jalen Johnson",
     "proj": 39.9,
     "team": "ATL"
@@ -2745,7 +2745,7 @@
    },
    {
     "id": "4396993",
-    "lead": 0.0187,
+    "lead": 0.0188,
     "name": "Tyrese Haliburton",
     "proj": 35.2,
     "team": "IND"
@@ -2787,7 +2787,7 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0119,
+    "lead": 0.012,
     "name": "Keyonte George",
     "proj": 34.3,
     "team": "UTAH"
@@ -2829,7 +2829,7 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0094,
+    "lead": 0.0095,
     "name": "Darius Garland",
     "proj": 33.4,
     "team": "LAC"
@@ -2906,9 +2906,9 @@
    },
    {
     "id": "4395625",
-    "lead": 0.0029,
+    "lead": 0.0027,
     "name": "RJ Barrett",
-    "proj": 29.7,
+    "proj": 29.6,
     "team": "TOR"
    },
    {
@@ -2927,9 +2927,9 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0025,
+    "lead": 0.0022,
     "name": "Scottie Barnes",
-    "proj": 29.7,
+    "proj": 29.6,
     "team": "TOR"
    },
    {
