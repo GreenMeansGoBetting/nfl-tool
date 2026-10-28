@@ -193,8 +193,18 @@ options"), Novig only where SmartStake has no price.
 ## Points and Threes: the game sim (`nfl_tool/nba/sim.py`, 2026-10-24)
 
 The owner: "I just dont want to mimic the vegas line again and be back where we started." Every
-game is played 10,000 times, possession by possession; **the books' line is never an input**, only
-the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays + Game Board).
+game is played 10,000 times, possession by possession. Mockup approved 2026-10-24 (Tonight's Plays + Game Board).
+- **Start from the line (2026-10-28, REVERSES 10-24's "the line is never an input";** the owner:
+  "Start from the line"). 10-24..27 went -12.0u (said 62%, hit 48%; the line missed points by 4.84,
+  the sim 5.54). `nudge_to_line` (build_nba.py `compute_sim`, right after each game's sims): per
+  market, each player's ladders (every script), medians and mean move by d = (1 - `LINE_NUDGE` 0.35)
+  x (main line - sim median), so his median sits at line + 0.35 x (sim median - line); spread and
+  shape kept. MEDIAN, not mean (points skew right: centering the mean left fake unders). `shift_ladder`:
+  each whole number spread over +-0.5, moved, read back (threes too; a whole move is exact, nothing
+  below 0). No main line = the sim's own. props.json keeps `sim_med` (the sim's own), `line`, `nudge`;
+  `med` / `lad` are the nudged ones, so the page, the plays and the record agree. Replay of 10-24..27:
+  85-89, +2.2u at 4% min edge, top half by edge +2.8u vs bottom -14.7u: **break-even, not proven**.
+  The banner reads **Testing / Model Being Tested Against Its Record**. Plays before 10-28 stay as saved.
 - **One game** (`simulate`, numpy, all 10,000 at once, ~1 s a game): the teams' pace sets the
   possessions; each goes to one of the five on the floor (his minutes x his plays a minute); the
   play is a zone shot (rim / short / mid / corner 3 / above 3), a trip to the line or a turnover, by
@@ -293,7 +303,7 @@ the price a play is judged against. Mockup approved 2026-10-24 (Tonight's Plays 
   10+), `base` (the same without the dials, `SIM_BASE_N` games), `dials` {home, away}, `starters`,
   `out` {home, away: who'd be in the rotation but sits tonight}, `lineup` (the NBA's five was posted), `players` {id: team, min, pts / fg3m: med by script, mean,
   `lad` by script = [first k, permille of k or more ...] (`ladder`)}}, `sim_plays` {points, threes},
-  `sim_record` {market: {ledger}}, `sim_meta` (dial names, MIN_EDGE).
+  `sim_record` {market: {ledger}}, `sim_meta` (dial names, MIN_EDGE, `line_nudge`).
 - **Prices:** every book's main line and every rung (`smartstake.add_ladder`: `points_alt` and
   `threes_alt`, alternates included). `version.json` `nba.points_alt` / `threes_alt`.
 - **The plays** (`game_candidates`, `pick_plays`; since 2026-10-25): each player's **main line

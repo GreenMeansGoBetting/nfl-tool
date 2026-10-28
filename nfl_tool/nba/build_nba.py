@@ -935,6 +935,8 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
                               "out": {k: [str(p) for p in run["sat"][k]] for k in ("home", "away")},
                               "lineup": bool(sim.lineup_starters(day, g["home"], g["home"], g["away"],
                                                                  sim.team_now(inputs, g["home"], g["date"], roster_team)))}
+        # start from the line (2026-10-28): each player's outcomes centered near his main line
+        sim.nudge_to_line(sims[g["game_id"]], (book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {})
 
     path = PROPS_RECORD_DIR / f"sim_{season}.json"
     record = json.loads(path.read_text()) if path.exists() else {}
@@ -977,7 +979,7 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
     return {"sim": sims, "sim_plays": plays,
             "sim_record": {m: {"ledger": sim.ledger(record, logs[m], m)} for m in sim.STATS},
             "sim_past": {m: past_plays(record, logs[m], m, today, block) for m in sim.STATS},
-            "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE,
+            "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE, "line_nudge": sim.LINE_NUDGE,
                          "dials": {k: [label, own, opp] for k, (label, own, opp) in sim.DIAL_INFO.items()}}}
 
 

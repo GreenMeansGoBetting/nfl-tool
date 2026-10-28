@@ -65,6 +65,7 @@ class BestPlays(unittest.TestCase):
     def test_both_markets_by_edge(self):
         self.assertEqual(SITE.errors, [])
         self.assertIn("PROJECTIONS IN TESTING", PAGE.inner_text("#sim-testing").upper())
+        self.assertIn("MODEL BEING TESTED AGAINST ITS RECORD", PAGE.inner_text("#sim-testing").upper())  # 2026-10-28: start from the line
         got = rows()
         self.assertEqual(len(got), 2, got)
         self.assertIn("THREES", got[0].upper())

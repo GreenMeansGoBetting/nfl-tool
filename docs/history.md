@@ -1010,6 +1010,23 @@ The brand is "GMG Sports Data Suite"; NFL and NBA are suites inside it.
 - **Not built yet** (waiting on the user's priorities): Summary card, player props, model, picks,
   play-by-play tools (shot zones, first basket, quarter splits).
 
+### NBA sim: start from the line (2026-10-28)
+
+The game sim went live 2026-10-24 on the rule "the books' line is never an input" (the owner had
+just retired the line-anchored projections after a -50u night). Four nights later Points + Threes
+Best Plays stood at -12.0u (10-24..27, 328 plays; -16.4u on 10-27 alone): the sim's chances didn't
+sort winners from losers (it said 62%, they hit 48%), and on the players who played the book's line
+missed points by 4.84 on average against the sim's 5.54. A replay of those four nights tried ways
+of blending the two; the best: center each player's simulated middle on the line, then move it 35%
+of the way toward the sim's own middle, keeping the sim's spread and shape. The middle is the
+MEDIAN, not the mean (points skew right, so centering the mean left fake under edges). With the 4%
+minimum edge it went 85-89, +2.2u, and its top half by edge beat its bottom half (+2.8u vs -14.7u)
+for the first time. That is break-even on four nights, not a proven edge. The owner approved it
+("Start from the line", then "Build after reset"); `sim.nudge_to_line`, `LINE_NUDGE` 0.35. Threes
+are whole numbers, so each whole number is spread evenly over +-0.5, moved, and read back
+(`shift_ladder`); a whole-number move is exact. The banner on Best Plays / Points / Threes now reads
+Testing: the model is being tested against its record. Plays saved before 10-28 stay as they were.
+
 
 ## NHL
 

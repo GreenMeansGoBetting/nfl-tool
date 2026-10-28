@@ -1,8 +1,10 @@
 """The NBA game simulation (the owner, 2026-10-24): every game played 10,000
 times, possession by possession, so Points and Threes come from the game
-itself and never from the books' line ("I just dont want to mimic the vegas
-line again and be back where we started"). The line only shows up at the end,
-as the price a play is judged against.
+itself, not from the books' line ("I just dont want to mimic the vegas
+line again and be back where we started"). Since 2026-10-28 (the owner: "Start
+from the line") the line comes in at the very end: each player's outcomes are
+moved so their middle sits near his main line, 35% of the way toward the sim's
+own (`nudge_to_line`), and the price judges the play.
 
 One simulated game, a quarter at a time (all 10,000 at once, numpy):
 1. Possessions: the two teams' pace this season (both get the same number).
@@ -26,8 +28,8 @@ plays 30 instead of 34, some nights everything drops), and each team a team
 night, so the spread of outcomes is a real game's, not a coin flip's.
 
 THIS SEASON ONLY: early on a player's rates lean on the league's numbers for
-his position this season (`K_*`), less as his own games come in. Never the
-line. (2026-10-25 to 10-27 each player started from his own last season,
+his position this season (`K_*`), less as his own games come in. Never last
+season. (2026-10-25 to 10-27 each player started from his own last season,
 `prior_block` / `K_PRIOR_*`, now only for the replay's --prior-season. It read
 Toumani Camara's 17 threes in 2 games and Damian Lillard, back from a missed
 season on a new team, as last season's players: unders. The owner: "stop using
@@ -864,6 +866,64 @@ def player_best(row: dict, stat_key: str, quotes: list, main_line) -> dict | Non
 def middle_line(quotes: list):
     ls = sorted(float(q[2]) for q in quotes if q[2] is not None)
     return ls[len(ls) // 2] if ls else None
+
+
+# ---- start from the line (the owner, 2026-10-28: "Start from the line") ----
+# REVERSES 2026-10-24's "the line is never an input". Points + Threes went
+# -12.0u over 10-24..27 (the sim said 62%, hit 48%); on the players who played
+# the book's main line missed points by 4.84, the sim by 5.54. A replay of those
+# four nights: center each player's simulated MIDDLE (median, not mean: points
+# skew right, so centering the mean leaves fake under edges) on the main line,
+# then move it LINE_NUDGE of the way toward the sim's own median, keeping the
+# sim's spread and shape. With MIN_EDGE 4: 85-89, +2.2u, the top half by edge
+# +2.8u vs the bottom half -14.7u. Break-even on four nights, not a proven edge;
+# the record grades it.
+LINE_NUDGE = 0.35
+
+
+def shift_ladder(lad: list, d: float) -> list:
+    """A `ladder` with every outcome moved by d (any size, not just whole
+    numbers). Each whole number k is spread evenly over k-0.5 .. k+0.5, moved,
+    and read back as whole numbers: the chance of k or more = the chance the
+    moved value is past k - 0.5. Threes and points alike; d = 0 gives the same
+    ladder back. Nothing goes below 0 (a moved 0 stays 0)."""
+    lo, xs = lad
+    if not xs or not d:
+        return lad
+    hi = lo + len(xs) - 1
+
+    def past(t):  # chance the spread-out sim value is past t
+        j = math.floor(t + 0.5)
+        here = at_least(lad, j) - at_least(lad, j + 1)
+        return at_least(lad, j + 1) + here * (j + 0.5 - t)
+    new_lo = max(0, math.floor(lo + d))
+    new_hi = max(new_lo + 1, math.ceil(hi + d) + 1)
+    out = [round(1000 * past(k - 0.5 - d), 1) for k in range(new_lo, new_hi + 1)]
+    if new_lo == 0:
+        out[0] = 1000.0
+    return [new_lo, out]
+
+
+def nudge_to_line(sim_game: dict, props: dict) -> None:
+    """Moves every player's outcomes (each script's ladder and median, the
+    mean) so his median sits at line + LINE_NUDGE x (sim median - line), at
+    his main line (`middle_line`) per market, in place. A player with no main
+    line keeps the sim's own. `sim_med` keeps the sim's own medians, `nudge`
+    the move, `line` the line it started from."""
+    for market, stat in STATS.items():
+        main = props.get(market) or {}
+        for pid, row in sim_game["players"].items():
+            block = row.get(stat)
+            line = middle_line((main.get(pid) or {}).get("q") or [])
+            if not block or line is None or block["med"].get("all") is None or "nudge" in block:
+                continue
+            d = (1 - LINE_NUDGE) * (line - block["med"]["all"])
+            block["lad"] = {k: shift_ladder(lad, d) for k, lad in block["lad"].items()}
+            block["sim_med"] = block["med"]
+            block["med"] = {k: (round(v + d, 2) if v is not None else None) for k, v in block["med"].items()}
+            if "mean" in block:
+                block["mean"] = round(block["mean"] + d, 2)
+            block["line"], block["nudge"] = line, round(d, 2)
 
 
 def game_candidates(gid: str, game_row: dict, sim_game: dict, props: dict, games_played: dict, market: str) -> list:

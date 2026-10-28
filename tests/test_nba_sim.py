@@ -324,6 +324,43 @@ class Plays(unittest.TestCase):
         self.assertEqual({p["tier"] for p in picked}, {"strong"})
 
 
+class StartFromTheLine(unittest.TestCase):
+    # the owner, 2026-10-28: "Start from the line" (reverses 2026-10-24's "the line is never an input")
+    def test_a_sim_far_from_the_line_no_longer_makes_a_huge_edge(self):
+        pts = list(range(20, 41)) * 50  # the sim's median 30, the book's line 15.5
+        sim_game = {"players": {"1": game_row(pts)}, "dials": {"home": [], "away": []}}
+        props = {"points": {"1": {"q": [["dk", "o", 15.5, -110, ""], ["dk", "u", 15.5, -110, ""]]}}}
+        g = {"date": "2026-10-28", "home": "BBB", "away": "AAA"}
+        raw = sim.game_candidates("9", g, sim_game, props, {"1": 5}, "points")
+        self.assertGreater(raw[0]["edge"], 0.4)  # the sim alone: Over 15.5 "100%"
+        sim.nudge_to_line(sim_game, props)
+        row = sim_game["players"]["1"]["pts"]
+        # median moved to line + 35% of the way to the sim's: 15.5 + 0.35 x 14.5 = 20.6
+        self.assertAlmostEqual(row["med"]["all"], 15.5 + sim.LINE_NUDGE * (30 - 15.5), places=1)
+        self.assertEqual((row["sim_med"]["all"], row["line"]), (30.0, 15.5))
+        over = sim.chance_over(row["lad"]["all"], 15.5)
+        self.assertLess(over, 0.85)  # still an Over lean, no longer a sure thing
+        self.assertGreater(over, 0.6)
+        sim.nudge_to_line(sim_game, props)  # never moved twice
+        self.assertAlmostEqual(row["med"]["all"], 15.5 + sim.LINE_NUDGE * 14.5, places=1)
+
+    def test_the_shift_keeps_the_shape(self):
+        lad = sim.ladder(np.array([0] * 30 + [1] * 40 + [2] * 20 + [3] * 10))
+        self.assertEqual(sim.shift_ladder(lad, 0), lad)
+        two = sim.shift_ladder(lad, 2)  # a whole-number move is exact
+        self.assertAlmostEqual(sim.chance_over(two, 2.5), sim.chance_over(lad, 0.5))
+        self.assertAlmostEqual(sim.chance_over(two, 4.5), sim.chance_over(lad, 2.5))
+        part = sim.shift_ladder(lad, 0.3)  # threes: each whole number spread over +-0.5, moved, read back
+        self.assertAlmostEqual(sim.at_least(part, 1), 0.7 + 0.3 * 0.3)
+        self.assertEqual(sim.at_least(sim.shift_ladder(lad, -0.3), 0), 1.0)  # never below 0
+
+    def test_no_line_keeps_the_sims_own(self):
+        sim_game = {"players": {"1": game_row([10, 20, 30])}}
+        before = json.dumps(sim_game)
+        sim.nudge_to_line(sim_game, {})
+        self.assertEqual(json.dumps(sim_game), before)
+
+
 class Record(unittest.TestCase):
     def test_graded_at_its_price_with_the_split_tags(self):
         row = lambda pid, side, line, price, tier, kind, main, dials: [pid, side, line, price, "dk", 0.5, 0.06, tier, kind, main, dials]  # noqa: E731

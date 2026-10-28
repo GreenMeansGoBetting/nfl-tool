@@ -135,6 +135,7 @@ class Plays(unittest.TestCase):
     def test_opens_on_the_plays_only(self):
         self.assertEqual(SITE.errors, [])
         self.assertIn("PROJECTIONS IN TESTING", PAGE.inner_text("#sim-testing").upper())  # the Beta banner
+        self.assertIn("MODEL BEING TESTED AGAINST ITS RECORD", PAGE.inner_text("#sim-testing").upper())  # 2026-10-28: start from the line
         self.assertFalse(PAGE.is_hidden("#sim-player"))
         self.assertTrue(PAGE.is_hidden("#sim-matchup"))
         self.assertEqual(len(rows()), 1)
