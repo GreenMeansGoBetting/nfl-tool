@@ -343,14 +343,19 @@ def past(record: dict, logs: dict, date: str | None) -> dict:
 # 30 = gives up the most (None when the defense hasn't faced that shot). "all" = every shot in the
 # market (share = that position's share of all the shots this defense allows). Raw, like the page.
 POSITIONS = ("PG", "SG", "SF", "PF", "C")
+# (key, label, zones, shot kind, group): the page boxes each group (the owner, 2026-10-28: "RIM PAINT
+# MID is all one category. CORNER WING TOP should be the other ... Self, Catch and shoot, drives").
+INSIDE, THREE_ZONES, TYPE = "Inside The Arc", "Three-Point Zones", "Shot Type"
 GRID_COLS = {
-    "points": [("rim", "Rim", ("ra",), None), ("paint", "Paint", ("paint",), None),
-               ("mid", "Mid", ("mBL", "mWL", "mT", "mWR", "mBR"), None), ("c3", "Corner 3", ("c3L", "c3R"), None),
-               ("ab3", "Above-Break 3", ("w3L", "t3", "w3R"), None), ("self", "Self-Created", None, 1),
-               ("catch", "Catch & Shoot", None, 2), ("drive", "Drives", None, 3)],
-    "threes": [("c3L", "Left Corner", ("c3L",), None), ("c3R", "Right Corner", ("c3R",), None),
-               ("w3L", "Left Wing", ("w3L",), None), ("t3", "Top", ("t3",), None), ("w3R", "Right Wing", ("w3R",), None),
-               ("catch", "Catch & Shoot", None, 2), ("self", "Self-Created", None, 1)],
+    "points": [("rim", "Rim", ("ra",), None, INSIDE), ("paint", "Paint", ("paint",), None, INSIDE),
+               ("mid", "Mid", ("mBL", "mWL", "mT", "mWR", "mBR"), None, INSIDE),
+               ("c3", "Corner 3", ("c3L", "c3R"), None, THREE_ZONES), ("w3", "Wing 3", ("w3L", "w3R"), None, THREE_ZONES),
+               ("t3", "Top 3", ("t3",), None, THREE_ZONES), ("self", "Self-Created", None, 1, TYPE),
+               ("catch", "Catch & Shoot", None, 2, TYPE), ("drive", "Drives", None, 3, TYPE)],
+    "threes": [("c3L", "Left Corner", ("c3L",), None, THREE_ZONES), ("c3R", "Right Corner", ("c3R",), None, THREE_ZONES),
+               ("w3L", "Left Wing", ("w3L",), None, THREE_ZONES), ("w3R", "Right Wing", ("w3R",), None, THREE_ZONES),
+               ("t3", "Top", ("t3",), None, THREE_ZONES), ("catch", "Catch & Shoot", None, 2, TYPE),
+               ("self", "Self-Created", None, 1, TYPE)],
 }
 
 
@@ -372,14 +377,14 @@ def grid(block: dict, pos: dict) -> dict:
                     continue
                 for who in {team, None}:
                     totals[(who, market)] = totals.get((who, market), 0) + 1
-                    keys = ["all"] + [k for k, _, zs, kd in cols if (zs and z in zs) or (kd is not None and kd == kind)]
+                    keys = ["all"] + [k for k, _, zs, kd, _g in cols if (zs and z in zs) or (kd is not None and kd == kind)]
                     for k in keys:
                         c = cells.setdefault((who, market, p, k), [0, 0, 0])
                         c[0] += made
                         c[1] += 1
                         c[2] += pts
     real = sorted({t for (t, *_ ) in cells if t})
-    out = {"cols": {m: [[k, label] for k, label, *_ in cols] for m, cols in GRID_COLS.items()}, "teams": {}, "league": {}}
+    out = {"cols": {m: [[k, label, g] for k, label, _z, _k, g in cols] for m, cols in GRID_COLS.items()}, "teams": {}, "league": {}}
 
     def share(who, market, p, k):
         c = cells.get((who, market, p, k))

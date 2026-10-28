@@ -192,6 +192,16 @@ function zmGrid(abbr) {
   const cols = gr.cols[ZM.market];
   const [, at] = ZM_METRIC[ZM.grid];
   const lg = gr.league[ZM.market];
+  // The columns in their groups (the owner, 2026-10-28: Rim / Paint / Mid, Corner / Wing / Top, the
+  // shot types), each group boxed under its own header with a gap between, then Overall alone.
+  const groups = [];
+  cols.forEach(([k, label, g]) => {
+    const last = groups[groups.length - 1];
+    if (last && last.name === (g || "")) last.cols.push([k, label]);
+    else groups.push({ name: g || "", cols: [[k, label]] });
+  });
+  groups.push({ name: "", cols: [["all", "Overall"]], overall: true });
+  const gap = `<td class="zm-ggap"></td>`;
   const rows = ZM_POS.map((p) => {
     const worst = cols.reduce((best, [k]) => ((d[p][k][at] || 0) > ((d[p][best] || [])[at] || 0) ? k : best), cols[0][0]);
     const cell = (k, label, extra = "") => {
@@ -200,11 +210,15 @@ function zmGrid(abbr) {
       const why = zmGridWhy(abbr, p, label, c, lg[p][k], ZM.grid).replace(/"/g, "&quot;");
       return `<td class="num zm-gcell${extra}${k === worst && rank ? " zm-worst" : ""}" style="background:${zmRankShade(rank, teams)}" title="${why}">${rank ? `${rank}${zmOrd(rank)}` : "--"}<small>${c[1]}</small></td>`;
     };
-    return `<tr><th class="zm-gpos" title="${ZM_POS_NAME[p]}">${p}</th>${cols.map(([k, label]) => cell(k, label)).join("")}${cell("all", "Overall", " zm-goverall")}</tr>`;
+    return `<tr><th class="zm-gpos" title="${ZM_POS_NAME[p]}">${p}</th>${groups.map((grp) => gap + grp.cols.map(([k, label]) => cell(k, label, grp.overall ? " zm-goverall" : "")).join("")).join("")}</tr>`;
   }).join("");
+  const colgroup = `<colgroup><col class="zm-gpos-col">${groups.map((grp) => `<col class="zm-ggap-col">${grp.cols.map(() => "<col>").join("")}`).join("")}</colgroup>`;
+  const gapTh = `<th class="zm-ggap"></th>`;
+  const groupRow = `<tr class="zm-ggroups"><th></th>${groups.map((grp) => `${gapTh}<th colspan="${grp.cols.length}"${grp.name ? ` class="zm-gname"` : ""}>${grp.name}</th>`).join("")}</tr>`;
+  const labelRow = `<tr class="zm-glabels"><th></th>${groups.map((grp) => gapTh + grp.cols.map(([, label]) => `<th class="num${grp.overall ? " zm-goverall" : ""}">${label}</th>`).join("")).join("")}</tr>`;
   const toggle = Object.entries(ZM_METRIC).map(([k, [label]]) => `<button type="button" class="view-toggle-btn${ZM.grid === k ? " active" : ""}" data-grid="${k}">${label}</button>`).join("");
   return `<div class="zm-grid-head"><span class="zm-def-title">${zmLogo(abbr, 16)} ${abbr} Defense By Position &middot; ${ZM.market === "threes" ? "Threes" : "Every Shot"}</span><div class="view-toggle zm-grid-toggle">${toggle}</div></div>
-    <div class="shc-scroll"><table class="data-table zm-grid"><thead><tr><th></th>${cols.map(([, label]) => `<th class="num">${label}</th>`).join("")}<th class="num zm-goverall">Overall</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="shc-scroll"><table class="data-table zm-grid">${colgroup}<thead>${groupRow}${labelRow}</thead><tbody>${rows}</tbody></table></div>
     <p class="zm-legend">Rank of 30 by ${ZM_METRIC[ZM.grid][2]}: <b>30th = gives up the most</b> (red), 1st = takes it away (green). Outlined = that position's biggest weak spot. Small number = shots faced; hover for the numbers.</p>`;
 }
 
@@ -269,16 +283,30 @@ function zmDetail() {
   const view = (shots, opts) => (!shots.length ? `<p class="no-data-note">No shots.</p>` : `<div class="nba-shot-chart shc-chart">${ZM.chart === "heat" ? nbaShotHeatView(shots, league, opts) : nbaShotZonesView(shots, league, opts)}</div>`);
   const g = ZM_GROUP[p.group];
   const d = ((zmM().defense || {})[p.opp] || {})[p.group] || {};
+  // The Why table (the owner, 2026-10-28: "WAYYYY too wide ... color code everything"): his side left,
+  // the zone / type in the middle, the defense's side right, every cell shaded. His Shots / Share in
+  // the accent (how much of his diet, never good or bad); the rest red-to-green from HIS side, so a
+  // rank of 30 (gives up the most) is green here. Shots vs Lg on a log scale: +231% and +79% differ.
+  const teams = Object.keys(zmM().defense || {}).length || 30;
+  const rankCell = (rank) => `<td class="num" style="background:${rank ? nbaShotColor((((rank - 1) / Math.max(1, teams - 1)) * 2 - 1) * NBA_SHOT_FULL, 0.5) : ""}">${rank ? `${rank}${zmOrd(rank)}` : "--"}</td>`;
+  const volShade = (v) => (v === null || v === undefined ? "" : zmShade(Math.log(Math.max(0.05, 1 + v)), Math.log(4)));
+  const dietMax = (list) => Math.max(0.01, ...list.map((x) => x.share));
+  const diet = (x, max) => `background:rgba(var(--accent-rgb),${(0.08 + 0.42 * (x.share / max)).toFixed(2)})`;
+  const gap = `<td class="zm-ggap"></td>`;
+  const hisCells = (x, max) => `<td class="num" style="${diet(x, max)}">${x.n}</td><td class="num" style="${diet(x, max)}">${Math.round(x.share * 100)}%</td>`;
+  const zMax = dietMax(r.zones);
+  const kMax = dietMax(r.kinds);
   const zoneRows = r.zones
     .map((z) => {
       const rk = d[z.z] || [];
-      return `<tr><td>${ZM_ZONE[z.z]}</td><td class="num">${z.n}</td><td class="num">${Math.round(z.share * 100)}%</td>
-        <td class="num zm-split">${z.dtried ? `${z.dmade}/${z.dtried}` : "--"}</td><td class="num" style="background:${zmShade(z.fg, 0.1)}">${zmPts(z.fg)}</td><td class="num" style="background:${zmShade(z.vol, 0.5)}">${zmPct(z.vol)}</td><td class="num">${rk[2] ? `${rk[2]}${zmOrd(rk[2])}` : "--"}</td><td class="num">${rk[3] ? `${rk[3]}${zmOrd(rk[3])}` : "--"}</td></tr>`;
+      return `<tr>${hisCells(z, zMax)}${gap}<td class="zm-wlabel">${ZM_ZONE[z.z]}</td>${gap}
+        <td class="num">${z.dtried ? `${z.dmade}/${z.dtried}` : "--"}</td><td class="num" style="background:${zmShade(z.fg, 0.3)}">${zmPts(z.fg)}</td>${rankCell(rk[2])}<td class="num" style="background:${volShade(z.vol)}">${zmPct(z.vol)}</td>${rankCell(rk[3])}</tr>`;
     })
     .join("");
   const kindRows = r.kinds
-    .map((k) => `<tr><td>${ZM_KIND[k.k]}</td><td class="num">${k.n}</td><td class="num">${Math.round(k.share * 100)}%</td><td class="num zm-split">${k.dtried ? `${k.dmade}/${k.dtried}` : "--"}</td><td class="num" style="background:${zmShade(k.fg, 0.1)}">${zmPts(k.fg)}</td><td class="num">--</td><td class="num">--</td><td class="num">--</td></tr>`)
+    .map((k) => `<tr>${hisCells(k, kMax)}${gap}<td class="zm-wlabel">${ZM_KIND[k.k]}</td>${gap}<td class="num">${k.dtried ? `${k.dmade}/${k.dtried}` : "--"}</td><td class="num" style="background:${zmShade(k.fg, 0.3)}">${zmPts(k.fg)}</td><td class="num zm-wnone">--</td><td class="num zm-wnone">--</td><td class="num zm-wnone">--</td></tr>`)
     .join("");
+  const groupRow = (label) => `<tr class="zm-wgroup"><td colspan="2"></td>${gap}<td class="zm-wlabel">${label}</td>${gap}<td colspan="5"></td></tr>`;
   box.hidden = false;
   box.innerHTML = `<h2 class="section-title">${zmLogo(p.team, 22)} ${p.name} vs ${zmLogo(p.opp, 22)} ${p.opp} Defense &middot; ${threes ? "Threes" : "Points"} <span class="zm-read" style="background:${zmShade(r.score, 0.25)}">${zmWord(r)}</span></h2>
     <div class="zm-bar"><div class="view-toggle" id="zm-chart"><button type="button" class="view-toggle-btn${ZM.chart === "zones" ? " active" : ""}" data-chart="zones">Zones</button><button type="button" class="view-toggle-btn${ZM.chart === "heat" ? " active" : ""}" data-chart="heat">Heat Map</button></div>
@@ -289,9 +317,10 @@ function zmDetail() {
       <div class="nba-box">${zmBanner(p.opp, `<span class="shc-name">${zmTeam(p.opp).name}</span><span class="shc-sub">Allowed To ${g} &middot; ${allowed.length}</span>`)}<div class="shc-inner">${view(allowed, { allowed: true })}</div></div>
     </div>
     <div class="shc-scroll"><table class="data-table zm-why"><thead>
-      <tr class="shc-head"><th></th><th colspan="2">${p.name}</th><th colspan="5" class="zm-split">${p.opp} Allows ${g}</th></tr>
-      <tr><th>Zone / Type</th><th class="num">Shots</th><th class="num">Share</th><th class="num zm-split">FG</th><th class="num" title="Make rate allowed minus the league's for ${g.toLowerCase()}, in points">FG% vs Lg</th><th class="num" title="Share of ${g.toLowerCase()}' shots given up here vs the league's share">Shots vs Lg</th><th class="num" title="Rank of 30 in make rate allowed (30th = most)">FG% Rank</th><th class="num" title="Rank of 30 in share of shots allowed here (30th = most)">Shots Rank</th></tr>
-    </thead><tbody>${zoneRows}<tr class="nba-shot-group"><td colspan="8">How He Shoots</td></tr>${kindRows}</tbody></table></div>`;
+      <tr class="zm-wsides"><th colspan="2" class="zm-wside">${zmLogo(p.team, 16)} ${p.name}</th><th class="zm-ggap"></th><th></th><th class="zm-ggap"></th><th colspan="5" class="zm-wside">${zmLogo(p.opp, 16)} ${p.opp} Allows ${g}</th></tr>
+      <tr><th class="num" title="His ${threes ? "threes" : "shots"} from here this season">Shots</th><th class="num" title="Share of his ${threes ? "threes" : "shots"}: deeper = more of his diet">Share</th><th class="zm-ggap"></th><th class="zm-wlabel">Zone / Type</th><th class="zm-ggap"></th><th class="num" title="Made / tried by ${g.toLowerCase()} against ${p.opp}">FG</th><th class="num" title="Make rate allowed minus the league's for ${g.toLowerCase()}, in points. Green = more makes: helps him">FG% vs Lg</th><th class="num" title="Rank of 30 in make rate allowed (30th = gives up the most: green for him)">FG% Rank</th><th class="num" title="Share of ${g.toLowerCase()}' shots given up here vs the league's share. Green = more chances: helps him">Shots vs Lg</th><th class="num" title="Rank of 30 in share of shots allowed here (30th = gives up the most: green for him)">Shots Rank</th></tr>
+    </thead><tbody>${groupRow("Where He Shoots")}${zoneRows}${groupRow("How He Shoots")}${kindRows}</tbody></table></div>
+    <p class="zm-legend zm-why-legend">Green helps him, red hurts him. Ranks of 30: 30th = ${p.opp} gives up the most (green here). Shots / Share: deeper = more of his diet.</p>`;
 }
 
 // ---- the record: every OVER / UNDER read locked at tip, graded against his main line, units at the best price then ----

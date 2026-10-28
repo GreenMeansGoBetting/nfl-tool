@@ -11,9 +11,9 @@
 .zm-inner { padding: 0 8px 8px; }
 
 /* Tables: every column its contents + one small even padding, centered; names / chips read left; the Diet column takes the spare width. */
-.zm-table, .zm-why { width: 100%; }
+.zm-table { width: 100%; }
 .zm-table th, .zm-table td, .zm-why th, .zm-why td { padding: 5px 8px; text-align: center; white-space: nowrap; }
-.zm-table .zm-name, .zm-why td:first-child, .zm-why th:first-child, .zm-table th:first-child { text-align: left; }
+.zm-table .zm-name, .zm-table th:first-child { text-align: left; }
 .zm-name small { color: var(--muted); font-size: 0.72rem; margin-left: 2px; }
 .zm-name .team-logo { vertical-align: -4px; }
 .zm-table .zm-diet { width: 100%; text-align: left; white-space: normal; }
@@ -57,14 +57,20 @@
 .zm-grid-head .zm-def-title { margin: 0; }
 .zm-grid-toggle { margin: 0; }
 .zm-grid-toggle .view-toggle-btn { padding: 3px 10px; font-size: 0.75rem; }
-.zm-grid { width: 100%; margin-bottom: 4px; }
-.zm-grid th, .zm-grid td { padding: 4px 6px; text-align: center; white-space: nowrap; }
-.zm-grid thead th { font-size: 0.72rem; }
+/* Every column the same width (table-layout: fixed; labels wrap to two lines), the groups boxed under a
+   header bar with a gap column between them (the owner, 2026-10-28). */
+.zm-grid { width: 100%; min-width: 640px; margin-bottom: 4px; table-layout: fixed; }
+.zm-grid .zm-gpos-col { width: 34px; }
+.zm-grid .zm-ggap-col { width: 4px; }
+.zm-grid th, .zm-grid td { padding: 4px 3px; text-align: center; }
+.zm-grid td { white-space: nowrap; }
+.zm-grid .zm-glabels th { font-size: 0.64rem; line-height: 1.15; white-space: normal; vertical-align: bottom; }
+.zm-grid .zm-ggroups th { padding: 3px 4px; }
+.zm-grid .zm-ggroups th.zm-gname { background: var(--panel-2); border-left: 3px solid var(--accent); color: var(--text); }
 .zm-grid .zm-gpos { font-weight: 800; text-align: left; }
 .zm-gcell { font-weight: 800; font-size: 0.85rem; cursor: help; }
 .zm-gcell small { display: block; font-weight: 600; font-size: 0.62rem; color: var(--muted); line-height: 1; }
 .zm-gcell.zm-worst { box-shadow: inset 0 0 0 2px var(--text); }
-.zm-goverall { border-left: 2px solid var(--border-strong); }
 /* a past night's Results (Best Plays' look: sim.css .sim-night / .sim-result) */
 .zm-night { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .zm-night > div { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 6px 14px; text-align: center; }
@@ -82,3 +88,14 @@
 .zm-night em { font-style: normal; }
 .zm-up { color: var(--good-text); font-weight: 800; }
 .zm-down { color: var(--bad-text); font-weight: 800; }
+.data-table .zm-ggap { padding: 0 !important; background: transparent !important; }
+
+/* The Why table: his side | zone / type | the defense's side, every column its contents, not the full width. */
+.zm-why { width: auto; margin: 8px auto 4px; }
+.zm-why th, .zm-why td { padding: 4px 10px; }
+.zm-why td.zm-wlabel, .zm-why th.zm-wlabel { text-align: left; font-weight: 700; min-width: 128px; }
+.zm-why .zm-wsides th.zm-wside { background: var(--panel-2); border-left: 3px solid var(--accent); color: var(--text); text-align: center; white-space: nowrap; }
+.zm-why .zm-wsides .team-logo { vertical-align: -3px; }
+.zm-why .zm-wgroup td { background: transparent; padding: 8px 4px 1px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.zm-why td.zm-wnone { color: var(--muted); }
+.zm-why-legend { text-align: center; }

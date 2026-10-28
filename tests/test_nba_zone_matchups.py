@@ -112,6 +112,10 @@ class Grid(unittest.TestCase):
         self.assertNotIn("rim", g["teams"]["BBB"]["threes"]["C"])  # the threes grid has only threes' columns
         self.assertEqual(g["teams"]["BBB"]["threes"]["C"]["t3"][:2], [1, 10])
         self.assertIsNone(g["teams"]["BBB"]["points"]["PG"]["rim"][3])  # never faced: no rank
+        # the owner, 2026-10-28: three groups, Wing 3 and Top 3 apart (no Above-Break 3)
+        self.assertEqual([c[0] for c in g["cols"]["points"]], ["rim", "paint", "mid", "c3", "w3", "t3", "self", "catch", "drive"])
+        self.assertEqual(sorted({c[2] for c in g["cols"]["points"]}), ["Inside The Arc", "Shot Type", "Three-Point Zones"])
+        self.assertEqual(g["teams"]["BBB"]["points"]["C"]["t3"][:2], [1, 10])  # the top threes land in Top 3
 
 
 class Record(unittest.TestCase):
@@ -212,6 +216,9 @@ class Page(unittest.TestCase):
             self.assertEqual(sorted(PAGE.evaluate("() => [...document.querySelectorAll('.zm-game .zm-row')].map((r) => r.dataset.player)")), ["1", "3"])
             self.assertEqual(PAGE.locator(".zm-game .zm-grid").count(), 1)  # BBB's grid; AAA hasn't defended a shot here
             self.assertEqual(PAGE.locator(".zm-game .zm-grid tbody tr").count(), 5)  # the five positions
+            self.assertEqual(PAGE.locator(".zm-game .zm-grid .zm-gname").count(), 3)  # the three boxed groups
+            widths = PAGE.evaluate("() => [...document.querySelectorAll('.zm-game .zm-grid tbody tr:first-child .zm-gcell')].map((c) => Math.round(c.getBoundingClientRect().width))")
+            self.assertLessEqual(max(widths) - min(widths), 1)  # every column the same width
             self.assertIn("2nd", PAGE.inner_text(".zm-game .nba-box:nth-child(1) .zm-grid tbody tr:last-child"))  # BBB vs centers at the rim
             PAGE.click(".zm-game .zm-grid-toggle [data-grid='share']")
             PAGE.wait_for_selector(".zm-grid-toggle .active[data-grid='share']")

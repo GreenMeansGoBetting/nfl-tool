@@ -489,13 +489,17 @@ a team can wall off bigs and still bleed blow-by layups to guards). Agreed in a 
 - Page (`site/nba/zones.html` + `zones.js` + `zones.css`; NBA menu under Shot Charts with a small
   New tag, `tag` in SPORT_PAGES / `.nav-new`): opens on **Best & Worst Spots** (Overs / Unders, top
   15, Show All; started games left out), **Matchup View** (game cards; both teams' players and each
-  defense's **position grid**: `grid()` / `zmGrid`, PG-C down, the market's columns across (Points: Rim,
-  Paint, Mid, Corner 3, Above-Break 3, Self-Created, Catch & Shoot, Drives; Threes: the five 3 zones,
-  Catch & Shoot, Self-Created) + Overall, each cell its rank of 30 (30th = gives up the most, red) by
+  defense's **position grid**: `grid()` / `zmGrid`, PG-C down, the market's columns across in boxed
+  groups (2026-10-28; Points: Inside The Arc = Rim, Paint, Mid; Three-Point Zones = Corner 3, Wing 3,
+  Top 3; Shot Type = Self-Created, Catch & Shoot, Drives; Threes: the five 3 zones, then Catch & Shoot,
+  Self-Created) + Overall, every column the same width (`table-layout: fixed`, labels wrap), each cell its rank of 30 (30th = gives up the most, red) by
   Makes / Shots / Points Per Shot (toggle), shots faced small, each row's worst cell outlined; the
   owner, 2026-10-27: "this is BOS weakness vs this position"), Points / Threes, His Shots filter; a row click
   opens his chart and the defense's chart allowed to his group (both vs his group's league) and the
-  Why table (zones and shot types). Display prefs per device (`nba-tool.zones.v1`).
+  Why table (zones and shot types; 2026-10-28, the owner: "WAYYYY too wide"): his Shots / Share left
+  (accent shade = how much of his diet), Zone / Type in the middle, the defense's FG, FG% vs Lg, FG%
+  Rank, Shots vs Lg, Shots Rank right, only as wide as its contents; every cell red-to-green from HIS
+  side (a rank of 30 = gives up the most = green there); Shots vs Lg on a log scale (full at +300%). Display prefs per device (`nba-tool.zones.v1`).
 - Defense chart legends read Less Makes / More Makes, Fewer Shots / More Shots (the owner, same day).
 - **Fixes the same day (the owner):** no Read cell ("redundant"; back in Matchup View only, Strong Over ... Strong Under: "it was helpful there"); Score, Shots and Makes cells on the site's full red-yellow-green scale (not green / red shades),
   (`zmShade`, through nbaShotColor); the **line = the player card's
