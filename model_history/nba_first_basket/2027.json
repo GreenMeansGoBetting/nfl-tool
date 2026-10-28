@@ -878,14 +878,7 @@
   "players": {
    "3907498": [
     "Matisse Thybulle",
-    0.091,
-    null,
-    false,
-    null
-   ],
-   "3945274": [
-    "Luka Doncic",
-    0.148,
+    0.157,
     null,
     false,
     null
@@ -899,21 +892,14 @@
    ],
    "4066457": [
     "Austin Reaves",
-    0.14,
+    0.236,
     null,
     false,
     null
    ],
    "4433136": [
     "Walker Kessler",
-    0.116,
-    null,
-    false,
-    null
-   ],
-   "4433137": [
-    "Ziaire Williams",
-    0.095,
+    0.197,
     null,
     false,
     null
@@ -5388,7 +5374,7 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.089,
+    0.155,
     1300,
     true,
     "fanduel"
@@ -5400,16 +5386,9 @@
     false,
     "draftkings"
    ],
-   "3945274": [
-    "Luka Doncic",
-    0.146,
-    500,
-    false,
-    "fanduel"
-   ],
    "4066457": [
     "Austin Reaves",
-    0.139,
+    0.233,
     750,
     true,
     "fanduel"
@@ -5430,17 +5409,10 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.114,
+    0.194,
     600,
-    false,
+    true,
     "hard_rock"
-   ],
-   "4433137": [
-    "Ziaire Williams",
-    0.094,
-    1000,
-    false,
-    "fanduel"
    ]
   },
   "tip_home": 0.181
