@@ -280,6 +280,17 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-28b",
+    items: [
+      ["🏀", "<b>NBA Rebounds and Assists</b> are live: the same game sim, Player View, Matchup View, ladder and record as Points and Threes. New tags: Glass Fit / Tough Glass (how tonight’s defense rebounds against his position), Misses Coming, Ball Movement Fit / Tough Passing D, and Hot / Cold Run. Every tag is in each page’s Tag menu."],
+      ["⭐", "<b>NBA Best Plays</b> now pulls from all four markets (Points, Threes, Rebounds, Assists), and each market tag has its own color so you can tell them apart at a glance."],
+      ["🎯", "<b>NBA sim now starts from the line</b>: each player’s projection starts at the books’ main line and moves part of the way toward what the sim sees, so you no longer get huge edges that are just the sim being off."],
+      ["⏳", "<b>Waiting On Market</b>: when a star is ruled out, his teammates’ lines that haven’t moved yet are grayed out and held (not plays) until the books catch up, up to 40 minutes."],
+      ["📚", "<b>No more one-book lines</b>: a play needs at least two books listing that line, so one stale price (for example bet365 alone) can’t make Best Plays."],
+      ["🏀", "<b>NBA Zone Matchups</b>: the defense grid is grouped (Inside The Arc, Three-Point Zones, Shot Type) with each group shaded, and the Why table is slimmer."],
+    ],
+  },
+  {
     id: "2026-10-28",
     items: [
       ["🏀", "<b>NBA Matchup Breakdown</b> replaces Game Previews and Team Identity: one page per game with the line and injuries up top, each team’s Biggest Edges, Head To Head, How They Win / How They Lose, then The Matchup (both offenses against both defenses, side by side). Every number is a rank of 30, shaded green to red, so a mismatch reads the same everywhere. Recent Games now shows each game’s spread and total, colored by cover and over / under."],
