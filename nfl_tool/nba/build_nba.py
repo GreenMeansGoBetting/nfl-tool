@@ -1248,8 +1248,10 @@ def main():
     blob["watch"]["recheck"] = watch.recheck(blob.get("market_watch") or {}, now_utc.strftime("%Y-%m-%dT%H:%MZ"))
     blob["timing"] = timing
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    # compact, like props.json: with every market's odds and ladders the indented file reached 27.8 MB
+    # (2026-10-28) and Cloudflare Pages takes at most 25 MB a file (ci_steps.py sizes)
     with open(args.out, "w") as f:
-        json.dump(blob, f, indent=1)
+        json.dump(blob, f, separators=(",", ":"))
     print(f"Wrote {args.out} -- {args.season} schedule ({len(games)} games), stats from {stats_season}, lines for {novig_debug['matched']} games")
 
 
