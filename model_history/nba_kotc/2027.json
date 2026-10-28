@@ -3100,49 +3100,49 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.2401,
+    "lead": 0.2419,
     "name": "Domantas Sabonis",
-    "proj": 42.7,
+    "proj": 42.8,
     "team": "SAC"
    },
    {
     "id": "4701230",
-    "lead": 0.1652,
+    "lead": 0.1646,
     "name": "Jalen Johnson",
     "proj": 39.8,
     "team": "ATL"
    },
    {
     "id": "4065733",
-    "lead": 0.1619,
+    "lead": 0.1612,
     "name": "Ty Jerome",
     "proj": 39.6,
     "team": "MEM"
    },
    {
     "id": "3908809",
-    "lead": 0.1001,
+    "lead": 0.0997,
     "name": "Donovan Mitchell",
     "proj": 37.1,
     "team": "CLE"
    },
    {
     "id": "4683021",
-    "lead": 0.0724,
+    "lead": 0.0719,
     "name": "Deni Avdija",
     "proj": 34.8,
     "team": "POR"
    },
    {
     "id": "3064440",
-    "lead": 0.0631,
+    "lead": 0.0639,
     "name": "Zach LaVine",
-    "proj": 34.2,
+    "proj": 34.3,
     "team": "SAC"
    },
    {
     "id": "4432158",
-    "lead": 0.0444,
+    "lead": 0.0442,
     "name": "Evan Mobley",
     "proj": 32.8,
     "team": "CLE"
@@ -3156,23 +3156,23 @@
    },
    {
     "id": "6606",
-    "lead": 0.0264,
+    "lead": 0.0259,
     "name": "Damian Lillard",
     "proj": 30.2,
     "team": "POR"
    },
    {
     "id": "5041935",
-    "lead": 0.0184,
+    "lead": 0.0183,
     "name": "Cameron Boozer",
     "proj": 29.2,
     "team": "MEM"
    },
    {
     "id": "5142620",
-    "lead": 0.0152,
+    "lead": 0.0155,
     "name": "Darius Acuff Jr.",
-    "proj": 29.2,
+    "proj": 29.3,
     "team": "SAC"
    },
    {
@@ -3212,16 +3212,16 @@
    },
    {
     "id": "4903027",
-    "lead": 0.0037,
+    "lead": 0.0036,
     "name": "Cedric Coward",
     "proj": 24.3,
     "team": "MEM"
    },
    {
     "id": "4397688",
-    "lead": 0.0033,
+    "lead": 0.0036,
     "name": "Trey Murphy III",
-    "proj": 23.9,
+    "proj": 24.0,
     "team": "NO"
    },
    {
@@ -3256,12 +3256,12 @@
     "id": "4397136",
     "lead": 0.0008,
     "name": "Saddiq Bey",
-    "proj": 21.7,
+    "proj": 21.8,
     "team": "NO"
    },
    {
     "id": "4397183",
-    "lead": 0.0008,
+    "lead": 0.0007,
     "name": "Aaron Wiggins",
     "proj": 20.8,
     "team": "ATL"
@@ -3452,7 +3452,7 @@
     "id": "5106058",
     "lead": 0.0,
     "name": "Emanuel Sharp",
-    "proj": 6.5,
+    "proj": 6.6,
     "team": "SAC"
    },
    {
