@@ -208,20 +208,20 @@ function typePair(ex, t, off, de) {
 
 // A column head: the team's logo and "HOU Off" (the owner: no "Has The Ball" / "Call" heads).
 const colHead = (abbr, what) => `<th class="mb-colhead">${logo(abbr, 18)} ${abbr}${what ? ` ${what}` : ""}</th>`;
-// Labels sit at the far right of every table, never between the teams (the owner, 2026-10-28).
+// Labels sit at the far left of every table, never between the teams (the owner, 2026-10-28).
 const labelTd = (text) => `<td class="mb-stat">${text}</td>`;
 
 // ---- The Matchup: every row, both directions side by side ----
-// [away off][home def][call] | [home off][away def][call] [label].
+// [label] [away off][home def][call] | [home off][away def][call].
 // Returns {html, edges: [{team, side, size, label, o, d}]}.
 function matchup(g) {
   const a = g.away;
   const h = g.home;
   const edges = [];
   const COLS = 8;
-  const rowHtml = (label, A, H) => `<tr${(A && A.call) || (H && H.call) ? ' class="mb-called"' : ""}>
+  const rowHtml = (label, A, H) => `<tr${(A && A.call) || (H && H.call) ? ' class="mb-called"' : ""}>${labelTd(label)}
       ${cellTd(A && A.o)}${cellTd(A && A.d)}<td class="mb-call">${callPill(A && A.call)}</td><td class="mb-gap"></td>
-      ${cellTd(H && H.o)}${cellTd(H && H.d)}<td class="mb-call">${callPill(H && H.call)}</td>${labelTd(label)}</tr>`;
+      ${cellTd(H && H.o)}${cellTd(H && H.d)}<td class="mb-call">${callPill(H && H.call)}</td></tr>`;
   const note = (label, P, off, de) => {
     if (P && P.call && P.call.kind === "edge") edges.push({ team: P.call.team, side: P.call.team === off ? "off" : "def", size: P.call.size, label, o: P.o, d: P.d });
   };
@@ -254,7 +254,7 @@ function matchup(g) {
       }
     }
   }
-  const head = `<thead><tr>${colHead(a, "Off")}${colHead(h, "Def")}<th></th><th class="mb-gap"></th>${colHead(h, "Off")}${colHead(a, "Def")}<th></th><th></th></tr></thead>`;
+  const head = `<thead><tr><th></th>${colHead(a, "Off")}${colHead(h, "Def")}<th></th><th class="mb-gap"></th>${colHead(h, "Off")}${colHead(a, "Def")}<th></th></tr></thead>`;
   return { html: `<div class="mb-scroll"><table class="mb-table mb-matchup">${head}<tbody>${body}</tbody></table></div>`, edges };
 }
 
@@ -271,9 +271,9 @@ function edgesBox(g, edges) {
       const head = side === "off" ? colHead(t, "Off") + colHead(opp, "Def") : colHead(t, "Def") + colHead(opp, "Off");
       const rows = mine.map((e) => {
         const [own, other] = side === "off" ? [e.o, e.d] : [e.d, e.o];
-        return `<tr>${cellTd(own)}${cellTd(other)}<td class="mb-call">${callPill({ kind: "edge", team: t, size: e.size })}</td>${labelTd(e.label)}</tr>`;
+        return `<tr>${labelTd(e.label)}${cellTd(own)}${cellTd(other)}<td class="mb-call">${callPill({ kind: "edge", team: t, size: e.size })}</td></tr>`;
       }).join("");
-      return `<tr class="mb-group"><td colspan="4">${t} ${side === "off" ? "Offense" : "Defense"}</td></tr><tr class="mb-heads">${head}<th></th><th></th></tr>${rows}`;
+      return `<tr class="mb-group"><td colspan="4">${t} ${side === "off" ? "Offense" : "Defense"}</td></tr><tr class="mb-heads"><th></th>${head}<th></th></tr>${rows}`;
     };
     const body = part("off") + part("def");
     return `<div class="nba-box mb-fitbox">${banner(t, `${team(t).name} Edges`)}
@@ -316,11 +316,11 @@ function winLossBox(abbr) {
     return { label, gap, w: has(w) ? sideCell(abbr, side, r, { value: w, when: "in wins" }) : null, l: has(l) ? sideCell(abbr, side, r, { value: l, when: "in losses" }) : null };
   });
   const swings = new Set(rows.filter((x) => x.gap >= 0).sort((x, y) => y.gap - x.gap).slice(0, WL_SWINGS).map((x) => x.label));
-  const body = rows.map((x) => `<tr${swings.has(x.label) ? ' class="mb-swing"' : ""}>${cellTd(x.w)}${cellTd(x.l)}${labelTd(x.label)}</tr>`).join("");
+  const body = rows.map((x) => `<tr${swings.has(x.label) ? ' class="mb-swing"' : ""}>${labelTd(x.label)}${cellTd(x.w)}${cellTd(x.l)}</tr>`).join("");
   const wHead = wl.nw ? `In Wins (${wl.nw})` : "No Wins Yet";
   const lHead = wl.nl ? `In Losses (${wl.nl})` : "No Losses Yet";
   return `<div class="nba-box mb-fitbox">${banner(abbr, team(abbr).name, `${wl.nw}-${wl.nl}`)}
-    <table class="mb-table mb-wl"><thead><tr><th>${wHead}</th><th>${lHead}</th><th></th></tr></thead><tbody>${body}</tbody></table></div>`;
+    <table class="mb-table mb-wl"><thead><tr><th></th><th>${wHead}</th><th>${lHead}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
 // ---- Head To Head: both teams side by side, labels on the right ----
@@ -350,8 +350,8 @@ function headToHead(g) {
     const nn = teamsOf(idTeams());
     return { r, n: nn, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${nn})` };
   };
-  const raw = (A, H, label) => `<tr>${A}${H}${labelTd(label)}</tr>`;
-  const both = (label, f) => `<tr>${cellTd(f(a))}${cellTd(f(h))}${labelTd(label)}</tr>`;
+  const raw = (A, H, label) => `<tr>${labelTd(label)}${A}${H}</tr>`;
+  const both = (label, f) => `<tr>${labelTd(label)}${cellTd(f(a))}${cellTd(f(h))}</tr>`;
   const grp = (t) => `<tr class="mb-group"><td colspan="3">${t}</td></tr>`;
   const pts = (v) => `${v.toFixed(1)}`;
   const pctS = (v) => `${Math.round(v * 100)}%`;
@@ -380,7 +380,7 @@ function headToHead(g) {
   }
   body += spotRows(g);
   return `<div class="nba-box mb-fitbox mb-h2h">
-    <table class="mb-table mb-mirror"><thead><tr>${colHead(a, "")}${colHead(h, "")}<th></th></tr></thead><tbody>${body}</tbody></table></div>`;
+    <table class="mb-table mb-mirror"><thead><tr><th></th>${colHead(a, "")}${colHead(h, "")}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 // Tonight's Schedule Spots (back-to-back, long road trip...): the team's net points
 // a game vs its normal in that spot, minus the league's, ranked among every team
@@ -404,7 +404,7 @@ function spotRows(g) {
     return { r: 1 + all.filter((v) => v > mine.v).length, n: all.length, num: `${signed(mine.v)} Net`, title: mine.title };
   };
   const rows = spots.types.filter((t) => keys.includes(t.key)).map((t) => [t, cell(g.away, t), cell(g.home, t)]).filter(([, A, H]) => A || H)
-    .map(([t, A, H]) => `<tr>${cellTd(A)}${cellTd(H)}${labelTd(t.label)}</tr>`).join("");
+    .map(([t, A, H]) => `<tr>${labelTd(t.label)}${cellTd(A)}${cellTd(H)}</tr>`).join("");
   return rows ? `<tr class="mb-group"><td colspan="3">Tonight's Spots</td></tr>${rows}` : "";
 }
 

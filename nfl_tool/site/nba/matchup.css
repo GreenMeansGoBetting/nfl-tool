@@ -2,7 +2,7 @@
    merged, 2026-10-28). The layout pieces (.nba-box, banners) come from suite.css.
    Every section and box hugs its contents and they flow side by side where there's
    room (the owner: "when in doubt you just increase everything to fill the space
-   rather than containing things"); labels sit at the far right of every table,
+   rather than containing things"); labels sit at the far left of every table,
    never between the teams. Every value cell is a rank of 30 in big type with its
    number small, shaded by nba.js (scaleHsla). */
 
@@ -38,7 +38,7 @@
 .mb-v.mb-empty { background: transparent; }
 .mb-v.mb-faded { opacity: 0.5; }
 .mb-v.mb-rec b { font-size: 1rem; }
-.mb-stat { padding: 0 6px 0 10px; font-size: 0.88rem; font-weight: 700; text-align: left; white-space: nowrap; }
+.mb-stat { padding: 0 10px 0 4px; font-size: 0.88rem; font-weight: 700; text-align: left; white-space: nowrap; }
 .mb-call { min-width: 92px; padding: 0 4px; text-align: center; vertical-align: middle; }
 .mb-group td { padding: 12px 4px 3px; font-family: var(--font-display); font-size: 0.84rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; color: var(--accent, var(--good-text)); border-bottom: 2px solid var(--border); }
 .mb-none { padding: 6px 14px; font-size: 0.84rem; font-weight: 700; color: var(--muted); }
@@ -57,7 +57,7 @@
 .mb-edges tr.mb-heads th { padding-top: 2px; }
 
 /* How They Win / How They Lose: the 3 rows that swing most */
-.mb-wl tr.mb-swing td.mb-stat { font-weight: 800; color: var(--text); box-shadow: inset 3px 0 0 var(--accent, var(--good-text)); }
+.mb-wl tr.mb-swing td.mb-stat { font-weight: 800; color: var(--text); box-shadow: inset 3px 0 0 var(--accent, var(--good-text)); padding-left: 9px; }
 .mb-wl tr:not(.mb-swing) td.mb-stat { color: var(--muted); }
 
 /* Rotations: sortable heads, cells shaded by rank on the team */

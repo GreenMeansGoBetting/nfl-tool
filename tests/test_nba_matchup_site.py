@@ -77,7 +77,7 @@ CELL_TEXT = "const cellText = (td) => td.querySelector('b') ? [td.querySelector(
 
 
 def matchup_row(label):
-    """[BOS off, DET def, call, divider, DET off, BOS def, call, label] texts of The Matchup's row `label`."""
+    """[label, BOS off, DET def, call, divider, DET off, BOS def, call] texts of The Matchup's row `label`."""
     return PAGE.evaluate("""(label) => {""" + CELL_TEXT + """
         const tr = [...document.querySelectorAll('.mb-matchup tbody tr')].find((r) => r.querySelector('.mb-stat') && r.querySelector('.mb-stat').textContent === label);
         return tr ? [...tr.children].map(cellText) : null;
@@ -87,10 +87,10 @@ def matchup_row(label):
 class Page(unittest.TestCase):
     def test_both_directions_side_by_side(self):
         self.assertEqual(SITE.errors, [])
-        # no "Has The Ball" / "Call" heads; labels at the far right (the owner, 2026-10-28)
+        # no "Has The Ball" / "Call" heads; labels at the far left (the owner, 2026-10-28)
         heads = PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup thead tr')].map((r) => [...r.children].map((th) => th.textContent.trim()))")
-        self.assertEqual(heads, [["BOS Off", "DET Def", "", "", "DET Off", "BOS Def", "", ""]])
-        last = PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup tbody tr:not(.mb-group)')].every((r) => r.lastElementChild.classList.contains('mb-stat'))")
+        self.assertEqual(heads, [["", "BOS Off", "DET Def", "", "", "DET Off", "BOS Def", ""]])
+        last = PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup tbody tr:not(.mb-group)')].every((r) => r.firstElementChild.classList.contains('mb-stat'))")
         self.assertTrue(last)
         shown = PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup tbody tr:not(.mb-group) .mb-stat')].map((td) => td.textContent)")
         self.assertEqual(shown[:len(ROWS)], [r[1] for r in ROWS])  # every row, always (the owner: show everything)
@@ -98,21 +98,21 @@ class Page(unittest.TestCase):
 
     def test_rank_first_then_number_both_sides(self):
         ppp = matchup_row("Pts / Possession")
-        self.assertEqual(ppp[0], f"{ordinal(rank('off_ppp', 'BOS', True))} {T['BOS']['off_ppp']:.2f}")
-        self.assertEqual(ppp[1], f"{ordinal(rank('def_ppp', 'DET', False))} {T['DET']['def_ppp']:.2f}")
-        self.assertEqual(ppp[4], f"{ordinal(rank('off_ppp', 'DET', True))} {T['DET']['off_ppp']:.2f}")
-        self.assertEqual(ppp[5], f"{ordinal(rank('def_ppp', 'BOS', False))} {T['BOS']['def_ppp']:.2f}")
+        self.assertEqual(ppp[1], f"{ordinal(rank('off_ppp', 'BOS', True))} {T['BOS']['off_ppp']:.2f}")
+        self.assertEqual(ppp[2], f"{ordinal(rank('def_ppp', 'DET', False))} {T['DET']['def_ppp']:.2f}")
+        self.assertEqual(ppp[5], f"{ordinal(rank('off_ppp', 'DET', True))} {T['DET']['off_ppp']:.2f}")
+        self.assertEqual(ppp[6], f"{ordinal(rank('def_ppp', 'BOS', False))} {T['BOS']['def_ppp']:.2f}")
         # turnovers: the offense's 1st = fewest, the defense's 1st = forces the most
         tov = matchup_row("Turnovers")
-        self.assertTrue(tov[0].startswith(ordinal(rank("off_tov_rate", "BOS", False)) + " "), tov)
-        self.assertTrue(tov[1].startswith(ordinal(rank("def_tov_rate", "DET", True)) + " "), tov)
+        self.assertTrue(tov[1].startswith(ordinal(rank("off_tov_rate", "BOS", False)) + " "), tov)
+        self.assertTrue(tov[2].startswith(ordinal(rank("def_tov_rate", "DET", True)) + " "), tov)
         # how often: the offense's 1st = does it most, the defense's 1st = allows it least
         threes = matchup_row("3-Point Share")
-        self.assertTrue(threes[0].startswith(ordinal(rank("off_three_rate", "BOS", True)) + " "), threes)
-        self.assertTrue(threes[1].startswith(ordinal(rank("def_three_rate", "DET", False)) + " "), threes)
+        self.assertTrue(threes[1].startswith(ordinal(rank("off_three_rate", "BOS", True)) + " "), threes)
+        self.assertTrue(threes[2].startswith(ordinal(rank("def_three_rate", "DET", False)) + " "), threes)
         # rebounding: the defense side reads as its own defensive rebound %
         reb = matchup_row("Rebounding")
-        self.assertTrue(reb[1].endswith(f"{(1 - T['DET']['def_oreb_rate']) * 100:.1f}%"), reb)
+        self.assertTrue(reb[2].endswith(f"{(1 - T['DET']['def_oreb_rate']) * 100:.1f}%"), reb)
         # every value cell is shaded red to green
         styles = PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup td.mb-v:not(.mb-empty)')].map((td) => td.getAttribute('style') || '')")
         self.assertTrue(styles and all("background" in s for s in styles))
@@ -141,7 +141,7 @@ class Page(unittest.TestCase):
         # Biggest Edges: each team's 3 biggest on offense and 3 on defense (types included),
         # never a count. In The Matchup the left call is BOS's offense or DET's defense.
         calls = PAGE.evaluate("""() => [...document.querySelectorAll('.mb-matchup tbody tr:not(.mb-group)')].flatMap((r) =>
-            [[r.children[2], 'BOS'], [r.children[6], 'DET']].map(([td, off]) => { const i = td.querySelector('.mb-edge img'); return i ? [i.alt, i.alt === off ? 'off' : 'def'] : null; }).filter(Boolean))""")
+            [[r.children[3], 'BOS'], [r.children[7], 'DET']].map(([td, off]) => { const i = td.querySelector('.mb-edge img'); return i ? [i.alt, i.alt === off ? 'off' : 'def'] : null; }).filter(Boolean))""")
         want_box = [sum(min(3, sum(1 for c in calls if c == [t, side])) for side in ("off", "def")) for t in ("BOS", "DET")]
         boxes = PAGE.evaluate("() => [...document.querySelectorAll('#edges-content .nba-box')].map((b) => b.querySelectorAll('tbody .mb-edge').length)")
         self.assertEqual(boxes, want_box)
@@ -163,14 +163,14 @@ class Page(unittest.TestCase):
         for (record, heads, n, swings), t in zip(wl, ("BOS", "DET")):
             w = REFERENCE["wl"][t]
             self.assertEqual(record, f"{w['nw']}-{w['nl']}")
-            self.assertEqual(heads, [f"In Wins ({w['nw']})", f"In Losses ({w['nl']})", ""])
+            self.assertEqual(heads, ["", f"In Wins ({w['nw']})", f"In Losses ({w['nl']})"])
             self.assertEqual((n, swings), (12, 3))
         h2h = PAGE.evaluate("() => {" + CELL_TEXT + " return [...document.querySelectorAll('.mb-mirror tbody tr:not(.mb-group)')].map((r) => [...r.children].map(cellText)); }")
-        rows = {r[-1]: r for r in h2h}
-        self.assertEqual(rows["Record"], ["5-1", "2-4", "Record"])
-        self.assertEqual(rows["Net Rating"][0][:3], "1st")
+        rows = {r[0]: r for r in h2h}
+        self.assertEqual(rows["Record"], ["Record", "5-1", "2-4"])
+        self.assertEqual(rows["Net Rating"][1][:3], "1st")
         q1 = rows["Q1 Margin"]
-        self.assertTrue(q1[0].startswith(ordinal(rank("q1_ppq", "BOS", True)) + " "), q1)
+        self.assertTrue(q1[1].startswith(ordinal(rank("q1_ppq", "BOS", True)) + " "), q1)
         self.assertIn("Blowout Data", PAGE.text_content("#h2h-content"))
 
     def test_top_row_and_recent_games(self):

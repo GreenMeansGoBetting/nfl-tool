@@ -597,7 +597,7 @@ these teams win, why they lose, and what the matchup may have in store for tonig
   gets its way. `rankIn` ranks a number among the teams' season numbers (also a wins / losses number).
 - **Layout rules (the owner's first look, 2026-10-28):** every section and box hugs its contents and
   they flow side by side where there's room (`.mb-flow`, `.mb-fitbox`; "when in doubt you just increase
-  everything to fill the space rather than containing things"); **labels sit at the far right of every
+  everything to fill the space rather than containing things"); **labels sit at the far left of every
   table, never between the teams** ("This has been an issue with you for the entirety of the site");
   group headers centered; no "Has The Ball" / "Call" heads, just logo + "HOU Off" over each column.
 - Sections: **The Line** + **Injuries** (compact); **Biggest Edges** (per team, its **Offense** group
@@ -609,7 +609,7 @@ these teams win, why they lose, and what the matchup may have in store for tonig
   **The Matchup**; **Rotations & Recent Games** in one section (rotation cells shaded by rank on his
   own team, every column sortable; Recent Games' Spread / Total at tip, green = covered / over, from
   King of the Court's `lines_<season>.json` via `add_recent_lines`).
-- **The Matchup**: one table, `[Away Off][Home Def][call] | [Home Off][Away Def][call] [label]`, every
+- **The Matchup**: one table, `[label] [Away Off][Home Def][call] | [Home Off][Away Def][call]`, every
   row always. Rows (`M_ROWS`, the owner's cuts
   2026-10-28): Scoring = Pts / Possession, Pace, Transition Share, Transition Pts / Poss; Possessions =
   Turnovers, Rebounding (offensive rebound % vs the defense's own defensive rebound %), Free Throws /
