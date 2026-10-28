@@ -519,6 +519,30 @@ class Build(unittest.TestCase):
                 build_nba.PROPS_RECORD_DIR = real
 
 
+    def test_a_line_older_than_a_teammates_ruling_waits_on_the_market(self):
+        # 2026-10-28: Luka ruled Out, Reaves' line still the morning's 23.5. P2 (32 minutes) goes Out after
+        # P1's line was first seen: P1's play is held (sim_held), not a play and not saved, until the line moves.
+        inp = inputs(roster())
+        games = [{"game_id": "77", "date": "2026-10-20", "time": "19:00", "away": "AAA", "home": "BBB", "start_utc": "2026-10-20T23:00Z"}]
+        odds = lambda line: {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", line, 300, ""], ["dk", "u", line, -110, ""]]}}}}}  # noqa: E731
+        out = {"AAA": [{"id": "2", "status": "Out"}]}
+        prev = {"outs": {}, "lines": {"77:points:1": [9.5, "2026-10-20T14:00Z"]}}
+        with tempfile.TemporaryDirectory() as tmp:
+            real = build_nba.PROPS_RECORD_DIR
+            build_nba.PROPS_RECORD_DIR = Path(tmp)
+            try:
+                got = build_nba.compute_sim(2027, inp, None, odds(9.5), games, out, {}, datetime(2026, 10, 20, 15, 0), market_prev=prev)
+                self.assertEqual(got["sim_plays"]["points"], [])
+                self.assertEqual([(h["pid"], h["out"]) for h in got["sim_held"]["points"]], [("1", ["P2"])])
+                self.assertFalse((Path(tmp) / "sim_2027.json").exists())  # nothing saved for the record
+                self.assertEqual(got["market_watch"]["outs"], {"2": {"team": "AAA", "at": "2026-10-20T15:00Z"}})
+                moved = build_nba.compute_sim(2027, inp, None, odds(10.5), games, out, {}, datetime(2026, 10, 20, 15, 10), market_prev=got["market_watch"])
+                self.assertEqual(moved["sim_held"]["points"], [])
+                self.assertEqual([p["pid"] for p in moved["sim_plays"]["points"]], ["1"])
+            finally:
+                build_nba.PROPS_RECORD_DIR = real
+
+
 class RealGames(unittest.TestCase):
     """The engine's two saved real games, start to finish."""
 

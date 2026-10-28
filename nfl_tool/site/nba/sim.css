@@ -259,6 +259,8 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 }
 .sim-rtag.good { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
 .sim-rtag.bad { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.5); }
+.sim-rtag.wait { color: var(--muted); background: var(--panel-2); border-color: var(--border-strong); border-style: dashed; }
+.sim-row.held > td { opacity: 0.5; }
 .sim-rtag.chaos { color: var(--text); background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.6); }
 .sim-rtag.lad { border-style: dashed; font: 800 0.8rem var(--font-display); text-transform: none; letter-spacing: 0.02em; }
 .sim-rtag.lad span { color: var(--muted); }

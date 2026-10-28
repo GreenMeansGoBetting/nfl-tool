@@ -867,7 +867,7 @@ def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_
 
 
 def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=(), injuries=None, now_utc=None,
-                  lineups=None) -> dict:
+                  lineups=None, market_prev=None) -> dict:
     """site/nba/props.json: this season's block (props.py: every player's game
     log, shot mix, with / without) and the game sim (sim.py, `compute_sim`:
     Points and Threes, since 2026-10-24). Last season's saved file is for the
@@ -891,7 +891,7 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     # 2026-10-27 (the owner: "stop using last seasons data").
     try:
         out.update(compute_sim(season, sim.season_inputs(engine, box), block, book_odds or {}, list(games),
-                               injuries or {}, roster_team, now_utc, lineups or {}))
+                               injuries or {}, roster_team, now_utc, lineups or {}, market_prev))
     except Exception as ex:
         print(f"WARNING: NBA game sim failed ({ex!r}).", file=sys.stderr)
     return out
@@ -901,13 +901,16 @@ SIM_BASE_N = 3000  # the same game without the dials, for "a normal night" (fewe
 
 
 def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, games: list, injuries: dict,
-                roster_team: dict, now_utc: datetime, lineups: dict | None = None) -> dict:
+                roster_team: dict, now_utc: datetime, lineups: dict | None = None, market_prev: dict | None = None) -> dict:
     """props.json `sim` ({game id: the game's 10,000 (sim.summary) + date,
     teams and `base`, the script shares without the dials}), `sim_plays`
     ({market: [play]}: tonight's plays, sim.pick_plays) and `sim_record`
     ({market: {ledger}}) for the next KOTC_SLATE_NIGHTS nights. lineups =
     {date: the NBA's lineups file} (First Basket's copies), for the starting
-    fives. The plays are saved at tip-off in model_history/nba_props/sim_<season>.json."""
+    fives. The plays are saved at tip-off in model_history/nba_props/sim_<season>.json.
+    market_prev = the live data.json `market_watch`: a line taken before a
+    20+ minute teammate was ruled Out that hasn't moved goes to `sim_held`
+    (Waiting On Market, watch.held_by), not the plays."""
     if now_utc is None:
         return {}
     out_ids = {str(p["id"]) for team in injuries.values() for p in team if p["status"] == "Out"}
@@ -941,7 +944,28 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
     path = PROPS_RECORD_DIR / f"sim_{season}.json"
     record = json.loads(path.read_text()) if path.exists() else {}
     started = {g["game_id"] for g in games if datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc}
+    # waiting on the market (2026-10-28, Luka ruled out, Reaves' line still 23.5): who's Out with
+    # 20+ minutes on tonight's untipped teams, and each untipped game's main lines, first-seen times kept
+    now_iso = now_utc.strftime("%Y-%m-%dT%H:%MZ")
+    open_games = [g for g in games if g["game_id"] in sims and g["game_id"] not in started]
+    tonight_teams = {g[k] for g in open_games if g["date"] == today for k in ("home", "away")}
+    outs = {}
+    for team, rows in injuries.items():
+        for p in rows:
+            mins = (inputs["players"].get(int(p["id"])) or {}).get("min") or [] if str(p["id"]).isdigit() else []
+            if team in tonight_teams and p["status"] == "Out" and mins and sum(mins) / len(mins) >= watch.STAR_MINUTES:
+                outs[str(p["id"])] = team
+    lines = {}
+    for g in open_games:
+        props_now = (book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}
+        for market in sim.STATS:
+            for pid, v in (props_now.get(market) or {}).items():
+                line = sim.middle_line((v or {}).get("q") or [])
+                if line is not None:
+                    lines[f"{g['game_id']}:{market}:{pid}"] = line
+    mw = watch.market_watch(market_prev, outs, lines, now_iso)
     plays = {m: [] for m in sim.STATS}
+    held = {m: [] for m in sim.STATS}
     changed = False
     for date in dates:
         tonight = [g for g in games if g["date"] == date and g["game_id"] in sims]
@@ -955,7 +979,12 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
             for g in tonight:
                 if g["game_id"] not in started:
                     props_now = (book_odds.get(f"{g['away']}_{g['home']}") or {}).get("props") or {}
-                    cands += sim.game_candidates(g["game_id"], g, sims[g["game_id"]], props_now, played, market)
+                    for c in sim.game_candidates(g["game_id"], g, sims[g["game_id"]], props_now, played, market):
+                        by = watch.held_by(mw, f"{g['game_id']}:{market}:{c['pid']}", c["team"], now_iso)
+                        if by:  # not a play and not saved: the line hasn't caught up with the news
+                            held[market].append({**c, "out": [names.get(int(b), b) for b in by]})
+                        else:
+                            cands.append(c)
             picked = sim.pick_plays(cands)
             plays[market] += locked + picked
             for g in tonight:
@@ -977,7 +1006,7 @@ def compute_sim(season: int, inputs: dict, block: dict | None, book_odds: dict, 
                 for market, stat in sim.STATS.items():  # the sim's stat = the log's field
                     if stat in f and r[f[stat]] is not None:
                         logs[market][(str(r[f["game"]]), pid)] = r[f[stat]]
-    return {"sim": sims, "sim_plays": plays,
+    return {"sim": sims, "sim_plays": plays, "sim_held": held, "market_watch": mw,
             "sim_record": {m: {"ledger": sim.ledger(record, logs[m], m)} for m in sim.STATS},
             "sim_past": {m: past_plays(record, logs[m], m, today, block) for m in sim.STATS},
             "sim_meta": {"n": sim.N_SIMS, "script_margin": sim.SCRIPT_MARGIN, "min_edge": sim.MIN_EDGE, "line_nudge": sim.LINE_NUDGE,
@@ -1171,7 +1200,9 @@ def main():
     blob_props = {}
     try:
         blob_props = compute_props(args.season, args.data_dir, rosters, book_odds, games, injury_list, now_utc,
-                                   (blob.get("first_basket") or {}).get("lineups"))
+                                   (blob.get("first_basket") or {}).get("lineups"), (previous or {}).get("market_watch"))
+        # build to build (data.json, read back by fetch_previous): when each Out and each line was first seen
+        blob["market_watch"] = blob_props.pop("market_watch", None)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:
@@ -1212,6 +1243,9 @@ def main():
     # nothing else rebuilt the NBA until the injury news started (10-25's plays sat ungraded all
     # morning, 2026-10-26), so the timer presses a refresh while this is above 0
     blob["watch"]["ungraded"] = ungraded((blob_props or {}).get("sim_past"), today)
+    # the odds again 10 / 25 / 40 minutes after a 20+ minute player is ruled Out, news or not (2026-10-28:
+    # the refresh ran before the books moved, and nothing fetched the odds again)
+    blob["watch"]["recheck"] = watch.recheck(blob.get("market_watch") or {}, now_utc.strftime("%Y-%m-%dT%H:%MZ"))
     blob["timing"] = timing
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w") as f:

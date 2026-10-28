@@ -276,6 +276,16 @@ game is played 10,000 times, possession by possession. Mockup approved 2026-10-2
   `NHL_TRIGGER_TOKEN`, copied by deploy.yml); the build reads the night's list with its key
   (`fetch_marked_out`, `add_marked_out`: Out whatever ESPN says, `marked`), and the Out Tonight row
   reads "Out (GMG)" with an Undo.
+- **Waiting On Market (2026-10-28,** Luka ruled Out: the refresh ran a minute after the news, before
+  the books moved, Reaves 23.5 here vs 26.5 on FanDuel, and the sim read the stale line as a big over).
+  data.json `market_watch` (watch.py `market_watch`, carried build to build via `fetch_previous`):
+  when each 20+ minute player (`STAR_MINUTES`) on tonight's untipped teams was first seen Out, and when
+  each untipped main line was first seen at its number. A candidate whose line is older than a
+  teammate's ruling goes to props.json `sim_held` (`held_by`, at most `HOLD_MINUTES` 40): not a play,
+  not saved; sim-board.js grays it with a Waiting On Market tag between the plays and the rest.
+  `watch.recheck` (`RECHECK_MINUTES` 10 / 25 / 40 after the ruling): the timer presses the refresh
+  with source `recheck` once it's due, news or not. Tests: test_nba_watch.py `WaitingOnMarket`,
+  test_nba_sim.py `Build`.
 - **The NBA's official injury report** (`nfl_tool/nba/nba_report.py`, 2026-10-25): a PDF every 15
   minutes at `ak-static.cms.nba.com/referee/injury/Injury-Report_<YYYY-MM-DD>_<hh>_<mm><AM|PM>.pdf`
   (Eastern); on 10-25 its 1:00 pm report had Embiid Out 8 minutes before ESPN. Read with `pypdf` by

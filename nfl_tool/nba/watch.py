@@ -72,3 +72,52 @@ def block(games: list, teams: dict, nba_abbr: dict, today: str, now: str, injury
     return {"day": today.replace("-", ""), "teams": team_ids, "nba": nba,
             "inj": digest(injury_rows(injury_body, set(team_ids))) if injury_body is not None else None,
             "lu": digest(lineup_rows(lineups_today, set(nba)))}
+
+
+# ---- waiting on the market (2026-10-28) ----
+# The owner, the night Luka was ruled out: the refresh ran within a minute of
+# the news, but the books hadn't moved yet (Reaves 23.5 on our page, 26.5 on
+# FanDuel minutes later), so the sim (up on him without Luka) read the stale
+# line as a big over. Data.json `market_watch` remembers, from build to build,
+# when each 20+ minute player was first seen Out and when each of tonight's
+# main lines was first seen at its number. A teammate's line taken before he
+# was ruled Out that hasn't moved since is held (not a play, not saved) for
+# HOLD_MINUTES; the timer re-runs the odds RECHECK_MINUTES after the news.
+STAR_MINUTES = 20  # an Out player who moves his teammates' lines (his minutes a game)
+HOLD_MINUTES = 40  # a line that still hasn't moved after this: the books have had their say
+RECHECK_MINUTES = (10, 25, 40)  # the odds again this long after a ruling, news or not
+
+
+def _minutes(a: str, b: str) -> float:
+    """b - a in minutes, both like "YYYY-MM-DDTHH:MMZ"."""
+    from datetime import datetime
+    f = "%Y-%m-%dT%H:%MZ"
+    return (datetime.strptime(b, f) - datetime.strptime(a, f)).total_seconds() / 60
+
+
+def market_watch(prev: dict | None, outs: dict, lines: dict, now: str) -> dict:
+    """outs = {pid: team} tonight's 20+ minute players Out; lines = {"game:market:pid": main line}.
+    Each keeps the time it was first seen (an Out on a new team, or a line at a new number, is new)."""
+    po, pl = (prev or {}).get("outs") or {}, (prev or {}).get("lines") or {}
+    return {"outs": {pid: {"team": team, "at": po[pid]["at"] if (po.get(pid) or {}).get("team") == team else now}
+                     for pid, team in outs.items()},
+            "lines": {k: [v, pl[k][1] if k in pl and pl[k][0] == v else now] for k, v in lines.items()}}
+
+
+def held_by(mw: dict, key: str, team: str, now: str) -> list:
+    """The Out teammates (pids) holding this line: ruled Out after the line was taken, under HOLD_MINUTES ago."""
+    line = (mw.get("lines") or {}).get(key)
+    if not line:
+        return []
+    return sorted(pid for pid, o in (mw.get("outs") or {}).items()
+                  if o["team"] == team and o["at"] > line[1] and _minutes(o["at"], now) < HOLD_MINUTES)
+
+
+def recheck(mw: dict, now: str) -> str | None:
+    """watch.recheck: the next time the timer re-runs the odds (RECHECK_MINUTES after a ruling), or None."""
+    from datetime import datetime, timedelta
+    f = "%Y-%m-%dT%H:%MZ"
+    due = [(datetime.strptime(o["at"], f) + timedelta(minutes=m)).strftime(f)
+           for o in (mw.get("outs") or {}).values() for m in RECHECK_MINUTES]
+    later = sorted(t for t in due if t > now)
+    return later[0] if later else None

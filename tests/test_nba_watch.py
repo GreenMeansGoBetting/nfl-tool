@@ -167,6 +167,49 @@ class Timer(unittest.TestCase):
         self.assertEqual(self.run_watch(lineups=None, watch_block=block(lineups=None))["pressed"], [])
 
 
+class WaitingOnMarket(unittest.TestCase):
+    """2026-10-28, Luka ruled out: the refresh ran before the books moved
+    (Reaves 23.5 here, 26.5 on FanDuel). A line taken before a 20+ minute
+    teammate was ruled Out that hasn't moved is held for HOLD_MINUTES, and
+    the timer runs the odds again RECHECK_MINUTES after the ruling."""
+
+    def test_a_stale_line_is_held_until_it_moves(self):
+        key = "401:points:reaves"
+        morning = watch.market_watch(None, {}, {key: 23.5}, "2026-10-28T14:00Z")
+        ruled = watch.market_watch(morning, {"luka": "LAL"}, {key: 23.5}, "2026-10-28T20:01Z")
+        self.assertEqual(watch.held_by(ruled, key, "LAL", "2026-10-28T20:01Z"), ["luka"])
+        self.assertEqual(watch.held_by(ruled, key, "MIN", "2026-10-28T20:01Z"), [])  # the other team's line isn't his
+        moved = watch.market_watch(ruled, {"luka": "LAL"}, {key: 26.5}, "2026-10-28T20:11Z")
+        self.assertEqual(moved["outs"]["luka"]["at"], "2026-10-28T20:01Z")  # the ruling keeps its time
+        self.assertEqual(watch.held_by(moved, key, "LAL", "2026-10-28T20:11Z"), [])  # the line caught up: a play again
+        still = watch.market_watch(ruled, {"luka": "LAL"}, {key: 23.5}, "2026-10-28T20:41Z")
+        self.assertEqual(watch.held_by(still, key, "LAL", "2026-10-28T20:41Z"), [])  # 40 minutes: the books have had their say
+
+    def test_the_first_build_holds_nothing(self):
+        # no memory yet (the first build of this, or of the day): the Out and the line are both "now"
+        first = watch.market_watch(None, {"luka": "LAL"}, {"401:points:reaves": 23.5}, "2026-10-28T20:01Z")
+        self.assertEqual(watch.held_by(first, "401:points:reaves", "LAL", "2026-10-28T20:01Z"), [])
+        # a line first posted after the ruling already has the news in it
+        later = watch.market_watch(first, {"luka": "LAL"}, {"401:points:reaves": 23.5, "401:points:lebron": 27.5}, "2026-10-28T20:06Z")
+        self.assertEqual(watch.held_by(later, "401:points:lebron", "LAL", "2026-10-28T20:06Z"), [])
+
+    def test_the_odds_again_after_a_ruling(self):
+        mw = watch.market_watch(None, {"luka": "LAL"}, {}, "2026-10-28T20:01Z")
+        self.assertEqual(watch.recheck(mw, "2026-10-28T20:01Z"), "2026-10-28T20:11Z")
+        self.assertEqual(watch.recheck(mw, "2026-10-28T20:11Z"), "2026-10-28T20:26Z")
+        self.assertEqual(watch.recheck(mw, "2026-10-28T20:26Z"), "2026-10-28T20:41Z")
+        self.assertIsNone(watch.recheck(mw, "2026-10-28T20:41Z"))
+        self.assertIsNone(watch.recheck({}, "2026-10-28T20:41Z"))
+
+    def test_the_timer_presses_a_due_recheck(self):
+        t = Timer()
+        done = [{"status": "completed", "created_at": "2026-10-25T18:00:00Z"}]
+        due = t.run_watch(refresh=done, watch_block={**block(), "rep_at": "2026-10-25T19:00Z", "recheck": "2026-10-25T19:10Z"})
+        self.assertEqual(due["pressed"], [["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "recheck"}}]])
+        early = t.run_watch(refresh=done, watch_block={**block(), "rep_at": "2026-10-25T19:00Z", "recheck": "2026-10-25T19:11Z"})
+        self.assertEqual(early, {"said": "nothing changed", "pressed": []})
+
+
 class Report(unittest.TestCase):
     """The NBA's report (2026-10-25): a newly posted one presses the refresh
     once, with source "report" (its first step reads the PDF)."""

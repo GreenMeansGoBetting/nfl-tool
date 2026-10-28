@@ -58,6 +58,9 @@ const isPast = (date) => !simDays().has(date);
 const pastOn = (date) => pastAll().filter((p) => p.date === date);
 const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date && sims()[g.game_id]);
 const playsOn = (date) => tagged("sim_plays").filter((p) => p.date === date && marketsOn().includes(p.mk));
+// `sim_held`: would-be plays whose line was taken before a 20+ minute teammate was ruled Out and hasn't
+// moved since (the owner, 2026-10-28, Luka out, Reaves still 23.5): grayed, Waiting On Market, not counted
+const heldOn = (date) => tagged("sim_held").filter((p) => p.date === date && marketsOn().includes(p.mk));
 const nameOf = (pid) => {
   const s = (PROPS.seasons || {})[String(DATA.season)];
   return (s && s.players[pid] && s.players[pid].name) || Object.values(sims()).map((g) => (g.players[pid] || {}).name).find(Boolean) || pid;
@@ -225,6 +228,7 @@ function listRows(date) {
   for (const mk of marketsOn()) {
     MK = mk;
     const plays = playsOn(date).filter((p) => p.mk === mk);
+    const helds = heldOn(date).filter((p) => p.mk === mk);
     for (const g of gamesOn(date)) {
       if (LIST.game && g.game_id !== LIST.game) continue;
       const sim = sims()[g.game_id];
@@ -232,7 +236,8 @@ function listRows(date) {
       for (const [pid, r] of Object.entries(sim.players)) {
         if (!r[MK.stat]) continue;
         const play = plays.find((p) => p.game === g.game_id && p.pid === pid);
-        const ml = play ? play.line : mainLine(g, pid);
+        const held = play || live ? null : helds.find((p) => p.game === g.game_id && p.pid === pid);
+        const ml = play ? play.line : held ? held.line : mainLine(g, pid);
         if (ml === null || r.min < 6) continue;
         const lad = r[MK.stat].lad.all;
         const sides = ["o", "u"].map((side) => {
@@ -240,12 +245,12 @@ function listRows(date) {
           const chance = sideChance(lad, side, ml);
           return { side, chance, price: best ? best.price : null, book: best ? best.book : null, edge: best ? chance - oddsProb(best.price) : null };
         });
-        const want = LIST.side === "best" ? (play ? play.side : null) : LIST.side;
+        const want = LIST.side === "best" ? ((play || held) ? (play || held).side : null) : LIST.side;
         const pick = want ? sides.find((s) => s.side === want) : sides.filter((s) => s.edge !== null).sort((a, b) => b.edge - a.edge)[0];
         if (!pick || pick.price === null) continue;
         const tm = r.team === "home" ? g.home : g.away;
         out.push({ mk, g, pid, r, team: tm, opp: tm === g.home ? g.away : g.home, home: tm === g.home, line: ml, ...pick, lad,
-          play: play && play.side === pick.side ? play : null, live, ladder: live ? null : ladderBest(g, pid, lad, pick.side, ml, pick.edge) });
+          play: play && play.side === pick.side ? play : null, held: held && held.side === pick.side ? held : null, live, ladder: live ? null : ladderBest(g, pid, lad, pick.side, ml, pick.edge) });
       }
     }
   }
@@ -442,6 +447,7 @@ function assistsTags(x) {
 const MARKET_TAGS = { points: pointsTags, threes: threesTags, rebounds: reboundsTags, assists: assistsTags };
 function tagsFor(x) {
   const tags = [];
+  if (x.held) tags.push(TAG("wait", "Waiting On Market", `${x.held.out.join(", ")} ruled Out after this line was posted, and it hasn't moved yet: not a play until it does (or 40 minutes pass)`, "wait"));
   if (x.ladder) tags.push(TAG("ladder", `Ladder ${chipText(x.side, x.ladder.line, false)} ${showOdds(x.ladder.price)} <span>${signed(x.ladder.edge * 100)}</span>`,
     `${playName({ side: x.side, line: x.ladder.line, main: false })} at ${showOdds(x.ladder.price)} (${BOOK_INITIALS[x.ladder.book] || x.ladder.book}): ${signed(x.ladder.edge * 100)} points of edge, more than his main line. Click the row for every rung.`, "lad", "Ladder"));
   const all = x.r[MK.stat].lad;
@@ -471,11 +477,12 @@ const SORTS = {
   tags: (x) => x.tags.length,
   market: (x) => -MARKETS.indexOf(x.mk),
 };
+const playRank = (x) => (x.play ? 2 : x.held ? 1 : 0); // the plays, then the ones waiting on the market, then the rest
 function sortedList(date) {
   const key = SORTS[LIST.sort] || SORTS.edge;
   return listRows(date)
-    .filter((x) => (LIST.every || x.play) && (!LIST.minEdge || (x.edge !== null && x.edge >= LIST.minEdge)) && (!LIST.tag || x.tags.some((t) => t.key === LIST.tag)))
-    .sort((a, b) => (a.live - b.live) || (LIST.every && LIST.sort === "edge" ? !!b.play - !!a.play : 0) || LIST.dir * ((key(a) ?? -99) - (key(b) ?? -99)));
+    .filter((x) => (LIST.every || x.play || x.held) && (!LIST.minEdge || (x.edge !== null && x.edge >= LIST.minEdge)) && (!LIST.tag || x.tags.some((t) => t.key === LIST.tag)))
+    .sort((a, b) => (a.live - b.live) || (!LIST.every ? !!a.held - !!b.held : 0) || (LIST.every && LIST.sort === "edge" ? playRank(b) - playRank(a) : 0) || LIST.dir * ((key(a) ?? -99) - (key(b) ?? -99)));
 }
 function renderToolbar(rows) {
   const menu = (key, label, options, tip) =>
@@ -535,7 +542,7 @@ function listRow(x, i, cols) {
     ? nbaCardSaveBox(nbaCardEntry(MK.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, x.side, x.line, [x.book, x.side, x.line, x.price]))
     : "";
   const f = fair(x.chance);
-  return `<tr class="sim-row${open ? " open" : ""}${x.live ? " live" : ""}" data-row="${key}">
+  return `<tr class="sim-row${open ? " open" : ""}${x.live ? " live" : ""}${x.held ? " held" : ""}" data-row="${key}">
     <td class="num sim-rank">${i + 1}</td>${playerCell(x.pid, x.team, x.opp, x.home)}${marketCell(x.mk)}
     <td class="sim-playc">${chip(x.side, x.line, x.price, x.book)}${x.live ? "" : save}</td>
     <td class="sim-tight">${ratingTag(x.play, x.live)}</td>
@@ -669,7 +676,8 @@ function renderList() {
   const rows = sortedList(date);
   const bar = Math.round(minEdge() * 100);
   const all = playsOn(date).length;
-  el("sim-list-note").innerHTML = `${all} play${all === 1 ? "" : "s"} tonight &middot; ${bar}+ points of edge on his main line, at the best price &middot; click a row for the model, the ladder and his shot chart`;
+  const waiting = heldOn(date).length;
+  el("sim-list-note").innerHTML = `${all} play${all === 1 ? "" : "s"} tonight${waiting ? ` &middot; ${waiting} waiting on the market` : ""} &middot; ${bar}+ points of edge on his main line, at the best price &middot; click a row for the model, the ladder and his shot chart`;
   const cols = COLS.length;
   if (!rows.length) {
     const noOdds = !Object.keys(DATA.book_odds || {}).length;
@@ -680,9 +688,11 @@ function renderList() {
     const prev = rows[i - 1];
     const liveHead = x.live && i > 0 && !prev.live
       ? `<tr class="sim-group"><td colspan="${cols}">Started: locked at tip, the price and the play the record grades.</td></tr>` : "";
-    const restHead = LIST.every && LIST.sort === "edge" && !x.play && (!prev || prev.play || prev.live !== x.live)
+    const heldHead = x.held && (!prev || !prev.held)
+      ? `<tr class="sim-group"><td colspan="${cols}">Waiting On Market: a teammate was ruled Out after these lines were posted, and they haven't moved yet.</td></tr>` : "";
+    const restHead = LIST.every && LIST.sort === "edge" && !x.play && !x.held && (!prev || prev.play || prev.held || prev.live !== x.live)
       ? `<tr class="sim-group"><td colspan="${cols}">Not plays: under ${bar} points of edge on his main line, or not enough games or minutes yet.</td></tr>` : "";
-    return liveHead + restHead + listRow(x, i, cols);
+    return liveHead + heldHead + restHead + listRow(x, i, cols);
   }).join("");
   el("sim-list").innerHTML = `<div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list">${listHead(COLS)}<tbody>${body}</tbody></table></div></div>`;
   fitTags();
