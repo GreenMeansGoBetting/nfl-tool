@@ -981,6 +981,8 @@ PRICE_RANGE = (-250, 400)  # past +400 a rung's chance rests on a few hundred si
 MIN_GAMES = 2              # games this season before his numbers can make a play (3 left no one on 2026-10-24:
                            # every team had played 2; his rates already lean on his position's league numbers)
 MIN_MINUTES = 18           # minutes the sim gives him
+MIN_BOOKS = 2              # books hanging that side at that line (the owner, 2026-10-28: plays were riding
+                           # a stale bet365 line no other book had; "at least two ... have it listed")
 
 
 def implied(price) -> float:
@@ -1028,9 +1030,15 @@ def player_best(row: dict, stat_key: str, quotes: list, main_line) -> dict | Non
     lad = row[stat_key]["lad"]
     if "all" not in lad:
         return None
+    books = {}
+    for q in quotes:
+        if q[2] is not None and q[3] is not None:
+            books.setdefault((q[1], float(q[2])), set()).add(q[0])
     best = None
     for (side_, line), (price, book) in best_prices(quotes).items():
         if main_line is None or line != float(main_line) or not PRICE_RANGE[0] <= price <= PRICE_RANGE[1]:
+            continue
+        if len(books.get((side_, line), ())) < MIN_BOOKS:
             continue
         chance = side_chance(lad["all"], side_, line)
         edge = chance - implied(price)
