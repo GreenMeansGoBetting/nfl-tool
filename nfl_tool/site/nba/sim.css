@@ -189,6 +189,11 @@ html:not(.is-owner):not(.local-dev) .sim-markout { display: none; }
 .sim-rate { display: inline-block; font: 800 0.66rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; color: var(--good-text); background: rgba(var(--good-rgb), 0.1); border: 1px solid rgba(var(--good-rgb), 0.4); }
 /* Best Plays' Market cell (the Rating pill's shape, neutral: it says which page, not how good) */
 .sim-mkt { display: inline-block; font: 800 0.66rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; color: var(--text); background: var(--panel-2); border: 1px solid var(--border-strong); }
+/* Best Plays: each market its own blue / purple shade (the owner, 2026-10-28; no green / red / yellow: those mean over / under / edge here) */
+.sim-mkt-points { background: hsla(205, 85%, 52%, 0.2); border-color: hsla(205, 85%, 55%, 0.75); }
+.sim-mkt-threes { background: hsla(232, 80%, 62%, 0.22); border-color: hsla(232, 80%, 64%, 0.8); }
+.sim-mkt-rebounds { background: hsla(268, 70%, 60%, 0.22); border-color: hsla(268, 70%, 62%, 0.8); }
+.sim-mkt-assists { background: hsla(295, 60%, 55%, 0.2); border-color: hsla(295, 60%, 58%, 0.75); }
 .sim-list td.sim-edgec { font: 800 1.05rem var(--font-display); }
 .sim-list td.num b { font: 800 1.05rem var(--font-display); }
 .sim-list tr.sim-group td { background: var(--panel-2); color: var(--muted); font-size: 0.76rem; font-weight: 700; text-align: left; padding: 6px 10px; white-space: normal; }
