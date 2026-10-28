@@ -168,26 +168,23 @@ function sideCell(abbr, side, r, opts = {}) {
   const shown = side === "def" && DEF_SHOW[key] ? DEF_SHOW[key](v) : v;
   const words = ROW_HOVER[key] ? ROW_HOVER[key][side === "off" ? 0 : 1] : label;
   const r0 = rankIn(idTeams(), k, v, hi);
-  return { r: r0, n, num: FORMATS[kind](shown), title: `${abbr} ${side === "off" ? "Offense" : "Defense"}${opts.when ? ` (${opts.when})` : ""}: ${words}, ${FORMATS[kind](shown)}${r0 ? ` (${ordinal(r0)} of ${n})` : ""}`, abbr: opts.abbr ? abbr : null };
+  return { r: r0, n, num: FORMATS[kind](shown), title: `${abbr} ${side === "off" ? "Offense" : "Defense"}${opts.when ? ` (${opts.when})` : ""}: ${words}, ${FORMATS[kind](shown)}${r0 ? ` (${ordinal(r0)} of ${n})` : ""}` };
 }
 
 // ---- tonight's types (Matchup Extremes, extremes.js) ----
 // A type row: the side that IS the type gets its rank in that trait; the other
 // side gets its split against teams like that (points vs normal, minus the
-// league's), ranked among teams with EX_MIN_GP+ games against the type. Under
-// that many games the row isn't shown.
+// league's), ranked among every team that has faced the type (2026-10-28: ranked
+// among only the few with 3+ games, MIL's +7.2 allowed read "2nd"). The row
+// shows once that team has EX_MIN_GP+ games against the type.
 function splitCell(ex, abbr, t) {
   const c = exCell(ex, abbr, t, EX_OUTCOMES[0]);
   if (!c) return null;
   const n = ((ex.teams[abbr] || {})[t.key] || {}).n || 0;
   const sign = t.side === "off" ? -1 : 1; // facing an offense type, fewer allowed is good
-  const all = Object.keys(ex.teams)
-    .map((x) => [x, exCell(ex, x, t, EX_OUTCOMES[0]), ((ex.teams[x] || {})[t.key] || {}).n || 0])
-    .filter(([, cc, nn]) => cc && nn >= EX_MIN_GP)
-    .map(([x, cc]) => [x, cc.gap * sign]);
+  const all = Object.keys(ex.teams).map((x) => exCell(ex, x, t, EX_OUTCOMES[0])).filter(Boolean).map((cc) => cc.gap * sign);
   const mine = c.gap * sign;
-  const r = n >= EX_MIN_GP ? 1 + all.filter(([, g]) => g > mine).length : null;
-  return { r, n: all.length, num: n >= EX_MIN_GP ? `${signed(c.gap)} Pts` : `${n} GP`, title: c.title, faded: n < EX_MIN_GP, call: c.far ? { kind: "edge", team: c.good > 0 ? abbr : null, size: Math.abs(c.gap) / 6 } : null };
+  return { r: 1 + all.filter((v) => v > mine).length, n: all.length, num: `${signed(c.gap)} Pts`, title: c.title, faded: n < EX_MIN_GP, call: c.far ? { kind: "edge", team: c.good > 0 ? abbr : null, size: Math.abs(c.gap) / 6 } : null };
 }
 function traitCell(t, abbr) {
   const i = (t.order || []).indexOf(abbr);
@@ -209,27 +206,30 @@ function typePair(ex, t, off, de) {
   return null;
 }
 
+// A column head: the team's logo and "HOU Off" (the owner: no "Has The Ball" / "Call" heads).
+const colHead = (abbr, what) => `<th class="mb-colhead">${logo(abbr, 18)} ${abbr}${what ? ` ${what}` : ""}</th>`;
+// Labels sit at the far right of every table, never between the teams (the owner, 2026-10-28).
+const labelTd = (text) => `<td class="mb-stat">${text}</td>`;
+
 // ---- The Matchup: every row, both directions side by side ----
-// Returns {html, edges: [{team, size, label, o, d}]}.
+// [away off][home def][call] | [home off][away def][call] [label].
+// Returns {html, edges: [{team, side, size, label, o, d}]}.
 function matchup(g) {
   const a = g.away;
   const h = g.home;
   const edges = [];
-  const rowHtml = (label, A, H, cls = "") => {
-    const cA = A && A.call;
-    const cH = H && H.call;
-    return `<tr class="${cls}${cA || cH ? " mb-called" : ""}">
-      <td class="mb-call mb-ca">${callPill(cA)}</td>${cellTd(A && A.o, " mb-pa")}${cellTd(A && A.d, " mb-pa mb-pa-in")}
-      <td class="mb-stat">${label}</td>
-      ${cellTd(H && H.o, " mb-ph mb-ph-in")}${cellTd(H && H.d, " mb-ph")}<td class="mb-call mb-ch">${callPill(cH)}</td></tr>`;
-  };
+  const COLS = 8;
+  const rowHtml = (label, A, H) => `<tr${(A && A.call) || (H && H.call) ? ' class="mb-called"' : ""}>
+      ${cellTd(A && A.o)}${cellTd(A && A.d)}<td class="mb-call">${callPill(A && A.call)}</td><td class="mb-gap"></td>
+      ${cellTd(H && H.o)}${cellTd(H && H.d)}<td class="mb-call">${callPill(H && H.call)}</td>${labelTd(label)}</tr>`;
   const note = (label, P, off, de) => {
-    if (P && P.call && P.call.kind === "edge") edges.push({ team: P.call.team, side: P.call.team === off ? "off" : "def", size: P.call.size, label, o: { ...P.o, abbr: off }, d: { ...P.d, abbr: de } });
+    if (P && P.call && P.call.kind === "edge") edges.push({ team: P.call.team, side: P.call.team === off ? "off" : "def", size: P.call.size, label, o: P.o, d: P.d });
   };
+  const grp = (t) => `<tr class="mb-group"><td colspan="${COLS}">${t}</td></tr>`;
   let body = "";
-  for (const grp of M_GROUPS) {
-    body += `<tr class="mb-group"><td colspan="7">${grp}</td></tr>`;
-    for (const r of M_ROWS.filter((x) => x[4] === grp)) {
+  for (const name of M_GROUPS) {
+    body += grp(name);
+    for (const r of M_ROWS.filter((x) => x[4] === name)) {
       const pair = (off, de) => {
         const o = sideCell(off, "off", r);
         const d = sideCell(de, "def", r);
@@ -246,7 +246,7 @@ function matchup(g) {
   if (ex) {
     const rows = ex.types.map((t) => [t, typePair(ex, t, a, h), typePair(ex, t, h, a)]).filter(([, A, H]) => A || H);
     if (rows.length) {
-      body += `<tr class="mb-group"><td colspan="7">Vs Tonight's Types <span class="mb-group-note">Their rank in the type, and the other team's points vs normal against teams like them</span></td></tr>`;
+      body += grp("Vs Tonight's Types");
       for (const [t, A, H] of rows) {
         note(`Vs ${t.label}`, A, a, h);
         note(`Vs ${t.label}`, H, h, a);
@@ -254,54 +254,76 @@ function matchup(g) {
       }
     }
   }
-  const head = `<thead><tr class="mb-pairs">
-      <th colspan="3" style="background:rgba(${teamRgb(a)},0.22);border-left:4px solid rgb(${teamRgb(a)})">${logo(a, 20)} ${a} Has The Ball</th><th class="mb-gap"></th>
-      <th colspan="3" style="background:rgba(${teamRgb(h)},0.22);border-right:4px solid rgb(${teamRgb(h)})">${h} Has The Ball ${logo(h, 20)}</th></tr>
-    <tr class="mb-cols"><th>Call</th><th>${a} Off</th><th>${h} Def</th><th></th><th>${h} Off</th><th>${a} Def</th><th>Call</th></tr></thead>`;
+  const head = `<thead><tr>${colHead(a, "Off")}${colHead(h, "Def")}<th></th><th class="mb-gap"></th>${colHead(h, "Off")}${colHead(a, "Def")}<th></th><th></th></tr></thead>`;
   return { html: `<div class="mb-scroll"><table class="mb-table mb-matchup">${head}<tbody>${body}</tbody></table></div>`, edges };
 }
 
-const sideTag = (side) => `<span class="mb-side">${side === "off" ? "Off" : "Def"}</span>`;
-
-// ---- Biggest Edges: each team's top 3, as a chart (the owner: a count of 8 vs 1 hid sizes) ----
+// ---- Biggest Edges: each team's biggest, as a chart (the owner: a count of 8 vs 1 hid sizes) ----
+// Split into the team's Offense and its Defense, its own cell first (the owner:
+// one list mixing both was confusing).
 const EDGES_SHOWN = 3;
 function edgesBox(g, edges) {
-  const side = (t) => {
-    const mine = edges.filter((e) => e.team === t).sort((x, y) => y.size - x.size).slice(0, EDGES_SHOWN);
-    const rows = mine.map((e) => `<tr><td class="mb-stat mb-left">${sideTag(e.side)}${e.label}</td>${cellTd(e.o)}${cellTd(e.d)}<td class="mb-call">${callPill({ kind: "edge", team: t, size: e.size })}</td></tr>`).join("");
-    return `<div class="nba-box">${banner(t, `${team(t).name} Edges`)}
-      <table class="mb-table mb-edges"><thead><tr><th></th><th>Offense</th><th>Defense</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="mb-none">No Clear Edges</td></tr>'}</tbody></table></div>`;
+  const box = (t) => {
+    const opp = t === g.away ? g.home : g.away;
+    const part = (side) => {
+      const mine = edges.filter((e) => e.team === t && e.side === side).sort((x, y) => y.size - x.size).slice(0, EDGES_SHOWN);
+      if (!mine.length) return "";
+      const head = side === "off" ? colHead(t, "Off") + colHead(opp, "Def") : colHead(t, "Def") + colHead(opp, "Off");
+      const rows = mine.map((e) => {
+        const [own, other] = side === "off" ? [e.o, e.d] : [e.d, e.o];
+        return `<tr>${cellTd(own)}${cellTd(other)}<td class="mb-call">${callPill({ kind: "edge", team: t, size: e.size })}</td>${labelTd(e.label)}</tr>`;
+      }).join("");
+      return `<tr class="mb-group"><td colspan="4">${t} ${side === "off" ? "Offense" : "Defense"}</td></tr><tr class="mb-heads">${head}<th></th><th></th></tr>${rows}`;
+    };
+    const body = part("off") + part("def");
+    return `<div class="nba-box mb-fitbox">${banner(t, `${team(t).name} Edges`)}
+      ${body ? `<table class="mb-table mb-edges"><tbody>${body}</tbody></table>` : '<p class="mb-none">No Clear Edges</p>'}</div>`;
   };
-  return side(g.away) + side(g.home);
+  return box(g.away) + box(g.home);
 }
 
-// ---- How They Win / How They Lose: the numbers that move most between wins and losses ----
-const WL_SHOWN = 3;
+// ---- How They Win / How They Lose (reworked 2026-10-28, the owner: the Off / Def
+// pills and a different 3 rows per team were hard to decode) ----
+// The same rows for every team in plain words, its wins beside its losses; each
+// cell ranked where it would sit among the 30 teams' season numbers. The 3 rows
+// that swing most between wins and losses are marked.
+const WL_ROWS = [
+  ["Points Scored / Poss", "off", "ppp"],
+  ["Points Allowed / Poss", "def", "ppp"],
+  ["Pace", "off", "pace"],
+  ["3-Point Share", "off", "three_rate"],
+  ["3-Point Share Allowed", "def", "three_rate"],
+  ["Turnovers Committed", "off", "tov_rate"],
+  ["Turnovers Forced", "def", "tov_rate"],
+  ["Off Rebound %", "off", "oreb_rate"],
+  ["Def Rebound %", "def", "oreb_rate"],
+  ["Free Throws / Shot", "off", "fta_rate"],
+  ["Paint FG%", "off", "paint_pct"],
+  ["Paint FG% Allowed", "def", "paint_pct"],
+];
+const WL_SWINGS = 3;
 function winLossBox(abbr) {
   const wl = ((block() || {}).wl || {})[abbr];
-  if (!wl) return `<div class="nba-box">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
-  const head = banner(abbr, `How ${team(abbr).short || abbr} Wins / Loses`, `${wl.nw}-${wl.nl}`);
-  if (!wl.nw || !wl.nl) return `<div class="nba-box">${head}<p class="mb-none">${wl.nw ? "No Losses Yet" : "No Wins Yet"}</p></div>`;
+  if (!wl) return `<div class="nba-box mb-fitbox">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
   const lg = (block() || {}).league || {};
-  const cands = [];
-  for (const r of M_ROWS) {
-    for (const side of ["off", "def"]) {
-      const k = `${side}_${r[0]}`;
-      const w = wl.w[k];
-      const l = wl.l[k];
-      if (w === null || w === undefined || l === null || l === undefined || !lg[k]) continue;
-      cands.push({ r, side, gap: Math.abs(w - l) / (lg[k].sd || 1), w, l });
-    }
-  }
-  cands.sort((x, y) => y.gap - x.gap);
-  const rows = cands.slice(0, WL_SHOWN).map((c) => {
-    return `<tr><td class="mb-stat mb-left">${sideTag(c.side)}${c.r[1]}</td>${cellTd(sideCell(abbr, c.side, c.r, { value: c.w, when: "in wins" }))}${cellTd(sideCell(abbr, c.side, c.r, { value: c.l, when: "in losses" }))}</tr>`;
-  }).join("");
-  return `<div class="nba-box">${head}
-    <table class="mb-table mb-wl"><thead><tr><th></th><th>In Wins (${wl.nw})</th><th>In Losses (${wl.nl})</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const has = (v) => v !== null && v !== undefined;
+  const rows = WL_ROWS.map(([label, side, key]) => {
+    const r = M_ROWS.find((x) => x[0] === key);
+    const k = `${side}_${key}`;
+    const w = (wl.w || {})[k];
+    const l = (wl.l || {})[k];
+    const gap = has(w) && has(l) && lg[k] ? Math.abs(w - l) / (lg[k].sd || 1) : -1;
+    return { label, gap, w: has(w) ? sideCell(abbr, side, r, { value: w, when: "in wins" }) : null, l: has(l) ? sideCell(abbr, side, r, { value: l, when: "in losses" }) : null };
+  });
+  const swings = new Set(rows.filter((x) => x.gap >= 0).sort((x, y) => y.gap - x.gap).slice(0, WL_SWINGS).map((x) => x.label));
+  const body = rows.map((x) => `<tr${swings.has(x.label) ? ' class="mb-swing"' : ""}>${cellTd(x.w)}${cellTd(x.l)}${labelTd(x.label)}</tr>`).join("");
+  const wHead = wl.nw ? `In Wins (${wl.nw})` : "No Wins Yet";
+  const lHead = wl.nl ? `In Losses (${wl.nl})` : "No Losses Yet";
+  return `<div class="nba-box mb-fitbox">${banner(abbr, team(abbr).name, `${wl.nw}-${wl.nl}`)}
+    <table class="mb-table mb-wl"><thead><tr><th>${wHead}</th><th>${lHead}</th><th></th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-// ---- Head To Head: both teams' basics mirrored, then quarters, blowouts and tonight's spots ----
+// ---- Head To Head: both teams side by side, labels on the right ----
 function headToHead(g) {
   const a = g.away;
   const h = g.home;
@@ -310,7 +332,7 @@ function headToHead(g) {
   const sa = ts[a];
   const sh = ts[h];
   const rec = (s) => {
-    if (!s) return null;
+    if (!s) return '<td class="mb-v mb-empty"></td>';
     const [w, l] = String(s).split("-").map(Number);
     const share = w + l ? w / (w + l) : 0.5;
     return `<td class="mb-v mb-rec" style="background:${scaleHsla(Math.round(share * 120), 70, 45, 0.32)}"><b>${s}</b></td>`;
@@ -321,15 +343,15 @@ function headToHead(g) {
     const r = rankIn(ts, key, s[key], hi);
     return { r, n, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${n})` };
   };
-  const idCell = (abbr, key, hi, show, plain) => {
+  const idCell = (abbr, key, hi, show) => {
     const s = idStats(abbr);
     if (!s || s[key] === null || s[key] === undefined) return null;
     const r = rankIn(idTeams(), key, s[key], hi);
     const nn = teamsOf(idTeams());
-    return { r, n: nn, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${nn})`, plain };
+    return { r, n: nn, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${nn})` };
   };
-  const raw = (A, H, label) => `<tr>${A || '<td class="mb-v mb-empty"></td>'}<td class="mb-stat">${label}</td>${H || '<td class="mb-v mb-empty"></td>'}</tr>`;
-  const both = (label, f) => `<tr>${cellTd(f(a))}<td class="mb-stat">${label}</td>${cellTd(f(h))}</tr>`;
+  const raw = (A, H, label) => `<tr>${A}${H}${labelTd(label)}</tr>`;
+  const both = (label, f) => `<tr>${cellTd(f(a))}${cellTd(f(h))}${labelTd(label)}</tr>`;
   const grp = (t) => `<tr class="mb-group"><td colspan="3">${t}</td></tr>`;
   const pts = (v) => `${v.toFixed(1)}`;
   const pctS = (v) => `${Math.round(v * 100)}%`;
@@ -346,22 +368,23 @@ function headToHead(g) {
     body += raw(rec(sa && sa.last10), rec(sh && sh.last10), "Last 10");
   }
   if (idStats(a) || idStats(h)) {
-    body += grp("Points Per Quarter <span class=\"mb-group-note\">Margin a game</span>");
-    for (const q of [1, 2, 3, 4]) body += both(`Q${q}`, (t) => idCell(t, `q${q}_ppq`, true, (v) => signed(v)));
-    body += grp("Blowout Data <span class=\"mb-group-note\">4th quarter</span>");
+    body += grp("Points Per Quarter");
+    for (const q of [1, 2, 3, 4]) body += both(`Q${q} Margin`, (t) => idCell(t, `q${q}_ppq`, true, (v) => signed(v)));
+    body += grp("Blowout Data");
     body += both("Games Up 15+", (t) => idCell(t, "blowout_up_share", true, pctS));
     body += both("Games Down 15+", (t) => idCell(t, "blowout_down_share", false, pctS));
-    body += both("Starters In: Up 15+", (t) => idCell(t, "blowout_up_starters", true, of5, true));
-    body += both("Starters In: Down 15+", (t) => idCell(t, "blowout_down_starters", true, of5, true));
-    body += both("Starters In: Within 5", (t) => idCell(t, "close_starters", true, of5, true));
+    // starters still on the floor in the 4th: more = 1st (green), the how-often rule
+    body += both("Starters In: Up 15+", (t) => idCell(t, "blowout_up_starters", true, of5));
+    body += both("Starters In: Down 15+", (t) => idCell(t, "blowout_down_starters", true, of5));
+    body += both("Starters In: Within 5", (t) => idCell(t, "close_starters", true, of5));
   }
   body += spotRows(g);
-  return `<div class="nba-box mb-h2h">
-    <table class="mb-table mb-mirror"><thead><tr><th>${logo(a, 20)} ${a}</th><th></th><th>${h} ${logo(h, 20)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<div class="nba-box mb-fitbox mb-h2h">
+    <table class="mb-table mb-mirror"><thead><tr>${colHead(a, "")}${colHead(h, "")}<th></th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 // Tonight's Schedule Spots (back-to-back, long road trip...): the team's net points
-// a game vs its normal in that spot, minus the league's, ranked among teams with
-// EX_MIN_GP+ games in it; fewer games than that and the spot isn't shown.
+// a game vs its normal in that spot, minus the league's, ranked among every team
+// that has been in it; shown once the team has EX_MIN_GP+ games in it.
 function spotRows(g) {
   const spots = (block() || {}).spots;
   if (!spots) return "";
@@ -377,61 +400,72 @@ function spotRows(g) {
     const n = ((spots.teams[abbr] || {})[t.key] || {}).n || 0;
     const mine = net(abbr, t);
     if (!mine || n < EX_MIN_GP) return null; // a thin spot is one odd night
-
-    const all = Object.keys(spots.teams).filter((x) => (((spots.teams[x] || {})[t.key] || {}).n || 0) >= EX_MIN_GP).map((x) => net(x, t)).filter(Boolean).map((x) => x.v);
+    const all = Object.keys(spots.teams).map((x) => net(x, t)).filter(Boolean).map((x) => x.v);
     return { r: 1 + all.filter((v) => v > mine.v).length, n: all.length, num: `${signed(mine.v)} Net`, title: mine.title };
   };
   const rows = spots.types.filter((t) => keys.includes(t.key)).map((t) => [t, cell(g.away, t), cell(g.home, t)]).filter(([, A, H]) => A || H)
-    .map(([t, A, H]) => `<tr>${cellTd(A)}<td class="mb-stat">${t.label}</td>${cellTd(H)}</tr>`).join("");
-  return rows ? `<tr class="mb-group"><td colspan="3">Tonight's Spots <span class="mb-group-note">Net pts vs normal</span></td></tr>${rows}` : "";
+    .map(([t, A, H]) => `<tr>${cellTd(A)}${cellTd(H)}${labelTd(t.label)}</tr>`).join("");
+  return rows ? `<tr class="mb-group"><td colspan="3">Tonight's Spots</td></tr>${rows}` : "";
 }
 
-// ---- The Line and Injuries (top row) ----
+// ---- The Line and Injuries (top) ----
 function lineBox(g) {
   const hs = g.home_team_spread;
   const total = g.total_line;
   const has = hs !== null && hs !== undefined;
   const fav = has ? (hs <= 0 ? g.home : g.away) : null;
   const tile = (label, body) => `<div class="mb-tile"><span class="gs-tile-label">${label}</span><b>${body}</b></div>`;
-  const pair = (x, y) => `<span class="mb-pair">${x}</span><span class="mb-pair">${y}</span>`;
-  const ml = (abbr, price, prob) => `${logo(abbr, 18)} ${odds(price) || "--"}${prob ? ` <small>${Math.round(prob * 100)}%</small>` : ""}`;
+  const side = (abbr, text, small) => `<span class="mb-pair">${logo(abbr, 22)}${text}${small ? `<small>${small}</small>` : ""}</span>`;
+  const ml = (abbr, price, prob) => side(abbr, odds(price) || "--", prob ? `${Math.round(prob * 100)}%` : "");
   const body = has || total
     ? `<div class="mb-line">
-        ${tile("Spread", fav ? `${logo(fav, 20)} ${signed(fav === g.home ? hs : g.away_team_spread)}` : "--")}
+        ${tile("Spread", fav ? side(fav, signed(fav === g.home ? hs : g.away_team_spread)) : "--")}
         ${tile("Total", total ? fmt(total).replace(/\.0$/, "") : "--")}
-        ${tile("Market Score", has && total ? pair(`${logo(g.away, 18)} ${fmt((total + hs) / 2)}`, `${logo(g.home, 18)} ${fmt((total - hs) / 2)}`) : "--")}
-        ${tile("Win Chance", pair(ml(g.away, g.away_moneyline, g.away_ml_implied_prob), ml(g.home, g.home_moneyline, g.home_ml_implied_prob)))}
+        ${tile("Market Score", has && total ? side(g.away, fmt((total + hs) / 2)) + side(g.home, fmt((total - hs) / 2)) : "--")}
+        ${tile("Win Chance", ml(g.away, g.away_moneyline, g.away_ml_implied_prob) + ml(g.home, g.home_moneyline, g.home_ml_implied_prob))}
       </div>${g.lines_locked ? `<p class="section-note">Locked at tip-off.</p>` : ""}`
     : `<p class="no-data-note">No line posted yet.</p>`;
-  return `<div class="nba-box mb-linebox"><div class="nba-box-title">The Line</div>${body}</div>`;
+  return `<div class="nba-box mb-fitbox"><div class="nba-box-title">The Line</div>${body}</div>`;
 }
 function injuriesBox(g) {
   const list = (abbr) => {
     const rows = (DATA.injuries[abbr] || [])
       .map((p) => `<div class="mb-inj" title="${esc([p.injury, p.note].filter(Boolean).join(": "))}"><span class="gs-inj-status ${p.status === "Out" ? "tier-bad" : "tier-mid"}">${p.status === "Out" ? "Out" : "DTD"}</span><b>${playerClick(p.id, p.name)}</b><small>${p.position || ""}</small></div>`)
       .join("");
-    return `<div class="mb-inj-col"><div class="mb-inj-head">${logo(abbr, 18)} ${abbr}</div>${rows || '<span class="mb-none">Nobody Listed</span>'}</div>`;
+    return `<div class="mb-inj-col"><div class="mb-inj-head">${logo(abbr, 18)} ${abbr}</div>${rows || '<span class="mb-inj-none">Nobody Listed</span>'}</div>`;
   };
-  return `<div class="nba-box"><div class="nba-box-title">Injuries</div><div class="mb-injs">${list(g.away)}${list(g.home)}</div></div>`;
+  return `<div class="nba-box mb-fitbox"><div class="nba-box-title">Injuries</div><div class="mb-injs">${list(g.away)}${list(g.home)}</div></div>`;
 }
 
-// ---- Rotations and Recent Games (bottom) ----
+// ---- Rotations and Recent Games ----
+// Each stat cell shaded by its rank on his own team (the owner: "Color code the
+// cells though by team rank and make each sortable"); a column head sorts that
+// team's table, biggest first (again = the other way).
+const ROT_COLS = [["games", "GP", 0], ["min", "Min", 1], ["pts", "Pts", 1], ["reb", "Reb", 1], ["ast", "Ast", 1], ["threes", "3PM", 1], ["l5_pts", "L5 Pts", 1]];
+const rotSort = {}; // team -> [key, -1 biggest first / 1 smallest first]
 function renderPlayers(g) {
   const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((p) => p.status === "Out").map((p) => p.id));
   const table = (abbr) => {
     const injured = out(abbr);
-    const rows = ((DATA.players || {})[abbr] || [])
-      .map((p) => {
-        const trend = p.l5_pts !== null && p.pts !== null ? p.l5_pts - p.pts : 0;
-        return `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>
+    const players = ((DATA.players || {})[abbr] || []).slice();
+    const [sk, dir] = rotSort[abbr] || [null, -1];
+    if (sk) players.sort((x, y) => -dir * ((y[sk] ?? -1) - (x[sk] ?? -1)));
+    const shade = (p, key) => {
+      const vals = players.map((x) => x[key]).filter((v) => v !== null && v !== undefined);
+      const v = p[key];
+      if (v === null || v === undefined || vals.length < 2) return "";
+      const r = 1 + vals.filter((x) => x > v).length;
+      return ` style="background:${scaleHsla(Math.round((120 * (vals.length - r)) / (vals.length - 1)), 70, 45, 0.28)}"`;
+    };
+    const rows = players
+      .map((p) => `<tr${injured.has(p.id) ? ' class="nba-out-row"' : ""}>
           <td class="nba-player">${p.headshot ? `<img src="${p.headshot}" alt="" class="nba-headshot" loading="lazy">` : `<span class="nba-headshot"></span>`}<span>${playerClick(p.id, p.name)}</span><span class="muted-label">${p.position || ""}</span>${injured.has(p.id) ? `<span class="gs-inj-status tier-bad">Out</span>` : ""}</td>
-          <td class="num">${p.games}</td><td class="num">${fmt(p.min)}</td><td class="num"><b>${fmt(p.pts)}</b></td><td class="num">${fmt(p.reb)}</td><td class="num">${fmt(p.ast)}</td><td class="num">${fmt(p.threes)}</td>
-          <td class="num ${trend >= 2 ? "tier-good" : trend <= -2 ? "tier-bad" : ""}">${fmt(p.l5_pts)}</td>
-        </tr>`;
-      })
+          ${ROT_COLS.map(([key, , digits]) => `<td class="num mb-rot"${shade(p, key)}>${digits ? fmt(p[key]) : p[key] ?? ""}</td>`).join("")}
+        </tr>`)
       .join("");
-    return `<div class="nba-box">${banner(abbr)}
-      <table class="data-table nba-player-table mb-fit"><thead><tr><th>Player</th><th>GP</th><th>Min</th><th>Pts</th><th>Reb</th><th>Ast</th><th>3PM</th><th title="Points per game, last five games">L5 Pts</th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="no-data-note">No players on file.</td></tr>`}</tbody></table>
+    const th = ROT_COLS.map(([key, label]) => `<th class="mb-sort${sk === key ? " mb-sorted" : ""}" data-team="${abbr}" data-sort="${key}"${key === "l5_pts" ? ' title="Points per game, last five games"' : ""}>${label}${sk === key ? (dir < 0 ? " ▼" : " ▲") : ""}</th>`).join("");
+    return `<div class="nba-box mb-fitbox">${banner(abbr, `${team(abbr).name} Rotation`)}
+      <table class="data-table nba-player-table mb-fit"><thead><tr><th>Player</th>${th}</tr></thead><tbody>${rows || `<tr><td colspan="8" class="no-data-note">No players on file.</td></tr>`}</tbody></table>
     </div>`;
   };
   el("players-content").innerHTML = table(g.away) + table(g.home);
@@ -453,7 +487,7 @@ function renderRecent(g) {
         return `<tr><td>${new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${r.win ? "win" : "loss"}">${r.win ? "W" : "L"}</span></td><td class="num">${r.pf}-${r.pa}</td>${ats}${tot}<td class="num">${fmt(r.pace, 0)}</td></tr>`;
       })
       .join("");
-    return `<div class="nba-box">${banner(abbr)}
+    return `<div class="nba-box mb-fitbox">${banner(abbr, `${team(abbr).name} Recent`)}
       <table class="data-table mb-fit mb-recent"><thead><tr><th>Date</th><th>Opp</th><th></th><th>Score</th><th title="The line at tip: green = covered">Spread</th><th title="The total at tip: green = over">Total</th><th title="Possessions in the game">Pace</th></tr></thead><tbody>${rows || `<tr><td colspan="7" class="no-data-note">No games on file.</td></tr>`}</tbody></table>
     </div>`;
   };
@@ -497,7 +531,7 @@ function renderHeader(g) {
     <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${games ? ` &middot; ${DATA.season_label}: ${games} game${games === 1 ? "" : "s"} a team so far` : ""}</div>`;
 }
 
-const SECTIONS = ["top", "edges", "story", "duo", "players", "recent"];
+const SECTIONS = ["top", "edges", "story", "h2h", "matchup", "players"];
 function render() {
   renderSchedule();
   const g = currentGame();
@@ -539,6 +573,14 @@ document.addEventListener("click", (e) => {
   if (card) return selectGame(card.dataset.game);
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
+  const sort = e.target.closest("th.mb-sort");
+  if (sort) {
+    const [key, dir] = rotSort[sort.dataset.team] || [];
+    rotSort[sort.dataset.team] = [sort.dataset.sort, key === sort.dataset.sort ? -dir : -1];
+    const g = currentGame();
+    if (g) renderPlayers(g);
+    return;
+  }
   const theme = e.target.closest("#theme-toggle");
   if (theme) {
     const light = document.documentElement.dataset.theme !== "light";

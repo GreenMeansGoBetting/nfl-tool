@@ -46,44 +46,40 @@
 
     <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
 
-    <div id="section-top" class="section-wrap" hidden>
-      <div id="top-content" class="mb-top"></div>
-    </div>
-
-    <div id="section-edges" class="section-wrap" hidden>
-      <h2 class="section-title">Biggest Edges <button type="button" class="info-i" aria-expanded="false" aria-controls="edges-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="edges-note" hidden>Each team's <b>3 biggest edges</b> from The Matchup below, biggest first. <b>Offense</b> = the team with the ball, <b>Defense</b> = the team guarding it, each as a <b>rank of 30</b> (1st = best) with its number small. <b>Big Edge</b> = the two sides together sit a full league spread toward that team.</p>
-      <div id="edges-content" class="nba-two"></div>
-    </div>
-
-    <div id="section-story" class="section-wrap" hidden>
-      <h2 class="section-title">How They Win / How They Lose <button type="button" class="info-i" aria-expanded="false" aria-controls="wl-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="wl-note" hidden>The <b>3 numbers that change most</b> between each team's wins and its losses this season. Each is ranked where it would sit among all 30 teams' season numbers, so <b>green in wins and red in losses</b> = the thing that decides its games. Small samples this early.</p>
-      <div id="wl-content" class="nba-two"></div>
-    </div>
-
-    <div id="section-duo" class="section-wrap" hidden>
-      <div class="mb-duo">
-        <div>
-          <h2 class="section-title">Head To Head</h2>
-          <div id="h2h-content"></div>
-        </div>
-        <div class="mb-duo-main">
-          <h2 class="section-title">The Matchup <button type="button" class="info-i" aria-expanded="false" aria-controls="matchup-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="matchup-note" hidden>Each row: the offense's number across from what the other defense allows, both directions side by side. <b>Every cell is a rank of 30</b> (big) with its number (small), shaded <b>green = good for that team</b>. How-often rows (Pace, the Shares, Ball Movement): green offense = does it a lot, green defense = takes it away, so <b>green against red = the offense gets its way</b>. <b>Edge</b> = one side clearly points one way and the other doesn't push back (the logo = who it favors; Big Edge = a full league spread). <b>Fits</b> = the offense does it a lot and this defense allows it a lot; <b>Takes Away</b> = this defense rarely allows it. <b>Rebounding</b> = offensive rebound % against the defense's defensive rebound %. <b>Vs Tonight's Types</b>: the team that is the type (fast, rim attackers, a ball-hawk defense...) shows its rank in that trait; the other shows its points vs normal against teams like that, minus the league's (only once it has 3+ games against them).</p>
-          <div id="matchup-content"></div>
-        </div>
+    <!-- Every section hugs its contents and they flow side by side where there's room
+         (the owner, 2026-10-28: boxes stretched to fill the screen left dead space). -->
+    <div class="mb-flow">
+      <div id="section-top" class="section-wrap" hidden>
+        <div id="top-content" class="mb-row"></div>
       </div>
-    </div>
 
-    <div id="section-players" class="section-wrap" hidden>
-      <h2 class="section-title">Rotations</h2>
-      <div id="players-content" class="mb-fitrow"></div>
-    </div>
+      <div id="section-edges" class="section-wrap" hidden>
+        <h2 class="section-title">Biggest Edges <button type="button" class="info-i" aria-expanded="false" aria-controls="edges-note" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="edges-note" hidden>Each team's biggest edges from The Matchup, up to 3 on its <b>Offense</b> and 3 on its <b>Defense</b>. The team's own rank comes first, the other team's second, each a <b>rank of 30</b> (1st = best) with its number small. <b>Big Edge</b> = the two sides together sit a full league spread toward that team.</p>
+        <div id="edges-content" class="mb-row"></div>
+      </div>
 
-    <div id="section-recent" class="section-wrap" hidden>
-      <h2 class="section-title">Recent Games</h2>
-      <div id="recent-content" class="mb-fitrow"></div>
+      <div id="section-story" class="section-wrap" hidden>
+        <h2 class="section-title">How They Win / How They Lose <button type="button" class="info-i" aria-expanded="false" aria-controls="wl-note" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="wl-note" hidden>The same numbers for both teams, <b>its wins beside its losses</b> this season. Each is ranked where it would sit among all 30 teams' season numbers (1st = best). The <b>3 rows marked</b> are the ones that swing most between its wins and its losses: the things that decide its games. Small samples this early.</p>
+        <div id="wl-content" class="mb-row"></div>
+      </div>
+
+      <div id="section-h2h" class="section-wrap" hidden>
+        <h2 class="section-title">Head To Head</h2>
+        <div id="h2h-content"></div>
+      </div>
+
+      <div id="section-matchup" class="section-wrap" hidden>
+        <h2 class="section-title">The Matchup <button type="button" class="info-i" aria-expanded="false" aria-controls="matchup-note" title="How to read this">i</button></h2>
+        <p class="section-note info-note" id="matchup-note" hidden>Each row: the offense's number across from what the other defense allows, both directions side by side. <b>Every cell is a rank of 30</b> (big) with its number (small), shaded <b>green = good for that team</b>. How-often rows (Pace, the Shares, Ball Movement): green offense = does it a lot, green defense = takes it away, so <b>green against red = the offense gets its way</b>. <b>Edge</b> = one side clearly points one way and the other doesn't push back (the logo = who it favors; Big Edge = a full league spread). <b>Fits</b> = the offense does it a lot and this defense allows it a lot; <b>Takes Away</b> = this defense rarely allows it. <b>Rebounding</b> = offensive rebound % against the defense's defensive rebound %. <b>Vs Tonight's Types</b>: the team that is the type (fast, rim attackers, a ball-hawk defense...) shows its rank in that trait; the other shows its points vs normal against teams like that, minus the league's, ranked among every team that has faced them (shown once it has 3+ games against them).</p>
+        <div id="matchup-content"></div>
+      </div>
+
+      <div id="section-players" class="section-wrap" hidden>
+        <h2 class="section-title">Rotations &amp; Recent Games</h2>
+        <div class="mb-row"><div id="players-content" class="mb-row"></div><div id="recent-content" class="mb-col"></div></div>
+      </div>
     </div>
   </div>
 </main>

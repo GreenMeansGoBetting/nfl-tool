@@ -595,18 +595,22 @@ these teams win, why they lose, and what the matchup may have in store for tonig
   (`cellTd`, `scaleHsla`); green = good for that team. **How-often rows ARE colored** (the owner chose
   it): offense 1st = does it most, defense 1st = allows it least, so green against red = the offense
   gets its way. `rankIn` ranks a number among the teams' season numbers (also a wins / losses number).
-- Top to bottom: **The Line** beside a compact **Injuries** (hover = the injury); **Biggest Edges**
-  (each team's 3 biggest Edge calls as a chart: Off / Def tag, stat, offense cell, defense cell with
-  logos, Edge / Big Edge; never a count); **How They Win / How They Lose** (per team the 3 `WL_KEYS`
-  numbers, off or def, that move most between wins and losses in league spreads, each ranked where it
-  would sit among the 30 season numbers; "No Losses Yet" until both exist); **Head To Head** (mirrored:
-  record, net / off / def rating, pace, home, away, last 10; Points Per Quarter (`q<n>_ppq`); Blowout
-  Data (4th quarter, starters rows uncolored); Tonight's Spots with 3+ games, net points vs normal minus
-  the league's) beside **The Matchup**; then Rotations and Recent Games (boxes as wide as their tables;
-  Recent Games' Spread / Total at tip, green = covered / over, from King of the Court's
-  `lines_<season>.json` via `add_recent_lines`).
-- **The Matchup**: one table, `[Call][Away Off][Home Def] Stat [Home Off][Away Def][Call]`, team-tinted
-  "X Has The Ball" heads, every row always (no Key / Every switch). Rows (`M_ROWS`, the owner's cuts
+- **Layout rules (the owner's first look, 2026-10-28):** every section and box hugs its contents and
+  they flow side by side where there's room (`.mb-flow`, `.mb-fitbox`; "when in doubt you just increase
+  everything to fill the space rather than containing things"); **labels sit at the far right of every
+  table, never between the teams** ("This has been an issue with you for the entirety of the site");
+  group headers centered; no "Has The Ball" / "Call" heads, just logo + "HOU Off" over each column.
+- Sections: **The Line** + **Injuries** (compact); **Biggest Edges** (per team, its **Offense** group
+  then its **Defense** group, up to 3 each, the team's own cell first); **How They Win / How They
+  Lose** (reworked: the same 12 plain-word rows for every team, `WL_ROWS`, In Wins | In Losses, each
+  ranked where it would sit among the 30 season numbers; the 3 biggest swings marked; "No Losses Yet"
+  heads the empty column); **Head To Head** (record, ratings, pace, home / away / last 10, Q1-Q4
+  Margin, Blowout Data with the starters rows colored too (more = 1st), Tonight's Spots);
+  **The Matchup**; **Rotations & Recent Games** in one section (rotation cells shaded by rank on his
+  own team, every column sortable; Recent Games' Spread / Total at tip, green = covered / over, from
+  King of the Court's `lines_<season>.json` via `add_recent_lines`).
+- **The Matchup**: one table, `[Away Off][Home Def][call] | [Home Off][Away Def][call] [label]`, every
+  row always. Rows (`M_ROWS`, the owner's cuts
   2026-10-28): Scoring = Pts / Possession, Pace, Transition Share, Transition Pts / Poss; Possessions =
   Turnovers, Rebounding (offensive rebound % vs the defense's own defensive rebound %), Free Throws /
   Shot; Shot Diet = 3-Point Share (no 3P%: "it will level out"), Paint Share, Paint FG%, Mid-Range
@@ -614,7 +618,8 @@ these teams win, why they lose, and what the matchup may have in store for tonig
   corner / above-break split, rim vs paint split, pull-up / catch / assisted rows, 3P%, clutch,
   second-chance points. **Vs Tonight's Types**: the team that IS the type gets its rank in the trait
   (`order`), the other its points vs normal against teams like that minus the league's, ranked among
-  teams with `EX_MIN_GP` 3+ games; under 3 games the row isn't shown.
+  every team that has faced the type (ranking among only the few with 3+ games read MIL's +7.2 allowed
+  as "2nd"); the row shows once that team has `EX_MIN_GP` 3+ games against it.
 - Calls (`rowCall`): matchupCall's rule (one side 0.6 spreads, the other not 0.3 against); transition
   scoring only for a team that runs; a make rate only where the offense shoots at least the league's
   share; Big Edge = the sides average 1 spread (a type: a 6+ point gap); how-often rows: Fits / Takes
