@@ -289,6 +289,31 @@ def ledger(record: dict, logs: dict, market: str) -> list:
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
 
+def past(record: dict, logs: dict, date: str | None) -> dict:
+    """shots.json `matchups.past` {market: [read]}: every saved read from the nights before the
+    slate, as locked at tip, with `got` (his stat, None until the box score has the game) and
+    `result` hit / miss / push / sat / None (waiting), for the page's day arrows (the owner,
+    2026-10-28: "no back button to look at yesterday to analyze results ... as i can see best plays")."""
+    out = {m: [] for m in MARKETS}
+    for m in MARKETS:
+        boxed = {gid for gid, _ in logs.get(m) or {}}
+        for gid, g in record.items():
+            if not date or g.get("date", date) >= date:
+                continue
+            for row in g.get(m) or []:
+                p = dict(zip(READ_FIELDS, row))
+                got = (logs.get(m) or {}).get((str(gid), str(p["pid"])))
+                if got is None:
+                    result = "sat" if str(gid) in boxed else None
+                elif p["line"] is None or got == p["line"]:
+                    result = "push"
+                else:
+                    result = "hit" if (got > p["line"]) == (p["side"] == "over") else "miss"
+                out[m].append({**p, "pid": str(p["pid"]), "game": str(gid), "date": g["date"], "got": got, "result": result})
+        out[m].sort(key=lambda p: (p["date"], -abs(p["score"])))
+    return out
+
+
 # ---- the defense grid (Matchup View; the owner, 2026-10-27: "a color coded layout/chart where i can
 # know 'this is BOS weakness vs this position'") ----
 # Each defense x the five positions x where / how they shoot, changing with the market. A cell:

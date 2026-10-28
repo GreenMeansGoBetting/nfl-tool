@@ -12,7 +12,7 @@
 let DATA = null; // data.json: teams, schedule; the player card reads it too
 let ZF = null; // shots.json
 const ZM_KEY = "nba-tool.zones.v1"; // display prefs on this device: view, market, his-shots filter
-const ZM = { view: "spots", market: "points", min: 0, game: null, player: null, all: false, chart: "zones", kind: "all", grid: "make" };
+const ZM = { day: 0, strongOnly: false, view: "spots", market: "points", min: 0, game: null, player: null, all: false, chart: "zones", kind: "all", grid: "make" };
 const ZM_GROUP = { G: "Guards", F: "Forwards", C: "Bigs" };
 const ZM_ZONE = { ra: "At The Rim", paint: "Paint", mBL: "Left Baseline Mid", mWL: "Left Wing Mid", mT: "Top Mid", mWR: "Right Wing Mid", mBR: "Right Baseline Mid", c3L: "Left Corner 3", w3L: "Left Wing 3", t3: "Top 3", w3R: "Right Wing 3", c3R: "Right Corner 3" };
 const ZM_KIND = { 1: "Self-Created", 2: "Catch & Shoot", 3: "Drives & Cuts" };
@@ -311,11 +311,58 @@ function zmYtd() {
   overlay.hidden = false;
 }
 
+// ---- a past night (the owner, 2026-10-28: "no back button to look at yesterday to analyze results ...
+// as i can see best plays"): every Over / Under read as locked at tip, Hit / Miss and what he got ----
+function zmDays() {
+  const m = zmM();
+  const past = Object.values(m.past || {}).flat().map((p) => p.date);
+  return [...new Set([...past, m.date])].sort();
+}
+const zmDay = () => zmDays()[ZM.day] || zmM().date;
+function zmPast(date) {
+  const reads = ((zmM().past || {})[ZM.market] || []).filter((p) => p.date === date && (!ZM.strongOnly || p.strong));
+  const graded = reads.filter((p) => p.result === "hit" || p.result === "miss");
+  const tile = (label, list) => {
+    const g = list.filter((p) => p.result === "hit" || p.result === "miss");
+    const w = g.filter((p) => p.result === "hit").length;
+    return `<div><small>${label}</small><b>${g.length ? `${w}-${g.length - w}` : "--"}</b><span>${g.length ? `${Math.round((w / g.length) * 100)}%` : ""}</span></div>`;
+  };
+  const waiting = reads.filter((p) => !p.result).length;
+  const table = (list) => {
+    if (!list.length) return `<p class="no-data-note">No reads here.</p>`;
+    const body = list.map((p) => {
+      const [cls, word] = { hit: ["zm-hit", "Hit"], miss: ["zm-miss", "Miss"], push: ["", "Push"], sat: ["", "Didn't Play"] }[p.result] || ["", "Waiting"];
+      return `<tr class="zm-past ${cls}"><td class="zm-name">${zmLogo(p.team, 18)} ${playerClick(p.pid, p.name)}</td><td>${zmLogo(p.opp, 18)}</td>
+        <td><span class="zm-read" style="background:${zmShade(p.score, 0.25)}">${zmReadWord(p)}</span></td>
+        <td class="num" style="background:${zmShade(p.score, 0.25)}"><b>${zmPct(p.score)}</b></td>
+        <td class="num zm-line">${p.side === "under" ? "u" : "o"}${p.line ?? "--"}</td>
+        <td class="num zm-result ${cls}"><b>${word}</b>${p.got === null || p.got === undefined ? "" : ` <span>${p.got}</span>`}</td></tr>`;
+    }).join("");
+    return `<div class="shc-scroll"><table class="data-table zm-table"><thead><tr><th>Player</th><th>Vs</th><th>Read</th>
+      <th class="num" title="The read's score at tip">Score</th><th class="num" title="His main line at tip, on the read's side">Line</th>
+      <th class="num" title="Hit / Miss and his ${ZM.market === "threes" ? "threes" : "points"}">Result</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  };
+  const over = reads.filter((p) => p.side === "over").sort((a, b) => b.score - a.score);
+  const under = reads.filter((p) => p.side === "under").sort((a, b) => a.score - b.score);
+  const strongBtn = `<button type="button" class="view-toggle-btn zm-strong${ZM.strongOnly ? " active" : ""}">Strong Only</button>`;
+  return `<p class="zm-legend">Results &middot; ${reads.length} read${reads.length === 1 ? "" : "s"} as locked at tip, graded against his main line then (never priced: hit rate only)${waiting ? ` &middot; ${waiting} waiting on the box score` : ""} ${strongBtn}</p>
+    <div class="zm-night">${tile("All Reads", reads)}${tile("Strong", reads.filter((p) => p.strong))}${tile("Overs", over)}${tile("Unders", under)}</div>
+    ${reads.length ? `<div class="zm-spots">
+      <div class="nba-box"><div class="nba-box-title zm-head zm-head-over">Overs <span>${over.length}</span></div>${table(over)}</div>
+      <div class="nba-box"><div class="nba-box-title zm-head zm-head-under">Unders <span>${under.length}</span></div>${table(under)}</div>
+    </div>` : `<p class="no-data-note">No reads this night.</p>`}`;
+}
+
 // ---- the page ----
 function zmSlate() {
   const m = zmM();
-  zmEl("schedule-scroller").hidden = ZM.view !== "matchup";
-  zmEl("day-label").textContent = new Date(`${m.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const days = zmDays();
+  const date = zmDay();
+  const today = date === m.date;
+  zmEl("matchup-row").hidden = ZM.view !== "matchup" || !today;
+  zmEl("day-prev").disabled = ZM.day <= 0;
+  zmEl("day-next").disabled = ZM.day >= days.length - 1;
+  zmEl("day-label").textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
   zmEl("matchup-row").innerHTML = m.games
     .map((g) => `<button type="button" class="matchup-card${g.game_id === ZM.game ? " selected" : ""}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${zmLogo(g.away, 28)}<span class="at">@</span>${zmLogo(g.home, 28)}</span>
@@ -329,9 +376,12 @@ function zmRender() {
   document.querySelectorAll("#zm-market [data-market]").forEach((b) => b.classList.toggle("active", b.dataset.market === ZM.market));
   zmEl("zm-min").value = String(ZM.min);
   zmSlate();
-  zmEl("zm-body").innerHTML = ZM.view === "matchup" ? zmMatchup() : zmSpots();
+  const past = zmDay() !== zmM().date;
+  zmEl("zm-view").hidden = past; // a past night = its Results (both views read tonight's slate)
+  zmEl("zm-body").innerHTML = past ? zmPast(zmDay()) : ZM.view === "matchup" ? zmMatchup() : zmSpots();
   zmFitTags();
-  zmDetail();
+  if (past) zmEl("zm-detail").hidden = true;
+  else zmDetail();
   try {
     localStorage.setItem(ZM_KEY, JSON.stringify({ view: ZM.view, market: ZM.market, min: ZM.min, grid: ZM.grid }));
   } catch (e) {
@@ -354,6 +404,9 @@ document.addEventListener("click", (e) => {
   const ch = e.target.closest("#zm-chart [data-chart]");
   if (ch) return ((ZM.chart = ch.dataset.chart), zmDetail());
   if (e.target.closest(".zm-all")) return ((ZM.all = !ZM.all), zmRender());
+  if (e.target.closest(".zm-strong")) return ((ZM.strongOnly = !ZM.strongOnly), zmRender());
+  if (e.target.closest("#day-prev") && ZM.day > 0) return ((ZM.day -= 1), zmRender());
+  if (e.target.closest("#day-next") && ZM.day < zmDays().length - 1) return ((ZM.day += 1), zmRender());
   if (e.target.closest("#zm-ytd")) return zmYtd();
   const row = e.target.closest(".zm-row");
   if (row && !e.target.closest(".player-click")) {
@@ -406,6 +459,7 @@ window.addEventListener("load", () => {
     }
     zmEl("empty-state").hidden = true;
     ZM.game = (m.games.find((g) => !g.started) || m.games[0] || {}).game_id || null;
+    ZM.day = zmDays().length - 1; // opens on tonight's slate
     zmRender();
   });
 });

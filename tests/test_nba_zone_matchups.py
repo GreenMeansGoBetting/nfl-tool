@@ -136,12 +136,26 @@ class Record(unittest.TestCase):
         self.assertEqual(Z.ledger(rec, {("900", "1"): 12.5}, "points"), [])  # a push
         self.assertEqual(Z.ledger(rec, {}, "points"), [])  # sat / no box score yet
 
+    def test_past_nights_for_the_day_arrows(self):
+        """The owner, 2026-10-28: "no back button to look at yesterday to analyze results"."""
+        rec = {"900": {"date": "2099-10-24", "points": [["1", "Big One", "AAA", "BBB", 0.2, "over", True, 12.5],
+                                                        ["3", "Guard Three", "AAA", "BBB", -0.07, "under", False, 9.5]], "threes": []},
+               "901": {"date": "2099-10-25", "points": [["1", "Big One", "AAA", "BBB", 0.2, "over", True, 12.5]]}}
+        got = Z.past(rec, {"points": {("900", "1"): 14.0, ("900", "9"): 3.0}, "threes": {}}, "2099-10-25")
+        self.assertEqual([(p["pid"], p["got"], p["result"]) for p in got["points"]], [("1", 14.0, "hit"), ("3", None, "sat")])  # tonight's left out
+        self.assertEqual(Z.past(rec, {"points": {}, "threes": {}}, "2099-10-25")["points"][0]["result"], None)  # waiting on the box score
+        self.assertEqual(Z.past(rec, {"points": {("900", "1"): 11.0, ("900", "3"): 9.0}}, "2099-10-25")["points"][1]["result"], "hit")  # the under
+
 
 def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        shots = dict(SHOTS, matchups=build())
+        past = {"points": [{"pid": "1", "name": "Big One", "team": "AAA", "opp": "BBB", "score": 0.2, "side": "over", "strong": True,
+                            "line": 12.5, "game": "800", "date": "2099-10-24", "got": 14.0, "result": "hit"},
+                           {"pid": "3", "name": "Guard Three", "team": "AAA", "opp": "BBB", "score": -0.07, "side": "under", "strong": False,
+                            "line": 9.5, "game": "800", "date": "2099-10-24", "got": 12.0, "result": "miss"}], "threes": []}
+        shots = dict(SHOTS, matchups=dict(build(), past=past))
         SITE.nba = {"season": 2027, "season_label": "2026-27", "injuries": {}, "players": {}, "schedule": GAMES, "book_odds": ODDS,
                     "teams": {t: {"name": f"Team {t}", "short": t, "logo": "", "color": "336699"} for t in TEAMS}}
         SITE.nba_shots, SITE.nba_props = shots, {"default": "2027", "seasons": {}}
@@ -200,6 +214,22 @@ class Page(unittest.TestCase):
         finally:
             PAGE.click("#zm-market [data-market='points']")
             PAGE.click("#zm-view [data-view='spots']")
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_day_arrows_show_last_night(self):
+        """The owner, 2026-10-28: a back button "to look at yesterday to analyze results ... as i can see best plays"."""
+        self.assertTrue(PAGE.is_disabled("#day-next"))  # opens on tonight
+        PAGE.click("#day-prev")
+        try:
+            PAGE.wait_for_selector(".zm-night")
+            self.assertIn("1-1", PAGE.inner_text(".zm-night"))
+            self.assertIn("Hit", PAGE.inner_text(".zm-past.zm-hit"))
+            self.assertIn("14", PAGE.inner_text(".zm-past.zm-hit"))
+            self.assertIn("Miss", PAGE.inner_text(".zm-past.zm-miss"))
+            self.assertTrue(PAGE.is_hidden("#zm-view"))
+        finally:
+            PAGE.click("#day-next")
+        PAGE.wait_for_selector(".zm-row")
         self.assertEqual(SITE.errors, [])
 
     def test_the_ytd_tracker_opens(self):

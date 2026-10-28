@@ -1170,6 +1170,7 @@ def main():
                 logs = zone_matchups.box_logs(player_box)
                 if block["matchups"]:
                     block["matchups"]["record"] = {m: {"ledger": zone_matchups.ledger(rec, logs[m], m)} for m in zone_matchups.MARKETS}
+                    block["matchups"]["past"] = zone_matchups.past(rec, logs, block["matchups"]["date"])  # the day arrows
         except Exception as ex:
             print(f"WARNING: NBA zone matchups failed ({ex!r}).", file=sys.stderr)
         args.out.parent.mkdir(parents=True, exist_ok=True)

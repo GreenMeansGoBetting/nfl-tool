@@ -65,3 +65,17 @@
 .zm-gcell small { display: block; font-weight: 600; font-size: 0.62rem; color: var(--muted); line-height: 1; }
 .zm-gcell.zm-worst { box-shadow: inset 0 0 0 2px var(--text); }
 .zm-goverall { border-left: 2px solid var(--border-strong); }
+/* a past night's Results (Best Plays' look: sim.css .sim-night / .sim-result) */
+.zm-night { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.zm-night > div { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 6px 14px; text-align: center; }
+.zm-night small { display: block; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.zm-night b { font: 800 1.15rem var(--font-display); }
+.zm-night span { display: block; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+.zm-result b { font: 800 0.95rem var(--font-display); }
+.zm-result span { color: var(--muted); font-weight: 700; }
+.zm-result.zm-hit { background: rgba(var(--good-rgb), 0.16); }
+.zm-result.zm-hit b { color: var(--good-text); }
+.zm-result.zm-miss { background: rgba(var(--bad-rgb), 0.14); }
+.zm-result.zm-miss b { color: var(--bad-text); }
+.zm-legend .zm-strong { margin-left: 8px; }
+#zm-view[hidden], #matchup-row[hidden] { display: none; }
