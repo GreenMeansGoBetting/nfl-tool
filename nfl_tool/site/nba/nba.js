@@ -324,7 +324,7 @@ function winLossBox(abbr) {
   const body = rows.map((x) => `<tr${swings.has(x.label) ? ' class="mb-swing"' : ""}>${labelTd(x.label)}${cellTd(x.w)}${cellTd(x.l)}</tr>`).join("");
   const wHead = wl.nw ? `In Wins (${wl.nw})` : "No Wins Yet";
   const lHead = wl.nl ? `In Losses (${wl.nl})` : "No Losses Yet";
-  return `<div class="nba-box mb-fitbox">${banner(abbr, team(abbr).name, `${wl.nw}-${wl.nl}`)}
+  return `<div class="nba-box mb-fitbox mb-wlbox">${banner(abbr, team(abbr).name, `${wl.nw}-${wl.nl}`)}
     <table class="mb-table mb-wl"><thead><tr><th></th><th>${wHead}</th><th>${lHead}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -431,7 +431,7 @@ function lineBox(g) {
         ${tile("Win Chance", ml(g.away, g.away_moneyline, g.away_ml_implied_prob) + ml(g.home, g.home_moneyline, g.home_ml_implied_prob))}
       </div>${g.lines_locked ? `<p class="section-note">Locked at tip-off.</p>` : ""}`
     : `<p class="no-data-note">No line posted yet.</p>`;
-  return `<div class="nba-box mb-fitbox"><div class="nba-box-title">The Line</div>${body}</div>`;
+  return `<div class="nba-box mb-fitbox mb-linebox"><div class="nba-box-title">The Line</div>${body}</div>`;
 }
 function injuriesBox(g) {
   const list = (abbr) => {
@@ -440,7 +440,7 @@ function injuriesBox(g) {
       .join("");
     return `<div class="mb-inj-col"><div class="mb-inj-head">${logo(abbr, 18)} ${abbr}</div>${rows || '<span class="mb-inj-none">Nobody Listed</span>'}</div>`;
   };
-  return `<div class="nba-box mb-fitbox"><div class="nba-box-title">Injuries</div><div class="mb-injs">${list(g.away)}${list(g.home)}</div></div>`;
+  return `<div class="nba-box mb-fitbox mb-injbox"><div class="nba-box-title">Injuries</div><div class="mb-injs">${list(g.away)}${list(g.home)}</div></div>`;
 }
 
 // ---- Rotations and Recent Games ----

@@ -598,8 +598,11 @@ these teams win, why they lose, and what the matchup may have in store for tonig
 - **Layout (the owner, 2026-10-28, two passes):** two anchored columns sized by their widest section
   (`.mb-grid`, `.mb-colwrap`; never stretch a box to fill the screen): **left** = The Line + Injuries,
   Biggest Edges, Head To Head, Rotations (each section the column's width); **right** = How They Win /
-  How They Lose, then The Matchup; **Recent Games** across the bottom, a half each. Below about 1800 px
-  the columns stack. **Labels sit in the far-left column** of every team-vs-team table (Biggest Edges,
+  How They Lose, then The Matchup; **Recent Games** across the bottom, a half each. **The columns are a
+  fixed 960 / 780 px**, never sized by the night's content (sized by content, a long injury list put
+  IND-PHI and ATL-MIA ~30px over and the right column dropped under the left); long names shorten
+  with "...", The Line's tiles stack in one column so Injuries keeps full names. Below 1860 px wide the
+  columns stack (`test_long_content_never_drops_the_right_column`). **Labels sit in the far-left column** of every team-vs-team table (Biggest Edges,
   How They Win / Lose, Head To Head); **The Matchup keeps its label in the middle** (each row reads both
   directions) with the calls on the far outside. No "Has The Ball" / "Call" heads: logo + "HOU Off"
   column heads sit right under the first group's name; group headers centered.

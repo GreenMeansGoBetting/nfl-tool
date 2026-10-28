@@ -198,6 +198,23 @@ class Page(unittest.TestCase):
         shaded = PAGE.evaluate("() => [...document.querySelectorAll('#players-content td.mb-rot')].every((td) => (td.getAttribute('style') || '').includes('background'))")
         self.assertTrue(shaded)
 
+    def test_long_content_never_drops_the_right_column(self):
+        # 2026-10-28: the columns were sized by the night's content, so a long injury list
+        # (IND-PHI, ATL-MIA) made the left one ~30px wider and the right one fell under it.
+        # Fixed widths now: the same game with a long list keeps both columns side by side,
+        # The Line beside Injuries, and nothing spilling out of its section.
+        PAGE.set_viewport_size({"width": 1900, "height": 1000})
+        try:
+            PAGE.evaluate("""() => { DATA.injuries.BOS = Array.from({ length: 9 }, (_, i) => ({ id: String(90 + i), name: 'Giannis Antetokounmpo-Longname ' + i,
+                status: i % 2 ? 'Out' : 'Day-To-Day', position: 'PF', injury: 'Knee' })); render(); }""")
+            got = PAGE.evaluate("""() => { const top = (e) => Math.round(e.getBoundingClientRect().top); const cols = [...document.querySelectorAll('.mb-colwrap')];
+                return [top(cols[0]) === top(cols[1]), new Set([...document.querySelectorAll('#top-content > .nba-box')].map(top)).size,
+                        [...document.querySelectorAll('.mb-colwrap > .section-wrap')].filter((s) => s.scrollWidth > s.clientWidth + 1).map((s) => s.id)]; }""")
+            self.assertEqual(got, [True, 1, []])
+        finally:
+            PAGE.evaluate("() => { delete DATA.injuries.BOS; render(); }")
+            PAGE.set_viewport_size({"width": 1440, "height": 1000})  # site_browser.py's size
+
     def test_in_the_nba_menu_and_team_identity_lands_here(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nba-menu a')].map((a) => [a.textContent, a.getAttribute('href')])")
         self.assertIn("Matchup Breakdown", [x[0] for x in links])

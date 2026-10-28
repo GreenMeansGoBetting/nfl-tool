@@ -1,24 +1,33 @@
 /* NBA Matchup Breakdown (nba/index.html + nba.js; Game Previews and Team Identity
    merged, 2026-10-28). The layout pieces (.nba-box, banners) come from suite.css.
-   Two anchored columns sized by their widest section (the owner, 2026-10-28: never
-   stretch to fill the screen; "anchor those together"): the line, injuries, edges,
-   Head To Head and rotations on the left; How They Win / How They Lose and The
-   Matchup on the right; Recent Games across the bottom, a half each. Every value
-   cell is a rank of 30 in big type with its number small, shaded by nba.js. */
+   Two anchored columns (the owner, 2026-10-28: never stretch to fill the screen;
+   "anchor those together"): the line, injuries, edges, Head To Head and rotations
+   on the left; How They Win / How They Lose and The Matchup on the right; Recent
+   Games across the bottom, a half each. Every value cell is a rank of 30 in big
+   type with its number small, shaded by nba.js.
+   The columns are a FIXED width, never sized by the night's content: when they
+   were, a long injury list or player name made one column ~30px wider on some
+   games (IND-PHI, ATL-MIA) and the right column dropped under the left. Long
+   names shorten with "..." instead. */
 
-.mb-grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: center; }
-.mb-colwrap { display: flex; flex-direction: column; gap: 16px; width: fit-content; max-width: 100%; min-width: 0; }
-.mb-colwrap > .section-wrap, .mb-grid > .section-wrap { margin: 0; }
-.mb-wide { flex: 1 1 100%; }
+.mb-grid { display: grid; grid-template-columns: minmax(0, 960px) minmax(0, 780px); gap: 16px; align-items: start; justify-content: center; }
+.mb-colwrap { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.mb-colwrap > .section-wrap, .mb-grid > .section-wrap { margin: 0; min-width: 0; }
+.mb-colwrap > .section-wrap { overflow-x: auto; }
+.mb-wide { grid-column: 1 / -1; }
 .mb-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
-.mb-row > .nba-box { flex: 1 1 auto; }
+.mb-row > .nba-box { flex: 1 1 auto; min-width: 0; }
+/* pairs that must stay side by side: they share the row and shrink (names get "...") */
+.mb-row > .mb-linebox { flex: 0 0 auto; }
+.mb-row > .mb-injbox, .mb-row > .mb-wlbox { flex: 1 1 280px; }
 .mb-fitbox { max-width: 100%; }
 .nba-box.mb-fitbox > .mb-table, .nba-box.mb-fitbox > .mb-scroll { margin: 0 auto; padding: 0 8px; }
 .mb-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .mb-halves .mb-recent { width: calc(100% - 20px); margin: 0 10px; }
 
 /* The Line and Injuries */
-.mb-line { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px; }
+/* one column of tiles: about as tall as an injury list, and it leaves Injuries room for full names */
+.mb-line { display: flex; flex-direction: column; gap: 6px; padding: 0 10px; }
 .mb-line .mb-tile { flex: 1 1 auto; }
 .mb-tile { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
 .mb-tile b { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; white-space: nowrap; }
@@ -26,8 +35,10 @@
 .mb-pair small { font-size: 0.7rem; font-weight: 700; color: var(--muted); }
 .mb-fitbox .section-note { margin: 0 10px; }
 .mb-injs { display: flex; gap: 22px; padding: 0 12px; }
+.mb-inj-col { flex: 1 1 0; min-width: 0; }
 .mb-inj-head { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-family: var(--font-display); font-weight: 800; letter-spacing: 0.04em; }
-.mb-inj { display: flex; align-items: center; gap: 7px; padding: 2px 0; font-size: 0.86rem; white-space: nowrap; }
+.mb-inj { display: flex; align-items: center; gap: 7px; padding: 2px 0; font-size: 0.86rem; white-space: nowrap; min-width: 0; }
+.mb-inj b { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .mb-inj .gs-inj-status { min-width: 34px; text-align: center; }
 .mb-inj small { color: var(--muted); font-weight: 600; }
 .mb-inj-none { font-size: 0.82rem; font-weight: 700; color: var(--muted); }
@@ -44,7 +55,7 @@
 .mb-v.mb-faded { opacity: 0.5; }
 .mb-v.mb-rec b { font-size: 1rem; }
 .mb-stat { padding: 0 10px 0 4px; font-size: 0.88rem; font-weight: 700; text-align: left; white-space: nowrap; }
-.mb-call { min-width: 92px; padding: 0 4px; text-align: center; vertical-align: middle; }
+.mb-call { min-width: 84px; padding: 0 4px; text-align: center; vertical-align: middle; }
 .mb-group td { padding: 12px 4px 3px; font-family: var(--font-display); font-size: 0.84rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; color: var(--accent, var(--good-text)); border-bottom: 2px solid var(--border); }
 .mb-none { padding: 6px 14px; font-size: 0.84rem; font-weight: 700; color: var(--muted); }
 .mb-edge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.4); }
@@ -53,7 +64,7 @@
 .mb-scroll { overflow-x: auto; max-width: 100%; }
 
 /* The Matchup: the label in the middle on its own shade splits the two directions */
-.mb-matchup td.mb-mid { min-width: 160px; padding: 0 12px; text-align: center; border-radius: 7px; background: var(--table-head); }
+.mb-matchup td.mb-mid { min-width: 150px; max-width: 170px; white-space: normal; line-height: 1.15; padding: 0 10px; text-align: center; border-radius: 7px; background: var(--table-head); }
 .mb-matchup tr.mb-called td.mb-stat { font-weight: 800; }
 .mb-table tr.mb-heads th { padding-top: 2px; }
 
@@ -61,6 +72,9 @@
 .mb-parts { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: flex-start; padding: 0 8px; }
 .mb-table th.mb-part { text-align: left; color: var(--accent, var(--good-text)); font-family: var(--font-display); font-size: 0.84rem; }
 .mb-h2h { padding-top: 8px; }
+.mb-h2h .mb-v { min-width: 70px; padding: 0 8px; }
+.mb-wl .mb-v { min-width: 82px; padding: 0 7px; }
+.mb-wl td.mb-stat { max-width: 128px; white-space: normal; line-height: 1.15; }
 
 /* Biggest Edges: Offense and Defense groups */
 .mb-edges .mb-group td:first-child { padding-top: 8px; }
@@ -76,8 +90,13 @@
 .mb-sort { cursor: pointer; user-select: none; }
 .mb-sort:hover, .mb-sorted { color: var(--text); }
 .mb-rot { border-radius: 5px; }
+.mb-fit .nba-player .player-click { display: inline-block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .mb-recent td.mb-res { border-radius: 6px; font-weight: 700; text-align: center; }
 
+/* Too narrow for both columns: one column, same order */
+@media (max-width: 1860px) {
+  .mb-grid { grid-template-columns: minmax(0, 960px); }
+}
 @media (max-width: 760px) {
   .mb-injs { flex-direction: column; gap: 8px; }
   .mb-halves { grid-template-columns: minmax(0, 1fr); }
