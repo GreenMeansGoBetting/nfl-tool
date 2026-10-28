@@ -84,12 +84,19 @@ class Market(unittest.TestCase):
         self.assertEqual(self.page.inner_text(".sim-tabs").upper().split(), ["BEST", "PLAYS", "POINTS", "THREES", "REBOUNDS", "ASSISTS"])
         self.assertEqual(self.page.inner_text(".sim-tabs a.on").upper(), self.unit.upper())
 
+    def test_every_tag_of_this_market_in_the_tag_menu(self):
+        # the owner, 2026-10-28: "add the new tags to reb and assist drop down menus" (even on a night no row has one)
+        opts = self.page.evaluate("() => [...document.querySelectorAll('select[data-list=tag] option')].map((o) => o.textContent)")
+        for label in self.menu_tags:
+            self.assertIn(label, opts)
+
     def tag_text(self):
         return " ".join(self.page.inner_text("#sim-list tr.sim-row").upper().split())
 
 
 class Rebounds(Market):
     market, stat, unit, rungs = "rebounds", "reb", "Rebounds", [4, 6, 8, 10, 12, 14]
+    menu_tags = ["Glass Fit", "Tough Glass", "Misses Coming", "Hot Run", "Cold Run"]
 
     @classmethod
     def data(cls):
@@ -109,6 +116,7 @@ class Rebounds(Market):
 
 class Assists(Market):
     market, stat, unit, rungs = "assists", "ast", "Assists", [2, 4, 6, 8, 10, 12]
+    menu_tags = ["Ball Movement Fit", "Tough Passing D", "Hot Run", "Cold Run"]
 
     @classmethod
     def data(cls):

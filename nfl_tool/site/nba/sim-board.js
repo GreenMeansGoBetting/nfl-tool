@@ -445,6 +445,11 @@ function assistsTags(x) {
   return [...out, ...runTags(x, "ast", "assists")];
 }
 const MARKET_TAGS = { points: pointsTags, threes: threesTags, rebounds: reboundsTags, assists: assistsTags };
+// Rebounds / Assists' own tags always sit in the Tag menu, even on a night no row has one (the owner, 2026-10-28)
+const MARKET_TAG_MENU = {
+  rebounds: [["glass_fit", "Glass Fit"], ["tough_glass", "Tough Glass"], ["misses", "Misses Coming"], ["hot", "Hot Run"], ["cold", "Cold Run"]],
+  assists: [["movement", "Ball Movement Fit"], ["tough_pass", "Tough Passing D"], ["hot", "Hot Run"], ["cold", "Cold Run"]],
+};
 function tagsFor(x) {
   const tags = [];
   if (x.held) tags.push(TAG("wait", "Waiting On Market", `${x.held.out.join(", ")} ruled Out after this line was posted, and it hasn't moved yet: not a play until it does (or 40 minutes pass)`, "wait"));
@@ -496,7 +501,7 @@ function renderToolbar(rows) {
   el("sim-toolbar").innerHTML = markets +
     menu("side", "Side", [["best", "Best Side"], ["o", "Overs"], ["u", "Unders"]], "Best Side: the play's side, or the better side of his main line. Overs / Unders: that side for everyone") +
     menu("minEdge", "Edge", [[0, "Any"], ...[4, 6, 8, 10, 15].filter((n) => n >= bar).map((n) => [n / 100, `${n}+ Points`])], "Only rows with at least this much edge (our chance minus the chance the price needs, in points)") +
-    menu("tag", "Tag", [["", "All Tags"], ...[...new Map(rows.flatMap((x) => x.tags).map((t) => [t.key, t.filter]))]], "Only players with this tag") +
+    menu("tag", "Tag", [["", "All Tags"], ...[...new Map([...rows.flatMap((x) => x.tags).map((t) => [t.key, t.filter]), ...MARKETS.flatMap((m) => MARKET_TAG_MENU[m.market] || [])])]], "Only players with this tag") +
     `<span class="sim-seg">${[[false, "Plays Only", `Only the plays: ${bar}+ points of edge on his main line`], [true, "Every Player", "Every player with a main line: the plays first, then the rest"]]
       .map(([v, label, tip]) => `<button type="button" class="view-toggle-btn${LIST.every === v ? " active" : ""}" data-list-every="${v}" title="${tip}">${label}</button>`).join("")}</span>` +
     (LIST.game ? `<button type="button" class="view-toggle-btn" data-list-game="" title="Show every game again">${(() => { const g = DATA.schedule.find((x) => x.game_id === LIST.game); return g ? `${g.away} @ ${g.home}` : ""; })()} &times;</button>` : "");
