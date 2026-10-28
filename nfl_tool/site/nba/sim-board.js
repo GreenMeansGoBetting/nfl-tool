@@ -444,6 +444,13 @@ function assistsTags(x) {
   }
   return [...out, ...runTags(x, "ast", "assists")];
 }
+// A dial sits on the team it is about; Rest Edge is about the TIRED team (on a back-to-back, the other
+// team 2+ days off), so it is named for the rested team that has the edge (the owner, 2026-10-28: "LAL
+// rest edge when they played last night and LAC did not. Makes no sense")
+function dialText(g, k, d) {
+  const [label] = ((PROPS.sim_meta || {}).dials || {})[d] || [d];
+  return `${d === "rest_edge" ? g[k === "home" ? "away" : "home"] : g[k]} ${label}`;
+}
 const MARKET_TAGS = { points: pointsTags, threes: threesTags, rebounds: reboundsTags, assists: assistsTags };
 // Rebounds / Assists' own tags always sit in the Tag menu, even on a night no row has one (the owner, 2026-10-28)
 const MARKET_TAG_MENU = {
@@ -463,8 +470,7 @@ function tagsFor(x) {
   }
   const sim = sims()[x.g.game_id];
   ["away", "home"].forEach((k) => (sim.dials[k] || []).forEach((d) => {
-    const [label] = ((PROPS.sim_meta || {}).dials || {})[d] || [d];
-    tags.push(TAG("dial", `${x.g[k]} ${label}`, `A spot dial is on for ${x.g[k]} tonight (it moves the sims; the Game Board in Matchup View has its size)`, "", "Spot Dial"));
+    tags.push(TAG("dial", dialText(x.g, k, d), `A spot dial is on for ${x.g[k]} tonight (it moves the sims; the Game Board in Matchup View has its size)`, "", "Spot Dial"));
   }));
   const p = seasonBlock().players[x.pid] || {};
   tags.push(...minutesTags(x), ...(MARKET_TAGS[MK.market] || pointsTags)(x, p));
@@ -595,7 +601,7 @@ function detail(x) {
   const all = x.r[MK.stat].lad;
   const scripts = Object.fromEntries(SCRIPT_KEYS.map((k) => [k, all[k] ? sideChance(all[k], x.side, x.line) : null]));
   const kind = KINDS[kindOf(scripts, needs)];
-  const dials = ["away", "home"].flatMap((k) => (sim.dials[k] || []).map((d) => `${x.g[k]} ${((PROPS.sim_meta.dials || {})[d] || [d])[0]}`));
+  const dials = ["away", "home"].flatMap((k) => (sim.dials[k] || []).map((d) => dialText(x.g, k, d)));
   const starts = ((sim.starters || {})[x.r.team] || []).includes(x.pid);
   const hits = Math.min(9990, Math.round(x.chance * 1000) * 10);
   const f = fair(x.chance);

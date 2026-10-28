@@ -157,7 +157,7 @@ class Plays(unittest.TestCase):
         tags = " ".join(text("#sim-list tr.sim-row .sim-rtag")).upper()
         self.assertIn("LADDER 30+ +300 +11.0", tags)  # 36% at +300 beats the main line's +6.0
         self.assertIn("SCRIPT-PROOF", tags)  # 66 / 66 / 80% against the 60% -150 needs
-        self.assertIn("AAA REST EDGE", tags)
+        self.assertIn("BBB REST EDGE", tags)  # AAA is on the back-to-back: the rested team has the edge (2026-10-28)
 
     def test_every_player_adds_the_rest(self):
         PAGE.click("[data-list-every='true']")
@@ -180,7 +180,7 @@ class Plays(unittest.TestCase):
             self.assertIn("AAA BLOWOUT\n66%", box)
             self.assertIn("BBB BLOWOUT\n80%", box)
             self.assertIn("SCRIPT-PROOF", box)
-            self.assertIn("AAA REST EDGE", box)  # whose dial it is
+            self.assertIn("BBB REST EDGE", box)  # named for the rested team, not the tired one it sits on
             self.assertIn("STARTING", box)
             self.assertTrue(PAGE.evaluate("() => document.querySelectorAll('#sim-list .sim-hist div').length > 3"))
             ladder = text("#sim-list .sim-ladt tbody tr")
