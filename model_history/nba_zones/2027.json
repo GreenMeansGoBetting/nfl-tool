@@ -961,16 +961,6 @@
     11.5
    ],
    [
-    "3146557",
-    "Jock Landale",
-    "ATL",
-    "MIA",
-    0.63,
-    "over",
-    true,
-    4.5
-   ],
-   [
     "4278053",
     "Davion Mitchell",
     "MIA",
@@ -1063,16 +1053,6 @@
     1.5
    ],
    [
-    "3032977",
-    "Giannis Antetokounmpo",
-    "MIA",
-    "ATL",
-    0.3132,
-    "over",
-    true,
-    0.5
-   ],
-   [
     "3059319",
     "Andrew Wiggins",
     "MIA",
@@ -1091,16 +1071,6 @@
     "over",
     true,
     1.5
-   ],
-   [
-    "3146557",
-    "Jock Landale",
-    "ATL",
-    "MIA",
-    -0.397,
-    "under",
-    true,
-    0.5
    ],
    [
     "4066261",
@@ -1133,16 +1103,6 @@
     1.5
    ],
    [
-    "4397020",
-    "Luguentz Dort",
-    "ATL",
-    "MIA",
-    0.2503,
-    "over",
-    true,
-    1.5
-   ],
-   [
     "4397183",
     "Aaron Wiggins",
     "ATL",
@@ -1150,7 +1110,7 @@
     0.1984,
     "over",
     true,
-    2.5
+    1.5
    ],
    [
     "4431680",
@@ -1393,32 +1353,104 @@
  },
  "401909883": {
   "date": "2026-10-28",
-  "points": [],
-  "threes": []
- },
- "401909884": {
-  "date": "2026-10-28",
   "points": [
    [
-    "2580365",
-    "Larry Nance Jr.",
-    "IND",
-    "PHI",
-    -0.4782,
+    "3908845",
+    "John Collins",
+    "DET",
+    "CHA",
+    0.0833,
+    "over",
+    false,
+    14.5
+   ],
+   [
+    "4278562",
+    "Paul Reed",
+    "DET",
+    "CHA",
+    0.1162,
+    "over",
+    false,
+    13.5
+   ],
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "DET",
+    -0.2328,
     "under",
+    true,
+    17.5
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "CHA",
+    -0.1696,
+    "under",
+    true,
+    22.5
+   ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "DET",
+    -0.2453,
+    "under",
+    true,
+    24.5
+   ],
+   [
+    "4602025",
+    "Sion James",
+    "CHA",
+    "DET",
+    0.3507,
+    "over",
+    true,
+    5.5
+   ]
+  ],
+  "threes": [
+   [
+    "3032979",
+    "Dennis Schroder",
+    "CHA",
+    "DET",
+    0.3019,
+    "over",
     true,
     1.5
    ],
    [
-    "2581018",
-    "Kentavious Caldwell-Pope",
-    "PHI",
-    "IND",
-    0.0694,
-    "over",
-    false,
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "DET",
+    -0.3802,
+    "under",
+    true,
     2.5
    ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "DET",
+    -0.3266,
+    "under",
+    true,
+    3.5
+   ]
+  ]
+ },
+ "401909884": {
+  "date": "2026-10-28",
+  "points": [
    [
     "3059318",
     "Joel Embiid",
@@ -1427,7 +1459,7 @@
     0.795,
     "over",
     true,
-    22.5
+    23.5
    ],
    [
     "3133603",
@@ -1457,7 +1489,7 @@
     -0.0981,
     "under",
     false,
-    20.5
+    21.5
    ],
    [
     "4065731",
@@ -1467,7 +1499,7 @@
     -0.2987,
     "under",
     true,
-    4.5
+    10.5
    ],
    [
     "4278355",
@@ -1487,7 +1519,7 @@
     0.1321,
     "over",
     true,
-    13.5
+    14.5
    ],
    [
     "4396909",
@@ -1497,7 +1529,7 @@
     -0.2929,
     "under",
     true,
-    10.5
+    11.5
    ],
    [
     "4396993",
@@ -1508,16 +1540,6 @@
     "over",
     true,
     18.5
-   ],
-   [
-    "4592829",
-    "Quenton Jackson",
-    "IND",
-    "PHI",
-    0.0799,
-    "over",
-    false,
-    5.5
    ],
    [
     "5106060",
@@ -1549,27 +1571,7 @@
     -0.2038,
     "under",
     true,
-    1.5
-   ],
-   [
-    "2580365",
-    "Larry Nance Jr.",
-    "IND",
-    "PHI",
-    -0.6375,
-    "under",
-    true,
     0.5
-   ],
-   [
-    "2581018",
-    "Kentavious Caldwell-Pope",
-    "PHI",
-    "IND",
-    0.11,
-    "over",
-    false,
-    1.5
    ],
    [
     "3059318",
@@ -1672,16 +1674,6 @@
     2.5
    ],
    [
-    "4592829",
-    "Quenton Jackson",
-    "IND",
-    "PHI",
-    -0.1605,
-    "under",
-    true,
-    0.5
-   ],
-   [
     "5106060",
     "Jarace Walker",
     "IND",
@@ -1714,7 +1706,7 @@
     0.0801,
     "over",
     false,
-    4.5
+    7.5
    ],
    [
     "4066320",
@@ -1744,7 +1736,7 @@
     -0.0895,
     "under",
     false,
-    22.5
+    21.5
    ],
    [
     "4395724",
@@ -1754,7 +1746,7 @@
     -0.0517,
     "under",
     false,
-    17.5
+    16.5
    ],
    [
     "4433134",
@@ -1764,7 +1756,7 @@
     0.0998,
     "over",
     false,
-    20.5
+    21.5
    ],
    [
     "4566434",
@@ -1795,6 +1787,16 @@
     "under",
     false,
     13.5
+   ],
+   [
+    "5093267",
+    "Collin Murray-Boyles",
+    "TOR",
+    "ORL",
+    -0.1001,
+    "under",
+    false,
+    9.5
    ]
   ],
   "threes": [
@@ -1817,6 +1819,16 @@
     "under",
     false,
     1.5
+   ],
+   [
+    "4432241",
+    "Jamal Shead",
+    "TOR",
+    "ORL",
+    0.1189,
+    "over",
+    false,
+    0.5
    ],
    [
     "4433134",
@@ -1862,22 +1874,164 @@
  },
  "401909886": {
   "date": "2026-10-28",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "CHI",
+    0.2303,
+    "over",
+    true,
+    11.5
+   ],
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "CHI",
+    -0.0839,
+    "under",
+    false,
+    21.5
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "CHI",
+    -0.1851,
+    "under",
+    true,
+    11.5
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "CHI",
+    -0.0987,
+    "under",
+    false,
+    26.5
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "CHI",
+    -0.1765,
+    "under",
+    true,
+    17.5
+   ],
+   [
+    "4871145",
+    "Josh Giddey",
+    "CHI",
+    "NY",
+    -0.0633,
+    "under",
+    false,
+    10.5
+   ],
+   [
+    "5095151",
+    "Caleb Wilson",
+    "CHI",
+    "NY",
+    0.0844,
+    "over",
+    false,
+    17.5
+   ]
+  ],
+  "threes": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "CHI",
+    0.3246,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "CHI",
+    -0.4499,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "CHI",
+    -0.4686,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "CHI",
+    0.4688,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "CHI",
+    -0.2918,
+    "under",
+    true,
+    2.5
+   ],
+   [
+    "4397189",
+    "Jalen Smith",
+    "CHI",
+    "NY",
+    0.8894,
+    "over",
+    true,
+    1.5
+   ],
+   [
+    "4711294",
+    "Matas Buzelis",
+    "CHI",
+    "NY",
+    -0.125,
+    "under",
+    true,
+    1.5
+   ],
+   [
+    "4871145",
+    "Josh Giddey",
+    "CHI",
+    "NY",
+    0.2476,
+    "over",
+    true,
+    1.5
+   ]
+  ]
  },
  "401909887": {
   "date": "2026-10-28",
   "points": [
-   [
-    "3102529",
-    "Clint Capela",
-    "HOU",
-    "MIL",
-    -0.1845,
-    "under",
-    true,
-    5.5
-   ],
    [
     "3133628",
     "Myles Turner",
@@ -1897,16 +2051,6 @@
     "under",
     false,
     12.5
-   ],
-   [
-    "4397475",
-    "AJ Green",
-    "MIL",
-    "HOU",
-    0.2671,
-    "over",
-    true,
-    2.5
    ],
    [
     "4432639",
@@ -1947,39 +2091,9 @@
     "over",
     false,
     13.5
-   ],
-   [
-    "5105623",
-    "Kel'el Ware",
-    "MIL",
-    "HOU",
-    0.059,
-    "over",
-    false,
-    5.5
-   ],
-   [
-    "5214640",
-    "Kasparas Jakucionis",
-    "MIL",
-    "HOU",
-    0.0802,
-    "over",
-    false,
-    3.5
    ]
   ],
   "threes": [
-   [
-    "2990992",
-    "Marcus Smart",
-    "HOU",
-    "MIL",
-    0.1328,
-    "over",
-    true,
-    1.5
-   ],
    [
     "3133628",
     "Myles Turner",
@@ -2021,26 +2135,6 @@
     2.5
    ],
    [
-    "4397475",
-    "AJ Green",
-    "MIL",
-    "HOU",
-    0.282,
-    "over",
-    true,
-    0.5
-   ],
-   [
-    "4432848",
-    "Jaime Jaquez Jr.",
-    "MIL",
-    "HOU",
-    -0.4585,
-    "under",
-    true,
-    0.5
-   ],
-   [
     "4591725",
     "Ryan Rollins",
     "MIL",
@@ -2049,62 +2143,12 @@
     "over",
     true,
     1.5
-   ],
-   [
-    "4684740",
-    "Amen Thompson",
-    "HOU",
-    "MIL",
-    0.153,
-    "over",
-    true,
-    0.5
-   ],
-   [
-    "5105623",
-    "Kel'el Ware",
-    "MIL",
-    "HOU",
-    -0.1149,
-    "under",
-    false,
-    0.5
-   ],
-   [
-    "5214640",
-    "Kasparas Jakucionis",
-    "MIL",
-    "HOU",
-    0.2034,
-    "over",
-    true,
-    0.5
    ]
   ]
  },
  "401909888": {
   "date": "2026-10-28",
   "points": [
-   [
-    "3032976",
-    "Rudy Gobert",
-    "MIN",
-    "GS",
-    0.19,
-    "over",
-    true,
-    6.5
-   ],
-   [
-    "4397002",
-    "Ayo Dosunmu",
-    "MIN",
-    "GS",
-    0.3202,
-    "over",
-    true,
-    10.5
-   ],
    [
     "4431671",
     "Jaden McDaniels",
@@ -2113,16 +2157,6 @@
     0.0743,
     "over",
     false,
-    10.5
-   ],
-   [
-    "4432816",
-    "LaMelo Ball",
-    "MIN",
-    "GS",
-    0.1772,
-    "over",
-    true,
     14.5
    ],
    [
@@ -2144,16 +2178,6 @@
     "under",
     false,
     8.5
-   ],
-   [
-    "6589",
-    "Draymond Green",
-    "GS",
-    "MIN",
-    0.1099,
-    "over",
-    false,
-    2.5
    ]
   ],
   "threes": [
@@ -2168,16 +2192,6 @@
     3.5
    ],
    [
-    "4431671",
-    "Jaden McDaniels",
-    "MIN",
-    "GS",
-    0.4863,
-    "over",
-    true,
-    1.5
-   ],
-   [
     "4432816",
     "LaMelo Ball",
     "MIN",
@@ -2188,36 +2202,6 @@
     3.5
    ],
    [
-    "4433247",
-    "Jonathan Kuminga",
-    "MIN",
-    "GS",
-    0.4392,
-    "over",
-    true,
-    1.5
-   ],
-   [
-    "4709138",
-    "Brandin Podziemski",
-    "GS",
-    "MIN",
-    0.1974,
-    "over",
-    true,
-    2.5
-   ],
-   [
-    "4997536",
-    "Gui Santos",
-    "GS",
-    "MIN",
-    -0.4822,
-    "under",
-    true,
-    0.5
-   ],
-   [
     "5175737",
     "Yaxel Lendeborg",
     "GS",
@@ -2226,16 +2210,6 @@
     "under",
     true,
     1.5
-   ],
-   [
-    "6589",
-    "Draymond Green",
-    "GS",
-    "MIN",
-    0.0543,
-    "over",
-    false,
-    0.5
    ]
   ]
  },
@@ -2290,7 +2264,7 @@
     0.1123,
     "over",
     false,
-    10.5
+    13.5
    ],
    [
     "4277813",
@@ -2320,7 +2294,7 @@
     0.3252,
     "over",
     true,
-    19.5
+    18.5
    ],
    [
     "4397136",
@@ -2351,16 +2325,6 @@
     "over",
     true,
     12.5
-   ],
-   [
-    "4565698",
-    "Bryce Hopkins",
-    "DEN",
-    "NO",
-    0.2161,
-    "over",
-    true,
-    4.5
    ],
    [
     "4698719",
@@ -2537,7 +2501,7 @@
     0.0919,
     "over",
     false,
-    13.5
+    14.5
    ],
    [
     "4066336",
@@ -2629,7 +2593,7 @@
     -0.067,
     "under",
     false,
-    2.5
+    1.5
    ],
    [
     "5037871",
@@ -2649,7 +2613,7 @@
     0.0518,
     "over",
     false,
-    1.5
+    0.5
    ],
    [
     "5104157",
@@ -2675,6 +2639,16 @@
     "under",
     false,
     9.5
+   ],
+   [
+    "4278049",
+    "Daniel Gafford",
+    "DAL",
+    "OKC",
+    -0.2957,
+    "under",
+    true,
+    5.5
    ],
    [
     "4278073",
