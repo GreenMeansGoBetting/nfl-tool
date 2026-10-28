@@ -51,14 +51,16 @@ function rankIn(table, key, v, hi) {
   return Math.min(vals.length, 1 + vals.filter((x) => (hi ? x > v : x < v)).length);
 }
 const teamsOf = (table) => Object.values(table || {}).filter((s) => s && Object.keys(s).length).length;
-// One cell: {r, n, num, title, plain (never colored), abbr (logo in it), faded}.
+// One cell: {r, n, num, title, plain (never colored), abbr (logo in it), faded};
+// `big` leads with that number and puts the rank small (Points Per Quarter).
 function cellTd(c, extra = "") {
   if (!c) return `<td class="mb-v mb-empty${extra}"></td>`;
   const hue = c.n > 1 ? Math.round((120 * (c.n - c.r)) / (c.n - 1)) : 60;
   const style = c.plain || !c.r ? "" : ` style="background:${scaleHsla(hue, 70, 45, 0.32)}"`;
   const lg = c.abbr ? logo(c.abbr, 16) : "";
-  const big = c.r ? `<b>${ordinal(c.r)}</b>` : "";
-  return `<td class="mb-v${c.faded ? " mb-faded" : ""}${extra}"${style} title="${esc(c.title || "")}">${lg}${big}${c.num ? `<small>${c.num}</small>` : ""}</td>`;
+  const big = c.big !== undefined ? `<b>${c.big}</b>` : c.r ? `<b>${ordinal(c.r)}</b>` : "";
+  const small = c.big !== undefined ? (c.r ? ordinal(c.r) : "") : c.num;
+  return `<td class="mb-v${c.faded ? " mb-faded" : ""}${extra}"${style} title="${esc(c.title || "")}">${lg}${big}${small ? `<small>${small}</small>` : ""}</td>`;
 }
 
 // ---- the identity numbers (identity.py) ----
@@ -208,27 +210,31 @@ function typePair(ex, t, off, de) {
 
 // A column head: the team's logo and "HOU Off" (the owner: no "Has The Ball" / "Call" heads).
 const colHead = (abbr, what) => `<th class="mb-colhead">${logo(abbr, 18)} ${abbr}${what ? ` ${what}` : ""}</th>`;
-// Labels sit at the far left of every table, never between the teams (the owner, 2026-10-28).
+// Labels sit at the far left of a team-vs-team table (the owner, 2026-10-28); The
+// Matchup keeps its label in the middle, since each row reads both directions.
 const labelTd = (text) => `<td class="mb-stat">${text}</td>`;
 
 // ---- The Matchup: every row, both directions side by side ----
-// [label] [away off][home def][call] | [home off][away def][call].
+// [call][away off][home def] [label] [home off][away def][call]: the label in the
+// middle, the calls on the far outside (the owner, 2026-10-28).
 // Returns {html, edges: [{team, side, size, label, o, d}]}.
 function matchup(g) {
   const a = g.away;
   const h = g.home;
   const edges = [];
-  const COLS = 8;
-  const rowHtml = (label, A, H) => `<tr${(A && A.call) || (H && H.call) ? ' class="mb-called"' : ""}>${labelTd(label)}
-      ${cellTd(A && A.o)}${cellTd(A && A.d)}<td class="mb-call">${callPill(A && A.call)}</td><td class="mb-gap"></td>
+  const COLS = 7;
+  const rowHtml = (label, A, H) => `<tr${(A && A.call) || (H && H.call) ? ' class="mb-called"' : ""}>
+      <td class="mb-call">${callPill(A && A.call)}</td>${cellTd(A && A.o)}${cellTd(A && A.d)}<td class="mb-stat mb-mid">${label}</td>
       ${cellTd(H && H.o)}${cellTd(H && H.d)}<td class="mb-call">${callPill(H && H.call)}</td></tr>`;
+  // the column heads sit right above the first rows, under the first group's name
+  const heads = `<tr class="mb-heads"><th></th>${colHead(a, "Off")}${colHead(h, "Def")}<th></th>${colHead(h, "Off")}${colHead(a, "Def")}<th></th></tr>`;
   const note = (label, P, off, de) => {
     if (P && P.call && P.call.kind === "edge") edges.push({ team: P.call.team, side: P.call.team === off ? "off" : "def", size: P.call.size, label, o: P.o, d: P.d });
   };
   const grp = (t) => `<tr class="mb-group"><td colspan="${COLS}">${t}</td></tr>`;
   let body = "";
   for (const name of M_GROUPS) {
-    body += grp(name);
+    body += grp(name) + (name === M_GROUPS[0] ? heads : "");
     for (const r of M_ROWS.filter((x) => x[4] === name)) {
       const pair = (off, de) => {
         const o = sideCell(off, "off", r);
@@ -254,8 +260,7 @@ function matchup(g) {
       }
     }
   }
-  const head = `<thead><tr><th></th>${colHead(a, "Off")}${colHead(h, "Def")}<th></th><th class="mb-gap"></th>${colHead(h, "Off")}${colHead(a, "Def")}<th></th></tr></thead>`;
-  return { html: `<div class="mb-scroll"><table class="mb-table mb-matchup">${head}<tbody>${body}</tbody></table></div>`, edges };
+  return { html: `<div class="mb-scroll"><table class="mb-table mb-matchup"><tbody>${body}</tbody></table></div>`, edges };
 }
 
 // ---- Biggest Edges: each team's biggest, as a chart (the owner: a count of 8 vs 1 hid sizes) ----
@@ -323,7 +328,7 @@ function winLossBox(abbr) {
     <table class="mb-table mb-wl"><thead><tr><th></th><th>${wHead}</th><th>${lHead}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-// ---- Head To Head: both teams side by side, labels on the right ----
+// ---- Head To Head: three tables side by side (Season, Points Per Quarter, Blowout Data) ----
 function headToHead(g) {
   const a = g.away;
   const h = g.home;
@@ -343,44 +348,45 @@ function headToHead(g) {
     const r = rankIn(ts, key, s[key], hi);
     return { r, n, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${n})` };
   };
-  const idCell = (abbr, key, hi, show) => {
+  const idCell = (abbr, key, hi, show, lead) => {
     const s = idStats(abbr);
     if (!s || s[key] === null || s[key] === undefined) return null;
     const r = rankIn(idTeams(), key, s[key], hi);
     const nn = teamsOf(idTeams());
-    return { r, n: nn, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${nn})` };
+    const c = { r, n: nn, num: show(s[key]), title: `${abbr}: ${show(s[key])} (${ordinal(r)} of ${nn})` };
+    return lead ? { ...c, big: show(s[key]) } : c;
   };
   const raw = (A, H, label) => `<tr>${labelTd(label)}${A}${H}</tr>`;
   const both = (label, f) => `<tr>${labelTd(label)}${cellTd(f(a))}${cellTd(f(h))}</tr>`;
-  const grp = (t) => `<tr class="mb-group"><td colspan="3">${t}</td></tr>`;
   const pts = (v) => `${v.toFixed(1)}`;
   const pctS = (v) => `${Math.round(v * 100)}%`;
   const of5 = (v) => `${v.toFixed(1)} Of 5`;
-  let body = "";
+  let season = "";
+  let quarters = "";
+  let blowouts = "";
   if (sa || sh) {
-    body += raw(rec(sa && `${sa.wins}-${sa.losses}`), rec(sh && `${sh.wins}-${sh.losses}`), "Record");
-    body += both("Net Rating", (t) => tsCell(t, "net_rating", true, (v) => signed(v)));
-    body += both("Offense", (t) => tsCell(t, "off_rating", true, pts));
-    body += both("Defense", (t) => tsCell(t, "def_rating", false, pts));
-    body += both("Pace", (t) => tsCell(t, "pace", true, pts));
-    body += raw(rec(sa && sa.home_record), rec(sh && sh.home_record), "Home");
-    body += raw(rec(sa && sa.away_record), rec(sh && sh.away_record), "Away");
-    body += raw(rec(sa && sa.last10), rec(sh && sh.last10), "Last 10");
+    season += raw(rec(sa && `${sa.wins}-${sa.losses}`), rec(sh && `${sh.wins}-${sh.losses}`), "Record");
+    season += both("Net Rating", (t) => tsCell(t, "net_rating", true, (v) => signed(v)));
+    season += both("Offense", (t) => tsCell(t, "off_rating", true, pts));
+    season += both("Defense", (t) => tsCell(t, "def_rating", false, pts));
+    season += both("Pace", (t) => tsCell(t, "pace", true, pts));
+    season += raw(rec(sa && sa.home_record), rec(sh && sh.home_record), "Home");
+    season += raw(rec(sa && sa.away_record), rec(sh && sh.away_record), "Away");
+    season += raw(rec(sa && sa.last10), rec(sh && sh.last10), "Last 10");
   }
   if (idStats(a) || idStats(h)) {
-    body += grp("Points Per Quarter");
-    for (const q of [1, 2, 3, 4]) body += both(`Q${q} Margin`, (t) => idCell(t, `q${q}_ppq`, true, (v) => signed(v)));
-    body += grp("Blowout Data");
-    body += both("Games Up 15+", (t) => idCell(t, "blowout_up_share", true, pctS));
-    body += both("Games Down 15+", (t) => idCell(t, "blowout_down_share", false, pctS));
+    // the margin itself big, its rank small (the owner, 2026-10-28)
+    for (const q of [1, 2, 3, 4]) quarters += both(`Q${q}`, (t) => idCell(t, `q${q}_ppq`, true, (v) => signed(v), true));
+    blowouts += both("Games Up 15+", (t) => idCell(t, "blowout_up_share", true, pctS));
+    blowouts += both("Games Down 15+", (t) => idCell(t, "blowout_down_share", false, pctS));
     // starters still on the floor in the 4th: more = 1st (green), the how-often rule
-    body += both("Starters In: Up 15+", (t) => idCell(t, "blowout_up_starters", true, of5));
-    body += both("Starters In: Down 15+", (t) => idCell(t, "blowout_down_starters", true, of5));
-    body += both("Starters In: Within 5", (t) => idCell(t, "close_starters", true, of5));
+    blowouts += both("Starters In: Up 15+", (t) => idCell(t, "blowout_up_starters", true, of5));
+    blowouts += both("Starters In: Down 15+", (t) => idCell(t, "blowout_down_starters", true, of5));
+    blowouts += both("Starters In: Within 5", (t) => idCell(t, "close_starters", true, of5));
   }
-  body += spotRows(g);
-  return `<div class="nba-box mb-fitbox mb-h2h">
-    <table class="mb-table mb-mirror"><thead><tr><th></th>${colHead(a, "")}${colHead(h, "")}</tr></thead><tbody>${body}</tbody></table></div>`;
+  blowouts += spotRows(g);
+  const table = (title, rows) => (rows ? `<table class="mb-table mb-mirror"><thead><tr><th class="mb-part">${title}</th>${colHead(a, "")}${colHead(h, "")}</tr></thead><tbody>${rows}</tbody></table>` : "");
+  return `<div class="nba-box mb-fitbox mb-h2h"><div class="mb-parts">${table("Season", season)}${table("Points Per Quarter", quarters)}${table("Blowout Data", blowouts)}</div></div>`;
 }
 // Tonight's Schedule Spots (back-to-back, long road trip...): the team's net points
 // a game vs its normal in that spot, minus the league's, ranked among every team
@@ -531,7 +537,7 @@ function renderHeader(g) {
     <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${games ? ` &middot; ${DATA.season_label}: ${games} game${games === 1 ? "" : "s"} a team so far` : ""}</div>`;
 }
 
-const SECTIONS = ["top", "edges", "story", "h2h", "matchup", "players"];
+const SECTIONS = ["top", "edges", "story", "h2h", "matchup", "players", "recent"];
 function render() {
   renderSchedule();
   const g = currentGame();

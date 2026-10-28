@@ -595,21 +595,24 @@ these teams win, why they lose, and what the matchup may have in store for tonig
   (`cellTd`, `scaleHsla`); green = good for that team. **How-often rows ARE colored** (the owner chose
   it): offense 1st = does it most, defense 1st = allows it least, so green against red = the offense
   gets its way. `rankIn` ranks a number among the teams' season numbers (also a wins / losses number).
-- **Layout rules (the owner's first look, 2026-10-28):** every section and box hugs its contents and
-  they flow side by side where there's room (`.mb-flow`, `.mb-fitbox`; "when in doubt you just increase
-  everything to fill the space rather than containing things"); **labels sit at the far left of every
-  table, never between the teams** ("This has been an issue with you for the entirety of the site");
-  group headers centered; no "Has The Ball" / "Call" heads, just logo + "HOU Off" over each column.
+- **Layout (the owner, 2026-10-28, two passes):** two anchored columns sized by their widest section
+  (`.mb-grid`, `.mb-colwrap`; never stretch a box to fill the screen): **left** = The Line + Injuries,
+  Biggest Edges, Head To Head, Rotations (each section the column's width); **right** = How They Win /
+  How They Lose, then The Matchup; **Recent Games** across the bottom, a half each. Below about 1800 px
+  the columns stack. **Labels sit in the far-left column** of every team-vs-team table (Biggest Edges,
+  How They Win / Lose, Head To Head); **The Matchup keeps its label in the middle** (each row reads both
+  directions) with the calls on the far outside. No "Has The Ball" / "Call" heads: logo + "HOU Off"
+  column heads sit right under the first group's name; group headers centered.
 - Sections: **The Line** + **Injuries** (compact); **Biggest Edges** (per team, its **Offense** group
   then its **Defense** group, up to 3 each, the team's own cell first); **How They Win / How They
-  Lose** (reworked: the same 12 plain-word rows for every team, `WL_ROWS`, In Wins | In Losses, each
-  ranked where it would sit among the 30 season numbers; the 3 biggest swings marked; "No Losses Yet"
-  heads the empty column); **Head To Head** (record, ratings, pace, home / away / last 10, Q1-Q4
-  Margin, Blowout Data with the starters rows colored too (more = 1st), Tonight's Spots);
-  **The Matchup**; **Rotations & Recent Games** in one section (rotation cells shaded by rank on his
-  own team, every column sortable; Recent Games' Spread / Total at tip, green = covered / over, from
-  King of the Court's `lines_<season>.json` via `add_recent_lines`).
-- **The Matchup**: one table, `[label] [Away Off][Home Def][call] | [Home Off][Away Def][call]`, every
+  Lose** (the same 12 plain-word rows for every team, `WL_ROWS`, In Wins | In Losses, each ranked where
+  it would sit among the 30 season numbers; the 3 biggest swings marked; "No Losses Yet" heads the
+  empty column); **Head To Head** = three tables side by side: Season (record, ratings, pace, home /
+  away / last 10), Points Per Quarter (Q1-Q4: **the margin big, its rank small**, colored by rank),
+  Blowout Data (starters rows colored too, more = 1st) + Tonight's Spots; **Rotations** (cells shaded
+  by rank on his own team, every column sortable); **Recent Games** (Spread / Total at tip, green =
+  covered / over, from King of the Court's `lines_<season>.json` via `add_recent_lines`).
+- **The Matchup**: one table, `[call][Away Off][Home Def] [label] [Home Off][Away Def][call]`, every
   row always. Rows (`M_ROWS`, the owner's cuts
   2026-10-28): Scoring = Pts / Possession, Pace, Transition Share, Transition Pts / Poss; Possessions =
   Turnovers, Rebounding (offensive rebound % vs the defense's own defensive rebound %), Free Throws /

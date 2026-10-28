@@ -1,20 +1,25 @@
 /* NBA Matchup Breakdown (nba/index.html + nba.js; Game Previews and Team Identity
    merged, 2026-10-28). The layout pieces (.nba-box, banners) come from suite.css.
-   Every section and box hugs its contents and they flow side by side where there's
-   room (the owner: "when in doubt you just increase everything to fill the space
-   rather than containing things"); labels sit at the far left of every table,
-   never between the teams. Every value cell is a rank of 30 in big type with its
-   number small, shaded by nba.js (scaleHsla). */
+   Two anchored columns sized by their widest section (the owner, 2026-10-28: never
+   stretch to fill the screen; "anchor those together"): the line, injuries, edges,
+   Head To Head and rotations on the left; How They Win / How They Lose and The
+   Matchup on the right; Recent Games across the bottom, a half each. Every value
+   cell is a rank of 30 in big type with its number small, shaded by nba.js. */
 
-.mb-flow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: center; }
-.mb-flow > .section-wrap { width: fit-content; max-width: 100%; margin: 0; }
-.mb-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
-.mb-col { display: flex; flex-direction: column; gap: 12px; }
-.mb-fitbox { width: fit-content; max-width: 100%; }
-.nba-box.mb-fitbox > .mb-table, .nba-box.mb-fitbox > .mb-scroll { margin: 0 10px; }
+.mb-grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: center; }
+.mb-colwrap { display: flex; flex-direction: column; gap: 16px; width: fit-content; max-width: 100%; min-width: 0; }
+.mb-colwrap > .section-wrap, .mb-grid > .section-wrap { margin: 0; }
+.mb-wide { flex: 1 1 100%; }
+.mb-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+.mb-row > .nba-box { flex: 1 1 auto; }
+.mb-fitbox { max-width: 100%; }
+.nba-box.mb-fitbox > .mb-table, .nba-box.mb-fitbox > .mb-scroll { margin: 0 auto; padding: 0 8px; }
+.mb-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.mb-halves .mb-recent { width: calc(100% - 20px); margin: 0 10px; }
 
 /* The Line and Injuries */
 .mb-line { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px; }
+.mb-line .mb-tile { flex: 1 1 auto; }
 .mb-tile { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
 .mb-tile b { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; white-space: nowrap; }
 .mb-pair { display: inline-flex; align-items: center; gap: 5px; }
@@ -47,10 +52,15 @@
 .mb-call .gs-tag { height: 20px; }
 .mb-scroll { overflow-x: auto; max-width: 100%; }
 
-/* The Matchup: a hard line between the two directions */
-.mb-matchup td.mb-gap, .mb-matchup th.mb-gap { width: 3px; min-width: 3px; padding: 0; background: var(--border-strong); border-radius: 2px; }
-.mb-matchup .mb-group td.mb-gap { background: none; }
+/* The Matchup: the label in the middle on its own shade splits the two directions */
+.mb-matchup td.mb-mid { min-width: 160px; padding: 0 12px; text-align: center; border-radius: 7px; background: var(--table-head); }
 .mb-matchup tr.mb-called td.mb-stat { font-weight: 800; }
+.mb-table tr.mb-heads th { padding-top: 2px; }
+
+/* Head To Head: Season, Points Per Quarter and Blowout Data side by side */
+.mb-parts { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: flex-start; padding: 0 8px; }
+.mb-table th.mb-part { text-align: left; color: var(--accent, var(--good-text)); font-family: var(--font-display); font-size: 0.84rem; }
+.mb-h2h { padding-top: 8px; }
 
 /* Biggest Edges: Offense and Defense groups */
 .mb-edges .mb-group td:first-child { padding-top: 8px; }
@@ -70,6 +80,7 @@
 
 @media (max-width: 760px) {
   .mb-injs { flex-direction: column; gap: 8px; }
+  .mb-halves { grid-template-columns: minmax(0, 1fr); }
   .mb-v { min-width: 62px; padding: 0 6px; }
   .mb-stat { white-space: normal; min-width: 96px; }
   .mb-fitbox { overflow-x: auto; }
