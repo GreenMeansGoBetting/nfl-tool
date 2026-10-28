@@ -2675,14 +2675,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2879,
+    "lead": 0.2882,
     "name": "Luka Doncic",
     "proj": 51.7,
     "team": "LAL"
    },
    {
     "id": "3112335",
-    "lead": 0.1132,
+    "lead": 0.1133,
     "name": "Nikola Jokic",
     "proj": 44.2,
     "team": "DEN"
@@ -2696,7 +2696,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0531,
+    "lead": 0.0533,
     "name": "Joel Embiid",
     "proj": 40.5,
     "team": "PHI"
@@ -2710,7 +2710,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0355,
+    "lead": 0.0356,
     "name": "Donovan Mitchell",
     "proj": 37.6,
     "team": "CLE"
@@ -2724,14 +2724,14 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0321,
+    "lead": 0.031,
     "name": "Karl-Anthony Towns",
-    "proj": 37.0,
+    "proj": 36.9,
     "team": "NY"
    },
    {
     "id": "4066457",
-    "lead": 0.0279,
+    "lead": 0.028,
     "name": "Austin Reaves",
     "proj": 36.2,
     "team": "LAL"
@@ -2752,7 +2752,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.018,
+    "lead": 0.0181,
     "name": "Cooper Flagg",
     "proj": 35.3,
     "team": "DAL"
@@ -2766,7 +2766,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.014,
+    "lead": 0.0142,
     "name": "Shai Gilgeous-Alexander",
     "proj": 34.9,
     "team": "OKC"
@@ -2780,7 +2780,7 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0132,
+    "lead": 0.0133,
     "name": "Jamal Murray",
     "proj": 34.7,
     "team": "DEN"
@@ -2808,7 +2808,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0116,
+    "lead": 0.0117,
     "name": "Victor Wembanyama",
     "proj": 33.9,
     "team": "SA"
@@ -2822,7 +2822,7 @@
    },
    {
     "id": "4566434",
-    "lead": 0.0105,
+    "lead": 0.0106,
     "name": "Franz Wagner",
     "proj": 33.8,
     "team": "ORL"
@@ -2850,7 +2850,7 @@
    },
    {
     "id": "4433287",
-    "lead": 0.0051,
+    "lead": 0.0052,
     "name": "Brandon Miller",
     "proj": 30.8,
     "team": "CHA"
@@ -2880,7 +2880,7 @@
     "id": "3934672",
     "lead": 0.0038,
     "name": "Jalen Brunson",
-    "proj": 30.9,
+    "proj": 30.8,
     "team": "NY"
    },
    {
@@ -2899,9 +2899,9 @@
    },
    {
     "id": "5095151",
-    "lead": 0.0031,
+    "lead": 0.003,
     "name": "Caleb Wilson",
-    "proj": 30.8,
+    "proj": 30.7,
     "team": "CHI"
    },
    {
@@ -2968,13 +2968,6 @@
     "team": "GS"
    },
    {
-    "id": "3934719",
-    "lead": 0.0009,
-    "name": "OG Anunoby",
-    "proj": 27.6,
-    "team": "NY"
-   },
-   {
     "id": "5174563",
     "lead": 0.0009,
     "name": "Kyshawn George",
@@ -2987,6 +2980,13 @@
     "name": "Immanuel Quickley",
     "proj": 25.4,
     "team": "TOR"
+   },
+   {
+    "id": "3934719",
+    "lead": 0.0008,
+    "name": "OG Anunoby",
+    "proj": 27.5,
+    "team": "NY"
    },
    {
     "id": "4432639",
