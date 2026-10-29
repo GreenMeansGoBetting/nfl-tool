@@ -140,3 +140,33 @@ function pickMatrix(picks) {
   const grandTotal = tallyPicks(picks);
   return { markets, colors, rows, colTotals, grandTotal };
 }
+
+// Record by team (the owner's My Team Record view, 2026-10-29): every graded
+// pick counted once for EACH team in its game, from that team's side.
+//   Pick / Fade  = moneyline on the team / on its opponent
+//   Fav / Dog    = spread on the team as the favorite (line < 0) / underdog
+//                  (line > 0); a pick'em spread counts in neither
+//   ATS Fade     = spread on its opponent
+//   Over / Under = totals in its games
+//   Total        = every pick in its games, each once
+const TEAM_PICK_COLS = ["mlPick", "mlFade", "atsFav", "atsDog", "atsFade", "over", "under", "total"];
+function teamPickBucket(pick, team) {
+  if (pick.market === "total") return pick.side === "over" ? "over" : "under";
+  const pickedTeam = pick.side === "home" ? pick.home : pick.away;
+  const mine = pickedTeam === team;
+  if (pick.market === "moneyline") return mine ? "mlPick" : "mlFade";
+  if (!mine) return "atsFade";
+  if (pick.line_at_pick < 0) return "atsFav";
+  if (pick.line_at_pick > 0) return "atsDog";
+  return null;
+}
+function teamPickMatrix(picks, teams) {
+  return teams.map((team) => {
+    const mine = picks.filter((p) => p.away === team || p.home === team);
+    const cells = {};
+    TEAM_PICK_COLS.forEach((col) => {
+      cells[col] = tallyPicks(col === "total" ? mine : mine.filter((p) => teamPickBucket(p, team) === col));
+    });
+    return { team, picks: mine.length, cells };
+  });
+}

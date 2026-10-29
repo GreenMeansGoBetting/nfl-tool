@@ -871,25 +871,42 @@ document.querySelectorAll(".stats-mode-btn").forEach((btn) =>
 );
 
 // ---- view toggle: Full Preview / Summary ----
+// My Team Record is the owner's alone (the owner, 2026-10-29): the button is
+// hidden by style.css for everyone else, and a saved "teams" view falls back
+// to Full Preview until sync.js marks the page is-owner.
+function gsOwnerView() {
+  const cls = document.documentElement.classList;
+  return cls.contains("is-owner") || cls.contains("local-dev");
+}
+new MutationObserver(() => {
+  if (gsView === "teams" && gsOwnerView() && document.getElementById("section-teams").hidden) render();
+}).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
 function applyPreviewView(game) {
+  const teams = gsView === "teams" && gsOwnerView();
   const summary = gsView === "summary";
   const model = gsView === "model"; // Build Your Model
   const modelWrap = document.getElementById("section-model");
-  document.querySelectorAll(".preview-view-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === gsView));
+  const teamsWrap = document.getElementById("section-teams");
+  const shown = gsView === "teams" && !teams ? "full" : gsView;
+  document.querySelectorAll(".preview-view-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === shown));
   const wrap = document.getElementById("section-game-summary");
   if (!game) {
     wrap.hidden = true;
     modelWrap.hidden = true;
+    teamsWrap.hidden = true;
     return;
   }
   SECTIONS.forEach((s) => {
     const el = document.getElementById(`section-${s}`);
-    if (el && (summary || model)) el.hidden = true;
+    if (el && (summary || model || teams)) el.hidden = true;
   });
-  document.querySelectorAll("#game-flipper-bottom").forEach((el) => (el.hidden = summary || model));
+  document.querySelectorAll("#game-flipper-bottom").forEach((el) => (el.hidden = summary || model || teams));
   wrap.hidden = !summary;
   modelWrap.hidden = !model;
+  teamsWrap.hidden = !teams;
   if (model) modelWrap.innerHTML = renderModelWeights(true);
+  if (teams) teamsWrap.innerHTML = renderTeamRecord();
   if (summary) {
     gsDraft = {};
     renderGameSummaryCard(game);

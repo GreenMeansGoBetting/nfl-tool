@@ -1944,6 +1944,24 @@ footer a { color: var(--accent); }
 .pick-matrix-table .matrix-total-row td { border-top: 2px solid var(--grid-line); }
 .pick-matrix-table .matrix-total-col { border-left: 2px solid var(--grid-line); }
 
+/* My Team Record (Game Previews, owner only). */
+html:not(.is-owner):not(.local-dev) .owner-only { display: none; }
+.team-rec-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+.team-rec-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 96px;
+  padding: 6px 12px; border: 1px solid var(--grid-line); border-radius: 10px; background: var(--table-head);
+  font-size: 0.86rem; font-weight: 700; text-align: center; line-height: 1.2;
+}
+.team-rec-tile-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.team-rec-scroll { max-width: 100%; overflow-x: auto; }
+.pick-matrix-table.team-rec-table { width: auto; table-layout: auto; margin-top: 0; }
+.pick-matrix-table.team-rec-table th, .pick-matrix-table.team-rec-table td { width: auto; padding: 3px 8px; white-space: nowrap; }
+.team-rec-table th[data-sort] { cursor: pointer; }
+.team-rec-table th.sorted { text-decoration: underline; text-underline-offset: 3px; }
+.team-rec-team { font-weight: 700; }
+.team-rec-team img { width: 22px; height: 22px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
+.team-rec-empty td { opacity: 0.45; }
+
 /* ====================================================================
    Facelift layer -- sits last so it wins at equal specificity. Layout
    (widths, table column sizes) is untouched above; this only restyles

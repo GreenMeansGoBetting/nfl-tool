@@ -128,6 +128,41 @@ class PickNeedsFourPoints(unittest.TestCase):
         self.assertEqual(record, "1-1")
 
 
+class MyTeamRecord(unittest.TestCase):
+    """The owner's My Team Record view: every graded pick counts once for each
+    team in its game, from that team's side."""
+
+    def test_each_pick_lands_in_the_right_column(self):
+        rows = GAME.evaluate(
+            """() => {
+                const g = { away: "HOU", home: "IND" };
+                const picks = [
+                    { ...g, market: "moneyline", side: "away", odds_at_pick: 150, graded: "win" },
+                    { ...g, market: "spread", side: "home", line_at_pick: -3.5, odds_at_pick: -110, graded: "loss" },
+                    { ...g, market: "spread", side: "away", line_at_pick: 3.5, odds_at_pick: -110, graded: "win" },
+                    { ...g, market: "total", side: "over", line_at_pick: 44.5, odds_at_pick: -110, graded: "push" },
+                    { ...g, market: "spread", side: "away", line_at_pick: 0, odds_at_pick: -110, graded: "win" },
+                    { away: "KC", home: "DEN", market: "total", side: "under", line_at_pick: 40, odds_at_pick: -110, graded: "win" },
+                    { ...g, market: "total", side: "under", line_at_pick: 44.5, odds_at_pick: -110, graded: null },
+                ];
+                const out = {};
+                teamPickMatrix(picks, ["HOU", "IND", "KC"]).forEach((r) => {
+                    out[r.team] = Object.fromEntries(Object.entries(r.cells).map(([k, t]) => [k, `${t.win}-${t.loss}-${t.push}`]));
+                });
+                return out;
+            }"""
+        )
+        self.assertEqual(rows["HOU"], {
+            "mlPick": "1-0-0", "mlFade": "0-0-0", "atsFav": "0-0-0", "atsDog": "1-0-0",
+            "atsFade": "0-1-0", "over": "0-0-1", "under": "0-0-0", "total": "3-1-1",
+        })
+        self.assertEqual(rows["IND"], {
+            "mlPick": "0-0-0", "mlFade": "1-0-0", "atsFav": "0-1-0", "atsDog": "0-0-0",
+            "atsFade": "2-0-0", "over": "0-0-1", "under": "0-0-0", "total": "3-1-1",
+        })
+        self.assertEqual(rows["KC"]["under"], "1-0-0")
+
+
 class GameSummaryEdgeRule(unittest.TestCase):
     """Who has the edge on the Game Summary card, straight from the two ranks
     shown: 16+ ranks apart = clear, 8-15 = slight, both top 8 = strength vs

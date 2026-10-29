@@ -1618,6 +1618,70 @@ function renderPickSummary() {
   `;
 }
 
+// ---- My Team Record (owner-only view; the math is teamPickMatrix in picks.js) ----
+const TEAM_PICK_HEADERS = {
+  mlPick: ["Picked To Win", "Moneyline on them"],
+  mlFade: ["Faded", "Moneyline on their opponent"],
+  atsFav: ["Cover As Fav", "Spread on them as the favorite"],
+  atsDog: ["Cover As Dog", "Spread on them as the underdog"],
+  atsFade: ["ATS Fade", "Spread on their opponent"],
+  over: ["Over", "Overs in their games"],
+  under: ["Under", "Unders in their games"],
+  total: ["Total", "Every pick in their games, each counted once"],
+};
+let teamRecordSort = "total";
+function renderTeamRecord() {
+  const picks = regradeAllPicks(DATA.schedule);
+  const rows = teamPickMatrix(picks, Object.keys(TEAM_NAMES));
+  const key = (r) => (r.picks ? r.cells[teamRecordSort].units : -Infinity);
+  rows.sort((a, b) => key(b) - key(a) || b.cells[teamRecordSort].win - a.cells[teamRecordSort].win || a.team.localeCompare(b.team));
+  const cell = (t, extra = "") => {
+    if (!t.win && !t.loss && !t.push) return `<td class="${extra}">&ndash;</td>`;
+    const { cls, attr } = unitsStyle(t.units);
+    return `<td class="${[extra, cls].filter(Boolean).join(" ")}"${attr}>${matrixCellText(t)}</td>`;
+  };
+  const head = TEAM_PICK_COLS.map((c) => {
+    const [label, tip] = TEAM_PICK_HEADERS[c];
+    const cls = [c === "total" ? "matrix-total-col" : "", c === teamRecordSort ? "sorted" : ""].filter(Boolean).join(" ");
+    return `<th class="${cls}" data-sort="${c}" title="${tip}. Click to sort">${label}</th>`;
+  }).join("");
+  const body = rows
+    .map(
+      (r) => `<tr${r.picks ? "" : ' class="team-rec-empty"'}>
+        <td class="team-rec-team"><img src="${teamLogoUrl(r.team)}" alt=""><span>${r.team}</span></td>
+        ${TEAM_PICK_COLS.map((c) => cell(r.cells[c], c === "total" ? "matrix-total-col" : "")).join("")}
+      </tr>`
+    )
+    .join("");
+  const tile = (label, list) => {
+    const t = tallyPicks(list);
+    const { cls, attr } = unitsStyle(t.units);
+    return `<div class="team-rec-tile ${cls}"${attr}><span class="team-rec-tile-label">${label}</span><span class="team-rec-tile-val">${matrixCellText(t)}</span></div>`;
+  };
+  const of = (fn) => picks.filter(fn);
+  return `<h2 class="section-title">My Team Record</h2>
+    <div class="team-rec-tiles">
+      ${tile("Overall", picks)}
+      ${tile("Moneyline", of((p) => p.market === "moneyline"))}
+      ${tile("Spread", of((p) => p.market === "spread"))}
+      ${tile("Overs", of((p) => p.market === "total" && p.side === "over"))}
+      ${tile("Unders", of((p) => p.market === "total" && p.side === "under"))}
+    </div>
+    ${picks.length ? "" : `<p class="no-data-note">No picks saved yet.</p>`}
+    <div class="team-rec-scroll">
+      <table class="data-table pick-matrix-table team-rec-table">
+        <thead><tr><th>Team</th>${head}</tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>`;
+}
+document.addEventListener("click", (e) => {
+  const th = e.target.closest(".team-rec-table th[data-sort]");
+  if (!th) return;
+  teamRecordSort = th.dataset.sort;
+  document.getElementById("section-teams").innerHTML = renderTeamRecord();
+});
+
 // ---- Pick reveal modal (on-stream "flare" after Save Picks) ----
 function ensurePickRevealModal() {
   if (document.getElementById("pick-reveal-modal")) return;
