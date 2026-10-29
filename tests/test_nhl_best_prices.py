@@ -38,6 +38,13 @@ class BestPrices(unittest.TestCase):
         self.assertEqual(build_nhl.best_book_prices(once, BOOKS, GAMES), once)
         self.assertEqual(ODDS["g1"]["p1"]["sog"]["over"], 110)
 
+    def test_a_pickem_app_is_listed_but_never_the_best_price(self):
+        """The owner, 2026-10-29: members asked for Underdog; a pick'em leg can't be bet alone."""
+        books = {"AAA_BBB": {"props": {"sog": {"p1": {"q": [["underdog_dfs", "o", 2.5, 150, None], ["4cx", "o", 2.5, 120, None]]}}}}}
+        out = build_nhl.best_book_prices(ODDS, books, GAMES)["g1"]["p1"]
+        self.assertEqual((out["sog"]["over"], out["sog"]["over_book"]), (120, "4cx"))
+        self.assertIn("underdog_dfs", build_nhl.smartstake.US_BOOKS)
+
     def test_no_book_prices_means_novigs_untouched(self):
         self.assertIs(build_nhl.best_book_prices(ODDS, None, GAMES), ODDS)
         self.assertEqual(build_nhl.best_book_prices(ODDS, {}, GAMES), ODDS)

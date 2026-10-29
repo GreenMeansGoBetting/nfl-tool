@@ -123,8 +123,10 @@
 .shots-rank { width: 34px; color: var(--muted); }
 .shots-player { padding-left: 10px; }
 .shots-player .muted-label { font-style: normal; font-size: 0.72rem; font-weight: 700; }
-.shots-vs { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; padding-left: 10px; }
+.shots-vs { display: inline-flex; align-items: center; gap: 2px; margin-left: auto; padding-left: 10px; }
 .shots-vs .at { font-size: 0.68rem; font-weight: 700; color: var(--muted); }
+/* 30px logos that never squeeze in a tight row (members: "too small and distorted", 2026-10-29). */
+.shots-vs .team-logo { flex: 0 0 auto; object-fit: contain; }
 .shots-play-cell { text-align: center; }
 /* Player, Play and Edge only as wide as what's in them (they took most of a
    wide screen's spare room, the owner's ask); the rest goes to the numbers. */
@@ -542,7 +544,7 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .best-table td.best-player { vertical-align: middle; }
 .best-player .nhl-headshot { width: 34px; height: 34px; }
 .best-player .player-click { font-size: 1rem; }
-.best-player .shots-vs { gap: 5px; }
+.best-player .shots-vs { gap: 3px; }
 
 /* Save to My Plays: the box beside a play (nhl-common.js nhlPlayBox). */
 .nhl-save-box { display: inline-flex; align-items: center; margin-left: 6px; vertical-align: middle; cursor: pointer; }

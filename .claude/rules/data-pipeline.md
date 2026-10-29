@@ -78,6 +78,9 @@ imported by it (rules in game-previews.md).
   markets used, `state=NJ` (without a state the bet links are Ontario's; NJ links open fine in other
   states, so the site never mentions a state: the owner, 2026-10-15, members found the NJ note confusing). Unfiltered it is ~40,000
   quotes a game. Only `US_BOOKS` are kept (it also carries Canadian, offshore and pick'em apps).
+  4CX (`4cx`) and Underdog (`underdog_dfs`) were added 2026-10-29 (members asked). Underdog is a
+  pick'em app (`PICKEM_BOOKS`, `BO_PICKEM` in book-odds.js, `sim.PICKEM_BOOKS`): it shows in every
+  price list but is never the best price a play, edge, MIN_BOOKS count or record uses.
 - data.json `book_odds["AWAY_HOME"]` = props by stat id and normName, Anytime TD (`td`, the 0.5
   line only; there is no First TD market), game `lines` (ml / spread / total); each quote is
   `[book, side, line, odds, url]`. Players are grouped by the API's `player_id` (books spell names

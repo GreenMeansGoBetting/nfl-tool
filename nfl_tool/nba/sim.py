@@ -989,6 +989,9 @@ def implied(price) -> float:
     return 100 / (price + 100) if price > 0 else -price / (-price + 100)
 
 
+PICKEM_BOOKS = ("underdog_dfs",)  # smartstake.PICKEM_BOOKS: shown, never a play's price or a MIN_BOOKS book
+
+
 def best_prices(quotes: list) -> dict:
     """{(side, line): (price, book)}: the best price across the books at each
     line ("o" / "u"); quotes are [book, side, line, price, (the bet link)]."""
@@ -1030,6 +1033,7 @@ def player_best(row: dict, stat_key: str, quotes: list, main_line) -> dict | Non
     lad = row[stat_key]["lad"]
     if "all" not in lad:
         return None
+    quotes = [q for q in quotes if q[0] not in PICKEM_BOOKS]
     books = {}
     for q in quotes:
         if q[2] is not None and q[3] is not None:

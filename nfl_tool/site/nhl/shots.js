@@ -451,7 +451,7 @@ function detailRow(x, columns) {
 // thrown at users"). No Model % column: the Fair price says the same.
 const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
-  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
+  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 30)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 30)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow means it is above or below the line his own minutes say he has been on: green adds shots, red takes some away. -- = not posted yet.", cell: (x) => lineCell(x.r) },
   { key: null, label: "Play", title: "The side of his main line the model likes more (o = over, u = under), at Novig's price", cell: (x) => `<td class="shots-play-cell">${playChip(x.play)}${x.play ? nhlPlayBox(nhlPlayEntry({ market: "sog", g: x.game, r: x.r, side: x.play.side, line: x.play.line, price: x.play.price })) : ""}</td>` },
   { key: null, label: "Rating", title: "Play: an edge of 6+ points on a player not moved down a line tonight. Lower line: 6+ but he is on a lower line tonight, so left out", cell: ratingCell },
@@ -513,7 +513,7 @@ function recordPlays(record) {
     }
     const who = playerClick(play.id, `<b>${play.name}</b>`);
     body += `<tr>
-        <td class="nba-player shots-player">${who}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
+        <td class="nba-player shots-player">${who}<span class="shots-vs">${logo(play.team, 30)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 30)}</span></td>
         <td class="shots-play-cell">${playChip(play)}${play.fade ? ` <span class="shots-fade" title="Against his own season average at the time">vs his avg</span>` : ""}</td>
         <td class="num">${points(play.edge)}</td>
         <td class="num">${fmt(play.mean, 2)}</td>

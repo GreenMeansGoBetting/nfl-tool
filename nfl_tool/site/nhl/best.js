@@ -304,7 +304,7 @@ const COLUMNS = [
   { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => {
     const found = findPlayer(x.r.id);
     // The flex box sits inside the cell (a flex cell won't center in Best Plays' taller rows).
-    return `<td class="shots-player best-player"><div class="nba-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 24)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 24)}</span></div></td>`;
+    return `<td class="shots-player best-player"><div class="nba-player">${playerClick(x.r.id, `${headshot(found ? found.row : {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 30)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 30)}</span></div></td>`;
   } },
   { key: "market", label: "Play", title: "The bet: o / u = over / under his shots on goal or points line; Scores = anytime goal", cell: (x) => `<td class="shots-play-cell">${playCell(x)}${nhlPlayBox(nhlPlayEntry({ market: x.market, g: x.g, r: x.r, side: x.play.side, line: x.play.line, price: x.play.price }))}</td>` },
   { key: "rating", label: "Rating", title: "The play's bucket on its own page (the one the record grades). Shots: Play. Goals, Points and Saves: Strong, Lean, or Check (a gap too big to take at face value, a player moved to a line that goes against the play, or a goalie the model and the line are far apart on: check the news first). Sort it to put the Checks together", cell: ratingCell },

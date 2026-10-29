@@ -48,7 +48,13 @@ US_BOOKS = {
     "kalshi": "Kalshi",
     "polymarket_us": "Polymarket",
     "fliff": "Fliff",
+    "4cx": "4CX",
+    "underdog_dfs": "Underdog",  # pick'em ("underdog_dfs_best" left out: not documented)
 }
+# Pick'em apps (the owner, 2026-10-29: members asked for Underdog): listed in
+# every price list, never the "best price" a play, edge or record is figured
+# on, since a pick'em leg can't be bet on its own.
+PICKEM_BOOKS = ("underdog_dfs",)
 # The sharp prices the fair price is made from (vig removed), on the site.
 FAIR_BOOKS = ("pinnacle", "novig")
 

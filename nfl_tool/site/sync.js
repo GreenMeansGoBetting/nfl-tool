@@ -185,7 +185,7 @@ const GMG_BOOKS = {
   draftkings: "DraftKings", fanduel: "FanDuel", betmgm: "BetMGM", caesars: "Caesars", fanatics: "Fanatics",
   bet365: "bet365", thescore: "theScore", betrivers: "BetRivers", hard_rock: "Hard Rock", bally_bet: "Bally Bet",
   circa: "Circa", pinnacle: "Pinnacle", novig: "Novig", prophetx: "ProphetX", kalshi: "Kalshi",
-  polymarket_us: "Polymarket", fliff: "Fliff",
+  polymarket_us: "Polymarket", fliff: "Fliff", "4cx": "4CX", underdog_dfs: "Underdog",
 };
 const MY_BOOKS_KEY = "nfl-tool.my-books.v1"; // { hidden: [book ids] }
 function myBooks() {

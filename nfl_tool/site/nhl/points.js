@@ -331,7 +331,7 @@ function detailRow(x, columns) {
 // Each column draws its own cell. `adv`: folded away until "Expand advanced stats".
 const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
-  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
+  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 30)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 30)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow = above or below the line his minutes say he has been on. -- = not posted yet.", cell: (x) => lineCell(x.r) },
   { key: null, label: "Play", title: "The better side of Novig's points line for him at its price (o0.5 = 1 or more points, u0.5 = none). No odds = not priced yet", cell: (x) => `<td class="shots-play-cell">${playChip(x.r)}${x.r.side && has(x.r.price) ? nhlPlayBox(nhlPlayEntry({ market: "pts", g: x.game, r: x.r, side: x.r.side, line: x.r.line, price: x.r.price })) : ""}</td>` },
   { key: null, label: "Rating", title: "Play: an edge of 6+ points on the 0.5 line, not against tonight's line change. A row over the bar but left out says why (1.5 Line, New Line)", cell: ratingCell },
@@ -442,7 +442,7 @@ function recordPlays(record) {
       body += `<tr class="shots-record-day"><td colspan="6">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
     }
     body += `<tr>
-        <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
+        <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 30)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 30)}</span></td>
         <td class="shots-play-cell">${playChip({ side: play.side, line: play.line, price: play.price })}${play.fade ? ` <span class="shots-fade" title="Against his own season average at the time">vs his avg</span>` : ""}</td>
         <td class="num">${points(play.edge)}</td>
         <td class="num"><b>${play.actual}</b></td>

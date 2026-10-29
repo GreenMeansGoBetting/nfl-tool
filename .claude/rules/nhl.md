@@ -1245,7 +1245,7 @@ pages for the detail, not a copy of them.
 - **Filters and book (2026-10-17):** an Edge menu (3+ to 15+ points) and a Lineups menu (all / lineup confirmed) in the toolbar (`bestView.minEdge`, `lineup`); every price is the BEST price any US book quotes at Novig's line (see "Best book prices"); the Odds cell names the book (Novig keeps its logo) and opens every book; a **Good to** column = the worst price that still has the smallest (3-point) edge (`goodTo`).
 - **Player cell (2026-10-18, the owner):** the rows are taller since the book name went under each
   price, so the cell's flex box sits INSIDE the td (`.best-player`, a flex td can't center
-  vertically); photo 34px, logos 24px.
+  vertically); photo 34px, logos 30px (every prop table's `.shots-vs` logos are 30px since 2026-10-29: members found 16-24px too small).
 - Phone: the photo and position letter drop out of the Player cell so the play shows without
   scrolling (last phone block of nhl.css).
 - Not built yet: **"Dropped since earlier"** (plays listed earlier in the day that fell off after

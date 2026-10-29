@@ -364,7 +364,7 @@ function detailRow(x, columns) {
 // 2026-10-15). No Proj or Model % column: the Fair price tells that story.
 const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
-  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 16)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 16)}</span></td>` },
+  { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 30)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 30)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow = above or below the line his minutes say he has been on. -- = not posted yet.", cell: (x) => lineCell(x.r) },
   { key: null, label: "Anytime", title: "The best price across books for him to score (No odds = not priced yet)", cell: (x) => `<td class="shots-play-cell">${priceChip(x.r)}${has(x.r.odds) ? nhlPlayBox(nhlPlayEntry({ market: "goal", g: x.game, r: x.r, price: x.r.odds })) : ""}</td>` },
   { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or moved down a line tonight: look for news first)", cell: ratingCell },
@@ -480,7 +480,7 @@ function recordPlays(record) {
       body += `<tr class="shots-record-day"><td colspan="8">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
     }
     body += `<tr>
-        <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 16)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 16)}</span></td>
+        <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 30)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 30)}</span></td>
         <td class="shots-play-cell"><span class="shots-play shots-play-over"><b>Yes</b><span>${odds(play.price)}</span></span>${play.zone ? `<span class="goals-zone">ZONE</span>` : ""}</td>
         <td class="num"><span class="shots-record-size shots-record-${play.size}">${sizeTag[play.size] || ""}</span></td>
         <td class="num">${points(play.edge)}</td>

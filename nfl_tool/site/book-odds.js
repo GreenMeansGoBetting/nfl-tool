@@ -21,7 +21,7 @@ const BOOK_NAMES = GMG_BOOKS;
 const BOOK_INITIALS = {
   draftkings: "DK", fanduel: "FD", betmgm: "MGM", caesars: "CZ", fanatics: "FAN", bet365: "365", thescore: "SC",
   betrivers: "BR", hard_rock: "HR", bally_bet: "BAL", circa: "CIR", pinnacle: "PIN", novig: "NV", prophetx: "PX",
-  kalshi: "KAL", polymarket_us: "PM", fliff: "FL",
+  kalshi: "KAL", polymarket_us: "PM", fliff: "FL", "4cx": "4CX", underdog_dfs: "UD",
 };
 // Own helpers: the NHL pages load this file without the NFL's common.js.
 const boNorm = (n) => (n || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "").replace(/[^a-z]/g, "");
@@ -66,9 +66,11 @@ function bookModelChance(spec, side, line) {
   return chance === undefined || chance === null ? null : chance;
 }
 
+// Pick'em apps: in every list, never the best price (a leg can't be bet alone).
+const BO_PICKEM = ["underdog_dfs"];
 function bookBest(quotes, side, line) {
   return quotes
-    .filter((q) => sameBet(q, side, line) && !bookHidden(q[0]))
+    .filter((q) => sameBet(q, side, line) && !bookHidden(q[0]) && !BO_PICKEM.includes(q[0]))
     .sort((a, b) => oddsDecimal(b[3]) - oddsDecimal(a[3]))[0] || null;
 }
 

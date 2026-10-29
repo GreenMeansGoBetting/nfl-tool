@@ -1546,7 +1546,8 @@ def best_book_prices(player_odds: dict, book_odds: dict | None, games: list) -> 
             entry = dict(entry)
 
             def best(stat, side, line):
-                found = [q for q in (((props.get(stat) or {}).get(pid) or {}).get("q") or []) if q[1] == side and q[2] == line and q[3] is not None]
+                found = [q for q in (((props.get(stat) or {}).get(pid) or {}).get("q") or [])
+                         if q[1] == side and q[2] == line and q[3] is not None and q[0] not in smartstake.PICKEM_BOOKS]
                 return max(found, key=lambda q: decimal_odds(q[3])) if found else None
 
             for stat, key in (("sog", "sog"), ("points", "points"), ("saves", "saves")):
@@ -1598,7 +1599,7 @@ def best_saves_prices(saves_lines: dict, book_odds: dict | None, games: list) ->
                 for side, field in (("o", "over"), ("u", "under")):
                     base = row.get(f"nv_{field}", row.get(field))
                     row[f"nv_{field}"] = base
-                    found = [q for q in quotes if q[1] == side and q[2] == row.get("line") and q[3] is not None]
+                    found = [q for q in quotes if q[1] == side and q[2] == row.get("line") and q[3] is not None and q[0] not in smartstake.PICKEM_BOOKS]
                     best = max(found, key=lambda q: decimal_odds(q[3])) if found else None
                     if best and (base is None or decimal_odds(best[3]) > decimal_odds(base)):
                         row[field], row[f"{field}_book"] = best[3], best[0]
