@@ -623,12 +623,12 @@
  "401909282": {
   "away": "IND",
   "date": "2026-10-30",
-  "first_home": 0.482,
+  "first_home": 0.522,
   "home": "MIA",
   "jumpers": [
    [
-    "4017837",
-    "Ivica Zubac"
+    "4065731",
+    "Jay Huff"
    ],
    [
     "4066261",
@@ -638,76 +638,76 @@
   "players": {
    "3032977": [
     "Giannis Antetokounmpo",
-    0.116,
+    0.126,
     null,
     false,
     null
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.077,
+    0.084,
     null,
     false,
     null
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.095,
+    0.09,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.112,
+    0.106,
     null,
     false,
     null
    ],
-   "4017837": [
-    "Ivica Zubac",
-    0.092,
+   "4065731": [
+    "Jay Huff",
+    0.076,
     null,
     false,
     null
    ],
    "4066261": [
     "Bam Adebayo",
-    0.103,
+    0.112,
     null,
     false,
     null
    ],
    "4278053": [
     "Davion Mitchell",
-    0.093,
+    0.1,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.094,
+    0.087,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.105,
+    0.1,
     null,
     false,
     null
    ],
    "6475": [
     "Klay Thompson",
-    0.073,
+    0.079,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.447
+  "tip_home": 0.566
  },
  "401909283": {
   "away": "HOU",
@@ -5632,17 +5632,10 @@
    ],
    "3442": [
     "DeAndre Jordan",
-    0.068,
+    0.087,
     970,
     false,
     "draftkings"
-   ],
-   "3907497": [
-    "Dejounte Murray",
-    0.096,
-    700,
-    false,
-    "bet365"
    ],
    "4065732": [
     "De'Andre Hunter",
@@ -5653,14 +5646,14 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.095,
+    0.123,
     625,
     false,
     "bet365"
    ],
    "4397688": [
     "Trey Murphy III",
-    0.121,
+    0.145,
     850,
     true,
     "bet365"
@@ -5681,7 +5674,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.087,
+    0.112,
     680,
     false,
     "draftkings"
@@ -5981,14 +5974,7 @@
    ],
    "3442": [
     "DeAndre Jordan",
-    0.072,
-    null,
-    false,
-    null
-   ],
-   "3907497": [
-    "Dejounte Murray",
-    0.102,
+    0.092,
     null,
     false,
     null
@@ -6002,14 +5988,14 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.1,
+    0.13,
     null,
     false,
     null
    ],
    "4397688": [
     "Trey Murphy III",
-    0.128,
+    0.154,
     null,
     false,
     null
@@ -6037,7 +6023,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.092,
+    0.119,
     null,
     false,
     null
