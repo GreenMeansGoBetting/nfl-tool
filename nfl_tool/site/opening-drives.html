@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Opening Drive Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="game-overview.html" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div id="schedule-scroller" class="schedule-scroller" hidden>
+    <div class="week-picker">
+      <button type="button" id="week-prev" class="week-nav-btn">&lsaquo;</button>
+      <span id="week-label" class="week-label">Week</span>
+      <button type="button" id="week-next" class="week-nav-btn">&rsaquo;</button>
+    </div>
+    <div id="matchup-row" class="matchup-row"></div>
+  </div>
+
+  <div id="empty-state" class="empty-state"><p>Loading opening drives&hellip;</p></div>
+
+  <div id="od-app" class="section-wrap" hidden>
+    <div class="bp-title-row">
+      <h2 class="section-title">Opening Drive Tool</h2>
+      <button type="button" class="info-i" aria-expanded="false" aria-controls="od-note" title="How to read this">i</button>
+    </div>
+    <p class="bp-warning">The GMG Discord has enjoyed playing a "First Drive - Punt" parlay to begin NFL Primetime games. This tool is designed to give data or how teams have performed at the start of games. Samples are small and this type of wager is for ENTERTAINMENT and RECREATION. This tool is more art than math.</p>
+    <p class="section-note info-note" id="od-note" hidden>Each team's first drive with the ball, graded the way the book grades it: <b>Off TD</b>, <b>FG Att</b> (made, missed or blocked), <b>Punt</b> (blocked punts too), and <b>Any Other</b> (turnover, turnover on downs, safety, a defensive or special-teams score). <b>Offense</b> = how that team's own first drive ended. <b>Defense</b> = how its opponents' first drives ended against it. <b>3 &amp; Out</b> = punted without a first down. <b>Sample</b> switches every number to the team's first-half drives or every drive of the game, for a bigger sample of the same thing. <b>Fair</b> = the team's offense and the other team's defense averaged (raw season numbers, no pull toward league average), as the price with no cut. <b>Both Punt</b> multiplies the two teams' Punt chances. Green = happens a lot for that outcome, red = rarely, yellow = about average.</p>
+    <div class="view-toggle bp-toolbar" id="od-toolbar">
+      <button type="button" class="view-toggle-btn" data-sample="open">Opening Drive</button>
+      <button type="button" class="view-toggle-btn" data-sample="half">First Half</button>
+      <button type="button" class="view-toggle-btn" data-sample="game">Full Game</button>
+      <label class="bp-game-pick od-last">Games:
+        <select id="od-last">
+          <option value="0">Season</option>
+          <option value="3">Last 3</option>
+          <option value="5">Last 5</option>
+          <option value="8">Last 8</option>
+        </select>
+      </label>
+      <label class="bp-game-pick od-pick">Matchup:
+        <select id="away-select"></select> @ <select id="home-select"></select>
+      </label>
+    </div>
+    <div id="od-matchup"></div>
+    <h3 class="section-title od-sub-title">All Teams</h3>
+    <div id="od-teams" class="bp-table-wrap"></div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play, regular season only.
+</footer>
+
+<script src="sync.js"></script>
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script src="opening-drives.js"></script>
+</body>
+</html>

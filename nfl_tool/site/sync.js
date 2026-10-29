@@ -360,6 +360,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-29",
+    items: [
+      ["🏈", "<b>Opening Drive Tool</b> (NFL menu, under TD Data): how every team’s first drive has ended this year (Off TD, FG Att, Punt, Any Other), what each defense allows on the other team’s first drive, 3 & Outs, and a rough fair price for every outcome plus Both Teams Punt. Built for the Discord’s First Drive - Punt parlays on primetime games. For entertainment: samples are small."],
+    ],
+  },
+  {
     id: "2026-10-28b",
     items: [
       ["🏀", "<b>NBA Rebounds and Assists</b> are live: the same game sim, Player View, Matchup View, ladder and record as Points and Threes. New tags: Glass Fit / Tough Glass (how tonight’s defense rebounds against his position), Misses Coming, Ball Movement Fit / Tough Passing D, and Hot / Cold Run. Every tag is in each page’s Tag menu."],
@@ -924,6 +930,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     nfl: { label: "NFL", home: "game-overview.html", items: [
       { name: "Game Previews", file: "game-overview.html" },
       { name: "TD Data", file: "index.html" },
+      { name: "Opening Drive Tool", file: "opening-drives.html", tag: "New" },
       { head: "Player props" },
       { name: "Best Plays", file: "best-plays.html" },
       // One page, three views: the link's #view opens that tab (player-props.js).

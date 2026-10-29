@@ -3,6 +3,7 @@ paths:
   - "nfl_tool/site/app.js"
   - "nfl_tool/site/index.html"
   - "nfl_tool/site/first-td.html"
+  - "nfl_tool/site/opening-drives.*"
 ---
 # TD Data
 
@@ -113,3 +114,21 @@ Odds picks stay in a 330px right rail (team headers in team color). Main area, t
 
 Beats the blitz, Pressure trouble, Clean pocket, Light-box runs, Beats stacked box, RZ wall all
 use the offense's number and the defense's allowed number (`matchupCall` / `matchupKind`).
+
+## Opening Drive Tool (`opening-drives.html/.js`, its own page under TD Data in the menu; 2026-10-29)
+
+For the Discord's "First Drive - Punt" parlays on primetime games. Not inside TD Data; no Summary card.
+- Graded like the book: **Off TD / FG Att** (made, missed or blocked) **/ Punt** (blocked too) **/ Any
+  Other** (turnover, downs, safety, defensive or special-teams score). First drive = the offense's
+  first drive with a real snap (a kickoff return TD doesn't count). Build: `compute_opening_drives`
+  -> `DATA.opening_drives.teams[team]` = per game `out`, plays, yards, `three_out`, `received`, and
+  `half` / `game` drive counts `[td, fg, punt, other]`.
+- A defense = its opponents' rows for the same games (both sides from the same drives).
+- **Raw numbers, no pull toward league average** (the owner: "teams have identities"). Bigger
+  samples come from the First Half / Full Game toggle instead; Last 3 / 5 / 8 filter.
+- Fair = (offense rate + other team's defense rate) / 2, American only via `showOdds` (not on
+  exchanges, so no percent). Both Fair = the two chances multiplied. Odds aren't fetched
+  (SmartStake doesn't carry the market).
+- Primetime tag on the schedule strip: not Sunday, or Sunday 7 PM ET or later.
+- The owner's background paragraph at the top is their wording, verbatim.
+- Tests: `test_opening_drives_build.py`, `test_opening_drives_site.py`.

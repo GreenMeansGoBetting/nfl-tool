@@ -2540,6 +2540,61 @@ def compute_opponent_adjusted_stats(pbp: pd.DataFrame, ftn: pd.DataFrame, team_s
     return result
 
 
+# Opening Drive Tool (the owner, 2026-10-29): the book grades a team's first
+# drive four ways -- Offensive TD, FG Attempt (made, missed or blocked), Punt
+# (a blocked punt too), and Any Other (turnover, downs, safety, defensive or
+# special-teams score, end of half). A drive is one with a real snap: a
+# kickoff returned for a TD isn't the offense's first time with the ball.
+OPENING_DRIVE_OUTCOMES = ("td", "fg", "punt", "other")
+_DRIVE_SNAPS = {"run", "pass", "punt", "field_goal", "qb_kneel", "qb_spike"}
+
+
+def _drive_outcome(result, transition) -> str:
+    t = str(transition or "")
+    if t.startswith("BLOCKED_FG"):
+        return "fg"
+    if t.startswith("BLOCKED_PUNT"):
+        return "punt"
+    return {"Touchdown": "td", "Field goal": "fg", "Missed field goal": "fg", "Punt": "punt"}.get(result, "other")
+
+
+def compute_opening_drives(pbp: pd.DataFrame) -> dict:
+    """Every team's games: how its offense's first drive ended (plus plays,
+    yards, a 3-and-out flag, and whether it had the ball first), and how all
+    its first-half and full-game drives ended, as [td, fg, punt, other]. The
+    page reads a defense from its opponents' rows, so both sides come from
+    the same drives. Raw counts only: no pull toward the league average
+    (the owner: teams have identities)."""
+    p = pbp[pbp["posteam"].notna() & pbp["fixed_drive"].notna() & pbp["play_type"].isin(_DRIVE_SNAPS)].copy()
+    if p.empty:
+        return {"teams": {}}
+    p["_scrim"] = p["play_type"].isin({"run", "pass"})
+    p["_yds"] = p["yards_gained"].where(p["_scrim"], 0).fillna(0)
+    drives = p.groupby(["game_id", "posteam", "fixed_drive"]).agg(
+        week=("week", "first"), home=("home_team", "first"), away=("away_team", "first"),
+        qtr=("qtr", "min"), first_play=("play_id", "min"), result=("fixed_drive_result", "first"),
+        transition=("drive_end_transition", "first"), first_downs=("drive_first_downs", "first"),
+        plays=("_scrim", "sum"), yards=("_yds", "sum"),
+    ).reset_index()
+    drives["out"] = [_drive_outcome(r, t) for r, t in zip(drives["result"], drives["transition"])]
+    teams: dict = {}
+    for (game_id, team), d in drives.sort_values("first_play").groupby(["game_id", "posteam"], sort=False):
+        first = d.iloc[0]
+        opp = first["away"] if team == first["home"] else first["home"]
+        game_first = drives[drives["game_id"] == game_id]["first_play"].min()
+        count = lambda rows: [int((rows["out"] == o).sum()) for o in OPENING_DRIVE_OUTCOMES]
+        teams.setdefault(team, []).append({
+            "game_id": game_id, "week": int(first["week"]), "opp": opp, "home": bool(team == first["home"]),
+            "out": first["out"], "plays": int(first["plays"]), "yards": int(first["yards"]),
+            "three_out": bool(first["out"] == "punt" and (first["first_downs"] or 0) == 0),
+            "received": bool(first["first_play"] == game_first),
+            "half": count(d[d["qtr"] <= 2]), "game": count(d),
+        })
+    for games in teams.values():
+        games.sort(key=lambda g: g["week"])
+    return {"teams": teams}
+
+
 def compute_red_zone(pbp: pd.DataFrame) -> dict:
     """Red zone = own offense's snap inside the opponent's 20. Excludes
     two-point attempts (not a normal drive play). Returns per-team dict of
@@ -4553,6 +4608,7 @@ def main():
         "prop_matchup_model": compute_prop_matchup_model(pbp, pos_lookup),
         "koe": compute_koe(pbp, pos_lookup),
         "team_stats_adj": compute_opponent_adjusted_stats(pbp, ftn, team_stats),
+        "opening_drives": compute_opening_drives(pbp),
         "schedule": schedule,
         "current_week": current_week,
         "recent_games": recent_games,
