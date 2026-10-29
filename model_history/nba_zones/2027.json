@@ -4392,8 +4392,94 @@
  },
  "401909894": {
   "date": "2026-10-29",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "NO",
+    0.096,
+    "over",
+    false,
+    17.5,
+    -110,
+    "fanatics"
+   ],
+   [
+    "3907497",
+    "Dejounte Murray",
+    "NO",
+    "SAC",
+    -0.3467,
+    "under",
+    true,
+    16.5,
+    -105,
+    "fanatics"
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "NO",
+    0.112,
+    "over",
+    false,
+    22.5,
+    -105,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "NO",
+    -0.1365,
+    "under",
+    true,
+    2.5,
+    115,
+    "fanatics"
+   ],
+   [
+    "3907497",
+    "Dejounte Murray",
+    "NO",
+    "SAC",
+    0.6566,
+    "over",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "4397688",
+    "Trey Murphy III",
+    "NO",
+    "SAC",
+    0.094,
+    "over",
+    false,
+    2.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "NO",
+    -0.1051,
+    "under",
+    false,
+    2.5,
+    -145,
+    "fanatics"
+   ]
+  ]
  },
  "401909895": {
   "date": "2026-10-29",
@@ -4418,9 +4504,9 @@
     -0.1267,
     "under",
     true,
-    12.5,
-    -120,
-    "hard_rock"
+    11.5,
+    100,
+    "fanatics"
    ],
    [
     "4065733",
@@ -4431,8 +4517,8 @@
     "over",
     true,
     23.5,
-    -115,
-    "hard_rock"
+    -110,
+    "fanatics"
    ],
    [
     "4431736",
@@ -4455,8 +4541,8 @@
     "under",
     true,
     22.5,
-    -115,
-    "hard_rock"
+    -110,
+    "fanatics"
    ],
    [
     "4903027",
@@ -4466,9 +4552,9 @@
     0.0761,
     "over",
     false,
-    13.5,
-    -110,
-    "hard_rock"
+    12.5,
+    -125,
+    "fanatics"
    ],
    [
     "5041935",
@@ -4479,8 +4565,8 @@
     "over",
     false,
     15.5,
-    -110,
-    "fanatics"
+    -115,
+    "hard_rock"
    ],
    [
     "5105565",
@@ -4541,7 +4627,7 @@
     "under",
     true,
     2.5,
-    -175,
+    -190,
     "fanatics"
    ],
    [
@@ -4566,7 +4652,7 @@
     true,
     1.5,
     -165,
-    "fliff"
+    "fanatics"
    ],
    [
     "4431736",
@@ -4613,8 +4699,8 @@
     "under",
     false,
     1.5,
-    -125,
-    "fanatics"
+    -130,
+    "hard_rock"
    ],
    [
     "5041935",
@@ -4625,7 +4711,7 @@
     "under",
     true,
     1.5,
-    110,
+    115,
     "fanatics"
    ],
    [
