@@ -201,7 +201,8 @@ function renderOdMatchup(pools) {
     const [, name, short] = OD_OUTCOMES.find(([k]) => k === g.out);
     return [`od-c-${g.out}`, short, `Week ${g.week}: ${name}`];
   });
-  const det = (label, fa, fh) => `<tr><td class="od-label">${label}</td><td class="od-wk">${fa}</td><td class="od-wk od-split">${fh}</td></tr>`;
+  // Same look as the fair table beside it: a gray title bar, then each team's column on its own team-color tint.
+  const det = (label, fa, fh) => `<tr><td class="od-label">${label}</td>${gap}<td class="od-wk${grp(away, 0, 1)}">${fa}</td>${gap}<td class="od-wk${grp(home, 0, 1)}">${fh}</td></tr>`;
   box.innerHTML = `
     <div class="od-match">
       <div>
@@ -219,8 +220,11 @@ function renderOdMatchup(pools) {
           <div class="od-parlay-out">${chosen.length ? `<span>${parlayName}</span><b>${odPrice(chance)}</b>` : `<span class="od-none">Pick an outcome for either team</span>`}</div>
         </div>
       </div>
-      <table class="data-table od-table od-detail">
-        <thead><tr><th class="od-label">Opening Drive</th><th>${odTeamLabel(away)}</th><th class="od-split">${odTeamLabel(home)}</th></tr></thead>
+      <table class="data-table od-grid od-detail">
+        <thead>
+          <tr class="od-ggroups"><th></th>${gapTh}<th colspan="3" class="od-gtitle">Opening Drive</th></tr>
+          <tr class="od-glabels"><th></th>${gapTh}<th class="num${grp(away, 0, 1)}">${odTeamLabel(away)}</th>${gapTh}<th class="num${grp(home, 0, 1)}">${odTeamLabel(home)}</th></tr>
+        </thead>
         <tbody>
           ${det("3 &amp; Out Off", three(offRows(away), false), three(offRows(home), false))}
           ${det("3 &amp; Out Def", three(defRows(away), true), three(defRows(home), true))}

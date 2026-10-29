@@ -4160,7 +4160,9 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .od-pick-fair { margin-left: 4px; font-family: var(--font-display); font-weight: 700; color: var(--muted); }
 .od-parlay-out { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-weight: 700; }
 .od-parlay-out b { font-family: var(--font-display); font-size: 1.3rem; padding: 2px 12px; border-radius: 8px; background: rgba(var(--good-rgb), 0.2); border: 1px solid rgba(var(--good-rgb), 0.5); }
-.od-detail td.od-wk { text-align: left; }
+.data-table.od-grid.od-detail { table-layout: auto; width: auto; }
+.data-table.od-grid.od-detail td.od-wk { text-align: left; padding-left: 6px; padding-right: 6px; }
+.data-table.od-grid.od-detail .od-label { padding-right: 10px; }
 /* All Teams */
 .od-all { width: 100%; min-width: 1100px; }
 .od-all .od-team-col { width: 74px; }
