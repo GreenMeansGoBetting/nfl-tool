@@ -3100,56 +3100,56 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.255,
+    "lead": 0.2555,
     "name": "Domantas Sabonis",
     "proj": 42.5,
     "team": "SAC"
    },
    {
     "id": "4065733",
-    "lead": 0.1625,
+    "lead": 0.1605,
     "name": "Ty Jerome",
-    "proj": 39.6,
+    "proj": 39.5,
     "team": "MEM"
    },
    {
     "id": "4701230",
-    "lead": 0.1345,
+    "lead": 0.1348,
     "name": "Jalen Johnson",
     "proj": 37.8,
     "team": "ATL"
    },
    {
     "id": "3908809",
-    "lead": 0.0835,
+    "lead": 0.0838,
     "name": "Donovan Mitchell",
     "proj": 35.3,
     "team": "CLE"
    },
    {
     "id": "4432158",
-    "lead": 0.0808,
+    "lead": 0.0809,
     "name": "Evan Mobley",
     "proj": 35.3,
     "team": "CLE"
    },
    {
     "id": "4683021",
-    "lead": 0.0774,
+    "lead": 0.0776,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
    },
    {
     "id": "3064440",
-    "lead": 0.0592,
+    "lead": 0.0593,
     "name": "Zach LaVine",
     "proj": 33.9,
     "team": "SAC"
    },
    {
     "id": "3907497",
-    "lead": 0.0266,
+    "lead": 0.0267,
     "name": "Dejounte Murray",
     "proj": 30.5,
     "team": "NO"
@@ -3163,28 +3163,28 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0204,
+    "lead": 0.0201,
     "name": "Cameron Boozer",
-    "proj": 29.3,
+    "proj": 29.2,
     "team": "MEM"
    },
    {
     "id": "4395628",
-    "lead": 0.0187,
+    "lead": 0.0188,
     "name": "Zion Williamson",
     "proj": 28.4,
     "team": "NO"
    },
    {
     "id": "5142620",
-    "lead": 0.0179,
+    "lead": 0.0182,
     "name": "Darius Acuff Jr.",
     "proj": 28.9,
     "team": "SAC"
    },
    {
     "id": "4278039",
-    "lead": 0.0104,
+    "lead": 0.0105,
     "name": "Nickeil Alexander-Walker",
     "proj": 26.5,
     "team": "ATL"
@@ -3198,21 +3198,21 @@
    },
    {
     "id": "4279888",
-    "lead": 0.0061,
+    "lead": 0.0062,
     "name": "Ja Morant",
     "proj": 25.5,
     "team": "POR"
    },
    {
     "id": "4066328",
-    "lead": 0.0041,
+    "lead": 0.0042,
     "name": "Jarrett Allen",
     "proj": 25.1,
     "team": "CLE"
    },
    {
     "id": "4903027",
-    "lead": 0.0036,
+    "lead": 0.0037,
     "name": "Cedric Coward",
     "proj": 24.4,
     "team": "MEM"
@@ -3284,7 +3284,7 @@
     "id": "5105565",
     "lead": 0.0002,
     "name": "Donovan Clingan",
-    "proj": 19.5,
+    "proj": 19.4,
     "team": "POR"
    },
    {
