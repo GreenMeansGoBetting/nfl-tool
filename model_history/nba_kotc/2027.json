@@ -3490,35 +3490,35 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3251,
+    "lead": 0.3247,
     "name": "Luka Doncic",
     "proj": 53.8,
     "team": "LAL"
    },
    {
     "id": "4065648",
-    "lead": 0.1248,
+    "lead": 0.1247,
     "name": "Jayson Tatum",
     "proj": 45.9,
     "team": "BOS"
    },
    {
     "id": "3112335",
-    "lead": 0.0856,
+    "lead": 0.0867,
     "name": "Nikola Jokic",
-    "proj": 43.7,
+    "proj": 43.8,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.0827,
+    "lead": 0.0825,
     "name": "Giannis Antetokounmpo",
     "proj": 43.0,
     "team": "MIA"
    },
    {
     "id": "3136195",
-    "lead": 0.0529,
+    "lead": 0.0528,
     "name": "Karl-Anthony Towns",
     "proj": 40.3,
     "team": "NY"
@@ -3574,7 +3574,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0154,
+    "lead": 0.0152,
     "name": "Cade Cunningham",
     "proj": 35.8,
     "team": "DET"
@@ -3651,7 +3651,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0071,
+    "lead": 0.007,
     "name": "Trae Young",
     "proj": 32.9,
     "team": "WSH"
