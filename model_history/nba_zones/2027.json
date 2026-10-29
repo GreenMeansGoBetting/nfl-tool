@@ -4231,6 +4231,30 @@
   "date": "2026-10-29",
   "points": [
    [
+    "2995706",
+    "Mario Hezonja",
+    "CLE",
+    "ATL",
+    0.1024,
+    "over",
+    false,
+    2.5,
+    -360,
+    "bet365"
+   ],
+   [
+    "3146557",
+    "Jock Landale",
+    "ATL",
+    "CLE",
+    -0.2952,
+    "under",
+    true,
+    3.5,
+    null,
+    null
+   ],
+   [
     "3908809",
     "Donovan Mitchell",
     "CLE",
@@ -4239,7 +4263,7 @@
     "under",
     true,
     23.5,
-    -115,
+    -110,
     "hard_rock"
    ],
    [
@@ -4250,9 +4274,9 @@
     -0.2806,
     "under",
     true,
-    16.5,
-    -115,
-    "hard_rock"
+    17.5,
+    -118,
+    "prophetx"
    ],
    [
     "4066328",
@@ -4263,8 +4287,20 @@
     "over",
     false,
     12.5,
-    -105,
-    "hard_rock"
+    -130,
+    "novig"
+   ],
+   [
+    "4066757",
+    "Sam Merrill",
+    "CLE",
+    "ATL",
+    -0.2153,
+    "under",
+    true,
+    4.5,
+    null,
+    null
    ],
    [
     "4431680",
@@ -4275,8 +4311,8 @@
     "under",
     true,
     11.5,
-    -115,
-    "hard_rock"
+    -103,
+    "draftkings"
    ],
    [
     "4432158",
@@ -4286,9 +4322,9 @@
     0.0705,
     "over",
     false,
-    16.5,
-    -115,
-    "hard_rock"
+    17.5,
+    110,
+    "prophetx"
    ],
    [
     "4576087",
@@ -4299,8 +4335,20 @@
     "over",
     false,
     14.5,
-    -125,
-    "hard_rock"
+    100,
+    "novig"
+   ],
+   [
+    "4683747",
+    "Jaylon Tyson",
+    "CLE",
+    "ATL",
+    0.1551,
+    "over",
+    true,
+    4.5,
+    -450,
+    "bet365"
    ],
    [
     "4869342",
@@ -4311,11 +4359,47 @@
     "over",
     false,
     11.5,
-    -115,
-    "hard_rock"
+    -110,
+    "fanatics"
+   ],
+   [
+    "5041951",
+    "Meleek Thomas",
+    "CLE",
+    "ATL",
+    -0.1987,
+    "under",
+    true,
+    3.5,
+    null,
+    null
    ]
   ],
   "threes": [
+   [
+    "2995706",
+    "Mario Hezonja",
+    "CLE",
+    "ATL",
+    0.2678,
+    "over",
+    true,
+    0.5,
+    -140,
+    "bet365"
+   ],
+   [
+    "3146557",
+    "Jock Landale",
+    "ATL",
+    "CLE",
+    -0.1349,
+    "under",
+    true,
+    0.5,
+    null,
+    null
+   ],
    [
     "3908809",
     "Donovan Mitchell",
@@ -4325,8 +4409,8 @@
     "under",
     true,
     2.5,
-    -150,
-    "fanatics"
+    -128,
+    "prophetx"
    ],
    [
     "3992",
@@ -4337,8 +4421,32 @@
     "under",
     true,
     2.5,
-    -130,
-    "hard_rock"
+    -141,
+    "novig"
+   ],
+   [
+    "4066757",
+    "Sam Merrill",
+    "CLE",
+    "ATL",
+    -0.2778,
+    "under",
+    true,
+    0.5,
+    null,
+    null
+   ],
+   [
+    "4397020",
+    "Luguentz Dort",
+    "ATL",
+    "CLE",
+    -0.123,
+    "under",
+    true,
+    0.5,
+    null,
+    null
    ],
    [
     "4431680",
@@ -4349,8 +4457,8 @@
     "under",
     true,
     1.5,
-    -150,
-    "fanatics"
+    -169,
+    "draftkings"
    ],
    [
     "4432158",
@@ -4361,8 +4469,8 @@
     "over",
     true,
     1.5,
-    100,
-    "fanatics"
+    135,
+    "novig"
    ],
    [
     "4576087",
@@ -4373,8 +4481,20 @@
     "over",
     true,
     1.5,
-    -115,
-    "hard_rock"
+    127,
+    "novig"
+   ],
+   [
+    "4683747",
+    "Jaylon Tyson",
+    "CLE",
+    "ATL",
+    0.1932,
+    "over",
+    true,
+    0.5,
+    -320,
+    "bet365"
    ],
    [
     "4701230",
@@ -4385,8 +4505,32 @@
     "under",
     true,
     1.5,
-    -125,
+    -132,
+    "pinnacle"
+   ],
+   [
+    "4869342",
+    "Dyson Daniels",
+    "ATL",
+    "CLE",
+    -0.162,
+    "under",
+    true,
+    0.5,
+    -180,
     "hard_rock"
+   ],
+   [
+    "5041951",
+    "Meleek Thomas",
+    "CLE",
+    "ATL",
+    -0.343,
+    "under",
+    true,
+    0.5,
+    null,
+    null
    ]
   ]
  },
@@ -4401,9 +4545,9 @@
     0.096,
     "over",
     false,
-    17.5,
-    -110,
-    "fanatics"
+    16.5,
+    -113,
+    "draftkings"
    ],
    [
     "3907497",
@@ -4414,8 +4558,8 @@
     "under",
     true,
     16.5,
-    -105,
-    "fanatics"
+    -106,
+    "prophetx"
    ],
    [
     "5142620",
@@ -4441,7 +4585,19 @@
     true,
     2.5,
     115,
-    "fanatics"
+    "hard_rock"
+   ],
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "NO",
+    -0.1111,
+    "under",
+    false,
+    0.5,
+    -650,
+    "hard_rock"
    ],
    [
     "3907497",
@@ -4452,8 +4608,20 @@
     "over",
     true,
     1.5,
-    105,
+    125,
     "fanatics"
+   ],
+   [
+    "4395628",
+    "Zion Williamson",
+    "NO",
+    "SAC",
+    0.1698,
+    "over",
+    true,
+    0.5,
+    220,
+    "hard_rock"
    ],
    [
     "4397688",
@@ -4464,8 +4632,8 @@
     "over",
     false,
     2.5,
-    -150,
-    "fanatics"
+    -130,
+    "hard_rock"
    ],
    [
     "5142620",
@@ -4476,8 +4644,8 @@
     "under",
     false,
     2.5,
-    -145,
-    "fanatics"
+    -139,
+    "draftkings"
    ]
   ]
  },
@@ -4492,9 +4660,9 @@
     0.0704,
     "over",
     false,
-    9.5,
-    -125,
-    "hard_rock"
+    10.5,
+    125,
+    "novig"
    ],
    [
     "3995",
@@ -4504,9 +4672,9 @@
     -0.1267,
     "under",
     true,
-    11.5,
-    100,
-    "fanatics"
+    12.5,
+    -114,
+    "draftkings"
    ],
    [
     "4065733",
@@ -4517,8 +4685,20 @@
     "over",
     true,
     23.5,
-    -110,
+    -115,
     "fanatics"
+   ],
+   [
+    "4066211",
+    "Robert Williams III",
+    "POR",
+    "MEM",
+    0.1386,
+    "over",
+    true,
+    6.5,
+    -104,
+    "novig"
    ],
    [
     "4431736",
@@ -4529,8 +4709,20 @@
     "under",
     false,
     10.5,
-    -115,
-    "hard_rock"
+    105,
+    "prophetx"
+   ],
+   [
+    "4600663",
+    "Zach Edey",
+    "MEM",
+    "POR",
+    0.5188,
+    "over",
+    true,
+    8.5,
+    106,
+    "novig"
    ],
    [
     "4683021",
@@ -4540,9 +4732,9 @@
     -0.1221,
     "under",
     true,
-    22.5,
-    -110,
-    "fanatics"
+    23.5,
+    -109,
+    "pinnacle"
    ],
    [
     "4903027",
@@ -4552,8 +4744,8 @@
     0.0761,
     "over",
     false,
-    12.5,
-    -125,
+    13.5,
+    100,
     "fanatics"
    ],
    [
@@ -4565,8 +4757,8 @@
     "over",
     false,
     15.5,
-    -115,
-    "hard_rock"
+    -113,
+    "prophetx"
    ],
    [
     "5105565",
@@ -4577,8 +4769,8 @@
     "over",
     true,
     9.5,
-    -120,
-    "hard_rock"
+    -111,
+    "novig"
    ],
    [
     "5112087",
@@ -4589,8 +4781,8 @@
     "under",
     false,
     11.5,
-    -115,
-    "hard_rock"
+    -106,
+    "novig"
    ],
    [
     "6606",
@@ -4601,8 +4793,8 @@
     "under",
     false,
     20.5,
-    -115,
-    "hard_rock"
+    -107,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -4615,8 +4807,8 @@
     "under",
     true,
     1.5,
-    -150,
-    "fanatics"
+    -138,
+    "novig"
    ],
    [
     "3995",
@@ -4626,9 +4818,9 @@
     -0.1994,
     "under",
     true,
-    2.5,
-    -190,
-    "fanatics"
+    1.5,
+    138,
+    "caesars"
    ],
    [
     "4065733",
@@ -4639,8 +4831,8 @@
     "under",
     true,
     2.5,
-    -165,
-    "fanatics"
+    -112,
+    "pinnacle"
    ],
    [
     "4279888",
@@ -4651,8 +4843,8 @@
     "under",
     true,
     1.5,
-    -165,
-    "fanatics"
+    -153,
+    "novig"
    ],
    [
     "4431736",
@@ -4663,8 +4855,8 @@
     "under",
     false,
     2.5,
-    -115,
-    "hard_rock"
+    -125,
+    "novig"
    ],
    [
     "4683021",
@@ -4675,8 +4867,8 @@
     "under",
     true,
     1.5,
-    120,
-    "fanatics"
+    110,
+    "hard_rock"
    ],
    [
     "4683678",
@@ -4687,7 +4879,7 @@
     "under",
     true,
     1.5,
-    -165,
+    -150,
     "fanatics"
    ],
    [
@@ -4699,8 +4891,8 @@
     "under",
     false,
     1.5,
-    -130,
-    "hard_rock"
+    -133,
+    "novig"
    ],
    [
     "5041935",
@@ -4711,7 +4903,19 @@
     "under",
     true,
     1.5,
-    115,
+    117,
+    "novig"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "MEM",
+    0.3061,
+    "over",
+    true,
+    0.5,
+    -150,
     "fanatics"
    ],
    [
@@ -4723,8 +4927,8 @@
     "under",
     true,
     1.5,
-    105,
-    "fanatics"
+    110,
+    "fanduel"
    ],
    [
     "6606",
@@ -4736,7 +4940,7 @@
     true,
     2.5,
     130,
-    "fanatics"
+    "pinnacle"
    ]
   ]
  }
