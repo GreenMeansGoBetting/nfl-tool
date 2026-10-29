@@ -202,7 +202,7 @@ class Page(unittest.TestCase):
         # 2026-10-28: the columns were sized by the night's content, so a long injury list
         # (IND-PHI, ATL-MIA) made the left one ~30px wider and the right one fell under it.
         # Fixed widths now: the same game with a long list keeps both columns side by side,
-        # The Line beside Injuries, and nothing spilling out of its section.
+        # Injuries full width under The Line (the owner, 2026-10-29), and nothing spilling out.
         PAGE.set_viewport_size({"width": 1900, "height": 1000})
         try:
             PAGE.evaluate("""() => { DATA.injuries.BOS = Array.from({ length: 9 }, (_, i) => ({ id: String(90 + i), name: 'Giannis Antetokounmpo-Longname ' + i,
@@ -210,7 +210,10 @@ class Page(unittest.TestCase):
             got = PAGE.evaluate("""() => { const top = (e) => Math.round(e.getBoundingClientRect().top); const cols = [...document.querySelectorAll('.mb-colwrap')];
                 return [top(cols[0]) === top(cols[1]), new Set([...document.querySelectorAll('#top-content > .nba-box')].map(top)).size,
                         [...document.querySelectorAll('.mb-colwrap > .section-wrap')].filter((s) => s.scrollWidth > s.clientWidth + 1).map((s) => s.id)]; }""")
-            self.assertEqual(got, [True, 1, []])
+            self.assertEqual(got, [True, 2, []])
+            # the long list folds into two columns; The Line's four tiles sit in one row
+            row = PAGE.evaluate("() => [document.querySelector('.mb-inj-list.mb-inj-2col') !== null, new Set([...document.querySelectorAll('.mb-tile')].map((t) => Math.round(t.getBoundingClientRect().top))).size]")
+            self.assertEqual(row, [True, 1])
         finally:
             PAGE.evaluate("() => { delete DATA.injuries.BOS; render(); }")
             PAGE.set_viewport_size({"width": 1440, "height": 1000})  # site_browser.py's size

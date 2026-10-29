@@ -18,25 +18,27 @@
 .mb-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
 .mb-row > .nba-box { flex: 1 1 auto; min-width: 0; }
 /* pairs that must stay side by side: they share the row and shrink (names get "...") */
-.mb-row > .mb-linebox { flex: 0 0 auto; }
-.mb-row > .mb-injbox, .mb-row > .mb-wlbox { flex: 1 1 280px; }
+/* The Line across the top, Injuries full width under it (the owner, 2026-10-29) */
+.mb-row > .mb-linebox, .mb-row > .mb-injbox { flex: 1 1 100%; }
+.mb-row > .mb-wlbox { flex: 1 1 280px; }
 .mb-fitbox { max-width: 100%; }
 .nba-box.mb-fitbox > .mb-table, .nba-box.mb-fitbox > .mb-scroll { margin: 0 auto; padding: 0 8px; }
 .mb-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .mb-halves .mb-recent { width: calc(100% - 20px); margin: 0 10px; }
 
 /* The Line and Injuries */
-/* one column of tiles: about as tall as an injury list, and it leaves Injuries room for full names */
-.mb-line { display: flex; flex-direction: column; gap: 6px; padding: 0 10px; }
-.mb-line .mb-tile { flex: 1 1 auto; }
+/* the four tiles in one row; each team's injuries in its own tinted box under its banner */
+.mb-line { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0 10px; }
 .mb-tile { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
 .mb-tile b { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; white-space: nowrap; }
 .mb-pair { display: inline-flex; align-items: center; gap: 5px; }
 .mb-pair small { font-size: 0.7rem; font-weight: 700; color: var(--muted); }
 .mb-fitbox .section-note { margin: 0 10px; }
-.mb-injs { display: flex; gap: 22px; padding: 0 12px; }
-.mb-inj-col { flex: 1 1 0; min-width: 0; }
-.mb-inj-head { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-family: var(--font-display); font-weight: 800; letter-spacing: 0.04em; }
+.mb-injs { display: flex; gap: 10px; padding: 0 10px; align-items: stretch; }
+.mb-inj-col { flex: 1 1 0; min-width: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.mb-inj-col > .team-banner { margin: 0; border-radius: 0; }
+.mb-inj-list { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 14px; padding: 6px 10px 8px; }
+.mb-inj-list.mb-inj-2col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .mb-inj { display: flex; align-items: center; gap: 7px; padding: 2px 0; font-size: 0.86rem; white-space: nowrap; min-width: 0; }
 .mb-inj b { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .mb-inj .gs-inj-status { min-width: 34px; text-align: center; }
@@ -69,10 +71,15 @@
 .mb-table tr.mb-heads th { padding-top: 2px; }
 
 /* Head To Head: Season, Points Per Quarter and Blowout Data side by side */
-.mb-parts { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: flex-start; padding: 0 8px; }
-.mb-table th.mb-part { text-align: left; color: var(--accent, var(--good-text)); font-family: var(--font-display); font-size: 0.84rem; }
+/* (the owner, 2026-10-29): three shaded panels in one row, each named on top */
+.mb-parts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: stretch; padding: 0 8px; }
+.mb-partbox { --part: 59, 130, 246; display: flex; flex-direction: column; align-items: center; padding: 0 4px 6px; border-radius: 10px; background: rgba(var(--part), 0.07); border: 1px solid rgba(var(--part), 0.3); overflow: hidden; }
+.mb-part-ppq { --part: 139, 92, 246; }
+.mb-part-blow { --part: 245, 158, 11; }
+.mb-part { align-self: stretch; margin: 0 -4px 2px; padding: 5px 10px; text-align: center; font-family: var(--font-display); font-size: 0.84rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); background: rgba(var(--part), 0.18); border-bottom: 1px solid rgba(var(--part), 0.3); }
 .mb-h2h { padding-top: 8px; }
-.mb-h2h .mb-v { min-width: 70px; padding: 0 8px; }
+.mb-h2h .mb-v { min-width: 64px; padding: 0 6px; }
+.mb-h2h .mb-v small { margin-left: 4px; }
 .mb-wl .mb-v { min-width: 82px; padding: 0 7px; }
 .mb-wl td.mb-stat { max-width: 128px; white-space: normal; line-height: 1.15; }
 
@@ -99,6 +106,7 @@
 }
 @media (max-width: 760px) {
   .mb-injs { flex-direction: column; gap: 8px; }
+  .mb-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mb-halves { grid-template-columns: minmax(0, 1fr); }
   .mb-v { min-width: 62px; padding: 0 6px; }
   .mb-stat { white-space: normal; min-width: 96px; }

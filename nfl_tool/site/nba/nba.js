@@ -384,8 +384,9 @@ function headToHead(g) {
     blowouts += both("Starters In: Within 5", (t) => idCell(t, "close_starters", true, of5));
   }
   blowouts += spotRows(g);
-  const table = (title, rows) => (rows ? `<table class="mb-table mb-mirror"><thead><tr><th class="mb-part">${title}</th>${colHead(a, "")}${colHead(h, "")}</tr></thead><tbody>${rows}</tbody></table>` : "");
-  return `<div class="nba-box mb-fitbox mb-h2h"><div class="mb-parts">${table("Season", season)}${table("Points Per Quarter", quarters)}${table("Blowout Data", blowouts)}</div></div>`;
+  // each part its own shaded panel, its name on top (so the label column is only as wide as its labels)
+  const table = (title, rows, kind) => (rows ? `<div class="mb-partbox mb-part-${kind}"><div class="mb-part">${title}</div><table class="mb-table mb-mirror"><thead><tr><th></th>${colHead(a, "")}${colHead(h, "")}</tr></thead><tbody>${rows}</tbody></table></div>` : "");
+  return `<div class="nba-box mb-fitbox mb-h2h"><div class="mb-parts">${table("Season", season, "season")}${table("Points Per Quarter", quarters, "ppq")}${table("Blowout Data", blowouts, "blow")}</div></div>`;
 }
 // Tonight's Schedule Spots (back-to-back, long road trip...): the team's net points
 // a game vs its normal in that spot, minus the league's, ranked among every team
@@ -437,7 +438,9 @@ function injuriesBox(g) {
     const rows = (DATA.injuries[abbr] || [])
       .map((p) => `<div class="mb-inj" title="${esc([p.injury, p.note].filter(Boolean).join(": "))}"><span class="gs-inj-status ${p.status === "Out" ? "tier-bad" : "tier-mid"}">${p.status === "Out" ? "Out" : "DTD"}</span><b>${playerClick(p.id, p.name)}</b><small>${p.position || ""}</small></div>`)
       .join("");
-    return `<div class="mb-inj-col"><div class="mb-inj-head">${logo(abbr, 18)} ${abbr}</div>${rows || '<span class="mb-inj-none">Nobody Listed</span>'}</div>`;
+    // each team its own tinted box under its banner; a long list folds into two columns
+    const n = (DATA.injuries[abbr] || []).length;
+    return `<div class="mb-inj-col" style="background:rgba(${teamRgb(abbr)},0.07);border-color:rgba(${teamRgb(abbr)},0.35)">${banner(abbr, team(abbr).name)}<div class="mb-inj-list${n > 4 ? " mb-inj-2col" : ""}">${rows || '<span class="mb-inj-none">Nobody Listed</span>'}</div></div>`;
   };
   return `<div class="nba-box mb-fitbox mb-injbox"><div class="nba-box-title">Injuries</div><div class="mb-injs">${list(g.away)}${list(g.home)}</div></div>`;
 }
