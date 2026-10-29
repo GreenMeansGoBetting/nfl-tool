@@ -3100,51 +3100,51 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.2513,
+    "lead": 0.2516,
     "name": "Domantas Sabonis",
     "proj": 42.4,
     "team": "SAC"
    },
    {
     "id": "4065733",
-    "lead": 0.1729,
+    "lead": 0.173,
     "name": "Ty Jerome",
     "proj": 39.5,
     "team": "MEM"
    },
    {
     "id": "4701230",
-    "lead": 0.1213,
+    "lead": 0.1214,
     "name": "Jalen Johnson",
     "proj": 37.8,
     "team": "ATL"
    },
    {
     "id": "4432158",
-    "lead": 0.0885,
+    "lead": 0.0886,
     "name": "Evan Mobley",
     "proj": 35.3,
     "team": "CLE"
    },
    {
     "id": "4683021",
-    "lead": 0.0846,
+    "lead": 0.0849,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
    },
    {
     "id": "3908809",
-    "lead": 0.0829,
+    "lead": 0.083,
     "name": "Donovan Mitchell",
     "proj": 35.3,
     "team": "CLE"
    },
    {
     "id": "3064440",
-    "lead": 0.0674,
+    "lead": 0.066,
     "name": "Zach LaVine",
-    "proj": 33.9,
+    "proj": 33.8,
     "team": "SAC"
    },
    {
@@ -3156,7 +3156,7 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0214,
+    "lead": 0.0215,
     "name": "Cameron Boozer",
     "proj": 29.2,
     "team": "MEM"
@@ -3184,7 +3184,7 @@
    },
    {
     "id": "4278039",
-    "lead": 0.0085,
+    "lead": 0.0087,
     "name": "Nickeil Alexander-Walker",
     "proj": 26.4,
     "team": "ATL"
@@ -3205,7 +3205,7 @@
    },
    {
     "id": "4903027",
-    "lead": 0.004,
+    "lead": 0.0041,
     "name": "Cedric Coward",
     "proj": 24.4,
     "team": "MEM"
@@ -3249,7 +3249,7 @@
     "id": "4397688",
     "lead": 0.0006,
     "name": "Trey Murphy III",
-    "proj": 20.7,
+    "proj": 20.6,
     "team": "NO"
    },
    {
@@ -3298,7 +3298,7 @@
     "id": "4431679",
     "lead": 0.0002,
     "name": "Precious Achiuwa",
-    "proj": 17.4,
+    "proj": 17.3,
     "team": "SAC"
    },
    {
@@ -3400,18 +3400,18 @@
     "team": "MEM"
    },
    {
-    "id": "4683634",
-    "lead": 0.0,
-    "name": "Bennedict Mathurin",
-    "proj": 12.2,
-    "team": "NO"
-   },
-   {
     "id": "2995706",
     "lead": 0.0,
     "name": "Mario Hezonja",
     "proj": 12.2,
     "team": "CLE"
+   },
+   {
+    "id": "4683634",
+    "lead": 0.0,
+    "name": "Bennedict Mathurin",
+    "proj": 12.1,
+    "team": "NO"
    },
    {
     "id": "4066757",
@@ -3553,9 +3553,9 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0173,
+    "lead": 0.0175,
     "name": "Cade Cunningham",
-    "proj": 35.5,
+    "proj": 35.6,
     "team": "DET"
    },
    {
@@ -3660,7 +3660,7 @@
     "id": "4278104",
     "lead": 0.0038,
     "name": "Michael Porter Jr.",
-    "proj": 31.0,
+    "proj": 31.1,
     "team": "BKN"
    },
    {
