@@ -3100,70 +3100,70 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.2433,
+    "lead": 0.2409,
     "name": "Domantas Sabonis",
-    "proj": 42.9,
+    "proj": 42.8,
     "team": "SAC"
    },
    {
     "id": "4701230",
-    "lead": 0.1649,
+    "lead": 0.1656,
     "name": "Jalen Johnson",
     "proj": 39.9,
     "team": "ATL"
    },
    {
     "id": "4065733",
-    "lead": 0.1597,
+    "lead": 0.1603,
     "name": "Ty Jerome",
     "proj": 39.6,
     "team": "MEM"
    },
    {
     "id": "3908809",
-    "lead": 0.0997,
+    "lead": 0.1005,
     "name": "Donovan Mitchell",
     "proj": 37.2,
     "team": "CLE"
    },
    {
     "id": "4683021",
-    "lead": 0.0711,
+    "lead": 0.0712,
     "name": "Deni Avdija",
     "proj": 34.8,
     "team": "POR"
    },
    {
     "id": "3064440",
-    "lead": 0.0645,
+    "lead": 0.0632,
     "name": "Zach LaVine",
-    "proj": 34.4,
+    "proj": 34.3,
     "team": "SAC"
    },
    {
     "id": "4432158",
-    "lead": 0.0453,
+    "lead": 0.0456,
     "name": "Evan Mobley",
     "proj": 32.9,
     "team": "CLE"
    },
    {
     "id": "3907497",
-    "lead": 0.0436,
+    "lead": 0.0438,
     "name": "Dejounte Murray",
     "proj": 32.9,
     "team": "NO"
    },
    {
     "id": "6606",
-    "lead": 0.0251,
+    "lead": 0.0253,
     "name": "Damian Lillard",
     "proj": 30.2,
     "team": "POR"
    },
    {
     "id": "5041935",
-    "lead": 0.0179,
+    "lead": 0.0181,
     "name": "Cameron Boozer",
     "proj": 29.2,
     "team": "MEM"
@@ -3177,7 +3177,7 @@
    },
    {
     "id": "3992",
-    "lead": 0.0094,
+    "lead": 0.0096,
     "name": "James Harden",
     "proj": 27.4,
     "team": "CLE"
@@ -3191,7 +3191,7 @@
    },
    {
     "id": "4278039",
-    "lead": 0.0072,
+    "lead": 0.0073,
     "name": "Nickeil Alexander-Walker",
     "proj": 26.4,
     "team": "ATL"
@@ -3205,10 +3205,17 @@
    },
    {
     "id": "4066328",
-    "lead": 0.0054,
+    "lead": 0.0055,
     "name": "Jarrett Allen",
     "proj": 25.1,
     "team": "CLE"
+   },
+   {
+    "id": "4903027",
+    "lead": 0.0036,
+    "name": "Cedric Coward",
+    "proj": 24.3,
+    "team": "MEM"
    },
    {
     "id": "4397688",
@@ -3216,13 +3223,6 @@
     "name": "Trey Murphy III",
     "proj": 24.0,
     "team": "NO"
-   },
-   {
-    "id": "4903027",
-    "lead": 0.0034,
-    "name": "Cedric Coward",
-    "proj": 24.3,
-    "team": "MEM"
    },
    {
     "id": "4869780",
