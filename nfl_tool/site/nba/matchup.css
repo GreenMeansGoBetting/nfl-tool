@@ -73,7 +73,8 @@
 /* The Matchup: the label in the middle on its own shade splits the two directions */
 .mb-matchup td.mb-mid { min-width: 150px; max-width: 170px; white-space: normal; line-height: 1.15; padding: 0 10px; text-align: center; border-radius: 7px; background: var(--table-head); }
 .mb-matchup tr.mb-called td.mb-stat { font-weight: 800; }
-.mb-table tr.mb-heads th { padding-top: 2px; }
+/* group names on a filled green band across both halves (the owner, 2026-10-29: "the white looks bad") */
+.mb-matchup .mb-group td { padding: 6px 4px; border-radius: 7px; border-bottom: 0; color: var(--good-text); background: rgba(var(--good-rgb), 0.2); }.mb-table tr.mb-heads th { padding-top: 2px; }
 
 /* Head To Head: Season, Points Per Quarter and Blowout Data side by side */
 /* (the owner, 2026-10-29): three shaded panels in one row, each named on top */
