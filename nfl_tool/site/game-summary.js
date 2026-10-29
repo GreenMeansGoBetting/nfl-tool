@@ -84,7 +84,8 @@ function gsMatchupTape(away, home) {
   const rows = SUMMARY_CATEGORIES.map(
     (cat) => `<div class="g5-row">${gsTapeSide(cat, away, home, true)}<span class="g5-label">${GS_CATEGORY_LABELS[cat.label] || cat.label}</span>${gsTapeSide(cat, home, away, false)}</div>`
   ).join("");
-  return `<div class="g5-tape">
+  // each row's halves shaded by the team with the ball, the label column left plain
+  return `<div class="g5-tape g5-shaded" style="--away:${teamAccentRgb(away).join(",")};--home:${teamAccentRgb(home).join(",")}">
     <div class="g5-row g5-head-row"><span class="g5-edge-h">Edge</span>${head(away, "offense")}${head(home, "defense")}<span></span>${head(home, "offense")}${head(away, "defense")}<span class="g5-edge-h">Edge</span></div>
     ${rows}
   </div>`;
@@ -652,7 +653,8 @@ function gsTeamPanel(team, week) {
         })
         .join("")
     : `<span class="gs-none">No games yet</span>`;
-  return `<div class="g2-team">
+  // the panel tinted in the team's color (the owner, 2026-10-29: the NBA Matchup Breakdown's look)
+  return `<div class="g2-team" style="background:rgba(${rgb},0.07);border-color:rgba(${rgb},0.35)">
     <div class="g2-team-head" style="background:rgba(${rgb},0.3);border-left:4px solid rgb(${rgb})">
       ${teamLogoMini(team, 26)}<b>${TEAM_NAMES[team] || team}</b>
       <span class="g2-rec"><span><i>Rec</i>${s.su}</span><span><i>ATS</i>${s.ats}</span></span>
