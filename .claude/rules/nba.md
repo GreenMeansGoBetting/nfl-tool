@@ -658,7 +658,10 @@ these teams win, why they lose, and what the matchup may have in store for tonig
   with "...". **The Line = its four tiles in one row, Injuries full width under it**, each team a
   tinted box under its team banner, two columns inside past 4 players (the owner, 2026-10-29: "too
   much dead space"). **Head To Head's three parts sit in one row**, each its own shaded panel (blue /
-  purple / amber) with its name on top, so the label column is only as wide as its labels. Below 1860 px wide the
+  purple / amber) with its name on top, so the label column is only as wide as its labels. **Every
+  team box (Edges, Win / Lose, Rotation, Recent) is tinted in its team color** (`teamBox`); The
+  Matchup's halves are shaded by the team with the ball (`shadeMatchup`, measured after drawing);
+  every label is full text color, never gray. Below 1860 px wide the
   columns stack (`test_long_content_never_drops_the_right_column`). **Labels sit in the far-left column** of every team-vs-team table (Biggest Edges,
   How They Win / Lose, Head To Head); **The Matchup keeps its label in the middle** (each row reads both
   directions) with the calls on the far outside. No "Has The Ball" / "Call" heads: logo + "HOU Off"

@@ -29,6 +29,9 @@ function teamRgb(abbr) {
   const hex = team(abbr).color || "555555";
   return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
 }
+// A team's own box: tinted in its color under its banner (the owner, 2026-10-29: the
+// injuries look on every team area).
+const teamBox = (abbr, cls = "") => `<div class="nba-box mb-fitbox mb-teambox${cls ? ` ${cls}` : ""}" style="--team:${teamRgb(abbr)}">`;
 function banner(abbr, text, right = "") {
   return `<div class="team-banner" style="background:rgba(${teamRgb(abbr)},0.22);border-left:4px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span class="team-banner-name">${text || team(abbr).name}</span>${right ? `<span class="nba-banner-right">${right}</span>` : ""}</div>`;
 }
@@ -262,6 +265,24 @@ function matchup(g) {
   return { html: `<div class="mb-scroll"><table class="mb-table mb-matchup"><tbody>${body}</tbody></table></div>`, edges };
 }
 
+// The Matchup's two halves shaded by the team that has the ball (left = the road
+// team's offense, right = the home team's), the label column in the middle left
+// plain. Measured after it's drawn, since the columns size to their contents.
+let shadedGame = null;
+function shadeMatchup(g) {
+  shadedGame = g;
+  const t = document.querySelector("#matchup-content .mb-matchup");
+  const mid = t && t.querySelector("td.mb-mid");
+  if (!t || !mid) return;
+  const box = t.getBoundingClientRect();
+  const m = mid.getBoundingClientRect();
+  const l = Math.round(m.left - box.left - 1);
+  const r = Math.round(m.right - box.left + 1);
+  t.style.background = `linear-gradient(90deg, rgba(${teamRgb(g.away)},0.1) 0 ${l}px, transparent ${l}px ${r}px, rgba(${teamRgb(g.home)},0.1) ${r}px 100%)`;
+}
+window.addEventListener("resize", () => shadedGame && shadeMatchup(shadedGame));
+document.fonts?.ready.then(() => shadedGame && shadeMatchup(shadedGame));
+
 // ---- Biggest Edges: each team's biggest, as a chart (the owner: a count of 8 vs 1 hid sizes) ----
 // Split into the team's Offense and its Defense, its own cell first (the owner:
 // one list mixing both was confusing).
@@ -280,7 +301,7 @@ function edgesBox(g, edges) {
       return `<tr class="mb-group"><td colspan="4">${t} ${side === "off" ? "Offense" : "Defense"}</td></tr><tr class="mb-heads"><th></th>${head}<th></th></tr>${rows}`;
     };
     const body = part("off") + part("def");
-    return `<div class="nba-box mb-fitbox">${banner(t, `${team(t).name} Edges`)}
+    return `${teamBox(t)}${banner(t, `${team(t).name} Edges`)}
       ${body ? `<table class="mb-table mb-edges"><tbody>${body}</tbody></table>` : '<p class="mb-none">No Clear Edges</p>'}</div>`;
   };
   return box(g.away) + box(g.home);
@@ -308,7 +329,7 @@ const WL_ROWS = [
 const WL_SWINGS = 3;
 function winLossBox(abbr) {
   const wl = ((block() || {}).wl || {})[abbr];
-  if (!wl) return `<div class="nba-box mb-fitbox">${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
+  if (!wl) return `${teamBox(abbr, "mb-wlbox")}${banner(abbr)}<p class="no-data-note">No games on file.</p></div>`;
   const lg = (block() || {}).league || {};
   const has = (v) => v !== null && v !== undefined;
   const rows = WL_ROWS.map(([label, side, key]) => {
@@ -323,7 +344,7 @@ function winLossBox(abbr) {
   const body = rows.map((x) => `<tr${swings.has(x.label) ? ' class="mb-swing"' : ""}>${labelTd(x.label)}${cellTd(x.w)}${cellTd(x.l)}</tr>`).join("");
   const wHead = wl.nw ? `In Wins (${wl.nw})` : "No Wins Yet";
   const lHead = wl.nl ? `In Losses (${wl.nl})` : "No Losses Yet";
-  return `<div class="nba-box mb-fitbox mb-wlbox">${banner(abbr, team(abbr).name, `${wl.nw}-${wl.nl}`)}
+  return `${teamBox(abbr, "mb-wlbox")}${banner(abbr, team(abbr).name, `${wl.nw}-${wl.nl}`)}
     <table class="mb-table mb-wl"><thead><tr><th></th><th>${wHead}</th><th>${lHead}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -472,7 +493,7 @@ function renderPlayers(g) {
         </tr>`)
       .join("");
     const th = ROT_COLS.map(([key, label]) => `<th class="mb-sort${sk === key ? " mb-sorted" : ""}" data-team="${abbr}" data-sort="${key}"${key === "l5_pts" ? ' title="Points per game, last five games"' : ""}>${label}${sk === key ? (dir < 0 ? " ▼" : " ▲") : ""}</th>`).join("");
-    return `<div class="nba-box mb-fitbox">${banner(abbr, `${team(abbr).name} Rotation`)}
+    return `${teamBox(abbr)}${banner(abbr, `${team(abbr).name} Rotation`)}
       <table class="data-table nba-player-table mb-fit"><thead><tr><th>Player</th>${th}</tr></thead><tbody>${rows || `<tr><td colspan="8" class="no-data-note">No players on file.</td></tr>`}</tbody></table>
     </div>`;
   };
@@ -495,7 +516,7 @@ function renderRecent(g) {
         return `<tr><td>${new Date(`${r.date}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}</td><td>${r.home ? "vs" : "@"} ${logo(r.opp, 16)} ${r.opp}</td><td><span class="pick-result pick-result-${r.win ? "win" : "loss"}">${r.win ? "W" : "L"}</span></td><td class="num">${r.pf}-${r.pa}</td>${ats}${tot}<td class="num">${fmt(r.pace, 0)}</td></tr>`;
       })
       .join("");
-    return `<div class="nba-box mb-fitbox">${banner(abbr, `${team(abbr).name} Recent`)}
+    return `${teamBox(abbr)}${banner(abbr, `${team(abbr).name} Recent`)}
       <table class="data-table mb-fit mb-recent"><thead><tr><th>Date</th><th>Opp</th><th></th><th>Score</th><th title="The line at tip: green = covered">Spread</th><th title="The total at tip: green = over">Total</th><th title="Possessions in the game">Pace</th></tr></thead><tbody>${rows || `<tr><td colspan="7" class="no-data-note">No games on file.</td></tr>`}</tbody></table>
     </div>`;
   };
@@ -557,6 +578,7 @@ function render() {
   el("h2h-content").innerHTML = headToHead(g);
   el("wl-content").innerHTML = block() ? winLossBox(g.away) + winLossBox(g.home) : "";
   el("matchup-content").innerHTML = m ? m.html : "";
+  shadeMatchup(g);
   renderPlayers(g);
   renderRecent(g);
 }

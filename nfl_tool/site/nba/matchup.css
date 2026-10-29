@@ -22,6 +22,10 @@
 .mb-row > .mb-linebox, .mb-row > .mb-injbox { flex: 1 1 100%; }
 .mb-row > .mb-wlbox { flex: 1 1 280px; }
 .mb-fitbox { max-width: 100%; }
+/* every team's own box tinted in its color (the injuries look, the owner 2026-10-29) */
+.nba-box.mb-teambox { background: rgba(var(--team), 0.07); border-color: rgba(var(--team), 0.35); }
+.mb-teambox > .team-banner { border-radius: 0; }
+.mb-matchup { border-radius: 10px; }
 .nba-box.mb-fitbox > .mb-table, .nba-box.mb-fitbox > .mb-scroll { margin: 0 auto; padding: 0 8px; }
 .mb-halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
 .mb-halves .mb-recent { width: calc(100% - 20px); margin: 0 10px; }
@@ -47,7 +51,8 @@
 
 /* The shared table look */
 .mb-table { border-collapse: separate; border-spacing: 3px 3px; }
-.mb-table th { padding: 4px 6px 2px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: center; white-space: nowrap; }
+.mb-table th { padding: 4px 6px 2px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text); text-align: center; white-space: nowrap; }
+.mb-table td.mb-stat { color: var(--text); }
 .mb-table th.mb-colhead { font-family: var(--font-display); font-size: 0.86rem; color: var(--text); }
 .mb-table th .team-logo { vertical-align: -4px; }
 .mb-v { height: 30px; min-width: 84px; padding: 0 10px; border-radius: 7px; background: var(--panel-2); text-align: center; vertical-align: middle; white-space: nowrap; font-family: var(--font-display); color: var(--text); }
@@ -89,7 +94,6 @@
 
 /* How They Win / How They Lose: the 3 rows that swing most */
 .mb-wl tr.mb-swing td.mb-stat { font-weight: 800; color: var(--text); box-shadow: inset 3px 0 0 var(--accent, var(--good-text)); padding-left: 9px; }
-.mb-wl tr:not(.mb-swing) td.mb-stat { color: var(--muted); }
 
 /* Rotations: sortable heads, cells shaded by rank on the team */
 .mb-fit { width: auto; }
