@@ -127,8 +127,14 @@ For the Discord's "First Drive - Punt" parlays on primetime games. Not inside TD
 - **Raw numbers, no pull toward league average** (the owner: "teams have identities"). Bigger
   samples come from the First Half / Full Game toggle instead; Last 3 / 5 / 8 filter.
 - Fair = (offense rate + other team's defense rate) / 2, American only via `showOdds` (not on
-  exchanges, so no percent). Both Fair = the two chances multiplied. Odds aren't fetched
-  (SmartStake doesn't carry the market).
+  exchanges, so no percent). Odds aren't fetched (SmartStake doesn't carry the market).
+- Look (the owner's 2026-10-29 notes): outcome labels are colored boxes, TD green / FG Att yellow
+  / Punt red / Other blue, the same colors on every chip. Both tables group their columns on tints
+  like the NBA zone grid (`.od-grid`, team color in the matchup table). **Fair Parlay** picker under
+  the matchup (one outcome per team, chances multiplied, no correlation; Punt + Punt by default).
+  The opening-drive table is week-by-week pills on every row, same games in the same order:
+  3 & Out Off / Def (Y / N), Plays and Yards (shaded against every opening drive in the league),
+  Offense First / Defense First (the result when that side was on the field first, else X).
 - Primetime tag on the schedule strip: not Sunday, or Sunday 7 PM ET or later.
 - The owner's background paragraph at the top is their wording, verbatim.
 - Tests: `test_opening_drives_build.py`, `test_opening_drives_site.py`.

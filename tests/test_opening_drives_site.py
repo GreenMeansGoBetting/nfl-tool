@@ -3,8 +3,8 @@ the saved sample with hand-made drives (the sample predates the tool).
 
 Pinned (the owner, 2026-10-29): a defense is read from its opponents' first
 drives; Fair = the offense and the other team's defense averaged, raw (no
-pull toward league average), as an American price; Both Fair multiplies the
-two teams' chances; Last N games and the First Half / Full Game samples
+pull toward league average), as an American price; the Fair Parlay multiplies
+the two picked chances; Last N games and the First Half / Full Game samples
 change every number; primetime games carry a tag in the schedule strip."""
 import unittest
 
@@ -55,7 +55,14 @@ def tearDownModule():
 
 
 def punt_row():
-    return PAGE.evaluate("() => [...document.querySelectorAll('.od-punt-row .od-fair')].map((c) => c.textContent.trim())")
+    return PAGE.evaluate("""() => {
+        const row = [...document.querySelectorAll('.od-fair-table tbody tr')].find((r) => r.querySelector('.od-lab').textContent === 'Punt');
+        return [...row.querySelectorAll('.od-fair')].map((c) => c.textContent.trim());
+    }""")
+
+
+def parlay():
+    return PAGE.text_content(".od-parlay-out b")
 
 
 class OpeningDriveTool(unittest.TestCase):
@@ -65,8 +72,18 @@ class OpeningDriveTool(unittest.TestCase):
 
     def test_fair_prices_average_offense_and_the_other_defense(self):
         # ATL punts 3/4, NO's opponents punted 0/4: 37.5% = +167.
-        # NO punts 2/4, ATL's opponents punted 3/4: 62.5% = -167. Both: 23.4% = +327.
-        self.assertEqual(punt_row(), ["+167", "-167", "+327"])
+        # NO punts 2/4, ATL's opponents punted 3/4: 62.5% = -167.
+        self.assertEqual(punt_row(), ["+167", "-167"])
+
+    def test_fair_parlay_picker(self):
+        # Punt + Punt by default: 37.5% x 62.5% = 23.4% = +327 (no correlation).
+        self.assertEqual(parlay(), "+327")
+        PAGE.click('.od-pick-btn[data-side="away"][data-k="punt"]')  # off again: NO Punt alone
+        self.assertEqual(parlay(), "-167")
+        # ATL TD 1/4 and NO's opponents scored TDs 3/4 -> 50%; x NO Punt 62.5% = 31.25% = +220.
+        PAGE.click('.od-pick-btn[data-side="away"][data-k="td"]')
+        self.assertEqual(parlay(), "+220")
+        PAGE.click('.od-pick-btn[data-side="away"][data-k="punt"]')
 
     def test_last_games_filter(self):
         PAGE.select_option("#od-last", "3")
@@ -75,7 +92,7 @@ class OpeningDriveTool(unittest.TestCase):
 
     def test_full_game_sample(self):
         PAGE.click('#od-toolbar [data-sample="game"]')
-        self.assertEqual(punt_row()[:2], ["+300", "+300"])
+        self.assertEqual(punt_row(), ["+300", "+300"])
         self.assertIn("Full Game", PAGE.text_content(".od-all thead"))
 
     def test_all_teams_table_and_sort(self):

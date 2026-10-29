@@ -10,10 +10,10 @@
 // team's defense averaged, as an American price (these aren't on exchanges).
 
 const OD_OUTCOMES = [
-  ["td", "Off TD", "TD"],
+  ["td", "TD", "TD"],
   ["fg", "FG Att", "FG"],
   ["punt", "Punt", "P"],
-  ["other", "Any Other", "O"],
+  ["other", "Other", "O"],
 ];
 const OD_SAMPLES = { open: "Opening Drive", half: "First Half", game: "Full Game" };
 const OD_VIEW_KEY = "nfl-tool.opening-drives-view.v1";
@@ -97,20 +97,31 @@ function odPools(teams) {
   }
   pools.off_3o = all.map((x) => x.off.threeOutRate);
   pools.def_3o = all.map((x) => x.def.threeOutRate);
+  pools.plays = all.map((x) => x.off.plays);
+  pools.yards = all.map((x) => x.off.yards);
+  // Every opening drive of the season, for the week-by-week Plays / Yards shades.
+  const drives = Object.values(DATA.opening_drives?.teams || {}).flat();
+  pools.drivePlays = drives.map((g) => g.plays);
+  pools.driveYards = drives.map((g) => g.yards);
   return pools;
 }
-function odRateCell(tally, k, pool, extra = "") {
-  const r = tally.rate(k);
-  if (r === null) return `<td class="num od-rate${extra}">—</td>`;
-  return `<td class="num od-rate ${percentileTier(r, pool, false)}${extra}"${tierAlphaAttr(r, pool, false)}><b>${odPct(r)}</b><small>${tally.counts[k]}/${tally.n}</small></td>`;
+// A shaded tile inside the cell (the NBA zone grid's look): rate + count.
+function odTile(value, pool, big, small, cls = "") {
+  if (value === null || value === undefined) return `<td class="num od-cell${cls}"><div class="od-tile">—</div></td>`;
+  return `<td class="num od-cell${cls}"><div class="od-tile ${percentileTier(value, pool, false)}"${tierAlphaAttr(value, pool, false)}><b>${big}</b>${small ? `<small>${small}</small>` : ""}</div></td>`;
 }
+const odRateCell = (tally, k, pool, cls = "") => odTile(tally.rate(k), pool, odPct(tally.rate(k)), `${tally.counts[k]}/${tally.n}`, cls);
+const odLabel = (k) => {
+  const [, name] = OD_OUTCOMES.find(([x]) => x === k);
+  return `<span class="od-lab od-c-${k}">${name}</span>`;
+};
+const odChip = (k, text, tip) => `<span class="od-chip od-c-${k}"${tip ? ` title="${tip}"` : ""}>${text}</span>`;
 function odLog(rows, defense) {
   if (!rows.length) return `<span class="od-none">No games</span>`;
   return `<span class="od-log">${rows.map((g) => {
     const [, name, short] = OD_OUTCOMES.find(([k]) => k === g.out);
     const who = defense ? `${g.opp_of} vs them` : `vs ${g.opp}`;
-    const tip = `Week ${g.week} ${who}: ${name}${g.three_out ? " (3 & Out)" : ""}, ${g.plays} plays, ${g.yards} yds, ${g.received ? "had the ball first" : "kicked off first"}`;
-    return `<span class="od-chip od-c-${g.out}" title="${tip}">${short}</span>`;
+    return odChip(g.out, short, `Week ${g.week} ${who}: ${name}${g.three_out ? " (3 & Out)" : ""}, ${g.plays} plays, ${g.yards} yds, ${g.received ? "had the ball first" : "kicked off first"}`);
   }).join("")}</span>`;
 }
 // A defense's log: its opponents' opening drives, named by who had the ball.
@@ -118,10 +129,25 @@ const odDefLog = (team) => odTeamGames(team).map((g) => {
   const row = odOpponentRow(g);
   return row ? { ...row, opp_of: g.opp } : null;
 }).filter(Boolean);
+// One pill per week from any rule: (game) => [class, text, tip].
+const odWeekPills = (rows, pill) => (rows.length ? `<span class="od-log">${rows.map((g) => {
+  const [k, text, tip] = pill(g);
+  return `<span class="od-chip ${k}" title="${tip}">${text}</span>`;
+}).join("")}</span>` : `<span class="od-none">No games</span>`);
+// League-wide shade for one drive's plays or yards (every opening drive this
+// season): the most = green, the fewest = red, on the shared rank colors.
+function odDriveShade(value, pool) {
+  const rank = pool.filter((v) => v > value).length + 1;
+  return rankScaleStyle(rank, pool.length).replace(/^ style="/, "").replace(/"$/, "");
+}
 
 function odTeamLabel(team) {
   return `<span class="od-team">${teamLogoMini(team, 20)}<b>${team}</b></span>`;
 }
+const odTeamRgb = (team) => teamAccentRgb(team).map(Math.round).join(",");
+
+// The parlay picker's choice per side (not saved: Punt / Punt is the Discord's bet).
+const odParlay = { away: "punt", home: "punt" };
 
 function renderOdMatchup(pools) {
   const away = document.getElementById("away-select").value;
@@ -137,51 +163,73 @@ function renderOdMatchup(pools) {
     const o = s.off.rate(k), d = s.def.rate(k);
     return o === null || d === null ? null : (o + d) / 2;
   };
-  const sample = OD_SAMPLES[odView.sample];
-  const rows = OD_OUTCOMES.map(([k, name]) => {
+  const sampleTitle = { open: "Opening Drives", half: "First Half Drives", game: "Full Game Drives" }[odView.sample];
+  // Each team's three columns sit on its own team-color tint (the NBA zone grid's grouping).
+  const grp = (team, i, n) => ` od-gt${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}" style="--zg:${odTeamRgb(team)}`;
+  const gap = `<td class="od-ggap"></td>`;
+  const gapTh = `<th class="od-ggap"></th>`;
+  const rows = OD_OUTCOMES.map(([k]) => {
     const pa = fair(a, k), ph = fair(h, k);
-    const both = pa === null || ph === null ? null : pa * ph;
-    return `<tr class="${k === "punt" ? "od-punt-row" : ""}">
-      <td class="od-label">${name}</td>
-      ${odRateCell(a.off, k, pools[`off_${k}`])}${odRateCell(a.def, k, pools[`def_${k}`])}
-      <td class="num od-fair">${odPrice(pa)}</td>
-      ${odRateCell(h.off, k, pools[`off_${k}`], " od-split")}${odRateCell(h.def, k, pools[`def_${k}`])}
-      <td class="num od-fair">${odPrice(ph)}</td>
-      <td class="num od-fair od-both od-split">${odPrice(both)}</td>
+    return `<tr>
+      <td class="od-label">${odLabel(k)}</td>${gap}
+      ${odRateCell(a.off, k, pools[`off_${k}`], grp(away, 0, 3))}${odRateCell(a.def, k, pools[`def_${k}`], grp(away, 1, 3))}
+      <td class="num od-cell${grp(away, 2, 3)}"><div class="od-tile od-fair">${odPrice(pa)}</div></td>${gap}
+      ${odRateCell(h.off, k, pools[`off_${k}`], grp(home, 0, 3))}${odRateCell(h.def, k, pools[`def_${k}`], grp(home, 1, 3))}
+      <td class="num od-cell${grp(home, 2, 3)}"><div class="od-tile od-fair">${odPrice(ph)}</div></td>
     </tr>`;
   }).join("");
-  const det = (label, fa, fh) => `<tr><td class="od-label">${label}</td><td class="num">${fa}</td><td class="num od-split">${fh}</td></tr>`;
-  // A shaded box, not the whole cell: these columns are as wide as the week-by-week rows.
-  const threeCell = (t, pool) => (t.threeOutRate === null ? `<td class="num">—</td>` : `<td class="num"><span class="od-rate od-box ${percentileTier(t.threeOutRate, pool, false)}"${tierAlphaAttr(t.threeOutRate, pool, false)}><b>${odPct(t.threeOutRate)}</b><small>${t.threeOut}/${t.games}</small></span></td>`);
-  const splitText = (s) => (s.n ? OD_OUTCOMES.map(([k, , short]) => `<span class="od-chip od-c-${k} od-chip-n">${short} ${s[k]}</span>`).join("") + `<span class="od-of">of ${s.n}</span>` : `<span class="od-none">None</span>`);
-  // The detail rows are always the opening drive itself (the 3 & out, plays
-  // and the received / kicked split only mean something for that drive).
-  const offA = odTally(odTeamGames(away)), offH = odTally(odTeamGames(home));
-  const defA = odTally(odDefLog(away)), defH = odTally(odDefLog(home));
+  const labels = (off, def) => [`${teamLogoMini(off, 16)} ${off} Offense`, `${teamLogoMini(def, 16)} ${def} Defense`, "Fair"];
+  const labelRow = (off, def) => labels(off, def).map((l, i) => `<th class="num${grp(off, i, 3)}">${l}</th>`).join("");
+
+  // Fair parlay: one outcome per team, chances multiplied (no correlation).
+  const pick = (which, team, s) => `<div class="od-pick-row"><span class="od-team">${teamLogoMini(team, 18)}<b>${team}</b></span>${OD_OUTCOMES.map(([k, name]) =>
+    `<button type="button" class="od-pick-btn od-c-${k}${odParlay[which] === k ? " on" : ""}" data-side="${which}" data-k="${k}">${name}</button>`).join("")}<span class="od-pick-fair">${odParlay[which] ? odPrice(fair(s, odParlay[which])) : ""}</span></div>`;
+  const chosen = [[away, a, odParlay.away], [home, h, odParlay.home]].filter(([, , k]) => k);
+  const chance = chosen.reduce((p, [, s, k]) => (p === null || fair(s, k) === null ? null : p * fair(s, k)), 1);
+  const parlayName = chosen.map(([team, , k]) => `${team} ${OD_OUTCOMES.find(([x]) => x === k)[1]}`).join(" + ");
+
+  // Opening drive, week by week: every row lines up with the same games.
+  const offRows = (team) => odTeamGames(team);
+  const defRows = (team) => odDefLog(team);
+  const yn = (on) => [on ? "od-y" : "od-n", on ? "Y" : "N"];
+  const three = (rows, def) => odWeekPills(rows, (g) => [...yn(g.three_out), `Week ${g.week}${def ? ` ${g.opp_of} vs them` : ` vs ${g.opp}`}: ${g.three_out ? "3 & out" : "no 3 & out"}`]);
+  const shaded = (rows, key, pool, unit) => `<span class="od-log">${rows.map((g) =>
+    `<span class="od-chip od-num" style="${odDriveShade(g[key], pool)}" title="Week ${g.week} vs ${g.opp}: ${g[key]} ${unit} on the opening drive">${g[key]}</span>`).join("")}</span>`;
+  const first = (rows, def) => odWeekPills(rows, (g) => {
+    const theirs = g.received; // a defense's rows are its opponents': they received = this defense was on the field first
+    if (!theirs) return ["od-x", "X", `Week ${g.week}: ${def ? "their offense had the ball first" : "kicked off first"}`];
+    const [, name, short] = OD_OUTCOMES.find(([k]) => k === g.out);
+    return [`od-c-${g.out}`, short, `Week ${g.week}: ${name}`];
+  });
+  const det = (label, fa, fh) => `<tr><td class="od-label">${label}</td><td class="od-wk">${fa}</td><td class="od-wk od-split">${fh}</td></tr>`;
   box.innerHTML = `
     <div class="od-match">
-      <table class="data-table od-table od-fair-table">
-        <thead>
-          <tr><th rowspan="2" class="od-label">${sample}</th>
-            <th colspan="3">${odTeamLabel(away)} Drive</th>
-            <th colspan="3" class="od-split">${odTeamLabel(home)} Drive</th>
-            <th rowspan="2" class="od-split">Both<br>Fair</th></tr>
-          <tr><th>${away} Offense</th><th>${home} Defense</th><th>Fair</th>
-            <th class="od-split">${home} Offense</th><th>${away} Defense</th><th>Fair</th></tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div>
+        <table class="data-table od-grid od-fair-table">
+          <colgroup><col class="od-lab-col"><col class="od-ggap-col"><col><col><col><col class="od-ggap-col"><col><col><col></colgroup>
+          <thead>
+            <tr class="od-ggroups"><th></th>${gapTh}<th colspan="7" class="od-gtitle">${sampleTitle}</th></tr>
+            <tr class="od-glabels"><th></th>${gapTh}${labelRow(away, home)}${gapTh}${labelRow(home, away)}</tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="od-parlay">
+          <div class="od-parlay-head">Fair Parlay</div>
+          ${pick("away", away, a)}${pick("home", home, h)}
+          <div class="od-parlay-out">${chosen.length ? `<span>${parlayName}</span><b>${odPrice(chance)}</b>` : `<span class="od-none">Pick an outcome for either team</span>`}</div>
+        </div>
+      </div>
       <table class="data-table od-table od-detail">
         <thead><tr><th class="od-label">Opening Drive</th><th>${odTeamLabel(away)}</th><th class="od-split">${odTeamLabel(home)}</th></tr></thead>
         <tbody>
-          <tr><td class="od-label">3 &amp; Out (Offense)</td>${threeCell(offA, pools.off_3o)}${threeCell(offH, pools.off_3o).replace("<td class=\"num", "<td class=\"num od-split")}</tr>
-          <tr><td class="od-label">3 &amp; Out Forced (Defense)</td>${threeCell(defA, pools.def_3o)}${threeCell(defH, pools.def_3o).replace("<td class=\"num", "<td class=\"num od-split")}</tr>
-          ${det("Avg Plays", offA.plays === null ? "—" : offA.plays.toFixed(1), offH.plays === null ? "—" : offH.plays.toFixed(1))}
-          ${det("Avg Yards", offA.yards === null ? "—" : offA.yards.toFixed(0), offH.yards === null ? "—" : offH.yards.toFixed(0))}
-          ${det("Had The Ball First", splitText(offA.split.received), splitText(offH.split.received))}
-          ${det("Kicked Off First", splitText(offA.split.kicked), splitText(offH.split.kicked))}
-          ${det("Offense By Week", odLog(odTeamGames(away), false), odLog(odTeamGames(home), false))}
-          ${det("Defense By Week", odLog(odDefLog(away), true), odLog(odDefLog(home), true))}
+          ${det("3 &amp; Out Off", three(offRows(away), false), three(offRows(home), false))}
+          ${det("3 &amp; Out Def", three(defRows(away), true), three(defRows(home), true))}
+          ${det("Plays", shaded(offRows(away), "plays", pools.drivePlays, "plays"), shaded(offRows(home), "plays", pools.drivePlays, "plays"))}
+          ${det("Yards", shaded(offRows(away), "yards", pools.driveYards, "yards"), shaded(offRows(home), "yards", pools.driveYards, "yards"))}
+          ${det("Offense First", first(offRows(away), false), first(offRows(home), false))}
+          ${det("Defense First", first(defRows(away), true), first(defRows(home), true))}
+          ${det("Offense By Week", odLog(offRows(away), false), odLog(offRows(home), false))}
+          ${det("Defense By Week", odLog(defRows(away), true), odLog(defRows(home), true))}
         </tbody>
       </table>
     </div>`;
@@ -212,30 +260,42 @@ function renderOdTeams(teams, pools) {
     if (b === null) return -1;
     return (a > b ? 1 : -1) * (key === "team" ? 1 : odView.dir);
   });
-  const th = (k, label, extra = "", attrs = "") => `<th${attrs} class="bp-sort${key === k ? " bp-sort-on" : ""}${extra}" data-sort="${k}">${label}${key === k ? (odView.dir < 0 && k !== "team" ? " ▼" : " ▲") : ""}</th>`;
-  const three = (t, pool) => (t.threeOutRate === null ? `<td class="num">—</td>` : `<td class="num od-rate ${percentileTier(t.threeOutRate, pool, false)}"${tierAlphaAttr(t.threeOutRate, pool, false)}><b>${odPct(t.threeOutRate)}</b><small>${t.threeOut}/${t.games}</small></td>`);
-  const body = rows.map((r) => `<tr class="${r.team === away || r.team === home ? "od-sel" : ""}">
+  const arrow = (k) => (key === k ? (odView.dir < 0 && k !== "team" ? " ▼" : " ▲") : "");
+  // Column groups, each on its own tint (the NBA zone grid's look).
+  const sample = OD_SAMPLES[odView.sample];
+  const groups = [
+    { name: `Offense: ${sample}`, cols: OD_OUTCOMES.map(([k]) => [`o_${k}`, odLabel(k)]) },
+    { name: `Defense: Opponents' ${sample}`, cols: OD_OUTCOMES.map(([k]) => [`d_${k}`, odLabel(k)]) },
+    { name: "Opening Drive", cols: [["o_3o", "3 &amp; Out Off"], ["d_3o", "3 &amp; Out Def"], ["plays", "Plays"], ["yards", "Yards"]] },
+  ];
+  const edge = (gi, i, n) => ` od-g${gi}${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}`;
+  const gap = `<td class="od-ggap"></td>`;
+  const gapTh = `<th class="od-ggap"></th>`;
+  const sortTh = (k, label, cls) => `<th class="num bp-sort${key === k ? " bp-sort-on" : ""}${cls}" data-sort="${k}">${label}${arrow(k)}</th>`;
+  const groupRow = `<tr class="od-ggroups"><th></th><th></th>${groups.map((g, gi) => `${gapTh}<th colspan="${g.cols.length}" class="od-g${gi} od-gl od-gr">${g.name}</th>`).join("")}${gapTh}<th class="od-g3 od-gl od-gr">Offense By Week</th></tr>`;
+  const labelRow = `<tr class="od-glabels">${sortTh("team", "Team", " od-label")}${sortTh("games", "G", "")}${groups.map((g, gi) => gapTh + g.cols.map(([k, label], i) => sortTh(k, label, edge(gi, i, g.cols.length))).join("")).join("")}${gapTh}<th class="od-g3 od-gl od-gr"></th></tr>`;
+  const body = rows.map((r) => {
+    const cells = [
+      OD_OUTCOMES.map(([k], i) => odRateCell(r.off, k, pools[`off_${k}`], edge(0, i, 4))),
+      OD_OUTCOMES.map(([k], i) => odRateCell(r.def, k, pools[`def_${k}`], edge(1, i, 4))),
+      [
+        odTile(r.off.threeOutRate, pools.off_3o, odPct(r.off.threeOutRate), `${r.off.threeOut}/${r.off.games}`, edge(2, 0, 4)),
+        odTile(r.def.threeOutRate, pools.def_3o, odPct(r.def.threeOutRate), `${r.def.threeOut}/${r.def.games}`, edge(2, 1, 4)),
+        odTile(r.off.plays, pools.plays, r.off.plays === null ? "" : r.off.plays.toFixed(1), "", edge(2, 2, 4)),
+        odTile(r.off.yards, pools.yards, r.off.yards === null ? "" : r.off.yards.toFixed(0), "", edge(2, 3, 4)),
+      ],
+    ];
+    return `<tr class="${r.team === away || r.team === home ? "od-sel" : ""}">
       <td class="od-label">${odTeamLabel(r.team)}</td>
       <td class="num">${r.off.games}</td>
-      ${OD_OUTCOMES.map(([k], i) => odRateCell(r.off, k, pools[`off_${k}`], i === 0 ? " od-split" : "")).join("")}
-      ${OD_OUTCOMES.map(([k], i) => odRateCell(r.def, k, pools[`def_${k}`], i === 0 ? " od-split" : "")).join("")}
-      ${three(r.off, pools.off_3o).replace("<td class=\"num", "<td class=\"num od-split")}${three(r.def, pools.def_3o)}
-      <td class="num">${r.off.plays === null ? "—" : r.off.plays.toFixed(1)}</td>
-      <td class="num">${r.off.yards === null ? "—" : r.off.yards.toFixed(0)}</td>
-      <td class="od-log-cell od-split">${odLog(r.log, false)}</td>
-    </tr>`).join("");
+      ${cells.map((c) => gap + c.join("")).join("")}${gap}
+      <td class="od-log-cell od-g3 od-gl od-gr">${odLog(r.log, false)}</td>
+    </tr>`;
+  }).join("");
   document.getElementById("od-teams").innerHTML = `
-    <table class="data-table od-table od-all">
-      <thead>
-        <tr>${th("team", "Team", " od-label", ' rowspan="2"')}${th("games", "G", "", ' rowspan="2"')}
-          <th colspan="4" class="od-split">Offense: ${OD_SAMPLES[odView.sample]}</th>
-          <th colspan="4" class="od-split">Defense: Opponents' ${OD_SAMPLES[odView.sample]}</th>
-          <th colspan="4" class="od-split">Opening Drive</th>
-          <th rowspan="2" class="od-split od-label od-log-head">Offense By Week</th></tr>
-        <tr>${OD_OUTCOMES.map(([k, name], i) => th(`o_${k}`, name, i === 0 ? " od-split" : "")).join("")}
-          ${OD_OUTCOMES.map(([k, name], i) => th(`d_${k}`, name, i === 0 ? " od-split" : "")).join("")}
-          ${th("o_3o", "3 &amp; Out", " od-split")}${th("d_3o", "3 &amp; Out Forced")}${th("plays", "Plays")}${th("yards", "Yards")}</tr>
-      </thead>
+    <table class="data-table od-grid od-all">
+      <colgroup><col class="od-team-col"><col class="od-g-col">${groups.map((g) => `<col class="od-ggap-col">${g.cols.map(() => '<col class="od-rate-col">').join("")}`).join("")}<col class="od-ggap-col"><col></colgroup>
+      <thead>${groupRow}${labelRow}</thead>
       <tbody>${body}</tbody>
     </table>`;
 }
@@ -283,6 +343,12 @@ function odStart() {
     if (!b) return;
     odView.sample = b.dataset.sample;
     saveOdView();
+    renderOd();
+  });
+  document.getElementById("od-matchup").addEventListener("click", (e) => {
+    const b = e.target.closest(".od-pick-btn");
+    if (!b) return;
+    odParlay[b.dataset.side] = odParlay[b.dataset.side] === b.dataset.k ? null : b.dataset.k;
     renderOd();
   });
   document.getElementById("od-last").addEventListener("change", (e) => {

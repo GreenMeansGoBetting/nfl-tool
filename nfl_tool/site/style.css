@@ -4101,30 +4101,74 @@ td.gm-lean .pick-result { opacity: 0.5; }
 /* ---- Opening Drive Tool (opening-drives.html) ---- */
 .od-last { margin-left: 10px; }
 .od-pick select, .od-last select { font: inherit; }
-.od-match { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin: 12px 0 18px; overflow-x: auto; }
+.od-match { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; margin: 12px 0 18px; overflow-x: auto; }
 .od-table { width: auto; }
 .od-table th, .od-table td { padding: 4px 8px; text-align: center; vertical-align: middle; white-space: nowrap; }
-.od-table .od-label { text-align: left; }
+.od-label { text-align: left !important; white-space: nowrap; }
 .od-table .od-split { border-left: 2px solid var(--border-strong); }
 .od-team { display: inline-flex; align-items: center; gap: 5px; }
-.od-rate b { display: block; font-family: var(--font-display); font-size: 0.95rem; line-height: 1.1; }
-.od-rate small { display: block; font-size: 0.68rem; color: var(--muted); font-weight: 600; }
-.od-fair { font-family: var(--font-display); font-weight: 800; font-size: 1rem; background: var(--panel-2); }
-.od-punt-row td { box-shadow: inset 0 1px 0 rgba(var(--good-rgb), 0.5), inset 0 -1px 0 rgba(var(--good-rgb), 0.5); }
-.od-punt-row .od-both { background: rgba(var(--good-rgb), 0.22); }
-.od-detail td.num { text-align: left; }
-.od-box { display: inline-block; min-width: 52px; padding: 3px 8px; border-radius: 6px; text-align: center; }
+/* Outcome colors: TD green, FG yellow, Punt red, Other blue (labels, chips, picker). */
+.od-c-td { --oc: var(--good-rgb); }
+.od-c-fg { --oc: var(--mid-rgb); }
+.od-c-punt { --oc: var(--bad-rgb); }
+.od-c-other { --oc: 70, 130, 220; }
+.od-lab { display: inline-block; min-width: 54px; padding: 3px 8px; border-radius: 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; text-align: center; color: var(--text); background: rgba(var(--oc), 0.28); border: 1px solid rgba(var(--oc), 0.55); }
+.od-glabels .od-lab { min-width: 0; padding: 2px 6px; font-size: 0.72rem; }
+.data-table.od-grid .od-glabels th:has(.od-lab), .od-fair-table .od-glabels th { white-space: nowrap; }
 .od-log { display: inline-flex; flex-wrap: wrap; gap: 3px; }
-.od-chip { display: inline-block; min-width: 24px; padding: 2px 4px; border-radius: 5px; font-size: 0.72rem; font-weight: 800; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--border); }
-.od-chip-n { min-width: 0; margin-right: 3px; padding: 2px 6px; }
-.od-c-td { background: rgba(var(--good-rgb), 0.3); border-color: rgba(var(--good-rgb), 0.55); }
-.od-c-fg { background: rgba(var(--mid-rgb), 0.3); border-color: rgba(var(--mid-rgb), 0.55); }
-.od-c-punt { background: rgba(var(--bad-rgb), 0.3); border-color: rgba(var(--bad-rgb), 0.55); }
-.od-of, .od-none { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
-.od-all { width: 100%; }
-.od-all .od-log-cell { width: 100%; text-align: left; }
-.od-all tr.od-sel td { background-color: rgba(var(--good-rgb), 0.06); }
+.od-chip { display: inline-block; min-width: 26px; padding: 2px 4px; border-radius: 5px; font-size: 0.72rem; font-weight: 800; text-align: center; color: var(--text); background: var(--panel-2); border: 1px solid var(--border); box-sizing: border-box; }
+.od-chip[class*="od-c-"] { background: rgba(var(--oc), 0.3); border-color: rgba(var(--oc), 0.55); }
+.od-chip.od-y { background: rgba(var(--good-rgb), 0.3); border-color: rgba(var(--good-rgb), 0.55); }
+.od-chip.od-n { background: rgba(var(--bad-rgb), 0.3); border-color: rgba(var(--bad-rgb), 0.55); }
+.od-chip.od-x { color: var(--muted); }
+.od-chip.od-num { color: var(--text); }
+.od-none { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+/* Grouped columns on tints, tiles inside (the NBA zone grid's look, nba/zones.css .zm-grid). */
+.data-table.od-grid { border-spacing: 0; table-layout: fixed; }
+.data-table.od-grid th, .data-table.od-grid td { padding: 3px; text-align: center; vertical-align: middle; border-radius: 0; background-color: transparent; white-space: nowrap; }
+.od-grid .od-ggap-col { width: 6px; }
+.data-table .od-ggap { padding: 0 !important; background: transparent !important; }
+.od-grid .od-g0 { --zg: var(--accent-rgb); }
+.od-grid .od-g1 { --zg: 70, 130, 220; }
+.od-grid .od-g2 { --zg: 150, 100, 220; }
+.od-grid .od-g3 { --zg: 128, 128, 128; }
+.data-table.od-grid :is(.od-g0, .od-g1, .od-g2, .od-g3, .od-gt) { background-color: rgba(var(--zg), 0.13); }
+.data-table.od-grid .od-ggroups th:is(.od-g0, .od-g1, .od-g2, .od-g3), .data-table.od-grid .od-gtitle { background-color: rgba(var(--zg, 128, 128, 128), 0.26); color: var(--text); padding: 6px 4px; border-radius: 10px 10px 0 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); }
+.data-table.od-grid .od-gtitle { border-radius: 10px; font-size: 0.8rem; }
+.data-table.od-grid .od-glabels th.od-gt { background-color: rgba(var(--zg), 0.3); }
+.data-table.od-grid .od-glabels th.od-gt.od-gl { border-top-left-radius: 10px; }
+.data-table.od-grid .od-glabels th.od-gt.od-gr { border-top-right-radius: 10px; }
+.od-grid tbody tr:last-child td.od-gl { border-bottom-left-radius: 10px; }
+.od-grid tbody tr:last-child td.od-gr { border-bottom-right-radius: 10px; }
+.od-grid tbody td.od-gl, .od-grid .od-glabels th.od-gl { padding-left: 5px; }
+.od-grid tbody td.od-gr, .od-grid .od-glabels th.od-gr { padding-right: 5px; }
+.od-grid tbody tr:last-child td { padding-bottom: 5px; }
+.od-grid .od-glabels th { font-size: 0.66rem; line-height: 1.15; vertical-align: bottom; padding-top: 6px; }
+.od-tile { padding: 4px 3px; border-radius: 6px; background: var(--panel-2); }
+.od-tile b { display: block; font-family: var(--font-display); font-size: 0.95rem; line-height: 1.1; }
+.od-tile small { display: block; font-size: 0.64rem; color: var(--muted); font-weight: 600; line-height: 1.1; }
+.od-tile.od-fair { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; padding: 8px 3px; }
+.od-fair-table { width: 620px; }
+.od-fair-table .od-lab-col { width: 84px; }
+/* Fair parlay picker */
+.od-parlay { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); box-shadow: var(--shadow); max-width: 620px; box-sizing: border-box; }
+.od-parlay-head { margin-bottom: 6px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.od-pick-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
+.od-pick-row .od-team { min-width: 64px; }
+.od-pick-btn { padding: 4px 10px; border-radius: 6px; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--text); cursor: pointer; background: rgba(var(--oc), 0.1); border: 1px solid rgba(var(--oc), 0.35); }
+.od-pick-btn.on { background: rgba(var(--oc), 0.45); border-color: rgba(var(--oc), 0.9); box-shadow: inset 0 0 0 1px rgba(var(--oc), 0.9); }
+.od-pick-fair { margin-left: 4px; font-family: var(--font-display); font-weight: 700; color: var(--muted); }
+.od-parlay-out { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-weight: 700; }
+.od-parlay-out b { font-family: var(--font-display); font-size: 1.3rem; padding: 2px 12px; border-radius: 8px; background: rgba(var(--good-rgb), 0.2); border: 1px solid rgba(var(--good-rgb), 0.5); }
+.od-detail td.od-wk { text-align: left; }
+/* All Teams */
+.od-all { width: 100%; min-width: 1100px; }
+.od-all .od-team-col { width: 74px; }
+.od-all .od-g-col { width: 28px; }
+.od-all .od-rate-col { width: 58px; }
+.od-all .od-log-cell { text-align: left !important; }
 .od-all tr.od-sel td.od-label { box-shadow: inset 4px 0 0 var(--accent); }
+.od-all th.bp-sort { cursor: pointer; }
 .od-sub-title { margin-top: 6px; }
 .od-prime { display: block; margin-top: 2px; padding: 0 5px; border-radius: 4px; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--on-accent); background: var(--accent); }
 @media (max-width: 760px) {
