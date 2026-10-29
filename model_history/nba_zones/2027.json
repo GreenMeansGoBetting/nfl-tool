@@ -4226,5 +4226,432 @@
     "fanduel"
    ]
   ]
+ },
+ "401909893": {
+  "date": "2026-10-29",
+  "points": [
+   [
+    "3908809",
+    "Donovan Mitchell",
+    "CLE",
+    "ATL",
+    -0.1931,
+    "under",
+    true,
+    23.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "3992",
+    "James Harden",
+    "CLE",
+    "ATL",
+    -0.2806,
+    "under",
+    true,
+    16.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4066328",
+    "Jarrett Allen",
+    "CLE",
+    "ATL",
+    0.0542,
+    "over",
+    false,
+    12.5,
+    -105,
+    "hard_rock"
+   ],
+   [
+    "4431680",
+    "Onyeka Okongwu",
+    "ATL",
+    "CLE",
+    -0.2773,
+    "under",
+    true,
+    11.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4432158",
+    "Evan Mobley",
+    "CLE",
+    "ATL",
+    0.0705,
+    "over",
+    false,
+    16.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4576087",
+    "Peyton Watson",
+    "CLE",
+    "ATL",
+    0.0884,
+    "over",
+    false,
+    14.5,
+    -125,
+    "hard_rock"
+   ],
+   [
+    "4869342",
+    "Dyson Daniels",
+    "ATL",
+    "CLE",
+    0.0701,
+    "over",
+    false,
+    11.5,
+    -115,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "3908809",
+    "Donovan Mitchell",
+    "CLE",
+    "ATL",
+    -0.4086,
+    "under",
+    true,
+    2.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "3992",
+    "James Harden",
+    "CLE",
+    "ATL",
+    -0.4087,
+    "under",
+    true,
+    2.5,
+    -130,
+    "hard_rock"
+   ],
+   [
+    "4431680",
+    "Onyeka Okongwu",
+    "ATL",
+    "CLE",
+    -0.2544,
+    "under",
+    true,
+    1.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "4432158",
+    "Evan Mobley",
+    "CLE",
+    "ATL",
+    0.2048,
+    "over",
+    true,
+    1.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4576087",
+    "Peyton Watson",
+    "CLE",
+    "ATL",
+    0.1969,
+    "over",
+    true,
+    1.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4701230",
+    "Jalen Johnson",
+    "ATL",
+    "CLE",
+    -0.1487,
+    "under",
+    true,
+    1.5,
+    -125,
+    "hard_rock"
+   ]
+  ]
+ },
+ "401909894": {
+  "date": "2026-10-29",
+  "points": [],
+  "threes": []
+ },
+ "401909895": {
+  "date": "2026-10-29",
+  "points": [
+   [
+    "2991070",
+    "Jerami Grant",
+    "MEM",
+    "POR",
+    0.0704,
+    "over",
+    false,
+    9.5,
+    -125,
+    "hard_rock"
+   ],
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "MEM",
+    -0.1267,
+    "under",
+    true,
+    12.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "4065733",
+    "Ty Jerome",
+    "MEM",
+    "POR",
+    0.21,
+    "over",
+    true,
+    23.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "MEM",
+    -0.1106,
+    "under",
+    false,
+    10.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "MEM",
+    -0.1221,
+    "under",
+    true,
+    22.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "POR",
+    0.0761,
+    "over",
+    false,
+    13.5,
+    -110,
+    "hard_rock"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "POR",
+    0.109,
+    "over",
+    false,
+    15.5,
+    -110,
+    "fanatics"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "MEM",
+    0.4279,
+    "over",
+    true,
+    9.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "POR",
+    -0.0963,
+    "under",
+    false,
+    11.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "6606",
+    "Damian Lillard",
+    "POR",
+    "MEM",
+    -0.0898,
+    "under",
+    false,
+    20.5,
+    -115,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "2991070",
+    "Jerami Grant",
+    "MEM",
+    "POR",
+    -0.1764,
+    "under",
+    true,
+    1.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "MEM",
+    -0.1994,
+    "under",
+    true,
+    2.5,
+    -175,
+    "fanatics"
+   ],
+   [
+    "4065733",
+    "Ty Jerome",
+    "MEM",
+    "POR",
+    -0.1209,
+    "under",
+    true,
+    2.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "4279888",
+    "Ja Morant",
+    "POR",
+    "MEM",
+    -0.2154,
+    "under",
+    true,
+    1.5,
+    -165,
+    "fliff"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "MEM",
+    -0.05,
+    "under",
+    false,
+    2.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "MEM",
+    -0.1872,
+    "under",
+    true,
+    1.5,
+    120,
+    "fanatics"
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "MEM",
+    -0.2018,
+    "under",
+    true,
+    1.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "POR",
+    -0.0833,
+    "under",
+    false,
+    1.5,
+    -125,
+    "fanatics"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "POR",
+    -0.4035,
+    "under",
+    true,
+    1.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "POR",
+    -0.2553,
+    "under",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "6606",
+    "Damian Lillard",
+    "POR",
+    "MEM",
+    -0.2136,
+    "under",
+    true,
+    2.5,
+    130,
+    "fanatics"
+   ]
+  ]
  }
 }
