@@ -5530,9 +5530,9 @@
    "2490149": [
     "CJ McCollum",
     0.081,
-    940,
+    950,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3908809": [
     "Donovan Mitchell",
@@ -5574,14 +5574,14 @@
     0.091,
     575,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "4576087": [
     "Peyton Watson",
     0.1,
-    1000,
-    false,
-    "thescore"
+    1020,
+    true,
+    "draftkings"
    ],
    "4701230": [
     "Jalen Johnson",
@@ -5750,16 +5750,16 @@
    "5041935": [
     "Cameron Boozer",
     0.101,
-    1000,
-    true,
-    "bet365"
+    750,
+    false,
+    "fanduel"
    ],
    "5105565": [
     "Donovan Clingan",
     0.085,
-    1100,
+    1000,
     false,
-    "bet365"
+    "thescore"
    ],
    "5112087": [
     "Jaylen Wells",
@@ -5771,9 +5771,9 @@
    "6606": [
     "Damian Lillard",
     0.093,
-    850,
+    700,
     false,
-    "bet365"
+    "fanduel"
    ]
   },
   "tip_home": 0.431
