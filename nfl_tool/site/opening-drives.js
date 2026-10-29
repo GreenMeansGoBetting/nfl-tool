@@ -266,7 +266,7 @@ function renderOdTeams(teams, pools) {
   const groups = [
     { name: `Offense: ${sample}`, cols: OD_OUTCOMES.map(([k]) => [`o_${k}`, odLabel(k)]) },
     { name: `Defense: Opponents' ${sample}`, cols: OD_OUTCOMES.map(([k]) => [`d_${k}`, odLabel(k)]) },
-    { name: "Opening Drive", cols: [["o_3o", "3 &amp; Out Off"], ["d_3o", "3 &amp; Out Def"], ["plays", "Plays"], ["yards", "Yards"]] },
+    { name: "Opening Drive", cols: [["o_3o", "3 &amp; Out<br>Off"], ["d_3o", "3 &amp; Out<br>Def"], ["plays", "Plays"], ["yards", "Yards"]] },
   ];
   const edge = (gi, i, n) => ` od-g${gi}${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}`;
   const gap = `<td class="od-ggap"></td>`;
