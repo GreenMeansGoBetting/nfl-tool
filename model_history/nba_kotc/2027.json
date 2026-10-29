@@ -3100,21 +3100,21 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.2548,
+    "lead": 0.255,
     "name": "Domantas Sabonis",
     "proj": 42.5,
     "team": "SAC"
    },
    {
     "id": "4065733",
-    "lead": 0.1623,
+    "lead": 0.1625,
     "name": "Ty Jerome",
     "proj": 39.6,
     "team": "MEM"
    },
    {
     "id": "4701230",
-    "lead": 0.1343,
+    "lead": 0.1345,
     "name": "Jalen Johnson",
     "proj": 37.8,
     "team": "ATL"
@@ -3135,7 +3135,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0773,
+    "lead": 0.0774,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
@@ -3149,9 +3149,9 @@
    },
    {
     "id": "3907497",
-    "lead": 0.0271,
+    "lead": 0.0266,
     "name": "Dejounte Murray",
-    "proj": 30.6,
+    "proj": 30.5,
     "team": "NO"
    },
    {
@@ -3170,9 +3170,9 @@
    },
    {
     "id": "4395628",
-    "lead": 0.0191,
+    "lead": 0.0187,
     "name": "Zion Williamson",
-    "proj": 28.5,
+    "proj": 28.4,
     "team": "NO"
    },
    {
@@ -3184,7 +3184,7 @@
    },
    {
     "id": "4278039",
-    "lead": 0.0103,
+    "lead": 0.0104,
     "name": "Nickeil Alexander-Walker",
     "proj": 26.5,
     "team": "ATL"
@@ -3198,7 +3198,7 @@
    },
    {
     "id": "4279888",
-    "lead": 0.006,
+    "lead": 0.0061,
     "name": "Ja Morant",
     "proj": 25.5,
     "team": "POR"
@@ -3212,7 +3212,7 @@
    },
    {
     "id": "4903027",
-    "lead": 0.0035,
+    "lead": 0.0036,
     "name": "Cedric Coward",
     "proj": 24.4,
     "team": "MEM"
@@ -3473,7 +3473,7 @@
     "id": "4277813",
     "lead": 0.0,
     "name": "Herbert Jones",
-    "proj": 6.0,
+    "proj": 5.9,
     "team": "NO"
    },
    {
