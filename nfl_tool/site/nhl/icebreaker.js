@@ -28,7 +28,8 @@ function gameClock(t) {
   const left = t - (period - 1) * 1200;
   return `${["1st", "2nd", "3rd", "OT"][period - 1]} ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
 }
-const timeLabel = (hhmm) => fmtTime(hhmm).replace(" ET", "");
+// A slot (an Eastern "19:00" on the day shown) in the member's time zone, no zone letters.
+const timeLabel = (hhmm) => gmgGameTime({ date: iceDays()[iceView.day], time: hhmm }, false);
 
 // ---- the slate ----
 // Start times of the day, earliest first, with their games.
@@ -92,12 +93,12 @@ function renderSlate() {
     return;
   }
   el("ice-slots").innerHTML = iceSlots(day)
-    .map(([t, gs]) => `<button type="button" class="ice-chip${t === iceView.slot ? " ice-on" : ""}" data-slot="${t}" title="Pick every game starting at ${timeLabel(t)} ET">${timeLabel(t)} ET <b>${gs.length}</b></button>`)
+    .map(([t, gs]) => `<button type="button" class="ice-chip${t === iceView.slot ? " ice-on" : ""}" data-slot="${t}" title="Pick every game starting at ${timeLabel(t)} ${gmgZoneAbbr()}">${timeLabel(t)} ${gmgZoneAbbr()} <b>${gs.length}</b></button>`)
     .join("");
   el("ice-games").innerHTML = day.games
     .map((g) => {
       const on = iceView.games.has(g.game_id);
-      return `<button type="button" class="ice-game${on ? " ice-on" : ""}" data-game="${g.game_id}" title="${on ? "In the contest: click to take it out" : "Not in the contest: click to add it"}"><span class="ice-check">${on ? "&#10003;" : "+"}</span>${shareLogo(g.away, 18)}<span class="at">@</span>${shareLogo(g.home, 18)}<span class="ice-gt">${g.final ? "Final" : g.locked ? "Live" : timeLabel(g.time)}</span></button>`;
+      return `<button type="button" class="ice-game${on ? " ice-on" : ""}" data-game="${g.game_id}" title="${on ? "In the contest: click to take it out" : "Not in the contest: click to add it"}"><span class="ice-check">${on ? "&#10003;" : "+"}</span>${shareLogo(g.away, 18)}<span class="at">@</span>${shareLogo(g.home, 18)}<span class="ice-gt">${g.final ? "Final" : g.locked ? "Live" : fmtTime(g, false)}</span></button>`;
     })
     .join("");
   const rows = chosenRows();

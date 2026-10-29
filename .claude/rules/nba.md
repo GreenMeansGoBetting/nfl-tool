@@ -632,8 +632,8 @@ ENDS: 2027 = 2026-27), scraped from ESPN and refreshed daily in season.
   `players` (12-man rotation per team, per game + last 5), `injuries`, `schedule` (yesterday
   through 14 days out, Novig lines), `novig_debug`.
 - Team keys are ESPN abbreviations (NY, GS, SA, NO, UTAH, WSH).
-- Times are converted with a fixed UTC-4, so they read an hour late after the November clock
-  change until that's handled.
+- `date` / `time` are Eastern on the real clock (`eastern()`, zoneinfo; a fixed UTC-4 until
+  2026-10-29). Pages show `start_utc` in the member's own time zone (sync.js `gmgGameTime`).
 - ESPN's `turnover_points` is points GIVEN UP off turnovers, so the sides are swapped on purpose.
 - All-Star / exhibition sides appear in the box scores; only the 30 real teams are counted.
 

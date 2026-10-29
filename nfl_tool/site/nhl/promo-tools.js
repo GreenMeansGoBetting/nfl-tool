@@ -103,7 +103,7 @@ function renderSchedule() {
           : `<span class="shots-card-lineup" title="At least one starter here rests on a single source, or the sources disagree">Goalies expected</span>`;
       return `<div class="matchup-card crease-game${final ? " matchup-card-final" : ""}${rows.length ? "" : " shots-card-empty"}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
-        <span class="matchup-date">${final ? "Final" : fmtTime(g.time).replace(" ET", "")}</span>
+        <span class="matchup-date">${final ? "Final" : fmtTime(g, false)}</span>
         ${status}
       </div>`;
     })

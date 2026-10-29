@@ -3835,6 +3835,8 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .set-custom { display: flex; gap: 14px; margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--border); font-weight: 700; font-size: 0.88rem; }
 .set-custom label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .set-custom input[type="color"] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border-strong); border-radius: 4px; background: none; cursor: pointer; }
+.set-tz { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); font: inherit; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; cursor: pointer; }
+.set-tz:hover { border-color: var(--border-strong); }
 .set-books { margin-top: 8px; }
 .set-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
 .set-done { padding: 7px 22px; border-radius: 6px; border: none; background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 700; cursor: pointer; }

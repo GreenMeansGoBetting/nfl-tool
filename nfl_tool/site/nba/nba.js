@@ -32,10 +32,9 @@ function teamRgb(abbr) {
 function banner(abbr, text, right = "") {
   return `<div class="team-banner" style="background:rgba(${teamRgb(abbr)},0.22);border-left:4px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span class="team-banner-name">${text || team(abbr).name}</span>${right ? `<span class="nba-banner-right">${right}</span>` : ""}</div>`;
 }
-function fmtTime(hhmm) {
-  if (!hhmm) return "";
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"} ET`;
+// A game's start in the member's time zone ("7:00 PM CT"; abbr = false: "7:00 PM"). sync.js gmgGameTime.
+function fmtTime(g, abbr = true) {
+  return gmgGameTime(g, abbr);
 }
 const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -520,7 +519,7 @@ function renderSchedule() {
           : logo(abbr, 28);
       return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${side(g.away, g.away_score, g.home_score)}<span class="at">@</span>${side(g.home, g.home_score, g.away_score)}</span>
-        ${final ? "" : `<span class="matchup-date">${fmtTime(g.time).replace(" ET", "")}</span>`}
+        ${final ? "" : `<span class="matchup-date">${fmtTime(g, false)}</span>`}
       </button>`;
     })
     .join("");
@@ -534,7 +533,7 @@ function renderHeader(g) {
       <span class="at">@</span>
       <span class="game-header-team">${team(g.home).name}</span><img src="${team(g.home).logo}" class="team-logo-lg" alt="${g.home}">
     </div>
-    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${games ? ` &middot; ${DATA.season_label}: ${games} game${games === 1 ? "" : "s"} a team so far` : ""}</div>`;
+    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g)}${g.tv ? ` &middot; ${g.tv}` : ""}${games ? ` &middot; ${DATA.season_label}: ${games} game${games === 1 ? "" : "s"} a team so far` : ""}</div>`;
 }
 
 const SECTIONS = ["top", "edges", "story", "h2h", "matchup", "players", "recent"];

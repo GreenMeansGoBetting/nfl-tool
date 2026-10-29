@@ -217,7 +217,7 @@ function renderSchedule() {
           : `<span class="shots-card-lineup" title="The NHL hasn't posted this game's projected lineup yet (usually around midday Eastern)">No lineup yet</span>`;
       return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}${board ? "" : " shots-card-empty"}" data-game="${g.game_id}" data-away="${g.away}" data-home="${g.home}" title="${board ? "Show only this game (click again for the whole day)" : "No projections for this game yet"}">
         <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
-        <span class="matchup-date">${final ? "Final" : fmtTime(g.time).replace(" ET", "")}</span>
+        <span class="matchup-date">${final ? "Final" : fmtTime(g, false)}</span>
         ${lineup}
       </button>`;
     })
@@ -319,7 +319,7 @@ const COLUMNS = [
   { key: null, label: "Good to", title: "The worst price this bet still has an edge at (the smallest edge the page lists). Past this, it is no longer a play", cell: (x) => `<td class="num best-goodto">${odds(goodTo(x)) || "--"}</td>` },
   { key: "edge", label: "Edge", title: "The model's chance minus the chance the price needs to break even, in points", cell: edgeCell },
   { key: null, label: "Notes", title: "What the model may not know yet: no lineup, a line change tonight, a small sample, a thin price", cell: (x) => `<td class="best-notes">${notesFor(x) || `<span class="muted-label">--</span>`}</td>` },
-  { key: "time", label: "Puck drop", cell: (x) => `<td class="num muted-label">${fmtTime(x.g.time).replace(" ET", "")}</td>` },
+  { key: "time", label: "Puck drop", cell: (x) => `<td class="num muted-label">${fmtTime(x.g, false)}</td>` },
   { key: null, label: "", cell: (x) => `<td class="best-more"><a href="${MARKETS.find(([k]) => k === x.market)[2]}#row=${x.g.game_id}:${x.r.id}" title="The full breakdown on the ${PAGE_NAME[x.market]} page">${PAGE_NAME[x.market]} &rsaquo;</a></td>` },
 ];
 function renderTable() {

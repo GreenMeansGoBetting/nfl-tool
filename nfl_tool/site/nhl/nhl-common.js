@@ -30,10 +30,9 @@ function teamRgb(abbr) {
 function banner(abbr, right = "") {
   return `<div class="team-banner" style="background:rgba(${teamRgb(abbr)},0.22);border-left:4px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span class="team-banner-name">${team(abbr).name}</span>${right ? `<span class="nba-banner-right">${right}</span>` : ""}</div>`;
 }
-function fmtTime(hhmm) {
-  if (!hhmm) return "";
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"} ET`;
+// A game's start in the member's time zone ("7:00 PM CT"; abbr = false: "7:00 PM"). sync.js gmgGameTime.
+function fmtTime(g, abbr = true) {
+  return gmgGameTime(g, abbr);
 }
 const shortDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
 // ---- the Shots / Goals tables ----

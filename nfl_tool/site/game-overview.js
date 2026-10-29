@@ -676,14 +676,10 @@ function fmtOdds(n) {
 function fmtPct(p) {
   return p === null || p === undefined ? "" : `${Math.round(p * 100)}%`;
 }
-// nflverse's schedule "gametime" is already Eastern -- just reformat to
-// 12-hour, no timezone math needed.
-function fmtGameTime(time) {
-  if (!time) return "";
-  const [h, m] = time.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${String(m).padStart(2, "0")} ${period} ET`;
+// nflverse's schedule "gametime" is Eastern; shown in the member's time zone
+// ("1:00 PM CT", sync.js gmgGameTime; the owner, 2026-10-29).
+function fmtGameTime(time, date) {
+  return gmgGameTime({ time, date });
 }
 
 function renderGameHeader(game) {
@@ -692,7 +688,7 @@ function renderGameHeader(game) {
   const dateLabel = game.date
     ? new Date(game.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })
     : "";
-  const timeLabel = fmtGameTime(game.time);
+  const timeLabel = fmtGameTime(game.time, game.date);
   headerEl.innerHTML = `
     <div class="game-header-teams">
       <img src="${teamLogoUrl(game.away)}" class="team-logo-lg" alt="${game.away}" loading="lazy">

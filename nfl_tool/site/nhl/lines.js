@@ -45,7 +45,7 @@ function renderSchedule() {
       const lineup = !board ? "" : board.posted ? `<span class="shots-card-lineup shots-card-lineup-in" title="The NHL's projected lineup is in">&#10003; Lineup</span>` : `<span class="shots-card-lineup" title="Showing each team's usual lines until the NHL posts its projected lineup">Usual Lines</span>`;
       return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}${board ? "" : " shots-card-empty"}" data-game="${g.game_id}" title="${board ? "Show this game's lines" : "No lines for this game yet"}">
         <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
-        <span class="matchup-date">${final ? "Final" : fmtTime(g.time).replace(" ET", "")}</span>
+        <span class="matchup-date">${final ? "Final" : fmtTime(g, false)}</span>
         ${lineup}
       </button>`;
     })

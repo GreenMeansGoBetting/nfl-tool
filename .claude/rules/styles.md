@@ -46,6 +46,12 @@ Stories behind these rules: `docs/history.md`, "Styles".
   (`#gmg-color-set`) repaints `--good/--mid/--bad` (+ `-rgb`, `-text`) for both themes. The
   middle stays the site's yellow in every preset: a gray middle made the "check" highlights look
   dead. The brand accent green never changes.
+- **Time Zone** (2026-10-29): `tz` in the same settings, "Auto (Detect My Location)" (the
+  default, the browser's own zone) or a zone from `GMG_TIME_ZONES` (US zones, Puerto Rico, UK).
+  **Every game time goes through `gmgGameTime(g, abbr)`** (g = `{start_utc}` or Eastern
+  `{date, time}`; "7:00 PM CT", abbr false drops the letters) and any other clock time through
+  `gmgClock(at)`; each sport's `fmtTime(g)` / NFL `fmtGameTime(time, date)` call it. Dates stay
+  the Eastern game day. A new place that shows a time must use them. Tests: `tests/test_time_zone_site.py`.
 - Never mention a state for bet links (the owner: the "Links open for New Jersey" note confused
   members, and the links opened fine in their own state).
 - Tests: `tests/test_settings_site.py`.

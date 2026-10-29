@@ -109,7 +109,7 @@ function renderSchedule() {
           : logo(abbr, 28);
       return `<button type="button" class="matchup-card${final ? " matchup-card-final" : ""}${g.game_id === gameId ? " selected" : ""}" data-game="${g.game_id}" data-away="${g.away}" data-home="${g.home}">
         <span class="matchup-teams-row">${side(g.away, g.away_score, g.home_score)}<span class="at">@</span>${side(g.home, g.home_score, g.away_score)}</span>
-        ${final ? "" : `<span class="matchup-date">${fmtTime(g.time).replace(" ET", "")}</span>`}
+        ${final ? "" : `<span class="matchup-date">${fmtTime(g, false)}</span>`}
       </button>`;
     })
     .join("");
@@ -127,7 +127,7 @@ function renderHeader(g) {
       <span class="at">@</span>
       <span class="game-header-team">${team(g.home).name}</span><img src="${logoUrl(g.home)}" class="team-logo-lg" alt="${g.home}">
     </div>
-    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g.time)}${g.tv ? ` &middot; ${g.tv}` : ""}${finalNote}${tired ? ` &nbsp;${tired}` : ""}</div>`;
+    <div class="game-header-meta">${dateLabel} &middot; ${fmtTime(g)}${g.tv ? ` &middot; ${g.tv}` : ""}${finalNote}${tired ? ` &nbsp;${tired}` : ""}</div>`;
 }
 // Early in a season every number on the page is a handful of games: say so.
 function renderSampleNote() {

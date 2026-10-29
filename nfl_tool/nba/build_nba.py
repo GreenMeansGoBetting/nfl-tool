@@ -27,6 +27,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -56,6 +57,7 @@ FILES = {
 }
 REGULAR_SEASON = 2  # ESPN season_type
 SCHEDULE_DAYS_AHEAD = 14
+EASTERN = ZoneInfo("America/New_York")
 RECENT_GAMES = 10
 ROTATION_PLAYERS = 12
 USER_AGENT = "Mozilla/5.0 (compatible; gmg-nba/1.0)"
@@ -354,10 +356,12 @@ def live_injuries(abbr_by_id: dict) -> dict | None:
 
 # ---- schedule + lines ----
 def eastern(utc_iso: str) -> datetime:
-    """ESPN's UTC start time as a naive Eastern datetime. UTC-4 is exact
-    until November and an hour off after -- times then read an hour late
-    until this learns the DST switch (fine for dates, noted in CLAUDE.md)."""
-    return datetime.strptime(utc_iso, "%Y-%m-%dT%H:%MZ") - timedelta(hours=4)
+    """ESPN's UTC start time as a naive Eastern datetime, on the real clock
+    (EDT until the November change, EST after; it was a fixed UTC-4 until
+    2026-10-29, an hour late all winter). Pages show start_utc in each
+    member's own time zone (sync.js gmgGameTime)."""
+    at = datetime.strptime(utc_iso, "%Y-%m-%dT%H:%MZ").replace(tzinfo=timezone.utc)
+    return at.astimezone(EASTERN).replace(tzinfo=None)
 
 
 def compute_schedule(schedule: pd.DataFrame, now_utc: datetime) -> list:

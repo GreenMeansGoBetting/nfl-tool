@@ -22,7 +22,7 @@
 // for good / middle / bad numbers, and My Books. Saved per member (synced
 // below), read by every page as it draws, so these are globals: showOdds()
 // for every price on the site, scaleHsla() for every red-to-green shade.
-const GMG_SETTINGS_KEY = "nfl-tool.settings.v1"; // { odds: "american"|"decimal"|"percent", colors: set id, custom: {good, mid, bad} }
+const GMG_SETTINGS_KEY = "nfl-tool.settings.v1"; // { odds: "american"|"decimal"|"percent", colors: set id, custom: {good, mid, bad}, tz: "auto"|zone id }
 let gmgSettingsCache = null;
 function gmgSettings() {
   if (!gmgSettingsCache) {
@@ -48,6 +48,76 @@ function showOdds(n) {
   if (mode === "decimal") return dec.toFixed(2);
   if (mode === "percent") return `${(100 / dec).toFixed(1)}%`;
   return v > 0 ? `+${Math.round(v)}` : `${Math.round(v)}`;
+}
+
+// Time zone (the owner, 2026-10-29): every game time on every sport is shown
+// in the member's zone. "auto" (the default) is the browser's own zone; the
+// rest are picked by hand. The data keeps Eastern `time` / `date` (and true
+// UTC `start_utc` on NBA / NHL games); only what is shown changes.
+const GMG_TIME_ZONES = [
+  { id: "auto", name: "Auto (Detect My Location)" },
+  { id: "America/New_York", name: "Eastern", abbr: "ET" },
+  { id: "America/Chicago", name: "Central", abbr: "CT" },
+  { id: "America/Denver", name: "Mountain", abbr: "MT" },
+  { id: "America/Phoenix", name: "Arizona", abbr: "MST" },
+  { id: "America/Los_Angeles", name: "Pacific", abbr: "PT" },
+  { id: "America/Anchorage", name: "Alaska", abbr: "AKT" },
+  { id: "Pacific/Honolulu", name: "Hawaii", abbr: "HST" },
+  { id: "America/Puerto_Rico", name: "Atlantic (Puerto Rico)", abbr: "AT" },
+  { id: "Europe/London", name: "UK (London)", abbr: "UK" },
+];
+const gmgFormatters = {};
+function gmgFormatter(zone, opts) {
+  const k = zone + JSON.stringify(opts);
+  if (!gmgFormatters[k]) {
+    try { gmgFormatters[k] = new Intl.DateTimeFormat("en-US", { ...opts, timeZone: zone }); } catch (e) { gmgFormatters[k] = new Intl.DateTimeFormat("en-US", { ...opts, timeZone: "America/New_York" }); }
+  }
+  return gmgFormatters[k];
+}
+// The zone times are shown in: the member's pick, else this browser's own zone.
+function gmgTimeZone() {
+  const pick = gmgSettings().tz;
+  if (pick && pick !== "auto" && GMG_TIME_ZONES.some((z) => z.id === pick)) return pick;
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York"; } catch (e) { return "America/New_York"; }
+}
+// "ET" / "CT" / "PT"... for the listed zones (no daylight / standard split,
+// the way TV listings read); any other zone gets the browser's short name.
+function gmgZoneAbbr(at = new Date(), zone = gmgTimeZone()) {
+  const known = GMG_TIME_ZONES.find((z) => z.id === zone);
+  if (known) return known.abbr;
+  const part = gmgFormatter(zone, { hour: "numeric", timeZoneName: "short" }).formatToParts(at).find((p) => p.type === "timeZoneName");
+  return part ? part.value : "";
+}
+// An Eastern wall-clock time ("2026-11-08", "13:00") as the real moment.
+function gmgEasternToDate(date, hhmm) {
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = hhmm.split(":").map(Number);
+  const want = Date.UTC(y, mo - 1, d, h, mi);
+  const wall = (t) => {
+    const p = Object.fromEntries(gmgFormatter("America/New_York", { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute);
+  };
+  let t = want + 5 * 3600000; // EST guess, then corrected by what New York's clock reads
+  t += want - wall(t);
+  t += want - wall(t);
+  return new Date(t);
+}
+// A game's start as the member reads it: "7:00 PM CT" (abbr = false: "7:00 PM").
+// g = {start_utc} (true UTC, NBA / NHL) or {date, time} (Eastern, every sport).
+function gmgGameTime(g, abbr = true) {
+  if (!g || !(g.start_utc || g.time)) return "";
+  let at = null;
+  if (g.start_utc) at = new Date(String(g.start_utc).replace(/(T\d\d:\d\d)Z$/, "$1:00Z"));
+  if (!at || Number.isNaN(at.getTime())) at = gmgEasternToDate(g.date || new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }), g.time);
+  return gmgClock(at, abbr);
+}
+// Any moment (Date, ms or ISO text) as a clock time in the member's zone.
+function gmgClock(at, abbr = true) {
+  const d = at instanceof Date ? at : new Date(at);
+  if (Number.isNaN(d.getTime())) return "";
+  const zone = gmgTimeZone();
+  const clock = gmgFormatter(zone, { hour: "numeric", minute: "2-digit" }).format(d);
+  return abbr ? `${clock} ${gmgZoneAbbr(d, zone)}`.trim() : clock;
 }
 
 // Color sets for good / middle / bad numbers. "standard" is the site's own
@@ -212,6 +282,11 @@ function gmgSettingsModal() {
     }
   });
   overlay.addEventListener("change", (e) => {
+    const tz = e.target.closest("[data-time-zone]");
+    if (tz) {
+      saveGmgSettings({ ...gmgSettings(), tz: tz.value });
+      return drawGmgSettings();
+    }
     const pick = e.target.closest("[data-custom-color]");
     if (!pick) return;
     const s = gmgSettings();
@@ -231,6 +306,9 @@ function drawGmgSettings() {
   const odds = GMG_ODDS_FORMATS.some((f) => f.id === s.odds) ? s.odds : "american";
   const colors = GMG_COLOR_SETS[s.colors] ? s.colors : "standard";
   const hidden = myBooks().hidden || [];
+  const tz = GMG_TIME_ZONES.some((z) => z.id === s.tz) ? s.tz : "auto";
+  const zoneNow = gmgTimeZone();
+  const zoneName = (GMG_TIME_ZONES.find((z) => z.id === zoneNow) || { name: zoneNow.replace(/_/g, " ") }).name;
   const swatches = (set) => {
     const [good, mid, bad] = [gmgRgb(set.good), gmgRgb(set.mid), gmgRgb(set.bad)];
     return [0, 1, 2, 3, 4, 5, 6].map((k) => {
@@ -244,6 +322,8 @@ function drawGmgSettings() {
     <div class="bo-sub">Saved to your account, on every page and device.</div>
     <div class="bo-lbl bo-field">Odds format</div>
     <div class="set-odds">${GMG_ODDS_FORMATS.map((f) => `<button type="button" class="set-opt${f.id === odds ? " set-on" : ""}" data-odds-format="${f.id}"><b>${f.name}</b><small>${f.sample}</small></button>`).join("")}</div>
+    <div class="bo-lbl bo-field">Time Zone <span class="set-hint">${zoneName} &middot; ${gmgClock(new Date())}</span></div>
+    <select class="set-tz" data-time-zone aria-label="Time Zone">${GMG_TIME_ZONES.map((z) => `<option value="${z.id}"${z.id === tz ? " selected" : ""}>${z.name}${z.abbr ? ` (${z.abbr})` : ""}</option>`).join("")}</select>
     <div class="bo-lbl bo-field">Colors <span class="set-hint">good to bad</span></div>
     <div class="set-colors">${Object.entries(GMG_COLOR_SETS).map(([id, set]) => {
       const shown = id === "custom" ? custom : set;
@@ -257,7 +337,7 @@ function drawGmgSettings() {
 }
 function openGmgSettings(section) {
   const overlay = gmgSettingsModal();
-  gmgSettingsOpenedWith = JSON.stringify({ odds: gmgSettings().odds, colors: gmgSettings().colors, custom: gmgSettings().custom });
+  gmgSettingsOpenedWith = JSON.stringify({ odds: gmgSettings().odds, colors: gmgSettings().colors, custom: gmgSettings().custom, tz: gmgSettings().tz });
   drawGmgSettings();
   overlay.hidden = false;
   if (section === "books") overlay.querySelector(".set-books")?.scrollIntoView({ block: "center" });
@@ -266,8 +346,8 @@ function closeGmgSettings() {
   const overlay = document.getElementById("settings-modal");
   if (!overlay || overlay.hidden) return;
   overlay.hidden = true;
-  const now = JSON.stringify({ odds: gmgSettings().odds, colors: gmgSettings().colors, custom: gmgSettings().custom });
-  if (now !== gmgSettingsOpenedWith) location.reload(); // every price and shade is drawn with the page
+  const now = JSON.stringify({ odds: gmgSettings().odds, colors: gmgSettings().colors, custom: gmgSettings().custom, tz: gmgSettings().tz });
+  if (now !== gmgSettingsOpenedWith) location.reload(); // every price, shade and time is drawn with the page
 }
 window.GMGSettings = { open: openGmgSettings };
 

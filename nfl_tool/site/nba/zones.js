@@ -406,7 +406,7 @@ function zmSlate() {
   zmEl("matchup-row").innerHTML = m.games
     .map((g) => `<button type="button" class="matchup-card${g.game_id === ZM.game ? " selected" : ""}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${zmLogo(g.away, 28)}<span class="at">@</span>${zmLogo(g.home, 28)}</span>
-        <span class="matchup-date">${g.started ? "Started" : (g.time || "").replace(/^(\d+):(\d+)$/, (s, h, mm) => `${((+h + 11) % 12) + 1}:${mm} ${+h >= 12 ? "PM" : "AM"}`)}</span>
+        <span class="matchup-date">${g.started ? "Started" : gmgGameTime(g, false)}</span>
       </button>`)
     .join("");
 }

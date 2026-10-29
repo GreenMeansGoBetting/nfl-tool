@@ -50,11 +50,6 @@ function scNextOpponent(abbr) {
 let scDayIndex = 0;
 const scDays = () => [...new Set(((DATA && DATA.schedule) || []).map((g) => g.date))].sort();
 const scGamesOn = (date) => ((DATA && DATA.schedule) || []).filter((g) => g.date === date).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
-function scTime(hhmm) {
-  if (!hhmm) return "";
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
-}
 function scFirstDay() {
   const all = scDays();
   const today = new Date().toLocaleDateString("en-CA");
@@ -76,7 +71,7 @@ function scRenderSlate() {
       const on = (g.away === off && g.home === SC.def) || (g.home === off && g.away === SC.def);
       return `<div class="matchup-card shc-slate-game${on ? " selected" : ""}">
         <span class="matchup-teams-row">${side(g.away, g.home)}<span class="at">@</span>${side(g.home, g.away)}</span>
-        <span class="matchup-date">${scTime(g.time)}</span>
+        <span class="matchup-date">${gmgGameTime(g, false)}</span>
       </div>`;
     })
     .join("");

@@ -41,10 +41,9 @@ const headshot = (id) => `<img src="https://a.espncdn.com/combiner/i?img=/i/head
 const pct = (n) => (n === null || n === undefined ? "--" : `${Math.round(n * 100)}%`);
 const fmt = (n, d = 1) => (n === null || n === undefined || Number.isNaN(n) ? "--" : Number(n).toFixed(d));
 const signed = (n, d = 1) => `${n > 0 ? "+" : n < 0 ? "&minus;" : ""}${Math.abs(n).toFixed(d)}`;
-function fmtTime(hhmm) {
-  if (!hhmm) return "";
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+// A game's start in the member's time zone, no zone letters ("7:00 PM"). sync.js gmgGameTime.
+function fmtTime(g) {
+  return gmgGameTime(g, false);
 }
 const sims = () => PROPS.sim || {};
 const simDays = () => new Set(Object.values(sims()).map((g) => g.date));
@@ -808,7 +807,7 @@ function renderGamePicker() {
     const n = playsOn(g.date).filter((p) => p.game === g.game_id).length;
     return `<button type="button" class="matchup-card${g.game_id === on ? " selected" : ""}" data-game="${g.game_id}">
       <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
-      <span class="matchup-date">${fmtTime(g.time)}${n ? ` &middot; ${n} Play${n === 1 ? "" : "s"}` : ""}</span></button>`;
+      <span class="matchup-date">${fmtTime(g)}${n ? ` &middot; ${n} Play${n === 1 ? "" : "s"}` : ""}</span></button>`;
   }).join("");
 }
 function scriptBar(g, shares) {
@@ -925,7 +924,7 @@ function renderBoard() {
   };
   el("sim-board").innerHTML = `<div class="sim-game">
     <div class="sim-gbar"><div style="background:#${team(g.away).color || "333"}">${logo(g.away, 34)} ${team(g.away).name}</div>
-      <div class="sim-gmid"><small>${new Date(`${g.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short" })} ${fmtTime(g.time)}</small>@</div>
+      <div class="sim-gmid"><small>${new Date(`${g.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short" })} ${fmtTime(g)}</small>@</div>
       <div style="background:#${team(g.home).color || "333"}">${team(g.home).name} ${logo(g.home, 34)}</div></div>
     <div class="sim-strip">
       <div class="sim-score"><div><small>Spread</small><b>${book}</b></div><div class="sim-sim"><small>Sim</small><b>${lean}</b></div>
