@@ -76,6 +76,15 @@ class HandMadeGame(unittest.TestCase):
         self.assertEqual((wl["AAA"]["l"], wl["BBB"]["w"]), ({}, {}))
         self.assertEqual(sorted(k[4:] for k in wl["AAA"]["w"] if k.startswith("off_")), sorted(identity.WL_KEYS))
 
+    def test_wins_and_losses_come_from_the_final_score(self):
+        # possessions can miss a few points (BKN @ CLE 2026-10-24: CLE won 125-121 but its
+        # possessions summed to 120, so CLE showed 2-2 at 3-1); the scoreboard's final decides
+        season = P.Season(game([dict(e) for e in EVENTS]), box(MINUTES))
+        finals = season.check["player"].isna()
+        season.check.loc[finals & (season.check["team"] == 2), "rebuilt"] = 9.0
+        wl = identity.team_identity(season, {1: "AAA", 2: "BBB"})["wl"]
+        self.assertEqual((wl["AAA"]["nw"], wl["AAA"]["nl"], wl["BBB"]["nw"], wl["BBB"]["nl"]), (0, 1, 1, 0))
+
     def test_one_teams_offense_is_the_others_defense(self):
         for key in ("ppp", "pace", "poss_secs", "trans_freq", "rim_share", "three_rate", "tov_rate", "oreb_rate", "fta_rate"):
             self.assertAlmostEqual(self.a[f"off_{key}"], self.b[f"def_{key}"], msg=key)

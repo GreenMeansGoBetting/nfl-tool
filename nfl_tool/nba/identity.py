@@ -109,6 +109,9 @@ def team_identity(season, abbr_of: dict) -> dict:
     acts = acts[(acts["team"] == acts["off"]) & (acts["kind"] != "foul")]
     boards = season.actions[season.actions["kind"].isin(("oreb", "dreb"))]
 
+    # each game's final from the scoreboard (always right); possessions can miss a
+    # few points (BKN @ CLE 2026-10-24: CLE's 125-121 win summed to 120-121)
+    finals = season.check[season.check["player"].isna()].pivot_table(index="game_id", columns="team", values="rebuilt")
     out, wl = {}, {}
     for team in sorted(set(poss["off"])):
         gids = poss.loc[poss["off"] == team, "game_id"].unique()
@@ -117,11 +120,11 @@ def team_identity(season, abbr_of: dict) -> dict:
         row.update(game_script(poss, team))
         out[abbr_of.get(team, str(team))] = row
         # How it wins / loses: the same numbers over its wins and over its losses
-        mine = poss[(poss["off"] == team) | (poss["def"] == team)]
-        scored = mine.assign(us=np.where(mine["off"] == team, mine["pts"], 0), them=np.where(mine["def"] == team, mine["pts"], 0))
-        by_game = scored.groupby("game_id")[["us", "them"]].sum()
-        won = by_game.index[by_game["us"] > by_game["them"]]
-        lost = by_game.index[by_game["us"] < by_game["them"]]
+        mine = finals.loc[finals.index.isin(gids)]
+        us = mine[team]
+        them = mine.drop(columns=team).max(axis=1)
+        won = mine.index[us > them]
+        lost = mine.index[us < them]
         wl[abbr_of.get(team, str(team))] = {
             "nw": int(len(won)), "nl": int(len(lost)),
             "w": team_numbers(poss, acts, boards, games_secs, team, won, WL_KEYS) if len(won) else {},
