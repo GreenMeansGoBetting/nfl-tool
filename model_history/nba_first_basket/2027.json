@@ -5558,7 +5558,7 @@
    "4278039": [
     "Nickeil Alexander-Walker",
     0.088,
-    900,
+    950,
     false,
     "fanduel"
    ],
@@ -5579,9 +5579,9 @@
    "4576087": [
     "Peyton Watson",
     0.1,
-    950,
+    1000,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4701230": [
     "Jalen Johnson",
@@ -5626,44 +5626,44 @@
    "3155942": [
     "Domantas Sabonis",
     0.114,
-    750,
+    700,
     false,
-    "fanduel"
+    "thescore"
    ],
    "3442": [
     "DeAndre Jordan",
     0.068,
     1000,
     false,
-    "thescore"
+    "draftkings"
    ],
    "3907497": [
     "Dejounte Murray",
     0.096,
-    650,
+    750,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4065732": [
     "De'Andre Hunter",
     0.078,
-    1060,
+    1200,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4395628": [
     "Zion Williamson",
     0.095,
-    500,
+    625,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4397688": [
     "Trey Murphy III",
     0.121,
     850,
     true,
-    "hard_rock"
+    "bet365"
    ],
    "4431679": [
     "Precious Achiuwa",
@@ -5675,14 +5675,14 @@
    "5142620": [
     "Darius Acuff Jr.",
     0.106,
-    800,
-    false,
-    "fanduel"
+    1100,
+    true,
+    "bet365"
    ],
    "5144091": [
     "Jeremiah Fears",
     0.087,
-    690,
+    680,
     false,
     "draftkings"
    ]
@@ -5715,9 +5715,9 @@
    "4279888": [
     "Ja Morant",
     0.105,
-    950,
-    true,
-    "draftkings"
+    900,
+    false,
+    "fanduel"
    ],
    "4431736": [
     "Toumani Camara",
@@ -5771,7 +5771,7 @@
    "6606": [
     "Damian Lillard",
     0.093,
-    800,
+    850,
     false,
     "bet365"
    ]
