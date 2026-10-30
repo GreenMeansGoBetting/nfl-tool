@@ -460,14 +460,14 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.102,
+    0.109,
     900,
     false,
     "draftkings"
    ],
    "3059318": [
     "Joel Embiid",
-    0.096,
+    0.102,
     475,
     false,
     "hard_rock"
@@ -493,12 +493,12 @@
     false,
     "hard_rock"
    ],
-   "3917376": [
-    "Jaylen Brown",
-    0.115,
-    650,
+   "3912848": [
+    "Dean Wade",
+    0.089,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "3934672": [
     "Jalen Brunson",
@@ -516,14 +516,14 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.111,
+    0.119,
     650,
     false,
     "fanduel"
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.084,
+    0.088,
     1400,
     true,
     "hard_rock"
@@ -5886,7 +5886,7 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.112,
+    0.12,
     null,
     false,
     null
@@ -5900,14 +5900,14 @@
    ],
    "3059318": [
     "Joel Embiid",
-    0.106,
+    0.113,
     null,
     false,
     null
    ],
-   "3917376": [
-    "Jaylen Brown",
-    0.127,
+   "3912848": [
+    "Dean Wade",
+    0.098,
     null,
     false,
     null
@@ -5921,7 +5921,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.122,
+    0.131,
     null,
     false,
     null
@@ -5949,7 +5949,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.092,
+    0.097,
     null,
     false,
     null
