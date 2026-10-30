@@ -3469,7 +3469,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3177,
+    "lead": 0.3179,
     "name": "Luka Doncic",
     "proj": 53.8,
     "team": "LAL"
@@ -3511,14 +3511,14 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0259,
+    "lead": 0.0255,
     "name": "Cooper Flagg",
-    "proj": 36.7,
+    "proj": 36.6,
     "team": "DAL"
    },
    {
     "id": "3149673",
-    "lead": 0.023,
+    "lead": 0.0231,
     "name": "Pascal Siakam",
     "proj": 36.4,
     "team": "IND"
@@ -3595,7 +3595,7 @@
    },
    {
     "id": "4395625",
-    "lead": 0.0088,
+    "lead": 0.0089,
     "name": "RJ Barrett",
     "proj": 33.0,
     "team": "TOR"
@@ -3609,9 +3609,9 @@
    },
    {
     "id": "3202",
-    "lead": 0.0074,
+    "lead": 0.0073,
     "name": "Kevin Durant",
-    "proj": 32.3,
+    "proj": 32.2,
     "team": "HOU"
    },
    {
@@ -3667,7 +3667,7 @@
     "id": "4684740",
     "lead": 0.003,
     "name": "Amen Thompson",
-    "proj": 29.4,
+    "proj": 29.3,
     "team": "HOU"
    },
    {
