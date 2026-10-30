@@ -3469,49 +3469,49 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3265,
+    "lead": 0.3259,
     "name": "Luka Doncic",
     "proj": 53.8,
     "team": "LAL"
    },
    {
     "id": "4065648",
-    "lead": 0.1256,
+    "lead": 0.1253,
     "name": "Jayson Tatum",
     "proj": 45.9,
     "team": "BOS"
    },
    {
     "id": "3112335",
-    "lead": 0.094,
+    "lead": 0.0939,
     "name": "Nikola Jokic",
     "proj": 43.9,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.0849,
+    "lead": 0.0866,
     "name": "Giannis Antetokounmpo",
-    "proj": 42.8,
+    "proj": 42.9,
     "team": "MIA"
    },
    {
     "id": "3136195",
-    "lead": 0.0522,
+    "lead": 0.052,
     "name": "Karl-Anthony Towns",
     "proj": 40.2,
     "team": "NY"
    },
    {
     "id": "4871144",
-    "lead": 0.0473,
+    "lead": 0.0472,
     "name": "Alperen Sengun",
     "proj": 39.7,
     "team": "HOU"
    },
    {
     "id": "3975",
-    "lead": 0.0218,
+    "lead": 0.0217,
     "name": "Stephen Curry",
     "proj": 36.3,
     "team": "GS"
@@ -3546,7 +3546,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0177,
+    "lead": 0.0176,
     "name": "Cade Cunningham",
     "proj": 35.6,
     "team": "DET"
@@ -3615,18 +3615,18 @@
     "team": "WSH"
    },
    {
-    "id": "4395625",
-    "lead": 0.0066,
-    "name": "RJ Barrett",
-    "proj": 33.0,
-    "team": "TOR"
-   },
-   {
     "id": "3136193",
     "lead": 0.0066,
     "name": "Devin Booker",
     "proj": 32.5,
     "team": "PHX"
+   },
+   {
+    "id": "4395625",
+    "lead": 0.0065,
+    "name": "RJ Barrett",
+    "proj": 33.0,
+    "team": "TOR"
    },
    {
     "id": "3202",
@@ -3686,9 +3686,9 @@
    },
    {
     "id": "4395712",
-    "lead": 0.0017,
+    "lead": 0.0018,
     "name": "Andrew Nembhard",
-    "proj": 27.7,
+    "proj": 27.8,
     "team": "IND"
    },
    {
@@ -3758,7 +3758,7 @@
     "id": "4278053",
     "lead": 0.0002,
     "name": "Davion Mitchell",
-    "proj": 24.9,
+    "proj": 25.0,
     "team": "MIA"
    },
    {
