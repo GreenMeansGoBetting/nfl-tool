@@ -360,6 +360,18 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-30b",
+    items: [
+      ["🚧", "<b>NBA Game Predictions</b> (Work In Progress, under Under Construction in the NBA menu): the League Stats Chart's numbers turned into a GMG score for every game, with our own spread, total and fair moneyline next to the books', a Point Breakdown showing where the points come from, and the injury report beside it. It's unproven until its own record says otherwise, so treat it as a talking point."],
+      ["🔑", "<b>Matchup Keys</b> now open with that game's Point Breakdown, and every key card shows how many points it's worth, biggest first."],
+      ["🏀", "<b>NBA Zone Matchup Targets</b> only calls real outliers now: thin samples show as Small Sample, and a read needs his whole shot diet to back it up (one hot spot isn't enough)."],
+      ["⚡", "<b>NBA plays grade sooner</b>: the site checks for new box scores and grades last night's plays as soon as they land, instead of waiting for the next scheduled update."],
+      ["🏀", "<b>NBA menu</b>: the Under Construction tools are now rows of colored buttons, and the prop tools read Points, Threes, Assists, then Rebounds."],
+      ["🏀", "<b>NBA First Basket</b> is cleaner: the tags next to player names are gone, and the stats sit right beside the names in the same spot on every game."],
+      ["💬", "<b>Refund?</b> button next to the light / dark button: if you're ever unhappy with the site, click it, type your email, and I'll refund your most recent payment. No hard feelings."],
+    ],
+  },
+  {
     id: "2026-10-30",
     items: [
       ["🏀", "<b>NBA League Stats Chart</b> (top of the NBA menu): all 30 teams in one chart, Offense, Defense and Game & Betting (pace, net rating, ATS, O/U), every number shaded on the rank colors so you can see who ranks where at a glance. Click any column to sort, switch Season / Last 10 / 5 / 3, Show Rank, or Today's Teams Only; click a game up top to pull its two teams to the top."],
