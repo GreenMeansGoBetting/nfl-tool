@@ -953,13 +953,10 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       // Kept reachable but set aside while the NBA suite turns toward matchup
       // research (the owner, 2026-10-26).
       { head: "🚨 UNDER CONSTRUCTION 🚨" },
-      { name: "Game Predictions", file: "game-predictions.html", tag: "New" },
-      { name: "Best Plays", file: "best.html" },
-      { name: "Points", file: "points.html" },
-      { name: "Threes", file: "threes.html" },
-      { name: "Rebounds", file: "rebounds.html" },
-      { name: "Assists", file: "assists.html" },
-      { name: "First Basket", file: "first-basket.html" },
+      // Rows of shaded pills, each its own color so it reads as a button (the owner, 2026-10-30).
+      { row: [{ name: "Game Predictions", file: "game-predictions.html", tag: "New", hue: 145 }, { name: "Best Plays", file: "best.html", hue: 45 }] },
+      { row: [{ name: "Points", file: "points.html", hue: 210 }, { name: "Threes", file: "threes.html", hue: 275 }, { name: "Assists", file: "assists.html", hue: 330 }] },
+      { row: [{ name: "Rebounds", file: "rebounds.html", hue: 185 }, { name: "First Basket", file: "first-basket.html", hue: 20 }] },
     ] },
     nhl: { label: "NHL", home: "", items: [
       { name: "Game Previews", file: "" },
@@ -995,11 +992,16 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     };
     for (const sport of ["nfl", "nba", "nhl"]) {
       const def = SPORT_PAGES[sport];
-      add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
-        if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
+      const link = (item) => {
         const [file, view] = (item.file || "index.html").split("#");
         const current = sport === CURRENT_SPORT && !onPromo && !onMine && file === PAGE_FILE && (!view || view === location.hash.slice(1));
-        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}"><span class="promo-name">${item.name}</span>${item.tag ? `<span class="upd-new nav-new">${item.tag}</span>` : ""}</a>`;
+        const pill = item.hue != null ? ` nav-pill" style="--pill-h:${item.hue}` : "";
+        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}${pill}"><span class="promo-name">${item.name}</span>${item.tag ? `<span class="upd-new nav-new">${item.tag}</span>` : ""}</a>`;
+      };
+      add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
+        if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
+        if (item.row) return `<div class="nav-pill-row">${item.row.map(link).join("")}</div>`;
+        return link(item);
       }).join(""), sport === CURRENT_SPORT && !onPromo && !onMine);
     }
     add("Promo Tools", PROMOS[0].href, "promo", PROMOS.map(
