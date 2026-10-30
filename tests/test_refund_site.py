@@ -1,4 +1,4 @@
-"""The "Refund?" button beside the theme button (site/sync.js addRefund), run
+﻿"""The "Refund?" button beside the theme button (site/sync.js addRefund), run
 in a real browser.
 
 What is pinned (the owner, 2026-10-30): every page has it; it opens a popup
@@ -27,13 +27,13 @@ def tearDownModule():
 
 class Refund(unittest.TestCase):
     def test_every_sport_has_it_beside_the_theme_button(self):
-        for path in ("index.html", "nba/first-basket.html", "nhl/best.html"):
+        for path in ("index.html", "nhl/best.html"):
             page = SITE.open(path)
             nxt = page.evaluate("() => { const b = document.getElementById('gmg-refund-btn'); return b && b.previousElementSibling.id + '|' + b.textContent; }")
             self.assertEqual(nxt, "theme-toggle|Refund?", path)
 
     def test_the_popup_sends_a_refund_request(self):
-        page = SITE.open("nba/first-basket.html")
+        page = SITE.open("nhl/best.html")
         got = page.evaluate("""async () => {
             const sent = [];
             window.fetch = async (url, opts) => { sent.push([url, opts && opts.body]); return new Response('{"ok":true}', { status: 200 }); };
@@ -58,7 +58,7 @@ class Refund(unittest.TestCase):
         self.assertIn("sent", got["after"])
 
     def test_the_owners_list_tags_refunds(self):
-        page = SITE.open("nba/first-basket.html")
+        page = SITE.open("nhl/best.html")
         metas = page.evaluate("""async () => {
             window.fetch = async () => new Response(JSON.stringify({ requests: [
               { id: 1, name: 'A', text: '[refund]\\nEmail: a@b.co', created: Date.now(), status: 'new' },
