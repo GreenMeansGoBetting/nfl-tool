@@ -218,7 +218,7 @@ function renderKeys(table) {
   // One card a subject first (its strongest key); the rest behind More Keys, never dropped.
   const lead = bySize(keys.filter((k) => k.lead)), more = bySize(keys.filter((k) => !k.lead));
   const preds = pred
-    ? `<div class="pv-box"><div><h3>Points Ledger</h3>${pvLedger(pred)}</div><div><h3>Model Vs Book</h3>${pvLines(pred)}</div></div>`
+    ? `<div class="pv-box"><div><h3>Points Ledger</h3>${pvLedger(pred)}</div><div><h3>Model Vs Book</h3>${pvScore(pred)}${pvLines(pred)}</div></div>`
     : `<p class="no-data-note">No prediction for this game: they're made for the next 3 nights' games before tip${view.window === "season" ? "" : " (a game that has tipped keeps its Season prediction)"}.</p>`;
   el("lsc-body").innerHTML = `<div class="lsc-keys-head">${logo(game.away, 24)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 24)}<b>${game.home}</b><span class="lsc-keys-n">${lead.length} Key${lead.length === 1 ? "" : "s"}</span></div>
     ${preds}

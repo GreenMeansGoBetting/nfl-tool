@@ -28,6 +28,24 @@ function playText(pred, play) {
   const line = play.market === "spread" ? ` ${pvLine(pred.book.spread[play.side])}` : play.market === "total" ? ` ${pred.book.total}` : "";
   return `${PRED_MARKETS[play.market]}: ${side}${line} ${showOdds(play.price)}`;
 }
+// Injury Report beside GMG Score (the owner, 2026-10-30): the prediction knows nothing of
+// injuries, so who's out sits right next to it. ESPN's list (data.json `injuries`), worst first.
+const INJ_ORDER = { Out: 0, Doubtful: 1, Questionable: 2, "Day-To-Day": 3, Probable: 4 };
+const INJ_TAG = { Out: ["Out", "tier-bad"], Doubtful: ["Doubt", "tier-bad"], Questionable: ["Q", "tier-mid"], "Day-To-Day": ["DTD", "tier-mid"], Probable: ["Prob", "tier-good"] };
+function injuries(pred) {
+  const list = (t) => {
+    const rows = ((DATA.injuries || {})[t] || [])
+      .slice()
+      .sort((a, b) => (INJ_ORDER[a.status] ?? 5) - (INJ_ORDER[b.status] ?? 5) || a.name.localeCompare(b.name))
+      .map((p) => {
+        const [tag, cls] = INJ_TAG[p.status] || [p.status, "tier-mid"];
+        return `<div class="gp-inj" title="${[p.status, p.injury, p.note].filter(Boolean).join(": ").replace(/"/g, "&quot;")}"><span class="gs-inj-status ${cls}">${tag}</span><b>${playerClick(p.id, p.name)}</b><small>${p.position || ""}</small></div>`;
+      })
+      .join("");
+    return `<div class="gp-inj-list">${rows || `<span class="muted-label">None Listed</span>`}</div>`;
+  };
+  return pvGrid("gp-injuries", null, [["od-g2", [`${logo(pred.away, 14)}${pred.away} Injuries`, `${logo(pred.home, 14)}${pred.home} Injuries`]]], [[null, [[list(pred.away), list(pred.home)]]]]);
+}
 function card(pred, g) {
   const result = pred.result;
   const when = result ? `Final ${pred.away} ${result[0]} - ${pred.home} ${result[1]}` : g ? gmgGameTime(g) : "";
@@ -37,6 +55,7 @@ function card(pred, g) {
     .join("");
   return `<div class="gp-card">
     <div class="gp-head">${logo(pred.away, 26)}<b>${pred.away}</b><span class="at">@</span>${logo(pred.home, 26)}<b>${pred.home}</b><span class="gp-when">${when}</span></div>
+    <div class="gp-top">${pvScore(pred)}${injuries(pred)}</div>
     ${pvLines(pred)}
     ${graded ? `<div class="gp-graded"><span>Model Plays At Tip</span>${graded}</div>` : ""}
     ${pvLedger(pred)}

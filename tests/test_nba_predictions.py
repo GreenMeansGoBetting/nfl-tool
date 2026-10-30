@@ -179,14 +179,21 @@ class Pages(unittest.TestCase):
         text = page.inner_text(".gp-card")
         score = page.inner_text(".pv-proj tbody")
         self.assertIn(f"{self.pred['pts'][0]:.1f}", score)
-        self.assertIn("GMG FAIR ODDS", text.upper())
-        # book odds and our fair odds side by side, a row a team; no percent under a price (the
-        # owner, 2026-10-30): the chances live in the hover
-        fair = page.evaluate("() => [...document.querySelectorAll('.pv-lines tbody tr')][1].textContent")
+        self.assertIn("DO NOT BLINDLY BET", page.inner_text(".gp-warning"))
+        # the book's numbers and OUR numbers side by side, a row a team: GMG's own spread, total
+        # and moneyline, not our price at the book's line; no percent under a price (the owner,
+        # 2026-10-30): the chances live in the hover
+        home = page.evaluate("() => [...document.querySelectorAll('.pv-lines tbody tr')][1].textContent")
         p = self.pred["fair"]["ml"][1]
         ml = round(-100 * p / (1 - p)) if p >= 0.5 else round(100 * (1 - p) / p)
-        self.assertIn(f"+{ml}" if ml > 0 else str(ml), fair)
+        self.assertIn(f"+{ml}" if ml > 0 else str(ml), home)
+        spread = round(self.pred["fair_spread"], 1)
+        self.assertIn(f"+{spread}" if spread > 0 else str(spread), home)
+        self.assertIn(f"U {self.pred['total']:.1f}", home)
         self.assertNotIn("%", text)
+        # one header row a box, never a band stacked over sub-labels
+        self.assertEqual(page.evaluate("() => document.querySelectorAll('.gp-card .od-ggroups').length"), 0)
+        self.assertIn("None Listed", page.inner_text(".gp-injuries"))
         # the breakdown is always open and adds up to the projected score
         self.assertTrue(page.is_visible(".gp-card .pv-ledger"))
         total = page.evaluate("() => document.querySelector('.pv-ledger tr.pv-total').textContent")
