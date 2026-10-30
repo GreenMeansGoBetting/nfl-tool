@@ -934,5 +934,27 @@
   "total_result": "win",
   "updated": "2026-10-25T16:30Z",
   "week": 7
+ },
+ "2026_08_CAR_GB": {
+  "away": "CAR",
+  "away_pts": 20.7,
+  "final": [
+   19,
+   27
+  ],
+  "frozen": true,
+  "home": "GB",
+  "home_pts": 25.0,
+  "qb_out": [],
+  "spread": -3.5,
+  "spread_edge": 0.8,
+  "spread_pick": "home",
+  "spread_result": "win",
+  "total": 46.5,
+  "total_edge": 0.7,
+  "total_pick": "under",
+  "total_result": "win",
+  "updated": "2026-10-29T22:52Z",
+  "week": 8
  }
 }
