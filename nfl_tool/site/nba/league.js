@@ -94,7 +94,7 @@ function exact(v, fmt) {
 const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
 function rankStyle(rank, total) {
   const [hue, fill] = RANK_SCALE[Math.min(RANK_SCALE.length - 1, Math.floor(((rank - 1) / total) * RANK_SCALE.length))];
-  return `background:${scaleHsla(hue, 78, 44, fill)};border-color:${scaleHsla(hue, 78, 48)}`;
+  return `background:${scaleHsla(hue, 78, 44, fill)}`;
 }
 
 // {key: {team: rank}} over all 30 teams in the window (1 = greenest), ties share a rank.
@@ -176,7 +176,7 @@ function renderChart() {
       const tip = `${team(abbr).name} · ${name}: ${exact(v, fmt)}${rk ? ` · ${ordinal(rk)} of ${ranks[key].n}` : ""}`;
       return `<td class="${cls(g, i, cols.length)}"><div class="od-tile lsc-tile"${rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : ""} title="${tip}"><b>${text}</b></div></td>`;
     }).join("")}`).join("");
-    return `<tr class="${isTop ? "lsc-top" : ""}"><td class="lsc-team"><button type="button" class="lsc-logo" data-team="${abbr}" style="--team:${teamRgb(abbr)}" title="${team(abbr).name} (${r.games} game${r.games === 1 ? "" : "s"}): open its game in Matchup Breakdown"><img src="${team(abbr).logo}" alt="${abbr}" loading="lazy"></button></td>${cells}</tr>`;
+    return `<tr class="${isTop ? "lsc-top" : top.length ? "lsc-dim" : ""}"><td class="lsc-team"><button type="button" class="lsc-logo" data-team="${abbr}" style="--team:${teamRgb(abbr)}" title="${team(abbr).name} (${r.games} game${r.games === 1 ? "" : "s"}): open its game in Matchup Breakdown"><img src="${team(abbr).logo}" alt="${abbr}" loading="lazy"></button></td>${cells}</tr>`;
   };
   const width = TEAM_W + COLS.length * COL_W + (GROUPS.length - 1) * GAP_W;
   const cols = `<colgroup><col style="width:${TEAM_W}px">${GROUPS.map(([, c], gi) => `${gi ? `<col style="width:${GAP_W}px">` : ""}${c.map(() => `<col style="width:${COL_W}px">`).join("")}`).join("")}</colgroup>`;

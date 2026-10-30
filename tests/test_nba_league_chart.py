@@ -187,10 +187,23 @@ class Page(unittest.TestCase):
         PAGE.click('.matchup-card[data-game="77"]')
         self.assertEqual(PAGE.evaluate(ORDER), ["DET", "MIA", "BOS", "NY"])
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('tr.lsc-top').length"), 2)
+        # everyone else goes gray (the owner: "too busy with all the colors")
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('tr.lsc-dim').length"), 2)
+        self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('tr.lsc-dim .lsc-tile')).filter"), "grayscale(1)")
+        self.assertEqual(PAGE.evaluate("() => getComputedStyle(document.querySelector('tr.lsc-top .lsc-tile')).filter"), "none")
         self.assertTrue(PAGE.evaluate("() => document.querySelector('.matchup-card[data-game=\"77\"]').classList.contains('selected')"))
         PAGE.click('.matchup-card[data-game="77"]')
         self.assertEqual(PAGE.evaluate(ORDER), ["BOS", "NY", "DET", "MIA"])
-        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('tr.lsc-top').length"), 0)
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('tr.lsc-top, tr.lsc-dim').length"), 0)
+
+    def test_no_outline_on_any_tile(self):
+        # the owner, 2026-10-30, on a green ring around the tiles: "i hate it"
+        PAGE.click('.matchup-card[data-game="77"]')
+        shown = PAGE.evaluate("""() => [...document.querySelectorAll('.lsc-tile')].map((t) => {
+            const s = getComputedStyle(t);
+            return [s.borderTopWidth, s.boxShadow].join(' ');
+        })""")
+        self.assertEqual(set(shown), {"0px none"})
 
     def test_a_logo_opens_that_teams_game_in_matchup_breakdown(self):
         before = list(SITE.errors)  # Matchup Breakdown on this thin data.json isn't what's tested here

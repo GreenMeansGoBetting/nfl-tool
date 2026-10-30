@@ -16,7 +16,7 @@
 .lsc-grid th.lsc-sort:hover { background-color: rgba(var(--zg), 0.45); }
 .lsc-grid th.lsc-sorted { box-shadow: inset 0 -3px 0 rgb(var(--zg)); }
 .lsc-arrow { position: absolute; top: 1px; right: 2px; font-style: normal; font-size: 0.5rem; opacity: 0.8; }
-.lsc-tile { padding: 4px 0; border: 1px solid transparent; }
+.lsc-tile { padding: 5px 0; border: none; }
 .lsc-tile b { font-size: 0.92rem; }
 .lsc-ranks .lsc-tile b { font-size: 0.82rem; }
 /* The team: its logo on a box shaded in its color; sticks to the left while the chart scrolls. */
@@ -26,7 +26,9 @@
   background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
 .lsc-logo:hover { background: rgba(var(--team), 0.6); }
 .lsc-logo img { width: 24px; height: 24px; }
-/* A picked game's two teams on top: lit up. */
+/* A picked game's two teams on top, lit up; everyone else in gray so the two stand out (the owner,
+   2026-10-30: "a little too busy with all the colors"). No outline on any tile ("i hate it"). */
 .lsc-grid tr.lsc-top td.lsc-team .lsc-logo { box-shadow: 0 0 0 2px var(--accent), 0 0 10px rgba(var(--accent-rgb), 0.6); }
-.lsc-grid tr.lsc-top .lsc-tile { box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.55); }
+.lsc-grid tr.lsc-dim .lsc-tile { filter: grayscale(1); opacity: 0.5; }
+.lsc-grid tr.lsc-dim .lsc-logo { filter: grayscale(1); opacity: 0.6; }
 .lsc-grid tr.lsc-spacer td { height: 8px; padding: 0; background: transparent !important; box-shadow: none; }
