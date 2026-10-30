@@ -905,14 +905,14 @@
   "players": {
    "3907498": [
     "Matisse Thybulle",
-    0.101,
+    0.096,
     1750,
     true,
     "hard_rock"
    ],
    "3945274": [
     "Luka Doncic",
-    0.148,
+    0.139,
     408,
     false,
     "draftkings"
@@ -926,24 +926,24 @@
    ],
    "4066457": [
     "Austin Reaves",
-    0.138,
+    0.129,
     650,
     false,
     "bet365"
    ],
+   "4397014": [
+    "Quentin Grimes",
+    0.125,
+    null,
+    false,
+    null
+   ],
    "4433136": [
     "Walker Kessler",
-    0.112,
+    0.106,
     550,
     false,
     "hard_rock"
-   ],
-   "4433137": [
-    "Ziaire Williams",
-    0.096,
-    1300,
-    true,
-    "bet365"
    ],
    "4709138": [
     "Brandin Podziemski",
@@ -5809,13 +5809,6 @@
     false,
     null
    ],
-   "4279888": [
-    "Ja Morant",
-    0.121,
-    null,
-    false,
-    null
-   ],
    "4397077": [
     "Jaxson Hayes",
     0.062,
@@ -5825,7 +5818,7 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.091,
+    0.113,
     null,
     false,
     null
@@ -5839,7 +5832,7 @@
    ],
    "4683021": [
     "Deni Avdija",
-    0.123,
+    0.162,
     null,
     false,
     null
@@ -5860,14 +5853,14 @@
    ],
    "5105565": [
     "Donovan Clingan",
-    0.098,
+    0.131,
     null,
     false,
     null
    ],
    "6606": [
     "Damian Lillard",
-    0.106,
+    0.132,
     null,
     false,
     null
@@ -6701,21 +6694,21 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.091,
+    0.087,
     null,
     false,
     null
    ],
    "3945274": [
     "Luka Doncic",
-    0.134,
+    0.126,
     null,
     false,
     null
    ],
    "4066457": [
     "Austin Reaves",
-    0.124,
+    0.116,
     null,
     false,
     null
@@ -6734,6 +6727,13 @@
     false,
     null
    ],
+   "4397014": [
+    "Quentin Grimes",
+    0.113,
+    null,
+    false,
+    null
+   ],
    "4433134": [
     "Scottie Barnes",
     0.088,
@@ -6743,14 +6743,7 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.102,
-    null,
-    false,
-    null
-   ],
-   "4433137": [
-    "Ziaire Williams",
-    0.087,
+    0.096,
     null,
     false,
     null
