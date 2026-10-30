@@ -2,9 +2,11 @@
 // One game's prediction (nba/predict.py, data.json `predictions`) as two
 // pieces both pages use: the Points Ledger (where each team's points come
 // from tonight, row by row, adding up to the projected score) and Model Vs
-// Book (the book's lines beside our fair prices). Shared by the League Stats
-// Chart's Matchup Keys and the Game Predictions page; each page defines
-// `team(abbr)` and `logo(abbr, size)`.
+// Book (the book's lines beside ours, then the book's odds beside our fair
+// odds). Shared by the League Stats Chart's Matchup Keys and the Game
+// Predictions page; each page defines `team(abbr)` and `logo(abbr, size)`.
+// Every piece is a grid in the League Stats Chart's look (style.css .od-grid:
+// colored group bands, equal-width tiles; the owner, 2026-10-30).
 
 const PV_ROWS = {
   base: ["League Average", "An average offense against an average defense, at the league's average pace"],
@@ -38,6 +40,10 @@ function pvImplied(price) {
   const v = Number(price);
   return v < 0 ? -v / (-v + 100) : 100 / (v + 100);
 }
+const pvRgb = (abbr) => {
+  const hex = String(team(abbr).color || "555555").replace("#", "").padEnd(6, "5");
+  return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) || 0).join(", ");
+};
 
 // A topic's points tonight: {swing (home minus away), total (both added)} or null.
 function pvTopicPoints(pred, topic) {
@@ -71,57 +77,83 @@ const pvChipSize = (pred, topic) => {
   return pts ? Math.max(Math.abs(pts.swing), Math.abs(pts.total) / 2) : -1;
 };
 
+// ---- The grid: the League Stats Chart's look ----
+// groups = [[name, od-g class, [column labels]]]; rows = [[left cell or null, [[cell html per column] per group], tr class]].
+// `left` = [head, width] for the label column, or null for none. Every stat column is one width.
+const pvTile = (text, shade = "", tip = "", cls = "") => `<div class="od-tile pv-tile${cls ? ` ${cls}` : ""}"${shade}${tip ? ` title="${tip}"` : ""}><b>${text}</b></div>`;
+const PV_NONE = `<div class="od-tile pv-tile pv-none"><b>--</b></div>`;
+function pvGrid(cls, left, groups, rows) {
+  const gap = (tag) => `<${tag} class="od-ggap"></${tag}>`;
+  const at = (g, i, n) => `${g} od-gt${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}`;
+  const across = (tag, fn) => groups.map((grp, gi) => `${gi ? gap(tag) : ""}${fn(grp, gi)}`).join("");
+  const cols = `<colgroup>${left ? `<col style="width:${left[1]}px">` : ""}${across("col", ([, , c], gi) => c.map(() => "<col>").join("")).replace(/<col class="od-ggap"><\/col>/g, '<col class="od-ggap-col">')}</colgroup>`;
+  const head = `<tr class="od-ggroups">${left ? "<th></th>" : ""}${across("th", ([name, g, c]) => `<th class="${g}" colspan="${c.length}">${name}</th>`)}</tr>
+    <tr class="od-glabels">${left ? `<th class="pv-left-h">${left[0]}</th>` : ""}${across("th", ([, g, c]) => c.map((lab, i) => `<th class="${at(g, i, c.length)}">${lab}</th>`).join(""))}</tr>`;
+  const body = rows.map(([lab, cells, trCls]) => `<tr${trCls ? ` class="${trCls}"` : ""}>${left ? `<td class="pv-left">${lab}</td>` : ""}${across("td", ([, g, c], gi) => c.map((_, i) => `<td class="${at(g, i, c.length)}">${cells[gi][i]}</td>`).join(""))}</tr>`).join("");
+  return `<table class="data-table od-grid pv-grid ${cls}">${cols}<thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+// A team's logo on a box shaded in its color (the League Stats Chart's team cell).
+const pvTeam = (t) => `<div class="pv-team" style="--team:${pvRgb(t)}" title="${team(t).name}">${logo(t, 22)}</div>`;
+
 function pvLedger(pred) {
   const { away, home } = pred;
-  const head = (t) => `<th class="pv-team-h">${logo(t, 18)}${t}</th>`;
+  const head = (t) => `${logo(t, 14)}${t}`;
   const avgTotal = pred.rows[0][1] + pred.rows[0][2];
-  const body = pred.rows.map(([key, a, h, detail]) => {
+  const rows = pred.rows.map(([key, a, h, detail]) => {
     const [name, tip] = PV_ROWS[key];
     const base = key === "base";
-    const cell = (v, d) => {
+    const cell = (t, v, d) => {
       const why = d ? (key === "ft" ? `Trips ${pvSigned(d[0])} · Shooting ${pvSigned(d[1])}` : `Shot Mix ${pvSigned(d[0])} · Makes ${pvSigned(d[1])}`) : "";
-      return base ? `<td><b>${v.toFixed(1)}</b></td>` : `<td${pvShade(v)}${why ? ` title="${why}"` : ""}><b>${pvSigned(v)}</b></td>`;
+      return base ? pvTile(v.toFixed(1)) : pvTile(pvSigned(v) || "0.0", pvShade(v), `${team(t).name} · ${name}${why ? `: ${why}` : ""}`);
     };
     const swing = Math.round((h - a) * 10) / 10;
     const toward = swing >= 0 ? home : away;
-    const swingCell = base || key === "pace" || Math.abs(swing) < 0.05 ? `<td class="muted-label">--</td>` : `<td${pvShade(Math.abs(swing))}><span class="pv-swing">${logo(toward, 14)}${toward} ${pvSigned(Math.abs(swing))}</span></td>`;
-    const total = base ? `<td><b>${avgTotal.toFixed(1)}</b></td>` : `<td><b>${pvSigned(Math.round((a + h) * 10) / 10)}</b></td>`;
-    return `<tr><td class="pv-label" title="${tip}">${name}${key === "pace" ? ` <span class="muted-label">(${pred.poss} Poss.)</span>` : ""}</td>${cell(a, detail && detail[0])}${cell(h, detail && detail[1])}${swingCell}${total}</tr>`;
-  }).join("");
+    const swingCell = base || key === "pace" || Math.abs(swing) < 0.05 ? PV_NONE : pvTile(`${logo(toward, 14)}${toward} ${pvSigned(Math.abs(swing))}`, pvShade(Math.abs(swing)), `${name}: ${pvSigned(Math.abs(swing))} points toward ${team(toward).name}`);
+    const total = pvTile(base ? avgTotal.toFixed(1) : pvSigned(Math.round((a + h) * 10) / 10) || "0.0");
+    const label = `<span title="${tip}">${name}${key === "pace" ? ` <span class="muted-label">(${pred.poss} Poss.)</span>` : ""}</span>`;
+    return [label, [[cell(away, a, detail && detail[0]), cell(home, h, detail && detail[1])], [swingCell, total]]];
+  });
   const win = pred.margin >= 0 ? home : away;
-  const foot = `<tr class="pv-total"><td class="pv-label">Projected Score</td><td><b>${pred.pts[0].toFixed(1)}</b></td><td><b>${pred.pts[1].toFixed(1)}</b></td>
-    <td><span class="pv-swing">${logo(win, 14)}${win} ${pvSigned(Math.abs(pred.margin))}</span></td><td><b>${pred.total.toFixed(1)}</b></td></tr>`;
-  return `<table class="data-table pv-table pv-ledger"><thead><tr><th class="pv-label">Points From</th>${head(away)}${head(home)}<th title="The row's points, net, toward the team it helps">Swing</th><th title="The row's points added to the game total">Total</th></tr></thead>
-    <tbody>${body}${foot}</tbody></table>`;
+  rows.push(["Projected Score", [[pvTile(pred.pts[0].toFixed(1)), pvTile(pred.pts[1].toFixed(1))], [pvTile(`${logo(win, 14)}${win} ${pvSigned(Math.abs(pred.margin))}`), pvTile(pred.total.toFixed(1))]], "pv-total"]);
+  return pvGrid("pv-ledger", ["Point Breakdown", 150], [["Team Points", "od-g1", [head(away), head(home)]], ["Game", "od-g2", ["Swing", "Total"]]], rows);
 }
 
-// Our fair price beside the book's: big American price, chance small under; shaded by
-// how far our chance is above (green) or below (red) the book price's.
-function pvFair(p, price) {
-  if (p === null || p === undefined) return `<td class="muted-label">--</td>`;
+// Our fair price at the book's line: shaded by how far our chance is above (green) or below
+// (red) the book price's; the chances themselves only in the hover (no percent under the price).
+function pvFair(p, price, line) {
+  if (p === null || p === undefined) return PV_NONE;
   const imp = pvImplied(price);
   const edge = imp === null ? 0 : p - imp;
-  return `<td${pvShade(edge * 100, 8)} title="Our chance ${pvPct(p)}${imp === null ? "" : ` · the book price's ${pvPct(imp)}`}"><b>${showOdds(pvAmerican(p))}</b><small>${pvPct(p)}</small></td>`;
+  return pvTile(`${line ? `${line} ` : ""}${showOdds(pvAmerican(p))}`, pvShade(edge * 100, 8), `Our chance ${pvPct(p)}${imp === null ? "" : ` · the book price's ${pvPct(imp)}`}`, "pv-gmg");
 }
-const pvBook = (line, price) => (line === null && (price === null || price === undefined) ? `<td class="muted-label">--</td>` : `<td>${line === null ? "" : `<b>${line}</b> `}${price === null || price === undefined ? "" : `<span class="pv-price">${showOdds(price)}</span>`}</td>`);
+const pvBook = (line, price) => (!line && (price === null || price === undefined) ? PV_NONE : pvTile(`${line || ""}${line && price !== null && price !== undefined ? " " : ""}${price === null || price === undefined ? "" : `<span class="pv-price">${showOdds(price)}</span>`}`));
 
 function pvLines(pred) {
   const { away, home, book, fair } = pred;
-  const head = (t) => `<th class="pv-team-h">${logo(t, 18)}${t}</th>`;
-  const spread = book.spread.map(pvLine);
-  const side = `<table class="data-table pv-table pv-lines"><thead><tr><th class="pv-label"></th>${head(away)}${head(home)}</tr></thead><tbody>
-    <tr><td class="pv-label">Spread (Book)</td>${pvBook(spread[0] || null, book.spread_odds[0])}${pvBook(spread[1] || null, book.spread_odds[1])}</tr>
-    <tr><td class="pv-label">Spread (Fair)</td>${fair.spread ? pvFair(fair.spread[0], book.spread_odds[0]) + pvFair(fair.spread[1], book.spread_odds[1]) : `<td colspan="2" class="muted-label">No line yet</td>`}</tr>
-    <tr><td class="pv-label">Moneyline (Book)</td>${pvBook(null, book.ml[0])}${pvBook(null, book.ml[1])}</tr>
-    <tr><td class="pv-label">Moneyline (Fair)</td>${pvFair(fair.ml[0], book.ml[0])}${pvFair(fair.ml[1], book.ml[1])}</tr>
-  </tbody></table>`;
-  const tot = book.total;
-  const total = `<table class="data-table pv-table pv-lines"><thead><tr><th class="pv-label"></th><th>Over</th><th>Under</th></tr></thead><tbody>
-    <tr><td class="pv-label">Total (Book)</td>${pvBook(tot === null ? null : `O ${tot}`, book.total_odds[0])}${pvBook(tot === null ? null : `U ${tot}`, book.total_odds[1])}</tr>
-    <tr><td class="pv-label">Total (Fair)</td>${fair.total ? pvFair(fair.total[0], book.total_odds[0]) + pvFair(fair.total[1], book.total_odds[1]) : `<td colspan="2" class="muted-label">No line yet</td>`}</tr>
-  </tbody></table>`;
+  // Top: the projected score, then the book's spread and total beside ours.
+  const bookFav = book.spread && book.spread[0] !== null && book.spread[0] !== undefined ? (book.spread[0] < 0 ? 0 : 1) : null;
+  const bookSpread = bookFav === null ? PV_NONE : pvTile(`${[away, home][bookFav]} ${pvLine(book.spread[bookFav]) || "PK"}`, "", "The book's spread");
   const fav = pred.fair_spread <= 0 ? home : away;
-  const summary = `<div class="pv-summary"><span>GMG Projection</span><b>${logo(away, 18)}${away} ${pred.pts[0].toFixed(0)}</b><b>${logo(home, 18)}${home} ${pred.pts[1].toFixed(0)}</b>
-    <span>Fair Spread</span><b>${fav} ${pvLine(-Math.abs(pred.fair_spread))}</b><span>Fair Total</span><b>${pred.total.toFixed(1)}</b></div>`;
-  return `${summary}<div class="pv-lines-row">${side}${total}</div>`;
+  const ourSpread = pvTile(`${fav} ${pvLine(Math.round(-Math.abs(pred.fair_spread) * 10) / 10) || "PK"}`, "", "Our spread: the projected score's margin", "pv-ours");
+  const score = (t, v) => `<div class="pv-score" style="--team:${pvRgb(t)}" title="${team(t).name}: GMG projected points">${logo(t, 20)}<b>${v.toFixed(1)}</b></div>`;
+  const top = pvGrid("pv-proj", null, [
+    ["GMG Score", "od-g0", [away, home]],
+    ["Spread", "od-g1", ["Book", "GMG"]],
+    ["Total", "od-g2", ["Book", "GMG"]],
+  ], [[null, [[score(away, pred.pts[0]), score(home, pred.pts[1])], [bookSpread, ourSpread],
+    [book.total === null || book.total === undefined ? PV_NONE : pvTile(String(book.total), "", "The book's total"), pvTile(pred.total.toFixed(1), "", "Our total: the projected score added up", "pv-ours")]]]]);
+  // Bottom: a row a team, the book's odds on the left, our fair odds at the same line on the right.
+  // The total reads like a sportsbook: the Over on the away row, the Under on the home row.
+  const spread = (book.spread || []).map(pvLine);
+  const tot = book.total === null || book.total === undefined ? null : book.total;
+  const ou = (i) => (tot === null ? "" : `${i ? "U" : "O"} ${tot}`);
+  const row = (t, i) => [pvTeam(t), [
+    [pvBook(spread[i] || "", book.spread_odds[i]), pvBook(ou(i), book.total_odds[i]), pvBook("", book.ml[i])],
+    [fair.spread ? pvFair(fair.spread[i], book.spread_odds[i], spread[i]) : PV_NONE, fair.total ? pvFair(fair.total[i], book.total_odds[i], ou(i)) : PV_NONE, pvFair(fair.ml[i], book.ml[i])],
+  ]];
+  const odds = pvGrid("pv-lines", ["", 56], [
+    ["Book Odds", "od-g3", ["Spread", "Total", "Moneyline"]],
+    ["GMG Fair Odds", "od-g0", ["Spread", "Total", "Moneyline"]],
+  ], [row(away, 0), row(home, 1)]);
+  return `${top}${odds}`;
 }

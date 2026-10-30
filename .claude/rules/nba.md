@@ -336,8 +336,12 @@ UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded r
   chance, ML by edge vs price), value = edge vs the book price, push left out; tags fav / dog (minus line
   or price), home / away, over / under.
 - Pages: `game-predictions.html/.js` (menu: first under UNDER CONSTRUCTION) and the Points Ledger + Model
-  Vs Book in the League Stats Chart's Matchup Keys; both drawn by `predict-view.js/.css`. Fair cell =
-  American price big, chance small, green / red by our chance vs the book price's. Tests:
+  Vs Book in the League Stats Chart's Matchup Keys; both drawn by `predict-view.js/.css`. **Card =
+  three League-Stats-Chart grids (`pvGrid`, `.od-grid` bands, one width 600)** (the owner, 2026-10-30:
+  "more structured and symmetrical"): GMG Score | Spread Book / GMG | Total Book / GMG; then a row a
+  team, **Book Odds | GMG Fair Odds** at the same line (Over on the road row, Under on the home row);
+  then the **Point Breakdown, always open**. Fair = American price only, **no percent under it**
+  (chances in the hover), green / red by our chance vs the book price's. Tests:
   `tests/test_nba_predictions.py`.
 
 ## Suite switch

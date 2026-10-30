@@ -177,11 +177,18 @@ class Pages(unittest.TestCase):
         page.wait_for_selector(".gp-card")
         self.assertEqual(SITE.errors, [])
         text = page.inner_text(".gp-card")
-        self.assertIn(f"CHA {self.pred['pts'][0]:.0f}", text)
-        self.assertIn("Spread (Fair)", text)
-        fair = page.evaluate("() => [...document.querySelectorAll('.pv-lines tr')].find((tr) => tr.textContent.includes('Moneyline (Fair)')).textContent")
-        self.assertIn(f"{round(self.pred['fair']['ml'][1] * 100)}%", fair)
-        # the breakdown adds up to the projected score
+        score = page.inner_text(".pv-proj tbody")
+        self.assertIn(f"{self.pred['pts'][0]:.1f}", score)
+        self.assertIn("GMG FAIR ODDS", text.upper())
+        # book odds and our fair odds side by side, a row a team; no percent under a price (the
+        # owner, 2026-10-30): the chances live in the hover
+        fair = page.evaluate("() => [...document.querySelectorAll('.pv-lines tbody tr')][1].textContent")
+        p = self.pred["fair"]["ml"][1]
+        ml = round(-100 * p / (1 - p)) if p >= 0.5 else round(100 * (1 - p) / p)
+        self.assertIn(f"+{ml}" if ml > 0 else str(ml), fair)
+        self.assertNotIn("%", text)
+        # the breakdown is always open and adds up to the projected score
+        self.assertTrue(page.is_visible(".gp-card .pv-ledger"))
         total = page.evaluate("() => document.querySelector('.pv-ledger tr.pv-total').textContent")
         self.assertIn(f"{self.pred['pts'][1]:.1f}", total)
         page.click("#gp-ytd")

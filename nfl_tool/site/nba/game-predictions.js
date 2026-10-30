@@ -5,7 +5,7 @@
 // total and the moneyline (the owner, 2026-10-30). Season numbers; a game
 // that has tipped shows the prediction it had at tip, graded once it's
 // final, and the YTD Model Performance popup keeps the record. Each game's
-// Point Breakdown is the Points Ledger (predict-view.js). Stands on its own
+// Point Breakdown (the Points Ledger, predict-view.js) is always open. Stands on its own
 // (no common.js), like the League Stats Chart.
 
 let DATA = null;
@@ -39,7 +39,7 @@ function card(pred, g) {
     <div class="gp-head">${logo(pred.away, 26)}<b>${pred.away}</b><span class="at">@</span>${logo(pred.home, 26)}<b>${pred.home}</b><span class="gp-when">${when}</span></div>
     ${pvLines(pred)}
     ${graded ? `<div class="gp-graded"><span>Model Plays At Tip</span>${graded}</div>` : ""}
-    <details class="gp-more"><summary>Point Breakdown</summary>${pvLedger(pred)}</details>
+    ${pvLedger(pred)}
   </div>`;
 }
 function render() {
