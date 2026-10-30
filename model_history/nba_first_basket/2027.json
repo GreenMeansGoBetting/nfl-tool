@@ -5974,7 +5974,14 @@
    ],
    "3442": [
     "DeAndre Jordan",
-    0.092,
+    0.072,
+    null,
+    false,
+    null
+   ],
+   "3907497": [
+    "Dejounte Murray",
+    0.102,
     null,
     false,
     null
@@ -5988,14 +5995,14 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.13,
+    0.1,
     null,
     false,
     null
    ],
    "4397688": [
     "Trey Murphy III",
-    0.154,
+    0.128,
     null,
     false,
     null
@@ -6023,7 +6030,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.119,
+    0.092,
     null,
     false,
     null
