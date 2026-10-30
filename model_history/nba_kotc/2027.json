@@ -3476,7 +3476,7 @@
    },
    {
     "id": "4065648",
-    "lead": 0.1253,
+    "lead": 0.1254,
     "name": "Jayson Tatum",
     "proj": 45.9,
     "team": "BOS"
@@ -3511,7 +3511,7 @@
    },
    {
     "id": "3975",
-    "lead": 0.0217,
+    "lead": 0.0218,
     "name": "Stephen Curry",
     "proj": 36.3,
     "team": "GS"
@@ -3525,9 +3525,9 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0206,
+    "lead": 0.0201,
     "name": "Julius Randle",
-    "proj": 36.1,
+    "proj": 36.0,
     "team": "BKN"
    },
    {
@@ -3560,7 +3560,7 @@
    },
    {
     "id": "4251",
-    "lead": 0.0134,
+    "lead": 0.0135,
     "name": "Paul George",
     "proj": 34.5,
     "team": "BOS"
@@ -3609,7 +3609,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0067,
+    "lead": 0.0068,
     "name": "Trae Young",
     "proj": 32.8,
     "team": "WSH"
@@ -3630,7 +3630,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0062,
+    "lead": 0.0063,
     "name": "Kevin Durant",
     "proj": 32.3,
     "team": "HOU"
