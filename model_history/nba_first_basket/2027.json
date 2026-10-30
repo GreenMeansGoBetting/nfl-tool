@@ -712,13 +712,10 @@
  "401909283": {
   "away": "HOU",
   "date": "2026-10-30",
-  "first_home": 0.436,
+  "first_home": 0.5,
   "home": "DAL",
   "jumpers": [
-   [
-    "4871144",
-    "Alperen Sengun"
-   ],
+   null,
    [
     "4278049",
     "Daniel Gafford"
@@ -727,76 +724,76 @@
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.092,
+    0.086,
     1300,
     true,
     "hard_rock"
    ],
    "3202": [
     "Kevin Durant",
-    0.11,
+    0.107,
     625,
     false,
     "bet365"
    ],
    "4278049": [
     "Daniel Gafford",
-    0.07,
+    0.08,
     1000,
     false,
     "hard_rock"
    ],
    "4278078": [
     "P.J. Washington",
-    0.098,
+    0.113,
     1100,
     true,
     "fanduel"
    ],
    "4432582": [
     "Max Christie",
-    0.07,
+    0.081,
     1200,
     false,
     "hard_rock"
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.105,
+    0.102,
     1000,
     true,
     "fanduel"
    ],
+   "4433192": [
+    "Tari Eason",
+    0.08,
+    null,
+    false,
+    null
+   ],
    "4684740": [
     "Amen Thompson",
-    0.108,
+    0.105,
     820,
     false,
     "draftkings"
    ],
-   "4871144": [
-    "Alperen Sengun",
-    0.127,
-    500,
-    false,
-    "bet365"
-   ],
    "5041939": [
     "Cooper Flagg",
-    0.099,
+    0.113,
     700,
     false,
     "bet365"
    ],
    "6442": [
     "Kyrie Irving",
-    0.081,
+    0.093,
     750,
     false,
     "bet365"
    ]
   },
-  "tip_home": 0.307
+  "tip_home": 0.5
  },
  "401909284": {
   "away": "LAC",
@@ -6316,91 +6313,88 @@
  "401909902": {
   "away": "OKC",
   "date": "2026-10-31",
-  "first_home": 0.508,
+  "first_home": 0.5,
   "home": "HOU",
   "jumpers": [
    [
     "4222252",
     "Isaiah Hartenstein"
    ],
-   [
-    "4871144",
-    "Alperen Sengun"
-   ]
+   null
   ],
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.083,
+    0.086,
     null,
     false,
     null
    ],
    "3133626": [
     "Kenrich Williams",
-    0.076,
+    0.077,
     null,
     false,
     null
    ],
    "3202": [
     "Kevin Durant",
-    0.099,
+    0.107,
     null,
     false,
     null
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.096,
+    0.098,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.107,
+    0.109,
     null,
     false,
     null
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.094,
+    0.102,
+    null,
+    false,
+    null
+   ],
+   "4433192": [
+    "Tari Eason",
+    0.08,
     null,
     false,
     null
    ],
    "4683778": [
     "Jared McCain",
-    0.092,
+    0.094,
     null,
     false,
     null
    ],
    "4684740": [
     "Amen Thompson",
-    0.097,
-    null,
-    false,
-    null
-   ],
-   "4871144": [
-    "Alperen Sengun",
-    0.114,
+    0.105,
     null,
     false,
     null
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.101,
+    0.102,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.524
+  "tip_home": 0.5
  },
  "401909903": {
   "away": "BOS",
