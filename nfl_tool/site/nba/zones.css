@@ -43,7 +43,7 @@
 }
 
 /* Tags: two lines at most, the same box on every row; the rest fold into "+N" (zmFitTags). */
-.zm-tags { display: flex; flex-wrap: wrap; align-content: center; gap: 3px 4px; height: 44px; overflow: hidden; }
+.zm-tags { display: flex; flex-wrap: wrap; align-content: center; gap: 3px 4px; height: 22px; overflow: hidden; } /* one row (the owner, 2026-10-30): the rest fold into +N */
 .zm-tags .zm-chip { margin: 0; cursor: help; }
 .zm-chip[hidden] { display: none; }
 .zm-more { cursor: pointer; background: var(--panel-2); border-color: var(--border-strong); flex: none; }

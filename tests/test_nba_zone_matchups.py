@@ -3,11 +3,13 @@
 What is pinned (the owner, 2026-10-27): a player's read is where and how HE shoots against what
 tonight's defense allows players like him (guards / forwards / bigs) from those spots; shots and
 makes are both counted, so a defense that gives up lots of his shots but few makes lands near Toss
-Up; the numbers are RAW (no pulling toward the league, no minimum sample); never priced (the main
-line is reference only); the Python zones match shot-chart.js to the letter; the page opens on the
+Up; the numbers are RAW (no pulling toward the league); never priced (the main line is reference
+only). 2026-10-30 (the owner: "This tool is to find outliers, not 50/50 spots"): a sample to read, one
+spot can't carry him, his diet has to agree, and no odds means no read; the Python zones match shot-chart.js to the letter; the page opens on the
 night's Best / Worst Spots and a player click opens both charts."""
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,8 +45,23 @@ ODDS = {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", 11.5, -110], ["
                               "threes": {"3": {"q": [["dk", "o", 2.5, -110]]}}}}}
 
 
-def build():
-    return Z.block(SHOTS, POS, GAMES, ODDS, "2099-10-25", "2099-10-25T12:00Z")
+def build(odds=ODDS, real_minimums=False):
+    """The fixture's samples are tiny (20 shots): its minimums are fixture-sized unless asked."""
+    small = {} if real_minimums else {"MIN_SHOTS": {"points": 10, "threes": 5}, "MIN_ALLOWED": {"points": 10, "threes": 5}}
+    with mock.patch.multiple(Z, **small) if small else mock.patch.object(Z, "LEAN", Z.LEAN):
+        return Z.block(SHOTS, POS, GAMES, odds, "2099-10-25", "2099-10-25T12:00Z")
+
+
+def tallies(league, defense):
+    """Tallies from {zone: (kind, made, tried)}."""
+    out = []
+    for spec in (league, defense):
+        t = Z.Tally()
+        for z, (kind, made, tried) in spec.items():
+            for i in range(tried):
+                t.add(z, kind, 1 if i < made else 0)
+        out.append(t)
+    return out
 
 
 class Reads(unittest.TestCase):
@@ -96,6 +113,52 @@ class Reads(unittest.TestCase):
         self.assertLess(r["makes"], -0.2)
         self.assertEqual(r["side"], "toss" if abs(r["score"]) < Z.LEAN else r["side"])
         self.assertLess(abs(r["score"]), abs(r["shots"]))
+
+
+class Outliers(unittest.TestCase):
+    """2026-10-30, the owner: "this tool was to find what the offensive player likes to do, and where
+    the defense either allows that or stops it ... This tool is to find outliers, not 50/50 spots." """
+
+    def test_a_thin_sample_is_never_a_read(self):
+        """Cam Johnson: 3 shots on the year, each from a different spot, read as an Under."""
+        r = build(real_minimums=True)["players"]["1"]["points"]  # 20 shots: under MIN_SHOTS 25
+        self.assertEqual((r["side"], r["strong"], r.get("thin")), ("toss", False, True))
+        self.assertGreater(r["score"], Z.STRONG)  # the score is still shown; it just isn't a read
+        lg, d = tallies({"ra": (3, 60, 100)}, {"ra": (3, 20, 30)})
+        rim = [[25, 1, 1, 0, 0, 0, 3]] * 30
+        self.assertTrue(Z.read(rim, "points", d, lg, d, lg).get("thin"))  # the defense's side too: 30 shots allowed
+
+    def test_one_small_spot_cant_carry_him(self):
+        """Embiid vs NYK: bigs take 2.6x the league's left-baseline mids there, 13% of his shots, and
+        that alone made him a +50% Over while his rim and paint (41%) both pointed against him."""
+        lg, d = tallies({"ra": (3, 60, 100), "mBL": (1, 40, 100)}, {"ra": (3, 28, 50), "mBL": (1, 6, 15)})
+        lg_all, d_all = tallies({"ra": (3, 0, 190), "mBL": (1, 0, 10)}, {"ra": (3, 0, 85), "mBL": (1, 0, 15)})
+        mine = [[25, 1, 1, 0, 0, 0, 3]] * 35 + [[10, 2, 1, 0, 0, 0, 1]] * 15  # 70% at the rim
+        r = Z.read(mine, "points", d, lg, d_all, lg_all)
+        mid = next(z for z in r["zones"] if z["z"] == "mBL")
+        self.assertAlmostEqual(mid["vol"], 2.0, places=3)  # 15% of his group's shots there vs 5%: shown raw
+        self.assertAlmostEqual(r["shots"], 0.3 * Z.VOL_CAP + 0.7 * (0.85 / 0.95 - 1), places=3)  # counted at most double
+        self.assertGreater(r["score"], Z.STRONG)  # still an Over on the number
+        self.assertEqual((r["side"], r.get("mixed")), ("toss", True))  # 70% of his shots point the other way
+
+    def test_his_diet_has_to_agree(self):
+        """An Under where 40% of his shots point Over is a 50/50 spot (the counterpoint tags in red)."""
+        lg, d = tallies({"ra": (3, 60, 100), "mBL": (1, 40, 100)}, {"ra": (3, 15, 30), "mBL": (1, 30, 60)})
+        mine = [[25, 1, 1, 0, 0, 0, 3]] * 30 + [[10, 2, 1, 0, 0, 0, 1]] * 20
+        r = Z.read(mine, "points", d, lg, d, lg)
+        self.assertLess(r["score"], -Z.LEAN)
+        self.assertEqual(r["back"], [0.6, 0.4])
+        self.assertEqual((r["side"], r.get("mixed")), ("toss", True))
+        lg, d = tallies({"ra": (3, 60, 100), "mBL": (1, 40, 100)}, {"ra": (3, 15, 30), "mBL": (1, 12, 30)})
+        r = Z.read(mine, "points", d, lg, d, lg)  # the mids even (5% or less either way): nothing against
+        self.assertEqual((r["side"], r["back"]), ("under", [0.6, 0.0]))
+
+    def test_no_odds_no_read(self):
+        """Cain and Sharpe had no price: "if they get odds they can surface as a play"."""
+        no_price = {"AAA_BBB": {"props": {"points": {"1": {"q": [["dk", "o", 12.5, None]]}, "3": {"q": [["dk", "o", 9.5, -110]]}}}}}
+        m = build(no_price)
+        self.assertNotIn("1", m["players"])
+        self.assertIn("points", m["players"]["3"])  # a Toss Up with a price stays on Matchup View
 
 
 class Grid(unittest.TestCase):
@@ -190,7 +253,10 @@ class Page(unittest.TestCase):
         self.assertNotIn("Strong", row)  # the owner, 2026-10-27: no read cell; the shade says how strong
         self.assertIn("o12.5", row)  # the line most books hang, the player card's rule
         self.assertIn("-110", row)  # the best Over price across the books (dk -110 beats mgm -115), no book name
-        self.assertEqual(PAGE.locator(".zm-row[data-player='1'] .zm-chip").count(), 2)
+        # the owner, 2026-10-30: short ideas ("3s volume", "Self Creates"), numbers in the hover, one row
+        self.assertEqual(PAGE.locator(".zm-row[data-player='1'] .zm-chip").all_inner_texts(), ["Rim Makes", "Drives & Cuts"])
+        self.assertIn("15 of 20", PAGE.get_attribute(".zm-row[data-player='1'] .zm-chip", "title"))
+        self.assertLess(PAGE.evaluate("() => document.querySelector('.zm-tags').getBoundingClientRect().height"), 30)
         heights = PAGE.evaluate("() => [...document.querySelectorAll('.zm-row')].map((r) => r.getBoundingClientRect().height)")
         self.assertEqual(len(set(heights)), 1)  # every row the same height
         self.assertEqual(SITE.errors, [])

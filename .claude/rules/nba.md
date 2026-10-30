@@ -149,7 +149,9 @@ Every game played 10,000 times, possession by possession.
   carried, a ladder dropped when its main line moved). **Both sides must match to the letter**
   (`tests/test_nba_watch.py`).
 - **Grading presses:** `watch.ungraded` (last two nights' plays waiting on a box score) > 0 presses the
-  refresh with source `grade`, at most hourly (`GRADE_MINUTES`), from 8 am ET.
+  refresh with source `grade`, at most hourly (`GRADE_MINUTES`), from 8 am ET; **at once when hoopR's
+  `player_box` file (HEAD, Last-Modified) is newer than `nba.built` and the last refresh** (`newBoxScores`;
+  2026-10-30 it landed 8:03, 3 minutes after the 8:00 press, and plays waited until 9:50).
 - **No paid sources** (X's API for Underdog was turned down).
 - **Mark Out** (owner only, `.sim-markout` on Matchup View rows): saves `/api/nba-outs` (D1 `nba_outs`)
   and presses the refresh (Pages secret `DISPATCH_TOKEN` = the timer's `NHL_TRIGGER_TOKEN`, copied by
@@ -271,8 +273,14 @@ Every game played 10,000 times, possession by possession.
 ## Zone Matchup Targets (`zone_matchups.py`, `zones.html/.js/.css`)
 
 Where and HOW a player shoots vs what tonight's defense allows **his group** (guards / forwards / bigs).
-- **Raw, no pulling toward the league, no minimum sample** (the page sets `NBA_SHOT_PRIOR = 0`; other
-  pages still pull). Every read shows its shot counts; His Shots filter.
+- **Raw, no pulling toward the league** (the page sets `NBA_SHOT_PRIOR = 0`; other pages still pull).
+  Every read shows its shot counts; His Shots filter.
+- **Outliers, not 50/50 spots** (the owner, 2026-10-30): under `MIN_SHOTS` (25 shots / 10 threes his) or
+  `MIN_ALLOWED` (40 / 25 by the defense vs his group) = **Small Sample**, never a read; a zone's Shots part
+  counts at most `VOL_CAP` double the league's; **his diet must agree** (`backing`: share of his shots,
+  zones and types averaged, pointing the read's way `AGREE` 40%+ and twice the share against, within
+  `EVEN` 5% = neither), else Toss Up (Embiid vs NYK 10-30: rim + paint against him, +50% Over from one
+  13% spot). **No price on the read's side at the main line = no read** (Cain, Sharpe).
 - **No EV ever:** no chance or edge; main line + best price shown; record tracks W / L and units.
 - Every player with a points or threes line gets OVER / UNDER / Toss Up per market, Strong past 12%.
 - Build (`block`, own try in the shots step) -> shots.json `matchups` {date, games, players{...},
@@ -288,8 +296,11 @@ Where and HOW a player shoots vs what tonight's defense allows **his group** (gu
   right; colored from HIS side; Shots vs Lg log scale). Prefs per device (`nba-tool.zones.v1`).
 - Legends: Less Makes / More Makes, Fewer Shots / More Shots. No Read cell except Matchup View.
   Score / Shots / Makes cells on the full red-yellow-green scale (`zmShade`). Line = the player card's
-  rule (`main_line`); Odds = best price on the read's side, no book name, click for every book. Diet
-  tags colored by his Shots + Makes there, hover `zmZoneWhy`, `zmFitTags`.
+  rule (`main_line`); Odds = best price on the read's side, no book name, click for every book. **Why**
+  column (`zmDiet`): short idea tags, **one row** (+N folds the rest): areas (`ZM_AREAS`, 15%+ of his
+  shots) as "Rim Volume" / "Mid-Range Makes" / "Corner 3s Volume", types (25%+) "Self Creates" /
+  "Catch & Shoot" / "Drives & Cuts"; only ones moved 5%+, biggest share x effect first; colored for him;
+  no percentages on the tag, the numbers in the hover (`zmZoneWhy`).
 - **The record:** `model_history/nba_zones/<season>.json`, Over / Under reads only, rewritten until
   tip (`update_record`); graded vs his main line (`box_logs`), units at the best price at tip
   (`best_price`). shots.json `matchups.record`; YTD tracker with a Min Score slider 5-30%. Past nights:

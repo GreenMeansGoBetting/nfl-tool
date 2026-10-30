@@ -32,6 +32,18 @@ For a player, one market (points: every shot; threes: his threes):
   shots but makes few of them lands near Toss Up, which the owner chose over
   deciding it for the user.
 - Read: OVER / UNDER past `LEAN` (Strong past `STRONG`), Toss Up between.
+
+2026-10-30, the owner: "this tool was to find what the offensive player likes to do ... This tool is
+to find outliers, not 50/50 spots." Three rules on top (no pulling toward the league still):
+- **A sample to read** (`MIN_SHOTS` his, `MIN_ALLOWED` the defense's vs his group): under it the
+  read is Small Sample, never Over / Under (Cam Johnson: 3 shots, three different spots).
+- **One spot can't carry him** (`VOL_CAP`): a zone's Shots part counts at most double the league's
+  (Embiid vs NYK: bigs take 2.6x the league's left-baseline mids there, 13% of his shots, and that
+  alone made him a +50% Over).
+- **His diet has to agree** (`backing`): the share of his shots (zones and shot types, averaged like
+  Makes) pointing the read's way must be `AGREE` 40%+ and twice the share pointing against,
+  else Toss Up (Embiid: his rim and paint, 41%, both against him; 3 of 4 tags red on an Over).
+- **Odds to be pulled:** no price on the read's side at his main line = no read (Cain, Sharpe).
 """
 from __future__ import annotations
 
@@ -41,6 +53,11 @@ from pathlib import Path
 
 LEAN = 0.05
 STRONG = 0.12
+MIN_SHOTS = {"points": 25, "threes": 10}
+MIN_ALLOWED = {"points": 40, "threes": 25}
+VOL_CAP = 1.0
+AGREE = 0.4
+EVEN = 0.05  # a zone or shot type within 5% either way points nowhere
 MARKETS = ("points", "threes")
 GROUP = {"PG": "G", "SG": "G", "G": "G", "SF": "F", "PF": "F", "F": "F", "C": "C"}
 THREES = ("c3L", "c3R", "w3L", "w3R", "t3")
@@ -150,7 +167,7 @@ def read(shots: list, market: str, d: Tally | None, lg: Tally | None, d_all: Tal
         dq = (d_all.zone.get(z, [0, 0])[1] / d_all.n) if d_all.n else None
         vol = dq / lq - 1 if dq is not None and lq else None
         if vol is not None:
-            shots_ += share * vol
+            shots_ += share * min(vol, VOL_CAP)
         zones.append({"z": z, "n": c, "share": round(share, 3), "dmade": (d.zone.get(z) or [0, 0])[0], "dtried": (d.zone.get(z) or [0, 0])[1],
                       "fg": None if dr is None or lr is None else round(dr - lr, 3), "vol": None if vol is None else round(vol, 3),
                       "lg": None if lr is None else round(lr, 3)})
@@ -168,8 +185,39 @@ def read(shots: list, market: str, d: Tally | None, lg: Tally | None, d_all: Tal
     makes = ((make_z + make_k) / 2) / base if base else 0.0
     score = (1 + shots_) * (1 + makes) - 1
     side = "over" if score >= LEAN else "under" if score <= -LEAN else "toss"
-    return {"score": round(score, 4), "makes": round(makes, 4), "shots": round(shots_, 4), "side": side,
-            "strong": abs(score) >= STRONG, "n": n, "dn": d.n, "zones": zones, "kinds": kinds}
+    back = backing(zones, kinds, 1 if side == "over" else -1) if side != "toss" else None
+    thin = n < MIN_SHOTS[market] or d.n < MIN_ALLOWED[market]
+    mixed = bool(back) and not (back[0] >= AGREE and back[0] >= 2 * back[1])
+    out = {"score": round(score, 4), "makes": round(makes, 4), "shots": round(shots_, 4), "side": "toss" if thin or mixed else side,
+           "strong": abs(score) >= STRONG and not (thin or mixed), "n": n, "dn": d.n, "zones": zones, "kinds": kinds}
+    if back:
+        out["back"] = [round(back[0], 3), round(back[1], 3)]
+    if thin:
+        out["thin"] = True
+    elif mixed:
+        out["mixed"] = True
+    return out
+
+
+def zone_effect(z: dict) -> float | None:
+    """A zone's Shots and Makes together for him (the score's rule, the page's zmZoneEffect)."""
+    if z["vol"] is None and z["fg"] is None:
+        return None
+    vol = min(z["vol"] or 0, VOL_CAP)
+    return (1 + vol) * (1 + (z["fg"] / z["lg"] if z["fg"] is not None and z["lg"] else 0)) - 1
+
+
+def backing(zones: list, kinds: list, sign: int) -> tuple:
+    """(share of his shots pointing the read's way, share pointing against): zones and shot types
+    averaged, like Makes."""
+    def part(items, effect):
+        total = sum(i["share"] for i in items) or 1
+        pro = sum(i["share"] for i in items if (e := effect(i)) is not None and e * sign > EVEN)
+        con = sum(i["share"] for i in items if (e := effect(i)) is not None and e * sign < -EVEN)
+        return pro / total, con / total
+    zp, zc = part(zones, zone_effect)
+    kp, kc = part(kinds, lambda k: k["fg"] / k["lg"] if k["fg"] is not None and k["lg"] else None)
+    return (zp + kp) / 2, (zc + kc) / 2
 
 
 def slate_date(games: list, today: str) -> str | None:
@@ -215,6 +263,10 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
                 if r:
                     r["line"] = main_line(q)
                     r["price"], r["book"] = best_price(q, "u" if r["side"] == "under" else "o", r["line"])
+                    if r["price"] is None and r["side"] == "toss":
+                        r["price"], r["book"] = best_price(q, "u", r["line"])
+                    if r["price"] is None:
+                        continue  # no odds, no read (the owner, 2026-10-30: Cain and Sharpe "if they get odds they can surface")
                     row[m] = r
             if any(m in row for m in MARKETS):
                 players[str(pid)] = row
@@ -239,7 +291,8 @@ def block(shots_block: dict | None, pos: dict, games: list, book_odds: dict, tod
     return {"date": date, "games": out_games, "players": players, "defense": defense, "league": lg, "league_n": lg_n,
             "grid": grid(shots_block, pos),
             "pos": {str(k): group_of(v) for k, v in pos.items() if str(k) in (shots_block.get("players") or {})},
-            "lean": LEAN, "strong": STRONG}
+            "lean": LEAN, "strong": STRONG, "vol_cap": VOL_CAP, "even": EVEN,
+            "min_shots": MIN_SHOTS, "min_allowed": MIN_ALLOWED}
 
 
 # ---- the record (the owner, 2026-10-27: "grade based on score buckets") ----

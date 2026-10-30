@@ -36,13 +36,16 @@ function zmShade(v, full, alpha = 0.5) {
   if (v === null || v === undefined || !Number.isFinite(v)) return "";
   return nbaShotColor(Math.max(-1, Math.min(1, v / full)) * NBA_SHOT_FULL, alpha);
 }
-// The read in words, Matchup View only (the owner: "it was helpful there").
-const zmReadWord = (r) => (r.side === "toss" ? "Toss Up" : `${r.strong ? "Strong " : ""}${r.side === "over" ? "Over" : "Under"}`);
+// The read in words, Matchup View only (the owner: "it was helpful there"). Too few shots (his, or the
+// defense's against his group) is Small Sample, never a read (zone_matchups.py MIN_SHOTS).
+const zmReadWord = (r) => (r.thin ? "Small Sample" : r.side === "toss" ? "Toss Up" : `${r.strong ? "Strong " : ""}${r.side === "over" ? "Over" : "Under"}`);
 const zmGame = (id) => (zmM().games || []).find((g) => g.game_id === id) || null;
 const zmWord = (r) => (r.side === "over" ? "OVER" : r.side === "under" ? "UNDER" : "TOSS UP");
 
-// A zone's Shots and Makes together for him (the score's own rule): + helps, - hurts.
-const zmZoneEffect = (z) => (z.vol === null && z.fg === null ? null : (1 + (z.vol || 0)) * (1 + (z.fg !== null && z.lg ? z.fg / z.lg : 0)) - 1);
+// A zone's Shots and Makes together for him (the score's own rule, zone_matchups.py zone_effect): + helps,
+// - hurts. The Shots part counts at most double the league's (VOL_CAP: one small spot can't carry him).
+const zmVol = (z) => Math.min(z.vol || 0, (zmM() && zmM().vol_cap) || 1);
+const zmZoneEffect = (z) => (z.vol === null && z.fg === null ? null : (1 + zmVol(z)) * (1 + (z.fg !== null && z.lg ? z.fg / z.lg : 0)) - 1);
 const zmKindEffect = (k) => (k.fg !== null && k.lg ? k.fg / k.lg : null);
 const zmMakeRate = (m, a) => (a ? `${Math.round((m / a) * 100)}%` : "--");
 const zmLgRate = (lg) => (lg === null || lg === undefined ? "--" : `${Math.round(lg * 100)}%`);
@@ -64,13 +67,40 @@ function zmKindWhy(p, k) {
   if (!k.dtried) return `${head}\n${p.opp} hasn't faced one by ${g} yet.`;
   return `${head}\nMakes: ${p.opp} has let ${g} make ${k.dmade} of ${k.dtried} of these (${zmMakeRate(k.dmade, k.dtried)}); league ${g} ${zmLgRate(k.lg)}.${zmMakesWords(k.fg)}`;
 }
-// His biggest zones (15%+ of his shots, at least one) and his main shot types. A tag's color =
-// that spot for him (green helps, red hurts): a red tag on an Over is the counterpoint.
+// Why he's surfaced, in a few words (the owner, 2026-10-30: the percentages and spots "don't really do
+// much for me or the users ... something like '3s volume' or 'Self Creates'", one row): his areas (15%+
+// of his shots) and shot types (25%+) that this defense moves 5%+ either way, the biggest first (his
+// share x how much it moves him). Volume / Makes = which part moves it. Color = for him (green helps, red
+// hurts: a red tag on an Over is the counterpoint); the numbers are in the hover.
+const ZM_AREAS = {
+  points: [["Rim", ["ra"]], ["Paint", ["paint"]], ["Mid-Range", ["mBL", "mWL", "mT", "mWR", "mBR"]], ["Corner 3s", ["c3L", "c3R"]], ["Above-Break 3s", ["w3L", "w3R", "t3"]]],
+  threes: [["Corner 3s", ["c3L", "c3R"]], ["Wing 3s", ["w3L", "w3R"]], ["Top 3s", ["t3"]]],
+};
+const ZM_KIND_TAG = { 1: "Self Creates", 2: "Catch & Shoot", 3: "Drives & Cuts" };
 function zmDiet(p, r) {
-  const chip = (label, share, effect, why) => `<span class="zm-chip" style="background:${zmShade(effect, 0.3, 0.45) || "var(--panel-2)"}" title="${why.replace(/"/g, "&quot;")}">${Math.round(share * 100)}% ${label}</span>`;
-  const out = r.zones.filter((z, i) => i === 0 || z.share >= 0.15).slice(0, 3).map((z) => chip(ZM_ZONE[z.z], z.share, zmZoneEffect(z), zmZoneWhy(p, z)));
-  r.kinds.filter((k, i) => i === 0 || k.share >= 0.3).slice(0, 2).forEach((k) => out.push(chip(ZM_KIND[k.k], k.share, zmKindEffect(k), zmKindWhy(p, k))));
-  return out.join("");
+  const even = (zmM() && zmM().even) || 0.05;
+  const tags = [];
+  ZM_AREAS[ZM.market].forEach(([name, keys]) => {
+    const zs = r.zones.filter((z) => keys.includes(z.z) && zmZoneEffect(z) !== null);
+    const share = zs.reduce((t, z) => t + z.share, 0);
+    if (share < 0.15) return;
+    const avg = (f) => zs.reduce((t, z) => t + z.share * f(z), 0) / share;
+    const effect = avg(zmZoneEffect);
+    const vol = avg(zmVol);
+    const makes = avg((z) => (z.fg !== null && z.lg ? z.fg / z.lg : 0));
+    const head = `${Math.round(share * 100)}% of his ${ZM.market === "threes" ? "threes" : "shots"}. Together: ${zmPct(effect)} for him.`;
+    const why = [head, ...zs.map((z) => `${ZM_ZONE[z.z]}: ${zmZoneWhy(p, z)}`)].join("\n\n");
+    tags.push({ label: `${name} ${Math.abs(vol) >= Math.abs(makes) ? "Volume" : "Makes"}`, share, effect, why });
+  });
+  r.kinds.forEach((k) => {
+    const effect = zmKindEffect(k);
+    if (k.share >= 0.25 && effect !== null) tags.push({ label: ZM_KIND_TAG[k.k], share: k.share, effect, why: zmKindWhy(p, k) });
+  });
+  return tags
+    .filter((t) => Math.abs(t.effect) >= even)
+    .sort((a, b) => b.share * Math.abs(b.effect) - a.share * Math.abs(a.effect))
+    .map((t) => `<span class="zm-chip" style="background:${zmShade(t.effect, 0.3, 0.45)}" title="${t.why.replace(/"/g, "&quot;")}">${t.label}</span>`)
+    .join("");
 }
 // The main line (the player card's rule: the line most books hang) and the best price on the read's
 // side across the member's books, live from data.json's odds; a click shows every book. Falls back to
@@ -120,11 +150,11 @@ function zmTable(rows, opts = {}) {
     <th class="num" title="How much more his kind of shots go in against this defense, from his zones and shot types">Makes</th>
     <th class="num" title="The line most books hang, on the read's side">Line</th>
     <th class="num" title="The best price on that side across your books (click for every book). No EV from us.">Odds</th>
-    <th title="Share of his shots from each spot / shot type. Green = this defense helps him there, red = hurts (the counterpoint). Hover a tag for why.">His Diet vs This Defense</th>
+    <th title="Where and how he shoots that this defense moves the most, biggest first. Volume = more / fewer of those shots, Makes = more / fewer go in. Green = helps him, red = hurts (the counterpoint). Hover a tag for the numbers.">Why</th>
     <th class="num" title="His shots this season / shots this defense allowed his group">Sample</th>
   </tr></thead><tbody>${body}</tbody></table></div>`;
 }
-// Tags fill at most two lines, the same box on every row; the ones that don't fit fold into a
+// Tags fill one line (zones.css .zm-tags), the same box on every row; the ones that don't fit fold into a
 // "+N" pill naming them on hover (sim-board.js fitTags, the site's table rule).
 function zmFitTags() {
   document.querySelectorAll(".zm-tags").forEach((box) => {

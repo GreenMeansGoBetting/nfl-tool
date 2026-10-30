@@ -115,9 +115,9 @@ class Fingerprints(unittest.TestCase):
 class Timer(unittest.TestCase):
     """nbaWatch with ESPN, the NBA, version.json and GitHub stood in for."""
 
-    def run_watch(self, espn=ESPN, lineups=LINEUPS, refresh=None, deploy=None, now="2026-10-25T19:10:00Z", watch_block=None, reports=None):
+    def run_watch(self, espn=ESPN, lineups=LINEUPS, refresh=None, deploy=None, now="2026-10-25T19:10:00Z", watch_block=None, reports=None, box=None, built=None):
         w = watch_block if watch_block is not None else {**block(), "rep_at": "2026-10-25T19:00Z"}
-        return PAGE.evaluate("""async ([w, espn, lu, refresh, deploy, now, reports]) => {
+        return PAGE.evaluate("""async ([w, espn, lu, refresh, deploy, now, reports, box, built]) => {
             const pressed = [];
             const realFetch = window.fetch, realNow = Date.now;
             Date.now = () => Date.parse(now);
@@ -126,7 +126,8 @@ class Timer(unittest.TestCase):
                 const posted = (reports || {})[url.split('Injury-Report_')[1]];
                 return new Response('', { status: posted ? 200 : 404, headers: posted ? { 'Last-Modified': posted } : {} });
               }
-              const body = url.startsWith('https://nfl.gmgsports.org/version.json') ? { nba: { watch: w } }
+              if (url.includes('player_box_')) return new Response('', { status: box ? 200 : 404, headers: box ? { 'Last-Modified': box } : {} });
+              const body = url.startsWith('https://nfl.gmgsports.org/version.json') ? { nba: { watch: w, built } }
                 : url.includes('espn.com') ? espn : url.includes('stats.nba.com') ? lu : null;
               if (body === 'fail') return new Response('', { status: 500 });
               if (body === null) return new Response('', { status: 404 });
@@ -138,7 +139,7 @@ class Timer(unittest.TestCase):
             };
             try { return { said: await W.nbaWatch({}, github), pressed }; }
             finally { window.fetch = realFetch; Date.now = realNow; }
-        }""", [w, espn, lineups, refresh, deploy, now, reports])
+        }""", [w, espn, lineups, refresh, deploy, now, reports, box, built])
 
     def test_nothing_changed_nothing_pressed(self):
         self.assertEqual(self.run_watch(), {"said": "nothing changed", "pressed": []})
@@ -259,6 +260,18 @@ class Grade(unittest.TestCase):
         self.assertEqual(got["pressed"], [])  # 50 minutes ago: the box scores weren't there yet
         self.assertEqual(Timer.run_watch(self, watch_block={**morning, "ungraded": 0})["said"], "no game left tonight")
         self.assertEqual(Timer.run_watch(self, deploy=[{"status": "queued"}], watch_block=morning)["pressed"], [])
+
+    def test_new_box_scores_press_at_once(self):
+        # 2026-10-30: the 8:00 press ran three minutes before the box scores landed (8:03), and the
+        # hourly wait kept 10-29's plays ungraded until 9:50
+        morning = {**block(), "teams": [], "ungraded": 12}
+        ran = [{"status": "completed", "created_at": "2026-10-25T19:00:00Z"}]
+        got = Timer.run_watch(self, watch_block=morning, refresh=ran, built="2026-10-25T19:02Z", box="Sun, 25 Oct 2026 19:03:41 GMT")
+        self.assertEqual(got["pressed"], [["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "grade"}}]])
+        # the same copy the last build (or a refresh started after it) already read: the hourly wait
+        for built, started in (("2026-10-25T19:05Z", "2026-10-25T19:00:00Z"), ("2026-10-25T19:02Z", "2026-10-25T19:04:00Z")):
+            got = Timer.run_watch(self, watch_block=morning, refresh=[{"status": "completed", "created_at": started}], built=built, box="Sun, 25 Oct 2026 19:03:41 GMT")
+            self.assertEqual(got["pressed"], [], (built, started))
 
     def test_the_build_counts_the_last_two_nights_only(self):
         import build_nba

@@ -21,6 +21,10 @@
 // the NBA until the day's injury news, so while version.json nba.watch.ungraded
 // is above 0 this presses the refresh with source "grade", at most once every
 // GRADE_MINUTES (the box scores may be late), from 8 am Eastern (wrangler.toml).
+// 2026-10-30: the box scores landed at 8:03, three minutes after the 8:00 press,
+// and the next waited an hour (then behind two deploys): plays sat until 9:50.
+// So the box-score file is HEADed too, and a copy newer than the last NBA build
+// presses at once (that build is then newer, so once per copy).
 //
 // The odds again after a ruling (2026-10-28, the night Luka was ruled out):
 // the refresh ran within a minute of the news, before the books moved
@@ -42,6 +46,19 @@ const NBA_REPORT = "https://ak-static.cms.nba.com/referee/injury/Injury-Report_"
 const LISTED = ["Confirmed", "Expected"];
 export const REPRESS_MINUTES = 4;
 export const GRADE_MINUTES = 60;
+// hoopR's box scores (build_nba.py FILES["player_box"]; the season = the year it ends)
+const BOX_FILE = (year) => `https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_nba_player_boxscores/player_box_${year}.parquet`;
+
+// True when the box-score file was replaced after the NBA build that counted the waiting
+// plays and after the last refresh started (a refresh that failed waits out the hour).
+export async function newBoxScores(built, lastStarted, now = new Date(Date.now())) {
+  const builtAt = Math.max(Date.parse(String(built || "").replace(/Z?$/, "Z")) || 0, Date.parse(lastStarted || "") || 0);
+  if (!builtAt) return false;
+  const year = now.getUTCFullYear() + (now.getUTCMonth() >= 8 ? 1 : 0);
+  const resp = await fetch(BOX_FILE(year), { method: "HEAD", cf: { cacheTtl: 0 } }).catch(() => null);
+  const at = resp && resp.ok ? Date.parse(resp.headers.get("Last-Modified") || "") : NaN;
+  return at > builtAt;
+}
 
 // ---- the fingerprints (watch.py's digest / injury_rows / lineup_rows) ----
 export async function digest(rows) {
@@ -146,7 +163,8 @@ export async function nbaWatch(env, github) {
     return `refresh started (the odds again after a ruling, due ${recheck})`;
   }
   if (!changed && !report) {
-    if (last && Date.now() - Date.parse(last.created_at) < GRADE_MINUTES * 60000) return `${watch.ungraded} plays wait on a box score; the last refresh was under an hour ago`;
+    const fresh = await newBoxScores(version.nba.built, last && last.created_at);
+    if (!fresh && last && Date.now() - Date.parse(last.created_at) < GRADE_MINUTES * 60000) return `${watch.ungraded} plays wait on a box score; the last refresh was under an hour ago`;
     await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "grade" } });
     return `refresh started (${watch.ungraded} plays to grade)`;
   }
