@@ -3,30 +3,6 @@
   "date": "2026-10-30",
   "points": [
    [
-    "4277905",
-    "Trae Young",
-    "WSH",
-    "CHA",
-    -0.0793,
-    "under",
-    false,
-    19.5,
-    -108,
-    "novig"
-   ],
-   [
-    "4278129",
-    "Deandre Ayton",
-    "WSH",
-    "CHA",
-    -0.3346,
-    "under",
-    true,
-    5.5,
-    -120,
-    "thescore"
-   ],
-   [
     "4602025",
     "Sion James",
     "CHA",
@@ -37,42 +13,6 @@
     5.5,
     -117,
     "prophetx"
-   ],
-   [
-    "4845374",
-    "Bub Carrington",
-    "WSH",
-    "CHA",
-    0.1659,
-    "over",
-    true,
-    2.5,
-    -600,
-    "bet365"
-   ],
-   [
-    "5142718",
-    "AJ Dybantsa",
-    "WSH",
-    "CHA",
-    0.1642,
-    "over",
-    true,
-    15.5,
-    102,
-    "bet365"
-   ],
-   [
-    "5160992",
-    "Alex Sarr",
-    "WSH",
-    "CHA",
-    0.1892,
-    "over",
-    true,
-    10.5,
-    -108,
-    "novig"
    ],
    [
     "6583",
@@ -97,19 +37,7 @@
     "under",
     true,
     1.5,
-    -138,
-    "novig"
-   ],
-   [
-    "4277905",
-    "Trae Young",
-    "WSH",
-    "CHA",
-    -0.0748,
-    "under",
-    false,
-    2.5,
-    -130,
+    -141,
     "novig"
    ],
    [
@@ -121,8 +49,8 @@
     "under",
     true,
     2.5,
-    -115,
-    "prophetx"
+    -108,
+    "novig"
    ],
    [
     "4602025",
@@ -133,68 +61,8 @@
     "under",
     true,
     1.5,
-    -156,
-    "novig"
-   ],
-   [
-    "4845374",
-    "Bub Carrington",
-    "WSH",
-    "CHA",
-    0.3016,
-    "over",
-    true,
-    1.5,
-    140,
+    -155,
     "bet365"
-   ],
-   [
-    "5104155",
-    "Bilal Coulibaly",
-    "WSH",
-    "CHA",
-    -0.3067,
-    "under",
-    true,
-    0.5,
-    122,
-    "bet365"
-   ],
-   [
-    "5142718",
-    "AJ Dybantsa",
-    "WSH",
-    "CHA",
-    -0.0556,
-    "under",
-    false,
-    1.5,
-    -156,
-    "novig"
-   ],
-   [
-    "5160992",
-    "Alex Sarr",
-    "WSH",
-    "CHA",
-    0.9611,
-    "over",
-    true,
-    0.5,
-    -164,
-    "caesars"
-   ],
-   [
-    "5238230",
-    "Tre Johnson",
-    "WSH",
-    "CHA",
-    0.1041,
-    "over",
-    false,
-    1.5,
-    -106,
-    "novig"
    ],
    [
     "6583",
@@ -222,19 +90,7 @@
     "over",
     false,
     16.5,
-    106,
-    "novig"
-   ],
-   [
-    "4065648",
-    "Jayson Tatum",
-    "BOS",
-    "CHI",
-    0.1774,
-    "over",
-    true,
-    27.5,
-    -108,
+    104,
     "novig"
    ],
    [
@@ -242,11 +98,11 @@
     "Payton Pritchard",
     "BOS",
     "CHI",
-    0.1215,
+    0.1119,
     "over",
-    true,
+    false,
     16.5,
-    100,
+    102,
     "novig"
    ],
    [
@@ -254,23 +110,11 @@
     "Paul George",
     "BOS",
     "CHI",
-    0.2533,
+    0.2238,
     "over",
     true,
     20.5,
-    -102,
-    "novig"
-   ],
-   [
-    "4351852",
-    "Mitchell Robinson",
-    "BOS",
-    "CHI",
-    0.1676,
-    "over",
-    true,
-    5.5,
-    -122,
+    -106,
     "novig"
    ],
    [
@@ -290,24 +134,12 @@
     "Jalen Smith",
     "CHI",
     "BOS",
-    0.1072,
+    0.0851,
     "over",
     false,
     11.5,
-    102,
+    104,
     "novig"
-   ],
-   [
-    "4683689",
-    "Jordan Walsh",
-    "BOS",
-    "CHI",
-    -0.0884,
-    "under",
-    false,
-    4.5,
-    114,
-    "prophetx"
    ],
    [
     "4711294",
@@ -330,7 +162,7 @@
     "under",
     true,
     10.5,
-    117,
+    100,
     "prophetx"
    ],
    [
@@ -348,18 +180,6 @@
   ],
   "threes": [
    [
-    "2595516",
-    "Norman Powell",
-    "CHI",
-    "BOS",
-    0.1884,
-    "over",
-    true,
-    2.5,
-    -108,
-    "novig"
-   ],
-   [
     "3078576",
     "Derrick White",
     "BOS",
@@ -368,39 +188,15 @@
     "over",
     true,
     2.5,
-    115,
-    "bet365"
-   ],
-   [
-    "4065648",
-    "Jayson Tatum",
-    "BOS",
-    "CHI",
-    -0.1068,
-    "under",
-    false,
-    2.5,
-    141,
+    104,
     "novig"
-   ],
-   [
-    "4065804",
-    "Sam Hauser",
-    "BOS",
-    "CHI",
-    -0.0649,
-    "under",
-    false,
-    0.5,
-    null,
-    null
    ],
    [
     "4066354",
     "Payton Pritchard",
     "BOS",
     "CHI",
-    0.3237,
+    0.3059,
     "over",
     true,
     2.5,
@@ -412,84 +208,12 @@
     "Paul George",
     "BOS",
     "CHI",
-    0.491,
+    0.4246,
     "over",
     true,
     3.5,
     150,
     "novig"
-   ],
-   [
-    "4397189",
-    "Jalen Smith",
-    "CHI",
-    "BOS",
-    0.2217,
-    "over",
-    true,
-    1.5,
-    -130,
-    "prophetx"
-   ],
-   [
-    "4683689",
-    "Jordan Walsh",
-    "BOS",
-    "CHI",
-    -0.1436,
-    "under",
-    true,
-    0.5,
-    130,
-    "bet365"
-   ],
-   [
-    "4711294",
-    "Matas Buzelis",
-    "CHI",
-    "BOS",
-    0.1835,
-    "over",
-    true,
-    1.5,
-    -149,
-    "prophetx"
-   ],
-   [
-    "4871145",
-    "Josh Giddey",
-    "CHI",
-    "BOS",
-    0.2924,
-    "over",
-    true,
-    1.5,
-    175,
-    "bet365"
-   ],
-   [
-    "5044385",
-    "Leonard Miller",
-    "CHI",
-    "BOS",
-    0.2277,
-    "over",
-    true,
-    1.5,
-    170,
-    "novig"
-   ],
-   [
-    "5095151",
-    "Caleb Wilson",
-    "CHI",
-    "BOS",
-    0.2815,
-    "over",
-    true,
-    1.5,
-    -120,
-    "prophetx"
    ]
   ]
  },
@@ -501,7 +225,7 @@
     "Julius Randle",
     "BKN",
     "DET",
-    -0.1767,
+    -0.1794,
     "under",
     true,
     19.5,
@@ -509,88 +233,16 @@
     "bet365"
    ],
    [
-    "3150844",
-    "Moritz Wagner",
-    "BKN",
-    "DET",
-    -0.1578,
-    "under",
-    true,
-    8.5,
-    -120,
-    "draftkings"
-   ],
-   [
-    "3157465",
-    "Duncan Robinson",
-    "DET",
-    "BKN",
-    -0.0724,
-    "under",
-    false,
-    13.5,
-    -104,
-    "novig"
-   ],
-   [
     "4278104",
     "Michael Porter Jr.",
     "BKN",
     "DET",
-    -0.202,
+    -0.2044,
     "under",
     true,
     21.5,
-    -106,
+    -108,
     "novig"
-   ],
-   [
-    "4278562",
-    "Paul Reed",
-    "DET",
-    "BKN",
-    -0.2087,
-    "under",
-    true,
-    15.5,
-    -117,
-    "prophetx"
-   ],
-   [
-    "4395702",
-    "Isaiah Joe",
-    "DET",
-    "BKN",
-    0.5137,
-    "over",
-    true,
-    8.5,
-    104,
-    "novig"
-   ],
-   [
-    "4432166",
-    "Cade Cunningham",
-    "DET",
-    "BKN",
-    -0.0773,
-    "under",
-    false,
-    24.5,
-    100,
-    "prophetx"
-   ],
-   [
-    "4684742",
-    "Ausar Thompson",
-    "DET",
-    "BKN",
-    -0.0961,
-    "under",
-    false,
-    10.5,
-    -122,
-    "prophetx"
    ],
    [
     "5279130",
@@ -601,47 +253,11 @@
     "under",
     false,
     10.5,
-    -125,
-    "thescore"
+    -120,
+    "bet365"
    ]
   ],
   "threes": [
-   [
-    "3064514",
-    "Julius Randle",
-    "BKN",
-    "DET",
-    -0.1787,
-    "under",
-    true,
-    1.5,
-    -150,
-    "novig"
-   ],
-   [
-    "3150844",
-    "Moritz Wagner",
-    "BKN",
-    "DET",
-    -0.6345,
-    "under",
-    true,
-    0.5,
-    138,
-    "novig"
-   ],
-   [
-    "3157465",
-    "Duncan Robinson",
-    "DET",
-    "BKN",
-    -0.0912,
-    "under",
-    false,
-    2.5,
-    141,
-    "novig"
-   ],
    [
     "3908845",
     "John Collins",
@@ -651,31 +267,7 @@
     "over",
     true,
     1.5,
-    170,
-    "bet365"
-   ],
-   [
-    "4278104",
-    "Michael Porter Jr.",
-    "BKN",
-    "DET",
-    -0.2294,
-    "under",
-    true,
-    3.5,
-    -150,
-    "novig"
-   ],
-   [
-    "4278562",
-    "Paul Reed",
-    "DET",
-    "BKN",
-    0.1467,
-    "over",
-    true,
-    0.5,
-    180,
+    160,
     "bet365"
    ],
    [
@@ -687,32 +279,8 @@
     "over",
     true,
     1.5,
-    -127,
+    -130,
     "novig"
-   ],
-   [
-    "4432194",
-    "Day'Ron Sharpe",
-    "BKN",
-    "DET",
-    -0.712,
-    "under",
-    true,
-    0.5,
-    -370,
-    "bet365"
-   ],
-   [
-    "4684742",
-    "Ausar Thompson",
-    "DET",
-    "BKN",
-    0.1634,
-    "over",
-    true,
-    0.5,
-    525,
-    "bet365"
    ],
    [
     "4702177",
@@ -723,32 +291,8 @@
     "over",
     true,
     1.5,
-    174,
+    170,
     "novig"
-   ],
-   [
-    "5107199",
-    "Daniss Jenkins",
-    "DET",
-    "BKN",
-    0.058,
-    "over",
-    false,
-    1.5,
-    230,
-    "bet365"
-   ],
-   [
-    "5279130",
-    "Nolan Traore",
-    "BKN",
-    "DET",
-    0.1447,
-    "over",
-    true,
-    0.5,
-    -195,
-    "thescore"
    ]
   ]
  },
@@ -756,52 +300,16 @@
   "date": "2026-10-30",
   "points": [
    [
-    "1966",
-    "LeBron James",
-    "PHI",
-    "NY",
-    0.0611,
-    "over",
-    false,
-    16.5,
-    101,
-    "prophetx"
-   ],
-   [
-    "3059318",
-    "Joel Embiid",
-    "PHI",
-    "NY",
-    0.5015,
-    "over",
-    true,
-    22.5,
-    -112,
-    "prophetx"
-   ],
-   [
-    "3062679",
-    "Josh Hart",
-    "NY",
-    "PHI",
-    0.0601,
-    "over",
-    false,
-    10.5,
-    -104,
-    "prophetx"
-   ],
-   [
     "3136195",
     "Karl-Anthony Towns",
     "NY",
     "PHI",
-    -0.1164,
+    -0.1212,
     "under",
-    false,
+    true,
     19.5,
-    101,
-    "prophetx"
+    102,
+    "novig"
    ],
    [
     "3147657",
@@ -812,7 +320,7 @@
     "under",
     true,
     10.5,
-    -113,
+    -122,
     "novig"
    ],
    [
@@ -825,18 +333,6 @@
     true,
     8.5,
     -108,
-    "novig"
-   ],
-   [
-    "3934719",
-    "OG Anunoby",
-    "NY",
-    "PHI",
-    -0.076,
-    "under",
-    false,
-    16.5,
-    -102,
     "novig"
    ],
    [
@@ -866,42 +362,6 @@
   ],
   "threes": [
    [
-    "1966",
-    "LeBron James",
-    "PHI",
-    "NY",
-    0.1279,
-    "over",
-    true,
-    1.5,
-    178,
-    "novig"
-   ],
-   [
-    "3059318",
-    "Joel Embiid",
-    "PHI",
-    "NY",
-    0.5957,
-    "over",
-    true,
-    1.5,
-    194,
-    "novig"
-   ],
-   [
-    "3136195",
-    "Karl-Anthony Towns",
-    "NY",
-    "PHI",
-    0.0856,
-    "over",
-    false,
-    1.5,
-    130,
-    "novig"
-   ],
-   [
     "3147657",
     "Mikal Bridges",
     "NY",
@@ -922,31 +382,7 @@
     "under",
     true,
     1.5,
-    -106,
-    "novig"
-   ],
-   [
-    "3917376",
-    "Jaylen Brown",
-    "PHI",
-    "NY",
-    0.0654,
-    "over",
-    false,
-    1.5,
-    122,
-    "novig"
-   ],
-   [
-    "3934672",
-    "Jalen Brunson",
-    "NY",
-    "PHI",
-    -0.1394,
-    "under",
-    true,
-    1.5,
-    160,
+    -102,
     "novig"
    ],
    [
@@ -982,7 +418,7 @@
     "under",
     false,
     2.5,
-    -122,
+    -120,
     "novig"
    ],
    [
@@ -1003,78 +439,6 @@
   "date": "2026-10-30",
   "points": [
    [
-    "3133635",
-    "Jevon Carter",
-    "ORL",
-    "TOR",
-    0.0661,
-    "over",
-    false,
-    5.5,
-    132,
-    "4cx"
-   ],
-   [
-    "3134908",
-    "Jakob Poeltl",
-    "TOR",
-    "ORL",
-    0.1736,
-    "over",
-    true,
-    6.5,
-    109,
-    "prophetx"
-   ],
-   [
-    "4277847",
-    "Wendell Carter Jr.",
-    "ORL",
-    "TOR",
-    -0.188,
-    "under",
-    true,
-    10.5,
-    -102,
-    "draftkings"
-   ],
-   [
-    "4278572",
-    "Jamal Cain",
-    "ORL",
-    "TOR",
-    -0.2774,
-    "under",
-    true,
-    2.5,
-    260,
-    "bet365"
-   ],
-   [
-    "4397204",
-    "Colin Castleton",
-    "ORL",
-    "TOR",
-    0.0524,
-    "over",
-    false,
-    4.5,
-    475,
-    "bet365"
-   ],
-   [
-    "4432241",
-    "Jamal Shead",
-    "TOR",
-    "ORL",
-    0.0698,
-    "over",
-    false,
-    7.5,
-    102,
-    "novig"
-   ],
-   [
     "4566434",
     "Franz Wagner",
     "ORL",
@@ -1083,8 +447,8 @@
     "under",
     false,
     22.5,
-    -110,
-    "bet365"
+    -108,
+    "draftkings"
    ],
    [
     "4702382",
@@ -1097,69 +461,9 @@
     11.5,
     106,
     "novig"
-   ],
-   [
-    "5149115",
-    "Allen Graves",
-    "TOR",
-    "ORL",
-    0.0906,
-    "over",
-    false,
-    2.5,
-    -425,
-    "bet365"
    ]
   ],
   "threes": [
-   [
-    "3133635",
-    "Jevon Carter",
-    "ORL",
-    "TOR",
-    0.2454,
-    "over",
-    true,
-    1.5,
-    150,
-    "bet365"
-   ],
-   [
-    "4066320",
-    "Desmond Bane",
-    "ORL",
-    "TOR",
-    0.1074,
-    "over",
-    false,
-    2.5,
-    -125,
-    "fanatics"
-   ],
-   [
-    "4277847",
-    "Wendell Carter Jr.",
-    "ORL",
-    "TOR",
-    -0.8119,
-    "under",
-    true,
-    0.5,
-    135,
-    "novig"
-   ],
-   [
-    "4278572",
-    "Jamal Cain",
-    "ORL",
-    "TOR",
-    -0.3854,
-    "under",
-    true,
-    0.5,
-    102,
-    "bet365"
-   ],
    [
     "4395625",
     "RJ Barrett",
@@ -1181,19 +485,7 @@
     "over",
     false,
     2.5,
-    117,
-    "novig"
-   ],
-   [
-    "4432241",
-    "Jamal Shead",
-    "TOR",
-    "ORL",
-    0.2679,
-    "over",
-    true,
-    0.5,
-    -203,
+    115,
     "novig"
    ],
    [
@@ -1217,7 +509,7 @@
     "under",
     true,
     1.5,
-    -163,
+    -150,
     "novig"
    ],
    [
@@ -1229,56 +521,8 @@
     "under",
     true,
     2.5,
-    -125,
-    "thescore"
-   ],
-   [
-    "4712849",
-    "Anthony Black",
-    "ORL",
-    "TOR",
-    0.1491,
-    "over",
-    true,
-    1.5,
-    102,
-    "novig"
-   ],
-   [
-    "5093267",
-    "Collin Murray-Boyles",
-    "TOR",
-    "ORL",
-    0.3295,
-    "over",
-    true,
-    0.5,
-    190,
-    "bet365"
-   ],
-   [
-    "5149115",
-    "Allen Graves",
-    "TOR",
-    "ORL",
-    0.1392,
-    "over",
-    true,
-    0.5,
-    122,
-    "bet365"
-   ],
-   [
-    "5239561",
-    "Jase Richardson",
-    "ORL",
-    "TOR",
-    0.2403,
-    "over",
-    true,
-    0.5,
-    -160,
-    "novig"
+    -127,
+    "caesars"
    ]
   ]
  },
@@ -1294,8 +538,8 @@
     "under",
     false,
     31.5,
-    -104,
-    "fanduel"
+    -102,
+    "novig"
    ],
    [
     "3059319",
@@ -1305,8 +549,8 @@
     -0.1487,
     "under",
     true,
-    12.5,
-    101,
+    13.5,
+    -122,
     "draftkings"
    ],
    [
@@ -1322,30 +566,6 @@
     "bet365"
    ],
    [
-    "3149673",
-    "Pascal Siakam",
-    "IND",
-    "MIA",
-    0.0528,
-    "over",
-    false,
-    23.5,
-    -110,
-    "fanatics"
-   ],
-   [
-    "4066261",
-    "Bam Adebayo",
-    "MIA",
-    "IND",
-    0.1928,
-    "over",
-    true,
-    17.5,
-    -122,
-    "fanduel"
-   ],
-   [
     "4395712",
     "Andrew Nembhard",
     "IND",
@@ -1354,20 +574,8 @@
     "over",
     false,
     16.5,
-    -110,
-    "hard_rock"
-   ],
-   [
-    "4396909",
-    "Aaron Nesmith",
-    "IND",
-    "MIA",
-    0.1391,
-    "over",
-    true,
-    12.5,
-    -124,
-    "prophetx"
+    108,
+    "novig"
    ],
    [
     "4601025",
@@ -1404,31 +612,7 @@
     "under",
     true,
     0.5,
-    -104,
-    "novig"
-   ],
-   [
-    "3059319",
-    "Andrew Wiggins",
-    "MIA",
-    "IND",
-    -0.2046,
-    "under",
-    true,
-    1.5,
-    120,
-    "thescore"
-   ],
-   [
-    "3064482",
-    "Bobby Portis",
-    "MIA",
-    "IND",
-    -0.1117,
-    "under",
-    false,
-    1.5,
-    122,
+    -102,
     "novig"
    ],
    [
@@ -1440,43 +624,7 @@
     "over",
     true,
     1.5,
-    135,
-    "novig"
-   ],
-   [
-    "3149673",
-    "Pascal Siakam",
-    "IND",
-    "MIA",
-    0.1612,
-    "over",
-    true,
-    1.5,
-    117,
-    "novig"
-   ],
-   [
-    "4065731",
-    "Jay Huff",
-    "IND",
-    "MIA",
-    -0.1176,
-    "under",
-    false,
-    1.5,
-    -183,
-    "draftkings"
-   ],
-   [
-    "4066261",
-    "Bam Adebayo",
-    "MIA",
-    "IND",
-    0.2361,
-    "over",
-    true,
-    1.5,
-    125,
+    144,
     "novig"
    ],
    [
@@ -1488,8 +636,8 @@
     "over",
     true,
     1.5,
-    -147,
-    "prophetx"
+    -130,
+    "novig"
    ],
    [
     "4395712",
@@ -1500,20 +648,8 @@
     "over",
     true,
     1.5,
-    -121,
-    "prophetx"
-   ],
-   [
-    "4396909",
-    "Aaron Nesmith",
-    "IND",
-    "MIA",
-    0.1129,
-    "over",
-    false,
-    2.5,
-    156,
-    "novig"
+    -120,
+    "fanatics"
    ],
    [
     "4601025",
@@ -1523,9 +659,9 @@
     -0.3164,
     "under",
     true,
-    0.5,
-    170,
-    "bet365"
+    1.5,
+    -225,
+    "thescore"
    ]
   ]
  },
@@ -1541,68 +677,8 @@
     "over",
     true,
     23.5,
-    102,
+    -102,
     "novig"
-   ],
-   [
-    "4278049",
-    "Daniel Gafford",
-    "DAL",
-    "HOU",
-    -0.247,
-    "under",
-    true,
-    7.5,
-    104,
-    "novig"
-   ],
-   [
-    "4278078",
-    "P.J. Washington",
-    "DAL",
-    "HOU",
-    -0.0543,
-    "under",
-    false,
-    13.5,
-    -120,
-    "thescore"
-   ],
-   [
-    "4278594",
-    "Naji Marshall",
-    "DAL",
-    "HOU",
-    0.1619,
-    "over",
-    true,
-    11.5,
-    -105,
-    "bet365"
-   ],
-   [
-    "4432107",
-    "Marcus Sasser",
-    "DAL",
-    "HOU",
-    0.0893,
-    "over",
-    false,
-    5.5,
-    -120,
-    "hard_rock"
-   ],
-   [
-    "4432582",
-    "Max Christie",
-    "DAL",
-    "HOU",
-    0.0736,
-    "over",
-    false,
-    9.5,
-    119,
-    "prophetx"
    ],
    [
     "4432639",
@@ -1649,8 +725,8 @@
     "under",
     false,
     21.5,
-    -117,
-    "novig"
+    -120,
+    "thescore"
    ]
   ],
   "threes": [
@@ -1663,7 +739,7 @@
     "under",
     false,
     2.5,
-    -150,
+    -144,
     "novig"
    ],
    [
@@ -1691,30 +767,6 @@
     "novig"
    ],
    [
-    "4432107",
-    "Marcus Sasser",
-    "DAL",
-    "HOU",
-    0.2081,
-    "over",
-    true,
-    1.5,
-    175,
-    "bet365"
-   ],
-   [
-    "4432582",
-    "Max Christie",
-    "DAL",
-    "HOU",
-    0.0963,
-    "over",
-    false,
-    1.5,
-    -135,
-    "novig"
-   ],
-   [
     "4432639",
     "Jabari Smith Jr.",
     "HOU",
@@ -1723,7 +775,7 @@
     "under",
     true,
     2.5,
-    -150,
+    -147,
     "novig"
    ],
    [
@@ -1735,32 +787,8 @@
     "under",
     true,
     0.5,
-    175,
-    "thescore"
-   ],
-   [
-    "4684740",
-    "Amen Thompson",
-    "HOU",
-    "DAL",
-    -0.1485,
-    "under",
-    true,
-    0.5,
-    -260,
-    "bet365"
-   ],
-   [
-    "4871144",
-    "Alperen Sengun",
-    "HOU",
-    "DAL",
-    -0.3193,
-    "under",
-    true,
-    0.5,
-    100,
-    "thescore"
+    179,
+    "draftkings"
    ],
    [
     "5041939",
@@ -1773,60 +801,12 @@
     1.5,
     -141,
     "novig"
-   ],
-   [
-    "6442",
-    "Kyrie Irving",
-    "DAL",
-    "HOU",
-    0.0679,
-    "over",
-    false,
-    2.5,
-    100,
-    "novig"
    ]
   ]
  },
  "401909284": {
   "date": "2026-10-30",
   "points": [
-   [
-    "2991139",
-    "Kris Dunn",
-    "LAC",
-    "MIN",
-    0.0516,
-    "over",
-    false,
-    8.5,
-    120,
-    "novig"
-   ],
-   [
-    "3032976",
-    "Rudy Gobert",
-    "MIN",
-    "LAC",
-    0.3237,
-    "over",
-    true,
-    9.5,
-    -125,
-    "hard_rock"
-   ],
-   [
-    "3936099",
-    "Derrick Jones Jr.",
-    "LAC",
-    "MIN",
-    -0.1295,
-    "under",
-    true,
-    10.5,
-    100,
-    "bet365"
-   ],
    [
     "4396907",
     "Darius Garland",
@@ -1835,21 +815,9 @@
     -0.1026,
     "under",
     false,
-    24.5,
-    -112,
-    "bet365"
-   ],
-   [
-    "4431671",
-    "Jaden McDaniels",
-    "MIN",
-    "LAC",
-    0.0876,
-    "over",
-    false,
-    17.5,
-    102,
-    "novig"
+    23.5,
+    -105,
+    "thescore"
    ],
    [
     "4432816",
@@ -1860,32 +828,8 @@
     "under",
     true,
     20.5,
-    -105,
-    "thescore"
-   ],
-   [
-    "4432847",
-    "Terrence Shannon Jr.",
-    "MIN",
-    "LAC",
-    -0.1384,
-    "under",
-    true,
-    14.5,
-    -113,
+    -104,
     "novig"
-   ],
-   [
-    "4433247",
-    "Jonathan Kuminga",
-    "MIN",
-    "LAC",
-    0.1062,
-    "over",
-    false,
-    14.5,
-    -112,
-    "prophetx"
    ],
    [
     "5254165",
@@ -1922,8 +866,8 @@
     "under",
     true,
     1.5,
-    146,
-    "pinnacle"
+    147,
+    "novig"
    ],
    [
     "4397002",
@@ -1959,7 +903,7 @@
     true,
     3.5,
     -115,
-    "draftkings"
+    "hard_rock"
    ],
    [
     "4432847",
@@ -1991,18 +935,6 @@
   "date": "2026-10-30",
   "points": [
    [
-    "2990969",
-    "Georges Niang",
-    "GS",
-    "LAL",
-    0.0736,
-    "over",
-    false,
-    7.5,
-    -108,
-    "fanduel"
-   ],
-   [
     "3907498",
     "Matisse Thybulle",
     "LAL",
@@ -2011,8 +943,8 @@
     "over",
     true,
     6.5,
-    -112,
-    "bet365"
+    -111,
+    "novig"
    ],
    [
     "3945274",
@@ -2023,8 +955,8 @@
     "over",
     true,
     34.5,
-    100,
-    "bet365"
+    104,
+    "novig"
    ],
    [
     "3975",
@@ -2035,8 +967,8 @@
     "under",
     false,
     25.5,
-    -112,
-    "bet365"
+    -106,
+    "novig"
    ],
    [
     "4066436",
@@ -2075,18 +1007,6 @@
     "prophetx"
    ],
    [
-    "4278580",
-    "Sandro Mamukelashvili",
-    "LAL",
-    "GS",
-    -0.0535,
-    "under",
-    false,
-    8.5,
-    100,
-    "fanatics"
-   ],
-   [
     "4397014",
     "Quentin Grimes",
     "LAL",
@@ -2095,8 +1015,8 @@
     "over",
     true,
     7.5,
-    -125,
-    "prophetx"
+    -122,
+    "draftkings"
    ],
    [
     "4433136",
@@ -2107,20 +1027,8 @@
     "over",
     true,
     14.5,
-    116,
-    "prophetx"
-   ],
-   [
-    "4433137",
-    "Ziaire Williams",
-    "LAL",
-    "GS",
-    0.0649,
-    "over",
-    false,
-    8.5,
-    -120,
-    "prophetx"
+    111,
+    "novig"
    ],
    [
     "4709138",
@@ -2131,59 +1039,11 @@
     "under",
     true,
     15.5,
-    -108,
-    "novig"
-   ],
-   [
-    "4997536",
-    "Gui Santos",
-    "GS",
-    "LAL",
-    0.2131,
-    "over",
-    true,
-    9.5,
-    -125,
-    "fanatics"
-   ],
-   [
-    "5175737",
-    "Yaxel Lendeborg",
-    "GS",
-    "LAL",
-    0.1336,
-    "over",
-    true,
-    18.5,
-    -115,
-    "fanatics"
-   ],
-   [
-    "6589",
-    "Draymond Green",
-    "GS",
-    "LAL",
-    0.0678,
-    "over",
-    false,
-    6.5,
-    117,
-    "novig"
+    -111,
+    "draftkings"
    ]
   ],
   "threes": [
-   [
-    "3213",
-    "Al Horford",
-    "GS",
-    "LAL",
-    0.1586,
-    "over",
-    true,
-    1.5,
-    186,
-    "novig"
-   ],
    [
     "3907498",
     "Matisse Thybulle",
@@ -2205,8 +1065,8 @@
     "under",
     true,
     3.5,
-    105,
-    "bet365"
+    102,
+    "novig"
    ],
    [
     "4066436",
@@ -2217,32 +1077,8 @@
     "under",
     true,
     1.5,
-    -180,
-    "bet365"
-   ],
-   [
-    "4066457",
-    "Austin Reaves",
-    "LAL",
-    "GS",
-    0.0568,
-    "over",
-    false,
-    2.5,
-    147,
+    -167,
     "novig"
-   ],
-   [
-    "4397014",
-    "Quentin Grimes",
-    "LAL",
-    "GS",
-    0.0652,
-    "over",
-    false,
-    1.5,
-    186,
-    "prophetx"
    ],
    [
     "4433137",
@@ -2253,8 +1089,8 @@
     "over",
     true,
     1.5,
-    172,
-    "prophetx"
+    170,
+    "novig"
    ],
    [
     "4709138",
@@ -2286,18 +1122,6 @@
   "date": "2026-10-30",
   "points": [
    [
-    "3112335",
-    "Nikola Jokic",
-    "DEN",
-    "PHX",
-    -0.0712,
-    "under",
-    false,
-    25.5,
-    -110,
-    "hard_rock"
-   ],
-   [
     "3136193",
     "Devin Booker",
     "PHX",
@@ -2305,28 +1129,16 @@
     -0.2033,
     "under",
     true,
-    22.5,
-    120,
-    "novig"
-   ],
-   [
-    "3138196",
-    "Cameron Johnson",
-    "DEN",
-    "PHX",
-    -0.2768,
-    "under",
-    true,
-    11.5,
-    -120,
-    "novig"
+    23.5,
+    -111,
+    "prophetx"
    ],
    [
     "3936299",
     "Jamal Murray",
     "DEN",
     "PHX",
-    0.2022,
+    0.1952,
     "over",
     true,
     22.5,
@@ -2338,48 +1150,12 @@
     "DeMar DeRozan",
     "DEN",
     "PHX",
-    0.1202,
+    0.096,
     "over",
-    true,
-    14.5,
-    100,
-    "novig"
-   ],
-   [
-    "4278402",
-    "Jordan Goodwin",
-    "PHX",
-    "DEN",
-    -0.0736,
-    "under",
     false,
-    6.5,
-    -105,
-    "thescore"
-   ],
-   [
-    "4278585",
-    "Collin Gillespie",
-    "PHX",
-    "DEN",
-    -0.1337,
-    "under",
-    true,
-    9.5,
-    -108,
+    14.5,
+    102,
     "novig"
-   ],
-   [
-    "5203685",
-    "Khaman Maluach",
-    "PHX",
-    "DEN",
-    -0.3424,
-    "under",
-    true,
-    8.5,
-    -120,
-    "thescore"
    ]
   ],
   "threes": [
@@ -2392,55 +1168,7 @@
     "over",
     true,
     1.5,
-    108,
-    "novig"
-   ],
-   [
-    "3112335",
-    "Nikola Jokic",
-    "DEN",
-    "PHX",
-    0.2874,
-    "over",
-    true,
-    1.5,
-    -102,
-    "novig"
-   ],
-   [
-    "3136193",
-    "Devin Booker",
-    "PHX",
-    "DEN",
-    -0.196,
-    "under",
-    true,
-    1.5,
-    101,
-    "pinnacle"
-   ],
-   [
-    "3138196",
-    "Cameron Johnson",
-    "DEN",
-    "PHX",
-    0.1368,
-    "over",
-    true,
-    1.5,
-    -141,
-    "novig"
-   ],
-   [
-    "3155526",
-    "Dillon Brooks",
-    "PHX",
-    "DEN",
-    -0.0855,
-    "under",
-    false,
-    1.5,
-    141,
+    106,
     "novig"
    ],
    [
@@ -2456,18 +1184,6 @@
     "novig"
    ],
    [
-    "3978",
-    "DeMar DeRozan",
-    "DEN",
-    "PHX",
-    -0.2492,
-    "under",
-    true,
-    0.5,
-    -105,
-    "thescore"
-   ],
-   [
     "4066383",
     "Miles Bridges",
     "PHX",
@@ -2476,7 +1192,7 @@
     "under",
     true,
     1.5,
-    120,
+    122,
     "novig"
    ],
    [
@@ -2490,30 +1206,6 @@
     1.5,
     -160,
     "thescore"
-   ],
-   [
-    "4278585",
-    "Collin Gillespie",
-    "PHX",
-    "DEN",
-    -0.1908,
-    "under",
-    true,
-    2.5,
-    -153,
-    "novig"
-   ],
-   [
-    "4437244",
-    "Jalen Green",
-    "PHX",
-    "DEN",
-    -0.2225,
-    "under",
-    true,
-    2.5,
-    -178,
-    "novig"
    ]
   ]
  },
