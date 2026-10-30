@@ -1,0 +1,41 @@
+/* ---- GMG NBA Suite: Game Predictions, drawn (predict-view.js) ----
+   Used by the League Stats Chart (Matchup Keys) and Game Predictions. */
+.pv-table { width: auto; border-collapse: separate; border-spacing: 3px; }
+.pv-table th, .pv-table td { padding: 4px 8px; text-align: center; white-space: nowrap; }
+.pv-table td { border-radius: 6px; background: var(--panel-2); }
+.pv-table td b { font-family: var(--font-display); font-size: 0.98rem; }
+.pv-table .pv-label { text-align: left; font-weight: 700; background: none; }
+.pv-team-h img, .pv-swing img, .pv-chip img, .pv-summary img { vertical-align: -3px; margin-right: 4px; }
+.pv-team-h { min-width: 64px; }
+.pv-swing { font-family: var(--font-display); font-weight: 700; }
+.pv-ledger tr.pv-total td { border-top: 2px solid var(--accent); }
+.pv-ledger tr.pv-total td b, .pv-ledger tr.pv-total .pv-swing { font-size: 1.08rem; }
+.pv-lines td small { display: block; font-size: 0.68rem; opacity: 0.75; line-height: 1.1; }
+.pv-price { font-family: var(--font-display); font-weight: 600; opacity: 0.85; }
+.pv-lines-row { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: flex-start; }
+.pv-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 2px 0 6px; }
+.pv-summary span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+.pv-summary b { font-family: var(--font-display); font-size: 1.05rem; }
+.pv-box { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: flex-start; margin: 0 0 14px; }
+.pv-box > div { min-width: 0; max-width: 100%; overflow-x: auto; }
+.pv-box h3 { margin: 0 0 4px; font-family: var(--font-display); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.pv-chips { display: inline-flex; gap: 4px; margin-left: auto; flex: 0 0 auto; }
+.pv-chip { padding: 2px 7px; border-radius: 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; background: rgba(127, 127, 127, 0.14); white-space: nowrap; }
+.pv-chip-total { opacity: 0.85; }
+
+/* Game Predictions page */
+.gp-ytd-btn { margin-left: auto; font-size: 0.8rem; }
+.gp-days { margin: 6px 0 12px; }
+.gp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 540px), 1fr)); gap: 14px; }
+.gp-card { padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); min-width: 0; overflow-x: auto; }
+.gp-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; font-family: var(--font-display); font-size: 1.15rem; }
+.gp-head .at { opacity: 0.6; }
+.gp-when { margin-left: auto; font-size: 0.85rem; opacity: 0.75; }
+.gp-graded { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 8px; }
+.gp-graded > span:first-child { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+.gp-play { padding: 2px 7px; border-radius: 6px; font-family: var(--font-display); font-weight: 600; font-size: 0.82rem; white-space: nowrap; }
+.gp-more { margin-top: 8px; }
+.gp-more summary { cursor: pointer; font-weight: 700; font-size: 0.85rem; }
+.gp-more .pv-ledger { margin-top: 6px; }
+.gp-ytd-scroll { max-height: 50vh; overflow: auto; margin-top: 10px; }
+.gp-ytd-plays { display: flex; flex-wrap: wrap; gap: 4px; }

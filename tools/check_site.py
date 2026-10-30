@@ -50,6 +50,7 @@ PAGES = [
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
     ("NBA League Stats Chart", "nba/league.html", None),
+    ("NBA Game Predictions", "nba/game-predictions.html", None),
     ("NBA Matchup Breakdown", "nba/index.html", None),
     ("NBA Promo Tools", "nba/promo-tools.html", None),
     ("NBA First Basket", "nba/first-basket.html", None),

@@ -40,6 +40,7 @@ import zone_matchups  # noqa: E402
 import smartstake  # noqa: E402
 import identity  # noqa: E402
 import kotc  # noqa: E402
+import predict  # noqa: E402
 import positions  # noqa: E402
 import possessions as P  # noqa: E402
 import sim  # noqa: E402
@@ -162,6 +163,8 @@ def compute_team_stats(rows: pd.DataFrame) -> dict:
             "ft_rate": s[f"{p}free_throws_attempted"] / s[f"{p}field_goals_attempted"],
             "three_rate": s[f"{p}three_point_field_goals_attempted"] / s[f"{p}field_goals_attempted"],
             "three_pct": s[f"{p}three_point_field_goals_made"] / s[f"{p}three_point_field_goals_attempted"],
+            "fga_pp": s[f"{p}field_goals_attempted"] / s["poss"],  # shots a possession
+            "ft_pct": s[f"{p}free_throws_made"] / s[f"{p}free_throws_attempted"],
             "threes_pg": s[f"{p}three_point_field_goals_made"] / games,
             "paint_pg": s[f"{p}points_in_paint"] / games,
             "fast_break_pg": s[f"{p}fast_break_points"] / games,
@@ -699,7 +702,9 @@ def league_chart(rows: pd.DataFrame, lines: dict, ident: dict | None) -> dict:
                    "margin": num(b["off_ppg"] - b["def_ppg"]), "total": num(b["off_ppg"] + b["def_ppg"]), **recs.get(team, {})}
             for side, p in (("o", "off"), ("d", "def")):
                 row.update({f"{side}_ppg": b[f"{p}_ppg"], f"{side}_rtg": b[f"{p}_rating"], f"{side}_3pm": b[f"{p}_threes_pg"],
-                            f"{side}_3par": b[f"{p}_three_rate"], f"{side}_ftr": b[f"{p}_ft_rate"], f"{side}_tov": b[f"{p}_tov_pct"]})
+                            f"{side}_3par": b[f"{p}_three_rate"], f"{side}_ftr": b[f"{p}_ft_rate"], f"{side}_tov": b[f"{p}_tov_pct"],
+                            # not columns: the Points Ledger's (points.js) shooting and free throws
+                            f"{side}_3pct": b[f"{p}_three_pct"], f"{side}_fgapp": b[f"{p}_fga_pp"], f"{side}_ftpct": b[f"{p}_ft_pct"]})
                 for key in ("paint_share", "paint_pct", "mid_share", "mid_pct", "trans_freq", "trans_ppp", "ball_move"):
                     row[f"{side}_{key}"] = e.get(f"{p}_{key}")
             row["o_reb"] = b["oreb_pct"]  # its offensive rebound rate
@@ -707,6 +712,72 @@ def league_chart(rows: pd.DataFrame, lines: dict, ident: dict | None) -> dict:
             teams[team] = row
         out[window] = teams
     return out
+
+
+# ---- Game Predictions (predict.py, 2026-10-30) ----
+PRED_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_predictions"
+PRED_NIGHTS = 3
+
+
+def started(g: dict, now_utc: datetime) -> bool:
+    return g["status"] == "final" or datetime.strptime(g["start_utc"], "%Y-%m-%dT%H:%MZ") <= now_utc
+
+
+def compute_predictions(chart: dict, games: list, season: int, now_utc: datetime) -> dict:
+    """{upcoming: {window: {game id: prediction}}, record: {game id: the season
+    prediction as the last build before tip had it, + result}, ledger: {spread,
+    total, ml: YTD rows}}. The next PRED_NIGHTS nights' games that haven't tipped."""
+    today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")
+    nights = sorted({g["date"] for g in games if g["date"] >= today})[:PRED_NIGHTS]
+    upcoming = {w: {} for w in chart}
+    for g in games:
+        if g["date"] in nights and not started(g, now_utc):
+            for w, table in chart.items():
+                p = predict.predict(table, g["away"], g["home"], g)
+                if p:
+                    upcoming[w][g["game_id"]] = {"date": g["date"], **p}
+    return {"upcoming": upcoming, **predictions_record(season, upcoming.get("season", {}), games, now_utc)}
+
+
+def predictions_record(season: int, preds: dict, games: list, now_utc: datetime) -> dict:
+    """model_history/nba_predictions/<season>.json: each game's season-window
+    prediction and lines as the last build before tip had them (a started game is
+    never rewritten), graded with the final score. Returns the record and the YTD
+    ledger: each market's side (predict.plays), [date, edge, won, units, tags]."""
+    path = PRED_RECORD_DIR / f"{season}.json"
+    record = json.loads(path.read_text()) if path.exists() else {}
+    by_id = {g["game_id"]: g for g in games}
+    changed = False
+    for gid, p in preds.items():
+        g = by_id[gid]
+        if not started(g, now_utc):
+            record[gid] = dict(p)
+            changed = True
+    for gid, r in record.items():
+        g = by_id.get(gid)
+        if "result" not in r and g and g["status"] == "final" and g.get("away_score") is not None:
+            r["result"] = [int(g["away_score"]), int(g["home_score"])]
+            changed = True
+    if changed:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(record, indent=0, sort_keys=True))
+    ledger = {"spread": [], "total": [], "ml": []}
+    for gid, r in sorted(record.items(), key=lambda x: (x[1]["date"], x[0])):
+        if "result" not in r:
+            continue
+        r["graded"] = []  # for the page's list (not saved: the file was written above)
+        for play in predict.plays(r):
+            won = predict.grade(play, r)
+            r["graded"].append({**play, "won": won})
+            if won is None:
+                continue
+            if play["market"] == "total":
+                tags = ["over" if play["side"] == 0 else "under"]
+            else:
+                line = r["book"]["spread"][play["side"]] if play["market"] == "spread" else play["price"]  # favorite: minus either way
+                tags = ["fav" if line is not None and line < 0 else "dog", "home" if play["side"] else "away"]
+            ledger[play["market"]].append([r["date"], play["edge"], int(won), round(predict.units(play["price"], won), 3), tags])
+    return {"record": record, "ledger": ledger}
 
 
 def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
@@ -1289,6 +1360,12 @@ def main():
     except Exception as ex:
         print(f"WARNING: League Stats Chart failed ({ex!r}).", file=sys.stderr)
         blob["league_chart"] = None
+    # Game Predictions: the chart's numbers as a score (predict.py), its own try.
+    try:
+        blob["predictions"] = compute_predictions(blob["league_chart"], games, args.season, now_utc) if blob.get("league_chart") else None
+    except Exception as ex:
+        print(f"WARNING: Game Predictions failed ({ex!r}).", file=sys.stderr)
+        blob["predictions"] = None
     # Player props (props.json, its own file: every player's game log is too
     # big for data.json). A failure leaves the file out; the pages say so.
     blob_props = {}

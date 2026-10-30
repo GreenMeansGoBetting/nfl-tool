@@ -200,6 +200,9 @@ function renderKeys(table) {
     return;
   }
   const ranks = ranksOf(table);
+  const pred = gamePrediction(game);
+  // Biggest points first (the Points Ledger's rows, predict-view.js); keys with no points after, in their order.
+  const bySize = (list) => list.map((k, i) => [k, i]).sort((x, y) => pvChipSize(pred, y[0].topic) - pvChipSize(pred, x[0].topic) || x[1] - y[1]).map(([k]) => k);
   const keys = nbaMatchupKeys(table, game.away, game.home);
   const tile = ({ team: t, key }) => {
     const col = COLS.find((c) => c[0] === key);
@@ -209,15 +212,26 @@ function renderKeys(table) {
     return `<div class="lsc-kt"><span class="lsc-kt-lab">${logo(t, 16)}${t} ${colLabel(key)}</span><div class="od-tile lsc-tile"${rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : ""} title="${tip}"><b>${text}</b></div></div>`;
   };
   const cards = (list) => list.map((k) => `<div class="lsc-key" style="--kc:${KEY_TAG_RGB[k.type]}">
-      <div class="lsc-key-top"><span class="lsc-key-tag">${KEY_TYPES[k.type]}</span>${k.team ? logo(k.team, 18) : ""}<b>${k.title}</b></div>
+      <div class="lsc-key-top"><span class="lsc-key-tag">${KEY_TYPES[k.type]}</span>${k.team ? logo(k.team, 18) : ""}<b>${k.title}</b>${pvChip(pred, k.topic)}</div>
       <div class="lsc-key-tiles">${k.tiles.map(tile).join("")}</div>
     </div>`).join("");
   // One card a subject first (its strongest key); the rest behind More Keys, never dropped.
-  const lead = keys.filter((k) => k.lead), more = keys.filter((k) => !k.lead);
+  const lead = bySize(keys.filter((k) => k.lead)), more = bySize(keys.filter((k) => !k.lead));
+  const preds = pred
+    ? `<div class="pv-box"><div><h3>Points Ledger</h3>${pvLedger(pred)}</div><div><h3>Model Vs Book</h3>${pvLines(pred)}</div></div>`
+    : `<p class="no-data-note">No prediction for this game: they're made for the next 3 nights' games before tip${view.window === "season" ? "" : " (a game that has tipped keeps its Season prediction)"}.</p>`;
   el("lsc-body").innerHTML = `<div class="lsc-keys-head">${logo(game.away, 24)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 24)}<b>${game.home}</b><span class="lsc-keys-n">${lead.length} Key${lead.length === 1 ? "" : "s"}</span></div>
+    ${preds}
     ${keys.length ? `<div class="lsc-keys">${cards(lead)}</div>` : `<p class="no-data-note">Nothing stands out in this matchup on these numbers.</p>`}
     ${more.length ? `<button type="button" class="view-toggle-btn lsc-more" id="lsc-more" aria-expanded="${view.more}">${view.more ? "Hide" : "More Keys"} (${more.length})</button>
       ${view.more ? `<div class="lsc-keys lsc-keys-more">${cards(more)}</div>` : ""}` : ""}`;
+}
+// The picked game's prediction for the chart's window (data.json `predictions`): a game
+// that has tipped keeps the Season one it had at tip (the record).
+function gamePrediction(game) {
+  const P = DATA.predictions;
+  if (!P) return null;
+  return ((P.upcoming || {})[view.window] || {})[game.game_id] || (P.record || {})[game.game_id] || null;
 }
 function renderControls() {
   document.querySelectorAll("#lsc-window .view-toggle-btn").forEach((b) => b.classList.toggle("active", b.dataset.window === view.window));

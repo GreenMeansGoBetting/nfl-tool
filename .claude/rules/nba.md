@@ -313,11 +313,32 @@ Where and HOW a player shoots vs what tonight's defense allows **his group** (gu
 - **Rotation chart:** when a player subs in / out, who he plays with, production by combo (stints).
 - **Things to watch** per game: a few conclusions from Team Identity.
 
-## Full-game model: NOT built
+## Full-game model: Game Predictions (built 2026-10-30 at the owner's ask, UNPROVEN)
 
 No replayed model (pace, opponent-adjusted, lineup ratings; `tools/backtest/nba_games.py`) beat
-DraftKings' closing line, so **no fair-value edge on full-game sides / totals**. The market's implied
-score (total / 2 +/- spread / 2) may be shown. Next test: our record vs Novig's OPENING lines.
+DraftKings' closing line. On 2026-10-30 the owner asked for one anyway ("we have a lot of ingredients
+... with no recipes"; fair odds for spread, total, moneyline beside the real lines). It sits under
+UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded record says otherwise.
+- `predict.py`: League Stats Chart numbers -> points. Each number = average + (offense - avg) +
+  (what the defense allows - avg), each pulled toward average by `SHRINK` (games; three-point making
+  slow, shot mix fast). Rows a 100 possessions: Threes / The Paint / Mid-Range (shot mix vs the zone's
+  worth + makes), Turnovers, Offensive Glass, Free Throws (trips + FT%), Everything Else (real rating
+  minus the unshrunk rows, shrunk hard), then x possessions (both paces vs average), Home Court 2.
+  **Transition and ball movement are not rows**: they are how the shots and turnovers happen (counting
+  them again double counts). On 2026-10-30 the rows tracked real ratings at r 0.92 (test pins > 0.85).
+  Shot mix alone moves almost nothing (a three, a paint shot and a mid shot are worth about the same
+  league-wide); makes, turnovers, glass and free throws carry the points. Fair chances: normal curve,
+  `MARGIN_SD` 12, `TOTAL_SD` 18. It knows nothing of injuries (said in the page's i).
+- Build: `compute_predictions` (own try) -> data.json `predictions` {upcoming: {window: {game id}},
+  record, ledger}: the next 3 nights' untipped games, every chart window. Record
+  `model_history/nba_predictions/<season>.json`: season-window prediction + lines, rewritten until tip,
+  graded on the final; YTD ledger per market = the model's side (`predict.plays`: spread / total by
+  chance, ML by edge vs price), value = edge vs the book price, push left out; tags fav / dog (minus line
+  or price), home / away, over / under.
+- Pages: `game-predictions.html/.js` (menu: first under UNDER CONSTRUCTION) and the Points Ledger + Model
+  Vs Book in the League Stats Chart's Matchup Keys; both drawn by `predict-view.js/.css`. Fair cell =
+  American price big, chance small, green / red by our chance vs the book price's. Tests:
+  `tests/test_nba_predictions.py`.
 
 ## Suite switch
 
@@ -383,6 +404,10 @@ the same framework next ("once we have the framework down").
   (7-25 keys a game, the glass told three ways) is why; the owner's CHA @ WSH read is pinned on
   `tests/fixtures/nba_league_chart_2026-10-30.json`. Owner fear: things omitted or miscounted: audit a
   real slate (keys, More, near misses at 12) before changing a rule.
+- **Points on the keys** (2026-10-30): Matchup Keys opens with the game's Points Ledger and Model Vs Book
+  (Game Predictions, for the chart's window; a tipped game shows its Season one from the record). Each
+  card gets a chip from the ledger rows of its topic (`PV_TOPIC_ROWS`; Inside Vs Outside = the shot mix
+  parts): the swing toward a team and the total's move; cards sort by it, cards with no points last.
 
 ## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`)
 

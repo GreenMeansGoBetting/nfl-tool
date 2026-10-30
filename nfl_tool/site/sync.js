@@ -953,6 +953,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       // Kept reachable but set aside while the NBA suite turns toward matchup
       // research (the owner, 2026-10-26).
       { head: "🚨 UNDER CONSTRUCTION 🚨" },
+      { name: "Game Predictions", file: "game-predictions.html", tag: "New" },
       { name: "Best Plays", file: "best.html" },
       { name: "Points", file: "points.html" },
       { name: "Threes", file: "threes.html" },

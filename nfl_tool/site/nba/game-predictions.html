@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Game Predictions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="predict-view.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="section-wrap">
+      <h2 class="section-title">Game Predictions <button type="button" class="info-i" aria-expanded="false" aria-controls="gp-note" title="How to read this">i</button>
+        <button type="button" class="view-toggle-btn gp-ytd-btn" id="gp-ytd">YTD Model Performance</button></h2>
+      <p class="section-note info-note" id="gp-note" hidden>Every game's <b>GMG Projection</b>, built from the League Stats Chart's season numbers: each team's offense against what tonight's defense allows (shooting from three, the paint and mid-range, turnovers, the offensive glass, free throws), times how many possessions the two paces make, plus 2 points of home court. Early in the season every number is pulled toward the league average until a team has played enough games for it to mean something. <b>Point Breakdown</b> shows where each team's points come from, row by row. <b>Fair</b> = our price at the book's line (the big number) and our chance (small): <b>green</b> = our chance is above the book price's, <b>red</b> = below. It doesn't know who is injured or resting tonight, and the betting market usually does, so treat a big gap as a reason to look, not a bet. A game that has tipped keeps the prediction and lines it had at tip; the YTD record grades our side of each market.</p>
+      <div class="week-picker gp-days">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="empty-state" class="empty-state"><p>Loading the predictions&hellip;</p></div>
+      <div id="gp-body"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN box scores and play-by-play). Lines: Novig, at tip.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="../ytd.js"></script>
+<script src="predict-view.js"></script>
+<script src="game-predictions.js"></script>
+</body>
+</html>
