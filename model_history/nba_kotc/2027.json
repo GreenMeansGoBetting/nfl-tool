@@ -3469,7 +3469,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3259,
+    "lead": 0.326,
     "name": "Luka Doncic",
     "proj": 53.8,
     "team": "LAL"
@@ -3546,7 +3546,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0176,
+    "lead": 0.0177,
     "name": "Cade Cunningham",
     "proj": 35.6,
     "team": "DET"
@@ -3581,9 +3581,9 @@
    },
    {
     "id": "4433287",
-    "lead": 0.0112,
+    "lead": 0.011,
     "name": "Brandon Miller",
-    "proj": 34.3,
+    "proj": 34.2,
     "team": "CHA"
    },
    {
