@@ -17,7 +17,8 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   Assists game sim. `positions.py`: PG / SG / SF / PF / C. `shots.py`: shot spots (`nba/shots.json`).
   `zone_matchups.py`: Zone Matchup Targets. `kotc.py`: King of the Court. `first_basket.py`: First
   Basket. `watch.py`: injury / market watch. `nba_report.py`: the NBA's injury report PDF.
-- Pages (`site/nba/`): `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
+- Pages (`site/nba/`): `league.html` + `league.js` + `league.css` League Stats Chart (first in the menu);
+  `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
   forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` + same-named `.js` configs on
   `sim-board.js` + `sim.css`; `best.html/.js` NBA Best Plays; `first-basket.html/.js/.css`;
   `shot-charts.html/.js/.css`; `zones.html/.js/.css`; `nba-card.js` player card (+ `shot-chart.js`);
@@ -336,6 +337,26 @@ score (total / 2 +/- spread / 2) may be shown. Next test: our record vs Novig's 
   (`eastern()`, zoneinfo); pages show `start_utc` in the member's own time zone (sync.js
   `gmgGameTime`). ESPN's `turnover_points` is points GIVEN UP: swapped on purpose. Only the 30 real
   teams count.
+
+## League Stats Chart (`league.html` + `league.js` + `league.css`, 2026-10-30)
+
+All 30 teams down the left, numbers across the top (the owner's Q&A, no mockup). NHL, then NFL get
+the same framework next ("once we have the framework down").
+- Build: `league_chart` (build_nba.py, own try) -> data.json `league_chart` {season, 10, 5, 3: {team:
+  games, pace, net, margin, total, ats / ou [won, lost, push], o_* / d_*}}: box scores per window
+  (`compute_team_stats` on each team's last n rows; `d_reb` = its own defensive rebound rate), the
+  engine for paint / mid / transition / ball movement (identity season_block `recent`, `RECENT_KEYS`,
+  last n games by date), ATS / O/U vs King of the Court's lines at tip (`ats_records`). No 3P%.
+- Page: Opening Drive grid look (`.od-grid`, `.od-tile`): Offense, Defense (Allowed), Game & Betting.
+  **Every stat column one width** (`COL_W` 46, the owner: "I JUST WANT COLUMNS ALL equal"), two-line
+  abbreviated heads, full names in the hover. **Whole numbers only**; exact number + rank in the hover.
+  8-step rank colors (`RANK_SCALE` copied; no common.js), ranked over all 30 even when filtered.
+  **Green = good for that team; the most of a how-often number is green** (fastest pace, most 3PA);
+  defense: allowing the least is green (forced TOV, DREB: the most).
+- Season / Last 10 / 5 / 3, Show Rank, Today's Teams Only (the carousel's day; off by default); header
+  click = best first, again worst first (opens on Net Rating; **nothing remembered**). A game card
+  lights its two teams up on top; again = back. Team cell = logo on its color, no name / record ("compact
+  and punchy"); click = its game in Matchup Breakdown. Tests: `tests/test_nba_league_chart.py`.
 
 ## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`)
 

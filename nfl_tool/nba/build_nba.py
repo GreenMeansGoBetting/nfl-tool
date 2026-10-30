@@ -660,6 +660,55 @@ def add_recent_lines(recent: dict, lines: dict) -> None:
                 r["spread"] = None if home_spread is None else (home_spread if r["home"] else -home_spread)
 
 
+# ---- League Stats Chart (site/nba/league.html, 2026-10-30) ----
+# Every team's numbers across the league, offense and defense, for the season and
+# its last 10 / 5 / 3 games. Raw values (shares as fractions); the page ranks and colors.
+CHART_WINDOWS = ("season", "10", "5", "3")
+
+
+def ats_records(rows: pd.DataFrame, lines: dict) -> dict:
+    """{team: {"ats": [covers, misses, pushes], "ou": [overs, unders, pushes]}} over
+    `rows`' games that have a line at tip (`lines`: game id -> [total, home spread])."""
+    out = {}
+    for r in rows.itertuples(index=False):
+        rec = out.setdefault(r.team_abbreviation, {"ats": [0, 0, 0], "ou": [0, 0, 0]})
+        total, home_spread = (lines.get(str(r.game_id)) or [None, None])
+        if home_spread is not None:
+            cover = r.team_score - r.opp_team_score + (home_spread if r.team_home_away == "home" else -home_spread)
+            rec["ats"][0 if cover > 0 else 1 if cover < 0 else 2] += 1
+        if total is not None:
+            over = r.team_score + r.opp_team_score - total
+            rec["ou"][0 if over > 0 else 1 if over < 0 else 2] += 1
+    return out
+
+
+def league_chart(rows: pd.DataFrame, lines: dict, ident: dict | None) -> dict:
+    """{window: {team: {o_*, d_*, pace, net, margin, total, ats, ou}}}: box scores for
+    scoring, threes, the line, turnovers and the glass; the engine (identity) for the
+    paint, mid-range, transition and ball movement."""
+    engine = {"season": (ident or {}).get("teams") or {}, **((ident or {}).get("recent") or {})}
+    out = {}
+    for window in CHART_WINDOWS:
+        part = rows if window == "season" else rows.groupby("team_abbreviation").tail(int(window))
+        box = compute_team_stats(part)
+        recs = ats_records(part, lines)
+        teams = {}
+        for team, b in box.items():
+            e = engine.get(window, {}).get(team, {})
+            row = {"games": b["games_played"], "pace": b["pace"], "net": b["net_rating"],
+                   "margin": num(b["off_ppg"] - b["def_ppg"]), "total": num(b["off_ppg"] + b["def_ppg"]), **recs.get(team, {})}
+            for side, p in (("o", "off"), ("d", "def")):
+                row.update({f"{side}_ppg": b[f"{p}_ppg"], f"{side}_rtg": b[f"{p}_rating"], f"{side}_3pm": b[f"{p}_threes_pg"],
+                            f"{side}_3par": b[f"{p}_three_rate"], f"{side}_ftr": b[f"{p}_ft_rate"], f"{side}_tov": b[f"{p}_tov_pct"]})
+                for key in ("paint_share", "paint_pct", "mid_share", "mid_pct", "trans_freq", "trans_ppp", "ball_move"):
+                    row[f"{side}_{key}"] = e.get(f"{p}_{key}")
+            row["o_reb"] = b["oreb_pct"]  # its offensive rebound rate
+            row["d_reb"] = None if b["opp_oreb_pct"] is None else round(1 - b["opp_oreb_pct"], 4)  # its defensive rebound rate
+            teams[team] = row
+        out[window] = teams
+    return out
+
+
 def compute_kotc(season: int, data_dir: Path, force: bool, teams: dict, rosters, injuries: dict, games: list, now_utc: datetime) -> dict:
     """This season's board (the page shows this season only since 2026-10-22,
     the owner: "by next week, we will have every team with data for this
@@ -1231,6 +1280,15 @@ def main():
         print(f"WARNING: Team Identity failed ({ex!r}).", file=sys.stderr)
         blob["identity"] = None
     lap("identity")
+    # League Stats Chart: its own try too (the page says so when it's missing).
+    try:
+        ident = (blob.get("identity") or {}).get("seasons", {}).get(str(args.season))
+        lines = kotc_lines(args.season, games)
+        chart_rows = team_game_rows(team_box[team_box["team_abbreviation"].isin(teams) & team_box["opponent_team_abbreviation"].isin(teams)])
+        blob["league_chart"] = league_chart(chart_rows, lines, ident)
+    except Exception as ex:
+        print(f"WARNING: League Stats Chart failed ({ex!r}).", file=sys.stderr)
+        blob["league_chart"] = None
     # Player props (props.json, its own file: every player's game log is too
     # big for data.json). A failure leaves the file out; the pages say so.
     blob_props = {}

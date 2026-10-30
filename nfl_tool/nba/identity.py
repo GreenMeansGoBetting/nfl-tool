@@ -97,9 +97,8 @@ def side_numbers(poss: pd.DataFrame, acts: pd.DataFrame, games_secs: pd.Series) 
     return out
 
 
-def team_identity(season, abbr_of: dict) -> dict:
-    """{team abbreviation: {off_*, def_*, games, game script}} plus `league`
-    (the league-wide average and spread of each key, for coloring)."""
+def engine_tables(season):
+    """(possessions, the offense's own actions, rebounds, seconds a game) for team_numbers."""
     poss = season.possessions
     ends = poss.assign(end=poss["t0"] + poss["secs"]).groupby("game_id")["end"].max()
     games_secs = ends.clip(lower=2880)  # overtime games run longer
@@ -108,6 +107,31 @@ def team_identity(season, abbr_of: dict) -> dict:
         poss[["game_id", "n", "off", "def"]], on=["game_id", "n"])
     acts = acts[(acts["team"] == acts["off"]) & (acts["kind"] != "foul")]
     boards = season.actions[season.actions["kind"].isin(("oreb", "dreb"))]
+    return poss, acts, boards, games_secs
+
+
+# League Stats Chart (2026-10-30): its engine numbers over each team's last few games.
+RECENT_WINDOWS = (10, 5, 3)
+RECENT_KEYS = ("paint_share", "paint_pct", "mid_share", "mid_pct", "trans_freq", "trans_ppp", "ball_move")
+
+
+def recent_numbers(season, abbr_of: dict, dates: dict) -> dict:
+    """{str(n): {abbr: {off_<key>, def_<key>}}} over each team's last n games
+    (`dates`: game id -> date, the order they were played)."""
+    poss, acts, boards, games_secs = engine_tables(season)
+    out = {str(n): {} for n in RECENT_WINDOWS}
+    for team in sorted(set(poss["off"])):
+        gids = sorted(poss.loc[poss["off"] == team, "game_id"].unique(), key=lambda g: (str(dates.get(g, "")), g))
+        for n in RECENT_WINDOWS:
+            row = team_numbers(poss, acts, boards, games_secs, team, gids[-n:], RECENT_KEYS)
+            out[str(n)][abbr_of.get(team, str(team))] = {k: rounded(v) for k, v in row.items()}
+    return out
+
+
+def team_identity(season, abbr_of: dict) -> dict:
+    """{team abbreviation: {off_*, def_*, games, game script}} plus `league`
+    (the league-wide average and spread of each key, for coloring)."""
+    poss, acts, boards, games_secs = engine_tables(season)
 
     # each game's final from the scoreboard (always right); possessions can miss a
     # few points (BKN @ CLE 2026-10-24: CLE's 125-121 win summed to 120-121)
@@ -436,6 +460,7 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str, schedule: pd.
         "wl": {t: {**s, "w": {k: rounded(v) for k, v in s["w"].items()}, "l": {k: rounded(v) for k, v in s["l"].items()}}
                for t, s in ident["wl"].items()},
         "extremes": matchup_extremes(season, ident, abbr),
+        "recent": recent_numbers(season, abbr, dict(zip(reg["game_id"].astype(int), reg["game_date"].astype(str)))),
         **({"spots": spots_block(season, abbr, schedule)} if schedule is not None else {}),
     }
 

@@ -1,0 +1,32 @@
+/* NBA League Stats Chart (league.html): the Opening Drive grid (style.css .od-grid, .od-tile)
+   with every stat column one width; the chart scrolls inside its own box when the screen is narrower. */
+.lsc-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 12px; }
+.lsc-bar .view-toggle { margin: 0; }
+.lsc-seg { gap: 0; }
+.lsc-seg .view-toggle-btn { border-radius: 0; }
+.lsc-seg .view-toggle-btn:first-child { border-radius: 8px 0 0 8px; }
+.lsc-seg .view-toggle-btn:last-child { border-radius: 0 8px 8px 0; }
+.lsc-switch { border-radius: 999px; }
+.lsc-wrap { overflow-x: auto; padding-bottom: 4px; }
+.data-table.lsc-grid { table-layout: fixed; }
+.data-table.lsc-grid th, .data-table.lsc-grid td { padding: 2px; }
+.lsc-grid .od-ggroups th { font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.lsc-grid .od-glabels th { font-size: 0.68rem; font-weight: 800; white-space: normal; height: 34px; }
+.lsc-grid th.lsc-sort { cursor: pointer; user-select: none; position: relative; }
+.lsc-grid th.lsc-sort:hover { background-color: rgba(var(--zg), 0.45); }
+.lsc-grid th.lsc-sorted { box-shadow: inset 0 -3px 0 rgb(var(--zg)); }
+.lsc-arrow { position: absolute; top: 1px; right: 2px; font-style: normal; font-size: 0.5rem; opacity: 0.8; }
+.lsc-tile { padding: 4px 0; border: 1px solid transparent; }
+.lsc-tile b { font-size: 0.92rem; }
+.lsc-ranks .lsc-tile b { font-size: 0.82rem; }
+/* The team: its logo on a box shaded in its color; sticks to the left while the chart scrolls. */
+.lsc-grid .lsc-corner, .lsc-grid td.lsc-team { position: sticky; left: 0; z-index: 2; background: var(--panel); }
+.lsc-team-h { font-size: 0.68rem; vertical-align: bottom; }
+.lsc-logo { display: flex; align-items: center; justify-content: center; width: 100%; height: 30px; padding: 0; border-radius: 7px; cursor: pointer;
+  background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
+.lsc-logo:hover { background: rgba(var(--team), 0.6); }
+.lsc-logo img { width: 24px; height: 24px; }
+/* A picked game's two teams on top: lit up. */
+.lsc-grid tr.lsc-top td.lsc-team .lsc-logo { box-shadow: 0 0 0 2px var(--accent), 0 0 10px rgba(var(--accent-rgb), 0.6); }
+.lsc-grid tr.lsc-top .lsc-tile { box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.55); }
+.lsc-grid tr.lsc-spacer td { height: 8px; padding: 0; background: transparent !important; box-shadow: none; }

@@ -360,6 +360,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-10-30",
+    items: [
+      ["🏀", "<b>NBA League Stats Chart</b> (top of the NBA menu): all 30 teams in one chart, Offense, Defense and Game & Betting (pace, net rating, ATS, O/U), every number shaded on the rank colors so you can see who ranks where at a glance. Click any column to sort, switch Season / Last 10 / 5 / 3, Show Rank, or Today's Teams Only; click a game up top to pull its two teams to the top."],
+    ],
+  },
+  {
     id: "2026-10-29",
     items: [
       ["🏈", "<b>Opening Drive Tool</b> (NFL menu, under TD Data): how every team’s first drive has ended this year (Off TD, FG Att, Punt, Any Other), what each defense allows on the other team’s first drive, 3 & Outs, and a rough fair price for every outcome plus Both Teams Punt. Built for the Discord’s First Drive - Punt parlays on primetime games. For entertainment: samples are small."],
@@ -939,6 +945,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Passing", file: "player-props.html#passing" },
     ] },
     nba: { label: "NBA", home: "", items: [
+      { name: "League Stats Chart", file: "league.html", tag: "New" },
       { name: "Matchup Breakdown", file: "" },
       { name: "Shot Charts", file: "shot-charts.html" },
       { name: "Zone Matchup Targets", file: "zones.html", tag: "New" },
