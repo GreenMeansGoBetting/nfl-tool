@@ -478,7 +478,9 @@ headshots, `scaleHsla` cells, "i" bubbles).
 - Testing banner (suite.css) with Value Record So Far + YTD Model Performance (`renderYtd`): Tip
   Prediction / Scores First (Min Chance 50-75%), Value Plays (Min Edge 10-100%), graded games. A pick
   = the side over 50%.
-- Tags: **Value**, **Top Option**, **First Look** (25%+ of 5+ starts), Jumper.
+- **No tags beside starters' names** (Value / Top Option / First Look / Jumper / New removed, the
+  owner 2026-10-30: they pushed the numbers away). Player column one fixed width (`.fb-name`, 196 px,
+  long names "...") so the numbers sit in the same spot on every game.
 - **Layout:** Starters (both teams stacked) left, The Matchup with Value under it right, both 380 px,
   **tops and bottoms level** (`.fb-side`); stacks under 1000 px.
 - **The Matchup** (`renderMatchup`, `matchupRows`): one table, road left, home right, stat in the

@@ -357,15 +357,19 @@ class Page(unittest.TestCase):
         text = PAGE.evaluate("() => document.querySelector('#fb-targets').innerText")
         self.assertIn("No Value In This Game", text)
         self.assertIn("Graded after", text)
-        # A long price on the star: Value tag on his row, listed in the box; the record shows.
+        # A long price on the star: listed in the Value box; the record shows.
+        # No tags beside the starters' names (the owner, 2026-10-30), and the
+        # Player column is one width on both teams so the numbers line up.
         got = PAGE.evaluate("""() => { const g = game(); const keep = g.first_basket; g.first_basket = { P12: 5000, P10: 600 };
             FB.record = { plays: 4, won: 1, units: 2.5, games: 3 }; render();
             const out = { box: document.querySelector('#fb-targets').innerText,
-              tags: [...document.querySelectorAll('#fb-starters .fb-tag')].map((t) => [t.closest('tr').querySelector('.nba-player span').textContent, t.textContent]) };
+              tags: document.querySelectorAll('#fb-starters .fb-tag, #fb-starters .nba-new').length,
+              names: [...document.querySelectorAll('#fb-starters td.fb-name')].map((td) => Math.round(td.getBoundingClientRect().width)),
+              first: [...document.querySelectorAll('#fb-starters tbody tr')].map((tr) => Math.round(tr.children[1].getBoundingClientRect().left - tr.getBoundingClientRect().left)) };
             g.first_basket = keep; delete FB.record; render(); return out; }""")
-        self.assertIn(["P12", "Value"], got["tags"])
-        self.assertNotIn(["P10", "Value"], got["tags"])
-        self.assertIn(["P12", "Top Option"], got["tags"])  # 20 shots a start, the most on AAA
+        self.assertEqual(got["tags"], 0)
+        self.assertEqual(len(set(got["names"])), 1, got["names"])
+        self.assertEqual(len(set(got["first"])), 1, got["first"])
         self.assertIn("P12", got["box"])
         self.assertIn("1 of 4", got["box"])
         self.assertIn("+2.5u", got["box"])
@@ -385,7 +389,7 @@ class Page(unittest.TestCase):
         novig = {s[0].split("\n")[0]: s[2] for s in starters}
         # No book on file in this test: Best falls back to Novig's own price, labeled.
         self.assertEqual((novig["P12"], novig["P10"], novig["P11"]), ("+450 Novig", "+600 Novig", "--"))
-        self.assertTrue(any("JUMPER" in s[0].upper() for s in starters))
+        self.assertFalse(any("JUMPER" in s[0].upper() for s in starters))  # no tags by the names (2026-10-30)
 
     def test_the_beta_banner(self):
         # the owner, 2026-10-23: "add the beta header on first basket" (Points' and Threes' banner)
@@ -493,7 +497,7 @@ class Lineups(unittest.TestCase):
         self.assertIn("as of the last site update", got["note"])
         home = PAGE.evaluate("() => [...document.querySelectorAll('#fb-starters .nba-box')][1].innerText")
         self.assertIn("Rookie Guy", home)
-        self.assertIn("NEW", home.upper())
+        self.assertIn("0 OF 0", home.upper())  # no starts on file yet (no "New" tag, 2026-10-30)
         five = PAGE.evaluate("() => plan().home.starters")
         total = sum(got["fair"]["players"][pid]["p"] for pid in five)
         self.assertAlmostEqual(total, got["fair"]["first_home"] * (1 - fb.BENCH_SHARE), places=3)

@@ -547,16 +547,8 @@ function renderStarters(g, p) {
     const injured = out(abbr);
     // Best fair price first: the bottom line of the page.
     const ids = side.starters.slice().sort((x, y) => ((fair[y] || {}).p || 0) - ((fair[x] || {}).p || 0));
-    // Top Option: the most shots a start among the five (this season).
-    const vol = (id) => { const n = nowPlayers()[id]; return n && n.starts ? n.shots / n.starts : 0; };
-    const top = side.starters.reduce((a, b) => (vol(b) > vol(a) ? b : a), side.starters[0]);
     const rows = ids.map((id) => {
       const pl = player(id);
-      const now = nowPlayers()[id];
-      const tags = [];
-      if (isValue((fair[id] || {}).p, bestOdds(g, id))) tags.push(["Value", "fb-tag-value", "The best price pays more than our Fair"]);
-      if (id === top && vol(id)) tags.push(["Top Option", "fb-tag-plain", "Most shots a start on his team this season"]);
-      if (now && now.starts >= 5 && now.team_first_shot / now.starts >= 0.25) tags.push(["First Look", "fb-tag-plain", `Took his team's first shot in ${now.team_first_shot} of ${now.starts} starts this season`]);
       const rate = (n) => (pl.starts ? n / pl.starts : null);
       // Too few starts to color fairly (a rookie's 4): plain numbers.
       const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]} of ${pl.starts}</small></td>`;
@@ -566,7 +558,7 @@ function renderStarters(g, p) {
       const share = (key, side) => `<td class="num fb-cell fb-sh-${side}"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key] || 0)) : ""}><b>${pct(rate(pl[key] || 0))}</b><small>${pl[key] || 0} of ${pl.starts}</small></td>`;
       const f = fair[id];
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
-        <td><span class="nba-player">${playerClick(id, `${face(id)}<span>${pl.name}</span>`)}<span class="muted-label">${pl.pos}</span>${id === side.jumper ? `<span class="fb-tag">Jumper</span>` : ""}${tags.map(([t, cls, why]) => `<span class="fb-tag ${cls}" title="${why}">${t}</span>`).join("")}${pl.starts ? "" : `<span class="nba-new" title="No starts on file in this season's view">New</span>`}</span></td>
+        <td class="fb-name"><span class="nba-player" title="${pl.name}">${playerClick(id, `${face(id)}<span>${pl.name}</span>`)}<span class="muted-label">${pl.pos}</span></span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
         <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
         ${bestCell(g, id)}
@@ -577,7 +569,7 @@ function renderStarters(g, p) {
     const hue = Math.round(Math.max(0, Math.min(120, 60 + (chance - 0.5) * 480)));
     const chanceBox = `<span class="fb-chance" style="background:${scaleHsla(hue, 70, 45, 0.35)}" title="Our chance this team scores first: its jumper's Prediction x how often tip winners score first"><small>Scores First</small><b>${pct(chance)}</b></span>`;
     return `<div class="nba-box fb-starters-box">${banner(abbr, chanceBox + lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
+      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2" class="fb-name">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
         <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="8" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;

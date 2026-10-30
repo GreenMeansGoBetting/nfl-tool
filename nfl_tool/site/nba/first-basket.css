@@ -78,11 +78,12 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
 .fb-starters tbody tr:last-child .fb-sh-r::before { bottom: -3px; border-bottom-width: 1px; border-bottom-right-radius: 7px; }
 .fb-starters td { vertical-align: middle; padding-top: 3px; padding-bottom: 3px; line-height: 1.15; }
 .fb-starters .nba-player { gap: 6px; }
-.fb-tag { padding: 1px 6px; border-radius: 6px; font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--good-rgb), 0.18); color: var(--good-text); }
-
-.fb-tag + .fb-tag { margin-left: 4px; }
-.fb-tag-value { background: rgba(var(--good-rgb), 0.3); }
-.fb-tag-plain { background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); }
+/* No tags beside the names (the owner, 2026-10-30): the Player column is one
+   fixed width on every game, so the numbers sit in the same spot every time. */
+.fb-starters .fb-name { width: 196px; min-width: 196px; max-width: 196px; text-align: left; }
+.fb-starters .fb-name .nba-player { overflow: hidden; }
+.fb-starters .fb-name .player-click { overflow: hidden; }
+.fb-starters .fb-name .player-click > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 .fb-lineup { padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
 .fb-lineup-confirmed { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
 .fb-lineup-expected { background: rgba(var(--mid-rgb), 0.2); color: var(--mid-text); }
