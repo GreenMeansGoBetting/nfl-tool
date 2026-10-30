@@ -295,6 +295,7 @@ const SYNC_MAX_BYTES = 512 * 1024;
 const REQUEST_MAX_CHARS = 1000;
 const REQUESTS_PER_DAY = 10; // per member, stops accidental floods
 const REQUEST_STATUSES = ["new", "added", "deleted"];
+const REFUND_MARK = "[refund]\n"; // sync.js reads the same mark
 
 async function handleRequests(request, env, session, json) {
   const owner = isOwnerSession(session);
@@ -305,7 +306,16 @@ async function handleRequests(request, env, session, json) {
     } catch (e) {
       return json({ error: "bad json" }, 400);
     }
-    const text = String((body && body.text) || "").trim().slice(0, REQUEST_MAX_CHARS);
+    let text = String((body && body.text) || "").trim().slice(0, REQUEST_MAX_CHARS);
+    // The "Refund?" button (2026-10-30) sends an email + comments; it lands in
+    // the same list, marked so the owner's list tags it as a refund request.
+    if (body && body.kind === "refund") {
+      const email = String(body.email || "").trim().slice(0, 200);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "email" }, 400);
+      text = `${REFUND_MARK}Email: ${email}${text ? `\nComments: ${text}` : ""}`.slice(0, REQUEST_MAX_CHARS + 300);
+    } else if (text.startsWith(REFUND_MARK.trim())) {
+      text = text.slice(REFUND_MARK.trim().length).trim();
+    }
     if (!text) return json({ error: "empty" }, 400);
     const since = Date.now() - 24 * 3600 * 1000;
     const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM feature_requests WHERE uid = ? AND created > ?").bind(session.uid || session.name, since).first();

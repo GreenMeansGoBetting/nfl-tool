@@ -376,6 +376,11 @@ Required" screen (shown for products with a Discord role) and land signed in. Th
   requests": it lists every idea newest first (name, date), with Mark added / Undo / Delete (a
   PATCH; delete is soft, status `deleted`) and "+ Add my own idea". Members can never read others'
   ideas.
+- **Refund?** (2026-10-30, the owner's words): a pill right after the theme button on every page
+  (sync.js `addRefund`). Popup: the owner's note, Email, Additional Comments; POSTs `/api/requests`
+  `{kind: "refund", email, text}`; the middleware stores it in `feature_requests` with the
+  `REFUND_MARK` prefix (no schema change), and the owner's list shows a red "Refund Request" tag.
+  Test: `tests/test_refund_site.py`.
 - **What's new popup** (2026-10-15): `GMG_UPDATES` at the top of sync.js. Each member sees it
   once, on the first page they open after a new update is posted: unseen updates on top
   ("New" tag), older ones folded under "Earlier updates", then "Feel free to click 💡 Request a

@@ -757,6 +757,51 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     text.focus();
   }
 
+  // "Refund?" (beside the theme button, the owner's words, 2026-10-30): an
+  // email + comments sent to the same list as ideas, tagged as a refund
+  // request in the owner's list (the middleware marks it, REFUND_MARK).
+  const REFUND_MARK = "[refund]\n";
+  function openRefundForm() {
+    const overlay = requestModal();
+    const box = overlay.querySelector(".fr-content");
+    box.innerHTML = `<h3 class="fr-title">Refund Request</h3>
+      <p class="fr-refund-note">I never want anyone to feel as if this was a waste of money. If you are unhappy with the product and would like a refund for your most recent payment, type your email below</p>
+      <label class="fr-label" for="fr-refund-email">Email</label>
+      <input type="email" id="fr-refund-email" class="fr-email" maxlength="200" placeholder="you@example.com" autocomplete="email">
+      <label class="fr-label" for="fr-refund-text">Additional Comments</label>
+      <textarea id="fr-refund-text" class="fr-text" maxlength="1000" rows="4"></textarea>
+      <div class="fr-actions"><span class="fr-msg"></span><button type="button" class="fr-send">Send Request</button></div>`;
+    const email = box.querySelector(".fr-email");
+    const text = box.querySelector(".fr-text");
+    const msg = box.querySelector(".fr-msg");
+    const send = box.querySelector(".fr-send");
+    send.addEventListener("click", async () => {
+      const addr = email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
+        msg.textContent = "Please type a valid email.";
+        return email.focus();
+      }
+      send.disabled = true;
+      msg.textContent = "Sending...";
+      try {
+        const res = await fetch("/api/requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ kind: "refund", email: addr, text: text.value.trim() }),
+        });
+        if (res.status === 429) throw new Error("Too many requests today -- email gmgobetting@gmail.com instead.");
+        if (!res.ok) throw new Error("Couldn't send that -- try again in a minute, or email gmgobetting@gmail.com.");
+        box.innerHTML = `<h3 class="fr-title">Got It</h3><p class="fr-thanks">Your refund request was sent. I'll take care of it as soon as I can.</p>`;
+      } catch (e) {
+        msg.textContent = e.message;
+        send.disabled = false;
+      }
+    });
+    overlay.hidden = false;
+    email.focus();
+  }
+
   async function openRequestList() {
     const overlay = requestModal();
     const box = overlay.querySelector(".fr-content");
@@ -772,11 +817,12 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     }
     const fmt = (t) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
     const fresh = list.filter((r) => r.status === "new").length;
+    const refund = (r) => String(r.text || "").startsWith(REFUND_MARK);
     box.innerHTML = `<h3 class="fr-title">Feature requests <span class="fr-count">${fresh} new &middot; ${list.length} total</span></h3>
       <button type="button" class="fr-own">+ Add my own idea</button>
       <div class="fr-list">${list.length ? list.map((r) => `<div class="fr-item${r.status === "added" ? " fr-added" : ""}" data-id="${r.id}">
-        <div class="fr-meta"><b>${escHtml(r.name || "Member")}</b> &middot; ${fmt(r.created)}${r.status === "added" ? ` &middot; <span class="fr-tag">Added</span>` : ""}</div>
-        <div class="fr-body">${escHtml(r.text)}</div>
+        <div class="fr-meta">${refund(r) ? `<span class="fr-tag fr-tag-refund">Refund Request</span> &middot; ` : ""}<b>${escHtml(r.name || "Member")}</b> &middot; ${fmt(r.created)}${r.status === "added" ? ` &middot; <span class="fr-tag">${refund(r) ? "Done" : "Added"}</span>` : ""}</div>
+        <div class="fr-body">${escHtml(refund(r) ? r.text.slice(REFUND_MARK.length) : r.text)}</div>
         <div class="fr-item-actions"><button type="button" data-status="${r.status === "added" ? "new" : "added"}">${r.status === "added" ? "Undo added" : "Mark added"}</button><button type="button" data-status="deleted">Delete</button></div>
       </div>`).join("") : `<p class="fr-thanks">No requests yet.</p>`}</div>`;
     box.querySelector(".fr-own").addEventListener("click", openRequestForm);
@@ -1117,6 +1163,14 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     });
   }
   addDiary();
+  function addRefund() {
+    const theme = document.getElementById("theme-toggle");
+    if (!theme || document.getElementById("gmg-refund-btn")) return;
+    theme.insertAdjacentHTML("afterend", '<button type="button" class="refund-btn" id="gmg-refund-btn">Refund?</button>');
+    document.getElementById("gmg-refund-btn").addEventListener("click", openRefundForm);
+  }
+  addRefund();
+  window.GMGRequests = { list: openRequestList, refund: openRefundForm };
 
   // The "i" beside a heading opens its explanation (the long notes stay out of
   // the way until someone asks; the owner, 2026-10-14). Capture: it sits inside

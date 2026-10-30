@@ -2062,6 +2062,13 @@ a { color: var(--accent); }
   filter: grayscale(0.6);
 }
 .diary-btn:hover { opacity: 1; filter: none; }
+/* "Refund?" beside the theme button (sync.js addRefund): the theme button's pill, with words. */
+.refund-btn { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.refund-btn:hover { color: var(--text); border-color: var(--border-strong); }
+.fr-label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 10px 0 4px; }
+.fr-email { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); font: inherit; font-size: 0.95rem; }
+.fr-refund-note { margin: 0 0 4px; font-size: 0.95rem; line-height: 1.4; }
+.fr-tag-refund { padding: 1px 7px; border-radius: 6px; background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.04em; }
 .diary-box { width: min(640px, 92vw); max-height: 80vh; overflow-y: auto; }
 .diary-entry + .diary-entry { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
 .diary-date { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
