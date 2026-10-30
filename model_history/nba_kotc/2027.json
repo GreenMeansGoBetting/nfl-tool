@@ -3469,14 +3469,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3262,
+    "lead": 0.3265,
     "name": "Luka Doncic",
     "proj": 53.8,
     "team": "LAL"
    },
    {
     "id": "4065648",
-    "lead": 0.1255,
+    "lead": 0.1256,
     "name": "Jayson Tatum",
     "proj": 45.9,
     "team": "BOS"
@@ -3497,16 +3497,16 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0526,
+    "lead": 0.0522,
     "name": "Karl-Anthony Towns",
-    "proj": 40.3,
+    "proj": 40.2,
     "team": "NY"
    },
    {
     "id": "4871144",
-    "lead": 0.0478,
+    "lead": 0.0473,
     "name": "Alperen Sengun",
-    "proj": 39.8,
+    "proj": 39.7,
     "team": "HOU"
    },
    {
@@ -3518,14 +3518,14 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0206,
+    "lead": 0.0207,
     "name": "Cooper Flagg",
     "proj": 36.7,
     "team": "DAL"
    },
    {
     "id": "3064514",
-    "lead": 0.0203,
+    "lead": 0.0206,
     "name": "Julius Randle",
     "proj": 36.1,
     "team": "BKN"
@@ -3539,9 +3539,9 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0198,
+    "lead": 0.0197,
     "name": "Tyrese Maxey",
-    "proj": 36.2,
+    "proj": 36.1,
     "team": "PHI"
    },
    {
@@ -3553,9 +3553,9 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0148,
+    "lead": 0.0147,
     "name": "Joel Embiid",
-    "proj": 35.3,
+    "proj": 35.2,
     "team": "PHI"
    },
    {
@@ -3567,14 +3567,14 @@
    },
    {
     "id": "4066457",
-    "lead": 0.0125,
+    "lead": 0.0126,
     "name": "Austin Reaves",
     "proj": 35.0,
     "team": "LAL"
    },
    {
     "id": "5175737",
-    "lead": 0.0122,
+    "lead": 0.0123,
     "name": "Yaxel Lendeborg",
     "proj": 34.8,
     "team": "GS"
@@ -3588,16 +3588,16 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0092,
+    "lead": 0.0094,
     "name": "Jamal Murray",
     "proj": 33.6,
     "team": "DEN"
    },
    {
     "id": "3934672",
-    "lead": 0.0084,
+    "lead": 0.0081,
     "name": "Jalen Brunson",
-    "proj": 32.6,
+    "proj": 32.5,
     "team": "NY"
    },
    {
@@ -3630,7 +3630,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0061,
+    "lead": 0.0062,
     "name": "Kevin Durant",
     "proj": 32.3,
     "team": "HOU"
@@ -3664,18 +3664,18 @@
     "team": "PHI"
    },
    {
+    "id": "4684740",
+    "lead": 0.003,
+    "name": "Amen Thompson",
+    "proj": 29.4,
+    "team": "HOU"
+   },
+   {
     "id": "5095151",
     "lead": 0.0029,
     "name": "Caleb Wilson",
     "proj": 30.1,
     "team": "CHI"
-   },
-   {
-    "id": "4684740",
-    "lead": 0.0029,
-    "name": "Amen Thompson",
-    "proj": 29.4,
-    "team": "HOU"
    },
    {
     "id": "4396907",
