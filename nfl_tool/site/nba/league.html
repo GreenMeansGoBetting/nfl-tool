@@ -43,7 +43,7 @@
 
     <div class="section-wrap">
       <h2 class="section-title">League Stats Chart <button type="button" class="info-i" aria-expanded="false" aria-controls="lsc-note" title="How to read this">i</button></h2>
-      <p class="section-note info-note" id="lsc-note" hidden>Every team's numbers this season, ranked across all 30 and shaded on the 8-step scale: <b>green = 1st, red = 30th</b>. <b>Offense</b> = what the team does with the ball; <b>Defense (Allowed)</b> = what its opponents do against it. Green is always good for that team: on offense the most of a thing is green (fastest pace, most threes); on defense allowing the least is green (and forcing the most turnovers). Hover a cell for the exact number and its rank. <b>Show Rank</b> swaps the numbers for ranks. Click a column to sort best first, again for worst first. Click a game above to pull its two teams to the top; click it again to put them back. Click a logo for that team's game in Matchup Breakdown. Last 10 / 5 / 3 use every game a team has until it has played that many. Shares, rates and FG% are percents; Trans Pts = points a 100 transition possessions; Ball Move = assisted makes and catch-and-shoot shots, averaged.</p>
+      <p class="section-note info-note" id="lsc-note" hidden>Every team's numbers this season, ranked across all 30 and shaded on the 8-step scale: <b>green = 1st, red = 30th</b>. <b>Offense</b> = what the team does with the ball; <b>Defense (Allowed)</b> = what its opponents do against it. Green is always good for that team: on offense the most of a thing is green (fastest pace, most threes); on defense allowing the least is green (and forcing the most turnovers). Hover a cell for the exact number and its rank. <b>Show Rank</b> swaps the numbers for ranks. Click a column to sort best first, again for worst first. Click a game above to pull its two teams to the top; click it again to put them back. Click a logo for that team's game in Matchup Breakdown. <b>Matchup Keys</b> = what stands out in the picked game, each key as the chart's own tiles: an <b>Edge</b> (one side in the top 10, the other in the bottom half), <b>Fits</b> / <b>Takes Away</b> (an offense that does something a lot against a defense that allows it the most / the least), <b>Same Style</b> and <b>Clash</b> (both teams at the same end of a number, or opposite ends), <b>Trend</b> (their over / under records together), <b>Few Falling</b> (lots of a shot, its makes 10+ places lower) and <b>Not Tested</b> (a weak spot tonight's offense rarely goes at). Last 10 / 5 / 3 use every game a team has until it has played that many. Shares, rates and FG% are percents; Trans Pts = points a 100 transition possessions; Ball Move = assisted makes and catch-and-shoot shots, averaged.</p>
       <div class="lsc-bar">
         <div class="view-toggle lsc-seg" id="lsc-window">
           <button type="button" class="view-toggle-btn" data-window="season">Season</button>
@@ -53,6 +53,7 @@
         </div>
         <button type="button" class="view-toggle-btn lsc-switch" id="lsc-rank" aria-pressed="false">Show Rank</button>
         <button type="button" class="view-toggle-btn lsc-switch" id="lsc-today" aria-pressed="false">Today's Teams Only</button>
+        <button type="button" class="view-toggle-btn lsc-switch lsc-keys-btn" id="lsc-keys" aria-pressed="false">Matchup Keys</button>
       </div>
       <div id="empty-state" class="empty-state"><p>Loading the NBA league&hellip;</p></div>
       <div id="lsc-body" class="lsc-wrap"></div>
@@ -65,6 +66,7 @@
 </footer>
 
 <script src="../sync.js"></script>
+<script src="keys.js"></script>
 <script src="league.js"></script>
 </body>
 </html>

@@ -32,3 +32,20 @@
 .lsc-grid tr.lsc-dim .lsc-tile { filter: grayscale(1); opacity: 0.5; }
 .lsc-grid tr.lsc-dim .lsc-logo { filter: grayscale(1); opacity: 0.6; }
 .lsc-grid tr.lsc-spacer td { height: 8px; padding: 0; background: transparent !important; box-shadow: none; }
+/* Matchup Keys: one card a key, the chart's own tiles inside (the owner: "HERES WHAT MATTERS TONIGHT"). */
+.lsc-keys-btn.active { background: var(--accent); }
+.lsc-keys-head { display: flex; align-items: center; gap: 8px; margin: 2px 0 12px; font-family: var(--font-display); font-size: 1.15rem; }
+.lsc-keys-head .at { color: var(--muted); font-size: 0.85rem; }
+.lsc-keys-n { margin-left: 6px; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; background: var(--panel-2); border: 1px solid var(--border); }
+.lsc-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; max-width: 1640px; }
+.lsc-key { padding: 10px 12px 12px; border-radius: 10px; background: rgba(var(--kc), 0.1); border: 1px solid rgba(var(--kc), 0.4); border-left: 4px solid rgb(var(--kc)); }
+.lsc-key-top { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; line-height: 1.2; }
+.lsc-key-top b { font-family: var(--font-display); font-size: 1rem; }
+.lsc-key-tag { flex: 0 0 auto; padding: 2px 7px; border-radius: 6px; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(var(--kc), 0.3); }
+.lsc-key-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 8px; }
+.lsc-kt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.lsc-kt-lab { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lsc-kt .lsc-tile { text-align: center; }
+.lsc-kt .lsc-tile b { font-size: 1.05rem; }
+.lsc-more { margin: 12px 0 0; border-radius: 999px; }
+.lsc-keys-more { margin-top: 10px; opacity: 0.85; }

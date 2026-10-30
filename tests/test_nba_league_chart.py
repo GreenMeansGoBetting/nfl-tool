@@ -132,7 +132,7 @@ def cell(team, key):
 class Page(unittest.TestCase):
     def setUp(self):
         PAGE.evaluate("""() => {
-            Object.assign(view, {window: 'season', rank: false, today: false, sort: 'net', dir: 1});
+            Object.assign(view, {window: 'season', rank: false, today: false, keys: false, more: false, sort: 'net', dir: 1});
             pinned = null;
             render();
         }""")
@@ -217,3 +217,80 @@ class Page(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MatchupKeys(unittest.TestCase):
+    """keys.js on the real league numbers of 2026-10-30 (tests/fixtures), the owner's CHA @ WSH read:
+    "their games are 1-9 on Overs. CHA takes a ton of 3s but hasn't hit many. CHA doesnt get to the
+    line and WSH does. this is an inside vs outside battle. WSH is bad in transition but cha doesn't
+    really push the pace at all." (Both bottom-10 pace: WSH was 18th on these numbers.)"""
+
+    @classmethod
+    def setUpClass(cls):
+        table = json.loads((ROOT / "tests" / "fixtures" / "nba_league_chart_2026-10-30.json").read_text(encoding="utf-8"))
+        cls.keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", table)
+        cls.table = table
+
+    def titles(self, lead=None):
+        return [k["title"] for k in self.keys if lead is None or k["lead"] == lead]
+
+    def test_the_owners_read_is_all_there(self):
+        shown = self.titles(lead=True)
+        for title in ("Unders 1-9 Combined", "Lots Of Threes, Few Falling", "Free Throws: Opposite Ends", "Inside Vs Outside",
+                      "WSH Transition D Weak, Not Tested"):
+            self.assertIn(title, shown)
+
+    def test_one_card_a_subject_the_rest_kept(self):
+        lead = [k for k in self.keys if k["lead"]]
+        self.assertEqual(len({k["topic"] for k in lead}), len(lead))
+        self.assertTrue([k for k in self.keys if not k["lead"]])  # More Keys: nothing dropped
+        # the strongest first, then the rest
+        self.assertEqual([k["lead"] for k in self.keys], sorted([k["lead"] for k in self.keys], reverse=True))
+
+    def test_nothing_told_twice_or_misread(self):
+        titles = self.titles()
+        self.assertEqual(len(titles), len(set(titles)))
+        # an Edge already says the glass; no "Opposite Ends" restating it
+        self.assertNotIn("Offensive Glass: Opposite Ends", titles)
+        # transition scoring only counts for a team that runs (CHA is near the bottom in running)
+        self.assertNotIn("CHA Offense: Transition Scoring", titles)
+        # Inside Vs Outside replaces the two volume clashes it explains
+        self.assertNotIn("Three-Point Volume: Opposite Ends", titles)
+        self.assertNotIn("Paint Volume: Opposite Ends", titles)
+
+    def test_every_key_reads_both_sides_or_one_teams_two_numbers(self):
+        for k in self.keys:
+            teams = {t["team"] for t in k["tiles"]}
+            self.assertTrue(len(teams) == 2 or (k["type"] == "volume" and len(k["tiles"]) == 2), k["title"])
+
+    def test_the_cards_on_the_page(self):
+        PAGE.evaluate("""(t) => {
+            window.keptSeason = DATA.league_chart.season;
+            DATA.league_chart.season = t;
+            DATA.teams.CHA = {name: 'Charlotte Hornets', logo: '', color: '1d1160'};
+            DATA.teams.WSH = {name: 'Washington Wizards', logo: '', color: 'e31837'};
+            DATA.schedule.push({game_id: '88', date: DATA.schedule[0].date, time: '19:00', start_utc: DATA.schedule[0].start_utc, away: 'CHA', home: 'WSH', status: 'scheduled'});
+            Object.assign(view, {window: 'season', keys: false, more: false});
+            pinned = '88';
+            render();
+        }""", self.table)
+        PAGE.click("#lsc-keys")
+        cards = PAGE.evaluate("() => [...document.querySelectorAll('.lsc-keys:not(.lsc-keys-more) .lsc-key-top b')].map((b) => b.textContent)")
+        self.assertEqual(cards, self.titles(lead=True))
+        self.assertFalse(PAGE.evaluate("() => !!document.querySelector('.lsc-grid')"))  # the cards replace the chart
+        PAGE.click("#lsc-more")
+        more = PAGE.evaluate("() => [...document.querySelectorAll('.lsc-keys-more .lsc-key-top b')].map((b) => b.textContent)")
+        self.assertEqual(more, self.titles(lead=False))
+        # a tile is the chart's own: a whole number on the rank colors
+        tile = PAGE.evaluate("() => document.querySelector('.lsc-key .lsc-tile b').textContent")
+        self.assertNotIn(".", tile)
+        PAGE.click("#lsc-keys")
+        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.lsc-grid')"))
+        PAGE.evaluate("""() => {
+            DATA.league_chart.season = window.keptSeason;
+            delete DATA.teams.CHA; delete DATA.teams.WSH;
+            DATA.schedule = DATA.schedule.filter((g) => g.game_id !== '88');
+            Object.assign(view, {keys: false, more: false});
+            pinned = null;
+            render();
+        }""")

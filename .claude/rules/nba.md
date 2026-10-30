@@ -356,7 +356,22 @@ the same framework next ("once we have the framework down").
 - Season / Last 10 / 5 / 3, Show Rank, Today's Teams Only (the carousel's day; off by default); header
   click = best first, again worst first (opens on Net Rating; **nothing remembered**). A game card
   lights its two teams up on top; again = back. Team cell = logo on its color, no name / record ("compact
-  and punchy"); click = its game in Matchup Breakdown. Tests: `tests/test_nba_league_chart.py`.
+  and punchy"); click = its game in Matchup Breakdown. A picked game's two teams light up; every
+  other row goes grayscale ("too busy with all the colors"). **No outline on any tile** ("i hate it").
+  Tests: `tests/test_nba_league_chart.py`.
+- **Matchup Keys** (button, 2026-10-30; the owner: "HERES ALL THE DATA - then ... HERES WHAT MATTERS
+  TONIGHT"): every rule in `keys.js` (`nbaMatchupKeys`, ONE place; Biggest Edges on Matchup Breakdown is
+  to read the same keys next, the owner dislikes its two-numbers-a-cell look). Extreme = top / bottom 10
+  of 30. Types: Edge (one side top 10, the other bottom half; a make rate only for an offense in the top
+  half of taking those shots, transition scoring only for one that runs), Fits / Takes Away (how-often:
+  offense top 10 vs a defense allowing the most / least), Same Style / Clash (both at one end / opposite
+  ends; no Opposite Ends for scoring, turnovers, glass: an Edge says it), Inside Vs Outside (replaces the
+  3PA / paint clashes), Trend (combined O/U 6+ decisions, 70%+), Few Falling (volume top 10, makes 10+
+  places lower), Not Tested (a weak defense the offense rarely tests). **One card a topic** (`lead`, the
+  strongest), the rest under More Keys, never dropped. Cards = the chart's own tiles. The 2026-10-30 audit
+  (7-25 keys a game, the glass told three ways) is why; the owner's CHA @ WSH read is pinned on
+  `tests/fixtures/nba_league_chart_2026-10-30.json`. Owner fear: things omitted or miscounted: audit a
+  real slate (keys, More, near misses at 12) before changing a rule.
 
 ## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`)
 

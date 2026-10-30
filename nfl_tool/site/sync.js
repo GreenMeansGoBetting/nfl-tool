@@ -363,6 +363,7 @@ const GMG_UPDATES = [
     id: "2026-10-30",
     items: [
       ["🏀", "<b>NBA League Stats Chart</b> (top of the NBA menu): all 30 teams in one chart, Offense, Defense and Game & Betting (pace, net rating, ATS, O/U), every number shaded on the rank colors so you can see who ranks where at a glance. Click any column to sort, switch Season / Last 10 / 5 / 3, Show Rank, or Today's Teams Only; click a game up top to pull its two teams to the top."],
+      ["🔑", "<b>Matchup Keys</b> (on the League Stats Chart): pick a game and click Matchup Keys for what stands out tonight, one card per subject: edges, style clashes like Inside Vs Outside, the two teams' combined over / under record, shots that aren't falling, and weak spots the other team rarely tests. Each card shows the chart's own numbers; More Keys has the rest."],
     ],
   },
   {
