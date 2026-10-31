@@ -548,13 +548,15 @@ function listRow(x, i, cols) {
   MK = x.mk;
   const key = `${MK.market}:${x.g.game_id}:${x.pid}`;
   const open = LIST.open === key;
+  // a started game keeps its box (a member's request, 2026-10-31: "I took a play and forgot to add it"):
+  // it saves at the line and price locked at tip, the ones on the row
   const save = typeof nbaCardSaveBox === "function"
     ? nbaCardSaveBox(nbaCardEntry(MK.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, x.side, x.line, [x.book, x.side, x.line, x.price]))
     : "";
   const f = fair(x.chance);
   return `<tr class="sim-row${open ? " open" : ""}${x.live ? " live" : ""}${x.held ? " held" : ""}" data-row="${key}">
     <td class="num sim-rank">${i + 1}</td>${playerCell(x.pid, x.team, x.opp, x.home)}${marketCell(x.mk)}
-    <td class="sim-playc">${chip(x.side, x.line, x.price, x.book)}${x.live ? "" : save}</td>
+    <td class="sim-playc">${chip(x.side, x.line, x.price, x.book)}${save}</td>
     <td class="sim-tight">${ratingTag(x.play, x.live)}</td>
     <td class="num sim-tight" title="Our chance: ${pct(x.chance)}">${f === null ? "--" : showOdds(f)}</td>${edgeCell(x)}
     ${hitCell(x.hits.l5, "Last 5 games over tonight's line")}${hitCell(x.hits.l10, "Last 10 games over tonight's line")}${hitCell(x.hits.all, "This season's games over tonight's line")}${hitCell(x.hits.home, "Home games over tonight's line")}${hitCell(x.hits.away, "Road games over tonight's line")}
@@ -987,8 +989,9 @@ document.addEventListener("change", (e) => {
     LIST.open = null;
     return renderList();
   }
-  // a play saved to My Plays from a row (nba-card.js saves it): keep the boxes in step
-  if (e.target.closest("#sim-list .nba-pc-toggle")) renderList();
+  // a play saved to My Plays from a row (nba-card.js saves it): keep the boxes in step. After the save:
+  // this listener runs first, and redrawing now showed the box unticked though the play was saved (2026-10-31)
+  if (e.target.closest("#sim-list .nba-pc-toggle")) setTimeout(renderList, 0);
 });
 document.addEventListener("nba-shot-changed", () => view === "player" && LIST.tab === "shots" && renderList());
 document.addEventListener("click", (e) => {

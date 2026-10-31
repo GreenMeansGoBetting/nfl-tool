@@ -216,7 +216,7 @@ Every game played 10,000 times, possession by possession.
   (per-device pref `nfl-tool.nba-sim-view`), day arrows, game cards ("n Plays").
 - **Player View** = the NHL Shots list. **Opens on Plays Only**; Every Player adds "Not plays"; Side
   and Edge menus; a game card narrows the list. Columns: #, Player (playerClick), Play chip "o31.5 -110
-  FD" (best price on the member's books) + save box (`nbaCardSaveBox`), Rating, Fair, Edge, **Hit
+  FD" (best price on the member's books) + save box (`nbaCardSaveBox`; **a started game keeps it**, saving the line and price locked at tip, a member's ask 2026-10-31), Rating, Fair, Edge, **Hit
   Rate - Based On Over Points / Threes** (L5, L10, Season, Home, Away: games OVER tonight's line
   whichever side, "x of y", red 20% to green 80% via `scaleHsla`, one width 62px), **Tags** (the spare
   width; `fitTags`). Every column but Player / Play / Rating sorts; started games gray at the bottom.

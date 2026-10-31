@@ -252,6 +252,33 @@ class Plays(unittest.TestCase):
         self.assertEqual(len(rows()), 1)
 
 
+class StartedGame(unittest.TestCase):
+    def test_a_started_game_can_still_be_saved_at_the_tip_line(self):
+        # a member, 2026-10-31: "I took a play and forgot to add it to my plays. The game has already
+        # started and I can't seem to add it anymore." The box stays; it saves the line and price locked at tip.
+        got = PAGE.evaluate("""async () => {
+            const realNow = Date.now;
+            Date.now = () => Date.parse('2026-10-22T00:30:00Z');  // an hour after the 7:30 pm tip
+            const box = () => document.querySelector('#sim-list tr.sim-row .nba-pc-toggle');
+            const redrawn = () => new Promise((r) => setTimeout(r, 20));
+            try {
+                render();
+                const live = document.querySelector('#sim-list tr.sim-row').classList.contains('live');
+                if (!box()) return { live, box: false };
+                box().click();
+                await redrawn();
+                const saved = loadNbaPlays().find((p) => p.player_id === '1');
+                const ticked = box().checked;  // 2026-10-31: the redraw showed it unticked though it was saved
+                box().click();  // and off again
+                await redrawn();
+                return { live, box: true, ticked, line: saved && saved.line, side: saved && saved.side, odds: saved && saved.odds,
+                         book: saved && saved.book, left: loadNbaPlays().filter((p) => p.id === saved.id).length, unticked: !box().checked };
+            } finally { Date.now = realNow; render(); }
+        }""")
+        self.assertEqual(got, {"live": True, "box": True, "ticked": True, "line": 19.5, "side": "over", "odds": -150, "book": "fanduel",
+                               "left": 0, "unticked": True})
+
+
 class Record(unittest.TestCase):
     def test_tiles_and_the_popup(self):
         tiles = text("#sim-record > div")
