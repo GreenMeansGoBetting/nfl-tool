@@ -6627,7 +6627,7 @@
  "401909905": {
   "away": "LAC",
   "date": "2026-11-01",
-  "first_home": 0.507,
+  "first_home": 0.532,
   "home": "GS",
   "jumpers": [
    [
@@ -6635,83 +6635,83 @@
     "Isaiah Jackson"
    ],
    [
-    "6589",
-    "Draymond Green"
+    "4703396",
+    "Graham Ike"
    ]
   ],
   "players": {
    "2991139": [
     "Kris Dunn",
-    0.083,
+    0.079,
     null,
     false,
     null
    ],
    "3936099": [
     "Derrick Jones Jr.",
-    0.089,
+    0.084,
     null,
     false,
     null
    ],
-   "3975": [
-    "Stephen Curry",
-    0.114,
+   "4066436": [
+    "De'Anthony Melton",
+    0.072,
     null,
     false,
     null
    ],
    "4066648": [
     "Rui Hachimura",
-    0.094,
+    0.089,
     null,
     false,
     null
    ],
    "4396907": [
     "Darius Garland",
-    0.112,
+    0.107,
     null,
     false,
     null
    ],
    "4432170": [
     "Isaiah Jackson",
-    0.095,
+    0.09,
+    null,
+    false,
+    null
+   ],
+   "4703396": [
+    "Graham Ike",
+    0.101,
     null,
     false,
     null
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.114,
+    0.13,
     null,
     false,
     null
    ],
    "4997536": [
     "Gui Santos",
-    0.079,
+    0.088,
     null,
     false,
     null
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.105,
-    null,
-    false,
-    null
-   ],
-   "6589": [
-    "Draymond Green",
-    0.075,
+    0.119,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.522
+  "tip_home": 0.596
  },
  "401909906": {
   "away": "TOR",
@@ -7863,7 +7863,7 @@
  "401909919": {
   "away": "PHX",
   "date": "2026-11-02",
-  "first_home": 0.4,
+  "first_home": 0.418,
   "home": "GS",
   "jumpers": [
    [
@@ -7871,83 +7871,83 @@
     "Khaman Maluach"
    ],
    [
-    "6589",
-    "Draymond Green"
+    "4703396",
+    "Graham Ike"
    ]
   ],
   "players": {
    "3136193": [
     "Devin Booker",
-    0.13,
+    0.126,
     null,
     false,
     null
    ],
    "3155526": [
     "Dillon Brooks",
-    0.121,
-    null,
-    false,
-    null
-   ],
-   "3975": [
-    "Stephen Curry",
-    0.09,
+    0.117,
     null,
     false,
     null
    ],
    "4066383": [
     "Miles Bridges",
-    0.124,
+    0.12,
+    null,
+    false,
+    null
+   ],
+   "4066436": [
+    "De'Anthony Melton",
+    0.057,
     null,
     false,
     null
    ],
    "4437244": [
     "Jalen Green",
-    0.101,
+    0.098,
+    null,
+    false,
+    null
+   ],
+   "4703396": [
+    "Graham Ike",
+    0.079,
     null,
     false,
     null
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.09,
+    0.102,
     null,
     false,
     null
    ],
    "4997536": [
     "Gui Santos",
-    0.063,
+    0.069,
     null,
     false,
     null
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.083,
+    0.093,
     null,
     false,
     null
    ],
    "5203685": [
     "Khaman Maluach",
-    0.1,
-    null,
-    false,
-    null
-   ],
-   "6589": [
-    "Draymond Green",
-    0.059,
+    0.098,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.2
+  "tip_home": 0.252
  },
  "401909920": {
   "away": "TOR",
