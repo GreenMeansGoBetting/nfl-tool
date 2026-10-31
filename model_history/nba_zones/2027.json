@@ -6537,5 +6537,504 @@
     "novig"
    ]
   ]
+ },
+ "401909896": {
+  "date": "2026-10-31",
+  "points": [
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "UTAH",
+    0.0908,
+    "over",
+    false,
+    13.5,
+    -122,
+    "novig"
+   ],
+   [
+    "4066336",
+    "Lauri Markkanen",
+    "UTAH",
+    "POR",
+    -0.0755,
+    "under",
+    false,
+    21.5,
+    -105,
+    "bet365"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "UTAH",
+    0.0639,
+    "over",
+    false,
+    12.5,
+    -111,
+    "novig"
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "UTAH",
+    0.1301,
+    "over",
+    true,
+    14.5,
+    104,
+    "novig"
+   ],
+   [
+    "4873138",
+    "Ace Bailey",
+    "UTAH",
+    "POR",
+    -0.0938,
+    "under",
+    false,
+    14.5,
+    -110,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "UTAH",
+    0.0501,
+    "over",
+    false,
+    2.5,
+    138,
+    "novig"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "UTAH",
+    0.076,
+    "over",
+    false,
+    2.5,
+    130,
+    "novig"
+   ],
+   [
+    "4433627",
+    "Keyonte George",
+    "UTAH",
+    "POR",
+    -0.0557,
+    "under",
+    false,
+    2.5,
+    -140,
+    "fanatics"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "UTAH",
+    0.1139,
+    "over",
+    false,
+    1.5,
+    -165,
+    "bet365"
+   ],
+   [
+    "5041955",
+    "Darryn Peterson",
+    "UTAH",
+    "POR",
+    -0.1599,
+    "under",
+    true,
+    1.5,
+    -170,
+    "bet365"
+   ],
+   [
+    "6606",
+    "Damian Lillard",
+    "POR",
+    "UTAH",
+    0.1349,
+    "over",
+    true,
+    3.5,
+    141,
+    "novig"
+   ]
+  ]
+ },
+ "401909897": {
+  "date": "2026-10-31",
+  "points": [],
+  "threes": []
+ },
+ "401909898": {
+  "date": "2026-10-31",
+  "points": [
+   [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "NO",
+    0.0847,
+    "over",
+    false,
+    19.5,
+    -110,
+    "bet365"
+   ],
+   [
+    "4397136",
+    "Saddiq Bey",
+    "NO",
+    "ATL",
+    0.1403,
+    "over",
+    true,
+    11.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "4397688",
+    "Trey Murphy III",
+    "NO",
+    "ATL",
+    0.0656,
+    "over",
+    false,
+    17.5,
+    -105,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "2490149",
+    "CJ McCollum",
+    "ATL",
+    "NO",
+    -0.1176,
+    "under",
+    false,
+    2.5,
+    -160,
+    "bet365"
+   ],
+   [
+    "3907497",
+    "Dejounte Murray",
+    "NO",
+    "ATL",
+    -0.3598,
+    "under",
+    true,
+    1.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "4397183",
+    "Aaron Wiggins",
+    "ATL",
+    "NO",
+    -0.0759,
+    "under",
+    false,
+    2.5,
+    -160,
+    "bet365"
+   ],
+   [
+    "4431680",
+    "Onyeka Okongwu",
+    "ATL",
+    "NO",
+    -0.2944,
+    "under",
+    true,
+    1.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "5144091",
+    "Jeremiah Fears",
+    "NO",
+    "ATL",
+    -0.2133,
+    "under",
+    true,
+    1.5,
+    -175,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909899": {
+  "date": "2026-10-31",
+  "points": [
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "MEM",
+    0.1225,
+    "over",
+    true,
+    16.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4065732",
+    "De'Andre Hunter",
+    "SAC",
+    "MEM",
+    -0.1528,
+    "under",
+    true,
+    12.5,
+    -105,
+    "bet365"
+   ],
+   [
+    "4065733",
+    "Ty Jerome",
+    "MEM",
+    "SAC",
+    0.3425,
+    "over",
+    true,
+    22.5,
+    -105,
+    "fanatics"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "SAC",
+    0.2471,
+    "over",
+    true,
+    15.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "SAC",
+    0.1956,
+    "over",
+    true,
+    17.5,
+    -110,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "MEM",
+    -0.1503,
+    "under",
+    true,
+    2.5,
+    115,
+    "bet365"
+   ],
+   [
+    "4065732",
+    "De'Andre Hunter",
+    "SAC",
+    "MEM",
+    -0.081,
+    "under",
+    false,
+    1.5,
+    120,
+    "fanatics"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "SAC",
+    0.5161,
+    "over",
+    true,
+    1.5,
+    -125,
+    "hard_rock"
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "MEM",
+    -0.1979,
+    "under",
+    true,
+    2.5,
+    -140,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909900": {
+  "date": "2026-10-31",
+  "points": [
+   [
+    "2995706",
+    "Mario Hezonja",
+    "CLE",
+    "MIL",
+    0.0972,
+    "over",
+    false,
+    3.5,
+    -400,
+    "bet365"
+   ],
+   [
+    "4432158",
+    "Evan Mobley",
+    "CLE",
+    "MIL",
+    0.1163,
+    "over",
+    false,
+    16.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "4576087",
+    "Peyton Watson",
+    "CLE",
+    "MIL",
+    0.0668,
+    "over",
+    false,
+    13.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "5105623",
+    "Kel'el Ware",
+    "MIL",
+    "CLE",
+    0.1633,
+    "over",
+    true,
+    9.5,
+    100,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "2995706",
+    "Mario Hezonja",
+    "CLE",
+    "MIL",
+    0.0647,
+    "over",
+    false,
+    1.5,
+    180,
+    "bet365"
+   ],
+   [
+    "3133628",
+    "Myles Turner",
+    "MIL",
+    "CLE",
+    0.4255,
+    "over",
+    true,
+    1.5,
+    100,
+    "novig"
+   ],
+   [
+    "3992",
+    "James Harden",
+    "CLE",
+    "MIL",
+    -0.1003,
+    "under",
+    false,
+    2.5,
+    125,
+    "bet365"
+   ],
+   [
+    "4395725",
+    "Tyler Herro",
+    "MIL",
+    "CLE",
+    -0.0681,
+    "under",
+    false,
+    2.5,
+    106,
+    "draftkings"
+   ],
+   [
+    "4432158",
+    "Evan Mobley",
+    "CLE",
+    "MIL",
+    0.1564,
+    "over",
+    true,
+    1.5,
+    155,
+    "bet365"
+   ],
+   [
+    "4576087",
+    "Peyton Watson",
+    "CLE",
+    "MIL",
+    0.164,
+    "over",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909901": {
+  "date": "2026-10-31",
+  "points": [],
+  "threes": []
+ },
+ "401909902": {
+  "date": "2026-10-31",
+  "points": [],
+  "threes": []
  }
 }
