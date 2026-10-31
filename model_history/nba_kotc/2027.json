@@ -3894,7 +3894,7 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.1288,
+    "lead": 0.1287,
     "name": "Domantas Sabonis",
     "proj": 40.0,
     "team": "SAC"
@@ -3908,14 +3908,14 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0805,
+    "lead": 0.0804,
     "name": "Victor Wembanyama",
     "proj": 37.0,
     "team": "SA"
    },
    {
     "id": "4701230",
-    "lead": 0.0751,
+    "lead": 0.075,
     "name": "Jalen Johnson",
     "proj": 37.0,
     "team": "ATL"
@@ -3936,14 +3936,14 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0575,
+    "lead": 0.0574,
     "name": "Deni Avdija",
     "proj": 35.8,
     "team": "POR"
    },
    {
     "id": "4431678",
-    "lead": 0.0514,
+    "lead": 0.0513,
     "name": "Tyrese Maxey",
     "proj": 35.1,
     "team": "PHI"
@@ -3957,7 +3957,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0359,
+    "lead": 0.0358,
     "name": "Darius Acuff Jr.",
     "proj": 33.8,
     "team": "SAC"
@@ -3978,9 +3978,9 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0328,
+    "lead": 0.0333,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 33.0,
+    "proj": 33.1,
     "team": "OKC"
    },
    {
