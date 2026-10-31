@@ -6132,13 +6132,6 @@
     false,
     "fanduel"
    ],
-   "4065733": [
-    "Ty Jerome",
-    0.123,
-    460,
-    false,
-    "fanduel"
-   ],
    "4431679": [
     "Precious Achiuwa",
     0.076,
@@ -6146,32 +6139,39 @@
     true,
     "caesars"
    ],
+   "4432810": [
+    "Isaiah Stewart",
+    0.102,
+    null,
+    false,
+    null
+   ],
    "4600663": [
     "Zach Edey",
-    0.101,
+    0.106,
     600,
     false,
     "bet365"
    ],
    "4903027": [
     "Cedric Coward",
-    0.106,
+    0.111,
     670,
     false,
     "draftkings"
    ],
    "5041935": [
     "Cameron Boozer",
-    0.103,
+    0.11,
     850,
     false,
     "bet365"
    ],
    "5112087": [
     "Jaylen Wells",
-    0.1,
+    0.105,
     1000,
-    false,
+    true,
     "fanduel"
    ],
    "5142620": [
@@ -7440,13 +7440,6 @@
     false,
     null
    ],
-   "4065733": [
-    "Ty Jerome",
-    0.127,
-    null,
-    false,
-    null
-   ],
    "4277813": [
     "Herbert Jones",
     0.084,
@@ -7468,30 +7461,37 @@
     false,
     null
    ],
+   "4432810": [
+    "Isaiah Stewart",
+    0.105,
+    null,
+    false,
+    null
+   ],
    "4600663": [
     "Zach Edey",
-    0.105,
+    0.11,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.109,
+    0.115,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.107,
+    0.114,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.104,
+    0.109,
     null,
     false,
     null
