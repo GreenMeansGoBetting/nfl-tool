@@ -3894,7 +3894,7 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.1287,
+    "lead": 0.1288,
     "name": "Domantas Sabonis",
     "proj": 40.0,
     "team": "SAC"
@@ -3908,7 +3908,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0804,
+    "lead": 0.0806,
     "name": "Victor Wembanyama",
     "proj": 37.0,
     "team": "SA"
@@ -3985,7 +3985,7 @@
    },
    {
     "id": "3064440",
-    "lead": 0.0319,
+    "lead": 0.032,
     "name": "Zach LaVine",
     "proj": 32.8,
     "team": "SAC"
@@ -4062,9 +4062,9 @@
    },
    {
     "id": "4396971",
-    "lead": 0.0054,
+    "lead": 0.0051,
     "name": "Naz Reid",
-    "proj": 28.4,
+    "proj": 28.3,
     "team": "CHA"
    },
    {
