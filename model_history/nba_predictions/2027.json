@@ -1169,7 +1169,7 @@ null
 "total": 234.5,
 "total_odds": [
 102,
--106
+-105
 ]
 },
 "date": "2026-10-30",
@@ -1452,7 +1452,7 @@ null
 ],
 "spread_odds": [
 108,
--122
+-117
 ],
 "total": 233.5,
 "total_odds": [
@@ -1733,8 +1733,8 @@ null
 4.5
 ],
 "spread_odds": [
-null,
-null
+-128,
+-135
 ],
 "total": 238.5,
 "total_odds": [
@@ -1869,7 +1869,7 @@ null
 "away": "SAC",
 "book": {
 "ml": [
-355,
+344,
 -400
 ],
 "spread": [
@@ -1877,13 +1877,13 @@ null
 -10.5
 ],
 "spread_odds": [
--122,
--122
+-112,
+-113
 ],
 "total": 234.5,
 "total_odds": [
 -113,
--122
+-113
 ]
 },
 "date": "2026-10-31",
@@ -2017,17 +2017,17 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-8.5,
+8.5
 ],
 "spread_odds": [
-null,
-null
+-133,
+-117
 ],
-"total": null,
+"total": 236.5,
 "total_odds": [
-null,
-null
+-122,
+-122
 ]
 },
 "date": "2026-10-31",
@@ -2036,8 +2036,14 @@ null
 0.6047,
 0.3953
 ],
-"spread": null,
-"total": null
+"spread": [
+0.329,
+0.671
+],
+"total": [
+0.5185,
+0.4815
+]
 },
 "fair_spread": 3.2,
 "home": "MIL",
