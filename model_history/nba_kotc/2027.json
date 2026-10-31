@@ -3908,7 +3908,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0809,
+    "lead": 0.0808,
     "name": "Victor Wembanyama",
     "proj": 37.0,
     "team": "SA"
@@ -4048,7 +4048,7 @@
    },
    {
     "id": "4684740",
-    "lead": 0.0072,
+    "lead": 0.0071,
     "name": "Amen Thompson",
     "proj": 28.2,
     "team": "HOU"
@@ -4068,18 +4068,18 @@
     "team": "CHA"
    },
    {
+    "id": "5037871",
+    "lead": 0.0051,
+    "name": "Dylan Harper",
+    "proj": 26.7,
+    "team": "SA"
+   },
+   {
     "id": "4431671",
     "lead": 0.0048,
     "name": "Jaden McDaniels",
     "proj": 26.7,
     "team": "MIN"
-   },
-   {
-    "id": "5037871",
-    "lead": 0.0048,
-    "name": "Dylan Harper",
-    "proj": 26.6,
-    "team": "SA"
    },
    {
     "id": "6606",
@@ -4260,7 +4260,7 @@
     "id": "4397002",
     "lead": 0.0,
     "name": "Ayo Dosunmu",
-    "proj": 20.9,
+    "proj": 21.0,
     "team": "MIN"
    },
    {
@@ -4281,7 +4281,7 @@
     "id": "4395630",
     "lead": 0.0,
     "name": "Devin Vassell",
-    "proj": 20.1,
+    "proj": 20.2,
     "team": "SA"
    },
    {
@@ -4319,28 +4319,28 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4076,
+    "lead": 0.4081,
     "name": "Luka Doncic",
     "proj": 50.5,
     "team": "LAL"
    },
    {
     "id": "4065648",
-    "lead": 0.1951,
+    "lead": 0.1953,
     "name": "Jayson Tatum",
     "proj": 43.3,
     "team": "BOS"
    },
    {
     "id": "3975",
-    "lead": 0.0922,
+    "lead": 0.0911,
     "name": "Stephen Curry",
-    "proj": 38.2,
+    "proj": 38.1,
     "team": "GS"
    },
    {
     "id": "4566434",
-    "lead": 0.0487,
+    "lead": 0.0489,
     "name": "Franz Wagner",
     "proj": 34.5,
     "team": "ORL"
@@ -4354,7 +4354,7 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0398,
+    "lead": 0.04,
     "name": "Julius Randle",
     "proj": 33.9,
     "team": "BKN"
@@ -4368,23 +4368,23 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0311,
+    "lead": 0.0313,
     "name": "Scottie Barnes",
     "proj": 33.4,
     "team": "TOR"
    },
    {
     "id": "4066457",
-    "lead": 0.0278,
+    "lead": 0.028,
     "name": "Austin Reaves",
     "proj": 32.6,
     "team": "LAL"
    },
    {
     "id": "4396907",
-    "lead": 0.0207,
+    "lead": 0.0202,
     "name": "Darius Garland",
-    "proj": 31.1,
+    "proj": 31.0,
     "team": "LAC"
    },
    {
@@ -4396,7 +4396,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0098,
+    "lead": 0.0099,
     "name": "Michael Porter Jr.",
     "proj": 28.9,
     "team": "BKN"
@@ -4417,9 +4417,9 @@
    },
    {
     "id": "4395724",
-    "lead": 0.0064,
+    "lead": 0.0065,
     "name": "Immanuel Quickley",
-    "proj": 27.4,
+    "proj": 27.5,
     "team": "TOR"
    },
    {
@@ -4445,7 +4445,7 @@
    },
    {
     "id": "4278355",
-    "lead": 0.0014,
+    "lead": 0.0015,
     "name": "Obi Toppin",
     "proj": 22.1,
     "team": "IND"
@@ -4468,7 +4468,7 @@
     "id": "4433136",
     "lead": 0.0004,
     "name": "Walker Kessler",
-    "proj": 22.6,
+    "proj": 22.7,
     "team": "LAL"
    },
    {
@@ -4489,14 +4489,14 @@
     "id": "2991139",
     "lead": 0.0003,
     "name": "Kris Dunn",
-    "proj": 18.6,
+    "proj": 18.5,
     "team": "LAC"
    },
    {
     "id": "4684272",
     "lead": 0.0002,
     "name": "Ja'Kobe Walter",
-    "proj": 18.8,
+    "proj": 18.9,
     "team": "TOR"
    },
    {
@@ -4514,13 +4514,6 @@
     "team": "BKN"
    },
    {
-    "id": "3936099",
-    "lead": 0.0,
-    "name": "Derrick Jones Jr.",
-    "proj": 17.3,
-    "team": "LAC"
-   },
-   {
     "id": "5101761",
     "lead": 0.0,
     "name": "Mikel Brown Jr.",
@@ -4528,10 +4521,17 @@
     "team": "BKN"
    },
    {
+    "id": "3936099",
+    "lead": 0.0,
+    "name": "Derrick Jones Jr.",
+    "proj": 17.2,
+    "team": "LAC"
+   },
+   {
     "id": "4066436",
     "lead": 0.0,
     "name": "De'Anthony Melton",
-    "proj": 16.9,
+    "proj": 16.8,
     "team": "GS"
    },
    {
@@ -4692,7 +4692,7 @@
     "id": "3907498",
     "lead": 0.0,
     "name": "Matisse Thybulle",
-    "proj": 12.1,
+    "proj": 12.2,
     "team": "LAL"
    },
    {
