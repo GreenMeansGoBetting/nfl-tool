@@ -3894,7 +3894,7 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.1271,
+    "lead": 0.1269,
     "name": "Domantas Sabonis",
     "proj": 39.9,
     "team": "SAC"
@@ -3908,21 +3908,21 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0808,
+    "lead": 0.0819,
     "name": "Victor Wembanyama",
-    "proj": 37.0,
+    "proj": 37.1,
     "team": "SA"
    },
    {
     "id": "4701230",
-    "lead": 0.0751,
+    "lead": 0.0748,
     "name": "Jalen Johnson",
     "proj": 37.0,
     "team": "ATL"
    },
    {
     "id": "4065733",
-    "lead": 0.0649,
+    "lead": 0.0647,
     "name": "Ty Jerome",
     "proj": 36.5,
     "team": "MEM"
@@ -3936,14 +3936,14 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0576,
+    "lead": 0.0575,
     "name": "Deni Avdija",
     "proj": 35.8,
     "team": "POR"
    },
    {
     "id": "4433627",
-    "lead": 0.0502,
+    "lead": 0.0501,
     "name": "Keyonte George",
     "proj": 34.8,
     "team": "UTAH"
@@ -3957,7 +3957,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0361,
+    "lead": 0.0359,
     "name": "Darius Acuff Jr.",
     "proj": 33.8,
     "team": "SAC"
@@ -3970,13 +3970,6 @@
     "team": "MIL"
    },
    {
-    "id": "5041935",
-    "lead": 0.0335,
-    "name": "Cameron Boozer",
-    "proj": 33.2,
-    "team": "MEM"
-   },
-   {
     "id": "4278073",
     "lead": 0.0335,
     "name": "Shai Gilgeous-Alexander",
@@ -3984,15 +3977,22 @@
     "team": "OKC"
    },
    {
+    "id": "5041935",
+    "lead": 0.0334,
+    "name": "Cameron Boozer",
+    "proj": 33.2,
+    "team": "MEM"
+   },
+   {
     "id": "3064440",
-    "lead": 0.0323,
+    "lead": 0.0321,
     "name": "Zach LaVine",
     "proj": 32.8,
     "team": "SAC"
    },
    {
     "id": "4433287",
-    "lead": 0.0224,
+    "lead": 0.0223,
     "name": "Brandon Miller",
     "proj": 31.9,
     "team": "CHA"
@@ -4006,7 +4006,7 @@
    },
    {
     "id": "4432158",
-    "lead": 0.0206,
+    "lead": 0.0204,
     "name": "Evan Mobley",
     "proj": 31.7,
     "team": "CLE"
@@ -4020,9 +4020,9 @@
    },
    {
     "id": "4845367",
-    "lead": 0.0104,
+    "lead": 0.0109,
     "name": "Stephon Castle",
-    "proj": 28.2,
+    "proj": 28.3,
     "team": "SA"
    },
    {
@@ -4034,7 +4034,7 @@
    },
    {
     "id": "3992",
-    "lead": 0.0091,
+    "lead": 0.009,
     "name": "James Harden",
     "proj": 29.2,
     "team": "CLE"
@@ -4069,7 +4069,7 @@
    },
    {
     "id": "5037871",
-    "lead": 0.0051,
+    "lead": 0.005,
     "name": "Dylan Harper",
     "proj": 26.7,
     "team": "SA"
