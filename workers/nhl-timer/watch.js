@@ -26,6 +26,17 @@
 // So the box-score file is HEADed too, and a copy newer than the last NBA build
 // presses at once (that build is then newer, so once per copy).
 //
+// Graded overnight, not after breakfast (2026-10-31, the third morning running
+// that last night's plays sat ungraded; the owner: "by 6am the following
+// morning, all nba plays are graded"). hoopR's files land about 7:30 am, so
+// the build now takes a finished game straight from ESPN (espn_late.py) and
+// this runs all night. The build lists the games still to finish
+// (version.json nba.watch.grade); ESPN's scoreboard is read for their dates
+// and a game final there presses the refresh with source "grade" (again after
+// FINAL_MINUTES if that refresh didn't publish). And once a night, the first
+// minute after midnight Eastern with no build since (watch.day is
+// yesterday's), so last night's plays move to Results.
+//
 // The odds again after a ruling (2026-10-28, the night Luka was ruled out):
 // the refresh ran within a minute of the news, before the books moved
 // (Reaves 23.5 on our page, 26.5 on FanDuel), and nothing fetched the odds
@@ -46,6 +57,28 @@ const NBA_REPORT = "https://ak-static.cms.nba.com/referee/injury/Injury-Report_"
 const LISTED = ["Confirmed", "Expected"];
 export const REPRESS_MINUTES = 4;
 export const GRADE_MINUTES = 60;
+export const FINAL_MINUTES = 10;
+const SCOREBOARD = (day) => `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${day}`;
+
+// "YYYYMMDD", Eastern, for a time in ms
+export function easternDay(ms) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" })
+    .formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return `${p.year}${p.month}${p.day}`;
+}
+
+// The games the live build had unfinished (watch.grade) that ESPN's scoreboard has final now.
+export async function newFinals(watch) {
+  const waiting = watch.grade || [];
+  const done = new Set();
+  for (const day of [...new Set(waiting.map((g) => g[1]))]) {
+    const board = await getJson(SCOREBOARD(day)).catch(() => null);
+    for (const e of (board && board.events) || []) {
+      if (e.status && e.status.type && e.status.type.completed) done.add(String(e.id));
+    }
+  }
+  return waiting.filter((g) => done.has(String(g[0]))).map((g) => String(g[0]));
+}
 // hoopR's box scores (build_nba.py FILES["player_box"]; the season = the year it ends)
 const BOX_FILE = (year) => `https://github.com/sportsdataverse/sportsdataverse-data/releases/download/espn_nba_player_boxscores/player_box_${year}.parquet`;
 
@@ -141,7 +174,9 @@ export async function nbaWatch(env, github) {
   const version = await getJson(`${VERSION}?t=${Date.now()}`);
   const watch = version && version.nba && version.nba.watch;
   if (!watch) return "no NBA watch in version.json";
-  const grade = (watch.ungraded || 0) > 0;
+  const finished = await newFinals(watch);
+  const newDay = !!watch.day && watch.day < easternDay(Date.now());
+  const grade = (watch.ungraded || 0) > 0 || finished.length > 0 || newDay;
   if (!(watch.teams || []).length && !grade) return "no game left tonight";
   // Either source may fail on its own; the other is still compared.
   const [injuries, lineups] = !(watch.teams || []).length ? [null, null] : await Promise.all([
@@ -163,6 +198,16 @@ export async function nbaWatch(env, github) {
     return `refresh started (the odds again after a ruling, due ${recheck})`;
   }
   if (!changed && !report) {
+    const since = last ? Date.now() - Date.parse(last.created_at) : Infinity;
+    if (finished.length && since >= FINAL_MINUTES * 60000) {
+      await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "grade" } });
+      return `refresh started (final on ESPN: ${finished.join(", ")})`;
+    }
+    if (newDay && (!last || easternDay(Date.parse(last.created_at)) < easternDay(Date.now()))) {
+      await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "grade" } });
+      return "refresh started (a new day: last night's plays to Results)";
+    }
+    if (!(watch.ungraded > 0)) return "waiting on the last refresh to publish";
     const fresh = await newBoxScores(version.nba.built, last && last.created_at);
     if (!fresh && last && Date.now() - Date.parse(last.created_at) < GRADE_MINUTES * 60000) return `${watch.ungraded} plays wait on a box score; the last refresh was under an hour ago`;
     await github("nba-refresh.yml/dispatches", { ref: "main", inputs: { source: "grade" } });

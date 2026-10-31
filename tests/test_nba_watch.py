@@ -115,9 +115,9 @@ class Fingerprints(unittest.TestCase):
 class Timer(unittest.TestCase):
     """nbaWatch with ESPN, the NBA, version.json and GitHub stood in for."""
 
-    def run_watch(self, espn=ESPN, lineups=LINEUPS, refresh=None, deploy=None, now="2026-10-25T19:10:00Z", watch_block=None, reports=None, box=None, built=None):
+    def run_watch(self, espn=ESPN, lineups=LINEUPS, refresh=None, deploy=None, now="2026-10-25T19:10:00Z", watch_block=None, reports=None, box=None, built=None, board=None):
         w = watch_block if watch_block is not None else {**block(), "rep_at": "2026-10-25T19:00Z"}
-        return PAGE.evaluate("""async ([w, espn, lu, refresh, deploy, now, reports, box, built]) => {
+        return PAGE.evaluate("""async ([w, espn, lu, refresh, deploy, now, reports, box, built, board]) => {
             const pressed = [];
             const realFetch = window.fetch, realNow = Date.now;
             Date.now = () => Date.parse(now);
@@ -126,6 +126,7 @@ class Timer(unittest.TestCase):
                 const posted = (reports || {})[url.split('Injury-Report_')[1]];
                 return new Response('', { status: posted ? 200 : 404, headers: posted ? { 'Last-Modified': posted } : {} });
               }
+              if (url.includes('/scoreboard?dates=')) return new Response(JSON.stringify((board || {})[url.split('dates=')[1]] || { events: [] }), { status: 200 });
               if (url.includes('player_box_')) return new Response('', { status: box ? 200 : 404, headers: box ? { 'Last-Modified': box } : {} });
               const body = url.startsWith('https://nfl.gmgsports.org/version.json') ? { nba: { watch: w, built } }
                 : url.includes('espn.com') ? espn : url.includes('stats.nba.com') ? lu : null;
@@ -139,7 +140,7 @@ class Timer(unittest.TestCase):
             };
             try { return { said: await W.nbaWatch({}, github), pressed }; }
             finally { window.fetch = realFetch; Date.now = realNow; }
-        }""", [w, espn, lineups, refresh, deploy, now, reports, box, built])
+        }""", [w, espn, lineups, refresh, deploy, now, reports, box, built, board])
 
     def test_nothing_changed_nothing_pressed(self):
         self.assertEqual(self.run_watch(), {"said": "nothing changed", "pressed": []})
@@ -273,6 +274,38 @@ class Grade(unittest.TestCase):
             got = Timer.run_watch(self, watch_block=morning, refresh=[{"status": "completed", "created_at": started}], built=built, box="Sun, 25 Oct 2026 19:03:41 GMT")
             self.assertEqual(got["pressed"], [], (built, started))
 
+    def test_a_game_final_on_espn_presses_at_once(self):
+        # 2026-10-31: three mornings running last night's plays waited on hoopR's 7:30 am files;
+        # the build now lists the games still to finish and ESPN's copy grades them
+        night = {**block(), "teams": [], "ungraded": 0, "grade": [["401", "20261025"], ["402", "20261025"]]}
+        board = {"20261025": {"events": [{"id": "401", "status": {"type": {"completed": True}}},
+                                         {"id": "402", "status": {"type": {"completed": False}}}]}}
+        ran = [{"status": "completed", "created_at": "2026-10-25T18:55:00Z"}]
+        got = Timer.run_watch(self, watch_block=night, refresh=ran, board=board)
+        self.assertEqual(got["pressed"], [["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "grade"}}]])
+        self.assertIn("401", got["said"])
+        # under FINAL_MINUTES since the last refresh (it may be the one grading it): wait
+        got = Timer.run_watch(self, watch_block=night, refresh=[{"status": "completed", "created_at": "2026-10-25T19:05:00Z"}], board=board)
+        self.assertEqual(got["pressed"], [])
+        # nothing final yet: nothing pressed
+        got = Timer.run_watch(self, watch_block=night, refresh=ran, board={})
+        self.assertEqual(got, {"said": "no game left tonight", "pressed": []})
+
+    def test_once_after_midnight_for_last_nights_results(self):
+        late = {**block(), "teams": [], "ungraded": 0, "day": "20261025"}  # the live build is from before midnight
+        at = "2026-10-26T04:05:00Z"  # 12:05 am Eastern
+        got = Timer.run_watch(self, watch_block=late, now=at, refresh=[{"status": "completed", "created_at": "2026-10-26T02:00:00Z"}])
+        self.assertEqual(got["pressed"], [["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "grade"}}]])
+        # a refresh already started after midnight (still publishing): not again
+        got = Timer.run_watch(self, watch_block=late, now=at, refresh=[{"status": "completed", "created_at": "2026-10-26T04:00:30Z"}])
+        self.assertEqual(got["pressed"], [])
+
+    def test_the_build_lists_the_games_still_to_finish(self):
+        games = [{"game_id": "1", "date": "2026-10-24", "status": "final"}, {"game_id": "2", "date": "2026-10-25", "status": "scheduled"},
+                 {"game_id": "3", "date": "2026-10-26", "status": "scheduled"}, {"game_id": "4", "date": "2026-10-27", "status": "scheduled"},
+                 {"game_id": "5", "date": "2026-10-23", "status": "scheduled"}]  # three nights back: never
+        self.assertEqual(watch.waiting(games, "2026-10-26"), [["2", "20261025"], ["3", "20261026"]])
+
     def test_the_build_counts_the_last_two_nights_only(self):
         import build_nba
         past = {"points": [{"date": "2026-10-25", "result": None}, {"date": "2026-10-25", "result": "won"},
@@ -289,7 +322,7 @@ class Install(unittest.TestCase):
         crons = json.loads(re.search(r"^crons = (\[.*\])$", toml, flags=re.M).group(1))
         nba = re.search(r'NBA_WATCH_CRON = "([^"]+)"', index).group(1)
         self.assertEqual(crons, ["17,47 0-2,16-23 * 1-6,10-12 *", nba])
-        self.assertEqual(nba, "* 0-4,12-23 * 1-6,10-12 *")  # from 8 am Eastern: last night's grading
+        self.assertEqual(nba, "* * * 1-6,10-12 *")  # around the clock: a game is graded the minute it's final (2026-10-31)
         self.assertIn('import { githubClient, nbaWatch } from "./watch.js";', index)
 
 

@@ -46,6 +46,7 @@ import possessions as P  # noqa: E402
 import sim  # noqa: E402
 import watch  # noqa: E402
 import nba_report  # noqa: E402
+import espn_late  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
@@ -108,6 +109,8 @@ def fetch_file(kind: str, season: int, data_dir: Path, force: bool) -> pd.DataFr
                 return None
             raise
     frame = pd.read_parquet(path)
+    # last night's finals before hoopR has them (it lands about 7:30 am Eastern): straight from ESPN
+    frame = espn_late.patch(kind, frame, season)
     if kind == "player_box":
         frame = positions.relabel(frame, POSITION_TABLE)
     elif kind == "rosters":
@@ -1414,6 +1417,9 @@ def main():
     # nothing else rebuilt the NBA until the injury news started (10-25's plays sat ungraded all
     # morning, 2026-10-26), so the timer presses a refresh while this is above 0
     blob["watch"]["ungraded"] = ungraded((blob_props or {}).get("sim_past"), today)
+    # the games still to finish: the timer presses a grading refresh the minute ESPN has one final
+    # (2026-10-31: graded overnight, not after hoopR's 7:30 am files)
+    blob["watch"]["grade"] = watch.waiting(games, today)
     # the odds again 10 / 25 / 40 minutes after a 20+ minute player is ruled Out, news or not (2026-10-28:
     # the refresh ran before the books moved, and nothing fetched the odds again)
     blob["watch"]["recheck"] = watch.recheck(blob.get("market_watch") or {}, now_utc.strftime("%Y-%m-%dT%H:%MZ"))

@@ -17,6 +17,7 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   Assists game sim. `positions.py`: PG / SG / SF / PF / C. `shots.py`: shot spots (`nba/shots.json`).
   `zone_matchups.py`: Zone Matchup Targets. `kotc.py`: King of the Court. `first_basket.py`: First
   Basket. `watch.py`: injury / market watch. `nba_report.py`: the NBA's injury report PDF.
+  `espn_late.py`: last night's finals from ESPN before hoopR has them.
 - Pages (`site/nba/`): `league.html` + `league.js` + `league.css` League Stats Chart (first in the menu);
   `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
   forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` + same-named `.js` configs on
@@ -143,15 +144,21 @@ Every game played 10,000 times, possession by possession.
 - **Injuries: ESPN's live list** (`live_injuries`; hoopR's daily file is the fallback).
 - **The injury watch:** every build writes data.json `watch` (version.json `nba.watch`: untipped
   teams, fingerprints `inj` and `lu`, `watch.py`) and `timing`. The Worker gmg-nhl-timer
-  (`workers/nhl-timer/watch.js`, every minute 8 am-1 am ET) computes the same fingerprints and on a
+  (`workers/nhl-timer/watch.js`, every minute around the clock) computes the same fingerprints and on a
   change presses `nba-refresh.yml` (members-and-hosting.md), built with `--fast-odds`
   (`fetch_nba_book_odds(fast=True)`, `carry_previous`: only `FAST_STATS` main lines fresh, ladders
   carried, a ladder dropped when its main line moved). **Both sides must match to the letter**
   (`tests/test_nba_watch.py`).
-- **Grading presses:** `watch.ungraded` (last two nights' plays waiting on a box score) > 0 presses the
-  refresh with source `grade`, at most hourly (`GRADE_MINUTES`), from 8 am ET; **at once when hoopR's
-  `player_box` file (HEAD, Last-Modified) is newer than `nba.built` and the last refresh** (`newBoxScores`;
-  2026-10-30 it landed 8:03, 3 minutes after the 8:00 press, and plays waited until 9:50).
+- **Graded overnight, every play by 6 am ET** (the owner, 2026-10-31, after three mornings ungraded:
+  hoopR lands about 7:30 am). `espn_late.patch` (in `fetch_file`): every game final on ESPN's scoreboard
+  (last 2 Eastern dates) that hoopR's file lacks is added from ESPN's summary as hoopR's own rows
+  (schedule marked final, player / team box, pbp; identical in every column read,
+  `tests/test_nba_espn_late.py`); hoopR's rows win once they land. Current season only; a failure
+  leaves hoopR's frame. **Grading presses** (source `grade`): a game in `watch.grade` (`watch.waiting`:
+  last two nights + tonight, not final at build) now final on ESPN's scoreboard, at once (again after
+  `FINAL_MINUTES` 10); the first minute after midnight ET with no build since (`watch.day` old), so
+  last night moves to Results; `watch.ungraded` > 0 hourly (`GRADE_MINUTES`); hoopR's `player_box`
+  newer than the last build (`newBoxScores`).
 - **No paid sources** (X's API for Underdog was turned down).
 - **Mark Out** (owner only, `.sim-markout` on Matchup View rows): saves `/api/nba-outs` (D1 `nba_outs`)
   and presses the refresh (Pages secret `DISPATCH_TOKEN` = the timer's `NHL_TRIGGER_TOKEN`, copied by
@@ -361,7 +368,7 @@ UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded r
   season ENDS: 2027 = 2026-27): pbp, team / player box scores, schedules, rosters, depth charts,
   injuries (daily), `nba_stats_*`. Parquet only (`pyarrow`). A season's files 404 until its first game.
 - **Not usable:** `cdn.nba.com` / stats.nba.com (403). ESPN's own API (`site.api.espn.com/.../
-  basketball/nba/scoreboard`, `summary`) works.
+  basketball/nba/scoreboard`, `summary`) works: `espn_late.py` grades last night from it.
 - **Novig** (`events?league=NBA`, `EventMarkets_Query`): matched by nickname + start time; only
   `OPEN_PREGAME`; a tipped game keeps the last pre-tip lines (`apply_lines`).
 

@@ -74,6 +74,18 @@ def block(games: list, teams: dict, nba_abbr: dict, today: str, now: str, injury
             "lu": digest(lineup_rows(lineups_today, set(nba)))}
 
 
+def waiting(games: list, today: str) -> list:
+    """watch.grade: [[game id, "YYYYMMDD"], ...] for the games from the last two nights through
+    tonight that weren't final when this build ran. The timer reads ESPN's scoreboard for those
+    dates every minute and presses a grading refresh as soon as one is final (2026-10-31: three
+    mornings running, last night's plays were still ungraded; the box scores come from ESPN the
+    minute a game ends, espn_late.py). A build after the final leaves it off, so once a game."""
+    from datetime import datetime, timedelta
+    since = (datetime.strptime(today, "%Y-%m-%d") - timedelta(days=2)).strftime("%Y-%m-%d")
+    return [[str(g["game_id"]), g["date"].replace("-", "")] for g in games
+            if since <= g["date"] <= today and g.get("status") != "final"]
+
+
 # ---- waiting on the market (2026-10-28) ----
 # The owner, the night Luka was ruled out: the refresh ran within a minute of
 # the news, but the books hadn't moved yet (Reaves 23.5 on our page, 26.5 on
