@@ -4326,7 +4326,7 @@
    },
    {
     "id": "4065648",
-    "lead": 0.1953,
+    "lead": 0.1954,
     "name": "Jayson Tatum",
     "proj": 43.3,
     "team": "BOS"
@@ -4347,7 +4347,7 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0471,
+    "lead": 0.0472,
     "name": "Pascal Siakam",
     "proj": 34.7,
     "team": "IND"
@@ -4389,9 +4389,9 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0103,
+    "lead": 0.0101,
     "name": "Yaxel Lendeborg",
-    "proj": 29.0,
+    "proj": 28.9,
     "team": "GS"
    },
    {
@@ -4503,7 +4503,7 @@
     "id": "3448",
     "lead": 0.0,
     "name": "Brook Lopez",
-    "proj": 19.4,
+    "proj": 19.3,
     "team": "LAC"
    },
    {
