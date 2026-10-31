@@ -129,6 +129,17 @@ class FastLane(unittest.TestCase):
         self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/nhl/build_nhl.py", "nfl_tool/build_stats.py"])[0], ["nfl", "nhl"])
         self.assertEqual(ci_steps.lane_decision("push", ["nfl_tool/nhl/build_nhl.py"])[0], "partial")
 
+    def test_a_new_data_file_in_gitignore_rebuilds_only_its_sport(self):
+        """The owner, 2026-10-31: King of the Hat Trick's new NHL file (and its
+        .gitignore line) rebuilt the NBA and NFL too."""
+        diff = "--- a/.gitignore\n+++ b/.gitignore\n@@ -28 +28,2 @@\n nfl_tool/site/nhl/icebreaker.json\n+nfl_tool/site/nhl/hattrick.json\n"
+        gi = ci_steps.gitignore_sports(diff)
+        self.assertEqual(gi, ("nhl",))
+        self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/nhl/build_nhl.py", ".gitignore", "nfl_tool/site/nhl/hattrick.js"], gi)[0], ["nhl"])
+        self.assertEqual(ci_steps.gitignore_sports("+nfl_tool/site/nba/new.json\n-nfl_tool/site/old.json\n+*.pyc\n"), ("nfl", "nba"))
+        self.assertEqual(ci_steps.build_plan("push", [".gitignore"], ci_steps.gitignore_sports("+*.pyc\n"))[0], [])
+        self.assertEqual(ci_steps.build_plan("push", [".gitignore"], ci_steps.gitignore_sports(None))[0], ["nfl", "nba", "nhl"])  # can't read it: everything
+
     def test_shared_or_unknown_files_rebuild_every_sport(self):
         """smartstake.py and the Novig query feed more than one sport's build."""
         for path in ("nfl_tool/smartstake.py", ".github/workflows/deploy.yml", "nfl_tool/requirements.txt", "nfl_tool/novig_event_markets.graphql", ".gitignore", "workers/nhl-timer/index.js"):

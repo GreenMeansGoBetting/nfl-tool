@@ -185,11 +185,38 @@ SPORT_BUILD = {
 }
 
 
-def sports_for(path):
+def gitignore_sports(diff):
+    """The sports a .gitignore change can touch, from its changed lines
+    (`git diff` text): a new generated file under site/nba/ or site/nhl/
+    means that sport's live data doesn't have it yet, so that sport is
+    rebuilt; elsewhere under site/ = NFL; anything else (caches, editor
+    files) makes no data. None (rebuild everything) if it can't be read.
+    The owner, 2026-10-31, after a new NHL file rebuilt the NBA too: "We
+    build one tool and it messes with other stuff"."""
+    if diff is None:
+        return None
+    sports = set()
+    for line in diff.splitlines():
+        if not line[:1] in "+-" or line.startswith(("+++", "---")):
+            continue
+        entry = line[1:].strip().lstrip("/")
+        if entry.startswith("nfl_tool/site/nba/"):
+            sports.add("nba")
+        elif entry.startswith("nfl_tool/site/nhl/"):
+            sports.add("nhl")
+        elif entry.startswith("nfl_tool/site/"):
+            sports.add("nfl")
+    return tuple(s for s in SPORTS if s in sports)
+
+
+def sports_for(path, gitignore=None):
     """The sports whose data this file can change: () for pages, notes and
-    the login code, every sport for anything not known."""
+    the login code, every sport for anything not known. `gitignore` is what
+    gitignore_sports read from this push's .gitignore change, if anything."""
     if path.startswith(PAGE_ONLY) or path in PAGE_ONLY_FILES:
         return ()
+    if path == ".gitignore" and gitignore is not None:
+        return gitignore
     for prefix, sports in SPORT_BUILD.items():
         if path == prefix or (prefix.endswith("/") and path.startswith(prefix)):
             return sports
@@ -205,7 +232,7 @@ def changed_since(sha):
     return None if out is None else [line for line in out.splitlines() if line.strip()]
 
 
-def build_plan(event, changed):
+def build_plan(event, changed, gitignore=None):
     """(sports to rebuild, why). Only a push can skip a rebuild: the
     schedule and "Run workflow" are there to refresh the data."""
     if event != "push":
@@ -214,23 +241,25 @@ def build_plan(event, changed):
         return list(SPORTS), "couldn't tell what changed since the live version"
     if not changed:
         return list(SPORTS), "nothing changed since the live version"
-    build = {s: f for f in changed for s in sports_for(f)}
+    build = {s: f for f in changed for s in sports_for(f, gitignore)}
     if not build:
         return [], f"only pages, notes or login code changed ({len(changed)} files): publishing with the live data"
     sports = [s for s in SPORTS if s in build]
     return sports, "rebuilding " + ", ".join(f"{s.upper()} ({build[s]})" for s in sports)
 
 
-def lane_decision(event, changed):
+def lane_decision(event, changed, gitignore=None):
     """("pages", "full" or "partial", why): what version.json's "lane" says."""
-    sports, why = build_plan(event, changed)
+    sports, why = build_plan(event, changed, gitignore)
     return ("pages" if not sports else "full" if len(sports) == len(SPORTS) else "partial"), why
 
 
 def cmd_lane(args):
-    event, changed = os.environ.get("GITHUB_EVENT_NAME", ""), changed_since(live_sha(live_version()))
-    sports, why = build_plan(event, changed)
-    lane, _ = lane_decision(event, changed)
+    event, sha = os.environ.get("GITHUB_EVENT_NAME", ""), live_sha(live_version())
+    changed = changed_since(sha)
+    gitignore = gitignore_sports(git("diff", sha, "HEAD", "--", ".gitignore")) if changed and ".gitignore" in changed else None
+    sports, why = build_plan(event, changed, gitignore)
+    lane, _ = lane_decision(event, changed, gitignore)
     # build: the sports to rebuild; live: the ones published with their live data.
     output(lane=lane, build=" ".join(sports), live=" ".join(s for s in SPORTS if s not in sports))
     summary(f"Lane: {lane} ({why}).")
