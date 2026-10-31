@@ -6036,12 +6036,12 @@
     false,
     null
    ],
-   "3907497": [
-    "Dejounte Murray",
-    0.102,
-    850,
+   "4277813": [
+    "Herbert Jones",
+    0.103,
+    null,
     false,
-    "bet365"
+    null
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
@@ -6052,14 +6052,14 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.098,
+    0.1,
     600,
     false,
     "bet365"
    ],
    "4397688": [
     "Trey Murphy III",
-    0.134,
+    0.129,
     800,
     true,
     "bet365"
@@ -6087,7 +6087,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.093,
+    0.095,
     850,
     false,
     "bet365"
@@ -7445,14 +7445,7 @@
   "players": {
    "3442": [
     "DeAndre Jordan",
-    0.059,
-    null,
-    false,
-    null
-   ],
-   "3907497": [
-    "Dejounte Murray",
-    0.083,
+    0.06,
     null,
     false,
     null
@@ -7464,16 +7457,23 @@
     false,
     null
    ],
+   "4277813": [
+    "Herbert Jones",
+    0.084,
+    null,
+    false,
+    null
+   ],
    "4395628": [
     "Zion Williamson",
-    0.08,
+    0.081,
     null,
     false,
     null
    ],
    "4397688": [
     "Trey Murphy III",
-    0.109,
+    0.105,
     null,
     false,
     null
@@ -7508,7 +7508,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.076,
+    0.077,
     null,
     false,
     null
