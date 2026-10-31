@@ -6276,91 +6276,81 @@
  "401909901": {
   "away": "MIN",
   "date": "2026-10-31",
-  "first_home": 0.591,
+  "first_home": 0.5,
   "home": "SA",
   "jumpers": [
-   [
-    "3032976",
-    "Rudy Gobert"
-   ],
+   null,
    [
     "5104157",
     "Victor Wembanyama"
    ]
   ],
   "players": {
-   "3032976": [
-    "Rudy Gobert",
-    0.076,
-    1100,
-    false,
-    "bet365"
-   ],
    "4066259": [
     "De'Aaron Fox",
-    0.106,
+    0.09,
     650,
     false,
     "hard_rock"
    ],
    "4395630": [
     "Devin Vassell",
-    0.106,
+    0.09,
     1200,
     true,
     "hard_rock"
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.076,
+    0.114,
     1400,
     true,
     "bet365"
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.086,
+    0.131,
     1100,
-    false,
+    true,
     "fanduel"
    ],
    "4432816": [
     "LaMelo Ball",
-    0.087,
+    0.133,
     950,
-    false,
+    true,
     "fanduel"
    ],
    "4433247": [
     "Jonathan Kuminga",
-    0.068,
+    0.102,
     1200,
-    false,
+    true,
     "fanduel"
    ],
    "4845367": [
     "Stephon Castle",
-    0.104,
+    0.088,
     900,
     false,
     "fanduel"
    ],
    "5037871": [
     "Dylan Harper",
-    0.103,
+    0.087,
     800,
     false,
     "bet365"
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.148,
+    0.125,
     400,
     false,
     "bet365"
    ]
   },
-  "tip_home": 0.774
+  "tip_home": 0.5
  },
  "401909902": {
   "away": "OKC",
@@ -7519,91 +7509,81 @@
  "401909915": {
   "away": "MIL",
   "date": "2026-11-02",
-  "first_home": 0.506,
+  "first_home": 0.5,
   "home": "MIN",
   "jumpers": [
    [
     "3133628",
     "Myles Turner"
    ],
-   [
-    "3032976",
-    "Rudy Gobert"
-   ]
+   null
   ],
   "players": {
-   "3032976": [
-    "Rudy Gobert",
-    0.094,
-    null,
-    false,
-    null
-   ],
    "3133628": [
     "Myles Turner",
-    0.084,
+    0.085,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.08,
+    0.081,
     null,
     false,
     null
    ],
    "4395725": [
     "Tyler Herro",
-    0.106,
+    0.107,
     null,
     false,
     null
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.094,
+    0.114,
     null,
     false,
     null
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.106,
+    0.131,
     null,
     false,
     null
    ],
    "4432816": [
     "LaMelo Ball",
-    0.107,
+    0.133,
     null,
     false,
     null
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.117,
+    0.118,
     null,
     false,
     null
    ],
    "4433247": [
     "Jonathan Kuminga",
-    0.084,
+    0.102,
     null,
     false,
     null
    ],
    "4591725": [
     "Ryan Rollins",
-    0.088,
+    0.089,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.517
+  "tip_home": 0.5
  },
  "401909916": {
   "away": "BOS",
