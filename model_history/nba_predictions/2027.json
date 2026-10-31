@@ -1163,13 +1163,13 @@ null
 3.5
 ],
 "spread_odds": [
-104,
+106,
 -108
 ],
 "total": 234.5,
 "total_odds": [
 102,
--105
+-104
 ]
 },
 "date": "2026-10-30",
@@ -1451,8 +1451,8 @@ null
 6.5
 ],
 "spread_odds": [
-108,
--117
+-114,
+-122
 ],
 "total": 233.5,
 "total_odds": [
@@ -1725,20 +1725,20 @@ null
 "away": "ATL",
 "book": {
 "ml": [
-null,
-null
+-163,
+144
 ],
 "spread": [
--4.5,
-4.5
+-3.5,
+3.5
 ],
 "spread_odds": [
--128,
--135
+-127,
+-113
 ],
 "total": 238.5,
 "total_odds": [
--130,
+-122,
 -117
 ]
 },
@@ -1749,8 +1749,8 @@ null
 0.5262
 ],
 "spread": [
-0.3297,
-0.6703
+0.3604,
+0.6396
 ],
 "total": [
 0.5399,
@@ -1877,7 +1877,7 @@ null
 -10.5
 ],
 "spread_odds": [
--112,
+-113,
 -113
 ],
 "total": 234.5,
@@ -2013,21 +2013,21 @@ null
 "away": "CLE",
 "book": {
 "ml": [
-null,
-null
+-317,
+285
 ],
 "spread": [
 -8.5,
 8.5
 ],
 "spread_odds": [
--133,
--117
+-120,
+-108
 ],
 "total": 236.5,
 "total_odds": [
 -122,
--122
+-113
 ]
 },
 "date": "2026-10-31",
@@ -2157,8 +2157,8 @@ null
 "away": "MIN",
 "book": {
 "ml": [
-null,
-null
+413,
+-525
 ],
 "spread": [
 null,
@@ -2168,7 +2168,7 @@ null
 null,
 null
 ],
-"total": null,
+"total": 226.5,
 "total_odds": [
 null,
 null
@@ -2181,7 +2181,10 @@ null
 0.591
 ],
 "spread": null,
-"total": null
+"total": [
+0.5444,
+0.4556
+]
 },
 "fair_spread": -2.8,
 "home": "SA",

@@ -3894,16 +3894,16 @@
   "board": [
    {
     "id": "3155942",
-    "lead": 0.1389,
+    "lead": 0.139,
     "name": "Domantas Sabonis",
     "proj": 40.0,
     "team": "SAC"
    },
    {
     "id": "5104157",
-    "lead": 0.0836,
+    "lead": 0.082,
     "name": "Victor Wembanyama",
-    "proj": 37.4,
+    "proj": 37.3,
     "team": "SA"
    },
    {
@@ -3915,42 +3915,42 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0664,
+    "lead": 0.0667,
     "name": "Jalen Johnson",
     "proj": 36.9,
     "team": "ATL"
    },
    {
     "id": "3908809",
-    "lead": 0.0646,
+    "lead": 0.0648,
     "name": "Donovan Mitchell",
     "proj": 35.8,
     "team": "CLE"
    },
    {
     "id": "4683021",
-    "lead": 0.0623,
+    "lead": 0.0624,
     "name": "Deni Avdija",
     "proj": 35.8,
     "team": "POR"
    },
    {
     "id": "4431678",
-    "lead": 0.0619,
+    "lead": 0.0622,
     "name": "Tyrese Maxey",
     "proj": 36.1,
     "team": "PHI"
    },
    {
     "id": "4433627",
-    "lead": 0.0522,
+    "lead": 0.0525,
     "name": "Keyonte George",
     "proj": 34.9,
     "team": "UTAH"
    },
    {
     "id": "3059318",
-    "lead": 0.0514,
+    "lead": 0.0516,
     "name": "Joel Embiid",
     "proj": 34.9,
     "team": "PHI"
@@ -3971,14 +3971,14 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0363,
+    "lead": 0.0364,
     "name": "Cameron Boozer",
     "proj": 33.2,
     "team": "MEM"
    },
    {
     "id": "4395725",
-    "lead": 0.0358,
+    "lead": 0.0359,
     "name": "Tyler Herro",
     "proj": 33.3,
     "team": "MIL"
@@ -3992,7 +3992,7 @@
    },
    {
     "id": "3064440",
-    "lead": 0.0256,
+    "lead": 0.0257,
     "name": "Zach LaVine",
     "proj": 32.9,
     "team": "SAC"
@@ -4006,7 +4006,7 @@
    },
    {
     "id": "4432158",
-    "lead": 0.0204,
+    "lead": 0.0205,
     "name": "Evan Mobley",
     "proj": 31.6,
     "team": "CLE"
@@ -4034,7 +4034,7 @@
    },
    {
     "id": "4396971",
-    "lead": 0.0093,
+    "lead": 0.0094,
     "name": "Naz Reid",
     "proj": 28.9,
     "team": "CHA"
@@ -4048,23 +4048,23 @@
    },
    {
     "id": "1966",
-    "lead": 0.008,
+    "lead": 0.0081,
     "name": "LeBron James",
     "proj": 28.7,
     "team": "PHI"
    },
    {
     "id": "5037871",
-    "lead": 0.0061,
+    "lead": 0.006,
     "name": "Dylan Harper",
-    "proj": 26.9,
+    "proj": 26.8,
     "team": "SA"
    },
    {
     "id": "4845367",
-    "lead": 0.0056,
+    "lead": 0.0053,
     "name": "Stephon Castle",
-    "proj": 28.5,
+    "proj": 28.3,
     "team": "SA"
    },
    {
@@ -4083,9 +4083,9 @@
    },
    {
     "id": "4066259",
-    "lead": 0.0038,
+    "lead": 0.0037,
     "name": "De'Aaron Fox",
-    "proj": 26.5,
+    "proj": 26.4,
     "team": "SA"
    },
    {
@@ -4113,7 +4113,7 @@
     "id": "4431671",
     "lead": 0.0017,
     "name": "Jaden McDaniels",
-    "proj": 25.0,
+    "proj": 24.9,
     "team": "MIN"
    },
    {
@@ -4194,20 +4194,6 @@
     "team": "POR"
    },
    {
-    "id": "4397002",
-    "lead": 0.0003,
-    "name": "Ayo Dosunmu",
-    "proj": 20.5,
-    "team": "MIN"
-   },
-   {
-    "id": "4432816",
-    "lead": 0.0002,
-    "name": "LaMelo Ball",
-    "proj": 21.9,
-    "team": "MIN"
-   },
-   {
     "id": "3134907",
     "lead": 0.0002,
     "name": "Kyle Kuzma",
@@ -4215,10 +4201,17 @@
     "team": "MIL"
    },
    {
+    "id": "4432816",
+    "lead": 0.0002,
+    "name": "LaMelo Ball",
+    "proj": 21.8,
+    "team": "MIN"
+   },
+   {
     "id": "4433247",
     "lead": 0.0002,
     "name": "Jonathan Kuminga",
-    "proj": 21.1,
+    "proj": 21.0,
     "team": "MIN"
    },
    {
@@ -4229,10 +4222,17 @@
     "team": "ATL"
    },
    {
+    "id": "4397002",
+    "lead": 0.0002,
+    "name": "Ayo Dosunmu",
+    "proj": 20.4,
+    "team": "MIN"
+   },
+   {
     "id": "4432847",
     "lead": 0.0002,
     "name": "Terrence Shannon Jr.",
-    "proj": 20.1,
+    "proj": 20.0,
     "team": "MIN"
    },
    {
@@ -4302,7 +4302,7 @@
     "id": "4395630",
     "lead": 0.0,
     "name": "Devin Vassell",
-    "proj": 20.3,
+    "proj": 20.2,
     "team": "SA"
    },
    {
