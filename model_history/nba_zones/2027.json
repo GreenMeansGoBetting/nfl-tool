@@ -6550,8 +6550,8 @@
     "over",
     false,
     13.5,
-    -122,
-    "novig"
+    -112,
+    "bet365"
    ],
    [
     "4066336",
@@ -6563,7 +6563,7 @@
     false,
     21.5,
     -105,
-    "bet365"
+    "hard_rock"
    ],
    [
     "4431736",
@@ -6599,7 +6599,7 @@
     false,
     14.5,
     -110,
-    "fanatics"
+    "hard_rock"
    ]
   ],
   "threes": [
@@ -6637,7 +6637,7 @@
     false,
     2.5,
     -140,
-    "fanatics"
+    "hard_rock"
    ],
    [
     "4683021",
@@ -6648,7 +6648,7 @@
     "over",
     false,
     1.5,
-    -165,
+    -155,
     "bet365"
    ],
    [
@@ -6660,8 +6660,8 @@
     "under",
     true,
     1.5,
-    -170,
-    "bet365"
+    -165,
+    "fanatics"
    ],
    [
     "6606",
@@ -6672,7 +6672,7 @@
     "over",
     true,
     3.5,
-    141,
+    138,
     "novig"
    ]
   ]
@@ -6923,9 +6923,9 @@
     0.1163,
     "over",
     false,
-    16.5,
-    -120,
-    "fliff"
+    17.5,
+    -114,
+    "prophetx"
    ],
    [
     "4576087",
@@ -6936,8 +6936,8 @@
     "over",
     false,
     13.5,
-    -120,
-    "fliff"
+    -115,
+    "hard_rock"
    ],
    [
     "5105623",
@@ -6975,7 +6975,7 @@
     true,
     1.5,
     100,
-    "novig"
+    "fanatics"
    ],
    [
     "3992",
@@ -7022,8 +7022,8 @@
     "over",
     true,
     1.5,
-    105,
-    "fanatics"
+    142,
+    "draftkings"
    ]
   ]
  },
@@ -7034,7 +7034,69 @@
  },
  "401909902": {
   "date": "2026-10-31",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4684740",
+    "Amen Thompson",
+    "HOU",
+    "OKC",
+    0.1206,
+    "over",
+    true,
+    19.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4871144",
+    "Alperen Sengun",
+    "HOU",
+    "OKC",
+    -0.2907,
+    "under",
+    true,
+    18.5,
+    -125,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "HOU",
+    0.2005,
+    "over",
+    true,
+    2.5,
+    125,
+    "fanatics"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "OKC",
+    0.1734,
+    "over",
+    true,
+    2.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "4900671",
+    "Ajay Mitchell",
+    "OKC",
+    "HOU",
+    -0.1988,
+    "under",
+    true,
+    1.5,
+    -165,
+    "fanatics"
+   ]
+  ]
  }
 }
