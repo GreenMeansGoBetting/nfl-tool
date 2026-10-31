@@ -20,7 +20,7 @@ in `docs/history.md`: "NHL", and "2026-10-29: the NHL rules file before the trim
   for the replays.
 - Pages (`site/nhl/`): `index.html` + `nhl.js` Game Previews; `shots`, `goals`, `points`, `saves`
   (`.html` + `.js` each); `lines.html/.js` Line Matchups; `best.html/.js` Best Plays;
-  `promo-tools.html/.js` King of the Crease + `icebreaker.js`; `nhl-common.js` shared by every page;
+  `promo-tools.html/.js` King of the Crease + `icebreaker.js` + `hattrick.js`; `nhl-common.js` shared by every page;
   `nhl.css`.
 - Records (`model_history/`): `nhl_shots/<month>.json`, `nhl_goals/`, `nhl_points/`, `nhl_saves/`,
   `nhl_stacks/` (retired), `nhl_crease/`, `nhl_icebreaker/`.
@@ -631,6 +631,27 @@ DraftKings: a **first goal scorer** bet on whoever scores the **quickest goal (b
   in promo-tools.js switches tabs and the address.
 - Tests: `tests/test_nhl_icebreaker.py`, `tests/test_nhl_icebreaker_site.py`
   (`tests/fixtures/nhl_icebreaker.json.gz`).
+
+## King of the Hat Trick (Promo Tools, `promo-tools.html#hattrick`)
+
+DraftKings: an anytime goal scorer bet on a player who scores a **hat trick** (3+ goals in one game)
+splits the pool (several hat tricks: one pool across all of them; none rolls it over).
+- **No odds on this page, ever** (the owner, 2026-10-31: "this isnt about finding fair value";
+  members have prices already). Matchup and usage only; the game's total line is the one market
+  number allowed. A test fails if hattrick.json carries a price.
+- **Build** (`hattrick_file` -> `hattrick.json`, untracked): `days` copied from the Goals board
+  (same players, lineups, lock; outs left off; `mean` = the Goals model's own xG tonight),
+  `big` (every 2+ goal game: `vs` = goals on each goalie, empty nets not his), `players`
+  (board players' real counts: 2G, HT, L10, PP G, TOI, PP TOI, SOG, low slot), `teams` (GF / GA,
+  5+ games, 2G / HT for and against), `goalies` (2G / HT on him), `league` (hat tricks, days
+  with one).
+- **Page** (`hattrick.js`, Icebreaker's layout): Day, Games chips (whole day on), tiles, Teams
+  Tonight (Tonight xG / Total, Offense, Opponent Defense, Opponent Goalie; league ranks on the
+  eight colors), Players (Tonight, Scoring, Usage, Matchup; colors among the picked games; every
+  column sorts; top 25), beside it (never in the image) every hat trick and every defense's 2G.
+  Hovers on 2G / HT list the games. Top-level names in hattrick.js start with `hat`
+  (promo-tools / nhl-common globals share the page).
+- Tests: `tests/test_nhl_hattrick.py`.
 
 ## Tests and checks
 

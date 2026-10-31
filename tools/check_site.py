@@ -70,6 +70,7 @@ PAGES = [
     ("NHL Line Matchups", "nhl/lines.html", None),
     ("NHL Promo Tools", "nhl/promo-tools.html", None),
     ("NHL Icebreaker", "nhl/promo-tools.html#icebreaker", None),
+    ("NHL King of the Hat Trick", "nhl/promo-tools.html#hattrick", None),
 ]
 # The other suites' pages: they have a schedule strip to wait for, and their
 # data builds are allowed to fail without holding up the NFL site.
@@ -179,6 +180,8 @@ def ready_for(path, summary_btn):
     strip of its own (Icebreaker, King of the Court), its table."""
     if path.endswith("#icebreaker"):
         return "#ice-players table"
+    if path.endswith("#hattrick"):
+        return "#hat-players table"
     if path == "nba/promo-tools.html":
         return "#kotc-players table"
     return GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None

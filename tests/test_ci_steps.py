@@ -379,6 +379,7 @@ class LiveData(unittest.TestCase):
             "nhl/lines.json": {"games": {}},
             "nhl/saves.json": {"games": {}},
             "nhl/icebreaker.json": {"days": {}},
+            "nhl/hattrick.json": {"days": {}},
             "nhl/players/NJD.json": {"season": {}},
             "nhl/players/DET.json": {"season": {}},
         }

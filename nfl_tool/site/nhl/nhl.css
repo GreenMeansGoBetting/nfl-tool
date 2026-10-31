@@ -415,6 +415,23 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .ice-hist-list { margin: 0; padding-left: 18px; font-size: 0.86rem; line-height: 1.45; }
 .ice-hist-list li { margin-bottom: 5px; }
 
+/* King of the Hat Trick (hattrick.js): Icebreaker's layout, its own columns. */
+.hat-tiles { margin: 2px 0 12px; }
+.hat-tile { padding: 8px 6px; }
+.hat-tile b { font-size: 1.6rem; }
+.hat-boards { flex-direction: column; }
+.hat-table col.hat-c-stat { width: 46px; }
+.hat-table col.hat-c-goalie { width: 82px; }
+.hat-table td.hat-goalie { padding: 0 6px; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hat-table td.hat-hit { font-weight: 800; background: rgba(var(--good-rgb), 0.3); }
+.hat-side { max-width: 400px; }
+.hat-side .crease-win-table th:nth-child(n) { width: auto; }
+.hat-side .hat-list-table th:nth-child(1) { width: 40px; }
+.hat-side .hat-list-table th:nth-child(3) { width: 34px; }
+.hat-side .hat-list-table th:nth-child(4) { width: 110px; }
+.hat-on { font-size: 0.74rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.hat-side .hat-def-table th:nth-child(n+2) { width: 52px; }
+
 /* ---- Best Plays (best.html / best.js): the Shots page's table, its own bits here ---- */
 .best-markets { align-items: center; }
 .best-filter-label { margin-right: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }

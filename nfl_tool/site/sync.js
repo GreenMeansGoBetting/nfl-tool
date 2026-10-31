@@ -1030,6 +1030,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     { sport: "nba", label: "NBA", name: "King of the Court", href: siteHref("nba", "promo-tools.html") },
     { sport: "nhl", label: "NHL", name: "King of the Crease", href: siteHref("nhl", "promo-tools.html") },
     { sport: "nhl", label: "NHL", name: "Icebreaker", view: "icebreaker", href: siteHref("nhl", "promo-tools.html#icebreaker") },
+    { sport: "nhl", label: "NHL", name: "King of the Hat Trick", view: "hattrick", href: siteHref("nhl", "promo-tools.html#hattrick") },
   ];
   function addTopMenu() {
     const nav = document.querySelector(".topbar .page-nav");

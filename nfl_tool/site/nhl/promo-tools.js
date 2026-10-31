@@ -1,4 +1,4 @@
-// ---- GMG NHL Suite: Promo Tools (King of the Crease; Icebreaker is icebreaker.js) ----
+// ---- GMG NHL Suite: Promo Tools (King of the Crease; Icebreaker is icebreaker.js, King of the Hat Trick hattrick.js) ----
 // DraftKings' promo pays everyone whose goalie makes the MOST SAVES OF THE
 // DAY. This page lists every team's starter for the day with what decides
 // saves (how much the other team shoots, how many shots his own team gives
@@ -13,9 +13,11 @@
 
 let CREASE = null;
 let dayIndex = 0;
-// Which promo is open: King of the Crease, or Icebreaker (icebreaker.js).
-// The address keeps it (#icebreaker), so the Promo Tools menu can link to either.
-let promoView = location.hash === "#icebreaker" ? "icebreaker" : "crease";
+// Which promo is open: King of the Crease, Icebreaker (icebreaker.js) or King of the Hat Trick (hattrick.js).
+// The address keeps it (#icebreaker, #hattrick), so the Promo Tools menu can link to each.
+const PROMO_HASHES = ["icebreaker", "hattrick"];
+const promoFromHash = () => (PROMO_HASHES.includes(location.hash.slice(1)) ? location.hash.slice(1) : "crease");
+let promoView = promoFromHash();
 const creaseView = { sort: "top", dir: -1 };
 
 // ESPN's logos, not the NHL's own: the saved image can only carry pictures
@@ -391,12 +393,14 @@ function showPromo(view) {
   document.querySelectorAll(".promo-views [data-promo]").forEach((b) => b.classList.toggle("active", b.dataset.promo === view));
   el("crease-app").hidden = view !== "crease";
   el("ice-app").hidden = view !== "icebreaker";
+  el("hat-app").hidden = view !== "hattrick";
   if (view !== "crease") el("schedule-scroller").hidden = true;
-  history.replaceState(null, "", view === "icebreaker" ? "#icebreaker" : location.pathname + location.search);
+  history.replaceState(null, "", PROMO_HASHES.includes(view) ? `#${view}` : location.pathname + location.search);
   render();
 }
 function render() {
   if (promoView === "icebreaker") return typeof renderIce === "function" && renderIce();
+  if (promoView === "hattrick") return typeof renderHat === "function" && renderHat();
   if (!DATA || !CREASE) return;
   renderSchedule();
   renderHead();
@@ -480,7 +484,7 @@ async function saveCreaseImage() {
 }
 
 // The Promo Tools menu's Icebreaker link on this same page only changes the address.
-window.addEventListener("hashchange", () => DATA && showPromo(location.hash === "#icebreaker" ? "icebreaker" : "crease"));
+window.addEventListener("hashchange", () => DATA && showPromo(promoFromHash()));
 document.addEventListener("input", (e) => {
   if (e.target.closest("#crease-log-text")) checkPayoutForm();
 });
@@ -494,7 +498,7 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#crease-log-save")) return savePayouts();
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
-  const sort = e.target.closest(".koe-sort:not([data-ice-sort])"); // Icebreaker sorts its own (icebreaker.js)
+  const sort = e.target.closest(".koe-sort:not([data-ice-sort]):not([data-hat-sort])"); // Icebreaker and the Hat Trick sort their own
   if (sort) {
     const key = sort.dataset.sort;
     Object.assign(creaseView, creaseView.sort === key ? { dir: -creaseView.dir } : { sort: key, dir: key === "name" ? 1 : -1 });
@@ -520,6 +524,7 @@ Promise.all([
     dayIndex = Math.max(0, all.indexOf(day));
     // icebreaker.js loads after this file, so its data is asked for once this is under way.
     if (typeof loadIce === "function") await loadIce();
+    if (typeof loadHat === "function") await loadHat();
     el("empty-state").hidden = true;
     showPromo(promoView);
   })

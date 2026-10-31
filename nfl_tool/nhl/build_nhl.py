@@ -3499,6 +3499,146 @@ def icebreaker_file(season: int, generated_at: str, records: list, goals_games: 
             "first10": first_ten(records, ids), "history": history}
 
 
+# ---- King of the Hat Trick (Promo Tools) ----
+# DraftKings' promo: an anytime goal scorer bet on a player who scores a hat
+# trick (3+ goals in one game) splits a pool. No prices on this page (the
+# owner, 2026-10-31: "this isnt about finding fair value"): it is this
+# season's scoring, usage and matchup data, the 2- and 3-goal games each
+# player has had and each defense and goalie has given up to one player.
+# Every goal counts here, empty-net ones too (they count for the promo).
+HATTRICK_RECENT = 10  # "last 10 games" goals
+
+
+def big_games(records: list) -> list:
+    """Every game a skater scored 2+ goals this season, oldest first:
+    `date`, `game`, `id`, `name`, `team`, `opp`, `g`, `pp` (power-play goals)
+    and `vs` ({goalie id: goals scored on him}, empty nets left out)."""
+    out = []
+    for r in records:
+        pp = Counter(e["scorer"] for e in r.get("goal_events") or [] if e.get("pp"))
+        on = {}
+        for s in r.get("shots") or []:
+            if s.get("goal") and s.get("goalie") not in (None, "None"):
+                on.setdefault(s["shooter"], Counter())[s["goalie"]] += 1
+        for pid, s in r["skaters"].items():
+            if s.get("g", 0) >= 2:
+                opp = r["away"] if s["team"] == r["home"] else r["home"]
+                out.append({"date": r["date"], "game": str(r["id"]), "id": pid, "name": s["name"], "team": s["team"], "opp": opp,
+                            "g": s["g"], "pp": pp.get(pid, 0), "vs": dict(on.get(pid) or {})})
+    return out
+
+
+def hattrick_players(records: list, ids: set) -> dict:
+    """{player id: this season's real counts} for the board's players: `gp`,
+    `g`, `two` / `three` (games with 2+ / 3+ goals), `max`, `pp_g`, `l10` /
+    `l10_gp` (goals in his last HATTRICK_RECENT games), `sog`, `att`, `hd`
+    (shots from the low slot), `toi` (seconds), `pp_toi` / `pp_gp` (power-play
+    seconds over the games the league reported them for)."""
+    logs = {}
+    for r in records:
+        pp = Counter(e["scorer"] for e in r.get("goal_events") or [] if e.get("pp"))
+        for pid, s in r["skaters"].items():
+            if pid in ids:
+                logs.setdefault(pid, []).append((s, pp.get(pid, 0)))
+    out = {}
+    for pid, rows in logs.items():
+        goals = [s.get("g", 0) for s, _ in rows]
+        recent = goals[-HATTRICK_RECENT:]
+        pp_rows = [s["pp_toi"] for s, _ in rows if s.get("pp_toi") is not None]
+        out[pid] = {
+            "gp": len(rows), "g": sum(goals), "two": sum(g >= 2 for g in goals), "three": sum(g >= 3 for g in goals), "max": max(goals),
+            "pp_g": sum(p for _, p in rows), "l10": sum(recent), "l10_gp": len(recent),
+            "sog": sum(s.get("sog", 0) for s, _ in rows), "att": sum(s.get("att", 0) for s, _ in rows), "hd": sum(s.get("hd", 0) for s, _ in rows),
+            "toi": sum(s.get("toi", 0) for s, _ in rows), "pp_toi": sum(pp_rows), "pp_gp": len(pp_rows),
+        }
+    return out
+
+
+def hattrick_teams(records: list, big: list) -> dict:
+    """{team: `gp`, `gf` / `ga`, `five_for` / `five_against` (games it scored
+    / allowed 5+), `two_for` / `three_for` (its players' 2+ / 3+ goal games)
+    and `two_against` / `three_against` (given up to one player)}."""
+    out = {}
+    for r in records:
+        for team, opp in ((r["home"], r["away"]), (r["away"], r["home"])):
+            t = out.setdefault(team, Counter())
+            gf, ga = r["teams"].get(team, {}).get("g", 0), r["teams"].get(opp, {}).get("g", 0)
+            t["gp"] += 1
+            t["gf"] += gf
+            t["ga"] += ga
+            t["five_for"] += gf >= 5
+            t["five_against"] += ga >= 5
+    for b in big:
+        out.setdefault(b["team"], Counter())["two_for"] += 1
+        out[b["team"]]["three_for"] += b["g"] >= 3
+        out.setdefault(b["opp"], Counter())["two_against"] += 1
+        out[b["opp"]]["three_against"] += b["g"] >= 3
+    keys = ("gp", "gf", "ga", "five_for", "five_against", "two_for", "three_for", "two_against", "three_against")
+    return {team: {k: t.get(k, 0) for k in keys} for team, t in out.items()}
+
+
+def hattrick_goalies(records: list, big: list) -> dict:
+    """{goalie id: `name`, `team`, `starts`, `sa`, `ga`, and `two` / `three`:
+    games a shooter scored 2+ / 3+ goals ON HIM (empty nets not his)}."""
+    out = {}
+    for r in records:
+        for gid, s in r["goalies"].items():
+            row = out.setdefault(gid, {"name": s["name"], "team": s["team"], "starts": 0, "sa": 0, "ga": 0, "two": 0, "three": 0})
+            row.update(name=s["name"], team=s["team"])
+            row["starts"] += bool(s.get("start"))
+            row["sa"] += s.get("sa", 0)
+            row["ga"] += s.get("ga", 0)
+    for b in big:
+        for gid, n in b["vs"].items():
+            if gid in out and n >= 2:
+                out[gid]["two"] += 1
+                out[gid]["three"] += n >= 3
+    return out
+
+
+def hattrick_days(goals_games: dict, games: list) -> dict:
+    """{date: {"games": [...], "players": [rows]}} from the Goals page's
+    board (so the same players, lineups and lock): each skater's line
+    tonight, the goalie he should face and the Goals model's own expected
+    goals (`mean`, usage x matchup; no price in it). Outs left off."""
+    days = {}
+    for g in games:
+        entry = goals_games.get(g["game_id"])
+        if not entry:
+            continue
+        keep = ("id", "name", "team", "opp", "home", "pos", "slot", "usual_slot", "move", "goalie", "mean", "minutes", "ev_min", "pp_min", "actual")
+        rows = [{k: row.get(k) for k in keep} for row in entry.get("players") or [] if not row.get("out")]
+        if not rows:
+            continue
+        day = days.setdefault(g["date"], {"games": [], "players": []})
+        day["games"].append({
+            "game_id": g["game_id"], "away": g["away"], "home": g["home"], "time": g["time"], "start_utc": g["start_utc"],
+            "locked": bool(entry.get("locked")), "final": bool(entry.get("final")), "total": g.get("total_line"),
+        })
+        day["players"] += [{**row, "game_id": g["game_id"]} for row in rows]
+    for day in days.values():
+        day["players"].sort(key=lambda row: -(row["mean"] or 0))
+    return days
+
+
+def hattrick_file(season: int, generated_at: str, records: list, goals_games: dict, games: list) -> dict:
+    """site/nhl/hattrick.json: the board, every 2+ goal game this season,
+    the board's players' counts, every team's and goalie's, and the league's
+    hat trick rate (`league`: team games, hat tricks, days with games and
+    days with a hat trick, the share of the promo's days that rolled over)."""
+    big = big_games(records)
+    days = hattrick_days(goals_games, games)
+    ids = {row["id"] for day in days.values() for row in day["players"]}
+    dates = Counter(r["date"] for r in records)
+    hat_days = {b["date"] for b in big if b["g"] >= 3}
+    return {
+        "season": season, "generated_at": generated_at, "days": days, "big": big,
+        "players": hattrick_players(records, ids), "teams": hattrick_teams(records, big), "goalies": hattrick_goalies(records, big),
+        "league": {"games": len(records), "days": len(dates), "hat_days": len(hat_days), "hat_tricks": sum(b["g"] >= 3 for b in big),
+                   "two_plus": len(big), "skater_games": sum(len(r["skaters"]) for r in records)},
+    }
+
+
 # ---- putting it together ----
 def season_label(season: int) -> str:
     return f"{season - 1}-{str(season)[2:]}"
@@ -3699,6 +3839,13 @@ def main():
         icebreaker = {"season": args.season, "generated_at": generated_at, "days": {}, "fast": {}, "history": None, "error": str(e)[:200]}
     with open(args.out.parent / "icebreaker.json", "w") as f:
         json.dump(icebreaker, f, separators=(",", ":"))
+    try:
+        hattrick = hattrick_file(args.season, generated_at, stats["records"], goals.get("games") or {}, games)
+    except Exception as e:  # King of the Hat Trick must never cost the other NHL pages their data
+        print(f"WARNING: King of the Hat Trick couldn't be built ({e}).", file=sys.stderr)
+        hattrick = {"season": args.season, "generated_at": generated_at, "days": {}, "big": [], "players": {}, "teams": {}, "goalies": {}, "league": {}, "error": str(e)[:200]}
+    with open(args.out.parent / "hattrick.json", "w") as f:
+        json.dump(hattrick, f, separators=(",", ":"))
     d = stats["debug"]
     print(f"Wrote {args.out} -- {season_label(args.season)}: {d['games_loaded']} of {d['games_wanted']} finished games ({d['games_downloaded']} downloaded), {len(games)} on the schedule, lines for {novig_debug['matched']}")
     if d["errors"]:

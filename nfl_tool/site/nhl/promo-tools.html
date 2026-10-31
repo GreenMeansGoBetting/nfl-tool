@@ -37,6 +37,7 @@
     <div class="view-toggle promo-views">
       <button type="button" class="view-toggle-btn active" data-promo="crease">King of the Crease</button>
       <button type="button" class="view-toggle-btn" data-promo="icebreaker">Icebreaker</button>
+      <button type="button" class="view-toggle-btn" data-promo="hattrick">King of the Hat Trick</button>
     </div>
 
     <div id="schedule-scroller" class="schedule-scroller" hidden>
@@ -149,6 +150,49 @@
         </aside>
       </div>
     </section>
+
+    <section id="hat-app" class="koe ice hat" hidden>
+      <div class="koe-intro ice-intro">
+        <h2 class="koe-title">King of the Hat Trick <button type="button" class="info-i" aria-expanded="false" aria-controls="hat-note-1" title="How to read this">i</button></h2>
+      </div>
+      <p class="section-note info-note" id="hat-note-1" hidden>DraftKings splits a prize pool among everyone whose pre-game <b>anytime goal scorer</b> bet is on a player who scores a <b>hat trick</b> (3+ goals in one game). Several hat tricks: one pool across everyone on any of them. None: the pool grows and rolls to the next day. This page is matchup and usage, no prices: <b>Offense</b> is what a team scores and how often one of its players has scored 2 or 3; <b>Opponent Defense</b> and <b>Opponent Goalie</b> are what tonight's other side has given up, including games it let one player score 2+ (<b>2G</b>) or 3+ (<b>HT</b>). <b>xG</b> is our Goals model's expected goals for a player tonight (his scoring rate x tonight's ice time x what this defense and goalie allow); a team's is its players' added up. Colors run green = more goals for the shooter, red = fewer: a team's numbers against the whole league, a player's against everyone in the games picked. Every goal counts, empty-net ones too; a goalie is charged only for goals scored on him. Hover any 2G or HT number to see the games. This season only.</p>
+
+      <div class="ice-slate">
+        <div class="ice-slate-row">
+          <span class="ice-lab">Day</span>
+          <span class="koe-week"><button type="button" id="hat-day-prev" class="week-nav-btn">&lsaquo;</button><span id="hat-day-label" class="week-label"></span><button type="button" id="hat-day-next" class="week-nav-btn">&rsaquo;</button></span>
+        </div>
+        <div class="ice-slate-row"><span class="ice-lab">Games</span><span id="hat-games" class="ice-chips"></span></div>
+      </div>
+
+      <div class="koe-filters">
+        <button type="button" id="hat-save" class="summary-save-btn">Save image</button>
+      </div>
+      <p id="hat-note" class="no-data-note" hidden></p>
+
+      <div class="ice-main">
+        <div id="hat-capture" class="koe-capture ice-capture hat-capture">
+          <div class="crease-capture-head ice-capture-head">
+            <span class="brand-mark">GMG</span>
+            <span class="crease-capture-titles"><span class="crease-capture-title">King of the Hat Trick</span><span id="hat-capture-sub" class="crease-capture-sub"></span></span>
+            <span class="crease-capture-promo">3+ goals in a game wins</span>
+          </div>
+          <div id="hat-tiles" class="ice-hist-tiles hat-tiles"></div>
+          <div class="ice-boards hat-boards">
+            <div class="ice-board"><h3 class="ice-board-title">Teams Tonight <span>click a team to see only its players</span></h3><div id="hat-teams"></div></div>
+            <div class="ice-board"><h3 class="ice-board-title">Players <span>every skater in the games picked, most expected goals first</span></h3><div id="hat-players"></div></div>
+          </div>
+        </div>
+
+        <!-- Outside #hat-capture, so never in the saved image. -->
+        <aside class="crease-winners ice-winners hat-side">
+          <h3 class="crease-winners-title">Hat Tricks This Season</h3>
+          <div id="hat-list"></div>
+          <h3 class="crease-winners-title">Defenses Giving Up 2+ To One Player</h3>
+          <div id="hat-defenses"></div>
+        </aside>
+      </div>
+    </section>
   </div>
 </main>
 
@@ -198,5 +242,6 @@
 <script src="../book-odds.js"></script>
 <script src="promo-tools.js"></script>
 <script src="icebreaker.js"></script>
+<script src="hattrick.js"></script>
 </body>
 </html>
