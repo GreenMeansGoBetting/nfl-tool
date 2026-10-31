@@ -14,6 +14,34 @@
 
 let HAT = null;
 const hatView = { day: 0, games: null, team: null, all: false, sort: "mean", dir: -1 };
+// Teams Tonight sorts on its own: every column, click again to flip (the owner, 2026-10-31).
+const hatTeamView = { sort: "xg", dir: -1 };
+const hatTs = (team) => ((typeof DATA !== "undefined" && DATA && DATA.team_stats) || {})[team] || {};
+const hatRate = (t, key) => (t && t.gp ? t[key] / t.gp : null);
+const HAT_TEAM_SORT = {
+  team: (t) => t.team,
+  xg: (t) => t.xg,
+  total: (t) => t.total,
+  gf: (t) => hatRate(hatTeam(t.team), "gf"),
+  five: (t) => (hatTeam(t.team) || {}).five_for,
+  two: (t) => (hatTeam(t.team) || {}).two_for,
+  ht: (t) => (hatTeam(t.team) || {}).three_for,
+  pp: (t) => hatTs(t.team).off_pp_pct,
+  ga: (t) => hatRate(hatTeam(t.opp), "ga"),
+  fivea: (t) => (hatTeam(t.opp) || {}).five_against,
+  twoa: (t) => (hatTeam(t.opp) || {}).two_against,
+  hta: (t) => (hatTeam(t.opp) || {}).three_against,
+  pk: (t) => hatTs(t.opp).def_pp_pct,
+  goalie: (t) => (hatGoalie(t.goalie) || {}).name,
+  sv: (t) => { const g = hatGoalie(t.goalie); return g && g.sa ? (g.sa - g.ga) / g.sa : null; },
+  gtwo: (t) => (hatGoalie(t.goalie) || {}).two,
+  ght: (t) => (hatGoalie(t.goalie) || {}).three,
+};
+const HAT_TEAM_UP = new Set(["team", "goalie", "sv"]); // first click: A to Z, the leakiest save % first
+function hatTTh(key, label, title, num = true) {
+  const on = hatTeamView.sort === key ? ` koe-sorted${hatTeamView.dir > 0 ? " koe-asc" : ""}` : "";
+  return `<th class="${num ? "num " : ""}koe-sort${on}" data-hat-tsort="${key}"${title ? ` title="${title}"` : ""}>${label}</th>`;
+}
 const HAT_SHOWN = 25;
 const HAT_SLOT = { F1: "L1", F2: "L2", F3: "L3", F4: "L4", D1: "D1", D2: "D2", D3: "D3" };
 
@@ -119,7 +147,13 @@ function renderHatTeams(rows) {
     }
   }
   if (!teams.length) return (box.innerHTML = "");
-  teams.sort((a, b) => b.xg - a.xg);
+  const get = HAT_TEAM_SORT[hatTeamView.sort] || HAT_TEAM_SORT.xg;
+  const ok = (v) => has(v) && v !== "" && !Number.isNaN(v);
+  teams.sort((a, b) => {
+    const [va, vb] = [get(a), get(b)];
+    if (!ok(va) || !ok(vb)) return ok(va) ? -1 : ok(vb) ? 1 : b.xg - a.xg;
+    return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * hatTeamView.dir || b.xg - a.xg;
+  });
   const ts = DATA.team_stats || {};
   const xgPool = teams.map((t) => t.xg);
   const body = teams
@@ -159,10 +193,10 @@ function renderHatTeams(rows) {
   box.innerHTML = `<table class="data-table koe-table ice-table hat-table hat-teams-table">
     <colgroup><col class="ice-c-team"><col class="hat-c-stat"><col class="hat-c-stat"><col class="koe-c-gap"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"><col class="koe-c-gap"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"><col class="koe-c-gap"><col class="hat-c-goalie"><col class="hat-c-stat"><col class="hat-c-stat"><col class="hat-c-stat"></colgroup>
     <thead><tr class="koe-group-row"><th></th><th colspan="2" class="koe-group koe-g-up"><span>Tonight</span></th><th class="koe-gap"></th><th colspan="5" class="koe-group koe-g-td"><span>Offense</span></th><th class="koe-gap"></th><th colspan="5" class="koe-group koe-g-def"><span>Opponent Defense</span></th><th class="koe-gap"></th><th colspan="4" class="koe-group koe-g-big"><span>Opponent Goalie</span></th></tr>
-    <tr class="koe-label-row"><th>Team</th><th class="num" title="Its skaters' expected goals tonight, added up">xG</th><th class="num" title="The game's total goals line">Total</th><th class="koe-gap"></th>
-      <th class="num" title="Goals a game">GF/GP</th><th class="num" title="Games it scored 5 or more">5+ G</th><th class="num" title="Its players' games with 2+ goals">2G</th><th class="num" title="Its hat tricks">HT</th><th class="num" title="Power play %">PP%</th><th class="koe-gap"></th>
-      <th class="num" title="Goals allowed a game">GA/GP</th><th class="num" title="Games it allowed 5 or more">5+ GA</th><th class="num" title="Games it let one player score 2+">2G</th><th class="num" title="Hat tricks it allowed">HT</th><th class="num" title="Power-play goals allowed per chance (100% minus its penalty kill)">PK GA%</th><th class="koe-gap"></th>
-      <th>Goalie</th><th class="num" title="Save %">SV%</th><th class="num" title="Games a shooter scored 2+ on him">2G</th><th class="num" title="Hat tricks scored on him">HT</th></tr></thead>
+    <tr class="koe-label-row">${hatTTh("team", "Team", "", false)}${hatTTh("xg", "xG", "Its skaters' expected goals tonight, added up")}${hatTTh("total", "Total", "The game's total goals line")}<th class="koe-gap"></th>
+      ${hatTTh("gf", "GF/GP", "Goals a game")}${hatTTh("five", "5+ G", "Games it scored 5 or more")}${hatTTh("two", "2G", "Its players' games with 2+ goals")}${hatTTh("ht", "HT", "Its hat tricks")}${hatTTh("pp", "PP%", "Power play %")}<th class="koe-gap"></th>
+      ${hatTTh("ga", "GA/GP", "Goals allowed a game")}${hatTTh("fivea", "5+ GA", "Games it allowed 5 or more")}${hatTTh("twoa", "2G", "Games it let one player score 2+")}${hatTTh("hta", "HT", "Hat tricks it allowed")}${hatTTh("pk", "PK GA%", "Power-play goals allowed per chance (100% minus its penalty kill)")}<th class="koe-gap"></th>
+      ${hatTTh("goalie", "Goalie", "", false)}${hatTTh("sv", "SV%", "Save % (first click: lowest first)")}${hatTTh("gtwo", "2G", "Games a shooter scored 2+ on him")}${hatTTh("ght", "HT", "Hat tricks scored on him")}</tr></thead>
     <tbody>${body}</tbody></table>`;
 }
 
@@ -363,6 +397,12 @@ document.addEventListener("click", (e) => {
   }
   if (e.target.closest("[data-hat-team-reset]")) {
     hatView.team = null;
+    return renderHat();
+  }
+  const tsort = e.target.closest("[data-hat-tsort]");
+  if (tsort) {
+    const key = tsort.dataset.hatTsort;
+    Object.assign(hatTeamView, hatTeamView.sort === key ? { dir: -hatTeamView.dir } : { sort: key, dir: HAT_TEAM_UP.has(key) ? 1 : -1 });
     return renderHat();
   }
   const sort = e.target.closest("[data-hat-sort]");
