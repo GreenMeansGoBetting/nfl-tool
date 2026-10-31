@@ -6665,7 +6665,7 @@
     "under",
     true,
     17.5,
-    -106,
+    -102,
     "novig"
    ],
    [
@@ -6677,7 +6677,7 @@
     "under",
     true,
     8.5,
-    100,
+    102,
     "novig"
    ],
    [
@@ -6697,11 +6697,11 @@
     "VJ Edgecombe",
     "PHI",
     "CHA",
-    0.1423,
+    0.1422,
     "over",
     true,
     16.5,
-    104,
+    106,
     "novig"
    ]
   ],
@@ -6723,7 +6723,7 @@
     "Anfernee Simons",
     "PHI",
     "CHA",
-    0.1821,
+    0.182,
     "over",
     true,
     2.5,
@@ -6759,11 +6759,11 @@
     "VJ Edgecombe",
     "PHI",
     "CHA",
-    0.2966,
+    0.2964,
     "over",
     true,
     1.5,
-    -135,
+    -133,
     "novig"
    ]
   ]
@@ -6776,11 +6776,11 @@
     "Nickeil Alexander-Walker",
     "ATL",
     "NO",
-    0.0791,
+    0.079,
     "over",
     false,
     19.5,
-    100,
+    -104,
     "novig"
    ]
   ],
@@ -6802,23 +6802,23 @@
     "Dejounte Murray",
     "NO",
     "ATL",
-    -0.3738,
+    -0.3739,
     "under",
     true,
     1.5,
-    -426,
-    "4cx"
+    -168,
+    "pinnacle"
    ],
    [
     "4278039",
     "Nickeil Alexander-Walker",
     "ATL",
     "NO",
-    -0.0722,
+    -0.0723,
     "under",
     false,
     2.5,
-    135,
+    140,
     "thescore"
    ],
    [
@@ -6826,7 +6826,7 @@
     "Aaron Wiggins",
     "ATL",
     "NO",
-    -0.0903,
+    -0.0904,
     "under",
     false,
     1.5,
@@ -6838,12 +6838,24 @@
     "Jeremiah Fears",
     "NO",
     "ATL",
-    -0.2296,
+    -0.2297,
     "under",
     true,
     1.5,
-    -150,
-    "hard_rock"
+    -130,
+    "bet365"
+   ],
+   [
+    "5149077",
+    "Kingston Flemings",
+    "ATL",
+    "NO",
+    -0.1232,
+    "under",
+    true,
+    0.5,
+    115,
+    "bet365"
    ]
   ]
  },
@@ -6879,12 +6891,12 @@
     "Ty Jerome",
     "MEM",
     "SAC",
-    0.3414,
+    0.3415,
     "over",
     true,
     22.5,
-    111,
-    "novig"
+    -101,
+    "prophetx"
    ],
    [
     "4903027",
@@ -6917,7 +6929,7 @@
     "Zach LaVine",
     "SAC",
     "MEM",
-    -0.1544,
+    -0.1543,
     "under",
     true,
     2.5,
@@ -6941,7 +6953,7 @@
     "Cedric Coward",
     "MEM",
     "SAC",
-    0.4655,
+    0.4653,
     "over",
     true,
     1.5,
@@ -6953,7 +6965,7 @@
     "Darius Acuff Jr.",
     "SAC",
     "MEM",
-    -0.1998,
+    -0.1996,
     "under",
     true,
     2.5,
@@ -6986,7 +6998,7 @@
     "over",
     false,
     17.5,
-    -111,
+    -113,
     "novig"
    ],
    [
@@ -7010,7 +7022,7 @@
     "over",
     true,
     9.5,
-    102,
+    100,
     "novig"
    ]
   ],
@@ -7024,7 +7036,7 @@
     "over",
     true,
     1.5,
-    108,
+    111,
     "novig"
    ],
    [
@@ -7032,7 +7044,7 @@
     "Donovan Mitchell",
     "CLE",
     "MIL",
-    -0.068,
+    -0.0679,
     "under",
     false,
     2.5,
@@ -7056,11 +7068,11 @@
     "Tyler Herro",
     "MIL",
     "CLE",
-    -0.0893,
+    -0.0892,
     "under",
     false,
     2.5,
-    113,
+    111,
     "novig"
    ],
    [
@@ -7113,15 +7125,15 @@
     "under",
     false,
     12.5,
-    -108,
-    "novig"
+    -113,
+    "prophetx"
    ],
    [
     "4592479",
     "Julian Champagnie",
     "SA",
     "MIN",
-    -0.2423,
+    -0.2425,
     "under",
     true,
     11.5,
@@ -7133,7 +7145,7 @@
     "Stephon Castle",
     "SA",
     "MIN",
-    -0.1104,
+    -0.1105,
     "under",
     false,
     16.5,
@@ -7159,7 +7171,7 @@
     "LaMelo Ball",
     "MIN",
     "SA",
-    0.2516,
+    0.2517,
     "over",
     true,
     3.5,
@@ -7171,7 +7183,7 @@
     "Julian Champagnie",
     "SA",
     "MIN",
-    -0.272,
+    -0.2721,
     "under",
     true,
     2.5,
@@ -7187,8 +7199,8 @@
     "under",
     true,
     1.5,
-    -200,
-    "thescore"
+    -210,
+    "fanduel"
    ]
   ]
  },
@@ -7216,7 +7228,7 @@
     "under",
     true,
     18.5,
-    102,
+    -102,
     "novig"
    ],
    [
@@ -7238,11 +7250,11 @@
     "Shai Gilgeous-Alexander",
     "OKC",
     "HOU",
-    0.2541,
+    0.2544,
     "over",
     true,
     1.5,
-    -125,
+    -122,
     "novig"
    ],
    [
