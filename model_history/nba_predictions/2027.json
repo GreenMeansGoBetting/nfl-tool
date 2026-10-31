@@ -1164,12 +1164,12 @@ null
 ],
 "spread_odds": [
 104,
--106
+-108
 ],
 "total": 234.5,
 "total_odds": [
 102,
--108
+-106
 ]
 },
 "date": "2026-10-30",
@@ -1312,8 +1312,8 @@ null
 ],
 "total": 231.5,
 "total_odds": [
--102,
--100
+102,
+-104
 ]
 },
 "date": "2026-10-30",
@@ -1443,21 +1443,21 @@ null
 "away": "POR",
 "book": {
 "ml": [
-null,
-null
+-208,
+199
 ],
 "spread": [
-null,
-null
+-6.5,
+6.5
 ],
 "spread_odds": [
-null,
-null
+108,
+-122
 ],
-"total": null,
+"total": 233.5,
 "total_odds": [
-null,
-null
+-117,
+-133
 ]
 },
 "date": "2026-10-31",
@@ -1466,8 +1466,14 @@ null
 0.642,
 0.358
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4294,
+0.5706
+],
+"total": [
+0.4868,
+0.5132
+]
 },
 "fair_spread": 4.4,
 "home": "UTAH",
@@ -1723,17 +1729,17 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-4.5,
+4.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 238.5,
 "total_odds": [
-null,
-null
+-130,
+-117
 ]
 },
 "date": "2026-10-31",
@@ -1742,8 +1748,14 @@ null
 0.4738,
 0.5262
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3297,
+0.6703
+],
+"total": [
+0.5399,
+0.4601
+]
 },
 "fair_spread": -0.8,
 "home": "NO",
@@ -1857,21 +1869,21 @@ null
 "away": "SAC",
 "book": {
 "ml": [
-null,
-null
+355,
+-400
 ],
 "spread": [
-null,
-null
+10.5,
+-10.5
 ],
 "spread_odds": [
-null,
-null
+-122,
+-122
 ],
-"total": null,
+"total": 234.5,
 "total_odds": [
-null,
-null
+-113,
+-122
 ]
 },
 "date": "2026-10-31",
@@ -1880,8 +1892,14 @@ null
 0.2042,
 0.7958
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5193,
+0.4807
+],
+"total": [
+0.3976,
+0.6024
+]
 },
 "fair_spread": -9.9,
 "home": "MEM",
