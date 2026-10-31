@@ -5918,91 +5918,88 @@
  "401909897": {
   "away": "PHI",
   "date": "2026-10-31",
-  "first_home": 0.437,
+  "first_home": 0.5,
   "home": "CHA",
   "jumpers": [
-   [
-    "3059318",
-    "Joel Embiid"
-   ],
+   null,
    [
     "4433249",
     "Moussa Diabate"
    ]
   ],
   "players": {
-   "1966": [
-    "LeBron James",
-    0.106,
-    800,
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.085,
+    900,
     false,
-    "thescore"
+    "fanduel"
    ],
    "3032979": [
     "Dennis Schroder",
-    0.09,
+    0.103,
     1300,
     true,
     "bet365"
    ],
-   "3059318": [
-    "Joel Embiid",
-    0.111,
-    null,
+   "3912848": [
+    "Dean Wade",
+    0.077,
+    1320,
     false,
-    null
+    "draftkings"
    ],
    "3917376": [
     "Jaylen Brown",
-    0.122,
+    0.119,
     700,
     false,
     "bet365"
    ],
    "4396971": [
     "Naz Reid",
-    0.088,
+    0.101,
     750,
     false,
     "fanduel"
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.115,
+    0.114,
     500,
     false,
     "bet365"
    ],
    "4433249": [
     "Moussa Diabate",
-    0.08,
+    0.091,
     950,
     false,
     "bet365"
    ],
    "4433287": [
     "Brandon Miller",
-    0.1,
+    0.114,
     625,
     false,
     "bet365"
    ],
    "4602025": [
     "Sion James",
-    0.062,
+    0.071,
     2000,
     true,
     "hard_rock"
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.087,
+    0.086,
     800,
     false,
     "draftkings"
    ]
   },
-  "tip_home": 0.31
+  "tip_home": 0.5
  },
  "401909898": {
   "away": "ATL",
@@ -6376,13 +6373,6 @@
    ]
   ],
   "players": {
-   "2991230": [
-    "Fred VanVleet",
-    0.091,
-    null,
-    false,
-    null
-   ],
    "3133626": [
     "Kenrich Williams",
     0.076,
@@ -6392,7 +6382,7 @@
    ],
    "3202": [
     "Kevin Durant",
-    0.098,
+    0.101,
     800,
     false,
     "fanduel"
@@ -6413,10 +6403,17 @@
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.092,
+    0.095,
     1100,
     true,
     "bet365"
+   ],
+   "4433192": [
+    "Tari Eason",
+    0.079,
+    null,
+    false,
+    null
    ],
    "4683778": [
     "Jared McCain",
@@ -6427,14 +6424,14 @@
    ],
    "4684740": [
     "Amen Thompson",
-    0.094,
+    0.097,
     820,
     false,
     "draftkings"
    ],
    "4871144": [
     "Alperen Sengun",
-    0.112,
+    0.116,
     625,
     false,
     "bet365"
@@ -7253,91 +7250,88 @@
  "401909912": {
   "away": "CHI",
   "date": "2026-11-02",
-  "first_home": 0.57,
+  "first_home": 0.5,
   "home": "PHI",
   "jumpers": [
    [
     "4397189",
     "Jalen Smith"
    ],
-   [
-    "3059318",
-    "Joel Embiid"
-   ]
+   null
   ],
   "players": {
-   "1966": [
-    "LeBron James",
-    0.107,
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.085,
     null,
     false,
     null
    ],
    "2595516": [
     "Norman Powell",
-    0.077,
+    0.09,
     null,
     false,
     null
    ],
-   "3059318": [
-    "Joel Embiid",
-    0.112,
+   "3912848": [
+    "Dean Wade",
+    0.077,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.124,
+    0.119,
     null,
     false,
     null
    ],
    "4397189": [
     "Jalen Smith",
-    0.092,
+    0.107,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.117,
+    0.114,
     null,
     false,
     null
    ],
    "4711294": [
     "Matas Buzelis",
-    0.072,
+    0.083,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.073,
+    0.085,
     null,
     false,
     null
    ],
    "5095151": [
     "Caleb Wilson",
-    0.098,
+    0.114,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.088,
+    0.086,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.712
+  "tip_home": 0.5
  },
  "401909913": {
   "away": "SAC",
@@ -7622,13 +7616,6 @@
    ]
   ],
   "players": {
-   "2991230": [
-    "Fred VanVleet",
-    0.084,
-    null,
-    false,
-    null
-   ],
    "3078576": [
     "Derrick White",
     0.09,
@@ -7638,7 +7625,7 @@
    ],
    "3202": [
     "Kevin Durant",
-    0.09,
+    0.093,
     null,
     false,
     null
@@ -7666,7 +7653,14 @@
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.085,
+    0.087,
+    null,
+    false,
+    null
+   ],
+   "4433192": [
+    "Tari Eason",
+    0.072,
     null,
     false,
     null
@@ -7680,14 +7674,14 @@
    ],
    "4684740": [
     "Amen Thompson",
-    0.087,
+    0.089,
     null,
     false,
     null
    ],
    "4871144": [
     "Alperen Sengun",
-    0.103,
+    0.106,
     null,
     false,
     null
