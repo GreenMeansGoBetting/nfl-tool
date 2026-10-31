@@ -3908,21 +3908,21 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0692,
+    "lead": 0.0691,
     "name": "Ty Jerome",
     "proj": 36.6,
     "team": "MEM"
    },
    {
     "id": "4701230",
-    "lead": 0.0667,
+    "lead": 0.0666,
     "name": "Jalen Johnson",
     "proj": 36.9,
     "team": "ATL"
    },
    {
     "id": "3908809",
-    "lead": 0.0648,
+    "lead": 0.0647,
     "name": "Donovan Mitchell",
     "proj": 35.8,
     "team": "CLE"
@@ -3943,7 +3943,7 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0525,
+    "lead": 0.0524,
     "name": "Keyonte George",
     "proj": 34.9,
     "team": "UTAH"
@@ -3957,7 +3957,7 @@
    },
    {
     "id": "4433287",
-    "lead": 0.0374,
+    "lead": 0.0373,
     "name": "Brandon Miller",
     "proj": 33.6,
     "team": "CHA"
@@ -4026,10 +4026,17 @@
     "team": "CLE"
    },
    {
+    "id": "4395628",
+    "lead": 0.0097,
+    "name": "Zion Williamson",
+    "proj": 29.2,
+    "team": "NO"
+   },
+   {
     "id": "3907497",
-    "lead": 0.0095,
+    "lead": 0.0096,
     "name": "Dejounte Murray",
-    "proj": 28.8,
+    "proj": 28.9,
     "team": "NO"
    },
    {
@@ -4040,22 +4047,15 @@
     "team": "CHA"
    },
    {
-    "id": "4395628",
-    "lead": 0.0092,
-    "name": "Zion Williamson",
-    "proj": 29.1,
-    "team": "NO"
-   },
-   {
     "id": "1966",
-    "lead": 0.0081,
+    "lead": 0.008,
     "name": "LeBron James",
     "proj": 28.7,
     "team": "PHI"
    },
    {
     "id": "5037871",
-    "lead": 0.006,
+    "lead": 0.0059,
     "name": "Dylan Harper",
     "proj": 26.8,
     "team": "SA"
@@ -4155,7 +4155,7 @@
     "id": "4431680",
     "lead": 0.0006,
     "name": "Onyeka Okongwu",
-    "proj": 22.2,
+    "proj": 22.3,
     "team": "ATL"
    },
    {
@@ -4260,7 +4260,7 @@
     "id": "2490149",
     "lead": 0.0001,
     "name": "CJ McCollum",
-    "proj": 19.2,
+    "proj": 19.3,
     "team": "ATL"
    },
    {
