@@ -7329,5 +7329,297 @@
     "draftkings"
    ]
   ]
+ },
+ "401909903": {
+  "date": "2026-11-01",
+  "points": [
+   [
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "ORL",
+    0.1454,
+    "over",
+    true,
+    26.5,
+    -108,
+    "novig"
+   ],
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "BOS",
+    -0.0985,
+    "under",
+    false,
+    22.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "BOS",
+    -0.0794,
+    "under",
+    false,
+    13.5,
+    -115,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3078576",
+    "Derrick White",
+    "BOS",
+    "ORL",
+    0.1618,
+    "over",
+    true,
+    2.5,
+    144,
+    "novig"
+   ],
+   [
+    "4066354",
+    "Payton Pritchard",
+    "BOS",
+    "ORL",
+    0.1438,
+    "over",
+    true,
+    2.5,
+    110,
+    "hard_rock"
+   ],
+   [
+    "4251",
+    "Paul George",
+    "BOS",
+    "ORL",
+    0.0787,
+    "over",
+    false,
+    2.5,
+    -120,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909904": {
+  "date": "2026-11-01",
+  "points": [
+   [
+    "4065731",
+    "Jay Huff",
+    "IND",
+    "BKN",
+    0.5535,
+    "over",
+    true,
+    7.5,
+    -110,
+    "hard_rock"
+   ],
+   [
+    "4278355",
+    "Obi Toppin",
+    "IND",
+    "BKN",
+    0.1461,
+    "over",
+    true,
+    12.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4396909",
+    "Aaron Nesmith",
+    "IND",
+    "BKN",
+    0.1999,
+    "over",
+    true,
+    12.5,
+    106,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3149673",
+    "Pascal Siakam",
+    "IND",
+    "BKN",
+    0.5179,
+    "over",
+    true,
+    1.5,
+    100,
+    "hard_rock"
+   ],
+   [
+    "4278104",
+    "Michael Porter Jr.",
+    "BKN",
+    "IND",
+    -0.1804,
+    "under",
+    true,
+    3.5,
+    -140,
+    "draftkings"
+   ],
+   [
+    "4278355",
+    "Obi Toppin",
+    "IND",
+    "BKN",
+    0.5673,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4396909",
+    "Aaron Nesmith",
+    "IND",
+    "BKN",
+    0.5339,
+    "over",
+    true,
+    1.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "IND",
+    0.203,
+    "over",
+    true,
+    1.5,
+    150,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909905": {
+  "date": "2026-11-01",
+  "points": [
+   [
+    "4997536",
+    "Gui Santos",
+    "GS",
+    "LAC",
+    0.1249,
+    "over",
+    true,
+    10.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "5175737",
+    "Yaxel Lendeborg",
+    "GS",
+    "LAC",
+    0.0592,
+    "over",
+    false,
+    22.5,
+    -105,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "4396907",
+    "Darius Garland",
+    "LAC",
+    "GS",
+    -0.109,
+    "under",
+    false,
+    2.5,
+    120,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909906": {
+  "date": "2026-11-01",
+  "points": [
+   [
+    "4278580",
+    "Sandro Mamukelashvili",
+    "LAL",
+    "TOR",
+    -0.1213,
+    "under",
+    true,
+    8.5,
+    -138,
+    "fanduel"
+   ],
+   [
+    "4433136",
+    "Walker Kessler",
+    "LAL",
+    "TOR",
+    0.1349,
+    "over",
+    true,
+    12.5,
+    -113,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "TOR",
+    0.0803,
+    "over",
+    false,
+    4.5,
+    106,
+    "novig"
+   ],
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "LAL",
+    0.2692,
+    "over",
+    true,
+    0.5,
+    -220,
+    "hard_rock"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "LAL",
+    0.2345,
+    "over",
+    true,
+    2.5,
+    130,
+    "fanatics"
+   ]
+  ]
  }
 }
