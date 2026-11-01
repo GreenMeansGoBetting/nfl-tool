@@ -4447,7 +4447,7 @@
     "id": "5254165",
     "lead": 0.0013,
     "name": "Keaton Wagler",
-    "proj": 23.2,
+    "proj": 23.3,
     "team": "LAC"
    },
    {
@@ -4524,14 +4524,14 @@
     "id": "2991139",
     "lead": 0.0,
     "name": "Kris Dunn",
-    "proj": 18.4,
+    "proj": 18.5,
     "team": "LAC"
    },
    {
     "id": "3936099",
     "lead": 0.0,
     "name": "Derrick Jones Jr.",
-    "proj": 17.1,
+    "proj": 17.2,
     "team": "LAC"
    },
    {
@@ -4545,7 +4545,7 @@
     "id": "4397040",
     "lead": 0.0,
     "name": "Brandon Williams",
-    "proj": 16.2,
+    "proj": 16.3,
     "team": "GS"
    },
    {
@@ -4643,8 +4643,15 @@
     "id": "4702352",
     "lead": 0.0,
     "name": "Kobe Sanders",
-    "proj": 12.8,
+    "proj": 12.9,
     "team": "LAC"
+   },
+   {
+    "id": "4997536",
+    "lead": 0.0,
+    "name": "Gui Santos",
+    "proj": 12.5,
+    "team": "GS"
    },
    {
     "id": "4432241",
@@ -4652,13 +4659,6 @@
     "name": "Jamal Shead",
     "proj": 12.5,
     "team": "TOR"
-   },
-   {
-    "id": "4997536",
-    "lead": 0.0,
-    "name": "Gui Santos",
-    "proj": 12.4,
-    "team": "GS"
    },
    {
     "id": "3907498",
