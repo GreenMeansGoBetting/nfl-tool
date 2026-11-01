@@ -4319,7 +4319,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.447,
+    "lead": 0.4473,
     "name": "Luka Doncic",
     "proj": 50.5,
     "team": "LAL"
@@ -4354,9 +4354,9 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0387,
+    "lead": 0.0379,
     "name": "Scottie Barnes",
-    "proj": 33.4,
+    "proj": 33.3,
     "team": "TOR"
    },
    {
@@ -4368,7 +4368,7 @@
    },
    {
     "id": "4251",
-    "lead": 0.0366,
+    "lead": 0.0367,
     "name": "Paul George",
     "proj": 32.9,
     "team": "BOS"
@@ -4389,7 +4389,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0115,
+    "lead": 0.0116,
     "name": "Yaxel Lendeborg",
     "proj": 28.8,
     "team": "GS"
@@ -4403,7 +4403,7 @@
    },
    {
     "id": "4395724",
-    "lead": 0.0078,
+    "lead": 0.0079,
     "name": "Immanuel Quickley",
     "proj": 27.5,
     "team": "TOR"
@@ -4438,7 +4438,7 @@
    },
    {
     "id": "4278355",
-    "lead": 0.0011,
+    "lead": 0.0012,
     "name": "Obi Toppin",
     "proj": 22.2,
     "team": "IND"
@@ -4594,7 +4594,7 @@
     "id": "4397014",
     "lead": 0.0,
     "name": "Quentin Grimes",
-    "proj": 15.2,
+    "proj": 15.1,
     "team": "LAL"
    },
    {
@@ -4664,7 +4664,7 @@
     "id": "3907498",
     "lead": 0.0,
     "name": "Matisse Thybulle",
-    "proj": 12.2,
+    "proj": 12.1,
     "team": "LAL"
    },
    {
