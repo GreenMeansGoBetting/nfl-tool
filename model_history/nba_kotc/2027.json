@@ -4744,30 +4744,30 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3155,
+    "lead": 0.3156,
     "name": "Luka Doncic",
     "proj": 54.2,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.0879,
+    "lead": 0.0881,
     "name": "Giannis Antetokounmpo",
     "proj": 44.1,
     "team": "MIA"
    },
    {
     "id": "3112335",
-    "lead": 0.0534,
+    "lead": 0.0535,
     "name": "Nikola Jokic",
     "proj": 41.2,
     "team": "DEN"
    },
    {
     "id": "5104157",
-    "lead": 0.049,
+    "lead": 0.0482,
     "name": "Victor Wembanyama",
-    "proj": 40.8,
+    "proj": 40.7,
     "team": "SA"
    },
    {
@@ -4779,7 +4779,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0447,
+    "lead": 0.0448,
     "name": "Cooper Flagg",
     "proj": 40.8,
     "team": "DAL"
@@ -4821,7 +4821,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0166,
+    "lead": 0.0167,
     "name": "Darius Acuff Jr.",
     "proj": 36.0,
     "team": "SAC"
@@ -4912,7 +4912,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0064,
+    "lead": 0.0065,
     "name": "Cade Cunningham",
     "proj": 33.2,
     "team": "DET"
@@ -4947,7 +4947,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0049,
+    "lead": 0.005,
     "name": "Donovan Mitchell",
     "proj": 31.7,
     "team": "CLE"
@@ -5017,16 +5017,16 @@
    },
    {
     "id": "5095151",
-    "lead": 0.0024,
+    "lead": 0.0025,
     "name": "Caleb Wilson",
     "proj": 30.3,
     "team": "CHI"
    },
    {
     "id": "5037871",
-    "lead": 0.0024,
+    "lead": 0.0023,
     "name": "Dylan Harper",
-    "proj": 30.1,
+    "proj": 30.0,
     "team": "SA"
    },
    {
@@ -5089,7 +5089,7 @@
     "id": "4066259",
     "lead": 0.0008,
     "name": "De'Aaron Fox",
-    "proj": 29.6,
+    "proj": 29.5,
     "team": "SA"
    },
    {
