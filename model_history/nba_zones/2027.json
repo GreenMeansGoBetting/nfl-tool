@@ -7380,7 +7380,7 @@
     "over",
     true,
     2.5,
-    144,
+    141,
     "novig"
    ],
    [
@@ -7392,8 +7392,8 @@
     "over",
     true,
     2.5,
-    110,
-    "hard_rock"
+    117,
+    "novig"
    ],
    [
     "4251",
@@ -7516,6 +7516,18 @@
   "date": "2026-11-01",
   "points": [
    [
+    "4432170",
+    "Isaiah Jackson",
+    "LAC",
+    "GS",
+    0.2704,
+    "over",
+    true,
+    9.5,
+    -115,
+    "hard_rock"
+   ],
+   [
     "4997536",
     "Gui Santos",
     "GS",
@@ -7524,7 +7536,7 @@
     "over",
     true,
     10.5,
-    100,
+    -105,
     "fanatics"
    ],
    [
@@ -7535,9 +7547,9 @@
     0.0592,
     "over",
     false,
-    22.5,
-    -105,
-    "fanatics"
+    21.5,
+    -120,
+    "hard_rock"
    ]
   ],
   "threes": [
@@ -7550,8 +7562,8 @@
     "under",
     false,
     2.5,
-    120,
-    "fanatics"
+    114,
+    "fanduel"
    ]
   ]
  },
@@ -7579,8 +7591,8 @@
     "over",
     true,
     12.5,
-    -113,
-    "prophetx"
+    -110,
+    "fanatics"
    ]
   ],
   "threes": [
@@ -7617,8 +7629,8 @@
     "over",
     true,
     2.5,
-    130,
-    "fanatics"
+    127,
+    "novig"
    ]
   ]
  }
