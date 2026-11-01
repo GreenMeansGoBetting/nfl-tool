@@ -7342,7 +7342,7 @@
     "over",
     true,
     26.5,
-    -108,
+    -106,
     "novig"
    ],
    [
@@ -7354,8 +7354,8 @@
     "under",
     false,
     22.5,
-    -115,
-    "hard_rock"
+    -105,
+    "bet365"
    ],
    [
     "4712849",
@@ -7366,8 +7366,8 @@
     "under",
     false,
     13.5,
-    -115,
-    "prophetx"
+    -112,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -7392,7 +7392,7 @@
     "over",
     true,
     2.5,
-    117,
+    115,
     "novig"
    ],
    [
@@ -7404,8 +7404,8 @@
     "over",
     false,
     2.5,
-    -120,
-    "fanatics"
+    -112,
+    "bet365"
    ]
   ]
  },
@@ -7421,8 +7421,8 @@
     "over",
     true,
     7.5,
-    -110,
-    "hard_rock"
+    -111,
+    "prophetx"
    ],
    [
     "4278355",
@@ -7433,7 +7433,7 @@
     "over",
     true,
     12.5,
-    100,
+    -105,
     "fanatics"
    ],
    [
@@ -7445,8 +7445,32 @@
     "over",
     true,
     12.5,
-    106,
+    100,
     "prophetx"
+   ],
+   [
+    "4702177",
+    "Keon Ellis",
+    "BKN",
+    "IND",
+    0.1759,
+    "over",
+    true,
+    5.5,
+    -114,
+    "pinnacle"
+   ],
+   [
+    "5106060",
+    "Jarace Walker",
+    "IND",
+    "BKN",
+    0.2387,
+    "over",
+    true,
+    10.5,
+    104,
+    "novig"
    ]
   ],
   "threes": [
@@ -7459,8 +7483,8 @@
     "over",
     true,
     1.5,
-    100,
-    "hard_rock"
+    113,
+    "novig"
    ],
    [
     "4278104",
@@ -7471,8 +7495,8 @@
     "under",
     true,
     3.5,
-    -140,
-    "draftkings"
+    -144,
+    "novig"
    ],
    [
     "4278355",
@@ -7483,7 +7507,7 @@
     "over",
     true,
     1.5,
-    -120,
+    -115,
     "fanatics"
    ],
    [
@@ -7495,7 +7519,31 @@
     "over",
     true,
     1.5,
-    -165,
+    -130,
+    "novig"
+   ],
+   [
+    "4702177",
+    "Keon Ellis",
+    "BKN",
+    "IND",
+    0.299,
+    "over",
+    true,
+    1.5,
+    150,
+    "novig"
+   ],
+   [
+    "5106060",
+    "Jarace Walker",
+    "IND",
+    "BKN",
+    0.7411,
+    "over",
+    true,
+    1.5,
+    105,
     "fanatics"
    ],
    [
@@ -7507,14 +7555,26 @@
     "over",
     true,
     1.5,
-    150,
-    "fanatics"
+    160,
+    "novig"
    ]
   ]
  },
  "401909905": {
   "date": "2026-11-01",
   "points": [
+   [
+    "2990969",
+    "Georges Niang",
+    "GS",
+    "LAC",
+    0.2383,
+    "over",
+    true,
+    8.5,
+    -113,
+    "prophetx"
+   ],
    [
     "4432170",
     "Isaiah Jackson",
@@ -7524,8 +7584,8 @@
     "over",
     true,
     9.5,
-    -115,
-    "hard_rock"
+    103,
+    "prophetx"
    ],
    [
     "4997536",
@@ -7536,8 +7596,8 @@
     "over",
     true,
     10.5,
-    -105,
-    "fanatics"
+    -104,
+    "novig"
    ],
    [
     "5175737",
@@ -7548,11 +7608,23 @@
     "over",
     false,
     21.5,
-    -120,
-    "hard_rock"
+    100,
+    "prophetx"
    ]
   ],
   "threes": [
+   [
+    "2990969",
+    "Georges Niang",
+    "GS",
+    "LAC",
+    0.3691,
+    "over",
+    true,
+    1.5,
+    -120,
+    "prophetx"
+   ],
    [
     "4396907",
     "Darius Garland",
@@ -7562,8 +7634,8 @@
     "under",
     false,
     2.5,
-    114,
-    "fanduel"
+    111,
+    "caesars"
    ]
   ]
  },
@@ -7578,9 +7650,9 @@
     -0.1213,
     "under",
     true,
-    8.5,
-    -138,
-    "fanduel"
+    7.5,
+    104,
+    "draftkings"
    ],
    [
     "4433136",
@@ -7591,8 +7663,8 @@
     "over",
     true,
     12.5,
-    -110,
-    "fanatics"
+    103,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -7605,8 +7677,8 @@
     "over",
     false,
     4.5,
-    106,
-    "novig"
+    112,
+    "draftkings"
    ],
    [
     "4433134",
@@ -7616,9 +7688,9 @@
     0.2692,
     "over",
     true,
-    0.5,
-    -220,
-    "hard_rock"
+    1.5,
+    217,
+    "novig"
    ],
    [
     "4684272",
@@ -7629,7 +7701,7 @@
     "over",
     true,
     2.5,
-    127,
+    130,
     "novig"
    ]
   ]
