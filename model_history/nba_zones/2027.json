@@ -7580,35 +7580,35 @@
     "Georges Niang",
     "GS",
     "LAC",
-    0.2383,
+    0.2363,
     "over",
     true,
     8.5,
-    102,
-    "novig"
+    100,
+    "prophetx"
    ],
    [
     "4432170",
     "Isaiah Jackson",
     "LAC",
     "GS",
-    0.2704,
+    0.2189,
     "over",
     true,
     8.5,
-    -112,
-    "prophetx"
+    -111,
+    "novig"
    ],
    [
     "4997536",
     "Gui Santos",
     "GS",
     "LAC",
-    0.1249,
+    0.1241,
     "over",
     true,
     10.5,
-    120,
+    122,
     "novig"
    ],
    [
@@ -7616,11 +7616,11 @@
     "Yaxel Lendeborg",
     "GS",
     "LAC",
-    0.0592,
+    0.0595,
     "over",
     false,
     20.5,
-    122,
+    106,
     "novig"
    ]
   ],
@@ -7630,7 +7630,7 @@
     "Georges Niang",
     "GS",
     "LAC",
-    0.3691,
+    0.3636,
     "over",
     true,
     1.5,
@@ -7642,12 +7642,12 @@
     "Darius Garland",
     "LAC",
     "GS",
-    -0.109,
+    -0.1135,
     "under",
     false,
     2.5,
     115,
-    "circa"
+    "novig"
    ]
   ]
  },
@@ -7659,11 +7659,11 @@
     "Sandro Mamukelashvili",
     "LAL",
     "TOR",
-    -0.1213,
+    -0.1226,
     "under",
     true,
     8.5,
-    -115,
+    -117,
     "novig"
    ],
    [
@@ -7671,12 +7671,24 @@
     "Walker Kessler",
     "LAL",
     "TOR",
-    0.1349,
+    0.1508,
     "over",
     true,
     12.5,
-    104,
-    "novig"
+    109,
+    "pinnacle"
+   ],
+   [
+    "4433137",
+    "Ziaire Williams",
+    "LAL",
+    "TOR",
+    -0.0509,
+    "under",
+    false,
+    8.5,
+    -104,
+    "pinnacle"
    ]
   ],
   "threes": [
@@ -7685,7 +7697,7 @@
     "Luka Doncic",
     "LAL",
     "TOR",
-    0.0803,
+    0.0808,
     "over",
     false,
     4.5,
@@ -7697,19 +7709,19 @@
     "Scottie Barnes",
     "TOR",
     "LAL",
-    0.2692,
+    0.2656,
     "over",
     true,
     0.5,
-    -210,
-    "hard_rock"
+    -182,
+    "novig"
    ],
    [
     "4684272",
     "Ja'Kobe Walter",
     "TOR",
     "LAL",
-    0.2345,
+    0.2284,
     "over",
     true,
     2.5,
