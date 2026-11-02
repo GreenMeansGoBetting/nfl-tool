@@ -7023,7 +7023,7 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.087,
+    0.11,
     700,
     false,
     "hard_rock"
@@ -7044,28 +7044,21 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.096,
+    0.121,
     750,
     false,
     "fanduel"
    ],
    "4431680": [
     "Onyeka Okongwu",
-    0.086,
+    0.109,
     950,
-    false,
-    "fanduel"
-   ],
-   "4701230": [
-    "Jalen Johnson",
-    0.097,
-    750,
-    false,
+    true,
     "fanduel"
    ],
    "4869342": [
     "Dyson Daniels",
-    0.101,
+    0.126,
     1000,
     true,
     "hard_rock"
@@ -8241,7 +8234,7 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.083,
+    0.105,
     null,
     false,
     null
@@ -8255,28 +8248,21 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.091,
+    0.116,
     null,
     false,
     null
    ],
    "4431680": [
     "Onyeka Okongwu",
-    0.082,
-    null,
-    false,
-    null
-   ],
-   "4701230": [
-    "Jalen Johnson",
-    0.093,
+    0.104,
     null,
     false,
     null
    ],
    "4869342": [
     "Dyson Daniels",
-    0.097,
+    0.121,
     null,
     false,
     null
