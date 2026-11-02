@@ -7452,13 +7452,6 @@
     false,
     null
    ],
-   "3907497": [
-    "Dejounte Murray",
-    0.086,
-    1140,
-    false,
-    "draftkings"
-   ],
    "4065733": [
     "Ty Jerome",
     0.125,
@@ -7466,18 +7459,25 @@
     false,
     "draftkings"
    ],
+   "4277813": [
+    "Herbert Jones",
+    0.092,
+    null,
+    false,
+    null
+   ],
    "4395628": [
     "Zion Williamson",
-    0.08,
+    0.082,
     800,
     false,
     "draftkings"
    ],
    "4397688": [
     "Trey Murphy III",
-    0.114,
+    0.104,
     900,
-    true,
+    false,
     "draftkings"
    ],
    "4600663": [
@@ -7510,7 +7510,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.077,
+    0.078,
     1080,
     false,
     "draftkings"
@@ -8672,14 +8672,7 @@
   "players": {
    "3442": [
     "DeAndre Jordan",
-    0.068,
-    null,
-    false,
-    null
-   ],
-   "3907497": [
-    "Dejounte Murray",
-    0.096,
+    0.069,
     null,
     false,
     null
@@ -8691,9 +8684,16 @@
     false,
     null
    ],
+   "4277813": [
+    "Herbert Jones",
+    0.104,
+    null,
+    false,
+    null
+   ],
    "4395628": [
     "Zion Williamson",
-    0.09,
+    0.092,
     null,
     false,
     null
@@ -8707,7 +8707,7 @@
    ],
    "4397688": [
     "Trey Murphy III",
-    0.128,
+    0.116,
     null,
     false,
     null
@@ -8735,7 +8735,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.086,
+    0.088,
     null,
     false,
     null
