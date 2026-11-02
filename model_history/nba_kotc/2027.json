@@ -4744,21 +4744,21 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3649,
+    "lead": 0.3651,
     "name": "Luka Doncic",
     "proj": 56.9,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.1014,
+    "lead": 0.1016,
     "name": "Giannis Antetokounmpo",
     "proj": 45.4,
     "team": "MIA"
    },
    {
     "id": "3112335",
-    "lead": 0.0488,
+    "lead": 0.0489,
     "name": "Nikola Jokic",
     "proj": 41.1,
     "team": "DEN"
@@ -4779,14 +4779,14 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0411,
+    "lead": 0.0414,
     "name": "Cooper Flagg",
     "proj": 40.6,
     "team": "DAL"
    },
    {
     "id": "3155942",
-    "lead": 0.0404,
+    "lead": 0.0406,
     "name": "Domantas Sabonis",
     "proj": 40.2,
     "team": "SAC"
@@ -4800,17 +4800,10 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0245,
+    "lead": 0.0246,
     "name": "Alperen Sengun",
     "proj": 38.5,
     "team": "HOU"
-   },
-   {
-    "id": "3136195",
-    "lead": 0.0237,
-    "name": "Karl-Anthony Towns",
-    "proj": 38.0,
-    "team": "NY"
    },
    {
     "id": "3975",
@@ -4818,6 +4811,13 @@
     "name": "Stephen Curry",
     "proj": 37.9,
     "team": "GS"
+   },
+   {
+    "id": "3136195",
+    "lead": 0.0228,
+    "name": "Karl-Anthony Towns",
+    "proj": 37.9,
+    "team": "NY"
    },
    {
     "id": "5142620",
@@ -4884,14 +4884,14 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0082,
+    "lead": 0.0083,
     "name": "Pascal Siakam",
     "proj": 34.3,
     "team": "IND"
    },
    {
     "id": "4277905",
-    "lead": 0.0074,
+    "lead": 0.0075,
     "name": "Trae Young",
     "proj": 33.9,
     "team": "WSH"
@@ -4911,11 +4911,11 @@
     "team": "DET"
    },
    {
-    "id": "3064514",
-    "lead": 0.0067,
-    "name": "Julius Randle",
-    "proj": 33.5,
-    "team": "BKN"
+    "id": "1966",
+    "lead": 0.0066,
+    "name": "LeBron James",
+    "proj": 33.7,
+    "team": "PHI"
    },
    {
     "id": "4066457",
@@ -4925,11 +4925,11 @@
     "team": "LAL"
    },
    {
-    "id": "1966",
-    "lead": 0.0065,
-    "name": "LeBron James",
-    "proj": 33.7,
-    "team": "PHI"
+    "id": "3064514",
+    "lead": 0.0064,
+    "name": "Julius Randle",
+    "proj": 33.4,
+    "team": "BKN"
    },
    {
     "id": "4433287",
@@ -4947,16 +4947,16 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0056,
+    "lead": 0.0055,
     "name": "Cameron Boozer",
-    "proj": 33.2,
+    "proj": 33.1,
     "team": "MEM"
    },
    {
     "id": "3934672",
     "lead": 0.0051,
     "name": "Jalen Brunson",
-    "proj": 33.0,
+    "proj": 32.9,
     "team": "NY"
    },
    {
@@ -5009,18 +5009,18 @@
     "team": "SA"
    },
    {
+    "id": "4432158",
+    "lead": 0.0019,
+    "name": "Evan Mobley",
+    "proj": 30.7,
+    "team": "CLE"
+   },
+   {
     "id": "4395625",
     "lead": 0.0019,
     "name": "RJ Barrett",
     "proj": 28.4,
     "team": "TOR"
-   },
-   {
-    "id": "4432158",
-    "lead": 0.0018,
-    "name": "Evan Mobley",
-    "proj": 30.7,
-    "team": "CLE"
    },
    {
     "id": "4251",
@@ -5044,13 +5044,6 @@
     "team": "MIL"
    },
    {
-    "id": "4278104",
-    "lead": 0.0013,
-    "name": "Michael Porter Jr.",
-    "proj": 30.0,
-    "team": "BKN"
-   },
-   {
     "id": "6442",
     "lead": 0.0012,
     "name": "Kyrie Irving",
@@ -5063,6 +5056,13 @@
     "name": "Caleb Wilson",
     "proj": 30.3,
     "team": "CHI"
+   },
+   {
+    "id": "4278104",
+    "lead": 0.0012,
+    "name": "Michael Porter Jr.",
+    "proj": 29.9,
+    "team": "BKN"
    },
    {
     "id": "3064440",
