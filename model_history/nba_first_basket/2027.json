@@ -7030,23 +7030,16 @@
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.094,
+    0.191,
     1100,
     true,
     "hard_rock"
    ],
-   "3149673": [
-    "Pascal Siakam",
-    0.13,
-    700,
-    false,
-    "bet365"
-   ],
    "4065731": [
     "Jay Huff",
-    0.075,
+    0.153,
     800,
-    false,
+    true,
     "draftkings"
    ],
    "4278039": [
@@ -7055,20 +7048,6 @@
     750,
     false,
     "bet365"
-   ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.095,
-    750,
-    false,
-    "bet365"
-   ],
-   "4396909": [
-    "Aaron Nesmith",
-    0.099,
-    1000,
-    false,
-    "hard_rock"
    ],
    "4431680": [
     "Onyeka Okongwu",
@@ -7090,6 +7069,13 @@
     1100,
     true,
     "fanduel"
+   ],
+   "5106060": [
+    "Jarace Walker",
+    0.15,
+    null,
+    false,
+    null
    ]
   },
   "tip_home": 0.543
@@ -8618,21 +8604,14 @@
   "players": {
    "3133603": [
     "Kelly Oubre Jr.",
-    0.079,
-    null,
-    false,
-    null
-   ],
-   "3149673": [
-    "Pascal Siakam",
-    0.111,
+    0.162,
     null,
     false,
     null
    ],
    "4065731": [
     "Jay Huff",
-    0.064,
+    0.13,
     null,
     false,
     null
@@ -8640,20 +8619,6 @@
    "4065733": [
     "Ty Jerome",
     0.125,
-    null,
-    false,
-    null
-   ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.081,
-    null,
-    false,
-    null
-   ],
-   "4396909": [
-    "Aaron Nesmith",
-    0.084,
     null,
     false,
     null
@@ -8675,6 +8640,13 @@
    "5041935": [
     "Cameron Boozer",
     0.114,
+    null,
+    false,
+    null
+   ],
+   "5106060": [
+    "Jarace Walker",
+    0.127,
     null,
     false,
     null
