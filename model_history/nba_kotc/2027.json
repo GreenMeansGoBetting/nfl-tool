@@ -4744,7 +4744,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3739,
+    "lead": 0.3742,
     "name": "Luka Doncic",
     "proj": 56.9,
     "team": "LAL"
@@ -4765,30 +4765,30 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0466,
+    "lead": 0.0467,
     "name": "Victor Wembanyama",
     "proj": 40.9,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.046,
+    "lead": 0.0462,
     "name": "Nikola Jokic",
     "proj": 41.1,
     "team": "DEN"
    },
    {
     "id": "5041939",
-    "lead": 0.0414,
+    "lead": 0.0407,
     "name": "Cooper Flagg",
-    "proj": 40.6,
+    "proj": 40.5,
     "team": "DAL"
    },
    {
     "id": "3155942",
-    "lead": 0.0399,
+    "lead": 0.0398,
     "name": "Domantas Sabonis",
-    "proj": 40.2,
+    "proj": 40.1,
     "team": "SAC"
    },
    {
@@ -4800,14 +4800,14 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0248,
+    "lead": 0.0249,
     "name": "Alperen Sengun",
     "proj": 38.5,
     "team": "HOU"
    },
    {
     "id": "3975",
-    "lead": 0.0238,
+    "lead": 0.0239,
     "name": "Stephen Curry",
     "proj": 37.9,
     "team": "GS"
@@ -4821,24 +4821,24 @@
    },
    {
     "id": "5142620",
-    "lead": 0.017,
+    "lead": 0.0167,
     "name": "Darius Acuff Jr.",
-    "proj": 36.0,
+    "proj": 35.9,
     "team": "SAC"
    },
    {
-    "id": "6583",
-    "lead": 0.0127,
-    "name": "Anthony Davis",
-    "proj": 35.3,
-    "team": "WSH"
-   },
-   {
     "id": "4683021",
-    "lead": 0.0126,
+    "lead": 0.0128,
     "name": "Deni Avdija",
     "proj": 35.4,
     "team": "POR"
+   },
+   {
+    "id": "6583",
+    "lead": 0.0128,
+    "name": "Anthony Davis",
+    "proj": 35.3,
+    "team": "WSH"
    },
    {
     "id": "3936299",
@@ -4849,7 +4849,7 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0097,
+    "lead": 0.0098,
     "name": "Ty Jerome",
     "proj": 34.4,
     "team": "MEM"
@@ -4905,7 +4905,7 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0068,
+    "lead": 0.0069,
     "name": "Cameron Boozer",
     "proj": 33.1,
     "team": "MEM"
@@ -4940,7 +4940,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0056,
+    "lead": 0.0057,
     "name": "Cade Cunningham",
     "proj": 33.3,
     "team": "DET"
