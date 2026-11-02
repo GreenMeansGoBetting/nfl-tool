@@ -4744,7 +4744,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3696,
+    "lead": 0.37,
     "name": "Luka Doncic",
     "proj": 56.9,
     "team": "LAL"
@@ -4758,7 +4758,7 @@
    },
    {
     "id": "3112335",
-    "lead": 0.0505,
+    "lead": 0.0507,
     "name": "Nikola Jokic",
     "proj": 41.1,
     "team": "DEN"
@@ -4786,9 +4786,9 @@
    },
    {
     "id": "4065648",
-    "lead": 0.0372,
+    "lead": 0.0366,
     "name": "Jayson Tatum",
-    "proj": 40.5,
+    "proj": 40.4,
     "team": "BOS"
    },
    {
@@ -4800,9 +4800,9 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0295,
+    "lead": 0.0288,
     "name": "Alperen Sengun",
-    "proj": 38.5,
+    "proj": 38.4,
     "team": "HOU"
    },
    {
@@ -4814,7 +4814,7 @@
    },
    {
     "id": "3975",
-    "lead": 0.0268,
+    "lead": 0.0269,
     "name": "Stephen Curry",
     "proj": 37.9,
     "team": "GS"
@@ -4849,7 +4849,7 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0104,
+    "lead": 0.0105,
     "name": "Ty Jerome",
     "proj": 34.4,
     "team": "MEM"
@@ -4870,7 +4870,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0083,
+    "lead": 0.0084,
     "name": "Shai Gilgeous-Alexander",
     "proj": 33.6,
     "team": "OKC"
@@ -4898,7 +4898,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.007,
+    "lead": 0.0071,
     "name": "Trae Young",
     "proj": 33.9,
     "team": "WSH"
@@ -4912,7 +4912,7 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0065,
+    "lead": 0.0066,
     "name": "Cameron Boozer",
     "proj": 33.1,
     "team": "MEM"
@@ -4932,18 +4932,18 @@
     "team": "CHA"
    },
    {
+    "id": "4432166",
+    "lead": 0.006,
+    "name": "Cade Cunningham",
+    "proj": 33.3,
+    "team": "DET"
+   },
+   {
     "id": "3064514",
     "lead": 0.0059,
     "name": "Julius Randle",
     "proj": 33.4,
     "team": "BKN"
-   },
-   {
-    "id": "4432166",
-    "lead": 0.0059,
-    "name": "Cade Cunningham",
-    "proj": 33.3,
-    "team": "DET"
    },
    {
     "id": "4395725",
@@ -4989,7 +4989,7 @@
    },
    {
     "id": "6442",
-    "lead": 0.0032,
+    "lead": 0.0033,
     "name": "Kyrie Irving",
     "proj": 31.4,
     "team": "DAL"
