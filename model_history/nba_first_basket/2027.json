@@ -6852,21 +6852,21 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.108,
+    0.087,
     650,
     false,
     "fanduel"
    ],
    "3992": [
     "James Harden",
-    0.113,
+    0.092,
     950,
-    true,
+    false,
     "fanduel"
    ],
    "4066328": [
     "Jarrett Allen",
-    0.126,
+    0.102,
     500,
     false,
     "hard_rock"
@@ -6887,10 +6887,17 @@
    ],
    "4432158": [
     "Evan Mobley",
-    0.111,
+    0.09,
     600,
     false,
     "hard_rock"
+   ],
+   "4576087": [
+    "Peyton Watson",
+    0.086,
+    1100,
+    false,
+    "fanduel"
    ],
    "4683778": [
     "Jared McCain",
@@ -8747,21 +8754,21 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.108,
+    0.087,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.113,
+    0.092,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.126,
+    0.102,
     null,
     false,
     null
@@ -8782,7 +8789,14 @@
    ],
    "4432158": [
     "Evan Mobley",
-    0.111,
+    0.09,
+    null,
+    false,
+    null
+   ],
+   "4576087": [
+    "Peyton Watson",
+    0.086,
     null,
     false,
     null
