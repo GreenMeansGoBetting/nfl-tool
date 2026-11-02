@@ -7729,5 +7729,1170 @@
     "bet365"
    ]
   ]
+ },
+ "401909907": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "3992",
+    "James Harden",
+    "CLE",
+    "OKC",
+    0.0605,
+    "over",
+    false,
+    18.5,
+    -113,
+    "novig"
+   ],
+   [
+    "4066328",
+    "Jarrett Allen",
+    "CLE",
+    "OKC",
+    -0.2512,
+    "under",
+    true,
+    11.5,
+    108,
+    "prophetx"
+   ],
+   [
+    "4066757",
+    "Sam Merrill",
+    "CLE",
+    "OKC",
+    0.0894,
+    "over",
+    false,
+    9.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4222252",
+    "Isaiah Hartenstein",
+    "OKC",
+    "CLE",
+    -0.1296,
+    "under",
+    true,
+    10.5,
+    -125,
+    "thescore"
+   ],
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "CLE",
+    -0.1644,
+    "under",
+    true,
+    29.5,
+    -104,
+    "novig"
+   ],
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "CLE",
+    -0.0502,
+    "under",
+    false,
+    14.5,
+    -111,
+    "novig"
+   ],
+   [
+    "5174983",
+    "Aday Mara",
+    "OKC",
+    "CLE",
+    -0.2271,
+    "under",
+    true,
+    8.5,
+    -125,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "CLE",
+    -0.0853,
+    "under",
+    false,
+    1.5,
+    127,
+    "novig"
+   ],
+   [
+    "4576087",
+    "Peyton Watson",
+    "CLE",
+    "OKC",
+    0.1468,
+    "over",
+    true,
+    1.5,
+    130,
+    "novig"
+   ],
+   [
+    "5241364",
+    "Bennett Stirtz",
+    "OKC",
+    "CLE",
+    -0.0616,
+    "under",
+    false,
+    1.5,
+    -163,
+    "novig"
+   ]
+  ]
+ },
+ "401909908": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "3032979",
+    "Dennis Schroder",
+    "CHA",
+    "DET",
+    -0.064,
+    "under",
+    false,
+    11.5,
+    -113,
+    "prophetx"
+   ],
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "CHA",
+    0.1193,
+    "over",
+    false,
+    12.5,
+    -120,
+    "prophetx"
+   ],
+   [
+    "4278562",
+    "Paul Reed",
+    "DET",
+    "CHA",
+    -0.0884,
+    "under",
+    false,
+    13.5,
+    -108,
+    "novig"
+   ],
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "DET",
+    -0.1888,
+    "under",
+    true,
+    15.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "4433249",
+    "Moussa Diabate",
+    "CHA",
+    "DET",
+    0.153,
+    "over",
+    true,
+    7.5,
+    -127,
+    "novig"
+   ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "DET",
+    -0.1869,
+    "under",
+    true,
+    22.5,
+    -108,
+    "novig"
+   ]
+  ],
+  "threes": [
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "CHA",
+    0.1866,
+    "over",
+    true,
+    2.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "3908845",
+    "John Collins",
+    "DET",
+    "CHA",
+    -0.2904,
+    "under",
+    true,
+    0.5,
+    160,
+    "hard_rock"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "CHA",
+    0.2985,
+    "over",
+    true,
+    1.5,
+    155,
+    "hard_rock"
+   ]
+  ]
+ },
+ "401909909": {
+  "date": "2026-11-02",
+  "points": [],
+  "threes": []
+ },
+ "401909910": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "BKN",
+    0.1089,
+    "over",
+    false,
+    10.5,
+    -115,
+    "novig"
+   ],
+   [
+    "3150844",
+    "Moritz Wagner",
+    "BKN",
+    "NY",
+    -0.0941,
+    "under",
+    false,
+    8.5,
+    100,
+    "fanduel"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "BKN",
+    0.1269,
+    "over",
+    true,
+    7.5,
+    -111,
+    "novig"
+   ],
+   [
+    "4432194",
+    "Day'Ron Sharpe",
+    "BKN",
+    "NY",
+    -0.1785,
+    "under",
+    true,
+    7.5,
+    -120,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "BKN",
+    0.511,
+    "over",
+    true,
+    1.5,
+    115,
+    "fanatics"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "BKN",
+    0.427,
+    "over",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "BKN",
+    0.4054,
+    "over",
+    true,
+    2.5,
+    140,
+    "hard_rock"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "NY",
+    -0.1026,
+    "under",
+    false,
+    1.5,
+    -225,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909911": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "WSH",
+    -0.1197,
+    "under",
+    false,
+    23.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "WSH",
+    -0.19,
+    "under",
+    true,
+    14.5,
+    -110,
+    "hard_rock"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "ORL",
+    -0.2927,
+    "under",
+    true,
+    10.5,
+    -115,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "WSH",
+    -0.1238,
+    "under",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "WSH",
+    -0.3005,
+    "under",
+    true,
+    1.5,
+    -115,
+    "hard_rock"
+   ]
+  ]
+ },
+ "401909912": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "2595516",
+    "Norman Powell",
+    "CHI",
+    "PHI",
+    -0.1047,
+    "under",
+    false,
+    19.5,
+    -105,
+    "thescore"
+   ],
+   [
+    "4397189",
+    "Jalen Smith",
+    "CHI",
+    "PHI",
+    -0.1275,
+    "under",
+    true,
+    11.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "4431678",
+    "Tyrese Maxey",
+    "PHI",
+    "CHI",
+    0.1525,
+    "over",
+    true,
+    25.5,
+    -108,
+    "novig"
+   ],
+   [
+    "5124612",
+    "VJ Edgecombe",
+    "PHI",
+    "CHI",
+    0.2038,
+    "over",
+    true,
+    12.5,
+    -110,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "2595516",
+    "Norman Powell",
+    "CHI",
+    "PHI",
+    -0.1644,
+    "under",
+    true,
+    2.5,
+    -125,
+    "thescore"
+   ],
+   [
+    "4431678",
+    "Tyrese Maxey",
+    "PHI",
+    "CHI",
+    0.2483,
+    "over",
+    true,
+    2.5,
+    111,
+    "novig"
+   ],
+   [
+    "4711294",
+    "Matas Buzelis",
+    "CHI",
+    "PHI",
+    -0.1188,
+    "under",
+    false,
+    1.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "4871145",
+    "Josh Giddey",
+    "CHI",
+    "PHI",
+    -0.2107,
+    "under",
+    true,
+    0.5,
+    175,
+    "hard_rock"
+   ],
+   [
+    "5044385",
+    "Leonard Miller",
+    "CHI",
+    "PHI",
+    -0.0847,
+    "under",
+    false,
+    0.5,
+    172,
+    "fanduel"
+   ],
+   [
+    "5095151",
+    "Caleb Wilson",
+    "CHI",
+    "PHI",
+    -0.1375,
+    "under",
+    true,
+    1.5,
+    152,
+    "fanduel"
+   ],
+   [
+    "5124612",
+    "VJ Edgecombe",
+    "PHI",
+    "CHI",
+    0.2205,
+    "over",
+    true,
+    1.5,
+    -120,
+    "novig"
+   ]
+  ]
+ },
+ "401909913": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "DAL",
+    -0.1149,
+    "under",
+    false,
+    15.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4278049",
+    "Daniel Gafford",
+    "DAL",
+    "SAC",
+    0.3,
+    "over",
+    true,
+    9.5,
+    -130,
+    "hard_rock"
+   ],
+   [
+    "4278078",
+    "P.J. Washington",
+    "DAL",
+    "SAC",
+    0.118,
+    "over",
+    false,
+    14.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "4432582",
+    "Max Christie",
+    "DAL",
+    "SAC",
+    0.2677,
+    "over",
+    true,
+    9.5,
+    -115,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "DAL",
+    -0.2539,
+    "under",
+    true,
+    2.5,
+    120,
+    "fanatics"
+   ],
+   [
+    "4065732",
+    "De'Andre Hunter",
+    "SAC",
+    "DAL",
+    -0.0944,
+    "under",
+    false,
+    1.5,
+    120,
+    "fanatics"
+   ],
+   [
+    "4278078",
+    "P.J. Washington",
+    "DAL",
+    "SAC",
+    0.0847,
+    "over",
+    false,
+    1.5,
+    -130,
+    "hard_rock"
+   ],
+   [
+    "4432582",
+    "Max Christie",
+    "DAL",
+    "SAC",
+    0.4394,
+    "over",
+    true,
+    1.5,
+    -190,
+    "fanatics"
+   ],
+   [
+    "5041939",
+    "Cooper Flagg",
+    "DAL",
+    "SAC",
+    0.122,
+    "over",
+    true,
+    1.5,
+    -105,
+    "fanatics"
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "DAL",
+    -0.2718,
+    "under",
+    true,
+    2.5,
+    115,
+    "fanatics"
+   ],
+   [
+    "6442",
+    "Kyrie Irving",
+    "DAL",
+    "SAC",
+    0.3292,
+    "over",
+    true,
+    2.5,
+    -175,
+    "fliff"
+   ]
+  ]
+ },
+ "401909914": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "3907497",
+    "Dejounte Murray",
+    "NO",
+    "MEM",
+    -0.1668,
+    "under",
+    true,
+    17.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4397136",
+    "Saddiq Bey",
+    "NO",
+    "MEM",
+    -0.1661,
+    "under",
+    true,
+    12.5,
+    -119,
+    "draftkings"
+   ],
+   [
+    "4397688",
+    "Trey Murphy III",
+    "NO",
+    "MEM",
+    -0.164,
+    "under",
+    true,
+    15.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4683634",
+    "Bennedict Mathurin",
+    "NO",
+    "MEM",
+    -0.1809,
+    "under",
+    true,
+    8.5,
+    100,
+    "novig"
+   ],
+   [
+    "5144091",
+    "Jeremiah Fears",
+    "NO",
+    "MEM",
+    -0.1023,
+    "under",
+    false,
+    13.5,
+    -108,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "2991070",
+    "Jerami Grant",
+    "MEM",
+    "NO",
+    -0.1339,
+    "under",
+    true,
+    1.5,
+    -125,
+    "hard_rock"
+   ],
+   [
+    "3907497",
+    "Dejounte Murray",
+    "NO",
+    "MEM",
+    -0.3501,
+    "under",
+    true,
+    1.5,
+    -195,
+    "hard_rock"
+   ],
+   [
+    "4065733",
+    "Ty Jerome",
+    "MEM",
+    "NO",
+    -0.1453,
+    "under",
+    true,
+    2.5,
+    -130,
+    "hard_rock"
+   ],
+   [
+    "4397136",
+    "Saddiq Bey",
+    "NO",
+    "MEM",
+    -0.1201,
+    "under",
+    true,
+    1.5,
+    -115,
+    "novig"
+   ],
+   [
+    "4397688",
+    "Trey Murphy III",
+    "NO",
+    "MEM",
+    -0.3058,
+    "under",
+    true,
+    2.5,
+    -154,
+    "fanduel"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "NO",
+    -0.1478,
+    "under",
+    true,
+    1.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "5144091",
+    "Jeremiah Fears",
+    "NO",
+    "MEM",
+    -0.1693,
+    "under",
+    true,
+    1.5,
+    -180,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909915": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "4431671",
+    "Jaden McDaniels",
+    "MIN",
+    "MIL",
+    0.0584,
+    "over",
+    false,
+    17.5,
+    -111,
+    "novig"
+   ],
+   [
+    "4433247",
+    "Jonathan Kuminga",
+    "MIN",
+    "MIL",
+    0.0853,
+    "over",
+    false,
+    15.5,
+    108,
+    "novig"
+   ],
+   [
+    "4591725",
+    "Ryan Rollins",
+    "MIL",
+    "MIN",
+    -0.1487,
+    "under",
+    true,
+    14.5,
+    -127,
+    "prophetx"
+   ],
+   [
+    "5279133",
+    "Joan Beringer",
+    "MIN",
+    "MIL",
+    0.1176,
+    "over",
+    false,
+    7.5,
+    -111,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3134907",
+    "Kyle Kuzma",
+    "MIL",
+    "MIN",
+    -0.2007,
+    "under",
+    true,
+    0.5,
+    175,
+    "hard_rock"
+   ],
+   [
+    "4431671",
+    "Jaden McDaniels",
+    "MIN",
+    "MIL",
+    0.2639,
+    "over",
+    true,
+    1.5,
+    -110,
+    "fanatics"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "MIL",
+    0.1354,
+    "over",
+    true,
+    1.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4432848",
+    "Jaime Jaquez Jr.",
+    "MIL",
+    "MIN",
+    -0.1745,
+    "under",
+    true,
+    0.5,
+    178,
+    "fanduel"
+   ],
+   [
+    "4433247",
+    "Jonathan Kuminga",
+    "MIN",
+    "MIL",
+    0.1473,
+    "over",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909916": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "HOU",
+    0.0537,
+    "over",
+    false,
+    25.5,
+    -116,
+    "prophetx"
+   ],
+   [
+    "4871144",
+    "Alperen Sengun",
+    "HOU",
+    "BOS",
+    -0.1026,
+    "under",
+    false,
+    17.5,
+    -104,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "HOU",
+    -0.2368,
+    "under",
+    true,
+    2.5,
+    -150,
+    "hard_rock"
+   ]
+  ]
+ },
+ "401909917": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "4395723",
+    "Keldon Johnson",
+    "SA",
+    "UTAH",
+    -0.1023,
+    "under",
+    false,
+    9.5,
+    -120,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "UTAH",
+    0.0716,
+    "over",
+    false,
+    1.5,
+    -170,
+    "hard_rock"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "UTAH",
+    0.1992,
+    "over",
+    true,
+    1.5,
+    170,
+    "novig"
+   ],
+   [
+    "5105839",
+    "Brice Sensabaugh",
+    "UTAH",
+    "SA",
+    -0.0989,
+    "under",
+    false,
+    1.5,
+    105,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909918": {
+  "date": "2026-11-02",
+  "points": [
+   [
+    "3064290",
+    "Aaron Gordon",
+    "DEN",
+    "POR",
+    -0.1519,
+    "under",
+    true,
+    14.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "3112335",
+    "Nikola Jokic",
+    "DEN",
+    "POR",
+    0.2354,
+    "over",
+    true,
+    25.5,
+    100,
+    "novig"
+   ],
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "POR",
+    -0.231,
+    "under",
+    true,
+    11.5,
+    -110,
+    "hard_rock"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "DEN",
+    0.1426,
+    "over",
+    true,
+    22.5,
+    100,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3936299",
+    "Jamal Murray",
+    "DEN",
+    "POR",
+    -0.137,
+    "under",
+    true,
+    2.5,
+    115,
+    "hard_rock"
+   ],
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "POR",
+    -0.278,
+    "under",
+    true,
+    1.5,
+    -150,
+    "hard_rock"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "DEN",
+    -0.0542,
+    "under",
+    false,
+    1.5,
+    102,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909919": {
+  "date": "2026-11-02",
+  "points": [],
+  "threes": []
+ },
+ "401909920": {
+  "date": "2026-11-02",
+  "points": [],
+  "threes": []
+ },
+ "401909921": {
+  "date": "2026-11-02",
+  "points": [],
+  "threes": []
  }
 }
