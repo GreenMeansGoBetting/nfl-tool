@@ -4751,7 +4751,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1016,
+    "lead": 0.1015,
     "name": "Giannis Antetokounmpo",
     "proj": 45.4,
     "team": "MIA"
@@ -4807,7 +4807,7 @@
    },
    {
     "id": "3975",
-    "lead": 0.0235,
+    "lead": 0.0234,
     "name": "Stephen Curry",
     "proj": 37.9,
     "team": "GS"
@@ -4821,7 +4821,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0146,
+    "lead": 0.0145,
     "name": "Darius Acuff Jr.",
     "proj": 36.0,
     "team": "SAC"
@@ -4898,9 +4898,9 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0071,
+    "lead": 0.0074,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 33.5,
+    "proj": 33.6,
     "team": "OKC"
    },
    {
