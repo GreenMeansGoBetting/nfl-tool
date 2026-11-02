@@ -562,6 +562,37 @@ class Breakdown(unittest.TestCase):
         self.assertEqual(four[2], signed(round(100 * (1 - chance) / chance)))
         self.assertEqual(four[4], f"{(chance - build_nhl.break_even(self.odds['sog']['over'])) * 100:+.1f}")
 
+    def test_the_ladder_reads_every_books_price_and_each_line_saves(self):
+        # the owner, 2026-11-02: the ladders at SmartStake's prices, "not just novig", and every line
+        # saved to My Plays. A book's better price wins, a line only a book hangs joins the ladder.
+        key = f"{self.game['away']}_{self.game['home']}"
+        PAGE.evaluate("""([key, id]) => {
+            if (!DATA.book_odds) DATA.book_odds = {};
+            if (!DATA.book_odds[key]) DATA.book_odds[key] = { props: {} };
+            window._savedAlt = DATA.book_odds[key].props.sog_alt;
+            DATA.book_odds[key].props.sog_alt = { [id]: { name: "Jack Hughes", q: [["draftkings", "o", 4.5, 400, ""], ["fanduel", "o", 9.5, 5000, ""]] } };
+            localStorage.removeItem('nfl-tool.nhl-plays.v1');
+        }""", [key, self.hughes["id"]])
+        try:
+            ladder = self.open()["ladder"]
+            five = next(row for row in ladder if row[0] == "5 or more")
+            self.assertEqual(five[3], "+400 DraftKings")
+            self.assertEqual(ladder[-2][0], "10 or more")  # FanDuel's 9.5: no Novig price, still on the ladder
+            got = PAGE.evaluate("""async () => {
+                const rows = () => [...document.querySelectorAll('.shots-detail .shots-ladder tbody tr')];
+                const box = (label) => rows().find((tr) => tr.children[0].textContent.trim() === label).querySelector('.nhl-play-toggle');
+                box('5 or more').click(); await new Promise((r) => setTimeout(r, 10));
+                box('Under 3.5').click(); await new Promise((r) => setTimeout(r, 10));
+                return { open: document.querySelectorAll('.shots-detail').length,
+                         plays: loadNhlPlays().map((p) => [p.id.split(':').length, p.side, p.line, p.odds, p.book]).sort(),
+                         ticks: ['4 or more', '5 or more', 'Under 3.5'].map((l) => box(l).checked) };
+            }""")
+            self.assertEqual(got["open"], 1)  # the row stays open as the boxes redraw
+            self.assertEqual(got["plays"], [[4, "under", 3.5, self.odds["sog"]["under"], "novig"], [5, "over", 4.5, 400, "draftkings"]])
+            self.assertEqual(got["ticks"], [False, True, True])  # the main line's Over box stays clear: the play is on the Under
+        finally:
+            PAGE.evaluate("""(key) => { DATA.book_odds[key].props.sog_alt = window._savedAlt; localStorage.removeItem('nfl-tool.nhl-plays.v1'); render(); }""", key)
+
     def test_the_defense_tiles_and_the_rink(self):
         detail = self.open()
         defense = self.shots["defense"]["DET"]

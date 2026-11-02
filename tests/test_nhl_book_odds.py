@@ -84,6 +84,49 @@ class NhlBookOdds(unittest.TestCase):
         self.assertIn("8480018", odds["MTL_WSH"]["props"]["goals"])
         self.assertIn("error", debug["first_goal"])
 
+    def test_every_books_ladder_in_one_call(self):
+        # the owner, 2026-11-02: the ladders at SmartStake's prices, "not just novig". One alternate call
+        # for every market (10 pages a minute), each into its own "_alt" market beside the main one.
+        main = [quote("hockey_player_shots_on_goal", "over", 2.5, -130, "Tom Wilson", 1)]
+        alts = main + [quote("hockey_player_shots_on_goal", "over", 3.5, 175, "Tom Wilson", 1, book="draftkings"),
+                       quote("hockey_player_goals", "over", 1.5, 1100, "SUZUKI, NICK", 2)]
+        calls = []
+        original = smartstake.fetch_quotes, smartstake.fetch_markets
+        def fetch(api_key, league, markets, max_pages=30, alternate=False):
+            calls.append((league, sorted(markets), alternate))
+            return alts if alternate else main
+        smartstake.fetch_quotes = fetch
+        smartstake.fetch_markets = lambda *a: [{"key": "hockey_player_saves", "name": "Player Saves"}]
+        try:
+            odds, debug = smartstake.fetch_nhl_book_odds(
+                "key", lambda full: TEAMS.get((full or "").lower()),
+                lambda name, away, home: {"tom wilson": 8476880, "nick suzuki": 8480018}.get(name.lower()),
+                None, "2026-10-14T12:00:00Z")
+        finally:
+            smartstake.fetch_quotes, smartstake.fetch_markets = original
+        props = odds["MTL_WSH"]["props"]
+        self.assertEqual([q[2] for q in props["sog"]["8476880"]["q"]], [2.5])  # the main market stays the main line
+        self.assertEqual(sorted(q[2] for q in props["sog_alt"]["8476880"]["q"]), [2.5, 3.5])
+        self.assertEqual(props["goals_alt"]["8480018"]["q"][0][:4], ["fanduel", "o", 1.5, 1100])
+        ladder_calls = [c for c in calls if c[2]]
+        self.assertEqual(ladder_calls, [("nhl", ["hockey_player_goals", "hockey_player_points", "hockey_player_saves", "hockey_player_shots_on_goal"], True)])
+        self.assertEqual(debug["ladders"]["players"], 2)
+
+    def test_a_failed_ladder_fetch_keeps_the_main_prices(self):
+        original = smartstake.fetch_quotes, smartstake.fetch_markets
+        def fetch(api_key, league, markets, max_pages=30, alternate=False):
+            if alternate:
+                raise OSError("boom")
+            return [quote("hockey_player_goals", "over", 0.5, 217, "SUZUKI, NICK", 2)]
+        smartstake.fetch_quotes, smartstake.fetch_markets = fetch, lambda *a: []
+        try:
+            odds, debug = smartstake.fetch_nhl_book_odds("key", lambda full: TEAMS.get((full or "").lower()),
+                                                        lambda name, away, home: 8480018, None, "2026-10-14T12:00:00Z")
+        finally:
+            smartstake.fetch_quotes, smartstake.fetch_markets = original
+        self.assertIn("8480018", odds["MTL_WSH"]["props"]["goals"])
+        self.assertIn("error", debug["ladders"])
+
     def test_no_key_never_breaks_the_build(self):
         odds, debug = smartstake.fetch_nhl_book_odds(None, TEAMS.get, lambda *a: None, None, "2026-10-14T12:00:00Z")
         self.assertEqual((odds, list(debug)), ({}, ["skipped"]))

@@ -95,7 +95,6 @@
 .nhl-pc-chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 9px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.84rem; }
 .nhl-pc-chip b { font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.03em; text-transform: uppercase; }
 .nhl-pc-chip small { color: var(--muted); font-weight: 700; }
-.nhl-pc-ladder { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
 .nhl-pc-thin { margin-left: 4px; padding: 0 5px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.45); }
 /* NHL Shots (site/nhl/shots.html + shots.js): one ranked table for the day's slate; a row opens its breakdown */
 .shots-toolbar { flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; }
@@ -198,6 +197,7 @@
 .shots-allows { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; max-width: 520px; }
 .shots-ladder { width: 100%; max-width: 520px; }
 .shots-ladder tr.shots-main-line td:first-child { font-weight: 800; }
+.shots-ladder-price { white-space: nowrap; }
 .shots-detail-rink .nhl-rink { width: 100%; max-width: 520px; margin: 0; }
 .shots-results { margin-top: 16px; }
 .shots-record { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 760px; padding: 0; margin: 8px 0 0; }

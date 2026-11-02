@@ -355,6 +355,10 @@ def fetch_nhl_book_odds(api_key: str | None, team_of, player_key, previous: dict
             near = [n for n in named if "save" in n.lower() or "goalie" in n.lower()]
             debug["saves"] = {"note": "no market list" if listed is None else f"no saves market among {len(named)}: {'; '.join(near)}"[:500]}
         debug["first_goal"] = add_first_goal(api_key, games, team_of, player_key, listed)
+        # every line each book hangs (2+ shots ... 6+, 2+ goals, a hat trick, 2+ points, the saves
+        # ladder), in "sog_alt" / "goals_alt" / "points_alt" / "saves_alt": the prop pages' ladders and
+        # the card's alt lines (the owner, 2026-11-02: "use smartstake odds and not just novig")
+        debug["ladders"] = add_ladder(api_key, games, team_of, player_key, {k: f"{v}_alt" for k, v in markets.items()}, league="nhl")
         return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake NHL fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
@@ -497,26 +501,31 @@ def add_first_goal(api_key: str, games: dict, team_of, player_key, listed=None) 
         return {"error": str(e)[:200]}
 
 
-def add_ladder(api_key: str, games: dict, team_of, player_key, key: str, name: str) -> dict:
-    """Adds every book's prices for one NBA player market at EVERY line,
+def add_ladder(api_key: str, games: dict, team_of, player_key, key, name=None, league: str = "nba") -> dict:
+    """Adds every book's prices for player markets at EVERY line,
     alternates included, to the games (props[name], "threes_alt" /
     "points_alt"): the Points and Threes ladders (20+ / 25+ ..., 1+ / 2+ ...)
     show only rungs a book really prices (the owner: an alt ladder "without
     odds its just filler"). Kept apart from the main market so the main line
-    stays the books' main line. Its own try: a failure here never costs the
+    stays the books' main line. key: one market key with its name, or a
+    {key: name} dict asked for in ONE call (the NHL's four ladders: SmartStake
+    gives 10 pages a minute). Its own try: a failure here never costs the
     other prices."""
+    markets = key if isinstance(key, dict) else {key: name}
+    label = ", ".join(sorted(set(markets.values())))
     try:
-        quotes = fetch_quotes(api_key, "nba", [key], max_pages=60, alternate=True)
-        found = build_book_odds(quotes, team_of, prop_markets={key: name}, td_market=None, line_markets={}, player_key=player_key)
+        quotes = fetch_quotes(api_key, league, list(markets), max_pages=60, alternate=True)
+        found = build_book_odds(quotes, team_of, prop_markets=markets, td_market=None, line_markets={}, player_key=player_key)
         priced = 0
         for game_key, game in found.items():
-            prices = game["props"].get(name)
-            if prices:
-                games.setdefault(game_key, {"kickoff": game["kickoff"], "props": {}, "td": {}, "lines": {}})["props"][name] = prices
-                priced += len(prices)
+            for alt in set(markets.values()):
+                prices = game["props"].get(alt)
+                if prices:
+                    games.setdefault(game_key, {"kickoff": game["kickoff"], "props": {}, "td": {}, "lines": {}})["props"][alt] = prices
+                    priced += len(prices)
         return {"quotes": len(quotes), "players": priced, "lines": sorted({q.get("line") for q in quotes if q.get("line") is not None})[:12]}
     except Exception as e:
-        print(f"WARNING: SmartStake {name} ladder failed ({e}).", file=sys.stderr)
+        print(f"WARNING: SmartStake {label} ladder failed ({e}).", file=sys.stderr)
         return {"error": str(e)[:200]}
 
 

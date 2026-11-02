@@ -231,9 +231,37 @@ class PlayerCard(unittest.TestCase):
         self.assertEqual(rows["Shots on goal"], ["3.5", signed(odds["sog"]["over"]), signed(odds["sog"]["under"]), f"{round(odds['sog']['chance'] * 100)}%"])
         self.assertEqual(rows["Anytime goal"][1:], ["+178", "-213", "35%"])
         self.assertEqual(rows["First goal"][1:], ["+1076", "--", "8%"])
-        # The ladder is the book's other lines as "N or more"; the main 3.5 isn't repeated.
-        self.assertEqual([chip for chip in card["chips"] if chip[1] == "+"][:5], ["2+ -590", "3+ -203", "5+ +251", "6+ +488", "7+ +900"])
-        self.assertIn("Novig, NJD @ DET.", card["text"])
+        self.assertIn("every US book, NJD @ DET.", card["text"])
+        # Show Alt Lines (the owner, 2026-11-02): the other lines open as "Alt" rows, the main 3.5 not
+        # repeated; each at the best book price (SmartStake's ladder, "sog_alt"), else Novig's, with a box
+        self.assertEqual([r for r in card["odds"] if "Alt" in r[0]], [])  # closed until asked for
+        alt = PAGE.evaluate("""async ([id, gameKey]) => {
+            const props = DATA.book_odds && DATA.book_odds[gameKey] ? DATA.book_odds[gameKey].props : null;
+            const saved = props && props.sog_alt;
+            if (!DATA.book_odds) DATA.book_odds = {};
+            if (!DATA.book_odds[gameKey]) DATA.book_odds[gameKey] = { props: {} };
+            DATA.book_odds[gameKey].props.sog_alt = { [id]: { name: "Jack Hughes", q: [["draftkings", "o", 4.5, 300, ""]] } };
+            localStorage.removeItem('nfl-tool.nhl-plays.v1');
+            const rows = () => [...document.querySelectorAll('#player-modal-body .nhl-pc-odds tbody tr.nba-pc-altrow')]
+                .map((tr) => [...tr.children].map((td) => td.textContent.trim().replace(/\\s+/g, ' ')));
+            try {
+                document.querySelector('#player-modal-body .nhl-pc-alts').click();
+                const open = rows();
+                const four = [...document.querySelectorAll('#player-modal-body tr.nba-pc-altrow')].find((tr) => tr.children[1].textContent === '4.5');
+                four.querySelector('.nhl-play-toggle').click();
+                await new Promise((r) => setTimeout(r, 10));
+                const play = loadNhlPlays()[0];
+                document.querySelector('#player-modal-body .nhl-pc-alts').click();
+                return { open, play: [play.id.split(':').slice(3).join(':'), play.side, play.line, play.odds, play.book], closed: rows().length };
+            } finally {
+                DATA.book_odds[gameKey].props.sog_alt = saved;
+                localStorage.removeItem('nfl-tool.nhl-plays.v1');
+            }
+        }""", [self.hughes["id"], f"{self.game['away']}_{self.game['home']}"])
+        sog = [(r[1], r[2]) for r in alt["open"] if r[0].startswith("Shots on goal")]
+        self.assertEqual(sog[:5], [("1.5", "-590"), ("2.5", "-203"), ("4.5", "+300 DraftKings"), ("5.5", "+488"), ("6.5", "+900")])
+        self.assertEqual(alt["play"], [f"{self.hughes['id']}:o4.5", "over", 4.5, 300, "draftkings"])  # its own play
+        self.assertEqual(alt["closed"], 0)
 
     def test_goalie_zones_need_enough_shots_and_a_real_gap(self):
         tier = lambda shots, goals, league: PAGE.evaluate("([s, g, p]) => goalieAreaTier(s, g, p)", [shots, goals, league])

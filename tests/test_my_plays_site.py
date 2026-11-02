@@ -89,6 +89,24 @@ class MyPlays(unittest.TestCase):
             page.evaluate("() => localStorage.removeItem('nfl-tool.nhl-plays.v1')")
             page.close()
 
+    def test_a_goals_ladder_play_grades_on_its_line(self):
+        # 2026-11-02: the NHL ladders save 2+ goals / a hat trick as a goal play with a line (an over his
+        # goals); anytime has none. One goal: anytime wins, 2+ loses; two goals: 2+ wins, a hat trick loses.
+        anytime = {**GAME, "game_id": "2026019999", "id": "nhl:goal:2026019999:1", "market": "goal", "player_id": "1", "odds": 150}
+        two = {**anytime, "id": "nhl:goal:2026019999:1:o1.5", "side": "over", "line": 1.5}
+        hat = {**anytime, "id": "nhl:goal:2026019999:1:o2.5", "side": "over", "line": 2.5}
+        page = SITE.open("my-plays.html")
+        try:
+            got = page.evaluate("""(plays) => {
+                const real = nhlGameRow;
+                try {
+                    return [1, 2].map((g) => { nhlGameRow = () => ({ g, a: 0, sog: 4 }); return plays.map(gradeNhlPlay); });
+                } finally { nhlGameRow = real; }
+            }""", [anytime, two, hat])
+            self.assertEqual(got, [["win", "loss", "loss"], ["win", "win", "loss"]])
+        finally:
+            page.close()
+
     def test_a_game_off_the_schedule_still_grades(self):
         # nhl/data.json's schedule starts yesterday, so a play two days old has no
         # schedule game: it grades from the box score (it stayed Pending, 2026-10-27).

@@ -65,8 +65,8 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-pc-oddsbar { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; }
 .nba-pc-oddsbar .no-data-note { margin: 0; }
 .nba-pc-alts { margin-left: auto; flex: none; }
-.nba-pc-odds tr.nba-pc-altrow td { background: var(--panel-2); }
-.nba-pc-odds tr.nba-pc-altrow td:first-child { font-weight: 500; padding-left: 18px; }
+.player-odds-table tr.nba-pc-altrow td { background: var(--panel-2); }
+.player-odds-table tr.nba-pc-altrow td:first-child { font-weight: 500; padding-left: 18px; }
 .nba-pc-alttag { margin-left: 4px; padding: 0 5px; border-radius: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); background: var(--panel); border: 1px solid var(--border); }
 
 /* Shot charts (shot-chart.js): Zones / Heat Map beside the zone table */

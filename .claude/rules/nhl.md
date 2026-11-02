@@ -211,9 +211,11 @@ in `docs/history.md`: "NHL", and "2026-10-29: the NHL rules file before the trim
     shooter's side); chips: league-average goals on his shots, PP share, shot types.
   - Shot Map, goalie: save % by area, colored only with 30+ shots and goals 1.5 SD from what the
     league allows (`goalieAreaTier`).
-  - Odds: his game's lines (open game, else his next), `thin` tags, ladders as "N or more". Each side
+  - Odds: his game's lines (open game, else his next), `thin` tags. Each side
     the best price on the member's books (`bookPricePill`) or Novig's, with an `nhlPlayBox` (goal,
-    shots, points, assists = market `ast`, saves; first goal has no box).
+    shots, points, assists = market `ast`, saves; first goal has no box). **Show Alt Lines** (as the
+    NBA card, 2026-11-02): every other line SmartStake's ladder or Novig prices, an "Alt" row under its
+    market, best price + box each side (a rung is its own play).
   - A team file that can't be read still opens the card (season tiles and odds only).
 - **Trimmed prop tables:** no Model % column, no Goals Proj. Each header `width: 1%` and an empty
   `.shots-spacer` takes the spare width. `COLUMNS` entries draw their own `cell`; `adv: true` =
@@ -475,6 +477,13 @@ An edge of `UNSURE_EDGE` (25 points) or more is filed **"unsure"** by `shots_pla
 - **Every book's price** (`smartstake.fetch_nhl_book_odds`; `SMARTSTAKE_API_KEY` on the NHL step of
   deploy.yml AND nhl-refresh.yml): `book_odds["AWAY_HOME"].props.{sog,goals,saves,first_goal}[id]`,
   matched by `player_finder` on either team. US books, odds lock (data-pipeline.md).
+- **Every book's ladder** (the owner, 2026-11-02: "use smartstake odds and not just novig"): ONE
+  `alternate=true` call for every market (`add_ladder(..., league="nhl")`) into `sog_alt`,
+  `goals_alt`, `points_alt`, `saves_alt` (every line, main ones too). The open rows' ladders
+  (`nhlLadder` in nhl-common.js; Shots, Goals incl. a hat trick, Points, Saves) and the card's alt
+  lines price each line at the best on the member's books (`nhlLinePrice`; Novig's when no book has
+  it), click for every book, a save box each. A line only a book hangs joins the ladder (Saves:
+  no model chance there). nhl/data.json was 3.8 MB on 2026-11-02, so the ladders stay inside it.
 
 ## Closing line value (Novig alone)
 

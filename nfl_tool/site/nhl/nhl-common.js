@@ -539,6 +539,7 @@ function playerGame(abbr) {
 }
 
 let playerCardState = null; // { id, tab, file }
+let nhlCardAlts = false; // the Odds tab's alt lines open (kept while the page is open, for every player)
 const CARD_TABS = [["log", "Game Log"], ["map", "Shot Map"], ["odds", "Odds"]];
 
 // Shade a log cell against the player's own games (same thirds as the NFL card).
@@ -792,23 +793,36 @@ function oddsView(id, game) {
   const chance = (c) => (has(c) ? `${Math.round(c * 100)}%` : "--");
   const thin = (m) => (m.thin ? ` <span class="nhl-pc-thin" title="Barely traded: treat the price with care">thin</span>` : "");
   const rows = [];
+  // Show Alt Lines (the owner, 2026-11-02, as on the NBA card): every other line a book prices
+  // (SmartStake's ladder, plus Novig's own), an "Alt" row under its market, best price and a box each side.
+  const x = { r: row, game };
+  const altRows = (stat, label, market, novigAlts, main) => {
+    if (!nhlCardAlts || !stat) return "";
+    const novig = new Map((novigAlts || []).map(([strike, price]) => [strike, price]));
+    const lines = [...new Set([...nhlBookLines(x, stat, "o"), ...nhlBookLines(x, stat, "u"), ...novig.keys()])]
+      .filter((l) => l !== main && (stat !== "goals" || l > 0.5)).sort((a, b) => a - b);
+    const side = (s, l) => {
+      const at = nhlLinePrice(x, stat, s, l, label, s === "o" ? novig.get(l) : null);
+      return at ? `${at.pill}${nhlPlayBox(nhlPlayEntry({ market, g: game, r: row, side: s === "u" ? "under" : "over", line: l, price: at.price, book: at.book, rung: true }))}` : "--";
+    };
+    return lines.map((l) => `<tr class="nba-pc-altrow"><td>${label} <span class="nba-pc-alttag">Alt</span></td><td class="num props-line">${fmt(l)}</td><td class="num">${side("o", l)}</td><td class="num">${market === "goal" ? "--" : side("u", l)}</td><td class="num">--</td></tr>`).join("");
+  };
   if (o.goal) rows.push(`<tr><td>Anytime goal${thin(o.goal)}</td><td class="num props-line">--</td><td class="num">${oddsSide(row, game, "goal", "goals", "over", 0.5, o.goal.odds)}</td><td class="num">${odds(o.goal.no_odds) || "--"}</td><td class="num">${chance(o.goal.chance)}</td></tr>`);
+  if (o.goal || o.goal_alts) rows.push(altRows("goals", "Goals", "goal", o.goal_alts, 0.5));
   if (o.first_goal) rows.push(`<tr><td>First goal${thin(o.first_goal)}</td><td class="num props-line">--</td><td class="num"><b>${odds(o.first_goal.odds)}</b></td><td class="num">--</td><td class="num">${chance(o.first_goal.chance)}</td></tr>`);
   ODDS_MARKETS.forEach(([key, label, market, stat]) => {
     const m = o[key];
     if (m) rows.push(`<tr><td>${label}${thin(m)}</td><td class="num props-line">${fmt(m.line)}</td><td class="num">${oddsSide(row, game, market, stat, "over", m.line, m.over)}</td><td class="num">${oddsSide(row, game, market, stat, "under", m.line, m.under)}</td><td class="num">${chance(m.chance)}</td></tr>`);
+    if (m || o[`${key}_alts`]) rows.push(altRows(stat, label, market, o[`${key}_alts`], m ? m.line : null));
   });
-  // The other lines the book prices, as "N or more" (over 2.5 = 3+).
-  const ladder = (label, alts) =>
-    (alts || []).length ? `<div class="nhl-pc-facts"><span class="nhl-pc-ladder">${label}</span>${alts.map(([strike, price]) => `<span class="nhl-pc-chip"><b>${Math.ceil(strike)}+</b> ${odds(price)}</span>`).join("")}</div>` : "";
-  if (!rows.length && !o.sog_alts && !o.goal_alts && !o.saves_alts) return `<p class="no-data-note">No lines posted for this player.</p>`;
-  return `<p class="no-data-note">Best price across your books (click it for every book; plain = Novig's). Checkboxes save a side to My Plays.</p>
+  if (!rows.join("") && !o.sog_alts && !o.goal_alts && !o.saves_alts) return `<p class="no-data-note">No lines posted for this player.</p>`;
+  const altBtn = `<button type="button" class="player-modal-toggle-btn nba-pc-alts nhl-pc-alts${nhlCardAlts ? " active" : ""}">${nhlCardAlts ? "Hide Alt Lines" : "Show Alt Lines"}</button>`;
+  return `<div class="nba-pc-oddsbar"><p class="no-data-note">Best price across your books (click it for every book; plain = Novig's). Checkboxes save a side to My Plays.</p>${altBtn}</div>
     <div class="nhl-pc-scroll"><table class="data-table player-odds-table nhl-pc-odds">
       <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over / Yes</th><th class="num">Under / No</th><th class="num" title="Novig's price with the cut taken out">Chance</th></tr></thead>
       <tbody>${rows.join("")}</tbody>
     </table></div>
-    ${ladder("Shots on goal", o.sog_alts)}${ladder("Goals", o.goal_alts)}${ladder("Saves", o.saves_alts)}
-    <p class="section-note">Lines from Novig, ${game.away} @ ${game.home}${game.lines_locked ? ", locked at puck drop" : ""}.</p>`;
+    <p class="section-note">Lines from Novig and every US book, ${game.away} @ ${game.home}${game.lines_locked ? ", locked at puck drop" : ""}.</p>`;
 }
 
 function ensurePlayerCard() {
@@ -888,6 +902,10 @@ document.addEventListener("click", (e) => {
   const tab = e.target.closest("#player-card-modal .nhl-pc-tab");
   if (tab && playerCardState) {
     playerCardState.tab = tab.dataset.tab;
+    return refreshPlayerCard();
+  }
+  if (e.target.closest("#player-card-modal .nhl-pc-alts") && playerCardState) {
+    nhlCardAlts = !nhlCardAlts;
     return refreshPlayerCard();
   }
   const league = e.target.closest("[data-league]");
@@ -979,6 +997,52 @@ function bookPanelFor(x, stat, line, label, chanceAt, edges, labels) {
   return panel ? `<div class="shots-detail-odds"><div class="shots-detail-label">Every book <span class="muted-label">best price first, against our model</span></div>${panel}</div>` : "";
 }
 
+// ---- Every line's price: the ladders (the owner, 2026-11-02: "use smartstake odds and not just novig") ----
+// SmartStake's main market (stat: "sog", "goals", "points", "saves") and its ladder (`${stat}_alt`:
+// every line a book hangs, alternates included; smartstake.fetch_nhl_book_odds). A line's spec
+// reads the ladder when a book prices that side there in it, else the main market.
+function nhlBookSpec(x, stat, side, line, label) {
+  const r = x.r;
+  const g = x.game || x.g;
+  const spec = { kind: "prop", stat, team: r.team, pid: r.id, name: r.name, game: `${g.away}_${g.home}`, side, line,
+    title: `${r.name} &middot; ${label}`, sub: `${g.away} @ ${g.home}`, color: `#${team(r.team).color}` };
+  if (typeof bookQuotes !== "function") return spec;
+  const alt = { ...spec, stat: `${stat}_alt` };
+  return bookQuotes(alt).some((q) => sameBet(q, side, line)) ? alt : spec;
+}
+// The lines the books price for one side ("o" / "u"), lowest first.
+function nhlBookLines(x, stat, side) {
+  if (typeof bookQuotes !== "function") return [];
+  const spec = nhlBookSpec(x, stat, side, null, "");
+  const quotes = [...bookQuotes({ ...spec, stat }), ...bookQuotes({ ...spec, stat: `${stat}_alt` })];
+  return [...new Set(quotes.filter((q) => q[1] === side && has(q[2])).map((q) => q[2]))].sort((a, b) => a - b);
+}
+// One side at one line: {price, book, pill} = the best on the member's books (pill: click for every
+// book), else the page's own price (Novig's, or the build's), plain.
+function nhlLinePrice(x, stat, side, line, label, own) {
+  const spec = nhlBookSpec(x, stat, side, line, label);
+  const best = typeof bookBest === "function" ? bookBest(bookQuotes(spec), side, line) : null;
+  if (best) return { price: best[3], book: best[0], pill: bookPricePill(spec) };
+  return has(own) ? { price: own, book: "novig", pill: `<b>${odds(own)}</b>` } : null;
+}
+// The ladder table in a prop page's open row: rows [{label, side "o" / "u", line, chance (the model's,
+// or null), price (the page's own), first (First seen), main, hl (lit; default main)}], each at its best price with a box
+// that saves it to My Plays (the main line's sides share the row's play, every other line is its own).
+// o: {stat, market (the saved play's), label, head (the first column's name), first (a First seen
+// column), goodAt (an edge this big is green)}. Uses the page's breakEven / fairPrice / points.
+function nhlLadder(x, rows, o) {
+  const g = x.game || x.g;
+  const body = rows.map((row) => {
+    const at = nhlLinePrice(x, o.stat, row.side, row.line, o.label, row.price);
+    const edge = at && has(row.chance) ? row.chance - breakEven(at.price) : null;
+    const side = row.side === "u" ? "under" : "over";
+    const box = at ? nhlPlayBox(nhlPlayEntry({ market: o.market, g, r: x.r, side, line: row.line, price: at.price, book: at.book, rung: !row.main })) : "";
+    return `<tr${(has(row.hl) ? row.hl : row.main) ? ' class="shots-main-line"' : ""}><td>${row.label}</td><td class="num">${has(row.chance) ? pct(row.chance, 0) : "--"}</td><td class="num">${odds(fairPrice(row.chance)) || "--"}</td>
+      <td class="num shots-ladder-price">${at ? `${at.pill}${box}` : "--"}</td>${o.first ? `<td class="num">${has(row.first) ? odds(row.first) : "--"}</td>` : ""}<td class="num ${has(edge) && edge >= o.goodAt ? "tier-good" : ""}">${points(edge)}</td></tr>`;
+  }).join("");
+  return `<table class="data-table shots-ladder"><thead><tr><th>${o.head}</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th title="The best price across your books (click it for every book; plain = Novig's). The box saves it to My Plays">Best price</th>${o.first ? `<th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th>` : ""}<th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+
 // ---- Player search (the owner, 2026-10-16: "if i start typing in GEE it will only show names of players with that") ----
 // A box in the Player header of every prop table (Shots, Goals, Points, Saves, Best Plays).
 // Case and accents don't matter. One search for
@@ -1007,29 +1071,33 @@ document.addEventListener("input", (e) => {
 // Plays). Checking it saves the play as shown, at its price, to
 // the member's NHL plays (sync.js loadNhlPlays / saveNhlPlays); My Plays
 // grades it from the box score. One saved play per player, market and game,
-// so the box stays checked when the line moves.
+// so the box stays checked when the line moves; a ladder rung (rung: true, the
+// open rows' ladders and the card's alt lines, 2026-11-02) is its own play.
 const NHL_PLAY_CATEGORY = { sog: "Shots on goal", goal: "Anytime goal", pts: "Points", ast: "Assists", saves: "Saves", stack: "Line stack" };
 const NHL_PLAY_UNIT = { sog: "SOG", pts: "points", ast: "assists", saves: "saves" };
-const nhlPlayId = (market, gameId, who) => `nhl:${market}:${gameId}:${who}`;
+const nhlPlayId = (market, gameId, who, rung) => `nhl:${market}:${gameId}:${who}${rung ? `:${rung}` : ""}`;
 // g: the schedule game; r: the player row ({id, name, team}); side "over" / "under"
-// (Goals: none); legs: a stack's players [{id, name, team}].
-function nhlPlayEntry({ market, g, r, side, line, price, legs, book }) {
+// (Goals: none, but a 2+ goals rung is an over); legs: a stack's players [{id, name, team}].
+function nhlPlayEntry({ market, g, r, side, line, price, legs, book, rung }) {
   const sideWord = side === "under" ? "Under" : "Over";
-  const description = market === "goal" ? `${r.name} anytime goal`
+  const goals = market === "goal" && rung; // 2+ goals, a hat trick: an over his goals line
+  const description = goals ? `${r.name} ${Math.ceil(line)}+ goals`
+    : market === "goal" ? `${r.name} anytime goal`
     : market === "stack" ? `${legs.map((p) => p.name.split(" ").slice(1).join(" ") || p.name).join(" + ")} (1+ point each)`
     : `${r.name} ${sideWord} ${line} ${NHL_PLAY_UNIT[market]}`;
   return {
-    id: nhlPlayId(market, g.game_id, market === "stack" ? legs.map((p) => p.id).sort().join("-") : r.id),
-    sport: "nhl", market, category: NHL_PLAY_CATEGORY[market],
+    id: nhlPlayId(market, g.game_id, market === "stack" ? legs.map((p) => p.id).sort().join("-") : r.id, rung ? `${side === "under" ? "u" : "o"}${line}` : ""),
+    sport: "nhl", market, category: goals ? "Goals" : NHL_PLAY_CATEGORY[market],
     date: g.date, game_id: g.game_id, matchup: `${g.away} @ ${g.home}`,
     team: market === "stack" ? legs[0].team : r.team, player_id: market === "stack" ? null : r.id,
-    side: market === "goal" || market === "stack" ? null : side, line: has(line) ? line : null,
+    side: goals ? "over" : market === "goal" || market === "stack" ? null : side, line: goals || (market !== "goal" && has(line)) ? line : null,
     odds: has(price) ? price : null, description, legs: legs || null,
     ...(book ? { book } : {}),
   };
 }
+// Checked when this play is saved on this side (Over and Under share one play: the other side's box stays clear).
 function nhlPlayBox(entry) {
-  const saved = loadNhlPlays().some((p) => p.id === entry.id);
+  const saved = loadNhlPlays().some((p) => p.id === entry.id && (!entry.side || !p.side || p.side === entry.side));
   return `<label class="nhl-save-box" title="Save to My Plays"><input type="checkbox" class="nhl-play-toggle" data-entry="${encodeURIComponent(JSON.stringify(entry))}"${saved ? " checked" : ""}></label>`;
 }
 // Capture: the box sits inside rows that open on a click.
@@ -1042,4 +1110,9 @@ document.addEventListener("change", (e) => {
   const entry = JSON.parse(decodeURIComponent(box.dataset.entry));
   const rest = loadNhlPlays().filter((p) => p.id !== entry.id);
   saveNhlPlays(box.checked ? [...rest, { ...entry, added_at: new Date().toISOString() }] : rest);
+  // the same play's other boxes (the row's, the ladder's other side, the card's) follow; after this save
+  setTimeout(() => {
+    if (typeof renderTable === "function") renderTable();
+    if (typeof refreshPlayerCard === "function") refreshPlayerCard();
+  }, 0);
 });

@@ -240,18 +240,18 @@ function detailRow(x, columns) {
       <div class="nba-tile"${rankCell(r.allowed_rank)} title="${defTip(r)}"><div class="gs-tile-label">${r.team} allows a game</div><b>${fmt(r.allowed, 1)}</b><small>${rankWord(r.allowed_rank)}</small></div>
       <div class="nba-tile" title="His starts this season"><div class="gs-tile-label">His season</div><b>${r.starts ? `${fmt(r.saves_avg, 1)} a start` : "No starts"}</b><small>${r.starts ? `${r.starts} starts &middot; ${fmt(r.sv_pct * 100, 1)}% &middot; high ${r.high || "--"}` : ""}</small></div>
     </div>`;
-  // The prices: the main line both ways, then the other lines Novig prices (overs only).
+  // The prices: the main line both ways, then every other line Novig or a book prices (overs), each at
+  // the best price across the member's books (nhlLadder). A line only a book prices has no model chance.
   const first = r.first || {};
-  const priceRow = (label, chance, price, firstPrice, main) => {
-    const edge = has(price) ? chance - breakEven(price) : null;
-    return `<tr${main ? ' class="shots-main-line"' : ""}><td>${label}</td><td class="num">${pct(chance, 0)}</td><td class="num">${odds(fairPrice(chance)) || "--"}</td><td class="num"><b>${has(price) ? odds(price) : "--"}</b></td><td class="num">${has(firstPrice) ? odds(firstPrice) : "--"}</td><td class="num ${has(edge) && edge >= edgeAt("lean") ? "tier-good" : ""}">${points(edge)}</td></tr>`;
-  };
   const sameFirst = first.line === r.line;
+  const alts = new Map((r.alts || []).map(([at, price, chance]) => [at, { price, chance }]));
+  const others = has(r.line) ? [...new Set([...alts.keys(), ...nhlBookLines(x, "saves", "o")])].filter((l) => l !== r.line).sort((a, b) => a - b) : [];
   const ladder = has(r.line)
-    ? `<table class="data-table shots-ladder"><thead><tr><th>Saves</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th title="The best price any US book has at this line">Best price</th><th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>
-      ${priceRow(`Over ${fmt(r.line)}`, r.chance_over, r.over, sameFirst ? first.over : null, r.side === "over")}
-      ${priceRow(`Under ${fmt(r.line)}`, 1 - r.chance_over, r.under, sameFirst ? first.under : null, r.side === "under")}
-      ${(r.alts || []).map(([at, price, chance]) => priceRow(`Over ${fmt(at)}`, chance, price, null, false)).join("")}</tbody></table>
+    ? `${nhlLadder(x, [
+      { label: `Over ${fmt(r.line)}`, side: "o", line: r.line, chance: r.chance_over, price: r.over, first: sameFirst ? first.over : null, main: true, hl: r.side === "over" },
+      { label: `Under ${fmt(r.line)}`, side: "u", line: r.line, chance: 1 - r.chance_over, price: r.under, first: sameFirst ? first.under : null, main: true, hl: r.side === "under" },
+      ...others.map((l) => ({ label: `Over ${fmt(l)}`, side: "o", line: l, chance: (alts.get(l) || {}).chance, price: (alts.get(l) || {}).price })),
+    ], { stat: "saves", market: "saves", label: "Saves", head: "Saves", first: true, goodAt: edgeAt("lean") })}
       ${has(first.line) && !sameFirst ? `<p class="shots-lineup muted-label">The first line the page saw was ${fmt(first.line)}.</p>` : ""}`
     : `<p class="shots-lineup">Novig has no saves line for him yet. Lines fill in through the day as the page refreshes.</p>`;
   const gap = has(r.gap) ? `<p class="shots-lineup${Math.abs(r.gap) >= checkSaves() ? " saves-gap-far" : ""}">The model has <b>${fmt(r.mean, 1)}</b> saves; Novig's line and price say <b>${fmt(r.mkt_mean, 1)}</b> (${r.gap > 0 ? "+" : ""}${fmt(r.gap, 1)}).${Math.abs(r.gap) >= checkSaves() ? ` That is ${checkSaves()}+ saves apart: look for news on the starter first.` : ""}</p>` : "";

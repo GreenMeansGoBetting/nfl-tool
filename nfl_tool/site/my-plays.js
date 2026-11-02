@@ -102,7 +102,8 @@ function gradeNhlPlay(p) {
   const row = nhlGameRow(p.player_id, p.team, p.date);
   if (row === undefined) return null;
   if (row === null) return "void";
-  if (p.market === "goal") return row.g > 0 ? "win" : "loss";
+  // a goals ladder rung (2+ goals, a hat trick) is an over his goals line; anytime has no line
+  if (p.market === "goal") return mpHas(p.line) && p.line > 0.5 ? overUnder("over", row.g, p.line) : row.g > 0 ? "win" : "loss";
   if (p.market === "sog") return overUnder(p.side, row.sog, p.line);
   if (p.market === "pts") return overUnder(p.side, row.g + row.a, p.line);
   if (p.market === "ast") return overUnder(p.side, row.a, p.line);

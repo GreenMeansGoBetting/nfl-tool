@@ -42,6 +42,16 @@ const siteLift = (r) => r.lift.home * r.lift.b2b * r.lift.opp_b2b;
 const styleLift = (r) => r.lift.low * r.lift.onetimer;
 // 2 or more goals when `mean` are expected (the model's count is a plain one).
 const twoPlus = (mean) => 1 - Math.exp(-mean) * (1 + mean);
+// k or more goals on the same count as twoPlus (3 = a hat trick)
+function atLeast(mean, k) {
+  let term = Math.exp(-mean);
+  let below = 0;
+  for (let i = 0; i < k; i += 1) {
+    below += term;
+    term *= mean / (i + 1);
+  }
+  return 1 - below;
+}
 
 // ---- schedule ----
 function days() {
@@ -302,15 +312,14 @@ function detailRow(x, columns) {
       <div class="nba-tile" title="${PIECE_TIPS.goalie(r)}"><div class="gs-tile-label">In net (expected)</div><b class="goals-goalie">${goalieName(r.goalie)}</b><small>${liftText(r.lift.goalie)} for shooters</small><span class="nba-notag">projection</span></div>
     </div>`;
 
-  // The price: anytime (the main line) and 2 or more, at the model's fair price.
-  const alts = ((((DATA.player_odds || {})[x.game.game_id] || {})[r.id] || {}).goal_alts) || [];
-  const twoPrice = (alts.find((a) => a[0] === 1.5) || [])[1];
-  const priceRow = (label, chance, price, first, main) => {
-    const edge = has(price) ? chance - breakEven(price) : null;
-    return `<tr${main ? ' class="shots-main-line"' : ""}><td>${label}</td><td class="num">${pct(chance, 0)}</td><td class="num">${odds(fairPrice(chance)) || "--"}</td><td class="num"><b>${has(price) ? odds(price) : "--"}</b></td><td class="num">${has(first) ? odds(first) : "--"}</td><td class="num ${has(edge) && edge >= edgeAt("lean") ? "tier-good" : ""}">${points(edge)}</td></tr>`;
-  };
-  const ladder = `<table class="data-table shots-ladder"><thead><tr><th>Goals</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>
-      ${priceRow("Anytime (1+)", r.chance, r.odds, r.first_odds, true)}${priceRow("2 or more", twoPlus(r.mean), twoPrice, null, false)}</tbody></table>`;
+  // The price: anytime (the main line), 2 or more, and any higher line a book or Novig prices (a hat
+  // trick), each at the best price across the member's books (nhlLadder) and the model's fair price.
+  const alts = new Map((((((DATA.player_odds || {})[x.game.game_id] || {})[r.id] || {}).goal_alts) || []).map(([at, price]) => [at, price]));
+  const more = [...new Set([1.5, ...nhlBookLines(x, "goals", "o"), ...alts.keys()])].filter((l) => l > 0.5).sort((a, b) => a - b);
+  const ladder = nhlLadder(x, [
+    { label: "Anytime (1+)", side: "o", line: 0.5, chance: r.chance, price: r.odds, first: r.first_odds, main: true },
+    ...more.map((l) => ({ label: `${Math.ceil(l)} or more`, side: "o", line: l, chance: atLeast(r.mean, Math.ceil(l)), price: alts.get(l) })),
+  ], { stat: "goals", market: "goal", label: "Goals", head: "Goals", first: true, goodAt: edgeAt("lean") });
 
   // The rink: his share from each zone, the defense's three boxes (shots.json), as on the Shots page.
   const shares = areaShares();

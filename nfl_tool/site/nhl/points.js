@@ -293,15 +293,16 @@ function detailRow(x, columns) {
   const at = (line) => (r.line === line ? { over: r.over, under: r.under, fo: first.line === line ? first.over : null, fu: first.line === line ? first.under : null } : {});
   const half = at(0.5);
   const one5 = at(1.5);
-  const priceRow = (label, chance, price, firstPrice, main) => {
-    const edge = has(price) ? chance - breakEven(price) : null;
-    return `<tr${main ? ' class="shots-main-line"' : ""}><td>${label}</td><td class="num">${pct(chance, 0)}</td><td class="num">${odds(fairPrice(chance)) || "--"}</td><td class="num"><b>${has(price) ? odds(price) : "--"}</b></td><td class="num">${has(firstPrice) ? odds(firstPrice) : "--"}</td><td class="num ${has(edge) && edge >= edgeAt("lean") ? "tier-good" : ""}">${points(edge)}</td></tr>`;
-  };
-  const ladder = `<table class="data-table shots-ladder"><thead><tr><th>Points</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The first price the page saw for him: the record grades how far it moved by puck drop">First seen</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>
-      ${priceRow("1 or more (o0.5)", r.chance, half.over, half.fo, r.line === 0.5 && r.side === "over")}
-      ${priceRow("None (u0.5)", 1 - r.chance, half.under, half.fu, r.line === 0.5 && r.side === "under")}
-      ${priceRow("2 or more (o1.5)", r.two, one5.over, one5.fo, r.line === 1.5 && r.side === "over")}
-      ${priceRow("1 or none (u1.5)", 1 - r.two, one5.under, one5.fu, r.line === 1.5 && r.side === "under")}</tbody></table>`;
+  // each at the best price across the member's books (nhlLadder); the play's row is lit, the main
+  // line's two sides share the row's saved play
+  const rung = (label, side, line, chance, price, firstPrice) =>
+    ({ label, side, line, chance, price, first: firstPrice, main: r.line === line, hl: r.line === line && r.side === (side === "o" ? "over" : "under") });
+  const ladder = nhlLadder(x, [
+    rung("1 or more (o0.5)", "o", 0.5, r.chance, half.over, half.fo),
+    rung("None (u0.5)", "u", 0.5, 1 - r.chance, half.under, half.fu),
+    rung("2 or more (o1.5)", "o", 1.5, r.two, one5.over, one5.fo),
+    rung("1 or none (u1.5)", "u", 1.5, 1 - r.two, one5.under, one5.fu),
+  ], { stat: "points", market: "pts", label: "Points", head: "Points", first: true, goodAt: edgeAt("lean") });
 
   // Tonight's line: who he plays with and what each of them is worth tonight.
   const mates = r.slot ? x.board.players.filter((m) => m.team === r.team && m.slot === r.slot && m.id !== r.id) : [];

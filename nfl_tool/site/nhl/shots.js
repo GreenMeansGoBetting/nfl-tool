@@ -363,17 +363,14 @@ function detailRow(x, columns) {
       <span class="shots-step shots-step-end"><small>Tonight</small><b>${fmt(r.mean, 2)}</b></span>
     </div>`;
 
-  // The ladder: the main line (both sides) and the book's other lines (overs only).
+  // The ladder: the main line (both sides) and every other line a book or Novig prices (overs), each at
+  // the best price across the member's books (nhlLadder; the owner, 2026-11-02: SmartStake, not just Novig).
   const main = x.book.sog;
-  const rungs = [];
-  const rung = (label, chance, price, isMain) => {
-    const edge = has(price) && has(chance) ? chance - breakEven(price) : null;
-    rungs.push(`<tr${isMain ? ' class="shots-main-line"' : ""}><td>${label}</td><td class="num">${has(chance) ? pct(chance, 0) : "--"}</td><td class="num">${odds(fairPrice(chance)) || "--"}</td><td class="num"><b>${odds(price) || "--"}</b></td><td class="num ${has(edge) && edge >= bar() ? "tier-good" : ""}">${points(edge)}</td></tr>`);
-  };
-  const overs = [...(x.book.sog_alts || []).map(([strike, price]) => [strike, price, false]), ...(main && has(main.over) ? [[main.line, main.over, true]] : [])].sort((a, b) => a[0] - b[0]);
-  overs.forEach(([strike, price, isMain]) => rung(`${Math.ceil(strike)} or more`, chanceOver(r, strike), price, isMain));
-  if (main && has(main.under)) rung(`Under ${fmt(main.line)}`, has(chanceOver(r, main.line)) ? 1 - chanceOver(r, main.line) : null, main.under, true);
-  const ladder = `<table class="data-table shots-ladder"><thead><tr><th>Shots on goal</th><th title="The model's chance">Model</th><th title="The price with no cut at which the model's chance breaks even">Fair price</th><th>Novig</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th></tr></thead><tbody>${rungs.join("")}</tbody></table>`;
+  const novig = new Map((x.book.sog_alts || []).map(([strike, price]) => [strike, price]));
+  const overLines = [...new Set([...nhlBookLines(x, "sog", "o"), ...novig.keys(), ...(main && has(main.over) ? [main.line] : [])])].sort((a, b) => a - b);
+  const rungs = overLines.map((l) => ({ label: `${Math.ceil(l)} or more`, side: "o", line: l, chance: chanceOver(r, l), price: main && l === main.line ? main.over : novig.get(l), main: !!main && l === main.line }));
+  if (main && has(main.under)) rungs.push({ label: `Under ${fmt(main.line)}`, side: "u", line: main.line, chance: has(chanceOver(r, main.line)) ? 1 - chanceOver(r, main.line) : null, price: main.under, main: true });
+  const ladder = nhlLadder(x, rungs, { stat: "sog", market: "sog", label: "Shots on goal", head: "Shots on goal", goodAt: bar() });
 
   // A defense's tile says which way it points in words, never by color alone:
   // "Stingy" is a tough night for a shooter, "Leaky" a good one.
@@ -435,7 +432,7 @@ function detailRow(x, columns) {
         <div class="shots-detail-main">
           <div class="shots-detail-label">How tonight's number is built</div>${build}${lineNote}
           <div class="shots-detail-label">${logo(r.opp, 16)} What ${r.opp} allows a game <span class="muted-label">this season, and where that ranks</span></div>${tiles}
-          <div class="shots-detail-label">Every line, at the model's fair price</div>${ladder}
+          <div class="shots-detail-label">Every line, at the model's fair price <span class="muted-label">best price across your books; the box saves it</span></div>${ladder}
         </div>
         <div class="shots-detail-rink">
           <div class="shots-detail-label">Where he shoots <span class="muted-label">and what ${r.opp} allows from there</span> <button type="button" class="info-i" aria-expanded="false" aria-controls="rink-key-${r.id}" title="How to read the rink">i</button></div>${rink}

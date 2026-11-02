@@ -28,7 +28,10 @@ its prop pages get the box from day one).
   by the box beside each priced play on Shots, Goals, Points, Saves and Best Plays
   (nhl-common.js `nhlPlayBox` / `nhlPlayEntry`). Id `nhl:<market>:<game>:<player or legs>`: one per
   player, market and game, so the box stays checked when the line moves and Best Plays and the
-  prop page share it. The price saved is the one shown when checked.
+  prop page share it (a box is ticked only on the saved side). **A ladder rung** (open-row ladders,
+  the card's alt lines, 2026-11-02; NBA the same with `nba:` ids) adds `:<o|u><line>` and is its own
+  play; a goals rung (2+, hat trick) is market `goal` with side over and a line, graded on it. The
+  price saved is the one shown when checked.
 - **Grading:** NFL through `plays-grading.js` (moved out of possible-plays.js, same rules). NHL
   from the team's box score in `nhl/players/<TEAM>.json` once the schedule says final: SOG,
   goals, points (G+A), saves (SA-GA); a player not in that night's log = Void; a Line Stack wins
