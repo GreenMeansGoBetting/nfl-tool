@@ -7201,16 +7201,16 @@
   "players": {
    "4066320": [
     "Desmond Bane",
-    0.104,
+    0.129,
     750,
     false,
     "hard_rock"
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.108,
+    0.13,
     900,
-    false,
+    true,
     "bet365"
    ],
    "4277905": [
@@ -7222,16 +7222,9 @@
    ],
    "4566434": [
     "Franz Wagner",
-    0.12,
+    0.147,
     700,
-    false,
-    "bet365"
-   ],
-   "4712849": [
-    "Anthony Black",
-    0.094,
-    1000,
-    false,
+    true,
     "bet365"
    ],
    "5104155": [
@@ -7257,7 +7250,7 @@
    ],
    "5239561": [
     "Jase Richardson",
-    0.08,
+    0.1,
     1400,
     true,
     "fanduel"
@@ -9440,7 +9433,7 @@
    ],
    "4066320": [
     "Desmond Bane",
-    0.094,
+    0.116,
     null,
     false,
     null
@@ -9454,7 +9447,7 @@
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.097,
+    0.118,
     null,
     false,
     null
@@ -9468,14 +9461,7 @@
    ],
    "4566434": [
     "Franz Wagner",
-    0.108,
-    null,
-    false,
-    null
-   ],
-   "4712849": [
-    "Anthony Black",
-    0.085,
+    0.133,
     null,
     false,
     null
@@ -9489,7 +9475,7 @@
    ],
    "5239561": [
     "Jase Richardson",
-    0.073,
+    0.09,
     null,
     false,
     null
