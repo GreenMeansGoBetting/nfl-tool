@@ -134,14 +134,16 @@ function nbaCardMainLine(quotes) {
   return best === undefined ? null : Number(best);
 }
 // One saved play per player, market and game: Over and Under share it, so
-// checking one side switches the play to it.
-const nbaCardPlayId = (stat, g, id) => `nba:${stat === "first_basket" ? "fb" : stat}:${g.game_id}:${id}`;
-function nbaCardEntry(stat, g, p, side, line, best) {
+// checking one side switches the play to it. A ladder rung (rung = true, the sim pages'
+// ladder) is its own play, so a member can save the main line and a few rungs together.
+const nbaCardPlayId = (stat, g, id, rung, side, line) =>
+  `nba:${stat === "first_basket" ? "fb" : stat}:${g.game_id}:${id}${rung ? `:${side}${line}` : ""}`;
+function nbaCardEntry(stat, g, p, side, line, best, rung) {
   const t = nbaCardTeam(p.team);
   const fb = stat === "first_basket";
   const [label, unit] = GMG_NBA_PROP_STATS[stat] || ["First Basket"];
   return {
-    id: nbaCardPlayId(stat, g, p.id), sport: "nba", market: stat, category: label,
+    id: nbaCardPlayId(stat, g, p.id, rung, side, line), sport: "nba", market: stat, category: label,
     date: g.date, game_id: g.game_id, matchup: `${g.away} @ ${g.home}`, team: p.team, player_id: p.id,
     side: fb ? null : side === "u" ? "under" : "over", line: fb ? null : line,
     description: fb ? `${p.name} first basket` : `${p.name} ${side === "u" ? "Under" : "Over"} ${line} ${unit}`,

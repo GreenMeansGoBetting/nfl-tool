@@ -222,6 +222,8 @@ html:not(.is-owner):not(.local-dev) .sim-markout { display: none; }
 .sim-mn { font: 800 0.56rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border-strong); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
 .sim-ladt .sim-mini { font: 700 0.84rem var(--font-display); color: var(--text); border: 1px solid var(--border-strong); border-radius: 6px; padding: 1px 6px; }
 .sim-ladt .sim-mini small { font: 700 0.58rem var(--font-body); color: var(--muted); }
+.sim-ladt-price { white-space: nowrap; }
+.sim-ladt-price .nba-pc-save { margin-left: 6px; vertical-align: middle; }
 @media (max-width: 900px) {
   .sim-dgrid { grid-template-columns: 1fr; }
   .sim-nums4 { grid-template-columns: repeat(2, 1fr); }

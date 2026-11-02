@@ -585,9 +585,14 @@ function ladderTable(x) {
     const spec = priceSpec(x.g, x.pid, side, line, x.team);
     const isMain = line === ml;
     const isLadder = x.ladder && side === x.side && line === x.ladder.line;
+    // a save box on every priced rung (a member, 2026-11-02: only the main line could go to My Plays);
+    // the main line's two sides share the row's play, each other rung is its own
+    const save = best && typeof nbaCardSaveBox === "function"
+      ? nbaCardSaveBox(nbaCardEntry(MK.market, x.g, { id: x.pid, name: nameOf(x.pid), team: x.team }, side, line, [best.book, side, line, best.price], !isMain))
+      : "";
     return `<tr class="${isMain ? "main" : ""}${isLadder ? " best" : ""}"><td>${side === "o" ? "Over" : "Under"} ${fmt(line)}${isMain ? '<span class="sim-mn">Main</span>' : ""}</td>
       <td class="num">${pct(c)}</td><td class="num">${f === null ? "--" : showOdds(f)}</td>
-      <td class="num">${best ? `<button type="button" class="sim-mini" data-bo="${boEnc(spec)}" title="Every book">${showOdds(best.price)} <small>${BOOK_INITIALS[best.book] || best.book}</small></button>` : "--"}</td>
+      <td class="num sim-ladt-price">${best ? `<button type="button" class="sim-mini" data-bo="${boEnc(spec)}" title="Every book">${showOdds(best.price)} <small>${BOOK_INITIALS[best.book] || best.book}</small></button>${save}` : "--"}</td>
       <td class="num"${edge === null || Math.abs(edge) < EDGE_SHADE ? "" : shade(edge)}>${edge === null ? "--" : signed(edge * 100)}</td></tr>`;
   }).join("");
   return `<table class="sim-ladt"><thead><tr><th>Line</th><th>Our Chance</th><th>Fair</th><th>Best Price</th><th>Edge</th></tr></thead><tbody>${body}</tbody></table>`;
@@ -624,7 +629,7 @@ function detail(x) {
     <div>
       <div class="sim-kicker">The Ladder &middot; ${x.side === "o" ? "Overs" : "Unders"}, Then The Other Side</div>
       ${ladderTable(x)}
-      <p class="sim-off">Best Price: the best across your books; click it for every book. Shaded at ${Math.round(EDGE_SHADE * 100)}+ points either way.</p>
+      <p class="sim-off">Best Price: the best across your books; click it for every book, tick the box to save it to My Plays. Shaded at ${Math.round(EDGE_SHADE * 100)}+ points either way.</p>
     </div>
   </div>`;
 }

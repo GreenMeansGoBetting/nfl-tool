@@ -229,7 +229,9 @@ Every game played 10,000 times, possession by possession.
   Ball Movement Fit / Tough Passing D (`def_assisted` 1 spread, `off_assisted` not 0.3 against),
   Hot / Cold Run (1.5 assists).
 - Row click: **The Model** (Hit In x of 10,000, Fair, Edge, Book Line, the three scripts, histogram,
-  tags, Starting, Locked At Tip, and the ladder: our chance, fair, best price, edge) and **Shot Chart**
+  tags, Starting, Locked At Tip, and the ladder: our chance, fair, best price + **a save box on every
+  priced rung** (a member, 2026-11-02; a rung is its own play, id `...:<side><line>`; the main line's
+  two sides share the row's play), edge) and **Shot Chart**
   (`zonesView`; no zone table).
 - **Matchup View** = the Game Board: team-color banner, one strip (Spread / Sim, Total / Sim pills,
   By 10+ / Close script bar), **a card a team side by side** (`.sim-tcard`, `.sim-bt`, Show Ladder

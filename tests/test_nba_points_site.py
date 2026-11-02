@@ -203,6 +203,33 @@ class Plays(unittest.TestCase):
         self.assertEqual(PAGE.query_selector("#sim-list tr.sim-detail"), None)
         self.assertEqual(SITE.errors, [])
 
+    def test_every_ladder_rung_saves_to_my_plays(self):
+        # a member, 2026-11-02: only the main line could go to My Plays, never a rung of the ladder.
+        # A rung is its own play beside the main line; the main line's two sides still share one.
+        PAGE.click("#sim-list tr.sim-row .sim-rank")
+        try:
+            got = PAGE.evaluate("""async () => {
+                localStorage.removeItem('nfl-tool.nba-plays.v1');
+                const redrawn = () => new Promise((r) => setTimeout(r, 20));
+                const box = (i) => document.querySelectorAll('#sim-list .sim-ladt tbody tr')[i].querySelector('.nba-pc-toggle');
+                const boxes = [0, 1, 2].map((i) => !!box(i));
+                box(1).click(); await redrawn();  // Over 29.5, a rung
+                box(0).click(); await redrawn();  // Over 19.5, the main line
+                const both = loadNbaPlays().map((p) => [p.side, p.line]).sort();
+                const rowBox = document.querySelector('#sim-list tr.sim-row .nba-pc-toggle').checked;  // the row's box is the main line's
+                box(2).click(); await redrawn();  // Under 19.5: the main line switches sides, the rung stays
+                const after = loadNbaPlays().map((p) => [p.side, p.line]).sort();
+                const ticks = [0, 1, 2].map((i) => box(i).checked);
+                localStorage.removeItem('nfl-tool.nba-plays.v1');
+                return { boxes, both, rowBox, after, ticks, open: !!document.querySelector('#sim-list tr.sim-detail') };
+            }""")
+            self.assertEqual(got, {"boxes": [True, True, True], "both": [["over", 19.5], ["over", 29.5]], "rowBox": True,
+                                   "after": [["over", 29.5], ["under", 19.5]], "ticks": [False, True, True], "open": True})
+        finally:
+            PAGE.evaluate("() => render()")
+            if PAGE.query_selector("#sim-list tr.sim-detail"):
+                PAGE.click("#sim-list tr.sim-row .sim-rank")
+
     def test_thin_columns_and_tags_on_one_line(self):
         # the owner, 2026-10-25: "every column to always be a thin comfortable overhang ... I NEVER want
         # tags to stack" into taller rows; two lines are fine, the rest "a +1 or +2 etc tag that can be hovered over"
