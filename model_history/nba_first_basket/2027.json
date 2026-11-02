@@ -7264,7 +7264,7 @@
    ],
    "6583": [
     "Anthony Davis",
-    0.09,
+    0.089,
     550,
     false,
     "fanduel"
@@ -7631,10 +7631,13 @@
  "401909916": {
   "away": "BOS",
   "date": "2026-11-02",
-  "first_home": 0.5,
+  "first_home": 0.459,
   "home": "HOU",
   "jumpers": [
-   null,
+   [
+    "4351852",
+    "Mitchell Robinson"
+   ],
    [
     "4871144",
     "Alperen Sengun"
@@ -7643,76 +7646,76 @@
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.091,
+    0.084,
     1300,
     true,
     "bet365"
    ],
    "3078576": [
     "Derrick White",
-    0.088,
+    0.099,
     1200,
     true,
     "hard_rock"
    ],
    "3202": [
     "Kevin Durant",
-    0.095,
+    0.087,
     850,
     false,
     "fanduel"
    ],
    "4065648": [
     "Jayson Tatum",
-    0.128,
+    0.147,
     575,
     false,
     "bet365"
    ],
    "4251": [
     "Paul George",
-    0.109,
+    0.123,
     900,
-    false,
+    true,
     "hard_rock"
    ],
-   "4397424": [
-    "Neemias Queta",
-    0.087,
-    null,
+   "4351852": [
+    "Mitchell Robinson",
+    0.075,
+    700,
     false,
-    null
+    "fanduel"
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.092,
+    0.084,
     1200,
-    true,
+    false,
     "bet365"
    ],
    "4683689": [
     "Jordan Walsh",
-    0.068,
+    0.076,
     null,
     false,
     null
    ],
    "4684740": [
     "Amen Thompson",
-    0.091,
+    0.083,
     1000,
     false,
     "fanduel"
    ],
    "4871144": [
     "Alperen Sengun",
-    0.111,
+    0.102,
     700,
     false,
     "bet365"
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.377
  },
  "401909917": {
   "away": "UTAH",
@@ -8329,7 +8332,7 @@
    ],
    "6583": [
     "Anthony Davis",
-    0.102,
+    0.101,
     null,
     false,
     null
@@ -8340,88 +8343,91 @@
  "401909924": {
   "away": "MIL",
   "date": "2026-11-04",
-  "first_home": 0.5,
+  "first_home": 0.569,
   "home": "BOS",
   "jumpers": [
    [
     "3133628",
     "Myles Turner"
    ],
-   null
+   [
+    "4351852",
+    "Mitchell Robinson"
+   ]
   ],
   "players": {
    "3078576": [
     "Derrick White",
-    0.088,
+    0.104,
     null,
     false,
     null
    ],
    "3133628": [
     "Myles Turner",
-    0.094,
+    0.081,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.081,
+    0.07,
     null,
     false,
     null
    ],
    "4065648": [
     "Jayson Tatum",
-    0.128,
+    0.154,
     null,
     false,
     null
    ],
    "4251": [
     "Paul George",
-    0.109,
+    0.13,
+    null,
+    false,
+    null
+   ],
+   "4351852": [
+    "Mitchell Robinson",
+    0.079,
     null,
     false,
     null
    ],
    "4395725": [
     "Tyler Herro",
-    0.105,
-    null,
-    false,
-    null
-   ],
-   "4397424": [
-    "Neemias Queta",
-    0.087,
+    0.09,
     null,
     false,
     null
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.114,
+    0.098,
     null,
     false,
     null
    ],
    "4591725": [
     "Ryan Rollins",
-    0.086,
+    0.075,
     null,
     false,
     null
    ],
    "4683689": [
     "Jordan Walsh",
-    0.068,
+    0.08,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.707
  },
  "401909925": {
   "away": "CHA",
@@ -8893,7 +8899,7 @@
    ],
    "3032976": [
     "Rudy Gobert",
-    0.088,
+    0.089,
     null,
     false,
     null
