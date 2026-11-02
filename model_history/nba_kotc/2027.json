@@ -4751,7 +4751,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1037,
+    "lead": 0.1038,
     "name": "Giannis Antetokounmpo",
     "proj": 45.5,
     "team": "MIA"
@@ -4772,7 +4772,7 @@
    },
    {
     "id": "4065648",
-    "lead": 0.0421,
+    "lead": 0.042,
     "name": "Jayson Tatum",
     "proj": 40.5,
     "team": "BOS"
@@ -4904,18 +4904,18 @@
     "team": "IND"
    },
    {
-    "id": "4066457",
-    "lead": 0.0071,
-    "name": "Austin Reaves",
-    "proj": 34.0,
-    "team": "LAL"
-   },
-   {
     "id": "4433287",
     "lead": 0.0071,
     "name": "Brandon Miller",
     "proj": 32.9,
     "team": "CHA"
+   },
+   {
+    "id": "4066457",
+    "lead": 0.007,
+    "name": "Austin Reaves",
+    "proj": 33.9,
+    "team": "LAL"
    },
    {
     "id": "5041935",
@@ -5052,9 +5052,9 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0013,
+    "lead": 0.0014,
     "name": "Darius Garland",
-    "proj": 28.8,
+    "proj": 28.9,
     "team": "LAC"
    },
    {
@@ -5152,7 +5152,7 @@
     "id": "4278053",
     "lead": 0.0002,
     "name": "Davion Mitchell",
-    "proj": 26.9,
+    "proj": 26.8,
     "team": "MIA"
    },
    {
