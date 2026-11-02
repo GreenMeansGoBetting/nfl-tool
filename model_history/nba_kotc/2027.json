@@ -4744,7 +4744,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3826,
+    "lead": 0.3827,
     "name": "Luka Doncic",
     "proj": 56.9,
     "team": "LAL"
@@ -4765,7 +4765,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0428,
+    "lead": 0.0429,
     "name": "Cooper Flagg",
     "proj": 40.5,
     "team": "DAL"
@@ -4779,7 +4779,7 @@
    },
    {
     "id": "4065648",
-    "lead": 0.0393,
+    "lead": 0.0394,
     "name": "Jayson Tatum",
     "proj": 40.5,
     "team": "BOS"
@@ -4989,9 +4989,9 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0026,
+    "lead": 0.0024,
     "name": "Tyler Herro",
-    "proj": 31.0,
+    "proj": 30.9,
     "team": "MIL"
    },
    {
@@ -5145,7 +5145,7 @@
     "id": "4397002",
     "lead": 0.0003,
     "name": "Ayo Dosunmu",
-    "proj": 24.8,
+    "proj": 24.7,
     "team": "MIN"
    },
    {
