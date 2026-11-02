@@ -4786,14 +4786,14 @@
    },
    {
     "id": "4065648",
-    "lead": 0.0381,
+    "lead": 0.038,
     "name": "Jayson Tatum",
     "proj": 40.5,
     "team": "BOS"
    },
    {
     "id": "4871144",
-    "lead": 0.0313,
+    "lead": 0.0312,
     "name": "Alperen Sengun",
     "proj": 38.5,
     "team": "HOU"
@@ -4862,18 +4862,18 @@
     "team": "IND"
    },
    {
-    "id": "6583",
-    "lead": 0.0091,
-    "name": "Anthony Davis",
-    "proj": 35.3,
-    "team": "WSH"
-   },
-   {
     "id": "4065733",
     "lead": 0.0091,
     "name": "Ty Jerome",
     "proj": 34.4,
     "team": "MEM"
+   },
+   {
+    "id": "6583",
+    "lead": 0.009,
+    "name": "Anthony Davis",
+    "proj": 35.3,
+    "team": "WSH"
    },
    {
     "id": "3059318",
@@ -4883,18 +4883,18 @@
     "team": "PHI"
    },
    {
+    "id": "4277905",
+    "lead": 0.0077,
+    "name": "Trae Young",
+    "proj": 33.9,
+    "team": "WSH"
+   },
+   {
     "id": "4432166",
     "lead": 0.0076,
     "name": "Cade Cunningham",
     "proj": 33.3,
     "team": "DET"
-   },
-   {
-    "id": "4277905",
-    "lead": 0.0074,
-    "name": "Trae Young",
-    "proj": 33.8,
-    "team": "WSH"
    },
    {
     "id": "4066457",
