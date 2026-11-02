@@ -258,7 +258,10 @@ Every game played 10,000 times, possession by possession.
 - **Odds:** every market in `GMG_NBA_PROP_STATS` (sync.js) at the line most books hang (ties lower,
   `nbaCardMainLine`); best Over / Under (`bookPricePill`), a save box each side, "This Season" = games
   over that line. First Basket too. Saves `{id: nba:<stat>:<game>:<player>, ...}` at the best price;
-  Over and Under share the id.
+  Over and Under share the id. **Show Alt Lines** (button beside the note, the owner 2026-11-02): every
+  other line a book prices (main market off-lines + the `_alt` ladder) as an "Alt" row under its
+  market, best price + save box each side (a rung's own id `...:<side><line>`), "This Season" at that
+  line. Off-sim pages fetch `ladders.json` the first time it opens (`nbaCardLadders`).
 - `LOG_FIELDS` (props.py): new fields go after the first eleven (`BOX_EXTRA`).
 - Markets (`NBA_PROP_MARKETS`): points, rebounds, assists, threes, pra, pr, pa, ra, steals, blocks,
   stocks, turnovers; asked only when listed (`nba_listed_markets`, `max_pages=60`). No yes / no or fouls.
@@ -277,7 +280,7 @@ Every game played 10,000 times, possession by possession.
   **Call**: Target / Tough when one side is 2.5+ pts from the league and the other isn't 0.75+ the
   other way, zones with 5%+ of his shots and 5+ tries. Its global `DATA` is data.json.
 - Tests: `test_nba_player_card_site.py`, `test_my_plays_site.py` (NbaPlays), `test_nba_shot_charts_site.py`,
-  `test_nba_shots.py`. Not built: alt lines.
+  `test_nba_shots.py`.
 
 ## Zone Matchup Targets (`zone_matchups.py`, `zones.html/.js/.css`)
 

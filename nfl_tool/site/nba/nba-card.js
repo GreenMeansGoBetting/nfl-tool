@@ -155,11 +155,42 @@ function nbaCardSaveBox(entry) {
   const on = saved && (entry.side === null || saved.side === entry.side);
   return `<label class="pp-check-inline nba-pc-save" title="Save to My Plays"><input type="checkbox" class="nba-pc-toggle" data-entry="${encodeURIComponent(JSON.stringify(entry))}"${on ? " checked" : ""}></label>`;
 }
-// The best price for one side and its save box, or "--".
-function nbaCardSide(spec, g, p, stat) {
+// The best price for one side and its save box, or "--". rung: an alt line, its own saved play.
+function nbaCardSide(spec, g, p, stat, rung) {
   const pill = bookPricePill(spec);
   const best = bookBest(bookQuotes(spec), spec.side, spec.line);
-  return pill && best ? `${pill}${nbaCardSaveBox(nbaCardEntry(stat, g, p, spec.side, spec.line, best))}` : `<span class="muted-label">--</span>`;
+  return pill && best ? `${pill}${nbaCardSaveBox(nbaCardEntry(stat, g, p, spec.side, spec.line, best, rung))}` : `<span class="muted-label">--</span>`;
+}
+// ---- Show Alt Lines (the owner, 2026-11-02: a button that opens the ladders) ----
+// The books' ladders ("points_alt" ...) live in nba/ladders.json; the sim pages merge them into
+// book_odds when they load, any other page the first time a member opens the alt lines.
+let NBA_CARD_LADDERS; // undefined until asked for, then a promise, then true
+let nbaCardAlts = false; // alt lines open (kept while the page is open, for every player)
+function nbaCardLadders() {
+  const games = Object.values((DATA && DATA.book_odds) || {});
+  if (NBA_CARD_LADDERS === undefined && games.some((x) => Object.keys(x.props || {}).some((k) => k.endsWith("_alt")))) NBA_CARD_LADDERS = true;
+  if (NBA_CARD_LADDERS === undefined) {
+    NBA_CARD_LADDERS = fetch("ladders.json")
+      .then((r) => (r.ok ? r.json() : {}))
+      .catch(() => ({}))
+      .then((file) => {
+        for (const [key, game] of Object.entries(file || {})) {
+          const into = ((DATA && DATA.book_odds) || {})[key];
+          if (into) into.props = { ...(into.props || {}), ...(game.props || {}) };
+        }
+        NBA_CARD_LADDERS = true;
+        nbaCardRefresh();
+      });
+  }
+  return NBA_CARD_LADDERS === true;
+}
+// Every other line a book prices for this market (the main market a half point off, and the ladder),
+// lowest first: [line, its spec for one side] with the side's own market (the main one when it has it).
+function nbaCardAltLines(spec, main) {
+  const alt = { ...spec, stat: `${spec.stat}_alt` };
+  const all = [...bookQuotes(spec), ...bookQuotes(alt)].map((q) => q[2]).filter((l) => nbaCardHas(l) && l !== main);
+  const sideSpec = (side, line) => ({ ...(bookQuotes(spec).some((q) => sameBet(q, side, line)) ? spec : alt), side, line });
+  return [...new Set(all)].sort((a, b) => a - b).map((line) => [line, sideSpec]);
 }
 // How often he went over this line this season, "x of y", colored from 3 games like the Points page.
 function nbaCardHits(stat, line, rows) {
@@ -174,19 +205,28 @@ function nbaCardOddsView(p, g, rows) {
   if (!g) return `<p class="no-data-note">No game on the schedule.</p>`;
   if (typeof bookPricePill !== "function") return `<p class="no-data-note">No lines posted for this player.</p>`;
   const base = { kind: "prop", team: p.team, pid: p.id, game: `${g.away}_${g.home}`, sub: `${g.away} @ ${g.home}`, color: `#${nbaCardTeam(p.team).color || "555555"}` };
+  const alts = nbaCardAlts && nbaCardLadders();
   const lines = Object.entries(GMG_NBA_PROP_STATS)
     .map(([stat, [label]]) => {
       const spec = { ...base, stat, title: `${p.name} &middot; ${label}` };
       const line = nbaCardMainLine(bookQuotes(spec));
       if (line === null) return "";
       const side = (s) => nbaCardSide({ ...spec, side: s, line }, g, p, stat);
-      return `<tr><td>${label}</td><td class="num props-line">${nbaCardFmt(line)}</td><td class="num">${side("o")}</td><td class="num">${side("u")}</td>${nbaCardHits(stat, line, rows)}</tr>`;
+      const main = `<tr><td>${label}</td><td class="num props-line">${nbaCardFmt(line)}</td><td class="num">${side("o")}</td><td class="num">${side("u")}</td>${nbaCardHits(stat, line, rows)}</tr>`;
+      if (!alts) return main;
+      const rungs = nbaCardAltLines(spec, line).map(([l, sideSpec]) => {
+        const rung = (s) => nbaCardSide(sideSpec(s, l), g, p, stat, true);
+        return `<tr class="nba-pc-altrow"><td>${label} <span class="nba-pc-alttag">Alt</span></td><td class="num props-line">${nbaCardFmt(l)}</td><td class="num">${rung("o")}</td><td class="num">${rung("u")}</td>${nbaCardHits(stat, l, rows)}</tr>`;
+      });
+      return main + rungs.join("");
     })
     .join("");
   const fbSpec = { ...base, stat: "first_basket", side: "o", line: null, oneSide: true, noLine: true, title: `${p.name} First Basket` };
   const fb = bookQuotes(fbSpec).length ? `<tr><td>First Basket</td><td class="num props-line">--</td><td class="num">${nbaCardSide(fbSpec, g, p, "first_basket")}</td><td class="num">--</td><td class="num">--</td></tr>` : "";
   if (!lines && !fb) return `<p class="no-data-note">No lines posted for this player yet.</p>`;
-  return `<p class="no-data-note">Best price across your books (click it for every book). Checkboxes save a side to My Plays.</p>
+  const loadingAlts = nbaCardAlts && !alts;
+  const altBtn = `<button type="button" class="player-modal-toggle-btn nba-pc-alts${nbaCardAlts ? " active" : ""}">${loadingAlts ? "Loading Alt Lines&hellip;" : nbaCardAlts ? "Hide Alt Lines" : "Show Alt Lines"}</button>`;
+  return `<div class="nba-pc-oddsbar"><p class="no-data-note">Best price across your books (click it for every book). Checkboxes save a side to My Plays.</p>${altBtn}</div>
     <div class="nba-pc-scroll"><table class="data-table player-odds-table nba-pc-odds">
       <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th><th class="num" title="Games over the line this season">This Season</th></tr></thead>
       <tbody>${lines}${fb}</tbody>
@@ -267,6 +307,10 @@ document.addEventListener("click", (e) => {
     nbaCardState.tab = tab.dataset.tab;
     if (tab.dataset.tab === "shots" && nbaShotFile() === undefined) Promise.resolve(NBA_SHOT_FILE).then(nbaCardRefresh);
     return nbaCardRefresh();
+  }
+  if (e.target.closest("#player-card-modal .nba-pc-alts") && nbaCardState) {
+    nbaCardAlts = !nbaCardAlts;
+    return nbaCardRefresh(); // still loading the ladders: the fetch redraws the card when they land
   }
   if (e.target.closest(".nba-pc-save")) e.stopPropagation();
 }, true);

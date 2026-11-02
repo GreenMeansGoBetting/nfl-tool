@@ -59,6 +59,9 @@ DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries
             "pra": {"1": {"name": "Player One", "q": quotes(38.5)}},
             "first_basket": {"1": {"name": "Player One", "q": [["draftkings", "o", None, 600, ""]]}},
         }}}}
+# nba/ladders.json: the books' points ladder (overs only, the way books hang them)
+LADDERS = {"AAA_BBB": {"props": {"points_alt": {"1": {"name": "Player One", "q": [
+    ["draftkings", "o", 29.5, 200, ""], ["fanduel", "o", 29.5, 220, ""], ["draftkings", "o", 34.5, 450, ""]]}}}}}
 
 
 # shots.json: [x, y, made, three, game index, flags (1 = 1st qtr, 2 = first 3 min), kind (1 self, 2 catch, 3 drive)]
@@ -75,7 +78,7 @@ def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        SITE.nba, SITE.nba_props, SITE.nba_shots = DATA, PROPS, SHOTS
+        SITE.nba, SITE.nba_props, SITE.nba_shots, SITE.nba_ladders = DATA, PROPS, SHOTS, LADDERS
         PAGE = SITE.open("nba/points.html")
         PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
         PAGE.click("[data-view='matchup']")  # the game board: every player of the game, the card on each name
@@ -172,6 +175,44 @@ class Odds(unittest.TestCase):
             self.assertEqual((fb[0]["id"], fb[0]["side"], fb[0]["line"], fb[0]["odds"]), ("nba:fb:900:1", None, None, 600))
         finally:
             PAGE.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
+            close_card()
+        self.assertEqual(SITE.errors, [])
+
+    def test_show_alt_lines_opens_the_ladders_and_each_rung_saves(self):
+        # the owner, 2026-11-02: only the main line could go to My Plays from the card; "a button that
+        # says 'show alt lines' which can then open up the ladders"
+        alt_rows = lambda: [(r[0], r[1]) for r in table(".nba-pc-odds") if "ALT" in r[0].upper()]
+        open_card("odds")
+        try:
+            self.assertEqual(alt_rows(), [])  # closed until asked for
+            self.assertEqual(PAGE.inner_text("#player-card-modal .nba-pc-alts").upper(), "SHOW ALT LINES")
+            PAGE.click("#player-card-modal .nba-pc-alts")
+            rows = table(".nba-pc-odds")
+            self.assertEqual([(r[0].upper(), r[1]) for r in rows], [
+                ("POINTS", "24.5"), ("POINTS ALT", "29.5"), ("POINTS ALT", "34.5"),
+                ("REBOUNDS", "6.5"), ("REBOUNDS ALT", "7.5"),  # BetMGM's odd line is an alt line too
+                ("PTS + REB + AST", "38.5"), ("FIRST BASKET", "--")])
+            self.assertIn("+220", rows[1][2])  # FanDuel's 29.5 Over, the best
+            self.assertEqual(rows[1][3], "--")  # no book hangs the Under
+            self.assertEqual(rows[1][4], "1 of 3")  # only his 30 cleared 29.5
+            # a rung is its own play, beside the main line
+            PAGE.locator(".nba-pc-odds tbody tr:nth-child(2) .nba-pc-toggle").check()
+            PAGE.locator(".nba-pc-odds tbody tr:first-child .nba-pc-toggle").nth(0).check()
+            saved = sorted((p["id"], p["side"], p["line"], p["book"], p["odds"], p["description"]) for p in PAGE.evaluate("() => loadNbaPlays()"))
+            self.assertEqual(saved, [("nba:points:900:1", "over", 24.5, "fanduel", 105, "Player One Over 24.5 points"),
+                                     ("nba:points:900:1:o29.5", "over", 29.5, "fanduel", 220, "Player One Over 29.5 points")])
+            self.assertTrue(PAGE.locator(".nba-pc-odds tbody tr:nth-child(2) .nba-pc-toggle").is_checked())
+            # a page that didn't load the ladders: the card fetches ladders.json itself
+            close_card()
+            PAGE.evaluate("() => { delete DATA.book_odds.AAA_BBB.props.points_alt; NBA_CARD_LADDERS = undefined; }")
+            open_card("odds")
+            PAGE.wait_for_function("() => document.querySelectorAll('#player-card-modal .nba-pc-altrow').length === 3")
+            self.assertEqual([(n.upper(), l) for n, l in alt_rows()[:2]], [("POINTS ALT", "29.5"), ("POINTS ALT", "34.5")])
+            PAGE.click("#player-card-modal .nba-pc-alts")
+            self.assertEqual(alt_rows(), [])
+            self.assertEqual(PAGE.inner_text("#player-card-modal .nba-pc-alts").upper(), "SHOW ALT LINES")
+        finally:
+            PAGE.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); nbaCardAlts = false; }")
             close_card()
         self.assertEqual(SITE.errors, [])
 

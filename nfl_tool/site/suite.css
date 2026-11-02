@@ -61,6 +61,13 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-pc-odds td { white-space: nowrap; }
 .nba-pc-odds td:first-child { font-weight: 600; }
 .nba-pc-save { margin-left: 6px; vertical-align: middle; }
+/* Show Alt Lines: the button beside the note, each alt line a lighter row under its market */
+.nba-pc-oddsbar { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; }
+.nba-pc-oddsbar .no-data-note { margin: 0; }
+.nba-pc-alts { margin-left: auto; flex: none; }
+.nba-pc-odds tr.nba-pc-altrow td { background: var(--panel-2); }
+.nba-pc-odds tr.nba-pc-altrow td:first-child { font-weight: 500; padding-left: 18px; }
+.nba-pc-alttag { margin-left: 4px; padding: 0 5px; border-radius: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); background: var(--panel); border: 1px solid var(--border); }
 
 /* Shot charts (shot-chart.js): Zones / Heat Map beside the zone table */
 .nba-shot-controls { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 10px; }
