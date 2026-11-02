@@ -7580,11 +7580,11 @@
     "Georges Niang",
     "GS",
     "LAC",
-    0.2363,
+    0.2418,
     "over",
     true,
     8.5,
-    100,
+    114,
     "prophetx"
    ],
    [
@@ -7592,11 +7592,11 @@
     "Isaiah Jackson",
     "LAC",
     "GS",
-    0.2189,
+    0.2741,
     "over",
     true,
     8.5,
-    -111,
+    -106,
     "novig"
    ],
    [
@@ -7604,11 +7604,11 @@
     "Gui Santos",
     "GS",
     "LAC",
-    0.1241,
+    0.1275,
     "over",
     true,
     10.5,
-    122,
+    120,
     "novig"
    ],
    [
@@ -7616,12 +7616,12 @@
     "Yaxel Lendeborg",
     "GS",
     "LAC",
-    0.0595,
+    0.0599,
     "over",
     false,
-    20.5,
-    106,
-    "novig"
+    19.5,
+    -115,
+    "thescore"
    ]
   ],
   "threes": [
@@ -7630,11 +7630,11 @@
     "Georges Niang",
     "GS",
     "LAC",
-    0.3636,
+    0.3695,
     "over",
     true,
     1.5,
-    104,
+    108,
     "novig"
    ],
    [
@@ -7642,7 +7642,7 @@
     "Darius Garland",
     "LAC",
     "GS",
-    -0.1135,
+    -0.1066,
     "under",
     false,
     2.5,
@@ -7659,36 +7659,24 @@
     "Sandro Mamukelashvili",
     "LAL",
     "TOR",
-    -0.1226,
+    -0.1205,
     "under",
     true,
     8.5,
-    -117,
-    "novig"
+    -118,
+    "pinnacle"
    ],
    [
     "4433136",
     "Walker Kessler",
     "LAL",
     "TOR",
-    0.1508,
+    0.1397,
     "over",
     true,
     12.5,
-    109,
-    "pinnacle"
-   ],
-   [
-    "4433137",
-    "Ziaire Williams",
-    "LAL",
-    "TOR",
-    -0.0509,
-    "under",
-    false,
-    8.5,
-    -104,
-    "pinnacle"
+    111,
+    "novig"
    ]
   ],
   "threes": [
@@ -7697,23 +7685,23 @@
     "Luka Doncic",
     "LAL",
     "TOR",
-    0.0808,
+    0.086,
     "over",
     false,
     4.5,
-    124,
-    "prophetx"
+    125,
+    "novig"
    ],
    [
     "4433134",
     "Scottie Barnes",
     "TOR",
     "LAL",
-    0.2656,
+    0.2658,
     "over",
     true,
     0.5,
-    -182,
+    -174,
     "novig"
    ],
    [
@@ -7721,7 +7709,7 @@
     "Ja'Kobe Walter",
     "TOR",
     "LAL",
-    0.2284,
+    0.2316,
     "over",
     true,
     2.5,
