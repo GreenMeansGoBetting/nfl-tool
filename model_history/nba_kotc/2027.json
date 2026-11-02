@@ -4744,7 +4744,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3615,
+    "lead": 0.3617,
     "name": "Luka Doncic",
     "proj": 56.9,
     "team": "LAL"
@@ -4758,7 +4758,7 @@
    },
    {
     "id": "3112335",
-    "lead": 0.0465,
+    "lead": 0.0466,
     "name": "Nikola Jokic",
     "proj": 41.1,
     "team": "DEN"
@@ -4772,7 +4772,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0419,
+    "lead": 0.042,
     "name": "Victor Wembanyama",
     "proj": 40.9,
     "team": "SA"
@@ -4800,9 +4800,9 @@
    },
    {
     "id": "4431678",
-    "lead": 0.029,
+    "lead": 0.0282,
     "name": "Tyrese Maxey",
-    "proj": 39.2,
+    "proj": 39.1,
     "team": "PHI"
    },
    {
@@ -4835,14 +4835,14 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0123,
+    "lead": 0.0124,
     "name": "Jalen Johnson",
     "proj": 34.8,
     "team": "ATL"
    },
    {
     "id": "5142620",
-    "lead": 0.0118,
+    "lead": 0.0119,
     "name": "Darius Acuff Jr.",
     "proj": 36.0,
     "team": "SAC"
@@ -4870,7 +4870,7 @@
    },
    {
     "id": "4065733",
-    "lead": 0.009,
+    "lead": 0.0091,
     "name": "Ty Jerome",
     "proj": 34.4,
     "team": "MEM"
@@ -4884,7 +4884,7 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0075,
+    "lead": 0.0076,
     "name": "Cade Cunningham",
     "proj": 33.3,
     "team": "DET"
@@ -4947,7 +4947,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0053,
+    "lead": 0.0054,
     "name": "Shai Gilgeous-Alexander",
     "proj": 33.6,
     "team": "OKC"
@@ -5030,18 +5030,18 @@
     "team": "NO"
    },
    {
-    "id": "3917376",
-    "lead": 0.0016,
-    "name": "Jaylen Brown",
-    "proj": 31.0,
-    "team": "PHI"
-   },
-   {
     "id": "4278104",
     "lead": 0.0016,
     "name": "Michael Porter Jr.",
     "proj": 29.9,
     "team": "BKN"
+   },
+   {
+    "id": "3917376",
+    "lead": 0.0015,
+    "name": "Jaylen Brown",
+    "proj": 30.9,
+    "team": "PHI"
    },
    {
     "id": "4396907",
@@ -5059,9 +5059,9 @@
    },
    {
     "id": "4066259",
-    "lead": 0.0011,
+    "lead": 0.001,
     "name": "De'Aaron Fox",
-    "proj": 29.4,
+    "proj": 29.3,
     "team": "SA"
    },
    {
@@ -5124,7 +5124,7 @@
     "id": "4845367",
     "lead": 0.0005,
     "name": "Stephon Castle",
-    "proj": 26.3,
+    "proj": 26.2,
     "team": "SA"
    },
    {
