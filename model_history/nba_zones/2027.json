@@ -7742,7 +7742,7 @@
     "over",
     false,
     18.5,
-    -113,
+    -106,
     "novig"
    ],
    [
@@ -7754,8 +7754,8 @@
     "under",
     true,
     11.5,
-    108,
-    "prophetx"
+    113,
+    "novig"
    ],
    [
     "4066757",
@@ -7766,8 +7766,8 @@
     "over",
     false,
     9.5,
-    100,
-    "fanatics"
+    -102,
+    "novig"
    ],
    [
     "4222252",
@@ -7790,7 +7790,7 @@
     "under",
     true,
     29.5,
-    -104,
+    -102,
     "novig"
    ],
    [
@@ -7802,7 +7802,7 @@
     "under",
     false,
     14.5,
-    -111,
+    -117,
     "novig"
    ],
    [
@@ -7828,7 +7828,7 @@
     "under",
     false,
     1.5,
-    125,
+    122,
     "novig"
    ],
    [
@@ -7840,7 +7840,7 @@
     "over",
     true,
     1.5,
-    130,
+    133,
     "novig"
    ],
    [
@@ -7870,7 +7870,7 @@
     false,
     11.5,
     -113,
-    "prophetx"
+    "novig"
    ],
    [
     "3157465",
@@ -7881,8 +7881,8 @@
     "over",
     false,
     12.5,
-    -120,
-    "hard_rock"
+    -117,
+    "novig"
    ],
    [
     "4278562",
@@ -7893,8 +7893,8 @@
     "under",
     false,
     13.5,
-    -108,
-    "novig"
+    -106,
+    "draftkings"
    ],
    [
     "4396971",
@@ -7905,8 +7905,8 @@
     "under",
     true,
     15.5,
-    -120,
-    "hard_rock"
+    -114,
+    "draftkings"
    ],
    [
     "4433249",
@@ -7917,8 +7917,8 @@
     "over",
     true,
     7.5,
-    -127,
-    "novig"
+    -132,
+    "fanduel"
    ],
    [
     "4433287",
@@ -7929,8 +7929,8 @@
     "under",
     true,
     22.5,
-    -108,
-    "novig"
+    -101,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -7943,8 +7943,8 @@
     "over",
     true,
     2.5,
-    -165,
-    "fanatics"
+    -167,
+    "novig"
    ],
    [
     "3908845",
@@ -7955,8 +7955,8 @@
     "under",
     true,
     0.5,
-    160,
-    "hard_rock"
+    173,
+    "draftkings"
    ],
    [
     "5107199",
@@ -7967,7 +7967,7 @@
     "over",
     true,
     1.5,
-    156,
+    160,
     "novig"
    ]
   ]
@@ -8025,8 +8025,8 @@
     "under",
     true,
     7.5,
-    -120,
-    "hard_rock"
+    101,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -8039,8 +8039,8 @@
     "over",
     true,
     1.5,
-    110,
-    "fanatics"
+    120,
+    "novig"
    ],
    [
     "3914044",
@@ -8051,8 +8051,8 @@
     "over",
     true,
     1.5,
-    105,
-    "fanatics"
+    108,
+    "novig"
    ],
    [
     "3934719",
@@ -8063,8 +8063,8 @@
     "over",
     true,
     2.5,
-    140,
-    "hard_rock"
+    147,
+    "novig"
    ],
    [
     "5279130",
@@ -8075,8 +8075,8 @@
     "under",
     false,
     1.5,
-    -225,
-    "fanduel"
+    -207,
+    "draftkings"
    ]
   ]
  },
@@ -8092,8 +8092,8 @@
     "under",
     false,
     23.5,
-    -115,
-    "hard_rock"
+    -105,
+    "bet365"
    ],
    [
     "4712849",
@@ -8105,7 +8105,7 @@
     true,
     14.5,
     100,
-    "fanatics"
+    "fanduel"
    ],
    [
     "5160992",
@@ -8116,8 +8116,20 @@
     "under",
     true,
     10.5,
-    -115,
-    "hard_rock"
+    -112,
+    "bet365"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "WSH",
+    -0.1228,
+    "under",
+    true,
+    4.5,
+    280,
+    "bet365"
    ]
   ],
   "threes": [
@@ -8130,8 +8142,8 @@
     "under",
     true,
     1.5,
-    -120,
-    "fanatics"
+    -130,
+    "bet365"
    ],
    [
     "4712849",
@@ -8142,8 +8154,20 @@
     "under",
     true,
     1.5,
-    -115,
-    "hard_rock"
+    -112,
+    "bet365"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "WSH",
+    -0.2491,
+    "under",
+    true,
+    0.5,
+    160,
+    "bet365"
    ]
   ]
  },
@@ -8183,7 +8207,7 @@
     "over",
     true,
     25.5,
-    -108,
+    100,
     "novig"
    ],
    [
@@ -8195,8 +8219,8 @@
     "over",
     true,
     12.5,
-    -110,
-    "fanatics"
+    -117,
+    "novig"
    ]
   ],
   "threes": [
@@ -8209,8 +8233,8 @@
     "under",
     true,
     2.5,
-    -125,
-    "thescore"
+    -118,
+    "caesars"
    ],
    [
     "4431678",
@@ -8221,7 +8245,7 @@
     "over",
     true,
     2.5,
-    111,
+    120,
     "novig"
    ],
    [
@@ -8233,8 +8257,8 @@
     "under",
     false,
     1.5,
-    -102,
-    "fanduel"
+    104,
+    "novig"
    ],
    [
     "4871145",
@@ -8244,9 +8268,9 @@
     -0.2107,
     "under",
     true,
-    0.5,
-    175,
-    "hard_rock"
+    1.5,
+    -212,
+    "novig"
    ],
    [
     "5044385",
@@ -8281,7 +8305,7 @@
     "over",
     true,
     1.5,
-    -120,
+    -115,
     "novig"
    ]
   ]
@@ -8310,7 +8334,7 @@
     "over",
     true,
     9.5,
-    -130,
+    -105,
     "hard_rock"
    ],
    [
@@ -8321,9 +8345,9 @@
     0.118,
     "over",
     false,
-    14.5,
-    -120,
-    "hard_rock"
+    13.5,
+    -104,
+    "fanduel"
    ],
    [
     "4432582",
@@ -8333,9 +8357,9 @@
     0.2677,
     "over",
     true,
-    9.5,
-    -115,
-    "fanatics"
+    7.5,
+    -126,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -8348,7 +8372,7 @@
     "under",
     true,
     2.5,
-    120,
+    115,
     "fanatics"
    ],
    [
@@ -8360,8 +8384,8 @@
     "under",
     false,
     1.5,
-    120,
-    "fanatics"
+    126,
+    "fanduel"
    ],
    [
     "4278078",
@@ -8384,7 +8408,7 @@
     "over",
     true,
     1.5,
-    -190,
+    -110,
     "fanatics"
    ],
    [
@@ -8396,7 +8420,7 @@
     "over",
     true,
     1.5,
-    -105,
+    115,
     "fanatics"
    ],
    [
@@ -8408,7 +8432,7 @@
     "under",
     true,
     2.5,
-    115,
+    110,
     "fanatics"
    ],
    [
@@ -8420,8 +8444,8 @@
     "over",
     true,
     2.5,
-    -175,
-    "fliff"
+    -170,
+    "hard_rock"
    ]
   ]
  },
@@ -8449,8 +8473,8 @@
     "under",
     true,
     12.5,
-    -119,
-    "draftkings"
+    -120,
+    "hard_rock"
    ],
    [
     "4397688",
@@ -8460,9 +8484,9 @@
     -0.164,
     "under",
     true,
-    15.5,
-    -115,
-    "hard_rock"
+    16.5,
+    -121,
+    "draftkings"
    ],
    [
     "4683634",
@@ -8499,8 +8523,8 @@
     "under",
     true,
     1.5,
-    -125,
-    "hard_rock"
+    -117,
+    "draftkings"
    ],
    [
     "3907497",
@@ -8511,8 +8535,8 @@
     "under",
     true,
     1.5,
-    -195,
-    "hard_rock"
+    -178,
+    "novig"
    ],
    [
     "4065733",
@@ -8523,8 +8547,8 @@
     "under",
     true,
     2.5,
-    -130,
-    "hard_rock"
+    -123,
+    "draftkings"
    ],
    [
     "4397136",
@@ -8535,7 +8559,7 @@
     "under",
     true,
     1.5,
-    -115,
+    -111,
     "novig"
    ],
    [
@@ -8559,7 +8583,7 @@
     "under",
     true,
     1.5,
-    -104,
+    111,
     "novig"
    ],
    [
@@ -8571,8 +8595,8 @@
     "under",
     true,
     1.5,
-    -180,
-    "fanduel"
+    -163,
+    "novig"
    ]
   ]
  },
@@ -8588,8 +8612,8 @@
     "over",
     false,
     17.5,
-    -111,
-    "novig"
+    -110,
+    "fanatics"
    ],
    [
     "4433247",
@@ -8600,8 +8624,8 @@
     "over",
     false,
     15.5,
-    108,
-    "novig"
+    101,
+    "prophetx"
    ],
    [
     "4591725",
@@ -8613,7 +8637,7 @@
     true,
     14.5,
     -130,
-    "hard_rock"
+    "fanduel"
    ],
    [
     "5279133",
@@ -8637,9 +8661,9 @@
     -0.2007,
     "under",
     true,
-    0.5,
-    175,
-    "hard_rock"
+    1.5,
+    -245,
+    "novig"
    ],
    [
     "4431671",
@@ -8650,7 +8674,7 @@
     "over",
     true,
     1.5,
-    -110,
+    -105,
     "fanatics"
    ],
    [
@@ -8674,7 +8698,7 @@
     "under",
     true,
     0.5,
-    178,
+    174,
     "fanduel"
    ],
    [
@@ -8703,8 +8727,20 @@
     "over",
     false,
     25.5,
-    -117,
-    "novig"
+    -118,
+    "prophetx"
+   ],
+   [
+    "4397424",
+    "Neemias Queta",
+    "BOS",
+    "HOU",
+    -0.1904,
+    "under",
+    true,
+    5.5,
+    255,
+    "bet365"
    ],
    [
     "4871144",
@@ -8772,7 +8808,7 @@
     "over",
     true,
     1.5,
-    170,
+    174,
     "novig"
    ],
    [
@@ -8825,8 +8861,8 @@
     "under",
     true,
     11.5,
-    -110,
-    "hard_rock"
+    100,
+    "fanatics"
    ],
    [
     "4683021",
@@ -8838,7 +8874,7 @@
     true,
     22.5,
     100,
-    "novig"
+    "prophetx"
    ]
   ],
   "threes": [
@@ -8864,7 +8900,7 @@
     true,
     1.5,
     -150,
-    "hard_rock"
+    "novig"
    ],
    [
     "4683021",
@@ -8882,17 +8918,251 @@
  },
  "401909919": {
   "date": "2026-11-02",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3136193",
+    "Devin Booker",
+    "PHX",
+    "GS",
+    0.1683,
+    "over",
+    true,
+    23.5,
+    -110,
+    "hard_rock"
+   ],
+   [
+    "3975",
+    "Stephen Curry",
+    "GS",
+    "PHX",
+    0.2221,
+    "over",
+    true,
+    26.5,
+    -105,
+    "hard_rock"
+   ],
+   [
+    "4278402",
+    "Jordan Goodwin",
+    "PHX",
+    "GS",
+    0.2316,
+    "over",
+    true,
+    7.5,
+    100,
+    "novig"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "PHX",
+    0.2142,
+    "over",
+    true,
+    14.5,
+    -115,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "4066383",
+    "Miles Bridges",
+    "PHX",
+    "GS",
+    0.3063,
+    "over",
+    true,
+    1.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "4278402",
+    "Jordan Goodwin",
+    "PHX",
+    "GS",
+    0.3309,
+    "over",
+    true,
+    1.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "PHX",
+    0.3659,
+    "over",
+    true,
+    1.5,
+    -190,
+    "fanatics"
+   ],
+   [
+    "5175737",
+    "Yaxel Lendeborg",
+    "GS",
+    "PHX",
+    0.4287,
+    "over",
+    true,
+    1.5,
+    -165,
+    "fanatics"
+   ]
+  ]
  },
  "401909920": {
   "date": "2026-11-02",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4066648",
+    "Rui Hachimura",
+    "LAC",
+    "TOR",
+    -0.1713,
+    "under",
+    true,
+    16.5,
+    100,
+    "fanduel"
+   ],
+   [
+    "4395625",
+    "RJ Barrett",
+    "TOR",
+    "LAC",
+    0.0675,
+    "over",
+    false,
+    20.5,
+    -125,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "LAC",
+    0.225,
+    "over",
+    true,
+    0.5,
+    -240,
+    "fanatics"
+   ]
+  ]
  },
  "401909921": {
   "date": "2026-11-02",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "MIA",
+    0.1113,
+    "over",
+    false,
+    33.5,
+    -105,
+    "prophetx"
+   ],
+   [
+    "4066457",
+    "Austin Reaves",
+    "LAL",
+    "MIA",
+    0.0943,
+    "over",
+    false,
+    23.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "4433136",
+    "Walker Kessler",
+    "LAL",
+    "MIA",
+    -0.0608,
+    "under",
+    false,
+    12.5,
+    -128,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3059319",
+    "Andrew Wiggins",
+    "MIA",
+    "LAL",
+    0.2427,
+    "over",
+    true,
+    1.5,
+    -110,
+    "fanatics"
+   ],
+   [
+    "3064482",
+    "Bobby Portis",
+    "MIA",
+    "LAL",
+    0.1445,
+    "over",
+    true,
+    1.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "MIA",
+    0.2248,
+    "over",
+    true,
+    4.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4066457",
+    "Austin Reaves",
+    "LAL",
+    "MIA",
+    0.2213,
+    "over",
+    true,
+    2.5,
+    120,
+    "hard_rock"
+   ],
+   [
+    "4601025",
+    "Pelle Larsson",
+    "MIA",
+    "LAL",
+    0.2831,
+    "over",
+    true,
+    0.5,
+    -210,
+    "fanatics"
+   ]
+  ]
  }
 }

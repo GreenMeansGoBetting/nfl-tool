@@ -4744,14 +4744,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3805,
+    "lead": 0.3806,
     "name": "Luka Doncic",
     "proj": 56.9,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.1036,
+    "lead": 0.1037,
     "name": "Giannis Antetokounmpo",
     "proj": 45.5,
     "team": "MIA"
@@ -4765,16 +4765,16 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0449,
+    "lead": 0.045,
     "name": "Victor Wembanyama",
     "proj": 40.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.043,
+    "lead": 0.0421,
     "name": "Jayson Tatum",
-    "proj": 40.6,
+    "proj": 40.5,
     "team": "BOS"
    },
    {
@@ -4793,7 +4793,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0353,
+    "lead": 0.0354,
     "name": "Tyrese Maxey",
     "proj": 39.2,
     "team": "PHI"
@@ -4807,7 +4807,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0213,
+    "lead": 0.0214,
     "name": "Karl-Anthony Towns",
     "proj": 38.0,
     "team": "NY"
@@ -4821,7 +4821,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0123,
+    "lead": 0.0124,
     "name": "Darius Acuff Jr.",
     "proj": 36.0,
     "team": "SAC"
@@ -4835,7 +4835,7 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0114,
+    "lead": 0.0115,
     "name": "Jamal Murray",
     "proj": 35.7,
     "team": "DEN"
@@ -4995,18 +4995,18 @@
     "team": "BOS"
    },
    {
+    "id": "6442",
+    "lead": 0.003,
+    "name": "Kyrie Irving",
+    "proj": 31.4,
+    "team": "DAL"
+   },
+   {
     "id": "5095151",
     "lead": 0.0029,
     "name": "Caleb Wilson",
     "proj": 30.3,
     "team": "CHI"
-   },
-   {
-    "id": "6442",
-    "lead": 0.0028,
-    "name": "Kyrie Irving",
-    "proj": 31.4,
-    "team": "DAL"
    },
    {
     "id": "4278104",
@@ -5019,7 +5019,7 @@
     "id": "3202",
     "lead": 0.002,
     "name": "Kevin Durant",
-    "proj": 30.6,
+    "proj": 30.5,
     "team": "HOU"
    },
    {
