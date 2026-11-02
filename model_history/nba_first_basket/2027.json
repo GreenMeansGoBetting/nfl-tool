@@ -7632,7 +7632,7 @@
    ],
    "3078576": [
     "Derrick White",
-    0.099,
+    0.105,
     1200,
     true,
     "hard_rock"
@@ -7646,24 +7646,24 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.147,
+    0.159,
     475,
     false,
     "hard_rock"
    ],
-   "4251": [
-    "Paul George",
-    0.123,
-    900,
-    true,
-    "hard_rock"
-   ],
    "4351852": [
     "Mitchell Robinson",
-    0.075,
+    0.077,
     720,
     false,
     "draftkings"
+   ],
+   "4397424": [
+    "Neemias Queta",
+    0.1,
+    null,
+    false,
+    null
    ],
    "4432639": [
     "Jabari Smith Jr.",
@@ -7674,7 +7674,7 @@
    ],
    "4683689": [
     "Jordan Walsh",
-    0.076,
+    0.078,
     1680,
     true,
     "draftkings"
@@ -8337,7 +8337,7 @@
   "players": {
    "3078576": [
     "Derrick White",
-    0.104,
+    0.11,
     null,
     false,
     null
@@ -8358,21 +8358,14 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.154,
-    null,
-    false,
-    null
-   ],
-   "4251": [
-    "Paul George",
-    0.13,
+    0.167,
     null,
     false,
     null
    ],
    "4351852": [
     "Mitchell Robinson",
-    0.079,
+    0.081,
     null,
     false,
     null
@@ -8380,6 +8373,13 @@
    "4395725": [
     "Tyler Herro",
     0.09,
+    null,
+    false,
+    null
+   ],
+   "4397424": [
+    "Neemias Queta",
+    0.105,
     null,
     false,
     null
@@ -8400,7 +8400,7 @@
    ],
    "4683689": [
     "Jordan Walsh",
-    0.08,
+    0.082,
     null,
     false,
     null
