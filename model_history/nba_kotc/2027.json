@@ -4751,7 +4751,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1017,
+    "lead": 0.1018,
     "name": "Giannis Antetokounmpo",
     "proj": 45.4,
     "team": "MIA"
@@ -4800,7 +4800,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0285,
+    "lead": 0.0286,
     "name": "Alperen Sengun",
     "proj": 38.4,
     "team": "HOU"
@@ -4841,18 +4841,18 @@
     "team": "ORL"
    },
    {
-    "id": "4065733",
-    "lead": 0.0098,
-    "name": "Ty Jerome",
-    "proj": 34.4,
-    "team": "MEM"
-   },
-   {
     "id": "4683021",
     "lead": 0.0096,
     "name": "Deni Avdija",
     "proj": 35.4,
     "team": "POR"
+   },
+   {
+    "id": "4065733",
+    "lead": 0.0096,
+    "name": "Ty Jerome",
+    "proj": 34.3,
+    "team": "MEM"
    },
    {
     "id": "6583",
@@ -4953,18 +4953,18 @@
     "team": "MEM"
    },
    {
+    "id": "3908809",
+    "lead": 0.0047,
+    "name": "Donovan Mitchell",
+    "proj": 31.8,
+    "team": "CLE"
+   },
+   {
     "id": "4433287",
     "lead": 0.0046,
     "name": "Brandon Miller",
     "proj": 32.9,
     "team": "CHA"
-   },
-   {
-    "id": "3908809",
-    "lead": 0.0046,
-    "name": "Donovan Mitchell",
-    "proj": 31.8,
-    "team": "CLE"
    },
    {
     "id": "4433627",
