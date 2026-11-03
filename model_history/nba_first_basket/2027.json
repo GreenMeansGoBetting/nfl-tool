@@ -1586,14 +1586,14 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.115,
+    0.107,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.097,
+    0.089,
     null,
     false,
     null
@@ -1601,13 +1601,6 @@
    "4395725": [
     "Tyler Herro",
     0.103,
-    null,
-    false,
-    null
-   ],
-   "4431684": [
-    "Trayce Jackson-Davis",
-    0.07,
     null,
     false,
     null
@@ -1621,7 +1614,7 @@
    ],
    "4433134": [
     "Scottie Barnes",
-    0.109,
+    0.099,
     null,
     false,
     null
@@ -1635,7 +1628,14 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.09,
+    0.083,
+    null,
+    false,
+    null
+   ],
+   "5093267": [
+    "Collin Murray-Boyles",
+    0.101,
     null,
     false,
     null
@@ -8889,6 +8889,11 @@
     null
    ]
   },
+  "result": {
+   "scorer": "4702352",
+   "team": "LAC",
+   "tip": "LAC"
+  },
   "tip_home": 0.5
  },
  "401909921": {
@@ -9829,21 +9834,14 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.115,
+    0.107,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.097,
-    null,
-    false,
-    null
-   ],
-   "4431684": [
-    "Trayce Jackson-Davis",
-    0.07,
+    0.089,
     null,
     false,
     null
@@ -9857,14 +9855,21 @@
    ],
    "4433134": [
     "Scottie Barnes",
-    0.109,
+    0.099,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.09,
+    0.083,
+    null,
+    false,
+    null
+   ],
+   "5093267": [
+    "Collin Murray-Boyles",
+    0.101,
     null,
     false,
     null
@@ -10157,7 +10162,7 @@
   "players": {
    "2991139": [
     "Kris Dunn",
-    0.085,
+    0.066,
     null,
     false,
     null
@@ -10172,6 +10177,13 @@
    "3059319": [
     "Andrew Wiggins",
     0.092,
+    null,
+    false,
+    null
+   ],
+   "3448": [
+    "Brook Lopez",
+    0.074,
     null,
     false,
     null
@@ -10192,21 +10204,21 @@
    ],
    "4396907": [
     "Darius Garland",
-    0.112,
+    0.084,
     null,
     false,
     null
    ],
    "4432170": [
     "Isaiah Jackson",
-    0.095,
+    0.073,
     null,
     false,
     null
    ],
    "4702352": [
     "Kobe Sanders",
-    0.091,
+    0.086,
     null,
     false,
     null
