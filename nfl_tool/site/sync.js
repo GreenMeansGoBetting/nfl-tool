@@ -360,6 +360,19 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-11-03d",
+    items: [
+      ["🏀", "<b>NBA Points Research, redesigned</b>: click any player's row for two research boxes with tabs. Form, Scoring, Matchup and Game Script on the left; Vs The Line, Rotation and Teammates on the right. Blue is him, purple is tonight's defense, green is the read, on every tab."],
+      ["📊", "<b>Tonight's Game</b> on every Points row: the game's pace, his team's spread and the total. Over / Under prices now show a two-letter book (DK, FD, FN, HR, NV, PX...) so the row stays compact."],
+      ["🚧", "<b>NBA Player Points is about 90% complete.</b> Threes, Rebounds and Assists still need their expanded stats, and those are coming ASAP."],
+    ],
+    // the NBA research note again, so everyone sees it (the owner, 2026-11-03: "repush ... the announcement about best plays")
+    after: {
+      title: "Why We Changed The NBA Side",
+      text: "The NBA is a tough league to project. Rest days, late scratches and stars sitting at the last minute mean a projection is often built on a lineup that never takes the floor. One night we projected a team to win that went into the game with six players. I don't feel comfortable selling projections built on incomplete information, and I don't want anyone trusting a model because it hit a bet or two. So the NBA side is now about research: the data, the lines and the matchups, laid out so you can dig in and make your own call. The NHL tools stay as they are, since they've shown steady results. As always, if this isn't worth it to you, ask and I'll refund you.",
+    },
+  },
+  {
     id: "2026-11-03c",
     items: [
       ["🏀", "<b>NBA Points Research</b>: click any player's row for his research dashboard. It shows his last games against tonight's line, recent form (more shots or hot shooting?), how he scores and who sets him up, his scoring with each teammate on and off the floor, matchup angles against tonight's defense (free throws, transition, bench units, pace, foul trouble), his points by spread, total, pace and schedule spot, and a minute-by-minute rotation chart."],
