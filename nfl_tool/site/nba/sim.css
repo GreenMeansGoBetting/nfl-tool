@@ -282,3 +282,17 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 @media (max-width: 900px) {
   .sim-zone-pair { grid-template-columns: 1fr; }
 }
+
+/* The prop research pages (research.js, 2026-11-03): the sim list's look, no model columns */
+.rs-intro { padding: 10px 16px 12px; margin-bottom: 10px; }
+.rs-intro .sim-sec { margin: 2px 0 4px; }
+.rs-sub { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.rs-intro .info-note { margin: 8px 0 0; }
+.rs-inj { display: inline-block; font: 800 0.6rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 5px; border-radius: 5px; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.55); }
+.rs-inj.out { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.5); }
+.rs-list td.rs-two b, .rs-list td.rs-allow b, .rs-list td.rs-line b { font: 800 1.02rem var(--font-display); }
+.rs-list td.rs-two small, .rs-list td.rs-allow small { display: block; font: 600 0.68rem var(--font-body); color: var(--muted); }
+.rs-list td.rs-allow small { color: var(--text); opacity: 0.75; }
+.rs-list td.rs-price .nba-pc-save { margin-left: 5px; vertical-align: middle; }
+.rs-list tr.sim-row { cursor: default; }
+.sim-rtag.rs-maybe { border-style: dashed; }

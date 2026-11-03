@@ -1,11 +1,12 @@
 """NBA Game Predictions (nba/predict.py; build_nba.py compute_predictions / predictions_record;
-site/nba/game-predictions.html + predict-view.js; the League Stats Chart's Points Ledger, 2026-10-30).
+2026-10-30). The pages are gone since 2026-11-03 (the NBA side is research only, no projections on
+the site); the build and its record still run.
 
 What is pinned: every row reads the offense AND what tonight's defense allows (the site's matchup
 rule); the rows add up to the projected score; an average team against an average team is the
 league average plus home court; the rows explain most of why teams' real ratings differ (the honesty
 check on the real 2026-10-30 numbers); fair prices at the book's line; the record locks at tip,
-grades finals and feeds the YTD tracker (favorite = a minus price or line); the pages draw it."""
+grades finals and feeds the YTD tracker (favorite = a minus price or line)."""
 import json
 import sys
 import tempfile
@@ -19,7 +20,6 @@ sys.path.insert(0, str(ROOT / "tests"))
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nba"))
 import build_nba  # noqa: E402
 import predict  # noqa: E402
-from site_browser import SiteBrowser  # noqa: E402
 
 CHART = json.loads((ROOT / "tests" / "fixtures" / "nba_predictions_chart_2026-10-30.json").read_text(encoding="utf-8"))
 
@@ -141,81 +141,6 @@ class Record(unittest.TestCase):
         self.assertEqual(predict.grade({"market": "ml", "side": 1}, rec), 1.0)
         self.assertEqual(predict.units(-110, 1.0), 100 / 110)
         self.assertEqual(predict.units(150, 0.0), -1.0)
-
-
-def setUpModule():
-    global SITE
-    SITE = SiteBrowser()
-
-
-def tearDownModule():
-    if SITE:
-        SITE.close()
-
-
-class Pages(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        today = __import__("datetime").date.today().isoformat()
-        lines = dict(home_team_spread=-3.5, away_team_spread=3.5, home_spread_odds=-110, away_spread_odds=-110,
-                     total_line=224.5, over_odds=-108, under_odds=-112, home_moneyline=-150, away_moneyline=130)
-        schedule = [{**game("88", today, f"{today}T23:30Z", "CHA", "WSH", **lines), "time": "19:30"}]
-        chart = {w: CHART for w in ("season", "10", "5", "3")}
-        with tempfile.TemporaryDirectory() as tmp:
-            build_nba.PRED_RECORD_DIR, kept = Path(tmp), build_nba.PRED_RECORD_DIR
-            try:
-                preds = build_nba.compute_predictions(chart, schedule, 2027, datetime.strptime(f"{today}T12:00", "%Y-%m-%dT%H:%M"))
-            finally:
-                build_nba.PRED_RECORD_DIR = kept
-        cls.pred = preds["upcoming"]["season"]["88"]
-        teams = {t: {"name": f"Team {t}", "short": t, "logo": "", "color": "336699"} for t in CHART}
-        SITE.nba = {"season": 2027, "season_label": "2026-27", "teams": teams, "schedule": schedule,
-                    "league_chart": chart, "predictions": preds}
-
-    def test_game_predictions_page(self):
-        page = SITE.open("nba/game-predictions.html")
-        page.wait_for_selector(".gp-card")
-        self.assertEqual(SITE.errors, [])
-        text = page.inner_text(".gp-card")
-        score = page.inner_text(".pv-proj tbody")
-        self.assertIn(f"{self.pred['pts'][0]:.1f}", score)
-        self.assertIn("DO NOT BLINDLY BET", page.inner_text(".gp-warning"))
-        # the book's numbers and OUR numbers side by side, a row a team: GMG's own spread, total
-        # and moneyline, not our price at the book's line; no percent under a price (the owner,
-        # 2026-10-30): the chances live in the hover
-        home = page.evaluate("() => [...document.querySelectorAll('.pv-lines tbody tr')][1].textContent")
-        p = self.pred["fair"]["ml"][1]
-        ml = round(-100 * p / (1 - p)) if p >= 0.5 else round(100 * (1 - p) / p)
-        self.assertIn(f"+{ml}" if ml > 0 else str(ml), home)
-        spread = round(self.pred["fair_spread"], 1)
-        self.assertIn(f"+{spread}" if spread > 0 else str(spread), home)
-        self.assertIn(f"U {self.pred['total']:.1f}", home)
-        self.assertNotIn("%", text)
-        # one header row a box, never a band stacked over sub-labels
-        self.assertEqual(page.evaluate("() => document.querySelectorAll('.gp-card .od-ggroups').length"), 0)
-        self.assertIn("None Listed", page.inner_text(".gp-injuries"))
-        # the breakdown is always open and adds up to the projected score
-        self.assertTrue(page.is_visible(".gp-card .pv-ledger"))
-        total = page.evaluate("() => document.querySelector('.pv-ledger tr.pv-total').textContent")
-        self.assertIn(f"{self.pred['pts'][1]:.1f}", total)
-        page.click("#gp-ytd")
-        page.wait_for_selector(".gp-ytd-tracker .ytd-tile, .gp-ytd-tracker *")
-        self.assertIn("Graded after tonight", page.inner_text("#gp-ytd-modal"))
-        self.assertEqual(SITE.errors, [])
-
-    def test_matchup_keys_show_the_ledger_and_points_on_each_card(self):
-        page = SITE.open("nba/league.html")
-        page.wait_for_selector(".lsc-grid")
-        page.click(".matchup-card")
-        page.click("#lsc-keys")
-        page.wait_for_selector(".pv-ledger")
-        self.assertEqual(SITE.errors, [])
-        chips = page.evaluate("() => [...document.querySelectorAll('.lsc-keys:not(.lsc-keys-more) .lsc-key')].map((k) => !!k.querySelector('.pv-chip'))")
-        self.assertTrue(chips[0])  # the biggest points first
-        self.assertEqual(chips, sorted(chips, reverse=True))  # keys with no points (a trend) come after
-        glass = page.evaluate("() => [...document.querySelectorAll('.lsc-key-top')].find((k) => k.textContent.includes('Glass')).textContent")
-        a, h = next((r[1], r[2]) for r in self.pred["rows"] if r[0] == "glass")
-        self.assertIn(f"{'CHA' if a > h else 'WSH'} +{abs(h - a):.1f}", glass.replace("−", "-"))
 
 
 if __name__ == "__main__":

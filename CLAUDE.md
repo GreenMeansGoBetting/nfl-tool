@@ -110,7 +110,7 @@ message, so every line costs usage); detail belongs in a rules file.
 - **Tables: every column its contents + one small even padding, centered** (names / tags read left);
   ONE column takes the spare width (`width: 100%`; at `auto` the browser spreads it over every column),
   tags fill at most two lines in a box the same height on every row (extras fold into a "+N" pill with a hover list). The owner, 2026-10-25: "I hate always
-  having to come back to this". Pattern: `table.data-table.sim-list` rules + `fitTags` (nba/sim.css, sim-board.js).
+  having to come back to this". Pattern: `table.data-table.sim-list` rules + `fitTags` (nba/sim.css, research.js).
 - **Two-team tables: teams side by side, the label in the far-left column** (a matchup table reading both
   directions keeps it in the middle; the owner, 2026-10-28). Never stretch a box to fill the screen.
 - **Title Case every header, label and button** without being asked (the owner, 2026-10-21: "If its

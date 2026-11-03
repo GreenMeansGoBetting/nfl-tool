@@ -360,6 +360,18 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-11-03",
+    items: [
+      ["🏀", "<b>The NBA side is now a research site.</b> Game Predictions, NBA Best Plays and the Points, Threes, Rebounds and Assists projections are gone. In their place, Points, Threes, Rebounds and Assists (under Prop Research in the NBA menu) show every line tonight with the numbers behind it: the best Over and Under across your books, hit rates against tonight's line, his averages and minutes, what tonight's defense allows his position, and how he's done in the games a teammate on tonight's injury report missed."],
+      ["🔑", "<b>Matchup Keys</b> on the League Stats Chart no longer show model points, just the keys and the numbers behind them."],
+    ],
+    // Shown once, right after this update's popup is closed (openAfterNote).
+    after: {
+      title: "Why We Changed The NBA Side",
+      text: "The NBA is a tough league to project. Rest days, late scratches and stars sitting at the last minute mean a projection is often built on a lineup that never takes the floor. One night we projected a team to win that went into the game with six players. I don't feel comfortable selling projections built on incomplete information, and I don't want anyone trusting a model because it hit a bet or two. So the NBA side is now about research: the data, the lines and the matchups, laid out so you can dig in and make your own call. The NHL tools stay as they are, since they've shown steady results. As always, if this isn't worth it to you, ask and I'll refund you.",
+    },
+  },
+  {
     id: "2026-10-30b",
     items: [
       ["🚧", "<b>NBA Game Predictions</b> (Work In Progress, under Under Construction in the NBA menu): the League Stats Chart's numbers turned into a GMG score for every game, with our own spread, total and fair moneyline next to the books', a Point Breakdown showing where the points come from, and the injury report beside it. It's unproven until its own record says otherwise, so treat it as a talking point."],
@@ -1010,13 +1022,15 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Matchup Breakdown", file: "" },
       { name: "Shot Charts", file: "shot-charts.html" },
       { name: "Zone Matchup Targets", file: "zones.html", tag: "New" },
-      // Kept reachable but set aside while the NBA suite turns toward matchup
-      // research (the owner, 2026-10-26).
-      { head: "🚨 UNDER CONSTRUCTION 🚨" },
+      // The NBA side is a research site (the owner, 2026-11-03): no projections or model
+      // plays; each bet category is its data and every book's line (research.js).
       // Rows of shaded pills, each its own color so it reads as a button (the owner, 2026-10-30).
-      { row: [{ name: "Game Predictions", file: "game-predictions.html", tag: "New", hue: 145 }, { name: "Best Plays", file: "best.html", hue: 45 }] },
-      { row: [{ name: "Points", file: "points.html", hue: 210 }, { name: "Threes", file: "threes.html", hue: 275 }, { name: "Assists", file: "assists.html", hue: 330 }] },
-      { row: [{ name: "Rebounds", file: "rebounds.html", hue: 185 }, { name: "First Basket", file: "first-basket.html", hue: 20 }] },
+      { head: "Prop Research" },
+      { row: [{ name: "Points", file: "points.html", hue: 210 }, { name: "Threes", file: "threes.html", hue: 275 }] },
+      { row: [{ name: "Assists", file: "assists.html", hue: 330 }, { name: "Rebounds", file: "rebounds.html", hue: 185 }] },
+      // Kept reachable but set aside (the owner, 2026-10-26).
+      { head: "🚨 UNDER CONSTRUCTION 🚨" },
+      { row: [{ name: "First Basket", file: "first-basket.html", hue: 20 }] },
     ] },
     nhl: { label: "NHL", home: "", items: [
       { name: "Game Previews", file: "" },

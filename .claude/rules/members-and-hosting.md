@@ -49,7 +49,7 @@ Stories behind these rules (the hosting move, the Stripe setup, wording choices)
     one past 20 MB and fails naming one over 25. Keep every data file well under: data files are
     written compact (`separators=(",", ":")`, never `indent`), and the NBA alt ladders (`*_alt`
     in `book_odds`, most of the quotes) live in `nba/ladders.json` (`split_ladders` /
-    `merge_ladders` in build_nba.py; sim-board.js and the build's read of the live copy merge them
+    `merge_ladders` in build_nba.py; the player card (nba-card.js) and the build's read of the live copy merge them
     back). A big new block goes in its own file read only by the page that needs it (a new
     generated file: .gitignore AND fetch_live_data.py SUITES).
   - `version.json` (commit sha, run id, build time) is written into the site and served without

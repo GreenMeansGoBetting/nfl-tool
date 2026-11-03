@@ -6,6 +6,10 @@ paths:
 # GMG NBA Suite
 
 The NBA suite inside "GMG Sports Data Suite" (started 2026-10-11, season tipped 2026-10-20).
+**A research site since 2026-11-03** (the owner: projections on incomplete info, rest days and late
+scratches aren't fair to members): no projections, model plays, edges or ratings on any NBA page.
+Pages show real counts beside every book's line; the member draws the conclusion. Don't propose new
+NBA projections or picks. The sim and Game Predictions builds still run and grade their records off-site.
 This file holds the rules only. The owner's words, dates and replay numbers behind each one are
 in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim" (the full old text).
 
@@ -20,8 +24,9 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   `espn_late.py`: last night's finals from ESPN before hoopR has them.
 - Pages (`site/nba/`): `league.html` + `league.js` + `league.css` League Stats Chart (first in the menu);
   `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
-  forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` + same-named `.js` configs on
-  `sim-board.js` + `sim.css`; `best.html/.js` NBA Best Plays; `first-basket.html/.js/.css`;
+  forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` (`data-market`) on `research.js`
+  + `sim.css` Prop Research; `best.html` / `game-predictions.html` only forward (retired 2026-11-03);
+  `first-basket.html/.js/.css`;
   `shot-charts.html/.js/.css`; `zones.html/.js/.css`; `nba-card.js` player card (+ `shot-chart.js`);
   `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`; `digest.html/.js/.css`
   Dunk Digest (owner only).
@@ -210,43 +215,25 @@ Every game played 10,000 times, possession by possession.
   25 toward position). One draw a team a period; each player keeps his own rate.
 - Nights: `SD_REB` / `SD_AST` 0.4. Watch: players the sim has at 9+ boards (and 25+ points) run high.
 
-### The sim pages (`sim-board.js` + `sim.css`; `SIM_PAGE` config per page)
+### Prop Research pages (`research.js` + `sim.css`, 2026-11-03; replaced the sim boards and Best Plays)
 
-- **Beta banner** (suite.css `.pts-testing`: caution line, how-it-works behind its i, Yesterday /
-  Season tiles + YTD Model Performance with the split tags), then **Player View | Matchup View**
-  (per-device pref `nfl-tool.nba-sim-view`), day arrows, game cards ("n Plays").
-- **Player View** = the NHL Shots list. **Opens on Plays Only**; Every Player adds "Not plays"; Side
-  and Edge menus; a game card narrows the list. Columns: #, Player (playerClick), Play chip "o31.5 -110
-  FD" (best price on the member's books) + save box (`nbaCardSaveBox`; **a started game keeps it**, saving the line and price locked at tip, a member's ask 2026-10-31), Rating, Fair, Edge, **Hit
-  Rate - Based On Over Points / Threes** (L5, L10, Season, Home, Away: games OVER tonight's line
-  whichever side, "x of y", red 20% to green 80% via `scaleHsla`, one width 62px), **Tags** (the spare
-  width; `fitTags`). Every column but Player / Play / Rating sorts; started games gray at the bottom.
-- **Tags** (`tagsFor`; Tag menu filters): Ladder (best same-side rung clearing 4 and beating the main
-  line), Script-Proof / Chaos Play / Needs A Close Game, each dial with its team, Min ↑ / Min ↓ (a 20+
-  minute teammate at his spot Out / back). Points: Zone Fit / Tough Zones (2.5 pts). Threes: 3s
-  Allowed / Tough 3s D / Help D (1 league spread), Underdog +6, Cold / Hot Run (last 5 makes 0.6 off).
-  Rebounds (`reboundsTags`): Glass Fit / Tough Glass (tilt 10%+, his rate not 10% the other way),
-  Misses Coming (3+ over the league), Hot / Cold Run (2 boards, 7+ games). Assists (`assistsTags`):
-  Ball Movement Fit / Tough Passing D (`def_assisted` 1 spread, `off_assisted` not 0.3 against),
-  Hot / Cold Run (1.5 assists).
-- Row click: **The Model** (Hit In x of 10,000, Fair, Edge, Book Line, the three scripts, histogram,
-  tags, Starting, Locked At Tip, and the ladder: our chance, fair, best price + **a save box on every
-  priced rung** (a member, 2026-11-02; a rung is its own play, id `...:<side><line>`; the main line's
-  two sides share the row's play), edge) and **Shot Chart**
-  (`zonesView`; no zone table).
-- **Matchup View** = the Game Board: team-color banner, one strip (Spread / Sim, Total / Sim pills,
-  By 10+ / Close script bar), **a card a team side by side** (`.sim-tcard`, `.sim-bt`, Show Ladder
-  button): Starters / Bench rows, **Out Tonight** grayed at the bottom with status pill; Min, stat
-  (**median to a tenth**, `smoothMedian`), Line (ringed if tonight's play), Diff, Edge; "No Line" with
-  no book. The ladder (Points 10+-40+, Threes 1+-6+, Rebounds 4+-14+, Assists 2+-12+; green / red at 3
-  pts edge) is closed by default, one team at a time; open = both cards full width. **Removed on
-  purpose:** Script Picker / by-script columns, % column, Dials Tonight, box titles.
-- **Best Plays** (`best.html/.js`): `SIM_PAGE.markets` = every market's config (`SIM_MARKETS`, `MK`);
-  Player View only, all markets by edge with a Market column and Market switches (last stays on), hit
-  rates "Based On Over His Line", record / past nights / YTD across all (All Plays + a tile a market).
-  A new market = its page's config in `markets`. Tabs on all five pages.
-- Tests: `test_nba_sim.py`, `test_nba_points_site.py`, `test_nba_threes_site.py`,
-  `test_nba_best_site.py`, `test_nba_rebounds_assists_site.py`.
+- The owner, 2026-11-03: "click into betting categories, like assists and rebounds, and get
+  information and data that relates to those categories and see available bets and lines".
+  **No model on the page:** no Edge, Fair, Rating, projection, plays, record or YTD tracker.
+- Menu: **Prop Research** head, Points / Threes / Assists / Rebounds pills; First Basket alone under
+  UNDER CONSTRUCTION. Tabs on the four pages. `RS_MARKETS` = each page's stat.
+- Intro box (title + i bubble + one line), day arrows (next `DAYS_AHEAD` 3 slates; off-season = the
+  last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
+  `ROTATION_MIN` 12+ min, no line = "No Line"; Out / Doubtful players left off).
+- Columns (sim-list table rule): Player (playerClick, pos, injury pill DTD / Q / D / Out), Line (middle
+  of the books'), **Over / Under** (best on My Books via `nbaCardSide`: click = every book, box saves),
+  Avg and Min (season, L5 under), **Hit Rate - Over Tonight's Line** (L5 / L10 / Season / Home / Away,
+  "x of y"), **Opp Allows** (what tonight's opponent gives up a game to his exact position, from every
+  player's logs, ranked of 30, 1st = most, 8-step rank colors), **Teammates On The Report** (spare
+  width, `fitTags`): per 20+ minute teammate on tonight's report, his average in the games that
+  teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
+  "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
+- The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
 
 ## The player card (`nba-card.js`)
 
@@ -348,8 +335,8 @@ UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded r
   graded on the final; YTD ledger per market = the model's side (`predict.plays`: spread / total by
   chance, ML by edge vs price), value = edge vs the book price, push left out; tags fav / dog (minus line
   or price), home / away, over / under.
-- Pages: `game-predictions.html/.js` (menu: first under UNDER CONSTRUCTION) and the Points Ledger + Model
-  Vs Book in the League Stats Chart's Matchup Keys; both drawn by `predict-view.js/.css`. **Card =
+- **Pages retired 2026-11-03** (research only; `game-predictions.html` forwards to the League Stats
+  Chart; the page code is in git history). The old page, for reference: **Card =
   League-Stats-Chart grids (`pvGrid`, one width 640), ONE header row each** (the owner, 2026-10-30:
   "more structured and symmetrical"; a band over sub-labels = "two different weird stacks"). Top:
   **Big "Work In Progress" warning** (the owner's words). Card: **GMG Score + Injury Report** side by
@@ -446,10 +433,8 @@ the same framework next ("once we have the framework down").
   (7-25 keys a game, the glass told three ways) is why; the owner's CHA @ WSH read is pinned on
   `tests/fixtures/nba_league_chart_2026-10-30.json`. Owner fear: things omitted or miscounted: audit a
   real slate (keys, More, near misses at 12) before changing a rule.
-- **Points on the keys** (2026-10-30): Matchup Keys opens with the game's Points Ledger and Model Vs Book
-  (Game Predictions, for the chart's window; a tipped game shows its Season one from the record). Each
-  card gets a chip from the ledger rows of its topic (`PV_TOPIC_ROWS`; Inside Vs Outside = the shot mix
-  parts): the swing toward a team and the total's move; cards sort by it, cards with no points last.
+- **No model points on the keys** since 2026-11-03 (the Points Ledger / Model Vs Book and the chips
+  were Game Predictions'); cards keep keys.js's own order.
 
 ## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`)
 

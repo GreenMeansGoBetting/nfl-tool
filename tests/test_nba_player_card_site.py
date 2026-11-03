@@ -80,8 +80,7 @@ def setUpModule():
     try:
         SITE.nba, SITE.nba_props, SITE.nba_shots, SITE.nba_ladders = DATA, PROPS, SHOTS, LADDERS
         PAGE = SITE.open("nba/points.html")
-        PAGE.wait_for_function("() => !document.getElementById('sim-app').hidden")
-        PAGE.click("[data-view='matchup']")  # the game board: every player of the game, the card on each name
+        PAGE.wait_for_function("() => !document.getElementById('rs-app').hidden")  # Points Research (2026-11-03)
         PAGE.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
     except Exception:
         SITE.close()
@@ -94,7 +93,7 @@ def tearDownModule():
 
 
 def open_card(tab=None):
-    PAGE.click(".sim-bt .player-click[data-nba-player='1']")
+    PAGE.click("#rs-list .player-click[data-nba-player='1']")
     PAGE.wait_for_selector("#player-card-modal:not([hidden]) .pc-name")
     if tab:
         PAGE.click(f"#player-card-modal .nba-pc-tab[data-tab='{tab}']")
@@ -187,6 +186,8 @@ class Odds(unittest.TestCase):
             self.assertEqual(alt_rows(), [])  # closed until asked for
             self.assertEqual(PAGE.inner_text("#player-card-modal .nba-pc-alts").upper(), "SHOW ALT LINES")
             PAGE.click("#player-card-modal .nba-pc-alts")
+            # the research page doesn't load ladders.json: the card fetches it on this click
+            PAGE.wait_for_function("() => document.querySelectorAll('#player-card-modal .nba-pc-altrow').length === 3")
             rows = table(".nba-pc-odds")
             self.assertEqual([(r[0].upper(), r[1]) for r in rows], [
                 ("POINTS", "24.5"), ("POINTS ALT", "29.5"), ("POINTS ALT", "34.5"),
