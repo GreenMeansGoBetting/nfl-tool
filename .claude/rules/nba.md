@@ -250,7 +250,7 @@ Every game played 10,000 times, possession by possession.
   Form (Season colored vs his position; L10 / L5 vs HIS season, the owner: "trends lately vs long
   term", plain when L10 = his season or the move is tiny; vs DEF Season / L5 / +/-;
   `defenseByPos`), Scoring (share / rank / pts a game vs DEF allowed / rank / pts a game, read;
-  `defShares`), Matchup (jersey / rank / position avg vs allows / rank / league avg, read one column),
+  `defShares`), Matchup (jersey / rank vs allows / rank, read; five columns `rs-five`; **no average columns**, the owner: misleading),
   Game Script (All Games, his games within `SCRIPT_RANGE` 5 of tonight's spread and total,
   `PACE_RANGE` 2 of the pace, venue, last 10; every number vs his season; under `SMALL` faded;
   **no schedule spots**, the owner: "too niche"), Vs The Line (the last `LINE_DAYS` 15 days a slot each:

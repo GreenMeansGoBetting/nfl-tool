@@ -528,10 +528,9 @@ function matchupTab(x) {
   const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
   // the other team's players at his position: free throws they draw a game (they attack him)
   const draws = teamRanks((t) => { const rows = Object.values(seasonBlock().players).filter((q) => q.team === t && q.pos === x.p.pos).flatMap((q) => q.log || []); const n = new Set(rows.map((r) => r[f.game])).size; return n ? rows.reduce((a, r) => a + (r[f.fta] || 0), 0) / n : null; });
-  // each side: the value, its rank and the average it's ranked against (his position / the league)
-  const real = (xs) => xs.filter((q) => q !== null && q !== undefined && !Number.isNaN(q));
-  const him = (v, vals, show, flip = false) => { const rk = rankIn(v, vals); const s = spread(v, vals); const a = avg(real(vals)); return { s: s === null ? null : flip ? -s : s, v: show(v), r: rk ? `${ordinal(rk.r)}` : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "", a: a === null ? "--" : show(a), at: `The average of ${rk ? rk.n : 0} rotation ${x.p.pos}s` }; };
-  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); const a = avg(real(Object.values(rk.v))); return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${ordinal(rk.r[t])} of ${rk.n}` : "", a: a === null ? "--" : show(a), at: `The league average (${rk.n} teams)` }; };
+  // each side: the value and its rank (no average columns: the owner, 2026-11-03, they misled)
+  const him = (v, vals, show, flip = false) => { const rk = rankIn(v, vals); const s = spread(v, vals); return { s: s === null ? null : flip ? -s : s, v: show(v), r: rk ? `${ordinal(rk.r)}` : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "" }; };
+  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${ordinal(rk.r[t])} of ${rk.n}` : "" }; };
   const ROWS = [
     ["Points", "His points a game / what the defense allows his position a game", him(perG(logOf(x.pid), "pts"), pool.map(([, q]) => perG(q.log || [], "pts")), (v) => fmt(v)), them(ptsAllowed, opp, (v) => fmt(v))],
     ["Free Throws", "His free throws tried a game / what the defense allows his position", him(perG(logOf(x.pid), "fta"), pool.map(([, q]) => perG(q.log || [], "fta")), (v) => fmt(v)), them(ftAllowed, opp, (v) => fmt(v))],
@@ -542,10 +541,11 @@ function matchupTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(a.a, null, a.at) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + T(b.a, null, b.at) + T(rd.t, rd.s, READ_TIP[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + T(rd.t, rd.s, READ_TIP[rd.t]);
   });
-  const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD("Avg", "him") + HD("Allows", "def") + HD("Rank", "def") + HD("Avg", "def") + HD("Read", "rd");
-  return gridOf(head, rows, { bands: BANDS_3_3_1 });
+  const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD("Allows", "def") + HD("Rank", "def") + HD("Read", "rd");
+  // five columns across the same box (every row full, so no blank rows to span)
+  return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five" });
 }
 
 // Game Script: his games like tonight (within SCRIPT_RANGE of tonight's spread and total either

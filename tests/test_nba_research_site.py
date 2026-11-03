@@ -166,8 +166,9 @@ class Panel(unittest.TestCase):
     def cells(self, box):
         """Every row of the box's grid as its tiles' text (the header row first)."""
         return self.page.evaluate(f"""() => {{ const g = document.querySelector("{box} .rs-g"); const kids = [...g.children]; const rows = []; let row = [], used = 0;
+            const cols = getComputedStyle(g).gridTemplateColumns.split(' ').length;
             for (const k of kids) {{ const span = k.classList.contains('rs-s7') ? 7 : k.classList.contains('rs-s3') ? 3 : k.classList.contains('rs-s2') ? 2 : 1;
-              row.push(k.textContent.replace(/\\s+/g, ' ').trim()); used += span; if (used >= 8) {{ rows.push(row); row = []; used = 0; }} }} return rows; }}""")
+              row.push(k.textContent.replace(/\\s+/g, ' ').trim()); used += span; if (used >= cols) {{ rows.push(row); row = []; used = 0; }} }} return rows; }}""")
 
     def test_two_boxes_every_tab_the_same_shape(self):
         self.open()
@@ -229,8 +230,8 @@ class Panel(unittest.TestCase):
 
     def test_matchup(self):
         rows = self.cells(self.tab("left", "Matchup"))
-        self.assertEqual(rows[0][1:], ["7", "Rank", "Avg", "Allows", "Rank", "Avg", "Read"])
-        self.assertEqual(len(rows[1]), 8)  # Read is one column now
+        self.assertEqual(rows[0][1:], ["7", "Rank", "Allows", "Rank", "Read"])  # no average columns
+        self.assertEqual([len(r) for r in rows], [6] * 7)  # a header + six rows of a label and five tiles
 
     def test_scoring_beside_the_defense(self):
         rows = self.cells(self.tab("left", "Scoring"))

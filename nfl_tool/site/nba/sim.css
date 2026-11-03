@@ -323,6 +323,7 @@ table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; p
 .rs-gw { position: relative; isolation: isolate; }
 .rs-g { --rs-lw: 112px; display: grid; grid-template-columns: var(--rs-lw) repeat(7, minmax(0, 1fr)); grid-template-rows: 28px; grid-auto-rows: 34px; column-gap: 6px; row-gap: 3px; }
 .rs-g.rs-wide { --rs-lw: 150px; }
+.rs-g.rs-five { grid-template-columns: var(--rs-lw) repeat(5, minmax(0, 1fr)); }
 .rs-g.rs-bands { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
 .rs-band { grid-row: 1 / span 7; margin: -3px -2px; border-radius: 9px; }
 .rs-sbody > .rs-gw { height: 100%; }
