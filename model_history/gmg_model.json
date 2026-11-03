@@ -1026,6 +1026,10 @@
  "2026_08_CHI_SEA": {
   "away": "CHI",
   "away_pts": 19.6,
+  "final": [
+   34,
+   17
+  ],
   "frozen": true,
   "home": "SEA",
   "home_pts": 23.7,
@@ -1033,9 +1037,11 @@
   "spread": -3.5,
   "spread_edge": 0.7,
   "spread_pick": "home",
+  "spread_result": "loss",
   "total": 46.5,
   "total_edge": 3.2,
   "total_pick": "under",
+  "total_result": "loss",
   "updated": "2026-11-02T18:23Z",
   "week": 8
  },

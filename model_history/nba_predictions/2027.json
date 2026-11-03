@@ -2331,8 +2331,8 @@ null
 "date": "2026-11-06",
 "fair": {
 "ml": [
-0.5558,
-0.4442
+0.556,
+0.444
 ],
 "spread": null,
 "total": null
@@ -2433,7 +2433,7 @@ null
 [
 "rest",
 0.5,
--0.9,
+-0.8,
 null
 ],
 [
@@ -2550,7 +2550,7 @@ null
 [
 "glass",
 1.9,
--1.4,
+-1.3,
 null
 ],
 [
@@ -2607,8 +2607,8 @@ null
 "date": "2026-11-06",
 "fair": {
 "ml": [
-0.8071,
-0.1929
+0.8069,
+0.1931
 ],
 "spread": null,
 "total": null
@@ -6573,21 +6573,21 @@ null
 "away": "PHI",
 "book": {
 "ml": [
-null,
-null
+-102,
+-106
 ],
 "spread": [
-null,
-null
+1.5,
+-1.5
 ],
 "spread_odds": [
-null,
-null
+-102,
+-102
 ],
-"total": null,
+"total": 218.5,
 "total_odds": [
-null,
-null
+-113,
+-113
 ]
 },
 "date": "2026-11-04",
@@ -6596,8 +6596,14 @@ null
 0.3494,
 0.6506
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3967,
+0.6033
+],
+"total": [
+0.4205,
+0.5795
+]
 },
 "fair_spread": -4.6,
 "home": "DET",
@@ -6987,21 +6993,21 @@ null
 "away": "CHA",
 "book": {
 "ml": [
-null,
-null
+-135,
+127
 ],
 "spread": [
-null,
-null
+-2.5,
+2.5
 ],
 "spread_odds": [
-null,
-null
+-113,
+-102
 ],
-"total": null,
+"total": 214.5,
 "total_odds": [
-null,
-null
+-113,
+-122
 ]
 },
 "date": "2026-11-04",
@@ -7010,8 +7016,14 @@ null
 0.4012,
 0.5988
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3233,
+0.6767
+],
+"total": [
+0.3933,
+0.6067
+]
 },
 "fair_spread": -3.0,
 "home": "BKN",
@@ -7421,8 +7433,8 @@ null
 "date": "2026-11-04",
 "fair": {
 "ml": [
-0.2615,
-0.7385
+0.2617,
+0.7383
 ],
 "spread": null,
 "total": null
@@ -7523,7 +7535,7 @@ null
 [
 "rest",
 -0.5,
--1.5,
+-1.4,
 null
 ],
 [
@@ -7539,21 +7551,21 @@ null
 "away": "CLE",
 "book": {
 "ml": [
-null,
-null
+122,
+-133
 ],
 "spread": [
-null,
-null
+2.5,
+-2.5
 ],
 "spread_odds": [
-null,
-null
+102,
+-108
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
-null,
-null
+-113,
+-122
 ]
 },
 "date": "2026-11-04",
@@ -7562,8 +7574,14 @@ null
 0.4821,
 0.5179
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5649,
+0.4351
+],
+"total": [
+0.4083,
+0.5917
+]
 },
 "fair_spread": -0.5,
 "home": "OKC",
@@ -7677,21 +7695,21 @@ null
 "away": "MIN",
 "book": {
 "ml": [
-null,
-null
+277,
+-326
 ],
 "spread": [
-null,
-null
+9.5,
+-9.5
 ],
 "spread_odds": [
-null,
-null
+-117,
+-100
 ],
-"total": null,
+"total": 224.5,
 "total_odds": [
-null,
-null
+-113,
+-125
 ]
 },
 "date": "2026-11-04",
@@ -7700,8 +7718,14 @@ null
 0.4435,
 0.5565
 ],
-"spread": null,
-"total": null
+"spread": [
+0.742,
+0.258
+],
+"total": [
+0.5686,
+0.4314
+]
 },
 "fair_spread": -1.7,
 "home": "HOU",
@@ -7936,7 +7960,7 @@ null
 ],
 [
 "rest",
-2.0,
+1.9,
 -3.5,
 null
 ],
@@ -8249,18 +8273,18 @@ null
 "date": "2026-11-04",
 "fair": {
 "ml": [
-0.762,
-0.238
+0.7618,
+0.2382
 ],
 "spread": null,
 "total": null
 },
-"fair_spread": 8.6,
+"fair_spread": 8.5,
 "home": "SAC",
-"margin": -8.6,
+"margin": -8.5,
 "poss": 104.4,
 "pts": [
-122.1,
+122.0,
 113.5
 ],
 "rows": [
@@ -8329,7 +8353,7 @@ null
 ],
 [
 "glass",
--0.4,
+-0.5,
 0.0,
 null
 ],
@@ -8775,6 +8799,6 @@ null
 null
 ]
 ],
-"total": 233.7
+"total": 233.8
 }
 }
