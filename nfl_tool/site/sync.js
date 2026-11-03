@@ -360,6 +360,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-11-03c",
+    items: [
+      ["🏀", "<b>NBA Points Research</b>: click any player's row for his research dashboard. It shows his last games against tonight's line, recent form (more shots or hot shooting?), how he scores and who sets him up, his scoring with each teammate on and off the floor, matchup angles against tonight's defense (free throws, transition, bench units, pace, foul trouble), his points by spread, total, pace and schedule spot, and a minute-by-minute rotation chart."],
+    ],
+  },
+  {
     id: "2026-11-03b",
     items: [
       ["🏀", "<b>NBA First Basket</b> moves under Prop Research too: the tip, who scores first, opening trips, the first field goal each defense allows by position, and each starter's numbers with the best price across your books. The model parts (Fair, Scores First %, the tip Prediction, Value and its record) are gone."],

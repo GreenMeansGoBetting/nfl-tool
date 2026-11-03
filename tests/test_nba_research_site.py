@@ -44,7 +44,13 @@ PROPS = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "fields": F
     "3": {"name": "Player Three", "team": "AAA", "pos": "SG", "log": THREE},
     "4": {"name": "Player Four", "team": "CCC", "pos": "PG", "log": FOUR},
     "5": {"name": "Player Five", "team": "AAA", "pos": "SF", "log": FIVE},
-}, "out": {"AAA": {"4": [["2", "injury"]], "5": [["2", "injury"], ["3", "rest"]], "6": [["2", "injury"], ["3", "rest"]]}}}}}
+}, "out": {"AAA": {"4": [["2", "injury"]], "5": [["2", "injury"], ["3", "rest"]], "6": [["2", "injury"], ["3", "rest"]]}}}},
+    # the research panel (research.py): One's game 4 line was 19.5; Two set up 5 of his 20 makes
+    "research": {"players": {"1": {"q": [30, 30, 30, 30], "trans": [12, 120], "units": [40, 30, 160, 90], "feed": [20, [["2", 5], ["3", 2]]],
+                                   "rot": [6] * 12 + [3] * 12 + [6] * 12 + [4] * 12, "rot5": [5] * 48, "rotn": [6, 5], "q4": [4, 40.0, 2, 12.0],
+                                   "foul": ["2"], "lines": {"4": 19.5}}},
+                 "teams": {"BBB": [50, 60, 150, 160]}, "games": {str(g): [100.0 + g, 220.0 + g, -4.5] for g in range(1, 7)}, "spots": {}}}
+PROPS["seasons"]["2027"]["players"]["1"]["with"] = {"2": [60.0, 30, 25, 150.0, 100, 70], "3": [100.0, 50, 40, 110.0, 80, 55]}
 
 
 def quotes(line, over_dk=-110, over_fd=100):
@@ -127,6 +133,57 @@ class Points(unittest.TestCase):
         self.page.wait_for_selector("#player-card-modal:not([hidden]) .pc-name")
         self.page.keyboard.press("Escape")
         self.assertEqual(SITE.errors, [])
+
+
+class Panel(unittest.TestCase):
+    """Clicking a Points row (not its name or a price) opens the research dashboard under it."""
+    @classmethod
+    def setUpClass(cls):
+        cls.page = SITE.open("nba/points.html")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+
+    def open(self):
+        self.page.click("#rs-list tr.rs-click td.rs-line")
+        self.page.wait_for_selector("#rs-list .rs-panel")
+
+    def test_the_tiles(self):
+        self.open()
+        titles = self.page.evaluate("() => [...document.querySelectorAll('.rs-tile h4')].map((h) => h.textContent.replace(/i$/, '').trim())")
+        self.assertEqual(titles, ["Points Vs The Line", "Recent Form", "How He Scores", "Teammates On The Floor", "Matchup Angles", "Game Script", "Rotation"])
+        # his 6 games against tonight's 20.5: 3 over (the 25s), 3 under; game 4's saved line drawn
+        self.assertEqual(self.page.locator(".rs-bar.over").count(), 3)
+        self.assertEqual(self.page.locator(".rs-bar.under").count(), 3)
+        self.assertEqual(self.page.locator(".rs-then").count(), 1)
+        self.assertIn("OVER 3 OF 6", self.page.inner_text(".rs-chart-foot").upper())
+        # teammates: most minutes together first, his points a 36 on / off, Two's assists to him
+        mates = self.page.evaluate("() => [...document.querySelectorAll('.rs-mates tbody tr')].map((tr) => [...tr.children].map((c) => c.innerText.trim()))")
+        self.assertTrue(mates[0][0].startswith("Three"), mates)
+        self.assertTrue(mates[1][0].startswith("Two"))
+        self.assertEqual(mates[1][2:4], ["18.0", "24.0"])  # 30 in 60 min, 100 in 150 min
+        self.assertEqual(mates[1][-1], "5")
+        self.assertIn("rs-mate-out", self.page.get_attribute(".rs-mates tbody tr:nth-child(2)", "class"))  # Two is Out tonight
+        # the rotation strip: 48 minutes, a game count in every hover
+        self.assertEqual(self.page.locator(".rs-rot-row:first-child .rs-rot i").count(), 48)
+        self.assertIn("6 of 6 games", self.page.get_attribute(".rs-rot-row:first-child .rs-rot i", "title"))
+        self.assertEqual(SITE.errors, [])
+        text = self.page.inner_text(".rs-panel")
+        for word in ("Edge", "Fair", "Projection", "Model"):
+            self.assertNotIn(word, text)
+
+    def test_click_again_closes_and_the_name_still_opens_the_card(self):
+        if not self.page.locator("#rs-list .rs-panel").count():
+            self.open()
+        self.page.click("#rs-list tr.rs-click td.rs-line")
+        self.assertEqual(self.page.locator("#rs-list .rs-panel").count(), 0)
+        self.page.click("#rs-list tr.rs-click .player-click")
+        self.page.wait_for_selector("#player-card-modal:not([hidden]) .pc-name")
+        self.page.keyboard.press("Escape")
+        self.assertEqual(self.page.locator("#rs-list .rs-panel").count(), 0)
+
+    def test_other_markets_have_no_panel_yet(self):
+        page = SITE.open("nba/rebounds.html")
+        page.wait_for_selector("#rs-list tr.sim-row")
+        self.assertEqual(page.locator("#rs-list tr.rs-click").count(), 0)
 
 
 class OtherMarkets(unittest.TestCase):

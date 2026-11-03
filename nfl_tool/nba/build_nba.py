@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, for smartstake.py
 import first_basket  # noqa: E402
 import props  # noqa: E402
+import research  # noqa: E402
 import shots  # noqa: E402
 import zone_matchups  # noqa: E402
 import smartstake  # noqa: E402
@@ -1045,6 +1046,14 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     block = props.season_block(pbp, box, season_label(season), engine)
     if block:
         blocks[str(season)] = block
+        # The Prop Research panel (research.py), its own try: a failure leaves the panel empty, never the logs.
+        try:
+            reg = box[box["season_type"] == P.REGULAR_SEASON]
+            out["research"] = research.block(engine, reg, block["players"], kotc_lines(season, list(games)),
+                                             fetch_file("schedule", season, data_dir, False))
+            add_line_history(out["research"], season, book_odds or {}, list(games), now_utc)
+        except Exception as ex:
+            print(f"WARNING: NBA research panel failed ({ex!r}).", file=sys.stderr)
     # The sim (its own try: a failure leaves Points and Threes empty, never the game logs).
     # This season only: last season's starting point (2026-10-25) came off on
     # 2026-10-27 (the owner: "stop using last seasons data").
@@ -1054,6 +1063,25 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     except Exception as ex:
         print(f"WARNING: NBA game sim failed ({ex!r}).", file=sys.stderr)
     return out
+
+
+LINES_RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_lines"
+
+
+def add_line_history(rs: dict, season: int, book_odds: dict, games: list, now_utc, path: Path | None = None) -> None:
+    """Every player's main line in every market, saved until tip (research.line_record,
+    model_history/nba_lines/<season>.json); his points line each game goes to the panel
+    (`research.players[id].lines` {game id: line}) for Points Vs The Line."""
+    path = path or LINES_RECORD_DIR / f"{season}.json"
+    record = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    now = now_utc or datetime.now(timezone.utc).replace(tzinfo=None)
+    if research.line_record(record, book_odds, games, lambda g: started(g, now), zone_matchups.main_line):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(record, indent=0, sort_keys=True), encoding="utf-8")
+    for gid, entry in record.items():
+        for pid, ls in (entry.get("lines") or {}).items():
+            if ls and ls[0] is not None and pid in rs["players"]:
+                rs["players"][pid].setdefault("lines", {})[gid] = ls[0]
 
 
 SIM_BASE_N = 3000  # the same game without the dials, for "a normal night" (fewer games: a comparison only)

@@ -234,6 +234,25 @@ Every game played 10,000 times, possession by possession.
   teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
+- **Research panel (Points only so far, 2026-11-03)**: a row click (not the name, a price or a tag)
+  opens a dashboard under it (`panel`, `PANEL`); the owner: "Think of this like a dashboard ... 1-2
+  minutes to look at a player ... digestable, compact, color coded and give context". Seven tiles
+  (summary-card look, `rs-*` in sim.css, the reading in each title's hover): **Points Vs The Line**
+  (last 15 as bars vs tonight's line, his line that night as a white mark), **Recent Form** (season vs
+  L5, the Up / Down: More Shots vs Hot Shooting chip, starts, blowout minutes, the defense's last 5 vs
+  his position), **How He Scores** (self-created / catch / drives bar, shot share, assisted, FT and
+  transition shares ranked among his position, Who Sets Him Up), **Teammates On The Floor** (on / off
+  points and shots a 36, share of minutes together, assists to him), **Matchup Angles** (his side vs
+  the defense's: free throws, transition, bench units, pace, foul trouble; More / Fewer only by the
+  two-sided rule), **Game Script** (his spread / total / pace thirds and tonight's schedule spots,
+  tonight's bucket outlined, under `SMALL` faded), **Rotation** (48-minute strip season / last 5,
+  points by quarter, close vs not-close 4th minutes). Owner turned down a key-defender tile (no
+  defender assignments in the data) and a hit-rate ladder (maybe later).
+- Data: `research.py` -> props.json `research` (own try in `compute_props`): per player `feed`,
+  `trans`, `units` (bench unit = `BENCH_UNIT` 2 or fewer starters), `q`, `rot` / `rot5` / `rotn`,
+  `q4`, `foul`, `lines`; `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
+  `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets
+  until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03). Tests: `tests/test_nba_research.py`.
 
 ## The player card (`nba-card.js`)
 

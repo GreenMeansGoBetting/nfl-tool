@@ -296,3 +296,94 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 .rs-list td.rs-price .nba-pc-save { margin-left: 5px; vertical-align: middle; }
 .rs-list tr.sim-row { cursor: default; }
 .sim-rtag.rs-maybe { border-style: dashed; }
+
+/* The research panel under a clicked Points row (research.js panel, 2026-11-03): a dashboard of
+   tiles, the summary-card look (rounded tiles, shaded boxes). Green = toward more points, red = fewer. */
+.rs-list tr.sim-row.rs-click { cursor: pointer; }
+.rs-list tr.sim-row.rs-click:hover > td { background-color: var(--table-head); }
+.rs-list tr.rs-panel-row > td { padding: 0 8px 12px; background: var(--table-head); text-align: left; white-space: normal; }
+.rs-panel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; min-width: 1080px; }
+.rs-tile { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px 9px; min-width: 0; }
+.rs-tile.rs-wide { grid-column: span 2; }
+.rs-tile.rs-full { grid-column: 1 / -1; }
+.rs-tile h4 { margin: 0 0 6px; font: 800 0.74rem var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); cursor: help; display: flex; align-items: center; gap: 6px; }
+.rs-i { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border-strong); font: 700 0.6rem var(--font-body); color: var(--muted); text-transform: none; }
+.rs-none { margin: 6px 0; color: var(--muted); font-size: 0.8rem; }
+.rs-list .rs-panel table.rs-mini { width: 100%; border-collapse: separate; border-spacing: 0 2px; font-size: 0.78rem; }
+.rs-list .rs-panel .rs-mini th, .rs-list .rs-panel .rs-mini td { padding: 3px 6px; border: 0; text-align: center; white-space: nowrap; font-weight: 600; background-clip: padding-box; }
+.rs-list .rs-panel .rs-mini tbody th { text-align: left; font-weight: 700; color: var(--text); text-transform: none; letter-spacing: 0; }
+.rs-list .rs-panel .rs-mini thead th { font: 800 0.62rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding-bottom: 1px; background: transparent; }
+.rs-list .rs-panel .rs-mini tbody td { background-color: var(--panel-2); }
+.rs-list .rs-panel .rs-mini tbody tr > :first-child { border-radius: 6px 0 0 6px; }
+.rs-list .rs-panel .rs-mini tbody tr > :last-child { border-radius: 0 6px 6px 0; }
+.rs-list .rs-panel .rs-mini td b { font: 800 0.86rem var(--font-display); }
+.rs-list .rs-panel .rs-mini td small { font-size: 0.66rem; color: var(--muted); margin-left: 3px; }
+.rs-list .rs-panel .rs-mini td.rs-ch { color: var(--muted); }
+.rs-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.rs-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 6px; font: 700 0.7rem var(--font-body); color: var(--text); background: var(--panel-2); border: 1px solid var(--border-strong); white-space: nowrap; }
+.rs-chip.good { color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border-color: rgba(var(--good-rgb), 0.55); }
+.rs-chip.bad { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.14); border-color: rgba(var(--bad-rgb), 0.5); }
+.rs-chip.warn { color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border-color: rgba(var(--mid-rgb), 0.55); }
+/* Points Vs The Line */
+.rs-chart { display: block; width: 100%; height: 150px; overflow: visible; }
+.rs-bar { fill: rgba(var(--mid-rgb), 0.55); }
+.rs-bar.over { fill: rgba(var(--good-rgb), 0.7); }
+.rs-bar.under { fill: rgba(var(--bad-rgb), 0.62); }
+.rs-bar-v { font: 800 10px var(--font-display); fill: var(--text); text-anchor: middle; }
+.rs-bar-l { font: 700 8.5px var(--font-body); fill: var(--text); text-anchor: middle; }
+.rs-bar-d { fill: var(--muted); font-weight: 600; }
+.rs-tonight { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.rs-tonight-t { font: 800 10px var(--font-display); fill: var(--text); text-anchor: end; }
+.rs-then { stroke: #fff; stroke-width: 2.5; opacity: 0.9; }
+[data-theme="light"] .rs-then { stroke: #111; }
+.rs-chart-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.rs-legend { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 0.68rem; color: var(--muted); }
+.rs-legend i { display: inline-block; width: 16px; height: 0; margin-left: 6px; }
+.rs-k-tonight { border-top: 2px dashed var(--text); }
+.rs-k-then { border-top: 3px solid #fff; }
+[data-theme="light"] .rs-k-then { border-top-color: #111; }
+/* How He Scores */
+.rs-stack { display: flex; height: 18px; border-radius: 6px; overflow: hidden; background: var(--panel-2); }
+.rs-stack span { display: grid; place-items: center; font: 800 0.64rem var(--font-body); color: #fff; }
+.rs-stack-key { display: flex; flex-wrap: wrap; gap: 2px 8px; margin: 4px 0; font-size: 0.64rem; color: var(--muted); }
+.rs-stack-key i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+.rs-k1 { background: #8b5cf6; }
+.rs-k2 { background: #0ea5e9; }
+.rs-k3 { background: #f59e0b; }
+.rs-k4 { background: #64748b; }
+.rs-list .rs-panel .rs-metrics td.rs-meter { width: 100%; padding: 3px 4px; }
+.rs-meter span { display: block; height: 7px; border-radius: 4px; background: var(--accent); opacity: 0.75; }
+.rs-list .rs-panel .rs-metrics td.rs-rank { font-size: 0.66rem; color: var(--muted); }
+.rs-feed { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
+.rs-feed-h { font: 800 0.62rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-right: 2px; cursor: help; }
+/* Teammates On The Floor */
+.rs-together { display: inline-block; vertical-align: middle; width: 44px; height: 6px; margin-right: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.rs-together span { display: block; height: 100%; background: var(--accent); }
+.rs-list .rs-panel .rs-mates tbody th { width: 100%; }
+.rs-list .rs-panel .rs-mates tr.rs-mate-out th { box-shadow: inset 3px 0 0 rgba(var(--bad-rgb), 0.8); }
+/* Matchup Angles, Game Script */
+.rs-list .rs-panel .rs-angles td.rs-read { background: transparent; }
+.rs-list .rs-panel .rs-script tr.rs-group td { background: transparent; text-align: left; padding: 5px 2px 0; font: 800 0.62rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.rs-list .rs-panel .rs-script tr.rs-tonight-row > * { box-shadow: inset 0 1.5px 0 var(--text), inset 0 -1.5px 0 var(--text); }
+.rs-list .rs-panel .rs-script tr.rs-tonight-row > :first-child { box-shadow: inset 1.5px 1.5px 0 var(--text), inset 0 -1.5px 0 var(--text); }
+.rs-list .rs-panel .rs-script tr.rs-tonight-row > :last-child { box-shadow: inset -1.5px 1.5px 0 var(--text), inset 0 -1.5px 0 var(--text); }
+.rs-list .rs-panel .rs-script tr.rs-small > * { opacity: 0.55; }
+.rs-tag { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 4px; font: 800 0.56rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; background: var(--text); color: var(--panel); vertical-align: 1px; }
+/* Rotation */
+.rs-rot-wrap { display: flex; gap: 16px; align-items: center; }
+.rs-rot-strips { flex: 1; min-width: 0; }
+.rs-rot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.rs-rot-l { width: 52px; flex: none; font: 700 0.68rem var(--font-body); color: var(--muted); text-align: right; }
+.rs-rot { flex: 1; display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); gap: 1px; height: 20px; }
+.rs-rot i { border-radius: 2px; }
+.rs-rot i.q { margin-left: 3px; }
+.rs-rot-q { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); font: 700 0.62rem var(--font-body); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.rs-rot-q span { text-align: center; }
+.rs-rot-side { display: flex; align-items: center; gap: 12px; flex: none; }
+.rs-qpts { display: flex; gap: 4px; align-items: flex-end; height: 52px; }
+.rs-qpt { position: relative; width: 38px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; border-radius: 6px; background: var(--panel-2); overflow: hidden; }
+.rs-qpt i { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(14, 165, 233, 0.35); }
+.rs-qpt span, .rs-qpt b { position: relative; z-index: 1; }
+.rs-qpt span { font: 700 0.58rem var(--font-body); color: var(--muted); }
+.rs-qpt b { font: 800 0.86rem var(--font-display); margin-bottom: 3px; }
+.rs-q4 { flex-direction: column; margin-top: 0; }
