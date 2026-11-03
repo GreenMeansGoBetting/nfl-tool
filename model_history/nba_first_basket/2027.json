@@ -9033,9 +9033,9 @@
    "3908845": [
     "John Collins",
     0.093,
-    950,
+    1000,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3917376": [
     "Jaylen Brown",
@@ -9047,8 +9047,8 @@
    "4278562": [
     "Paul Reed",
     0.085,
-    1100,
-    false,
+    1200,
+    true,
     "hard_rock"
    ],
    "4431678": [
@@ -9068,9 +9068,9 @@
    "4684742": [
     "Ausar Thompson",
     0.087,
-    1200,
+    1750,
     true,
-    "fanduel"
+    "hard_rock"
    ],
    "5124612": [
     "VJ Edgecombe",
@@ -9635,42 +9635,42 @@
    "3133626": [
     "Kenrich Williams",
     0.075,
-    1250,
-    false,
-    "bet365"
+    1500,
+    true,
+    "hard_rock"
    ],
    "3908809": [
     "Donovan Mitchell",
     0.09,
-    575,
+    750,
     false,
-    "bet365"
+    "fanduel"
    ],
    "3992": [
     "James Harden",
     0.093,
-    900,
-    false,
-    "bet365"
+    1200,
+    true,
+    "fanduel"
    ],
    "4066328": [
     "Jarrett Allen",
     0.104,
-    1000,
-    true,
+    900,
+    false,
     "hard_rock"
    ],
    "4222252": [
     "Isaiah Hartenstein",
     0.111,
-    1000,
+    900,
     true,
     "hard_rock"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
     0.11,
-    1000,
+    950,
     true,
     "bet365"
    ],
@@ -9684,7 +9684,7 @@
    "4576087": [
     "Peyton Watson",
     0.089,
-    1100,
+    1000,
     false,
     "hard_rock"
    ],
