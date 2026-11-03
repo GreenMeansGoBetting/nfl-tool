@@ -305,61 +305,94 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 [data-theme="light"] { --rs-box: #e9eef5; --rs-tabs: #d9e1ec; --rs-sep: #c9d3e0; --rs-label: #dde4ee; --rs-tile: #f6f8fb; }
 .rs-list tr.sim-row.rs-click { cursor: pointer; }
 .rs-list tr.sim-row.rs-click:hover > td { background-color: var(--table-head); }
-table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; padding: 0 8px 12px; background: var(--table-head); text-align: left; white-space: normal; }
-.rs-panel { display: grid; grid-template-columns: repeat(2, minmax(640px, 1fr)); gap: 10px; }
+.rs-list tr.sim-row.open > td { background-color: var(--table-head); }
+/* space between the clicked row and its panel (the owner, 2026-11-03: it hugged the row) */
+table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; padding: 12px 8px 14px; background: var(--table-head); text-align: left; white-space: normal; }
+/* two boxes of one fixed width, never stretched to the screen */
+.rs-panel { display: grid; grid-template-columns: repeat(2, 600px); justify-content: start; gap: 12px; }
 .rs-none { margin: 6px 0; font-size: 0.85rem; }
-.rs-sb { height: 306px; box-sizing: border-box; display: flex; flex-direction: column; background: var(--rs-box); border: 1px solid var(--rs-sep); border-radius: 12px; overflow: hidden; }
-/* the tabs are the box's title */
-.rs-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 36px; flex: none; background: var(--rs-tabs); }
-.rs-tabs button { border: 0; border-right: 1px solid var(--rs-sep); background: transparent; color: var(--text); font: 700 0.95rem var(--font-display); cursor: pointer; }
-.rs-tabs button:last-child { border-right: 0; }
-.rs-tabs button:hover { background: rgba(var(--accent-rgb), 0.12); }
-.rs-tabs button.on { background: var(--text); color: var(--bg); }
-.rs-sbody { flex: 1; padding: 6px; min-height: 0; }
-/* the grid every tab uses */
-.rs-g { display: grid; grid-template-columns: 150px repeat(7, minmax(0, 1fr)); grid-template-rows: 28px; grid-auto-rows: 34px; gap: 3px; }
+.rs-sb { height: 312px; box-sizing: border-box; display: flex; flex-direction: column; background: var(--rs-box); border: 1px solid var(--rs-sep); border-radius: 12px; overflow: hidden; }
+/* the tabs are the box's title: separate raised buttons, the open one filled */
+.rs-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; padding: 7px 7px 0; flex: none; }
+.rs-tabs button { height: 32px; border: 1px solid var(--rs-sep); border-radius: 8px; background: var(--rs-tabs); box-shadow: 0 2px 0 var(--rs-sep); color: var(--text); font: 700 0.92rem var(--font-display); cursor: pointer; }
+.rs-tabs button:hover { border-color: rgba(var(--accent-rgb), 0.7); background: rgba(var(--accent-rgb), 0.16); }
+.rs-tabs button.on { background: var(--text); border-color: var(--text); box-shadow: none; transform: translateY(1px); color: var(--bg); cursor: default; }
+.rs-sbody { flex: 1; padding: 9px 7px 7px; min-height: 0; }
+/* the grid every tab uses: a label column and seven equal columns. Column groups are shaded behind
+   (rs-bands: blue = him, purple = tonight's defense, green = the read) */
+.rs-gw { position: relative; isolation: isolate; }
+.rs-g { --rs-lw: 112px; display: grid; grid-template-columns: var(--rs-lw) repeat(7, minmax(0, 1fr)); grid-template-rows: 28px; grid-auto-rows: 34px; column-gap: 6px; row-gap: 3px; }
+.rs-g.rs-wide { --rs-lw: 150px; }
+.rs-g.rs-bands { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.rs-band { grid-row: 1 / span 7; margin: -3px -2px; border-radius: 9px; }
+.rs-sbody > .rs-gw { height: 100%; }
+.rs-band.rs-him { background: rgba(70, 130, 220, 0.2); }
+.rs-band.rs-def { background: rgba(150, 100, 220, 0.2); }
+.rs-band.rs-rd { background: rgba(var(--accent-rgb), 0.16); }
 .rs-t { display: flex; align-items: center; justify-content: center; min-width: 0; border-radius: 6px; background: var(--rs-tile); color: var(--text); font: 700 1.05rem var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rs-t.rs-l { justify-content: flex-start; gap: 6px; padding: 0 9px; background: var(--rs-label); font: 700 0.9rem var(--font-body); }
 .rs-t.rs-l.rs-out { box-shadow: inset 3px 0 0 rgb(var(--bad-rgb)); }
 .rs-t.rs-l .player-click { overflow: hidden; text-overflow: ellipsis; }
-.rs-t.rs-h { font: 800 0.74rem var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; }
+.rs-t.rs-h { font: 800 0.72rem var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; white-space: normal; text-align: center; line-height: 1.05; }
+.rs-t.rs-small { opacity: 0.55; }
+.rs-t.rs-count { background: var(--rs-label); }
 .rs-t.rs-him { background: rgba(70, 130, 220, 0.3); }
 .rs-t.rs-def { background: rgba(150, 100, 220, 0.3); }
 .rs-t.rs-rd { background: rgba(var(--accent-rgb), 0.3); }
 .rs-t.rs-plain { background: var(--rs-label); }
-.rs-t.rs-corner { justify-content: flex-start; gap: 5px; padding: 0 6px; background: transparent; font: 800 0.74rem var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+.rs-t.rs-corner { justify-content: flex-start; gap: 4px; padding: 0 2px; background: transparent; font: 800 0.7rem var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; overflow: visible; }
 .rs-t.rs-blank { background: transparent; }
-.rs-dot { display: inline-block; width: 9px; height: 9px; border-radius: 3px; flex: none; }
-.rs-dot.rs-him { background: rgba(70, 130, 220, 0.8); }
-.rs-dot.rs-def { background: rgba(150, 100, 220, 0.8); margin-left: 4px; }
+/* the corner key: his jersey on blue, the defense vs his position on purple */
+.rs-key { display: inline-flex; align-items: center; gap: 3px; height: 24px; padding: 0 5px; border-radius: 6px; flex: none; }
+.rs-key.rs-him { background: rgba(70, 130, 220, 0.4); }
+.rs-key.rs-def { background: rgba(150, 100, 220, 0.4); text-transform: none; font-size: 0.74rem; }
 .rs-corner img { flex: none; }
+/* his jersey number on a jersey in his team's color */
+.rs-jersey { display: inline-flex; align-items: flex-end; justify-content: center; width: 26px; height: 21px; padding-bottom: 1px; box-sizing: border-box; color: #fff; font: 800 0.72rem var(--font-display); letter-spacing: 0; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  clip-path: polygon(22% 0, 38% 0, 50% 16%, 62% 0, 78% 0, 100% 22%, 86% 40%, 86% 100%, 14% 100%, 14% 40%, 0 22%); }
+.rs-jname { max-width: 64px; overflow: hidden; text-overflow: ellipsis; }
+.rs-h .rs-jersey { width: 28px; height: 22px; }
 .rs-s2 { grid-column: span 2; }
 .rs-s3 { grid-column: span 3; }
 .rs-s7 { grid-column: span 7; }
 .rs-face { width: 30px; height: 22px; flex: none; object-fit: cover; border-radius: 4px; }
 .rs-t .rs-inj { flex: none; }
-/* Rotation: the minute strips and the quarter headers inside a seven-column span */
-.rs-strip { display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); gap: 2px; }
+/* Rotation: three tall minute strips filling the box, four quarter blocks with a clear gap, the
+   quarter headers (his points that quarter) over the same blocks */
+.rs-g.rs-rot { height: 100%; grid-template-rows: 44px repeat(3, minmax(0, 1fr)); grid-auto-rows: 0; row-gap: 6px; }
+.rs-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rs-strip span { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 6px; background: var(--rs-label); }
 .rs-strip i { border-radius: 3px; background: var(--rs-tile); }
-.rs-strip i.q { margin-left: 4px; }
-.rs-qh { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
-/* Vs The Line: bars that touch, tonight's line dashed, his line each night as dots */
-.rs-vl { height: 100%; display: flex; flex-direction: column; gap: 3px; }
+.rs-qh { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rs-t.rs-qt { flex-direction: column; gap: 1px; background: var(--rs-label); }
+.rs-t.rs-qt b { font: 800 1rem var(--font-display); letter-spacing: 0; text-transform: none; }
+/* Vs The Line: a slot a day, slim bars, tonight's line dashed, his line each night as dots */
+.rs-vl { height: 100%; display: flex; flex-direction: column; gap: 4px; }
 .rs-vplot { position: relative; flex: 1; min-height: 0; margin-top: 14px; }
-.rs-vbar { position: absolute; bottom: 0; box-sizing: border-box; border-right: 2px solid var(--rs-box); display: flex; align-items: flex-end; justify-content: center; background: rgba(var(--mid-rgb), 0.6); }
-.rs-vbar:last-child { border-right: 0; }
+.rs-vbar { position: absolute; bottom: 0; box-sizing: border-box; display: flex; align-items: flex-end; justify-content: center; background: rgba(var(--mid-rgb), 0.6); clip-path: inset(0 4px round 4px 4px 0 0); }
 .rs-vbar.over { background: hsla(135, 62%, 40%, 0.85); }
 .rs-vbar.under { background: hsla(0, 70%, 50%, 0.8); }
-.rs-vbar b { margin-bottom: 4px; font: 800 1.02rem var(--font-display); color: #fff; }
+.rs-vbar b { margin-bottom: 4px; font: 800 0.9rem var(--font-display); color: #fff; }
+.rs-vday { position: absolute; bottom: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.rs-vday span { margin-bottom: 4px; padding: 2px 0; width: calc(100% - 8px); text-align: center; border-radius: 4px; font: 800 0.62rem var(--font-display); letter-spacing: 0.03em; }
+.rs-vday.off span { color: var(--muted); background: var(--rs-tile); }
+.rs-vday.out span { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.16); border: 1px solid rgba(var(--bad-rgb), 0.5); }
 .rs-vline { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--text); }
+.rs-vline em { position: absolute; right: 0; bottom: 2px; padding: 0 4px; border-radius: 4px; background: var(--rs-box); font: 800 0.7rem var(--font-display); font-style: normal; }
 .rs-vpath { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .rs-vpath path { fill: none; stroke: #3b6fc4; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
 .rs-vdot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: hsl(0, 75%, 52%); border: 2px solid var(--rs-box); box-sizing: border-box; }
 .rs-vdot.hit { background: hsl(135, 65%, 42%); }
 .rs-vdot em { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); font: 800 0.72rem var(--font-display); font-style: normal; color: var(--text); text-shadow: 0 0 3px var(--rs-box), 0 0 3px var(--rs-box); white-space: nowrap; }
 .rs-vx { display: flex; flex: none; }
-.rs-vx span { flex: 1; min-width: 0; text-align: center; font: 700 0.7rem var(--font-body); white-space: nowrap; overflow: hidden; }
-.rs-vfoot { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; flex: none; }
-.rs-vfoot .rs-t { height: 32px; font-size: 0.95rem; }
+.rs-vx span { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; font: 600 0.64rem var(--font-body); color: var(--muted); white-space: nowrap; overflow: hidden; }
+.rs-vx span b { font: 800 0.68rem var(--font-display); color: var(--text); }
+/* phones: one box at a time, held in view while the list scrolls sideways; a box scrolls inside */
+@media (max-width: 760px) {
+  .rs-panel { grid-template-columns: min(600px, calc(100vw - 40px)); position: sticky; left: 0; width: max-content; }
+  .rs-sb { width: 100%; }
+  .rs-sbody { overflow-x: auto; }
+  .rs-gw, .rs-vl { min-width: 560px; }
+}
 /* the main list: Tonight's Game band */
 .sim-group-row th.sim-hitgroup.rs-gamegroup span { background: rgba(150, 100, 220, 0.2); border-color: rgba(150, 100, 220, 0.45); }

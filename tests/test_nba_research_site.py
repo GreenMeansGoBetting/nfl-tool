@@ -40,7 +40,7 @@ FOUR = log([(7, "BBB", 33, 30, 4, 7), (8, "BBB", 33, 14, 4, 7)])
 # a bench forward on AAA with no line (Every Player only)
 FIVE = log([(1, "CCC", 22, 8, 5, 1), (2, "CCC", 22, 8, 5, 1)])
 PROPS = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "fields": FIELDS, "players": {
-    "1": {"name": "Player One", "team": "AAA", "pos": "PG", "log": ONE},
+    "1": {"name": "Player One", "team": "AAA", "pos": "PG", "num": "7", "log": ONE},
     "2": {"name": "Player Two", "team": "AAA", "pos": "C", "log": TWO},
     "3": {"name": "Player Three", "team": "AAA", "pos": "SG", "log": THREE},
     "4": {"name": "Player Four", "team": "CCC", "pos": "PG", "log": FOUR},
@@ -178,7 +178,9 @@ class Panel(unittest.TestCase):
             for name in names:
                 box = self.tab(side, name)
                 sizes.add(tuple(self.page.evaluate(f"() => {{ const b = document.querySelector(\"{box}\").getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }}")))
-                if name != "Vs The Line":
+                if name == "Rotation":
+                    self.assertEqual(len(self.cells(box)), 4)  # the quarter headers + three tall strips
+                elif name != "Vs The Line":
                     self.assertEqual(len(self.cells(box)), 7, name)  # a header row + six rows, always
         self.assertEqual(len(sizes), 1, sizes)  # every tab the same box
         self.assertEqual(SITE.errors, [])
@@ -193,7 +195,10 @@ class Panel(unittest.TestCase):
         self.assertEqual(self.page.locator(".rs-vbar.under").count(), 3)
         self.assertEqual(self.page.locator(".rs-vdot.hit").count(), 1)
         self.assertEqual(self.page.locator(".rs-vdot em").first.text_content(), "19.5")
-        self.assertIn("3 of 6", self.page.inner_text(".rs-vfoot"))
+        # a slot a day: his six straight days, no OFF / OUT between them, and no strip under the chart
+        self.assertEqual(self.page.locator(".rs-vx span").count(), 6)
+        self.assertEqual(self.page.locator(".rs-vday").count(), 0)
+        self.assertEqual(self.page.locator(".rs-vfoot").count(), 0)
 
     def test_teammates(self):
         rows = self.cells(self.tab("right", "Teammates"))
@@ -209,29 +214,43 @@ class Panel(unittest.TestCase):
         box = self.tab("right", "Rotation")
         self.assertEqual(self.page.locator(f"{box} .rs-strip").first.locator("i").count(), 48)
         self.assertIn("6 of 6 games", self.page.get_attribute(f"{box} .rs-strip i", "title"))
+        # his points by quarter ride in the quarter headers (30 a quarter over 6 games = 5.0)
+        self.assertEqual(self.page.locator(f"{box} .rs-qt").first.text_content(), "1st Qtr5.0 Pts")
+        self.assertNotIn("Close", self.page.inner_text(box))
 
     def test_game_script_ranges(self):
         rows = self.cells(self.tab("left", "Game Script"))
         labels = [r[0] for r in rows[1:]]
         # One is on the road: +3.5 tonight, his games within 5 either way; the total 225 +- 5
-        self.assertEqual(labels[:3], ["All His Games", "Spread −1.5 To +8.5", "Total 220.0 To 230.0"])
+        self.assertEqual(labels[:5], ["All Games", "Spread +3.5", "Total 225.0", "Road Games", "Last 10"])  # no schedule spots
         self.assertEqual(rows[2][1], "3")  # his road games had +4.5 (home games -4.5: 8 away)
         self.assertEqual(rows[3][1], "6")
-        self.assertIn("Road Games", labels)  # room left: tonight's venue fills a row
-        self.assertTrue(rows[0][0].startswith("+3.5"))
+        self.assertEqual(rows[0][1:4], ["Games", "PTS", "+/-"])
+
+    def test_matchup(self):
+        rows = self.cells(self.tab("left", "Matchup"))
+        self.assertEqual(rows[0][1:], ["7", "Rank", "Avg", "Allows", "Rank", "Avg", "Read"])
+        self.assertEqual(len(rows[1]), 8)  # Read is one column now
 
     def test_scoring_beside_the_defense(self):
         rows = self.cells(self.tab("left", "Scoring"))
         self.assertEqual(rows[0][1:], ["Share", "Rank", "Pts / G", "Allowed", "Rank", "Pts / G", "Read"])
-        self.assertEqual([r[0] for r in rows[1:]], ["Shot Share", "Assisted Makes", "From Threes", "From Mid-Range", "From The Paint", "From The Line"])
+        self.assertEqual([r[0] for r in rows[1:]], ["Shot Share", "Assisted", "Threes", "Mid-Range", "Paint", "Free Throws"])
         self.assertEqual(rows[1][4], "30%")  # BBB: 30 of the 100 shots against them by PGs
         self.assertEqual(rows[2][4], "63%")  # 10 of 16 PG makes assisted
         self.assertEqual(rows[3][1], "25%")  # his points: 30 of 120 from threes
 
     def test_form_beside_the_defense(self):
-        rows = self.cells(self.tab("left", "Form"))
+        box = self.tab("left", "Form")
+        rows = self.cells(box)
         self.assertEqual(rows[0][1:], ["Season", "L10", "L5", "+/-", "Season", "L5", "+/-"])
-        self.assertEqual(rows[1][:2], ["Points", "20.0"])
+        self.assertEqual(self.page.inner_text(f"{box} .rs-corner .rs-jersey"), "7")  # the key: his jersey number
+        self.assertIn("vs PGs", rows[0][0])  # ... and the defense vs his position
+        self.assertEqual(rows[1][:2], ["PTS", "20.0"])
+        # 6 games: his L10 is his season, so it's the same color (both against his position)
+        tiles = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-g > .rs-t\")].slice(9, 11).map((t) => t.getAttribute('style'))")
+        self.assertEqual(tiles[0], tiles[1])
+        self.assertEqual(self.page.locator(f"{box} .rs-band").count(), 2)  # him / the defense shaded
         self.assertEqual(rows[1][5], "22.0")  # BBB allow PGs 22 a game
         self.assertEqual(rows[2][5:], ["--", "--", "--"])  # minutes: his only
 

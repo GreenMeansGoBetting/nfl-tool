@@ -239,17 +239,23 @@ Every game played 10,000 times, possession by possession.
   standard sandbox area so youd always know how to conform data to it"): two boxes of one size side
   by side, each with tabs (`RS_TABS`: left Form / Scoring / Matchup / Game Script, right Vs The Line /
   Rotation / Teammates; `RSV` keeps the open tab), and **every tab is the same grid** (`.rs-g`: one
-  header row, `RS_ROWS` 6 rows, a 150 px label column + 7 equal columns, 3 px gaps; `gridOf` fills
-  short tabs with blank rows; merge with `rs-s2` / `rs-s3` / `rs-s7`). Blue header = him, purple =
-  tonight's defense, green = the read (`readOf`, the two-sided rule); tiles on the 8-step scale
-  (`stepStyle`). A new research view is a new tab on this grid, never a new shape.
-  Form (Season / L10 / L5 / +/- vs DEF Season / L5 / +/-: points, minutes, shots, threes, FTs, FG %;
-  `defenseByPos`), Scoring (share / rank / pts a game vs DEF allowed / rank / pts a game, read: shot
-  share, assisted, threes, mid-range, paint, line; `defShares`), Matchup (points, FTs, transition,
-  bench units, pace, foul trouble), Game Script (his games within `SCRIPT_RANGE` 5 of tonight's
-  spread and total, `PACE_RANGE` 2 of the pace, tonight's spots, then venue / last 10 to fill),
-  Vs The Line (touching bars, tonight's dashed line, his line that night as dots), Rotation (season /
-  last 5 / last game minute strips, points by quarter, close vs not-close 4th minutes, starts, rest),
+  header row, `RS_ROWS` 6 rows, a 112 px label column (Teammates 150, `rs-wide`) + 7 equal columns;
+  `gridOf` fills short tabs with blank rows; merge with `rs-s2` / `rs-s3` / `rs-s7`). **Boxes a fixed
+  600 px, never stretched**; tabs are separate raised buttons; space above the panel (2026-11-03).
+  Blue = him, purple = tonight's defense, green = the read (`readOf`, the two-sided rule), as header
+  tiles AND shaded bands behind each column group (`gridOf` `bands`); tiles on the 8-step scale
+  (`stepStyle`). **Him = his jersey number** on a jersey in his team's color (`jersey`, props.json
+  `num`); the corner key = jersey + "<logo> vs PGs". Short labels (PTS / MIN / FGA / 3PM / FTA / FG%;
+  Threes / Mid-Range / Paint / Free Throws). A new research view is a new tab on this grid, never a new shape.
+  Form (Season / L10 / L5 all colored vs his position, +/- by the change; vs DEF Season / L5 / +/-;
+  `defenseByPos`), Scoring (share / rank / pts a game vs DEF allowed / rank / pts a game, read;
+  `defShares`), Matchup (jersey / rank / position avg vs allows / rank / league avg, read one column),
+  Game Script (All Games, his games within `SCRIPT_RANGE` 5 of tonight's spread and total,
+  `PACE_RANGE` 2 of the pace, venue, last 10; every number vs his season; under `SMALL` faded;
+  **no schedule spots**, the owner: "too niche"), Vs The Line (the last `LINE_DAYS` 15 days a slot each:
+  slim bars, OUT = team played without him, OFF = no game; team over date; tonight's dashed line, his
+  line that night as dots; **no strip under it**), Rotation (quarter headers carry points a quarter,
+  colored; three tall strips season / last 5 / last game in four quarter blocks; nothing under them),
   Teammates (together, shots and points a 36 with / without, change, assists to him).
 - **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
   book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30

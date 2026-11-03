@@ -91,6 +91,7 @@ def season_block(pbp: pd.DataFrame, box: pd.DataFrame, label: str, season: P.Sea
         players[str(int(pid))] = {
             "name": last["athlete_display_name"], "team": last["team_abbreviation"],
             "pos": last.get("athlete_position_abbreviation") or "",
+            "num": str(last.get("athlete_jersey") or "").split(".")[0] if pd.notna(last.get("athlete_jersey")) else "",
             "log": [[r.date, int(r.game_id), r.opponent_team_abbreviation, int(r.home_away == "home"), int(bool(r.starter)),
                      int(round(r.minutes or 0)), int(r.points or 0), int(r.field_goals_attempted or 0),
                      int(r.three_point_field_goals_made or 0), int(r.three_point_field_goals_attempted or 0),
