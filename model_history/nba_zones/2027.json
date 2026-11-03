@@ -9671,7 +9671,7 @@
     "under",
     true,
     14.5,
-    111,
+    106,
     "novig"
    ],
    [
@@ -9683,8 +9683,8 @@
     "under",
     true,
     19.5,
-    -115,
-    "fanatics"
+    -125,
+    "hard_rock"
    ],
    [
     "3157465",
@@ -9695,8 +9695,8 @@
     "under",
     false,
     13.5,
-    102,
-    "fanduel"
+    100,
+    "novig"
    ],
    [
     "3917376",
@@ -9707,8 +9707,8 @@
     "under",
     true,
     19.5,
-    -112,
-    "fanduel"
+    -113,
+    "novig"
    ],
    [
     "4278562",
@@ -9781,212 +9781,142 @@
  },
  "401909924": {
   "date": "2026-11-04",
-  "points": [],
-  "threes": []
- },
- "401909925": {
-  "date": "2026-11-04",
   "points": [
    [
-    "2583632",
-    "Royce O'Neale",
-    "CHA",
-    "BKN",
-    0.3141,
-    "over",
-    true,
-    8.5,
-    106,
-    "novig"
-   ],
-   [
-    "3135045",
-    "Grayson Allen",
-    "CHA",
-    "BKN",
-    0.2385,
-    "over",
-    true,
-    14.5,
-    -101,
-    "draftkings"
-   ],
-   [
-    "4396971",
-    "Naz Reid",
-    "CHA",
-    "BKN",
-    0.1487,
-    "over",
-    true,
-    17.5,
-    -112,
-    "betrivers"
-   ],
-   [
-    "4432194",
-    "Day'Ron Sharpe",
-    "BKN",
-    "CHA",
-    -0.1795,
-    "under",
-    true,
-    10.5,
-    100,
-    "novig"
-   ],
-   [
-    "4433249",
-    "Moussa Diabate",
-    "CHA",
-    "BKN",
-    0.174,
-    "over",
-    true,
-    7.5,
-    100,
-    "bet365"
-   ],
-   [
-    "4433287",
-    "Brandon Miller",
-    "CHA",
-    "BKN",
-    0.148,
-    "over",
-    true,
-    24.5,
-    108,
-    "novig"
-   ],
-   [
-    "5279130",
-    "Nolan Traore",
-    "BKN",
-    "CHA",
-    0.1147,
+    "4251",
+    "Paul George",
+    "BOS",
+    "MIL",
+    0.0906,
     "over",
     false,
-    7.5,
-    -112,
-    "bet365"
+    19.5,
+    -110,
+    "fanatics"
    ]
   ],
   "threes": [
    [
-    "2583632",
-    "Royce O'Neale",
-    "CHA",
-    "BKN",
-    0.3601,
+    "3134907",
+    "Kyle Kuzma",
+    "MIL",
+    "BOS",
+    0.3873,
     "over",
     true,
     1.5,
-    -135,
-    "novig"
+    130,
+    "fanatics"
    ],
    [
-    "3135045",
-    "Grayson Allen",
-    "CHA",
-    "BKN",
-    0.3666,
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "MIL",
+    0.1183,
+    "over",
+    false,
+    2.5,
+    -105,
+    "fanatics"
+   ],
+   [
+    "4251",
+    "Paul George",
+    "BOS",
+    "MIL",
+    0.1699,
     "over",
     true,
     2.5,
-    -104,
-    "novig"
+    -130,
+    "fanatics"
    ],
    [
-    "3150844",
-    "Moritz Wagner",
-    "BKN",
-    "CHA",
-    0.4542,
-    "over",
-    true,
-    0.5,
-    -125,
-    "bet365"
-   ],
-   [
-    "4396971",
-    "Naz Reid",
-    "CHA",
-    "BKN",
-    0.2958,
-    "over",
-    true,
-    2.5,
-    140,
-    "kalshi"
-   ],
-   [
-    "4433287",
-    "Brandon Miller",
-    "CHA",
-    "BKN",
-    0.3053,
-    "over",
-    true,
-    3.5,
-    114,
-    "kalshi"
-   ],
-   [
-    "4702177",
-    "Keon Ellis",
-    "BKN",
-    "CHA",
-    0.3487,
-    "over",
-    true,
-    1.5,
-    144,
-    "fanduel"
-   ],
-   [
-    "5101761",
-    "Mikel Brown Jr.",
-    "BKN",
-    "CHA",
-    0.2201,
-    "over",
-    true,
-    1.5,
-    186,
-    "fanduel"
-   ],
-   [
-    "5175643",
-    "Egor Demin",
-    "BKN",
-    "CHA",
-    0.2215,
-    "over",
-    true,
-    2.5,
-    114,
-    "kalshi"
-   ],
-   [
-    "5279130",
-    "Nolan Traore",
-    "BKN",
-    "CHA",
+    "4432848",
+    "Jaime Jaquez Jr.",
+    "MIL",
+    "BOS",
     0.3402,
     "over",
     true,
-    0.5,
-    -210,
-    "bet365"
+    1.5,
+    130,
+    "fanatics"
    ]
   ]
  },
- "401909926": {
+ "401909925": {
   "date": "2026-11-04",
   "points": [],
   "threes": []
+ },
+ "401909926": {
+  "date": "2026-11-04",
+  "points": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "CHI",
+    0.188,
+    "over",
+    true,
+    10.5,
+    -105,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "CHI",
+    0.155,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "CHI",
+    0.2251,
+    "over",
+    true,
+    2.5,
+    -110,
+    "fliff"
+   ],
+   [
+    "4397189",
+    "Jalen Smith",
+    "CHI",
+    "NY",
+    0.8535,
+    "over",
+    true,
+    1.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "5095151",
+    "Caleb Wilson",
+    "CHI",
+    "NY",
+    0.0508,
+    "over",
+    false,
+    2.5,
+    130,
+    "fanatics"
+   ]
+  ]
  },
  "401909927": {
   "date": "2026-11-04",
@@ -10045,9 +9975,9 @@
     -0.12,
     "under",
     false,
-    16.5,
-    -105,
-    "hard_rock"
+    17.5,
+    -130,
+    "fanatics"
    ],
    [
     "4683778",
@@ -10058,8 +9988,8 @@
     "under",
     false,
     13.5,
-    -120,
-    "hard_rock"
+    -114,
+    "fanduel"
    ],
    [
     "5174983",
@@ -10084,8 +10014,8 @@
     "over",
     false,
     2.5,
-    105,
-    "bet365"
+    108,
+    "novig"
    ],
    [
     "3992",
@@ -10120,7 +10050,7 @@
     "under",
     true,
     1.5,
-    135,
+    140,
     "hard_rock"
    ],
    [
@@ -10132,8 +10062,8 @@
     "over",
     true,
     1.5,
-    115,
-    "fanatics"
+    110,
+    "hard_rock"
    ],
    [
     "4683778",
@@ -10156,15 +10086,52 @@
     "under",
     false,
     1.5,
-    -180,
-    "hard_rock"
+    -175,
+    "fanatics"
    ]
   ]
  },
  "401909930": {
   "date": "2026-11-04",
-  "points": [],
+  "points": [
+   [
+    "2991230",
+    "Fred VanVleet",
+    "HOU",
+    "MIN",
+    -0.1398,
+    "under",
+    true,
+    11.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "MIN",
+    -0.1352,
+    "under",
+    true,
+    15.5,
+    -114,
+    "fanduel"
+   ]
+  ],
   "threes": [
+   [
+    "3202",
+    "Kevin Durant",
+    "HOU",
+    "MIN",
+    -0.2932,
+    "under",
+    true,
+    1.5,
+    117,
+    "novig"
+   ],
    [
     "4431671",
     "Jaden McDaniels",
@@ -10174,8 +10141,20 @@
     "under",
     true,
     1.5,
-    -146,
-    "fanduel"
+    -144,
+    "novig"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "MIN",
+    -0.3051,
+    "under",
+    true,
+    2.5,
+    -130,
+    "hard_rock"
    ],
    [
     "4433247",
@@ -10203,8 +10182,70 @@
  },
  "401909933": {
   "date": "2026-11-04",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4278594",
+    "Naji Marshall",
+    "DAL",
+    "SA",
+    -0.052,
+    "under",
+    false,
+    11.5,
+    -125,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "DAL",
+    -0.1133,
+    "under",
+    false,
+    1.5,
+    -154,
+    "fanduel"
+   ],
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "DAL",
+    -0.2407,
+    "under",
+    true,
+    1.5,
+    122,
+    "fanduel"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "DAL",
+    -0.0978,
+    "under",
+    false,
+    1.5,
+    -194,
+    "fanduel"
+   ],
+   [
+    "6442",
+    "Kyrie Irving",
+    "DAL",
+    "SA",
+    -0.2105,
+    "under",
+    true,
+    2.5,
+    100,
+    "fanduel"
+   ]
+  ]
  },
  "401909934": {
   "date": "2026-11-04",

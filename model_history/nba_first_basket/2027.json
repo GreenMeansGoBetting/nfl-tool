@@ -9033,9 +9033,9 @@
    "3908845": [
     "John Collins",
     0.093,
-    1000,
+    950,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3917376": [
     "Jaylen Brown",
@@ -9047,14 +9047,14 @@
    "4278562": [
     "Paul Reed",
     0.085,
-    1200,
-    true,
+    900,
+    false,
     "hard_rock"
    ],
    "4431678": [
     "Tyrese Maxey",
     0.106,
-    800,
+    750,
     false,
     "fanduel"
    ],
@@ -9068,7 +9068,7 @@
    "4684742": [
     "Ausar Thompson",
     0.087,
-    1750,
+    1400,
     true,
     "hard_rock"
    ],
@@ -9279,72 +9279,72 @@
    "3032979": [
     "Dennis Schroder",
     0.09,
-    1220,
-    true,
-    "draftkings"
+    null,
+    false,
+    null
    ],
    "3064514": [
     "Julius Randle",
     0.117,
-    663,
+    550,
     false,
-    "prophetx"
+    "fanduel"
    ],
    "4278104": [
     "Michael Porter Jr.",
     0.121,
-    634,
+    450,
     false,
-    "prophetx"
+    "fanduel"
    ],
    "4396971": [
     "Naz Reid",
     0.093,
-    891,
+    750,
     false,
-    "prophetx"
+    "fanduel"
    ],
    "4432194": [
     "Day'Ron Sharpe",
     0.105,
-    990,
-    true,
-    "prophetx"
+    850,
+    false,
+    "fanduel"
    ],
    "4433249": [
     "Moussa Diabate",
     0.084,
-    1089,
+    null,
     false,
-    "prophetx"
+    null
    ],
    "4433287": [
     "Brandon Miller",
     0.097,
-    663,
+    550,
     false,
-    "prophetx"
+    "fanduel"
    ],
    "4602025": [
     "Sion James",
     0.06,
-    null,
+    1100,
     false,
-    null
+    "fanduel"
    ],
    "4702177": [
     "Keon Ellis",
     0.095,
-    1535,
-    true,
-    "prophetx"
+    null,
+    false,
+    null
    ],
    "5279130": [
     "Nolan Traore",
     0.098,
-    null,
-    false,
-    null
+    1100,
+    true,
+    "fanduel"
    ]
   },
   "tip_home": 0.675
@@ -9382,9 +9382,9 @@
    "3136195": [
     "Karl-Anthony Towns",
     0.117,
-    null,
+    465,
     false,
-    null
+    "fliff"
    ],
    "3147657": [
     "Mikal Bridges",
@@ -9396,9 +9396,9 @@
    "3934672": [
     "Jalen Brunson",
     0.121,
-    null,
+    385,
     false,
-    null
+    "fliff"
    ],
    "3934719": [
     "OG Anunoby",
@@ -9635,37 +9635,37 @@
    "3133626": [
     "Kenrich Williams",
     0.075,
-    1500,
-    true,
-    "hard_rock"
+    1300,
+    false,
+    "fanduel"
    ],
    "3908809": [
     "Donovan Mitchell",
     0.09,
-    750,
+    650,
     false,
     "fanduel"
    ],
    "3992": [
     "James Harden",
     0.093,
-    1200,
-    true,
+    950,
+    false,
     "fanduel"
    ],
    "4066328": [
     "Jarrett Allen",
     0.104,
-    900,
-    false,
+    1000,
+    true,
     "hard_rock"
    ],
    "4222252": [
     "Isaiah Hartenstein",
     0.111,
-    900,
+    1000,
     true,
-    "hard_rock"
+    "fanduel"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
@@ -9677,9 +9677,9 @@
    "4432158": [
     "Evan Mobley",
     0.1,
-    650,
+    550,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "4576087": [
     "Peyton Watson",
@@ -9698,9 +9698,9 @@
    "4900671": [
     "Ajay Mitchell",
     0.095,
-    750,
+    850,
     false,
-    "bet365"
+    "fanduel"
    ]
   },
   "tip_home": 0.51
@@ -9724,72 +9724,72 @@
    "2991230": [
     "Fred VanVleet",
     0.093,
-    null,
-    false,
-    null
+    1100,
+    true,
+    "fanduel"
    ],
    "3032976": [
     "Rudy Gobert",
     0.095,
-    2000,
+    1500,
     true,
     "hard_rock"
    ],
    "3202": [
     "Kevin Durant",
     0.105,
-    null,
+    750,
     false,
-    null
+    "fanduel"
    ],
    "4397002": [
     "Ayo Dosunmu",
     0.09,
-    700,
+    1000,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4431671": [
     "Jaden McDaniels",
     0.097,
-    600,
+    850,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4432639": [
     "Jabari Smith Jr.",
     0.093,
-    null,
+    1000,
     false,
-    null
+    "fanduel"
    ],
    "4432816": [
     "LaMelo Ball",
     0.105,
-    900,
+    850,
     false,
     "hard_rock"
    ],
    "4433247": [
     "Jonathan Kuminga",
     0.077,
-    700,
+    800,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4684740": [
     "Amen Thompson",
     0.093,
-    null,
+    900,
     false,
-    null
+    "fanduel"
    ],
    "4871144": [
     "Alperen Sengun",
     0.113,
-    null,
+    530,
     false,
-    null
+    "fliff"
    ]
   },
   "tip_home": 0.552
@@ -9991,30 +9991,30 @@
    "4066259": [
     "De'Aaron Fox",
     0.116,
-    null,
+    700,
     false,
-    null
+    "fanduel"
    ],
    "4278049": [
     "Daniel Gafford",
     0.078,
-    null,
+    950,
     false,
-    null
+    "fanduel"
    ],
    "4278078": [
     "P.J. Washington",
     0.081,
-    null,
+    900,
     false,
-    null
+    "fanduel"
    ],
    "4395630": [
     "Devin Vassell",
     0.115,
-    null,
-    false,
-    null
+    1100,
+    true,
+    "fanduel"
    ],
    "4432582": [
     "Max Christie",
@@ -10026,37 +10026,37 @@
    "4845367": [
     "Stephon Castle",
     0.101,
-    null,
-    false,
-    null
+    1000,
+    true,
+    "fanduel"
    ],
    "5037871": [
     "Dylan Harper",
     0.103,
-    null,
+    850,
     false,
-    null
+    "fanduel"
    ],
    "5041939": [
     "Cooper Flagg",
     0.086,
-    null,
+    650,
     false,
-    null
+    "fanduel"
    ],
    "5104157": [
     "Victor Wembanyama",
     0.149,
-    null,
+    330,
     false,
-    null
+    "fanduel"
    ],
    "6442": [
     "Kyrie Irving",
     0.073,
-    null,
+    700,
     false,
-    null
+    "fanduel"
    ]
   },
   "tip_home": 0.828
