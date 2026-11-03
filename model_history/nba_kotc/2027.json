@@ -5594,129 +5594,150 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.4092,
+    "lead": 0.4024,
     "name": "Giannis Antetokounmpo",
     "proj": 44.7,
     "team": "MIA"
    },
    {
     "id": "3975",
-    "lead": 0.217,
+    "lead": 0.2303,
     "name": "Stephen Curry",
     "proj": 39.4,
     "team": "GS"
    },
    {
     "id": "4566434",
-    "lead": 0.1044,
+    "lead": 0.1027,
     "name": "Franz Wagner",
     "proj": 34.4,
     "team": "ORL"
    },
    {
     "id": "5175737",
-    "lead": 0.0831,
+    "lead": 0.0826,
     "name": "Yaxel Lendeborg",
     "proj": 33.1,
     "team": "GS"
    },
    {
     "id": "3136193",
-    "lead": 0.0518,
+    "lead": 0.052,
     "name": "Devin Booker",
     "proj": 30.8,
     "team": "PHX"
    },
    {
     "id": "4709138",
-    "lead": 0.0393,
+    "lead": 0.0384,
     "name": "Brandin Podziemski",
     "proj": 29.2,
     "team": "GS"
    },
    {
-    "id": "4066383",
-    "lead": 0.0234,
-    "name": "Miles Bridges",
-    "proj": 27.1,
-    "team": "PHX"
-   },
-   {
     "id": "4278053",
-    "lead": 0.0193,
+    "lead": 0.0218,
     "name": "Davion Mitchell",
     "proj": 27.0,
     "team": "MIA"
    },
    {
+    "id": "4066383",
+    "lead": 0.0214,
+    "name": "Miles Bridges",
+    "proj": 27.1,
+    "team": "PHX"
+   },
+   {
     "id": "4066261",
-    "lead": 0.0155,
+    "lead": 0.0178,
     "name": "Bam Adebayo",
     "proj": 26.3,
     "team": "MIA"
    },
    {
     "id": "4277847",
-    "lead": 0.0122,
+    "lead": 0.0107,
     "name": "Wendell Carter Jr.",
     "proj": 25.0,
     "team": "ORL"
    },
    {
-    "id": "3155526",
-    "lead": 0.0098,
-    "name": "Dillon Brooks",
-    "proj": 23.7,
-    "team": "PHX"
-   },
-   {
     "id": "4066320",
-    "lead": 0.0092,
+    "lead": 0.0083,
     "name": "Desmond Bane",
     "proj": 24.3,
     "team": "ORL"
    },
    {
-    "id": "4066436",
-    "lead": 0.0014,
-    "name": "De'Anthony Melton",
-    "proj": 19.5,
-    "team": "GS"
+    "id": "3155526",
+    "lead": 0.0054,
+    "name": "Dillon Brooks",
+    "proj": 23.7,
+    "team": "PHX"
    },
    {
     "id": "4702382",
-    "lead": 0.0013,
+    "lead": 0.0017,
     "name": "Tristan da Silva",
     "proj": 19.8,
     "team": "ORL"
    },
    {
+    "id": "4066436",
+    "lead": 0.0013,
+    "name": "De'Anthony Melton",
+    "proj": 19.5,
+    "team": "GS"
+   },
+   {
     "id": "4601025",
-    "lead": 0.0012,
+    "lead": 0.001,
     "name": "Pelle Larsson",
     "proj": 20.1,
     "team": "MIA"
    },
    {
-    "id": "4397040",
-    "lead": 0.0011,
-    "name": "Brandon Williams",
-    "proj": 18.0,
-    "team": "GS"
-   },
-   {
     "id": "3064482",
-    "lead": 0.0002,
+    "lead": 0.0006,
     "name": "Bobby Portis",
     "proj": 18.4,
     "team": "MIA"
    },
    {
     "id": "4278585",
-    "lead": 0.0002,
+    "lead": 0.0005,
     "name": "Collin Gillespie",
     "proj": 16.8,
     "team": "PHX"
+   },
+   {
+    "id": "4437244",
+    "lead": 0.0003,
+    "name": "Jalen Green",
+    "proj": 15.8,
+    "team": "PHX"
+   },
+   {
+    "id": "5203685",
+    "lead": 0.0002,
+    "name": "Khaman Maluach",
+    "proj": 16.8,
+    "team": "PHX"
+   },
+   {
+    "id": "4601023",
+    "lead": 0.0002,
+    "name": "Oso Ighodaro",
+    "proj": 15.8,
+    "team": "PHX"
+   },
+   {
+    "id": "6589",
+    "lead": 0.0002,
+    "name": "Draymond Green",
+    "proj": 15.3,
+    "team": "GS"
    },
    {
     "id": "4278402",
@@ -5724,34 +5745,6 @@
     "name": "Jordan Goodwin",
     "proj": 15.0,
     "team": "PHX"
-   },
-   {
-    "id": "5203685",
-    "lead": 0.0001,
-    "name": "Khaman Maluach",
-    "proj": 16.8,
-    "team": "PHX"
-   },
-   {
-    "id": "4437244",
-    "lead": 0.0,
-    "name": "Jalen Green",
-    "proj": 15.8,
-    "team": "PHX"
-   },
-   {
-    "id": "4601023",
-    "lead": 0.0,
-    "name": "Oso Ighodaro",
-    "proj": 15.8,
-    "team": "PHX"
-   },
-   {
-    "id": "6589",
-    "lead": 0.0,
-    "name": "Draymond Green",
-    "proj": 15.3,
-    "team": "GS"
    },
    {
     "id": "3059319",
