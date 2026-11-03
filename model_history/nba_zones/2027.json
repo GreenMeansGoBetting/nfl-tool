@@ -9658,5 +9658,269 @@
     "novig"
    ]
   ]
+ },
+ "401909922": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909923": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909924": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909925": {
+  "date": "2026-11-04",
+  "points": [
+   [
+    "2583632",
+    "Royce O'Neale",
+    "CHA",
+    "BKN",
+    0.4014,
+    "over",
+    true,
+    8.5,
+    106,
+    "novig"
+   ],
+   [
+    "3135045",
+    "Grayson Allen",
+    "CHA",
+    "BKN",
+    0.3103,
+    "over",
+    true,
+    14.5,
+    -101,
+    "draftkings"
+   ],
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "BKN",
+    0.1609,
+    "over",
+    true,
+    17.5,
+    -112,
+    "betrivers"
+   ],
+   [
+    "4432194",
+    "Day'Ron Sharpe",
+    "BKN",
+    "CHA",
+    -0.1679,
+    "under",
+    true,
+    10.5,
+    100,
+    "novig"
+   ],
+   [
+    "4433249",
+    "Moussa Diabate",
+    "CHA",
+    "BKN",
+    0.1896,
+    "over",
+    true,
+    7.5,
+    100,
+    "bet365"
+   ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "BKN",
+    0.1655,
+    "over",
+    true,
+    24.5,
+    108,
+    "novig"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "CHA",
+    0.1187,
+    "over",
+    false,
+    7.5,
+    -112,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "2583632",
+    "Royce O'Neale",
+    "CHA",
+    "BKN",
+    0.504,
+    "over",
+    true,
+    1.5,
+    -135,
+    "novig"
+   ],
+   [
+    "3135045",
+    "Grayson Allen",
+    "CHA",
+    "BKN",
+    0.4796,
+    "over",
+    true,
+    2.5,
+    -104,
+    "novig"
+   ],
+   [
+    "3150844",
+    "Moritz Wagner",
+    "BKN",
+    "CHA",
+    0.448,
+    "over",
+    true,
+    0.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "BKN",
+    0.3889,
+    "over",
+    true,
+    2.5,
+    140,
+    "kalshi"
+   ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "BKN",
+    0.4085,
+    "over",
+    true,
+    3.5,
+    114,
+    "kalshi"
+   ],
+   [
+    "4702177",
+    "Keon Ellis",
+    "BKN",
+    "CHA",
+    0.3305,
+    "over",
+    true,
+    1.5,
+    144,
+    "fanduel"
+   ],
+   [
+    "5101761",
+    "Mikel Brown Jr.",
+    "BKN",
+    "CHA",
+    0.2106,
+    "over",
+    true,
+    1.5,
+    186,
+    "fanduel"
+   ],
+   [
+    "5175643",
+    "Egor Demin",
+    "BKN",
+    "CHA",
+    0.2119,
+    "over",
+    true,
+    2.5,
+    114,
+    "kalshi"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "CHA",
+    0.3254,
+    "over",
+    true,
+    0.5,
+    -210,
+    "bet365"
+   ]
+  ]
+ },
+ "401909926": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909927": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909928": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909929": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909930": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909931": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909932": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909933": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909934": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
+ },
+ "401909935": {
+  "date": "2026-11-04",
+  "points": [],
+  "threes": []
  }
 }
