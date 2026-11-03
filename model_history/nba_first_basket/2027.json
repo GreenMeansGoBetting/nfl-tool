@@ -7952,13 +7952,10 @@
  "401909920": {
   "away": "TOR",
   "date": "2026-11-02",
-  "first_home": 0.413,
+  "first_home": 0.5,
   "home": "LAC",
   "jumpers": [
-   [
-    "3134908",
-    "Jakob Poeltl"
-   ],
+   null,
    [
     "4432170",
     "Isaiah Jackson"
@@ -7967,69 +7964,69 @@
   "players": {
    "2991139": [
     "Kris Dunn",
-    0.088,
-    null,
-    false,
-    null
-   ],
-   "3134908": [
-    "Jakob Poeltl",
-    0.077,
+    0.106,
     null,
     false,
     null
    ],
    "4395625": [
     "RJ Barrett",
-    0.138,
+    0.115,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.114,
+    0.097,
     null,
     false,
     null
    ],
    "4396907": [
     "Darius Garland",
-    0.116,
+    0.14,
+    null,
+    false,
+    null
+   ],
+   "4431684": [
+    "Trayce Jackson-Davis",
+    0.07,
     null,
     false,
     null
    ],
    "4432170": [
     "Isaiah Jackson",
-    0.099,
+    0.119,
     null,
     false,
     null
    ],
    "4433134": [
     "Scottie Barnes",
-    0.128,
+    0.109,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.106,
+    0.09,
     null,
     false,
     null
    ],
    "4702352": [
     "Kobe Sanders",
-    0.094,
+    0.114,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.238
+  "tip_home": 0.5
  },
  "401909921": {
   "away": "MIA",
@@ -8889,13 +8886,10 @@
  "401909931": {
   "away": "TOR",
   "date": "2026-11-04",
-  "first_home": 0.489,
+  "first_home": 0.5,
   "home": "DEN",
   "jumpers": [
-   [
-    "3134908",
-    "Jakob Poeltl"
-   ],
+   null,
    [
     "3112335",
     "Nikola Jokic"
@@ -8904,76 +8898,76 @@
   "players": {
    "3064290": [
     "Aaron Gordon",
-    0.097,
+    0.099,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.101,
-    null,
-    false,
-    null
-   ],
-   "3134908": [
-    "Jakob Poeltl",
-    0.067,
+    0.103,
     null,
     false,
     null
    ],
    "3138196": [
     "Cameron Johnson",
-    0.089,
+    0.09,
     null,
     false,
     null
    ],
    "3936299": [
     "Jamal Murray",
-    0.102,
+    0.104,
     null,
     false,
     null
    ],
    "4395625": [
     "RJ Barrett",
-    0.12,
+    0.115,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.099,
+    0.097,
+    null,
+    false,
+    null
+   ],
+   "4431684": [
+    "Trayce Jackson-Davis",
+    0.07,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.081,
+    0.083,
     null,
     false,
     null
    ],
    "4433134": [
     "Scottie Barnes",
-    0.111,
+    0.109,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.093,
+    0.09,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.468
+  "tip_home": 0.5
  },
  "401909932": {
   "away": "POR",
