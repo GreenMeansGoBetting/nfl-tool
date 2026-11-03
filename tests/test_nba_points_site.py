@@ -432,6 +432,18 @@ class PastNight(unittest.TestCase):
             PAGE.click("#day-next")
         self.assertNotIn("RESULTS", PAGE.inner_text("#sim-list-note").upper())
 
+    def test_the_date_box_jumps_to_a_night(self):
+        # the owner, 2026-11-03: "go back to or pick any date"
+        tonight = PAGE.evaluate("() => days()[dayIndex]")
+        pick = "() => { const box = document.querySelector('.week-picker .sim-day-pick'); box.value = '2026-10-20'; box.dispatchEvent(new Event('change')); }"
+        try:
+            PAGE.evaluate(pick)
+            self.assertEqual(PAGE.evaluate("() => days()[dayIndex]"), "2026-10-20")
+            self.assertIn("RESULTS", PAGE.inner_text("#sim-list-note").upper())
+        finally:
+            PAGE.evaluate("(d) => { dayIndex = days().indexOf(d); render(); }", tonight)
+        self.assertEqual(PAGE.evaluate("() => document.querySelector('.sim-day-pick').value"), tonight)
+
 
 class SameGame(unittest.TestCase):
     # the owner, 2026-10-25: Player View to Matchup View, or Points to Threes, should "stay on the same game instead of resetting"

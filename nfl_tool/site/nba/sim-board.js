@@ -965,12 +965,34 @@ async function markOut(btn) {
   }
 }
 
+// A date box beside the day arrows: jumps to that night, or the closest one before it with games
+// (the owner, 2026-11-03: "go back to or pick any date"; the NHL pages have the same box).
+function dayPicker(all) {
+  const picker = el("day-label").parentElement;
+  if (!picker || !all.length) return;
+  let box = picker.querySelector(".sim-day-pick");
+  if (!box) {
+    box = Object.assign(document.createElement("input"), { type: "date", className: "sim-day-pick", title: "Pick a day" });
+    box.setAttribute("aria-label", "Pick a day");
+    box.style.cssText = "margin-left:8px;font:inherit;font-size:0.8rem;padding:2px 6px;border-radius:6px;border:1px solid var(--border-strong);background:var(--table-head);color:var(--text);color-scheme:light dark;cursor:pointer";
+    box.addEventListener("change", () => {
+      if (!box.value) return;
+      dayIndex = Math.max(0, days().filter((d) => d <= box.value).length - 1);
+      LIST.open = null;
+      render();
+    });
+    picker.appendChild(box);
+  }
+  Object.assign(box, { min: all[0], max: all[all.length - 1], value: all[dayIndex] || "" });
+}
+
 function render() {
   const all = days();
   const date = all[dayIndex];
   el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "No games";
   el("day-prev").disabled = dayIndex <= 0;
   el("day-next").disabled = dayIndex >= all.length - 1;
+  dayPicker(all);
   renderRecord();
   document.querySelectorAll("[data-view]").forEach((b) => b.classList.toggle("on", b.dataset.view === view));
   el("sim-player").hidden = view !== "player";

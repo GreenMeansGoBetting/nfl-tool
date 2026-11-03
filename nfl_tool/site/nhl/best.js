@@ -62,8 +62,10 @@ function shotsPlay(r, market) {
 }
 
 // ---- schedule ----
+// Past days: every graded day from the record (nhl-common.js nhlPastDays).
+const PAST_PAGE = { markets: ["shots", "goals", "points", "saves"], ids: "best", title: "Best Plays", every: false, liveHas: (date) => gamesOn(date).some(anyBoard) };
 function days() {
-  return [...new Set(DATA.schedule.map((g) => g.date))].sort();
+  return nhlPastDays(PAST_PAGE, [...new Set(DATA.schedule.map((g) => g.date))]);
 }
 function gamesOn(date) {
   return DATA.schedule.filter((g) => g.date === date);
@@ -323,6 +325,7 @@ const COLUMNS = [
   { key: null, label: "", cell: (x) => `<td class="best-more"><a href="${MARKETS.find(([k]) => k === x.market)[2]}#row=${x.g.game_id}:${x.r.id}" title="The full breakdown on the ${PAGE_NAME[x.market]} page">${PAGE_NAME[x.market]} &rsaquo;</a></td>` },
 ];
 function renderTable() {
+  if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlPastTable(PAST_PAGE);
   const date = days()[dayIndex];
   const rows = sortedPlays(date);
   const showResult = rows.some((x) => x.result);
@@ -405,6 +408,8 @@ function renderRecord() {
 
 function render() {
   if (!DATA) return;
+  if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlRenderPast(PAST_PAGE);
+  nhlDayPicker(days(), dayIndex);
   renderSchedule();
   renderToolbar();
   renderNote();
@@ -481,6 +486,7 @@ Promise.all([loadNhlData(), getJson("shots.json"), getJson("goals.json"), getJso
     el("empty-state").hidden = true;
     el("best-app").hidden = false;
     render();
+    nhlPastLater(PAST_PAGE);
   })
   .catch((err) => {
     el("empty-state").innerHTML = "<p>Couldn't load the NHL data.</p>";

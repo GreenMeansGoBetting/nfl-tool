@@ -3303,6 +3303,66 @@ def saves_file(season: int, generated_at: str, crease: dict, records: list, game
 # by the games the member picks. The fast-start numbers are shown, never used.
 ICEBREAKER_RULES = {"blend": 0.5, "full_games": 20, "slot": "19:00"}
 ICEBREAKER_RECORD_DIR = Path(__file__).resolve().parent.parent.parent / "model_history" / "nhl_icebreaker"
+# ---- Past days (site/nhl/past_<market>.json) ----
+# Each prop page's record, every graded player, filed by today's rules, so the
+# day arrows and the date picker reach any day of the season, not just
+# yesterday (the owner, 2026-11-03: "go back to or pick any date that has
+# already happened to see how those performed").
+PAST_COLS = ("game", "id", "name", "team", "line", "side", "price", "chance", "edge", "size", "actual")
+
+
+def past_play(market: str, r: dict):
+    """(side, line, play) for one saved record row, the way its page files it
+    today, or None (no price)."""
+    if market == "goals":
+        play = goals_play(r.get("chance"), r.get("odds"), r.get("move"))
+        return ("yes", 0.5, play) if play else None
+    if r.get("line") is None or r.get("chance_over") is None:
+        return None
+    if market == "shots":
+        play = shots_play(r["chance_over"], r["line"], r.get("over"), r.get("under"), r.get("avg"), r.get("move"))
+    elif market == "points":
+        play = points_play(r["chance_over"], r["line"], r.get("over"), r.get("under"), r.get("avg"), r.get("move"))
+    else:
+        play = saves_play(r["chance_over"], r["line"], r.get("over"), r.get("under"), r.get("avg"), r["mean"], r.get("mkt_mean"))
+    return (play["side"], r["line"], play) if play else None
+
+
+def past_file(market: str, folder: Path, cols: tuple) -> dict:
+    """{"cols": PAST_COLS, "games": {game: [away, home]}, "days": {date: [row]}}:
+    every priced row of one page's record, biggest edge first in a day. `cols`
+    = the record's columns (older files without a `cols` header use them)."""
+    games, days = {}, {}
+    for path in sorted(folder.glob("*.json")) if folder.exists() else []:
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        names = saved.get("cols") or cols
+        for gid, game in saved["games"].items():
+            games[gid] = [game["away"], game["home"]]
+            for raw in game["plays"]:
+                r = dict(zip(names, raw))  # rows saved before a column was kept are just shorter
+                found = past_play(market, r)
+                if found is None or r.get("actual") is None:
+                    continue
+                side, line, play = found
+                days.setdefault(game["date"], []).append([gid, r["id"], r["name"], r["team"], line, side, play["price"],
+                                                          round(play["chance"], 3), round(play["edge"], 3), play["size"], r["actual"]])
+    for rows in days.values():
+        rows.sort(key=lambda row: -row[8])
+    return {"cols": PAST_COLS, "games": games, "days": {d: days[d] for d in sorted(days)}}
+
+
+def write_past_files(site: Path, dirs: dict) -> None:
+    """past_<market>.json for every prop page; a damaged record costs only its own file."""
+    for market, (folder, cols) in dirs.items():
+        try:
+            blob = past_file(market, folder, cols)
+        except Exception as e:
+            print(f"WARNING: the {market} past days couldn't be built ({e}).", file=sys.stderr)
+            blob = {"cols": PAST_COLS, "games": {}, "days": {}, "error": str(e)[:200]}
+        with open(site / f"past_{market}.json", "w") as f:
+            json.dump(blob, f, separators=(",", ":"))
+
+
 ICEBREAKER_RECORD_COLS = ("id", "name", "team", "rate", "mean", "mkt_mean", "fg")
 
 
@@ -3824,8 +3884,10 @@ def main():
         points = {"season": args.season, "generated_at": generated_at, "games": {}, "record": None, "error": str(e)[:200]}
     with open(args.out.parent / "points.json", "w") as f:
         json.dump(points, f, separators=(",", ":"))
+    write_past_files(args.out.parent, {"shots": (args.record_dir, SHOTS_RECORD_COLS), "goals": (args.goals_record_dir, GOALS_RECORD_COLS),
+                                       "points": (args.points_record_dir, POINTS_RECORD_COLS), "saves": (args.saves_record_dir, SAVES_RECORD_COLS)})
     try:
-        lines = lines_file(args.season, generated_at, stats["records"], games, tonight, stats["skaters"], fetch_previous(LIVE_LINES_URL), now_utc)
+        lines =lines_file(args.season, generated_at, stats["records"], games, tonight, stats["skaters"], fetch_previous(LIVE_LINES_URL), now_utc)
     except Exception as e:  # Line Matchups must never cost the other NHL pages their data
         print(f"WARNING: Line Matchups couldn't be built ({e}).", file=sys.stderr)
         lines = {"season": args.season, "generated_at": generated_at, "games": {}, "error": str(e)[:200]}

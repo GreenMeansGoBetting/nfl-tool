@@ -117,7 +117,7 @@ in `docs/history.md`: "NHL", and "2026-10-29: the NHL rules file before the trim
 - Output: `teams`, `team_stats` (every stat as `off_*` and matching `def_*` allowed, plus record,
   PP, PK), `recent_games`, `skaters` (12 F + 6 D a team, plus anyone in a posted lineup),
   `goalies`, `injuries`, `schedule` (yesterday to 14 days out, Novig lines, `away_rest` /
-  `home_rest`), `player_odds` (`{game: {player: odds}}`), `league`, `novig_debug`, `feed_debug`.
+  `home_rest`), `player_odds` (`{game: {player: odds}}`), `league`, `novig_debug`, `feed_debug`. Also `past_<market>.json` (see "Past days").
 - `def_pp_pct` = `1 - pk_pct`, so a power play row reads both sides.
 - Times use each game's `easternUTCOffset`.
 - **Player files** (`write_player_files`): `site/nhl/players/<TEAM>.json`, untracked, loaded when
@@ -230,6 +230,14 @@ in `docs/history.md`: "NHL", and "2026-10-29: the NHL rules file before the trim
   "final" from `locked` AND the clock vs `start_utc`). Order always open, live, final; live rows
   `.shots-live` under "Live now"; a day with both gets **All games** / **Not started** /
   **Live / final**. A finished day isn't grayed.
+- **Past days (any date, the owner 2026-11-03):** the build writes `nhl/past_<market>.json` (shots,
+  goals, points, saves; `past_file`, `write_past_files`): every priced row of that page's record filed
+  by today's rules (`past_play`), `PAST_COLS`. Each prop page and Best Plays sets `PAST_PAGE` and reads
+  it after its first draw (`nhlPastLater` in nhl-common.js): the day arrows reach opening night and a
+  **date box** (`nhlDayPicker`) jumps to any day. A day the live board no longer has is drawn by
+  `nhlRenderPast` / `nhlPastTable` (Plays Only / Every Player, Edge menu, W / L / P and units; Best
+  Plays: every market, plays only). No breakdown on past days (not saved). Tests:
+  `tests/test_nhl_past_days.py` (`SiteBrowser.nhl_past` serves hand-made files; others 404).
 - **Explanations behind an "i":** a long `p.section-note` is `hidden` with class `info-note`, opened
   by a `button.info-i` (aria-controls = its id) beside its heading; handler in sync.js (capture
   phase), look in style.css. On Shots / Goals the "i" follows `#shots-title`.

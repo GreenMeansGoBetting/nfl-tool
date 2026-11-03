@@ -25,6 +25,7 @@ class SiteBrowser:
         self.nba_props = None  # a hand-made nba/props.json (dict), the same way
         self.nba_shots = None  # a hand-made nba/shots.json (dict), the same way
         self.nba_ladders = None  # a hand-made nba/ladders.json (dict); {} with a hand-made data.json
+        self.nhl_past = {}  # hand-made nhl/past_<market>.json files by market; any other is "not built"
         self.server = start_server()
         self.origin = f"http://127.0.0.1:{self.server.server_address[1]}"
         self._playwright = sync_playwright().start()
@@ -71,6 +72,12 @@ class SiteBrowser:
             route.fulfill(status=200, content_type="application/json", body=nhl_crease_bytes())
         elif url == f"{self.origin}/nhl/icebreaker.json":
             route.fulfill(status=200, content_type="application/json", body=nhl_icebreaker_bytes())
+        elif url.startswith(f"{self.origin}/nhl/past_"):
+            blob = self.nhl_past.get(url.rsplit("/past_", 1)[-1].removesuffix(".json"))
+            if blob:
+                route.fulfill(status=200, content_type="application/json", body=json.dumps(blob))
+            else:
+                route.fulfill(status=404, body="")
         elif url.startswith(f"{self.origin}/nhl/players/"):
             # Only the saved teams exist; any other team's file is "not built".
             team = nhl_players().get(url.rsplit("/", 1)[-1].removesuffix(".json"))

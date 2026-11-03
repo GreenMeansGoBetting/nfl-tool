@@ -37,8 +37,10 @@ const playChance = (r) => (r.side === "over" ? r.chance_over : r.side === "under
 const agrees = (r) => r.source === "both";
 
 // ---- schedule ----
+// Past days: every graded day from the record (nhl-common.js nhlPastDays).
+const PAST_PAGE = { markets: ["saves"], ids: "shots", title: "Saves", every: true, liveHas: (date) => gamesOn(date).some(boardFor) };
 function days() {
-  return [...new Set(DATA.schedule.map((g) => g.date))].sort();
+  return nhlPastDays(PAST_PAGE, [...new Set(DATA.schedule.map((g) => g.date))]);
 }
 function gamesOn(date) {
   return DATA.schedule.filter((g) => g.date === date);
@@ -294,6 +296,7 @@ const COLUMNS = [
   { key: "site", label: "Home/rest", adv: true, title: "Home ice and back-to-backs", cell: (x) => liftCell(siteLift(x.r), siteTip(x.r)) },
 ];
 function renderTable() {
+  if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlPastTable(PAST_PAGE);
   const date = days()[dayIndex];
   const rows = sortedRows(date);
   const shown = gamesOn(date).filter((g) => boardFor(g) && (!gameId || g.game_id === gameId));
@@ -425,6 +428,8 @@ function renderNote() {
 }
 function render() {
   if (!DATA) return;
+  if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlRenderPast(PAST_PAGE);
+  nhlDayPicker(days(), dayIndex);
   renderSchedule();
   renderToolbar();
   renderNote();
@@ -506,6 +511,7 @@ fetch("saves.json")
     el("shots-app").hidden = false;
     render();
     if (link) scrollToRow(link.row);
+    nhlPastLater(PAST_PAGE);
   })
   .catch((err) => {
     el("empty-state").innerHTML = "<p>Couldn't load the NHL data.</p>";

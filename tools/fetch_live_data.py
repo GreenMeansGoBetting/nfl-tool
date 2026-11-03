@@ -45,8 +45,12 @@ LIVE = "https://nfl.gmgsports.org"
 SUITES = {
     "nfl": ["data.json", "koe_weeks.json", "best_plays_record.json"],
     "nba": ["nba/data.json", "nba/props.json", "nba/shots.json", "nba/ladders.json"],
-    "nhl": ["nhl/data.json", "nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/lines.json", "nhl/icebreaker.json", "nhl/saves.json", "nhl/hattrick.json"],
+    "nhl": ["nhl/data.json", "nhl/shots.json", "nhl/crease.json", "nhl/goals.json", "nhl/points.json", "nhl/lines.json", "nhl/icebreaker.json", "nhl/saves.json", "nhl/hattrick.json",
+            "nhl/past_shots.json", "nhl/past_goals.json", "nhl/past_points.json", "nhl/past_saves.json"],
 }
+# Files a page can do without (the NHL pages' past days: none = only the live days), so one
+# not yet on the live site never stops the deploy from putting the rest back.
+OPTIONAL = {"nhl/past_shots.json", "nhl/past_goals.json", "nhl/past_points.json", "nhl/past_saves.json"}
 NHL_PLAYERS = "nhl/players/"
 TRIES = 3
 
@@ -131,7 +135,7 @@ def main(argv=None):
             continue
         if args.replace:
             clear(suite)
-        got = [download(rel, headers) for rel in SUITES[suite]]
+        got = [("ok" if got == "missing" and rel in OPTIONAL else got) for rel, got in ((rel, download(rel, headers)) for rel in SUITES[suite])]
         if suite == "nhl" and got[0] == "ok":
             players = nhl_player_files()
             got += [download(rel, headers) for rel in players] or ["missing"]

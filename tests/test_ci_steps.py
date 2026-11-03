@@ -391,6 +391,10 @@ class LiveData(unittest.TestCase):
             "nhl/saves.json": {"games": {}},
             "nhl/icebreaker.json": {"days": {}},
             "nhl/hattrick.json": {"days": {}},
+            "nhl/past_shots.json": {"days": {}},
+            "nhl/past_goals.json": {"days": {}},
+            "nhl/past_points.json": {"days": {}},
+            "nhl/past_saves.json": {"days": {}},
             "nhl/players/NJD.json": {"season": {}},
             "nhl/players/DET.json": {"season": {}},
         }
@@ -514,6 +518,13 @@ class LiveData(unittest.TestCase):
         del self.live["nba/data.json"]
         (self.site / "nba" / "data.json").unlink()
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
+
+    def test_the_past_days_files_can_be_missing(self):
+        """A page without its past file shows only the live days, so the first
+        deploy after they were added can still put the rest of the NHL back."""
+        for m in ("shots", "goals", "points", "saves"):
+            del self.live[f"nhl/past_{m}.json"]
+        self.assertEqual(fetch_live_data.main(["--only", "nhl", "--need", "nhl"]), 0)
 
     def test_replace_clears_what_a_failed_build_left(self):
         """The deploy after a failed NHL build: a half-written file and a team

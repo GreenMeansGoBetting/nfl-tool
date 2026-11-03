@@ -199,8 +199,8 @@ Every game played 10,000 times, possession by possession.
 - **The record:** `sim_<season>.json` {game: {date, points / threes / rebounds / assists: [play]}}
   (`PLAY_FIELDS`), rewritten until tip, never after; graded at the best price across every book, 1u;
   push or sat not graded. Split tags: top / strong, proof / chaos / close, over / under, main / alt, dials.
-- **Past nights:** props.json `sim_past` (`past_plays`); day arrows step back to Results. The page
-  opens on tonight's slate.
+- **Past nights:** props.json `sim_past` (`past_plays`); day arrows step back to Results, and a date
+  box (`dayPicker`) jumps to any night (2026-11-03). The page opens on tonight's slate.
 - **Rebounds:** every missed shot (and missed last FT, `ft_oreb` / `ft_dreb`) is a board, shooting team
   at its OREB rate else the defense. Credited share to players (`oreb_player` / `dreb_player`) on the
   floor by floor time x boards a minute (`K_REB` 60 toward his POSITION) x `reb_tilt` (what tonight's

@@ -1066,6 +1066,165 @@ document.addEventListener("input", (e) => {
   }
 });
 
+// ---- Past days (the build's past_<market>.json, from each prop page's record) ----
+// Every graded day of the season, not just yesterday: the day arrows step back to opening
+// night and the date picker jumps to any day (the owner, 2026-11-03: "most people would want
+// to go back multiple days"). A page passes its `cfg` {markets, ids, title, every, liveHas}:
+// `ids` = its element prefix ("shots" / "best"), `every` = offer Every Player, `liveHas(date)`
+// = its live board has that day (then the page draws it as before).
+const NHL_PAST = {}; // market -> its past file (null if it can't be read)
+const nhlPastView = { every: false, minEdge: "all" };
+const PAST_MARKET = { shots: ["Shots", "SOG"], goals: ["Goals", "goal"], points: ["Points", "points"], saves: ["Saves", "saves"] };
+const PAST_PLAY_SIZES = ["play", "strong", "lean"];
+const pastBreakEven = (price) => (price < 0 ? -price / (100 - price) : 100 / (price + 100));
+const pastFair = (p) => (!has(p) || p <= 0 || p >= 1 ? null : p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p));
+// Read after the page's first draw (the live day shows at once), then redrawn on the same day.
+function nhlPastLater(cfg) {
+  return Promise.all(cfg.markets.map((m) =>
+    fetch(`past_${m}.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)))
+    .then((files) => {
+      const date = days()[dayIndex];
+      cfg.markets.forEach((m, i) => {
+        NHL_PAST[m] = files[i];
+      });
+      dayIndex = Math.max(0, days().indexOf(date));
+      render();
+    });
+}
+function nhlPastRows(cfg, date) {
+  return cfg.markets.flatMap((m) => {
+    const file = NHL_PAST[m];
+    return ((file && file.days && file.days[date]) || []).map((row) => {
+      const r = Object.fromEntries(file.cols.map((c, i) => [c, row[i]]));
+      const [away, home] = file.games[r.game] || [];
+      const push = r.side !== "yes" && r.actual === r.line;
+      const won = r.side === "yes" ? r.actual > 0 : (r.actual > r.line) === (r.side === "over");
+      const units = push ? 0 : won ? (r.price < 0 ? 100 / -r.price : r.price / 100) : -1;
+      return { ...r, market: m, away, home, opp: r.team === away ? home : away, atHome: r.team === home, result: push ? "push" : won ? "win" : "loss", units };
+    });
+  });
+}
+// The page's days plus every graded day its live files no longer carry.
+function nhlPastDays(cfg, liveDays) {
+  const past = cfg.markets.flatMap((m) => Object.keys((NHL_PAST[m] || {}).days || {}));
+  return [...new Set([...liveDays, ...past])].sort();
+}
+const nhlIsPast = (cfg, date) => !!date && !cfg.liveHas(date) && nhlPastRows(cfg, date).length > 0;
+// A date box beside the day arrows: jumps to that day (or the closest one before it with games).
+function nhlDayPicker(all, index) {
+  const picker = document.querySelector("#schedule-scroller .week-picker");
+  if (!picker || !all.length) return;
+  let box = picker.querySelector(".nhl-day-pick");
+  if (!box) {
+    box = Object.assign(document.createElement("input"), { type: "date", className: "nhl-day-pick", title: "Pick a day" });
+    box.setAttribute("aria-label", "Pick a day");
+    box.style.cssText = "margin-left:8px;font:inherit;font-size:0.8rem;padding:2px 6px;border-radius:6px;border:1px solid var(--border-strong);background:var(--table-head);color:var(--text);color-scheme:light dark;cursor:pointer";
+    box.addEventListener("change", () => {
+      const list = days();
+      const at = list.filter((d) => d <= box.value).length - 1;
+      if (box.value && typeof selectDay === "function") selectDay(Math.max(0, at));
+    });
+    picker.appendChild(box);
+  }
+  Object.assign(box, { min: all[0], max: all[all.length - 1], value: all[index] || "" });
+}
+const pastTally = (rows) => rows.reduce((t, x) => ({ wins: t.wins + (x.result === "win"), losses: t.losses + (x.result === "loss"), units: t.units + x.units }), { wins: 0, losses: 0, units: 0 });
+const pastLine = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
+function pastRating(x) {
+  if (x.size === "play") return ratingTag("play", "Play", "Over the page's bar for a play");
+  if (x.size === "strong") return ratingTag("strong", "Strong", "A Strong play by the page's edges");
+  if (x.size === "lean") return ratingTag("lean", "Lean", "A Lean play by the page's edges");
+  if (x.size === "check") return ratingTag("check", "Check", "Set apart to check before betting: a gap too big to take at face value, a player moved down a line, or (Saves) the model and the line 4+ saves apart");
+  if (x.size === "unsure") return unsureTag();
+  return `<span class="muted-label">--</span>`;
+}
+function pastPlayChip(x) {
+  if (x.side === "yes") return `<span class="shots-play shots-play-over" title="Anytime goal at the best price across books, locked before puck drop"><b>Yes</b><span>${odds(x.price)}</span></span>`;
+  return `<span class="shots-play shots-play-ou shots-play-${x.side}" title="${x.side === "over" ? "Over" : "Under"} ${fmt(x.line)} ${PAST_MARKET[x.market][1]} at the best price across books, locked before puck drop"><b>${x.side[0]}${fmt(x.line)}</b><span>${odds(x.price)}</span></span>`;
+}
+function nhlPastTable(cfg) {
+  const date = days()[dayIndex];
+  const multi = cfg.markets.length > 1;
+  const every = cfg.every && nhlPastView.every;
+  const rows = nhlPastRows(cfg, date)
+    .filter((x) => !gameId || x.game === gameId)
+    .filter((x) => nameMatches(x.name))
+    .filter((x) => edgeAtLeast(x.edge, nhlPastView.minEdge))
+    .filter((x) => every || PAST_PLAY_SIZES.includes(x.size) || x.size === "check")
+    .sort((a, b) => b.edge - a.edge);
+  const groups = [
+    ["Plays", rows.filter((x) => PAST_PLAY_SIZES.includes(x.size))],
+    ["Check First: set apart, not plays", rows.filter((x) => x.size === "check")],
+    ["Not Plays", rows.filter((x) => x.size === "none")],
+    ["Model Unsure: not plays", rows.filter((x) => x.size === "unsure")],
+  ].filter(([, list]) => list.length);
+  const columns = 8 + (multi ? 1 : 0);
+  let n = 0;
+  const body = groups.map(([label, list], gi) => `${gi ? `<tr class="group-gap"><td colspan="${columns}"></td></tr>` : ""}<tr class="group-row"><td colspan="${columns}">${label} <span class="muted-label">${pastLine(pastTally(list))}</span></td></tr>`
+    + list.map((x) => `<tr class="nhl-past-row">
+        <td class="num muted-label">${(n += 1)}</td>
+        <td class="nba-player shots-player">${playerClick(x.id, `<b>${x.name}</b>`)}<span class="shots-vs">${logo(x.team, 30)}<span class="at">${x.atHome ? "vs" : "@"}</span>${logo(x.opp, 30)}</span></td>
+        ${multi ? `<td>${PAST_MARKET[x.market][0]}</td>` : ""}
+        <td class="shots-play-cell">${pastPlayChip(x)}</td>
+        <td class="shots-rating">${pastRating(x)}</td>
+        <td class="num" title="The model's chance: ${pct(x.chance, 0)}">${odds(pastFair(x.chance)) || "--"}</td>
+        <td class="num shots-edge${PAST_PLAY_SIZES.includes(x.size) ? " tier-good" : ""}" title="The model's ${Math.round(x.chance * 100)}% minus the ${Math.round(pastBreakEven(x.price) * 100)}% this price needs to break even">${signed(x.edge * 100, 1)}</td>
+        <td class="num"><span class="pick-result pick-result-${x.result}">${{ win: "W", loss: "L", push: "P" }[x.result]}</span> <b>${x.actual}</b></td>
+        <td class="num ${x.units > 0 ? "tier-good" : x.units < 0 ? "tier-bad" : ""}">${signed(x.units, 2)}</td>
+        <td class="shots-spacer"></td>
+      </tr>`).join("")).join("");
+  const head = `<th>#</th><th class="shots-th-player">Player${nameSearchBox()}</th>${multi ? "<th>Market</th>" : ""}<th>Play</th><th>Rating</th><th title="The price with no cut at which the model's chance breaks even">Fair</th><th title="The model's chance minus the chance the price needs to break even, in points">Edge</th><th title="What he did, and whether the play won">Result</th><th title="Units won risking 1">Units</th><th class="shots-spacer"></th>`;
+  el(`${cfg.ids}-content`).innerHTML = !rows.length && !nameSearching()
+    ? `<p class="no-data-note">No ${every ? "graded players" : "plays"} match these filters on this day.${cfg.every && !every ? ` <button type="button" class="view-toggle-btn shots-filter-btn" data-past="every" data-value="true">Show every player</button>` : ""}</p>`
+    : `<div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table nhl-past-table">
+        <thead><tr>${head}</tr></thead><tbody>${body || nameSearchMiss(columns + 1)}</tbody></table></div></div>`;
+}
+function nhlRenderPast(cfg) {
+  const all = days();
+  const date = all[dayIndex];
+  const games = {};
+  nhlPastRows(cfg, date).forEach((x) => {
+    games[x.game] = games[x.game] || { id: x.game, away: x.away, home: x.home };
+  });
+  if (gameId && !games[gameId]) gameId = null;
+  el("schedule-scroller").hidden = false;
+  el("day-label").textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  el("day-prev").disabled = dayIndex <= 0;
+  el("day-next").disabled = dayIndex >= all.length - 1;
+  nhlDayPicker(all, dayIndex);
+  el("matchup-row").innerHTML = Object.values(games).map((g) => `<button type="button" class="matchup-card matchup-card-final${g.id === gameId ? " selected" : ""}" data-game="${g.id}" data-away="${g.away}" data-home="${g.home}" title="Show only this game (click again for the whole day)">
+      <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
+      <span class="matchup-date">Final</span>
+    </button>`).join("");
+  const g = games[gameId];
+  el(`${cfg.ids}-title`).innerHTML = `${cfg.title}${g ? ` <span class="shots-title-game">${logo(g.away, 22)} ${g.away} <span class="at">@</span> ${logo(g.home, 22)} ${g.home}</span>` : ""}`;
+  const every = cfg.every
+    ? `<span class="shots-filter">${[[false, "Plays Only"], [true, "Every Player"]].map(([v, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${nhlPastView.every === v ? " active" : ""}" data-past="every" data-value="${v}">${label}</button>`).join("")}</span>`
+    : "";
+  el(`${cfg.ids}-toolbar`).innerHTML = `${every}<label class="shots-menu" title="Only rows with at least this much edge"><span>Edge</span><select class="shots-filter-select nhl-past-select" data-past="minEdge">${edgeOptions().map(([v, text]) => `<option value="${v}"${String(nhlPastView.minEdge) === v ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
+  el(`${cfg.ids}-lineups`).hidden = true;
+  el(`${cfg.ids}-locked`).hidden = false;
+  el(`${cfg.ids}-locked`).textContent = "Final. Every play graded at the best price across books, locked before puck drop, and rated by the page's rules today. The YTD Model Performance record grades the same way.";
+  nhlPastTable(cfg);
+}
+// The past view's own buttons and menu (caught first, so the page's handlers never see them).
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-past]");
+  if (!btn || btn.tagName === "SELECT") return;
+  e.stopPropagation();
+  nhlPastView[btn.dataset.past] = btn.dataset.value === "true";
+  render();
+}, true);
+document.addEventListener("change", (e) => {
+  const menu = e.target.closest(".nhl-past-select");
+  if (!menu) return;
+  e.stopPropagation();
+  nhlPastView[menu.dataset.past] = menu.value;
+  render();
+}, true);
+
 // ---- Save to My Plays (../my-plays.html; the owner, 2026-10-20) ----
 // A small box beside every priced play (Shots, Goals, Points, Saves, Best
 // Plays). Checking it saves the play as shown, at its price, to

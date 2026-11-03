@@ -64,8 +64,10 @@ function chanceOver(r, lineValue) {
 }
 
 // ---- schedule ----
+// Past days: every graded day from the record (nhl-common.js nhlPastDays).
+const PAST_PAGE = { markets: ["shots"], ids: "shots", title: "Shots on Goal", every: true, liveHas: (date) => gamesOn(date).some(boardFor) };
 function days() {
-  return [...new Set(DATA.schedule.map((g) => g.date))].sort();
+  return nhlPastDays(PAST_PAGE, [...new Set(DATA.schedule.map((g) => g.date))]);
 }
 function gamesOn(date) {
   return DATA.schedule.filter((g) => g.date === date);
@@ -527,6 +529,7 @@ function recordPlays(record) {
       <tbody>${body}</tbody></table></div>` : `<p class="shots-record-note">No graded plays here yet.</p>`}`;
 }
 function renderTable() {
+  if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlPastTable(PAST_PAGE);
   const date = days()[dayIndex];
   const rows = sortedRows(date);
   const shown = gamesOn(date).filter((g) => boardFor(g) && (!gameId || g.game_id === gameId));
@@ -598,6 +601,8 @@ function renderNote() {
 }
 function render() {
   if (!DATA) return;
+  if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlRenderPast(PAST_PAGE);
+  nhlDayPicker(days(), dayIndex);
   renderSchedule();
   renderToolbar();
   renderNote();
@@ -690,6 +695,7 @@ Promise.all([
     el("shots-app").hidden = false;
     render();
     if (link) scrollToRow(link.row);
+    nhlPastLater(PAST_PAGE);
   })
   .catch((err) => {
     el("empty-state").innerHTML = "<p>Couldn't load the NHL data.</p>";

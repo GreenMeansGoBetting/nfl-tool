@@ -28,3 +28,7 @@ nfl_tool/site/nhl/lines.json
 nfl_tool/site/nhl/icebreaker.json
 nfl_tool/site/nhl/hattrick.json
 nfl_tool/site/nhl/saves.json
+nfl_tool/site/nhl/past_shots.json
+nfl_tool/site/nhl/past_goals.json
+nfl_tool/site/nhl/past_points.json
+nfl_tool/site/nhl/past_saves.json
