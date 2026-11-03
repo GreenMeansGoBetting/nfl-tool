@@ -297,97 +297,69 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 .rs-list tr.sim-row { cursor: default; }
 .sim-rtag.rs-maybe { border-style: dashed; }
 
-/* The research panel under a clicked Points row (research.js panel, 2026-11-03). Built from the League
-   Stats Chart's pieces (style.css .od-grid / .od-tile, the 8-step rank colors): colored group bands,
-   compact fixed columns, every number a filled tile. Each row of boxes is scaled up evenly to fill the
-   panel (research.js fitPanel), so nothing is stretched and nothing is left as dead space (the owner,
-   2026-11-03, with red lines on the gaps). */
+/* The research panel under a clicked Points row (research.js, approved by the owner 2026-11-03):
+   two boxes of the same size side by side ("sandboxes"), each with tabs, and EVERY tab the same
+   grid: one header row, six rows, a label column and seven equal columns, 3 px between tiles and
+   nothing else. Blue header = him, purple = tonight's defense, green = the read. */
+:root { --rs-box: #111a2b; --rs-tabs: #172236; --rs-sep: #2b3b57; --rs-label: #1b2840; --rs-tile: #0d1422; }
+[data-theme="light"] { --rs-box: #e9eef5; --rs-tabs: #d9e1ec; --rs-sep: #c9d3e0; --rs-label: #dde4ee; --rs-tile: #f6f8fb; }
 .rs-list tr.sim-row.rs-click { cursor: pointer; }
 .rs-list tr.sim-row.rs-click:hover > td { background-color: var(--table-head); }
 table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; padding: 0 8px 12px; background: var(--table-head); text-align: left; white-space: normal; }
-.rs-panel { display: flex; flex-direction: column; gap: 8px; }
-.rs-prow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
-.rs-tile { flex: none; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
-.rs-tile.rs-grow { flex: 1 1 auto; }
-/* the box's title: a solid bar across its top with the accent edge (the site's group-header bar) */
-.rs-tile h4 { display: flex; align-items: center; gap: 7px; margin: 0; padding: 6px 10px; background: var(--panel-2); border-bottom: 1px solid var(--border); border-left: 4px solid var(--accent);
-  font-family: var(--font-display); font-size: 1.02rem; font-weight: 700; color: var(--text); }
-.rs-tile h4 > span:first-child { cursor: help; }
-.rs-i { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--border-strong); font: 700 0.62rem var(--font-body); color: var(--text); cursor: help; }
-.rs-tile h4 .rs-toggle { margin: 0 0 0 auto; }
-.rs-toggle .view-toggle-btn { padding: 2px 10px; font-size: 0.72rem; }
-.rs-body { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 10px; }
-.rs-none { margin: 6px 0; font-size: 0.82rem; }
-/* the grids: the list table's own th / td rules must not reach in */
-table.data-table.sim-list .rs-panel table.rs-grid { margin: 0; }
-table.data-table.sim-list .rs-panel table.rs-grid th, table.data-table.sim-list .rs-panel table.rs-grid td { width: auto; padding: 2px; text-align: center; white-space: nowrap; border: 0; }
-/* the band and the label row under it read as ONE header block: no shadow, no notch, one shade */
-table.data-table.sim-list .rs-panel table.rs-grid .od-ggroups th:not(.od-ggap):not(.rs-corner) { box-shadow: none; border-radius: 8px 8px 0 0; background-color: rgba(var(--zg), 0.3);
-  font-family: var(--font-display); font-size: 0.82rem; line-height: 1.1; letter-spacing: 0.03em; text-transform: uppercase; padding: 5px 3px 2px; white-space: normal; vertical-align: middle; }
-table.data-table.sim-list .rs-panel table.rs-grid .od-ggroups th.rs-one { padding: 5px 3px; }
-table.data-table.sim-list .rs-panel table.rs-grid .od-glabels th.od-gt { border-radius: 0; background-color: rgba(var(--zg), 0.3); font-size: 0.68rem; font-weight: 800; padding: 1px 2px 4px; }
-table.data-table.sim-list .rs-panel table.rs-grid th.rs-corner { padding: 0 6px 2px 0; text-align: left; vertical-align: bottom; background: transparent; }
-table.data-table.sim-list .rs-panel table.rs-grid .od-ggroups th img { vertical-align: -3px; }
-table.data-table.sim-list .rs-panel table.rs-grid td.rs-glabel { text-align: left; padding: 2px 8px 2px 0; font-size: 0.86rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
-.rs-grid .od-tile { padding: 5px 3px; }
-.rs-grid .od-tile b { font-size: 1rem; }
-.rs-grid .od-tile small { font-size: 0.66rem; color: var(--text); opacity: 0.8; }
-.rs-grid tr.rs-small .od-tile { opacity: 0.5; }
-.rs-face { width: 28px; height: 21px; object-fit: cover; vertical-align: middle; margin-right: 6px; border-radius: 4px; background: var(--panel-2); }
-.rs-face.big { width: 44px; height: 32px; margin: 0; }
-.rs-glabel .rs-inj { margin-left: 5px; }
-.rs-pills { display: flex; flex-wrap: wrap; gap: 4px; }
-.od-tile.rs-pill { display: inline-block; padding: 4px 9px; }
-.od-tile.rs-pill b { font-size: 0.82rem; }
-/* Game Script: tonight's numbers in the corner over the labels */
-.rs-now { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
-.rs-now-h { grid-column: 1 / -1; font-family: var(--font-display); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
-.rs-now .od-tile { text-align: center; padding: 3px 2px; }
-.rs-now .od-tile b { font-size: 0.95rem; }
-.rs-now .od-tile small { font-size: 0.62rem; color: var(--text); }
-/* Rotation: 48 minute cells on the 8-step scale, the strips fill the row */
-.rs-rot-wrap { display: flex; gap: 16px; align-items: center; }
-.rs-rot-strips { flex: 1; min-width: 480px; }
-.rs-rot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.rs-rot-l { width: 50px; flex: none; font-size: 0.8rem; font-weight: 700; text-align: right; }
-.rs-rot { flex: 1; display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); gap: 2px; height: 26px; }
-.rs-rot i { border-radius: 3px; background: var(--panel-2); }
-.rs-rot i.q { margin-left: 5px; }
-.rs-rot-q { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.rs-rot-q span { text-align: center; }
-/* Points Vs The Line */
-.rs-chart { display: block; overflow: visible; }
-.rs-bar { fill: rgba(var(--mid-rgb), 0.55); stroke: var(--panel); stroke-width: 1; }
-.rs-bar.over { fill: hsla(135, 62%, 42%, 0.75); }
-.rs-bar.under { fill: hsla(0, 70%, 52%, 0.7); }
-.rs-bar-v { font: 700 12px var(--font-display); fill: var(--text); text-anchor: middle; }
-.rs-bar-v.in { fill: #fff; }
-.rs-bar-l { font: 700 10px var(--font-body); fill: var(--text); text-anchor: middle; }
-.rs-bar-d { font-weight: 600; opacity: 0.75; }
-.rs-tonight { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 5 4; }
-.rs-then { fill: none; stroke: #60a5fa; stroke-width: 2; }
-.rs-then-dot { fill: hsl(0, 75%, 55%); stroke: var(--panel); stroke-width: 1.5; }
-.rs-then-dot.hit { fill: hsl(135, 65%, 45%); }
-.rs-then-t { font: 700 10.5px var(--font-display); fill: var(--text); text-anchor: middle; paint-order: stroke; stroke: var(--panel); stroke-width: 3px; }
-.rs-legend { display: flex; gap: 14px; font-size: 0.76rem; font-weight: 700; }
-.rs-legend i { display: inline-block; width: 18px; height: 0; margin-right: 5px; vertical-align: middle; }
-.rs-k-tonight { border-top: 2px dashed var(--text); }
-.rs-k-then { border-top: 2px solid #60a5fa; }
-/* How He Scores: the shot-type bar and each share's bar */
-.rs-stack { flex: 1; display: flex; height: 24px; border-radius: 6px; overflow: hidden; background: var(--panel-2); }
-.rs-stack span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; font: 700 0.78rem var(--font-display); color: #fff; letter-spacing: 0.02em; }
-.rs-stack-key { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 0.76rem; font-weight: 700; }
-.rs-stack-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
-.rs-k1 { background: #8b5cf6; }
-.rs-k2 { background: #0ea5e9; }
-.rs-k3 { background: #f59e0b; }
-.rs-k4 { background: #64748b; }
-.rs-meter { height: 12px; border-radius: 6px; background: var(--panel-2); overflow: hidden; }
-.rs-meter span { display: block; height: 100%; border-radius: 6px; }
-.rs-sub-h { margin-top: 4px; padding: 5px 8px; border-radius: 8px; background: var(--panel-2); border-left: 4px solid var(--accent); font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; cursor: help; }
-.rs-bar-row { display: flex; align-items: center; gap: 8px; }
-.rs-bar-name { width: 64px; flex: none; font-size: 0.86rem; font-weight: 700; }
-.rs-bar-name img { vertical-align: -3px; }
-/* a bar whose parts are on the scale: a thin divider between parts, text in the page's color */
-.rs-stack.rs-scaled span { color: var(--text); box-shadow: inset -2px 0 0 var(--panel); }
-.rs-stack.rs-scaled span:last-child { box-shadow: none; }
+.rs-panel { display: grid; grid-template-columns: repeat(2, minmax(640px, 1fr)); gap: 10px; }
+.rs-none { margin: 6px 0; font-size: 0.85rem; }
+.rs-sb { height: 306px; box-sizing: border-box; display: flex; flex-direction: column; background: var(--rs-box); border: 1px solid var(--rs-sep); border-radius: 12px; overflow: hidden; }
+/* the tabs are the box's title */
+.rs-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; height: 36px; flex: none; background: var(--rs-tabs); }
+.rs-tabs button { border: 0; border-right: 1px solid var(--rs-sep); background: transparent; color: var(--text); font: 700 0.95rem var(--font-display); cursor: pointer; }
+.rs-tabs button:last-child { border-right: 0; }
+.rs-tabs button:hover { background: rgba(var(--accent-rgb), 0.12); }
+.rs-tabs button.on { background: var(--text); color: var(--bg); }
+.rs-sbody { flex: 1; padding: 6px; min-height: 0; }
+/* the grid every tab uses */
+.rs-g { display: grid; grid-template-columns: 150px repeat(7, minmax(0, 1fr)); grid-template-rows: 28px; grid-auto-rows: 34px; gap: 3px; }
+.rs-t { display: flex; align-items: center; justify-content: center; min-width: 0; border-radius: 6px; background: var(--rs-tile); color: var(--text); font: 700 1.05rem var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-t.rs-l { justify-content: flex-start; gap: 6px; padding: 0 9px; background: var(--rs-label); font: 700 0.9rem var(--font-body); }
+.rs-t.rs-l.rs-out { box-shadow: inset 3px 0 0 rgb(var(--bad-rgb)); }
+.rs-t.rs-l .player-click { overflow: hidden; text-overflow: ellipsis; }
+.rs-t.rs-h { font: 800 0.74rem var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; }
+.rs-t.rs-him { background: rgba(70, 130, 220, 0.3); }
+.rs-t.rs-def { background: rgba(150, 100, 220, 0.3); }
+.rs-t.rs-rd { background: rgba(var(--accent-rgb), 0.3); }
+.rs-t.rs-plain { background: var(--rs-label); }
+.rs-t.rs-corner { justify-content: flex-start; gap: 5px; padding: 0 6px; background: transparent; font: 800 0.74rem var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+.rs-t.rs-blank { background: transparent; }
+.rs-dot { display: inline-block; width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.rs-dot.rs-him { background: rgba(70, 130, 220, 0.8); }
+.rs-dot.rs-def { background: rgba(150, 100, 220, 0.8); margin-left: 4px; }
+.rs-corner img { flex: none; }
+.rs-s2 { grid-column: span 2; }
+.rs-s3 { grid-column: span 3; }
+.rs-s7 { grid-column: span 7; }
+.rs-face { width: 30px; height: 22px; flex: none; object-fit: cover; border-radius: 4px; }
+.rs-t .rs-inj { flex: none; }
+/* Rotation: the minute strips and the quarter headers inside a seven-column span */
+.rs-strip { display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); gap: 2px; }
+.rs-strip i { border-radius: 3px; background: var(--rs-tile); }
+.rs-strip i.q { margin-left: 4px; }
+.rs-qh { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+/* Vs The Line: bars that touch, tonight's line dashed, his line each night as dots */
+.rs-vl { height: 100%; display: flex; flex-direction: column; gap: 3px; }
+.rs-vplot { position: relative; flex: 1; min-height: 0; margin-top: 14px; }
+.rs-vbar { position: absolute; bottom: 0; box-sizing: border-box; border-right: 2px solid var(--rs-box); display: flex; align-items: flex-end; justify-content: center; background: rgba(var(--mid-rgb), 0.6); }
+.rs-vbar:last-child { border-right: 0; }
+.rs-vbar.over { background: hsla(135, 62%, 40%, 0.85); }
+.rs-vbar.under { background: hsla(0, 70%, 50%, 0.8); }
+.rs-vbar b { margin-bottom: 4px; font: 800 1.02rem var(--font-display); color: #fff; }
+.rs-vline { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--text); }
+.rs-vpath { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.rs-vpath path { fill: none; stroke: #3b6fc4; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.rs-vdot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: hsl(0, 75%, 52%); border: 2px solid var(--rs-box); box-sizing: border-box; }
+.rs-vdot.hit { background: hsl(135, 65%, 42%); }
+.rs-vdot em { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); font: 800 0.72rem var(--font-display); font-style: normal; color: var(--text); text-shadow: 0 0 3px var(--rs-box), 0 0 3px var(--rs-box); white-space: nowrap; }
+.rs-vx { display: flex; flex: none; }
+.rs-vx span { flex: 1; min-width: 0; text-align: center; font: 700 0.7rem var(--font-body); white-space: nowrap; overflow: hidden; }
+.rs-vfoot { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; flex: none; }
+.rs-vfoot .rs-t { height: 32px; font-size: 0.95rem; }
+/* the main list: Tonight's Game band */
+.sim-group-row th.sim-hitgroup.rs-gamegroup span { background: rgba(150, 100, 220, 0.2); border-color: rgba(150, 100, 220, 0.45); }

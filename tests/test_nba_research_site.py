@@ -95,7 +95,7 @@ class Points(unittest.TestCase):
 
     def test_no_model_on_the_page(self):
         self.assertEqual(SITE.errors, [])
-        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Teammates On The Report"])
+        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Pace", "Spread", "Total", "Teammates On The Report"])
         text = self.page.inner_text("main")
         for word in ("Edge", "Fair", "Rating", "Strong", "Projection", "Plays Only", "Model Performance", "10,000"):
             self.assertNotIn(word, text)
@@ -111,6 +111,9 @@ class Points(unittest.TestCase):
         self.assertEqual(one[5], "35.0 L5 35.2")
         self.assertEqual(one[6:9], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
         self.assertEqual(one[11], "22.0 1st · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
+        self.assertEqual(one[13], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
+        self.assertEqual(one[14], "225.0 O/U")
+        self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
 
     def test_teammates_on_the_report(self):
         pills = self.page.evaluate("() => [...document.querySelectorAll('#rs-list .sim-rtag')].map((t) => [t.textContent, t.className])")
@@ -139,7 +142,9 @@ class Points(unittest.TestCase):
 
 
 class Panel(unittest.TestCase):
-    """Clicking a Points row (not its name or a price) opens the research dashboard under it."""
+    """Clicking a Points row (not its name or a price) opens the research panel under it: two boxes
+    of the same size, each with tabs, every tab the same grid (a header row, six rows, a label and
+    seven columns: the owner approved it 2026-11-03)."""
     @classmethod
     def setUpClass(cls):
         cls.page = SITE.open("nba/points.html")
@@ -151,67 +156,84 @@ class Panel(unittest.TestCase):
         self.page.click("#rs-list tr.rs-click td.rs-line")
         self.page.wait_for_selector("#rs-list .rs-panel")
 
-    def test_the_tiles(self):
+    def tab(self, side, name):
         self.open()
-        titles = self.page.evaluate("() => [...document.querySelectorAll('.rs-tile h4 > span:first-child')].map((h) => h.textContent.trim())")
-        self.assertEqual(titles, ["Rotation", "Points Vs The Line", "Recent Form", "How He Scores", "Teammates On The Floor", "Matchup Angles", "Tonight's Game Script"])
-        # every grid is the League Stats Chart's (colored bands over filled tiles)
-        self.assertGreater(self.page.locator(".rs-panel table.od-grid .od-ggroups").count(), 6)
-        # his 6 games against tonight's 20.5: 3 over (the 25s), 3 under; game 4's line (19.5) a dot he cleared
-        self.assertEqual(self.page.locator(".rs-bar.over").count(), 3)
-        self.assertEqual(self.page.locator(".rs-bar.under").count(), 3)
-        self.assertEqual(self.page.locator(".rs-then-dot.hit").count(), 1)
-        self.assertEqual(self.page.locator(".rs-then-t").first.text_content(), "19.5")
-        # teammates: most minutes together first, F. Last names, his points a 36 with / without, Two's assists
-        mates = self.page.evaluate("""() => { const t = [...document.querySelectorAll('.rs-tile')].find((s) => s.textContent.startsWith('Teammates'));
-            return [...t.querySelectorAll('tr:not(.od-ggroups):not(.od-glabels)')].map((tr) => [...tr.children].filter((c) => !c.classList.contains('od-ggap')).map((c) => c.innerText.trim())); }""")
-        self.assertTrue(mates[0][0].startswith("P. Three"), mates)
-        self.assertTrue(mates[1][0].startswith("P. Two"), mates)
-        self.assertEqual(mates[1][2:5], ["15.0", "16.8", "+1.8"])  # shots first: 25 in 60 min, 70 in 150 min
-        self.assertEqual(mates[1][5:8], ["18.0", "24.0", "+6.0"])  # then points: 30 in 60 min, 100 in 150 min
-        colored = self.page.evaluate("() => [...document.querySelectorAll('.rs-panel tr.rs-out .od-tile')].map((t) => Boolean(t.getAttribute('style')))")
-        self.assertEqual(colored[1:3], [True, True])  # With AND Without both colored, never one side only
-        self.assertEqual(mates[1][-1], "5")
-        self.assertEqual(self.page.locator(".rs-panel tr.rs-out").count(), 1)  # Two is Out tonight
-        # the rotation strip: 48 minutes, a game count in every hover
-        self.assertEqual(self.page.locator(".rs-rot-row:first-child .rs-rot i").count(), 48)
-        self.assertIn("6 of 6 games", self.page.get_attribute(".rs-rot-row:first-child .rs-rot i", "title"))
+        self.page.click(f"[data-rs-tab='{side}:{name}']")
+        box = f".rs-sb[data-side='{side}']"
+        self.page.wait_for_selector(f"{box} button.on:text-is('{name}')")
+        return box
+
+    def cells(self, box):
+        """Every row of the box's grid as its tiles' text (the header row first)."""
+        return self.page.evaluate(f"""() => {{ const g = document.querySelector("{box} .rs-g"); const kids = [...g.children]; const rows = []; let row = [], used = 0;
+            for (const k of kids) {{ const span = k.classList.contains('rs-s7') ? 7 : k.classList.contains('rs-s3') ? 3 : k.classList.contains('rs-s2') ? 2 : 1;
+              row.push(k.textContent.replace(/\\s+/g, ' ').trim()); used += span; if (used >= 8) {{ rows.push(row); row = []; used = 0; }} }} return rows; }}""")
+
+    def test_two_boxes_every_tab_the_same_shape(self):
+        self.open()
+        tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
+        self.assertEqual(tabs, [["Form", "Scoring", "Matchup", "Game Script"], ["Vs The Line", "Rotation", "Teammates"]])
+        sizes = set()
+        for side, names in (("left", tabs[0]), ("right", tabs[1])):
+            for name in names:
+                box = self.tab(side, name)
+                sizes.add(tuple(self.page.evaluate(f"() => {{ const b = document.querySelector(\"{box}\").getBoundingClientRect(); return [Math.round(b.width), Math.round(b.height)]; }}")))
+                if name != "Vs The Line":
+                    self.assertEqual(len(self.cells(box)), 7, name)  # a header row + six rows, always
+        self.assertEqual(len(sizes), 1, sizes)  # every tab the same box
         self.assertEqual(SITE.errors, [])
         text = self.page.inner_text(".rs-panel")
         for word in ("Edge", "Fair", "Projection", "Model"):
             self.assertNotIn(word, text)
 
-    def test_game_script_ranges_and_the_defense_columns(self):
-        self.open()
-        script = self.page.evaluate("""() => { const t = [...document.querySelectorAll('.rs-tile')].find((s) => s.textContent.startsWith("Tonight's Game Script"));
-            return [...t.querySelectorAll('table.rs-grid > tbody > tr')].map((tr) => [...tr.children].map((c) => c.innerText.trim())); }""")
-        labels = [r[0] for r in script]
+    def test_vs_the_line(self):
+        self.tab("right", "Vs The Line")
+        # his 6 games against tonight's 20.5: 3 over (the 25s), 3 under; game 4's line (19.5) a dot he cleared
+        self.assertEqual(self.page.locator(".rs-vbar.over").count(), 3)
+        self.assertEqual(self.page.locator(".rs-vbar.under").count(), 3)
+        self.assertEqual(self.page.locator(".rs-vdot.hit").count(), 1)
+        self.assertEqual(self.page.locator(".rs-vdot em").first.text_content(), "19.5")
+        self.assertIn("3 of 6", self.page.inner_text(".rs-vfoot"))
+
+    def test_teammates(self):
+        rows = self.cells(self.tab("right", "Teammates"))
+        self.assertEqual(rows[0][1:], ["Together", "Shots With", "Shots W/O", "Pts With", "Pts W/O", "Change", "Assists"])
+        self.assertTrue(rows[1][0].startswith("P. Three"), rows)  # most minutes together first
+        self.assertTrue(rows[2][0].startswith("P. Two"), rows)
+        self.assertEqual(rows[2][2:8], ["15.0", "16.8", "18.0", "24.0", "+6.0", "5"])  # 25 / 70 shots and 30 / 100 points in 60 / 150 min
+        colored = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb[data-side=right] .rs-g > .rs-t:not(.rs-h):not(.rs-l):not(.rs-corner)')].slice(7, 14).map((t) => Boolean(t.getAttribute('style')))")
+        self.assertEqual(colored[1:5], [True, True, True, True])  # With AND Without both colored, never one side only
+        self.assertEqual(self.page.locator(".rs-sb[data-side=right] .rs-l.rs-out").count(), 1)  # Two is Out tonight
+
+    def test_rotation(self):
+        box = self.tab("right", "Rotation")
+        self.assertEqual(self.page.locator(f"{box} .rs-strip").first.locator("i").count(), 48)
+        self.assertIn("6 of 6 games", self.page.get_attribute(f"{box} .rs-strip i", "title"))
+
+    def test_game_script_ranges(self):
+        rows = self.cells(self.tab("left", "Game Script"))
+        labels = [r[0] for r in rows[1:]]
         # One is on the road: +3.5 tonight, his games within 5 either way; the total 225 +- 5
-        self.assertEqual(labels[:3], ["All His Games", "Spread -1.5 To +8.5", "Total 220.0 To 230.0"])
-        self.assertEqual(script[1][1], "3")  # his road games had +4.5 (home games -4.5: 8 away)
-        self.assertEqual(script[2][1], "6")
-        self.assertIn("+3.5", self.page.inner_text(".rs-now"))
-        self.assertIn("DEF VS PGS", self.page.inner_text(".rs-panel").upper())
+        self.assertEqual(labels[:3], ["All His Games", "Spread −1.5 To +8.5", "Total 220.0 To 230.0"])
+        self.assertEqual(rows[2][1], "3")  # his road games had +4.5 (home games -4.5: 8 away)
+        self.assertEqual(rows[3][1], "6")
+        self.assertIn("Road Games", labels)  # room left: tonight's venue fills a row
+        self.assertTrue(rows[0][0].startswith("+3.5"))
 
-    def test_how_he_scores_beside_the_defense(self):
-        self.open()
-        tile = "[...document.querySelectorAll('.rs-tile')].find((s) => s.textContent.startsWith('How He Scores'))"
-        rows = self.page.evaluate(f"() => [...{tile}.querySelectorAll('table.rs-grid > tbody > tr')].map((tr) => [...tr.children].filter((c) => !c.classList.contains('od-ggap')).map((c) => c.innerText.replace(/\s+/g, ' ').trim()))")
-        self.assertEqual(rows[0][0], "Shot Share")
-        self.assertTrue(rows[0][3].startswith("30%"), rows)  # BBB: 30 of the 100 shots against them by PGs
-        self.assertTrue(rows[1][3].startswith("63%"), rows)  # 10 of 16 PG makes assisted
-        # where his points come from: two bars, his and BBB's, the four parts named inside, on the scale
-        bars = self.page.evaluate(f"() => [...{tile}.querySelectorAll('.rs-bar-row .rs-stack')].map((b) => [...b.children].map((p) => [p.textContent, Boolean(p.style.background)]))")
-        self.assertEqual([t for t, _ in bars[0]], ["3PT 25%", "MID 8%", "PAINT 50%", "FT 17%"])  # 30 / 10 / 60 / 20 of 120
-        self.assertEqual([t for t, _ in bars[1]], ["3PT 41%", "", "PAINT 36%", "FT 18%"])  # 18 / 2 / 16 / 8 of 44 (5%: too thin for text, hover only)
-        self.assertTrue(all(c for _, c in bars[1]))  # the defense's parts colored by rank
+    def test_scoring_beside_the_defense(self):
+        rows = self.cells(self.tab("left", "Scoring"))
+        self.assertEqual(rows[0][1:], ["Share", "Rank", "Pts / G", "Allowed", "Rank", "Pts / G", "Read"])
+        self.assertEqual([r[0] for r in rows[1:]], ["Shot Share", "Assisted Makes", "From Threes", "From Mid-Range", "From The Paint", "From The Line"])
+        self.assertEqual(rows[1][4], "30%")  # BBB: 30 of the 100 shots against them by PGs
+        self.assertEqual(rows[2][4], "63%")  # 10 of 16 PG makes assisted
+        self.assertEqual(rows[3][1], "25%")  # his points: 30 of 120 from threes
 
-    def test_matchup_angles_allowed_or_rank(self):
-        self.open()
-        self.page.click("[data-rs-rank='true']")
-        self.assertIn("of", self.page.inner_text(".rs-panel .rs-toggle >> xpath=../.."))
-        self.page.click("[data-rs-rank='false']")
-        self.assertEqual(SITE.errors, [])
+    def test_form_beside_the_defense(self):
+        rows = self.cells(self.tab("left", "Form"))
+        self.assertEqual(rows[0][1:], ["Season", "L10", "L5", "+/-", "Season", "L5", "+/-"])
+        self.assertEqual(rows[1][:2], ["Points", "20.0"])
+        self.assertEqual(rows[1][5], "22.0")  # BBB allow PGs 22 a game
+        self.assertEqual(rows[2][5:], ["--", "--", "--"])  # minutes: his only
 
     def test_click_again_closes_and_the_name_still_opens_the_card(self):
         self.open()

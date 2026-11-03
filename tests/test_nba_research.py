@@ -41,6 +41,7 @@ class Block(unittest.TestCase):
         self.assertEqual(self.p["15"]["rotn"], [1, 1])
         self.assertEqual(self.p["15"]["rot"][:12], [1] * 12)
         self.assertEqual(sum(self.p["15"]["rot"][12:]), 0)
+        self.assertEqual(self.p["15"]["rot1"], [1] * 12 + [0] * 36)  # his last game, minute by minute
 
     def test_units_and_team_keys(self):
         # every possession had the other team's starters on the floor: none vs a bench unit

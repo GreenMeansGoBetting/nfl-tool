@@ -34,6 +34,10 @@ or tile follows this, unasked:
 - **Compact**: fixed column widths (about 46-66 px a number), the table's width = its columns, a
   box sized to its contents and set beside the next one (flex-wrap), never `width: 100%` to fill
   the screen. Bars in charts narrow and touching (a 1 px edge between).
+- **A panel of research is a sandbox of tabs** (the owner, 2026-11-03, approving the NBA Points
+  panel): same-size boxes, each tab the same grid (a header row, fixed rows, a label column and
+  equal columns, 3 px gaps), tabs as the titles, header colors with one meaning everywhere (blue =
+  him, purple = the defense, green = the read). New data conforms to the grid (research.js `.rs-g`).
 - **Fill a row by scaling, never by widening or gaps** (the owner, 2026-11-03, red lines on every gap:
   "dont just make stuff wider to fill it, make it more readable. dont add more white space"): boxes
   sit at their compact size in a row, then the row is zoomed evenly to the full width (research.js

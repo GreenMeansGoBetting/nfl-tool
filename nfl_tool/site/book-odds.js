@@ -23,6 +23,13 @@ const BOOK_INITIALS = {
   betrivers: "BR", hard_rock: "HR", bally_bet: "BAL", circa: "CIR", pinnacle: "PIN", novig: "NV", prophetx: "PX",
   kalshi: "KAL", polymarket_us: "PM", fliff: "FL", "4cx": "4CX", underdog_dfs: "UD",
 };
+// Two letters a book, for a price pill that must stay narrow (spec.short; the NBA prop research
+// list, the owner 2026-11-03: "do HR, NV, DK, FD, FN, PX just two letters").
+const BOOK_CODES = {
+  draftkings: "DK", fanduel: "FD", betmgm: "MG", caesars: "CZ", fanatics: "FN", bet365: "B3", thescore: "SC",
+  betrivers: "BR", hard_rock: "HR", bally_bet: "BB", circa: "CI", pinnacle: "PN", novig: "NV", prophetx: "PX",
+  kalshi: "KL", polymarket_us: "PM", fliff: "FL", "4cx": "4C", underdog_dfs: "UD",
+};
 // Own helpers: the NHL pages load this file without the NFL's common.js.
 const boNorm = (n) => (n || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "").replace(/[^a-z]/g, "");
 const boEnc = (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o))));
@@ -92,7 +99,7 @@ function bookPricePill(spec) {
   const best = bookBest(quotes, spec.side, spec.line);
   if (!best) return "";
   const tag = bookTag(spec, bookModelChance(spec, spec.side, spec.line), best[3]);
-  return `<button type="button" class="bo-pill${tag && tag.kind !== "pass" ? ` bo-${tag.kind}` : ""}" data-bo="${boEnc(spec)}" title="Best price across your books. Click for every book.">${boOdds(best[3])} <small>${BOOK_NAMES[best[0]] || best[0]}</small></button>`;
+  return `<button type="button" class="bo-pill${tag && tag.kind !== "pass" ? ` bo-${tag.kind}` : ""}" data-bo="${boEnc(spec)}" title="Best price across your books${spec.short ? ` (${BOOK_NAMES[best[0]] || best[0]})` : ""}. Click for every book.">${boOdds(best[3])} <small>${spec.short ? BOOK_CODES[best[0]] || String(best[0]).slice(0, 2).toUpperCase() : BOOK_NAMES[best[0]] || best[0]}</small></button>`;
 }
 
 function bookSideLabel(spec, side, atLine) {

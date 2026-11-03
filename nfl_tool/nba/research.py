@@ -18,7 +18,7 @@ everything here comes from the engine (possessions.py) for THIS season.
   BENCH_UNIT or fewer of that night's starters on the floor.
 - `q`: his points by quarter (1st-4th, overtime left out), summed.
 - `rot`: games he was on the floor at each of the 48 game minutes (season),
-  `rot5`: the same over his last 5 games, `rotn`: [games, last-5 games].
+  `rot5`: the same over his last 5 games, `rot1`: his last game (1 / 0), `rotn`: [games, last-5 games].
 - `q4`: [close games, 4th-quarter minutes in them, not-close games, minutes]:
   close = the score within CLOSE_Q4 entering the 4th.
 - `foul`: game ids with early foul trouble (EARLY_Q1 fouls in the 1st quarter
@@ -156,6 +156,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
         p = mine(pid)
         p["rot"] = [int(sum(games[g][m] for g in ids)) for m in range(MINUTES)]
         p["rot5"] = [int(sum(games[g][m] for g in last5)) for m in range(MINUTES)]
+        p["rot1"] = [int(v) for v in games[ids[-1]]]  # his last game, minute by minute
         p["rotn"] = [len(ids), len(last5)]
         cg = [g for g in ids if close.get(g)]
         og = [g for g in ids if g in close and not close[g]]

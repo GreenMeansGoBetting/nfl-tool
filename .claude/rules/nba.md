@@ -235,27 +235,28 @@ Every game played 10,000 times, possession by possession.
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
 - **Research panel (Points only so far, 2026-11-03)**: a row click (not the name, a price or a tag)
-  opens a dashboard under it (`panel`, `PANEL`); the owner: "Think of this like a dashboard ... 1-2
-  minutes to look at a player ... digestable, compact, color coded and give context". **Built from
-  the League Stats Chart grid** (`grid()`, `tileTd()`, `stepStyle` on the 8-step scale; styles.md
-  "One Look"); each row of boxes zoomed to fill the width (`fitPanel`). Rows: **Rotation** (48
-  minute cells by how often he's on the floor, points by quarter, close vs not-close 4th minutes);
-  **Points Vs The Line** (last 15 as touching bars vs tonight's dashed line, his line that night as a
-  line of dots, green = cleared), **Recent Form** (Him and `logo DEF Vs <pos>s` side by side: Season /
-  L5 / +/- for points, minutes (his only), shots, free throws, FG %; the defense's colored by its rank
-  of 30, `defenseByPos`), **How He Scores** (shot-type bar, names inside; Him Share / Rank beside `logo DEF Vs
-  <pos>s` Allowed / Rank for shot share, assisted makes, FT and transition shares, `defShares`; then
-  Where His Points Come From: his and the defense's 3PT / MID / PAINT (rim + short) / FT bars, each
-  part on the 8-step scale, `stackBar`; the owner picked bars over a grid, 2026-11-03); then **Teammates On The Floor** (face + "F. Last"; Time Together, His Shots / 36 then His
-  Points / 36, each With / Without / Change, With and Without both colored vs his usual rate, Assists
-  To Him), **Matchup Angles** (his face vs `logo DEF`; Allowed / Rank toggle `RSV`; More / Fewer only
-  by the two-sided rule), **Tonight's Game Script** (tonight's spread / total / pace in the corner;
-  rows = his games within `SCRIPT_RANGE` 5 of tonight's spread and total either way, pace
-  `PACE_RANGE` 2, tonight's schedule spots, beside All His Games; under `SMALL` faded). Turned down:
-  a key-defender tile, a hit-rate ladder (maybe later).
+  opens it (`panel`, `PANEL`). **Two sandboxes** (the owner approved the mock-up, 2026-11-03: "a
+  standard sandbox area so youd always know how to conform data to it"): two boxes of one size side
+  by side, each with tabs (`RS_TABS`: left Form / Scoring / Matchup / Game Script, right Vs The Line /
+  Rotation / Teammates; `RSV` keeps the open tab), and **every tab is the same grid** (`.rs-g`: one
+  header row, `RS_ROWS` 6 rows, a 150 px label column + 7 equal columns, 3 px gaps; `gridOf` fills
+  short tabs with blank rows; merge with `rs-s2` / `rs-s3` / `rs-s7`). Blue header = him, purple =
+  tonight's defense, green = the read (`readOf`, the two-sided rule); tiles on the 8-step scale
+  (`stepStyle`). A new research view is a new tab on this grid, never a new shape.
+  Form (Season / L10 / L5 / +/- vs DEF Season / L5 / +/-: points, minutes, shots, threes, FTs, FG %;
+  `defenseByPos`), Scoring (share / rank / pts a game vs DEF allowed / rank / pts a game, read: shot
+  share, assisted, threes, mid-range, paint, line; `defShares`), Matchup (points, FTs, transition,
+  bench units, pace, foul trouble), Game Script (his games within `SCRIPT_RANGE` 5 of tonight's
+  spread and total, `PACE_RANGE` 2 of the pace, tonight's spots, then venue / last 10 to fill),
+  Vs The Line (touching bars, tonight's dashed line, his line that night as dots), Rotation (season /
+  last 5 / last game minute strips, points by quarter, close vs not-close 4th minutes, starts, rest),
+  Teammates (together, shots and points a 36 with / without, change, assists to him).
+- **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
+  book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30
+  teams' paces), Spread (his team's), Total (`tonightGame`).
 - Data: `research.py` -> props.json `research` (own try in `compute_props`): per player `feed`,
   `trans`, `units` (bench unit = `BENCH_UNIT` 2 or fewer starters), `q`, `rot` / `rot5` / `rotn`,
-  `q4`, `foul`, `lines`, `pz` (points by zone); `defpos` / `deffga` (each defense vs each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
+  `rot1`, `q4`, `foul`, `lines`, `pz` (points by zone); `defpos` / `deffga` (each defense vs each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets
   until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03); older nights come from
   `past_points_lines` (the retired projections' lines file, the sim and Zone Matchup records). Tests: `tests/test_nba_research.py`.
