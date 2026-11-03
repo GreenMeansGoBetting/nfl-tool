@@ -23,6 +23,10 @@ everything here comes from the engine (possessions.py) for THIS season.
   close = the score within CLOSE_Q4 entering the 4th.
 - `foul`: game ids with early foul trouble (EARLY_Q1 fouls in the 1st quarter
   or EARLY_H1 by halftime).
+- `pz`: his points [threes, mid-range, paint (rim + short), free throws], summed.
+`defpos[<abbr>][<pos>]`: what that defense allowed the position: [threes, mid-range, paint, free
+  throw points, made shots, assisted makes, transition points, points, shots]; `deffga[<abbr>]`:
+  every shot against it (the position's share of them).
 `teams[<abbr>]` (on defense): [possessions vs bench units, points allowed,
   possessions vs starter units, points allowed].
 `games[<game id>]`: [pace, total at tip, home spread at tip] (lines None
@@ -44,6 +48,14 @@ EARLY_Q1, EARLY_H1 = 2, 3
 MINUTES = 48
 
 
+def zone_points(g: pd.DataFrame) -> list:
+    """[points on threes, mid-range, in the paint (rim + short), free throws] from scoring actions."""
+    made = g[(g["kind"] == "shot") & g["made"]]
+    three = made["three"].astype(bool)
+    return [int(made.loc[three, "pts"].sum()), int(made.loc[~three & (made["zone"] == "mid"), "pts"].sum()),
+            int(made.loc[~three & made["zone"].isin(("rim", "short")), "pts"].sum()), int(g.loc[g["kind"] == "ft", "pts"].sum())]
+
+
 def _starters(box: pd.DataFrame) -> dict:
     s = box[box["starter"].fillna(False).astype(bool) & box["athlete_id"].notna()]
     out = {}
@@ -57,7 +69,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss = engine.possessions
     acts = engine.actions
     stints = engine.stints
-    out = {"players": {}, "teams": {}, "games": {}, "spots": {}}
+    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}}
     if poss.empty:
         return out
     mine = lambda pid: out["players"].setdefault(str(int(pid)), {})  # noqa: E731
@@ -70,7 +82,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss["d_st"] = [sum(int(p) in starters.get(int(g), ()) for p in ps if pd.notna(p))
                     for g, ps in zip(poss["game_id"], poss[dcols].itertuples(index=False, name=None))]
     poss["bench"] = poss["d_st"] <= BENCH_UNIT
-    key = poss.set_index(["game_id", "n"])[["fast", "bench"]]
+    key = poss.set_index(["game_id", "n"])[["fast", "bench", "def"]]
 
     abbr = dict(zip(box["team_id"].astype(int), box["team_abbreviation"]))
     for team, g in poss.groupby("def"):
@@ -97,6 +109,20 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
                       int(counts.get((pid, False), 0)), int(g.loc[~bench, "pts"].sum())]
         by_q = g[g["period"] <= 4].groupby("period")["pts"].sum()
         p["q"] = [int(by_q.get(q, 0)) for q in (1, 2, 3, 4)]
+        p["pz"] = zone_points(g)
+
+    # what each defense allowed each position: points by zone, makes and assisted makes, transition
+    # points, shots (and every position's shots, for the position's share)
+    joined["pos"] = joined["player"].map(lambda q: (players.get(str(int(q))) or {}).get("pos") or "")
+    joined["dabbr"] = joined["def"].map(lambda t: abbr.get(int(t), t) if pd.notna(t) else None)
+    for (team, pos), g in joined[joined["dabbr"].notna() & (joined["pos"] != "")].groupby(["dabbr", "pos"]):
+        shots = g[g["kind"] == "shot"]
+        made = shots[shots["made"]]
+        out["defpos"].setdefault(str(team), {})[pos] = zone_points(g) + [
+            len(made), int(made["assist"].notna().sum()), int(g.loc[g["fast"].fillna(False).astype(bool), "pts"].sum()),
+            int(g["pts"].sum()), len(shots)]
+    for team, g in joined[joined["dabbr"].notna() & (joined["kind"] == "shot")].groupby("dabbr"):
+        out["deffga"][str(team)] = len(g)
 
     # who sets him up
     makes = acts[(acts["kind"] == "shot") & acts["made"] & acts["player"].notna()]

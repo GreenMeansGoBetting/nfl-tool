@@ -243,8 +243,10 @@ Every game played 10,000 times, possession by possession.
   **Points Vs The Line** (last 15 as touching bars vs tonight's dashed line, his line that night as a
   line of dots, green = cleared), **Recent Form** (Him and `logo DEF Vs <pos>s` side by side: Season /
   L5 / +/- for points, minutes (his only), shots, free throws, FG %; the defense's colored by its rank
-  of 30, `defenseByPos`), **How He Scores** (shot-type bar; share, rank of his position and a bar
-  each); then **Teammates On The Floor** (face + "F. Last"; Time Together, His Shots / 36 then His
+  of 30, `defenseByPos`), **How He Scores** (shot-type bar, names inside; Him Share / Rank beside `logo DEF Vs
+  <pos>s` Allowed / Rank for shot share, assisted makes, FT and transition shares, `defShares`; then
+  Where His Points Come From: his and the defense's 3PT / MID / PAINT (rim + short) / FT bars, each
+  part on the 8-step scale, `stackBar`; the owner picked bars over a grid, 2026-11-03); then **Teammates On The Floor** (face + "F. Last"; Time Together, His Shots / 36 then His
   Points / 36, each With / Without / Change, With and Without both colored vs his usual rate, Assists
   To Him), **Matchup Angles** (his face vs `logo DEF`; Allowed / Rank toggle `RSV`; More / Fewer only
   by the two-sided rule), **Tonight's Game Script** (tonight's spread / total / pace in the corner;
@@ -253,7 +255,7 @@ Every game played 10,000 times, possession by possession.
   a key-defender tile, a hit-rate ladder (maybe later).
 - Data: `research.py` -> props.json `research` (own try in `compute_props`): per player `feed`,
   `trans`, `units` (bench unit = `BENCH_UNIT` 2 or fewer starters), `q`, `rot` / `rot5` / `rotn`,
-  `q4`, `foul`, `lines`; `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
+  `q4`, `foul`, `lines`, `pz` (points by zone); `defpos` / `deffga` (each defense vs each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets
   until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03); older nights come from
   `past_points_lines` (the retired projections' lines file, the sim and Zone Matchup records). Tests: `tests/test_nba_research.py`.

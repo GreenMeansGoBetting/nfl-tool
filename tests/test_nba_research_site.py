@@ -49,8 +49,10 @@ PROPS = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "fields": F
     # the research panel (research.py): One's game 4 line was 19.5; Two set up 5 of his 20 makes
     "research": {"players": {"1": {"q": [30, 30, 30, 30], "trans": [12, 120], "units": [40, 30, 160, 90], "feed": [20, [["2", 5], ["3", 2]]],
                                    "rot": [6] * 12 + [3] * 12 + [6] * 12 + [4] * 12, "rot5": [5] * 48, "rotn": [6, 5], "q4": [4, 40.0, 2, 12.0],
-                                   "foul": ["2"], "lines": {"4": 19.5}}},
-                 "teams": {"BBB": [50, 60, 150, 160]}, "games": {str(g): [100.0 + g, 220.0 + g, -4.5] for g in range(1, 7)}, "spots": {}}}
+                                   "foul": ["2"], "lines": {"4": 19.5}, "pz": [30, 10, 60, 20]}},
+                 "teams": {"BBB": [50, 60, 150, 160]},
+                 # BBB vs PGs: [threes, mid, paint, FT points, makes, assisted, transition, points, shots]; every shot against BBB
+                 "defpos": {"BBB": {"PG": [18, 2, 16, 8, 16, 10, 6, 44, 30]}, "CCC": {"PG": [9, 6, 20, 5, 15, 7, 4, 40, 33]}}, "deffga": {"BBB": 100, "CCC": 110}, "games": {str(g): [100.0 + g, 220.0 + g, -4.5] for g in range(1, 7)}, "spots": {}}}
 PROPS["seasons"]["2027"]["players"]["1"]["with"] = {"2": [60.0, 30, 25, 150.0, 100, 70], "3": [100.0, 50, 40, 110.0, 80, 55]}
 
 
@@ -190,6 +192,19 @@ class Panel(unittest.TestCase):
         self.assertEqual(script[2][1], "6")
         self.assertIn("+3.5", self.page.inner_text(".rs-now"))
         self.assertIn("DEF VS PGS", self.page.inner_text(".rs-panel").upper())
+
+    def test_how_he_scores_beside_the_defense(self):
+        self.open()
+        tile = "[...document.querySelectorAll('.rs-tile')].find((s) => s.textContent.startsWith('How He Scores'))"
+        rows = self.page.evaluate(f"() => [...{tile}.querySelectorAll('table.rs-grid > tbody > tr')].map((tr) => [...tr.children].filter((c) => !c.classList.contains('od-ggap')).map((c) => c.innerText.replace(/\s+/g, ' ').trim()))")
+        self.assertEqual(rows[0][0], "Shot Share")
+        self.assertTrue(rows[0][3].startswith("30%"), rows)  # BBB: 30 of the 100 shots against them by PGs
+        self.assertTrue(rows[1][3].startswith("63%"), rows)  # 10 of 16 PG makes assisted
+        # where his points come from: two bars, his and BBB's, the four parts named inside, on the scale
+        bars = self.page.evaluate(f"() => [...{tile}.querySelectorAll('.rs-bar-row .rs-stack')].map((b) => [...b.children].map((p) => [p.textContent, Boolean(p.style.background)]))")
+        self.assertEqual([t for t, _ in bars[0]], ["3PT 25%", "MID 8%", "PAINT 50%", "FT 17%"])  # 30 / 10 / 60 / 20 of 120
+        self.assertEqual([t for t, _ in bars[1]], ["3PT 41%", "", "PAINT 36%", "FT 18%"])  # 18 / 2 / 16 / 8 of 44 (5%: too thin for text, hover only)
+        self.assertTrue(all(c for _, c in bars[1]))  # the defense's parts colored by rank
 
     def test_matchup_angles_allowed_or_rank(self):
         self.open()

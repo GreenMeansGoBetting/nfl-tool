@@ -374,8 +374,8 @@ table.data-table.sim-list .rs-panel table.rs-grid td.rs-glabel { text-align: lef
 .rs-k-tonight { border-top: 2px dashed var(--text); }
 .rs-k-then { border-top: 2px solid #60a5fa; }
 /* How He Scores: the shot-type bar and each share's bar */
-.rs-stack { display: flex; height: 20px; border-radius: 6px; overflow: hidden; background: var(--panel-2); }
-.rs-stack span { display: grid; place-items: center; font: 700 0.76rem var(--font-display); color: #fff; }
+.rs-stack { flex: 1; display: flex; height: 24px; border-radius: 6px; overflow: hidden; background: var(--panel-2); }
+.rs-stack span { display: grid; place-items: center; overflow: hidden; white-space: nowrap; font: 700 0.78rem var(--font-display); color: #fff; letter-spacing: 0.02em; }
 .rs-stack-key { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 0.76rem; font-weight: 700; }
 .rs-stack-key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 .rs-k1 { background: #8b5cf6; }
@@ -384,3 +384,10 @@ table.data-table.sim-list .rs-panel table.rs-grid td.rs-glabel { text-align: lef
 .rs-k4 { background: #64748b; }
 .rs-meter { height: 12px; border-radius: 6px; background: var(--panel-2); overflow: hidden; }
 .rs-meter span { display: block; height: 100%; border-radius: 6px; }
+.rs-sub-h { margin-top: 4px; padding: 5px 8px; border-radius: 8px; background: var(--panel-2); border-left: 4px solid var(--accent); font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; cursor: help; }
+.rs-bar-row { display: flex; align-items: center; gap: 8px; }
+.rs-bar-name { width: 64px; flex: none; font-size: 0.86rem; font-weight: 700; }
+.rs-bar-name img { vertical-align: -3px; }
+/* a bar whose parts are on the scale: a thin divider between parts, text in the page's color */
+.rs-stack.rs-scaled span { color: var(--text); box-shadow: inset -2px 0 0 var(--panel); }
+.rs-stack.rs-scaled span:last-child { box-shadow: none; }

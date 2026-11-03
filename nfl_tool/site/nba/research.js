@@ -520,34 +520,87 @@ function formTile(x) {
     `${table}<div class="rs-pills">${pills.join("")}</div>`);
 }
 
-// 4. How He Scores: how his shots come, how much is set up for him and his share of the shots, each
-// ranked among his position (1st = the most = green, the site's how-often rule), each with a bar.
+// A stacked bar with each part's name and share written inside it; parts too thin for their text
+// get a small key under the bar (and every part a hover).
+function stackBar(parts, title = "") {
+  const total = parts.reduce((a, q) => a + (q.v || 0), 0);
+  if (!total) return "";
+  const segs = parts.map((q) => ({ ...q, share: (q.v || 0) / total }));
+  const text = (q) => (q.short ? (q.share >= 0.07 ? `${q.short} ${Math.round(q.share * 100)}%` : "") : q.share >= 0.2 ? `${q.label} ${Math.round(q.share * 100)}%` : q.share >= 0.08 ? `${Math.round(q.share * 100)}%` : "");
+  const bar = `<div class="rs-stack${parts.some((q) => q.style) ? " rs-scaled" : ""}" title="${title}">${segs.map((q) => (q.share ? `<span class="${q.cls || ""}" style="width:${(q.share * 100).toFixed(1)}%;${q.style || ""}" title="${q.label}: ${Math.round(q.share * 100)}%${q.tip ? ` (${q.tip})` : ""}">${text(q)}</span>` : "")).join("")}</div>`;
+  const thin = segs.filter((q) => q.share && !q.short && q.share < 0.2);
+  return bar + (thin.length ? `<div class="rs-stack-key">${thin.map((q) => `<span><i class="${q.cls}"></i>${q.label} ${Math.round(q.share * 100)}%</span>`).join("")}</div>` : "");
+}
+// What every defense allowed one position, as shares (props.json research.defpos / deffga), with
+// each share's rank of 30 (1st = allows the most).
+function defShares(pos) {
+  const D = RS().defpos || {}, F = RS().deffga || {};
+  const teams = {};
+  for (const [t, byPos] of Object.entries(D)) {
+    const v = byPos[pos];
+    if (!v) continue;
+    const [th, mid, paint, ft, makes, ast, trans, pts, fga] = v;
+    teams[t] = { shot: F[t] ? fga / F[t] : null, assisted: makes ? ast / makes : null, ft: pts ? ft / pts : null, trans: pts ? trans / pts : null,
+      z: pts ? [th / pts, mid / pts, paint / pts, ft / pts] : null, pts: [th, mid, paint, ft] };
+  }
+  const rankOf = (get) => { const xs = Object.keys(teams).filter((t) => get(teams[t]) !== null && get(teams[t]) !== undefined).sort((a, b) => get(teams[b]) - get(teams[a])); return { n: xs.length, r: Object.fromEntries(xs.map((t, i) => [t, i + 1])) }; };
+  return { teams, rankOf };
+}
+const ZONES_PTS = [["Threes", "3PT"], ["Mid-Range", "MID"], ["Paint", "PAINT"], ["Free Throws", "FT"]];
+
+// 4. How He Scores: how his shots come and where his points come from, his side ranked among his
+// position (1st = the most = green) beside what tonight's defense allows his position (ranked of 30).
 function scoreTile(x) {
   const f = logFields();
   const p = playerOf(x.pid) || {};
   const pool = posPool(x.p.pos);
   const kinds = p.kinds || {};
-  const seg = [["self", "Self-Created", "rs-k1"], ["catch", "Catch & Shoot", "rs-k2"], ["drive", "Drives & Cuts", "rs-k3"], ["other", "Post / Other", "rs-k4"]];
-  const bar = `<div class="rs-stack">${seg.map(([k, label, cls]) => (kinds[k] ? `<span class="${cls}" style="width:${(kinds[k] * 100).toFixed(1)}%" title="${label}: ${Math.round(kinds[k] * 100)}% of his shots">${kinds[k] >= 0.12 ? `${Math.round(kinds[k] * 100)}%` : ""}</span>` : "")).join("")}</div>
-    <div class="rs-stack-key">${seg.map(([, label, cls]) => `<span><i class="${cls}"></i>${label}</span>`).join("")}</div>`;
+  const shotBar = stackBar([["self", "Self-Created", "rs-k1", "pull-ups, step-backs and fades"], ["catch", "Catch & Shoot", "rs-k2", "off a pass"], ["drive", "Drives & Cuts", "rs-k3", "drives, cuts, floaters, lobs, putbacks"], ["other", "Post / Other", "rs-k4", ""]]
+    .map(([k, label, cls, tip]) => ({ v: kinds[k] || 0, label, cls, tip })), "How his shots come: each shot is one type, so they add to 100%");
   const sum = (rows, k) => rows.reduce((a, q) => a + (q[f[k]] || 0), 0);
   const ftShare = (rows) => { const pts = sum(rows, "pts"); return pts ? sum(rows, "ftm") / pts : null; };
   const transShare = (pid) => { const t = rsOf(pid).trans; return t && t[1] ? t[0] / t[1] : null; };
-  // his share, its rank, and a bar as long as where he sits among his position (the same colors)
-  const metric = (label, v, vals, tip) => {
-    const rk = rankIn(v, vals);
-    const s = spread(v, vals);
-    const meter = `<td><div class="rs-meter" title="${tip}"><span style="width:${s === null ? 0 : Math.max(4, ((s + 1) / 2) * 100).toFixed(0)}%;${stepStyle(s)}"></span></div></td>`;
-    return [label, [tileTd(v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`, s, tip), tileTd(rk ? ordinal(rk.r) : "--", s, tip, rk ? `of ${rk.n}` : ""), meter]];
+  const DS = defShares(x.p.pos);
+  const opp = DS.teams[x.opp] || {};
+  const pctT = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
+  const metric = (label, v, vals, key, tip, dtip) => {
+    const rk = rankIn(v, vals), s = spread(v, vals);
+    const dr = DS.rankOf((t) => t[key]);
+    const ds = rankSigned(dr.r[x.opp], dr.n);
+    return [`<span title="${tip}">${label}</span>`, [tileTd(pctT(v), s, tip), tileTd(rk ? ordinal(rk.r) : "--", s, tip, rk ? `of ${rk.n}` : ""),
+      tileTd(pctT(opp[key]), ds, `${team(x.opp).name}: ${dtip}`), tileTd(dr.r[x.opp] ? ordinal(dr.r[x.opp]) : "--", ds, `${team(x.opp).name}: ${dtip}`, dr.n ? `of ${dr.n}` : "")]];
   };
   const rows = [
-    metric("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), "His share of his team's shots while he's on the floor"),
-    metric("Assisted Makes", p.assisted ?? null, pool.map(([, q]) => q.assisted ?? null), "Share of his made shots a teammate assisted (the rest he made on his own)"),
-    metric("Pts From The Line", ftShare(logOf(x.pid)), pool.map(([, q]) => ftShare(q.log || [])), "Share of his points from free throws"),
-    metric("Transition Pts", transShare(x.pid), pool.map(([id]) => transShare(id)), "Share of his points on fast breaks: off a miss or a steal, a shot inside 8 seconds"),
+    metric("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), "shot", "His share of his team's shots while he's on the floor", `share of their opponents' shots taken by ${x.p.pos}s`),
+    metric("Assisted Makes", p.assisted ?? null, pool.map(([, q]) => q.assisted ?? null), "assisted", "Share of his made shots a teammate assisted", `share of ${x.p.pos}s' made shots against them that were assisted`),
+    metric("Pts From The Line", ftShare(logOf(x.pid)), pool.map(([, q]) => ftShare(q.log || [])), "ft", "Share of his points from free throws", `share of ${x.p.pos}s' points against them from free throws`),
+    metric("Transition Pts", transShare(x.pid), pool.map(([id]) => transShare(id)), "trans", "Share of his points on fast breaks: off a miss or a steal, a shot inside 8 seconds", `share of ${x.p.pos}s' points against them on fast breaks`),
   ];
-  return tile("How He Scores", `How his shots come (Self-Created = pull-ups, step-backs and fades), then where his points come from: his share, its rank among this season's rotation ${x.p.pos}s (1st = the most) and a bar for where that sits, green = the most.`,
-    `${bar}${grid([["His Share", "od-g1", [""], 66], [`Rank Of ${x.p.pos}s`, "od-g2", [""], 66], ["Where He Sits", "od-g2", [""], 150]], rows, 120)}`);
+  const groups = [["Him", "od-g1", ["Share", "Rank"], 62], [`${logo(x.opp, 18)} DEF Vs ${x.p.pos}s`, "od-g2", ["Allowed", "Rank"], 62]];
+  const shares = grid(groups, rows, 120);
+
+  // where his points come from: threes, mid-range, the paint (rim + short), free throws
+  const pz = rsOf(x.pid).pz;
+  const games = (rsOf(x.pid).rotn || [logOf(x.pid).length])[0] || 1;
+  let breakdown = "";
+  if (pz && pz.reduce((a, b) => a + b, 0)) {
+    const tot = pz.reduce((a, b) => a + b, 0);
+    const mine = pz.map((v) => v / tot);
+    const zr = ZONES_PTS.map((_, i) => DS.rankOf((t) => (t.z ? t.z[i] : null)));
+    const dz = opp.z || [null, null, null, null];
+    // his share in each against his position's
+    const poolZ = ZONES_PTS.map((_, i) => pool.map(([id]) => { const q = rsOf(id).pz; const t = q ? q.reduce((a, b) => a + b, 0) : 0; return t ? q[i] / t : null; }));
+    // two bars, his and the defense's against his position, in the same order; each part on the
+    // 8-step scale (his: his share against his position's, green = more of his points from there;
+    // the defense's: its rank of 30, green = allows the most), its short name always inside
+    const part = (i, v, sc, tip) => ({ v, label: ZONES_PTS[i][0], short: ZONES_PTS[i][1], style: stepStyle(sc), tip });
+    const him = stackBar(ZONES_PTS.map((_, i) => part(i, pz[i], spread(mine[i], poolZ[i]), `${fmt(pz[i] / games)} points a game; ${rankIn(mine[i], poolZ[i]) ? ordinal(rankIn(mine[i], poolZ[i]).r) : "--"} most of his position`)));
+    const def = opp.pts ? stackBar(ZONES_PTS.map((_, i) => part(i, opp.pts[i], rankSigned(zr[i].r[x.opp], zr[i].n), `${team(x.opp).name} allow ${x.p.pos}s ${pctT(dz[i])}; ${zr[i].r[x.opp] ? ordinal(zr[i].r[x.opp]) : "--"} most of ${zr[i].n}`))) : '<span class="rs-none">No games yet.</span>';
+    breakdown = `<div class="rs-sub-h" title="Threes, mid-range, the paint (at the rim and short shots) and free throws, as shares of his points and of the points ${team(x.opp).name} allow ${x.p.pos}s">Where His Points Come From</div>`
+      + `<div class="rs-bar-row"><span class="rs-bar-name">Him</span>${him}</div><div class="rs-bar-row"><span class="rs-bar-name">${logo(x.opp, 16)} DEF</span>${def}</div>`;
+  }
+  return tile("How He Scores", `How his shots come (each shot is one type, so they add to 100%: Self-Created = pull-ups, step-backs and fades; a drive to the rim counts as Drives & Cuts). Then his shares, ranked among this season's rotation ${x.p.pos}s (1st = the most), beside what ${team(x.opp).name} allow ${x.p.pos}s (ranked of 30, 1st = the most). Then where his points come from: threes, mid-range, the paint (at the rim and short shots) and free throws.`,
+    `${shotBar}${shares}${breakdown}`);
 }
 
 // 5. Teammates On The Floor: his scoring with each teammate on the floor and off it, how often they
@@ -614,7 +667,7 @@ function anglesTile(x) {
     if (a.s === null || b.s === null) return tileTd("--", null, "Not enough data on one side yet");
     const more = (a.s >= 0.4 && b.s > -0.1) || (b.s >= 0.4 && a.s > -0.1);
     const fewer = (a.s <= -0.4 && b.s < 0.1) || (b.s <= -0.4 && a.s < 0.1);
-    return tileTd(more ? "More" : fewer ? "Fewer" : "Even", more ? 1 : fewer ? -1 : null, more ? "One side points to more points for him and the other doesn't point against it" : fewer ? "One side points to fewer points for him and the other doesn't point against it" : "The two sides don't line up one way");
+    return tileTd(more ? "More" : fewer ? "Fewer" : "Even", more ? 1 : fewer ? -1 : 0.1, more ? "One side points to more points for him and the other doesn't point against it" : fewer ? "One side points to fewer points for him and the other doesn't point against it" : "The two sides don't line up one way");
   };
   const ROWS = [
     ["Free Throws", "His free throws tried a game / what the defense allows his position", him(perG(logOf(x.pid), "fta"), pool.map(([, q]) => perG(q.log || [], "fta")), (v) => fmt(v)), them(ftAllowed, opp, (v) => fmt(v))],
