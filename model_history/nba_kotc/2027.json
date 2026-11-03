@@ -5169,28 +5169,28 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3682,
+    "lead": 0.3683,
     "name": "Luka Doncic",
     "proj": 56.3,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.0867,
+    "lead": 0.0868,
     "name": "Giannis Antetokounmpo",
     "proj": 43.7,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.0762,
+    "lead": 0.0763,
     "name": "Victor Wembanyama",
     "proj": 42.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0651,
+    "lead": 0.0652,
     "name": "Jayson Tatum",
     "proj": 42.3,
     "team": "BOS"
@@ -5232,23 +5232,23 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0268,
+    "lead": 0.0269,
     "name": "Jamal Murray",
     "proj": 37.8,
     "team": "DEN"
    },
    {
     "id": "5142620",
-    "lead": 0.0246,
+    "lead": 0.0247,
     "name": "Darius Acuff Jr.",
     "proj": 37.3,
     "team": "SAC"
    },
    {
     "id": "4278073",
-    "lead": 0.0205,
+    "lead": 0.0198,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 36.9,
+    "proj": 36.7,
     "team": "OKC"
    },
    {
@@ -5302,7 +5302,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0085,
+    "lead": 0.0086,
     "name": "Joel Embiid",
     "proj": 33.7,
     "team": "PHI"
@@ -5322,18 +5322,18 @@
     "team": "BKN"
    },
    {
+    "id": "5041935",
+    "lead": 0.0067,
+    "name": "Cameron Boozer",
+    "proj": 33.1,
+    "team": "MEM"
+   },
+   {
     "id": "4277905",
     "lead": 0.0066,
     "name": "Trae Young",
     "proj": 33.5,
     "team": "WSH"
-   },
-   {
-    "id": "5041935",
-    "lead": 0.0066,
-    "name": "Cameron Boozer",
-    "proj": 33.1,
-    "team": "MEM"
    },
    {
     "id": "4433287",
