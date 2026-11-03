@@ -1004,6 +1004,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Passing", file: "player-props.html#passing" },
     ] },
     nba: { label: "NBA", home: "", items: [
+      // The owner's video card (2026-11-02): only the owner sees it (`owner`).
+      { name: "Dunk Digest", file: "digest.html", owner: true },
       { name: "League Stats Chart", file: "league.html", tag: "New" },
       { name: "Matchup Breakdown", file: "" },
       { name: "Shot Charts", file: "shot-charts.html" },
@@ -1055,7 +1057,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
         const [file, view] = (item.file || "index.html").split("#");
         const current = sport === CURRENT_SPORT && !onPromo && !onMine && file === PAGE_FILE && (!view || view === location.hash.slice(1));
         const pill = item.hue != null ? ` nav-pill" style="--pill-h:${item.hue}` : "";
-        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}${pill}"><span class="promo-name">${item.name}</span>${item.tag ? `<span class="upd-new nav-new">${item.tag}</span>` : ""}</a>`;
+        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}${item.owner ? " owner-only" : ""}${pill}"><span class="promo-name">${item.name}</span>${item.tag ? `<span class="upd-new nav-new">${item.tag}</span>` : ""}</a>`;
       };
       add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
         if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;

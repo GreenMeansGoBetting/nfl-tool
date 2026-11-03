@@ -49,6 +49,7 @@ PAGES = [
     ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
+    ("NBA Dunk Digest", "nba/digest.html", None),
     ("NBA League Stats Chart", "nba/league.html", None),
     ("NBA Game Predictions", "nba/game-predictions.html", None),
     ("NBA Matchup Breakdown", "nba/index.html", None),
@@ -184,6 +185,8 @@ def ready_for(path, summary_btn):
         return "#hat-players table"
     if path == "nba/promo-tools.html":
         return "#kotc-players table"
+    if path == "nba/digest.html":
+        return ".dd-card, .dd-empty"
     return GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None
 
 

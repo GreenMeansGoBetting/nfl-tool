@@ -23,7 +23,8 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` + same-named `.js` configs on
   `sim-board.js` + `sim.css`; `best.html/.js` NBA Best Plays; `first-basket.html/.js/.css`;
   `shot-charts.html/.js/.css`; `zones.html/.js/.css`; `nba-card.js` player card (+ `shot-chart.js`);
-  `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`.
+  `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`; `digest.html/.js/.css`
+  Dunk Digest (owner only).
 - Records (`model_history/`): `nba_props/sim_<season>.json`, `nba_zones/<season>.json`,
   `nba_first_basket/<season>.json`, `nba_kotc/` (nightly boards, `lines_<season>.json`).
 
@@ -357,6 +358,29 @@ UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded r
   Under on the home row), shaded green / red by our fair price AT THE BOOK'S LINE vs the book's
   (both in the hover, **no percent under a price**); then the **Point Breakdown, always open**. No
   separate Spread / Total boxes (they repeat the GMG columns). Tests: `tests/test_nba_predictions.py`.
+
+## Dunk Digest (`digest.html/.js/.css`, owner only, 2026-11-02)
+
+The owner's daily video card (YouTube viewers asked for a "Dinger Digest" for the NBA). **Just
+data: no leans, no picks, no tracking** (the owner). Menu: first in the NBA list with `owner: true`
+(sync.js adds `owner-only`); the page hides `.dd-app` unless `is-owner` / `local-dev`.
+- **Five games a card, each 1160 x 980** (the Summary card size); a row a team, a thick line between
+  games. Columns: Team, **Line** (favorite's row = spread, underdog's row = total; "both sides is
+  redundant"), **Pace** (rank of 30, Fast / Average / Slow thirds), **Points / Threes / Rebounds /
+  Assists**, **First Basket**, **Notes**.
+- **Stat cells = position chips, the player's last name under each** (the owner's ask; a YouTube
+  comment's "SG 3s vs this team" idea). Each likely starter (First Basket slate's five) vs what
+  tonight's defense allows his position a minute (props.json logs, steadied with 10 games of an average
+  defense): green = defense 1+ league spread generous and he isn't 0.3 below his position at it; red =
+  the mirror. **Defense-led on purpose** (a star alone would light every night). Strongest 2 shown,
+  the rest fold into "+N" (hover lists them). 0.6 spreads lit about half of every cell (2026-11-02 audit).
+- **First Basket:** the slate's `fair` (Scores 1st, jumper's tip chance) and the starter with the most
+  team first shots ("x of y" starts). **Notes:** short schedule spots (`DD_SPOT_SHORT`), Out players
+  with 25+ minutes a game (2 named a team, "+N"), then the game's 2 strongest Matchup Keys (keys.js)
+  written as plain ranks ("DEN: 3rd-most threes made; MIA: most threes allowed"). The owner: "just
+  state facts and dont get cute". A crowded box steps its text down (`fitNotes`), then drops its
+  weakest key.
+- Tests: `tests/test_nba_digest_site.py`.
 
 ## Suite switch
 
