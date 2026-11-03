@@ -9021,7 +9021,7 @@
     0.102,
     550,
     false,
-    "fanduel"
+    "bet365"
    ],
    "3157465": [
     "Duncan Robinson",
@@ -9731,9 +9731,9 @@
    "3032976": [
     "Rudy Gobert",
     0.095,
-    null,
-    false,
-    null
+    2000,
+    true,
+    "hard_rock"
    ],
    "3202": [
     "Kevin Durant",
@@ -9745,16 +9745,16 @@
    "4397002": [
     "Ayo Dosunmu",
     0.09,
-    null,
+    700,
     false,
-    null
+    "hard_rock"
    ],
    "4431671": [
     "Jaden McDaniels",
     0.097,
-    null,
+    600,
     false,
-    null
+    "hard_rock"
    ],
    "4432639": [
     "Jabari Smith Jr.",
@@ -9766,16 +9766,16 @@
    "4432816": [
     "LaMelo Ball",
     0.105,
-    null,
+    900,
     false,
-    null
+    "hard_rock"
    ],
    "4433247": [
     "Jonathan Kuminga",
     0.077,
-    null,
+    700,
     false,
-    null
+    "hard_rock"
    ],
    "4684740": [
     "Amen Thompson",
