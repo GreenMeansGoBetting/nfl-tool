@@ -9012,21 +9012,21 @@
    "1966": [
     "LeBron James",
     0.099,
-    850,
+    900,
     false,
-    "bet365"
+    "hard_rock"
    ],
    "3059318": [
     "Joel Embiid",
     0.102,
-    525,
+    575,
     false,
-    "bet365"
+    "hard_rock"
    ],
    "3157465": [
     "Duncan Robinson",
     0.08,
-    900,
+    850,
     false,
     "bet365"
    ],
@@ -9047,7 +9047,7 @@
    "4278562": [
     "Paul Reed",
     0.085,
-    800,
+    850,
     false,
     "bet365"
    ],
@@ -9075,9 +9075,9 @@
    "5124612": [
     "VJ Edgecombe",
     0.09,
-    900,
-    false,
-    "bet365"
+    1200,
+    true,
+    "hard_rock"
    ]
   },
   "tip_home": 0.384
@@ -9663,9 +9663,9 @@
    "4222252": [
     "Isaiah Hartenstein",
     0.111,
-    945,
+    1000,
     true,
-    "fliff"
+    "hard_rock"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
@@ -9677,16 +9677,16 @@
    "4432158": [
     "Evan Mobley",
     0.1,
-    565,
+    650,
     false,
-    "fliff"
+    "hard_rock"
    ],
    "4576087": [
     "Peyton Watson",
     0.089,
-    870,
+    1100,
     false,
-    "fliff"
+    "hard_rock"
    ],
    "4683778": [
     "Jared McCain",

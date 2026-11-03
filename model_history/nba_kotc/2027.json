@@ -5169,21 +5169,21 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3905,
+    "lead": 0.3908,
     "name": "Luka Doncic",
     "proj": 57.2,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.1013,
+    "lead": 0.1014,
     "name": "Giannis Antetokounmpo",
     "proj": 45.1,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.053,
+    "lead": 0.0531,
     "name": "Jayson Tatum",
     "proj": 41.1,
     "team": "BOS"
@@ -5197,7 +5197,7 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0335,
+    "lead": 0.0336,
     "name": "Jamal Murray",
     "proj": 39.2,
     "team": "DEN"
@@ -5225,9 +5225,9 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0254,
+    "lead": 0.0246,
     "name": "Alperen Sengun",
-    "proj": 37.4,
+    "proj": 37.3,
     "team": "HOU"
    },
    {
@@ -5267,7 +5267,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0167,
+    "lead": 0.0168,
     "name": "Shai Gilgeous-Alexander",
     "proj": 36.6,
     "team": "OKC"
@@ -5325,15 +5325,22 @@
     "id": "3908809",
     "lead": 0.0063,
     "name": "Donovan Mitchell",
-    "proj": 32.0,
+    "proj": 31.9,
     "team": "CLE"
    },
    {
     "id": "5041935",
-    "lead": 0.006,
+    "lead": 0.0061,
     "name": "Cameron Boozer",
     "proj": 32.9,
     "team": "MEM"
+   },
+   {
+    "id": "4277905",
+    "lead": 0.0051,
+    "name": "Trae Young",
+    "proj": 32.5,
+    "team": "WSH"
    },
    {
     "id": "4251",
@@ -5341,13 +5348,6 @@
     "name": "Paul George",
     "proj": 31.8,
     "team": "BOS"
-   },
-   {
-    "id": "4277905",
-    "lead": 0.005,
-    "name": "Trae Young",
-    "proj": 32.5,
-    "team": "WSH"
    },
    {
     "id": "4395625",
@@ -5358,7 +5358,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0046,
+    "lead": 0.0047,
     "name": "Joel Embiid",
     "proj": 31.8,
     "team": "PHI"
@@ -5413,13 +5413,6 @@
     "team": "SAC"
    },
    {
-    "id": "4432158",
-    "lead": 0.0016,
-    "name": "Evan Mobley",
-    "proj": 30.0,
-    "team": "CLE"
-   },
-   {
     "id": "4395725",
     "lead": 0.0016,
     "name": "Tyler Herro",
@@ -5434,6 +5427,13 @@
     "team": "UTAH"
    },
    {
+    "id": "4432158",
+    "lead": 0.0015,
+    "name": "Evan Mobley",
+    "proj": 29.9,
+    "team": "CLE"
+   },
+   {
     "id": "6606",
     "lead": 0.0012,
     "name": "Damian Lillard",
@@ -5444,7 +5444,7 @@
     "id": "3202",
     "lead": 0.0012,
     "name": "Kevin Durant",
-    "proj": 27.9,
+    "proj": 27.8,
     "team": "HOU"
    },
    {
@@ -5521,15 +5521,8 @@
     "id": "4432816",
     "lead": 0.0007,
     "name": "LaMelo Ball",
-    "proj": 25.3,
+    "proj": 25.2,
     "team": "MIN"
-   },
-   {
-    "id": "4066259",
-    "lead": 0.0006,
-    "name": "De'Aaron Fox",
-    "proj": 26.8,
-    "team": "SA"
    },
    {
     "id": "3934719",
@@ -5549,14 +5542,14 @@
     "id": "4432639",
     "lead": 0.0005,
     "name": "Jabari Smith Jr.",
-    "proj": 26.0,
+    "proj": 25.9,
     "team": "HOU"
    },
    {
     "id": "4397002",
     "lead": 0.0005,
     "name": "Ayo Dosunmu",
-    "proj": 24.7,
+    "proj": 24.6,
     "team": "MIN"
    },
    {
@@ -5586,6 +5579,13 @@
     "name": "James Harden",
     "proj": 26.8,
     "team": "CLE"
+   },
+   {
+    "id": "4066259",
+    "lead": 0.0003,
+    "name": "De'Aaron Fox",
+    "proj": 26.7,
+    "team": "SA"
    }
   ],
   "season_used": "2026-27"
