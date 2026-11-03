@@ -456,11 +456,12 @@ function formTab(x) {
     const s = get(log), a10 = get(l10), a5 = get(l5);
     const rel = (v) => (v === null || s === null || !s ? null : (v - s) / s / big);
     const ch = a5 === null || s === null ? null : a5 - s;
-    // season, L10 and L5 all colored against the league's players at his position, so the same
-    // number is the same color (with under 10 games his L10 IS his season)
-    const vsPos = pool.map(([, q]) => get(q.log || []));
-    let cells = T(fmt(s, d), spread(s, vsPos), `His ${what} a game this season (colored against the league's ${x.p.pos}s)`)
-      + T(fmt(a10, d), spread(a10, vsPos), `His last ${l10.length} games (colored against the league's ${x.p.pos}s)`) + T(fmt(a5, d), spread(a5, vsPos), `His last ${l5.length} games (colored against the league's ${x.p.pos}s)`)
+    // his season against his position; L10 / L5 against HIS season (the owner, 2026-11-03: "compared
+    // against himself to see trends lately vs long term"). No real change = a plain tile, never a
+    // middle color (with 10 games or fewer his L10 IS his season).
+    const trend = (v, rows) => (rows.length >= log.length ? null : Math.abs(rel(v) ?? 0) < 0.2 ? null : rel(v));
+    let cells = T(fmt(s, d), spread(s, pool.map(([, q]) => get(q.log || []))), `His ${what} a game this season (colored against the league's ${x.p.pos}s)`)
+      + T(fmt(a10, d), trend(a10, l10), `His last ${l10.length} games (colored against his season)`) + T(fmt(a5, d), trend(a5, l5), `His last ${l5.length} games (colored against his season)`)
       + T(sgn(ch, d), rel(a5), "Last 5 minus his season");
     if (!key || !opp.season) cells += T("--", null, "") + T("--", null, "") + T("--", null, "");
     else {

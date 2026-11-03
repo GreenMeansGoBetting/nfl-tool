@@ -247,9 +247,13 @@ class Panel(unittest.TestCase):
         self.assertEqual(self.page.inner_text(f"{box} .rs-corner .rs-jersey"), "7")  # the key: his jersey number
         self.assertIn("vs PGs", rows[0][0])  # ... and the defense vs his position
         self.assertEqual(rows[1][:2], ["PTS", "20.0"])
-        # 6 games: his L10 is his season, so it's the same color (both against his position)
-        tiles = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-g > .rs-t\")].slice(9, 11).map((t) => t.getAttribute('style'))")
-        self.assertEqual(tiles[0], tiles[1])
+        # L10 / L5 colored against HIS season: 6 games, so his L10 is his season = a plain tile;
+        # his L5 (21.0) up 5% on his 20.0 gets a color; MIN L5 35.2 vs 35.0 (under 1%) stays plain
+        tiles = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-g > .rs-t\")].slice(9, 12).map((t) => t.getAttribute('style'))")
+        self.assertIsNone(tiles[1])
+        self.assertIsNotNone(tiles[2])
+        mins = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-g > .rs-t\")][19].getAttribute('style')")
+        self.assertIsNone(mins)
         self.assertEqual(self.page.locator(f"{box} .rs-band").count(), 2)  # him / the defense shaded
         self.assertEqual(rows[1][5], "22.0")  # BBB allow PGs 22 a game
         self.assertEqual(rows[2][5:], ["--", "--", "--"])  # minutes: his only
