@@ -9671,7 +9671,7 @@
     "under",
     true,
     14.5,
-    106,
+    115,
     "novig"
    ],
    [
@@ -9682,8 +9682,8 @@
     -0.3155,
     "under",
     true,
-    19.5,
-    -125,
+    18.5,
+    -105,
     "hard_rock"
    ],
    [
@@ -9695,8 +9695,8 @@
     "under",
     false,
     13.5,
-    100,
-    "novig"
+    -104,
+    "fanduel"
    ],
    [
     "3917376",
@@ -9719,8 +9719,8 @@
     "under",
     true,
     12.5,
-    -110,
-    "bet365"
+    -108,
+    "fanduel"
    ],
    [
     "5107199",
@@ -9730,8 +9730,8 @@
     -0.0814,
     "under",
     false,
-    9.5,
-    -105,
+    10.5,
+    -120,
     "hard_rock"
    ]
   ],
@@ -9745,7 +9745,7 @@
     "under",
     true,
     3.5,
-    -165,
+    -155,
     "bet365"
    ],
    [
@@ -9757,8 +9757,8 @@
     "under",
     true,
     0.5,
-    130,
-    "bet365"
+    145,
+    "thescore"
    ],
    [
     "5107199",
@@ -9769,15 +9769,161 @@
     "under",
     true,
     0.5,
-    175,
+    182,
     "bet365"
    ]
   ]
  },
  "401909923": {
   "date": "2026-11-04",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "2490149",
+    "CJ McCollum",
+    "ATL",
+    "WSH",
+    -0.1641,
+    "under",
+    true,
+    16.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "ATL",
+    -0.1201,
+    "under",
+    true,
+    18.5,
+    -112,
+    "bet365"
+   ],
+   [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "WSH",
+    -0.1911,
+    "under",
+    true,
+    21.5,
+    -115,
+    "bet365"
+   ],
+   [
+    "4397183",
+    "Aaron Wiggins",
+    "ATL",
+    "WSH",
+    -0.1949,
+    "under",
+    true,
+    12.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "ATL",
+    0.0625,
+    "over",
+    false,
+    17.5,
+    -110,
+    "bet365"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "ATL",
+    0.0906,
+    "over",
+    false,
+    10.5,
+    -115,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "2490149",
+    "CJ McCollum",
+    "ATL",
+    "WSH",
+    -0.3031,
+    "under",
+    true,
+    2.5,
+    -155,
+    "bet365"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "ATL",
+    -0.2416,
+    "under",
+    true,
+    2.5,
+    -170,
+    "bet365"
+   ],
+   [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "WSH",
+    -0.3203,
+    "under",
+    true,
+    2.5,
+    130,
+    "fanatics"
+   ],
+   [
+    "4397020",
+    "Luguentz Dort",
+    "ATL",
+    "WSH",
+    -0.0649,
+    "under",
+    false,
+    1.5,
+    -118,
+    "fanduel"
+   ],
+   [
+    "4397183",
+    "Aaron Wiggins",
+    "ATL",
+    "WSH",
+    -0.3214,
+    "under",
+    true,
+    2.5,
+    -166,
+    "fanduel"
+   ],
+   [
+    "5174563",
+    "Kyshawn George",
+    "WSH",
+    "ATL",
+    -0.3254,
+    "under",
+    true,
+    1.5,
+    120,
+    "fanatics"
+   ]
+  ]
  },
  "401909924": {
   "date": "2026-11-04",
@@ -9790,9 +9936,9 @@
     0.0906,
     "over",
     false,
-    19.5,
-    -110,
-    "fanatics"
+    14.5,
+    -425,
+    "bet365"
    ]
   ],
   "threes": [
@@ -9805,8 +9951,8 @@
     "over",
     true,
     1.5,
-    130,
-    "fanatics"
+    145,
+    "bet365"
    ],
    [
     "4065648",
@@ -9817,8 +9963,8 @@
     "over",
     false,
     2.5,
-    -105,
-    "fanatics"
+    102,
+    "bet365"
    ],
    [
     "4251",
@@ -9829,8 +9975,8 @@
     "over",
     true,
     2.5,
-    -130,
-    "fanatics"
+    -170,
+    "bet365"
    ],
    [
     "4432848",
@@ -9841,19 +9987,141 @@
     "over",
     true,
     1.5,
-    130,
-    "fanatics"
+    140,
+    "bet365"
+   ],
+   [
+    "5175647",
+    "Hugo Gonzalez",
+    "BOS",
+    "MIL",
+    0.1874,
+    "over",
+    true,
+    0.5,
+    -120,
+    "bet365"
    ]
   ]
  },
  "401909925": {
   "date": "2026-11-04",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "BKN",
+    0.1487,
+    "over",
+    true,
+    14.5,
+    -112,
+    "bet365"
+   ],
+   [
+    "4432194",
+    "Day'Ron Sharpe",
+    "BKN",
+    "CHA",
+    -0.1795,
+    "under",
+    true,
+    8.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4433249",
+    "Moussa Diabate",
+    "CHA",
+    "BKN",
+    0.174,
+    "over",
+    true,
+    5.5,
+    -370,
+    "bet365"
+   ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "BKN",
+    0.148,
+    "over",
+    true,
+    23.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "CHA",
+    0.1147,
+    "over",
+    false,
+    11.5,
+    -120,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "BKN",
+    0.2958,
+    "over",
+    true,
+    2.5,
+    145,
+    "bet365"
+   ],
+   [
+    "4433287",
+    "Brandon Miller",
+    "CHA",
+    "BKN",
+    0.3053,
+    "over",
+    true,
+    3.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "CHA",
+    0.3402,
+    "over",
+    true,
+    1.5,
+    -112,
+    "bet365"
+   ]
+  ]
  },
  "401909926": {
   "date": "2026-11-04",
   "points": [
+   [
+    "2595516",
+    "Norman Powell",
+    "CHI",
+    "NY",
+    0.1101,
+    "over",
+    false,
+    13.5,
+    -380,
+    "bet365"
+   ],
    [
     "3062679",
     "Josh Hart",
@@ -9863,7 +10131,7 @@
     "over",
     true,
     10.5,
-    -105,
+    -110,
     "fanatics"
    ]
   ],
@@ -9877,8 +10145,8 @@
     "over",
     true,
     1.5,
-    -120,
-    "fanatics"
+    -112,
+    "bet365"
    ],
    [
     "3934672",
@@ -9889,8 +10157,8 @@
     "over",
     true,
     2.5,
-    -110,
-    "fliff"
+    115,
+    "fanatics"
    ],
    [
     "4397189",
@@ -9901,8 +10169,8 @@
     "over",
     true,
     1.5,
-    -115,
-    "fanatics"
+    -105,
+    "bet365"
    ],
    [
     "5095151",
@@ -9913,8 +10181,8 @@
     "over",
     false,
     2.5,
-    130,
-    "fanatics"
+    150,
+    "bet365"
    ]
   ]
  },
@@ -9952,8 +10220,8 @@
     "under",
     true,
     11.5,
-    -104,
-    "novig"
+    100,
+    "fanatics"
    ],
    [
     "4222252",
@@ -9976,8 +10244,8 @@
     "under",
     false,
     17.5,
-    -130,
-    "fanatics"
+    -112,
+    "bet365"
    ],
    [
     "4683778",
@@ -9988,8 +10256,8 @@
     "under",
     false,
     13.5,
-    -114,
-    "fanduel"
+    -112,
+    "bet365"
    ],
    [
     "5174983",
@@ -10000,7 +10268,7 @@
     "under",
     true,
     5.5,
-    260,
+    265,
     "bet365"
    ]
   ],
@@ -10038,8 +10306,8 @@
     "over",
     true,
     2.5,
-    135,
-    "hard_rock"
+    130,
+    "bet365"
    ],
    [
     "4278073",
@@ -10051,18 +10319,6 @@
     true,
     1.5,
     140,
-    "hard_rock"
-   ],
-   [
-    "4576087",
-    "Peyton Watson",
-    "CLE",
-    "OKC",
-    0.1456,
-    "over",
-    true,
-    1.5,
-    110,
     "hard_rock"
    ],
    [
@@ -10086,8 +10342,8 @@
     "under",
     false,
     1.5,
-    -175,
-    "fanatics"
+    -180,
+    "hard_rock"
    ]
   ]
  },
@@ -10103,8 +10359,8 @@
     "under",
     true,
     11.5,
-    -114,
-    "fanduel"
+    115,
+    "novig"
    ],
    [
     "4432639",
@@ -10129,8 +10385,8 @@
     "under",
     true,
     1.5,
-    117,
-    "novig"
+    115,
+    "hard_rock"
    ],
    [
     "4431671",
@@ -10142,7 +10398,7 @@
     true,
     1.5,
     -144,
-    "novig"
+    "fanduel"
    ],
    [
     "4432639",
@@ -10153,7 +10409,7 @@
     "under",
     true,
     2.5,
-    -130,
+    -145,
     "hard_rock"
    ],
    [
@@ -10172,8 +10428,58 @@
  },
  "401909931": {
   "date": "2026-11-04",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4395724",
+    "Immanuel Quickley",
+    "TOR",
+    "DEN",
+    -0.1854,
+    "under",
+    true,
+    16.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "DEN",
+    0.0544,
+    "over",
+    false,
+    10.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "5093267",
+    "Collin Murray-Boyles",
+    "TOR",
+    "DEN",
+    0.151,
+    "over",
+    true,
+    12.5,
+    -115,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "DEN",
+    0.0649,
+    "over",
+    false,
+    0.5,
+    -210,
+    "fliff"
+   ]
+  ]
  },
  "401909932": {
   "date": "2026-11-04",
@@ -10193,7 +10499,7 @@
     false,
     11.5,
     -125,
-    "fanduel"
+    "hard_rock"
    ]
   ],
   "threes": [
@@ -10206,8 +10512,8 @@
     "under",
     false,
     1.5,
-    -154,
-    "fanduel"
+    -156,
+    "novig"
    ],
    [
     "4395630",
@@ -10218,8 +10524,8 @@
     "under",
     true,
     1.5,
-    122,
-    "fanduel"
+    125,
+    "hard_rock"
    ],
    [
     "5037871",
@@ -10230,8 +10536,8 @@
     "under",
     false,
     1.5,
-    -194,
-    "fanduel"
+    -195,
+    "hard_rock"
    ],
    [
     "6442",
