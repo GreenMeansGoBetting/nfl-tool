@@ -21,7 +21,8 @@ from site_browser import SiteBrowser  # noqa: E402
 
 FIELDS = ["date", "game", "opp", "home", "min", "pts", "fg3m", "reb", "ast"]
 DAY = "2099-01-01"  # always ahead of today, so it is the slate the page opens on
-GAME = {"game_id": "900", "date": DAY, "time": "19:30", "start_utc": f"{DAY}T23:30Z", "away": "AAA", "home": "BBB", "status": "scheduled"}
+GAME = {"game_id": "900", "date": DAY, "time": "19:30", "start_utc": f"{DAY}T23:30Z", "away": "AAA", "home": "BBB", "status": "scheduled",
+        "home_team_spread": -3.5, "total_line": 225.0}
 
 
 def log(rows):
@@ -177,6 +178,18 @@ class Panel(unittest.TestCase):
         text = self.page.inner_text(".rs-panel")
         for word in ("Edge", "Fair", "Projection", "Model"):
             self.assertNotIn(word, text)
+
+    def test_game_script_ranges_and_the_defense_columns(self):
+        self.open()
+        script = self.page.evaluate("""() => { const t = [...document.querySelectorAll('.rs-tile')].find((s) => s.textContent.startsWith("Tonight's Game Script"));
+            return [...t.querySelectorAll('table.rs-grid > tbody > tr')].map((tr) => [...tr.children].map((c) => c.innerText.trim())); }""")
+        labels = [r[0] for r in script]
+        # One is on the road: +3.5 tonight, his games within 5 either way; the total 225 +- 5
+        self.assertEqual(labels[:3], ["All His Games", "Spread -1.5 To +8.5", "Total 220.0 To 230.0"])
+        self.assertEqual(script[1][1], "3")  # his road games had +4.5 (home games -4.5: 8 away)
+        self.assertEqual(script[2][1], "6")
+        self.assertIn("+3.5", self.page.inner_text(".rs-now"))
+        self.assertIn("DEF VS PGS", self.page.inner_text(".rs-panel").upper())
 
     def test_matchup_angles_allowed_or_rank(self):
         self.open()

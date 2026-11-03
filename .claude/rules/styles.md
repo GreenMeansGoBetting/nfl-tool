@@ -34,6 +34,12 @@ or tile follows this, unasked:
 - **Compact**: fixed column widths (about 46-66 px a number), the table's width = its columns, a
   box sized to its contents and set beside the next one (flex-wrap), never `width: 100%` to fill
   the screen. Bars in charts narrow and touching (a 1 px edge between).
+- **Fill a row by scaling, never by widening or gaps** (the owner, 2026-11-03, red lines on every gap:
+  "dont just make stuff wider to fill it, make it more readable. dont add more white space"): boxes
+  sit at their compact size in a row, then the row is zoomed evenly to the full width (research.js
+  `fitPanel`, at most 1.3), boxes in a row the same height, each with a solid title bar on top.
+- **A header is one block**: a group band and the label row under it share one shade with no
+  shadow or notch between them; a one-column group is a single merged header.
 - **Fonts**: Sofia Sans only, through the grid's own sizes. No new small gray uppercase labels,
   no muted gray text for anything a member reads; titles are Title Case in the display font.
 - Rules from the list table (`table.data-table.sim-list th, td`) leak into tables nested in it:

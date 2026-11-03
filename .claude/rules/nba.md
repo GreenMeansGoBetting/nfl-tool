@@ -238,17 +238,19 @@ Every game played 10,000 times, possession by possession.
   opens a dashboard under it (`panel`, `PANEL`); the owner: "Think of this like a dashboard ... 1-2
   minutes to look at a player ... digestable, compact, color coded and give context". **Built from
   the League Stats Chart grid** (`grid()`, `tileTd()`, `stepStyle` on the 8-step scale; styles.md
-  "One Look"), every tile its own width. Rows: **Rotation** (top: 48 minute cells colored by how
-  often he's on the floor, points by quarter, close vs not-close 4th minutes); **Points Vs The Line**
-  (last 15 as narrow touching bars vs tonight's dashed line, his line that night as a second line of
-  dots, green = cleared), **Recent Form** (season / L5 / +/-, then the defense's own band: points to
-  his position season vs its last 5; More Shots vs Hot Shooting pill), **How He Scores**; then
-  **Teammates On The Floor** (face + "F. Last"; Time Together, His Shots / 36 then His Points / 36,
-  each With / Without / Change, With and Without both colored vs his usual rate, Assists To Him), **Matchup Angles**
-  (Allowed / Rank toggle `RSV`; More / Fewer only by the two-sided rule), **Tonight's Game Script**
-  (only tonight's spread bucket, total third, pace third and schedule spots, each Games / Points /
-  Over tonight's line beside All His Games; under `SMALL` faded). Turned down: a key-defender tile, a
-  hit-rate ladder (maybe later).
+  "One Look"); each row of boxes zoomed to fill the width (`fitPanel`). Rows: **Rotation** (48
+  minute cells by how often he's on the floor, points by quarter, close vs not-close 4th minutes);
+  **Points Vs The Line** (last 15 as touching bars vs tonight's dashed line, his line that night as a
+  line of dots, green = cleared), **Recent Form** (Him and `logo DEF Vs <pos>s` side by side: Season /
+  L5 / +/- for points, minutes (his only), shots, free throws, FG %; the defense's colored by its rank
+  of 30, `defenseByPos`), **How He Scores** (shot-type bar; share, rank of his position and a bar
+  each); then **Teammates On The Floor** (face + "F. Last"; Time Together, His Shots / 36 then His
+  Points / 36, each With / Without / Change, With and Without both colored vs his usual rate, Assists
+  To Him), **Matchup Angles** (his face vs `logo DEF`; Allowed / Rank toggle `RSV`; More / Fewer only
+  by the two-sided rule), **Tonight's Game Script** (tonight's spread / total / pace in the corner;
+  rows = his games within `SCRIPT_RANGE` 5 of tonight's spread and total either way, pace
+  `PACE_RANGE` 2, tonight's schedule spots, beside All His Games; under `SMALL` faded). Turned down:
+  a key-defender tile, a hit-rate ladder (maybe later).
 - Data: `research.py` -> props.json `research` (own try in `compute_props`): per player `feed`,
   `trans`, `units` (bench unit = `BENCH_UNIT` 2 or fewer starters), `q`, `rot` / `rot5` / `rotn`,
   `q4`, `foul`, `lines`; `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
