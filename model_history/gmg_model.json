@@ -1023,6 +1023,22 @@
   "updated": "2026-10-29T22:52Z",
   "week": 8
  },
+ "2026_08_CHI_SEA": {
+  "away": "CHI",
+  "away_pts": 19.6,
+  "frozen": true,
+  "home": "SEA",
+  "home_pts": 23.7,
+  "qb_out": [],
+  "spread": -3.5,
+  "spread_edge": 0.7,
+  "spread_pick": "home",
+  "total": 46.5,
+  "total_edge": 3.2,
+  "total_pick": "under",
+  "updated": "2026-11-02T18:23Z",
+  "week": 8
+ },
  "2026_08_CLE_PIT": {
   "away": "CLE",
   "away_pts": 17.1,

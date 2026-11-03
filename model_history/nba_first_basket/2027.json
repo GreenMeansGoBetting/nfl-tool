@@ -7612,37 +7612,37 @@
    "2991230": [
     "Fred VanVleet",
     0.084,
-    1260,
-    true,
-    "draftkings"
+    null,
+    false,
+    null
    ],
    "3078576": [
     "Derrick White",
     0.105,
-    1200,
-    true,
-    "hard_rock"
+    null,
+    false,
+    null
    ],
    "3202": [
     "Kevin Durant",
     0.087,
-    900,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4065648": [
     "Jayson Tatum",
     0.159,
-    475,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "4351852": [
     "Mitchell Robinson",
     0.077,
-    720,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4397424": [
     "Neemias Queta",
@@ -7654,30 +7654,30 @@
    "4432639": [
     "Jabari Smith Jr.",
     0.084,
-    1200,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4683689": [
     "Jordan Walsh",
     0.078,
-    1680,
-    true,
-    "draftkings"
+    null,
+    false,
+    null
    ],
    "4684740": [
     "Amen Thompson",
     0.083,
-    1020,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4871144": [
     "Alperen Sengun",
     0.102,
-    594,
+    null,
     false,
-    "draftkings"
+    null
    ]
   },
   "tip_home": 0.377
@@ -7701,72 +7701,72 @@
    "4066259": [
     "De'Aaron Fox",
     0.117,
-    577,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4066336": [
     "Lauri Markkanen",
     0.073,
-    1000,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4395630": [
     "Devin Vassell",
     0.104,
-    1000,
-    true,
-    "hard_rock"
+    null,
+    false,
+    null
    ],
    "4397077": [
     "Jaxson Hayes",
     0.059,
-    1600,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4433627": [
     "Keyonte George",
     0.091,
-    1100,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4845367": [
     "Stephon Castle",
     0.099,
-    840,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4873138": [
     "Ace Bailey",
     0.084,
-    1100,
+    null,
     false,
-    "caesars"
+    null
    ],
    "5037871": [
     "Dylan Harper",
     0.103,
-    830,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "5041955": [
     "Darryn Peterson",
     0.079,
-    1200,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "5104157": [
     "Victor Wembanyama",
     0.15,
-    325,
+    null,
     false,
-    "hard_rock"
+    null
    ]
   },
   "tip_home": 0.793
@@ -7790,72 +7790,72 @@
    "3064290": [
     "Aaron Gordon",
     0.088,
-    800,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "3112335": [
     "Nikola Jokic",
     0.092,
-    550,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "3138196": [
     "Cameron Johnson",
     0.081,
-    1300,
-    true,
-    "fanduel"
+    null,
+    false,
+    null
    ],
    "3936299": [
     "Jamal Murray",
     0.093,
-    500,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "4431736": [
     "Toumani Camara",
     0.088,
-    1300,
-    true,
-    "hard_rock"
+    null,
+    false,
+    null
    ],
    "4431767": [
     "Christian Braun",
     0.074,
-    1200,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4683021": [
     "Deni Avdija",
     0.123,
-    640,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4683678": [
     "Scoot Henderson",
     0.105,
-    900,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "5105565": [
     "Donovan Clingan",
     0.097,
-    1000,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "6606": [
     "Damian Lillard",
     0.119,
-    770,
+    null,
     false,
-    "draftkings"
+    null
    ]
   },
   "tip_home": 0.338
@@ -7879,30 +7879,30 @@
    "3136193": [
     "Devin Booker",
     0.13,
-    550,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "3155526": [
     "Dillon Brooks",
     0.121,
-    670,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "3975": [
     "Stephen Curry",
     0.089,
-    650,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4066383": [
     "Miles Bridges",
     0.124,
-    800,
-    true,
-    "fanduel"
+    null,
+    false,
+    null
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -7914,37 +7914,37 @@
    "4437244": [
     "Jalen Green",
     0.101,
-    579,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4709138": [
     "Brandin Podziemski",
     0.086,
-    900,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "5175737": [
     "Yaxel Lendeborg",
     0.081,
-    800,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "5203685": [
     "Khaman Maluach",
     0.101,
-    1000,
-    true,
-    "hard_rock"
+    null,
+    false,
+    null
    ],
    "6589": [
     "Draymond Green",
     0.057,
-    1260,
+    null,
     false,
-    "fliff"
+    null
    ]
   },
   "tip_home": 0.196
@@ -7968,65 +7968,65 @@
    "2991139": [
     "Kris Dunn",
     0.088,
-    1100,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "3134908": [
     "Jakob Poeltl",
     0.077,
-    750,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "4395625": [
     "RJ Barrett",
     0.138,
-    650,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4395724": [
     "Immanuel Quickley",
     0.114,
-    650,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "4396907": [
     "Darius Garland",
     0.116,
-    400,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "4432170": [
     "Isaiah Jackson",
     0.099,
-    950,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4433134": [
     "Scottie Barnes",
     0.128,
-    600,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4684272": [
     "Ja'Kobe Walter",
     0.106,
-    1000,
-    true,
-    "hard_rock"
+    null,
+    false,
+    null
    ],
    "4702352": [
     "Kobe Sanders",
     0.094,
-    1560,
-    true,
-    "draftkings"
+    null,
+    false,
+    null
    ]
   },
   "tip_home": 0.238
@@ -8050,58 +8050,58 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.115,
-    460,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "3059319": [
     "Andrew Wiggins",
     0.076,
-    1100,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "3907498": [
     "Matisse Thybulle",
     0.08,
-    2000,
-    true,
-    "fanduel"
+    null,
+    false,
+    null
    ],
    "3945274": [
     "Luka Doncic",
     0.135,
-    390,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4066261": [
     "Bam Adebayo",
     0.112,
-    600,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4066457": [
     "Austin Reaves",
     0.109,
-    700,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4278053": [
     "Davion Mitchell",
     0.092,
-    1300,
-    true,
-    "fanduel"
+    null,
+    false,
+    null
    ],
    "4433136": [
     "Walker Kessler",
     0.087,
-    650,
+    null,
     false,
-    "hard_rock"
+    null
    ],
    "4433137": [
     "Ziaire Williams",
@@ -8113,9 +8113,9 @@
    "6475": [
     "Klay Thompson",
     0.075,
-    1200,
+    null,
     false,
-    "fanduel"
+    null
    ]
   },
   "tip_home": 0.532
@@ -8574,16 +8574,9 @@
    ]
   ],
   "players": {
-   "3133603": [
-    "Kelly Oubre Jr.",
-    0.162,
-    null,
-    false,
-    null
-   ],
    "4065731": [
     "Jay Huff",
-    0.13,
+    0.216,
     null,
     false,
     null
@@ -8618,7 +8611,7 @@
    ],
    "5106060": [
     "Jarace Walker",
-    0.127,
+    0.203,
     null,
     false,
     null
