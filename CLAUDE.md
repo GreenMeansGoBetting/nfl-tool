@@ -105,8 +105,8 @@ message, so every line costs usage); detail belongs in a rules file.
   model-picked players. The user draws the conclusions. NFL Best Plays is the one page of model plays (owner, 2026-10-20).
 - **The GMG model is a talking point, never "beats the line".** A 2024-25 replay had it at 50% against the spread.
 - **Any new place that shows a player must use `playerClick`** (NHL pages: their own in `nhl/nhl-common.js`).
-- **Reuse the existing look** (the summary-card look: rounded tiles, shaded boxes, team-color
-  banners, filled tier cells) rather than adding a new one. One font, Sofia Sans, for letters AND numbers on every sport (styles.md).
+- **ONE look everywhere (the owner, 2026-11-03): the NBA League Stats Chart / NFL Opening Drive grid** (`.od-grid` / `.od-tile`): colored group bands, compact fixed
+  columns, every number a filled tile on the 8-step red-yellow-green scale; no gray text, no new fonts or looks, never stretched wide (styles.md, "One Look").
 - **Tables: every column its contents + one small even padding, centered** (names / tags read left);
   ONE column takes the spare width (`width: 100%`; at `auto` the browser spreads it over every column),
   tags fill at most two lines in a box the same height on every row (extras fold into a "+N" pill with a hover list). The owner, 2026-10-25: "I hate always

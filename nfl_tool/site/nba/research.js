@@ -276,18 +276,44 @@ function row(x) {
 // ---- the research panel (the owner, 2026-11-03: "Think of this like a dashboard. You are someone
 // who has 1-2 minutes to look at a player and get an idea about a line. Present the info in a way
 // that is digestable, compact, color coded and give context") ----
-// Seven tiles: Points Vs The Line, Recent Form, How He Scores, Teammates On The Floor, Matchup
-// Angles, Game Script, Rotation. Real counts only. Green = points toward more, red = toward fewer;
-// a two-sided read (Matchup Angles) follows the site's rule: one side clearly one way and the other
-// not the other way.
+// Built from the League Stats Chart's own pieces (style.css .od-grid / .od-ggroups / .od-glabels /
+// .od-tile and the 8-step rank colors), so it reads like the rest of the site: colored group bands
+// over compact columns, every number a filled tile. Green = toward more points, red = toward fewer.
+// Real counts only. Tiles: Rotation (top), Points Vs The Line, Recent Form, How He Scores,
+// Teammates On The Floor, Matchup Angles, Tonight's Game Script.
 const RS = () => PROPS.research || { players: {}, teams: {}, games: {}, spots: {} };
 const rsOf = (pid) => RS().players[pid] || {};
-const pct1 = (n, d) => (d ? Math.round((n / d) * 100) : null);
-// a shade for a signed strength (-1..1): green toward more points, red toward fewer, nothing near 0
-const leanBg = (s, fill = 0.4) => (s === null || s === undefined || Number.isNaN(s) || Math.abs(s) < 0.1 ? "" : `background:${scaleHsla(s > 0 ? 135 : 0, 78, 44, 0.1 + Math.min(1, Math.abs(s)) * fill)}`);
+const RSV = { rank: false }; // Matchup Angles: Allowed / Rank toggle
+const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+// a signed strength (-1..1) on the 8-step scale: +1 = greenest, -1 = reddest, null = an uncolored tile
+const stepStyle = (s) => (s === null || s === undefined || Number.isNaN(s) ? "" : rankStyle(1 + Math.round(((1 - clamp1(s)) / 2) * 7), 8));
 const per36 = (n, m) => (m ? (n / m) * 36 : null);
-const tile = (title, tip, body, cls = "") => `<section class="rs-tile${cls ? ` ${cls}` : ""}"><h4 title="${tip}">${title}<span class="rs-i">i</span></h4>${body}</section>`;
+const shortName = (name) => { const parts = String(name || "").split(" "); return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(" ")}` : String(name || ""); };
+const face = (id) => `<img src="https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=48&h=35&scale=crop" alt="" class="rs-face" loading="lazy" onerror="this.style.visibility='hidden'">`;
 const gameDate = (d) => new Date(`${d}T00:00:00`).toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
+const tileTd = (text, s, tip = "", sub = "") => `<td><div class="od-tile" style="${stepStyle(s)}" title="${tip}"><b>${text}</b>${sub ? `<small>${sub}</small>` : ""}</div></td>`;
+const tile = (title, tip, body, head = "") => `<section class="rs-tile"><h4><span title="${tip}">${title}</span><span class="rs-i" title="${tip}">i</span>${head}</h4>${body}</section>`;
+
+// One League-Stats-Chart grid: a colored band over each group of columns, a label row, tile cells.
+// groups: [band label, od-g class, [column labels], column width]; rows: [label html, [td html], row class].
+function grid(groups, rows, labelW) {
+  const gap = (tag) => `<${tag} class="od-ggap"></${tag}>`;
+  const cls = (g, i, n) => `${g} od-gt${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}`;
+  const width = labelW + groups.reduce((a, [, , cols, w]) => a + cols.length * w, 0) + (groups.length - 1) * 6;
+  const L = labelW > 0; // no label column at 0
+  const colgroup = `<colgroup>${L ? `<col style="width:${labelW}px">` : ""}${groups.map(([, , cols, w], gi) => `${gi ? '<col class="od-ggap-col">' : ""}${cols.map(() => `<col style="width:${w}px">`).join("")}`).join("")}</colgroup>`;
+  // a one-column group is ONE header (its band, no label under it); with no wider group there's no label row at all
+  const labels = groups.some(([, , cols]) => cols.length > 1);
+  const span = labels ? ' rowspan="2"' : "";
+  const head = `<tr class="od-ggroups">${L ? `<th${span}></th>` : ""}${groups.map(([name, g, cols], gi) => `${gi ? `<th class="od-ggap"${span}></th>` : ""}${cols.length > 1
+    ? `<th class="${g}" colspan="${cols.length}">${name}</th>` : `<th class="${g} rs-one"${span}>${name}</th>`}`).join("")}</tr>`
+    + (labels ? `<tr class="od-glabels">${groups.map(([, g, cols]) => (cols.length > 1 ? cols.map((c, i) => `<th class="${cls(g, i, cols.length)}">${c}</th>`).join("") : "")).join("")}</tr>` : "");
+  const body = rows.map(([label, cells, rowCls]) => {
+    let k = 0;
+    return `<tr${rowCls ? ` class="${rowCls}"` : ""}>${L ? `<td class="od-label rs-glabel">${label}</td>` : ""}${groups.map(([, g, cols], gi) => `${gi ? gap("td") : ""}${cols.map((c, i) => (cells[k++] || "<td></td>").replace("<td", `<td class="${cls(g, i, cols.length)}"`)).join("")}`).join("")}</tr>`;
+  }).join("");
+  return `<table class="data-table od-grid rs-grid" style="width:${width}px">${colgroup}<thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
 
 // Rotation players at one position (12+ minutes, 3+ games): the pool a number is ranked in.
 function posPool(pos) {
@@ -295,12 +321,14 @@ function posPool(pos) {
   return Object.entries(seasonBlock().players).filter(([, p]) => p.pos === pos && (p.log || []).length >= 3
     && avg(p.log.map((r) => r[f.min] || 0)) >= ROTATION_MIN);
 }
-// share of the pool below a value, as -1..1 (0 = the middle)
+// where a value sits in a pool, as -1..1 (+1 = the most)
 function spread(v, pool) {
   const xs = pool.filter((x) => x !== null && x !== undefined && !Number.isNaN(x));
   if (v === null || v === undefined || xs.length < 5) return null;
-  return (xs.filter((x) => x < v).length + 0.5 * xs.filter((x) => x === v).length) / xs.length * 2 - 1;
+  return ((xs.filter((x) => x < v).length + 0.5 * xs.filter((x) => x === v).length) / xs.length) * 2 - 1;
 }
+const rankIn = (v, pool) => { const xs = pool.filter((q) => q !== null && q !== undefined); return v === null || v === undefined ? null : { r: xs.filter((q) => q > v).length + 1, n: xs.length }; };
+const rankSigned = (rank, n) => (rank && n > 1 ? 1 - ((rank - 1) / (n - 1)) * 2 : null); // 1st = +1, last = -1
 // What a defense allowed one position in a number, a game, over its last n games (n = 0: season).
 function allowedRecent(opp, pos, stat, n) {
   const f = logFields();
@@ -317,51 +345,81 @@ function allowedRecent(opp, pos, stat, n) {
   const use = n ? games.slice(-n) : games;
   return use.length ? { v: avg(use.map((g) => g.v)), n: use.length } : null;
 }
-function allowedRanks(pos, stat, n) {
-  const teams = Object.keys(DATA.teams || {}).map((t) => [t, allowedRecent(t, pos, stat, n)]).filter(([, x]) => x);
-  const sorted = teams.sort((a, b) => b[1].v - a[1].v);
-  return { n: sorted.length, r: Object.fromEntries(sorted.map(([t], i) => [t, i + 1])), v: Object.fromEntries(sorted) };
+function teamRanks(valueOf) {
+  const s = Object.keys(DATA.teams || {}).map((t) => [t, valueOf(t)]).filter(([, v]) => v !== null && v !== undefined && !Number.isNaN(v)).sort((a, b) => b[1] - a[1]);
+  return { n: s.length, r: Object.fromEntries(s.map(([t], i) => [t, i + 1])), v: Object.fromEntries(s) };
 }
-const rankSigned = (rank, n) => (rank && n > 1 ? 1 - ((rank - 1) / (n - 1)) * 2 : null); // 1st = +1, last = -1
+const identityTeams = () => ((((DATA.identity || {}).seasons || {})[String((DATA.identity || {}).default)] || {}).teams) || {};
 
-// 1. Points Vs The Line: his last games as bars against tonight's line (and his line that night).
+// 1. Rotation: when he's on the floor, minute by minute (green = on the floor in most of his games),
+// his points by quarter, and his 4th-quarter minutes in close games vs not.
+function rotationTile(x) {
+  const r = rsOf(x.pid);
+  if (!r.rot || !r.rotn || !r.rotn[0]) return tile("Rotation", "When he's on the floor", '<p class="rs-none">No rotation data yet.</p>');
+  const QN = ["1st", "2nd", "3rd", "4th"];
+  const strip = (counts, n, label) => `<div class="rs-rot-row"><span class="rs-rot-l">${label}</span><div class="rs-rot">${counts.map((c, m) =>
+    `<i class="${m % 12 === 0 && m ? "q" : ""}" style="${c ? stepStyle((c / n) * 2 - 1) : ""}" title="Minute ${m + 1} (${QN[Math.floor(m / 12)]} quarter): on the floor in ${c} of ${n} games"></i>`).join("")}</div></div>`;
+  const qLabels = `<div class="rs-rot-row"><span class="rs-rot-l"></span><div class="rs-rot-q">${QN.map((q) => `<span>${q} Qtr</span>`).join("")}</div></div>`;
+  const games = r.rotn[0];
+  const qs = (r.q || [0, 0, 0, 0]).map((v) => v / games);
+  const qTotal = qs.reduce((a, b) => a + b, 0);
+  const q4 = r.q4 || [0, 0, 0, 0];
+  const close = q4[0] ? q4[1] / q4[0] : null, open = q4[2] ? q4[3] / q4[2] : null;
+  const side = grid([["Points A Game By Quarter", "od-g1", ["Q1", "Q2", "Q3", "Q4"], 46], ["4th-Quarter Minutes", "od-g2", ["Close", "Not Close"], 62]],
+    [["", [...qs.map((v, i) => tileTd(fmt(v), qTotal ? (v / qTotal - 0.25) / 0.08 : null, `${fmt(v)} points a game in the ${QN[i]} quarter (${qTotal ? Math.round((v / qTotal) * 100) : 0}% of his points)`)),
+      tileTd(fmt(close), close === null || open === null ? null : (close - open) / 5, "Games within 10 entering the 4th: his 4th-quarter minutes a game", `${q4[0]} G`),
+      tileTd(fmt(open), close === null || open === null ? null : (open - close) / 5, "Games NOT within 10 entering the 4th: his 4th-quarter minutes a game (red = he sits when it's not close)", `${q4[2]} G`)]]], 0);
+  return tile("Rotation", `When he's on the floor at each minute of the game: green = on the floor in most of his games, red = rarely (season and last ${r.rotn[1]}). Points a game by quarter (green = a bigger share of his points), and his 4th-quarter minutes when the game is within 10 entering the 4th vs not.`,
+    `<div class="rs-rot-wrap"><div class="rs-rot-strips">${strip(r.rot, games, "Season")}${strip(r.rot5, r.rotn[1], `Last ${r.rotn[1]}`)}${qLabels}</div>${side}</div>`);
+}
+
+// 2. Points Vs The Line: his last games as bars against tonight's line, and the line he had that
+// night as a second line (a dot a game: green = he cleared it, red = he didn't).
 function chartTile(x) {
   const f = logFields();
   const log = logOf(x.pid).slice(-15);
   const lines = rsOf(x.pid).lines || {};
-  if (!log.length) return tile("Points Vs The Line", "His points in each game this season", '<p class="rs-none">No games yet.</p>', "rs-wide");
+  if (!log.length) return tile("Points Vs The Line", "His points in each game this season", '<p class="rs-none">No games yet.</p>');
   const line = x.line;
-  const W = 520, H = 150, top = 16, base = 124;
-  const max = Math.max(10, line || 0, ...log.map((r) => r[f.pts] || 0)) * 1.1;
+  const bw = 30, W = log.length * bw, H = 176, top = 18, base = 140;
+  const then = log.map((r) => lines[String(r[f.game])] ?? null);
+  const max = Math.max(10, line || 0, ...then.filter((v) => v !== null), ...log.map((r) => r[f.pts] || 0)) * 1.08;
   const y = (v) => base - (v / max) * (base - top);
-  const bw = W / log.length;
   const bars = log.map((r, i) => {
     const v = r[f.pts] || 0;
-    const then = lines[String(r[f.game])];
     const cls = line === null ? "" : v > line ? " over" : " under";
-    const tip = `${gameDate(r[f.date])} ${r[f.home] ? "vs" : "@"} ${r[f.opp]}: ${v} pts in ${r[f.min]} min, ${r[f.fga]} shots${then !== undefined ? `, his line was ${fmt(then)}` : ""}`;
+    const tip = `${gameDate(r[f.date])} ${r[f.home] ? "vs" : "@"} ${r[f.opp]}: ${v} pts in ${r[f.min]} min, ${r[f.fga]} shots${then[i] !== null ? `; his line was ${fmt(then[i])} (${v > then[i] ? "cleared" : "missed"})` : ""}`;
     const cx = i * bw + bw / 2;
-    return `<g><title>${tip}</title><rect class="rs-bar${cls}" x="${(i * bw + bw * 0.16).toFixed(1)}" y="${y(v).toFixed(1)}" width="${(bw * 0.68).toFixed(1)}" height="${(base - y(v)).toFixed(1)}" rx="3"></rect>`
-      + `<text class="rs-bar-v" x="${cx.toFixed(1)}" y="${(y(v) - 3).toFixed(1)}">${v}</text>`
-      + (then !== undefined ? `<line class="rs-then" x1="${(i * bw + bw * 0.08).toFixed(1)}" x2="${(i * bw + bw * 0.92).toFixed(1)}" y1="${y(then).toFixed(1)}" y2="${y(then).toFixed(1)}"></line>` : "")
-      + `<text class="rs-bar-l" x="${cx.toFixed(1)}" y="${base + 11}">${r[f.opp]}</text><text class="rs-bar-l rs-bar-d" x="${cx.toFixed(1)}" y="${base + 22}">${gameDate(r[f.date])}</text></g>`;
+    const inside = base - y(v) >= 16;
+    return `<g><title>${tip}</title><rect class="rs-bar${cls}" x="${i * bw}" y="${y(v).toFixed(1)}" width="${bw}" height="${(base - y(v)).toFixed(1)}"></rect>`
+      + `<text class="rs-bar-v${inside ? " in" : ""}" x="${cx}" y="${(inside ? y(v) + 12 : y(v) - 3).toFixed(1)}">${v}</text>`
+      + `<text class="rs-bar-l" x="${cx}" y="${base + 12}">${r[f.opp]}</text><text class="rs-bar-l rs-bar-d" x="${cx}" y="${base + 23}">${gameDate(r[f.date])}</text></g>`;
   }).join("");
-  const lineMark = line === null ? "" : `<line class="rs-tonight" x1="0" x2="${W}" y1="${y(line).toFixed(1)}" y2="${y(line).toFixed(1)}"></line><text class="rs-tonight-t" x="${W - 2}" y="${(y(line) - 4).toFixed(1)}">${fmt(line)}</text>`;
+  // his line each night: a line through the nights that have one, a labeled dot on each
+  const pts = then.map((v, i) => (v === null ? null : [i * bw + bw / 2, y(v), v, (log[i][f.pts] || 0) > v]));
+  let path = "";
+  pts.forEach((p, i) => { if (p) path += `${path && pts[i - 1] ? "L" : "M"}${p[0]},${p[1].toFixed(1)}`; });
+  const dots = pts.filter(Boolean).map(([cx, cy, v, hit]) => `<circle class="rs-then-dot${hit ? " hit" : ""}" cx="${cx}" cy="${cy.toFixed(1)}" r="4"></circle><text class="rs-then-t" x="${cx}" y="${(cy - 7).toFixed(1)}">${fmt(v)}</text>`).join("");
+  const lineMark = line === null ? "" : `<line class="rs-tonight" x1="0" x2="${W}" y1="${y(line).toFixed(1)}" y2="${y(line).toFixed(1)}"></line>`;
+  const svg = `<svg class="rs-chart" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${bars}${lineMark}${path ? `<path class="rs-then" d="${path}"></path>` : ""}${dots}</svg>`;
   const vals = log.map((r) => r[f.pts] || 0);
-  const overs = line === null ? [] : vals.filter((v) => v > line);
-  const unders = line === null ? [] : vals.filter((v) => v < line);
-  const chips = line === null ? "" : `<div class="rs-chips">
-      <span class="rs-chip" style="${leanBg(overs.length / vals.length * 2 - 1)}" title="Games over tonight's line of the ones shown">Over ${overs.length} Of ${vals.length}</span>
-      <span class="rs-chip" title="When he went over tonight's line, by how much on average">Over By ${overs.length ? `+${fmt(avg(overs.map((v) => v - line)))}` : "--"}</span>
-      <span class="rs-chip" title="When he went under tonight's line, by how much on average">Under By ${unders.length ? `&minus;${fmt(avg(unders.map((v) => line - v)))}` : "--"}</span>
-      <span class="rs-chip" title="Games within 3 points of tonight's line either way">Within 3: ${vals.filter((v) => Math.abs(v - line) <= 3).length}</span></div>`;
-  const anyThen = log.some((r) => lines[String(r[f.game])] !== undefined);
-  const legend = `<span class="rs-legend"><i class="rs-k-tonight"></i>Tonight's Line${anyThen ? '<i class="rs-k-then"></i>His Line That Night' : ""}</span>`;
-  return tile("Points Vs The Line", `His last ${log.length} games (oldest left). Green = over tonight's line, red = under. Hover a bar for the game.${anyThen ? " The short white mark is the line the books had him at that night (saved since 2026-11-03)." : ""}`,
-    `<svg class="rs-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${lineMark}${bars}</svg><div class="rs-chart-foot">${chips}${legend}</div>`, "rs-wide");
+  const overs = line === null ? [] : vals.filter((v) => v > line), unders = line === null ? [] : vals.filter((v) => v < line);
+  const had = pts.filter(Boolean);
+  const cleared = had.filter((p) => p[3]).length;
+  const cells = line === null ? [] : [
+    tileTd(`${overs.length} of ${vals.length}`, (overs.length / vals.length) * 2 - 1, "Games over tonight's line"),
+    tileTd(overs.length ? `+${fmt(avg(overs.map((v) => v - line)))}` : "--", overs.length ? avg(overs.map((v) => v - line)) / (line * 0.25) : null, "When he went over tonight's line, by how much on average"),
+    tileTd(unders.length ? `&minus;${fmt(avg(unders.map((v) => line - v)))}` : "--", unders.length ? -avg(unders.map((v) => line - v)) / (line * 0.25) : null, "When he went under tonight's line, by how much on average"),
+    tileTd(`${had.length ? `${cleared} of ${had.length}` : "--"}`, had.length >= SMALL ? (cleared / had.length) * 2 - 1 : null, "Nights he cleared the line he had THAT night (the dots)"),
+  ];
+  const foot = line === null ? "" : grid([[`Last ${vals.length} Vs Tonight's ${fmt(line)}`, "od-g1", ["Over", "Over By", "Under By"], 58], ["His Line That Night", "od-g2", ["Cleared"], 64]], [["", cells]], 0);
+  const legend = `<div class="rs-legend"><span><i class="rs-k-tonight"></i>Tonight's Line</span><span><i class="rs-k-then"></i>His Line That Night</span></div>`;
+  return tile("Points Vs The Line", `His last ${log.length} games, oldest left. Bars: green = over tonight's line (dashed), red = under. The dots are the line the books had him at THAT night: green = he cleared it, red = he didn't. Hover a bar for the game.`,
+    `${svg}${legend}${foot}`);
 }
 
-// 2. Recent Form: last 5 against the season, his volume vs his shooting, and the defense lately.
+// 3. Recent Form: his last 5 against his season (did the points come from more shots or hot
+// shooting?) and what tonight's defense has allowed his position lately.
 function formTile(x) {
   const f = logFields();
   const log = logOf(x.pid);
@@ -369,23 +427,31 @@ function formTile(x) {
   const sum = (rows, k) => rows.reduce((a, r) => a + (r[f[k]] || 0), 0);
   const per = (rows, k) => (rows.length ? sum(rows, k) / rows.length : null);
   const fgp = (rows) => (sum(rows, "fga") ? (sum(rows, "fgm") / sum(rows, "fga")) * 100 : null);
-  const oppS = allowedRecent(x.opp, x.p.pos, (r, ff) => r[ff.pts], 0);
-  const oppL = allowedRecent(x.opp, x.p.pos, (r, ff) => r[ff.pts], 5);
-  const rows = [
-    ["Points", per(log, "pts"), per(l5, "pts"), 1, 0.15],
-    ["Minutes", per(log, "min"), per(l5, "min"), 1, 0.1],
-    ["Shots (FGA)", per(log, "fga"), per(l5, "fga"), 1, 0.15],
-    ["Free Throws (FTA)", per(log, "fta"), per(l5, "fta"), 1, 0.3],
-    ["FG %", fgp(log), fgp(l5), 0, 0.12],
-    [`Opp Allows ${x.p.pos}s`, oppS && oppS.v, oppL && oppL.v, 1, 0.15],
-  ];
-  const body = rows.map(([label, s, r, d, big]) => {
+  // the Season column against his position (rotation players), so no tile in a row is left plain
+  const pool = posPool(x.p.pos);
+  const POOLV = { Points: (q) => per(q, "pts"), Minutes: (q) => per(q, "min"), Shots: (q) => per(q, "fga"), "Free Throws": (q) => per(q, "fta"), "FG %": (q) => fgp(q) };
+  let seasonS = (label, v) => (POOLV[label] ? spread(v, pool.map(([, q]) => POOLV[label](q.log || []))) : null);
+  const rowOf = (label, s, r, d, big, tip) => {
     const ch = s === null || r === null ? null : r - s;
     const rel = ch === null || !s ? null : ch / s / big;
-    return `<tr><th>${label}</th><td>${fmt(s, d)}</td><td style="${leanBg(rel)}"><b>${fmt(r, d)}</b></td><td class="rs-ch">${ch === null ? "--" : signed(ch, d)}</td></tr>`;
-  }).join("");
-  // where a points swing came from: more / fewer shots tends to stick, hot / cold shooting tends to fade
-  const chips = [];
+    return [label, [tileTd(fmt(s, d), seasonS ? seasonS(label, s) : null, `${tip} (season: colored against the league at his position)`), tileTd(fmt(r, d), rel, tip), tileTd(ch === null ? "--" : signed(ch, d), rel, tip)]];
+  };
+  const him = grid([["Season Vs Last 5", "od-g1", ["Season", "L5", "+/-"], 52]], [
+    rowOf("Points", per(log, "pts"), per(l5, "pts"), 1, 0.15, "His points a game"),
+    rowOf("Minutes", per(log, "min"), per(l5, "min"), 1, 0.1, "His minutes a game"),
+    rowOf("Shots", per(log, "fga"), per(l5, "fga"), 1, 0.15, "His field goals tried a game"),
+    rowOf("Free Throws", per(log, "fta"), per(l5, "fta"), 1, 0.3, "His free throws tried a game"),
+    rowOf("FG %", fgp(log), fgp(l5), 0, 0.12, "His field goal percentage"),
+  ], 92);
+  const oppS = allowedRecent(x.opp, x.p.pos, (r, ff) => r[ff.pts], 0);
+  const oppL = allowedRecent(x.opp, x.p.pos, (r, ff) => r[ff.pts], 5);
+  const defRanks = teamRanks((t) => (allowedRecent(t, x.p.pos, (r, ff) => r[ff.pts], 0) || {}).v ?? null);
+  seasonS = () => rankSigned(defRanks.r[x.opp], defRanks.n);
+  const def = grid([[`${logo(x.opp, 14)} ${x.opp} Defense`, "od-g2", ["Season", "L5", "+/-"], 52]], [
+    rowOf(`Pts To ${x.p.pos}s`, oppS && oppS.v, oppL && oppL.v, 1, 0.15, `Points ${team(x.opp).name} allow ${x.p.pos}s a game: this season and its last ${oppL ? oppL.n : 5} games`),
+  ], 92);
+  // where a points swing came from: more / fewer shots tends to hold, hot / cold shooting tends to even out
+  const pills = [];
   const ptsCh = per(l5, "pts") - per(log, "pts");
   if (l5.length >= 3 && Math.abs(ptsCh) >= 2) {
     const ppShot = sum(log, "pts") / Math.max(1, sum(log, "fga"));
@@ -393,20 +459,21 @@ function formTile(x) {
     const shooting = ptsCh - volume;
     const up = ptsCh > 0;
     const fromVolume = Math.sign(volume) === Math.sign(ptsCh) && Math.abs(volume) >= Math.abs(shooting);
-    chips.push(`<span class="rs-chip ${fromVolume ? (up ? "good" : "bad") : "warn"}" title="His last 5 are ${signed(ptsCh)} points a game from his season: about ${signed(volume)} from more or fewer shots and free throws, ${signed(shooting)} from making more or fewer of them. A change in shots tends to hold; a hot or cold shooting run tends to even out.">${up ? "Up" : "Down"}: ${fromVolume ? (up ? "More Shots" : "Fewer Shots") : (up ? "Hot Shooting" : "Cold Shooting")}</span>`);
+    pills.push(`<span class="od-tile rs-pill" style="${fromVolume ? stepStyle(up ? 1 : -1) : stepStyle(0)}" title="His last 5 are ${signed(ptsCh)} points a game from his season: about ${signed(volume)} from more or fewer shots and free throws, ${signed(shooting)} from making more or fewer. A change in shots tends to hold; a hot or cold shooting run tends to even out."><b>${up ? "Up" : "Down"}: ${fromVolume ? (up ? "More Shots" : "Fewer Shots") : (up ? "Hot Shooting" : "Cold Shooting")}</b></span>`);
   }
-  const starts = sum(l5, "start");
-  chips.push(`<span class="rs-chip" title="Games he started of his last ${l5.length}, and this season">Started ${starts} Of ${l5.length} (${sum(log, "start")} Of ${log.length})</span>`);
-  const blow = log.filter((r) => r[f.score] !== null && r[f.opp_score] !== null && Math.abs(r[f.score] - r[f.opp_score]) >= 20);
+  pills.push(`<span class="od-tile rs-pill" title="Games he started: last 5, and this season"><b>Started ${sum(l5, "start")} Of ${l5.length}</b></span>`);
+  const blow = log.filter((r) => r[f.score] !== null && r[f.opp_score] !== null && r[f.score] !== undefined && Math.abs(r[f.score] - r[f.opp_score]) >= 20);
   if (blow.length) {
     const rest = log.filter((r) => !blow.includes(r));
-    chips.push(`<span class="rs-chip${per(blow, "min") < per(rest, "min") - 3 ? " warn" : ""}" title="Games decided by 20+ points: his minutes in them against his other games">Blowouts: ${blow.length} G, ${fmt(per(blow, "min"), 0)} Min (${fmt(per(rest, "min"), 0)} Others)</span>`);
+    const lost = per(rest, "min") - per(blow, "min");
+    pills.push(`<span class="od-tile rs-pill" style="${lost >= 3 ? stepStyle(-0.7) : ""}" title="Games decided by 20+ points: ${fmt(per(blow, "min"), 0)} minutes in them, ${fmt(per(rest, "min"), 0)} in his other games"><b>Blowouts: ${fmt(per(blow, "min"), 0)} Min (${blow.length} G)</b></span>`);
   }
-  return tile("Recent Form", "His last 5 games against his season, and what tonight's defense has allowed his position in its last 5 games. Green / red = his last 5 well above / below his season.",
-    `<table class="rs-mini"><thead><tr><th></th><th>Season</th><th>L5</th><th>+/-</th></tr></thead><tbody>${body}</tbody></table><div class="rs-chips">${chips.join("")}</div>`);
+  return tile("Recent Form", `His last 5 games against his season (green / red = well above / below), then what ${team(x.opp).name} have allowed his position this season and in their last 5 games.`,
+    `${him}${def}<div class="rs-pills">${pills.join("")}</div>`);
 }
 
-// 3. How He Scores: how his shots come, how much is set up for him, his share of the team's shots.
+// 4. How He Scores: how his shots come, how much is set up for him and his share of the shots, each
+// ranked among his position (1st = the most = green, the site's how-often rule), and who feeds him.
 function scoreTile(x) {
   const f = logFields();
   const p = playerOf(x.pid) || {};
@@ -414,206 +481,168 @@ function scoreTile(x) {
   const pool = posPool(x.p.pos);
   const kinds = p.kinds || {};
   const seg = [["self", "Self-Created", "rs-k1"], ["catch", "Catch & Shoot", "rs-k2"], ["drive", "Drives & Cuts", "rs-k3"], ["other", "Post / Other", "rs-k4"]];
-  const bar = `<div class="rs-stack" title="How his shots come: Self-Created = pull-ups, step-backs and fades">${seg.map(([k, label, cls]) => (kinds[k] ? `<span class="${cls}" style="width:${(kinds[k] * 100).toFixed(1)}%" title="${label}: ${Math.round(kinds[k] * 100)}% of his shots">${kinds[k] >= 0.12 ? `${Math.round(kinds[k] * 100)}%` : ""}</span>` : "")).join("")}</div>
-    <div class="rs-stack-key">${seg.map(([k, label, cls]) => `<span><i class="${cls}"></i>${label}</span>`).join("")}</div>`;
-  const log = logOf(x.pid);
+  const bar = `<div class="rs-stack">${seg.map(([k, label, cls]) => (kinds[k] ? `<span class="${cls}" style="width:${(kinds[k] * 100).toFixed(1)}%" title="${label}: ${Math.round(kinds[k] * 100)}% of his shots">${kinds[k] >= 0.12 ? `${Math.round(kinds[k] * 100)}%` : ""}</span>` : "")).join("")}</div>
+    <div class="rs-stack-key">${seg.map(([, label, cls]) => `<span><i class="${cls}"></i>${label}</span>`).join("")}</div>`;
   const sum = (rows, k) => rows.reduce((a, q) => a + (q[f[k]] || 0), 0);
-  const ftShare = (pl) => { const pts = sum(pl, "pts"); return pts ? sum(pl, "ftm") / pts : null; };
+  const ftShare = (rows) => { const pts = sum(rows, "pts"); return pts ? sum(rows, "ftm") / pts : null; };
   const transShare = (pid) => { const t = rsOf(pid).trans; return t && t[1] ? t[0] / t[1] : null; };
-  const metric = (label, v, poolVals, tip) => {
-    const s = spread(v, poolVals);
-    const rank = v === null ? null : poolVals.filter((q) => q !== null && q > v).length + 1;
-    return `<tr title="${tip}"><th>${label}</th><td><b>${v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`}</b></td>
-      <td class="rs-meter"><span style="width:${s === null ? 0 : ((s + 1) / 2) * 100}%"></span></td><td class="rs-rank">${rank && poolVals.length ? `${ordinal(rank)} of ${poolVals.length} ${x.p.pos}s` : ""}</td></tr>`;
+  const metric = (label, v, vals, tip) => {
+    const rk = rankIn(v, vals);
+    return [label, [tileTd(v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`, spread(v, vals), tip, rk ? `${ordinal(rk.r)} of ${rk.n}` : "")]];
   };
-  const shareTeam = Object.entries(seasonBlock().players).filter(([, q]) => q.team === x.team && q.share).sort((a, b) => b[1].share - a[1].share);
-  const teamRank = shareTeam.findIndex(([id]) => id === x.pid) + 1;
-  const rows = [
-    metric("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), `His share of his team's shots while he's on the floor${teamRank ? ` (${ordinal(teamRank)} on the ${x.team})` : ""}`),
+  const shares = grid([[`Share (Rank Of ${x.p.pos}s)`, "od-g1", [""], 84]], [
+    metric("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), "His share of his team's shots while he's on the floor"),
     metric("Assisted Makes", p.assisted ?? null, pool.map(([, q]) => q.assisted ?? null), "Share of his made shots a teammate assisted (the rest he made on his own)"),
-    metric("Pts From The Line", ftShare(log), pool.map(([, q]) => ftShare(q.log)), "Share of his points from free throws"),
-    metric("Transition Pts", transShare(x.pid), pool.map(([id]) => transShare(id)), "Share of his points on fast breaks: possessions off a miss or a steal with a shot inside 8 seconds"),
-  ].join("");
+    metric("Pts From The Line", ftShare(logOf(x.pid)), pool.map(([, q]) => ftShare(q.log || [])), "Share of his points from free throws"),
+    metric("Transition Pts", transShare(x.pid), pool.map(([id]) => transShare(id)), "Share of his points on fast breaks: off a miss or a steal, a shot inside 8 seconds"),
+  ], 112);
   const feed = r.feed;
-  const feeders = feed && feed[1].length ? `<div class="rs-feed"><span class="rs-feed-h" title="Who assists his made shots (of his ${feed[0]} makes)">Who Sets Him Up</span>${feed[1].map(([id, n]) => {
+  const feeders = feed && feed[1].length ? grid([["Assists To Him", "od-g3", [""], 84]], feed[1].map(([id, n]) => {
     const st = statusOf(x.team, id);
-    return `<span class="rs-chip${isOut(st) ? " bad" : st ? " warn" : ""}" title="${nameOf(id)} assisted ${n} of his ${feed[0]} makes${st ? ` (${st} tonight)` : ""}">${playerClick(id, lastName(nameOf(id)))} ${pct1(n, feed[0])}%${st ? ` ${statusPill(st)}` : ""}</span>`;
-  }).join("")}</div>` : "";
-  return tile("How He Scores", `How his shots come and where his points come from, each ranked among this season's rotation ${x.p.pos}s (1st = the most). Who Sets Him Up = the teammates who assist his makes; red = Out tonight.`,
-    `${bar}<table class="rs-mini rs-metrics"><tbody>${rows}</tbody></table>${feeders}`);
+    return [`${face(id)}${playerClick(id, shortName(nameOf(id)))}${statusPill(st)}`, [tileTd(`${pct1(n, feed[0])}%`, isOut(st) ? -1 : (n / feed[0]) * 8 - 1, `${nameOf(id)} assisted ${n} of his ${feed[0]} made shots${st ? ` (${st} tonight)` : ""}`, `${n} of ${feed[0]}`)]];
+  }), 150) : "";
+  return tile("How He Scores", `How his shots come (Self-Created = pull-ups, step-backs and fades), then where his points come from, each ranked among this season's rotation ${x.p.pos}s (1st = the most). Who Sets Him Up = the teammates who assist his made shots; red = Out tonight.`,
+    `${bar}<div class="rs-pair">${shares}${feeders}</div>`);
 }
+const pct1 = (n, d) => (d ? Math.round((n / d) * 100) : null);
 
-// 4. Teammates On The Floor: his scoring with each teammate on the floor and off it, and how often
-// they share the floor.
+// 5. Teammates On The Floor: his scoring with each teammate on the floor and off it, how often they
+// share the floor, and the teammate's assists on his makes.
 function mateTile(x) {
   const p = playerOf(x.pid) || {};
-  const feed = Object.fromEntries(((rsOf(x.pid).feed || [0, []])[1]));
+  const feed = Object.fromEntries((rsOf(x.pid).feed || [0, []])[1]);
+  const makes = (rsOf(x.pid).feed || [0])[0];
   const mates = Object.entries(p.with || {}).filter(([id]) => (playerOf(id) || {}).team === x.team)
     .sort((a, b) => b[1][0] - a[1][0]).slice(0, 7);
-  if (!mates.length) return tile("Teammates On The Floor", "His scoring with each teammate on the floor and off it", '<p class="rs-none">Not enough minutes together yet.</p>', "rs-wide");
+  if (!mates.length) return tile("Teammates On The Floor", "His scoring with each teammate on the floor and off it", '<p class="rs-none">Not enough minutes together yet.</p>');
+  // his usual rate, all his minutes: With and Without are each colored against it (both sides of a
+  // pair always get a color, styles.md "One Look")
+  const all = mates.length ? mates[0][1] : [0, 0, 0, 0, 0, 0];
+  const usualPts = per36(all[1] + all[4], all[0] + all[3]), usualShots = per36(all[2] + all[5], all[0] + all[3]);
+  const vsUsual = (v, usual, k) => (v === null || usual === null ? null : (v - usual) / k);
   const rows = mates.map(([id, w]) => {
     const [mOn, pOn, fOn, mOff, pOff, fOff] = w;
     const together = mOn / (mOn + mOff);
     const on = per36(pOn, mOn), off = mOff >= 20 ? per36(pOff, mOff) : null;
-    const diff = off === null ? null : on - off;
+    const diff = off === null ? null : off - on;
     const sOn = per36(fOn, mOn), sOff = mOff >= 20 ? per36(fOff, mOff) : null;
+    const sDiff = sOff === null ? null : sOff - sOn;
     const st = statusOf(x.team, id);
-    return `<tr${isOut(st) ? ' class="rs-mate-out"' : ""}><th>${playerClick(id, lastName(nameOf(id)))} ${statusPill(st)}</th>
-      <td title="${Math.round(mOn)} of his ${Math.round(mOn + mOff)} minutes with ${nameOf(id)} on the floor"><span class="rs-together"><span style="width:${(together * 100).toFixed(0)}%"></span></span>${Math.round(together * 100)}%</td>
-      <td><b>${fmt(on)}</b></td><td>${fmt(off)}</td>
-      <td class="rs-ch" style="${leanBg(diff === null ? null : -diff / 6)}" title="Points a 36 with ${nameOf(id)} off the floor minus on it (green = he scores more without him)">${diff === null ? "--" : signed(-diff)}</td>
-      <td>${fmt(sOn)}</td><td style="${leanBg(sOff === null ? null : (sOff - sOn) / 5)}">${fmt(sOff)}</td>
-      <td>${feed[id] ? feed[id] : "--"}</td></tr>`;
-  }).join("");
-  return tile("Teammates On The Floor", "Every teammate he's shared 20+ minutes with this season, most time together first. Together = share of his minutes with that teammate on the floor. Points and shots are his, a 36 minutes, with the teammate on and off the floor (off needs 20+ minutes). Off-On: green = he scores more when that teammate sits. Assists = that teammate's assists on his makes. A teammate Out tonight is marked red.",
-    `<table class="rs-mini rs-mates"><thead><tr><th>Teammate</th><th>Together</th><th>Pts/36 On</th><th>Off</th><th>Off-On</th><th>Shots/36 On</th><th>Off</th><th>Assists</th></tr></thead><tbody>${rows}</tbody></table>`, "rs-wide");
+    const name = nameOf(id);
+    return [`${face(id)}${playerClick(id, shortName(name))}${statusPill(st)}`, [
+      tileTd(`${Math.round(together * 100)}%`, together * 2 - 1, `${Math.round(mOn)} of his ${Math.round(mOn + mOff)} minutes came with ${name} on the floor`),
+      tileTd(fmt(sOn), vsUsual(sOn, usualShots, 3), `His shots a 36 minutes with ${name} on the floor (his usual ${fmt(usualShots)})`),
+      tileTd(fmt(sOff), vsUsual(sOff, usualShots, 3), `His shots a 36 minutes with ${name} OFF the floor (his usual ${fmt(usualShots)})`),
+      tileTd(sDiff === null ? "--" : signed(sDiff), sDiff === null ? null : sDiff / 4, `Without minus with: green = he shoots more when ${name} sits`),
+      tileTd(fmt(on), vsUsual(on, usualPts, 4), `His points a 36 minutes with ${name} on the floor (${Math.round(mOn)} min; his usual ${fmt(usualPts)})`),
+      tileTd(fmt(off), vsUsual(off, usualPts, 4), `His points a 36 minutes with ${name} OFF the floor (${Math.round(mOff)} min; his usual ${fmt(usualPts)})`),
+      tileTd(diff === null ? "--" : signed(diff), diff === null ? null : diff / 6, `Without minus with: green = he scores more when ${name} sits`),
+      tileTd(feed[id] ? String(feed[id]) : "--", feed[id] && makes ? (feed[id] / makes) * 8 - 1 : null, `${name}'s assists on his made shots${makes ? ` (${feed[id] || 0} of his ${makes})` : ""}`),
+    ], isOut(st) ? "rs-out" : ""];
+  });
+  return tile("Teammates On The Floor", "Every teammate he's shared 20+ minutes with this season, most time together first. Time Together = share of his minutes with that teammate on the floor. Shots and points are HIS, a 36 minutes, with the teammate on the floor and off it (off needs 20+ minutes): green / red = above / below his usual rate. Change = without minus with: green = he shoots / scores more when that teammate sits. Assists = that teammate's assists on his makes. Red name = Out tonight.",
+    grid([["Time Together", "od-g0", [""], 62], ["His Shots / 36", "od-g2", ["With", "Without", "Change"], 52], ["His Points / 36", "od-g1", ["With", "Without", "Change"], 52], ["Assists To Him", "od-g3", [""], 62]], rows, 168));
 }
 
-// 5. Matchup Angles: his side and tonight's defense's side of one thing, with a read only when one
-// side clearly points one way and the other doesn't point the other way.
+// 6. Matchup Angles: his side and tonight's defense's side of one thing, Allowed (the numbers) or
+// Rank; a More / Fewer read only when one side clearly points one way and the other doesn't point
+// the other way (the site's two-sided rule).
 function anglesTile(x) {
   const f = logFields();
   const pool = posPool(x.p.pos);
   const R = RS();
-  const id = ((DATA.identity || {}).seasons || {})[String((DATA.identity || {}).default)] || {};
-  const teams = id.teams || {};
-  const teamList = Object.keys(teams);
-  const rankBy = (key, hi = true) => {
-    const s = teamList.filter((t) => teams[t][key] !== null && teams[t][key] !== undefined).sort((a, b) => (hi ? teams[b][key] - teams[a][key] : teams[a][key] - teams[b][key]));
-    return { n: s.length, r: Object.fromEntries(s.map((t, i) => [t, i + 1])) };
-  };
-  const perG = (rows, k) => (rows.length ? rows.reduce((a, r) => a + (r[f[k]] || 0), 0) / rows.length : null);
-  const share = (pid) => { const u = (R.players[pid] || {}).units; return u && u[0] + u[2] ? u[0] / (u[0] + u[2]) : null; };
-  const transShare = (pid) => { const t = (R.players[pid] || {}).trans; return t && t[1] ? t[0] / t[1] : null; };
-  const benchPer = (t) => { const u = R.teams[t]; return u && u[0] >= 30 ? (u[1] / u[0]) * 100 : null; };
-  const benchRank = (() => { const s = teamList.filter((t) => benchPer(t) !== null).sort((a, b) => benchPer(b) - benchPer(a)); return { n: s.length, r: Object.fromEntries(s.map((t, i) => [t, i + 1])) }; })();
-  const ftA = allowedRanks(x.p.pos, (r, ff) => r[ff.fta], 0);
-  const log = logOf(x.pid);
-  const fouls36 = (rows) => { const m = rows.reduce((a, r) => a + (r[f.min] || 0), 0); return m ? (rows.reduce((a, r) => a + (r[f.pf] || 0), 0) / m) * 36 : null; };
-  const early = new Set((rsOf(x.pid).foul || []).map(String));
-  // the other team's players at his position: how many free throws they draw a game
-  const oppDraw = (t) => { const rows = Object.values(seasonBlock().players).filter((q) => q.team === t && q.pos === x.p.pos).flatMap((q) => q.log || []); const games = new Set(rows.map((r) => r[f.game])).size; return games ? rows.reduce((a, r) => a + (r[f.fta] || 0), 0) / games : null; };
-  const drawRank = (() => { const s = teamList.map((t) => [t, oppDraw(t)]).filter(([, v]) => v !== null).sort((a, b) => b[1] - a[1]); return { n: s.length, r: Object.fromEntries(s.map(([t], i) => [t, i + 1])), v: Object.fromEntries(s) }; })();
-  const pace = rankBy("off_pace");
-  const trans = rankBy("def_trans_freq");
-  const cell = (s, text, tip) => `<td style="${leanBg(s, 0.45)}" title="${tip}">${text}</td>`;
-  const posRank = (v, vals) => { const xs = vals.filter((q) => q !== null && q !== undefined); return v === null || v === undefined ? "--" : `${ordinal(xs.filter((q) => q > v).length + 1)} of ${xs.length}`; };
-  const read = (a, b) => {
-    if (a === null || b === null) return '<td class="rs-read"><span class="muted-label">--</span></td>';
-    const target = (a >= 0.4 && b > -0.1) || (b >= 0.4 && a > -0.1);
-    const tough = (a <= -0.4 && b < 0.1) || (b <= -0.4 && a < 0.1);
-    return `<td class="rs-read">${target ? '<span class="rs-chip good">More</span>' : tough ? '<span class="rs-chip bad">Fewer</span>' : '<span class="muted-label">Neutral</span>'}</td>`;
-  };
+  const teams = identityTeams();
   const opp = x.opp;
-  const rk = (r, t) => (r.r[t] ? `${ordinal(r.r[t])} of ${r.n}` : "--");
-  const myFta = perG(log, "fta");
-  const ftVals = pool.map(([, q]) => perG(q.log || [], "fta"));
-  const sFt = spread(myFta, ftVals), oFt = rankSigned(ftA.r[opp], ftA.n);
-  const myTr = transShare(x.pid), trVals = pool.map(([pid]) => transShare(pid));
-  const sTr = spread(myTr, trVals), oTr = rankSigned(trans.r[opp], trans.n);
-  const myB = share(x.pid), bVals = pool.map(([pid]) => share(pid));
-  const sB = spread(myB, bVals), oB = rankSigned(benchRank.r[opp], benchRank.n);
-  const sPace = rankSigned(pace.r[x.team], pace.n), oPace = rankSigned(pace.r[opp], pace.n);
-  const myPf = fouls36(log), pfVals = pool.map(([, q]) => fouls36(q.log || []));
-  const sPf = spread(myPf, pfVals), oPf = rankSigned(drawRank.r[opp], drawRank.n);
-  const u = rsOf(x.pid).units;
-  const benchTip = u ? `${Math.round(myB * 100)}% of his possessions came against bench units (2 or fewer starters on the floor): ${fmt((u[1] / Math.max(1, u[0])) * 100, 0)} pts a 100 possessions vs bench, ${fmt((u[3] / Math.max(1, u[2])) * 100, 0)} vs starters` : "";
-  const bp = benchPer(opp);
-  const rows = [
-    ["Free Throws", cell(sFt, `${fmt(myFta)} FTA <small>${posRank(myFta, ftVals)}</small>`, `His free throws tried a game, ranked among ${x.p.pos}s`),
-      cell(oFt, `${fmt(ftA.v[opp] && ftA.v[opp].v)} <small>${rk(ftA, opp)}</small>`, `Free throws ${team(opp).name} allow ${x.p.pos}s a game (1st = the most)`), read(sFt, oFt)],
-    ["Transition", cell(sTr, `${myTr === null ? "--" : `${Math.round(myTr * 100)}%`} <small>${posRank(myTr, trVals)}</small>`, "Share of his points on fast breaks, ranked among his position"),
-      cell(oTr, `<small>${rk(trans, opp)}</small>`, `How often ${team(opp).name}'s opponents get out in transition (1st = the most)`), read(sTr, oTr)],
-    ["Vs Bench Units", cell(sB, `${myB === null ? "--" : `${Math.round(myB * 100)}%`} <small>${posRank(myB, bVals)}</small>`, benchTip || "His possessions against bench units"),
-      cell(oB, `${bp === null ? "--" : fmt(bp, 0)} <small>${rk(benchRank, opp)}</small>`, `Points a 100 possessions ${team(opp).name} allow with 2 or fewer starters on the floor (1st = the most)`), read(sB, oB)],
-    ["Pace", cell(sPace, `<small>${rk(pace, x.team)}</small>`, `${team(x.team).name}'s pace (1st = fastest)`), cell(oPace, `<small>${rk(pace, opp)}</small>`, `${team(opp).name}'s pace (1st = fastest)`), read(sPace, oPace)],
-    ["Foul Trouble", cell(sPf === null ? null : -sPf, `${fmt(myPf)} /36 <small>${early.size} early</small>`, `His fouls a 36 minutes, ranked among ${x.p.pos}s (red = foul-prone). ${early.size} game${early.size === 1 ? "" : "s"} with early foul trouble (2 in the 1st or 3 by the half)`),
-      cell(oPf === null ? null : -oPf, `${fmt(drawRank.v[opp])} FTA <small>${rk(drawRank, opp)}</small>`, `Free throws ${team(opp).name}'s ${x.p.pos}s draw a game (1st = the most: the player he guards attacks)`), read(sPf === null ? null : -sPf, oPf === null ? null : -oPf)],
-  ].map(([label, a, b, r]) => `<tr><th>${label}</th>${a}${b}${r}</tr>`).join("");
-  return tile("Matchup Angles", `His side and ${team(opp).name}'s side of the same thing. Green = points toward more points for him, red = toward fewer. More / Fewer only when one side clearly points one way and the other doesn't point the other way.`,
-    `<table class="rs-mini rs-angles"><thead><tr><th></th><th>${lastName(nameOf(x.pid))}</th><th>${opp}</th><th>Read</th></tr></thead><tbody>${rows}</tbody></table>`);
+  const perG = (rows, k) => (rows.length ? rows.reduce((a, r) => a + (r[f[k]] || 0), 0) / rows.length : null);
+  const benchShare = (pid) => { const u = (R.players[pid] || {}).units; return u && u[0] + u[2] ? u[0] / (u[0] + u[2]) : null; };
+  const transShare = (pid) => { const t = (R.players[pid] || {}).trans; return t && t[1] ? t[0] / t[1] : null; };
+  const fouls36 = (rows) => { const m = rows.reduce((a, r) => a + (r[f.min] || 0), 0); return m ? (rows.reduce((a, r) => a + (r[f.pf] || 0), 0) / m) * 36 : null; };
+  const ftAllowed = teamRanks((t) => (allowedRecent(t, x.p.pos, (r, ff) => r[ff.fta], 0) || {}).v ?? null);
+  const transAllowed = teamRanks((t) => (teams[t] || {}).def_trans_freq ?? null);
+  const benchAllowed = teamRanks((t) => { const u = R.teams[t]; return u && u[0] >= 30 ? (u[1] / u[0]) * 100 : null; });
+  const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
+  // the other team's players at his position: free throws they draw a game (they attack him)
+  const draws = teamRanks((t) => { const rows = Object.values(seasonBlock().players).filter((q) => q.team === t && q.pos === x.p.pos).flatMap((q) => q.log || []); const n = new Set(rows.map((r) => r[f.game])).size; return n ? rows.reduce((a, r) => a + (r[f.fta] || 0), 0) / n : null; });
+  const him = (v, vals, show, flip = false) => { const rk = rankIn(v, vals); const s = spread(v, vals); return { s: s === null ? null : flip ? -s : s, text: RSV.rank ? (rk ? ordinal(rk.r) : "--") : show(v), sub: RSV.rank ? `of ${rk ? rk.n : 0} ${x.p.pos}s` : "" }; };
+  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); return { s: s === null ? null : flip ? -s : s, text: RSV.rank ? (rk.r[t] ? ordinal(rk.r[t]) : "--") : show(rk.v[t]), sub: RSV.rank ? `of ${rk.n}` : "" }; };
+  const pctTxt = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
+  const read = (a, b) => {
+    if (a.s === null || b.s === null) return tileTd("--", null, "Not enough data on one side yet");
+    const more = (a.s >= 0.4 && b.s > -0.1) || (b.s >= 0.4 && a.s > -0.1);
+    const fewer = (a.s <= -0.4 && b.s < 0.1) || (b.s <= -0.4 && a.s < 0.1);
+    return tileTd(more ? "More" : fewer ? "Fewer" : "Even", more ? 1 : fewer ? -1 : null, more ? "One side points to more points for him and the other doesn't point against it" : fewer ? "One side points to fewer points for him and the other doesn't point against it" : "The two sides don't line up one way");
+  };
+  const ROWS = [
+    ["Free Throws", "His free throws tried a game / what the defense allows his position", him(perG(logOf(x.pid), "fta"), pool.map(([, q]) => perG(q.log || [], "fta")), (v) => fmt(v)), them(ftAllowed, opp, (v) => fmt(v))],
+    ["Transition", "Share of his points on fast breaks / how often the defense's opponents get out in transition", him(transShare(x.pid), pool.map(([id]) => transShare(id)), pctTxt), them(transAllowed, opp, pctTxt)],
+    ["Vs Bench Units", "Share of his possessions against bench units (2 or fewer starters) / points a 100 possessions the defense's bench units allow", him(benchShare(x.pid), pool.map(([id]) => benchShare(id)), pctTxt), them(benchAllowed, opp, (v) => fmt(v, 0))],
+    ["Pace", "His team's pace / the defense's pace (possessions a 48 minutes; 1st = fastest)", them(pace, x.team, (v) => fmt(v)), them(pace, opp, (v) => fmt(v))],
+    ["Foul Trouble", "His fouls a 36 minutes (red = foul-prone) / free throws the defense's players at his position draw a game (red = they attack)", him(fouls36(logOf(x.pid)), pool.map(([, q]) => fouls36(q.log || [])), (v) => fmt(v), true), them(draws, opp, (v) => fmt(v), true)],
+  ];
+  const rows = ROWS.map(([label, tip, a, b]) => [`<span title="${tip}">${label}</span>`, [tileTd(a.text, a.s, tip, a.sub), tileTd(b.text, b.s, tip, b.sub), read(a, b)]]);
+  const toggle = `<span class="view-toggle rs-toggle">${[[false, "Allowed"], [true, "Rank"]].map(([v, label]) => `<button type="button" class="view-toggle-btn${RSV.rank === v ? " active" : ""}" data-rs-rank="${v}">${label}</button>`).join("")}</span>`;
+  return tile("Matchup Angles", `His side and ${team(opp).name}'s side of the same thing (hover a row for what each number is). Green = toward more points for him, red = toward fewer. More / Fewer only when one side clearly points one way and the other doesn't point the other way.`,
+    grid([[shortName(nameOf(x.pid)), "od-g1", [""], 84], [`${logo(opp, 14)} ${opp} Defense`, "od-g2", [""], 84], ["Read", "od-g0", [""], 58]], rows, 104), toggle);
 }
 
-// 6. Game Script: his points by the spread, total and pace his games had, and in tonight's schedule
-// spots; tonight's bucket outlined.
+// 7. Tonight's Game Script: only the kinds of game tonight is (his spread, the total, the pace and
+// the schedule spots), each against all his games: games, his points, games over tonight's line.
 function scriptTile(x) {
   const f = logFields();
   const R = RS();
   const log = logOf(x.pid);
   const games = R.games || {};
-  const allPace = Object.values(games).map((g) => g[0]).filter(Boolean).sort((a, b) => a - b);
-  const allTot = Object.values(games).map((g) => g[1]).filter(Boolean).sort((a, b) => a - b);
-  const q = (xs, p) => (xs.length ? xs[Math.floor(p * (xs.length - 1))] : null);
-  const spreadOf = (r) => { const g = games[String(r[f.game])]; return g && g[2] !== null && g[2] !== undefined ? (r[f.home] ? g[2] : -g[2]) : null; };
-  const id = ((DATA.identity || {}).seasons || {})[String((DATA.identity || {}).default)] || {};
-  const tp = id.teams || {};
-  const tonightPace = tp[x.team] && tp[x.opp] ? (tp[x.team].off_pace + tp[x.opp].off_pace) / 2 : null;
-  const hs = x.g.home_team_spread;
-  const tonightSpread = hs === null || hs === undefined ? null : x.home ? hs : -hs;
-  const tonightTotal = x.g.total_line ?? null;
-  const p33 = q(allPace, 1 / 3), p67 = q(allPace, 2 / 3), t33 = q(allTot, 1 / 3), t67 = q(allTot, 2 / 3);
-  const groups = [
-    ["His Spread", spreadOf, tonightSpread, [["Favored By 7+", (v) => v <= -6.5], ["Within 6", (v) => v > -6.5 && v < 6.5], ["Underdog 7+", (v) => v >= 6.5]], (v) => (v > 0 ? `+${fmt(v)}` : fmt(v))],
-    ["Game Total", (r) => (games[String(r[f.game])] || [])[1] ?? null, tonightTotal, t33 === null ? [] : [[`Under ${fmt(t33, 1)}`, (v) => v < t33], ["Middle", (v) => v >= t33 && v <= t67], [`Over ${fmt(t67, 1)}`, (v) => v > t67]], (v) => fmt(v)],
-    ["Game Pace", (r) => (games[String(r[f.game])] || [])[0] ?? null, tonightPace, p33 === null ? [] : [["Slow", (v) => v < p33], ["Average", (v) => v >= p33 && v <= p67], ["Fast", (v) => v > p67]], (v) => fmt(v)],
-  ];
+  const sorted = (i) => Object.values(games).map((g) => g[i]).filter((v) => v !== null && v !== undefined).sort((a, b) => a - b);
+  const third = (xs) => (xs.length >= 9 ? [xs[Math.floor((xs.length - 1) / 3)], xs[Math.floor(((xs.length - 1) * 2) / 3)]] : null);
+  const gOf = (r) => games[String(r[f.game])] || [];
+  const teams = identityTeams();
+  const season = avg(log.map((r) => r[f.pts] || 0));
   const line = x.line;
-  const rowOf = (label, rows, isTonight, tip) => {
-    const vals = rows.map((r) => r[f.pts] || 0);
-    const over = line === null ? null : vals.filter((v) => v > line).length;
+  const rows = [];
+  const add = (label, sub, rowsIn, tip) => {
+    const vals = rowsIn.map((r) => r[f.pts] || 0);
     const a = avg(vals);
-    const season = avg(log.map((r) => r[f.pts] || 0));
+    const over = line === null ? null : vals.filter((v) => v > line).length;
     const small = vals.length < SMALL;
-    return `<tr class="${isTonight ? "rs-tonight-row" : ""}${small ? " rs-small" : ""}" title="${tip}${small ? " (Small Sample)" : ""}"><th>${label}${isTonight ? ' <span class="rs-tag">Tonight</span>' : ""}</th><td>${vals.length}</td>
-      <td style="${small ? "" : leanBg(a === null || !season ? null : (a - season) / season / 0.15)}"><b>${fmt(a)}</b></td>
-      <td style="${small || over === null ? "" : leanBg(over / vals.length * 2 - 1)}">${over === null || !vals.length ? "--" : `${over} of ${vals.length}`}</td></tr>`;
+    rows.push([`<span title="${tip}">${label}</span>${sub ? `<small class="rs-sub">${sub}</small>` : ""}`, [
+      tileTd(String(vals.length), null, tip),
+      tileTd(fmt(a), small || a === null || !season ? null : (a - season) / season / 0.15, `${tip}: ${fmt(a)} points a game (season ${fmt(season)})`),
+      tileTd(over === null || !vals.length ? "--" : `${over} of ${vals.length}`, small || over === null ? null : (over / vals.length) * 2 - 1, `${tip}: games over tonight's line`),
+    ], small ? "rs-small" : ""]);
   };
-  let body = "";
-  for (const [name, get, now, buckets, show] of groups) {
-    if (!buckets.length) continue;
-    body += `<tr class="rs-group"><td colspan="4">${name}${now === null ? "" : ` <span class="muted-label">Tonight ${show(now)}</span>`}</td></tr>`;
-    for (const [label, test] of buckets) {
-      const rows = log.filter((r) => { const v = get(r); return v !== null && test(v); });
-      body += rowOf(label, rows, now !== null && test(now), `His games with ${name.toLowerCase()} ${label.toLowerCase()}`);
-    }
+  add("All His Games", "", log, "Every game this season");
+  const hs = x.g.home_team_spread;
+  const sp = hs === null || hs === undefined ? null : x.home ? hs : -hs;
+  if (sp !== null) {
+    const B = [["Favored By 7+", (v) => v <= -6.5], ["Favored By 0.5-6.5", (v) => v < 0 && v > -6.5], ["Underdog By 0.5-6.5", (v) => v >= 0 && v < 6.5], ["Underdog By 7+", (v) => v >= 6.5]];
+    const [label, test] = B.find(([, t]) => t(sp));
+    add(label, `Tonight ${sp > 0 ? "+" : ""}${fmt(sp)}`, log.filter((r) => { const g = gOf(r); return g[2] !== null && g[2] !== undefined && test(r[f.home] ? g[2] : -g[2]); }), `His games ${label.toLowerCase()}`);
   }
-  // tonight's schedule spots (Team Identity), his games in each
-  const spotsAll = id.spots || {};
-  const labels = Object.fromEntries((spotsAll.types || []).map((t) => [t.key, t.label]));
-  const tonight = ((spotsAll.tonight || {})[String(x.g.game_id)] || {})[x.team] || [];
-  body += `<tr class="rs-group"><td colspan="4">Tonight's Schedule Spots</td></tr>`;
-  if (!tonight.length) body += '<tr><th colspan="4" class="muted-label">None Tonight</th></tr>';
-  for (const k of tonight) {
-    const rows = log.filter((r) => (((R.spots || {})[String(r[f.game])] || {})[x.team] || []).includes(k));
-    body += rowOf(labels[k] || k, rows, true, `His games in this spot this season`);
+  const tot = x.g.total_line, tCut = third(sorted(1));
+  if (tot !== null && tot !== undefined && tCut) {
+    const [lo, hi] = tCut;
+    const [label, test] = tot < lo ? [`Total Under ${fmt(lo)}`, (v) => v < lo] : tot > hi ? [`Total Over ${fmt(hi)}`, (v) => v > hi] : [`Total ${fmt(lo)}-${fmt(hi)}`, (v) => v >= lo && v <= hi];
+    add(label, `Tonight ${fmt(tot)}`, log.filter((r) => { const v = gOf(r)[1]; return v !== null && v !== undefined && test(v); }), `His games with a ${label.toLowerCase()}`);
   }
-  return tile("Game Script", `His points by the kind of game: his team's spread and the game total at tip, the game's pace (thirds of every game this season), and tonight's schedule spots. Tonight's bucket is outlined. Avg green / red = 15%+ above / below his season; Over = games over tonight's line. Fewer than ${SMALL} games is too few to lean on (faded).`,
-    `<table class="rs-mini rs-script"><thead><tr><th></th><th>G</th><th>Avg</th><th>Over</th></tr></thead><tbody>${body}</tbody></table>`);
-}
-
-// 7. Rotation: when he's on the floor, minute by minute, and his points by quarter.
-function rotationTile(x) {
-  const r = rsOf(x.pid);
-  if (!r.rot || !r.rotn || !r.rotn[0]) return tile("Rotation", "When he's on the floor", '<p class="rs-none">No rotation data yet.</p>', "rs-full");
-  const strip = (counts, n, label) => `<div class="rs-rot-row"><span class="rs-rot-l">${label}</span><div class="rs-rot">${counts.map((c, m) => {
-    const share = n ? c / n : 0;
-    return `<i class="${m % 12 === 0 && m ? "q" : ""}" style="background:${scaleHsla(205, 80, 52, 0.06 + share * 0.86)}" title="Minute ${m + 1} (${["1st", "2nd", "3rd", "4th"][Math.floor(m / 12)]} quarter): on the floor in ${c} of ${n} games"></i>`;
-  }).join("")}</div></div>`;
-  const qLabels = `<div class="rs-rot-row rs-rot-qs"><span class="rs-rot-l"></span><div class="rs-rot-q">${["1st", "2nd", "3rd", "4th"].map((q) => `<span>${q} Qtr</span>`).join("")}</div></div>`;
-  const games = r.rotn[0];
-  const qs = (r.q || []).map((v) => v / games);
-  const qMax = Math.max(1, ...qs);
-  const quarters = `<div class="rs-qpts">${qs.map((v, i) => `<div class="rs-qpt" title="${fmt(v)} points a game in the ${["1st", "2nd", "3rd", "4th"][i]} quarter"><span>Q${i + 1}</span><b>${fmt(v)}</b><i style="height:${((v / qMax) * 100).toFixed(0)}%"></i></div>`).join("")}</div>`;
-  const q4 = r.q4 || [0, 0, 0, 0];
-  const close = q4[0] ? q4[1] / q4[0] : null, open = q4[2] ? q4[3] / q4[2] : null;
-  const fourth = `<div class="rs-chips rs-q4"><span class="rs-chip" title="Games within 10 entering the 4th: his 4th-quarter minutes a game">Close 4ths: <b>${fmt(close)}</b> Min (${q4[0]} G)</span><span class="rs-chip${close !== null && open !== null && open < close - 3 ? " warn" : ""}" title="Games not within 10 entering the 4th: his 4th-quarter minutes a game">Not Close: <b>${fmt(open)}</b> Min (${q4[2]} G)</span></div>`;
-  return tile("Rotation", `When he's on the floor at each minute of the game: darker = on the floor in more of his games (season and last ${r.rotn[1]}). Points a game by quarter, and his 4th-quarter minutes when the game is close vs not (a big spread can mean an early seat).`,
-    `<div class="rs-rot-wrap"><div class="rs-rot-strips">${strip(r.rot, games, "Season")}${strip(r.rot5, r.rotn[1], `Last ${r.rotn[1]}`)}${qLabels}</div><div class="rs-rot-side">${quarters}${fourth}</div></div>`, "rs-full");
+  const pCut = third(sorted(0));
+  const tp = teams[x.team] && teams[x.opp] ? (teams[x.team].off_pace + teams[x.opp].off_pace) / 2 : null;
+  if (tp !== null && pCut) {
+    const [lo, hi] = pCut;
+    const [label, test] = tp < lo ? ["Slow-Paced Games", (v) => v < lo] : tp > hi ? ["Fast-Paced Games", (v) => v > hi] : ["Average-Paced Games", (v) => v >= lo && v <= hi];
+    add(label, `${x.team} + ${x.opp} Avg ${fmt(tp)}`, log.filter((r) => { const v = gOf(r)[0]; return v !== null && v !== undefined && test(v); }), `His ${label.toLowerCase()} (possessions a 48: slowest third under ${fmt(lo)}, fastest over ${fmt(hi)})`);
+  }
+  const spots = ((((DATA.identity || {}).seasons || {})[String((DATA.identity || {}).default)] || {}).spots) || {};
+  const labels = Object.fromEntries((spots.types || []).map((t) => [t.key, t.label]));
+  for (const k of ((spots.tonight || {})[String(x.g.game_id)] || {})[x.team] || []) {
+    add(labels[k] || k, "Schedule Spot", log.filter((r) => (((R.spots || {})[String(r[f.game])] || {})[x.team] || []).includes(k)), `His games in this spot: ${labels[k] || k}`);
+  }
+  return tile("Tonight's Game Script", `Only the kinds of game tonight is: his team's spread, the game total and the pace (thirds of every game this season), and tonight's schedule spots, each next to all his games. Points green / red = 15%+ above / below his season; Over = his games over tonight's line. Fewer than ${SMALL} games is faded: too few to lean on.`,
+    grid([["His Games Like Tonight", "od-g1", ["Games", "Points", line === null ? "Over" : `Over ${fmt(line)}`], 62]], rows, 170));
 }
 
 function panel(x) {
   if (!PROPS.research) return '<div class="rs-panel"><p class="rs-none">The research data comes with the next data build.</p></div>';
-  return `<div class="rs-panel">${chartTile(x)}${formTile(x)}${scoreTile(x)}${mateTile(x)}${anglesTile(x)}${scriptTile(x)}${rotationTile(x)}</div>`;
+  return `<div class="rs-panel"><div class="rs-prow">${rotationTile(x)}</div><div class="rs-prow">${chartTile(x)}${formTile(x)}${scoreTile(x)}</div><div class="rs-prow">${mateTile(x)}${anglesTile(x)}${scriptTile(x)}</div></div>`;
 }
 
 function renderToolbar() {
@@ -712,6 +741,11 @@ document.addEventListener("click", (e) => {
   const every = e.target.closest("[data-list-every]");
   if (every) {
     LIST.every = every.dataset.listEvery === "true";
+    return renderList();
+  }
+  const view = e.target.closest("#rs-list [data-rs-rank]");
+  if (view) {
+    RSV.rank = view.dataset.rsRank === "true";
     return renderList();
   }
   const open = PANEL && e.target.closest("#rs-list tr.rs-click");

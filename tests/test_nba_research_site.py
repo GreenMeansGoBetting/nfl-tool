@@ -143,25 +143,33 @@ class Panel(unittest.TestCase):
         cls.page.wait_for_selector("#rs-list tr.sim-row")
 
     def open(self):
+        if self.page.locator("#rs-list .rs-panel").count():
+            return
         self.page.click("#rs-list tr.rs-click td.rs-line")
         self.page.wait_for_selector("#rs-list .rs-panel")
 
     def test_the_tiles(self):
         self.open()
-        titles = self.page.evaluate("() => [...document.querySelectorAll('.rs-tile h4')].map((h) => h.textContent.replace(/i$/, '').trim())")
-        self.assertEqual(titles, ["Points Vs The Line", "Recent Form", "How He Scores", "Teammates On The Floor", "Matchup Angles", "Game Script", "Rotation"])
-        # his 6 games against tonight's 20.5: 3 over (the 25s), 3 under; game 4's saved line drawn
+        titles = self.page.evaluate("() => [...document.querySelectorAll('.rs-tile h4 > span:first-child')].map((h) => h.textContent.trim())")
+        self.assertEqual(titles, ["Rotation", "Points Vs The Line", "Recent Form", "How He Scores", "Teammates On The Floor", "Matchup Angles", "Tonight's Game Script"])
+        # every grid is the League Stats Chart's (colored bands over filled tiles)
+        self.assertGreater(self.page.locator(".rs-panel table.od-grid .od-ggroups").count(), 6)
+        # his 6 games against tonight's 20.5: 3 over (the 25s), 3 under; game 4's line (19.5) a dot he cleared
         self.assertEqual(self.page.locator(".rs-bar.over").count(), 3)
         self.assertEqual(self.page.locator(".rs-bar.under").count(), 3)
-        self.assertEqual(self.page.locator(".rs-then").count(), 1)
-        self.assertIn("OVER 3 OF 6", self.page.inner_text(".rs-chart-foot").upper())
-        # teammates: most minutes together first, his points a 36 on / off, Two's assists to him
-        mates = self.page.evaluate("() => [...document.querySelectorAll('.rs-mates tbody tr')].map((tr) => [...tr.children].map((c) => c.innerText.trim()))")
-        self.assertTrue(mates[0][0].startswith("Three"), mates)
-        self.assertTrue(mates[1][0].startswith("Two"))
-        self.assertEqual(mates[1][2:4], ["18.0", "24.0"])  # 30 in 60 min, 100 in 150 min
+        self.assertEqual(self.page.locator(".rs-then-dot.hit").count(), 1)
+        self.assertEqual(self.page.locator(".rs-then-t").first.text_content(), "19.5")
+        # teammates: most minutes together first, F. Last names, his points a 36 with / without, Two's assists
+        mates = self.page.evaluate("""() => { const t = [...document.querySelectorAll('.rs-tile')].find((s) => s.textContent.startsWith('Teammates'));
+            return [...t.querySelectorAll('tr:not(.od-ggroups):not(.od-glabels)')].map((tr) => [...tr.children].filter((c) => !c.classList.contains('od-ggap')).map((c) => c.innerText.trim())); }""")
+        self.assertTrue(mates[0][0].startswith("P. Three"), mates)
+        self.assertTrue(mates[1][0].startswith("P. Two"), mates)
+        self.assertEqual(mates[1][2:5], ["15.0", "16.8", "+1.8"])  # shots first: 25 in 60 min, 70 in 150 min
+        self.assertEqual(mates[1][5:8], ["18.0", "24.0", "+6.0"])  # then points: 30 in 60 min, 100 in 150 min
+        colored = self.page.evaluate("() => [...document.querySelectorAll('.rs-panel tr.rs-out .od-tile')].map((t) => Boolean(t.getAttribute('style')))")
+        self.assertEqual(colored[1:3], [True, True])  # With AND Without both colored, never one side only
         self.assertEqual(mates[1][-1], "5")
-        self.assertIn("rs-mate-out", self.page.get_attribute(".rs-mates tbody tr:nth-child(2)", "class"))  # Two is Out tonight
+        self.assertEqual(self.page.locator(".rs-panel tr.rs-out").count(), 1)  # Two is Out tonight
         # the rotation strip: 48 minutes, a game count in every hover
         self.assertEqual(self.page.locator(".rs-rot-row:first-child .rs-rot i").count(), 48)
         self.assertIn("6 of 6 games", self.page.get_attribute(".rs-rot-row:first-child .rs-rot i", "title"))
@@ -170,9 +178,15 @@ class Panel(unittest.TestCase):
         for word in ("Edge", "Fair", "Projection", "Model"):
             self.assertNotIn(word, text)
 
+    def test_matchup_angles_allowed_or_rank(self):
+        self.open()
+        self.page.click("[data-rs-rank='true']")
+        self.assertIn("of", self.page.inner_text(".rs-panel .rs-toggle >> xpath=../.."))
+        self.page.click("[data-rs-rank='false']")
+        self.assertEqual(SITE.errors, [])
+
     def test_click_again_closes_and_the_name_still_opens_the_card(self):
-        if not self.page.locator("#rs-list .rs-panel").count():
-            self.open()
+        self.open()
         self.page.click("#rs-list tr.rs-click td.rs-line")
         self.assertEqual(self.page.locator("#rs-list .rs-panel").count(), 0)
         self.page.click("#rs-list tr.rs-click .player-click")

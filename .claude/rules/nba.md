@@ -236,23 +236,25 @@ Every game played 10,000 times, possession by possession.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
 - **Research panel (Points only so far, 2026-11-03)**: a row click (not the name, a price or a tag)
   opens a dashboard under it (`panel`, `PANEL`); the owner: "Think of this like a dashboard ... 1-2
-  minutes to look at a player ... digestable, compact, color coded and give context". Seven tiles
-  (summary-card look, `rs-*` in sim.css, the reading in each title's hover): **Points Vs The Line**
-  (last 15 as bars vs tonight's line, his line that night as a white mark), **Recent Form** (season vs
-  L5, the Up / Down: More Shots vs Hot Shooting chip, starts, blowout minutes, the defense's last 5 vs
-  his position), **How He Scores** (self-created / catch / drives bar, shot share, assisted, FT and
-  transition shares ranked among his position, Who Sets Him Up), **Teammates On The Floor** (on / off
-  points and shots a 36, share of minutes together, assists to him), **Matchup Angles** (his side vs
-  the defense's: free throws, transition, bench units, pace, foul trouble; More / Fewer only by the
-  two-sided rule), **Game Script** (his spread / total / pace thirds and tonight's schedule spots,
-  tonight's bucket outlined, under `SMALL` faded), **Rotation** (48-minute strip season / last 5,
-  points by quarter, close vs not-close 4th minutes). Owner turned down a key-defender tile (no
-  defender assignments in the data) and a hit-rate ladder (maybe later).
+  minutes to look at a player ... digestable, compact, color coded and give context". **Built from
+  the League Stats Chart grid** (`grid()`, `tileTd()`, `stepStyle` on the 8-step scale; styles.md
+  "One Look"), every tile its own width. Rows: **Rotation** (top: 48 minute cells colored by how
+  often he's on the floor, points by quarter, close vs not-close 4th minutes); **Points Vs The Line**
+  (last 15 as narrow touching bars vs tonight's dashed line, his line that night as a second line of
+  dots, green = cleared), **Recent Form** (season / L5 / +/-, then the defense's own band: points to
+  his position season vs its last 5; More Shots vs Hot Shooting pill), **How He Scores**; then
+  **Teammates On The Floor** (face + "F. Last"; Time Together, His Shots / 36 then His Points / 36,
+  each With / Without / Change, With and Without both colored vs his usual rate, Assists To Him), **Matchup Angles**
+  (Allowed / Rank toggle `RSV`; More / Fewer only by the two-sided rule), **Tonight's Game Script**
+  (only tonight's spread bucket, total third, pace third and schedule spots, each Games / Points /
+  Over tonight's line beside All His Games; under `SMALL` faded). Turned down: a key-defender tile, a
+  hit-rate ladder (maybe later).
 - Data: `research.py` -> props.json `research` (own try in `compute_props`): per player `feed`,
   `trans`, `units` (bench unit = `BENCH_UNIT` 2 or fewer starters), `q`, `rot` / `rot5` / `rotn`,
   `q4`, `foul`, `lines`; `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets
-  until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03). Tests: `tests/test_nba_research.py`.
+  until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03); older nights come from
+  `past_points_lines` (the retired projections' lines file, the sim and Zone Matchup records). Tests: `tests/test_nba_research.py`.
 
 ## The player card (`nba-card.js`)
 

@@ -10,6 +10,35 @@ paths:
 
 Stories behind these rules: `docs/history.md`, "Styles".
 
+## One Look: build from the League Stats Chart grid (the owner, 2026-11-03)
+
+The owner, in capitals: "be consistent in the UI and UX of this site. I want everything to have the
+same fonts and style and colors. If you look at the NFL Opening Drive Tool or the NBA League Stats
+Charts - that's what I want. Colored background - compact. We waste so much time because everything
+you make is spread out super wide and not colored or formatted correctly." Every new table, panel
+or tile follows this, unasked:
+- **Use the grid's own classes**: `table.data-table.od-grid` with a colored group band per column
+  group (`.od-ggroups` + `od-g0..g3`), a label row (`.od-glabels`), the label column far left
+  (`od-label`) and every number in an `.od-tile` (bold `b`, optional `small` under it). League
+  chart: `league.js renderChart`; Points Research panel: `research.js grid()` / `tileTd()`.
+- **Colors: the 8-step red-yellow-green rank scale** (`RANK_SCALE` / `rankStyle`; a signed
+  strength through `stepStyle` in research.js). Never red / green only, never transparent tints of
+  a single color, never plain colored text. A how-often number: the most = green.
+- **Color every number in a comparison, both sides** (the owner, 2026-11-03: "idk why you wouldnt
+  color code with but you would color code without ... write that into the logic to not be an
+  idiot"). With and Without, Close and Not Close, Season and L5, Over By and Under By: each side
+  gets its own color against the same baseline (his usual rate, his position, the league), never
+  one side colored and its partner plain. Only counts (games, sample sizes) stay plain.
+- **Order columns by cause before result**: the thing that makes the number (shots, minutes)
+  before the number itself (points).
+- **Compact**: fixed column widths (about 46-66 px a number), the table's width = its columns, a
+  box sized to its contents and set beside the next one (flex-wrap), never `width: 100%` to fill
+  the screen. Bars in charts narrow and touching (a 1 px edge between).
+- **Fonts**: Sofia Sans only, through the grid's own sizes. No new small gray uppercase labels,
+  no muted gray text for anything a member reads; titles are Title Case in the display font.
+- Rules from the list table (`table.data-table.sim-list th, td`) leak into tables nested in it:
+  reset them with a stronger selector (sim.css `.rs-panel table.rs-grid`).
+
 ## One font: Sofia Sans (2026-10-15)
 
 - **Every word and number on every sport's pages is Sofia Sans** (the owner: "the new font style
