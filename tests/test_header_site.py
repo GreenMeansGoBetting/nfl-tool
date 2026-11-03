@@ -52,8 +52,8 @@ class TopMenu(unittest.TestCase):
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
             self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Dunk Digest", "/nba/digest.html", False], ["League Stats ChartNew", "/nba/league.html", False], ["Matchup Breakdown", "/nba/", False], ["Shot Charts", "/nba/shot-charts.html", False], ["Zone Matchup TargetsNew", "/nba/zones.html", False], ["Points", "/nba/points.html", False], ["Threes", "/nba/threes.html", False], ["Assists", "/nba/assists.html", False], ["Rebounds", "/nba/rebounds.html", False], ["First Basket", "/nba/first-basket.html", False]])
             self.assertEqual(page.inner_text(".nba-menu a[href='/nba/zones.html'] .nav-new"), "New")  # the owner, 2026-10-27: a small New tag for now
-            self.assertIn("under construction", page.inner_text(".nba-menu").lower())  # set aside, still reachable (2026-10-26)
             self.assertIn("prop research", page.inner_text(".nba-menu").lower())  # the research pages (2026-11-03)
+            self.assertNotIn("under construction", page.inner_text(".nba-menu").lower())  # First Basket joined them (2026-11-03)
             page.click(".page-nav .nhl-trigger")
             self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nhl-menu")], ["Game Previews", "Line Matchups", "Best Plays", "Shots", "Goals", "Points", "Saves"])
             self.assertIn("player props", page.inner_text(".nhl-menu").lower())

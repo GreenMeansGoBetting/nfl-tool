@@ -360,6 +360,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-11-03b",
+    items: [
+      ["🏀", "<b>NBA First Basket</b> moves under Prop Research too: the tip, who scores first, opening trips, the first field goal each defense allows by position, and each starter's numbers with the best price across your books. The model parts (Fair, Scores First %, the tip Prediction, Value and its record) are gone."],
+    ],
+  },
+  {
     id: "2026-11-03",
     items: [
       ["🏀", "<b>The NBA side is now a research site.</b> Game Predictions, NBA Best Plays and the Points, Threes, Rebounds and Assists projections are gone. In their place, Points, Threes, Rebounds and Assists (under Prop Research in the NBA menu) show every line tonight with the numbers behind it: the best Over and Under across your books, hit rates against tonight's line, his averages and minutes, what tonight's defense allows his position, and how he's done in the games a teammate on tonight's injury report missed."],
@@ -1028,8 +1034,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { head: "Prop Research" },
       { row: [{ name: "Points", file: "points.html", hue: 210 }, { name: "Threes", file: "threes.html", hue: 275 }] },
       { row: [{ name: "Assists", file: "assists.html", hue: 330 }, { name: "Rebounds", file: "rebounds.html", hue: 185 }] },
-      // Kept reachable but set aside (the owner, 2026-10-26).
-      { head: "🚨 UNDER CONSTRUCTION 🚨" },
+      // First Basket joined them as research (the owner, 2026-11-03: no record, Fair, Prediction or Value).
       { row: [{ name: "First Basket", file: "first-basket.html", hue: 20 }] },
     ] },
     nhl: { label: "NHL", home: "", items: [

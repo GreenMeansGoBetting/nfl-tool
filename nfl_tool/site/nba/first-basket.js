@@ -2,8 +2,10 @@
 // The pieces behind a game's first points, laid out for the member to put
 // together (the owner, 2026-10-20: "the pieces of the puzzle with data for
 // users to solve"): the tip, scoring first, opening trips, the first field
-// goal each defense allows by position, the likely starters, and a rough fair
-// price at the bottom. Everything comes from nba/data.json `first_basket`
+// goal each defense allows by position, and the likely starters with every
+// book's price. Research only since 2026-11-03 (the owner: "scrap the tracking",
+// the Fair, the Scores First %, the tip Prediction and the Value box), so no
+// model number is on the page. Everything comes from nba/data.json `first_basket`
 // (nfl_tool/nba/first_basket.py), except the starting fives: the NBA's own
 // lineup file, read live through /api/nba-lineups (the login middleware) every
 // minute, Expected until the team turns its five in, then Confirmed. Without
@@ -81,14 +83,14 @@ const block = () => FB.seasons[season];
 const slate = () => FB.slates[season] || {};
 const game = () => DATA.schedule.find((g) => g.game_id === gameId) || null;
 // The game's two sides (real lineup when the NBA has one, else the build's
-// likely starters) and the fair guess from them.
+// likely starters).
 function plan() {
   const g = game();
   const built = slate()[gameId];
   if (!g || !built) return null;
   const away = sideFor(g, g.away, built.away);
   const home = sideFor(g, g.home, built.home);
-  return { away, home, fair: fairPrices(away, home) };
+  return { away, home };
 }
 
 // ---- lineups ----
@@ -159,68 +161,8 @@ async function loadLineups(date) {
   }
 }
 
-// A jumper's tip rating (first_basket.py tip_ratings): this season's jump
-// balls against the jumpers he met, starting from his height; a jumper with
-// no jumps yet goes by his height alone, one we know nothing about is average.
-function tipRating(id) {
-  const tip = FB.tip || { ratings: {}, heights: {} };
-  const w = FB.fair_weights || {};
-  if (tip.ratings[id] !== undefined) return tip.ratings[id];
-  const h = tip.heights[id];
-  return h ? (w.tip_per_inch || 0.15) * (h - (w.tip_mid_height || 81)) : 0;
-}
-// The home jumper's chance to win the tip (first_basket.py tip_chance).
-function tipChance(away, home) {
-  if (!away.jumper || !home.jumper) return 0.5;
-  return 1 / (1 + Math.exp(tipRating(away.jumper) - tipRating(home.jumper)));
-}
 const feetInches = (h) => (h ? `${Math.floor(h / 12)}'${h % 12}"` : "");
 
-// This season's numbers: the Fair and the tags use only these (NBA rule:
-// this season decides), whichever season's numbers the table shows.
-const nowPlayers = () => (FB.seasons[String(DATA.season)] || { players: {} }).players;
-const W = () => FB.fair_weights || {};
-// The team's chance to score first (first_basket.py team_chance).
-const teamChance = (tipHome) => tipHome * (W().tip_winner_scores || 0.666) + (1 - tipHome) * (1 - (W().tip_winner_scores || 0.666));
-// Each starter's share of his team's first points (first_basket.py first_shares).
-function firstShares(ids) {
-  const blank = { starts: 0, shots: 0, team_first_pts: 0 };
-  const rows = ids.map((id) => nowPlayers()[id] || blank);
-  const starts = rows.reduce((t, r) => t + r.starts, 0);
-  const avg = starts ? rows.reduce((t, r) => t + (r.team_first_pts || 0), 0) / starts : 1 / Math.max(1, rows.length);
-  const vol = rows.filter((r) => r.starts).map((r) => (r.shots || 0) / r.starts);
-  const volAvg = vol.length ? vol.reduce((t, x) => t + x, 0) / vol.length : 10;
-  const k = W().team_share_prior || 20;
-  const usage = rows.map((r) => (r.starts ? (r.shots || 0) / r.starts : volAvg) ** (W().usage_power || 0.5));
-  const team = rows.map((r) => ((r.team_first_pts || 0) + k * avg) / (r.starts + k));
-  const su = usage.reduce((t, x) => t + x, 0) || 1;
-  const st = team.reduce((t, x) => t + x, 0) || 1;
-  const w = usage.map((u, i) => u / su + team[i] / st);
-  const total = w.reduce((t, x) => t + x, 0) || 1;
-  return w.map((x) => x / total);
-}
-
-// The Fair (first_basket.py fair_prices), redone here so a real lineup
-// moves it. tests/test_nba_first_basket.py pins the two to agree.
-function fairPrices(away, home) {
-  const tipHome = tipChance(away, home);
-  const firstHome = teamChance(tipHome);
-  const out = { tip_home: tipHome, first_home: firstHome, players: {} };
-  [[away, 1 - firstHome], [home, firstHome]].forEach(([side, pTeam]) => {
-    firstShares(side.starters).forEach((share, i) => {
-      const pr = pTeam * (1 - (W().bench_share ?? 0.04)) * share;
-      out.players[side.starters[i]] = { p: pr, fair: american(pr) };
-    });
-  });
-  return out;
-}
-const implied = (price) => (price === null || price === undefined ? null : price > 0 ? 100 / (price + 100) : -price / (-price + 100));
-// Value: our chance at least value_edge above Novig's (first_basket.py is_value).
-const isValue = (pr, price) => pr !== undefined && implied(price) !== null && pr > implied(price) * (1 + (W().value_edge ?? 0.1));
-function american(p) {
-  if (!p || p <= 0 || p >= 1) return null;
-  return p >= 0.5 ? Math.round((-100 * p) / (1 - p)) : Math.round((100 * (1 - p)) / p);
-}
 const LINEUP_TAG = {
   confirmed: ["Confirmed", "fb-lineup-confirmed", "The team has turned in this starting five (NBA)."],
   expected: ["Expected", "fb-lineup-expected", "The NBA's expected starting five; it turns Confirmed about 30 minutes before tip."],
@@ -303,7 +245,6 @@ function matchupRows(g, p) {
     const id = p[spot(abbr)].jumper;
     return id ? player(id) : null;
   };
-  const chance = (abbr) => (abbr === g.home ? p.fair.tip_home : 1 - p.fair.tip_home);
   const tipRecord = (abbr) => {
     const id = p[spot(abbr)].jumper;
     const rec = id && ((FB.tip || {}).record || {})[id];
@@ -315,13 +256,7 @@ function matchupRows(g, p) {
     {
       label: "Tips Won", better: "high", edge: 0.05, show: pct,
       value: (abbr) => { const j = jumperOf(abbr); return j && j.jumps ? j.tips_won / j.jumps : null; },
-      color: (abbr, v) => jumperHeat(v),
-    },
-    {
-      // Who wins tonight's tip (the owner, 2026-10-21; under Tips Won, named Prediction): the two jumpers'
-      // ratings, so a jumper who only met centers isn't marked down. Adds to 100%.
-      label: "Prediction", better: "high", edge: 0.1, show: pct, value: chance, title: tipRecord,
-      color: (abbr, v) => ` style="background:${scaleHsla(Math.round(Math.max(0, Math.min(120, 60 + (v - 0.5) * 240))), 70, 45, 0.3)}"`,
+      color: (abbr, v) => jumperHeat(v), title: tipRecord,
     },
     { group: "Scores First" },
     { label: "Scores First", better: "high", edge: 0.05, show: pct, value: (abbr) => t(abbr).first, color: (abbr, v) => teamHeat("first", v) },
@@ -374,111 +309,6 @@ function renderMatchup(g, p) {
   el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid fb-m-first">The Tip</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
-// ---- value ----
-// The Targets box became Value (the owner, 2026-10-21: "bake all the
-// projections and data and likelihood into a fair price"): the starters
-// whose Novig price pays more than our Fair, plus the record of every Value
-// tag so far (model_history/nba_first_basket, one unit at Novig's price).
-function renderValue(g, p) {
-  const ids = [...p.away.starters, ...p.home.starters]
-    .filter((id) => isValue(p.fair.players[id].p, bestOdds(g, id)))
-    .sort((a, b) => p.fair.players[b].p - p.fair.players[a].p);
-  const rec = FB.record || {};
-  const units = rec.units || 0;
-  const record = rec.plays
-    ? `<div class="fb-value-record"><span>Record</span><b>${rec.won} of ${rec.plays}</b><b class="${units >= 0 ? "fb-up" : "fb-down"}">${units > 0 ? "+" : ""}${units.toFixed(1)}u</b></div>`
-    : `<div class="fb-value-record"><span>Record</span><span class="muted-label">Graded after tonight's games</span></div>`;
-  el("fb-targets").innerHTML = `<div class="nba-box fb-targets">
-    ${ids.length ? ids.map((id) => `<div class="fb-value">${playerClick(id, `${face(id)}<span class="fb-value-name">${lastName(player(id).name)}</span>`)}${logo(teamOf(g, p, id), 16)}
-      <span class="fb-value-prices"><span><small>Fair</small>${showOdds(p.fair.players[id].fair)}</span><span><small>Best</small>${showOdds(bestOdds(g, id))}</span></span></div>`).join("")
-      : `<p class="no-data-note">No Value In This Game</p>`}
-    ${record}
-  </div>`;
-}
-const teamOf = (g, p, id) => (p.home.starters.includes(id) ? g.home : g.away);
-
-// ---- YTD Model Performance ----
-// The owner, 2026-10-21: a pill beside the seasons opening the history.
-// Every graded game in model_history/nba_first_basket as the last build
-// before tip had it (first_basket.record.history): our tip pick against the
-// real tip, our Scores First pick against who did, and the Value plays.
-// A pick is the side over 50%; exactly 50% (a jumper unknown) is no pick.
-// The tip pick was first saved 2026-10-21, so earlier games show "--" there.
-// The tiles are the shared tracker (../ytd.js, the same on every page,
-// 2026-10-22): a pick's slider is its chance, a Value play's its edge.
-function ytdPick(homeChance, g) {
-  if (homeChance === null || homeChance === undefined || homeChance === 0.5) return null;
-  return homeChance > 0.5 ? { team: g.home, chance: homeChance, side: 1 } : { team: g.away, chance: 1 - homeChance, side: 0 };
-}
-const ytdShade = (hit) => ` style="background:${scaleHsla(hit ? 120 : 0, 70, 45, 0.3)}"`;
-const fbUnits = (price, hit) => (!hit ? -1 : price > 0 ? price / 100 : 100 / -price);
-// A Value play saved before its edge was kept: worked out again from the price is not possible
-// (the chance isn't in the history), so it counts at the tag's own cutoff.
-const fbValueEdge = (v) => (v[4] === undefined ? FB_VALUE_EDGE : v[4]);
-const FB_VALUE_EDGE = 0.1;
-function fbLedgers(games) {
-  const tip = [], first = [], value = [];
-  games.forEach((g) => {
-    const t = ytdPick(g.tip_home, g);
-    const f = ytdPick(g.first_home, g);
-    if (t && g.tip) tip.push([g.date, t.chance, t.team === g.tip ? 1 : 0, null]);
-    if (f && g.first) first.push([g.date, f.chance, f.team === g.first ? 1 : 0, null]);
-    g.value.forEach((v) => value.push([g.date, fbValueEdge(v), v[3] ? 1 : 0, fbUnits(v[2], v[3])]));
-  });
-  return { tip, first, value };
-}
-function ytdTable(games) {
-  const rows = games.filter((g) => ytdKeeps("nba-first-basket", "tip", g.date, null)).map((g) => {
-    const tip = ytdPick(g.tip_home, g);
-    const first = ytdPick(g.first_home, g);
-    const tipShown = tip && ytdKeeps("nba-first-basket", "tip", g.date, tip.chance) ? tip : null;
-    const firstShown = first && ytdKeeps("nba-first-basket", "first", g.date, first.chance) ? first : null;
-    const tipHit = tipShown && g.tip ? tipShown.team === g.tip : null;
-    const firstHit = firstShown && g.first ? firstShown.team === g.first : null;
-    const jumper = tipShown && g.jumpers && g.jumpers[tipShown.side];
-    const tipCell = tipShown
-      ? `<td class="fb-ytd-pick"${tipHit === null ? "" : ytdShade(tipHit)}>${logo(tipShown.team, 16)}${jumper ? playerClick(jumper[0], lastName(jumper[1])) : tipShown.team}<b>${pct(tipShown.chance)}</b></td>`
-      : `<td class="fb-ytd-pick muted-label">--</td>`;
-    const firstCell = firstShown
-      ? `<td class="fb-ytd-pick"${firstHit === null ? "" : ytdShade(firstHit)}>${logo(firstShown.team, 16)}${firstShown.team}<b>${pct(firstShown.chance)}</b></td>`
-      : `<td class="fb-ytd-pick muted-label">--</td>`;
-    const plays = g.value.filter((v) => ytdKeeps("nba-first-basket", "value", g.date, fbValueEdge(v)));
-    const value = plays.length
-      ? plays.map(([id, name, price, hit]) => `<span class="fb-ytd-play"${ytdShade(hit)}>${playerClick(id, lastName(name))} ${showOdds(price)}</span>`).join("")
-      : `<span class="muted-label">--</span>`;
-    const day = new Date(`${g.date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    return `<tr><td class="muted-label">${day}</td><td class="fb-ytd-game">${logo(g.away, 16)}${g.away} @ ${logo(g.home, 16)}${g.home}</td>
-      ${tipCell}<td>${g.tip ? `${logo(g.tip, 16)}${g.tip}` : "--"}</td>
-      ${firstCell}<td>${g.first ? `${logo(g.first, 16)}${g.scorer ? playerClick(g.scorer[0], lastName(g.scorer[1])) : g.first}` : "--"}</td>
-      <td class="fb-ytd-value">${value}</td></tr>`;
-  }).join("");
-  if (!games.length) return `<p class="no-data-note">Graded after tonight's games.</p>`;
-  if (!rows) return `<p class="no-data-note">No graded games in this window.</p>`;
-  return `<div class="fb-ytd-scroll"><table class="data-table fb-ytd-table"><thead><tr><th>Date</th><th>Game</th><th title="Our pick to win the opening tip (its jumper and chance), as the last update before tip had it">Tip Prediction</th><th>Won Tip</th><th title="Our pick to score the game's first points, as the last update before tip had it">Scores First</th><th>Scored First</th><th title="Value plays at the best price before tip">Value Plays</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-function renderYtd() {
-  const rec = FB.record || {};
-  const games = rec.history || [];
-  const ledgers = fbLedgers(games);
-  const overlay = ensureBookModal("fb-ytd-modal");
-  const content = overlay.querySelector(".bo-content");
-  content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="fb-ytd-tracker"></div><div class="fb-ytd-list"></div>`;
-  const draw = () => {
-    content.querySelector(".fb-ytd-list").innerHTML = ytdTable(games);
-  };
-  const pick = (key, label, tip) => ({ key, label, tip, ledger: ledgers[key], min: 50, max: 75, slider: "Min Chance", unit: "%+" });
-  ytdTracker(content.querySelector(".fb-ytd-tracker"), {
-    key: "nba-first-basket",
-    markets: [
-      pick("tip", "Tip Prediction", "Our pick to win the opening tip, at or above the minimum chance"),
-      pick("first", "Scores First", "Our pick to score the game's first points, at or above the minimum chance"),
-      { key: "value", label: "Value Plays", ledger: ledgers.value, min: 10, max: 100, step: 5, unit: "%+", tip: "Value plays at the best price before tip: our chance at least this much above the price's" },
-    ],
-    onChange: draw,
-  });
-  draw();
-  overlay.hidden = false;
-}
 
 // The best First Basket price across the member's books (SmartStake, the
 // owner, 2026-10-21: "relabel NOVIG to BEST"): {odds, book}, else Novig's
@@ -541,12 +371,12 @@ function novigPrice(g, id) {
 
 function renderStarters(g, p) {
   const out = (abbr) => new Set((DATA.injuries[abbr] || []).filter((x) => x.status === "Out").map((x) => x.id));
-  const fair = p.fair.players;
   const box = (abbr) => {
     const side = p[where(g, abbr)];
     const injured = out(abbr);
-    // Best fair price first: the bottom line of the page.
-    const ids = side.starters.slice().sort((x, y) => ((fair[y] || {}).p || 0) - ((fair[x] || {}).p || 0));
+    // Position order, PG to C (no model order since 2026-11-03).
+    const order = (id) => { const i = POSITIONS.indexOf(POS_GROUP[player(id).pos] || player(id).pos); return i < 0 ? POSITIONS.length : i; };
+    const ids = side.starters.slice().sort((x, y) => order(x) - order(y));
     const rows = ids.map((id) => {
       const pl = player(id);
       const rate = (n) => (pl.starts ? n / pl.starts : null);
@@ -554,45 +384,26 @@ function renderStarters(g, p) {
       const cell = (key) => `<td class="num fb-cell"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key])) : ""}><b>${pct(rate(pl[key]))}</b><small>${pl[key]} of ${pl.starts}</small></td>`;
       // Team Share (the owner, 2026-10-21): how often he took HIS TEAM's first
       // shot and scored its first points, whoever scored first in the game.
-      // Its own thin box (fb-sh-l / fb-sh-r draw it), between Scored 1st and Fair.
+      // Its own thin box (fb-sh-l / fb-sh-r draw it), between Scored 1st and Best.
       const share = (key, side) => `<td class="num fb-cell fb-sh-${side}"${pl.starts >= MIN_STARTS ? playerHeat(key, rate(pl[key] || 0)) : ""}><b>${pct(rate(pl[key] || 0))}</b><small>${pl[key] || 0} of ${pl.starts}</small></td>`;
-      const f = fair[id];
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
         <td class="fb-name"><span class="nba-player" title="${pl.name}">${playerClick(id, `${face(id)}<span>${pl.name}</span>`)}<span class="muted-label">${pl.pos}</span></span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
-        <td class="num fb-fair">${f ? `<b>${showOdds(f.fair)}</b>` : "--"}</td>
         ${bestCell(g, id)}
       </tr>`;
     }).join("");
-    // The team's chance to score first, colored from 50/50 (full color at 62.5 / 37.5).
-    const chance = abbr === g.home ? p.fair.first_home : 1 - p.fair.first_home;
-    const hue = Math.round(Math.max(0, Math.min(120, 60 + (chance - 0.5) * 480)));
-    const chanceBox = `<span class="fb-chance" style="background:${scaleHsla(hue, 70, 45, 0.35)}" title="Our chance this team scores first: its jumper's Prediction x how often tip winners score first"><small>Scores First</small><b>${pct(chance)}</b></span>`;
-    return `<div class="nba-box fb-starters-box">${banner(abbr, chanceBox + lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2" class="fb-name">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="Our rough fair price to score first">Fair</th><th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
+    return `<div class="nba-box fb-starters-box">${banner(abbr, lineupTag(side))}
+      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2" class="fb-name">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
         <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="8" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
+      <tbody>${rows || `<tr><td colspan="7" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
   };
   el("fb-starters").innerHTML = box(g.away) + box(g.home);
 }
 
-// The testing banner's right side (Points' and Threes' look): the Value record
-// so far and the YTD Model Performance button (it sat beside the season
-// buttons until the banner came, 2026-10-23).
-function renderRecord() {
-  const rec = FB.record;
-  const units = (rec && rec.units) || 0;
-  el("fb-rec").innerHTML = rec && rec.plays
-    ? `<span class="pts-rec-label">Value Record So Far</span><span class="pts-rec-num">${rec.won}-${rec.plays - rec.won}<small>${Math.round((100 * rec.won) / rec.plays)}% &middot; ${units >= 0 ? "+" : ""}${units.toFixed(1)}u</small></span>
-       <button type="button" class="view-toggle-btn" id="fb-ytd">YTD Model Performance</button>`
-    : `<span class="pts-rec-label">Value Record So Far</span><span class="pts-rec-num">0-0</span><small class="muted-label">First Grades After Tonight's Games</small>${rec ? '<button type="button" class="view-toggle-btn" id="fb-ytd">YTD Model Performance</button>' : ""}`;
-}
-
 function render() {
   renderSchedule();
   renderSeasons();
-  renderRecord();
   const g = game();
   const p = plan();
   shownPlan = p;
@@ -605,7 +416,6 @@ function render() {
   }
   renderHeader(g);
   renderMatchup(g, p);
-  renderValue(g, p);
   renderStarters(g, p);
   renderLineupNote(p);
 }
@@ -645,7 +455,6 @@ document.addEventListener("click", (e) => {
   if (card) return selectGame(card.dataset.game);
   if (e.target.closest("#day-prev")) return selectDay(dayIndex - 1);
   if (e.target.closest("#day-next")) return selectDay(dayIndex + 1);
-  if (e.target.closest("#fb-ytd")) return renderYtd();
   const s = e.target.closest("#fb-seasons [data-season]");
   if (s) {
     setSeason(s.dataset.season, true);

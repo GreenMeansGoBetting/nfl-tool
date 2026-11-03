@@ -220,8 +220,8 @@ Every game played 10,000 times, possession by possession.
 - The owner, 2026-11-03: "click into betting categories, like assists and rebounds, and get
   information and data that relates to those categories and see available bets and lines".
   **No model on the page:** no Edge, Fair, Rating, projection, plays, record or YTD tracker.
-- Menu: **Prop Research** head, Points / Threes / Assists / Rebounds pills; First Basket alone under
-  UNDER CONSTRUCTION. Tabs on the four pages. `RS_MARKETS` = each page's stat.
+- Menu: **Prop Research** head, Points / Threes / Assists / Rebounds pills, then First Basket (no
+  UNDER CONSTRUCTION since 2026-11-03). Tabs on the four pages. `RS_MARKETS` = each page's stat.
 - Intro box (title + i bubble + one line), day arrows (next `DAYS_AHEAD` 3 slates; off-season = the
   last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
   `ROTATION_MIN` 12+ min, no line = "No Line"; Out / Doubtful players left off).
@@ -471,8 +471,12 @@ the same framework next ("once we have the framework down").
 
 ## First Basket (`first_basket.py`, `first-basket.*`)
 
-The pieces of the puzzle for users to solve, with a fair price; site look (team banners, logos,
-headshots, `scaleHsla` cells, "i" bubbles).
+The pieces of the puzzle for users to solve; site look (team banners, logos, headshots, `scaleHsla`
+cells, "i" bubbles). **Research only since 2026-11-03** (under Prop Research; the owner: "scrap the
+tracking etc. scrap the fair line listed by starters. scrap the scores first % our guess and the
+prediction under the tip. scrap the value spot"): no testing banner, record, YTD, Fair column, Scores
+First box, tip Prediction row or Value box on the page. The build still makes the tip ratings, Fair
+and Value record below (off the page).
 - **Any first points count, FTs included, and so does every "shot" count** (Shot Early, 1st Shot, Team
   Share 1st Shot, First Look). "First FG allowed" is field goals only.
 - Build (`compute_first_basket`, own try): `seasons[<year>]`, `slates[<year>]` (next 3 nights: starters,
@@ -482,7 +486,7 @@ headshots, `scaleHsla` cells, "i" bubbles).
   (Expected, then Confirmed; today only), read **live** via `/api/nba-lineups?date=` (middleware,
   members only, 60 s cache), asked every minute. Fallbacks: the build's copy (`first_basket.lineups`),
   then our guess. Banner says Confirmed / Expected / Our guess. Matched by team + name (`roster`); a
-  starter with no numbers shows "new". The page's `fairPrices` = Python `fair_prices` (a test pins it).
+  starter with no numbers shows "new".
 - **Likely starters:** on today's roster, not Out, started half his games, most minutes first.
   **Jumper:** most jumps (`MIN_JUMPS` 2); else the NBA five's center.
 - **Prediction** (`tip_ratings`): OPENING tips of THIS season only (no held balls / OT tips;
@@ -496,22 +500,19 @@ headshots, `scaleHsla` cells, "i" bubbles).
   `model_history/nba_first_basket/<season>.json` (`first_basket_record`): each game's ten from the
   last pre-tip build, never rewritten, from `FB_RECORD_START` 2026-10-23; `first_basket.record`
   {plays, won, units, games} at the best price across all books. Uses the build's starters.
-- Testing banner (suite.css) with Value Record So Far + YTD Model Performance (`renderYtd`): Tip
-  Prediction / Scores First (Min Chance 50-75%), Value Plays (Min Edge 10-100%), graded games. A pick
-  = the side over 50%.
 - **No tags beside starters' names** (Value / Top Option / First Look / Jumper / New removed, the
   owner 2026-10-30: they pushed the numbers away). Player column one fixed width (`.fb-name`, 196 px,
   long names "...") so the numbers sit in the same spot on every game.
-- **Layout:** Starters (both teams stacked) left, The Matchup with Value under it right, both 380 px,
-  **tops and bottoms level** (`.fb-side`); stacks under 1000 px.
+- **Layout:** Starters (both teams stacked) left, The Matchup right, tops level (`.fb-side`); stacks
+  under 1000 px.
 - **The Matchup** (`renderMatchup`, `matchupRows`): one table, road left, home right, stat in the
-  middle with an **Edge** pill. Only the owner's rows: The Tip (Jumper + height, Tips Won,
-  Prediction), Scores First (Scores First, Home/Road, After Winning / Losing Tip), Opening Trips (Avg
+  middle with an **Edge** pill. Only the owner's rows: The Tip (Jumper + height, Tips Won with his
+  opening tips in the hover), Scores First (Scores First, Home/Road, After Winning / Losing Tip), Opening Trips (Avg
   Poss. To Score / Allow), First FG Allowed (PG, SG, SF, PF, C). **No** game counts, league averages,
   guess rows, 1st-quarter margin or seconds rows. Rows 28 px (38 phones), column 380 px. Colors =
   league spreads from the average (`zHeat`, full at 1.5 SD). Targets is retired.
-- **Starters:** compact table per team (banner: Scores First box + lineup tag): Shot Early / 1st Shot
-  / Scored 1st / Team Share (1st Shot, 1st Pts) with "x of y", Fair, Best. Colored from the first start
+- **Starters:** compact table per team, PG to C (banner: lineup tag): Shot Early / 1st Shot / Scored
+  1st / Team Share (1st Shot, 1st Pts) with "x of y", Best. Colored from the first start
   (`MIN_STARTS` 1). The jumper's name shortens, never his height.
 - **Prices: Best = SmartStake, then Novig.** `smartstake.add_first_basket` (`first_basket_market_keys`,
   fallback `basketball_first_points_scorer`) **with `alternate=True`** (books send it as alternates,
