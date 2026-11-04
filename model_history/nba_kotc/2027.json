@@ -5594,77 +5594,77 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.4045,
+    "lead": 0.4052,
     "name": "Giannis Antetokounmpo",
-    "proj": 45.9,
+    "proj": 46.0,
     "team": "MIA"
    },
    {
     "id": "3975",
-    "lead": 0.2757,
+    "lead": 0.2768,
     "name": "Stephen Curry",
-    "proj": 42.1,
+    "proj": 42.2,
     "team": "GS"
    },
    {
     "id": "4566434",
-    "lead": 0.0843,
+    "lead": 0.0832,
     "name": "Franz Wagner",
     "proj": 34.0,
     "team": "ORL"
    },
    {
     "id": "5175737",
-    "lead": 0.0648,
+    "lead": 0.0654,
     "name": "Yaxel Lendeborg",
-    "proj": 32.3,
+    "proj": 32.4,
     "team": "GS"
    },
    {
     "id": "3136193",
-    "lead": 0.0411,
+    "lead": 0.0405,
     "name": "Devin Booker",
     "proj": 30.5,
     "team": "PHX"
    },
    {
     "id": "4709138",
-    "lead": 0.0315,
+    "lead": 0.0318,
     "name": "Brandin Podziemski",
-    "proj": 29.4,
+    "proj": 29.5,
     "team": "GS"
    },
    {
     "id": "4066383",
-    "lead": 0.0244,
+    "lead": 0.0242,
     "name": "Miles Bridges",
     "proj": 28.2,
     "team": "PHX"
    },
    {
     "id": "4066261",
-    "lead": 0.0159,
+    "lead": 0.0162,
     "name": "Bam Adebayo",
-    "proj": 26.4,
+    "proj": 26.5,
     "team": "MIA"
    },
    {
     "id": "4712849",
-    "lead": 0.0148,
+    "lead": 0.0142,
     "name": "Anthony Black",
     "proj": 26.3,
     "team": "ORL"
    },
    {
     "id": "4278053",
-    "lead": 0.0139,
+    "lead": 0.0137,
     "name": "Davion Mitchell",
     "proj": 26.4,
     "team": "MIA"
    },
    {
     "id": "3155526",
-    "lead": 0.0118,
+    "lead": 0.0115,
     "name": "Dillon Brooks",
     "proj": 25.5,
     "team": "PHX"
@@ -5678,16 +5678,16 @@
    },
    {
     "id": "4277847",
-    "lead": 0.0064,
+    "lead": 0.0063,
     "name": "Wendell Carter Jr.",
     "proj": 24.0,
     "team": "ORL"
    },
    {
     "id": "4066436",
-    "lead": 0.0009,
+    "lead": 0.001,
     "name": "De'Anthony Melton",
-    "proj": 18.9,
+    "proj": 19.0,
     "team": "GS"
    },
    {
@@ -5806,7 +5806,7 @@
     "id": "3213",
     "lead": 0.0,
     "name": "Al Horford",
-    "proj": 10.0,
+    "proj": 10.1,
     "team": "GS"
    },
    {
