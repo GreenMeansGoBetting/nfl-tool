@@ -5169,7 +5169,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4214,
+    "lead": 0.4215,
     "name": "Luka Doncic",
     "proj": 57.3,
     "team": "LAL"
@@ -5183,7 +5183,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.0438,
+    "lead": 0.0439,
     "name": "Victor Wembanyama",
     "proj": 39.9,
     "team": "SA"
@@ -5274,7 +5274,7 @@
    },
    {
     "id": "4701230",
-    "lead": 0.013,
+    "lead": 0.0131,
     "name": "Jalen Johnson",
     "proj": 35.9,
     "team": "ATL"
@@ -5309,9 +5309,9 @@
    },
    {
     "id": "3064514",
-    "lead": 0.008,
+    "lead": 0.0077,
     "name": "Julius Randle",
-    "proj": 32.9,
+    "proj": 32.8,
     "team": "BKN"
    },
    {
