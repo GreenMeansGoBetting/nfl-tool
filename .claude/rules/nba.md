@@ -229,7 +229,10 @@ Every game played 10,000 times, possession by possession.
   `ROTATION_MIN` 12+ min, no line = "No Line"; Out / Doubtful players left off).
 - Columns (sim-list table rule): Player (playerClick, pos, injury pill DTD / Q / D / Out), Line (middle
   of the books'), **Over / Under** (best on My Books via `nbaCardSide`: click = every book, box saves),
-  Avg and Min (season, L5 under), **Hit Rate - Over Tonight's Line** (L5 / L10 / Season / Home / Away,
+  **Avg, Min (Threes: 3PA), Volume** (Points: his shot share on the floor; Threes: share of his shots
+  that are threes), season only, **no L5 under them** (the owner, 2026-11-04: cluttered), each colored
+  against his position's rotation players (`listNums`, `listPool`; same color as his Form Season tile),
+  **Hit Rate - Over Tonight's Line** (L5 / L10 / Season / Home / Away,
   "x of y"), **Opp Allows** (what tonight's opponent gives up a game to his exact position, from every
   player's logs, ranked of 30, 1st = most, 8-step rank colors), **Teammates On The Report** (spare
   width, `fitTags`): per 20+ minute teammate on tonight's report, his average in the games that
