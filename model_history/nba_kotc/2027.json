@@ -5176,7 +5176,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1116,
+    "lead": 0.1119,
     "name": "Giannis Antetokounmpo",
     "proj": 45.2,
     "team": "MIA"
@@ -5225,14 +5225,14 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0251,
+    "lead": 0.0252,
     "name": "Scottie Barnes",
     "proj": 37.2,
     "team": "TOR"
    },
    {
     "id": "5142620",
-    "lead": 0.0241,
+    "lead": 0.0242,
     "name": "Darius Acuff Jr.",
     "proj": 37.0,
     "team": "SAC"
@@ -5253,7 +5253,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0188,
+    "lead": 0.0189,
     "name": "Cooper Flagg",
     "proj": 36.4,
     "team": "DAL"
@@ -5281,9 +5281,9 @@
    },
    {
     "id": "6583",
-    "lead": 0.0141,
+    "lead": 0.0138,
     "name": "Anthony Davis",
-    "proj": 35.3,
+    "proj": 35.2,
     "team": "WSH"
    },
    {
@@ -5316,9 +5316,9 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0059,
+    "lead": 0.0056,
     "name": "Trae Young",
-    "proj": 32.6,
+    "proj": 32.5,
     "team": "WSH"
    },
    {
@@ -5498,7 +5498,7 @@
    },
    {
     "id": "3992",
-    "lead": 0.0006,
+    "lead": 0.0007,
     "name": "James Harden",
     "proj": 26.8,
     "team": "CLE"
@@ -5549,7 +5549,7 @@
     "id": "5142718",
     "lead": 0.0003,
     "name": "AJ Dybantsa",
-    "proj": 26.2,
+    "proj": 26.1,
     "team": "WSH"
    },
    {
