@@ -11,102 +11,16 @@
 let DATA = null;
 let dayIndex = 0;
 let pinned = null; // the game whose two teams sit on top
-const view = { window: "season", rank: false, today: false, keys: false, more: false, sort: "net", dir: 1 }; // never remembered (the owner)
+const view = { window: "season", rank: false, today: false, sort: "net", dir: 1 }; // never remembered (the owner)
 const NBA_GAME_KEY = "nba-tool.game.v1"; // Matchup Breakdown's open game (nba.js)
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, color: "555555", logo: "" };
 const teamRgb = (abbr) => [0, 2, 4].map((i) => parseInt((team(abbr).color || "555555").slice(i, i + 2), 16)).join(",");
-const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
 
-// [key, header (two short lines), hover name, format, way]: format n = whole number,
-// s = signed, p = percent, h = per 100 (a points-a-possession number), r = a record;
-// way +1 = the most is green, -1 = the least is green.
-const OFFENSE = [
-  ["o_ppg", "PPG", "Points A Game", "n", 1],
-  ["o_rtg", "ORtg", "Offensive Rating (Points A 100 Possessions)", "n", 1],
-  ["o_3pm", "3PM", "Threes Made A Game", "n", 1],
-  ["o_3par", "3PA<br>Rate", "3-Point Attempt Rate (Share Of Shots From Three)", "p", 1],
-  ["o_ftr", "FT<br>Rate", "Free Throw Rate (Free Throws A Shot)", "p", 1],
-  ["o_tov", "TOV<br>%", "Turnover % (Possessions Ending In A Turnover)", "p", -1],
-  ["o_reb", "OREB<br>%", "Offensive Rebound %", "p", 1],
-  ["o_paint_share", "Paint<br>Share", "Paint Share (Share Of Shots In The Paint)", "p", 1],
-  ["o_paint_pct", "Paint<br>FG%", "Paint FG%", "p", 1],
-  ["o_mid_share", "Mid<br>Share", "Mid-Range Share", "p", 1],
-  ["o_mid_pct", "Mid<br>FG%", "Mid-Range FG%", "p", 1],
-  ["o_trans_freq", "Trans<br>Share", "Transition Share (Possessions In Transition)", "p", 1],
-  ["o_trans_ppp", "Trans<br>Pts", "Transition Points A 100 Possessions", "h", 1],
-  ["o_ball_move", "Ball<br>Move", "Ball Movement (Assisted Makes And Catch-And-Shoot, Averaged)", "p", 1],
-];
-const DEFENSE = [
-  ["d_ppg", "PPG", "Points Allowed A Game", "n", -1],
-  ["d_rtg", "DRtg", "Defensive Rating (Points Allowed A 100 Possessions)", "n", -1],
-  ["d_3pm", "3PM", "Threes Allowed A Game", "n", -1],
-  ["d_3par", "3PA<br>Rate", "Opponents' 3-Point Attempt Rate", "p", -1],
-  ["d_ftr", "FT<br>Rate", "Opponents' Free Throw Rate", "p", -1],
-  ["d_tov", "Forced<br>TOV%", "Forced Turnover % (Opponents' Possessions Ending In A Turnover)", "p", 1],
-  ["d_reb", "DREB<br>%", "Defensive Rebound %", "p", 1],
-  ["d_paint_share", "Paint<br>Share", "Opponents' Paint Share", "p", -1],
-  ["d_paint_pct", "Paint<br>FG%", "Opponents' Paint FG%", "p", -1],
-  ["d_mid_share", "Mid<br>Share", "Opponents' Mid-Range Share", "p", -1],
-  ["d_mid_pct", "Mid<br>FG%", "Opponents' Mid-Range FG%", "p", -1],
-  ["d_trans_freq", "Trans<br>Share", "Opponents' Transition Share", "p", -1],
-  ["d_trans_ppp", "Trans<br>Pts", "Opponents' Transition Points A 100 Possessions", "h", -1],
-  ["d_ball_move", "Ball<br>Move", "Opponents' Ball Movement", "p", -1],
-];
-const GAME = [
-  ["pace", "Pace", "Pace (Possessions A Game)", "n", 1],
-  ["net", "Net<br>Rtg", "Net Rating (Points A 100 Possessions, Scored Minus Allowed)", "s", 1],
-  ["margin", "Avg<br>Margin", "Average Margin", "s", 1],
-  ["total", "Avg<br>Total", "Average Total (Both Teams' Points)", "n", 1],
-  ["ats", "ATS", "Against The Spread (Line At Tip)", "r", 1],
-  ["ou", "O/U", "Over / Under (Line At Tip)", "r", 1],
-];
-// [name, columns, Opening Drive grid group]
-const GROUPS = [["Offense", OFFENSE, "od-g0"], ["Defense (Allowed)", DEFENSE, "od-g1"], ["Game &amp; Betting", GAME, "od-g2"]];
-const COLS = GROUPS.flatMap(([, cols]) => cols);
 const COL_W = 46; // every stat column the same width (the owner: "I JUST WANT COLUMNS ALL equal")
 const TEAM_W = 58;
 const GAP_W = 6;
-
-// A record's sort number: its win (cover / over) share; pushes don't count.
-const recShare = (r) => (r && r[0] + r[1] ? r[0] / (r[0] + r[1]) : null);
-const sortValue = (row, key) => {
-  const v = row ? row[key] : null;
-  return Array.isArray(v) ? recShare(v) : v ?? null;
-};
-function show(v, fmt) {
-  if (v === null || v === undefined) return "";
-  if (fmt === "r") return `${v[0]}-${v[1]}`;
-  if (fmt === "p" || fmt === "h") return String(Math.round(v * 100));
-  const n = Math.round(v);
-  return fmt === "s" && n > 0 ? `+${n}` : String(n === 0 ? 0 : n);
-}
-function exact(v, fmt) {
-  if (v === null || v === undefined) return "No data";
-  if (fmt === "r") return `${v[0]}-${v[1]}${v[2] ? `-${v[2]}` : ""}`;
-  if (fmt === "p") return `${(v * 100).toFixed(1)}%`;
-  if (fmt === "h") return (v * 100).toFixed(1);
-  return `${fmt === "s" && v > 0 ? "+" : ""}${Number(v).toFixed(1)}`;
-}
-
-// The site's 8-step rank colors (common.js RANK_SCALE / rankScaleStyle; this page doesn't load common.js).
-const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
-function rankStyle(rank, total) {
-  const [hue, fill] = RANK_SCALE[Math.min(RANK_SCALE.length - 1, Math.floor(((rank - 1) / total) * RANK_SCALE.length))];
-  return `background:${scaleHsla(hue, 78, 44, fill)}`;
-}
-
-// {key: {team: rank}} over all 30 teams in the window (1 = greenest), ties share a rank.
-function ranksOf(table) {
-  const out = {};
-  COLS.forEach(([key, , , , way]) => {
-    const vals = Object.entries(table).map(([t, row]) => [t, sortValue(row, key)]).filter(([, v]) => v !== null);
-    out[key] = { n: vals.length, r: {} };
-    vals.forEach(([t, v]) => (out[key].r[t] = 1 + vals.filter(([, x]) => (way > 0 ? x > v : x < v)).length));
-  });
-  return out;
-}
 
 // ---- schedule ----
 const days = () => [...new Set(DATA.schedule.map((g) => g.date))].sort();
@@ -151,7 +65,6 @@ function renderChart() {
     el("lsc-body").innerHTML = "";
     return;
   }
-  if (view.keys) return renderKeys(table);
   const ranks = ranksOf(table);
   const game = DATA.schedule.find((g) => g.game_id === pinned);
   const top = game ? [game.away, game.home].filter((t) => table[t]) : [];
@@ -186,43 +99,9 @@ function renderChart() {
     <thead>${groupRow}${labelRow}</thead>
     <tbody>${top.map((t) => row(t, true)).join("")}${spacer}${rest.map((t) => row(t, false)).join("")}</tbody></table>`;
 }
-// ---- Matchup Keys (keys.js): the picked game's keys, each as the chart's own tiles ----
-const KEY_TAG_RGB = { edge: "var(--good-rgb)", fits: "var(--good-rgb)", away: "70, 130, 220", style: "70, 130, 220", clash: "150, 100, 220", trend: "var(--mid-rgb)", volume: "var(--bad-rgb)", untested: "128, 128, 128" };
-function colLabel(key) {
-  const col = COLS.find((c) => c[0] === key);
-  const label = col ? col[1].replace("<br>", " ") : key;
-  return key.startsWith("o_") ? `Off ${label}` : key.startsWith("d_") ? `Def ${label}` : label;
-}
-function renderKeys(table) {
-  const game = DATA.schedule.find((g) => g.game_id === pinned);
-  if (!game || !table[game.away] || !table[game.home]) {
-    el("lsc-body").innerHTML = `<p class="no-data-note">Pick a game above to see its Matchup Keys.</p>`;
-    return;
-  }
-  const ranks = ranksOf(table);
-  const keys = nbaMatchupKeys(table, game.away, game.home);
-  const tile = ({ team: t, key }) => {
-    const col = COLS.find((c) => c[0] === key);
-    const v = table[t][key], rk = ranks[key].r[t];
-    const text = v === null || v === undefined ? "" : view.rank ? ordinal(rk) : show(v, col[3]);
-    const tip = `${team(t).name} · ${col[2]}: ${exact(v, col[3])}${rk ? ` · ${ordinal(rk)} of ${ranks[key].n}` : ""}`;
-    return `<div class="lsc-kt"><span class="lsc-kt-lab">${logo(t, 16)}${t} ${colLabel(key)}</span><div class="od-tile lsc-tile"${rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : ""} title="${tip}"><b>${text}</b></div></div>`;
-  };
-  const cards = (list) => list.map((k) => `<div class="lsc-key" style="--kc:${KEY_TAG_RGB[k.type]}">
-      <div class="lsc-key-top"><span class="lsc-key-tag">${KEY_TYPES[k.type]}</span>${k.team ? logo(k.team, 18) : ""}<b>${k.title}</b></div>
-      <div class="lsc-key-tiles">${k.tiles.map(tile).join("")}</div>
-    </div>`).join("");
-  // One card a subject first (its strongest key); the rest behind More Keys, never dropped.
-  // No model points on the keys since 2026-11-03 (the NBA side is research only).
-  const lead = keys.filter((k) => k.lead), more = keys.filter((k) => !k.lead);
-  el("lsc-body").innerHTML = `<div class="lsc-keys-head">${logo(game.away, 24)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 24)}<b>${game.home}</b><span class="lsc-keys-n">${lead.length} Key${lead.length === 1 ? "" : "s"}</span></div>
-    ${keys.length ? `<div class="lsc-keys">${cards(lead)}</div>` : `<p class="no-data-note">Nothing stands out in this matchup on these numbers.</p>`}
-    ${more.length ? `<button type="button" class="view-toggle-btn lsc-more" id="lsc-more" aria-expanded="${view.more}">${view.more ? "Hide" : "More Keys"} (${more.length})</button>
-      ${view.more ? `<div class="lsc-keys lsc-keys-more">${cards(more)}</div>` : ""}` : ""}`;
-}
 function renderControls() {
   document.querySelectorAll("#lsc-window .view-toggle-btn").forEach((b) => b.classList.toggle("active", b.dataset.window === view.window));
-  [["lsc-rank", view.rank], ["lsc-today", view.today], ["lsc-keys", view.keys]].forEach(([id, on]) => {
+  [["lsc-rank", view.rank], ["lsc-today", view.today]].forEach(([id, on]) => {
     el(id).classList.toggle("active", on);
     el(id).setAttribute("aria-pressed", String(on));
   });
@@ -263,16 +142,6 @@ document.addEventListener("click", (e) => {
   }
   if (e.target.closest("#lsc-rank")) {
     view.rank = !view.rank;
-    return render();
-  }
-  if (e.target.closest("#lsc-more")) {
-    view.more = !view.more;
-    return renderChart();
-  }
-  if (e.target.closest("#lsc-keys")) {
-    view.keys = !view.keys;
-    // Keys need a game: the day's first, when none is picked.
-    if (view.keys && !pinned) pinned = (gamesOn(days()[dayIndex])[0] || {}).game_id || null;
     return render();
   }
   if (e.target.closest("#lsc-today")) {

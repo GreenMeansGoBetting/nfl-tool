@@ -10,7 +10,7 @@
 // sides (the site's matchup rule): an Edge needs one side clearly pointing
 // one way and the other not pointing back.
 //
-// nbaMatchupKeys(table, away, home, top?) -> [{type, title, team, topic,
+// nbaMatchupKeys(table, away, home, top?) -> [{type, group, title, team, topic,
 // tiles: [{team, key}], score, lead}], strongest first. `lead` = the
 // strongest key of its topic (the cards shown first: one story a subject; the
 // 2026-10-30 audit had 7-25 keys a game with the glass told three ways); the
@@ -27,6 +27,11 @@ const KEY_TYPES = {
   volume: "Few Falling",
   untested: "Not Tested",
 };
+// The three groups the Matchup Keys page stacks them in (the owner, 2026-11-04: "sorted by their
+// moniker - edge, clash, and same style ... all fit into that category"). Fits / Takes Away are an
+// Edge for the side it favors (WSH gets to the line, ATL allows it = a WSH edge); Not Tested and Few
+// Falling are numbers pointing opposite ways (a Clash); Trend = both teams' games leaning one way.
+const KEY_GROUP = { edge: "edge", fits: "edge", away: "edge", clash: "clash", untested: "clash", volume: "clash", style: "style", trend: "style" };
 // [key, topic, both the most, both the least, opposite ends (null: an Edge already says it)]
 const KEY_STYLE = [
   ["pace", "pace", "Both Play Fast", "Both Play Slow", "Fast Vs Slow"],
@@ -67,11 +72,11 @@ const KEY_EDGES = [
 // How-often pairs [offense key, defense key, topic]: Fits = it does it a lot and this
 // defense allows it a lot; Takes Away = this defense allows it least.
 const KEY_SHARES = [
-  ["o_3par", "d_3par", "Threes", "threes"],
+  ["o_3par", "d_3par", "Three-Point Volume", "threes"],
   ["o_ftr", "d_ftr", "Free Throws", "ft"],
-  ["o_paint_share", "d_paint_share", "The Paint", "paint"],
-  ["o_mid_share", "d_mid_share", "Mid-Range", "mid"],
-  ["o_trans_freq", "d_trans_freq", "Transition", "transition"],
+  ["o_paint_share", "d_paint_share", "Paint Volume", "paint"],
+  ["o_mid_share", "d_mid_share", "Mid-Range Volume", "mid"],
+  ["o_trans_freq", "d_trans_freq", "Transition Volume", "transition"],
 ];
 // A defense weak at something tonight's offense rarely does. [offense key, weak defense keys, topic]
 const KEY_UNTESTED = [
@@ -117,7 +122,7 @@ function nbaMatchupKeys(table, away, home, top) {
     return r === null || m < 2 ? 0 : Math.abs(r - (m + 1) / 2) / ((m - 1) / 2);
   };
   const keys = [];
-  const add = (type, title, team, tiles, score, topic) => keys.push({ type, title, team, tiles, score, topic });
+  const add = (type, title, team, tiles, score, topic) => keys.push({ type, group: KEY_GROUP[type], title, team, tiles, score, topic });
   const tiles = (pairs) => pairs.map(([team, key]) => ({ team, key }));
   const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
   const pair = [away, home];
@@ -179,8 +184,9 @@ function nbaMatchupKeys(table, away, home, top) {
     KEY_SHARES.forEach(([ok, dk, name, topic]) => {
       if (!hi(most(o, ok))) return;
       const ts = tiles([[o, ok], [d, dk]]);
-      if (hi(most(d, dk))) add("fits", `${o} Fits: ${name}`, o, ts, mean([far(o, ok), far(d, dk)]), topic);
-      else if (hi(least(d, dk))) add("away", `${d} Takes Away ${name}`, d, ts, mean([far(o, ok), far(d, dk)]), topic);
+      // Written as the Edge they are (an Edge's own wording; the volume names keep them apart from its make rates).
+      if (hi(most(d, dk))) add("fits", `${o} Offense: ${name}`, o, ts, mean([far(o, ok), far(d, dk)]), topic);
+      else if (hi(least(d, dk))) add("away", `${d} Defense: ${name}`, d, ts, mean([far(o, ok), far(d, dk)]), topic);
     });
     // Not Tested: a weak spot (the defense allows the most) the offense rarely goes at.
     KEY_UNTESTED.forEach(([ok, dks, title, topic]) => {

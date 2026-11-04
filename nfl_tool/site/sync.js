@@ -360,6 +360,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-11-04",
+    items: [
+      ["🔑", "<b>NBA Matchup Keys</b> has its own page, under Matchup Breakdown in the NBA menu. Pick a game for what stands out, in three groups: <b>Edges</b> (a column for each team), <b>Clashes</b> and <b>Same Style</b>, strongest first. Every number now shows its rank of 30 beside it, both colored."],
+    ],
+  },
+  {
     id: "2026-11-03d",
     items: [
       ["🏀", "<b>NBA Points Research, redesigned</b>: click any player's row for two research boxes with tabs. Form, Scoring, Matchup and Game Script on the left; Vs The Line, Rotation and Teammates on the right. Blue is him, purple is tonight's defense, green is the read, on every tab."],
@@ -1045,6 +1051,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       { name: "Dunk Digest", file: "digest.html", owner: true },
       { name: "League Stats Chart", file: "league.html", tag: "New" },
       { name: "Matchup Breakdown", file: "" },
+      // Its own page since 2026-11-04 (the owner: the League Stats Chart button was "too hidden").
+      { name: "Matchup Keys", file: "matchup-keys.html", tag: "New" },
       { name: "Shot Charts", file: "shot-charts.html" },
       { name: "Zone Matchup Targets", file: "zones.html", tag: "New" },
       // The NBA side is a research site (the owner, 2026-11-03): no projections or model
