@@ -1040,43 +1040,43 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     { name: "Points", href: "points.html" },
     { name: "Saves", href: "saves.html" },
   ];
+  // Every page is a shaded pill, each its own color so it reads as a button (the owner,
+  // 2026-10-30 for Prop Research, every sport's menu 2026-11-04), in rows of equal pills.
+  // A row is a list of [name, file, hue]; no "New" tags (the owner, 2026-11-04).
+  const pills = (...items) => ({ row: items.map(([name, file, hue]) => ({ name, file, hue })) });
   const SPORT_PAGES = {
     nfl: { label: "NFL", home: "game-overview.html", items: [
-      { name: "Game Previews", file: "game-overview.html" },
-      { name: "TD Data", file: "index.html" },
-      { name: "Opening Drive Tool", file: "opening-drives.html", tag: "New" },
-      { head: "Player props" },
-      { name: "Best Plays", file: "best-plays.html" },
+      pills(["Game Previews", "game-overview.html", 140], ["TD Data", "index.html", 20]),
+      pills(["Opening Drive Tool", "opening-drives.html", 45]),
+      { head: "Player Props" },
+      pills(["Best Plays", "best-plays.html", 300]),
       // One page, three views: the link's #view opens that tab (player-props.js).
-      { name: "Receiving", file: "player-props.html#receiving" },
-      { name: "Rushing", file: "player-props.html#rushing" },
-      { name: "Passing", file: "player-props.html#passing" },
+      pills(["Receiving", "player-props.html#receiving", 210], ["Rushing", "player-props.html#rushing", 330], ["Passing", "player-props.html#passing", 275]),
     ] },
     nba: { label: "NBA", home: "", items: [
       // The owner's video card (2026-11-02): only the owner sees it (`owner`).
-      { name: "Dunk Digest", file: "digest.html", owner: true },
-      { name: "League Stats Chart", file: "league.html", tag: "New" },
-      { name: "Matchup Breakdown", file: "" },
-      // Its own page since 2026-11-04 (the owner: the League Stats Chart button was "too hidden").
-      { name: "Matchup Keys", file: "matchup-keys.html", tag: "New" },
-      { name: "Shot Charts", file: "shot-charts.html" },
-      { name: "Zone Matchup Targets", file: "zones.html", tag: "New" },
+      { ...pills(["Dunk Digest", "digest.html", 0]), owner: true },
+      pills(["League Stats Chart", "league.html", 140], ["Matchup Data", "", 240]),
+      // Matchup Keys: its own page since 2026-11-04 (the owner: the League Stats Chart button was "too hidden").
+      pills(["Matchup Keys", "matchup-keys.html", 45], ["Zone Matchup Targets", "zones.html", 300]),
       // The NBA side is a research site (the owner, 2026-11-03): no projections or model
       // plays; each bet category is its data and every book's line (research.js).
-      // Rows of shaded pills, each its own color so it reads as a button (the owner, 2026-10-30).
       { head: "Prop Research" },
-      { row: [{ name: "Points", file: "points.html", hue: 210 }, { name: "Threes", file: "threes.html", hue: 275 }] },
-      { row: [{ name: "Assists", file: "assists.html", hue: 330 }, { name: "Rebounds", file: "rebounds.html", hue: 185 }] },
-      // First Basket joined them as research (the owner, 2026-11-03: no record, Fair, Prediction or Value).
-      { row: [{ name: "First Basket", file: "first-basket.html", hue: 20 }] },
+      pills(["Points", "points.html", 210], ["Threes", "threes.html", 275]),
+      pills(["Assists", "assists.html", 330], ["Rebounds", "rebounds.html", 185]),
+      // 1st Basket joined them as research (2026-11-03), Shot Charts moved down with them (2026-11-04).
+      pills(["1st Basket", "first-basket.html", 20], ["Shot Charts", "shot-charts.html", 95]),
     ] },
     nhl: { label: "NHL", home: "", items: [
-      { name: "Game Previews", file: "" },
-      { name: "Line Matchups", file: "lines.html" },
-      { head: "Player props" },
-      ...PROPS.map((p) => ({ name: p.name, file: p.href })),
+      pills(["Game Previews", "", 140], ["Line Matchups", "lines.html", 240]),
+      { head: "Player Props" },
+      pills(["Best Plays", PROPS[0].href, 300]),
+      pills(...PROPS.slice(1, 3).map((p, i) => [p.name, p.href, [210, 330][i]])),
+      pills(...PROPS.slice(3).map((p, i) => [p.name, p.href, [275, 185][i]])),
     ] },
   };
+  // Each sport's own color on its Promo Tools label (the same sport, the same color).
+  const SPORT_HUE = { nfl: 210, nba: 20, nhl: 185 };
   // "Promo Tools" lists every promo tool on the site, whichever sport it is
   // for, to jump straight to it. A new promo tool is one line here.
   const PROMOS = [
@@ -1105,20 +1105,21 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     };
     for (const sport of ["nfl", "nba", "nhl"]) {
       const def = SPORT_PAGES[sport];
-      const link = (item) => {
+      const link = (item, owner) => {
         const [file, view] = (item.file || "index.html").split("#");
         const current = sport === CURRENT_SPORT && !onPromo && !onMine && file === PAGE_FILE && (!view || view === location.hash.slice(1));
-        const pill = item.hue != null ? ` nav-pill" style="--pill-h:${item.hue}` : "";
-        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item${current ? " promo-current" : ""}${item.owner ? " owner-only" : ""}${pill}"><span class="promo-name">${item.name}</span>${item.tag ? `<span class="upd-new nav-new">${item.tag}</span>` : ""}</a>`;
+        return `<a href="${siteHref(sport, item.file)}"${view ? ` data-view="${view}"` : ""} class="promo-item nav-pill${current ? " promo-current" : ""}${owner ? " owner-only" : ""}" style="--pill-h:${item.hue}"><span class="promo-name">${item.name}</span></a>`;
       };
       add(def.label, siteHref(sport, def.home), sport, def.items.map((item) => {
         if (item.head) return `<div class="nav-menu-head">${item.head}</div>`;
-        if (item.row) return `<div class="nav-pill-row">${item.row.map(link).join("")}</div>`;
-        return link(item);
+        return `<div class="nav-pill-row${item.owner ? " owner-only" : ""}">${item.row.map((x) => link(x, item.owner)).join("")}</div>`;
       }).join(""), sport === CURRENT_SPORT && !onPromo && !onMine);
     }
-    add("Promo Tools", PROMOS[0].href, "promo", PROMOS.map(
-      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === CURRENT_SPORT && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport">${p.label}</span><span class="promo-name">${p.name}</span></a>`
+    // One line a tool, a sport's tools together (sorted by sport, stable).
+    const order = ["nfl", "nba", "nhl"];
+    const promos = [...PROMOS].sort((a, b) => order.indexOf(a.sport) - order.indexOf(b.sport));
+    add("Promo Tools", promos[0].href, "promo", promos.map(
+      (p) => `<a href="${p.href}" class="promo-item${onPromo && p.sport === CURRENT_SPORT && (p.view || "") === location.hash.slice(1) ? " promo-current" : ""}"><span class="promo-sport" style="--pill-h:${SPORT_HUE[p.sport]}">${p.label}</span><span class="promo-name">${p.name}</span></a>`
     ).join(""), onPromo);
     // My Plays: a plain button, no list (the owner, 2026-10-20: saved plays in a tab of their own by Promo Tools).
     const mine = document.createElement("a");

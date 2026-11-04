@@ -45,13 +45,15 @@ class TopMenu(unittest.TestCase):
         page = SITE.open("game-overview.html")
         try:
             page.click(".page-nav .nfl-trigger")
-            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Opening Drive ToolNew", "/opening-drives.html", False], ["Best Plays", "/best-plays.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Opening Drive Tool", "/opening-drives.html", False], ["Best Plays", "/best-plays.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
+            # The owner, 2026-11-04: every sport's menu is colored pills like Prop Research, no New tags.
+            self.assertEqual(page.evaluate("() => [...document.querySelectorAll('.nav-menu:not(.acct-menu):not(.promo-menu) a')].every((a) => a.classList.contains('nav-pill') && a.style.getPropertyValue('--pill-h'))"), True)
+            self.assertEqual(page.evaluate("() => document.querySelectorAll('.nav-menu .upd-new').length"), 0)
             self.assertIn("player props", page.inner_text(".nfl-menu").lower())
             self.assertTrue(page.evaluate("() => document.querySelector('.nfl-trigger').classList.contains('page-nav-current')"))
             page.click(".page-nav .nba-trigger")
             self.assertTrue(page.locator(".nfl-menu").is_hidden())  # one list at a time
-            self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Dunk Digest", "/nba/digest.html", False], ["League Stats ChartNew", "/nba/league.html", False], ["Matchup Breakdown", "/nba/", False], ["Matchup KeysNew", "/nba/matchup-keys.html", False], ["Shot Charts", "/nba/shot-charts.html", False], ["Zone Matchup TargetsNew", "/nba/zones.html", False], ["Points", "/nba/points.html", False], ["Threes", "/nba/threes.html", False], ["Assists", "/nba/assists.html", False], ["Rebounds", "/nba/rebounds.html", False], ["First Basket", "/nba/first-basket.html", False]])
-            self.assertEqual(page.inner_text(".nba-menu a[href='/nba/zones.html'] .nav-new"), "New")  # the owner, 2026-10-27: a small New tag for now
+            self.assertEqual(page.evaluate(LINKS % ".nba-menu"), [["Dunk Digest", "/nba/digest.html", False], ["League Stats Chart", "/nba/league.html", False], ["Matchup Data", "/nba/", False], ["Matchup Keys", "/nba/matchup-keys.html", False], ["Zone Matchup Targets", "/nba/zones.html", False], ["Points", "/nba/points.html", False], ["Threes", "/nba/threes.html", False], ["Assists", "/nba/assists.html", False], ["Rebounds", "/nba/rebounds.html", False], ["1st Basket", "/nba/first-basket.html", False], ["Shot Charts", "/nba/shot-charts.html", False]])
             self.assertIn("prop research", page.inner_text(".nba-menu").lower())  # the research pages (2026-11-03)
             self.assertNotIn("under construction", page.inner_text(".nba-menu").lower())  # First Basket joined them (2026-11-03)
             page.click(".page-nav .nhl-trigger")
@@ -59,6 +61,11 @@ class TopMenu(unittest.TestCase):
             self.assertIn("player props", page.inner_text(".nhl-menu").lower())
             page.keyboard.press("Escape")
             self.assertTrue(page.locator(".nhl-menu").is_hidden())
+            # Promo Tools: one line a tool, a sport's tools together, each sport's label one color.
+            got = page.evaluate("() => [...document.querySelectorAll('.promo-menu .promo-sport')].map((s) => [s.textContent, s.style.getPropertyValue('--pill-h')])")
+            self.assertEqual([x[0] for x in got], ["NFL", "NBA", "NHL", "NHL", "NHL"])
+            self.assertEqual(len({x[1] for x in got}), 3)
+            self.assertEqual(len({tuple(x) for x in got}), 3)
         finally:
             page.close()
 

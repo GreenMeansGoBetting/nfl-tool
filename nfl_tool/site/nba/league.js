@@ -90,7 +90,7 @@ function renderChart() {
       const tip = `${team(abbr).name} · ${name}: ${exact(v, fmt)}${rk ? ` · ${ordinal(rk)} of ${ranks[key].n}` : ""}`;
       return `<td class="${cls(g, i, cols.length)}"><div class="od-tile lsc-tile"${rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : ""} title="${tip}"><b>${text}</b></div></td>`;
     }).join("")}`).join("");
-    return `<tr class="${isTop ? "lsc-top" : top.length ? "lsc-dim" : ""}"><td class="lsc-team"><button type="button" class="lsc-logo" data-team="${abbr}" style="--team:${teamRgb(abbr)}" title="${team(abbr).name} (${r.games} game${r.games === 1 ? "" : "s"}): open its game in Matchup Breakdown"><img src="${team(abbr).logo}" alt="${abbr}" loading="lazy"></button></td>${cells}</tr>`;
+    return `<tr class="${isTop ? "lsc-top" : top.length ? "lsc-dim" : ""}"><td class="lsc-team"><button type="button" class="lsc-logo" data-team="${abbr}" style="--team:${teamRgb(abbr)}" title="${team(abbr).name} (${r.games} game${r.games === 1 ? "" : "s"}): open its game in Matchup Data"><img src="${team(abbr).logo}" alt="${abbr}" loading="lazy"></button></td>${cells}</tr>`;
   };
   const width = TEAM_W + COLS.length * COL_W + (GROUPS.length - 1) * GAP_W;
   const cols = `<colgroup><col style="width:${TEAM_W}px">${GROUPS.map(([, c], gi) => `${gi ? `<col style="width:${GAP_W}px">` : ""}${c.map(() => `<col style="width:${COL_W}px">`).join("")}`).join("")}</colgroup>`;

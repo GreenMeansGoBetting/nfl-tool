@@ -205,7 +205,7 @@ class Nav(unittest.TestCase):
         self.assertIn('{ name: "Goals", href: "goals.html" }', sync)
         self.assertIn('{ name: "Points", href: "points.html" }', sync)
         self.assertIn('{ name: "Saves", href: "saves.html" }', sync)
-        self.assertIn('{ name: "Line Matchups", file: "lines.html" }', sync)
+        self.assertIn('["Line Matchups", "lines.html", ', sync)  # a colored pill (2026-11-04)
         self.assertNotIn("stacks.html", sync)
 
 

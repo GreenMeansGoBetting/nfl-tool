@@ -220,7 +220,7 @@ class Page(unittest.TestCase):
 
     def test_in_the_nba_menu_and_team_identity_lands_here(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nba-menu a')].map((a) => [a.textContent, a.getAttribute('href')])")
-        self.assertIn("Matchup Breakdown", [x[0] for x in links])
+        self.assertIn("Matchup Data", [x[0] for x in links])  # renamed from Matchup Breakdown (2026-11-04)
         self.assertNotIn("Team Identity", [x[0] for x in links])
         page = SITE.open("nba/identity.html")
         try:

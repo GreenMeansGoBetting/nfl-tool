@@ -36,7 +36,8 @@
    each team's Off / Def rank of 30 on either side. Beside the groups; above them on narrower screens. */
 .mk-layout { display: flex; flex-wrap: wrap-reverse; align-items: flex-end; gap: 16px; }
 .mk-groups { flex: 1 1 1200px; max-width: 1260px; min-width: 0; }
-.mk-side { flex: 0 0 auto; position: sticky; top: 12px; }
+/* Scrolls with the page: stuck to the top it covered the keys under it (the owner, 2026-11-04). */
+.mk-side { flex: 0 0 auto; }
 .mks-card { width: 470px; box-sizing: border-box; padding: 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
 .mks-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 8px; }
 .mks-team { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 9px; font-family: var(--font-display); font-size: 1.35rem;

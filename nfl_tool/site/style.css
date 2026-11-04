@@ -3682,16 +3682,16 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .promo-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; border-radius: 8px; text-decoration: none; color: var(--text); border: 1px solid transparent; font-family: var(--font-display); font-weight: 700; }
 .promo-item:hover { background: var(--panel-2); border-color: var(--border); }
 .promo-item.promo-current { background: rgba(var(--accent-rgb), 0.12); border-color: rgba(var(--accent-rgb), 0.5); }
-.promo-sport { min-width: 38px; padding: 2px 6px; border-radius: 6px; text-align: center; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; background: var(--panel-2); border: 1px solid var(--border-strong); color: var(--muted); }
+/* Promo Tools: each sport's label in its own color (sync.js SPORT_HUE). */
+.promo-sport { min-width: 38px; padding: 2px 6px; border-radius: 6px; text-align: center; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; color: var(--text);
+  background: hsla(var(--pill-h), 70%, 50%, 0.3); border: 1px solid hsla(var(--pill-h), 70%, 50%, 0.7); }
 .promo-name { font-size: 0.95rem; }
-.nav-new { margin-left: auto; font-size: 0.62rem; padding: 0 6px; }
-/* Pill rows in a sport menu (NBA Under Construction): each pill its own shaded color (--pill-h). */
-.nav-pill-row { display: flex; gap: 6px; padding: 3px 4px; }
-.nav-pill-row .nav-pill { flex: 1 1 auto; justify-content: center; gap: 6px; padding: 6px 12px; border-radius: 999px; white-space: nowrap; background: hsla(var(--pill-h), 70%, 50%, 0.14); border-color: hsla(var(--pill-h), 70%, 50%, 0.45); }
+/* Every sport menu is rows of shaded pills, each its own color (--pill-h); pills in a row share it evenly. */
+.nav-pill-row { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; padding: 3px 4px; }
+.nav-pill-row .nav-pill { justify-content: center; gap: 6px; padding: 6px 12px; border-radius: 999px; white-space: nowrap; background: hsla(var(--pill-h), 70%, 50%, 0.14); border-color: hsla(var(--pill-h), 70%, 50%, 0.45); }
 .nav-pill-row .nav-pill:hover { background: hsla(var(--pill-h), 70%, 50%, 0.26); border-color: hsla(var(--pill-h), 70%, 50%, 0.7); }
 .nav-pill-row .nav-pill.promo-current { box-shadow: inset 0 0 0 1.5px hsla(var(--pill-h), 70%, 50%, 0.9); }
 .nav-pill-row .nav-pill .promo-name { font-size: 0.88rem; }
-.nav-pill-row .nav-new { margin-left: 0; }
 
 /* .sc-tight: a Summary card too full to fit near full size gives up padding and gaps before
    its text is shrunk (fitSummaryCard, SUMMARY_TIGHT_BELOW). Nothing is hidden. */

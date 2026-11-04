@@ -222,7 +222,7 @@ Every game played 10,000 times, possession by possession.
 - The owner, 2026-11-03: "click into betting categories, like assists and rebounds, and get
   information and data that relates to those categories and see available bets and lines".
   **No model on the page:** no Edge, Fair, Rating, projection, plays, record or YTD tracker.
-- Menu: **Prop Research** head, Points / Threes / Assists / Rebounds pills, then First Basket (no
+- Menu: **Prop Research** head, Points / Threes / Assists / Rebounds pills, then 1st Basket and Shot Charts (no
   UNDER CONSTRUCTION since 2026-11-03). Tabs on the four pages. `RS_MARKETS` = each page's stat.
 - Intro box (title + i bubble + one line), day arrows (next `DAYS_AHEAD` 3 slates; off-season = the
   last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
@@ -382,7 +382,7 @@ Where and HOW a player shoots vs what tonight's defense allows **his group** (gu
   (1 + Shots) x (1 + Makes) - 1 (Shots: zone shares x allowed share / league share - 1; Makes: allowed
   make rate minus league x points, by zones and kinds, averaged, over his diet's league points a
   shot). Threes: his threes only. `zone()` = `nbaShotZone` (a test pins it).
-- Page (menu under Shot Charts, New tag via `tag` in SPORT_PAGES): **Best & Worst Spots** (top 15,
+- Page (menu beside Matchup Keys): **Best & Worst Spots** (top 15,
   Show All, started games out), **Matchup View** (both rotations + each defense's **position grid**,
   PG-C down, boxed column groups, every column the same width, cells = rank of 30 (30th = gives up
   most, red) by Makes / Shots / Points Per Shot, each row's worst cell outlined). Row click: his chart,
@@ -514,8 +514,8 @@ the same framework next ("once we have the framework down").
   and punchy"); click = its game in Matchup Breakdown. A picked game's two teams light up; every
   other row goes grayscale ("too busy with all the colors"). **No outline on any tile** ("i hate it").
   Tests: `tests/test_nba_league_chart.py`.
-- **Matchup Keys** (its own page since 2026-11-04, `matchup-keys.html/.js/.css`, menu right under Matchup
-  Breakdown with a New tag; the button on the chart was "too hidden"). Every rule in `keys.js`
+- **Matchup Keys** (its own page since 2026-11-04, `matchup-keys.html/.js/.css`, menu beside League Stats Chart / Matchup
+  Data; the button on the chart was "too hidden"). Every rule in `keys.js`
   (`nbaMatchupKeys`, ONE place; Dunk Digest's notes read it too). Extreme = top / bottom 10 of 30.
   Types: Edge (one side top 10, the other bottom half; a make rate only for an offense in the top
   half of taking those shots, transition scoring only for one that runs), Fits / Takes Away (how-often:
@@ -546,7 +546,7 @@ the same framework next ("once we have the framework down").
   (hover lists them). **Show All Summaries** (button beside the windows): every game of the carousel's
   day as its card, two a row (one screenshot = two games); a game card goes back to that game's keys.
 
-## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`)
+## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`; called **Matchup Data** in the menu and title since 2026-11-04)
 
 - **One cell language:** rank of 30 big, number small, shaded red to green by rank (`cellTd`,
   `scaleHsla`), green = good for that team. How-often rows colored too (offense 1st = does it most,
