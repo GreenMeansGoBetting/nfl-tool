@@ -32,3 +32,33 @@
 @media (max-width: 760px) {
   .mk-list, .mk-list.mk-wide { grid-template-columns: 1fr; }
 }
+/* The Matchup Summary card: one width (two fit a 1160 video frame), the 7 categories down the middle,
+   each team's Off / Def rank of 30 on either side. Beside the groups; above them on narrower screens. */
+.mk-layout { display: flex; flex-wrap: wrap-reverse; align-items: flex-end; gap: 16px; }
+.mk-groups { flex: 1 1 1200px; max-width: 1260px; min-width: 0; }
+.mk-side { flex: 0 0 auto; position: sticky; top: 12px; }
+.mks-card { width: 470px; box-sizing: border-box; padding: 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
+.mks-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 8px; }
+.mks-team { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 9px; font-family: var(--font-display); font-size: 1.35rem;
+  background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
+.mks-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.mks-mid b { font-family: var(--font-display); font-size: 1.02rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.mks-mid span { font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+.mks-grid { width: 100%; border-collapse: separate; border-spacing: 3px; table-layout: fixed; }
+.mks-grid col.mks-c { width: 56px; }
+.mks-grid th { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 0 1px; }
+.mks-grid td { padding: 0; }
+.mks-t { padding: 7px 0; text-align: center; }
+.mks-t b { font-size: 0.98rem; }
+.mks-cat { display: flex; align-items: center; gap: 4px; height: 33px; padding: 0 5px; border-radius: 6px; background: var(--panel-2); }
+.mks-cat b { flex: 1; text-align: center; font-family: var(--font-display); font-size: 0.98rem; white-space: nowrap; }
+.mks-edge { display: flex; flex: 0 0 22px; height: 22px; align-items: center; justify-content: center; border-radius: 50%; }
+.mks-edge:not(:empty) { background: rgba(var(--good-rgb), 0.35); box-shadow: 0 0 0 2px rgb(var(--good-rgb)); }
+.mks-all { display: grid; grid-template-columns: repeat(2, 470px); gap: 16px; }
+@media (max-width: 1000px) {
+  .mks-all { grid-template-columns: 470px; }
+}
+@media (max-width: 760px) {
+  .mks-card { width: 100%; }
+  .mks-all { grid-template-columns: 1fr; }
+}

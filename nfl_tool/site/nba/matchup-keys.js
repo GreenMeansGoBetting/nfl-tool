@@ -4,17 +4,31 @@
 // styles"). The keys are keys.js's (nbaMatchupKeys, every rule in one place), stacked in its three
 // groups: Edges (a column a team), Clashes, Same Style, strongest first in each. Every number is
 // two tiles in the room of one: the number and its rank of 30, both on the rank colors.
+// Beside them, the Matchup Summary card: the 7 categories that matter most (the owner, 2026-11-04,
+// "the overwhelming aspect of scheme and stats"), each team's Off and Def rank of 30 on either
+// side, the logo of a team with an Edge (keys.js) beside the category. Show All Summaries = every
+// game's card on one page, two a row, for the owner's video screenshots.
 // Data: nba/data.json `league_chart`, the columns in league-cols.js. No common.js.
 
 let DATA = null;
 let dayIndex = 0;
 let gameId = null;
-const view = { window: "season" };
+const view = { window: "season", all: false };
 const NBA_GAME_KEY = "nba-tool.game.v1"; // the open game, shared with Matchup Breakdown (nba.js)
 const MK_GROUPS = [
   ["edge", "Edges", "var(--good-rgb)"],
   ["clash", "Clashes", "150, 100, 220"],
   ["style", "Same Style", "70, 130, 220"],
+];
+// The Matchup Summary's rows: [name, offense key, defense key (null: one number a team), keys.js topic].
+const MK_SUMMARY = [
+  ["Scoring Efficiency", "o_rtg", "d_rtg", "scoring"],
+  ["Pace", "pace", null, "pace"],
+  ["Three-Point Shooting", "o_3pm", "d_3pm", "threes"],
+  ["Paint Scoring", "o_paint_pct", "d_paint_pct", "paint"],
+  ["Turnovers", "o_tov", "d_tov", "turnovers"],
+  ["Rebounding", "o_reb", "d_reb", "glass"],
+  ["Free Throws", "o_ftr", "d_ftr", "ft"],
 ];
 
 const el = (id) => document.getElementById(id);
@@ -50,6 +64,47 @@ function colLabel(key) {
   return key.startsWith("o_") ? `Off ${label}` : key.startsWith("d_") ? `Def ${label}` : label;
 }
 
+// The Matchup Summary card: road team left, home right, each side its Off and Def rank of 30 on the
+// rank colors (green = good for that team, like the chart); a team with an Edge on that subject
+// (keys.js) gets its logo beside the category, the keys in the hover.
+function summaryCard(table, ranks, game, keys) {
+  const side = [game.away, game.home];
+  const tile = (t, key) => {
+    const col = COLS.find((c) => c[0] === key);
+    const v = table[t][key], rk = ranks[key].r[t];
+    const tip = `${team(t).name} · ${col[2]}: ${exact(v, col[3])}${rk ? ` · ${ordinal(rk)} of ${ranks[key].n}` : ""}`;
+    return `<div class="od-tile mks-t"${rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : ""} title="${tip}"><b>${rk ? ordinal(rk) : ""}</b></div>`;
+  };
+  const cells = (t, ok, dk) => (dk ? `<td>${tile(t, ok)}</td><td>${tile(t, dk)}</td>` : `<td colspan="2">${tile(t, ok)}</td>`);
+  const rows = MK_SUMMARY.map(([name, ok, dk, topic]) => {
+    const mark = (t) => {
+      const mine = keys.filter((k) => k.group === "edge" && k.topic === topic && k.team === t);
+      return mine.length ? `<span class="mks-edge" title="Edge: ${mine.map((k) => k.title).join(" · ")}">${logo(t, 18)}</span>` : `<span class="mks-edge"></span>`;
+    };
+    return `<tr>${cells(side[0], ok, dk)}<td><div class="mks-cat">${mark(side[0])}<b>${name}</b>${mark(side[1])}</div></td>${cells(side[1], ok, dk)}</tr>`;
+  }).join("");
+  // The line when there is one (Novig, locked at tip).
+  const hs = game.home_team_spread, total = game.total_line;
+  const fav = hs === null || hs === undefined ? null : hs <= 0 ? game.home : game.away;
+  const favLine = fav === game.home ? hs : -hs;
+  const line = [fav ? `${fav} ${favLine > 0 ? "+" : ""}${favLine}` : "", total ? `O/U ${total}` : ""].filter(Boolean).join(" · ");
+  const head = (t) => `<div class="mks-team" style="--team:${teamRgb(t)}">${logo(t, 34)}<b>${t}</b></div>`;
+  return `<div class="mks-card" data-game="${game.game_id}">
+    <div class="mks-head">${head(side[0])}<div class="mks-mid"><b>Matchup Summary</b><span>${gmgGameTime(game, false)}${line ? ` · ${line}` : ""}</span></div>${head(side[1])}</div>
+    <table class="mks-grid"><colgroup><col class="mks-c"><col class="mks-c"><col><col class="mks-c"><col class="mks-c"></colgroup>
+      <thead><tr><th>Off</th><th>Def</th><th></th><th>Off</th><th>Def</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+  </div>`;
+}
+// Every game of the day's card, two a row (one screenshot = two games).
+function renderAll(table) {
+  const ranks = ranksOf(table);
+  const games = gamesOn(days()[dayIndex]).filter((g) => table[g.away] && table[g.home]);
+  el("mk-body").innerHTML = games.length
+    ? `<div class="mks-all">${games.map((g) => summaryCard(table, ranks, g, nbaMatchupKeys(table, g.away, g.home))).join("")}</div>`
+    : `<p class="no-data-note">No games with numbers on this day.</p>`;
+}
+
 function renderKeys() {
   const table = (DATA.league_chart || {})[view.window];
   const game = DATA.schedule.find((g) => g.game_id === gameId);
@@ -59,6 +114,7 @@ function renderKeys() {
     el("mk-body").innerHTML = "";
     return;
   }
+  if (view.all) return renderAll(table);
   if (!game || !table[game.away] || !table[game.home]) {
     el("mk-body").innerHTML = `<p class="no-data-note">Pick a game above to see its Matchup Keys.</p>`;
     return;
@@ -92,11 +148,14 @@ function renderKeys() {
         : list.length ? `<div class="mk-list mk-wide">${list.map((k) => card(k, rgb, false)).join("")}</div>` : none;
     return `<section class="mk-group" data-group="${group}" style="--kc:${rgb}"><h3 class="mk-group-head">${name}<span class="mk-count">${list.length}</span></h3>${body}</section>`;
   }).join("");
-  el("mk-body").innerHTML = `<div class="mk-head">${logo(game.away, 24)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 24)}<b>${game.home}</b></div>${sections}`;
+  el("mk-body").innerHTML = `<div class="mk-head">${logo(game.away, 24)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 24)}<b>${game.home}</b></div>
+    <div class="mk-layout"><div class="mk-groups">${sections}</div><aside class="mk-side">${summaryCard(table, ranks, game, keys)}</aside></div>`;
 }
 function render() {
   renderSchedule();
   document.querySelectorAll("#mk-window .view-toggle-btn").forEach((b) => b.classList.toggle("active", b.dataset.window === view.window));
+  el("mk-all").classList.toggle("active", view.all);
+  el("mk-all").setAttribute("aria-pressed", String(view.all));
   renderKeys();
 }
 function selectGame(id) {
@@ -111,11 +170,18 @@ function selectGame(id) {
 
 document.addEventListener("click", (e) => {
   const card = e.target.closest(".matchup-card");
-  if (card) return selectGame(card.dataset.game);
+  if (card) {
+    view.all = false; // a game card opens that game's keys
+    return selectGame(card.dataset.game);
+  }
   if (e.target.closest("#day-prev") || e.target.closest("#day-next")) {
     dayIndex = Math.max(0, Math.min(days().length - 1, dayIndex + (e.target.closest("#day-prev") ? -1 : 1)));
     // A new day opens on its first game.
     return selectGame((gamesOn(days()[dayIndex])[0] || {}).game_id || null);
+  }
+  if (e.target.closest("#mk-all")) {
+    view.all = !view.all;
+    return render();
   }
   const win = e.target.closest("#mk-window .view-toggle-btn");
   if (win) {

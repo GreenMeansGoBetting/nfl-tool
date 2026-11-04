@@ -360,6 +360,12 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature.
 const GMG_UPDATES = [
   {
+    id: "2026-11-04b",
+    items: [
+      ["📋", "<b>Matchup Summary</b> on NBA Matchup Keys: the 7 categories that matter most in a game (Scoring Efficiency, Pace, Three-Point Shooting, Paint Scoring, Turnovers, Rebounding, Free Throws), each team's offense and defense rank in each one, colored, with a team's logo beside any category where it has an edge. <b>Show All Summaries</b> puts every game's card on one page."],
+    ],
+  },
+  {
     id: "2026-11-04",
     items: [
       ["🔑", "<b>NBA Matchup Keys</b> has its own page, under Matchup Breakdown in the NBA menu. Pick a game for what stands out, in three groups: <b>Edges</b> (a column for each team), <b>Clashes</b> and <b>Same Style</b>, strongest first. Every number now shows its rank of 30 beside it, both colored."],

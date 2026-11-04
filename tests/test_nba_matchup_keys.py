@@ -5,7 +5,9 @@ WSH read; every key in one of the three groups the page stacks (the owner, 2026-
 their moniker - edge, clash, and same style ... all fit into that category"; Fits / Takes Away are
 the favored side's Edge); the page: Edges a column a team, Clashes, Same Style, strongest first; every
 number = its value and its rank side by side, both on the rank colors; the window buttons; the picked
-game shared with Matchup Breakdown; the League Stats Chart without its old Matchup Keys button."""
+game shared with Matchup Breakdown; the League Stats Chart without its old Matchup Keys button; the
+Matchup Summary card (the owner's 7 categories, each team's Off / Def rank, a logo beside each Edge)
+and Show All Summaries (every game's card, two a row for the owner's video screenshots)."""
 import json
 import sys
 import unittest
@@ -113,7 +115,7 @@ class Rules(unittest.TestCase):
 
 class Page(unittest.TestCase):
     def setUp(self):
-        PAGE.evaluate("() => { view.window = 'season'; gameId = '88'; render(); }")
+        PAGE.evaluate("() => { view.window = 'season'; view.all = false; gameId = '88'; dayIndex = 0; render(); }")
 
     def test_no_script_errors(self):
         self.assertEqual(SITE.errors, [])
@@ -162,6 +164,47 @@ class Page(unittest.TestCase):
         self.assertEqual(PAGE.evaluate("document.querySelector('.mk-head').textContent.replace(/\\s+/g, '')"), "BOS@NY")
         self.assertEqual(PAGE.evaluate("localStorage.getItem('nba-tool.game.v1')"), "89")
         self.assertTrue(PAGE.evaluate("document.querySelector('.matchup-card[data-game=\"89\"]').classList.contains('selected')"))
+
+    def test_the_summary_card_beside_the_keys(self):
+        # the owner's 7 categories down the middle, each team's Off and Def rank on either side
+        card = PAGE.evaluate("""() => {
+            const c = document.querySelector('.mk-side .mks-card');
+            return {cats: [...c.querySelectorAll('.mks-cat b')].map((b) => b.textContent),
+                    teams: [...c.querySelectorAll('.mks-team b')].map((b) => b.textContent),
+                    rows: [...c.querySelectorAll('tbody tr')].map((tr) => [...tr.querySelectorAll('.mks-t')].map((t) => t.textContent.trim()))};
+        }""")
+        self.assertEqual(card["cats"], ["Scoring Efficiency", "Pace", "Three-Point Shooting", "Paint Scoring", "Turnovers", "Rebounding", "Free Throws"])
+        self.assertEqual(card["teams"], ["CHA", "WSH"])
+        for i, row in enumerate(card["rows"]):
+            self.assertEqual(len(row), 2 if i == 1 else 4)  # Pace: one number a team
+            for r in row:
+                self.assertRegex(r, r"^\d+(st|nd|rd|th)$")
+        # a team's Off rank is its offense's rank of 30, green = good for it (TOV%: the fewest)
+        tov = PAGE.evaluate("() => document.querySelectorAll('.mk-side tbody tr')[4].querySelector('.mks-t').title")
+        self.assertIn("Turnover %", tov)
+        self.assertIn("Charlotte Hornets", tov)
+
+    def test_a_logo_marks_each_edge_on_its_teams_side(self):
+        keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", TABLE)
+        topics = {"scoring": 0, "pace": 1, "threes": 2, "paint": 3, "turnovers": 4, "glass": 5, "ft": 6}
+        want = sorted({(topics[k["topic"]], k["team"]) for k in keys if k["group"] == "edge" and k["topic"] in topics})
+        got = PAGE.evaluate("""() => [...document.querySelectorAll('.mk-side tbody tr')].flatMap((tr, i) =>
+            [...tr.querySelectorAll('.mks-edge')].map((m, j) => m.querySelector('img') ? [i, j ? 'WSH' : 'CHA'] : null).filter(Boolean))""")
+        self.assertTrue(want)
+        self.assertEqual(sorted(tuple(g) for g in got), want)
+
+    def test_show_all_summaries_two_a_row_then_back(self):
+        PAGE.click("#mk-all")
+        cards = PAGE.evaluate("""() => [...document.querySelectorAll('.mks-all .mks-card')].map((c) => {
+            const r = c.getBoundingClientRect(); return {game: c.dataset.game, top: Math.round(r.top), w: r.width}; })""")
+        self.assertEqual([c["game"] for c in cards], ["88", "89"])  # every game of the day
+        self.assertEqual(cards[0]["top"], cards[1]["top"])  # side by side: one screenshot = two games
+        self.assertLessEqual(cards[0]["w"] * 2, 1160)  # two fit the video frame
+        self.assertFalse(PAGE.evaluate("() => !!document.querySelector('.mk-group')"))
+        self.assertTrue(PAGE.evaluate("document.getElementById('mk-all').classList.contains('active')"))
+        PAGE.click('.matchup-card[data-game="89"]')  # a game card opens that game's keys
+        self.assertFalse(PAGE.evaluate("view.all"))
+        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.mk-group')"))
 
     def test_the_league_stats_chart_lost_its_button(self):
         html = (ROOT / "nfl_tool" / "site" / "nba" / "league.html").read_text(encoding="utf-8")

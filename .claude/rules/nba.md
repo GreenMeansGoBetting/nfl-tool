@@ -476,6 +476,16 @@ the same framework next ("once we have the framework down").
   `tests/fixtures/nba_league_chart_2026-10-30.json`. Owner fear: things omitted or miscounted: audit a
   real slate before changing a rule. **No model points on the keys** (2026-11-03). Tests:
   `tests/test_nba_matchup_keys.py`.
+- **Matchup Summary card** (2026-11-04, the owner approved the mock-up: "i absolutely love it";
+  `summaryCard`, `MK_SUMMARY`): beside the groups (flex `wrap-reverse`: above them when the screen is
+  too narrow), one width 470 px (two fit the 1160 video frame). Team banners on either side, "Matchup
+  Summary" + tip time + spread / total in the middle; **the 7 categories down the middle**: Scoring
+  Efficiency (ORtg / DRtg), Pace (one tile a team), Three-Point Shooting (3PM), Paint Scoring (paint FG%),
+  Turnovers, Rebounding (OREB% / DREB%), Free Throws (FT rate). Each side = the team's **Off and Def rank
+  of 30** (the owner chose ranks over letter grades), green = good for that team; read Off against the
+  other team's Def. A team's logo in a green ring beside a category = it has an Edge key on that topic
+  (hover lists them). **Show All Summaries** (button beside the windows): every game of the carousel's
+  day as its card, two a row (one screenshot = two games); a game card goes back to that game's keys.
 
 ## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`)
 
