@@ -5323,9 +5323,9 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0063,
+    "lead": 0.0064,
     "name": "Julius Randle",
-    "proj": 32.8,
+    "proj": 32.9,
     "team": "BKN"
    },
    {
@@ -5414,7 +5414,7 @@
    },
    {
     "id": "4395628",
-    "lead": 0.0023,
+    "lead": 0.0022,
     "name": "Zion Williamson",
     "proj": 29.0,
     "team": "NO"
@@ -5570,7 +5570,7 @@
     "id": "4396971",
     "lead": 0.0004,
     "name": "Naz Reid",
-    "proj": 25.3,
+    "proj": 25.4,
     "team": "CHA"
    },
    {
@@ -5594,7 +5594,7 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.4046,
+    "lead": 0.4045,
     "name": "Giannis Antetokounmpo",
     "proj": 45.9,
     "team": "MIA"
@@ -5608,14 +5608,14 @@
    },
    {
     "id": "4566434",
-    "lead": 0.0844,
+    "lead": 0.0843,
     "name": "Franz Wagner",
     "proj": 34.0,
     "team": "ORL"
    },
    {
     "id": "5175737",
-    "lead": 0.0649,
+    "lead": 0.0648,
     "name": "Yaxel Lendeborg",
     "proj": 32.3,
     "team": "GS"
@@ -5671,9 +5671,9 @@
    },
    {
     "id": "4066320",
-    "lead": 0.0076,
+    "lead": 0.0079,
     "name": "Desmond Bane",
-    "proj": 24.2,
+    "proj": 24.3,
     "team": "ORL"
    },
    {
@@ -5771,7 +5771,7 @@
     "id": "4278402",
     "lead": 0.0,
     "name": "Jordan Goodwin",
-    "proj": 13.2,
+    "proj": 13.3,
     "team": "PHX"
    },
    {
@@ -5799,7 +5799,7 @@
     "id": "5239561",
     "lead": 0.0,
     "name": "Jase Richardson",
-    "proj": 10.2,
+    "proj": 10.3,
     "team": "ORL"
    },
    {
