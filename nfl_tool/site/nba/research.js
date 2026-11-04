@@ -306,7 +306,7 @@ function hitCell(h, title) {
 }
 function allowCell(x) {
   if (!x.allow) return '<td class="num rs-allow">--</td>';
-  const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${ordinal(x.allowRank)} most of ${x.allowN}, over ${x.allow.n} games`;
+  const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${rankWords(x.allowRank, x.allowN)}, over ${x.allow.n} games`;
   return `<td class="num rs-allow" style="${rankStyle(x.allowRank, x.allowN)}" title="${tip}"><b>${fmt(x.allow.v)}</b><small>${ordinal(x.allowRank)} &middot; ${x.p.pos}</small></td>`;
 }
 function gameCells(x) {
@@ -390,14 +390,18 @@ const gridOf = (head, rows, { bands = [], cls = "", n = RS_ROWS, fill = false } 
   return `<div class="rs-gw"><div class="rs-g${cls ? ` ${cls}` : ""}"${st}>${head}${out.join("")}</div>${back}</div>`;
 };
 const BANDS_3_3_1 = [["him", 2, 3], ["def", 5, 3], ["rd", 8, 1]];
-// the two-sided read (the site's matchup rule): one side clearly one way, the other not the other way
+// A rank of 30 in words: the top half "Nth-most", the bottom half "Nth-least" (the owner, 2026-11-04,
+// read "27th most of 30" as near the top).
+const rankWords = (r, n) => (r <= Math.ceil(n / 2) ? `${ordinal(r)}-most of ${n}` : `${ordinal(n - r + 1)}-least of ${n} (${ordinal(r)} of ${n})`);
+// the two-sided read (the site's matchup rule): one side clearly one way, the other not the other way.
+// Over / Under / Even (the owner, 2026-11-04: "so we can start framing it as betting").
 const readOf = (a, b) => {
   if (a === null || a === undefined || b === null || b === undefined) return { t: "--", s: null };
-  if ((a >= 0.4 && b > -0.1) || (b >= 0.4 && a > -0.1)) return { t: "More", s: 1 };
-  if ((a <= -0.4 && b < 0.1) || (b <= -0.4 && a < 0.1)) return { t: "Fewer", s: -1 };
+  if ((a >= 0.4 && b > -0.1) || (b >= 0.4 && a > -0.1)) return { t: "Over", s: 1 };
+  if ((a <= -0.4 && b < 0.1) || (b <= -0.4 && a < 0.1)) return { t: "Under", s: -1 };
   return { t: "Even", s: 0.1 };
 };
-const READ_TIP = { More: "One side points to more points for him and the other doesn't point against it", Fewer: "One side points to fewer points for him and the other doesn't point against it", Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
+const READ_TIP = { Over: "The Over: one side points to more points for him and the other doesn't point against it", Under: "The Under: one side points to fewer points for him and the other doesn't point against it", Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
 
 // Rotation players at one position (12+ minutes, 3+ games): the pool a number is ranked in.
 function posPool(pos) {
@@ -516,14 +520,14 @@ function formTab(x) {
     else {
       const rk = (w) => (opp[w] && D.ranks[w][key].r[x.opp] ? rankSigned(D.ranks[w][key].r[x.opp], D.ranks[w][key].n) : null);
       const val = (w) => (opp[w] ? opp[w][key] : null);
-      const tip = (w, label) => (opp[w] ? `${team(x.opp).name} allow ${x.p.pos}s ${fmt(val(w), d)} ${what}${ag} ${label} (${ordinal(D.ranks[w][key].r[x.opp])} most of ${D.ranks[w][key].n})` : "");
+      const tip = (w, label) => (opp[w] ? `${team(x.opp).name} allow ${x.p.pos}s ${fmt(val(w), d)} ${what}${ag} ${label} (${rankWords(D.ranks[w][key].r[x.opp], D.ranks[w][key].n)})` : "");
       ds = rk("season");
       cells += T(fmt(val("season"), d), ds, tip("season", "this season")) + T(fmt(val("l10"), d), rk("l10"), tip("l10", `in their last ${opp.l10 ? opp.l10.n : 0}`))
         + T(fmt(val("l5"), d), rk("l5"), tip("l5", `in their last ${opp.l5 ? opp.l5.n : 0}`));
     }
     const rd = key ? readOf(hs, ds) : { t: "--", s: null };
     const [up, down] = ag ? [`more ${what}`, `fewer ${what}`] : [`a higher ${what}`, `a lower ${what}`];
-    const rdTip = { More: `One side points to ${up} for him and the other doesn't point against it`, Fewer: `One side points to ${down} for him and the other doesn't point against it`,
+    const rdTip = { Over: `The Over: one side points to ${up} for him and the other doesn't point against it`, Under: `The Under: one side points to ${down} for him and the other doesn't point against it`,
       Even: "The two sides don't line up one way", "--": key ? "Not enough data on one side yet" : "His number only: no defense side" };
     cells += T(rd.t, rd.s, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`);
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}${ag}`) + cells;
@@ -545,7 +549,7 @@ function scoringTab(x) {
   const row = (label, v, vals, dv, dr, ppg, dppg, tip, dtip) => {
     const rk = rankIn(v, vals), s = spread(v, vals), ds = rankSigned(dr.r[x.opp], dr.n), rd = readOf(s, ds);
     return LB(label, tip) + T(pctT(v), s, tip) + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "") + T(ppg === null ? "--" : fmt(ppg), ppg === null ? null : s, ppg === null ? "" : `${fmt(ppg)} points a game`)
-      + T(pctT(dv), ds, `${team(x.opp).name}: ${dtip}`) + T(dr.r[x.opp] ? ordinal(dr.r[x.opp]) : "--", ds, dr.r[x.opp] ? `${ordinal(dr.r[x.opp])} most of ${dr.n}` : "")
+      + T(pctT(dv), ds, `${team(x.opp).name}: ${dtip}`) + T(dr.r[x.opp] ? ordinal(dr.r[x.opp]) : "--", ds, dr.r[x.opp] ? `${rankWords(dr.r[x.opp], dr.n)}` : "")
       + T(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`) + T(rd.t, rd.s, READ_TIP[rd.t]);
   };
   const rows = [
@@ -801,7 +805,7 @@ const THREE_WAYS = [
   ["Second Chance", "threes after an offensive rebound, same possession"],
 ];
 const SHARE_MIN_3PA = 10; // a player at his position needs this many threes to rank his shares
-const READ_TIP3 = { More: "One side points to more threes this way and the other doesn't point against it", Fewer: "One side points to fewer threes this way and the other doesn't point against it", Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
+const READ_TIP3 = { Over: "The Over: one side points to more threes this way and the other doesn't point against it", Under: "The Under: one side points to fewer threes this way and the other doesn't point against it", Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
 function shootingTab(x) {
   const pool = posPool(x.p.pos);
   const D = defenseByPos(x.p.pos);
@@ -826,7 +830,7 @@ function shootingTab(x) {
     const dtip = `${team(x.opp).name}: share of ${x.p.pos}s' threes against them that are ${what}${theirs.length ? `: ${theirs[0]} of ${theirs[1]} made (${pctT(theirs[1] ? theirs[0] / theirs[1] : null)})` : ""}`;
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}`) + T(pctT(v), s, tip) + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s (${SHARE_MIN_3PA}+ threes)` : "")
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} made a game this way`)
-      + T(pctT(dv), ds, dtip) + T(dr ? ordinal(dr) : "--", ds, dr ? `${ordinal(dr)} most of ${sorted.length}` : "")
+      + T(pctT(dv), ds, dtip) + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dmg)} made a game this way`)
       + T(rd.t, rd.s, READ_TIP3[rd.t]);
   });
@@ -989,7 +993,7 @@ function reboundingTab(x) {
   };
   const them = (rk, t, show, flip = false) => {
     const s = rankSigned(rk.r[t], rk.n);
-    return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${ordinal(rk.r[t])} most of ${rk.n}` : "" };
+    return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${rankWords(rk.r[t], rk.n)}` : "" };
   };
   const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
   const name = team(x.opp).name;
@@ -1012,11 +1016,11 @@ function reboundingTab(x) {
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
 }
-const READ_TIP_R = { More: "One side points to more rebounds for him and the other doesn't point against it", Fewer: "One side points to fewer rebounds for him and the other doesn't point against it", Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
+const READ_TIP_R = { Over: "The Over: one side points to more rebounds for him and the other doesn't point against it", Under: "The Under: one side points to fewer rebounds for him and the other doesn't point against it", Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
 
 // Miss Zones: where the misses he grabs on defense come from, beside where tonight's opponent
 // misses from (research.py `rz` / `mz`, MISS_ZONES order). A big living on rim misses against a
-// team that misses at the rim a lot reads More; a wing who gets long boards against a team that
+// team that misses at the rim a lot reads Over; a wing who gets long boards against a team that
 // misses a lot of threes, the same.
 const MISS_ZONE_ROWS = [["Rim", "misses at the rim (0-4 ft)"], ["Paint", "short misses (5-9 ft)"], ["Mid-Range", "mid-range misses"],
   ["Corner 3", "corner three misses"], ["Above-Break 3", "above-the-break three misses"], ["Free Throws", "missed free throws"]];
@@ -1045,7 +1049,7 @@ function missZonesTab(x) {
       + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s (${ZONE_MIN_BOARDS}+ defensive rebounds)` : "")
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} defensive rebounds a game off ${what}`)
       + T(pctT(dv), ds, `Share of ${team(x.opp).name}'s rebounded misses that are ${what}`)
-      + T(dr ? ordinal(dr) : "--", ds, dr ? `${ordinal(dr)} most of ${sorted.length}` : "")
+      + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} leave ${fmt(dmg)} ${what} a game`)
       + T(rd.t, rd.s, READ_TIP_R[rd.t]);
   });
@@ -1096,7 +1100,7 @@ const RS_TAB = { Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game 
 const RS_TAB_TIP = {
   Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
   Scoring: "Where his points come from (share, rank among his position, points a game) beside what tonight's defense allows his position, and the read.",
-  Matchup: "His side and the defense's side of the same thing. More / Fewer only when one side clearly points one way and the other doesn't point the other way.",
+  Matchup: "His side and the defense's side of the same thing. Over / Under only when one side clearly points one way and the other doesn't point the other way.",
   "Game Script": `His games like tonight: within ${SCRIPT_RANGE} points of tonight's spread and total either way, within ${PACE_RANGE} possessions of tonight's pace, his home or road games and his last 10, each colored against his season. Fewer than ${SMALL} games is too few to lean on (faded, uncolored).`,
   "Vs The Line": `His last ${LINE_DAYS} days against tonight's line (dashed): a bar a game, OUT when his team played without him, OFF when it didn't play. The dots are the line he had that night (green = cleared).`,
   Rotation: "When he's on the floor at each minute (green = most of his games), with his points a game in each quarter in its header.",

@@ -247,7 +247,7 @@ Every game played 10,000 times, possession by possession.
   header row, `RS_ROWS` 6 rows, a 112 px label column (Teammates 150, `rs-wide`) + 7 equal columns;
   `gridOf` fills short tabs with blank rows; merge with `rs-s2` / `rs-s3` / `rs-s7`). **Boxes a fixed
   600 px, never stretched**; tabs are separate raised buttons; space above the panel (2026-11-03).
-  Blue = him, purple = tonight's defense, green = the read (`readOf`, the two-sided rule), as header
+  Blue = him, purple = tonight's defense, green = the read (`readOf`, the two-sided rule; **Over / Under / Even** since 2026-11-04, the owner: "framing it as betting"; rank hovers say "Nth-most" / "Nth-least of 30", `rankWords`), as header
   tiles AND shaded bands behind each column group (`gridOf` `bands`); tiles on the 8-step scale
   (`stepStyle`). **Him = his jersey number** on a jersey in his team's color (`jersey`, props.json
   `num`); the corner key = jersey + "<logo> vs PGs". Short labels (PTS / MIN / FGA / 3PM / FTA / FG%;

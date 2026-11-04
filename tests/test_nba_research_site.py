@@ -368,6 +368,8 @@ class Threes(unittest.TestCase):
         self.assertEqual(rows[1][1], "49%")  # 20 of his 41
         self.assertEqual(rows[1][3], "1.0")  # 6 made in 6 games
         self.assertEqual(rows[1][4:6], ["75%", "1st"])  # BBB: 30 of 40, the most
+        # the read in betting words (the owner, 2026-11-04): Over / Under / Even, never More / Fewer
+        self.assertTrue({r[7] for r in rows[1:]} <= {"Over", "Under", "Even", "--"}, rows)
 
     def test_shot_map(self):
         box = self.tab("left", "Shot Map")
