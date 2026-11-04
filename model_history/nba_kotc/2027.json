@@ -5169,14 +5169,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.413,
+    "lead": 0.4128,
     "name": "Luka Doncic",
     "proj": 57.4,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.1009,
+    "lead": 0.1008,
     "name": "Giannis Antetokounmpo",
     "proj": 45.2,
     "team": "MIA"
@@ -5211,7 +5211,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.027,
+    "lead": 0.0268,
     "name": "Karl-Anthony Towns",
     "proj": 37.7,
     "team": "NY"
@@ -5246,7 +5246,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0172,
+    "lead": 0.0171,
     "name": "Cooper Flagg",
     "proj": 36.4,
     "team": "DAL"
@@ -5274,16 +5274,16 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0148,
+    "lead": 0.015,
     "name": "Jalen Johnson",
-    "proj": 35.8,
+    "proj": 35.9,
     "team": "ATL"
    },
    {
     "id": "6583",
-    "lead": 0.0136,
+    "lead": 0.0137,
     "name": "Anthony Davis",
-    "proj": 35.2,
+    "proj": 35.3,
     "team": "WSH"
    },
    {
@@ -5295,7 +5295,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0121,
+    "lead": 0.012,
     "name": "Tyrese Maxey",
     "proj": 35.2,
     "team": "PHI"
@@ -5323,9 +5323,9 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0058,
+    "lead": 0.006,
     "name": "Trae Young",
-    "proj": 32.5,
+    "proj": 32.6,
     "team": "WSH"
    },
    {
@@ -5504,18 +5504,18 @@
     "team": "NY"
    },
    {
+    "id": "5142718",
+    "lead": 0.0007,
+    "name": "AJ Dybantsa",
+    "proj": 26.2,
+    "team": "WSH"
+   },
+   {
     "id": "6606",
     "lead": 0.0006,
     "name": "Damian Lillard",
     "proj": 28.1,
     "team": "POR"
-   },
-   {
-    "id": "5142718",
-    "lead": 0.0006,
-    "name": "AJ Dybantsa",
-    "proj": 26.1,
-    "team": "WSH"
    },
    {
     "id": "3202",
@@ -5577,7 +5577,7 @@
     "id": "4278039",
     "lead": 0.0002,
     "name": "Nickeil Alexander-Walker",
-    "proj": 26.2,
+    "proj": 26.3,
     "team": "ATL"
    },
    {
