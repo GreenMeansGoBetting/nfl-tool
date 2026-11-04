@@ -293,6 +293,10 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 .rs-list td.rs-two b, .rs-list td.rs-allow b, .rs-list td.rs-line b { font: 800 1.02rem var(--font-display); }
 .rs-list td.rs-two small, .rs-list td.rs-allow small { display: block; font: 600 0.68rem var(--font-body); color: var(--muted); }
 .rs-list td.rs-allow small { color: var(--text); opacity: 0.75; }
+/* Reads (O / U): "x/y" tiles, the band green (green = the read on every panel) */
+.rs-list td.rs-read { min-width: 46px; }
+.rs-list td.rs-read b { font: 800 1.02rem var(--font-display); }
+.sim-group-row th.sim-hitgroup.rs-readgroup span { background: rgba(var(--good-rgb), 0.2); border-color: rgba(var(--good-rgb), 0.5); }
 .rs-list td.rs-price .rs-saved { margin-left: 4px; font-weight: 800; color: var(--good-text, var(--accent)); }
 .rs-list tr.sim-row { cursor: default; }
 .sim-rtag.rs-maybe { border-style: dashed; }

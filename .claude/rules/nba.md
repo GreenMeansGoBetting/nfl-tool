@@ -308,6 +308,13 @@ Every game played 10,000 times, possession by possession.
   owner's "why did Acuff pass more that game?"). Rotation: AST a quarter only. Teammates: AST a 36 and
   rate with / without, change, **To Him** (his assists to that teammate, `to`). List Volume = his assist
   rate (`astRate`). The owner may want a deeper "why did he pass more" tool later (Zone Matchup style).
+- **Reads: O / U** (the owner, 2026-11-04), right of Opp Allows under a green "Reads" band: how many of the
+  Read tiles in his panel say Over / Under, "x/y" out of every Read tile on that page (Points 17, Threes 9,
+  Rebounds 14, Assists 14; a "--" read counts as neither; Form's MIN row is never a read, `none`), colored by the
+  share (`READ_FULL` 0.5 = greenest). Every Read tile goes through `RT`, so the column always equals the panel
+  (`readsOf`, cached per player). Form compares him to his position, so a star facing a weak defense leans Over:
+  the owner chose that over a 'signature' tag rule after seeing real examples ("luka is facing a weak defense
+  thats why he shows"). Next: an All Props page and filters (offense AND defense numbers).
 - **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
   book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30
   teams' paces), Spread (his team's), Total (`tonightGame`).

@@ -96,7 +96,7 @@ class Points(unittest.TestCase):
 
     def test_no_model_on_the_page(self):
         self.assertEqual(SITE.errors, [])
-        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Pace", "Spread", "Total", "Teammates On The Report"])
+        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "O", "U", "Pace", "Spread", "Total", "Teammates On The Report"])
         text = self.page.inner_text("main")
         for word in ("Edge", "Fair", "Rating", "Strong", "Projection", "Plays Only", "Model Performance", "10,000"):
             self.assertNotIn(word, text)
@@ -114,8 +114,8 @@ class Points(unittest.TestCase):
         self.assertEqual(one[6], "28%")
         self.assertEqual(one[7:10], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
         self.assertEqual(one[12], "22.0 1st · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
-        self.assertEqual(one[14], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
-        self.assertEqual(one[15], "225.0 O/U")
+        self.assertEqual(one[16], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
+        self.assertEqual(one[17], "225.0 O/U")
         self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
 
     def test_a_price_in_the_popup_saves_the_play(self):
@@ -138,6 +138,31 @@ class Points(unittest.TestCase):
             self.assertEqual(marks, [False, True])
         finally:
             page.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); const m = document.getElementById('book-odds-modal'); if (m) m.hidden = true; renderList(); }")
+        self.assertEqual(SITE.errors, [])
+
+    def test_reads_count_every_read_in_the_panel(self):
+        # The owner, 2026-11-04: O and U columns right of Opp Allows, "x/y" with the letter as the header,
+        # colored by the share; every player on a page out of the same number (every Read tile on it).
+        page = self.page
+        self.assertEqual(page.evaluate("() => document.querySelector('#rs-list .rs-readgroup').textContent"), "Reads")
+        o, u = page.evaluate("() => [...document.querySelectorAll('#rs-list tr.sim-row td.rs-read')].map((td) => td.textContent)")
+        try:
+            page.click("#rs-list tr.sim-row td.rs-line")  # opens his panel
+            page.wait_for_selector("#rs-list .rs-panel")
+            seen = {"Over": 0, "Under": 0, "all": 0}
+            for tab in ("Form", "Scoring", "Matchup"):
+                page.click(f"#rs-list [data-rs-tab='left:{tab}']")
+                tiles = page.evaluate("() => { const g = [...document.querySelectorAll('#rs-list .rs-sb[data-side=left] .rs-t')].map((t) => t.textContent.trim()); const w = g.indexOf('Read') + 1; const out = []; for (let i = w; i + w <= g.length; i += w) out.push([g[i], g[i + w - 1]]); return out; }")
+                for label, read in tiles:
+                    if label and not (tab == "Form" and label == "MIN"):  # minutes has no defense side: never a read
+                        seen["all"] += 1
+                        seen[read] = seen.get(read, 0) + 1
+            self.assertEqual(seen["all"], 17)
+            self.assertEqual([o, u], [f"{seen['Over']}/17", f"{seen['Under']}/17"])
+        finally:
+            page.evaluate("() => { OPEN = null; renderList(); }")
+        # sorting on O puts the biggest share first
+        self.assertIn("ro", page.evaluate("() => Object.keys(SORTS)"))
         self.assertEqual(SITE.errors, [])
 
     def test_teammates_on_the_report(self):

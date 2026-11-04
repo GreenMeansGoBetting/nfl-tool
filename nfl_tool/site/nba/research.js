@@ -267,15 +267,43 @@ function rowsOn(date) {
         allowN: (A.ranks[p.pos] || {}).n || 0, allowLeague: (A.ranks[p.pos] || {}).league,
         without: withoutRows(pid, p.team), game: tonightGame(g, p.team, opp),
       });
+      out[out.length - 1].reads = readsOf(out[out.length - 1]);
     }
   }
   return out;
+}
+// ---- Reads: every Read tile in his panel, counted (the owner, 2026-11-04) ----
+// The list's O and U columns: how many of the panel's reads say Over / Under, out of every Read tile
+// on the page, so every player on a page is out of the same number (the owner: "isn't all players
+// going to read /x"); a read with no data yet ("--") and an Even count as neither. Not a pick: the
+// same reads the panel shows, added up. Form compares him to his position, so a star facing a weak
+// defense leans Over (the owner, 2026-11-04: "luka is facing a weak defense thats why he shows").
+const READ_TABS = ["Form", "Scoring", "Matchup", "Shooting", "Rebounding", "Miss Zones", "Playmaking", "Assist Zones"];
+const READ_CACHE = {};
+function readsOf(x) {
+  const key = `${x.g.game_id}:${x.pid}`;
+  if (READ_CACHE[key]) return READ_CACHE[key];
+  const tabs = [...RS_TABS.left, ...RS_TABS.right].filter((t) => READ_TABS.includes(t));
+  const r = { o: 0, u: 0, n: 0, by: [] };
+  if (PROPS.research) {
+    for (const t of tabs) {
+      READS = [];
+      try { RS_TAB[t](x); } catch (e) { READS = []; }
+      const got = READS.filter((v) => !v.none).map((v) => v.t);
+      const c = { t, o: got.filter((v) => v === "Over").length, u: got.filter((v) => v === "Under").length, n: got.length, na: got.filter((v) => v === "--").length };
+      r.o += c.o; r.u += c.u; r.n += c.n;
+      if (c.n) r.by.push(c);
+    }
+    READS = null;
+  }
+  return (READ_CACHE[key] = r);
 }
 const hitShare = (h) => (h ? h.over / h.of : -1);
 const SORTS = {
   line: (x) => (x.line === null ? -1 : x.line), avg: (x) => x.avg ?? -1, second: (x) => x.second ?? -1, vol: (x) => x.vol ?? -1,
   l5: (x) => hitShare(x.hits.l5), l10: (x) => hitShare(x.hits.l10), all: (x) => hitShare(x.hits.all),
   home: (x) => hitShare(x.hits.home), away: (x) => hitShare(x.hits.away), allow: (x) => (x.allowRank ? -x.allowRank : -99),
+  ro: (x) => (x.reads.n ? x.reads.o / x.reads.n : -1), ru: (x) => (x.reads.n ? x.reads.u / x.reads.n : -1),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
 };
 function sortedRows(date) {
@@ -301,6 +329,8 @@ const COLS = [
   { label: "Home", key: "home", hit: true, title: "Home games over tonight's line" },
   { label: "Away", key: "away", hit: true, title: "Road games over tonight's line" },
   { label: "Opp<br>Allows", key: "allow", title: `What tonight's opponent allows a game in ${MK.unit.toLowerCase()} to his position, and where that ranks (1st = the most)` },
+  { label: "O", key: "ro", read: true, title: "How many of the Reads in his research panel say Over, out of every Read on this page (colored by that share). The reads compare him to his position, so a star facing a weak defense leans Over: the line knows how good he is." },
+  { label: "U", key: "ru", read: true, title: "How many of the Reads in his research panel say Under, out of every Read on this page (colored by that share). The reads compare him to his position, so a bench player facing a tough defense leans Under: the line knows his role." },
   { label: "Pace", key: "pace", game: true, title: "Tonight's pace: both teams' possessions a 48 minutes, averaged, and where that ranks among the 30 teams (1st = fastest)" },
   { label: "Spread", key: "spread", game: true, title: "His team's spread tonight" },
   { label: "Total", key: "total", game: true, title: "Tonight's total (colored by where it sits among this season's game totals)" },
@@ -309,18 +339,19 @@ const COLS = [
 function listHead() {
   let group = "";
   for (let i = 0; i < COLS.length; i += 1) {
-    const kind = COLS[i].hit ? "hit" : COLS[i].game ? "game" : "";
+    const kind = COLS[i].hit ? "hit" : COLS[i].game ? "game" : COLS[i].read ? "read" : "";
     if (kind) {
       let n = 0;
-      while (COLS[i + n] && (kind === "hit" ? COLS[i + n].hit : COLS[i + n].game)) n += 1;
+      while (COLS[i + n] && COLS[i + n][kind]) n += 1;
       group += kind === "hit" ? `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line"><span>Hit Rate - Over Tonight's Line</span></th>`
+        : kind === "read" ? `<th colspan="${n}" class="sim-hitgroup rs-readgroup" title="The Reads in his research panel (click his row), added up"><span>Reads</span></th>`
         : `<th colspan="${n}" class="sim-hitgroup rs-gamegroup" title="Tonight's game"><span>Tonight's Game</span></th>`;
       i += n - 1;
     } else group += "<th></th>";
   }
   return `<thead><tr class="sim-group-row">${group}</tr><tr>${COLS.map((c) => {
     const on = c.key && c.key === LIST.sort;
-    const cls = [c.key ? "sim-sort" : "", on ? "on" : "", c.cls || "", c.hit || c.game ? "sim-hit-th" : ""].filter(Boolean).join(" ");
+    const cls = [c.key ? "sim-sort" : "", on ? "on" : "", c.cls || "", c.hit || c.game || c.read ? "sim-hit-th" : ""].filter(Boolean).join(" ");
     return `<th${cls ? ` class="${cls}"` : ""}${c.key ? ` data-sort="${c.key}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${on ? `<span class="sim-arrow">${LIST.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
   }).join("")}</tr></thead>`;
 }
@@ -336,6 +367,14 @@ function allowCell(x) {
   if (!x.allow) return '<td class="num rs-allow">--</td>';
   const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${rankWords(x.allowRank, x.allowN)}, over ${x.allow.n} games`;
   return `<td class="num rs-allow" style="${rankStyle(x.allowRank, x.allowN)}" title="${tip}"><b>${fmt(x.allow.v)}</b><small>${ordinal(x.allowRank)} &middot; ${x.p.pos}</small></td>`;
+}
+// O and U: "x/y", colored by that share on the 8-step scale (more = greener, the site's how-often rule).
+const READ_FULL = 0.5; // a share this big or more is the greenest
+function readCells(x) {
+  const r = x.reads;
+  const tip = r.by.map((c) => `${c.t}: ${c.o} Over, ${c.u} Under, ${c.n - c.o - c.u - c.na} Even${c.na ? `, ${c.na} not enough data` : ""}`).join("\n");
+  const cell = (k, word) => (r.n ? `<td class="num rs-read" style="${stepStyle(Math.min(1, (r[k] / r.n) / READ_FULL) * 2 - 1)}" title="${r[k]} of his ${r.n} Reads say ${word}\n${tip}"><b>${r[k]}/${r.n}</b></td>` : '<td class="num rs-read">--</td>');
+  return cell("o", "Over") + cell("u", "Under");
 }
 function gameCells(x) {
   const gm = x.game;
@@ -358,6 +397,7 @@ function row(x) {
     ${one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
     ${hitCell(x.hits.l5, "Last 5 games over tonight's line")}${hitCell(x.hits.l10, "Last 10 games over tonight's line")}${hitCell(x.hits.all, "This season's games over tonight's line")}${hitCell(x.hits.home, "Home games over tonight's line")}${hitCell(x.hits.away, "Road games over tonight's line")}
     ${allowCell(x)}
+    ${readCells(x)}
     ${gameCells(x)}
     <td class="sim-tagc"><div class="sim-rtags">${x.without.map(withoutPill).join("") || '<span class="muted-label">None</span>'}</div></td>
   </tr>`;
@@ -396,6 +436,10 @@ const gameDate = (d) => new Date(`${d}T00:00:00`).toLocaleDateString(undefined, 
 const tipAttr = (tip) => (tip ? ` title="${String(tip).replace(/"/g, "&quot;")}"` : "");
 // the grid's three tiles: a number (colored by a signed strength), a label, a header (him / def / read / plain)
 const T = (v, s, tip = "", cls = "") => `<div class="rs-t${cls ? ` ${cls}` : ""}"${stepStyle(s) ? ` style="${stepStyle(s)}"` : ""}${tipAttr(tip)}>${v}</div>`;
+// A Read tile. Every one goes through here so the list's O / U columns count exactly the reads the
+// panel shows (readsOf).
+let READS = null;
+const RT = (rd, tip) => { if (READS) READS.push(rd); return T(rd.t, rd.s, tip); };
 const LB = (v, tip = "") => `<div class="rs-t rs-l"${tipAttr(tip)}>${v}</div>`;
 const HD = (v, kind, cls = "", tip = "") => `<div class="rs-t rs-h rs-${kind}${cls ? ` ${cls}` : ""}"${tipAttr(tip)}>${v}</div>`;
 // his jersey number on a jersey in his team's color (the owner, 2026-11-03: a long name hid the
@@ -572,7 +616,7 @@ function assistPosRows(x) {
       + T(fmt(s), hs, `His assists a game to ${target}s this season, in ${vals.length} games (colored against the league's ${x.p.pos}s)`)
       + T(fmt(a10), trend(a10, 10), `His last ${Math.min(10, vals.length)} games (colored against his season)`) + T(fmt(a5), trend(a5, 5), `His last ${Math.min(5, vals.length)} games (colored against his season)`)
       + T(fmt(opp ? opp.season : null), rk("season"), dtip("season", "this season")) + T(fmt(opp ? opp.l10 : null), rk("l10"), dtip("l10", "in their last 10"))
-      + T(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5")) + T(rd.t, rd.s, rdTip[rd.t]);
+      + T(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5")) + RT(rd, rdTip[rd.t]);
   });
 }
 
@@ -617,11 +661,11 @@ function formTab(x) {
       cells += T(fmt(val("season"), d), ds, tip("season", "this season")) + T(fmt(val("l10"), d), rk("l10"), tip("l10", `in their last ${opp.l10 ? opp.l10.n : 0}`))
         + T(fmt(val("l5"), d), rk("l5"), tip("l5", `in their last ${opp.l5 ? opp.l5.n : 0}`));
     }
-    const rd = key ? readOf(hs, ds) : { t: "--", s: null };
+    const rd = key ? readOf(hs, ds) : { t: "--", s: null, none: true }; // none: never a read (no defense side)
     const [up, down] = ag || /a 36/.test(what) ? [`more ${what}`, `fewer ${what}`] : [`a higher ${what}`, `a lower ${what}`];
     const rdTip = { Over: `The Over: one side points to ${up} for him and the other doesn't point against it`, Under: `The Under: one side points to ${down} for him and the other doesn't point against it`,
       Even: "The two sides don't line up one way", "--": key ? "Not enough data on one side yet" : "His number only: no defense side" };
-    cells += T(rd.t, rd.s, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`);
+    cells += RT(rd, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`);
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}${ag}`) + cells;
   });
   const head = corner(x) + HD("Season", "him") + HD("L10", "him") + HD("L5", "him") + HD("Season", "def", "", `What ${team(x.opp).name} allow ${x.p.pos}s`) + HD("L10", "def") + HD("L5", "def") + HD("Read", "rd");
@@ -643,7 +687,7 @@ function scoringTab(x) {
     const rk = rankIn(v, vals), s = spread(v, vals), ds = rankSigned(dr.r[x.opp], dr.n), rd = readOf(s, ds);
     return LB(label, tip) + T(pctT(v), s, tip) + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "") + T(ppg === null ? "--" : fmt(ppg), ppg === null ? null : s, ppg === null ? "" : `${fmt(ppg)} points a game`)
       + T(pctT(dv), ds, `${team(x.opp).name}: ${dtip}`) + T(dr.r[x.opp] ? ordinal(dr.r[x.opp]) : "--", ds, dr.r[x.opp] ? `${rankWords(dr.r[x.opp], dr.n)}` : "")
-      + T(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`) + T(rd.t, rd.s, READ_TIP[rd.t]);
+      + T(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`) + RT(rd, READ_TIP[rd.t]);
   };
   const rows = [
     row("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), opp.shot, DS.rankOf((t) => t.shot), null, null,
@@ -693,7 +737,7 @@ function matchupTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + T(rd.t, rd.s, READ_TIP[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP[rd.t]);
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD("Allows", "def") + HD("Rank", "def") + HD("Read", "rd");
   // five columns across the same box (every row full, so no blank rows to span)
@@ -933,7 +977,7 @@ function shootingTab(x) {
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} made a game this way`)
       + T(pctT(dv), ds, dtip) + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dmg)} made a game this way`)
-      + T(rd.t, rd.s, READ_TIP3[rd.t]);
+      + RT(rd, READ_TIP3[rd.t]);
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("3PM / G", "him") + HD("Allowed", "def") + HD("Rank", "def") + HD("3PM / G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: true });
@@ -1112,7 +1156,7 @@ function reboundingTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + T(rd.t, rd.s, READ_TIP_R[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_R[rd.t]);
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
@@ -1152,7 +1196,7 @@ function missZonesTab(x) {
       + T(pctT(dv), ds, `Share of ${team(x.opp).name}'s rebounded misses that are ${what}`)
       + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} leave ${fmt(dmg)} ${what} a game`)
-      + T(rd.t, rd.s, READ_TIP_R[rd.t]);
+      + RT(rd, READ_TIP_R[rd.t]);
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("DREB / G", "him") + HD("Misses", "def", "", `Where ${team(x.opp).name} miss from`) + HD("Rank", "def") + HD("Per G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1 });
@@ -1236,7 +1280,7 @@ function playmakingTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + T(rd.t, rd.s, READ_TIP_A[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_A[rd.t]);
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
@@ -1273,7 +1317,7 @@ function assistZonesTab(x) {
       + T(pctT(dv), ds, `Share of the assisted makes against ${team(x.opp).name} that are ${what}`)
       + T(dr ? ordinal(dr) : "--", ds, dr ? rankWords(dr, sorted.length) : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} give up ${fmt(dmg)} assisted ${what} a game`)
-      + T(rd.t, rd.s, READ_TIP_A[rd.t]);
+      + RT(rd, READ_TIP_A[rd.t]);
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("AST / G", "him") + HD("Allowed", "def", "", `Where ${team(x.opp).name} give up assisted makes`) + HD("Rank", "def") + HD("Per G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: true });
