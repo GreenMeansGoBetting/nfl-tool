@@ -53,6 +53,7 @@ PROPS = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "fields": F
                  "teams": {"BBB": [50, 60, 150, 160]},
                  # BBB vs PGs: [threes, mid, paint, FT points, makes, assisted, transition, points, shots]; every shot against BBB
                  "defpos": {"BBB": {"PG": [18, 2, 16, 8, 16, 10, 6, 44, 30]}, "CCC": {"PG": [9, 6, 20, 5, 15, 7, 4, 40, 33]}}, "deffga": {"BBB": 100, "CCC": 110}, "games": {str(g): [100.0 + g, 220.0 + g, -4.5] for g in range(1, 7)}, "spots": {}}}
+PROPS["seasons"]["2027"]["players"]["1"]["share"] = 0.28  # his share of AAA's shots on the floor (props.py)
 PROPS["seasons"]["2027"]["players"]["1"]["with"] = {"2": [60.0, 30, 25, 150.0, 100, 70], "3": [100.0, 50, 40, 110.0, 80, 55]}
 
 
@@ -95,7 +96,7 @@ class Points(unittest.TestCase):
 
     def test_no_model_on_the_page(self):
         self.assertEqual(SITE.errors, [])
-        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Pace", "Spread", "Total", "Teammates On The Report"])
+        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Pace", "Spread", "Total", "Teammates On The Report"])
         text = self.page.inner_text("main")
         for word in ("Edge", "Fair", "Rating", "Strong", "Projection", "Plays Only", "Model Performance", "10,000"):
             self.assertNotIn(word, text)
@@ -107,12 +108,14 @@ class Points(unittest.TestCase):
         self.assertEqual(one[1], "20.5")
         self.assertIn("+100", one[2])  # the best Over across the books (FanDuel)
         self.assertIn("-110", one[3])  # the best Under
-        self.assertEqual(one[4], "20.0 L5 21.0")  # 15, 15, 15, 25, 25, 25 / the last 5
-        self.assertEqual(one[5], "35.0 L5 35.2")
-        self.assertEqual(one[6:9], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
-        self.assertEqual(one[11], "22.0 1st · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
-        self.assertEqual(one[13], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
-        self.assertEqual(one[14], "225.0 O/U")
+        # the owner, 2026-11-04: no last-5 line under Avg / Min (cluttered); Volume = his shot share
+        self.assertEqual(one[4], "20.0")  # 15, 15, 15, 25, 25, 25
+        self.assertEqual(one[5], "35.0")
+        self.assertEqual(one[6], "28%")
+        self.assertEqual(one[7:10], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
+        self.assertEqual(one[12], "22.0 1st · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
+        self.assertEqual(one[14], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
+        self.assertEqual(one[15], "225.0 O/U")
         self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
 
     def test_teammates_on_the_report(self):
@@ -331,9 +334,9 @@ class Threes(unittest.TestCase):
     open = Panel.open
 
     def test_the_list_shows_threes_tried(self):
-        self.assertEqual(head(self.page)[5], "3PA")
+        self.assertEqual(head(self.page)[4:7], ["Avg", "3PA", "Volume"])
         [one] = rows(self.page)
-        self.assertEqual(one[5], "6.8 L5 7.2")  # 41 tries in 6 games; the last 5: 36
+        self.assertEqual(one[4:7], ["2.0", "6.8", "46%"])  # 12 made, 41 tried in 6 games; 41 of his 90 shots threes
 
     def test_eight_tabs_every_one_the_same_box(self):
         tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
@@ -415,7 +418,7 @@ class OtherMarkets(unittest.TestCase):
         page.wait_for_selector("#rs-list tr.sim-row")
         [one] = rows(page)
         self.assertEqual(one[1], "4.5")
-        self.assertEqual(one[4], "5.0 L5 5.2")  # 4, 4, 4, 6, 6, 6
+        self.assertEqual(one[4], "5.0")  # 4, 4, 4, 6, 6, 6
         self.assertIn("REBOUNDS RESEARCH", page.inner_text(".rs-intro").upper())
         self.assertEqual(SITE.errors, [])
 

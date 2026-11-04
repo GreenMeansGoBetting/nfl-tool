@@ -184,6 +184,26 @@ function tonightGame(g, tm, opp) {
 }
 
 // ---- the rows ----
+// The list's season numbers, each colored against his position's rotation players (the same color
+// as his Season tile in Form): his average, then minutes (Points) or threes tried (Threes), then
+// Volume: his share of his team's shots on the floor (Points) or the share of his shots that are
+// threes (Threes). The owner, 2026-11-04: no L5 under them (cluttered), a Volume column, all colored.
+function listNums(p) {
+  const f = logFields();
+  const log = p.log || [];
+  const sum = (k) => log.reduce((a, r) => a + (r[f[k]] || 0), 0);
+  const fga = sum("fga");
+  return { avgV: log.length ? sum(MK.stat) / log.length : null, second: log.length ? sum(THREES ? "fg3a" : "min") / log.length : null,
+    vol: THREES ? (fga ? sum("fg3a") / fga : null) : p.share ?? null };
+}
+const LIST_POOL = {};
+function listPool(pos) {
+  if (!LIST_POOL[pos]) {
+    const nums = posPool(pos).map(([, q]) => listNums(q));
+    LIST_POOL[pos] = { avgV: nums.map((n) => n.avgV), second: nums.map((n) => n.second), vol: nums.map((n) => n.vol) };
+  }
+  return LIST_POOL[pos];
+}
 function hits(rows, line, f) {
   if (line === null || line === undefined || !rows.length) return null;
   return { over: rows.filter((x) => statOf(x, f) > line).length, of: rows.length };
@@ -207,8 +227,7 @@ function rowsOn(date) {
       const last5 = log.slice(-5);
       out.push({
         g, pid, p, team: p.team, opp, home: p.team === g.home, line, status, live: started(g), gp: log.length,
-        avg: avg(vals), avg5: avg(last5.map((r) => statOf(r, f))), min: mins, min5: avg(last5.map((r) => r[f.min] || 0)),
-        att: avg(log.map((r) => r[f.fg3a] || 0)), att5: avg(last5.map((r) => r[f.fg3a] || 0)),
+        avg: avg(vals), min: mins, ...listNums(p),
         hits: { l5: hits(last5, line, f), l10: hits(log.slice(-10), line, f), all: hits(log, line, f),
           home: hits(log.filter((r) => r[f.home]), line, f), away: hits(log.filter((r) => !r[f.home]), line, f) },
         allow: ((A.per[p.pos] || {})[opp]) || null, allowRank: ((A.ranks[p.pos] || { r: {} }).r[opp]) || null,
@@ -221,7 +240,7 @@ function rowsOn(date) {
 }
 const hitShare = (h) => (h ? h.over / h.of : -1);
 const SORTS = {
-  line: (x) => (x.line === null ? -1 : x.line), avg: (x) => x.avg ?? -1, min: (x) => x.min ?? -1, att: (x) => x.att ?? -1,
+  line: (x) => (x.line === null ? -1 : x.line), avg: (x) => x.avg ?? -1, second: (x) => x.second ?? -1, vol: (x) => x.vol ?? -1,
   l5: (x) => hitShare(x.hits.l5), l10: (x) => hitShare(x.hits.l10), all: (x) => hitShare(x.hits.all),
   home: (x) => hitShare(x.hits.home), away: (x) => hitShare(x.hits.away), allow: (x) => (x.allowRank ? -x.allowRank : -99),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
@@ -238,8 +257,9 @@ const COLS = [
   { label: "Line", key: "line", title: "His main line: the middle of the books' lines" },
   { label: "Over", title: "The best Over price across your books (click for every book; the box saves it to My Plays)" },
   { label: "Under", title: "The best Under price across your books (click for every book; the box saves it to My Plays)" },
-  { label: "Avg", key: "avg", title: `His ${MK.unit.toLowerCase()} a game this season, his last 5 under it` },
-  THREES ? { label: "3PA", key: "att", title: "His threes tried a game this season, his last 5 under it" } : { label: "Min", key: "min", title: "His minutes a game this season, his last 5 under it" },
+  { label: "Avg", key: "avg", title: `His ${MK.unit.toLowerCase()} a game this season (colored against his position)` },
+  THREES ? { label: "3PA", key: "second", title: "His threes tried a game this season (colored against his position)" } : { label: "Min", key: "second", title: "His minutes a game this season (colored against his position)" },
+  { label: "Volume", key: "vol", title: THREES ? "The share of his shots that are threes this season (colored against his position)" : "His share of his team's shots while he's on the floor this season (colored against his position)" },
   { label: "L5", key: "l5", hit: true, title: "His last 5 games over tonight's line" },
   { label: "L10", key: "l10", hit: true, title: "His last 10 games over tonight's line" },
   { label: "Season", key: "all", hit: true, title: "This season's games over tonight's line" },
@@ -291,14 +311,16 @@ function gameCells(x) {
   return pace + sp + tot;
 }
 function row(x) {
-  const two = (a, b, tip) => `<td class="num rs-two" title="${tip}"><b>${fmt(a)}</b><small>L5 ${fmt(b)}</small></td>`;
+  const pool = listPool(x.p.pos);
+  const one = (text, v, vals, tip) => { const st = stepStyle(spread(v, vals)); return `<td class="num rs-two"${st ? ` style="${st}"` : ""} title="${tip} (colored against the league's ${x.p.pos}s)"><b>${text}</b></td>`; };
   const key = `${x.g.game_id}:${x.pid}`;
   return `<tr class="sim-row${x.live ? " live" : ""}${PANEL ? " rs-click" : ""}${OPEN === key ? " open" : ""}" data-open="${key}">
     <td class="sim-plcell"><span class="sim-pl-in">${headshot(x.pid)}${playerClick(x.pid, `<b>${nameOf(x.pid)}</b>`)}<span class="muted-label">${x.p.pos || ""}</span>${statusPill(x.status)}<span class="sim-vs">${logo(x.team, 16)}<span>${x.home ? "vs" : "@"}</span>${logo(x.opp, 16)}</span></span></td>
     <td class="num rs-line">${x.line === null ? '<span class="muted-label">No Line</span>' : `<b>${fmt(x.line)}</b>`}</td>
     ${sideCell(x.g, x.pid, "o", x.line, x.team)}${sideCell(x.g, x.pid, "u", x.line, x.team)}
-    ${two(x.avg, x.avg5, `${fmt(x.avg)} a game in ${x.gp} games, ${fmt(x.avg5)} in his last ${Math.min(5, x.gp)}`)}
-    ${THREES ? two(x.att, x.att5, `${fmt(x.att)} threes tried a game, ${fmt(x.att5)} in his last ${Math.min(5, x.gp)}`) : two(x.min, x.min5, `${fmt(x.min)} minutes a game, ${fmt(x.min5)} in his last ${Math.min(5, x.gp)}`)}
+    ${one(fmt(x.avg), x.avg, pool.avgV, `${fmt(x.avg)} ${MK.unit.toLowerCase()} a game in ${x.gp} games`)}
+    ${one(fmt(x.second), x.second, pool.second, THREES ? `${fmt(x.second)} threes tried a game` : `${fmt(x.second)} minutes a game`)}
+    ${one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
     ${hitCell(x.hits.l5, "Last 5 games over tonight's line")}${hitCell(x.hits.l10, "Last 10 games over tonight's line")}${hitCell(x.hits.all, "This season's games over tonight's line")}${hitCell(x.hits.home, "Home games over tonight's line")}${hitCell(x.hits.away, "Road games over tonight's line")}
     ${allowCell(x)}
     ${gameCells(x)}
