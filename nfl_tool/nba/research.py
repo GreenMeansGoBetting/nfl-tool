@@ -47,6 +47,15 @@ off his own team's miss, while he's on the floor:
 `rbt[<abbr>]`: [games, rebounds off their misses, their OREB, rebounds off their opponents' misses,
   their DREB, opponents' made shots, opponents' shots] (their offense and defense on the glass).
 `mz[<abbr>]`: rebounds off their misses by MISS_ZONES (where they miss from).
+Assists (the Assists page's panel, 2026-11-04; no turnovers, the owner: too noisy). An assist chance =
+a teammate's made shot while he's on the floor (our stand-in for the NBA's "potential assists"):
+- `ap`: [chances, his assists, his assists in transition (the shot within TRANSITION_SECS)].
+- `az`: his assists by where the made shot came from, ASSIST_ZONES order.
+- `qa`: his assists by quarter.
+- `acg`: {game id: [chances, assists]} (Game Script, and Vs The Line's hover: chances x rate that night).
+- `wa[<teammate>]`: [assists, chances with him on the floor, assists, chances with him off];
+  `to[<teammate>]`: his assists to that teammate (both only teammates in props.py's `with`).
+`daz[<abbr>]`: assisted makes against that defense by ASSIST_ZONES.
 `defpos[<abbr>][<pos>]`: what that defense allowed the position: [threes, mid-range, paint, free
   throw points, made shots, assisted makes, transition points, points, shots]; `deffga[<abbr>]`:
   every shot against it (the position's share of them).
@@ -71,6 +80,7 @@ EARLY_Q1, EARLY_H1 = 2, 3
 MINUTES = 48
 THREE_KINDS = ("catch", "pullup", "stepback", "trans", "second")
 MISS_ZONES = ("rim", "short", "mid", "corner3", "above3", "ft")
+ASSIST_ZONES = ("rim", "short", "mid", "corner3", "above3")
 PULLUP = ("pullup", "fade")
 
 
@@ -108,7 +118,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss = engine.possessions
     acts = engine.actions
     stints = engine.stints
-    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}}
+    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}, "daz": {}}
     if poss.empty:
         return out
     mine = lambda pid: out["players"].setdefault(str(int(pid)), {})  # noqa: E731
@@ -236,6 +246,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
                    len(og), round(sum(secs.get(g, 0) for g in og) / 60, 1)]
 
     rebounds_block(out, acts, stints, players, abbr)
+    assists_block(out, joined, players)
 
     # early foul trouble
     fouls = acts[(acts["kind"] == "foul") & acts["player"].notna()]
@@ -389,3 +400,63 @@ def rebounds_block(out: dict, acts: pd.DataFrame, stints: pd.DataFrame, players:
                            len(theirs), int(((theirs["kind"] == "dreb") & (theirs["team"] == t)).sum()),
                            int(allowed["made"].astype(bool).sum()), len(allowed)]
         out["mz"][key] = [int((mine["src"] == z).sum()) for z in MISS_ZONES]
+
+
+def assists_block(out: dict, joined: pd.DataFrame, players: dict) -> None:
+    """The Assists panel's numbers (see the module notes): `ap`, `az`, `qa`, `acg`, `wa`, `to` per
+    player, `daz` per defense. `joined` = the scoring actions with `early` and `dabbr` (block())."""
+    made = joined[(joined["kind"] == "shot") & joined["made"].astype(bool) & joined["player"].notna()]
+    if made.empty:
+        return
+    tally, zones, quarters, games, to = {}, {}, {}, {}, {}
+    seen = {}  # pid: [(assisted it, the five)] for the with / without split
+    for shooter, ast, zone, period, early, gid, five, d in zip(made["player"], made["assist"], made["zone"], made["period"],
+                                                                made["early"].fillna(False).astype(bool), made["game_id"], made["with"], made["dabbr"]):
+        shooter = int(shooter)
+        passer = int(ast) if pd.notna(ast) else None
+        floor = {int(x) for x in five}
+        for p in floor:
+            if p == shooter:
+                continue
+            row = tally.setdefault(p, [0, 0, 0])
+            row[0] += 1
+            g = games.setdefault(p, {}).setdefault(int(gid), [0, 0])
+            g[0] += 1
+            seen.setdefault(p, []).append((passer == p, floor))
+        if passer is None:
+            continue
+        row = tally.setdefault(passer, [0, 0, 0])
+        row[1] += 1
+        row[2] += int(early)
+        games.setdefault(passer, {}).setdefault(int(gid), [0, 0])[1] += 1
+        if zone in ASSIST_ZONES:
+            zones.setdefault(passer, [0] * len(ASSIST_ZONES))[ASSIST_ZONES.index(zone)] += 1
+            if d is not None and pd.notna(d):
+                out["daz"].setdefault(str(d), [0] * len(ASSIST_ZONES))[ASSIST_ZONES.index(zone)] += 1
+        if period <= 4:
+            quarters.setdefault(passer, [0, 0, 0, 0])[int(period) - 1] += 1
+        t = to.setdefault(passer, {})
+        t[str(shooter)] = t.get(str(shooter), 0) + 1
+    for pid, row in tally.items():
+        if str(pid) not in players:
+            continue
+        p = out["players"].setdefault(str(pid), {})
+        p["ap"] = row
+        p["az"] = zones.get(pid, [0] * len(ASSIST_ZONES))
+        p["qa"] = quarters.get(pid, [0, 0, 0, 0])
+        p["acg"] = {str(g): v for g, v in games.get(pid, {}).items()}
+        mates = (players.get(str(pid)) or {}).get("with") or {}
+        if mates:
+            mine = seen.get(pid, [])
+            total_a, total_c = sum(a for a, _ in mine), len(mine)
+            wa = {}
+            for mate in mates:
+                q = int(mate)
+                a_on = c_on = 0
+                for a, f in mine:
+                    if q in f:
+                        c_on += 1
+                        a_on += a
+                wa[mate] = [a_on, c_on, total_a - a_on, total_c - c_on]
+            p["wa"] = wa
+            p["to"] = {m: n for m, n in to.get(pid, {}).items() if m in mates}

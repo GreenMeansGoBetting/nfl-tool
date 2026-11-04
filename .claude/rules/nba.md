@@ -239,7 +239,7 @@ Every game played 10,000 times, possession by possession.
   teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
-- **Research panel (Points 2026-11-03, Threes and Rebounds 2026-11-04; Assists next)**: a row click (not the name, a price or a tag)
+- **Research panel (Points 2026-11-03; Threes, Rebounds and Assists 2026-11-04; every market)**: a row click (not the name, a price or a tag)
   opens it (`panel`, `PANEL`). **Two sandboxes** (the owner approved the mock-up, 2026-11-03: "a
   standard sandbox area so youd always know how to conform data to it"): two boxes of one size side
   by side, each with tabs (`RS_TABS`: left Form / Scoring / Matchup / Game Script, right Vs The Line /
@@ -293,6 +293,18 @@ Every game played 10,000 times, possession by possession.
   DREB / OREB. Ladder = Threes' (`MK.stat`). Rotation headers REB and OREB a quarter. Teammates: REB a
   36 and his share of the boards with / without, change, **Their REB** (that teammate's own a 36). List
   Volume = his share of the rebounds there to get (`rebShare`). Logs carry `oreb`, `dreb` (props.py).
+- **Assists panel** (`ASTS`, 2026-11-04): **no turnovers anywhere** (the owner: "too noisey ... guys
+  can turn it over 8 times and still get 12 assists"). Left **Form / Playmaking / Assist Zones / Game
+  Script**, right **Vs The Line / Ladder / Rotation / Teammates**. Form: AST, AST / 36 (passing apart
+  from minutes), MIN. **Playmaking** (Rebounding's five columns): Assist Chances (teammates' makes a 36
+  on the floor vs FG% the defense allows), Assist Rate (his share of those makes vs the share of makes
+  against them that are assisted, summed from `defpos`), Transition (his fast-break assist share vs
+  `def_trans_freq`), Pace. **Assist Zones**: where the shots he sets up come from (Rim, Paint,
+  Mid-Range, Corner 3, Above-Break 3) vs where the defense gives up assisted makes (`daz`). Game Script
+  MIN and Chances (`acg`). **Vs The Line's hover = that night's chances and rate vs his season** (the
+  owner's "why did Acuff pass more that game?"). Rotation: AST a quarter only. Teammates: AST a 36 and
+  rate with / without, change, **To Him** (his assists to that teammate, `to`). List Volume = his assist
+  rate (`astRate`). The owner may want a deeper "why did he pass more" tool later (Zone Matchup style).
 - **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
   book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30
   teams' paces), Spread (his team's), Total (`tonightGame`).
@@ -304,7 +316,9 @@ Every game played 10,000 times, possession by possession.
   `feed3`, `w3` (with / without each `with` teammate), `lines3`; rebounds (a chance = a player's
   rebound off a miss while he's on the floor; team rebounds left out, the standard rate count): `rb`
   [def chances, DREB, off chances, OREB, seconds], `rz` (DREB by `MISS_ZONES`), `qr`, `rcg`, `wr`,
-  `linesr`; per team `rbt` [games, rebounds off their misses, their OREB, off opponents' misses, their
+  `linesr`; assists (a chance = a teammate's made shot while he's on the floor): `ap` [chances,
+  assists, transition assists], `az` (by `ASSIST_ZONES`), `qa`, `acg` {game: [chances, assists]},
+  `wa`, `to`, `linesa`; per defense `daz`; per team `rbt` [games, rebounds off their misses, their OREB, off opponents' misses, their
   DREB, opponents' makes, shots] and `mz` (their rebounded misses by zone); `defpos` / `deffga` (each defense vs
   each position), `def3` (the same 12 numbers allowed to each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets

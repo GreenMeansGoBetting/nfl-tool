@@ -273,13 +273,6 @@ class Panel(unittest.TestCase):
         self.page.keyboard.press("Escape")
         self.assertEqual(self.page.locator("#rs-list .rs-panel").count(), 0)
 
-    def test_assists_has_no_panel_yet(self):
-        page = SITE.open("nba/assists.html")
-        page.wait_for_selector("#rs-list [data-list-every='true']")
-        page.click("#rs-list [data-list-every='true']")
-        page.wait_for_selector("#rs-list tr.sim-row")
-        self.assertEqual(page.locator("#rs-list tr.rs-click").count(), 0)
-
 
 def threes_props():
     """The same slate with threes in every log (fga, fg3a added after the first fields) and Player
@@ -520,6 +513,101 @@ class Rebounds(unittest.TestCase):
         self.assertEqual(rows[0][1:], ["Together", "REB With", "REB W/O", "Share With", "Share W/O", "Change", "Their REB"])
         two = next(r for r in rows if r[0].startswith("P. Two"))
         self.assertEqual(two[2:8], ["6.0", "4.8", "20%", "20%", "−1.2", "11.6"])  # 10 / 20 boards in 60 / 150 min; Two: 10 in 31
+
+
+def assists_props():
+    """The same slate with Player One's passing data for the Assists panel (research.py `ap`, `az`,
+    `qa`, `acg`, `wa`, `to`, `daz`; `rb` for his seconds on the floor, `rbt` for the shooting allowed)."""
+    import copy
+    props = copy.deepcopy(PROPS)
+    rs = props["research"]
+    rs["players"]["1"].update({
+        "ap": [120, 30, 6], "az": [10, 5, 3, 4, 8], "qa": [8, 7, 8, 7], "rb": [100, 20, 90, 6, 7200],
+        "acg": {str(g): [20, 5] for g in range(1, 7)}, "wa": {"2": [10, 40, 20, 80], "3": [12, 50, 18, 70]}, "to": {"2": 9}, "linesa": {"4": 6.5}})
+    rs["rbt"] = {"BBB": [4, 180, 50, 170, 120, 150, 330], "CCC": [5, 200, 60, 210, 150, 190, 400]}
+    rs["daz"] = {"BBB": [20, 10, 5, 5, 10], "CCC": [15, 10, 10, 5, 10]}
+    return props
+
+
+class Assists(unittest.TestCase):
+    """The Assists page's panel (the owner, 2026-11-04; no turnovers: "too noisy"): Form (AST,
+    AST / 36, MIN), Playmaking (his teammates' makes while he's on the floor and his share of them,
+    beside the shooting the defense allows, how much of it is assisted, transition, pace), Assist
+    Zones, Game Script (MIN and Chances), Vs The Line (the hover: that night's chances and rate),
+    Ladder, Rotation (assists a quarter) and Teammates (assists and rate with / without, To Him)."""
+    @classmethod
+    def setUpClass(cls):
+        cls.saved = (SITE.nba, SITE.nba_props)
+        SITE.nba, SITE.nba_props = DATA, assists_props()
+        cls.page = SITE.open("nba/assists.html")
+        cls.page.wait_for_selector("#rs-list [data-list-every='true']")
+        cls.page.click("#rs-list [data-list-every='true']")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+        cls.page.click("#rs-list tr.rs-click:has-text('Player One') td.rs-line")
+        cls.page.wait_for_selector("#rs-list .rs-panel")
+
+    @classmethod
+    def tearDownClass(cls):
+        SITE.nba, SITE.nba_props = cls.saved
+
+    tab = Panel.tab
+    cells = Panel.cells
+
+    def open(self):
+        pass
+
+    def test_the_list(self):
+        self.assertEqual(head(self.page)[4:7], ["Avg", "Min", "Volume"])
+        one = next(r for r in rows(self.page) if "Player One" in r[0])
+        self.assertEqual(one[4:7], ["7.5", "35.0", "25%"])  # 6, 6, 6, 9, 9, 9; 30 of 120 teammate makes
+
+    def test_eight_tabs_every_one_the_same_box(self):
+        tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
+        self.assertEqual(tabs, [["Form", "Playmaking", "Assist Zones", "Game Script"], ["Vs The Line", "Ladder", "Rotation", "Teammates"]])
+        sizes = set()
+        for side, names in (("left", tabs[0]), ("right", tabs[1])):
+            for name in names:
+                box = self.tab(side, name)
+                sizes.add(tuple(self.page.evaluate(f"() => {{ const b = document.querySelector(\"{box}\"); const s = b.querySelector('.rs-sbody'); const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), s.scrollHeight <= s.clientHeight + 1]; }}")))
+        self.assertEqual(sizes, {(600, 312, True)})
+        self.assertEqual(SITE.errors, [])
+        self.assertNotIn("TOV", self.page.inner_text(".rs-panel"))  # no turnovers anywhere
+
+    def test_form(self):
+        rows = self.cells(self.tab("left", "Form"))
+        self.assertEqual([r[0] for r in rows[1:]], ["AST", "AST / 36", "MIN"])
+        self.assertEqual(rows[2][1], "7.7")  # 45 assists in 210 minutes
+
+    def test_playmaking(self):
+        rows = self.cells(self.tab("left", "Playmaking"))
+        self.assertEqual([r[0] for r in rows[1:]], ["Assist Chances", "Assist Rate", "Transition", "Pace"])
+        self.assertEqual(rows[1][1], "36.0")  # 120 teammate makes in 120 minutes, a 36
+        self.assertEqual(rows[1][3], "45%")  # BBB allow 150 of 330
+        self.assertEqual(rows[2][1], "25%")
+        self.assertEqual(rows[2][3:5], ["63%", "1st"])  # 10 of the 16 PG makes against BBB assisted
+
+    def test_assist_zones(self):
+        rows = self.cells(self.tab("left", "Assist Zones"))
+        self.assertEqual([r[0] for r in rows[1:]], ["Rim", "Paint", "Mid-Range", "Corner 3", "Above-Break 3"])
+        self.assertEqual(rows[1][1], "33%")  # 10 of his 30
+        self.assertEqual(rows[1][4:7], ["40%", "1st", "5.0"])  # BBB: 20 of 50 at the rim, 4 games
+
+    def test_game_script_and_the_line(self):
+        rows = self.cells(self.tab("left", "Game Script"))
+        self.assertEqual(rows[0][2:6], ["AST", "+/-", "MIN", "Chances"])
+        self.assertEqual(rows[1][5], "20.0")
+        box = self.tab("right", "Vs The Line")
+        self.assertIn("teammates made 20 shots with him on the floor", self.page.get_attribute(f"{box} .rs-vbar", "title"))
+
+    def test_rotation(self):
+        box = self.tab("right", "Rotation")
+        self.assertEqual(self.page.locator(f"{box} .rs-qt").first.text_content(), "1st Qtr1.3 AST")
+
+    def test_teammates(self):
+        rows = self.cells(self.tab("right", "Teammates"))
+        self.assertEqual(rows[0][1:], ["Together", "AST With", "AST W/O", "Rate With", "Rate W/O", "Change", "To Him"])
+        two = next(r for r in rows if r[0].startswith("P. Two"))
+        self.assertEqual(two[2:8], ["6.0", "4.8", "25%", "25%", "−1.2", "9"])  # 10 / 20 assists in 60 / 150 min
 
 
 class OtherMarkets(unittest.TestCase):

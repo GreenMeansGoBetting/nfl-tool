@@ -136,6 +136,33 @@ class Rebounds(unittest.TestCase):
             self.assertEqual((r_on + r_off, c_on + c_off), (1, 4), mate)
 
 
+class Assists(unittest.TestCase):
+    """The Assists panel's data (2026-11-04) on the hand-made game with home 15's fast-break layup
+    (3 seconds after his steal) assisted by home 13. An assist chance = a teammate's made shot while
+    he's on the floor: 13 saw three (11's jumper, 14's tip-in, 15's layup)."""
+    @classmethod
+    def setUpClass(cls):
+        events = [dict(e) for e in EVENTS]
+        lay = next(i for i, e in enumerate(events) if e["type_text"] == "Driving Layup Shot")
+        events[lay].update(text="P15 makes driving layup (P13 assists)", athlete_id_2=13)
+        pbp, box = game(events), full_box()
+        engine = P.Season(pbp, box)
+        block = props.season_block(pbp, box, "x", engine)
+        cls.rs = research.block(engine, box, block["players"])
+        cls.p = cls.rs["players"]
+
+    def test_chances_and_his_assists(self):
+        self.assertEqual(self.p["13"]["ap"], [3, 1, 1])  # 3 teammate makes, 1 assist, on the fast break
+        self.assertEqual(self.p["13"]["acg"], {"9": [3, 1]})
+        self.assertEqual(self.p["13"]["qa"], [1, 0, 0, 0])
+        self.assertEqual(self.p["13"]["az"][research.ASSIST_ZONES.index("rim")], 1)
+        self.assertEqual(self.p["15"]["ap"][1], 0)  # the shooter isn't credited
+
+    def test_what_each_defense_gave_up(self):
+        self.assertEqual(self.rs["daz"]["BBB"][research.ASSIST_ZONES.index("rim")], 1)  # the layup, against away
+        self.assertNotIn("AAA", self.rs["daz"])  # away's only make (23's step-back) was unassisted
+
+
 class LineHistory(unittest.TestCase):
     def test_main_lines_until_tip(self):
         q = lambda *ls: [["dk", "o", line, -110, ""] for line in ls]  # noqa: E731
