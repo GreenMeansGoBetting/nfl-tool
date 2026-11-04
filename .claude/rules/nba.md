@@ -295,8 +295,11 @@ Every game played 10,000 times, possession by possession.
   Volume = his share of the rebounds there to get (`rebShare`). Logs carry `oreb`, `dreb` (props.py).
 - **Assists panel** (`ASTS`, 2026-11-04): **no turnovers anywhere** (the owner: "too noisey ... guys
   can turn it over 8 times and still get 12 assists"). Left **Form / Playmaking / Assist Zones / Game
-  Script**, right **Vs The Line / Ladder / Rotation / Teammates**. Form: AST, AST / 36 (passing apart
-  from minutes), MIN. **Playmaking** (Rebounding's five columns): Assist Chances (teammates' makes a 36
+  Script**, right **Vs The Line / Ladder / Rotation / Teammates**. **Form** (the owner, 2026-11-04: only
+  the AST row was useful): AST, then **To SG / To SF / ...** (every position but his own): his assists a
+  game to that position (Season / L10 / L5, `acg` [.., PG, SG, SF, PF, C]) vs the assisted baskets the
+  defense gives up to that position a game (Season / L10 / L5 ranked of 30, `dag`), read
+  (`assistPosRows`). No AST / 36, no minutes. **Playmaking** (Rebounding's five columns): Assist Chances (teammates' makes a 36
   on the floor vs FG% the defense allows), Assist Rate (his share of those makes vs the share of makes
   against them that are assisted, summed from `defpos`), Transition (his fast-break assist share vs
   `def_trans_freq`), Pace. **Assist Zones**: where the shots he sets up come from (Rim, Paint,
@@ -317,8 +320,8 @@ Every game played 10,000 times, possession by possession.
   rebound off a miss while he's on the floor; team rebounds left out, the standard rate count): `rb`
   [def chances, DREB, off chances, OREB, seconds], `rz` (DREB by `MISS_ZONES`), `qr`, `rcg`, `wr`,
   `linesr`; assists (a chance = a teammate's made shot while he's on the floor): `ap` [chances,
-  assists, transition assists], `az` (by `ASSIST_ZONES`), `qa`, `acg` {game: [chances, assists]},
-  `wa`, `to`, `linesa`; per defense `daz`; per team `rbt` [games, rebounds off their misses, their OREB, off opponents' misses, their
+  assists, transition assists], `az` (by `ASSIST_ZONES`), `qa`, `acg` {game: [chances, assists, to PG..C]},
+  `wa`, `to`, `linesa`; per defense `daz`, `dag` {game: assisted makes by position}; per team `rbt` [games, rebounds off their misses, their OREB, off opponents' misses, their
   DREB, opponents' makes, shots] and `mz` (their rebounded misses by zone); `defpos` / `deffga` (each defense vs
   each position), `def3` (the same 12 numbers allowed to each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets

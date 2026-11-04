@@ -523,9 +523,11 @@ def assists_props():
     rs = props["research"]
     rs["players"]["1"].update({
         "ap": [120, 30, 6], "az": [10, 5, 3, 4, 8], "qa": [8, 7, 8, 7], "rb": [100, 20, 90, 6, 7200],
-        "acg": {str(g): [20, 5] for g in range(1, 7)}, "wa": {"2": [10, 40, 20, 80], "3": [12, 50, 18, 70]}, "to": {"2": 9}, "linesa": {"4": 6.5}})
+        "acg": {str(g): [20, 5, 0, 2, 1, 1, 1] for g in range(1, 7)}, "wa": {"2": [10, 40, 20, 80], "3": [12, 50, 18, 70]}, "to": {"2": 9}, "linesa": {"4": 6.5}})
     rs["rbt"] = {"BBB": [4, 180, 50, 170, 120, 150, 330], "CCC": [5, 200, 60, 210, 150, 190, 400]}
     rs["daz"] = {"BBB": [20, 10, 5, 5, 10], "CCC": [15, 10, 10, 5, 10]}
+    # assisted baskets against each defense by the shooter's position, a game: BBB give SGs 6, CCC 4
+    rs["dag"] = {"BBB": {str(g): [3, 6, 4, 3, 2] for g in (7, 8)}, "CCC": {str(g): [2, 4, 5, 3, 3] for g in range(1, 7)}}
     return props
 
 
@@ -574,9 +576,13 @@ class Assists(unittest.TestCase):
         self.assertNotIn("TOV", self.page.inner_text(".rs-panel"))  # no turnovers anywhere
 
     def test_form(self):
+        # the owner, 2026-11-04: his AST, then his assists to each OTHER position beside the assisted
+        # baskets the defense gives up to that position (no AST / 36, no minutes)
         rows = self.cells(self.tab("left", "Form"))
-        self.assertEqual([r[0] for r in rows[1:]], ["AST", "AST / 36", "MIN"])
-        self.assertEqual(rows[2][1], "7.7")  # 45 assists in 210 minutes
+        self.assertEqual([r[0] for r in rows[1:]], ["AST", "To SG", "To SF", "To PF", "To C"])  # One is a PG
+        self.assertEqual(rows[2][1:4], ["2.0", "2.0", "2.0"])  # 2 a game to SGs
+        self.assertEqual(rows[2][4:7], ["6.0", "6.0", "6.0"])  # BBB give SGs 6 assisted baskets a game
+        self.assertIn(rows[2][7], ("Over", "Under", "Even", "--"))
 
     def test_playmaking(self):
         rows = self.cells(self.tab("left", "Playmaking"))

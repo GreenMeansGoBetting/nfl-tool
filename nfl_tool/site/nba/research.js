@@ -495,6 +495,65 @@ const ZONES_PTS = [["Threes", "threes"], ["Mid-Range", "mid-range shots"], ["Pai
 // the same him 3 / defense 3 / read shape as Scoring and Shooting). His season is colored against his
 // position, his L10 / L5 against his season, the defense's by its rank of 30 in that window (green =
 // allows the most). The read goes off the two Season tiles (the site's two-sided rule).
+// Assists Form (the owner, 2026-11-04): under his AST row, a row for each OTHER position: his
+// assists a game to teammates at that position (season, last 10, last 5), beside the assisted
+// baskets tonight's defense gives up to that position a game (season, last 10, last 5, each ranked
+// of 30), and the read. research.py `acg` [.., to PG, SG, SF, PF, C] and `dag`.
+const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
+let GAME_DATE = null;
+const gameDateOf = (gid) => {
+  if (!GAME_DATE) {
+    GAME_DATE = {};
+    const f = logFields();
+    for (const p of Object.values(seasonBlock().players)) for (const r of p.log || []) GAME_DATE[String(r[f.game])] = r[f.date];
+  }
+  return GAME_DATE[String(gid)] || "";
+};
+// his assists to one position, game by game in date order (games the play-by-play has)
+function astToPos(pid, i) {
+  const f = logFields();
+  const acg = rsOf(pid).acg || {};
+  return logOf(pid).map((r) => acg[String(r[f.game])]).filter((v) => v && v.length > 2 + i).map((v) => v[2 + i]);
+}
+const DAG = {};
+function defAstToPos(i) {
+  if (!DAG[i]) {
+    const dag = RS().dag || {};
+    const teams = {};
+    for (const [t, games] of Object.entries(dag)) {
+      const vals = Object.entries(games).sort((a, b) => (gameDateOf(a[0]) < gameDateOf(b[0]) ? -1 : 1)).map(([, v]) => v[i]);
+      teams[t] = { season: avg(vals), l10: avg(vals.slice(-10)), l5: avg(vals.slice(-5)), n: vals.length };
+    }
+    const ranks = {};
+    for (const w of ["season", "l10", "l5"]) {
+      const sorted = Object.keys(teams).filter((t) => teams[t][w] !== null).sort((a, b) => teams[b][w] - teams[a][w]);
+      ranks[w] = { n: sorted.length, r: Object.fromEntries(sorted.map((t, k) => [t, k + 1])) };
+    }
+    DAG[i] = { teams, ranks };
+  }
+  return DAG[i];
+}
+function assistPosRows(x) {
+  const pool = posPool(x.p.pos);
+  return POSITIONS.filter((p) => p !== x.p.pos).map((target) => {
+    const i = POSITIONS.indexOf(target);
+    const vals = astToPos(x.pid, i);
+    const s = avg(vals), a10 = avg(vals.slice(-10)), a5 = avg(vals.slice(-5));
+    const hs = spread(s, pool.map(([id]) => avg(astToPos(id, i))));
+    const trend = (v, n) => { if (v === null || !s || n >= vals.length) return null; const rel = (v - s) / s / 0.3; return Math.abs(rel) < 0.2 ? null : rel; };
+    const D = defAstToPos(i), opp = D.teams[x.opp];
+    const rk = (w) => (opp && D.ranks[w].r[x.opp] ? rankSigned(D.ranks[w].r[x.opp], D.ranks[w].n) : null);
+    const dtip = (w, label) => (opp ? `${team(x.opp).name} give up ${fmt(opp[w])} assisted baskets a game to ${target}s ${label} (${rankWords(D.ranks[w].r[x.opp], D.ranks[w].n)})` : "");
+    const rd = readOf(hs, rk("season"));
+    const rdTip = { Over: `The Over: one side points to more assists to ${target}s and the other doesn't point against it`, Under: `The Under: one side points to fewer assists to ${target}s and the other doesn't point against it`, Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
+    return LB(`To ${target}`, `His assists a game to his ${target}s`)
+      + T(fmt(s), hs, `His assists a game to ${target}s this season, in ${vals.length} games (colored against the league's ${x.p.pos}s)`)
+      + T(fmt(a10), trend(a10, 10), `His last ${Math.min(10, vals.length)} games (colored against his season)`) + T(fmt(a5), trend(a5, 5), `His last ${Math.min(5, vals.length)} games (colored against his season)`)
+      + T(fmt(opp ? opp.season : null), rk("season"), dtip("season", "this season")) + T(fmt(opp ? opp.l10 : null), rk("l10"), dtip("l10", "in their last 10"))
+      + T(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5")) + T(rd.t, rd.s, rdTip[rd.t]);
+  });
+}
+
 function formTab(x) {
   const f = logFields();
   const log = logOf(x.pid), l10 = log.slice(-10), l5 = log.slice(-5);
@@ -506,9 +565,9 @@ function formTab(x) {
   const opp = D.teams[x.opp] || {};
   const ratio = (a, b) => (rows) => (sum(rows, b) ? (sum(rows, a) / sum(rows, b)) * 100 : null);
   // Threes (the owner, 2026-11-04): no FGA (the 3PA rate says it) and no minutes
-  const per36r = (rows) => (sum(rows, "min") ? (sum(rows, "ast") / sum(rows, "min")) * 36 : null);
   // Assists (the owner, 2026-11-04): no turnovers ("too noisy"); a 36 splits passing from minutes
-  const ROWS = ASTS ? [["AST", per("ast"), 1, 0.2, "ast", "assists"], ["AST / 36", per36r, 1, 0.2, "ast36", "assists a 36 minutes"], ["MIN", per("min"), 1, 0.1, null, "minutes"]]
+  // Assists: his AST, then his assists to each other position (assistPosRows; the owner, 2026-11-04)
+  const ROWS = ASTS ? [["AST", per("ast"), 1, 0.2, "ast", "assists"]]
     : REBS ? [["REB", per("reb"), 1, 0.15, "reb", "rebounds"], ["DREB", per("dreb"), 1, 0.15, "dreb", "defensive rebounds"],
     ["OREB", per("oreb"), 1, 0.3, "oreb", "offensive rebounds"], ["MIN", per("min"), 1, 0.1, null, "minutes"]]
     : THREES ? [["3PM", per("fg3m"), 1, 0.3, "fg3m", "threes made"], ["3PA", per("fg3a"), 1, 0.2, "fg3a", "threes tried"],
@@ -544,6 +603,7 @@ function formTab(x) {
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}${ag}`) + cells;
   });
   const head = corner(x) + HD("Season", "him") + HD("L10", "him") + HD("L5", "him") + HD("Season", "def", "", `What ${team(x.opp).name} allow ${x.p.pos}s`) + HD("L10", "def") + HD("L5", "def") + HD("Read", "rd");
+  if (ASTS) rows.push(...assistPosRows(x));
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: rows.length < RS_ROWS });
 }
 
@@ -1256,7 +1316,7 @@ const RS_TAB_TIP = {
 };
 if (ASTS) {
   Object.assign(RS_TAB_TIP, {
-    Form: "His assists, assists a 36 minutes (passing apart from minutes) and minutes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
+    Form: "His assists, then his assists to each other position (season, last 10, last 5), beside what tonight's defense gives up (assists to his position; assisted baskets to each other position), and the read. His season is colored against his position, his last 10 / 5 against his season; the defense's by its rank of 30 (green = gives up the most).",
     Playmaking: "Why his number is what it is: his teammates' made shots while he's on the floor (assist chances) and his share of them, beside the side of tonight's defense that drives each (the shooting it allows, how much of it is assisted, how often teams run on it), pace, and the read. Green = good for him.",
     "Assist Zones": "Where the shots he sets up come from (rim, paint, mid-range, corner and above-the-break threes), beside where tonight's defense gives up assisted makes, and the read.",
     "Game Script": `His games like tonight: within ${SCRIPT_RANGE} points of tonight's spread and total either way, within ${PACE_RANGE} possessions of tonight's pace, his home or road games and his last 10, with his minutes and assist chances, each colored against his season. Fewer than ${SMALL} games is too few to lean on (faded, uncolored).`,

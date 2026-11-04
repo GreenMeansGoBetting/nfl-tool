@@ -153,7 +153,8 @@ class Assists(unittest.TestCase):
 
     def test_chances_and_his_assists(self):
         self.assertEqual(self.p["13"]["ap"], [3, 1, 1])  # 3 teammate makes, 1 assist, on the fast break
-        self.assertEqual(self.p["13"]["acg"], {"9": [3, 1]})
+        # [chances, assists, then assists to a PG, SG, SF, PF, C]: the hand-made box says only "G"
+        self.assertEqual(self.p["13"]["acg"], {"9": [3, 1, 0, 0, 0, 0, 0]})
         self.assertEqual(self.p["13"]["qa"], [1, 0, 0, 0])
         self.assertEqual(self.p["13"]["az"][research.ASSIST_ZONES.index("rim")], 1)
         self.assertEqual(self.p["15"]["ap"][1], 0)  # the shooter isn't credited

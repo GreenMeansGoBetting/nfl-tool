@@ -52,10 +52,12 @@ a teammate's made shot while he's on the floor (our stand-in for the NBA's "pote
 - `ap`: [chances, his assists, his assists in transition (the shot within TRANSITION_SECS)].
 - `az`: his assists by where the made shot came from, ASSIST_ZONES order.
 - `qa`: his assists by quarter.
-- `acg`: {game id: [chances, assists]} (Game Script, and Vs The Line's hover: chances x rate that night).
+- `acg`: {game id: [chances, assists, assists to a PG, SG, SF, PF, C]} (Game Script; Vs The Line's
+  hover: chances x rate that night; Form: his assists to each position, the owner 2026-11-04).
 - `wa[<teammate>]`: [assists, chances with him on the floor, assists, chances with him off];
   `to[<teammate>]`: his assists to that teammate (both only teammates in props.py's `with`).
 `daz[<abbr>]`: assisted makes against that defense by ASSIST_ZONES.
+`dag[<abbr>]`: {game id: assisted makes against that defense by the shooter's position, POSITIONS order}.
 `defpos[<abbr>][<pos>]`: what that defense allowed the position: [threes, mid-range, paint, free
   throw points, made shots, assisted makes, transition points, points, shots]; `deffga[<abbr>]`:
   every shot against it (the position's share of them).
@@ -81,6 +83,7 @@ MINUTES = 48
 THREE_KINDS = ("catch", "pullup", "stepback", "trans", "second")
 MISS_ZONES = ("rim", "short", "mid", "corner3", "above3", "ft")
 ASSIST_ZONES = ("rim", "short", "mid", "corner3", "above3")
+POSITIONS = ("PG", "SG", "SF", "PF", "C")
 PULLUP = ("pullup", "fade")
 
 
@@ -118,7 +121,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss = engine.possessions
     acts = engine.actions
     stints = engine.stints
-    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}, "daz": {}}
+    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}, "daz": {}, "dag": {}}
     if poss.empty:
         return out
     mine = lambda pid: out["players"].setdefault(str(int(pid)), {})  # noqa: E731
@@ -420,7 +423,7 @@ def assists_block(out: dict, joined: pd.DataFrame, players: dict) -> None:
                 continue
             row = tally.setdefault(p, [0, 0, 0])
             row[0] += 1
-            g = games.setdefault(p, {}).setdefault(int(gid), [0, 0])
+            g = games.setdefault(p, {}).setdefault(int(gid), [0] * 7)
             g[0] += 1
             seen.setdefault(p, []).append((passer == p, floor))
         if passer is None:
@@ -428,7 +431,14 @@ def assists_block(out: dict, joined: pd.DataFrame, players: dict) -> None:
         row = tally.setdefault(passer, [0, 0, 0])
         row[1] += 1
         row[2] += int(early)
-        games.setdefault(passer, {}).setdefault(int(gid), [0, 0])[1] += 1
+        g = games.setdefault(passer, {}).setdefault(int(gid), [0] * 7)
+        g[1] += 1
+        pos = (players.get(str(shooter)) or {}).get("pos")
+        if pos in POSITIONS:
+            g[2 + POSITIONS.index(pos)] += 1
+            if d is not None and pd.notna(d):
+                dg = out["dag"].setdefault(str(d), {}).setdefault(str(int(gid)), [0] * len(POSITIONS))
+                dg[POSITIONS.index(pos)] += 1
         if zone in ASSIST_ZONES:
             zones.setdefault(passer, [0] * len(ASSIST_ZONES))[ASSIST_ZONES.index(zone)] += 1
             if d is not None and pd.notna(d):
