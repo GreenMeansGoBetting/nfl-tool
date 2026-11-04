@@ -56,6 +56,50 @@ class Block(unittest.TestCase):
         self.assertEqual((total, spread), (221.5, -3.5))
 
 
+class Threes(unittest.TestCase):
+    """The Threes panel's data (2026-11-04): threes by how they came, by quarter, who set them up,
+    with / without each teammate, and what each defense allowed each position from three. The
+    hand-made game with home 14's put-back turned into a made catch-and-shoot three right after his
+    own team's offensive rebound: a second-chance three."""
+    @classmethod
+    def setUpClass(cls):
+        events = [dict(e) for e in EVENTS]
+        tip = next(i for i, e in enumerate(events) if e["type_text"] == "Tip Shot")
+        events[tip].update(type_text="Jump Shot", text="P14 makes 24-foot three point jumper", value=3, points_attempted=3,
+                           score=(5, 0), coordinate_x=30, coordinate_y=20)
+        for e in events[tip + 1:]:  # every later home score one point higher
+            if e["score"]:
+                e["score"] = (e["score"][0] + 1, e["score"][1])
+        pbp, box = game(events), full_box()
+        engine = P.Season(pbp, box)
+        block = props.season_block(pbp, box, "x", engine)
+        cls.rs = research.block(engine, box, block["players"])
+        cls.p = cls.rs["players"]
+
+    def test_second_chance_and_catch(self):
+        # [catch, pull-up, step-back, transition, second chance, all] as made / tried
+        self.assertEqual(self.p["14"]["t3"], [1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
+        self.assertEqual(self.p["14"]["q3"], [1, 1, 0, 0, 0, 0, 0, 0])
+
+    def test_step_back_and_the_misses(self):
+        self.assertEqual(self.p["23"]["t3"][4:6], [1, 1])  # his step-back three
+        self.assertEqual(self.p["23"]["t3"][8:], [0, 0, 1, 1])  # no offensive rebound before it
+        self.assertEqual(self.p["21"]["t3"][:2], [0, 1])  # a missed plain jumper = catch and shoot
+        self.assertEqual(self.p["23"]["feed3"], [1, []])  # unassisted
+
+    def test_what_each_defense_allowed(self):
+        made = tried = 0
+        for team, by in self.rs["def3"].items():
+            self.assertIn(team, ("AAA", "BBB"))  # abbreviations, never ESPN's team number
+            for row in by.values():
+                made, tried = made + row[10], tried + row[11]
+        self.assertEqual((made, tried), (2, 4))  # 14 and 23 made; 21 and 12 missed
+
+    def test_with_and_without(self):
+        for mate, (om, oa, fm, fa) in self.p["14"].get("w3", {}).items():
+            self.assertEqual((om + fm, oa + fa), (1, 1), mate)  # on + off = all his threes
+
+
 class LineHistory(unittest.TestCase):
     def test_main_lines_until_tip(self):
         q = lambda *ls: [["dk", "o", line, -110, ""] for line in ls]  # noqa: E731

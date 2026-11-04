@@ -236,7 +236,7 @@ Every game played 10,000 times, possession by possession.
   teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
-- **Research panel (Points only so far, 2026-11-03)**: a row click (not the name, a price or a tag)
+- **Research panel (Points 2026-11-03, Threes 2026-11-04; Rebounds / Assists next)**: a row click (not the name, a price or a tag)
   opens it (`panel`, `PANEL`). **Two sandboxes** (the owner approved the mock-up, 2026-11-03: "a
   standard sandbox area so youd always know how to conform data to it"): two boxes of one size side
   by side, each with tabs (`RS_TABS`: left Form / Scoring / Matchup / Game Script, right Vs The Line /
@@ -260,15 +260,36 @@ Every game played 10,000 times, possession by possession.
   line that night as dots; **no strip under it**), Rotation (quarter headers carry points a quarter,
   colored; three tall strips season / last 5 / last game in four quarter blocks; nothing under them),
   Teammates (together, shots and points a 36 with / without, change, assists to him).
+- **Threes panel** (the owner's Q&A, 2026-11-04; `THREES` in research.js, Points untouched): left
+  **Form / Shooting / Shot Map / Game Script**, right **Vs The Line / Ladder / Rotation / Teammates**
+  (no Matchup: it repeated Form; the map covers where). A tab with fewer than six rows grows them to
+  fill the same box (`gridOf` `fill`, `.rs-fill`), never blank rows. Form: 3PM, 3PA, 3P%, 3PA Rate
+  (**no FGA, no minutes**). Shooting = HOW (Catch & Shoot, Pull-Up, Step-Back, Transition, Second
+  Chance; no location rows, the map has them; no Assisted, it repeats catch): share / rank / 3PM a game
+  vs the defense's share of his position's threes / rank / made a game, read. **Shot Map**: two heat
+  maps (shot-chart.js `nbaShotHeatView`, threes only, `MAP_HEX` 2.6 ft, `legend: false`), his and every
+  three his position took vs tonight's defense (shots.json); **green = good for him on BOTH maps** (the
+  Shot Charts page's defense side is the other way). Game Script columns Games / 3PM / +/- / 3PA / 3P% /
+  Over / Hit %. Vs The Line bars read makes / tries, a night with none = a red "0/5" chip. **Ladder**:
+  % of games with None / k+ threes, seven columns sliding to sit around tonight's line (start = Over - 3,
+  floor 0), the Over column's header green; rows Season, Last 10, Last 5, venue, Spread like tonight,
+  **Vs Like <OPP>** (his games vs defenses in the same third for threes made by his position); under
+  `SMALL` faded. Rotation quarter headers: 3PM and 3PA a game. Teammates: 3PA / 3PM a 36 with / without,
+  change in made, assists on his threes. The list's Min column is **3PA** on this page.
 - **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
   book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30
   teams' paces), Spread (his team's), Total (`tonightGame`).
 - Data: `research.py` -> props.json `research` (own try in `compute_props`): per player `feed`,
   `trans`, `units` (bench unit = `BENCH_UNIT` 2 or fewer starters), `q`, `rot` / `rot5` / `rotn`,
-  `rot1`, `q4`, `foul`, `lines`, `pz` (points by zone); `defpos` / `deffga` (each defense vs each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
+  `rot1`, `q4`, `foul`, `lines`, `pz` (points by zone); threes: `t3` ([made, tried] by `THREE_KINDS`
+  catch / pull-up (+ fades) / step-back / transition (the three itself within 8 s of a transition
+  possession's start) / second chance (after his team's OREB, same possession), then all), `q3`,
+  `feed3`, `w3` (with / without each `with` teammate), `lines3`; `defpos` / `deffga` (each defense vs
+  each position), `def3` (the same 12 numbers allowed to each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets
   until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03); older nights come from
-  `past_points_lines` (the retired projections' lines file, the sim and Zone Matchup records). Tests: `tests/test_nba_research.py`.
+  `past_points_lines(season, market)` (the retired projections' `lines_` / `threes_` files, the sim and
+  Zone Matchup records); points -> `lines`, threes -> `lines3`. Tests: `tests/test_nba_research.py`.
 
 ## The player card (`nba-card.js`)
 

@@ -24,6 +24,17 @@ everything here comes from the engine (possessions.py) for THIS season.
 - `foul`: game ids with early foul trouble (EARLY_Q1 fouls in the 1st quarter
   or EARLY_H1 by halftime).
 - `pz`: his points [threes, mid-range, paint (rim + short), free throws], summed.
+Threes (the Threes page's panel, 2026-11-04):
+- `t3`: his threes [made, tried] by how they came, flat, THREE_KINDS order then every three:
+  [catch m, a, pull-up m, a, step-back m, a, transition m, a, second chance m, a, all m, a].
+  Catch = ESPN's plain "Jump Shot"; pull-up takes fades too; transition = the three itself within
+  TRANSITION_SECS of a transition possession's start (a three after an offensive rebound in one is
+  not); second chance = after his team's offensive rebound, same possession.
+- `q3`: his threes [made, tried] by quarter, flat [q1 m, a, ... q4 m, a] (overtime left out).
+- `feed3`: [his made threes, [[passer id, assisted threes], ...]] (top FEED_TOP passers).
+- `w3[<teammate>]`: [threes made, tried with him on the floor, made, tried with him off]
+  (only teammates in props.py's `with`).
+`def3[<abbr>][<pos>]`: what that defense allowed the position from three, the same 12 numbers as `t3`.
 `defpos[<abbr>][<pos>]`: what that defense allowed the position: [threes, mid-range, paint, free
   throw points, made shots, assisted makes, transition points, points, shots]; `deffga[<abbr>]`:
   every shot against it (the position's share of them).
@@ -46,6 +57,21 @@ BENCH_UNIT = 2
 CLOSE_Q4 = 10
 EARLY_Q1, EARLY_H1 = 2, 3
 MINUTES = 48
+THREE_KINDS = ("catch", "pullup", "stepback", "trans", "second")
+PULLUP = ("pullup", "fade")
+
+
+def three_counts(g: pd.DataFrame) -> list:
+    """[made, tried] by THREE_KINDS then every three, flat (12 ints), from shot actions carrying
+    `three`, `made`, `kind2`, `early` and `second`."""
+    t = g[g["three"].astype(bool)]
+    made = t["made"].astype(bool)
+    masks = (t["kind2"] == "catch", t["kind2"].isin(PULLUP), t["kind2"] == "stepback",
+             t["early"].fillna(False).astype(bool), t["second"].astype(bool), pd.Series(True, index=t.index))
+    out = []
+    for m in masks:
+        out += [int((m & made).sum()), int(m.sum())]
+    return out
 
 
 def zone_points(g: pd.DataFrame) -> list:
@@ -69,7 +95,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss = engine.possessions
     acts = engine.actions
     stints = engine.stints
-    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}}
+    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}}
     if poss.empty:
         return out
     mine = lambda pid: out["players"].setdefault(str(int(pid)), {})  # noqa: E731
@@ -82,7 +108,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss["d_st"] = [sum(int(p) in starters.get(int(g), ()) for p in ps if pd.notna(p))
                     for g, ps in zip(poss["game_id"], poss[dcols].itertuples(index=False, name=None))]
     poss["bench"] = poss["d_st"] <= BENCH_UNIT
-    key = poss.set_index(["game_id", "n"])[["fast", "bench", "def"]]
+    key = poss.set_index(["game_id", "n"])[["fast", "bench", "def", "t0"]]
 
     abbr = dict(zip(box["team_id"].astype(int), box["team_abbreviation"]))
     for team, g in poss.groupby("def"):
@@ -97,7 +123,13 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
 
     scoring = acts[acts["kind"].isin(("shot", "ft")) & acts["player"].notna() & acts["n"].notna()].copy()
     scoring["n"] = scoring["n"].astype(int)
+    # second chance: a shot after his team's offensive rebound in the same possession
+    orebs = acts[(acts["kind"] == "oreb") & acts["n"].notna()]
+    first_oreb = orebs.assign(n=orebs["n"].astype(int)).groupby(["game_id", "n"])["t"].min()
+    after = scoring.join(first_oreb.rename("oreb_t"), on=["game_id", "n"])["oreb_t"]
+    scoring["second"] = after.notna() & (scoring["t"] > after)
     joined = scoring.join(key, on=["game_id", "n"])
+    joined["early"] = joined["fast"].fillna(False).astype(bool) & ((joined["t"] - joined["t0"]) <= identity.TRANSITION_SECS)
     for pid, g in joined.groupby("player"):
         if str(int(pid)) not in players:
             continue
@@ -110,6 +142,25 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
         by_q = g[g["period"] <= 4].groupby("period")["pts"].sum()
         p["q"] = [int(by_q.get(q, 0)) for q in (1, 2, 3, 4)]
         p["pz"] = zone_points(g)
+        shots = g[g["kind"] == "shot"]
+        if shots["three"].astype(bool).any():
+            p["t3"] = three_counts(shots)
+            q3 = []
+            for q in (1, 2, 3, 4):
+                t = shots[(shots["period"] == q) & shots["three"].astype(bool)]
+                q3 += [int(t["made"].astype(bool).sum()), len(t)]
+            p["q3"] = q3
+            # with / without each teammate (props.py `with`): his threes with him on the floor
+            mates = (players.get(str(int(pid))) or {}).get("with") or {}
+            if mates:
+                t = shots[shots["three"].astype(bool)]
+                tm, ta = int(t["made"].astype(bool).sum()), len(t)
+                w3 = {}
+                for mate in mates:
+                    on = t["with"].map(lambda five, q=int(mate): q in {int(x) for x in five})
+                    om, oa = int((on & t["made"].astype(bool)).sum()), int(on.sum())
+                    w3[mate] = [om, oa, tm - om, ta - oa]
+                p["w3"] = w3
 
     # what each defense allowed each position: points by zone, makes and assisted makes, transition
     # points, shots (and every position's shots, for the position's share)
@@ -121,6 +172,9 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
         out["defpos"].setdefault(str(team), {})[pos] = zone_points(g) + [
             len(made), int(made["assist"].notna().sum()), int(g.loc[g["fast"].fillna(False).astype(bool), "pts"].sum()),
             int(g["pts"].sum()), len(shots)]
+        three = g[(g["kind"] == "shot") & g["three"].astype(bool)]
+        if len(three):
+            out["def3"].setdefault(str(team), {})[pos] = three_counts(three)
     for team, g in joined[joined["dabbr"].notna() & (joined["kind"] == "shot")].groupby("dabbr"):
         out["deffga"][str(team)] = len(g)
 
@@ -131,6 +185,10 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
             continue
         top = g["assist"].dropna().astype(int).value_counts().head(FEED_TOP)
         mine(pid)["feed"] = [len(g), [[str(a), int(n)] for a, n in top.items()]]
+        threes = g[g["three"].astype(bool)]
+        if len(threes):
+            top3 = threes["assist"].dropna().astype(int).value_counts().head(FEED_TOP)
+            mine(pid)["feed3"] = [len(threes), [[str(a), int(n)] for a, n in top3.items()]]
 
     # the rotation: on the floor at each game minute (its middle), and 4th-quarter minutes
     q4_start = poss[poss["period"] == 4].sort_values("t0").groupby("game_id").first()

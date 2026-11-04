@@ -274,6 +274,139 @@ class Panel(unittest.TestCase):
         self.assertEqual(page.locator("#rs-list tr.rs-click").count(), 0)
 
 
+def threes_props():
+    """The same slate with threes in every log (fga, fg3a added after the first fields) and Player
+    One's threes data for the Threes panel (research.py `t3`, `q3`, `feed3`, `w3`, `lines3`, `def3`)."""
+    import copy
+    props = copy.deepcopy(PROPS)
+    block = props["seasons"]["2027"]
+    block["fields"] = FIELDS + ["fga", "fg3a"]
+    made, tried = [0, 1, 2, 3, 4, 2], [5, 6, 7, 8, 9, 6]  # One: 12 of 41
+    for pid, p in block["players"].items():
+        for i, r in enumerate(p["log"]):
+            if pid == "1":
+                r[6] = made[i]
+            r += [15, tried[i] if pid == "1" else 5]
+    rs = props["research"]
+    rs["players"]["1"].update({
+        "t3": [6, 20, 3, 10, 1, 5, 2, 6, 1, 4, 12, 41], "q3": [2, 8, 3, 9, 4, 10, 3, 14], "feed3": [12, [["2", 4]]],
+        "w3": {"2": [6, 20, 6, 21], "3": [5, 15, 7, 26]}, "lines3": {"4": 2.5}})
+    # BBB vs PGs: 30 of their 40 threes catch-and-shoot (75%, the most); CCC 20 of 30
+    rs["def3"] = {"BBB": {"PG": [10, 30, 2, 6, 1, 3, 3, 8, 2, 5, 14, 40]}, "CCC": {"PG": [6, 20, 2, 5, 1, 2, 1, 3, 1, 2, 9, 30]}}
+    return props
+
+
+# One's three threes (two made) and Four's (a PG) threes against BBB: one made of two, and a two
+SHOTS = {"teams": ["AAA", "BBB", "CCC"], "league": [[25, 25, 1, 35, 100], [10, 20, 1, 36, 100]],
+         "players": {"1": [[25, 26, 1, 1, 0, 0, 2, 0, 2], [10, 22, 1, 1, 1, 0, 1, 0, 2], [40, 22, 0, 1, 2, 0, 2, 0, 2]],
+                     "4": [[25, 27, 1, 1, 0, 0, 2, 2, 1], [5, 3, 0, 1, 1, 0, 2, 2, 1], [25, 5, 1, 0, 1, 0, 3, 2, 1]]}}
+
+
+class Threes(unittest.TestCase):
+    """The Threes page's panel (the owner, 2026-11-04): Form (3PM, 3PA, 3P%, 3PA Rate: no FGA, no
+    minutes), Shooting (how he gets his threes), Shot Map (his threes and his position's against
+    tonight's defense), Game Script (3PA and 3P% for minutes and shots), Vs The Line (makes / tries
+    on the bars, a night with none a red chip), Ladder (how often he hit each number, around
+    tonight's line), Rotation (threes made and tried a quarter) and Teammates (threes with /
+    without). Every tab the same box. The list's Min column is 3PA."""
+    @classmethod
+    def setUpClass(cls):
+        cls.saved = (SITE.nba, SITE.nba_props, SITE.nba_shots)
+        data = dict(DATA)
+        data["book_odds"] = {"AAA_BBB": {"props": {"threes": {"1": {"name": "Player One", "q": quotes(2.5)}}}}}
+        SITE.nba, SITE.nba_props, SITE.nba_shots = data, threes_props(), SHOTS
+        cls.page = SITE.open("nba/threes.html")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+        cls.page.click("#rs-list tr.rs-click td.rs-line")
+        cls.page.wait_for_selector("#rs-list .rs-panel")
+
+    @classmethod
+    def tearDownClass(cls):
+        SITE.nba, SITE.nba_props, SITE.nba_shots = cls.saved
+
+    tab = Panel.tab
+    cells = Panel.cells
+    open = Panel.open
+
+    def test_the_list_shows_threes_tried(self):
+        self.assertEqual(head(self.page)[5], "3PA")
+        [one] = rows(self.page)
+        self.assertEqual(one[5], "6.8 L5 7.2")  # 41 tries in 6 games; the last 5: 36
+
+    def test_eight_tabs_every_one_the_same_box(self):
+        tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
+        self.assertEqual(tabs, [["Form", "Shooting", "Shot Map", "Game Script"], ["Vs The Line", "Ladder", "Rotation", "Teammates"]])
+        sizes = set()
+        for side, names in (("left", tabs[0]), ("right", tabs[1])):
+            for name in names:
+                box = self.tab(side, name)
+                sizes.add(tuple(self.page.evaluate(f"() => {{ const b = document.querySelector(\"{box}\"); const s = b.querySelector('.rs-sbody'); const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), s.scrollHeight <= s.clientHeight + 1]; }}")))
+        self.assertEqual(sizes, {(600, 312, True)})  # every tab the same box, nothing spilling out
+        self.assertEqual(SITE.errors, [])
+        text = self.page.inner_text(".rs-panel")
+        for word in ("Edge", "Fair", "Projection", "Model"):
+            self.assertNotIn(word, text)
+
+    def test_form(self):
+        rows = self.cells(self.tab("left", "Form"))
+        self.assertEqual([r[0] for r in rows[1:]], ["3PM", "3PA", "3P%", "3PA Rate"])  # four rows grow to fill the box
+        self.assertEqual(rows[1][1], "2.0")
+        self.assertEqual(rows[3][1], "29")  # 12 of 41
+        self.assertEqual(rows[4][1], "46")  # 41 of 90 shots
+
+    def test_shooting(self):
+        rows = self.cells(self.tab("left", "Shooting"))
+        self.assertEqual(rows[0][1:], ["Share", "Rank", "3PM / G", "Allowed", "Rank", "3PM / G", "Read"])
+        self.assertEqual([r[0] for r in rows[1:]], ["Catch & Shoot", "Pull-Up", "Step-Back", "Transition", "Second Chance"])
+        self.assertEqual(rows[1][1], "49%")  # 20 of his 41
+        self.assertEqual(rows[1][3], "1.0")  # 6 made in 6 games
+        self.assertEqual(rows[1][4:6], ["75%", "1st"])  # BBB: 30 of 40, the most
+
+    def test_shot_map(self):
+        box = self.tab("left", "Shot Map")
+        heads = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-maph\")].map((h) => h.textContent.replace(/\\s+/g, ' ').trim())")
+        self.assertEqual(heads, ["7His Threes2/367%", "Allowed To PGs1/250%"])  # threes only: Four's two against BBB is left out
+        self.assertEqual(self.page.locator(f"{box} svg.nba-shot-svg").count(), 2)
+        self.assertGreater(self.page.locator(f"{box} .nba-shot-hex").count(), 2)
+
+    def test_game_script(self):
+        rows = self.cells(self.tab("left", "Game Script"))
+        self.assertEqual(rows[0][1:], ["Games", "3PM", "+/-", "3PA", "3P%", "Over 2.5", "Hit %"])
+        self.assertEqual(rows[1][1:7], ["6", "2.0", "--", "6.8", "29", "2 of 6"])
+
+    def test_vs_the_line(self):
+        box = self.tab("right", "Vs The Line")
+        bars = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-vbar b\")].map((b) => b.textContent)")
+        self.assertEqual(bars, ["1/6", "2/7", "3/8", "4/9", "2/6"])  # makes / tries
+        self.assertEqual(self.page.inner_text(f"{box} .rs-vday.zero"), "0/5")  # a night with none
+        self.assertEqual(self.page.locator(f"{box} .rs-vbar.over").count(), 2)  # over 2.5: the 3 and the 4
+        self.assertEqual(self.page.locator(f"{box} .rs-vdot.hit").count(), 1)  # game 4's line 2.5: he made 3
+
+    def test_ladder(self):
+        box = self.tab("right", "Ladder")
+        rows = self.cells(box)
+        self.assertEqual(rows[0][1:], ["None", "1+", "2+", "3+", "4+", "5+", "6+"])
+        self.assertIn("rs-rd", self.page.get_attribute(f"{box} .rs-h[title^=\"Tonight's Over\"]", "class"))
+        self.assertEqual(self.page.locator(f"{box} .rs-h.rs-rd").count(), 1)  # 3+ = tonight's Over 2.5
+        self.assertTrue(rows[1][0].startswith("Season"))
+        self.assertEqual(rows[1][1:5], ["17%", "83%", "67%", "33%"])  # 0, 1, 2, 3, 4, 2
+        labels = [r[0] for r in rows[1:]]
+        for label, start in zip(labels, ["Season", "Last 10", "Last 5", "Road", "Spread +3.5", "Vs Like BBB"]):
+            self.assertTrue(label.startswith(start), labels)
+        self.assertEqual(len(labels), 6)
+
+    def test_rotation(self):
+        box = self.tab("right", "Rotation")
+        # 2 of 8 in the 1st over 6 games
+        self.assertEqual(self.page.locator(f"{box} .rs-qt").first.text_content(), "1st Qtr0.3 3PM · 1.3 3PA")
+
+    def test_teammates(self):
+        rows = self.cells(self.tab("right", "Teammates"))
+        self.assertEqual(rows[0][1:], ["Together", "3PA With", "3PA W/O", "3PM With", "3PM W/O", "Change", "Assists"])
+        two = next(r for r in rows if r[0].startswith("P. Two"))
+        self.assertEqual(two[2:8], ["12.0", "5.0", "3.6", "1.4", "−2.2", "4"])  # 20 / 21 tries, 6 / 6 makes in 60 / 150 min
+
+
 class OtherMarkets(unittest.TestCase):
     def test_rebounds_reads_rebounds(self):
         page = SITE.open("nba/rebounds.html")

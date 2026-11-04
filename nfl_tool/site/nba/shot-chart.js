@@ -241,8 +241,7 @@ function nbaShotTable(shots, league) {
 
 // ---- Heat Map ----
 // Flat-top hexagons NBA_SHOT_HEX feet across the corners; [q, r] axial coordinates.
-function nbaShotHexOf(dx, dy) {
-  const R = NBA_SHOT_HEX;
+function nbaShotHexOf(dx, dy, R = NBA_SHOT_HEX) {
   const q = ((2 / 3) * dx) / R;
   const r = ((-1 / 3) * dx + (Math.sqrt(3) / 3) * dy) / R;
   let [rx, ry, rz] = [Math.round(q), Math.round(-q - r), Math.round(r)];
@@ -251,7 +250,7 @@ function nbaShotHexOf(dx, dy) {
   else if (ey <= ez) rz = -rx - ry;
   return [rx, rz];
 }
-const nbaShotHexCenter = (q, r) => [NBA_SHOT_HEX * 1.5 * q, NBA_SHOT_HEX * Math.sqrt(3) * (r + q / 2)];
+const nbaShotHexCenter = (q, r, R = NBA_SHOT_HEX) => [R * 1.5 * q, R * Math.sqrt(3) * (r + q / 2)];
 function nbaShotHexPath(cx, cy, size) {
   const pts = [];
   for (let k = 0; k < 6; k++) {
@@ -260,11 +259,14 @@ function nbaShotHexPath(cx, cy, size) {
   }
   return `M${pts.join(" L")}Z`;
 }
+// opts.hex: hexagon size in feet (a small drawing uses bigger ones, Threes research's Shot Map);
+// opts.legend === false: the drawing alone (the caller draws one legend for two charts).
 function nbaShotHeatView(shots, league, opts) {
   const side = nbaShotSide(opts);
+  const R = (opts && opts.hex) || NBA_SHOT_HEX;
   const bins = new Map();
   shots.forEach((s) => {
-    const [q, r] = nbaShotHexOf(s[0] - 25, s[1]);
+    const [q, r] = nbaShotHexOf(s[0] - 25, s[1], R);
     const key = `${q},${r}`;
     if (!bins.has(key)) bins.set(key, { q, r, shots: [] });
     bins.get(key).shots.push(s);
@@ -275,7 +277,7 @@ function nbaShotHeatView(shots, league, opts) {
   const hexes = [...bins.values()]
     .sort((a, b) => a.shots.length - b.shots.length)
     .map((b) => {
-      const [cx, cy] = nbaShotHexCenter(b.q, b.r);
+      const [cx, cy] = nbaShotHexCenter(b.q, b.r, R);
       const three = b.shots.filter((s) => s[3]).length * 2 >= b.shots.length ? 1 : 0;
       // his shots of the same kind (2 or 3) around this spot, and the league's
       const his = shots.filter((s) => s[3] === three && near(s[0], s[1], cx, cy));
@@ -289,7 +291,7 @@ function nbaShotHeatView(shots, league, opts) {
       });
       const made = his.reduce((n, s) => n + s[2], 0);
       const diff = side.sign * nbaShotDiff(made, his.length, la ? lm / la : null);
-      const size = NBA_SHOT_HEX * (0.3 + 0.7 * Math.sqrt(Math.min(b.shots.length / top, 1)));
+      const size = R * (0.3 + 0.7 * Math.sqrt(Math.min(b.shots.length / top, 1)));
       const own = b.shots.reduce((n, s) => n + s[2], 0);
       return `<path d="${nbaShotHexPath(cx, cy, size * 0.98)}" fill="${nbaShotColor(diff)}" class="nba-shot-hex"><title>${own}/${b.shots.length} here, ${nbaShotPct(made, his.length)} around this spot (league ${nbaShotPct(lm, la)})</title></path>`;
     })
@@ -297,7 +299,7 @@ function nbaShotHeatView(shots, league, opts) {
   const hex = (size, fill) => `<svg width="22" height="20" viewBox="-11 -10 22 20"><path d="${[0, 1, 2, 3, 4, 5].map((k) => `${k ? "L" : "M"}${(size * Math.cos((Math.PI / 3) * k)).toFixed(1)},${(size * Math.sin((Math.PI / 3) * k)).toFixed(1)}`).join(" ")}Z" fill="${fill}"/></svg>`;
   const legend = `<div class="nba-shot-legend"><span>${side.cold}</span>${[-1, -0.5, 0, 0.5, 1].map((t) => hex(9, nbaShotColor(side.sign * t * NBA_SHOT_FULL))).join("")}<span>${side.hot}</span>
     <span class="nba-shot-gap"></span><span>Fewer Shots</span>${[3.5, 6, 8, 10].map((s) => hex(s, "var(--muted)")).join("")}<span>More Shots</span></div>`;
-  return `${nbaShotSvg(++nbaShotUid, nbaShotLines() + hexes)}${legend}`;
+  return `${nbaShotSvg(++nbaShotUid, nbaShotLines() + hexes)}${opts && opts.legend === false ? "" : legend}`;
 }
 
 // The filter buttons (shared by every chart on a page: one NBA_SHOT_STATE).

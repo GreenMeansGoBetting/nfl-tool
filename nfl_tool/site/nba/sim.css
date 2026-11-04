@@ -388,12 +388,28 @@ table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; p
 .rs-vx { display: flex; flex: none; }
 .rs-vx span { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; font: 600 0.64rem var(--font-body); color: var(--muted); white-space: nowrap; overflow: hidden; }
 .rs-vx span b { font: 800 0.68rem var(--font-display); color: var(--text); }
+/* Threes (2026-11-04): a tab with fewer rows grows them to fill the same box (gridOf `fill`) */
+.rs-g.rs-fill { height: 100%; grid-template-rows: 28px repeat(var(--rs-n), minmax(0, 1fr)); grid-auto-rows: 0; }
+.rs-t.rs-l .rs-gn { margin-left: auto; padding: 1px 5px; border-radius: 5px; background: var(--rs-tile); font: 700 0.7rem var(--font-display); }
+.rs-t.rs-qt.rs-qt3 b { font-size: 0.86rem; }
+.rs-vbar b small { font: 700 0.66rem var(--font-display); }
+.rs-vday.zero span { color: #fff; background: hsla(0, 70%, 50%, 0.8); font-size: 0.72rem; }
+/* Shot Map: his threes and the defense's, side by side, one legend under both */
+.rs-map { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.rs-mapc { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rs-t.rs-maph { height: 26px; flex: none; gap: 6px; text-transform: none; font-size: 0.78rem; }
+.rs-t.rs-maph b { font: 800 0.86rem var(--font-display); }
+.rs-map .nba-shot-svg { height: 194px; width: auto; max-width: 100%; margin: 0 auto; border-radius: 6px; }
+.rs-map .nba-shot-side { display: none; }
+.rs-map-key { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 5px; font: 700 0.7rem var(--font-body); color: var(--text); }
+.rs-map-key i { width: 14px; }
+.rs-map-note { display: flex; align-items: center; justify-content: center; height: 194px; font-size: 0.85rem; }
 /* phones: one box at a time, held in view while the list scrolls sideways; a box scrolls inside */
 @media (max-width: 760px) {
   .rs-panel { grid-template-columns: min(600px, calc(100vw - 40px)); position: sticky; left: 0; width: max-content; }
   .rs-sb { width: 100%; }
   .rs-sbody { overflow-x: auto; }
-  .rs-gw, .rs-vl { min-width: 560px; }
+  .rs-gw, .rs-vl, .rs-map { min-width: 560px; }
 }
 /* the main list: Tonight's Game band */
 .sim-group-row th.sim-hitgroup.rs-gamegroup span { background: rgba(150, 100, 220, 0.2); border-color: rgba(150, 100, 220, 0.45); }

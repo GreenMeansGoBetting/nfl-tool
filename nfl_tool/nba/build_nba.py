@@ -1078,19 +1078,21 @@ def add_line_history(rs: dict, season: int, book_odds: dict, games: list, now_ut
     if research.line_record(record, book_odds, games, lambda g: started(g, now), zone_matchups.main_line):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(record, indent=0, sort_keys=True), encoding="utf-8")
-    lines = past_points_lines(season)
-    for gid, entry in record.items():
-        for pid, ls in (entry.get("lines") or {}).items():
-            if ls and ls[0] is not None:
-                lines.setdefault(gid, {})[pid] = ls[0]
-    for gid, by in lines.items():
-        for pid, line in by.items():
-            if pid in rs["players"]:
-                rs["players"][pid].setdefault("lines", {})[gid] = line
+    # points -> `lines`, threes -> `lines3` (the Threes page, 2026-11-04)
+    for i, market, key in ((0, "points", "lines"), (1, "threes", "lines3")):
+        lines = past_points_lines(season, market)
+        for gid, entry in record.items():
+            for pid, ls in (entry.get("lines") or {}).items():
+                if ls and len(ls) > i and ls[i] is not None:
+                    lines.setdefault(gid, {})[pid] = ls[i]
+        for gid, by in lines.items():
+            for pid, line in by.items():
+                if pid in rs["players"]:
+                    rs["players"][pid].setdefault(key, {})[gid] = line
 
 
-def past_points_lines(season: int) -> dict:
-    """{game id: {player id: points line}} saved before the line history began (2026-11-03): the
+def past_points_lines(season: int, market: str = "points") -> dict:
+    """{game id: {player id: main line}} in one market (points / threes) saved before the line history began (2026-11-03): the
     retired projections' lines file, the sim's record (main-line plays) and Zone Matchup's reads.
     The line history wins where both have a game."""
     out = {}
@@ -1100,16 +1102,17 @@ def past_points_lines(season: int) -> dict:
             return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
         except ValueError:
             return {}
-    for gid, by in read(PROPS_RECORD_DIR / f"lines_{season}.json").items():
+    old = "lines" if market == "points" else market  # the retired projections' files: lines_ / threes_<season>.json
+    for gid, by in read(PROPS_RECORD_DIR / f"{old}_{season}.json").items():
         for pid, v in (by or {}).items():
             if isinstance(v, list) and v and v[0] is not None:
                 out.setdefault(str(gid), {})[str(pid)] = v[0]
     for gid, entry in read(PROPS_RECORD_DIR / f"sim_{season}.json").items():
-        for play in (entry or {}).get("points") or []:
+        for play in (entry or {}).get(market) or []:
             if len(play) > 9 and play[9] and play[2] is not None:
                 out.setdefault(str(gid), {})[str(play[0])] = play[2]
     for gid, entry in read(zone_matchups.RECORD_DIR / f"{season}.json").items():
-        for row in (entry or {}).get("points") or []:
+        for row in (entry or {}).get(market) or []:
             if len(row) > 7 and row[7] is not None:
                 out.setdefault(str(gid), {})[str(row[0])] = row[7]
     return out
