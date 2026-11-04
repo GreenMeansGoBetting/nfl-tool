@@ -1130,7 +1130,7 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.082,
+    0.084,
     null,
     false,
     null
@@ -1144,28 +1144,28 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.098,
+    0.101,
+    null,
+    false,
+    null
+   ],
+   "4397020": [
+    "Luguentz Dort",
+    0.083,
     null,
     false,
     null
    ],
    "4431680": [
     "Onyeka Okongwu",
-    0.08,
-    null,
-    false,
-    null
-   ],
-   "4701230": [
-    "Jalen Johnson",
-    0.091,
+    0.082,
     null,
     false,
     null
    ],
    "4869342": [
     "Dyson Daniels",
-    0.093,
+    0.095,
     null,
     false,
     null
@@ -1669,16 +1669,23 @@
     false,
     null
    ],
+   "3442": [
+    "DeAndre Jordan",
+    0.067,
+    null,
+    false,
+    null
+   ],
    "3907497": [
     "Dejounte Murray",
-    0.09,
+    0.095,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.095,
+    0.128,
     null,
     false,
     null
@@ -1686,13 +1693,6 @@
    "4397002": [
     "Ayo Dosunmu",
     0.097,
-    null,
-    false,
-    null
-   ],
-   "4397688": [
-    "Trey Murphy III",
-    0.114,
     null,
     false,
     null
@@ -1720,14 +1720,14 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.078,
+    0.082,
     null,
     false,
     null
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.08,
+    0.085,
     null,
     false,
     null
@@ -9100,7 +9100,7 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.082,
+    0.084,
     900,
     false,
     "fanduel"
@@ -9114,28 +9114,28 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.098,
+    0.101,
     1000,
-    false,
+    true,
     "bet365"
+   ],
+   "4397020": [
+    "Luguentz Dort",
+    0.083,
+    null,
+    false,
+    null
    ],
    "4431680": [
     "Onyeka Okongwu",
-    0.08,
+    0.082,
     850,
-    false,
-    "bet365"
-   ],
-   "4701230": [
-    "Jalen Johnson",
-    0.091,
-    900,
     false,
     "bet365"
    ],
    "4869342": [
     "Dyson Daniels",
-    0.093,
+    0.095,
     1000,
     false,
     "caesars"
@@ -9536,9 +9536,16 @@
    ]
   ],
   "players": {
+   "3442": [
+    "DeAndre Jordan",
+    0.07,
+    null,
+    false,
+    null
+   ],
    "3907497": [
     "Dejounte Murray",
-    0.093,
+    0.099,
     900,
     false,
     "thescore"
@@ -9552,7 +9559,7 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.099,
+    0.133,
     650,
     false,
     "fanduel"
@@ -9563,13 +9570,6 @@
     900,
     false,
     "fanduel"
-   ],
-   "4397688": [
-    "Trey Murphy III",
-    0.119,
-    850,
-    true,
-    "hard_rock"
    ],
    "4433627": [
     "Keyonte George",
@@ -9587,7 +9587,7 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.081,
+    0.085,
     1100,
     false,
     "hard_rock"
@@ -9601,7 +9601,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.084,
+    0.089,
     950,
     false,
     "fanduel"
