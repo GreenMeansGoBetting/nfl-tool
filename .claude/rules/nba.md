@@ -239,7 +239,7 @@ Every game played 10,000 times, possession by possession.
   teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
-- **Research panel (Points 2026-11-03, Threes 2026-11-04; Rebounds / Assists next)**: a row click (not the name, a price or a tag)
+- **Research panel (Points 2026-11-03, Threes and Rebounds 2026-11-04; Assists next)**: a row click (not the name, a price or a tag)
   opens it (`panel`, `PANEL`). **Two sandboxes** (the owner approved the mock-up, 2026-11-03: "a
   standard sandbox area so youd always know how to conform data to it"): two boxes of one size side
   by side, each with tabs (`RS_TABS`: left Form / Scoring / Matchup / Game Script, right Vs The Line /
@@ -280,6 +280,19 @@ Every game played 10,000 times, possession by possession.
   **Vs Like <OPP>** (his games vs defenses in the same third for threes made by his position); under
   `SMALL` faded. Rotation quarter headers: 3PM and 3PA a game. Teammates: 3PA / 3PM a 36 with / without,
   change in made, assists on his threes. The list's Min column is **3PA** on this page.
+- **Rebounds panel** (the owner's Q&A, 2026-11-04: ten factors, every one placed; `REBS` in research.js):
+  left **Form / Rebounding / Miss Zones / Game Script**, right **Vs The Line / Ladder / Rotation /
+  Teammates**. Form: REB, DREB, OREB, MIN (minutes stay: the biggest driver of boards). **Rebounding**
+  (five columns like Matchup, value / rank each side, read): Defensive Chances (other team's misses a 36
+  on the floor vs misses the opponent leaves a game), Defensive Rate (his DREB share vs their OREB rate,
+  flipped), Offensive Chances (his team's misses a 36 vs FG% they allow, flipped), Offensive Rate (his
+  OREB share vs their DREB rate, flipped), Pace. **Miss Zones** (Shooting's shape): where his defensive
+  boards' misses came from (Rim, Paint, Mid-Range, Corner 3, Above-Break 3, Free Throws) vs where the
+  opponent misses from, read. A grid, not a court map: a map can't show who grabs the miss. Game Script
+  columns MIN and **Chances** (rebounds by anyone while he played, `rcg`). Vs The Line hover splits
+  DREB / OREB. Ladder = Threes' (`MK.stat`). Rotation headers REB and OREB a quarter. Teammates: REB a
+  36 and his share of the boards with / without, change, **Their REB** (that teammate's own a 36). List
+  Volume = his share of the rebounds there to get (`rebShare`). Logs carry `oreb`, `dreb` (props.py).
 - **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
   book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30
   teams' paces), Spread (his team's), Total (`tonightGame`).
@@ -288,7 +301,11 @@ Every game played 10,000 times, possession by possession.
   `rot1`, `q4`, `foul`, `lines`, `pz` (points by zone); threes: `t3` ([made, tried] by `THREE_KINDS`
   catch / pull-up (+ fades) / step-back / transition (the three itself within 8 s of a transition
   possession's start) / second chance (after his team's OREB, same possession), then all), `q3`,
-  `feed3`, `w3` (with / without each `with` teammate), `lines3`; `defpos` / `deffga` (each defense vs
+  `feed3`, `w3` (with / without each `with` teammate), `lines3`; rebounds (a chance = a player's
+  rebound off a miss while he's on the floor; team rebounds left out, the standard rate count): `rb`
+  [def chances, DREB, off chances, OREB, seconds], `rz` (DREB by `MISS_ZONES`), `qr`, `rcg`, `wr`,
+  `linesr`; per team `rbt` [games, rebounds off their misses, their OREB, off opponents' misses, their
+  DREB, opponents' makes, shots] and `mz` (their rebounded misses by zone); `defpos` / `deffga` (each defense vs
   each position), `def3` (the same 12 numbers allowed to each position); `teams` (by abbreviation), `games` {id: [pace, total, home spread]},
   `spots`. **Line history**: `add_line_history` keeps every player's main line in all four markets
   until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03); older nights come from

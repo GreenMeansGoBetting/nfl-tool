@@ -273,8 +273,10 @@ class Panel(unittest.TestCase):
         self.page.keyboard.press("Escape")
         self.assertEqual(self.page.locator("#rs-list .rs-panel").count(), 0)
 
-    def test_other_markets_have_no_panel_yet(self):
-        page = SITE.open("nba/rebounds.html")
+    def test_assists_has_no_panel_yet(self):
+        page = SITE.open("nba/assists.html")
+        page.wait_for_selector("#rs-list [data-list-every='true']")
+        page.click("#rs-list [data-list-every='true']")
         page.wait_for_selector("#rs-list tr.sim-row")
         self.assertEqual(page.locator("#rs-list tr.rs-click").count(), 0)
 
@@ -410,6 +412,112 @@ class Threes(unittest.TestCase):
         self.assertEqual(rows[0][1:], ["Together", "3PA With", "3PA W/O", "3PM With", "3PM W/O", "Change", "Assists"])
         two = next(r for r in rows if r[0].startswith("P. Two"))
         self.assertEqual(two[2:8], ["12.0", "5.0", "3.6", "1.4", "−2.2", "4"])  # 20 / 21 tries, 6 / 6 makes in 60 / 150 min
+
+
+def rebounds_props():
+    """The same slate with defensive / offensive rebounds in every log and Player One's rebounding
+    data for the Rebounds panel (research.py `rb`, `rz`, `qr`, `rcg`, `wr`; `rbt`, `mz` per team)."""
+    import copy
+    props = copy.deepcopy(PROPS)
+    block = props["seasons"]["2027"]
+    block["fields"] = FIELDS + ["oreb", "dreb"]
+    for p in block["players"].values():
+        for r in p["log"]:
+            r += [1, r[7] - 1]
+    rs = props["research"]
+    rs["players"]["1"].update({
+        "rb": [100, 20, 90, 6, 7200], "rz": [10, 2, 3, 1, 4, 0], "qr": [8, 2, 7, 1, 8, 2, 7, 1],
+        "rcg": {str(g): 58 + 2 * g for g in range(1, 7)}, "wr": {"2": [10, 50, 20, 100], "3": [15, 70, 15, 80]}, "linesr": {"4": 4.5}})
+    # BBB leave 45 misses a game (the most), crash on 50 of their 180 misses, allow 150 of 330 shots
+    rs["rbt"] = {"BBB": [4, 180, 50, 170, 120, 150, 330], "CCC": [5, 200, 60, 210, 150, 190, 400]}
+    rs["mz"] = {"BBB": [60, 20, 30, 20, 40, 10], "CCC": [50, 30, 40, 20, 50, 10]}
+    return props
+
+
+class Rebounds(unittest.TestCase):
+    """The Rebounds page's panel (the owner, 2026-11-04): Form (REB, DREB, OREB, MIN), Rebounding
+    (chances and his share of them at both ends, beside the opponent, the read), Miss Zones (where
+    the misses he grabs come from beside where the opponent misses), Game Script (MIN and Chances),
+    Vs The Line, Ladder, Rotation (REB and OREB a quarter) and Teammates (rebounds and his share
+    with / without, their own rebounds). The list's Volume = his share of the rebounds there."""
+    @classmethod
+    def setUpClass(cls):
+        cls.saved = (SITE.nba, SITE.nba_props)
+        SITE.nba, SITE.nba_props = DATA, rebounds_props()
+        cls.page = SITE.open("nba/rebounds.html")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+        cls.page.click("#rs-list tr.rs-click td.rs-line")
+        cls.page.wait_for_selector("#rs-list .rs-panel")
+
+    @classmethod
+    def tearDownClass(cls):
+        SITE.nba, SITE.nba_props = cls.saved
+
+    tab = Panel.tab
+    cells = Panel.cells
+    open = Panel.open
+
+    def test_the_list(self):
+        self.assertEqual(head(self.page)[4:7], ["Avg", "Min", "Volume"])
+        [one] = rows(self.page)
+        self.assertEqual(one[4:7], ["5.0", "35.0", "14%"])  # 26 of the 190 rebounds there to get
+
+    def test_eight_tabs_every_one_the_same_box(self):
+        tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
+        self.assertEqual(tabs, [["Form", "Rebounding", "Miss Zones", "Game Script"], ["Vs The Line", "Ladder", "Rotation", "Teammates"]])
+        sizes = set()
+        for side, names in (("left", tabs[0]), ("right", tabs[1])):
+            for name in names:
+                box = self.tab(side, name)
+                sizes.add(tuple(self.page.evaluate(f"() => {{ const b = document.querySelector(\"{box}\"); const s = b.querySelector('.rs-sbody'); const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), s.scrollHeight <= s.clientHeight + 1]; }}")))
+        self.assertEqual(sizes, {(600, 312, True)})
+        self.assertEqual(SITE.errors, [])
+
+    def test_form(self):
+        rows = self.cells(self.tab("left", "Form"))
+        self.assertEqual([r[0] for r in rows[1:]], ["REB", "DREB", "OREB", "MIN"])
+        self.assertEqual(rows[1][1], "5.0")
+        self.assertEqual(rows[3][1], "1.0")
+        self.assertEqual(rows[4][7], "--")  # minutes: no defense side, no read
+
+    def test_rebounding(self):
+        rows = self.cells(self.tab("left", "Rebounding"))
+        self.assertEqual([r[0] for r in rows[1:]], ["Defensive Chances", "Defensive Rate", "Offensive Chances", "Offensive Rate", "Pace"])
+        self.assertEqual(rows[1][1], "30.0")  # 100 chances in 120 minutes, a 36
+        self.assertEqual(rows[1][3:5], ["45.0", "1st"])  # BBB leave 180 misses in 4 games, the most
+        self.assertEqual(rows[2][1], "20%")  # 20 of 100
+        self.assertEqual(rows[3][3], "45%")  # BBB allow 150 of 330
+
+    def test_miss_zones(self):
+        rows = self.cells(self.tab("left", "Miss Zones"))
+        self.assertEqual(rows[0][1:], ["Share", "Rank", "DREB / G", "Misses", "Rank", "Per G", "Read"])
+        self.assertEqual([r[0] for r in rows[1:]], ["Rim", "Paint", "Mid-Range", "Corner 3", "Above-Break 3", "Free Throws"])
+        self.assertEqual(rows[1][1], "50%")  # 10 of his 20
+        self.assertEqual(rows[1][3], "1.7")  # 10 in 6 games
+        self.assertEqual(rows[1][4:7], ["33%", "1st", "15.0"])  # BBB: 60 of 180 at the rim, 4 games
+
+    def test_game_script(self):
+        rows = self.cells(self.tab("left", "Game Script"))
+        self.assertEqual(rows[0][1:], ["Games", "REB", "+/-", "MIN", "Chances", "Over 4.5", "Hit %"])
+        self.assertEqual(rows[1][5], "65.0")  # 60 to 70 a game
+
+    def test_vs_the_line_and_ladder(self):
+        box = self.tab("right", "Vs The Line")
+        self.assertEqual(self.page.locator(f"{box} .rs-vbar").count(), 6)
+        self.assertIn("defensive", self.page.get_attribute(f"{box} .rs-vbar", "title"))
+        rows = self.cells(self.tab("right", "Ladder"))
+        self.assertEqual(rows[0][1:], ["2+", "3+", "4+", "5+", "6+", "7+", "8+"])  # around tonight's 4.5
+        self.assertEqual(rows[1][4:6], ["50%", "50%"])  # 5+ and 6+: the three 6s
+
+    def test_rotation(self):
+        box = self.tab("right", "Rotation")
+        self.assertEqual(self.page.locator(f"{box} .rs-qt").first.text_content(), "1st Qtr1.3 REB · 0.3 OREB")
+
+    def test_teammates(self):
+        rows = self.cells(self.tab("right", "Teammates"))
+        self.assertEqual(rows[0][1:], ["Together", "REB With", "REB W/O", "Share With", "Share W/O", "Change", "Their REB"])
+        two = next(r for r in rows if r[0].startswith("P. Two"))
+        self.assertEqual(two[2:8], ["6.0", "4.8", "20%", "20%", "−1.2", "11.6"])  # 10 / 20 boards in 60 / 150 min; Two: 10 in 31
 
 
 class OtherMarkets(unittest.TestCase):

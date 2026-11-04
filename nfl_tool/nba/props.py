@@ -37,7 +37,9 @@ import possessions as P
 
 LOG_FIELDS = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta",
               # the player card's game log (2026-10-21): kept after the first eleven so older files still read
-              "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score"]
+              "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score",
+              # Rebounds research (2026-11-04)
+              "oreb", "dreb"]
 SELF_MADE = ("pullup", "stepback", "fade")
 REST_WORDS = ("REST", "LOAD", "MANAGEMENT")
 MIN_TOGETHER = 20  # minutes on the floor together before a teammate gets a with / without row
@@ -55,7 +57,7 @@ def why_out(reason) -> str:
 
 # The box score columns behind the log's later fields, in LOG_FIELDS order.
 BOX_EXTRA = ("field_goals_made", "free_throws_made", "rebounds", "assists", "steals", "blocks", "turnovers", "fouls",
-             "plus_minus", "team_score", "opponent_team_score")
+             "plus_minus", "team_score", "opponent_team_score", "offensive_rebounds", "defensive_rebounds")
 
 
 def num(v):

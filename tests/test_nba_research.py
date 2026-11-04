@@ -100,6 +100,42 @@ class Threes(unittest.TestCase):
             self.assertEqual((om + fm, oa + fa), (1, 1), mate)  # on + off = all his threes
 
 
+class Rebounds(unittest.TestCase):
+    """The Rebounds panel's data (2026-11-04) on the hand-made game: four player rebounds. Home 12
+    takes away 21's missed three, home 14 grabs 13's miss (offensive), home 13 takes away 24's miss,
+    away 21 takes away 12's missed three. Home's 12, 13, 14, 15 are on the floor for all of them."""
+    @classmethod
+    def setUpClass(cls):
+        pbp, box = game([dict(e) for e in EVENTS]), full_box()
+        engine = P.Season(pbp, box)
+        block = props.season_block(pbp, box, "x", engine)
+        cls.rs = research.block(engine, box, block["players"])
+        cls.p = cls.rs["players"]
+
+    def test_chances_and_his_boards(self):
+        # [defensive chances, DREB, offensive chances, OREB, seconds]: away missed twice, home twice
+        self.assertEqual(self.p["13"]["rb"][:4], [2, 1, 2, 0])
+        self.assertEqual(self.p["14"]["rb"][:4], [2, 0, 2, 1])
+        self.assertEqual(self.p["21"]["rb"][:4], [2, 1, 2, 0])
+        self.assertEqual(sum(self.p["13"]["rcg"].values()), 4)  # every rebound while he played
+
+    def test_where_the_miss_came_from(self):
+        zones = research.MISS_ZONES
+        self.assertEqual(self.p["13"]["rz"][zones.index("mid")], 1)  # 24's 15-footer
+        self.assertEqual(sum(self.p["12"]["rz"][zones.index("corner3"):zones.index("above3") + 1]), 1)  # 21's three
+        self.assertEqual(sum(self.rs["mz"]["AAA"]), 2)  # home's two rebounded misses
+        self.assertEqual(self.p["14"]["qr"], [1, 1, 0, 0, 0, 0, 0, 0])  # his offensive board, 1st quarter
+
+    def test_each_team_on_the_glass(self):
+        # [games, rebounds off their misses, their OREB, off the other team's misses, their DREB, made / shots allowed]
+        self.assertEqual(self.rs["rbt"]["AAA"], [1, 2, 1, 2, 2, 1, 3])  # away made 1 of 3 shots
+        self.assertEqual(sorted(self.rs["rbt"]), ["AAA", "BBB"])
+
+    def test_with_and_without(self):
+        for mate, (r_on, c_on, r_off, c_off) in self.p["13"].get("wr", {}).items():
+            self.assertEqual((r_on + r_off, c_on + c_off), (1, 4), mate)
+
+
 class LineHistory(unittest.TestCase):
     def test_main_lines_until_tip(self):
         q = lambda *ls: [["dk", "o", line, -110, ""] for line in ls]  # noqa: E731

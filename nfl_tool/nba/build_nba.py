@@ -1078,8 +1078,8 @@ def add_line_history(rs: dict, season: int, book_odds: dict, games: list, now_ut
     if research.line_record(record, book_odds, games, lambda g: started(g, now), zone_matchups.main_line):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(record, indent=0, sort_keys=True), encoding="utf-8")
-    # points -> `lines`, threes -> `lines3` (the Threes page, 2026-11-04)
-    for i, market, key in ((0, "points", "lines"), (1, "threes", "lines3")):
+    # points -> `lines`, threes -> `lines3`, rebounds -> `linesr` (2026-11-04)
+    for i, market, key in ((0, "points", "lines"), (1, "threes", "lines3"), (2, "rebounds", "linesr")):
         lines = past_points_lines(season, market)
         for gid, entry in record.items():
             for pid, ls in (entry.get("lines") or {}).items():

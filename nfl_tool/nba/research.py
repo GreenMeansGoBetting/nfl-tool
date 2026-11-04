@@ -35,6 +35,18 @@ Threes (the Threes page's panel, 2026-11-04):
 - `w3[<teammate>]`: [threes made, tried with him on the floor, made, tried with him off]
   (only teammates in props.py's `with`).
 `def3[<abbr>][<pos>]`: what that defense allowed the position from three, the same 12 numbers as `t3`.
+Rebounds (the Rebounds page's panel, 2026-11-04). A rebound chance = a player's rebound in the
+play-by-play (team rebounds left out, the standard rebound-rate count). A defensive chance = one off the other team's miss, an offensive chance =
+off his own team's miss, while he's on the floor:
+- `rb`: [defensive chances, his DREB, offensive chances, his OREB, seconds on the floor].
+- `rz`: his DREB by where the miss came from, MISS_ZONES order.
+- `qr`: [REB, OREB] by quarter, flat (q1 reb, oreb, ... q4).
+- `rcg`: {game id: chances (both ends) while he was on the floor} (Game Script).
+- `wr[<teammate>]`: [his REB, chances with him on the floor, his REB, chances with him off]
+  (only teammates in props.py's `with`).
+`rbt[<abbr>]`: [games, rebounds off their misses, their OREB, rebounds off their opponents' misses,
+  their DREB, opponents' made shots, opponents' shots] (their offense and defense on the glass).
+`mz[<abbr>]`: rebounds off their misses by MISS_ZONES (where they miss from).
 `defpos[<abbr>][<pos>]`: what that defense allowed the position: [threes, mid-range, paint, free
   throw points, made shots, assisted makes, transition points, points, shots]; `deffga[<abbr>]`:
   every shot against it (the position's share of them).
@@ -58,6 +70,7 @@ CLOSE_Q4 = 10
 EARLY_Q1, EARLY_H1 = 2, 3
 MINUTES = 48
 THREE_KINDS = ("catch", "pullup", "stepback", "trans", "second")
+MISS_ZONES = ("rim", "short", "mid", "corner3", "above3", "ft")
 PULLUP = ("pullup", "fade")
 
 
@@ -95,7 +108,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss = engine.possessions
     acts = engine.actions
     stints = engine.stints
-    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}}
+    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}}
     if poss.empty:
         return out
     mine = lambda pid: out["players"].setdefault(str(int(pid)), {})  # noqa: E731
@@ -222,6 +235,8 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
         p["q4"] = [len(cg), round(sum(secs.get(g, 0) for g in cg) / 60, 1),
                    len(og), round(sum(secs.get(g, 0) for g in og) / 60, 1)]
 
+    rebounds_block(out, acts, stints, players, abbr)
+
     # early foul trouble
     fouls = acts[(acts["kind"] == "foul") & acts["player"].notna()]
     for pid, g in fouls.groupby("player"):
@@ -274,3 +289,103 @@ def line_record(record: dict, book_odds: dict, games: list, is_started, main_lin
             record[str(g["game_id"])] = entry
             changed = True
     return changed
+
+
+def miss_sources(acts: pd.DataFrame) -> pd.DataFrame:
+    """Every player rebound in the play-by-play with the miss it came off: `src` (MISS_ZONES) and
+    `shooter` (the team that missed). Team rebounds are left out (the standard rebound-rate count)."""
+    a = acts.reset_index(drop=True)
+    shot = a["kind"] == "shot"
+    tried = shot | (a["kind"] == "ft")
+    made = a["made"].astype(bool)
+    miss = tried & ~made
+    zone = pd.Series(None, index=a.index, dtype=object)
+    zone[shot & miss] = a.loc[shot & miss, "zone"]
+    zone[(a["kind"] == "ft") & miss] = "ft"
+    zone[tried & made] = "-"  # a make ends the trail
+    team = pd.Series(np.nan, index=a.index)
+    team[miss] = a.loc[miss, "team"]
+    team[tried & made] = -1
+    src = zone.groupby(a["game_id"]).ffill()
+    who = team.groupby(a["game_id"]).ffill()
+    reb = a["kind"].isin(("oreb", "dreb"))
+    out = a[reb].copy()
+    out["src"], out["shooter"] = src[reb], who[reb]
+    out = out[out["src"].isin(MISS_ZONES) & out["shooter"].notna() & (out["shooter"] != -1)]
+    return out[out["player"].notna()]
+
+
+def rebounds_block(out: dict, acts: pd.DataFrame, stints: pd.DataFrame, players: dict, abbr: dict) -> None:
+    """The Rebounds panel's numbers (see the module notes): `rb`, `rz`, `qr`, `rcg`, `wr` per player,
+    `rbt` and `mz` per team."""
+    rebs = miss_sources(acts)
+    if rebs.empty:
+        return
+    secs = {}
+    for st in stints.itertuples(index=False):
+        for pid in st.five:
+            secs[int(pid)] = secs.get(int(pid), 0.0) + (st.t1 - st.t0)
+    # each rebound: the five of the team that missed (an offensive chance) and the other five (defensive)
+    off_five, def_five = [], []
+    for w, a, t, s in zip(rebs["with"], rebs["against"], rebs["team"], rebs["shooter"]):
+        mine, other = {int(x) for x in w}, {int(x) for x in a}
+        off_five.append(mine if t == s else other)
+        def_five.append(other if t == s else mine)
+    tally, zones, games = {}, {}, {}
+    for kind, player, src, gid, off, dfn in zip(rebs["kind"], rebs["player"], rebs["src"], rebs["game_id"], off_five, def_five):
+        for p in dfn:
+            tally.setdefault(p, [0, 0, 0, 0])[0] += 1
+        for p in off:
+            tally.setdefault(p, [0, 0, 0, 0])[2] += 1
+        for p in dfn | off:
+            g = games.setdefault(p, {})
+            g[int(gid)] = g.get(int(gid), 0) + 1
+        if pd.notna(player):
+            row = tally.setdefault(int(player), [0, 0, 0, 0])
+            if kind == "dreb":
+                row[1] += 1
+                zones.setdefault(int(player), [0] * len(MISS_ZONES))[MISS_ZONES.index(src)] += 1
+            else:
+                row[3] += 1
+    by_q = rebs[rebs["player"].notna() & (rebs["period"] <= 4)].groupby([rebs["player"].astype("Int64"), "period", "kind"]).size()
+    grabbed = [int(p) if pd.notna(p) else None for p in rebs["player"]]
+    floor = [d | o for d, o in zip(def_five, off_five)]
+    for pid, row in tally.items():
+        if str(pid) not in players:
+            continue
+        p = out["players"].setdefault(str(pid), {})
+        p["rb"] = row + [round(secs.get(pid, 0.0))]
+        p["rz"] = zones.get(pid, [0] * len(MISS_ZONES))
+        qr = []
+        for q in (1, 2, 3, 4):
+            o = int(by_q.get((pid, q, "oreb"), 0))
+            qr += [o + int(by_q.get((pid, q, "dreb"), 0)), o]
+        p["qr"] = qr
+        p["rcg"] = {str(g): n for g, n in games.get(pid, {}).items()}
+        # with / without each teammate: his rebounds and the chances, with him on the floor and off
+        mates = (players.get(str(pid)) or {}).get("with") or {}
+        if mates:
+            mine = [(g == pid, f) for g, f in zip(grabbed, floor) if pid in f]
+            total_r, total_c = sum(g for g, _ in mine), len(mine)
+            wr = {}
+            for mate in mates:
+                q = int(mate)
+                r_on = c_on = 0
+                for g, f in mine:
+                    if q in f:
+                        c_on += 1
+                        r_on += g
+                wr[mate] = [r_on, c_on, total_r - r_on, total_c - c_on]
+            p["wr"] = wr
+    # each team on the glass, and where it misses from
+    shots = acts[acts["kind"] == "shot"]
+    for t, g_ids in rebs.groupby("shooter")["game_id"].agg(lambda s: set(s)).items():
+        t = int(t)
+        mine = rebs[rebs["shooter"] == t]
+        theirs = rebs[rebs["game_id"].isin(g_ids) & (rebs["shooter"] != t)]
+        allowed = shots[shots["game_id"].isin(g_ids) & (shots["team"] != t)]
+        key = str(abbr.get(t, t))
+        out["rbt"][key] = [len(g_ids), len(mine), int(((mine["kind"] == "oreb") & (mine["team"] == t)).sum()),
+                           len(theirs), int(((theirs["kind"] == "dreb") & (theirs["team"] == t)).sum()),
+                           int(allowed["made"].astype(bool).sum()), len(allowed)]
+        out["mz"][key] = [int((mine["src"] == z).sum()) for z in MISS_ZONES]
