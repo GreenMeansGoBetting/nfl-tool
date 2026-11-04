@@ -165,6 +165,15 @@ class Points(unittest.TestCase):
         self.assertIn("ro", page.evaluate("() => Object.keys(SORTS)"))
         self.assertEqual(SITE.errors, [])
 
+    def test_the_name_sits_over_his_position_and_logos(self):
+        # The owner, 2026-11-04: the name column was too wide; the name on top, position / status / logos
+        # under it, long names cut with "..." (full name on hover), the row height unchanged.
+        got = self.page.evaluate("""() => { const c = document.querySelector('#rs-list tr.sim-row .rs-pl-txt');
+            const sub = c.querySelector('.rs-pl-sub');
+            return [c.title, sub.textContent.includes('PG'), sub.querySelectorAll('.sim-vs').length, !!sub.querySelector('.rs-inj, [class*=status]') || sub.textContent.includes('DTD'),
+                    getComputedStyle(c.querySelector('.player-click')).textOverflow, c.querySelector('.player-click').getBoundingClientRect().bottom <= sub.getBoundingClientRect().top + 1]; }""")
+        self.assertEqual(got, ["Player One", True, 1, True, "ellipsis", True])
+
     def test_teammates_on_the_report(self):
         pills = self.page.evaluate("() => [...document.querySelectorAll('#rs-list .sim-rtag')].map((t) => [t.textContent, t.className])")
         two, three = pills

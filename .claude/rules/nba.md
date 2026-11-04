@@ -227,7 +227,7 @@ Every game played 10,000 times, possession by possession.
 - Intro box (title + i bubble + one line), day arrows (next `DAYS_AHEAD` 3 slates; off-season = the
   last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
   `ROTATION_MIN` 12+ min, no line = "No Line"; Out / Doubtful players left off).
-- Columns (sim-list table rule): Player (playerClick, pos, injury pill DTD / Q / D / Out), Line (middle
+- Columns (sim-list table rule): Player (playerClick on top; pos, injury pill DTD / Q / D / Out and the two logos under it; names past 170 px end in "..." with the full name on hover; the owner, 2026-11-04: the column was too wide, row height unchanged), Line (middle
   of the books'), **Over / Under** (best on My Books; click = every book, and a price there saves the play at that book and price, `bookPlaySaver`; a check mark on a saved side; no check box in the row, the owner 2026-11-04),
   **Avg, Min (Threes: 3PA), Volume** (Points: his shot share on the floor; Threes: share of his shots
   that are threes), season only, **no L5 under them** (the owner, 2026-11-04: cluttered), each colored

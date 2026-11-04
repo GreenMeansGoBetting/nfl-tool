@@ -299,6 +299,11 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 .sim-group-row th.sim-hitgroup.rs-readgroup span { background: rgba(var(--good-rgb), 0.2); border-color: rgba(var(--good-rgb), 0.5); }
 .rs-list td.rs-price .rs-saved { margin-left: 4px; font-weight: 800; color: var(--good-text, var(--accent)); }
 .rs-list tr.sim-row { cursor: default; }
+/* The name on top, position / status / matchup logos under it, long names cut at 170 px with "..."
+   (full name on hover; the owner, 2026-11-04: the name column was too wide, the row height stays the same) */
+.rs-pl-txt { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; line-height: 1.1; }
+.rs-pl-sub { display: inline-flex; align-items: center; gap: 5px; }
+.rs-pl-txt .player-click { display: block; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sim-rtag.rs-maybe { border-style: dashed; }
 
 /* The research panel under a clicked Points row (research.js, approved by the owner 2026-11-03):
