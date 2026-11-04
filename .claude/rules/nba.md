@@ -250,8 +250,9 @@ Every game played 10,000 times, possession by possession.
   `num`); the corner key = jersey + "<logo> vs PGs". Short labels (PTS / MIN / FGA / 3PM / FTA / FG%;
   Threes / Mid-Range / Paint / Free Throws). A new research view is a new tab on this grid, never a new shape.
   Form (Season colored vs his position; L10 / L5 vs HIS season, the owner: "trends lately vs long
-  term", plain when L10 = his season or the move is tiny; vs DEF Season / L5 / +/-;
-  `defenseByPos`), Scoring (share / rank / pts a game vs DEF allowed / rank / pts a game, read;
+  term", plain when L10 = his season or the move is tiny; vs DEF Season / L10 / L5 each ranked in its
+  window; then **Read** off the two Season tiles; **no +/- columns** (the owner, 2026-11-04: a Read
+  instead, so Form is him 3 / defense 3 / read like Scoring); `defenseByPos`), Scoring (share / rank / pts a game vs DEF allowed / rank / pts a game, read;
   `defShares`), Matchup (jersey / rank vs allows / rank, read; five columns `rs-five`; **no average columns**, the owner: misleading),
   Game Script (All Games, his games within `SCRIPT_RANGE` 5 of tonight's spread and total,
   `PACE_RANGE` 2 of the pace, venue, last 10; every number vs his season; under `SMALL` faded;

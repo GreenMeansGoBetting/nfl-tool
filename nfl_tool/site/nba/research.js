@@ -358,7 +358,6 @@ const gridOf = (head, rows, { bands = [], cls = "", n = RS_ROWS, fill = false } 
   const back = bands.length ? `<div class="rs-g rs-bands${cls ? ` ${cls}` : ""}"${st} aria-hidden="true">${bands.map(([k, from, span]) => `<i class="rs-band rs-${k}" style="grid-column:${from} / span ${span}"></i>`).join("")}</div>` : "";
   return `<div class="rs-gw"><div class="rs-g${cls ? ` ${cls}` : ""}"${st}>${head}${out.join("")}</div>${back}</div>`;
 };
-const BANDS_4_3 = [["him", 2, 4], ["def", 6, 3]];
 const BANDS_3_3_1 = [["him", 2, 3], ["def", 5, 3], ["rd", 8, 1]];
 // the two-sided read (the site's matchup rule): one side clearly one way, the other not the other way
 const readOf = (a, b) => {
@@ -392,7 +391,7 @@ const identityBlock = () => (((DATA.identity || {}).seasons || {})[String((DATA.
 const identityTeams = () => identityBlock().teams || {};
 
 // What each defense allowed one position, from every player's game logs: per team its games in date
-// order with the position's points, shots, threes, free throws and makes; season and last 5, each
+// order with the position's points, shots, threes, free throws and makes; season, last 10 and last 5, each
 // ranked of 30 (1st = allows the most). Kept per position.
 const DEF_POS = {};
 function defenseByPos(pos) {
@@ -416,10 +415,10 @@ function defenseByPos(pos) {
   const teams = {};
   for (const [t, games] of Object.entries(byTeam)) {
     const gs = Object.values(games).sort((a, b) => (a.d < b.d ? -1 : 1));
-    teams[t] = { season: agg(gs), l5: agg(gs.slice(-5)) };
+    teams[t] = { season: agg(gs), l10: agg(gs.slice(-10)), l5: agg(gs.slice(-5)) };
   }
   const ranks = {};
-  for (const w of ["season", "l5"]) {
+  for (const w of ["season", "l10", "l5"]) {
     ranks[w] = {};
     for (const k of ["pts", "fga", "fg3m", "fta", "fgp", "fg3a", "fg3p", "rate3"]) {
       const sorted = Object.keys(teams).filter((t) => teams[t][w] && teams[t][w][k] !== null).sort((a, b) => teams[b][w][k] - teams[a][w][k]);
@@ -447,9 +446,11 @@ function defShares(pos) {
 const ZONES_PTS = [["Threes", "threes"], ["Mid-Range", "mid-range shots"], ["Paint", "the paint (at the rim and short shots)"], ["Free Throws", "free throws"]];
 
 // ---- left box ----
-// Form: his season, last 10, last 5 and the change, beside what tonight's defense allows his
-// position (season, last 5, change). His season is colored against his position, the defense's by
-// its rank of 30 (green = allows the most), the changes by how big they are.
+// Form: his season, last 10 and last 5, beside what tonight's defense allows his position (season,
+// last 10, last 5), and the read (the owner, 2026-11-04: a Read for the +/- columns, so Form has
+// the same him 3 / defense 3 / read shape as Scoring and Shooting). His season is colored against his
+// position, his L10 / L5 against his season, the defense's by its rank of 30 in that window (green =
+// allows the most). The read goes off the two Season tiles (the site's two-sided rule).
 function formTab(x) {
   const f = logFields();
   const log = logOf(x.pid), l10 = log.slice(-10), l5 = log.slice(-5);
@@ -469,26 +470,32 @@ function formTab(x) {
     const ag = what.includes("%") ? "" : " a game";
     const s = get(log), a10 = get(l10), a5 = get(l5);
     const rel = (v) => (v === null || s === null || !s ? null : (v - s) / s / big);
-    const ch = a5 === null || s === null ? null : a5 - s;
     // his season against his position; L10 / L5 against HIS season (the owner, 2026-11-03: "compared
     // against himself to see trends lately vs long term"). No real change = a plain tile, never a
     // middle color (with 10 games or fewer his L10 IS his season).
     const trend = (v, rows) => (rows.length >= log.length ? null : Math.abs(rel(v) ?? 0) < 0.2 ? null : rel(v));
-    let cells = T(fmt(s, d), spread(s, pool.map(([, q]) => get(q.log || []))), `His ${what}${ag} this season (colored against the league's ${x.p.pos}s)`)
-      + T(fmt(a10, d), trend(a10, l10), `His last ${l10.length} games (colored against his season)`) + T(fmt(a5, d), trend(a5, l5), `His last ${l5.length} games (colored against his season)`)
-      + T(sgn(ch, d), rel(a5), "Last 5 minus his season");
+    const hs = spread(s, pool.map(([, q]) => get(q.log || [])));
+    let cells = T(fmt(s, d), hs, `His ${what}${ag} this season (colored against the league's ${x.p.pos}s)`)
+      + T(fmt(a10, d), trend(a10, l10), `His last ${l10.length} games (colored against his season)`) + T(fmt(a5, d), trend(a5, l5), `His last ${l5.length} games (colored against his season)`);
+    let ds = null;
     if (!key || !opp.season) cells += T("--", null, "") + T("--", null, "") + T("--", null, "");
     else {
-      const rk = (w) => rankSigned(D.ranks[w][key].r[x.opp], D.ranks[w][key].n);
-      const sv = opp.season[key], lv = opp.l5 ? opp.l5[key] : null;
-      const dch = lv === null || sv === null ? null : lv - sv;
-      const tip = `${team(x.opp).name} allow ${x.p.pos}s ${fmt(sv, d)} ${what}${ag} (${ordinal(D.ranks.season[key].r[x.opp])} most of ${D.ranks.season[key].n}); ${fmt(lv, d)} in their last ${opp.l5 ? opp.l5.n : 0}`;
-      cells += T(fmt(sv, d), rk("season"), tip) + T(fmt(lv, d), opp.l5 ? rk("l5") : null, tip) + T(sgn(dch, d), dch === null || !sv ? null : dch / sv / big, tip);
+      const rk = (w) => (opp[w] && D.ranks[w][key].r[x.opp] ? rankSigned(D.ranks[w][key].r[x.opp], D.ranks[w][key].n) : null);
+      const val = (w) => (opp[w] ? opp[w][key] : null);
+      const tip = (w, label) => (opp[w] ? `${team(x.opp).name} allow ${x.p.pos}s ${fmt(val(w), d)} ${what}${ag} ${label} (${ordinal(D.ranks[w][key].r[x.opp])} most of ${D.ranks[w][key].n})` : "");
+      ds = rk("season");
+      cells += T(fmt(val("season"), d), ds, tip("season", "this season")) + T(fmt(val("l10"), d), rk("l10"), tip("l10", `in their last ${opp.l10 ? opp.l10.n : 0}`))
+        + T(fmt(val("l5"), d), rk("l5"), tip("l5", `in their last ${opp.l5 ? opp.l5.n : 0}`));
     }
+    const rd = key ? readOf(hs, ds) : { t: "--", s: null };
+    const [up, down] = ag ? [`more ${what}`, `fewer ${what}`] : [`a higher ${what}`, `a lower ${what}`];
+    const rdTip = { More: `One side points to ${up} for him and the other doesn't point against it`, Fewer: `One side points to ${down} for him and the other doesn't point against it`,
+      Even: "The two sides don't line up one way", "--": key ? "Not enough data on one side yet" : "His number only: no defense side" };
+    cells += T(rd.t, rd.s, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`);
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}${ag}`) + cells;
   });
-  const head = corner(x) + HD("Season", "him") + HD("L10", "him") + HD("L5", "him") + HD("+/-", "him") + HD("Season", "def", "", `What ${team(x.opp).name} allow ${x.p.pos}s`) + HD("L5", "def") + HD("+/-", "def");
-  return gridOf(head, rows, { bands: BANDS_4_3, fill: THREES });
+  const head = corner(x) + HD("Season", "him") + HD("L10", "him") + HD("L5", "him") + HD("Season", "def", "", `What ${team(x.opp).name} allow ${x.p.pos}s`) + HD("L10", "def") + HD("L5", "def") + HD("Read", "rd");
+  return gridOf(head, rows, { bands: BANDS_3_3_1, fill: THREES });
 }
 
 // Scoring: his share, its rank among his position and points a game, beside what the defense allows
@@ -920,7 +927,7 @@ function teammates3Tab(x) {
 const RS_TAB = { Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: THREES ? teammates3Tab : teammatesTab,
   Shooting: shootingTab, "Shot Map": mapTab, Ladder: ladderTab };
 const RS_TAB_TIP = {
-  Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 5). His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
+  Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
   Scoring: "Where his points come from (share, rank among his position, points a game) beside what tonight's defense allows his position, and the read.",
   Matchup: "His side and the defense's side of the same thing. More / Fewer only when one side clearly points one way and the other doesn't point the other way.",
   "Game Script": `His games like tonight: within ${SCRIPT_RANGE} points of tonight's spread and total either way, within ${PACE_RANGE} possessions of tonight's pace, his home or road games and his last 10, each colored against his season. Fewer than ${SMALL} games is too few to lean on (faded, uncolored).`,
@@ -930,7 +937,7 @@ const RS_TAB_TIP = {
 };
 if (THREES) {
   Object.assign(RS_TAB_TIP, {
-    Form: "His threes made, tried, make rate and the share of his shots that are threes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 5). His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
+    Form: "His threes made, tried, make rate and the share of his shots that are threes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
     Shooting: "How he gets his threes (catch and shoot, pull-up, step-back, transition, second chance): his share, its rank among his position and made a game, beside the same for his position against tonight's defense, and the read.",
     "Shot Map": "Where he shoots his threes, and where his position shoots them against tonight's defense. Bigger = more threes from that spot; green = made more than the league from there (good for him on both). Early in the season the defense's map is thin: spots with few threes lean toward the league for the color.",
     "Vs The Line": `His last ${LINE_DAYS} days against tonight's line (dashed): a bar a game with his makes / tries, OUT when his team played without him, OFF when it didn't play. The dots are the line he had that night (green = cleared).`,

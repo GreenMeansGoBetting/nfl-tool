@@ -244,7 +244,8 @@ class Panel(unittest.TestCase):
     def test_form_beside_the_defense(self):
         box = self.tab("left", "Form")
         rows = self.cells(box)
-        self.assertEqual(rows[0][1:], ["Season", "L10", "L5", "+/-", "Season", "L5", "+/-"])
+        # the owner, 2026-11-04: a Read where the +/- columns were (him 3 / defense 3 / read, like Scoring)
+        self.assertEqual(rows[0][1:], ["Season", "L10", "L5", "Season", "L10", "L5", "Read"])
         self.assertEqual(self.page.inner_text(f"{box} .rs-corner .rs-jersey"), "7")  # the key: his jersey number
         self.assertIn("vs PGs", rows[0][0])  # ... and the defense vs his position
         self.assertEqual(rows[1][:2], ["PTS", "20.0"])
@@ -255,9 +256,10 @@ class Panel(unittest.TestCase):
         self.assertIsNotNone(tiles[2])
         mins = self.page.evaluate(f"() => [...document.querySelectorAll(\"{box} .rs-g > .rs-t\")][19].getAttribute('style')")
         self.assertIsNone(mins)
-        self.assertEqual(self.page.locator(f"{box} .rs-band").count(), 2)  # him / the defense shaded
-        self.assertEqual(rows[1][5], "22.0")  # BBB allow PGs 22 a game
-        self.assertEqual(rows[2][5:], ["--", "--", "--"])  # minutes: his only
+        self.assertEqual(self.page.locator(f"{box} .rs-band").count(), 3)  # him / the defense / the read shaded
+        self.assertEqual(rows[1][4:7], ["22.0", "22.0", "22.0"])  # BBB allow PGs 22 a game (2 games: every window)
+        self.assertEqual(rows[2][4:], ["--", "--", "--", "--"])  # minutes: his only, so no read
+        self.assertIn("no defense side", self.page.get_attribute(f"{box} .rs-g > .rs-t:nth-child(24)", "title"))
 
     def test_click_again_closes_and_the_name_still_opens_the_card(self):
         self.open()
