@@ -81,12 +81,34 @@ function mainLine(g, pid) {
   const ls = ((((bookGame(g)[MK.market] || {})[pid] || {}).q) || []).map((q) => q[2]).filter((x) => x !== null && x !== undefined).sort((a, b) => a - b);
   return ls.length ? ls[Math.floor(ls.length / 2)] : null;
 }
+// The best price; clicking it lists every book, and a price there saves the play to My Plays at that
+// book and price (the owner, 2026-11-04: no check box in the row, "it allows them to track at the same
+// price"). A saved side gets a check mark. Over and Under are one play (the card's rule).
 function sideCell(g, pid, side, line, tm) {
   if (line === null) return '<td class="rs-price"><span class="muted-label">--</span></td>';
-  const spec = { kind: "prop", stat: MK.market, team: tm, game: `${g.away}_${g.home}`, pid, side, line, title: `${nameOf(pid)} ${MK.unit}`, sub: `${g.away} @ ${g.home}`, short: true };
-  const p = { id: pid, name: nameOf(pid), team: tm };
-  return `<td class="rs-price">${typeof nbaCardSide === "function" ? nbaCardSide(spec, g, p, MK.market) : bookPricePill(spec) || "--"}</td>`;
+  const save = { gid: g.game_id, date: g.date, away: g.away, home: g.home, pid, tm, side, line };
+  const spec = { kind: "prop", stat: MK.market, team: tm, game: `${g.away}_${g.home}`, pid, side, line, title: `${nameOf(pid)} ${MK.unit}`, sub: `${g.away} @ ${g.home}`, short: true, save };
+  const pill = bookPricePill(spec);
+  if (!pill) return '<td class="rs-price"><span class="muted-label">--</span></td>';
+  const mine = window.bookPlaySaver.saved(save);
+  return `<td class="rs-price">${pill}${mine ? `<span class="rs-saved" title="In My Plays at ${showOdds(Number(mine.odds))} (${GMG_BOOKS[mine.book] || mine.book})">&#10003;</span>` : ""}</td>`;
 }
+const rsEntry = (k, book = null, odds = null) => nbaCardEntry(MK.market, { game_id: k.gid, date: k.date, away: k.away, home: k.home },
+  { id: k.pid, name: nameOf(k.pid), team: k.tm }, k.side, k.line, [book, null, null, odds]);
+window.bookPlaySaver = {
+  saved(k) {
+    const e = rsEntry(k);
+    const s = loadNbaPlays().find((x) => x.id === e.id);
+    return s && s.side === e.side && Number(s.line) === Number(e.line) ? s : null;
+  },
+  toggle(k, book, odds) {
+    const e = rsEntry(k, book, odds);
+    const now = window.bookPlaySaver.saved(k);
+    const rest = loadNbaPlays().filter((x) => x.id !== e.id);
+    saveNbaPlays(now && now.book === book && Number(now.odds) === odds ? rest : [...rest, { ...e, added_at: new Date().toISOString() }]);
+    renderList();
+  },
+};
 
 // ---- the injury report (data.json injuries, ESPN's list + the NBA's report) ----
 const reportOf = (tm) => (DATA.injuries || {})[tm] || [];
@@ -266,8 +288,8 @@ function sortedRows(date) {
 const COLS = [
   { label: "Player", cls: "sim-th-player" },
   { label: "Line", key: "line", title: "His main line: the middle of the books' lines" },
-  { label: "Over", title: "The best Over price across your books (click for every book; the box saves it to My Plays)" },
-  { label: "Under", title: "The best Under price across your books (click for every book; the box saves it to My Plays)" },
+  { label: "Over", title: "The best Over price across your books (click for every book; click a price there to save it to My Plays)" },
+  { label: "Under", title: "The best Under price across your books (click for every book; click a price there to save it to My Plays)" },
   { label: "Avg", key: "avg", title: `His ${MK.unit.toLowerCase()} a game this season (colored against his position)` },
   THREES ? { label: "3PA", key: "second", title: "His threes tried a game this season (colored against his position)" } : { label: "Min", key: "second", title: "His minutes a game this season (colored against his position)" },
   { label: "Volume", key: "vol", title: THREES ? "The share of his shots that are threes this season (colored against his position)"
@@ -278,7 +300,7 @@ const COLS = [
   { label: "Season", key: "all", hit: true, title: "This season's games over tonight's line" },
   { label: "Home", key: "home", hit: true, title: "Home games over tonight's line" },
   { label: "Away", key: "away", hit: true, title: "Road games over tonight's line" },
-  { label: "Opp Allows", key: "allow", title: `What tonight's opponent allows a game in ${MK.unit.toLowerCase()} to his position, and where that ranks (1st = the most)` },
+  { label: "Opp<br>Allows", key: "allow", title: `What tonight's opponent allows a game in ${MK.unit.toLowerCase()} to his position, and where that ranks (1st = the most)` },
   { label: "Pace", key: "pace", game: true, title: "Tonight's pace: both teams' possessions a 48 minutes, averaged, and where that ranks among the 30 teams (1st = fastest)" },
   { label: "Spread", key: "spread", game: true, title: "His team's spread tonight" },
   { label: "Total", key: "total", game: true, title: "Tonight's total (colored by where it sits among this season's game totals)" },
@@ -1439,8 +1461,6 @@ document.addEventListener("change", (e) => {
     LIST[sel.dataset.list] = sel.value;
     return renderList();
   }
-  // a play saved to My Plays from a row (nba-card.js saves it first): keep the boxes in step
-  if (e.target.closest("#rs-list .nba-pc-toggle")) setTimeout(renderList, 0);
 });
 document.addEventListener("click", (e) => {
   const card = e.target.closest("#matchup-row [data-game]");

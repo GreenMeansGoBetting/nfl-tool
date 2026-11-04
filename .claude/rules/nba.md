@@ -228,7 +228,7 @@ Every game played 10,000 times, possession by possession.
   last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
   `ROTATION_MIN` 12+ min, no line = "No Line"; Out / Doubtful players left off).
 - Columns (sim-list table rule): Player (playerClick, pos, injury pill DTD / Q / D / Out), Line (middle
-  of the books'), **Over / Under** (best on My Books via `nbaCardSide`: click = every book, box saves),
+  of the books'), **Over / Under** (best on My Books; click = every book, and a price there saves the play at that book and price, `bookPlaySaver`; a check mark on a saved side; no check box in the row, the owner 2026-11-04),
   **Avg, Min (Threes: 3PA), Volume** (Points: his shot share on the floor; Threes: share of his shots
   that are threes), season only, **no L5 under them** (the owner, 2026-11-04: cluttered), each colored
   against his position's rotation players (`listNums`, `listPool`; same color as his Form Season tile),

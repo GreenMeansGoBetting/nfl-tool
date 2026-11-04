@@ -293,7 +293,7 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 .rs-list td.rs-two b, .rs-list td.rs-allow b, .rs-list td.rs-line b { font: 800 1.02rem var(--font-display); }
 .rs-list td.rs-two small, .rs-list td.rs-allow small { display: block; font: 600 0.68rem var(--font-body); color: var(--muted); }
 .rs-list td.rs-allow small { color: var(--text); opacity: 0.75; }
-.rs-list td.rs-price .nba-pc-save { margin-left: 5px; vertical-align: middle; }
+.rs-list td.rs-price .rs-saved { margin-left: 4px; font-weight: 800; color: var(--good-text, var(--accent)); }
 .rs-list tr.sim-row { cursor: default; }
 .sim-rtag.rs-maybe { border-style: dashed; }
 

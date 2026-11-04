@@ -85,7 +85,7 @@ def rows(page):
 
 
 def head(page):
-    return page.evaluate("() => [...document.querySelectorAll('#rs-list thead tr:last-child th')].map((th) => th.textContent.replace(/[\\u25b4\\u25be]/g, '').trim())")
+    return page.evaluate("() => [...document.querySelectorAll('#rs-list thead tr:last-child th')].map((th) => th.innerHTML.replace(/<br>/g, ' ').replace(/<[^>]+>/g, '').replace(/[\\u25b4\\u25be]/g, '').trim())")
 
 
 class Points(unittest.TestCase):
@@ -117,6 +117,28 @@ class Points(unittest.TestCase):
         self.assertEqual(one[14], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
         self.assertEqual(one[15], "225.0 O/U")
         self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
+
+    def test_a_price_in_the_popup_saves_the_play(self):
+        # The owner, 2026-11-04: no check box in the row; a price in the every-book popup saves it at that price.
+        page = self.page
+        self.assertEqual(page.locator("#rs-list input[type=checkbox]").count(), 0)
+        plays = "() => JSON.parse(localStorage.getItem('nfl-tool.nba-plays.v1') || '[]').map((p) => [p.side, p.line, p.book, p.odds])"
+        try:
+            page.click("#rs-list tr.sim-row td.rs-price >> nth=0 >> .bo-pill")
+            page.wait_for_selector("#book-odds-modal:not([hidden]) .bo-save")
+            page.click("#book-odds-modal .bo-save:has-text('+100')")
+            self.assertEqual(page.evaluate(plays), [["over", 20.5, "fanduel", 100]])
+            self.assertIn("saved", page.inner_text("#book-odds-modal .bo-saved").lower())
+            # the Under tab saves the Under: the same play switches sides
+            page.click("#book-odds-modal .bo-tab:not(.bo-on)")
+            page.click("#book-odds-modal .bo-save:has-text('-110')")
+            self.assertEqual(page.evaluate(plays), [["under", 20.5, "draftkings", -110]])
+            page.keyboard.press("Escape")
+            marks = page.evaluate("() => [...document.querySelectorAll('#rs-list tr.sim-row td.rs-price')].map((td) => !!td.querySelector('.rs-saved'))")
+            self.assertEqual(marks, [False, True])
+        finally:
+            page.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); const m = document.getElementById('book-odds-modal'); if (m) m.hidden = true; renderList(); }")
+        self.assertEqual(SITE.errors, [])
 
     def test_teammates_on_the_report(self):
         pills = self.page.evaluate("() => [...document.querySelectorAll('#rs-list .sim-rtag')].map((t) => [t.textContent, t.className])")

@@ -8,10 +8,11 @@
 // thresholds). The edge is the page's measure: the model's chance minus the
 // chance the price needs to break even, in points. With no model number (the
 // NFL pop-ups) the list just ranks the books; there is no market "fair" price.
-// Saving a price (spec.save, NBA First Basket since 2026-10-21): each book's
-// price becomes a button that saves the play at that book and price; the
-// page provides window.bookPlaySaver {saved(entry) -> saved play or null,
-// toggle(entry, book, odds)}. spec.oneSide: a yes-only market (no other side
+// Saving a price (spec.save, NBA First Basket since 2026-10-21, the NBA prop
+// research lists since 2026-11-04): each book's price at the line becomes a
+// button that saves the play at that book and price; the page provides
+// window.bookPlaySaver {saved(entry) -> saved play or null,
+// toggle(entry, book, odds)}. An entry with a `side` follows the Over / Under tab. spec.oneSide: a yes-only market (no other side
 // tab); spec.noLine: no Line column.
 // My Books (books a member hides) and the book names live in sync.js, with
 // the rest of the Settings window; prices show in the member's odds format
@@ -129,8 +130,9 @@ function renderBookOdds(spec) {
       : modelOn ? '<span class="bo-tag bo-muted">No model line</span>' : "";
     const lineText = q[2] !== null && q[2] !== undefined ? bookSideLabel(spec, q[1], q[2]) : "";
     const link = q[4] ? `<a class="bo-bet" href="${q[4]}" target="_blank" rel="noopener">Bet &rsaquo;</a>` : "";
-    const isSaved = savedPlay && savedPlay.book === q[0] && Number(savedPlay.odds) === q[3];
-    const odds = saver
+    const isSaved = !alt && savedPlay && savedPlay.book === q[0] && Number(savedPlay.odds) === q[3];
+    // only the line being saved: a price at another line would save under the wrong number
+    const odds = saver && !alt
       ? `<button type="button" class="bo-save${isSaved ? " bo-saved" : ""}" data-bo-save="${boEnc({ book: q[0], odds: q[3] })}" title="${isSaved ? "Saved: click to remove it from My Plays" : "Save to My Plays at this price"}">${boOdds(q[3])}${isSaved ? " <small>Saved</small>" : ""}</button>`
       : boOdds(q[3]);
     return `<tr class="${!alt && i === 0 ? "bo-best" : ""}${alt ? " bo-alt" : ""}"><td><div class="bo-book"><span class="bo-ini">${BOOK_INITIALS[q[0]] || "?"}</span><span>${BOOK_NAMES[q[0]] || q[0]}${alt ? `<small class="bo-alt-line">${lineText}</small>` : ""}</span>${!alt && i === 0 ? ' <span class="bo-bestchip">BEST</span>' : ""}</div></td>
@@ -139,7 +141,8 @@ function renderBookOdds(spec) {
   const TAB_ORDER = ["o", "u", "away", "home"];
   const sides = spec.kind === "td" || spec.oneSide ? [spec.side] : [spec.side, OPPOSITE_SIDE[spec.side]].sort((a, b) => TAB_ORDER.indexOf(a) - TAB_ORDER.indexOf(b));
   const tabs = sides.length > 1
-    ? `<div class="bo-tabs">${sides.map((s) => `<button type="button" class="bo-tab${s === spec.side ? " bo-on" : ""}" data-bo="${boEnc({ ...spec, side: s, line: s === spec.side ? spec.line : otherLine(spec.side, spec.line) })}">${bookSideLabel(spec, s)}</button>`).join("")}</div>`
+    // a save that names its side (spec.save.side, the NBA research lists) follows the tab
+    ? `<div class="bo-tabs">${sides.map((s) => `<button type="button" class="bo-tab${s === spec.side ? " bo-on" : ""}" data-bo="${boEnc({ ...spec, side: s, line: s === spec.side ? spec.line : otherLine(spec.side, spec.line), ...(spec.save && spec.save.side === spec.side ? { save: { ...spec.save, side: s } } : {}) })}">${bookSideLabel(spec, s)}</button>`).join("")}</div>`
     : "";
   const hidden = myBooks().hidden || [];
   const color = spec.color || (typeof TEAM_COLORS !== "undefined" && TEAM_COLORS[spec.team]) || "var(--accent)";
