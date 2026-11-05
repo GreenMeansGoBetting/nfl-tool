@@ -5,7 +5,10 @@
 // rebounds, and get information and data that relates to those categories and see available bets
 // and lines." So: no projection, no pick, no edge, no rating. Every number is a real count from
 // this season's games, beside every book's line, and the member draws the conclusion.
-// One page a market: the page's <body data-market="points"> picks its config below.
+// One page a market: the page's <body data-market="points"> picks its config below. All Props
+// (all-props.html, data-market="all"; the owner, 2026-11-04: for members who "don't care about what
+// stats they are") runs the list for every market and puts the rows on one list: setMarket() switches
+// everything market-specific (MK, the panel's tabs, their hints), and every cache is kept per market.
 // A row: his main line (the middle of the books'), the best Over / Under across the member's books
 // (click: every book; the box saves to My Plays), his average and minutes (season, last 5), how
 // often he went over tonight's line, what tonight's defense allows to his position, and how he did
@@ -18,7 +21,10 @@ const RS_MARKETS = {
   rebounds: { market: "rebounds", stat: "reb", unit: "Rebounds", short: "REB", swing: 1.5 },
   assists: { market: "assists", stat: "ast", unit: "Assists", short: "AST", swing: 1.2 },
 };
-const MK = RS_MARKETS[document.body.dataset.market] || RS_MARKETS.points;
+const ALL_PROPS = document.body.dataset.market === "all";
+const ALL_ORDER = ["points", "threes", "assists", "rebounds"]; // All Props: the markets, in the menu's order
+const STAT_HUE = { points: 210, threes: 275, assists: 330, rebounds: 185 }; // each market's pill color (the menu's)
+let MK = RS_MARKETS[document.body.dataset.market] || RS_MARKETS.points;
 const ROTATION_MIN = 12; // Every Player: players at this many minutes a game or more
 const KEY_MIN = 20; // a teammate this many minutes a game gets a With / Without pill when he's on the report
 const SMALL = 3; // fewer games than this without a teammate = Small Sample, never colored
@@ -28,13 +34,12 @@ let DATA = null;
 let PROPS = null;
 let dayIndex = 0;
 let gameId = "";
-const LIST = { game: "", pos: "", every: false, sort: "line", dir: -1 };
+const LIST = { game: "", pos: "", every: false, sort: ALL_PROPS ? "ro" : "line", dir: -1 };
 // The research panel under a clicked row: Points, Threes, Rebounds and Assists (props.json `research`, research.py).
 const PANEL = true; // every market has its panel (Assists, 2026-11-04)
-const THREES = MK.market === "threes";
-const REBS = MK.market === "rebounds";
-const ASTS = MK.market === "assists";
-let OPEN = ""; // "<game id>:<player id>" of the open row
+let THREES = false, REBS = false, ASTS = false; // the market in play (setMarket)
+let OPEN = ""; // "<market>:<game id>:<player id>" of the open row (openKey)
+const openKey = (x) => `${x.mk}:${x.g.game_id}:${x.pid}`;
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => (DATA && DATA.teams[abbr]) || { name: abbr, short: abbr, logo: "", color: "555555" };
@@ -86,14 +91,14 @@ function mainLine(g, pid) {
 // price"). A saved side gets a check mark. Over and Under are one play (the card's rule).
 function sideCell(g, pid, side, line, tm) {
   if (line === null) return '<td class="rs-price"><span class="muted-label">--</span></td>';
-  const save = { gid: g.game_id, date: g.date, away: g.away, home: g.home, pid, tm, side, line };
+  const save = { mk: MK.market, gid: g.game_id, date: g.date, away: g.away, home: g.home, pid, tm, side, line };
   const spec = { kind: "prop", stat: MK.market, team: tm, game: `${g.away}_${g.home}`, pid, side, line, title: `${nameOf(pid)} ${MK.unit}`, sub: `${g.away} @ ${g.home}`, short: true, save };
   const pill = bookPricePill(spec);
   if (!pill) return '<td class="rs-price"><span class="muted-label">--</span></td>';
   const mine = window.bookPlaySaver.saved(save);
   return `<td class="rs-price">${pill}${mine ? `<span class="rs-saved" title="In My Plays at ${showOdds(Number(mine.odds))} (${GMG_BOOKS[mine.book] || mine.book})">&#10003;</span>` : ""}</td>`;
 }
-const rsEntry = (k, book = null, odds = null) => nbaCardEntry(MK.market, { game_id: k.gid, date: k.date, away: k.away, home: k.home },
+const rsEntry = (k, book = null, odds = null) => nbaCardEntry(k.mk || MK.market, { game_id: k.gid, date: k.date, away: k.away, home: k.home },
   { id: k.pid, name: nameOf(k.pid), team: k.tm }, k.side, k.line, [book, null, null, odds]);
 window.bookPlaySaver = {
   saved(k) {
@@ -124,9 +129,9 @@ const statusPill = (status) => {
 // ---- what each defense allows to each position (this season, real games) ----
 // Every player's game: his number against that opponent goes to the opponent's total for his
 // position; a game a team played counts once. Per game = total / that team's games.
-let ALLOWED = null;
+const ALLOWED = {}; // per market
 function allowed() {
-  if (ALLOWED && ALLOWED.mk === MK.market) return ALLOWED;
+  if (ALLOWED[MK.market]) return ALLOWED[MK.market];
   const f = logFields();
   const sums = {}, games = {};
   for (const p of Object.values(seasonBlock().players)) {
@@ -147,8 +152,8 @@ function allowed() {
     const sorted = Object.entries(teams).sort((a, b) => b[1].v - a[1].v);
     ranks[pos] = { n: sorted.length, league: avg(sorted.map(([, x]) => x.v)), r: Object.fromEntries(sorted.map(([t], i) => [t, i + 1])) };
   }
-  ALLOWED = { mk: MK.market, per, ranks };
-  return ALLOWED;
+  ALLOWED[MK.market] = { per, ranks };
+  return ALLOWED[MK.market];
 }
 // The site's 8-step rank colors (league.js rankStyle), 1st = allows the most = greenest.
 const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
@@ -231,11 +236,12 @@ function rebShare(pid) {
 }
 const LIST_POOL = {};
 function listPool(pos) {
-  if (!LIST_POOL[pos]) {
+  const key = `${MK.market}:${pos}`;
+  if (!LIST_POOL[key]) {
     const nums = posPool(pos).map(([id, q]) => listNums(q, id));
-    LIST_POOL[pos] = { avgV: nums.map((n) => n.avgV), second: nums.map((n) => n.second), vol: nums.map((n) => n.vol) };
+    LIST_POOL[key] = { avgV: nums.map((n) => n.avgV), second: nums.map((n) => n.second), vol: nums.map((n) => n.vol) };
   }
-  return LIST_POOL[pos];
+  return LIST_POOL[key];
 }
 function hits(rows, line, f) {
   if (line === null || line === undefined || !rows.length) return null;
@@ -259,7 +265,7 @@ function rowsOn(date) {
       const vals = log.map((r) => statOf(r, f));
       const last5 = log.slice(-5);
       out.push({
-        g, pid, p, team: p.team, opp, home: p.team === g.home, line, status, live: started(g), gp: log.length,
+        mk: MK.market, g, pid, p, team: p.team, opp, home: p.team === g.home, line, status, live: started(g), gp: log.length,
         avg: avg(vals), min: mins, ...listNums(p, pid),
         hits: { l5: hits(last5, line, f), l10: hits(log.slice(-10), line, f), all: hits(log, line, f),
           home: hits(log.filter((r) => r[f.home]), line, f), away: hits(log.filter((r) => !r[f.home]), line, f) },
@@ -281,7 +287,7 @@ function rowsOn(date) {
 const READ_TABS = ["Form", "Scoring", "Matchup", "Shooting", "Rebounding", "Miss Zones", "Playmaking", "Assist Zones"];
 const READ_CACHE = {};
 function readsOf(x) {
-  const key = `${x.g.game_id}:${x.pid}`;
+  const key = openKey(x);
   if (READ_CACHE[key]) return READ_CACHE[key];
   const tabs = [...RS_TABS.left, ...RS_TABS.right].filter((t) => READ_TABS.includes(t));
   const r = { o: 0, u: 0, n: 0, by: [] };
@@ -306,31 +312,46 @@ const SORTS = {
   ro: (x) => (x.reads.n ? x.reads.o / x.reads.n : -1), ru: (x) => (x.reads.n ? x.reads.u / x.reads.n : -1),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
 };
+// All Props: every market's rows on one list, each row keeping its market (x.mk)
+function rowsOnAll(date) {
+  const out = [];
+  for (const m of ALL_ORDER) {
+    setMarket(m);
+    out.push(...rowsOn(date));
+  }
+  return out;
+}
+const rowsToday = (date) => (ALL_PROPS ? rowsOnAll(date) : rowsOn(date));
 function sortedRows(date) {
   const key = SORTS[LIST.sort] || SORTS.line;
   // started games at the bottom; a player with no line after the ones with one
-  return rowsOn(date).sort((a, b) => a.live - b.live || (a.line === null) - (b.line === null) || LIST.dir * (key(a) - key(b)) || (b.min || 0) - (a.min || 0));
+  return rowsToday(date).sort((a, b) => a.live - b.live || (a.line === null) - (b.line === null) || LIST.dir * (key(a) - key(b)) || (b.min || 0) - (a.min || 0));
 }
 
 // ---- the table ----
-const COLS = [
+// The columns for the market in play. All Props keeps only the ones that mean the same thing for every
+// market (no Min / 3PA, no Volume; the owner, 2026-11-04: "if people want to click into the specific
+// category they can") and adds the Stat pill after the player.
+let COLS = [];
+const colsFor = () => [
   { label: "Player", cls: "sim-th-player" },
+  ...(ALL_PROPS ? [{ label: "Stat", title: "The stat this line is for (click it for that stat's own page)" }] : []),
   { label: "Line", key: "line", title: "His main line: the middle of the books' lines" },
   { label: "Over", title: "The best Over price across your books (click for every book; click a price there to save it to My Plays)" },
   { label: "Under", title: "The best Under price across your books (click for every book; click a price there to save it to My Plays)" },
-  { label: "Avg", key: "avg", title: `His ${MK.unit.toLowerCase()} a game this season (colored against his position)` },
-  THREES ? { label: "3PA", key: "second", title: "His threes tried a game this season (colored against his position)" } : { label: "Min", key: "second", title: "His minutes a game this season (colored against his position)" },
+  { label: "Avg", key: "avg", title: `His ${ALL_PROPS ? "number in that stat" : MK.unit.toLowerCase()} a game this season (colored against his position)` },
+  ...(ALL_PROPS ? [] : [THREES ? { label: "3PA", key: "second", title: "His threes tried a game this season (colored against his position)" } : { label: "Min", key: "second", title: "His minutes a game this season (colored against his position)" },
   { label: "Volume", key: "vol", title: THREES ? "The share of his shots that are threes this season (colored against his position)"
     : REBS ? "His share of the rebounds there to get while he's on the floor this season (colored against his position)"
-    : ASTS ? "His assist rate: the share of his teammates' made shots he assisted while on the floor this season (colored against his position)" : "His share of his team's shots while he's on the floor this season (colored against his position)" },
+    : ASTS ? "His assist rate: the share of his teammates' made shots he assisted while on the floor this season (colored against his position)" : "His share of his team's shots while he's on the floor this season (colored against his position)" }]),
   { label: "L5", key: "l5", hit: true, title: "His last 5 games over tonight's line" },
   { label: "L10", key: "l10", hit: true, title: "His last 10 games over tonight's line" },
   { label: "Season", key: "all", hit: true, title: "This season's games over tonight's line" },
   { label: "Home", key: "home", hit: true, title: "Home games over tonight's line" },
   { label: "Away", key: "away", hit: true, title: "Road games over tonight's line" },
-  { label: "Opp<br>Allows", key: "allow", title: `What tonight's opponent allows a game in ${MK.unit.toLowerCase()} to his position, and where that ranks (1st = the most)` },
-  { label: "O", key: "ro", read: true, title: "How many of the Reads in his research panel say Over, out of every Read on this page (colored by that share). The reads compare him to his position, so a star facing a weak defense leans Over: the line knows how good he is." },
-  { label: "U", key: "ru", read: true, title: "How many of the Reads in his research panel say Under, out of every Read on this page (colored by that share). The reads compare him to his position, so a bench player facing a tough defense leans Under: the line knows his role." },
+  { label: "Opp<br>Allows", key: "allow", title: `What tonight's opponent allows a game in ${ALL_PROPS ? "that stat" : MK.unit.toLowerCase()} to his position, and where that ranks (1st = the most)` },
+  { label: "O", key: "ro", read: true, title: `How many of the Reads in his research panel say Over, out of every Read on ${ALL_PROPS ? "that stat's" : "this"} page (colored by that share). The reads compare him to his position, so a star facing a weak defense leans Over: the line knows how good he is.` },
+  { label: "U", key: "ru", read: true, title: `How many of the Reads in his research panel say Under, out of every Read on ${ALL_PROPS ? "that stat's" : "this"} page (colored by that share). The reads compare him to his position, so a bench player facing a tough defense leans Under: the line knows his role.` },
   { label: "Pace", key: "pace", game: true, title: "Tonight's pace: both teams' possessions a 48 minutes, averaged, and where that ranks among the 30 teams (1st = fastest)" },
   { label: "Spread", key: "spread", game: true, title: "His team's spread tonight" },
   { label: "Total", key: "total", game: true, title: "Tonight's total (colored by where it sits among this season's game totals)" },
@@ -385,16 +406,18 @@ function gameCells(x) {
   return pace + sp + tot;
 }
 function row(x) {
+  if (x.mk !== MK.market) setMarket(x.mk); // All Props: each row in its own market
   const pool = listPool(x.p.pos);
   const one = (text, v, vals, tip) => { const st = stepStyle(spread(v, vals)); return `<td class="num rs-two"${st ? ` style="${st}"` : ""} title="${tip} (colored against the league's ${x.p.pos}s)"><b>${text}</b></td>`; };
-  const key = `${x.g.game_id}:${x.pid}`;
+  const key = openKey(x);
+  const stat = ALL_PROPS ? `<td class="rs-stat"><a href="${MK.market}.html" class="rs-stat-pill" style="--pill-h:${STAT_HUE[MK.market]}" title="${MK.unit} Research: every ${MK.unit.toLowerCase()} line">${MK.unit}</a></td>` : "";
   return `<tr class="sim-row${x.live ? " live" : ""}${PANEL ? " rs-click" : ""}${OPEN === key ? " open" : ""}" data-open="${key}">
     <td class="sim-plcell"><span class="sim-pl-in">${headshot(x.pid)}<span class="rs-pl-txt" title="${nameOf(x.pid)}">${playerClick(x.pid, `<b>${nameOf(x.pid)}</b>`)}<span class="rs-pl-sub"><span class="muted-label">${x.p.pos || ""}</span>${statusPill(x.status)}<span class="sim-vs">${logo(x.team, 15)}<span>${x.home ? "vs" : "@"}</span>${logo(x.opp, 15)}</span></span></span></span></td>
-    <td class="num rs-line">${x.line === null ? '<span class="muted-label">No Line</span>' : `<b>${fmt(x.line)}</b>`}</td>
+    ${stat}<td class="num rs-line">${x.line === null ? '<span class="muted-label">No Line</span>' : `<b>${fmt(x.line)}</b>`}</td>
     ${sideCell(x.g, x.pid, "o", x.line, x.team)}${sideCell(x.g, x.pid, "u", x.line, x.team)}
     ${one(fmt(x.avg), x.avg, pool.avgV, `${fmt(x.avg)} ${MK.unit.toLowerCase()} a game in ${x.gp} games`)}
-    ${one(fmt(x.second), x.second, pool.second, THREES ? `${fmt(x.second)} threes tried a game` : `${fmt(x.second)} minutes a game`)}
-    ${one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
+    ${ALL_PROPS ? "" : one(fmt(x.second), x.second, pool.second, THREES ? `${fmt(x.second)} threes tried a game` : `${fmt(x.second)} minutes a game`)}
+    ${ALL_PROPS ? "" : one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
     ${hitCell(x.hits.l5, "Last 5 games over tonight's line")}${hitCell(x.hits.l10, "Last 10 games over tonight's line")}${hitCell(x.hits.all, "This season's games over tonight's line")}${hitCell(x.hits.home, "Home games over tonight's line")}${hitCell(x.hits.away, "Road games over tonight's line")}
     ${allowCell(x)}
     ${readCells(x)}
@@ -415,10 +438,11 @@ const RS_ROWS = 6;
 // Threes (the owner, 2026-11-04): Shooting (how he gets his threes) for Scoring, a Shot Map for
 // Matchup (it repeated Form), and a Ladder of how often he hits each number.
 // Rebounds (the owner, 2026-11-04): Rebounding (chances and his share of them) and Miss Zones.
-const RS_TABS = THREES ? { left: ["Form", "Shooting", "Shot Map", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
+let RS_TABS = null; // the market in play's tabs (setMarket)
+const tabsFor = () => (THREES ? { left: ["Form", "Shooting", "Shot Map", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
   : REBS ? { left: ["Form", "Rebounding", "Miss Zones", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
   : ASTS ? { left: ["Form", "Playmaking", "Assist Zones", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
-  : { left: ["Form", "Scoring", "Matchup", "Game Script"], right: ["Vs The Line", "Rotation", "Teammates"] };
+  : { left: ["Form", "Scoring", "Matchup", "Game Script"], right: ["Vs The Line", "Rotation", "Teammates"] });
 const RSV = { left: "Form", right: "Vs The Line" }; // the open tab of each box (kept while the page is open)
 const SCRIPT_RANGE = 5; // Game Script: his games within this many points of tonight's spread / total, either way (two possessions)
 const PACE_RANGE = 2; // ... and within this many possessions of tonight's pace
@@ -1369,9 +1393,10 @@ function teammatesAstTab(x) {
   return gridOf(head, rows, { cls: "rs-wide" });
 }
 
-const RS_TAB = { Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: THREES ? teammates3Tab : REBS ? teammatesRebTab : ASTS ? teammatesAstTab : teammatesTab,
+const RS_TAB = { Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: teammatesTab, // Teammates: setMarket
   Shooting: shootingTab, "Shot Map": mapTab, Ladder: ladderTab, Rebounding: reboundingTab, "Miss Zones": missZonesTab, Playmaking: playmakingTab, "Assist Zones": assistZonesTab };
-const RS_TAB_TIP = {
+let RS_TAB_TIP = {};
+const BASE_TIPS = {
   Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
   Scoring: "Where his points come from (share, rank among his position, points a game) beside what tonight's defense allows his position, and the read.",
   Matchup: "His side and the defense's side of the same thing. Over / Under only when one side clearly points one way and the other doesn't point the other way.",
@@ -1380,8 +1405,7 @@ const RS_TAB_TIP = {
   Rotation: "When he's on the floor at each minute (green = most of his games), with his points a game in each quarter in its header.",
   Teammates: "His shots and points a 36 with each teammate on the floor and off it (green / red = above / below his usual), time together, and that teammate's assists on his makes.",
 };
-if (ASTS) {
-  Object.assign(RS_TAB_TIP, {
+const ASTS_TIPS = {
     Form: "His assists, then his assists to each other position (season, last 10, last 5), beside what tonight's defense gives up (assists to his position; assisted baskets to each other position), and the read. His season is colored against his position, his last 10 / 5 against his season; the defense's by its rank of 30 (green = gives up the most).",
     Playmaking: "Why his number is what it is: his teammates' made shots while he's on the floor (assist chances) and his share of them, beside the side of tonight's defense that drives each (the shooting it allows, how much of it is assisted, how often teams run on it), pace, and the read. Green = good for him.",
     "Assist Zones": "Where the shots he sets up come from (rim, paint, mid-range, corner and above-the-break threes), beside where tonight's defense gives up assisted makes, and the read.",
@@ -1390,10 +1414,8 @@ if (ASTS) {
     Ladder: `How often he got each number of assists, the columns around tonight's line (its Over column has the green header). Fewer than ${SMALL} games is faded.`,
     Rotation: "When he's on the floor at each minute (green = most of his games), with his assists a game in each quarter in its header.",
     Teammates: "His assists a 36 and his assist rate with each teammate on the floor and off it (green / red = above / below his usual), time together, and how many of his assists go to that teammate.",
-  });
-}
-if (REBS) {
-  Object.assign(RS_TAB_TIP, {
+};
+const REBS_TIPS = {
     Form: "His rebounds, defensive and offensive rebounds and minutes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
     Rebounding: "Why his number is what it is: the rebounds there to get while he's on the floor (chances) and his share of them, at both ends, beside the side of tonight's opponent that drives each one, and the read. Green = good for him.",
     "Miss Zones": "Where the misses he grabs on defense come from (rim, paint, mid-range, corner and above-the-break threes, free throws), beside where tonight's opponent misses from, and the read.",
@@ -1402,10 +1424,8 @@ if (REBS) {
     Ladder: `How often he got each number of rebounds, the columns around tonight's line (its Over column has the green header). Fewer than ${SMALL} games is faded.`,
     Rotation: "When he's on the floor at each minute (green = most of his games), with his rebounds and offensive rebounds a game in each quarter in its header.",
     Teammates: "His rebounds a 36 and his share of the rebounds there to get, with each teammate on the floor and off it (green / red = above / below his usual), time together, and that teammate's own rebounds a 36.",
-  });
-}
-if (THREES) {
-  Object.assign(RS_TAB_TIP, {
+};
+const THREES_TIPS = {
     Form: "His threes made, tried, make rate and the share of his shots that are threes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
     Shooting: "How he gets his threes (catch and shoot, pull-up, step-back, transition, second chance): his share, its rank among his position and made a game, beside the same for his position against tonight's defense, and the read.",
     "Shot Map": "Where he shoots his threes, and where his position shoots them against tonight's defense. Bigger = more threes from that spot; green = made more than the league from there (good for him on both). Early in the season the defense's map is thin: spots with few threes lean toward the league for the color.",
@@ -1413,13 +1433,26 @@ if (THREES) {
     Ladder: `How often he made each number of threes, the columns around tonight's line (its Over column has the green header; None = nights with no threes). Fewer than ${SMALL} games is faded.`,
     Rotation: "When he's on the floor at each minute (green = most of his games), with his threes made and tried a game in each quarter in its header.",
     Teammates: "His threes tried and made a 36 with each teammate on the floor and off it (green / red = above / below his usual), time together, and that teammate's assists on his threes.",
-  });
+};
+// Switch everything market-specific to market m: the stat pages call it once; All Props for each row.
+function setMarket(m) {
+  MK = RS_MARKETS[m] || RS_MARKETS.points;
+  THREES = MK.market === "threes";
+  REBS = MK.market === "rebounds";
+  ASTS = MK.market === "assists";
+  RS_TABS = tabsFor();
+  RS_TAB.Teammates = THREES ? teammates3Tab : REBS ? teammatesRebTab : ASTS ? teammatesAstTab : teammatesTab;
+  RS_TAB_TIP = { ...BASE_TIPS, ...(ASTS ? ASTS_TIPS : REBS ? REBS_TIPS : THREES ? THREES_TIPS : {}) };
+  for (const side of ["left", "right"]) if (!RS_TABS[side].includes(RSV[side])) RSV[side] = side === "left" ? "Form" : "Vs The Line";
+  if (!ALL_PROPS || !COLS.length) COLS = colsFor();
 }
+setMarket(MK.market);
 const sandbox = (x, side) => `<div class="rs-sb" data-side="${side}"><div class="rs-tabs">${RS_TABS[side].map((t) => `<button type="button" class="${t === RSV[side] ? "on" : ""}" data-rs-tab="${side}:${t}" title="${RS_TAB_TIP[t]}">${t}</button>`).join("")}</div><div class="rs-sbody">${RS_TAB[RSV[side]](x)}</div></div>`;
 // Redraw one box of the open panel (a tab click, or the shot charts arriving for the Shot Map).
 function refreshBox(side) {
   const box = document.querySelector(`#rs-list .rs-sb[data-side="${side}"]`);
-  const x = OPEN && rowsOn(days()[dayIndex]).find((r) => `${r.g.game_id}:${r.pid}` === OPEN);
+  const x = OPEN && rowsToday(days()[dayIndex]).find((r) => openKey(r) === OPEN);
+  if (x) setMarket(x.mk);
   if (box && x) box.outerHTML = sandbox(x, side);
 }
 function panel(x) {
@@ -1441,7 +1474,8 @@ function renderList() {
   const rows = date ? sortedRows(date) : [];
   const lined = rows.filter((x) => x.line !== null).length;
   const at = DATA.generated_at ? new Date(DATA.generated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
-  el("rs-note").innerHTML = `${lined} player${lined === 1 ? "" : "s"} with a ${MK.unit.toLowerCase()} line${at ? ` &middot; lines and injury report as of ${at}` : ""} &middot; check the injury report before you bet: NBA lineups change late`;
+  const what = ALL_PROPS ? `line${lined === 1 ? "" : "s"} across Points, Threes, Assists and Rebounds` : `player${lined === 1 ? "" : "s"} with a ${MK.unit.toLowerCase()} line`;
+  el("rs-note").innerHTML = `${lined} ${what}${at ? ` &middot; lines and injury report as of ${at}` : ""} &middot; check the injury report before you bet: NBA lineups change late`;
   if (!rows.length) {
     const noOdds = !Object.keys(DATA.book_odds || {}).length;
     el("rs-list").innerHTML = `<p class="sim-noplay">${noOdds || !LIST.every ? "The books haven't posted these lines yet." : "No player matches these filters."}${!LIST.every ? ' <button type="button" class="view-toggle-btn" data-list-every="true">Show Every Player</button>' : ""}</p>`;
@@ -1449,32 +1483,49 @@ function renderList() {
   }
   const body = rows.map((x, i) => {
     const head = x.live && (i === 0 || !rows[i - 1].live) ? `<tr class="sim-group"><td colspan="${COLS.length}">Started: the lines locked at tip.</td></tr>` : "";
-    return head + row(x) + (PANEL && OPEN === `${x.g.game_id}:${x.pid}` ? `<tr class="rs-panel-row"><td colspan="${COLS.length}">${panel(x)}</td></tr>` : "");
+    return head + row(x) + (PANEL && OPEN === openKey(x) ? `<tr class="rs-panel-row"><td colspan="${COLS.length}">${panel(x)}</td></tr>` : ""); // row() set its market
   }).join("");
   el("rs-list").innerHTML = `<div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list rs-list">${listHead()}<tbody>${body}</tbody></table></div></div>`;
   fitTags();
 }
 // Tags fill at most two lines, the same box on every row: the ones that don't fit fold into a
 // "+N" pill naming them on hover (the site's table rule).
+// Every box is reset, then every box and tag is measured in ONE pass, and the fold is worked out from
+// those widths (two lines of tags, sim.css .sim-rtags) before anything is hidden. Measuring box by box
+// re-laid out the whole table each time: 4 s on All Props' 1,000+ rows.
+const TAG_GAP = 4; // .sim-rtags column gap
+const TAG_LINES = 2;
+const MORE_W = 32; // room for the "+N" pill
 function fitTags() {
-  document.querySelectorAll("#rs-list .sim-rtags").forEach((box) => {
+  const boxes = [...document.querySelectorAll("#rs-list .sim-rtags")];
+  for (const box of boxes) {
     box.querySelectorAll(".sim-rtag.more").forEach((m) => m.remove());
+    for (const t of box.children) t.hidden = false;
+  }
+  const over = boxes.filter((box) => box.scrollHeight > box.clientHeight + 1)
+    .map((box) => ({ box, w: box.clientWidth, widths: [...box.children].map((t) => t.offsetWidth) }));
+  for (const { box, w, widths } of over) {
+    // the first k tags and the "+N" pill fit in TAG_LINES lines of width w
+    const fits = (k) => {
+      let line = 1, used = 0;
+      for (const tw of [...widths.slice(0, k), MORE_W]) {
+        if (!used || used + TAG_GAP + tw <= w) used = used ? used + TAG_GAP + tw : tw;
+        else if (++line > TAG_LINES) return false;
+        else used = tw;
+      }
+      return true;
+    };
+    let k = widths.length - 1;
+    while (k > 0 && !fits(k)) k -= 1;
     const tags = [...box.children];
-    tags.forEach((t) => (t.hidden = false));
-    if (box.scrollHeight <= box.clientHeight + 1) return;
+    const rest = tags.slice(k);
+    rest.forEach((t) => (t.hidden = true));
     const more = document.createElement("span");
     more.className = "sim-rtag more";
+    more.textContent = `+${rest.length}`;
+    more.title = rest.map((t) => t.title || t.textContent.trim()).join("\n");
     box.appendChild(more);
-    let shown = tags.length;
-    while (shown > 0) {
-      shown -= 1;
-      tags[shown].hidden = true;
-      const rest = tags.slice(shown);
-      more.textContent = `+${rest.length}`;
-      more.title = rest.map((t) => t.title || t.textContent.trim()).join("\n");
-      if (box.scrollHeight <= box.clientHeight + 1) break;
-    }
-  });
+  }
 }
 window.addEventListener("resize", () => {
   clearTimeout(fitTags.wait);

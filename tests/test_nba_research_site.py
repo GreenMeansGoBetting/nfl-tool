@@ -689,6 +689,66 @@ class OtherMarkets(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
 
 
+class AllProps(unittest.TestCase):
+    """The owner, 2026-11-04: every stat's lines on one list for members who "don't care about what stats
+    they are"; only the columns that mean the same for every stat, a Stat pill, sorted by O."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.page = SITE.open("nba/all-props.html")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+
+    def reads_on(self, market):
+        page = SITE.open(f"nba/{market}.html")
+        try:
+            page.wait_for_selector("#rs-list tr.sim-row")
+            return page.evaluate("() => [...document.querySelectorAll('#rs-list tr.sim-row td.rs-read')].map((td) => td.textContent)")
+        finally:
+            page.close()
+
+    def test_one_row_per_player_and_stat_with_the_stat_pages_reads(self):
+        page = self.page
+        heads = head(page)
+        self.assertEqual(heads[:3], ["Player", "Stat", "Line"])
+        for gone in ("Min", "3PA", "Volume"):
+            self.assertNotIn(gone, heads)
+        self.assertIn("O", heads)
+        got = page.evaluate("() => [...document.querySelectorAll('#rs-list tr.sim-row')].map((tr) => [tr.querySelector('.rs-stat-pill').textContent, tr.querySelector('.rs-stat-pill').getAttribute('href'), [...tr.querySelectorAll('td.rs-read')].map((td) => td.textContent)])")
+        by = {stat: (href, reads) for stat, href, reads in got}
+        self.assertEqual(sorted(by), ["Points", "Rebounds"])  # Player One has a points and a rebounds line
+        self.assertEqual(by["Points"], ("points.html", self.reads_on("points")))
+        self.assertEqual(by["Rebounds"], ("rebounds.html", self.reads_on("rebounds")))
+        # sorted by the O share, the biggest first
+        shares = [int(r[2][0].split("/")[0]) / int(r[2][0].split("/")[1]) for r in got]
+        self.assertEqual(shares, sorted(shares, reverse=True))
+        self.assertIn("across Points, Threes, Assists and Rebounds", page.inner_text("#rs-note"))
+        self.assertEqual(SITE.errors, [])
+
+    def test_a_row_opens_its_own_stats_panel_and_saves_its_own_stat(self):
+        page = self.page
+        try:
+            page.click("#rs-list tr.sim-row:has(.rs-stat-pill:text-is('Rebounds')) td.rs-line")
+            page.wait_for_selector("#rs-list .rs-panel")
+            tabs = page.evaluate("() => [...document.querySelectorAll('#rs-list .rs-sb[data-side=left] [data-rs-tab]')].map((b) => b.textContent)")
+            self.assertEqual(tabs, ["Form", "Rebounding", "Miss Zones", "Game Script"])
+            page.click("#rs-list tr.sim-row:has(.rs-stat-pill:text-is('Points')) td.rs-line")
+            page.wait_for_selector("#rs-list .rs-sb [data-rs-tab='left:Scoring']")
+            page.click("#rs-list tr.sim-row:has(.rs-stat-pill:text-is('Rebounds')) td.rs-price >> nth=0 >> .bo-pill")
+            page.wait_for_selector("#book-odds-modal:not([hidden]) .bo-save")
+            page.click("#book-odds-modal .bo-save >> nth=0")
+            saved = page.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.nba-plays.v1') || '[]').map((p) => [p.market, p.side, p.line])")
+            self.assertEqual(saved, [["rebounds", "over", 4.5]])
+        finally:
+            page.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); const m = document.getElementById('book-odds-modal'); if (m) m.hidden = true; OPEN = ''; renderList(); }")
+        self.assertEqual(SITE.errors, [])
+
+    def test_in_the_menu_and_a_tab_on_every_research_page(self):
+        site = ROOT / "nfl_tool" / "site" / "nba"
+        for name in ("points", "threes", "rebounds", "assists"):
+            self.assertIn('<a href="all-props.html">All Props</a>', (site / f"{name}.html").read_text(encoding="utf-8"))
+        self.assertIn('data-market="all"', (site / "all-props.html").read_text(encoding="utf-8"))
+
+
 class Pages(unittest.TestCase):
     def test_four_tabs_and_the_retired_pages_forward(self):
         site = ROOT / "nfl_tool" / "site" / "nba"

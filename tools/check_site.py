@@ -57,6 +57,7 @@ PAGES = [
     ("NBA First Basket", "nba/first-basket.html", None),
     ("NBA Shot Charts", "nba/shot-charts.html", None),
     ("NBA Zone Matchup Targets", "nba/zones.html", None),
+    ("NBA All Props", "nba/all-props.html", None),
     ("NBA Points", "nba/points.html", None),
     ("NBA Threes", "nba/threes.html", None),
     ("NBA Rebounds", "nba/rebounds.html", None),

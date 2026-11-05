@@ -222,7 +222,7 @@ Every game played 10,000 times, possession by possession.
 - The owner, 2026-11-03: "click into betting categories, like assists and rebounds, and get
   information and data that relates to those categories and see available bets and lines".
   **No model on the page:** no Edge, Fair, Rating, projection, plays, record or YTD tracker.
-- Menu: **Prop Research** head, Points / Threes / Assists / Rebounds pills, then 1st Basket and Shot Charts (no
+- Menu: **Prop Research** head, All Props, Points / Threes / Assists / Rebounds pills, then 1st Basket and Shot Charts (no
   UNDER CONSTRUCTION since 2026-11-03). Tabs on the four pages. `RS_MARKETS` = each page's stat.
 - Intro box (title + i bubble + one line), day arrows (next `DAYS_AHEAD` 3 slates; off-season = the
   last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
@@ -314,7 +314,16 @@ Every game played 10,000 times, possession by possession.
   share (`READ_FULL` 0.5 = greenest). Every Read tile goes through `RT`, so the column always equals the panel
   (`readsOf`, cached per player). Form compares him to his position, so a star facing a weak defense leans Over:
   the owner chose that over a 'signature' tag rule after seeing real examples ("luka is facing a weak defense
-  thats why he shows"). Next: an All Props page and filters (offense AND defense numbers).
+  thats why he shows"). Next: filters (offense AND defense numbers) on every research page and All Props.
+- **All Props** (`all-props.html`, `data-market="all"`, 2026-11-04; the owner: for members who "don't care about
+  what stats they are"): every market's rows on one list (`rowsOnAll`), a row a player a stat with a **Stat** pill
+  (`STAT_HUE`, the menu's colors; it links to that stat's page), opens sorted by O. Only the columns that mean the
+  same for every stat: no Min / 3PA and no Volume (the owner: "if people want to click into the specific category
+  they can"). A row click opens that stat's own panel. **`setMarket(m)`** switches everything market-specific
+  (MK, THREES / REBS / ASTS, `RS_TABS`, the Teammates tab, `RS_TAB_TIP`, the columns); a stat page calls it once.
+  Caches are per market (`ALLOWED`, `LIST_POOL`, `READ_CACHE`), rows carry `mk`, `openKey` = market:game:player,
+  and a saved play's key carries its market. A tab on every research page. `fitTags` measures every box in one pass
+  (box by box took 4 s on All Props' 1,000+ rows).
 - **The list row**: Over / Under show the price + a two-letter book (`spec.short`, `BOOK_CODES` in
   book-odds.js); **Tonight's Game** after Opp Allows: Pace (both teams' average, rank among the 30
   teams' paces), Spread (his team's), Total (`tonightGame`).
