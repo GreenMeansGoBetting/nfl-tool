@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assist Spots (Mockup)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700;800&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../nfl_tool/site/style.css">
+<link rel="stylesheet" href="../nfl_tool/site/suite.css">
+<style>
+  body { padding: 14px 18px 40px; }
+  .as-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .as-head h2 { margin: 0; font-family: var(--font-display); font-size: 1.6rem; }
+  .as-mock { font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; background: rgba(240, 180, 40, 0.28); }
+  .as-note { max-width: 980px; font-size: 0.86rem; line-height: 1.35; margin: 4px 0 10px; }
+  .as-bar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .as-bar button { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); cursor: pointer; }
+  .as-bar button.on { background: rgba(var(--accent-rgb), 0.3); border-color: rgba(var(--accent-rgb), 0.7); }
+  table.as-main { table-layout: fixed; width: auto; }
+  table.as-main td.od-label { text-align: left; width: 150px; padding-left: 8px; }
+  table.as-main td.od-label b { display: block; font-family: var(--font-display); font-size: 0.98rem; }
+  table.as-main td.od-label small { font-size: 0.7rem; font-weight: 600; }
+  table.as-main tbody tr { cursor: pointer; }
+  table.as-main tbody tr:hover td.od-label b { text-decoration: underline; }
+  table.as-main tbody tr.sel td.od-label { box-shadow: inset 4px 0 0 rgb(var(--accent-rgb)); }
+  .as-main .od-glabels th { cursor: pointer; }
+  .as-main .od-glabels th.sorted { text-decoration: underline; }
+  .od-tile.as-txt b { font-size: 0.8rem; white-space: normal; line-height: 1.05; }
+  .od-tile.as-two { display: flex; gap: 3px; padding: 0; background: none; }
+  .od-tile.as-two > span { flex: 1; padding: 4px 2px; border-radius: 6px; border: 1px solid transparent; }
+  .od-tile.as-two b { font-size: 0.85rem; }
+  .as-tags { display: flex; flex-wrap: wrap; gap: 3px; height: 48px; overflow: hidden; align-content: flex-start; white-space: normal; }
+  .as-tag { font-family: var(--font-display); font-weight: 700; font-size: 0.72rem; padding: 3px 6px; border-radius: 6px; border: 1px solid transparent; white-space: nowrap; }
+  .as-detail { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; align-items: flex-start; }
+  .as-box { border-radius: 10px; overflow: hidden; background: var(--panel); border: 1px solid var(--border); }
+  .as-box > h3 { margin: 0; padding: 6px 10px; font-family: var(--font-display); font-size: 0.95rem; background: rgba(70, 130, 220, 0.3); }
+  .as-box.def > h3 { background: rgba(150, 100, 220, 0.3); }
+  .as-box.read > h3 { background: rgba(var(--accent-rgb), 0.3); }
+  .as-box table.od-grid { margin: 4px; table-layout: auto; width: auto; }
+  .as-box table.od-grid td.od-label { text-align: left; padding-right: 8px; font-weight: 700; font-family: var(--font-display); white-space: nowrap; }
+  .as-box .od-tile { min-width: 48px; }
+  .as-strip { display: flex; align-items: flex-end; gap: 1px; height: 120px; padding: 10px 10px 4px; position: relative; }
+  .as-strip .bar { width: 36px; border-radius: 4px 4px 0 0; position: relative; }
+  .as-strip .bar span { position: absolute; top: -15px; left: 0; right: 0; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 0.8rem; }
+  .as-strip .line { position: absolute; left: 8px; right: 8px; border-top: 2px dashed var(--text); }
+  .as-strip-lab { display: flex; gap: 1px; padding: 0 10px 8px; }
+  .as-strip-lab span { width: 36px; text-align: center; font-size: 0.6rem; font-weight: 700; line-height: 1.1; }
+  .as-sum { padding: 4px 10px 10px; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; }
+</style>
+</head>
+<body class="nba-suite">
+<div class="as-head">
+  <h2>Assist Spots</h2>
+  <button type="button" class="info-i" id="as-i" aria-expanded="false" title="How to read this">i</button>
+  <span class="as-mock">Mockup: Real Numbers Through 11/4, Lines From Novig 11/5</span>
+</div>
+<p class="as-note" id="as-note" hidden>An assist needs two things: he sets up the shot, and it goes in. <b>His Role</b>: Chances = teammates' made shots while he's on the floor (a 36); Share = how many of those he assisted. <b>His Recipe</b>: the shot type he sets up most, when it's clearly his style (No Clear Recipe otherwise). <b>Tonight's Defense</b>: pace, how much of what it allows comes off a pass, and how many attempts it allows of the shot types he sets up (1 = gives up the most). <b>Who Else Handles</b>: the teammate who changes his share the most, his share with that teammate on and off. <b>Last Game</b>: why his last number was what it was. Colors: the red-to-green rank scale. This season only, real counts, no projections.</p>
+<div class="as-bar" id="as-games"></div>
+<div id="as-table"></div>
+<div class="as-detail" id="as-detail"></div>
+
+<script>
+const DATA = /*DATA*/;
+const FAM = { k3: "Kick-Out 3s", dr: "Catch & Drive", cl: "Cuts & Rim", d3: "Off-Dribble 3s", mid: "Short & Mid" };
+const SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
+const sty = i => { const [h, f] = SCALE[Math.max(0, Math.min(7, i))]; return `background:hsla(${h},78%,44%,${f});border-color:hsla(${h},78%,48%,1)`; };
+const rankSty = r => r ? sty(Math.floor(((r[0] - 1) / r[1]) * 8)) : "";
+// signed: 0 = deep green ... 7 = deep red, from a value against cut points (best first)
+const stepSty = (v, cuts) => { let i = cuts.findIndex(c => v >= c); return sty(i < 0 ? 7 : i); };
+const pct = v => Math.round(v * 100) + "%";
+const odds = v => v == null ? "--" : (v > 0 ? "+" + v : "" + v);
+const last = s => s.split(" ").slice(-1)[0];
+const tile = (b, s, style, cls = "") => `<div class="od-tile ${cls}" style="${style || ""}"><b>${b}</b>${s ? `<small>${s}</small>` : ""}</div>`;
+const posPool = { avg: 0, share: 0 };
+
+let game = "all", sortKey = null, sortDir = -1, sel = null;
+const P = DATA.players;
+const vsLine = (v, p) => p.line == null ? "" : stepSty(v - p.line, [2, 1, 0.5, 0, -0.5, -1, -2]);
+
+const COLS = [
+  { band: "His Role", g: "od-g1", cols: [
+    { k: "ch36", lab: "Chances<br>A 36", v: p => p.ch36, td: p => tile(p.ch36 ?? "--", p.ch36_rank ? `#${p.ch36_rank[0]}` : "", rankSty(p.ch36_rank)) },
+    { k: "share", lab: "His<br>Share", v: p => p.share, td: p => tile(pct(p.share), p.share_rank ? `#${p.share_rank[0]}` : "", rankSty(p.share_rank)) },
+    { k: "recipe", lab: "His<br>Recipe", w: 92, v: p => p.recipe ? p.mix[p.recipe] : -1, td: p => p.recipe
+        ? tile(FAM[p.recipe], `${pct(p.mix[p.recipe])} Of His AST`, sty(1), "as-txt")
+        : tile("No Clear Recipe", "Spreads It Around", "", "as-txt") },
+  ]},
+  { band: "Tonight's Defense", g: "od-g2", cols: [
+    { k: "pace", lab: "Pace", v: p => p.pace, td: p => tile(p.pace, `#${p.pace_rank[0]}`, rankSty(p.pace_rank)) },
+    { k: "astd", lab: "Off A<br>Pass", v: p => p.astd, td: p => tile(pct(p.astd), `#${p.astd_rank[0]}`, rankSty(p.astd_rank)) },
+    { k: "fit", lab: "Allows<br>His Types", v: p => p.fit_rank ? -p.fit_rank[0] : -99, td: p => p.fit_rank ? tile(`#${p.fit_rank[0]}`, "Of 29", rankSty(p.fit_rank)) : tile("--") },
+  ]},
+  { band: "Who Else Handles", g: "od-g1", cols: [
+    { k: "eff", lab: "His Share With /<br>Without Him", w: 132, v: p => p.effect ? Math.abs(p.effect.on - p.effect.off) : -1, td: p => {
+        const e = p.effect; if (!e) return tile("--");
+        const s = v => stepSty(v - p.share, [0.1, 0.06, 0.03, 0, -0.03, -0.06, -0.1]);
+        return `<div style="font-family:var(--font-display);font-weight:700;font-size:0.78rem;margin-bottom:2px">${last(e.name)}${e.status ? ` (${e.status})` : ""}</div>
+          <div class="od-tile as-two"><span style="${s(e.on)}"><b>${pct(e.on)}</b><small>With</small></span><span style="${s(e.off)}"><b>${pct(e.off)}</b><small>Without</small></span></div>`; } },
+  ]},
+  { band: "Last Game", g: "od-g0", cols: [
+    { k: "lg", lab: "Why", w: 190, v: p => p.log[p.log.length - 1].ast - p.avg, td: p => {
+        const g = p.log[p.log.length - 1];
+        const tags = [[`${g.ast} AST vs ${g.opp}`, g.ast >= p.avg ? 1 : -1, true], ...g.tags.map(t => [t[0], t[1]])];
+        if (p.bounce) tags.push(["Bounce-Back Spot", 1]);
+        return `<div class="as-tags">${tags.map(t => `<span class="as-tag" style="${sty(t[1] > 0 ? 1 : 6)}">${t[0]}</span>`).join("")}</div>`; } },
+  ]},
+  { band: "His Assists", g: "od-g1", cols: [
+    { k: "avg", lab: "Avg", v: p => p.avg, td: p => tile(p.avg, "", vsLine(p.avg, p)) },
+    { k: "l5", lab: "L5", v: p => p.l5, td: p => tile(p.l5, "", vsLine(p.l5, p)) },
+    { k: "lo", lab: "Low", v: p => p.lo, td: p => tile(p.lo, "", vsLine(p.lo, p)) },
+    { k: "hi", lab: "High", v: p => p.hi, td: p => tile(p.hi, "", vsLine(p.hi, p)) },
+    { k: "ovr", lab: "Over<br>Line", v: p => p.over_n / p.n, td: p => tile(`${p.over_n}/${p.n}`, pct(p.over_n / p.n), stepSty(p.over_n / p.n, [0.8, 0.65, 0.55, 0.5, 0.45, 0.35, 0.2])) },
+  ]},
+  { band: "The Line", g: "od-g3", cols: [
+    { k: "line", lab: "Line", w: 70, v: p => p.line, td: p => tile(p.line, `o${odds(p.over)} u${odds(p.under)}`, "") },
+  ]},
+];
+
+function renderGames() {
+  const btns = [["all", "All Games"], ...DATA.games.map(g => [g, g])];
+  document.getElementById("as-games").innerHTML = btns.map(([k, l]) => `<button type="button" data-g="${k}" class="${k === game ? "on" : ""}">${l}</button>`).join("");
+  document.querySelectorAll("#as-games button").forEach(b => b.onclick = () => { game = b.dataset.g; renderGames(); renderTable(); });
+}
+
+function renderTable() {
+  let rows = P.filter(p => game === "all" || game.includes(p.team) && game.includes(p.opp));
+  const flat = COLS.flatMap(b => b.cols);
+  if (sortKey) { const c = flat.find(c => c.k === sortKey); rows = rows.slice().sort((a, b) => sortDir * (c.v(a) - c.v(b))); }
+  let h = `<table class="data-table od-grid as-main"><colgroup><col style="width:158px">`;
+  COLS.forEach((b, bi) => { if (bi) h += `<col class="od-ggap-col">`; b.cols.forEach(c => h += `<col style="width:${c.w || 60}px">`); });
+  h += `</colgroup><thead><tr class="od-ggroups"><th></th>`;
+  COLS.forEach((b, bi) => { if (bi) h += "<th></th>"; h += `<th colspan="${b.cols.length}" class="${b.g}">${b.band}</th>`; });
+  h += `</tr><tr class="od-glabels"><th></th>`;
+  COLS.forEach((b, bi) => { if (bi) h += "<th></th>"; b.cols.forEach((c, i) => h += `<th data-k="${c.k}" class="od-gt ${b.g} ${i === 0 ? "od-gl" : ""} ${i === b.cols.length - 1 ? "od-gr" : ""} ${sortKey === c.k ? "sorted" : ""}">${c.lab}</th>`); });
+  h += `</tr></thead><tbody>`;
+  rows.forEach(p => {
+    h += `<tr data-n="${p.name}" class="${sel === p.name ? "sel" : ""}"><td class="od-label"><b>${p.name}</b><small>${p.team} ${p.home ? "vs" : "@"} ${p.opp}</small></td>`;
+    COLS.forEach((b, bi) => { if (bi) h += "<td></td>"; b.cols.forEach((c, i) => h += `<td class="${b.g} ${i === 0 ? "od-gl" : ""} ${i === b.cols.length - 1 ? "od-gr" : ""}">${c.td(p)}</td>`); });
+    h += `</tr>`;
+  });
+  document.getElementById("as-table").innerHTML = h + "</tbody></table>";
+  document.querySelectorAll(".as-main th[data-k]").forEach(th => th.onclick = () => { sortDir = sortKey === th.dataset.k ? -sortDir : -1; sortKey = th.dataset.k; renderTable(); });
+  document.querySelectorAll(".as-main tbody tr").forEach(tr => tr.onclick = () => { sel = tr.dataset.n; renderTable(); renderDetail(); });
+}
+
+function box(title, cls, inner) { return `<div class="as-box ${cls}"><h3>${title}</h3>${inner}</div>`; }
+function grid(heads, rows) {
+  return `<table class="data-table od-grid"><thead><tr class="od-glabels"><th></th>${heads.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`;
+}
+
+function renderDetail() {
+  const p = P.find(x => x.name === sel); if (!p) return;
+  const lm = DATA.league_mix;
+  // 1. How he assists
+  const recipeRows = Object.keys(FAM).map(f => {
+    const lift = lm[f] ? p.mix[f] / lm[f] : 0;
+    return `<tr><td class="od-label">${FAM[f]}</td><td>${tile(pct(p.mix[f]), `${Math.round(p.mix[f] * p.n_ast)} AST`, stepSty(lift, [1.6, 1.3, 1.1, 1, 0.9, 0.7, 0.5]))}</td>
+      <td>${tile(pct(lm[f]), "", sty(3))}</td><td>${tile(`#${p.defrank[f][0]}`, `${Math.round((p.defidx[f] - 1) * 100) >= 0 ? "+" : ""}${Math.round((p.defidx[f] - 1) * 100)}% Att`, rankSty(p.defrank[f]))}</td></tr>`; });
+  const recipe = box(`How ${last(p.name)} Assists (${p.n_ast} AST)`, "", grid(["His Mix", "League", `${p.opp} Allows`], recipeRows));
+  // 2. His targets
+  const tRows = p.receivers.map((r, i) => `<tr><td class="od-label">${r.name}</td><td>${tile(r.n, pct(r.n / p.n_ast), sty(i))}</td><td>${tile(FAM[r.how], "", "", "as-txt")}</td>
+      <td>${tile(r.status || "Active", "", sty(r.status && /out/i.test(r.status) ? 7 : r.status ? 4 : 1))}</td></tr>`);
+  const targets = box("His Targets", "", grid(["To Him", "Mostly", "Tonight"], tRows));
+  // 3. Game log
+  const lRows = p.log.map(g => {
+    const k3 = g.k3a ? g.k3m / g.k3a : null;
+    return `<tr><td class="od-label">${g.date} ${g.opp}</td>
+      <td>${tile(g.min, "", "")}</td>
+      <td>${tile(g.ch, "", stepSty(g.ch / (p.log.reduce((s, x) => s + x.ch, 0) / p.log.length), [1.25, 1.12, 1.04, 1, 0.96, 0.88, 0.75]))}</td>
+      <td>${tile(pct(g.share), "", stepSty(g.share - p.share, [0.1, 0.06, 0.03, 0, -0.03, -0.06, -0.1]))}</td>
+      <td>${tile(k3 == null ? "--" : `${g.k3m}/${g.k3a}`, k3 == null ? "" : pct(k3), k3 == null ? "" : stepSty(k3, [0.47, 0.42, 0.38, 0.35, 0.32, 0.28, 0.24]))}</td>
+      <td>${tile(g.ast, "", vsLine(g.ast, p))}</td>
+      <td style="width:200px"><div class="as-tags" style="height:auto">${g.tags.map(t => `<span class="as-tag" style="${sty(t[1] > 0 ? 1 : 6)}">${t[0]}</span>`).join("")}</div></td></tr>`; });
+  const log = box("Game Log: Why Each Night Landed Where It Did", "read", grid(["Min", "Chances", "His Share", "Teammate C&S 3s", "AST", "Why"], lRows));
+  // 4. Range strip
+  const max = Math.max(p.hi, p.line || 0, 1);
+  const H = 100;
+  const bars = p.log.map(g => `<div class="bar" style="height:${Math.max(4, g.ast / max * H)}px;${vsLine(g.ast, p)}"><span>${g.ast}</span></div>`).join("");
+  const lineY = p.line != null ? `<div class="line" style="bottom:${4 + p.line / max * H}px" title="Line ${p.line}"></div>` : "";
+  const labs = p.log.map(g => `<span>${g.date.replace("-", "/")}<br>${g.opp}</span>`).join("");
+  const strip = box(`His Range vs ${p.line ?? "--"}`, "", `<div class="as-strip">${bars}${lineY}</div><div class="as-strip-lab">${labs}</div>
+     <div class="as-sum">Over ${p.over_n} of ${p.n} · Low ${p.lo} · High ${p.hi} · o${odds(p.over)} / u${odds(p.under)}</div>`);
+  // 5. Who else handles
+  const e = p.effect;
+  const eff = e ? box("Who Else Handles", "", grid(["His Share", "Teammate Makes"], [
+      `<tr><td class="od-label">With ${e.name}</td><td>${tile(pct(e.on), "", stepSty(e.on - p.share, [0.1, 0.06, 0.03, 0, -0.03, -0.06, -0.1]))}</td><td>${tile(e.n_on, "", "")}</td></tr>`,
+      `<tr><td class="od-label">Without ${last(e.name)}</td><td>${tile(pct(e.off), "", stepSty(e.off - p.share, [0.1, 0.06, 0.03, 0, -0.03, -0.06, -0.1]))}</td><td>${tile(e.n_off, "", "")}</td></tr>`,
+      `<tr><td class="od-label">Tonight</td><td colspan="2">${tile(e.status || "Both Active", "", sty(e.status ? 1 : 3), "as-txt")}</td></tr>`])) : "";
+  document.getElementById("as-detail").innerHTML = strip + recipe + targets + eff + log;
+}
+
+document.getElementById("as-i").onclick = e => { const n = document.getElementById("as-note"); n.hidden = !n.hidden; e.target.setAttribute("aria-expanded", !n.hidden); };
+sel = "Giannis Antetokounmpo";
+renderGames(); renderTable(); renderDetail();
+</script>
+</body>
+</html>
