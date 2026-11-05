@@ -64,6 +64,37 @@ class Updates(unittest.TestCase):
         self.assertIn("Request a feature", text["text"])
         self.assertIn(KEY, PAGE.evaluate("Object.keys(JSON.parse(localStorage.getItem('nfl-tool.sync-meta.v1') || '{}'))"))
 
+    def test_an_update_can_walk_through_photos(self):
+        # The owner, 2026-11-04: "a carousel of photos that walk through what we pushed today".
+        from pathlib import Path
+        site = Path(__file__).resolve().parent.parent / "nfl_tool" / "site"
+        for u in PAGE.evaluate("GMG_UPDATES.filter((u) => u.slides)"):
+            for src, cap in u["slides"]:
+                self.assertTrue(src.startswith("/brand/updates/"), src)  # served on every sport's address, no login
+                self.assertTrue((site / src.lstrip("/")).exists(), src)
+                self.assertTrue(cap)
+        out = PAGE.evaluate("""() => {
+            const saved = GMG_UPDATES.slice();
+            localStorage.setItem('nfl-tool.updates-seen.v1', JSON.stringify(saved[0].id));  // only the test one is new
+            GMG_UPDATES.unshift({ id: '2999-01-01', slides: [['/brand/gmg-logo.png', 'One'], ['/brand/gmg-logo.png', 'Two'], ['/brand/gmg-logo.png', 'Three']], items: [['x', '<b>Test</b>']] });
+            GMGUpdates.open();
+            const box = document.getElementById('updates-modal');
+            const car = box.querySelector('.upd-car');
+            const r = { slides: car.querySelectorAll('.upd-slide').length, wide: box.querySelector('.modal-box').classList.contains('upd-wide') };
+            car.querySelector('.upd-car-btn.next').click(); car.querySelector('.upd-car-btn.next').click();
+            r.after2 = [car.dataset.i, car.querySelector('.upd-car-track').style.transform, [...car.querySelectorAll('.upd-car-dots .on')].length];
+            car.querySelector('.upd-car-btn.next').click();  // wraps to the first
+            r.wrapped = car.dataset.i;
+            car.querySelector('[data-car-to="1"]').click();
+            r.dot = car.dataset.i;
+            r.open = !box.hidden;
+            box.querySelector('.upd-done').click();
+            GMG_UPDATES.length = 0; GMG_UPDATES.push(...saved);
+            localStorage.removeItem('nfl-tool.updates-seen.v1');
+            return r;
+        }""")
+        self.assertEqual(out, {"slides": 3, "wide": True, "after2": ["2", "translateX(-200%)", 1], "wrapped": "0", "dot": "1", "open": True})
+
     def test_before_you_go_note_follows_a_new_update_once(self):
         # The owner, 2026-10-20: a "Before you go..." thank-you after the update popup.
         out = PAGE.evaluate(f"""() => {{

@@ -357,8 +357,28 @@ window.GMGSettings = { open: openGmgSettings };
 // the earlier ones folded underneath. "What's new" in the account chip opens
 // it again. A NEW UPDATE IS ONE ENTRY AT THE TOP of this list (id = the date;
 // a second one on the same day gets "2026-10-15b"). `text` is the owner's
-// wording; the first words in <b> name the feature.
+// wording; the first words in <b> name the feature. An optional `slides`
+// ([[image, caption], ...], images in brand/updates/, served on every sport's
+// address) shows a photo carousel above the list (the owner, 2026-11-04).
 const GMG_UPDATES = [
+  {
+    id: "2026-11-04c",
+    slides: [
+      ["/brand/updates/2026-11-04-1-menus.jpg", "<b>New menus:</b> every page is a colored button, grouped by section. NBA has <b>All Props</b> and the four stats under Prop Research."],
+      ["/brand/updates/2026-11-04-2-all-props.jpg", "<b>All Props:</b> every points, threes, assists and rebounds line on one list, sorted by the <b>O / U Reads</b>: how many of his research reads point Over or Under tonight."],
+      ["/brand/updates/2026-11-04-3-panel.jpg", "Click any row for that stat's <b>research panel</b>: here a shooter's three-point map next to what tonight's defense gives up, and when he's on the floor."],
+      ["/brand/updates/2026-11-04-4-filters.jpg", "<b>Filters</b> on every research page: a min and max for any number, his or the defense's. This one: 50%+ of his shots are threes, a top-10 defense to attack, a 210+ total."],
+      ["/brand/updates/2026-11-04-5-saved-screens.jpg", "<b>Save This Screen</b> keeps your filters under a name: one click brings them back, on any device."],
+    ],
+    items: [
+      ["🧭", "<b>New Menus</b>: every sport's pages are colored buttons now, grouped by section. NBA's Matchup Breakdown is now <b>Matchup Data</b>, Shot Charts moved under Prop Research, and Promo Tools labels each league in its own color."],
+      ["🗂️", "<b>All Props</b> (NBA, under Prop Research): every points, threes, assists and rebounds line on one list. Click a row for that stat's full research panel."],
+      ["🟢", "<b>O / U Reads</b> on every research list: how many of a player's research reads point Over or Under tonight (like 12/17). Sort by it to see where the data stacks up."],
+      ["🎛️", "<b>Filters</b> on every research page: set a min or max on any number, his or the defense's. <b>Save This Screen</b> keeps the combo and follows you to every device."],
+      ["💾", "<b>Save At The Price</b>: click any Over / Under price to see every book, then click a book's price to save the play to My Plays at that exact number."],
+      ["🎨", "<b>Cleaner List</b>: names sit over the team logos so more fits on screen, and the Matchup Summary card on Matchup Keys no longer covers the page when you scroll."],
+    ],
+  },
   {
     id: "2026-11-04b",
     items: [
@@ -935,6 +955,16 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       };
       overlay.addEventListener("click", (e) => {
         if (e.target === overlay || e.target.closest(".modal-close, .upd-done")) return close();
+        const step = e.target.closest("[data-car], [data-car-to]");
+        if (step) {
+          const car = step.closest(".upd-car");
+          const n = car.querySelectorAll(".upd-slide").length;
+          const i = step.dataset.carTo !== undefined ? Number(step.dataset.carTo) : (Number(car.dataset.i) + Number(step.dataset.car) + n) % n;
+          car.dataset.i = i;
+          car.querySelector(".upd-car-track").style.transform = `translateX(-${i * 100}%)`;
+          car.querySelectorAll(".upd-car-dots button").forEach((d, k) => d.classList.toggle("on", k === i));
+          return;
+        }
         if (e.target.closest(".upd-request")) {
           close();
           openRequestForm();
@@ -951,8 +981,14 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     const fresh = GMG_UPDATES.filter((u) => u.id > seen);
     const shown = fresh.length ? fresh : GMG_UPDATES.slice(0, 1);
     const earlier = GMG_UPDATES.slice(shown.length);
+    // A walk-through of photos: one at a time, arrows and dots, its caption under it.
+    const carousel = (u) => (!u.slides || !u.slides.length ? "" : `<div class="upd-car" data-i="0">
+      <div class="upd-car-view"><div class="upd-car-track">${u.slides.map(([src, cap]) => `<figure class="upd-slide"><a href="${src}" target="_blank" rel="noopener" title="Open full size"><img src="${src}" alt="" loading="lazy"></a><figcaption>${cap}</figcaption></figure>`).join("")}</div>
+      <button type="button" class="upd-car-btn prev" data-car="-1" aria-label="Previous photo">&#8249;</button><button type="button" class="upd-car-btn next" data-car="1" aria-label="Next photo">&#8250;</button></div>
+      <div class="upd-car-dots">${u.slides.map((s, i) => `<button type="button" class="${i ? "" : "on"}" data-car-to="${i}" aria-label="Photo ${i + 1}"></button>`).join("")}</div></div>`);
     const block = (u, isNew) => `<section class="upd-day">
       <div class="upd-date">${updateDate(u.id)}${isNew ? '<span class="upd-new">New</span>' : ""}</div>
+      ${carousel(u)}
       <ul class="upd-list">${u.items.map(([icon, text]) => `<li><span class="upd-icon" aria-hidden="true">${icon}</span><span>${text}</span></li>`).join("")}</ul>
     </section>`;
     overlay.querySelector(".upd-content").innerHTML = `<h3 class="upd-title"><span class="upd-dot" aria-hidden="true"></span>What's new</h3>
@@ -962,6 +998,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       <div class="upd-foot">Feel free to click <button type="button" class="upd-request"><span aria-hidden="true">&#128161;</span> Request a feature</button> and send a message for what you'd like to see.</div>
       <div class="set-actions"><button type="button" class="set-done upd-done">Got it</button></div>`;
     overlay.afterNote = fresh.find((u) => u.after)?.after || null;
+    overlay.querySelector(".modal-box").classList.toggle("upd-wide", shown.some((u) => u.slides && u.slides.length));
     overlay.hidden = false;
     overlay.querySelector(".modal-box").scrollTop = 0;
     // Seen once it has been shown, so leaving without closing it doesn't bring it back.

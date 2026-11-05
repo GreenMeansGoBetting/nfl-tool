@@ -3879,6 +3879,20 @@ html:not(.is-owner):not(.local-dev) .koe-log { display: none; }
 .upd-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.25); flex: none; }
 .upd-sub { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin: 2px 0 12px 22px; }
 .upd-day + .upd-day { margin-top: 14px; }
+/* The photo carousel (GMG_UPDATES `slides`): a wider popup, one photo at a time */
+#updates-modal .modal-box.upd-wide { max-width: 980px; }
+.upd-car { margin: 10px 0 4px; }
+.upd-car-view { position: relative; overflow: hidden; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); }
+.upd-car-track { display: flex; transition: transform 0.3s ease; }
+.upd-slide { flex: 0 0 100%; margin: 0; }
+.upd-slide img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: contain; background: var(--bg); }
+.upd-slide figcaption { padding: 8px 12px 10px; font-size: 0.95rem; line-height: 1.4; }
+.upd-car-btn { position: absolute; top: 40%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--panel); color: var(--text); font-size: 1.6rem; line-height: 1; cursor: pointer; box-shadow: var(--shadow); }
+.upd-car-btn.prev { left: 8px; }
+.upd-car-btn.next { right: 8px; }
+.upd-car-dots { display: flex; justify-content: center; gap: 6px; margin-top: 8px; }
+.upd-car-dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--border-strong); cursor: pointer; }
+.upd-car-dots button.on { background: var(--accent); }
 .upd-date { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; background: var(--panel-2); border-left: 4px solid var(--accent); font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 .upd-new { padding: 1px 8px; border-radius: 999px; background: rgba(var(--accent-rgb), 0.16); border: 1px solid rgba(var(--accent-rgb), 0.5); color: var(--good-text); font-size: 0.7rem; letter-spacing: 0.08em; }
 .upd-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
