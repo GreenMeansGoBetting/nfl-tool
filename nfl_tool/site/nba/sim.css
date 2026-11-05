@@ -310,12 +310,6 @@ table.data-table.sim-list td.sim-hit, table.data-table.sim-list th.sim-hit-th { 
 .rs-pl-sub { display: inline-flex; align-items: center; gap: 5px; }
 .rs-pl-txt .player-click { display: block; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sim-rtag.rs-maybe { border-style: dashed; }
-/* Result on a past night (the owner, 2026-11-05): Over / Under on the hit colors, then his number
-   colored like Avg, two filled tiles of one height */
-.rs-res { display: inline-flex; gap: 3px; vertical-align: middle; }
-.rs-res-call, .rs-res-num { display: inline-block; height: 26px; line-height: 26px; border-radius: 6px; text-align: center; color: var(--text); background: var(--rs-tile); }
-.rs-res-call { width: 58px; font: 800 0.86rem var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; }
-.rs-res-num { width: 40px; font: 800 1.02rem var(--font-display); }
 
 /* The research panel under a clicked Points row (research.js, approved by the owner 2026-11-03):
    two boxes of the same size side by side ("sandboxes"), each with tabs, and EVERY tab the same

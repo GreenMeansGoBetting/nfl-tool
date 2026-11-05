@@ -68,62 +68,13 @@ function currentGame() {
 
 // ---- the slate ----
 const todayET = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-// Every night played this season (the arrows step back to opening night, the owner 2026-11-05: "go
-// back days like the other tools and see how things did"), then the next slates from today. The
-// page opens on today's slate; with none ahead (the off-season), on the last night played.
-let DAYS = null;
+// The next slates from today; with none ahead (the off-season), the last one played.
 function days() {
-  if (DAYS) return DAYS.all;
-  const today = todayET();
-  const sched = [...new Set(DATA.schedule.map((g) => g.date))].sort();
-  const ahead = sched.filter((d) => d >= today).slice(0, DAYS_AHEAD);
-  const past = [...new Set([...sched, ...Object.keys(pastGames())])].filter((d) => d < today).sort();
-  DAYS = { all: [...past, ...ahead], start: ahead.length ? past.length : Math.max(0, past.length - 1) };
-  return DAYS.all;
+  const all = [...new Set(DATA.schedule.map((g) => g.date))].sort();
+  const ahead = all.filter((d) => d >= todayET());
+  return ahead.length ? ahead.slice(0, DAYS_AHEAD) : all.slice(-1);
 }
-const startDay = () => (days(), DAYS.start);
-const isPast = (date) => Boolean(date) && date < todayET();
-// A past night's games from this season's logs: {date: {game id: {away, home, away_score, home_score}}}
-// (data.json's schedule only reaches back to yesterday).
-let PAST_GAMES = null;
-function pastGames() {
-  if (PAST_GAMES) return PAST_GAMES;
-  const f = logFields();
-  const out = {};
-  for (const p of Object.values(seasonBlock().players)) {
-    for (const r of p.log || []) {
-      const night = (out[r[f.date]] = out[r[f.date]] || {});
-      const g = (night[String(r[f.game])] = night[String(r[f.game])] || {});
-      const mine = f.score === undefined ? null : r[f.score], theirs = f.opp_score === undefined ? null : r[f.opp_score];
-      // a side named as someone's opponent is sure; his own team (today's) only fills a side nobody named
-      if (r[f.home]) Object.assign(g, { away: r[f.opp], th: p.team, home_score: mine, away_score: theirs });
-      else Object.assign(g, { home: r[f.opp], ta: p.team, away_score: mine, home_score: theirs });
-    }
-  }
-  for (const night of Object.values(out)) {
-    for (const g of Object.values(night)) {
-      g.away = g.away || g.ta;
-      g.home = g.home || g.th;
-      delete g.ta;
-      delete g.th;
-    }
-  }
-  return (PAST_GAMES = out);
-}
-function gamesOn(date) {
-  const sched = DATA.schedule.filter((g) => g.date === date);
-  if (!isPast(date)) return sched;
-  // a past night: the schedule's games plus the logs' others; spread and total from research `games`
-  const ids = new Set(sched.map((g) => String(g.game_id)));
-  const logged = Object.entries(pastGames()[date] || {}).filter(([id, t]) => !ids.has(id) && t.away && t.home)
-    .map(([id, t]) => ({ game_id: id, date, time: "", start_utc: "", status: "final", ...t }));
-  return [...sched, ...logged].map((g) => {
-    const rg = RS().games[String(g.game_id)] || [];
-    const lg = (pastGames()[date] || {})[String(g.game_id)] || {};
-    return { ...g, home_team_spread: g.home_team_spread ?? rg[2] ?? null, total_line: g.total_line ?? rg[1] ?? null,
-      away_score: g.away_score ?? lg.away_score ?? null, home_score: g.home_score ?? lg.home_score ?? null };
-  });
-}
+const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date);
 // A game has started once its tip time has passed (times are Eastern, fixed UTC-4 like the build).
 const started = (g) => g.status === "final" || (Boolean(g.time) && Date.now() >= Date.parse(`${g.date}T${g.time}:00-04:00`));
 
@@ -178,24 +129,16 @@ const statusPill = (status) => {
 // ---- what each defense allows to each position (this season, real games) ----
 // Every player's game: his number against that opponent goes to the opponent's total for his
 // position; a game a team played counts once. Per game = total / that team's games.
-<<<<<<< Updated upstream
 const ALLOWED = {}; // per market
 function allowed() {
   if (ALLOWED[MK.market]) return ALLOWED[MK.market];
-=======
-// cut = a past night: only the games before it count (what the defense had allowed going in).
-const ALLOWED = {};
-function allowed(cut = null) {
-  const k = `${MK.market}|${cut || ""}`;
-  if (ALLOWED[k]) return ALLOWED[k];
->>>>>>> Stashed changes
   const f = logFields();
   const sums = {}, games = {};
   for (const p of Object.values(seasonBlock().players)) {
     if (!p.pos) continue;
     for (const r of p.log || []) {
       const opp = r[f.opp];
-      if (!opp || (cut && r[f.date] >= cut)) continue;
+      if (!opp) continue;
       ((sums[opp] = sums[opp] || {})[p.pos] = (sums[opp][p.pos] || 0) + statOf(r, f));
       (games[opp] = games[opp] || new Set()).add(r[f.game]);
     }
@@ -209,13 +152,8 @@ function allowed(cut = null) {
     const sorted = Object.entries(teams).sort((a, b) => b[1].v - a[1].v);
     ranks[pos] = { n: sorted.length, league: avg(sorted.map(([, x]) => x.v)), r: Object.fromEntries(sorted.map(([t], i) => [t, i + 1])) };
   }
-<<<<<<< Updated upstream
   ALLOWED[MK.market] = { per, ranks };
   return ALLOWED[MK.market];
-=======
-  ALLOWED[k] = { per, ranks };
-  return ALLOWED[k];
->>>>>>> Stashed changes
 }
 // The site's 8-step rank colors (league.js rankStyle), 1st = allows the most = greenest.
 const RANK_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
@@ -280,8 +218,9 @@ function tonightGame(g, tm, opp) {
 // Volume: his share of his team's shots on the floor (Points) or the share of his shots that are
 // threes (Threes). The owner, 2026-11-04: no L5 under them (cluttered), a Volume column, all colored.
 // Rebounds: Volume = his share of the rebounds there to get while he's on the floor (research.py `rb`).
-function listNums(p, pid, log = p.log || []) {
+function listNums(p, pid) {
   const f = logFields();
+  const log = p.log || [];
   const sum = (k) => log.reduce((a, r) => a + (r[f[k]] || 0), 0);
   const fga = sum("fga");
   return { avgV: log.length ? sum(MK.stat) / log.length : null, second: log.length ? sum(THREES ? "fg3a" : "min") / log.length : null,
@@ -296,7 +235,6 @@ function rebShare(pid) {
   return r && r[0] + r[2] ? (r[1] + r[3]) / (r[0] + r[2]) : null;
 }
 const LIST_POOL = {};
-<<<<<<< Updated upstream
 function listPool(pos) {
   const key = `${MK.market}:${pos}`;
   if (!LIST_POOL[key]) {
@@ -304,61 +242,36 @@ function listPool(pos) {
     LIST_POOL[key] = { avgV: nums.map((n) => n.avgV), second: nums.map((n) => n.second), vol: nums.map((n) => n.vol) };
   }
   return LIST_POOL[key];
-=======
-// cut = a past night: each pool player's games before it
-const logBefore = (log, cut) => (cut ? (log || []).filter((r) => r[logFields().date] < cut) : log || []);
-function listPool(pos, cut = null) {
-  const k = `${pos}|${cut || ""}`;
-  if (!LIST_POOL[k]) {
-    const nums = posPool(pos).map(([id, q]) => listNums(q, id, logBefore(q.log, cut)));
-    LIST_POOL[k] = { avgV: nums.map((n) => n.avgV), second: nums.map((n) => n.second), vol: nums.map((n) => n.vol) };
-  }
-  return LIST_POOL[k];
->>>>>>> Stashed changes
 }
-const LINE_KEY = THREES ? "lines3" : REBS ? "linesr" : ASTS ? "linesa" : "lines"; // research `players[id]` saved lines by game
 function hits(rows, line, f) {
   if (line === null || line === undefined || !rows.length) return null;
   return { over: rows.filter((x) => statOf(x, f) > line).length, of: rows.length };
 }
-// A past night (the owner, 2026-11-05): his line that night (the line history, saved until tip),
-// every number from his games BEFORE that night, and the Result: Over / Under and what he put up.
 function rowsOn(date) {
   const f = logFields();
-  const past = isPast(date);
-  const cut = past ? date : null;
-  const A = allowed(cut);
+  const A = allowed();
   const out = [];
   for (const g of gamesOn(date)) {
-    if (LIST.game && String(g.game_id) !== String(LIST.game)) continue;
-    const gid = String(g.game_id);
+    if (LIST.game && g.game_id !== LIST.game) continue;
     for (const [pid, p] of Object.entries(seasonBlock().players)) {
-      const night = past ? (p.log || []).find((r) => String(r[f.game]) === gid) || null : null;
-      const tm = night ? (night[f.home] ? g.home : g.away) : p.team; // a past night: the team he played for
-      if (tm !== g.away && tm !== g.home) continue;
+      if (p.team !== g.away && p.team !== g.home) continue;
       if (LIST.pos && p.pos !== LIST.pos) continue;
-      const log = logBefore(p.log, cut);
-      const line = past ? ((rsOf(pid)[LINE_KEY] || {})[gid] ?? null) : mainLine(g, pid);
-      const status = past ? "" : statusOf(tm, pid);
+      const log = p.log || [];
+      const line = mainLine(g, pid);
+      const status = statusOf(p.team, pid);
       const mins = avg(log.map((r) => r[f.min] || 0));
-      if (line === null && (!LIST.every || !log.length || mins < ROTATION_MIN || (past ? !night : isOut(status)))) continue;
-      const opp = tm === g.home ? g.away : g.home;
+      if (line === null && (!LIST.every || !log.length || mins < ROTATION_MIN || isOut(status))) continue;
+      const opp = p.team === g.home ? g.away : g.home;
       const vals = log.map((r) => statOf(r, f));
       const last5 = log.slice(-5);
       out.push({
-<<<<<<< Updated upstream
         mk: MK.market, g, pid, p, team: p.team, opp, home: p.team === g.home, line, status, live: started(g), gp: log.length,
         avg: avg(vals), min: mins, ...listNums(p, pid),
-=======
-        g, pid, p, team: tm, opp, home: tm === g.home, line, status, live: past ? false : started(g), gp: log.length, past, cut,
-        result: night ? statOf(night, f) : null, resultMin: night ? night[f.min] : null,
-        avg: avg(vals), min: mins, ...listNums(p, pid, log),
->>>>>>> Stashed changes
         hits: { l5: hits(last5, line, f), l10: hits(log.slice(-10), line, f), all: hits(log, line, f),
           home: hits(log.filter((r) => r[f.home]), line, f), away: hits(log.filter((r) => !r[f.home]), line, f) },
         allow: ((A.per[p.pos] || {})[opp]) || null, allowRank: ((A.ranks[p.pos] || { r: {} }).r[opp]) || null,
         allowN: (A.ranks[p.pos] || {}).n || 0, allowLeague: (A.ranks[p.pos] || {}).league,
-        without: past ? [] : withoutRows(pid, tm), game: tonightGame(g, tm, opp),
+        without: withoutRows(pid, p.team), game: tonightGame(g, p.team, opp),
       });
       out[out.length - 1].reads = readsOf(out[out.length - 1]);
     }
@@ -399,7 +312,6 @@ const SORTS = {
   home: (x) => hitShare(x.hits.home), away: (x) => hitShare(x.hits.away), allow: (x) => (x.allowRank ? -x.allowRank : -99),
   ro: (x) => (x.reads.n ? x.reads.o / x.reads.n : -1), ru: (x) => (x.reads.n ? x.reads.u / x.reads.n : -1),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
-  result: (x) => x.result ?? -1,
 };
 // All Props: every market's rows on one list, each row keeping its market (x.mk)
 function rowsOnAll(date) {
@@ -447,16 +359,8 @@ const colsFor = () => [
   { label: "Total", key: "total", game: true, title: "Tonight's total (colored by where it sits among this season's game totals)" },
   { label: "Teammates On The Report", cls: "sim-th-tags", title: "His numbers in the games each teammate on tonight's injury report missed (20+ minute players). No = Out or Doubtful, If No = Day-To-Day or Questionable. The number in brackets is the change from his games with that teammate." },
 ];
-// A past night (the owner, 2026-11-05): no prices (the game is over) and Result in place of
-// Teammates On The Report: Over / Under his line that night and his number, colored like Avg.
-const RESULT_COL = { label: "Result", key: "result", cls: "sim-th-tags", title: `How he did that night: Over / Under his line, then his ${MK.unit.toLowerCase()} (colored against his position, like Avg)` };
-let PAST = false; // the day on screen is a past night
-const cols = () => (PAST ? [...COLS.slice(0, -1).filter((c) => c.label !== "Over" && c.label !== "Under"), RESULT_COL] : COLS);
 function listHead() {
-  const C = cols();
-  const ln = PAST ? "That Night's" : "Tonight's";
   let group = "";
-<<<<<<< Updated upstream
   for (let i = 0; i < COLS.length; i += 1) {
     const kind = COLS[i].hit ? "hit" : COLS[i].game ? "game" : COLS[i].read ? "read" : "";
     if (kind) {
@@ -465,19 +369,10 @@ function listHead() {
       group += kind === "hit" ? `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER tonight's line"><span>Hit Rate - Over Tonight's Line</span></th>`
         : kind === "read" ? `<th colspan="${n}" class="sim-hitgroup rs-readgroup" title="The Reads in his research panel (click his row), added up"><span>Reads</span></th>`
         : `<th colspan="${n}" class="sim-hitgroup rs-gamegroup" title="Tonight's game"><span>Tonight's Game</span></th>`;
-=======
-  for (let i = 0; i < C.length; i += 1) {
-    const kind = C[i].hit ? "hit" : C[i].game ? "game" : "";
-    if (kind) {
-      let n = 0;
-      while (C[i + n] && (kind === "hit" ? C[i + n].hit : C[i + n].game)) n += 1;
-      group += kind === "hit" ? `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER ${PAST ? "that night's line, in his games before that night" : "tonight's line"}"><span>Hit Rate - Over ${ln} Line</span></th>`
-        : `<th colspan="${n}" class="sim-hitgroup rs-gamegroup" title="${ln} game"><span>${ln} Game</span></th>`;
->>>>>>> Stashed changes
       i += n - 1;
     } else group += "<th></th>";
   }
-  return `<thead><tr class="sim-group-row">${group}</tr><tr>${C.map((c) => {
+  return `<thead><tr class="sim-group-row">${group}</tr><tr>${COLS.map((c) => {
     const on = c.key && c.key === LIST.sort;
     const cls = [c.key ? "sim-sort" : "", on ? "on" : "", c.cls || "", c.hit || c.game || c.read ? "sim-hit-th" : ""].filter(Boolean).join(" ");
     return `<th${cls ? ` class="${cls}"` : ""}${c.key ? ` data-sort="${c.key}"` : ""}${c.title ? ` title="${c.title}"` : ""}>${c.label}${on ? `<span class="sim-arrow">${LIST.dir < 0 ? "&#9662;" : "&#9652;"}</span>` : ""}</th>`;
@@ -512,18 +407,7 @@ function gameCells(x) {
   const tot = `<td class="num rs-two"${gm.totalS === null ? "" : ` style="${stepStyle(gm.totalS)}"`} title="Tonight's total"><b>${gm.total === null ? "--" : fmt(gm.total)}</b><small>O/U</small></td>`;
   return pace + sp + tot;
 }
-// Result (a past night): Over / Under / Push on the hit colors, then his number on Avg's scale
-function resultCell(x) {
-  if (x.result === null) return '<td class="sim-tagc rs-result"><span class="muted-label" title="He didn&#39;t play that night">DNP</span></td>';
-  const v = x.result;
-  const st = stepStyle(spread(v, listPool(x.p.pos, x.cut).avgV));
-  const call = x.line === null ? "" : v > x.line ? "Over" : v < x.line ? "Under" : "Push";
-  const hue = call === "Over" ? 135 : call === "Under" ? 0 : 58;
-  const tip = `${nameOf(x.pid)}: ${v} ${MK.unit.toLowerCase()} in ${x.resultMin ?? "--"} min${x.line === null ? " (no line that night)" : `, his line was ${fmt(x.line)}`}`;
-  return `<td class="sim-tagc rs-result" title="${tip}"><span class="rs-res">${call ? `<span class="rs-res-call" style="background:${scaleHsla(hue, 78, 44, 0.5)}">${call}</span>` : ""}<b class="rs-res-num"${st ? ` style="${st}"` : ""}>${v}</b></span></td>`;
-}
 function row(x) {
-<<<<<<< Updated upstream
   if (x.mk !== MK.market) setMarket(x.mk); // All Props: each row in its own market
   const pool = listPool(x.p.pos);
   const one = (text, v, vals, tip) => { const st = stepStyle(spread(v, vals)); return `<td class="num rs-two"${st ? ` style="${st}"` : ""} title="${tip} (colored against the league's ${x.p.pos}s)"><b>${text}</b></td>`; };
@@ -537,25 +421,10 @@ function row(x) {
     ${ALL_PROPS ? "" : one(fmt(x.second), x.second, pool.second, THREES ? `${fmt(x.second)} threes tried a game` : `${fmt(x.second)} minutes a game`)}
     ${ALL_PROPS ? "" : one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
     ${hitCell(x.hits.l5, "Last 5 games over tonight's line")}${hitCell(x.hits.l10, "Last 10 games over tonight's line")}${hitCell(x.hits.all, "This season's games over tonight's line")}${hitCell(x.hits.home, "Home games over tonight's line")}${hitCell(x.hits.away, "Road games over tonight's line")}
-=======
-  const pool = listPool(x.p.pos, x.cut);
-  const ln = x.past ? "that night's line, games before it" : "tonight's line";
-  const one = (text, v, vals, tip) => { const st = stepStyle(spread(v, vals)); return `<td class="num rs-two"${st ? ` style="${st}"` : ""} title="${tip} (colored against the league's ${x.p.pos}s)"><b>${text}</b></td>`; };
-  const key = `${x.g.game_id}:${x.pid}`;
-  // a past night has no research panel: its tabs read the whole season, that night and after included
-  return `<tr class="sim-row${x.live ? " live" : ""}${PANEL && !x.past ? " rs-click" : ""}${OPEN === key ? " open" : ""}" data-open="${key}">
-    <td class="sim-plcell"><span class="sim-pl-in">${headshot(x.pid)}${playerClick(x.pid, `<b>${nameOf(x.pid)}</b>`)}<span class="muted-label">${x.p.pos || ""}</span>${statusPill(x.status)}<span class="sim-vs">${logo(x.team, 16)}<span>${x.home ? "vs" : "@"}</span>${logo(x.opp, 16)}</span></span></td>
-    <td class="num rs-line">${x.line === null ? '<span class="muted-label">No Line</span>' : `<b>${fmt(x.line)}</b>`}</td>
-    ${x.past ? "" : sideCell(x.g, x.pid, "o", x.line, x.team) + sideCell(x.g, x.pid, "u", x.line, x.team)}
-    ${one(fmt(x.avg), x.avg, pool.avgV, `${fmt(x.avg)} ${MK.unit.toLowerCase()} a game in ${x.gp} games`)}
-    ${one(fmt(x.second), x.second, pool.second, THREES ? `${fmt(x.second)} threes tried a game` : `${fmt(x.second)} minutes a game`)}
-    ${one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
-    ${hitCell(x.hits.l5, `Last 5 games over ${ln}`)}${hitCell(x.hits.l10, `Last 10 games over ${ln}`)}${hitCell(x.hits.all, `This season's games over ${ln}`)}${hitCell(x.hits.home, `Home games over ${ln}`)}${hitCell(x.hits.away, `Road games over ${ln}`)}
->>>>>>> Stashed changes
     ${allowCell(x)}
     ${readCells(x)}
     ${gameCells(x)}
-    ${x.past ? resultCell(x) : `<td class="sim-tagc"><div class="sim-rtags">${x.without.map(withoutPill).join("") || '<span class="muted-label">None</span>'}</div></td>`}
+    <td class="sim-tagc"><div class="sim-rtags">${x.without.map(withoutPill).join("") || '<span class="muted-label">None</span>'}</div></td>
   </tr>`;
 }
 // ---- the research panel: two sandboxes (the owner approved the layout 2026-11-03) ----
@@ -1617,13 +1486,10 @@ function renderToolbar() {
 }
 function renderList() {
   const date = days()[dayIndex];
-  PAST = isPast(date);
-  const C = cols();
   renderToolbar();
   const rows = date ? sortedRows(date) : [];
   const lined = rows.filter((x) => x.line !== null).length;
   const at = DATA.generated_at ? new Date(DATA.generated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
-<<<<<<< Updated upstream
   const what = ALL_PROPS ? `line${lined === 1 ? "" : "s"} across Points, Threes, Assists and Rebounds` : `player${lined === 1 ? "" : "s"} with a ${MK.unit.toLowerCase()} line`;
   el("rs-note").innerHTML = `${lined} ${what}${at ? ` &middot; lines and injury report as of ${at}` : ""} &middot; check the injury report before you bet: NBA lineups change late`;
   if (typeof rfRender === "function") rfRender();
@@ -1631,28 +1497,14 @@ function renderList() {
     el("rs-list").innerHTML = '<p class="sim-noplay">No player matches these filters. <button type="button" class="view-toggle-btn" data-rf-clear-list>Clear Filters</button></p>';
     return;
   }
-=======
-  if (PAST) {
-    const over = rows.filter((x) => x.line !== null && x.result !== null && x.result > x.line).length;
-    const under = rows.filter((x) => x.line !== null && x.result !== null && x.result < x.line).length;
-    el("rs-note").innerHTML = `${lined} player${lined === 1 ? "" : "s"} with a ${MK.unit.toLowerCase()} line that night: ${over} Over, ${under} Under &middot; each line is the middle of the books' at tip; Avg, Min, the hit rates and Opp Allows count only the games before that night`;
-  } else el("rs-note").innerHTML = `${lined} player${lined === 1 ? "" : "s"} with a ${MK.unit.toLowerCase()} line${at ? ` &middot; lines and injury report as of ${at}` : ""} &middot; check the injury report before you bet: NBA lineups change late`;
->>>>>>> Stashed changes
   if (!rows.length) {
     const noOdds = !Object.keys(DATA.book_odds || {}).length;
-    const why = PAST ? (LIST.every ? "No player matches these filters." : `No ${MK.unit.toLowerCase()} lines were saved for this night.`)
-      : noOdds || !LIST.every ? "The books haven't posted these lines yet." : "No player matches these filters.";
-    el("rs-list").innerHTML = `<p class="sim-noplay">${why}${!LIST.every ? ' <button type="button" class="view-toggle-btn" data-list-every="true">Show Every Player</button>' : ""}</p>`;
+    el("rs-list").innerHTML = `<p class="sim-noplay">${noOdds || !LIST.every ? "The books haven't posted these lines yet." : "No player matches these filters."}${!LIST.every ? ' <button type="button" class="view-toggle-btn" data-list-every="true">Show Every Player</button>' : ""}</p>`;
     return;
   }
   const body = rows.map((x, i) => {
-<<<<<<< Updated upstream
     const head = x.live && (i === 0 || !rows[i - 1].live) ? `<tr class="sim-group"><td colspan="${COLS.length}">Started: the lines locked at tip.</td></tr>` : "";
     return head + row(x) + (PANEL && OPEN === openKey(x) ? `<tr class="rs-panel-row"><td colspan="${COLS.length}">${panel(x)}</td></tr>` : ""); // row() set its market
-=======
-    const head = x.live && (i === 0 || !rows[i - 1].live) ? `<tr class="sim-group"><td colspan="${C.length}">Started: the lines locked at tip.</td></tr>` : "";
-    return head + row(x) + (PANEL && !x.past && OPEN === `${x.g.game_id}:${x.pid}` ? `<tr class="rs-panel-row"><td colspan="${C.length}">${panel(x)}</td></tr>` : "");
->>>>>>> Stashed changes
   }).join("");
   el("rs-list").innerHTML = `<div class="nba-box sim-listbox"><div class="sim-scroll"><table class="data-table sim-list rs-list">${listHead()}<tbody>${body}</tbody></table></div></div>`;
   fitTags();
@@ -1703,32 +1555,11 @@ window.addEventListener("resize", () => {
 
 function renderGamePicker() {
   const games = gamesOn(days()[dayIndex]);
-  if (!games.some((g) => String(g.game_id) === String(LIST.game))) LIST.game = "";
+  if (!games.some((g) => g.game_id === LIST.game)) LIST.game = "";
   gameId = LIST.game || (games[0] || {}).game_id || "";
-  el("matchup-row").innerHTML = games.map((g) => `<button type="button" class="matchup-card${String(g.game_id) === String(LIST.game) ? " selected" : ""}" data-game="${g.game_id}">
+  el("matchup-row").innerHTML = games.map((g) => `<button type="button" class="matchup-card${g.game_id === LIST.game ? " selected" : ""}" data-game="${g.game_id}">
       <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>
-      <span class="matchup-date">${isPast(g.date) ? `Final${g.away_score !== null && g.away_score !== undefined && g.home_score !== null && g.home_score !== undefined ? ` ${g.away_score}-${g.home_score}` : ""}` : gmgGameTime(g, false)}</span></button>`).join("");
-}
-// A date box beside the day arrows: jumps to that night, or the closest one before it with games
-// (the same box as the NHL prop pages).
-function dayPicker(all) {
-  const picker = el("day-label").parentElement;
-  if (!picker || !all.length) return;
-  let box = picker.querySelector(".sim-day-pick");
-  if (!box) {
-    box = Object.assign(document.createElement("input"), { type: "date", className: "sim-day-pick", title: "Pick a day" });
-    box.setAttribute("aria-label", "Pick a day");
-    box.style.cssText = "margin-left:8px;font:inherit;font-size:0.8rem;padding:2px 6px;border-radius:6px;border:1px solid var(--border-strong);background:var(--table-head);color:var(--text);color-scheme:light dark;cursor:pointer";
-    box.addEventListener("change", () => {
-      if (!box.value) return;
-      dayIndex = Math.max(0, days().filter((d) => d <= box.value).length - 1);
-      LIST.game = "";
-      OPEN = "";
-      render();
-    });
-    picker.appendChild(box);
-  }
-  Object.assign(box, { min: all[0], max: all[all.length - 1], value: all[dayIndex] || "" });
+      <span class="matchup-date">${gmgGameTime(g, false)}</span></button>`).join("");
 }
 function render() {
   const all = days();
@@ -1736,7 +1567,6 @@ function render() {
   el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "No games";
   el("day-prev").disabled = dayIndex <= 0;
   el("day-next").disabled = dayIndex >= all.length - 1;
-  dayPicker(all);
   renderGamePicker();
   renderList();
 }
@@ -1789,13 +1619,11 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#day-prev") && dayIndex > 0) {
     dayIndex -= 1;
     LIST.game = "";
-    OPEN = "";
     return render();
   }
   if (e.target.closest("#day-next") && dayIndex < days().length - 1) {
     dayIndex += 1;
     LIST.game = "";
-    OPEN = "";
     return render();
   }
   if (e.target.closest("#theme-toggle")) {
@@ -1821,7 +1649,6 @@ Promise.all([fetch("data.json").then((r) => r.json()), fetch("props.json").then(
     }
     el("empty-state").hidden = true;
     el("rs-app").hidden = false;
-    dayIndex = startDay();
     render();
   })
   .catch((err) => {

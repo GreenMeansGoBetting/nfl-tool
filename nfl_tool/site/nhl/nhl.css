@@ -541,8 +541,6 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
   .best-table tbody td.shots-player { display: table-cell; vertical-align: middle; }
   .best-table .best-play { min-width: 0; }
   .best-table td.shots-rank { padding-left: 4px; padding-right: 4px; }
-  /* The Markets checkboxes wrap to a second line instead of pushing the page wider than the phone. */
-  .best-markets { flex-wrap: wrap; }
   /* The record popup: one tile a row, so each slider has room to drag. */
   /* Line Matchups: one column, the matchup boxes first. */
   .ln-game { grid-template-columns: minmax(0, 1fr); }

@@ -18,7 +18,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 from site_browser import SiteBrowser  # noqa: E402
-from helpers import SAMPLE_BUILT_UTC  # noqa: E402
 
 FIELDS = ["date", "game", "opp", "home", "min", "pts", "fg3m", "reb", "ast"]
 DAY = "2099-01-01"  # always ahead of today, so it is the slate the page opens on
@@ -690,7 +689,6 @@ class OtherMarkets(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
 
 
-<<<<<<< Updated upstream
 class AllProps(unittest.TestCase):
     """The owner, 2026-11-04: every stat's lines on one list for members who "don't care about what stats
     they are"; only the columns that mean the same for every stat, a Stat pill, sorted by O."""
@@ -856,66 +854,6 @@ class Filters(unittest.TestCase):
         finally:
             page.close()
         self.assertEqual(SITE.errors, [])
-=======
-class PastNights(unittest.TestCase):
-    """The owner, 2026-11-05: "go back days like the other tools and see how things did ... remove the
-    teammates on report section and replace with a column that says over or under and then what the
-    total of the stat was", colored like the stat column. A past night: his line that night (the line
-    history), every number from the games before it, no prices, and Result."""
-
-    @classmethod
-    def setUpClass(cls):
-        SITE.nba, SITE.nba_props = DATA, PROPS
-        SITE.context.clock.set_fixed_time("2026-11-05T17:00:00Z")  # the sample's October nights are in the past
-        cls.page = SITE.open("nba/points.html")
-        cls.page.wait_for_selector("#rs-list tr.sim-row")
-
-    @classmethod
-    def tearDownClass(cls):
-        SITE.context.clock.set_fixed_time(SAMPLE_BUILT_UTC)
-
-    def go(self, day):
-        self.page.fill(".sim-day-pick", day)
-        self.page.wait_for_function("(d) => document.querySelector('.sim-day-pick').value === d", arg=day)
-
-    def test_opens_on_tonight_and_steps_back_to_opening_night(self):
-        self.go(DAY)
-        self.assertIn("Teammates On The Report", head(self.page))
-        self.page.click("#day-prev")  # the last night in the logs
-        self.assertFalse(self.page.is_disabled("#day-prev"))
-        self.go("2026-10-20")
-        self.assertTrue(self.page.is_disabled("#day-prev"))  # opening night is the first day
-        self.go(DAY)
-        self.assertEqual(SITE.errors, [])
-
-    def test_a_past_night(self):
-        self.go("2026-10-23")  # game 4: his line was 19.5 and he scored 25
-        self.assertEqual(head(self.page), ["Player", "Line", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Pace", "Spread", "Total", "Result"])
-        [one] = rows(self.page)
-        self.assertIn("Player One", one[0])
-        self.assertNotIn("DTD", one[0])  # tonight's injury report doesn't belong on a past night
-        self.assertEqual(one[1], "19.5")
-        self.assertEqual(one[2], "15.0")  # only the three games before it (15 each)
-        self.assertEqual(one[5], "0% 0 of 3")
-        self.assertEqual(one[13], "224.0 O/U")  # that game's total (research `games`)
-        self.assertEqual(one[14], "OVER 25")
-        self.assertIn("1 Over, 0 Under", self.page.inner_text("#rs-note"))
-        # the number is colored like Avg (against his position), the call on the hit colors
-        styled = self.page.evaluate("() => [...document.querySelectorAll('#rs-list .rs-res-call, #rs-list .rs-res-num')].map((t) => t.getAttribute('style') || '')")
-        self.assertTrue(styled[0])
-        self.assertFalse(self.page.query_selector("#rs-list tr.rs-click"))  # no research panel on a past night
-        self.assertIn("Final", self.page.inner_text("#matchup-row"))
-        self.assertEqual(SITE.errors, [])
-
-    def test_every_player_on_a_past_night(self):
-        self.go("2026-10-23")
-        self.page.click("[data-list-every='true']")
-        got = {r[0].split(" ")[0] + " " + r[0].split(" ")[1]: r for r in rows(self.page)}
-        self.assertEqual(got["Player Three"][14], "12")  # he played (no line: no call)
-        self.assertNotIn("Player Five", got)  # didn't play that night
-        self.page.click("[data-list-every='false']")
-        self.go(DAY)
->>>>>>> Stashed changes
 
 
 class Pages(unittest.TestCase):
