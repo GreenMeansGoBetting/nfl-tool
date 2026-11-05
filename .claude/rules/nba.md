@@ -379,8 +379,8 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
 - **Built on Prop Research, not beside it:** the page loads research.js then spots.js, which swaps
   `setMarket` (its tabs, tips, columns) and `row` through `window`, adds its tabs to `RS_TAB` and its sorts
   to `SORTS`. The list, prices, day arrows, drop-down panel, past nights and **Vs The Line are
-  research.js's own** (the owner: "copy that exact one over"). A tab on every research page's tab bar and
-  a menu pill under Prop Research.
+  research.js's own** (the owner: "copy that exact one over"). A tab on every research page's tab bar; its menu pill sits
+  beside Zone Matchup Targets, not under Prop Research (the owner).
 - **Columns:** Player, Line, Over, Under, Avg, Rate (assist rate), Hit Rate L5 / Season, **Reads**: Targets,
   Types, Lineup, Read; **Tonight's Game**: Chances, Volume. Opens sorted by Read (Over, Under, Mixed, No Read).
 - **The Read reads every factor** (the owner: "its not taking into account all the info": Draymond's Under

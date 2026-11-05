@@ -362,6 +362,19 @@ window.GMGSettings = { open: openGmgSettings };
 // address) shows a photo carousel above the list (the owner, 2026-11-04).
 const GMG_UPDATES = [
   {
+    id: "2026-11-05",
+    items: [
+      ["🏀", "<b>A Deeper Look at Assists</b>: a new NBA page, <b>Assist Spots</b>. Every assists line tonight, read from both sides, with a read on each player: Over, Under, Mixed or No Read."],
+      ["💡", "<b>Where it came from</b>: an assist takes two things, a pass and a made shot. When a passer has a quiet night it’s one of three things: his teammates missed, someone else ran the offense, or he played less. I went through every possession this season to tell those apart, and this page is what came out of it."],
+      ["🎯", "<b>Targets</b>: who he passes to against how tonight’s defense handles those positions. If 39% of Draymond’s assists go to Curry and Miami is one of the worst teams at guarding point guards, that’s worth knowing."],
+      ["🧩", "<b>Types</b>: how he sets them up (kick-out 3s, drives, cuts and lobs, off-the-dribble 3s, short and mid) against what tonight’s defense gives up of each. Some passers have recipes, and defenses allow some of these two to four times as often as others."],
+      ["🚑", "<b>Lineup</b>: a teammate who’s newly out tonight, and how much of the offense runs through him without that guy. Only new absences count: if a player has been out a while, the line already knows."],
+      ["⚖️", "<b>The Read</b> weighs every factor, and each one gets its own column so nothing hides. When they agree it says Over or Under. When they pull both ways it says Mixed and shows you both arguments. These aren’t intended to be \"picks\", but additional layers of info."],
+      ["🗺️", "<b>Click any row</b> for Who He Assists (every teammate he feeds, broken down by type), Assist Types, Game Log, The Read, Vs The Line and Lineup. Pace and three-point Volume are there as context but never make the call. Defense ranks read like a grade: 30th = allows the most, in red."],
+      ["📈", "This will continue to show trends and schemes as more data comes in!"],
+    ],
+  },
+  {
     id: "2026-11-04c",
     slides: [
       ["/brand/updates/2026-11-04-1-menus.jpg", "<b>New menus:</b> every page is a colored button, grouped by section. NBA has <b>All Props</b> and the four stats under Prop Research."],
@@ -1097,6 +1110,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       pills(["League Stats Chart", "league.html", 140], ["Matchup Data", "", 240]),
       // Matchup Keys: its own page since 2026-11-04 (the owner: the League Stats Chart button was "too hidden").
       pills(["Matchup Keys", "matchup-keys.html", 45], ["Zone Matchup Targets", "zones.html", 300]),
+      // Assist Spots: assists read from both sides, beside Zone Matchup Targets (the owner, 2026-11-05)
+      pills(["Assist Spots", "assist-spots.html", 350]),
       // The NBA side is a research site (the owner, 2026-11-03): no projections or model
       // plays; each bet category is its data and every book's line (research.js).
       { head: "Prop Research" },
@@ -1104,8 +1119,6 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       pills(["All Props", "all-props.html", 60]),
       pills(["Points", "points.html", 210], ["Threes", "threes.html", 275]),
       pills(["Assists", "assists.html", 330], ["Rebounds", "rebounds.html", 185]),
-      // Assist Spots: assists read from both sides (the owner, 2026-11-05)
-      pills(["Assist Spots", "assist-spots.html", 350]),
       // 1st Basket joined them as research (2026-11-03), Shot Charts moved down with them (2026-11-04).
       pills(["1st Basket", "first-basket.html", 20], ["Shot Charts", "shot-charts.html", 95]),
     ] },
