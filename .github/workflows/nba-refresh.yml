@@ -48,7 +48,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 16  # 12 for the refresh, the rest for saving the NBA Reads after it
     steps:
       - uses: actions/checkout@v4
 
@@ -176,3 +176,38 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: python tools/ci_steps.py live-check
+
+      # The Prop Research Reads, frozen at tip (deploy.yml has the same step):
+      # this refresh runs closest to tip, so it saves the Reads members saw
+      # last. After the publish and the live check on purpose: it never holds
+      # up an injury update, and a slow browser install only skips the save.
+      - name: Restore the saved browser (NBA Reads)
+        id: browser
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes'
+        continue-on-error: true
+        timeout-minutes: 3
+        run: |
+          pip install playwright
+          pip show playwright | sed -n 's/^Version: /playwright=/p' >> "$GITHUB_OUTPUT"
+
+      - name: Browser cache (NBA Reads)
+        uses: actions/cache@v4
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes' && steps.browser.outcome == 'success'
+        continue-on-error: true
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.browser.outputs.playwright }}
+
+      - name: Save the NBA Reads before tip
+        if: steps.check.outputs.go == 'yes' && steps.report.outputs.go != 'no' && steps.still.outputs.go == 'yes' && steps.browser.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 4
+        run: |
+          python -m playwright install chromium
+          python tools/nba_reads_capture.py --season 2027
+          git add model_history/nba_reads
+          if ! git diff --cached --quiet; then
+            git commit -m "Model records: NBA Reads before tip"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

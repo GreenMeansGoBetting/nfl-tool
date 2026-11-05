@@ -11,6 +11,7 @@ best Over / Under across the member's books, his average and minutes, hit rates 
 each teammate on tonight's injury report missed, colored only at 3+ games; Every Player adds the
 rotation players with no line; each page reads its own stat; the menu lists the four under Prop
 Research and the retired pages forward."""
+import copy
 import sys
 import unittest
 from pathlib import Path
@@ -865,7 +866,11 @@ class PastNights(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        SITE.nba, SITE.nba_props = DATA, PROPS
+        # his Reads and Volume for game 4 as the deploy saved them before tip (reads_record.py)
+        props = copy.deepcopy(PROPS)
+        props["research"]["frozen"] = {"4": {"date": "2026-10-23", "tabs": {"points": ["Form", "Scoring"]},
+                                             "m": {"points": {"1": [5, 1, 8, 0.31, [[2, 0, 3, 1], [3, 1, 5, 0]]]}}}}
+        SITE.nba, SITE.nba_props = DATA, props
         SITE.context.clock.set_fixed_time("2026-11-05T17:00:00Z")  # the sample's October nights are in the past
         cls.page = SITE.open("nba/points.html")
         cls.page.wait_for_selector("#rs-list tr.sim-row")
@@ -873,6 +878,7 @@ class PastNights(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         SITE.context.clock.set_fixed_time(SAMPLE_BUILT_UTC)
+        SITE.nba_props = PROPS
 
     def go(self, day):
         self.page.fill(".sim-day-pick", day)
@@ -890,15 +896,17 @@ class PastNights(unittest.TestCase):
 
     def test_a_past_night(self):
         self.go("2026-10-23")  # game 4: his line was 19.5 and he scored 25
-        self.assertEqual(head(self.page), ["Player", "Line", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "Pace", "Spread", "Total", "Result"])
+        self.assertEqual(head(self.page), ["Player", "Line", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "O", "U", "Pace", "Spread", "Total", "Result"])
         [one] = rows(self.page)
         self.assertIn("Player One", one[0])
         self.assertNotIn("DTD", one[0])  # tonight's injury report doesn't belong on a past night
         self.assertEqual(one[1], "19.5")
         self.assertEqual(one[2], "15.0")  # only the three games before it (15 each)
         self.assertEqual(one[5], "0% 0 of 3")
-        self.assertEqual(one[13], "224.0 O/U")  # that game's total (research `games`)
-        self.assertEqual(one[14], "OVER 25")
+        self.assertEqual(one[4], "31%")  # Volume as saved before tip
+        self.assertEqual(one[11:13], ["5/8", "1/8"])  # the O / U Reads as they stood before tip (the owner, 2026-11-05)
+        self.assertEqual(one[15], "224.0 O/U")  # that game's total (research `games`)
+        self.assertEqual(one[16], "OVER 25")
         self.assertIn("1 Over, 0 Under", self.page.inner_text("#rs-note"))
         # the number is colored like Avg (against his position), the call on the hit colors
         styled = self.page.evaluate("() => [...document.querySelectorAll('#rs-list .rs-res-call, #rs-list .rs-res-num')].map((t) => t.getAttribute('style') || '')")
@@ -911,10 +919,26 @@ class PastNights(unittest.TestCase):
         self.go("2026-10-23")
         self.page.click("[data-list-every='true']")
         got = {r[0].split(" ")[0] + " " + r[0].split(" ")[1]: r for r in rows(self.page)}
-        self.assertEqual(got["Player Three"][14], "12")  # he played (no line: no call)
+        self.assertEqual(got["Player Three"][16], "12")  # he played (no line: no call)
+        self.assertEqual(got["Player Three"][11:13], ["--", "--"])  # nothing saved for him: never today's Reads
         self.assertNotIn("Player Five", got)  # didn't play that night
         self.page.click("[data-list-every='false']")
         self.go(DAY)
+
+    def test_the_capture_reads_tonights_untipped_games(self):
+        # what the deploy saves (tools/nba_reads_capture.py): every market's Reads and Volume per player with a line
+        self.go(DAY)
+        cap = self.page.evaluate("() => rsCapture()")
+        self.assertEqual(list(cap), ["900"])
+        self.assertEqual(cap["900"]["date"], DAY)
+        self.assertEqual(sorted(cap["900"]["m"]), ["points", "rebounds"])  # the books' lines for Player One
+        o, u, n, vol, by = cap["900"]["m"]["points"]["1"]
+        self.assertGreater(n, 0)
+        self.assertEqual(vol, 0.28)
+        self.assertEqual(len(by), len(cap["900"]["tabs"]["points"]))
+        self.assertEqual(self.page.evaluate("() => MK.market"), "points")  # the page keeps its own stat
+        self.assertIn("Teammates On The Report", head(self.page))
+        self.assertEqual(SITE.errors, [])
 
 
 class Pages(unittest.TestCase):

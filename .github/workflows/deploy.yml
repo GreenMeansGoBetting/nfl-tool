@@ -224,6 +224,16 @@ jobs:
         continue-on-error: true
         run: python tools/best_plays_capture.py --season 2026
 
+      # The NBA Prop Research Reads, frozen at tip (the owner, 2026-11-05): reads
+      # every untipped game's O / U counts off All Props into
+      # model_history/nba_reads/ (rewritten until tip, never after), committed
+      # by the step below; the next build shows them on past nights. Never
+      # allowed to block the deploy.
+      - name: NBA Reads record
+        continue-on-error: true
+        timeout-minutes: 4
+        run: python tools/nba_reads_capture.py --season 2027
+
       # The GMG model's locked projections and graded picks. The build
       # rewrites this file with every game that has kicked off; committing it
       # keeps the record in the repo, so it survives even if the next build

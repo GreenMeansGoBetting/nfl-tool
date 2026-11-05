@@ -781,11 +781,14 @@ class WorkflowsInStep(unittest.TestCase):
                              ("Build NHL data", "nhl"), ("Save NHL games", "nhl")):
             self.assertIn(f"        if: contains(steps.lane.outputs.build, '{sport}') || steps.live_data.outcome == 'failure'\n", steps[build], build)
         # The records are saved on every run: Best Plays' record (2026-10-22)
-        # is captured from the page even on a page-only push.
-        for always in ("NFL Best Plays record", "Save GMG model record"):
+        # and the NBA Reads before tip (2026-11-05) are captured from the page
+        # even on a page-only push, then committed right after.
+        for always in ("NFL Best Plays record", "NBA Reads record", "Save GMG model record"):
             self.assertFalse(any(line.startswith("        if:") for line in steps[always].splitlines()), always)
         self.assertLess(names.index("Build stats"), names.index("NFL Best Plays record"))
-        self.assertEqual(names.index("Save GMG model record"), names.index("NFL Best Plays record") + 1)
+        self.assertLess(names.index("Build NBA data"), names.index("NBA Reads record"))
+        self.assertEqual(names.index("NBA Reads record"), names.index("NFL Best Plays record") + 1)
+        self.assertEqual(names.index("Save GMG model record"), names.index("NBA Reads record") + 1)
         live_name = "Use the live data (sports this push can't change)"
         live = steps[live_name]
         self.assertIn("id: live_data", live)

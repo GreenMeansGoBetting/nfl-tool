@@ -302,6 +302,44 @@ function hits(rows, line, f) {
 // research `players[id]`: his saved main line by game, in the market in play (the line history)
 const lineKey = () => (THREES ? "lines3" : REBS ? "linesr" : ASTS ? "linesa" : "lines");
 const NO_READS = { o: 0, u: 0, n: 0, by: [], nums: {} };
+// A past night's Reads as they stood before tip (the owner, 2026-11-05: "lock the info that comprises
+// those boxes before that game is played"): saved by the deploy (rsCapture, reads_record.py), in
+// props.json `research.frozen` {game: {tabs: {market: [tab]}, m: {market: {player: [o, u, n, vol, by]}}}}.
+// Nights before the saving began have none ("--"): today's panel would leak that night's game in.
+const frozenOf = (gid, pid) => ((((RS().frozen || {})[gid] || {}).m || {})[MK.market] || {})[pid] || null;
+function frozenReads(gid, fz) {
+  if (!fz) return NO_READS;
+  const tabs = ((((RS().frozen || {})[gid] || {}).tabs || {})[MK.market]) || [];
+  const by = tabs.map((t, i) => { const c = (fz[4] || [])[i] || [0, 0, 0, 0]; return { t, o: c[0], u: c[1], n: c[2], na: c[3] }; }).filter((c) => c.n);
+  return { o: fz[0], u: fz[1], n: fz[2], by, nums: {}, frozen: true };
+}
+// The deploy's freeze (tools/nba_reads_capture.py, on All Props): every untipped game's O / U Reads and
+// Volume in every market, exactly what a member with no filters sees now.
+function rsCapture() {
+  const keep = { ...LIST }, keepMk = MK.market;
+  Object.assign(LIST, { game: "", pos: "", every: false });
+  const out = {};
+  try {
+    for (const d of days().filter((day) => !isPast(day))) {
+      for (const m of ALL_ORDER) {
+        setMarket(m);
+        const tabs = [...RS_TABS.left, ...RS_TABS.right].filter((t) => READ_TABS.includes(t));
+        for (const x of rowsOn(d)) {
+          if (x.line === null || x.live) continue;
+          const gid = String(x.g.game_id);
+          const e = (out[gid] = out[gid] || { date: d, tabs: {}, m: {} });
+          e.tabs[m] = tabs;
+          const by = tabs.map((t) => { const c = x.reads.by.find((b) => b.t === t); return c ? [c.o, c.u, c.n, c.na] : [0, 0, 0, 0]; });
+          (e.m[m] = e.m[m] || {})[x.pid] = [x.reads.o, x.reads.u, x.reads.n, x.vol === null || x.vol === undefined ? null : Math.round(x.vol * 10000) / 10000, by];
+        }
+      }
+    }
+  } finally {
+    Object.assign(LIST, keep);
+    setMarket(keepMk);
+  }
+  return out;
+}
 // A past night (the owner, 2026-11-05): his line that night (the line history, saved until tip),
 // every number from his games BEFORE that night, and the Result: Over / Under and what he put up.
 function rowsOn(date) {
@@ -321,6 +359,7 @@ function rowsOn(date) {
       const log = logBefore(p.log, cut);
       const line = past ? ((rsOf(pid)[lineKey()] || {})[gid] ?? null) : mainLine(g, pid);
       const status = past ? "" : statusOf(tm, pid);
+      const fz = past ? frozenOf(gid, pid) : null; // his Reads and Volume as saved before tip
       const mins = avg(log.map((r) => r[f.min] || 0));
       if (line === null && (!LIST.every || !log.length || mins < ROTATION_MIN || (past ? !night : isOut(status)))) continue;
       const opp = tm === g.home ? g.away : g.home;
@@ -329,7 +368,7 @@ function rowsOn(date) {
       out.push({
         mk: MK.market, g, pid, p, team: tm, opp, home: tm === g.home, line, status, live: past ? false : started(g), gp: log.length, past, cut,
         result: night ? statOf(night, f) : null, resultMin: night ? night[f.min] : null,
-        avg: avg(vals), min: mins, ...listNums(p, pid, log),
+        avg: avg(vals), min: mins, ...listNums(p, pid, log), ...(fz && fz[3] !== null && fz[3] !== undefined ? { vol: fz[3] } : {}),
         hits: { l5: hits(last5, line, f), l10: hits(log.slice(-10), line, f), all: hits(log, line, f),
           home: hits(log.filter((r) => r[f.home]), line, f), away: hits(log.filter((r) => !r[f.home]), line, f) },
         allow: ((A.per[p.pos] || {})[opp]) || null, allowRank: ((A.ranks[p.pos] || { r: {} }).r[opp]) || null,
@@ -337,7 +376,7 @@ function rowsOn(date) {
         without: past ? [] : withoutRows(pid, tm), game: tonightGame(g, tm, opp),
       });
       // the Reads come from the panel, which reads the whole season: none on a past night
-      out[out.length - 1].reads = past ? NO_READS : readsOf(out[out.length - 1]);
+      out[out.length - 1].reads = past ? frozenReads(gid, fz) : readsOf(out[out.length - 1]);
     }
   }
   return out;
@@ -429,7 +468,7 @@ const colsFor = () => [
 // line that night and his number, colored like Avg.
 let PAST = false; // the day on screen is a past night
 const resultCol = () => ({ label: "Result", key: "result", cls: "sim-th-tags", title: `How he did that night: Over / Under his line, then his ${ALL_PROPS ? "number" : MK.unit.toLowerCase()} (colored against his position, like Avg)` });
-const shownCols = () => (PAST ? [...COLS.filter((c) => c.label !== "Over" && c.label !== "Under" && !c.read && c.cls !== "sim-th-tags"), resultCol()] : COLS);
+const shownCols = () => (PAST ? [...COLS.filter((c) => c.label !== "Over" && c.label !== "Under" && c.cls !== "sim-th-tags"), resultCol()] : COLS);
 function listHead() {
   const C = shownCols();
   const ln = PAST ? "That Night's" : "Tonight's";
@@ -440,7 +479,7 @@ function listHead() {
       let n = 0;
       while (C[i + n] && C[i + n][kind]) n += 1;
       group += kind === "hit" ? `<th colspan="${n}" class="sim-hitgroup" title="How often he went OVER ${PAST ? "that night's line, in his games before that night" : "tonight's line"}"><span>Hit Rate - Over ${ln} Line</span></th>`
-        : kind === "read" ? `<th colspan="${n}" class="sim-hitgroup rs-readgroup" title="The Reads in his research panel (click his row), added up"><span>Reads</span></th>`
+        : kind === "read" ? `<th colspan="${n}" class="sim-hitgroup rs-readgroup" title="${PAST ? "The Reads in his research panel as they stood before that game (saved before tip; nights before 11/5 weren't saved)" : "The Reads in his research panel (click his row), added up"}"><span>Reads</span></th>`
         : `<th colspan="${n}" class="sim-hitgroup rs-gamegroup" title="${ln} game"><span>${ln} Game</span></th>`;
       i += n - 1;
     } else group += "<th></th>";
@@ -469,7 +508,7 @@ const READ_FULL = 0.5; // a share this big or more is the greenest
 function readCells(x) {
   const r = x.reads;
   const tip = r.by.map((c) => `${c.t}: ${c.o} Over, ${c.u} Under, ${c.n - c.o - c.u - c.na} Even${c.na ? `, ${c.na} not enough data` : ""}`).join("\n");
-  const cell = (k, word) => (r.n ? `<td class="num rs-read" style="${stepStyle(Math.min(1, (r[k] / r.n) / READ_FULL) * 2 - 1)}" title="${r[k]} of his ${r.n} Reads say ${word}\n${tip}"><b>${r[k]}/${r.n}</b></td>` : '<td class="num rs-read">--</td>');
+  const cell = (k, word) => (r.n ? `<td class="num rs-read" style="${stepStyle(Math.min(1, (r[k] / r.n) / READ_FULL) * 2 - 1)}" title="${r[k]} of his ${r.n} Reads say ${word}${x.past ? " (saved before tip)" : ""}\n${tip}"><b>${r[k]}/${r.n}</b></td>` : `<td class="num rs-read"${x.past ? ' title="Not saved for this night: the Reads are saved before tip from 11/5 on"' : ""}>--</td>`);
   return cell("o", "Over") + cell("u", "Under");
 }
 function gameCells(x) {
@@ -507,7 +546,7 @@ function row(x) {
     ${ALL_PROPS ? "" : one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
     ${hitCell(x.hits.l5, `Last 5 games over ${ln}`)}${hitCell(x.hits.l10, `Last 10 games over ${ln}`)}${hitCell(x.hits.all, `This season's games over ${ln}`)}${hitCell(x.hits.home, `Home games over ${ln}`)}${hitCell(x.hits.away, `Road games over ${ln}`)}
     ${allowCell(x)}
-    ${x.past ? "" : readCells(x)}
+    ${readCells(x)}
     ${gameCells(x)}
     ${x.past ? resultCell(x) : `<td class="sim-tagc"><div class="sim-rtags">${x.without.map(withoutPill).join("") || '<span class="muted-label">None</span>'}</div></td>`}
   </tr>`;

@@ -36,6 +36,7 @@ sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, fo
 import first_basket  # noqa: E402
 import props  # noqa: E402
 import research  # noqa: E402
+import reads_record  # noqa: E402
 import shots  # noqa: E402
 import zone_matchups  # noqa: E402
 import smartstake  # noqa: E402
@@ -1052,6 +1053,8 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
             out["research"] = research.block(engine, reg, block["players"], kotc_lines(season, list(games)),
                                              fetch_file("schedule", season, data_dir, False))
             add_line_history(out["research"], season, book_odds or {}, list(games), now_utc)
+            # each night's O / U Reads as they stood before tip (reads_record.py), for the page's past nights
+            out["research"]["frozen"] = reads_record.load(season)
         except Exception as ex:
             print(f"WARNING: NBA research panel failed ({ex!r}).", file=sys.stderr)
     # The sim (its own try: a failure leaves Points and Threes empty, never the game logs).

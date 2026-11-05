@@ -243,10 +243,18 @@ Every game played 10,000 times, possession by possession.
   the page opens on today's slate (`startDay`). A past night's games = the schedule's + the logs'
   (`pastGames`, score on the card); his line = the saved line history (`lineKey`: `lines` / `lines3`
   / `linesr` / `linesa`); Avg / Min / hit rates / Opp Allows count only games BEFORE that night
-  (`logBefore`, `allowed(cut)`); no Over / Under price columns and no O / U Reads (the panel reads the
-  whole season, that night included, so no panel either); **Result replaces Teammates On The
-  Report**: an Over / Under / Push tile (hit colors) + his number colored like Avg (`resultCell`,
-  sortable); no injury pill. No units (the owner).
+  (`logBefore`, `allowed(cut)`); no Over / Under price columns; no research panel (its tabs read the
+  whole season, that night included); **Result replaces Teammates On The Report**: an Over / Under /
+  Push tile (hit colors) + his number colored like Avg (`resultCell`, sortable); no injury pill. No
+  units (the owner).
+- **O / U Reads and Volume on past nights are FROZEN at tip** (the owner, 2026-11-05: "lock the info
+  that comprises those boxes before that game is played"): today's panel can't be rewound (season
+  totals), so `tools/nba_reads_capture.py` opens All Props after every deploy build ("NBA Reads
+  record") and every NBA injury refresh (after its publish and live check, "Save the NBA Reads before
+  tip"), reads `rsCapture()` for every untipped game, and `reads_record.py` keeps it in
+  `model_history/nba_reads/<season>.json` (rewritten until tip, never after); the build copies it into
+  props.json `research.frozen` (`frozenOf` / `frozenReads`). Nights before 2026-11-05 show "--". Never
+  today's Reads on a past night. Tests: `tests/test_nba_reads_record.py`, research site `PastNights`.
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
 - **Research panel (Points 2026-11-03; Threes, Rebounds and Assists 2026-11-04; every market)**: a row click (not the name, a price or a tag)
   opens it (`panel`, `PANEL`). **Two sandboxes** (the owner approved the mock-up, 2026-11-03: "a
