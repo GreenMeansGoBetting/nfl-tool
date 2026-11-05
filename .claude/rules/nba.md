@@ -314,7 +314,16 @@ Every game played 10,000 times, possession by possession.
   share (`READ_FULL` 0.5 = greenest). Every Read tile goes through `RT`, so the column always equals the panel
   (`readsOf`, cached per player). Form compares him to his position, so a star facing a weak defense leans Over:
   the owner chose that over a 'signature' tag rule after seeing real examples ("luka is facing a weak defense
-  thats why he shows"). Next: filters (offense AND defense numbers) on every research page and All Props.
+  thats why he shows").
+- **Filters** (`filters.js`, 2026-11-04; the owner picked the fold-open panel from two mock-ups, then "stack things a little
+  better ... too much dead space"): a **Filters** button opens a min and a max box for every list number (The Line, His
+  Numbers, Defense, Reads, Tonight's Game) and every panel row with a Read (His, His Rank, Defense, Defense Rank: the
+  owner wanted the defense as a rank AND its raw number), with its unit (% / raw / rank). Every Read row hands its
+  numbers to `RT` (`num`: him / hu / hr / def / du / dr; percents 0-100), kept in `x.reads.nums`. All filters must pass;
+  a missing number fails. Columns stacked to one height (`RF_LIST_COLS`, `rfTabColumns`), each column's last box to the
+  bottom. Chips in the bar (blue him, purple defense...), Clear. **Save This Screen** = `nfl-tool.nba-screens.v1`
+  (synced: sync.js KEYS + the middleware's SYNC_KEYS), a button per screen on its page. All Props: the list numbers
+  only plus Points / Threes / Assists / Rebounds toggles. Tests: test_nba_research_site.py `Filters`.
 - **All Props** (`all-props.html`, `data-market="all"`, 2026-11-04; the owner: for members who "don't care about
   what stats they are"): every market's rows on one list (`rowsOnAll`), a row a player a stat with a **Stat** pill
   (`STAT_HUE`, the menu's colors; it links to that stat's page), opens sorted by O. Only the columns that mean the

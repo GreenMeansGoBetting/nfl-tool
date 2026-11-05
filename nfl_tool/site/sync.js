@@ -579,6 +579,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     GMG_UPDATES_SEEN_KEY,
     GMG_NHL_PLAYS_KEY,
     GMG_NBA_PLAYS_KEY,
+    "nfl-tool.nba-screens.v1", // NBA Prop Research saved filter screens (nba/filters.js)
   ];
   const SYNC_META_KEY = "nfl-tool.sync-meta.v1"; // { key: last local save (ms) }
   const PUSH_DELAY_MS = 600;

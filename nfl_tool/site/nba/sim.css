@@ -427,3 +427,48 @@ table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; p
 }
 /* the main list: Tonight's Game band */
 .sim-group-row th.sim-hitgroup.rs-gamegroup span { background: rgba(150, 100, 220, 0.2); border-color: rgba(150, 100, 220, 0.45); }
+/* Filters (filters.js, the owner 2026-11-04): a bar under the toolbar; chips are shaded pills in their
+   group's color (blue = him, purple = the defense, green = reads, amber = the line, orange = tonight's game).
+   "Filters" folds open every number: columns of color-headed boxes, stacked tight ("too much dead space"). */
+#rs-filters { margin: 0 0 8px; }
+.rf-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 10px; background: var(--panel); border: 1px solid var(--border); }
+.rf-lbl { font: 800 0.8rem var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); margin-right: 2px; }
+.rf-gap { flex: 1 1 auto; }
+.rf-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 4px 3px 10px; border-radius: 999px; font: 700 0.82rem var(--font-body); color: var(--text);
+  background: hsla(var(--pill-h), 70%, 50%, 0.2); border: 1px solid hsla(var(--pill-h), 70%, 50%, 0.6); }
+.rf-chip b { font: 800 0.82rem var(--font-display); }
+.rf-chip button, .rf-x { border: 0; background: none; color: var(--text); cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 4px; }
+.rf-add { padding: 4px 12px; border-radius: 999px; cursor: pointer; font: 800 0.85rem var(--font-display); color: var(--text); background: rgba(var(--accent-rgb), 0.16); border: 1px solid rgba(var(--accent-rgb), 0.55); }
+.rf-add.on, .rf-add:hover { background: rgba(var(--accent-rgb), 0.3); }
+.rf-clear { border: 0; background: none; cursor: pointer; font: 700 0.8rem var(--font-body); color: var(--text); text-decoration: underline; }
+.rf-name input, .rf-in { font: 600 0.8rem var(--font-body); color: var(--text); background: var(--panel-2); border: 1px solid var(--border-strong); border-radius: 5px; padding: 2px 4px; }
+.rf-unit { font: 800 0.74rem var(--font-display); color: var(--text); }
+.rf-stats { display: inline-flex; gap: 4px; }
+.rf-stat { padding: 3px 10px; border-radius: 999px; cursor: pointer; font: 800 0.8rem var(--font-display); color: var(--text); opacity: 0.45; background: hsla(var(--pill-h), 70%, 50%, 0.18); border: 1px solid hsla(var(--pill-h), 70%, 50%, 0.5); }
+.rf-stat.on { opacity: 1; background: hsla(var(--pill-h), 70%, 50%, 0.3); }
+.rf-saved { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.rf-screen { display: inline-flex; align-items: center; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border-strong); }
+.rf-screen > button:first-child { border: 0; background: none; cursor: pointer; padding: 3px 4px 3px 10px; font: 800 0.8rem var(--font-display); color: var(--text); }
+.rf-name { display: inline-flex; gap: 4px; }
+.rf-name input { width: 150px; }
+/* the open panel: columns side by side, boxes stacked in each, every column's last box down to the bottom */
+.rf-panel { display: flex; align-items: stretch; gap: 6px; margin-top: 6px; overflow-x: auto; }
+.rf-col { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.rf-col > .rf-box:last-child { flex: 1 1 auto; }
+.rf-box { border-radius: 8px; background: var(--panel); border: 1px solid var(--border); overflow: hidden; padding-bottom: 2px; }
+.rf-bhead { padding: 3px 8px; font: 800 0.78rem var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); background: hsla(var(--pill-h, 210), 70%, 50%, 0.28); }
+.rf-bhead.rf-tab { background: rgba(var(--accent-rgb), 0.2); }
+.rf-line { display: grid; grid-template-columns: 104px 44px 44px 26px; align-items: center; gap: 3px; padding: 2px 6px; }
+.rf-l { font: 700 0.78rem var(--font-body); color: var(--text); white-space: nowrap; }
+.rf-in { width: 44px; box-sizing: border-box; padding: 2px 3px; }
+.rf-in::placeholder { font-size: 0.7rem; }
+.rf-line.on, .rf-pair.on { background: rgba(var(--accent-rgb), 0.14); }
+table.rf-grid { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; }
+table.rf-grid th { font: 800 0.7rem var(--font-display); text-transform: uppercase; color: var(--text); padding: 2px 4px; border-radius: 5px; }
+table.rf-grid th.rf-him { background: hsla(210, 70%, 50%, 0.25); }
+table.rf-grid th.rf-def { background: hsla(275, 70%, 50%, 0.25); }
+table.rf-grid td { padding: 1px 2px; border-radius: 5px; }
+table.rf-grid td.rf-l { padding-left: 6px; }
+table.rf-grid td.rf-pair { white-space: nowrap; }
+table.rf-grid td.rf-pair .rf-in { margin-right: 2px; }
+table.rf-grid td.rf-pair .rf-unit { display: inline-block; width: 12px; }

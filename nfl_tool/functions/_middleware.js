@@ -285,6 +285,7 @@ const SYNC_KEYS = new Set([
   "nfl-tool.updates-seen.v1",
   "nfl-tool.nhl-plays.v1",
   "nfl-tool.nba-plays.v1",
+  "nfl-tool.nba-screens.v1",
 ]);
 const SYNC_MAX_BYTES = 512 * 1024;
 

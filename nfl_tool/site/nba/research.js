@@ -290,7 +290,7 @@ function readsOf(x) {
   const key = openKey(x);
   if (READ_CACHE[key]) return READ_CACHE[key];
   const tabs = [...RS_TABS.left, ...RS_TABS.right].filter((t) => READ_TABS.includes(t));
-  const r = { o: 0, u: 0, n: 0, by: [] };
+  const r = { o: 0, u: 0, n: 0, by: [], nums: {} }; // nums: "<tab>|<row>" -> the row's numbers (filters)
   if (PROPS.research) {
     for (const t of tabs) {
       READS = [];
@@ -299,6 +299,7 @@ function readsOf(x) {
       const c = { t, o: got.filter((v) => v === "Over").length, u: got.filter((v) => v === "Under").length, n: got.length, na: got.filter((v) => v === "--").length };
       r.o += c.o; r.u += c.u; r.n += c.n;
       if (c.n) r.by.push(c);
+      for (const v of READS) if (v.num) r.nums[`${t}|${v.num.label}`] = v.num;
     }
     READS = null;
   }
@@ -324,8 +325,9 @@ function rowsOnAll(date) {
 const rowsToday = (date) => (ALL_PROPS ? rowsOnAll(date) : rowsOn(date));
 function sortedRows(date) {
   const key = SORTS[LIST.sort] || SORTS.line;
-  // started games at the bottom; a player with no line after the ones with one
-  return rowsToday(date).sort((a, b) => a.live - b.live || (a.line === null) - (b.line === null) || LIST.dir * (key(a) - key(b)) || (b.min || 0) - (a.min || 0));
+  // the member's filters (filters.js), then: started games at the bottom; a player with no line after the ones with one
+  const rows = typeof rfApply === "function" ? rfApply(rowsToday(date)) : rowsToday(date);
+  return rows.sort((a, b) => a.live - b.live || (a.line === null) - (b.line === null) || LIST.dir * (key(a) - key(b)) || (b.min || 0) - (a.min || 0));
 }
 
 // ---- the table ----
@@ -463,7 +465,12 @@ const T = (v, s, tip = "", cls = "") => `<div class="rs-t${cls ? ` ${cls}` : ""}
 // A Read tile. Every one goes through here so the list's O / U columns count exactly the reads the
 // panel shows (readsOf).
 let READS = null;
-const RT = (rd, tip) => { if (READS) READS.push(rd); return T(rd.t, rd.s, tip); };
+// `num`: the row's numbers for the filters: {label, him, hu, hr, def, du, dr} (his value, its unit "%" / "#",
+// his rank among his position; the defense's value, unit, rank of 30). Percents are 0-100.
+const RT = (rd, tip, num) => { if (READS) READS.push({ ...rd, num }); return T(rd.t, rd.s, tip); };
+const numOf = (v, show) => (v === null || v === undefined || Number.isNaN(v) ? null : show === pctT ? v * 100 : v);
+const unitOf = (show) => (show === pctT ? "%" : "#");
+const pairNum = (label, a, b) => ({ label, him: a.n, hu: a.u, hr: a.rank, def: b.n, du: b.u, dr: b.rank });
 const LB = (v, tip = "") => `<div class="rs-t rs-l"${tipAttr(tip)}>${v}</div>`;
 const HD = (v, kind, cls = "", tip = "") => `<div class="rs-t rs-h rs-${kind}${cls ? ` ${cls}` : ""}"${tipAttr(tip)}>${v}</div>`;
 // his jersey number on a jersey in his team's color (the owner, 2026-11-03: a long name hid the
@@ -629,7 +636,8 @@ function assistPosRows(x) {
     const i = POSITIONS.indexOf(target);
     const vals = astToPos(x.pid, i);
     const s = avg(vals), a10 = avg(vals.slice(-10)), a5 = avg(vals.slice(-5));
-    const hs = spread(s, pool.map(([id]) => avg(astToPos(id, i))));
+    const pv = pool.map(([id]) => avg(astToPos(id, i)));
+    const hs = spread(s, pv);
     const trend = (v, n) => { if (v === null || !s || n >= vals.length) return null; const rel = (v - s) / s / 0.3; return Math.abs(rel) < 0.2 ? null : rel; };
     const D = defAstToPos(i), opp = D.teams[x.opp];
     const rk = (w) => (opp && D.ranks[w].r[x.opp] ? rankSigned(D.ranks[w].r[x.opp], D.ranks[w].n) : null);
@@ -640,7 +648,8 @@ function assistPosRows(x) {
       + T(fmt(s), hs, `His assists a game to ${target}s this season, in ${vals.length} games (colored against the league's ${x.p.pos}s)`)
       + T(fmt(a10), trend(a10, 10), `His last ${Math.min(10, vals.length)} games (colored against his season)`) + T(fmt(a5), trend(a5, 5), `His last ${Math.min(5, vals.length)} games (colored against his season)`)
       + T(fmt(opp ? opp.season : null), rk("season"), dtip("season", "this season")) + T(fmt(opp ? opp.l10 : null), rk("l10"), dtip("l10", "in their last 10"))
-      + T(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5")) + RT(rd, rdTip[rd.t]);
+      + T(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5"))
+      + RT(rd, rdTip[rd.t], { label: `To ${target}`, him: s, hu: "#", hr: (rankIn(s, pv) || {}).r ?? null, def: opp ? opp.season : null, du: "#", dr: (opp && D.ranks.season.r[x.opp]) || null });
   });
 }
 
@@ -672,7 +681,8 @@ function formTab(x) {
     // against himself to see trends lately vs long term"). No real change = a plain tile, never a
     // middle color (with 10 games or fewer his L10 IS his season).
     const trend = (v, rows) => (rows.length >= log.length ? null : Math.abs(rel(v) ?? 0) < 0.2 ? null : rel(v));
-    const hs = spread(s, pool.map(([, q]) => get(q.log || [])));
+    const hv = pool.map(([, q]) => get(q.log || []));
+    const hs = spread(s, hv);
     let cells = T(fmt(s, d), hs, `His ${what}${ag} this season (colored against the league's ${x.p.pos}s)`)
       + T(fmt(a10, d), trend(a10, l10), `His last ${l10.length} games (colored against his season)`) + T(fmt(a5, d), trend(a5, l5), `His last ${l5.length} games (colored against his season)`);
     let ds = null;
@@ -689,7 +699,9 @@ function formTab(x) {
     const [up, down] = ag || /a 36/.test(what) ? [`more ${what}`, `fewer ${what}`] : [`a higher ${what}`, `a lower ${what}`];
     const rdTip = { Over: `The Over: one side points to ${up} for him and the other doesn't point against it`, Under: `The Under: one side points to ${down} for him and the other doesn't point against it`,
       Even: "The two sides don't line up one way", "--": key ? "Not enough data on one side yet" : "His number only: no defense side" };
-    cells += RT(rd, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`);
+    const u = d === 0 ? "%" : "#"; // the % rows are already 0-100
+    cells += RT(rd, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`, { label, him: s, hu: u, hr: (rankIn(s, hv) || {}).r ?? null,
+      def: key && opp.season ? opp.season[key] : null, du: u, dr: key && opp.season ? D.ranks.season[key].r[x.opp] || null : null });
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}${ag}`) + cells;
   });
   const head = corner(x) + HD("Season", "him") + HD("L10", "him") + HD("L5", "him") + HD("Season", "def", "", `What ${team(x.opp).name} allow ${x.p.pos}s`) + HD("L10", "def") + HD("L5", "def") + HD("Read", "rd");
@@ -711,7 +723,8 @@ function scoringTab(x) {
     const rk = rankIn(v, vals), s = spread(v, vals), ds = rankSigned(dr.r[x.opp], dr.n), rd = readOf(s, ds);
     return LB(label, tip) + T(pctT(v), s, tip) + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "") + T(ppg === null ? "--" : fmt(ppg), ppg === null ? null : s, ppg === null ? "" : `${fmt(ppg)} points a game`)
       + T(pctT(dv), ds, `${team(x.opp).name}: ${dtip}`) + T(dr.r[x.opp] ? ordinal(dr.r[x.opp]) : "--", ds, dr.r[x.opp] ? `${rankWords(dr.r[x.opp], dr.n)}` : "")
-      + T(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`) + RT(rd, READ_TIP[rd.t]);
+      + T(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`)
+      + RT(rd, READ_TIP[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr.r[x.opp] || null });
   };
   const rows = [
     row("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), opp.shot, DS.rankOf((t) => t.shot), null, null,
@@ -749,8 +762,8 @@ function matchupTab(x) {
   // the other team's players at his position: free throws they draw a game (they attack him)
   const draws = teamRanks((t) => { const rows = Object.values(seasonBlock().players).filter((q) => q.team === t && q.pos === x.p.pos).flatMap((q) => q.log || []); const n = new Set(rows.map((r) => r[f.game])).size; return n ? rows.reduce((a, r) => a + (r[f.fta] || 0), 0) / n : null; });
   // each side: the value and its rank (no average columns: the owner, 2026-11-03, they misled)
-  const him = (v, vals, show, flip = false) => { const rk = rankIn(v, vals); const s = spread(v, vals); return { s: s === null ? null : flip ? -s : s, v: show(v), r: rk ? `${ordinal(rk.r)}` : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "" }; };
-  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${ordinal(rk.r[t])} of ${rk.n}` : "" }; };
+  const him = (v, vals, show, flip = false) => { const rk = rankIn(v, vals); const s = spread(v, vals); return { s: s === null ? null : flip ? -s : s, v: show(v), r: rk ? `${ordinal(rk.r)}` : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "", n: numOf(v, show), u: unitOf(show), rank: rk ? rk.r : null }; };
+  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${ordinal(rk.r[t])} of ${rk.n}` : "", n: numOf(rk.v[t], show), u: unitOf(show), rank: rk.r[t] || null }; };
   const ROWS = [
     ["Points", "His points a game / what the defense allows his position a game", him(perG(logOf(x.pid), "pts"), pool.map(([, q]) => perG(q.log || [], "pts")), (v) => fmt(v)), them(ptsAllowed, opp, (v) => fmt(v))],
     ["Free Throws", "His free throws tried a game / what the defense allows his position", him(perG(logOf(x.pid), "fta"), pool.map(([, q]) => perG(q.log || [], "fta")), (v) => fmt(v)), them(ftAllowed, opp, (v) => fmt(v))],
@@ -761,7 +774,7 @@ function matchupTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP[rd.t], pairNum(label, a, b));
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD("Allows", "def") + HD("Rank", "def") + HD("Read", "rd");
   // five columns across the same box (every row full, so no blank rows to span)
@@ -1001,7 +1014,7 @@ function shootingTab(x) {
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} made a game this way`)
       + T(pctT(dv), ds, dtip) + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dmg)} made a game this way`)
-      + RT(rd, READ_TIP3[rd.t]);
+      + RT(rd, READ_TIP3[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr || null });
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("3PM / G", "him") + HD("Allowed", "def") + HD("Rank", "def") + HD("3PM / G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: true });
@@ -1158,11 +1171,11 @@ function reboundingTab(x) {
   const tv = (get) => (t) => { const a = TR[t]; return a && a[0] ? get(a) : null; };
   const him = (get, show) => {
     const v = get(x.pid), vals = pool.map(([id]) => get(id)), rk = rankIn(v, vals), s = spread(v, vals);
-    return { s, v: show(v), r: rk ? ordinal(rk.r) : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "" };
+    return { s, v: show(v), r: rk ? ordinal(rk.r) : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "", n: numOf(v, show), u: unitOf(show), rank: rk ? rk.r : null };
   };
   const them = (rk, t, show, flip = false) => {
     const s = rankSigned(rk.r[t], rk.n);
-    return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${rankWords(rk.r[t], rk.n)}` : "" };
+    return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${rankWords(rk.r[t], rk.n)}` : "", n: numOf(rk.v[t], show), u: unitOf(show), rank: rk.r[t] || null };
   };
   const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
   const name = team(x.opp).name;
@@ -1180,7 +1193,7 @@ function reboundingTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_R[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_R[rd.t], pairNum(label, a, b));
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
@@ -1220,7 +1233,7 @@ function missZonesTab(x) {
       + T(pctT(dv), ds, `Share of ${team(x.opp).name}'s rebounded misses that are ${what}`)
       + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} leave ${fmt(dmg)} ${what} a game`)
-      + RT(rd, READ_TIP_R[rd.t]);
+      + RT(rd, READ_TIP_R[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr || null });
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("DREB / G", "him") + HD("Misses", "def", "", `Where ${team(x.opp).name} miss from`) + HD("Rank", "def") + HD("Per G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1 });
@@ -1284,11 +1297,11 @@ function playmakingTab(x) {
   const assistedAllowed = (t) => { const by = DP[t]; if (!by) return null; let m = 0, a = 0; for (const v of Object.values(by)) { m += v[4]; a += v[5]; } return m ? a / m : null; };
   const him = (get, show) => {
     const v = get(x.pid), vals = pool.map(([id]) => get(id)), rk = rankIn(v, vals), s = spread(v, vals);
-    return { s, v: show(v), r: rk ? ordinal(rk.r) : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "" };
+    return { s, v: show(v), r: rk ? ordinal(rk.r) : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "", n: numOf(v, show), u: unitOf(show), rank: rk ? rk.r : null };
   };
   const them = (rk, t, show) => {
     const s = rankSigned(rk.r[t], rk.n);
-    return { s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? rankWords(rk.r[t], rk.n) : "" };
+    return { s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? rankWords(rk.r[t], rk.n) : "", n: numOf(rk.v[t], show), u: unitOf(show), rank: rk.r[t] || null };
   };
   const name = team(x.opp).name;
   const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
@@ -1304,7 +1317,7 @@ function playmakingTab(x) {
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_A[rd.t]);
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_A[rd.t], pairNum(label, a, b));
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
@@ -1341,7 +1354,7 @@ function assistZonesTab(x) {
       + T(pctT(dv), ds, `Share of the assisted makes against ${team(x.opp).name} that are ${what}`)
       + T(dr ? ordinal(dr) : "--", ds, dr ? rankWords(dr, sorted.length) : "")
       + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} give up ${fmt(dmg)} assisted ${what} a game`)
-      + RT(rd, READ_TIP_A[rd.t]);
+      + RT(rd, READ_TIP_A[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr || null });
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("AST / G", "him") + HD("Allowed", "def", "", `Where ${team(x.opp).name} give up assisted makes`) + HD("Rank", "def") + HD("Per G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: true });
@@ -1479,6 +1492,11 @@ function renderList() {
   const at = DATA.generated_at ? new Date(DATA.generated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
   const what = ALL_PROPS ? `line${lined === 1 ? "" : "s"} across Points, Threes, Assists and Rebounds` : `player${lined === 1 ? "" : "s"} with a ${MK.unit.toLowerCase()} line`;
   el("rs-note").innerHTML = `${lined} ${what}${at ? ` &middot; lines and injury report as of ${at}` : ""} &middot; check the injury report before you bet: NBA lineups change late`;
+  if (typeof rfRender === "function") rfRender();
+  if (!rows.length && typeof RF !== "undefined" && (RF.on.length || RF.stats.length)) {
+    el("rs-list").innerHTML = '<p class="sim-noplay">No player matches these filters. <button type="button" class="view-toggle-btn" data-rf-clear-list>Clear Filters</button></p>';
+    return;
+  }
   if (!rows.length) {
     const noOdds = !Object.keys(DATA.book_odds || {}).length;
     el("rs-list").innerHTML = `<p class="sim-noplay">${noOdds || !LIST.every ? "The books haven't posted these lines yet." : "No player matches these filters."}${!LIST.every ? ' <button type="button" class="view-toggle-btn" data-list-every="true">Show Every Player</button>' : ""}</p>`;

@@ -765,6 +765,97 @@ class AllProps(unittest.TestCase):
         self.assertIn('data-market="all"', (site / "all-props.html").read_text(encoding="utf-8"))
 
 
+class Filters(unittest.TestCase):
+    """The owner, 2026-11-04: a min and a max for every number in the list and every panel row with a Read
+    (the defense as a rank AND its raw number), the right unit on each, combos saved to the account;
+    the fold-open panel picked from two mock-ups, stacked tight."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.page = SITE.open("nba/points.html")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+        cls.page.click("[data-list-every='true']")
+        cls.page.wait_for_selector("#rs-filters [data-rf-toggle]")
+
+    def names(self):
+        return [r[0].split(" PG")[0].split(" SF")[0].split(" SG")[0].strip() for r in rows(self.page)]
+
+    def set_box(self, field, which, value):
+        box = self.page.locator(f"#rs-filters [data-rf-id='{field}'] .rf-in[data-rf-which='{which}']")
+        box.fill(str(value))
+        box.dispatch_event("change")
+
+    def tearDown(self):
+        self.page.evaluate("() => { RF.on = []; RF.stats = []; RF.open = false; localStorage.removeItem('nfl-tool.nba-screens.v1'); renderList(); rfRender(true); }")
+
+    def test_every_number_has_a_min_and_max_with_its_unit(self):
+        page = self.page
+        page.click("#rs-filters [data-rf-toggle]")
+        heads = page.evaluate("() => [...document.querySelectorAll('#rs-filters .rf-bhead')].map((h) => h.textContent)")
+        for g in ("The Line", "His Numbers", "Defense", "Reads", "Tonight's Game", "Form", "Scoring", "Matchup"):
+            self.assertIn(g, heads)
+        unit = lambda fid: page.evaluate(f"() => document.querySelector(\"#rs-filters [data-rf-id='{fid}'] .rf-unit\").textContent")  # noqa: E731
+        self.assertEqual(unit("vol"), "%")           # a share
+        self.assertEqual(unit("allowRank"), "rank")  # a rank of 30
+        self.assertEqual(unit("allow"), "")          # a raw number
+        self.assertEqual(unit("p|Scoring|Paint|def"), "%")
+        # the panel rows: his number, his rank, the defense's number and its rank, each a min and a max
+        self.assertEqual(page.locator("#rs-filters [data-rf-id^='p|Matchup|Points|'] .rf-in").count(), 8)
+        self.assertEqual(SITE.errors, [])
+
+    def test_list_and_panel_filters_narrow_the_list(self):
+        page = self.page
+        page.click("#rs-filters [data-rf-toggle]")
+        before = self.names()
+        self.assertGreater(len(before), 1)
+        self.set_box("avg", "min", 15)  # Player One 20 a game; the others under 15
+        self.assertEqual(self.names(), ["Player One"])
+        self.assertIn("Avg", page.inner_text("#rs-filters .rf-chip"))
+        page.click("#rs-filters [data-rf-clear]")
+        self.assertEqual(len(self.names()), len(before))
+        self.set_box("p|Form|PTS|him", "min", 15)  # the same through his Form panel row
+        self.assertEqual(self.names(), ["Player One"])
+        self.set_box("p|Form|PTS|him", "max", 10)  # nobody: 15 or more AND 10 or less
+        self.assertIn("No player matches these filters", page.inner_text("#rs-list"))
+        page.click("[data-rf-clear-list]")
+        self.assertEqual(len(self.names()), len(before))
+        self.assertEqual(SITE.errors, [])
+
+    def test_a_screen_saves_to_the_account_and_comes_back(self):
+        page = self.page
+        page.click("#rs-filters [data-rf-toggle]")
+        self.set_box("avg", "min", 15)
+        page.click("#rs-filters [data-rf-naming]")
+        page.fill("#rf-name", "Big Scorers")
+        page.click("#rs-filters [data-rf-save]")
+        saved = page.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.nba-screens.v1'))")
+        self.assertEqual([(s["page"], s["name"], s["filters"]) for s in saved], [("points", "Big Scorers", [{"id": "avg", "min": 15, "max": None}])])
+        page.click("#rs-filters [data-rf-clear]")
+        page.click("#rs-filters [data-rf-load]")
+        self.assertEqual(self.names(), ["Player One"])
+        # synced like saved plays: in sync.js KEYS and the middleware's SYNC_KEYS
+        for f in ("nfl_tool/site/sync.js", "nfl_tool/functions/_middleware.js"):
+            self.assertIn('"nfl-tool.nba-screens.v1"', (ROOT / f).read_text(encoding="utf-8"))
+        self.assertEqual(SITE.errors, [])
+
+    def test_all_props_has_the_list_numbers_and_stat_toggles(self):
+        page = SITE.open("nba/all-props.html")
+        try:
+            page.wait_for_selector("#rs-list tr.sim-row")
+            page.click("#rs-filters [data-rf-toggle]")
+            self.assertEqual(page.locator("#rs-filters .rf-grid").count(), 0)  # no panel rows: they differ by stat
+            self.assertEqual(page.locator("#rs-filters [data-rf-id='vol']").count(), 0)
+            stats = lambda: page.evaluate("() => [...document.querySelectorAll('#rs-list .rs-stat-pill')].map((p) => p.textContent).sort()")  # noqa: E731
+            self.assertEqual(stats(), ["Points", "Rebounds"])
+            page.click("#rs-filters [data-rf-stat='points']")  # Points off
+            self.assertEqual(stats(), ["Rebounds"])
+            page.click("#rs-filters [data-rf-stat='points']")  # back on
+            self.assertEqual(stats(), ["Points", "Rebounds"])
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
+
 class Pages(unittest.TestCase):
     def test_four_tabs_and_the_retired_pages_forward(self):
         site = ROOT / "nfl_tool" / "site" / "nba"
