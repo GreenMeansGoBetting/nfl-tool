@@ -1443,11 +1443,14 @@ function setMarket(m) {
   RS_TABS = tabsFor();
   RS_TAB.Teammates = THREES ? teammates3Tab : REBS ? teammatesRebTab : ASTS ? teammatesAstTab : teammatesTab;
   RS_TAB_TIP = { ...BASE_TIPS, ...(ASTS ? ASTS_TIPS : REBS ? REBS_TIPS : THREES ? THREES_TIPS : {}) };
-  for (const side of ["left", "right"]) if (!RS_TABS[side].includes(RSV[side])) RSV[side] = side === "left" ? "Form" : "Vs The Line";
   if (!ALL_PROPS || !COLS.length) COLS = colsFor();
 }
 setMarket(MK.market);
-const sandbox = (x, side) => `<div class="rs-sb" data-side="${side}"><div class="rs-tabs">${RS_TABS[side].map((t) => `<button type="button" class="${t === RSV[side] ? "on" : ""}" data-rs-tab="${side}:${t}" title="${RS_TAB_TIP[t]}">${t}</button>`).join("")}</div><div class="rs-sbody">${RS_TAB[RSV[side]](x)}</div></div>`;
+// The tab picked stays picked (RSV); a market without it shows its first tab. setMarket never changes
+// RSV: All Props switches markets for every row on every redraw, and that undid a click on a Threes-only
+// tab (the owner, 2026-11-04: Braun's Shot Map wouldn't open).
+const tabOf = (side) => (RS_TABS[side].includes(RSV[side]) ? RSV[side] : RS_TABS[side][0]);
+const sandbox = (x, side) => `<div class="rs-sb" data-side="${side}"><div class="rs-tabs">${RS_TABS[side].map((t) => `<button type="button" class="${t === tabOf(side) ? "on" : ""}" data-rs-tab="${side}:${t}" title="${RS_TAB_TIP[t]}">${t}</button>`).join("")}</div><div class="rs-sbody">${RS_TAB[tabOf(side)](x)}</div></div>`;
 // Redraw one box of the open panel (a tab click, or the shot charts arriving for the Shot Map).
 function refreshBox(side) {
   const box = document.querySelector(`#rs-list .rs-sb[data-side="${side}"]`);

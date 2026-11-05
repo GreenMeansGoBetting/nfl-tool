@@ -742,6 +742,22 @@ class AllProps(unittest.TestCase):
             page.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); const m = document.getElementById('book-odds-modal'); if (m) m.hidden = true; OPEN = ''; renderList(); }")
         self.assertEqual(SITE.errors, [])
 
+    def test_a_tab_only_one_stat_has_opens(self):
+        # The owner, 2026-11-04: Braun's Shot Map (a Threes-only tab) wouldn't open on All Props; every redraw
+        # switched through Points first, which has no such tab, and that reset the click.
+        page = self.page
+        try:
+            page.click("#rs-list tr.sim-row:has(.rs-stat-pill:text-is('Rebounds')) td.rs-line")
+            page.wait_for_selector("#rs-list [data-rs-tab='left:Miss Zones']")
+            page.click("#rs-list [data-rs-tab='left:Miss Zones']")
+            on = page.evaluate("() => document.querySelector('#rs-list .rs-sb[data-side=left] .rs-tabs .on').textContent")
+            self.assertEqual(on, "Miss Zones")
+            page.evaluate("() => renderList()")  # a redraw (a sort, a save) keeps it
+            self.assertEqual(page.evaluate("() => document.querySelector('#rs-list .rs-sb[data-side=left] .rs-tabs .on').textContent"), "Miss Zones")
+        finally:
+            page.evaluate("() => { RSV.left = 'Form'; OPEN = ''; renderList(); }")
+        self.assertEqual(SITE.errors, [])
+
     def test_in_the_menu_and_a_tab_on_every_research_page(self):
         site = ROOT / "nfl_tool" / "site" / "nba"
         for name in ("points", "threes", "rebounds", "assists"):
