@@ -10353,7 +10353,7 @@
    ],
    "3975": [
     "Stephen Curry",
-    0.098,
+    0.095,
     null,
     false,
     null
@@ -10361,6 +10361,13 @@
    "4066261": [
     "Bam Adebayo",
     0.133,
+    null,
+    false,
+    null
+   ],
+   "4066436": [
+    "De'Anthony Melton",
+    0.071,
     null,
     false,
     null
@@ -10374,21 +10381,14 @@
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.088,
-    null,
-    false,
-    null
-   ],
-   "4997536": [
-    "Gui Santos",
-    0.063,
+    0.086,
     null,
     false,
     null
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.081,
+    0.08,
     null,
     false,
     null
@@ -10402,7 +10402,7 @@
    ],
    "6589": [
     "Draymond Green",
-    0.058,
+    0.056,
     null,
     false,
     null

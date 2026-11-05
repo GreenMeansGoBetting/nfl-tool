@@ -5594,73 +5594,73 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.4053,
+    "lead": 0.4036,
     "name": "Giannis Antetokounmpo",
     "proj": 46.0,
     "team": "MIA"
    },
    {
     "id": "3975",
-    "lead": 0.2768,
+    "lead": 0.2726,
     "name": "Stephen Curry",
     "proj": 42.2,
     "team": "GS"
    },
    {
     "id": "4566434",
-    "lead": 0.0833,
+    "lead": 0.0876,
     "name": "Franz Wagner",
     "proj": 34.0,
     "team": "ORL"
    },
    {
     "id": "5175737",
-    "lead": 0.0655,
+    "lead": 0.0605,
     "name": "Yaxel Lendeborg",
     "proj": 32.4,
     "team": "GS"
    },
    {
     "id": "3136193",
-    "lead": 0.0405,
+    "lead": 0.0404,
     "name": "Devin Booker",
     "proj": 30.5,
     "team": "PHX"
    },
    {
     "id": "4709138",
-    "lead": 0.0318,
+    "lead": 0.0376,
     "name": "Brandin Podziemski",
     "proj": 29.5,
     "team": "GS"
    },
    {
     "id": "4066383",
-    "lead": 0.0242,
+    "lead": 0.0263,
     "name": "Miles Bridges",
     "proj": 28.2,
     "team": "PHX"
    },
    {
     "id": "4066261",
-    "lead": 0.0162,
+    "lead": 0.0141,
     "name": "Bam Adebayo",
     "proj": 26.5,
     "team": "MIA"
    },
    {
-    "id": "4712849",
-    "lead": 0.0142,
-    "name": "Anthony Black",
-    "proj": 26.3,
-    "team": "ORL"
-   },
-   {
     "id": "4278053",
-    "lead": 0.0137,
+    "lead": 0.0138,
     "name": "Davion Mitchell",
     "proj": 26.4,
     "team": "MIA"
+   },
+   {
+    "id": "4712849",
+    "lead": 0.0136,
+    "name": "Anthony Black",
+    "proj": 26.3,
+    "team": "ORL"
    },
    {
     "id": "3155526",
@@ -5671,52 +5671,59 @@
    },
    {
     "id": "4066320",
-    "lead": 0.0076,
+    "lead": 0.0075,
     "name": "Desmond Bane",
     "proj": 24.2,
     "team": "ORL"
    },
    {
     "id": "4277847",
-    "lead": 0.0063,
+    "lead": 0.0072,
     "name": "Wendell Carter Jr.",
     "proj": 24.0,
     "team": "ORL"
    },
    {
-    "id": "4066436",
-    "lead": 0.001,
-    "name": "De'Anthony Melton",
-    "proj": 19.0,
-    "team": "GS"
-   },
-   {
-    "id": "4601025",
-    "lead": 0.0007,
-    "name": "Pelle Larsson",
-    "proj": 19.3,
-    "team": "MIA"
-   },
-   {
     "id": "4702382",
-    "lead": 0.0005,
+    "lead": 0.0009,
     "name": "Tristan da Silva",
     "proj": 19.3,
     "team": "ORL"
    },
    {
+    "id": "4066436",
+    "lead": 0.0008,
+    "name": "De'Anthony Melton",
+    "proj": 19.0,
+    "team": "GS"
+   },
+   {
+    "id": "4437244",
+    "lead": 0.0007,
+    "name": "Jalen Green",
+    "proj": 17.5,
+    "team": "PHX"
+   },
+   {
     "id": "4397040",
-    "lead": 0.0004,
+    "lead": 0.0006,
     "name": "Brandon Williams",
     "proj": 18.4,
     "team": "GS"
    },
    {
-    "id": "4437244",
-    "lead": 0.0003,
-    "name": "Jalen Green",
-    "proj": 17.5,
-    "team": "PHX"
+    "id": "4601025",
+    "lead": 0.0005,
+    "name": "Pelle Larsson",
+    "proj": 19.3,
+    "team": "MIA"
+   },
+   {
+    "id": "3064482",
+    "lead": 0.0002,
+    "name": "Bobby Portis",
+    "proj": 17.1,
+    "team": "MIA"
    },
    {
     "id": "4601023",
@@ -5726,17 +5733,17 @@
     "team": "PHX"
    },
    {
-    "id": "6475",
+    "id": "6589",
     "lead": 0.0001,
-    "name": "Klay Thompson",
-    "proj": 15.0,
-    "team": "MIA"
+    "name": "Draymond Green",
+    "proj": 14.5,
+    "team": "GS"
    },
    {
-    "id": "3064482",
+    "id": "6475",
     "lead": 0.0,
-    "name": "Bobby Portis",
-    "proj": 17.1,
+    "name": "Klay Thompson",
+    "proj": 15.0,
     "team": "MIA"
    },
    {
@@ -5745,13 +5752,6 @@
     "name": "Khaman Maluach",
     "proj": 14.5,
     "team": "PHX"
-   },
-   {
-    "id": "6589",
-    "lead": 0.0,
-    "name": "Draymond Green",
-    "proj": 14.5,
-    "team": "GS"
    },
    {
     "id": "4278585",
@@ -5766,20 +5766,6 @@
     "name": "Andrew Wiggins",
     "proj": 14.2,
     "team": "MIA"
-   },
-   {
-    "id": "4278402",
-    "lead": 0.0,
-    "name": "Jordan Goodwin",
-    "proj": 13.2,
-    "team": "PHX"
-   },
-   {
-    "id": "4997536",
-    "lead": 0.0,
-    "name": "Gui Santos",
-    "proj": 12.5,
-    "team": "GS"
    },
    {
     "id": "3913174",
