@@ -11799,12 +11799,232 @@
  },
  "401909936": {
   "date": "2026-11-05",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "PHX",
+    -0.1216,
+    "under",
+    true,
+    22.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "PHX",
+    0.1252,
+    "over",
+    true,
+    14.5,
+    -106,
+    "draftkings"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "PHX",
+    0.0774,
+    "over",
+    false,
+    8.5,
+    -115,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3136193",
+    "Devin Booker",
+    "PHX",
+    "ORL",
+    0.1757,
+    "over",
+    true,
+    1.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "3155526",
+    "Dillon Brooks",
+    "PHX",
+    "ORL",
+    -0.3312,
+    "under",
+    true,
+    1.5,
+    127,
+    "novig"
+   ],
+   [
+    "4066320",
+    "Desmond Bane",
+    "ORL",
+    "PHX",
+    0.3564,
+    "over",
+    true,
+    3.5,
+    135,
+    "pinnacle"
+   ],
+   [
+    "4066383",
+    "Miles Bridges",
+    "PHX",
+    "ORL",
+    -0.3072,
+    "under",
+    true,
+    1.5,
+    133,
+    "novig"
+   ],
+   [
+    "4437244",
+    "Jalen Green",
+    "PHX",
+    "ORL",
+    0.1954,
+    "over",
+    true,
+    1.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "PHX",
+    0.4758,
+    "over",
+    true,
+    1.5,
+    120,
+    "fanatics"
+   ],
+   [
+    "4702382",
+    "Tristan da Silva",
+    "ORL",
+    "PHX",
+    0.3645,
+    "over",
+    true,
+    2.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "PHX",
+    0.306,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "PHX",
+    0.2324,
+    "over",
+    true,
+    0.5,
+    -190,
+    "fanatics"
+   ]
+  ]
  },
  "401909937": {
   "date": "2026-11-05",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3975",
+    "Stephen Curry",
+    "GS",
+    "MIA",
+    0.2439,
+    "over",
+    true,
+    26.5,
+    -114,
+    "pinnacle"
+   ],
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "MIA",
+    0.2798,
+    "over",
+    true,
+    10.5,
+    -106,
+    "fanduel"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "MIA",
+    0.2095,
+    "over",
+    true,
+    15.5,
+    -125,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "3975",
+    "Stephen Curry",
+    "GS",
+    "MIA",
+    0.422,
+    "over",
+    true,
+    3.5,
+    -160,
+    "hard_rock"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "MIA",
+    0.3298,
+    "over",
+    true,
+    2.5,
+    138,
+    "pinnacle"
+   ],
+   [
+    "5175737",
+    "Yaxel Lendeborg",
+    "GS",
+    "MIA",
+    0.1026,
+    "over",
+    false,
+    1.5,
+    -145,
+    "fanatics"
+   ]
+  ]
  }
 }
