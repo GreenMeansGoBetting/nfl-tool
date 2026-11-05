@@ -1625,14 +1625,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-5.5,
+5.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 208.5,
 "total_odds": [
 null,
 null
@@ -1644,8 +1644,14 @@ null
 0.6806,
 0.3194
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5044,
+0.4956
+],
+"total": [
+0.5172,
+0.4828
+]
 },
 "fair_spread": 5.6,
 "home": "CHA",
@@ -1763,14 +1769,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-1.5,
+1.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
 null,
 null
@@ -1782,8 +1788,14 @@ null
 0.4626,
 0.5374
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4133,
+0.5867
+],
+"total": [
+0.4804,
+0.5196
+]
 },
 "fair_spread": -1.1,
 "home": "CLE",
@@ -1901,14 +1913,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+7.5,
+-7.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 223.5,
 "total_odds": [
 null,
 null
@@ -1920,8 +1932,14 @@ null
 0.3363,
 0.6637
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5803,
+0.4197
+],
+"total": [
+0.5915,
+0.4085
+]
 },
 "fair_spread": -5.1,
 "home": "DAL",
@@ -2039,14 +2057,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-4.5,
+4.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 227.5,
 "total_odds": [
 null,
 null
@@ -2058,8 +2076,14 @@ null
 0.3802,
 0.6198
 ],
-"spread": null,
-"total": null
+"spread": [
+0.2483,
+0.7517
+],
+"total": [
+0.3961,
+0.6039
+]
 },
 "fair_spread": -3.7,
 "home": "MEM",
@@ -2177,14 +2201,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-7.5,
+7.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 232.5,
 "total_odds": [
 null,
 null
@@ -2196,8 +2220,14 @@ null
 0.7295,
 0.2705
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4945,
+0.5055
+],
+"total": [
+0.5289,
+0.4711
+]
 },
 "fair_spread": 7.3,
 "home": "MIL",
@@ -2315,14 +2345,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-3.5,
+3.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
 null,
 null
@@ -2334,8 +2364,14 @@ null
 0.5646,
 0.4354
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4486,
+0.5514
+],
+"total": [
+0.7343,
+0.2657
+]
 },
 "fair_spread": 2.0,
 "home": "NO",
@@ -2453,14 +2489,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+2.5,
+-2.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 231.5,
 "total_odds": [
 null,
 null
@@ -2472,8 +2508,14 @@ null
 0.4669,
 0.5331
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5498,
+0.4502
+],
+"total": [
+0.5558,
+0.4442
+]
 },
 "fair_spread": -1.0,
 "home": "LAL",
@@ -2591,14 +2633,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-14.5,
+14.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 227.5,
 "total_odds": [
 null,
 null
@@ -2610,8 +2652,14 @@ null
 0.8282,
 0.1718
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3969,
+0.6031
+],
+"total": [
+0.5557,
+0.4443
+]
 },
 "fair_spread": 11.4,
 "home": "SAC",
@@ -8654,12 +8702,12 @@ null
 ],
 "spread_odds": [
 -111,
-104
+106
 ],
-"total": 223.5,
+"total": 221.5,
 "total_odds": [
-104,
--113
+102,
+-104
 ]
 },
 "date": "2026-11-05",
@@ -8673,8 +8721,8 @@ null
 0.5363
 ],
 "total": [
-0.539,
-0.461
+0.5828,
+0.4172
 ]
 },
 "fair_spread": -2.6,
@@ -8789,20 +8837,20 @@ null
 "away": "MIA",
 "book": {
 "ml": [
-245,
--251
+223,
+-233
 ],
 "spread": [
 7.5,
 -7.5
 ],
 "spread_odds": [
--108,
-104
+-111,
+108
 ],
-"total": 235.5,
+"total": 233.5,
 "total_odds": [
-104,
+108,
 -113
 ]
 },
@@ -8817,8 +8865,8 @@ null
 0.3329
 ],
 "total": [
-0.4582,
-0.5418
+0.5024,
+0.4976
 ]
 },
 "fair_spread": -2.3,

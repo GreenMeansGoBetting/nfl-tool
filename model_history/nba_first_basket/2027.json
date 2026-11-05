@@ -10335,7 +10335,7 @@
    "4066320": [
     "Desmond Bane",
     0.092,
-    750,
+    700,
     false,
     "hard_rock"
    ],
@@ -10363,30 +10363,30 @@
    "4566434": [
     "Franz Wagner",
     0.113,
-    700,
+    650,
     false,
     "bet365"
    ],
    "4712849": [
     "Anthony Black",
     0.085,
-    900,
+    930,
     false,
-    "thescore"
+    "draftkings"
    ],
    "5203685": [
     "Khaman Maluach",
     0.083,
-    1190,
+    1200,
     false,
-    "fliff"
+    "hard_rock"
    ],
    "5239561": [
     "Jase Richardson",
     0.072,
-    1400,
+    1420,
     false,
-    "fanduel"
+    "draftkings"
    ]
   },
   "tip_home": 0.58
@@ -10410,9 +10410,9 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.157,
-    375,
+    394,
     false,
-    "bet365"
+    "draftkings"
    ],
    "3059319": [
     "Andrew Wiggins",
@@ -10424,14 +10424,14 @@
    "3975": [
     "Stephen Curry",
     0.094,
-    780,
+    800,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4066261": [
     "Bam Adebayo",
     0.133,
-    550,
+    525,
     false,
     "bet365"
    ],
@@ -10459,14 +10459,14 @@
    "5175737": [
     "Yaxel Lendeborg",
     0.079,
-    1000,
+    900,
     false,
     "bet365"
    ],
    "6475": [
     "Klay Thompson",
     0.093,
-    2500,
+    2000,
     true,
     "hard_rock"
    ],
