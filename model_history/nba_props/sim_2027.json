@@ -28429,9 +28429,9 @@
     "u",
     2.5,
     120,
-    "fanatics",
-    0.5444,
-    0.0899,
+    "draftkings",
+    0.5588,
+    0.1043,
     "strong",
     "proof",
     true,
@@ -28443,10 +28443,10 @@
     "5239561",
     "o",
     2.5,
-    100,
-    "fanatics",
-    0.5638,
-    0.0638,
+    102,
+    "novig",
+    0.5874,
+    0.0924,
     "strong",
     "proof",
     true,
@@ -28455,13 +28455,43 @@
     ]
    ],
    [
-    "4066320",
+    "4437244",
     "o",
     3.5,
-    130,
+    144,
     "novig",
-    0.4935,
-    0.0587,
+    0.5015,
+    0.0917,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "3155526",
+    "o",
+    2.5,
+    150,
+    "novig",
+    0.4895,
+    0.0895,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4712849",
+    "o",
+    4.5,
+    120,
+    "hard_rock",
+    0.5401,
+    0.0856,
     "strong",
     "proof",
     true,
@@ -28476,12 +28506,27 @@
     "5203685",
     "o",
     5.5,
-    100,
-    "fanatics",
-    0.5845,
-    0.0845,
+    -104,
+    "fanduel",
+    0.623,
+    0.1132,
     "strong",
     "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4702382",
+    "o",
+    12.5,
+    111,
+    "novig",
+    0.5292,
+    0.0553,
+    "strong",
+    "close",
     true,
     [
      "rest_edge"
@@ -28490,13 +28535,73 @@
   ],
   "rebounds": [
    [
+    "4566434",
+    "u",
+    5.5,
+    122,
+    "novig",
+    0.5014,
+    0.0509,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
     "3155526",
     "o",
     4.5,
-    130,
-    "hard_rock",
-    0.5021,
-    0.0673,
+    128,
+    "fanduel",
+    0.4887,
+    0.0501,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "5239561",
+    "o",
+    2.5,
+    -105,
+    "thescore",
+    0.561,
+    0.0488,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "5203685",
+    "o",
+    5.5,
+    104,
+    "novig",
+    0.5365,
+    0.0463,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4437244",
+    "o",
+    3.5,
+    100,
+    "fanatics",
+    0.5416,
+    0.0416,
     "strong",
     "proof",
     true,
@@ -28508,14 +28613,74 @@
   "threes": [
    [
     "3136193",
+    "o",
+    1.5,
+    -115,
+    "fanatics",
+    0.5914,
+    0.0565,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4277847",
+    "u",
+    0.5,
+    125,
+    "thescore",
+    0.4954,
+    0.051,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "3155526",
     "u",
     1.5,
-    100,
-    "prophetx",
-    0.5768,
-    0.0768,
+    135,
+    "novig",
+    0.4698,
+    0.0443,
     "strong",
-    "proof",
+    "close",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4702382",
+    "o",
+    2.5,
+    110,
+    "fanatics",
+    0.5191,
+    0.0429,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4566434",
+    "o",
+    1.5,
+    125,
+    "novig",
+    0.4862,
+    0.0418,
+    "strong",
+    "close",
     true,
     [
      "rest_edge"
@@ -28526,13 +28691,30 @@
  "401909937": {
   "assists": [
    [
+    "4066261",
+    "u",
+    3.5,
+    123,
+    "caesars",
+    0.5795,
+    0.1311,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "ot_win",
+     "close_win"
+    ]
+   ],
+   [
     "3975",
     "u",
     4.5,
-    115,
-    "hard_rock",
-    0.5766,
-    0.1115,
+    117,
+    "caesars",
+    0.5819,
+    0.1211,
     "strong",
     "proof",
     true,
@@ -28546,10 +28728,27 @@
     "5175737",
     "u",
     3.5,
-    104,
-    "fanduel",
-    0.5438,
-    0.0536,
+    108,
+    "novig",
+    0.5492,
+    0.0684,
+    "strong",
+    "proof",
+    true,
+    [
+     "close_win",
+     "rest_edge",
+     "ot_win"
+    ]
+   ],
+   [
+    "4709138",
+    "u",
+    3.5,
+    135,
+    "novig",
+    0.4711,
+    0.0456,
     "strong",
     "proof",
     true,
@@ -28561,17 +28760,106 @@
    ]
   ],
   "date": "2026-11-05",
+  "points": [
+   [
+    "6589",
+    "u",
+    5.5,
+    -106,
+    "draftkings",
+    0.5924,
+    0.0778,
+    "strong",
+    "proof",
+    true,
+    [
+     "close_win",
+     "rest_edge",
+     "ot_win"
+    ]
+   ],
+   [
+    "4066261",
+    "u",
+    21.5,
+    -109,
+    "draftkings",
+    0.5706,
+    0.0491,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge",
+     "ot_win",
+     "close_win"
+    ]
+   ]
+  ],
+  "rebounds": [
+   [
+    "3975",
+    "u",
+    3.5,
+    -102,
+    "novig",
+    0.5458,
+    0.0408,
+    "strong",
+    "proof",
+    true,
+    [
+     "close_win",
+     "rest_edge",
+     "ot_win"
+    ]
+   ]
+  ],
   "threes": [
    [
     "4709138",
     "o",
     2.5,
-    138,
-    "pinnacle",
-    0.5493,
-    0.1291,
+    140,
+    "hard_rock",
+    0.544,
+    0.1273,
     "strong",
     "proof",
+    true,
+    [
+     "close_win",
+     "rest_edge",
+     "ot_win"
+    ]
+   ],
+   [
+    "3975",
+    "o",
+    4.5,
+    141,
+    "novig",
+    0.4939,
+    0.079,
+    "strong",
+    "close",
+    true,
+    [
+     "close_win",
+     "rest_edge",
+     "ot_win"
+    ]
+   ],
+   [
+    "2990969",
+    "o",
+    1.5,
+    120,
+    "hard_rock",
+    0.5046,
+    0.0501,
+    "strong",
+    "close",
     true,
     [
      "close_win",
