@@ -10321,8 +10321,8 @@
    "3136193": [
     "Devin Booker",
     0.13,
-    750,
-    true,
+    700,
+    false,
     "bet365"
    ],
    "3155526": [
@@ -10342,14 +10342,14 @@
    "4066383": [
     "Miles Bridges",
     0.103,
-    1000,
+    1100,
     true,
     "bet365"
    ],
    "4277847": [
     "Wendell Carter Jr.",
     0.093,
-    850,
+    800,
     false,
     "bet365"
    ],
@@ -10370,7 +10370,7 @@
    "4712849": [
     "Anthony Black",
     0.085,
-    930,
+    920,
     false,
     "draftkings"
    ],
@@ -10410,23 +10410,23 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.157,
-    394,
+    403,
     false,
     "draftkings"
    ],
    "3059319": [
     "Andrew Wiggins",
     0.088,
-    1000,
+    950,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3975": [
     "Stephen Curry",
     0.094,
     800,
     false,
-    "bet365"
+    "fanduel"
    ],
    "4066261": [
     "Bam Adebayo",
@@ -10445,9 +10445,9 @@
    "4278053": [
     "Davion Mitchell",
     0.107,
-    1100,
+    1160,
     true,
-    "hard_rock"
+    "draftkings"
    ],
    "4709138": [
     "Brandin Podziemski",
@@ -10466,9 +10466,9 @@
    "6475": [
     "Klay Thompson",
     0.093,
-    2000,
-    true,
-    "hard_rock"
+    900,
+    false,
+    "bet365"
    ],
    "6589": [
     "Draymond Green",
