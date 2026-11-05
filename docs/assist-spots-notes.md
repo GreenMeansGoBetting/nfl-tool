@@ -43,7 +43,11 @@ No projections; the tool flags spots, the member decides. Keep a graded record f
 Tonight's (11-05) real spots the mockup found: Draymond's share 44% with Gui Santos on vs 28%
 without, Santos OUT; Booker and Dillon Brooks bounce-back (teammates cold, chances normal).
 
-## Next Step
+## Built (2026-11-05, after mock-ups 2-5 on the cdmcc PC)
 
-Redesign for direction: a verdict per player first (good / soft / no read), grouped by game or team,
-detail only on click. Say the plan in a sentence or two before building (no new mockup unless asked).
+Live as `nba/assist-spots.html` (spots.js on research.js); the rules are in `.claude/rules/nba.md`,
+"Assist Spots". What the owner steered on the way: Over / Under / Mixed / No Read per row; the Prop
+Research list and drop-down panel ("design it like the prop pages"); the props Vs The Line copied over;
+"Bounce-Back" dropped ("thats like saying someone is due") for a yellow Volume tag; defense ranks read
+from the defense (30th = allows the most, red); every tile colored against its own column; and the
+Read weighing every factor (Targets, Types, Lineup) instead of one trigger.

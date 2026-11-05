@@ -3,7 +3,8 @@ nba-refresh.yml after the NBA data is in place.
 
     python tools/nba_reads_capture.py --season 2027
 
-Opens site/nba/all-props.html in a headless browser on the fresh data and reads the page's own
+Opens site/nba/all-props.html (then assist-spots.html, `spotsCapture()` in spots.js, into
+model_history/nba_assist_spots/) in a headless browser on the fresh data and reads the page's own
 O / U counts for every game that hasn't tipped (`rsCapture()` in research.js), exactly what a
 member sees, then keeps them in model_history/nba_reads/<season>.json until tip
 (nfl_tool/nba/reads_record.py has the rules). The next build puts the file into props.json, so a
@@ -25,7 +26,8 @@ import reads_record  # noqa: E402
 SITE = ROOT / "nfl_tool" / "site"
 
 
-def capture() -> dict:
+def capture(page_file: str = "all-props.html", fn: str = "rsCapture") -> dict:
+    """Opens site/nba/<page_file> on the fresh data and returns the page's own `fn()`."""
     from playwright.sync_api import sync_playwright
 
     from check_site import start_server
@@ -38,14 +40,14 @@ def capture() -> dict:
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e).splitlines()[0]))
             page.set_default_timeout(120000)
-            page.goto(f"http://127.0.0.1:{server.server_address[1]}/nba/all-props.html")
-            page.wait_for_function("() => typeof rsCapture === 'function' && DATA && PROPS", timeout=90000)
-            result = page.evaluate("() => rsCapture()")
+            page.goto(f"http://127.0.0.1:{server.server_address[1]}/nba/{page_file}")
+            page.wait_for_function(f"() => typeof {fn} === 'function' && DATA && PROPS", timeout=90000)
+            result = page.evaluate(f"() => {fn}()")
             browser.close()
     finally:
         server.shutdown()
     if errors:
-        print("Page errors while reading All Props:", *errors[:5], sep="\n  ")
+        print(f"Page errors while reading {page_file}:", *errors[:5], sep="\n  ")
     return result or {}
 
 
@@ -61,6 +63,16 @@ def main(argv=None) -> int:
         reads_record.save(record, args.season)
     players = sum(len(by) for e in got.values() for by in (e.get("m") or {}).values())
     print(f"NBA Reads: {len(got)} games not yet tipped on the page ({players} player lines), {changed} saved or updated; {len(record)} games kept.")
+    # Assist Spots (2026-11-05): its reads, the same rules, its own file; a failure here never undoes the above
+    try:
+        spots = reads_record.load(args.season, reads_record.SPOTS_DIR)
+        got = capture("assist-spots.html", "spotsCapture")
+        changed = reads_record.merge(spots, got, data.get("schedule") or [], datetime.now(timezone.utc).replace(tzinfo=None))
+        if changed:
+            reads_record.save(spots, args.season, reads_record.SPOTS_DIR)
+        print(f"Assist Spots: {len(got)} games not yet tipped, {changed} saved or updated; {len(spots)} games kept.")
+    except Exception as e:
+        print(f"Assist Spots capture failed: {e}")
     return 0
 
 

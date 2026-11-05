@@ -66,6 +66,14 @@ a teammate's made shot while he's on the floor (our stand-in for the NBA's "pote
 `games[<game id>]`: [pace, total at tip, home spread at tip] (lines None
   until the game has one).
 `spots[<game id>][<abbr>]`: that team's schedule spots that night (identity.py keys).
+Assist Spots (assist-spots.html + spots.js, 2026-11-05): how he sets them up, in ASSIST_TYPES
+(kick-out 3 = a catch-and-shoot three, drive = catch and drive, cut / lob = cuts, lobs and other rim
+makes, dribble 3 = an assisted three off the dribble, mid = everything else):
+- `af`: his assists by type; `ag[<teammate>]`: his assists to that teammate by type (every teammate).
+- `k3g`: {game id: [teammates' catch-and-shoot threes made, tried while he was on the floor]}.
+`dfa[<abbr>]`: every shot against that defense by ASSIST_TYPES, then its defensive possessions.
+`tm[<abbr>]`: [offensive possessions, made shots, defensive possessions, made shots allowed, shots,
+  threes tried, threes made, assisted threes made, shots allowed, threes allowed].
 """
 from __future__ import annotations
 
@@ -85,6 +93,7 @@ MISS_ZONES = ("rim", "short", "mid", "corner3", "above3", "ft")
 ASSIST_ZONES = ("rim", "short", "mid", "corner3", "above3")
 POSITIONS = ("PG", "SG", "SF", "PF", "C")
 PULLUP = ("pullup", "fade")
+ASSIST_TYPES = ("k3", "dr", "cl", "d3", "mid")
 
 
 def three_counts(g: pd.DataFrame) -> list:
@@ -121,7 +130,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
     poss = engine.possessions
     acts = engine.actions
     stints = engine.stints
-    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}, "daz": {}, "dag": {}}
+    out = {"players": {}, "teams": {}, "games": {}, "spots": {}, "defpos": {}, "deffga": {}, "def3": {}, "rbt": {}, "mz": {}, "daz": {}, "dag": {}, "dfa": {}, "tm": {}}
     if poss.empty:
         return out
     mine = lambda pid: out["players"].setdefault(str(int(pid)), {})  # noqa: E731
@@ -250,6 +259,7 @@ def block(engine: P.Season, box: pd.DataFrame, players: dict, lines: dict | None
 
     rebounds_block(out, acts, stints, players, abbr)
     assists_block(out, joined, players)
+    spots_block(out, joined, poss, players, abbr)
 
     # early foul trouble
     fouls = acts[(acts["kind"] == "foul") & acts["player"].notna()]
@@ -470,3 +480,59 @@ def assists_block(out: dict, joined: pd.DataFrame, players: dict) -> None:
                 wa[mate] = [a_on, c_on, total_a - a_on, total_c - c_on]
             p["wa"] = wa
             p["to"] = {m: n for m, n in to.get(pid, {}).items() if m in mates}
+
+
+def assist_type(three, kind2, zone) -> str:
+    """ASSIST_TYPES for one shot (see the module notes)."""
+    if three:
+        return "k3" if kind2 == "catch" else "d3"
+    if kind2 == "drive":
+        return "dr"
+    if kind2 in ("cut", "lob") or zone == "rim":
+        return "cl"
+    return "mid"
+
+
+def spots_block(out: dict, joined: pd.DataFrame, poss: pd.DataFrame, players: dict, abbr: dict) -> None:
+    """Assist Spots' numbers (see the module notes): `af`, `ag`, `k3g` per player, `dfa` per defense,
+    `tm` per team. `joined` = the scoring actions with `dabbr` (block())."""
+    shots = joined[(joined["kind"] == "shot") & joined["player"].notna()].copy()
+    if shots.empty:
+        return
+    shots["atype"] = [assist_type(bool(t), k, z) for t, k, z in zip(shots["three"], shots["kind2"], shots["zone"])]
+    shots["made"] = shots["made"].astype(bool)
+    shots["three"] = shots["three"].astype(bool)
+    made = shots[shots["made"]]
+    # his assists by type, and to each teammate by type
+    for passer, g in made[made["assist"].notna()].groupby("assist"):
+        key = str(int(passer))
+        if key not in players:
+            continue
+        p = out["players"].setdefault(key, {})
+        p["af"] = [int((g["atype"] == t).sum()) for t in ASSIST_TYPES]
+        p["ag"] = {str(int(r)): [int((h["atype"] == t).sum()) for t in ASSIST_TYPES] for r, h in g.groupby("player")}
+    # teammates' catch-and-shoot threes while he was on the floor, game by game
+    k3 = shots[shots["atype"] == "k3"]
+    k3g = {}
+    for shooter, five, gid, m in zip(k3["player"], k3["with"], k3["game_id"], k3["made"]):
+        for p in {int(x) for x in five}:
+            if p == int(shooter):
+                continue
+            row = k3g.setdefault(p, {}).setdefault(str(int(gid)), [0, 0])
+            row[0] += int(m)
+            row[1] += 1
+    for pid, games in k3g.items():
+        if str(pid) in players:
+            out["players"].setdefault(str(pid), {})["k3g"] = games
+    # each defense: shots against it by type, and its possessions; each team's makes, threes and pace inputs
+    dposs = poss.groupby("def").size()
+    oposs = poss.groupby("off").size()
+    for team, n in dposs.items():
+        key = str(abbr.get(int(team), team))
+        against = shots[shots["dabbr"] == key]
+        out["dfa"][key] = [int((against["atype"] == t).sum()) for t in ASSIST_TYPES] + [int(n)]
+        mine = shots[shots["team"] == team]
+        threes = mine[mine["three"]]
+        out["tm"][key] = [int(oposs.get(team, 0)), int(mine["made"].sum()), int(n), int(against["made"].sum()), len(mine),
+                          len(threes), int(threes["made"].sum()), int((threes["made"] & threes["assist"].notna()).sum()),
+                          len(against), int(against["three"].sum())]

@@ -1055,6 +1055,7 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
             add_line_history(out["research"], season, book_odds or {}, list(games), now_utc)
             # each night's O / U Reads as they stood before tip (reads_record.py), for the page's past nights
             out["research"]["frozen"] = reads_record.load(season)
+            out["research"]["spots_frozen"] = reads_record.load(season, reads_record.SPOTS_DIR)  # Assist Spots, before tip
         except Exception as ex:
             print(f"WARNING: NBA research panel failed ({ex!r}).", file=sys.stderr)
     # The sim (its own try: a failure leaves Points and Threes empty, never the game logs).

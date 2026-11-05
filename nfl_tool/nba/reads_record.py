@@ -23,6 +23,9 @@ from datetime import datetime
 from pathlib import Path
 
 RECORD_DIR = Path(__file__).resolve().parents[2] / "model_history" / "nba_reads"
+# Assist Spots (2026-11-05): the same rules, its own file, {game id: {"date", "m": {player id: [call, targets,
+# types, lineup, line]}}} (spots.js `spotsCapture`); props.json `research.spots_frozen`.
+SPOTS_DIR = RECORD_DIR.parent / "nba_assist_spots"
 
 
 def path_for(season: int, folder: Path | None = None) -> Path:

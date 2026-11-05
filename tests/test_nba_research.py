@@ -163,6 +163,23 @@ class Assists(unittest.TestCase):
         self.assertEqual(self.rs["daz"]["BBB"][research.ASSIST_ZONES.index("rim")], 1)  # the layup, against away
         self.assertNotIn("AAA", self.rs["daz"])  # away's only make (23's step-back) was unassisted
 
+    def test_assist_spots_types(self):
+        # Assist Spots (2026-11-05): 13's assist on 15's driving layup is a catch and drive, to 15
+        drive = research.ASSIST_TYPES.index("dr")
+        self.assertEqual(self.p["13"]["af"][drive], 1)
+        self.assertEqual(sum(self.p["13"]["af"]), 1)
+        self.assertEqual(self.p["13"]["ag"]["15"][drive], 1)
+        self.assertNotIn("af", self.p["15"])  # the shooter isn't credited
+        # every shot against a defense is the other team's shot; the counts carry its possessions last
+        for team, other in (("AAA", "BBB"), ("BBB", "AAA")):
+            self.assertEqual(sum(self.rs["dfa"][team][:5]), self.rs["tm"][other][4], team)
+            self.assertEqual(self.rs["dfa"][team][5], self.rs["tm"][team][2], team)
+            self.assertEqual(self.rs["tm"][team][3], self.rs["tm"][other][1], team)  # makes allowed = their makes
+        self.assertEqual(research.assist_type(True, "catch", "corner3"), "k3")
+        self.assertEqual(research.assist_type(True, "pullup", "above3"), "d3")
+        self.assertEqual(research.assist_type(False, "lob", "rim"), "cl")
+        self.assertEqual(research.assist_type(False, "post", "short"), "mid")
+
 
 class LineHistory(unittest.TestCase):
     def test_main_lines_until_tip(self):

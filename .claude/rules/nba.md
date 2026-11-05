@@ -27,7 +27,8 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   Matchup Keys (rules in `keys.js`);
   `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
   forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` (`data-market`) on `research.js`
-  + `sim.css` Prop Research; `best.html` / `game-predictions.html` only forward (retired 2026-11-03);
+  + `sim.css` Prop Research; `assist-spots.html` + `spots.js` Assist Spots (on research.js);
+  `best.html` / `game-predictions.html` only forward (retired 2026-11-03);
   `first-basket.html/.js/.css`;
   `shot-charts.html/.js/.css`; `zones.html/.js/.css`; `nba-card.js` player card (+ `shot-chart.js`);
   `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`; `digest.html/.js/.css`
@@ -370,6 +371,44 @@ Every game played 10,000 times, possession by possession.
   until tip in `model_history/nba_lines/<season>.json` (from 2026-11-03); older nights come from
   `past_points_lines(season, market)` (the retired projections' `lines_` / `threes_` files, the sim and
   Zone Matchup records); points -> `lines`, threes -> `lines3`. Tests: `tests/test_nba_research.py`.
+
+## Assist Spots (`assist-spots.html` + `spots.js` on research.js, 2026-11-05)
+
+The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`). Assists = chances
+(teammates' makes while he's on the floor) x his share of them.
+- **Built on Prop Research, not beside it:** the page loads research.js then spots.js, which swaps
+  `setMarket` (its tabs, tips, columns) and `row` through `window`, adds its tabs to `RS_TAB` and its sorts
+  to `SORTS`. The list, prices, day arrows, drop-down panel, past nights and **Vs The Line are
+  research.js's own** (the owner: "copy that exact one over"). A tab on every research page's tab bar and
+  a menu pill under Prop Research.
+- **Columns:** Player, Line, Over, Under, Avg, Rate (assist rate), Hit Rate L5 / Season, **Reads**: Targets,
+  Types, Lineup, Read; **Tonight's Game**: Chances, Volume. Opens sorted by Read (Over, Under, Mixed, No Read).
+- **The Read reads every factor** (the owner: "its not taking into account all the info": Draymond's Under
+  came off Santos alone while 39% of his assists go to Curry and MIA is the worst vs PGs). Each factor is
+  his side x tonight's side, a pull in steps (0.5 Lean, 1 Strong, `SCALE`):
+  **Targets** = sum over his top 4 teammates of (share of his assists) x (the defense's assisted baskets a
+  game to that teammate's position / the league's - 1), `dag`; **Types** = his mix x (the defense's shots
+  of each type a 100 possessions / the league's) - 1, `dfa`; **Lineup** = a teammate Out / Doubtful tonight
+  who played 2 of his team's last 3 (new: the line may lag), his share without him minus his season share
+  (`wa`, 25+ makes each way). Over / Under when the votes agree and add to 1+, **Mixed** when real pulls go
+  both ways, No Read otherwise. Under `SMALL_AST` 20 assists: Targets and Types say Small, no vote.
+  **Context only, never a vote:** Chances (pace x makes his team makes and the defense allows: the same for
+  everyone in the game, the total prices it) and Volume (team threes above average, mostly off a pass, he
+  sets them up, the defense not bottom-10 at allowing threes; the owner: "a yellow VOLUME tag").
+  A one-game cold-shooting "bounce-back" was dropped (the owner: "thats like saying someone is due").
+- **Defense ranks read from the defense** (the owner: "the defense who is bad should be ranked 30th and
+  red"): `dRank` = 30th allows the most, red. The Research panels' "1st = most" is unchanged until asked.
+- **Tabs** (the research grid): left Who He Assists (teammates down, types across, counts colored against
+  the grid, Total % column, Total row % vs the league, the defense row and Vs Pos purple), Assist Types,
+  Game Log (Min, Chances, Share, C&S 3s, AST, that night's Line, Vs Tonight); right The Read (every factor
+  a row: Him, Tonight, Pull; the last row the call with its pulls), Vs The Line, Lineup (With / Without
+  colored vs his season, If Out, Last 3, Tonight).
+- **Data:** research.py `spots_block`: `af`, `ag`, `k3g` per player, `dfa`, `tm` per team (`ASSIST_TYPES`
+  k3 / dr / cl / d3 / mid, `assist_type`). **Record:** `spotsCapture()` (tools/nba_reads_capture.py, after
+  All Props) keeps every untipped game's reads in `model_history/nba_assist_spots/<season>.json` until tip
+  (`reads_record.SPOTS_DIR`); the build copies it into props.json `research.spots_frozen` and a past night
+  shows those reads beside the Result. Not graded on the page (research site); grading is off-page work.
+- Tests: `test_nba_research.py` `test_assist_spots_types`, `test_nba_research_site.py` `AssistSpots`.
 
 ## The player card (`nba-card.js`)
 

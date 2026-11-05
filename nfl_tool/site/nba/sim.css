@@ -478,3 +478,9 @@ table.rf-grid td.rf-l { padding-left: 6px; }
 table.rf-grid td.rf-pair { white-space: nowrap; }
 table.rf-grid td.rf-pair .rf-in { margin-right: 2px; }
 table.rf-grid td.rf-pair .rf-unit { display: inline-block; width: 12px; }
+/* Assist Spots (spots.js, 2026-11-05): the Total row's label blue (him), the defense row's purple,
+   longer words in the Read tab a step smaller, the Read column one width */
+.rs-t.rs-l.sp-him { background: rgba(70, 130, 220, 0.42); }
+.rs-t.rs-l.sp-def { background: rgba(150, 100, 220, 0.42); }
+.rs-t.sp-txt { font-size: 0.84rem; }
+.rs-list td.sp-call b { display: inline-block; min-width: 60px; }

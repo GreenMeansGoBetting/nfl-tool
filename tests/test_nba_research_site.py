@@ -955,5 +955,104 @@ class Pages(unittest.TestCase):
             self.assertFalse((site / gone).exists(), gone)
 
 
+def spots_slate():
+    """Assist Spots (2026-11-05): Player One (AAA, PG) has a 6.5 assists line against BBB. He sends half his
+    assists to Player Three (SG; BBB give SGs 8 assisted baskets a game, the league 6) and Three is newly Out
+    (he played all of AAA's last 3): One sets up 40% of the makes with him on the floor, 14% without, 25% on
+    the season. So Targets pull Over and Lineup Under: Mixed, both on the row."""
+    props = assists_props()
+    rs = props["research"]
+    props["seasons"]["2027"]["players"]["3"]["log"] = log([(g, "CCC", 28, 12, 3, 3) for g in range(1, 7)])
+    rs["players"]["1"].update({"af": [12, 6, 6, 3, 3], "ag": {"3": [12, 1, 1, 1, 0], "2": [0, 3, 5, 1, 0]},
+                               "wa": {"2": [10, 40, 20, 80], "3": [20, 50, 10, 70]}, "k3g": {"6": [4, 10]}})
+    rs["dag"] = {"BBB": {str(g): [3, 8, 4, 3, 3] for g in (7, 8)}, "CCC": {str(g): [2, 4, 5, 3, 3] for g in range(1, 7)}}
+    # shots against each defense by type (kick-out 3, drive, cut / lob, dribble 3, mid) and its possessions
+    rs["dfa"] = {"BBB": [40, 20, 30, 10, 50, 400], "CCC": [30, 20, 30, 10, 50, 400]}
+    rs["tm"] = {t: [400, 160, 400, 165, 340, 150, 55, 50, 345, 150] for t in ("AAA", "BBB", "CCC")}
+    data = copy.deepcopy(DATA)
+    data["book_odds"]["AAA_BBB"]["props"]["assists"] = {"1": {"name": "Player One", "q": quotes(6.5)}}
+    data["injuries"]["AAA"][1]["status"] = "Out"  # Player Three
+    return data, props
+
+
+class AssistSpots(unittest.TestCase):
+    """The owner's Assist Spots (mock-ups 1-5, 2026-11-05): the Prop Research list and panel with the Reads
+    as columns (Targets, Types, Lineup, the Read) and six tabs; every factor in its own row so one never
+    hides another; defense ranks read from the defense (30th = allows the most)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.saved = (SITE.nba, SITE.nba_props)
+        SITE.nba, SITE.nba_props = spots_slate()
+        cls.page = SITE.open("nba/assist-spots.html")
+        cls.page.wait_for_selector("#rs-list tr.sim-row")
+        cls.page.click("#rs-list tr.rs-click:has-text('Player One') td.rs-line")
+        cls.page.wait_for_selector("#rs-list .rs-panel")
+
+    @classmethod
+    def tearDownClass(cls):
+        SITE.nba, SITE.nba_props = cls.saved
+
+    tab = Panel.tab
+    cells = Panel.cells
+
+    def open(self):
+        pass
+
+    def test_the_list_reads_every_factor(self):
+        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Rate", "L5", "Season", "Targets", "Types", "Lineup", "Read", "Chances", "Volume"])
+        one = next(r for r in rows(self.page) if "Player One" in r[0])
+        self.assertEqual(one[1], "6.5")
+        self.assertEqual(one[6], "60% 3 of 5")  # 6, 9, 9, 9 over 6.5 in his last 5 (6, 6, 9, 9, 9)
+        self.assertEqual((one[8], one[10], one[11]), ("Over", "Under", "Mixed"))  # Targets Over, Three newly Out: Under
+        self.assertEqual(SITE.errors, [])
+        self.assertIn("Assist Spots", self.page.text_content(".sim-tabs"))
+
+    def test_six_tabs_every_one_the_same_box(self):
+        tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
+        self.assertEqual(tabs, [["Who He Assists", "Assist Types", "Game Log"], ["The Read", "Vs The Line", "Lineup"]])
+        sizes = set()
+        for side, names in (("left", tabs[0]), ("right", tabs[1])):
+            for name in names:
+                box = self.tab(side, name)
+                sizes.add(tuple(self.page.evaluate(f"() => {{ const b = document.querySelector(\"{box}\"); const s = b.querySelector('.rs-sbody'); const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), s.scrollHeight <= s.clientHeight + 1]; }}")))
+        self.assertEqual(sizes, {(600, 312, True)})
+        self.assertEqual(SITE.errors, [])
+
+    def test_who_he_assists(self):
+        rows = self.cells(self.tab("left", "Who He Assists"))
+        self.assertEqual(rows[0][1:], ["Kick-Out 3", "Drive", "Cut / Lob", "Dribble 3", "Mid", "Total", "Vs Pos"])
+        three = rows[1]
+        self.assertTrue(three[0].startswith("P. Three"), three)
+        # his assists to Three by type, 15 of his 30, and BBB's rank vs SGs read from the defense: allows the most of 2 = #2
+        self.assertEqual(three[1:], ["12", "1", "1", "1", "0", "50%", "#2"])
+        total = next(r for r in rows if r[0] == "Total")
+        self.assertEqual(total[1], "40%")
+        allows = next(r for r in rows if r[0] == "BBB Allows")
+        self.assertEqual(allows[1], "#2")  # BBB allow more kick-out 3s than CCC: the bad one is the last rank
+
+    def test_the_read_shows_every_factor(self):
+        rows = self.cells(self.tab("right", "The Read"))
+        self.assertEqual([r[0] for r in rows[1:]], ["Chances", "Targets", "Assist Types", "Lineup", "Volume", "The Read"])
+        self.assertEqual(rows[2][3], "Over")
+        self.assertEqual(rows[4][3], "Under")
+        self.assertTrue(rows[6][1].startswith("Mixed: Targets Over"), rows[6])
+
+    def test_lineup_and_game_log(self):
+        rows = self.cells(self.tab("right", "Lineup"))
+        three = next(r for r in rows if r[0].startswith("P. Three"))
+        self.assertEqual(three[1:], ["40%", "14%", "−11", "3/3", "Out (New)"])
+        log_rows = self.cells(self.tab("left", "Game Log"))
+        self.assertEqual(log_rows[0][1:], ["Min", "Chances", "Share", "C&S 3s", "AST", "Line", "Vs Tonight"])
+        self.assertEqual(log_rows[1][4], "4/10")  # his newest game: teammates 4 of 10 on catch-and-shoot threes
+
+    def test_the_reads_are_saved_before_tip(self):
+        got = self.page.evaluate("() => spotsCapture()")
+        call, tg, ty, lu, line = got["900"]["m"]["1"]
+        self.assertEqual((call, line), (2, 6.5))
+        self.assertGreater(tg, 0)
+        self.assertLess(lu, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1104,6 +1104,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       pills(["All Props", "all-props.html", 60]),
       pills(["Points", "points.html", 210], ["Threes", "threes.html", 275]),
       pills(["Assists", "assists.html", 330], ["Rebounds", "rebounds.html", 185]),
+      // Assist Spots: assists read from both sides (the owner, 2026-11-05)
+      pills(["Assist Spots", "assist-spots.html", 350]),
       // 1st Basket joined them as research (2026-11-03), Shot Charts moved down with them (2026-11-04).
       pills(["1st Basket", "first-basket.html", 20], ["Shot Charts", "shot-charts.html", 95]),
     ] },

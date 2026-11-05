@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Assist Spots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700;800&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="sim.css">
+</head>
+<body class="nba-suite" data-market="assists" data-view="spots">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="sim-tabs"><a href="all-props.html">All Props</a><a href="points.html">Points</a><a href="threes.html">Threes</a><a href="rebounds.html">Rebounds</a><a href="assists.html">Assists</a><a href="assist-spots.html" class="on">Assist Spots</a></div>
+    <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
+    <div id="rs-app" hidden>
+      <div class="nba-box rs-intro">
+        <h2 class="sim-sec">Assist Spots <button type="button" class="info-i" aria-expanded="false" aria-controls="rs-how" title="How to read this page">i</button></h2>
+        <p class="rs-sub">Every assists line tonight, read from both sides: who he passes to, how he sets them up, and who's out. Not picks: the reads point, you decide.</p>
+        <p class="info-note" id="rs-how" hidden><b>Assists = chances x his share:</b> his teammates' made shots while he's on the floor, and how many of them he set up. <b>Reads</b> (each his side against tonight's): <b>Targets</b> = who he passes to against what tonight's defense allows their positions; <b>Types</b> = how he sets them up (kick-out 3s, drives, cuts and lobs, off-dribble 3s, short and mid) against what the defense allows of each; <b>Lineup</b> = a teammate out tonight who played 2 of the last 3, with his share without him against his season. The <b>Read</b> is Over or Under when they agree, Mixed when they pull both ways, No Read when nothing pulls enough. Under 20 assists this season is a Small Sample. <b>Chances</b> (pace and the baskets both teams make and allow) and <b>Volume</b> (lots of threes off a pass) are context, never the call. Defense ranks: 30th = allows the most (red). <b>Click a row</b> for Who He Assists, Assist Types, Game Log, The Read, Vs The Line and Lineup. <b>NBA lineups change late</b>: check the news before you bet.</p>
+      </div>
+      <div id="schedule-scroller" class="schedule-scroller">
+        <div class="week-picker">
+          <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+          <span id="day-label" class="week-label">Day</span>
+          <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+        </div>
+        <div id="matchup-row" class="matchup-row"></div>
+      </div>
+      <div class="sim-toolbar" id="rs-toolbar"></div>
+      <p class="sim-noplay" id="rs-note"></p>
+      <div id="rs-list"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Prices: <a href="https://www.smartstake.app/?via=GMG" target="_blank" rel="noopener">SmartStake</a> (every US book). Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play and box scores), ESPN injuries, the NBA's injury report.
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="research.js"></script>
+<script src="spots.js"></script>
+<script src="shot-chart.js"></script>
+<script src="nba-card.js"></script>
+</body>
+</html>
