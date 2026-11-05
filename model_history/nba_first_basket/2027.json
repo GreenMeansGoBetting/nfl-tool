@@ -9447,23 +9447,23 @@
    ]
   ],
   "players": {
-   "3133603": [
-    "Kelly Oubre Jr.",
-    0.079,
-    1400,
-    true,
-    "fanduel"
-   ],
    "3149673": [
     "Pascal Siakam",
-    0.111,
+    0.109,
     950,
     true,
     "bet365"
    ],
+   "4017837": [
+    "Ivica Zubac",
+    0.08,
+    950,
+    false,
+    "bet365"
+   ],
    "4065731": [
     "Jay Huff",
-    0.067,
+    0.068,
     null,
     false,
     null
@@ -9477,7 +9477,7 @@
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.08,
+    0.081,
     1000,
     false,
     "fanduel"
