@@ -10321,72 +10321,72 @@
    "3136193": [
     "Devin Booker",
     0.13,
-    650,
-    false,
-    "fanduel"
+    750,
+    true,
+    "bet365"
    ],
    "3155526": [
     "Dillon Brooks",
     0.1,
-    750,
+    800,
     false,
     "fanduel"
    ],
    "4066320": [
     "Desmond Bane",
     0.092,
-    700,
+    750,
     false,
     "hard_rock"
    ],
    "4066383": [
     "Miles Bridges",
     0.103,
-    950,
-    false,
-    "fanduel"
+    1000,
+    true,
+    "bet365"
    ],
    "4277847": [
     "Wendell Carter Jr.",
     0.093,
-    1100,
-    true,
-    "hard_rock"
+    850,
+    false,
+    "bet365"
    ],
    "4437244": [
     "Jalen Green",
     0.09,
-    625,
+    750,
     false,
-    "fliff"
+    "bet365"
    ],
    "4566434": [
     "Franz Wagner",
     0.113,
-    550,
+    700,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4712849": [
     "Anthony Black",
     0.085,
-    950,
+    900,
     false,
-    "fanduel"
+    "thescore"
    ],
    "5203685": [
     "Khaman Maluach",
     0.083,
-    1100,
+    1190,
     false,
-    "fanduel"
+    "fliff"
    ],
    "5239561": [
     "Jase Richardson",
     0.072,
-    2000,
-    true,
-    "hard_rock"
+    1400,
+    false,
+    "fanduel"
    ]
   },
   "tip_home": 0.58
@@ -10410,30 +10410,30 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.157,
-    325,
+    375,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "3059319": [
     "Andrew Wiggins",
     0.088,
-    900,
+    1000,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3975": [
     "Stephen Curry",
     0.094,
-    700,
+    780,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4066261": [
     "Bam Adebayo",
     0.133,
-    500,
+    550,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -10447,35 +10447,35 @@
     0.107,
     1100,
     true,
-    "fanduel"
+    "hard_rock"
    ],
    "4709138": [
     "Brandin Podziemski",
     0.084,
-    850,
+    900,
     false,
     "fanduel"
    ],
    "5175737": [
     "Yaxel Lendeborg",
     0.079,
-    750,
+    1000,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "6475": [
     "Klay Thompson",
     0.093,
-    null,
-    false,
-    null
+    2500,
+    true,
+    "hard_rock"
    ],
    "6589": [
     "Draymond Green",
     0.056,
-    1100,
+    1650,
     false,
-    "fanduel"
+    "bet365"
    ]
   },
   "tip_home": 0.194

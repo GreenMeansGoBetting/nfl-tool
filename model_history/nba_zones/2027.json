@@ -11801,6 +11801,18 @@
   "date": "2026-11-05",
   "points": [
    [
+    "4278585",
+    "Collin Gillespie",
+    "PHX",
+    "ORL",
+    0.1231,
+    "over",
+    true,
+    9.5,
+    -108,
+    "novig"
+   ],
+   [
     "4566434",
     "Franz Wagner",
     "ORL",
@@ -11809,8 +11821,8 @@
     "under",
     true,
     22.5,
-    106,
-    "pinnacle"
+    117,
+    "novig"
    ],
    [
     "4712849",
@@ -11821,8 +11833,8 @@
     "over",
     true,
     14.5,
-    -110,
-    "fanatics"
+    -112,
+    "bet365"
    ],
    [
     "5239561",
@@ -11833,8 +11845,8 @@
     "over",
     false,
     8.5,
-    -115,
-    "novig"
+    -112,
+    "bet365"
    ]
   ],
   "threes": [
@@ -11847,8 +11859,8 @@
     "over",
     true,
     1.5,
-    -115,
-    "fanatics"
+    -120,
+    "novig"
    ],
    [
     "3155526",
@@ -11859,8 +11871,8 @@
     "under",
     true,
     1.5,
-    135,
-    "novig"
+    125,
+    "thescore"
    ],
    [
     "4066320",
@@ -11871,7 +11883,7 @@
     "over",
     true,
     3.5,
-    137,
+    139,
     "prophetx"
    ],
    [
@@ -11883,8 +11895,8 @@
     "under",
     true,
     1.5,
-    136,
-    "draftkings"
+    135,
+    "prophetx"
    ],
    [
     "4278572",
@@ -11895,8 +11907,20 @@
     "over",
     true,
     0.5,
-    -197,
-    "caesars"
+    -186,
+    "novig"
+   ],
+   [
+    "4278585",
+    "Collin Gillespie",
+    "PHX",
+    "ORL",
+    0.1693,
+    "over",
+    true,
+    2.5,
+    153,
+    "prophetx"
    ],
    [
     "4437244",
@@ -11907,7 +11931,7 @@
     "over",
     true,
     1.5,
-    -145,
+    -140,
     "fanatics"
    ],
    [
@@ -11919,8 +11943,8 @@
     "over",
     true,
     1.5,
-    125,
-    "novig"
+    122,
+    "bet365"
    ],
    [
     "4702382",
@@ -11931,7 +11955,7 @@
     "over",
     true,
     2.5,
-    110,
+    115,
     "fanatics"
    ],
    [
@@ -11943,7 +11967,7 @@
     "over",
     true,
     1.5,
-    -115,
+    -106,
     "novig"
    ],
    [
@@ -11964,6 +11988,18 @@
   "date": "2026-11-05",
   "points": [
    [
+    "3059319",
+    "Andrew Wiggins",
+    "MIA",
+    "GS",
+    0.1709,
+    "over",
+    true,
+    12.5,
+    103,
+    "prophetx"
+   ],
+   [
     "3975",
     "Stephen Curry",
     "GS",
@@ -11971,9 +12007,9 @@
     0.2439,
     "over",
     true,
-    26.5,
-    -114,
-    "draftkings"
+    27.5,
+    -107,
+    "pinnacle"
    ],
    [
     "4066436",
@@ -11984,8 +12020,32 @@
     "over",
     true,
     10.5,
-    100,
-    "prophetx"
+    104,
+    "novig"
+   ],
+   [
+    "4397040",
+    "Brandon Williams",
+    "GS",
+    "MIA",
+    0.2007,
+    "over",
+    true,
+    6.5,
+    -350,
+    "bet365"
+   ],
+   [
+    "4601025",
+    "Pelle Larsson",
+    "MIA",
+    "GS",
+    0.0971,
+    "over",
+    false,
+    12.5,
+    -115,
+    "fanatics"
    ],
    [
     "4709138",
@@ -12002,6 +12062,30 @@
   ],
   "threes": [
    [
+    "3032977",
+    "Giannis Antetokounmpo",
+    "MIA",
+    "GS",
+    0.1937,
+    "over",
+    true,
+    0.5,
+    -112,
+    "bet365"
+   ],
+   [
+    "3059319",
+    "Andrew Wiggins",
+    "MIA",
+    "GS",
+    0.2584,
+    "over",
+    true,
+    1.5,
+    -108,
+    "novig"
+   ],
+   [
     "3975",
     "Stephen Curry",
     "GS",
@@ -12010,7 +12094,7 @@
     "over",
     true,
     4.5,
-    141,
+    122,
     "novig"
    ],
    [
@@ -12022,8 +12106,32 @@
     "over",
     true,
     1.5,
-    104,
+    106,
     "novig"
+   ],
+   [
+    "4397040",
+    "Brandon Williams",
+    "GS",
+    "MIA",
+    0.3033,
+    "over",
+    true,
+    0.5,
+    -165,
+    "bet365"
+   ],
+   [
+    "4601025",
+    "Pelle Larsson",
+    "MIA",
+    "GS",
+    0.2371,
+    "over",
+    true,
+    0.5,
+    -200,
+    "bet365"
    ],
    [
     "4709138",
@@ -12034,8 +12142,8 @@
     "over",
     true,
     2.5,
-    140,
-    "hard_rock"
+    144,
+    "novig"
    ],
    [
     "5175737",
@@ -12046,8 +12154,8 @@
     "over",
     false,
     1.5,
-    -165,
-    "fanatics"
+    -153,
+    "novig"
    ]
   ]
  }
