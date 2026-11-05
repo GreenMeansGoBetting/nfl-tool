@@ -238,6 +238,15 @@ Every game played 10,000 times, possession by possession.
   width, `fitTags`): per 20+ minute teammate on tonight's report, his average in the games that
   teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
+- **Past nights** (the owner, 2026-11-05: "go back days like the other tools and see how things
+  did"; every stat page and All Props): day arrows back to opening night + a date box (`dayPicker`);
+  the page opens on today's slate (`startDay`). A past night's games = the schedule's + the logs'
+  (`pastGames`, score on the card); his line = the saved line history (`lineKey`: `lines` / `lines3`
+  / `linesr` / `linesa`); Avg / Min / hit rates / Opp Allows count only games BEFORE that night
+  (`logBefore`, `allowed(cut)`); no Over / Under price columns and no O / U Reads (the panel reads the
+  whole season, that night included, so no panel either); **Result replaces Teammates On The
+  Report**: an Over / Under / Push tile (hit colors) + his number colored like Avg (`resultCell`,
+  sortable); no injury pill. No units (the owner).
 - The card loads `ladders.json` itself (this page doesn't). Tests: `tests/test_nba_research_site.py`.
 - **Research panel (Points 2026-11-03; Threes, Rebounds and Assists 2026-11-04; every market)**: a row click (not the name, a price or a tag)
   opens it (`panel`, `PANEL`). **Two sandboxes** (the owner approved the mock-up, 2026-11-03: "a
