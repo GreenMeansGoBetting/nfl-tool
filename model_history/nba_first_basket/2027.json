@@ -1130,7 +1130,7 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.089,
+    0.086,
     null,
     false,
     null
@@ -1144,28 +1144,28 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.105,
-    null,
-    false,
-    null
-   ],
-   "4397020": [
-    "Luguentz Dort",
-    0.084,
+    0.102,
     null,
     false,
     null
    ],
    "4431680": [
     "Onyeka Okongwu",
-    0.085,
+    0.082,
+    null,
+    false,
+    null
+   ],
+   "4701230": [
+    "Jalen Johnson",
+    0.096,
     null,
     false,
     null
    ],
    "4869342": [
     "Dyson Daniels",
-    0.1,
+    0.097,
     null,
     false,
     null
@@ -1226,21 +1226,28 @@
    ],
    "3078576": [
     "Derrick White",
-    0.125,
+    0.109,
+    null,
+    false,
+    null
+   ],
+   "4065648": [
+    "Jayson Tatum",
+    0.159,
     null,
     false,
     null
    ],
    "4251": [
     "Paul George",
-    0.162,
+    0.136,
     null,
     false,
     null
    ],
    "4351852": [
     "Mitchell Robinson",
-    0.086,
+    0.081,
     null,
     false,
     null
@@ -1248,13 +1255,6 @@
    "4396971": [
     "Naz Reid",
     0.087,
-    null,
-    false,
-    null
-   ],
-   "4397424": [
-    "Neemias Queta",
-    0.107,
     null,
     false,
     null
@@ -1282,7 +1282,7 @@
    ],
    "4683689": [
     "Jordan Walsh",
-    0.087,
+    0.082,
     null,
     false,
     null
@@ -1404,14 +1404,14 @@
    ],
    "4278049": [
     "Daniel Gafford",
-    0.088,
+    0.094,
     null,
     false,
     null
    ],
    "4278078": [
     "P.J. Washington",
-    0.097,
+    0.1,
     null,
     false,
     null
@@ -1419,6 +1419,13 @@
    "4397077": [
     "Jaxson Hayes",
     0.071,
+    null,
+    false,
+    null
+   ],
+   "4432582": [
+    "Max Christie",
+    0.072,
     null,
     false,
     null
@@ -1439,7 +1446,7 @@
    ],
    "5041939": [
     "Cooper Flagg",
-    0.103,
+    0.105,
     null,
     false,
     null
@@ -1451,16 +1458,9 @@
     false,
     null
    ],
-   "5211175": [
-    "Zaccharie Risacher",
-    0.085,
-    null,
-    false,
-    null
-   ],
    "6442": [
     "Kyrie Irving",
-    0.101,
+    0.102,
     null,
     false,
     null
@@ -1671,27 +1671,34 @@
    ],
    "3907497": [
     "Dejounte Murray",
-    0.085,
+    0.083,
     null,
     false,
     null
    ],
    "4277813": [
     "Herbert Jones",
-    0.093,
+    0.083,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.097,
+    0.088,
     null,
     false,
     null
    ],
    "4397002": [
     "Ayo Dosunmu",
+    0.101,
+    null,
+    false,
+    null
+   ],
+   "4397688": [
+    "Trey Murphy III",
     0.101,
     null,
     false,
@@ -1718,16 +1725,9 @@
     false,
     null
    ],
-   "4997538": [
-    "Karlo Matkovic",
-    0.071,
-    null,
-    false,
-    null
-   ],
    "5144091": [
     "Jeremiah Fears",
-    0.094,
+    0.085,
     null,
     false,
     null
@@ -10483,7 +10483,7 @@
  "401909938": {
   "away": "DEN",
   "date": "2026-11-07",
-  "first_home": 0.479,
+  "first_home": 0.539,
   "home": "IND",
   "jumpers": [
    [
@@ -10491,83 +10491,83 @@
     "Nikola Jokic"
    ],
    [
-    "4065731",
-    "Jay Huff"
+    "4017837",
+    "Ivica Zubac"
    ]
   ],
   "players": {
    "3064290": [
     "Aaron Gordon",
-    0.098,
+    0.087,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.115,
+    0.102,
+    null,
+    false,
+    null
+   ],
+   "3133603": [
+    "Kelly Oubre Jr.",
+    0.096,
     null,
     false,
     null
    ],
    "3138196": [
     "Cameron Johnson",
-    0.09,
+    0.08,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.12,
+    0.129,
     null,
     false,
     null
    ],
    "3936299": [
     "Jamal Murray",
-    0.114,
+    0.101,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.086,
-    null,
-    false,
-    null
-   ],
-   "4065731": [
-    "Jay Huff",
-    0.074,
+    0.094,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.087,
+    0.097,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.093,
+    0.102,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.082,
+    0.073,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.437
+  "tip_home": 0.617
  },
  "401909939": {
   "away": "BKN",
@@ -10587,7 +10587,7 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.091,
+    0.088,
     null,
     false,
     null
@@ -10601,7 +10601,7 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.108,
+    0.105,
     null,
     false,
     null
@@ -10613,16 +10613,9 @@
     false,
     null
    ],
-   "4397020": [
-    "Luguentz Dort",
-    0.086,
-    null,
-    false,
-    null
-   ],
    "4431680": [
     "Onyeka Okongwu",
-    0.087,
+    0.084,
     null,
     false,
     null
@@ -10634,9 +10627,16 @@
     false,
     null
    ],
+   "4701230": [
+    "Jalen Johnson",
+    0.098,
+    null,
+    false,
+    null
+   ],
    "4869342": [
     "Dyson Daniels",
-    0.103,
+    0.1,
     null,
     false,
     null
@@ -10674,16 +10674,23 @@
    ]
   ],
   "players": {
+   "3062679": [
+    "Josh Hart",
+    0.074,
+    null,
+    false,
+    null
+   ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.099,
+    0.105,
     null,
     false,
     null
    ],
    "3147657": [
     "Mikal Bridges",
-    0.077,
+    0.08,
     null,
     false,
     null
@@ -10695,23 +10702,16 @@
     false,
     null
    ],
-   "3914044": [
-    "Landry Shamet",
-    0.092,
-    null,
-    false,
-    null
-   ],
    "3934672": [
     "Jalen Brunson",
-    0.106,
+    0.109,
     null,
     false,
     null
    ],
    "3934719": [
     "OG Anunoby",
-    0.106,
+    0.114,
     null,
     false,
     null
