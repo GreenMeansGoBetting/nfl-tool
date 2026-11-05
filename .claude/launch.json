@@ -4,20 +4,350 @@
     {
       "name": "nfl-tool",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8010"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8010"
+      ],
       "port": 8010
     },
     {
       "name": "nfl-tool-py",
       "runtimeExecutable": "py",
-      "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8037"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8037"
+      ],
       "port": 8037
     },
     {
       "name": "nfl-tool-2",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "--directory", "nfl_tool/site", "8011"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8011"
+      ],
       "port": 8011
+    },
+    {
+      "name": "nfl-tool-8047",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8047"
+      ],
+      "port": 8047
+    },
+    {
+      "name": "saves-preview-8063",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\AppData\\Local\\Temp\\claude\\C--Users-Carter-Downloads-NFL-Tool\\40e55ac0-00e7-415f-be24-a27ab3445259\\scratchpad\\site",
+        "8063"
+      ],
+      "port": 8063
+    },
+    {
+      "name": "nhl-who-8071",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8071"
+      ],
+      "port": 8071
+    },
+    {
+      "name": "nba-seasons-8093",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8093"
+      ],
+      "port": 8093
+    },
+    {
+      "name": "lines-8131",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8131"
+      ],
+      "port": 8131
+    },
+    {
+      "name": "bp-click-8117",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8117"
+      ],
+      "port": 8117
+    },
+    {
+      "name": "fb-tip-8163",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8163"
+      ],
+      "port": 8163
+    },
+    {
+      "name": "wheel-8149",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8149"
+      ],
+      "port": 8149
+    },
+    {
+      "name": "shot-charts-8187",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8187"
+      ],
+      "port": 8187
+    },
+    {
+      "name": "ice-first10-8229",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\AppData\\Local\\Temp\\claude\\C--Users-Carter-Downloads-NFL-Tool\\677fbdbd-9c03-435b-8dd0-056c65dba220\\scratchpad\\site",
+        "8229"
+      ],
+      "port": 8229
+    },
+    {
+      "name": "kotc-8211",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8211"
+      ],
+      "port": 8211
+    },
+    {
+      "name": "kotc-tie-8241",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8241"
+      ],
+      "port": 8241
+    },
+    {
+      "name": "unsure-8257",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8257"
+      ],
+      "port": 8257
+    },
+    {
+      "name": "unsure-demo-8263",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\AppData\\Local\\Temp\\claude\\C--Users-Carter-Downloads-NFL-Tool\\8dfb2fd1-acee-482f-a289-56c8544235d6\\scratchpad\\demo",
+        "8263"
+      ],
+      "port": 8263
+    },
+    {
+      "name": "ytd-8277",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8277"
+      ],
+      "port": 8277
+    },
+    {
+      "name": "nba-proj-8293",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8293"
+      ],
+      "port": 8293
+    },
+    {
+      "name": "nba-mix-8299",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8299"
+      ],
+      "port": 8299
+    },
+    {
+      "name": "nba-zones-8303",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8303"
+      ],
+      "port": 8303
+    },
+    {
+      "name": "props-save-8317",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8317"
+      ],
+      "port": 8317
+    },
+    {
+      "name": "nba-sim-8331",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\AppData\\Local\\Temp\\claude\\C--Users-Carter-Downloads-NFL-Tool\\9aeba6c1-a9c0-4c5d-8a6f-9949d0534392\\scratchpad\\site",
+        "8331"
+      ],
+      "port": 8331
+    },
+    {
+      "name": "nba-breakdown-8347",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\Downloads\\NFL Tool\\nfl_tool\\site",
+        "8347"
+      ],
+      "port": 8347
+    },
+    {
+      "name": "opening-drives-8359",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\Downloads\\NFL Tool\\nfl_tool\\site",
+        "8359"
+      ],
+      "port": 8359
+    },
+    {
+      "name": "league-8371",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\Downloads\\NFL Tool\\nfl_tool\\site",
+        "8371"
+      ],
+      "port": 8371
+    },
+    {
+      "name": "rs-panel-8389",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\Downloads\\NFL Tool\\nfl_tool\\site",
+        "8389"
+      ],
+      "port": 8389
+    },
+    {
+      "name": "mkeys-8401",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "C:\\Users\\Carter\\Downloads\\NFL Tool\\nfl_tool\\site",
+        "8401"
+      ],
+      "port": 8401
+    },
+    {
+      "name": "threes-8419",
+      "runtimeExecutable": "C:\\Users\\Carter\\AppData\\Local\\Python\\bin\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "nfl_tool/site",
+        "8419"
+      ],
+      "port": 8419
     }
   ]
 }
