@@ -5830,23 +5830,23 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3463,
+    "lead": 0.3459,
     "name": "Luka Doncic",
     "proj": 52.8,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1317,
+    "lead": 0.1314,
     "name": "Victor Wembanyama",
     "proj": 44.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.065,
+    "lead": 0.0665,
     "name": "Jayson Tatum",
-    "proj": 40.2,
+    "proj": 40.3,
     "team": "BOS"
    },
    {
@@ -5858,17 +5858,10 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0409,
+    "lead": 0.0408,
     "name": "Tyrese Maxey",
     "proj": 37.8,
     "team": "PHI"
-   },
-   {
-    "id": "5142620",
-    "lead": 0.0325,
-    "name": "Darius Acuff Jr.",
-    "proj": 36.4,
-    "team": "SAC"
    },
    {
     "id": "6583",
@@ -5878,22 +5871,29 @@
     "team": "WSH"
    },
    {
+    "id": "5142620",
+    "lead": 0.0323,
+    "name": "Darius Acuff Jr.",
+    "proj": 36.4,
+    "team": "SAC"
+   },
+   {
     "id": "4701230",
-    "lead": 0.0316,
+    "lead": 0.0321,
     "name": "Jalen Johnson",
-    "proj": 36.3,
+    "proj": 36.4,
     "team": "ATL"
    },
    {
     "id": "4433134",
-    "lead": 0.0286,
+    "lead": 0.0285,
     "name": "Scottie Barnes",
     "proj": 36.3,
     "team": "TOR"
    },
    {
     "id": "4683021",
-    "lead": 0.0276,
+    "lead": 0.0275,
     "name": "Deni Avdija",
     "proj": 35.8,
     "team": "POR"
@@ -5914,7 +5914,7 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0215,
+    "lead": 0.0214,
     "name": "Domantas Sabonis",
     "proj": 35.3,
     "team": "SAC"
@@ -5942,14 +5942,14 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0092,
+    "lead": 0.0089,
     "name": "Donovan Mitchell",
     "proj": 32.3,
     "team": "CLE"
    },
    {
     "id": "4433627",
-    "lead": 0.0083,
+    "lead": 0.0082,
     "name": "Keyonte George",
     "proj": 31.5,
     "team": "UTAH"
@@ -5963,7 +5963,7 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0076,
+    "lead": 0.0075,
     "name": "Tyler Herro",
     "proj": 31.7,
     "team": "MIL"
@@ -5998,7 +5998,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0053,
+    "lead": 0.0052,
     "name": "Trae Young",
     "proj": 31.0,
     "team": "WSH"
@@ -6123,24 +6123,10 @@
     "team": "MIL"
    },
    {
-    "id": "4845367",
-    "lead": 0.0007,
-    "name": "Stephon Castle",
-    "proj": 27.3,
-    "team": "SA"
-   },
-   {
     "id": "4397002",
     "lead": 0.0007,
     "name": "Ayo Dosunmu",
     "proj": 25.9,
-    "team": "MIN"
-   },
-   {
-    "id": "4431671",
-    "lead": 0.0007,
-    "name": "Jaden McDaniels",
-    "proj": 25.8,
     "team": "MIN"
    },
    {
@@ -6151,10 +6137,24 @@
     "team": "WSH"
    },
    {
+    "id": "4845367",
+    "lead": 0.0006,
+    "name": "Stephon Castle",
+    "proj": 27.3,
+    "team": "SA"
+   },
+   {
     "id": "4432816",
     "lead": 0.0006,
     "name": "LaMelo Ball",
     "proj": 26.5,
+    "team": "MIN"
+   },
+   {
+    "id": "4431671",
+    "lead": 0.0006,
+    "name": "Jaden McDaniels",
+    "proj": 25.8,
     "team": "MIN"
    },
    {
@@ -6217,7 +6217,7 @@
     "id": "4869342",
     "lead": 0.0002,
     "name": "Dyson Daniels",
-    "proj": 20.4,
+    "proj": 20.5,
     "team": "ATL"
    },
    {
@@ -6238,7 +6238,7 @@
     "id": "4431680",
     "lead": 0.0001,
     "name": "Onyeka Okongwu",
-    "proj": 24.2,
+    "proj": 24.3,
     "team": "ATL"
    },
    {
