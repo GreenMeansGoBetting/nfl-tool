@@ -180,6 +180,58 @@ class FastOdds(unittest.TestCase):
         self.assertIn("4431678", g["points_alt"])  # Maxey's line didn't move: his ladder is kept
         self.assertIn("BOS_NY", games)  # a game with no fresh prices keeps its old ones
 
+    def test_a_failed_fetch_keeps_the_live_prices(self):
+        # 2026-11-06: SmartStake answered one build with a 504 and every untipped NBA game lost its
+        # prices until the next build. Now a 504 is asked again, and a fetch that still fails keeps
+        # the live build's prices (tipped games' were locked anyway).
+        import urllib.error
+        calls = []
+
+        def down(key, path, params):
+            calls.append(path)
+            raise urllib.error.HTTPError("u", 504, "Gateway Timeout", {}, None)
+
+        q = {"name": "x", "q": [["draftkings", "o", 20.5, -110], ["draftkings", "u", 20.5, -110]]}
+        previous = {"DET_PHI": {"kickoff": "2026-10-25T23:30:00Z", "td": {}, "lines": {}, "props": {"points": {"1": q}, "points_alt": {"1": q}}},
+                    "OLD_GAME": {"kickoff": "2026-10-20T23:30:00Z", "td": {}, "lines": {}, "props": {"points": {"2": q}}}}
+        real = smartstake._get
+        smartstake._get = down
+        try:
+            games, debug = smartstake.fetch_nba_book_odds("k", lambda full: None, lambda *a: None, previous, "2026-10-25T20:00Z", keep={"DET_PHI"})
+        finally:
+            smartstake._get = real
+        self.assertIn("error", debug)
+        self.assertEqual(games, {"DET_PHI": previous["DET_PHI"]})  # tonight's prices kept, off-schedule games still dropped
+
+    def test_a_504_is_asked_again(self):
+        import io
+        import urllib.error
+        import urllib.request
+        tries = []
+
+        class Resp(io.BytesIO):
+            headers = {}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        def urlopen(req, timeout=None):
+            tries.append(1)
+            if len(tries) == 1:
+                raise urllib.error.HTTPError("u", 504, "Gateway Timeout", {}, None)
+            return Resp(b'{"data": []}')
+
+        real_open, real_sleep = urllib.request.urlopen, smartstake.time.sleep
+        urllib.request.urlopen, smartstake.time.sleep = urlopen, lambda s: None
+        try:
+            self.assertEqual(smartstake._get("k", "/v1/odds", {"league": "nba"}), {"data": []})
+        finally:
+            urllib.request.urlopen, smartstake.time.sleep = real_open, real_sleep
+        self.assertEqual(len(tries), 2)
+
 
 class LaddersFile(unittest.TestCase):
     # 2026-10-28: data.json reached 27.8 MB (Cloudflare takes 25 MB a file); the alt ladders, most of

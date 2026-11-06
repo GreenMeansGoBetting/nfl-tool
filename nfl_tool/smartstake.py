@@ -167,7 +167,7 @@ def _get(api_key: str, path: str, params: dict) -> dict:
                     raw = gzip.decompress(raw)
                 return json.loads(raw)
         except urllib.error.HTTPError as e:
-            if e.code in (429, 503) and attempt < 2:
+            if e.code in (429, 502, 503, 504) and attempt < 2:  # 504: 2026-11-06's NBA build lost every price to one
                 time.sleep(min(int(e.headers.get("Retry-After") or 10), 30))
                 continue
             raise
@@ -462,8 +462,10 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
                 debug[f"{stat}_alt"] = add_ladder(api_key, games, team_of, player_key, key, f"{stat}_alt")
         return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
-        print(f"WARNING: SmartStake NBA fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
-        return only_games(lock_started({}, previous, now_iso), keep), {"error": str(e)[:200]}
+        # The live build's prices stay (a tipped game's are locked anyway): 2026-11-06 a 504 here left
+        # every untipped NBA game with no price at all until the next build.
+        print(f"WARNING: SmartStake NBA fetch failed ({e}) -- the live build's prices kept.", file=sys.stderr)
+        return only_games(dict(previous or {}), keep), {"error": str(e)[:200], "kept": len(previous or {})}
 
 
 def fetch_markets(api_key: str, league: str) -> list:
