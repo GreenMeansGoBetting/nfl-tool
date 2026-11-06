@@ -1,25 +1,25 @@
 // ---- GMG NBA Suite: Matchup Keys ----
-// What stands out in one game, on its own page under Matchup Breakdown (the owner, 2026-11-04:
-// "too hidden" as a League Stats Chart button; "a solid overview of mismatches in the matchups and
-// styles"). The keys are keys.js's (nbaMatchupKeys, every rule in one place), stacked in its three
-// groups: Edges (a column a team), Clashes, Same Style, strongest first in each. Every number is
-// two tiles in the room of one: the number and its rank of 30, both on the rank colors.
-// Beside them, the Matchup Summary card: the 7 categories that matter most (the owner, 2026-11-04,
-// "the overwhelming aspect of scheme and stats"), each team's Off and Def rank of 30 on either
-// side, the logo of a team with an Edge (keys.js) beside the category. Show All Summaries = every
-// game's card on one page, two a row, for the owner's video screenshots.
-// Data: nba/data.json `league_chart`, the columns in league-cols.js. No common.js.
+// One game's strengths and weaknesses, sorted the way Player Props is (the owner, 2026-11-06: the old
+// Edges / Clashes / Same Style stacks were "a mess of info"; "it needs to be segmented ... this is where
+// BOS have an edge vs this is where CHA is weak vs this is where they are both x"; "look at the player
+// prop drop down styles and make them like that"). Two tabs:
+//   Overview: the road team's Edges | the Matchup Summary | the home team's Edges (each box its own team's
+//     column first), then Both Teams (same-style keys). Labels are stat names with an OFF / DEF tag,
+//     never phrases (the owner: "default to the stat category rather than this arbitrary blabber").
+//   Categories: one line a category (offense vs the other team's defense, both ways, a Read tile naming
+//     who has it), click to open two Points Research style boxes (research.js .rs-sb / .rs-g in sim.css).
+// Rotations & History = the Matchup Data page (nba.js), same game. Every key and Read comes from keys.js
+// (nbaMatchupKeys, every rule in one place); a Clash shows as a Not Tested Read, never a headline.
+// Show All Summaries = every game's Matchup Summary, two a row, for the owner's video screenshots.
+// Data: nba/data.json `league_chart` (columns in league-cols.js), `injuries`, `schedule`. No common.js.
 
 let DATA = null;
 let dayIndex = 0;
 let gameId = null;
-const view = { window: "season", all: false };
-const NBA_GAME_KEY = "nba-tool.game.v1"; // the open game, shared with Matchup Breakdown (nba.js)
-const MK_GROUPS = [
-  ["edge", "Edges", "var(--good-rgb)"],
-  ["clash", "Clashes", "150, 100, 220"],
-  ["style", "Same Style", "70, 130, 220"],
-];
+const view = { window: "season", all: false, tab: "overview", open: new Set(["scoring"]) };
+const NBA_GAME_KEY = "nba-tool.game.v1"; // the open game, shared with Matchup Data (nba.js)
+const MK_TAB_KEY = "nba-tool.mk-tab.v1"; // a display pref: stays on this device
+const MK_WINDOWS = [["season", "Season"], ["10", "Last 10"], ["5", "Last 5"], ["3", "Last 3"]];
 // The Matchup Summary's rows: [name, offense key, defense key (null: one number a team), keys.js topic].
 const MK_SUMMARY = [
   ["Scoring Efficiency", "o_rtg", "d_rtg", "scoring"],
@@ -30,13 +30,45 @@ const MK_SUMMARY = [
   ["Rebounding", "o_reb", "d_reb", "glass"],
   ["Free Throws", "o_ftr", "d_ftr", "ft"],
 ];
+// Categories: [id, name, keys.js topics, the line's offense key, rows [label, offense key, defense key]].
+// Pace & Total is the two teams side by side (game numbers, no offense / defense).
+const MK_CATS = [
+  ["scoring", "Scoring Efficiency", ["scoring"], "o_rtg", [["Rating", "o_rtg", "d_rtg"], ["Points", "o_ppg", "d_ppg"], ["Ball Movement", "o_ball_move", "d_ball_move"]]],
+  ["pace", "Pace & Total", ["pace", "total", "ou"], null, null],
+  ["transition", "Transition", ["transition"], "o_trans_ppp", [["Transition Share", "o_trans_freq", "d_trans_freq"], ["Transition Pts", "o_trans_ppp", "d_trans_ppp"]]],
+  ["threes", "Three-Point Shooting", ["threes"], "o_3pm", [["3PA Rate", "o_3par", "d_3par"], ["3PM", "o_3pm", "d_3pm"]]],
+  ["paint", "Paint & Mid-Range", ["paint", "mid"], "o_paint_pct",
+    [["Paint Share", "o_paint_share", "d_paint_share"], ["Paint FG%", "o_paint_pct", "d_paint_pct"], ["Mid-Range Share", "o_mid_share", "d_mid_share"], ["Mid-Range FG%", "o_mid_pct", "d_mid_pct"]]],
+  ["turnovers", "Turnovers", ["turnovers"], "o_tov", [["Turnover %", "o_tov", "d_tov"]]],
+  ["glass", "Rebounding", ["glass"], "o_reb", [["Off Rebound %", "o_reb", "d_reb"]]],
+  ["ft", "Free Throws", ["ft"], "o_ftr", [["FT Rate", "o_ftr", "d_ftr"]]],
+];
+// Pace & Total's two boxes: [title, rows [label, key, keys.js style key or null]].
+const MK_PACE = [
+  ["Pace & Scoring", [["Pace", "pace"], ["Avg Total", "total"], ["Net Rating", "net"]]],
+  ["Betting Record", [["O/U Record", "ou"], ["ATS Record", "ats"], ["Avg Margin", "margin"]]],
+];
+// A key's stat name (its offense number's; the OFF / DEF tag says whose side of the ball).
+const MK_LABEL = {
+  o_rtg: "Rating", d_rtg: "Rating", o_3pm: "3PM", o_3par: "3PA Rate", o_ftr: "FT Rate", o_tov: "Turnovers", o_reb: "Rebounding",
+  o_paint_share: "Paint Share", o_paint_pct: "Paint FG%", o_mid_share: "Mid-Range Share", o_mid_pct: "Mid-Range FG%",
+  o_trans_freq: "Transition", o_trans_ppp: "Transition Pts", pace: "Pace", total: "Avg Total", ou: "O/U Record",
+};
+const MK_PLAIN_DEF = new Set(["d_rtg", "d_tov", "d_reb"]); // defense names that already say "allowed"
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, color: "555555", logo: "" };
 const teamRgb = (abbr) => [0, 2, 4].map((i) => parseInt((team(abbr).color || "555555").slice(i, i + 2), 16)).join(",");
 const logo = (abbr, size) => `<img src="${team(abbr).logo}" alt="${abbr}" class="team-logo" style="width:${size}px;height:${size}px" loading="lazy">`;
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const days = () => [...new Set(DATA.schedule.map((g) => g.date))].sort();
 const gamesOn = (date) => DATA.schedule.filter((g) => g.date === date);
+const col = (key) => COLS.find((c) => c[0] === key);
+const short = (key) => {
+  const name = col(key)[1].replace("<br>", " ").replace(" %", "%");
+  return key.startsWith("d_") && !MK_PLAIN_DEF.has(key) ? `${name} Allowed` : name;
+};
+const sideTag = (key) => (key.startsWith("o_") ? `<span class="mk-side mk-o">OFF</span>` : key.startsWith("d_") ? `<span class="mk-side mk-d">DEF</span>` : "");
 
 function renderSchedule() {
   const all = days();
@@ -58,50 +90,180 @@ function renderSchedule() {
     .join("");
 }
 
-function colLabel(key) {
-  const col = COLS.find((c) => c[0] === key);
-  const label = col ? col[1].replace("<br>", " ") : key;
-  return key.startsWith("o_") ? `Off ${label}` : key.startsWith("d_") ? `Def ${label}` : label;
+// ---- Tiles ----
+// A plain Points Research tile; `rank` shades it on the 8-step scale (green = good for that team).
+const rsT = (inner, cls = "", style = "", tip = "") => `<div class="rs-t ${cls}"${style ? ` style="${style}"` : ""}${tip ? ` title="${esc(tip)}"` : ""}>${inner}</div>`;
+const hd = (inner, cls) => rsT(inner, `rs-h ${cls}`);
+function stat(ctx, t, key) {
+  const c = col(key), v = (ctx.table[t] || {})[key], rk = ctx.ranks[key] ? ctx.ranks[key].r[t] : null;
+  return { v, rk, n: ctx.ranks[key] ? ctx.ranks[key].n : 30, shade: rk ? rankStyle(rk, ctx.ranks[key].n) : "", text: exact(v, c[3]), tip: `${team(t).name} · ${c[2]}: ${exact(v, c[3])}${rk ? ` · ${ordinal(rk)} of ${ctx.ranks[key].n}` : ""}` };
+}
+const rankTile = (ctx, t, key, withLogo) => {
+  const s = stat(ctx, t, key);
+  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}` : "--", s.rk ? "mk-r" : "rs-small", s.shade, s.tip);
+};
+// The Overview's tile: the rank big, the number and its name small under it.
+const bigTile = (ctx, t, key) => {
+  const s = stat(ctx, t, key);
+  return `<div class="mk-k" style="${s.shade}" title="${esc(s.tip)}"><b>${s.rk ? ordinal(s.rk) : "--"}</b><small>${esc(s.v === null || s.v === undefined ? "" : s.text)} ${esc(short(key))}</small></div>`;
+};
+function readTile(r) {
+  if (!r || r.kind === "blank") return rsT("", "rs-blank");
+  if (r.kind === "team") return rsT(`${logo(r.team, 18)}${r.team} Edge`, "rs-read", `--team:${teamRgb(r.team)}`, r.tip);
+  if (r.kind === "untested") return rsT("Not Tested", "rs-read mk-untested", "", r.tip);
+  if (r.kind === "style") return rsT(r.text, "rs-read mk-style", "", r.tip);
+  return rsT("Even", "rs-read mk-even");
 }
 
-// The Matchup Summary card: road team left, home right, each side its Off and Def rank of 30 on the
-// rank colors (green = good for that team, like the chart); a team with an Edge on that subject
-// (keys.js) gets its logo beside the category, the keys in the hover.
-function summaryCard(table, ranks, game, keys) {
-  const side = [game.away, game.home];
-  const tile = (t, key) => {
-    const col = COLS.find((c) => c[0] === key);
-    const v = table[t][key], rk = ranks[key].r[t];
-    const tip = `${team(t).name} · ${col[2]}: ${exact(v, col[3])}${rk ? ` · ${ordinal(rk)} of ${ranks[key].n}` : ""}`;
-    return `<div class="od-tile mks-t"${rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : ""} title="${tip}"><b>${rk ? ordinal(rk) : ""}</b></div>`;
+// ---- Reads (keys.js decides every one) ----
+const hasTile = (k, t, key) => k.tiles.some((x) => x.team === t && x.key === key);
+// Offense o's number `ok` against defense d's `dk`: an Edge (either side's), Not Tested, or Even.
+function pairRead(keys, o, d, ok, dk) {
+  const edge = keys.find((k) => k.group === "edge" && hasTile(k, o, ok) && hasTile(k, d, dk));
+  if (edge) return { kind: "team", team: edge.team, tip: edge.title };
+  const weak = keys.find((k) => k.type === "untested" && hasTile(k, o, ok) && hasTile(k, d, dk));
+  if (weak) return { kind: "untested", tip: weak.title };
+  return { kind: "even" };
+}
+// A category's line, offense o vs defense d: the strongest Edge in its topics that way, else Not Tested, else Even.
+function lineRead(keys, o, d, topics) {
+  const mine = keys.filter((k) => topics.includes(k.topic) && k.tiles[0].team === o && k.tiles.some((x) => x.team === d));
+  const edge = mine.find((k) => k.group === "edge");
+  if (edge) return { kind: "team", team: edge.team, tip: edge.title };
+  const weak = keys.find((k) => k.type === "untested" && topics.includes(k.topic) && k.team === d);
+  if (weak) return { kind: "untested", tip: weak.title };
+  return { kind: "even" };
+}
+// Both teams on one game number: Same Style (both at one end) or the combined O/U Trend.
+function styleRead(keys, game, key) {
+  const k = keys.find((x) => (x.group === "style") && x.tiles.every((tl) => tl.key === key) && hasTile(x, game.away, key) && hasTile(x, game.home, key));
+  if (!k) return key === "pace" || key === "total" || key === "ou" ? { kind: "even" } : { kind: "blank" };
+  const words = { pace: ["Both Fast", "Both Slow"], total: ["Both High", "Both Low"] }[key];
+  const text = words ? (/Fast|High/.test(k.title) ? words[0] : words[1]) : k.title.replace(" Combined", "");
+  return { kind: "style", text, tip: k.title };
+}
+
+// ---- The Matchup Summary card ----
+// Each side reads one matchup: the road team's Off against the home team's Def | category | the home
+// team's Off against the road team's Def (the owner, 2026-11-06). A logo beside the category = the
+// team with an Edge in that matchup (keys.js); Pace = one number a team.
+function summaryCard(ctx, game, keys) {
+  const [a, h] = [game.away, game.home];
+  const mark = (o, topic) => {
+    const k = keys.find((x) => x.group === "edge" && x.topic === topic && x.tiles[0].team === o);
+    return `<span class="mks-edge"${k ? ` title="${esc(k.title)}"` : ""}>${k ? logo(k.team, 18) : ""}</span>`;
   };
-  const cells = (t, ok, dk) => (dk ? `<td>${tile(t, ok)}</td><td>${tile(t, dk)}</td>` : `<td colspan="2">${tile(t, ok)}</td>`);
-  const rows = MK_SUMMARY.map(([name, ok, dk, topic]) => {
-    const mark = (t) => {
-      const mine = keys.filter((k) => k.group === "edge" && k.topic === topic && k.team === t);
-      return mine.length ? `<span class="mks-edge" title="Edge: ${mine.map((k) => k.title).join(" · ")}">${logo(t, 18)}</span>` : `<span class="mks-edge"></span>`;
-    };
-    return `<tr>${cells(side[0], ok, dk)}<td><div class="mks-cat">${mark(side[0])}<b>${name}</b>${mark(side[1])}</div></td>${cells(side[1], ok, dk)}</tr>`;
-  }).join("");
-  // The line when there is one (Novig, locked at tip).
+  const rows = MK_SUMMARY.map(([name, ok, dk, topic]) =>
+    dk
+      ? rankTile(ctx, a, ok) + rankTile(ctx, h, dk) + rsT(`${mark(a, topic)}<b>${name}</b>${mark(h, topic)}`, "rs-l mks-cat") + rankTile(ctx, h, ok) + rankTile(ctx, a, dk)
+      : rankTile(ctx, a, ok, true).replace('class="rs-t', 'class="rs-t mks-span') + rsT(`<span class="mks-edge"></span><b>${name}</b><span class="mks-edge"></span>`, "rs-l mks-cat") + rankTile(ctx, h, ok, true).replace('class="rs-t', 'class="rs-t mks-span')
+  ).join("");
   const hs = game.home_team_spread, total = game.total_line;
-  const fav = hs === null || hs === undefined ? null : hs <= 0 ? game.home : game.away;
-  const favLine = fav === game.home ? hs : -hs;
+  const fav = hs === null || hs === undefined ? null : hs <= 0 ? h : a;
+  const favLine = fav === h ? hs : -hs;
   const line = [fav ? `${fav} ${favLine > 0 ? "+" : ""}${favLine}` : "", total ? `O/U ${total}` : ""].filter(Boolean).join(" · ");
   const head = (t) => `<div class="mks-team" style="--team:${teamRgb(t)}">${logo(t, 34)}<b>${t}</b></div>`;
-  return `<div class="mks-card" data-game="${game.game_id}">
-    <div class="mks-head">${head(side[0])}<div class="mks-mid"><b>Matchup Summary</b><span>${gmgGameTime(game, false)}${line ? ` · ${line}` : ""}</span></div>${head(side[1])}</div>
-    <table class="mks-grid"><colgroup><col class="mks-c"><col class="mks-c"><col><col class="mks-c"><col class="mks-c"></colgroup>
-      <thead><tr><th>Off</th><th>Def</th><th></th><th>Off</th><th>Def</th></tr></thead>
-      <tbody>${rows}</tbody></table>
+  return `<div class="mks-card mk-box" data-game="${game.game_id}">
+    <div class="mks-head">${head(a)}<div class="mks-mid"><b>Matchup Summary</b><span>${gmgGameTime(game, false)}${line ? ` · ${line}` : ""}</span></div>${head(h)}</div>
+    <div class="mks-grid">${hd(`${logo(a, 18)}Off`, "rs-him")}${hd(`${logo(h, 18)}Def`, "rs-def")}${rsT("Logo = Who Has It", "rs-h mks-note")}${hd(`${logo(h, 18)}Off`, "rs-him")}${hd(`${logo(a, 18)}Def`, "rs-def")}${rows}</div>
   </div>`;
 }
-// Every game of the day's card, two a row (one screenshot = two games).
-function renderAll(table) {
-  const ranks = ranksOf(table);
-  const games = gamesOn(days()[dayIndex]).filter((g) => table[g.away] && table[g.home]);
+
+// ---- Overview ----
+// A team's Edges: every Edge key it owns, strongest first, its own column first.
+function edgeBox(ctx, t, opp, keys) {
+  const mine = keys.filter((k) => k.group === "edge" && k.team === t).sort((x, y) => y.score - x.score);
+  const rows = mine.map((k) => {
+    const [off] = k.tiles;
+    const ownKey = (k.tiles.find((x) => x.team === t) || {}).key, oppKey = (k.tiles.find((x) => x.team === opp) || {}).key;
+    const side = k.tiles[0].team === t ? "o_" : "d_";
+    return rsT(`<span>${MK_LABEL[off.key] || short(off.key)}</span>${sideTag(side)}`, "rs-l mk-lab", "", k.title) + bigTile(ctx, t, ownKey) + bigTile(ctx, opp, oppKey);
+  }).join("");
+  return `<div class="mk-box mk-edges" data-team="${t}"><div class="mk-bh" style="--team:${teamRgb(t)}">${logo(t, 28)}${team(t).name} Edges</div>
+    <div class="mk-eg${mine.length < 4 ? " mk-few" : ""}">${rsT("", "rs-blank")}${hd(`${logo(t, 24)}${t}`, "rs-him mk-big")}${hd(`${logo(opp, 24)}${opp}`, "rs-def mk-big")}
+    ${rows || `<div class="mk-none">No Edges In This Matchup</div>`}</div></div>`;
+}
+// Both Teams: Same Style keys (both at one end of a number) and the combined O/U Trend, three columns.
+function bothBox(ctx, game, keys) {
+  const list = keys.filter((k) => k.group === "style").sort((x, y) => y.score - x.score);
+  if (!list.length) return `<div class="mk-box mk-both"><div class="mk-bh mk-bh-both">${logo(game.away, 28)}Both Teams${logo(game.home, 28)}</div><div class="mk-none">Nothing Both Teams Share</div></div>`;
+  const per = Math.ceil(list.length / 3);
+  const cols = [0, 1, 2].map((i) => list.slice(i * per, i * per + per)).filter((c) => c.length);
+  const row = (k) => {
+    const key = k.tiles[0].key;
+    return rsT(`<span>${MK_LABEL[key] || short(key)}</span>${sideTag(key)}`, "rs-l mk-lab", "", k.title) + bigTile(ctx, game.away, key) + bigTile(ctx, game.home, key);
+  };
+  return `<div class="mk-box mk-both"><div class="mk-bh mk-bh-both">${logo(game.away, 28)}Both Teams${logo(game.home, 28)}</div>
+    <div class="mk-cols">${cols.map((c) => `<div class="mk-eg">${rsT("", "rs-blank")}${hd(`${logo(game.away, 24)}${game.away}`, "rs-him mk-big")}${hd(`${logo(game.home, 24)}${game.home}`, "rs-def mk-big")}${c.map(row).join("")}</div>`).join("")}</div></div>`;
+}
+
+// ---- Categories ----
+const winTabs = () => `<div class="rs-tabs">${MK_WINDOWS.map(([w, name]) => `<button type="button" class="${w === view.window ? "on" : ""}" data-window="${w}">${name}</button>`).join("")}</div>`;
+// One Points Research box: [label | first value, rank | second value, rank | Read], bands behind the columns.
+function rsBox(corner, heads, rows) {
+  const n = rows.length + 1;
+  const bands = `<div class="rs-g rs-five rs-wide rs-bands"><span></span><div class="rs-band rs-him" style="grid-column:2/span 2;grid-row:1/span ${n}"></div>
+    <div class="rs-band rs-def" style="grid-column:4/span 2;grid-row:1/span ${n}"></div><div class="rs-band rs-rd" style="grid-column:6;grid-row:1/span ${n}"></div></div>`;
+  return `<div class="rs-sb mk-sb">${winTabs()}<div class="rs-sbody"><div class="rs-gw">${bands}<div class="rs-g rs-five rs-wide">
+    ${rsT(corner, "rs-corner")}${hd(heads[0], "rs-him")}${hd("Rank", "rs-him")}${hd(heads[1], "rs-def")}${hd("Rank", "rs-def")}${hd("Read", "rs-rd")}${rows.join("")}</div></div></div></div>`;
+}
+const valRank = (ctx, t, key) => {
+  const s = stat(ctx, t, key);
+  return s.v === null || s.v === undefined ? rsT("--", "rs-small") + rsT("--", "rs-small") : rsT(esc(s.text), "", s.shade, s.tip) + rsT(s.rk ? ordinal(s.rk) : "--", "mk-r", s.shade, s.tip);
+};
+function directionBox(ctx, keys, o, d, rows) {
+  return rsBox(`${logo(o, 22)}vs${logo(d, 22)}`, [`${logo(o, 16)}${o} Off`, `${logo(d, 16)}${d} Allows`],
+    rows.map(([label, ok, dk]) => rsT(label, "rs-l") + valRank(ctx, o, ok) + valRank(ctx, d, dk) + readTile(pairRead(keys, o, d, ok, dk))));
+}
+function paceBoxes(ctx, keys, game) {
+  const [a, h] = [game.away, game.home];
+  return MK_PACE.map(([title, rows]) => rsBox(`<b class="mk-bt">${title}</b>`, [`${logo(a, 16)}${a}`, `${logo(h, 16)}${h}`],
+    rows.map(([label, key]) => rsT(label, "rs-l") + valRank(ctx, a, key) + valRank(ctx, h, key) + readTile(styleRead(keys, game, key))))).join("");
+}
+function categories(ctx, keys, game) {
+  const [a, h] = [game.away, game.home];
+  const head = `<div class="mk-chead"><div class="mk-cline">${rsT("Click A Category To Open It", "rs-h mks-note")}${hd(`${logo(a, 18)}${a} Off`, "rs-him")}${hd(`${logo(h, 18)}${h} Def`, "rs-def")}${hd("Read", "rs-rd")}<span></span>
+    ${hd(`${logo(h, 18)}${h} Off`, "rs-him")}${hd(`${logo(a, 18)}${a} Def`, "rs-def")}${hd("Read", "rs-rd")}</div></div>`;
+  const rows = MK_CATS.map(([id, name, topics, ok, list]) => {
+    const open = view.open.has(id);
+    const label = rsT(`<span class="mk-car">${open ? "&#9660;" : "&#9654;"}</span>${name}`, "rs-l mk-cname");
+    const line = list
+      ? `${rankTile(ctx, a, ok)}${rankTile(ctx, h, list.find((r) => r[1] === ok)[2])}${readTile(lineRead(keys, a, h, topics))}<span></span>
+         ${rankTile(ctx, h, ok)}${rankTile(ctx, a, list.find((r) => r[1] === ok)[2])}${readTile(lineRead(keys, h, a, topics))}`
+      : `${rankTile(ctx, a, "pace", true)}${rankTile(ctx, h, "pace", true)}${readTile(styleRead(keys, game, "pace"))}<span></span>
+         ${rankTile(ctx, a, "total", true)}${rankTile(ctx, h, "total", true)}${readTile(styleRead(keys, game, "total"))}`;
+    const body = !open ? "" : `<div class="mk-open">${list ? directionBox(ctx, keys, a, h, list) + directionBox(ctx, keys, h, a, list) : paceBoxes(ctx, keys, game)}</div>`;
+    return `<div class="mk-crow${open ? " open" : ""}" data-cat="${id}"><div class="mk-cline" data-cat="${id}" role="button" tabindex="0" aria-expanded="${open}">${label}${line}</div>${body}</div>`;
+  }).join("");
+  return `<div class="mk-cats">${head}${rows}</div>`;
+}
+
+// ---- The game's top: tabs, the line, injuries ----
+function lineTiles(game) {
+  const odds = (v) => (v === null || v === undefined ? null : typeof showOdds === "function" ? showOdds(v) : (v > 0 ? `+${v}` : String(v)));
+  const hs = game.home_team_spread;
+  const fav = hs === null || hs === undefined ? null : hs <= 0 ? game.home : game.away;
+  const favLine = fav === game.home ? hs : -hs;
+  const tiles = [];
+  if (fav) tiles.push(rsT(`<small>Spread</small>${fav} ${favLine > 0 ? "+" : ""}${favLine}`));
+  if (game.total_line) tiles.push(rsT(`<small>Total</small>${game.total_line}`));
+  const am = odds(game.away_moneyline), hm = odds(game.home_moneyline);
+  if (am && hm) tiles.push(rsT(`<small>ML</small>${game.away} ${am} / ${game.home} ${hm}`));
+  return tiles.join("");
+}
+function injuries(game) {
+  return `<div class="mk-inj">${[game.away, game.home].map((t) => {
+    const list = (DATA.injuries || {})[t] || [];
+    const shown = list.filter((p) => p.status !== "Probable");
+    const pills = shown.map((p) => `<span class="mk-ip" title="${esc([p.injury, p.note].filter(Boolean).join(": "))}"><i class="${p.status === "Out" ? "" : "q"}">${p.status === "Out" ? "Out" : "DTD"}</i>${playerClick(p.id, esc(p.name))}<small>${esc(p.position || "")}</small></span>`).join("");
+    return `<div class="mk-injt" style="--team:${teamRgb(t)}"><b>${logo(t, 22)}${t} Injuries</b>${pills || `<span class="mk-ip mk-healthy">None Listed</span>`}</div>`;
+  }).join("")}</div>`;
+}
+
+function renderAll(ctx) {
+  const games = gamesOn(days()[dayIndex]).filter((g) => ctx.table[g.away] && ctx.table[g.home]);
   el("mk-body").innerHTML = games.length
-    ? `<div class="mks-all">${games.map((g) => summaryCard(table, ranks, g, nbaMatchupKeys(table, g.away, g.home))).join("")}</div>`
+    ? `<div class="mks-all">${games.map((g) => summaryCard(ctx, g, nbaMatchupKeys(ctx.table, g.away, g.home))).join("")}</div>`
     : `<p class="no-data-note">No games with numbers on this day.</p>`;
 }
 
@@ -114,42 +276,21 @@ function renderKeys() {
     el("mk-body").innerHTML = "";
     return;
   }
-  if (view.all) return renderAll(table);
+  const ctx = { table, ranks: ranksOf(table) };
+  if (view.all) return renderAll(ctx);
   if (!game || !table[game.away] || !table[game.home]) {
     el("mk-body").innerHTML = `<p class="no-data-note">Pick a game above to see its Matchup Keys.</p>`;
     return;
   }
-  const ranks = ranksOf(table);
   const keys = nbaMatchupKeys(table, game.away, game.home);
-  // A number: its value and its rank side by side, both shaded by the rank.
-  const tile = ({ team: t, key }) => {
-    const col = COLS.find((c) => c[0] === key);
-    const v = table[t][key], rk = ranks[key].r[t];
-    const shade = rk ? ` style="${rankStyle(rk, ranks[key].n)}"` : "";
-    const tip = `${team(t).name} · ${col[2]}: ${exact(v, col[3])}${rk ? ` · ${ordinal(rk)} of ${ranks[key].n}` : ""}`;
-    return `<div class="mk-num"><span class="mk-lab">${logo(t, 16)}${t} ${colLabel(key)}</span>
-      <div class="mk-pair" title="${tip}"><div class="od-tile mk-val"${shade}><b>${show(v, col[3])}</b></div><div class="od-tile mk-rank"${shade}><b>${rk ? ordinal(rk) : ""}</b></div></div></div>`;
-  };
-  const card = (k, rgb, inColumn) => `<div class="mk-key" style="--kc:${rgb}">
-      <div class="mk-key-top">${k.team && !inColumn ? logo(k.team, 18) : ""}<b>${inColumn ? k.title.replace(`${k.team} `, "") : k.title}</b></div>
-      <div class="mk-nums">${k.tiles.map(tile).join("")}</div>
-    </div>`;
-  const none = `<p class="mk-none">Nothing here in this matchup.</p>`;
-  const sections = MK_GROUPS.map(([group, name, rgb]) => {
-    const list = keys.filter((k) => k.group === group).sort((a, b) => b.score - a.score);
-    // Edges a column a team (the owner: "columns for each too so its sorted by team"), road team left.
-    const body =
-      group === "edge"
-        ? `<div class="mk-teams">${[game.away, game.home].map((t) => {
-            const mine = list.filter((k) => k.team === t);
-            return `<div class="mk-team"><div class="mk-team-head" style="--team:${teamRgb(t)}">${logo(t, 22)}<b>${team(t).name}</b><span class="mk-count">${mine.length}</span></div>
-              ${mine.length ? `<div class="mk-list">${mine.map((k) => card(k, rgb, true)).join("")}</div>` : none}</div>`;
-          }).join("")}</div>`
-        : list.length ? `<div class="mk-list mk-wide">${list.map((k) => card(k, rgb, false)).join("")}</div>` : none;
-    return `<section class="mk-group" data-group="${group}" style="--kc:${rgb}"><h3 class="mk-group-head">${name}<span class="mk-count">${list.length}</span></h3>${body}</section>`;
-  }).join("");
-  el("mk-body").innerHTML = `<div class="mk-head">${logo(game.away, 24)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 24)}<b>${game.home}</b></div>
-    <div class="mk-layout"><div class="mk-groups">${sections}</div><aside class="mk-side">${summaryCard(table, ranks, game, keys)}</aside></div>`;
+  const tabs = [["overview", "Overview"], ["categories", "Categories"]]
+    .map(([id, name]) => `<button type="button" class="${view.tab === id ? "on" : ""}" data-mk-tab="${id}">${name}</button>`).join("")
+    + `<a class="mk-tab-link" href="./" title="Rotations, head to head, points by quarter and blowouts on the Matchup Data page">Rotations &amp; History &#8599;</a>`;
+  const body = view.tab === "categories"
+    ? categories(ctx, keys, game)
+    : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}`;
+  el("mk-body").innerHTML = `<div class="mk-top"><div class="mk-head">${logo(game.away, 28)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 28)}<b>${game.home}</b></div>
+    <div class="rs-tabs mk-tabs">${tabs}</div><div class="mk-line">${lineTiles(game)}</div></div>${injuries(game)}${body}`;
 }
 function render() {
   renderSchedule();
@@ -167,7 +308,19 @@ function selectGame(id) {
   }
   render();
 }
+function toggleCat(id) {
+  if (view.open.has(id)) view.open.delete(id);
+  else view.open.add(id);
+  renderKeys();
+}
 
+document.addEventListener("keydown", (e) => {
+  const line = e.target.closest && e.target.closest(".mk-cline[data-cat]");
+  if (line && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    toggleCat(line.dataset.cat);
+  }
+});
 document.addEventListener("click", (e) => {
   const card = e.target.closest(".matchup-card");
   if (card) {
@@ -183,7 +336,20 @@ document.addEventListener("click", (e) => {
     view.all = !view.all;
     return render();
   }
-  const win = e.target.closest("#mk-window .view-toggle-btn");
+  const tab = e.target.closest("[data-mk-tab]");
+  if (tab) {
+    view.tab = tab.dataset.mkTab;
+    try {
+      localStorage.setItem(MK_TAB_KEY, view.tab);
+    } catch (err) {
+      // localStorage unavailable.
+    }
+    return renderKeys();
+  }
+  if (e.target.closest(".player-click")) return; // the player card (nba-card.js) handles it
+  const line = e.target.closest(".mk-cline[data-cat]");
+  if (line) return toggleCat(line.dataset.cat);
+  const win = e.target.closest("#mk-window .view-toggle-btn") || e.target.closest(".mk-sb .rs-tabs [data-window]");
   if (win) {
     view.window = win.dataset.window;
     return render();
@@ -209,10 +375,12 @@ fetch("data.json")
     let saved = null;
     try {
       saved = localStorage.getItem(NBA_GAME_KEY);
+      const tab = localStorage.getItem(MK_TAB_KEY);
+      if (tab === "overview" || tab === "categories") view.tab = tab;
     } catch (e) {
       // localStorage unavailable.
     }
-    // Open on the game Matchup Breakdown has open if it's still in the window, else today's
+    // Open on the game Matchup Data has open if it's still in the window, else today's
     // (or the next day's) first game.
     const savedGame = DATA.schedule.find((g) => g.game_id === saved);
     const today = new Date().toLocaleDateString("en-CA");

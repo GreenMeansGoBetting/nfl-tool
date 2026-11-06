@@ -1,65 +1,111 @@
-/* NBA Matchup Keys (matchup-keys.html): three stacked groups (Edges a column a team, Clashes, Same Style),
-   cards one width everywhere (never stretched), each number = its value + its rank, both on the rank colors. */
-.mk-head { display: flex; align-items: center; gap: 8px; margin: 2px 0 12px; font-family: var(--font-display); font-size: 1.15rem; }
+/* NBA Matchup Keys (matchup-keys.html), 2026-11-06: the Points Research look (sim.css .rs-sb / .rs-g /
+   .rs-t / .rs-tabs) in every box. Overview = road team's Edges | Matchup Summary | home team's Edges,
+   Both Teams under; Categories = a line a category that opens two research boxes. */
+.mk-top { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 2px 0 8px; max-width: 1260px; }
+.mk-head { display: flex; align-items: center; gap: 7px; font-family: var(--font-display); font-size: 1.25rem; }
 .mk-head .at { color: var(--muted); font-size: 0.85rem; }
-.mk-group { max-width: 1260px; margin: 0 0 16px; }
-.mk-group-head { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 12px; border-radius: 8px; font-family: var(--font-display);
-  font-size: 1.05rem; letter-spacing: 0.04em; text-transform: uppercase; background: rgba(var(--kc), 0.22); border-left: 4px solid rgb(var(--kc)); }
-.mk-count { padding: 1px 9px; border-radius: 999px; font-size: 0.78rem; letter-spacing: 0; background: var(--panel-2); border: 1px solid var(--border); }
-.mk-teams { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.mk-team { padding: 8px; border-radius: 10px; background: rgba(var(--kc), 0.05); border: 1px solid var(--border); min-width: 0; }
-.mk-team-head { display: flex; align-items: center; gap: 7px; margin: 0 0 8px; padding: 4px 10px; border-radius: 7px; font-family: var(--font-display); font-size: 1rem;
-  background: rgba(var(--team), 0.42); border-left: 4px solid rgb(var(--team)); }
-.mk-team-head .mk-count { margin-left: auto; }
-.mk-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.mk-list.mk-wide { grid-template-columns: repeat(4, 1fr); }
-.mk-key { padding: 8px 10px 10px; border-radius: 10px; background: rgba(var(--kc), 0.1); border: 1px solid rgba(var(--kc), 0.4); border-left: 4px solid rgb(var(--kc)); min-width: 0; }
-.mk-key-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; line-height: 1.2; }
-.mk-key-top b { font-family: var(--font-display); font-size: 0.98rem; }
-.mk-nums { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 8px; }
-.mk-num { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.mk-lab { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* The number and its rank in the room of the old one tile. */
-.mk-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
-.mk-pair .od-tile { padding: 5px 0; text-align: center; }
-.mk-pair .od-tile b { font-size: 0.95rem; }
-.mk-pair .mk-rank b { font-size: 0.82rem; line-height: 1.27; }
-.mk-none { margin: 4px 2px; font-size: 0.85rem; }
-@media (max-width: 1100px) {
-  .mk-teams { grid-template-columns: 1fr; }
-  .mk-list.mk-wide { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 760px) {
-  .mk-list, .mk-list.mk-wide { grid-template-columns: 1fr; }
-}
-/* The Matchup Summary card: one width (two fit a 1160 video frame), the 7 categories down the middle,
-   each team's Off / Def rank of 30 on either side. Beside the groups; above them on narrower screens. */
-.mk-layout { display: flex; flex-wrap: wrap-reverse; align-items: flex-end; gap: 16px; }
-.mk-groups { flex: 1 1 1200px; max-width: 1260px; min-width: 0; }
-/* Scrolls with the page: stuck to the top it covered the keys under it (the owner, 2026-11-04). */
-.mk-side { flex: 0 0 auto; }
-.mks-card { width: 470px; box-sizing: border-box; padding: 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
-.mks-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 8px; }
-.mks-team { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 9px; font-family: var(--font-display); font-size: 1.35rem;
-  background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
+.mk-tabs.rs-tabs { padding: 0; width: 480px; grid-auto-columns: 1fr; }
+.mk-tab-link { display: flex; align-items: center; justify-content: center; height: 32px; border: 1px solid var(--rs-sep); border-radius: 8px; background: var(--rs-tabs);
+  box-shadow: 0 2px 0 var(--rs-sep); color: var(--text); font: 700 0.92rem var(--font-display); text-decoration: none; }
+.mk-tab-link:hover { border-color: rgba(var(--accent-rgb), 0.7); background: rgba(var(--accent-rgb), 0.16); }
+.mk-line { display: flex; flex-wrap: wrap; gap: 5px; margin-left: auto; }
+.mk-line .rs-t { height: 32px; padding: 0 10px; gap: 6px; font-size: 0.95rem; background: var(--rs-label); }
+.mk-line .rs-t small { font: 800 0.62rem var(--font-display); text-transform: uppercase; opacity: 0.75; }
+
+/* Injuries: every name, both teams. */
+.mk-inj { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; max-width: 1260px; }
+.mk-injt { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; padding: 6px 8px; border-radius: 10px; background: var(--rs-box); border: 1px solid var(--rs-sep);
+  border-left: 5px solid rgb(var(--team)); }
+.mk-injt > b { display: flex; align-items: center; gap: 6px; margin-right: 4px; font: 700 1rem var(--font-display); text-transform: uppercase; }
+.mk-ip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 9px 0 4px; border-radius: 6px; background: var(--rs-tile); font: 700 0.9rem var(--font-display); }
+.mk-ip i { font: 800 0.62rem var(--font-body); padding: 2px 5px; border-radius: 4px; text-transform: uppercase; background: rgba(var(--bad-rgb), 0.22); color: var(--bad-text); }
+.mk-ip i.q { background: rgba(var(--mid-rgb), 0.25); color: var(--mid-text); }
+.mk-ip small { font: 700 0.7rem var(--font-body); opacity: 0.7; }
+.mk-ip.mk-healthy { padding: 0 9px; font-weight: 600; }
+
+/* A box in the research look. */
+.mk-box { box-sizing: border-box; padding: 7px; background: var(--rs-box); border: 1px solid var(--rs-sep); border-radius: 12px; min-width: 0; }
+.mk-bh { display: flex; align-items: center; justify-content: center; gap: 10px; height: 40px; margin-bottom: 7px; border-radius: 8px; color: #fff;
+  font: 700 1.15rem var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; background: rgb(var(--team)); white-space: nowrap; overflow: hidden; }
+.mk-bh-both { background: #2f4a73; }
+.mk-bh img, .mks-team img { background: #fff; border-radius: 50%; padding: 2px; }
+.rs-t img { flex: none; }
+.rs-t.rs-h { gap: 5px; }
+.rs-t.rs-h.mk-big { font-size: 1rem; gap: 7px; }
+.mk-k { display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 0; border-radius: 6px; background: var(--rs-tile); line-height: 1.05; }
+.mk-k b { font: 700 1.15rem var(--font-display); }
+.mk-k small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font: 700 0.66rem var(--font-body); opacity: 0.85; white-space: nowrap; }
+.mk-eg { display: grid; grid-template-columns: 150px 1fr 1fr; grid-template-rows: 36px; grid-auto-rows: 44px; gap: 3px 4px; }
+.mk-eg .rs-l.mk-lab { justify-content: space-between; font-size: 0.9rem; white-space: normal; line-height: 1.05; }
+.mk-side { flex: none; font: 800 0.6rem var(--font-body); padding: 2px 5px; border-radius: 4px; letter-spacing: 0.04em; }
+.mk-side.mk-o { background: rgba(70, 130, 220, 0.3); }
+.mk-side.mk-d { background: rgba(150, 100, 220, 0.3); }
+.mk-none { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 6px; background: var(--rs-label);
+  font: 700 0.95rem var(--font-display); }
+
+/* Overview: Edges | Summary | Edges, the two Edge boxes stretched to one height. */
+.mk-ov { display: grid; grid-template-columns: minmax(0, 1fr) 470px minmax(0, 1fr); gap: 12px; align-items: stretch; max-width: 1260px; }
+.mk-ov > .mk-edges { display: flex; flex-direction: column; }
+.mk-ov > .mk-edges > .mk-eg { flex: 1; grid-auto-rows: minmax(44px, 1fr); }
+/* One or two edges: rows grow a little, never into one giant tile. */
+.mk-ov > .mk-edges > .mk-eg.mk-few { flex: none; grid-auto-rows: 64px; }
+.mk-both { margin-top: 12px; max-width: 1260px; }
+.mk-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+
+/* The Matchup Summary card: one width (two fit a 1160 video frame). */
+.mks-card { width: 470px; }
+.mks-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 7px; }
+.mks-team { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 9px; color: #fff; font-family: var(--font-display); font-size: 1.35rem;
+  background: rgb(var(--team)); }
 .mks-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
 .mks-mid b { font-family: var(--font-display); font-size: 1.02rem; letter-spacing: 0.04em; text-transform: uppercase; }
 .mks-mid span { font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
-.mks-grid { width: 100%; border-collapse: separate; border-spacing: 3px; table-layout: fixed; }
-.mks-grid col.mks-c { width: 56px; }
-.mks-grid th { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 0 1px; }
-.mks-grid td { padding: 0; }
-.mks-t { padding: 7px 0; text-align: center; }
-.mks-t b { font-size: 0.98rem; }
-.mks-cat { display: flex; align-items: center; gap: 4px; height: 33px; padding: 0 5px; border-radius: 6px; background: var(--panel-2); }
-.mks-cat b { flex: 1; text-align: center; font-family: var(--font-display); font-size: 0.98rem; white-space: nowrap; }
-.mks-edge { display: flex; flex: 0 0 22px; height: 22px; align-items: center; justify-content: center; border-radius: 50%; }
-.mks-edge:not(:empty) { background: rgba(var(--good-rgb), 0.35); box-shadow: 0 0 0 2px rgb(var(--good-rgb)); }
+.mks-grid { display: grid; grid-template-columns: 1fr 1fr 196px 1fr 1fr; grid-template-rows: 32px; grid-auto-rows: 36px; gap: 3px; }
+.mks-grid .rs-t { font-size: 1rem; }
+.mks-grid .mks-span { grid-column: span 2; gap: 6px; }
+.mks-cat { justify-content: center; gap: 3px; padding: 0 3px; }
+.mks-cat b { flex: 1; text-align: center; font: 700 0.92rem var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mks-edge { display: flex; flex: 0 0 20px; justify-content: center; }
+.rs-t.mks-note { background: transparent; font-size: 0.6rem; }
 .mks-all { display: grid; grid-template-columns: repeat(2, 470px); gap: 16px; }
+
+/* Categories: a line a category; open = two research boxes. */
+.mk-cats { display: flex; flex-direction: column; gap: 6px; max-width: 1260px; }
+.mk-crow { padding: 6px 7px; background: var(--rs-box); border: 1px solid var(--rs-sep); border-radius: 12px; }
+.mk-crow.open { border-color: var(--text); }
+.mk-cline { display: grid; grid-template-columns: 210px 1fr 1fr 1.25fr 18px 1fr 1fr 1.25fr; grid-auto-rows: 34px; gap: 3px; }
+.mk-crow .mk-cline { cursor: pointer; }
+.mk-crow:hover .mk-cname { background: var(--rs-sep); }
+.mk-cline .rs-l.mk-cname { gap: 8px; font: 700 1.02rem var(--font-display); }
+.mk-car { font-size: 0.75rem; opacity: 0.7; }
+.mk-chead { padding: 0 8px; }
+.mk-chead .mk-cline { grid-auto-rows: 30px; }
+.mk-cline .rs-t { gap: 5px; }
+.mk-open { display: grid; grid-template-columns: repeat(2, minmax(0, 600px)); gap: 10px; margin-top: 7px; }
+.rs-sb.mk-sb { height: auto; }
+.mk-sb .rs-sbody { padding-bottom: 8px; }
+.rs-t.rs-corner { gap: 5px; }
+.mk-bt { font: 800 0.8rem var(--font-display); letter-spacing: 0.03em; }
+
+/* Read tiles: the team with the Edge in its color, Even plain, Not Tested yellow, a shared style blue. */
+.rs-t.rs-read { gap: 5px; font: 800 0.9rem var(--font-display); }
+.rs-t.rs-read[style*="--team"] { background: rgba(var(--team), 0.3); box-shadow: inset 3px 0 0 rgb(var(--team)); }
+.rs-t.rs-read.mk-even { background: var(--rs-label); font-weight: 700; opacity: 0.85; }
+.rs-t.rs-read.mk-untested { background: rgba(var(--mid-rgb), 0.3); }
+.rs-t.rs-read.mk-style { background: rgba(70, 130, 220, 0.24); }
+
+@media (max-width: 1260px) {
+  .mk-ov { grid-template-columns: 1fr 1fr; }
+  .mk-ov > .mks-card { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
+  .mk-open { grid-template-columns: 1fr; }
+}
 @media (max-width: 1000px) {
   .mks-all { grid-template-columns: 470px; }
 }
 @media (max-width: 760px) {
+  .mk-ov, .mk-inj, .mk-cols { grid-template-columns: 1fr; }
   .mks-card { width: 100%; }
-  .mks-all { grid-template-columns: 1fr; }
+  .mk-tabs.rs-tabs { width: 100%; }
+  .mk-cats { overflow-x: auto; }
+  .mk-cline { min-width: 760px; }
 }

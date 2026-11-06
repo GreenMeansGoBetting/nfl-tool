@@ -619,28 +619,42 @@ the same framework next ("once we have the framework down").
   ends; no Opposite Ends for scoring, turnovers, glass: an Edge says it), Inside Vs Outside (replaces the
   3PA / paint clashes), Trend (combined O/U 6+ decisions, 70%+), Few Falling (volume top 10, makes 10+
   places lower), Not Tested (a weak defense the offense rarely tests).
-- **Three groups only** (`KEY_GROUP`; the owner, 2026-11-04: "sorted by their moniker - edge, clash, and
-  same style ... all fit into that category"): Edge = edge + Fits (the offense's) + Takes Away (the
-  defense's), written "<TEAM> Offense / Defense: <name>" (volume names: Three-Point Volume, Paint Volume...);
-  Clash = clash + Not Tested + Few Falling; Same Style = style + Trend. The page stacks Edges (**a column a
-  team**, road left, team prefix dropped in the column), Clashes, Same Style; strongest first in each;
-  **every key shown, no More Keys** (`lead` stays for the digest). Cards one width (two a team column,
-  four across), never stretched. **Every number = two tiles in the old tile's room: the value and its
-  rank of 30, both on the rank colors** (the owner's ask). Carousel + Season / Last 10 / 5 / 3; the open
-  game is shared with Matchup Breakdown (`nba-tool.game.v1`). The owner's CHA @ WSH read is pinned on
+- **Three groups** (`KEY_GROUP`): Edge = edge + Fits (the offense's) + Takes Away (the defense's),
+  written "<TEAM> Offense / Defense: <name>"; Clash = clash + Not Tested + Few Falling; Same Style =
+  style + Trend. `lead` stays for the digest. The owner's CHA @ WSH read is pinned on
   `tests/fixtures/nba_league_chart_2026-10-30.json`. Owner fear: things omitted or miscounted: audit a
-  real slate before changing a rule. **No model points on the keys** (2026-11-03). Tests:
+  real slate before changing a rule. **No model points on the keys** (2026-11-03).
+- **The page (rebuilt 2026-11-06 in the Points Research look,** sim.css `.rs-sb` / `.rs-g` / `.rs-t` /
+  `.rs-tabs`; the owner: the old Edges / Clashes / Same Style stacks were "a mess of info", "it needs to
+  be segmented ... this is where BOS have an edge vs this is where CHA is weak vs this is where they are
+  both x", "make them like [the player prop drop downs]"). Top: game, tabs **Overview / Categories /
+  Rotations & History** (a link to Matchup Data, same game), the line (spread, total, ML via `showOdds`),
+  then **Injuries by name** both teams (`playerClick`, Out / DTD; Probable left off; the owner: "4 out"
+  hid them). Carousel + Season / Last 10 / 5 / 3 (the research boxes' tabs are the same windows); the
+  open game is shared with Matchup Data (`nba-tool.game.v1`); the tab is a per-device pref.
+  - **Overview:** road team's **Edges** | **Matchup Summary** | home team's **Edges**, then **Both
+    Teams** (Same Style + Trend keys, three columns). Every Edge key shown, strongest first, **the box's
+    own team's column first** (the owner: CHA first in CHA's box). **Labels are stat names, never
+    phrases** (`MK_LABEL`; the owner: "default to the stat category rather than this arbitrary
+    blabber"; "3PA" not "Live Behind The Arc") with an **OFF / DEF tag** (OFF = when that team has the
+    ball). Tiles: rank big, value + stat name small, on the rank colors. Clash keys are not headlined:
+    a Not Tested shows as a Read in Categories; Few Falling / Opposite Ends aren't shown.
+  - **Categories:** a line a category (`MK_CATS`: Scoring Efficiency, Pace & Total, Transition,
+    Three-Point Shooting, Paint & Mid-Range, Turnovers, Rebounding, Free Throws): road Off · home Def ·
+    **Read** | home Off · road Def · **Read**. Read = `<TEAM> Edge` (logo, team color) / Even / **Not
+    Tested** (yellow), from keys.js only (`lineRead`, `pairRead`). Click opens two 600 px research
+    boxes, one a direction: label | Off value, rank | Allows value, rank | Read, bands blue / purple /
+    green. Pace & Total = the two teams side by side: Pace & Scoring (Pace, Avg Total, Net Rating) and
+    Betting Record (O/U, ATS, Avg Margin), Read = Both Fast / Slow / High / Low or the O/U Trend.
+- **Matchup Summary card** (`summaryCard`, `MK_SUMMARY`), one width 470 px (two fit the 1160 video
+  frame): team banners, "Matchup Summary" + tip time + spread / total; the 7 categories down the
+  middle: Scoring Efficiency (ORtg / DRtg), Pace (one tile a team), Three-Point Shooting (3PM), Paint
+  Scoring (paint FG%), Turnovers, Rebounding (OREB% / DREB%), Free Throws (FT rate). **Each side reads
+  one matchup** (the owner, 2026-11-06: Off and Def of the same team side by side "feels weird"): road
+  Off | home Def | category | home Off | road Def. A logo beside the category = the team with an Edge
+  in that matchup (hover = the key). **Show All Summaries**: every game of the carousel's day, two a
+  row (one screenshot = two games); a game card goes back to that game. Tests:
   `tests/test_nba_matchup_keys.py`.
-- **Matchup Summary card** (2026-11-04, the owner approved the mock-up: "i absolutely love it";
-  `summaryCard`, `MK_SUMMARY`): beside the groups (flex `wrap-reverse`: above them when the screen is
-  too narrow), one width 470 px (two fit the 1160 video frame). Team banners on either side, "Matchup
-  Summary" + tip time + spread / total in the middle; **the 7 categories down the middle**: Scoring
-  Efficiency (ORtg / DRtg), Pace (one tile a team), Three-Point Shooting (3PM), Paint Scoring (paint FG%),
-  Turnovers, Rebounding (OREB% / DREB%), Free Throws (FT rate). Each side = the team's **Off and Def rank
-  of 30** (the owner chose ranks over letter grades), green = good for that team; read Off against the
-  other team's Def. A team's logo in a green ring beside a category = it has an Edge key on that topic
-  (hover lists them). **Show All Summaries** (button beside the windows): every game of the carousel's
-  day as its card, two a row (one screenshot = two games); a game card goes back to that game's keys.
 
 ## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`; called **Matchup Data** in the menu and title since 2026-11-04)
 
