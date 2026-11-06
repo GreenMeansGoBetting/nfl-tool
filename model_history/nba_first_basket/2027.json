@@ -1283,91 +1283,88 @@
  "401909289": {
   "away": "PHI",
   "date": "2026-11-06",
-  "first_home": 0.507,
+  "first_home": 0.5,
   "home": "CLE",
   "jumpers": [
    [
     "3059318",
     "Joel Embiid"
    ],
-   [
-    "4066328",
-    "Jarrett Allen"
-   ]
+   null
   ],
   "players": {
    "1966": [
     "LeBron James",
-    0.088,
+    0.089,
     950,
     false,
     "bet365"
    ],
    "3059318": [
     "Joel Embiid",
-    0.093,
+    0.094,
     650,
     false,
     "draftkings"
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.091,
+    0.087,
     750,
     false,
     "bet365"
    ],
    "3917376": [
     "Jaylen Brown",
-    0.116,
+    0.118,
     850,
     true,
     "bet365"
    ],
    "3992": [
     "James Harden",
-    0.095,
+    0.096,
     1000,
     false,
     "draftkings"
    ],
-   "4066328": [
-    "Jarrett Allen",
-    0.105,
-    575,
-    false,
-    "bet365"
-   ],
    "4431678": [
     "Tyrese Maxey",
-    0.095,
+    0.097,
     900,
     false,
     "fanduel"
    ],
    "4432158": [
     "Evan Mobley",
-    0.103,
+    0.108,
     625,
     false,
     "bet365"
    ],
    "4576087": [
     "Peyton Watson",
-    0.093,
+    0.094,
     1020,
     false,
     "draftkings"
    ],
+   "5041951": [
+    "Meleek Thomas",
+    0.095,
+    null,
+    false,
+    null
+   ],
    "5124612": [
     "VJ Edgecombe",
-    0.081,
+    0.082,
     1220,
     false,
     "draftkings"
    ]
   },
-  "tip_home": 0.521
+  "tip_home": 0.5
  },
  "401909290": {
   "away": "UTAH",
@@ -10661,22 +10658,19 @@
  "401909940": {
   "away": "NY",
   "date": "2026-11-07",
-  "first_home": 0.498,
+  "first_home": 0.5,
   "home": "CLE",
   "jumpers": [
    [
     "3136195",
     "Karl-Anthony Towns"
    ],
-   [
-    "4066328",
-    "Jarrett Allen"
-   ]
+   null
   ],
   "players": {
    "3136195": [
     "Karl-Anthony Towns",
-    0.1,
+    0.099,
     null,
     false,
     null
@@ -10690,7 +10684,7 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.089,
+    0.087,
     null,
     false,
     null
@@ -10711,41 +10705,41 @@
    ],
    "3934719": [
     "OG Anunoby",
-    0.107,
+    0.106,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.094,
-    null,
-    false,
-    null
-   ],
-   "4066328": [
-    "Jarrett Allen",
-    0.103,
+    0.096,
     null,
     false,
     null
    ],
    "4432158": [
     "Evan Mobley",
-    0.101,
+    0.108,
     null,
     false,
     null
    ],
    "4576087": [
     "Peyton Watson",
-    0.091,
+    0.094,
+    null,
+    false,
+    null
+   ],
+   "5041951": [
+    "Meleek Thomas",
+    0.095,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.493
+  "tip_home": 0.5
  },
  "401909941": {
   "away": "WSH",
