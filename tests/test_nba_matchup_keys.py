@@ -35,7 +35,9 @@ def setUpModule():
         ]
         last3 = {t: dict(row, o_3pm=(row.get("o_3pm") or 0) * (2 if t == "NY" else 1)) for t, row in TABLE.items()}
         injuries = {"CHA": [{"id": "9001", "name": "Test Guard", "position": "PG", "status": "Out", "injury": "Knee"}]}
-        SITE.nba = {"season": 2027, "season_label": "2026-27", "teams": teams, "schedule": schedule, "injuries": injuries,
+        players = {"CHA": [{"id": "9001", "name": "Test Guard", "position": "PG", "games": 5, "min": 30.0, "pts": 20.0, "reb": 3.0, "ast": 6.0, "threes": 2.0, "l5_pts": 22.0},
+                           {"id": "9002", "name": "Test Big", "position": "C", "games": 5, "min": 28.0, "pts": 14.0, "reb": 11.0, "ast": 2.0, "threes": 0.0, "l5_pts": 12.0}]}
+        SITE.nba = {"season": 2027, "season_label": "2026-27", "teams": teams, "schedule": schedule, "injuries": injuries, "players": players,
                     "league_chart": {"season": TABLE, "10": TABLE, "5": TABLE, "3": last3}}
         PAGE = SITE.open("nba/matchup-keys.html")
         PAGE.wait_for_function("() => !!document.querySelector('.mk-ov')")
@@ -216,8 +218,8 @@ class Page(unittest.TestCase):
         lines = PAGE.evaluate("() => [...document.querySelectorAll('.mk-crow')].map((r) => r.dataset.cat)")
         self.assertEqual(lines, ["scoring", "pace", "transition", "threes", "paint", "turnovers", "glass", "ft"])
         # Scoring opens by default: CHA Off vs WSH Def, then WSH Off vs CHA Def
-        offs = PAGE.evaluate("() => [...document.querySelectorAll('.mk-crow[data-cat=scoring] .rs-sb .rs-h.rs-him')].map((h) => h.textContent.trim()).filter((t) => t.endsWith('Off'))")
-        self.assertEqual(offs, ["CHA Off", "WSH Off"])
+        offs = PAGE.evaluate("() => [...document.querySelectorAll('.mk-crow[data-cat=scoring] .rs-sb .rs-h.rs-him')].filter((h) => h.textContent.trim() === 'Off').map((h) => h.querySelector('img').alt)")
+        self.assertEqual(offs, ["CHA", "WSH"])  # the offense's logo on its column
         PAGE.click('.mk-cline[data-cat="turnovers"]')
         self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.mk-crow[data-cat=turnovers] .rs-sb').length"), 2)
         PAGE.click('.mk-cline[data-cat="turnovers"]')
@@ -237,6 +239,39 @@ class Page(unittest.TestCase):
         self.assertTrue(checked)
         # the owner's "WSH is bad in transition but cha doesn't really push the pace": Not Tested on CHA's side
         self.assertEqual(reads["transition"][0], "Not Tested")
+
+    def test_three_big_tabs_under_the_injuries(self):
+        tabs = PAGE.evaluate("""() => [...document.querySelectorAll('.mk-tabs [data-mk-tab]')].map((b) => {
+            const r = b.getBoundingClientRect(); return {t: b.textContent, w: Math.round(r.width), h: r.height}; })""")
+        self.assertEqual([t["t"] for t in tabs], ["Overview", "Categories", "Rotations & History"])
+        self.assertTrue(max(t["w"] for t in tabs) - min(t["w"] for t in tabs) <= 1)  # a third each
+        self.assertGreaterEqual(tabs[0]["h"], 44)
+        self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.mk-inj + .mk-tabs')"))
+
+    def test_rotations_and_history_on_this_page(self):
+        # the owner, 2026-11-06: the roster and the games on this page, not a link to Matchup Data
+        PAGE.click('[data-mk-tab="rotations"]')
+        got = PAGE.evaluate("""() => ({
+            rot: [...document.querySelectorAll('.mh-rotbox')].map((b) => b.dataset.team),
+            rec: [...document.querySelectorAll('.mh-recbox')].map((b) => b.dataset.team),
+            h2h: !!document.querySelector('.mh-h2h [data-mh-h2h="quarters"]'),
+            wl: [...document.querySelectorAll('.mh-wl [data-mh-wl]')].map((b) => b.dataset.mhWl),
+            link: !!document.querySelector('.mk-tab-link')})""")
+        self.assertEqual(got["rot"], ["CHA", "WSH"])
+        self.assertEqual(got["rec"], ["CHA", "WSH"])
+        self.assertTrue(got["h2h"])
+        self.assertEqual(got["wl"], ["CHA", "WSH"])
+        self.assertFalse(got["link"])
+        rows = PAGE.evaluate("() => [...document.querySelectorAll('.mh-rotbox[data-team=CHA] .mh-prow')].map((r) => [r.textContent.includes('Test Guard'), r.classList.contains('mh-isout')])")
+        self.assertEqual(rows, [[True, True], [False, False]])  # the Out player marked, the box in roster order
+        PAGE.click('.mh-rotbox[data-team=CHA] [data-mh-sort="reb"]')  # most rebounds first
+        self.assertIn("Test Big", PAGE.evaluate("() => document.querySelector('.mh-rotbox[data-team=CHA] .mh-prow').textContent"))
+        PAGE.click('[data-mh-h2h="blowouts"]')
+        self.assertTrue(PAGE.evaluate("() => document.querySelector('.mh-h2h .rs-tabs .on').dataset.mhH2h === 'blowouts'"))
+        PAGE.click('[data-mh-wl="WSH"]')
+        self.assertTrue(PAGE.evaluate("() => document.querySelector('.mh-wl .rs-tabs .on').dataset.mhWl === 'WSH'"))
+        self.assertEqual(SITE.errors, [])
+        PAGE.click('[data-mk-tab="overview"]')
 
     def test_show_all_summaries_two_a_row_then_back(self):
         PAGE.click("#mk-all")

@@ -8,7 +8,8 @@
 //     never phrases (the owner: "default to the stat category rather than this arbitrary blabber").
 //   Categories: one line a category (offense vs the other team's defense, both ways, a Read tile naming
 //     who has it), click to open two Points Research style boxes (research.js .rs-sb / .rs-g in sim.css).
-// Rotations & History = the Matchup Data page (nba.js), same game. Every key and Read comes from keys.js
+// Rotations & History (matchup-history.js): rotations, head to head, how they win / lose, recent games
+// (the owner, 2026-11-06: Matchup Keys and Matchup Data become this one page). Every key and Read comes from keys.js
 // (nbaMatchupKeys, every rule in one place); a Clash shows as a Not Tested Read, never a headline.
 // Show All Summaries = every game's Matchup Summary, two a row, for the owner's video screenshots.
 // Data: nba/data.json `league_chart` (columns in league-cols.js), `injuries`, `schedule`. No common.js.
@@ -20,6 +21,7 @@ const view = { window: "season", all: false, tab: "overview", open: new Set(["sc
 const NBA_GAME_KEY = "nba-tool.game.v1"; // the open game, shared with Matchup Data (nba.js)
 const MK_TAB_KEY = "nba-tool.mk-tab.v1"; // a display pref: stays on this device
 const MK_WINDOWS = [["season", "Season"], ["10", "Last 10"], ["5", "Last 5"], ["3", "Last 3"]];
+const MK_TABS = [["overview", "Overview"], ["categories", "Categories"], ["rotations", "Rotations & History"]];
 // The Matchup Summary's rows: [name, offense key, defense key (null: one number a team), keys.js topic].
 const MK_SUMMARY = [
   ["Scoring Efficiency", "o_rtg", "d_rtg", "scoring"],
@@ -212,7 +214,7 @@ const valRank = (ctx, t, key) => {
   return s.v === null || s.v === undefined ? rsT("--", "rs-small") + rsT("--", "rs-small") : rsT(esc(s.text), "", s.shade, s.tip) + rsT(s.rk ? ordinal(s.rk) : "--", "mk-r", s.shade, s.tip);
 };
 function directionBox(ctx, keys, o, d, rows) {
-  return rsBox(`${logo(o, 22)}vs${logo(d, 22)}`, [`${logo(o, 16)}${o} Off`, `${logo(d, 16)}${d} Allows`],
+  return rsBox(`${logo(o, 22)}vs${logo(d, 22)}`, [`${logo(o, 15)}Off`, `${logo(d, 15)}Allows`],
     rows.map(([label, ok, dk]) => rsT(label, "rs-l") + valRank(ctx, o, ok) + valRank(ctx, d, dk) + readTile(pairRead(keys, o, d, ok, dk))));
 }
 function paceBoxes(ctx, keys, game) {
@@ -283,14 +285,15 @@ function renderKeys() {
     return;
   }
   const keys = nbaMatchupKeys(table, game.away, game.home);
-  const tabs = [["overview", "Overview"], ["categories", "Categories"]]
-    .map(([id, name]) => `<button type="button" class="${view.tab === id ? "on" : ""}" data-mk-tab="${id}">${name}</button>`).join("")
-    + `<a class="mk-tab-link" href="./" title="Rotations, head to head, points by quarter and blowouts on the Matchup Data page">Rotations &amp; History &#8599;</a>`;
+  // The three views as big buttons under the injuries, a third of the width each (the owner, 2026-11-06).
+  const tabs = MK_TABS.map(([id, name]) => `<button type="button" class="${view.tab === id ? "on" : ""}" data-mk-tab="${id}">${name}</button>`).join("");
   const body = view.tab === "categories"
     ? categories(ctx, keys, game)
-    : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}`;
+    : view.tab === "rotations"
+      ? mhView(game) // matchup-history.js
+      : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}`;
   el("mk-body").innerHTML = `<div class="mk-top"><div class="mk-head">${logo(game.away, 28)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 28)}<b>${game.home}</b></div>
-    <div class="rs-tabs mk-tabs">${tabs}</div><div class="mk-line">${lineTiles(game)}</div></div>${injuries(game)}${body}`;
+    <div class="mk-line">${lineTiles(game)}</div></div>${injuries(game)}<div class="rs-tabs mk-tabs">${tabs}</div>${body}`;
 }
 function render() {
   renderSchedule();
@@ -376,7 +379,7 @@ fetch("data.json")
     try {
       saved = localStorage.getItem(NBA_GAME_KEY);
       const tab = localStorage.getItem(MK_TAB_KEY);
-      if (tab === "overview" || tab === "categories") view.tab = tab;
+      if (MK_TABS.some(([id]) => id === tab)) view.tab = tab;
     } catch (e) {
       // localStorage unavailable.
     }

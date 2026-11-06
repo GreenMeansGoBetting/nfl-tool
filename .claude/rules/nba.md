@@ -23,7 +23,7 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   Basket. `watch.py`: injury / market watch. `nba_report.py`: the NBA's injury report PDF.
   `espn_late.py`: last night's finals from ESPN before hoopR has them.
 - Pages (`site/nba/`): `league.html` + `league.js` + `league.css` League Stats Chart (first in the menu;
-  its columns, formats and ranks in `league-cols.js`, shared with Matchup Keys); `matchup-keys.html/.js/.css`
+  its columns, formats and ranks in `league-cols.js`, shared with Matchup Keys); `matchup-keys.html/.js/.css` + `matchup-history.js`
   Matchup Keys (rules in `keys.js`);
   `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
   forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` (`data-market`) on `research.js`
@@ -627,11 +627,14 @@ the same framework next ("once we have the framework down").
 - **The page (rebuilt 2026-11-06 in the Points Research look,** sim.css `.rs-sb` / `.rs-g` / `.rs-t` /
   `.rs-tabs`; the owner: the old Edges / Clashes / Same Style stacks were "a mess of info", "it needs to
   be segmented ... this is where BOS have an edge vs this is where CHA is weak vs this is where they are
-  both x", "make them like [the player prop drop downs]"). Top: game, tabs **Overview / Categories /
-  Rotations & History** (a link to Matchup Data, same game), the line (spread, total, ML via `showOdds`),
-  then **Injuries by name** both teams (`playerClick`, Out / DTD; Probable left off; the owner: "4 out"
-  hid them). Carousel + Season / Last 10 / 5 / 3 (the research boxes' tabs are the same windows); the
-  open game is shared with Matchup Data (`nba-tool.game.v1`); the tab is a per-device pref.
+  both x", "make them like [the player prop drop downs]"). Top: game and the line (spread, total, ML via
+  `showOdds`), **Injuries by name** both teams (`playerClick`, Out / DTD; Probable left off; the owner:
+  "4 out" hid them), then **three big tab buttons a third of the width each** (`MK_TABS`: Overview /
+  Categories / Rotations & History; the owner, 2026-11-06: "large buttons ... easily seen and clicked").
+  Carousel + Season / Last 10 / 5 / 3 (the research boxes' tabs are the same windows); the open game is
+  shared with Matchup Data (`nba-tool.game.v1`); the tab is a per-device pref. **The owner's plan
+  (2026-11-06): Matchup Keys and Matchup Data become this one page** ("thats what this is right?");
+  Matchup Data still exists until the owner says to remove it.
   - **Overview:** road team's **Edges** | **Matchup Summary** | home team's **Edges**, then **Both
     Teams** (Same Style + Trend keys, three columns). Every Edge key shown, strongest first, **the box's
     own team's column first** (the owner: CHA first in CHA's box). **Labels are stat names, never
@@ -646,6 +649,13 @@ the same framework next ("once we have the framework down").
     boxes, one a direction: label | Off value, rank | Allows value, rank | Read, bands blue / purple /
     green. Pace & Total = the two teams side by side: Pace & Scoring (Pace, Avg Total, Net Rating) and
     Betting Record (O/U, ATS, Avg Margin), Read = Both Fast / Slow / High / Low or the O/U Trend.
+    Categories and Rotations & History are **1020 px wide** (the owner: the Categories lines were "too
+    wide"); the Overview stays 1260.
+  - **Rotations & History** (`matchup-history.js`, `mhView`; Matchup Data's sections in this look, not a
+    link): both Rotations (sortable heads, each number shaded by rank on his own team, Out rows faded),
+    **Head To Head** (tabs Season / Quarters / Blowouts & Spots; tonight's spots via extremes.js) beside
+    **How They Win / Lose** (a tab a team, in wins vs in losses, 3 biggest swings marked), then both
+    teams' **Recent Games** (spread green = covered, total green = over).
 - **Matchup Summary card** (`summaryCard`, `MK_SUMMARY`), one width 470 px (two fit the 1160 video
   frame): team banners, "Matchup Summary" + tip time + spread / total; the 7 categories down the
   middle: Scoring Efficiency (ORtg / DRtg), Pace (one tile a team), Three-Point Shooting (3PM), Paint
