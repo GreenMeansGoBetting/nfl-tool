@@ -1115,12 +1115,12 @@
  "401909287": {
   "away": "WSH",
   "date": "2026-11-06",
-  "first_home": 0.482,
+  "first_home": 0.475,
   "home": "ATL",
   "jumpers": [
    [
-    "6583",
-    "Anthony Davis"
+    "5160992",
+    "Alex Sarr"
    ],
    [
     "4431680",
@@ -1130,76 +1130,76 @@
   "players": {
    "2490149": [
     "CJ McCollum",
-    0.089,
+    0.087,
     null,
     false,
     null
    ],
    "4277905": [
     "Trae Young",
-    0.097,
+    0.105,
     820,
     false,
     "draftkings"
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.105,
+    0.104,
     750,
     false,
     "fanduel"
    ],
    "4397020": [
     "Luguentz Dort",
-    0.084,
+    0.083,
     null,
     false,
     null
    ],
    "4431680": [
     "Onyeka Okongwu",
-    0.085,
+    0.083,
     950,
     false,
     "fanduel"
    ],
    "4869342": [
     "Dyson Daniels",
-    0.1,
+    0.099,
     1100,
     true,
     "draftkings"
    ],
    "5104155": [
     "Bilal Coulibaly",
-    0.095,
+    0.102,
     null,
     false,
     null
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.111,
+    0.119,
     740,
     false,
     "draftkings"
    ],
+   "5160992": [
+    "Alex Sarr",
+    0.087,
+    800,
+    false,
+    "hard_rock"
+   ],
    "5174563": [
     "Kyshawn George",
-    0.084,
+    0.09,
     1000,
-    false,
-    "fanduel"
-   ],
-   "6583": [
-    "Anthony Davis",
-    0.11,
-    430,
     false,
     "fanduel"
    ]
   },
-  "tip_home": 0.445
+  "tip_home": 0.425
  },
  "401909288": {
   "away": "BOS",
@@ -10750,12 +10750,12 @@
  "401909941": {
   "away": "WSH",
   "date": "2026-11-07",
-  "first_home": 0.509,
+  "first_home": 0.503,
   "home": "OKC",
   "jumpers": [
    [
-    "6583",
-    "Anthony Davis"
+    "5160992",
+    "Alex Sarr"
    ],
    [
     "4222252",
@@ -10765,76 +10765,76 @@
   "players": {
    "3133626": [
     "Kenrich Williams",
-    0.083,
+    0.082,
     null,
     false,
     null
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.108,
+    0.106,
     null,
     false,
     null
    ],
    "4277905": [
     "Trae Young",
-    0.092,
+    0.099,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.11,
+    0.109,
     null,
     false,
     null
    ],
    "4683778": [
     "Jared McCain",
-    0.093,
+    0.092,
     null,
     false,
     null
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.095,
+    0.093,
     null,
     false,
     null
    ],
    "5104155": [
     "Bilal Coulibaly",
-    0.09,
+    0.097,
     null,
     false,
     null
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.105,
+    0.113,
+    null,
+    false,
+    null
+   ],
+   "5160992": [
+    "Alex Sarr",
+    0.083,
     null,
     false,
     null
    ],
    "5174563": [
     "Kyshawn George",
-    0.08,
-    null,
-    false,
-    null
-   ],
-   "6583": [
-    "Anthony Davis",
-    0.105,
+    0.085,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.528
+  "tip_home": 0.508
  },
  "401909942": {
   "away": "ORL",
