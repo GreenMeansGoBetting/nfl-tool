@@ -362,6 +362,14 @@ window.GMGSettings = { open: openGmgSettings };
 // address) shows a photo carousel above the list (the owner, 2026-11-04).
 const GMG_UPDATES = [
   {
+    id: "2026-11-06",
+    items: [
+      ["🏀", "<b>New Matchup Keys</b> (NBA): <a href=\"/nba/matchup-keys.html\">open it here</a>. One game's strengths and weaknesses, sorted so you can tell at a glance where each team has the edge and where they're alike."],
+      ["🗂️", "<b>Three tabs</b>: <b>Overview</b> (each team's edges beside the Matchup Summary), <b>Categories</b> (click any category to open both matchups, with a read on who has it) and <b>Rotations &amp; History</b> (both rosters, head to head, how they win and lose, recent games)."],
+      ["⚠️", "<b>Matchup Data is leaving tomorrow.</b> Everything on it is moving over to Matchup Keys, so nothing is lost. Start using Matchup Keys now."],
+    ],
+  },
+  {
     id: "2026-11-05",
     items: [
       ["🏀", "<b>A Deeper Look at Assists</b>: a new NBA page, <b>Assist Spots</b>. Every assists line tonight, read from both sides, with a read on each player: Over, Under, Mixed or No Read."],
