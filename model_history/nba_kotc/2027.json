@@ -5830,23 +5830,23 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3475,
+    "lead": 0.3473,
     "name": "Luka Doncic",
     "proj": 52.8,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1369,
+    "lead": 0.1366,
     "name": "Victor Wembanyama",
     "proj": 44.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0655,
+    "lead": 0.0667,
     "name": "Jayson Tatum",
-    "proj": 40.2,
+    "proj": 40.3,
     "team": "BOS"
    },
    {
@@ -5858,7 +5858,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.038,
+    "lead": 0.0379,
     "name": "Tyrese Maxey",
     "proj": 37.7,
     "team": "PHI"
@@ -5900,14 +5900,14 @@
    },
    {
     "id": "5041939",
-    "lead": 0.025,
+    "lead": 0.0249,
     "name": "Cooper Flagg",
     "proj": 35.8,
     "team": "DAL"
    },
    {
     "id": "4683021",
-    "lead": 0.0242,
+    "lead": 0.0241,
     "name": "Deni Avdija",
     "proj": 35.8,
     "team": "POR"
@@ -5955,18 +5955,18 @@
     "team": "DAL"
    },
    {
-    "id": "4433627",
-    "lead": 0.0079,
-    "name": "Keyonte George",
-    "proj": 31.5,
-    "team": "UTAH"
-   },
-   {
     "id": "4251",
     "lead": 0.0079,
     "name": "Paul George",
     "proj": 31.4,
     "team": "BOS"
+   },
+   {
+    "id": "4433627",
+    "lead": 0.0078,
+    "name": "Keyonte George",
+    "proj": 31.5,
+    "team": "UTAH"
    },
    {
     "id": "4395625",
@@ -5991,7 +5991,7 @@
    },
    {
     "id": "1966",
-    "lead": 0.007,
+    "lead": 0.0069,
     "name": "LeBron James",
     "proj": 31.0,
     "team": "PHI"
@@ -6040,7 +6040,7 @@
    },
    {
     "id": "3064440",
-    "lead": 0.0021,
+    "lead": 0.002,
     "name": "Zach LaVine",
     "proj": 28.8,
     "team": "SAC"
@@ -6061,7 +6061,7 @@
    },
    {
     "id": "4433136",
-    "lead": 0.0017,
+    "lead": 0.0016,
     "name": "Walker Kessler",
     "proj": 27.1,
     "team": "LAL"
