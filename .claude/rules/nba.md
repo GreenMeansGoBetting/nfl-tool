@@ -156,7 +156,9 @@ Every game played 10,000 times, possession by possession.
   (`workers/nhl-timer/watch.js`, every minute around the clock) computes the same fingerprints and on a
   change presses `nba-refresh.yml` (members-and-hosting.md), built with `--fast-odds`
   (`fetch_nba_book_odds(fast=True)`, `carry_previous`: only `FAST_STATS` main lines fresh, ladders
-  carried, a ladder dropped when its main line moved). **Both sides must match to the letter**
+  carried, a ladder dropped when its main line moved). A refresh still queued after `STUCK_MINUTES` 45
+  is cancelled and ignored (2026-11-05: one sat queued 22 h and blocked every press, so the odds stayed
+  at the 2:58 am build all day). **Both sides must match to the letter**
   (`tests/test_nba_watch.py`).
 - **Graded overnight, every play by 6 am ET** (the owner, 2026-10-31, after three mornings ungraded:
   hoopR lands about 7:30 am). `espn_late.patch` (in `fetch_file`): every game final on ESPN's scoreboard
@@ -199,7 +201,7 @@ Every game played 10,000 times, possession by possession.
   `sim_record`, `sim_meta` (dial names, MIN_EDGE, `line_nudge`, `miss_pg`).
 - **Prices:** every book's main line and every rung (`smartstake.add_ladder`: `points_alt`,
   `threes_alt`, `rebounds_alt`, `assists_alt`); alt ladders live in `nba/ladders.json`.
-- **The plays** (`game_candidates`, `pick_plays`): **main line only** (the middle of the books'),
+- **The plays** (`game_candidates`, `pick_plays`): **main line only** (`middle_line` = the card's `main_line`),
   Over and Under at the best price (`PRICE_RANGE` -250 to +400) vs the sim's chance; **every one with
   `MIN_EDGE` 4+ is a play, no cap**; 2+ games this season and 18+ sim minutes. **Every play is
   Strong** (old "top" rows count as Strong). A rung is never the play: it shows as the **Ladder** tag.
@@ -228,8 +230,8 @@ Every game played 10,000 times, possession by possession.
 - Intro box (title + i bubble + one line), day arrows (next `DAYS_AHEAD` 3 slates; off-season = the
   last one), game cards narrow the list, Position menu, **With A Line | Every Player** (rotation
   `ROTATION_MIN` 12+ min, no line = "No Line"; Out / Doubtful players left off).
-- Columns (sim-list table rule): Player (playerClick on top; pos, injury pill DTD / Q / D / Out and the two logos under it; names past 170 px end in "..." with the full name on hover; the owner, 2026-11-04: the column was too wide, row height unchanged), Line (middle
-  of the books'), **Over / Under** (best on My Books; click = every book, and a price there saves the play at that book and price, `bookPlaySaver`; a check mark on a saved side; no check box in the row, the owner 2026-11-04),
+- Columns (sim-list table rule): Player (playerClick on top; pos, injury pill DTD / Q / D / Out and the two logos under it; names past 170 px end in "..." with the full name on hover; the owner, 2026-11-04: the column was too wide, row height unchanged), Line (the
+  books' main line, `nbaCardMainLine`), **Over / Under** (best on My Books; click = every book, and a price there saves the play at that book and price, `bookPlaySaver`; a check mark on a saved side; no check box in the row, the owner 2026-11-04),
   **Avg, Min (Threes: 3PA), Volume** (Points: his shot share on the floor; Threes: share of his shots
   that are threes), season only, **no L5 under them** (the owner, 2026-11-04: cluttered), each colored
   against his position's rotation players (`listNums`, `listPool`; same color as his Form Season tile),
@@ -428,8 +430,11 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
 - Head + this season's tiles (Games, Min, Pts, Reb, Ast, 3PM, PRA). **Game Log**: this season ONLY
   (`DATA.season`), newest first (Min with "B" off the bench, Pts, Reb, Ast, 3PM, 3PA, FG, FT, PRA,
   Stl, Blk, TO, PF, +/-), shaded against his own games.
-- **Odds:** every market in `GMG_NBA_PROP_STATS` (sync.js) at the line most books hang (ties lower,
-  `nbaCardMainLine`); best Over / Under (`bookPricePill`), a save box each side, "This Season" = games
+- **Odds:** every market in `GMG_NBA_PROP_STATS` (sync.js) at the books' main line (`nbaCardMainLine`
+  = zone_matchups.py `main_line` to the letter, used by the card, Prop Research, the line record and the sim:
+  the line the most books price on BOTH sides with the Over 25-75% no-vig, ties nearest even then lower;
+  else the two-sided line nearest even; else the line most quotes hang. Never the middle of every line
+  listed: exchanges and bet365 put side lines in the main market, 2026-11-06 Holiday 3.5 at +400); best Over / Under (`bookPricePill`), a save box each side, "This Season" = games
   over that line. First Basket too. Saves `{id: nba:<stat>:<game>:<player>, ...}` at the best price;
   Over and Under share the id. **Show Alt Lines** (button beside the note, the owner 2026-11-02): every
   other line a book prices (main market off-lines + the `_alt` ladder) as an "Alt" row under its

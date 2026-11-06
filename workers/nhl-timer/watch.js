@@ -47,7 +47,8 @@
 // It never stacks runs: nothing is pressed while an NBA refresh or a full
 // rebuild is queued or running (the full rebuild reads the injuries itself),
 // or within REPRESS_MINUTES of the last refresh starting (a refresh that
-// failed or stood aside is pressed again after that, not every minute).
+// failed or stood aside is pressed again after that, not every minute). A run queued
+// STUCK_MINUTES or more is stuck, not waiting: ignored, and a stuck refresh is cancelled.
 
 const REPO = "https://api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/workflows";
 const VERSION = "https://nfl.gmgsports.org/version.json";
@@ -58,6 +59,12 @@ const LISTED = ["Confirmed", "Expected"];
 export const REPRESS_MINUTES = 4;
 export const GRADE_MINUTES = 60;
 export const FINAL_MINUTES = 10;
+// A run still "queued" this long is stuck, not waiting (2026-11-05: an NBA refresh sat queued with no
+// job for 22 hours, and since nothing is pressed while a refresh is queued, the odds stayed as the
+// 2:58 am build left them all the next day: no DraftKings or FanDuel on most players). A real queue
+// (behind a deploy or the hockey refresh) clears in well under this.
+export const STUCK_MINUTES = 45;
+export const stuck = (run, now = Date.now()) => run.status === "queued" && now - Date.parse(run.created_at) >= STUCK_MINUTES * 60000;
 const SCOREBOARD = (day) => `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${day}`;
 
 // "YYYYMMDD", Eastern, for a time in ms
@@ -188,7 +195,9 @@ export async function nbaWatch(env, github) {
   const recheck = !changed && !report && watch.recheck && Date.now() >= Date.parse(watch.recheck) ? watch.recheck : null;
   if (!changed && !report && !recheck && !grade) return "nothing changed";
   const [refreshes, deploys] = await Promise.all([github("nba-refresh.yml/runs?per_page=1"), github("deploy.yml/runs?per_page=5")]);
-  const busy = (runs) => (runs.workflow_runs || []).some((r) => r.status !== "completed");
+  const busy = (runs) => (runs.workflow_runs || []).some((r) => r.status !== "completed" && !stuck(r));
+  // a refresh GitHub left queued for good is cancelled (a failed cancel changes nothing: it's already ignored)
+  for (const r of (refreshes.workflow_runs || []).filter((r) => stuck(r))) await github(`../runs/${r.id}/cancel`, {}).catch(() => null);
   if (busy(deploys)) return "a full rebuild is running";
   if (busy(refreshes)) return "an NBA refresh is running";
   const last = (refreshes.workflow_runs || [])[0];
@@ -236,8 +245,8 @@ export function githubClient(token) {
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
-    // a press answers 204; a read 200. Anything else (an expired token: 401) fails the run in the Worker's logs.
-    if (resp.status !== (body ? 204 : 200)) throw new Error(`GitHub answered ${resp.status}: ${(await resp.text()).slice(0, 300)}`);
+    // a press answers 204, a cancel 202, a read 200. Anything else (an expired token: 401) fails the run in the Worker's logs.
+    if (!(body ? [202, 204] : [200]).includes(resp.status)) throw new Error(`GitHub answered ${resp.status}: ${(await resp.text()).slice(0, 300)}`);
     return body ? null : resp.json();
   };
 }

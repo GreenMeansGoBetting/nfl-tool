@@ -18,7 +18,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
+sys.path.insert(0, str(ROOT / "nfl_tool" / "nba"))
 from site_browser import SiteBrowser  # noqa: E402
+import zone_matchups  # noqa: E402
 from helpers import SAMPLE_BUILT_UTC  # noqa: E402
 
 FIELDS = ["date", "game", "opp", "home", "min", "pts", "fg3m", "reb", "ast"]
@@ -120,6 +122,20 @@ class Points(unittest.TestCase):
         self.assertEqual(one[16], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
         self.assertEqual(one[17], "225.0 O/U")
         self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
+
+    def test_the_line_is_the_books_main_line(self):
+        # 2026-11-06: the page took the middle of every line listed, so the exchanges' side lines made
+        # Holiday's threes 3.5 at +400 (main line 2.5). The page, the card and the build share one rule.
+        from test_nba_research import HOLIDAY_THREES, SION_JAMES_POINTS
+        page = self.page
+        got = page.evaluate("""(q) => {
+            const row = DATA.book_odds.AAA_BBB.props.points["1"], keep = row.q;
+            row.q = q;
+            try { return mainLine({ away: "AAA", home: "BBB" }, "1"); } finally { row.q = keep; }
+        }""", HOLIDAY_THREES)
+        self.assertEqual(got, 2.5)
+        samples = [HOLIDAY_THREES, SION_JAMES_POINTS, quotes(20.5), quotes(20.5) + quotes(21.5)[:2], [["novig", "o", 3.5, 400, ""]], []]
+        self.assertEqual(page.evaluate("(all) => all.map((q) => nbaCardMainLine(q))", samples), [zone_matchups.main_line(q) for q in samples])
 
     def test_a_price_in_the_popup_saves_the_play(self):
         # The owner, 2026-11-04: no check box in the row; a price in the every-book popup saves it at that price.

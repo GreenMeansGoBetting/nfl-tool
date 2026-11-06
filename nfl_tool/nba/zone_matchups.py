@@ -86,14 +86,37 @@ def group_of(pos) -> str:
     return GROUP.get(str(pos or "").upper(), "F")
 
 
+def _chance(odds) -> float:
+    """An American price's chance (with the book's cut still in)."""
+    return -odds / (100 - odds) if odds < 0 else 100 / (odds + 100)
+
+
+MAIN_BAND = 0.25  # a main line's Over sits within 25 points of a coin flip (25% to 75%)
+
+
 def main_line(quotes: list):
-    """The line most books hang, ties to the lower one: the player card's rule (nba-card.js
-    nbaCardMainLine), so the page, the card and the record agree (the owner, 2026-10-27: Walsh's
-    1.5 threes here, no line on his card)."""
-    count = {}
+    """The books' main line, the player card's rule to the letter (nba-card.js nbaCardMainLine), so
+    the page, the card, the record and the sim agree (the owner, 2026-10-27: Walsh's 1.5 threes here,
+    no line on his card). The line the most books price on BOTH sides near even money (Over 25% to
+    75% with the cut taken out), ties to the one nearest a coin flip, then the lower line; with no
+    such line, the two-sided line nearest a coin flip; with none at all, the line most quotes hang.
+    Not "the line most books hang" alone (2026-11-06: before DraftKings and FanDuel post, the
+    exchanges' and bet365's main market is a ladder of one-sided and lopsided lines, so Holiday's
+    threes showed 3.5 at +400 and Sion James's points 2.5)."""
+    sides, count = {}, {}
     for q in quotes or []:
         if len(q) > 2 and q[2] is not None:
             count[float(q[2])] = count.get(float(q[2]), 0) + 1
+            if len(q) > 3 and q[3] is not None and q[1] in ("o", "u"):
+                sides.setdefault(float(q[2]), {}).setdefault(q[0], {})[q[1]] = q[3]
+    rated = []
+    for line, books in sides.items():
+        overs = [_chance(b["o"]) / (_chance(b["o"]) + _chance(b["u"])) for b in books.values() if "o" in b and "u" in b]
+        if overs:
+            off = abs(sum(overs) / len(overs) - 0.5)
+            rated.append((off > MAIN_BAND, -len(overs) if off <= MAIN_BAND else 0, off, line))
+    if rated:
+        return min(rated)[3]
     return min(count, key=lambda line: (-count[line], line)) if count else None
 
 

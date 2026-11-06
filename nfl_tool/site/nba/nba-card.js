@@ -126,10 +126,30 @@ function nbaCardLogView(rows) {
 }
 
 // ---- Odds tab ----
-// The line most books hang for this market (a book or two may sit a half point off).
+// The books' main line (zone_matchups.py main_line to the letter: the page, the card, the record
+// and the sim agree): the line the most books price on BOTH sides near even money (Over 25% to 75%
+// with the cut taken out), ties to the one nearest a coin flip, then the lower line; with no such
+// line, the two-sided line nearest a coin flip; with none at all, the line most quotes hang.
+// 2026-11-06: before DraftKings and FanDuel post, the exchanges' and bet365's main market is a
+// ladder of one-sided and lopsided lines (Holiday's threes showed 3.5 at +400).
+const NBA_MAIN_BAND = 0.25;
+const nbaCardChance = (a) => (a < 0 ? -a / (100 - a) : 100 / (a + 100));
 function nbaCardMainLine(quotes) {
-  const count = {};
-  quotes.forEach((q) => nbaCardHas(q[2]) && (count[q[2]] = (count[q[2]] || 0) + 1));
+  const count = {}, sides = {};
+  quotes.forEach((q) => {
+    if (!nbaCardHas(q[2])) return;
+    const line = Number(q[2]);
+    count[line] = (count[line] || 0) + 1;
+    if (nbaCardHas(q[3]) && (q[1] === "o" || q[1] === "u")) ((sides[line] ||= {})[q[0]] ||= {})[q[1]] = q[3];
+  });
+  const rated = Object.entries(sides).map(([line, books]) => {
+    const overs = Object.values(books).filter((b) => "o" in b && "u" in b)
+      .map((b) => nbaCardChance(b.o) / (nbaCardChance(b.o) + nbaCardChance(b.u)));
+    if (!overs.length) return null;
+    const off = Math.abs(overs.reduce((s, x) => s + x, 0) / overs.length - 0.5);
+    return [off > NBA_MAIN_BAND ? 1 : 0, off <= NBA_MAIN_BAND ? -overs.length : 0, off, Number(line)];
+  }).filter(Boolean).sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2] || a[3] - b[3]);
+  if (rated.length) return rated[0][3];
   const best = Object.keys(count).sort((a, b) => count[b] - count[a] || a - b)[0];
   return best === undefined ? null : Number(best);
 }

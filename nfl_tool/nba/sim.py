@@ -1057,8 +1057,10 @@ def player_best(row: dict, stat_key: str, quotes: list, main_line) -> dict | Non
 
 
 def middle_line(quotes: list):
-    ls = sorted(float(q[2]) for q in quotes if q[2] is not None)
-    return ls[len(ls) // 2] if ls else None
+    """The books' main line: the player card's rule (zone_matchups.main_line), never the middle of
+    every line listed (2026-11-06: the exchanges' side lines pulled Holiday's threes to 3.5)."""
+    import zone_matchups
+    return zone_matchups.main_line(quotes)
 
 
 # ---- start from the line (the owner, 2026-10-28: "Start from the line") ----

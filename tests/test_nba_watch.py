@@ -161,6 +161,21 @@ class Timer(unittest.TestCase):
             self.assertEqual(self.run_watch(lineups=later, refresh=refresh, deploy=deploy)["pressed"], [], (refresh, deploy))
         self.assertEqual(len(self.run_watch(lineups=later, refresh=[{"status": "completed", "created_at": "2026-10-25T19:05:00Z"}])["pressed"]), 1)
 
+    def test_a_stuck_refresh_is_cancelled_not_waited_on(self):
+        # 2026-11-05: a refresh sat "queued" with no job for 22 hours and the watch pressed nothing
+        # all the next day (the NBA odds stayed as the 2:58 am build left them: no DraftKings or FanDuel).
+        later = copy.deepcopy(LINEUPS)
+        later["games"][0]["homeTeam"]["players"][0]["playerName"] = "Quentin Grimes"
+        got = self.run_watch(lineups=later, refresh=[{"id": 42069001239, "status": "queued", "created_at": "2026-10-24T21:00:00Z"}])
+        self.assertEqual(got["pressed"], [["../runs/42069001239/cancel", {}],
+                                          ["nba-refresh.yml/dispatches", {"ref": "main", "inputs": {"source": "watch"}}]])
+        # a run queued a few minutes (behind the hockey refresh) is still waited on
+        waiting = self.run_watch(lineups=later, refresh=[{"id": 1, "status": "queued", "created_at": "2026-10-25T19:00:00Z"}])
+        self.assertEqual(waiting["pressed"], [])
+        # a full rebuild stuck in the queue doesn't hold the refresh either (never cancelled from here)
+        self.assertEqual(len(self.run_watch(lineups=later, refresh=[{"status": "completed", "created_at": "2026-10-25T18:00:00Z"}],
+                                            deploy=[{"status": "queued", "created_at": "2026-10-25T17:00:00Z"}])["pressed"]), 1)
+
     def test_a_source_that_cant_be_read_isnt_a_change(self):
         self.assertEqual(self.run_watch(espn="fail")["pressed"], [])
         self.assertEqual(self.run_watch(lineups="fail")["pressed"], [])

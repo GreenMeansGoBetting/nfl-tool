@@ -131,9 +131,10 @@ const started = (g) => g.status === "final" || (Boolean(g.time) && Date.now() >=
 function bookGame(g) {
   return ((DATA.book_odds || {})[`${g.away}_${g.home}`] || {}).props || {};
 }
+// The player card's main-line rule (nba-card.js nbaCardMainLine), never the middle of every line
+// listed: the exchanges' side lines pulled that up (2026-11-06, Holiday's threes at 3.5, +400).
 function mainLine(g, pid) {
-  const ls = ((((bookGame(g)[MK.market] || {})[pid] || {}).q) || []).map((q) => q[2]).filter((x) => x !== null && x !== undefined).sort((a, b) => a - b);
-  return ls.length ? ls[Math.floor(ls.length / 2)] : null;
+  return nbaCardMainLine((((bookGame(g)[MK.market] || {})[pid] || {}).q) || []);
 }
 // The best price; clicking it lists every book, and a price there saves the play to My Plays at that
 // book and price (the owner, 2026-11-04: no check box in the row, "it allows them to track at the same

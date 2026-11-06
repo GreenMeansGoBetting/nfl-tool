@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 import possessions as P  # noqa: E402
 import props  # noqa: E402
 import research  # noqa: E402
+import sim  # noqa: E402
 import zone_matchups  # noqa: E402
 from test_nba_possessions import EVENTS, game  # noqa: E402
 from test_nba_props import full_box  # noqa: E402
@@ -194,6 +195,33 @@ class LineHistory(unittest.TestCase):
         self.assertEqual(record["1"]["lines"]["1"], [20.5, 2.5, None, None])  # most books' line
         self.assertEqual(record["2"]["lines"]["2"], [9.5, None, None, None])  # tipped: never rewritten
         self.assertFalse(research.line_record(record, odds, games, lambda g: g["started"], zone_matchups.main_line))
+
+    def test_the_main_line_is_the_two_sided_one_near_even(self):
+        # 2026-11-06 (live, 2:58 am ET build): before DraftKings and FanDuel post, the exchanges and
+        # bet365 list side lines in their MAIN market. The middle of every line listed made Holiday's
+        # threes 3.5 at +400; "the line most quotes hang" made Sion James's points 2.5.
+        self.assertEqual(zone_matchups.main_line(HOLIDAY_THREES), 2.5)
+        self.assertEqual(zone_matchups.main_line(SION_JAMES_POINTS), 5.5)
+        # the line the most books price both sides of wins over a lone book's near-even pair
+        split = [[b, s, 24.5, -110, ""] for b in ("draftkings", "fanduel", "caesars") for s in "ou"] + [["bet365", "o", 25.5, 100, ""], ["bet365", "u", 25.5, -120, ""]]
+        self.assertEqual(zone_matchups.main_line(split), 24.5)
+        # no near-even pair: the two-sided line nearest a coin flip; no pair at all: the line most quotes hang
+        self.assertEqual(zone_matchups.main_line([["bet365", "o", 0.5, -400, ""], ["bet365", "u", 0.5, 300, ""], ["bet365", "o", 1.5, 300, ""], ["bet365", "u", 1.5, -450, ""], ["bet365", "o", 2.5, 900, ""]]), 0.5)
+        self.assertEqual(zone_matchups.main_line([["novig", "o", 3.5, 400, ""], ["prophetx", "o", 3.5, 351, ""], ["novig", "o", 4.5, 900, ""]]), 3.5)
+        self.assertIsNone(zone_matchups.main_line([]))
+        self.assertEqual(sim.middle_line(HOLIDAY_THREES), 2.5)  # the sim starts from the same line
+
+
+# Real quotes from the live data.json, 2026-11-06 (POR @ LAL, built 06:58 UTC).
+HOLIDAY_THREES = [[b, s, line, odds, ""] for b, s, line, odds in (
+    ("novig", "o", 4.5, 900), ("prophetx", "o", 4.5, 733), ("bet365", "o", 6.5, 2000), ("bet365", "o", 7.5, 3500),
+    ("bet365", "o", 4.5, 675), ("novig", "o", 5.5, 900), ("prophetx", "o", 5.5, 802), ("novig", "o", 3.5, 400),
+    ("prophetx", "o", 3.5, 351), ("bet365", "o", 1.5, -250), ("novig", "u", 2.5, -199), ("prophetx", "u", 2.5, -200),
+    ("prophetx", "o", 2.5, 162), ("thescore", "u", 1.5, 150), ("fanatics", "u", 2.5, -210), ("novig", "o", 2.5, 170),
+    ("bet365", "o", 0.5, -1400), ("bet365", "o", 3.5, 310), ("bet365", "o", 2.5, 120), ("bet365", "u", 2.5, -150), ("bet365", "o", 5.5, 1300))]
+SION_JAMES_POINTS = [["bet365", s, line, odds, ""] for s, line, odds in (
+    ("o", 4.5, -210), ("u", 5.5, 105), ("o", 5.5, -135), ("o", 19.5, 2800), ("u", 2.5, 400), ("o", 14.5, 1100),
+    ("o", 2.5, -600), ("u", 10.5, -600), ("o", 10.5, 400), ("o", 9.5, 300))]
 
 
 if __name__ == "__main__":
