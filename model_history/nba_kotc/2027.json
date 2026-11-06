@@ -5830,402 +5830,416 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3599,
+    "lead": 0.3493,
     "name": "Luka Doncic",
-    "proj": 52.8,
+    "proj": 52.9,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1302,
+    "lead": 0.1359,
     "name": "Victor Wembanyama",
-    "proj": 44.6,
+    "proj": 44.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0628,
+    "lead": 0.0662,
     "name": "Jayson Tatum",
     "proj": 40.3,
     "team": "BOS"
    },
    {
     "id": "4278073",
-    "lead": 0.0454,
+    "lead": 0.0434,
     "name": "Shai Gilgeous-Alexander",
     "proj": 38.2,
     "team": "OKC"
    },
    {
     "id": "4431678",
-    "lead": 0.0385,
+    "lead": 0.0377,
     "name": "Tyrese Maxey",
     "proj": 37.7,
     "team": "PHI"
    },
    {
-    "id": "4701230",
-    "lead": 0.0337,
-    "name": "Jalen Johnson",
-    "proj": 36.4,
-    "team": "ATL"
-   },
-   {
-    "id": "5142620",
-    "lead": 0.0322,
-    "name": "Darius Acuff Jr.",
-    "proj": 36.3,
-    "team": "SAC"
-   },
-   {
     "id": "4433134",
-    "lead": 0.0276,
+    "lead": 0.0342,
     "name": "Scottie Barnes",
     "proj": 36.4,
     "team": "TOR"
    },
    {
-    "id": "4683021",
-    "lead": 0.0272,
-    "name": "Deni Avdija",
-    "proj": 35.8,
-    "team": "POR"
+    "id": "5142620",
+    "lead": 0.0331,
+    "name": "Darius Acuff Jr.",
+    "proj": 36.3,
+    "team": "SAC"
    },
    {
     "id": "6583",
-    "lead": 0.0245,
+    "lead": 0.0292,
     "name": "Anthony Davis",
     "proj": 36.3,
     "team": "WSH"
    },
    {
+    "id": "4701230",
+    "lead": 0.0268,
+    "name": "Jalen Johnson",
+    "proj": 36.4,
+    "team": "ATL"
+   },
+   {
     "id": "4065733",
-    "lead": 0.0235,
+    "lead": 0.0265,
     "name": "Ty Jerome",
     "proj": 35.6,
     "team": "MEM"
    },
    {
     "id": "5041939",
-    "lead": 0.0226,
+    "lead": 0.0248,
     "name": "Cooper Flagg",
-    "proj": 35.7,
+    "proj": 35.8,
     "team": "DAL"
    },
    {
+    "id": "4683021",
+    "lead": 0.0242,
+    "name": "Deni Avdija",
+    "proj": 35.8,
+    "team": "POR"
+   },
+   {
     "id": "3155942",
-    "lead": 0.0197,
+    "lead": 0.023,
     "name": "Domantas Sabonis",
     "proj": 35.2,
     "team": "SAC"
    },
    {
     "id": "3059318",
-    "lead": 0.0164,
+    "lead": 0.0158,
     "name": "Joel Embiid",
-    "proj": 34.3,
+    "proj": 34.2,
     "team": "PHI"
    },
    {
     "id": "3917376",
-    "lead": 0.0122,
+    "lead": 0.0127,
     "name": "Jaylen Brown",
     "proj": 32.9,
     "team": "PHI"
    },
    {
-    "id": "6442",
-    "lead": 0.0101,
-    "name": "Kyrie Irving",
-    "proj": 32.5,
-    "team": "DAL"
-   },
-   {
     "id": "3908809",
-    "lead": 0.0099,
+    "lead": 0.0097,
     "name": "Donovan Mitchell",
-    "proj": 32.3,
-    "team": "CLE"
-   },
-   {
-    "id": "5041935",
-    "lead": 0.0088,
-    "name": "Cameron Boozer",
-    "proj": 31.7,
-    "team": "MEM"
-   },
-   {
-    "id": "4432158",
-    "lead": 0.0086,
-    "name": "Evan Mobley",
-    "proj": 31.2,
+    "proj": 32.2,
     "team": "CLE"
    },
    {
     "id": "4395725",
-    "lead": 0.008,
+    "lead": 0.0088,
     "name": "Tyler Herro",
-    "proj": 31.7,
+    "proj": 31.8,
     "team": "MIL"
    },
    {
-    "id": "4433627",
-    "lead": 0.0069,
-    "name": "Keyonte George",
-    "proj": 31.4,
-    "team": "UTAH"
+    "id": "6442",
+    "lead": 0.0083,
+    "name": "Kyrie Irving",
+    "proj": 32.6,
+    "team": "DAL"
    },
    {
     "id": "4251",
-    "lead": 0.0065,
+    "lead": 0.0082,
     "name": "Paul George",
-    "proj": 31.4,
+    "proj": 31.5,
     "team": "BOS"
    },
    {
-    "id": "1966",
-    "lead": 0.0064,
-    "name": "LeBron James",
-    "proj": 31.0,
-    "team": "PHI"
+    "id": "4433627",
+    "lead": 0.0076,
+    "name": "Keyonte George",
+    "proj": 31.5,
+    "team": "UTAH"
    },
    {
     "id": "4395625",
-    "lead": 0.0063,
+    "lead": 0.0074,
     "name": "RJ Barrett",
     "proj": 30.9,
     "team": "TOR"
    },
    {
-    "id": "5037871",
-    "lead": 0.0057,
-    "name": "Dylan Harper",
-    "proj": 30.4,
-    "team": "SA"
+    "id": "5041935",
+    "lead": 0.007,
+    "name": "Cameron Boozer",
+    "proj": 31.7,
+    "team": "MEM"
    },
    {
-    "id": "6606",
-    "lead": 0.0051,
-    "name": "Damian Lillard",
-    "proj": 29.0,
-    "team": "POR"
+    "id": "1966",
+    "lead": 0.007,
+    "name": "LeBron James",
+    "proj": 31.0,
+    "team": "PHI"
+   },
+   {
+    "id": "4432158",
+    "lead": 0.0069,
+    "name": "Evan Mobley",
+    "proj": 31.1,
+    "team": "CLE"
    },
    {
     "id": "4277905",
-    "lead": 0.0049,
+    "lead": 0.0054,
     "name": "Trae Young",
     "proj": 31.0,
     "team": "WSH"
    },
    {
-    "id": "4066457",
-    "lead": 0.0046,
-    "name": "Austin Reaves",
-    "proj": 30.5,
-    "team": "LAL"
-   },
-   {
     "id": "3907497",
-    "lead": 0.0037,
+    "lead": 0.0053,
     "name": "Dejounte Murray",
-    "proj": 29.9,
+    "proj": 30.0,
     "team": "NO"
    },
    {
-    "id": "3064440",
-    "lead": 0.0027,
-    "name": "Zach LaVine",
-    "proj": 28.8,
-    "team": "SAC"
-   },
-   {
-    "id": "4395724",
-    "lead": 0.0026,
-    "name": "Immanuel Quickley",
-    "proj": 28.0,
-    "team": "TOR"
+    "id": "5037871",
+    "lead": 0.0046,
+    "name": "Dylan Harper",
+    "proj": 30.5,
+    "team": "SA"
    },
    {
     "id": "4433287",
-    "lead": 0.0024,
+    "lead": 0.0044,
     "name": "Brandon Miller",
     "proj": 28.9,
     "team": "CHA"
    },
    {
-    "id": "5174563",
-    "lead": 0.0024,
-    "name": "Kyshawn George",
-    "proj": 27.4,
-    "team": "WSH"
+    "id": "4066457",
+    "lead": 0.0034,
+    "name": "Austin Reaves",
+    "proj": 30.6,
+    "team": "LAL"
+   },
+   {
+    "id": "6606",
+    "lead": 0.0029,
+    "name": "Damian Lillard",
+    "proj": 29.0,
+    "team": "POR"
+   },
+   {
+    "id": "3064440",
+    "lead": 0.002,
+    "name": "Zach LaVine",
+    "proj": 28.8,
+    "team": "SAC"
+   },
+   {
+    "id": "4845367",
+    "lead": 0.0019,
+    "name": "Stephon Castle",
+    "proj": 27.3,
+    "team": "SA"
    },
    {
     "id": "4433136",
-    "lead": 0.0024,
+    "lead": 0.0019,
     "name": "Walker Kessler",
     "proj": 27.2,
     "team": "LAL"
    },
    {
-    "id": "4395628",
-    "lead": 0.0021,
-    "name": "Zion Williamson",
+    "id": "4395724",
+    "lead": 0.0017,
+    "name": "Immanuel Quickley",
     "proj": 28.0,
-    "team": "NO"
+    "team": "TOR"
+   },
+   {
+    "id": "4278039",
+    "lead": 0.0015,
+    "name": "Nickeil Alexander-Walker",
+    "proj": 27.1,
+    "team": "ATL"
    },
    {
     "id": "3992",
-    "lead": 0.002,
+    "lead": 0.0014,
     "name": "James Harden",
     "proj": 27.5,
     "team": "CLE"
    },
    {
     "id": "4066259",
-    "lead": 0.0014,
+    "lead": 0.0013,
     "name": "De'Aaron Fox",
+    "proj": 26.9,
+    "team": "SA"
+   },
+   {
+    "id": "4432816",
+    "lead": 0.0011,
+    "name": "LaMelo Ball",
+    "proj": 26.4,
+    "team": "MIN"
+   },
+   {
+    "id": "4395628",
+    "lead": 0.001,
+    "name": "Zion Williamson",
+    "proj": 28.0,
+    "team": "NO"
+   },
+   {
+    "id": "4397002",
+    "lead": 0.001,
+    "name": "Ayo Dosunmu",
+    "proj": 25.9,
+    "team": "MIN"
+   },
+   {
+    "id": "5174563",
+    "lead": 0.0009,
+    "name": "Kyshawn George",
+    "proj": 27.4,
+    "team": "WSH"
+   },
+   {
+    "id": "4066336",
+    "lead": 0.0008,
+    "name": "Lauri Markkanen",
     "proj": 26.8,
-    "team": "SA"
-   },
-   {
-    "id": "4845367",
-    "lead": 0.0012,
-    "name": "Stephon Castle",
-    "proj": 27.2,
-    "team": "SA"
-   },
-   {
-    "id": "4278039",
-    "lead": 0.0012,
-    "name": "Nickeil Alexander-Walker",
-    "proj": 27.1,
-    "team": "ATL"
+    "team": "UTAH"
    },
    {
     "id": "4903027",
-    "lead": 0.0012,
+    "lead": 0.0008,
     "name": "Cedric Coward",
     "proj": 25.8,
     "team": "MEM"
    },
    {
     "id": "4396971",
-    "lead": 0.0011,
+    "lead": 0.0007,
     "name": "Naz Reid",
-    "proj": 26.4,
+    "proj": 26.5,
     "team": "CHA"
    },
    {
-    "id": "4397002",
-    "lead": 0.0011,
-    "name": "Ayo Dosunmu",
+    "id": "4431671",
+    "lead": 0.0007,
+    "name": "Jaden McDaniels",
     "proj": 25.8,
     "team": "MIN"
    },
    {
-    "id": "4066336",
-    "lead": 0.001,
-    "name": "Lauri Markkanen",
-    "proj": 26.7,
-    "team": "UTAH"
+    "id": "4066328",
+    "lead": 0.0003,
+    "name": "Jarrett Allen",
+    "proj": 22.7,
+    "team": "CLE"
    },
    {
-    "id": "4432816",
-    "lead": 0.0008,
-    "name": "LaMelo Ball",
-    "proj": 26.4,
-    "team": "MIN"
+    "id": "5144091",
+    "lead": 0.0003,
+    "name": "Jeremiah Fears",
+    "proj": 22.6,
+    "team": "NO"
    },
    {
     "id": "4900671",
-    "lead": 0.0007,
+    "lead": 0.0002,
     "name": "Ajay Mitchell",
     "proj": 24.8,
     "team": "OKC"
    },
    {
-    "id": "4431671",
-    "lead": 0.0005,
-    "name": "Jaden McDaniels",
-    "proj": 25.7,
-    "team": "MIN"
-   },
-   {
-    "id": "5142718",
-    "lead": 0.0005,
-    "name": "AJ Dybantsa",
-    "proj": 24.6,
-    "team": "WSH"
-   },
-   {
-    "id": "4432848",
-    "lead": 0.0003,
-    "name": "Jaime Jaquez Jr.",
-    "proj": 25.0,
-    "team": "MIL"
-   },
-   {
-    "id": "4278078",
-    "lead": 0.0002,
-    "name": "P.J. Washington",
-    "proj": 23.1,
-    "team": "DAL"
-   },
-   {
-    "id": "4066328",
-    "lead": 0.0002,
-    "name": "Jarrett Allen",
-    "proj": 22.8,
-    "team": "CLE"
-   },
-   {
-    "id": "4591725",
-    "lead": 0.0002,
-    "name": "Ryan Rollins",
-    "proj": 20.9,
-    "team": "MIL"
-   },
-   {
-    "id": "4869780",
-    "lead": 0.0001,
-    "name": "Derik Queen",
-    "proj": 23.2,
-    "team": "NO"
-   },
-   {
-    "id": "3032976",
-    "lead": 0.0001,
-    "name": "Rudy Gobert",
-    "proj": 22.6,
-    "team": "MIN"
-   },
-   {
-    "id": "3995",
-    "lead": 0.0001,
-    "name": "Jrue Holiday",
-    "proj": 22.4,
-    "team": "POR"
-   },
-   {
-    "id": "3078576",
-    "lead": 0.0001,
-    "name": "Derrick White",
-    "proj": 20.4,
-    "team": "BOS"
-   },
-   {
     "id": "4431680",
-    "lead": 0.0,
+    "lead": 0.0002,
     "name": "Onyeka Okongwu",
     "proj": 24.3,
     "team": "ATL"
    },
    {
     "id": "5105565",
-    "lead": 0.0,
+    "lead": 0.0002,
     "name": "Donovan Clingan",
     "proj": 23.8,
     "team": "POR"
+   },
+   {
+    "id": "3032976",
+    "lead": 0.0002,
+    "name": "Rudy Gobert",
+    "proj": 22.7,
+    "team": "MIN"
+   },
+   {
+    "id": "5041955",
+    "lead": 0.0002,
+    "name": "Darryn Peterson",
+    "proj": 20.2,
+    "team": "UTAH"
+   },
+   {
+    "id": "4278078",
+    "lead": 0.0001,
+    "name": "P.J. Washington",
+    "proj": 23.2,
+    "team": "DAL"
+   },
+   {
+    "id": "3995",
+    "lead": 0.0001,
+    "name": "Jrue Holiday",
+    "proj": 22.5,
+    "team": "POR"
+   },
+   {
+    "id": "4397688",
+    "lead": 0.0001,
+    "name": "Trey Murphy III",
+    "proj": 21.9,
+    "team": "NO"
+   },
+   {
+    "id": "5105623",
+    "lead": 0.0001,
+    "name": "Kel'el Ware",
+    "proj": 19.6,
+    "team": "MIL"
+   },
+   {
+    "id": "4432848",
+    "lead": 0.0,
+    "name": "Jaime Jaquez Jr.",
+    "proj": 25.0,
+    "team": "MIL"
+   },
+   {
+    "id": "5142718",
+    "lead": 0.0,
+    "name": "AJ Dybantsa",
+    "proj": 24.5,
+    "team": "WSH"
+   },
+   {
+    "id": "4869780",
+    "lead": 0.0,
+    "name": "Derik Queen",
+    "proj": 23.2,
+    "team": "NO"
    },
    {
     "id": "5124612",
@@ -6233,20 +6247,6 @@
     "name": "VJ Edgecombe",
     "proj": 22.8,
     "team": "PHI"
-   },
-   {
-    "id": "5144091",
-    "lead": 0.0,
-    "name": "Jeremiah Fears",
-    "proj": 22.5,
-    "team": "NO"
-   },
-   {
-    "id": "4397688",
-    "lead": 0.0,
-    "name": "Trey Murphy III",
-    "proj": 21.9,
-    "team": "NO"
    }
   ],
   "season_used": "2026-27"
@@ -6255,276 +6255,248 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.224,
+    "lead": 0.2177,
     "name": "Nikola Jokic",
     "proj": 46.8,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.1534,
+    "lead": 0.1646,
     "name": "Alperen Sengun",
-    "proj": 44.1,
+    "proj": 44.7,
     "team": "HOU"
    },
    {
     "id": "5104157",
-    "lead": 0.1443,
+    "lead": 0.1334,
     "name": "Victor Wembanyama",
     "proj": 43.4,
     "team": "SA"
    },
    {
     "id": "4278073",
-    "lead": 0.0608,
+    "lead": 0.0538,
     "name": "Shai Gilgeous-Alexander",
     "proj": 38.1,
     "team": "OKC"
    },
    {
-    "id": "3975",
-    "lead": 0.0506,
-    "name": "Stephen Curry",
-    "proj": 37.4,
-    "team": "GS"
-   },
-   {
     "id": "3936299",
-    "lead": 0.0468,
+    "lead": 0.0459,
     "name": "Jamal Murray",
     "proj": 37.3,
     "team": "DEN"
    },
    {
     "id": "3136195",
-    "lead": 0.0394,
+    "lead": 0.0429,
     "name": "Karl-Anthony Towns",
     "proj": 36.9,
     "team": "NY"
    },
    {
-    "id": "4701230",
-    "lead": 0.0307,
-    "name": "Jalen Johnson",
-    "proj": 34.9,
-    "team": "ATL"
+    "id": "3975",
+    "lead": 0.0425,
+    "name": "Stephen Curry",
+    "proj": 36.8,
+    "team": "GS"
    },
    {
     "id": "4683021",
-    "lead": 0.0284,
+    "lead": 0.0337,
     "name": "Deni Avdija",
     "proj": 35.4,
     "team": "POR"
    },
    {
-    "id": "5175737",
-    "lead": 0.0271,
-    "name": "Yaxel Lendeborg",
-    "proj": 34.6,
-    "team": "GS"
-   },
-   {
     "id": "6583",
-    "lead": 0.0266,
+    "lead": 0.0337,
     "name": "Anthony Davis",
     "proj": 35.0,
     "team": "WSH"
    },
    {
-    "id": "3934672",
-    "lead": 0.024,
-    "name": "Jalen Brunson",
-    "proj": 33.8,
-    "team": "NY"
+    "id": "4701230",
+    "lead": 0.0308,
+    "name": "Jalen Johnson",
+    "proj": 34.9,
+    "team": "ATL"
+   },
+   {
+    "id": "5175737",
+    "lead": 0.0258,
+    "name": "Yaxel Lendeborg",
+    "proj": 34.4,
+    "team": "GS"
    },
    {
     "id": "3064514",
-    "lead": 0.0238,
+    "lead": 0.0239,
     "name": "Julius Randle",
     "proj": 34.4,
     "team": "BKN"
    },
    {
     "id": "4566434",
-    "lead": 0.022,
+    "lead": 0.0239,
     "name": "Franz Wagner",
-    "proj": 33.5,
+    "proj": 33.9,
     "team": "ORL"
    },
    {
-    "id": "4277905",
-    "lead": 0.0128,
-    "name": "Trae Young",
-    "proj": 32.0,
-    "team": "WSH"
-   },
-   {
-    "id": "3149673",
-    "lead": 0.0126,
-    "name": "Pascal Siakam",
-    "proj": 32.0,
-    "team": "IND"
+    "id": "3934672",
+    "lead": 0.0206,
+    "name": "Jalen Brunson",
+    "proj": 33.8,
+    "team": "NY"
    },
    {
     "id": "3908809",
-    "lead": 0.0125,
+    "lead": 0.0174,
     "name": "Donovan Mitchell",
     "proj": 32.4,
     "team": "CLE"
    },
    {
     "id": "3136193",
-    "lead": 0.012,
+    "lead": 0.0167,
     "name": "Devin Booker",
-    "proj": 31.8,
+    "proj": 32.7,
     "team": "PHX"
    },
    {
+    "id": "4277905",
+    "lead": 0.0124,
+    "name": "Trae Young",
+    "proj": 32.0,
+    "team": "WSH"
+   },
+   {
+    "id": "3149673",
+    "lead": 0.0113,
+    "name": "Pascal Siakam",
+    "proj": 32.0,
+    "team": "IND"
+   },
+   {
     "id": "4278104",
-    "lead": 0.011,
+    "lead": 0.0105,
     "name": "Michael Porter Jr.",
     "proj": 31.3,
     "team": "BKN"
    },
    {
     "id": "3202",
-    "lead": 0.0036,
+    "lead": 0.0057,
     "name": "Kevin Durant",
-    "proj": 29.4,
+    "proj": 29.3,
     "team": "HOU"
    },
    {
     "id": "4432158",
-    "lead": 0.0034,
+    "lead": 0.0053,
     "name": "Evan Mobley",
     "proj": 28.1,
     "team": "CLE"
    },
    {
+    "id": "5037871",
+    "lead": 0.004,
+    "name": "Dylan Harper",
+    "proj": 27.9,
+    "team": "SA"
+   },
+   {
+    "id": "4066383",
+    "lead": 0.0036,
+    "name": "Miles Bridges",
+    "proj": 27.8,
+    "team": "PHX"
+   },
+   {
+    "id": "3992",
+    "lead": 0.0032,
+    "name": "James Harden",
+    "proj": 27.6,
+    "team": "CLE"
+   },
+   {
     "id": "6606",
-    "lead": 0.0031,
+    "lead": 0.0029,
     "name": "Damian Lillard",
     "proj": 28.4,
     "team": "POR"
    },
    {
     "id": "4395712",
-    "lead": 0.0031,
+    "lead": 0.0025,
     "name": "Andrew Nembhard",
     "proj": 28.0,
     "team": "IND"
    },
    {
-    "id": "5037871",
-    "lead": 0.0027,
-    "name": "Dylan Harper",
-    "proj": 27.9,
-    "team": "SA"
-   },
-   {
-    "id": "3992",
-    "lead": 0.0026,
-    "name": "James Harden",
-    "proj": 27.6,
-    "team": "CLE"
-   },
-   {
     "id": "4278039",
-    "lead": 0.0023,
+    "lead": 0.0016,
     "name": "Nickeil Alexander-Walker",
     "proj": 27.2,
     "team": "ATL"
    },
    {
     "id": "4712849",
-    "lead": 0.0022,
+    "lead": 0.0015,
     "name": "Anthony Black",
-    "proj": 26.8,
+    "proj": 26.0,
     "team": "ORL"
    },
    {
-    "id": "4684740",
-    "lead": 0.002,
-    "name": "Amen Thompson",
-    "proj": 25.6,
-    "team": "HOU"
-   },
-   {
-    "id": "4066383",
-    "lead": 0.0017,
-    "name": "Miles Bridges",
-    "proj": 26.6,
-    "team": "PHX"
-   },
-   {
     "id": "5174563",
-    "lead": 0.0016,
+    "lead": 0.0013,
     "name": "Kyshawn George",
     "proj": 26.4,
     "team": "WSH"
    },
    {
-    "id": "4066320",
-    "lead": 0.0013,
-    "name": "Desmond Bane",
-    "proj": 24.8,
-    "team": "ORL"
-   },
-   {
-    "id": "4709138",
-    "lead": 0.001,
-    "name": "Brandin Podziemski",
-    "proj": 26.1,
-    "team": "GS"
-   },
-   {
-    "id": "4845367",
-    "lead": 0.001,
-    "name": "Stephon Castle",
-    "proj": 25.0,
-    "team": "SA"
-   },
-   {
-    "id": "4066259",
-    "lead": 0.001,
-    "name": "De'Aaron Fox",
-    "proj": 24.6,
-    "team": "SA"
-   },
-   {
-    "id": "4900671",
-    "lead": 0.0009,
-    "name": "Ajay Mitchell",
-    "proj": 24.7,
-    "team": "OKC"
-   },
-   {
-    "id": "4431680",
-    "lead": 0.0007,
-    "name": "Onyeka Okongwu",
-    "proj": 23.3,
-    "team": "ATL"
-   },
-   {
     "id": "4432639",
-    "lead": 0.0006,
+    "lead": 0.0011,
     "name": "Jabari Smith Jr.",
-    "proj": 26.4,
+    "proj": 26.3,
     "team": "HOU"
    },
    {
     "id": "3934719",
-    "lead": 0.0006,
+    "lead": 0.001,
     "name": "OG Anunoby",
     "proj": 25.0,
     "team": "NY"
    },
    {
-    "id": "3155526",
+    "id": "4845367",
+    "lead": 0.0007,
+    "name": "Stephon Castle",
+    "proj": 25.0,
+    "team": "SA"
+   },
+   {
+    "id": "4709138",
+    "lead": 0.0007,
+    "name": "Brandin Podziemski",
+    "proj": 24.9,
+    "team": "GS"
+   },
+   {
+    "id": "4900671",
+    "lead": 0.0006,
+    "name": "Ajay Mitchell",
+    "proj": 24.7,
+    "team": "OKC"
+   },
+   {
+    "id": "4684740",
     "lead": 0.0005,
-    "name": "Dillon Brooks",
-    "proj": 23.4,
-    "team": "PHX"
+    "name": "Amen Thompson",
+    "proj": 25.3,
+    "team": "HOU"
    },
    {
     "id": "5142718",
@@ -6534,18 +6506,32 @@
     "team": "WSH"
    },
    {
-    "id": "5105565",
-    "lead": 0.0004,
-    "name": "Donovan Clingan",
-    "proj": 23.6,
-    "team": "POR"
+    "id": "4066259",
+    "lead": 0.0003,
+    "name": "De'Aaron Fox",
+    "proj": 24.6,
+    "team": "SA"
    },
    {
-    "id": "4431767",
+    "id": "4066320",
+    "lead": 0.0003,
+    "name": "Desmond Bane",
+    "proj": 24.2,
+    "team": "ORL"
+   },
+   {
+    "id": "4431680",
     "lead": 0.0002,
-    "name": "Christian Braun",
-    "proj": 21.1,
-    "team": "DEN"
+    "name": "Onyeka Okongwu",
+    "proj": 23.3,
+    "team": "ATL"
+   },
+   {
+    "id": "3995",
+    "lead": 0.0002,
+    "name": "Jrue Holiday",
+    "proj": 22.0,
+    "team": "POR"
    },
    {
     "id": "2490149",
@@ -6555,53 +6541,60 @@
     "team": "ATL"
    },
    {
-    "id": "2991230",
-    "lead": 0.0001,
-    "name": "Fred VanVleet",
-    "proj": 23.3,
-    "team": "HOU"
+    "id": "5101761",
+    "lead": 0.0002,
+    "name": "Mikel Brown Jr.",
+    "proj": 17.5,
+    "team": "BKN"
    },
    {
-    "id": "3062679",
+    "id": "3155526",
     "lead": 0.0001,
-    "name": "Josh Hart",
-    "proj": 20.0,
-    "team": "NY"
-   },
-   {
-    "id": "4437244",
-    "lead": 0.0001,
-    "name": "Jalen Green",
-    "proj": 19.1,
+    "name": "Dillon Brooks",
+    "proj": 23.6,
     "team": "PHX"
    },
    {
-    "id": "3995",
-    "lead": 0.0,
-    "name": "Jrue Holiday",
-    "proj": 22.0,
+    "id": "5105565",
+    "lead": 0.0001,
+    "name": "Donovan Clingan",
+    "proj": 23.6,
     "team": "POR"
    },
    {
     "id": "4277847",
-    "lead": 0.0,
+    "lead": 0.0001,
     "name": "Wendell Carter Jr.",
-    "proj": 21.1,
+    "proj": 23.4,
     "team": "ORL"
    },
    {
+    "id": "2991230",
+    "lead": 0.0001,
+    "name": "Fred VanVleet",
+    "proj": 23.1,
+    "team": "HOU"
+   },
+   {
     "id": "4278355",
-    "lead": 0.0,
+    "lead": 0.0001,
     "name": "Obi Toppin",
     "proj": 20.8,
     "team": "IND"
    },
    {
     "id": "4869342",
-    "lead": 0.0,
+    "lead": 0.0001,
     "name": "Dyson Daniels",
     "proj": 20.5,
     "team": "ATL"
+   },
+   {
+    "id": "4431767",
+    "lead": 0.0,
+    "name": "Christian Braun",
+    "proj": 21.1,
+    "team": "DEN"
    },
    {
     "id": "4066328",
@@ -6609,6 +6602,13 @@
     "name": "Jarrett Allen",
     "proj": 20.5,
     "team": "CLE"
+   },
+   {
+    "id": "3062679",
+    "lead": 0.0,
+    "name": "Josh Hart",
+    "proj": 20.0,
+    "team": "NY"
    },
    {
     "id": "4222252",
@@ -6625,18 +6625,18 @@
     "team": "DEN"
    },
    {
+    "id": "4702382",
+    "lead": 0.0,
+    "name": "Tristan da Silva",
+    "proj": 19.2,
+    "team": "ORL"
+   },
+   {
     "id": "4397183",
     "lead": 0.0,
     "name": "Aaron Wiggins",
     "proj": 19.1,
     "team": "ATL"
-   },
-   {
-    "id": "4702382",
-    "lead": 0.0,
-    "name": "Tristan da Silva",
-    "proj": 19.0,
-    "team": "ORL"
    },
    {
     "id": "4432194",
@@ -6646,18 +6646,11 @@
     "team": "BKN"
    },
    {
-    "id": "4433192",
+    "id": "4437244",
     "lead": 0.0,
-    "name": "Tari Eason",
+    "name": "Jalen Green",
     "proj": 17.6,
-    "team": "HOU"
-   },
-   {
-    "id": "5101761",
-    "lead": 0.0,
-    "name": "Mikel Brown Jr.",
-    "proj": 17.5,
-    "team": "BKN"
+    "team": "PHX"
    },
    {
     "id": "4576087",
@@ -6667,11 +6660,443 @@
     "team": "CLE"
    },
    {
+    "id": "4433192",
+    "lead": 0.0,
+    "name": "Tari Eason",
+    "proj": 17.5,
+    "team": "HOU"
+   },
+   {
     "id": "4395630",
     "lead": 0.0,
     "name": "Devin Vassell",
     "proj": 17.5,
     "team": "SA"
+   }
+  ],
+  "season_used": "2026-27"
+ },
+ "2026-11-08": {
+  "board": [
+   {
+    "id": "3945274",
+    "lead": 0.2896,
+    "name": "Luka Doncic",
+    "proj": 50.4,
+    "team": "LAL"
+   },
+   {
+    "id": "3032977",
+    "lead": 0.1799,
+    "name": "Giannis Antetokounmpo",
+    "proj": 45.7,
+    "team": "MIA"
+   },
+   {
+    "id": "4065648",
+    "lead": 0.0932,
+    "name": "Jayson Tatum",
+    "proj": 41.0,
+    "team": "BOS"
+   },
+   {
+    "id": "5142620",
+    "lead": 0.0658,
+    "name": "Darius Acuff Jr.",
+    "proj": 39.2,
+    "team": "SAC"
+   },
+   {
+    "id": "4432166",
+    "lead": 0.0585,
+    "name": "Cade Cunningham",
+    "proj": 38.0,
+    "team": "DET"
+   },
+   {
+    "id": "4431678",
+    "lead": 0.0583,
+    "name": "Tyrese Maxey",
+    "proj": 38.4,
+    "team": "PHI"
+   },
+   {
+    "id": "5041939",
+    "lead": 0.0357,
+    "name": "Cooper Flagg",
+    "proj": 36.6,
+    "team": "DAL"
+   },
+   {
+    "id": "3155942",
+    "lead": 0.0331,
+    "name": "Domantas Sabonis",
+    "proj": 36.2,
+    "team": "SAC"
+   },
+   {
+    "id": "3059318",
+    "lead": 0.0229,
+    "name": "Joel Embiid",
+    "proj": 35.2,
+    "team": "PHI"
+   },
+   {
+    "id": "1966",
+    "lead": 0.0223,
+    "name": "LeBron James",
+    "proj": 34.0,
+    "team": "PHI"
+   },
+   {
+    "id": "3064514",
+    "lead": 0.0222,
+    "name": "Julius Randle",
+    "proj": 34.1,
+    "team": "BKN"
+   },
+   {
+    "id": "3917376",
+    "lead": 0.017,
+    "name": "Jaylen Brown",
+    "proj": 33.6,
+    "team": "PHI"
+   },
+   {
+    "id": "4251",
+    "lead": 0.0143,
+    "name": "Paul George",
+    "proj": 32.0,
+    "team": "BOS"
+   },
+   {
+    "id": "6442",
+    "lead": 0.0097,
+    "name": "Kyrie Irving",
+    "proj": 31.0,
+    "team": "DAL"
+   },
+   {
+    "id": "4433627",
+    "lead": 0.0096,
+    "name": "Keyonte George",
+    "proj": 31.9,
+    "team": "UTAH"
+   },
+   {
+    "id": "4066261",
+    "lead": 0.0093,
+    "name": "Bam Adebayo",
+    "proj": 30.8,
+    "team": "MIA"
+   },
+   {
+    "id": "3907497",
+    "lead": 0.0086,
+    "name": "Dejounte Murray",
+    "proj": 30.6,
+    "team": "NO"
+   },
+   {
+    "id": "3064440",
+    "lead": 0.0078,
+    "name": "Zach LaVine",
+    "proj": 31.1,
+    "team": "SAC"
+   },
+   {
+    "id": "4278104",
+    "lead": 0.0069,
+    "name": "Michael Porter Jr.",
+    "proj": 31.1,
+    "team": "BKN"
+   },
+   {
+    "id": "4395725",
+    "lead": 0.0061,
+    "name": "Tyler Herro",
+    "proj": 30.5,
+    "team": "MIL"
+   },
+   {
+    "id": "4066457",
+    "lead": 0.0049,
+    "name": "Austin Reaves",
+    "proj": 29.1,
+    "team": "LAL"
+   },
+   {
+    "id": "4396907",
+    "lead": 0.0047,
+    "name": "Darius Garland",
+    "proj": 29.0,
+    "team": "LAC"
+   },
+   {
+    "id": "4395628",
+    "lead": 0.004,
+    "name": "Zion Williamson",
+    "proj": 28.7,
+    "team": "NO"
+   },
+   {
+    "id": "5095151",
+    "lead": 0.0025,
+    "name": "Caleb Wilson",
+    "proj": 27.9,
+    "team": "CHI"
+   },
+   {
+    "id": "4397002",
+    "lead": 0.0025,
+    "name": "Ayo Dosunmu",
+    "proj": 27.0,
+    "team": "MIN"
+   },
+   {
+    "id": "4432848",
+    "lead": 0.0018,
+    "name": "Jaime Jaquez Jr.",
+    "proj": 25.9,
+    "team": "MIL"
+   },
+   {
+    "id": "4432816",
+    "lead": 0.0015,
+    "name": "LaMelo Ball",
+    "proj": 27.6,
+    "team": "MIN"
+   },
+   {
+    "id": "4278053",
+    "lead": 0.0013,
+    "name": "Davion Mitchell",
+    "proj": 27.3,
+    "team": "MIA"
+   },
+   {
+    "id": "4066336",
+    "lead": 0.001,
+    "name": "Lauri Markkanen",
+    "proj": 24.8,
+    "team": "UTAH"
+   },
+   {
+    "id": "4431671",
+    "lead": 0.0009,
+    "name": "Jaden McDaniels",
+    "proj": 25.5,
+    "team": "MIN"
+   },
+   {
+    "id": "4433136",
+    "lead": 0.0006,
+    "name": "Walker Kessler",
+    "proj": 25.9,
+    "team": "LAL"
+   },
+   {
+    "id": "4684742",
+    "lead": 0.0004,
+    "name": "Ausar Thompson",
+    "proj": 23.6,
+    "team": "DET"
+   },
+   {
+    "id": "4869780",
+    "lead": 0.0003,
+    "name": "Derik Queen",
+    "proj": 24.4,
+    "team": "NO"
+   },
+   {
+    "id": "4278078",
+    "lead": 0.0003,
+    "name": "P.J. Washington",
+    "proj": 23.7,
+    "team": "DAL"
+   },
+   {
+    "id": "3157465",
+    "lead": 0.0003,
+    "name": "Duncan Robinson",
+    "proj": 22.8,
+    "team": "DET"
+   },
+   {
+    "id": "4066648",
+    "lead": 0.0003,
+    "name": "Rui Hachimura",
+    "proj": 22.4,
+    "team": "LAC"
+   },
+   {
+    "id": "4278594",
+    "lead": 0.0003,
+    "name": "Naji Marshall",
+    "proj": 22.2,
+    "team": "DAL"
+   },
+   {
+    "id": "3448",
+    "lead": 0.0003,
+    "name": "Brook Lopez",
+    "proj": 21.3,
+    "team": "LAC"
+   },
+   {
+    "id": "5124612",
+    "lead": 0.0002,
+    "name": "VJ Edgecombe",
+    "proj": 23.2,
+    "team": "PHI"
+   },
+   {
+    "id": "2595516",
+    "lead": 0.0002,
+    "name": "Norman Powell",
+    "proj": 22.9,
+    "team": "CHI"
+   },
+   {
+    "id": "3078576",
+    "lead": 0.0002,
+    "name": "Derrick White",
+    "proj": 22.2,
+    "team": "BOS"
+   },
+   {
+    "id": "4397189",
+    "lead": 0.0002,
+    "name": "Jalen Smith",
+    "proj": 20.2,
+    "team": "CHI"
+   },
+   {
+    "id": "3936099",
+    "lead": 0.0002,
+    "name": "Derrick Jones Jr.",
+    "proj": 18.0,
+    "team": "LAC"
+   },
+   {
+    "id": "5144091",
+    "lead": 0.0001,
+    "name": "Jeremiah Fears",
+    "proj": 23.1,
+    "team": "NO"
+   },
+   {
+    "id": "4871145",
+    "lead": 0.0001,
+    "name": "Josh Giddey",
+    "proj": 21.0,
+    "team": "CHI"
+   },
+   {
+    "id": "4397688",
+    "lead": 0.0,
+    "name": "Trey Murphy III",
+    "proj": 22.4,
+    "team": "NO"
+   },
+   {
+    "id": "4873138",
+    "lead": 0.0,
+    "name": "Ace Bailey",
+    "proj": 21.8,
+    "team": "UTAH"
+   },
+   {
+    "id": "4397136",
+    "lead": 0.0,
+    "name": "Saddiq Bey",
+    "proj": 21.7,
+    "team": "NO"
+   },
+   {
+    "id": "4278562",
+    "lead": 0.0,
+    "name": "Paul Reed",
+    "proj": 21.5,
+    "team": "DET"
+   },
+   {
+    "id": "4433247",
+    "lead": 0.0,
+    "name": "Jonathan Kuminga",
+    "proj": 20.6,
+    "team": "MIN"
+   },
+   {
+    "id": "5041955",
+    "lead": 0.0,
+    "name": "Darryn Peterson",
+    "proj": 20.4,
+    "team": "UTAH"
+   },
+   {
+    "id": "4066354",
+    "lead": 0.0,
+    "name": "Payton Pritchard",
+    "proj": 20.4,
+    "team": "BOS"
+   },
+   {
+    "id": "4591725",
+    "lead": 0.0,
+    "name": "Ryan Rollins",
+    "proj": 20.1,
+    "team": "MIL"
+   },
+   {
+    "id": "3032976",
+    "lead": 0.0,
+    "name": "Rudy Gobert",
+    "proj": 19.8,
+    "team": "MIN"
+   },
+   {
+    "id": "5254165",
+    "lead": 0.0,
+    "name": "Keaton Wagler",
+    "proj": 19.3,
+    "team": "LAC"
+   },
+   {
+    "id": "5105623",
+    "lead": 0.0,
+    "name": "Kel'el Ware",
+    "proj": 19.1,
+    "team": "MIL"
+   },
+   {
+    "id": "4601025",
+    "lead": 0.0,
+    "name": "Pelle Larsson",
+    "proj": 19.0,
+    "team": "MIA"
+   },
+   {
+    "id": "4065732",
+    "lead": 0.0,
+    "name": "De'Andre Hunter",
+    "proj": 19.0,
+    "team": "SAC"
+   },
+   {
+    "id": "4711294",
+    "lead": 0.0,
+    "name": "Matas Buzelis",
+    "proj": 18.9,
+    "team": "CHI"
+   },
+   {
+    "id": "4432847",
+    "lead": 0.0,
+    "name": "Terrence Shannon Jr.",
+    "proj": 18.8,
+    "team": "MIN"
    }
   ],
   "season_used": "2026-27"

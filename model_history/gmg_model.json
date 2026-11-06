@@ -1244,5 +1244,29 @@
   "total_result": "loss",
   "updated": "2026-11-01T13:35Z",
   "week": 8
+ },
+ "2026_09_JAX_BAL": {
+  "away": "JAX",
+  "away_pts": 27.0,
+  "final": [
+   33,
+   10
+  ],
+  "frozen": true,
+  "home": "BAL",
+  "home_pts": 14.9,
+  "qb_out": [
+   "BAL"
+  ],
+  "spread": 9.5,
+  "spread_edge": 2.5,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 39.5,
+  "total_edge": 2.4,
+  "total_pick": "over",
+  "total_result": "win",
+  "updated": "2026-11-05T20:54Z",
+  "week": 9
  }
 }
