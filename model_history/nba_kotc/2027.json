@@ -5830,37 +5830,37 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3466,
+    "lead": 0.3463,
     "name": "Luka Doncic",
     "proj": 52.8,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1316,
+    "lead": 0.1317,
     "name": "Victor Wembanyama",
     "proj": 44.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0649,
+    "lead": 0.065,
     "name": "Jayson Tatum",
     "proj": 40.2,
     "team": "BOS"
    },
    {
     "id": "4278073",
-    "lead": 0.0438,
+    "lead": 0.0428,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 38.2,
+    "proj": 38.1,
     "team": "OKC"
    },
    {
     "id": "4431678",
-    "lead": 0.0403,
+    "lead": 0.0409,
     "name": "Tyrese Maxey",
-    "proj": 37.7,
+    "proj": 37.8,
     "team": "PHI"
    },
    {
@@ -5921,7 +5921,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0182,
+    "lead": 0.0183,
     "name": "Joel Embiid",
     "proj": 34.3,
     "team": "PHI"
@@ -5935,9 +5935,9 @@
    },
    {
     "id": "3917376",
-    "lead": 0.0108,
+    "lead": 0.0111,
     "name": "Jaylen Brown",
-    "proj": 32.9,
+    "proj": 33.0,
     "team": "PHI"
    },
    {
@@ -5949,7 +5949,7 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0082,
+    "lead": 0.0083,
     "name": "Keyonte George",
     "proj": 31.5,
     "team": "UTAH"
@@ -5998,7 +5998,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0052,
+    "lead": 0.0053,
     "name": "Trae Young",
     "proj": 31.0,
     "team": "WSH"
@@ -6026,7 +6026,7 @@
    },
    {
     "id": "3064440",
-    "lead": 0.0039,
+    "lead": 0.0038,
     "name": "Zach LaVine",
     "proj": 28.9,
     "team": "SAC"
@@ -6082,9 +6082,9 @@
    },
    {
     "id": "4903027",
-    "lead": 0.0014,
+    "lead": 0.0013,
     "name": "Cedric Coward",
-    "proj": 25.8,
+    "proj": 25.7,
     "team": "MEM"
    },
    {
