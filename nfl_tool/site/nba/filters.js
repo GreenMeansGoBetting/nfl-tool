@@ -21,7 +21,7 @@ function rfListFields() {
   }
   for (const [k, label] of [["l5", "L5"], ["l10", "L10"], ["all", "Season"], ["home", "Home"], ["away", "Away"]]) f.push([`hit_${k}`, "His Numbers", `${label} Hit Rate`, "%", (x) => rfPct(x.hits[k])]);
   f.push(["allow", "Defense", "Opp Allows", "#", (x) => (x.allow ? x.allow.v : null)]);
-  f.push(["allowRank", "Defense", "Opp Allows Rank", "rank", (x) => x.allowRank, "1st = gives up the most"]);
+  f.push(["allowRank", "Defense", "Opp Allows Rank", "rank", (x) => x.allowRank, "30th = gives up the most"]);
   f.push(["ro", "Reads", "O Reads", "#", (x) => (x.reads.n ? x.reads.o : null), "Reads that say Over"]);
   f.push(["ru", "Reads", "U Reads", "#", (x) => (x.reads.n ? x.reads.u : null), "Reads that say Under"]);
   f.push(["pace", "Tonight's Game", "Pace", "#", (x) => x.game.pace]);
@@ -32,7 +32,7 @@ function rfListFields() {
 }
 // Every panel row with a Read (stat pages only): his number, his rank at his position, the defense's
 // number and its rank of 30, from research.js readsOf (x.reads.nums "<tab>|<row>").
-const RF_PARTS = [["him", "His", "hu", "His number"], ["hr", "His Rank", "rank", "1st = the most at his position"], ["def", "Defense", "du", "What tonight's defense gives up"], ["dr", "Defense Rank", "rank", "1st = gives up the most"]];
+const RF_PARTS = [["him", "His", "hu", "His number"], ["hr", "His Rank", "rank", "1st = the most at his position"], ["def", "Defense", "du", "What tonight's defense gives up"], ["dr", "Defense Rank", "rank", "30th = gives up the most"]];
 function rfPanelRows(rows) {
   if (ALL_PROPS) return [];
   const seen = new Map();

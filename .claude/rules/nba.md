@@ -235,7 +235,7 @@ Every game played 10,000 times, possession by possession.
   against his position's rotation players (`listNums`, `listPool`; same color as his Form Season tile),
   **Hit Rate - Over Tonight's Line** (L5 / L10 / Season / Home / Away,
   "x of y"), **Opp Allows** (what tonight's opponent gives up a game to his exact position, from every
-  player's logs, ranked of 30, 1st = most, 8-step rank colors), **Teammates On The Report** (spare
+  player's logs, ranked of 30 from the defense: 30th = gives up the most, red; 8-step rank colors), **Teammates On The Report** (spare
   width, `fitTags`): per 20+ minute teammate on tonight's report, his average in the games that
   teammate missed (`out` in props.json) and the change from games with him; "No" = Out / Doubtful,
   "If No" (dashed) = DTD / Questionable; colored only at `SMALL` 3+ games and a swing of `MK.swing`.
@@ -290,8 +290,8 @@ Every game played 10,000 times, possession by possession.
   Chance; no location rows, the map has them; no Assisted, it repeats catch): share / rank / 3PM a game
   vs the defense's share of his position's threes / rank / made a game, read. **Shot Map**: two heat
   maps (shot-chart.js `nbaShotHeatView`, threes only, `MAP_HEX` 2.6 ft, `legend: false`), his and every
-  three his position took vs tonight's defense (shots.json); **green = good for him on BOTH maps** (the
-  Shot Charts page's defense side is the other way). Game Script columns Games / 3PM / +/- / 3PA / 3P% /
+  three his position took vs tonight's defense (shots.json); the defense's map is drawn `allowed: true`
+  (red = more makes against them, like the Shot Charts page; 2026-11-06), a color key under each map. Game Script columns Games / 3PM / +/- / 3PA / 3P% /
   Over / Hit %. Vs The Line bars read makes / tries, a night with none = a red "0/5" chip. **Ladder**:
   % of games with None / k+ threes, seven columns sliding to sit around tonight's line (start = Over - 3,
   floor 0), the Over column's header green; rows Season, Last 10, Last 5, venue, Spread like tonight,
@@ -397,7 +397,10 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
   sets them up, the defense not bottom-10 at allowing threes; the owner: "a yellow VOLUME tag").
   A one-game cold-shooting "bounce-back" was dropped (the owner: "thats like saying someone is due").
 - **Defense ranks read from the defense** (the owner: "the defense who is bad should be ranked 30th and
-  red"): `dRank` = 30th allows the most, red. The Research panels' "1st = most" is unchanged until asked.
+  red"): `dRank` = 30th allows the most, red. **Everywhere since 2026-11-06** ("bad defense is red":
+  LAL 4th-most catch-and-shoot threes allowed showed green): every Research panel defense tile (`DT`: drawn
+  -s, the Read still takes s = good for him), its rank (`dRank` / `defRank`; rows where more is worse for
+  him, like crashing the glass, rank 1st = the most), the Filters' Defense Rank and the list's Opp Allows.
 - **Tabs** (the research grid): left Who He Assists (teammates down, types across, counts colored against
   the grid, Total % column, Total row % vs the league, the defense row and Vs Pos purple), Assist Types,
   Game Log (Min, Chances, Share, C&S 3s, AST, that night's Line, Vs Tonight); right The Read (every factor

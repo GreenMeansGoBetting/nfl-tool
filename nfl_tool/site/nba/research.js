@@ -371,7 +371,7 @@ function rowsOn(date) {
         avg: avg(vals), min: mins, ...listNums(p, pid, log), ...(fz && fz[3] !== null && fz[3] !== undefined ? { vol: fz[3] } : {}),
         hits: { l5: hits(last5, line, f), l10: hits(log.slice(-10), line, f), all: hits(log, line, f),
           home: hits(log.filter((r) => r[f.home]), line, f), away: hits(log.filter((r) => !r[f.home]), line, f) },
-        allow: ((A.per[p.pos] || {})[opp]) || null, allowRank: ((A.ranks[p.pos] || { r: {} }).r[opp]) || null,
+        allow: ((A.per[p.pos] || {})[opp]) || null, allowRank: ((A.ranks[p.pos] || { r: {} }).r[opp]) ? dRank(A.ranks[p.pos].r[opp], A.ranks[p.pos].n) : null,
         allowN: (A.ranks[p.pos] || {}).n || 0, allowLeague: (A.ranks[p.pos] || {}).league,
         without: past ? [] : withoutRows(pid, tm), game: tonightGame(g, tm, opp),
       });
@@ -412,7 +412,7 @@ const hitShare = (h) => (h ? h.over / h.of : -1);
 const SORTS = {
   line: (x) => (x.line === null ? -1 : x.line), avg: (x) => x.avg ?? -1, second: (x) => x.second ?? -1, vol: (x) => x.vol ?? -1,
   l5: (x) => hitShare(x.hits.l5), l10: (x) => hitShare(x.hits.l10), all: (x) => hitShare(x.hits.all),
-  home: (x) => hitShare(x.hits.home), away: (x) => hitShare(x.hits.away), allow: (x) => (x.allowRank ? -x.allowRank : -99),
+  home: (x) => hitShare(x.hits.home), away: (x) => hitShare(x.hits.away), allow: (x) => (x.allowRank || -99),
   ro: (x) => (x.reads.n ? x.reads.o / x.reads.n : -1), ru: (x) => (x.reads.n ? x.reads.u / x.reads.n : -1),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
   result: (x) => x.result ?? -1,
@@ -500,7 +500,7 @@ function hitCell(h, title) {
 }
 function allowCell(x) {
   if (!x.allow) return '<td class="num rs-allow">--</td>';
-  const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${rankWords(x.allowRank, x.allowN)}, over ${x.allow.n} games`;
+  const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${dWords(dRank(x.allowRank, x.allowN), x.allowN)}, over ${x.allow.n} games`;
   return `<td class="num rs-allow" style="${rankStyle(x.allowRank, x.allowN)}" title="${tip}"><b>${fmt(x.allow.v)}</b><small>${ordinal(x.allowRank)} &middot; ${x.p.pos}</small></td>`;
 }
 // O and U: "x/y", colored by that share on the 8-step scale (more = greener, the site's how-often rule).
@@ -621,6 +621,17 @@ const BANDS_3_3_1 = [["him", 2, 3], ["def", 5, 3], ["rd", 8, 1]];
 // A rank of 30 in words: the top half "Nth-most", the bottom half "Nth-least" (the owner, 2026-11-04,
 // read "27th most of 30" as near the top).
 const rankWords = (r, n) => (r <= Math.ceil(n / 2) ? `${ordinal(r)}-most of ${n}` : `${ordinal(n - r + 1)}-least of ${n} (${ordinal(r)} of ${n})`);
+// Tonight's defense is read FROM THE DEFENSE on every Research panel, the list and Assist Spots (the
+// owner, 2026-11-05 and 2026-11-06: "bad defense is red"): 1st = the best for the defense (allows the
+// fewest, green), 30th = the worst (allows the most, red). `r` = its rank by most allowed.
+const dRank = (r, n) => n - r + 1;
+const dWords = (r, n) => `${ordinal(dRank(r, n))} of ${n} (${r <= Math.ceil(n / 2) ? `${ordinal(r)}-most` : `${ordinal(n - r + 1)}-least`})`;
+// A defense tile: `s` is the strength for HIM (+1 = the defense gives up the most), which the Read
+// keeps; the tile is drawn from the defense's side, so -s (red = gives up the most).
+const DT = (v, s, tip = "") => T(v, s === null || s === undefined ? s : -s, tip);
+// The defense's rank on the five-column tabs: `r` by the most; `flip` rows (more = worse for him, e.g.
+// they crash the glass) are already ranked from the defense (1st = the most = the best for it).
+const defRank = (r, n, flip = false) => (r ? { r: flip ? r : dRank(r, n), w: `${ordinal(flip ? r : dRank(r, n))} of ${n} (${r <= Math.ceil(n / 2) ? `${ordinal(r)}-most` : `${ordinal(n - r + 1)}-least`})` } : { r: null, w: "" });
 // the two-sided read (the site's matchup rule): one side clearly one way, the other not the other way.
 // Over / Under / Even (the owner, 2026-11-04: "so we can start framing it as betting").
 const readOf = (a, b) => {
@@ -765,15 +776,15 @@ function assistPosRows(x) {
     const trend = (v, n) => { if (v === null || !s || n >= vals.length) return null; const rel = (v - s) / s / 0.3; return Math.abs(rel) < 0.2 ? null : rel; };
     const D = defAstToPos(i), opp = D.teams[x.opp];
     const rk = (w) => (opp && D.ranks[w].r[x.opp] ? rankSigned(D.ranks[w].r[x.opp], D.ranks[w].n) : null);
-    const dtip = (w, label) => (opp ? `${team(x.opp).name} give up ${fmt(opp[w])} assisted baskets a game to ${target}s ${label} (${rankWords(D.ranks[w].r[x.opp], D.ranks[w].n)})` : "");
+    const dtip = (w, label) => (opp ? `${team(x.opp).name} give up ${fmt(opp[w])} assisted baskets a game to ${target}s ${label} (${dWords(D.ranks[w].r[x.opp], D.ranks[w].n)})` : "");
     const rd = readOf(hs, rk("season"));
     const rdTip = { Over: `The Over: one side points to more assists to ${target}s and the other doesn't point against it`, Under: `The Under: one side points to fewer assists to ${target}s and the other doesn't point against it`, Even: "The two sides don't line up one way", "--": "Not enough data on one side yet" };
     return LB(`To ${target}`, `His assists a game to his ${target}s`)
       + T(fmt(s), hs, `His assists a game to ${target}s this season, in ${vals.length} games (colored against the league's ${x.p.pos}s)`)
       + T(fmt(a10), trend(a10, 10), `His last ${Math.min(10, vals.length)} games (colored against his season)`) + T(fmt(a5), trend(a5, 5), `His last ${Math.min(5, vals.length)} games (colored against his season)`)
-      + T(fmt(opp ? opp.season : null), rk("season"), dtip("season", "this season")) + T(fmt(opp ? opp.l10 : null), rk("l10"), dtip("l10", "in their last 10"))
-      + T(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5"))
-      + RT(rd, rdTip[rd.t], { label: `To ${target}`, him: s, hu: "#", hr: (rankIn(s, pv) || {}).r ?? null, def: opp ? opp.season : null, du: "#", dr: (opp && D.ranks.season.r[x.opp]) || null });
+      + DT(fmt(opp ? opp.season : null), rk("season"), dtip("season", "this season")) + DT(fmt(opp ? opp.l10 : null), rk("l10"), dtip("l10", "in their last 10"))
+      + DT(fmt(opp ? opp.l5 : null), rk("l5"), dtip("l5", "in their last 5"))
+      + RT(rd, rdTip[rd.t], { label: `To ${target}`, him: s, hu: "#", hr: (rankIn(s, pv) || {}).r ?? null, def: opp ? opp.season : null, du: "#", dr: opp && D.ranks.season.r[x.opp] ? dRank(D.ranks.season.r[x.opp], D.ranks.season.n) : null });
   });
 }
 
@@ -814,10 +825,10 @@ function formTab(x) {
     else {
       const rk = (w) => (opp[w] && D.ranks[w][key].r[x.opp] ? rankSigned(D.ranks[w][key].r[x.opp], D.ranks[w][key].n) : null);
       const val = (w) => (opp[w] ? opp[w][key] : null);
-      const tip = (w, label) => (opp[w] ? `${team(x.opp).name} allow ${x.p.pos}s ${fmt(val(w), d)} ${what}${ag} ${label} (${rankWords(D.ranks[w][key].r[x.opp], D.ranks[w][key].n)})` : "");
+      const tip = (w, label) => (opp[w] ? `${team(x.opp).name} allow ${x.p.pos}s ${fmt(val(w), d)} ${what}${ag} ${label} (${dWords(D.ranks[w][key].r[x.opp], D.ranks[w][key].n)})` : "");
       ds = rk("season");
-      cells += T(fmt(val("season"), d), ds, tip("season", "this season")) + T(fmt(val("l10"), d), rk("l10"), tip("l10", `in their last ${opp.l10 ? opp.l10.n : 0}`))
-        + T(fmt(val("l5"), d), rk("l5"), tip("l5", `in their last ${opp.l5 ? opp.l5.n : 0}`));
+      cells += DT(fmt(val("season"), d), ds, tip("season", "this season")) + DT(fmt(val("l10"), d), rk("l10"), tip("l10", `in their last ${opp.l10 ? opp.l10.n : 0}`))
+        + DT(fmt(val("l5"), d), rk("l5"), tip("l5", `in their last ${opp.l5 ? opp.l5.n : 0}`));
     }
     const rd = key ? readOf(hs, ds) : { t: "--", s: null, none: true }; // none: never a read (no defense side)
     const [up, down] = ag || /a 36/.test(what) ? [`more ${what}`, `fewer ${what}`] : [`a higher ${what}`, `a lower ${what}`];
@@ -825,7 +836,7 @@ function formTab(x) {
       Even: "The two sides don't line up one way", "--": key ? "Not enough data on one side yet" : "His number only: no defense side" };
     const u = d === 0 ? "%" : "#"; // the % rows are already 0-100
     cells += RT(rd, `${rdTip[rd.t]} (his season against his position, the defense's season rank)`, { label, him: s, hu: u, hr: (rankIn(s, hv) || {}).r ?? null,
-      def: key && opp.season ? opp.season[key] : null, du: u, dr: key && opp.season ? D.ranks.season[key].r[x.opp] || null : null });
+      def: key && opp.season ? opp.season[key] : null, du: u, dr: key && opp.season && D.ranks.season[key].r[x.opp] ? dRank(D.ranks.season[key].r[x.opp], D.ranks.season[key].n) : null });
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}${ag}`) + cells;
   });
   const head = corner(x) + HD("Season", "him") + HD("L10", "him") + HD("L5", "him") + HD("Season", "def", "", `What ${team(x.opp).name} allow ${x.p.pos}s`) + HD("L10", "def") + HD("L5", "def") + HD("Read", "rd");
@@ -846,9 +857,9 @@ function scoringTab(x) {
   const row = (label, v, vals, dv, dr, ppg, dppg, tip, dtip) => {
     const rk = rankIn(v, vals), s = spread(v, vals), ds = rankSigned(dr.r[x.opp], dr.n), rd = readOf(s, ds);
     return LB(label, tip) + T(pctT(v), s, tip) + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "") + T(ppg === null ? "--" : fmt(ppg), ppg === null ? null : s, ppg === null ? "" : `${fmt(ppg)} points a game`)
-      + T(pctT(dv), ds, `${team(x.opp).name}: ${dtip}`) + T(dr.r[x.opp] ? ordinal(dr.r[x.opp]) : "--", ds, dr.r[x.opp] ? `${rankWords(dr.r[x.opp], dr.n)}` : "")
-      + T(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`)
-      + RT(rd, READ_TIP[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr.r[x.opp] || null });
+      + DT(pctT(dv), ds, `${team(x.opp).name}: ${dtip}`) + DT(dr.r[x.opp] ? ordinal(dRank(dr.r[x.opp], dr.n)) : "--", ds, dr.r[x.opp] ? dWords(dr.r[x.opp], dr.n) : "")
+      + DT(dppg === null ? "--" : fmt(dppg), dppg === null ? null : ds, dppg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dppg)} points a game this way`)
+      + RT(rd, READ_TIP[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr.r[x.opp] ? dRank(dr.r[x.opp], dr.n) : null });
   };
   const rows = [
     row("Shot Share", p.share ?? null, pool.map(([, q]) => q.share ?? null), opp.shot, DS.rankOf((t) => t.shot), null, null,
@@ -887,18 +898,19 @@ function matchupTab(x) {
   const draws = teamRanks((t) => { const rows = Object.values(seasonBlock().players).filter((q) => q.team === t && q.pos === x.p.pos).flatMap((q) => q.log || []); const n = new Set(rows.map((r) => r[f.game])).size; return n ? rows.reduce((a, r) => a + (r[f.fta] || 0), 0) / n : null; });
   // each side: the value and its rank (no average columns: the owner, 2026-11-03, they misled)
   const him = (v, vals, show, flip = false) => { const rk = rankIn(v, vals); const s = spread(v, vals); return { s: s === null ? null : flip ? -s : s, v: show(v), r: rk ? `${ordinal(rk.r)}` : "--", rt: rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s` : "", n: numOf(v, show), u: unitOf(show), rank: rk ? rk.r : null }; };
-  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${ordinal(rk.r[t])} of ${rk.n}` : "", n: numOf(rk.v[t], show), u: unitOf(show), rank: rk.r[t] || null }; };
+  // tonight's defense is ranked from the defense (defRank); his own team's pace keeps 1st = fastest
+  const them = (rk, t, show, flip = false) => { const s = rankSigned(rk.r[t], rk.n); const d = t === opp ? defRank(rk.r[t], rk.n, flip) : { r: rk.r[t] || null, w: rk.r[t] ? `${ordinal(rk.r[t])} of ${rk.n}` : "" }; return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: d.r ? ordinal(d.r) : "--", rt: d.w, n: numOf(rk.v[t], show), u: unitOf(show), rank: d.r }; };
   const ROWS = [
     ["Points", "His points a game / what the defense allows his position a game", him(perG(logOf(x.pid), "pts"), pool.map(([, q]) => perG(q.log || [], "pts")), (v) => fmt(v)), them(ptsAllowed, opp, (v) => fmt(v))],
     ["Free Throws", "His free throws tried a game / what the defense allows his position", him(perG(logOf(x.pid), "fta"), pool.map(([, q]) => perG(q.log || [], "fta")), (v) => fmt(v)), them(ftAllowed, opp, (v) => fmt(v))],
     ["Transition", "Share of his points on fast breaks / how often the defense's opponents get out in transition", him(transShare(x.pid), pool.map(([id]) => transShare(id)), pctT), them(transAllowed, opp, pctT)],
     ["Vs Bench", "Share of his possessions against bench units (2 or fewer starters) / points a 100 possessions the defense's bench units allow", him(benchShare(x.pid), pool.map(([id]) => benchShare(id)), pctT), them(benchAllowed, opp, (v) => fmt(v, 0))],
-    ["Pace", "His team's pace / the defense's pace (possessions a 48 minutes; 1st = fastest)", them(pace, x.team, (v) => fmt(v)), them(pace, opp, (v) => fmt(v))],
-    ["Foul Trouble", "His fouls a 36 minutes (red = foul-prone) / free throws the defense's players at his position draw a game (red = they attack)", him(fouls36(logOf(x.pid)), pool.map(([, q]) => fouls36(q.log || [])), (v) => fmt(v), true), them(draws, opp, (v) => fmt(v), true)],
+    ["Pace", "His team's pace (1st = fastest) / the defense's pace (30th = fastest, red: more possessions against them); possessions a 48 minutes", them(pace, x.team, (v) => fmt(v)), them(pace, opp, (v) => fmt(v))],
+    ["Foul Trouble", "His fouls a 36 minutes (red = foul-prone) / free throws the defense's players at his position draw a game (green = they attack him)", him(fouls36(logOf(x.pid)), pool.map(([, q]) => fouls36(q.log || [])), (v) => fmt(v), true), them(draws, opp, (v) => fmt(v), true)],
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP[rd.t], pairNum(label, a, b));
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + DT(b.v, b.s, tip) + DT(b.r, b.s, b.rt) + RT(rd, READ_TIP[rd.t], pairNum(label, a, b));
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD("Allows", "def") + HD("Rank", "def") + HD("Read", "rd");
   // five columns across the same box (every row full, so no blank rows to span)
@@ -1136,9 +1148,9 @@ function shootingTab(x) {
     const dtip = `${team(x.opp).name}: share of ${x.p.pos}s' threes against them that are ${what}${theirs.length ? `: ${theirs[0]} of ${theirs[1]} made (${pctT(theirs[1] ? theirs[0] / theirs[1] : null)})` : ""}`;
     return LB(label, `${what[0].toUpperCase()}${what.slice(1)}`) + T(pctT(v), s, tip) + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s (${SHARE_MIN_3PA}+ threes)` : "")
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} made a game this way`)
-      + T(pctT(dv), ds, dtip) + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
-      + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dmg)} made a game this way`)
-      + RT(rd, READ_TIP3[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr || null });
+      + DT(pctT(dv), ds, dtip) + DT(dr ? ordinal(dRank(dr, sorted.length)) : "--", ds, dr ? dWords(dr, sorted.length) : "")
+      + DT(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} allow ${x.p.pos}s ${fmt(dmg)} made a game this way`)
+      + RT(rd, READ_TIP3[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr ? dRank(dr, sorted.length) : null });
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("3PM / G", "him") + HD("Allowed", "def") + HD("Rank", "def") + HD("3PM / G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: true });
@@ -1146,8 +1158,8 @@ function shootingTab(x) {
 
 // Shot Map: his threes and tonight's defense's threes allowed to his position, side by side, as
 // the player card's heat map (size = how many, color = make rate vs the league from that spot).
-// Green means good for him on BOTH (the owner approved, 2026-11-04): on the defense's map green =
-// his position makes more there against them than the league does.
+// The defense's map is drawn as a defense (the owner, 2026-11-06: "bad defense is red"): red = his
+// position makes more there against them than the league does.
 const MAP_HEX = 2.6; // feet: bigger than the card's 1.6, the drawing is a third the size
 const MAP_DEF = new Map();
 function threesAllowed(file, opp, pos) {
@@ -1175,12 +1187,15 @@ function mapTab(x) {
   const mine = ((file.players || {})[String(x.pid)] || []).filter((s) => s[3] === 1);
   const theirs = threesAllowed(file, x.opp, x.p.pos);
   const sum = (shots) => { const m = shots.reduce((n, s) => n + s[2], 0); return `<b>${m}/${shots.length}</b><b>${pctT(shots.length ? m / shots.length : null)}</b>`; };
-  const chart = (shots) => (shots.length ? nbaShotHeatView(shots, file.league || [], { hex: MAP_HEX, legend: false }) : '<div class="rs-map-note">No threes yet.</div>');
+  const chart = (shots, allowed = false) => (shots.length ? nbaShotHeatView(shots, file.league || [], { hex: MAP_HEX, legend: false, allowed }) : '<div class="rs-map-note">No threes yet.</div>');
   const hex = (size, fill) => `<svg width="18" height="16" viewBox="-9 -8 18 16"><path d="${[0, 1, 2, 3, 4, 5].map((k) => `${k ? "L" : "M"}${(size * Math.cos((Math.PI / 3) * k)).toFixed(1)},${(size * Math.sin((Math.PI / 3) * k)).toFixed(1)}`).join(" ")}Z" fill="${fill}"/></svg>`;
-  const legend = `<div class="rs-map-key"><span>Below League</span>${[-1, -0.5, 0, 0.5, 1].map((t) => hex(7, nbaShotColor(t * NBA_SHOT_FULL))).join("")}<span>Above League</span><i></i><span>Fewer</span>${[3, 5, 7].map((s) => hex(s, "var(--muted)")).join("")}<span>More Threes</span></div>`;
+  const scale = (sign) => [-1, -0.5, 0, 0.5, 1].map((t) => hex(7, nbaShotColor(sign * t * NBA_SHOT_FULL))).join("");
+  // a color key under each map (his: green = hotter; the defense's: red = more makes against them);
+  // bigger = more threes is in the tab's tip
+  const legend = `<div class="rs-map rs-map-keys"><div class="rs-map-key" title="His make rate from each spot vs the league's (bigger = more threes)"><span>Colder</span>${scale(1)}<span>Hotter</span></div><div class="rs-map-key" title="${x.p.pos}s' make rate against them from each spot vs the league's: red = bad defense (bigger = more threes)"><span>Fewer Makes</span>${scale(-1)}<span>More Makes</span></div></div>`;
   return `<div class="rs-map">
     <div class="rs-mapc"><div class="rs-t rs-h rs-him rs-maph" title="His threes this season: made / tried, make rate">${jersey(x.pid)}<span>His Threes</span>${sum(mine)}</div>${chart(mine)}</div>
-    <div class="rs-mapc"><div class="rs-t rs-h rs-def rs-maph" title="Every three ${x.p.pos}s took against ${team(x.opp).name} this season: made / tried, make rate. Green = they make more there than the league does (good for him).">${logo(x.opp, 15)}<span>Allowed To ${x.p.pos}s</span>${sum(theirs)}</div>${chart(theirs)}</div>
+    <div class="rs-mapc"><div class="rs-t rs-h rs-def rs-maph" title="Every three ${x.p.pos}s took against ${team(x.opp).name} this season: made / tried, make rate. Red = they make more there than the league does (bad defense: good for him).">${logo(x.opp, 15)}<span>Allowed To ${x.p.pos}s</span>${sum(theirs)}</div>${chart(theirs, true)}</div>
   </div>${legend}`;
 }
 
@@ -1299,25 +1314,26 @@ function reboundingTab(x) {
   };
   const them = (rk, t, show, flip = false) => {
     const s = rankSigned(rk.r[t], rk.n);
-    return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? `${rankWords(rk.r[t], rk.n)}` : "", n: numOf(rk.v[t], show), u: unitOf(show), rank: rk.r[t] || null };
+    const d = t === x.opp ? defRank(rk.r[t], rk.n, flip) : { r: rk.r[t] || null, w: rk.r[t] ? rankWords(rk.r[t], rk.n) : "" };
+    return { s: s === null ? null : flip ? -s : s, v: show(rk.v[t]), r: d.r ? ordinal(d.r) : "--", rt: d.w, n: numOf(rk.v[t], show), u: unitOf(show), rank: d.r };
   };
   const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
   const name = team(x.opp).name;
   const ROWS = [
-    ["Defensive Chances", `Defensive rebounds there to get: misses by the other team a 36 minutes while he's on the floor / misses ${name} leave a game (more misses = more chances)`,
+    ["Defensive Chances", `Defensive rebounds there to get: misses by the other team a 36 minutes while he's on the floor / misses ${name} leave a game (red = they miss a lot: more chances)`,
       him(per36c(0), (v) => fmt(v)), them(teamRanks(tv((a) => a[1] / a[0])), x.opp, (v) => fmt(v))],
-    ["Defensive Rate", `His share of those misses he grabs / how often ${name} get their own misses back (red = they crash: fewer left for him)`,
+    ["Defensive Rate", `His share of those misses he grabs / how often ${name} get their own misses back (green = they crash: fewer left for him)`,
       him(rate(0, 1), pctT), them(teamRanks(tv((a) => (a[1] ? a[2] / a[1] : null))), x.opp, pctT, true)],
-    ["Offensive Chances", `Offensive rebounds there to get: his team's misses a 36 while he's on the floor / the field goal % ${name} allow (red = they let shots go in: fewer misses)`,
+    ["Offensive Chances", `Offensive rebounds there to get: his team's misses a 36 while he's on the floor / the field goal % ${name} allow (green = they let shots go in: fewer misses)`,
       him(per36c(2), (v) => fmt(v)), them(teamRanks(tv((a) => (a[6] ? a[5] / a[6] : null))), x.opp, pctT, true)],
-    ["Offensive Rate", `His share of his team's misses he grabs / how often ${name} clean up the other team's misses (red = they do: fewer left for him)`,
+    ["Offensive Rate", `His share of his team's misses he grabs / how often ${name} clean up the other team's misses (green = they do: fewer left for him)`,
       him(rate(2, 3), pctT), them(teamRanks(tv((a) => (a[3] ? a[4] / a[3] : null))), x.opp, pctT, true)],
-    ["Pace", "His team's pace / the opponent's pace (possessions a 48 minutes; more possessions = more misses; 1st = fastest)",
+    ["Pace", "His team's pace / the opponent's pace (possessions a 48 minutes; more possessions = more misses; his team 1st = fastest, the opponent 30th = fastest, red)",
       them(pace, x.team, (v) => fmt(v)), them(pace, x.opp, (v) => fmt(v))],
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_R[rd.t], pairNum(label, a, b));
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + DT(b.v, b.s, tip) + DT(b.r, b.s, b.rt) + RT(rd, READ_TIP_R[rd.t], pairNum(label, a, b));
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
@@ -1354,10 +1370,10 @@ function missZonesTab(x) {
       + T(pctT(v), s, `Share of his defensive rebounds that came off ${what}${rz ? ` (${rz[i]} of ${tot(rz)})` : ""}`)
       + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s (${ZONE_MIN_BOARDS}+ defensive rebounds)` : "")
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} defensive rebounds a game off ${what}`)
-      + T(pctT(dv), ds, `Share of ${team(x.opp).name}'s rebounded misses that are ${what}`)
-      + T(dr ? ordinal(dr) : "--", ds, dr ? `${rankWords(dr, sorted.length)}` : "")
-      + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} leave ${fmt(dmg)} ${what} a game`)
-      + RT(rd, READ_TIP_R[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr || null });
+      + DT(pctT(dv), ds, `Share of ${team(x.opp).name}'s rebounded misses that are ${what}`)
+      + DT(dr ? ordinal(dRank(dr, sorted.length)) : "--", ds, dr ? dWords(dr, sorted.length) : "")
+      + DT(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} leave ${fmt(dmg)} ${what} a game`)
+      + RT(rd, READ_TIP_R[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr ? dRank(dr, sorted.length) : null });
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("DREB / G", "him") + HD("Misses", "def", "", `Where ${team(x.opp).name} miss from`) + HD("Rank", "def") + HD("Per G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1 });
@@ -1425,23 +1441,24 @@ function playmakingTab(x) {
   };
   const them = (rk, t, show) => {
     const s = rankSigned(rk.r[t], rk.n);
-    return { s, v: show(rk.v[t]), r: rk.r[t] ? ordinal(rk.r[t]) : "--", rt: rk.r[t] ? rankWords(rk.r[t], rk.n) : "", n: numOf(rk.v[t], show), u: unitOf(show), rank: rk.r[t] || null };
+    const d = t === x.opp ? defRank(rk.r[t], rk.n) : { r: rk.r[t] || null, w: rk.r[t] ? rankWords(rk.r[t], rk.n) : "" };
+    return { s, v: show(rk.v[t]), r: d.r ? ordinal(d.r) : "--", rt: d.w, n: numOf(rk.v[t], show), u: unitOf(show), rank: d.r };
   };
   const name = team(x.opp).name;
   const pace = teamRanks((t) => (teams[t] || {}).off_pace ?? null);
   const ROWS = [
-    ["Assist Chances", `Shots there to assist: his teammates' made shots a 36 minutes while he's on the floor / the field goal % ${name} allow (green = shots go in against them)`,
+    ["Assist Chances", `Shots there to assist: his teammates' made shots a 36 minutes while he's on the floor / the field goal % ${name} allow (red = shots go in against them)`,
       him(chances, (v) => fmt(v)), them(teamRanks((t) => { const a = TR[t]; return a && a[6] ? a[5] / a[6] : null; }), x.opp, pctT)],
-    ["Assist Rate", `His share of those makes he assisted / the share of made shots against ${name} that were assisted (green = they let the ball move)`,
+    ["Assist Rate", `His share of those makes he assisted / the share of made shots against ${name} that were assisted (red = they let the ball move)`,
       him(rate, pctT), them(teamRanks(assistedAllowed), x.opp, pctT)],
     ["Transition", `Share of his assists on fast breaks / how often teams run on ${name}`,
       him(trans, pctT), them(teamRanks((t) => (teams[t] || {}).def_trans_freq ?? null), x.opp, pctT)],
-    ["Pace", "His team's pace / the opponent's pace (possessions a 48 minutes; 1st = fastest)",
+    ["Pace", "His team's pace (1st = fastest) / the opponent's pace (30th = fastest, red); possessions a 48 minutes",
       them(pace, x.team, (v) => fmt(v)), them(pace, x.opp, (v) => fmt(v))],
   ];
   const rows = ROWS.map(([label, tip, a, b]) => {
     const rd = readOf(a.s, b.s);
-    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + T(b.v, b.s, tip) + T(b.r, b.s, b.rt) + RT(rd, READ_TIP_A[rd.t], pairNum(label, a, b));
+    return LB(label, tip) + T(a.v, a.s, tip) + T(a.r, a.s, a.rt) + DT(b.v, b.s, tip) + DT(b.r, b.s, b.rt) + RT(rd, READ_TIP_A[rd.t], pairNum(label, a, b));
   });
   const head = corner(x) + HD(jersey(x.pid), "him", "", nameOf(x.pid)) + HD("Rank", "him") + HD(logo(x.opp, 15), "def", "", name) + HD("Rank", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: [["him", 2, 2], ["def", 4, 2], ["rd", 6, 1]], cls: "rs-five rs-wide", fill: true });
@@ -1475,10 +1492,10 @@ function assistZonesTab(x) {
       + T(pctT(v), s, `Share of his assists that set up ${what}${az ? ` (${az[i]} of ${tot(az)})` : ""}`)
       + T(rankTxt(rk), s, rk ? `${ordinal(rk.r)} of ${rk.n} ${x.p.pos}s (${AST_ZONE_MIN}+ assists)` : "")
       + T(mg === null ? "--" : fmt(mg), mg === null ? null : s, mg === null ? "" : `${fmt(mg)} assists a game on ${what}`)
-      + T(pctT(dv), ds, `Share of the assisted makes against ${team(x.opp).name} that are ${what}`)
-      + T(dr ? ordinal(dr) : "--", ds, dr ? rankWords(dr, sorted.length) : "")
-      + T(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} give up ${fmt(dmg)} assisted ${what} a game`)
-      + RT(rd, READ_TIP_A[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr || null });
+      + DT(pctT(dv), ds, `Share of the assisted makes against ${team(x.opp).name} that are ${what}`)
+      + DT(dr ? ordinal(dRank(dr, sorted.length)) : "--", ds, dr ? dWords(dr, sorted.length) : "")
+      + DT(dmg === null ? "--" : fmt(dmg), dmg === null ? null : ds, dmg === null ? "" : `${team(x.opp).name} give up ${fmt(dmg)} assisted ${what} a game`)
+      + RT(rd, READ_TIP_A[rd.t], { label, him: numOf(v, pctT), hu: "%", hr: rk ? rk.r : null, def: numOf(dv, pctT), du: "%", dr: dr ? dRank(dr, sorted.length) : null });
   });
   const head = corner(x) + HD("Share", "him") + HD("Rank", "him") + HD("AST / G", "him") + HD("Allowed", "def", "", `Where ${team(x.opp).name} give up assisted makes`) + HD("Rank", "def") + HD("Per G", "def") + HD("Read", "rd");
   return gridOf(head, rows, { bands: BANDS_3_3_1, fill: true });
@@ -1534,7 +1551,7 @@ const RS_TAB = { Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game 
   Shooting: shootingTab, "Shot Map": mapTab, Ladder: ladderTab, Rebounding: reboundingTab, "Miss Zones": missZonesTab, Playmaking: playmakingTab, "Assist Zones": assistZonesTab };
 let RS_TAB_TIP = {};
 const BASE_TIPS = {
-  Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
+  Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (30th = allows the most, red).",
   Scoring: "Where his points come from (share, rank among his position, points a game) beside what tonight's defense allows his position, and the read.",
   Matchup: "His side and the defense's side of the same thing. Over / Under only when one side clearly points one way and the other doesn't point the other way.",
   "Game Script": `His games like tonight: within ${SCRIPT_RANGE} points of tonight's spread and total either way, within ${PACE_RANGE} possessions of tonight's pace, his home or road games and his last 10, each colored against his season. Fewer than ${SMALL} games is too few to lean on (faded, uncolored).`,
@@ -1543,8 +1560,8 @@ const BASE_TIPS = {
   Teammates: "His shots and points a 36 with each teammate on the floor and off it (green / red = above / below his usual), time together, and that teammate's assists on his makes.",
 };
 const ASTS_TIPS = {
-    Form: "His assists, then his assists to each other position (season, last 10, last 5), beside what tonight's defense gives up (assists to his position; assisted baskets to each other position), and the read. His season is colored against his position, his last 10 / 5 against his season; the defense's by its rank of 30 (green = gives up the most).",
-    Playmaking: "Why his number is what it is: his teammates' made shots while he's on the floor (assist chances) and his share of them, beside the side of tonight's defense that drives each (the shooting it allows, how much of it is assisted, how often teams run on it), pace, and the read. Green = good for him.",
+    Form: "His assists, then his assists to each other position (season, last 10, last 5), beside what tonight's defense gives up (assists to his position; assisted baskets to each other position), and the read. His season is colored against his position, his last 10 / 5 against his season; the defense's by its rank of 30 (30th = gives up the most, red).",
+    Playmaking: "Why his number is what it is: his teammates' made shots while he's on the floor (assist chances) and his share of them, beside the side of tonight's defense that drives each (the shooting it allows, how much of it is assisted, how often teams run on it), pace, and the read. His side green = good for him; the defense is colored as a defense (red = it gives up the most).",
     "Assist Zones": "Where the shots he sets up come from (rim, paint, mid-range, corner and above-the-break threes), beside where tonight's defense gives up assisted makes, and the read.",
     "Game Script": `His games like tonight: within ${SCRIPT_RANGE} points of tonight's spread and total either way, within ${PACE_RANGE} possessions of tonight's pace, his home or road games and his last 10, with his minutes and assist chances, each colored against his season. Fewer than ${SMALL} games is too few to lean on (faded, uncolored).`,
     "Vs The Line": `His last ${LINE_DAYS} days against tonight's line (dashed): a bar a game; the hover has that night's assist chances (teammates' makes with him on the floor) and his rate, against his season. OUT when his team played without him, OFF when it didn't play. The dots are the line he had that night (green = cleared).`,
@@ -1553,8 +1570,8 @@ const ASTS_TIPS = {
     Teammates: "His assists a 36 and his assist rate with each teammate on the floor and off it (green / red = above / below his usual), time together, and how many of his assists go to that teammate.",
 };
 const REBS_TIPS = {
-    Form: "His rebounds, defensive and offensive rebounds and minutes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
-    Rebounding: "Why his number is what it is: the rebounds there to get while he's on the floor (chances) and his share of them, at both ends, beside the side of tonight's opponent that drives each one, and the read. Green = good for him.",
+    Form: "His rebounds, defensive and offensive rebounds and minutes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (30th = allows the most, red).",
+    Rebounding: "Why his number is what it is: the rebounds there to get while he's on the floor (chances) and his share of them, at both ends, beside the side of tonight's opponent that drives each one, and the read. His side green = good for him; the opponent is colored from its side (red = it leaves him the most).",
     "Miss Zones": "Where the misses he grabs on defense come from (rim, paint, mid-range, corner and above-the-break threes, free throws), beside where tonight's opponent misses from, and the read.",
     "Game Script": `His games like tonight: within ${SCRIPT_RANGE} points of tonight's spread and total either way, within ${PACE_RANGE} possessions of tonight's pace, his home or road games and his last 10, with his minutes and rebound chances, each colored against his season. Fewer than ${SMALL} games is too few to lean on (faded, uncolored).`,
     "Vs The Line": `His last ${LINE_DAYS} days against tonight's line (dashed): a bar a game (the hover splits defensive and offensive), OUT when his team played without him, OFF when it didn't play. The dots are the line he had that night (green = cleared).`,
@@ -1563,9 +1580,9 @@ const REBS_TIPS = {
     Teammates: "His rebounds a 36 and his share of the rebounds there to get, with each teammate on the floor and off it (green / red = above / below his usual), time together, and that teammate's own rebounds a 36.",
 };
 const THREES_TIPS = {
-    Form: "His threes made, tried, make rate and the share of his shots that are threes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (green = allows the most).",
+    Form: "His threes made, tried, make rate and the share of his shots that are threes: season, last 10 and last 5, beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (30th = allows the most, red).",
     Shooting: "How he gets his threes (catch and shoot, pull-up, step-back, transition, second chance): his share, its rank among his position and made a game, beside the same for his position against tonight's defense, and the read.",
-    "Shot Map": "Where he shoots his threes, and where his position shoots them against tonight's defense. Bigger = more threes from that spot; green = made more than the league from there (good for him on both). Early in the season the defense's map is thin: spots with few threes lean toward the league for the color.",
+    "Shot Map": "Where he shoots his threes, and where his position shoots them against tonight's defense. Bigger = more threes from that spot; his map green = he makes more than the league there, the defense's red = his position makes more there against them (bad defense). Early in the season the defense's map is thin: spots with few threes lean toward the league for the color.",
     "Vs The Line": `His last ${LINE_DAYS} days against tonight's line (dashed): a bar a game with his makes / tries, OUT when his team played without him, OFF when it didn't play. The dots are the line he had that night (green = cleared).`,
     Ladder: `How often he made each number of threes, the columns around tonight's line (its Over column has the green header; None = nights with no threes). Fewer than ${SMALL} games is faded.`,
     Rotation: "When he's on the floor at each minute (green = most of his games), with his threes made and tried a game in each quarter in its header.",

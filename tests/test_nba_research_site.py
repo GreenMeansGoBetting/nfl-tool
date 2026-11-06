@@ -115,7 +115,8 @@ class Points(unittest.TestCase):
         self.assertEqual(one[5], "35.0")
         self.assertEqual(one[6], "28%")
         self.assertEqual(one[7:10], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
-        self.assertEqual(one[12], "22.0 1st · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
+        # defenses ranked from the defense (the owner, 2026-11-06: "bad defense is red"): the most = last of 2, red
+        self.assertEqual(one[12], "22.0 2nd · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
         self.assertEqual(one[16], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
         self.assertEqual(one[17], "225.0 O/U")
         self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
@@ -418,7 +419,14 @@ class Threes(unittest.TestCase):
         self.assertEqual([r[0] for r in rows[1:]], ["Catch & Shoot", "Pull-Up", "Step-Back", "Transition", "Second Chance"])
         self.assertEqual(rows[1][1], "49%")  # 20 of his 41
         self.assertEqual(rows[1][3], "1.0")  # 6 made in 6 games
-        self.assertEqual(rows[1][4:6], ["75%", "1st"])  # BBB: 30 of 40, the most
+        self.assertEqual(rows[1][4:6], ["75%", "2nd"])  # BBB: 30 of 40, the most = last of 2 (ranked from the defense)
+        # the owner, 2026-11-06 (LAL 4th-most catch-and-shoot threes allowed showed green): "bad defense is
+        # red". The defense's tiles are drawn from the defense; his own stay green = good for him.
+        styles = self.page.evaluate("""() => { const g = document.querySelector(".rs-sb[data-side='left'] .rs-g");
+            const cols = getComputedStyle(g).gridTemplateColumns.split(' ').length; const row = [...g.children].slice(cols, 2 * cols);
+            return { def: [4, 5, 6].map((i) => row[i].getAttribute('style')), red: stepStyle(-1), read: row[7].textContent.trim() }; }""")
+        self.assertEqual(styles["def"], [styles["red"]] * 3, styles)
+        self.assertNotEqual(styles["read"], "Under")  # the read still takes the defense giving up the most as good for him
         # the read in betting words (the owner, 2026-11-04): Over / Under / Even, never More / Fewer
         self.assertTrue({r[7] for r in rows[1:]} <= {"Over", "Under", "Even", "--"}, rows)
 
@@ -428,6 +436,13 @@ class Threes(unittest.TestCase):
         self.assertEqual(heads, ["7His Threes2/367%", "Allowed To PGs1/250%"])  # threes only: Four's two against BBB is left out
         self.assertEqual(self.page.locator(f"{box} svg.nba-shot-svg").count(), 2)
         self.assertGreater(self.page.locator(f"{box} .nba-shot-hex").count(), 2)
+        # the defense's map is drawn as a defense (red = more makes against them), so the key shows both
+        # scales; it stays one line inside the box
+        keys = self.page.evaluate(f"""() => [...document.querySelectorAll("{box} .rs-map-key")].map((k) => ({{ text: k.textContent, fits: k.scrollWidth <= k.clientWidth, h: Math.round(k.getBoundingClientRect().height),
+            right: getComputedStyle(k.querySelectorAll('path')[4]).fill }}))""")
+        self.assertEqual([k["text"] for k in keys], ["ColderHotter", "Fewer MakesMore Makes"])
+        self.assertTrue(all(k["fits"] and k["h"] < 24 for k in keys), keys)  # one line each
+        self.assertNotEqual(keys[0]["right"], keys[1]["right"], keys)  # his right end green, the defense's red
 
     def test_game_script(self):
         rows = self.cells(self.tab("left", "Game Script"))
@@ -537,7 +552,7 @@ class Rebounds(unittest.TestCase):
         rows = self.cells(self.tab("left", "Rebounding"))
         self.assertEqual([r[0] for r in rows[1:]], ["Defensive Chances", "Defensive Rate", "Offensive Chances", "Offensive Rate", "Pace"])
         self.assertEqual(rows[1][1], "30.0")  # 100 chances in 120 minutes, a 36
-        self.assertEqual(rows[1][3:5], ["45.0", "1st"])  # BBB leave 180 misses in 4 games, the most
+        self.assertEqual(rows[1][3:5], ["45.0", "2nd"])  # BBB leave 180 misses in 4 games, the most (last of 2: ranked from the defense)
         self.assertEqual(rows[2][1], "20%")  # 20 of 100
         self.assertEqual(rows[3][3], "45%")  # BBB allow 150 of 330
 
@@ -547,7 +562,7 @@ class Rebounds(unittest.TestCase):
         self.assertEqual([r[0] for r in rows[1:]], ["Rim", "Paint", "Mid-Range", "Corner 3", "Above-Break 3", "Free Throws"])
         self.assertEqual(rows[1][1], "50%")  # 10 of his 20
         self.assertEqual(rows[1][3], "1.7")  # 10 in 6 games
-        self.assertEqual(rows[1][4:7], ["33%", "1st", "15.0"])  # BBB: 60 of 180 at the rim, 4 games
+        self.assertEqual(rows[1][4:7], ["33%", "2nd", "15.0"])  # BBB: 60 of 180 at the rim, 4 games (the most = last of 2)
 
     def test_game_script(self):
         rows = self.cells(self.tab("left", "Game Script"))
@@ -648,13 +663,13 @@ class Assists(unittest.TestCase):
         self.assertEqual(rows[1][1], "36.0")  # 120 teammate makes in 120 minutes, a 36
         self.assertEqual(rows[1][3], "45%")  # BBB allow 150 of 330
         self.assertEqual(rows[2][1], "25%")
-        self.assertEqual(rows[2][3:5], ["63%", "1st"])  # 10 of the 16 PG makes against BBB assisted
+        self.assertEqual(rows[2][3:5], ["63%", "2nd"])  # 10 of the 16 PG makes against BBB assisted (the most = last of 2)
 
     def test_assist_zones(self):
         rows = self.cells(self.tab("left", "Assist Zones"))
         self.assertEqual([r[0] for r in rows[1:]], ["Rim", "Paint", "Mid-Range", "Corner 3", "Above-Break 3"])
         self.assertEqual(rows[1][1], "33%")  # 10 of his 30
-        self.assertEqual(rows[1][4:7], ["40%", "1st", "5.0"])  # BBB: 20 of 50 at the rim, 4 games
+        self.assertEqual(rows[1][4:7], ["40%", "2nd", "5.0"])  # BBB: 20 of 50 at the rim, 4 games (the most = last of 2)
 
     def test_game_script_and_the_line(self):
         rows = self.cells(self.tab("left", "Game Script"))

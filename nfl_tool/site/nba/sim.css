@@ -423,6 +423,8 @@ table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; p
 .rs-map .nba-shot-side { display: none; }
 .rs-map-key { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 5px; font: 700 0.7rem var(--font-body); color: var(--text); }
 .rs-map-key i { width: 14px; }
+.rs-map.rs-map-keys { margin-top: 5px; }
+.rs-map-keys .rs-map-key { margin-top: 0; }
 .rs-map-note { display: flex; align-items: center; justify-content: center; height: 194px; font-size: 0.85rem; }
 /* phones: one box at a time, held in view while the list scrolls sideways; a box scrolls inside */
 @media (max-width: 760px) {

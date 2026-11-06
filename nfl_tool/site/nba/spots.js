@@ -36,12 +36,9 @@ const LBc = (v, tip, cls) => `<div class="rs-t rs-l${cls ? ` ${cls}` : ""}"${tip
 const TS = (v, style = "", tip = "", cls = "") => `<div class="rs-t${cls ? ` ${cls}` : ""}"${style ? ` style="${style}"` : ""}${tipAttr(tip)}>${v}</div>`;
 // -1..1 by where a value sits between the lowest and highest of its own column (its "relative counterparts")
 const relS = (v, vals) => { const lo = Math.min(...vals), hi = Math.max(...vals); return hi > lo ? ((v - lo) / (hi - lo)) * 2 - 1 : null; };
-// A defense's rank read from the defense (the owner, 2026-11-05): 1st = allows the fewest (green),
-// 30th = allows the most (red). `r` = its rank by most allowed.
-const dRank = (r, n) => n - r + 1;
+// A defense's rank read from the defense: dRank / dWords (research.js). `r` = its rank by most allowed.
 const dTxt = (r, n) => `#${dRank(r, n)}`;
 const dStyle = (r, n) => rankStyle(dRank(r, n), n);
-const dWords = (r, n) => `${ordinal(dRank(r, n))} of ${n} (${r <= Math.ceil(n / 2) ? `${ordinal(r)}-most` : `${ordinal(n - r + 1)}-least`})`;
 
 // ---- league and team numbers (cached per page load) ----
 let SPOT_LG = null;
