@@ -1204,91 +1204,81 @@
  "401909288": {
   "away": "BOS",
   "date": "2026-11-06",
-  "first_home": 0.408,
+  "first_home": 0.5,
   "home": "CHA",
   "jumpers": [
    [
     "4351852",
     "Mitchell Robinson"
    ],
-   [
-    "4433249",
-    "Moussa Diabate"
-   ]
+   null
   ],
   "players": {
-   "3032979": [
-    "Dennis Schroder",
-    0.084,
-    null,
-    false,
-    null
-   ],
    "3078576": [
     "Derrick White",
-    0.109,
+    0.092,
     850,
     false,
     "bet365"
    ],
    "4065648": [
     "Jayson Tatum",
-    0.159,
+    0.135,
     625,
-    true,
+    false,
     "bet365"
    ],
    "4251": [
     "Paul George",
-    0.136,
+    0.115,
     570,
     false,
     "draftkings"
    ],
    "4351852": [
     "Mitchell Robinson",
-    0.081,
+    0.069,
     null,
     false,
     null
    ],
+   "4395651": [
+    "Coby White",
+    0.123,
+    1100,
+    true,
+    "fanduel"
+   ],
    "4396971": [
     "Naz Reid",
-    0.087,
+    0.137,
     810,
-    false,
-    "draftkings"
-   ],
-   "4433249": [
-    "Moussa Diabate",
-    0.077,
-    970,
-    false,
+    true,
     "draftkings"
    ],
    "4433287": [
     "Brandon Miller",
-    0.088,
+    0.136,
     800,
-    false,
+    true,
     "bet365"
    ],
    "4602025": [
     "Sion James",
-    0.056,
+    0.084,
     1650,
-    false,
+    true,
     "bet365"
    ],
    "4683689": [
     "Jordan Walsh",
-    0.082,
+    0.07,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.224
+  "tip_home": 0.5
  },
  "401909289": {
   "away": "PHI",
