@@ -5830,7 +5830,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3523,
+    "lead": 0.3522,
     "name": "Luka Doncic",
     "proj": 52.8,
     "team": "LAL"
@@ -5865,14 +5865,14 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0339,
+    "lead": 0.0338,
     "name": "Darius Acuff Jr.",
     "proj": 36.4,
     "team": "SAC"
    },
    {
     "id": "5041939",
-    "lead": 0.0291,
+    "lead": 0.029,
     "name": "Cooper Flagg",
     "proj": 35.8,
     "team": "DAL"
@@ -5942,9 +5942,9 @@
    },
    {
     "id": "1966",
-    "lead": 0.0085,
+    "lead": 0.0088,
     "name": "LeBron James",
-    "proj": 31.0,
+    "proj": 31.1,
     "team": "PHI"
    },
    {
@@ -5969,18 +5969,18 @@
     "team": "MIL"
    },
    {
-    "id": "4432158",
-    "lead": 0.0074,
-    "name": "Evan Mobley",
-    "proj": 31.2,
-    "team": "CLE"
-   },
-   {
     "id": "4251",
     "lead": 0.0073,
     "name": "Paul George",
     "proj": 31.4,
     "team": "BOS"
+   },
+   {
+    "id": "4432158",
+    "lead": 0.0073,
+    "name": "Evan Mobley",
+    "proj": 31.2,
+    "team": "CLE"
    },
    {
     "id": "5037871",
@@ -6054,7 +6054,7 @@
    },
    {
     "id": "4433136",
-    "lead": 0.0021,
+    "lead": 0.002,
     "name": "Walker Kessler",
     "proj": 27.1,
     "team": "LAL"
@@ -6082,9 +6082,9 @@
    },
    {
     "id": "3992",
-    "lead": 0.0015,
+    "lead": 0.0016,
     "name": "James Harden",
-    "proj": 27.5,
+    "proj": 27.6,
     "team": "CLE"
    },
    {
@@ -6165,18 +6165,18 @@
     "team": "NO"
    },
    {
-    "id": "3032976",
-    "lead": 0.0003,
-    "name": "Rudy Gobert",
-    "proj": 22.7,
-    "team": "MIN"
-   },
-   {
     "id": "5124612",
     "lead": 0.0002,
     "name": "VJ Edgecombe",
     "proj": 22.8,
     "team": "PHI"
+   },
+   {
+    "id": "3032976",
+    "lead": 0.0002,
+    "name": "Rudy Gobert",
+    "proj": 22.7,
+    "team": "MIN"
    },
    {
     "id": "4433247",
