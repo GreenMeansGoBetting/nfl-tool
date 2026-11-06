@@ -407,7 +407,14 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
   k3 / dr / cl / d3 / mid, `assist_type`). **Record:** `spotsCapture()` (tools/nba_reads_capture.py, after
   All Props) keeps every untipped game's reads in `model_history/nba_assist_spots/<season>.json` until tip
   (`reads_record.SPOTS_DIR`); the build copies it into props.json `research.spots_frozen` and a past night
-  shows those reads beside the Result. Not graded on the page (research site); grading is off-page work.
+  shows those reads beside the Result.
+- **Graded** (the owner, 2026-11-05: "the same grading feature as the player props ... go back and check how
+  it performed"; picked both): `spotGraded` grades every saved Over / Under read against his line then with
+  his assists that night (Mixed / No Read aren't sides; sat or not final = not counted; a push skipped). A
+  past night's Read shows **Hit / Miss** under it (no outline) and the note adds "Reads that night: Over
+  w-l, Under w-l" (`spotTally`, a `renderList` wrap). **YTD Model Performance** (`spotYtd`, ytd.js, the
+  page loads `../ytd.js`): one market, ledger `[date, pull, won, null, [over|under]]`, W / L only (no
+  prices were saved), Min Pull slider 1-3 (pull = the votes that leaned that way, added up).
 - Tests: `test_nba_research.py` `test_assist_spots_types`, `test_nba_research_site.py` `AssistSpots`.
 
 ## The player card (`nba-card.js`)

@@ -223,9 +223,11 @@ function spotRow(x) {
   if (x.past) {
     const z = frozenRow(x);
     const sOf = (v) => (v === null || v === undefined || Math.abs(v) < LEAN ? null : Math.max(-1, Math.min(1, v)));
-    const c = z ? CALL[z[0]] : null;
+    const c = z ? CALL[z[0]] : null, hit = z ? spotHit(x.g.game_id, x.pid) : null;
+    const graded = hit ? `<small>${hit.won ? "Hit" : "Miss"}</small>` : "";
+    const tip = !z ? "Not saved for this night: the reads are saved before tip from 11/5 on" : hit ? `The read before tip: ${hit.won ? "hit" : "missed"} (${hit.ast} assists, his line was ${fmt(hit.line)})` : "The read as it stood before tip";
     reads = (z ? [1, 2, 3].map((i) => spotReadCell(null, sOf(z[i]))).join("") : '<td class="num rs-read"><b>--</b></td>'.repeat(3))
-      + `<td class="num rs-read"${c && c[1] !== null ? ` style="${stepStyle(c[1])}"` : ""} title="${z ? "The read as it stood before tip" : "Not saved for this night: the reads are saved before tip from 11/5 on"}"><b>${c ? c[0] : "--"}</b></td>`
+      + `<td class="num rs-read sp-call${hit ? (hit.won ? " sp-hit" : " sp-miss") : ""}"${c && c[1] !== null ? ` style="${stepStyle(c[1])}"` : ""} title="${tip}"><b>${c ? c[0] : "--"}</b>${graded}</td>`
       + '<td class="num rs-two"><b>--</b></td><td class="num rs-two"><b>--</b></td>';
   } else {
     const sp = spotOf(x), call = spotCall(sp.fs), [word, s] = CALL[call], F = (k) => sp.fs.find((f) => f.k === k);
@@ -386,3 +388,58 @@ function spotsCapture() {
   }
   return out;
 }
+
+// ---- how the reads did (the owner, 2026-11-05: "the same grading feature as the player props ... so
+// people can go back and check how it performed") ----
+// Every Over / Under read as it stood before tip (spots_frozen), graded against his line then with his
+// assists that night (his game log). Mixed and No Read aren't sides, so they aren't graded; a player who
+// sat (no log row) or a game not final yet doesn't count. No prices were saved with the reads: W / L only.
+// The pull = the votes that leaned that way, added up (1+ by the Read's rule): the tracker's slider.
+function spotGraded() {
+  const f = logFields(), out = [];
+  for (const [gid, e] of Object.entries(RS().spots_frozen || {})) {
+    for (const [pid, z] of Object.entries(e.m || {})) {
+      const call = z[0], line = z[4];
+      if ((call !== 1 && call !== -1) || line === null || line === undefined) continue;
+      const night = logOf(pid).find((r) => String(r[f.game]) === String(gid));
+      if (!night) continue;
+      const ast = night[f.ast] || 0;
+      if (ast === line) continue; // a push
+      const pull = Math.abs([z[1], z[2], z[3]].filter((v) => v !== null && v !== undefined && Math.sign(v) === call && Math.abs(v) >= LEAN).reduce((a, b) => a + b, 0));
+      out.push({ date: e.date, gid, pid, call, line, ast, won: call > 0 ? ast > line : ast < line, pull });
+    }
+  }
+  return out;
+}
+const spotHit = (gid, pid) => spotGraded().find((g) => String(g.gid) === String(gid) && String(g.pid) === String(pid)) || null;
+// one night's tally: {over: [won, lost], under: [won, lost]}
+function spotTally(date) {
+  const t = { over: [0, 0], under: [0, 0] };
+  for (const g of spotGraded().filter((x) => x.date === date)) t[g.call > 0 ? "over" : "under"][g.won ? 0 : 1] += 1;
+  return t;
+}
+function spotLedger() {
+  return spotGraded().map((g) => [g.date, Math.round(g.pull * 100) / 100, g.won ? 1 : 0, null, [g.call > 0 ? "over" : "under"]]);
+}
+function spotYtd() {
+  const overlay = ensureBookModal("sp-ytd-modal");
+  const content = overlay.querySelector(".bo-content");
+  content.innerHTML = `<h2 class="section-title">YTD Model Performance</h2><div class="sp-ytd-tracker"></div>
+    <p class="no-data-note">Every Over / Under read as it stood before tip (saved from 11/5 on), graded against his line then. Mixed and No Read aren't graded, and players who sat don't count. No prices were saved with the reads, so it's wins and losses only. The slider cuts on how hard the reads pulled: 1 = the least a read needs, 2+ = more than one factor or one pulling hard. Not picks: a record of how the reads did.</p>`;
+  ytdTracker(content.querySelector(".sp-ytd-tracker"), {
+    key: "nba-assist-spots",
+    markets: [{ key: "spots-reads", label: "Assist Reads", short: "Reads", ledger: spotLedger(), min: 1, max: 3, step: 0.5, scale: 1, unit: "+", slider: "Min Pull",
+      tip: "Every Over / Under read with at least this much pull", splits: [["over", "Overs"], ["under", "Unders"]] }],
+  });
+  overlay.hidden = false;
+}
+document.addEventListener("click", (e) => { if (e.target.closest("#sp-ytd")) spotYtd(); });
+// a past night: the tally beside research.js's note
+const baseRenderList = window.renderList;
+window.renderList = function () {
+  baseRenderList();
+  if (!PAST) return;
+  const t = spotTally(days()[dayIndex]), n = t.over[0] + t.over[1] + t.under[0] + t.under[1];
+  const note = document.getElementById("rs-note");
+  if (note) note.innerHTML += ` &middot; <b>Reads that night: ${n ? `Over ${t.over[0]}-${t.over[1]}, Under ${t.under[0]}-${t.under[1]}` : "none graded"}</b>`;
+};

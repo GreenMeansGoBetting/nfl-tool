@@ -969,6 +969,10 @@ def spots_slate():
     # shots against each defense by type (kick-out 3, drive, cut / lob, dribble 3, mid) and its possessions
     rs["dfa"] = {"BBB": [40, 20, 30, 10, 50, 400], "CCC": [30, 20, 30, 10, 50, 400]}
     rs["tm"] = {t: [400, 160, 400, 165, 340, 150, 55, 50, 345, 150] for t in ("AAA", "BBB", "CCC")}
+    # the reads saved before tip: an Over at 6.5 on 10/23 (he had 9: a hit), an Under at 8.5 on 10/24 (9: a miss)
+    rs["players"]["1"]["linesa"] = {"4": 6.5, "5": 8.5}
+    rs["spots_frozen"] = {"4": {"date": "2026-10-23", "m": {"1": [1, 1.2, 0.3, None, 6.5]}},
+                          "5": {"date": "2026-10-24", "m": {"1": [-1, None, -1.1, None, 8.5]}}}
     data = copy.deepcopy(DATA)
     data["book_odds"]["AAA_BBB"]["props"]["assists"] = {"1": {"name": "Player One", "q": quotes(6.5)}}
     data["injuries"]["AAA"][1]["status"] = "Out"  # Player Three
@@ -1045,6 +1049,28 @@ class AssistSpots(unittest.TestCase):
         log_rows = self.cells(self.tab("left", "Game Log"))
         self.assertEqual(log_rows[0][1:], ["Min", "Chances", "Share", "C&S 3s", "AST", "Line", "Vs Tonight"])
         self.assertEqual(log_rows[1][4], "4/10")  # his newest game: teammates 4 of 10 on catch-and-shoot threes
+
+    def test_how_the_reads_did(self):
+        # graded against his line then with his assists that night; the pull = the votes that leaned that way
+        self.assertEqual(self.page.evaluate("() => spotLedger()"), [["2026-10-23", 1.2, 1, None, ["over"]], ["2026-10-24", 1.1, 0, None, ["under"]]])
+        self.assertEqual(self.page.evaluate("() => spotTally('2026-10-24')"), {"over": [0, 0], "under": [0, 1]})
+        SITE.context.clock.set_fixed_time("2026-11-05T17:00:00Z")  # the sample's October nights are in the past
+        page = SITE.open("nba/assist-spots.html")
+        try:
+            page.wait_for_selector("#rs-list tr.sim-row, #rs-list .sim-noplay")
+            page.click("#sp-ytd")
+            page.wait_for_selector("#sp-ytd-modal .sp-ytd-tracker")
+            self.assertIn("1-1", page.inner_text("#sp-ytd-modal"))
+            page.keyboard.press("Escape")
+            # the past night: the read as it stood before tip, Hit under it, the night's tally in the note
+            page.evaluate("() => { const b = document.querySelector('.sim-day-pick'); b.value = '2026-10-23'; b.dispatchEvent(new Event('change')); }")
+            page.wait_for_selector("#rs-list td.sp-call small")
+            self.assertEqual(page.inner_text("#rs-list td.sp-call").split(), ["Over", "HIT"])
+            self.assertIn("Reads that night: Over 1-0, Under 0-0", page.inner_text("#rs-note"))
+            self.assertEqual(SITE.errors, [])
+        finally:
+            page.close()
+            SITE.context.clock.set_fixed_time(SAMPLE_BUILT_UTC)
 
     def test_the_reads_are_saved_before_tip(self):
         got = self.page.evaluate("() => spotsCapture()")

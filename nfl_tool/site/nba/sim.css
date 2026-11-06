@@ -484,3 +484,5 @@ table.rf-grid td.rf-pair .rf-unit { display: inline-block; width: 12px; }
 .rs-t.rs-l.sp-def { background: rgba(150, 100, 220, 0.42); }
 .rs-t.sp-txt { font-size: 0.84rem; }
 .rs-list td.sp-call b { display: inline-block; min-width: 60px; }
+/* Assist Spots on a past night: the read graded, Hit / Miss under it (no outline: the owner hates them) */
+.rs-list td.sp-call small { display: block; font: 800 0.66rem var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
