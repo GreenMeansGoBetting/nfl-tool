@@ -6255,21 +6255,21 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2229,
+    "lead": 0.2231,
     "name": "Nikola Jokic",
     "proj": 46.9,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.1622,
+    "lead": 0.1624,
     "name": "Alperen Sengun",
     "proj": 44.5,
     "team": "HOU"
    },
    {
     "id": "5104157",
-    "lead": 0.1465,
+    "lead": 0.1467,
     "name": "Victor Wembanyama",
     "proj": 43.4,
     "team": "SA"
@@ -6296,18 +6296,18 @@
     "team": "GS"
    },
    {
-    "id": "4683021",
-    "lead": 0.04,
-    "name": "Deni Avdija",
-    "proj": 35.8,
-    "team": "POR"
-   },
-   {
     "id": "3136195",
     "lead": 0.0396,
     "name": "Karl-Anthony Towns",
     "proj": 36.3,
     "team": "NY"
+   },
+   {
+    "id": "4683021",
+    "lead": 0.039,
+    "name": "Deni Avdija",
+    "proj": 35.7,
+    "team": "POR"
    },
    {
     "id": "4701230",
@@ -6332,14 +6332,14 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0223,
+    "lead": 0.0224,
     "name": "Julius Randle",
     "proj": 34.5,
     "team": "BKN"
    },
    {
     "id": "4566434",
-    "lead": 0.0219,
+    "lead": 0.022,
     "name": "Franz Wagner",
     "proj": 33.6,
     "team": "ORL"
@@ -6544,7 +6544,7 @@
     "id": "3995",
     "lead": 0.0002,
     "name": "Jrue Holiday",
-    "proj": 21.8,
+    "proj": 21.7,
     "team": "POR"
    },
    {
