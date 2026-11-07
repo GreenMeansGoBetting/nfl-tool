@@ -13626,8 +13626,8 @@
     "over",
     false,
     20.5,
-    -106,
-    "prophetx"
+    -114,
+    "pinnacle"
    ],
    [
     "4017837",
@@ -13637,9 +13637,9 @@
     -0.2406,
     "under",
     true,
-    9.5,
-    130,
-    "novig"
+    10.5,
+    -122,
+    "draftkings"
    ],
    [
     "4278355",
@@ -13650,7 +13650,7 @@
     "over",
     true,
     11.5,
-    -107,
+    -104,
     "prophetx"
    ],
    [
@@ -13662,8 +13662,8 @@
     "under",
     true,
     16.5,
-    -125,
-    "hard_rock"
+    -115,
+    "novig"
    ],
    [
     "4396909",
@@ -13674,7 +13674,7 @@
     "over",
     false,
     12.5,
-    -104,
+    -102,
     "novig"
    ]
   ],
@@ -13688,7 +13688,7 @@
     "over",
     false,
     1.5,
-    -102,
+    111,
     "novig"
    ],
    [
@@ -13700,8 +13700,8 @@
     "under",
     true,
     2.5,
-    -192,
-    "pinnacle"
+    -170,
+    "novig"
    ],
    [
     "4396909",
@@ -13712,7 +13712,7 @@
     "over",
     true,
     2.5,
-    144,
+    153,
     "novig"
    ],
    [
@@ -13724,15 +13724,161 @@
     "over",
     true,
     1.5,
-    120,
+    115,
     "fanatics"
    ]
   ]
  },
  "401909939": {
   "date": "2026-11-07",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "2490149",
+    "CJ McCollum",
+    "ATL",
+    "BKN",
+    -0.0954,
+    "under",
+    false,
+    13.5,
+    -104,
+    "caesars"
+   ],
+   [
+    "3150844",
+    "Moritz Wagner",
+    "BKN",
+    "ATL",
+    0.0712,
+    "over",
+    false,
+    9.5,
+    -125,
+    "fanatics"
+   ],
+   [
+    "4432194",
+    "Day'Ron Sharpe",
+    "BKN",
+    "ATL",
+    0.1503,
+    "over",
+    true,
+    8.5,
+    -115,
+    "prophetx"
+   ],
+   [
+    "5149077",
+    "Kingston Flemings",
+    "ATL",
+    "BKN",
+    -0.1356,
+    "under",
+    true,
+    8.5,
+    -104,
+    "caesars"
+   ]
+  ],
+  "threes": [
+   [
+    "2490149",
+    "CJ McCollum",
+    "ATL",
+    "BKN",
+    0.2151,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "3064514",
+    "Julius Randle",
+    "BKN",
+    "ATL",
+    -0.1699,
+    "under",
+    true,
+    1.5,
+    -150,
+    "thescore"
+   ],
+   [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "BKN",
+    0.2755,
+    "over",
+    true,
+    3.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "4278104",
+    "Michael Porter Jr.",
+    "BKN",
+    "ATL",
+    -0.1613,
+    "under",
+    true,
+    3.5,
+    -145,
+    "thescore"
+   ],
+   [
+    "4397020",
+    "Luguentz Dort",
+    "ATL",
+    "BKN",
+    0.2193,
+    "over",
+    true,
+    1.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "4701230",
+    "Jalen Johnson",
+    "ATL",
+    "BKN",
+    0.1742,
+    "over",
+    true,
+    1.5,
+    110,
+    "thescore"
+   ],
+   [
+    "5101761",
+    "Mikel Brown Jr.",
+    "BKN",
+    "ATL",
+    -0.1192,
+    "under",
+    false,
+    1.5,
+    120,
+    "fanatics"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "ATL",
+    -0.1302,
+    "under",
+    true,
+    1.5,
+    -120,
+    "prophetx"
+   ]
+  ]
  },
  "401909940": {
   "date": "2026-11-07",
@@ -13746,8 +13892,8 @@
     "under",
     false,
     20.5,
-    -108,
-    "novig"
+    -110,
+    "draftkings"
    ],
    [
     "4066328",
@@ -13758,8 +13904,20 @@
     "under",
     true,
     12.5,
-    -125,
-    "hard_rock"
+    -130,
+    "thescore"
+   ],
+   [
+    "6585",
+    "Andre Drummond",
+    "NY",
+    "CLE",
+    -0.2149,
+    "under",
+    true,
+    5.5,
+    -120,
+    "thescore"
    ]
   ],
   "threes": [
@@ -13772,7 +13930,7 @@
     "over",
     true,
     1.5,
-    135,
+    130,
     "hard_rock"
    ],
    [
@@ -13784,8 +13942,8 @@
     "under",
     false,
     2.5,
-    -125,
-    "hard_rock"
+    -120,
+    "thescore"
    ],
    [
     "3992",
@@ -13796,8 +13954,8 @@
     "under",
     false,
     2.5,
-    -110,
-    "fanatics"
+    -124,
+    "draftkings"
    ],
    [
     "4431823",
@@ -13825,8 +13983,8 @@
     "under",
     false,
     31.5,
-    -115,
-    "hard_rock"
+    -103,
+    "draftkings"
    ],
    [
     "4683778",
@@ -13837,8 +13995,8 @@
     "under",
     true,
     13.5,
-    -110,
-    "fanatics"
+    -113,
+    "novig"
    ],
    [
     "4900671",
@@ -13849,8 +14007,20 @@
     "under",
     true,
     19.5,
-    -115,
-    "hard_rock"
+    -111,
+    "novig"
+   ],
+   [
+    "5104155",
+    "Bilal Coulibaly",
+    "WSH",
+    "OKC",
+    -0.0539,
+    "under",
+    false,
+    7.5,
+    100,
+    "thescore"
    ],
    [
     "5160992",
@@ -13860,9 +14030,9 @@
     -0.2789,
     "under",
     true,
-    9.5,
-    -110,
-    "hard_rock"
+    11.5,
+    -101,
+    "draftkings"
    ],
    [
     "6583",
@@ -13873,11 +14043,35 @@
     "under",
     false,
     20.5,
-    -115,
-    "hard_rock"
+    -113,
+    "novig"
    ]
   ],
   "threes": [
+   [
+    "2991350",
+    "Alex Caruso",
+    "OKC",
+    "WSH",
+    -0.0801,
+    "under",
+    false,
+    1.5,
+    -150,
+    "thescore"
+   ],
+   [
+    "3133626",
+    "Kenrich Williams",
+    "OKC",
+    "WSH",
+    -0.0699,
+    "under",
+    false,
+    1.5,
+    -175,
+    "hard_rock"
+   ],
    [
     "4277905",
     "Trae Young",
@@ -13886,9 +14080,9 @@
     0.1436,
     "over",
     true,
-    2.5,
-    120,
-    "fanatics"
+    1.5,
+    -185,
+    "draftkings"
    ],
    [
     "4683778",
@@ -13898,9 +14092,9 @@
     -0.1348,
     "under",
     true,
-    2.5,
-    -135,
-    "hard_rock"
+    1.5,
+    144,
+    "novig"
    ],
    [
     "4900671",
@@ -13911,8 +14105,8 @@
     "under",
     true,
     1.5,
-    -165,
-    "fanatics"
+    -210,
+    "hard_rock"
    ],
    [
     "5142718",
@@ -13923,8 +14117,20 @@
     "over",
     true,
     0.5,
-    -240,
-    "fliff"
+    -175,
+    "fanatics"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "OKC",
+    -0.2879,
+    "under",
+    true,
+    0.5,
+    160,
+    "thescore"
    ],
    [
     "5174563",
@@ -13934,8 +14140,8 @@
     0.145,
     "over",
     true,
-    2.5,
-    120,
+    1.5,
+    -165,
     "fanatics"
    ]
   ]
@@ -13943,6 +14149,18 @@
  "401909942": {
   "date": "2026-11-07",
   "points": [
+   [
+    "2990969",
+    "Georges Niang",
+    "GS",
+    "ORL",
+    0.0511,
+    "over",
+    false,
+    7.5,
+    -110,
+    "thescore"
+   ],
    [
     "4066320",
     "Desmond Bane",
@@ -13952,7 +14170,7 @@
     "over",
     true,
     19.5,
-    -108,
+    100,
     "novig"
    ],
    [
@@ -13964,8 +14182,8 @@
     "over",
     false,
     21.5,
-    -120,
-    "hard_rock"
+    -115,
+    "fanatics"
    ],
    [
     "4702382",
@@ -13988,8 +14206,8 @@
     "over",
     false,
     14.5,
-    -113,
-    "novig"
+    -108,
+    "draftkings"
    ],
    [
     "5175737",
@@ -14001,7 +14219,7 @@
     false,
     17.5,
     -120,
-    "fanatics"
+    "prophetx"
    ]
   ],
   "threes": [
@@ -14014,7 +14232,7 @@
     "over",
     true,
     4.5,
-    127,
+    135,
     "novig"
    ],
    [
@@ -14026,8 +14244,20 @@
     "over",
     true,
     2.5,
-    -165,
-    "hard_rock"
+    -157,
+    "prophetx"
+   ],
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "ORL",
+    0.172,
+    "over",
+    true,
+    1.5,
+    110,
+    "fliff"
    ],
    [
     "4566434",
@@ -14038,8 +14268,8 @@
     "over",
     true,
     1.5,
-    145,
-    "hard_rock"
+    160,
+    "novig"
    ],
    [
     "4702382",
@@ -14050,8 +14280,8 @@
     "over",
     true,
     2.5,
-    -123,
-    "pinnacle"
+    -102,
+    "fanduel"
    ],
    [
     "4709138",
@@ -14062,8 +14292,8 @@
     "over",
     true,
     1.5,
-    -190,
-    "fliff"
+    -175,
+    "fanatics"
    ],
    [
     "5239561",
@@ -14073,9 +14303,9 @@
     -0.0979,
     "under",
     false,
-    0.5,
-    145,
-    "fliff"
+    1.5,
+    -230,
+    "draftkings"
    ]
   ]
  },
@@ -14091,7 +14321,7 @@
     "over",
     true,
     6.5,
-    -103,
+    -117,
     "prophetx"
    ],
    [
@@ -14102,9 +14332,9 @@
     0.2046,
     "over",
     true,
-    12.5,
-    104,
-    "pinnacle"
+    11.5,
+    101,
+    "draftkings"
    ],
    [
     "3202",
@@ -14114,8 +14344,8 @@
     -0.1532,
     "under",
     true,
-    22.5,
-    -130,
+    21.5,
+    108,
     "novig"
    ],
    [
@@ -14127,8 +14357,8 @@
     "over",
     true,
     8.5,
-    104,
-    "novig"
+    100,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -14141,8 +14371,8 @@
     "over",
     true,
     1.5,
-    125,
-    "hard_rock"
+    139,
+    "draftkings"
    ],
    [
     "2991230",
@@ -14165,8 +14395,8 @@
     "under",
     true,
     1.5,
-    115,
-    "hard_rock"
+    119,
+    "draftkings"
    ],
    [
     "3202",
@@ -14177,8 +14407,8 @@
     "over",
     true,
     1.5,
-    -115,
-    "fanatics"
+    -122,
+    "prophetx"
    ],
    [
     "4066383",
@@ -14189,8 +14419,8 @@
     "under",
     true,
     1.5,
-    135,
-    "hard_rock"
+    150,
+    "novig"
    ],
    [
     "4278585",
@@ -14200,9 +14430,9 @@
     0.0661,
     "over",
     false,
-    2.5,
-    163,
-    "novig"
+    1.5,
+    -170,
+    "hard_rock"
    ],
    [
     "4432639",
@@ -14214,7 +14444,7 @@
     true,
     2.5,
     125,
-    "novig"
+    "hard_rock"
    ],
    [
     "4433192",
@@ -14225,8 +14455,8 @@
     "over",
     true,
     1.5,
-    135,
-    "hard_rock"
+    160,
+    "draftkings"
    ],
    [
     "4711272",
@@ -14237,8 +14467,8 @@
     "over",
     true,
     1.5,
-    -165,
-    "hard_rock"
+    -150,
+    "fanatics"
    ]
   ]
  },
@@ -14254,8 +14484,8 @@
     "under",
     false,
     12.5,
-    -106,
-    "fanduel"
+    120,
+    "novig"
    ],
    [
     "4683678",
@@ -14265,9 +14495,33 @@
     -0.0762,
     "under",
     false,
-    11.5,
-    -118,
-    "fanduel"
+    12.5,
+    117,
+    "novig"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "POR",
+    -0.1549,
+    "under",
+    true,
+    16.5,
+    -108,
+    "draftkings"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "POR",
+    -0.1395,
+    "under",
+    true,
+    17.5,
+    -117,
+    "novig"
    ],
    [
     "5105565",
@@ -14277,12 +14531,24 @@
     -0.1462,
     "under",
     true,
-    10.5,
-    100,
-    "hard_rock"
+    11.5,
+    -121,
+    "draftkings"
    ]
   ],
   "threes": [
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "POR",
+    -0.342,
+    "under",
+    true,
+    1.5,
+    -178,
+    "prophetx"
+   ],
    [
     "4683021",
     "Deni Avdija",
@@ -14292,7 +14558,7 @@
     "over",
     true,
     1.5,
-    -145,
+    -150,
     "fanatics"
    ],
    [
@@ -14304,8 +14570,20 @@
     "under",
     true,
     1.5,
-    -174,
-    "fanduel"
+    -117,
+    "draftkings"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "POR",
+    -0.3321,
+    "under",
+    true,
+    1.5,
+    108,
+    "draftkings"
    ]
   ]
  }
