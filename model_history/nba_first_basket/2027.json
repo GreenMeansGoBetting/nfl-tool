@@ -10696,88 +10696,91 @@
  "401909940": {
   "away": "NY",
   "date": "2026-11-07",
-  "first_home": 0.5,
+  "first_home": 0.497,
   "home": "CLE",
   "jumpers": [
    [
     "3136195",
     "Karl-Anthony Towns"
    ],
-   null
+   [
+    "4066328",
+    "Jarrett Allen"
+   ]
   ],
   "players": {
    "3136195": [
     "Karl-Anthony Towns",
-    0.099,
+    0.1,
     700,
     false,
     "fanduel"
    ],
    "3147657": [
     "Mikal Bridges",
-    0.077,
+    0.078,
     1200,
     false,
     "fanduel"
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.098,
+    0.097,
     551,
     false,
     "draftkings"
    ],
    "3914044": [
     "Landry Shamet",
-    0.092,
+    0.093,
     1300,
     true,
     "fanduel"
    ],
    "3934672": [
     "Jalen Brunson",
-    0.106,
+    0.107,
     570,
     false,
     "draftkings"
    ],
    "3934719": [
     "OG Anunoby",
-    0.106,
+    0.107,
     1080,
     true,
     "draftkings"
    ],
    "3992": [
     "James Harden",
-    0.093,
+    0.091,
     900,
     false,
     "fanduel"
    ],
+   "4066328": [
+    "Jarrett Allen",
+    0.101,
+    800,
+    false,
+    "hard_rock"
+   ],
    "4432158": [
     "Evan Mobley",
-    0.103,
+    0.099,
     650,
     false,
     "fanduel"
    ],
    "4576087": [
     "Peyton Watson",
-    0.091,
+    0.089,
     1100,
     false,
     "fanduel"
-   ],
-   "5041951": [
-    "Meleek Thomas",
-    0.095,
-    null,
-    false,
-    null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.49
  },
  "401909941": {
   "away": "WSH",
@@ -11853,7 +11856,10 @@
   "first_home": 0.5,
   "home": "CHA",
   "jumpers": [
-   null,
+   [
+    "4066328",
+    "Jarrett Allen"
+   ],
    null
   ],
   "players": {
@@ -11866,14 +11872,21 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.098,
+    0.097,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.093,
+    0.092,
+    null,
+    false,
+    null
+   ],
+   "4066328": [
+    "Jarrett Allen",
+    0.102,
     null,
     false,
     null
@@ -11894,7 +11907,7 @@
    ],
    "4432158": [
     "Evan Mobley",
-    0.103,
+    0.099,
     null,
     false,
     null
@@ -11908,7 +11921,7 @@
    ],
    "4576087": [
     "Peyton Watson",
-    0.091,
+    0.09,
     null,
     false,
     null
@@ -11916,13 +11929,6 @@
    "4602025": [
     "Sion James",
     0.07,
-    null,
-    false,
-    null
-   ],
-   "5041951": [
-    "Meleek Thomas",
-    0.095,
     null,
     false,
     null
