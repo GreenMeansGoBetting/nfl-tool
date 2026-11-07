@@ -6255,7 +6255,7 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2254,
+    "lead": 0.2252,
     "name": "Nikola Jokic",
     "proj": 46.9,
     "team": "DEN"
@@ -6269,28 +6269,28 @@
    },
    {
     "id": "5104157",
-    "lead": 0.1341,
+    "lead": 0.134,
     "name": "Victor Wembanyama",
     "proj": 43.3,
     "team": "SA"
    },
    {
     "id": "4278073",
-    "lead": 0.0535,
+    "lead": 0.0533,
     "name": "Shai Gilgeous-Alexander",
     "proj": 38.0,
     "team": "OKC"
    },
    {
     "id": "3936299",
-    "lead": 0.0491,
+    "lead": 0.049,
     "name": "Jamal Murray",
     "proj": 37.3,
     "team": "DEN"
    },
    {
     "id": "3975",
-    "lead": 0.0445,
+    "lead": 0.0444,
     "name": "Stephen Curry",
     "proj": 36.5,
     "team": "GS"
@@ -6304,38 +6304,38 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0359,
+    "lead": 0.0358,
     "name": "Deni Avdija",
     "proj": 35.7,
     "team": "POR"
    },
    {
     "id": "4701230",
-    "lead": 0.0291,
+    "lead": 0.0297,
     "name": "Jalen Johnson",
-    "proj": 34.7,
+    "proj": 34.8,
     "team": "ATL"
    },
    {
     "id": "6583",
-    "lead": 0.0276,
+    "lead": 0.0275,
     "name": "Anthony Davis",
     "proj": 34.2,
     "team": "WSH"
    },
    {
-    "id": "5175737",
+    "id": "3064514",
     "lead": 0.0243,
+    "name": "Julius Randle",
+    "proj": 34.5,
+    "team": "BKN"
+   },
+   {
+    "id": "5175737",
+    "lead": 0.0242,
     "name": "Yaxel Lendeborg",
     "proj": 34.2,
     "team": "GS"
-   },
-   {
-    "id": "3064514",
-    "lead": 0.0237,
-    "name": "Julius Randle",
-    "proj": 34.4,
-    "team": "BKN"
    },
    {
     "id": "4566434",
@@ -6346,7 +6346,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0206,
+    "lead": 0.0205,
     "name": "Jalen Brunson",
     "proj": 33.6,
     "team": "NY"
@@ -6360,7 +6360,7 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0141,
+    "lead": 0.0139,
     "name": "Devin Booker",
     "proj": 32.5,
     "team": "PHX"
@@ -6411,7 +6411,7 @@
     "id": "4278039",
     "lead": 0.0027,
     "name": "Nickeil Alexander-Walker",
-    "proj": 27.5,
+    "proj": 27.6,
     "team": "ATL"
    },
    {
