@@ -6255,14 +6255,14 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2226,
+    "lead": 0.2229,
     "name": "Nikola Jokic",
     "proj": 46.9,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.1619,
+    "lead": 0.1622,
     "name": "Alperen Sengun",
     "proj": 44.5,
     "team": "HOU"
@@ -6283,21 +6283,21 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0491,
+    "lead": 0.0493,
     "name": "Jamal Murray",
     "proj": 37.3,
     "team": "DEN"
    },
    {
     "id": "3975",
-    "lead": 0.0416,
+    "lead": 0.041,
     "name": "Stephen Curry",
-    "proj": 36.5,
+    "proj": 36.4,
     "team": "GS"
    },
    {
     "id": "4683021",
-    "lead": 0.0399,
+    "lead": 0.04,
     "name": "Deni Avdija",
     "proj": 35.8,
     "team": "POR"
@@ -6311,31 +6311,24 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0277,
+    "lead": 0.0278,
     "name": "Jalen Johnson",
     "proj": 34.8,
     "team": "ATL"
    },
    {
-    "id": "5175737",
-    "lead": 0.023,
-    "name": "Yaxel Lendeborg",
-    "proj": 34.2,
-    "team": "GS"
-   },
-   {
     "id": "6583",
-    "lead": 0.0227,
+    "lead": 0.0228,
     "name": "Anthony Davis",
     "proj": 34.2,
     "team": "WSH"
    },
    {
-    "id": "4566434",
-    "lead": 0.0227,
-    "name": "Franz Wagner",
-    "proj": 33.7,
-    "team": "ORL"
+    "id": "5175737",
+    "lead": 0.0228,
+    "name": "Yaxel Lendeborg",
+    "proj": 34.1,
+    "team": "GS"
    },
    {
     "id": "3064514",
@@ -6345,8 +6338,15 @@
     "team": "BKN"
    },
    {
+    "id": "4566434",
+    "lead": 0.0219,
+    "name": "Franz Wagner",
+    "proj": 33.6,
+    "team": "ORL"
+   },
+   {
     "id": "3934672",
-    "lead": 0.0185,
+    "lead": 0.0186,
     "name": "Jalen Brunson",
     "proj": 33.6,
     "team": "NY"
@@ -6367,7 +6367,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0149,
+    "lead": 0.015,
     "name": "Trae Young",
     "proj": 32.1,
     "team": "WSH"
@@ -6395,14 +6395,14 @@
    },
    {
     "id": "6606",
-    "lead": 0.0035,
+    "lead": 0.0036,
     "name": "Damian Lillard",
     "proj": 28.1,
     "team": "POR"
    },
    {
     "id": "4432158",
-    "lead": 0.0032,
+    "lead": 0.0033,
     "name": "Evan Mobley",
     "proj": 28.1,
     "team": "CLE"
@@ -6514,7 +6514,7 @@
    },
    {
     "id": "3155526",
-    "lead": 0.0003,
+    "lead": 0.0004,
     "name": "Dillon Brooks",
     "proj": 23.5,
     "team": "PHX"
@@ -6523,7 +6523,7 @@
     "id": "4277847",
     "lead": 0.0003,
     "name": "Wendell Carter Jr.",
-    "proj": 23.4,
+    "proj": 23.3,
     "team": "ORL"
    },
    {
