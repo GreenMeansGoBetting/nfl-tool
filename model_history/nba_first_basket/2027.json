@@ -10891,23 +10891,23 @@
     false,
     "draftkings"
    ],
-   "4066320": [
-    "Desmond Bane",
-    0.113,
-    550,
-    false,
-    "fanduel"
-   ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.116,
+    0.119,
     650,
     false,
     "hard_rock"
    ],
+   "4278572": [
+    "Jamal Cain",
+    0.094,
+    null,
+    false,
+    null
+   ],
    "4566434": [
     "Franz Wagner",
-    0.146,
+    0.151,
     563,
     false,
     "draftkings"
@@ -10921,7 +10921,7 @@
    ],
    "4712849": [
     "Anthony Black",
-    0.102,
+    0.108,
     800,
     false,
     "fanduel"
@@ -10942,7 +10942,7 @@
    ],
    "5239561": [
     "Jase Richardson",
-    0.088,
+    0.093,
     1300,
     true,
     "fanduel"
