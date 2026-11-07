@@ -57,6 +57,10 @@ const MK_LABEL = {
   o_trans_freq: "Transition", o_trans_ppp: "Transition Pts", pace: "Pace", total: "Avg Total", ou: "O/U Record",
 };
 const MK_PLAIN_DEF = new Set(["d_rtg", "d_tov", "d_reb"]); // defense names that already say "allowed"
+// A defense number kept as the defense's own (DREB% = boards it grabs) shown in a category box's
+// Allows column as what it gives up, so it reads straight against the offense's number (the owner,
+// 2026-11-07: "IND Allows 71.8%" beside DEN's 26.8% OREB% read wrong). The rank is unchanged.
+const MK_AS_ALLOWED = { d_reb: ["Offensive Rebound % Allowed", (v) => 1 - v] };
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, color: "555555", logo: "" };
@@ -209,13 +213,17 @@ function rsBox(corner, heads, rows) {
   return `<div class="rs-sb mk-sb">${winTabs()}<div class="rs-sbody"><div class="rs-gw">${bands}<div class="rs-g rs-five rs-wide">
     ${rsT(corner, "rs-corner")}${hd(heads[0], "rs-him")}${hd("Rank", "rs-him")}${hd(heads[1], "rs-def")}${hd("Rank", "rs-def")}${hd("Read", "rs-rd")}${rows.join("")}</div></div></div></div>`;
 }
-const valRank = (ctx, t, key) => {
+const valRank = (ctx, t, key, allows) => {
   const s = stat(ctx, t, key);
-  return s.v === null || s.v === undefined ? rsT("--", "rs-small") + rsT("--", "rs-small") : rsT(esc(s.text), "", s.shade, s.tip) + rsT(s.rk ? ordinal(s.rk) : "--", "mk-r", s.shade, s.tip);
+  if (s.v === null || s.v === undefined) return rsT("--", "rs-small") + rsT("--", "rs-small");
+  const as = allows && MK_AS_ALLOWED[key];
+  const text = as ? exact(as[1](s.v), col(key)[3]) : s.text;
+  const tip = as ? `${team(t).name} · ${as[0]}: ${text}${s.rk ? ` · ${ordinal(s.rk)} of ${s.n}` : ""}` : s.tip;
+  return rsT(esc(text), "", s.shade, tip) + rsT(s.rk ? ordinal(s.rk) : "--", "mk-r", s.shade, tip);
 };
 function directionBox(ctx, keys, o, d, rows) {
   return rsBox(`${logo(o, 22)}vs${logo(d, 22)}`, [`${logo(o, 15)}Off`, `${logo(d, 15)}Allows`],
-    rows.map(([label, ok, dk]) => rsT(label, "rs-l") + valRank(ctx, o, ok) + valRank(ctx, d, dk) + readTile(pairRead(keys, o, d, ok, dk))));
+    rows.map(([label, ok, dk]) => rsT(label, "rs-l") + valRank(ctx, o, ok) + valRank(ctx, d, dk, true) + readTile(pairRead(keys, o, d, ok, dk))));
 }
 function paceBoxes(ctx, keys, game) {
   const [a, h] = [game.away, game.home];

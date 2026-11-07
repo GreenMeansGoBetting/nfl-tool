@@ -240,6 +240,18 @@ class Page(unittest.TestCase):
         # the owner's "WSH is bad in transition but cha doesn't really push the pace": Not Tested on CHA's side
         self.assertEqual(reads["transition"][0], "Not Tested")
 
+    def test_rebounding_allows_is_the_offensive_rebound_rate_given_up(self):
+        # the owner, 2026-11-07: "Allows 71.8%" (the defense's own DREB%) beside a 26.8% OREB% read wrong
+        PAGE.evaluate("() => { view.tab = 'categories'; view.open = new Set(['glass']); render(); }")
+        got = PAGE.evaluate("""() => [...document.querySelectorAll('.mk-crow[data-cat=glass] .rs-sb')].map((b) => {
+            const t = [...b.querySelectorAll('.rs-g:not(.rs-bands) > .rs-t')];
+            return [t[9].textContent.trim(), t[9].title];  // corner + 5 heads, then label, Off, Rank, Allows
+        })""")
+        for (text, tip), d in zip(got, ("WSH", "CHA")):
+            want = f"{(1 - TABLE[d]['d_reb']) * 100:.1f}%"
+            self.assertEqual(text, want)
+            self.assertIn("Offensive Rebound % Allowed", tip)
+
     def test_three_big_tabs_under_the_injuries(self):
         tabs = PAGE.evaluate("""() => [...document.querySelectorAll('.mk-tabs [data-mk-tab]')].map((b) => {
             const r = b.getBoundingClientRect(); return {t: b.textContent, w: Math.round(r.width), h: r.height}; })""")
