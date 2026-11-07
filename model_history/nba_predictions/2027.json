@@ -9031,7 +9031,7 @@ null
 "away": "DEN",
 "book": {
 "ml": [
--277,
+-285,
 270
 ],
 "spread": [
@@ -9039,13 +9039,13 @@ null
 7.5
 ],
 "spread_odds": [
-102,
--104
+-106,
+102
 ],
 "total": 229.5,
 "total_odds": [
--100,
--106
+104,
+-108
 ]
 },
 "date": "2026-11-07",
@@ -9175,16 +9175,16 @@ null
 "away": "BKN",
 "book": {
 "ml": [
-239,
--245
+257,
+-264
 ],
 "spread": [
 6.5,
 -6.5
 ],
 "spread_odds": [
-104,
--106
+111,
+-115
 ],
 "total": 226.5,
 "total_odds": [
@@ -9320,7 +9320,7 @@ null
 "book": {
 "ml": [
 -186,
-182
+178
 ],
 "spread": [
 -4.5,
@@ -9328,12 +9328,12 @@ null
 ],
 "spread_odds": [
 -113,
-108
+106
 ],
 "total": 223.5,
 "total_odds": [
--100,
--106
+-102,
+-111
 ]
 },
 "date": "2026-11-07",
@@ -9463,21 +9463,21 @@ null
 "away": "WSH",
 "book": {
 "ml": [
-471,
--488
+488,
+-525
 ],
 "spread": [
 11.5,
 -11.5
 ],
 "spread_odds": [
-104,
--106
+106,
+-108
 ],
 "total": 222.5,
 "total_odds": [
 -104,
-102
+-100
 ]
 },
 "date": "2026-11-07",
@@ -9607,8 +9607,8 @@ null
 "away": "ORL",
 "book": {
 "ml": [
-199,
--203
+203,
+-208
 ],
 "spread": [
 5.5,
@@ -9621,7 +9621,7 @@ null
 "total": 222.5,
 "total_odds": [
 -104,
--100
+-102
 ]
 },
 "date": "2026-11-07",
@@ -9759,13 +9759,13 @@ null
 6.5
 ],
 "spread_odds": [
--108,
-106
+102,
+-104
 ],
 "total": 223.5,
 "total_odds": [
--102,
--102
+-106,
+102
 ]
 },
 "date": "2026-11-07",
@@ -9895,21 +9895,21 @@ null
 "away": "SA",
 "book": {
 "ml": [
--199,
-194
+-190,
+186
 ],
 "spread": [
 -5.5,
 5.5
 ],
 "spread_odds": [
--100,
+102,
 -104
 ],
 "total": 226.5,
 "total_odds": [
 -102,
--100
+-102
 ]
 },
 "date": "2026-11-07",
@@ -10043,14 +10043,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-8.5,
+8.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 237.5,
 "total_odds": [
 null,
 null
@@ -10062,8 +10062,14 @@ null
 0.6176,
 0.3824
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3412,
+0.6588
+],
+"total": [
+0.425,
+0.575
+]
 },
 "fair_spread": 3.6,
 "home": "CHI",
@@ -10181,14 +10187,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+1.5,
+-1.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 223.5,
 "total_odds": [
 null,
 null
@@ -10200,8 +10206,14 @@ null
 0.4644,
 0.5356
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5142,
+0.4858
+],
+"total": [
+0.4946,
+0.5054
+]
 },
 "fair_spread": -1.1,
 "home": "DET",
@@ -10319,14 +10331,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+9.5,
+-9.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 224.5,
 "total_odds": [
 null,
 null
@@ -10338,8 +10350,14 @@ null
 0.1255,
 0.8745
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3608,
+0.6392
+],
+"total": [
+0.5713,
+0.4287
+]
 },
 "fair_spread": -13.8,
 "home": "MIN",
@@ -10457,14 +10475,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+11.5,
+-11.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 223.5,
 "total_odds": [
 null,
 null
@@ -10476,8 +10494,14 @@ null
 0.3526,
 0.6474
 ],
-"spread": null,
-"total": null
+"spread": [
+0.7191,
+0.2809
+],
+"total": [
+0.4375,
+0.5625
+]
 },
 "fair_spread": -4.5,
 "home": "DAL",
@@ -10595,14 +10619,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-10.5,
+10.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 223.5,
 "total_odds": [
 null,
 null
@@ -10614,8 +10638,14 @@ null
 0.7731,
 0.2269
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4499,
+0.5501
+],
+"total": [
+0.5421,
+0.4579
+]
 },
 "fair_spread": 9.0,
 "home": "MIL",
@@ -10733,14 +10763,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+1.5,
+-1.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 226.5,
 "total_odds": [
 null,
 null
@@ -10752,8 +10782,14 @@ null
 0.5973,
 0.4027
 ],
-"spread": null,
-"total": null
+"spread": [
+0.6448,
+0.3552
+],
+"total": [
+0.7071,
+0.2929
+]
 },
 "fair_spread": 3.0,
 "home": "LAC",
@@ -10871,14 +10907,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-9.5,
+9.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 235.5,
 "total_odds": [
 null,
 null
@@ -10890,8 +10926,14 @@ null
 0.6809,
 0.3191
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3739,
+0.6261
+],
+"total": [
+0.5019,
+0.4981
+]
 },
 "fair_spread": 5.6,
 "home": "SAC",
