@@ -6680,14 +6680,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3056,
+    "lead": 0.3052,
     "name": "Luka Doncic",
     "proj": 50.9,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.2016,
+    "lead": 0.2014,
     "name": "Giannis Antetokounmpo",
     "proj": 46.5,
     "team": "MIA"
@@ -6708,16 +6708,16 @@
    },
    {
     "id": "4432166",
-    "lead": 0.0494,
+    "lead": 0.0492,
     "name": "Cade Cunningham",
     "proj": 37.2,
     "team": "DET"
    },
    {
     "id": "4431678",
-    "lead": 0.0471,
+    "lead": 0.048,
     "name": "Tyrese Maxey",
-    "proj": 37.3,
+    "proj": 37.4,
     "team": "PHI"
    },
    {
@@ -6729,7 +6729,7 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0336,
+    "lead": 0.0335,
     "name": "Domantas Sabonis",
     "proj": 36.2,
     "team": "SAC"
@@ -6752,26 +6752,26 @@
     "id": "3059318",
     "lead": 0.0152,
     "name": "Joel Embiid",
-    "proj": 32.9,
+    "proj": 33.0,
     "team": "PHI"
    },
    {
     "id": "1966",
-    "lead": 0.0146,
+    "lead": 0.0149,
     "name": "LeBron James",
-    "proj": 32.4,
+    "proj": 32.5,
     "team": "PHI"
    },
    {
     "id": "4433627",
-    "lead": 0.0092,
+    "lead": 0.0091,
     "name": "Keyonte George",
     "proj": 31.5,
     "team": "UTAH"
    },
    {
     "id": "4278104",
-    "lead": 0.009,
+    "lead": 0.0089,
     "name": "Michael Porter Jr.",
     "proj": 30.9,
     "team": "BKN"
@@ -6976,7 +6976,7 @@
     "id": "4711294",
     "lead": 0.0002,
     "name": "Matas Buzelis",
-    "proj": 19.0,
+    "proj": 19.1,
     "team": "CHI"
    },
    {
@@ -7011,15 +7011,8 @@
     "id": "4871145",
     "lead": 0.0001,
     "name": "Josh Giddey",
-    "proj": 21.2,
+    "proj": 21.3,
     "team": "CHI"
-   },
-   {
-    "id": "4601025",
-    "lead": 0.0001,
-    "name": "Pelle Larsson",
-    "proj": 19.2,
-    "team": "MIA"
    },
    {
     "id": "3936099",
@@ -7069,6 +7062,13 @@
     "name": "Keaton Wagler",
     "proj": 19.3,
     "team": "LAC"
+   },
+   {
+    "id": "4601025",
+    "lead": 0.0,
+    "name": "Pelle Larsson",
+    "proj": 19.2,
+    "team": "MIA"
    },
    {
     "id": "4065732",
