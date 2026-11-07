@@ -6318,7 +6318,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0264,
+    "lead": 0.0263,
     "name": "Yaxel Lendeborg",
     "proj": 34.2,
     "team": "GS"
@@ -6339,7 +6339,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0191,
+    "lead": 0.019,
     "name": "Donovan Mitchell",
     "proj": 32.8,
     "team": "CLE"
@@ -6388,9 +6388,9 @@
    },
    {
     "id": "3202",
-    "lead": 0.0034,
+    "lead": 0.0036,
     "name": "Kevin Durant",
-    "proj": 29.1,
+    "proj": 29.2,
     "team": "HOU"
    },
    {
@@ -6404,7 +6404,7 @@
     "id": "5174563",
     "lead": 0.0031,
     "name": "Kyshawn George",
-    "proj": 27.7,
+    "proj": 27.8,
     "team": "WSH"
    },
    {
@@ -6646,18 +6646,18 @@
     "team": "BKN"
    },
    {
+    "id": "5160992",
+    "lead": 0.0,
+    "name": "Alex Sarr",
+    "proj": 17.5,
+    "team": "WSH"
+   },
+   {
     "id": "4437244",
     "lead": 0.0,
     "name": "Jalen Green",
     "proj": 17.5,
     "team": "PHX"
-   },
-   {
-    "id": "5160992",
-    "lead": 0.0,
-    "name": "Alex Sarr",
-    "proj": 17.4,
-    "team": "WSH"
    },
    {
     "id": "4433192",
