@@ -6318,7 +6318,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0269,
+    "lead": 0.0268,
     "name": "Jalen Brunson",
     "proj": 33.7,
     "team": "NY"
@@ -6443,18 +6443,18 @@
     "team": "HOU"
    },
    {
+    "id": "4845367",
+    "lead": 0.0013,
+    "name": "Stephon Castle",
+    "proj": 25.0,
+    "team": "SA"
+   },
+   {
     "id": "4712849",
     "lead": 0.0012,
     "name": "Anthony Black",
     "proj": 26.0,
     "team": "ORL"
-   },
-   {
-    "id": "4845367",
-    "lead": 0.0012,
-    "name": "Stephon Castle",
-    "proj": 24.9,
-    "team": "SA"
    },
    {
     "id": "4066259",
