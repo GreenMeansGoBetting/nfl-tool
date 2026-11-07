@@ -6255,49 +6255,49 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2329,
+    "lead": 0.2325,
     "name": "Nikola Jokic",
     "proj": 46.9,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.1672,
+    "lead": 0.1671,
     "name": "Alperen Sengun",
     "proj": 44.5,
     "team": "HOU"
    },
    {
     "id": "5104157",
-    "lead": 0.1439,
+    "lead": 0.1437,
     "name": "Victor Wembanyama",
     "proj": 43.3,
     "team": "SA"
    },
    {
     "id": "4278073",
-    "lead": 0.0597,
+    "lead": 0.0605,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 37.9,
+    "proj": 38.0,
     "team": "OKC"
    },
    {
     "id": "3975",
-    "lead": 0.0532,
+    "lead": 0.0531,
     "name": "Stephen Curry",
     "proj": 36.5,
     "team": "GS"
    },
    {
     "id": "3936299",
-    "lead": 0.0496,
+    "lead": 0.0495,
     "name": "Jamal Murray",
     "proj": 37.3,
     "team": "DEN"
    },
    {
     "id": "3136195",
-    "lead": 0.0415,
+    "lead": 0.0413,
     "name": "Karl-Anthony Towns",
     "proj": 36.3,
     "team": "NY"
@@ -6325,14 +6325,14 @@
    },
    {
     "id": "4566434",
-    "lead": 0.0235,
+    "lead": 0.0234,
     "name": "Franz Wagner",
     "proj": 33.7,
     "team": "ORL"
    },
    {
     "id": "3934672",
-    "lead": 0.0199,
+    "lead": 0.0198,
     "name": "Jalen Brunson",
     "proj": 33.6,
     "team": "NY"
@@ -6346,21 +6346,21 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0157,
+    "lead": 0.0159,
     "name": "Trae Young",
-    "proj": 32.0,
+    "proj": 32.1,
     "team": "WSH"
    },
    {
     "id": "3136193",
-    "lead": 0.0146,
+    "lead": 0.015,
     "name": "Devin Booker",
-    "proj": 32.4,
+    "proj": 32.5,
     "team": "PHX"
    },
    {
     "id": "3149673",
-    "lead": 0.014,
+    "lead": 0.0139,
     "name": "Pascal Siakam",
     "proj": 32.1,
     "team": "IND"
@@ -6374,7 +6374,7 @@
    },
    {
     "id": "6606",
-    "lead": 0.0051,
+    "lead": 0.0048,
     "name": "Damian Lillard",
     "proj": 28.1,
     "team": "POR"
@@ -6423,31 +6423,31 @@
    },
    {
     "id": "3992",
-    "lead": 0.0025,
+    "lead": 0.0024,
     "name": "James Harden",
-    "proj": 27.3,
+    "proj": 27.2,
     "team": "CLE"
    },
    {
     "id": "5037871",
-    "lead": 0.0024,
+    "lead": 0.0023,
     "name": "Dylan Harper",
     "proj": 27.4,
     "team": "SA"
    },
    {
+    "id": "4900671",
+    "lead": 0.0023,
+    "name": "Ajay Mitchell",
+    "proj": 26.7,
+    "team": "OKC"
+   },
+   {
     "id": "4066383",
     "lead": 0.0022,
     "name": "Miles Bridges",
-    "proj": 27.6,
+    "proj": 27.7,
     "team": "PHX"
-   },
-   {
-    "id": "4900671",
-    "lead": 0.0021,
-    "name": "Ajay Mitchell",
-    "proj": 26.6,
-    "team": "OKC"
    },
    {
     "id": "4709138",
