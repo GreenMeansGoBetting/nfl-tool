@@ -20,7 +20,7 @@
 const KEY_TYPES = {
   edge: "Edge",
   fits: "Fits",
-  away: "Takes Away",
+  strength: "Strength Vs Strength",
   style: "Same Style",
   clash: "Clash",
   trend: "Trend",
@@ -28,10 +28,13 @@ const KEY_TYPES = {
   untested: "Not Tested",
 };
 // The three groups the Matchup Keys page stacks them in (the owner, 2026-11-04: "sorted by their
-// moniker - edge, clash, and same style ... all fit into that category"). Fits / Takes Away are an
-// Edge for the side it favors (WSH gets to the line, ATL allows it = a WSH edge); Not Tested and Few
-// Falling are numbers pointing opposite ways (a Clash); Trend = both teams' games leaning one way.
-const KEY_GROUP = { edge: "edge", fits: "edge", away: "edge", clash: "clash", untested: "clash", volume: "clash", style: "style", trend: "style" };
+// moniker - edge, clash, and same style ... all fit into that category"). Fits is an Edge for the
+// offense (WSH gets to the line, ATL allows it = a WSH edge); Strength Vs Strength (the offense does it
+// a lot, the defense allows it the least), Not Tested and Few Falling are numbers pointing opposite
+// ways (a Clash); Trend = both teams' games leaning one way. Strength Vs Strength was "Takes Away", a
+// defense Edge, until the owner, 2026-11-07: DEN 6th at getting to the line vs IND 9th at not allowing
+// it read "IND Edge" (each side points its own way, so neither has it; the both-sides rule).
+const KEY_GROUP = { edge: "edge", fits: "edge", strength: "clash", clash: "clash", untested: "clash", volume: "clash", style: "style", trend: "style" };
 // [key, topic, both the most, both the least, opposite ends (null: an Edge already says it)]
 const KEY_STYLE = [
   ["pace", "pace", "Both Play Fast", "Both Play Slow", "Fast Vs Slow"],
@@ -68,9 +71,9 @@ const KEY_EDGES = [
   ["o_mid_pct", "d_mid_pct", "Mid-Range Finishing", "mid", "o_mid_share"],
   ["o_trans_ppp", "d_trans_ppp", "Transition Scoring", "transition", "o_trans_freq"],
 ];
-// (Free throws a shot is a how-often number: it reads as Fits / Takes Away below, never twice.)
+// (Free throws a shot is a how-often number: it reads as Fits / Strength Vs Strength below, never twice.)
 // How-often pairs [offense key, defense key, topic]: Fits = it does it a lot and this
-// defense allows it a lot; Takes Away = this defense allows it least.
+// defense allows it a lot; Strength Vs Strength = this defense allows it least (a Clash).
 const KEY_SHARES = [
   ["o_3par", "d_3par", "Three-Point Volume", "threes"],
   ["o_ftr", "d_ftr", "Free Throws", "ft"],
@@ -180,13 +183,13 @@ function nbaMatchupKeys(table, away, home, top) {
       if (hi(go) && gd > m / 2) add("edge", `${o} Offense: ${name}`, o, ts, score + (lo(gd, dk) ? 0.5 : 0), topic);
       else if (hi(gd) && go > m / 2) add("edge", `${d} Defense: ${name}`, d, ts, score + (lo(go, ok) ? 0.5 : 0), topic);
     });
-    // Fits / Takes Away on how-often numbers: the offense does it a lot.
+    // Fits / Strength Vs Strength on how-often numbers: the offense does it a lot.
     KEY_SHARES.forEach(([ok, dk, name, topic]) => {
       if (!hi(most(o, ok))) return;
       const ts = tiles([[o, ok], [d, dk]]);
-      // Written as the Edge they are (an Edge's own wording; the volume names keep them apart from its make rates).
+      // Fits is written as the Edge it is (an Edge's own wording; the volume names keep it apart from its make rates).
       if (hi(most(d, dk))) add("fits", `${o} Offense: ${name}`, o, ts, mean([far(o, ok), far(d, dk)]), topic);
-      else if (hi(least(d, dk))) add("away", `${d} Defense: ${name}`, d, ts, mean([far(o, ok), far(d, dk)]), topic);
+      else if (hi(least(d, dk))) add("strength", `${o} ${name} Vs ${d} Defense: Strength Vs Strength`, null, ts, mean([far(o, ok), far(d, dk)]), topic);
     });
     // Not Tested: a weak spot (the defense allows the most) the offense rarely goes at.
     KEY_UNTESTED.forEach(([ok, dks, title, topic]) => {

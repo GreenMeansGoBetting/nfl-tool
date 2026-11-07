@@ -90,7 +90,9 @@
 .rs-t.rs-corner { gap: 5px; }
 .mk-bt { font: 800 0.8rem var(--font-display); letter-spacing: 0.03em; }
 
-/* Read tiles: the team with the Edge in its color, Even plain, Not Tested yellow, a shared style blue. */
+/* Read tiles: the team with the Edge in its color, Even plain, Not Tested yellow, Clash (strength vs
+   strength) purple like the Clashes group, a shared style blue. */
+.rs-t.rs-read.mk-clash { background: rgba(150, 100, 220, 0.26); }
 .rs-t.rs-read { gap: 5px; font: 800 0.9rem var(--font-display); }
 .rs-t.rs-read[style*="--team"] { background: rgba(var(--team), 0.3); box-shadow: inset 3px 0 0 rgb(var(--team)); }
 .rs-t.rs-read.mk-even { background: var(--rs-label); font-weight: 700; opacity: 0.85; }

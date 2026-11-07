@@ -117,6 +117,7 @@ function readTile(r) {
   if (!r || r.kind === "blank") return rsT("", "rs-blank");
   if (r.kind === "team") return rsT(`${logo(r.team, 18)}${r.team} Edge`, "rs-read", `--team:${teamRgb(r.team)}`, r.tip);
   if (r.kind === "untested") return rsT("Not Tested", "rs-read mk-untested", "", r.tip);
+  if (r.kind === "clash") return rsT("Clash", "rs-read mk-clash", "", r.tip);
   if (r.kind === "style") return rsT(r.text, "rs-read mk-style", "", r.tip);
   return rsT("Even", "rs-read mk-even");
 }
@@ -129,6 +130,8 @@ function pairRead(keys, o, d, ok, dk) {
   if (edge) return { kind: "team", team: edge.team, tip: edge.title };
   const weak = keys.find((k) => k.type === "untested" && hasTile(k, o, ok) && hasTile(k, d, dk));
   if (weak) return { kind: "untested", tip: weak.title };
+  const both = keys.find((k) => k.type === "strength" && hasTile(k, o, ok) && hasTile(k, d, dk));
+  if (both) return { kind: "clash", tip: both.title };
   return { kind: "even" };
 }
 // A category's line, offense o vs defense d: the strongest Edge in its topics that way, else Not Tested, else Even.
@@ -138,6 +141,8 @@ function lineRead(keys, o, d, topics) {
   if (edge) return { kind: "team", team: edge.team, tip: edge.title };
   const weak = keys.find((k) => k.type === "untested" && topics.includes(k.topic) && k.team === d);
   if (weak) return { kind: "untested", tip: weak.title };
+  const both = mine.find((k) => k.type === "strength");
+  if (both) return { kind: "clash", tip: both.title };
   return { kind: "even" };
 }
 // Both teams on one game number: Same Style (both at one end) or the combined O/U Trend.

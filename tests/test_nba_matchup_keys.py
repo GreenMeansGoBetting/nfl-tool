@@ -93,7 +93,7 @@ class Rules(unittest.TestCase):
             self.assertTrue(len(teams) == 2 or (k["type"] == "volume" and len(k["tiles"]) == 2), k["title"])
 
     def test_every_key_is_an_edge_a_clash_or_same_style(self):
-        want = {"edge": "edge", "fits": "edge", "away": "edge", "clash": "clash", "untested": "clash", "volume": "clash",
+        want = {"edge": "edge", "fits": "edge", "strength": "clash", "clash": "clash", "untested": "clash", "volume": "clash",
                 "style": "style", "trend": "style"}
         for k in self.keys:
             self.assertEqual(k["group"], want[k["type"]], k["title"])
@@ -101,8 +101,8 @@ class Rules(unittest.TestCase):
                 # an Edge belongs to one team and reads as that side's
                 self.assertRegex(k["title"], rf"^{k['team']} (Offense|Defense): ")
 
-    def test_fits_is_the_offenses_edge_takes_away_the_defenses(self):
-        # WSH gets to the line, CHA allows it (or the mirror): written as the side's Edge, never "Fits"
+    def test_fits_is_the_offenses_edge_strength_vs_strength_a_clash(self):
+        # WSH gets to the line, CHA allows it: written as WSH's Edge, never "Fits"
         table = {t: dict(row) for t, row in TABLE.items()}
         hi = max(r["o_ftr"] for r in table.values() if r.get("o_ftr") is not None)
         dhi = max(r["d_ftr"] for r in table.values() if r.get("d_ftr") is not None)
@@ -112,8 +112,22 @@ class Rules(unittest.TestCase):
         self.assertEqual([(k["title"], k["team"], k["group"]) for k in fits], [("WSH Offense: Free Throws", "WSH", "edge")])
         table["CHA"]["d_ftr"] = min(r["d_ftr"] for r in table.values() if r.get("d_ftr") is not None) - 0.05
         keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", table)
-        away = [k for k in keys if k["type"] == "away" and k["topic"] == "ft"]
-        self.assertEqual([(k["title"], k["team"], k["group"]) for k in away], [("CHA Defense: Free Throws", "CHA", "edge")])
+        # WSH gets to the line, CHA allows it the least: each side points its own way, so no one's Edge
+        # (the owner, 2026-11-07: DEN 6th vs IND 9th read "IND Edge")
+        both = [k for k in keys if k["type"] == "strength" and k["topic"] == "ft"]
+        self.assertEqual([(k["title"], k["team"], k["group"]) for k in both], [("WSH Free Throws Vs CHA Defense: Strength Vs Strength", None, "clash")])
+        self.assertFalse([k for k in keys if k["group"] == "edge" and k["topic"] == "ft"])
+        # the Categories line reads Clash on WSH's side (home Off vs road Def = the second read)
+        SITE.nba["league_chart"]["season"] = table
+        PAGE.evaluate("(t) => { DATA.league_chart.season = t; view.tab = 'categories'; view.open = new Set(['ft']); render(); }", table)
+        try:
+            reads = PAGE.evaluate("() => [...document.querySelector('.mk-crow[data-cat=ft] .mk-cline').querySelectorAll('.rs-read')].map((t) => t.textContent.trim())")
+            self.assertEqual(reads[1], "Clash")
+            box = PAGE.evaluate("() => [...document.querySelectorAll('.mk-crow[data-cat=ft] .rs-sb .rs-read')].map((t) => t.textContent.trim())")
+            self.assertEqual(box[1], "Clash")
+        finally:
+            PAGE.evaluate("(t) => { DATA.league_chart.season = t; view.tab = 'overview'; render(); }", TABLE)
+            SITE.nba["league_chart"]["season"] = TABLE
 
 
 class Page(unittest.TestCase):
