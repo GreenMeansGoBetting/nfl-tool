@@ -6304,7 +6304,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0358,
+    "lead": 0.0356,
     "name": "Deni Avdija",
     "proj": 35.7,
     "team": "POR"
@@ -6451,9 +6451,9 @@
    },
    {
     "id": "4845367",
-    "lead": 0.0014,
+    "lead": 0.0016,
     "name": "Stephon Castle",
-    "proj": 25.3,
+    "proj": 25.4,
     "team": "SA"
    },
    {
@@ -6625,18 +6625,18 @@
     "team": "CLE"
    },
    {
+    "id": "4395630",
+    "lead": 0.0,
+    "name": "Devin Vassell",
+    "proj": 18.1,
+    "team": "SA"
+   },
+   {
     "id": "4431736",
     "lead": 0.0,
     "name": "Toumani Camara",
     "proj": 18.1,
     "team": "POR"
-   },
-   {
-    "id": "4395630",
-    "lead": 0.0,
-    "name": "Devin Vassell",
-    "proj": 18.0,
-    "team": "SA"
    },
    {
     "id": "4432194",
@@ -6680,35 +6680,35 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3057,
+    "lead": 0.3056,
     "name": "Luka Doncic",
     "proj": 50.9,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.2017,
+    "lead": 0.2015,
     "name": "Giannis Antetokounmpo",
     "proj": 46.5,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.1127,
+    "lead": 0.1126,
     "name": "Jayson Tatum",
     "proj": 41.9,
     "team": "BOS"
    },
    {
     "id": "5142620",
-    "lead": 0.0615,
+    "lead": 0.0613,
     "name": "Darius Acuff Jr.",
     "proj": 39.0,
     "team": "SAC"
    },
    {
     "id": "4432166",
-    "lead": 0.0495,
+    "lead": 0.0494,
     "name": "Cade Cunningham",
     "proj": 37.2,
     "team": "DET"
@@ -6729,9 +6729,9 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0334,
+    "lead": 0.0336,
     "name": "Domantas Sabonis",
-    "proj": 36.1,
+    "proj": 36.2,
     "team": "SAC"
    },
    {
@@ -6801,7 +6801,7 @@
     "id": "3064440",
     "lead": 0.0056,
     "name": "Zach LaVine",
-    "proj": 30.3,
+    "proj": 30.4,
     "team": "SAC"
    },
    {
@@ -6834,9 +6834,9 @@
    },
    {
     "id": "3907497",
-    "lead": 0.0034,
+    "lead": 0.0035,
     "name": "Dejounte Murray",
-    "proj": 27.6,
+    "proj": 27.7,
     "team": "NO"
    },
    {
@@ -6848,7 +6848,7 @@
    },
    {
     "id": "4397002",
-    "lead": 0.0028,
+    "lead": 0.0027,
     "name": "Ayo Dosunmu",
     "proj": 27.4,
     "team": "MIN"
@@ -6862,9 +6862,9 @@
    },
    {
     "id": "4278053",
-    "lead": 0.0017,
+    "lead": 0.002,
     "name": "Davion Mitchell",
-    "proj": 27.5,
+    "proj": 27.6,
     "team": "MIA"
    },
    {
@@ -6941,7 +6941,7 @@
     "id": "4066648",
     "lead": 0.0002,
     "name": "Rui Hachimura",
-    "proj": 22.4,
+    "proj": 22.5,
     "team": "LAC"
    },
    {
@@ -6955,7 +6955,7 @@
     "id": "3448",
     "lead": 0.0002,
     "name": "Brook Lopez",
-    "proj": 21.1,
+    "proj": 21.2,
     "team": "LAC"
    },
    {
@@ -7032,7 +7032,7 @@
     "id": "4397688",
     "lead": 0.0,
     "name": "Trey Murphy III",
-    "proj": 21.8,
+    "proj": 21.9,
     "team": "NO"
    },
    {
