@@ -2514,11 +2514,11 @@
     "Quentin Grimes",
     "LAL",
     "POR",
-    -0.2081,
+    -0.2086,
     "under",
     true,
     6.5,
-    105,
+    103,
     "draftkings"
    ],
    [
@@ -2526,12 +2526,12 @@
     "Ziaire Williams",
     "LAL",
     "POR",
-    -0.0732,
+    -0.0737,
     "under",
     false,
     7.5,
-    108,
-    "novig"
+    -110,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -2540,60 +2540,48 @@
     "Luka Doncic",
     "LAL",
     "POR",
-    -0.1396,
+    -0.1434,
     "under",
     true,
     4.5,
-    -105,
-    "circa"
+    -104,
+    "novig"
    ],
    [
     "4066457",
     "Austin Reaves",
     "LAL",
     "POR",
-    -0.136,
+    -0.14,
     "under",
     true,
     2.5,
-    -175,
-    "hard_rock"
+    -174,
+    "fanduel"
    ],
    [
     "4277811",
     "Collin Sexton",
     "LAL",
     "POR",
-    -0.1639,
+    -0.1674,
     "under",
     true,
     0.5,
-    155,
-    "bet365"
+    140,
+    "hard_rock"
    ],
    [
     "4397014",
     "Quentin Grimes",
     "LAL",
     "POR",
-    -0.327,
+    -0.3291,
     "under",
     true,
     0.5,
-    155,
-    "bet365"
-   ],
-   [
-    "4592691",
-    "Jake LaRavia",
-    "LAL",
-    "POR",
-    0.3076,
-    "over",
-    true,
-    0.5,
-    -135,
-    "bet365"
+    140,
+    "thescore"
    ]
   ]
  },
@@ -2605,11 +2593,11 @@
     "De'Aaron Fox",
     "SA",
     "SAC",
-    0.0633,
+    0.064,
     "over",
     false,
     15.5,
-    102,
+    106,
     "novig"
    ],
    [
@@ -2617,19 +2605,19 @@
     "Malik Monk",
     "SAC",
     "SA",
-    -0.1102,
+    -0.1105,
     "under",
     false,
     12.5,
     -105,
-    "draftkings"
+    "bet365"
    ],
    [
     "4395723",
     "Keldon Johnson",
     "SA",
     "SAC",
-    0.0968,
+    0.0988,
     "over",
     false,
     9.5,
@@ -2641,11 +2629,11 @@
     "Julian Champagnie",
     "SA",
     "SAC",
-    0.2764,
+    0.2722,
     "over",
     true,
     9.5,
-    113,
+    106,
     "novig"
    ],
    [
@@ -2653,7 +2641,7 @@
     "Stephon Castle",
     "SA",
     "SAC",
-    0.0591,
+    0.0577,
     "over",
     false,
     16.5,
@@ -2665,7 +2653,7 @@
     "Victor Wembanyama",
     "SA",
     "SAC",
-    0.1317,
+    0.1293,
     "over",
     true,
     28.5,
@@ -2677,37 +2665,25 @@
     "Emanuel Sharp",
     "SAC",
     "SA",
-    -0.1447,
+    -0.1471,
     "under",
     true,
-    6.5,
-    -122,
-    "fanduel"
+    5.5,
+    -114,
+    "draftkings"
    ]
   ],
   "threes": [
-   [
-    "4065732",
-    "De'Andre Hunter",
-    "SAC",
-    "SA",
-    0.0768,
-    "over",
-    false,
-    1.5,
-    -151,
-    "4cx"
-   ],
    [
     "4066259",
     "De'Aaron Fox",
     "SA",
     "SAC",
-    0.2747,
+    0.2709,
     "over",
     true,
     1.5,
-    150,
+    145,
     "bet365"
    ],
    [
@@ -2715,11 +2691,11 @@
     "Malik Monk",
     "SAC",
     "SA",
-    -0.2045,
+    -0.2076,
     "under",
     true,
     1.5,
-    120,
+    115,
     "bet365"
    ],
    [
@@ -2727,19 +2703,19 @@
     "Julian Champagnie",
     "SA",
     "SAC",
-    0.3467,
+    0.3417,
     "over",
     true,
     2.5,
-    135,
-    "hard_rock"
+    136,
+    "fanduel"
    ],
    [
     "4845367",
     "Stephon Castle",
     "SA",
     "SAC",
-    0.2561,
+    0.2508,
     "over",
     true,
     1.5,
@@ -2751,11 +2727,11 @@
     "Emanuel Sharp",
     "SAC",
     "SA",
-    -0.1931,
+    -0.1973,
     "under",
     true,
     1.5,
-    -186,
+    -225,
     "fanduel"
    ]
   ]
