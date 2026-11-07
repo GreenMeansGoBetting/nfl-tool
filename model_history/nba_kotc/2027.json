@@ -6255,14 +6255,14 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2252,
+    "lead": 0.2251,
     "name": "Nikola Jokic",
     "proj": 46.9,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.1707,
+    "lead": 0.1706,
     "name": "Alperen Sengun",
     "proj": 44.5,
     "team": "HOU"
@@ -6297,16 +6297,16 @@
    },
    {
     "id": "3975",
-    "lead": 0.0374,
+    "lead": 0.0373,
     "name": "Stephen Curry",
     "proj": 36.4,
     "team": "GS"
    },
    {
     "id": "4683021",
-    "lead": 0.035,
+    "lead": 0.0355,
     "name": "Deni Avdija",
-    "proj": 35.7,
+    "proj": 35.8,
     "team": "POR"
    },
    {
@@ -6318,7 +6318,7 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0239,
+    "lead": 0.0238,
     "name": "Julius Randle",
     "proj": 34.5,
     "team": "BKN"
@@ -6555,13 +6555,6 @@
     "team": "WSH"
    },
    {
-    "id": "2490149",
-    "lead": 0.0001,
-    "name": "CJ McCollum",
-    "proj": 19.9,
-    "team": "ATL"
-   },
-   {
     "id": "4277847",
     "lead": 0.0,
     "name": "Wendell Carter Jr.",
@@ -6572,7 +6565,7 @@
     "id": "3995",
     "lead": 0.0,
     "name": "Jrue Holiday",
-    "proj": 21.7,
+    "proj": 21.8,
     "team": "POR"
    },
    {
@@ -6581,6 +6574,13 @@
     "name": "Christian Braun",
     "proj": 21.1,
     "team": "DEN"
+   },
+   {
+    "id": "2490149",
+    "lead": 0.0,
+    "name": "CJ McCollum",
+    "proj": 19.9,
+    "team": "ATL"
    },
    {
     "id": "4397183",
