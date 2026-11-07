@@ -13626,7 +13626,7 @@
     "over",
     false,
     20.5,
-    -108,
+    -106,
     "prophetx"
    ],
    [
@@ -13650,8 +13650,8 @@
     "over",
     true,
     11.5,
-    -108,
-    "prophetx"
+    -110,
+    "hard_rock"
    ],
    [
     "4395712",
@@ -13928,8 +13928,8 @@
     "over",
     true,
     18.5,
-    -115,
-    "fanatics"
+    -125,
+    "hard_rock"
    ],
    [
     "4566434",
@@ -13941,7 +13941,7 @@
     false,
     21.5,
     -120,
-    "fliff"
+    "hard_rock"
    ],
    [
     "4702382",
@@ -13952,8 +13952,8 @@
     "over",
     false,
     10.5,
-    -120,
-    "fliff"
+    -115,
+    "hard_rock"
    ],
    [
     "4712849",
@@ -13964,7 +13964,7 @@
     "over",
     false,
     13.5,
-    -110,
+    -115,
     "fanatics"
    ],
    [
@@ -13975,9 +13975,9 @@
     0.0944,
     "over",
     false,
-    17.5,
-    -110,
-    "fanatics"
+    16.5,
+    -125,
+    "hard_rock"
    ]
   ],
   "threes": [
@@ -13991,7 +13991,7 @@
     true,
     4.5,
     115,
-    "fanatics"
+    "fliff"
    ],
    [
     "4066320",
@@ -14002,7 +14002,7 @@
     "over",
     true,
     2.5,
-    -145,
+    -150,
     "fanatics"
    ],
    [
@@ -14015,6 +14015,42 @@
     true,
     1.5,
     140,
+    "fanatics"
+   ],
+   [
+    "4702382",
+    "Tristan da Silva",
+    "ORL",
+    "GS",
+    0.1965,
+    "over",
+    true,
+    2.5,
+    -152,
+    "prophetx"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "ORL",
+    0.1394,
+    "over",
+    true,
+    1.5,
+    -190,
+    "fliff"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "GS",
+    -0.0998,
+    "under",
+    false,
+    0.5,
+    150,
     "fanatics"
    ]
   ]
@@ -14055,8 +14091,8 @@
     "over",
     true,
     8.5,
-    -102,
-    "fanduel"
+    104,
+    "novig"
    ]
   ],
   "threes": [
@@ -14069,8 +14105,8 @@
     "over",
     true,
     2.5,
-    116,
-    "prophetx"
+    120,
+    "novig"
    ],
    [
     "3155526",
@@ -14081,8 +14117,8 @@
     "under",
     true,
     1.5,
-    110,
-    "fliff"
+    118,
+    "fanduel"
    ],
    [
     "3202",
@@ -14093,8 +14129,8 @@
     "over",
     true,
     1.5,
-    -115,
-    "fanatics"
+    -125,
+    "hard_rock"
    ],
    [
     "4066383",
@@ -14105,8 +14141,8 @@
     "under",
     true,
     1.5,
-    125,
-    "fanatics"
+    142,
+    "fanduel"
    ],
    [
     "4432639",
@@ -14117,8 +14153,8 @@
     "over",
     true,
     2.5,
-    120,
-    "hard_rock"
+    127,
+    "novig"
    ],
    [
     "4433192",
@@ -14131,6 +14167,18 @@
     1.5,
     135,
     "hard_rock"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "PHX",
+    0.1747,
+    "over",
+    true,
+    2.5,
+    120,
+    "fanatics"
    ]
   ]
  },
