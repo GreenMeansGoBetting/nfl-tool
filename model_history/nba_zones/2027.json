@@ -13622,7 +13622,7 @@
     "Pascal Siakam",
     "IND",
     "DEN",
-    0.0803,
+    0.0807,
     "over",
     false,
     20.5,
@@ -13634,31 +13634,31 @@
     "Ivica Zubac",
     "IND",
     "DEN",
-    -0.2395,
+    -0.2406,
     "under",
     true,
     9.5,
-    -130,
-    "hard_rock"
+    130,
+    "novig"
    ],
    [
     "4278355",
     "Obi Toppin",
     "IND",
     "DEN",
-    0.1564,
+    0.1536,
     "over",
     true,
     11.5,
-    -110,
-    "hard_rock"
+    -107,
+    "prophetx"
    ],
    [
     "4395712",
     "Andrew Nembhard",
     "IND",
     "DEN",
-    -0.1334,
+    -0.1332,
     "under",
     true,
     16.5,
@@ -13670,7 +13670,7 @@
     "Aaron Nesmith",
     "IND",
     "DEN",
-    0.1126,
+    0.1115,
     "over",
     false,
     12.5,
@@ -13684,31 +13684,31 @@
     "Pascal Siakam",
     "IND",
     "DEN",
-    0.0764,
+    0.0701,
     "over",
     false,
     1.5,
-    105,
-    "fanatics"
+    -102,
+    "novig"
    ],
    [
     "4395712",
     "Andrew Nembhard",
     "IND",
     "DEN",
-    -0.2247,
+    -0.2255,
     "under",
     true,
     2.5,
     -192,
-    "fanduel"
+    "pinnacle"
    ],
    [
     "4396909",
     "Aaron Nesmith",
     "IND",
     "DEN",
-    0.1685,
+    0.1637,
     "over",
     true,
     2.5,
@@ -13720,7 +13720,7 @@
     "Christian Braun",
     "DEN",
     "IND",
-    0.2963,
+    0.3013,
     "over",
     true,
     1.5,
@@ -13742,12 +13742,24 @@
     "Karl-Anthony Towns",
     "NY",
     "CLE",
-    -0.0635,
+    -0.0694,
     "under",
     false,
     20.5,
-    -112,
-    "fanduel"
+    -108,
+    "novig"
+   ],
+   [
+    "4066328",
+    "Jarrett Allen",
+    "CLE",
+    "NY",
+    -0.31,
+    "under",
+    true,
+    12.5,
+    -125,
+    "hard_rock"
    ]
   ],
   "threes": [
@@ -13756,7 +13768,7 @@
     "Karl-Anthony Towns",
     "NY",
     "CLE",
-    0.4061,
+    0.3755,
     "over",
     true,
     1.5,
@@ -13768,7 +13780,7 @@
     "Jalen Brunson",
     "NY",
     "CLE",
-    -0.061,
+    -0.0602,
     "under",
     false,
     2.5,
@@ -13776,16 +13788,28 @@
     "hard_rock"
    ],
    [
+    "3992",
+    "James Harden",
+    "CLE",
+    "NY",
+    -0.1011,
+    "under",
+    false,
+    2.5,
+    -110,
+    "fanatics"
+   ],
+   [
     "4431823",
     "Miles McBride",
     "NY",
     "CLE",
-    -0.109,
+    -0.1071,
     "under",
     false,
     1.5,
     -118,
-    "fanduel"
+    "pinnacle"
    ]
   ]
  },
@@ -13797,7 +13821,7 @@
     "Shai Gilgeous-Alexander",
     "OKC",
     "WSH",
-    -0.1187,
+    -0.1195,
     "under",
     false,
     31.5,
@@ -13809,19 +13833,19 @@
     "Jared McCain",
     "OKC",
     "WSH",
-    -0.1516,
+    -0.1509,
     "under",
     true,
     13.5,
-    -115,
-    "hard_rock"
+    -110,
+    "fanatics"
    ],
    [
     "4900671",
     "Ajay Mitchell",
     "OKC",
     "WSH",
-    -0.1555,
+    -0.1553,
     "under",
     true,
     19.5,
@@ -13833,23 +13857,23 @@
     "Alex Sarr",
     "WSH",
     "OKC",
-    -0.2774,
+    -0.2789,
     "under",
     true,
     9.5,
-    -105,
-    "fanatics"
+    -110,
+    "hard_rock"
    ],
    [
     "6583",
     "Anthony Davis",
     "WSH",
     "OKC",
-    -0.1159,
+    -0.1144,
     "under",
     false,
     20.5,
-    -120,
+    -115,
     "hard_rock"
    ]
   ],
@@ -13859,7 +13883,7 @@
     "Trae Young",
     "WSH",
     "OKC",
-    0.145,
+    0.1436,
     "over",
     true,
     2.5,
@@ -13871,7 +13895,7 @@
     "Jared McCain",
     "OKC",
     "WSH",
-    -0.136,
+    -0.1348,
     "under",
     true,
     2.5,
@@ -13883,7 +13907,7 @@
     "Ajay Mitchell",
     "OKC",
     "WSH",
-    -0.1508,
+    -0.1493,
     "under",
     true,
     1.5,
@@ -13895,19 +13919,19 @@
     "AJ Dybantsa",
     "WSH",
     "OKC",
-    0.5099,
+    0.499,
     "over",
     true,
     0.5,
-    -250,
-    "fanatics"
+    -240,
+    "fliff"
    ],
    [
     "5174563",
     "Kyshawn George",
     "WSH",
     "OKC",
-    0.1447,
+    0.145,
     "over",
     true,
     2.5,
@@ -13924,19 +13948,19 @@
     "Desmond Bane",
     "ORL",
     "GS",
-    0.1307,
+    0.1275,
     "over",
     true,
-    18.5,
-    -125,
-    "hard_rock"
+    19.5,
+    -108,
+    "novig"
    ],
    [
     "4566434",
     "Franz Wagner",
     "ORL",
     "GS",
-    0.0542,
+    0.0536,
     "over",
     false,
     21.5,
@@ -13948,36 +13972,36 @@
     "Tristan da Silva",
     "ORL",
     "GS",
-    0.0965,
+    0.0921,
     "over",
     false,
-    10.5,
-    -115,
-    "hard_rock"
+    12.5,
+    104,
+    "novig"
    ],
    [
     "4712849",
     "Anthony Black",
     "ORL",
     "GS",
-    0.0631,
+    0.0617,
     "over",
     false,
-    13.5,
-    -115,
-    "fanatics"
+    14.5,
+    -113,
+    "novig"
    ],
    [
     "5175737",
     "Yaxel Lendeborg",
     "GS",
     "ORL",
-    0.0944,
+    0.0945,
     "over",
     false,
-    16.5,
-    -125,
-    "hard_rock"
+    17.5,
+    -120,
+    "fanatics"
    ]
   ],
   "threes": [
@@ -13986,55 +14010,55 @@
     "Stephen Curry",
     "GS",
     "ORL",
-    0.1886,
+    0.1884,
     "over",
     true,
     4.5,
-    115,
-    "fliff"
+    127,
+    "novig"
    ],
    [
     "4066320",
     "Desmond Bane",
     "ORL",
     "GS",
-    0.2379,
+    0.23,
     "over",
     true,
     2.5,
-    -150,
-    "fanatics"
+    -165,
+    "hard_rock"
    ],
    [
     "4566434",
     "Franz Wagner",
     "ORL",
     "GS",
-    0.2583,
+    0.2498,
     "over",
     true,
     1.5,
-    140,
-    "fanatics"
+    145,
+    "hard_rock"
    ],
    [
     "4702382",
     "Tristan da Silva",
     "ORL",
     "GS",
-    0.1965,
+    0.189,
     "over",
     true,
     2.5,
-    -152,
-    "prophetx"
+    -123,
+    "pinnacle"
    ],
    [
     "4709138",
     "Brandin Podziemski",
     "GS",
     "ORL",
-    0.1394,
+    0.1403,
     "over",
     true,
     1.5,
@@ -14046,12 +14070,12 @@
     "Jase Richardson",
     "ORL",
     "GS",
-    -0.0998,
+    -0.0979,
     "under",
     false,
     0.5,
-    150,
-    "fanatics"
+    145,
+    "fliff"
    ]
   ]
  },
@@ -14059,16 +14083,28 @@
   "date": "2026-11-07",
   "points": [
    [
+    "2990992",
+    "Marcus Smart",
+    "HOU",
+    "PHX",
+    0.199,
+    "over",
+    true,
+    6.5,
+    -103,
+    "prophetx"
+   ],
+   [
     "2991230",
     "Fred VanVleet",
     "HOU",
     "PHX",
-    0.2047,
+    0.2046,
     "over",
     true,
-    11.5,
-    -115,
-    "hard_rock"
+    12.5,
+    104,
+    "pinnacle"
    ],
    [
     "3202",
@@ -14078,16 +14114,16 @@
     -0.1532,
     "under",
     true,
-    21.5,
-    -110,
-    "hard_rock"
+    22.5,
+    -130,
+    "novig"
    ],
    [
     "4711272",
     "Reed Sheppard",
     "HOU",
     "PHX",
-    0.1452,
+    0.146,
     "over",
     true,
     8.5,
@@ -14097,11 +14133,23 @@
   ],
   "threes": [
    [
+    "2990992",
+    "Marcus Smart",
+    "HOU",
+    "PHX",
+    0.3046,
+    "over",
+    true,
+    1.5,
+    125,
+    "hard_rock"
+   ],
+   [
     "2991230",
     "Fred VanVleet",
     "HOU",
     "PHX",
-    0.1991,
+    0.1996,
     "over",
     true,
     2.5,
@@ -14113,47 +14161,59 @@
     "Dillon Brooks",
     "PHX",
     "HOU",
-    -0.1771,
+    -0.1832,
     "under",
     true,
     1.5,
-    118,
-    "fanduel"
+    115,
+    "hard_rock"
    ],
    [
     "3202",
     "Kevin Durant",
     "HOU",
     "PHX",
-    0.3916,
+    0.3835,
     "over",
     true,
     1.5,
-    -125,
-    "hard_rock"
+    -115,
+    "fanatics"
    ],
    [
     "4066383",
     "Miles Bridges",
     "PHX",
     "HOU",
-    -0.2215,
+    -0.2272,
     "under",
     true,
     1.5,
-    142,
-    "fanduel"
+    135,
+    "hard_rock"
+   ],
+   [
+    "4278585",
+    "Collin Gillespie",
+    "PHX",
+    "HOU",
+    0.0661,
+    "over",
+    false,
+    2.5,
+    163,
+    "novig"
    ],
    [
     "4432639",
     "Jabari Smith Jr.",
     "HOU",
     "PHX",
-    0.3948,
+    0.3874,
     "over",
     true,
     2.5,
-    127,
+    125,
     "novig"
    ],
    [
@@ -14161,7 +14221,7 @@
     "Tari Eason",
     "HOU",
     "PHX",
-    0.5838,
+    0.5693,
     "over",
     true,
     1.5,
@@ -14173,18 +14233,80 @@
     "Reed Sheppard",
     "HOU",
     "PHX",
-    0.1747,
+    0.1749,
     "over",
     true,
-    2.5,
-    120,
-    "fanatics"
+    1.5,
+    -165,
+    "hard_rock"
    ]
   ]
  },
  "401909944": {
   "date": "2026-11-07",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "SA",
+    -0.0791,
+    "under",
+    false,
+    12.5,
+    -106,
+    "fanduel"
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "SA",
+    -0.0762,
+    "under",
+    false,
+    11.5,
+    -118,
+    "fanduel"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "SA",
+    -0.1462,
+    "under",
+    true,
+    10.5,
+    100,
+    "hard_rock"
+   ]
+  ],
+  "threes": [
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "SA",
+    0.1346,
+    "over",
+    true,
+    1.5,
+    -145,
+    "fanatics"
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "SA",
+    -0.161,
+    "under",
+    true,
+    1.5,
+    -174,
+    "fanduel"
+   ]
+  ]
  }
 }
