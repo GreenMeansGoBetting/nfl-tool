@@ -1245,6 +1245,22 @@
   "updated": "2026-11-01T13:35Z",
   "week": 8
  },
+ "2026_09_CIN_ATL": {
+  "away": "CIN",
+  "away_pts": 26.8,
+  "frozen": true,
+  "home": "ATL",
+  "home_pts": 21.9,
+  "qb_out": [],
+  "spread": 3.5,
+  "spread_edge": 1.4,
+  "spread_pick": "away",
+  "total": 52.5,
+  "total_edge": 3.8,
+  "total_pick": "under",
+  "updated": "2026-11-08T06:11Z",
+  "week": 9
+ },
  "2026_09_JAX_BAL": {
   "away": "JAX",
   "away_pts": 27.0,
