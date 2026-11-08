@@ -10075,12 +10075,12 @@ null
 9.5
 ],
 "spread_odds": [
-102,
--104
+-102,
+-100
 ],
 "total": 238.5,
 "total_odds": [
-106,
+108,
 -111
 ]
 },
@@ -10211,16 +10211,16 @@ null
 "away": "LAL",
 "book": {
 "ml": [
-245,
--251
+233,
+-245
 ],
 "spread": [
-7.5,
--7.5
+6.5,
+-6.5
 ],
 "spread_odds": [
--104,
-102
+108,
+-113
 ],
 "total": 218.5,
 "total_odds": [
@@ -10235,8 +10235,8 @@ null
 0.5353
 ],
 "spread": [
-0.7042,
-0.2958
+0.6748,
+0.3252
 ],
 "total": [
 0.6018,
@@ -10647,17 +10647,17 @@ null
 567
 ],
 "spread": [
--12.5,
-12.5
+-13.5,
+13.5
 ],
 "spread_odds": [
--106,
-102
+113,
+-117
 ],
 "total": 221.5,
 "total_odds": [
--106,
-102
+-113,
+111
 ]
 },
 "date": "2026-11-08",
@@ -10667,8 +10667,8 @@ null
 0.2265
 ],
 "spread": [
-0.3854,
-0.6146
+0.3539,
+0.6461
 ],
 "total": [
 0.5829,
@@ -10940,7 +10940,7 @@ null
 ],
 "spread_odds": [
 -113,
-111
+108
 ],
 "total": 238.5,
 "total_odds": [
@@ -11631,14 +11631,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+3.5,
+-3.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 224.5,
 "total_odds": [
 null,
 null
@@ -11650,8 +11650,14 @@ null
 0.4028,
 0.5972
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5182,
+0.4818
+],
+"total": [
+0.4757,
+0.5243
+]
 },
 "fair_spread": -3.0,
 "home": "DAL",
@@ -11769,14 +11775,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+4.5,
+-4.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 225.5,
 "total_odds": [
 null,
 null
@@ -11788,8 +11794,14 @@ null
 0.3677,
 0.6323
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5148,
+0.4852
+],
+"total": [
+0.4245,
+0.5755
+]
 },
 "fair_spread": -4.1,
 "home": "HOU",
@@ -11907,14 +11919,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-7.5,
+7.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 226.5,
 "total_odds": [
 null,
 null
@@ -11926,8 +11938,14 @@ null
 0.7505,
 0.2495
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5204,
+0.4796
+],
+"total": [
+0.4901,
+0.5099
+]
 },
 "fair_spread": 8.1,
 "home": "PHX",
@@ -12045,14 +12063,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+10.5,
+-10.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 232.5,
 "total_odds": [
 null,
 null
@@ -12064,8 +12082,14 @@ null
 0.3535,
 0.6465
 ],
-"spread": null,
-"total": null
+"spread": [
+0.6912,
+0.3088
+],
+"total": [
+0.6382,
+0.3618
+]
 },
 "fair_spread": -4.5,
 "home": "GS",
