@@ -10975,6 +10975,11 @@
     "hard_rock"
    ]
   },
+  "result": {
+   "scorer": "3975",
+   "team": "GS",
+   "tip": "ORL"
+  },
   "tip_home": 0.231
  },
  "401909943": {
@@ -11199,7 +11204,7 @@
    ],
    "3917376": [
     "Jaylen Brown",
-    0.129,
+    0.128,
     null,
     false,
     null
@@ -11252,7 +11257,7 @@
  "401909946": {
   "away": "LAL",
   "date": "2026-11-08",
-  "first_home": 0.418,
+  "first_home": 0.419,
   "home": "DET",
   "jumpers": [
    [
@@ -11336,7 +11341,7 @@
     null
    ]
   },
-  "tip_home": 0.254
+  "tip_home": 0.255
  },
  "401909947": {
   "away": "UTAH",
@@ -11786,7 +11791,7 @@
  "401909952": {
   "away": "LAL",
   "date": "2026-11-09",
-  "first_home": 0.442,
+  "first_home": 0.443,
   "home": "ATL",
   "jumpers": [
    [
@@ -11857,7 +11862,7 @@
    ],
    "4701230": [
     "Jalen Johnson",
-    0.093,
+    0.094,
     null,
     false,
     null
@@ -11870,7 +11875,7 @@
     null
    ]
   },
-  "tip_home": 0.326
+  "tip_home": 0.327
  },
  "401909953": {
   "away": "CLE",
@@ -12117,14 +12122,14 @@
    ],
    "4903027": [
     "Cedric Coward",
-    0.093,
+    0.092,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.116,
+    0.115,
     null,
     false,
     null
@@ -12137,7 +12142,7 @@
     null
    ]
   },
-  "tip_home": 0.436
+  "tip_home": 0.437
  },
  "401909956": {
   "away": "IND",
@@ -12409,7 +12414,7 @@
  "401909959": {
   "away": "NO",
   "date": "2026-11-09",
-  "first_home": 0.447,
+  "first_home": 0.443,
   "home": "GS",
   "jumpers": [
    [
@@ -12431,42 +12436,42 @@
    ],
    "3975": [
     "Stephen Curry",
-    0.109,
+    0.115,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.106,
+    0.107,
     null,
     false,
     null
    ],
    "4397688": [
     "Trey Murphy III",
-    0.124,
+    0.125,
     null,
     false,
     null
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.097,
+    0.093,
     null,
     false,
     null
    ],
    "4997536": [
     "Gui Santos",
-    0.07,
+    0.066,
     null,
     false,
     null
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.099,
+    0.1,
     null,
     false,
     null
@@ -12480,19 +12485,19 @@
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.09,
+    0.088,
     null,
     false,
     null
    ],
    "6589": [
     "Draymond Green",
-    0.064,
+    0.063,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.34
+  "tip_home": 0.328
  }
 }
