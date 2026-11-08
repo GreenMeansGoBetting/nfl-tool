@@ -7105,7 +7105,7 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.1939,
+    "lead": 0.1938,
     "name": "Victor Wembanyama",
     "proj": 44.2,
     "team": "SA"
@@ -7126,7 +7126,7 @@
    },
    {
     "id": "3112335",
-    "lead": 0.0866,
+    "lead": 0.0864,
     "name": "Nikola Jokic",
     "proj": 38.7,
     "team": "DEN"
@@ -7182,7 +7182,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0297,
+    "lead": 0.0296,
     "name": "Donovan Mitchell",
     "proj": 34.1,
     "team": "CLE"
@@ -7238,7 +7238,7 @@
    },
    {
     "id": "4066457",
-    "lead": 0.0068,
+    "lead": 0.0067,
     "name": "Austin Reaves",
     "proj": 30.2,
     "team": "LAL"
@@ -7265,18 +7265,18 @@
     "team": "WSH"
    },
    {
+    "id": "5037871",
+    "lead": 0.0045,
+    "name": "Dylan Harper",
+    "proj": 27.8,
+    "team": "SA"
+   },
+   {
     "id": "4066383",
     "lead": 0.0044,
     "name": "Miles Bridges",
     "proj": 27.5,
     "team": "PHX"
-   },
-   {
-    "id": "5037871",
-    "lead": 0.0043,
-    "name": "Dylan Harper",
-    "proj": 27.7,
-    "team": "SA"
    },
    {
     "id": "3907497",
@@ -7310,7 +7310,7 @@
     "id": "4845367",
     "lead": 0.0031,
     "name": "Stephon Castle",
-    "proj": 26.1,
+    "proj": 26.2,
     "team": "SA"
    },
    {
@@ -7398,18 +7398,18 @@
     "team": "MEM"
    },
    {
+    "id": "4066259",
+    "lead": 0.0007,
+    "name": "De'Aaron Fox",
+    "proj": 23.6,
+    "team": "SA"
+   },
+   {
     "id": "4684742",
     "lead": 0.0007,
     "name": "Ausar Thompson",
     "proj": 23.1,
     "team": "DET"
-   },
-   {
-    "id": "4066259",
-    "lead": 0.0006,
-    "name": "De'Aaron Fox",
-    "proj": 23.5,
-    "team": "SA"
    },
    {
     "id": "5142718",
@@ -7513,7 +7513,7 @@
     "id": "4395630",
     "lead": 0.0001,
     "name": "Devin Vassell",
-    "proj": 18.7,
+    "proj": 18.8,
     "team": "SA"
    },
    {
