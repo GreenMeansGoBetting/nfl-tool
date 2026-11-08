@@ -6687,28 +6687,28 @@
    },
    {
     "id": "3032977",
-    "lead": 0.195,
+    "lead": 0.1951,
     "name": "Giannis Antetokounmpo",
     "proj": 46.5,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.0985,
+    "lead": 0.0984,
     "name": "Jayson Tatum",
     "proj": 41.8,
     "team": "BOS"
    },
    {
     "id": "5142620",
-    "lead": 0.066,
+    "lead": 0.0662,
     "name": "Darius Acuff Jr.",
     "proj": 39.1,
     "team": "SAC"
    },
    {
     "id": "4431678",
-    "lead": 0.0487,
+    "lead": 0.0488,
     "name": "Tyrese Maxey",
     "proj": 37.4,
     "team": "PHI"
@@ -6743,9 +6743,9 @@
    },
    {
     "id": "3917376",
-    "lead": 0.0179,
+    "lead": 0.0175,
     "name": "Jaylen Brown",
-    "proj": 33.6,
+    "proj": 33.5,
     "team": "PHI"
    },
    {
@@ -6806,16 +6806,16 @@
    },
    {
     "id": "6442",
-    "lead": 0.0056,
+    "lead": 0.0057,
     "name": "Kyrie Irving",
-    "proj": 28.9,
+    "proj": 29.0,
     "team": "DAL"
    },
    {
     "id": "4396907",
     "lead": 0.0051,
     "name": "Darius Garland",
-    "proj": 29.1,
+    "proj": 29.0,
     "team": "LAC"
    },
    {
@@ -6941,14 +6941,14 @@
     "id": "4066648",
     "lead": 0.0002,
     "name": "Rui Hachimura",
-    "proj": 22.5,
+    "proj": 22.4,
     "team": "LAC"
    },
    {
     "id": "4397688",
     "lead": 0.0002,
     "name": "Trey Murphy III",
-    "proj": 21.9,
+    "proj": 21.8,
     "team": "NO"
    },
    {
