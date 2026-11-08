@@ -127,6 +127,23 @@ class BuildrMembers(unittest.TestCase):
         self.assertIn("Already joined with email?", body)  # Stripe members still sign in
         self.assertNotIn("/stripe/checkout", body)
 
+    def test_members_are_told_which_button_is_theirs(self):
+        # 2026-11-08: a paying member pressed Join now and Buildr said they
+        # already subscribe. Join sits under "New Members"; the sign-in
+        # buttons under "Already A Member? Sign In".
+        body = go(NFL)["body"]
+        self.assertEqual(body.count("New Members"), 2)
+        self.assertEqual(body.count("Already A Member? Sign In"), 2)
+        for btn in ("Log in with Discord", "Sign in with Buildr"):
+            self.assertLess(body.index("Already A Member? Sign In"), body.index(btn), btn)
+
+    def test_turned_away_page_offers_signing_in_before_joining(self):
+        js("(B.members.m1 = 'canceled', true)")
+        body = js("signIn()")["back"]["body"]
+        self.assertIn("same email you paid with", body)
+        self.assertIn('href="/auth/login"', body)
+        self.assertLess(body.index("Log in with Discord"), body.index("Join now"))
+
     def test_login_sends_pkce_and_a_state(self):
         sent = js("signIn()")["sent"]
         self.assertEqual(sent["client_id"], "gmg-site")

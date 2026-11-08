@@ -154,20 +154,30 @@ small{display:block;margin-top:16px;color:var(--muted);font-size:.78rem}
 }
 const DISCORD_ICON = `<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.4 18.4 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.4C.6 9 -.3 13.5.1 18a19.9 19.9 0 0 0 6 3l1.3-2.1a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12.2 0l.5.4a12.9 12.9 0 0 1-2 1L18 21a19.9 19.9 0 0 0 6-3c.5-5.2-.8-9.7-3.7-13.6zM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/></svg>`;
 
+// Labels over the sign-in page's buttons, so a member never presses Join.
+const NEW_LABEL = `<div class="or">New Members</div>`;
+const MEMBER_LABEL = `<div class="or">Already A Member? Sign In</div>`;
+
 function loginPage(next, env = null) {
   return accessPage({ env, next, status: 401 });
 }
-function deniedPage(reason) {
+function deniedPage(reason, env = null) {
   const msg =
     reason === "not-member"
       ? "Your Discord account isn't in the GMG server."
       : reason === "api"
       ? "Discord isn't answering right now, so we can't check your access. Try again in a minute."
       : "Your Discord account doesn't have a role with access to the NFL Suite.";
+  // Paid on Buildr but the role isn't there yet: Buildr sign-in counts any
+  // active GMG subscription, so offer it before sending them to buy again.
+  const buildr = reason !== "api" && env && buildrReady(env)
+    ? `<p>Already paid on Buildr? Sign in with Buildr using the email you paid with.</p><a class="btn ghost" href="/auth/buildr/login">Sign in with Buildr</a>`
+    : "";
   return page(
     "No access -- GMG's NFL Suite",
     `<p>${msg}</p>
      ${INVITE_URL && reason !== "api" ? `<a class="btn discord" href="${INVITE_URL}" target="_blank" rel="noopener">${DISCORD_ICON}${reason === "no-role" ? "Get access" : "Join the GMG Discord"}</a>` : ""}
+     ${buildr ? `<div class="or">Already A Member?</div>${buildr}` : ""}
      <a class="btn ghost" href="/auth/logout">Use a different Discord account</a>`,
     403,
     // Discord outage keeps the session; a real "no" clears it.
@@ -230,8 +240,8 @@ async function handleCallback(request, env) {
   if (!meRes.ok) return deniedPage("api");
   const me = await meRes.json();
   const check = await memberRoles(env, me.id);
-  if (!check.ok) return deniedPage(check.reason);
-  if (!hasAllowedRole(check.roles)) return deniedPage("no-role");
+  if (!check.ok) return deniedPage(check.reason, env);
+  if (!hasAllowedRole(check.roles)) return deniedPage("no-role", env);
   const now = Date.now();
   const session = await sign(env, { uid: me.id, name: me.global_name || me.username, checked: now, exp: now + SESSION_DAYS * 864e5 });
   const headers = new Headers({ Location: ENFORCE ? safeNext(saved.next || "/") : "/auth/check" });
@@ -250,8 +260,8 @@ async function handleCheck(request, env) {
   }
   if (!session) return loginPage("/auth/check");
   const check = await memberRoles(env, session.uid);
-  if (!check.ok) return deniedPage(check.reason);
-  if (!hasAllowedRole(check.roles)) return deniedPage("no-role");
+  if (!check.ok) return deniedPage(check.reason, env);
+  if (!hasAllowedRole(check.roles)) return deniedPage("no-role", env);
   return page(
     "Access check -- GMG's NFL Suite",
     `<p><b style="color:#6ee79b">You're in, ${session.name}.</b><br>Your Discord roles give you access to the NFL Suite.</p>
@@ -830,10 +840,12 @@ function accessPage({ env = null, session = null, next = "/", signinEmail = "", 
   // Left: the Discord route (join through Buildr, or log in). Right: the
   // no-Discord route (free trial by email). Email members sign back in from
   // the small link under the trial (/auth/email).
+  // "New Members" / "Already A Member?" labels (2026-11-08): a paying member
+  // pressed Join now, and Buildr's checkout said they already subscribe.
   const discordCol = `<section class="col">
       <h2>Join with Discord</h2>
       <p class="sub">For $5 a month, get access to the site and Discord server.</p>
-      ${INVITE_URL ? `<a class="btn join-btn" href="${INVITE_URL}" target="_blank" rel="noopener">Join now</a>` : ""}
+      ${INVITE_URL ? `${NEW_LABEL}<a class="btn join-btn" href="${INVITE_URL}" target="_blank" rel="noopener">Join now</a>${MEMBER_LABEL}` : ""}
       <a class="btn discord" href="/auth/login?next=${encodeURIComponent(next)}">${DISCORD_ICON}Log in with Discord</a>
     </section>`;
   const signinNote = signinMsg ? `<p class="${status >= 400 ? "err" : "ok"}">${esc(signinMsg)}</p>` : "";
@@ -860,8 +872,8 @@ function accessPage({ env = null, session = null, next = "/", signinEmail = "", 
         <p class="sub">7-day free trial, then $5 a month or $45 a year. Access to the entire site.</p>
         ${signinNote}
         ${joinError ? `<p class="err">${esc(joinError)}</p>` : ""}
-        <a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>
-        <a class="btn ghost" href="/auth/buildr/login?next=${encodeURIComponent(next)}">Sign in with Buildr</a>
+        ${NEW_LABEL}<a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>
+        ${MEMBER_LABEL}<a class="btn ghost" href="/auth/buildr/login?next=${encodeURIComponent(next)}">Sign in with Buildr</a>
         ${emailSigninLink}
       </section>`
     : `<section class="col">
@@ -1167,11 +1179,19 @@ function buildrDeniedPage(reason) {
     reason === "api"
       ? "Buildr isn't answering right now, so we can't check your membership. Try again in a minute."
       : "Your Buildr account doesn't have an active GMG membership.";
+  // A member who already pays must not be sent to buy again: say what to try
+  // first (the email they paid with, or Discord), then Join for new members.
+  const member =
+    reason === "api"
+      ? ""
+      : `<p>Already paying? Sign in to Buildr with the same email you paid with. Joined through Discord? Log in with Discord instead.</p>
+     <a class="btn discord" href="/auth/login">${DISCORD_ICON}Log in with Discord</a>
+     <a class="btn ghost" href="/">Back to sign in</a>
+     ${NEW_LABEL}<a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>`;
   return page(
     "No access -- GMG Sports Data Suite",
     `<p>${msg}</p>
-     ${reason === "api" ? "" : `<a class="btn join-btn" href="${BUILDR_JOIN_URL}" target="_blank" rel="noopener">Join now</a>`}
-     <a class="btn ghost" href="/">Back to sign in</a>`,
+     ${member || `<a class="btn ghost" href="/">Back to sign in</a>`}`,
     403,
     reason === "api" ? {} : { "Set-Cookie": setCookie(COOKIE, "", 0) }
   );
@@ -1395,8 +1415,8 @@ async function gate(context, url, next) {
     if (!check.ok && check.reason === "api") {
       if (age >= OUTAGE_GRACE_MS) return isApi ? json({ error: "discord" }, 503) : deniedPage("api");
     } else {
-      if (!check.ok) return isApi ? json({ error: check.reason }, 403) : deniedPage(check.reason);
-      if (!hasAllowedRole(check.roles)) return isApi ? json({ error: "no-role" }, 403) : deniedPage("no-role");
+      if (!check.ok) return isApi ? json({ error: check.reason }, 403) : deniedPage(check.reason, env);
+      if (!hasAllowedRole(check.roles)) return isApi ? json({ error: "no-role" }, 403) : deniedPage("no-role", env);
       refreshed = await sign(env, { ...session, checked: Date.now() });
     }
   }
