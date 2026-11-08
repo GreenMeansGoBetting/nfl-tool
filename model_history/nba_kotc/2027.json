@@ -6687,7 +6687,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1948,
+    "lead": 0.1949,
     "name": "Giannis Antetokounmpo",
     "proj": 46.5,
     "team": "MIA"
@@ -6708,7 +6708,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0487,
+    "lead": 0.0488,
     "name": "Tyrese Maxey",
     "proj": 37.4,
     "team": "PHI"
@@ -6847,13 +6847,6 @@
     "team": "MIN"
    },
    {
-    "id": "4431671",
-    "lead": 0.0027,
-    "name": "Jaden McDaniels",
-    "proj": 26.5,
-    "team": "MIN"
-   },
-   {
     "id": "4432816",
     "lead": 0.0026,
     "name": "LaMelo Ball",
@@ -6866,6 +6859,13 @@
     "name": "Dejounte Murray",
     "proj": 27.7,
     "team": "NO"
+   },
+   {
+    "id": "4431671",
+    "lead": 0.0026,
+    "name": "Jaden McDaniels",
+    "proj": 26.4,
+    "team": "MIN"
    },
    {
     "id": "4433136",
@@ -6962,7 +6962,7 @@
     "id": "4433247",
     "lead": 0.0002,
     "name": "Jonathan Kuminga",
-    "proj": 21.6,
+    "proj": 21.5,
     "team": "MIN"
    },
    {
@@ -6976,13 +6976,6 @@
     "id": "4873138",
     "lead": 0.0002,
     "name": "Ace Bailey",
-    "proj": 21.2,
-    "team": "UTAH"
-   },
-   {
-    "id": "5041955",
-    "lead": 0.0002,
-    "name": "Darryn Peterson",
     "proj": 21.1,
     "team": "UTAH"
    },
@@ -7027,6 +7020,13 @@
     "name": "Derrick White",
     "proj": 22.8,
     "team": "BOS"
+   },
+   {
+    "id": "5041955",
+    "lead": 0.0001,
+    "name": "Darryn Peterson",
+    "proj": 21.0,
+    "team": "UTAH"
    },
    {
     "id": "4278594",
