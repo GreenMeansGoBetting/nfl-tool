@@ -11284,7 +11284,7 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.093,
+    0.108,
     1100,
     true,
     "fanduel"
@@ -11296,16 +11296,9 @@
     false,
     "fanduel"
    ],
-   "3945274": [
-    "Luka Doncic",
-    0.159,
-    460,
-    false,
-    "fanduel"
-   ],
    "4066457": [
     "Austin Reaves",
-    0.121,
+    0.142,
     557,
     false,
     "draftkings"
@@ -11326,17 +11319,24 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.096,
+    0.11,
     700,
     false,
     "thescore"
    ],
    "4433137": [
     "Ziaire Williams",
-    0.09,
+    0.099,
     null,
     false,
     null
+   ],
+   "4592691": [
+    "Jake LaRavia",
+    0.1,
+    1135,
+    true,
+    "fliff"
    ],
    "4684742": [
     "Ausar Thompson",
@@ -11818,21 +11818,14 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.089,
-    null,
-    false,
-    null
-   ],
-   "3945274": [
-    "Luka Doncic",
-    0.153,
+    0.103,
     null,
     false,
     null
    ],
    "4066457": [
     "Austin Reaves",
-    0.116,
+    0.136,
     null,
     false,
     null
@@ -11853,14 +11846,21 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.092,
+    0.105,
     null,
     false,
     null
    ],
    "4433137": [
     "Ziaire Williams",
-    0.086,
+    0.095,
+    null,
+    false,
+    null
+   ],
+   "4592691": [
+    "Jake LaRavia",
+    0.096,
     null,
     false,
     null
