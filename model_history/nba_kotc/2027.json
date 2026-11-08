@@ -7105,42 +7105,42 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.1938,
+    "lead": 0.1925,
     "name": "Victor Wembanyama",
-    "proj": 44.2,
+    "proj": 44.1,
     "team": "SA"
    },
    {
     "id": "3975",
-    "lead": 0.0989,
+    "lead": 0.0992,
     "name": "Stephen Curry",
     "proj": 39.9,
     "team": "GS"
    },
    {
     "id": "4871144",
-    "lead": 0.0916,
+    "lead": 0.0918,
     "name": "Alperen Sengun",
     "proj": 39.0,
     "team": "HOU"
    },
    {
     "id": "3112335",
-    "lead": 0.0866,
+    "lead": 0.0869,
     "name": "Nikola Jokic",
     "proj": 38.7,
     "team": "DEN"
    },
    {
     "id": "4432166",
-    "lead": 0.0602,
+    "lead": 0.0604,
     "name": "Cade Cunningham",
     "proj": 37.2,
     "team": "DET"
    },
    {
     "id": "4065733",
-    "lead": 0.0508,
+    "lead": 0.0509,
     "name": "Ty Jerome",
     "proj": 36.3,
     "team": "MEM"
@@ -7161,14 +7161,14 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0427,
+    "lead": 0.0429,
     "name": "Scottie Barnes",
     "proj": 35.7,
     "team": "TOR"
    },
    {
     "id": "6583",
-    "lead": 0.0395,
+    "lead": 0.0396,
     "name": "Anthony Davis",
     "proj": 34.9,
     "team": "WSH"
@@ -7182,23 +7182,23 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0296,
+    "lead": 0.0297,
     "name": "Donovan Mitchell",
     "proj": 34.1,
     "team": "CLE"
    },
    {
     "id": "3149673",
-    "lead": 0.0227,
+    "lead": 0.0228,
     "name": "Pascal Siakam",
     "proj": 32.9,
     "team": "IND"
    },
    {
     "id": "3136193",
-    "lead": 0.0203,
+    "lead": 0.02,
     "name": "Devin Booker",
-    "proj": 32.7,
+    "proj": 32.6,
     "team": "PHX"
    },
    {
@@ -7266,9 +7266,9 @@
    },
    {
     "id": "4066383",
-    "lead": 0.0044,
+    "lead": 0.0043,
     "name": "Miles Bridges",
-    "proj": 27.5,
+    "proj": 27.4,
     "team": "PHX"
    },
    {
@@ -7315,7 +7315,7 @@
    },
    {
     "id": "4433136",
-    "lead": 0.0028,
+    "lead": 0.0029,
     "name": "Walker Kessler",
     "proj": 27.5,
     "team": "LAL"
@@ -7429,7 +7429,7 @@
     "id": "3155526",
     "lead": 0.0005,
     "name": "Dillon Brooks",
-    "proj": 22.2,
+    "proj": 22.1,
     "team": "PHX"
    },
    {
@@ -7513,7 +7513,7 @@
     "id": "4395630",
     "lead": 0.0001,
     "name": "Devin Vassell",
-    "proj": 18.8,
+    "proj": 18.7,
     "team": "SA"
    },
    {
