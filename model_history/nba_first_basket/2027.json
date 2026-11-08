@@ -11193,13 +11193,6 @@
     false,
     "fanduel"
    ],
-   "2595516": [
-    "Norman Powell",
-    0.079,
-    1000,
-    false,
-    "fanduel"
-   ],
    "3059318": [
     "Joel Embiid",
     0.101,
@@ -11216,7 +11209,7 @@
    ],
    "4397189": [
     "Jalen Smith",
-    0.091,
+    0.109,
     1140,
     true,
     "draftkings"
@@ -11230,23 +11223,23 @@
    ],
    "4711294": [
     "Matas Buzelis",
-    0.071,
+    0.091,
     1200,
-    false,
+    true,
     "draftkings"
    ],
    "4871145": [
     "Josh Giddey",
-    0.083,
+    0.102,
     1200,
-    false,
+    true,
     "fanduel"
    ],
    "5095151": [
     "Caleb Wilson",
-    0.106,
+    0.128,
     900,
-    false,
+    true,
     "thescore"
    ],
    "5124612": [
