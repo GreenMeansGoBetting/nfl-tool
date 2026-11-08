@@ -11369,13 +11369,6 @@
     false,
     "bet365"
    ],
-   "4066336": [
-    "Lauri Markkanen",
-    0.11,
-    900,
-    false,
-    "bet365"
-   ],
    "4397002": [
     "Ayo Dosunmu",
     0.103,
@@ -11385,7 +11378,7 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.066,
+    0.07,
     940,
     false,
     "draftkings"
@@ -11396,6 +11389,13 @@
     600,
     false,
     "hard_rock"
+   ],
+   "4432811": [
+    "Josh Green",
+    0.07,
+    null,
+    false,
+    null
    ],
    "4432816": [
     "LaMelo Ball",
@@ -11413,21 +11413,21 @@
    ],
    "4433627": [
     "Keyonte George",
-    0.104,
+    0.117,
     950,
-    false,
+    true,
     "fanduel"
    ],
    "4873138": [
     "Ace Bailey",
-    0.095,
+    0.107,
     1000,
-    false,
+    true,
     "fanduel"
    ],
    "5041955": [
     "Darryn Peterson",
-    0.088,
+    0.098,
     1250,
     true,
     "bet365"
@@ -12807,13 +12807,6 @@
     false,
     null
    ],
-   "4066336": [
-    "Lauri Markkanen",
-    0.099,
-    null,
-    false,
-    null
-   ],
    "4278053": [
     "Davion Mitchell",
     0.1,
@@ -12823,28 +12816,35 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.06,
+    0.064,
+    null,
+    false,
+    null
+   ],
+   "4432811": [
+    "Josh Green",
+    0.063,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.094,
+    0.106,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.086,
+    0.096,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.08,
+    0.088,
     null,
     false,
     null
