@@ -11064,6 +11064,11 @@
     "bet365"
    ]
   },
+  "result": {
+   "scorer": "4871144",
+   "team": "HOU",
+   "tip": "HOU"
+  },
   "tip_home": 0.605
  },
  "401909944": {
@@ -11358,7 +11363,7 @@
    ],
    "4066336": [
     "Lauri Markkanen",
-    0.11,
+    0.109,
     null,
     false,
     null
@@ -11407,7 +11412,7 @@
    ],
    "4873138": [
     "Ace Bailey",
-    0.095,
+    0.094,
     null,
     false,
     null
@@ -11420,12 +11425,12 @@
     null
    ]
   },
-  "tip_home": 0.557
+  "tip_home": 0.558
  },
  "401909948": {
   "away": "BKN",
   "date": "2026-11-08",
-  "first_home": 0.514,
+  "first_home": 0.515,
   "home": "DAL",
   "jumpers": [
    [
@@ -11475,7 +11480,7 @@
    ],
    "4432582": [
     "Max Christie",
-    0.075,
+    0.076,
     null,
     false,
     null
@@ -11509,7 +11514,7 @@
     null
    ]
   },
-  "tip_home": 0.543
+  "tip_home": 0.544
  },
  "401909949": {
   "away": "BOS",
@@ -11865,7 +11870,7 @@
     null
    ]
   },
-  "tip_home": 0.325
+  "tip_home": 0.326
  },
  "401909953": {
   "away": "CLE",
@@ -11934,7 +11939,7 @@
    ],
    "4576087": [
     "Peyton Watson",
-    0.103,
+    0.102,
     null,
     false,
     null
@@ -12166,7 +12171,7 @@
    ],
    "4017837": [
     "Ivica Zubac",
-    0.092,
+    0.091,
     null,
     false,
     null
@@ -12221,12 +12226,12 @@
     null
    ]
   },
-  "tip_home": 0.376
+  "tip_home": 0.377
  },
  "401909957": {
   "away": "DEN",
   "date": "2026-11-09",
-  "first_home": 0.527,
+  "first_home": 0.534,
   "home": "HOU",
   "jumpers": [
    [
@@ -12248,21 +12253,21 @@
    ],
    "3064290": [
     "Aaron Gordon",
-    0.096,
+    0.095,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.103,
+    0.102,
     null,
     false,
     null
    ],
    "3138196": [
     "Cameron Johnson",
-    0.082,
+    0.08,
     null,
     false,
     null
@@ -12276,21 +12281,21 @@
    ],
    "3936299": [
     "Jamal Murray",
-    0.101,
+    0.099,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.073,
+    0.072,
     null,
     false,
     null
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.092,
+    0.091,
     null,
     false,
     null
@@ -12304,13 +12309,13 @@
    ],
    "4871144": [
     "Alperen Sengun",
-    0.113,
+    0.122,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.581
+  "tip_home": 0.602
  },
  "401909958": {
   "away": "SA",
@@ -12330,14 +12335,14 @@
   "players": {
    "3136193": [
     "Devin Booker",
-    0.118,
+    0.115,
     null,
     false,
     null
    ],
    "3155526": [
     "Dillon Brooks",
-    0.085,
+    0.083,
     null,
     false,
     null
@@ -12351,7 +12356,7 @@
    ],
    "4066383": [
     "Miles Bridges",
-    0.086,
+    0.084,
     null,
     false,
     null
@@ -12365,7 +12370,7 @@
    ],
    "4437244": [
     "Jalen Green",
-    0.074,
+    0.081,
     null,
     false,
     null
@@ -12399,7 +12404,7 @@
     null
    ]
   },
-  "tip_home": 0.356
+  "tip_home": 0.355
  },
  "401909959": {
   "away": "NO",
