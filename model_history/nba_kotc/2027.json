@@ -7105,49 +7105,49 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.1856,
+    "lead": 0.1853,
     "name": "Victor Wembanyama",
     "proj": 44.2,
     "team": "SA"
    },
    {
     "id": "3975",
-    "lead": 0.1026,
+    "lead": 0.1042,
     "name": "Stephen Curry",
-    "proj": 39.8,
+    "proj": 39.9,
     "team": "GS"
    },
    {
     "id": "3112335",
-    "lead": 0.0825,
+    "lead": 0.0824,
     "name": "Nikola Jokic",
     "proj": 38.5,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.0814,
+    "lead": 0.0811,
     "name": "Alperen Sengun",
     "proj": 38.8,
     "team": "HOU"
    },
    {
     "id": "4432166",
-    "lead": 0.0576,
+    "lead": 0.0575,
     "name": "Cade Cunningham",
     "proj": 37.2,
     "team": "DET"
    },
    {
     "id": "4065733",
-    "lead": 0.0514,
+    "lead": 0.0513,
     "name": "Ty Jerome",
     "proj": 36.3,
     "team": "MEM"
    },
    {
     "id": "4701230",
-    "lead": 0.0485,
+    "lead": 0.0481,
     "name": "Jalen Johnson",
     "proj": 35.9,
     "team": "ATL"
@@ -7168,14 +7168,14 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0405,
+    "lead": 0.0404,
     "name": "Jamal Murray",
     "proj": 34.8,
     "team": "DEN"
    },
    {
     "id": "6583",
-    "lead": 0.038,
+    "lead": 0.0378,
     "name": "Anthony Davis",
     "proj": 34.9,
     "team": "WSH"
@@ -7196,21 +7196,21 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0215,
+    "lead": 0.0213,
     "name": "Pascal Siakam",
     "proj": 32.9,
     "team": "IND"
    },
    {
     "id": "5175737",
-    "lead": 0.0173,
+    "lead": 0.0183,
     "name": "Yaxel Lendeborg",
-    "proj": 31.9,
+    "proj": 32.0,
     "team": "GS"
    },
    {
     "id": "4395625",
-    "lead": 0.0128,
+    "lead": 0.0127,
     "name": "RJ Barrett",
     "proj": 31.1,
     "team": "TOR"
@@ -7238,9 +7238,9 @@
    },
    {
     "id": "3202",
-    "lead": 0.0083,
+    "lead": 0.0081,
     "name": "Kevin Durant",
-    "proj": 29.4,
+    "proj": 29.5,
     "team": "HOU"
    },
    {
@@ -7252,7 +7252,7 @@
    },
    {
     "id": "4395628",
-    "lead": 0.0054,
+    "lead": 0.0053,
     "name": "Zion Williamson",
     "proj": 28.7,
     "team": "NO"
@@ -7273,7 +7273,7 @@
    },
    {
     "id": "5037871",
-    "lead": 0.0049,
+    "lead": 0.0048,
     "name": "Dylan Harper",
     "proj": 27.7,
     "team": "SA"
@@ -7301,9 +7301,9 @@
    },
    {
     "id": "3907497",
-    "lead": 0.0036,
+    "lead": 0.0037,
     "name": "Dejounte Murray",
-    "proj": 27.5,
+    "proj": 27.6,
     "team": "NO"
    },
    {
@@ -7352,7 +7352,7 @@
     "id": "4709138",
     "lead": 0.0014,
     "name": "Brandin Podziemski",
-    "proj": 25.3,
+    "proj": 25.4,
     "team": "GS"
    },
    {
@@ -7366,7 +7366,7 @@
     "id": "5144091",
     "lead": 0.001,
     "name": "Jeremiah Fears",
-    "proj": 24.2,
+    "proj": 24.3,
     "team": "NO"
    },
    {
