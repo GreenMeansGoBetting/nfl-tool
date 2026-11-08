@@ -11885,12 +11885,12 @@
  "401909953": {
   "away": "CLE",
   "date": "2026-11-09",
-  "first_home": 0.429,
+  "first_home": 0.434,
   "home": "CHA",
   "jumpers": [
    [
-    "4432158",
-    "Evan Mobley"
+    "4066328",
+    "Jarrett Allen"
    ],
    [
     "4433249",
@@ -11900,86 +11900,86 @@
   "players": {
    "3908809": [
     "Donovan Mitchell",
-    0.112,
+    0.11,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.104,
+    0.101,
+    null,
+    false,
+    null
+   ],
+   "4066328": [
+    "Jarrett Allen",
+    0.115,
     null,
     false,
     null
    ],
    "4395651": [
     "Coby White",
-    0.083,
+    0.084,
     null,
     false,
     null
    ],
    "4396971": [
     "Naz Reid",
-    0.092,
+    0.094,
     null,
     false,
     null
    ],
    "4432158": [
     "Evan Mobley",
-    0.128,
+    0.119,
     null,
     false,
     null
    ],
    "4433249": [
     "Moussa Diabate",
-    0.084,
+    0.085,
     null,
     false,
     null
    ],
    "4433287": [
     "Brandon Miller",
-    0.093,
+    0.094,
     null,
     false,
     null
    ],
    "4576087": [
     "Peyton Watson",
-    0.102,
+    0.099,
     null,
     false,
     null
    ],
    "4602025": [
     "Sion James",
-    0.059,
-    null,
-    false,
-    null
-   ],
-   "5041951": [
-    "Meleek Thomas",
-    0.102,
+    0.06,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.286
+  "tip_home": 0.302
  },
  "401909954": {
   "away": "WSH",
   "date": "2026-11-09",
-  "first_home": 0.449,
+  "first_home": 0.455,
   "home": "DET",
   "jumpers": [
    [
-    "5160992",
-    "Alex Sarr"
+    "6583",
+    "Anthony Davis"
    ],
    [
     "4278562",
@@ -11989,76 +11989,76 @@
   "players": {
    "3157465": [
     "Duncan Robinson",
-    0.083,
+    0.085,
     null,
     false,
     null
    ],
    "3908845": [
     "John Collins",
-    0.089,
+    0.09,
     null,
     false,
     null
    ],
    "4277905": [
     "Trae Young",
-    0.104,
+    0.098,
     null,
     false,
     null
    ],
    "4278562": [
     "Paul Reed",
-    0.081,
+    0.083,
     null,
     false,
     null
    ],
    "4432166": [
     "Cade Cunningham",
-    0.094,
+    0.095,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.083,
-    null,
-    false,
-    null
-   ],
-   "5104155": [
-    "Bilal Coulibaly",
-    0.104,
+    0.084,
     null,
     false,
     null
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.119,
+    0.114,
     null,
     false,
     null
    ],
    "5160992": [
     "Alex Sarr",
-    0.1,
+    0.096,
     null,
     false,
     null
    ],
    "5174563": [
     "Kyshawn George",
-    0.102,
+    0.097,
+    null,
+    false,
+    null
+   ],
+   "6583": [
+    "Anthony Davis",
+    0.118,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.345
+  "tip_home": 0.366
  },
  "401909955": {
   "away": "MEM",
@@ -12521,6 +12521,13 @@
    ]
   ],
   "players": {
+   "3062679": [
+    "Josh Hart",
+    0.079,
+    null,
+    false,
+    null
+   ],
    "3133628": [
     "Myles Turner",
     0.081,
@@ -12537,35 +12544,28 @@
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.106,
+    0.11,
     null,
     false,
     null
    ],
    "3147657": [
     "Mikal Bridges",
-    0.083,
-    null,
-    false,
-    null
-   ],
-   "3914044": [
-    "Landry Shamet",
-    0.096,
+    0.085,
     null,
     false,
     null
    ],
    "3934672": [
     "Jalen Brunson",
-    0.12,
+    0.124,
     null,
     false,
     null
    ],
    "3934719": [
     "OG Anunoby",
-    0.112,
+    0.118,
     null,
     false,
     null
@@ -12898,16 +12898,23 @@
     false,
     null
    ],
+   "4066320": [
+    "Desmond Bane",
+    0.101,
+    null,
+    false,
+    null
+   ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.1,
+    0.104,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.132,
+    0.137,
     null,
     false,
     null
@@ -12919,16 +12926,9 @@
     false,
     null
    ],
-   "4702382": [
-    "Tristan da Silva",
-    0.112,
-    null,
-    false,
-    null
-   ],
    "4712849": [
     "Anthony Black",
-    0.092,
+    0.093,
     null,
     false,
     null
@@ -12942,7 +12942,7 @@
    ],
    "5239561": [
     "Jase Richardson",
-    0.078,
+    0.08,
     null,
     false,
     null
