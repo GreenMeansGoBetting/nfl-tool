@@ -6701,14 +6701,14 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0662,
+    "lead": 0.066,
     "name": "Darius Acuff Jr.",
     "proj": 39.1,
     "team": "SAC"
    },
    {
     "id": "4431678",
-    "lead": 0.0488,
+    "lead": 0.0487,
     "name": "Tyrese Maxey",
     "proj": 37.4,
     "team": "PHI"
@@ -6743,9 +6743,9 @@
    },
    {
     "id": "3917376",
-    "lead": 0.0175,
+    "lead": 0.0179,
     "name": "Jaylen Brown",
-    "proj": 33.5,
+    "proj": 33.6,
     "team": "PHI"
    },
    {
@@ -7004,7 +7004,7 @@
     "id": "4711294",
     "lead": 0.0002,
     "name": "Matas Buzelis",
-    "proj": 19.0,
+    "proj": 19.1,
     "team": "CHI"
    },
    {
