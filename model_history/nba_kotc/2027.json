@@ -7105,23 +7105,23 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3867,
+    "lead": 0.3872,
     "name": "Luka Doncic",
     "proj": 53.7,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1355,
+    "lead": 0.1357,
     "name": "Victor Wembanyama",
     "proj": 44.2,
     "team": "SA"
    },
    {
     "id": "3975",
-    "lead": 0.0683,
+    "lead": 0.0669,
     "name": "Stephen Curry",
-    "proj": 40.4,
+    "proj": 40.3,
     "team": "GS"
    },
    {
@@ -7140,14 +7140,14 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0401,
+    "lead": 0.0403,
     "name": "Cooper Flagg",
     "proj": 36.9,
     "team": "DAL"
    },
    {
     "id": "4433134",
-    "lead": 0.0316,
+    "lead": 0.0318,
     "name": "Scottie Barnes",
     "proj": 35.8,
     "team": "TOR"
@@ -7182,7 +7182,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0175,
+    "lead": 0.0176,
     "name": "Donovan Mitchell",
     "proj": 33.6,
     "team": "CLE"
@@ -7196,14 +7196,14 @@
    },
    {
     "id": "3149673",
-    "lead": 0.013,
+    "lead": 0.0131,
     "name": "Pascal Siakam",
     "proj": 32.6,
     "team": "IND"
    },
    {
     "id": "4066457",
-    "lead": 0.0117,
+    "lead": 0.0118,
     "name": "Austin Reaves",
     "proj": 32.2,
     "team": "LAL"
@@ -7378,7 +7378,7 @@
    },
    {
     "id": "4431680",
-    "lead": 0.0005,
+    "lead": 0.0006,
     "name": "Onyeka Okongwu",
     "proj": 24.2,
     "team": "ATL"
@@ -7415,7 +7415,7 @@
     "id": "4397136",
     "lead": 0.0002,
     "name": "Saddiq Bey",
-    "proj": 22.3,
+    "proj": 22.2,
     "team": "NO"
    },
    {
@@ -7461,18 +7461,18 @@
     "team": "ATL"
    },
    {
-    "id": "4869780",
-    "lead": 0.0,
-    "name": "Derik Queen",
-    "proj": 21.1,
-    "team": "NO"
-   },
-   {
     "id": "4278355",
     "lead": 0.0,
     "name": "Obi Toppin",
     "proj": 21.0,
     "team": "IND"
+   },
+   {
+    "id": "4869780",
+    "lead": 0.0,
+    "name": "Derik Queen",
+    "proj": 21.0,
+    "team": "NO"
    },
    {
     "id": "2490149",
