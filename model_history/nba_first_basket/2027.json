@@ -12452,14 +12452,14 @@
   "players": {
    "3442": [
     "DeAndre Jordan",
-    0.078,
+    0.08,
     null,
     false,
     null
    ],
    "3907497": [
     "Dejounte Murray",
-    0.101,
+    0.104,
     800,
     false,
     "fanduel"
@@ -12471,12 +12471,12 @@
     false,
     "fanduel"
    ],
-   "4395628": [
-    "Zion Williamson",
-    0.12,
-    550,
+   "4277813": [
+    "Herbert Jones",
+    0.119,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4709138": [
     "Brandin Podziemski",
@@ -12494,14 +12494,14 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.11,
+    0.108,
     1100,
     true,
     "fanduel"
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.12,
+    0.119,
     800,
     false,
     "fanduel"
@@ -13609,14 +13609,21 @@
    ],
    "3442": [
     "DeAndre Jordan",
-    0.069,
+    0.07,
     null,
     false,
     null
    ],
    "3907497": [
     "Dejounte Murray",
-    0.089,
+    0.091,
+    null,
+    false,
+    null
+   ],
+   "4277813": [
+    "Herbert Jones",
+    0.105,
     null,
     false,
     null
@@ -13624,13 +13631,6 @@
    "4278104": [
     "Michael Porter Jr.",
     0.107,
-    null,
-    false,
-    null
-   ],
-   "4395628": [
-    "Zion Williamson",
-    0.106,
     null,
     false,
     null
@@ -13644,7 +13644,7 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.097,
+    0.095,
     null,
     false,
     null
