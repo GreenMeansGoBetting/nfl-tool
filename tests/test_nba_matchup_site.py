@@ -232,3 +232,42 @@ class Page(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WhoIsBehindIt(unittest.TestCase):
+    # A member, 2026-11-09: click a Matchup row (Paint FG%) for "a few players that score high in paint
+    # for that team", guards included; transition too ("assists or scoring in transition").
+    def test_a_stat_name_opens_both_teams_players(self):
+        fields = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta", "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score", "oreb", "dreb"]
+        def log(fga, mins=30):
+            return [["2026-10-1%d" % d, d, "XXX", 1, 1, mins, 20, fga, 1, 3, 4, 8, 3, 5, 4, 1, 0, 2, 2, 0, 110, 100, 1, 4] for d in range(3)]
+        players = {
+            "10": {"name": "Big Guard", "team": "BOS", "pos": "PG", "log": log(20), "zones": {"rim": 0.5, "short": 0.1, "mid": 0.1, "corner3": 0.1, "above3": 0.2},
+                   "zone_pct": {"rim": [0.6, 30], "short": [0.4, 6], "mid": [0.5, 6]}, "kinds": {"catch": 0.2}, "assisted": 0.4},
+            "11": {"name": "Small Center", "team": "BOS", "pos": "C", "log": log(10), "zones": {"rim": 0.9, "short": 0.1, "mid": 0.0, "corner3": 0.0, "above3": 0.0},
+                   "zone_pct": {"rim": [0.7, 27], "short": [0.5, 3]}, "kinds": {"catch": 0.0}, "assisted": 0.8},
+            "12": {"name": "Bench Guy", "team": "BOS", "pos": "SF", "log": log(30, mins=8), "zones": {"rim": 1.0}, "zone_pct": {"rim": [0.5, 90]}},
+            "20": {"name": "Det Wing", "team": "DET", "pos": "SF", "log": log(12), "zones": {"rim": 0.3, "short": 0.1, "mid": 0.2, "corner3": 0.2, "above3": 0.2},
+                   "zone_pct": {"rim": [0.5, 10], "short": [0.5, 4]}},
+        }
+        SITE.nba_props = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "fields": fields, "players": players, "out": {}}},
+                          "research": {"players": {"10": {"trans": [18, 60], "ap": [40, 12, 3]}}}}
+        try:
+            PAGE.click(".mb-matchup td.mb-who[data-who='paint_pct']")
+            PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-table")
+            boxes = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .mb-whobox')].map((b) => [...b.querySelectorAll('tr:not(.mb-heads)')].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\\s+/g, ' ').trim())))")
+            bos, det = boxes
+            # the guard first: 20 shots a game x 60% of them in the paint = 12.0; the bench player (8 min) left off
+            self.assertEqual([r[0].split(" ")[0] for r in bos], ["Big", "Small"])
+            # paint FG% (0.6*30 + 0.4*6) / 36; team share counts every BOS player, the bench one too: 12 of 52 a game
+            self.assertEqual(bos[0][3:6], ["12.0", "57%", "23%"])
+            self.assertIn("Det Wing", det[0][0])
+            PAGE.keyboard.press("Escape")
+            PAGE.click(".mb-matchup td.mb-who[data-who='trans_freq']")
+            PAGE.wait_for_function("() => document.querySelector('#mb-who-content').innerText.includes('TRANS') || document.querySelector('#mb-who-content').innerText.includes('Trans')")
+            first = PAGE.evaluate("() => [...document.querySelector('#mb-who-modal .mb-whobox tr:not(.mb-heads)').children].map((td) => td.innerText.trim())")
+            self.assertEqual(first[3:6], ["6.0", "30%", "1.0"])  # 18 transition points in 3 games, 18 of 60, 3 transition assists
+            self.assertEqual(PAGE.locator(".mb-matchup td.mb-who[data-who='pace']").count(), 0)  # a team-only number
+        finally:
+            PAGE.keyboard.press("Escape")
+        self.assertEqual(SITE.errors, [])

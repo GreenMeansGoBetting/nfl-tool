@@ -76,6 +76,21 @@
 /* group names on a filled green band across both halves (the owner, 2026-10-29: "the white looks bad") */
 .mb-matchup .mb-group td { padding: 6px 4px; border-radius: 7px; border-bottom: 0; color: var(--good-text); background: rgba(var(--good-rgb), 0.2); }.mb-table tr.mb-heads th { padding-top: 2px; }
 
+/* a stat name opens who's behind it (a member, 2026-11-09) */
+.mb-matchup td.mb-who { cursor: pointer; }
+.mb-matchup td.mb-who:hover { background: rgba(var(--accent-rgb), 0.22); }
+.mb-matchup td.mb-who::after { content: "\25B8"; margin-left: 4px; font-size: 0.7rem; opacity: 0.7; }
+#mb-who-modal .modal-box { width: auto; max-width: min(1340px, 96vw); }
+.mb-who-title { margin: 0 0 2px; }
+.mb-who-note { margin: 0 0 10px; font-size: 0.82rem; color: var(--muted); }
+.mb-who-pair { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.mb-whobox { padding-bottom: 6px; }
+.mb-who-table .mb-heads th { padding: 4px 6px 2px; font-size: 0.74rem; white-space: nowrap; }
+.mb-who-table .mb-v { min-width: 52px; padding: 0 6px; }
+.mb-who-table .mb-v.mb-plain { min-width: 36px; }
+.mb-who-name { padding-right: 10px; }
+.mb-who-name .gs-inj-status { margin-left: 4px; }
+
 /* Head To Head: Season, Points Per Quarter and Blowout Data side by side */
 /* (the owner, 2026-10-29): three shaded panels in one row, each named on top */
 .mb-parts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: stretch; padding: 0 8px; }
