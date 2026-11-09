@@ -199,7 +199,7 @@ class WhoIsBehindIt(unittest.TestCase):
             boxes = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .mb-whobox')].map((b) => [...b.querySelectorAll('tr:not(.mb-heads)')].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\\s+/g, ' ').trim())))")
             bos, det_def, det, bos_def = boxes  # both directions: BOS offense | DET defense, then DET offense | BOS defense
             heads = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .team-banner-name')].map((b) => b.textContent)")
-            self.assertEqual(heads, ["Boston Celtics Offense", "Detroit Pistons Defense: Allowed By Position", "Detroit Pistons Offense", "Boston Celtics Defense: Allowed By Position"])
+            self.assertEqual(heads, ["Boston Celtics Offense", "Allowed By Position", "Detroit Pistons Offense", "Allowed By Position"])
             # DET's defense: what it allowed PGs (Big Guard, 20 points on 8 of 20 a game in 3 games), and BOS's PGs' paint shots
             self.assertEqual(det_def[0][0], "PG")
             self.assertEqual(det_def[0][-1], "12.0")
@@ -213,7 +213,7 @@ class WhoIsBehindIt(unittest.TestCase):
             PAGE.click(".mb-matchup td.mb-who-v[data-who='paint'][data-o='BOS'][data-d='DET'] >> nth=1")
             PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-dir")
             self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .team-banner-name')].map((b) => b.textContent)"),
-                             ["Boston Celtics Offense", "Detroit Pistons Defense: Allowed By Position"])
+                             ["Boston Celtics Offense", "Allowed By Position"])
             PAGE.evaluate("() => { const s = document.querySelector('#mb-who-modal .mb-who-table tr:not(.mb-heads)'); return s && s.textContent; }")
             PAGE.keyboard.press("Escape")
             PAGE.click(".mb-matchup td.mb-who[data-who='transition']")
@@ -237,8 +237,8 @@ class WhoIsBehindIt(unittest.TestCase):
             team = PAGE.evaluate("(el) => el.closest('.mk-edges').dataset.team", box.element_handle())
             box.click()
             PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-dir")
-            first = PAGE.evaluate("() => document.querySelector('#mb-who-modal .team-banner-name').textContent")
-            self.assertTrue(first.startswith({"BOS": "Boston Celtics", "DET": "Detroit Pistons"}[team]), first)
+            first = PAGE.evaluate("() => document.querySelector('#mb-who-modal .mb-whobox').dataset.team")
+            self.assertEqual(first, team)
             self.assertEqual(PAGE.locator("#mb-who-modal .mb-who-dir").count(), 1)
             PAGE.keyboard.press("Escape")
             self.assertEqual(PAGE.locator(".mk-ov .mks-span.mk-who").count(), 0)  # Pace: no player split

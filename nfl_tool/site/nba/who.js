@@ -138,12 +138,12 @@ function whoTeam(abbr, spec) {
     const tag = out.has(String(x.id)) ? `<span class="gs-inj-status tier-bad">Out</span>` : dtd.has(String(x.id)) ? `<span class="gs-inj-status tier-mid">DTD</span>` : "";
     const share = total ? ((x[spec.share] || 0) * x.gp) / total : null;
     return `<tr${out.has(String(x.id)) ? ' class="nba-out-row"' : ""}><td class="mb-stat mb-who-name">${playerClick(x.id, x.name)} <span class="muted-label">${x.pos || ""}</span>${tag}</td>
-      <td class="mb-v mb-plain">${x.gp}</td><td class="mb-v mb-plain">${numW(x.min)}</td>
+      ${whoTile("gp", x.gp, String, `${x.name}: ${x.gp} games played`)}${whoTile("min", x.min, numW, `${x.name}: ${numW(x.min)} minutes a game`)}
       ${cols.map(([l, k, f, t, flip]) => whoTile(k, x[k], f, `${x.name}: ${t} ${f(x[k])}`, flip)).join("")}
       <td class="mb-v"${share === null ? "" : ` style="background:${scaleHsla(Math.round(Math.min(1, share / 0.35) * 120), 70, 45, 0.32)}"`} title="${whoEsc(`${x.name}: ${pctW(share)} of ${abbr}'s ${WHO_COLS[spec.share][3].toLowerCase()} this season`)}"><b>${pctW(share)}</b></td></tr>`;
   }).join("");
   const t = whoTeamOf(abbr);
-  return `<div class="nba-box mb-teambox mb-whobox" style="--team:${whoRgb(abbr)}">${whoBanner(abbr, `${t.name} Offense`)}<table class="mb-table mb-who-table"><tbody>${head}${rows || `<tr><td class="mb-none" colspan="${cols.length + 4}">No rotation players yet</td></tr>`}</tbody></table></div>`;
+  return `<div class="nba-box mb-teambox mb-whobox" data-team="${abbr}" data-side="o" style="--team:${whoRgb(abbr)}">${whoBanner(abbr, `${t.name} Offense`)}<table class="mb-table mb-who-table"><tbody>${head}${rows || `<tr><td class="mb-none" colspan="${cols.length + 4}">No rotation players yet</td></tr>`}</tbody></table></div>`;
 }
 const whoBanner = (abbr, text) => {
   const t = whoTeamOf(abbr);
@@ -206,8 +206,18 @@ function whoDefBox(def, off, topic) {
   // the positions the offense leans on for this topic first (its rotation's share of the main number)
   const main = WHO[topic];
   const offRot = whoRotation(whoPlayers().filter((x) => x.team === off));
-  const lean = Object.fromEntries(WHO_POS.map((p) => [p, offRot.filter((x) => x.pos === p).reduce((n, x) => n + (x[main.sort] || 0), 0)]));
-  const head = `<tr class="mb-heads"><th>Position</th>${cols.map(([, l, , , t]) => `<th title="${t}">${l}</th>`).join("")}<th title="How much of ${off}'s ${WHO_COLS[main.sort][0]} a game its rotation players at this position put up">${off} ${WHO_COLS[main.sort][0]}</th></tr>`;
+  const leanOf = (rot) => Object.fromEntries(WHO_POS.map((p) => [p, rot.filter((x) => x.pos === p).reduce((n, x) => n + (x[main.sort] || 0), 0)]));
+  const lean = leanOf(offRot);
+  const rotAll = whoRotation(whoPlayers());
+  const leanAll = Object.keys(A.games).map((tm) => leanOf(rotAll.filter((x) => x.team === tm)));
+  const leanTile = (pos) => {
+    const v = lean[pos], all = leanAll.map((l) => l[pos]);
+    const p = all.length ? (all.filter((x) => x < v).length + 0.5 * all.filter((x) => x === v).length) / all.length : null;
+    const flip = WHO_COLS[main.sort][4];
+    const hue = p === null ? null : Math.round((flip ? 1 - p : p) * 120);
+    return `<td class="mb-v"${hue === null ? "" : ` style="background:${scaleHsla(hue, 70, 45, 0.32)}"`} title="${whoEsc(`${off}'s ${pos}s: ${numW(v)} ${WHO_COLS[main.sort][3].toLowerCase()}, colored against every team's ${pos}s`)}"><b>${numW(v)}</b></td>`;
+  };
+  const head = `<tr class="mb-heads"><th title="Position">Pos</th>${cols.map(([, l, , , t]) => `<th title="${t}">${l}</th>`).join("")}<th title="How much of ${off}'s ${WHO_COLS[main.sort][0]} a game its rotation players at this position put up">${off} ${WHO_COLS[main.sort][0]}</th></tr>`;
   const rows = WHO_POS.map((pos) => {
     const tiles = cols.map(([k, l, get, f, tip, good]) => {
       const v = val(def, pos, get);
@@ -218,9 +228,9 @@ function whoDefBox(def, off, topic) {
       const hue = all.length > 1 ? Math.round((120 * (all.length - rank)) / (all.length - 1)) : 60;
       return `<td class="mb-v" style="background:${scaleHsla(hue, 70, 45, 0.32)}" title="${whoEsc(`${def}: ${tip} (${pos}s) ${f(v)}, ${whoOrd(rank)} of ${all.length}`)}"><b>${f(v)}</b><small>${whoOrd(rank)}</small></td>`;
     }).join("");
-    return `<tr><td class="mb-stat">${pos}</td>${tiles}<td class="mb-v mb-plain">${numW(lean[pos])}</td></tr>`;
+    return `<tr><td class="mb-stat mb-who-pos">${pos}</td>${tiles}${leanTile(pos)}</tr>`;
   }).join("");
-  return `<div class="nba-box mb-teambox mb-whobox" style="--team:${whoRgb(def)}">${whoBanner(def, `${whoTeamOf(def).name} Defense: Allowed By Position`)}<table class="mb-table mb-who-table"><tbody>${head}${rows}</tbody></table></div>`;
+  return `<div class="nba-box mb-teambox mb-whobox mb-who-defbox" data-team="${def}" data-side="d" style="--team:${whoRgb(def)}" title="${whoEsc(`${whoTeamOf(def).name} defense`)}">${whoBanner(def, "Allowed By Position")}<table class="mb-table mb-who-table"><tbody>${head}${rows}</tbody></table></div>`;
 }
 
 function whoRender(topic, g, dirs) {
