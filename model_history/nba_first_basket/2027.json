@@ -11910,91 +11910,88 @@
  "401909953": {
   "away": "CLE",
   "date": "2026-11-09",
-  "first_home": 0.435,
+  "first_home": 0.5,
   "home": "CHA",
   "jumpers": [
    [
     "4066328",
     "Jarrett Allen"
    ],
-   [
-    "4433249",
-    "Moussa Diabate"
-   ]
+   null
   ],
   "players": {
    "3135045": [
     "Grayson Allen",
-    0.072,
+    0.086,
     1100,
     false,
     "fanduel"
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.11,
+    0.097,
     500,
     false,
     "fanduel"
    ],
    "3992": [
     "James Harden",
-    0.101,
+    0.089,
     800,
     false,
     "fanduel"
    ],
    "4066328": [
     "Jarrett Allen",
-    0.114,
+    0.101,
     500,
     false,
     "fanduel"
    ],
    "4395651": [
     "Coby White",
-    0.09,
+    0.109,
     1100,
-    false,
+    true,
     "fanduel"
    ],
    "4396971": [
     "Naz Reid",
-    0.101,
+    0.124,
     750,
     false,
     "fanduel"
    ],
    "4432158": [
     "Evan Mobley",
-    0.118,
+    0.105,
     480,
     false,
     "fanduel"
    ],
-   "4433249": [
-    "Moussa Diabate",
-    0.089,
+   "4576060": [
+    "Ryan Kalkbrenner",
+    0.083,
     null,
     false,
     null
    ],
    "4576087": [
     "Peyton Watson",
-    0.099,
+    0.088,
     900,
     false,
     "fanduel"
    ],
    "4602025": [
     "Sion James",
-    0.066,
+    0.079,
     1400,
-    false,
+    true,
     "fanduel"
    ]
   },
-  "tip_home": 0.304
+  "tip_home": 0.5
  },
  "401909954": {
   "away": "WSH",
