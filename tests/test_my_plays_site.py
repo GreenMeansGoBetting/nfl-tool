@@ -169,6 +169,21 @@ class MyPlays(unittest.TestCase):
             page.close()
         self.assertEqual(SITE.errors, [])
 
+    def test_type_in_the_price_you_got(self):
+        # A member, 2026-11-09: the site saved -130, Novig gave him +105; the record grades on his price.
+        page = open_my_plays()
+        try:
+            page.click('.mp-edit-price[data-id="nhl%3Asog%3A2026020088%3A8479996"]')
+            page.fill(".mp-price-edit", "+105")
+            page.press(".mp-price-edit", "Enter")
+            got = page.evaluate("() => { const p = loadNhlPlays().find((x) => x.market === 'sog'); return [p.odds, p.odds_site]; }")
+            self.assertEqual(got, [105, -120])
+            self.assertEqual(page.locator(".mp-price-edit").count(), 0)  # the box closes
+            self.assertIn("-120", page.get_attribute(".mp-odds-mine", "title"))
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])
+
     def test_my_plays_is_its_own_button(self):
         page = open_my_plays()
         try:
@@ -236,7 +251,7 @@ class ParlayWheel(unittest.TestCase):
 class Sorting(unittest.TestCase):
     def test_a_column_header_sorts_and_flips(self):
         page = open_my_plays()
-        odds = "() => [...document.querySelectorAll('.mp-table tbody tr')].map((r) => r.children[6].textContent.trim())"
+        odds = "() => [...document.querySelectorAll('.mp-table tbody tr')].map((r) => (r.children[6].querySelector('.mp-odds') || r.children[6]).textContent.trim())"  # the price, not its pencil
         try:
             page.click('.mp-sort[data-sort="odds"]')
             self.assertEqual(page.evaluate(odds)[:2], ["+300", "+200"])  # longest first

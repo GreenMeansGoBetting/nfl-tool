@@ -146,7 +146,16 @@ function sideCell(g, pid, side, line, tm) {
   const pill = bookPricePill(spec);
   if (!pill) return '<td class="rs-price"><span class="muted-label">--</span></td>';
   const mine = window.bookPlaySaver.saved(save);
-  return `<td class="rs-price">${pill}${mine ? `<span class="rs-saved" title="In My Plays at ${showOdds(Number(mine.odds))} (${GMG_BOOKS[mine.book] || mine.book})">&#10003;</span>` : ""}</td>`;
+  if (mine) return `<td class="rs-price">${pill}<span class="rs-saved" title="In My Plays at ${showOdds(Number(mine.odds))} (${GMG_BOOKS[mine.book] || mine.book})">&#10003;</span></td>`;
+  // an alt line (or a main line the books have since moved off) on this side: a check with "Alt" (a member, 2026-11-09)
+  const alts = otherSaved(save);
+  return `<td class="rs-price">${pill}${alts.length ? `<span class="rs-saved rs-saved-alt" title="In My Plays:\n${alts.map((s) => `${s.side === "under" ? "Under" : "Over"} ${s.line} at ${showOdds(Number(s.odds))} (${GMG_BOOKS[s.book] || s.book})`).join("\n")}">&#10003;<small>Alt</small></span>` : ""}</td>`;
+}
+// Every saved play on this player, stat, game and side at another line than tonight's main one.
+function otherSaved(k) {
+  const side = k.side === "u" ? "under" : "over";
+  return loadNbaPlays().filter((s) => s.market === (k.mk || MK.market) && String(s.game_id) === String(k.gid)
+    && String(s.player_id) === String(k.pid) && s.side === side && Number(s.line) !== Number(k.line));
 }
 const rsEntry = (k, book = null, odds = null) => nbaCardEntry(k.mk || MK.market, { game_id: k.gid, date: k.date, away: k.away, home: k.home },
   { id: k.pid, name: nameOf(k.pid), team: k.tm }, k.side, k.line, [book, null, null, odds]);
@@ -366,7 +375,9 @@ function rowsOn(date) {
       const opp = tm === g.home ? g.away : g.home;
       const vals = log.map((r) => statOf(r, f));
       const last5 = log.slice(-5);
+      const lastRow = log.length ? log[log.length - 1] : null;
       out.push({
+        last: lastRow ? { v: statOf(lastRow, f), s: spread(statOf(lastRow, f), vals), date: lastRow[f.date], opp: lastRow[f.opp], home: Boolean(lastRow[f.home]) } : null,
         mk: MK.market, g, pid, p, team: tm, opp, home: tm === g.home, line, status, live: past ? false : started(g), gp: log.length, past, cut,
         result: night ? statOf(night, f) : null, resultMin: night ? night[f.min] : null,
         avg: avg(vals), min: mins, ...listNums(p, pid, log), ...(fz && fz[3] !== null && fz[3] !== undefined ? { vol: fz[3] } : {}),
@@ -417,6 +428,7 @@ const SORTS = {
   ro: (x) => (x.reads.n ? x.reads.o / x.reads.n : -1), ru: (x) => (x.reads.n ? x.reads.u / x.reads.n : -1),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
   result: (x) => x.result ?? -1,
+  last: (x) => (x.last && x.last.s !== null ? x.last.s : -2),
 };
 // All Props: every market's rows on one list, each row keeping its market (x.mk)
 function rowsOnAll(date) {
@@ -451,6 +463,7 @@ const colsFor = () => [
   { label: "Volume", key: "vol", title: THREES ? "The share of his shots that are threes this season (colored against his position)"
     : REBS ? "His share of the rebounds there to get while he's on the floor this season (colored against his position)"
     : ASTS ? "His assist rate: the share of his teammates' made shots he assisted while on the floor this season (colored against his position)" : "His share of his team's shots while he's on the floor this season (colored against his position)" }]),
+  { label: "Last<br>Game", key: "last", title: `What he put up in his last game, and how far that was from his average (colored against his own games this season: green = one of his best, red = one of his worst; sorts by that)` },
   { label: "L5", key: "l5", hit: true, title: "His last 5 games over tonight's line" },
   { label: "L10", key: "l10", hit: true, title: "His last 10 games over tonight's line" },
   { label: "Season", key: "all", hit: true, title: "This season's games over tonight's line" },
@@ -499,6 +512,16 @@ function hitCell(h, title) {
   const style = ` style="background:${scaleHsla(hue, 78, 44, 0.24 + Math.min(0.3, Math.abs(share - 0.5)) * 1.1)}"`;
   return `<td class="num sim-hit"${style} title="${title}">${Math.round(share * 100)}%<small>${h.over} of ${h.of}</small></td>`;
 }
+// Last Game (a member, 2026-11-09: "if someone goes extremely above or below their average the game
+// before, they tend to bounce back"): his number, colored by where it sits among his own games this
+// season, with the gap from his average under it. A number only, never a call.
+function lastCell(x) {
+  const L = x.last;
+  if (!L) return '<td class="num rs-two">--</td>';
+  const st = stepStyle(L.s);
+  const tip = `${nameOf(x.pid)}: ${L.v} ${MK.unit.toLowerCase()} ${L.home ? "vs" : "@"} ${L.opp} on ${gameDate(L.date)} (his average ${fmt(x.avg)})`;
+  return `<td class="num rs-two"${st ? ` style="${st}"` : ""} title="${tip}"><b>${L.v}</b><small>${x.avg === null ? "" : sgn(L.v - x.avg)}</small></td>`;
+}
 function allowCell(x) {
   if (!x.allow) return '<td class="num rs-allow">--</td>';
   const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${dWords(dRank(x.allowRank, x.allowN), x.allowN)}, over ${x.allow.n} games`;
@@ -545,6 +568,7 @@ function row(x) {
     ${one(fmt(x.avg), x.avg, pool.avgV, `${fmt(x.avg)} ${MK.unit.toLowerCase()} a game in ${x.gp} games`)}
     ${ALL_PROPS ? "" : one(fmt(x.second), x.second, pool.second, THREES ? `${fmt(x.second)} threes tried a game` : `${fmt(x.second)} minutes a game`)}
     ${ALL_PROPS ? "" : one(pctT(x.vol), x.vol, pool.vol, THREES ? `${pctT(x.vol)} of his shots are threes` : REBS ? `He grabs ${pctT(x.vol)} of the rebounds while he's on the floor` : ASTS ? `He assisted ${pctT(x.vol)} of his teammates' made shots while on the floor` : `${pctT(x.vol)} of his team's shots while he's on the floor`)}
+    ${lastCell(x)}
     ${hitCell(x.hits.l5, `Last 5 games over ${ln}`)}${hitCell(x.hits.l10, `Last 10 games over ${ln}`)}${hitCell(x.hits.all, `This season's games over ${ln}`)}${hitCell(x.hits.home, `Home games over ${ln}`)}${hitCell(x.hits.away, `Road games over ${ln}`)}
     ${allowCell(x)}
     ${readCells(x)}

@@ -293,9 +293,18 @@ function renderSummary(list) {
   const clear = picked.length ? `<button type="button" class="results-clear-selection" id="mp-clear">Clear checked</button>` : "";
   document.getElementById("mp-summary").innerHTML = list.length ? `<div class="results-type-summary mp-summary">${lines.join("")}</div>${clear}` : "";
 }
+// A member's own price (a member, 2026-11-09: the site showed -130, Novig gave him +105): the pencil
+// beside a price opens a box; what's typed there replaces the price and the record grades on it.
+// `odds_site` keeps the price the site saved, shown in the hover.
+let mpEditing = null; // the play whose price box is open
+const americanText = (n) => (Number(n) > 0 ? `+${Number(n)}` : String(Number(n)));
 function oddsCell(p) {
-  if (mpHas(p.odds) && p.odds !== "") return `<td class="num">${showOdds(p.odds)}</td>`;
-  return `<td class="num"><input type="text" class="mp-price" data-id="${encodeURIComponent(p.id)}" placeholder="Price" size="5" title="The price your book gave you for this stack"></td>`;
+  const id = encodeURIComponent(p.id);
+  if (!(mpHas(p.odds) && p.odds !== "")) return `<td class="num"><input type="text" class="mp-price" data-id="${id}" placeholder="Price" size="5" title="The price your book gave you for this stack"></td>`;
+  if (mpEditing === p.id) return `<td class="num"><input type="text" class="mp-price mp-price-edit" data-id="${id}" value="${americanText(p.odds)}" size="5" title="Type the price you got (like +105 or -120), then Enter"></td>`;
+  const mine = mpHas(p.odds_site) && Number(p.odds_site) !== Number(p.odds);
+  const tip = mine ? `Your price (the site saved ${showOdds(p.odds_site)})` : "The price saved with the play";
+  return `<td class="num mp-odds-cell"><span class="mp-odds${mine ? " mp-odds-mine" : ""}" title="${tip}">${showOdds(p.odds)}</span><button type="button" class="mp-edit-price" data-id="${id}" title="Change to the price you got">&#9998;</button></td>`;
 }
 // A column header that sorts the list (click again to flip it).
 function sortHead(col, label, cls = "") {
@@ -627,6 +636,14 @@ document.addEventListener("click", (e) => {
     mpSelected.clear();
     return renderTable();
   }
+  const edit = e.target.closest(".mp-edit-price");
+  if (edit) {
+    mpEditing = decodeURIComponent(edit.dataset.id);
+    renderTable();
+    const box = document.querySelector(".mp-price-edit");
+    if (box) { box.focus(); box.select(); }
+    return;
+  }
   const remove = e.target.closest(".mp-remove");
   if (remove) {
     const p = playById(remove.dataset.id);
@@ -668,7 +685,9 @@ document.addEventListener("change", (e) => {
   if (price) {
     const p = playById(price.dataset.id);
     const n = readPrice(price.value);
-    if (p && n !== null) updatePlay(p, (x) => ({ ...x, odds: n }));
+    // the site's price is kept once, the first time the member changes it
+    if (p && n !== null) updatePlay(p, (x) => ({ ...x, odds: n, ...(mpHas(x.odds) && x.odds !== "" && !mpHas(x.odds_site) ? { odds_site: x.odds } : {}) }));
+    mpEditing = null;
     return render();
   }
 });

@@ -100,7 +100,7 @@ class Points(unittest.TestCase):
 
     def test_no_model_on_the_page(self):
         self.assertEqual(SITE.errors, [])
-        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "O", "U", "Pace", "Spread", "Total", "Teammates On The Report"])
+        self.assertEqual(head(self.page), ["Player", "Line", "Over", "Under", "Avg", "Min", "Volume", "Last Game", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "O", "U", "Pace", "Spread", "Total", "Teammates On The Report"])
         text = self.page.inner_text("main")
         for word in ("Edge", "Fair", "Rating", "Strong", "Projection", "Plays Only", "Model Performance", "10,000"):
             self.assertNotIn(word, text)
@@ -116,11 +116,13 @@ class Points(unittest.TestCase):
         self.assertEqual(one[4], "20.0")  # 15, 15, 15, 25, 25, 25
         self.assertEqual(one[5], "35.0")
         self.assertEqual(one[6], "28%")
-        self.assertEqual(one[7:10], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
+        # a member, 2026-11-09: his last game and its gap from his average (25 vs 20)
+        self.assertEqual(one[7], "25 +5.0")
+        self.assertEqual(one[8:11], ["60% 3 of 5", "50% 3 of 6", "50% 3 of 6"])
         # defenses ranked from the defense (the owner, 2026-11-06: "bad defense is red"): the most = last of 2, red
-        self.assertEqual(one[12], "22.0 2nd · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
-        self.assertEqual(one[16], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
-        self.assertEqual(one[17], "225.0 O/U")
+        self.assertEqual(one[13], "22.0 2nd · PG")  # BBB: 30 + 14 to PGs in 2 games, the most
+        self.assertEqual(one[17], "+3.5 AAA")  # tonight's game: his team's spread (on the road, BBB -3.5)
+        self.assertEqual(one[18], "225.0 O/U")
         self.assertRegex(self.page.inner_text("#rs-list .rs-price"), r"(FD|DK)")  # two-letter book codes
 
     def test_the_line_is_the_books_main_line(self):
@@ -157,6 +159,23 @@ class Points(unittest.TestCase):
             self.assertEqual(marks, [False, True])
         finally:
             page.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); const m = document.getElementById('book-odds-modal'); if (m) m.hidden = true; renderList(); }")
+        self.assertEqual(SITE.errors, [])
+
+    def test_an_alt_line_marks_the_row(self):
+        # A member, 2026-11-09: an alt line saved from the card's ladder left no mark on the prop page.
+        page = self.page
+        try:
+            page.evaluate("""() => {
+                const g = DATA.schedule.find((x) => x.away === 'AAA' && x.home === 'BBB');
+                const e = nbaCardEntry('points', g, { id: '1', name: 'Player One', team: 'AAA' }, 'o', 24.5, ['fanduel', null, null, 180], true);
+                localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify([e]));
+                renderList();
+            }""")
+            marks = page.evaluate("() => [...document.querySelectorAll('#rs-list tr.sim-row td.rs-price')].map((td) => td.querySelector('.rs-saved-alt') ? td.querySelector('.rs-saved-alt').title : '')")
+            self.assertIn("Over 24.5", marks[0])
+            self.assertEqual(marks[1], "")  # the Under side stays clear
+        finally:
+            page.evaluate("() => { localStorage.removeItem('nfl-tool.nba-plays.v1'); renderList(); }")
         self.assertEqual(SITE.errors, [])
 
     def test_reads_count_every_read_in_the_panel(self):
@@ -927,17 +946,18 @@ class PastNights(unittest.TestCase):
 
     def test_a_past_night(self):
         self.go("2026-10-23")  # game 4: his line was 19.5 and he scored 25
-        self.assertEqual(head(self.page), ["Player", "Line", "Avg", "Min", "Volume", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "O", "U", "Pace", "Spread", "Total", "Result"])
+        self.assertEqual(head(self.page), ["Player", "Line", "Avg", "Min", "Volume", "Last Game", "L5", "L10", "Season", "Home", "Away", "Opp Allows", "O", "U", "Pace", "Spread", "Total", "Result"])
         [one] = rows(self.page)
         self.assertIn("Player One", one[0])
         self.assertNotIn("DTD", one[0])  # tonight's injury report doesn't belong on a past night
         self.assertEqual(one[1], "19.5")
         self.assertEqual(one[2], "15.0")  # only the three games before it (15 each)
-        self.assertEqual(one[5], "0% 0 of 3")
+        self.assertEqual(one[5], "15 0.0")  # his last game before that night, right on his average
+        self.assertEqual(one[6], "0% 0 of 3")
         self.assertEqual(one[4], "31%")  # Volume as saved before tip
-        self.assertEqual(one[11:13], ["5/8", "1/8"])  # the O / U Reads as they stood before tip (the owner, 2026-11-05)
-        self.assertEqual(one[15], "224.0 O/U")  # that game's total (research `games`)
-        self.assertEqual(one[16], "OVER 25")
+        self.assertEqual(one[12:14], ["5/8", "1/8"])  # the O / U Reads as they stood before tip (the owner, 2026-11-05)
+        self.assertEqual(one[16], "224.0 O/U")  # that game's total (research `games`)
+        self.assertEqual(one[17], "OVER 25")
         self.assertIn("1 Over, 0 Under", self.page.inner_text("#rs-note"))
         # the number is colored like Avg (against his position), the call on the hit colors
         styled = self.page.evaluate("() => [...document.querySelectorAll('#rs-list .rs-res-call, #rs-list .rs-res-num')].map((t) => t.getAttribute('style') || '')")
@@ -950,8 +970,8 @@ class PastNights(unittest.TestCase):
         self.go("2026-10-23")
         self.page.click("[data-list-every='true']")
         got = {r[0].split(" ")[0] + " " + r[0].split(" ")[1]: r for r in rows(self.page)}
-        self.assertEqual(got["Player Three"][16], "12")  # he played (no line: no call)
-        self.assertEqual(got["Player Three"][11:13], ["--", "--"])  # nothing saved for him: never today's Reads
+        self.assertEqual(got["Player Three"][17], "12")  # he played (no line: no call)
+        self.assertEqual(got["Player Three"][12:14], ["--", "--"])  # nothing saved for him: never today's Reads
         self.assertNotIn("Player Five", got)  # didn't play that night
         self.page.click("[data-list-every='false']")
         self.go(DAY)
