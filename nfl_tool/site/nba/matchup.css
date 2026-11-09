@@ -83,8 +83,12 @@
 .mb-matchup td.mb-who::after { content: "\25B8"; margin-left: 4px; font-size: 0.7rem; opacity: 0.7; }
 #mb-who-modal .modal-box { width: auto; max-width: min(1340px, 96vw); }
 .mb-who-title { margin: 0 0 2px; }
-.mb-who-note { margin: 0 0 10px; font-size: 0.82rem; color: var(--muted); }
+.mb-who-note { max-width: 860px; margin: 0 0 10px; font-size: 0.82rem; color: var(--muted); }
 .mb-who-pair { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+/* one matchup a row (a Summary stat name opens both), its offense and defense in the clicked boxes' order */
+.mb-who-dir + .mb-who-dir { margin-top: 14px; }
+.mb-who-dirhead { margin: 0 0 6px; font: 700 0.95rem var(--font-display); }
+.mb-who-table .mb-v small { margin-left: 4px; }
 .mb-whobox { padding-bottom: 6px; }
 .mb-who-table .mb-heads th { padding: 4px 6px 2px; font-size: 0.74rem; white-space: nowrap; }
 .mb-who-table .mb-v { min-width: 52px; padding: 0 6px; }

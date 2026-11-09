@@ -105,14 +105,16 @@ function stat(ctx, t, key) {
   const c = col(key), v = (ctx.table[t] || {})[key], rk = ctx.ranks[key] ? ctx.ranks[key].r[t] : null;
   return { v, rk, n: ctx.ranks[key] ? ctx.ranks[key].n : 30, shade: rk ? rankStyle(rk, ctx.ranks[key].n) : "", text: exact(v, c[3]), tip: `${team(t).name} · ${c[2]}: ${exact(v, c[3])}${rk ? ` · ${ordinal(rk)} of ${ctx.ranks[key].n}` : ""}` };
 }
-const rankTile = (ctx, t, key, withLogo) => {
+const rankTile = (ctx, t, key, withLogo, opp = null, first = true) => {
+  const who = opp ? whoTile_(key, t, opp, first) : "";
   const s = stat(ctx, t, key);
-  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}` : "--", `${s.rk ? "mk-r" : "rs-small"}${whoAttr(key) ? " mk-who" : ""}`, s.shade, s.tip, whoAttr(key));
+  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}` : "--", `${s.rk ? "mk-r" : "rs-small"}${who ? " mk-who" : ""}`, s.shade, s.tip, who);
 };
 // The Overview's tile: the rank big, the number and its name small under it.
-const bigTile = (ctx, t, key) => {
+const bigTile = (ctx, t, key, opp = null, first = true) => {
+  const who = opp ? whoTile_(key, t, opp, first) : "";
   const s = stat(ctx, t, key);
-  return `<div class="mk-k${whoAttr(key) ? " mk-who" : ""}" style="${s.shade}" title="${esc(s.tip)}"${whoAttr(key)}><b>${s.rk ? ordinal(s.rk) : "--"}</b><small>${esc(s.v === null || s.v === undefined ? "" : s.text)} ${esc(short(key))}</small></div>`;
+  return `<div class="mk-k${who ? " mk-who" : ""}" style="${s.shade}" title="${esc(s.tip)}"${who}><b>${s.rk ? ordinal(s.rk) : "--"}</b><small>${esc(s.v === null || s.v === undefined ? "" : s.text)} ${esc(short(key))}</small></div>`;
 };
 function readTile(r) {
   if (!r || r.kind === "blank") return rsT("", "rs-blank");
@@ -167,7 +169,7 @@ function summaryCard(ctx, game, keys) {
   };
   const rows = MK_SUMMARY.map(([name, ok, dk, topic]) =>
     dk
-      ? rankTile(ctx, a, ok) + rankTile(ctx, h, dk) + rsT(`${mark(a, topic)}<b>${name}</b>${mark(h, topic)}`, "rs-l mks-cat") + rankTile(ctx, h, ok) + rankTile(ctx, a, dk)
+      ? rankTile(ctx, a, ok, false, h, true) + rankTile(ctx, h, dk, false, a, false) + rsT(`${mark(a, topic)}<b>${name}</b>${mark(h, topic)}`, "rs-l mks-cat") + rankTile(ctx, h, ok, false, a, true) + rankTile(ctx, a, dk, false, h, false)
       : rankTile(ctx, a, ok, true).replace('class="rs-t', 'class="rs-t mks-span') + rsT(`<span class="mks-edge"></span><b>${name}</b><span class="mks-edge"></span>`, "rs-l mks-cat") + rankTile(ctx, h, ok, true).replace('class="rs-t', 'class="rs-t mks-span')
   ).join("");
   const hs = game.home_team_spread, total = game.total_line;
@@ -189,7 +191,7 @@ function edgeBox(ctx, t, opp, keys) {
     const [off] = k.tiles;
     const ownKey = (k.tiles.find((x) => x.team === t) || {}).key, oppKey = (k.tiles.find((x) => x.team === opp) || {}).key;
     const side = k.tiles[0].team === t ? "o_" : "d_";
-    return rsT(`<span>${MK_LABEL[off.key] || short(off.key)}</span>${sideTag(side)}`, "rs-l mk-lab", "", k.title) + bigTile(ctx, t, ownKey) + bigTile(ctx, opp, oppKey);
+    return rsT(`<span>${MK_LABEL[off.key] || short(off.key)}</span>${sideTag(side)}`, "rs-l mk-lab", "", k.title) + bigTile(ctx, t, ownKey, opp, true) + bigTile(ctx, opp, oppKey, t, false);
   }).join("");
   return `<div class="mk-box mk-edges" data-team="${t}"><div class="mk-bh" style="--team:${teamRgb(t)}">${logo(t, 28)}${team(t).name} Edges</div>
     <div class="mk-eg${mine.length < 4 ? " mk-few" : ""}">${rsT("", "rs-blank")}${hd(`${logo(t, 24)}${t}`, "rs-him mk-big")}${hd(`${logo(opp, 24)}${opp}`, "rs-def mk-big")}
@@ -203,7 +205,7 @@ function bothBox(ctx, game, keys) {
   const cols = [0, 1, 2].map((i) => list.slice(i * per, i * per + per)).filter((c) => c.length);
   const row = (k) => {
     const key = k.tiles[0].key;
-    return rsT(`<span>${MK_LABEL[key] || short(key)}</span>${sideTag(key)}`, "rs-l mk-lab", "", k.title) + bigTile(ctx, game.away, key) + bigTile(ctx, game.home, key);
+    return rsT(`<span>${MK_LABEL[key] || short(key)}</span>${sideTag(key)}`, "rs-l mk-lab", "", k.title) + bigTile(ctx, game.away, key, game.home, true) + bigTile(ctx, game.home, key, game.away, false);
   };
   return `<div class="mk-box mk-both"><div class="mk-bh mk-bh-both">${logo(game.away, 28)}Both Teams${logo(game.home, 28)}</div>
     <div class="mk-cols">${cols.map((c) => `<div class="mk-eg">${rsT("", "rs-blank")}${hd(`${logo(game.away, 24)}${game.away}`, "rs-him mk-big")}${hd(`${logo(game.home, 24)}${game.home}`, "rs-def mk-big")}${c.map(row).join("")}</div>`).join("")}</div></div>`;
@@ -219,18 +221,18 @@ function rsBox(corner, heads, rows) {
   return `<div class="rs-sb mk-sb">${winTabs()}<div class="rs-sbody"><div class="rs-gw">${bands}<div class="rs-g rs-five rs-wide">
     ${rsT(corner, "rs-corner")}${hd(heads[0], "rs-him")}${hd("Rank", "rs-him")}${hd(heads[1], "rs-def")}${hd("Rank", "rs-def")}${hd("Read", "rs-rd")}${rows.join("")}</div></div></div></div>`;
 }
-const valRank = (ctx, t, key, allows) => {
+const valRank = (ctx, t, key, allows, opp = null, first = true) => {
   const s = stat(ctx, t, key);
   if (s.v === null || s.v === undefined) return rsT("--", "rs-small") + rsT("--", "rs-small");
   const as = allows && MK_AS_ALLOWED[key];
   const text = as ? exact(as[1](s.v), col(key)[3]) : s.text;
   const tip = as ? `${team(t).name} · ${as[0]}: ${text}${s.rk ? ` · ${ordinal(s.rk)} of ${s.n}` : ""}` : s.tip;
-  const who = whoAttr(key), wc = who ? " mk-who" : "";
+  const who = opp ? whoTile_(key, t, opp, first) : "", wc = who ? " mk-who" : "";
   return rsT(esc(text), wc.trim(), s.shade, tip, who) + rsT(s.rk ? ordinal(s.rk) : "--", `mk-r${wc}`, s.shade, tip, who);
 };
 function directionBox(ctx, keys, o, d, rows) {
   return rsBox(`${logo(o, 22)}vs${logo(d, 22)}`, [`${logo(o, 15)}Off`, `${logo(d, 15)}Allows`],
-    rows.map(([label, ok, dk]) => rsT(label, "rs-l") + valRank(ctx, o, ok) + valRank(ctx, d, dk, true) + readTile(pairRead(keys, o, d, ok, dk))));
+    rows.map(([label, ok, dk]) => rsT(label, "rs-l") + valRank(ctx, o, ok, false, d, true) + valRank(ctx, d, dk, true, o, false) + readTile(pairRead(keys, o, d, ok, dk))));
 }
 function paceBoxes(ctx, keys, game) {
   const [a, h] = [game.away, game.home];
@@ -245,8 +247,8 @@ function categories(ctx, keys, game) {
     const open = view.open.has(id);
     const label = rsT(`<span class="mk-car">${open ? "&#9660;" : "&#9654;"}</span>${name}`, "rs-l mk-cname");
     const line = list
-      ? `${rankTile(ctx, a, ok)}${rankTile(ctx, h, list.find((r) => r[1] === ok)[2])}${readTile(lineRead(keys, a, h, topics))}<span></span>
-         ${rankTile(ctx, h, ok)}${rankTile(ctx, a, list.find((r) => r[1] === ok)[2])}${readTile(lineRead(keys, h, a, topics))}`
+      ? `${rankTile(ctx, a, ok, false, h, true)}${rankTile(ctx, h, list.find((r) => r[1] === ok)[2], false, a, false)}${readTile(lineRead(keys, a, h, topics))}<span></span>
+         ${rankTile(ctx, h, ok, false, a, true)}${rankTile(ctx, a, list.find((r) => r[1] === ok)[2], false, h, false)}${readTile(lineRead(keys, h, a, topics))}`
       : `${rankTile(ctx, a, "pace", true)}${rankTile(ctx, h, "pace", true)}${readTile(styleRead(keys, game, "pace"))}<span></span>
          ${rankTile(ctx, a, "total", true)}${rankTile(ctx, h, "total", true)}${readTile(styleRead(keys, game, "total"))}`;
     const body = !open ? "" : `<div class="mk-open">${list ? directionBox(ctx, keys, a, h, list) + directionBox(ctx, keys, h, a, list) : paceBoxes(ctx, keys, game)}</div>`;
@@ -370,7 +372,10 @@ document.addEventListener("click", (e) => {
   if (e.target.closest(".player-click")) return; // the player card (nba-card.js) handles it
   // a colored box opens the players behind its number (who.js), before a category line's open / close
   const who = e.target.closest("#mk-body [data-who]");
-  if (who) return whoOpen(who.dataset.who, DATA.schedule.find((g) => g.game_id === gameId));
+  if (who) {
+    const g = DATA.schedule.find((x) => x.game_id === gameId);
+    return whoOpen(who.dataset.who, g, whoDirs(who, g));
+  }
   const line = e.target.closest(".mk-cline[data-cat]");
   if (line) return toggleCat(line.dataset.cat);
   const win = e.target.closest("#mk-window .view-toggle-btn") || e.target.closest(".mk-sb .rs-tabs [data-window]");

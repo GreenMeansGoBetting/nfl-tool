@@ -52,7 +52,24 @@ const WHO_TOPIC = {
   tov: "turnovers", tov_rate: "turnovers", reb: "glass", oreb_rate: "glass", ftr: "ft", fta_rate: "ft",
 };
 const whoTopic = (key) => (key ? WHO_TOPIC[String(key).replace(/^[od]_/, "")] || null : null);
-const whoAttr = (key) => (whoTopic(key) ? ` data-who="${whoTopic(key)}"` : "");
+// A clickable box: its topic and the ONE matchup it reads (the owner, 2026-11-09: "if im clicking on one
+// teams offense, its because i think theres an edge to be explored at a player level, so populating the
+// defensive teams offense is a waste"): off / def = the offense and the defense in it, left = which of
+// the two sits on the left (the order the two boxes are drawn in, so the popup reads the same way).
+// No teams (a Summary stat name) = both directions.
+const whoAttr = (key, off = null, def = null, left = "o") =>
+  (!whoTopic(key) ? "" : ` data-who="${whoTopic(key)}"${off && def ? ` data-o="${off}" data-d="${def}" data-l="${left}"` : ""}`);
+// For a tile of team t on number key (o_ / d_ side) against opp; first = it's the first of its pair.
+function whoTile_(key, t, opp, first) {
+  const side = String(key).startsWith("d_") ? "d" : "o";
+  const off = side === "o" ? t : opp, def = side === "o" ? opp : t;
+  return whoAttr(key, off, def, first ? side : side === "o" ? "d" : "o");
+}
+// The directions a clicked box opens: [{off, def, left}].
+function whoDirs(el, g) {
+  if (el.dataset.o && el.dataset.d) return [{ off: el.dataset.o, def: el.dataset.d, left: el.dataset.l || "o" }];
+  return [{ off: g.away, def: g.home, left: "o" }, { off: g.home, def: g.away, left: "o" }];
+}
 const whoEsc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const whoTeamOf = (abbr) => (DATA.teams || {})[abbr] || { name: abbr, color: "555555", logo: "" };
 const whoRgb = (abbr) => [0, 2, 4].map((i) => parseInt((whoTeamOf(abbr).color || "555555").slice(i, i + 2), 16)).join(",");
@@ -126,19 +143,102 @@ function whoTeam(abbr, spec) {
       <td class="mb-v"${share === null ? "" : ` style="background:${scaleHsla(Math.round(Math.min(1, share / 0.35) * 120), 70, 45, 0.32)}"`} title="${whoEsc(`${x.name}: ${pctW(share)} of ${abbr}'s ${WHO_COLS[spec.share][3].toLowerCase()} this season`)}"><b>${pctW(share)}</b></td></tr>`;
   }).join("");
   const t = whoTeamOf(abbr);
-  return `<div class="nba-box mb-teambox mb-whobox" style="--team:${whoRgb(abbr)}"><div class="team-banner" style="background:rgba(${whoRgb(abbr)},0.22);border-left:4px solid rgb(${whoRgb(abbr)})">${t.logo ? `<img src="${t.logo}" alt="${abbr}" class="team-logo" style="width:22px;height:22px">` : ""}<span class="team-banner-name">${t.name}</span></div><table class="mb-table mb-who-table"><tbody>${head}${rows || `<tr><td class="mb-none" colspan="${cols.length + 4}">No rotation players yet</td></tr>`}</tbody></table></div>`;
+  return `<div class="nba-box mb-teambox mb-whobox" style="--team:${whoRgb(abbr)}">${whoBanner(abbr, `${t.name} Offense`)}<table class="mb-table mb-who-table"><tbody>${head}${rows || `<tr><td class="mb-none" colspan="${cols.length + 4}">No rotation players yet</td></tr>`}</tbody></table></div>`;
 }
-function whoRender(topic, g) {
+const whoBanner = (abbr, text) => {
+  const t = whoTeamOf(abbr);
+  return `<div class="team-banner" style="background:rgba(${whoRgb(abbr)},0.22);border-left:4px solid rgb(${whoRgb(abbr)})">${t.logo ? `<img src="${t.logo}" alt="${abbr}" class="team-logo" style="width:22px;height:22px">` : ""}<span class="team-banner-name">${text}</span></div>`;
+};
+
+// ---- The defense's side: what it allows each position (the owner, 2026-11-09: "shows the defenses
+// info related - allowed per position"). From every player's game log this season (his number goes to
+// the defense he played, by his position), plus research `defpos` for paint / mid-range / transition
+// points; a game a team played counts once. Ranked among the 30 defenses for that position: 1st = the
+// stingiest (green), 30th = allows the most (red); forced turnovers 1st = forces the most.
+const WHO_POS = ["PG", "SG", "SF", "PF", "C"];
+const whoOrd = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"}`;
+// [label, value(sums, games), format, hover, more is good for the defense]
+const WHO_DEF_COLS = {
+  pts: ["PTS", (s, n) => s.pts / n, numW, "Points a game it allows the position"],
+  fgp: ["FG%", (s) => (s.fga ? s.fgm / s.fga : null), pctW, "FG% it allows the position"],
+  transP: ["Trans PTS", (s, n, d) => (d ? d[6] / n : null), numW, "Transition points a game it allows the position"],
+  tov: ["TOV Forced", (s, n) => s.tov / n, numW, "Turnovers a game the position commits against it", true],
+  oreb: ["OREB", (s, n) => s.oreb / n, numW, "Offensive rebounds a game it allows the position"],
+  reb: ["REB", (s, n) => s.reb / n, numW, "Rebounds a game it allows the position"],
+  fta: ["FTA", (s, n) => s.fta / n, numW, "Free throws a game it allows the position"],
+  fg3a: ["3PA", (s, n) => s.fg3a / n, numW, "Threes tried a game it allows the position"],
+  fg3m: ["3PM", (s, n) => s.fg3m / n, numW, "Threes made a game it allows the position"],
+  fg3p: ["3P%", (s) => (s.fg3a ? s.fg3m / s.fg3a : null), pctW, "Three-point % it allows the position"],
+  paintP: ["Paint PTS", (s, n, d) => (d ? d[2] / n : null), numW, "Paint points a game it allows the position"],
+  paintS: ["% Of PTS", (s, n, d) => (d && d[7] ? d[2] / d[7] : null), pctW, "Share of the points it allows the position that come in the paint"],
+  midP: ["Mid PTS", (s, n, d) => (d ? d[1] / n : null), numW, "Mid-range points a game it allows the position"],
+  ast: ["AST", (s, n) => s.ast / n, numW, "Assists a game it allows the position"],
+  astS: ["Assisted", (s, n, d) => (d && d[4] ? d[5] / d[4] : null), pctW, "Share of the position's makes against it that were assisted"],
+};
+const WHO_DEF = {
+  scoring: ["pts", "fgp"], transition: ["transP"], turnovers: ["tov"], glass: ["oreb", "reb"], ft: ["fta"],
+  threes: ["fg3a", "fg3m", "fg3p"], paint: ["paintP", "paintS"], mid: ["midP"], ballmove: ["ast", "astS"],
+};
+let WHO_ALLOWED = null; // {team: {pos: sums}, games: {team: n}}
+function whoAllowed() {
+  if (WHO_ALLOWED) return WHO_ALLOWED;
+  const s = nbaCardSeason();
+  if (!s) return null;
+  const F = s.fields, at = (k) => F.indexOf(k);
+  const keys = ["pts", "fga", "fgm", "tov", "oreb", "reb", "fta", "fg3a", "fg3m", "ast"];
+  const sums = {}, games = {};
+  for (const p of Object.values(s.players || {})) {
+    if (!WHO_POS.includes(p.pos)) continue;
+    for (const r of p.log || []) {
+      const opp = r[at("opp")];
+      (games[opp] = games[opp] || new Set()).add(String(r[at("game")]));
+      const box = ((sums[opp] = sums[opp] || {})[p.pos] = sums[opp][p.pos] || Object.fromEntries(keys.map((k) => [k, 0])));
+      keys.forEach((k) => { if (at(k) >= 0) box[k] += Number(r[at(k)]) || 0; });
+    }
+  }
+  return (WHO_ALLOWED = { sums, games: Object.fromEntries(Object.entries(games).map(([t, g]) => [t, g.size])) });
+}
+function whoDefBox(def, off, topic) {
+  const A = whoAllowed();
+  const defpos = ((nbaCardProps() || {}).research || {}).defpos || {};
+  const cols = WHO_DEF[topic].map((k) => [k, ...WHO_DEF_COLS[k]]);
+  const val = (t, pos, get) => { const n = A.games[t]; const s = (A.sums[t] || {})[pos]; return n && s ? get(s, n, (defpos[t] || {})[pos]) : null; };
+  // the positions the offense leans on for this topic first (its rotation's share of the main number)
+  const main = WHO[topic];
+  const offRot = whoRotation(whoPlayers().filter((x) => x.team === off));
+  const lean = Object.fromEntries(WHO_POS.map((p) => [p, offRot.filter((x) => x.pos === p).reduce((n, x) => n + (x[main.sort] || 0), 0)]));
+  const head = `<tr class="mb-heads"><th>Position</th>${cols.map(([, l, , , t]) => `<th title="${t}">${l}</th>`).join("")}<th title="How much of ${off}'s ${WHO_COLS[main.sort][0]} a game its rotation players at this position put up">${off} ${WHO_COLS[main.sort][0]}</th></tr>`;
+  const rows = WHO_POS.map((pos) => {
+    const tiles = cols.map(([k, l, get, f, tip, good]) => {
+      const v = val(def, pos, get);
+      const all = Object.keys(A.sums).map((t) => val(t, pos, get)).filter((x) => x !== null && x !== undefined);
+      if (v === null || v === undefined || !all.length) return `<td class="mb-v">--</td>`;
+      // 1st = best for the defense: allows the least (forced turnovers: forces the most)
+      const rank = 1 + all.filter((x) => (good ? x > v : x < v)).length;
+      const hue = all.length > 1 ? Math.round((120 * (all.length - rank)) / (all.length - 1)) : 60;
+      return `<td class="mb-v" style="background:${scaleHsla(hue, 70, 45, 0.32)}" title="${whoEsc(`${def}: ${tip} (${pos}s) ${f(v)}, ${whoOrd(rank)} of ${all.length}`)}"><b>${f(v)}</b><small>${whoOrd(rank)}</small></td>`;
+    }).join("");
+    return `<tr><td class="mb-stat">${pos}</td>${tiles}<td class="mb-v mb-plain">${numW(lean[pos])}</td></tr>`;
+  }).join("");
+  return `<div class="nba-box mb-teambox mb-whobox" style="--team:${whoRgb(def)}">${whoBanner(def, `${whoTeamOf(def).name} Defense: Allowed By Position`)}<table class="mb-table mb-who-table"><tbody>${head}${rows}</tbody></table></div>`;
+}
+
+function whoRender(topic, g, dirs) {
   const spec = WHO[topic];
-  const label = spec.title;
+  const ready = g && nbaCardProps() !== undefined && whoPlayers() && whoAllowed();
   const body = !g ? `<p class="no-data-note">No game picked.</p>` : nbaCardProps() === undefined ? `<p class="no-data-note">Loading&hellip;</p>`
-    : !whoPlayers() ? `<p class="no-data-note">Player numbers aren't available right now.</p>`
-    : `<div class="mb-who-pair">${whoTeam(g.away, spec)}${whoTeam(g.home, spec)}</div>`;
-  document.getElementById("mb-who-content").innerHTML = `<h2 class="section-title mb-who-title">${label}: Who's Behind It</h2>
-    <p class="mb-who-note">This season, rotation players (${WHO_MIN}+ minutes, ${WHO_GP}+ games), a game. Colors: where he sits among the league's rotation players (green = more; turnovers: red = more).</p>${body}`;
+    : !ready ? `<p class="no-data-note">Player numbers aren't available right now.</p>`
+    : dirs.map((d) => {
+      const o = whoTeam(d.off, spec), df = whoDefBox(d.def, d.off, topic);
+      return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.off} Offense vs ${d.def} Defense</div><div class="mb-who-pair">${d.left === "d" ? df + o : o + df}</div></div>`;
+    }).join("");
+  document.getElementById("mb-who-content").innerHTML = `<h2 class="section-title mb-who-title">${spec.title}: Who's Behind It</h2>
+    <p class="mb-who-note">This season. Offense: its rotation players (${WHO_MIN}+ minutes, ${WHO_GP}+ games), a game, colored by where he sits among the league's rotation players (green = more; turnovers red = more). Defense: what it allows each position a game, ranked of 30 (1st = stingiest, green; 30th = allows the most, red). The last column: the offense's numbers at that position.</p>${body}`;
 }
-function whoOpen(topic, g) {
+// dirs: [{off, def, left}] (whoDirs); none = both directions
+function whoOpen(topic, g, dirs = null) {
   if (!WHO[topic]) return;
+  dirs = dirs || (g ? [{ off: g.away, def: g.home, left: "o" }, { off: g.home, def: g.away, left: "o" }] : []);
   if (!document.getElementById("mb-who-modal")) {
     const overlay = document.createElement("div");
     overlay.id = "mb-who-modal";
@@ -149,6 +249,6 @@ function whoOpen(topic, g) {
     document.addEventListener("keydown", (e) => { const card = document.getElementById("player-card-modal"); if (e.key === "Escape" && !(card && !card.hidden)) overlay.hidden = true; });
   }
   document.getElementById("mb-who-modal").hidden = false;
-  whoRender(topic, g);
-  if (nbaCardProps() === undefined) Promise.resolve(NBA_CARD_PROPS).then(() => whoRender(topic, g));
+  whoRender(topic, g, dirs);
+  if (nbaCardProps() === undefined) Promise.resolve(NBA_CARD_PROPS).then(() => whoRender(topic, g, dirs));
 }

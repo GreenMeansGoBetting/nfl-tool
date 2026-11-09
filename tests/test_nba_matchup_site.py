@@ -174,13 +174,16 @@ class Page(unittest.TestCase):
 
 class WhoIsBehindIt(unittest.TestCase):
     # A member, 2026-11-09: click a Matchup row (Paint FG%) for "a few players that score high in paint
-    # for that team", guards included; transition too ("assists or scoring in transition").
+    # for that team", guards included; transition too ("assists or scoring in transition"). The owner, the
+    # same day: a box opens ITS matchup only, the offense's players beside the defense's allowed by
+    # position, "positioned left and right" the way the two boxes sit; a Summary stat name opens both.
     def test_a_stat_name_opens_both_teams_players(self):
         fields = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta", "fgm", "ftm", "reb", "ast", "stl", "blk", "tov", "pf", "pm", "score", "opp_score", "oreb", "dreb"]
-        def log(fga, mins=30):
-            return [["2026-10-1%d" % d, d, "XXX", 1, 1, mins, 20, fga, 1, 3, 4, 8, 3, 5, 4, 1, 0, 2, 2, 0, 110, 100, 1, 4] for d in range(3)]
+        def log(fga, mins=30, opp="XXX"):
+            return [["2026-10-1%d" % d, d, opp, 1, 1, mins, 20, fga, 1, 3, 4, 8, 3, 5, 4, 1, 0, 2, 2, 0, 110, 100, 1, 4] for d in range(3)]
         players = {
-            "10": {"name": "Big Guard", "team": "BOS", "pos": "PG", "log": log(20), "zones": {"rim": 0.5, "short": 0.1, "mid": 0.1, "corner3": 0.1, "above3": 0.2},
+            # his 3 games on DET's defense
+            "10": {"name": "Big Guard", "team": "BOS", "pos": "PG", "log": log(20, opp="DET"), "zones": {"rim": 0.5, "short": 0.1, "mid": 0.1, "corner3": 0.1, "above3": 0.2},
                    "zone_pct": {"rim": [0.6, 30], "short": [0.4, 6], "mid": [0.5, 6]}, "kinds": {"catch": 0.2}, "assisted": 0.4},
             "11": {"name": "Small Center", "team": "BOS", "pos": "C", "log": log(10), "zones": {"rim": 0.9, "short": 0.1, "mid": 0.0, "corner3": 0.0, "above3": 0.0},
                    "zone_pct": {"rim": [0.7, 27], "short": [0.5, 3]}, "kinds": {"catch": 0.0}, "assisted": 0.8},
@@ -194,12 +197,24 @@ class WhoIsBehindIt(unittest.TestCase):
             PAGE.click(".mb-matchup td.mb-who[data-who='paint']")
             PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-table")
             boxes = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .mb-whobox')].map((b) => [...b.querySelectorAll('tr:not(.mb-heads)')].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\\s+/g, ' ').trim())))")
-            bos, det = boxes
+            bos, det_def, det, bos_def = boxes  # both directions: BOS offense | DET defense, then DET offense | BOS defense
+            heads = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .team-banner-name')].map((b) => b.textContent)")
+            self.assertEqual(heads, ["Boston Celtics Offense", "Detroit Pistons Defense: Allowed By Position", "Detroit Pistons Offense", "Boston Celtics Defense: Allowed By Position"])
+            # DET's defense: what it allowed PGs (Big Guard, 20 points on 8 of 20 a game in 3 games), and BOS's PGs' paint shots
+            self.assertEqual(det_def[0][0], "PG")
+            self.assertEqual(det_def[0][-1], "12.0")
             # the guard first: 20 shots a game x 60% of them in the paint = 12.0; the bench player (8 min) left off
             self.assertEqual([r[0].split(" ")[0] for r in bos], ["Big", "Small"])
             # paint FG% (0.6*30 + 0.4*6) / 36; team share counts every BOS player, the bench one too: 12 of 52 a game
             self.assertEqual(bos[0][3:6], ["12.0", "57%", "23%"])
             self.assertIn("Det Wing", det[0][0])
+            PAGE.keyboard.press("Escape")
+            # a box opens its own matchup only, in the boxes' order: DET's defense box (second in BOS's half)
+            PAGE.click(".mb-matchup td.mb-who-v[data-who='paint'][data-o='BOS'][data-d='DET'] >> nth=1")
+            PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-dir")
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .team-banner-name')].map((b) => b.textContent)"),
+                             ["Boston Celtics Offense", "Detroit Pistons Defense: Allowed By Position"])
+            PAGE.evaluate("() => { const s = document.querySelector('#mb-who-modal .mb-who-table tr:not(.mb-heads)'); return s && s.textContent; }")
             PAGE.keyboard.press("Escape")
             PAGE.click(".mb-matchup td.mb-who[data-who='transition']")
             PAGE.wait_for_function("() => document.querySelector('#mb-who-content').innerText.includes('TRANS') || document.querySelector('#mb-who-content').innerText.includes('Trans')")
@@ -217,6 +232,15 @@ class WhoIsBehindIt(unittest.TestCase):
             PAGE.click("[data-mk-tab=overview]")
             PAGE.wait_for_selector(".mk-ov")
             self.assertGreater(PAGE.locator(".mk-ov .mk-who").count(), 0)
+            # an Edges box: its own team's box first, so its own team's side opens on the left
+            box = PAGE.locator(".mk-edges .mk-who").first
+            team = PAGE.evaluate("(el) => el.closest('.mk-edges').dataset.team", box.element_handle())
+            box.click()
+            PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-dir")
+            first = PAGE.evaluate("() => document.querySelector('#mb-who-modal .team-banner-name').textContent")
+            self.assertTrue(first.startswith({"BOS": "Boston Celtics", "DET": "Detroit Pistons"}[team]), first)
+            self.assertEqual(PAGE.locator("#mb-who-modal .mb-who-dir").count(), 1)
+            PAGE.keyboard.press("Escape")
             self.assertEqual(PAGE.locator(".mk-ov .mks-span.mk-who").count(), 0)  # Pace: no player split
         finally:
             PAGE.keyboard.press("Escape")
