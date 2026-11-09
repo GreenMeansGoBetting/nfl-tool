@@ -7112,21 +7112,21 @@
    },
    {
     "id": "5104157",
-    "lead": 0.1329,
+    "lead": 0.133,
     "name": "Victor Wembanyama",
     "proj": 44.3,
     "team": "SA"
    },
    {
     "id": "3975",
-    "lead": 0.0684,
+    "lead": 0.0685,
     "name": "Stephen Curry",
     "proj": 40.4,
     "team": "GS"
    },
    {
     "id": "4871144",
-    "lead": 0.0543,
+    "lead": 0.0544,
     "name": "Alperen Sengun",
     "proj": 38.9,
     "team": "HOU"
@@ -7175,17 +7175,10 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0219,
+    "lead": 0.022,
     "name": "Jamal Murray",
     "proj": 34.9,
     "team": "DEN"
-   },
-   {
-    "id": "3908809",
-    "lead": 0.0194,
-    "name": "Donovan Mitchell",
-    "proj": 33.7,
-    "team": "CLE"
    },
    {
     "id": "6583",
@@ -7193,6 +7186,13 @@
     "name": "Anthony Davis",
     "proj": 34.3,
     "team": "WSH"
+   },
+   {
+    "id": "3908809",
+    "lead": 0.019,
+    "name": "Donovan Mitchell",
+    "proj": 33.6,
+    "team": "CLE"
    },
    {
     "id": "3136193",
@@ -7301,7 +7301,7 @@
    },
    {
     "id": "4396971",
-    "lead": 0.0015,
+    "lead": 0.0016,
     "name": "Naz Reid",
     "proj": 26.6,
     "team": "CHA"
