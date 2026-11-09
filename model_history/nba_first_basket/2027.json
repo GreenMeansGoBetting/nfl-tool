@@ -12100,7 +12100,7 @@
   "players": {
    "3134908": [
     "Jakob Poeltl",
-    0.068,
+    0.072,
     850,
     false,
     "fanduel"
@@ -12114,14 +12114,21 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.109,
+    0.122,
     950,
     true,
     "draftkings"
    ],
+   "4431684": [
+    "Trayce Jackson-Davis",
+    0.072,
+    null,
+    false,
+    null
+   ],
    "4432241": [
     "Jamal Shead",
-    0.088,
+    0.094,
     null,
     false,
     null
@@ -12135,7 +12142,7 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.09,
+    0.1,
     1750,
     true,
     "hard_rock"
@@ -12151,13 +12158,6 @@
     "Cameron Boozer",
     0.115,
     790,
-    false,
-    "draftkings"
-   ],
-   "5093267": [
-    "Collin Murray-Boyles",
-    0.104,
-    750,
     false,
     "draftkings"
    ],
@@ -13257,7 +13257,7 @@
    ],
    "3134908": [
     "Jakob Poeltl",
-    0.078,
+    0.082,
     null,
     false,
     null
@@ -13285,7 +13285,7 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.124,
+    0.139,
     null,
     false,
     null
@@ -13297,23 +13297,23 @@
     false,
     null
    ],
+   "4431684": [
+    "Trayce Jackson-Davis",
+    0.082,
+    null,
+    false,
+    null
+   ],
    "4432241": [
     "Jamal Shead",
-    0.1,
+    0.107,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.103,
-    null,
-    false,
-    null
-   ],
-   "5093267": [
-    "Collin Murray-Boyles",
-    0.118,
+    0.113,
     null,
     false,
     null
