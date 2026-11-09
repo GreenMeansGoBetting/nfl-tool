@@ -12114,17 +12114,10 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.116,
+    0.109,
     950,
     true,
     "draftkings"
-   ],
-   "4395724": [
-    "Immanuel Quickley",
-    0.094,
-    900,
-    false,
-    "hard_rock"
    ],
    "4432241": [
     "Jamal Shead",
@@ -12142,7 +12135,7 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.095,
+    0.09,
     1750,
     true,
     "hard_rock"
@@ -12158,6 +12151,13 @@
     "Cameron Boozer",
     0.115,
     790,
+    false,
+    "draftkings"
+   ],
+   "5093267": [
+    "Collin Murray-Boyles",
+    0.104,
+    750,
     false,
     "draftkings"
    ],
@@ -13257,7 +13257,7 @@
    ],
    "3134908": [
     "Jakob Poeltl",
-    0.077,
+    0.078,
     null,
     false,
     null
@@ -13285,14 +13285,7 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.132,
-    null,
-    false,
-    null
-   ],
-   "4395724": [
-    "Immanuel Quickley",
-    0.107,
+    0.124,
     null,
     false,
     null
@@ -13313,7 +13306,14 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.108,
+    0.103,
+    null,
+    false,
+    null
+   ],
+   "5093267": [
+    "Collin Murray-Boyles",
+    0.118,
     null,
     false,
     null
