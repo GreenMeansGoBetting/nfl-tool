@@ -15907,5 +15907,485 @@
     "novig"
    ]
   ]
+ },
+ "401909952": {
+  "date": "2026-11-09",
+  "points": [],
+  "threes": []
+ },
+ "401909953": {
+  "date": "2026-11-09",
+  "points": [],
+  "threes": []
+ },
+ "401909954": {
+  "date": "2026-11-09",
+  "points": [
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "WSH",
+    -0.1549,
+    "under",
+    true,
+    15.5,
+    102,
+    "fanduel"
+   ],
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "WSH",
+    -0.1463,
+    "under",
+    true,
+    7.5,
+    -110,
+    "fanduel"
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "WSH",
+    -0.0813,
+    "under",
+    false,
+    25.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "WSH",
+    -0.1187,
+    "under",
+    false,
+    10.5,
+    -130,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "WSH",
+    -0.1655,
+    "under",
+    true,
+    3.5,
+    -132,
+    "fanduel"
+   ],
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "WSH",
+    -0.1644,
+    "under",
+    true,
+    1.5,
+    -174,
+    "fanduel"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "WSH",
+    -0.1361,
+    "under",
+    true,
+    1.5,
+    -178,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909955": {
+  "date": "2026-11-09",
+  "points": [
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "MEM",
+    -0.1007,
+    "under",
+    false,
+    23.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4600663",
+    "Zach Edey",
+    "MEM",
+    "TOR",
+    0.1873,
+    "over",
+    true,
+    8.5,
+    -120,
+    "bet365"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "MEM",
+    -0.1667,
+    "under",
+    true,
+    11.5,
+    -110,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "4065733",
+    "Ty Jerome",
+    "MEM",
+    "TOR",
+    0.0689,
+    "over",
+    false,
+    2.5,
+    120,
+    "bet365"
+   ],
+   [
+    "4395625",
+    "RJ Barrett",
+    "TOR",
+    "MEM",
+    -0.1459,
+    "under",
+    true,
+    1.5,
+    125,
+    "fanatics"
+   ],
+   [
+    "4395724",
+    "Immanuel Quickley",
+    "TOR",
+    "MEM",
+    -0.1819,
+    "under",
+    true,
+    2.5,
+    -105,
+    "bet365"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "MEM",
+    -0.2562,
+    "under",
+    true,
+    2.5,
+    -150,
+    "fanatics"
+   ],
+   [
+    "5093267",
+    "Collin Murray-Boyles",
+    "TOR",
+    "MEM",
+    -0.0547,
+    "under",
+    false,
+    0.5,
+    -130,
+    "bet365"
+   ]
+  ]
+ },
+ "401909956": {
+  "date": "2026-11-09",
+  "points": [],
+  "threes": []
+ },
+ "401909957": {
+  "date": "2026-11-09",
+  "points": [
+   [
+    "2991230",
+    "Fred VanVleet",
+    "HOU",
+    "DEN",
+    -0.0847,
+    "under",
+    false,
+    12.5,
+    -120,
+    "hard_rock"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "DEN",
+    0.0659,
+    "over",
+    false,
+    13.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "4433192",
+    "Tari Eason",
+    "HOU",
+    "DEN",
+    0.0959,
+    "over",
+    false,
+    9.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "DEN",
+    -0.0893,
+    "under",
+    false,
+    8.5,
+    -125,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "2991230",
+    "Fred VanVleet",
+    "HOU",
+    "DEN",
+    -0.1612,
+    "under",
+    true,
+    2.5,
+    122,
+    "bet365"
+   ],
+   [
+    "3064290",
+    "Aaron Gordon",
+    "DEN",
+    "HOU",
+    -0.1153,
+    "under",
+    false,
+    1.5,
+    -170,
+    "bet365"
+   ],
+   [
+    "3138196",
+    "Cameron Johnson",
+    "DEN",
+    "HOU",
+    -0.2021,
+    "under",
+    true,
+    1.5,
+    130,
+    "bet365"
+   ],
+   [
+    "3202",
+    "Kevin Durant",
+    "HOU",
+    "DEN",
+    0.1368,
+    "over",
+    true,
+    1.5,
+    -120,
+    "bet365"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "DEN",
+    0.1055,
+    "over",
+    false,
+    2.5,
+    150,
+    "bet365"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "DEN",
+    -0.1548,
+    "under",
+    true,
+    1.5,
+    130,
+    "bet365"
+   ]
+  ]
+ },
+ "401909958": {
+  "date": "2026-11-09",
+  "points": [
+   [
+    "4278585",
+    "Collin Gillespie",
+    "PHX",
+    "SA",
+    -0.1043,
+    "under",
+    false,
+    8.5,
+    -102,
+    "novig"
+   ],
+   [
+    "4437244",
+    "Jalen Green",
+    "PHX",
+    "SA",
+    -0.0846,
+    "under",
+    false,
+    14.5,
+    100,
+    "prophetx"
+   ],
+   [
+    "4592479",
+    "Julian Champagnie",
+    "SA",
+    "PHX",
+    0.1265,
+    "over",
+    true,
+    9.5,
+    100,
+    "fanatics"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "PHX",
+    0.0797,
+    "over",
+    false,
+    15.5,
+    113,
+    "novig"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "PHX",
+    -0.1163,
+    "under",
+    false,
+    16.5,
+    -113,
+    "novig"
+   ]
+  ],
+  "threes": [
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "PHX",
+    0.1677,
+    "over",
+    true,
+    0.5,
+    -210,
+    "hard_rock"
+   ],
+   [
+    "4278585",
+    "Collin Gillespie",
+    "PHX",
+    "SA",
+    -0.1149,
+    "under",
+    false,
+    1.5,
+    144,
+    "fanduel"
+   ],
+   [
+    "4437244",
+    "Jalen Green",
+    "PHX",
+    "SA",
+    -0.1008,
+    "under",
+    false,
+    1.5,
+    -113,
+    "novig"
+   ],
+   [
+    "4592479",
+    "Julian Champagnie",
+    "SA",
+    "PHX",
+    0.1541,
+    "over",
+    true,
+    2.5,
+    141,
+    "novig"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "PHX",
+    0.1932,
+    "over",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "PHX",
+    0.2805,
+    "over",
+    true,
+    0.5,
+    -225,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909959": {
+  "date": "2026-11-09",
+  "points": [],
+  "threes": []
  }
 }
