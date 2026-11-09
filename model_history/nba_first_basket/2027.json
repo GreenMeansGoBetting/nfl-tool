@@ -12100,7 +12100,7 @@
   "players": {
    "3134908": [
     "Jakob Poeltl",
-    0.065,
+    0.068,
     850,
     false,
     "fanduel"
@@ -12114,24 +12114,24 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.112,
+    0.116,
     950,
     true,
     "draftkings"
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.09,
+    0.094,
     900,
     false,
     "hard_rock"
    ],
-   "4433134": [
-    "Scottie Barnes",
-    0.1,
-    750,
+   "4432241": [
+    "Jamal Shead",
+    0.088,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "4600663": [
     "Zach Edey",
@@ -12142,7 +12142,7 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.092,
+    0.095,
     1750,
     true,
     "hard_rock"
@@ -13257,7 +13257,7 @@
    ],
    "3134908": [
     "Jakob Poeltl",
-    0.074,
+    0.077,
     null,
     false,
     null
@@ -13285,14 +13285,14 @@
    ],
    "4395625": [
     "RJ Barrett",
-    0.128,
+    0.132,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.103,
+    0.107,
     null,
     false,
     null
@@ -13304,16 +13304,16 @@
     false,
     null
    ],
-   "4433134": [
-    "Scottie Barnes",
-    0.114,
+   "4432241": [
+    "Jamal Shead",
+    0.1,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.105,
+    0.108,
     null,
     false,
     null
