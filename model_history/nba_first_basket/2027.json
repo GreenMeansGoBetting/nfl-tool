@@ -12384,9 +12384,9 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.107,
+    0.132,
     800,
-    false,
+    true,
     "hard_rock"
    ],
    "4066383": [
@@ -12395,13 +12395,6 @@
     1000,
     false,
     "fanduel"
-   ],
-   "4395630": [
-    "Devin Vassell",
-    0.098,
-    1100,
-    true,
-    "hard_rock"
    ],
    "4437244": [
     "Jalen Green",
@@ -12412,21 +12405,21 @@
    ],
    "4845367": [
     "Stephon Castle",
-    0.089,
+    0.109,
     800,
     false,
     "fanduel"
    ],
    "5037871": [
     "Dylan Harper",
-    0.09,
+    0.11,
     700,
     false,
     "fanduel"
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.148,
+    0.181,
     325,
     false,
     "hard_rock"
@@ -13356,14 +13349,7 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.12,
-    null,
-    false,
-    null
-   ],
-   "4395630": [
-    "Devin Vassell",
-    0.11,
+    0.148,
     null,
     false,
     null
@@ -13384,7 +13370,7 @@
    ],
    "4845367": [
     "Stephon Castle",
-    0.1,
+    0.122,
     null,
     false,
     null
@@ -13398,7 +13384,7 @@
    ],
    "5037871": [
     "Dylan Harper",
-    0.101,
+    0.123,
     null,
     false,
     null
@@ -13412,7 +13398,7 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.166,
+    0.204,
     null,
     false,
     null
