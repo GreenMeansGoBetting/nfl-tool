@@ -362,6 +362,20 @@ window.GMGSettings = { open: openGmgSettings };
 // address) shows a photo carousel above the list (the owner, 2026-11-04).
 const GMG_UPDATES = [
   {
+    // heading: an optional name in the date bar (the owner, 2026-11-09: "title it MONDAY UPDATES")
+    id: "2026-11-09",
+    heading: "Monday Updates",
+    items: [
+      ["🔑", "<b>Matchup Data is now part of Matchup Keys.</b> Its Matchup sheet is the new <b>Summary</b> tab, and the NBA button takes you straight to Matchup Keys. Nothing was lost."],
+      ["🔍", "<b>Click any colored box on Matchup Keys</b> for the players behind it: the offense's players next to what that defense allows each position (PG to C), laid out the same way as the boxes you clicked. Works on Overview, Categories and Summary. (Member request)"],
+      ["🏀", "<b>Last Game</b> on every NBA prop page: what he did in his last game and how far that was from his average, green for one of his best games, red for one of his worst. (Member request)"],
+      ["✅", "<b>Alt lines get a check mark</b>: save an alt line and the prop page shows <b>✓ Alt</b> on that side, so you can see you're already on him. (Member request)"],
+      ["✏️", "<b>Type in the price you got</b>: in My Plays, click the pencil next to any price and enter what your book actually gave you. Your record grades on your price. (Member request)"],
+      ["🏈", "<b>Hit Rate on the NFL player card</b>: the Odds tab now shows how often he's gone over each line this season, like \"6 of 8\". (Member request)"],
+      ["🎯", "<b>NBA player card Shot Chart</b>: tonight's defense now sits beside his shots, with a table of his makes vs what they allow in each zone and a Target / Tough tag where both sides agree. (Member request)"],
+    ],
+  },
+  {
     id: "2026-11-06",
     items: [
       ["🏀", "<b>New Matchup Keys</b> (NBA): <a href=\"/nba/matchup-keys.html\">open it here</a>. One game's strengths and weaknesses, sorted so you can tell at a glance where each team has the edge and where they're alike."],
@@ -1008,7 +1022,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       <button type="button" class="upd-car-btn prev" data-car="-1" aria-label="Previous photo">&#8249;</button><button type="button" class="upd-car-btn next" data-car="1" aria-label="Next photo">&#8250;</button></div>
       <div class="upd-car-dots">${u.slides.map((s, i) => `<button type="button" class="${i ? "" : "on"}" data-car-to="${i}" aria-label="Photo ${i + 1}"></button>`).join("")}</div></div>`);
     const block = (u, isNew) => `<section class="upd-day">
-      <div class="upd-date">${updateDate(u.id)}${isNew ? '<span class="upd-new">New</span>' : ""}</div>
+      <div class="upd-date">${u.heading ? `<span>${u.heading}</span><span class="upd-when">${updateDate(u.id)}</span>` : updateDate(u.id)}${isNew ? '<span class="upd-new">New</span>' : ""}</div>
       ${carousel(u)}
       <ul class="upd-list">${u.items.map(([icon, text]) => `<li><span class="upd-icon" aria-hidden="true">${icon}</span><span>${text}</span></li>`).join("")}</ul>
     </section>`;
