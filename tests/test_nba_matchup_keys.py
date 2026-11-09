@@ -266,11 +266,12 @@ class Page(unittest.TestCase):
             self.assertEqual(text, want)
             self.assertIn("Offensive Rebound % Allowed", tip)
 
-    def test_three_big_tabs_under_the_injuries(self):
+    def test_four_big_tabs_under_the_injuries(self):
+        # Summary (The Matchup) joined as the fourth when Matchup Data was retired (the owner, 2026-11-09)
         tabs = PAGE.evaluate("""() => [...document.querySelectorAll('.mk-tabs [data-mk-tab]')].map((b) => {
             const r = b.getBoundingClientRect(); return {t: b.textContent, w: Math.round(r.width), h: r.height}; })""")
-        self.assertEqual([t["t"] for t in tabs], ["Overview", "Categories", "Rotations & History"])
-        self.assertTrue(max(t["w"] for t in tabs) - min(t["w"] for t in tabs) <= 1)  # a third each
+        self.assertEqual([t["t"] for t in tabs], ["Overview", "Categories", "Rotations & History", "Summary"])
+        self.assertTrue(max(t["w"] for t in tabs) - min(t["w"] for t in tabs) <= 1)  # a quarter each
         self.assertGreaterEqual(tabs[0]["h"], 44)
         self.assertTrue(PAGE.evaluate("() => !!document.querySelector('.mk-inj + .mk-tabs')"))
 

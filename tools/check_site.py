@@ -51,7 +51,6 @@ PAGES = [
     ("Support", "support.html", None),
     ("NBA Dunk Digest", "nba/digest.html", None),
     ("NBA League Stats Chart", "nba/league.html", None),
-    ("NBA Matchup Breakdown", "nba/index.html", None),
     ("NBA Matchup Keys", "nba/matchup-keys.html", None),
     ("NBA Promo Tools", "nba/promo-tools.html", None),
     ("NBA First Basket", "nba/first-basket.html", None),

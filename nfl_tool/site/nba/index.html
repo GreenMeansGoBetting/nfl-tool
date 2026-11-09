@@ -2,101 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GMG's NBA Suite &mdash; Matchup Data</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
-<link rel="stylesheet" href="../style.css">
-<link rel="stylesheet" href="../suite.css">
-<link rel="stylesheet" href="matchup.css">
+<title>GMG's NBA Suite &mdash; Matchup Keys</title>
+<!-- Matchup Data retired 2026-11-09 (the owner: everything is on Matchup Keys now, its Summary tab
+     holds The Matchup). The NBA home (/nba/, nba.gmgsports.org/) and old links land on Matchup Keys. -->
+<meta http-equiv="refresh" content="0; url=matchup-keys.html">
+<script>location.replace("matchup-keys.html" + location.hash);</script>
 </head>
-<body class="nba-suite">
-<div class="topbar">
-  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
-  <nav class="page-nav">
-    <a href="/game-overview.html" data-sport="nfl">NFL</a>
-    <a href="/nba/" data-sport="nba">NBA</a>
-    <a href="/nhl/" data-sport="nhl">NHL</a>
-    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
-  </nav>
-  <div class="topbar-actions">
-    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
-  </div>
-</div>
-
-<main>
-  <!-- Until launch, only the owner (and local testing) sees the NBA tools. -->
-  <div class="nba-soon empty-state">
-    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
-    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
-  </div>
-
-  <div class="nba-app">
-    <div id="schedule-scroller" class="schedule-scroller" hidden>
-      <div class="week-picker">
-        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
-        <span id="day-label" class="week-label">Day</span>
-        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
-      </div>
-      <div id="matchup-row" class="matchup-row"></div>
-    </div>
-
-    <div id="game-header" class="game-header" hidden></div>
-
-    <div id="empty-state" class="empty-state"><p>Loading the NBA slate&hellip;</p></div>
-
-    <!-- Two anchored columns (the owner, 2026-10-28): the line, injuries, edges, Head To Head
-         and rotations on the left; How They Win / How They Lose and The Matchup on the right;
-         Recent Games across the bottom, a half each. Each section stretches to its column. -->
-    <div class="mb-grid">
-      <div class="mb-colwrap">
-        <div id="section-top" class="section-wrap" hidden>
-          <div id="top-content" class="mb-row"></div>
-        </div>
-        <div id="section-edges" class="section-wrap" hidden>
-          <h2 class="section-title">Biggest Edges <button type="button" class="info-i" aria-expanded="false" aria-controls="edges-note" title="How to read this">i</button></h2>
-          <p class="section-note info-note" id="edges-note" hidden>Each team's biggest edges from The Matchup, up to 3 on its <b>Offense</b> and 3 on its <b>Defense</b>. The team's own rank comes first, the other team's second, each a <b>rank of 30</b> (1st = best) with its number small. <b>Big Edge</b> = the two sides together sit a full league spread toward that team.</p>
-          <div id="edges-content" class="mb-row"></div>
-        </div>
-        <div id="section-h2h" class="section-wrap" hidden>
-          <h2 class="section-title">Head To Head</h2>
-          <div id="h2h-content"></div>
-        </div>
-        <div id="section-players" class="section-wrap" hidden>
-          <h2 class="section-title">Rotations</h2>
-          <div id="players-content" class="mb-row"></div>
-        </div>
-      </div>
-      <div class="mb-colwrap">
-        <div id="section-story" class="section-wrap" hidden>
-          <h2 class="section-title">How They Win / How They Lose <button type="button" class="info-i" aria-expanded="false" aria-controls="wl-note" title="How to read this">i</button></h2>
-          <p class="section-note info-note" id="wl-note" hidden>The same numbers for both teams, <b>its wins beside its losses</b> this season. Each is ranked where it would sit among all 30 teams' season numbers (1st = best). The <b>3 rows marked</b> are the ones that swing most between its wins and its losses: the things that decide its games. Small samples this early.</p>
-          <div id="wl-content" class="mb-row"></div>
-        </div>
-        <div id="section-matchup" class="section-wrap" hidden>
-          <h2 class="section-title">The Matchup <button type="button" class="info-i" aria-expanded="false" aria-controls="matchup-note" title="How to read this">i</button></h2>
-          <p class="section-note info-note" id="matchup-note" hidden>Each row: the offense's number across from what the other defense allows, both directions side by side. <b>Every cell is a rank of 30</b> (big) with its number (small), shaded <b>green = good for that team</b>. How-often rows (Pace, the Shares, Ball Movement): green offense = does it a lot, green defense = takes it away, so <b>green against red = the offense gets its way</b>. <b>Edge</b> = one side clearly points one way and the other doesn't push back (the logo = who it favors; Big Edge = a full league spread). <b>Fits</b> = the offense does it a lot and this defense allows it a lot; <b>Takes Away</b> = this defense rarely allows it. <b>Rebounding</b> = offensive rebound % against the defense's defensive rebound %. <b>Vs Tonight's Types</b>: the team that is the type (fast, rim attackers, a ball-hawk defense...) shows its rank in that trait; the other shows its points vs normal against teams like that, minus the league's, ranked among every team that has faced them (shown once it has 3+ games against them).</p>
-          <div id="matchup-content"></div>
-        </div>
-      </div>
-      <div id="section-recent" class="section-wrap mb-wide" hidden>
-        <h2 class="section-title">Recent Games</h2>
-        <div id="recent-content" class="mb-halves"></div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<footer>
-  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN box scores and play-by-play). Lines: Novig.
-</footer>
-
-<script src="../sync.js"></script>
-<script src="../book-odds.js"></script>
-<script src="extremes.js"></script>
-<script src="nba.js"></script>
-<script src="shot-chart.js"></script>
-<script src="nba-card.js"></script>
-</body>
+<body><p><a href="matchup-keys.html">Matchup Data is now part of Matchup Keys.</a></p></body>
 </html>

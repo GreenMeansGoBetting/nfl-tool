@@ -12,7 +12,7 @@ let DATA = null;
 let dayIndex = 0;
 let pinned = null; // the game whose two teams sit on top
 const view = { window: "season", rank: false, today: false, sort: "net", dir: 1 }; // never remembered (the owner)
-const NBA_GAME_KEY = "nba-tool.game.v1"; // Matchup Breakdown's open game (nba.js)
+const NBA_GAME_KEY = "nba-tool.game.v1"; // Matchup Keys' open game (matchup-keys.js)
 
 const el = (id) => document.getElementById(id);
 const team = (abbr) => DATA.teams[abbr] || { name: abbr, color: "555555", logo: "" };
@@ -112,7 +112,7 @@ function render() {
   renderChart();
 }
 
-// A team's game for Matchup Breakdown: today's (or its next), else its last.
+// A team's game on Matchup Keys (Matchup Data retired 2026-11-09): today's (or its next), else its last.
 function openTeam(abbr) {
   const today = new Date().toLocaleDateString("en-CA");
   const mine = DATA.schedule.filter((g) => g.away === abbr || g.home === abbr);
@@ -120,9 +120,9 @@ function openTeam(abbr) {
   try {
     if (g) localStorage.setItem(NBA_GAME_KEY, g.game_id);
   } catch (e) {
-    // localStorage unavailable -- Matchup Breakdown opens on tonight's first game.
+    // localStorage unavailable -- Matchup Keys opens on today's first game.
   }
-  location.href = "./";
+  location.href = "matchup-keys.html";
 }
 
 document.addEventListener("click", (e) => {

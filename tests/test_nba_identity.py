@@ -1,5 +1,5 @@
 """NBA Team Identity numbers (nfl_tool/nba/identity.py and its part of
-build_nba.py), read by Matchup Breakdown (site/nba/nba.js; its page tests are
+build_nba.py), read by Matchup Keys' Summary tab (site/nba/matchup-sheet.js; its page tests are
 test_nba_matchup_site.py).
 
 What is pinned: on the engine's hand-made game every number is worked out by
@@ -182,7 +182,7 @@ class SavedSeason(unittest.TestCase):
         self.assertEqual(REFERENCE["label"], "2025-26")
         self.assertEqual(len(REFERENCE["teams"]), 30)
         self.assertEqual(REFERENCE["team_games"], 82)
-        js = (ROOT / "nfl_tool" / "site" / "nba" / "nba.js").read_text(encoding="utf-8")
+        js = (ROOT / "nfl_tool" / "site" / "nba" / "matchup-sheet.js").read_text(encoding="utf-8")  # The Matchup (Matchup Keys' Summary tab)
         for row in REFERENCE["teams"].values():
             for side in ("off", "def"):
                 for key in ("ppp", "pace", "trans_ppp", "paint_share", "paint_pct", "ball_move", "tov_rate", "oreb_rate"):

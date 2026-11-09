@@ -1,19 +1,20 @@
-"""NBA Matchup Breakdown (site/nba/index.html + nba.js; Game Previews and Team
-Identity merged, 2026-10-28), on 2025-26's saved identity numbers
+"""The Matchup sheet (site/nba/matchup-sheet.js), Matchup Keys' Summary tab since Matchup Data
+(nba/index.html + nba.js) was retired 2026-11-09 (the owner: "add that matchup sheet to a fourth tab
+called summary ... then i believe we can remove matchup data"), on 2025-26's saved identity numbers
 (nfl_tool/nba/identity_2026.json) for BOS @ DET.
 
-What is pinned: no script errors; The Matchup reads both directions side by
-side (BOS's offense across from DET's defense, then DET's offense across from
-BOS's defense), every row, each cell a rank of 30 first and its number second;
-every Edge follows the site's two-sided rule and Biggest Edges lists each
-team's 3 biggest; How They Win / How They Lose, Head To Head, Recent Games'
-covers; the menu item, and that Team Identity's old address lands here."""
+What is pinned: no script errors; The Matchup reads both directions side by side (BOS's offense
+across from DET's defense, then DET's offense across from BOS's defense), every row, each cell a rank
+of 30 first and its number second; every Edge follows the site's two-sided rule; Vs Tonight's Types;
+the menu has Matchup Keys and no Matchup Data, and the old addresses land on Matchup Keys; who's
+behind a number (who.js) from a Summary stat name and from any colored box."""
 import json
 import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+CHART = json.loads((ROOT / "tests" / "fixtures" / "nba_league_chart_2026-10-30.json").read_text(encoding="utf-8"))
 sys.path.insert(0, str(ROOT / "tests"))
 from site_browser import SiteBrowser  # noqa: E402
 
@@ -52,16 +53,20 @@ def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        teams = {t: {"name": n, "short": s, "logo": "", "color": c} for t, n, s, c in
-                 (("BOS", "Boston Celtics", "Celtics", "007a33"), ("DET", "Detroit Pistons", "Pistons", "c8102e"))}
+        teams = {t: {"name": f"Team {t}", "short": t, "logo": "", "color": "336699"} for t in CHART}
+        teams.update({t: {"name": n, "short": s, "logo": "", "color": c} for t, n, s, c in
+                      (("BOS", "Boston Celtics", "Celtics", "007a33"), ("DET", "Detroit Pistons", "Pistons", "c8102e"))})
         recent = {"BOS": [{"game_id": "1", "date": "2026-10-19", "opp": "DET", "home": True, "pf": 110, "pa": 100, "win": True, "pace": 98.0, "spread": -6.5, "total": 214.5}],
                   "DET": [{"game_id": "1", "date": "2026-10-19", "opp": "BOS", "home": False, "pf": 100, "pa": 110, "win": False, "pace": 98.0, "spread": 6.5, "total": 214.5}]}
         SITE.nba = {"season": 2027, "season_label": "2026-27", "teams": teams, "schedule": [GAME], "kotc": None, "first_basket": None,
                     "injuries": {"DET": [{"id": "5", "name": "Pat Lee", "status": "Out", "position": "SG", "injury": "Knee"}]},
                     "team_stats": {"BOS": team_stats(5, 1), "DET": team_stats(2, 4)}, "recent_games": recent, "players": {},
-                    "identity": {"default": "2026", "seasons": {"2026": REFERENCE}}}
-        PAGE = SITE.open("nba/")
-        PAGE.wait_for_function("() => DATA && !document.getElementById('section-matchup').hidden")
+                    "identity": {"default": "2026", "seasons": {"2026": REFERENCE}},
+                    "league_chart": {"season": CHART, "10": CHART, "5": CHART, "3": CHART}}
+        PAGE = SITE.open("nba/matchup-keys.html")
+        PAGE.wait_for_function("() => !!document.querySelector('[data-mk-tab=summary]')")
+        PAGE.click("[data-mk-tab=summary]")
+        PAGE.wait_for_selector(".mk-sheet .mb-matchup")
     except Exception:
         SITE.close()
         raise
@@ -97,7 +102,7 @@ class Page(unittest.TestCase):
         self.assertTrue(last)
         shown = PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup tbody tr:not(.mb-group) .mb-stat')].map((td) => td.textContent)")
         self.assertEqual(shown[:len(ROWS)], [r[1] for r in ROWS])  # every row, always (the owner: show everything)
-        self.assertNotIn("--", PAGE.inner_text("#matchup-content"))
+        self.assertNotIn("--", PAGE.inner_text(".mk-sheet"))
 
     def test_rank_first_then_number_both_sides(self):
         ppp = matchup_row("Pts / Possession")
@@ -141,15 +146,6 @@ class Page(unittest.TestCase):
             .flatMap((r) => [...r.querySelectorAll('.mb-edge img')].map((i) => i.alt))""", labels)
         self.assertEqual([pills.count("BOS"), pills.count("DET")], [want["BOS"], want["DET"]])
         self.assertGreater(want["BOS"] + want["DET"], 0)
-        # Biggest Edges: each team's 3 biggest on offense and 3 on defense (types included),
-        # never a count. In The Matchup the left call is BOS's offense or DET's defense.
-        calls = PAGE.evaluate("""() => [...document.querySelectorAll('.mb-matchup tbody tr:not(.mb-group):not(.mb-heads)')].flatMap((r) =>
-            [[r.children[0], 'BOS'], [r.children[6], 'DET']].map(([td, off]) => { const i = td.querySelector('.mb-edge img'); return i ? [i.alt, i.alt === off ? 'off' : 'def'] : null; }).filter(Boolean))""")
-        want_box = [sum(min(3, sum(1 for c in calls if c == [t, side])) for side in ("off", "def")) for t in ("BOS", "DET")]
-        boxes = PAGE.evaluate("() => [...document.querySelectorAll('#edges-content .nba-box')].map((b) => b.querySelectorAll('tbody .mb-edge').length)")
-        self.assertEqual(boxes, want_box)
-        groups = PAGE.evaluate("() => [...document.querySelectorAll('#edges-content .nba-box')[0].querySelectorAll('.mb-group')].map((g) => g.textContent)")
-        self.assertTrue(set(groups) <= {"BOS Offense", "BOS Defense"} and groups, groups)
         self.assertEqual(SITE.errors, [])
 
     def test_tonights_types_only_with_three_games(self):
@@ -160,78 +156,20 @@ class Page(unittest.TestCase):
         for cells in rows:
             self.assertNotIn("GP", " ".join(cells))
 
-    def test_win_loss_and_head_to_head(self):
-        # the same 12 rows for both teams, wins beside losses, the 3 biggest swings marked
-        wl = PAGE.evaluate("() => [...document.querySelectorAll('#wl-content .nba-box')].map((b) => [b.querySelector('.nba-banner-right').textContent, [...b.querySelectorAll('thead th')].map((th) => th.textContent), b.querySelectorAll('tbody tr').length, b.querySelectorAll('tbody tr.mb-swing').length])")
-        for (record, heads, n, swings), t in zip(wl, ("BOS", "DET")):
-            w = REFERENCE["wl"][t]
-            self.assertEqual(record, f"{w['nw']}-{w['nl']}")
-            self.assertEqual(heads, ["", f"In Wins ({w['nw']})", f"In Losses ({w['nl']})"])
-            self.assertEqual((n, swings), (12, 3))
-        h2h = PAGE.evaluate("() => {" + CELL_TEXT + " return [...document.querySelectorAll('.mb-mirror tbody tr:not(.mb-group)')].map((r) => [...r.children].map(cellText)); }")
-        rows = {r[0]: r for r in h2h}
-        self.assertEqual(rows["Record"], ["Record", "5-1", "2-4"])
-        self.assertEqual(rows["Net Rating"][1][:3], "1st")
-        # Points Per Quarter: the margin big, its rank small (the owner, 2026-10-28)
-        q1 = rows["Q1"]
-        self.assertEqual(q1[1], f"{T['BOS']['q1_ppq']:+.1f}".replace(".0", "") + f" {ordinal(rank('q1_ppq', 'BOS', True))}")
-        parts = PAGE.evaluate("() => [...document.querySelectorAll('#h2h-content .mb-part')].map((th) => th.textContent)")
-        self.assertEqual(parts, ["Season", "Points Per Quarter", "Blowout Data"])
-        self.assertIn("Blowout Data", PAGE.text_content("#h2h-content"))
-
-    def test_top_row_and_recent_games(self):
-        self.assertIn("Pat Lee", PAGE.inner_text("#top-content"))
-        self.assertIn("221.5", PAGE.inner_text("#top-content"))
-        # BOS won by 10 as a 6.5 favorite (covered, green); 210 points under 214.5 (red)
-        cells = PAGE.evaluate("() => [...document.querySelectorAll('#recent-content .nba-box')[0].querySelectorAll('td.mb-res')].map((td) => [td.textContent, td.title])")
-        self.assertEqual(cells, [["-6.5", "Covered"], ["U 214.5", "Under"]])
-
-    def test_rotations_sort_and_shade(self):
-        PAGE.evaluate("() => { DATA.players = {BOS: [{id: '1', name: 'A', games: 5, min: 30, pts: 10, reb: 5, ast: 2, threes: 1, l5_pts: 9},"
-                      " {id: '2', name: 'B', games: 5, min: 32, pts: 25, reb: 4, ast: 6, threes: 3, l5_pts: 27}], DET: []}; render(); }")
-        names = lambda: PAGE.evaluate("() => [...document.querySelectorAll('#players-content .nba-box')[0].querySelectorAll('tbody tr')].map((r) => r.querySelector('.nba-player').textContent.trim()[0])")
-        self.assertEqual(names(), ["A", "B"])
-        PAGE.click("#players-content th.mb-sort[data-sort='pts']")
-        self.assertEqual(names(), ["B", "A"])  # most points first
-        PAGE.click("#players-content th.mb-sort[data-sort='pts']")
-        self.assertEqual(names(), ["A", "B"])  # again = the other way
-        shaded = PAGE.evaluate("() => [...document.querySelectorAll('#players-content td.mb-rot')].every((td) => (td.getAttribute('style') || '').includes('background'))")
-        self.assertTrue(shaded)
-
-    def test_long_content_never_drops_the_right_column(self):
-        # 2026-10-28: the columns were sized by the night's content, so a long injury list
-        # (IND-PHI, ATL-MIA) made the left one ~30px wider and the right one fell under it.
-        # Fixed widths now: the same game with a long list keeps both columns side by side,
-        # Injuries full width under The Line (the owner, 2026-10-29), and nothing spilling out.
-        PAGE.set_viewport_size({"width": 1900, "height": 1000})
-        try:
-            PAGE.evaluate("""() => { DATA.injuries.BOS = Array.from({ length: 9 }, (_, i) => ({ id: String(90 + i), name: 'Giannis Antetokounmpo-Longname ' + i,
-                status: i % 2 ? 'Out' : 'Day-To-Day', position: 'PF', injury: 'Knee' })); render(); }""")
-            got = PAGE.evaluate("""() => { const top = (e) => Math.round(e.getBoundingClientRect().top); const cols = [...document.querySelectorAll('.mb-colwrap')];
-                return [top(cols[0]) === top(cols[1]), new Set([...document.querySelectorAll('#top-content > .nba-box')].map(top)).size,
-                        [...document.querySelectorAll('.mb-colwrap > .section-wrap')].filter((s) => s.scrollWidth > s.clientWidth + 1).map((s) => s.id)]; }""")
-            self.assertEqual(got, [True, 2, []])
-            # the long list folds into two columns; The Line's four tiles sit in one row
-            row = PAGE.evaluate("() => [document.querySelector('.mb-inj-list.mb-inj-2col') !== null, new Set([...document.querySelectorAll('.mb-tile')].map((t) => Math.round(t.getBoundingClientRect().top))).size]")
-            self.assertEqual(row, [True, 1])
-        finally:
-            PAGE.evaluate("() => { delete DATA.injuries.BOS; render(); }")
-            PAGE.set_viewport_size({"width": 1440, "height": 1000})  # site_browser.py's size
-
-    def test_in_the_nba_menu_and_team_identity_lands_here(self):
+    def test_matchup_data_is_retired(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.nba-menu a')].map((a) => [a.textContent, a.getAttribute('href')])")
-        self.assertIn("Matchup Data", [x[0] for x in links])  # renamed from Matchup Breakdown (2026-11-04)
-        self.assertNotIn("Team Identity", [x[0] for x in links])
-        page = SITE.open("nba/identity.html")
-        try:
-            page.wait_for_url("**/nba/")
-            page.wait_for_function("() => typeof DATA !== 'undefined' && DATA")
-        finally:
-            page.close()
-
-
-if __name__ == "__main__":
-    unittest.main()
+        names = [x[0] for x in links]
+        self.assertIn("Matchup Keys", names)
+        self.assertNotIn("Matchup Data", names)
+        self.assertNotIn("Team Identity", names)
+        self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('[data-mk-tab]')].map((b) => b.textContent)"),
+                         ["Overview", "Categories", "Rotations & History", "Summary"])
+        for old in ("nba/", "nba/identity.html"):
+            page = SITE.open(old)
+            try:
+                page.wait_for_url("**/nba/matchup-keys.html")
+            finally:
+                page.close()
 
 
 class WhoIsBehindIt(unittest.TestCase):
@@ -253,7 +191,7 @@ class WhoIsBehindIt(unittest.TestCase):
         SITE.nba_props = {"default": "2027", "seasons": {"2027": {"label": "2026-27", "fields": fields, "players": players, "out": {}}},
                           "research": {"players": {"10": {"trans": [18, 60], "ap": [40, 12, 3]}}}}
         try:
-            PAGE.click(".mb-matchup td.mb-who[data-who='paint_pct']")
+            PAGE.click(".mb-matchup td.mb-who[data-who='paint']")
             PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-table")
             boxes = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .mb-whobox')].map((b) => [...b.querySelectorAll('tr:not(.mb-heads)')].map((tr) => [...tr.children].map((td) => td.innerText.replace(/\\s+/g, ' ').trim())))")
             bos, det = boxes
@@ -263,11 +201,28 @@ class WhoIsBehindIt(unittest.TestCase):
             self.assertEqual(bos[0][3:6], ["12.0", "57%", "23%"])
             self.assertIn("Det Wing", det[0][0])
             PAGE.keyboard.press("Escape")
-            PAGE.click(".mb-matchup td.mb-who[data-who='trans_freq']")
+            PAGE.click(".mb-matchup td.mb-who[data-who='transition']")
             PAGE.wait_for_function("() => document.querySelector('#mb-who-content').innerText.includes('TRANS') || document.querySelector('#mb-who-content').innerText.includes('Trans')")
             first = PAGE.evaluate("() => [...document.querySelector('#mb-who-modal .mb-whobox tr:not(.mb-heads)').children].map((td) => td.innerText.trim())")
             self.assertEqual(first[3:6], ["6.0", "30%", "1.0"])  # 18 transition points in 3 games, 18 of 60, 3 transition assists
-            self.assertEqual(PAGE.locator(".mb-matchup td.mb-who[data-who='pace']").count(), 0)  # a team-only number
+            PAGE.keyboard.press("Escape")
+            # a team-only number opens nothing; every colored box with a player split opens it (the owner, 2026-11-09)
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup td.mb-mid')].filter((td) => td.textContent === 'Pace' && td.dataset.who).length"), 0)
+            PAGE.click("[data-mk-tab=categories]")
+            PAGE.wait_for_selector(".mk-cats")
+            PAGE.click(".mk-cline[data-cat='threes'] .mk-who >> nth=0")
+            PAGE.wait_for_function("() => !document.getElementById('mb-who-modal').hidden && document.querySelector('#mb-who-content').textContent.includes('Threes')")
+            self.assertFalse(PAGE.evaluate("() => view.open.has('threes')"))  # the box opened the players, not the category
+            PAGE.keyboard.press("Escape")
+            PAGE.click("[data-mk-tab=overview]")
+            PAGE.wait_for_selector(".mk-ov")
+            self.assertGreater(PAGE.locator(".mk-ov .mk-who").count(), 0)
+            self.assertEqual(PAGE.locator(".mk-ov .mks-span.mk-who").count(), 0)  # Pace: no player split
         finally:
             PAGE.keyboard.press("Escape")
+            PAGE.click("[data-mk-tab=summary]")
         self.assertEqual(SITE.errors, [])
+
+
+if __name__ == "__main__":
+    unittest.main()

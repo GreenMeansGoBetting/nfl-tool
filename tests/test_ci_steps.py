@@ -51,7 +51,7 @@ class DeploySteps(unittest.TestCase):
             html = (site / page).read_text(encoding="utf-8")
             order = [html.index(f'href="{name}"') for name in ("../style.css", "../suite.css", "nhl.css")]
             self.assertEqual(order, sorted(order), page)
-        nba = (site / "nba" / "index.html").read_text(encoding="utf-8")
+        nba = (site / "nba" / "matchup-keys.html").read_text(encoding="utf-8")  # index.html only forwards (2026-11-09)
         self.assertIn('href="../suite.css"', nba)
         self.assertNotIn("nhl.css", nba)
         for nfl_page in site.glob("*.html"):

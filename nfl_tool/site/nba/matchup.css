@@ -77,7 +77,8 @@
 .mb-matchup .mb-group td { padding: 6px 4px; border-radius: 7px; border-bottom: 0; color: var(--good-text); background: rgba(var(--good-rgb), 0.2); }.mb-table tr.mb-heads th { padding-top: 2px; }
 
 /* a stat name opens who's behind it (a member, 2026-11-09) */
-.mb-matchup td.mb-who { cursor: pointer; }
+.mb-matchup td.mb-who, .mb-matchup td.mb-who-v { cursor: pointer; }
+.mb-matchup td.mb-who-v:hover { box-shadow: inset 0 0 0 2px var(--text); }
 .mb-matchup td.mb-who:hover { background: rgba(var(--accent-rgb), 0.22); }
 .mb-matchup td.mb-who::after { content: "\25B8"; margin-left: 4px; font-size: 0.7rem; opacity: 0.7; }
 #mb-who-modal .modal-box { width: auto; max-width: min(1340px, 96vw); }

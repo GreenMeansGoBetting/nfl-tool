@@ -206,12 +206,13 @@ class Page(unittest.TestCase):
         })""")
         self.assertEqual(set(shown), {"0px none"})
 
-    def test_a_logo_opens_that_teams_game_in_matchup_breakdown(self):
-        before = list(SITE.errors)  # Matchup Breakdown on this thin data.json isn't what's tested here
+    def test_a_logo_opens_that_teams_game_in_matchup_keys(self):
+        # Matchup Keys since Matchup Data was retired (2026-11-09)
+        before = list(SITE.errors)  # Matchup Keys on this thin data.json isn't what's tested here
         PAGE.click('.lsc-logo[data-team="MIA"]')
-        PAGE.wait_for_url("**/nba/")
+        PAGE.wait_for_url("**/nba/matchup-keys.html")
         self.assertEqual(PAGE.evaluate("() => localStorage.getItem('nba-tool.game.v1')"), "77")
-        PAGE.goto(PAGE.url + "league.html")
+        PAGE.goto(PAGE.url.replace("matchup-keys.html", "league.html"))
         PAGE.wait_for_function("() => document.querySelectorAll('.lsc-grid tbody tr').length === 4")
         SITE.errors[:] = before
 

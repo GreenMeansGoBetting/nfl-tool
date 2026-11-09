@@ -1112,14 +1112,14 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       // One page, three views: the link's #view opens that tab (player-props.js).
       pills(["Receiving", "player-props.html#receiving", 210], ["Rushing", "player-props.html#rushing", 330], ["Passing", "player-props.html#passing", 275]),
     ] },
-    nba: { label: "NBA", home: "", items: [
+    // Matchup Data retired 2026-11-09 (its Matchup is Matchup Keys' Summary tab): /nba/ lands on Matchup Keys.
+    nba: { label: "NBA", home: "matchup-keys.html", items: [
       // The owner's video card (2026-11-02): only the owner sees it (`owner`).
       { ...pills(["Dunk Digest", "digest.html", 0]), owner: true },
-      pills(["League Stats Chart", "league.html", 140], ["Matchup Data", "", 240]),
       // Matchup Keys: its own page since 2026-11-04 (the owner: the League Stats Chart button was "too hidden").
-      pills(["Matchup Keys", "matchup-keys.html", 45], ["Zone Matchup Targets", "zones.html", 300]),
+      pills(["League Stats Chart", "league.html", 140], ["Matchup Keys", "matchup-keys.html", 45]),
       // Assist Spots: assists read from both sides, beside Zone Matchup Targets (the owner, 2026-11-05)
-      pills(["Assist Spots", "assist-spots.html", 350]),
+      pills(["Zone Matchup Targets", "zones.html", 300], ["Assist Spots", "assist-spots.html", 350]),
       // The NBA side is a research site (the owner, 2026-11-03): no projections or model
       // plays; each bet category is its data and every book's line (research.js).
       { head: "Prop Research" },

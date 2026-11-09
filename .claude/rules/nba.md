@@ -25,8 +25,8 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
 - Pages (`site/nba/`): `league.html` + `league.js` + `league.css` League Stats Chart (first in the menu;
   its columns, formats and ranks in `league-cols.js`, shared with Matchup Keys); `matchup-keys.html/.js/.css` + `matchup-history.js`
   Matchup Keys (rules in `keys.js`);
-  `index.html` + `nba.js` + `matchup.css` Matchup Breakdown (`identity.html` only
-  forwards to it); `points` / `threes` / `rebounds` / `assists` `.html` (`data-market`) on `research.js`
+  `matchup-sheet.js` (The Matchup, its Summary tab) + `who.js` (who's behind a number) + `matchup.css`;
+  `index.html` / `identity.html` only forward to Matchup Keys (Matchup Data retired 2026-11-09); `points` / `threes` / `rebounds` / `assists` `.html` (`data-market`) on `research.js`
   + `sim.css` Prop Research; `assist-spots.html` + `spots.js` Assist Spots (on research.js);
   `best.html` / `game-predictions.html` only forward (retired 2026-11-03);
   `first-basket.html/.js/.css`;
@@ -629,12 +629,22 @@ the same framework next ("once we have the framework down").
   be segmented ... this is where BOS have an edge vs this is where CHA is weak vs this is where they are
   both x", "make them like [the player prop drop downs]"). Top: game and the line (spread, total, ML via
   `showOdds`), **Injuries by name** both teams (`playerClick`, Out / DTD; Probable left off; the owner:
-  "4 out" hid them), then **three big tab buttons a third of the width each** (`MK_TABS`: Overview /
-  Categories / Rotations & History; the owner, 2026-11-06: "large buttons ... easily seen and clicked").
-  Carousel + Season / Last 10 / 5 / 3 (the research boxes' tabs are the same windows); the open game is
-  shared with Matchup Data (`nba-tool.game.v1`); the tab is a per-device pref. **The owner's plan
-  (2026-11-06): Matchup Keys and Matchup Data become this one page** ("thats what this is right?");
-  Matchup Data still exists until the owner says to remove it.
+  "4 out" hid them), then **four big tab buttons a quarter of the width each** (`MK_TABS`: Overview /
+  Categories / Rotations & History / Summary; the owner, 2026-11-06: "large buttons ... easily seen and
+  clicked"). Carousel + Season / Last 10 / 5 / 3 (the research boxes' tabs are the same windows); the
+  open game is `nba-tool.game.v1`; the tab is a per-device pref. **Matchup Data was retired 2026-11-09**
+  (the owner: "add that matchup sheet to a fourth tab called summary ... then i believe we can remove
+  matchup data"): the NBA menu has no Matchup Data, the NBA home (`/nba/`, `SPORT_PAGES` home) and
+  `identity.html` forward to Matchup Keys.
+  - **Every colored box with a player split opens who's behind it** (`who.js` `whoOpen(topic, game)`;
+    a member asked for Paint FG% on 2026-11-09, the owner made it every box): both teams' rotation
+    players (12+ min, 3+ games) for the topic (`WHO`: scoring, transition, threes, paint, mid,
+    turnovers, glass, ft, ballmove; `whoTopic` maps a league-chart key or a Matchup row), top 6 by its
+    main number plus the top 3 in its `also`, each number tiled by its place among the league's
+    rotation players (turnovers: red = more), his share of the team's total. Pace, totals and records
+    open nothing. A tile carries `data-who` (`whoAttr`); the page's click handler opens it before a
+    category line's open / close. Numbers only, no calls. Data: props.json (logs, `zones`, `zone_pct`,
+    research `trans` / `ap`).
   - **Overview:** road team's **Edges** | **Matchup Summary** | home team's **Edges**, then **Both
     Teams** (Same Style + Trend keys, three columns). Every Edge key shown, strongest first, **the box's
     own team's column first** (the owner: CHA first in CHA's box). **Labels are stat names, never
@@ -651,6 +661,8 @@ the same framework next ("once we have the framework down").
     Betting Record (O/U, ATS, Avg Margin), Read = Both Fast / Slow / High / Low or the O/U Trend.
     Categories and Rotations & History are **1020 px wide** (the owner: the Categories lines were "too
     wide"); the Overview stays 1260.
+  - **Summary** (`matchup-sheet.js`, `matchup.css`): The Matchup, moved from Matchup Data (below); stat
+    names and number boxes open who's behind it.
   - **Rotations & History** (`matchup-history.js`, `mhView`; Matchup Data's sections in this look, not a
     link): both Rotations (sortable heads, each number shaded by rank on his own team, Out rows faded),
     **Head To Head** (tabs Season / Quarters / Blowouts & Spots; tonight's spots via extremes.js) beside
@@ -666,26 +678,15 @@ the same framework next ("once we have the framework down").
   row (one screenshot = two games); a game card goes back to that game. Tests:
   `tests/test_nba_matchup_keys.py`.
 
-## Matchup Breakdown (`index.html` + `nba.js` + `matchup.css`; called **Matchup Data** in the menu and title since 2026-11-04)
+## The Matchup (`matchup-sheet.js` + `matchup.css`; Matchup Keys' Summary tab)
+
+Matchup Data (`index.html` + `nba.js`, "Matchup Breakdown" before 2026-11-04) was retired 2026-11-09:
+its Line, Injuries, Edges, Head To Head, How They Win / Lose, Rotations and Recent Games live on Matchup
+Keys (Overview, Rotations & History), The Matchup on the Summary tab.
 
 - **One cell language:** rank of 30 big, number small, shaded red to green by rank (`cellTd`,
   `scaleHsla`), green = good for that team. How-often rows colored too (offense 1st = does it most,
   defense 1st = allows it least). `rankIn` ranks among the season numbers.
-- **Layout:** two anchored columns, **a fixed 960 / 780 px** (never sized by the night's content):
-  left = The Line + Injuries, Biggest Edges, Head To Head, Rotations; right = How They Win / Lose, The
-  Matchup; Recent Games across the bottom. Long names shorten with "...". **The Line = four tiles in
-  one row, Injuries full width under it**, each team a tinted box under its banner, two columns inside
-  past 4 players. **Head To Head's three parts in one row**, each its own shaded panel (blue / purple /
-  amber) with its name on top. **Every team box (Edges, Win / Lose, Rotation, Recent) is tinted in its
-  team color** (`teamBox`); The Matchup's halves are shaded by the team with the ball
-  (`shadeMatchup`, measured after drawing); every label full text color, never gray. Below 1860 px the
-  columns stack (`test_long_content_never_drops_the_right_column`). Labels far-left in team-vs-team
-  tables; **The Matchup keeps its label in the middle** with calls on the outside; no "Has The Ball" /
-  "Call" heads; group headers centered.
-- Sections: The Line + Injuries; **Biggest Edges** (Offense then Defense, up to 3 each); **How They
-  Win / Lose** (`WL_ROWS`, 3 biggest swings marked, "No Losses Yet"); **Head To Head** (Season, Points
-  Per Quarter with the margin big and rank small, Blowout Data + Tonight's Spots); **Rotations**
-  (sortable); **Recent Games** (Spread / Total at tip via `add_recent_lines`).
 - **The Matchup:** `[call][Away Off][Home Def] [label] [Home Off][Away Def][call]`, every row always
   (`M_ROWS`): Pts / Possession, Pace, Transition Share, Transition Pts / Poss; Turnovers, Rebounding
   (OREB% vs the defense's DREB%), Free Throws / Shot; 3-Point Share (no 3P%), Paint Share, Paint FG%,
@@ -695,9 +696,8 @@ the same framework next ("once we have the framework down").
 - Calls (`rowCall`): matchupCall's rule (0.6 spreads one side, not 0.3 against); transition only for a
   team that runs; a make rate only where the offense shoots at least the league's share; Big Edge =
   sides average 1 spread (types: 6+ pts); how-often rows Fits / Takes Away at 0.7 each.
-- Does NOT load common.js (style.css, suite.css, sync.js). The NHL reuses suite.css's `.nba-two`,
-  `.nba-box`, `.nba-app`.
-- Tests: `test_nba_matchup_site.py`, `test_nba_identity.py`, `test_nba_previews_seasons.py`.
+- Tests: `test_nba_matchup_site.py` (on Matchup Keys' Summary tab; who.js too), `test_nba_identity.py`,
+  `test_nba_previews_seasons.py`.
 
 ## First Basket (`first_basket.py`, `first-basket.*`)
 

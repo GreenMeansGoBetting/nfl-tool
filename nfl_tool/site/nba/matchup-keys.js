@@ -21,7 +21,7 @@ const view = { window: "season", all: false, tab: "overview", open: new Set(["sc
 const NBA_GAME_KEY = "nba-tool.game.v1"; // the open game, shared with Matchup Data (nba.js)
 const MK_TAB_KEY = "nba-tool.mk-tab.v1"; // a display pref: stays on this device
 const MK_WINDOWS = [["season", "Season"], ["10", "Last 10"], ["5", "Last 5"], ["3", "Last 3"]];
-const MK_TABS = [["overview", "Overview"], ["categories", "Categories"], ["rotations", "Rotations & History"]];
+const MK_TABS = [["overview", "Overview"], ["categories", "Categories"], ["rotations", "Rotations & History"], ["summary", "Summary"]];
 // The Matchup Summary's rows: [name, offense key, defense key (null: one number a team), keys.js topic].
 const MK_SUMMARY = [
   ["Scoring Efficiency", "o_rtg", "d_rtg", "scoring"],
@@ -98,7 +98,8 @@ function renderSchedule() {
 
 // ---- Tiles ----
 // A plain Points Research tile; `rank` shades it on the 8-step scale (green = good for that team).
-const rsT = (inner, cls = "", style = "", tip = "") => `<div class="rs-t ${cls}"${style ? ` style="${style}"` : ""}${tip ? ` title="${esc(tip)}"` : ""}>${inner}</div>`;
+// attrs: extra attributes (whoAttr: a tile that opens who's behind the number, who.js)
+const rsT = (inner, cls = "", style = "", tip = "", attrs = "") => `<div class="rs-t ${cls}"${style ? ` style="${style}"` : ""}${tip ? ` title="${esc(tip)}"` : ""}${attrs}>${inner}</div>`;
 const hd = (inner, cls) => rsT(inner, `rs-h ${cls}`);
 function stat(ctx, t, key) {
   const c = col(key), v = (ctx.table[t] || {})[key], rk = ctx.ranks[key] ? ctx.ranks[key].r[t] : null;
@@ -106,12 +107,12 @@ function stat(ctx, t, key) {
 }
 const rankTile = (ctx, t, key, withLogo) => {
   const s = stat(ctx, t, key);
-  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}` : "--", s.rk ? "mk-r" : "rs-small", s.shade, s.tip);
+  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}` : "--", `${s.rk ? "mk-r" : "rs-small"}${whoAttr(key) ? " mk-who" : ""}`, s.shade, s.tip, whoAttr(key));
 };
 // The Overview's tile: the rank big, the number and its name small under it.
 const bigTile = (ctx, t, key) => {
   const s = stat(ctx, t, key);
-  return `<div class="mk-k" style="${s.shade}" title="${esc(s.tip)}"><b>${s.rk ? ordinal(s.rk) : "--"}</b><small>${esc(s.v === null || s.v === undefined ? "" : s.text)} ${esc(short(key))}</small></div>`;
+  return `<div class="mk-k${whoAttr(key) ? " mk-who" : ""}" style="${s.shade}" title="${esc(s.tip)}"${whoAttr(key)}><b>${s.rk ? ordinal(s.rk) : "--"}</b><small>${esc(s.v === null || s.v === undefined ? "" : s.text)} ${esc(short(key))}</small></div>`;
 };
 function readTile(r) {
   if (!r || r.kind === "blank") return rsT("", "rs-blank");
@@ -224,7 +225,8 @@ const valRank = (ctx, t, key, allows) => {
   const as = allows && MK_AS_ALLOWED[key];
   const text = as ? exact(as[1](s.v), col(key)[3]) : s.text;
   const tip = as ? `${team(t).name} · ${as[0]}: ${text}${s.rk ? ` · ${ordinal(s.rk)} of ${s.n}` : ""}` : s.tip;
-  return rsT(esc(text), "", s.shade, tip) + rsT(s.rk ? ordinal(s.rk) : "--", "mk-r", s.shade, tip);
+  const who = whoAttr(key), wc = who ? " mk-who" : "";
+  return rsT(esc(text), wc.trim(), s.shade, tip, who) + rsT(s.rk ? ordinal(s.rk) : "--", `mk-r${wc}`, s.shade, tip, who);
 };
 function directionBox(ctx, keys, o, d, rows) {
   return rsBox(`${logo(o, 22)}vs${logo(d, 22)}`, [`${logo(o, 15)}Off`, `${logo(d, 15)}Allows`],
@@ -304,9 +306,12 @@ function renderKeys() {
     ? categories(ctx, keys, game)
     : view.tab === "rotations"
       ? mhView(game) // matchup-history.js
-      : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}`;
+      : view.tab === "summary"
+        ? `<div class="nba-box mb-fitbox mk-sheet">${matchup(game).html}</div>` // matchup-sheet.js
+        : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}`;
   el("mk-body").innerHTML = `<div class="mk-top"><div class="mk-head">${logo(game.away, 28)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 28)}<b>${game.home}</b></div>
     <div class="mk-line">${lineTiles(game)}</div></div>${injuries(game)}<div class="rs-tabs mk-tabs">${tabs}</div>${body}`;
+  if (view.tab === "summary") shadeMatchup(game);
 }
 function render() {
   renderSchedule();
@@ -363,6 +368,9 @@ document.addEventListener("click", (e) => {
     return renderKeys();
   }
   if (e.target.closest(".player-click")) return; // the player card (nba-card.js) handles it
+  // a colored box opens the players behind its number (who.js), before a category line's open / close
+  const who = e.target.closest("#mk-body [data-who]");
+  if (who) return whoOpen(who.dataset.who, DATA.schedule.find((g) => g.game_id === gameId));
   const line = e.target.closest(".mk-cline[data-cat]");
   if (line) return toggleCat(line.dataset.cat);
   const win = e.target.closest("#mk-window .view-toggle-btn") || e.target.closest(".mk-sb .rs-tabs [data-window]");
