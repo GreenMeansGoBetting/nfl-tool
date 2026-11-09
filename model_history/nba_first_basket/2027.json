@@ -11843,14 +11843,21 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.097,
+    0.084,
     850,
     false,
     "fanduel"
    ],
+   "3945274": [
+    "Luka Doncic",
+    0.149,
+    425,
+    false,
+    "hard_rock"
+   ],
    "4066457": [
     "Austin Reaves",
-    0.143,
+    0.121,
     650,
     false,
     "fanduel"
@@ -11871,21 +11878,14 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.101,
+    0.089,
     1200,
     true,
     "hard_rock"
    ],
-   "4433137": [
-    "Ziaire Williams",
-    0.092,
-    null,
-    false,
-    null
-   ],
    "4592691": [
     "Jake LaRavia",
-    0.091,
+    0.081,
     1020,
     false,
     "fliff"
@@ -13538,14 +13538,21 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.101,
+    0.087,
+    null,
+    false,
+    null
+   ],
+   "3945274": [
+    "Luka Doncic",
+    0.153,
     null,
     false,
     null
    ],
    "4066457": [
     "Austin Reaves",
-    0.147,
+    0.125,
     null,
     false,
     null
@@ -13566,14 +13573,7 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.104,
-    null,
-    false,
-    null
-   ],
-   "4433137": [
-    "Ziaire Williams",
-    0.095,
+    0.092,
     null,
     false,
     null
@@ -13587,7 +13587,7 @@
    ],
    "4592691": [
     "Jake LaRavia",
-    0.094,
+    0.084,
     null,
     false,
     null
