@@ -10805,7 +10805,7 @@ null
 "total": 226.5,
 "total_odds": [
 102,
--106
+-104
 ]
 },
 "date": "2026-11-08",
@@ -10943,7 +10943,7 @@ null
 11.5
 ],
 "spread_odds": [
--106,
+-107,
 104
 ],
 "total": 236.5,
@@ -11221,14 +11221,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-5.5,
+5.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 223.5,
 "total_odds": [
 null,
 null
@@ -11240,8 +11240,14 @@ null
 0.6721,
 0.3279
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4949,
+0.5051
+],
+"total": [
+0.3169,
+0.6831
+]
 },
 "fair_spread": 5.3,
 "home": "CHA",
@@ -11359,14 +11365,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+9.5,
+-9.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 220.5,
 "total_odds": [
 null,
 null
@@ -11378,8 +11384,14 @@ null
 0.2382,
 0.7618
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5317,
+0.4683
+],
+"total": [
+0.3893,
+0.6107
+]
 },
 "fair_spread": -8.5,
 "home": "DET",
@@ -11497,14 +11509,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+2.5,
+-2.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
 null,
 null
@@ -11516,8 +11528,14 @@ null
 0.361,
 0.639
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4413,
+0.5587
+],
+"total": [
+0.5916,
+0.4084
+]
 },
 "fair_spread": -4.3,
 "home": "TOR",
@@ -11776,7 +11794,7 @@ null
 "book": {
 "ml": [
 277,
--285
+-292
 ],
 "spread": [
 8.5,
@@ -11784,12 +11802,12 @@ null
 ],
 "spread_odds": [
 -104,
--115
+-122
 ],
 "total": 216.5,
 "total_odds": [
 -116,
--104
+102
 ]
 },
 "date": "2026-11-09",
@@ -11932,7 +11950,7 @@ null
 ],
 "total": 227.5,
 "total_odds": [
--107,
+-102,
 -106
 ]
 },
@@ -12071,7 +12089,7 @@ null
 -9.5
 ],
 "spread_odds": [
--700,
+null,
 -108
 ],
 "total": 231.5,
