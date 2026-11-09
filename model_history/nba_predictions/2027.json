@@ -11116,8 +11116,8 @@ null
 ],
 "total": 235.5,
 "total_odds": [
--108,
-104
+-111,
+106
 ]
 },
 "date": "2026-11-09",
@@ -11392,7 +11392,7 @@ null
 "book": {
 "ml": [
 426,
--456
+-441
 ],
 "spread": [
 9.5,
@@ -11535,7 +11535,7 @@ null
 "away": "MEM",
 "book": {
 "ml": [
-127,
+125,
 -130
 ],
 "spread": [
@@ -12259,14 +12259,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+14.5,
+-14.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 220.5,
 "total_odds": [
 null,
 null
@@ -12278,8 +12278,14 @@ null
 0.171,
 0.829
 ],
-"spread": null,
-"total": null
+"spread": [
+0.6019,
+0.3981
+],
+"total": [
+0.4994,
+0.5006
+]
 },
 "fair_spread": -11.4,
 "home": "NY",
@@ -12393,7 +12399,7 @@ null
 "away": "BOS",
 "book": {
 "ml": [
--110,
+-108,
 104
 ],
 "spread": [
@@ -12401,13 +12407,13 @@ null
 1.5
 ],
 "spread_odds": [
-102,
--111
+-113,
+-106
 ],
 "total": 217.5,
 "total_odds": [
 102,
-null
+-122
 ]
 },
 "date": "2026-11-10",
@@ -12541,14 +12547,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+2.5,
+-2.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 224.5,
 "total_odds": [
 null,
 null
@@ -12560,8 +12566,14 @@ null
 0.4407,
 0.5593
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5236,
+0.4764
+],
+"total": [
+0.5535,
+0.4465
+]
 },
 "fair_spread": -1.8,
 "home": "PHX",
@@ -12955,14 +12967,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-1.5,
+1.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 223.5,
 "total_odds": [
 null,
 null
@@ -12974,8 +12986,14 @@ null
 0.4641,
 0.5359
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4148,
+0.5852
+],
+"total": [
+0.5507,
+0.4493
+]
 },
 "fair_spread": -1.1,
 "home": "POR",
