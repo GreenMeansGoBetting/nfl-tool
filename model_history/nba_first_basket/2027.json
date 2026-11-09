@@ -11705,91 +11705,88 @@
  "401909951": {
   "away": "MIA",
   "date": "2026-11-08",
-  "first_home": 0.443,
+  "first_home": 0.5,
   "home": "SAC",
   "jumpers": [
    [
     "4066261",
     "Bam Adebayo"
    ],
-   [
-    "3155942",
-    "Domantas Sabonis"
-   ]
+   null
   ],
   "players": {
    "3032977": [
     "Giannis Antetokounmpo",
-    0.142,
+    0.127,
     350,
     false,
     "bet365"
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.089,
+    0.079,
     1000,
     false,
     "hard_rock"
    ],
    "3064440": [
     "Zach LaVine",
-    0.083,
+    0.101,
     1080,
-    false,
+    true,
     "draftkings"
-   ],
-   "3155942": [
-    "Domantas Sabonis",
-    0.1,
-    900,
-    false,
-    "bet365"
    ],
    "4065732": [
     "De'Andre Hunter",
-    0.076,
+    0.093,
     1260,
-    false,
+    true,
     "draftkings"
    ],
    "4066261": [
     "Bam Adebayo",
-    0.121,
+    0.109,
     500,
     false,
     "fanduel"
    ],
    "4278053": [
     "Davion Mitchell",
-    0.099,
+    0.089,
     1000,
     false,
     "caesars"
    ],
+   "4431679": [
+    "Precious Achiuwa",
+    0.091,
+    null,
+    false,
+    null
+   ],
    "4594327": [
     "Keegan Murray",
-    0.073,
+    0.083,
     1520,
     true,
     "draftkings"
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.092,
+    0.112,
     1200,
     true,
     "bet365"
    ],
    "6475": [
     "Klay Thompson",
-    0.085,
+    0.076,
     1300,
-    true,
+    false,
     "hard_rock"
    ]
   },
-  "tip_home": 0.328
+  "tip_home": 0.5
  },
  "401909952": {
   "away": "LAL",
@@ -12862,91 +12859,88 @@
  "401909964": {
   "away": "ORL",
   "date": "2026-11-10",
-  "first_home": 0.464,
+  "first_home": 0.5,
   "home": "SAC",
   "jumpers": [
    [
     "4277847",
     "Wendell Carter Jr."
    ],
-   [
-    "3155942",
-    "Domantas Sabonis"
-   ]
+   null
   ],
   "players": {
    "3064440": [
     "Zach LaVine",
-    0.087,
-    null,
-    false,
-    null
-   ],
-   "3155942": [
-    "Domantas Sabonis",
-    0.105,
+    0.101,
     null,
     false,
     null
    ],
    "4065732": [
     "De'Andre Hunter",
-    0.08,
+    0.093,
     null,
     false,
     null
    ],
    "4066320": [
     "Desmond Bane",
-    0.101,
+    0.094,
     null,
     false,
     null
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.104,
+    0.097,
+    null,
+    false,
+    null
+   ],
+   "4431679": [
+    "Precious Achiuwa",
+    0.091,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.137,
+    0.128,
     null,
     false,
     null
    ],
    "4594327": [
     "Keegan Murray",
-    0.077,
+    0.083,
     null,
     false,
     null
    ],
    "4712849": [
     "Anthony Black",
-    0.093,
+    0.087,
     null,
     false,
     null
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.097,
+    0.112,
     null,
     false,
     null
    ],
    "5239561": [
     "Jase Richardson",
-    0.08,
+    0.074,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.392
+  "tip_home": 0.5
  },
  "401909965": {
   "away": "OKC",
