@@ -7105,14 +7105,14 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.2055,
+    "lead": 0.2051,
     "name": "Victor Wembanyama",
     "proj": 44.3,
     "team": "SA"
    },
    {
     "id": "3975",
-    "lead": 0.1064,
+    "lead": 0.106,
     "name": "Stephen Curry",
     "proj": 40.4,
     "team": "GS"
@@ -7126,16 +7126,16 @@
    },
    {
     "id": "3112335",
-    "lead": 0.0839,
+    "lead": 0.0834,
     "name": "Nikola Jokic",
     "proj": 38.5,
     "team": "DEN"
    },
    {
     "id": "5041939",
-    "lead": 0.0577,
+    "lead": 0.0593,
     "name": "Cooper Flagg",
-    "proj": 36.7,
+    "proj": 36.8,
     "team": "DAL"
    },
    {
@@ -7154,14 +7154,14 @@
    },
    {
     "id": "4065733",
-    "lead": 0.047,
+    "lead": 0.0469,
     "name": "Ty Jerome",
     "proj": 36.3,
     "team": "MEM"
    },
    {
     "id": "4432166",
-    "lead": 0.0392,
+    "lead": 0.0391,
     "name": "Cade Cunningham",
     "proj": 35.6,
     "team": "DET"
@@ -7175,7 +7175,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0317,
+    "lead": 0.0315,
     "name": "Donovan Mitchell",
     "proj": 33.7,
     "team": "CLE"
@@ -7188,13 +7188,6 @@
     "team": "DEN"
    },
    {
-    "id": "4066457",
-    "lead": 0.0212,
-    "name": "Austin Reaves",
-    "proj": 32.2,
-    "team": "LAL"
-   },
-   {
     "id": "3136193",
     "lead": 0.0211,
     "name": "Devin Booker",
@@ -7202,10 +7195,17 @@
     "team": "PHX"
    },
    {
+    "id": "4066457",
+    "lead": 0.021,
+    "name": "Austin Reaves",
+    "proj": 32.2,
+    "team": "LAL"
+   },
+   {
     "id": "3149673",
-    "lead": 0.0201,
+    "lead": 0.0206,
     "name": "Pascal Siakam",
-    "proj": 32.4,
+    "proj": 32.5,
     "team": "IND"
    },
    {
@@ -7231,17 +7231,10 @@
    },
    {
     "id": "3202",
-    "lead": 0.0072,
+    "lead": 0.0071,
     "name": "Kevin Durant",
     "proj": 29.5,
     "team": "HOU"
-   },
-   {
-    "id": "4395628",
-    "lead": 0.007,
-    "name": "Zion Williamson",
-    "proj": 29.0,
-    "team": "NO"
    },
    {
     "id": "6442",
@@ -7249,6 +7242,13 @@
     "name": "Kyrie Irving",
     "proj": 29.6,
     "team": "DAL"
+   },
+   {
+    "id": "4395628",
+    "lead": 0.0069,
+    "name": "Zion Williamson",
+    "proj": 29.0,
+    "team": "NO"
    },
    {
     "id": "5174563",
@@ -7259,7 +7259,7 @@
    },
    {
     "id": "4278039",
-    "lead": 0.0049,
+    "lead": 0.0048,
     "name": "Nickeil Alexander-Walker",
     "proj": 27.9,
     "team": "ATL"
@@ -7321,18 +7321,18 @@
     "team": "TOR"
    },
    {
-    "id": "3992",
-    "lead": 0.0021,
-    "name": "James Harden",
-    "proj": 25.7,
-    "team": "CLE"
-   },
-   {
     "id": "4709138",
     "lead": 0.0021,
     "name": "Brandin Podziemski",
     "proj": 25.7,
     "team": "GS"
+   },
+   {
+    "id": "3992",
+    "lead": 0.002,
+    "name": "James Harden",
+    "proj": 25.7,
+    "team": "CLE"
    },
    {
     "id": "3907497",
