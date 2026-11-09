@@ -523,7 +523,37 @@ function playerPropsAcrossMarkets(team, name) {
   return rows;
 }
 
-function pcTdRow(market, label, team, name, game) {
+// Hit Rate (a member, 2026-11-09: "like the NBA has ... 6 of 8 ... for each prop"): his games this
+// season over the line, "x of y", tinted like the NBA card (nba-card.js nbaCardHits) from 3 games.
+// A week he played with no touches counts as 0 (the Game Log's rule). Stats the logs don't carry
+// (fantasy, kicking, tackles) show "--".
+const PC_HIT_FIELDS = {
+  receiving_yards: (g) => g.rec_yards, receiving_receptions: (g) => g.receptions, receiving_longestReception: (g) => g.longest_rec,
+  rushing_yards: (g) => g.rush_yards, rushing_attempts: (g) => g.carries, rushing_longestRush: (g) => g.longest_rush, rushing_touchdowns: (g) => g.rush_td,
+  passing_yards: (g) => g.pass_yards, passing_attempts: (g) => g.pass_att, passing_completions: (g) => g.completions,
+  passing_interceptions: (g) => g.interceptions, passing_longestCompletion: (g) => g.longest_pass, passing_touchdowns: (g) => g.pass_td,
+  anytime_td: (g) => (g.rush_td || 0) + (g.rec_td || 0), // games he scored (the 0.5 line)
+  "rushing+receiving_yards": (g) => (g.rush_yards || 0) + (g.rec_yards || 0), "passing+rushing_yards": (g) => (g.pass_yards || 0) + (g.rush_yards || 0),
+};
+function pcSeasonWeeks(team, name) {
+  const found = pcGameLogs(team, name);
+  const snaps = pcSnaps(team, name);
+  const byWeek = {};
+  (found ? found.logs : []).forEach((r) => (byWeek[r.week] = r));
+  Object.entries((snaps && snaps.w) || {}).forEach(([wk, pct]) => { if (pct > 0 && !byWeek[wk]) byWeek[wk] = { week: +wk }; });
+  return Object.values(byWeek);
+}
+function pcHitCell(marketKey, line, weeks) {
+  const get = PC_HIT_FIELDS[marketKey];
+  if (!get || line === null || line === undefined || !weeks.length) return `<td class="num pc-hit muted-label">--</td>`;
+  const vals = weeks.map((g) => Number(get(g)) || 0);
+  const over = vals.filter((v) => v > line).length;
+  const rate = over / vals.length;
+  const tier = vals.length >= 3 ? (rate >= 0.6 ? " tier-good" : rate <= 0.4 ? " tier-bad" : "") : "";
+  return `<td class="num pc-hit${tier}" title="His games over ${line} this season">${over} of ${vals.length}</td>`;
+}
+
+function pcTdRow(market, label, team, name, game, weeks = []) {
   const src = market === "first_td" ? DATA.player_first_td_odds : DATA.player_td_odds;
   const p = ((src || {})[team] || []).find((x) => normName(x.name) === normName(name));
   if (!p) return "";
@@ -540,7 +570,7 @@ function pcTdRow(market, label, team, name, game) {
   };
   // Anytime TD only: SmartStake has no First TD market.
   if (market !== "first_td") BOOK_SPECS.set(entry, { kind: "td", team, name: p.name, side: "o", line: 0.5, title: `${p.name} &middot; Anytime TD`, sub: entry.matchup });
-  return `<tr><td>${label}</td><td class="num">--</td><td class="num">${ouCheckboxCell(showOdds(p.best_odds), entry)}</td><td class="num">--</td><td class="num pc-implied">${Math.round(p.implied_prob * 100)}%</td></tr>`;
+  return `<tr><td>${label}</td><td class="num">--</td><td class="num">${ouCheckboxCell(showOdds(p.best_odds), entry)}</td><td class="num">--</td>${market === "anytime_td" ? pcHitCell("anytime_td", 0.5, weeks) : pcHitCell(null, null, weeks)}<td class="num pc-implied">${Math.round(p.implied_prob * 100)}%</td></tr>`;
 }
 
 function pcOddsView(team, name, oppTeam, game) {
@@ -564,6 +594,7 @@ function pcOddsView(team, name, oppTeam, game) {
     } else ctx = null;
   }
   const full = chosen.size >= (typeof PROPS_SUMMARY_MAX_PICKS !== "undefined" ? PROPS_SUMMARY_MAX_PICKS : 99);
+  const weeks = pcSeasonWeeks(team, name);
   const propRows = rows
     .map((r) => {
       const { over, under } = propOuEntries(r.marketKey, r.market, team, r.name, r.line, r.over_odds, r.under_odds, matchup);
@@ -581,15 +612,15 @@ function pcOddsView(team, name, oppTeam, game) {
         const pr = r.over_odds ? oddsToImpliedPct(fmtOddsSigned(r.over_odds)) : null;
         last = pr === null ? "--" : `${pr}%`;
       }
-      return `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${ouCheckboxCell(showOdds(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(showOdds(r.under_odds), under)}</td><td class="num${ctx ? "" : " pc-implied"}">${last}</td></tr>`;
+      return `<tr><td>${r.market}</td><td class="num props-line">${fmt(r.line, 1)}</td><td class="num">${ouCheckboxCell(showOdds(r.over_odds), over)}</td><td class="num">${ouCheckboxCell(showOdds(r.under_odds), under)}</td>${pcHitCell(r.marketKey, r.line, weeks)}<td class="num${ctx ? "" : " pc-implied"}">${last}</td></tr>`;
     })
     .join("");
-  const tdRows = pcTdRow("anytime_td", "Anytime TD", team, name, game) + pcTdRow("first_td", "First TD", team, name, game);
+  const tdRows = pcTdRow("anytime_td", "Anytime TD", team, name, game, weeks) + pcTdRow("first_td", "First TD", team, name, game, weeks);
   if (!propRows && !tdRows) return `<p class="no-data-note">No lines posted for this player yet this week.</p>`;
   const note = ctx ? `<p class="no-data-note">+ Summary adds the line to the card's Prop Picks (${chosen.size}/${PROPS_SUMMARY_MAX_PICKS} for ${team}). Checkboxes add to Possible Plays.</p>` : `<p class="no-data-note">Checkboxes add a side to your Possible Plays.</p>`;
   return `${note}
     <table class="data-table player-odds-table props-market-table pc-odds-table">
-      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th><th class="num">${ctx ? "Summary" : "Implied"}</th></tr></thead>
+      <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th><th class="num" title="His games over the line this season">Hit Rate</th><th class="num">${ctx ? "Summary" : "Implied"}</th></tr></thead>
       <tbody>${propRows}${tdRows}</tbody>
     </table>`;
 }

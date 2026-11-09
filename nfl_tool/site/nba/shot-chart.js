@@ -239,6 +239,36 @@ function nbaShotTable(shots, league) {
   return `<table class="data-table nba-shot-table"><thead><tr><th>Zone</th><th class="num">FG</th><th class="num">FG%</th><th class="num" title="His make rate minus the league's from the same zone, in points">vs Lg</th><th class="num" title="Share of his shots">Share</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+// His zones beside what tonight's defense allows from each (a member, 2026-11-09: "see how that nights
+// opponent defends those zones"): his FG / FG% / vs Lg / share, the defense's FG% allowed / vs Lg /
+// share of the shots it faces (red = it allows more makes, the Shot Charts page's colors), and the
+// zone's two-sided Read (nbaShotCall: Target / Tough, blank when neither).
+function nbaShotMatchTable(shots, def, league, opp) {
+  const mine = nbaShotZoneTotals(shots, false);
+  const theirs = nbaShotZoneTotals(def, false);
+  const lg = nbaShotZoneTotals(league, true);
+  const vsCell = (m, a, lr, sign) => {
+    const vs = a && lr !== null ? Math.round((m / a - lr) * 100) : null;
+    return `<td class="num"${a ? ` style="background:${nbaShotColor(sign * nbaShotDiff(m, a, lr), 0.32)}"` : ""}><b>${nbaShotPct(m, a)}</b></td><td class="num">${vs === null ? "--" : `${vs > 0 ? "+" : ""}${vs}`}</td>`;
+  };
+  const rows = NBA_SHOT_GROUPS.map(([group, zones]) => {
+    const body = zones.map(([z, name]) => {
+      const [m, a] = mine[z] || [0, 0];
+      const [dm, da] = theirs[z] || [0, 0];
+      const lr = lg[z] && lg[z][1] ? lg[z][0] / lg[z][1] : null;
+      const call = nbaShotCall([m, a], [dm, da], lr, shots.length ? a / shots.length : 0);
+      const read = call ? `<span class="nba-shot-read ${call > 0 ? "tier-good" : "tier-bad"}" title="Both sides: his make rate here and what ${opp} allow here">${call > 0 ? "Target" : "Tough"}</span>` : "";
+      return `<tr><td>${name}</td><td class="num">${a ? `${m}/${a}` : "--"}</td>${vsCell(m, a, lr, 1)}<td class="num">${shots.length ? `${Math.round((a / shots.length) * 100)}%` : "--"}</td>`
+        + `${vsCell(dm, da, lr, -1)}<td class="num">${def.length ? `${Math.round((da / def.length) * 100)}%` : "--"}</td><td class="nba-shot-readc">${read}</td></tr>`;
+    }).join("");
+    return `<tr class="nba-shot-group"><td colspan="9">${group}</td></tr>${body}`;
+  }).join("");
+  return `<table class="data-table nba-shot-table nba-shot-match"><thead>
+    <tr class="nba-shot-bands"><th></th><th colspan="4" class="nba-shot-him">Him</th><th colspan="3" class="nba-shot-def">${opp} Defense Allows</th><th></th></tr>
+    <tr><th>Zone</th><th class="num">FG</th><th class="num">FG%</th><th class="num" title="His make rate minus the league's from the same zone, in points">vs Lg</th><th class="num" title="Share of his shots">Share</th>
+    <th class="num" title="What ${opp} allow from this zone">FG%</th><th class="num" title="${opp}'s allowed make rate minus the league's, in points">vs Lg</th><th class="num" title="Share of the shots ${opp} face">Share</th><th>Read</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 // ---- Heat Map ----
 // Flat-top hexagons NBA_SHOT_HEX feet across the corners; [q, r] axial coordinates.
 function nbaShotHexOf(dx, dy, R = NBA_SHOT_HEX) {
@@ -310,7 +340,8 @@ const nbaShotControls = (state = NBA_SHOT_STATE) =>
 
 // ---- the whole view ----
 // id: ESPN player id. Returns HTML; buttons change NBA_SHOT_STATE and fire "nba-shot-changed".
-function nbaShotView(id) {
+// opp: tonight's opponent (the player card): its drawing beside his and the matchup table.
+function nbaShotView(id, opp = null) {
   const file = nbaShotFile();
   if (file === undefined) return `<p class="no-data-note">Loading&hellip;</p>`;
   if (!file) return `<p class="no-data-note">Shot charts aren't available right now.</p>`;
@@ -328,9 +359,16 @@ function nbaShotView(id) {
     <button type="button" class="info-i" aria-controls="${noteId}" aria-expanded="false" title="How to read it">i</button></div>
     <div class="info-note" id="${noteId}" hidden>This season's shots only. Color = his make rate against the league's from the same area (green above, red below); areas with only a few shots are pulled toward the league for the color, the numbers are his own. Heat Map: a bigger hexagon = more of his shots from that spot, its color reads every shot within 3.5 feet. The basket is at the top, so Left Side is the shooter's left. Spots are ESPN's, to the nearest foot; heaves (35+ ft) and free throws are left out.</div>`;
   const small = shots.length && shots.length < NBA_SHOT_SMALL ? `<p class="no-data-note">Small sample: ${shots.length} shot${shots.length === 1 ? "" : "s"}.</p>` : "";
+  // the defense's shots allowed, with the same filters (Last 10 = its own last 10 games)
+  const def = opp ? nbaShotPick(nbaShotAllowed(file, opp), state) : [];
+  const lgShots = file.league || [];
+  const draw = (list, opts) => (state.view === "heat" ? nbaShotHeatView(list, lgShots, opts) : nbaShotZonesView(list, lgShots, opts));
   const chart = !shots.length
     ? `<p class="no-data-note">No shots with these filters.</p>`
-    : `<div class="nba-shot-body"><div class="nba-shot-chart">${state.view === "heat" ? nbaShotHeatView(shots, file.league || []) : nbaShotZonesView(shots, file.league || [])}</div>${nbaShotTable(shots, file.league || [])}</div>`;
+    : def.length
+      ? `<div class="nba-shot-pair"><div class="nba-shot-chart"><div class="nba-shot-title nba-shot-him">His Shots</div>${draw(shots)}</div>`
+        + `<div class="nba-shot-chart"><div class="nba-shot-title nba-shot-def">${opp} Defense Allows</div>${draw(def, { allowed: true })}</div></div>${nbaShotMatchTable(shots, def, lgShots, opp)}`
+      : `<div class="nba-shot-body"><div class="nba-shot-chart">${draw(shots)}</div>${nbaShotTable(shots, lgShots)}</div>`;
   return `<div class="nba-shot"><div class="nba-shot-controls">${controls}</div>${summary}${small}${chart}</div>`;
 }
 

@@ -97,10 +97,24 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
 .nba-shot-table { flex: 1 1 260px; min-width: 0; font-size: 0.84rem; }
 .nba-shot-table td { padding-top: 3px; padding-bottom: 3px; white-space: nowrap; }
 .nba-shot-group td { background: var(--table-head); color: var(--muted); font-size: 0.72rem; font-weight: 800; }
+/* the player card's matchup (a member, 2026-11-09): his drawing beside tonight's defense, one table under
+   them; blue = him, purple = the defense (the research panel's colors) */
+.nba-shot-pair { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.nba-shot-pair .nba-shot-chart { flex: 1 1 0; }
+.nba-shot-title { margin: -2px 0 6px; padding: 4px 8px; border-radius: 6px; font: 700 0.92rem var(--font-display); text-align: center; }
+.nba-shot-him { background: rgba(70, 130, 220, 0.28); }
+.nba-shot-def { background: rgba(150, 100, 220, 0.28); }
+.nba-shot-match { width: auto; }
+.nba-shot-bands th { font: 700 0.8rem var(--font-display); text-align: center; }
+.nba-shot-bands th:first-child, .nba-shot-bands th:last-child { background: none; }
+.nba-shot-readc { text-align: center; }
+.nba-shot-read { display: inline-block; padding: 1px 8px; border-radius: 6px; font-weight: 700; }
 
 @media (max-width: 760px) {
   .nba-pc-photo { width: 52px; height: 38px; }
-  .nba-shot-body { flex-direction: column; }
+  .nba-shot-body, .nba-shot-pair { flex-direction: column; }
+  .nba-shot-pair .nba-shot-chart { width: 100%; box-sizing: border-box; }
+  .nba-shot-match { display: block; overflow-x: auto; }
   .nba-shot-chart, .nba-shot-table { flex: none; width: 100%; }
   .nba-shot-seg { flex-wrap: wrap; }
   .nba-shot-opt { padding: 4px 8px; }

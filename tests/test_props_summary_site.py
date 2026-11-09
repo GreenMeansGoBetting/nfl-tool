@@ -51,3 +51,23 @@ class PackageHeaders(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PlayerCardHitRate(unittest.TestCase):
+    # A member, 2026-11-09: the NFL card's Odds tab gets the NBA card's "6 of 8" hit rate per prop.
+    def test_hit_rate_counts_his_games_over_the_line(self):
+        page = SITE.open("player-props.html")
+        try:
+            page.wait_for_function("() => typeof pcHitCell === 'function'")
+            got = page.evaluate("""() => {
+                const weeks = [{ rec_yards: 80, rec_td: 1 }, { rec_yards: 40 }, { rec_yards: 70 }, { week: 4 }];
+                const text = (html) => { const t = document.createElement('table'); t.innerHTML = `<tr>${html}</tr>`; const td = t.querySelector('td'); return [td.textContent, td.className]; };
+                return [text(pcHitCell('receiving_yards', 54.5, weeks)), text(pcHitCell('anytime_td', 0.5, weeks)), text(pcHitCell('fantasyScore', 10.5, weeks))];
+            }""")
+            self.assertEqual(got[0][0], "2 of 4")  # a no-touch week he played counts as 0
+            self.assertEqual(got[1][0], "1 of 4")
+            self.assertIn("tier-bad", got[1][1])
+            self.assertEqual(got[2][0], "--")  # the logs don't carry fantasy points
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])

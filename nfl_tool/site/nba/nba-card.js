@@ -297,7 +297,7 @@ function nbaCardRender() {
     ? `<div class="nba-tiles nba-pc-tiles">${tile("Games", rows.length)}${tile("Min", per((r) => r.min))}${tile("Pts", per((r) => r.pts))}${tile("Reb", per((r) => r.reb))}${tile("Ast", per((r) => r.ast))}${tile("3PM", per((r) => r.fg3m))}${tile("PRA", per((r) => gmgNbaStatValue("pra", r)))}</div>`
     : "";
   const tabs = NBA_CARD_TABS.map(([key, label]) => `<button type="button" class="player-modal-toggle-btn nba-pc-tab${tab === key ? " active" : ""}" data-tab="${key}">${label}</button>`).join("");
-  const body = loading ? `<p class="no-data-note">Loading&hellip;</p>` : tab === "odds" ? nbaCardOddsView(p, g, rows) : tab === "shots" ? nbaShotView(p.id) : nbaCardLogView(rows);
+  const body = loading ? `<p class="no-data-note">Loading&hellip;</p>` : tab === "odds" ? nbaCardOddsView(p, g, rows) : tab === "shots" ? nbaShotView(p.id, opp) : nbaCardLogView(rows);
   return `${head}${tiles}
     <div class="player-modal-toggle nba-pc-tabs">${tabs}</div>
     <div id="player-modal-body">${body}</div>`;

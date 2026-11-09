@@ -272,6 +272,30 @@ class ShotChart(unittest.TestCase):
             close_card()
         self.assertEqual(SITE.errors, [])
 
+    def test_tonights_defense_beside_his_shots(self):
+        # A member, 2026-11-09: "see how that nights opponent defends those zones". Tonight AAA @ BBB:
+        # someone shoots on BBB (shot[8] = BBB's index): 3/3 at the rim, 0/2 in the left corner.
+        add = """() => { NBA_SHOT_FILE.teams = ['AAA', 'BBB'];
+            NBA_SHOT_FILE.players['9'] = [[25, 1, 1, 0, 0, 0, 3, 0, 1], [25, 2, 1, 0, 1, 0, 3, 0, 1], [25, 1, 1, 0, 2, 0, 3, 0, 1], [3, 2, 0, 1, 2, 0, 2, 0, 1], [2, 4, 0, 1, 3, 0, 2, 0, 1]];
+            nbaShotAllowedCache.clear(); }"""
+        drop = "() => { delete NBA_SHOT_FILE.players['9']; delete NBA_SHOT_FILE.teams; nbaShotAllowedCache.clear(); }"
+        open_card("shots")
+        try:
+            PAGE.wait_for_selector("#player-card-modal .nba-shot-table")
+            PAGE.evaluate(add)
+            self.pick("pts", "all")  # redraws the tab
+            PAGE.wait_for_selector("#player-card-modal .nba-shot-match")
+            self.assertEqual(PAGE.locator("#player-card-modal .nba-shot-pair .nba-shot-svg").count(), 2)
+            self.assertIn("BBB Defense Allows", PAGE.inner_text("#player-card-modal .nba-shot-pair"))
+            rows = {r[0]: r for r in table("#player-card-modal .nba-shot-match") if len(r) > 1}
+            self.assertEqual(rows["At The Rim"][1:3], ["1/2", "50%"])  # his
+            self.assertEqual(rows["At The Rim"][5], "100%")  # what BBB allowed there
+            self.assertEqual(rows["Left Corner"][5], "0%")
+        finally:
+            PAGE.evaluate(drop)
+            close_card()
+        self.assertEqual(SITE.errors, [])
+
 
 class OtherPages(unittest.TestCase):
     def test_every_nba_page_with_players_loads_the_card(self):
