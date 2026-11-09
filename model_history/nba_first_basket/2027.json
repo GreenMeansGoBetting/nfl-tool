@@ -12711,12 +12711,12 @@
  "401909962": {
   "away": "LAC",
   "date": "2026-11-10",
-  "first_home": 0.514,
+  "first_home": 0.604,
   "home": "PHX",
   "jumpers": [
    [
-    "3448",
-    "Brook Lopez"
+    "4432170",
+    "Isaiah Jackson"
    ],
    [
     "5203685",
@@ -12726,76 +12726,76 @@
   "players": {
    "2991139": [
     "Kris Dunn",
-    0.076,
+    0.064,
     null,
     false,
     null
    ],
    "3136193": [
     "Devin Booker",
-    0.131,
+    0.154,
     null,
     false,
     null
    ],
    "3155526": [
     "Dillon Brooks",
-    0.094,
+    0.111,
     null,
     false,
     null
    ],
    "3936099": [
     "Derrick Jones Jr.",
-    0.089,
+    0.075,
     null,
     false,
     null
    ],
    "4066383": [
     "Miles Bridges",
-    0.096,
+    0.112,
     null,
     false,
     null
    ],
    "4066648": [
     "Rui Hachimura",
-    0.103,
+    0.087,
     null,
     false,
     null
    ],
    "4396907": [
     "Darius Garland",
-    0.096,
+    0.081,
+    null,
+    false,
+    null
+   ],
+   "4432170": [
+    "Isaiah Jackson",
+    0.074,
     null,
     false,
     null
    ],
    "4437244": [
     "Jalen Green",
-    0.093,
-    null,
-    false,
-    null
-   ],
-   "4702352": [
-    "Kobe Sanders",
-    0.102,
+    0.109,
     null,
     false,
     null
    ],
    "5203685": [
     "Khaman Maluach",
-    0.08,
+    0.094,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.543
+  "tip_home": 0.813
  },
  "401909963": {
   "away": "MIA",
@@ -12834,6 +12834,13 @@
     false,
     null
    ],
+   "4066336": [
+    "Lauri Markkanen",
+    0.099,
+    null,
+    false,
+    null
+   ],
    "4278053": [
     "Davion Mitchell",
     0.107,
@@ -12843,35 +12850,28 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.063,
-    null,
-    false,
-    null
-   ],
-   "4432811": [
-    "Josh Green",
-    0.069,
+    0.06,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.101,
+    0.092,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.092,
+    0.083,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.095,
+    0.086,
     null,
     false,
     null
@@ -12889,88 +12889,91 @@
  "401909964": {
   "away": "ORL",
   "date": "2026-11-10",
-  "first_home": 0.5,
+  "first_home": 0.462,
   "home": "SAC",
   "jumpers": [
    [
     "4277847",
     "Wendell Carter Jr."
    ],
-   null
+   [
+    "3155942",
+    "Domantas Sabonis"
+   ]
   ],
   "players": {
    "3064440": [
     "Zach LaVine",
-    0.098,
+    0.085,
+    null,
+    false,
+    null
+   ],
+   "3155942": [
+    "Domantas Sabonis",
+    0.104,
     null,
     false,
     null
    ],
    "4065732": [
     "De'Andre Hunter",
-    0.091,
+    0.078,
     null,
     false,
     null
    ],
    "4066320": [
     "Desmond Bane",
-    0.094,
+    0.101,
     null,
     false,
     null
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.097,
+    0.104,
     null,
     false,
     null
    ],
    "4431679": [
     "Precious Achiuwa",
-    0.087,
+    0.075,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.128,
-    null,
-    false,
-    null
-   ],
-   "4594327": [
-    "Keegan Murray",
-    0.083,
+    0.138,
     null,
     false,
     null
    ],
    "4712849": [
     "Anthony Black",
-    0.087,
+    0.094,
     null,
     false,
     null
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.122,
+    0.102,
     null,
     false,
     null
    ],
    "5239561": [
     "Jase Richardson",
-    0.074,
+    0.08,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.385
  },
  "401909965": {
   "away": "OKC",
@@ -13344,6 +13347,13 @@
    ]
   ],
   "players": {
+   "2595516": [
+    "Norman Powell",
+    0.067,
+    null,
+    false,
+    null
+   ],
    "4066259": [
     "De'Aaron Fox",
     0.12,
@@ -13360,21 +13370,14 @@
    ],
    "4397189": [
     "Jalen Smith",
-    0.074,
-    null,
-    false,
-    null
-   ],
-   "4432822": [
-    "Isaac Okoro",
-    0.07,
+    0.077,
     null,
     false,
     null
    ],
    "4711294": [
     "Matas Buzelis",
-    0.062,
+    0.059,
     null,
     false,
     null
@@ -13388,7 +13391,7 @@
    ],
    "4871145": [
     "Josh Giddey",
-    0.07,
+    0.071,
     null,
     false,
     null
@@ -13402,7 +13405,7 @@
    ],
    "5095151": [
     "Caleb Wilson",
-    0.087,
+    0.089,
     null,
     false,
     null
@@ -13707,6 +13710,13 @@
     false,
     null
    ],
+   "4066336": [
+    "Lauri Markkanen",
+    0.101,
+    null,
+    false,
+    null
+   ],
    "4277847": [
     "Wendell Carter Jr.",
     0.107,
@@ -13716,21 +13726,14 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.064,
-    null,
-    false,
-    null
-   ],
-   "4432811": [
-    "Josh Green",
-    0.07,
+    0.061,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.104,
+    0.094,
     null,
     false,
     null
@@ -13751,14 +13754,14 @@
    ],
    "4873138": [
     "Ace Bailey",
-    0.094,
+    0.085,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.097,
+    0.088,
     null,
     false,
     null
