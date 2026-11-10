@@ -7530,14 +7530,14 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2143,
+    "lead": 0.2141,
     "name": "Giannis Antetokounmpo",
     "proj": 44.3,
     "team": "MIA"
    },
    {
     "id": "3136195",
-    "lead": 0.1416,
+    "lead": 0.1415,
     "name": "Karl-Anthony Towns",
     "proj": 41.3,
     "team": "NY"
@@ -7579,7 +7579,7 @@
    },
    {
     "id": "4566434",
-    "lead": 0.0542,
+    "lead": 0.0541,
     "name": "Franz Wagner",
     "proj": 36.1,
     "team": "ORL"
@@ -7593,7 +7593,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0366,
+    "lead": 0.0365,
     "name": "Tyrese Maxey",
     "proj": 34.4,
     "team": "PHI"
@@ -7607,7 +7607,7 @@
    },
    {
     "id": "3917376",
-    "lead": 0.0193,
+    "lead": 0.0192,
     "name": "Jaylen Brown",
     "proj": 31.5,
     "team": "PHI"
@@ -7621,9 +7621,9 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0101,
+    "lead": 0.0107,
     "name": "Tyler Herro",
-    "proj": 29.3,
+    "proj": 29.4,
     "team": "MIL"
    },
    {
@@ -7719,7 +7719,7 @@
    },
    {
     "id": "4066320",
-    "lead": 0.0016,
+    "lead": 0.0015,
     "name": "Desmond Bane",
     "proj": 24.7,
     "team": "ORL"
@@ -7945,7 +7945,7 @@
     "id": "5174983",
     "lead": 0.0,
     "name": "Aday Mara",
-    "proj": 15.9,
+    "proj": 15.8,
     "team": "OKC"
    }
   ],
