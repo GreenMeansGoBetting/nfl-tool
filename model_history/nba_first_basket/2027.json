@@ -13978,5 +13978,361 @@
    ]
   },
   "tip_home": 0.656
+ },
+ "401909976": {
+  "away": "TOR",
+  "date": "2026-11-12",
+  "first_home": 0.473,
+  "home": "PHI",
+  "jumpers": [
+   [
+    "3134908",
+    "Jakob Poeltl"
+   ],
+   [
+    "3059318",
+    "Joel Embiid"
+   ]
+  ],
+  "players": {
+   "1966": [
+    "LeBron James",
+    0.082,
+    null,
+    false,
+    null
+   ],
+   "3059318": [
+    "Joel Embiid",
+    0.086,
+    null,
+    false,
+    null
+   ],
+   "3134908": [
+    "Jakob Poeltl",
+    0.072,
+    null,
+    false,
+    null
+   ],
+   "3917376": [
+    "Jaylen Brown",
+    0.109,
+    null,
+    false,
+    null
+   ],
+   "4395625": [
+    "RJ Barrett",
+    0.119,
+    null,
+    false,
+    null
+   ],
+   "4395724": [
+    "Immanuel Quickley",
+    0.098,
+    null,
+    false,
+    null
+   ],
+   "4431678": [
+    "Tyrese Maxey",
+    0.095,
+    null,
+    false,
+    null
+   ],
+   "4433134": [
+    "Scottie Barnes",
+    0.108,
+    null,
+    false,
+    null
+   ],
+   "4684272": [
+    "Ja'Kobe Walter",
+    0.108,
+    null,
+    false,
+    null
+   ],
+   "5124612": [
+    "VJ Edgecombe",
+    0.083,
+    null,
+    false,
+    null
+   ]
+  },
+  "tip_home": 0.419
+ },
+ "401909977": {
+  "away": "DET",
+  "date": "2026-11-12",
+  "first_home": 0.538,
+  "home": "WSH",
+  "jumpers": [
+   [
+    "4278562",
+    "Paul Reed"
+   ],
+   [
+    "6583",
+    "Anthony Davis"
+   ]
+  ],
+  "players": {
+   "3157465": [
+    "Duncan Robinson",
+    0.083,
+    null,
+    false,
+    null
+   ],
+   "3908845": [
+    "John Collins",
+    0.096,
+    null,
+    false,
+    null
+   ],
+   "4277905": [
+    "Trae Young",
+    0.096,
+    null,
+    false,
+    null
+   ],
+   "4278562": [
+    "Paul Reed",
+    0.082,
+    null,
+    false,
+    null
+   ],
+   "4432166": [
+    "Cade Cunningham",
+    0.093,
+    null,
+    false,
+    null
+   ],
+   "4684742": [
+    "Ausar Thompson",
+    0.09,
+    null,
+    false,
+    null
+   ],
+   "5142718": [
+    "AJ Dybantsa",
+    0.111,
+    null,
+    false,
+    null
+   ],
+   "5160992": [
+    "Alex Sarr",
+    0.101,
+    null,
+    false,
+    null
+   ],
+   "5174563": [
+    "Kyshawn George",
+    0.093,
+    null,
+    false,
+    null
+   ],
+   "6583": [
+    "Anthony Davis",
+    0.115,
+    null,
+    false,
+    null
+   ]
+  },
+  "tip_home": 0.615
+ },
+ "401909978": {
+  "away": "DAL",
+  "date": "2026-11-12",
+  "first_home": 0.528,
+  "home": "MIN",
+  "jumpers": [
+   [
+    "4278049",
+    "Daniel Gafford"
+   ],
+   [
+    "3032976",
+    "Rudy Gobert"
+   ]
+  ],
+  "players": {
+   "3032976": [
+    "Rudy Gobert",
+    0.097,
+    null,
+    false,
+    null
+   ],
+   "4278049": [
+    "Daniel Gafford",
+    0.085,
+    null,
+    false,
+    null
+   ],
+   "4278078": [
+    "P.J. Washington",
+    0.099,
+    null,
+    false,
+    null
+   ],
+   "4397002": [
+    "Ayo Dosunmu",
+    0.103,
+    null,
+    false,
+    null
+   ],
+   "4431671": [
+    "Jaden McDaniels",
+    0.101,
+    null,
+    false,
+    null
+   ],
+   "4432582": [
+    "Max Christie",
+    0.069,
+    null,
+    false,
+    null
+   ],
+   "4432816": [
+    "LaMelo Ball",
+    0.125,
+    null,
+    false,
+    null
+   ],
+   "4433247": [
+    "Jonathan Kuminga",
+    0.08,
+    null,
+    false,
+    null
+   ],
+   "5041939": [
+    "Cooper Flagg",
+    0.097,
+    null,
+    false,
+    null
+   ],
+   "6442": [
+    "Kyrie Irving",
+    0.103,
+    null,
+    false,
+    null
+   ]
+  },
+  "tip_home": 0.584
+ },
+ "401909979": {
+  "away": "CHA",
+  "date": "2026-11-12",
+  "first_home": 0.585,
+  "home": "PHX",
+  "jumpers": [
+   [
+    "4433249",
+    "Moussa Diabate"
+   ],
+   [
+    "5203685",
+    "Khaman Maluach"
+   ]
+  ],
+  "players": {
+   "3136193": [
+    "Devin Booker",
+    0.156,
+    null,
+    false,
+    null
+   ],
+   "3155526": [
+    "Dillon Brooks",
+    0.106,
+    null,
+    false,
+    null
+   ],
+   "4066383": [
+    "Miles Bridges",
+    0.106,
+    null,
+    false,
+    null
+   ],
+   "4395651": [
+    "Coby White",
+    0.08,
+    null,
+    false,
+    null
+   ],
+   "4396971": [
+    "Naz Reid",
+    0.095,
+    null,
+    false,
+    null
+   ],
+   "4433249": [
+    "Moussa Diabate",
+    0.08,
+    null,
+    false,
+    null
+   ],
+   "4433287": [
+    "Brandon Miller",
+    0.088,
+    null,
+    false,
+    null
+   ],
+   "4437244": [
+    "Jalen Green",
+    0.103,
+    null,
+    false,
+    null
+   ],
+   "4602025": [
+    "Sion James",
+    0.057,
+    null,
+    false,
+    null
+   ],
+   "5203685": [
+    "Khaman Maluach",
+    0.091,
+    null,
+    false,
+    null
+   ]
+  },
+  "tip_home": 0.755
  }
 }

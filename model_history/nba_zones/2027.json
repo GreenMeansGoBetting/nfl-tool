@@ -16959,5 +16959,741 @@
     "hard_rock"
    ]
   ]
+ },
+ "401909960": {
+  "date": "2026-11-10",
+  "points": [
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "MIL",
+    0.0755,
+    "over",
+    false,
+    10.5,
+    -120,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3134907",
+    "Kyle Kuzma",
+    "MIL",
+    "NY",
+    -0.0694,
+    "under",
+    false,
+    1.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "MIL",
+    0.1563,
+    "over",
+    true,
+    1.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "MIL",
+    0.164,
+    "over",
+    true,
+    2.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "4432848",
+    "Jaime Jaquez Jr.",
+    "MIL",
+    "NY",
+    -0.123,
+    "under",
+    true,
+    1.5,
+    -225,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909961": {
+  "date": "2026-11-10",
+  "points": [
+   [
+    "1966",
+    "LeBron James",
+    "PHI",
+    "BOS",
+    -0.1327,
+    "under",
+    true,
+    15.5,
+    -106,
+    "novig"
+   ],
+   [
+    "2581018",
+    "Kentavious Caldwell-Pope",
+    "PHI",
+    "BOS",
+    -0.0885,
+    "under",
+    false,
+    3.5,
+    -160,
+    "bet365"
+   ],
+   [
+    "3078576",
+    "Derrick White",
+    "BOS",
+    "PHI",
+    -0.0882,
+    "under",
+    false,
+    12.5,
+    104,
+    "novig"
+   ],
+   [
+    "4065804",
+    "Sam Hauser",
+    "BOS",
+    "PHI",
+    -0.1832,
+    "under",
+    true,
+    5.5,
+    -120,
+    "bet365"
+   ],
+   [
+    "4251",
+    "Paul George",
+    "BOS",
+    "PHI",
+    -0.1484,
+    "under",
+    true,
+    17.5,
+    -104,
+    "draftkings"
+   ],
+   [
+    "4351851",
+    "Anfernee Simons",
+    "PHI",
+    "BOS",
+    -0.0886,
+    "under",
+    false,
+    6.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "5124612",
+    "VJ Edgecombe",
+    "PHI",
+    "BOS",
+    -0.1352,
+    "under",
+    true,
+    12.5,
+    -116,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "1966",
+    "LeBron James",
+    "PHI",
+    "BOS",
+    0.2716,
+    "over",
+    true,
+    1.5,
+    174,
+    "novig"
+   ],
+   [
+    "2581018",
+    "Kentavious Caldwell-Pope",
+    "PHI",
+    "BOS",
+    -0.1005,
+    "under",
+    false,
+    0.5,
+    115,
+    "bet365"
+   ],
+   [
+    "3912848",
+    "Dean Wade",
+    "PHI",
+    "BOS",
+    0.3153,
+    "over",
+    true,
+    0.5,
+    115,
+    "bet365"
+   ],
+   [
+    "3917376",
+    "Jaylen Brown",
+    "PHI",
+    "BOS",
+    0.3827,
+    "over",
+    true,
+    1.5,
+    -125,
+    "fanatics"
+   ],
+   [
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "PHI",
+    -0.2108,
+    "under",
+    true,
+    2.5,
+    100,
+    "novig"
+   ],
+   [
+    "4251",
+    "Paul George",
+    "BOS",
+    "PHI",
+    -0.2422,
+    "under",
+    true,
+    2.5,
+    108,
+    "novig"
+   ],
+   [
+    "4351851",
+    "Anfernee Simons",
+    "PHI",
+    "BOS",
+    -0.0692,
+    "under",
+    false,
+    1.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "5124612",
+    "VJ Edgecombe",
+    "PHI",
+    "BOS",
+    -0.0872,
+    "under",
+    false,
+    1.5,
+    133,
+    "novig"
+   ]
+  ]
+ },
+ "401909962": {
+  "date": "2026-11-10",
+  "points": [],
+  "threes": []
+ },
+ "401909963": {
+  "date": "2026-11-10",
+  "points": [
+   [
+    "4066336",
+    "Lauri Markkanen",
+    "UTAH",
+    "MIA",
+    0.1016,
+    "over",
+    false,
+    22.5,
+    -125,
+    "4cx"
+   ],
+   [
+    "5041955",
+    "Darryn Peterson",
+    "UTAH",
+    "MIA",
+    0.2113,
+    "over",
+    true,
+    17.5,
+    -113,
+    "novig"
+   ]
+  ],
+  "threes": [
+   [
+    "3032977",
+    "Giannis Antetokounmpo",
+    "MIA",
+    "UTAH",
+    0.0574,
+    "over",
+    false,
+    0.5,
+    -120,
+    "bet365"
+   ],
+   [
+    "4066336",
+    "Lauri Markkanen",
+    "UTAH",
+    "MIA",
+    0.1388,
+    "over",
+    true,
+    3.5,
+    115,
+    "novig"
+   ],
+   [
+    "4278053",
+    "Davion Mitchell",
+    "MIA",
+    "UTAH",
+    -0.0798,
+    "under",
+    false,
+    1.5,
+    135,
+    "novig"
+   ],
+   [
+    "4601025",
+    "Pelle Larsson",
+    "MIA",
+    "UTAH",
+    0.0559,
+    "over",
+    false,
+    1.5,
+    190,
+    "novig"
+   ],
+   [
+    "4873138",
+    "Ace Bailey",
+    "UTAH",
+    "MIA",
+    0.1079,
+    "over",
+    false,
+    1.5,
+    -170,
+    "novig"
+   ],
+   [
+    "5041955",
+    "Darryn Peterson",
+    "UTAH",
+    "MIA",
+    0.2722,
+    "over",
+    true,
+    1.5,
+    -155,
+    "bet365"
+   ],
+   [
+    "6475",
+    "Klay Thompson",
+    "MIA",
+    "UTAH",
+    -0.1649,
+    "under",
+    true,
+    3.5,
+    -120,
+    "novig"
+   ]
+  ]
+ },
+ "401909964": {
+  "date": "2026-11-10",
+  "points": [
+   [
+    "4065732",
+    "De'Andre Hunter",
+    "SAC",
+    "ORL",
+    0.1209,
+    "over",
+    true,
+    13.5,
+    -105,
+    "bet365"
+   ],
+   [
+    "4277847",
+    "Wendell Carter Jr.",
+    "ORL",
+    "SAC",
+    0.2238,
+    "over",
+    true,
+    13.5,
+    -110,
+    "fanatics"
+   ],
+   [
+    "4431679",
+    "Precious Achiuwa",
+    "SAC",
+    "ORL",
+    0.234,
+    "over",
+    true,
+    9.5,
+    -110,
+    "bet365"
+   ],
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "SAC",
+    0.0922,
+    "over",
+    false,
+    23.5,
+    -105,
+    "fanatics"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "SAC",
+    0.1939,
+    "over",
+    true,
+    14.5,
+    -112,
+    "bet365"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "SAC",
+    0.1512,
+    "over",
+    true,
+    9.5,
+    100,
+    "bet365"
+   ]
+  ],
+  "threes": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "ORL",
+    0.1682,
+    "over",
+    true,
+    2.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "4066262",
+    "Malik Monk",
+    "SAC",
+    "ORL",
+    0.2733,
+    "over",
+    true,
+    1.5,
+    135,
+    "bet365"
+   ],
+   [
+    "4066320",
+    "Desmond Bane",
+    "ORL",
+    "SAC",
+    0.0596,
+    "over",
+    false,
+    3.5,
+    110,
+    "fanatics"
+   ],
+   [
+    "4277847",
+    "Wendell Carter Jr.",
+    "ORL",
+    "SAC",
+    0.2607,
+    "over",
+    true,
+    0.5,
+    -185,
+    "bet365"
+   ],
+   [
+    "4702382",
+    "Tristan da Silva",
+    "ORL",
+    "SAC",
+    0.0609,
+    "over",
+    false,
+    2.5,
+    -175,
+    "fanatics"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "SAC",
+    0.2886,
+    "over",
+    true,
+    1.5,
+    -115,
+    "hard_rock"
+   ],
+   [
+    "5142620",
+    "Darius Acuff Jr.",
+    "SAC",
+    "ORL",
+    0.1726,
+    "over",
+    true,
+    2.5,
+    -125,
+    "hard_rock"
+   ],
+   [
+    "5239561",
+    "Jase Richardson",
+    "ORL",
+    "SAC",
+    0.2625,
+    "over",
+    true,
+    1.5,
+    150,
+    "bet365"
+   ]
+  ]
+ },
+ "401909965": {
+  "date": "2026-11-10",
+  "points": [
+   [
+    "2991350",
+    "Alex Caruso",
+    "OKC",
+    "POR",
+    -0.0905,
+    "under",
+    false,
+    5.5,
+    105,
+    "fanatics"
+   ],
+   [
+    "3133626",
+    "Kenrich Williams",
+    "OKC",
+    "POR",
+    -0.1438,
+    "under",
+    true,
+    7.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "4066211",
+    "Robert Williams III",
+    "POR",
+    "OKC",
+    -0.3358,
+    "under",
+    true,
+    6.5,
+    -112,
+    "bet365"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "OKC",
+    -0.2117,
+    "under",
+    true,
+    22.5,
+    -112,
+    "bet365"
+   ],
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "POR",
+    -0.0858,
+    "under",
+    false,
+    12.5,
+    -105,
+    "bet365"
+   ],
+   [
+    "4900671",
+    "Ajay Mitchell",
+    "OKC",
+    "POR",
+    -0.0509,
+    "under",
+    false,
+    19.5,
+    -110,
+    "bet365"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "OKC",
+    -0.2477,
+    "under",
+    true,
+    11.5,
+    -110,
+    "bet365"
+   ],
+   [
+    "5241364",
+    "Bennett Stirtz",
+    "OKC",
+    "POR",
+    -0.1082,
+    "under",
+    false,
+    7.5,
+    -132,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "2991350",
+    "Alex Caruso",
+    "OKC",
+    "POR",
+    -0.0851,
+    "under",
+    false,
+    1.5,
+    -210,
+    "fliff"
+   ],
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "POR",
+    -0.1023,
+    "under",
+    false,
+    2.5,
+    -165,
+    "fanatics"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "OKC",
+    -0.0791,
+    "under",
+    false,
+    1.5,
+    114,
+    "fanduel"
+   ],
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "POR",
+    -0.1858,
+    "under",
+    true,
+    1.5,
+    136,
+    "fanduel"
+   ],
+   [
+    "4900671",
+    "Ajay Mitchell",
+    "OKC",
+    "POR",
+    -0.1951,
+    "under",
+    true,
+    1.5,
+    -185,
+    "bet365"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "OKC",
+    -0.1574,
+    "under",
+    true,
+    0.5,
+    160,
+    "bet365"
+   ],
+   [
+    "5241364",
+    "Bennett Stirtz",
+    "OKC",
+    "POR",
+    -0.1309,
+    "under",
+    true,
+    1.5,
+    -128,
+    "fanduel"
+   ]
+  ]
  }
 }
