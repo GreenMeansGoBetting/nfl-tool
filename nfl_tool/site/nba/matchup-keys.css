@@ -84,6 +84,7 @@
 .mk-crow:hover .mk-cname { background: var(--rs-sep); }
 .mk-cline .rs-l.mk-cname { gap: 8px; font: 700 1.02rem var(--font-display); }
 .mk-car { font-size: 0.75rem; opacity: 0.7; }
+.mk-cline .mk-cap { font: 700 0.62rem var(--font-display); opacity: 0.75; letter-spacing: 0.02em; }
 .mk-chead { padding: 0 8px; }
 .mk-chead .mk-cline { grid-auto-rows: 30px; }
 .mk-cline .rs-t { gap: 5px; }

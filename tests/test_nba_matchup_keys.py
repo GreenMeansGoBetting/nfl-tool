@@ -231,6 +231,11 @@ class Page(unittest.TestCase):
         PAGE.click('[data-mk-tab="categories"]')
         lines = PAGE.evaluate("() => [...document.querySelectorAll('.mk-crow')].map((r) => r.dataset.cat)")
         self.assertEqual(lines, ["scoring", "pace", "transition", "threes", "paint", "turnovers", "glass", "ft"])
+        # Pace & Total: each tile sits under its own team's header (CHA Off, WSH Def | WSH Off, CHA Def),
+        # captioned Pace / Avg Total (2026-11-10: MIA's Avg Total sat under "UTAH OFF")
+        pace = PAGE.evaluate("""() => [...document.querySelector('.mk-crow[data-cat=pace] .mk-cline').querySelectorAll('.mk-r')]
+            .map((t) => [t.querySelector('img').alt, t.querySelector('.mk-cap').textContent])""")
+        self.assertEqual(pace, [["CHA", "Pace"], ["WSH", "Pace"], ["WSH", "Avg Total"], ["CHA", "Avg Total"]])
         # Scoring opens by default: CHA Off vs WSH Def, then WSH Off vs CHA Def
         offs = PAGE.evaluate("() => [...document.querySelectorAll('.mk-crow[data-cat=scoring] .rs-sb .rs-h.rs-him')].filter((h) => h.textContent.trim() === 'Off').map((h) => h.querySelector('img').alt)")
         self.assertEqual(offs, ["CHA", "WSH"])  # the offense's logo on its column

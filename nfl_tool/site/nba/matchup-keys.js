@@ -105,10 +105,12 @@ function stat(ctx, t, key) {
   const c = col(key), v = (ctx.table[t] || {})[key], rk = ctx.ranks[key] ? ctx.ranks[key].r[t] : null;
   return { v, rk, n: ctx.ranks[key] ? ctx.ranks[key].n : 30, shade: rk ? rankStyle(rk, ctx.ranks[key].n) : "", text: exact(v, c[3]), tip: `${team(t).name} · ${c[2]}: ${exact(v, c[3])}${rk ? ` · ${ordinal(rk)} of ${ctx.ranks[key].n}` : ""}` };
 }
+// withLogo: true = the team's logo before the rank; a string = the logo plus that small caption after it.
 const rankTile = (ctx, t, key, withLogo, opp = null, first = true) => {
   const who = opp ? whoTile_(key, t, opp, first) : "";
   const s = stat(ctx, t, key);
-  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}` : "--", `${s.rk ? "mk-r" : "rs-small"}${who ? " mk-who" : ""}`, s.shade, s.tip, who);
+  const cap = typeof withLogo === "string" ? `<small class="mk-cap">${withLogo}</small>` : "";
+  return rsT(s.rk ? `${withLogo ? logo(t, 16) : ""}${ordinal(s.rk)}${cap}` : "--", `${s.rk ? "mk-r" : "rs-small"}${who ? " mk-who" : ""}`, s.shade, s.tip, who);
 };
 // The Overview's tile: the rank big, the number and its name small under it.
 const bigTile = (ctx, t, key, opp = null, first = true) => {
@@ -249,8 +251,10 @@ function categories(ctx, keys, game) {
     const line = list
       ? `${rankTile(ctx, a, ok, false, h, true)}${rankTile(ctx, h, list.find((r) => r[1] === ok)[2], false, a, false)}${readTile(lineRead(keys, a, h, topics))}<span></span>
          ${rankTile(ctx, h, ok, false, a, true)}${rankTile(ctx, a, list.find((r) => r[1] === ok)[2], false, h, false)}${readTile(lineRead(keys, h, a, topics))}`
-      : `${rankTile(ctx, a, "pace", true)}${rankTile(ctx, h, "pace", true)}${readTile(styleRead(keys, game, "pace"))}<span></span>
-         ${rankTile(ctx, a, "total", true)}${rankTile(ctx, h, "total", true)}${readTile(styleRead(keys, game, "total"))}`;
+      // Pace & Total: each team's own game number, under the header column of the same team
+      // (left half road then home, right half home then road), captioned so it never reads as Off / Def.
+      : `${rankTile(ctx, a, "pace", "Pace")}${rankTile(ctx, h, "pace", "Pace")}${readTile(styleRead(keys, game, "pace"))}<span></span>
+         ${rankTile(ctx, h, "total", "Avg Total")}${rankTile(ctx, a, "total", "Avg Total")}${readTile(styleRead(keys, game, "total"))}`;
     const body = !open ? "" : `<div class="mk-open">${list ? directionBox(ctx, keys, a, h, list) + directionBox(ctx, keys, h, a, list) : paceBoxes(ctx, keys, game)}</div>`;
     return `<div class="mk-crow${open ? " open" : ""}" data-cat="${id}"><div class="mk-cline" data-cat="${id}" role="button" tabindex="0" aria-expanded="${open}">${label}${line}</div>${body}</div>`;
   }).join("");
