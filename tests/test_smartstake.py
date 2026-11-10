@@ -79,6 +79,45 @@ class BookOdds(unittest.TestCase):
         self.assertEqual(odds, {})
         self.assertIn("boom", debug["error"])
 
+    def test_a_pasted_line_break_is_stripped_and_the_key_never_reaches_an_error(self):
+        # 2026-11-10: the new key was saved with a line break after it; the
+        # header was refused and the error, holding the whole key, went into
+        # the public version.json (nba.book_odds).
+        key = "abc-123-secret"
+        sent = []
+
+        class Resp:
+            headers = {}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+            def read(self):
+                return b'{"data": []}'
+
+        def fake_ok(req, timeout=None):
+            sent.append(req.get_header("Authorization"))
+            return Resp()
+
+        def fake_refused(req, timeout=None):
+            raise ValueError(f"Invalid header value {req.get_header('Authorization').encode()!r}")
+
+        original = smartstake.urllib.request.urlopen
+        try:
+            smartstake.urllib.request.urlopen = fake_ok
+            smartstake._get(key + "\n", "/v1/markets", {"league": "nba"})
+            self.assertEqual(sent, [f"Bearer {key}"])
+            smartstake.urllib.request.urlopen = fake_refused
+            odds, debug = smartstake.fetch_nfl_book_odds(key, [], None, "2026-10-18T00:00:00Z")
+        finally:
+            smartstake.urllib.request.urlopen = original
+        self.assertEqual(odds, {})
+        self.assertNotIn(key, debug["error"])
+        self.assertIn("key hidden", debug["error"])
+
 
 if __name__ == "__main__":
     unittest.main()

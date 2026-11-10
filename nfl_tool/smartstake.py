@@ -156,7 +156,27 @@ def _readable(name: str) -> str:
     return name
 
 
+class SmartStakeError(RuntimeError):
+    """A failed call, its message scrubbed of the key."""
+
+
 def _get(api_key: str, path: str, params: dict) -> dict:
+    # 2026-11-10: the new key was saved with a line break after it; Python
+    # refused the header and its error, holding the whole key, went into the
+    # public version.json. Strip it, and never let the key into an error.
+    key = (api_key or "").strip()
+    try:
+        return _send(key, path, params)
+    except Exception as e:
+        text = str(e)
+        if key and key in text:
+            raise SmartStakeError(f"{type(e).__name__}: {text.replace(key, '[key hidden]')}") from None
+        if "Bearer" in text:
+            raise SmartStakeError(f"{type(e).__name__} (message hidden: it held the key)") from None
+        raise
+
+
+def _send(api_key: str, path: str, params: dict) -> dict:
     query = urllib.parse.urlencode([(k, v) for k, v in params.items() if v is not None])
     req = urllib.request.Request(f"{BASE}{path}?{query}", headers={
         "Authorization": f"Bearer {api_key}",
