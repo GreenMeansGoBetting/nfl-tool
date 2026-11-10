@@ -304,6 +304,121 @@ function renderNights() {
   el("kotc-nights").innerHTML = list.join("") + (nights.length > nightsShown ? `<button type="button" id="kotc-nights-more" class="view-toggle-btn kotc-more">Show more</button>` : "");
 }
 
+// ---- Leader Trends (the owner, 2026-11-10) ----
+// Every night's leader as a dot: Pregame Rank = games on the slate against where
+// the board had him before the first tip; Spread & Total = his team's spread
+// against his game's total. Co-leaders each get a dot (a tie counts half in the
+// tiles); dots on the same spot merge into one bigger dot with the count in it.
+let trendTab = "rank";
+// Board rank steps on the site's 8-step scale (common.js RANK_SCALE; this page doesn't load common.js).
+const TREND_STEPS = [[1, "1"], [3, "2-3"], [5, "4-5"], [10, "6-10"], [15, "11-15"], [25, "16-25"], [40, "26-40"], [Infinity, "41+"]];
+const TREND_SCALE = [[135, 0.62], [122, 0.44], [88, 0.36], [58, 0.34], [42, 0.36], [26, 0.42], [12, 0.5], [0, 0.64]];
+const trendStep = (rank) => TREND_STEPS.findIndex(([hi]) => rank <= hi);
+const stepFill = (i, alpha) => (i < 0 ? "" : scaleHsla(TREND_SCALE[i][0], 78, 44, alpha ?? TREND_SCALE[i][1]));
+const stepEdge = (i) => (i < 0 ? "var(--border-strong)" : scaleHsla(TREND_SCALE[i][0], 78, 48));
+// A how-often number on the same 8 steps: 100% = the greenest.
+const rateStyle = (x) => (x === null ? "" : (([h, a]) => `background:${scaleHsla(h, 78, 44, a)};border-color:${scaleHsla(h, 78, 48)}`)(TREND_SCALE[Math.min(7, Math.floor((1 - x) * 8))]));
+
+// One row per leader: rank = his place on the night's pregame board (the bottom
+// "Off" row, top + 1, if he wasn't on it; null if that night has no board), off =
+// that board's length when he wasn't on it, share = 1 / co-leaders.
+function trendPoints() {
+  const record = KOTC.record || {};
+  const top = Math.max(0, ...Object.values(record).map((r) => (r.board || []).length)) || 60;
+  const out = [];
+  (block().nights || []).forEach((n) => n.leaders.forEach((l) => {
+    const board = (record[n.date] || {}).board;
+    const at = board ? board.findIndex((b) => b.id === l.id) : -2;
+    out.push({ date: n.date, games: n.games, pra: n.pra, id: l.id, name: l.name, team: l.team, share: 1 / n.leaders.length,
+      rank: at >= 0 ? at + 1 : at === -1 ? top + 1 : null, off: at === -1 ? board.length : null, total: l.total ?? null, spread: l.spread ?? null });
+  }));
+  return { points: out, top };
+}
+
+const preWords = (p) => (p.off !== null ? `Pre ${p.off}+ (not on the board)` : `Pre ${p.rank}`);
+
+function trendChart(pts, opt) {
+  const W = 440, H = 290, L = 46, R = 12, T = 12, B = 38;
+  const x = (v) => L + ((v - opt.x[0]) / (opt.x[1] - opt.x[0])) * (W - L - R);
+  const y = (v) => T + ((opt.yPos(v) - opt.yPos(opt.y[0])) / (opt.yPos(opt.y[1]) - opt.yPos(opt.y[0]))) * (H - T - B);
+  const groups = new Map();
+  pts.forEach((p) => {
+    const k = `${opt.xOf(p)}|${opt.yOf(p)}`;
+    groups.set(k, [...(groups.get(k) || []), p]);
+  });
+  const grid = opt.yTicks.map(([v, label]) => `<line class="kotc-tr-grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="kotc-tr-tick" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${label}</text>`).join("")
+    + opt.xTicks.map(([v, label]) => `<line class="kotc-tr-grid${v === opt.xZero ? " kotc-tr-zero" : ""}" x1="${x(v)}" x2="${x(v)}" y1="${T}" y2="${H - B}"/><text class="kotc-tr-tick" x="${x(v)}" y="${H - B + 14}" text-anchor="middle">${label}</text>`).join("");
+  // Bigger dots first, so a small one never hides under a big one.
+  const dots = [...groups.values()].sort((a, b) => b.length - a.length).map((g) => {
+    const p = g[0];
+    const step = p.rank === null ? -1 : trendStep(p.rank);
+    const r = Math.min(15, 6 + 3 * (g.length - 1));
+    const tip = g.map((q) => `${dayWords(q.date, { month: "numeric", day: "numeric" })}: ${q.name}, ${q.pra} PRA, ${opt.tip(q)}`).join("\n");
+    return `<g class="kotc-tr-dot" data-tip="${tip.replace(/"/g, "&quot;")}" data-n="${g.length}"><title>${tip}</title>
+      <circle cx="${x(opt.xOf(p)).toFixed(1)}" cy="${y(opt.yOf(p)).toFixed(1)}" r="${r}" fill="${stepFill(step, 0.8) || "var(--panel-2)"}" stroke="${stepEdge(step)}"/>
+      ${g.length > 1 ? `<text x="${x(opt.xOf(p)).toFixed(1)}" y="${(y(opt.yOf(p)) + 4).toFixed(1)}" text-anchor="middle">${g.length}</text>` : ""}</g>`;
+  }).join("");
+  return `<svg class="kotc-tr-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opt.label}">${grid}
+    <text class="kotc-tr-axis" x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">${opt.xTitle}</text>
+    <text class="kotc-tr-axis" x="12" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(T + H - B) / 2})">${opt.yTitle}</text>${dots}</svg>`;
+}
+
+// Three tiles under the chart: each a share of the nights (a tie splits its night).
+function trendTiles(groups) {
+  return `<div class="kotc-tr-tiles">${groups.map(([label, rows, hit, word]) => {
+    const n = rows.reduce((a, p) => a + p.share, 0);
+    const rate = n ? rows.filter(hit).reduce((a, p) => a + p.share, 0) / n : null;
+    const nights = Number(n.toFixed(1)).toString();
+    return `<div class="od-tile kotc-tr-tile"${rate === null ? "" : ` style="${rateStyle(rate)}"`} title="${rate === null ? "No nights yet" : `${word} on ${Math.round(rate * 100)}% of ${nights} night${n === 1 ? "" : "s"}`}">
+      <span>${label}</span><b>${rate === null ? "--" : `${Math.round(rate * 100)}%`}</b><small>${word} · ${nights} Night${n === 1 ? "" : "s"}</small></div>`;
+  }).join("")}</div>`;
+}
+
+function renderTrends() {
+  const box = el("kotc-trends");
+  if (!box) return;
+  const { points, top } = trendPoints();
+  el("kotc-trend-tabs").innerHTML = [["rank", "Pregame Rank"], ["lines", "Spread & Total"]]
+    .map(([k, t]) => `<button type="button" class="${k === trendTab ? "on" : ""}" data-kotc-trend="${k}">${t}</button>`).join("");
+  const legend = `<div class="kotc-tr-legend"><span>Pregame Rank</span>${TREND_STEPS.map(([hi, label], i) => `<i style="background:${stepFill(i, 0.8)};border-color:${stepEdge(i)}">${label}</i>`).join("")}</div>`;
+  const read = `<p id="kotc-tr-read" class="kotc-tr-read">Hover or tap a dot</p>`;
+  if (trendTab === "rank") {
+    const pts = points.filter((p) => p.rank !== null);
+    if (!pts.length) return (box.innerHTML = `<p class="no-data-note">No pregame boards saved yet.</p>`);
+    const most = Math.max(15, ...pts.map((p) => p.games));
+    const ticks = [1, 5, 10, 20, 30, 40].filter((v) => v < top).map((v) => [v, v]).concat([[top + 1, "Off"]]);
+    box.innerHTML = trendChart(pts, {
+      label: "Each night's leader: games that night against his pregame rank",
+      x: [0.5, most + 0.5], xOf: (p) => p.games, xTicks: Array.from({ length: most }, (_, i) => [i + 1, i + 1]), xTitle: "Games That Night",
+      // Square-root scale: room at the top, where the board's best picks sit.
+      y: [1, top + 1], yOf: (p) => p.rank, yPos: Math.sqrt, yTicks: ticks, yTitle: "Pregame Rank",
+      tip: (p) => `${p.games} games, ${preWords(p)}`,
+    }) + legend + trendTiles([
+      ["1-5 Games", pts.filter((p) => p.games <= 5)],
+      ["6-10 Games", pts.filter((p) => p.games >= 6 && p.games <= 10)],
+      ["11+ Games", pts.filter((p) => p.games >= 11)],
+    ].map(([label, rows]) => [label, rows, (p) => p.rank <= 5, "Top 5"])) + read;
+    return;
+  }
+  const pts = points.filter((p) => p.spread !== null && p.total !== null);
+  if (!pts.length) return (box.innerHTML = `<p class="no-data-note">No lines saved yet.</p>`);
+  const reach = Math.max(15, Math.ceil(Math.max(...pts.map((p) => Math.abs(p.spread))) / 5) * 5);
+  const lo = Math.floor(Math.min(...pts.map((p) => p.total)) / 5) * 5 - 5;
+  const hi = Math.ceil(Math.max(...pts.map((p) => p.total)) / 5) * 5 + 5;
+  const step = hi - lo > 40 ? 10 : 5;
+  box.innerHTML = trendChart(pts, {
+    label: "Each night's leader: his team's spread against his game's total",
+    x: [-reach, reach], xOf: (p) => p.spread, xZero: 0, xTicks: Array.from({ length: (2 * reach) / 5 + 1 }, (_, i) => -reach + 5 * i).map((v) => [v, v === 0 ? "PK" : v > 0 ? `+${v}` : v]),
+    xTitle: "Favored  ←  His Team's Spread  →  Underdog",
+    y: [hi, lo], yOf: (p) => p.total, yPos: (v) => -v, yTicks: Array.from({ length: (hi - lo) / step + 1 }, (_, i) => lo + step * i).map((v) => [v, v]), yTitle: "Game Total",
+    tip: (p) => `${p.team} ${signed(p.spread)}, O/U ${fmt(p.total).replace(/\.0$/, "")}${p.rank === null ? "" : `, ${preWords(p)}`}`,
+  }) + legend + trendTiles([
+    ["Favored By 5+", (p) => p.spread <= -5],
+    ["Within 5", (p) => p.spread > -5 && p.spread < 5],
+    ["Underdog By 5+", (p) => p.spread >= 5],
+  ].map(([label, hit]) => [label, pts, hit, "Of Leaders"])) + read;
+}
+
 // ---- Historical Data ----
 function renderHistory() {
   // This season only (the owner, 2026-10-23: last season's reference numbers came off).
@@ -364,6 +479,7 @@ function render() {
   renderPlayers();
   renderDefense();
   renderNights();
+  renderTrends();
   renderPayoutForm();
 }
 
@@ -577,6 +693,12 @@ async function saveImage(btnId, cardId, name) {
   }, 2500);
 }
 
+// Leader Trends: hovering a dot names it under the chart (a tap does the same, in the click handler).
+document.addEventListener("mouseover", (e) => {
+  const dot = e.target.closest && e.target.closest(".kotc-tr-dot");
+  if (dot && el("kotc-tr-read")) el("kotc-tr-read").textContent = dot.dataset.tip;
+});
+
 document.addEventListener("click", (e) => {
   if (!KOTC) return;
   if (e.target.closest("#kotc-day-prev")) return (dayIndex = Math.max(0, dayIndex - 1)), (showAll = false), render();
@@ -587,6 +709,11 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#kotc-save")) return saveImage("kotc-save", "kotc-capture", "king-of-the-court");
   if (e.target.closest("#kotc-def-playing")) return (defPlayingOnly = !defPlayingOnly), renderDefense();
   if (e.target.closest("#kotc-def-save")) return saveImage("kotc-def-save", "kotc-def-capture", "kotc-defense");
+  if (e.target.closest("#kotc-trend-save")) return saveImage("kotc-trend-save", "kotc-trend-capture", "kotc-trends");
+  const tab = e.target.closest("[data-kotc-trend]");
+  if (tab) return (trendTab = tab.dataset.kotcTrend), renderTrends();
+  const dot = e.target.closest(".kotc-tr-dot");
+  if (dot && el("kotc-tr-read")) el("kotc-tr-read").textContent = dot.dataset.tip;
   if (e.target.closest("#kotc-history-btn")) {
     renderHistory();
     el("kotc-history-modal").hidden = false;

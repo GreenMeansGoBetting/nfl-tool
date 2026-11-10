@@ -263,6 +263,56 @@ class DefenseAndHistory(unittest.TestCase):
         PAGE.keyboard.press("Escape")
         self.assertTrue(PAGE.evaluate("() => document.getElementById('kotc-history-modal').hidden"))
 
+    def test_leader_trends_rank_tab_plots_every_leader_at_his_pregame_rank(self):
+        # One dot a leader (a tie: both), at the night's games and his place on that night's pregame board.
+        pts = PAGE.evaluate("() => (trendTab = 'rank', renderTrends(), trendPoints().points)")
+        got = sorted((p["date"], p["name"], p["rank"], p["share"]) for p in pts)
+        self.assertEqual(got, [(FIRST, "Star A", 1, 1), (PAST, "Star A", 2, 0.5), (PAST, "Star C", 3, 0.5)])
+        # Not on a 15-player board: the bottom "Off" row, named by that board's length (never "60+").
+        self.assertEqual(PAGE.evaluate("() => preWords({ off: 15, rank: 61 })"), "Pre 15+ (not on the board)")
+        self.assertIn("Off", PAGE.text_content("#kotc-trends svg"))
+        games = {n["date"]: n["games"] for n in SITE.nba["kotc"]["seasons"]["2027"]["nights"]}
+        self.assertEqual({p["date"]: p["games"] for p in pts}, games)
+        self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#kotc-trend-tabs button')].map((b) => [b.textContent, b.classList.contains('on')])"),
+                         [["Pregame Rank", True], ["Spread & Total", False]])
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('#kotc-trends .kotc-tr-dot').length"), 3)
+        tiles = PAGE.evaluate("() => [...document.querySelectorAll('#kotc-trends .kotc-tr-tile')].map((t) => [t.querySelector('span').textContent, t.querySelector('b').textContent])")
+        self.assertEqual([t[0] for t in tiles], ["1-5 Games", "6-10 Games", "11+ Games"])
+        self.assertIn("100%", [t[1] for t in tiles])  # every leader here was in the board's top 5
+        self.assertEqual(SITE.errors, [])
+
+    def test_leader_trends_merge_dots_on_the_same_spot(self):
+        # Two leaders on the same spot: one bigger dot carrying the count, never one hidden under the other.
+        n = PAGE.evaluate("""() => { const p = { date: '2026-01-01', games: 4, pra: 60, name: 'X', team: 'AAA', share: 1, rank: 2, total: 230, spread: -3 };
+            const box = document.createElement('div');
+            box.innerHTML = trendChart([p, { ...p, name: 'Y' }, { ...p, name: 'Z', rank: 9 }], { label: '', x: [0.5, 15.5], xOf: (q) => q.games, xTicks: [], xTitle: '',
+                y: [1, 61], yOf: (q) => q.rank, yPos: Math.sqrt, yTicks: [], yTitle: '', tip: () => '' });
+            return [...box.querySelectorAll('.kotc-tr-dot')].map((g) => [g.dataset.n, (g.querySelector('text') || {}).textContent || '', Number(g.querySelector('circle').getAttribute('r'))]); }""")
+        self.assertEqual([d[:2] for d in n], [["2", "2"], ["1", ""]])
+        self.assertGreater(n[0][2], n[1][2])
+
+    def test_leader_trends_spread_tab_and_a_tap_names_the_dot(self):
+        try:
+            PAGE.click("[data-kotc-trend='lines']")
+            want = [p for p in PAGE.evaluate("() => trendPoints().points") if p["spread"] is not None and p["total"] is not None]
+            self.assertTrue(want)
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#kotc-trends .kotc-tr-dot')].reduce((a, g) => a + Number(g.dataset.n), 0)"), len(want))
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#kotc-trends .kotc-tr-tile span')].map((s) => s.textContent)"),
+                             ["Favored By 5+", "Within 5", "Underdog By 5+"])
+            PAGE.evaluate("() => document.querySelector('#kotc-trends .kotc-tr-dot').dispatchEvent(new MouseEvent('click', { bubbles: true }))")
+            self.assertIn("PRA", PAGE.inner_text("#kotc-tr-read"))
+            self.assertEqual(SITE.errors, [])
+        finally:
+            PAGE.evaluate("() => (trendTab = 'rank', renderTrends())")
+
+    def test_leader_trends_fit_a_phone(self):
+        PAGE.set_viewport_size({"width": 375, "height": 800})
+        try:
+            right = PAGE.evaluate("() => Math.max(...['.kotc-trend', '.kotc-tr-svg', '.kotc-tr-tiles'].map((s) => document.querySelector(s).getBoundingClientRect().right))")
+            self.assertLessEqual(right, 375)
+        finally:
+            PAGE.set_viewport_size({"width": 1280, "height": 900})
+
     def test_promo_menu_links_here(self):
         links = PAGE.evaluate("() => [...document.querySelectorAll('.promo-menu a')].map((a) => a.getAttribute('href'))")
         self.assertIn("/nba/promo-tools.html", links)

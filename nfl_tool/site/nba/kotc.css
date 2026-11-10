@@ -79,6 +79,37 @@ html:not(.is-owner):not(.local-dev) .kotc-log { display: none; }
 .kotc-fit { margin: 0; font-size: 0.74rem; color: var(--muted); }
 .kotc-def-head .kotc-def-playing { margin-left: auto; padding: 6px 12px; }
 
+/* Leader Trends (the owner, 2026-11-10): a tabbed chart box beside Nightly Leaders. */
+.kotc-trend { flex: 0 1 460px; min-width: 0; max-width: 100%; display: flex; flex-direction: column; }
+.kotc-trend .kotc-def-head { margin-top: 0; }
+.kotc-trend .kotc-def-head .summary-save-btn { margin-left: auto; }
+.kotc-trend .info-note { margin: 0 0 6px; }
+.kotc-tr-box { padding: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
+.kotc-tr-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin-bottom: 6px; }
+.kotc-tr-tabs button { height: 32px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel-2); box-shadow: 0 2px 0 var(--border-strong); color: var(--text); font: 700 0.92rem var(--font-display); cursor: pointer; }
+.kotc-tr-tabs button:hover { border-color: rgba(var(--accent-rgb), 0.7); background: rgba(var(--accent-rgb), 0.16); }
+.kotc-tr-tabs button.on { background: var(--text); border-color: var(--text); box-shadow: none; transform: translateY(1px); color: var(--bg); cursor: default; }
+.kotc-capturing .kotc-tr-tabs button:not(.on) { display: none; }
+.kotc-tr-svg { display: block; width: 100%; height: auto; font-family: var(--font-display); }
+.kotc-tr-grid { stroke: var(--border); stroke-width: 1; }
+.kotc-tr-zero { stroke: var(--border-strong); stroke-width: 2; }
+.kotc-tr-tick { fill: var(--muted); font-size: 11px; font-weight: 700; }
+.kotc-tr-axis { fill: var(--text); font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.kotc-tr-dot { cursor: pointer; }
+.kotc-tr-dot circle { stroke-width: 1.5; }
+.kotc-tr-dot:hover circle { stroke: var(--text); stroke-width: 2.5; }
+.kotc-tr-dot text { fill: var(--text); font-size: 11px; font-weight: 800; pointer-events: none; }
+.kotc-tr-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px; margin: 4px 0 6px; }
+.kotc-tr-legend span { margin-right: 4px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.kotc-tr-legend i { min-width: 30px; padding: 1px 4px; border: 1px solid; border-radius: 5px; font: 800 0.7rem var(--font-display); font-style: normal; text-align: center; color: var(--text); }
+.kotc-tr-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+.kotc-tr-tile { display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid transparent; }
+.kotc-tr-tile span { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.kotc-tr-tile b { font-size: 1.2rem; }
+.kotc-tr-tile small { color: var(--text); }
+.kotc-tr-read { min-height: 1.2em; margin: 6px 0 0; font-size: 0.74rem; font-weight: 700; color: var(--muted); white-space: pre-line; }
+.kotc-capturing .kotc-tr-read { display: none; }
+
 .kotc-history-box { max-width: 820px; }
 .kotc-hist-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .kotc-hist-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 12px 8px; text-align: center; border: 1px solid rgba(var(--good-rgb), 0.35); border-radius: 12px; background: rgba(var(--good-rgb), 0.08); }

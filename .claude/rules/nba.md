@@ -783,6 +783,12 @@ DraftKings' promo on the night's most PRA.
   Finished night: Pre, PRA, P / R / A, Lead %, Proj, Opp, Paid; winners starred, DNP last. Defense
   board: red = bad defense; Hide Teams Not Playing; default sort Top Opp; Targets = the other team's
   top 3 by Lead %.
+- **Leader Trends** (beside Nightly Leaders, the owner 2026-11-10; `renderTrends`, `trendPoints`): an SVG
+  scatter, a dot a leader. Tabs **Pregame Rank** (x games that night, y his Pre place, square-root
+  scale, not on that night's board = bottom "Off" row) and **Spread & Total** (x his spread, favored
+  left; y the total). Dots on one spot merge into a bigger dot with the count; color = Pre on the
+  8-step scale; three tiles under each (Top 5 by slate size; Favored 5+ / Within 5 / Underdog 5+), a
+  tie half a night each. Hover or tap names the dot; Save image.
 - **Ties:** every co-leader counts (own line, Tie tag, starred; Historical Data splits shares, full
   night each in Most nights led; Est Pay's fit leaves out tied payouts).
 - **Payouts:** the owner's box (is-owner / localhost) saves Prize Pool + DraftKings' pasted list to
