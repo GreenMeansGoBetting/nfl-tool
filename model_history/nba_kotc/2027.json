@@ -7530,42 +7530,42 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2132,
+    "lead": 0.2135,
     "name": "Giannis Antetokounmpo",
     "proj": 44.3,
     "team": "MIA"
    },
    {
     "id": "3136195",
-    "lead": 0.1393,
+    "lead": 0.1395,
     "name": "Karl-Anthony Towns",
     "proj": 41.2,
     "team": "NY"
    },
    {
     "id": "4065648",
-    "lead": 0.1144,
+    "lead": 0.1148,
     "name": "Jayson Tatum",
     "proj": 39.9,
     "team": "BOS"
    },
    {
     "id": "3155942",
-    "lead": 0.0776,
+    "lead": 0.0779,
     "name": "Domantas Sabonis",
     "proj": 37.7,
     "team": "SAC"
    },
    {
     "id": "4278073",
-    "lead": 0.0687,
+    "lead": 0.0674,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 37.8,
+    "proj": 37.7,
     "team": "OKC"
    },
    {
     "id": "5142620",
-    "lead": 0.0568,
+    "lead": 0.057,
     "name": "Darius Acuff Jr.",
     "proj": 35.9,
     "team": "SAC"
@@ -7579,21 +7579,21 @@
    },
    {
     "id": "4566434",
-    "lead": 0.0539,
+    "lead": 0.0542,
     "name": "Franz Wagner",
     "proj": 36.1,
     "team": "ORL"
    },
    {
     "id": "4683021",
-    "lead": 0.0443,
+    "lead": 0.0433,
     "name": "Deni Avdija",
-    "proj": 34.9,
+    "proj": 34.8,
     "team": "POR"
    },
    {
     "id": "3136193",
-    "lead": 0.0364,
+    "lead": 0.0365,
     "name": "Devin Booker",
     "proj": 34.1,
     "team": "PHX"
@@ -7628,7 +7628,7 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0092,
+    "lead": 0.0093,
     "name": "Joel Embiid",
     "proj": 29.5,
     "team": "PHI"
@@ -7669,18 +7669,18 @@
     "team": "MIA"
    },
    {
-    "id": "4066383",
-    "lead": 0.0036,
-    "name": "Miles Bridges",
-    "proj": 26.1,
-    "team": "PHX"
-   },
-   {
     "id": "3064440",
-    "lead": 0.0035,
+    "lead": 0.0037,
     "name": "Zach LaVine",
     "proj": 26.4,
     "team": "SAC"
+   },
+   {
+    "id": "4066383",
+    "lead": 0.0037,
+    "name": "Miles Bridges",
+    "proj": 26.1,
+    "team": "PHX"
    },
    {
     "id": "3934719",
@@ -7712,9 +7712,9 @@
    },
    {
     "id": "6606",
-    "lead": 0.0016,
+    "lead": 0.0014,
     "name": "Damian Lillard",
-    "proj": 26.0,
+    "proj": 25.9,
     "team": "POR"
    },
    {

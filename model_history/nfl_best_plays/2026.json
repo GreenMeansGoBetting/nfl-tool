@@ -15839,7 +15839,7 @@
    "first_price": -100,
    "first_book": "Novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "MIA_NYJ|anytime_td|MIA|olliegordon": {
    "game": "MIA_NYJ",
@@ -17513,7 +17513,7 @@
    "first_price": 285,
    "first_book": "Novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|first_td|NE|eliraridon": {
    "game": "NE_DET",
@@ -17537,7 +17537,7 @@
    "first_price": 1718,
    "first_book": null,
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|passing_attempts|NE|drakemaye": {
    "game": "NE_DET",
@@ -17555,13 +17555,13 @@
    "line": 33.5,
    "price": -120,
    "book": "novig",
-   "edge": 0.053028184954669655,
-   "chance": 0.5984827304092151,
+   "edge": 0.05319937626476101,
+   "chance": 0.5986539217193064,
    "rating": "Lean",
    "first_price": -117,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|passing_completions|NE|drakemaye": {
    "game": "NE_DET",
@@ -17585,7 +17585,7 @@
    "first_price": -133,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|passing_touchdowns|NE|drakemaye": {
    "game": "NE_DET",
@@ -17609,7 +17609,7 @@
    "first_price": -133,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|receiving_receptions|DET|jahmyrgibbs": {
    "game": "NE_DET",
@@ -17625,15 +17625,15 @@
    "bet": "Under 4.5 Receptions",
    "side": "under",
    "line": 4.5,
-   "price": -130,
+   "price": -135,
    "book": "novig",
-   "edge": 0.09648018185024232,
-   "chance": 0.6616975731545901,
+   "edge": 0.08833188227170474,
+   "chance": 0.6627999673780878,
    "rating": "Strong",
    "first_price": -130,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|receiving_yards|DET|jahmyrgibbs": {
    "game": "NE_DET",
@@ -17651,13 +17651,13 @@
    "line": 31.5,
    "price": -122,
    "book": "novig",
-   "edge": 0.05315995045634614,
-   "chance": 0.6027095000058957,
+   "edge": 0.05299134072341338,
+   "chance": 0.602540890272963,
    "rating": "Lean",
    "first_price": -120,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|rushing_attempts|NE|coreykiner": {
    "game": "NE_DET",
@@ -17681,7 +17681,7 @@
    "first_price": -104,
    "first_book": "novig",
    "first_seen": "2026-11-10T13:50Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|rushing_yards|NE|coreykiner": {
    "game": "NE_DET",
@@ -17699,13 +17699,13 @@
    "line": 53.5,
    "price": -122,
    "book": "novig",
-   "edge": 0.10037771404299589,
-   "chance": 0.6499272635925455,
+   "edge": 0.10006135743418254,
+   "chance": 0.6496109069837321,
    "rating": "Strong",
    "first_price": -122,
    "first_book": "novig",
    "first_seen": "2026-11-10T13:50Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_DET|rushing_yards|NE|drakemaye": {
    "game": "NE_DET",
@@ -17723,13 +17723,13 @@
    "line": 25.5,
    "price": -122,
    "book": "novig",
-   "edge": 0.04051783502144335,
-   "chance": 0.590067384570993,
+   "edge": 0.040181531198204445,
+   "chance": 0.589731080747754,
    "rating": "Lean",
    "first_price": -122,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "NE_MIA|anytime_td|MIA|kevincoleman": {
    "game": "NE_MIA",
@@ -23575,7 +23575,7 @@
    "first_price": 204,
    "first_book": "Novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|anytime_td|NYG|malachifields": {
    "game": "WAS_NYG",
@@ -23599,7 +23599,7 @@
    "first_price": 488,
    "first_book": "Novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|anytime_td|NYG|maliknabers": {
    "game": "WAS_NYG",
@@ -23623,7 +23623,7 @@
    "first_price": 163,
    "first_book": "Novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|first_td|NYG|isaiahlikely": {
    "game": "WAS_NYG",
@@ -23641,13 +23641,13 @@
    "line": null,
    "price": 1076,
    "book": null,
-   "edge": 0.04903460520358853,
-   "chance": 0.1340686188090307,
+   "edge": 0.04862730589801324,
+   "chance": 0.13366131950345542,
    "rating": "Strong",
    "first_price": 1076,
    "first_book": null,
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|first_td|NYG|maliknabers": {
    "game": "WAS_NYG",
@@ -23665,13 +23665,13 @@
    "line": null,
    "price": 1076,
    "book": null,
-   "edge": 0.03080855696685597,
-   "chance": 0.11584257057229815,
+   "edge": 0.03045662823834895,
+   "chance": 0.11549064184379113,
    "rating": "Strong",
    "first_price": 1011,
    "first_book": null,
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|passing_attempts|WAS|jaydendaniels": {
    "game": "WAS_NYG",
@@ -23687,15 +23687,15 @@
    "bet": "Over 31.5 Pass Att",
    "side": "over",
    "line": 31.5,
-   "price": -104,
+   "price": -102,
    "book": "novig",
-   "edge": 0.05302566173639178,
-   "chance": 0.5628295833050192,
+   "edge": 0.054965528075425873,
+   "chance": 0.5599160231249308,
    "rating": "Lean",
    "first_price": -104,
    "first_book": "novig",
    "first_seen": "2026-11-10T13:50Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|receiving_receptions|NYG|isaiahlikely": {
    "game": "WAS_NYG",
@@ -23713,13 +23713,13 @@
    "line": 4.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.04361537783742642,
-   "chance": 0.5534192994060538,
+   "edge": 0.04511509621558374,
+   "chance": 0.5549190177842112,
    "rating": "Lean",
    "first_price": -104,
    "first_book": "novig",
    "first_seen": "2026-11-10T13:50Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|receiving_receptions|NYG|maliknabers": {
    "game": "WAS_NYG",
@@ -23735,15 +23735,15 @@
    "bet": "Over 5.5 Receptions",
    "side": "over",
    "line": 5.5,
-   "price": -125,
+   "price": -127,
    "book": "novig",
-   "edge": 0.04367576442675225,
-   "chance": 0.5992313199823078,
+   "edge": 0.04226080566285084,
+   "chance": 0.6017321713016174,
    "rating": "Lean",
    "first_price": -120,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|receiving_yards|NYG|malachifields": {
    "game": "WAS_NYG",
@@ -23761,13 +23761,13 @@
    "line": 24.5,
    "price": -113,
    "book": "novig",
-   "edge": 0.04836613201873019,
-   "chance": 0.5788825639436128,
+   "edge": 0.04853776651762287,
+   "chance": 0.5790541984425055,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|receiving_yards|NYG|theojohnson": {
    "game": "WAS_NYG",
@@ -23785,13 +23785,13 @@
    "line": 5.5,
    "price": -104,
    "book": "novig",
-   "edge": 0.07121092346263747,
-   "chance": 0.5810148450312649,
+   "edge": 0.07138231765695091,
+   "chance": 0.5811862392255783,
    "rating": "Strong",
    "first_price": -108,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|rushing_attempts|NYG|devinsingletary": {
    "game": "WAS_NYG",
@@ -23815,7 +23815,7 @@
    "first_price": -147,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   },
   "WAS_NYG|rushing_yards|NYG|devinsingletary": {
    "game": "WAS_NYG",
@@ -23833,13 +23833,13 @@
    "line": 25.5,
    "price": -117,
    "book": "novig",
-   "edge": 0.066517592008567,
-   "chance": 0.6056880989210094,
+   "edge": 0.06684955407780091,
+   "chance": 0.6060200609902433,
    "rating": "Lean",
    "first_price": 106,
    "first_book": "novig",
    "first_seen": "2026-11-10T07:28Z",
-   "last_seen": "2026-11-10T13:50Z"
+   "last_seen": "2026-11-10T14:04Z"
   }
  }
 }
