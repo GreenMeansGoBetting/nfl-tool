@@ -7,7 +7,11 @@ carries on without it and the site shows Novig's prices. "HTTP Error 401:
 Unauthorized" in version.json (`nba.book_odds`) means SmartStake rejected the
 key (it retired the old one 2026-11-10): the owner saves the new key in that
 secret, and the next build that rebuilds the data (a push touching this file,
-the 6-hour run, or "Run workflow" on Deploy) picks it up.
+the 6-hour run, or "Run workflow" on Deploy) picks it up. SmartStake's docs:
+401 = "missing or unknown" key, 403 = a book or league not on the key. While
+the NBA fetch fails the site shows the last good copy, frozen (lines posted
+since are missing: Drummond's, 2026-11-10), so a board that looks priced can
+still be stale; check version.json.
 
 One league snapshot per build (`/v1/odds?league=`), main lines only
 (`alternate=false`), pregame only (`live=false`), and only the markets the site
