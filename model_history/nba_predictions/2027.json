@@ -11823,21 +11823,21 @@ null
 "away": "DEN",
 "book": {
 "ml": [
-167,
--170
+170,
+-174
 ],
 "spread": [
 4.5,
 -4.5
 ],
 "spread_odds": [
-102,
--104
+104,
+-106
 ],
 "total": 223.5,
 "total_odds": [
--106,
-102
+-104,
+-102
 ]
 },
 "date": "2026-11-09",
@@ -12269,7 +12269,7 @@ null
 "total": 219.5,
 "total_odds": [
 -116,
--106
+-112
 ]
 },
 "date": "2026-11-10",
@@ -12698,7 +12698,7 @@ null
 null,
 null
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
 null,
 null
@@ -12711,7 +12711,10 @@ null
 0.353
 ],
 "spread": null,
-"total": null
+"total": [
+0.5693,
+0.4307
+]
 },
 "fair_spread": 4.5,
 "home": "UTAH",
@@ -12825,7 +12828,7 @@ null
 "away": "ORL",
 "book": {
 "ml": [
--231,
+-232,
 203
 ],
 "spread": [
@@ -12972,7 +12975,7 @@ null
 ],
 "spread_odds": [
 -111,
--100
+108
 ],
 "total": 226.5,
 "total_odds": [
