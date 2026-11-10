@@ -7756,7 +7756,7 @@
     "id": "4066648",
     "lead": 0.0006,
     "name": "Rui Hachimura",
-    "proj": 22.3,
+    "proj": 22.4,
     "team": "LAC"
    },
    {
@@ -7777,7 +7777,7 @@
     "id": "3448",
     "lead": 0.0003,
     "name": "Brook Lopez",
-    "proj": 22.8,
+    "proj": 22.9,
     "team": "LAC"
    },
    {
@@ -7865,18 +7865,18 @@
     "team": "LAC"
    },
    {
+    "id": "4437244",
+    "lead": 0.0,
+    "name": "Jalen Green",
+    "proj": 19.3,
+    "team": "PHX"
+   },
+   {
     "id": "4431679",
     "lead": 0.0,
     "name": "Precious Achiuwa",
     "proj": 19.3,
     "team": "SAC"
-   },
-   {
-    "id": "4437244",
-    "lead": 0.0,
-    "name": "Jalen Green",
-    "proj": 19.2,
-    "team": "PHX"
    },
    {
     "id": "6475",
