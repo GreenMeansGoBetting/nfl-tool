@@ -12576,75 +12576,75 @@
    ]
   ],
   "players": {
-   "3062679": [
-    "Josh Hart",
-    0.08,
-    null,
-    false,
-    null
-   ],
    "3133628": [
     "Myles Turner",
-    0.08,
+    0.079,
     1100,
     false,
     "hard_rock"
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.069,
+    0.07,
     1140,
     false,
     "draftkings"
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.112,
+    0.107,
     527,
     false,
     "draftkings"
    ],
    "3147657": [
     "Mikal Bridges",
-    0.086,
+    0.084,
     850,
     false,
     "hard_rock"
    ],
+   "3914044": [
+    "Landry Shamet",
+    0.097,
+    1000,
+    false,
+    "fanduel"
+   ],
    "3934672": [
     "Jalen Brunson",
-    0.125,
+    0.121,
     450,
     false,
     "bet365"
    ],
    "3934719": [
     "OG Anunoby",
-    0.12,
+    0.113,
     700,
     false,
     "hard_rock"
    ],
-   "4395725": [
-    "Tyler Herro",
-    0.09,
-    950,
-    false,
-    "bet365"
-   ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.119,
+    0.115,
     1100,
     true,
     "fanduel"
    ],
    "4591725": [
     "Ryan Rollins",
-    0.079,
+    0.081,
     null,
     false,
     null
+   ],
+   "5082206": [
+    "Brayden Burries",
+    0.091,
+    1240,
+    true,
+    "draftkings"
    ]
   },
   "tip_home": 0.636
@@ -13192,23 +13192,16 @@
    ]
   ],
   "players": {
-   "3062679": [
-    "Josh Hart",
-    0.072,
-    null,
-    false,
-    null
-   ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.1,
+    0.096,
     null,
     false,
     null
    ],
    "3147657": [
     "Mikal Bridges",
-    0.077,
+    0.075,
     null,
     false,
     null
@@ -13220,16 +13213,23 @@
     false,
     null
    ],
+   "3914044": [
+    "Landry Shamet",
+    0.087,
+    null,
+    false,
+    null
+   ],
    "3934672": [
     "Jalen Brunson",
-    0.112,
+    0.108,
     null,
     false,
     null
    ],
    "3934719": [
     "OG Anunoby",
-    0.107,
+    0.101,
     null,
     false,
     null
@@ -13550,14 +13550,14 @@
   "players": {
    "3133628": [
     "Myles Turner",
-    0.076,
+    0.075,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.065,
+    0.067,
     null,
     false,
     null
@@ -13576,16 +13576,9 @@
     false,
     null
    ],
-   "4395725": [
-    "Tyler Herro",
-    0.086,
-    null,
-    false,
-    null
-   ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.113,
+    0.109,
     null,
     false,
     null
@@ -13606,7 +13599,7 @@
    ],
    "4591725": [
     "Ryan Rollins",
-    0.075,
+    0.077,
     null,
     false,
     null
@@ -13614,6 +13607,13 @@
    "4592691": [
     "Jake LaRavia",
     0.083,
+    null,
+    false,
+    null
+   ],
+   "5082206": [
+    "Brayden Burries",
+    0.087,
     null,
     false,
     null
