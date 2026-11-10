@@ -7955,23 +7955,23 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3908,
+    "lead": 0.3911,
     "name": "Luka Doncic",
     "proj": 57.1,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.221,
+    "lead": 0.2212,
     "name": "Victor Wembanyama",
     "proj": 51.1,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.042,
+    "lead": 0.0409,
     "name": "Nikola Jokic",
-    "proj": 39.8,
+    "proj": 39.7,
     "team": "DEN"
    },
    {
@@ -8004,14 +8004,14 @@
    },
    {
     "id": "6583",
-    "lead": 0.0232,
+    "lead": 0.0234,
     "name": "Anthony Davis",
     "proj": 37.0,
     "team": "WSH"
    },
    {
     "id": "3936299",
-    "lead": 0.0218,
+    "lead": 0.0219,
     "name": "Jamal Murray",
     "proj": 36.3,
     "team": "DEN"
@@ -8025,10 +8025,17 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0176,
+    "lead": 0.0177,
     "name": "Scottie Barnes",
     "proj": 35.7,
     "team": "TOR"
+   },
+   {
+    "id": "3149673",
+    "lead": 0.0156,
+    "name": "Pascal Siakam",
+    "proj": 35.2,
+    "team": "IND"
    },
    {
     "id": "3934672",
@@ -8036,13 +8043,6 @@
     "name": "Jalen Brunson",
     "proj": 35.1,
     "team": "NY"
-   },
-   {
-    "id": "3149673",
-    "lead": 0.0155,
-    "name": "Pascal Siakam",
-    "proj": 35.2,
-    "team": "IND"
    },
    {
     "id": "4683021",
@@ -8067,9 +8067,9 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0105,
+    "lead": 0.0104,
     "name": "Ty Jerome",
-    "proj": 34.1,
+    "proj": 34.0,
     "team": "MEM"
    },
    {
@@ -8116,7 +8116,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0036,
+    "lead": 0.0037,
     "name": "Michael Porter Jr.",
     "proj": 29.9,
     "team": "BKN"
@@ -8144,7 +8144,7 @@
    },
    {
     "id": "4395628",
-    "lead": 0.002,
+    "lead": 0.0021,
     "name": "Zion Williamson",
     "proj": 29.6,
     "team": "NO"
@@ -8165,7 +8165,7 @@
    },
    {
     "id": "4251",
-    "lead": 0.0014,
+    "lead": 0.0015,
     "name": "Paul George",
     "proj": 28.4,
     "team": "BOS"
