@@ -1269,6 +1269,30 @@
   "updated": "2026-11-08T13:33Z",
   "week": 9
  },
+ "2026_09_BUF_MIN": {
+  "away": "BUF",
+  "away_pts": 22.5,
+  "final": [
+   23,
+   6
+  ],
+  "frozen": true,
+  "home": "MIN",
+  "home_pts": 17.8,
+  "qb_out": [
+   "MIN"
+  ],
+  "spread": 3.5,
+  "spread_edge": 1.3,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 43.5,
+  "total_edge": 3.2,
+  "total_pick": "under",
+  "total_result": "win",
+  "updated": "2026-11-09T06:40Z",
+  "week": 9
+ },
  "2026_09_CIN_ATL": {
   "away": "CIN",
   "away_pts": 26.8,
