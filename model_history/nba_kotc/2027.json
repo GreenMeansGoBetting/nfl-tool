@@ -7530,21 +7530,21 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2128,
+    "lead": 0.2123,
     "name": "Giannis Antetokounmpo",
     "proj": 44.3,
     "team": "MIA"
    },
    {
     "id": "3136195",
-    "lead": 0.1389,
+    "lead": 0.1407,
     "name": "Karl-Anthony Towns",
-    "proj": 41.2,
+    "proj": 41.3,
     "team": "NY"
    },
    {
     "id": "4065648",
-    "lead": 0.1144,
+    "lead": 0.1143,
     "name": "Jayson Tatum",
     "proj": 39.9,
     "team": "BOS"
@@ -7558,7 +7558,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0675,
+    "lead": 0.0673,
     "name": "Shai Gilgeous-Alexander",
     "proj": 37.7,
     "team": "OKC"
@@ -7572,7 +7572,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0562,
+    "lead": 0.0561,
     "name": "Jalen Brunson",
     "proj": 35.9,
     "team": "NY"
@@ -7586,7 +7586,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0433,
+    "lead": 0.0432,
     "name": "Deni Avdija",
     "proj": 34.8,
     "team": "POR"
@@ -7600,7 +7600,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.036,
+    "lead": 0.0359,
     "name": "Tyrese Maxey",
     "proj": 34.4,
     "team": "PHI"
@@ -7614,14 +7614,14 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0121,
+    "lead": 0.012,
     "name": "Darius Garland",
     "proj": 29.8,
     "team": "LAC"
    },
    {
     "id": "4395725",
-    "lead": 0.0107,
+    "lead": 0.0106,
     "name": "Tyler Herro",
     "proj": 29.4,
     "team": "MIL"
@@ -7635,21 +7635,21 @@
    },
    {
     "id": "4251",
-    "lead": 0.0091,
+    "lead": 0.009,
     "name": "Paul George",
     "proj": 29.1,
     "team": "BOS"
    },
    {
     "id": "1966",
-    "lead": 0.0069,
+    "lead": 0.0068,
     "name": "LeBron James",
     "proj": 28.6,
     "team": "PHI"
    },
    {
     "id": "4066261",
-    "lead": 0.0062,
+    "lead": 0.0061,
     "name": "Bam Adebayo",
     "proj": 28.5,
     "team": "MIA"
@@ -7684,7 +7684,7 @@
    },
    {
     "id": "3934719",
-    "lead": 0.0031,
+    "lead": 0.003,
     "name": "OG Anunoby",
     "proj": 24.5,
     "team": "NY"
@@ -7893,6 +7893,13 @@
     "team": "LAC"
    },
    {
+    "id": "5082206",
+    "lead": 0.0,
+    "name": "Brayden Burries",
+    "proj": 17.7,
+    "team": "MIL"
+   },
+   {
     "id": "4397424",
     "lead": 0.0,
     "name": "Neemias Queta",
@@ -7905,13 +7912,6 @@
     "name": "Max Strus",
     "proj": 17.7,
     "team": "LAC"
-   },
-   {
-    "id": "5082206",
-    "lead": 0.0,
-    "name": "Brayden Burries",
-    "proj": 17.6,
-    "team": "MIL"
    },
    {
     "id": "4431736",
