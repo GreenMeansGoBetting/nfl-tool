@@ -7955,7 +7955,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3972,
+    "lead": 0.397,
     "name": "Luka Doncic",
     "proj": 57.1,
     "team": "LAL"
@@ -7976,7 +7976,7 @@
    },
    {
     "id": "4065648",
-    "lead": 0.0376,
+    "lead": 0.0375,
     "name": "Jayson Tatum",
     "proj": 39.0,
     "team": "BOS"
@@ -7990,14 +7990,14 @@
    },
    {
     "id": "4278073",
-    "lead": 0.028,
+    "lead": 0.0279,
     "name": "Shai Gilgeous-Alexander",
     "proj": 37.7,
     "team": "OKC"
    },
    {
     "id": "3975",
-    "lead": 0.0273,
+    "lead": 0.0272,
     "name": "Stephen Curry",
     "proj": 38.0,
     "team": "GS"
@@ -8011,7 +8011,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0189,
+    "lead": 0.0188,
     "name": "Alperen Sengun",
     "proj": 36.3,
     "team": "HOU"
@@ -8067,9 +8067,9 @@
    },
    {
     "id": "5041935",
-    "lead": 0.0061,
+    "lead": 0.0066,
     "name": "Cameron Boozer",
-    "proj": 32.0,
+    "proj": 32.1,
     "team": "MEM"
    },
    {
