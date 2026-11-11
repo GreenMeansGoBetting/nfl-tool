@@ -8380,35 +8380,35 @@
   "board": [
    {
     "id": "5041939",
-    "lead": 0.1697,
+    "lead": 0.1701,
     "name": "Cooper Flagg",
     "proj": 38.0,
     "team": "DAL"
    },
    {
     "id": "6583",
-    "lead": 0.1655,
+    "lead": 0.1659,
     "name": "Anthony Davis",
     "proj": 37.7,
     "team": "WSH"
    },
    {
     "id": "4431678",
-    "lead": 0.1276,
+    "lead": 0.1252,
     "name": "Tyrese Maxey",
-    "proj": 36.2,
+    "proj": 36.1,
     "team": "PHI"
    },
    {
     "id": "4432166",
-    "lead": 0.105,
+    "lead": 0.1053,
     "name": "Cade Cunningham",
     "proj": 34.9,
     "team": "DET"
    },
    {
     "id": "3917376",
-    "lead": 0.0623,
+    "lead": 0.0627,
     "name": "Jaylen Brown",
     "proj": 32.7,
     "team": "PHI"
@@ -8422,35 +8422,35 @@
    },
    {
     "id": "4395625",
-    "lead": 0.0429,
+    "lead": 0.0431,
     "name": "RJ Barrett",
     "proj": 30.9,
     "team": "TOR"
    },
    {
     "id": "4396971",
-    "lead": 0.0368,
+    "lead": 0.037,
     "name": "Naz Reid",
     "proj": 30.2,
     "team": "CHA"
    },
    {
     "id": "6442",
-    "lead": 0.0332,
+    "lead": 0.0333,
     "name": "Kyrie Irving",
     "proj": 29.9,
     "team": "DAL"
    },
    {
     "id": "3059318",
-    "lead": 0.03,
+    "lead": 0.0302,
     "name": "Joel Embiid",
     "proj": 29.8,
     "team": "PHI"
    },
    {
     "id": "4431671",
-    "lead": 0.0207,
+    "lead": 0.0209,
     "name": "Jaden McDaniels",
     "proj": 27.7,
     "team": "MIN"
@@ -8471,7 +8471,7 @@
    },
    {
     "id": "1966",
-    "lead": 0.0169,
+    "lead": 0.017,
     "name": "LeBron James",
     "proj": 27.3,
     "team": "PHI"
@@ -8492,14 +8492,14 @@
    },
    {
     "id": "4397002",
-    "lead": 0.0122,
+    "lead": 0.0123,
     "name": "Ayo Dosunmu",
     "proj": 26.2,
     "team": "MIN"
    },
    {
     "id": "4395724",
-    "lead": 0.0119,
+    "lead": 0.012,
     "name": "Immanuel Quickley",
     "proj": 26.1,
     "team": "TOR"
@@ -8526,18 +8526,18 @@
     "team": "DET"
    },
    {
-    "id": "5124612",
-    "lead": 0.0036,
-    "name": "VJ Edgecombe",
-    "proj": 23.2,
-    "team": "PHI"
-   },
-   {
     "id": "4278078",
     "lead": 0.0036,
     "name": "P.J. Washington",
     "proj": 22.7,
     "team": "DAL"
+   },
+   {
+    "id": "5124612",
+    "lead": 0.0033,
+    "name": "VJ Edgecombe",
+    "proj": 23.1,
+    "team": "PHI"
    },
    {
     "id": "4278562",
