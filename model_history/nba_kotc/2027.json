@@ -7955,7 +7955,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3987,
+    "lead": 0.3986,
     "name": "Luka Doncic",
     "proj": 57.0,
     "team": "LAL"
@@ -8011,16 +8011,16 @@
    },
    {
     "id": "6583",
-    "lead": 0.0219,
+    "lead": 0.0217,
     "name": "Anthony Davis",
     "proj": 36.9,
     "team": "WSH"
    },
    {
     "id": "3936299",
-    "lead": 0.0198,
+    "lead": 0.0199,
     "name": "Jamal Murray",
-    "proj": 36.4,
+    "proj": 36.5,
     "team": "DEN"
    },
    {
@@ -8053,16 +8053,16 @@
    },
    {
     "id": "4066457",
-    "lead": 0.0124,
+    "lead": 0.0123,
     "name": "Austin Reaves",
     "proj": 34.5,
     "team": "LAL"
    },
    {
     "id": "4065733",
-    "lead": 0.0114,
+    "lead": 0.0118,
     "name": "Ty Jerome",
-    "proj": 34.1,
+    "proj": 34.2,
     "team": "MEM"
    },
    {
@@ -8101,18 +8101,18 @@
     "team": "MIL"
    },
    {
-    "id": "4277905",
-    "lead": 0.004,
-    "name": "Trae Young",
-    "proj": 30.8,
-    "team": "WSH"
-   },
-   {
     "id": "3064514",
     "lead": 0.0039,
     "name": "Julius Randle",
     "proj": 31.3,
     "team": "BKN"
+   },
+   {
+    "id": "4277905",
+    "lead": 0.0039,
+    "name": "Trae Young",
+    "proj": 30.8,
+    "team": "WSH"
    },
    {
     "id": "3908809",
