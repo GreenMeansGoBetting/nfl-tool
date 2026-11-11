@@ -7955,7 +7955,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4031,
+    "lead": 0.4032,
     "name": "Luka Doncic",
     "proj": 57.1,
     "team": "LAL"
@@ -8116,9 +8116,9 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0035,
+    "lead": 0.0033,
     "name": "Yaxel Lendeborg",
-    "proj": 31.4,
+    "proj": 31.3,
     "team": "GS"
    },
    {
@@ -8130,7 +8130,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0023,
+    "lead": 0.0024,
     "name": "Michael Porter Jr.",
     "proj": 29.9,
     "team": "BKN"
@@ -8367,11 +8367,11 @@
     "team": "POR"
    },
    {
-    "id": "2991230",
+    "id": "4222252",
     "lead": 0.0,
-    "name": "Fred VanVleet",
+    "name": "Isaiah Hartenstein",
     "proj": 21.7,
-    "team": "HOU"
+    "team": "OKC"
    }
   ],
   "season_used": "2026-27"
