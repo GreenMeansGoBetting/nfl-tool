@@ -141,6 +141,21 @@ def foot(text: str):
     return int(m.group(1)) if m else None
 
 
+def spot_feet(xr, yr):
+    """Feet from the basket by the shot's spot on ESPN's half court (raw x 0-50, the
+    basket at x 25, y 0), for a shot whose text gives no "N-foot". ESPN leaves the
+    distance out of about a third of shots (half of all floaters, most layups); they
+    used to land at the rim. On 2026-27's 20,607 shots with both, the spot is
+    within 2 ft of the text every time."""
+    try:
+        xr, yr = float(xr), float(yr)
+    except (TypeError, ValueError):
+        return None
+    if np.isnan(xr) or np.isnan(yr):
+        return None
+    return int(round(float(np.hypot(xr - 25, yr))))
+
+
 def ids(*values) -> list:
     out = []
     for v in values:
@@ -290,6 +305,7 @@ def build_game(pbp: pd.DataFrame, box: pd.DataFrame, problems: list) -> tuple:
             "scoring": bool(r.scoring_play), "value": 0 if pd.isna(r.score_value) else int(r.score_value),
             "pts_att": 0 if pd.isna(r.points_attempted) else int(r.points_attempted),
             "x": r.coordinate_x, "y": r.coordinate_y,
+            "xr": getattr(r, "coordinate_x_raw", None), "yr": getattr(r, "coordinate_y_raw", None),
             "home_score": r.home_score, "away_score": r.away_score,
         }
         if ev["kind"] == "other" and ev["shot"]:
@@ -402,6 +418,8 @@ def action(ev: dict, kind: str, team, cur: dict | None, floor_at: dict, teams: t
     text = ev["text"] or ""
     if kind == "shot":
         d = foot(text)
+        if d is None:
+            d = spot_feet(ev.get("xr"), ev.get("yr"))
         if d is None and any(w in (ev["type"] or "").lower() for w in ("dunk", "layup", "tip", "finger roll", "putback")):
             d = 1
         row.update(dist=d, three=ev["pts_att"] == 3, kind2=shot_kind(ev["type"]),

@@ -163,6 +163,38 @@ class HandMadeGame(unittest.TestCase):
         self.assertEqual(a[a["kind"] == "to"].iloc[0]["steal"], 15)
 
 
+class ShotDistance(unittest.TestCase):
+    """2026-11-11: ESPN's text leaves out the distance on about a third of shots (half of
+    all floaters, most layups). They used to count as rim shots (a two with no distance
+    = 0 ft, a layup = 1 ft): about 2,400 short and mid-range shots of 2026-27 filed at
+    the rim, skewing every rim / short / mid share. The spot on the court places them."""
+
+    def shot(self, type_text, text, xr=None, yr=None, pts=2):
+        ev = {"i": 0, "period": 1, "t": 10.0, "a1": 11, "a2": None, "scoring": False, "value": 0,
+              "type": type_text, "text": text, "pts_att": pts, "x": None, "y": None, "xr": xr, "yr": yr}
+        return P.action(ev, "shot", 1, None, {}, (1, 2))
+
+    def test_a_floater_with_no_distance_in_its_text_is_placed_by_its_spot(self):
+        s = self.shot("Driving Floating Jump Shot", "P11 misses driving floating jump shot", xr=25, yr=8)
+        self.assertEqual((s["dist"], s["zone"]), (8, "short"))
+
+    def test_a_pullup_two_with_no_distance_is_mid_range_not_the_rim(self):
+        s = self.shot("Running Pullup Jump Shot", "P11 misses running pullup jump shot", xr=13, yr=10)
+        self.assertEqual((s["dist"], s["zone"]), (16, "mid"))
+
+    def test_a_layup_from_six_feet_is_short_not_one_foot(self):
+        s = self.shot("Driving Layup Shot", "P11 misses driving layup", xr=31, yr=0)
+        self.assertEqual((s["dist"], s["zone"]), (6, "short"))
+
+    def test_the_text_distance_wins_when_it_is_there(self):
+        s = self.shot("Jump Shot", "P11 misses 12-foot jumper", xr=25, yr=20)
+        self.assertEqual((s["dist"], s["zone"]), (12, "mid"))
+
+    def test_a_layup_with_no_spot_at_all_still_lands_at_the_rim(self):
+        s = self.shot("Tip Shot", "P11 makes tip shot")
+        self.assertEqual((s["dist"], s["zone"]), (1, "rim"))
+
+
 class ShotNames(unittest.TestCase):
     def test_shot_kinds(self):
         for name, kind in [("Jump Shot", "catch"), ("Pullup Jump Shot", "pullup"), ("Step Back Jump Shot", "stepback"),
