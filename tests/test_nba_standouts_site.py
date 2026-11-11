@@ -25,7 +25,7 @@ TABLE = {"AAA": row(16, 12), "BBB": row(12, 16), "CCC": row(11, 11)}  # AAA make
 
 
 def log(defense, players, pts, m3, n=6):
-    return [[f"2099-01-0{1 + i % 8}", defense, p, 20, 2, pts, m3] for i in range(n) for p in players][:n]
+    return [[f"2099-01-0{1 + i % 8}", defense, p, 20, 2, pts, m3, f"g{i}"] for i in range(n) for p in players][:n]
 
 
 def player(name, team, t, avg):
@@ -38,7 +38,7 @@ SHOT_TYPES = {
     "players": {"1": player("Shooter One", "AAA", "C", [10, 18.0, 2.4]), "2": player("Other C", "CCC", "C", [10, 14.0, 2.0]),
                 "3": player("Big Three", "BBB", "K", [10, 15.0, 0.1]), "4": player("Other K", "CCC", "K", [10, 12.0, 0.0]),
                 "5": player("Bench Guy", "AAA", "C", [10, 6.0, 0.4]), "6": player("Hurt Guy", "AAA", "C", [10, 20.0, 2.5])},
-    "log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"],
+    "log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff", "game"],
     # type C against BBB: +4 points and +1 three over their own averages in every game; type K against AAA: -4 points
     "log": log("BBB", ["2"], 4.0, 1.0) + log("AAA", ["4"], -4.0, 0.0),
 }
@@ -53,7 +53,8 @@ def setUpModule():
     global SITE, PAGE
     SITE = SiteBrowser()
     try:
-        SITE.nba, SITE.nba_props = DATA, {"default": "2027", "seasons": {}}
+        # that night's lines (props.json research): Other C's points line in game g0 was 18.5 (he scored 20: Over)
+        SITE.nba, SITE.nba_props = DATA, {"default": "2027", "seasons": {}, "research": {"players": {"2": {"lines": {"g0": 18.5, "g1": 22.5}}}}}
         PAGE = SITE.open("nba/standouts.html")
         PAGE.wait_for_selector("#ss-body .ss-grid")
     except Exception:
@@ -73,6 +74,9 @@ def lists():
 
 
 class SlateStandouts(unittest.TestCase):
+    def setUp(self):
+        PAGE.evaluate("() => { ssView.cat = 'all'; ssView.open = ''; ssView.dtab = 'like'; ssRender(); const m = document.getElementById('mb-who-modal'); if (m) m.hidden = true; }")
+
     def test_team_rows_are_matchup_keys_edges(self):
         self.assertTrue(any("AAA Offense: Threes" in r for r in lists()["Standouts"]))
 
@@ -99,6 +103,26 @@ class SlateStandouts(unittest.TestCase):
 
     def test_the_owners_cutoffs(self):
         self.assertEqual(PAGE.evaluate("() => [SS_PLAYER.points[3], SS_PLAYER.threes[3], SS_HIT_HI, SS_MIN_GAMES]"), [2.5, 0.7, 0.55, 6])
+
+    def test_a_player_tile_opens_players_like_him_with_their_lines(self):
+        # the owner, 2026-11-11: "the players in question, what their line was, and what they scored that night"
+        PAGE.evaluate("() => { ssView.cat = 'points'; ssView.open = ''; ssView.dtab = 'like'; ssRender(); }")
+        PAGE.click(".ss-grid tr.ss-p [data-dd] >> nth=0")
+        PAGE.wait_for_selector(".ss-drop .ss-dgrid tbody tr")
+        rows = PAGE.evaluate("() => [...document.querySelectorAll('.ss-drop .ss-dgrid tbody tr')].map((tr) => [...tr.cells].map((c) => c.innerText.trim()))")
+        lined = [r for r in rows if r[2] != "--"]
+        self.assertEqual([r[2:5] for r in lined], [["22.5", "20", "Under"], ["18.5", "20", "Over"]])  # newest first
+        self.assertIn("went over their line in 1 of 2", PAGE.inner_text(".ss-drop .ss-dsum"))
+        PAGE.click('.ss-dtabs [data-dtab="def"]')
+        self.assertIn("bbb vs every type", PAGE.inner_text(".ss-dtabs").lower())
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.ss-drop .ss-dgrid tbody tr').length"), 2)  # +/- and Beat Avg
+        PAGE.evaluate("() => { ssView.cat = 'all'; ssView.open = ''; ssView.dtab = 'like'; ssRender(); }")
+
+    def test_a_team_rank_tile_opens_whos_behind_it(self):
+        PAGE.click(".ss-grid tr.ss-t [data-who] >> nth=0")
+        PAGE.wait_for_selector("#mb-who-modal:not([hidden])")
+        self.assertIn("threes: who's behind it", PAGE.inner_text("#mb-who-modal").lower())  # the tile's own topic
+        PAGE.evaluate("() => { document.getElementById('mb-who-modal').hidden = true; }")
 
     def test_a_team_opens_its_game_on_matchup_keys(self):
         page = SITE.open("nba/standouts.html")  # its own page: the click leaves it

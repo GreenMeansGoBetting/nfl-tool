@@ -25,3 +25,21 @@
 .ss-grid .pt-logo, .ss-grid .ss-open, .ss-grid .ss-team { cursor: pointer; }
 .ss-grid .pt-logo:hover { filter: brightness(1.25); }
 .ss-grid .ss-open:hover, .ss-grid .ss-team:hover b { color: var(--accent); }
+/* clickable tiles: a team's opens who's behind it (who.js), a player's opens his drop-down */
+.ss-grid .ss-click { cursor: pointer; }
+.ss-grid .ss-click:hover { filter: brightness(1.2); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+/* the drop-down: tabs like the research panels, the League Stats Chart grid inside */
+.ss-grid tr.ss-drop > td { padding: 4px 4px 10px; background: var(--panel-2); }
+.ss-dbox { display: grid; gap: 6px; }
+.ss-dtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.ss-dtabs button { font: 700 0.82rem var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 12px; border-radius: 8px;
+  border: 1px solid var(--border-strong); background: var(--panel); color: var(--text); cursor: pointer; }
+.ss-dtabs button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ss-dsum { margin: 0; font-size: 0.82rem; color: var(--text); white-space: normal; text-align: left; }
+.ss-dsum .pt-letter { min-width: 18px; height: 18px; font-size: 0.7rem; margin-right: 4px; vertical-align: -3px; }
+.ss-dscroll { max-height: 260px; overflow: auto; }
+.data-table.ss-dgrid { width: auto; table-layout: auto; }
+.ss-dgrid th, .ss-dgrid td { padding: 2px 3px; min-width: 46px; }
+.ss-dgrid td.pt-name { min-width: 130px; text-align: left; }
+.ss-dgrid th.ss-mine .pt-letter { box-shadow: 0 0 0 2px var(--text); }
+.ss-call { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 800; }

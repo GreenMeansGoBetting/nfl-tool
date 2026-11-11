@@ -15,7 +15,7 @@
 
 let DATA = null;
 let ssDay = 0;
-const ssView = { cat: "all", window: "season" };
+const ssView = { cat: "all", window: "season", open: "", dtab: "like" }; // open: the player row whose drop-down is open
 
 const ssEl = (id) => document.getElementById(id);
 const ssTeam = (abbr) => (DATA.teams || {})[abbr] || { name: abbr, color: "555555", logo: "" };
@@ -153,26 +153,98 @@ function ssTeamRows(games, table, ranks) {
   return out;
 }
 
+// ---- a player row's line and drop-down ----
+const ssKey = (row) => `${row.pid}|${row.cat}|${row.game.game_id}`;
+// his main line tonight (the player card's rule: nbaCardMainLine over every book's quotes), or null
+function ssLine(row) {
+  if (typeof bookQuotes !== "function" || typeof nbaCardMainLine !== "function") return null;
+  const g = row.game;
+  const quotes = bookQuotes({ kind: "prop", team: row.team, pid: row.pid, stat: row.cat, game: `${g.away}_${g.home}` });
+  return quotes.length ? nbaCardMainLine(quotes) : null;
+}
+// that night's line for a player (props.json research: points `lines`, threes `lines3`, by game id)
+function ssLineThen(pid, gid, cat) {
+  const rs = (((nbaCardProps() || {}).research || {}).players || {})[pid] || {};
+  const v = (rs[cat === "threes" ? "lines3" : "lines"] || {})[gid];
+  return v === undefined ? null : v;
+}
+const SS_DTABS = [["like", "Players Like Him"], ["def", "Defense Vs Every Type"]];
+// The drop-down (the owner, 2026-11-11: "having it appear with the players in question, what their line
+// was, and what they scored that night"), tabs like the other pages.
+function ssDrop(row) {
+  const props = nbaCardProps();
+  const tabs = `<div class="ss-dtabs">${SS_DTABS.map(([k, name]) => `<button type="button" class="${ssView.dtab === k ? "on" : ""}" data-dtab="${k}">${k === "def" ? `${row.opp} Vs Every Type` : name}</button>`).join("")}</div>`;
+  const body = ssView.dtab === "def" ? ssDropDef(row) : props === undefined ? '<p class="no-data-note">Loading the lines&hellip;</p>' : ssDropLike(row);
+  return `<tr class="ss-drop"><td colspan="6"><div class="ss-dbox">${tabs}${body}</div></td></tr>`;
+}
+function ssDropLike(row) {
+  const st = DATA.shot_types;
+  const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+  const field = row.cat === "points" ? "pts" : "m3";
+  const rows = st.log.filter((r) => r[f.def] === row.opp && r[f.date] < row.game.date && (st.players[r[f.player]] || {}).type === row.p.type)
+    .sort((a, b) => (a[f.date] < b[f.date] ? 1 : -1));
+  let overs = 0, lined = 0;
+  const body = rows.map((r) => {
+    const p = st.players[r[f.player]] || {};
+    const v = r[f[field]], diff = r[f[`${field}_diff`]];
+    const line = f.game === undefined ? null : ssLineThen(r[f.player], r[f.game], row.cat);
+    const call = line === null ? "" : v > line ? "Over" : v < line ? "Under" : "Push";
+    if (line !== null && call !== "Push") { lined += 1; if (call === "Over") overs += 1; }
+    const hue = call === "Over" ? 135 : call === "Under" ? 0 : 58;
+    const d = new Date(`${r[f.date]}T12:00:00`).toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+    return `<tr><td class="pt-name">${playerClick(r[f.player], ssEsc(p.name || r[f.player]))}</td><td>${d}</td>
+      <td><div class="od-tile pt-tile"><b>${line === null ? "--" : line}</b></div></td>
+      <td><div class="od-tile pt-tile"><b>${v}</b></div></td>
+      <td>${call ? `<span class="ss-call" style="background:${scaleHsla(hue, 78, 44, 0.5)}">${call}</span>` : '<span class="ss-call">No Line</span>'}</td>
+      <td><div class="od-tile pt-tile" style="${ssStep(Math.max(0, Math.min(1, 0.5 + diff / (row.cat === "points" ? 16 : 4))))}" title="Against his own average in his other games"><b>${diff > 0 ? "+" : ""}${diff.toFixed(1)}</b></div></td></tr>`;
+  }).join("");
+  const unit = row.cat === "points" ? "PTS" : "3PM";
+  const sum = `Type ${row.p.type} against ${row.opp}: ${rows.length} games, beat their own average in ${rows.filter((r) => r[f[`${field}_diff`]] > 0).length}${lined ? `, went over their line in ${overs} of ${lined}` : ""}.`;
+  return `<p class="ss-dsum">${ssLetter(row.p.type)} ${sum}</p><div class="ss-dscroll"><table class="data-table od-grid pt-grid ss-dgrid">
+    <thead><tr><th class="pt-name">Player</th><th>Date</th><th>Line</th><th>${unit}</th><th>Vs Line</th><th>Vs His Avg</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function ssDropDef(row) {
+  const stick = ssStick(row.game.date);
+  const letters = "ABCDEFGHIJK".split("");
+  const fmt = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
+  const cells = letters.map((L) => {
+    const c = ((stick[row.opp] || {})[L] || {})[row.cat];
+    const rk = c && c.n >= SS_MIN_GAMES ? ssDefRank(stick, L, row.cat, row.opp) : null;
+    const style = rk ? rankStyle(rk.r, rk.n) : "";
+    return c ? [`<td><div class="od-tile pt-tile${rk ? "" : " pt-thin"}" style="${style}" title="Type ${L} vs ${row.opp}: ${fmt(c.avg)} over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} defenses (30th = gives up the most)` : ""}"><b>${fmt(c.avg)}</b></div></td>`,
+      `<td><div class="od-tile pt-tile${rk ? "" : " pt-thin"}" style="${style}"><b>${c.over}/${c.n}</b></div></td>`]
+      : ['<td><div class="od-tile pt-tile pt-thin"><b>--</b></div></td>', '<td><div class="od-tile pt-tile pt-thin"><b></b></div></td>'];
+  });
+  const head = letters.map((L) => `<th${L === row.p.type ? ' class="ss-mine"' : ""}>${ssLetter(L)}</th>`).join("");
+  return `<p class="ss-dsum">What ${row.opp} gives up to every type in ${row.label.toLowerCase()}, over those players' own averages (30th = gives up the most, red; faded = under ${SS_MIN_GAMES} games). His letter is outlined.</p>
+    <div class="ss-dscroll"><table class="data-table od-grid pt-grid ss-dgrid"><thead><tr><th></th>${head}</tr></thead>
+    <tbody><tr><td class="pt-name">+/- Avg</td>${cells.map((c) => c[0]).join("")}</tr><tr><td class="pt-name">Beat Avg</td>${cells.map((c) => c[1]).join("")}</tr></tbody></table></div>`;
+}
+
 // ---- drawing ----
 function ssTeamTiles(row, ranks, table) {
   const t = row.key.tiles.slice(0, 2);
-  return t.map(({ team, key }) => {
+  const g = row.game;
+  return t.map(({ team, key }, i) => {
+    const opp = team === g.away ? g.home : g.away;
+    const who = typeof whoTile_ === "function" ? whoTile_(key, team, opp, i === 0) : "";
     const c = COLS.find((x) => x[0] === key);
     const rk = (ranks[key] || { r: {} }).r[team];
     const n = (ranks[key] || {}).n || 30;
     const v = (table[team] || {})[key];
     const name = c ? c[2] : key;
-    return `<td><div class="od-tile pt-tile ss-tile" style="${rk ? rankStyle(rk, n) : ""}" title="${ssEsc(`${ssTeam(team).name} · ${name}: ${c ? exact(v, c[3]) : v}${rk ? ` · ${ordinal(rk)} of ${n}` : ""}`)}"><b>${rk ? ordinal(rk) : "--"}</b><small>${team} ${c ? c[1].replace("<br>", " ") : ""}</small></div></td>`;
+    return `<td><div class="od-tile pt-tile ss-tile${who ? " ss-click" : ""}"${who} style="${rk ? rankStyle(rk, n) : ""}" title="${ssEsc(`${ssTeam(team).name} · ${name}: ${c ? exact(v, c[3]) : v}${rk ? ` · ${ordinal(rk)} of ${n}` : ""}${who ? " · click for who's behind it" : ""}`)}"><b>${rk ? ordinal(rk) : "--"}</b><small>${team} ${c ? c[1].replace("<br>", " ") : ""}</small></div></td>`;
   }).join("");
 }
 function ssPlayerTiles(row) {
   const { c, rank, self, cat } = row;
   const fmt = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
   const selfName = cat === "points" ? "PTS" : "3PM";
-  const selfTile = `<td><div class="od-tile pt-tile ss-tile" title="${ssEsc(`${row.p.name}: ${self} ${selfName} a game this season`)}"><b>${self.toFixed(1)}</b><small>His ${selfName}</small></div></td>`;
+  const line = ssLine(row);
+  const selfTile = `<td><div class="od-tile pt-tile ss-tile" title="${ssEsc(`${row.p.name}: ${line === null ? "no line yet" : `line ${line}`} tonight; ${self} ${selfName} a game this season`)}"><b>${line === null ? "--" : line}</b><small>Line · Avg ${self.toFixed(1)}</small></div></td>`;
   const who = Object.entries(c.who).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([id, n]) => `${(DATA.shot_types.players[id] || {}).name || id} (${n})`).join(", ");
-  const defTile = `<td><div class="od-tile pt-tile ss-tile" style="${rank ? rankStyle(rank.r, rank.n) : ""}" title="${ssEsc(`Type ${row.p.type} vs ${row.opp}: ${fmt(c.avg)} ${row.label.toLowerCase()} over their own average, ${c.n} games${rank ? ` · ${ordinal(rank.r)} of ${rank.n} defenses (30th = gives up the most)` : ""} · ${who}`)}"><b>${fmt(c.avg)}</b><small>${ssLetter(row.p.type)} vs ${row.opp}</small></div></td>`;
-  const hitTile = `<td><div class="od-tile pt-tile ss-tile" style="${ssStep(c.hit)}" title="${ssEsc(`In ${c.over} of ${c.n} games, type ${row.p.type} beat their own average against ${row.opp}`)}"><b>${c.over}/${c.n}</b><small>Beat Avg</small></div></td>`;
+  const defTile = `<td><div class="od-tile pt-tile ss-tile ss-click" data-dd="${ssKey(row)}" style="${rank ? rankStyle(rank.r, rank.n) : ""}" title="${ssEsc(`Type ${row.p.type} vs ${row.opp}: ${fmt(c.avg)} ${row.label.toLowerCase()} over their own average, ${c.n} games${rank ? ` · ${ordinal(rank.r)} of ${rank.n} defenses (30th = gives up the most)` : ""} · ${who}`)}"><b>${fmt(c.avg)}</b><small>${ssLetter(row.p.type)} vs ${row.opp}</small></div></td>`;
+  const hitTile = `<td><div class="od-tile pt-tile ss-tile ss-click" data-dd="${ssKey(row)}" style="${ssStep(c.hit)}" title="${ssEsc(`In ${c.over} of ${c.n} games, type ${row.p.type} beat their own average against ${row.opp}`)}"><b>${c.over}/${c.n}</b><small>Beat Avg</small></div></td>`;
   return selfTile + defTile + hitTile;
 }
 function ssRow(row, ranks, table, stacked) {
@@ -181,7 +253,7 @@ function ssRow(row, ranks, table, stacked) {
   const tag = stacked ? `<span class="ss-stack" title="${ssEsc(stacked)}">Stacked</span>` : "";
   if (row.kind === "player") {
     return `<tr class="ss-p" data-game="${g.game_id}">${gameCell}<td class="pt-name"><div class="ss-who">${ssLogo(row.team)}<span>${playerClick(row.pid, ssEsc(row.p.name))}<small>${ssEsc(row.p.pos || "")} · vs ${row.opp}</small></span></div></td>
-      <td class="ss-read">${ssLetter(row.p.type)} ${row.label}${tag}</td>${ssPlayerTiles(row)}</tr>`;
+      <td class="ss-read">${ssLetter(row.p.type)} ${row.label}${tag}</td>${ssPlayerTiles(row)}</tr>${ssView.open === ssKey(row) ? ssDrop(row) : ""}`;
   }
   const who = row.team ? `${ssLogo(row.team)}<span class="ss-team"><b>${row.team}</b><small>Offense vs ${row.team === g.away ? g.home : g.away}</small></span>` : `${ssLogo(g.away)}${ssLogo(g.home)}<span><small>Both Teams</small></span>`;
   return `<tr class="ss-t" data-game="${g.game_id}">${gameCell}<td class="pt-name"><div class="ss-who">${who}</div></td><td class="ss-read">${ssEsc(row.key.title)}${tag}</td>${ssTeamTiles(row, ranks, table)}<td></td></tr>`;
@@ -236,6 +308,23 @@ function ssOpenGame(id) {
 
 document.addEventListener("click", (e) => {
   if (e.target.closest(".player-click")) return;
+  const whoTile = e.target.closest(".ss-grid [data-who]");
+  if (whoTile && typeof whoOpen === "function") {
+    const g = DATA.schedule.find((x) => String(x.game_id) === whoTile.closest("tr").dataset.game);
+    return whoOpen(whoTile.dataset.who, g, whoDirs(whoTile, g));
+  }
+  const dd = e.target.closest(".ss-grid [data-dd]");
+  if (dd) {
+    ssView.open = ssView.open === dd.dataset.dd ? "" : dd.dataset.dd;
+    ssRender();
+    if (ssView.open && nbaCardProps() === undefined) Promise.resolve(NBA_CARD_PROPS).then(() => ssRender());
+    return;
+  }
+  const dtab = e.target.closest(".ss-dtabs [data-dtab]");
+  if (dtab) {
+    ssView.dtab = dtab.dataset.dtab;
+    return ssRender();
+  }
   const open = e.target.closest(".ss-grid tr[data-game] :is(.pt-logo, .ss-open, .ss-team)");
   if (open) return ssOpenGame(open.closest("tr").dataset.game);
   const cat = e.target.closest("#ss-bar [data-cat]");

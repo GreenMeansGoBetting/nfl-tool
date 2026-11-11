@@ -293,11 +293,11 @@ def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None
 # night minus his own average in his OTHER games (leave-one-out, so the night can't pull his
 # baseline toward itself). No pull toward the league (the owner): thin samples are counted, not shrunk.
 LOG_STATS = (("points", "pts"), ("three_point_field_goals_made", "m3"))
-LOG_FIELDS = ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"]
+LOG_FIELDS = ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff", "game"]  # game: that night's line (props.json research lines)
 
 
 def baseline_log(box: pd.DataFrame, typed_ids: set) -> tuple:
-    """([[date, defense, player, pts, 3PM, pts - his other-games avg, 3PM - avg]], {player: [games, pts avg, 3PM avg]})."""
+    """([[date, defense, player, pts, 3PM, pts - his other-games avg, 3PM - avg, game id]], {player: [games, pts avg, 3PM avg]})."""
     b = box.copy()
     b["pid"] = b["athlete_id"].astype(int).astype(str)
     played = (~b["did_not_play"].fillna(False).astype(bool)) & (pd.to_numeric(b["minutes"], errors="coerce").fillna(0) > 0)
@@ -317,7 +317,7 @@ def baseline_log(box: pd.DataFrame, typed_ids: set) -> tuple:
         if pd.isna(dp):
             continue  # his only game: no other games to measure it against
         out_rows.append([str(r.game_date)[:10], r.opponent_team_abbreviation, r.pid, int(r.points),
-                         int(r.three_point_field_goals_made), float(dp), float(d3)])
+                         int(r.three_point_field_goals_made), float(dp), float(d3), str(int(r.game_id))])
     for pid, q in g:
         avg[pid] = [int(len(q)), round(float(q["points"].mean()), 1), round(float(q["three_point_field_goals_made"].mean()), 1)]
     return out_rows, avg

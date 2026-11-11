@@ -620,6 +620,13 @@ projections, no line / "priced in" check, no record or tracking** (the owner: "a
   Tiles: his average, the type's +/- vs that defense (rank of the defenses, 30th = gives up the most,
   red; hover lists the players behind it), beat-average x / y.
 - **In each category, players (with their letters) first, then teams** (the owner: not jumbled).
+- **Clicks** (the owner, 2026-11-11, "to match the feel of the other pages"): a team row's rank tiles open
+  Matchup Keys' who's-behind-it pop-up (who.js `whoTile_` / `whoOpen`, the tile's one matchup); a player
+  row's +/- or Beat Avg tile opens a drop-down under it with tabs: **Players Like Him** (every game by his
+  type against that defense: date, that player's line that night from props.json research `lines` /
+  `lines3` by the log's `game`, what he scored, Over / Under, vs his own average; and "went over their
+  line in x of y") and **<DEF> Vs Every Type** (that defense against all 11 letters, his outlined). His
+  first tile is his **line tonight** (`ssLine`, the player card's main-line rule) with his average under it.
 - **Stacked** = a player row and a team row, same game, category and direction (parts shown, never
   blended; hover names the team spot). A team logo / name / the game opens Matchup Keys on that game.
 - Tests: `test_nba_standouts_site.py`.
