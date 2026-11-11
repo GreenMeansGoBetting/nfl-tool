@@ -118,27 +118,36 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
 .fb-ytd-pick b { margin-left: 6px; font-family: var(--font-display); }
 .fb-ytd-value { white-space: normal !important; }
 .fb-ytd-play { display: inline-block; padding: 1px 6px; margin: 1px 3px 1px 0; border-radius: 4px; font-size: 0.8rem; }
-/* By Player Type: B in the Starters tables (purple block), C at the bottom (fbtVariantC) */
+/* By Player Type: B in the Starters tables (a purple band), C at the bottom (fbtVariantC). The tiles copy the
+   Starters table's own cell (.fb-table td.fb-cell): 52 px, big % over a small "x of y", rounded. */
 .fbt-wrap { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; align-items: flex-start; }
-.fbt-wrap .fbt-title { flex: 1 0 100%; }
+.fbt-wrap .fbt-title { flex: 1 0 100%; margin: 0; font: 700 1rem var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; }
 .fbt-area:empty { display: none; }
-.fbt-title { margin: 0; font: 700 1rem var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; }
-.fbt-grid { border-collapse: separate; border-spacing: 3px; width: auto; }
-.fbt-grid th, .fbt-grid td { text-align: center; padding: 3px 4px; white-space: nowrap; }
-.fbt-grid th { font-size: 0.7rem; font-weight: 800; }
-.fbt-band { background: rgba(150, 100, 220, 0.3); border-radius: 8px 8px 0 0; }
-.fbt-band-sub { background: rgba(150, 100, 220, 0.3); }
-td.fbt-v { min-width: 62px; border-radius: 6px; background: var(--panel-2); cursor: pointer; }
-td.fbt-v:hover { filter: brightness(1.2); }
-td.fbt-v b { display: block; font-size: 0.9rem; }
-td.fbt-v small { display: block; font-size: 0.66rem; }
-td.fbt-off { opacity: 0.35; }
-.fbt-none { color: var(--text); opacity: 0.6; }
+/* the purple band behind the block's header and cells (the site's defense color) */
+.fb-starters th.fbt-band { background: rgba(150, 100, 220, 0.3); border-radius: 8px 8px 0 0; }
+.fb-starters th.fbt-band-sub, .fb-starters td.fbt-in { background: rgba(150, 100, 220, 0.14); }
+.fb-starters td.fbt-in { padding: 2px 3px; }
+.fb-starters tbody tr:last-child td.fbt-bl { border-bottom-left-radius: 8px; }
+.fb-starters tbody tr:last-child td.fbt-br { border-bottom-right-radius: 8px; }
+td.fbt-in { cursor: pointer; text-align: center; }
+.fbt-tile { width: 52px; margin: 0 auto; padding: 3px 0; border-radius: 6px; background: var(--panel-2); box-sizing: border-box; }
+.fbt-tile b { display: block; font-size: 0.9rem; }
+.fbt-tile small { display: block; font-size: 0.6rem; color: var(--muted); font-weight: 600; }
+td.fbt-in:hover .fbt-tile { filter: brightness(1.2); }
+td.fbt-off .fbt-tile { opacity: 0.35; }
+/* C: equal columns, one flush row of letters, jerseys above */
+.fbt-grid { border-collapse: separate; border-spacing: 3px; }
+.fbt-cgrid { table-layout: fixed; width: auto; }
+.fbt-cgrid th, .fbt-cgrid td { text-align: center; padding: 2px 0; }
+.fbt-cgrid td.fbt-in { background: rgba(150, 100, 220, 0.14); }
+.fbt-cgrid th.fbt-jrow { height: 24px; vertical-align: bottom; white-space: nowrap; }
+.fbt-cgrid th.fbt-lrow { padding: 3px 0; }
+.fbt-cgrid th.fbt-lrow:not(.fbt-has) .pt-letter { opacity: 0.45; }
+.fbt-jersey { display: inline-flex; align-items: flex-end; justify-content: center; width: 24px; height: 20px; margin: 0 1px; padding-bottom: 1px;
+  box-sizing: border-box; color: #fff; font: 800 0.68rem var(--font-display); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  clip-path: polygon(22% 0, 38% 0, 50% 16%, 62% 0, 78% 0, 100% 22%, 86% 40%, 86% 100%, 14% 100%, 14% 40%, 0 22%); }
 .fbt-scroll { overflow-x: auto; }
-.fbt-cgrid th.fbt-has { box-shadow: inset 0 -3px 0 rgb(150, 100, 220); }
-.fbt-cgrid th small { display: block; font-size: 0.66rem; font-weight: 700; line-height: 1.15; margin-top: 2px; }
-.fbt-cgrid td.fbt-v { min-width: 50px; }
-.fbt-rl { text-align: left; font-size: 0.74rem; font-weight: 800; white-space: nowrap; }
+.fbt-rl { text-align: left !important; font-size: 0.74rem; font-weight: 800; white-space: nowrap; padding-left: 4px !important; }
 .fbt-box { max-width: 640px; }
 .fbt-list td, .fbt-list th { padding: 4px 8px; text-align: center; }
 .fbt-list .fbt-l { text-align: left; }

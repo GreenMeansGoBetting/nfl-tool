@@ -48,6 +48,18 @@ or tile follows this, unasked:
   rounded only at the band's top, no shadow or notch between. Lead columns (Player, Team) and any
   one-column group are ONE cell spanning both header rows (`rowspan="2"`, `od-gone`), never an empty
   band over a label. Never round or shadow the label row on a page (`tests/test_grid_headers.py`).
+- **Match the page you're adding to, before inventing anything** (the owner, 2026-11-11, on a First
+  Basket block whose cells read "2 of 10 / games" beside the table's own "9% / 1 of 11" tiles: "it
+  should look uniform ... always look around the page and default to the same style of something"):
+  1. New columns in an existing table copy THAT table's cell exactly: value format (a % big, "x of y"
+     small), tile size, alignment, its own color function (First Basket: `zHeat`).
+  2. A new group of columns gets a shaded band (blue = him, purple = the defense), like Team Share's box.
+  3. A player marker above a column = his **jersey** (team color + number, research.js `jersey`), never
+     a name (names widen columns). Letters / categories sit in ONE flush row of equal columns.
+  4. A two-team block is labeled by the OFFENSE, big ("Boston Celtics"), with "vs TOR Defense" to the
+     right; never one row that reads both directions.
+  5. A new layout or section: real-page screenshots to the owner and his OK before the push
+     ("if you ever have questions please ask before you push").
 - **Fonts**: Sofia Sans only, through the grid's own sizes. No new small gray uppercase labels,
   no muted gray text for anything a member reads; titles are Title Case in the display font.
 - Rules from the list table (`table.data-table.sim-list th, td`) leak into tables nested in it:

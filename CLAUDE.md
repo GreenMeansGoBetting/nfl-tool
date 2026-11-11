@@ -19,8 +19,8 @@ message, so every line costs usage); detail belongs in a rules file.
 - The user screenshots sections and the **Summary cards** (fixed 1160×980, sized to their video
   template's left area) and drops them into betting videos. Favor dense, screenshot-ready,
   visually clean layouts.
-- **No mockups, ever** (the owner, 2026-10-25, to save usage): build the change, push it, and the
-  owner judges it live. If a layout is unclear, say the plan in a sentence or two instead.
+- **A new layout or section: real-page screenshots and the owner's OK BEFORE the push** (2026-11-11:
+  "ask before you push a trash product"); small fixes still push straight away. Match the page first (styles.md).
 
 ## Workflow the user expects
 
