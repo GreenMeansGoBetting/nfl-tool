@@ -14464,7 +14464,7 @@
   "players": {
    "3064514": [
     "Julius Randle",
-    0.11,
+    0.113,
     760,
     false,
     "draftkings"
@@ -14478,7 +14478,7 @@
    ],
    "4278104": [
     "Michael Porter Jr.",
-    0.111,
+    0.114,
     550,
     false,
     "hard_rock"
@@ -14499,7 +14499,7 @@
    ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.094,
+    0.098,
     1000,
     false,
     "caesars"
@@ -14510,6 +14510,13 @@
     1300,
     false,
     "fanduel"
+   ],
+   "5107173": [
+    "Danny Wolf",
+    0.095,
+    null,
+    false,
+    null
    ],
    "5144091": [
     "Jeremiah Fears",
@@ -14524,13 +14531,6 @@
     1100,
     false,
     "bet365"
-   ],
-   "5279130": [
-    "Nolan Traore",
-    0.105,
-    1120,
-    true,
-    "draftkings"
    ]
   },
   "tip_home": 0.425
