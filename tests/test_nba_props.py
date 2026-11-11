@@ -144,16 +144,20 @@ class FastOdds(unittest.TestCase):
     """The injury refresh's odds (2026-10-25, smartstake fetch_nba_book_odds fast=True):
     only Points and Threes main lines fetched, the rest carried from the live build."""
 
-    def test_only_the_sims_markets_are_fetched_and_the_rest_carried(self):
+    def fast_odds(self, ladders_fail=False):
         asked = []
 
         def fake_get(key, path, params):
             if path == "/v1/markets":
                 return {"data": [{"key": "basketball_player_points"}, {"key": "basketball_player_made_threes"}, {"key": "basketball_player_rebounds"}]}
             asked.append(params)
+            alt = params.get("alternate") is None
+            if alt and ladders_fail:
+                raise RuntimeError("ladder page failed")
             q = {"event_id": 1, "book": "draftkings", "market_key": "basketball_player_points", "player_id": 9, "participant": "LeBron James",
-                 "away": "Detroit Pistons", "home": "Philadelphia 76ers", "side": "over", "line": 26.5, "odds": -115, "starts_at": "2026-10-25T23:30:00Z"}
-            maxey = {**q, "player_id": 10, "participant": "Tyrese Maxey", "line": 25.5}
+                 "away": "Detroit Pistons", "home": "Philadelphia 76ers", "side": "over", "line": 31.5 if alt else 26.5, "odds": -115,
+                 "starts_at": "2026-10-25T23:30:00Z", "alternate": alt}
+            maxey = {**q, "player_id": 10, "participant": "Tyrese Maxey", "line": 29.5 if alt else 25.5}
             return {"data": [q, {**q, "side": "under", "odds": -105}, maxey, {**maxey, "side": "under"}]}
 
         old_q = lambda line: {"name": "x", "q": [["draftkings", "o", line, -110], ["draftkings", "u", line, -110]]}  # noqa: E731
@@ -163,22 +167,39 @@ class FastOdds(unittest.TestCase):
             "points_alt": {"1966": old_q(30.5), "4431678": old_q(30.5)}}},
             "BOS_NY": {"kickoff": "2026-10-26T00:00:00Z", "td": {}, "lines": {}, "props": {"points": {"5": old_q(20.5)}}}}
         ids = {"lebronjames": "1966", "tyresemaxey": "4431678"}
-        real = smartstake._get
-        smartstake._get = fake_get
+        real, real_sleep = smartstake._get, smartstake.time.sleep
+        smartstake._get, smartstake.time.sleep = fake_get, lambda s: None
         try:
             games, debug = smartstake.fetch_nba_book_odds("k", lambda full: {"detroit pistons": "DET", "philadelphia 76ers": "PHI"}.get(full.lower()),
                                                           lambda name, a, h: ids.get(smartstake.norm_player(name)), previous, "2026-10-25T20:00Z", fast=True)
         finally:
-            smartstake._get = real
+            smartstake._get, smartstake.time.sleep = real, real_sleep
+        return games, debug, asked, previous
+
+    def test_only_the_sims_markets_are_fetched_and_the_rest_carried(self):
+        games, debug, asked, previous = self.fast_odds()
         self.assertTrue(debug["fast"])
-        # the sim's markets (rebounds and assists too since 2026-10-28: an Out teammate moves those lines), no ladders
-        self.assertEqual([p["market"] for p in asked], ["basketball_player_points,basketball_player_rebounds,basketball_player_made_threes"])
+        # the sim's markets (rebounds and assists too since 2026-10-28: an Out teammate moves those lines),
+        # then each one's alt ladder fresh (2026-11-10)
+        self.assertEqual([(p["market"], p["alternate"]) for p in asked], [
+            ("basketball_player_points,basketball_player_rebounds,basketball_player_made_threes", "false"),
+            ("basketball_player_made_threes", None), ("basketball_player_points", None), ("basketball_player_rebounds", None)])
         g = games["DET_PHI"]["props"]
         self.assertEqual(g["points"]["1966"]["q"][0][2], 26.5)  # fresh
         self.assertEqual(g["steals"], previous["DET_PHI"]["props"]["steals"])  # carried (not a sim market)
+        # 2026-11-10: Silva's ladder was dropped when his line moved and his alt threes were missing all
+        # evening; now a moved line gets its fresh rungs instead of none
+        self.assertEqual(g["points_alt"]["1966"]["q"][0][2], 31.5)
+        self.assertEqual(g["points_alt"]["4431678"]["q"][0][2], 29.5)
+        self.assertIn("BOS_NY", games)  # a game with no fresh prices keeps its old ones
+
+    def test_a_failed_ladder_fetch_keeps_the_carried_rungs(self):
+        games, debug, asked, previous = self.fast_odds(ladders_fail=True)
+        self.assertIn("error", debug["points_alt"])
+        g = games["DET_PHI"]["props"]
+        self.assertEqual(g["points"]["1966"]["q"][0][2], 26.5)  # the main lines still fresh
         self.assertNotIn("1966", g["points_alt"])  # his line moved 23.5 -> 26.5: the old rungs are stale
         self.assertIn("4431678", g["points_alt"])  # Maxey's line didn't move: his ladder is kept
-        self.assertIn("BOS_NY", games)  # a game with no fresh prices keeps its old ones
 
     def test_a_failed_fetch_keeps_the_live_prices(self):
         # 2026-11-06: SmartStake answered one build with a 504 and every untipped NBA game lost its

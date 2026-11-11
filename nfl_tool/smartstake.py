@@ -454,8 +454,8 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
     """The NBA's (book_odds, debug), same rules as fetch_nfl_book_odds.
     team_of(full team name) -> abbreviation; player_key(name, away, home) ->
     the ESPN player id, or None for a player the site doesn't list. fast =
-    the injury refresh (nba-refresh.yml): only Points and Threes main lines
-    fresh, the rest carried (carry_previous). SmartStake gives 10 pages a
+    the injury refresh (nba-refresh.yml): only the sim's main lines and their
+    alt ladders fresh, the rest carried (carry_previous). SmartStake gives 10 pages a
     minute, and the full set took 216 of the build's 275 seconds on 10-25."""
     if not api_key:
         return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
@@ -480,10 +480,13 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
         if fast:
             debug["fast"] = True
             games = carry_previous(games, previous)  # previous = the live build's book_odds here
-            return only_games(lock_started(games, previous, now_iso), keep), debug
-        debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
+        else:
+            debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
         # every rung of the sim's ladders (the NBA game sim prices them all: points / threes 2026-10-24,
-        # rebounds / assists 2026-10-28)
+        # rebounds / assists 2026-10-28). The injury refresh fetches them fresh too (2026-11-10): carried,
+        # a player's ladder was dropped whenever any book's main line for him changed and stayed gone
+        # until the next full build (Silva 3+ / 4+ threes missing all evening while every book had them).
+        # A game the fresh fetch finds replaces its carried rungs; a failed fetch keeps the carried ones.
         for stat in ("threes", "points", "rebounds", "assists"):
             key = next((k for k, v in markets.items() if v == stat), None)
             if key:

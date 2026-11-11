@@ -155,8 +155,9 @@ Every game played 10,000 times, possession by possession.
   teams, fingerprints `inj` and `lu`, `watch.py`) and `timing`. The Worker gmg-nhl-timer
   (`workers/nhl-timer/watch.js`, every minute around the clock) computes the same fingerprints and on a
   change presses `nba-refresh.yml` (members-and-hosting.md), built with `--fast-odds`
-  (`fetch_nba_book_odds(fast=True)`, `carry_previous`: only `FAST_STATS` main lines fresh, ladders
-  carried, a ladder dropped when its main line moved). A refresh still queued after `STUCK_MINUTES` 45
+  (`fetch_nba_book_odds(fast=True)`, `carry_previous`: only `FAST_STATS` main lines AND their alt
+  ladders fresh (2026-11-10: carried, a moved line's ladder was dropped until the next full build;
+  a failed ladder fetch still falls back to that), the rest carried). A refresh still queued after `STUCK_MINUTES` 45
   is cancelled and ignored (2026-11-05: one sat queued 22 h and blocked every press, so the odds stayed
   at the 2:58 am build all day). **Both sides must match to the letter**
   (`tests/test_nba_watch.py`).
