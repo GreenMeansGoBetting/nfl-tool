@@ -15,6 +15,7 @@ credit but bar a competing database, more than 20 requests a minute, and feeding
 their content to AI; a check that only compares and warns does none of those.
 If any of it is ever shown to members, credit Sports Reference.
 
+Heaves are left out on our side, as Basketball-Reference does.
 A player is compared only when both sources have him in the same number of games
 (a night one has and the other doesn't is timing, not an error) and he has
 `MIN_SHOTS` shots. The run fails (GitHub emails the owner) when any player is
@@ -47,6 +48,7 @@ MAX_DIST_FT = 3.0
 MAX_SHARE_PTS = 8.0
 MIN_CORR = {"avg_dist": 0.93, "three": 0.98, "dunk": 0.97}
 LABELS = {"avg_dist": "Avg Distance", "three": "3PA Share", "dunk": "Dunk Share"}
+NOT_COMPARED = ("Heave Jump Shot", "No Shot (Default Shot)")
 
 
 def key(name: str) -> str:
@@ -78,8 +80,11 @@ def parse_page(text: str) -> pd.DataFrame:
 
 
 def ours(actions: pd.DataFrame, names: dict) -> pd.DataFrame:
-    """The same three numbers from the engine's shots (heaves in: their FGA count them)."""
-    sh = actions[(actions["kind"] == "shot") & (actions["type"] != "No Shot (Default Shot)")]
+    """The same three numbers from the engine's shots, heaves left out: Basketball-Reference
+    keeps heaves out of its distance and shot-share numbers (they have their own columns).
+    2026-11-11: counting them put Isaiah Collier (5 heaves, 45-63 ft, in 67 shots) 5.4 ft
+    and 7 points of threes away from them; without them, 2.3 ft and 1 point."""
+    sh = actions[(actions["kind"] == "shot") & ~actions["type"].isin(NOT_COMPARED)]
     g = sh.groupby("player")
     out = pd.DataFrame({"shots": g.size(), "games": g["game_id"].nunique(), "avg_dist": g["dist"].mean(),
                         "three": g["three"].mean(),

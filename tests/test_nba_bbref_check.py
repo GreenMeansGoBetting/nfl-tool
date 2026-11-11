@@ -70,6 +70,17 @@ class Compare(unittest.TestCase):
         self.assertEqual(res["skipped"], 1)
         self.assertNotIn("Cy Cole", [d["name"] for d in res["drift"]])
 
+    def test_heaves_are_left_out_like_basketball_reference_does(self):
+        # 2026-11-11: Isaiah Collier's 5 heaves in 67 shots put him 5.4 ft off; their numbers skip heaves
+        us, them = self.frames()
+        heaves = actions(1, 10, [(55, True, "Heave Jump Shot")] * 6)
+        with_heaves = B.ours(pd.DataFrame(heaves + actions(1, 10, [(8, False, "Jump Shot")] * 30
+                                                             + [(25, True, "Jump Shot")] * 20)), {1: "Al Able"})
+        self.assertEqual(int(with_heaves.loc[B.key("Al Able"), "shots"]), 50)
+        self.assertAlmostEqual(with_heaves.loc[B.key("Al Able"), "avg_dist"], us.loc[B.key("Al Able"), "avg_dist"])
+        self.assertAlmostEqual(with_heaves.loc[B.key("Al Able"), "three"], 0.4)
+        self.assertEqual(B.compare(with_heaves, them)["drift"], [])
+
     def test_too_few_matches_means_the_page_changed(self):
         res = B.compare(*self.frames())
         self.assertTrue(any("only 3 players matched" in p for p in res["problems"]))
