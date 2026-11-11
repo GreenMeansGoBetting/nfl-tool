@@ -14114,7 +14114,7 @@
   "players": {
    "3078576": [
     "Derrick White",
-    0.077,
+    0.085,
     1100,
     false,
     "fanduel"
@@ -14128,21 +14128,14 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.125,
+    0.146,
     700,
-    false,
-    "bet365"
-   ],
-   "4251": [
-    "Paul George",
-    0.103,
-    800,
-    false,
+    true,
     "bet365"
    ],
    "4351852": [
     "Mitchell Robinson",
-    0.062,
+    0.066,
     null,
     false,
     null
@@ -14163,7 +14156,7 @@
    ],
    "4397424": [
     "Neemias Queta",
-    0.07,
+    0.074,
     940,
     false,
     "draftkings"
@@ -14174,6 +14167,13 @@
     null,
     false,
     null
+   ],
+   "4683689": [
+    "Jordan Walsh",
+    0.065,
+    1975,
+    true,
+    "fliff"
    ],
    "4684272": [
     "Ja'Kobe Walter",
