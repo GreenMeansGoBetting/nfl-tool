@@ -266,9 +266,48 @@ def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None
             "type": t["type"], "lean": t["lean"], "fit": float(t["fit"]), "border": bool(t["border"]),
             "n": int(r["n"]), "mix": [round(float(r["dist"]), 1)] + [round(float(r[k]) * 100, 1) for k in F[1:]],
         }
+    games, avg = baseline_log(b, set(players))
+    for pid, a in avg.items():
+        players[pid]["avg"] = a
     return {"drawn": groups["drawn"], "stability": groups.get("stability"), "moved": groups.get("moved"),
             "fields": F, "min_shots": MIN_SHOTS, "border": BORDER, "split": SPLIT_THREE,
-            "players": players, "defense": defense(sh, typed["type"], team_abbr)}
+            "players": players, "defense": defense(sh, typed["type"], team_abbr),
+            "log_fields": LOG_FIELDS, "log": games}
+
+
+# The measuring stick for Slate Standouts and Defense Vs Type (the owner, 2026-11-11: "avg over
+# baseline"): every game a typed player played, against the defense he faced, as HIS number that
+# night minus his own average in his OTHER games (leave-one-out, so the night can't pull his
+# baseline toward itself). No pull toward the league (the owner): thin samples are counted, not shrunk.
+LOG_STATS = (("points", "pts"), ("three_point_field_goals_made", "m3"))
+LOG_FIELDS = ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"]
+
+
+def baseline_log(box: pd.DataFrame, typed_ids: set) -> tuple:
+    """([[date, defense, player, pts, 3PM, pts - his other-games avg, 3PM - avg]], {player: [games, pts avg, 3PM avg]})."""
+    b = box.copy()
+    b["pid"] = b["athlete_id"].astype(int).astype(str)
+    played = (~b["did_not_play"].fillna(False).astype(bool)) & (pd.to_numeric(b["minutes"], errors="coerce").fillna(0) > 0)
+    b = b[b["pid"].isin(typed_ids) & played].copy()
+    for col, _ in LOG_STATS:
+        b[col] = pd.to_numeric(b[col], errors="coerce").fillna(0)
+    g = b.groupby("pid")
+    n = g["pid"].transform("size")
+    out_rows, avg = [], {}
+    diffs = {}
+    for col, short in LOG_STATS:
+        total = g[col].transform("sum")
+        other = (total - b[col]) / (n - 1).where(n > 1)
+        diffs[short] = (b[col] - other).round(2)
+    for i, r in enumerate(b.itertuples(index=False)):
+        dp, d3 = diffs["pts"].iloc[i], diffs["m3"].iloc[i]
+        if pd.isna(dp):
+            continue  # his only game: no other games to measure it against
+        out_rows.append([str(r.game_date)[:10], r.opponent_team_abbreviation, r.pid, int(r.points),
+                         int(r.three_point_field_goals_made), float(dp), float(d3)])
+    for pid, q in g:
+        avg[pid] = [int(len(q)), round(float(q["points"].mean()), 1), round(float(q["three_point_field_goals_made"].mean()), 1)]
+    return out_rows, avg
 
 
 def main():

@@ -1,0 +1,27 @@
+/* NBA Slate Standouts (standouts.html): two lists on the League Stats Chart grid (style.css .od-grid),
+   Standouts and Tough Spots, side by side when the screen is wide enough, stacked when not. */
+.ss-days { margin: 4px 0 10px; }
+.ss-cols { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.ss-box { overflow-x: auto; max-width: 100%; }
+.data-table.ss-grid { width: 736px; table-layout: fixed; }
+.ss-grid .ss-title { font-size: 1.05rem; padding: 8px 4px; }
+.ss-grid tr.ss-cat td { text-align: left; font: 800 0.78rem var(--font-display); letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); padding: 10px 6px 2px; border-bottom: 1px solid var(--border); }
+.ss-grid td.ss-game { font-size: 0.74rem; font-weight: 700; color: var(--muted); text-align: left; padding-left: 6px; }
+.ss-grid .ss-who { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ss-grid .ss-who .pt-logo { width: 34px; flex: none; height: 26px; }
+.ss-grid .ss-who .pt-logo img { width: 20px; height: 20px; }
+.ss-grid .ss-who span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ss-grid .ss-who small { display: block; color: var(--muted); font-weight: 600; font-size: 0.7rem; }
+.ss-grid td.ss-read { text-align: left; font-weight: 700; font-size: 0.84rem; white-space: normal; line-height: 1.2; padding: 4px 6px; }
+.ss-grid td.ss-read .pt-letter { min-width: 22px; height: 22px; font-size: 0.82rem; margin-right: 4px; vertical-align: middle; }
+.ss-tile small { font-size: 0.62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ss-tile small .pt-letter { min-width: 14px; height: 14px; font-size: 0.6rem; padding: 0 3px; vertical-align: -2px; }
+.ss-stack { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font: 800 0.66rem var(--font-display);
+  letter-spacing: 0.04em; text-transform: uppercase; background: rgba(var(--accent-rgb), 0.22); color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.7); vertical-align: middle; }
+.ss-none { color: var(--muted); padding: 10px; text-align: left; }
+.pt-seg .view-toggle-btn small { opacity: 0.7; font-size: 0.72rem; margin-left: 2px; }
+.ss-grid .pt-logo, .ss-grid .ss-open, .ss-grid .ss-team { cursor: pointer; }
+.ss-grid .pt-logo:hover { filter: brightness(1.25); }
+.ss-grid .ss-open:hover, .ss-grid .ss-team:hover b { color: var(--accent); }

@@ -565,7 +565,7 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
 - **Borderline** (`fit` 0.5+): two letters "B / E" (the owner). 2026-11-11 odd / even games: 56% kept
   their letter, 85% letter or lean; clear fits 80%, borderline 33%.
 - data.json `shot_types` (compute_props, own try): players {name, team, pos, type, lean, fit, border,
-  n, mix}, `defense` {teams {abbr: {games, vs {letter: [shots, makes, points, 3PM]}}}, league, team_games}.
+  n, mix, avg [games, pts, 3PM]}, `log` (`log_fields`: every night vs his own other-games average), `defense` {teams {abbr: {games, vs {letter: [shots, makes, points, 3PM]}}}, league, team_games}.
 - **Page** (menu under Zone Matchup Targets): tabs The 11 Types / Every Player / Defense Vs Type
   (`#types` / `#players` / `#defense`). Tiles on the 8-step scale, the most = green; Defense Vs Type
   ranked from the defense (30th = allows the most, red), Points / Threes Made / Shots a game or FG%,
@@ -573,6 +573,29 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
 - Next (the owner): one more pass on the live page, then matchups by type or the next type family
   (rebounding / assisting / playmaking). Swap position splits for types only where a replay shows types
   predict better. Tests: `test_nba_shot_types.py`, `test_nba_types_site.py`.
+
+## Slate Standouts (`standouts.html/.js/.css`, 2026-11-11; first in the NBA menu)
+
+The front door (the owner: "see all the mismatches in one place and by category so they dont have to
+wade through info on top of info"). A night's slate (day arrows), categories (Points, Threes, Paint &
+Mid-Range, Rebounds, Turnovers, Free Throws, Pace & Total; counts on the buttons), Season / Last 10,
+**Standouts** (toward more) beside **Tough Spots** (toward less). **Numbers, not picks: no
+projections, no line / "priced in" check, no record or tracking** (the owner: "adds undue pressure").
+- **Team rows = Matchup Keys' own keys** (`nbaMatchupKeys`, never a copy): offense Edge / Fits = a
+  Standout; a defense Edge = a Tough Spot for the offense facing it; Same Style / Trend by direction
+  (`SS_LESS`). Its top-10-of-30 cut is Matchup Keys'; change both together or neither. The owner wants
+  other tools' game-level angles here too, not only Player Types.
+- **Player rows = his type vs tonight's defense over their own averages** (shot_types `log`: each
+  night minus his other games' average, leave-one-out; no pull toward the league). The owner's
+  cutoffs (`SS_PLAYER`, `SS_HIT_*`, `SS_MIN_GAMES`, picked from a count of each option): **+2.5 points /
+  +0.7 threes, beat it 55% of the time (Tough: 45% or less), 6+ games** ("for now": raise the games
+  cut as the season fills); he must do it himself (12+ points / 1.5+ threes a game); Out / Doubtful off.
+  Tiles: his average, the type's +/- vs that defense (rank of the defenses, 30th = gives up the most,
+  red; hover lists the players behind it), beat-average x / y.
+- **In each category, players (with their letters) first, then teams** (the owner: not jumbled).
+- **Stacked** = a player row and a team row, same game, category and direction (parts shown, never
+  blended; hover names the team spot). A team logo / name / the game opens Matchup Keys on that game.
+- Tests: `test_nba_standouts_site.py`.
 
 ## Basketball-Reference cross-check (`bbref_check.py`, `nba-bbref-check.yml`, 2026-11-11)
 

@@ -114,6 +114,25 @@ class Redraw(unittest.TestCase):
             self.assertIn("moved", saved)
 
 
+class Baseline(unittest.TestCase):
+    def test_each_night_is_measured_against_his_other_games(self):
+        # 2026-11-11, the owner: "avg over baseline"; leave-one-out so a big night can't lift its own baseline
+        box = pd.DataFrame([
+            {"athlete_id": 7.0, "game_date": "2026-11-01", "opponent_team_abbreviation": "BBB", "points": 30, "three_point_field_goals_made": 5, "minutes": 34, "did_not_play": False},
+            {"athlete_id": 7.0, "game_date": "2026-11-03", "opponent_team_abbreviation": "CCC", "points": 10, "three_point_field_goals_made": 1, "minutes": 30, "did_not_play": False},
+            {"athlete_id": 7.0, "game_date": "2026-11-05", "opponent_team_abbreviation": "DDD", "points": 20, "three_point_field_goals_made": 3, "minutes": 32, "did_not_play": False},
+            {"athlete_id": 7.0, "game_date": "2026-11-07", "opponent_team_abbreviation": "EEE", "points": 0, "three_point_field_goals_made": 0, "minutes": 0, "did_not_play": True},
+            {"athlete_id": 8.0, "game_date": "2026-11-01", "opponent_team_abbreviation": "AAA", "points": 12, "three_point_field_goals_made": 2, "minutes": 20, "did_not_play": False},
+        ])
+        rows, avg = S.baseline_log(box, {"7", "8"})
+        self.assertEqual(avg["7"], [3, 20.0, 3.0])
+        mine = {r[1]: r for r in rows if r[2] == "7"}
+        self.assertEqual(mine["BBB"][5:], [15.0, 3.0])  # 30 vs (10 + 20) / 2; 5 vs (1 + 3) / 2
+        self.assertEqual(mine["CCC"][5:], [-15.0, -3.0])
+        self.assertNotIn("EEE", mine)  # a game he sat out isn't a night
+        self.assertFalse([r for r in rows if r[2] == "8"])  # one game: nothing to measure it against
+
+
 class Defense(unittest.TestCase):
     def test_each_shot_counts_against_the_defense_he_faced(self):
         sh = pd.DataFrame([

@@ -1161,6 +1161,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     ] },
     // Matchup Data retired 2026-11-09 (its Matchup is Matchup Keys' Summary tab): /nba/ lands on Matchup Keys.
     nba: { label: "NBA", home: "matchup-keys.html", items: [
+      // Slate Standouts: every mismatch of the night in one place, by category (the owner, 2026-11-11)
+      pills(["Slate Standouts", "standouts.html", 45]),
       // Matchup Keys: its own page since 2026-11-04 (the owner: the League Stats Chart button was "too hidden").
       pills(["League Stats Chart", "league.html", 140], ["Matchup Keys", "matchup-keys.html", 45]),
       // Assist Spots: assists read from both sides, beside Zone Matchup Targets (the owner, 2026-11-05)

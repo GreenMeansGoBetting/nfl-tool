@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Slate Standouts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="types.css">
+<link rel="stylesheet" href="standouts.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="section-wrap">
+      <h2 class="section-title">Slate Standouts <button type="button" class="info-i" aria-expanded="false" aria-controls="ss-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="ss-note" hidden>Every mismatch on the night's slate in one place, by category. <b>Standouts</b> point toward more; <b>Tough Spots</b> point toward less. Every row reads <b>both sides</b>. <b>Team rows</b> come from Matchup Keys: one team top 10 at something, the other bottom half (ranks of 30; 30th = the worst, red). <b>Player rows</b> come from Player Types: how players of his type (his colored letter) did against tonight's defense compared with <b>their own averages</b> (+3.1 = 3.1 points over their usual night), and in how many of those games they beat their average. He has to be a real scorer at it himself (12+ points a game for Points, 1.5+ threes for Threes). <b>Stacked</b> = a player spot and a team spot in the same game point the same way. Out and Doubtful players are left off. Numbers, not picks.</p>
+      <div class="week-picker ss-days">
+        <button type="button" id="day-prev" class="week-nav-btn">&lsaquo;</button>
+        <span id="day-label" class="week-label">Day</span>
+        <button type="button" id="day-next" class="week-nav-btn">&rsaquo;</button>
+      </div>
+      <div id="empty-state" class="empty-state"><p>Loading the slate&hellip;</p></div>
+      <div id="ss-app" hidden>
+        <div class="pt-bar" id="ss-bar"></div>
+        <div id="ss-body"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN box scores and play-by-play).
+</footer>
+
+<script src="../sync.js"></script>
+<script src="league-cols.js"></script>
+<script src="keys.js"></script>
+<script src="../book-odds.js"></script>
+<script src="standouts.js"></script>
+<script src="shot-chart.js"></script>
+<script src="nba-card.js"></script>
+</body>
+</html>
