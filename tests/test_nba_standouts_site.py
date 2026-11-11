@@ -122,6 +122,11 @@ class SlateStandouts(unittest.TestCase):
         PAGE.click(".ss-grid tr.ss-t [data-who] >> nth=0")
         PAGE.wait_for_selector("#mb-who-modal:not([hidden])")
         self.assertIn("threes: who's behind it", PAGE.inner_text("#mb-who-modal").lower())  # the tile's own topic
+        # Allowed By Type beside Allowed By Position (the owner, 2026-11-11): the offense's letters, its shot share
+        html = PAGE.evaluate("() => whoTypeBox('BBB', 'AAA', 'scoring', { date: '2099-01-10' })")
+        self.assertIn("Allowed By Type", html)
+        self.assertIn("+4.0", html)  # type C against BBB: +4 points over their own averages
+        self.assertIn("AAA Shots", html)
         PAGE.evaluate("() => { document.getElementById('mb-who-modal').hidden = true; }")
 
     def test_a_team_opens_its_game_on_matchup_keys(self):

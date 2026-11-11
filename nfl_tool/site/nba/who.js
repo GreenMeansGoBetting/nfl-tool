@@ -233,17 +233,66 @@ function whoDefBox(def, off, topic) {
   return `<div class="nba-box mb-teambox mb-whobox mb-who-defbox" data-team="${def}" data-side="d" style="--team:${whoRgb(def)}" title="${whoEsc(`${whoTeamOf(def).name} defense`)}">${whoBanner(def, "Allowed By Position")}<table class="mb-table mb-who-table"><tbody>${head}${rows}</tbody></table></div>`;
 }
 
+// Allowed By Type (the owner, 2026-11-11): beside Allowed By Position, what this defense gives up to each
+// Player Type in the offense's rotation: players of that type, each night against their own average
+// (data.json shot_types.log, games before this one), threes for the Threes topic and points for the rest;
+// beat-average x / y; and how much of the offense's shooting that type takes. Ranked of the defenses with
+// WHO_TYPE_MIN+ games (1st = allows the least, green; the position box's colors); fewer = faded, unranked.
+const WHO_TYPE_MIN = 6;
+function whoTypeBox(def, off, topic, g) {
+  const st = (typeof DATA !== "undefined" && DATA && DATA.shot_types) || null;
+  if (!st || !st.log) return "";
+  const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+  const three = topic === "threes";
+  const field = three ? "m3_diff" : "pts_diff";
+  const before = (g && g.date) || "9999";
+  const stick = {};
+  st.log.forEach((r) => {
+    if (r[f.date] >= before) return;
+    const q = st.players[r[f.player]];
+    if (!q) return;
+    const c = ((stick[r[f.def]] ||= {})[q.type] ||= { n: 0, sum: 0, over: 0 });
+    c.n += 1;
+    c.sum += r[f[field]];
+    if (r[f[field]] > 0) c.over += 1;
+  });
+  const shots = {};
+  let all = 0;
+  Object.values(st.players).filter((q) => q.team === off).forEach((q) => { shots[q.type] = (shots[q.type] || 0) + q.n; all += q.n; });
+  const letters = Object.keys(shots).sort((a, b) => shots[b] - shots[a]);
+  if (!letters.length) return "";
+  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+  const unit = three ? "3PM" : "PTS";
+  const rows = letters.map((L) => {
+    const c = (stick[def] || {})[L];
+    const share = all ? Math.round((100 * shots[L]) / all) : 0;
+    const shareTd = `<td class="mb-v" title="${whoEsc(`${share}% of ${off}'s typed shooting is type ${L}`)}"><b>${share}%</b></td>`;
+    if (!c) return `<tr><td class="mb-stat mb-who-pos">${badge(L)}</td><td class="mb-v">--</td><td class="mb-v">--</td>${shareTd}</tr>`;
+    const avg = c.sum / c.n;
+    const ranked = Object.values(stick).map((bt) => bt[L]).filter((x) => x && x.n >= WHO_TYPE_MIN).map((x) => x.sum / x.n);
+    const ok = c.n >= WHO_TYPE_MIN && ranked.length > 1;
+    const rank = ok ? 1 + ranked.filter((x) => x < avg).length : null;
+    const hue = ok ? Math.round((120 * (ranked.length - rank)) / (ranked.length - 1)) : null;
+    const style = hue === null ? ' style="opacity:0.5"' : ` style="background:${scaleHsla(hue, 70, 45, 0.32)}"`;
+    const tip = `Type ${L} against ${def}: ${avg > 0 ? "+" : ""}${avg.toFixed(1)} ${unit.toLowerCase()} over their own averages in ${c.n} games, beat it in ${c.over}${ok ? `; ${whoOrd(rank)} of ${ranked.length} (1st = allows the least)` : `; under ${WHO_TYPE_MIN} games, not ranked`}`;
+    return `<tr><td class="mb-stat mb-who-pos">${badge(L)}</td><td class="mb-v"${style} title="${whoEsc(tip)}"><b>${avg > 0 ? "+" : ""}${avg.toFixed(1)}</b>${ok ? `<small>${whoOrd(rank)}</small>` : ""}</td>
+      <td class="mb-v"${style} title="${whoEsc(tip)}"><b>${c.over}/${c.n}</b></td>${shareTd}</tr>`;
+  }).join("");
+  const head = `<tr class="mb-heads"><th title="Player Type (how he shoots)">Type</th><th title="${unit} over / under those players' own averages against this defense">+/- ${unit}</th><th title="Games they beat their own average">Beat Avg</th><th title="Share of ${off}'s typed shooting from that type">${off} Shots</th></tr>`;
+  return `<div class="nba-box mb-teambox mb-whobox mb-who-defbox mb-who-typebox" data-team="${def}" data-side="d" style="--team:${whoRgb(def)}" title="${whoEsc(`${whoTeamOf(def).name} defense against each Player Type`)}">${whoBanner(def, "Allowed By Type")}<table class="mb-table mb-who-table"><tbody>${head}${rows}</tbody></table></div>`;
+}
+
 function whoRender(topic, g, dirs) {
   const spec = WHO[topic];
   const ready = g && nbaCardProps() !== undefined && whoPlayers() && whoAllowed();
   const body = !g ? `<p class="no-data-note">No game picked.</p>` : nbaCardProps() === undefined ? `<p class="no-data-note">Loading&hellip;</p>`
     : !ready ? `<p class="no-data-note">Player numbers aren't available right now.</p>`
     : dirs.map((d) => {
-      const o = whoTeam(d.off, spec), df = whoDefBox(d.def, d.off, topic);
-      return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.off} Offense vs ${d.def} Defense</div><div class="mb-who-pair">${d.left === "d" ? df + o : o + df}</div></div>`;
+      const o = whoTeam(d.off, spec), df = whoDefBox(d.def, d.off, topic), tb = whoTypeBox(d.def, d.off, topic, g);
+      return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.off} Offense vs ${d.def} Defense</div><div class="mb-who-pair">${d.left === "d" ? df + tb + o : o + df + tb}</div></div>`;
     }).join("");
   document.getElementById("mb-who-content").innerHTML = `<h2 class="section-title mb-who-title">${spec.title}: Who's Behind It</h2>
-    <p class="mb-who-note">This season. Offense: its rotation players (${WHO_MIN}+ minutes, ${WHO_GP}+ games), a game, colored by where he sits among the league's rotation players (green = more; turnovers red = more). Defense: what it allows each position a game, ranked of 30 (1st = stingiest, green; 30th = allows the most, red). The last column: the offense's numbers at that position.</p>${body}`;
+    <p class="mb-who-note">This season. Offense: its rotation players (${WHO_MIN}+ minutes, ${WHO_GP}+ games), a game, colored by where he sits among the league's rotation players (green = more; turnovers red = more). Defense: what it allows each position a game, ranked of 30 (1st = stingiest, green; 30th = allows the most, red). The last column: the offense's numbers at that position. Allowed By Type: what the defense gives up to each Player Type in the offense's rotation, over those players' own averages (threes on Threes, points elsewhere), ranked the same way, and how much of the offense's shooting each type takes.</p>${body}`;
 }
 // dirs: [{off, def, left}] (whoDirs); none = both directions
 function whoOpen(topic, g, dirs = null) {

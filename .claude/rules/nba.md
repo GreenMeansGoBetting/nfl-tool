@@ -713,6 +713,9 @@ the same framework next ("once we have the framework down").
   (the owner: "add that matchup sheet to a fourth tab called summary ... then i believe we can remove
   matchup data"): the NBA menu has no Matchup Data, the NBA home (`/nba/`, `SPORT_PAGES` home) and
   `identity.html` forward to Matchup Keys.
+  - **Who's behind it also shows Allowed By Type** (`whoTypeBox`, 2026-11-11): beside Allowed By Position, the
+    defense against each letter in the offense's rotation (over their own averages; threes on Threes, points
+    elsewhere), beat-average x / y, the offense's shot share per letter; 1st = allows the least, 6+ games.
   - **Every colored box with a player split opens who's behind it** (`who.js` `whoOpen(topic, game)`;
     a member asked for Paint FG% on 2026-11-09, the owner made it every box): both teams' rotation
     players (12+ min, 3+ games) for the topic (`WHO`: scoring, transition, threes, paint, mid,
