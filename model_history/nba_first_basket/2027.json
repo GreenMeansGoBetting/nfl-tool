@@ -2030,91 +2030,88 @@
  "401909297": {
   "away": "MIL",
   "date": "2026-11-13",
-  "first_home": 0.544,
+  "first_home": 0.5,
   "home": "ORL",
   "jumpers": [
-   [
-    "3133628",
-    "Myles Turner"
-   ],
+   null,
    [
     "4277847",
     "Wendell Carter Jr."
    ]
   ],
   "players": {
-   "3133628": [
-    "Myles Turner",
-    0.085,
-    null,
-    false,
-    null
-   ],
    "3134907": [
     "Kyle Kuzma",
-    0.068,
+    0.073,
     null,
     false,
     null
    ],
    "4066320": [
     "Desmond Bane",
-    0.101,
+    0.093,
     null,
     false,
     null
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.102,
+    0.094,
     null,
     false,
     null
    ],
    "4395725": [
     "Tyler Herro",
-    0.091,
+    0.098,
     null,
     false,
     null
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.117,
+    0.131,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.144,
+    0.133,
     null,
     false,
     null
    ],
    "4591725": [
     "Ryan Rollins",
-    0.078,
+    0.083,
     null,
     false,
     null
    ],
    "4712849": [
     "Anthony Black",
-    0.094,
+    0.087,
+    null,
+    false,
+    null
+   ],
+   "5082206": [
+    "Brayden Burries",
+    0.095,
     null,
     false,
     null
    ],
    "5239561": [
     "Jase Richardson",
-    0.08,
+    0.074,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.632
+  "tip_home": 0.5
  },
  "401909298": {
   "away": "CLE",
@@ -14366,91 +14363,88 @@
  "401909971": {
   "away": "LAL",
   "date": "2026-11-11",
-  "first_home": 0.44,
+  "first_home": 0.5,
   "home": "MIL",
   "jumpers": [
    [
     "4433136",
     "Walker Kessler"
    ],
-   [
-    "3133628",
-    "Myles Turner"
-   ]
+   null
   ],
   "players": {
-   "3133628": [
-    "Myles Turner",
-    0.082,
-    1200,
-    false,
-    "hard_rock"
-   ],
    "3134907": [
     "Kyle Kuzma",
-    0.065,
+    0.073,
     1200,
     false,
     "fanduel"
    ],
    "3945274": [
     "Luka Doncic",
-    0.157,
+    0.14,
     350,
     false,
     "bet365"
    ],
    "4066457": [
     "Austin Reaves",
-    0.124,
+    0.111,
     650,
     false,
     "fanduel"
    ],
    "4395725": [
     "Tyler Herro",
-    0.087,
+    0.098,
     1000,
     false,
     "bet365"
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.112,
+    0.131,
     1300,
     true,
     "fanduel"
    ],
    "4433136": [
     "Walker Kessler",
-    0.09,
+    0.08,
     525,
     false,
     "hard_rock"
    ],
    "4433137": [
     "Ziaire Williams",
-    0.086,
+    0.076,
     1000,
     false,
     "fanduel"
    ],
    "4591725": [
     "Ryan Rollins",
-    0.075,
+    0.083,
     null,
     false,
     null
    ],
    "4592691": [
     "Jake LaRavia",
-    0.081,
+    0.073,
     1400,
-    true,
+    false,
     "hard_rock"
+   ],
+   "5082206": [
+    "Brayden Burries",
+    0.095,
+    1360,
+    true,
+    "draftkings"
    ]
   },
-  "tip_home": 0.318
+  "tip_home": 0.5
  },
  "401909972": {
   "away": "BKN",
