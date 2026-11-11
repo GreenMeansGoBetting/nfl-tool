@@ -7955,30 +7955,30 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4011,
+    "lead": 0.3989,
     "name": "Luka Doncic",
-    "proj": 57.1,
+    "proj": 57.0,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2332,
+    "lead": 0.2335,
     "name": "Victor Wembanyama",
     "proj": 51.2,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.0468,
+    "lead": 0.047,
     "name": "Nikola Jokic",
     "proj": 40.1,
     "team": "DEN"
    },
    {
     "id": "3136195",
-    "lead": 0.0341,
+    "lead": 0.0348,
     "name": "Karl-Anthony Towns",
-    "proj": 38.8,
+    "proj": 38.9,
     "team": "NY"
    },
    {
@@ -7996,29 +7996,29 @@
     "team": "OKC"
    },
    {
-    "id": "3975",
-    "lead": 0.025,
-    "name": "Stephen Curry",
-    "proj": 38.0,
-    "team": "GS"
-   },
-   {
     "id": "6583",
-    "lead": 0.0246,
+    "lead": 0.0248,
     "name": "Anthony Davis",
     "proj": 36.9,
     "team": "WSH"
    },
    {
+    "id": "3975",
+    "lead": 0.0247,
+    "name": "Stephen Curry",
+    "proj": 37.9,
+    "team": "GS"
+   },
+   {
     "id": "3936299",
-    "lead": 0.0193,
+    "lead": 0.0194,
     "name": "Jamal Murray",
     "proj": 36.5,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.0183,
+    "lead": 0.0185,
     "name": "Alperen Sengun",
     "proj": 36.4,
     "team": "HOU"
@@ -8046,7 +8046,7 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0128,
+    "lead": 0.0129,
     "name": "Pascal Siakam",
     "proj": 35.1,
     "team": "IND"
@@ -8060,7 +8060,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0119,
+    "lead": 0.0121,
     "name": "Jalen Brunson",
     "proj": 34.5,
     "team": "NY"
@@ -8080,13 +8080,6 @@
     "team": "MIL"
    },
    {
-    "id": "5041935",
-    "lead": 0.0053,
-    "name": "Cameron Boozer",
-    "proj": 32.1,
-    "team": "MEM"
-   },
-   {
     "id": "3908809",
     "lead": 0.0053,
     "name": "Donovan Mitchell",
@@ -8094,8 +8087,15 @@
     "team": "CLE"
    },
    {
+    "id": "5041935",
+    "lead": 0.0052,
+    "name": "Cameron Boozer",
+    "proj": 32.1,
+    "team": "MEM"
+   },
+   {
     "id": "5175737",
-    "lead": 0.0051,
+    "lead": 0.0052,
     "name": "Yaxel Lendeborg",
     "proj": 31.3,
     "team": "GS"
@@ -8130,7 +8130,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0025,
+    "lead": 0.0026,
     "name": "Kevin Durant",
     "proj": 29.8,
     "team": "HOU"
@@ -8165,7 +8165,7 @@
    },
    {
     "id": "4395628",
-    "lead": 0.0015,
+    "lead": 0.0016,
     "name": "Zion Williamson",
     "proj": 29.5,
     "team": "NO"
@@ -8206,6 +8206,13 @@
     "team": "NO"
    },
    {
+    "id": "3992",
+    "lead": 0.0006,
+    "name": "James Harden",
+    "proj": 25.0,
+    "team": "CLE"
+   },
+   {
     "id": "4845367",
     "lead": 0.0005,
     "name": "Stephon Castle",
@@ -8227,17 +8234,10 @@
     "team": "CHI"
    },
    {
-    "id": "3992",
-    "lead": 0.0005,
-    "name": "James Harden",
-    "proj": 24.9,
-    "team": "CLE"
-   },
-   {
     "id": "4432158",
     "lead": 0.0003,
     "name": "Evan Mobley",
-    "proj": 25.3,
+    "proj": 25.4,
     "team": "CLE"
    },
    {
