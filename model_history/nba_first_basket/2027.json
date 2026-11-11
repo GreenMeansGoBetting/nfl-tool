@@ -2052,7 +2052,7 @@
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.07,
+    0.068,
     null,
     false,
     null
@@ -2071,9 +2071,16 @@
     false,
     null
    ],
+   "4395725": [
+    "Tyler Herro",
+    0.091,
+    null,
+    false,
+    null
+   ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.115,
+    0.117,
     null,
     false,
     null
@@ -2087,7 +2094,7 @@
    ],
    "4591725": [
     "Ryan Rollins",
-    0.08,
+    0.078,
     null,
     false,
     null
@@ -2095,13 +2102,6 @@
    "4712849": [
     "Anthony Black",
     0.094,
-    null,
-    false,
-    null
-   ],
-   "5082206": [
-    "Brayden Burries",
-    0.088,
     null,
     false,
     null
@@ -2413,16 +2413,16 @@
     false,
     null
    ],
-   "4065663": [
-    "Josh Okogie",
-    0.093,
+   "4066336": [
+    "Lauri Markkanen",
+    0.107,
     null,
     false,
     null
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.07,
+    0.064,
     null,
     false,
     null
@@ -2434,9 +2434,9 @@
     false,
     null
    ],
-   "4432811": [
-    "Josh Green",
-    0.076,
+   "4433627": [
+    "Keyonte George",
+    0.1,
     null,
     false,
     null
@@ -2457,14 +2457,14 @@
    ],
    "4873138": [
     "Ace Bailey",
-    0.114,
+    0.097,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.108,
+    0.093,
     null,
     false,
     null
@@ -2586,7 +2586,7 @@
    ],
    "3155942": [
     "Domantas Sabonis",
-    0.095,
+    0.096,
     null,
     false,
     null
@@ -2598,16 +2598,16 @@
     false,
     null
    ],
-   "4431736": [
-    "Toumani Camara",
-    0.083,
+   "4431679": [
+    "Precious Achiuwa",
+    0.07,
     null,
     false,
     null
    ],
-   "4594327": [
-    "Keegan Murray",
-    0.073,
+   "4431736": [
+    "Toumani Camara",
+    0.083,
     null,
     false,
     null
@@ -2635,7 +2635,7 @@
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.101,
+    0.102,
     null,
     false,
     null
@@ -14388,7 +14388,7 @@
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.067,
+    0.065,
     1200,
     false,
     "fanduel"
@@ -14407,9 +14407,16 @@
     false,
     "fanduel"
    ],
+   "4395725": [
+    "Tyler Herro",
+    0.087,
+    850,
+    false,
+    "fanduel"
+   ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.111,
+    0.112,
     1200,
     true,
     "fanduel"
@@ -14430,7 +14437,7 @@
    ],
    "4591725": [
     "Ryan Rollins",
-    0.077,
+    0.075,
     null,
     false,
     null
@@ -14441,13 +14448,6 @@
     1400,
     true,
     "hard_rock"
-   ],
-   "5082206": [
-    "Brayden Burries",
-    0.085,
-    1440,
-    true,
-    "draftkings"
    ]
   },
   "tip_home": 0.318
@@ -14557,19 +14557,19 @@
    ]
   ],
   "players": {
-   "4065663": [
-    "Josh Okogie",
-    0.09,
-    1200,
-    true,
-    "fanduel"
-   ],
    "4066320": [
     "Desmond Bane",
     0.099,
     800,
     false,
     "hard_rock"
+   ],
+   "4066336": [
+    "Lauri Markkanen",
+    0.104,
+    800,
+    false,
+    "bet365"
    ],
    "4277847": [
     "Wendell Carter Jr.",
@@ -14580,17 +14580,17 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.068,
+    0.062,
     1040,
     false,
     "draftkings"
    ],
-   "4432811": [
-    "Josh Green",
-    0.073,
-    1060,
+   "4433627": [
+    "Keyonte George",
+    0.097,
+    950,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4566434": [
     "Franz Wagner",
@@ -14608,14 +14608,14 @@
    ],
    "4873138": [
     "Ace Bailey",
-    0.111,
+    0.094,
     900,
-    true,
+    false,
     "hard_rock"
    ],
    "5041955": [
     "Darryn Peterson",
-    0.105,
+    0.09,
     920,
     false,
     "draftkings"
