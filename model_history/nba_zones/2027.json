@@ -18185,7 +18185,7 @@
     "under",
     true,
     11.5,
-    -104,
+    -106,
     "fanduel"
    ],
    [
@@ -18197,7 +18197,7 @@
     "under",
     false,
     8.5,
-    -132,
+    -136,
     "fanduel"
    ],
    [
@@ -18214,30 +18214,6 @@
    ]
   ],
   "threes": [
-   [
-    "3147657",
-    "Mikal Bridges",
-    "NY",
-    "CLE",
-    0.1068,
-    "over",
-    false,
-    1.5,
-    154,
-    "fanduel"
-   ],
-   [
-    "3934719",
-    "OG Anunoby",
-    "NY",
-    "CLE",
-    0.1367,
-    "over",
-    true,
-    2.5,
-    -143,
-    "4cx"
-   ],
    [
     "4432158",
     "Evan Mobley",
@@ -18300,8 +18276,8 @@
     "under",
     true,
     11.5,
-    105,
-    "4cx"
+    -106,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -18343,8 +18319,20 @@
     "under",
     true,
     11.5,
-    -109,
-    "draftkings"
+    -110,
+    "bet365"
+   ],
+   [
+    "4592479",
+    "Julian Champagnie",
+    "SA",
+    "CHI",
+    0.2579,
+    "over",
+    true,
+    9.5,
+    102,
+    "bet365"
    ],
    [
     "4845367",
@@ -18367,11 +18355,47 @@
     "under",
     true,
     12.5,
-    -114,
-    "fanduel"
+    100,
+    "bet365"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "CHI",
+    0.1331,
+    "over",
+    true,
+    17.5,
+    -120,
+    "bet365"
    ]
   ],
   "threes": [
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "CHI",
+    0.4404,
+    "over",
+    true,
+    1.5,
+    140,
+    "bet365"
+   ],
+   [
+    "4592479",
+    "Julian Champagnie",
+    "SA",
+    "CHI",
+    0.2894,
+    "over",
+    true,
+    2.5,
+    105,
+    "bet365"
+   ],
    [
     "4845367",
     "Stephon Castle",
@@ -18410,8 +18434,8 @@
     "under",
     true,
     12.5,
-    -105,
-    "bet365"
+    -125,
+    "fanduel"
    ],
    [
     "4065733",
@@ -18434,8 +18458,8 @@
     "under",
     true,
     10.5,
-    -105,
-    "bet365"
+    -125,
+    "fanduel"
    ],
    [
     "4433083",
@@ -18445,9 +18469,9 @@
     -0.1757,
     "under",
     true,
-    6.5,
-    -112,
-    "bet365"
+    7.5,
+    -140,
+    "fanduel"
    ],
    [
     "4600663",
@@ -18457,21 +18481,9 @@
     -0.2275,
     "under",
     true,
-    8.5,
-    100,
-    "bet365"
-   ],
-   [
-    "4698719",
-    "Trevon Brazile",
-    "DEN",
-    "MEM",
-    -0.055,
-    "under",
-    false,
-    4.5,
-    110,
-    "bet365"
+    9.5,
+    -132,
+    "fanduel"
    ],
    [
     "5041935",
@@ -18482,8 +18494,8 @@
     "over",
     false,
     16.5,
-    -112,
-    "bet365"
+    -115,
+    "fanatics"
    ]
   ],
   "threes": [
@@ -18496,8 +18508,8 @@
     "under",
     false,
     1.5,
-    -160,
-    "bet365"
+    -172,
+    "fanduel"
    ],
    [
     "3936299",
@@ -18512,18 +18524,6 @@
     "fanduel"
    ],
    [
-    "3978",
-    "DeMar DeRozan",
-    "DEN",
-    "MEM",
-    -0.3264,
-    "under",
-    true,
-    0.5,
-    -165,
-    "bet365"
-   ],
-   [
     "4065733",
     "Ty Jerome",
     "MEM",
@@ -18536,18 +18536,6 @@
     "fanduel"
    ],
    [
-    "4431767",
-    "Christian Braun",
-    "DEN",
-    "MEM",
-    -0.2614,
-    "under",
-    true,
-    1.5,
-    -170,
-    "bet365"
-   ],
-   [
     "4433083",
     "Cam Spencer",
     "MEM",
@@ -18558,18 +18546,6 @@
     1.5,
     -210,
     "fanduel"
-   ],
-   [
-    "5041935",
-    "Cameron Boozer",
-    "MEM",
-    "DEN",
-    0.0844,
-    "over",
-    false,
-    1.5,
-    -155,
-    "bet365"
    ]
   ]
  },
@@ -18587,94 +18563,9 @@
     5.5,
     -114,
     "fanduel"
-   ],
-   [
-    "4397014",
-    "Quentin Grimes",
-    "LAL",
-    "MIL",
-    0.0727,
-    "over",
-    false,
-    7.5,
-    102,
-    "bet365"
-   ],
-   [
-    "4433137",
-    "Ziaire Williams",
-    "LAL",
-    "MIL",
-    0.089,
-    "over",
-    false,
-    8.5,
-    102,
-    "bet365"
    ]
   ],
-  "threes": [
-   [
-    "3133628",
-    "Myles Turner",
-    "MIL",
-    "LAL",
-    0.2909,
-    "over",
-    true,
-    1.5,
-    -130,
-    "bet365"
-   ],
-   [
-    "3907498",
-    "Matisse Thybulle",
-    "LAL",
-    "MIL",
-    0.1504,
-    "over",
-    true,
-    1.5,
-    120,
-    "bet365"
-   ],
-   [
-    "4278580",
-    "Sandro Mamukelashvili",
-    "LAL",
-    "MIL",
-    0.1926,
-    "over",
-    true,
-    1.5,
-    160,
-    "bet365"
-   ],
-   [
-    "4397014",
-    "Quentin Grimes",
-    "LAL",
-    "MIL",
-    0.2022,
-    "over",
-    true,
-    0.5,
-    -220,
-    "bet365"
-   ],
-   [
-    "4433137",
-    "Ziaire Williams",
-    "LAL",
-    "MIL",
-    0.1337,
-    "over",
-    true,
-    1.5,
-    130,
-    "bet365"
-   ]
-  ]
+  "threes": []
  },
  "401909972": {
   "date": "2026-11-11",
@@ -18687,9 +18578,9 @@
     0.4004,
     "over",
     true,
-    6.5,
-    -115,
-    "bet365"
+    7.5,
+    106,
+    "fanduel"
    ],
    [
     "5101761",
@@ -18700,7 +18591,7 @@
     "over",
     false,
     11.5,
-    -114,
+    -128,
     "fanduel"
    ],
    [
@@ -18711,9 +18602,9 @@
     0.0999,
     "over",
     false,
-    12.5,
-    -110,
-    "bet365"
+    11.5,
+    100,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -18728,78 +18619,6 @@
     0.5,
     116,
     "fanduel"
-   ],
-   [
-    "4277813",
-    "Herbert Jones",
-    "NO",
-    "BKN",
-    0.127,
-    "over",
-    true,
-    0.5,
-    -155,
-    "bet365"
-   ],
-   [
-    "4397136",
-    "Saddiq Bey",
-    "NO",
-    "BKN",
-    0.1487,
-    "over",
-    true,
-    1.5,
-    -112,
-    "bet365"
-   ],
-   [
-    "4397688",
-    "Trey Murphy III",
-    "NO",
-    "BKN",
-    0.1171,
-    "over",
-    false,
-    2.5,
-    130,
-    "bet365"
-   ],
-   [
-    "4432194",
-    "Day'Ron Sharpe",
-    "BKN",
-    "NO",
-    -0.2379,
-    "under",
-    true,
-    0.5,
-    -300,
-    "bet365"
-   ],
-   [
-    "4869780",
-    "Derik Queen",
-    "NO",
-    "BKN",
-    0.1652,
-    "over",
-    true,
-    0.5,
-    290,
-    "bet365"
-   ],
-   [
-    "4997538",
-    "Karlo Matkovic",
-    "NO",
-    "BKN",
-    0.5902,
-    "over",
-    true,
-    0.5,
-    -200,
-    "bet365"
    ]
   ]
  },
@@ -18832,8 +18651,20 @@
     "under",
     false,
     5.5,
-    -108,
-    "fanduel"
+    102,
+    "bet365"
+   ],
+   [
+    "3202",
+    "Kevin Durant",
+    "HOU",
+    "GS",
+    0.1104,
+    "over",
+    false,
+    21.5,
+    -120,
+    "bet365"
    ],
    [
     "3213",
@@ -18846,6 +18677,42 @@
     4.5,
     -102,
     "fanduel"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "GS",
+    0.0913,
+    "over",
+    false,
+    14.5,
+    -115,
+    "bet365"
+   ],
+   [
+    "4684740",
+    "Amen Thompson",
+    "HOU",
+    "GS",
+    -0.0774,
+    "under",
+    false,
+    15.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "GS",
+    -0.0844,
+    "under",
+    false,
+    8.5,
+    -115,
+    "bet365"
    ]
   ],
   "threes": [
@@ -18862,6 +18729,78 @@
     "fanduel"
    ],
    [
+    "2990992",
+    "Marcus Smart",
+    "HOU",
+    "GS",
+    -0.1383,
+    "under",
+    true,
+    1.5,
+    -210,
+    "bet365"
+   ],
+   [
+    "2991230",
+    "Fred VanVleet",
+    "HOU",
+    "GS",
+    -0.1365,
+    "under",
+    true,
+    2.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "3202",
+    "Kevin Durant",
+    "HOU",
+    "GS",
+    0.1626,
+    "over",
+    true,
+    1.5,
+    -125,
+    "bet365"
+   ],
+   [
+    "3213",
+    "Al Horford",
+    "GS",
+    "HOU",
+    -0.2757,
+    "under",
+    true,
+    0.5,
+    155,
+    "bet365"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "GS",
+    0.1129,
+    "over",
+    false,
+    2.5,
+    122,
+    "bet365"
+   ],
+   [
+    "4433192",
+    "Tari Eason",
+    "HOU",
+    "GS",
+    0.2211,
+    "over",
+    true,
+    1.5,
+    172,
+    "bet365"
+   ],
+   [
     "5175737",
     "Yaxel Lendeborg",
     "GS",
@@ -18872,6 +18811,18 @@
     1.5,
     120,
     "fanduel"
+   ],
+   [
+    "6589",
+    "Draymond Green",
+    "GS",
+    "HOU",
+    -0.2308,
+    "under",
+    true,
+    0.5,
+    -135,
+    "bet365"
    ]
   ]
  },
