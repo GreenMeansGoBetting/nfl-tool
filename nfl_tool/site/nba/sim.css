@@ -377,6 +377,10 @@ table.data-table.sim-list tr.rs-panel-row > td { width: auto; max-width: none; p
 .rs-s2 { grid-column: span 2; }
 .rs-s3 { grid-column: span 3; }
 .rs-s7 { grid-column: span 7; }
+.rs-s4 { grid-column: span 4; }
+.rs-s5 { grid-column: span 5; }
+/* Type Matchup under its games cut: faded, not ranked (research.js TM_MIN) */
+td.rs-thin { opacity: 0.55; }
 .rs-face { width: 30px; height: 22px; flex: none; object-fit: cover; border-radius: 4px; }
 .rs-t .rs-inj { flex: none; }
 /* Rotation: three tall minute strips filling the box, four quarter blocks with a clear gap, the

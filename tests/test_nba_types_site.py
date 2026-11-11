@@ -17,7 +17,8 @@ MIX = [15.0, 40, 30, 20, 5, 5, 1, 20, 5, 5, 10]
 
 
 def player(name, team, t, lean, border, n=80, mix=MIX):
-    return {"name": name, "team": team, "pos": "SG", "type": t, "lean": lean, "fit": 0.6 if border else 0.2, "border": border, "n": n, "mix": mix}
+    return {"name": name, "team": team, "pos": "SG", "type": t, "lean": lean, "fit": 0.6 if border else 0.2, "border": border, "n": n, "mix": mix,
+            "avg": [10, 15.0, 1.5]}
 
 
 SHOT_TYPES = {
@@ -30,8 +31,13 @@ SHOT_TYPES = {
                 "teams": {"AAA": {"games": 10, "vs": {"A": [100, 30, 80, 10], "K": [10, 5, 10, 0]}},
                           "BBB": {"games": 10, "vs": {"A": [100, 45, 120, 20]}},
                           "CCC": {"games": 10, "vs": {"A": [100, 45, 100, 15]}}}},
+    # Tonight's measuring stick: type A players ran +3 points over their own averages against BBB in 6 games
+    "log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"],
+    "log": [[f"2099-01-0{i + 1}", "BBB", "1", 20, 2, 3.0, 0.5] for i in range(6)],
 }
-DATA = {"season": 2027, "season_label": "2026-27", "players": {}, "schedule": [], "shot_types": SHOT_TYPES,
+DATA = {"season": 2027, "season_label": "2026-27", "players": {}, "shot_types": SHOT_TYPES, "injuries": {},
+        "schedule": [{"game_id": "900", "date": "2099-01-10", "time": "19:00", "away": "AAA", "home": "BBB", "status": "scheduled"},
+                     {"game_id": "901", "date": "2099-01-10", "time": "20:00", "away": "CCC", "home": "DDD", "status": "scheduled"}],
         "teams": {t: {"name": f"Team {t}", "short": t, "logo": "", "color": "336699"} for t in TEAMS}}
 
 
@@ -88,6 +94,32 @@ class DefenseVsType(unittest.TestCase):
         self.assertIn("3rd-least of 3", a[1][2])  # allows the most: 30th of 30 on a full league
         self.assertTrue(cells[0][1][1])  # AAA vs K: 10 shots, faded
         self.assertFalse(SITE.errors, SITE.errors)
+
+
+class Tonight(unittest.TestCase):
+    def setUp(self):
+        PAGE.evaluate("() => { ptView.game = ''; ptSetTab('tonight'); }")
+
+    def rows(self):
+        return PAGE.evaluate("() => [...document.querySelectorAll('#pt-body tbody tr:not(.pt-game-row)')].map((tr) => tr.innerText.replace(/\\s+/g, ' '))")
+
+    def test_every_player_on_the_slate_with_his_type_against_tonights_defense(self):
+        rows = self.rows()
+        deep = [r for r in rows if "Deep Guy" in r][0]
+        self.assertIn("+3.0", deep)  # type A vs BBB: +3 over their averages
+        self.assertIn("6/6", deep)
+        self.assertTrue(any("Edge Guy" in r for r in rows))
+
+    def test_the_carousel_isolates_one_game(self):
+        PAGE.click('[data-pt-game="901"]')
+        self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#pt-body .pt-game-row')].map((r) => r.innerText.trim())"), ["CCC @ DDD"])
+        PAGE.click('[data-pt-game="901"]')  # again = every game
+        self.assertEqual(len(PAGE.evaluate("() => [...document.querySelectorAll('#pt-body .pt-game-row')]")), 2)
+
+    def test_the_letter_badge_every_page_uses(self):
+        # nba-card.js nbaTypeBadge: beside a player's position on every NBA page (two letters when borderline)
+        self.assertEqual(PAGE.evaluate("() => (nbaTypeBadge('2').match(/pt-letter/g) || []).length"), 2)
+        self.assertEqual(PAGE.evaluate("() => nbaTypeBadge('99999')"), "")
 
 
 if __name__ == "__main__":

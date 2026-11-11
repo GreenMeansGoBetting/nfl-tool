@@ -389,6 +389,7 @@ function rowsOn(date) {
       });
       // the Reads come from the panel, which reads the whole season: none on a past night
       out[out.length - 1].reads = past ? frozenReads(gid, fz) : readsOf(out[out.length - 1]);
+      out[out.length - 1].tm = typeMatch(out[out.length - 1]);
     }
   }
   return out;
@@ -425,6 +426,7 @@ const SORTS = {
   line: (x) => (x.line === null ? -1 : x.line), avg: (x) => x.avg ?? -1, second: (x) => x.second ?? -1, vol: (x) => x.vol ?? -1,
   l5: (x) => hitShare(x.hits.l5), l10: (x) => hitShare(x.hits.l10), all: (x) => hitShare(x.hits.all),
   home: (x) => hitShare(x.hits.home), away: (x) => hitShare(x.hits.away), allow: (x) => (x.allowRank || -99),
+  tmatch: (x) => (x.tm && x.tm.c ? x.tm.c.avg : -99),
   ro: (x) => (x.reads.n ? x.reads.o / x.reads.n : -1), ru: (x) => (x.reads.n ? x.reads.u / x.reads.n : -1),
   pace: (x) => x.game.pace ?? -1, spread: (x) => (x.game.spread === null ? 99 : -x.game.spread), total: (x) => x.game.total ?? -1,
   result: (x) => x.result ?? -1,
@@ -470,6 +472,7 @@ const colsFor = () => [
   { label: "Home", key: "home", hit: true, title: "Home games over tonight's line" },
   { label: "Away", key: "away", hit: true, title: "Road games over tonight's line" },
   { label: "Opp<br>Allows", key: "allow", title: `What tonight's opponent allows a game in ${ALL_PROPS ? "that stat" : MK.unit.toLowerCase()} to his position, and where that ranks (1st = the most)` },
+  ...(ALL_PROPS || TM_FIELD[MK.market] ? [{ label: "Type<br>Matchup", key: "tmatch", title: "Players of his type (his colored letter, Player Types) against tonight's defense: how far over or under THEIR OWN averages they ran, how many of those games they beat it, ranked of the defenses (30th = gives up the most to his type, red). Points and Threes only (the types are how players shoot)." }] : []),
   { label: "O", key: "ro", read: true, title: `How many of the Reads in his research panel say Over, out of every Read on ${ALL_PROPS ? "that stat's" : "this"} page (colored by that share). The reads compare him to his position, so a star facing a weak defense leans Over: the line knows how good he is.` },
   { label: "U", key: "ru", read: true, title: `How many of the Reads in his research panel say Under, out of every Read on ${ALL_PROPS ? "that stat's" : "this"} page (colored by that share). The reads compare him to his position, so a bench player facing a tough defense leans Under: the line knows his role.` },
   { label: "Pace", key: "pace", game: true, title: "Tonight's pace: both teams' possessions a 48 minutes, averaged, and where that ranks among the 30 teams (1st = fastest)" },
@@ -522,6 +525,58 @@ function lastCell(x) {
   const tip = `${nameOf(x.pid)}: ${L.v} ${MK.unit.toLowerCase()} ${L.home ? "vs" : "@"} ${L.opp} on ${gameDate(L.date)} (his average ${fmt(x.avg)})`;
   return `<td class="num rs-two"${st ? ` style="${st}"` : ""} title="${tip}"><b>${L.v}</b><small>${x.avg === null ? "" : sgn(L.v - x.avg)}</small></td>`;
 }
+// ---- Type Matchup (Player Types; the owner, 2026-11-11: the letters across the whole site) ----
+// His type against tonight's defense, on Slate Standouts' measuring stick (data.json shot_types.log:
+// each night against that player's own other-games average). Beside Opp Allows (his position), never
+// replacing it. No pull toward the league: under TM_MIN games it's faded and unranked.
+const TM_FIELD = { points: "pts_diff", threes: "m3_diff" };
+const TM_SELF = { points: 1, threes: 2 }; // his own average's place in shot_types.players[].avg
+const TM_SCALE = { points: 5, threes: 1.4 }; // this far over / under their averages = the deepest color
+const TM_MIN = 6; // Slate Standouts' SS_MIN_GAMES
+const TM_CACHE = {};
+const tmType = (pid) => ((((typeof DATA !== "undefined" && DATA) || {}).shot_types || {}).players || {})[String(pid)] || null;
+// {defense: {type: {n, avg, hit, over, rows}}} from the games before `cut` (a past night never sees itself)
+function typeStick(market, cut) {
+  const key = `${market}|${cut || ""}`;
+  if (TM_CACHE[key]) return TM_CACHE[key];
+  const st = (DATA && DATA.shot_types) || {};
+  const out = {};
+  if (st.log && TM_FIELD[market]) {
+    const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+    st.log.forEach((r) => {
+      if (cut && r[f.date] >= cut) return;
+      const p = st.players[r[f.player]];
+      if (!p) return;
+      const c = ((out[r[f.def]] ||= {})[p.type] ||= { n: 0, sum: 0, over: 0, rows: [] });
+      const v = r[f[TM_FIELD[market]]];
+      c.n += 1;
+      c.sum += v;
+      if (v > 0) c.over += 1;
+      c.rows.push(r);
+    });
+    Object.values(out).forEach((bt) => Object.values(bt).forEach((c) => { c.avg = c.sum / c.n; c.hit = c.over / c.n; }));
+  }
+  return (TM_CACHE[key] = out);
+}
+// {p (his type entry), c (the cell), rank (30th = gives up the most), n (defenses ranked)} or null
+function typeMatch(x) {
+  const p = tmType(x.pid);
+  if (!p || !TM_FIELD[x.mk]) return null;
+  const stick = typeStick(x.mk, x.cut);
+  const c = (stick[x.opp] || {})[p.type] || null;
+  const ranked = Object.values(stick).map((bt) => bt[p.type]).filter((v) => v && v.n >= TM_MIN);
+  const rank = c && c.n >= TM_MIN ? 1 + ranked.filter((v) => v.avg < c.avg).length : null;
+  return { p, c, rank, n: ranked.length };
+}
+function typeCell(x) {
+  const m = x.tm;
+  if (!m) return '<td class="num rs-allow">--</td>';
+  const L = nbaTypeBadge(x.pid);
+  if (!m.c) return `<td class="num rs-allow" title="No games yet by his type against ${team(x.opp).name}"><b>--</b><small>${L}</small></td>`;
+  const thin = m.c.n < TM_MIN;
+  const tip = `Type ${m.p.type} against ${team(x.opp).name}: ${sgn(m.c.avg)} ${MK.unit.toLowerCase()} over their own averages, beat it in ${m.c.over} of ${m.c.n} games${m.rank ? `, ${ordinal(m.rank)} of ${m.n} defenses (30th = gives up the most to ${m.p.type})` : `; under ${TM_MIN} games, not ranked`}`;
+  return `<td class="num rs-allow${thin ? " rs-thin" : ""}" style="${m.rank ? rankStyle(m.rank, m.n) : ""}" title="${tip}"><b>${sgn(m.c.avg)}</b><small>${L} ${m.c.over}/${m.c.n}</small></td>`;
+}
 function allowCell(x) {
   if (!x.allow) return '<td class="num rs-allow">--</td>';
   const tip = `${team(x.opp).name} allow ${fmt(x.allow.v)} ${MK.unit.toLowerCase()} a game to ${x.p.pos}s (league ${fmt(x.allowLeague)}), ${dWords(dRank(x.allowRank, x.allowN), x.allowN)}, over ${x.allow.n} games`;
@@ -562,7 +617,7 @@ function row(x) {
   const stat = ALL_PROPS ? `<td class="rs-stat"><a href="${MK.market}.html" class="rs-stat-pill" style="--pill-h:${STAT_HUE[MK.market]}" title="${MK.unit} Research: every ${MK.unit.toLowerCase()} line">${MK.unit}</a></td>` : "";
   // a past night has no research panel: its tabs read the whole season, that night and after included
   return `<tr class="sim-row${x.live ? " live" : ""}${PANEL && !x.past ? " rs-click" : ""}${OPEN === key ? " open" : ""}" data-open="${key}">
-    <td class="sim-plcell"><span class="sim-pl-in">${headshot(x.pid)}<span class="rs-pl-txt" title="${nameOf(x.pid)}">${playerClick(x.pid, `<b>${nameOf(x.pid)}</b>`)}<span class="rs-pl-sub"><span class="muted-label">${x.p.pos || ""}</span>${statusPill(x.status)}<span class="sim-vs">${logo(x.team, 15)}<span>${x.home ? "vs" : "@"}</span>${logo(x.opp, 15)}</span></span></span></span></td>
+    <td class="sim-plcell"><span class="sim-pl-in">${headshot(x.pid)}<span class="rs-pl-txt" title="${nameOf(x.pid)}">${playerClick(x.pid, `<b>${nameOf(x.pid)}</b>`)}<span class="rs-pl-sub"><span class="muted-label">${x.p.pos || ""}</span>${nbaTypeBadge(x.pid)}${statusPill(x.status)}<span class="sim-vs">${logo(x.team, 15)}<span>${x.home ? "vs" : "@"}</span>${logo(x.opp, 15)}</span></span></span></span></td>
     ${stat}<td class="num rs-line">${x.line === null ? '<span class="muted-label">No Line</span>' : `<b>${fmt(x.line)}</b>`}</td>
     ${x.past ? "" : sideCell(x.g, x.pid, "o", x.line, x.team) + sideCell(x.g, x.pid, "u", x.line, x.team)}
     ${one(fmt(x.avg), x.avg, pool.avgV, `${fmt(x.avg)} ${MK.unit.toLowerCase()} a game in ${x.gp} games`)}
@@ -571,6 +626,7 @@ function row(x) {
     ${lastCell(x)}
     ${hitCell(x.hits.l5, `Last 5 games over ${ln}`)}${hitCell(x.hits.l10, `Last 10 games over ${ln}`)}${hitCell(x.hits.all, `This season's games over ${ln}`)}${hitCell(x.hits.home, `Home games over ${ln}`)}${hitCell(x.hits.away, `Road games over ${ln}`)}
     ${allowCell(x)}
+    ${ALL_PROPS || TM_FIELD[MK.market] ? typeCell(x) : ""}
     ${readCells(x)}
     ${gameCells(x)}
     ${x.past ? resultCell(x) : `<td class="sim-tagc"><div class="sim-rtags">${x.without.map(withoutPill).join("") || '<span class="muted-label">None</span>'}</div></td>`}
@@ -590,10 +646,10 @@ const RS_ROWS = 6;
 // Matchup (it repeated Form), and a Ladder of how often he hits each number.
 // Rebounds (the owner, 2026-11-04): Rebounding (chances and his share of them) and Miss Zones.
 let RS_TABS = null; // the market in play's tabs (setMarket)
-const tabsFor = () => (THREES ? { left: ["Form", "Shooting", "Shot Map", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
+const tabsFor = () => (THREES ? { left: ["Form", "Shooting", "Shot Map", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates", "Type Matchup"] }
   : REBS ? { left: ["Form", "Rebounding", "Miss Zones", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
   : ASTS ? { left: ["Form", "Playmaking", "Assist Zones", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
-  : { left: ["Form", "Scoring", "Matchup", "Game Script"], right: ["Vs The Line", "Rotation", "Teammates"] });
+  : { left: ["Form", "Scoring", "Matchup", "Game Script"], right: ["Vs The Line", "Rotation", "Teammates", "Type Matchup"] });
 const RSV = { left: "Form", right: "Vs The Line" }; // the open tab of each box (kept while the page is open)
 const SCRIPT_RANGE = 5; // Game Script: his games within this many points of tonight's spread / total, either way (two possessions)
 const PACE_RANGE = 2; // ... and within this many possessions of tonight's pace
@@ -1572,10 +1628,46 @@ function teammatesAstTab(x) {
   return gridOf(head, rows, { cls: "rs-wide" });
 }
 
-const RS_TAB = { Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: teammatesTab, // Teammates: setMarket
+// Type Matchup (Points and Threes): his type against tonight's defense for both shooting stats, then the
+// latest games by players of his type against that defense (Players Like Him), on the research grid.
+function typeTab(x) {
+  const p = tmType(x.pid);
+  if (!p) return gridOf(HD("", "plain") + HD("Type Matchup", "plain", "rs-s7"), [LB("") + T(`Fewer than ${(DATA.shot_types || {}).min_shots || 50} shots this season: no Player Type yet`, null, "", "rs-s7")]);
+  const L = nbaTypeBadge(x.pid);
+  const stat = (market, label) => {
+    const m = typeMatch({ ...x, mk: market });
+    const self = (p.avg || [])[TM_SELF[market]];
+    const own = T(self ?? "--", null, `His ${label.toLowerCase()} a game this season`);
+    if (!m || !m.c) return LB(label) + own + T("No games yet by his type against this defense", null, "", "rs-s4");
+    const s = m.c.n >= TM_MIN ? clamp1(m.c.avg / TM_SCALE[market]) : null;
+    const tip = `Type ${p.type} against ${team(x.opp).name}: ${sgn(m.c.avg)} over their own averages in ${m.c.n} games`;
+    return LB(label) + own + DT(sgn(m.c.avg), s, tip)
+      + DT(`${m.c.over}/${m.c.n}`, m.c.n >= TM_MIN ? clamp1((m.c.hit - 0.5) * 2) : null, `They beat their own average in ${m.c.over} of ${m.c.n} games`)
+      + T(m.c.n, null, "Games by his type against this defense")
+      + DT(m.rank ? ordinal(m.rank) : "--", s, m.rank ? `${ordinal(m.rank)} of ${m.n} defenses (30th = gives up the most to ${p.type})` : `Under ${TM_MIN} games: not ranked`);
+  };
+  const key = `<div class="rs-t rs-corner"><span class="rs-key rs-him">${jersey(x.pid)}</span><span class="rs-key rs-def">${logo(x.opp, 15)}vs ${L}</span></div>`;
+  const head = key + HD("His Avg", "him") + HD("+/- Avg", "def", "", "How far over / under their own averages players of his type ran against this defense") + HD("Beat Avg", "def") + HD("Games", "def") + HD("Rank", "def");
+  const m = typeMatch({ ...x, mk: "points" });
+  const st = DATA.shot_types;
+  const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+  const recent = m && m.c ? [...m.c.rows].sort((a, b) => (a[f.date] < b[f.date] ? 1 : -1)).slice(0, 3) : [];
+  const like = recent.map((r) => {
+    const q = st.players[r[f.player]] || {};
+    return LB(shortName(q.name), `${q.name}, ${gameDate(r[f.date])}`) + T(gameDate(r[f.date]), null) + T(r[f.pts], null)
+      + DT(sgn(r[f.pts_diff]), clamp1(r[f.pts_diff] / 10)) + T(r[f.m3], null) + DT(sgn(r[f.m3_diff]), clamp1(r[f.m3_diff] / 3));
+  });
+  // ONE grid (the box's six rows): Points and Threes, then a sub-header and the latest games by players like him
+  const sub = LB(`Like Him ${logo(x.opp, 15)}`, `The latest games by type ${p.type} players against ${team(x.opp).name}`) + HD("Date", "plain") + HD("PTS", "def") + HD("+/- Avg", "def") + HD("3PM", "def") + HD("+/- Avg", "def");
+  const rows = [stat("points", "Points"), stat("threes", "Threes"), sub, ...(like.length ? like : [LB("") + T("No games yet by his type against this defense", null, "", "rs-s5")])];
+  return gridOf(head, rows, { bands: [["him", 2, 1], ["def", 3, 4]], cls: "rs-five" });
+}
+
+const RS_TAB = { "Type Matchup": typeTab, Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: teammatesTab, // Teammates: setMarket
   Shooting: shootingTab, "Shot Map": mapTab, Ladder: ladderTab, Rebounding: reboundingTab, "Miss Zones": missZonesTab, Playmaking: playmakingTab, "Assist Zones": assistZonesTab };
 let RS_TAB_TIP = {};
 const BASE_TIPS = {
+  "Type Matchup": "Players of his type (his colored letter, Player Types: how he shoots) against tonight's defense: his own average, how far over / under THEIR OWN averages they ran, how many of those games they beat it, the games, and the defense's rank (30th = gives up the most to his type, red). Then the latest of those games. Beside his position's numbers, never instead of them.",
   Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (30th = allows the most, red).",
   Scoring: "Where his points come from (share, rank among his position, points a game) beside what tonight's defense allows his position, and the read.",
   Matchup: "His side and the defense's side of the same thing. Over / Under only when one side clearly points one way and the other doesn't point the other way.",

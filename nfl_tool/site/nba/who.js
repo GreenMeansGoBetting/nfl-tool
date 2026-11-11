@@ -137,7 +137,7 @@ function whoTeam(abbr, spec) {
   const rows = pick.map((x) => {
     const tag = out.has(String(x.id)) ? `<span class="gs-inj-status tier-bad">Out</span>` : dtd.has(String(x.id)) ? `<span class="gs-inj-status tier-mid">DTD</span>` : "";
     const share = total ? ((x[spec.share] || 0) * x.gp) / total : null;
-    return `<tr${out.has(String(x.id)) ? ' class="nba-out-row"' : ""}><td class="mb-stat mb-who-name">${playerClick(x.id, x.name)} <span class="muted-label">${x.pos || ""}</span>${tag}</td>
+    return `<tr${out.has(String(x.id)) ? ' class="nba-out-row"' : ""}><td class="mb-stat mb-who-name">${playerClick(x.id, x.name)} <span class="muted-label">${x.pos || ""}</span>${nbaTypeBadge(x.id)}${tag}</td>
       ${whoTile("gp", x.gp, String, `${x.name}: ${x.gp} games played`)}${whoTile("min", x.min, numW, `${x.name}: ${numW(x.min)} minutes a game`)}
       ${cols.map(([l, k, f, t, flip]) => whoTile(k, x[k], f, `${x.name}: ${t} ${f(x[k])}`, flip)).join("")}
       <td class="mb-v"${share === null ? "" : ` style="background:${scaleHsla(Math.round(Math.min(1, share / 0.35) * 120), 70, 45, 0.32)}"`} title="${whoEsc(`${x.name}: ${pctW(share)} of ${abbr}'s ${WHO_COLS[spec.share][3].toLowerCase()} this season`)}"><b>${pctW(share)}</b></td></tr>`;

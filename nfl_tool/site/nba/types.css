@@ -43,14 +43,7 @@
   background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
 .pt-logo img { width: 24px; height: 24px; }
 
-/* The type letters: a rainbow, A red to K purple (the owner, 2026-11-11). A filled badge, never a
-   number tile, so a red A reads as "the deepest shooters", not "bad". */
-.pt-letter { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px;
-  border-radius: 13px; font: 800 0.95rem var(--font-display); color: #fff; background: hsl(var(--h), 70%, 42%);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
-.pt-letter.pt-lean { background: transparent; color: hsl(var(--h), 75%, 62%); box-shadow: inset 0 0 0 2px hsl(var(--h), 70%, 50%); text-shadow: none; }
-html[data-theme="light"] .pt-letter.pt-lean { color: hsl(var(--h), 70%, 36%); }
-.pt-slash { color: var(--muted); margin: 0 2px; font-weight: 700; }
+/* the letter badges themselves live in suite.css (every NBA page shows them) */
 .pt-type-cell { white-space: nowrap; }
 button.pt-chip { cursor: pointer; border: none; padding: 0; background: none; }
 button.pt-chip .pt-letter { opacity: 0.45; }
@@ -61,3 +54,7 @@ tr.pt-pick { cursor: pointer; }
 tr.pt-pick:hover td.pt-stick { background: var(--panel-2); }
 .pt-grid tr.pt-leans td { opacity: 0.75; }
 .pt-grid th.pt-lead .pt-arrow { position: static; margin-left: 3px; }
+/* Tonight: the game carousel (style.css .matchup-card) and a row naming each game */
+.pt-sched { width: 100%; margin: 0 0 6px; }
+.pt-grid tr.pt-game-row td { text-align: left; font: 800 0.82rem var(--font-display); letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 10px 6px 3px; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--panel); }

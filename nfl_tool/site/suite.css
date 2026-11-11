@@ -146,3 +146,16 @@ html:not(.is-owner):not(.local-dev):not(.suite-public) .nba-soon { display: bloc
   .pts-testing-title { font-size: 1.25rem; }
   .pts-testing-record { align-items: flex-start; text-align: left; }
 }
+
+/* The type letters: a rainbow, A red to K purple (the owner, 2026-11-11). A filled badge, never a
+   number tile, so a red A reads as "the deepest shooters", not "bad". */
+.pt-letter { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px;
+  border-radius: 13px; font: 800 0.95rem var(--font-display); color: #fff; background: hsl(var(--h), 70%, 42%);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
+.pt-letter.pt-lean { background: transparent; color: hsl(var(--h), 75%, 62%); box-shadow: inset 0 0 0 2px hsl(var(--h), 70%, 50%); text-shadow: none; }
+html[data-theme="light"] .pt-letter.pt-lean { color: hsl(var(--h), 70%, 36%); }
+.pt-slash { color: var(--muted); margin: 0 2px; font-weight: 700; }
+/* the small badge beside a player's position, everywhere a player shows (nba-card.js nbaTypeBadge) */
+.pt-badge { display: inline-flex; align-items: center; gap: 1px; margin: 0 3px; vertical-align: middle; white-space: nowrap; }
+.pt-letter.pt-sm { min-width: 17px; height: 17px; padding: 0 4px; font-size: 0.7rem; border-radius: 9px; }
+.pt-badge .pt-slash { margin: 0 1px; font-size: 0.7rem; }

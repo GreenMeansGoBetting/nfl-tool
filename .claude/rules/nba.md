@@ -425,7 +425,7 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
 
 ## The player card (`nba-card.js`)
 
-- **Every place an NBA page shows a player wraps him with `playerClick(id, inner)`** (ESPN id). Pages
+- **Every place an NBA page shows a player wraps him with `playerClick(id, inner)`** (ESPN id). And beside his position, his Player Type letter (`nbaTypeBadge(id)`). Pages
   load `../book-odds.js` and `nba-card.js` after their own script; every name in it starts `nbaCard` /
   `NBA_CARD`. Same shell as NFL / NHL (`#player-card-modal`).
 - Head + this season's tiles (Games, Min, Pts, Reb, Ast, 3PM, PRA). **Game Log**: this season ONLY
@@ -570,6 +570,17 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
   (`#types` / `#players` / `#defense`). Tiles on the 8-step scale, the most = green; Defense Vs Type
   ranked from the defense (30th = allows the most, red), Points / Threes Made / Shots a game or FG%,
   under `PT_DEF_MIN` 30 shots faded and unranked. Filtering to a type lists its players then leaners.
+- **The letter goes wherever a player's name goes** (the owner, 2026-11-11: useful "across the entire
+  site"): `nbaTypeBadge(id)` (nba-card.js; CSS `.pt-letter` / `.pt-badge` in suite.css) beside his
+  position: player card, Prop Research list, who.js pop-ups, Zone Matchup Targets. A new place that
+  shows an NBA player uses `playerClick` AND `nbaTypeBadge`.
+- **Type beside position, never instead**: Prop Research's **Type Matchup** list column (after Opp
+  Allows; Points / Threes, All Props for those rows) and panel tab (right box: Points / Threes for his
+  type vs tonight's defense, then the latest "Like Him" games), research.js `typeMatch` / `typeTab`,
+  Slate Standouts' measuring stick (`TM_MIN` 6), colored like Opp Allows (30th = gives up the most, red).
+- **Tonight tab** (first on Player Types): the game carousel (click a game to isolate it, again for all),
+  every player on the slate (Out / Doubtful off) with his letter, his PTS / 3PM, and his type's +/- and
+  beat-average x / y against tonight's defense (`ptTonightTab`).
 - Next (the owner): one more pass on the live page, then matchups by type or the next type family
   (rebounding / assisting / playmaking). Swap position splits for types only where a replay shows types
   predict better. Tests: `test_nba_shot_types.py`, `test_nba_types_site.py`.

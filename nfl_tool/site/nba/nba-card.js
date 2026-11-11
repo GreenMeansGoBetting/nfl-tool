@@ -50,6 +50,16 @@ function nbaCardPlayer(id) {
   const p = ((nbaCardSeason() || {}).players || {})[id];
   return p ? { id, name: p.name, team: p.team, pos: p.pos || "" } : null;
 }
+// His Player Type (shot_types.py, data.json `shot_types`): a rainbow letter badge beside his position wherever
+// an NBA player shows (the owner, 2026-11-11: the letters belong across the whole site). Two letters when
+// he's borderline. Empty for a player with too few shots.
+function nbaTypeBadge(id) {
+  const p = ((((typeof DATA !== "undefined" && DATA) || {}).shot_types || {}).players || {})[String(id)];
+  if (!p) return "";
+  const b = (L, lean) => `<span class="pt-letter pt-sm${lean ? " pt-lean" : ""}" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+  const tip = `Player Type ${p.type}${p.border ? `, leans ${p.lean}` : ""}: how he shoots (NBA menu, Player Types)`;
+  return `<span class="pt-badge" title="${tip}">${b(p.type)}${p.border ? `<span class="pt-slash">/</span>${b(p.lean, true)}` : ""}</span>`;
+}
 function playerClick(id, inner) {
   return id ? `<span class="player-click" data-nba-player="${id}">${inner}</span>` : inner;
 }
@@ -284,7 +294,7 @@ function nbaCardRender() {
   const opp = g ? (g.away === p.team ? g.home : g.away) : null;
   const t = nbaCardTeam(p.team);
   const rgb = [0, 2, 4].map((i) => parseInt((t.color || "555555").slice(i, i + 2), 16)).join(",");
-  const facts = [p.pos, `${nbaCardLogo(p.team)} ${t.name}`, opp ? `${g.away === p.team ? "@" : "vs"} ${nbaCardLogo(opp)} ${opp} ${nbaCardDate(g.date)}` : ""].filter(Boolean);
+  const facts = [`${p.pos || ""}${nbaTypeBadge(p.id)}`, `${nbaCardLogo(p.team)} ${t.name}`, opp ? `${g.away === p.team ? "@" : "vs"} ${nbaCardLogo(opp)} ${opp} ${nbaCardDate(g.date)}` : ""].filter(Boolean);
   const head = `<div class="pc-head" style="background:rgba(${rgb},0.22);border-left:4px solid rgb(${rgb})">
       <img src="https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${p.id}.png&w=96&h=70&scale=crop" alt="" class="nba-pc-photo" loading="lazy" onerror="this.style.visibility='hidden'">
       <div class="pc-id"><div class="pc-name">${p.name}</div><div class="pc-sub">${facts.join(" &middot; ")}</div></div>

@@ -130,7 +130,7 @@ function zmTable(rows, opts = {}) {
       const g = zmGame(p.game_id);
       const { line, price } = zmPrice(id, p, r);
       return `<tr class="zm-row${id === ZM.player ? " selected" : ""}${g && g.started ? " zm-started" : ""}" data-player="${id}">
-        <td class="zm-name">${zmLogo(p.team, 18)} ${playerClick(id, p.name)} <small>${p.pos || ZM_GROUP[p.group]}</small></td>
+        <td class="zm-name">${zmLogo(p.team, 18)} ${playerClick(id, p.name)} <small>${p.pos || ZM_GROUP[p.group]}</small>${nbaTypeBadge(id)}</td>
         ${opts.noVs ? "" : `<td>${zmLogo(p.opp, 18)}</td>`}
         ${opts.read ? `<td><span class="zm-read" style="background:${zmShade(r.score, 0.25)}">${zmReadWord(r)}</span></td>` : ""}
         <td class="num" style="background:${zmShade(r.score, 0.25)}" title="${zmWord(r)}"><b>${zmPct(r.score)}</b></td>

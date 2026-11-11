@@ -8,7 +8,8 @@
 // `shot_types`. Stands on its own (no common.js), like the League Stats Chart.
 
 let DATA = null;
-const ptView = { tab: "types", type: "", pos: "", border: false, q: "", sort: "type", dir: 1, stat: "pts", dsort: "", ddir: 1 };
+let ptDay = 0; // Tonight: the day on screen
+const ptView = { game: "", tab: "types", type: "", pos: "", border: false, q: "", sort: "type", dir: 1, stat: "pts", dsort: "", ddir: 1 };
 
 const ptEl = (id) => document.getElementById(id);
 const ptTeam = (abbr) => (DATA.teams || {})[abbr] || { name: abbr, color: "555555", logo: "" };
@@ -205,9 +206,97 @@ function ptFoot() {
     + (st.moved !== null && st.moved !== undefined ? ` ${st.moved} changed letters at the last redraw.` : "");
 }
 
+// ---- Tonight (the owner, 2026-11-11): every player on a night's slate, his letter, and how his type has
+// done against tonight's defense over their own averages (Slate Standouts' measuring stick, unfiltered).
+// The game carousel picks one game to isolate; again = every game. ----
+const PT_TN_MIN = 6; // Slate Standouts' SS_MIN_GAMES: fewer games = faded, not ranked
+const PT_TN_OUT = new Set(["Out", "Doubtful"]);
+const ptDays = () => [...new Set((DATA.schedule || []).map((g) => g.date))].sort();
+// {defense: {type: {pts: {n, avg, over}, m3: {...}}}} from the games before `before`
+function ptStick(before) {
+  const st = DATA.shot_types;
+  const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+  const out = {};
+  (st.log || []).forEach((r) => {
+    if (r[f.date] >= before) return;
+    const p = st.players[r[f.player]];
+    if (!p) return;
+    [["pts", "pts_diff"], ["m3", "m3_diff"]].forEach(([k, field]) => {
+      const c = (((out[r[f.def]] ||= {})[p.type] ||= {})[k] ||= { n: 0, sum: 0, over: 0 });
+      c.n += 1;
+      c.sum += r[f[field]];
+      if (r[f[field]] > 0) c.over += 1;
+    });
+  });
+  Object.values(out).forEach((bt) => Object.values(bt).forEach((bk) => Object.values(bk).forEach((c) => { c.avg = c.sum / c.n; })));
+  return out;
+}
+// the defense's rank against a type in a stat, of the defenses with enough games: 30th = gives up the most (red)
+function ptTnRank(stick, type, k, def) {
+  const vals = Object.entries(stick).map(([d, bt]) => [d, ((bt[type] || {})[k])]).filter(([, c]) => c && c.n >= PT_TN_MIN);
+  const mine = vals.find(([d]) => d === def);
+  return mine ? { r: 1 + vals.filter(([, c]) => c.avg < mine[1].avg).length, n: vals.length } : null;
+}
+function ptSchedule(date) {
+  const games = (DATA.schedule || []).filter((g) => g.date === date);
+  const logo = (abbr) => `<img src="${ptTeam(abbr).logo}" alt="${abbr}" class="team-logo" style="width:28px;height:28px" loading="lazy">`;
+  const label = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  return `<div class="schedule-scroller pt-sched"><div class="week-picker"><button type="button" id="pt-day-prev" class="week-nav-btn"${ptDay <= 0 ? " disabled" : ""}>&lsaquo;</button><span class="week-label">${label}</span><button type="button" id="pt-day-next" class="week-nav-btn"${ptDay >= ptDays().length - 1 ? " disabled" : ""}>&rsaquo;</button></div>
+    <div class="matchup-row">${games.map((g) => `<button type="button" class="matchup-card${String(g.game_id) === ptView.game ? " selected" : ""}" data-pt-game="${g.game_id}" title="Show only this game (click again for every game)">
+      <span class="matchup-teams-row">${logo(g.away)}<span class="at">@</span>${logo(g.home)}</span><span class="matchup-date">${typeof gmgGameTime === "function" ? gmgGameTime(g, false) : g.time || ""}</span></button>`).join("")}</div></div>`;
+}
+function ptTonightTab() {
+  const all = ptDays();
+  const date = all[ptDay];
+  const games = (DATA.schedule || []).filter((g) => g.date === date && (!ptView.game || String(g.game_id) === ptView.game));
+  ptEl("pt-bar").innerHTML = ptSchedule(date);
+  const st = DATA.shot_types;
+  const stick = ptStick(date || "9999");
+  const out = new Set(Object.values(DATA.injuries || {}).flat().filter((x) => PT_TN_OUT.has(x.status)).map((x) => String(x.id)));
+  const players = ptPlayers();
+  const avgRank = (i) => { const vals = players.map((p) => (p.avg || [])[i] ?? null); return (v) => (v === null || v === undefined ? null : 1 + vals.filter((x) => x !== null && x > v).length); };
+  const ptsRank = avgRank(1), m3Rank = avgRank(2);
+  const groups = [
+    ["Points", "od-g0", [["self_pts", "His PTS", "His points a game this season"], ["pts", "+/- Avg", "Players of his type against tonight's defense: points over / under their own averages"], ["pts_hit", "Beat Avg", "How many of those games they beat their own average"]]],
+    ["Threes", "od-g1", [["self_m3", "His 3PM", "His threes made a game this season"], ["m3", "+/- Avg", "Players of his type against tonight's defense: threes over / under their own averages"], ["m3_hit", "Beat Avg", "How many of those games they beat their own average"]]],
+  ];
+  const lead = [{ label: "Player", stick: true }, { label: "Team" }, { label: "Type" }, { label: "Vs" }];
+  const widths = [170, 52, 84, 52];
+  const fmt = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
+  const cls = (g, i, n) => `${g} od-gt${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}`;
+  const tile = (style, text, tip, thin) => `<div class="od-tile pt-tile${thin ? " pt-thin" : ""}" style="${style}" title="${ptEsc(tip)}"><b>${text}</b></div>`;
+  const statCells = (p, def, k, selfV, selfRank, g, label) => {
+    const c = ((stick[def] || {})[p.type] || {})[k];
+    const rk = ptTnRank(stick, p.type, k, def);
+    const self = tile(selfRank ? ptRankStyle(selfRank, players.length) : "", selfV === null || selfV === undefined ? "--" : selfV.toFixed(1), `${p.name}: ${selfV ?? "--"} a game`, false);
+    if (!c) return `<td class="${cls(g, 0, 3)}">${self}</td><td class="${cls(g, 1, 3)}">${tile("", "--", `No games yet by type ${p.type} against ${def}`, true)}</td><td class="${cls(g, 2, 3)}">${tile("", "--", "", true)}</td>`;
+    const thin = c.n < PT_TN_MIN;
+    const st = !thin && rk ? ptRankStyle(rk.r, rk.n) : "";
+    const tip = `Type ${p.type} vs ${def}: ${fmt(c.avg)} ${label} over their own averages in ${c.n} games${rk ? `, ${ptOrdinal(rk.r)} of ${rk.n} defenses (30th = gives up the most)` : `; under ${PT_TN_MIN} games, not ranked`}`;
+    return `<td class="${cls(g, 0, 3)}">${self}</td><td class="${cls(g, 1, 3)}">${tile(st, fmt(c.avg), tip, thin)}</td><td class="${cls(g, 2, 3)}">${tile(st, `${c.over}/${c.n}`, `They beat their own average in ${c.over} of ${c.n} games`, thin)}</td>`;
+  };
+  const head = ptHead(lead, groups, null, 1);
+  const width = ptWidth(widths, groups);
+  const body = games.map((g) => {
+    const rows = [[g.away, g.home], [g.home, g.away]].flatMap(([mine, def]) => players.filter((p) => p.team === mine && !out.has(String(p.id)))
+      .sort((a, b) => ((b.avg || [])[1] || 0) - ((a.avg || [])[1] || 0))
+      .map((p) => `<tr><td class="pt-stick pt-name" title="${ptEsc(p.name)}">${playerClick(p.id, ptEsc(p.name))}<small>${ptEsc(p.pos || "")}</small></td>
+        <td><div class="pt-logo" style="--team:${ptRgb(mine)}">${ptTeam(mine).logo ? `<img src="${ptTeam(mine).logo}" alt="${mine}" loading="lazy">` : mine}</div></td>
+        <td class="pt-type-cell">${ptTypeCell(p)}</td>
+        <td><div class="pt-logo" style="--team:${ptRgb(def)}" title="Tonight's defense: ${ptEsc(ptTeam(def).name)}">${ptTeam(def).logo ? `<img src="${ptTeam(def).logo}" alt="${def}" loading="lazy">` : def}</div></td>
+        ${statCells(p, def, "pts", (p.avg || [])[1], ptsRank((p.avg || [])[1]), "od-g0", "points")}
+        <td class="od-ggap"></td>${statCells(p, def, "m3", (p.avg || [])[2], m3Rank((p.avg || [])[2]), "od-g1", "threes")}</tr>`));
+    return `<tr class="pt-game-row"><td class="pt-stick" colspan="${lead.length + 7}">${g.away} @ ${g.home}</td></tr>${rows.join("")}`;
+  }).join("");
+  ptEl("pt-body").innerHTML = games.length
+    ? `<table class="data-table od-grid pt-grid" style="width:${width}px">${ptColgroup(widths, groups)}<thead>${head}</thead><tbody>${body}</tbody></table>`
+    : `<p class="no-data-note">No games this day.</p>`;
+}
+
 function ptRender() {
   document.querySelectorAll(".pt-tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === ptView.tab));
-  if (ptView.tab === "players") ptPlayersTab();
+  if (ptView.tab === "tonight") ptTonightTab();
+  else if (ptView.tab === "players") ptPlayersTab();
   else if (ptView.tab === "defense") ptDefenseTab();
   else ptTypesTab();
 }
@@ -221,6 +310,16 @@ document.addEventListener("click", (e) => {
   if (e.target.closest(".player-click")) return; // the player card opens (nba-card.js)
   const tab = e.target.closest(".pt-tab");
   if (tab) return ptSetTab(tab.dataset.tab);
+  const card = e.target.closest("[data-pt-game]");
+  if (card) {
+    ptView.game = ptView.game === card.dataset.ptGame ? "" : card.dataset.ptGame;
+    return ptRender();
+  }
+  if (e.target.closest("#pt-day-prev") || e.target.closest("#pt-day-next")) {
+    ptDay = Math.max(0, Math.min(ptDays().length - 1, ptDay + (e.target.closest("#pt-day-prev") ? -1 : 1)));
+    ptView.game = "";
+    return ptRender();
+  }
   const pick = e.target.closest("tr.pt-pick");
   if (pick) {
     ptView.type = pick.dataset.type;
@@ -278,7 +377,7 @@ document.addEventListener("input", (e) => {
 });
 window.addEventListener("hashchange", () => {
   const tab = location.hash.slice(1);
-  if (["types", "players", "defense"].includes(tab) && tab !== ptView.tab) ptSetTab(tab);
+  if (["tonight", "types", "players", "defense"].includes(tab) && tab !== ptView.tab) ptSetTab(tab);
 });
 
 fetch("data.json")
@@ -293,7 +392,10 @@ fetch("data.json")
     ptEl("empty-state").hidden = true;
     ptEl("pt-app").hidden = false;
     const tab = location.hash.slice(1);
-    ptView.tab = ["types", "players", "defense"].includes(tab) ? tab : "types";
+    ptView.tab = ["tonight", "types", "players", "defense"].includes(tab) ? tab : "types";
+    const days = ptDays();
+    const today = new Date().toLocaleDateString("en-CA");
+    ptDay = Math.max(0, days.indexOf(days.find((d) => d >= today) || days[days.length - 1]));
     ptFoot();
     ptRender();
   })
