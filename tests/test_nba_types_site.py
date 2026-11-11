@@ -110,6 +110,13 @@ class Tonight(unittest.TestCase):
         self.assertIn("6/6", deep)
         self.assertTrue(any("Edge Guy" in r for r in rows))
 
+    def test_him_and_the_defense_in_separate_blocks(self):
+        # the owner, 2026-11-11: his own numbers (blue) apart from what the defense allows his type (purple)
+        bands = PAGE.evaluate("() => [...document.querySelectorAll('#pt-body .od-ggroups th[colspan]')].map((th) => [th.innerText.trim().toLowerCase(), th.classList.contains('od-g1') ? 'him' : 'def'])")
+        self.assertEqual(bands, [["his points", "him"], ["defense vs his type", "def"], ["his threes", "him"], ["defense vs his type", "def"]])
+        labels = PAGE.evaluate("() => [...document.querySelectorAll('#pt-body .od-glabels th')].map((th) => th.innerText.trim().toLowerCase())")
+        self.assertEqual(labels[:4], ["line", "avg", "+/- avg", "beat avg"])
+
     def test_the_carousel_isolates_one_game(self):
         PAGE.click('[data-pt-game="901"]')
         self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#pt-body .pt-game-row')].map((r) => r.innerText.trim())"), ["CCC @ DDD"])

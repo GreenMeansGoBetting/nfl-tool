@@ -58,3 +58,5 @@ tr.pt-pick:hover td.pt-stick { background: var(--panel-2); }
 .pt-sched { width: 100%; margin: 0 0 6px; }
 .pt-grid tr.pt-game-row td { text-align: left; font: 800 0.82rem var(--font-display); letter-spacing: 0.05em; text-transform: uppercase;
   padding: 10px 6px 3px; color: var(--muted); border-bottom: 1px solid var(--border); background: var(--panel); }
+/* a group header longer than its columns wraps (Tonight: "Defense Vs His Type" over two columns) */
+.pt-grid .od-ggroups th[colspan] { white-space: normal; line-height: 1.1; }

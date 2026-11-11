@@ -256,24 +256,38 @@ function ptTonightTab() {
   const players = ptPlayers();
   const avgRank = (i) => { const vals = players.map((p) => (p.avg || [])[i] ?? null); return (v) => (v === null || v === undefined ? null : 1 + vals.filter((x) => x !== null && x > v).length); };
   const ptsRank = avgRank(1), m3Rank = avgRank(2);
+  // Him (blue) beside the defense against his type (purple), each in its own block (the owner, 2026-11-11:
+  // "its not super clear that the offensive player is the first column ... separate the shaded background").
   const groups = [
-    ["Points", "od-g0", [["self_pts", "His PTS", "His points a game this season"], ["pts", "+/- Avg", "Players of his type against tonight's defense: points over / under their own averages"], ["pts_hit", "Beat Avg", "How many of those games they beat their own average"]]],
-    ["Threes", "od-g1", [["self_m3", "His 3PM", "His threes made a game this season"], ["m3", "+/- Avg", "Players of his type against tonight's defense: threes over / under their own averages"], ["m3_hit", "Beat Avg", "How many of those games they beat their own average"]]],
+    ["His Points", "od-g1", [["line_pts", "Line", "His points line tonight (the books' main line)"], ["self_pts", "Avg", "His points a game this season"]]],
+    ["Defense Vs His Type", "od-g2", [["pts", "+/- Avg", "Players of his type against tonight's defense: points over / under their own averages"], ["pts_hit", "Beat Avg", "How many of those games they beat their own average"]]],
+    ["His Threes", "od-g1", [["line_m3", "Line", "His threes line tonight (the books' main line)"], ["self_m3", "Avg", "His threes made a game this season"]]],
+    ["Defense Vs His Type", "od-g2", [["m3", "+/- Avg", "Players of his type against tonight's defense: threes over / under their own averages"], ["m3_hit", "Beat Avg", "How many of those games they beat their own average"]]],
   ];
   const lead = [{ label: "Player", stick: true }, { label: "Team" }, { label: "Type" }, { label: "Vs" }];
   const widths = [170, 52, 84, 52];
   const fmt = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
   const cls = (g, i, n) => `${g} od-gt${i === 0 ? " od-gl" : ""}${i === n - 1 ? " od-gr" : ""}`;
   const tile = (style, text, tip, thin) => `<div class="od-tile pt-tile${thin ? " pt-thin" : ""}" style="${style}" title="${ptEsc(tip)}"><b>${text}</b></div>`;
-  const statCells = (p, def, k, selfV, selfRank, g, label) => {
+  // his line tonight: the player card's main-line rule over every book's quotes (none = "--")
+  const lineOf = (p, mine, g, stat) => {
+    if (typeof bookQuotes !== "function" || typeof nbaCardMainLine !== "function") return null;
+    const quotes = bookQuotes({ kind: "prop", team: mine, pid: p.id, stat, game: `${g.away}_${g.home}` });
+    return quotes.length ? nbaCardMainLine(quotes) : null;
+  };
+  const himCells = (p, mine, g, stat, selfV, selfRank) => {
+    const line = lineOf(p, mine, g, stat);
+    return `<td class="${cls("od-g1", 0, 2)}">${tile("", line === null ? "--" : line, `${p.name}: ${line === null ? "no line yet" : `${stat} line ${line}`} tonight`, false)}</td>`
+      + `<td class="${cls("od-g1", 1, 2)}">${tile(selfRank ? ptRankStyle(selfRank, players.length) : "", selfV === null || selfV === undefined ? "--" : selfV.toFixed(1), `${p.name}: ${selfV ?? "--"} ${stat} a game this season`, false)}</td>`;
+  };
+  const defCells = (p, def, k, label) => {
     const c = ((stick[def] || {})[p.type] || {})[k];
+    if (!c) return `<td class="${cls("od-g2", 0, 2)}">${tile("", "--", `No games yet by type ${p.type} against ${def}`, true)}</td><td class="${cls("od-g2", 1, 2)}">${tile("", "--", "", true)}</td>`;
     const rk = ptTnRank(stick, p.type, k, def);
-    const self = tile(selfRank ? ptRankStyle(selfRank, players.length) : "", selfV === null || selfV === undefined ? "--" : selfV.toFixed(1), `${p.name}: ${selfV ?? "--"} a game`, false);
-    if (!c) return `<td class="${cls(g, 0, 3)}">${self}</td><td class="${cls(g, 1, 3)}">${tile("", "--", `No games yet by type ${p.type} against ${def}`, true)}</td><td class="${cls(g, 2, 3)}">${tile("", "--", "", true)}</td>`;
     const thin = c.n < PT_TN_MIN;
     const st = !thin && rk ? ptRankStyle(rk.r, rk.n) : "";
     const tip = `Type ${p.type} vs ${def}: ${fmt(c.avg)} ${label} over their own averages in ${c.n} games${rk ? `, ${ptOrdinal(rk.r)} of ${rk.n} defenses (30th = gives up the most)` : `; under ${PT_TN_MIN} games, not ranked`}`;
-    return `<td class="${cls(g, 0, 3)}">${self}</td><td class="${cls(g, 1, 3)}">${tile(st, fmt(c.avg), tip, thin)}</td><td class="${cls(g, 2, 3)}">${tile(st, `${c.over}/${c.n}`, `They beat their own average in ${c.over} of ${c.n} games`, thin)}</td>`;
+    return `<td class="${cls("od-g2", 0, 2)}">${tile(st, fmt(c.avg), tip, thin)}</td><td class="${cls("od-g2", 1, 2)}">${tile(st, `${c.over}/${c.n}`, `They beat their own average in ${c.over} of ${c.n} games`, thin)}</td>`;
   };
   const head = ptHead(lead, groups, null, 1);
   const width = ptWidth(widths, groups);
@@ -284,9 +298,9 @@ function ptTonightTab() {
         <td><div class="pt-logo" style="--team:${ptRgb(mine)}">${ptTeam(mine).logo ? `<img src="${ptTeam(mine).logo}" alt="${mine}" loading="lazy">` : mine}</div></td>
         <td class="pt-type-cell">${ptTypeCell(p)}</td>
         <td><div class="pt-logo" style="--team:${ptRgb(def)}" title="Tonight's defense: ${ptEsc(ptTeam(def).name)}">${ptTeam(def).logo ? `<img src="${ptTeam(def).logo}" alt="${def}" loading="lazy">` : def}</div></td>
-        ${statCells(p, def, "pts", (p.avg || [])[1], ptsRank((p.avg || [])[1]), "od-g0", "points")}
-        <td class="od-ggap"></td>${statCells(p, def, "m3", (p.avg || [])[2], m3Rank((p.avg || [])[2]), "od-g1", "threes")}</tr>`));
-    return `<tr class="pt-game-row"><td class="pt-stick" colspan="${lead.length + 7}">${g.away} @ ${g.home}</td></tr>${rows.join("")}`;
+        ${himCells(p, mine, g, "points", (p.avg || [])[1], ptsRank((p.avg || [])[1]))}<td class="od-ggap"></td>${defCells(p, def, "pts", "points")}
+        <td class="od-ggap"></td>${himCells(p, mine, g, "threes", (p.avg || [])[2], m3Rank((p.avg || [])[2]))}<td class="od-ggap"></td>${defCells(p, def, "m3", "threes")}</tr>`));
+    return `<tr class="pt-game-row"><td class="pt-stick" colspan="${lead.length + 11}">${g.away} @ ${g.home}</td></tr>${rows.join("")}`;
   }).join("");
   ptEl("pt-body").innerHTML = games.length
     ? `<table class="data-table od-grid pt-grid" style="width:${width}px">${ptColgroup(widths, groups)}<thead>${head}</thead><tbody>${body}</tbody></table>`

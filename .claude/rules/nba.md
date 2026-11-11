@@ -579,8 +579,10 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
   type vs tonight's defense, then the latest "Like Him" games), research.js `typeMatch` / `typeTab`,
   Slate Standouts' measuring stick (`TM_MIN` 6), colored like Opp Allows (30th = gives up the most, red).
 - **Tonight tab** (first on Player Types): the game carousel (click a game to isolate it, again for all),
-  every player on the slate (Out / Doubtful off) with his letter, his PTS / 3PM, and his type's +/- and
-  beat-average x / y against tonight's defense (`ptTonightTab`).
+  every player on the slate (Out / Doubtful off) with his letter, then per stat two blocks (the owner,
+  2026-11-11: "separate the shaded background"): **His Points / His Threes** in blue (his line tonight,
+  his average) and **Defense Vs His Type** in purple (+/- over their averages, beat-average x / y)
+  (`ptTonightTab`).
 - **Matchup Keys: Player Types box** (Overview, under Both Teams; `typeBox`): each defense's
   fingerprint (points over those players' own averages against it, per letter, ranked of the defenses at
   6+ games, 30th = gives up the most, red) and each offense's mix (share of its typed shooting per letter);
