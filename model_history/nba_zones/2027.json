@@ -17831,11 +17831,11 @@
     "Alex Caruso",
     "OKC",
     "POR",
-    -0.091,
+    -0.0943,
     "under",
     false,
     6.5,
-    -128,
+    -106,
     "fanduel"
    ],
    [
@@ -17843,19 +17843,19 @@
     "Kenrich Williams",
     "OKC",
     "POR",
-    -0.1434,
+    -0.1447,
     "under",
     true,
     7.5,
-    -105,
-    "bet365"
+    -102,
+    "fanduel"
    ],
    [
     "4066211",
     "Robert Williams III",
     "POR",
     "OKC",
-    -0.3368,
+    -0.333,
     "under",
     true,
     5.5,
@@ -17867,23 +17867,23 @@
     "Deni Avdija",
     "POR",
     "OKC",
-    -0.2123,
+    -0.213,
     "under",
     true,
-    22.5,
-    -112,
-    "bet365"
+    21.5,
+    -115,
+    "fanduel"
    ],
    [
     "4683778",
     "Jared McCain",
     "OKC",
     "POR",
-    -0.0867,
+    -0.0864,
     "under",
     false,
     12.5,
-    101,
+    103,
     "4cx"
    ],
    [
@@ -17891,23 +17891,23 @@
     "Ajay Mitchell",
     "OKC",
     "POR",
-    -0.051,
+    -0.0502,
     "under",
     false,
     19.5,
-    -112,
-    "bet365"
+    -121,
+    "4cx"
    ],
    [
     "5105565",
     "Donovan Clingan",
     "POR",
     "OKC",
-    -0.2491,
+    -0.2485,
     "under",
     true,
     10.5,
-    102,
+    100,
     "fanduel"
    ],
    [
@@ -17915,12 +17915,12 @@
     "Bennett Stirtz",
     "OKC",
     "POR",
-    -0.1091,
+    -0.1102,
     "under",
     false,
     6.5,
-    -115,
-    "fanduel"
+    -110,
+    "bet365"
    ]
   ],
   "threes": [
@@ -17929,19 +17929,19 @@
     "Alex Caruso",
     "OKC",
     "POR",
-    -0.0856,
+    -0.0924,
     "under",
     false,
     1.5,
-    -184,
-    "fanduel"
+    -161,
+    "draftkings"
    ],
    [
     "4278073",
     "Shai Gilgeous-Alexander",
     "OKC",
     "POR",
-    -0.1043,
+    -0.1078,
     "under",
     false,
     2.5,
@@ -17953,23 +17953,23 @@
     "Deni Avdija",
     "POR",
     "OKC",
-    -0.08,
+    -0.0884,
     "under",
     false,
     1.5,
-    120,
-    "bet365"
+    116,
+    "draftkings"
    ],
    [
     "4683778",
     "Jared McCain",
     "OKC",
     "POR",
-    -0.1871,
+    -0.1885,
     "under",
     true,
     1.5,
-    139,
+    142,
     "4cx"
    ],
    [
@@ -17977,7 +17977,7 @@
     "Ajay Mitchell",
     "OKC",
     "POR",
-    -0.1963,
+    -0.1967,
     "under",
     true,
     1.5,
@@ -17989,24 +17989,24 @@
     "Donovan Clingan",
     "POR",
     "OKC",
-    -0.1575,
+    -0.1614,
     "under",
     true,
-    0.5,
-    160,
-    "bet365"
+    1.5,
+    -241,
+    "4cx"
    ],
    [
     "5241364",
     "Bennett Stirtz",
     "OKC",
     "POR",
-    -0.1327,
+    -0.1346,
     "under",
     true,
     1.5,
-    -125,
-    "fanduel"
+    -120,
+    "draftkings"
    ]
   ]
  }
