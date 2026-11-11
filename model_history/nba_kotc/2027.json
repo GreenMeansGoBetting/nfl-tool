@@ -7955,14 +7955,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4032,
+    "lead": 0.4031,
     "name": "Luka Doncic",
     "proj": 57.1,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2262,
+    "lead": 0.2261,
     "name": "Victor Wembanyama",
     "proj": 51.2,
     "team": "SA"
@@ -8004,21 +8004,21 @@
    },
    {
     "id": "6583",
-    "lead": 0.0228,
+    "lead": 0.0234,
     "name": "Anthony Davis",
-    "proj": 36.8,
+    "proj": 36.9,
     "team": "WSH"
    },
    {
     "id": "3936299",
-    "lead": 0.0224,
+    "lead": 0.0223,
     "name": "Jamal Murray",
     "proj": 36.4,
     "team": "DEN"
    },
    {
     "id": "4871144",
-    "lead": 0.0212,
+    "lead": 0.0211,
     "name": "Alperen Sengun",
     "proj": 36.4,
     "team": "HOU"
@@ -8039,7 +8039,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0148,
+    "lead": 0.0147,
     "name": "Deni Avdija",
     "proj": 35.3,
     "team": "POR"
@@ -8053,9 +8053,9 @@
    },
    {
     "id": "4066457",
-    "lead": 0.0127,
+    "lead": 0.0126,
     "name": "Austin Reaves",
-    "proj": 34.6,
+    "proj": 34.5,
     "team": "LAL"
    },
    {
@@ -8109,7 +8109,7 @@
    },
    {
     "id": "4251",
-    "lead": 0.0039,
+    "lead": 0.0038,
     "name": "Paul George",
     "proj": 29.2,
     "team": "BOS"
@@ -8286,7 +8286,7 @@
     "id": "5041955",
     "lead": 0.0002,
     "name": "Darryn Peterson",
-    "proj": 23.3,
+    "proj": 23.2,
     "team": "UTAH"
    },
    {
@@ -8335,7 +8335,7 @@
     "id": "4066320",
     "lead": 0.0,
     "name": "Desmond Bane",
-    "proj": 24.4,
+    "proj": 24.3,
     "team": "ORL"
    },
    {
