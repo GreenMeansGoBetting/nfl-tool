@@ -58,7 +58,7 @@ class Updates(unittest.TestCase):
         self.assertFalse(text["hidden"])
         self.assertTrue(text["closed"])
         self.assertFalse(text["due"])
-        self.assertEqual(text["seen"], PAGE.evaluate("GMG_UPDATES[0].id"))
+        self.assertEqual(text["seen"], PAGE.evaluate("GMGUpdates.list()[0]"))
         self.assertGreaterEqual(text["newTags"], 1)
         self.assertIn("What's new", text["text"])
         self.assertIn("Request a feature", text["text"])
@@ -129,16 +129,52 @@ class Updates(unittest.TestCase):
             try {{
                 GMGUpdates.open();
                 const box = document.getElementById('updates-modal');
+                const today = new Date().toLocaleDateString('en-CA', {{ timeZone: 'America/New_York' }});
                 return {{ top: box.querySelectorAll('.upd-content > .upd-day').length,
+                          live: GMG_UPDATES.filter((u) => GMGUpdates.list().includes(u.id) && u.id !== '2000-01-01' && !(u.until && today > u.until)).length,
                           folded: [...box.querySelectorAll('.upd-earlier .upd-day')].map((d) => d.textContent) }};
             }} finally {{
                 GMG_UPDATES.length = 0; GMG_UPDATES.push(...saved);
                 document.querySelector('#updates-modal .modal-close').click();
             }}
         }}""")
-        self.assertEqual(out["top"], PAGE.evaluate("GMG_UPDATES.length"))
-        self.assertEqual(len(out["folded"]), 1)
-        self.assertTrue(re.search("Old one", out["folded"][0]))
+        self.assertEqual(out["top"], out["live"])
+        self.assertTrue(re.search("Old one", out["folded"][-1]))
+
+    def test_a_sport_only_update_shows_on_that_sport_alone(self):
+        # The owner, 2026-11-11: an NHL note "only when people click into nhl today".
+        for u in PAGE.evaluate("GMG_UPDATES.filter((u) => u.sport || u.until)"):
+            self.assertIn(u.get("sport"), (None, "nfl", "nba", "nhl"))
+            if u.get("until"):
+                self.assertRegex(u["until"], r"^\d{4}-\d{2}-\d{2}$")
+        out = PAGE.evaluate(f"""() => {{
+            const saved = GMG_UPDATES.slice();
+            localStorage.setItem('{KEY}', JSON.stringify(saved[0].id));
+            try {{
+                GMG_UPDATES.unshift({{ id: '2999-01-01', sport: 'nba', items: [['x', '<b>Basketball only</b>']] }});
+                const other = {{ due: GMGUpdates.due(), listed: GMGUpdates.list().includes('2999-01-01') }};
+                GMGUpdates.open();
+                other.shown = document.getElementById('updates-modal').textContent.includes('Basketball only');
+                other.seen = JSON.parse(localStorage.getItem('{KEY}'));
+                document.querySelector('#updates-modal .upd-done').click();
+                GMG_UPDATES[0] = {{ id: '2999-01-01', sport: 'nhl', items: [['x', '<b>Hockey only</b>']] }};
+                const mine = {{ due: GMGUpdates.due() }};
+                GMG_UPDATES[0] = {{ id: '2999-01-01', sport: 'nhl', until: '2000-01-01', items: [['x', '<b>Hockey, expired</b>']] }};
+                const expired = {{ due: GMGUpdates.due() }};
+                GMGUpdates.open();
+                const box = document.getElementById('updates-modal');
+                expired.folded = box.querySelector('.upd-earlier')?.textContent.includes('Hockey, expired') || false;
+                box.querySelector('.upd-done').click();
+                return {{ other, mine, expired }};
+            }} finally {{
+                GMG_UPDATES.length = 0; GMG_UPDATES.push(...saved);
+                localStorage.removeItem('{KEY}');
+            }}
+        }}""")
+        # This page is an NHL page: an NBA-only update is invisible and never marked seen.
+        self.assertEqual(out["other"], {"due": False, "listed": False, "shown": False, "seen": PAGE.evaluate("GMG_UPDATES[0].id")})
+        self.assertTrue(out["mine"]["due"])
+        self.assertEqual(out["expired"], {"due": False, "folded": True})
 
     def test_request_a_feature_opens_the_idea_box(self):
         opened = PAGE.evaluate("""() => {

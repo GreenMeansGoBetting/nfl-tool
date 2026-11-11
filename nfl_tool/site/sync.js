@@ -360,7 +360,25 @@ window.GMGSettings = { open: openGmgSettings };
 // wording; the first words in <b> name the feature. An optional `slides`
 // ([[image, caption], ...], images in brand/updates/, served on every sport's
 // address) shows a photo carousel above the list (the owner, 2026-11-04).
+// An optional `sport` ("nfl" / "nba" / "nhl") shows it only on that sport's
+// pages, and `until` (an Eastern date) is the last day it opens on its own;
+// after that it sits folded under "Earlier updates" (the owner, 2026-11-11:
+// "only when people click into nhl today").
 const GMG_UPDATES = [
+  {
+    id: "2026-11-11",
+    sport: "nhl",
+    until: "2026-11-11",
+    heading: "NHL Model Check-In",
+    items: [
+      ["📊", "<b>Where We Stand</b>: this season Shots is <b>+49.5u</b> (541-453), Points <b>+10.0u</b> (254-244) and Anytime Goals <b>-7.3u</b> (125-661). The last 7 days were rough: Shots -20u, Goals -49u."],
+      ["🥅", "<b>Go Light On Goals This Week</b>: goal prices are long, so the swings are big. On 786 plays, normal luck is about 75 units either way, and this week fits inside that. Size goal plays smaller than Shots while the record grows."],
+      ["🧪", "<b>Nothing Changed Today</b>: I tested several Goals and Shots tweaks against this season and two full past seasons. None made the model better, so every number is the same model as yesterday. I won't change it to chase one bad week."],
+      ["✅", "<b>What's Working On Shots</b>: players with the most ice time (+47u), players who shoot a lot from the blue line (+45u), players moved up a line tonight (+36u) and defensemen (+34u)."],
+      ["👀", "<b>What We're Watching This Week</b>: Shots plays on centers (-24u on 289 plays). If it keeps up, centers will need a bigger edge to count as a play. On Goals, plays on players moved up a line (-55u) and players the model rates above what they've actually scored (-80u). Past seasons say those are noise so far, so we're watching, not changing."],
+      ["📒", "<b>Every Play Stays In The Record</b>, wins and losses: open YTD Model Performance on any NHL prop page to check it yourself."],
+    ],
+  },
   {
     // heading: an optional name in the date bar (the owner, 2026-11-09: "title it MONDAY UPDATES")
     id: "2026-11-09",
@@ -967,8 +985,21 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       return "";
     }
   }
+  // This page's updates: every sport's, plus the ones for this page's sport.
+  function pageUpdates() {
+    const host = /^(nba|nhl)\.gmgsports\.org$/.exec(location.hostname);
+    const sport = host ? host[1] : (/\/(nba|nhl)\//.exec(location.pathname) || [0, "nfl"])[1];
+    return GMG_UPDATES.filter((u) => !u.sport || u.sport === sport);
+  }
+  // Past its `until` (Eastern): it never opens on its own or shows as new again.
+  function updateExpired(u) {
+    return !!u.until && new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }) > u.until;
+  }
+  function freshUpdates(seen) {
+    return pageUpdates().filter((u) => u.id > seen && !updateExpired(u));
+  }
   function updatesDue() {
-    return GMG_UPDATES.length > 0 && updatesSeen() < GMG_UPDATES[0].id;
+    return freshUpdates(updatesSeen()).length > 0;
   }
   function updateDate(id) {
     return new Date(`${id.slice(0, 10)}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
@@ -1013,9 +1044,10 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     // The ones they haven't seen on top (or the latest, opened again by hand);
     // everything older folded underneath.
     const seen = updatesSeen();
-    const fresh = GMG_UPDATES.filter((u) => u.id > seen);
-    const shown = fresh.length ? fresh : GMG_UPDATES.slice(0, 1);
-    const earlier = GMG_UPDATES.slice(shown.length);
+    const list = pageUpdates();
+    const fresh = freshUpdates(seen);
+    const shown = fresh.length ? fresh : [list.find((u) => !updateExpired(u)) || list[0]].filter(Boolean);
+    const earlier = list.filter((u) => !shown.includes(u));
     // A walk-through of photos: one at a time, arrows and dots, its caption under it.
     const carousel = (u) => (!u.slides || !u.slides.length ? "" : `<div class="upd-car" data-i="0">
       <div class="upd-car-view"><div class="upd-car-track">${u.slides.map(([src, cap]) => `<figure class="upd-slide"><a href="${src}" target="_blank" rel="noopener" title="Open full size"><img src="${src}" alt="" loading="lazy"></a><figcaption>${cap}</figcaption></figure>`).join("")}</div>
@@ -1028,7 +1060,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     </section>`;
     overlay.querySelector(".upd-content").innerHTML = `<h3 class="upd-title"><span class="upd-dot" aria-hidden="true"></span>What's new</h3>
       <div class="upd-sub">GMG Sports Data Suite</div>
-      ${shown.map((u) => block(u, u.id > seen)).join("")}
+      ${shown.map((u) => block(u, u.id > seen && !updateExpired(u))).join("")}
       ${earlier.length ? `<details class="upd-earlier"><summary>Earlier updates (${earlier.length})</summary>${earlier.map((u) => block(u, false)).join("")}</details>` : ""}
       <div class="upd-foot">Feel free to click <button type="button" class="upd-request"><span aria-hidden="true">&#128161;</span> Request a feature</button> and send a message for what you'd like to see.</div>
       <div class="set-actions"><button type="button" class="set-done upd-done">Got it</button></div>`;
@@ -1037,7 +1069,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     overlay.hidden = false;
     overlay.querySelector(".modal-box").scrollTop = 0;
     // Seen once it has been shown, so leaving without closing it doesn't bring it back.
-    const newest = GMG_UPDATES[0]?.id;
+    // Only this page's: another sport's update stays unseen until its pages are opened.
+    const newest = list[0]?.id;
     if (newest && seen < newest) {
       try {
         localStorage.setItem(GMG_UPDATES_SEEN_KEY, JSON.stringify(newest));
@@ -1074,7 +1107,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     if (document.querySelector(".modal-overlay:not([hidden])")) return; // another popup is open: next page
     openUpdates();
   }
-  window.GMGUpdates = { open: openUpdates, due: updatesDue };
+  window.GMGUpdates = { open: openUpdates, due: updatesDue, list: () => pageUpdates().map((u) => u.id) };
 
   // ---- The top menu: NFL, NBA, NHL, Promo Tools (the owner, 2026-10-17) ----
   // The header was too wide on a small laptop, so every sport is one button that

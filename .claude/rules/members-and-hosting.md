@@ -390,7 +390,7 @@ Required" screen (shown for products with a Discord role) and land signed in. Th
   driven by a script (`navigator.webdriver`: the gate, the tests). **To post an update:** add one
   entry at the TOP (`id` = the date, `"2026-10-15b"` for a second that day; `items` =
   `[emoji, "<b>Feature</b> rest of the line"]`), in the owner's wording. An optional `after: {title, text}` is a
-  note from the owner shown once, right after that update's popup is closed (2026-10-20b: "Before you go…"). An optional `slides: [[image, caption], ...]` (images in `site/brand/updates/`, public on every sport's address) shows a photo carousel above that update's list in a wider popup (2026-11-04c: a walk-through of the day's features, real-page screenshots). Test:
+  note from the owner shown once, right after that update's popup is closed (2026-10-20b: "Before you go…"). An optional `sport` ("nfl" / "nba" / "nhl") shows an update only on that sport's pages (never marked seen elsewhere), and `until` (an Eastern date) is the last day it opens on its own or shows as new; then it folds under Earlier updates (2026-11-11: the NHL Model Check-In, "only when people click into nhl today"). An optional `slides: [[image, caption], ...]` (images in `site/brand/updates/`, public on every sport's address) shows a photo carousel above that update's list in a wider popup (2026-11-04c: a walk-through of the day's features, real-page screenshots). Test:
   `tests/test_updates_site.py`.
 - **Promo payouts** (`PROMO_PAYOUTS`, 2026-10-14): `/api/crease-payouts` (NHL King of the
   Crease, keyed by `date`) and `/api/koe-payouts` (NFL King of the Endzone, keyed by nflverse
