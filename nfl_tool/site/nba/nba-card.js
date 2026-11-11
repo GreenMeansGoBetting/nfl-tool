@@ -53,6 +53,22 @@ function nbaCardPlayer(id) {
 // His Player Type (shot_types.py, data.json `shot_types`): a rainbow letter badge beside his position wherever
 // an NBA player shows (the owner, 2026-11-11: the letters belong across the whole site). Two letters when
 // he's borderline. Empty for a player with too few shots.
+// His type against a defense in points or threes: players of his type, each night against their own
+// other-games average (data.json shot_types.log), over the games before `before`. {type, n, avg, over} or null.
+const NBA_TYPE_VS_CACHE = {};
+function nbaTypeVs(id, defense, market, before) {
+  const st = (((typeof DATA !== "undefined" && DATA) || {}).shot_types) || {};
+  const p = (st.players || {})[String(id)];
+  const field = { points: "pts_diff", threes: "m3_diff" }[market];
+  if (!p || !field || !st.log) return null;
+  const key = `${defense}|${p.type}|${field}|${before || ""}`;
+  if (!(key in NBA_TYPE_VS_CACHE)) {
+    const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+    const rows = st.log.filter((r) => r[f.def] === defense && (!before || r[f.date] < before) && (st.players[r[f.player]] || {}).type === p.type);
+    NBA_TYPE_VS_CACHE[key] = { type: p.type, n: rows.length, avg: rows.length ? rows.reduce((a, r) => a + r[f[field]], 0) / rows.length : 0, over: rows.filter((r) => r[f[field]] > 0).length };
+  }
+  return NBA_TYPE_VS_CACHE[key];
+}
 function nbaTypeBadge(id) {
   const p = ((((typeof DATA !== "undefined" && DATA) || {}).shot_types || {}).players || {})[String(id)];
   if (!p) return "";

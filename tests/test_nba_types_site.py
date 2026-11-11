@@ -122,5 +122,14 @@ class Tonight(unittest.TestCase):
         self.assertEqual(PAGE.evaluate("() => nbaTypeBadge('99999')"), "")
 
 
+
+class TypeVs(unittest.TestCase):
+    def test_his_type_against_a_defense_before_a_date(self):
+        # nba-card.js nbaTypeVs: Zone Matchup Targets' Type tag and the pages read it
+        got = PAGE.evaluate("() => nbaTypeVs('1', 'BBB', 'points', '2099-01-04')")
+        self.assertEqual((got["type"], got["n"], got["over"]), ("A", 3, 3))  # only the 3 games before 1/4
+        self.assertAlmostEqual(got["avg"], 3.0)
+        self.assertIsNone(PAGE.evaluate("() => nbaTypeVs('99999', 'BBB', 'points', '2099-01-04')"))
+
 if __name__ == "__main__":
     unittest.main()

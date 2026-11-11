@@ -271,7 +271,7 @@ class Panel(unittest.TestCase):
     def test_two_boxes_every_tab_the_same_shape(self):
         self.open()
         tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
-        self.assertEqual(tabs, [["Form", "Scoring", "Matchup", "Game Script"], ["Vs The Line", "Rotation", "Teammates", "Type Matchup"]])
+        self.assertEqual(tabs, [["Form", "Scoring", "Matchup", "Game Script"], ["Vs The Line", "Rotation", "Teammates", "Type Matchup", "Shot Fit"]])
         sizes = set()
         for side, names in (("left", tabs[0]), ("right", tabs[1])):
             for name in names:
@@ -430,7 +430,7 @@ class Threes(unittest.TestCase):
 
     def test_eight_tabs_every_one_the_same_box(self):
         tabs = self.page.evaluate("() => [...document.querySelectorAll('.rs-sb')].map((b) => [...b.querySelectorAll('.rs-tabs button')].map((t) => t.textContent))")
-        self.assertEqual(tabs, [["Form", "Shooting", "Shot Map", "Game Script"], ["Vs The Line", "Ladder", "Rotation", "Teammates", "Type Matchup"]])
+        self.assertEqual(tabs, [["Form", "Shooting", "Shot Map", "Game Script"], ["Vs The Line", "Ladder", "Rotation", "Teammates", "Type Matchup", "Shot Fit"]])
         sizes = set()
         for side, names in (("left", tabs[0]), ("right", tabs[1])):
             for name in names:

@@ -220,12 +220,13 @@ def groups_for(sh: pd.DataFrame, season: int, today: date, path: Path | None = N
 
 def defense(sh: pd.DataFrame, types: pd.Series, team_abbr: dict) -> dict:
     """{defense: {"games": n, "vs": {letter: [shots, makes, points, threes made]}}} and the league's."""
-    sh = sh[sh["player"].isin(types.index)].copy()
-    sh["type"] = sh["player"].astype(int).map(types)
     teams = sh.groupby("game_id")["team"].unique()
-    sh["def"] = [next((t for t in teams[g] if t != o), None) for g, o in zip(sh["game_id"], sh["team"])]
-    sh = sh.dropna(subset=["def"])
-    sh["pts"] = np.where(sh["made"], np.where(sh["three"], 3, 2), 0)
+    all_sh = sh.copy()
+    all_sh["def"] = [next((t for t in teams[g] if t != o), None) for g, o in zip(all_sh["game_id"], all_sh["team"])]
+    all_sh = all_sh.dropna(subset=["def"])
+    all_sh["pts"] = np.where(all_sh["made"], np.where(all_sh["three"], 3, 2), 0)
+    sh = all_sh[all_sh["player"].isin(types.index)].copy()
+    sh["type"] = sh["player"].astype(int).map(types)
     sh["m3"] = sh["made"] & sh["three"]
     out, league = {}, {}
     games = sh.groupby("def")["game_id"].nunique()
@@ -237,7 +238,19 @@ def defense(sh: pd.DataFrame, types: pd.Series, team_abbr: dict) -> dict:
         row["vs"][t] = [int(len(q)), int(q["made"].sum()), int(q["pts"].sum()), int(q["m3"].sum())]
     for t, q in sh.groupby("type"):
         league[t] = [int(len(q)), int(q["made"].sum()), int(q["pts"].sum()), int(q["m3"].sum())]
-    return {"teams": out, "league": league, "team_games": int(games.sum())}
+    # Shot Fit (the owner, 2026-11-11): every shot a defense faced, by kind (every shooter, typed or not,
+    # so the samples are big early): {defense: {kind: [shots, makes, points]}} and the league's.
+    kinds, league_kinds = {}, {}
+    for k in LABELS:
+        if k not in all_sh:
+            continue  # a frame without the shot groups (tests)
+        q = all_sh[all_sh[k].astype(bool)]
+        league_kinds[k] = [int(len(q)), int(q["made"].sum()), int(q["pts"].sum())]
+        for d, qq in q.groupby("def"):
+            abbr = team_abbr.get(int(d))
+            if abbr:
+                kinds.setdefault(abbr, {})[k] = [int(len(qq)), int(qq["made"].sum()), int(qq["pts"].sum())]
+    return {"teams": out, "league": league, "team_games": int(games.sum()), "kinds": kinds, "league_kinds": league_kinds}
 
 
 def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None = None) -> dict:

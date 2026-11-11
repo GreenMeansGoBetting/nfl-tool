@@ -145,3 +145,17 @@
   .mk-cats { overflow-x: auto; }
   .mk-cline { min-width: 760px; }
 }
+/* Player Types box (typeBox): letters across, offense mix and defense fingerprint per side, one width */
+.mk-types { margin-top: 12px; }
+.mk-tscroll { overflow-x: auto; }
+.data-table.mk-tgrid { width: auto; table-layout: fixed; border-spacing: 3px; border-collapse: separate; }
+.mk-tgrid th, .mk-tgrid td { padding: 0; text-align: center; width: 52px; }
+.mk-tgrid .mk-tl { width: 210px; text-align: left; white-space: nowrap; font-size: 0.82rem; padding-right: 6px; }
+.mk-tgrid .mk-tl img { vertical-align: -5px; margin-right: 5px; }
+.mk-tgrid .mk-tl b { margin-right: 4px; }
+.mk-tt { padding: 5px 0; }
+.mk-tt b { font-size: 0.86rem; }
+.mk-tthin { opacity: 0.45; }
+.mk-tfit-h { font-size: 0.72rem; font-weight: 800; }
+.mk-tgrid tr.mk-tsp td { height: 8px; }
+.mk-tnote { margin: 6px 4px 0; font-size: 0.78rem; color: var(--text); }

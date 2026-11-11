@@ -324,5 +324,35 @@ class Page(unittest.TestCase):
         self.assertNotIn("keys.js", html)
 
 
+
+class PlayerTypesBox(unittest.TestCase):
+    """2026-11-11 (the owner): each defense's fingerprint against the 11 types and each offense's mix,
+    with the Type Fit shown as its parts (the audit rule)."""
+
+    def box(self, st):
+        return PAGE.evaluate("""(st) => {
+            const keep = DATA.shot_types;
+            DATA.shot_types = st;
+            const out = typeBox({ date: "2999-01-01", away: "CHA", home: "WSH" });
+            DATA.shot_types = keep;
+            return out;
+        }""", st)
+
+    def test_a_defense_against_each_type_weighted_by_the_offenses_mix(self):
+        st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"],
+              "players": {"1": {"type": "A", "team": "CHA", "n": 100}, "2": {"type": "K", "team": "CHA", "n": 100},
+                          "3": {"type": "A", "team": "BOS", "n": 50}},
+              # type A players ran +4 over their own averages against WSH, 6 games
+              "log": [[f"2000-01-0{i + 1}", "WSH", "3", 20, 2, 4.0, 1.0] for i in range(6)]}
+        html = self.box(st)
+        self.assertIn("Defense Vs Type", html)
+        self.assertIn(">50<", html)  # CHA's shooting: half A, half K
+        self.assertIn(">+4.0<", html)  # WSH against A
+        self.assertIn(">+2.0<", html)  # Type Fit: 50% x +4.0 (K has no games against WSH)
+        self.assertIn("A: 50% x +4.0", html)  # its parts in the hover
+
+    def test_no_types_no_box(self):
+        self.assertEqual(PAGE.evaluate("() => { const keep = DATA.shot_types; DATA.shot_types = null; const out = typeBox({ date: '2999-01-01', away: 'CHA', home: 'WSH' }); DATA.shot_types = keep; return out; }"), "")
+
 if __name__ == "__main__":
     unittest.main()

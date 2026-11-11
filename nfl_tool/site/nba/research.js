@@ -646,10 +646,10 @@ const RS_ROWS = 6;
 // Matchup (it repeated Form), and a Ladder of how often he hits each number.
 // Rebounds (the owner, 2026-11-04): Rebounding (chances and his share of them) and Miss Zones.
 let RS_TABS = null; // the market in play's tabs (setMarket)
-const tabsFor = () => (THREES ? { left: ["Form", "Shooting", "Shot Map", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates", "Type Matchup"] }
+const tabsFor = () => (THREES ? { left: ["Form", "Shooting", "Shot Map", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates", "Type Matchup", "Shot Fit"] }
   : REBS ? { left: ["Form", "Rebounding", "Miss Zones", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
   : ASTS ? { left: ["Form", "Playmaking", "Assist Zones", "Game Script"], right: ["Vs The Line", "Ladder", "Rotation", "Teammates"] }
-  : { left: ["Form", "Scoring", "Matchup", "Game Script"], right: ["Vs The Line", "Rotation", "Teammates", "Type Matchup"] });
+  : { left: ["Form", "Scoring", "Matchup", "Game Script"], right: ["Vs The Line", "Rotation", "Teammates", "Type Matchup", "Shot Fit"] });
 const RSV = { left: "Form", right: "Vs The Line" }; // the open tab of each box (kept while the page is open)
 const SCRIPT_RANGE = 5; // Game Script: his games within this many points of tonight's spread / total, either way (two possessions)
 const PACE_RANGE = 2; // ... and within this many possessions of tonight's pace
@@ -1663,10 +1663,48 @@ function typeTab(x) {
   return gridOf(head, rows, { bands: [["him", 2, 1], ["def", 3, 4]], cls: "rs-five" });
 }
 
-const RS_TAB = { "Type Matchup": typeTab, Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: teammatesTab, // Teammates: setMarket
+// Shot Fit (the owner, 2026-11-11): one level under the letters. His shot mix (Player Types) beside how
+// tonight's defense does against each kind of shot (every shot it faced, so the samples are big early):
+// his share, the FG% it allows on that kind, the league's, the difference and its rank of 30 (30th = allows
+// the best shooting, red). The last row weighs the defense by his mix: points per 10 of his shots over
+// the league's. Under SF_MIN shots of a kind against that defense = faded, unranked.
+const SF_KINDS = [["catch", "Catch & Shoot"], ["pullup", "Pull-Up"], ["fade", "Fade"], ["float", "Floater"], ["post", "Post / Hook"], ["drive", "Drive"], ["cut", "Cut"], ["lob", "Lob / Putback"]];
+const SF_MIN = 40;
+function shotFitTab(x) {
+  const st = (DATA && DATA.shot_types) || {};
+  const p = tmType(x.pid);
+  const D = (st.defense || {}).kinds || {};
+  const LG = (st.defense || {}).league_kinds || {};
+  if (!p || !D[x.opp]) return gridOf(HD("", "plain") + HD("Shot Fit", "plain", "rs-s7"), [LB("") + T(!p ? "No Player Type yet (fewer than 50 shots): no shot mix" : "No shots against this defense yet", null, "", "rs-s7")]);
+  const mix = Object.fromEntries(st.fields.map((k, i) => [k, p.mix[i]]));
+  const pct = (a) => (a && a[0] ? a[1] / a[0] : null);
+  const pps = (a) => (a && a[0] ? a[2] / a[0] : null);
+  const ranked = (k) => Object.values(D).map((t) => t[k]).filter((a) => a && a[0] >= SF_MIN);
+  let fit = 0;
+  const parts = [];
+  const rows = SF_KINDS.map(([k, label]) => ({ k, label, share: mix[k] || 0 })).sort((a, b) => b.share - a.share).slice(0, 5).map(({ k, label, share }) => {
+    const a = D[x.opp][k], lg = LG[k];
+    const fg = pct(a), lfg = pct(lg);
+    const thin = !a || a[0] < SF_MIN;
+    const diff = fg === null || lfg === null ? null : fg - lfg;
+    const s = thin || diff === null ? null : clamp1(diff / 0.08);
+    const rk = thin ? null : 1 + ranked(k).filter((b) => pct(b) < fg).length;
+    const n = ranked(k).length;
+    if (!thin && pps(a) !== null && pps(lg) !== null) { fit += (share / 100) * (pps(a) - pps(lg)) * 10; parts.push(`${label} ${Math.round(share)}%`); }
+    const tip = `${team(x.opp).name} allow ${fg === null ? "--" : pctT(fg)} on ${label.toLowerCase()} shots (league ${pctT(lfg)}), ${a ? a[0] : 0} shots${rk ? `, ${ordinal(rk)} of ${n} (30th = allows the best shooting)` : `; under ${SF_MIN} shots, not ranked`}`;
+    return LB(label) + T(`${Math.round(share)}%`, null, `${Math.round(share)}% of his shots are ${label.toLowerCase()}`) + DT(fg === null ? "--" : pctT(fg), s, tip) + T(pctT(lfg), null, "The league's FG% on these shots")
+      + DT(diff === null ? "--" : `${diff > 0 ? "+" : ""}${(diff * 100).toFixed(1)}`, s, tip) + DT(rk ? ordinal(rk) : "--", s, tip);
+  });
+  const fitRow = LB("Fit", `His mix against ${team(x.opp).name}: ${parts.join(", ")}`) + T(`${fit > 0 ? "+" : ""}${fit.toFixed(1)}`, -clamp1(fit / 1.5), `Points per 10 of his shots over the league's, weighing ${x.opp}'s numbers by his shot mix (${parts.join(", ")})`, "rs-s5");
+  const head = `<div class="rs-t rs-corner"><span class="rs-key rs-him">${jersey(x.pid)}</span><span class="rs-key rs-def">${logo(x.opp, 15)}Allows</span></div>` + HD("His Share", "him") + HD("FG% Allowed", "def") + HD("League", "plain") + HD("+/-", "def") + HD("Rank", "def");
+  return gridOf(head, [...rows, fitRow], { bands: [["him", 2, 1], ["def", 3, 4]], cls: "rs-five" });
+}
+
+const RS_TAB = { "Shot Fit": shotFitTab, "Type Matchup": typeTab, Form: formTab, Scoring: scoringTab, Matchup: matchupTab, "Game Script": scriptTab, "Vs The Line": lineTab, Rotation: rotationTab, Teammates: teammatesTab, // Teammates: setMarket
   Shooting: shootingTab, "Shot Map": mapTab, Ladder: ladderTab, Rebounding: reboundingTab, "Miss Zones": missZonesTab, Playmaking: playmakingTab, "Assist Zones": assistZonesTab };
 let RS_TAB_TIP = {};
 const BASE_TIPS = {
+  "Shot Fit": "His shot mix (how he shoots) beside how tonight's defense does against each kind of shot: his share, the FG% it allows on that kind, the league's, the difference and its rank of 30 (30th = allows the best shooting, red). Fit weighs the defense by his mix: points per 10 of his shots over the league's.",
   "Type Matchup": "Players of his type (his colored letter, Player Types: how he shoots) against tonight's defense: his own average, how far over / under THEIR OWN averages they ran, how many of those games they beat it, the games, and the defense's rank (30th = gives up the most to his type, red). Then the latest of those games. Beside his position's numbers, never instead of them.",
   Form: "His season, last 10 and last 5 beside what tonight's defense allows his position (season, last 10, last 5), and the read. His season is colored against his position; the defense's by its rank of 30 (30th = allows the most, red).",
   Scoring: "Where his points come from (share, rank among his position, points a game) beside what tonight's defense allows his position, and the read.",

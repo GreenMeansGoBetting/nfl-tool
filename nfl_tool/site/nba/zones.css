@@ -112,3 +112,8 @@
 .zm-why .zm-wgroup td { background: transparent; padding: 8px 4px 1px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
 .zm-why td.zm-wnone { color: var(--muted); }
 .zm-why-legend { text-align: center; }
+/* Type: his Player Type's record against this defense beside the read (a tag, information only) */
+.zm-type { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700; white-space: nowrap; background: var(--panel-2); }
+.zm-type-yes { background: rgba(var(--good-rgb), 0.28); }
+.zm-type-no { background: rgba(var(--bad-rgb), 0.28); }
+.zm-type-few, .zm-type-none { color: var(--muted); }

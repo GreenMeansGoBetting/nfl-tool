@@ -117,6 +117,22 @@ function zmPrice(id, p, r) {
   return { line: `${side}${line}`, price };
 }
 
+// Type (the owner, 2026-11-11): his type's record against tonight's defense next to the read. On the
+// season's first two weeks the reads it disagreed with went 94-115 (-23.9u) and the ones it agreed with
+// 165-162; the owner wants the tool's logic reworked later, so for now it's a tag, never a filter or a
+// "play" word. Agrees / Disagrees from ZM_TYPE_MIN games of his type against that defense.
+const ZM_TYPE_MIN = 6;
+function zmTypeTag(id, p, r) {
+  const vs = typeof nbaTypeVs === "function" ? nbaTypeVs(id, p.opp, ZM.market, zmDay()) : null;
+  if (!vs) return '<span class="zm-type zm-type-none" title="No Player Type yet (fewer than 50 shots)">--</span>';
+  const unit = ZM.market === "threes" ? "threes" : "points";
+  const fact = `Type ${vs.type} vs ${p.opp}: ${vs.avg > 0 ? "+" : ""}${vs.avg.toFixed(1)} ${unit} over their own averages, beat it in ${vs.over} of ${vs.n} games`;
+  if (vs.n < ZM_TYPE_MIN || (r.side !== "over" && r.side !== "under")) {
+    return `<span class="zm-type zm-type-few" title="${vs.n < ZM_TYPE_MIN ? `${fact} (under ${ZM_TYPE_MIN} games)` : fact}">${vs.n < ZM_TYPE_MIN ? "Too Few" : `${vs.avg > 0 ? "+" : ""}${vs.avg.toFixed(1)}`}</span>`;
+  }
+  const agrees = (vs.avg > 0) === (r.side === "over");
+  return `<span class="zm-type ${agrees ? "zm-type-yes" : "zm-type-no"}" title="${fact}">${agrees ? "Agrees" : "Disagrees"}</span>`;
+}
 function zmRows(filter) {
   const m = zmM();
   return Object.entries(m.players)
@@ -133,6 +149,7 @@ function zmTable(rows, opts = {}) {
         <td class="zm-name">${zmLogo(p.team, 18)} ${playerClick(id, p.name)} <small>${p.pos || ZM_GROUP[p.group]}</small>${nbaTypeBadge(id)}</td>
         ${opts.noVs ? "" : `<td>${zmLogo(p.opp, 18)}</td>`}
         ${opts.read ? `<td><span class="zm-read" style="background:${zmShade(r.score, 0.25)}">${zmReadWord(r)}</span></td>` : ""}
+        <td>${zmTypeTag(id, p, r)}</td>
         <td class="num" style="background:${zmShade(r.score, 0.25)}" title="${zmWord(r)}"><b>${zmPct(r.score)}</b></td>
         <td class="num" style="background:${zmShade(r.shots, 0.25)}">${zmPct(r.shots)}</td>
         <td class="num" style="background:${zmShade(r.makes, 0.25)}">${zmPct(r.makes)}</td>
@@ -145,6 +162,7 @@ function zmTable(rows, opts = {}) {
     .join("");
   return `<div class="shc-scroll"><table class="data-table zm-table"><thead><tr>
     <th>Player</th>${opts.noVs ? "" : "<th>Vs</th>"}${opts.read ? '<th title="Strong past 12%, Toss Up inside 5%">Read</th>' : ""}
+    <th title="Does his Player Type's record against this defense point the same way as the read? Players of his type (his colored letter), each night against their own average, before tonight. Agrees / Disagrees at ${ZM_TYPE_MIN}+ games, Too Few under. Information only.">Type</th>
     <th class="num" title="Shots and Makes together: green = Over, red = Under, deeper = stronger">Score</th>
     <th class="num" title="How much more of his group's shooting this defense gives up from his spots than the league does (more chances)">Shots</th>
     <th class="num" title="How much more his kind of shots go in against this defense, from his zones and shot types">Makes</th>

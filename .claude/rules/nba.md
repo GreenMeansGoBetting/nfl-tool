@@ -581,6 +581,22 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
 - **Tonight tab** (first on Player Types): the game carousel (click a game to isolate it, again for all),
   every player on the slate (Out / Doubtful off) with his letter, his PTS / 3PM, and his type's +/- and
   beat-average x / y against tonight's defense (`ptTonightTab`).
+- **Matchup Keys: Player Types box** (Overview, under Both Teams; `typeBox`): each defense's
+  fingerprint (points over those players' own averages against it, per letter, ranked of the defenses at
+  6+ games, 30th = gives up the most, red) and each offense's mix (share of its typed shooting per letter);
+  **Type Fit** = the defense weighted by the offense's mix, its parts in the hover (never a hidden score).
+- **Shot Fit** tab (research panel, Points / Threes, `shotFitTab`): his top 5 shot kinds (catch, pull-up,
+  fade, floater, post, drive, cut, lob) beside the FG% tonight's defense allows on each (every shot it
+  faced, typed or not: shot_types `defense.kinds` / `league_kinds`), the league's, +/-, rank of 30 (30th
+  = allows the best shooting); under `SF_MIN` 40 shots faded. Fit = points per 10 of his shots over the
+  league's, weighted by his mix.
+- **Zone Matchup Targets: Type tag** beside every read (`zmTypeTag`, `nbaTypeVs` in nba-card.js): Agrees /
+  Disagrees / Too Few (6+ games of his type against that defense, before the night shown). **Information
+  only, never a filter or "play" wording** (the owner, 2026-11-11: the tool's whole logic needs a rework
+  later; on Oct 28-Nov 10 ZMT was 658-674, -39.5u, threes overs the worst; reads the type disagreed with
+  went 94-115, -23.9u; agreed 165-162).
+- Not now (the owner, 2026-11-11): lineup-aware splits (off for now, "messy"); letter pairings (wait for
+  more minutes together, ~December).
 - Next (the owner): one more pass on the live page, then matchups by type or the next type family
   (rebounding / assisting / playmaking). Swap position splits for types only where a replay shows types
   predict better. Tests: `test_nba_shot_types.py`, `test_nba_types_site.py`.

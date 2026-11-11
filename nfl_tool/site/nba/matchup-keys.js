@@ -199,6 +199,71 @@ function edgeBox(ctx, t, opp, keys) {
     <div class="mk-eg${mine.length < 4 ? " mk-few" : ""}">${rsT("", "rs-blank")}${hd(`${logo(t, 24)}${t}`, "rs-him mk-big")}${hd(`${logo(opp, 24)}${opp}`, "rs-def mk-big")}
     ${rows || `<div class="mk-none">No Edges In This Matchup</div>`}</div></div>`;
 }
+// ---- Player Types (the owner, 2026-11-11): each defense's fingerprint against the 11 types and each
+// offense's type mix ----
+// Defense rows: what each defense gives up to players of each type, in points over THEIR OWN averages
+// (data.json shot_types.log, games before tonight), ranked of the defenses with MK_TYPE_MIN+ games (30th =
+// gives up the most, red); fewer games = faded, unranked. Offense rows: the share of the team's typed
+// shooting from each type. Type Fit = the defense's numbers weighted by the offense's mix, shown with its
+// parts, never as a hidden score (the audit rule).
+const MK_TYPES = "ABCDEFGHIJK".split("");
+const MK_TYPE_MIN = 6;
+function mkTypeStick(before) {
+  const st = DATA.shot_types;
+  const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+  const out = {};
+  st.log.forEach((r) => {
+    if (r[f.date] >= before) return;
+    const p = st.players[r[f.player]];
+    if (!p) return;
+    const c = ((out[r[f.def]] ||= {})[p.type] ||= { n: 0, sum: 0 });
+    c.n += 1;
+    c.sum += r[f.pts_diff];
+  });
+  Object.values(out).forEach((bt) => Object.values(bt).forEach((c) => (c.avg = c.sum / c.n)));
+  return out;
+}
+function typeBox(game) {
+  const st = DATA.shot_types;
+  if (!st || !st.log) return "";
+  const stick = mkTypeStick(game.date);
+  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${MK_TYPES.indexOf(L) * 28}">${L}</span>`;
+  const mix = (t) => {
+    const shots = {};
+    let all = 0;
+    Object.values(st.players).filter((p) => p.team === t).forEach((p) => { shots[p.type] = (shots[p.type] || 0) + p.n; all += p.n; });
+    return Object.fromEntries(MK_TYPES.map((L) => [L, all ? (shots[L] || 0) / all : 0]));
+  };
+  const rank = (d, L) => {
+    const vals = Object.values(stick).map((bt) => bt[L]).filter((c) => c && c.n >= MK_TYPE_MIN);
+    const c = (stick[d] || {})[L];
+    return c && c.n >= MK_TYPE_MIN ? { r: 1 + vals.filter((v) => v.avg < c.avg).length, n: vals.length } : null;
+  };
+  const cell = (inner, style, tip, cls = "") => `<td><div class="od-tile mk-tt${cls}"${style ? ` style="${style}"` : ""} title="${esc(tip)}"><b>${inner}</b></div></td>`;
+  const sides = [[game.away, game.home], [game.home, game.away]].map(([o, d]) => {
+    const m = mix(o);
+    const most = Math.max(...Object.values(m));
+    let fit = 0;
+    const parts = [];
+    const offRow = `<tr><td class="mk-tl">${logo(o, 20)}<b>${o}</b> Offense Mix</td>${MK_TYPES.map((L) => {
+      const share = m[L];
+      return cell(share ? `${Math.round(share * 100)}` : "", share ? rankStyle(1 + Math.round((1 - share / most) * 7), 8) : "", `${share ? Math.round(share * 100) : 0}% of ${o}'s typed shooting is type ${L}`);
+    }).join("")}<td></td></tr>`;
+    const defRow = `<tr><td class="mk-tl">${logo(d, 20)}<b>${d}</b> Defense Vs Type</td>${MK_TYPES.map((L) => {
+      const c = (stick[d] || {})[L];
+      if (!c) return cell("", "", `${d}: no games yet against type ${L}`, " mk-tthin");
+      const rk = rank(d, L);
+      if (rk && m[L]) { fit += m[L] * c.avg; parts.push(`${L}: ${Math.round(m[L] * 100)}% x ${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`); }
+      const tip = `Type ${L} vs ${d}: ${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)} points over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} defenses (30th = gives up the most)` : `; under ${MK_TYPE_MIN} games, not ranked`}`;
+      return cell(`${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`, rk ? rankStyle(rk.r, rk.n) : "", tip, rk ? "" : " mk-tthin");
+    }).join("")}${cell(`${fit > 0 ? "+" : ""}${fit.toFixed(1)}`, rankStyle(1 + Math.round(((1 + Math.max(-1, Math.min(1, fit / 2))) / 2) * 7), 8), `${o}'s mix against ${d}'s numbers: ${parts.join(", ") || "no type with enough games"}. Points over their averages, weighted by how much of ${o}'s shooting each type takes. Red = ${d} gives up more to this mix.`)}</tr>`;
+    return offRow + defRow;
+  });
+  const head = `<tr><th class="mk-tl"></th>${MK_TYPES.map((L) => `<th>${badge(L)}</th>`).join("")}<th class="mk-tfit-h" title="The defense weighted by the offense's mix">Type Fit</th></tr>`;
+  return `<div class="mk-box mk-types"><div class="mk-bh mk-bh-both">Player Types: Defense Fingerprints &amp; Offense Mix</div>
+    <div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${sides.join('<tr class="mk-tsp"><td colspan="13"></td></tr>')}</tbody></table></div>
+    <p class="mk-tnote">Offense Mix = the share of the team's shooting from each type (Player Types). Defense = points over those players' own averages against this defense; 30th = gives up the most (red); faded = under ${MK_TYPE_MIN} games. Type Fit weighs the defense by the offense's mix (hover for the parts).</p></div>`;
+}
 // Both Teams: Same Style keys (both at one end of a number) and the combined O/U Trend, three columns.
 function bothBox(ctx, game, keys) {
   const list = keys.filter((k) => k.group === "style").sort((x, y) => y.score - x.score);
@@ -314,7 +379,7 @@ function renderKeys() {
       ? mhView(game) // matchup-history.js
       : view.tab === "summary"
         ? `<div class="nba-box mb-fitbox mk-sheet">${matchup(game).html}</div>` // matchup-sheet.js
-        : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}`;
+        : `<div class="mk-ov">${edgeBox(ctx, game.away, game.home, keys)}${summaryCard(ctx, game, keys)}${edgeBox(ctx, game.home, game.away, keys)}</div>${bothBox(ctx, game, keys)}${typeBox(game)}`;
   el("mk-body").innerHTML = `<div class="mk-top"><div class="mk-head">${logo(game.away, 28)}<b>${game.away}</b><span class="at">@</span>${logo(game.home, 28)}<b>${game.home}</b></div>
     <div class="mk-line">${lineTiles(game)}</div></div>${injuries(game)}<div class="rs-tabs mk-tabs">${tabs}</div>${body}`;
   if (view.tab === "summary") shadeMatchup(game);

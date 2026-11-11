@@ -150,5 +150,20 @@ class Defense(unittest.TestCase):
         self.assertEqual(out["league"]["A"], [3, 2, 5, 1])
 
 
+
+class ShotKinds(unittest.TestCase):
+    def test_every_shot_a_defense_faced_counts_by_kind(self):
+        # Shot Fit (2026-11-11): typed or not, every shooter's shots count, so the samples are big early
+        sh = pd.DataFrame([
+            {"player": 1, "game_id": 10, "team": 100, "made": True, "three": True, "catch": True, "drive": False},
+            {"player": 9, "game_id": 10, "team": 100, "made": False, "three": False, "catch": False, "drive": True},
+            {"player": 2, "game_id": 10, "team": 200, "made": True, "three": False, "catch": False, "drive": True},
+        ])
+        out = S.defense(sh, pd.Series({1: "A", 2: "K"}), {100: "AAA", 200: "BBB"})
+        self.assertEqual(out["kinds"]["BBB"]["catch"], [1, 1, 3])
+        self.assertEqual(out["kinds"]["BBB"]["drive"], [1, 0, 0])  # player 9 has no type and still counts
+        self.assertEqual(out["kinds"]["AAA"]["drive"], [1, 1, 2])
+        self.assertEqual(out["league_kinds"]["drive"], [2, 1, 2])
+
 if __name__ == "__main__":
     unittest.main()
