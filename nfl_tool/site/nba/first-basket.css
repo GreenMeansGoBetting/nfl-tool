@@ -118,3 +118,19 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
 .fb-ytd-pick b { margin-left: 6px; font-family: var(--font-display); }
 .fb-ytd-value { white-space: normal !important; }
 .fb-ytd-play { display: inline-block; padding: 1px 6px; margin: 1px 3px 1px 0; border-radius: 4px; font-size: 0.8rem; }
+/* By Player Type (fbtTable): each defense against the letters in the other starting five */
+.fbt-table { margin-top: 12px; }
+.fbt-table .fbt-sub th { font-size: 0.66rem; font-weight: 800; padding: 3px 2px; }
+.fbt-table td.fbt-v { cursor: pointer; }
+.fbt-table td.fbt-v:hover { filter: brightness(1.2); }
+.fbt-table td.fbt-off { opacity: 0.4; }
+.fbt-table td.fbt-v small { display: block; font-size: 0.66rem; }
+.fbt-mid { white-space: normal; }
+.fbt-mid .pt-letter { margin-right: 4px; }
+.fbt-who { font-size: 0.72rem; }
+.fbt-who img { vertical-align: -2px; margin: 0 2px 0 4px; }
+.fbt-note { margin: 6px 2px 0; font-size: 0.76rem; color: var(--text); max-width: 760px; }
+.fbt-box { max-width: 640px; }
+.fbt-list td, .fbt-list th { padding: 4px 8px; text-align: center; }
+.fbt-list .fbt-l { text-align: left; }
+.fbt-list img { vertical-align: -3px; }

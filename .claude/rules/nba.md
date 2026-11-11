@@ -831,6 +831,15 @@ and Value record below (off the page).
 - **Saving:** Best opens the every-book window with `spec.save`; plays in `nfl-tool.nba-plays.v1`
   (`loadNbaPlays` / `saveNbaPlays`, both sync lists), id `nba:fb:<game>:<player>`. Graded from
   `first_basket.results`: his id = win, else loss, none = void (a DNP needs Void by hand).
+- **Player Types** (the owner, 2026-11-11): every starter's letter (`nbaTypeBadge`), and under The
+  Matchup a **By Player Type** table (`fbtTable`): each team's DEFENSE against the letters in tonight's
+  other starting five (other letters faded): 1st Shot and 1st FG allowed to that letter ("x/y" games),
+  and **Open 3 Min** (every FG try in the first 3 minutes: FG%, made / tried; colored at
+  `FBT_OPEN_MIN` 5+). Red = allows the most of the 30. **Every number opens the games behind it**
+  (`fbtOpen`: date, offense, who shot / scored first, or each opening shooter made / tried).
+  Data: season block `type_log` ([game, date, offense, defense, first shooter, first FG maker,
+  [[shooter, made]...] opening tries], `first_basket.type_log`). About 11 first baskets per defense:
+  counts always shown. **Research only: never in Fair or the tip.**
 - Tests: `tests/test_nba_first_basket.py`. Not built: a Summary card, a calibration view.
 
 ## King of the Court (Promo Tools; `kotc.py`, `promo-tools.html` + `kotc.js` + `kotc.css`)

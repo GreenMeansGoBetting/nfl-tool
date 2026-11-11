@@ -137,11 +137,21 @@ def game_openings(pbp: pd.DataFrame, teams) -> list:
                 break
         if first_team is None:
             continue
+        # every field goal try in the first 3 minutes (Player Types by defense, the owner, 2026-11-11)
+        opening = []
+        for p in g.itertuples(index=False):
+            secs = p.start_quarter_seconds_remaining
+            if pd.isna(secs) or secs < 720 - OPENING_SECS:
+                break
+            team = side.get(p.team_id)
+            if team and p.shooting_play == True and "Free Throw" not in str(p.type_text) and not pd.isna(p.athlete_id_1):  # noqa: E712
+                opening.append([team, int(p.athlete_id_1), 1 if p.scoring_play == True else 0])  # noqa: E712
         last = g.iloc[-1]
         out.append({
             "game_id": str(game_id), "home": home, "away": away, "tip": tip, "jumpers": jumpers,
             "first_team": first_team, "first_scorer": first_scorer, "first_ft": first_ft, "first_pts": first_pts, "first_fg": first_fg,
             "early_shots": early_shots, "team_shot": team_shot, "team_scorer": team_scorer, "q1_margin": int(last.home_score) - int(last.away_score),
+            "date": str(r.game_date)[:10] if "game_date" in g.columns else None, "opening": opening,
         })
     return out
 
@@ -244,6 +254,22 @@ def player_numbers(openings: list, player_box: pd.DataFrame) -> dict:
     return dict(out)
 
 
+OPENING_SECS = 180  # the opening window: the first 3 minutes
+
+
+def type_log(openings: list) -> list:
+    """Player Types on First Basket (the owner, 2026-11-11: "showing what the defense allows as far as that
+    letter and attempted shots before points / first baskets"): one row per team-game, the offense against
+    the defense: [game id, date, offense, defense, its first shooter, its first field goal maker,
+    [[shooter, made], ...] every field goal try in the first 3 minutes]. The page types the players."""
+    out = []
+    for o in openings:
+        for off, d in ((o["home"], o["away"]), (o["away"], o["home"])):
+            shots = [[pid, made] for team, pid, made in o.get("opening", []) if team == off]
+            out.append([o["game_id"], o.get("date"), off, d, o["team_shot"].get(off), o["first_fg"].get(off), shots])
+    return out
+
+
 def season_block(pbp: pd.DataFrame, player_box: pd.DataFrame, teams, label: str) -> dict:
     """One season's numbers. Players carry their name, position and headshot
     from his last game in the box scores; the build moves them to today's team."""
@@ -266,7 +292,8 @@ def season_block(pbp: pd.DataFrame, player_box: pd.DataFrame, teams, label: str)
             "headshot": None if head is None or (isinstance(head, float) and pd.isna(head)) else head,
             **p,
         }
-    return {"label": label, "games": len(openings), "league": league, "teams": team_rows, "players": players}
+    return {"label": label, "games": len(openings), "league": league, "teams": team_rows, "players": players,
+            "type_log": type_log(openings)}
 
 
 def american(p):

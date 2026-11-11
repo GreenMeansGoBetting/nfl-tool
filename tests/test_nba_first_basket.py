@@ -438,6 +438,37 @@ class Lineups(unittest.TestCase):
         self.assertIn("every minute", got["note"])
 
 
+
+class PlayerTypes(unittest.TestCase):
+    """2026-11-11 (the owner): each defense against the Player Types in tonight's other starting five: first
+    shot, first field goal and opening-3-minute tries, with the games behind every number."""
+
+    def test_type_log_one_row_per_offense_per_game(self):
+        o = {"game_id": "7", "date": "2026-11-01", "home": "AAA", "away": "BBB", "team_shot": {"AAA": 1, "BBB": 2},
+             "first_fg": {"AAA": 3, "BBB": 2}, "opening": [["AAA", 1, 0], ["BBB", 2, 1], ["AAA", 3, 1]]}
+        self.assertEqual(fb.type_log([o]), [["7", "2026-11-01", "AAA", "BBB", 1, 3, [[1, 0], [3, 1]]],
+                                            ["7", "2026-11-01", "BBB", "AAA", 2, 2, [[2, 1]]]])
+
+    def test_the_games_behind_a_number(self):
+        got = PAGE.evaluate("""() => {
+            const keep = [DATA.shot_types, block().type_log];
+            DATA.shot_types = { players: { "1": { type: "F", name: "Shooter F" }, "2": { type: "K", name: "Big K" } } };
+            block().type_log = [["7", "2026-10-01", "BBB", "AAA", "1", "1", [["1", 1], ["2", 0]]],
+                                ["8", "2026-10-03", "CCC", "AAA", "2", "1", [["1", 0]]],
+                                ["9", "2026-10-30", "BBB", "AAA", "1", "1", []]];  // after tonight: left out
+            FBT = fbtStats("2026-10-21");
+            const T = FBT.teams.AAA;
+            const out = { games: T.games, shotF: T.t.F.shot.length, fgF: T.t.F.fg.length, openF: [T.t.F.made, T.t.F.n], shotK: T.t.K.shot.length };
+            fbtOpen("AAA", "F", "fg");
+            out.list = document.getElementById("fbt-content").innerText;
+            document.getElementById("fbt-modal").hidden = true;
+            [DATA.shot_types, block().type_log] = keep;
+            return out;
+        }""")
+        self.assertEqual((got["games"], got["shotF"], got["fgF"], got["openF"], got["shotK"]), (2, 1, 2, [1, 2], 1))
+        self.assertIn("Shooter F", got["list"])
+        self.assertIn("BBB", got["list"])  # the offense that game
+
 if __name__ == "__main__":
     unittest.main()
 
