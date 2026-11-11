@@ -2494,14 +2494,14 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.128,
+    0.129,
     null,
     false,
     null
    ],
-   "4395630": [
-    "Devin Vassell",
-    0.111,
+   "4592479": [
+    "Julian Champagnie",
+    0.11,
     null,
     false,
     null
@@ -2536,7 +2536,7 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.164,
+    0.165,
     null,
     false,
     null
@@ -14207,15 +14207,8 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.127,
+    0.128,
     900,
-    true,
-    "hard_rock"
-   ],
-   "4395630": [
-    "Devin Vassell",
-    0.111,
-    1100,
     true,
     "hard_rock"
    ],
@@ -14225,6 +14218,13 @@
     1200,
     false,
     "fanduel"
+   ],
+   "4592479": [
+    "Julian Champagnie",
+    0.109,
+    null,
+    false,
+    null
    ],
    "4711294": [
     "Matas Buzelis",
@@ -14263,7 +14263,7 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.163,
+    0.164,
     290,
     false,
     "bet365"
