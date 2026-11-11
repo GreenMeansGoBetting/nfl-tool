@@ -7955,7 +7955,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3986,
+    "lead": 0.3987,
     "name": "Luka Doncic",
     "proj": 57.0,
     "team": "LAL"
@@ -8011,16 +8011,16 @@
    },
    {
     "id": "6583",
-    "lead": 0.0217,
+    "lead": 0.0219,
     "name": "Anthony Davis",
     "proj": 36.9,
     "team": "WSH"
    },
    {
     "id": "3936299",
-    "lead": 0.0199,
+    "lead": 0.0198,
     "name": "Jamal Murray",
-    "proj": 36.5,
+    "proj": 36.4,
     "team": "DEN"
    },
    {
@@ -8053,16 +8053,16 @@
    },
    {
     "id": "4066457",
-    "lead": 0.0123,
+    "lead": 0.0124,
     "name": "Austin Reaves",
     "proj": 34.5,
     "team": "LAL"
    },
    {
     "id": "4065733",
-    "lead": 0.0118,
+    "lead": 0.0114,
     "name": "Ty Jerome",
-    "proj": 34.2,
+    "proj": 34.1,
     "team": "MEM"
    },
    {
@@ -8101,18 +8101,18 @@
     "team": "MIL"
    },
    {
+    "id": "4277905",
+    "lead": 0.004,
+    "name": "Trae Young",
+    "proj": 30.8,
+    "team": "WSH"
+   },
+   {
     "id": "3064514",
     "lead": 0.0039,
     "name": "Julius Randle",
     "proj": 31.3,
     "team": "BKN"
-   },
-   {
-    "id": "4277905",
-    "lead": 0.0039,
-    "name": "Trae Young",
-    "proj": 30.8,
-    "team": "WSH"
    },
    {
     "id": "3908809",
@@ -8387,7 +8387,7 @@
    },
    {
     "id": "6583",
-    "lead": 0.1659,
+    "lead": 0.166,
     "name": "Anthony Davis",
     "proj": 37.7,
     "team": "WSH"
@@ -8415,7 +8415,7 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0583,
+    "lead": 0.0584,
     "name": "Devin Booker",
     "proj": 32.1,
     "team": "PHX"
@@ -8429,28 +8429,28 @@
    },
    {
     "id": "4396971",
-    "lead": 0.037,
+    "lead": 0.0371,
     "name": "Naz Reid",
     "proj": 30.2,
     "team": "CHA"
    },
    {
     "id": "6442",
-    "lead": 0.0333,
+    "lead": 0.0334,
     "name": "Kyrie Irving",
     "proj": 29.9,
     "team": "DAL"
    },
    {
     "id": "3059318",
-    "lead": 0.0302,
+    "lead": 0.0304,
     "name": "Joel Embiid",
     "proj": 29.8,
     "team": "PHI"
    },
    {
     "id": "4431671",
-    "lead": 0.0209,
+    "lead": 0.021,
     "name": "Jaden McDaniels",
     "proj": 27.7,
     "team": "MIN"
@@ -8513,16 +8513,16 @@
    },
    {
     "id": "5142718",
-    "lead": 0.0066,
+    "lead": 0.0061,
     "name": "AJ Dybantsa",
-    "proj": 25.3,
+    "proj": 25.2,
     "team": "WSH"
    },
    {
     "id": "3157465",
-    "lead": 0.0049,
+    "lead": 0.0047,
     "name": "Duncan Robinson",
-    "proj": 23.9,
+    "proj": 23.8,
     "team": "DET"
    },
    {
@@ -8543,7 +8543,7 @@
     "id": "4278562",
     "lead": 0.003,
     "name": "Paul Reed",
-    "proj": 22.0,
+    "proj": 21.9,
     "team": "DET"
    },
    {
@@ -8597,9 +8597,9 @@
    },
    {
     "id": "5160992",
-    "lead": 0.0007,
+    "lead": 0.0006,
     "name": "Alex Sarr",
-    "proj": 18.9,
+    "proj": 18.8,
     "team": "WSH"
    },
    {
