@@ -2693,14 +2693,14 @@
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.117,
+    0.11,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.12,
+    0.124,
     null,
     false,
     null
@@ -2721,14 +2721,14 @@
    ],
    "4683778": [
     "Jared McCain",
-    0.122,
+    0.121,
     null,
     false,
     null
    ],
-   "4900671": [
-    "Ajay Mitchell",
-    0.101,
+   "5174983": [
+    "Aday Mara",
+    0.106,
     null,
     false,
     null
@@ -14738,14 +14738,14 @@
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.09,
+    0.084,
     800,
     false,
     "hard_rock"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.092,
+    0.095,
     750,
     false,
     "bet365"
@@ -14773,16 +14773,9 @@
    ],
    "4683778": [
     "Jared McCain",
-    0.094,
+    0.093,
     1140,
     true,
-    "draftkings"
-   ],
-   "4900671": [
-    "Ajay Mitchell",
-    0.078,
-    880,
-    false,
     "draftkings"
    ],
    "5105565": [
@@ -14791,6 +14784,13 @@
     800,
     false,
     "hard_rock"
+   ],
+   "5174983": [
+    "Aday Mara",
+    0.081,
+    null,
+    false,
+    null
    ],
    "6606": [
     "Damian Lillard",
