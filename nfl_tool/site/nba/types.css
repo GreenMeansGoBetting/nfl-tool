@@ -1,0 +1,63 @@
+/* NBA Player Types (types.html): the League Stats Chart's grid (style.css .od-grid, .od-tile), every
+   stat column one width; each table scrolls inside its own box when the screen is narrower. */
+.pt-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.pt-tab { font: 700 1rem var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; padding: 9px 18px; border-radius: 10px;
+  border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); cursor: pointer; box-shadow: var(--shadow); }
+.pt-tab:hover { border-color: var(--accent); }
+.pt-tab.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.pt-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+.pt-bar .view-toggle { margin: 0; }
+.pt-bar input[type="search"], .pt-bar select { font: 500 0.88rem var(--font-body); padding: 6px 10px; border-radius: 8px;
+  border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); }
+.pt-bar input[type="search"] { width: 180px; max-width: 100%; }
+.pt-bar label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; }
+.pt-count { color: var(--muted); font-size: 0.84rem; }
+.pt-seg { display: inline-flex; }
+.pt-seg .view-toggle-btn { border-radius: 0; }
+.pt-seg .view-toggle-btn:first-child { border-radius: 8px 0 0 8px; }
+.pt-seg .view-toggle-btn:last-child { border-radius: 0 8px 8px 0; }
+.pt-wrap { overflow-x: auto; padding-bottom: 4px; }
+.pt-foot { color: var(--muted); font-size: 0.8rem; margin: 8px 0 0; }
+
+.data-table.pt-grid { table-layout: fixed; }
+.data-table.pt-grid th, .data-table.pt-grid td { padding: 2px; }
+.pt-grid .od-ggroups th { font-family: var(--font-display); font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.pt-grid .od-glabels th { font-size: 0.68rem; font-weight: 800; white-space: normal; height: 34px; line-height: 1.1; }
+/* lead columns and one-column groups: one cell over both header rows, label-sized (style.css one-block header) */
+.pt-grid .od-ggroups th.pt-lead, .pt-grid .od-ggroups th.od-gone { font-family: var(--font-body); font-size: 0.68rem; font-weight: 800; letter-spacing: 0; white-space: normal; line-height: 1.1; }
+.pt-grid .od-ggroups th.pt-lead { vertical-align: bottom; padding-bottom: 6px; }
+.pt-grid th.pt-sort { cursor: pointer; user-select: none; position: relative; }
+.pt-grid th.pt-sort:hover { background-color: rgba(var(--zg, 128, 128, 128), 0.45); }
+.pt-grid th.pt-sorted { box-shadow: inset 0 -3px 0 rgb(var(--zg, var(--accent-rgb))); }
+.pt-arrow { position: absolute; top: 1px; right: 2px; font-style: normal; font-size: 0.5rem; opacity: 0.8; }
+.pt-tile { padding: 5px 0; border: none; }
+.pt-tile b { font-size: 0.9rem; }
+.pt-tile.pt-thin { opacity: 0.45; }
+/* the name / team columns stick to the left while the grid scrolls */
+.pt-grid .pt-stick { position: sticky; left: 0; z-index: 2; background: var(--panel); }
+.pt-grid td.pt-name { text-align: left; font-weight: 700; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; padding-left: 6px; }
+.pt-grid td.pt-name small { display: block; color: var(--muted); font-weight: 600; font-size: 0.7rem; }
+.pt-grid td.pt-names { text-align: left; white-space: normal; font-size: 0.8rem; line-height: 1.3; padding: 4px 8px; color: var(--muted); }
+.pt-grid td.pt-names .player-click { color: var(--text); font-weight: 600; }
+.pt-logo { display: flex; align-items: center; justify-content: center; height: 30px; border-radius: 7px;
+  background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
+.pt-logo img { width: 24px; height: 24px; }
+
+/* The type letters: a rainbow, A red to K purple (the owner, 2026-11-11). A filled badge, never a
+   number tile, so a red A reads as "the deepest shooters", not "bad". */
+.pt-letter { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 6px;
+  border-radius: 13px; font: 800 0.95rem var(--font-display); color: #fff; background: hsl(var(--h), 70%, 42%);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35); }
+.pt-letter.pt-lean { background: transparent; color: hsl(var(--h), 75%, 62%); box-shadow: inset 0 0 0 2px hsl(var(--h), 70%, 50%); text-shadow: none; }
+html[data-theme="light"] .pt-letter.pt-lean { color: hsl(var(--h), 70%, 36%); }
+.pt-slash { color: var(--muted); margin: 0 2px; font-weight: 700; }
+.pt-type-cell { white-space: nowrap; }
+button.pt-chip { cursor: pointer; border: none; padding: 0; background: none; }
+button.pt-chip .pt-letter { opacity: 0.45; }
+button.pt-chip.on .pt-letter, button.pt-chip:hover .pt-letter { opacity: 1; }
+button.pt-chip.on .pt-letter { box-shadow: 0 0 0 2px var(--text); }
+.pt-all { font: 700 0.85rem var(--font-display); text-transform: uppercase; }
+tr.pt-pick { cursor: pointer; }
+tr.pt-pick:hover td.pt-stick { background: var(--panel-2); }
+.pt-grid tr.pt-leans td { opacity: 0.75; }
+.pt-grid th.pt-lead .pt-arrow { position: static; margin-left: 3px; }

@@ -49,13 +49,13 @@ PAGES = [
     ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
-    ("NBA Dunk Digest", "nba/digest.html", None),
     ("NBA League Stats Chart", "nba/league.html", None),
     ("NBA Matchup Keys", "nba/matchup-keys.html", None),
     ("NBA Promo Tools", "nba/promo-tools.html", None),
     ("NBA First Basket", "nba/first-basket.html", None),
     ("NBA Shot Charts", "nba/shot-charts.html", None),
     ("NBA Zone Matchup Targets", "nba/zones.html", None),
+    ("NBA Player Types", "nba/types.html", None),
     ("NBA All Props", "nba/all-props.html", None),
     ("NBA Points", "nba/points.html", None),
     ("NBA Threes", "nba/threes.html", None),
@@ -185,8 +185,8 @@ def ready_for(path, summary_btn):
         return "#hat-players table"
     if path == "nba/promo-tools.html":
         return "#kotc-players table"
-    if path == "nba/digest.html":
-        return ".dd-card, .dd-empty"
+    if path == "nba/types.html":
+        return "#pt-body table"
     return GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None
 
 

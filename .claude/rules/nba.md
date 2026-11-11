@@ -31,8 +31,8 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   `best.html` / `game-predictions.html` only forward (retired 2026-11-03);
   `first-basket.html/.js/.css`;
   `shot-charts.html/.js/.css`; `zones.html/.js/.css`; `nba-card.js` player card (+ `shot-chart.js`);
-  `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`; `digest.html/.js/.css`
-  Dunk Digest (owner only).
+  `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`; `types.html/.js/.css` Player Types
+  (`shot_types.py`). (Dunk Digest was removed 2026-11-11.)
 - Records (`model_history/`): `nba_props/sim_<season>.json`, `nba_zones/<season>.json`,
   `nba_first_basket/<season>.json`, `nba_kotc/` (nightly boards, `lines_<season>.json`).
 
@@ -537,29 +537,6 @@ UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded r
   (both in the hover, **no percent under a price**); then the **Point Breakdown, always open**. No
   separate Spread / Total boxes (they repeat the GMG columns). Tests: `tests/test_nba_predictions.py`.
 
-## Dunk Digest (`digest.html/.js/.css`, owner only, 2026-11-02)
-
-The owner's daily video card (YouTube viewers asked for a "Dinger Digest" for the NBA). **Just
-data: no leans, no picks, no tracking** (the owner). Menu: first in the NBA list with `owner: true`
-(sync.js adds `owner-only`); the page hides `.dd-app` unless `is-owner` / `local-dev`.
-- **Five games a card, each 1160 x 980** (the Summary card size); a row a team, a thick line between
-  games. Columns: Team, **Line** (favorite's row = spread, underdog's row = total; "both sides is
-  redundant"), **Pace** (rank of 30, Fast / Average / Slow thirds), **Points / Threes / Rebounds /
-  Assists**, **First Basket**, **Notes**.
-- **Stat cells = position chips, the player's last name under each** (the owner's ask; a YouTube
-  comment's "SG 3s vs this team" idea). Each likely starter (First Basket slate's five) vs what
-  tonight's defense allows his position a minute (props.json logs, steadied with 10 games of an average
-  defense): green = defense 1+ league spread generous and he isn't 0.3 below his position at it; red =
-  the mirror. **Defense-led on purpose** (a star alone would light every night). Strongest 2 shown,
-  the rest fold into "+N" (hover lists them). 0.6 spreads lit about half of every cell (2026-11-02 audit).
-- **First Basket:** the slate's `fair` (Scores 1st, jumper's tip chance) and the starter with the most
-  team first shots ("x of y" starts). **Notes:** short schedule spots (`DD_SPOT_SHORT`), Out players
-  with 25+ minutes a game (2 named a team, "+N"), then the game's 2 strongest Matchup Keys (keys.js)
-  written as plain ranks ("DEN: 3rd-most threes made; MIA: most threes allowed"). The owner: "just
-  state facts and dont get cute". A crowded box steps its text down (`fitNotes`), then drops its
-  weakest key.
-- Tests: `tests/test_nba_digest_site.py`.
-
 ## Suite switch
 
 - The top menu (`addTopMenu`, sync.js) lists each sport's pages (`SPORT_PAGES`).
@@ -568,6 +545,34 @@ data: no leans, no picks, no tracking** (the owner). Menu: first in the NBA list
 - NBA / NHL pages are paying members' pages: check them with `tools/check_site.py --only nba` /
   `--only nhl` when chasing a problem there.
 - No owner "Update Odds" buttons.
+
+## Player Types (`shot_types.py`, `types.html/.js/.css`, 2026-11-11)
+
+Players typed by HOW they shoot, not position (the owner, after an old "Courtside Pal" chart; "not
+all PGs or PFs play the same style"). Audited with the owner before launch: every ESPN label, a
+Basketball-Reference comparison, odd vs even games, the owner's eye test.
+- **Letters A-K, never names** (A = deepest shooters ... K = rim runners); badges in a rainbow, A red to K
+  purple (`ptHue`), never a number tile. 50+ shots (`MIN_SHOTS`); heaves out.
+- Mix (`F`): distance, 3PT, catch & shoot (plain / running / bank jumpers: 95-97% assisted), pull-up +
+  step-back, fade + turnaround, floater, post / hook (driving hooks too), drive, cut (cutting + plain
+  layups / dunks, 82-87% assisted), lob / putback, fast break. Every ESPN label in ONE group (`LABELS`);
+  an unknown label fails the step.
+- **Ten k-means groups + the owner's split**: the bigs who shoot threes (`bigs_group`) with under 20%
+  threes become their own type (I: Sengun, Anthony Davis). 11 / 12 groups split scorers, not bigs.
+- **Saved groups** `model_history/nba_shot_types/<season>.json` (mu, sd, centers by letter, split,
+  stability, moved). **Redrawn weekly** (`REDRAW_DAYS` 7, the owner: weekly is the longest to wait);
+  a redraw keeps letters (nearest old group). Every build re-types players against the saved groups.
+- **Borderline** (`fit` 0.5+): two letters "B / E" (the owner). 2026-11-11 odd / even games: 56% kept
+  their letter, 85% letter or lean; clear fits 80%, borderline 33%.
+- data.json `shot_types` (compute_props, own try): players {name, team, pos, type, lean, fit, border,
+  n, mix}, `defense` {teams {abbr: {games, vs {letter: [shots, makes, points, 3PM]}}}, league, team_games}.
+- **Page** (menu under Zone Matchup Targets): tabs The 11 Types / Every Player / Defense Vs Type
+  (`#types` / `#players` / `#defense`). Tiles on the 8-step scale, the most = green; Defense Vs Type
+  ranked from the defense (30th = allows the most, red), Points / Threes Made / Shots a game or FG%,
+  under `PT_DEF_MIN` 30 shots faded and unranked. Filtering to a type lists its players then leaners.
+- Next (the owner): one more pass on the live page, then matchups by type or the next type family
+  (rebounding / assisting / playmaking). Swap position splits for types only where a replay shows types
+  predict better. Tests: `test_nba_shot_types.py`, `test_nba_types_site.py`.
 
 ## Basketball-Reference cross-check (`bbref_check.py`, `nba-bbref-check.yml`, 2026-11-11)
 
@@ -625,7 +630,7 @@ the same framework next ("once we have the framework down").
   Tests: `tests/test_nba_league_chart.py`.
 - **Matchup Keys** (its own page since 2026-11-04, `matchup-keys.html/.js/.css`, menu beside League Stats Chart / Matchup
   Data; the button on the chart was "too hidden"). Every rule in `keys.js`
-  (`nbaMatchupKeys`, ONE place; Dunk Digest's notes read it too). Extreme = top / bottom 10 of 30.
+  (`nbaMatchupKeys`, ONE place). Extreme = top / bottom 10 of 30.
   Types: Edge (one side top 10, the other bottom half; a make rate only for an offense in the top
   half of taking those shots, transition scoring only for one that runs), Fits / Takes Away (how-often:
   offense top 10 vs a defense allowing the most / least), Same Style / Clash (both at one end / opposite
@@ -634,7 +639,7 @@ the same framework next ("once we have the framework down").
   places lower), Not Tested (a weak defense the offense rarely tests).
 - **Three groups** (`KEY_GROUP`): Edge = edge + Fits (the offense's) + Takes Away (the defense's),
   written "<TEAM> Offense / Defense: <name>"; Clash = clash + Not Tested + Few Falling; Same Style =
-  style + Trend. `lead` stays for the digest. The owner's CHA @ WSH read is pinned on
+  style + Trend. `lead` puts each topic's strongest key first. The owner's CHA @ WSH read is pinned on
   `tests/fixtures/nba_league_chart_2026-10-30.json`. Owner fear: things omitted or miscounted: audit a
   real slate before changing a rule. **No model points on the keys** (2026-11-03).
 - **The page (rebuilt 2026-11-06 in the Points Research look,** sim.css `.rs-sb` / `.rs-g` / `.rs-t` /

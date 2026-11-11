@@ -38,6 +38,7 @@ import props  # noqa: E402
 import research  # noqa: E402
 import reads_record  # noqa: E402
 import shots  # noqa: E402
+import shot_types  # noqa: E402
 import zone_matchups  # noqa: E402
 import smartstake  # noqa: E402
 import identity  # noqa: E402
@@ -1044,6 +1045,12 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     if pbp is None or box is None:
         return out
     engine = P.Season(pbp, box)
+    # Player Types (shot_types.py), its own try: a failure leaves that page empty, nothing else.
+    try:
+        reg_box = box[box["season_type"] == P.REGULAR_SEASON]
+        out["shot_types"] = shot_types.block(engine, reg_box, season, (now_utc or datetime.now(timezone.utc)).date())
+    except Exception as ex:
+        print(f"WARNING: NBA Player Types failed ({ex!r}).", file=sys.stderr)
     block = props.season_block(pbp, box, season_label(season), engine)
     if block:
         blocks[str(season)] = block
@@ -1443,6 +1450,7 @@ def main():
                                    (blob.get("first_basket") or {}).get("lineups"), (previous or {}).get("market_watch"))
         # build to build (data.json, read back by fetch_previous): when each Out and each line was first seen
         blob["market_watch"] = blob_props.pop("market_watch", None)
+        blob["shot_types"] = blob_props.pop("shot_types", None)  # Player Types reads data.json
         args.out.parent.mkdir(parents=True, exist_ok=True)
         (args.out.parent / "props.json").write_text(json.dumps(blob_props, separators=(",", ":")), encoding="utf-8")
     except Exception as ex:

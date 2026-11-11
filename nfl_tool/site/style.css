@@ -4185,11 +4185,15 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .od-grid .od-g2 { --zg: 150, 100, 220; }
 .od-grid .od-g3 { --zg: 128, 128, 128; }
 .data-table.od-grid :is(.od-g0, .od-g1, .od-g2, .od-g3, .od-gt) { background-color: rgba(var(--zg), 0.13); }
-.data-table.od-grid .od-ggroups th:is(.od-g0, .od-g1, .od-g2, .od-g3), .data-table.od-grid .od-gtitle { background-color: rgba(var(--zg, 128, 128, 128), 0.26); color: var(--text); padding: 6px 4px; border-radius: 10px 10px 0 0; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); }
-.data-table.od-grid .od-gtitle { border-radius: 10px; font-size: 0.8rem; }
-.data-table.od-grid .od-glabels th.od-gt { background-color: rgba(var(--zg), 0.3); }
-.data-table.od-grid .od-glabels th.od-gt.od-gl { border-top-left-radius: 10px; }
-.data-table.od-grid .od-glabels th.od-gt.od-gr { border-top-right-radius: 10px; }
+/* A header is ONE block, the default for every grid so no new page has to fix it (the owner,
+   2026-11-03, and again 2026-11-11: "the main header then sub heading with the weird curved corners
+   look so stupid"): the group band and its label row share one shade, only the band's top corners
+   round, and nothing (no shadow, no notch, no second set of corners) sits between them. A
+   one-column group is one merged cell (rowspan 2). tests/test_grid_headers.py pins it. */
+.data-table.od-grid .od-ggroups th:is(.od-g0, .od-g1, .od-g2, .od-g3) { background-color: rgba(var(--zg, 128, 128, 128), 0.3); color: var(--text); padding: 6px 4px 2px; border-radius: 10px 10px 0 0; box-shadow: none; }
+.data-table.od-grid .od-ggroups th.od-gone { padding: 6px 4px; vertical-align: middle; }
+.data-table.od-grid .od-gtitle { background-color: rgba(var(--zg, 128, 128, 128), 0.26); color: var(--text); padding: 6px 4px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); font-size: 0.8rem; }
+.data-table.od-grid .od-glabels th.od-gt { background-color: rgba(var(--zg), 0.3); border-radius: 0; }
 .od-grid tbody tr:last-child td.od-gl { border-bottom-left-radius: 10px; }
 .od-grid tbody tr:last-child td.od-gr { border-bottom-right-radius: 10px; }
 .od-grid tbody td.od-gl, .od-grid .od-glabels th.od-gl { padding-left: 5px; }

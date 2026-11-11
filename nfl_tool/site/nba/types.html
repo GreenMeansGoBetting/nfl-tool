@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NBA Suite &mdash; Player Types</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../suite.css">
+<link rel="stylesheet" href="types.css">
+</head>
+<body class="nba-suite">
+<div class="topbar">
+  <a class="brand" href="./" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div class="nba-soon empty-state">
+    <p><b>GMG NBA Suite</b> is being built for the 2026-27 season. Check back soon.</p>
+    <p><a href="../game-overview.html">Back to the NFL Suite</a></p>
+  </div>
+
+  <div class="nba-app">
+    <div class="section-wrap">
+      <h2 class="section-title">Player Types <button type="button" class="info-i" aria-expanded="false" aria-controls="pt-note" title="How to read this">i</button></h2>
+      <p class="section-note info-note" id="pt-note" hidden>Every player with <b>50+ shots</b> this season, grouped by <b>how he shoots</b>, not his position: a PG can be an E, a center a G. <b>A</b> shoots from the deepest, <b>K</b> lives at the rim. Each number is the share of his own shots (Avg Dist in feet), shaded against every typed player on the 8-step scale: <b>green = the most</b>. <b>Two letters</b> (B / E) = borderline: nearly as close to the second type as his own; borderline players change letters often, so both are shown. <b>Catch &amp; Shoot</b> = jumpers off a pass; <b>Drive</b> = driving and running finishes; <b>Cut</b> = cutting and plain layups / dunks (mostly assisted); <b>I</b> = bigs from G who take under 20% threes. The groups are redrawn every week; each keeps its letter. Heaves are left out. Source: ESPN play-by-play.</p>
+      <div id="empty-state" class="empty-state"><p>Loading Player Types&hellip;</p></div>
+      <div id="pt-app" hidden>
+        <div class="pt-tabs" role="tablist">
+          <button type="button" class="pt-tab" data-tab="types" role="tab">The 11 Types</button>
+          <button type="button" class="pt-tab" data-tab="players" role="tab">Every Player</button>
+          <button type="button" class="pt-tab" data-tab="defense" role="tab">Defense Vs Type</button>
+        </div>
+        <div class="pt-bar" id="pt-bar"></div>
+        <div id="pt-body" class="pt-wrap"></div>
+        <p class="pt-foot" id="pt-foot"></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/sportsdataverse/sportsdataverse-data" target="_blank" rel="noopener">sportsdataverse / hoopR</a> (ESPN play-by-play).
+</footer>
+
+<script src="../sync.js"></script>
+<script src="../book-odds.js"></script>
+<script src="types.js"></script>
+<script src="shot-chart.js"></script>
+<script src="nba-card.js"></script>
+</body>
+</html>

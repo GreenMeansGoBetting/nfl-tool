@@ -42,8 +42,12 @@ or tile follows this, unasked:
   "dont just make stuff wider to fill it, make it more readable. dont add more white space"): boxes
   sit at their compact size in a row, then the row is zoomed evenly to the full width (research.js
   `fitPanel`, at most 1.3), boxes in a row the same height, each with a solid title bar on top.
-- **A header is one block**: a group band and the label row under it share one shade with no
-  shadow or notch between them; a one-column group is a single merged header.
+- **A header is one block, and it's the DEFAULT** (the owner, 2026-11-03, and again 2026-11-11: "the
+  main header then sub heading with the weird curved corners look so stupid ... every new page we
+  have to sort this out"): style.css `.od-grid` gives every grid a band and label row in one shade,
+  rounded only at the band's top, no shadow or notch between. Lead columns (Player, Team) and any
+  one-column group are ONE cell spanning both header rows (`rowspan="2"`, `od-gone`), never an empty
+  band over a label. Never round or shadow the label row on a page (`tests/test_grid_headers.py`).
 - **Fonts**: Sofia Sans only, through the grid's own sizes. No new small gray uppercase labels,
   no muted gray text for anything a member reads; titles are Title Case in the display font.
 - Rules from the list table (`table.data-table.sim-list th, td`) leak into tables nested in it:
