@@ -449,6 +449,28 @@ class PlayerTypes(unittest.TestCase):
         self.assertEqual(fb.type_log([o]), [["7", "2026-11-01", "AAA", "BBB", 1, 3, [[1, 0], [3, 1]]],
                                             ["7", "2026-11-01", "BBB", "AAA", 2, 2, [[2, 1]]]])
 
+    def test_his_letter_block_in_the_starters_and_every_letter_at_the_bottom(self):
+        # the owner, 2026-11-11: B (a purple block per starter, Best still far right) plus C at the bottom
+        got = PAGE.evaluate("""() => {
+            const keep = [DATA.shot_types, block().type_log];
+            DATA.shot_types = { players: { "10": { type: "K", name: "P10" }, "11": { type: "D", name: "P11" }, "20": { type: "A", name: "P20" } } };
+            block().type_log = [["7", "2026-10-01", "BBB", "AAA", "20", "20", [["20", 1]]]];
+            render();
+            const box = document.querySelectorAll('#fb-starters .nba-box')[1];
+            const heads = [...box.querySelectorAll('thead tr:first-child th')].map((th) => th.textContent.trim());
+            const strips = [...document.querySelectorAll('#fbt-area .fbt-cgrid')].map((tb) => tb.querySelectorAll('thead .pt-letter').length);
+            const out = { heads, strips, clickable: document.querySelectorAll('#fbt-area [data-fbt]').length };
+            [DATA.shot_types, block().type_log] = keep;
+            render();
+            out.after = document.getElementById('fbt-area').innerHTML;
+            return out;
+        }""")
+        self.assertEqual(got["heads"][-1], "Best")
+        self.assertIn("Vs BBB Defense: His Letter", got["heads"])
+        self.assertEqual(got["strips"], [11, 11])  # every letter, both defenses
+        self.assertEqual(got["clickable"], 2 * 3 * 11)  # every box opens its games
+        self.assertEqual(got["after"], "")  # no types: nothing extra
+
     def test_the_games_behind_a_number(self):
         got = PAGE.evaluate("""() => {
             const keep = [DATA.shot_types, block().type_log];

@@ -118,18 +118,27 @@ th.fb-m-first { font-family: var(--font-display); font-size: 0.8rem; font-weight
 .fb-ytd-pick b { margin-left: 6px; font-family: var(--font-display); }
 .fb-ytd-value { white-space: normal !important; }
 .fb-ytd-play { display: inline-block; padding: 1px 6px; margin: 1px 3px 1px 0; border-radius: 4px; font-size: 0.8rem; }
-/* By Player Type (fbtTable): each defense against the letters in the other starting five */
-.fbt-table { margin-top: 12px; }
-.fbt-table .fbt-sub th { font-size: 0.66rem; font-weight: 800; padding: 3px 2px; }
-.fbt-table td.fbt-v { cursor: pointer; }
-.fbt-table td.fbt-v:hover { filter: brightness(1.2); }
-.fbt-table td.fbt-off { opacity: 0.4; }
-.fbt-table td.fbt-v small { display: block; font-size: 0.66rem; }
-.fbt-mid { white-space: normal; }
-.fbt-mid .pt-letter { margin-right: 4px; }
-.fbt-who { font-size: 0.72rem; }
-.fbt-who img { vertical-align: -2px; margin: 0 2px 0 4px; }
-.fbt-note { margin: 6px 2px 0; font-size: 0.76rem; color: var(--text); max-width: 760px; }
+/* By Player Type: B in the Starters tables (purple block), C at the bottom (fbtVariantC) */
+.fbt-wrap { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; align-items: flex-start; }
+.fbt-wrap .fbt-title { flex: 1 0 100%; }
+.fbt-area:empty { display: none; }
+.fbt-title { margin: 0; font: 700 1rem var(--font-display); text-transform: uppercase; letter-spacing: 0.03em; }
+.fbt-grid { border-collapse: separate; border-spacing: 3px; width: auto; }
+.fbt-grid th, .fbt-grid td { text-align: center; padding: 3px 4px; white-space: nowrap; }
+.fbt-grid th { font-size: 0.7rem; font-weight: 800; }
+.fbt-band { background: rgba(150, 100, 220, 0.3); border-radius: 8px 8px 0 0; }
+.fbt-band-sub { background: rgba(150, 100, 220, 0.3); }
+td.fbt-v { min-width: 62px; border-radius: 6px; background: var(--panel-2); cursor: pointer; }
+td.fbt-v:hover { filter: brightness(1.2); }
+td.fbt-v b { display: block; font-size: 0.9rem; }
+td.fbt-v small { display: block; font-size: 0.66rem; }
+td.fbt-off { opacity: 0.35; }
+.fbt-none { color: var(--text); opacity: 0.6; }
+.fbt-scroll { overflow-x: auto; }
+.fbt-cgrid th.fbt-has { box-shadow: inset 0 -3px 0 rgb(150, 100, 220); }
+.fbt-cgrid th small { display: block; font-size: 0.66rem; font-weight: 700; line-height: 1.15; margin-top: 2px; }
+.fbt-cgrid td.fbt-v { min-width: 50px; }
+.fbt-rl { text-align: left; font-size: 0.74rem; font-weight: 800; white-space: nowrap; }
 .fbt-box { max-width: 640px; }
 .fbt-list td, .fbt-list th { padding: 4px 8px; text-align: center; }
 .fbt-list .fbt-l { text-align: left; }

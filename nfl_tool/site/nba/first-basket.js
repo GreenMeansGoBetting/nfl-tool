@@ -306,7 +306,9 @@ function renderMatchup(g, p) {
   const head = (abbr) => `<th class="fb-m-team" style="background:rgba(${teamRgb(abbr)},0.22);border-bottom:3px solid rgb(${teamRgb(abbr)})">${logo(abbr, 22)}<span>${abbr}</span></th>`;
   // The Tip's name sits between the team banners, so the jumpers sit right
   // under them (the owner, 2026-10-21: an empty row there read as dead space).
-  el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid fb-m-first">The Tip</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>${fbtTable(g, p)}`;
+  el("fb-matchup").innerHTML = `<table class="fb-matchup"><thead><tr>${head(g.away)}<th class="fb-m-mid fb-m-first">The Tip</th>${head(g.home)}</tr></thead><tbody>${body}</tbody></table>`;
+  // By Player Type: full width under the game (the Matchup column is too narrow for it)
+  if (el("fbt-area")) el("fbt-area").innerHTML = fbtTable(g, p);
 }
 
 // ---- Player Types (the owner, 2026-11-11: "labeling each player, and then showing what the defense allows
@@ -351,41 +353,61 @@ function fbtShade(def, L, rate, all) {
   const hue = Math.round((120 * (vals.length - rank)) / (vals.length - 1));
   return ` style="background:${scaleHsla(hue, 70, 45, 0.32)}"`;
 }
-function fbtTable(g, p) {
-  const st = DATA.shot_types;
-  if (!st || !(block().type_log || []).length) return "";
-  FBT = fbtStats(g.date);
-  const facing = (abbr) => (p[where(g, abbr === g.away ? g.home : g.away)].starters || []); // the five this defense faces
-  const letters = [...new Set([...facing(g.away), ...facing(g.home)].map(fbtType).filter(Boolean))].sort();
-  if (!letters.length) return "";
-  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+// Two places (the owner, 2026-11-11, after a first table that mixed both directions in a row and three
+// versions to pick from): B, inside each Starters table, a purple block per starter: what tonight's defense
+// allowed to HIS letter; C, at the bottom, each defense against EVERY letter with tonight's other starters
+// named under theirs ("if TOR is bad vs F, and theres no F on the slate, then the next best or similar
+// player is the letters next to it"). Every number opens the games behind it (fbtOpen).
+const FBT_LETTERS = "ABCDEFGHIJK".split("");
+const fbtBadge = (L) => `<span class="pt-letter pt-sm" style="--h:${FBT_LETTERS.indexOf(L) * 28}">${L}</span>`;
+const FBT_KINDS = [["shot", "1st Shot", "took the offense's first shot"], ["fg", "1st FG", "made the offense's first field goal"], ["open", "Open 3 Min", "tries in the first 3 minutes"]];
+// one number: what defense `def` allowed to letter L (kind: shot / fg / open), colored against the other 29
+function fbtCell(def, L, kind, cls = "") {
+  const T = FBT.teams[def] || { games: 0, t: {} };
+  const c = T.t[L] || { shot: [], fg: [], open: [], n: 0, made: 0 };
   const teams = Object.keys(FBT.teams);
-  const rateOf = (d, L, k) => { const T = FBT.teams[d]; return T && T.games ? ((T.t[L] || {})[k] || []).length / T.games : null; };
-  const fgPct = (d, L) => { const c = ((FBT.teams[d] || {}).t || {})[L]; return c && c.n >= FBT_OPEN_MIN ? c.made / c.n : null; };
-  const cells = (def, L) => {
-    const T = FBT.teams[def] || { games: 0, t: {} };
-    const c = T.t[L] || { shot: [], fg: [], open: [], n: 0, made: 0 };
-    const faces = facing(def).some((id) => fbtType(id) === L);
-    const fade = faces ? "" : " fbt-off";
-    const one = (k, label) => {
-      const rate = rateOf(def, L, k);
-      return `<td class="fb-m-val fbt-v${fade}"${fbtShade(def, L, rate, teams.map((t) => rateOf(t, L, k)))} data-fbt="${def}|${L}|${k}" title="${def} allowed type ${L} the ${label} in ${c[k].length} of ${T.games} games: click for the games"><b>${c[k].length}/${T.games}</b></td>`;
-    };
-    const pct = fgPct(def, L);
+  if (kind === "open") {
+    const pctOf = (d) => { const x = ((FBT.teams[d] || {}).t || {})[L]; return x && x.n >= FBT_OPEN_MIN ? x.made / x.n : null; };
+    const v = pctOf(def);
     const lg = FBT.league[L];
-    const open = `<td class="fb-m-val fbt-v${fade}"${pct === null ? "" : fbtShade(def, L, pct, teams.map((t) => fgPct(t, L)))} data-fbt="${def}|${L}|open" title="${def}: ${c.n} tries by type ${L} in the first 3 minutes, ${c.made} made${lg && lg.n ? ` (league ${Math.round((100 * lg.made) / lg.n)}%)` : ""}: click for the games"><b>${c.n ? `${Math.round((100 * c.made) / c.n)}%` : "--"}</b><small>${c.made}/${c.n}</small></td>`;
-    return one("shot", "team's first shot") + one("fg", "team's first field goal") + open;
-  };
-  const who = (L) => [g.away, g.home].map((abbr) => {
-    const names = (p[where(g, abbr)].starters || []).filter((id) => fbtType(id) === L).map((id) => lastName(player(id).name));
-    return names.length ? `${logo(abbr, 13)}${names.join(", ")}` : "";
-  }).filter(Boolean).join(" ");
-  const rows = letters.map((L) => `<tr>${cells(g.away, L)}<td class="fb-m-mid fbt-mid">${badge(L)}<span class="fbt-who">${who(L)}</span></td>${cells(g.home, L)}</tr>`).join("");
-  const head = (abbr) => `<th class="fb-m-team" colspan="3" style="background:rgba(${teamRgb(abbr)},0.22);border-bottom:3px solid rgb(${teamRgb(abbr)})">${logo(abbr, 18)}<span>${abbr} Defense</span></th>`;
-  const sub = '<th title="Took the offense\'s first shot">1st Shot</th><th title="Made the offense\'s first field goal">1st FG</th><th title="Field goal tries in the first 3 minutes: FG%, made / tried">Open 3 Min</th>';
-  return `<table class="fb-matchup fbt-table"><thead><tr>${head(g.away)}<th class="fb-m-mid fb-m-first" rowspan="2">By Player Type</th>${head(g.home)}</tr><tr class="fbt-sub">${sub}${sub}</tr></thead><tbody>${rows}</tbody></table>
-    <p class="fbt-note">Each defense against the letters in tonight's other starting five (faded = a letter that five doesn't have). 1st Shot / 1st FG: games that letter took the offense's first shot / made its first field goal. Open 3 Min: every try in the first 3 minutes. Red = allows the most of the 30. Click a number for the games.</p>`;
+    return `<td class="fbt-v ${cls}"${v === null ? "" : fbtShade(def, L, v, teams.map(pctOf))} data-fbt="${def}|${L}|open" title="${def}: type ${L} took ${c.n} shots in the first 3 minutes and made ${c.made}${lg && lg.n ? ` (league ${Math.round((100 * lg.made) / lg.n)}%)` : ""}. Click for the games."><b>${c.n ? `${Math.round((100 * c.made) / c.n)}%` : "--"}</b><small>${c.made} of ${c.n}</small></td>`;
+  }
+  const rateOf = (d) => { const x = FBT.teams[d]; return x && x.games ? ((x.t[L] || {})[kind] || []).length / x.games : null; };
+  const label = FBT_KINDS.find((k) => k[0] === kind)[2];
+  return `<td class="fbt-v ${cls}"${fbtShade(def, L, rateOf(def), teams.map(rateOf))} data-fbt="${def}|${L}|${kind}" title="Type ${L} ${label} against ${def} in ${c[kind].length} of ${T.games} games. Click for the games."><b>${c[kind].length} of ${T.games}</b><small>games</small></td>`;
 }
+// the starters of one team and their letters
+const fbtFive = (p, g, abbr) => (p[where(g, abbr)].starters || []).map((id) => ({ id, L: fbtType(id) }));
+
+// C: per defense, every letter across the top; tonight's opposing starters under their letter
+function fbtVariantC(g, p) {
+  const strip = (def, off) => {
+    const five = fbtFive(p, g, off);
+    const heads = FBT_LETTERS.map((L) => {
+      const names = five.filter((x) => x.L === L).map((x) => lastName(player(x.id).name));
+      return `<th class="${names.length ? "fbt-has" : ""}">${fbtBadge(L)}${names.length ? `<small>${names.join("<br>")}</small>` : ""}</th>`;
+    }).join("");
+    const rows = FBT_KINDS.map(([k, l]) => `<tr><td class="fbt-rl">${l}</td>${FBT_LETTERS.map((L) => fbtCell(def, L, k, five.some((x) => x.L === L) ? "" : "fbt-off")).join("")}</tr>`).join("");
+    return `<div class="nba-box fbt-c">${banner(def, `Defense vs ${logo(off, 18)} ${off} Starters`)}
+      <div class="fbt-scroll"><table class="data-table fbt-grid fbt-cgrid"><thead><tr><th class="fbt-rl">${off} Starters &rarr;</th>${heads}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  };
+  return `<div class="fbt-wrap"><h3 class="fbt-title">By Player Type: Each Defense Against Every Letter</h3>${strip(g.home, g.away)}${strip(g.away, g.home)}</div>`;
+}
+
+function fbtTable(g, p) {
+  FBT = null;
+  if (!DATA.shot_types || !(block().type_log || []).length) return "";
+  FBT = fbtStats(g.date);
+  return fbtVariantC(g, p);
+}
+// B: inside the Starters tables (Best stays the far-right column), a purple block per starter: what tonight's defense allowed to his letter
+const fbtStartersHead = (opp) => (FBT ? `<th colspan="3" class="fbt-band" rowspan="1">Vs ${opp} Defense: His Letter</th>` : "");
+const fbtStartersSub = () => (FBT ? FBT_KINDS.map(([, l]) => `<th class="fbt-band-sub">${l}</th>`).join("") : "");
+const fbtStartersCells = (id, opp) => {
+  if (!FBT) return "";
+  const L = fbtType(id);
+  return L ? FBT_KINDS.map(([k]) => fbtCell(opp, L, k, "fbt-in")).join("") : '<td class="fbt-v fbt-in" colspan="3"><small>No letter yet</small></td>';
+};
 // the games behind a number: who shot or scored first, or every opening try
 function fbtOpen(def, L, kind) {
   if (!FBT) return;
@@ -504,12 +526,12 @@ function renderStarters(g, p) {
       return `<tr${injured.has(id) ? ' class="nba-out-row"' : ""}>
         <td class="fb-name"><span class="nba-player" title="${pl.name}">${playerClick(id, `${face(id)}<span>${pl.name}</span>`)}<span class="muted-label">${pl.pos}</span>${typeof nbaTypeBadge === "function" ? nbaTypeBadge(id) : ""}</span></td>
         ${cell("shot_early")}${cell("first_shot")}${cell("first_pts")}${share("team_first_shot", "l")}${share("team_first_pts", "r")}
-        ${bestCell(g, id)}
+        ${fbtStartersCells(id, abbr === g.away ? g.home : g.away)}${bestCell(g, id)}
       </tr>`;
     }).join("");
     return `<div class="nba-box fb-starters-box">${banner(abbr, lineupTag(side))}
-      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2" class="fb-name">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th><th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
-        <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th></tr></thead>
+      <table class="data-table fb-table fb-starters"><thead><tr><th rowspan="2" class="fb-name">Player</th><th rowspan="2" title="Starts where he shot before anyone scored">Shot Early</th><th rowspan="2" title="Took the game's first shot">1st Shot</th><th rowspan="2" title="Scored the game's first points">Scored 1st</th><th colspan="2" class="fb-share-head" title="His share of his own team's firsts, over his starts">Team Share</th>${fbtStartersHead(abbr === g.away ? g.home : g.away)}<th rowspan="2" title="The best First Basket price across your books; click for every book and to save a play">Best</th></tr>
+        <tr><th class="fb-sh-l" title="Took his team's first shot">1st Shot</th><th class="fb-sh-r" title="Scored his team's first points">1st Pts</th>${fbtStartersSub()}</tr></thead>
       <tbody>${rows || `<tr><td colspan="7" class="no-data-note">No starters on file.</td></tr>`}</tbody></table>
     </div>`;
   };
