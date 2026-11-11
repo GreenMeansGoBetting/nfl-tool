@@ -7955,30 +7955,30 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.399,
+    "lead": 0.3988,
     "name": "Luka Doncic",
     "proj": 57.0,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2257,
+    "lead": 0.2255,
     "name": "Victor Wembanyama",
     "proj": 51.2,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.0492,
+    "lead": 0.0491,
     "name": "Nikola Jokic",
     "proj": 40.1,
     "team": "DEN"
    },
    {
     "id": "3136195",
-    "lead": 0.038,
+    "lead": 0.0387,
     "name": "Karl-Anthony Towns",
-    "proj": 38.8,
+    "proj": 38.9,
     "team": "NY"
    },
    {
@@ -8004,7 +8004,7 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0239,
+    "lead": 0.0238,
     "name": "Jamal Murray",
     "proj": 36.5,
     "team": "DEN"
@@ -8060,7 +8060,7 @@
    },
    {
     "id": "4066457",
-    "lead": 0.01,
+    "lead": 0.0099,
     "name": "Austin Reaves",
     "proj": 34.5,
     "team": "LAL"
@@ -8123,7 +8123,7 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0037,
+    "lead": 0.0036,
     "name": "Tyler Herro",
     "proj": 31.0,
     "team": "MIL"
@@ -8227,6 +8227,13 @@
     "team": "POR"
    },
    {
+    "id": "4432158",
+    "lead": 0.0003,
+    "name": "Evan Mobley",
+    "proj": 25.4,
+    "team": "CLE"
+   },
+   {
     "id": "4871145",
     "lead": 0.0003,
     "name": "Josh Giddey",
@@ -8234,11 +8241,11 @@
     "team": "CHI"
    },
    {
-    "id": "4432158",
+    "id": "4395724",
     "lead": 0.0002,
-    "name": "Evan Mobley",
-    "proj": 25.3,
-    "team": "CLE"
+    "name": "Immanuel Quickley",
+    "proj": 25.4,
+    "team": "TOR"
    },
    {
     "id": "4709138",
@@ -8290,17 +8297,10 @@
     "team": "CLE"
    },
    {
-    "id": "4395724",
-    "lead": 0.0001,
-    "name": "Immanuel Quickley",
-    "proj": 25.3,
-    "team": "TOR"
-   },
-   {
     "id": "3992",
     "lead": 0.0001,
     "name": "James Harden",
-    "proj": 24.9,
+    "proj": 25.0,
     "team": "CLE"
    },
    {
