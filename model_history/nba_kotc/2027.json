@@ -7962,14 +7962,14 @@
    },
    {
     "id": "5104157",
-    "lead": 0.2349,
+    "lead": 0.235,
     "name": "Victor Wembanyama",
     "proj": 51.2,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.0463,
+    "lead": 0.0464,
     "name": "Nikola Jokic",
     "proj": 39.8,
     "team": "DEN"
@@ -8060,16 +8060,16 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0104,
+    "lead": 0.0105,
     "name": "Ty Jerome",
     "proj": 34.1,
     "team": "MEM"
    },
    {
     "id": "5041935",
-    "lead": 0.0066,
+    "lead": 0.0062,
     "name": "Cameron Boozer",
-    "proj": 32.1,
+    "proj": 32.0,
     "team": "MEM"
    },
    {
@@ -8262,18 +8262,18 @@
     "team": "NO"
    },
    {
-    "id": "4903027",
-    "lead": 0.0003,
-    "name": "Cedric Coward",
-    "proj": 24.1,
-    "team": "MEM"
-   },
-   {
     "id": "3934719",
     "lead": 0.0003,
     "name": "OG Anunoby",
     "proj": 24.0,
     "team": "NY"
+   },
+   {
+    "id": "4903027",
+    "lead": 0.0003,
+    "name": "Cedric Coward",
+    "proj": 24.0,
+    "team": "MEM"
    },
    {
     "id": "4869780",
