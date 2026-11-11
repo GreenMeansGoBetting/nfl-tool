@@ -7983,7 +7983,7 @@
    },
    {
     "id": "3975",
-    "lead": 0.0328,
+    "lead": 0.0327,
     "name": "Stephen Curry",
     "proj": 38.0,
     "team": "GS"
@@ -8018,7 +8018,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.017,
+    "lead": 0.0169,
     "name": "Alperen Sengun",
     "proj": 36.3,
     "team": "HOU"
@@ -8115,18 +8115,18 @@
     "team": "LAL"
    },
    {
+    "id": "3064514",
+    "lead": 0.0032,
+    "name": "Julius Randle",
+    "proj": 31.4,
+    "team": "BKN"
+   },
+   {
     "id": "4395628",
     "lead": 0.0031,
     "name": "Zion Williamson",
     "proj": 29.6,
     "team": "NO"
-   },
-   {
-    "id": "3064514",
-    "lead": 0.003,
-    "name": "Julius Randle",
-    "proj": 31.3,
-    "team": "BKN"
    },
    {
     "id": "5037871",
@@ -8136,18 +8136,18 @@
     "team": "SA"
    },
    {
+    "id": "4278104",
+    "lead": 0.0017,
+    "name": "Michael Porter Jr.",
+    "proj": 30.0,
+    "team": "BKN"
+   },
+   {
     "id": "4251",
     "lead": 0.0017,
     "name": "Paul George",
     "proj": 28.4,
     "team": "BOS"
-   },
-   {
-    "id": "4278104",
-    "lead": 0.0016,
-    "name": "Michael Porter Jr.",
-    "proj": 29.9,
-    "team": "BKN"
    },
    {
     "id": "4712849",
@@ -8193,7 +8193,7 @@
    },
    {
     "id": "6606",
-    "lead": 0.0006,
+    "lead": 0.0005,
     "name": "Damian Lillard",
     "proj": 25.9,
     "team": "POR"
@@ -8363,7 +8363,7 @@
     "id": "4397136",
     "lead": 0.0,
     "name": "Saddiq Bey",
-    "proj": 22.0,
+    "proj": 22.1,
     "team": "NO"
    },
    {
