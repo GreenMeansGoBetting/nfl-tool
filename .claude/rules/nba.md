@@ -569,6 +569,17 @@ data: no leans, no picks, no tracking** (the owner). Menu: first in the NBA list
   `--only nhl` when chasing a problem there.
 - No owner "Update Odds" buttons.
 
+## Basketball-Reference cross-check (`bbref_check.py`, `nba-bbref-check.yml`, 2026-11-11)
+
+- **An alarm, never a source** (no shot types there). Mondays 15:23 UTC: our per-player average
+  distance, 3PA share and dunk share (the engine's shots, heaves in) vs Basketball-Reference's season
+  shooting page (NBA tracking). Players with the same games in both and 50+ shots; fails (GitHub
+  emails) at 3 ft / 8 pts apart, a league match under `MIN_CORR`, or under 20 players matched.
+- **One page a week, nothing shown on the site, nothing committed.** Sports Reference's terms: reuse
+  with credit is welcome; no competing database, 20 requests a minute, **no feeding their content to
+  AI**: don't pull their pages into a Claude session without the owner's say; tests use made-up rows.
+- Season (2027) matches deploy.yml's NBA build: change both together. Tests: `tests/test_nba_bbref_check.py`.
+
 ## Data: sportsdataverse / hoopR
 
 - Release assets at `sportsdataverse/sportsdataverse-data` (tags `espn_nba_*`, named by the year the

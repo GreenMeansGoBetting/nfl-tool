@@ -72,7 +72,7 @@ message, so every line costs usage); detail belongs in a rules file.
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Run workflow" and every push
   to main; every run tests, builds and browser-checks all three sports (members-and-hosting.md).
-  `nhl-refresh.yml`: hockey every half hour (nhl.md). `site-check.yml`: daily live check.
+  `nhl-refresh.yml`: hockey every half hour (nhl.md). `site-check.yml`: daily live check. `nba-bbref-check.yml`: weekly NBA shot-data alarm (nba.md).
 - `model_history/` (committed by the deploy bot): every model's locked / graded record
   (`gmg_model.json`, `nfl_koe/`, `nfl_best_plays/`, `nhl_*/`, `nba_*/`).
 - `tools/`: `check_site.py` (local page check), `run_tests.py` + `tests/` (site JS runs in a real

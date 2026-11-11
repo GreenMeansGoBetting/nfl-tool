@@ -1,0 +1,55 @@
+name: NBA Basketball-Reference check
+
+# Once a week, compares our NBA shot data (ESPN's play-by-play through the
+# engine, nfl_tool/nba/possessions.py) with Basketball-Reference's season
+# shooting page, which comes from the NBA's own tracking: average distance,
+# share of threes, share of dunks per player. The owner, 2026-11-11: "use that
+# in conjunction with espn to make sure we are accurate". One page read a week,
+# nothing shown on the site, nothing committed (bbref_check.py's header has
+# why, and Sports Reference's terms).
+#
+# A failed run means a player (or the whole league) drifted apart: GitHub
+# emails the repo owner, and the report is on the run's Summary page. Look at
+# that player's shots in ESPN's data before trusting his Player Type.
+#
+# The season (2027 = 2026-27) matches deploy.yml's "Build NBA data" step;
+# change both together.
+
+on:
+  schedule:
+    # Mondays 15:23 UTC (10:23 / 11:23 am Eastern), after the weekend's games land.
+    - cron: "23 15 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nba-bbref-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -r nfl_tool/requirements.txt
+
+      - name: Compare with Basketball-Reference
+        run: |
+          set +e
+          python nfl_tool/nba/bbref_check.py --season 2027 --data-dir data/nba | tee report.txt
+          code=${PIPESTATUS[0]}
+          {
+            echo '```'
+            cat report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
