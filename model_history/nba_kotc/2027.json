@@ -8450,7 +8450,7 @@
    },
    {
     "id": "5174563",
-    "lead": 0.0192,
+    "lead": 0.0191,
     "name": "Kyshawn George",
     "proj": 27.5,
     "team": "WSH"
@@ -8617,18 +8617,18 @@
     "team": "DET"
    },
    {
+    "id": "4437244",
+    "lead": 0.0001,
+    "name": "Jalen Green",
+    "proj": 18.0,
+    "team": "PHX"
+   },
+   {
     "id": "4278594",
     "lead": 0.0001,
     "name": "Naji Marshall",
     "proj": 17.9,
     "team": "DAL"
-   },
-   {
-    "id": "4437244",
-    "lead": 0.0,
-    "name": "Jalen Green",
-    "proj": 17.9,
-    "team": "PHX"
    },
    {
     "id": "5093267",
@@ -8771,18 +8771,18 @@
     "team": "PHX"
    },
    {
+    "id": "4888725",
+    "lead": 0.0,
+    "name": "Ryan Dunn",
+    "proj": 11.2,
+    "team": "PHX"
+   },
+   {
     "id": "4431893",
     "lead": 0.0,
     "name": "Jamison Battle",
     "proj": 11.1,
     "team": "TOR"
-   },
-   {
-    "id": "4888725",
-    "lead": 0.0,
-    "name": "Ryan Dunn",
-    "proj": 11.1,
-    "team": "PHX"
    },
    {
     "id": "4683771",
