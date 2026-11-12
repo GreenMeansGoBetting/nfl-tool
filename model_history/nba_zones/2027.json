@@ -19344,6 +19344,18 @@
   "date": "2026-11-12",
   "points": [
    [
+    "3912848",
+    "Dean Wade",
+    "PHI",
+    "TOR",
+    0.0699,
+    "over",
+    false,
+    5.5,
+    102,
+    "draftkings"
+   ],
+   [
     "4395724",
     "Immanuel Quickley",
     "TOR",
@@ -19376,7 +19388,7 @@
     "over",
     false,
     13.5,
-    -117,
+    -115,
     "draftkings"
    ]
   ],
@@ -19402,7 +19414,7 @@
     "over",
     false,
     2.5,
-    -120,
+    -125,
     "fanatics"
    ],
    [
@@ -19414,8 +19426,8 @@
     "under",
     true,
     2.5,
-    -182,
-    "fanduel"
+    -178,
+    "draftkings"
    ]
   ]
  },
@@ -19443,7 +19455,7 @@
     "over",
     false,
     12.5,
-    -110,
+    -114,
     "draftkings"
    ],
    [
@@ -19455,8 +19467,8 @@
     "under",
     true,
     10.5,
-    -136,
-    "fanduel"
+    -125,
+    "draftkings"
    ],
    [
     "4277905",
@@ -19529,7 +19541,7 @@
     "under",
     true,
     3.5,
-    -121,
+    -126,
     "draftkings"
    ],
    [
@@ -19541,8 +19553,8 @@
     "under",
     true,
     1.5,
-    -132,
-    "fanduel"
+    -131,
+    "draftkings"
    ],
    [
     "4277905",
