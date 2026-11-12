@@ -2307,9 +2307,16 @@
    ]
   ],
   "players": {
+   "3442": [
+    "DeAndre Jordan",
+    0.062,
+    null,
+    false,
+    null
+   ],
    "3907497": [
     "Dejounte Murray",
-    0.073,
+    0.077,
     null,
     false,
     null
@@ -2323,14 +2330,7 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.081,
-    null,
-    false,
-    null
-   ],
-   "4397688": [
-    "Trey Murphy III",
-    0.102,
+    0.092,
     null,
     false,
     null
@@ -2351,7 +2351,7 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.07,
+    0.08,
     null,
     false,
     null
@@ -2372,7 +2372,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.087,
+    0.102,
     null,
     false,
     null
@@ -14469,9 +14469,16 @@
     false,
     "draftkings"
    ],
+   "3442": [
+    "DeAndre Jordan",
+    0.068,
+    null,
+    false,
+    null
+   ],
    "3907497": [
     "Dejounte Murray",
-    0.08,
+    0.085,
     700,
     false,
     "fanduel"
@@ -14485,17 +14492,10 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.09,
+    0.101,
     650,
     false,
     "bet365"
-   ],
-   "4397688": [
-    "Trey Murphy III",
-    0.113,
-    null,
-    false,
-    null
    ],
    "4432194": [
     "Day'Ron Sharpe",
@@ -14506,9 +14506,9 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.078,
+    0.088,
     1300,
-    false,
+    true,
     "fanduel"
    ],
    "5107173": [
@@ -14520,7 +14520,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.096,
+    0.113,
     750,
     false,
     "bet365"
