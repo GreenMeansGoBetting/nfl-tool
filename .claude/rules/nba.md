@@ -631,6 +631,15 @@ projections, no line / "priced in" check, no record or tracking** (the owner: "a
   first tile is his **line tonight** (`ssLine`, the player card's main-line rule) with his average under it.
 - **Stacked** = a player row and a team row, same game, category and direction (parts shown, never
   blended; hover names the team spot). A team logo / name / the game opens Matchup Keys on that game.
+- **Two views** (the owner, 2026-11-12, picked from three mock-ups: A Headliners + Board, B Game Cards, C a games-by-categories map): **By
+  Category** (default: a slate strip, game chips with ▲ / ▼ counts; **Biggest Standouts / Tough Spots
+  Tonight**, three headliner cards a side; then the two lists, each category a green / red band) and a
+  **Sort By Game** toggle ("for SGP bettors": a card per game, its Standouts and Tough Spots, a
+  category chip on every row; per-device pref `nba-tool.ss-bygame.v1`). Same rows, tiles and clicks.
+- **Headliners** (`ssHeroPick`): ordered by `ssStrength` (players: how far the type's +/- runs past the
+  owner's cut; teams: Matchup Keys' score), never capped; **the strongest player spot and the strongest
+  team spot always make it** (2026-11-12 audit: one kind crowded the other out, Quickley -5.4 1/7 off).
+  It only orders headliners and shades category chips (Standouts the 3 greens, Tough the 3 reds).
 - Tests: `test_nba_standouts_site.py`.
 
 ## Basketball-Reference cross-check (`bbref_check.py`, `nba-bbref-check.yml`, 2026-11-11)

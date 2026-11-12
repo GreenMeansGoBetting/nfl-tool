@@ -75,7 +75,7 @@ def lists():
 
 class SlateStandouts(unittest.TestCase):
     def setUp(self):
-        PAGE.evaluate("() => { ssView.cat = 'all'; ssView.open = ''; ssView.dtab = 'like'; ssRender(); const m = document.getElementById('mb-who-modal'); if (m) m.hidden = true; }")
+        PAGE.evaluate("() => { ssView.cat = 'all'; ssView.open = ''; ssView.dtab = 'like'; ssView.byGame = false; ssRender(); const m = document.getElementById('mb-who-modal'); if (m) m.hidden = true; }")
 
     def test_team_rows_are_matchup_keys_edges(self):
         self.assertTrue(any("AAA Offense: Threes" in r for r in lists()["Standouts"]))
@@ -128,6 +128,27 @@ class SlateStandouts(unittest.TestCase):
         self.assertIn("+4.0", html)  # type C against BBB: +4 points over their own averages
         self.assertIn("AAA Shots", html)
         PAGE.evaluate("() => { document.getElementById('mb-who-modal').hidden = true; }")
+
+    def test_headliners_keep_the_strongest_player_and_team_spots(self):
+        # the owner's pick, 2026-11-12: the night's biggest spots up top; neither kind may crowd the other out
+        heroes = PAGE.evaluate("() => [...document.querySelectorAll('.ss-hero-col.ss-more .ss-hero-card')].map((c) => c.innerText.replace(/\\s+/g, ' '))")
+        self.assertTrue(any("Shooter One" in h for h in heroes), heroes)
+        self.assertTrue(any("AAA Offense" in h for h in heroes), heroes)
+        self.assertLessEqual(len(heroes), 3)
+        self.assertTrue(PAGE.evaluate("() => document.querySelectorAll('.ss-hero-col.ss-less .ss-hero-card').length") >= 1)
+
+    def test_sort_by_game_shows_every_row_in_its_games_card(self):
+        # the owner, 2026-11-12: "for SGP bettors" a Sort By Game toggle switches the lists to game cards
+        rows = len(sum(lists().values(), []))
+        PAGE.click("#ss-bar [data-bygame]")
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.ss-gcard').length"), 1)
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.ss-gcard .ss-crow').length"), rows)
+        self.assertEqual(PAGE.evaluate("() => localStorage.getItem('nba-tool.ss-bygame.v1')"), "1")
+        PAGE.click(".ss-gcard .ss-crow.ss-p [data-dd] >> nth=0")  # a player's drop-down opens inside the card
+        PAGE.wait_for_selector(".ss-gcard .ss-drop .ss-dtabs")
+        PAGE.click("#ss-bar [data-bygame]")
+        self.assertEqual(PAGE.evaluate("() => document.querySelectorAll('.ss-gcard').length"), 0)
+        self.assertEqual(PAGE.evaluate("() => localStorage.getItem('nba-tool.ss-bygame.v1')"), "0")
 
     def test_a_team_opens_its_game_on_matchup_keys(self):
         page = SITE.open("nba/standouts.html")  # its own page: the click leaves it

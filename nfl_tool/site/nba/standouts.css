@@ -1,33 +1,123 @@
-/* NBA Slate Standouts (standouts.html): two lists on the League Stats Chart grid (style.css .od-grid),
-   Standouts and Tough Spots, side by side when the screen is wide enough, stacked when not. */
+/* NBA Slate Standouts (standouts.html), the owner's pick of three mockups (2026-11-12). Two views:
+   By Category (the slate strip, the headliners, then Standouts beside Tough Spots by category) and Sort
+   By Game (one card per game). Built from the League Stats Chart's pieces (style.css .od-grid / .od-tile,
+   the 8-step scale, team-color boxes, the type letters). Bands: Standouts = the accent band, Tough Spots
+   = the same band in the scale's red. */
 .ss-days { margin: 4px 0 10px; }
-.ss-cols { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
-.ss-box { overflow-x: auto; max-width: 100%; }
-.data-table.ss-grid { width: 736px; table-layout: fixed; }
-.ss-grid .ss-title { font-size: 1.05rem; padding: 8px 4px; }
-.ss-grid tr.ss-cat td { text-align: left; font: 800 0.78rem var(--font-display); letter-spacing: 0.05em; text-transform: uppercase;
-  color: var(--muted); padding: 10px 6px 2px; border-bottom: 1px solid var(--border); }
-.ss-grid td.ss-game { font-size: 0.74rem; font-weight: 700; color: var(--muted); text-align: left; padding-left: 6px; }
-.ss-grid .ss-who { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.ss-grid .ss-who .pt-logo { width: 34px; flex: none; height: 26px; }
-.ss-grid .ss-who .pt-logo img { width: 20px; height: 20px; }
-.ss-grid .ss-who span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.ss-grid .ss-who small { display: block; color: var(--muted); font-weight: 600; font-size: 0.7rem; }
-.ss-grid td.ss-read { text-align: left; font-weight: 700; font-size: 0.84rem; white-space: normal; line-height: 1.2; padding: 4px 6px; }
-.ss-grid td.ss-read .pt-letter { min-width: 22px; height: 22px; font-size: 0.82rem; margin-right: 4px; vertical-align: middle; }
-.ss-tile small { font-size: 0.62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ss-tile small .pt-letter { min-width: 14px; height: 14px; font-size: 0.6rem; padding: 0 3px; vertical-align: -2px; }
+.pt-seg .view-toggle-btn small { opacity: 0.7; font-size: 0.72rem; margin-left: 2px; }
+.ss-bygame { border-radius: 8px; font-weight: 700; }
+
+/* bands, counts, the tally */
+.ss-band { --zg: var(--accent-rgb); background: rgba(var(--zg), 0.3); color: var(--text); font: 800 1rem var(--font-display);
+  letter-spacing: 0.05em; text-transform: uppercase; padding: 7px 10px; border-radius: 10px 10px 0 0; }
+.ss-band.ss-less { --zg: 214, 72, 64; }
+.ss-band .ss-n { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; background: rgba(var(--zg), 0.45); font-size: 0.8rem; }
+.data-table.od-grid .od-ggroups th.ss-band { background: rgba(var(--zg), 0.3); padding: 8px 4px; font-size: 1.05rem; }
+.ss-up, .ss-down { display: inline-block; padding: 1px 7px; border-radius: 6px; font: 800 0.8rem var(--font-display); color: var(--text); }
+.ss-up { background: rgba(var(--accent-rgb), 0.32); }
+.ss-down { background: rgba(214, 72, 64, 0.34); }
+.ss-counts { display: inline-flex; gap: 4px; }
+.ss-tally { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-left: auto; }
+.ss-tally > span { font-size: 0.9rem; padding: 4px 10px; }
+.ss-games { color: var(--muted); font: 700 0.85rem var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* faces and logos (team-color boxes like Player Types' .pt-logo) */
+.ss-face { flex: none; display: inline-flex; align-items: flex-end; justify-content: center; width: 40px; height: 30px; overflow: hidden; border-radius: 7px;
+  background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); }
+.ss-face img { width: 40px; height: 29px; object-fit: cover; object-position: top; }
+.ss-face-lg { width: 64px; height: 47px; }
+.ss-face-lg img { width: 64px; height: 46px; }
+.ss-logo { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 28px; border-radius: 7px; cursor: pointer;
+  background: rgba(var(--team), 0.42); border: 1px solid rgba(var(--team), 0.85); border-left: 4px solid rgb(var(--team)); font: 800 0.7rem var(--font-display); }
+.ss-logo:hover { filter: brightness(1.25); }
+.ss-logo img { width: 20px; height: 20px; }
+.ss-logo-lg { width: 52px; height: 44px; }
+.ss-logo-lg img { width: 32px; height: 32px; }
+.ss-pair { display: inline-flex; gap: 2px; flex: none; }
+.ss-who, .ss-cwho { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ss-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 0.86rem; text-align: left; }
+.ss-name small { display: block; color: var(--muted); font-weight: 600; font-size: 0.7rem; }
+.ss-team { cursor: pointer; }
+.ss-team:hover b { color: var(--accent); }
+.ss-cat-chip { flex: none; display: inline-block; padding: 4px 8px; border-radius: 6px; font: 800 0.72rem var(--font-display); letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text); text-align: center; white-space: nowrap; }
 .ss-stack { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font: 800 0.66rem var(--font-display);
   letter-spacing: 0.04em; text-transform: uppercase; background: rgba(var(--accent-rgb), 0.22); color: var(--text);
   box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.7); vertical-align: middle; }
 .ss-none { color: var(--muted); padding: 10px; text-align: left; }
-.pt-seg .view-toggle-btn small { opacity: 0.7; font-size: 0.72rem; margin-left: 2px; }
-.ss-grid .pt-logo, .ss-grid .ss-open, .ss-grid .ss-team { cursor: pointer; }
-.ss-grid .pt-logo:hover { filter: brightness(1.25); }
-.ss-grid .ss-open:hover, .ss-grid .ss-team:hover b { color: var(--accent); }
-/* clickable tiles: a team's opens who's behind it (who.js), a player's opens his drop-down */
+
+/* tiles (the page's own, in the lists or in a one-row grid of their own) */
+.ss-tile small { font-size: 0.62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ss-tile small .pt-letter { min-width: 14px; height: 14px; font-size: 0.6rem; padding: 0 3px; vertical-align: -2px; }
 .ss-grid .ss-click { cursor: pointer; }
 .ss-grid .ss-click:hover { filter: brightness(1.2); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.data-table.ss-tiles.ss-grid { width: auto; table-layout: fixed; margin: 0; }
+.ss-tiles.ss-grid td { width: 74px; padding: 0 2px; }
+.ss-tiles.ss-grid td:empty { padding: 0; }
+.ss-tiles-lg .od-tile b { font-size: 1.15rem; }
+.data-table.ss-droptable.ss-grid { width: 100%; margin: 2px 0 6px; table-layout: auto; }
+
+/* ---------- By Category ---------- */
+.ss-slate { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.ss-slate-game { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; background: var(--panel-2);
+  border: 1px solid var(--border); cursor: pointer; }
+.ss-slate-game:hover { border-color: var(--accent); }
+.ss-slate-teams { display: flex; align-items: center; gap: 4px; color: var(--muted); font-weight: 700; font-size: 0.75rem; }
+.ss-slate-info b { display: block; font: 800 0.92rem var(--font-display); letter-spacing: 0.03em; }
+.ss-slate-info small { color: var(--muted); font-size: 0.72rem; font-weight: 600; }
+.ss-hero { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 16px; }
+.ss-hero-col { width: 736px; max-width: 100%; }
+.ss-hero-band { padding: 8px 12px; }
+.ss-hero-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 6px; background: rgba(var(--accent-rgb), 0.13); border-radius: 0 0 10px 10px; }
+.ss-hero-col.ss-less .ss-hero-cards { background: rgba(214, 72, 64, 0.13); }
+.ss-hero-card { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 9px; background: var(--panel); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  border-top: 3px solid rgb(var(--team)); min-width: 0; }
+.ss-hero-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ss-hero-who { min-width: 0; flex: 1; font: 800 1rem var(--font-display); line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-hero-who small { display: block; font: 600 0.72rem var(--font-body); color: var(--muted); margin-top: 2px; }
+.ss-hero-read { font-weight: 700; font-size: 0.86rem; min-height: 24px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.ss-hero-read .ss-cat-chip { margin-right: 4px; }
+.ss-hero-read .pt-letter { min-width: 22px; height: 22px; font-size: 0.82rem; }
+.ss-hero-card .ss-tiles-lg.ss-grid { width: 100%; margin-top: auto; }
+.ss-hero-card .ss-tiles-lg.ss-grid td { width: auto; }
+.ss-hero-card .ss-tiles-lg td:empty { display: none; }
+.ss-cols { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.ss-box { overflow-x: auto; max-width: 100%; }
+.data-table.ss-grid.ss-list { width: 736px; table-layout: fixed; }
+.ss-list tr.ss-cat td { padding: 8px 2px 3px; }
+.ss-catband { --zg: var(--accent-rgb); display: flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 7px; text-align: left; color: var(--text);
+  background: rgba(var(--zg), 0.2); border-left: 4px solid rgba(var(--zg), 0.9); font: 800 0.8rem var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.ss-catband.ss-less { --zg: 214, 72, 64; }
+.ss-catband span { margin-left: auto; padding: 0 7px; border-radius: 999px; background: rgba(var(--zg), 0.4); }
+.ss-grid td.ss-game { font-size: 0.74rem; font-weight: 700; color: var(--muted); text-align: left; padding-left: 6px; cursor: pointer; }
+.ss-grid td.ss-game:hover { color: var(--accent); }
+.ss-grid td.ss-game small { display: block; font-weight: 600; font-size: 0.66rem; }
+.ss-grid td.ss-read { text-align: left; font-weight: 700; font-size: 0.84rem; white-space: normal; line-height: 1.2; padding: 4px 6px; }
+.ss-grid td.ss-read .pt-letter { min-width: 22px; height: 22px; font-size: 0.82rem; margin-right: 4px; vertical-align: middle; }
+
+/* ---------- Sort By Game ---------- */
+.ss-gcards { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.ss-gcard { width: 640px; max-width: 100%; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+.ss-ghead { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; padding: 8px; background: var(--panel-2); }
+.ss-gteam { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; border-radius: 9px; background: rgba(var(--team), 0.22); cursor: pointer; min-width: 0; }
+.ss-gteam:hover { box-shadow: inset 0 0 0 1px var(--accent); }
+.ss-gteam:last-child { flex-direction: row-reverse; text-align: right; padding: 4px 4px 4px 8px; }
+.ss-gteam:last-child .ss-logo { border-left-width: 1px; border-right: 4px solid rgb(var(--team)); }
+.ss-gteam b { display: block; font: 800 0.95rem var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ss-gteam small { color: var(--muted); font-size: 0.7rem; font-weight: 600; }
+.ss-gteam div { min-width: 0; }
+.ss-gmid { text-align: center; display: grid; gap: 2px; justify-items: center; }
+.ss-gmid b { font: 800 1rem var(--font-display); }
+.ss-gmid small { color: var(--muted); font-size: 0.7rem; }
+.ss-cband { border-radius: 0; padding: 5px 10px; font-size: 0.82rem; }
+.ss-cbody { padding: 4px 6px 6px; display: grid; gap: 3px; }
+.ss-cbody .ss-none { margin: 0; padding: 6px; }
+.ss-crow { display: grid; grid-template-columns: 88px 168px minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 3px 4px; border-radius: 8px; background: var(--panel-2); }
+.ss-crow .ss-cat-chip { width: 100%; box-sizing: border-box; }
+.ss-cread { font-weight: 700; font-size: 0.8rem; line-height: 1.2; text-align: left; min-width: 0; }
+.ss-cread .pt-letter { min-width: 20px; height: 20px; font-size: 0.75rem; margin-right: 2px; vertical-align: middle; }
+.ss-cread .ss-stack { margin-left: 4px; }
+
 /* the drop-down: tabs like the research panels, the League Stats Chart grid inside */
 .ss-grid tr.ss-drop > td { padding: 4px 4px 10px; background: var(--panel-2); }
 .ss-dbox { display: grid; gap: 6px; }
@@ -43,3 +133,16 @@
 .ss-dgrid td.pt-name { min-width: 130px; text-align: left; }
 .ss-dgrid th.ss-mine .pt-letter { box-shadow: 0 0 0 2px var(--text); }
 .ss-call { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 800; }
+
+/* phone: headliners one per line, a game card's rows on two lines (chip + who, then the read + tiles) */
+@media (max-width: 760px) {
+  .ss-tally { margin-left: 0; }
+  .ss-hero-cards { grid-template-columns: 1fr; }
+  .ss-ghead { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 4px; padding: 6px; }
+  .ss-gteam b { font-size: 0.8rem; }
+  .ss-gteam .ss-logo-lg { width: 36px; height: 32px; }
+  .ss-gteam .ss-logo-lg img { width: 22px; height: 22px; }
+  .ss-crow { grid-template-columns: 82px minmax(0, 1fr); }
+  .ss-cread { grid-column: 1 / 2; }
+  .ss-crow .ss-tiles { grid-column: 2 / 3; justify-self: end; }
+}

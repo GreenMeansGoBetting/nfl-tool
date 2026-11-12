@@ -15,7 +15,15 @@
 
 let DATA = null;
 let ssDay = 0;
-const ssView = { cat: "all", window: "season", open: "", dtab: "like" }; // open: the player row whose drop-down is open
+// open: the player row whose drop-down is open; byGame: Sort By Game (a display pref, kept on this device)
+const SS_BYGAME_KEY = "nba-tool.ss-bygame.v1";
+const ssView = { cat: "all", window: "season", open: "", dtab: "like", byGame: (() => {
+  try {
+    return localStorage.getItem(SS_BYGAME_KEY) === "1";
+  } catch (e) {
+    return false; // localStorage unavailable -- By Category
+  }
+})() };
 
 const ssEl = (id) => document.getElementById(id);
 const ssTeam = (abbr) => (DATA.teams || {})[abbr] || { name: abbr, color: "555555", logo: "" };
@@ -23,7 +31,6 @@ const ssRgb = (abbr) => [0, 2, 4].map((i) => parseInt((ssTeam(abbr).color || "55
 const ssEsc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const ssDays = () => [...new Set(DATA.schedule.map((g) => g.date))].sort();
 const ssGames = (date) => DATA.schedule.filter((g) => g.date === date);
-const ssLogo = (abbr) => `<div class="pt-logo" style="--team:${ssRgb(abbr)}" title="${ssEsc(ssTeam(abbr).name)}: open this game in Matchup Keys">${ssTeam(abbr).logo ? `<img src="${ssTeam(abbr).logo}" alt="${abbr}" loading="lazy">` : abbr}</div>`;
 const ssLetter = (L) => `<span class="pt-letter" style="--h:${Math.round("ABCDEFGHIJK".indexOf(L) * 28)}">${L}</span>`;
 
 // Categories, in the order they're listed. A key's topic (keys.js) says which one it belongs to.
@@ -247,36 +254,124 @@ function ssPlayerTiles(row) {
   const hitTile = `<td><div class="od-tile pt-tile ss-tile ss-click" data-dd="${ssKey(row)}" style="${ssStep(c.hit)}" title="${ssEsc(`In ${c.over} of ${c.n} games, type ${row.p.type} beat their own average against ${row.opp}`)}"><b>${c.over}/${c.n}</b><small>Beat Avg</small></div></td>`;
   return selfTile + defTile + hitTile;
 }
-function ssRow(row, ranks, table, stacked) {
-  const g = row.game;
-  const gameCell = `<td class="ss-game ss-open" title="Open this game in Matchup Keys">${g.away} @ ${g.home}</td>`;
-  const tag = stacked ? `<span class="ss-stack" title="${ssEsc(stacked)}">Stacked</span>` : "";
-  if (row.kind === "player") {
-    return `<tr class="ss-p" data-game="${g.game_id}">${gameCell}<td class="pt-name"><div class="ss-who">${ssLogo(row.team)}<span>${playerClick(row.pid, ssEsc(row.p.name))}<small>${ssEsc(row.p.pos || "")} · vs ${row.opp}</small></span></div></td>
-      <td class="ss-read">${ssLetter(row.p.type)} ${row.label}${tag}</td>${ssPlayerTiles(row)}</tr>${ssView.open === ssKey(row) ? ssDrop(row) : ""}`;
-  }
-  const who = row.team ? `${ssLogo(row.team)}<span class="ss-team"><b>${row.team}</b><small>Offense vs ${row.team === g.away ? g.home : g.away}</small></span>` : `${ssLogo(g.away)}${ssLogo(g.home)}<span><small>Both Teams</small></span>`;
-  return `<tr class="ss-t" data-game="${g.game_id}">${gameCell}<td class="pt-name"><div class="ss-who">${who}</div></td><td class="ss-read">${ssEsc(row.key.title)}${tag}</td>${ssTeamTiles(row, ranks, table)}<td></td></tr>`;
+// Two views (the owner, 2026-11-12, picked from three mockups): By Category (default: the headliners,
+// then the two lists, for "just the outliers by market") and Sort By Game (one card per game, for SGP
+// bettors). Same rows, tiles, hovers and clicks in both.
+const ssFaceUrl = (pid) => `https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${pid}.png&w=96&h=70&scale=crop`;
+const ssTime = (g) => {
+  const [h, m] = String(g.time || "").split(":").map(Number);
+  return Number.isNaN(h) ? "" : `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+const SS_SHORT = { points: "Points", threes: "Threes", inside: "Paint / Mid", glass: "Rebounds", turnovers: "Turnovers", ft: "Free Throws", pace: "Pace / Total" };
+const ssArrow = (side) => (side === "more" ? "&#9650;" : "&#9660;");
+const ssFace = (row, cls = "") => `<span class="ss-face ${cls}" style="--team:${ssRgb(row.team)}"><img src="${ssFaceUrl(row.pid)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>`;
+const ssLogoBox = (abbr, cls = "") => `<span class="ss-logo ${cls}" style="--team:${ssRgb(abbr)}" title="${ssEsc(ssTeam(abbr).name)}: open this game in Matchup Keys">${ssTeam(abbr).logo ? `<img src="${ssTeam(abbr).logo}" alt="${abbr}" loading="lazy">` : abbr}</span>`;
+// How far past its own cut a spot is: a player, his type's +/- over the owner's cutoff (1 = right at
+// it); a team, Matchup Keys' own score. Only orders the headliners and shades the category chips.
+const ssStrength = (row) => (row.kind === "player" ? (row.score - 1) / 1.4 : (row.score - 0.3) / 1.1);
+// the category chip's color on the 8-step scale: Standouts the three greens, Tough Spots the three reds
+function ssDirStyle(row) {
+  const s = ssStrength(row);
+  const step = row.side === "more" ? (s > 0.6 ? 0 : s > 0.3 ? 1 : 2) : (s > 0.6 ? 7 : s > 0.3 ? 6 : 5);
+  const [hue, fill] = SS_RANK_SCALE[step];
+  return `background:${scaleHsla(hue, 78, 44, fill)}`;
 }
-function ssSection(title, rows, ranks, table, stacks) {
+const ssTilesTds = (row, b) => (row.kind === "player" ? ssPlayerTiles(row) : `${ssTeamTiles(row, b.ranks, b.table)}<td></td>`);
+// the tiles in a one-row grid of their own (cards), keeping the page's look and clicks
+const ssTiles = (row, b, cls = "") => `<table class="data-table od-grid pt-grid ss-grid ss-tiles ${cls}"><tbody><tr data-game="${row.game.game_id}">${ssTilesTds(row, b)}</tr></tbody></table>`;
+const ssDropFor = (row) => (row.kind === "player" && ssView.open === ssKey(row)
+  ? `<table class="data-table od-grid pt-grid ss-grid ss-droptable"><tbody>${ssDrop(row)}</tbody></table>` : "");
+function ssWho(row) {
+  const g = row.game;
+  if (row.kind === "player") return `${ssFace(row)}<span class="ss-name">${playerClick(row.pid, ssEsc(row.p.name))}<small>${ssEsc(row.p.pos || "")} &middot; ${row.team} vs ${row.opp}</small></span>`;
+  if (row.team) return `${ssLogoBox(row.team)}<span class="ss-name ss-team"><b>${row.team}</b><small>Offense vs ${row.team === g.away ? g.home : g.away}</small></span>`;
+  return `<span class="ss-pair">${ssLogoBox(g.away)}${ssLogoBox(g.home)}</span><span class="ss-name"><b>Both Teams</b><small>${g.away} @ ${g.home}</small></span>`;
+}
+function ssReadOf(row, stacked) {
+  const tag = stacked ? `<span class="ss-stack" title="${ssEsc(stacked)}">Stacked</span>` : "";
+  return row.kind === "player" ? `${ssLetter(row.p.type)} ${row.label}${tag}` : `${ssEsc(row.key.title)}${tag}`;
+}
+const ssCounts = (rows) => {
+  const up = rows.filter((r) => r.side === "more").length;
+  return `<span class="ss-counts"><span class="ss-up">${ssArrow("more")}${up}</span><span class="ss-down">${ssArrow("less")}${rows.length - up}</span></span>`;
+};
+
+// ---- By Category: the slate strip, the headliners, the two lists ----
+function ssSlateStrip(b) {
+  return `<div class="ss-slate">${b.games.map((g) => `<div class="ss-slate-game" data-game="${g.game_id}" title="Open this game in Matchup Keys">
+      <div class="ss-slate-teams">${ssLogoBox(g.away)}<span>@</span>${ssLogoBox(g.home)}</div>
+      <div class="ss-slate-info"><b>${g.away} @ ${g.home}</b><small>${ssTime(g)}${g.tv ? ` &middot; ${ssEsc(g.tv)}` : ""}</small></div>
+      ${ssCounts(b.shown.filter((r) => r.game === g))}</div>`).join("")}</div>`;
+}
+// The three biggest spots on a side, one card per player / team: the strongest player spot and the
+// strongest team spot always make it (neither kind can crowd the other out), then the next strongest.
+function ssHeroPick(list) {
+  const seen = new Set();
+  const sorted = list.slice().sort((x, y) => ssStrength(y) - ssStrength(x) || (y.c ? y.c.n : 0) - (x.c ? x.c.n : 0)).filter((r) => {
+    const id = r.kind === "player" ? r.pid : `${r.game.game_id}|${r.team || "both"}|${r.cat}`;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+  const pick = [sorted.find((r) => r.kind === "player"), sorted.find((r) => r.kind === "team")].filter(Boolean);
+  sorted.forEach((r) => { if (pick.length < 3 && !pick.includes(r)) pick.push(r); });
+  return pick.sort((x, y) => ssStrength(y) - ssStrength(x));
+}
+function ssHeroCard(row, b) {
+  const g = row.game;
+  const pic = row.kind === "player" ? ssFace(row, "ss-face-lg") : row.team ? ssLogoBox(row.team, "ss-logo-lg") : `<span class="ss-pair">${ssLogoBox(g.away, "ss-logo-lg")}${ssLogoBox(g.home, "ss-logo-lg")}</span>`;
+  const name = row.kind === "player" ? playerClick(row.pid, ssEsc(row.p.name)) : `<b>${row.team ? `${row.team} Offense` : "Both Teams"}</b>`;
+  return `<div class="ss-hero-card" data-game="${g.game_id}" style="--team:${ssRgb(row.team || g.home)}">
+    <div class="ss-hero-top">${pic}<div class="ss-hero-who">${name}<small>${g.away} @ ${g.home} &middot; ${ssTime(g)}</small></div></div>
+    <div class="ss-hero-read"><span class="ss-cat-chip" style="${ssDirStyle(row)}">${ssArrow(row.side)} ${SS_SHORT[row.cat]}</span>${ssReadOf(row, b.stacks.get(row))}</div>
+    ${ssTiles(row, b, "ss-tiles-lg")}</div>`;
+}
+function ssHeroes(b) {
+  const col = (side, title) => {
+    const cards = ssHeroPick(b.shown.filter((r) => r.side === side));
+    return cards.length ? `<div class="ss-hero-col ss-${side}"><div class="ss-band ss-${side} ss-hero-band">${ssArrow(side)} ${title}</div>
+      <div class="ss-hero-cards">${cards.map((r) => ssHeroCard(r, b)).join("")}</div></div>` : "";
+  };
+  return `<div class="ss-hero">${col("more", "Biggest Standouts Tonight")}${col("less", "Biggest Tough Spots Tonight")}</div>`;
+}
+function ssSection(title, side, b) {
+  const rows = b.shown.filter((r) => r.side === side);
   const cats = SS_CATS.filter(([c]) => ssView.cat === "all" || ssView.cat === c);
   const body = cats.map(([c, name]) => {
     // players (with their letters) first, then teams, strongest first in each (the owner, 2026-11-11: not jumbled)
-    const list = rows.filter((r) => r.cat === c).sort((a, b) => (a.kind === b.kind ? b.score - a.score : a.kind === "player" ? -1 : 1));
+    const list = rows.filter((r) => r.cat === c);
     if (!list.length) return "";
-    return `<tr class="ss-cat"><td colspan="6">${name}</td></tr>${list.map((r) => ssRow(r, ranks, table, stacks.get(r))).join("")}`;
+    return `<tr class="ss-cat"><td colspan="6"><div class="ss-catband ss-${side}">${name}<span>${list.length}</span></div></td></tr>${list.map((r) => {
+      const g = r.game;
+      return `<tr class="ss-${r.kind === "player" ? "p" : "t"}" data-game="${g.game_id}"><td class="ss-game ss-open" title="Open this game in Matchup Keys">${g.away} @ ${g.home}<small>${ssTime(g)}</small></td>
+        <td class="pt-name"><div class="ss-who">${ssWho(r)}</div></td><td class="ss-read">${ssReadOf(r, b.stacks.get(r))}</td>${ssTilesTds(r, b)}</tr>${r.kind === "player" && ssView.open === ssKey(r) ? ssDrop(r) : ""}`;
+    }).join("")}`;
   }).join("");
-  return `<div class="ss-box"><table class="data-table od-grid pt-grid ss-grid">
+  return `<div class="ss-box"><table class="data-table od-grid pt-grid ss-grid ss-list">
     <colgroup><col style="width:76px"><col style="width:190px"><col style="width:236px"><col style="width:78px"><col style="width:78px"><col style="width:78px"></colgroup>
-    <thead><tr class="od-ggroups"><th class="od-g${title === "Standouts" ? 0 : 3} ss-title" colspan="6">${title}</th></tr></thead>
-    <tbody>${body || `<tr><td colspan="6" class="ss-none">Nothing ${title === "Standouts" ? "stands out" : "tough"} in this category tonight.</td></tr>`}</tbody></table></div>`;
+    <thead><tr class="od-ggroups"><th class="ss-band ss-${side}" colspan="6">${ssArrow(side)} <span class="ss-title">${title}</span> <span class="ss-n">${rows.length}</span></th></tr></thead>
+    <tbody>${body || `<tr><td colspan="6" class="ss-none">Nothing ${side === "more" ? "stands out" : "tough"} in this category tonight.</td></tr>`}</tbody></table></div>`;
 }
 
-function ssRender() {
-  const all = ssDays();
-  const date = all[ssDay];
-  ssEl("day-label").textContent = date ? new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "";
-  const games = ssGames(date);
+// ---- Sort By Game: one card per game ----
+function ssGameCard(g, b) {
+  const mine = b.shown.filter((r) => r.game === g);
+  // by category, then the page's order inside each (players first, strongest first)
+  const order = (side) => SS_CATS.flatMap(([c]) => mine.filter((r) => r.side === side && r.cat === c));
+  const band = (side, title) => {
+    const list = order(side);
+    return `<div class="ss-band ss-${side} ss-cband">${ssArrow(side)} ${title} <span class="ss-n">${list.length}</span></div>
+      <div class="ss-cbody">${list.length ? list.map((r) => `<div class="ss-crow ss-${r.kind === "player" ? "p" : "t"}"><span class="ss-cat-chip" style="${ssDirStyle(r)}">${SS_SHORT[r.cat]}</span>
+        <div class="ss-cwho">${ssWho(r)}</div><div class="ss-cread">${ssReadOf(r, b.stacks.get(r))}</div>${ssTiles(r, b)}</div>${ssDropFor(r)}`).join("")
+        : `<p class="ss-none">Nothing ${side === "more" ? "stands out" : "tough"} in this game.</p>`}</div>`;
+  };
+  const team = (abbr) => `<div class="ss-gteam" data-game="${g.game_id}" style="--team:${ssRgb(abbr)}" title="Open this game in Matchup Keys">${ssLogoBox(abbr, "ss-logo-lg")}<div><b>${ssEsc(ssTeam(abbr).name)}</b><small>${abbr === g.away ? "Away" : "Home"}</small></div></div>`;
+  return `<section class="ss-gcard" data-game="${g.game_id}"><header class="ss-ghead">${team(g.away)}<div class="ss-gmid"><b>${ssTime(g)}</b><small>${ssEsc(g.tv || "")}</small>${ssCounts(mine)}</div>${team(g.home)}</header>
+    ${band("more", "Standouts")}${band("less", "Tough Spots")}</section>`;
+}
+
+function ssBuild(date) {
+  const games = ssGames(date).slice().sort((a, b) => String(a.time).localeCompare(String(b.time)));
   const table = (DATA.league_chart || {})[ssView.window === "10" ? "10" : "season"] || {};
   const ranks = ranksOf(table);
   const stick = ssStick(date);
@@ -287,13 +382,29 @@ function ssRender() {
     const match = rows.find((tr) => tr.kind === "team" && tr.game === pr.game && tr.cat === pr.cat && tr.side === pr.side && (tr.team === pr.team || tr.team === null));
     if (match) stacks.set(pr, `Also a team spot: ${match.key.title}`);
   });
-  const counts = Object.fromEntries(SS_CATS.map(([c]) => [c, rows.filter((r) => r.cat === c).length]));
+  const shown = rows.filter((r) => ssView.cat === "all" || r.cat === ssView.cat)
+    .sort((a, b) => (a.kind === b.kind ? b.score - a.score : a.kind === "player" ? -1 : 1));
+  return { games, table, ranks, rows, shown, stacks };
+}
+
+function ssRender() {
+  const all = ssDays();
+  const date = all[ssDay];
+  ssEl("day-label").textContent = date ? new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "";
+  const b = ssBuild(date);
+  const counts = Object.fromEntries(SS_CATS.map(([c]) => [c, b.rows.filter((r) => r.cat === c).length]));
+  const more = b.shown.filter((r) => r.side === "more").length;
   ssEl("ss-bar").innerHTML = `<div class="pt-seg">${[["all", "All"], ...SS_CATS].map(([c, name]) => `<button type="button" class="view-toggle-btn${ssView.cat === c ? " active" : ""}" data-cat="${c}">${name}${c === "all" ? "" : ` <small>${counts[c]}</small>`}</button>`).join("")}</div>
     <div class="pt-seg">${[["season", "Season"], ["10", "Last 10"]].map(([w, name]) => `<button type="button" class="view-toggle-btn${ssView.window === w ? " active" : ""}" data-window="${w}">${name}</button>`).join("")}</div>
-    <span class="pt-count">${games.length} game${games.length === 1 ? "" : "s"}</span>`;
-  ssEl("ss-body").innerHTML = games.length
-    ? `<div class="ss-cols">${ssSection("Standouts", rows.filter((r) => r.side === "more"), ranks, table, stacks)}${ssSection("Tough Spots", rows.filter((r) => r.side === "less"), ranks, table, stacks)}</div>`
-    : `<p class="no-data-note">No games this day.</p>`;
+    <button type="button" class="view-toggle-btn ss-bygame${ssView.byGame ? " active" : ""}" data-bygame aria-pressed="${ssView.byGame}" title="One card per game (for same-game parlays)">Sort By Game</button>
+    <span class="ss-tally"><span class="ss-up">${ssArrow("more")} ${more} Standouts</span><span class="ss-down">${ssArrow("less")} ${b.shown.length - more} Tough Spots</span><span class="ss-games">${b.games.length} Game${b.games.length === 1 ? "" : "s"}</span></span>`;
+  if (!b.games.length) {
+    ssEl("ss-body").innerHTML = '<p class="no-data-note">No games this day.</p>';
+    return;
+  }
+  ssEl("ss-body").innerHTML = ssView.byGame
+    ? `<div class="ss-gcards">${b.games.map((g) => ssGameCard(g, b)).join("")}</div>`
+    : `${ssSlateStrip(b)}${ssHeroes(b)}<div class="ss-cols">${ssSection("Standouts", "more", b)}${ssSection("Tough Spots", "less", b)}</div>`;
 }
 
 // A team or a game opens that game on Matchup Keys (its open game: matchup-keys.js NBA_GAME_KEY).
@@ -317,6 +428,8 @@ document.addEventListener("click", (e) => {
   if (dd) {
     ssView.open = ssView.open === dd.dataset.dd ? "" : dd.dataset.dd;
     ssRender();
+    // a headliner's tile opens its row's drop-down in the list below
+    if (ssView.open && dd.closest(".ss-hero-card")) document.querySelector(".ss-list tr.ss-drop")?.scrollIntoView({ behavior: "smooth", block: "center" });
     if (ssView.open && nbaCardProps() === undefined) Promise.resolve(NBA_CARD_PROPS).then(() => ssRender());
     return;
   }
@@ -325,8 +438,18 @@ document.addEventListener("click", (e) => {
     ssView.dtab = dtab.dataset.dtab;
     return ssRender();
   }
-  const open = e.target.closest(".ss-grid tr[data-game] :is(.pt-logo, .ss-open, .ss-team)");
-  if (open) return ssOpenGame(open.closest("tr").dataset.game);
+  const open = e.target.closest("#ss-body :is(.ss-logo, .ss-open, .ss-team, .ss-slate-game, .ss-gteam)");
+  if (open && open.closest("[data-game]")) return ssOpenGame(open.closest("[data-game]").dataset.game);
+  if (e.target.closest("#ss-bar [data-bygame]")) {
+    ssView.byGame = !ssView.byGame;
+    ssView.open = "";
+    try {
+      localStorage.setItem(SS_BYGAME_KEY, ssView.byGame ? "1" : "0");
+    } catch (err) {
+      // localStorage unavailable -- the view just won't stick.
+    }
+    return ssRender();
+  }
   const cat = e.target.closest("#ss-bar [data-cat]");
   if (cat) {
     ssView.cat = cat.dataset.cat;
