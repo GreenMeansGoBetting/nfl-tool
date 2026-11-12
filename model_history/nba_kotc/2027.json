@@ -8380,7 +8380,7 @@
   "board": [
    {
     "id": "5041939",
-    "lead": 0.1815,
+    "lead": 0.1816,
     "name": "Cooper Flagg",
     "proj": 38.1,
     "team": "DAL"
@@ -8450,7 +8450,7 @@
    },
    {
     "id": "5174563",
-    "lead": 0.0283,
+    "lead": 0.0284,
     "name": "Kyshawn George",
     "proj": 28.9,
     "team": "WSH"
@@ -8513,9 +8513,9 @@
    },
    {
     "id": "5124612",
-    "lead": 0.0045,
+    "lead": 0.0043,
     "name": "VJ Edgecombe",
-    "proj": 22.9,
+    "proj": 22.8,
     "team": "PHI"
    },
    {
