@@ -2205,7 +2205,7 @@
  "401909299": {
   "away": "ATL",
   "date": "2026-11-13",
-  "first_home": 0.462,
+  "first_home": 0.461,
   "home": "CHI",
   "jumpers": [
    [
@@ -2255,7 +2255,7 @@
    ],
    "4701230": [
     "Jalen Johnson",
-    0.111,
+    0.112,
     null,
     false,
     null
@@ -2276,7 +2276,7 @@
    ],
    "4871145": [
     "Josh Giddey",
-    0.086,
+    0.085,
     null,
     false,
     null
@@ -2289,7 +2289,7 @@
     null
    ]
   },
-  "tip_home": 0.384
+  "tip_home": 0.383
  },
  "401909300": {
   "away": "MEM",
@@ -2383,7 +2383,7 @@
  "401909301": {
   "away": "UTAH",
   "date": "2026-11-13",
-  "first_home": 0.527,
+  "first_home": 0.532,
   "home": "HOU",
   "jumpers": [
    [
@@ -2398,7 +2398,7 @@
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.098,
+    0.097,
     null,
     false,
     null
@@ -2412,28 +2412,28 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.066,
+    0.065,
     null,
     false,
     null
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.089,
+    0.097,
     null,
     false,
     null
    ],
    "4432811": [
     "Josh Green",
-    0.069,
+    0.068,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.115,
+    0.113,
     null,
     false,
     null
@@ -2447,27 +2447,27 @@
    ],
    "4871144": [
     "Alperen Sengun",
-    0.118,
+    0.117,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.105,
+    0.104,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.1,
+    0.099,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.581
+  "tip_home": 0.596
  },
  "401909302": {
   "away": "GS",
@@ -2487,7 +2487,7 @@
   "players": {
    "3975": [
     "Stephen Curry",
-    0.094,
+    0.09,
     null,
     false,
     null
@@ -2508,7 +2508,7 @@
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.085,
+    0.09,
     null,
     false,
     null
@@ -2543,20 +2543,20 @@
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.073,
+    0.072,
     null,
     false,
     null
    ],
    "6589": [
     "Draymond Green",
-    0.051,
+    0.05,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.886
+  "tip_home": 0.887
  },
  "401909303": {
   "away": "POR",
@@ -2734,7 +2734,7 @@
     null
    ]
   },
-  "tip_home": 0.29
+  "tip_home": 0.289
  },
  "401909843": {
   "away": "ATL",
@@ -14751,6 +14751,11 @@
     "fliff"
    ]
   },
+  "result": {
+   "scorer": "4432639",
+   "team": "HOU",
+   "tip": "HOU"
+  },
   "tip_home": 0.71
  },
  "401909975": {
@@ -15112,7 +15117,7 @@
  "401909979": {
   "away": "CHA",
   "date": "2026-11-12",
-  "first_home": 0.518,
+  "first_home": 0.519,
   "home": "PHX",
   "jumpers": [
    [
@@ -15196,7 +15201,7 @@
     null
    ]
   },
-  "tip_home": 0.556
+  "tip_home": 0.557
  },
  "401909980": {
   "away": "DEN",
@@ -15244,7 +15249,7 @@
    ],
    "3936299": [
     "Jamal Murray",
-    0.118,
+    0.119,
     null,
     false,
     null
@@ -15265,7 +15270,7 @@
    ],
    "4431767": [
     "Christian Braun",
-    0.086,
+    0.087,
     null,
     false,
     null
@@ -15641,6 +15646,6 @@
     null
    ]
   },
-  "tip_home": 0.696
+  "tip_home": 0.697
  }
 }
