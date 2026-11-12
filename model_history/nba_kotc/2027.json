@@ -8380,49 +8380,49 @@
   "board": [
    {
     "id": "5041939",
-    "lead": 0.1732,
+    "lead": 0.1751,
     "name": "Cooper Flagg",
-    "proj": 38.0,
+    "proj": 38.1,
     "team": "DAL"
    },
    {
     "id": "6583",
-    "lead": 0.1676,
+    "lead": 0.1671,
     "name": "Anthony Davis",
     "proj": 37.7,
     "team": "WSH"
    },
    {
     "id": "4431678",
-    "lead": 0.1305,
+    "lead": 0.1303,
     "name": "Tyrese Maxey",
     "proj": 36.1,
     "team": "PHI"
    },
    {
     "id": "4432166",
-    "lead": 0.1013,
+    "lead": 0.101,
     "name": "Cade Cunningham",
     "proj": 34.9,
     "team": "DET"
    },
    {
     "id": "3917376",
-    "lead": 0.0719,
+    "lead": 0.0718,
     "name": "Jaylen Brown",
     "proj": 32.7,
     "team": "PHI"
    },
    {
     "id": "3136193",
-    "lead": 0.0606,
+    "lead": 0.0601,
     "name": "Devin Booker",
     "proj": 32.1,
     "team": "PHX"
    },
    {
     "id": "4395625",
-    "lead": 0.0456,
+    "lead": 0.0453,
     "name": "RJ Barrett",
     "proj": 30.9,
     "team": "TOR"
@@ -8436,7 +8436,7 @@
    },
    {
     "id": "4396971",
-    "lead": 0.0352,
+    "lead": 0.0351,
     "name": "Naz Reid",
     "proj": 30.2,
     "team": "CHA"
@@ -8450,14 +8450,14 @@
    },
    {
     "id": "5174563",
-    "lead": 0.0191,
+    "lead": 0.0189,
     "name": "Kyshawn George",
     "proj": 27.5,
     "team": "WSH"
    },
    {
     "id": "4277905",
-    "lead": 0.0187,
+    "lead": 0.0186,
     "name": "Trae Young",
     "proj": 27.7,
     "team": "WSH"
@@ -8471,23 +8471,23 @@
    },
    {
     "id": "1966",
-    "lead": 0.0164,
+    "lead": 0.0163,
     "name": "LeBron James",
     "proj": 27.3,
     "team": "PHI"
    },
    {
     "id": "4432816",
-    "lead": 0.0126,
+    "lead": 0.0128,
     "name": "LaMelo Ball",
-    "proj": 26.5,
+    "proj": 26.6,
     "team": "MIN"
    },
    {
     "id": "4397002",
-    "lead": 0.0102,
+    "lead": 0.0105,
     "name": "Ayo Dosunmu",
-    "proj": 26.2,
+    "proj": 26.3,
     "team": "MIN"
    },
    {
@@ -8499,7 +8499,7 @@
    },
    {
     "id": "4066383",
-    "lead": 0.0091,
+    "lead": 0.009,
     "name": "Miles Bridges",
     "proj": 26.0,
     "team": "PHX"
@@ -8522,7 +8522,7 @@
     "id": "4278078",
     "lead": 0.0031,
     "name": "P.J. Washington",
-    "proj": 22.7,
+    "proj": 22.8,
     "team": "DAL"
    },
    {
@@ -8627,7 +8627,7 @@
     "id": "4278594",
     "lead": 0.0001,
     "name": "Naji Marshall",
-    "proj": 17.8,
+    "proj": 17.9,
     "team": "DAL"
    },
    {
