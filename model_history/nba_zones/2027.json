@@ -19149,23 +19149,23 @@
     "Alex Caruso",
     "OKC",
     "POR",
-    -0.1115,
+    -0.1094,
     "under",
     false,
-    7.5,
-    -122,
-    "fanduel"
+    6.5,
+    -115,
+    "bet365"
    ],
    [
     "3133626",
     "Kenrich Williams",
     "OKC",
     "POR",
-    -0.1131,
+    -0.1114,
     "under",
     false,
-    8.5,
-    100,
+    7.5,
+    -125,
     "fanduel"
    ],
    [
@@ -19173,47 +19173,47 @@
     "Robert Williams III",
     "POR",
     "OKC",
-    -0.2861,
+    -0.2863,
     "under",
     true,
-    4.5,
-    102,
-    "fanduel"
+    5.5,
+    -127,
+    "4cx"
    ],
    [
     "4278073",
     "Shai Gilgeous-Alexander",
     "OKC",
     "POR",
-    0.1604,
+    0.1596,
     "over",
     true,
     33.5,
-    -116,
-    "4cx"
+    -108,
+    "draftkings"
    ],
    [
     "4683021",
     "Deni Avdija",
     "POR",
     "OKC",
-    -0.1993,
+    -0.1986,
     "under",
     true,
     22.5,
-    -106,
-    "draftkings"
+    -111,
+    "fanduel"
    ],
    [
     "5105565",
     "Donovan Clingan",
     "POR",
     "OKC",
-    -0.2061,
+    -0.2063,
     "under",
     true,
     10.5,
-    100,
+    -104,
     "draftkings"
    ],
    [
@@ -19221,7 +19221,7 @@
     "Bennett Stirtz",
     "OKC",
     "POR",
-    -0.1148,
+    -0.1149,
     "under",
     false,
     8.5,
@@ -19235,23 +19235,23 @@
     "Alex Caruso",
     "OKC",
     "POR",
-    -0.1103,
+    -0.1065,
     "under",
     false,
     1.5,
-    -184,
-    "fanduel"
+    101,
+    "draftkings"
    ],
    [
     "3133626",
     "Kenrich Williams",
     "OKC",
     "POR",
-    -0.0652,
+    -0.0614,
     "under",
     false,
     1.5,
-    -162,
+    -180,
     "4cx"
    ],
    [
@@ -19259,24 +19259,24 @@
     "Shai Gilgeous-Alexander",
     "OKC",
     "POR",
-    -0.124,
+    -0.1249,
     "under",
     true,
     1.5,
-    125,
-    "draftkings"
+    130,
+    "bet365"
    ],
    [
     "4683021",
     "Deni Avdija",
     "POR",
     "OKC",
-    -0.0813,
+    -0.0777,
     "under",
     false,
     1.5,
-    125,
-    "4cx"
+    122,
+    "bet365"
    ],
    [
     "4683678",
@@ -19295,7 +19295,7 @@
     "Jared McCain",
     "OKC",
     "POR",
-    -0.2046,
+    -0.2045,
     "under",
     true,
     2.5,
@@ -19307,7 +19307,7 @@
     "Sidy Cissoko",
     "POR",
     "OKC",
-    0.2347,
+    0.2358,
     "over",
     true,
     1.5,
@@ -19319,23 +19319,23 @@
     "Donovan Clingan",
     "POR",
     "OKC",
-    -0.1523,
+    -0.1517,
     "under",
     true,
     0.5,
-    165,
-    "draftkings"
+    172,
+    "bet365"
    ],
    [
     "5241364",
     "Bennett Stirtz",
     "OKC",
     "POR",
-    -0.1725,
+    -0.1726,
     "under",
     true,
     1.5,
-    -129,
+    -119,
     "draftkings"
    ]
   ]

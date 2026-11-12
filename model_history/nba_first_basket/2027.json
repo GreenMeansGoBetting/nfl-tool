@@ -1941,7 +1941,7 @@
  "401909296": {
   "away": "NY",
   "date": "2026-11-13",
-  "first_home": 0.54,
+  "first_home": 0.546,
   "home": "IND",
   "jumpers": [
    [
@@ -1956,76 +1956,76 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.068,
+    0.067,
     null,
     false,
     null
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.095,
+    0.106,
     null,
     false,
     null
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.093,
+    0.092,
     null,
     false,
     null
    ],
    "3147657": [
     "Mikal Bridges",
-    0.071,
+    0.07,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.132,
+    0.131,
     null,
     false,
     null
    ],
    "3934672": [
     "Jalen Brunson",
-    0.104,
+    0.102,
     null,
     false,
     null
    ],
    "3934719": [
     "OG Anunoby",
-    0.106,
+    0.105,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.1,
+    0.101,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.092,
+    0.091,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.099,
+    0.096,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.619
+  "tip_home": 0.639
  },
  "401909297": {
   "away": "MIL",
@@ -2200,7 +2200,7 @@
     null
    ]
   },
-  "tip_home": 0.517
+  "tip_home": 0.518
  },
  "401909299": {
   "away": "ATL",
@@ -2337,7 +2337,7 @@
    ],
    "4600663": [
     "Zach Edey",
-    0.104,
+    0.105,
     null,
     false,
     null
@@ -2378,7 +2378,7 @@
     null
    ]
   },
-  "tip_home": 0.29
+  "tip_home": 0.289
  },
  "401909301": {
   "away": "UTAH",
@@ -2467,7 +2467,7 @@
     null
    ]
   },
-  "tip_home": 0.562
+  "tip_home": 0.561
  },
  "401909302": {
   "away": "GS",
@@ -2561,7 +2561,7 @@
  "401909303": {
   "away": "POR",
   "date": "2026-11-13",
-  "first_home": 0.44,
+  "first_home": 0.439,
   "home": "SAC",
   "jumpers": [
    [
@@ -14002,6 +14002,11 @@
     "hard_rock"
    ]
   },
+  "result": {
+   "scorer": "3133603",
+   "team": "IND",
+   "tip": "IND"
+  },
   "tip_home": 0.599
  },
  "401909967": {
@@ -14869,7 +14874,7 @@
    ],
    "4432241": [
     "Jamal Shead",
-    0.101,
+    0.102,
     null,
     false,
     null
@@ -14889,12 +14894,12 @@
     null
    ]
   },
-  "tip_home": 0.394
+  "tip_home": 0.393
  },
  "401909977": {
   "away": "DET",
   "date": "2026-11-12",
-  "first_home": 0.538,
+  "first_home": 0.532,
   "home": "WSH",
   "jumpers": [
    [
@@ -14909,76 +14914,76 @@
   "players": {
    "3157465": [
     "Duncan Robinson",
-    0.083,
+    0.084,
     null,
     false,
     null
    ],
    "3908845": [
     "John Collins",
-    0.096,
+    0.097,
     null,
     false,
     null
    ],
    "4277905": [
     "Trae Young",
-    0.096,
+    0.093,
     null,
     false,
     null
    ],
    "4278562": [
     "Paul Reed",
-    0.082,
+    0.083,
     null,
     false,
     null
    ],
    "4432166": [
     "Cade Cunningham",
-    0.093,
+    0.094,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.09,
+    0.091,
     null,
     false,
     null
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.111,
+    0.108,
     null,
     false,
     null
    ],
    "5160992": [
     "Alex Sarr",
-    0.101,
+    0.097,
     null,
     false,
     null
    ],
    "5174563": [
     "Kyshawn George",
-    0.093,
+    0.1,
     null,
     false,
     null
    ],
    "6583": [
     "Anthony Davis",
-    0.115,
+    0.112,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.616
+  "tip_home": 0.597
  },
  "401909978": {
   "away": "DAL",
@@ -14998,14 +15003,14 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.097,
+    0.096,
     null,
     false,
     null
    ],
    "4278049": [
     "Daniel Gafford",
-    0.085,
+    0.086,
     null,
     false,
     null
@@ -15067,7 +15072,7 @@
     null
    ]
   },
-  "tip_home": 0.583
+  "tip_home": 0.581
  },
  "401909979": {
   "away": "CHA",
@@ -15156,6 +15161,6 @@
     null
    ]
   },
-  "tip_home": 0.55
+  "tip_home": 0.552
  }
 }
