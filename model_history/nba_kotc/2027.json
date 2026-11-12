@@ -8380,98 +8380,98 @@
   "board": [
    {
     "id": "5041939",
-    "lead": 0.1807,
+    "lead": 0.1804,
     "name": "Cooper Flagg",
     "proj": 38.1,
     "team": "DAL"
    },
    {
     "id": "6583",
-    "lead": 0.1712,
+    "lead": 0.1708,
     "name": "Anthony Davis",
     "proj": 37.4,
     "team": "WSH"
    },
    {
     "id": "4431678",
-    "lead": 0.1333,
+    "lead": 0.1352,
     "name": "Tyrese Maxey",
-    "proj": 35.7,
+    "proj": 35.8,
     "team": "PHI"
    },
    {
     "id": "4432166",
-    "lead": 0.1016,
+    "lead": 0.1014,
     "name": "Cade Cunningham",
     "proj": 34.7,
     "team": "DET"
    },
    {
     "id": "3917376",
-    "lead": 0.0652,
+    "lead": 0.0651,
     "name": "Jaylen Brown",
     "proj": 32.3,
     "team": "PHI"
    },
    {
     "id": "3136193",
-    "lead": 0.0563,
+    "lead": 0.0562,
     "name": "Devin Booker",
     "proj": 31.7,
     "team": "PHX"
    },
    {
     "id": "4395625",
-    "lead": 0.0443,
+    "lead": 0.0441,
     "name": "RJ Barrett",
     "proj": 30.7,
     "team": "TOR"
    },
    {
     "id": "6442",
-    "lead": 0.0404,
+    "lead": 0.0403,
     "name": "Kyrie Irving",
     "proj": 30.0,
     "team": "DAL"
    },
    {
     "id": "3059318",
-    "lead": 0.0343,
+    "lead": 0.0342,
     "name": "Joel Embiid",
     "proj": 29.6,
     "team": "PHI"
    },
    {
     "id": "4396971",
-    "lead": 0.0339,
+    "lead": 0.0338,
     "name": "Naz Reid",
     "proj": 29.9,
     "team": "CHA"
    },
    {
     "id": "5174563",
-    "lead": 0.0288,
+    "lead": 0.0287,
     "name": "Kyshawn George",
     "proj": 29.0,
     "team": "WSH"
    },
    {
     "id": "4431671",
-    "lead": 0.0206,
+    "lead": 0.0204,
     "name": "Jaden McDaniels",
     "proj": 27.6,
     "team": "MIN"
    },
    {
     "id": "4277905",
-    "lead": 0.0137,
+    "lead": 0.0136,
     "name": "Trae Young",
     "proj": 26.8,
     "team": "WSH"
    },
    {
     "id": "4066383",
-    "lead": 0.0112,
+    "lead": 0.0111,
     "name": "Miles Bridges",
     "proj": 25.7,
     "team": "PHX"
@@ -8499,7 +8499,7 @@
    },
    {
     "id": "3157465",
-    "lead": 0.0065,
+    "lead": 0.0064,
     "name": "Duncan Robinson",
     "proj": 24.0,
     "team": "DET"
@@ -8599,7 +8599,7 @@
     "id": "5093267",
     "lead": 0.0003,
     "name": "Collin Murray-Boyles",
-    "proj": 16.5,
+    "proj": 16.6,
     "team": "TOR"
    },
    {
@@ -9115,7 +9115,7 @@
     "id": "4871145",
     "lead": 0.0003,
     "name": "Josh Giddey",
-    "proj": 22.7,
+    "proj": 22.8,
     "team": "CHI"
    },
    {
@@ -9143,7 +9143,7 @@
     "id": "4397189",
     "lead": 0.0002,
     "name": "Jalen Smith",
-    "proj": 23.3,
+    "proj": 23.4,
     "team": "CHI"
    },
    {
@@ -9171,7 +9171,7 @@
     "id": "2490149",
     "lead": 0.0002,
     "name": "CJ McCollum",
-    "proj": 21.6,
+    "proj": 21.7,
     "team": "ATL"
    },
    {
@@ -9199,7 +9199,7 @@
     "id": "4711294",
     "lead": 0.0001,
     "name": "Matas Buzelis",
-    "proj": 20.9,
+    "proj": 21.0,
     "team": "CHI"
    },
    {
