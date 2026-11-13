@@ -3,7 +3,7 @@
 The owner, 2026-11-11, inspired by an old tool ("Courtside Pal") that typed players by
 the shots they take: "not all PGs or PFs play the same style". Letters, never names
 (the owner disliked named archetypes; "1a / 1b" would say a PG does one of two things).
-A = the deepest shooters ... K = rim runners.
+A = the deepest shooters ... L = rim runners.
 
 How (every step audited with the owner, 2026-11-11; .claude/rules/nba.md "Player Types"):
 - Each player's shot mix this season (`F`): average distance and his share of threes,
@@ -15,11 +15,18 @@ How (every step audited with the owner, 2026-11-11; .claude/rules/nba.md "Player
 - Ten groups by k-means on the standardized mix (numpy, `STARTS` restarts, fixed seed):
   10 fit best (11 / 12 split the scorers, 12 made a one-player group). Then the hand
   split the owner chose: G's bigs under `SPLIT_THREE` 20% threes are their own type, I
-  (Sengun, Anthony Davis: the gap sat between 24% and 16%). Eleven types.
-- **The groups are saved** (`model_history/nba_shot_types/<season>.json`) and redrawn
-  once a week (`REDRAW_DAYS`; the owner: "a weekly check is the longest we should
-  wait"). A redraw keeps letters: each new group takes the letter of the old group
-  nearest to it. Every build re-types every player against the saved groups.
+  (Sengun, Anthony Davis: the gap sat between 24% and 16%). And (the owner, 2026-11-13:
+  "threes are a massive part of betting") the second-deepest group splits at `PULL_CUT`
+  35% of his threes off the dribble (`p3`; the biggest gap, 32% -> 37%, and 83% kept their
+  side between odd and even games): B pull-up shooters (Curry, LaVine, Murray), C catch
+  shooters (Vassell, Hunter, Jabari Smith). Twelve types, A-L.
+- **The groups are saved and FROZEN** (`model_history/nba_shot_types/<season>.json`; the
+  owner, 2026-11-13: "a basic type of player which is represented by a letter and a player
+  fits INTO that type"). A from-scratch redraw moved 56 players, Edwards without playing a
+  game, so they are drawn once and only redrawn by hand (`--write`). Each player is
+  re-checked against them ONCE A DAY: the first build of each Eastern day types everyone
+  and saves the letters (`<season>_letters.json`); later builds that day keep them, so
+  letters never change mid-slate (new players are typed when they reach MIN_SHOTS).
 - Borderline: `fit` = his distance to his own group / to his second (squared, 0 = dead
   center, 1 = on the line). `BORDER` 0.5+ shows two letters ("B / E"): on 2026-11-11
   players under it kept their letter between odd and even games 80% of the time, over it 33%.
@@ -44,11 +51,12 @@ K = 10
 STARTS = 200
 SEED = 7
 SPLIT_THREE = 0.20
+PULL_CUT = 0.35  # B / C: his share of threes off the dribble
+PULL_BAND = 0.03  # within 3 points of that line: borderline, both letters
 
 
 BORDER = 0.5
-REDRAW_DAYS = 7
-LETTERS = "ABCDEFGHIJK"
+LETTERS = "ABCDEFGHIJKL"
 F = ["dist", "three", "catch", "pullup", "fade", "float", "post", "drive", "cut", "lob", "fast"]
 LABELS = {
     "catch": ("Jump Shot", "Running Jump Shot", "Jump Shot Bank"),  # 95-97% assisted when made
@@ -95,11 +103,13 @@ def shots_of(engine) -> pd.DataFrame:
 
 
 def profiles(sh: pd.DataFrame, min_shots: int = MIN_SHOTS) -> pd.DataFrame:
-    """One row a player with min_shots+: his mix (`F`) and `n` shots."""
+    """One row a player with min_shots+: his mix (`F`), `n` shots and `p3` (the share of his
+    threes off the dribble: the B / C line, never part of the grouping itself)."""
     sh = sh.dropna(subset=["player", "dist"])
     g = sh.groupby("player")
     p = g[F].mean().astype(float)
     p["n"] = g.size()
+    p["p3"] = sh[sh["three"].astype(bool)].groupby("player")["pullup"].mean().astype(float).reindex(p.index).fillna(0.0)
     p = p[p["n"] >= min_shots]
     p.index = p.index.astype(int)
     return p
@@ -133,8 +143,8 @@ def bigs_group(raw: np.ndarray) -> int:
 
 def draw(prof: pd.DataFrame, old: dict | None = None) -> dict:
     """New groups from the players' mixes: {mu, sd, centers {letter: raw mix}, split}.
-    First draw: the eleven types (ten groups + the bigs' split) lettered by their players'
-    average distance, deepest first. A redraw: each new group takes the letter of the
+    First draw: the twelve types (ten groups + the bigs' split + the second-deepest group's
+    catch shooters, `pull`) lettered by their players' average distance, deepest first. A redraw: each new group takes the letter of the
     nearest old group (closest pairs first), so letters don't shuffle."""
     X = prof[F].values
     mu, sd = X.mean(0), X.std(0)
@@ -149,18 +159,25 @@ def draw(prof: pd.DataFrame, old: dict | None = None) -> dict:
                 out[L] = raw[i]
                 taken_i.add(i)
                 taken_L.add(L)
-        split = old["split"]
+        split, pull = old["split"], old.get("pull")
     else:
         lab = (((((X - mu) / sd)[:, None] - ((raw - mu) / sd)[None]) ** 2).sum(2)).argmin(1)
         big = bigs_group(raw)
         low = (lab == big) & (prof["three"].values < SPLIT_THREE)
         dist = prof["dist"].values
-        order = [(float(dist[(lab == i) & ~low].mean()), i) for i in range(K)] + [(float(dist[low].mean()), "split")]
+        by_dist = sorted(range(K), key=lambda i: -float(dist[(lab == i) & ~low].mean()))
+        pg = by_dist[1]  # the second-deepest group: its catch shooters are their own type
+        p3 = prof["p3"].values if "p3" in prof else np.zeros(len(prof))
+        catch = (lab == pg) & (p3 < PULL_CUT)
+        order = [(float(dist[(lab == i) & ~low & ~catch].mean()), i) for i in range(K)] + [(float(dist[low].mean()), "split")]
         order.sort(key=lambda x: -x[0])
-        names = {who: LETTERS[j] for j, (_, who) in enumerate(order)}
+        who_order = [who for _, who in order]
+        who_order.insert(who_order.index(pg) + 1, "pull")  # the catch half always right after its pull-up half
+        names = {who: LETTERS[j] for j, who in enumerate(who_order)}
         out = {names[i]: raw[i] for i in range(K)}
         split = {"from": names[big], "to": names["split"]}
-    return {"mu": mu.round(5).tolist(), "sd": sd.round(5).tolist(), "split": split,
+        pull = {"from": names[pg], "to": names["pull"], "cut": PULL_CUT}
+    return {"mu": mu.round(5).tolist(), "sd": sd.round(5).tolist(), "split": split, "pull": pull,
             "centers": {L: np.round(v, 5).tolist() for L, v in sorted(out.items())}}
 
 
@@ -180,7 +197,19 @@ def assign(prof: pd.DataFrame, groups: dict) -> pd.DataFrame:
     t[split] = to
     lean[split] = src  # a split big's other side is the bigs he split from
     fit = srt[:, 0] / np.maximum(srt[:, 1], 1e-9)
-    return pd.DataFrame({"type": t, "lean": lean, "fit": fit.round(3), "border": fit >= BORDER}, index=prof.index)
+    border = fit >= BORDER
+    pull = groups.get("pull")
+    if pull:  # B / C: the share of his threes off the dribble (2026-11-13)
+        p3 = prof["p3"].values if "p3" in prof else np.zeros(len(prof))
+        src, to, cut = pull["from"], pull["to"], pull["cut"]
+        mine = t == src
+        catch = p3 < cut
+        lean[(lean == src) & catch & ~mine] = to  # "E / B" for a catch shooter leans C
+        t[mine & catch] = to
+        near = mine & (np.abs(p3 - cut) < PULL_BAND)  # on the line: both letters
+        lean[near] = np.where(catch[near], src, to)
+        border = border | near
+    return pd.DataFrame({"type": t, "lean": lean, "fit": fit.round(3), "border": border}, index=prof.index)
 
 
 def stability(sh: pd.DataFrame, groups: dict) -> dict:
@@ -198,10 +227,10 @@ def stability(sh: pd.DataFrame, groups: dict) -> dict:
 
 
 def groups_for(sh: pd.DataFrame, season: int, today: date, path: Path | None = None, force: bool = False) -> dict:
-    """The saved groups, redrawn (and saved) when missing or `REDRAW_DAYS` old."""
+    """The saved groups (frozen: drawn only when missing, or by hand with `force`)."""
     path = path or RECORD_DIR / f"{season}.json"
     saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
-    if saved and not force and (today - date.fromisoformat(saved["drawn"])).days < REDRAW_DAYS:
+    if saved and not force:
         return saved
     prof = profiles(sh)
     if len(prof) < 3 * K:
@@ -253,8 +282,30 @@ def defense(sh: pd.DataFrame, types: pd.Series, team_abbr: dict) -> dict:
     return {"teams": out, "league": league, "team_games": int(games.sum()), "kinds": kinds, "league_kinds": league_kinds}
 
 
-def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None = None) -> dict:
-    """data.json `shot_types`: the groups, every typed player, and Defense vs Type."""
+def daily_letters(typed: pd.DataFrame, season: int, today: date, path: Path | None = None) -> pd.DataFrame:
+    """The day's letters (the owner, 2026-11-13: "daily player check to make sure they are in the
+    right bucket"): the first build of each Eastern day keeps `typed` as the day's letters and saves
+    them; a later build that day reuses them, so nobody's letter changes mid-slate. A player new that
+    day (just reached MIN_SHOTS) is typed and added."""
+    lp = path or RECORD_DIR / f"{season}_letters.json"
+    saved = json.loads(lp.read_text(encoding="utf-8")) if lp.exists() else None
+    day = today.isoformat()
+    keep = saved["players"] if saved and saved.get("day") == day else {}
+    rows = {}
+    for pid, r in typed.iterrows():
+        v = keep.get(str(pid))
+        rows[pid] = v if v else [r["type"], r["lean"], float(r["fit"]), bool(r["border"])]
+    out = pd.DataFrame.from_dict(rows, orient="index", columns=["type", "lean", "fit", "border"]).reindex(typed.index)
+    if not keep or len(rows) != len(keep):
+        lp.parent.mkdir(parents=True, exist_ok=True)
+        lp.write_text(json.dumps({"day": day, "players": {str(k): v for k, v in rows.items()}}), encoding="utf-8")
+    return out
+
+
+def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None = None,
+          letters_path: Path | None = None) -> dict:
+    """data.json `shot_types`: the groups, every typed player, and Defense vs Type. `today` is the
+    Eastern date (the day's letters turn over at midnight Eastern)."""
     sh = shots_of(engine)
     bad = unsorted(sh["type"].dropna().unique())
     if bad:
@@ -263,7 +314,7 @@ def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None
     if not groups:
         return {}
     prof = profiles(sh)
-    typed = assign(prof, groups)
+    typed = daily_letters(assign(prof, groups), season, today, letters_path)
     b = box.dropna(subset=["athlete_id"]).sort_values("game_date")
     last = b.groupby("athlete_id").last()
     last.index = last.index.astype(int)
@@ -283,7 +334,8 @@ def block(engine, box: pd.DataFrame, season: int, today: date, path: Path | None
     for pid, a in avg.items():
         players[pid]["avg"] = a
     return {"drawn": groups["drawn"], "stability": groups.get("stability"), "moved": groups.get("moved"),
-            "fields": F, "min_shots": MIN_SHOTS, "border": BORDER, "split": SPLIT_THREE,
+            "fields": F, "min_shots": MIN_SHOTS, "border": BORDER, "split": SPLIT_THREE, "pull_cut": PULL_CUT,
+            "letters": LETTERS, "day": today.isoformat(),
             "players": players, "defense": defense(sh, typed["type"], team_abbr),
             "log_fields": LOG_FIELDS, "log": games}
 

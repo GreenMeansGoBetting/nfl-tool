@@ -1,9 +1,9 @@
 // ---- GMG NBA Suite: Player Types ----
 // Every player with 50+ shots, typed by HOW he shoots (shot_types.py): A = the deepest
-// shooters ... K = rim runners. Three tabs on the League Stats Chart's grid: The 11 Types
+// shooters ... L = rim runners. Three tabs on the League Stats Chart's grid: The 12 Types
 // (each type's average mix and who shoots most in it), Every Player (sortable, filters),
 // Defense Vs Type (what each defense allows each type, ranked of 30: 30th = allows the
-// most = red). Type letters are a rainbow, A red to K purple (the owner, 2026-11-11), on
+// most = red). Type letters are a rainbow, A red to L purple (the owner, 2026-11-11), on
 // a badge, never a number tile. Numbers: the site's 8-step scale. Data: nba/data.json
 // `shot_types`. Stands on its own (no common.js), like the League Stats Chart.
 
@@ -16,7 +16,7 @@ const ptTeam = (abbr) => (DATA.teams || {})[abbr] || { name: abbr, color: "55555
 const ptRgb = (abbr) => [0, 2, 4].map((i) => parseInt((ptTeam(abbr).color || "555555").slice(i, i + 2), 16)).join(",");
 const ptEsc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-const PT_LETTERS = "ABCDEFGHIJK".split("");
+const PT_LETTERS = "ABCDEFGHIJKL".split("");
 const PT_COL_W = 50;
 const PT_GAP_W = 6;
 // [field, label, full name]; the mix arrives in shot_types.F order
@@ -42,7 +42,7 @@ function ptRanks(vals, most = true) {
   return vals.map((v) => (v === null ? null : 1 + vals.filter((x) => x !== null && (most ? x > v : x < v)).length));
 }
 
-const ptHue = (L) => Math.round(PT_LETTERS.indexOf(L) * 28); // A 0 red ... K 280 purple
+const ptHue = (L) => Math.round(PT_LETTERS.indexOf(L) * 25.45); // A 0 red ... L 280 purple
 const ptBadge = (L, lean) => `<span class="pt-letter${lean ? " pt-lean" : ""}" style="--h:${ptHue(L)}">${L}</span>`;
 const ptTypeCell = (p) => (p.border ? `${ptBadge(p.type)}<span class="pt-slash">/</span>${ptBadge(p.lean, true)}` : ptBadge(p.type));
 const ptMix = (p) => Object.fromEntries(DATA.shot_types.fields.map((f, i) => [f, p.mix[i]]));
@@ -82,7 +82,7 @@ function ptMixCells(row, ranks, total, groups) {
   }).join("")}`).join("");
 }
 
-// ---- The 11 Types ----
+// ---- The 12 Types ----
 function ptTypesTab() {
   const players = ptPlayers();
   const rows = PT_LETTERS.map((L) => {
@@ -100,7 +100,7 @@ function ptTypesTab() {
   const [groupRow, labelRow] = ptHead(lead, PT_GROUPS, null, 1).split("</tr>");
   const head = `${groupRow}<th class="od-ggap" rowspan="2"></th><th class="od-g3 od-gone" rowspan="2">Most Shots In The Type</th></tr>${labelRow}</tr>`;
   const width = ptWidth(widths, PT_GROUPS) + PT_GAP_W + NAMES_W;
-  ptEl("pt-bar").innerHTML = `<span class="pt-count">Each type's average shot mix, colored across the 11 types. Click a type to see every player in it.</span>`;
+  ptEl("pt-bar").innerHTML = `<span class="pt-count">Each type's average shot mix, colored across the 12 types. Click a type to see every player in it.</span>`;
   ptEl("pt-body").innerHTML = `<table class="data-table od-grid pt-grid" style="width:${width}px">${ptColgroup(widths, PT_GROUPS).replace("</colgroup>", `<col style="width:${PT_GAP_W}px"><col style="width:${NAMES_W}px"></colgroup>`)}<thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
@@ -197,11 +197,12 @@ function ptDefenseTab() {
 
 function ptFoot() {
   const st = DATA.shot_types;
+  // the groups are fixed (2026-11-13); each player is re-checked once a day (shot_types `day`)
   const drawn = new Date(`${st.drawn}T12:00:00`);
-  const next = new Date(drawn.getTime() + 7 * 864e5);
   const day = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   const s = st.stability || {};
-  ptEl("pt-foot").textContent = `${Object.keys(st.players).length} players typed (${st.min_shots}+ shots). Groups drawn ${day(drawn)}, next redraw ${day(next)}.`
+  const checked = st.day ? ` Every player re-checked ${day(new Date(`${st.day}T12:00:00`))}.` : "";
+  ptEl("pt-foot").textContent = `${Object.keys(st.players).length} players typed (${st.min_shots}+ shots). Types fixed since ${day(drawn)}.${checked}`
     + (s.players ? ` Odd vs even games: ${Math.round(s.same * 100)}% kept their letter, ${Math.round(s.same_or_lean * 100)}% their letter or lean.` : "")
     + (st.moved !== null && st.moved !== undefined ? ` ${st.moved} changed letters at the last redraw.` : "");
 }

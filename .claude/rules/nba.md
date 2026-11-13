@@ -563,23 +563,31 @@ UNDER CONSTRUCTION, and the owner was told it is unproven until its own graded r
 Players typed by HOW they shoot, not position (the owner, after an old "Courtside Pal" chart; "not
 all PGs or PFs play the same style"). Audited with the owner before launch: every ESPN label, a
 Basketball-Reference comparison, odd vs even games, the owner's eye test.
-- **Letters A-K, never names** (A = deepest shooters ... K = rim runners); badges in a rainbow, A red to K
-  purple (`ptHue`), never a number tile. 50+ shots (`MIN_SHOTS`); heaves out.
+- **Letters A-L, never names** (A = deepest shooters ... L = rim runners; 12 since 2026-11-13); badges in a
+  rainbow, A red to L purple (`indexOf(L) * 25.45` on every page), never a number tile. 50+ shots (`MIN_SHOTS`); heaves out.
 - Mix (`F`): distance, 3PT, catch & shoot (plain / running / bank jumpers: 95-97% assisted), pull-up +
   step-back, fade + turnaround, floater, post / hook (driving hooks too), drive, cut (cutting + plain
   layups / dunks, 82-87% assisted), lob / putback, fast break. Every ESPN label in ONE group (`LABELS`);
   an unknown label fails the step.
 - **Ten k-means groups + the owner's split**: the bigs who shoot threes (`bigs_group`) with under 20%
-  threes become their own type (I: Sengun, Anthony Davis). 11 / 12 groups split scorers, not bigs.
-- **Saved groups** `model_history/nba_shot_types/<season>.json` (mu, sd, centers by letter, split,
-  stability, moved). **Redrawn weekly** (`REDRAW_DAYS` 7, the owner: weekly is the longest to wait);
-  a redraw keeps letters (nearest old group). Every build re-types players against the saved groups.
+  threes become their own type (J: Sengun, Anthony Davis). 11 / 12 groups split scorers, not bigs.
+- **B / C split** (the owner, 2026-11-13: "threes are a massive part of betting"): the second-deepest group
+  splits at `PULL_CUT` 35% of his threes off the dribble (`p3`, not in the grouping): B pull-up (Curry,
+  LaVine, Murray), C catch (Vassell, Hunter, Jabari Smith). The biggest gap (32% -> 37%); 83% kept their side
+  odd vs even games. Within `PULL_BAND` 3 points of the line: both letters. Groups `pull` {from, to, cut}; the
+  catch half always takes the letter right after the pull-up half. Old C-K became D-L that day.
+- **Saved groups, FROZEN** `model_history/nba_shot_types/<season>.json` (mu, sd, centers by letter, split,
+  pull, stability, moved). The owner, 2026-11-13: "a basic type of player which is represented by a letter
+  and a player fits INTO that type" (a from-scratch test redraw moved 56 players, Edwards without playing).
+  Redrawn only by hand (`shot_types.py --write`), as the owner's decision. **Letters checked once a day**
+  (`daily_letters`, `<season>_letters.json`): the first build of each Eastern day re-types everyone, later
+  builds that day keep those letters; a player new that day is added.
 - **Borderline** (`fit` 0.5+): two letters "B / E" (the owner). 2026-11-11 odd / even games: 56% kept
-  their letter, 85% letter or lean; clear fits 80%, borderline 33%.
+  their letter, 85% letter or lean; clear fits 80%, borderline 33%. 12 types (11/13): 54% / 85%.
 - data.json `shot_types` (compute_props, own try): players {name, team, pos, type, lean, fit, border,
   n, mix, avg [games, pts, 3PM, assisted makes]}, `log` (`log_fields`: every night vs his own other-games
   average; `am` / `am_diff` = assisted makes from the play-by-play, appended last, `assisted_makes`), `defense` {teams {abbr: {games, vs {letter: [shots, makes, points, 3PM]}}}, league, team_games}.
-- **Page** (menu under Zone Matchup Targets): tabs The 11 Types / Every Player / Defense Vs Type
+- **Page** (menu under Zone Matchup Targets): tabs The 12 Types / Every Player / Defense Vs Type
   (`#types` / `#players` / `#defense`). Tiles on the 8-step scale, the most = green; Defense Vs Type
   ranked from the defense (30th = allows the most, red), Points / Threes Made / Shots a game or FG%,
   under `PT_DEF_MIN` 30 shots faded and unranked. Filtering to a type lists its players then leaners.

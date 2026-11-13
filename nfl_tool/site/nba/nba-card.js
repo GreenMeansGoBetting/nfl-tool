@@ -72,7 +72,7 @@ function nbaTypeVs(id, defense, market, before) {
 function nbaTypeBadge(id) {
   const p = ((((typeof DATA !== "undefined" && DATA) || {}).shot_types || {}).players || {})[String(id)];
   if (!p) return "";
-  const b = (L, lean) => `<span class="pt-letter pt-sm${lean ? " pt-lean" : ""}" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+  const b = (L, lean) => `<span class="pt-letter pt-sm${lean ? " pt-lean" : ""}" style="--h:${"ABCDEFGHIJKL".indexOf(L) * 25.45}">${L}</span>`;
   const tip = `Player Type ${p.type}${p.border ? `, leans ${p.lean}` : ""}: how he shoots (NBA menu, Player Types)`;
   return `<span class="pt-badge" title="${tip}">${b(p.type)}${p.border ? `<span class="pt-slash">/</span>${b(p.lean, true)}` : ""}</span>`;
 }

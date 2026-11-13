@@ -2,8 +2,9 @@
 
 Pinned (the owner and Claude's audit, 2026-11-11): every ESPN shot label sits in one group and an
 unknown one stops the step; the bigs who take under 20% threes split into their own type; borderline
-players carry a lean; a redraw keeps every group's letter; groups are redrawn only once a week; each
-shot counts against the defense the shooter faced."""
+players carry a lean; a redraw keeps every group's letter; each shot counts against the defense the shooter faced.
+2026-11-13 (the owner): the second-deepest group splits at 35% of threes off the dribble (B pull-up, C
+catch: twelve types, A-L); the groups are frozen (only redrawn by hand); letters are checked once a day."""
 import json
 import sys
 import tempfile
@@ -17,7 +18,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nfl_tool" / "nba"))
 import shot_types as S  # noqa: E402
 
-# Eleven made-up kinds of shooter: [dist, three, catch, pullup, fade, float, post, drive, cut, lob, fast]
+# Ten made-up kinds of shooter (the "pullup" kind splits by its threes off the dribble, `p3`): [dist, three, catch, pullup, fade, float, post, drive, cut, lob, fast]
 KINDS = {
     "deep": [22, .80, .65, .20, .02, .02, 0, .06, .02, .02, .18], "pullup": [18, .55, .35, .35, .04, .07, 0, .14, .03, .02, .12],
     "spot": [17, .62, .60, .05, .03, .05, .02, .12, .06, .07, .10], "float": [15, .42, .22, .32, .04, .22, .01, .18, .01, .01, .10],
@@ -39,6 +40,10 @@ def make_profiles(per=12, seed=1, low_three_bigs=4):
             idx.append(1000 * (k + 1) + j)
     prof = pd.DataFrame(rows, columns=S.F, index=idx)
     prof["n"] = 80
+    # threes off the dribble: the pull-up kind half over the 35% line, half under; one on the line
+    prof["p3"] = 0.15
+    prof.loc[[2000 + j for j in range(6)], "p3"] = 0.50
+    prof.loc[2011, "p3"] = 0.34
     return prof
 
 
@@ -65,12 +70,21 @@ class Groups(unittest.TestCase):
         cls.groups = S.draw(cls.prof)
         cls.typed = S.assign(cls.prof, cls.groups)
 
-    def test_eleven_types_lettered_deepest_first(self):
-        self.assertEqual(sorted(set(self.typed["type"])), list("ABCDEFGHIJK"))
+    def test_twelve_types_lettered_deepest_first(self):
+        self.assertEqual(sorted(set(self.typed["type"])), list("ABCDEFGHIJKL"))
         deep = self.typed.loc[[1000 + j for j in range(12)], "type"]
         rim = self.typed.loc[[10000 + j for j in range(12)], "type"]
         self.assertEqual(set(deep), {"A"})
-        self.assertEqual(set(rim), {"K"})
+        self.assertEqual(set(rim), {"L"})
+
+    def test_the_second_group_splits_by_threes_off_the_dribble(self):
+        # 2026-11-13: B = 35%+ of his threes off the dribble, C = under; on the line = both letters
+        self.assertEqual(self.groups["pull"], {"from": "B", "to": "C", "cut": 0.35})
+        kind = self.typed.loc[[2000 + j for j in range(12)]]
+        self.assertEqual(set(kind.iloc[:6]["type"]), {"B"})
+        self.assertEqual(set(kind.iloc[6:]["type"]), {"C"})
+        line = kind.loc[2011]
+        self.assertEqual((line["type"], line["lean"], bool(line["border"])), ("C", "B", True))
 
     def test_bigs_under_twenty_percent_threes_split_off_and_lean_back(self):
         split = self.groups["split"]
@@ -84,9 +98,12 @@ class Groups(unittest.TestCase):
         retyped = S.assign(self.prof, again)
         self.assertGreater((retyped["type"] == self.typed["type"]).mean(), 0.95)
         self.assertEqual(again["split"], self.groups["split"])
+        self.assertEqual(again["pull"], self.groups["pull"])
 
     def test_borderline_is_the_fit_line(self):
-        self.assertTrue(((self.typed["fit"] >= S.BORDER) == self.typed["border"]).all())
+        on_line = pd.Series(False, index=self.typed.index)
+        on_line[2011] = True  # the B / C line
+        self.assertTrue((((self.typed["fit"] >= S.BORDER) | on_line) == self.typed["border"]).all())
 
 
 class Redraw(unittest.TestCase):
@@ -101,17 +118,33 @@ class Redraw(unittest.TestCase):
                     rows.append(row)
         return pd.DataFrame(rows)
 
-    def test_groups_are_redrawn_once_a_week(self):
+    def test_groups_are_frozen_and_redrawn_only_by_hand(self):
+        # 2026-11-13 (the owner): a letter is a fixed type; a from-scratch redraw moved Edwards without a game
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "2027.json"
             sh = self.shots()
             first = S.groups_for(sh, 2027, date(2026, 11, 11), path)
             self.assertEqual(first["drawn"], "2026-11-11")
-            self.assertEqual(S.groups_for(sh, 2027, date(2026, 11, 17), path)["drawn"], "2026-11-11")
-            self.assertEqual(S.groups_for(sh, 2027, date(2026, 11, 18), path)["drawn"], "2026-11-18")
+            self.assertEqual(S.groups_for(sh, 2027, date(2027, 2, 1), path)["drawn"], "2026-11-11")
+            self.assertEqual(S.groups_for(sh, 2027, date(2027, 2, 1), path, force=True)["drawn"], "2027-02-01")
             saved = json.loads(path.read_text())
             self.assertIn("stability", saved)
             self.assertIn("moved", saved)
+
+    def test_letters_are_checked_once_a_day(self):
+        # the first build of an Eastern day sets that day's letters; later builds keep them, a new player is added
+        typed = pd.DataFrame({"type": ["A", "B"], "lean": ["B", "C"], "fit": [0.2, 0.3], "border": [False, False]}, index=[1, 2])
+        with tempfile.TemporaryDirectory() as d:
+            lp = Path(d) / "2027_letters.json"
+            S.daily_letters(typed, 2027, date(2026, 11, 14), lp)
+            later = typed.copy()
+            later.loc[2, "type"] = "D"
+            later.loc[3] = ["L", "K", 0.1, False]
+            same_day = S.daily_letters(later, 2027, date(2026, 11, 14), lp)
+            self.assertEqual(list(same_day["type"]), ["A", "B", "L"])  # 2 keeps B all day; 3 is new
+            next_day = S.daily_letters(later, 2027, date(2026, 11, 15), lp)
+            self.assertEqual(list(next_day["type"]), ["A", "D", "L"])
+            self.assertEqual(json.loads(lp.read_text())["day"], "2026-11-15")
 
 
 class Baseline(unittest.TestCase):

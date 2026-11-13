@@ -206,7 +206,7 @@ function edgeBox(ctx, t, opp, keys) {
 // gives up the most, red); fewer games = faded, unranked. Offense rows: the share of the team's typed
 // shooting from each type. Type Fit = the defense's numbers weighted by the offense's mix, shown with its
 // parts, never as a hidden score (the audit rule).
-const MK_TYPES = "ABCDEFGHIJK".split("");
+const MK_TYPES = "ABCDEFGHIJKL".split("");
 const MK_TYPE_MIN = 6;
 function mkTypeStick(before) {
   const st = DATA.shot_types;
@@ -227,7 +227,7 @@ function typeBox(game) {
   const st = DATA.shot_types;
   if (!st || !st.log) return "";
   const stick = mkTypeStick(game.date);
-  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${MK_TYPES.indexOf(L) * 28}">${L}</span>`;
+  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${MK_TYPES.indexOf(L) * 25.45}">${L}</span>`;
   const teams = [game.away, game.home];
   const out = new Set(teams.flatMap((t) => ((DATA.injuries || {})[t] || []).filter((p) => p.status === "Out").map((p) => String(p.id))));
   // Pts Share (the owner, 2026-11-13: the shot share repeated the player list): the share of the points a

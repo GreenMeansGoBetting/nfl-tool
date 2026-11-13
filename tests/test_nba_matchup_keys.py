@@ -359,7 +359,7 @@ class PlayerTypesBox(unittest.TestCase):
         }""", st)
         self.assertIn("Def Vs Type", html)
         self.assertIn("Pts Share", html)
-        self.assertEqual(html.count('<td class="mk-trl"><span class="pt-letter'), 11)  # ONE chart: a row a letter
+        self.assertEqual(html.count('<td class="mk-trl"><span class="pt-letter'), 12)  # ONE chart: a row a letter (A-L)
         self.assertIn(">75%<", html)  # CHA: A 30 of the 40 points a game (6 is Out, 5 has 2 games)
         self.assertIn(">25%<", html)
         self.assertIn(">+4.0<", html)  # WSH against A

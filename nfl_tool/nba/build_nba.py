@@ -1048,7 +1048,8 @@ def compute_props(season: int, data_dir: Path, rosters, book_odds=None, games=()
     # Player Types (shot_types.py), its own try: a failure leaves that page empty, nothing else.
     try:
         reg_box = box[box["season_type"] == P.REGULAR_SEASON]
-        out["shot_types"] = shot_types.block(engine, reg_box, season, (now_utc or datetime.now(timezone.utc)).date())
+        et_day = eastern((now_utc or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%MZ")).date()  # letters turn over at midnight Eastern
+        out["shot_types"] = shot_types.block(engine, reg_box, season, et_day)
     except Exception as ex:
         print(f"WARNING: NBA Player Types failed ({ex!r}).", file=sys.stderr)
     block = props.season_block(pbp, box, season_label(season), engine)

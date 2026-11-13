@@ -358,8 +358,8 @@ function fbtShade(def, L, rate, all) {
 // allowed to HIS letter; C, at the bottom, each defense against EVERY letter with tonight's other starters
 // named under theirs ("if TOR is bad vs F, and theres no F on the slate, then the next best or similar
 // player is the letters next to it"). Every number opens the games behind it (fbtOpen).
-const FBT_LETTERS = "ABCDEFGHIJK".split("");
-const fbtBadge = (L) => `<span class="pt-letter pt-sm" style="--h:${FBT_LETTERS.indexOf(L) * 28}">${L}</span>`;
+const FBT_LETTERS = "ABCDEFGHIJKL".split("");
+const fbtBadge = (L) => `<span class="pt-letter pt-sm" style="--h:${FBT_LETTERS.indexOf(L) * 25.45}">${L}</span>`;
 const FBT_KINDS = [["shot", "1st Shot", "took the offense's first shot"], ["fg", "1st FG", "made the offense's first field goal"], ["open", "Open 3 Min", "tries in the first 3 minutes"]];
 // One number: what defense `def` allowed to letter L (kind: shot / fg / open), in the Starters table's OWN
 // cell look (the owner, 2026-11-11: "it should look uniform"): a big % and "x of y" under it, a filled tile
@@ -443,7 +443,7 @@ function fbtOpen(def, L, kind) {
   // the type file's name first: player() makes up a blank entry named by the id for anyone off First Basket's lists
   const name = (id) => (((DATA.shot_types || {}).players || {})[String(id)] || {}).name || (block().players[id] || {}).name || (player(id) || {}).name || id;
   const day = (d) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString("en-US", { month: "numeric", day: "numeric" }) : "");
-  const badge = `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+  const badge = `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJKL".indexOf(L) * 25.45}">${L}</span>`;
   let title, rows;
   if (kind === "open") {
     title = `Type ${L} In The First 3 Minutes Vs ${def}`;

@@ -31,7 +31,7 @@ const ssRgb = (abbr) => [0, 2, 4].map((i) => parseInt((ssTeam(abbr).color || "55
 const ssEsc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const ssDays = () => [...new Set(DATA.schedule.map((g) => g.date))].sort();
 const ssGames = (date) => DATA.schedule.filter((g) => g.date === date);
-const ssLetter = (L) => `<span class="pt-letter" style="--h:${Math.round("ABCDEFGHIJK".indexOf(L) * 28)}">${L}</span>`;
+const ssLetter = (L) => `<span class="pt-letter" style="--h:${Math.round("ABCDEFGHIJKL".indexOf(L) * 25.45)}">${L}</span>`;
 
 // Categories, in the order they're listed. A key's topic (keys.js) says which one it belongs to.
 const SS_CATS = [
@@ -212,7 +212,7 @@ function ssDropLike(row) {
 }
 function ssDropDef(row) {
   const stick = ssStick(row.game.date);
-  const letters = "ABCDEFGHIJK".split("");
+  const letters = "ABCDEFGHIJKL".split("");
   const fmt = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
   const cells = letters.map((L) => {
     const c = ((stick[row.opp] || {})[L] || {})[row.cat];

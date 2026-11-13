@@ -467,8 +467,8 @@ class PlayerTypes(unittest.TestCase):
         }""")
         self.assertEqual(got["heads"][-1], "Best")
         self.assertIn("Vs BBB Defense: His Letter", got["heads"])
-        self.assertEqual(got["strips"], [11, 11])  # every letter, both defenses
-        self.assertEqual(got["clickable"], 2 * 3 * 11)  # every box opens its games
+        self.assertEqual(got["strips"], [12, 12])  # every letter (A-L), both defenses
+        self.assertEqual(got["clickable"], 2 * 3 * 12)  # every box opens its games (12 letters)
         self.assertEqual(got["after"], "")  # no types: nothing extra
 
     def test_the_games_behind_a_number(self):

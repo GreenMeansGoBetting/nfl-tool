@@ -271,7 +271,7 @@ function whoTypeBox(def, off, topic, g) {
   Object.values(st.players).filter((q) => q.team === off).forEach((q) => { shots[q.type] = (shots[q.type] || 0) + q.n; all += q.n; });
   const letters = Object.keys(shots).sort((a, b) => shots[b] - shots[a]);
   if (!letters.length) return "";
-  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+  const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJKL".indexOf(L) * 25.45}">${L}</span>`;
   const unit = three ? "3PM" : "PTS";
   const rows = letters.map((L) => {
     const c = (stick[def] || {})[L];

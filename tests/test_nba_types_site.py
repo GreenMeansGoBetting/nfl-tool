@@ -72,7 +72,7 @@ class Players(unittest.TestCase):
         self.assertEqual(edge, 2)
 
     def test_letters_are_a_rainbow_from_red_to_purple(self):
-        self.assertEqual(PAGE.evaluate("() => [ptHue('A'), ptHue('K')]"), [0, 280])
+        self.assertEqual(PAGE.evaluate("() => [ptHue('A'), ptHue('L')]"), [0, 280])  # 12 letters since 2026-11-13
 
     def test_filtering_to_a_type_lists_its_own_players_then_the_leaners(self):
         PAGE.evaluate("() => { ptView.type = 'A'; ptView.sort = 'n'; ptSetTab('players'); }")

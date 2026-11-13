@@ -101,7 +101,7 @@ const TGT_FLOOR = 2; // assisted makes a game floor, so a teammate who rarely sc
 // sat unranked at the site's 6); 3-5 games are a small sample, so those tiles are faded (`thin`)
 const SPOT_TM_MIN = 3;
 // his main letter (the one Targets reads; a borderline lean isn't counted), nba-card.js's badge look
-const typeChip = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+const typeChip = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJKL".indexOf(L) * 25.45}">${L}</span>`;
 // A borderline teammate whose main letter is too rare against this defense is read by his lean (the
 // owner, 2026-11-13: Davis "I / G" vs IND, which had seen one Type I): `main` keeps the letter he has.
 function targetVs(id, opp, cut) {
