@@ -354,7 +354,9 @@ class PlayerTypesBox(unittest.TestCase):
     def test_who_each_letter_is_beside_the_grid(self):
         # the owner, 2026-11-13: "theres no way to tell who is D" -- both teams' players under their letter,
         # most shots first, last names; another team's players left out
-        st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"], "log": [],
+        # type D players ran +4 over their own averages against WSH, 6 games (player 5 is on BOS)
+        st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"],
+              "log": [[f"2000-01-0{i + 1}", "WSH", "4", 20, 2, 4.0, 1.0] for i in range(6)],
               "players": {"1": {"name": "Ace Shooter", "type": "D", "team": "CHA", "n": 80},
                           "2": {"name": "Big Volume Jr.", "type": "D", "team": "CHA", "n": 200},
                           "3": {"name": "Wiz Rim", "type": "K", "team": "WSH", "n": 90, "border": True, "lean": "J"},
@@ -367,6 +369,11 @@ class PlayerTypesBox(unittest.TestCase):
         self.assertIn("leans J", roster)
         self.assertNotIn("Other", roster)
         self.assertIn("player-click", roster)
+        # each name carries the other team's defense against his letter (the owner, 2026-11-13: "by Mitchell
+        # it would say +5.6 in red"): CHA's D players get WSH's +4.0; the letters sit in the middle
+        self.assertEqual(roster.count(">+4.0</i>"), 2)
+        self.assertIn('mk-trl"><span class="pt-letter', roster)
+        self.assertIn("CHA Players", roster)
 
     def test_no_types_no_box(self):
         self.assertEqual(PAGE.evaluate("() => { const keep = DATA.shot_types; DATA.shot_types = null; const out = typeBox({ date: '2999-01-01', away: 'CHA', home: 'WSH' }); DATA.shot_types = keep; return out; }"), "")

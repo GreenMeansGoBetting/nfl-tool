@@ -587,8 +587,9 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
   fingerprint (points over those players' own averages against it, per letter, ranked of the defenses at
   6+ games, 30th = gives up the most, red) and each offense's mix (share of its typed shooting per letter);
   **Type Fit** = the defense weighted by the offense's mix, its parts in the hover (never a hidden score).
-  **Who each letter is** beside the grid (`typeRoster`, 2026-11-13: "no way to tell who is D"): both
-  teams' typed players under their letter, last names, most shots first, Out faded, `playerClick`.
+  **Who each letter is** beside the grid (`typeRoster`, 2026-11-13: "no way to tell who is D"): away
+  players (right-aligned) | letter down the middle | home players, last names, most shots first, Out
+  faded, `playerClick`; each name has a chip of the OTHER defense vs his letter (the grid's number + color).
 - **Shot Fit** tab (research panel, Points / Threes, `shotFitTab`): his top 5 shot kinds (catch, pull-up,
   fade, floater, post, drive, cut, lob) beside the FG% tonight's defense allows on each (every shot it
   faced, typed or not: shot_types `defense.kinds` / `league_kinds`), the league's, +/-, rank of 30 (30th

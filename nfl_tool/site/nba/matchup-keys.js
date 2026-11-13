@@ -261,17 +261,27 @@ function typeBox(game) {
   });
   const head = `<tr><th class="mk-tl"></th>${MK_TYPES.map((L) => `<th>${badge(L)}</th>`).join("")}<th class="mk-tfit-h" title="The defense weighted by the offense's mix">Type Fit</th></tr>`;
   return `<div class="mk-box mk-types"><div class="mk-bh mk-bh-both">Player Types: Defense Fingerprints &amp; Offense Mix</div>
-    <div class="mk-trow"><div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${sides.join('<tr class="mk-tsp"><td colspan="13"></td></tr>')}</tbody></table></div>${typeRoster(game, badge)}</div>
+    <div class="mk-trow"><div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${sides.join('<tr class="mk-tsp"><td colspan="13"></td></tr>')}</tbody></table></div>${typeRoster(game, badge, (d, L) => {
+      const c = (stick[d] || {})[L];
+      if (!c) return { text: "--", style: "", tip: `${d}: no games yet against type ${L}`, thin: true };
+      const rk = rank(d, L);
+      const v = `${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`;
+      return { text: v, style: rk ? rankStyle(rk.r, rk.n) : "", thin: !rk,
+        tip: `${d}'s defense vs type ${L}: ${v} points over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} (30th = gives up the most)` : `; under ${MK_TYPE_MIN} games, not ranked`}` };
+    })}</div>
     <p class="mk-tnote">Offense Mix = the share of the team's shooting from each type (Player Types). Defense = points over those players' own averages against this defense; 30th = gives up the most (red); faded = under ${MK_TYPE_MIN} games. Type Fit weighs the defense by the offense's mix (hover for the parts).</p></div>`;
 }
 // Who each letter is, beside the grid (the owner, 2026-11-13: "MIA gives up 5.6 to D and CLE scores heavy
-// with D (35) yet theres no way to tell who is D"): both teams' typed players under their letter, most
-// shots first, last names (the full name, Out and a borderline lean in the hover); Out players faded.
+// with D (35) yet theres no way to tell who is D"): away players | letter | home players, the letters down
+// the middle and the away side right-aligned toward them (the owner: "logical to the brain"). Last names,
+// most shots first, Out faded; each name carries a chip of the OTHER team's defense against his letter
+// (the grid's Defense Vs Type number and color; the owner: "by Mitchell it would say +5.6 in red").
+// chip(def, L) -> {text, style, tip, thin}.
 const mkLast = (name) => {
   const w = String(name || "").split(" ").filter((x) => !/^(Jr\.?|Sr\.?|II|III|IV)$/.test(x));
   return w.length > 1 ? w.slice(1).join(" ") : w[0] || "";
 };
-function typeRoster(game, badge) {
+function typeRoster(game, badge, chip) {
   const st = DATA.shot_types;
   const teams = [game.away, game.home];
   const out = new Set(teams.flatMap((t) => ((DATA.injuries || {})[t] || []).filter((p) => p.status === "Out").map((p) => String(p.id))));
@@ -280,14 +290,21 @@ function typeRoster(game, badge) {
     if (teams.includes(p.team) && p.type) ((by[p.type] ||= {})[p.team] ||= []).push([id, p]);
   });
   const rows = MK_TYPES.filter((L) => by[L]).map((L) => {
-    const side = (t) => ((by[L] || {})[t] || []).sort((a, b) => (b[1].n || 0) - (a[1].n || 0)).map(([id, p]) => {
-      const tip = `${p.name}: type ${L}${p.border && p.lean ? `, borderline (leans ${p.lean})` : ""}${out.has(id) ? " · Out" : ""}`;
-      return `<span class="mk-tp${out.has(id) ? " mk-tp-out" : ""}" title="${esc(tip)}">${playerClick(id, esc(mkLast(p.name)))}</span>`;
-    }).join("");
-    return `<tr><td class="mk-trl">${badge(L)}</td>${teams.map((t) => `<td class="mk-tpl">${side(t)}</td>`).join("")}</tr>`;
+    const side = (t, away) => {
+      const opp = away ? game.home : game.away;
+      const c = chip(opp, L);
+      const chipHtml = `<i class="mk-tc${c.thin ? " mk-tthin" : ""}"${c.style ? ` style="${c.style}"` : ""}>${c.text}</i>`;
+      return ((by[L] || {})[t] || []).sort((a, b) => (b[1].n || 0) - (a[1].n || 0)).map(([id, p]) => {
+        const tip = `${p.name}: type ${L}${p.border && p.lean ? `, borderline (leans ${p.lean})` : ""}${out.has(id) ? " · Out" : ""}. ${c.tip}`;
+        const name = playerClick(id, esc(mkLast(p.name)));
+        return `<span class="mk-tp${out.has(id) ? " mk-tp-out" : ""}" title="${esc(tip)}">${away ? name + chipHtml : chipHtml + name}</span>`;
+      }).join("");
+    };
+    return `<tr><td class="mk-tpl mk-tpa">${side(game.away, true)}</td><td class="mk-trl">${badge(L)}</td><td class="mk-tpl">${side(game.home, false)}</td></tr>`;
   }).join("");
   if (!rows) return "";
-  return `<table class="data-table mk-troster"><thead><tr><th title="Player Type">Type</th>${teams.map((t) => `<th>${logo(t, 18)}${t}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  const hdr = (t, opp, away) => `<th class="mk-trh${away ? " mk-tpa" : ""}"><div style="--team:${teamRgb(t)}">${away ? "" : logo(t, 20)}<span><b>${t} Players</b><small>Vs ${opp} Defense</small></span>${away ? logo(t, 20) : ""}</div></th>`;
+  return `<table class="data-table mk-troster"><thead><tr>${hdr(game.away, game.home, true)}<th class="mk-trl mk-trm">Type</th>${hdr(game.home, game.away, false)}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 // Both Teams: Same Style keys (both at one end of a number) and the combined O/U Trend, three columns.
 function bothBox(ctx, game, keys) {

@@ -149,14 +149,23 @@
 .mk-types { margin-top: 12px; }
 .mk-trow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; }
 .mk-tscroll { overflow-x: auto; max-width: 100%; }
-/* who each letter is (typeRoster): beside the grid, the one column that takes the spare width */
-.data-table.mk-troster { flex: 1 1 260px; width: auto; border-spacing: 0 2px; border-collapse: separate; font-size: 0.8rem; }
-.mk-troster th { padding: 2px 6px; text-align: left; font-size: 0.74rem; white-space: nowrap; }
-.mk-troster th img { vertical-align: -4px; margin-right: 4px; }
-.mk-troster td { padding: 1px 6px; vertical-align: top; }
-.mk-troster td.mk-trl { width: 1%; text-align: center; }
-.mk-tp { display: inline-block; margin: 0 8px 1px 0; white-space: nowrap; }
-.mk-tp-out { opacity: 0.45; text-decoration: line-through; }
+/* who each letter is (typeRoster): away | letter | home, the away side right-aligned toward the letters */
+.data-table.mk-troster { flex: 1 1 300px; width: auto; border-spacing: 0 3px; border-collapse: separate; font-size: 0.8rem; }
+.mk-troster td { padding: 2px 6px; vertical-align: middle; text-align: left; }
+.mk-troster .mk-tpa { text-align: right; }
+.mk-troster th.mk-trh { padding: 0 0 3px; }
+.mk-trh > div { display: flex; align-items: center; gap: 7px; padding: 5px 9px; border-radius: 7px; color: #fff; white-space: nowrap;
+  background: linear-gradient(90deg, rgba(var(--team), 0.95), rgba(var(--team), 0.6)); font: 700 0.86rem var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; }
+.mk-trh.mk-tpa > div { justify-content: flex-end; background: linear-gradient(270deg, rgba(var(--team), 0.95), rgba(var(--team), 0.6)); }
+.mk-trh span { display: grid; line-height: 1.1; }
+.mk-trh small { font: 600 0.68rem var(--font-display); opacity: 0.85; }
+.mk-trh img { background: #fff; border-radius: 50%; padding: 2px; }
+.mk-troster .mk-trl { width: 1%; text-align: center; padding: 0 4px; }
+.mk-trm { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; vertical-align: bottom; padding-bottom: 8px; }
+.mk-tp { display: inline-flex; align-items: center; gap: 4px; margin: 1px 4px; white-space: nowrap; }
+.mk-tc { font-style: normal; font-weight: 700; font-size: 0.72rem; min-width: 34px; padding: 1px 4px; border-radius: 4px; text-align: center; background: var(--rs-sep); }
+.mk-tp-out { opacity: 0.45; }
+.mk-tp-out .player-click { text-decoration: line-through; }
 .data-table.mk-tgrid { width: auto; table-layout: fixed; border-spacing: 3px; border-collapse: separate; }
 .mk-tgrid th, .mk-tgrid td { padding: 0; text-align: center; width: 52px; }
 .mk-tgrid .mk-tl { width: 210px; text-align: left; white-space: nowrap; font-size: 0.82rem; padding-right: 6px; }
