@@ -3052,7 +3052,7 @@
     "over",
     true,
     2.5,
-    -125,
+    -120,
     "fanatics"
    ],
    [
@@ -3100,7 +3100,7 @@
     "over",
     false,
     1.5,
-    -139,
+    -145,
     "caesars"
    ],
    [
@@ -3133,6 +3133,18 @@
   "date": "2026-11-13",
   "points": [
    [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "CHI",
+    0.2022,
+    "over",
+    true,
+    22.5,
+    -120,
+    "bet365"
+   ],
+   [
     "5149077",
     "Kingston Flemings",
     "ATL",
@@ -3141,11 +3153,23 @@
     "over",
     true,
     10.5,
-    -115,
-    "fanatics"
+    -110,
+    "bet365"
    ]
   ],
   "threes": [
+   [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "CHI",
+    0.269,
+    "over",
+    true,
+    3.5,
+    -150,
+    "bet365"
+   ],
    [
     "4397189",
     "Jalen Smith",
@@ -3155,7 +3179,7 @@
     "under",
     true,
     1.5,
-    142,
+    134,
     "fanduel"
    ],
    [
@@ -3167,7 +3191,7 @@
     "under",
     true,
     0.5,
-    138,
+    142,
     "fanduel"
    ],
    [
@@ -3178,9 +3202,21 @@
     -0.0965,
     "under",
     false,
-    1.5,
-    154,
-    "fanduel"
+    2.5,
+    -170,
+    "bet365"
+   ],
+   [
+    "5149077",
+    "Kingston Flemings",
+    "ATL",
+    "CHI",
+    0.2344,
+    "over",
+    true,
+    0.5,
+    -210,
+    "bet365"
    ]
   ]
  },
@@ -3220,7 +3256,7 @@
     "over",
     true,
     13.5,
-    -110,
+    -108,
     "fanduel"
    ]
   ],
@@ -3307,7 +3343,7 @@
     true,
     1.5,
     -130,
-    "bet365"
+    "fanduel"
    ]
   ]
  },
@@ -3323,8 +3359,8 @@
     "under",
     false,
     12.5,
-    -110,
-    "draftkings"
+    -115,
+    "caesars"
    ],
    [
     "4432811",
@@ -3335,8 +3371,8 @@
     "under",
     true,
     5.5,
-    -124,
-    "4cx"
+    -138,
+    "fanduel"
    ],
    [
     "4433627",
@@ -3359,8 +3395,8 @@
     "under",
     false,
     10.5,
-    101,
-    "draftkings"
+    -109,
+    "caesars"
    ],
    [
     "5041955",
@@ -3376,30 +3412,6 @@
    ]
   ],
   "threes": [
-   [
-    "4432811",
-    "Josh Green",
-    "UTAH",
-    "HOU",
-    -0.2978,
-    "under",
-    true,
-    0.5,
-    160,
-    "bet365"
-   ],
-   [
-    "4684740",
-    "Amen Thompson",
-    "HOU",
-    "UTAH",
-    -0.1995,
-    "under",
-    true,
-    0.5,
-    -425,
-    "bet365"
-   ],
    [
     "4873138",
     "Ace Bailey",
@@ -3421,15 +3433,88 @@
     "over",
     false,
     2.5,
-    170,
-    "bet365"
+    148,
+    "fanduel"
    ]
   ]
  },
  "401909302": {
   "date": "2026-11-13",
-  "points": [],
+  "points": [
+   [
+    "3213",
+    "Al Horford",
+    "GS",
+    "SA",
+    -0.2839,
+    "under",
+    true,
+    6.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "SA",
+    -0.1483,
+    "under",
+    true,
+    11.5,
+    -110,
+    "bet365"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "SA",
+    -0.0709,
+    "under",
+    false,
+    18.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4997536",
+    "Gui Santos",
+    "GS",
+    "SA",
+    -0.0529,
+    "under",
+    false,
+    6.5,
+    -105,
+    "bet365"
+   ],
+   [
+    "6589",
+    "Draymond Green",
+    "GS",
+    "SA",
+    -0.1005,
+    "under",
+    false,
+    5.5,
+    102,
+    "bet365"
+   ]
+  ],
   "threes": [
+   [
+    "3213",
+    "Al Horford",
+    "GS",
+    "SA",
+    -0.2974,
+    "under",
+    true,
+    1.5,
+    -174,
+    "fanduel"
+   ],
    [
     "4066259",
     "De'Aaron Fox",
@@ -3439,8 +3524,56 @@
     "under",
     true,
     1.5,
-    -125,
+    -115,
     "fanatics"
+   ],
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "SA",
+    -0.1837,
+    "under",
+    true,
+    2.5,
+    -185,
+    "bet365"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "GS",
+    -0.0861,
+    "under",
+    false,
+    1.5,
+    120,
+    "bet365"
+   ],
+   [
+    "5104157",
+    "Victor Wembanyama",
+    "SA",
+    "GS",
+    -0.2719,
+    "under",
+    true,
+    2.5,
+    -190,
+    "bet365"
+   ],
+   [
+    "6589",
+    "Draymond Green",
+    "GS",
+    "SA",
+    -0.2892,
+    "under",
+    true,
+    0.5,
+    -112,
+    "bet365"
    ]
   ]
  },
@@ -3492,7 +3625,7 @@
     "under",
     false,
     8.5,
-    100,
+    -105,
     "bet365"
    ],
    [
@@ -3504,8 +3637,8 @@
     "over",
     true,
     11.5,
-    -125,
-    "bet365"
+    -117,
+    "caesars"
    ],
    [
     "6606",
@@ -3515,9 +3648,9 @@
     0.1405,
     "over",
     true,
-    22.5,
-    -115,
-    "bet365"
+    21.5,
+    -106,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -3567,7 +3700,7 @@
     true,
     1.5,
     110,
-    "bet365"
+    "draftkings"
    ],
    [
     "5142620",
@@ -3590,8 +3723,8 @@
     "over",
     true,
     3.5,
-    100,
-    "draftkings"
+    120,
+    "4cx"
    ]
   ]
  },
