@@ -9523,18 +9523,18 @@
     "team": "BKN"
    },
    {
-    "id": "4432847",
-    "lead": 0.0,
-    "name": "Terrence Shannon Jr.",
-    "proj": 17.6,
-    "team": "MIN"
-   },
-   {
     "id": "4433083",
     "lead": 0.0,
     "name": "Cam Spencer",
     "proj": 17.6,
     "team": "MEM"
+   },
+   {
+    "id": "4432847",
+    "lead": 0.0,
+    "name": "Terrence Shannon Jr.",
+    "proj": 17.5,
+    "team": "MIN"
    },
    {
     "id": "5279130",
