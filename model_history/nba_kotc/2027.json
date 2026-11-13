@@ -8805,14 +8805,14 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.1748,
+    "lead": 0.1735,
     "name": "Giannis Antetokounmpo",
-    "proj": 45.3,
+    "proj": 45.2,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.1716,
+    "lead": 0.172,
     "name": "Victor Wembanyama",
     "proj": 44.7,
     "team": "SA"
@@ -8833,7 +8833,7 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0635,
+    "lead": 0.0636,
     "name": "Jalen Johnson",
     "proj": 39.0,
     "team": "ATL"
@@ -8847,14 +8847,14 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0451,
+    "lead": 0.0453,
     "name": "Deni Avdija",
     "proj": 36.5,
     "team": "POR"
    },
    {
     "id": "5142620",
-    "lead": 0.041,
+    "lead": 0.0411,
     "name": "Darius Acuff Jr.",
     "proj": 36.9,
     "team": "SAC"
@@ -8868,7 +8868,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0333,
+    "lead": 0.0335,
     "name": "Donovan Mitchell",
     "proj": 35.7,
     "team": "CLE"
@@ -8889,7 +8889,7 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0166,
+    "lead": 0.0167,
     "name": "Domantas Sabonis",
     "proj": 32.5,
     "team": "SAC"
@@ -8917,7 +8917,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.009,
+    "lead": 0.0091,
     "name": "Yaxel Lendeborg",
     "proj": 31.4,
     "team": "GS"
@@ -9070,6 +9070,13 @@
     "team": "CHI"
    },
    {
+    "id": "4869342",
+    "lead": 0.0006,
+    "name": "Dyson Daniels",
+    "proj": 23.7,
+    "team": "ATL"
+   },
+   {
     "id": "4066320",
     "lead": 0.0005,
     "name": "Desmond Bane",
@@ -9096,13 +9103,6 @@
     "name": "OG Anunoby",
     "proj": 24.3,
     "team": "NY"
-   },
-   {
-    "id": "4869342",
-    "lead": 0.0005,
-    "name": "Dyson Daniels",
-    "proj": 23.7,
-    "team": "ATL"
    },
    {
     "id": "4066259",
