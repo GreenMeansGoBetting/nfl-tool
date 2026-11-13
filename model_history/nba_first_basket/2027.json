@@ -2134,16 +2134,16 @@
   "players": {
    "3032977": [
     "Giannis Antetokounmpo",
-    0.126,
+    0.148,
     560,
     false,
     "draftkings"
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.081,
+    0.098,
     1200,
-    false,
+    true,
     "hard_rock"
    ],
    "3908809": [
@@ -2162,7 +2162,7 @@
    ],
    "4066261": [
     "Bam Adebayo",
-    0.106,
+    0.126,
     650,
     false,
     "fanduel"
@@ -2176,7 +2176,7 @@
    ],
    "4278053": [
     "Davion Mitchell",
-    0.103,
+    0.122,
     1300,
     true,
     "fanduel"
@@ -2193,13 +2193,6 @@
     0.088,
     1100,
     false,
-    "hard_rock"
-   ],
-   "6475": [
-    "Klay Thompson",
-    0.077,
-    1400,
-    true,
     "hard_rock"
    ]
   },
@@ -15424,14 +15417,14 @@
   "players": {
    "3032977": [
     "Giannis Antetokounmpo",
-    0.136,
+    0.16,
     null,
     false,
     null
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.088,
+    0.107,
     null,
     false,
     null
@@ -15452,14 +15445,14 @@
    ],
    "4066261": [
     "Bam Adebayo",
-    0.115,
+    0.136,
     null,
     false,
     null
    ],
    "4278053": [
     "Davion Mitchell",
-    0.112,
+    0.132,
     null,
     false,
     null
@@ -15481,13 +15474,6 @@
    "4684742": [
     "Ausar Thompson",
     0.087,
-    null,
-    false,
-    null
-   ],
-   "6475": [
-    "Klay Thompson",
-    0.084,
     null,
     false,
     null
