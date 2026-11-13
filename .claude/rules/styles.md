@@ -33,7 +33,10 @@ or tile follows this, unasked:
   before the number itself (points).
 - **Compact**: fixed column widths (about 46-66 px a number), the table's width = its columns, a
   box sized to its contents and set beside the next one (flex-wrap), never `width: 100%` to fill
-  the screen. Bars in charts narrow and touching (a 1 px edge between).
+  the screen. **Autocut** (the owner, 2026-11-13, on a Player Types box running empty to the page edge:
+  "not have so much white space ... just a bit past the last name on either side"): a box is
+  `width: fit-content; max-width: 100%`, its tables `width: auto`, title bars span only that width,
+  and a note under them never sets the width (`width: 0; min-width: 100%`, matchup-keys.css `.mk-tnote`). Bars in charts narrow and touching (a 1 px edge between).
 - **A panel of research is a sandbox of tabs** (the owner, 2026-11-03, approving the NBA Points
   panel): same-size boxes, each tab the same grid (a header row, fixed rows, a label column and
   equal columns, 3 px gaps), tabs as the titles, header colors with one meaning everywhere (blue =

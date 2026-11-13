@@ -345,7 +345,8 @@ class PlayerTypesBox(unittest.TestCase):
               # type A players ran +4 over their own averages against WSH, 6 games
               "log": [[f"2000-01-0{i + 1}", "WSH", "3", 20, 2, 4.0, 1.0] for i in range(6)]}
         html = self.box(st)
-        self.assertIn("Defense Vs Type", html)
+        self.assertIn("Def Vs Type", html)
+        self.assertEqual(html.count('<td class="mk-trl"><span class="pt-letter'), 22)  # a row a letter, letters in the middle (grid + list)
         self.assertIn(">50<", html)  # CHA's shooting: half A, half K
         self.assertIn(">+4.0<", html)  # WSH against A
         self.assertIn(">+2.0<", html)  # Type Fit: 50% x +4.0 (K has no games against WSH)

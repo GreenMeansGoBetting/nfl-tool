@@ -239,37 +239,43 @@ function typeBox(game) {
     const c = (stick[d] || {})[L];
     return c && c.n >= MK_TYPE_MIN ? { r: 1 + vals.filter((v) => v.avg < c.avg).length, n: vals.length } : null;
   };
+  // defense d against letter L: the grid's number and color, also the chip by each name (typeRoster)
+  const defChip = (d, L) => {
+    const c = (stick[d] || {})[L];
+    if (!c) return { text: "--", style: "", tip: `${d}: no games yet against type ${L}`, thin: true };
+    const rk = rank(d, L);
+    const v = `${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`;
+    return { text: v, style: rk ? rankStyle(rk.r, rk.n) : "", thin: !rk,
+      tip: `${d}'s defense vs type ${L}: ${v} points over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} (30th = gives up the most)` : `; under ${MK_TYPE_MIN} games, not ranked`}` };
+  };
   const cell = (inner, style, tip, cls = "") => `<td><div class="od-tile mk-tt${cls}"${style ? ` style="${style}"` : ""} title="${esc(tip)}"><b>${inner}</b></div></td>`;
-  const sides = [[game.away, game.home], [game.home, game.away]].map(([o, d]) => {
+  // One direction: offense o's mix beside defense d's numbers, and the Type Fit (d weighted by o's mix,
+  // its parts in the hover, never a hidden score).
+  const dir = (o, d) => {
     const m = mix(o);
-    const most = Math.max(...Object.values(m));
+    const most = Math.max(...Object.values(m)) || 1;
     let fit = 0;
     const parts = [];
-    const offRow = `<tr><td class="mk-tl">${logo(o, 20)}<b>${o}</b> Offense Mix</td>${MK_TYPES.map((L) => {
-      const share = m[L];
-      return cell(share ? `${Math.round(share * 100)}` : "", share ? rankStyle(1 + Math.round((1 - share / most) * 7), 8) : "", `${share ? Math.round(share * 100) : 0}% of ${o}'s typed shooting is type ${L}`);
-    }).join("")}<td></td></tr>`;
-    const defRow = `<tr><td class="mk-tl">${logo(d, 20)}<b>${d}</b> Defense Vs Type</td>${MK_TYPES.map((L) => {
+    MK_TYPES.forEach((L) => {
       const c = (stick[d] || {})[L];
-      if (!c) return cell("", "", `${d}: no games yet against type ${L}`, " mk-tthin");
-      const rk = rank(d, L);
-      if (rk && m[L]) { fit += m[L] * c.avg; parts.push(`${L}: ${Math.round(m[L] * 100)}% x ${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`); }
-      const tip = `Type ${L} vs ${d}: ${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)} points over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} defenses (30th = gives up the most)` : `; under ${MK_TYPE_MIN} games, not ranked`}`;
-      return cell(`${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`, rk ? rankStyle(rk.r, rk.n) : "", tip, rk ? "" : " mk-tthin");
-    }).join("")}${cell(`${fit > 0 ? "+" : ""}${fit.toFixed(1)}`, rankStyle(1 + Math.round(((1 + Math.max(-1, Math.min(1, fit / 2))) / 2) * 7), 8), `${o}'s mix against ${d}'s numbers: ${parts.join(", ") || "no type with enough games"}. Points over their averages, weighted by how much of ${o}'s shooting each type takes. Red = ${d} gives up more to this mix.`)}</tr>`;
-    return offRow + defRow;
-  });
-  const head = `<tr><th class="mk-tl"></th>${MK_TYPES.map((L) => `<th>${badge(L)}</th>`).join("")}<th class="mk-tfit-h" title="The defense weighted by the offense's mix">Type Fit</th></tr>`;
+      if (c && rank(d, L) && m[L]) { fit += m[L] * c.avg; parts.push(`${L}: ${Math.round(m[L] * 100)}% x ${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`); }
+    });
+    return {
+      off: (L) => cell(m[L] ? `${Math.round(m[L] * 100)}` : "", m[L] ? rankStyle(1 + Math.round((1 - m[L] / most) * 7), 8) : "", `${m[L] ? Math.round(m[L] * 100) : 0}% of ${o}'s typed shooting is type ${L}`),
+      def: (L) => { const c = defChip(d, L); return cell(c.text === "--" ? "" : c.text, c.style, c.tip, c.thin ? " mk-tthin" : ""); },
+      fit: cell(`${fit > 0 ? "+" : ""}${fit.toFixed(1)}`, rankStyle(1 + Math.round(((1 + Math.max(-1, Math.min(1, fit / 2))) / 2) * 7), 8), `Type Fit, ${o}'s mix against ${d}'s numbers: ${parts.join(", ") || "no type with enough games"}. Points over their averages, weighted by how much of ${o}'s shooting each type takes. Red = ${d} gives up more to this mix.`),
+    };
+  };
+  const A = dir(game.away, game.home), H = dir(game.home, game.away);
+  // vertical (the owner, 2026-11-13, to match the player list): a row a letter, the letters down the middle;
+  // each side its offense's mix on the left, the other defense on the right
+  const ch = (t, label) => `<th class="mk-tch"><div style="--team:${teamRgb(t)}">${logo(t, 16)}<span><b>${t}</b><small>${label}</small></span></div></th>`;
+  const head = `<tr>${ch(game.away, "Off Mix")}${ch(game.home, "Def Vs Type")}<th class="mk-trl mk-trm">Type</th>${ch(game.home, "Off Mix")}${ch(game.away, "Def Vs Type")}</tr>`;
+  const rows = MK_TYPES.map((L) => `<tr>${A.off(L)}${A.def(L)}<td class="mk-trl">${badge(L)}</td>${H.off(L)}${H.def(L)}</tr>`).join("");
+  const fitRow = `<tr class="mk-tfit"><td></td>${A.fit}<td class="mk-trl mk-tfit-h" title="The defense weighted by the offense's mix">Fit</td><td></td>${H.fit}</tr>`;
   return `<div class="mk-box mk-types"><div class="mk-bh mk-bh-both">Player Types: Defense Fingerprints &amp; Offense Mix</div>
-    <div class="mk-trow"><div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${sides.join('<tr class="mk-tsp"><td colspan="13"></td></tr>')}</tbody></table></div>${typeRoster(game, badge, (d, L) => {
-      const c = (stick[d] || {})[L];
-      if (!c) return { text: "--", style: "", tip: `${d}: no games yet against type ${L}`, thin: true };
-      const rk = rank(d, L);
-      const v = `${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`;
-      return { text: v, style: rk ? rankStyle(rk.r, rk.n) : "", thin: !rk,
-        tip: `${d}'s defense vs type ${L}: ${v} points over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} (30th = gives up the most)` : `; under ${MK_TYPE_MIN} games, not ranked`}` };
-    })}</div>
-    <p class="mk-tnote">Offense Mix = the share of the team's shooting from each type (Player Types). Defense = points over those players' own averages against this defense; 30th = gives up the most (red); faded = under ${MK_TYPE_MIN} games. Type Fit weighs the defense by the offense's mix (hover for the parts).</p></div>`;
+    <div class="mk-trow"><div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${rows}${fitRow}</tbody></table></div>${typeRoster(game, badge, defChip)}</div>
+    <p class="mk-tnote">Off Mix = the share of the team's shooting from each type. Def Vs Type = points over those players' own averages against this defense; 30th = gives up the most (red); faded = under ${MK_TYPE_MIN} games. Fit weighs the defense by the offense's mix (hover for the parts). Each player's chip = the other defense against his type.</p></div>`;
 }
 // Who each letter is, beside the grid (the owner, 2026-11-13: "MIA gives up 5.6 to D and CLE scores heavy
 // with D (35) yet theres no way to tell who is D"): away players | letter | home players, the letters down
@@ -289,7 +295,7 @@ function typeRoster(game, badge, chip) {
   Object.entries(st.players || {}).forEach(([id, p]) => {
     if (teams.includes(p.team) && p.type) ((by[p.type] ||= {})[p.team] ||= []).push([id, p]);
   });
-  const rows = MK_TYPES.filter((L) => by[L]).map((L) => {
+  const rows = MK_TYPES.map((L) => { // every letter, so the rows line up with the grid beside it
     const side = (t, away) => {
       const opp = away ? game.home : game.away;
       const c = chip(opp, L);
@@ -302,7 +308,7 @@ function typeRoster(game, badge, chip) {
     };
     return `<tr><td class="mk-tpl mk-tpa">${side(game.away, true)}</td><td class="mk-trl">${badge(L)}</td><td class="mk-tpl">${side(game.home, false)}</td></tr>`;
   }).join("");
-  if (!rows) return "";
+  if (!Object.keys(by).length) return "";
   const hdr = (t, opp, away) => `<th class="mk-trh${away ? " mk-tpa" : ""}"><div style="--team:${teamRgb(t)}">${away ? "" : logo(t, 20)}<span><b>${t} Players</b><small>Vs ${opp} Defense</small></span>${away ? logo(t, 20) : ""}</div></th>`;
   return `<table class="data-table mk-troster"><thead><tr>${hdr(game.away, game.home, true)}<th class="mk-trl mk-trm">Type</th>${hdr(game.home, game.away, false)}</tr></thead><tbody>${rows}</tbody></table>`;
 }

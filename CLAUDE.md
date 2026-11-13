@@ -112,7 +112,8 @@ message, so every line costs usage); detail belongs in a rules file.
   tags fill at most two lines in a box the same height on every row (extras fold into a "+N" pill with a hover list). The owner, 2026-10-25: "I hate always
   having to come back to this". Pattern: `table.data-table.sim-list` rules + `fitTags` (nba/sim.css, research.js).
 - **Two-team tables: teams side by side, the label in the far-left column** (a matchup table reading both
-  directions keeps it in the middle; the owner, 2026-10-28). Never stretch a box to fill the screen.
+  directions keeps it in the middle; the owner, 2026-10-28). Never stretch a box to fill the screen:
+  **cut every box just past its last name / number** (`width: fit-content`; the owner, 2026-11-13).
 - **Title Case every header, label and button** without being asked (the owner, 2026-10-21: "If its
   a header, every word needs capitalized"); when the owner gives exact wording, use it as written.
 - **Odds lock at kickoff:** never show in-game lines as the line; a saved pick shows the line it was made at.

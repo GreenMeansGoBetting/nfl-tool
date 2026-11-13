@@ -583,7 +583,9 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
   2026-11-11: "separate the shaded background"): **His Points / His Threes** in blue (his line tonight,
   his average) and **Defense Vs His Type** in purple (+/- over their averages, beat-average x / y)
   (`ptTonightTab`).
-- **Matchup Keys: Player Types box** (Overview, under Both Teams; `typeBox`): each defense's
+- **Matchup Keys: Player Types box** (Overview, under Both Teams; `typeBox`; **vertical since 2026-11-13**: a
+  row a letter, letters down the middle, away Off Mix | home Def Vs Type | letter | home Off Mix | away Def,
+  Fit the last row, rows lined up with the player list; the box cut to its contents): each defense's
   fingerprint (points over those players' own averages against it, per letter, ranked of the defenses at
   6+ games, 30th = gives up the most, red) and each offense's mix (share of its typed shooting per letter);
   **Type Fit** = the defense weighted by the offense's mix, its parts in the hover (never a hidden score).
