@@ -7,17 +7,17 @@
 // at guarding PGs), defense ranks read from the defense (30th = allows the most, red), every tile colored
 // against its own column. No projection: each read is his side x tonight's side, and the member decides.
 // Assists = chances (teammates' makes while he's on the floor) x his share of them.
-// Votes: Targets (who he passes to x what the defense allows their positions), Types (how he sets them up
+// Votes: Targets (who he passes to x how the defense treats their Player Types, 2026-11-13), Types (how he sets them up
 // x what the defense allows of each type), Lineup (a teammate newly out: his share without him vs his
 // season). Context, never a vote: Chances (the same for everyone in the game, and the total prices it),
 // Volume (lots of threes off a pass: his number swings with how they fall).
-// Data: props.json `research` (research.py): `ap`, `wa`, `acg`, `dag`, `linesa` and Assist Spots' own
-// `af`, `ag`, `k3g`, `dfa`, `tm`; `spots_frozen` = the reads saved before tip (spotsCapture).
+// Data: props.json `research` (research.py): `ap`, `wa`, `acg`, `linesa` and Assist Spots' own
+// `af`, `ag`, `k3g`, `dfa`, `tm`; `spots_frozen` = the reads saved before tip (spotsCapture);
+// data.json `shot_types` (Targets, through research.js typeStick).
 
 const ASSIST_TYPES = ["k3", "dr", "cl", "d3", "mid"];
 const TYPE_NAME = { k3: "Kick-Out 3s", dr: "Catch & Drive", cl: "Cuts & Lobs", d3: "Off-Dribble 3s", mid: "Short & Mid" };
 const TYPE_HEAD = { k3: "Kick-Out 3", dr: "Drive", cl: "Cut / Lob", d3: "Dribble 3", mid: "Mid" };
-const SPOT_POS = ["PG", "SG", "SF", "PF", "C"];
 const SMALL_AST = 20; // fewer assists than this this season: Targets and Types are a Small Sample, no vote
 const LEAN = 0.5, STRONG = 1; // a factor's pull: 0.5+ Lean, 1+ Strong
 const SCALE = { ch: 0.05, tg: 0.10, ty: 0.06, lu: 0.05 }; // what one step of pull is for each factor
@@ -55,24 +55,12 @@ function spotLeague() {
   const per100 = ASSIST_TYPES.map((_, i) => Object.fromEntries(teams.map((t) => [t, (dfa[t][i] / dfa[t][5]) * 100])));
   const lgPer100 = ASSIST_TYPES.map((_, i) => (sum(teams.map((t) => dfa[t][i])) / (sum(teams.map((t) => dfa[t][5])) || 1)) * 100);
   const typeRank = ASSIST_TYPES.map((_, i) => by((t) => per100[i][t]));
-  // assisted baskets each defense allows each position a game (research `dag`)
-  const dpos = {}, dposLg = {};
-  for (const pos of SPOT_POS) {
-    const i = SPOT_POS.indexOf(pos);
-    const v = {};
-    for (const [t, games] of Object.entries(R.dag || {})) {
-      const rows = Object.values(games);
-      if (rows.length) v[t] = sum(rows.map((r) => r[i] || 0)) / rows.length;
-    }
-    dpos[pos] = { v, rank: teamRanks((t) => v[t] ?? null) };
-    dposLg[pos] = avg(Object.values(v)) || 0;
-  }
   const mkOff = (t) => (tm[t] && tm[t][0] ? (tm[t][1] / tm[t][0]) * 100 : null);
   const mkDef = (t) => (tm[t] && tm[t][2] ? (tm[t][3] / tm[t][2]) * 100 : null);
   const tot = (i) => sum(Object.values(tm).map((r) => r[i] || 0));
   const paces = Object.fromEntries(Object.entries(identityTeams()).map(([t, x]) => [t, x.off_pace]).filter(([, v]) => v));
   SPOT_LG = {
-    teams, mix: lgAf.map((n) => n / lgN), per100, lgPer100, typeRank, dpos, dposLg,
+    teams, mix: lgAf.map((n) => n / lgN), per100, lgPer100, typeRank,
     mkOff, mkDef, mkLg: tot(2) ? (tot(1) / tot(0)) * 100 : null, mkOffRank: by(mkOff), mkDefRank: by(mkDef),
     t3: (t) => (tm[t] && tm[t][4] ? tm[t][5] / tm[t][4] : null), t3Lg: tot(4) ? tot(5) / tot(4) : null,
     t3a: (t) => (tm[t] && tm[t][6] ? tm[t][7] / tm[t][6] : null), t3aLg: tot(6) ? tot(7) / tot(6) : null,
@@ -102,6 +90,40 @@ function teamLast3(tm, before) {
   return (TEAM_LAST[k] = [...games.entries()].sort((a, b) => (a[1] < b[1] ? -1 : 1)).slice(-3).map(([g]) => g));
 }
 
+// A teammate he passes to vs tonight's defense, by that teammate's Player Type (the owner, 2026-11-13: an
+// assist is a teammate's make, so the question is how tonight's defense treats the guys he feeds). The
+// site's type measuring stick (research.js typeStick) on ASSISTED makes only (the owner: a ball-dominant
+// type scoring a lot on his own creates no assists): that type's assisted makes over their own averages
+// against this defense, ranked of the defenses with SPOT_TM_MIN+ games (30th = gives up the most).
+// `lift` = that +/- over the teammate's own assisted makes a game (at least TGT_FLOOR).
+const TGT_FLOOR = 2; // assisted makes a game floor, so a teammate who rarely scores off a pass doesn't blow up
+// Assist Spots ranks a letter vs a defense from 3 games (the owner, 2026-11-13: rare letters like Davis's I
+// sat unranked at the site's 6); 3-5 games are a small sample, so those tiles are faded (`thin`)
+const SPOT_TM_MIN = 3;
+// his main letter (the one Targets reads; a borderline lean isn't counted), nba-card.js's badge look
+const typeChip = (L) => `<span class="pt-letter pt-sm" style="--h:${"ABCDEFGHIJK".indexOf(L) * 28}">${L}</span>`;
+// A borderline teammate whose main letter is too rare against this defense is read by his lean (the
+// owner, 2026-11-13: Davis "I / G" vs IND, which had seen one Type I): `main` keeps the letter he has.
+function targetVs(id, opp, cut) {
+  const p = tmType(id);
+  if (!p || !p.type) return null;
+  const stick = typeStick("assisted", cut);
+  const one = (L) => {
+    const c = (stick[opp] || {})[L] || null;
+    const ranked = Object.values(stick).map((bt) => bt[L]).filter((v) => v && v.n >= SPOT_TM_MIN);
+    const rank = c && c.n >= SPOT_TM_MIN ? 1 + ranked.filter((v) => v.avg < c.avg).length : null;
+    return { type: L, c, rank, n: ranked.length };
+  };
+  let r = one(p.type);
+  if (!r.rank && p.border && p.lean) {
+    const l = one(p.lean);
+    if (l.rank) r = { ...l, viaLean: true };
+  }
+  const own = (p.avg || [])[3] || 0;
+  return { ...r, main: p.type, own, thin: Boolean(r.rank) && r.c.n < TM_MIN, lift: r.rank ? r.c.avg / Math.max(own, TGT_FLOOR) : null };
+}
+const leanNote = (tv, opp) => (tv.viaLean ? ` (read by his lean: Type ${tv.main} has too few games against ${opp})` : "");
+
 // ---- one player tonight: the numbers and the factors ----
 const SPOT_CACHE = {};
 function spotOf(x) {
@@ -116,9 +138,12 @@ function spotOf(x) {
   const grid = rec.slice(0, 4);
   const rest = rec.slice(4);
   if (rest.length) grid.push({ id: "", rest: true, c: ASSIST_TYPES.map((_, i) => sum(rest.map((q) => q.c[i]))), n: sum(rest.map((q) => q.n)), pos: "" });
-  // Targets: his share to each top teammate x what tonight's defense allows that teammate's position
-  const tg = grid.filter((q) => !q.rest && L.dpos[q.pos] && L.dpos[q.pos].v[x.opp] !== undefined && L.dposLg[q.pos])
-    .map((q) => ({ ...q, sh: q.n / (nAst || 1), eff: (q.n / (nAst || 1)) * (L.dpos[q.pos].v[x.opp] / L.dposLg[q.pos] - 1) }));
+  // Targets: his share to each top teammate x how tonight's defense treats that teammate's Player Type
+  rec.forEach((q) => { q.tv = targetVs(q.id, x.opp, x.cut); });
+  grid.forEach((q) => { if (q.rest) q.tv = null; });
+  const tg = grid.filter((q) => q.tv && q.tv.lift !== null)
+    .map((q) => ({ ...q, sh: q.n / (nAst || 1), eff: (q.n / (nAst || 1)) * q.tv.lift }));
+  const notCounted = grid.filter((q) => !q.rest && !(q.tv && q.tv.lift !== null));
   const tgv = sum(tg.map((q) => q.eff));
   const tgTop = tg.slice().sort((a, b) => Math.abs(b.eff) - Math.abs(a.eff))[0];
   // Types: his mix x what tonight's defense allows of each type
@@ -151,10 +176,12 @@ function spotOf(x) {
       tsty: md === null ? "" : dStyle(L.mkDefRank.r[x.opp], L.mkDefRank.n),
       tip: ch === null ? "Not enough games yet" : `Teammates' baskets he can assist: ${x.team} makes ${fmt(mo)} a 100 possessions (league ${fmt(L.mkLg)}), ${x.opp} allows ${fmt(md)}; the game's pace ${fmt(pace)} (league ${fmt(L.paceLg)}). About ${sgnPct(ch)} chances. Context only: the same for everyone in this game, and the total already prices it.` },
     { k: "tg", name: "Targets", tag: "Targets", vote: !small && tg.length > 0, small, s: tg.length ? clip2(tgv / SCALE.tg) : null,
-      him: tgTop ? `${pct(tgTop.sh)} To ${lastName(nameOf(tgTop.id))} (${tgTop.pos})` : "--",
-      tonight: tgTop ? `${x.opp} Vs ${tgTop.pos}s ${dTxt(L.dpos[tgTop.pos].rank.r[x.opp], L.dpos[tgTop.pos].rank.n)}` : "--",
-      tsty: tgTop ? dStyle(L.dpos[tgTop.pos].rank.r[x.opp], L.dpos[tgTop.pos].rank.n) : "",
-      tip: tg.map((q) => `${nameOf(q.id)} (${q.pos}): ${pct(q.sh)} of his assists; ${x.opp} allows ${fmt(L.dpos[q.pos].v[x.opp])} assisted baskets a game to ${q.pos}s (league ${fmt(L.dposLg[q.pos])})`).join(". ") + (small ? `. Only ${nAst} assists this season: a Small Sample.` : "") },
+      him: tgTop ? `${pct(tgTop.sh)} To ${lastName(nameOf(tgTop.id))} ${nbaTypeBadge(tgTop.id)}` : "--",
+      tonight: tgTop ? `${x.opp} Vs Type ${tgTop.tv.type} #${tgTop.tv.rank}` : "--",
+      tsty: tgTop ? rankStyle(tgTop.tv.rank, tgTop.tv.n) : "",
+      tip: [...tg.map((q) => `${nameOf(q.id)} (Type ${q.tv.type}): ${pct(q.sh)} of his assists; Type ${q.tv.type} players make ${sgn(q.tv.c.avg)} assisted shots over their own averages against ${x.opp} (${q.tv.c.over} of ${q.tv.c.n} games over), ${ordinal(q.tv.rank)} of ${q.tv.n} (30th = gives up the most); he makes ${fmt(q.tv.own)} assisted shots a game${leanNote(q.tv, x.opp)}`),
+        ...notCounted.map((q) => `${nameOf(q.id)}: not counted (${!q.tv ? "no Player Type yet" : `${(q.tv.c || {}).n || 0} games of Type ${q.tv.type} against ${x.opp}, under ${SPOT_TM_MIN}`})`)].join(". ")
+        + (small ? `. Only ${nAst} assists this season: a Small Sample.` : "") },
     { k: "ty", name: "Assist Types", tag: "Types", vote: !small && fit !== null, small, s: fit === null ? null : clip2(fit / SCALE.ty),
       him: nAst ? `${pct(mix[ASSIST_TYPES.indexOf(topType)])} ${TYPE_NAME[topType]}` : "--",
       tonight: fitRank ? `${x.opp} Vs His Mix ${dTxt(fitRank.r[x.opp], fitRank.n)}` : "--", tsty: fitRank ? dStyle(fitRank.r[x.opp], fitRank.n) : "",
@@ -168,7 +195,7 @@ function spotOf(x) {
       tonight: o3r ? `${x.opp} Allows 3s ${dTxt(o3r, L.o3Rank.n)}` : "--", tsty: "",
       tip: t3 === null ? "" : `${x.team}: ${pct(t3)} of shots are threes (league ${pct(L.t3Lg)}), ${pct(t3a)} of made threes come off a pass (league ${pct(L.t3aLg)}); ${pct(mix[0])} of his assists are kick-out 3s.${vol ? " Lots of threes off a pass: his number swings with how they fall, both ways. Context only." : ""}` },
   ];
-  return (SPOT_CACHE[key] = { af, nAst, mix, share, small, grid, fs, fit, fitRank, lineup, nT });
+  return (SPOT_CACHE[key] = { af, nAst, mix, share, small, grid, all: rec, fs, fit, fitRank, lineup, nT });
 }
 // 1 Over, -1 Under, 2 Mixed (real pulls both ways), 0 No Read
 function spotCall(fs) {
@@ -196,7 +223,7 @@ const spotCols = () => [
   { label: "Rate", key: "vol", title: "His assist rate: the share of his teammates' made shots he assisted while on the floor (colored against his position)" },
   { label: "L5", key: "l5", hit: true, title: "His last 5 games over tonight's line" },
   { label: "Season", key: "all", hit: true, title: "This season's games over tonight's line" },
-  { label: "Targets", key: "tg", read: true, title: "Who he passes to x what tonight's defense allows their positions (click his row: Who He Assists)" },
+  { label: "Targets", key: "tg", read: true, title: "Who he passes to x how tonight's defense treats their Player Types (click his row: Who He Assists)" },
   { label: "Types", key: "ty", read: true, title: "How he sets them up x what tonight's defense allows of each type (Assist Types)" },
   { label: "Lineup", key: "lu", read: true, title: "A teammate out tonight who played 2 of the last 3: his share without him vs his season (Lineup)" },
   { label: "Read", key: "call", read: true, title: "Over / Under when the reads agree, Mixed when they pull both ways, No Read when nothing pulls enough. Not a pick: the member decides." },
@@ -249,28 +276,50 @@ function spotRow(x) {
 
 // ---- the panel's tabs (research.js's grid: a label column and seven equal columns) ----
 const BAND = (kind, from, span) => [kind, from, span];
+// Who He Assists (the owner, 2026-11-13): names wide enough to read with each teammate's letter, the five
+// assist-type columns slim with small headers, and Everyone Else opens to every teammate (who fills in
+// when a starter is out); the box scrolls when open. SPOT_ALL is the page's open / closed state.
+let SPOT_ALL = false;
 function whoTab(x) {
   const sp = spotOf(x), L = spotLeague();
-  const head = HD(`${lastName(nameOf(x.pid))} To`, "plain") + ASSIST_TYPES.map((t) => HD(TYPE_HEAD[t], "him", "", TYPE_NAME[t])).join("") + HD("Total", "him")
-    + HD("Vs Pos", "def", "", `Assisted baskets ${x.opp} allows each position a game (30th = allows the most)`);
-  if (!sp.nAst) return gridOf(head, [LB("") + TS("No assists yet this season", "", "", "rs-s7")], { fill: true });
-  const cells = sp.grid.flatMap((q) => q.c), mx = Math.max(...cells, 1);
-  const tots = sp.grid.map((q) => q.n);
-  const rows = sp.grid.map((q) => {
+  const corner = `${lastName(nameOf(x.pid))} To${SPOT_ALL ? '<button type="button" class="sp-more" data-sp-all="0" title="Back to his top 4">Top 4</button>' : ""}`;
+  const head = HD(corner, "plain", "sp-corner") + ASSIST_TYPES.map((t) => HD(TYPE_HEAD[t], "him", "sp-kind", TYPE_NAME[t])).join("") + HD("Total", "him")
+    + HD("Vs Type", "def", "", `How ${x.opp} treats each teammate's Player Type: that type's ASSISTED makes over their own averages (self-created shots don't count), ranked (30th = gives up the most)`);
+  if (!sp.nAst) return gridOf(head, [LB("") + TS("No assists yet this season", "", "", "rs-s7")], { fill: true, cls: "sp-who" });
+  const list = SPOT_ALL ? sp.all : sp.grid;
+  const cells = list.flatMap((q) => q.c), mx = Math.max(...cells, 1);
+  const tots = list.map((q) => q.n);
+  const nRest = sp.all.length - 4;
+  const rows = list.map((q) => {
     const st = q.rest ? "" : statusOf(x.team, q.id);
-    const dp = !q.rest && L.dpos[q.pos] && L.dpos[q.pos].rank.r[x.opp] ? L.dpos[q.pos] : null;
-    return LBc(q.rest ? "Everyone Else" : `${playerClick(q.id, shortName(nameOf(q.id)))}<span class="rs-gn">${q.pos}</span>`, q.rest ? "Every other teammate" : `${nameOf(q.id)}${st ? `: ${st} tonight` : ""}`, st && isOut(st) ? "rs-out" : "")
+    const tv = q.tv;
+    const vsCell = !tv ? TS("", "", q.rest ? "" : "No Player Type yet (under 50 shots)", "rs-blank")
+      : !tv.rank ? TS(`${typeChip(tv.type)} --`, "", `${(tv.c || {}).n || 0} games of Type ${tv.type} against ${x.opp}: under ${SPOT_TM_MIN}, not ranked`)
+      : TS(`${typeChip(tv.type)} #${tv.rank}`, rankStyle(tv.rank, tv.n), `Type ${tv.type} against ${x.opp}: ${sgn(tv.c.avg)} assisted makes over their own averages, beat it in ${tv.c.over} of ${tv.c.n} games, ${ordinal(tv.rank)} of ${tv.n} (30th = gives up the most)${leanNote(tv, x.opp)}${tv.thin ? `. Only ${tv.c.n} games: a small sample (faded)` : ""}`, tv.thin ? "rs-small" : "");
+    const label = q.rest
+      ? `<button type="button" class="sp-more sp-rest" data-sp-all="1" title="Show every teammate he has assisted">Everyone Else <b>+${nRest}</b></button>`
+      : `${playerClick(q.id, shortName(nameOf(q.id)))}${st && isOut(st) ? `<span class="sp-st">${st}</span>` : ""}<span class="rs-gn">${q.pos}</span>${nbaTypeBadge(q.id)}`;
+    return LBc(label, q.rest ? "" : `${nameOf(q.id)}${st ? `: ${st} tonight` : ""}`, st && isOut(st) ? "rs-out" : "")
       + ASSIST_TYPES.map((t, i) => T(q.c[i], (q.c[i] / mx) * 2 - 1, `${q.c[i]} ${TYPE_NAME[t]} to ${q.rest ? "everyone else" : nameOf(q.id)}`)).join("")
       + T(pct(q.n / sp.nAst), relS(q.n, tots), `${q.n} of his ${sp.nAst} assists`)
-      + (dp ? TS(dTxt(dp.rank.r[x.opp], dp.rank.n), dStyle(dp.rank.r[x.opp], dp.rank.n), `${x.opp} allows ${fmt(dp.v[x.opp])} assisted baskets a game to ${q.pos}s (league ${fmt(L.dposLg[q.pos])}): ${dWords(dp.rank.r[x.opp], dp.rank.n)}`) : TS("", "", "", "rs-blank"));
+      + vsCell;
   });
   rows.push(TS("Total", "", "", "rs-l sp-him") + ASSIST_TYPES.map((t, i) => T(pct(sp.mix[i]), L.mix[i] ? Math.max(-1, Math.min(1, (sp.mix[i] / L.mix[i] - 1) * 1.5)) : null, `${pct(sp.mix[i])} of his assists are ${TYPE_NAME[t]} (league ${pct(L.mix[i])})`)).join("")
     + TS(sp.nAst, "", `${sp.nAst} assists this season`, "rs-count") + TS("", "", "", "rs-blank"));
   rows.push(TS(`${x.opp} Allows`, "", "", "rs-l sp-def") + ASSIST_TYPES.map((t, i) => (L.typeRank[i].r[x.opp]
     ? TS(dTxt(L.typeRank[i].r[x.opp], L.typeRank[i].n), dStyle(L.typeRank[i].r[x.opp], L.typeRank[i].n), `${x.opp} allows ${fmt(L.per100[i][x.opp])} ${TYPE_NAME[t]} a 100 possessions (league ${fmt(L.lgPer100[i])}): ${dWords(L.typeRank[i].r[x.opp], L.typeRank[i].n)}`)
     : TS("--"))).join("") + TS("", "", "", "rs-blank") + TS("", "", "", "rs-blank"));
-  return gridOf(head, rows, { fill: true, n: 7, bands: [BAND("him", 2, 6), BAND("def", 8, 1)] });
+  const bands = [BAND("him", 2, 6), BAND("def", 8, 1)];
+  const g = SPOT_ALL ? gridOf(head, rows, { n: rows.length, bands, cls: "sp-who" }) : gridOf(head, rows, { fill: true, n: 7, bands, cls: "sp-who" });
+  return `<div class="sp-scroll${SPOT_ALL ? " sp-open" : ""}" style="--sp-rows:${rows.length + 1}">${g}</div>`;
 }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("#rs-list [data-sp-all]");
+  if (!b) return;
+  e.stopPropagation();
+  SPOT_ALL = b.dataset.spAll === "1";
+  refreshBox("left");
+}, true);
 function typesTab(x) {
   const sp = spotOf(x), L = spotLeague();
   const head = HD("", "plain") + HD("AST", "him") + HD("Share", "him") + HD("League", "him") + HD("Allows", "def", "", "Shots of that type the defense allows a 100 possessions, vs the league")
@@ -344,7 +393,7 @@ function lineupTab(x) {
 }
 Object.assign(RS_TAB, { "Who He Assists": whoTab, "Assist Types": typesTab, "Game Log": logTab, "The Read": readTab, Lineup: lineupTab });
 const SPOT_TIPS = {
-  "Who He Assists": "Who he passes to (down the side) and how (across): his assists to each teammate by type, the share of his assists to each, his mix by type against the league, and what tonight's defense allows each type and each teammate's position (30th = allows the most, red).",
+  "Who He Assists": "Who he passes to (down the side) and how (across): his assists to each teammate by type, the share of his assists to each, his mix by type against the league, what tonight's defense allows each assist type, and how it treats each teammate's Player Type (30th = gives up the most, red).",
   "Assist Types": "How he sets them up: his assists by type against the league's mix, beside how many shots of each type tonight's defense allows (30th = the most), and the read on his signature types and his whole mix.",
   "Game Log": "His last 6 games: minutes, chances (teammates' makes while he played), his share of them, how his teammates shot their catch-and-shoot threes, his assists, his line that night and how he did against tonight's line.",
   "The Read": "Every factor in its own row, his side beside tonight's: Targets, Assist Types and Lineup make the call; Chances and Volume are context. Over / Under when they agree, Mixed when they pull both ways.",

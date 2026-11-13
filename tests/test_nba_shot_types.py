@@ -124,12 +124,16 @@ class Baseline(unittest.TestCase):
             {"athlete_id": 7.0, "game_id": 104.0, "game_date": "2026-11-07", "opponent_team_abbreviation": "EEE", "points": 0, "three_point_field_goals_made": 0, "minutes": 0, "did_not_play": True},
             {"athlete_id": 8.0, "game_id": 101.0, "game_date": "2026-11-01", "opponent_team_abbreviation": "AAA", "points": 12, "three_point_field_goals_made": 2, "minutes": 20, "did_not_play": False},
         ])
-        rows, avg = S.baseline_log(box, {"7", "8"})
-        self.assertEqual(avg["7"], [3, 20.0, 3.0])
+        # assisted makes (2026-11-13, Assist Spots' Vs Type): 6 off a pass at BBB, none at CCC, 3 at DDD
+        rows, avg = S.baseline_log(box, {"7", "8"}, {("7", "101"): 6, ("7", "103"): 3, ("7", "104"): 9})
+        self.assertEqual(avg["7"], [3, 20.0, 3.0, 3.0])
         mine = {r[1]: r for r in rows if r[2] == "7"}
-        self.assertEqual(mine["BBB"][5:], [15.0, 3.0, "101"])  # 30 vs (10 + 20) / 2; 5 vs (1 + 3) / 2
-        self.assertEqual(mine["CCC"][5:], [-15.0, -3.0, "102"])
-        self.assertNotIn("EEE", mine)  # a game he sat out isn't a night
+        self.assertEqual(mine["BBB"][5:], [15.0, 3.0, "101", 6, 4.5])  # 30 vs (10 + 20) / 2; 5 vs (1 + 3) / 2; 6 vs (0 + 3) / 2
+        self.assertEqual(mine["CCC"][5:], [-15.0, -3.0, "102", 0, -4.5])
+        self.assertNotIn("EEE", mine)  # a game he sat out isn't a night (his 9 there never counts)
+        sh = pd.DataFrame([{"player": 7, "game_id": 101, "made": True, "assist": 5.0}, {"player": 7, "game_id": 101, "made": True, "assist": None},
+                           {"player": 7, "game_id": 101, "made": False, "assist": None}, {"player": 7, "game_id": 103, "made": True, "assist": 9.0}])
+        self.assertEqual(S.assisted_makes(sh), {("7", "101"): 1, ("7", "103"): 1})  # a self-created make or a miss isn't one
         self.assertFalse([r for r in rows if r[2] == "8"])  # one game: nothing to measure it against
 
 

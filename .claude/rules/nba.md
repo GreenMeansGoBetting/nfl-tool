@@ -389,8 +389,16 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
 - **The Read reads every factor** (the owner: "its not taking into account all the info": Draymond's Under
   came off Santos alone while 39% of his assists go to Curry and MIA is the worst vs PGs). Each factor is
   his side x tonight's side, a pull in steps (0.5 Lean, 1 Strong, `SCALE`):
-  **Targets** = sum over his top 4 teammates of (share of his assists) x (the defense's assisted baskets a
-  game to that teammate's position / the league's - 1), `dag`; **Types** = his mix x (the defense's shots
+  **Targets** (by Player Type since 2026-11-13, the owner: an assist is a teammate's make) = sum over his
+  top 4 teammates of (share of his assists) x (that teammate's main letter's **assisted makes** over their
+  own averages against tonight's defense, `typeStick("assisted")` on shot_types `am_diff`, / his own
+  assisted makes a game, floor `TGT_FLOOR` 2). Assisted only (the owner: a ball-dominant type scoring on
+  his own creates no assists). A teammate with no type or under `SPOT_TM_MIN` **3** games of his letter
+  vs that defense isn't counted (the owner, 2026-11-13: rare letters like Davis's I sat unranked at the
+  site's 6); 3-5 games count but the Vs Type tile is faded (`thin`, `rs-small`). Other pages keep `TM_MIN` 6.
+  **A borderline teammate whose main letter is under 3 games is read by his lean** (the owner: Davis "I / G"
+  vs IND, one Type I game; the tile shows the lean's letter, the hover says so, `leanNote`). On 11/11-13: 33 Lean+ Targets reads vs the position
+  version's 43 (40+ assist players). Reads saved before 11/13 used positions (`dag`); **Types** = his mix x (the defense's shots
   of each type a 100 possessions / the league's) - 1, `dfa`; **Lineup** = a teammate Out / Doubtful tonight
   who played 2 of his team's last 3 (new: the line may lag), his share without him minus his season share
   (`wa`, 25+ makes each way). Over / Under when the votes agree and add to 1+, **Mixed** when real pulls go
@@ -405,7 +413,11 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
   -s, the Read still takes s = good for him), its rank (`dRank` / `defRank`; rows where more is worse for
   him, like crashing the glass, rank 1st = the most), the Filters' Defense Rank and the list's Opp Allows.
 - **Tabs** (the research grid): left Who He Assists (teammates down, types across, counts colored against
-  the grid, Total % column, Total row % vs the league, the defense row and Vs Pos purple), Assist Types,
+  the grid, Total % column, Total row % vs the league, the defense row and **Vs Type** purple: his letter + the
+  defense's rank vs it on assisted makes). Its own grid (`sp-who`, the owner 2026-11-13): a 188px name
+  column (short name, Out / Doubtful tag, position, `nbaTypeBadge`), the five assist types 48px under
+  small headers; **Everyone Else +N opens to every teammate he has assisted** (`SPOT_ALL`, "Top 4" folds
+  it; the box scrolls, header pinned) so fill-ins for an injured starter show, Assist Types,
   Game Log (Min, Chances, Share, C&S 3s, AST, that night's Line, Vs Tonight); right The Read (every factor
   a row: Him, Tonight, Pull; the last row the call with its pulls), Vs The Line, Lineup (With / Without
   colored vs his season, If Out, Last 3, Tonight).
@@ -565,7 +577,8 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
 - **Borderline** (`fit` 0.5+): two letters "B / E" (the owner). 2026-11-11 odd / even games: 56% kept
   their letter, 85% letter or lean; clear fits 80%, borderline 33%.
 - data.json `shot_types` (compute_props, own try): players {name, team, pos, type, lean, fit, border,
-  n, mix, avg [games, pts, 3PM]}, `log` (`log_fields`: every night vs his own other-games average), `defense` {teams {abbr: {games, vs {letter: [shots, makes, points, 3PM]}}}, league, team_games}.
+  n, mix, avg [games, pts, 3PM, assisted makes]}, `log` (`log_fields`: every night vs his own other-games
+  average; `am` / `am_diff` = assisted makes from the play-by-play, appended last, `assisted_makes`), `defense` {teams {abbr: {games, vs {letter: [shots, makes, points, 3PM]}}}, league, team_games}.
 - **Page** (menu under Zone Matchup Targets): tabs The 11 Types / Every Player / Defense Vs Type
   (`#types` / `#players` / `#defense`). Tiles on the 8-step scale, the most = green; Defense Vs Type
   ranked from the defense (30th = allows the most, red), Points / Threes Made / Shots a game or FG%,

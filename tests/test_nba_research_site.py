@@ -1009,13 +1009,21 @@ class Pages(unittest.TestCase):
 
 def spots_slate():
     """Assist Spots (2026-11-05): Player One (AAA, PG) has a 6.5 assists line against BBB. He sends half his
-    assists to Player Three (SG; BBB give SGs 8 assisted baskets a game, the league 6) and Three is newly Out
-    (he played all of AAA's last 3): One sets up 40% of the makes with him on the floor, 14% without, 25% on
-    the season. So Targets pull Over and Lineup Under: Mixed, both on the row."""
+    assists to Player Three (Type B, 5 assisted makes a game; Type B players make 1.5 more assisted shots
+    than their own averages against BBB in 4 games (ranked from 3 on Assist Spots, faded under 6), 0.5 fewer
+    against CCC in 6: Targets read his teammates'
+    Player Types on assisted makes since 2026-11-13) and Three is newly Out (he played all of AAA's last 3):
+    One sets up 40% of the makes with him on the floor, 14% without, 25% on the season. So Targets pull Over
+    (0.5 x 1.5 / 5 = +15%) and Lineup Under: Mixed, both on the row. Player Two is "K / B" and no defense has
+    seen a Type K: he's read by his lean B (the owner, 2026-11-13, Davis "I / G"). Player Four has no Player
+    Type: not counted. Six teammates got his assists: the top 4, then Everyone Else +2."""
     props = assists_props()
     rs = props["research"]
     props["seasons"]["2027"]["players"]["3"]["log"] = log([(g, "CCC", 28, 12, 3, 3) for g in range(1, 7)])
-    rs["players"]["1"].update({"af": [12, 6, 6, 3, 3], "ag": {"3": [12, 1, 1, 1, 0], "2": [0, 3, 5, 1, 0]},
+    for pid, name in (("6", "Player Six"), ("7", "Player Seven")):  # bench guys he has assisted a time or two
+        props["seasons"]["2027"]["players"][pid] = {"name": name, "team": "AAA", "pos": "C", "log": []}
+    rs["players"]["1"].update({"af": [12, 6, 6, 3, 3], "ag": {"3": [12, 1, 1, 1, 0], "2": [0, 3, 5, 1, 0], "4": [0, 1, 0, 0, 1],
+                                                               "5": [0, 1, 0, 0, 0], "6": [0, 0, 0, 1, 0], "7": [0, 0, 0, 0, 1]},
                                "wa": {"2": [10, 40, 20, 80], "3": [20, 50, 10, 70]}, "k3g": {"6": [4, 10]}})
     rs["dag"] = {"BBB": {str(g): [3, 8, 4, 3, 3] for g in (7, 8)}, "CCC": {str(g): [2, 4, 5, 3, 3] for g in range(1, 7)}}
     # shots against each defense by type (kick-out 3, drive, cut / lob, dribble 3, mid) and its possessions
@@ -1026,6 +1034,14 @@ def spots_slate():
     rs["spots_frozen"] = {"4": {"date": "2026-10-23", "m": {"1": [1, 1.2, 0.3, None, 6.5]}},
                           "5": {"date": "2026-10-24", "m": {"1": [-1, None, -1.1, None, 8.5]}}}
     data = copy.deepcopy(DATA)
+    typed = lambda name, team: {"name": name, "team": team, "pos": "SG", "type": "B", "lean": None, "fit": 0.2, "border": False, "n": 90, "mix": [], "avg": [6, 28, 3, 5.0]}
+    data["shot_types"] = {
+        "players": {"3": typed("Player Three", "AAA"), "9": typed("Player Nine", "CCC"),
+                    "2": {**typed("Player Two", "AAA"), "type": "K", "lean": "B", "border": True}},
+        "log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff", "game", "am", "am_diff"],
+        # points run the OTHER way (Nine scores plenty on his own against CCC): Vs Type reads assisted makes only
+        "log": [[f"2026-10-0{i + 1}", d, "9", 30, 3, pdiff, 0.0, "1", 5, adiff] for d, pdiff, adiff, n in (("BBB", -6.0, 1.5, 4), ("CCC", 9.0, -0.5, 6)) for i in range(n)],
+    }
     data["book_odds"]["AAA_BBB"]["props"]["assists"] = {"1": {"name": "Player One", "q": quotes(6.5)}}
     data["injuries"]["AAA"][1]["status"] = "Out"  # Player Three
     return data, props
@@ -1077,11 +1093,31 @@ class AssistSpots(unittest.TestCase):
 
     def test_who_he_assists(self):
         rows = self.cells(self.tab("left", "Who He Assists"))
-        self.assertEqual(rows[0][1:], ["Kick-Out 3", "Drive", "Cut / Lob", "Dribble 3", "Mid", "Total", "Vs Pos"])
+        self.assertEqual(rows[0][1:], ["Kick-Out 3", "Drive", "Cut / Lob", "Dribble 3", "Mid", "Total", "Vs Type"])
         three = rows[1]
         self.assertTrue(three[0].startswith("P. Three"), three)
-        # his assists to Three by type, 15 of his 30, and BBB's rank vs SGs read from the defense: allows the most of 2 = #2
-        self.assertEqual(three[1:], ["12", "1", "1", "1", "0", "50%", "#2"])
+        self.assertIn("Out", three[0])  # out tonight, said on his row
+        self.assertIn("B", three[0])  # his letter beside his position
+        # his assists to Three by type, 15 of his 30, and BBB vs his Type B read from the defense: gives up the most assisted makes of 2 = #2
+        self.assertEqual(three[1:], ["12", "1", "1", "1", "0", "50%", "B #2"])
+        # 4 games of Type B vs BBB: ranked (3+ on Assist Spots) but faded as a small sample
+        self.assertEqual(self.page.evaluate("() => [...document.querySelectorAll('#rs-list .rs-sb[data-side=\"left\"] .sp-who:not(.rs-bands) .rs-small')].map((t) => t.textContent)"), ["B #2", "B #2"])
+        two = next(r for r in rows if r[0].startswith("P. Two"))
+        self.assertEqual(two[-1], "B #2")  # "K / B", no defense has seen a K: read by his lean B
+        four = next(r for r in rows if r[0].startswith("P. Four"))
+        self.assertEqual(four[-1], "")  # no Player Type: no rank
+        self.assertTrue(rows[5][0].startswith("Everyone Else +2"), rows[5])
+        # Everyone Else opens to every teammate (the box scrolls), Top 4 folds it back
+        self.page.click("#rs-list [data-sp-all='1']")
+        opened = self.cells(self.tab("left", "Who He Assists"))
+        names = [r[0] for r in opened[1:] if r[0].startswith("P. ")]
+        self.assertEqual(len(names), 6)
+        self.assertNotIn("Everyone Else", " ".join(r[0] for r in opened))
+        self.assertEqual(self.page.evaluate("() => { const b = document.querySelector('#rs-list .rs-sb[data-side=\"left\"]'); return Math.round(b.getBoundingClientRect().height); }"), 312)
+        self.page.click("#rs-list [data-sp-all='0']")
+        self.assertTrue(any(r[0].startswith("Everyone Else") for r in self.cells(self.tab("left", "Who He Assists"))))
+        self.assertTrue(self.page.query_selector("#rs-list .rs-panel"))  # the panel stayed open
+        self.assertEqual(SITE.errors, [])
         total = next(r for r in rows if r[0] == "Total")
         self.assertEqual(total[1], "40%")
         allows = next(r for r in rows if r[0] == "BBB Allows")
@@ -1091,8 +1127,16 @@ class AssistSpots(unittest.TestCase):
         rows = self.cells(self.tab("right", "The Read"))
         self.assertEqual([r[0] for r in rows[1:]], ["Chances", "Targets", "Assist Types", "Lineup", "Volume", "The Read"])
         self.assertEqual(rows[2][3], "Over")
+        self.assertTrue(rows[2][1].startswith("50% To Three"), rows[2])
+        self.assertEqual(rows[2][2], "BBB Vs Type B #2")
         self.assertEqual(rows[4][3], "Under")
         self.assertTrue(rows[6][1].startswith("Mixed: Targets Over"), rows[6])
+        # the hover shows each teammate's type numbers, and who wasn't counted and why
+        tip = self.page.evaluate(f"() => {{ const x = rowsOn('{DAY}').find((r) => String(r.pid) === '1'); return spotOf(x).fs.find((f) => f.k === 'tg').tip; }}")
+        self.assertIn("Player Three (Type B): 50% of his assists; Type B players make +1.5 assisted shots over their own averages against BBB (4 of 4 games over)", tip)
+        self.assertIn("Player Two (Type B): 30% of his assists", tip)
+        self.assertIn("(read by his lean: Type K has too few games against BBB)", tip)
+        self.assertIn("Player Four: not counted (no Player Type yet)", tip)
 
     def test_lineup_and_game_log(self):
         rows = self.cells(self.tab("right", "Lineup"))

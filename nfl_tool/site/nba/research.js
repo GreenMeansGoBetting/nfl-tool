@@ -529,7 +529,8 @@ function lastCell(x) {
 // His type against tonight's defense, on Slate Standouts' measuring stick (data.json shot_types.log:
 // each night against that player's own other-games average). Beside Opp Allows (his position), never
 // replacing it. No pull toward the league: under TM_MIN games it's faded and unranked.
-const TM_FIELD = { points: "pts_diff", threes: "m3_diff" };
+// `assisted` = assisted makes over their own averages (Assist Spots' Targets / Vs Type, 2026-11-13), never a list market
+const TM_FIELD = { points: "pts_diff", threes: "m3_diff", assisted: "am_diff" };
 const TM_SELF = { points: 1, threes: 2 }; // his own average's place in shot_types.players[].avg
 const TM_SCALE = { points: 5, threes: 1.4 }; // this far over / under their averages = the deepest color
 const TM_MIN = 6; // Slate Standouts' SS_MIN_GAMES
@@ -543,6 +544,7 @@ function typeStick(market, cut) {
   const out = {};
   if (st.log && TM_FIELD[market]) {
     const f = Object.fromEntries(st.log_fields.map((k, i) => [k, i]));
+    if (!(TM_FIELD[market] in f)) return (TM_CACHE[key] = out); // a build from before that field existed
     st.log.forEach((r) => {
       if (cut && r[f.date] >= cut) return;
       const p = st.players[r[f.player]];

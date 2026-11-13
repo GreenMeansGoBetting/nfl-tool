@@ -493,3 +493,23 @@ table.rf-grid td.rf-pair .rf-unit { display: inline-block; width: 12px; }
 .rs-list td.sp-call b { display: inline-block; min-width: 60px; }
 /* Assist Spots on a past night: the read graded, Hit / Miss under it (no outline: the owner hates them) */
 .rs-list td.sp-call small { display: block; font: 800 0.66rem var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; }
+/* Who He Assists (2026-11-13): a wide name column (name, position, letter), the five assist types slim
+   under small headers; Everyone Else opens to every teammate and the box scrolls */
+.rs-g.sp-who { --rs-lw: 188px; grid-template-columns: var(--rs-lw) repeat(5, 48px) minmax(0, 1fr) minmax(0, 1fr); }
+.rs-g.sp-who .rs-t.rs-h.sp-kind { font-size: 0.56rem; letter-spacing: 0.01em; padding: 0 2px; }
+.rs-g.sp-who .rs-t.rs-h.sp-corner { justify-content: flex-start; gap: 6px; padding: 0 9px; }
+.rs-g.sp-who .rs-band { grid-row: 1 / span var(--sp-rows, 7); }
+.rs-g.sp-who .rs-t.rs-l .pt-badge { flex: none; }
+.rs-sbody > .sp-scroll { height: 100%; overflow-y: auto; }
+.sp-scroll > .rs-gw { height: 100%; }
+.sp-scroll.sp-open > .rs-gw { height: auto; }
+/* open: the header row stays put while the teammates scroll (solid so rows don't show through) */
+.sp-open .rs-g.sp-who .rs-t.rs-h { position: sticky; top: 0; z-index: 2; }
+.sp-open .rs-g.sp-who .rs-t.rs-h.rs-him { background: linear-gradient(rgba(70, 130, 220, 0.45), rgba(70, 130, 220, 0.45)), var(--rs-box); }
+.sp-open .rs-g.sp-who .rs-t.rs-h.rs-def { background: linear-gradient(rgba(150, 100, 220, 0.45), rgba(150, 100, 220, 0.45)), var(--rs-box); }
+.sp-open .rs-g.sp-who .rs-t.rs-h.rs-plain { background: linear-gradient(var(--rs-label), var(--rs-label)), var(--rs-box); }
+.sp-more { border: 0; padding: 0; background: none; color: inherit; font: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.sp-more b { padding: 1px 6px; border-radius: 5px; background: rgba(var(--accent-rgb), 0.35); font: 800 0.72rem var(--font-display); }
+.sp-more:hover b, .sp-more:hover { color: var(--accent); }
+.rs-h .sp-more { margin-left: auto; padding: 1px 6px; border-radius: 5px; background: rgba(var(--accent-rgb), 0.35); font: 800 0.62rem var(--font-display); text-transform: uppercase; }
+.sp-st { flex: none; padding: 1px 4px; border-radius: 4px; background: rgba(var(--bad-rgb), 0.3); font: 800 0.6rem var(--font-display); text-transform: uppercase; }
