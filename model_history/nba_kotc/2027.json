@@ -9230,49 +9230,49 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.3236,
+    "lead": 0.3259,
     "name": "Nikola Jokic",
-    "proj": 49.1,
+    "proj": 49.2,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.2366,
+    "lead": 0.2347,
     "name": "Giannis Antetokounmpo",
     "proj": 46.5,
     "team": "MIA"
    },
    {
     "id": "4432166",
-    "lead": 0.1302,
+    "lead": 0.1298,
     "name": "Cade Cunningham",
     "proj": 41.4,
     "team": "DET"
    },
    {
     "id": "3936299",
-    "lead": 0.0776,
+    "lead": 0.0792,
     "name": "Jamal Murray",
-    "proj": 38.4,
+    "proj": 38.5,
     "team": "DEN"
    },
    {
     "id": "5041939",
-    "lead": 0.0675,
+    "lead": 0.067,
     "name": "Cooper Flagg",
     "proj": 37.5,
     "team": "DAL"
    },
    {
     "id": "4065733",
-    "lead": 0.0344,
+    "lead": 0.0341,
     "name": "Ty Jerome",
     "proj": 34.1,
     "team": "MEM"
    },
    {
     "id": "3908809",
-    "lead": 0.0206,
+    "lead": 0.0205,
     "name": "Donovan Mitchell",
     "proj": 32.5,
     "team": "CLE"
@@ -9293,7 +9293,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0103,
+    "lead": 0.0102,
     "name": "Michael Porter Jr.",
     "proj": 29.4,
     "team": "BKN"
@@ -9328,14 +9328,14 @@
    },
    {
     "id": "3064514",
-    "lead": 0.009,
+    "lead": 0.0088,
     "name": "Julius Randle",
     "proj": 29.6,
     "team": "BKN"
    },
    {
     "id": "4397002",
-    "lead": 0.005,
+    "lead": 0.0049,
     "name": "Ayo Dosunmu",
     "proj": 27.8,
     "team": "MIN"
@@ -9349,7 +9349,7 @@
    },
    {
     "id": "3992",
-    "lead": 0.0032,
+    "lead": 0.0031,
     "name": "James Harden",
     "proj": 26.7,
     "team": "CLE"
@@ -9377,7 +9377,7 @@
    },
    {
     "id": "5107199",
-    "lead": 0.0011,
+    "lead": 0.001,
     "name": "Daniss Jenkins",
     "proj": 24.0,
     "team": "DET"
@@ -9435,7 +9435,7 @@
     "id": "4397136",
     "lead": 0.0002,
     "name": "Saddiq Bey",
-    "proj": 21.9,
+    "proj": 22.0,
     "team": "NO"
    },
    {
@@ -9596,7 +9596,7 @@
     "id": "3978",
     "lead": 0.0,
     "name": "DeMar DeRozan",
-    "proj": 15.5,
+    "proj": 15.6,
     "team": "DEN"
    },
    {
