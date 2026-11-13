@@ -98,6 +98,8 @@
 .mb-who-table .mb-v { min-width: 52px; padding: 0 6px; }
 .mb-who-table .mb-v.mb-plain { min-width: 36px; }
 .mb-who-name { padding-right: 10px; }
+/* under the rotation cut: still listed (the owner, 2026-11-13: "every player"), faded */
+.mb-who-bench td { opacity: 0.5; }
 .mb-who-name .gs-inj-status { margin-left: 4px; }
 
 /* Head To Head: Season, Points Per Quarter and Blowout Data side by side */

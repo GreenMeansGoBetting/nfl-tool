@@ -4,8 +4,9 @@
 // transition ("assists or scoring in transition") and then every colored box on Matchup Keys
 // (Overview, Categories, Summary). whoOpen(topic, game) opens both teams' players for that topic:
 // this season's per-game numbers from props.json (nba-card.js loads it), rotation players only
-// (WHO_MIN minutes, WHO_GP games), the top WHO_TOP by the topic's main number plus anyone top 3 in its
-// `also` number. Every number a tile colored by where it sits among the league's rotation players
+// every player who has played for the team this season (the owner, 2026-11-13: "It should show every
+// player regardless of stats"; a top-6 cut had left Harden off CLE's Transition), the rotation players
+// (WHO_MIN minutes, WHO_GP games) first by the topic's main number, the rest faded under them. Every number a tile colored by where it sits among the league's rotation players
 // (green = more; turnovers red = more). Numbers only, no calls. Pace, totals and records have no
 // player split, so they open nothing. Transition reads props.json research `trans` / `ap`.
 // whoTopic(key) maps a league-chart column (o_paint_pct ...) or a Matchup row (paint_pct ...) to a topic;
@@ -13,7 +14,6 @@
 // nbaCardSeason, playerClick), sync.js (scaleHsla).
 const WHO_MIN = 12;
 const WHO_GP = 3;
-const WHO_TOP = 6;
 const pctW = (v) => (v === null || v === undefined ? "--" : `${Math.round(v * 100)}%`);
 const numW = (v) => (v === null || v === undefined ? "--" : v.toFixed(1));
 // [label, key, format, hover, flip (more is bad: red)]
@@ -42,7 +42,13 @@ const WHO = {
   paint: { title: "Paint Scoring", cols: ["paintA", "paintP"], sort: "paintA", share: "paintA" },
   mid: { title: "Mid-Range", cols: ["midA", "midP"], sort: "midA", share: "midA" },
   ballmove: { title: "Ball Movement", cols: ["ast", "catchS", "assisted"], sort: "ast", also: "catchS", share: "ast" },
+  // A team's own DEF box opens its OWN players where they have a number for it (the owner, 2026-11-13:
+  // "When I click NY DEF [rebounding] i want to see who on NYK is rebounding the ball"); `own` = the topic
+  // whose Allowed boxes sit beside them.
+  glassD: { title: "Defensive Rebounding", cols: ["dreb", "reb", "oreb"], sort: "dreb", share: "dreb", own: "glass" },
+  turnoversD: { title: "Steals", cols: ["stl", "tov"], sort: "stl", share: "stl", own: "turnovers" },
 };
+const WHO_OWN = { glass: "glassD", turnovers: "turnoversD" };
 // a number's key without its o_ / d_ side -> topic (league-cols.js keys and The Matchup's identity rows)
 const WHO_TOPIC = {
   rtg: "scoring", ppg: "scoring", ppp: "scoring", ball_move: "ballmove",
@@ -56,14 +62,17 @@ const whoTopic = (key) => (key ? WHO_TOPIC[String(key).replace(/^[od]_/, "")] ||
 // teams offense, its because i think theres an edge to be explored at a player level, so populating the
 // defensive teams offense is a waste"): off / def = the offense and the defense in it, left = which of
 // the two sits on the left (the order the two boxes are drawn in, so the popup reads the same way).
-// No teams (a Summary stat name) = both directions.
-const whoAttr = (key, off = null, def = null, left = "o") =>
-  (!whoTopic(key) ? "" : ` data-who="${whoTopic(key)}"${off && def ? ` data-o="${off}" data-d="${def}" data-l="${left}"` : ""}`);
+// No teams (a Summary stat name) = both directions. own = the box is the defense's own number: a topic in
+// WHO_OWN then opens the defense's own players (DREB, steals).
+const whoAttr = (key, off = null, def = null, left = "o", own = false) => {
+  const topic = whoTopic(key);
+  return !topic ? "" : ` data-who="${(own && WHO_OWN[topic]) || topic}"${off && def ? ` data-o="${off}" data-d="${def}" data-l="${left}"` : ""}`;
+};
 // For a tile of team t on number key (o_ / d_ side) against opp; first = it's the first of its pair.
 function whoTile_(key, t, opp, first) {
   const side = String(key).startsWith("d_") ? "d" : "o";
   const off = side === "o" ? t : opp, def = side === "o" ? opp : t;
-  return whoAttr(key, off, def, first ? side : side === "o" ? "d" : "o");
+  return whoAttr(key, off, def, first ? side : side === "o" ? "d" : "o", side === "d");
 }
 // The directions a clicked box opens: [{off, def, left}].
 function whoDirs(el, g) {
@@ -127,23 +136,24 @@ function whoTeam(abbr, spec) {
   const out = new Set(((DATA.injuries || {})[abbr] || []).filter((p) => p.status === "Out").map((p) => String(p.id)));
   const dtd = new Set(((DATA.injuries || {})[abbr] || []).filter((p) => p.status !== "Out").map((p) => String(p.id)));
   const mine = whoPlayers().filter((x) => x.team === abbr);
-  const rot = whoRotation(mine);
-  const by = (k) => [...rot].filter((x) => x[k] !== null && x[k] !== undefined).sort((a, b) => b[k] - a[k]);
-  const pick = by(spec.sort).slice(0, WHO_TOP);
-  if (spec.also) by(spec.also).slice(0, 3).forEach((x) => !pick.includes(x) && pick.push(x));
+  const rot = new Set(whoRotation(mine));
+  const val = (x) => (x[spec.sort] === null || x[spec.sort] === undefined ? -Infinity : x[spec.sort]);
+  const by = (list) => list.sort((a, b) => val(b) - val(a) || (b.min || 0) - (a.min || 0));
+  const pick = [...by(mine.filter((x) => rot.has(x))), ...by(mine.filter((x) => !rot.has(x)))];
   const total = mine.reduce((n, x) => n + (x[spec.share] || 0) * x.gp, 0);
   const cols = spec.cols.map((k) => WHO_COLS[k]);
   const head = `<tr class="mb-heads"><th>Player</th><th title="Games played">GP</th><th title="Minutes a game">MIN</th>${cols.map(([l, , , t]) => `<th title="${t}">${l}</th>`).join("")}<th title="His share of the team's ${WHO_COLS[spec.share][0]} this season">Team Share</th></tr>`;
   const rows = pick.map((x) => {
     const tag = out.has(String(x.id)) ? `<span class="gs-inj-status tier-bad">Out</span>` : dtd.has(String(x.id)) ? `<span class="gs-inj-status tier-mid">DTD</span>` : "";
     const share = total ? ((x[spec.share] || 0) * x.gp) / total : null;
-    return `<tr${out.has(String(x.id)) ? ' class="nba-out-row"' : ""}><td class="mb-stat mb-who-name">${playerClick(x.id, x.name)} <span class="muted-label">${x.pos || ""}</span>${nbaTypeBadge(x.id)}${tag}</td>
+    const cls = [out.has(String(x.id)) ? "nba-out-row" : "", rot.has(x) ? "" : "mb-who-bench"].filter(Boolean).join(" ");
+    return `<tr${cls ? ` class="${cls}"` : ""}${rot.has(x) ? "" : ` title="${whoEsc(`Under ${WHO_MIN} minutes or ${WHO_GP} games`)}"`}><td class="mb-stat mb-who-name">${playerClick(x.id, x.name)} <span class="muted-label">${x.pos || ""}</span>${nbaTypeBadge(x.id)}${tag}</td>
       ${whoTile("gp", x.gp, String, `${x.name}: ${x.gp} games played`)}${whoTile("min", x.min, numW, `${x.name}: ${numW(x.min)} minutes a game`)}
       ${cols.map(([l, k, f, t, flip]) => whoTile(k, x[k], f, `${x.name}: ${t} ${f(x[k])}`, flip)).join("")}
       <td class="mb-v"${share === null ? "" : ` style="background:${scaleHsla(Math.round(Math.min(1, share / 0.35) * 120), 70, 45, 0.32)}"`} title="${whoEsc(`${x.name}: ${pctW(share)} of ${abbr}'s ${WHO_COLS[spec.share][3].toLowerCase()} this season`)}"><b>${pctW(share)}</b></td></tr>`;
   }).join("");
   const t = whoTeamOf(abbr);
-  return `<div class="nba-box mb-teambox mb-whobox" data-team="${abbr}" data-side="o" style="--team:${whoRgb(abbr)}">${whoBanner(abbr, `${t.name} Offense`)}<table class="mb-table mb-who-table"><tbody>${head}${rows || `<tr><td class="mb-none" colspan="${cols.length + 4}">No rotation players yet</td></tr>`}</tbody></table></div>`;
+  return `<div class="nba-box mb-teambox mb-whobox" data-team="${abbr}" data-side="${spec.own ? "d" : "o"}" style="--team:${whoRgb(abbr)}">${whoBanner(abbr, `${t.name} ${spec.own ? "Defense" : "Offense"}`)}<table class="mb-table mb-who-table"><tbody>${head}${rows || `<tr><td class="mb-none" colspan="${cols.length + 4}">No rotation players yet</td></tr>`}</tbody></table></div>`;
 }
 const whoBanner = (abbr, text) => {
   const t = whoTeamOf(abbr);
@@ -288,11 +298,15 @@ function whoRender(topic, g, dirs) {
   const body = !g ? `<p class="no-data-note">No game picked.</p>` : nbaCardProps() === undefined ? `<p class="no-data-note">Loading&hellip;</p>`
     : !ready ? `<p class="no-data-note">Player numbers aren't available right now.</p>`
     : dirs.map((d) => {
-      const o = whoTeam(d.off, spec), df = whoDefBox(d.def, d.off, topic), tb = whoTypeBox(d.def, d.off, topic, g);
+      const base = spec.own || topic;
+      const df = whoDefBox(d.def, d.off, base), tb = whoTypeBox(d.def, d.off, base, g);
+      // the defense's own players: that team's boxes together, its players first
+      if (spec.own) return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.def} Defense vs ${d.off} Offense</div><div class="mb-who-pair">${whoTeam(d.def, spec) + df + tb}</div></div>`;
+      const o = whoTeam(d.off, spec);
       return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.off} Offense vs ${d.def} Defense</div><div class="mb-who-pair">${d.left === "d" ? df + tb + o : o + df + tb}</div></div>`;
     }).join("");
   document.getElementById("mb-who-content").innerHTML = `<h2 class="section-title mb-who-title">${spec.title}: Who's Behind It</h2>
-    <p class="mb-who-note">This season. Offense: its rotation players (${WHO_MIN}+ minutes, ${WHO_GP}+ games), a game, colored by where he sits among the league's rotation players (green = more; turnovers red = more). Defense: what it allows each position a game, ranked of 30 (1st = stingiest, green; 30th = allows the most, red). The last column: the offense's numbers at that position. Allowed By Type: what the defense gives up to each Player Type in the offense's rotation, over those players' own averages (threes on Threes, points elsewhere), ranked the same way, and how much of the offense's shooting each type takes.</p>${body}`;
+    <p class="mb-who-note">This season. Players: everyone who has played for the team, its rotation (${WHO_MIN}+ minutes, ${WHO_GP}+ games) first and the rest faded, a game, colored by where he sits among the league's rotation players (green = more; turnovers red = more). Defense: what it allows each position a game, ranked of 30 (1st = stingiest, green; 30th = allows the most, red). The last column: the offense's numbers at that position. Allowed By Type: what the defense gives up to each Player Type in the offense's rotation, over those players' own averages (threes on Threes, points elsewhere), ranked the same way, and how much of the offense's shooting each type takes.</p>${body}`;
 }
 // dirs: [{off, def, left}] (whoDirs); none = both directions
 function whoOpen(topic, g, dirs = null) {

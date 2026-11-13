@@ -147,7 +147,16 @@
 }
 /* Player Types box (typeBox): letters across, offense mix and defense fingerprint per side, one width */
 .mk-types { margin-top: 12px; }
-.mk-tscroll { overflow-x: auto; }
+.mk-trow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; }
+.mk-tscroll { overflow-x: auto; max-width: 100%; }
+/* who each letter is (typeRoster): beside the grid, the one column that takes the spare width */
+.data-table.mk-troster { flex: 1 1 260px; width: auto; border-spacing: 0 2px; border-collapse: separate; font-size: 0.8rem; }
+.mk-troster th { padding: 2px 6px; text-align: left; font-size: 0.74rem; white-space: nowrap; }
+.mk-troster th img { vertical-align: -4px; margin-right: 4px; }
+.mk-troster td { padding: 1px 6px; vertical-align: top; }
+.mk-troster td.mk-trl { width: 1%; text-align: center; }
+.mk-tp { display: inline-block; margin: 0 8px 1px 0; white-space: nowrap; }
+.mk-tp-out { opacity: 0.45; text-decoration: line-through; }
 .data-table.mk-tgrid { width: auto; table-layout: fixed; border-spacing: 3px; border-collapse: separate; }
 .mk-tgrid th, .mk-tgrid td { padding: 0; text-align: center; width: 52px; }
 .mk-tgrid .mk-tl { width: 210px; text-align: left; white-space: nowrap; font-size: 0.82rem; padding-right: 6px; }

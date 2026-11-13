@@ -203,8 +203,11 @@ class WhoIsBehindIt(unittest.TestCase):
             # DET's defense: what it allowed PGs (Big Guard, 20 points on 8 of 20 a game in 3 games), and BOS's PGs' paint shots
             self.assertEqual(det_def[0][0], "PG")
             self.assertEqual(det_def[0][-1], "12.0")
-            # the guard first: 20 shots a game x 60% of them in the paint = 12.0; the bench player (8 min) left off
-            self.assertEqual([r[0].split(" ")[0] for r in bos], ["Big", "Small"])
+            # the guard first: 20 shots a game x 60% of them in the paint = 12.0; the bench player (8 min) still
+            # listed, under the rotation and faded, though he has the most paint shots (the owner, 2026-11-13:
+            # "It should show every player regardless of stats"; a top-6 cut left Harden off CLE's Transition)
+            self.assertEqual([r[0].split(" ")[0] for r in bos], ["Big", "Small", "Bench"])
+            self.assertEqual(PAGE.locator("#mb-who-modal .mb-whobox[data-team='BOS'] tr.mb-who-bench").count(), 1)
             # paint FG% (0.6*30 + 0.4*6) / 36; team share counts every BOS player, the bench one too: 12 of 52 a game
             self.assertEqual(bos[0][3:6], ["12.0", "57%", "23%"])
             self.assertIn("Det Wing", det[0][0])
@@ -220,6 +223,17 @@ class WhoIsBehindIt(unittest.TestCase):
             PAGE.wait_for_function("() => document.querySelector('#mb-who-content').innerText.includes('TRANS') || document.querySelector('#mb-who-content').innerText.includes('Trans')")
             first = PAGE.evaluate("() => [...document.querySelector('#mb-who-modal .mb-whobox tr:not(.mb-heads)').children].map((td) => td.innerText.trim())")
             self.assertEqual(first[3:6], ["6.0", "30%", "1.0"])  # 18 transition points in 3 games, 18 of 60, 3 transition assists
+            PAGE.keyboard.press("Escape")
+            # a team's own DEF rebounding / turnovers box opens ITS players (the owner, 2026-11-13: "When I click
+            # NY DEF i want to see who on NYK is rebounding the ball"); its offense boxes still open its offense
+            self.assertIn('data-who="glassD" data-o="BOS" data-d="DET"', PAGE.evaluate("() => whoTile_('d_reb', 'DET', 'BOS', true)"))
+            self.assertIn('data-who="turnoversD"', PAGE.evaluate("() => whoTile_('d_tov', 'DET', 'BOS', true)"))
+            self.assertIn('data-who="glass"', PAGE.evaluate("() => whoTile_('o_reb', 'BOS', 'DET', true)"))
+            self.assertIn('data-who="threes"', PAGE.evaluate("() => whoTile_('d_3pm', 'DET', 'BOS', true)"))  # no player number for threes allowed
+            PAGE.evaluate("() => whoOpen('glassD', DATA.schedule.find((x) => x.game_id === gameId), [{ off: 'BOS', def: 'DET', left: 'd' }])")
+            PAGE.wait_for_selector("#mb-who-modal:not([hidden]) .mb-who-dir")
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .team-banner-name')].map((b) => b.textContent)")[0], "Detroit Pistons Defense")
+            self.assertIn("Det Wing", PAGE.evaluate("() => document.querySelector('#mb-who-modal .mb-whobox').innerText"))
             PAGE.keyboard.press("Escape")
             # a team-only number opens nothing; every colored box with a player split opens it (the owner, 2026-11-09)
             self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('.mb-matchup td.mb-mid')].filter((td) => td.textContent === 'Pace' && td.dataset.who).length"), 0)

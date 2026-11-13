@@ -351,6 +351,23 @@ class PlayerTypesBox(unittest.TestCase):
         self.assertIn(">+2.0<", html)  # Type Fit: 50% x +4.0 (K has no games against WSH)
         self.assertIn("A: 50% x +4.0", html)  # its parts in the hover
 
+    def test_who_each_letter_is_beside_the_grid(self):
+        # the owner, 2026-11-13: "theres no way to tell who is D" -- both teams' players under their letter,
+        # most shots first, last names; another team's players left out
+        st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"], "log": [],
+              "players": {"1": {"name": "Ace Shooter", "type": "D", "team": "CHA", "n": 80},
+                          "2": {"name": "Big Volume Jr.", "type": "D", "team": "CHA", "n": 200},
+                          "3": {"name": "Wiz Rim", "type": "K", "team": "WSH", "n": 90, "border": True, "lean": "J"},
+                          "4": {"name": "Other Team", "type": "D", "team": "BOS", "n": 300}}}
+        html = self.box(st)
+        self.assertIn("mk-troster", html)
+        roster = html[html.index("mk-troster"):]
+        self.assertLess(roster.index(">Volume<"), roster.index(">Shooter<"))  # most shots first, suffix dropped
+        self.assertIn(">Rim<", roster)
+        self.assertIn("leans J", roster)
+        self.assertNotIn("Other", roster)
+        self.assertIn("player-click", roster)
+
     def test_no_types_no_box(self):
         self.assertEqual(PAGE.evaluate("() => { const keep = DATA.shot_types; DATA.shot_types = null; const out = typeBox({ date: '2999-01-01', away: 'CHA', home: 'WSH' }); DATA.shot_types = keep; return out; }"), "")
 

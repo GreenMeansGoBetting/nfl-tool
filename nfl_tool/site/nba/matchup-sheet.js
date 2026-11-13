@@ -182,7 +182,8 @@ const labelTd = (text) => `<td class="mb-stat">${text}</td>`;
 
 // A filled number box opens who's behind it too (the owner, 2026-11-09: "all these colored boxes are clickable")
 // off / def: the half's offense and defense (its two boxes read offense, then defense: the offense on the left)
-const tdWho = (html, key, off, def) => (whoTopic(key) && html.startsWith('<td class="mb-v') ? html.replace('<td class="mb-v', `<td${whoAttr(key, off, def, "o")} class="mb-v mb-who-v`) : html);
+// own = the defense's box: rebounding / turnovers open the defense's own players (who.js WHO_OWN)
+const tdWho = (html, key, off, def, own = false) => (whoTopic(key) && html.startsWith('<td class="mb-v') ? html.replace('<td class="mb-v', `<td${whoAttr(key, off, def, "o", own)} class="mb-v mb-who-v`) : html);
 
 // ---- The Matchup: every row, both directions side by side ----
 // [call][away off][home def] [label] [home off][away def][call]: the label in the
@@ -194,8 +195,8 @@ function matchup(g) {
   const edges = [];
   const COLS = 7;
   const rowHtml = (label, A, H, key = null) => `<tr${(A && A.call) || (H && H.call) ? ' class="mb-called"' : ""}>
-      <td class="mb-call">${callPill(A && A.call)}</td>${tdWho(cellTd(A && A.o), key, a, h)}${tdWho(cellTd(A && A.d), key, a, h)}${whoTopic(key) ? `<td class="mb-stat mb-mid mb-who"${whoAttr(key)} title="Click: the players on both teams behind this number">${label}</td>` : `<td class="mb-stat mb-mid">${label}</td>`}
-      ${tdWho(cellTd(H && H.o), key, h, a)}${tdWho(cellTd(H && H.d), key, h, a)}<td class="mb-call">${callPill(H && H.call)}</td></tr>`;
+      <td class="mb-call">${callPill(A && A.call)}</td>${tdWho(cellTd(A && A.o), key, a, h)}${tdWho(cellTd(A && A.d), key, a, h, true)}${whoTopic(key) ? `<td class="mb-stat mb-mid mb-who"${whoAttr(key)} title="Click: the players on both teams behind this number">${label}</td>` : `<td class="mb-stat mb-mid">${label}</td>`}
+      ${tdWho(cellTd(H && H.o), key, h, a)}${tdWho(cellTd(H && H.d), key, h, a, true)}<td class="mb-call">${callPill(H && H.call)}</td></tr>`;
   // the column heads sit right above the first rows, under the first group's name
   const heads = `<tr class="mb-heads"><th></th>${colHead(a, "Off")}${colHead(h, "Def")}<th></th>${colHead(h, "Off")}${colHead(a, "Def")}<th></th></tr>`;
   const note = (label, P, off, de) => {

@@ -587,6 +587,8 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
   fingerprint (points over those players' own averages against it, per letter, ranked of the defenses at
   6+ games, 30th = gives up the most, red) and each offense's mix (share of its typed shooting per letter);
   **Type Fit** = the defense weighted by the offense's mix, its parts in the hover (never a hidden score).
+  **Who each letter is** beside the grid (`typeRoster`, 2026-11-13: "no way to tell who is D"): both
+  teams' typed players under their letter, last names, most shots first, Out faded, `playerClick`.
 - **Shot Fit** tab (research panel, Points / Threes, `shotFitTab`): his top 5 shot kinds (catch, pull-up,
   fade, floater, post, drive, cut, lob) beside the FG% tonight's defense allows on each (every shot it
   faced, typed or not: shot_types `defense.kinds` / `league_kinds`), the league's, +/-, rank of 30 (30th
@@ -726,10 +728,14 @@ the same framework next ("once we have the framework down").
     defense against each letter in the offense's rotation (over their own averages; threes on Threes, points
     elsewhere), beat-average x / y, the offense's shot share per letter; 1st = allows the least, 6+ games.
   - **Every colored box with a player split opens who's behind it** (`who.js` `whoOpen(topic, game)`;
-    a member asked for Paint FG% on 2026-11-09, the owner made it every box): both teams' rotation
-    players (12+ min, 3+ games) for the topic (`WHO`: scoring, transition, threes, paint, mid,
-    turnovers, glass, ft, ballmove; `whoTopic` maps a league-chart key or a Matchup row), top 6 by its
-    main number plus the top 3 in its `also`, each number tiled by its place among the league's
+    a member asked for Paint FG% on 2026-11-09, the owner made it every box): for the topic (`WHO`:
+    scoring, transition, threes, paint, mid, turnovers, glass, ft, ballmove; `whoTopic` maps a league-chart
+    key or a Matchup row) **every player who has played for the team** (the owner, 2026-11-13: "every
+    player regardless of stats"; a top-6 cut hid Harden), rotation (12+ min, 3+ games) first by the main
+    number, the rest faded (`mb-who-bench`). **A team's own DEF box opens its own players** where they
+    have a number (`WHO_OWN`: rebounding -> DREB `glassD`, turnovers -> steals `turnoversD`; the owner:
+    "Im never going to click on a knicks button to see pacers players"); other DEF boxes (threes, paint ...
+    allowed) still open the offense's players. Each number tiled by its place among the league's
     rotation players (turnovers: red = more), his share of the team's total. Pace, totals and records
     open nothing. A tile carries `data-who` (`whoAttr`); the page's click handler opens it before a
     category line's open / close. Numbers only, no calls. Data: props.json (logs, `zones`, `zone_pct`,
