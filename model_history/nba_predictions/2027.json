@@ -2824,7 +2824,7 @@ null
 ],
 "spread_odds": [
 -100,
--104
+-102
 ],
 "total": 219.5,
 "total_odds": [
@@ -2959,7 +2959,7 @@ null
 "away": "MIL",
 "book": {
 "ml": [
-344,
+335,
 -355
 ],
 "spread": [
@@ -3104,7 +3104,7 @@ null
 "book": {
 "ml": [
 122,
--125
+-127
 ],
 "spread": [
 2.5,
@@ -3255,13 +3255,13 @@ null
 7.5
 ],
 "spread_odds": [
-113,
+111,
 -115
 ],
 "total": 246.5,
 "total_odds": [
 108,
--113
+-111
 ]
 },
 "date": "2026-11-13",
@@ -3688,12 +3688,12 @@ null
 ],
 "spread_odds": [
 113,
--115
+-117
 ],
 "total": 217.5,
 "total_odds": [
 -106,
-102
+104
 ]
 },
 "date": "2026-11-13",
@@ -3823,7 +3823,7 @@ null
 "away": "POR",
 "book": {
 "ml": [
--413,
+-426,
 400
 ],
 "spread": [
@@ -3836,8 +3836,8 @@ null
 ],
 "total": 229.5,
 "total_odds": [
--102,
--100
+-106,
+102
 ]
 },
 "date": "2026-11-13",
@@ -16547,14 +16547,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-9.5,
+9.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 238.5,
 "total_odds": [
 null,
 null
@@ -16566,8 +16566,14 @@ null
 0.6077,
 0.3923
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3021,
+0.6979
+],
+"total": [
+0.4639,
+0.5361
+]
 },
 "fair_spread": 3.3,
 "home": "NO",
