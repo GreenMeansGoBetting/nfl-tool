@@ -2823,12 +2823,12 @@ null
 8.5
 ],
 "spread_odds": [
--100,
--102
+106,
+-108
 ],
 "total": 219.5,
 "total_odds": [
--100,
+102,
 -104
 ]
 },
@@ -2968,12 +2968,12 @@ null
 ],
 "spread_odds": [
 -102,
--102
+-100
 ],
 "total": 223.5,
 "total_odds": [
-102,
--106
+-104,
+-100
 ]
 },
 "date": "2026-11-13",
@@ -3103,7 +3103,7 @@ null
 "away": "CLE",
 "book": {
 "ml": [
-122,
+125,
 -127
 ],
 "spread": [
@@ -3111,12 +3111,12 @@ null
 -2.5
 ],
 "spread_odds": [
--104,
--100
+-100,
+-104
 ],
 "total": 236.5,
 "total_odds": [
--102,
+-104,
 -102
 ]
 },
@@ -3258,10 +3258,10 @@ null
 111,
 -115
 ],
-"total": 246.5,
+"total": 245.5,
 "total_odds": [
-108,
--111
+-106,
+102
 ]
 },
 "date": "2026-11-13",
@@ -3275,8 +3275,8 @@ null
 0.6038
 ],
 "total": [
-0.4763,
-0.5237
+0.4984,
+0.5016
 ]
 },
 "fair_spread": 4.3,
@@ -3391,7 +3391,7 @@ null
 "away": "MEM",
 "book": {
 "ml": [
--150,
+-153,
 147
 ],
 "spread": [
@@ -3399,13 +3399,13 @@ null
 3.5
 ],
 "spread_odds": [
--100,
--104
+104,
+-106
 ],
 "total": 235.5,
 "total_odds": [
 -100,
--104
+-102
 ]
 },
 "date": "2026-11-13",
@@ -3679,7 +3679,7 @@ null
 "away": "GS",
 "book": {
 "ml": [
-525,
+545,
 -567
 ],
 "spread": [
@@ -3692,8 +3692,8 @@ null
 ],
 "total": 217.5,
 "total_odds": [
--106,
-104
+-108,
+102
 ]
 },
 "date": "2026-11-13",
@@ -3836,8 +3836,8 @@ null
 ],
 "total": 229.5,
 "total_odds": [
--106,
-102
+-104,
+-100
 ]
 },
 "date": "2026-11-13",
@@ -3967,8 +3967,8 @@ null
 "away": "OKC",
 "book": {
 "ml": [
--257,
-251
+-251,
+245
 ],
 "spread": [
 -7.5,
@@ -3980,8 +3980,8 @@ null
 ],
 "total": 222.5,
 "total_odds": [
--104,
-102
+104,
+-108
 ]
 },
 "date": "2026-11-13",
@@ -16554,7 +16554,7 @@ null
 null,
 null
 ],
-"total": 238.5,
+"total": 235.5,
 "total_odds": [
 null,
 null
@@ -16571,8 +16571,8 @@ null
 0.6979
 ],
 "total": [
-0.4639,
-0.5361
+0.5303,
+0.4697
 ]
 },
 "fair_spread": 3.3,
@@ -16691,14 +16691,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+3.5,
+-3.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 231.5,
 "total_odds": [
 null,
 null
@@ -16710,8 +16710,14 @@ null
 0.3787,
 0.6213
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4931,
+0.5069
+],
+"total": [
+0.4309,
+0.5691
+]
 },
 "fair_spread": -3.7,
 "home": "CLE",
@@ -16829,14 +16835,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-5.5,
+5.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 230.5,
 "total_odds": [
 null,
 null
@@ -16848,8 +16854,14 @@ null
 0.5412,
 0.4588
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3613,
+0.6387
+],
+"total": [
+0.5042,
+0.4958
+]
 },
 "fair_spread": 1.2,
 "home": "MIA",
@@ -16967,14 +16979,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+4.5,
+-4.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 227.5,
 "total_odds": [
 null,
 null
@@ -16986,8 +16998,14 @@ null
 0.2869,
 0.7131
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4256,
+0.5744
+],
+"total": [
+0.5208,
+0.4792
+]
 },
 "fair_spread": -6.8,
 "home": "MEM",
@@ -17105,14 +17123,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+14.5,
+-14.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 236.5,
 "total_odds": [
 null,
 null
@@ -17124,8 +17142,14 @@ null
 0.1129,
 0.8871
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4988,
+0.5012
+],
+"total": [
+0.5862,
+0.4138
+]
 },
 "fair_spread": -14.5,
 "home": "MIN",
