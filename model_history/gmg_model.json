@@ -1582,5 +1582,27 @@
   "total_result": "loss",
   "updated": "2026-11-08T22:14Z",
   "week": 9
+ },
+ "2026_10_WAS_NYG": {
+  "away": "WAS",
+  "away_pts": 21.0,
+  "final": [
+   24,
+   21
+  ],
+  "frozen": true,
+  "home": "NYG",
+  "home_pts": 23.3,
+  "qb_out": [],
+  "spread": -1.5,
+  "spread_edge": 0.7,
+  "spread_pick": "home",
+  "spread_result": "loss",
+  "total": 40.5,
+  "total_edge": 3.8,
+  "total_pick": "over",
+  "total_result": "win",
+  "updated": "2026-11-12T20:03Z",
+  "week": 10
  }
 }
