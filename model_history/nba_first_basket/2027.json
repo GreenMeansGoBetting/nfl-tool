@@ -2307,9 +2307,9 @@
    ]
   ],
   "players": {
-   "3907497": [
-    "Dejounte Murray",
-    0.084,
+   "3442": [
+    "DeAndre Jordan",
+    0.073,
     null,
     false,
     null
@@ -2323,14 +2323,14 @@
    ],
    "4277813": [
     "Herbert Jones",
-    0.093,
+    0.096,
     1300,
     true,
     "hard_rock"
    ],
    "4395628": [
     "Zion Williamson",
-    0.111,
+    0.114,
     750,
     false,
     "bet365"
@@ -2351,7 +2351,7 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.085,
+    0.087,
     1200,
     true,
     "hard_rock"
@@ -2372,7 +2372,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.107,
+    0.11,
     800,
     false,
     "bet365"
@@ -15265,9 +15265,9 @@
     false,
     null
    ],
-   "3907497": [
-    "Dejounte Murray",
-    0.079,
+   "3442": [
+    "DeAndre Jordan",
+    0.068,
     null,
     false,
     null
@@ -15281,14 +15281,14 @@
    ],
    "4277813": [
     "Herbert Jones",
-    0.088,
+    0.091,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.104,
+    0.107,
     null,
     false,
     null
@@ -15302,14 +15302,14 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.08,
+    0.082,
     null,
     false,
     null
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.101,
+    0.103,
     null,
     false,
     null
