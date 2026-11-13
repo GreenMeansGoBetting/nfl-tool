@@ -8819,7 +8819,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.1031,
+    "lead": 0.103,
     "name": "Karl-Anthony Towns",
     "proj": 41.6,
     "team": "NY"
@@ -8840,49 +8840,49 @@
    },
    {
     "id": "4566434",
-    "lead": 0.0637,
+    "lead": 0.0627,
     "name": "Franz Wagner",
-    "proj": 38.5,
+    "proj": 38.4,
     "team": "ORL"
    },
    {
     "id": "5142620",
-    "lead": 0.0419,
+    "lead": 0.042,
     "name": "Darius Acuff Jr.",
     "proj": 36.9,
     "team": "SAC"
    },
    {
     "id": "4683021",
-    "lead": 0.0393,
+    "lead": 0.04,
     "name": "Deni Avdija",
-    "proj": 36.4,
+    "proj": 36.5,
     "team": "POR"
    },
    {
     "id": "4065733",
-    "lead": 0.0359,
+    "lead": 0.036,
     "name": "Ty Jerome",
     "proj": 35.8,
     "team": "MEM"
    },
    {
     "id": "3908809",
-    "lead": 0.0343,
+    "lead": 0.0344,
     "name": "Donovan Mitchell",
     "proj": 35.7,
     "team": "CLE"
    },
    {
     "id": "4871144",
-    "lead": 0.0308,
+    "lead": 0.0307,
     "name": "Alperen Sengun",
     "proj": 35.4,
     "team": "HOU"
    },
    {
     "id": "3934672",
-    "lead": 0.0259,
+    "lead": 0.026,
     "name": "Jalen Brunson",
     "proj": 34.5,
     "team": "NY"
@@ -8917,7 +8917,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0105,
+    "lead": 0.0106,
     "name": "Yaxel Lendeborg",
     "proj": 31.4,
     "team": "GS"
@@ -8940,7 +8940,7 @@
     "id": "4395725",
     "lead": 0.0056,
     "name": "Tyler Herro",
-    "proj": 29.8,
+    "proj": 29.7,
     "team": "MIL"
    },
    {
@@ -9001,9 +9001,9 @@
    },
    {
     "id": "3064440",
-    "lead": 0.0021,
+    "lead": 0.0024,
     "name": "Zach LaVine",
-    "proj": 26.7,
+    "proj": 26.8,
     "team": "SAC"
    },
    {
@@ -9080,7 +9080,7 @@
     "id": "4066320",
     "lead": 0.0007,
     "name": "Desmond Bane",
-    "proj": 25.5,
+    "proj": 25.4,
     "team": "ORL"
    },
    {
@@ -9220,7 +9220,7 @@
     "id": "5105565",
     "lead": 0.0,
     "name": "Donovan Clingan",
-    "proj": 22.4,
+    "proj": 22.5,
     "team": "POR"
    }
   ],
