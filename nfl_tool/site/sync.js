@@ -366,6 +366,17 @@ window.GMGSettings = { open: openGmgSettings };
 // "only when people click into nhl today").
 const GMG_UPDATES = [
   {
+    id: "2026-11-13",
+    sport: "nba",
+    heading: "Player Types Update",
+    items: [
+      ["🏀", "<b>12 Player Types, Up From 11</b>: the old B shooters are now two types. <b>B</b> takes a lot of his threes off the dribble, <b>C</b> mostly catches and shoots. Threes are a big part of betting, so each gets its own read now."],
+      ["🔤", "<b>Letters Moved Today</b>: with C new, every type after it moved up one letter (old C is now D, and so on through L). Some old B shooters are now C. If a player has a different letter than he did this morning, that's why."],
+      ["📅", "<b>Checked Every Morning</b>: the 12 types stay fixed. Each morning every player is re-checked against his own shots, and his letter only moves when his shooting does. It holds all day."],
+      ["🤝", "<b>Assist Spots Reads Types</b>: Targets and Vs Type now go by teammates' Player Types instead of position, counting only made shots that were assisted. <b>Everyone Else</b> opens to the whole roster, so you can see who's filling in for injuries."],
+    ],
+  },
+  {
     id: "2026-11-11",
     sport: "nhl",
     until: "2026-11-11",
