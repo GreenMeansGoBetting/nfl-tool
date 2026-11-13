@@ -583,15 +583,16 @@ Basketball-Reference comparison, odd vs even games, the owner's eye test.
   2026-11-11: "separate the shaded background"): **His Points / His Threes** in blue (his line tonight,
   his average) and **Defense Vs His Type** in purple (+/- over their averages, beat-average x / y)
   (`ptTonightTab`).
-- **Matchup Keys: Player Types box** (Overview, under Both Teams; `typeBox`; **vertical since 2026-11-13**: a
-  row a letter, letters down the middle, away Off Mix | home Def Vs Type | letter | home Off Mix | away Def,
-  Fit the last row, rows lined up with the player list; the box cut to its contents): each defense's
-  fingerprint (points over those players' own averages against it, per letter, ranked of the defenses at
-  6+ games, 30th = gives up the most, red) and each offense's mix (share of its typed shooting per letter);
-  **Type Fit** = the defense weighted by the offense's mix, its parts in the hover (never a hidden score).
-  **Who each letter is** beside the grid (`typeRoster`, 2026-11-13: "no way to tell who is D"): away
-  players (right-aligned) | letter down the middle | home players, last names, most shots first, Out
-  faded, `playerClick`; each name has a chip of the OTHER defense vs his letter (the grid's number + color).
+- **Matchup Keys: Player Types box** (Overview, under Both Teams; `typeBox`, `typePlayers`): **ONE chart**
+  (the owner, 2026-11-13: "combine it into one chart"), a row a letter: away players | away Pts Share |
+  home Def Vs Type | letter | away Def Vs Type | home Pts Share | home players; Fit the last row; the box
+  cut to its contents. Def Vs Type = points over those players' own averages against it, ranked of the
+  defenses at 6+ games, 30th = gives up the most, red. **Pts Share** = share of the team's points a game
+  from that letter (typed players' season averages, Out left out, `MK_PTS_GAMES` 3+ games; replaced the
+  shot share, "redundant" beside the names). **Fit** = the defense weighted by the offense's Pts Share,
+  its parts in the hover (never a hidden score). **Who each letter is** (2026-11-13: "no way to tell who
+  is D"): last names, most shots first, Out faded, `playerClick`, away side right-aligned; no number chip,
+  each name sits in a box shaded from HIS side (the other defense's rank flipped: soft defense = green).
 - **Shot Fit** tab (research panel, Points / Threes, `shotFitTab`): his top 5 shot kinds (catch, pull-up,
   fade, floater, post, drive, cut, lob) beside the FG% tonight's defense allows on each (every shot it
   faced, typed or not: shot_types `defense.kinds` / `league_kinds`), the league's, +/-, rank of 30 (30th

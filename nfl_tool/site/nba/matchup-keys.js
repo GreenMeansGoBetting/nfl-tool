@@ -228,31 +228,43 @@ function typeBox(game) {
   if (!st || !st.log) return "";
   const stick = mkTypeStick(game.date);
   const badge = (L) => `<span class="pt-letter pt-sm" style="--h:${MK_TYPES.indexOf(L) * 28}">${L}</span>`;
+  const teams = [game.away, game.home];
+  const out = new Set(teams.flatMap((t) => ((DATA.injuries || {})[t] || []).filter((p) => p.status === "Out").map((p) => String(p.id))));
+  // Pts Share (the owner, 2026-11-13: the shot share repeated the player list): the share of the points a
+  // game the team's players average that comes from each letter, Out players left out (tonight's team);
+  // a player needs MK_PTS_GAMES games so a fill-in night never counts
   const mix = (t) => {
-    const shots = {};
+    const pts = {}, who = {};
     let all = 0;
-    Object.values(st.players).filter((p) => p.team === t).forEach((p) => { shots[p.type] = (shots[p.type] || 0) + p.n; all += p.n; });
-    return Object.fromEntries(MK_TYPES.map((L) => [L, all ? (shots[L] || 0) / all : 0]));
+    Object.entries(st.players).forEach(([id, p]) => {
+      const a = p.avg;
+      if (p.team !== t || !p.type || out.has(id) || !a || a[0] < MK_PTS_GAMES) return;
+      pts[p.type] = (pts[p.type] || 0) + a[1];
+      (who[p.type] ||= []).push([mkLast(p.name), a[1]]);
+      all += a[1];
+    });
+    const m = Object.fromEntries(MK_TYPES.map((L) => [L, all ? (pts[L] || 0) / all : 0]));
+    return { m, pts, who, all };
   };
   const rank = (d, L) => {
     const vals = Object.values(stick).map((bt) => bt[L]).filter((c) => c && c.n >= MK_TYPE_MIN);
     const c = (stick[d] || {})[L];
     return c && c.n >= MK_TYPE_MIN ? { r: 1 + vals.filter((v) => v.avg < c.avg).length, n: vals.length } : null;
   };
-  // defense d against letter L: the grid's number and color, also the chip by each name (typeRoster)
+  // defense d against letter L: the grid's number and color, also each name's box, flipped (typePlayers)
   const defChip = (d, L) => {
     const c = (stick[d] || {})[L];
     if (!c) return { text: "--", style: "", tip: `${d}: no games yet against type ${L}`, thin: true };
     const rk = rank(d, L);
     const v = `${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`;
-    return { text: v, style: rk ? rankStyle(rk.r, rk.n) : "", thin: !rk,
+    return { text: v, style: rk ? rankStyle(rk.r, rk.n) : "", thin: !rk, rk,
       tip: `${d}'s defense vs type ${L}: ${v} points over their own averages in ${c.n} games${rk ? `, ${ordinal(rk.r)} of ${rk.n} (30th = gives up the most)` : `; under ${MK_TYPE_MIN} games, not ranked`}` };
   };
   const cell = (inner, style, tip, cls = "") => `<td><div class="od-tile mk-tt${cls}"${style ? ` style="${style}"` : ""} title="${esc(tip)}"><b>${inner}</b></div></td>`;
   // One direction: offense o's mix beside defense d's numbers, and the Type Fit (d weighted by o's mix,
   // its parts in the hover, never a hidden score).
   const dir = (o, d) => {
-    const m = mix(o);
+    const { m, pts, who, all } = mix(o);
     const most = Math.max(...Object.values(m)) || 1;
     let fit = 0;
     const parts = [];
@@ -260,57 +272,53 @@ function typeBox(game) {
       const c = (stick[d] || {})[L];
       if (c && rank(d, L) && m[L]) { fit += m[L] * c.avg; parts.push(`${L}: ${Math.round(m[L] * 100)}% x ${c.avg > 0 ? "+" : ""}${c.avg.toFixed(1)}`); }
     });
+    const offTip = (L) => m[L]
+      ? `${Math.round(m[L] * 100)}% of ${o}'s scoring: its type ${L} players average ${pts[L].toFixed(1)} of the ${all.toFixed(1)} points a game ${o}'s typed players average (${who[L].sort((x, y) => y[1] - x[1]).map(([n, v]) => `${n} ${v.toFixed(1)}`).join(", ")}). Out players left out.`
+      : `No ${o} type ${L} scoring tonight`;
     return {
-      off: (L) => cell(m[L] ? `${Math.round(m[L] * 100)}` : "", m[L] ? rankStyle(1 + Math.round((1 - m[L] / most) * 7), 8) : "", `${m[L] ? Math.round(m[L] * 100) : 0}% of ${o}'s typed shooting is type ${L}`),
+      off: (L) => cell(m[L] ? `${Math.round(m[L] * 100)}%` : "", m[L] ? rankStyle(1 + Math.round((1 - m[L] / most) * 7), 8) : "", offTip(L)),
       def: (L) => { const c = defChip(d, L); return cell(c.text === "--" ? "" : c.text, c.style, c.tip, c.thin ? " mk-tthin" : ""); },
-      fit: cell(`${fit > 0 ? "+" : ""}${fit.toFixed(1)}`, rankStyle(1 + Math.round(((1 + Math.max(-1, Math.min(1, fit / 2))) / 2) * 7), 8), `Type Fit, ${o}'s mix against ${d}'s numbers: ${parts.join(", ") || "no type with enough games"}. Points over their averages, weighted by how much of ${o}'s shooting each type takes. Red = ${d} gives up more to this mix.`),
+      fit: cell(`${fit > 0 ? "+" : ""}${fit.toFixed(1)}`, rankStyle(1 + Math.round(((1 + Math.max(-1, Math.min(1, fit / 2))) / 2) * 7), 8), `Type Fit, ${o}'s scoring against ${d}'s numbers: ${parts.join(", ") || "no type with enough games"}. Points over their averages, weighted by how much of ${o}'s scoring each type carries. Red = ${d} gives up more to this mix.`),
     };
   };
   const A = dir(game.away, game.home), H = dir(game.home, game.away);
-  // vertical (the owner, 2026-11-13, to match the player list): a row a letter, the letters down the middle;
-  // each side its offense's mix on the left, the other defense on the right
+  // ONE chart (the owner, 2026-11-13: "combine it into one chart"): a row a letter, the letters down the
+  // middle, the two defenses beside them, each offense's Pts Share outside its defense, the players on the
+  // outside -- away players | away Pts Share | home Def | letter | away Def | home Pts Share | home players
   const ch = (t, label) => `<th class="mk-tch"><div style="--team:${teamRgb(t)}">${logo(t, 16)}<span><b>${t}</b><small>${label}</small></span></div></th>`;
-  const head = `<tr>${ch(game.away, "Off Mix")}${ch(game.home, "Def Vs Type")}<th class="mk-trl mk-trm">Type</th>${ch(game.home, "Off Mix")}${ch(game.away, "Def Vs Type")}</tr>`;
-  const rows = MK_TYPES.map((L) => `<tr>${A.off(L)}${A.def(L)}<td class="mk-trl">${badge(L)}</td>${H.off(L)}${H.def(L)}</tr>`).join("");
-  const fitRow = `<tr class="mk-tfit"><td></td>${A.fit}<td class="mk-trl mk-tfit-h" title="The defense weighted by the offense's mix">Fit</td><td></td>${H.fit}</tr>`;
-  return `<div class="mk-box mk-types"><div class="mk-bh mk-bh-both">Player Types: Defense Fingerprints &amp; Offense Mix</div>
-    <div class="mk-trow"><div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${rows}${fitRow}</tbody></table></div>${typeRoster(game, badge, defChip)}</div>
-    <p class="mk-tnote">Off Mix = the share of the team's shooting from each type. Def Vs Type = points over those players' own averages against this defense; 30th = gives up the most (red); faded = under ${MK_TYPE_MIN} games. Fit weighs the defense by the offense's mix (hover for the parts). Each player's chip = the other defense against his type.</p></div>`;
+  const ph = (t, opp, away) => `<th class="mk-trh${away ? " mk-tpa" : ""}"><div style="--team:${teamRgb(t)}">${away ? "" : logo(t, 20)}<span><b>${t} Players</b><small>Vs ${opp} Defense</small></span>${away ? logo(t, 20) : ""}</div></th>`;
+  const people = typePlayers(game, defChip, out);
+  const head = `<tr>${ph(game.away, game.home, true)}${ch(game.away, "Pts Share")}${ch(game.home, "Def Vs Type")}<th class="mk-trl mk-trm">Type</th>${ch(game.away, "Def Vs Type")}${ch(game.home, "Pts Share")}${ph(game.home, game.away, false)}</tr>`;
+  const rows = MK_TYPES.map((L) => `<tr><td class="mk-tpl mk-tpa">${people(game.away, L)}</td>${A.off(L)}${A.def(L)}<td class="mk-trl">${badge(L)}</td>${H.def(L)}${H.off(L)}<td class="mk-tpl">${people(game.home, L)}</td></tr>`).join("");
+  const fitRow = `<tr class="mk-tfit"><td></td><td></td>${A.fit}<td class="mk-trl mk-tfit-h" title="The defense weighted by the offense's scoring">Fit</td>${H.fit}<td></td><td></td></tr>`;
+  return `<div class="mk-box mk-types"><div class="mk-bh mk-bh-both">Player Types: Who Scores &amp; Who Allows It</div>
+    <div class="mk-tscroll"><table class="data-table mk-tgrid"><thead>${head}</thead><tbody>${rows}${fitRow}</tbody></table></div>
+    <p class="mk-tnote">Pts Share = the share of the team's points a game from each type (players with a type; Out tonight left out). Def Vs Type = points over those players' own averages against this defense; 30th = gives up the most (red); faded = under ${MK_TYPE_MIN} games. A name's box = his matchup: green = a soft defense for his type, red = a tough one. Fit weighs the defense by the offense's scoring (hover for the parts).</p></div>`;
 }
-// Who each letter is, beside the grid (the owner, 2026-11-13: "MIA gives up 5.6 to D and CLE scores heavy
-// with D (35) yet theres no way to tell who is D"): away players | letter | home players, the letters down
-// the middle and the away side right-aligned toward them (the owner: "logical to the brain"). Last names,
-// most shots first, Out faded; each name carries a chip of the OTHER team's defense against his letter
-// (the grid's Defense Vs Type number and color; the owner: "by Mitchell it would say +5.6 in red").
-// chip(def, L) -> {text, style, tip, thin}.
+// Who each letter is, on the outside of the chart (the owner, 2026-11-13: "MIA gives up 5.6 to D and CLE
+// scores heavy with D (35) yet theres no way to tell who is D"), the away side right-aligned toward the
+// letters. Last names, most shots first, Out faded. Each name sits in a box shaded from HIS side of the
+// matchup: the other defense against his letter, flipped (a defense that gives up the most = green for
+// him; the owner, 2026-11-13: "players with a very red def would be colored more green"); under
+// MK_TYPE_MIN games = a plain faded box. chip(def, L) -> {text, style, tip, thin, rk}.
+const MK_PTS_GAMES = 3;
 const mkLast = (name) => {
   const w = String(name || "").split(" ").filter((x) => !/^(Jr\.?|Sr\.?|II|III|IV)$/.test(x));
   return w.length > 1 ? w.slice(1).join(" ") : w[0] || "";
 };
-function typeRoster(game, badge, chip) {
-  const st = DATA.shot_types;
-  const teams = [game.away, game.home];
-  const out = new Set(teams.flatMap((t) => ((DATA.injuries || {})[t] || []).filter((p) => p.status === "Out").map((p) => String(p.id))));
+function typePlayers(game, chip, out) {
   const by = {};
-  Object.entries(st.players || {}).forEach(([id, p]) => {
-    if (teams.includes(p.team) && p.type) ((by[p.type] ||= {})[p.team] ||= []).push([id, p]);
+  Object.entries(DATA.shot_types.players || {}).forEach(([id, p]) => {
+    if ((p.team === game.away || p.team === game.home) && p.type) ((by[p.type] ||= {})[p.team] ||= []).push([id, p]);
   });
-  const rows = MK_TYPES.map((L) => { // every letter, so the rows line up with the grid beside it
-    const side = (t, away) => {
-      const opp = away ? game.home : game.away;
-      const c = chip(opp, L);
-      const chipHtml = `<i class="mk-tc${c.thin ? " mk-tthin" : ""}"${c.style ? ` style="${c.style}"` : ""}>${c.text}</i>`;
-      return ((by[L] || {})[t] || []).sort((a, b) => (b[1].n || 0) - (a[1].n || 0)).map(([id, p]) => {
-        const tip = `${p.name}: type ${L}${p.border && p.lean ? `, borderline (leans ${p.lean})` : ""}${out.has(id) ? " · Out" : ""}. ${c.tip}`;
-        const name = playerClick(id, esc(mkLast(p.name)));
-        return `<span class="mk-tp${out.has(id) ? " mk-tp-out" : ""}" title="${esc(tip)}">${away ? name + chipHtml : chipHtml + name}</span>`;
-      }).join("");
-    };
-    return `<tr><td class="mk-tpl mk-tpa">${side(game.away, true)}</td><td class="mk-trl">${badge(L)}</td><td class="mk-tpl">${side(game.home, false)}</td></tr>`;
-  }).join("");
-  if (!Object.keys(by).length) return "";
-  const hdr = (t, opp, away) => `<th class="mk-trh${away ? " mk-tpa" : ""}"><div style="--team:${teamRgb(t)}">${away ? "" : logo(t, 20)}<span><b>${t} Players</b><small>Vs ${opp} Defense</small></span>${away ? logo(t, 20) : ""}</div></th>`;
-  return `<table class="data-table mk-troster"><thead><tr>${hdr(game.away, game.home, true)}<th class="mk-trl mk-trm">Type</th>${hdr(game.home, game.away, false)}</tr></thead><tbody>${rows}</tbody></table>`;
+  return (t, L) => {
+    const c = chip(t === game.away ? game.home : game.away, L);
+    const style = c.rk ? rankStyle(c.rk.n + 1 - c.rk.r, c.rk.n) : "";
+    return ((by[L] || {})[t] || []).sort((a, b) => (b[1].n || 0) - (a[1].n || 0)).map(([id, p]) => {
+      const tip = `${p.name}: type ${L}${p.border && p.lean ? `, borderline (leans ${p.lean})` : ""}${out.has(id) ? " · Out" : ""}. ${c.tip}`;
+      return `<span class="mk-tp${out.has(id) ? " mk-tp-out" : ""}${c.rk ? "" : " mk-tp-thin"}"${style ? ` style="${style}"` : ""} title="${esc(tip)}">${playerClick(id, esc(mkLast(p.name)))}</span>`;
+    }).join("");
+  };
 }
 // Both Teams: Same Style keys (both at one end of a number) and the combined O/U Trend, three columns.
 function bothBox(ctx, game, keys) {

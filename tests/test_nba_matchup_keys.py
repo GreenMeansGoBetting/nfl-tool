@@ -338,43 +338,75 @@ class PlayerTypesBox(unittest.TestCase):
             return out;
         }""", st)
 
-    def test_a_defense_against_each_type_weighted_by_the_offenses_mix(self):
+    def test_a_defense_against_each_type_weighted_by_the_offenses_scoring(self):
+        # Pts Share (the owner, 2026-11-13): the share of the team's points a game from each letter; an Out
+        # player and a player under MK_PTS_GAMES games left out
         st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"],
-              "players": {"1": {"type": "A", "team": "CHA", "n": 100}, "2": {"type": "K", "team": "CHA", "n": 100},
-                          "3": {"type": "A", "team": "BOS", "n": 50}},
+              "players": {"1": {"type": "A", "team": "CHA", "n": 100, "avg": [10, 30.0, 3]},
+                          "2": {"type": "K", "team": "CHA", "n": 100, "avg": [10, 10.0, 0]},
+                          "5": {"type": "K", "team": "CHA", "n": 30, "avg": [2, 40.0, 0]},
+                          "6": {"type": "K", "team": "CHA", "n": 90, "avg": [10, 50.0, 0]},
+                          "3": {"type": "A", "team": "BOS", "n": 50, "avg": [10, 20.0, 2]}},
               # type A players ran +4 over their own averages against WSH, 6 games
               "log": [[f"2000-01-0{i + 1}", "WSH", "3", 20, 2, 4.0, 1.0] for i in range(6)]}
-        html = self.box(st)
+        html = PAGE.evaluate("""(st) => {
+            const keep = [DATA.shot_types, DATA.injuries];
+            DATA.shot_types = st;
+            DATA.injuries = { CHA: [{ id: 6, status: "Out" }] };
+            const out = typeBox({ date: "2999-01-01", away: "CHA", home: "WSH" });
+            [DATA.shot_types, DATA.injuries] = keep;
+            return out;
+        }""", st)
         self.assertIn("Def Vs Type", html)
-        self.assertEqual(html.count('<td class="mk-trl"><span class="pt-letter'), 22)  # a row a letter, letters in the middle (grid + list)
-        self.assertIn(">50<", html)  # CHA's shooting: half A, half K
+        self.assertIn("Pts Share", html)
+        self.assertEqual(html.count('<td class="mk-trl"><span class="pt-letter'), 11)  # ONE chart: a row a letter
+        self.assertIn(">75%<", html)  # CHA: A 30 of the 40 points a game (6 is Out, 5 has 2 games)
+        self.assertIn(">25%<", html)
         self.assertIn(">+4.0<", html)  # WSH against A
-        self.assertIn(">+2.0<", html)  # Type Fit: 50% x +4.0 (K has no games against WSH)
-        self.assertIn("A: 50% x +4.0", html)  # its parts in the hover
+        self.assertIn(">+3.0<", html)  # Type Fit: 75% x +4.0 (K has no games against WSH)
+        self.assertIn("A: 75% x +4.0", html)  # its parts in the hover
 
-    def test_who_each_letter_is_beside_the_grid(self):
-        # the owner, 2026-11-13: "theres no way to tell who is D" -- both teams' players under their letter,
+    def test_the_columns_read_out_from_the_letters(self):
+        # the owner, 2026-11-13: away players | away Pts Share | home Def | letter | away Def | home Pts Share | home players
+        st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"], "log": [],
+              "players": {"1": {"name": "Ace Shooter", "type": "D", "team": "CHA", "n": 80, "avg": [5, 20.0, 2]}}}
+        heads = PAGE.evaluate("""(st) => {
+            const keep = DATA.shot_types;
+            DATA.shot_types = st;
+            const div = document.createElement("div");
+            div.innerHTML = typeBox({ date: "2999-01-01", away: "CHA", home: "WSH" });
+            DATA.shot_types = keep;
+            return [...div.querySelectorAll("thead th")].map((th) => th.textContent.replace(/\\s+/g, " ").trim());
+        }""", st)
+        self.assertEqual(heads, ["CHA PlayersVs WSH Defense", "CHAPts Share", "WSHDef Vs Type", "Type",
+                                 "CHADef Vs Type", "WSHPts Share", "WSH PlayersVs CHA Defense"])
+
+    def test_who_each_letter_is_on_the_outside(self):
+        # the owner, 2026-11-13: "theres no way to tell who is D" -- both teams' players in their letter's row,
         # most shots first, last names; another team's players left out
-        # type D players ran +4 over their own averages against WSH, 6 games (player 5 is on BOS)
+        # type D players ran +4 over their own averages against WSH, 6 games (player 4 is on BOS)
         st = {"log_fields": ["date", "def", "player", "pts", "m3", "pts_diff", "m3_diff"],
-              "log": [[f"2000-01-0{i + 1}", "WSH", "4", 20, 2, 4.0, 1.0] for i in range(6)],
+              "log": [[f"2000-01-0{i + 1}", "WSH", "4", 20, 2, 4.0, 1.0] for i in range(6)]
+                     + [[f"2000-01-0{i + 1}", "BOS", "4", 20, 2, -4.0, -1.0] for i in range(6)],
               "players": {"1": {"name": "Ace Shooter", "type": "D", "team": "CHA", "n": 80},
                           "2": {"name": "Big Volume Jr.", "type": "D", "team": "CHA", "n": 200},
                           "3": {"name": "Wiz Rim", "type": "K", "team": "WSH", "n": 90, "border": True, "lean": "J"},
                           "4": {"name": "Other Team", "type": "D", "team": "BOS", "n": 300}}}
         html = self.box(st)
-        self.assertIn("mk-troster", html)
-        roster = html[html.index("mk-troster"):]
-        self.assertLess(roster.index(">Volume<"), roster.index(">Shooter<"))  # most shots first, suffix dropped
-        self.assertIn(">Rim<", roster)
-        self.assertIn("leans J", roster)
-        self.assertNotIn("Other", roster)
-        self.assertIn("player-click", roster)
-        # each name carries the other team's defense against his letter (the owner, 2026-11-13: "by Mitchell
-        # it would say +5.6 in red"): CHA's D players get WSH's +4.0; the letters sit in the middle
-        self.assertEqual(roster.count(">+4.0</i>"), 2)
-        self.assertIn('mk-trl"><span class="pt-letter', roster)
-        self.assertIn("CHA Players", roster)
+        self.assertLess(html.index(">Volume<"), html.index(">Shooter<"))  # most shots first, suffix dropped
+        self.assertIn(">Rim<", html)
+        self.assertIn("leans J", html)
+        self.assertNotIn(">Team<", html)
+        self.assertIn("player-click", html)
+        self.assertIn("CHA Players", html)
+        # no number chip by the name (the owner, 2026-11-13: side by side now); his box is shaded from HIS
+        # side: WSH gives up the most to D of the two ranked defenses (red in the grid) = green for him
+        self.assertNotRegex(html, r'"mk-tc[" ]')
+        tile = PAGE.evaluate("() => rankStyle(2, 2)")
+        name = PAGE.evaluate("() => rankStyle(1, 2)")
+        row = html[html.index(">Volume<") - 400:html.index(">Volume<")]
+        self.assertIn(name, row)
+        self.assertIn(tile, html)
 
     def test_no_types_no_box(self):
         self.assertEqual(PAGE.evaluate("() => { const keep = DATA.shot_types; DATA.shot_types = null; const out = typeBox({ date: '2999-01-01', away: 'CHA', home: 'WSH' }); DATA.shot_types = keep; return out; }"), "")

@@ -145,17 +145,17 @@
   .mk-cats { overflow-x: auto; }
   .mk-cline { min-width: 760px; }
 }
-/* Player Types box (typeBox): a row a letter, letters down the middle, the player list (typeRoster) beside it.
+/* Player Types box (typeBox): ONE chart, a row a letter, letters down the middle, the defenses beside them,
+   each offense's Pts Share outside, the players (typePlayers) on the outside.
    The box is cut just past its contents (the owner, 2026-11-13: "not have so much white space"). */
 .mk-types { margin-top: 12px; width: fit-content; max-width: 100%; }
-.mk-trow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; }
 .mk-tscroll { overflow-x: auto; max-width: 100%; }
-/* both tables: the same row and header heights and spacing, so their letters line up */
-.data-table.mk-tgrid, .data-table.mk-troster { width: auto; border-spacing: 3px; border-collapse: separate; }
-.mk-tgrid thead th, .mk-troster thead th { height: 40px; padding: 0; vertical-align: bottom; }
-.mk-tgrid td, .mk-troster td { height: 28px; box-sizing: border-box; }
+.data-table.mk-tgrid { width: auto; border-spacing: 3px; border-collapse: separate; }
+.mk-tgrid thead th { height: 40px; padding: 0; vertical-align: bottom; }
+.mk-tgrid td { height: 28px; box-sizing: border-box; }
 .mk-tgrid th, .mk-tgrid td { padding: 0; text-align: center; width: 62px; }
-.mk-tgrid .mk-trl, .mk-troster .mk-trl { width: 1%; text-align: center; padding: 0 3px; }
+/* 1px, not 1%: a percent column makes the browser widen the whole table to fit it */
+.mk-tgrid .mk-trl { width: 1px; text-align: center; padding: 0 3px; }
 .mk-tt { display: flex; align-items: center; justify-content: center; height: 28px; box-sizing: border-box; padding: 0; }
 .mk-tt b { font-size: 0.86rem; }
 .mk-tthin { opacity: 0.45; }
@@ -166,18 +166,20 @@
 .mk-tch span { display: grid; line-height: 1.05; }
 .mk-tch small { font: 600 0.58rem var(--font-display); opacity: 0.9; white-space: nowrap; }
 .mk-tch img, .mk-trh img { background: #fff; border-radius: 50%; padding: 2px; }
-/* who each letter is (typeRoster): away | letter | home, the away side right-aligned toward the letters */
-.data-table.mk-troster { flex: 0 0 auto; font-size: 0.8rem; }
-.mk-troster td { padding: 0 4px; vertical-align: middle; text-align: left; white-space: nowrap; }
-.mk-troster .mk-tpa { text-align: right; }
+/* who each letter is (typePlayers): the outside columns, the away side right-aligned toward the letters */
+.mk-tgrid th.mk-trh, .mk-tgrid td.mk-tpl { width: auto; min-width: 150px; }
+.mk-tgrid td.mk-tpl { padding: 0 2px; vertical-align: middle; text-align: left; white-space: nowrap; font-size: 0.8rem; }
+.mk-tgrid td.mk-tpa { text-align: right; }
 .mk-trh > div { display: flex; align-items: center; gap: 7px; height: 40px; box-sizing: border-box; padding: 0 9px; border-radius: 7px; color: #fff; white-space: nowrap;
   background: linear-gradient(90deg, rgba(var(--team), 0.95), rgba(var(--team), 0.6)); font: 700 0.86rem var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; }
 .mk-trh.mk-tpa > div { justify-content: flex-end; background: linear-gradient(270deg, rgba(var(--team), 0.95), rgba(var(--team), 0.6)); }
 .mk-trh span { display: grid; line-height: 1.1; }
 .mk-trh small { font: 600 0.68rem var(--font-display); opacity: 0.85; }
 .mk-trm { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; padding-bottom: 6px !important; }
-.mk-tp { display: inline-flex; align-items: center; gap: 4px; margin: 0 4px; white-space: nowrap; }
-.mk-tc { font-style: normal; font-weight: 700; font-size: 0.72rem; min-width: 34px; padding: 1px 4px; border-radius: 4px; text-align: center; background: var(--rs-sep); }
+/* a name in a box shaded from his side of the matchup (green = soft defense for his type) */
+.mk-tp { display: inline-flex; align-items: center; height: 24px; box-sizing: border-box; padding: 0 8px; margin: 0 2px; border-radius: 5px;
+  font-weight: 700; white-space: nowrap; background: var(--rs-sep); }
+.mk-tp-thin { opacity: 0.6; }
 .mk-tp-out { opacity: 0.45; }
 .mk-tp-out .player-click { text-decoration: line-through; }
 /* the note never widens the box: it wraps to the tables' width */
