@@ -15556,13 +15556,6 @@
     false,
     "fanduel"
    ],
-   "4065733": [
-    "Ty Jerome",
-    0.118,
-    575,
-    false,
-    "bet365"
-   ],
    "4278104": [
     "Michael Porter Jr.",
     0.094,
@@ -15577,23 +15570,30 @@
     false,
     "fanduel"
    ],
+   "4433083": [
+    "Cam Spencer",
+    0.1,
+    null,
+    false,
+    null
+   ],
    "4600663": [
     "Zach Edey",
-    0.097,
+    0.101,
     600,
     false,
     "fanduel"
    ],
    "4903027": [
     "Cedric Coward",
-    0.092,
+    0.097,
     900,
     false,
     "hard_rock"
    ],
    "5041935": [
     "Cameron Boozer",
-    0.122,
+    0.128,
     750,
     false,
     "bet365"
@@ -15607,7 +15607,7 @@
    ],
    "5112087": [
     "Jaylen Wells",
-    0.094,
+    0.098,
     1300,
     true,
     "hard_rock"
@@ -16706,13 +16706,6 @@
    ]
   ],
   "players": {
-   "4065733": [
-    "Ty Jerome",
-    0.116,
-    null,
-    false,
-    null
-   ],
    "4277905": [
     "Trae Young",
     0.081,
@@ -16720,30 +16713,37 @@
     false,
     null
    ],
+   "4433083": [
+    "Cam Spencer",
+    0.098,
+    null,
+    false,
+    null
+   ],
    "4600663": [
     "Zach Edey",
-    0.095,
+    0.098,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.09,
+    0.095,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.12,
+    0.125,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.092,
+    0.096,
     null,
     false,
     null
