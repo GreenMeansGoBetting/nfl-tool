@@ -8805,14 +8805,14 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.1735,
+    "lead": 0.1733,
     "name": "Giannis Antetokounmpo",
     "proj": 45.2,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.172,
+    "lead": 0.1719,
     "name": "Victor Wembanyama",
     "proj": 44.7,
     "team": "SA"
@@ -8833,21 +8833,21 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0636,
+    "lead": 0.0635,
     "name": "Jalen Johnson",
     "proj": 39.0,
     "team": "ATL"
    },
    {
     "id": "4566434",
-    "lead": 0.0538,
+    "lead": 0.0537,
     "name": "Franz Wagner",
     "proj": 38.4,
     "team": "ORL"
    },
    {
     "id": "4683021",
-    "lead": 0.0453,
+    "lead": 0.0452,
     "name": "Deni Avdija",
     "proj": 36.5,
     "team": "POR"
@@ -8882,9 +8882,9 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0258,
+    "lead": 0.0265,
     "name": "Jalen Brunson",
-    "proj": 34.4,
+    "proj": 34.5,
     "team": "NY"
    },
    {
@@ -8917,7 +8917,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0091,
+    "lead": 0.0089,
     "name": "Yaxel Lendeborg",
     "proj": 31.4,
     "team": "GS"
@@ -8959,7 +8959,7 @@
    },
    {
     "id": "4278039",
-    "lead": 0.0041,
+    "lead": 0.004,
     "name": "Nickeil Alexander-Walker",
     "proj": 29.2,
     "team": "ATL"
@@ -9070,6 +9070,13 @@
     "team": "CHI"
    },
    {
+    "id": "3934719",
+    "lead": 0.0006,
+    "name": "OG Anunoby",
+    "proj": 24.4,
+    "team": "NY"
+   },
+   {
     "id": "4869342",
     "lead": 0.0006,
     "name": "Dyson Daniels",
@@ -9096,13 +9103,6 @@
     "name": "Jaime Jaquez Jr.",
     "proj": 24.5,
     "team": "MIL"
-   },
-   {
-    "id": "3934719",
-    "lead": 0.0005,
-    "name": "OG Anunoby",
-    "proj": 24.3,
-    "team": "NY"
    },
    {
     "id": "4066259",
