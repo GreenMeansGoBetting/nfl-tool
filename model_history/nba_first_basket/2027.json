@@ -2579,6 +2579,11 @@
     "bet365"
    ]
   },
+  "result": {
+   "scorer": "4845367",
+   "team": "SA",
+   "tip": "SA"
+  },
   "tip_home": 0.885
  },
  "401909303": {
@@ -15872,7 +15877,7 @@
     null
    ]
   },
-  "tip_home": 0.252
+  "tip_home": 0.253
  },
  "401909987": {
   "away": "CHA",
@@ -15966,7 +15971,7 @@
  "401909988": {
   "away": "SA",
   "date": "2026-11-15",
-  "first_home": 0.4,
+  "first_home": 0.399,
   "home": "UTAH",
   "jumpers": [
    [
@@ -15981,14 +15986,14 @@
   "players": {
    "4066259": [
     "De'Aaron Fox",
-    0.13,
+    0.128,
     null,
     false,
     null
    ],
    "4395630": [
     "Devin Vassell",
-    0.106,
+    0.104,
     null,
     false,
     null
@@ -16016,7 +16021,7 @@
    ],
    "4845367": [
     "Stephon Castle",
-    0.093,
+    0.102,
     null,
     false,
     null
@@ -16030,7 +16035,7 @@
    ],
    "5037871": [
     "Dylan Harper",
-    0.095,
+    0.093,
     null,
     false,
     null
@@ -16044,13 +16049,13 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.153,
+    0.15,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.199
+  "tip_home": 0.195
  },
  "401909989": {
   "away": "DAL",
@@ -16522,7 +16527,7 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.125,
+    0.126,
     null,
     false,
     null
@@ -16557,7 +16562,7 @@
    ],
    "4432165": [
     "Jalen Suggs",
-    0.089,
+    0.088,
     null,
     false,
     null
@@ -16673,7 +16678,7 @@
     null
    ]
   },
-  "tip_home": 0.75
+  "tip_home": 0.749
  },
  "401909996": {
   "away": "MEM",
@@ -16927,7 +16932,7 @@
    ],
    "4684740": [
     "Amen Thompson",
-    0.078,
+    0.079,
     null,
     false,
     null
@@ -17029,12 +17034,12 @@
     null
    ]
   },
-  "tip_home": 0.379
+  "tip_home": 0.378
  },
  "401910000": {
   "away": "GS",
   "date": "2026-11-16",
-  "first_home": 0.539,
+  "first_home": 0.541,
   "home": "NO",
   "jumpers": [
    [
@@ -17056,7 +17061,7 @@
    ],
    "4066436": [
     "De'Anthony Melton",
-    0.089,
+    0.092,
     null,
     false,
     null
@@ -17084,7 +17089,7 @@
    ],
    "4997536": [
     "Gui Santos",
-    0.071,
+    0.07,
     null,
     false,
     null
@@ -17105,20 +17110,20 @@
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.097,
+    0.095,
     null,
     false,
     null
    ],
    "6589": [
     "Draymond Green",
-    0.066,
+    0.065,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.617
+  "tip_home": 0.622
  },
  "401910001": {
   "away": "PHX",
