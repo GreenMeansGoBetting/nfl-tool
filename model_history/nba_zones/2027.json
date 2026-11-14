@@ -21473,23 +21473,353 @@
  },
  "401909980": {
   "date": "2026-11-14",
-  "points": [],
+  "points": [
+   [
+    "3112335",
+    "Nikola Jokic",
+    "DEN",
+    "NO",
+    0.0542,
+    "over",
+    false,
+    27.5,
+    100,
+    "fanduel"
+   ],
+   [
+    "3138196",
+    "Cameron Johnson",
+    "DEN",
+    "NO",
+    0.051,
+    "over",
+    false,
+    11.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "3936299",
+    "Jamal Murray",
+    "DEN",
+    "NO",
+    0.0783,
+    "over",
+    false,
+    23.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "4395628",
+    "Zion Williamson",
+    "NO",
+    "DEN",
+    0.151,
+    "over",
+    true,
+    21.5,
+    -130,
+    "fanduel"
+   ],
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "NO",
+    0.1118,
+    "over",
+    false,
+    11.5,
+    -125,
+    "fanduel"
+   ]
+  ],
   "threes": []
  },
  "401909981": {
   "date": "2026-11-14",
   "points": [],
-  "threes": []
+  "threes": [
+   [
+    "4576087",
+    "Peyton Watson",
+    "CLE",
+    "DAL",
+    -0.142,
+    "under",
+    true,
+    1.5,
+    -158,
+    "fanduel"
+   ],
+   [
+    "4683747",
+    "Jaylon Tyson",
+    "CLE",
+    "DAL",
+    -0.1403,
+    "under",
+    true,
+    1.5,
+    116,
+    "fanduel"
+   ],
+   [
+    "5023693",
+    "Tyrese Proctor",
+    "CLE",
+    "DAL",
+    -0.082,
+    "under",
+    false,
+    1.5,
+    -152,
+    "fanduel"
+   ],
+   [
+    "5041951",
+    "Meleek Thomas",
+    "CLE",
+    "DAL",
+    -0.1181,
+    "under",
+    false,
+    1.5,
+    134,
+    "fanduel"
+   ]
+  ]
  },
  "401909982": {
   "date": "2026-11-14",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4278053",
+    "Davion Mitchell",
+    "MIA",
+    "DET",
+    -0.1331,
+    "under",
+    true,
+    14.5,
+    -136,
+    "fanduel"
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "MIA",
+    0.1316,
+    "over",
+    true,
+    25.5,
+    102,
+    "fanduel"
+   ],
+   [
+    "4684742",
+    "Ausar Thompson",
+    "DET",
+    "MIA",
+    -0.13,
+    "under",
+    true,
+    9.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "MIA",
+    0.2301,
+    "over",
+    true,
+    14.5,
+    -103,
+    "draftkings"
+   ],
+   [
+    "6475",
+    "Klay Thompson",
+    "MIA",
+    "DET",
+    -0.0615,
+    "under",
+    false,
+    13.5,
+    -105,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "3157465",
+    "Duncan Robinson",
+    "DET",
+    "MIA",
+    0.0698,
+    "over",
+    false,
+    3.5,
+    -115,
+    "4cx"
+   ],
+   [
+    "4066261",
+    "Bam Adebayo",
+    "MIA",
+    "DET",
+    -0.224,
+    "under",
+    true,
+    0.5,
+    182,
+    "fanduel"
+   ],
+   [
+    "4278053",
+    "Davion Mitchell",
+    "MIA",
+    "DET",
+    -0.1401,
+    "under",
+    true,
+    2.5,
+    -215,
+    "fanduel"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "MIA",
+    0.2901,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "6475",
+    "Klay Thompson",
+    "MIA",
+    "DET",
+    -0.0813,
+    "under",
+    false,
+    3.5,
+    -122,
+    "fanduel"
+   ]
+  ]
  },
  "401909983": {
   "date": "2026-11-14",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4278104",
+    "Michael Porter Jr.",
+    "BKN",
+    "MEM",
+    -0.0874,
+    "under",
+    false,
+    22.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "BKN",
+    0.0947,
+    "over",
+    false,
+    17.5,
+    102,
+    "fanduel"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "BKN",
+    0.0569,
+    "over",
+    false,
+    10.5,
+    -130,
+    "fanduel"
+   ],
+   [
+    "5175643",
+    "Egor Demin",
+    "BKN",
+    "MEM",
+    -0.2008,
+    "under",
+    true,
+    11.5,
+    -138,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3064514",
+    "Julius Randle",
+    "BKN",
+    "MEM",
+    -0.1468,
+    "under",
+    true,
+    1.5,
+    -154,
+    "fanduel"
+   ],
+   [
+    "4278104",
+    "Michael Porter Jr.",
+    "BKN",
+    "MEM",
+    -0.1346,
+    "under",
+    true,
+    3.5,
+    -152,
+    "fanduel"
+   ],
+   [
+    "5175643",
+    "Egor Demin",
+    "BKN",
+    "MEM",
+    -0.2797,
+    "under",
+    true,
+    1.5,
+    136,
+    "fanduel"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "MEM",
+    -0.3327,
+    "under",
+    true,
+    1.5,
+    -125,
+    "fanatics"
+   ]
+  ]
  },
  "401909984": {
   "date": "2026-11-14",
