@@ -3734,12 +3734,12 @@
     "Gary Payton II",
     "GS",
     "SA",
-    -0.1635,
+    -0.1652,
     "under",
     true,
     5.5,
-    -130,
-    "4cx"
+    -136,
+    "fanduel"
    ],
    [
     "3213",
@@ -3749,28 +3749,28 @@
     -0.2784,
     "under",
     true,
-    6.5,
-    -125,
-    "betmgm"
+    5.5,
+    -120,
+    "fanduel"
    ],
    [
     "4066436",
     "De'Anthony Melton",
     "GS",
     "SA",
-    -0.1375,
+    -0.1395,
     "under",
     true,
     12.5,
-    -122,
-    "4cx"
+    -136,
+    "fanduel"
    ],
    [
     "4395723",
     "Keldon Johnson",
     "SA",
     "GS",
-    -0.0539,
+    -0.0682,
     "under",
     false,
     9.5,
@@ -3778,28 +3778,16 @@
     "betmgm"
    ],
    [
-    "4709138",
-    "Brandin Podziemski",
-    "GS",
-    "SA",
-    -0.0597,
-    "under",
-    false,
-    16.5,
-    -108,
-    "fanduel"
-   ],
-   [
     "4997536",
     "Gui Santos",
     "GS",
     "SA",
-    -0.0616,
+    -0.061,
     "under",
     false,
     6.5,
-    -105,
-    "betmgm"
+    -127,
+    "draftkings"
    ],
    [
     "6589",
@@ -3824,20 +3812,32 @@
     "under",
     true,
     1.5,
-    -150,
-    "betmgm"
+    -184,
+    "4cx"
    ],
    [
     "4066436",
     "De'Anthony Melton",
     "GS",
     "SA",
-    -0.1691,
+    -0.1728,
     "under",
     true,
     1.5,
-    135,
-    "betmgm"
+    112,
+    "caesars"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "GS",
+    0.0707,
+    "over",
+    false,
+    1.5,
+    180,
+    "fanduel"
    ],
    [
     "5104157",
@@ -3860,7 +3860,7 @@
     "under",
     true,
     0.5,
-    128,
+    125,
     "4cx"
    ]
   ]
@@ -3873,7 +3873,7 @@
     "Jrue Holiday",
     "POR",
     "SAC",
-    0.1245,
+    0.1224,
     "over",
     true,
     12.5,
@@ -3885,7 +3885,7 @@
     "De'Andre Hunter",
     "SAC",
     "POR",
-    -0.1047,
+    -0.1069,
     "under",
     false,
     12.5,
@@ -3909,7 +3909,7 @@
     "Scoot Henderson",
     "POR",
     "SAC",
-    0.1459,
+    0.145,
     "over",
     true,
     10.5,
@@ -3933,7 +3933,7 @@
     "Damian Lillard",
     "POR",
     "SAC",
-    0.1521,
+    0.1523,
     "over",
     true,
     21.5,
@@ -3947,7 +3947,7 @@
     "Zach LaVine",
     "SAC",
     "POR",
-    -0.1903,
+    -0.1833,
     "under",
     true,
     2.5,
@@ -3959,7 +3959,7 @@
     "Jrue Holiday",
     "POR",
     "SAC",
-    0.1677,
+    0.1633,
     "over",
     true,
     2.5,
@@ -3971,7 +3971,7 @@
     "De'Andre Hunter",
     "SAC",
     "POR",
-    -0.101,
+    -0.1081,
     "under",
     false,
     1.5,
@@ -3983,7 +3983,7 @@
     "Scoot Henderson",
     "POR",
     "SAC",
-    0.1385,
+    0.1341,
     "over",
     true,
     1.5,
@@ -3995,7 +3995,7 @@
     "Sidy Cissoko",
     "POR",
     "SAC",
-    0.1626,
+    0.1516,
     "over",
     true,
     1.5,
@@ -4007,7 +4007,7 @@
     "Darius Acuff Jr.",
     "SAC",
     "POR",
-    -0.157,
+    -0.1516,
     "under",
     true,
     2.5,
@@ -4019,7 +4019,7 @@
     "Damian Lillard",
     "POR",
     "SAC",
-    0.2224,
+    0.2211,
     "over",
     true,
     3.5,
@@ -4044,6 +4044,18 @@
     "draftkings"
    ],
    [
+    "4065778",
+    "Max Strus",
+    "LAC",
+    "OKC",
+    -0.0562,
+    "under",
+    false,
+    9.5,
+    -112,
+    "draftkings"
+   ],
+   [
     "4222252",
     "Isaiah Hartenstein",
     "OKC",
@@ -4052,7 +4064,7 @@
     "over",
     true,
     9.5,
-    -108,
+    -106,
     "4cx"
    ],
    [
@@ -4060,23 +4072,23 @@
     "Shai Gilgeous-Alexander",
     "OKC",
     "LAC",
-    0.0727,
+    0.0711,
     "over",
     false,
     31.5,
     -104,
-    "fanduel"
+    "draftkings"
    ],
    [
     "4396907",
     "Darius Garland",
     "LAC",
     "OKC",
-    -0.0819,
+    -0.0935,
     "under",
     false,
     18.5,
-    -102,
+    100,
     "fanduel"
    ],
    [
@@ -4084,7 +4096,7 @@
     "Jared McCain",
     "OKC",
     "LAC",
-    0.0652,
+    0.1018,
     "over",
     false,
     14.5,
@@ -4096,11 +4108,11 @@
     "Ajay Mitchell",
     "OKC",
     "LAC",
-    0.0811,
+    0.0765,
     "over",
     false,
     18.5,
-    -106,
+    -107,
     "draftkings"
    ],
    [
@@ -4108,10 +4120,22 @@
     "Aday Mara",
     "OKC",
     "LAC",
-    0.1462,
+    0.1608,
     "over",
     true,
     10.5,
+    105,
+    "4cx"
+   ],
+   [
+    "5241364",
+    "Bennett Stirtz",
+    "OKC",
+    "LAC",
+    0.082,
+    "over",
+    false,
+    8.5,
     105,
     "4cx"
    ]
@@ -4130,16 +4154,16 @@
     "draftkings"
    ],
    [
-    "4396907",
-    "Darius Garland",
-    "LAC",
+    "4683778",
+    "Jared McCain",
     "OKC",
-    0.1021,
+    "LAC",
+    0.0538,
     "over",
     false,
     2.5,
-    105,
-    "fanatics"
+    109,
+    "4cx"
    ]
   ]
  },
