@@ -9279,7 +9279,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0233,
+    "lead": 0.0234,
     "name": "Donovan Mitchell",
     "proj": 32.6,
     "team": "CLE"
@@ -9335,7 +9335,7 @@
    },
    {
     "id": "4397002",
-    "lead": 0.0042,
+    "lead": 0.0043,
     "name": "Ayo Dosunmu",
     "proj": 27.4,
     "team": "MIN"
@@ -9379,7 +9379,7 @@
     "id": "2595516",
     "lead": 0.0019,
     "name": "Norman Powell",
-    "proj": 24.9,
+    "proj": 24.8,
     "team": "CHI"
    },
    {
@@ -9390,18 +9390,18 @@
     "team": "NO"
    },
    {
-    "id": "4871145",
-    "lead": 0.0013,
-    "name": "Josh Giddey",
-    "proj": 24.7,
-    "team": "CHI"
-   },
-   {
     "id": "4397136",
     "lead": 0.0013,
     "name": "Saddiq Bey",
     "proj": 23.6,
     "team": "NO"
+   },
+   {
+    "id": "4871145",
+    "lead": 0.0012,
+    "name": "Josh Giddey",
+    "proj": 24.6,
+    "team": "CHI"
    },
    {
     "id": "5107199",
@@ -9468,9 +9468,9 @@
    },
    {
     "id": "4433247",
-    "lead": 0.0001,
+    "lead": 0.0,
     "name": "Jonathan Kuminga",
-    "proj": 23.5,
+    "proj": 23.4,
     "team": "MIN"
    },
    {
