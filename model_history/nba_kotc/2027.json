@@ -9365,7 +9365,7 @@
     "id": "4278053",
     "lead": 0.0017,
     "name": "Davion Mitchell",
-    "proj": 25.0,
+    "proj": 25.1,
     "team": "MIA"
    },
    {
@@ -9421,7 +9421,7 @@
     "id": "4278562",
     "lead": 0.0004,
     "name": "Paul Reed",
-    "proj": 21.6,
+    "proj": 21.7,
     "team": "DET"
    },
    {
@@ -9439,18 +9439,18 @@
     "team": "DET"
    },
    {
-    "id": "4869780",
-    "lead": 0.0002,
-    "name": "Derik Queen",
-    "proj": 21.4,
-    "team": "NO"
-   },
-   {
     "id": "4397189",
     "lead": 0.0002,
     "name": "Jalen Smith",
     "proj": 21.4,
     "team": "CHI"
+   },
+   {
+    "id": "4869780",
+    "lead": 0.0002,
+    "name": "Derik Queen",
+    "proj": 21.3,
+    "team": "NO"
    },
    {
     "id": "4066328",
@@ -9512,7 +9512,7 @@
     "id": "3138196",
     "lead": 0.0,
     "name": "Cameron Johnson",
-    "proj": 18.0,
+    "proj": 17.9,
     "team": "DEN"
    },
    {
