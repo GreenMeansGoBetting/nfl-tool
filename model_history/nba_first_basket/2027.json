@@ -15358,91 +15358,74 @@
  "401909981": {
   "away": "DAL",
   "date": "2026-11-14",
-  "first_home": 0.549,
+  "first_home": 0.5,
   "home": "CLE",
   "jumpers": [
    [
     "4278049",
     "Daniel Gafford"
    ],
-   [
-    "4066328",
-    "Jarrett Allen"
-   ]
+   null
   ],
   "players": {
    "3138160": [
     "Caleb Martin",
-    0.066,
+    0.073,
     1750,
     true,
     "hard_rock"
    ],
-   "3908809": [
-    "Donovan Mitchell",
-    0.115,
-    525,
-    false,
-    "hard_rock"
-   ],
-   "3992": [
-    "James Harden",
-    0.098,
-    950,
-    false,
-    "fanduel"
-   ],
-   "4066328": [
-    "Jarrett Allen",
-    0.12,
-    500,
-    false,
-    "fliff"
-   ],
    "4278049": [
     "Daniel Gafford",
-    0.084,
+    0.094,
     1000,
     false,
     "thescore"
    ],
    "4278078": [
     "P.J. Washington",
-    0.092,
+    0.102,
     930,
     false,
     "draftkings"
    ],
-   "4576087": [
-    "Peyton Watson",
-    0.095,
-    900,
-    false,
-    "hard_rock"
-   ],
    "4683747": [
     "Jaylon Tyson",
-    0.099,
+    0.159,
     750,
-    false,
+    true,
     "fanduel"
+   ],
+   "5023693": [
+    "Tyrese Proctor",
+    0.159,
+    null,
+    false,
+    null
    ],
    "5041939": [
     "Cooper Flagg",
-    0.093,
+    0.103,
     700,
     false,
     "thescore"
    ],
+   "5041951": [
+    "Meleek Thomas",
+    0.162,
+    null,
+    false,
+    null
+   ],
    "6442": [
     "Kyrie Irving",
-    0.097,
+    0.108,
     1100,
     true,
     "fanduel"
    ]
   },
-  "tip_home": 0.647
+  "tip_home": 0.5
  },
  "401909982": {
   "away": "DET",
@@ -16601,91 +16584,74 @@
  "401909995": {
   "away": "CHI",
   "date": "2026-11-16",
-  "first_home": 0.583,
+  "first_home": 0.5,
   "home": "CLE",
   "jumpers": [
    [
     "4397189",
     "Jalen Smith"
    ],
-   [
-    "4066328",
-    "Jarrett Allen"
-   ]
+   null
   ],
   "players": {
    "2595516": [
     "Norman Powell",
-    0.078,
-    null,
-    false,
-    null
-   ],
-   "3908809": [
-    "Donovan Mitchell",
-    0.123,
-    null,
-    false,
-    null
-   ],
-   "3992": [
-    "James Harden",
-    0.104,
-    null,
-    false,
-    null
-   ],
-   "4066328": [
-    "Jarrett Allen",
-    0.127,
+    0.093,
     null,
     false,
     null
    ],
    "4397189": [
     "Jalen Smith",
-    0.094,
+    0.112,
     null,
     false,
     null
    ],
    "4432822": [
     "Isaac Okoro",
-    0.076,
-    null,
-    false,
-    null
-   ],
-   "4576087": [
-    "Peyton Watson",
-    0.101,
+    0.092,
     null,
     false,
     null
    ],
    "4683747": [
     "Jaylon Tyson",
-    0.105,
+    0.159,
     null,
     false,
     null
    ],
    "4711294": [
     "Matas Buzelis",
-    0.067,
+    0.08,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.086,
+    0.103,
+    null,
+    false,
+    null
+   ],
+   "5023693": [
+    "Tyrese Proctor",
+    0.159,
+    null,
+    false,
+    null
+   ],
+   "5041951": [
+    "Meleek Thomas",
+    0.162,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.749
+  "tip_home": 0.5
  },
  "401909996": {
   "away": "MEM",
