@@ -15380,21 +15380,21 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.111,
+    0.115,
     500,
     false,
     "fanduel"
    ],
    "3992": [
     "James Harden",
-    0.095,
+    0.098,
     1000,
     false,
     "fanduel"
    ],
    "4066328": [
     "Jarrett Allen",
-    0.111,
+    0.12,
     475,
     false,
     "hard_rock"
@@ -15413,19 +15413,19 @@
     true,
     "hard_rock"
    ],
-   "4432158": [
-    "Evan Mobley",
-    0.118,
-    null,
-    false,
-    null
-   ],
    "4576087": [
     "Peyton Watson",
-    0.092,
+    0.095,
     900,
     false,
     "hard_rock"
+   ],
+   "4683747": [
+    "Jaylon Tyson",
+    0.099,
+    750,
+    false,
+    "fanduel"
    ],
    "5041939": [
     "Cooper Flagg",
@@ -16626,21 +16626,21 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.117,
+    0.123,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.101,
+    0.104,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.118,
+    0.127,
     null,
     false,
     null
@@ -16648,13 +16648,6 @@
    "4397189": [
     "Jalen Smith",
     0.094,
-    null,
-    false,
-    null
-   ],
-   "4432158": [
-    "Evan Mobley",
-    0.125,
     null,
     false,
     null
@@ -16668,7 +16661,14 @@
    ],
    "4576087": [
     "Peyton Watson",
-    0.098,
+    0.101,
+    null,
+    false,
+    null
+   ],
+   "4683747": [
+    "Jaylon Tyson",
+    0.105,
     null,
     false,
     null
