@@ -2025,6 +2025,11 @@
     "bet365"
    ]
   },
+  "result": {
+   "scorer": "4395712",
+   "team": "IND",
+   "tip": "IND"
+  },
   "tip_home": 0.611
  },
  "401909297": {
@@ -15693,14 +15698,14 @@
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.105,
+    0.104,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.129,
+    0.126,
     null,
     false,
     null
@@ -15714,21 +15719,21 @@
    ],
    "4017837": [
     "Ivica Zubac",
-    0.1,
+    0.098,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.089,
+    0.096,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.095,
+    0.092,
     null,
     false,
     null
@@ -16124,7 +16129,7 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.07,
+    0.067,
     null,
     false,
     null
@@ -16138,7 +16143,7 @@
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.096,
+    0.102,
     null,
     false,
     null
@@ -16152,14 +16157,14 @@
    ],
    "3934672": [
     "Jalen Brunson",
-    0.115,
+    0.113,
     null,
     false,
     null
    ],
    "3934719": [
     "OG Anunoby",
-    0.109,
+    0.107,
     null,
     false,
     null
