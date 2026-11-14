@@ -15608,13 +15608,10 @@
  "401909984": {
   "away": "CHI",
   "date": "2026-11-14",
-  "first_home": 0.574,
+  "first_home": 0.5,
   "home": "MIN",
   "jumpers": [
-   [
-    "4397189",
-    "Jalen Smith"
-   ],
+   null,
    [
     "3032976",
     "Rudy Gobert"
@@ -15623,76 +15620,69 @@
   "players": {
    "2595516": [
     "Norman Powell",
-    0.079,
+    0.115,
     750,
     false,
     "bet365"
    ],
    "3032976": [
     "Rudy Gobert",
-    0.103,
+    0.09,
     750,
     false,
     "fanduel"
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.111,
+    0.096,
     800,
     false,
     "bet365"
    ],
-   "4397189": [
-    "Jalen Smith",
-    0.096,
-    850,
-    false,
-    "fanduel"
-   ],
    "4431671": [
     "Jaden McDaniels",
-    0.109,
+    0.095,
     700,
     false,
     "bet365"
    ],
    "4432816": [
     "LaMelo Ball",
-    0.134,
+    0.117,
     650,
     false,
     "hard_rock"
    ],
    "4432822": [
     "Isaac Okoro",
-    0.078,
+    0.121,
     1500,
     true,
     "hard_rock"
    ],
    "4433247": [
     "Jonathan Kuminga",
-    0.095,
+    0.082,
     750,
     false,
     "draftkings"
    ],
    "4711294": [
     "Matas Buzelis",
-    0.068,
+    0.099,
     1100,
-    false,
+    true,
     "bet365"
    ],
    "4871145": [
     "Josh Giddey",
-    0.088,
+    0.145,
     1250,
     true,
     "bet365"
    ]
   },
-  "tip_home": 0.724
+  "tip_home": 0.5
  },
  "401909985": {
   "away": "IND",
@@ -16587,30 +16577,20 @@
   "first_home": 0.5,
   "home": "CLE",
   "jumpers": [
-   [
-    "4397189",
-    "Jalen Smith"
-   ],
+   null,
    null
   ],
   "players": {
    "2595516": [
     "Norman Powell",
-    0.093,
-    null,
-    false,
-    null
-   ],
-   "4397189": [
-    "Jalen Smith",
-    0.112,
+    0.115,
     null,
     false,
     null
    ],
    "4432822": [
     "Isaac Okoro",
-    0.092,
+    0.121,
     null,
     false,
     null
@@ -16624,14 +16604,14 @@
    ],
    "4711294": [
     "Matas Buzelis",
-    0.08,
+    0.099,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.103,
+    0.145,
     null,
     false,
     null
