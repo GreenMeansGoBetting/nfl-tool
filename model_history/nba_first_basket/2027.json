@@ -16448,7 +16448,7 @@
    ],
    "3133626": [
     "Kenrich Williams",
-    0.083,
+    0.085,
     null,
     false,
     null
@@ -16469,14 +16469,14 @@
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.095,
+    0.102,
     null,
     false,
     null
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
-    0.106,
+    0.103,
     null,
     false,
     null
@@ -16490,7 +16490,14 @@
    ],
    "4683778": [
     "Jared McCain",
-    0.103,
+    0.104,
+    null,
+    false,
+    null
+   ],
+   "4900671": [
+    "Ajay Mitchell",
+    0.088,
     null,
     false,
     null
@@ -16498,13 +16505,6 @@
    "5142620": [
     "Darius Acuff Jr.",
     0.112,
-    null,
-    false,
-    null
-   ],
-   "5174983": [
-    "Aday Mara",
-    0.095,
     null,
     false,
     null
