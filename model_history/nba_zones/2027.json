@@ -21483,8 +21483,8 @@
     "over",
     false,
     27.5,
-    100,
-    "fanduel"
+    -120,
+    "4cx"
    ],
    [
     "3138196",
@@ -21494,9 +21494,9 @@
     0.051,
     "over",
     false,
-    11.5,
-    -115,
-    "fanatics"
+    12.5,
+    -104,
+    "fanduel"
    ],
    [
     "3936299",
@@ -21506,9 +21506,9 @@
     0.0783,
     "over",
     false,
-    23.5,
-    -115,
-    "fanatics"
+    24.5,
+    -102,
+    "fanduel"
    ],
    [
     "4395628",
@@ -21519,8 +21519,8 @@
     "over",
     true,
     21.5,
-    -130,
-    "fanduel"
+    -124,
+    "4cx"
    ],
    [
     "4431767",
@@ -21535,11 +21535,49 @@
     "fanduel"
    ]
   ],
-  "threes": []
+  "threes": [
+   [
+    "3138196",
+    "Cameron Johnson",
+    "DEN",
+    "NO",
+    0.1453,
+    "over",
+    true,
+    1.5,
+    -167,
+    "draftkings"
+   ],
+   [
+    "3936299",
+    "Jamal Murray",
+    "DEN",
+    "NO",
+    0.0627,
+    "over",
+    false,
+    3.5,
+    126,
+    "draftkings"
+   ]
+  ]
  },
  "401909981": {
   "date": "2026-11-14",
-  "points": [],
+  "points": [
+   [
+    "4278049",
+    "Daniel Gafford",
+    "DAL",
+    "CLE",
+    -0.2044,
+    "under",
+    true,
+    8.5,
+    -114,
+    "fanduel"
+   ]
+  ],
   "threes": [
    [
     "4576087",
@@ -21550,8 +21588,8 @@
     "under",
     true,
     1.5,
-    -158,
-    "fanduel"
+    -154,
+    "caesars"
    ],
    [
     "4683747",
@@ -21562,7 +21600,7 @@
     "under",
     true,
     1.5,
-    116,
+    114,
     "fanduel"
    ],
    [
@@ -21574,7 +21612,7 @@
     "under",
     false,
     1.5,
-    -152,
+    -146,
     "fanduel"
    ],
    [
@@ -21586,8 +21624,8 @@
     "under",
     false,
     1.5,
-    134,
-    "fanduel"
+    137,
+    "caesars"
    ]
   ]
  },
@@ -21603,8 +21641,8 @@
     "under",
     true,
     14.5,
-    -136,
-    "fanduel"
+    -125,
+    "betmgm"
    ],
    [
     "4432166",
@@ -21627,8 +21665,8 @@
     "under",
     true,
     9.5,
-    -102,
-    "fanduel"
+    105,
+    "betmgm"
    ],
    [
     "5107199",
@@ -21639,8 +21677,8 @@
     "over",
     true,
     14.5,
-    -103,
-    "draftkings"
+    -105,
+    "betmgm"
    ],
    [
     "6475",
@@ -21651,11 +21689,23 @@
     "under",
     false,
     13.5,
-    -105,
-    "draftkings"
+    -112,
+    "fanduel"
    ]
   ],
   "threes": [
+   [
+    "3032977",
+    "Giannis Antetokounmpo",
+    "MIA",
+    "DET",
+    -0.2567,
+    "under",
+    true,
+    0.5,
+    -125,
+    "fanatics"
+   ],
    [
     "3157465",
     "Duncan Robinson",
@@ -21665,8 +21715,8 @@
     "over",
     false,
     3.5,
-    -115,
-    "4cx"
+    -105,
+    "betmgm"
    ],
    [
     "4066261",
@@ -21677,8 +21727,20 @@
     "under",
     true,
     0.5,
-    182,
-    "fanduel"
+    180,
+    "betmgm"
+   ],
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "MIA",
+    0.3181,
+    "over",
+    true,
+    1.5,
+    -220,
+    "4cx"
    ],
    [
     "4278053",
@@ -21689,8 +21751,20 @@
     "under",
     true,
     2.5,
-    -215,
-    "fanduel"
+    -175,
+    "betmgm"
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "MIA",
+    0.2416,
+    "over",
+    true,
+    2.5,
+    105,
+    "betmgm"
    ],
    [
     "5107199",
@@ -21701,7 +21775,7 @@
     "over",
     true,
     1.5,
-    -120,
+    -130,
     "fanatics"
    ],
    [
@@ -21713,8 +21787,8 @@
     "under",
     false,
     3.5,
-    -122,
-    "fanduel"
+    -120,
+    "betmgm"
    ]
   ]
  },
@@ -21742,7 +21816,7 @@
     "over",
     false,
     17.5,
-    102,
+    -104,
     "fanduel"
    ],
    [
@@ -21754,8 +21828,8 @@
     "over",
     false,
     10.5,
-    -130,
-    "fanduel"
+    -115,
+    "fanatics"
    ],
    [
     "5175643",
@@ -21766,11 +21840,35 @@
     "under",
     true,
     11.5,
-    -138,
+    -121,
+    "draftkings"
+   ],
+   [
+    "5279130",
+    "Nolan Traore",
+    "BKN",
+    "MEM",
+    -0.1541,
+    "under",
+    true,
+    12.5,
+    -128,
     "fanduel"
    ]
   ],
   "threes": [
+   [
+    "2991070",
+    "Jerami Grant",
+    "MEM",
+    "BKN",
+    0.1579,
+    "over",
+    true,
+    1.5,
+    132,
+    "draftkings"
+   ],
    [
     "3064514",
     "Julius Randle",
@@ -21780,8 +21878,8 @@
     "under",
     true,
     1.5,
-    -154,
-    "fanduel"
+    -150,
+    "draftkings"
    ],
    [
     "4278104",
@@ -21792,8 +21890,32 @@
     "under",
     true,
     3.5,
-    -152,
+    -148,
     "fanduel"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "BKN",
+    0.1791,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "BKN",
+    0.173,
+    "over",
+    true,
+    1.5,
+    -148,
+    "draftkings"
    ],
    [
     "5175643",
@@ -21817,13 +21939,99 @@
     true,
     1.5,
     -125,
-    "fanatics"
+    "fanduel"
    ]
   ]
  },
  "401909984": {
   "date": "2026-11-14",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "2595516",
+    "Norman Powell",
+    "CHI",
+    "MIN",
+    -0.1182,
+    "under",
+    false,
+    21.5,
+    -106,
+    "caesars"
+   ],
+   [
+    "4397002",
+    "Ayo Dosunmu",
+    "MIN",
+    "CHI",
+    0.1327,
+    "over",
+    true,
+    18.5,
+    -106,
+    "caesars"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "CHI",
+    0.1484,
+    "over",
+    true,
+    10.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "4711294",
+    "Matas Buzelis",
+    "CHI",
+    "MIN",
+    -0.1162,
+    "under",
+    false,
+    16.5,
+    -115,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "4397002",
+    "Ayo Dosunmu",
+    "MIN",
+    "CHI",
+    0.1577,
+    "over",
+    true,
+    1.5,
+    -117,
+    "draftkings"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "CHI",
+    0.1816,
+    "over",
+    true,
+    1.5,
+    169,
+    "draftkings"
+   ],
+   [
+    "4711294",
+    "Matas Buzelis",
+    "CHI",
+    "MIN",
+    -0.2683,
+    "under",
+    true,
+    2.5,
+    -197,
+    "caesars"
+   ]
+  ]
  }
 }
