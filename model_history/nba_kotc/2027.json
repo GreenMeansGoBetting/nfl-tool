@@ -9230,21 +9230,21 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.3271,
+    "lead": 0.3274,
     "name": "Nikola Jokic",
     "proj": 48.7,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.2456,
+    "lead": 0.2457,
     "name": "Giannis Antetokounmpo",
     "proj": 46.3,
     "team": "MIA"
    },
    {
     "id": "4432166",
-    "lead": 0.1348,
+    "lead": 0.1349,
     "name": "Cade Cunningham",
     "proj": 41.5,
     "team": "DET"
@@ -9265,14 +9265,14 @@
    },
    {
     "id": "4066261",
-    "lead": 0.0267,
+    "lead": 0.0259,
     "name": "Bam Adebayo",
-    "proj": 33.0,
+    "proj": 32.9,
     "team": "MIA"
    },
    {
     "id": "4395628",
-    "lead": 0.0166,
+    "lead": 0.0167,
     "name": "Zion Williamson",
     "proj": 30.8,
     "team": "NO"
@@ -9362,18 +9362,18 @@
     "team": "MEM"
    },
    {
+    "id": "4871145",
+    "lead": 0.0016,
+    "name": "Josh Giddey",
+    "proj": 24.6,
+    "team": "CHI"
+   },
+   {
     "id": "4397136",
     "lead": 0.0016,
     "name": "Saddiq Bey",
     "proj": 23.7,
     "team": "NO"
-   },
-   {
-    "id": "4871145",
-    "lead": 0.0015,
-    "name": "Josh Giddey",
-    "proj": 24.6,
-    "team": "CHI"
    },
    {
     "id": "5107199",
@@ -9405,7 +9405,7 @@
    },
    {
     "id": "4869780",
-    "lead": 0.0004,
+    "lead": 0.0005,
     "name": "Derik Queen",
     "proj": 20.7,
     "team": "NO"
@@ -9414,7 +9414,7 @@
     "id": "4278562",
     "lead": 0.0003,
     "name": "Paul Reed",
-    "proj": 21.7,
+    "proj": 21.6,
     "team": "DET"
    },
    {
@@ -9449,7 +9449,7 @@
     "id": "3157465",
     "lead": 0.0001,
     "name": "Duncan Robinson",
-    "proj": 21.9,
+    "proj": 21.8,
     "team": "DET"
    },
    {
@@ -9530,18 +9530,18 @@
     "team": "DAL"
    },
    {
-    "id": "6475",
-    "lead": 0.0,
-    "name": "Klay Thompson",
-    "proj": 16.8,
-    "team": "MIA"
-   },
-   {
     "id": "5041951",
     "lead": 0.0,
     "name": "Meleek Thomas",
     "proj": 16.7,
     "team": "CLE"
+   },
+   {
+    "id": "6475",
+    "lead": 0.0,
+    "name": "Klay Thompson",
+    "proj": 16.7,
+    "team": "MIA"
    },
    {
     "id": "4600663",
