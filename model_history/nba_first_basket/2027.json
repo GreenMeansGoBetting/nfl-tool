@@ -16089,7 +16089,7 @@
    ],
    "3138160": [
     "Caleb Martin",
-    0.071,
+    0.074,
     2250,
     true,
     "hard_rock"
@@ -16110,17 +16110,24 @@
    ],
    "4278049": [
     "Daniel Gafford",
-    0.088,
+    0.091,
     920,
     false,
     "draftkings"
    ],
    "4278078": [
     "P.J. Washington",
-    0.097,
+    0.1,
     1300,
     true,
     "hard_rock"
+   ],
+   "4278594": [
+    "Naji Marshall",
+    0.09,
+    null,
+    false,
+    null
    ],
    "4397424": [
     "Neemias Queta",
@@ -16138,16 +16145,9 @@
    ],
    "5041939": [
     "Cooper Flagg",
-    0.105,
+    0.11,
     700,
     false,
-    "thescore"
-   ],
-   "6442": [
-    "Kyrie Irving",
-    0.103,
-    1000,
-    true,
     "thescore"
    ]
   },
