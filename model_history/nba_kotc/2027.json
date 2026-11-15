@@ -9655,35 +9655,35 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.37,
+    "lead": 0.3694,
     "name": "Luka Doncic",
     "proj": 54.7,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1242,
+    "lead": 0.1262,
     "name": "Victor Wembanyama",
-    "proj": 44.7,
+    "proj": 44.8,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0761,
+    "lead": 0.076,
     "name": "Jayson Tatum",
     "proj": 41.3,
     "team": "BOS"
    },
    {
     "id": "4278073",
-    "lead": 0.0682,
+    "lead": 0.0681,
     "name": "Shai Gilgeous-Alexander",
     "proj": 41.0,
     "team": "OKC"
    },
    {
     "id": "4871144",
-    "lead": 0.057,
+    "lead": 0.0569,
     "name": "Alperen Sengun",
     "proj": 40.2,
     "team": "HOU"
@@ -9704,42 +9704,42 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0293,
+    "lead": 0.0292,
     "name": "Cooper Flagg",
     "proj": 37.0,
     "team": "DAL"
    },
    {
     "id": "3934672",
-    "lead": 0.0283,
+    "lead": 0.0282,
     "name": "Jalen Brunson",
     "proj": 36.6,
     "team": "NY"
    },
    {
     "id": "5142620",
-    "lead": 0.0281,
+    "lead": 0.028,
     "name": "Darius Acuff Jr.",
     "proj": 35.7,
     "team": "SAC"
    },
    {
     "id": "6583",
-    "lead": 0.0217,
+    "lead": 0.0216,
     "name": "Anthony Davis",
     "proj": 35.2,
     "team": "WSH"
    },
    {
     "id": "4431678",
-    "lead": 0.0199,
+    "lead": 0.0198,
     "name": "Tyrese Maxey",
     "proj": 35.3,
     "team": "PHI"
    },
    {
     "id": "3136193",
-    "lead": 0.0158,
+    "lead": 0.0157,
     "name": "Devin Booker",
     "proj": 34.1,
     "team": "PHX"
@@ -9753,14 +9753,14 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0122,
+    "lead": 0.0121,
     "name": "Pascal Siakam",
     "proj": 33.3,
     "team": "IND"
    },
    {
     "id": "3155942",
-    "lead": 0.0111,
+    "lead": 0.011,
     "name": "Domantas Sabonis",
     "proj": 32.9,
     "team": "SAC"
@@ -9774,7 +9774,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0071,
+    "lead": 0.007,
     "name": "Kevin Durant",
     "proj": 31.4,
     "team": "HOU"
@@ -9864,18 +9864,18 @@
     "team": "SA"
    },
    {
-    "id": "4900671",
-    "lead": 0.0013,
-    "name": "Ajay Mitchell",
-    "proj": 26.8,
-    "team": "OKC"
-   },
-   {
     "id": "4431680",
     "lead": 0.0013,
     "name": "Onyeka Okongwu",
     "proj": 26.6,
     "team": "ATL"
+   },
+   {
+    "id": "4900671",
+    "lead": 0.0012,
+    "name": "Ajay Mitchell",
+    "proj": 26.8,
+    "team": "OKC"
    },
    {
     "id": "5041955",
