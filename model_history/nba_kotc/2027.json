@@ -9655,23 +9655,23 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.385,
+    "lead": 0.3847,
     "name": "Luka Doncic",
     "proj": 54.7,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1213,
+    "lead": 0.121,
     "name": "Victor Wembanyama",
     "proj": 44.6,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0729,
+    "lead": 0.0737,
     "name": "Jayson Tatum",
-    "proj": 41.2,
+    "proj": 41.3,
     "team": "BOS"
    },
    {
@@ -9718,14 +9718,14 @@
    },
    {
     "id": "6583",
-    "lead": 0.0211,
+    "lead": 0.021,
     "name": "Anthony Davis",
     "proj": 35.2,
     "team": "WSH"
    },
    {
     "id": "3934672",
-    "lead": 0.0205,
+    "lead": 0.0204,
     "name": "Jalen Brunson",
     "proj": 36.6,
     "team": "NY"
@@ -9739,7 +9739,7 @@
    },
    {
     "id": "4433134",
-    "lead": 0.017,
+    "lead": 0.0168,
     "name": "Scottie Barnes",
     "proj": 34.6,
     "team": "TOR"

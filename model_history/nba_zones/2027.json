@@ -22214,8 +22214,8 @@
     "over",
     true,
     5.5,
-    -129,
-    "caesars"
+    -127,
+    "draftkings"
    ],
    [
     "3912848",
@@ -22226,8 +22226,8 @@
     "under",
     false,
     5.5,
-    -112,
-    "fanduel"
+    -108,
+    "draftkings"
    ],
    [
     "4395712",
@@ -22252,8 +22252,8 @@
     "under",
     true,
     1.5,
-    -152,
-    "fanduel"
+    -147,
+    "draftkings"
    ],
    [
     "2581018",
@@ -22264,7 +22264,7 @@
     "over",
     true,
     1.5,
-    161,
+    158,
     "4cx"
    ],
    [
@@ -22311,8 +22311,8 @@
     0.1578,
     "over",
     true,
-    2.5,
-    134,
+    1.5,
+    -193,
     "caesars"
    ],
    [
@@ -22795,6 +22795,30 @@
   "date": "2026-11-15",
   "points": [
    [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "OKC",
+    -0.0619,
+    "under",
+    false,
+    18.5,
+    -106,
+    "fanduel"
+   ],
+   [
+    "3155942",
+    "Domantas Sabonis",
+    "SAC",
+    "OKC",
+    -0.193,
+    "under",
+    true,
+    13.5,
+    -120,
+    "fanduel"
+   ],
+   [
     "4683778",
     "Jared McCain",
     "OKC",
@@ -22805,21 +22829,20 @@
     15.5,
     102,
     "fanduel"
-   ]
-  ],
-  "threes": [
+   ],
    [
-    "4683778",
-    "Jared McCain",
-    "OKC",
+    "5142620",
+    "Darius Acuff Jr.",
     "SAC",
-    0.187,
-    "over",
-    true,
-    2.5,
-    114,
+    "OKC",
+    -0.0863,
+    "under",
+    false,
+    24.5,
+    -128,
     "fanduel"
    ]
-  ]
+  ],
+  "threes": []
  }
 }
