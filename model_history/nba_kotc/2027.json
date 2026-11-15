@@ -9655,14 +9655,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3847,
+    "lead": 0.3845,
     "name": "Luka Doncic",
     "proj": 54.7,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.121,
+    "lead": 0.1209,
     "name": "Victor Wembanyama",
     "proj": 44.6,
     "team": "SA"
@@ -9683,7 +9683,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0617,
+    "lead": 0.0616,
     "name": "Alperen Sengun",
     "proj": 40.2,
     "team": "HOU"
@@ -9724,18 +9724,18 @@
     "team": "WSH"
    },
    {
+    "id": "5142620",
+    "lead": 0.0209,
+    "name": "Darius Acuff Jr.",
+    "proj": 35.7,
+    "team": "SAC"
+   },
+   {
     "id": "3934672",
     "lead": 0.0204,
     "name": "Jalen Brunson",
     "proj": 36.6,
     "team": "NY"
-   },
-   {
-    "id": "5142620",
-    "lead": 0.0203,
-    "name": "Darius Acuff Jr.",
-    "proj": 35.6,
-    "team": "SAC"
    },
    {
     "id": "4433134",
@@ -9802,7 +9802,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.005,
+    "lead": 0.0049,
     "name": "Trae Young",
     "proj": 30.3,
     "team": "WSH"
@@ -9872,9 +9872,9 @@
    },
    {
     "id": "4900671",
-    "lead": 0.0009,
+    "lead": 0.001,
     "name": "Ajay Mitchell",
-    "proj": 26.7,
+    "proj": 26.8,
     "team": "OKC"
    },
    {
