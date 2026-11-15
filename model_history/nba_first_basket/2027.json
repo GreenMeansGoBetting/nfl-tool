@@ -15534,21 +15534,14 @@
   "players": {
    "3064514": [
     "Julius Randle",
-    0.094,
+    0.097,
     800,
     false,
     "thescore"
    ],
-   "4278104": [
-    "Michael Porter Jr.",
-    0.094,
-    650,
-    false,
-    "fanduel"
-   ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.081,
+    0.082,
     1100,
     false,
     "caesars"
@@ -15583,9 +15576,9 @@
    ],
    "5107173": [
     "Danny Wolf",
-    0.078,
+    0.081,
     1300,
-    false,
+    true,
     "fanduel"
    ],
    "5112087": [
@@ -15595,9 +15588,16 @@
     false,
     "fanduel"
    ],
+   "5175643": [
+    "Egor Demin",
+    0.083,
+    1300,
+    true,
+    "fanduel"
+   ],
    "5279130": [
     "Nolan Traore",
-    0.09,
+    0.093,
     1340,
     true,
     "draftkings"
@@ -15951,91 +15951,88 @@
  "401909988": {
   "away": "SA",
   "date": "2026-11-15",
-  "first_home": 0.399,
+  "first_home": 0.5,
   "home": "UTAH",
   "jumpers": [
    [
     "5104157",
     "Victor Wembanyama"
    ],
-   [
-    "4397077",
-    "Jaxson Hayes"
-   ]
+   null
   ],
   "players": {
+   "4065663": [
+    "Josh Okogie",
+    0.096,
+    null,
+    false,
+    null
+   ],
    "4066259": [
     "De'Aaron Fox",
-    0.128,
+    0.106,
     null,
     false,
     null
    ],
    "4395630": [
     "Devin Vassell",
-    0.104,
-    null,
-    false,
-    null
-   ],
-   "4397077": [
-    "Jaxson Hayes",
-    0.055,
+    0.087,
     null,
     false,
     null
    ],
    "4432811": [
     "Josh Green",
-    0.058,
+    0.071,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.097,
+    0.112,
     null,
     false,
     null
    ],
    "4845367": [
     "Stephon Castle",
-    0.102,
+    0.085,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.089,
+    0.102,
     null,
     false,
     null
    ],
    "5037871": [
     "Dylan Harper",
-    0.093,
+    0.078,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.085,
+    0.099,
     null,
     false,
     null
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.15,
+    0.125,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.196
+  "tip_home": 0.5
  },
  "401909989": {
   "away": "DAL",
@@ -16744,7 +16741,7 @@
    ],
    "3064514": [
     "Julius Randle",
-    0.103,
+    0.107,
     null,
     false,
     null
@@ -16763,13 +16760,6 @@
     false,
     null
    ],
-   "4278104": [
-    "Michael Porter Jr.",
-    0.103,
-    null,
-    false,
-    null
-   ],
    "4431678": [
     "Tyrese Maxey",
     0.104,
@@ -16779,14 +16769,14 @@
    ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.089,
+    0.091,
     null,
     false,
     null
    ],
    "5107173": [
     "Danny Wolf",
-    0.086,
+    0.089,
     null,
     false,
     null
@@ -16798,9 +16788,16 @@
     false,
     null
    ],
+   "5175643": [
+    "Egor Demin",
+    0.091,
+    null,
+    false,
+    null
+   ],
    "5279130": [
     "Nolan Traore",
-    0.099,
+    0.102,
     null,
     false,
     null
