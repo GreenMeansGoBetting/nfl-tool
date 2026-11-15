@@ -15524,6 +15524,11 @@
     "hard_rock"
    ]
   },
+  "result": {
+   "scorer": "4684742",
+   "team": "DET",
+   "tip": "DET"
+  },
   "tip_home": 0.657
  },
  "401909983": {
@@ -15966,7 +15971,7 @@
     null
    ]
   },
-  "tip_home": 0.4
+  "tip_home": 0.401
  },
  "401909988": {
   "away": "SA",
@@ -16232,7 +16237,7 @@
  "401909991": {
   "away": "HOU",
   "date": "2026-11-15",
-  "first_home": 0.49,
+  "first_home": 0.492,
   "home": "WSH",
   "jumpers": [
    [
@@ -16268,7 +16273,7 @@
    ],
    "4433192": [
     "Tari Eason",
-    0.08,
+    0.079,
     null,
     false,
     null
@@ -16316,7 +16321,7 @@
     null
    ]
   },
-  "tip_home": 0.471
+  "tip_home": 0.475
  },
  "401909992": {
   "away": "ATL",
@@ -16494,7 +16499,7 @@
     null
    ]
   },
-  "tip_home": 0.494
+  "tip_home": 0.493
  },
  "401909994": {
   "away": "ORL",
@@ -16521,7 +16526,7 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.126,
+    0.125,
     null,
     false,
     null
@@ -16556,7 +16561,7 @@
    ],
    "4432165": [
     "Jalen Suggs",
-    0.088,
+    0.089,
     null,
     false,
     null
@@ -16671,7 +16676,7 @@
  "401909996": {
   "away": "MEM",
   "date": "2026-11-16",
-  "first_home": 0.558,
+  "first_home": 0.56,
   "home": "WSH",
   "jumpers": [
    [
@@ -16693,7 +16698,7 @@
    ],
    "4432810": [
     "Isaiah Stewart",
-    0.087,
+    0.086,
     null,
     false,
     null
@@ -16755,7 +16760,7 @@
     null
    ]
   },
-  "tip_home": 0.676
+  "tip_home": 0.68
  },
  "401909997": {
   "away": "PHI",
@@ -16846,7 +16851,7 @@
  "401909998": {
   "away": "HOU",
   "date": "2026-11-16",
-  "first_home": 0.521,
+  "first_home": 0.513,
   "home": "MIA",
   "jumpers": [
    [
@@ -16861,76 +16866,76 @@
   "players": {
    "3032977": [
     "Giannis Antetokounmpo",
-    0.132,
+    0.13,
     null,
     false,
     null
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.082,
+    0.081,
     null,
     false,
     null
    ],
    "3202": [
     "Kevin Durant",
-    0.103,
+    0.105,
     null,
     false,
     null
    ],
    "4066261": [
     "Bam Adebayo",
-    0.106,
+    0.104,
     null,
     false,
     null
    ],
    "4278053": [
     "Davion Mitchell",
-    0.103,
+    0.1,
     null,
     false,
     null
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.089,
+    0.091,
     null,
     false,
     null
    ],
    "4433192": [
     "Tari Eason",
-    0.075,
+    0.076,
     null,
     false,
     null
    ],
    "4684740": [
     "Amen Thompson",
-    0.082,
+    0.083,
     null,
     false,
     null
    ],
    "4871144": [
     "Alperen Sengun",
-    0.11,
+    0.112,
     null,
     false,
     null
    ],
    "6475": [
     "Klay Thompson",
-    0.078,
+    0.076,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.564
+  "tip_home": 0.539
  },
  "401909999": {
   "away": "POR",
@@ -17019,7 +17024,7 @@
     null
    ]
   },
-  "tip_home": 0.38
+  "tip_home": 0.379
  },
  "401910000": {
   "away": "GS",
@@ -17108,7 +17113,7 @@
     null
    ]
   },
-  "tip_home": 0.622
+  "tip_home": 0.623
  },
  "401910001": {
   "away": "PHX",
