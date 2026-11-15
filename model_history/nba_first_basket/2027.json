@@ -15519,7 +15519,7 @@
  "401909983": {
   "away": "BKN",
   "date": "2026-11-14",
-  "first_home": 0.546,
+  "first_home": 0.461,
   "home": "MEM",
   "jumpers": [
    [
@@ -15527,83 +15527,83 @@
     "Day'Ron Sharpe"
    ],
    [
-    "4600663",
-    "Zach Edey"
+    "4432810",
+    "Isaiah Stewart"
    ]
   ],
   "players": {
    "3064514": [
     "Julius Randle",
-    0.097,
+    0.115,
     800,
     false,
     "thescore"
    ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.082,
+    0.098,
     1100,
-    false,
+    true,
     "caesars"
+   ],
+   "4432810": [
+    "Isaiah Stewart",
+    0.08,
+    null,
+    false,
+    null
    ],
    "4433083": [
     "Cam Spencer",
-    0.1,
+    0.083,
     900,
-    false,
-    "hard_rock"
-   ],
-   "4600663": [
-    "Zach Edey",
-    0.101,
-    575,
     false,
     "hard_rock"
    ],
    "4903027": [
     "Cedric Coward",
-    0.097,
+    0.082,
     700,
     false,
     "fanduel"
    ],
    "5041935": [
     "Cameron Boozer",
-    0.128,
+    0.112,
     650,
     false,
     "fanduel"
    ],
    "5107173": [
     "Danny Wolf",
-    0.081,
+    0.096,
     1300,
     true,
     "fanduel"
    ],
    "5112087": [
     "Jaylen Wells",
-    0.098,
+    0.084,
     950,
     false,
     "fanduel"
    ],
    "5175643": [
     "Egor Demin",
-    0.083,
+    0.098,
     1300,
     true,
     "fanduel"
    ],
    "5279130": [
     "Nolan Traore",
-    0.093,
+    0.11,
     1340,
     true,
     "draftkings"
    ]
   },
-  "tip_home": 0.637
+  "tip_home": 0.381
  },
  "401909984": {
   "away": "CHI",
@@ -16633,12 +16633,12 @@
  "401909996": {
   "away": "MEM",
   "date": "2026-11-16",
-  "first_home": 0.466,
+  "first_home": 0.551,
   "home": "WSH",
   "jumpers": [
    [
-    "4600663",
-    "Zach Edey"
+    "4432810",
+    "Isaiah Stewart"
    ],
    [
     "6583",
@@ -16648,76 +16648,76 @@
   "players": {
    "4277905": [
     "Trae Young",
-    0.081,
+    0.096,
+    null,
+    false,
+    null
+   ],
+   "4432810": [
+    "Isaiah Stewart",
+    0.078,
     null,
     false,
     null
    ],
    "4433083": [
     "Cam Spencer",
-    0.098,
-    null,
-    false,
-    null
-   ],
-   "4600663": [
-    "Zach Edey",
-    0.098,
+    0.081,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.095,
+    0.08,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.125,
+    0.109,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.096,
+    0.082,
     null,
     false,
     null
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.092,
+    0.109,
     null,
     false,
     null
    ],
    "5160992": [
     "Alex Sarr",
-    0.084,
+    0.1,
     null,
     false,
     null
    ],
    "5174563": [
     "Kyshawn George",
-    0.085,
+    0.101,
     null,
     false,
     null
    ],
    "6583": [
     "Anthony Davis",
-    0.104,
+    0.123,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.398
+  "tip_home": 0.654
  },
  "401909997": {
   "away": "PHI",
