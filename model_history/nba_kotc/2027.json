@@ -9655,56 +9655,56 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.395,
+    "lead": 0.3947,
     "name": "Luka Doncic",
     "proj": 54.9,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.121,
+    "lead": 0.1209,
     "name": "Victor Wembanyama",
     "proj": 44.6,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.0736,
+    "lead": 0.075,
     "name": "Jayson Tatum",
-    "proj": 41.4,
+    "proj": 41.5,
     "team": "BOS"
    },
    {
     "id": "4278073",
-    "lead": 0.0656,
+    "lead": 0.0655,
     "name": "Shai Gilgeous-Alexander",
     "proj": 41.0,
     "team": "OKC"
    },
    {
     "id": "4871144",
-    "lead": 0.0614,
+    "lead": 0.0612,
     "name": "Alperen Sengun",
     "proj": 40.3,
     "team": "HOU"
    },
    {
     "id": "3136195",
-    "lead": 0.0351,
+    "lead": 0.035,
     "name": "Karl-Anthony Towns",
     "proj": 37.3,
     "team": "NY"
    },
    {
     "id": "4701230",
-    "lead": 0.0296,
+    "lead": 0.0295,
     "name": "Jalen Johnson",
     "proj": 37.4,
     "team": "ATL"
    },
    {
     "id": "5041939",
-    "lead": 0.0289,
+    "lead": 0.0288,
     "name": "Cooper Flagg",
     "proj": 36.9,
     "team": "DAL"
@@ -9760,7 +9760,7 @@
    },
    {
     "id": "4251",
-    "lead": 0.0082,
+    "lead": 0.0081,
     "name": "Paul George",
     "proj": 31.8,
     "team": "BOS"
@@ -9802,7 +9802,7 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0034,
+    "lead": 0.0033,
     "name": "Darius Garland",
     "proj": 28.5,
     "team": "LAC"
@@ -9823,7 +9823,7 @@
    },
    {
     "id": "1966",
-    "lead": 0.0024,
+    "lead": 0.0023,
     "name": "LeBron James",
     "proj": 28.4,
     "team": "PHI"
@@ -10063,14 +10063,14 @@
     "id": "4066354",
     "lead": 0.0,
     "name": "Payton Pritchard",
-    "proj": 20.3,
+    "proj": 20.4,
     "team": "BOS"
    },
    {
     "id": "3078576",
     "lead": 0.0,
     "name": "Derrick White",
-    "proj": 20.1,
+    "proj": 20.2,
     "team": "BOS"
    }
   ],
