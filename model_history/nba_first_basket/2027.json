@@ -15692,6 +15692,11 @@
     "bet365"
    ]
   },
+  "result": {
+   "scorer": "4432816",
+   "team": "MIN",
+   "tip": "MIN"
+  },
   "tip_home": 0.5
  },
  "401909985": {
@@ -15956,7 +15961,7 @@
     null
    ]
   },
-  "tip_home": 0.401
+  "tip_home": 0.402
  },
  "401909988": {
   "away": "SA",
@@ -16169,7 +16174,7 @@
    ],
    "3147657": [
     "Mikal Bridges",
-    0.072,
+    0.071,
     null,
     false,
     null
@@ -16217,7 +16222,7 @@
     null
    ]
   },
-  "tip_home": 0.559
+  "tip_home": 0.56
  },
  "401909991": {
   "away": "HOU",
@@ -16489,7 +16494,7 @@
  "401909994": {
   "away": "ORL",
   "date": "2026-11-16",
-  "first_home": 0.467,
+  "first_home": 0.466,
   "home": "BOS",
   "jumpers": [
    [
@@ -16511,7 +16516,7 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.126,
+    0.125,
     null,
     false,
     null
@@ -16546,7 +16551,7 @@
    ],
    "4432165": [
     "Jalen Suggs",
-    0.088,
+    0.089,
     null,
     false,
     null
@@ -16573,7 +16578,7 @@
     null
    ]
   },
-  "tip_home": 0.4
+  "tip_home": 0.399
  },
  "401909995": {
   "away": "CHI",
@@ -16587,7 +16592,7 @@
   "players": {
    "2595516": [
     "Norman Powell",
-    0.115,
+    0.091,
     null,
     false,
     null
@@ -16606,9 +16611,16 @@
     false,
     null
    ],
+   "4066650": [
+    "Zach Collins",
+    0.093,
+    null,
+    false,
+    null
+   ],
    "4432822": [
     "Isaac Okoro",
-    0.121,
+    0.096,
     null,
     false,
     null
@@ -16622,14 +16634,14 @@
    ],
    "4711294": [
     "Matas Buzelis",
-    0.099,
+    0.078,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.145,
+    0.122,
     null,
     false,
     null
@@ -16918,7 +16930,7 @@
  "401909999": {
   "away": "POR",
   "date": "2026-11-16",
-  "first_home": 0.455,
+  "first_home": 0.46,
   "home": "MIN",
   "jumpers": [
    [
@@ -16933,35 +16945,35 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.082,
+    0.081,
     null,
     false,
     null
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.088,
+    0.087,
     null,
     false,
     null
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.086,
+    0.085,
     null,
     false,
     null
    ],
    "4431736": [
     "Toumani Camara",
-    0.087,
+    0.086,
     null,
     false,
     null
    ],
    "4432816": [
     "LaMelo Ball",
-    0.106,
+    0.113,
     null,
     false,
     null
@@ -16975,34 +16987,34 @@
    ],
    "4683021": [
     "Deni Avdija",
-    0.125,
+    0.124,
     null,
     false,
     null
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.106,
+    0.105,
     null,
     false,
     null
    ],
    "5105565": [
     "Donovan Clingan",
-    0.085,
+    0.084,
     null,
     false,
     null
    ],
    "6606": [
     "Damian Lillard",
-    0.12,
+    0.119,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.365
+  "tip_home": 0.38
  },
  "401910000": {
   "away": "GS",
