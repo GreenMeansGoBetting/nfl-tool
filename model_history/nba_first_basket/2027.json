@@ -15353,6 +15353,11 @@
     "draftkings"
    ]
   },
+  "result": {
+   "scorer": "5144091",
+   "team": "NO",
+   "tip": "DEN"
+  },
   "tip_home": 0.412
  },
  "401909981": {
@@ -16361,7 +16366,7 @@
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.124,
+    0.123,
     null,
     false,
     null
@@ -16388,7 +16393,7 @@
     null
    ]
   },
-  "tip_home": 0.504
+  "tip_home": 0.503
  },
  "401909993": {
   "away": "OKC",
@@ -16477,7 +16482,7 @@
     null
    ]
   },
-  "tip_home": 0.495
+  "tip_home": 0.494
  },
  "401909994": {
   "away": "ORL",
@@ -16717,7 +16722,7 @@
     null
    ]
   },
-  "tip_home": 0.654
+  "tip_home": 0.653
  },
  "401909997": {
   "away": "PHI",
@@ -16961,7 +16966,7 @@
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.105,
+    0.106,
     null,
     false,
     null
@@ -16981,7 +16986,7 @@
     null
    ]
   },
-  "tip_home": 0.367
+  "tip_home": 0.366
  },
  "401910000": {
   "away": "GS",
@@ -17008,14 +17013,14 @@
    ],
    "4277813": [
     "Herbert Jones",
-    0.097,
+    0.095,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.12,
+    0.118,
     null,
     false,
     null
@@ -17043,14 +17048,14 @@
    ],
    "5061589": [
     "Yves Missi",
-    0.106,
+    0.104,
     null,
     false,
     null
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.108,
+    0.114,
     null,
     false,
     null
@@ -17070,12 +17075,12 @@
     null
    ]
   },
-  "tip_home": 0.623
+  "tip_home": 0.622
  },
  "401910001": {
   "away": "PHX",
   "date": "2026-11-16",
-  "first_home": 0.546,
+  "first_home": 0.552,
   "home": "DEN",
   "jumpers": [
    [
@@ -17090,21 +17095,21 @@
   "players": {
    "3064290": [
     "Aaron Gordon",
-    0.106,
+    0.105,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.115,
+    0.122,
     null,
     false,
     null
    ],
    "3136193": [
     "Devin Booker",
-    0.119,
+    0.118,
     null,
     false,
     null
@@ -17118,35 +17123,35 @@
    ],
    "3155526": [
     "Dillon Brooks",
-    0.081,
+    0.08,
     null,
     false,
     null
    ],
    "3936299": [
     "Jamal Murray",
-    0.122,
+    0.121,
     null,
     false,
     null
    ],
    "4066383": [
     "Miles Bridges",
-    0.08,
+    0.079,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.089,
+    0.09,
     null,
     false,
     null
    ],
    "4437244": [
     "Jalen Green",
-    0.085,
+    0.084,
     null,
     false,
     null
@@ -17159,6 +17164,6 @@
     null
    ]
   },
-  "tip_home": 0.64
+  "tip_home": 0.656
  }
 }
