@@ -10115,7 +10115,7 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0596,
+    "lead": 0.0595,
     "name": "Jamal Murray",
     "proj": 38.5,
     "team": "DEN"
@@ -10136,7 +10136,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0254,
+    "lead": 0.0252,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
@@ -10226,18 +10226,18 @@
     "team": "PHI"
    },
    {
+    "id": "1966",
+    "lead": 0.0056,
+    "name": "LeBron James",
+    "proj": 29.7,
+    "team": "PHI"
+   },
+   {
     "id": "3202",
     "lead": 0.0054,
     "name": "Kevin Durant",
     "proj": 29.9,
     "team": "HOU"
-   },
-   {
-    "id": "1966",
-    "lead": 0.0052,
-    "name": "LeBron James",
-    "proj": 29.6,
-    "team": "PHI"
    },
    {
     "id": "3992",
