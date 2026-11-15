@@ -15613,6 +15613,11 @@
     "draftkings"
    ]
   },
+  "result": {
+   "scorer": "3064514",
+   "team": "BKN",
+   "tip": "BKN"
+  },
   "tip_home": 0.381
  },
  "401909984": {
@@ -15961,7 +15966,7 @@
     null
    ]
   },
-  "tip_home": 0.402
+  "tip_home": 0.4
  },
  "401909988": {
   "away": "SA",
@@ -16174,7 +16179,7 @@
    ],
    "3147657": [
     "Mikal Bridges",
-    0.071,
+    0.072,
     null,
     false,
     null
@@ -16222,7 +16227,7 @@
     null
    ]
   },
-  "tip_home": 0.56
+  "tip_home": 0.559
  },
  "401909991": {
   "away": "HOU",
@@ -16489,7 +16494,7 @@
     null
    ]
   },
-  "tip_home": 0.495
+  "tip_home": 0.494
  },
  "401909994": {
   "away": "ORL",
@@ -16516,7 +16521,7 @@
    ],
    "4065648": [
     "Jayson Tatum",
-    0.125,
+    0.126,
     null,
     false,
     null
@@ -16551,7 +16556,7 @@
    ],
    "4432165": [
     "Jalen Suggs",
-    0.089,
+    0.088,
     null,
     false,
     null
@@ -16666,7 +16671,7 @@
  "401909996": {
   "away": "MEM",
   "date": "2026-11-16",
-  "first_home": 0.551,
+  "first_home": 0.558,
   "home": "WSH",
   "jumpers": [
    [
@@ -16681,76 +16686,76 @@
   "players": {
    "4277905": [
     "Trae Young",
-    0.096,
+    0.098,
     null,
     false,
     null
    ],
    "4432810": [
     "Isaiah Stewart",
-    0.078,
+    0.087,
     null,
     false,
     null
    ],
    "4433083": [
     "Cam Spencer",
-    0.081,
+    0.079,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.08,
+    0.077,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.109,
+    0.103,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.082,
+    0.077,
     null,
     false,
     null
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.109,
+    0.11,
     null,
     false,
     null
    ],
    "5160992": [
     "Alex Sarr",
-    0.1,
+    0.101,
     null,
     false,
     null
    ],
    "5174563": [
     "Kyshawn George",
-    0.101,
+    0.102,
     null,
     false,
     null
    ],
    "6583": [
     "Anthony Davis",
-    0.123,
+    0.125,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.653
+  "tip_home": 0.676
  },
  "401909997": {
   "away": "PHI",
@@ -16774,7 +16779,7 @@
    ],
    "3064514": [
     "Julius Randle",
-    0.107,
+    0.111,
     null,
     false,
     null
@@ -16802,14 +16807,14 @@
    ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.091,
+    0.09,
     null,
     false,
     null
    ],
    "5107173": [
     "Danny Wolf",
-    0.089,
+    0.088,
     null,
     false,
     null
@@ -16823,7 +16828,7 @@
    ],
    "5175643": [
     "Egor Demin",
-    0.091,
+    0.089,
     null,
     false,
     null
