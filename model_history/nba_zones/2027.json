@@ -22201,5 +22201,625 @@
     "caesars"
    ]
   ]
+ },
+ "401909985": {
+  "date": "2026-11-15",
+  "points": [
+   [
+    "2581018",
+    "Kentavious Caldwell-Pope",
+    "PHI",
+    "IND",
+    0.1226,
+    "over",
+    true,
+    5.5,
+    -129,
+    "caesars"
+   ],
+   [
+    "3912848",
+    "Dean Wade",
+    "PHI",
+    "IND",
+    -0.0755,
+    "under",
+    false,
+    5.5,
+    -112,
+    "fanduel"
+   ],
+   [
+    "4395712",
+    "Andrew Nembhard",
+    "IND",
+    "PHI",
+    -0.0606,
+    "under",
+    false,
+    15.5,
+    -114,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "1966",
+    "LeBron James",
+    "PHI",
+    "IND",
+    -0.1283,
+    "under",
+    true,
+    1.5,
+    -152,
+    "fanduel"
+   ],
+   [
+    "2581018",
+    "Kentavious Caldwell-Pope",
+    "PHI",
+    "IND",
+    0.2164,
+    "over",
+    true,
+    1.5,
+    161,
+    "4cx"
+   ],
+   [
+    "3133603",
+    "Kelly Oubre Jr.",
+    "IND",
+    "PHI",
+    -0.2082,
+    "under",
+    true,
+    1.5,
+    -136,
+    "fanduel"
+   ],
+   [
+    "3912848",
+    "Dean Wade",
+    "PHI",
+    "IND",
+    -0.0925,
+    "under",
+    false,
+    0.5,
+    172,
+    "fanduel"
+   ],
+   [
+    "3917376",
+    "Jaylen Brown",
+    "PHI",
+    "IND",
+    -0.1159,
+    "under",
+    false,
+    1.5,
+    -106,
+    "fanduel"
+   ],
+   [
+    "4351851",
+    "Anfernee Simons",
+    "PHI",
+    "IND",
+    0.1578,
+    "over",
+    true,
+    2.5,
+    134,
+    "caesars"
+   ],
+   [
+    "4395712",
+    "Andrew Nembhard",
+    "IND",
+    "PHI",
+    -0.0922,
+    "under",
+    false,
+    1.5,
+    148,
+    "fanduel"
+   ],
+   [
+    "5124612",
+    "VJ Edgecombe",
+    "PHI",
+    "IND",
+    0.1992,
+    "over",
+    true,
+    1.5,
+    -137,
+    "caesars"
+   ]
+  ]
+ },
+ "401909986": {
+  "date": "2026-11-15",
+  "points": [],
+  "threes": []
+ },
+ "401909987": {
+  "date": "2026-11-15",
+  "points": [],
+  "threes": []
+ },
+ "401909988": {
+  "date": "2026-11-15",
+  "points": [],
+  "threes": [
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "UTAH",
+    -0.1773,
+    "under",
+    true,
+    1.5,
+    -105,
+    "fanatics"
+   ]
+  ]
+ },
+ "401909989": {
+  "date": "2026-11-15",
+  "points": [],
+  "threes": []
+ },
+ "401909990": {
+  "date": "2026-11-15",
+  "points": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "TOR",
+    0.0808,
+    "over",
+    false,
+    8.5,
+    -119,
+    "draftkings"
+   ],
+   [
+    "3134908",
+    "Jakob Poeltl",
+    "TOR",
+    "NY",
+    -0.3227,
+    "under",
+    true,
+    9.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "TOR",
+    0.0632,
+    "over",
+    false,
+    8.5,
+    -106,
+    "draftkings"
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "TOR",
+    0.0715,
+    "over",
+    false,
+    17.5,
+    102,
+    "fanduel"
+   ],
+   [
+    "4395625",
+    "RJ Barrett",
+    "TOR",
+    "NY",
+    -0.1209,
+    "under",
+    true,
+    20.5,
+    -115,
+    "caesars"
+   ],
+   [
+    "4431823",
+    "Miles McBride",
+    "NY",
+    "TOR",
+    0.0549,
+    "over",
+    false,
+    7.5,
+    -108,
+    "draftkings"
+   ],
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "NY",
+    -0.131,
+    "under",
+    true,
+    17.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "6585",
+    "Andre Drummond",
+    "NY",
+    "TOR",
+    0.1021,
+    "over",
+    false,
+    3.5,
+    -131,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "TOR",
+    -0.3627,
+    "under",
+    true,
+    1.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "TOR",
+    0.1006,
+    "over",
+    false,
+    0.5,
+    -190,
+    "caesars"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "TOR",
+    0.1482,
+    "over",
+    true,
+    2.5,
+    122,
+    "draftkings"
+   ],
+   [
+    "4431823",
+    "Miles McBride",
+    "NY",
+    "TOR",
+    0.0667,
+    "over",
+    false,
+    1.5,
+    -145,
+    "caesars"
+   ]
+  ]
+ },
+ "401909991": {
+  "date": "2026-11-15",
+  "points": [
+   [
+    "3037789",
+    "Bogdan Bogdanovic",
+    "HOU",
+    "WSH",
+    -0.0976,
+    "under",
+    false,
+    6.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "HOU",
+    0.0889,
+    "over",
+    false,
+    17.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4433192",
+    "Tari Eason",
+    "HOU",
+    "WSH",
+    -0.0568,
+    "under",
+    false,
+    11.5,
+    -105,
+    "caesars"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "WSH",
+    -0.1442,
+    "under",
+    true,
+    14.5,
+    -122,
+    "caesars"
+   ],
+   [
+    "5238230",
+    "Tre Johnson",
+    "WSH",
+    "HOU",
+    0.0804,
+    "over",
+    false,
+    9.5,
+    -132,
+    "caesars"
+   ]
+  ],
+  "threes": [
+   [
+    "3037789",
+    "Bogdan Bogdanovic",
+    "HOU",
+    "WSH",
+    -0.1659,
+    "under",
+    true,
+    1.5,
+    -192,
+    "fanduel"
+   ],
+   [
+    "3202",
+    "Kevin Durant",
+    "HOU",
+    "WSH",
+    -0.1894,
+    "under",
+    true,
+    1.5,
+    -113,
+    "caesars"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "HOU",
+    0.1076,
+    "over",
+    false,
+    2.5,
+    139,
+    "4cx"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "WSH",
+    -0.1537,
+    "under",
+    true,
+    2.5,
+    -210,
+    "fanduel"
+   ],
+   [
+    "4433192",
+    "Tari Eason",
+    "HOU",
+    "WSH",
+    -0.2429,
+    "under",
+    true,
+    1.5,
+    -148,
+    "fanduel"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "WSH",
+    -0.2142,
+    "under",
+    true,
+    2.5,
+    100,
+    "caesars"
+   ],
+   [
+    "4871144",
+    "Alperen Sengun",
+    "HOU",
+    "WSH",
+    0.1543,
+    "over",
+    true,
+    0.5,
+    -118,
+    "caesars"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "HOU",
+    -0.2038,
+    "under",
+    true,
+    1.5,
+    -188,
+    "fanduel"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "HOU",
+    -0.3281,
+    "under",
+    true,
+    0.5,
+    178,
+    "fanduel"
+   ],
+   [
+    "6583",
+    "Anthony Davis",
+    "WSH",
+    "HOU",
+    -0.1098,
+    "under",
+    false,
+    0.5,
+    140,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909992": {
+  "date": "2026-11-15",
+  "points": [
+   [
+    "4397020",
+    "Luguentz Dort",
+    "ATL",
+    "MIL",
+    0.1311,
+    "over",
+    true,
+    7.5,
+    -130,
+    "fanduel"
+   ],
+   [
+    "4431680",
+    "Onyeka Okongwu",
+    "ATL",
+    "MIL",
+    -0.1153,
+    "under",
+    false,
+    13.5,
+    -128,
+    "fanduel"
+   ],
+   [
+    "5164559",
+    "Nate Ament",
+    "MIL",
+    "ATL",
+    0.0611,
+    "over",
+    false,
+    8.5,
+    -110,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3133628",
+    "Myles Turner",
+    "MIL",
+    "ATL",
+    -0.2557,
+    "under",
+    true,
+    1.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "4395725",
+    "Tyler Herro",
+    "MIL",
+    "ATL",
+    -0.0869,
+    "under",
+    false,
+    2.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "4431680",
+    "Onyeka Okongwu",
+    "ATL",
+    "MIL",
+    -0.3152,
+    "under",
+    true,
+    1.5,
+    -128,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909993": {
+  "date": "2026-11-15",
+  "points": [
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "SAC",
+    0.0698,
+    "over",
+    false,
+    15.5,
+    102,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "SAC",
+    0.187,
+    "over",
+    true,
+    2.5,
+    114,
+    "fanduel"
+   ]
+  ]
  }
 }
