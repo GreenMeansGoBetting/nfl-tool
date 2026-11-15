@@ -22214,8 +22214,8 @@
     "over",
     true,
     5.5,
-    -129,
-    "caesars"
+    -121,
+    "draftkings"
    ],
    [
     "3912848",
@@ -22226,7 +22226,7 @@
     "under",
     false,
     5.5,
-    -109,
+    -113,
     "draftkings"
    ],
    [
@@ -22238,8 +22238,8 @@
     "under",
     false,
     15.5,
-    -106,
-    "fanduel"
+    -105,
+    "betmgm"
    ]
   ],
   "threes": [
@@ -22252,7 +22252,7 @@
     "under",
     true,
     1.5,
-    -148,
+    -152,
     "fanduel"
    ],
    [
@@ -22264,8 +22264,8 @@
     "over",
     true,
     1.5,
-    154,
-    "caesars"
+    159,
+    "draftkings"
    ],
    [
     "3133603",
@@ -22276,8 +22276,8 @@
     "under",
     true,
     1.5,
-    -136,
-    "fanduel"
+    -135,
+    "betmgm"
    ],
    [
     "3912848",
@@ -22300,8 +22300,8 @@
     "under",
     false,
     1.5,
-    -106,
-    "fanduel"
+    -105,
+    "betmgm"
    ],
    [
     "4351851",
@@ -22311,9 +22311,9 @@
     0.1578,
     "over",
     true,
-    1.5,
-    -179,
-    "draftkings"
+    2.5,
+    139,
+    "caesars"
    ],
    [
     "4395712",
@@ -22324,7 +22324,7 @@
     "under",
     false,
     2.5,
-    -176,
+    -178,
     "draftkings"
    ],
    [
@@ -22353,8 +22353,8 @@
     "over",
     false,
     15.5,
-    -106,
-    "fanduel"
+    -104,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -22367,7 +22367,7 @@
     "over",
     true,
     1.5,
-    -130,
+    -159,
     "caesars"
    ],
    [
@@ -22379,8 +22379,8 @@
     "over",
     true,
     4.5,
-    -112,
-    "draftkings"
+    -110,
+    "fanatics"
    ],
    [
     "4277811",
@@ -22391,8 +22391,8 @@
     "over",
     false,
     1.5,
-    113,
-    "caesars"
+    119,
+    "draftkings"
    ],
    [
     "4278585",
@@ -22402,9 +22402,9 @@
     0.1747,
     "over",
     true,
-    1.5,
-    -190,
-    "caesars"
+    2.5,
+    154,
+    "fanduel"
    ],
    [
     "4397014",
@@ -22415,7 +22415,7 @@
     "over",
     true,
     1.5,
-    136,
+    137,
     "draftkings"
    ],
    [
@@ -22427,8 +22427,8 @@
     "over",
     true,
     1.5,
-    140,
-    "fanduel"
+    144,
+    "draftkings"
    ]
   ]
  },
@@ -22444,8 +22444,8 @@
     "over",
     false,
     6.5,
-    -132,
-    "fanduel"
+    -124,
+    "draftkings"
    ],
    [
     "3135045",
@@ -22456,8 +22456,8 @@
     "over",
     false,
     14.5,
-    -117,
-    "caesars"
+    -109,
+    "draftkings"
    ],
    [
     "4395651",
@@ -22480,8 +22480,8 @@
     "over",
     true,
     8.5,
-    -110,
-    "fanduel"
+    -102,
+    "draftkings"
    ],
    [
     "4576060",
@@ -22492,8 +22492,8 @@
     "over",
     true,
     5.5,
-    -108,
-    "fanduel"
+    -104,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -22506,8 +22506,8 @@
     "over",
     true,
     0.5,
-    -217,
-    "4cx"
+    -154,
+    "caesars"
    ],
    [
     "3448",
@@ -22518,8 +22518,20 @@
     "over",
     true,
     1.5,
-    -113,
+    123,
     "4cx"
+   ],
+   [
+    "4396907",
+    "Darius Garland",
+    "LAC",
+    "CHA",
+    0.0864,
+    "over",
+    false,
+    2.5,
+    -105,
+    "fanatics"
    ],
    [
     "4396971",
@@ -22541,9 +22553,21 @@
     -0.1354,
     "under",
     true,
-    3.5,
-    -198,
-    "fanduel"
+    2.5,
+    121,
+    "caesars"
+   ],
+   [
+    "5254165",
+    "Keaton Wagler",
+    "LAC",
+    "CHA",
+    0.1146,
+    "over",
+    false,
+    1.5,
+    146,
+    "draftkings"
    ]
   ]
  },
@@ -22559,8 +22583,8 @@
     "under",
     true,
     8.5,
-    102,
-    "fanduel"
+    101,
+    "draftkings"
    ],
    [
     "4845367",
@@ -22571,8 +22595,8 @@
     "under",
     false,
     15.5,
-    -130,
-    "fanduel"
+    -114,
+    "draftkings"
    ],
    [
     "5104157",
@@ -22597,8 +22621,8 @@
     "under",
     true,
     1.5,
-    -220,
-    "fanduel"
+    -198,
+    "draftkings"
    ],
    [
     "4592479",
@@ -22609,8 +22633,8 @@
     "under",
     true,
     2.5,
-    -186,
-    "fanduel"
+    -179,
+    "caesars"
    ],
    [
     "4845367",
@@ -22621,8 +22645,20 @@
     "under",
     true,
     1.5,
-    -114,
-    "fanduel"
+    -109,
+    "draftkings"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "UTAH",
+    0.0894,
+    "over",
+    false,
+    1.5,
+    170,
+    "draftkings"
    ]
   ]
  },
@@ -22638,8 +22674,8 @@
     "under",
     false,
     5.5,
-    -136,
-    "fanduel"
+    -135,
+    "draftkings"
    ],
    [
     "4065648",
@@ -22649,9 +22685,9 @@
     0.1305,
     "over",
     true,
-    26.5,
-    -125,
-    "fanduel"
+    27.5,
+    -106,
+    "caesars"
    ],
    [
     "4278594",
@@ -22662,8 +22698,8 @@
     "under",
     false,
     10.5,
-    -130,
-    "fanduel"
+    -116,
+    "draftkings"
    ],
    [
     "4683689",
@@ -22674,8 +22710,8 @@
     "under",
     false,
     4.5,
-    -110,
-    "fanduel"
+    -103,
+    "draftkings"
    ],
    [
     "4873153",
@@ -22698,7 +22734,7 @@
     "under",
     false,
     22.5,
-    -114,
+    -104,
     "fanduel"
    ]
   ],
@@ -22712,8 +22748,8 @@
     "under",
     false,
     2.5,
-    -192,
-    "fanduel"
+    -181,
+    "draftkings"
    ],
    [
     "3138160",
@@ -22724,7 +22760,7 @@
     "under",
     false,
     0.5,
-    -110,
+    102,
     "fanduel"
    ],
    [
@@ -22736,8 +22772,20 @@
     "under",
     false,
     2.5,
-    -152,
-    "fanduel"
+    -145,
+    "caesars"
+   ],
+   [
+    "4278078",
+    "P.J. Washington",
+    "DAL",
+    "BOS",
+    0.3512,
+    "over",
+    true,
+    1.5,
+    -178,
+    "draftkings"
    ],
    [
     "4278594",
@@ -22748,8 +22796,20 @@
     "over",
     true,
     0.5,
-    -217,
-    "4cx"
+    -170,
+    "caesars"
+   ],
+   [
+    "5041939",
+    "Cooper Flagg",
+    "DAL",
+    "BOS",
+    0.3508,
+    "over",
+    true,
+    1.5,
+    132,
+    "draftkings"
    ],
    [
     "5211175",
@@ -22777,8 +22837,8 @@
     "over",
     false,
     8.5,
-    -119,
-    "draftkings"
+    -125,
+    "fanduel"
    ],
    [
     "3134908",
@@ -22801,7 +22861,7 @@
     "over",
     false,
     8.5,
-    -106,
+    100,
     "draftkings"
    ],
    [
@@ -22813,7 +22873,7 @@
     "over",
     false,
     17.5,
-    102,
+    104,
     "fanduel"
    ],
    [
@@ -22825,8 +22885,8 @@
     "under",
     true,
     20.5,
-    -111,
-    "draftkings"
+    -115,
+    "fanatics"
    ],
    [
     "4431823",
@@ -22837,7 +22897,7 @@
     "over",
     false,
     7.5,
-    -110,
+    -107,
     "draftkings"
    ],
    [
@@ -22849,8 +22909,8 @@
     "under",
     true,
     17.5,
-    -103,
-    "draftkings"
+    -104,
+    "fanduel"
    ],
    [
     "6585",
@@ -22861,8 +22921,8 @@
     "over",
     false,
     3.5,
-    -132,
-    "draftkings"
+    -138,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -22876,7 +22936,7 @@
     true,
     1.5,
     -118,
-    "caesars"
+    "fanduel"
    ],
    [
     "3147657",
@@ -22899,7 +22959,7 @@
     "over",
     true,
     2.5,
-    122,
+    117,
     "draftkings"
    ],
    [
@@ -22928,8 +22988,8 @@
     "under",
     false,
     6.5,
-    -110,
-    "fanduel"
+    -108,
+    "draftkings"
    ],
    [
     "4277905",
@@ -22941,7 +23001,7 @@
     false,
     17.5,
     -125,
-    "caesars"
+    "fanduel"
    ],
    [
     "4433192",
@@ -22952,8 +23012,8 @@
     "under",
     false,
     12.5,
-    -114,
-    "fanduel"
+    -108,
+    "draftkings"
    ],
    [
     "4711272",
@@ -22964,8 +23024,8 @@
     "under",
     true,
     14.5,
-    -128,
-    "fanduel"
+    -112,
+    "draftkings"
    ],
    [
     "5238230",
@@ -22975,8 +23035,8 @@
     0.0804,
     "over",
     false,
-    10.5,
-    -102,
+    9.5,
+    -130,
     "caesars"
    ]
   ],
@@ -23014,8 +23074,8 @@
     "over",
     false,
     2.5,
-    140,
-    "fanduel"
+    134,
+    "4cx"
    ],
    [
     "4432639",
@@ -23026,8 +23086,8 @@
     "under",
     true,
     2.5,
-    -210,
-    "fanduel"
+    -188,
+    "draftkings"
    ],
    [
     "4433192",
@@ -23038,8 +23098,8 @@
     "under",
     true,
     1.5,
-    -148,
-    "fanduel"
+    -147,
+    "draftkings"
    ],
    [
     "4711272",
@@ -23062,8 +23122,8 @@
     "over",
     true,
     0.5,
-    -115,
-    "fanatics"
+    -118,
+    "caesars"
    ],
    [
     "5142718",
@@ -23074,8 +23134,8 @@
     "under",
     true,
     1.5,
-    -188,
-    "fanduel"
+    -179,
+    "draftkings"
    ],
    [
     "5160992",
@@ -23098,7 +23158,7 @@
     "under",
     false,
     0.5,
-    118,
+    -104,
     "fanduel"
    ]
   ]
@@ -23115,8 +23175,8 @@
     "over",
     true,
     7.5,
-    -132,
-    "fanduel"
+    -127,
+    "draftkings"
    ],
    [
     "4431680",
@@ -23153,8 +23213,8 @@
     "under",
     true,
     1.5,
-    -110,
-    "caesars"
+    -108,
+    "fanduel"
    ],
    [
     "4395725",
@@ -23165,8 +23225,20 @@
     "under",
     false,
     2.5,
-    107,
+    103,
     "draftkings"
+   ],
+   [
+    "4397020",
+    "Luguentz Dort",
+    "ATL",
+    "MIL",
+    0.247,
+    "over",
+    true,
+    1.5,
+    131,
+    "4cx"
    ],
    [
     "4431680",
@@ -23177,8 +23249,8 @@
     "under",
     true,
     1.5,
-    -125,
-    "caesars"
+    -124,
+    "4cx"
    ],
    [
     "4701230",
@@ -23189,8 +23261,20 @@
     "over",
     true,
     1.5,
-    114,
-    "fanduel"
+    110,
+    "caesars"
+   ],
+   [
+    "4869342",
+    "Dyson Daniels",
+    "ATL",
+    "MIL",
+    0.2355,
+    "over",
+    true,
+    0.5,
+    210,
+    "draftkings"
    ]
   ]
  },
@@ -23206,8 +23290,8 @@
     "under",
     false,
     18.5,
-    -106,
-    "fanduel"
+    -109,
+    "caesars"
    ],
    [
     "3155942",
@@ -23218,8 +23302,20 @@
     "under",
     true,
     13.5,
-    -120,
-    "fanduel"
+    -107,
+    "draftkings"
+   ],
+   [
+    "4222252",
+    "Isaiah Hartenstein",
+    "OKC",
+    "SAC",
+    0.2606,
+    "over",
+    true,
+    10.5,
+    101,
+    "caesars"
    ],
    [
     "4683778",
@@ -23230,7 +23326,7 @@
     "over",
     false,
     15.5,
-    102,
+    -108,
     "fanduel"
    ],
    [
@@ -23242,11 +23338,23 @@
     "under",
     false,
     24.5,
-    -130,
-    "fanduel"
+    -123,
+    "draftkings"
    ]
   ],
   "threes": [
+   [
+    "3064440",
+    "Zach LaVine",
+    "SAC",
+    "OKC",
+    0.0941,
+    "over",
+    false,
+    2.5,
+    -130,
+    "caesars"
+   ],
    [
     "3133626",
     "Kenrich Williams",
@@ -23256,8 +23364,20 @@
     "over",
     false,
     1.5,
-    -358,
-    "4cx"
+    -110,
+    "draftkings"
+   ],
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "SAC",
+    0.187,
+    "over",
+    true,
+    2.5,
+    114,
+    "fanduel"
    ],
    [
     "4900671",
@@ -23268,8 +23388,8 @@
     "over",
     false,
     1.5,
-    140,
-    "fanduel"
+    149,
+    "draftkings"
    ]
   ]
  }
