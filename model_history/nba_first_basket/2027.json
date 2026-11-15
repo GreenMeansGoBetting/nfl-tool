@@ -15731,7 +15731,7 @@
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.096,
+    0.097,
     1100,
     true,
     "fanduel"
@@ -15759,21 +15759,14 @@
    ],
    "4017837": [
     "Ivica Zubac",
-    0.091,
+    0.092,
     700,
     false,
     "bet365"
    ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.089,
-    850,
-    false,
-    "hard_rock"
-   ],
    "4396909": [
     "Aaron Nesmith",
-    0.086,
+    0.088,
     1200,
     true,
     "fanduel"
@@ -15784,6 +15777,13 @@
     730,
     false,
     "draftkings"
+   ],
+   "5105854": [
+    "Braden Smith",
+    0.086,
+    null,
+    false,
+    null
    ],
    "5124612": [
     "VJ Edgecombe",
