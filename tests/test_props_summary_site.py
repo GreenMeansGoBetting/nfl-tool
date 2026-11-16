@@ -71,3 +71,45 @@ class PlayerCardHitRate(unittest.TestCase):
         finally:
             page.close()
         self.assertEqual(SITE.errors, [])
+
+
+class BestBookPrices(unittest.TestCase):
+    # The owner, 2026-11-16: the Props Summary's pick list and Prop Picks rail showed Novig's
+    # price on every line, while the Player Props page showed the best price across the books.
+    # Now each row carries the best price across the member's books at Novig's line, the book's
+    # name, and Novig's own price for the model math; Novig's stays when no book has the line.
+    def test_rows_take_the_best_book_price_at_novigs_line(self):
+        page = SITE.open("player-props.html")
+        try:
+            page.wait_for_function("() => typeof propTeamLines === 'function' && typeof DATA !== 'undefined' && DATA")
+            got = page.evaluate("""() => {
+                const markets = DATA.player_prop_markets;
+                const both = (l) => l.over_odds !== null && l.over_odds !== undefined && l.under_odds !== null && l.under_odds !== undefined;
+                const team = Object.keys(markets.receiving_yards).find((t) => markets.receiving_yards[t].some(both)
+                    && DATA.schedule.some((g) => g.away === t || g.home === t));
+                const game = DATA.schedule.find((g) => g.away === team || g.home === team);
+                const opp = game.away === team ? game.home : game.away;
+                const line = markets.receiving_yards[team].find(both);
+                const q = (book, side, at, odds) => [book, side, at, odds, ""];
+                DATA.book_odds = { [`${game.away}_${game.home}`]: { props: { receiving_yards: { [normName(line.name)]: { q: [
+                    q("draftkings", "o", line.line, 130), q("fanduel", "o", line.line, 125), q("underdog_dfs", "o", line.line, 200),
+                    q("fanduel", "o", line.line + 5, 300), q("draftkings", "u", line.line, -150), q("fanduel", "u", line.line, -140),
+                ] } } } } };
+                const rows = propTeamLines(team, opp, game.week, game);
+                const r = rows.find((x) => x.marketKey === 'receiving_yards' && x.name === line.name);
+                const other = rows.find((x) => x.marketKey !== 'receiving_yards');
+                const cell = document.createElement('div');
+                cell.innerHTML = propPriceSource(r);
+                return { r, novig: [line.over_odds, line.under_odds], src: cell.textContent,
+                         other: other ? [other.over === other.nvOver, other.overBook, propPriceSource(other).startsWith('Novig') || propPriceSource(other) === 'Books'] : null };
+            }""")
+            r = got["r"]
+            self.assertEqual((r["over"], r["overBook"]), (130, "draftkings"))  # not Underdog's pick'em +200, not another line's +300
+            self.assertEqual((r["under"], r["underBook"]), (-140, "fanduel"))
+            self.assertEqual([r["nvOver"], r["nvUnder"]], got["novig"])  # Novig's kept for the model
+            self.assertEqual(got["src"], "DK / FD")
+            if got["other"]:
+                self.assertEqual(got["other"], [True, None, True])  # no book has it: Novig's price and label
+        finally:
+            page.close()
+        self.assertEqual(SITE.errors, [])

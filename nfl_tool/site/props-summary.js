@@ -578,6 +578,30 @@ function propMarketProjection(proj, marketKey) {
   }
 }
 
+// The best price across the member's books at this exact line (book-odds.js
+// bookBest: SmartStake's every-book list, My Books respected), the same price
+// the Player Props page and player card show. null = no book has the line, and
+// the row keeps Novig's. The owner, 2026-11-16: the Props Summary read
+// Novig's price alone. The model math below still reads Novig's (over_odds).
+function propBookPrice(team, game, marketKey, name, side, line) {
+  if (typeof bookQuotes !== "function") return null;
+  const spec = { kind: "prop", stat: marketKey, team, name, game: game ? `${game.away}_${game.home}` : undefined };
+  return bookBest(bookQuotes(spec), side, line);
+}
+// The book behind a row's prices, for the pick list: one name when both sides
+// come from the same book, two-letter codes when they differ, Novig's label
+// (with its "thin" flag) when no book has the line.
+function propPriceSource(r) {
+  const thin = r.thin ? ` <span class="ps-thin" title="Barely traded on Novig right now -- prices are wide">thin</span>` : "";
+  if (!r.overBook && !r.underBook) return r.source === "novig" ? `Novig${thin}` : "Books";
+  // each priced side's book ("novig" = Novig's own feed, no book at this line)
+  const sides = [[r.over, r.overBook], [r.under, r.underBook]].filter(([odds]) => odds !== null && odds !== undefined).map(([, b]) => b || "novig");
+  const name = (b) => BOOK_NAMES[b] || b;
+  if (new Set(sides).size === 1) return `<span title="Best price across your books">${name(sides[0])}</span>`;
+  const code = (b) => BOOK_CODES[b] || String(b).slice(0, 2).toUpperCase();
+  return `<span title="Over: ${name(sides[0])} / Under: ${name(sides[1])}">${code(sides[0])} / ${code(sides[1])}</span>`;
+}
+
 // Every posted line for one team, each with the model's view of it.
 function propTeamLines(team, defTeam, week, game, withModel = false) {
   const markets = DATA.player_prop_markets || {};
@@ -598,7 +622,15 @@ function propTeamLines(team, defTeam, week, game, withModel = false) {
       const base = cache[key + "|n"];
       const def = PROP_MARKETS[marketKey];
       const section = def.section || (position === "RB" ? "rush" : "rec");
-      const row = { team, name: line.name, position, marketKey, market: def.label, section, line: line.line, over: line.over_odds, under: line.under_odds, injury: injuries[key]?.tag || null, proj: null, source: line.source || "novig", thin: !!line.thin };
+      const bookOver = propBookPrice(team, game, marketKey, line.name, "o", line.line);
+      const bookUnder = propBookPrice(team, game, marketKey, line.name, "u", line.line);
+      const row = {
+        team, name: line.name, position, marketKey, market: def.label, section, line: line.line,
+        over: bookOver ? bookOver[3] : line.over_odds, under: bookUnder ? bookUnder[3] : line.under_odds,
+        overBook: bookOver ? bookOver[0] : null, underBook: bookUnder ? bookUnder[0] : null,
+        nvOver: line.over_odds, nvUnder: line.under_odds,
+        injury: injuries[key]?.tag || null, proj: null, source: line.source || "novig", thin: !!line.thin,
+      };
       rows.push(row);
       if (!withModel) return;
       if (!proj || row.injury === "out") return;
@@ -1182,7 +1214,7 @@ function renderPropsSummaryCard(away, home) {
 
 // ---- Picker: every line in the game, by section, then by player ----
 // Passing / Rushing / Receiving / Other; inside each, one block per player
-// with his lines (Novig's line and price). No projections -- you draw the conclusions. Each player has
+// with his lines (Novig's line, the best price across the member's books). No projections -- you draw the conclusions. Each player has
 // an Out switch for late news the injury report doesn't have yet.
 const PROP_SECTIONS = [
   ["pass", "Passing"],
@@ -1224,7 +1256,7 @@ function renderPropsPicker() {
             .sort((a, b) => marketOrder.indexOf(a.marketKey) - marketOrder.indexOf(b.marketKey))
             .map((r) => {
               const on = chosen.has(propPickKey(r));
-              return `<tr class="${on ? "sc-picker-on" : ""}"><td class="ps-pick-mkt"><label class="pp-row-label"><input type="checkbox" class="ps-pick-toggle" data-team="${team}" data-key="${encodeDataAttr(propPickKey(r))}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${r.market}</label></td><td class="num">${fmt(r.line, 1)}</td><td class="num">${showOdds(r.over)}</td><td class="num">${showOdds(r.under)}</td><td class="ps-src">${r.source === "novig" ? `Novig${r.thin ? ` <span class="ps-thin" title="Barely traded on Novig right now -- prices are wide">thin</span>` : ""}` : "Books"}</td></tr>`;
+              return `<tr class="${on ? "sc-picker-on" : ""}"><td class="ps-pick-mkt"><label class="pp-row-label"><input type="checkbox" class="ps-pick-toggle" data-team="${team}" data-key="${encodeDataAttr(propPickKey(r))}"${on ? " checked" : ""}${!on && full ? " disabled" : ""}> ${r.market}</label></td><td class="num">${fmt(r.line, 1)}</td><td class="num">${showOdds(r.over)}</td><td class="num">${showOdds(r.under)}</td><td class="ps-src">${propPriceSource(r)}</td></tr>`;
             })
             .join("");
           return head + body;
@@ -1238,7 +1270,7 @@ function renderPropsPicker() {
     </div>`;
   };
   return `<h3>${away} @ ${home} &mdash; Pick lines for the summary</h3>
-    <p class="no-data-note">Up to ${PROPS_SUMMARY_MAX_PICKS} per team. Novig's line and price when Novig has one; "Books" = best price from other sportsbooks. "Out?" hides a player for this week (late news).</p>
+    <p class="no-data-note">Up to ${PROPS_SUMMARY_MAX_PICKS} per team. Best price across your books at Novig's line (book at right); Novig's own price when no book has that line. "Out?" hides a player for this week (late news).</p>
     <div class="sc-picker-actions"><button type="button" class="view-toggle-btn ps-picker-clear">Clear all</button></div>
     <div class="sc-picker-cols">${col(away, home)}${col(home, away)}</div>`;
 }
