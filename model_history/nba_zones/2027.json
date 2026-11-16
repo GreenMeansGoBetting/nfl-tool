@@ -23401,43 +23401,43 @@
     "Jayson Tatum",
     "BOS",
     "ORL",
-    0.1097,
+    0.1101,
     "over",
     false,
     26.5,
-    100,
-    "caesars"
+    103,
+    "4cx"
    ],
    [
     "4065804",
     "Sam Hauser",
     "BOS",
     "ORL",
-    0.0752,
+    0.0759,
     "over",
     false,
-    7.5,
-    100,
-    "caesars"
+    6.5,
+    -109,
+    "draftkings"
    ],
    [
     "4251",
     "Paul George",
     "BOS",
     "ORL",
-    0.1561,
+    0.1564,
     "over",
     true,
     18.5,
-    100,
-    "4cx"
+    -105,
+    "betmgm"
    ],
    [
     "4277847",
     "Wendell Carter Jr.",
     "ORL",
     "BOS",
-    -0.1002,
+    -0.0992,
     "under",
     false,
     10.5,
@@ -23453,7 +23453,7 @@
     "under",
     false,
     8.5,
-    -115,
+    -122,
     "caesars"
    ],
    [
@@ -23461,12 +23461,12 @@
     "Franz Wagner",
     "ORL",
     "BOS",
-    -0.0897,
+    -0.0907,
     "under",
     false,
     21.5,
-    -115,
-    "betmgm"
+    -110,
+    "4cx"
    ],
    [
     "4712849",
@@ -23477,8 +23477,8 @@
     "under",
     false,
     13.5,
-    -117,
-    "caesars"
+    -102,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -23491,7 +23491,7 @@
     "over",
     false,
     1.5,
-    -190,
+    -185,
     "betmgm"
    ],
    [
@@ -23499,11 +23499,11 @@
     "Desmond Bane",
     "ORL",
     "BOS",
-    0.2367,
+    0.2376,
     "over",
     true,
     3.5,
-    134,
+    128,
     "4cx"
    ],
    [
@@ -23515,7 +23515,7 @@
     "over",
     false,
     2.5,
-    161,
+    154,
     "4cx"
    ],
    [
@@ -23523,7 +23523,7 @@
     "Franz Wagner",
     "ORL",
     "BOS",
-    0.2699,
+    0.2707,
     "over",
     true,
     1.5,
@@ -23535,12 +23535,12 @@
     "Tristan da Silva",
     "ORL",
     "BOS",
-    0.2139,
+    0.215,
     "over",
     true,
     2.5,
-    -106,
-    "draftkings"
+    -108,
+    "4cx"
    ]
   ]
  },
@@ -23556,8 +23556,8 @@
     "over",
     false,
     26.5,
-    -105,
-    "betmgm"
+    -104,
+    "fanduel"
    ],
    [
     "3992",
@@ -23568,7 +23568,7 @@
     "over",
     false,
     18.5,
-    105,
+    109,
     "4cx"
    ]
   ],
@@ -23578,12 +23578,12 @@
     "Jalen Smith",
     "CHI",
     "CLE",
-    0.1769,
+    0.1804,
     "over",
     true,
     1.5,
-    -132,
-    "4cx"
+    -135,
+    "betmgm"
    ]
   ]
  },
@@ -23599,8 +23599,8 @@
     "under",
     false,
     13.5,
-    -117,
-    "caesars"
+    -113,
+    "draftkings"
    ],
    [
     "4903027",
@@ -23611,8 +23611,8 @@
     "under",
     false,
     15.5,
-    -103,
-    "draftkings"
+    105,
+    "4cx"
    ]
   ],
   "threes": [
@@ -23621,11 +23621,11 @@
     "Jerami Grant",
     "MEM",
     "WSH",
-    -0.1488,
+    -0.1482,
     "under",
     true,
     1.5,
-    135,
+    131,
     "draftkings"
    ],
    [
@@ -23637,7 +23637,7 @@
     "under",
     true,
     2.5,
-    -172,
+    -164,
     "fanduel"
    ],
    [
@@ -23669,11 +23669,11 @@
     "Cameron Boozer",
     "MEM",
     "WSH",
-    -0.1302,
+    -0.1294,
     "under",
     true,
     1.5,
-    112,
+    120,
     "fanduel"
    ],
    [
@@ -23681,7 +23681,7 @@
     "Jaylen Wells",
     "MEM",
     "WSH",
-    -0.1421,
+    -0.1416,
     "under",
     true,
     1.5,
@@ -23693,12 +23693,12 @@
     "Alex Sarr",
     "WSH",
     "MEM",
-    0.4522,
+    0.367,
     "over",
     true,
-    0.5,
-    -204,
-    "draftkings"
+    1.5,
+    180,
+    "4cx"
    ],
    [
     "5174563",
@@ -23717,9 +23717,9 @@
     "Anthony Davis",
     "WSH",
     "MEM",
-    -0.1158,
+    -0.13,
     "under",
-    false,
+    true,
     0.5,
     -120,
     "draftkings"
@@ -23748,11 +23748,11 @@
     "Joel Embiid",
     "PHI",
     "BKN",
-    -0.234,
+    -0.2335,
     "under",
     true,
     0.5,
-    128,
+    124,
     "draftkings"
    ],
    [
@@ -23760,9 +23760,9 @@
     "Dean Wade",
     "PHI",
     "BKN",
-    0.1194,
+    0.1204,
     "over",
-    false,
+    true,
     1.5,
     136,
     "4cx"
@@ -23772,12 +23772,12 @@
     "Jaylen Brown",
     "PHI",
     "BKN",
-    0.069,
+    0.0696,
     "over",
     false,
     1.5,
-    -111,
-    "betmgm"
+    -104,
+    "fanduel"
    ],
    [
     "4278104",
@@ -23788,8 +23788,8 @@
     "under",
     true,
     3.5,
-    -162,
-    "caesars"
+    -140,
+    "4cx"
    ],
    [
     "4351851",
@@ -23800,8 +23800,8 @@
     "over",
     true,
     2.5,
-    152,
-    "fanduel"
+    148,
+    "4cx"
    ],
    [
     "4431678",
@@ -23816,6 +23816,18 @@
     "4cx"
    ],
    [
+    "4432194",
+    "Day'Ron Sharpe",
+    "BKN",
+    "PHI",
+    0.0794,
+    "over",
+    false,
+    0.5,
+    206,
+    "4cx"
+   ],
+   [
     "5101761",
     "Mikel Brown Jr.",
     "BKN",
@@ -23824,20 +23836,20 @@
     "under",
     true,
     1.5,
-    -108,
-    "draftkings"
+    -110,
+    "betmgm"
    ],
    [
     "5107173",
     "Danny Wolf",
     "BKN",
     "PHI",
-    -0.0799,
+    -0.0791,
     "under",
     false,
     1.5,
-    -150,
-    "draftkings"
+    -155,
+    "4cx"
    ],
    [
     "5124612",
@@ -23860,8 +23872,8 @@
     "under",
     false,
     1.5,
-    127,
-    "caesars"
+    135,
+    "betmgm"
    ]
   ]
  },
@@ -23877,19 +23889,19 @@
     "over",
     true,
     13.5,
-    -108,
-    "draftkings"
+    -110,
+    "fanduel"
    ],
    [
     "3064482",
     "Bobby Portis",
     "MIA",
     "HOU",
-    -0.1106,
+    -0.1101,
     "under",
     false,
     6.5,
-    102,
+    103,
     "draftkings"
    ],
    [
@@ -23897,23 +23909,23 @@
     "Kevin Durant",
     "HOU",
     "MIA",
-    0.0594,
+    0.0589,
     "over",
     false,
     21.5,
-    -114,
-    "fanduel"
+    -115,
+    "fanatics"
    ],
    [
     "4433192",
     "Tari Eason",
     "HOU",
     "MIA",
-    -0.1225,
+    -0.1228,
     "under",
     true,
     12.5,
-    -114,
+    -120,
     "fanduel"
    ],
    [
@@ -23925,8 +23937,8 @@
     "over",
     false,
     15.5,
-    -114,
-    "fanduel"
+    -101,
+    "4cx"
    ],
    [
     "4711272",
@@ -23937,7 +23949,7 @@
     "over",
     true,
     10.5,
-    -101,
+    103,
     "4cx"
    ],
    [
@@ -23971,11 +23983,11 @@
     "Giannis Antetokounmpo",
     "MIA",
     "HOU",
-    -0.0963,
+    -0.0957,
     "under",
     false,
     0.5,
-    -145,
+    -148,
     "4cx"
    ],
    [
@@ -23983,24 +23995,24 @@
     "Andrew Wiggins",
     "MIA",
     "HOU",
-    -0.1469,
+    -0.146,
     "under",
     true,
     1.5,
-    -188,
-    "fanduel"
+    -155,
+    "betmgm"
    ],
    [
     "3064482",
     "Bobby Portis",
     "MIA",
     "HOU",
-    -0.1942,
+    -0.1935,
     "under",
     true,
     1.5,
-    -270,
-    "fanduel"
+    -210,
+    "4cx"
    ],
    [
     "4278053",
@@ -24011,8 +24023,8 @@
     "over",
     false,
     1.5,
-    -172,
-    "draftkings"
+    -169,
+    "4cx"
    ],
    [
     "4711272",
@@ -24023,7 +24035,7 @@
     "over",
     true,
     2.5,
-    121,
+    124,
     "draftkings"
    ],
    [
@@ -24031,12 +24043,12 @@
     "Alperen Sengun",
     "HOU",
     "MIA",
-    0.3647,
+    0.3702,
     "over",
     true,
     0.5,
-    103,
-    "4cx"
+    -102,
+    "draftkings"
    ],
    [
     "6475",
@@ -24047,7 +24059,7 @@
     "over",
     false,
     3.5,
-    120,
+    118,
     "4cx"
    ]
   ]
@@ -24060,7 +24072,7 @@
     "Trey Lyles",
     "MIN",
     "POR",
-    -0.1104,
+    -0.1099,
     "under",
     false,
     5.5,
@@ -24084,12 +24096,12 @@
     "Robert Williams III",
     "POR",
     "MIN",
-    -0.0925,
+    -0.0941,
     "under",
     false,
     6.5,
-    -111,
-    "draftkings"
+    -110,
+    "caesars"
    ],
    [
     "4397002",
@@ -24100,7 +24112,7 @@
     "under",
     true,
     17.5,
-    -103,
+    -110,
     "4cx"
    ],
    [
@@ -24108,7 +24120,7 @@
     "Toumani Camara",
     "POR",
     "MIN",
-    -0.1777,
+    -0.1776,
     "under",
     true,
     11.5,
@@ -24124,8 +24136,8 @@
     "under",
     false,
     20.5,
-    -102,
-    "fanduel"
+    -103,
+    "draftkings"
    ],
    [
     "4432847",
@@ -24136,20 +24148,8 @@
     "under",
     true,
     10.5,
-    100,
+    -105,
     "betmgm"
-   ],
-   [
-    "4592492",
-    "Bones Hyland",
-    "MIN",
-    "POR",
-    -0.097,
-    "under",
-    false,
-    9.5,
-    114,
-    "4cx"
    ],
    [
     "4683678",
@@ -24159,8 +24159,8 @@
     -0.132,
     "under",
     true,
-    11.5,
-    -134,
+    14.5,
+    -319,
     "4cx"
    ],
    [
@@ -24172,7 +24172,7 @@
     "under",
     false,
     7.5,
-    -115,
+    -125,
     "betmgm"
    ],
    [
@@ -24180,12 +24180,12 @@
     "Donovan Clingan",
     "POR",
     "MIN",
-    -0.0685,
+    -0.0687,
     "under",
     false,
     10.5,
-    -107,
-    "caesars"
+    -102,
+    "draftkings"
    ],
    [
     "6606",
@@ -24210,8 +24210,8 @@
     "under",
     true,
     2.5,
-    -190,
-    "betmgm"
+    -192,
+    "fanduel"
    ],
    [
     "4397002",
@@ -24222,15 +24222,15 @@
     "under",
     true,
     1.5,
-    -121,
-    "4cx"
+    -125,
+    "betmgm"
    ],
    [
     "4431736",
     "Toumani Camara",
     "POR",
     "MIN",
-    -0.2905,
+    -0.29,
     "under",
     true,
     2.5,
@@ -24258,7 +24258,7 @@
     "under",
     true,
     1.5,
-    -165,
+    -155,
     "betmgm"
    ],
    [
@@ -24266,7 +24266,7 @@
     "Deni Avdija",
     "POR",
     "MIN",
-    -0.2889,
+    -0.2884,
     "under",
     true,
     1.5,
@@ -24290,7 +24290,7 @@
     "Donovan Clingan",
     "POR",
     "MIN",
-    0.0802,
+    0.0813,
     "over",
     false,
     0.5,
@@ -24319,11 +24319,11 @@
     "Zion Williamson",
     "NO",
     "GS",
-    -0.1124,
+    -0.1134,
     "under",
     false,
     22.5,
-    -120,
+    -122,
     "caesars"
    ],
    [
@@ -24335,20 +24335,20 @@
     "over",
     false,
     18.5,
-    -115,
-    "fanatics"
+    -114,
+    "fanduel"
    ],
    [
     "4897262",
     "Will Richard",
     "GS",
     "NO",
-    0.087,
+    0.0768,
     "over",
     false,
-    7.5,
-    103,
-    "4cx"
+    6.5,
+    -114,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -24357,12 +24357,24 @@
     "Herbert Jones",
     "NO",
     "GS",
-    0.1405,
+    0.1413,
     "over",
     true,
     1.5,
     164,
     "fanduel"
+   ],
+   [
+    "6589",
+    "Draymond Green",
+    "GS",
+    "NO",
+    -0.2031,
+    "under",
+    true,
+    0.5,
+    -121,
+    "draftkings"
    ]
   ]
  },
@@ -24374,12 +24386,12 @@
     "Nikola Jokic",
     "DEN",
     "PHX",
-    0.0847,
+    0.0854,
     "over",
     false,
     25.5,
-    -120,
-    "fanduel"
+    105,
+    "betmgm"
    ],
    [
     "3136193",
@@ -24389,21 +24401,21 @@
     -0.0728,
     "under",
     false,
-    23.5,
-    -118,
-    "draftkings"
+    22.5,
+    -104,
+    "fanduel"
    ],
    [
     "4601023",
     "Oso Ighodaro",
     "PHX",
     "DEN",
-    -0.1659,
+    -0.1673,
     "under",
     true,
     5.5,
-    -102,
-    "draftkings"
+    100,
+    "betmgm"
    ]
   ],
   "threes": [
@@ -24416,7 +24428,7 @@
     "over",
     true,
     2.5,
-    -162,
+    -157,
     "draftkings"
    ],
    [
@@ -24428,7 +24440,7 @@
     "over",
     true,
     1.5,
-    124,
+    123,
     "draftkings"
    ]
   ]
