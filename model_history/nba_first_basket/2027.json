@@ -16072,6 +16072,11 @@
     "fanduel"
    ]
   },
+  "result": {
+   "scorer": "5104157",
+   "team": "SA",
+   "tip": "SA"
+  },
   "tip_home": 0.5
  },
  "401909989": {
@@ -16517,7 +16522,7 @@
     "bet365"
    ]
   },
-  "tip_home": 0.494
+  "tip_home": 0.495
  },
  "401909994": {
   "away": "ORL",
@@ -16967,7 +16972,7 @@
  "401909999": {
   "away": "POR",
   "date": "2026-11-16",
-  "first_home": 0.46,
+  "first_home": 0.459,
   "home": "MIN",
   "jumpers": [
    [
@@ -17216,7 +17221,7 @@
    ],
    "4437244": [
     "Jalen Green",
-    0.082,
+    0.083,
     null,
     false,
     null
@@ -17323,7 +17328,7 @@
  "401910003": {
   "away": "POR",
   "date": "2026-11-17",
-  "first_home": 0.46,
+  "first_home": 0.459,
   "home": "MIN",
   "jumpers": [
    [
@@ -17412,7 +17417,7 @@
  "401910004": {
   "away": "DET",
   "date": "2026-11-17",
-  "first_home": 0.611,
+  "first_home": 0.613,
   "home": "SA",
   "jumpers": [
    [
@@ -17427,7 +17432,7 @@
   "players": {
    "3157465": [
     "Duncan Robinson",
-    0.068,
+    0.067,
     null,
     false,
     null
@@ -17448,7 +17453,7 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.113,
+    0.111,
     null,
     false,
     null
@@ -17462,7 +17467,7 @@
    ],
    "4592479": [
     "Julian Champagnie",
-    0.101,
+    0.097,
     null,
     false,
     null
@@ -17476,27 +17481,27 @@
    ],
    "4845367": [
     "Stephon Castle",
-    0.108,
+    0.107,
     null,
     false,
     null
    ],
    "5037871": [
     "Dylan Harper",
-    0.096,
+    0.097,
     null,
     false,
     null
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.169,
+    0.176,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.833
+  "tip_home": 0.839
  },
  "401910005": {
   "away": "CHA",
@@ -17623,7 +17628,7 @@
    ],
    "4065663": [
     "Josh Okogie",
-    0.096,
+    0.091,
     null,
     false,
     null
@@ -17635,6 +17640,13 @@
     false,
     null
    ],
+   "4277919": [
+    "Mo Bamba",
+    0.103,
+    null,
+    false,
+    null
+   ],
    "4396907": [
     "Darius Garland",
     0.124,
@@ -17642,30 +17654,23 @@
     false,
     null
    ],
-   "4432811": [
-    "Josh Green",
-    0.071,
-    null,
-    false,
-    null
-   ],
    "4433627": [
     "Keyonte George",
-    0.112,
+    0.102,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.102,
+    0.092,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.099,
+    0.092,
     null,
     false,
     null
