@@ -23417,7 +23417,7 @@
     "over",
     false,
     7.5,
-    -104,
+    -102,
     "fanduel"
    ],
    [
@@ -23429,8 +23429,8 @@
     "over",
     true,
     18.5,
-    -125,
-    "fanduel"
+    -121,
+    "draftkings"
    ],
    [
     "4277847",
@@ -23465,8 +23465,8 @@
     "under",
     false,
     21.5,
-    -102,
-    "fanduel"
+    -110,
+    "draftkings"
    ],
    [
     "4712849",
@@ -23477,7 +23477,7 @@
     "under",
     false,
     13.5,
-    -102,
+    -104,
     "fanduel"
    ]
   ],
@@ -23515,8 +23515,8 @@
     "over",
     false,
     2.5,
-    -105,
-    "caesars"
+    -103,
+    "draftkings"
    ],
    [
     "4566434",
@@ -23539,15 +23539,53 @@
     "over",
     true,
     2.5,
-    128,
-    "4cx"
+    104,
+    "draftkings"
    ]
   ]
  },
  "401909995": {
   "date": "2026-11-16",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3908809",
+    "Donovan Mitchell",
+    "CLE",
+    "CHI",
+    0.0625,
+    "over",
+    false,
+    25.5,
+    -114,
+    "caesars"
+   ],
+   [
+    "3992",
+    "James Harden",
+    "CLE",
+    "CHI",
+    0.1216,
+    "over",
+    true,
+    18.5,
+    -106,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "4397189",
+    "Jalen Smith",
+    "CHI",
+    "CLE",
+    0.16,
+    "over",
+    true,
+    1.5,
+    -154,
+    "caesars"
+   ]
+  ]
  },
  "401909996": {
   "date": "2026-11-16",
@@ -23560,9 +23598,9 @@
     -0.1191,
     "under",
     false,
-    11.5,
-    100,
-    "fanduel"
+    12.5,
+    -118,
+    "draftkings"
    ],
    [
     "4903027",
@@ -23573,11 +23611,23 @@
     "under",
     false,
     15.5,
-    -108,
+    -102,
     "fanduel"
    ]
   ],
   "threes": [
+   [
+    "2991070",
+    "Jerami Grant",
+    "MEM",
+    "WSH",
+    -0.158,
+    "under",
+    true,
+    1.5,
+    130,
+    "draftkings"
+   ],
    [
     "4277905",
     "Trae Young",
@@ -23587,7 +23637,7 @@
     "under",
     true,
     2.5,
-    -172,
+    -168,
     "fanduel"
    ],
    [
@@ -23598,9 +23648,9 @@
     -0.1921,
     "under",
     true,
-    1.5,
-    142,
-    "fanduel"
+    2.5,
+    -197,
+    "caesars"
    ],
    [
     "4903027",
@@ -23611,8 +23661,8 @@
     "under",
     true,
     1.5,
-    124,
-    "fanduel"
+    125,
+    "draftkings"
    ],
    [
     "5041935",
@@ -23623,7 +23673,7 @@
     "under",
     true,
     1.5,
-    104,
+    102,
     "fanduel"
    ],
    [
@@ -23634,9 +23684,21 @@
     -0.1501,
     "under",
     true,
-    2.5,
-    -215,
+    1.5,
+    138,
     "fanduel"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "MEM",
+    0.4436,
+    "over",
+    true,
+    0.5,
+    -225,
+    "caesars"
    ],
    [
     "5174563",
@@ -23647,8 +23709,8 @@
     "under",
     true,
     2.5,
-    -192,
-    "fanduel"
+    -178,
+    "draftkings"
    ],
    [
     "6583",
@@ -23659,8 +23721,8 @@
     "under",
     false,
     0.5,
-    -115,
-    "fanatics"
+    -118,
+    "fanduel"
    ]
   ]
  },
@@ -23676,8 +23738,8 @@
     "under",
     true,
     21.5,
-    -104,
-    "fanduel"
+    -105,
+    "draftkings"
    ],
    [
     "3912848",
@@ -23688,7 +23750,7 @@
     "over",
     false,
     5.5,
-    -125,
+    -122,
     "fanduel"
    ],
    [
@@ -23700,8 +23762,8 @@
     "under",
     false,
     20.5,
-    -110,
-    "fanduel"
+    -107,
+    "caesars"
    ]
   ],
   "threes": [
@@ -23714,8 +23776,32 @@
     "under",
     true,
     0.5,
-    168,
+    172,
+    "draftkings"
+   ],
+   [
+    "3912848",
+    "Dean Wade",
+    "PHI",
+    "BKN",
+    0.1797,
+    "over",
+    true,
+    1.5,
+    164,
     "fanduel"
+   ],
+   [
+    "3917376",
+    "Jaylen Brown",
+    "PHI",
+    "BKN",
+    0.1086,
+    "over",
+    false,
+    1.5,
+    -108,
+    "draftkings"
    ],
    [
     "4278104",
@@ -23726,8 +23812,8 @@
     "under",
     true,
     3.5,
-    -166,
-    "fanduel"
+    -159,
+    "draftkings"
    ],
    [
     "4351851",
@@ -23737,9 +23823,33 @@
     0.1232,
     "over",
     true,
+    1.5,
+    -190,
+    "caesars"
+   ],
+   [
+    "4431678",
+    "Tyrese Maxey",
+    "PHI",
+    "BKN",
+    0.0807,
+    "over",
+    false,
     2.5,
-    152,
-    "fanduel"
+    100,
+    "caesars"
+   ],
+   [
+    "4432194",
+    "Day'Ron Sharpe",
+    "BKN",
+    "PHI",
+    0.067,
+    "over",
+    false,
+    0.5,
+    214,
+    "draftkings"
    ],
    [
     "5101761",
@@ -23762,8 +23872,20 @@
     "under",
     false,
     1.5,
-    -245,
-    "fanduel"
+    -194,
+    "draftkings"
+   ],
+   [
+    "5124612",
+    "VJ Edgecombe",
+    "PHI",
+    "BKN",
+    0.136,
+    "over",
+    true,
+    1.5,
+    -110,
+    "fanatics"
    ],
    [
     "5175643",
@@ -23774,8 +23896,8 @@
     "under",
     false,
     1.5,
-    122,
-    "fanduel"
+    129,
+    "draftkings"
    ]
   ]
  },
@@ -23795,6 +23917,18 @@
     "fanduel"
    ],
    [
+    "3064482",
+    "Bobby Portis",
+    "MIA",
+    "HOU",
+    -0.1012,
+    "under",
+    false,
+    6.5,
+    -114,
+    "draftkings"
+   ],
+   [
     "3202",
     "Kevin Durant",
     "HOU",
@@ -23803,7 +23937,7 @@
     "over",
     false,
     21.5,
-    -106,
+    -112,
     "fanduel"
    ],
    [
@@ -23815,8 +23949,8 @@
     "under",
     true,
     10.5,
-    -130,
-    "fanduel"
+    -127,
+    "caesars"
    ],
    [
     "4684740",
@@ -23827,8 +23961,8 @@
     "over",
     false,
     15.5,
-    -128,
-    "fanduel"
+    -125,
+    "draftkings"
    ],
    [
     "4711272",
@@ -23839,11 +23973,95 @@
     "over",
     true,
     10.5,
-    -102,
+    -104,
     "fanduel"
+   ],
+   [
+    "6475",
+    "Klay Thompson",
+    "MIA",
+    "HOU",
+    0.0827,
+    "over",
+    false,
+    12.5,
+    -119,
+    "draftkings"
    ]
   ],
   "threes": [
+   [
+    "2991230",
+    "Fred VanVleet",
+    "HOU",
+    "MIA",
+    0.2161,
+    "over",
+    true,
+    2.5,
+    -117,
+    "draftkings"
+   ],
+   [
+    "3032977",
+    "Giannis Antetokounmpo",
+    "MIA",
+    "HOU",
+    -0.0901,
+    "under",
+    false,
+    0.5,
+    -172,
+    "fanduel"
+   ],
+   [
+    "3059319",
+    "Andrew Wiggins",
+    "MIA",
+    "HOU",
+    -0.14,
+    "under",
+    true,
+    1.5,
+    -184,
+    "draftkings"
+   ],
+   [
+    "3064482",
+    "Bobby Portis",
+    "MIA",
+    "HOU",
+    -0.1799,
+    "under",
+    true,
+    1.5,
+    -270,
+    "fanduel"
+   ],
+   [
+    "4601025",
+    "Pelle Larsson",
+    "MIA",
+    "HOU",
+    -0.1129,
+    "under",
+    false,
+    1.5,
+    -196,
+    "draftkings"
+   ],
+   [
+    "4711272",
+    "Reed Sheppard",
+    "HOU",
+    "MIA",
+    0.2015,
+    "over",
+    true,
+    2.5,
+    133,
+    "caesars"
+   ],
    [
     "4871144",
     "Alperen Sengun",
@@ -23855,6 +24073,18 @@
     0.5,
     -115,
     "fanatics"
+   ],
+   [
+    "6475",
+    "Klay Thompson",
+    "MIA",
+    "HOU",
+    0.0555,
+    "over",
+    false,
+    3.5,
+    115,
+    "caesars"
    ]
   ]
  },
@@ -23882,7 +24112,7 @@
     "under",
     false,
     12.5,
-    -118,
+    102,
     "fanduel"
    ],
    [
@@ -23918,7 +24148,7 @@
     "under",
     true,
     11.5,
-    -102,
+    -104,
     "fanduel"
    ],
    [
@@ -23954,8 +24184,8 @@
     "under",
     false,
     7.5,
-    -120,
-    "caesars"
+    -118,
+    "fanduel"
    ],
    [
     "5105565",
@@ -24016,7 +24246,7 @@
     "under",
     true,
     2.5,
-    -152,
+    -148,
     "fanduel"
    ],
    [
@@ -24052,7 +24282,7 @@
     "under",
     true,
     1.5,
-    122,
+    120,
     "fanduel"
    ],
    [
@@ -24064,8 +24294,8 @@
     "under",
     true,
     1.5,
-    -197,
-    "caesars"
+    -192,
+    "fanduel"
    ],
    [
     "5105565",
@@ -24087,9 +24317,9 @@
     -0.0917,
     "under",
     false,
-    3.5,
-    -170,
-    "caesars"
+    2.5,
+    140,
+    "fanduel"
    ]
   ]
  },
@@ -24156,7 +24386,7 @@
     true,
     1.5,
     160,
-    "caesars"
+    "draftkings"
    ]
   ]
  },
@@ -24171,9 +24401,9 @@
     0.0788,
     "over",
     false,
-    25.5,
-    -115,
-    "fanatics"
+    26.5,
+    -113,
+    "draftkings"
    ],
    [
     "3136193",
@@ -24195,11 +24425,36 @@
     -0.2181,
     "under",
     true,
-    5.5,
-    -122,
-    "fanduel"
+    4.5,
+    -108,
+    "draftkings"
    ]
   ],
-  "threes": []
+  "threes": [
+   [
+    "3936299",
+    "Jamal Murray",
+    "DEN",
+    "PHX",
+    0.1392,
+    "over",
+    true,
+    2.5,
+    -171,
+    "draftkings"
+   ],
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "PHX",
+    0.1729,
+    "over",
+    true,
+    1.5,
+    129,
+    "draftkings"
+   ]
+  ]
  }
 }

@@ -1586,6 +1586,10 @@
  "2026_10_BUF_NYJ": {
   "away": "BUF",
   "away_pts": 29.9,
+  "final": [
+   31,
+   12
+  ],
   "frozen": true,
   "home": "NYJ",
   "home_pts": 21.2,
@@ -1593,15 +1597,21 @@
   "spread": 7.5,
   "spread_edge": 1.2,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 50.5,
   "total_edge": 0.7,
   "total_pick": "over",
+  "total_result": "loss",
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
  "2026_10_CAR_NO": {
   "away": "CAR",
   "away_pts": 25.5,
+  "final": [
+   20,
+   17
+  ],
   "frozen": true,
   "home": "NO",
   "home_pts": 24.9,
@@ -1609,15 +1619,21 @@
   "spread": -1.5,
   "spread_edge": 2.1,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 48.5,
   "total_edge": 1.9,
   "total_pick": "over",
+  "total_result": "loss",
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
  "2026_10_HOU_CLE": {
   "away": "HOU",
   "away_pts": 24.6,
+  "final": [
+   24,
+   27
+  ],
   "frozen": true,
   "home": "CLE",
   "home_pts": 18.5,
@@ -1625,15 +1641,21 @@
   "spread": 4.5,
   "spread_edge": 1.6,
   "spread_pick": "away",
+  "spread_result": "loss",
   "total": 40.5,
   "total_edge": 2.5,
   "total_pick": "over",
+  "total_result": "win",
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
  "2026_10_JAX_TEN": {
   "away": "JAX",
   "away_pts": 29.4,
+  "final": [
+   40,
+   23
+  ],
   "frozen": true,
   "home": "TEN",
   "home_pts": 15.8,
@@ -1641,15 +1663,21 @@
   "spread": 10.5,
   "spread_edge": 3.1,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 46.5,
   "total_edge": 1.2,
   "total_pick": "under",
+  "total_result": "loss",
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
  "2026_10_KC_ATL": {
   "away": "KC",
   "away_pts": 25.5,
+  "final": [
+   35,
+   13
+  ],
   "frozen": true,
   "home": "ATL",
   "home_pts": 20.2,
@@ -1657,15 +1685,43 @@
   "spread": 3.5,
   "spread_edge": 1.8,
   "spread_pick": "away",
+  "spread_result": "win",
   "total": 47.5,
   "total_edge": 1.7,
   "total_pick": "under",
+  "total_result": "loss",
   "updated": "2026-11-15T06:43Z",
+  "week": 10
+ },
+ "2026_10_LA_ARI": {
+  "away": "LA",
+  "away_pts": 27.6,
+  "final": [
+   34,
+   6
+  ],
+  "frozen": true,
+  "home": "ARI",
+  "home_pts": 17.9,
+  "qb_out": [],
+  "spread": 9.5,
+  "spread_edge": 0.2,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 38.5,
+  "total_edge": 6.9,
+  "total_pick": "over",
+  "total_result": "win",
+  "updated": "2026-11-15T18:58Z",
   "week": 10
  },
  "2026_10_MIA_IND": {
   "away": "MIA",
   "away_pts": 15.6,
+  "final": [
+   22,
+   24
+  ],
   "frozen": true,
   "home": "IND",
   "home_pts": 24.0,
@@ -1675,15 +1731,21 @@
   "spread": -3.5,
   "spread_edge": 4.9,
   "spread_pick": "home",
+  "spread_result": "loss",
   "total": 37.5,
   "total_edge": 2.0,
   "total_pick": "over",
+  "total_result": "win",
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
  "2026_10_MIN_GB": {
   "away": "MIN",
   "away_pts": 13.6,
+  "final": [
+   30,
+   10
+  ],
   "frozen": true,
   "home": "GB",
   "home_pts": 19.5,
@@ -1693,9 +1755,11 @@
   "spread": -2.5,
   "spread_edge": 3.4,
   "spread_pick": "home",
+  "spread_result": "loss",
   "total": 42.5,
   "total_edge": 9.5,
   "total_pick": "under",
+  "total_result": "win",
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
@@ -1719,6 +1783,74 @@
   "total_pick": "over",
   "total_result": "loss",
   "updated": "2026-11-15T06:43Z",
+  "week": 10
+ },
+ "2026_10_PIT_CIN": {
+  "away": "PIT",
+  "away_pts": 21.7,
+  "final": [
+   18,
+   38
+  ],
+  "frozen": true,
+  "home": "CIN",
+  "home_pts": 27.0,
+  "qb_out": [],
+  "spread": -3.5,
+  "spread_edge": 1.8,
+  "spread_pick": "home",
+  "spread_result": "win",
+  "total": 49.5,
+  "total_edge": 0.8,
+  "total_pick": "under",
+  "total_result": "loss",
+  "updated": "2026-11-15T18:58Z",
+  "week": 10
+ },
+ "2026_10_SEA_LV": {
+  "away": "SEA",
+  "away_pts": 21.1,
+  "final": [
+   21,
+   13
+  ],
+  "frozen": true,
+  "home": "LV",
+  "home_pts": 17.5,
+  "qb_out": [
+   "SEA"
+  ],
+  "spread": 6.5,
+  "spread_edge": 2.9,
+  "spread_pick": "home",
+  "spread_result": "loss",
+  "total": 40.5,
+  "total_edge": 1.9,
+  "total_pick": "under",
+  "total_result": "win",
+  "updated": "2026-11-15T18:58Z",
+  "week": 10
+ },
+ "2026_10_SF_DAL": {
+  "away": "SF",
+  "away_pts": 31.9,
+  "final": [
+   46,
+   40
+  ],
+  "frozen": true,
+  "home": "DAL",
+  "home_pts": 24.6,
+  "qb_out": [],
+  "spread": 4.5,
+  "spread_edge": 2.8,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 55.5,
+  "total_edge": 1.0,
+  "total_pick": "over",
+  "total_result": "win",
+  "updated": "2026-11-15T18:58Z",
   "week": 10
  },
  "2026_10_WAS_NYG": {
