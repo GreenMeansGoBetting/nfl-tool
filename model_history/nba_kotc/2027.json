@@ -10080,23 +10080,23 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2481,
+    "lead": 0.248,
     "name": "Nikola Jokic",
     "proj": 48.0,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.1775,
+    "lead": 0.1774,
     "name": "Giannis Antetokounmpo",
     "proj": 45.0,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.0984,
+    "lead": 0.0991,
     "name": "Jayson Tatum",
-    "proj": 41.1,
+    "proj": 41.2,
     "team": "BOS"
    },
    {
@@ -10122,7 +10122,7 @@
    },
    {
     "id": "6583",
-    "lead": 0.0429,
+    "lead": 0.0428,
     "name": "Anthony Davis",
     "proj": 36.7,
     "team": "WSH"
@@ -10136,7 +10136,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.028,
+    "lead": 0.0279,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
@@ -10178,21 +10178,21 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0096,
+    "lead": 0.0095,
     "name": "Yaxel Lendeborg",
     "proj": 31.2,
     "team": "GS"
    },
    {
     "id": "4278104",
-    "lead": 0.0096,
+    "lead": 0.0095,
     "name": "Michael Porter Jr.",
     "proj": 30.7,
     "team": "BKN"
    },
    {
     "id": "4277905",
-    "lead": 0.0094,
+    "lead": 0.0093,
     "name": "Trae Young",
     "proj": 30.6,
     "team": "WSH"
@@ -10339,7 +10339,7 @@
    },
    {
     "id": "4066320",
-    "lead": 0.0009,
+    "lead": 0.0008,
     "name": "Desmond Bane",
     "proj": 23.3,
     "team": "ORL"
@@ -10495,7 +10495,7 @@
     "id": "4702382",
     "lead": 0.0,
     "name": "Tristan da Silva",
-    "proj": 19.5,
+    "proj": 19.6,
     "team": "ORL"
    }
   ],
