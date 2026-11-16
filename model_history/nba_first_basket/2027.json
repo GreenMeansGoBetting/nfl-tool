@@ -16663,21 +16663,21 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.122,
+    0.119,
     600,
     false,
     "bet365"
    ],
    "3992": [
     "James Harden",
-    0.103,
+    0.101,
     850,
     false,
     "hard_rock"
    ],
    "4066328": [
     "Jarrett Allen",
-    0.128,
+    0.122,
     430,
     false,
     "fanduel"
@@ -16698,17 +16698,10 @@
    ],
    "4576087": [
     "Peyton Watson",
-    0.1,
+    0.098,
     800,
     false,
     "hard_rock"
-   ],
-   "4683747": [
-    "Jaylon Tyson",
-    0.106,
-    null,
-    false,
-    null
    ],
    "4711294": [
     "Matas Buzelis",
@@ -16723,6 +16716,13 @@
     1200,
     true,
     "bet365"
+   ],
+   "5041951": [
+    "Meleek Thomas",
+    0.12,
+    800,
+    false,
+    "hard_rock"
    ]
   },
   "tip_home": 0.75
@@ -17724,21 +17724,21 @@
   "players": {
    "3908809": [
     "Donovan Mitchell",
-    0.104,
+    0.101,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.088,
+    0.086,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.109,
+    0.104,
     null,
     false,
     null
@@ -17752,7 +17752,7 @@
    ],
    "4576087": [
     "Peyton Watson",
-    0.085,
+    0.083,
     null,
     false,
     null
@@ -17760,13 +17760,6 @@
    "4600663": [
     "Zach Edey",
     0.094,
-    null,
-    false,
-    null
-   ],
-   "4683747": [
-    "Jaylon Tyson",
-    0.091,
     null,
     false,
     null
@@ -17781,6 +17774,13 @@
    "5041935": [
     "Cameron Boozer",
     0.118,
+    null,
+    false,
+    null
+   ],
+   "5041951": [
+    "Meleek Thomas",
+    0.102,
     null,
     false,
     null
