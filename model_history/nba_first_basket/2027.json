@@ -16923,7 +16923,7 @@
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.093,
+    0.095,
     1600,
     true,
     "hard_rock"
@@ -16944,7 +16944,7 @@
    ],
    "3202": [
     "Kevin Durant",
-    0.097,
+    0.099,
     800,
     false,
     "bet365"
@@ -16965,21 +16965,21 @@
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.085,
+    0.087,
     1200,
     true,
     "bet365"
    ],
-   "4684740": [
-    "Amen Thompson",
-    0.085,
-    960,
+   "4433192": [
+    "Tari Eason",
+    0.076,
+    null,
     false,
-    "draftkings"
+    null
    ],
    "4871144": [
     "Alperen Sengun",
-    0.102,
+    0.105,
     650,
     false,
     "fanduel"
@@ -17813,7 +17813,7 @@
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.09,
+    0.091,
     null,
     false,
     null
@@ -17834,7 +17834,7 @@
    ],
    "3202": [
     "Kevin Durant",
-    0.093,
+    0.095,
     null,
     false,
     null
@@ -17862,21 +17862,21 @@
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.081,
+    0.084,
     null,
     false,
     null
    ],
-   "4684740": [
-    "Amen Thompson",
-    0.081,
+   "4433192": [
+    "Tari Eason",
+    0.073,
     null,
     false,
     null
    ],
    "4871144": [
     "Alperen Sengun",
-    0.098,
+    0.101,
     null,
     false,
     null
