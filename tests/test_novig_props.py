@@ -33,7 +33,7 @@ def td_market(name, mtype, yes, no=None, team="HOU", strike=None, consensus=True
     """A made-up market in exactly the shape Novig sends (copied from a real one)."""
     m = copy.deepcopy(sample_market(mtype))
     m["player"]["full_name"] = name
-    m["player"]["player_competitors"][0]["competitor"]["symbol"] = team
+    m["player"]["player_competitors"][0]["competitor"].update(id=team, name=team, short_name=team, symbol=team)
     m["is_consensus"] = consensus
     if strike is not None:
         m["strike"] = strike

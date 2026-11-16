@@ -847,6 +847,24 @@ NOVIG_OU_TYPES = {
 }
 # Novig team symbols that differ from ours.
 NOVIG_TEAM_FIXES = {"LAR": "LA", "WSH": "WAS", "JAC": "JAX", "LVR": "LV"}
+# The two LA teams by full name: Novig's `symbol` for the Chargers became
+# "LA" (our Rams code) in Nov 2026, which dropped every Chargers line.
+NOVIG_NAME_TEAMS = {"Los Angeles Chargers": "LAC", "Los Angeles Rams": "LA"}
+# Novig competitor id -> our team code, filled from each game's own two teams
+# (game lines' outcomes carry only id + symbol, not the name).
+_NOVIG_TEAM_IDS: dict = {}
+
+
+def _novig_team(comp: dict | None):
+    """Our team code for a Novig competitor: its id (from the game header),
+    then its full name for the LA teams, then short_name / symbol."""
+    comp = comp or {}
+    if comp.get("id") in _NOVIG_TEAM_IDS:
+        return _NOVIG_TEAM_IDS[comp["id"]]
+    if comp.get("name") in NOVIG_NAME_TEAMS:
+        return NOVIG_NAME_TEAMS[comp["name"]]
+    sym = comp.get("short_name") or comp.get("symbol")
+    return normalize_team(NOVIG_TEAM_FIXES.get(sym, sym)) if sym else None
 
 
 def _novig_request(url: str, body: dict | None = None):
@@ -892,10 +910,12 @@ def fetch_novig_week(week_games: list, starts_after: str, starts_before: str) ->
             if not rows or not rows[0].get("game"):
                 continue
             ev = rows[0]
-            fix = lambda sym: normalize_team(NOVIG_TEAM_FIXES.get(sym, sym))
-            key = (fix(ev["game"]["awayTeam"]["symbol"]), fix(ev["game"]["homeTeam"]["symbol"]))
+            away_c, home_c = ev["game"]["awayTeam"], ev["game"]["homeTeam"]
+            key = (_novig_team({**away_c, "id": None}), _novig_team({**home_c, "id": None}))
             if key not in wanted:
                 continue
+            _NOVIG_TEAM_IDS[away_c.get("id")] = key[0]
+            _NOVIG_TEAM_IDS[home_c.get("id")] = key[1]
             out[key] = ev.get("markets") or []
             debug["games"].append(f"{key[0]}@{key[1]}:{len(out[key])}")
     except Exception as ex:  # network, JSON, or a changed query
@@ -906,8 +926,7 @@ def fetch_novig_week(week_games: list, starts_after: str, starts_before: str) ->
 
 def _novig_player_team(market):
     comps = ((market.get("player") or {}).get("player_competitors") or [])
-    sym = comps[0]["competitor"]["symbol"] if comps else None
-    return normalize_team(NOVIG_TEAM_FIXES.get(sym, sym)) if sym else None
+    return _novig_team(comps[0]["competitor"]) if comps else None
 
 
 # Highest believable Yes price per TD market (a first-TD favorite is ~30%).
@@ -1438,7 +1457,7 @@ def extract_novig_game_lines(novig_games: dict) -> dict:
             outs = m.get("outcomes") or []
             if mtype == "SPREAD":
                 for o in outs:
-                    sym = normalize_team(NOVIG_TEAM_FIXES.get(((o.get("competitor") or {}).get("symbol")), ((o.get("competitor") or {}).get("symbol"))))
+                    sym = _novig_team(o.get("competitor"))
                     parts = (o.get("description") or "").split()
                     try:
                         line = float(parts[-1])
@@ -1457,7 +1476,7 @@ def extract_novig_game_lines(novig_games: dict) -> dict:
             elif mtype == "MONEY":
                 prices = {}
                 for o in outs:
-                    sym = normalize_team(NOVIG_TEAM_FIXES.get(((o.get("competitor") or {}).get("symbol")), ((o.get("competitor") or {}).get("symbol"))))
+                    sym = _novig_team(o.get("competitor"))
                     side = "away" if sym == away else "home" if sym == home else None
                     if side:
                         odds[f"{side}_moneyline"] = novig_price_to_american(o.get("available"))
