@@ -18487,21 +18487,21 @@ null
 "away": "OKC",
 "book": {
 "ml": [
--426,
-413
+-488,
+471
 ],
 "spread": [
 -11.5,
 11.5
 ],
 "spread_odds": [
-106,
--108
+-120,
+113
 ],
 "total": 222.5,
 "total_odds": [
--113,
-108
+106,
+-113
 ]
 },
 "date": "2026-11-15",
@@ -19325,17 +19325,17 @@ null,
 null
 ],
 "spread": [
-null,
-null
+2.5,
+-2.5
 ],
 "spread_odds": [
-null,
-null
+-111,
+-113
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
-null,
-null
+-100,
+-8991
 ]
 },
 "date": "2026-11-16",
@@ -19344,8 +19344,14 @@ null
 0.3537,
 0.6463
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4337,
+0.5663
+],
+"total": [
+0.583,
+0.417
+]
 },
 "fair_spread": -4.5,
 "home": "MIN",

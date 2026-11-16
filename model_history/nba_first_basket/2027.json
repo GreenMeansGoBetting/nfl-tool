@@ -16451,13 +16451,6 @@
    ]
   ],
   "players": {
-   "3064440": [
-    "Zach LaVine",
-    0.087,
-    1100,
-    false,
-    "fanduel"
-   ],
    "3133626": [
     "Kenrich Williams",
     0.085,
@@ -16467,14 +16460,14 @@
    ],
    "3155942": [
     "Domantas Sabonis",
-    0.106,
+    0.104,
     750,
     false,
     "bet365"
    ],
    "4065732": [
     "De'Andre Hunter",
-    0.082,
+    0.084,
     1100,
     false,
     "bet365"
@@ -16493,9 +16486,16 @@
     false,
     "bet365"
    ],
+   "4395650": [
+    "Leaky Black",
+    0.081,
+    null,
+    false,
+    null
+   ],
    "4594327": [
     "Keegan Murray",
-    0.092,
+    0.094,
     1100,
     true,
     "hard_rock"
@@ -16516,7 +16516,7 @@
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.112,
+    0.114,
     1000,
     true,
     "bet365"
