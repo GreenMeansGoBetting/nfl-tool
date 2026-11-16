@@ -17455,16 +17455,9 @@
    ]
   ],
   "players": {
-   "3157465": [
-    "Duncan Robinson",
-    0.067,
-    null,
-    false,
-    null
-   ],
    "3908845": [
     "John Collins",
-    0.079,
+    0.075,
     null,
     false,
     null
@@ -17478,7 +17471,7 @@
    ],
    "4278562": [
     "Paul Reed",
-    0.069,
+    0.067,
     null,
     false,
     null
@@ -17492,14 +17485,14 @@
    ],
    "4432166": [
     "Cade Cunningham",
-    0.078,
+    0.076,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.08,
+    0.076,
     null,
     false,
     null
@@ -17521,6 +17514,13 @@
    "5104157": [
     "Victor Wembanyama",
     0.158,
+    null,
+    false,
+    null
+   ],
+   "5107199": [
+    "Daniss Jenkins",
+    0.078,
     null,
     false,
     null
@@ -18256,16 +18256,9 @@
    ]
   ],
   "players": {
-   "3157465": [
-    "Duncan Robinson",
-    0.086,
-    null,
-    false,
-    null
-   ],
    "3908845": [
     "John Collins",
-    0.101,
+    0.096,
     null,
     false,
     null
@@ -18279,7 +18272,7 @@
    ],
    "4278562": [
     "Paul Reed",
-    0.088,
+    0.086,
     null,
     false,
     null
@@ -18293,14 +18286,14 @@
    ],
    "4432166": [
     "Cade Cunningham",
-    0.1,
+    0.098,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.103,
+    0.098,
     null,
     false,
     null
@@ -18315,6 +18308,13 @@
    "5061589": [
     "Yves Missi",
     0.096,
+    null,
+    false,
+    null
+   ],
+   "5107199": [
+    "Daniss Jenkins",
+    0.1,
     null,
     false,
     null
