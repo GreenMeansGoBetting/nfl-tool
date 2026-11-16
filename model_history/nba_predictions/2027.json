@@ -18487,21 +18487,21 @@ null
 "away": "OKC",
 "book": {
 "ml": [
--488,
-471
+-506,
+488
 ],
 "spread": [
--11.5,
-11.5
+-12.5,
+12.5
 ],
 "spread_odds": [
--120,
-113
+-102,
+-102
 ],
-"total": 222.5,
+"total": 221.5,
 "total_odds": [
-106,
--113
+-102,
+-100
 ]
 },
 "date": "2026-11-15",
@@ -18511,12 +18511,12 @@ null
 0.2692
 ],
 "spread": [
-0.3657,
-0.6343
+0.3349,
+0.6651
 ],
 "total": [
-0.4798,
-0.5202
+0.502,
+0.498
 ]
 },
 "fair_spread": 7.4,
@@ -18635,14 +18635,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+9.5,
+-9.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 211.5,
 "total_odds": [
 null,
 null
@@ -18654,8 +18654,14 @@ null
 0.2175,
 0.7825
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5044,
+0.4956
+],
+"total": [
+0.5594,
+0.4406
+]
 },
 "fair_spread": -9.4,
 "home": "BOS",
@@ -18773,14 +18779,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+8.5,
+-8.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 241.5,
 "total_odds": [
 null,
 null
@@ -18792,8 +18798,14 @@ null
 0.2406,
 0.7594
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5016,
+0.4984
+],
+"total": [
+0.5154,
+0.4846
+]
 },
 "fair_spread": -8.5,
 "home": "CLE",
@@ -18911,14 +18923,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-6.5,
+6.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 229.5,
 "total_odds": [
 null,
 null
@@ -18930,8 +18942,14 @@ null
 0.6774,
 0.3226
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4676,
+0.5324
+],
+"total": [
+0.5311,
+0.4689
+]
 },
 "fair_spread": 5.5,
 "home": "WSH",
@@ -19049,14 +19067,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-6.5,
+6.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 230.5,
 "total_odds": [
 null,
 null
@@ -19068,8 +19086,14 @@ null
 0.5525,
 0.4475
 ],
-"spread": null,
-"total": null
+"spread": [
+0.341,
+0.659
+],
+"total": [
+0.3897,
+0.6103
+]
 },
 "fair_spread": 1.6,
 "home": "BKN",
@@ -19329,13 +19353,13 @@ null
 -2.5
 ],
 "spread_odds": [
--111,
--113
+-113,
+-111
 ],
 "total": 228.5,
 "total_odds": [
 -100,
--8991
+-108
 ]
 },
 "date": "2026-11-16",
@@ -19469,14 +19493,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+-3.5,
+3.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
 null,
 null
@@ -19488,8 +19512,14 @@ null
 0.6743,
 0.3257
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5636,
+0.4364
+],
+"total": [
+0.7195,
+0.2805
+]
 },
 "fair_spread": 5.4,
 "home": "NO",
@@ -19607,14 +19637,14 @@ null,
 null
 ],
 "spread": [
-null,
-null
+12.5,
+-12.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 228.5,
 "total_odds": [
 null,
 null
@@ -19626,8 +19656,14 @@ null
 0.293,
 0.707
 ],
-"spread": null,
-"total": null
+"spread": [
+0.6904,
+0.3096
+],
+"total": [
+0.43,
+0.57
+]
 },
 "fair_spread": -6.5,
 "home": "DEN",
