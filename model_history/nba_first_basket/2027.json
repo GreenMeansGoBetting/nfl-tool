@@ -16166,6 +16166,11 @@
     "thescore"
    ]
   },
+  "result": {
+   "scorer": "4251",
+   "team": "BOS",
+   "tip": "BOS"
+  },
   "tip_home": 0.548
  },
  "401909990": {
@@ -16527,7 +16532,7 @@
  "401909994": {
   "away": "ORL",
   "date": "2026-11-16",
-  "first_home": 0.467,
+  "first_home": 0.474,
   "home": "BOS",
   "jumpers": [
    [
@@ -16556,62 +16561,62 @@
    ],
    "4066320": [
     "Desmond Bane",
-    0.095,
+    0.094,
     null,
     false,
     null
    ],
    "4251": [
     "Paul George",
-    0.105,
+    0.112,
     null,
     false,
     null
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.1,
+    0.099,
     null,
     false,
     null
    ],
    "4397424": [
     "Neemias Queta",
-    0.07,
+    0.068,
     null,
     false,
     null
    ],
    "4432165": [
     "Jalen Suggs",
-    0.088,
+    0.087,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.14,
+    0.138,
     null,
     false,
     null
    ],
    "4683689": [
     "Jordan Walsh",
-    0.063,
+    0.064,
     null,
     false,
     null
    ],
    "4712849": [
     "Anthony Black",
-    0.089,
+    0.088,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.399
+  "tip_home": 0.42
  },
  "401909995": {
   "away": "CHI",
@@ -16878,7 +16883,7 @@
     null
    ]
   },
-  "tip_home": 0.432
+  "tip_home": 0.43
  },
  "401909998": {
   "away": "HOU",
@@ -16961,13 +16966,13 @@
    ],
    "6475": [
     "Klay Thompson",
-    0.077,
+    0.076,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.54
+  "tip_home": 0.539
  },
  "401909999": {
   "away": "POR",
@@ -17008,7 +17013,7 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.086,
+    0.087,
     null,
     false,
     null
@@ -17056,7 +17061,7 @@
     null
    ]
   },
-  "tip_home": 0.378
+  "tip_home": 0.377
  },
  "401910000": {
   "away": "GS",
@@ -17275,7 +17280,7 @@
    ],
    "3147657": [
     "Mikal Bridges",
-    0.072,
+    0.071,
     1100,
     false,
     "hard_rock"
@@ -17323,7 +17328,7 @@
     "hard_rock"
    ]
   },
-  "tip_home": 0.559
+  "tip_home": 0.56
  },
  "401910003": {
   "away": "POR",
@@ -17364,7 +17369,7 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.086,
+    0.087,
     null,
     false,
     null
@@ -17412,7 +17417,7 @@
     null
    ]
   },
-  "tip_home": 0.378
+  "tip_home": 0.377
  },
  "401910004": {
   "away": "DET",

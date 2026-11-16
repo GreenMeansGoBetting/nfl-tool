@@ -23250,11 +23250,11 @@
     "Zach LaVine",
     "SAC",
     "OKC",
-    -0.064,
+    -0.0648,
     "under",
     false,
     18.5,
-    -132,
+    -114,
     "4cx"
    ],
    [
@@ -23262,23 +23262,23 @@
     "Domantas Sabonis",
     "SAC",
     "OKC",
-    -0.1954,
+    -0.1952,
     "under",
     true,
     13.5,
-    -122,
-    "fanduel"
+    -111,
+    "4cx"
    ],
    [
     "4066262",
     "Malik Monk",
     "SAC",
     "OKC",
-    -0.081,
+    -0.082,
     "under",
     false,
-    10.5,
-    100,
+    13.5,
+    -113,
     "fanduel"
    ],
    [
@@ -23286,7 +23286,7 @@
     "Isaiah Hartenstein",
     "OKC",
     "SAC",
-    0.2551,
+    0.2562,
     "over",
     true,
     9.5,
@@ -23298,11 +23298,11 @@
     "Jared McCain",
     "OKC",
     "SAC",
-    0.0677,
+    0.0662,
     "over",
     false,
     14.5,
-    105,
+    109,
     "4cx"
    ],
    [
@@ -23310,12 +23310,12 @@
     "Darius Acuff Jr.",
     "SAC",
     "OKC",
-    -0.0887,
+    -0.089,
     "under",
     false,
     26.5,
-    -125,
-    "fanduel"
+    -111,
+    "betmgm"
    ]
   ],
   "threes": [
@@ -23324,7 +23324,7 @@
     "Zach LaVine",
     "SAC",
     "OKC",
-    0.0894,
+    0.086,
     "over",
     false,
     2.5,
@@ -23336,23 +23336,23 @@
     "Kenrich Williams",
     "OKC",
     "SAC",
-    0.0789,
+    0.0771,
     "over",
     false,
     1.5,
-    105,
-    "4cx"
+    115,
+    "betmgm"
    ],
    [
     "4683778",
     "Jared McCain",
     "OKC",
     "SAC",
-    0.1817,
+    0.1778,
     "over",
     true,
     2.5,
-    128,
+    123,
     "draftkings"
    ],
    [
@@ -23360,7 +23360,7 @@
     "Ajay Mitchell",
     "OKC",
     "SAC",
-    0.0782,
+    0.0769,
     "over",
     false,
     1.5,
