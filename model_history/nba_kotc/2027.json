@@ -10087,7 +10087,7 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1876,
+    "lead": 0.1877,
     "name": "Giannis Antetokounmpo",
     "proj": 45.4,
     "team": "MIA"
@@ -10136,7 +10136,7 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0305,
+    "lead": 0.0306,
     "name": "Tyrese Maxey",
     "proj": 34.8,
     "team": "PHI"
@@ -10192,7 +10192,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0075,
+    "lead": 0.0076,
     "name": "Michael Porter Jr.",
     "proj": 30.6,
     "team": "BKN"
@@ -10206,9 +10206,9 @@
    },
    {
     "id": "3202",
-    "lead": 0.007,
+    "lead": 0.0068,
     "name": "Kevin Durant",
-    "proj": 30.2,
+    "proj": 30.1,
     "team": "HOU"
    },
    {
@@ -10227,14 +10227,14 @@
    },
    {
     "id": "4278053",
-    "lead": 0.0046,
+    "lead": 0.0044,
     "name": "Davion Mitchell",
-    "proj": 28.0,
+    "proj": 27.9,
     "team": "MIA"
    },
    {
     "id": "3992",
-    "lead": 0.0042,
+    "lead": 0.0043,
     "name": "James Harden",
     "proj": 28.6,
     "team": "CLE"
@@ -10276,7 +10276,7 @@
    },
    {
     "id": "4903027",
-    "lead": 0.0022,
+    "lead": 0.0023,
     "name": "Cedric Coward",
     "proj": 27.5,
     "team": "MEM"
