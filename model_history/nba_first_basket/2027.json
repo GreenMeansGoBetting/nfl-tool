@@ -16470,13 +16470,6 @@
     false,
     "bet365"
    ],
-   "4065732": [
-    "De'Andre Hunter",
-    0.084,
-    1100,
-    false,
-    "bet365"
-   ],
    "4222252": [
     "Isaiah Hartenstein",
     0.102,
@@ -16493,14 +16486,21 @@
    ],
    "4395650": [
     "Leaky Black",
-    0.081,
+    0.086,
+    null,
+    false,
+    null
+   ],
+   "4433174": [
+    "Dylan Cardwell",
+    0.072,
     null,
     false,
     null
    ],
    "4594327": [
     "Keegan Murray",
-    0.094,
+    0.098,
     1100,
     true,
     "hard_rock"
@@ -16521,7 +16521,7 @@
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.114,
+    0.119,
     1000,
     true,
     "bet365"
