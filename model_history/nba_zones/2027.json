@@ -23417,8 +23417,8 @@
     "over",
     false,
     7.5,
-    100,
-    "caesars"
+    -104,
+    "fanduel"
    ],
    [
     "4251",
@@ -23491,8 +23491,8 @@
     "over",
     false,
     2.5,
-    140,
-    "caesars"
+    144,
+    "fanduel"
    ],
    [
     "4066320",
@@ -23515,8 +23515,8 @@
     "over",
     false,
     2.5,
-    -104,
-    "fanduel"
+    -105,
+    "caesars"
    ],
    [
     "4566434",
@@ -23528,7 +23528,7 @@
     true,
     1.5,
     -115,
-    "draftkings"
+    "fanatics"
    ],
    [
     "4702382",
@@ -23551,8 +23551,118 @@
  },
  "401909996": {
   "date": "2026-11-16",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4433083",
+    "Cam Spencer",
+    "MEM",
+    "WSH",
+    -0.1191,
+    "under",
+    false,
+    11.5,
+    100,
+    "fanduel"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "WSH",
+    -0.0804,
+    "under",
+    false,
+    15.5,
+    -108,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "MEM",
+    -0.1461,
+    "under",
+    true,
+    2.5,
+    -172,
+    "fanduel"
+   ],
+   [
+    "4433083",
+    "Cam Spencer",
+    "MEM",
+    "WSH",
+    -0.1921,
+    "under",
+    true,
+    1.5,
+    142,
+    "fanduel"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "WSH",
+    -0.1803,
+    "under",
+    true,
+    1.5,
+    124,
+    "fanduel"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "WSH",
+    -0.1329,
+    "under",
+    true,
+    1.5,
+    104,
+    "fanduel"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "WSH",
+    -0.1501,
+    "under",
+    true,
+    2.5,
+    -215,
+    "fanduel"
+   ],
+   [
+    "5174563",
+    "Kyshawn George",
+    "WSH",
+    "MEM",
+    -0.2071,
+    "under",
+    true,
+    2.5,
+    -192,
+    "fanduel"
+   ],
+   [
+    "6583",
+    "Anthony Davis",
+    "WSH",
+    "MEM",
+    -0.1097,
+    "under",
+    false,
+    0.5,
+    -115,
+    "fanatics"
+   ]
+  ]
  },
  "401909997": {
   "date": "2026-11-16",
@@ -23566,7 +23676,7 @@
     "under",
     true,
     21.5,
-    -106,
+    -104,
     "fanduel"
    ],
    [
@@ -23632,18 +23742,6 @@
     "fanduel"
    ],
    [
-    "4431678",
-    "Tyrese Maxey",
-    "PHI",
-    "BKN",
-    0.0807,
-    "over",
-    false,
-    2.5,
-    -115,
-    "fanatics"
-   ],
-   [
     "5101761",
     "Mikel Brown Jr.",
     "BKN",
@@ -23652,7 +23750,7 @@
     "under",
     true,
     1.5,
-    116,
+    110,
     "fanduel"
    ],
    [
@@ -23784,8 +23882,8 @@
     "under",
     false,
     12.5,
-    -125,
-    "caesars"
+    -118,
+    "fanduel"
    ],
    [
     "4066211",
@@ -23820,7 +23918,7 @@
     "under",
     true,
     11.5,
-    -104,
+    -102,
     "fanduel"
    ],
    [
@@ -23857,7 +23955,7 @@
     false,
     7.5,
     -120,
-    "fanduel"
+    "caesars"
    ],
    [
     "5105565",
@@ -23918,7 +24016,7 @@
     "under",
     true,
     2.5,
-    -148,
+    -152,
     "fanduel"
    ],
    [
@@ -23954,7 +24052,7 @@
     "under",
     true,
     1.5,
-    120,
+    122,
     "fanduel"
    ],
    [
@@ -24007,8 +24105,8 @@
     "over",
     false,
     12.5,
-    -118,
-    "fanduel"
+    -116,
+    "draftkings"
    ],
    [
     "4395628",
@@ -24031,8 +24129,8 @@
     "over",
     false,
     17.5,
-    -115,
-    "fanatics"
+    -111,
+    "draftkings"
    ],
    [
     "4897262",
@@ -24043,11 +24141,24 @@
     "over",
     false,
     7.5,
-    100,
+    -102,
     "fanduel"
    ]
   ],
-  "threes": []
+  "threes": [
+   [
+    "4277813",
+    "Herbert Jones",
+    "NO",
+    "GS",
+    0.1506,
+    "over",
+    true,
+    1.5,
+    160,
+    "caesars"
+   ]
+  ]
  },
  "401910001": {
   "date": "2026-11-16",
