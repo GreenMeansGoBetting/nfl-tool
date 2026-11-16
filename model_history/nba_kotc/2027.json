@@ -10080,49 +10080,49 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2483,
+    "lead": 0.248,
     "name": "Nikola Jokic",
     "proj": 48.0,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.1775,
+    "lead": 0.1772,
     "name": "Giannis Antetokounmpo",
     "proj": 45.0,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.0966,
+    "lead": 0.0985,
     "name": "Jayson Tatum",
-    "proj": 41.0,
+    "proj": 41.1,
     "team": "BOS"
    },
    {
     "id": "4871144",
-    "lead": 0.074,
+    "lead": 0.0739,
     "name": "Alperen Sengun",
     "proj": 39.2,
     "team": "HOU"
    },
    {
     "id": "3936299",
-    "lead": 0.0695,
+    "lead": 0.0694,
     "name": "Jamal Murray",
     "proj": 39.1,
     "team": "DEN"
    },
    {
     "id": "4566434",
-    "lead": 0.0609,
+    "lead": 0.0607,
     "name": "Franz Wagner",
     "proj": 38.5,
     "team": "ORL"
    },
    {
     "id": "6583",
-    "lead": 0.043,
+    "lead": 0.0428,
     "name": "Anthony Davis",
     "proj": 36.7,
     "team": "WSH"
@@ -10136,14 +10136,14 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0282,
+    "lead": 0.028,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
    },
    {
     "id": "3908809",
-    "lead": 0.0247,
+    "lead": 0.0245,
     "name": "Donovan Mitchell",
     "proj": 34.4,
     "team": "CLE"
@@ -10157,7 +10157,7 @@
    },
    {
     "id": "3917376",
-    "lead": 0.0119,
+    "lead": 0.0118,
     "name": "Jaylen Brown",
     "proj": 30.9,
     "team": "PHI"
@@ -10234,9 +10234,9 @@
    },
    {
     "id": "4251",
-    "lead": 0.0054,
+    "lead": 0.0055,
     "name": "Paul George",
-    "proj": 29.8,
+    "proj": 29.9,
     "team": "BOS"
    },
    {
@@ -10248,7 +10248,7 @@
    },
    {
     "id": "3992",
-    "lead": 0.0031,
+    "lead": 0.003,
     "name": "James Harden",
     "proj": 28.6,
     "team": "CLE"
@@ -10261,18 +10261,18 @@
     "team": "MIN"
    },
    {
-    "id": "5144091",
-    "lead": 0.0027,
-    "name": "Jeremiah Fears",
-    "proj": 27.2,
-    "team": "NO"
-   },
-   {
     "id": "4903027",
     "lead": 0.0026,
     "name": "Cedric Coward",
     "proj": 27.2,
     "team": "MEM"
+   },
+   {
+    "id": "5144091",
+    "lead": 0.0026,
+    "name": "Jeremiah Fears",
+    "proj": 27.2,
+    "team": "NO"
    },
    {
     "id": "6606",
@@ -10290,7 +10290,7 @@
    },
    {
     "id": "2595516",
-    "lead": 0.0019,
+    "lead": 0.0018,
     "name": "Norman Powell",
     "proj": 26.6,
     "team": "CHI"
@@ -10341,7 +10341,7 @@
     "id": "4066320",
     "lead": 0.0009,
     "name": "Desmond Bane",
-    "proj": 23.2,
+    "proj": 23.3,
     "team": "ORL"
    },
    {
