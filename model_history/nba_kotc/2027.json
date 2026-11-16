@@ -10505,16 +10505,16 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4594,
+    "lead": 0.46,
     "name": "Luka Doncic",
     "proj": 54.6,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2167,
+    "lead": 0.2149,
     "name": "Victor Wembanyama",
-    "proj": 46.6,
+    "proj": 46.5,
     "team": "SA"
    },
    {
@@ -10533,21 +10533,21 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0501,
+    "lead": 0.0502,
     "name": "Jalen Brunson",
     "proj": 36.9,
     "team": "NY"
    },
    {
     "id": "4433134",
-    "lead": 0.0343,
+    "lead": 0.0345,
     "name": "Scottie Barnes",
     "proj": 35.0,
     "team": "TOR"
    },
    {
     "id": "4683021",
-    "lead": 0.0316,
+    "lead": 0.0319,
     "name": "Deni Avdija",
     "proj": 34.9,
     "team": "POR"
@@ -10568,9 +10568,9 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0113,
+    "lead": 0.0116,
     "name": "Darius Garland",
-    "proj": 31.0,
+    "proj": 31.1,
     "team": "LAC"
    },
    {
@@ -10617,7 +10617,7 @@
    },
    {
     "id": "4395724",
-    "lead": 0.0024,
+    "lead": 0.0025,
     "name": "Immanuel Quickley",
     "proj": 26.1,
     "team": "TOR"
@@ -10717,7 +10717,7 @@
     "id": "4066648",
     "lead": 0.0001,
     "name": "Rui Hachimura",
-    "proj": 20.1,
+    "proj": 20.0,
     "team": "LAC"
    },
    {
@@ -10787,7 +10787,7 @@
     "id": "4065778",
     "lead": 0.0,
     "name": "Max Strus",
-    "proj": 17.1,
+    "proj": 17.2,
     "team": "LAC"
    },
    {
@@ -10798,18 +10798,18 @@
     "team": "TOR"
    },
    {
+    "id": "4395630",
+    "lead": 0.0,
+    "name": "Devin Vassell",
+    "proj": 16.8,
+    "team": "SA"
+   },
+   {
     "id": "4431736",
     "lead": 0.0,
     "name": "Toumani Camara",
     "proj": 16.8,
     "team": "POR"
-   },
-   {
-    "id": "4395630",
-    "lead": 0.0,
-    "name": "Devin Vassell",
-    "proj": 16.7,
-    "team": "SA"
    },
    {
     "id": "4278580",
