@@ -16832,16 +16832,9 @@
    ]
   ],
   "players": {
-   "1966": [
-    "LeBron James",
-    0.087,
-    800,
-    false,
-    "bet365"
-   ],
    "3059318": [
     "Joel Embiid",
-    0.1,
+    0.104,
     500,
     false,
     "hard_rock"
@@ -16853,9 +16846,16 @@
     false,
     "draftkings"
    ],
+   "3912848": [
+    "Dean Wade",
+    0.076,
+    1750,
+    true,
+    "hard_rock"
+   ],
    "3917376": [
     "Jaylen Brown",
-    0.12,
+    0.122,
     600,
     false,
     "bet365"
@@ -16869,7 +16869,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.107,
+    0.111,
     630,
     false,
     "draftkings"
@@ -16890,7 +16890,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.087,
+    0.09,
     1000,
     false,
     "fanduel"
@@ -17989,23 +17989,23 @@
    ]
   ],
   "players": {
-   "1966": [
-    "LeBron James",
-    0.082,
+   "3059318": [
+    "Joel Embiid",
+    0.097,
     null,
     false,
     null
    ],
-   "3059318": [
-    "Joel Embiid",
-    0.094,
+   "3912848": [
+    "Dean Wade",
+    0.071,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.113,
+    0.114,
     null,
     false,
     null
@@ -18026,7 +18026,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.101,
+    0.104,
     null,
     false,
     null
@@ -18054,7 +18054,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.082,
+    0.084,
     null,
     false,
     null
