@@ -17341,9 +17341,9 @@
    "3934672": [
     "Jalen Brunson",
     0.131,
-    470,
+    575,
     false,
-    "fanduel"
+    "bet365"
    ],
    "3934719": [
     "OG Anunoby",
@@ -17355,9 +17355,9 @@
    "4395625": [
     "RJ Barrett",
     0.1,
-    730,
+    750,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4395724": [
     "Immanuel Quickley",
@@ -17383,7 +17383,7 @@
    "5093267": [
     "Collin Murray-Boyles",
     0.088,
-    850,
+    840,
     false,
     "draftkings"
    ]
@@ -17409,16 +17409,16 @@
    "3032976": [
     "Rudy Gobert",
     0.078,
-    770,
+    800,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4397002": [
     "Ayo Dosunmu",
     0.083,
-    750,
+    900,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4431671": [
     "Jaden McDaniels",
@@ -17444,9 +17444,9 @@
    "4683021": [
     "Deni Avdija",
     0.134,
-    600,
+    650,
     false,
-    "draftkings"
+    "bet365"
    ],
    "5081727": [
     "Sidy Cissoko",
@@ -17686,7 +17686,7 @@
     0.09,
     750,
     false,
-    "draftkings"
+    "thescore"
    ],
    "4065663": [
     "Josh Okogie",
@@ -17735,7 +17735,7 @@
     0.092,
     850,
     false,
-    "bet365"
+    "fanduel"
    ]
   },
   "tip_home": 0.5
@@ -17770,16 +17770,16 @@
     false,
     null
    ],
-   "4065733": [
-    "Ty Jerome",
-    0.106,
+   "4066328": [
+    "Jarrett Allen",
+    0.104,
     null,
     false,
     null
    ],
-   "4066328": [
-    "Jarrett Allen",
-    0.104,
+   "4433083": [
+    "Cam Spencer",
+    0.088,
     null,
     false,
     null
@@ -17793,21 +17793,21 @@
    ],
    "4600663": [
     "Zach Edey",
-    0.096,
+    0.1,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.081,
+    0.085,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.108,
+    0.113,
     null,
     false,
     null
@@ -17821,7 +17821,7 @@
    ],
    "5112087": [
     "Jaylen Wells",
-    0.08,
+    0.084,
     null,
     false,
     null
@@ -18025,21 +18025,21 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.079,
+    0.086,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.091,
+    0.1,
     null,
     false,
     null
    ],
-   "3917376": [
-    "Jaylen Brown",
-    0.108,
+   "3912848": [
+    "Dean Wade",
+    0.073,
     null,
     false,
     null
@@ -18060,7 +18060,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.102,
+    0.114,
     null,
     false,
     null
@@ -18088,7 +18088,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.078,
+    0.086,
     null,
     false,
     null
@@ -18379,13 +18379,6 @@
    ]
   ],
   "players": {
-   "2490149": [
-    "CJ McCollum",
-    0.09,
-    null,
-    false,
-    null
-   ],
    "3133626": [
     "Kenrich Williams",
     0.086,
@@ -18402,7 +18395,7 @@
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
-    0.099,
+    0.101,
     null,
     false,
     null
@@ -18414,9 +18407,16 @@
     false,
     null
    ],
+   "4397020": [
+    "Luguentz Dort",
+    0.082,
+    null,
+    false,
+    null
+   ],
    "4431680": [
     "Onyeka Okongwu",
-    0.081,
+    0.083,
     null,
     false,
     null
@@ -18430,14 +18430,14 @@
    ],
    "4701230": [
     "Jalen Johnson",
-    0.103,
+    0.105,
     null,
     false,
     null
    ],
    "4869342": [
     "Dyson Daniels",
-    0.083,
+    0.085,
     null,
     false,
     null
@@ -18818,13 +18818,6 @@
    ]
   ],
   "players": {
-   "4065733": [
-    "Ty Jerome",
-    0.126,
-    null,
-    false,
-    null
-   ],
    "4066436": [
     "De'Anthony Melton",
     0.083,
@@ -18832,9 +18825,16 @@
     false,
     null
    ],
+   "4433083": [
+    "Cam Spencer",
+    0.104,
+    null,
+    false,
+    null
+   ],
    "4600663": [
     "Zach Edey",
-    0.113,
+    0.118,
     null,
     false,
     null
@@ -18848,7 +18848,7 @@
    ],
    "4903027": [
     "Cedric Coward",
-    0.096,
+    0.101,
     null,
     false,
     null
@@ -18862,14 +18862,14 @@
    ],
    "5041935": [
     "Cameron Boozer",
-    0.127,
+    0.134,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.095,
+    0.1,
     null,
     false,
     null
