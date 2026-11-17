@@ -4,8 +4,9 @@ data download they rely on (tools/fetch_live_data.py).
 Nobody but the owner can read the repo's Actions page, so these can't be
 debugged from a log: they are pinned here instead.
 
-What is pinned: every push to main runs the whole deploy (every test, every
-sport built, every page checked), and a failed NBA or NHL build has its live
+What is pinned: every push to main runs the deploy (every page checked; a
+push that changed only one sport's own files runs that sport's tests and
+every test that names it, anything shared runs every test), and a failed NBA or NHL build has its live
 data put back instead of publishing without it; the hockey-only refresh never
 publishes over a full rebuild, never publishes code that isn't live, and
 never publishes a folder with a live data file missing; every publish is
@@ -106,6 +107,49 @@ class FileSizes(unittest.TestCase):
     def test_the_deploy_runs_it_right_before_the_upload(self):
         steps = re.findall(r"- name: (.+)", (ROOT / ".github/workflows/deploy.yml").read_text(encoding="utf-8"))
         self.assertEqual(steps[steps.index("Deploy to Cloudflare Pages") - 1], "Check file sizes for Cloudflare")
+
+
+class TestLane(unittest.TestCase):
+    """Which tests a push runs (ci_steps.test_plan, run_tests.py --deploy).
+    The owner, 2026-11-17, after an NBA-only push ran every sport's tests:
+    "IF I MAKE AN NBA CHANGE JUST DONT TOUCH NHL"."""
+
+    def test_one_sports_own_files_run_only_that_sport(self):
+        nba = ["nfl_tool/nba/kotc.py", "nfl_tool/site/nba/kotc.js", "nfl_tool/site/nba/promo-tools.html", "tests/test_nba_kotc.py",
+               ".claude/rules/nba.md", "CLAUDE.md", "model_history/nba_kotc/2027.json"]
+        self.assertEqual(ci_steps.test_plan("push", nba)[0], "nba")
+        self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/site/nhl/nhl.css", "nfl_tool/nhl/goals_model.py"])[0], "nhl")
+        self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/nhl/build_nhl.py", "nfl_tool/nba/build_nba.py"])[0], "nba nhl")
+        self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/gmg_model.py"])[0], "nfl")
+
+    def test_shared_files_and_non_pushes_run_every_test(self):
+        for path in ("nfl_tool/site/sync.js", "nfl_tool/site/style.css", "nfl_tool/site/common.js", "nfl_tool/site/app.js",
+                     "nfl_tool/functions/_middleware.js", "tools/run_tests.py", ".github/workflows/deploy.yml", "tests/helpers.py",
+                     "tests/fixtures/nba_box_games.csv.gz", "nfl_tool/smartstake.py", "tests/test_my_plays_site.py"):
+            self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/site/nba/kotc.js", path])[0], "all", path)
+        self.assertEqual(ci_steps.test_plan("schedule", ["nfl_tool/site/nba/kotc.js"])[0], "all")
+        self.assertEqual(ci_steps.test_plan("push", None)[0], "all")
+        self.assertEqual(ci_steps.test_plan("push", ["CLAUDE.md"])[0], "all")
+
+    def test_a_sports_tests_include_every_test_that_names_it(self):
+        """The top menu, My Plays, settings ... open NBA / NHL pages under
+        NFL-style names: an NBA push runs them, a pure NFL test it skips."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools"))
+        import run_tests
+        tests = ROOT / "tests"
+        pick = lambda name, sports: run_tests.wanted(tests / name, "all", sports)  # noqa: E731
+        self.assertTrue(pick("test_nba_kotc.py", ["nba"]))
+        self.assertFalse(pick("test_nhl_goals.py", ["nba"]))
+        self.assertFalse(pick("test_nhl_site.py", ["nba"]))  # says "NBA" in its text, still hockey's own
+        self.assertFalse(pick("test_grid_headers.py", ["nba"]))  # "NBA" only in a comment
+        for shared in ("test_header_site.py", "test_sport_hosts.py", "test_time_zone_site.py"):
+            self.assertTrue(pick(shared, ["nba"]), shared)
+            self.assertTrue(pick(shared, ["nhl"]), shared)
+        self.assertFalse(pick("test_gmg_model.py", ["nba"]))
+        self.assertTrue(pick("test_gmg_model.py", ["nfl"]))
+        self.assertTrue(pick("test_gmg_model.py", ["all"]))
+        self.assertTrue(pick("test_ci_steps.py", ["all"]))
 
 
 class FastLane(unittest.TestCase):
@@ -747,10 +791,10 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertNotIn("Refresh NHL lineups", self.check)
 
     def test_every_push_to_main_runs_the_deploy(self):
-        """Since 2026-10-15 (the repo is public, build minutes are free): no
-        folder filter, no per-sport plan, every test and every page checked
-        on every run. A folder filter once left a fix to a failed deploy
-        unpublished, and a per-sport test list once failed a deploy."""
+        """Since 2026-10-15: no folder filter and every page checked on every
+        run. A folder filter once left a fix to a failed deploy unpublished.
+        The tests are the lane's (2026-11-17), read from the test files, never
+        a hand-kept list (one once failed a deploy)."""
         trigger = self.deploy.split("permissions:")[0]
         self.assertIn("  push:\n    branches: [main]\n", trigger)
         # The one exception (the owner, 2026-10-21): a push of ONLY the SmartStake
@@ -761,7 +805,10 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertEqual(ignored, ["tools/smartstake_probe.py", "tools/smartstake_probe_result.json", ".github/workflows/smartstake-probe.yml"])
         for gone in ("steps.plan", "ci_steps.py plan", "SCOPE", "HOUSEKEEPING", "Reuse the live"):
             self.assertNotIn(gone, self.deploy)
-        self.assertIn('python tools/run_tests.py || { echo "Retrying once..."; sleep 5; python tools/run_tests.py; }', self.deploy)
+        self.assertIn('python tools/run_tests.py --deploy "$TESTS" || { echo "Retrying once..."; sleep 5; python tools/run_tests.py --deploy "$TESTS"; }', self.deploy)
+        self.assertIn("TESTS: ${{ steps.lane.outputs.tests || 'all' }}", self.deploy)
+        # The lane is chosen before the tests, which read it.
+        self.assertLess(self.deploy.index("- name: Choose the lane"), self.deploy.index("- name: Run the tests"))
         self.assertIn('python tools/check_site.py --gate || { echo "Retrying once..."; sleep 5; python tools/check_site.py --gate; }', self.deploy)
         steps = {block.splitlines()[0].strip(): block for block in self.deploy.split("      - name: ")[1:]}
         for always in ("Run the tests", "Choose the lane", "Check the site before it goes live",
@@ -798,8 +845,9 @@ class WorkflowsInStep(unittest.TestCase):
         self.assertIn("python tools/fetch_live_data.py --only $LIVE --need $LIVE", live)
         self.assertIn("DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}", live)
         self.assertIn("id: lane", steps["Choose the lane"])
-        self.assertLess(names.index("Run the tests"), names.index("Choose the lane"))
-        self.assertEqual(names.index(live_name), names.index("Choose the lane") + 1)
+        # The lane first (it names the tests, 2026-11-17), then the tests, then the live data.
+        self.assertEqual(names.index("Run the tests"), names.index("Choose the lane") + 1)
+        self.assertEqual(names.index(live_name), names.index("Run the tests") + 1)
         self.assertLess(names.index(live_name), names.index("Build stats"))
         self.assertIn("LANE: ${{ steps.lane.outputs.lane }}", steps["Note the run in version.json"])
 

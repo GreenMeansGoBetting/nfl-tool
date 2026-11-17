@@ -248,6 +248,40 @@ def build_plan(event, changed, gitignore=None):
     return sports, "rebuilding " + ", ".join(f"{s.upper()} ({build[s]})" for s in sports)
 
 
+# Which TESTS a push runs (2026-11-17, the owner after an NBA-only push spent
+# 4 minutes on every sport's tests: "IF I MAKE AN NBA CHANGE JUST DONT TOUCH
+# NHL"). A file only one sport uses runs that sport's tests (run_tests.py
+# --deploy: its own test files plus every other test that mentions it, read
+# from the files, no hand-kept list). Notes change nothing. Anything shared
+# (site/ root files like sync.js / style.css / common.js, the login code,
+# tools/, workflows, tests/helpers, fixtures) or unknown runs every test.
+TEST_SPORT = (
+    ("nfl_tool/nba/", "nba"), ("nfl_tool/site/nba/", "nba"), ("tests/test_nba_", "nba"), ("model_history/nba_", "nba"),
+    ("nfl_tool/nhl/", "nhl"), ("nfl_tool/site/nhl/", "nhl"), ("tests/test_nhl_", "nhl"), ("model_history/nhl_", "nhl"),
+    ("nfl_tool/build_stats.py", "nfl"), ("nfl_tool/gmg_model.py", "nfl"), ("nfl_tool/line_grades.py", "nfl"),
+    ("nfl_tool/best_plays_record.py", "nfl"), ("model_history/nfl_", "nfl"), ("model_history/gmg_model", "nfl"),
+)
+TEST_NONE = ("docs/", ".claude/", "CLAUDE.md", "README.md")
+
+
+def test_plan(event, changed):
+    """("all" or "nba" / "nba nhl" ..., why): the tests the deploy runs."""
+    if event != "push" or not changed:
+        return "all", "not a push, or couldn't tell what changed"
+    sports = set()
+    for path in changed:
+        if path.startswith(TEST_NONE):
+            continue
+        sport = next((s for prefix, s in TEST_SPORT if path.startswith(prefix)), None)
+        if sport is None:
+            return "all", f"a shared file changed ({path})"
+        sports.add(sport)
+    if not sports:
+        return "all", "only notes changed"
+    keep = [s for s in SPORTS if s in sports]
+    return " ".join(keep), "only " + ", ".join(s.upper() for s in keep) + " files changed"
+
+
 def lane_decision(event, changed, gitignore=None):
     """("pages", "full" or "partial", why): what version.json's "lane" says."""
     sports, why = build_plan(event, changed, gitignore)
@@ -261,8 +295,9 @@ def cmd_lane(args):
     sports, why = build_plan(event, changed, gitignore)
     lane, _ = lane_decision(event, changed, gitignore)
     # build: the sports to rebuild; live: the ones published with their live data.
-    output(lane=lane, build=" ".join(sports), live=" ".join(s for s in SPORTS if s not in sports))
-    summary(f"Lane: {lane} ({why}).")
+    tests, tests_why = test_plan(event, changed)
+    output(lane=lane, build=" ".join(sports), live=" ".join(s for s in SPORTS if s not in sports), tests=tests)
+    summary(f"Lane: {lane} ({why}). Tests: {tests} ({tests_why}).")
     return 0
 
 

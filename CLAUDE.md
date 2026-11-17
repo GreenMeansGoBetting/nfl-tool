@@ -28,7 +28,8 @@ message, so every line costs usage); detail belongs in a rules file.
 2. `git pull --rebase` (a bot commits `model_history/` to main), then **commit and
    push to `main`**. GitHub Actions rebuilds and deploys automatically. No branches or pull requests.
 3. Confirm it's live with ONE look at `https://nfl.gmgsports.org/version.json` (public) about 7
-   minutes after the push (3 for pages / login code only): it shows the pushed `sha`. The deploy runs every test and
+   minutes after the push (3 for pages / login code only): it shows the pushed `sha`. The deploy rebuilds and tests only the sport a push changed
+   (anything shared: everything; members-and-hosting.md) and
    opens every page and Summary card (`check_site.py --gate`) before publishing, and puts the last
    version back if the live site is down after; if the sha never changes, the run failed: say so and look at why.
 4. Tell the user to hard refresh (Ctrl+Shift+R).

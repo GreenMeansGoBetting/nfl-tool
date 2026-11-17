@@ -177,9 +177,18 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   workflows and anything unknown = every sport. The lane step outputs `build` and `live`; the
   sports in `live` are downloaded (`fetch_live_data.py --only $LIVE --need $LIVE`), and if that
   fails every sport is built. `lane` in version.json: `pages` / `partial` / `full`. A test checks
-  the NBA / NHL builds import no root file except ones mapped to every sport. **Every test and the
-  gate still run on every push**: shared files (sync.js, style.css, the login code) load on every
-  sport's pages, so "it doesn't touch NHL" is not something the file list can promise.
+  the NBA / NHL builds import no root file except ones mapped to every sport. **The gate still
+  opens every page on every push.**
+- **Tests by lane (2026-11-17).** The owner, after an NBA-only push spent 4 minutes on every
+  sport's tests: "IF I MAKE AN NBA CHANGE JUST DONT TOUCH NHL. JUST LEAVE NHL AND NFL ALONE."
+  The lane step now runs BEFORE the tests and outputs `tests` (`ci_steps.test_plan`): a push whose
+  files are all one sport's own (`nfl_tool/nba/`, `site/nba/`, `tests/test_nba_*`,
+  `model_history/nba_*`; same for NHL; NFL = its build files) runs `run_tests.py --deploy nba`:
+  that sport's tests plus every shared test whose CODE reaches it (`nba/`, `"nba"`, `.nba`;
+  comments don't count), never another sport's own tests. Notes are ignored; any shared or unknown
+  file (site/ root files, the login code, tools/, workflows, tests/helpers, fixtures), a schedule
+  or "Run workflow" = every test. Nothing is hand-listed, so a new test file needs no registering
+  (the 2026-10-15 failure below). NBA-only: ~550 tests, ~1.5 min instead of ~4.
 
 - **Why** (2026-10-13 to 10-15 it was the other way): while the repo was private (2,000 free
   minutes a month) a push rebuilt, tested and browser-checked only the sport it changed, reused
@@ -188,7 +197,8 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   of each test's sport failed a deploy, and the fix touched only `tools/`, so no deploy ran. It
   also hid a bug (`smartstake.py` feeds the hockey build but counted as football-only). The
   owner approved the simple version: 3 to 4 more minutes per push for a deploy that always does
-  the same thing. Don't bring per-sport deploys back to save time.
+  the same thing. Builds (2026-10-22) and tests (2026-11-17) are per sport again at the owner's
+  word, but only from reading the files themselves: never a hand-kept list.
 - **`tools/ci_steps.py` holds the workflows' decisions** (tested in `tests/test_ci_steps.py`).
   Each run reports itself in the public `version.json`: `timing` (seconds per stage: `install`,
   `tests`, `nfl`, `nhl`, `gate`, `cloudflare`, `total`), `data` (NBA / NHL: `built`, `live copy`
@@ -199,7 +209,7 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   so the site is never published without a sport's data; version.json then shows `live copy`
   and that sport's `error` (the build log's last line) beside the older `built`.
 - `--only nfl|nba|nhl` on `run_tests.py` and `check_site.py` stays, for a local check while
-  working on one sport. The deploy never passes it. A new test file needs no registering.
+  working on one sport. The deploy uses `--deploy` instead (tests by lane, above).
 - **`.github/workflows/nhl-refresh.yml`: the hockey-only refresh.** Every half hour, at :17
   and :47 from 16:17 to 02:47 UTC, October to June, plus "Run workflow" on the Actions page and a push that edits the file.
   - **The clock is Cloudflare's, not GitHub's (2026-10-15).** GitHub's own timer was late or
