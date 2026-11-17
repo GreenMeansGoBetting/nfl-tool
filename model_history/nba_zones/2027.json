@@ -24540,5 +24540,493 @@
     "4cx"
    ]
   ]
+ },
+ "401910002": {
+  "date": "2026-11-17",
+  "points": [
+   [
+    "3134908",
+    "Jakob Poeltl",
+    "TOR",
+    "NY",
+    -0.2998,
+    "under",
+    true,
+    7.5,
+    -112,
+    "draftkings"
+   ],
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "TOR",
+    0.1272,
+    "over",
+    true,
+    20.5,
+    -116,
+    "prophetx"
+   ],
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "NY",
+    -0.0729,
+    "under",
+    false,
+    21.5,
+    -120,
+    "fanduel"
+   ],
+   [
+    "5093267",
+    "Collin Murray-Boyles",
+    "TOR",
+    "NY",
+    -0.1675,
+    "under",
+    true,
+    10.5,
+    -130,
+    "caesars"
+   ]
+  ],
+  "threes": [
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "TOR",
+    0.1437,
+    "over",
+    true,
+    0.5,
+    -180,
+    "prophetx"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "TOR",
+    0.0893,
+    "over",
+    false,
+    2.5,
+    120,
+    "prophetx"
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "TOR",
+    0.1117,
+    "over",
+    false,
+    2.5,
+    154,
+    "fanduel"
+   ]
+  ]
+ },
+ "401910003": {
+  "date": "2026-11-17",
+  "points": [
+   [
+    "3136196",
+    "Trey Lyles",
+    "MIN",
+    "POR",
+    -0.1046,
+    "under",
+    false,
+    5.5,
+    -110,
+    "draftkings"
+   ],
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "MIN",
+    -0.1091,
+    "under",
+    false,
+    12.5,
+    -104,
+    "caesars"
+   ],
+   [
+    "4066211",
+    "Robert Williams III",
+    "POR",
+    "MIN",
+    -0.0696,
+    "under",
+    false,
+    6.5,
+    -107,
+    "draftkings"
+   ],
+   [
+    "4397002",
+    "Ayo Dosunmu",
+    "MIN",
+    "POR",
+    -0.1673,
+    "under",
+    true,
+    17.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "MIN",
+    -0.1514,
+    "under",
+    true,
+    11.5,
+    102,
+    "fanduel"
+   ],
+   [
+    "4432816",
+    "LaMelo Ball",
+    "MIN",
+    "POR",
+    -0.1056,
+    "under",
+    false,
+    20.5,
+    106,
+    "4cx"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "POR",
+    -0.1746,
+    "under",
+    true,
+    10.5,
+    100,
+    "betmgm"
+   ],
+   [
+    "4592492",
+    "Bones Hyland",
+    "MIN",
+    "POR",
+    -0.1038,
+    "under",
+    false,
+    10.5,
+    -104,
+    "draftkings"
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "MIN",
+    -0.1387,
+    "under",
+    true,
+    10.5,
+    -117,
+    "draftkings"
+   ],
+   [
+    "5081727",
+    "Sidy Cissoko",
+    "POR",
+    "MIN",
+    -0.1277,
+    "under",
+    true,
+    6.5,
+    100,
+    "draftkings"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "MIN",
+    -0.0582,
+    "under",
+    false,
+    10.5,
+    -102,
+    "draftkings"
+   ],
+   [
+    "6606",
+    "Damian Lillard",
+    "POR",
+    "MIN",
+    -0.1137,
+    "under",
+    false,
+    20.5,
+    -101,
+    "4cx"
+   ]
+  ],
+  "threes": [
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "MIN",
+    -0.1469,
+    "under",
+    true,
+    2.5,
+    -196,
+    "fanduel"
+   ],
+   [
+    "4397002",
+    "Ayo Dosunmu",
+    "MIN",
+    "POR",
+    -0.1939,
+    "under",
+    true,
+    1.5,
+    -121,
+    "4cx"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "MIN",
+    -0.2563,
+    "under",
+    true,
+    2.5,
+    -142,
+    "fanduel"
+   ],
+   [
+    "4432816",
+    "LaMelo Ball",
+    "MIN",
+    "POR",
+    -0.1655,
+    "under",
+    true,
+    3.5,
+    -115,
+    "betmgm"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "POR",
+    -0.2205,
+    "under",
+    true,
+    1.5,
+    -155,
+    "betmgm"
+   ],
+   [
+    "4592492",
+    "Bones Hyland",
+    "MIN",
+    "POR",
+    -0.1745,
+    "under",
+    true,
+    1.5,
+    105,
+    "draftkings"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "MIN",
+    -0.2688,
+    "under",
+    true,
+    1.5,
+    114,
+    "fanduel"
+   ],
+   [
+    "5081727",
+    "Sidy Cissoko",
+    "POR",
+    "MIN",
+    -0.2261,
+    "under",
+    true,
+    1.5,
+    -185,
+    "betmgm"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "MIN",
+    0.0704,
+    "over",
+    false,
+    0.5,
+    -165,
+    "4cx"
+   ]
+  ]
+ },
+ "401910004": {
+  "date": "2026-11-17",
+  "points": [
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "DET",
+    -0.0721,
+    "under",
+    false,
+    13.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "SA",
+    -0.1301,
+    "under",
+    true,
+    12.5,
+    -110,
+    "fanduel"
+   ],
+   [
+    "4278562",
+    "Paul Reed",
+    "DET",
+    "SA",
+    -0.0573,
+    "under",
+    false,
+    11.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "4684742",
+    "Ausar Thompson",
+    "DET",
+    "SA",
+    -0.0818,
+    "under",
+    false,
+    10.5,
+    -122,
+    "fanduel"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "DET",
+    -0.0727,
+    "under",
+    false,
+    15.5,
+    -101,
+    "prophetx"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "SA",
+    -0.1015,
+    "under",
+    false,
+    14.5,
+    -127,
+    "caesars"
+   ]
+  ],
+  "threes": [
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "DET",
+    -0.1207,
+    "under",
+    true,
+    1.5,
+    103,
+    "draftkings"
+   ],
+   [
+    "5037871",
+    "Dylan Harper",
+    "SA",
+    "DET",
+    -0.2081,
+    "under",
+    true,
+    1.5,
+    -159,
+    "draftkings"
+   ],
+   [
+    "5104157",
+    "Victor Wembanyama",
+    "SA",
+    "DET",
+    -0.5083,
+    "under",
+    true,
+    1.5,
+    133,
+    "draftkings"
+   ]
+  ]
+ },
+ "401910005": {
+  "date": "2026-11-17",
+  "points": [],
+  "threes": [
+   [
+    "4278580",
+    "Sandro Mamukelashvili",
+    "LAL",
+    "CHA",
+    0.1259,
+    "over",
+    true,
+    1.5,
+    -115,
+    "fanatics"
+   ]
+  ]
+ },
+ "401910006": {
+  "date": "2026-11-17",
+  "points": [],
+  "threes": []
  }
 }
