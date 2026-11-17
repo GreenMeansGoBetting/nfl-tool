@@ -74,6 +74,9 @@ class Build(unittest.TestCase):
         self.assertEqual(chart["season"]["BOS"]["o_paint_share"], 0.41)
         self.assertEqual(chart["3"]["BOS"]["o_paint_share"], 0.45)
         self.assertGreater(chart["season"]["BOS"]["d_reb"], 0.5)  # its defensive rebound rate, not the opponents' offensive one
+        # the glass's volume: missed shots a game (88 tried - 40 made), its opponents' against it on d_
+        self.assertEqual(chart["season"]["BOS"]["o_miss"], 48.0)
+        self.assertEqual(chart["season"]["BOS"]["d_miss"], chart["season"]["NY"]["o_miss"])
 
 
 def chart_row(i, **kw):
@@ -143,7 +146,7 @@ class Page(unittest.TestCase):
 
     def test_every_stat_column_is_one_width(self):
         widths = PAGE.evaluate("() => [...document.querySelectorAll('.lsc-grid .od-glabels th.lsc-sort')].map((th) => th.offsetWidth)")
-        self.assertEqual(len(widths), 34)
+        self.assertEqual(len(widths), 36)  # + Misses / Opp Misses, the glass's volume (2026-11-17)
         self.assertEqual(len(set(widths)), 1, widths)
         heads = PAGE.evaluate("() => [...document.querySelectorAll('.lsc-grid .od-ggroups th')].map((th) => th.textContent.trim()).filter(Boolean)")
         self.assertEqual(heads, ["Offense", "Defense (Allowed)", "Game & Betting"])

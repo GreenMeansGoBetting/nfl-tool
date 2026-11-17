@@ -55,7 +55,7 @@ const WHO_TOPIC = {
   trans_freq: "transition", trans_ppp: "transition",
   "3pm": "threes", "3par": "threes", three_rate: "threes",
   paint_share: "paint", paint_pct: "paint", mid_share: "mid", mid_pct: "mid",
-  tov: "turnovers", tov_rate: "turnovers", reb: "glass", oreb_rate: "glass", ftr: "ft", fta_rate: "ft",
+  tov: "turnovers", tov_rate: "turnovers", reb: "glass", oreb_rate: "glass", miss: "glass", ftr: "ft", fta_rate: "ft",
 };
 const whoTopic = (key) => (key ? WHO_TOPIC[String(key).replace(/^[od]_/, "")] || null : null);
 // A clickable box: its topic and the ONE matchup it reads (the owner, 2026-11-09: "if im clicking on one

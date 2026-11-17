@@ -26,6 +26,8 @@ const KEY_TYPES = {
   trend: "Trend",
   volume: "Few Falling",
   untested: "Not Tested",
+  chances: "Rebound Chances",
+  fewChances: "Few Rebound Chances",
 };
 // The three groups the Matchup Keys page stacks them in (the owner, 2026-11-04: "sorted by their
 // moniker - edge, clash, and same style ... all fit into that category"). Fits is an Edge for the
@@ -34,7 +36,10 @@ const KEY_TYPES = {
 // ways (a Clash); Trend = both teams' games leaning one way. Strength Vs Strength was "Takes Away", a
 // defense Edge, until the owner, 2026-11-07: DEN 6th at getting to the line vs IND 9th at not allowing
 // it read "IND Edge" (each side points its own way, so neither has it; the both-sides rule).
-const KEY_GROUP = { edge: "edge", fits: "edge", strength: "clash", clash: "clash", untested: "clash", volume: "clash", style: "style", trend: "style" };
+// Rebound Chances is the defense's Edge (its glass has lots to grab); Few Rebound Chances is no one's
+// Edge, so it sits with the Clashes (not headlined; a "Few Misses" Read in Categories).
+const KEY_GROUP = { edge: "edge", fits: "edge", strength: "clash", clash: "clash", untested: "clash", volume: "clash", style: "style", trend: "style",
+  chances: "edge", fewChances: "clash" };
 // [key, topic, both the most, both the least, opposite ends (null: an Edge already says it)]
 const KEY_STYLE = [
   ["pace", "pace", "Both Play Fast", "Both Play Slow", "Fast Vs Slow"],
@@ -48,7 +53,13 @@ const KEY_STYLE = [
   ["o_trans_freq", "transition", "Both Run", "Neither Runs", "Transition: Opposite Ends"],
   ["o_tov", "turnovers", "Both Turn It Over", "Both Protect The Ball", null],
   ["o_reb", "glass", "Both Crash The Offensive Glass", "Neither Crashes The Offensive Glass", null],
+  ["d_reb", "glass", "Both Own The Defensive Glass", "Both Weak On The Defensive Glass", null],
 ];
+// Rebound Chances (2026-11-17, the owner: most boards are defensive, and they come from how much the
+// other team MISSES): [offense key, defense key]. The offense misses a lot a game AND the defense's
+// opponents miss a lot a game (one side top third, the other top half) = lots of defensive rebounds
+// there for the defense; the mirror = few. A volume call only: the rate is the Glass Edge's job.
+const KEY_CHANCES = ["o_miss", "d_miss"];
 // A team that does a lot of something whose makes rank KEY_GAP+ places worse.
 // [volume key, makes key, title]; d_ = its opponents (a cold streak that may turn).
 const KEY_GAP = 10;
@@ -197,6 +208,15 @@ function nbaMatchupKeys(table, away, home, top) {
       if (weak.length && hi(least(o, ok)))
         add("untested", `${d} ${title}`, d, tiles([...weak.map((dk) => [d, dk]), [o, ok]]), mean([...weak.map((dk) => far(d, dk)), far(o, ok)]), topic);
     });
+    // Rebound Chances: both sides of the misses point one way, one of them clearly (matchupCall's rule).
+    const [mo, md] = KEY_CHANCES, half = (k) => ranks(k).n / 2;
+    const toward = (by) => {
+      const ro = by(o, mo), rd = by(d, md);
+      return ro !== null && rd !== null && ((hi(ro) && rd <= half(md)) || (hi(rd) && ro <= half(mo)));
+    };
+    const ts = tiles([[o, mo], [d, md]]), score = mean([far(o, mo), far(d, md)]);
+    if (toward(most)) add("chances", `${d} Defense: Rebound Chances`, d, ts, score, "glass");
+    else if (toward(least)) add("fewChances", `${d} Defense: Few Rebound Chances`, d, ts, score, "glass");
   });
   keys.sort((a, b) => b.score - a.score);
   const seen = new Set();

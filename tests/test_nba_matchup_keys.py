@@ -94,12 +94,37 @@ class Rules(unittest.TestCase):
 
     def test_every_key_is_an_edge_a_clash_or_same_style(self):
         want = {"edge": "edge", "fits": "edge", "strength": "clash", "clash": "clash", "untested": "clash", "volume": "clash",
-                "style": "style", "trend": "style"}
+                "style": "style", "trend": "style", "chances": "edge", "fewChances": "clash"}
         for k in self.keys:
             self.assertEqual(k["group"], want[k["type"]], k["title"])
             if k["group"] == "edge":
                 # an Edge belongs to one team and reads as that side's
                 self.assertRegex(k["title"], rf"^{k['team']} (Offense|Defense): ")
+
+    def test_the_defensive_glass_reads_its_own_way(self):
+        # 2026-11-17, the owner: most boards are defensive, but the keys only ever read the offensive glass.
+        # Rebound Chances = the misses there to grab (both sides of it); Same Style on DREB% too.
+        table = {t: dict(row) for t, row in TABLE.items()}
+        order = sorted(table)
+        for i, t in enumerate(order):
+            table[t]["o_miss"], table[t]["d_miss"] = 40.0 + i / 10, 40.0 + i / 10
+        table["WSH"]["o_miss"], table["CHA"]["d_miss"] = 99.0, 99.0  # WSH misses the most, CHA's opponents miss the most
+        keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", table)
+        mine = [(k["title"], k["team"], k["group"], [x["key"] for x in k["tiles"]]) for k in keys if k["type"] in ("chances", "fewChances")]
+        self.assertIn(("CHA Defense: Rebound Chances", "CHA", "edge", ["o_miss", "d_miss"]), mine)
+        table["WSH"]["o_miss"], table["CHA"]["d_miss"] = 1.0, 1.0  # the fewest misses both ways
+        keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", table)
+        few = [(k["title"], k["group"]) for k in keys if k["type"] == "fewChances"]
+        self.assertIn(("CHA Defense: Few Rebound Chances", "clash"), few)
+        # one side clearly more, the other not pointing the other way: one alone is not enough
+        table["WSH"]["o_miss"], table["CHA"]["d_miss"] = 99.0, 1.0
+        keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", table)
+        self.assertFalse([k for k in keys if k["type"] in ("chances", "fewChances") and k["team"] == "CHA"])
+        # Same Style on the defensive glass
+        top = max(r["d_reb"] for r in table.values() if r.get("d_reb") is not None)
+        table["CHA"]["d_reb"], table["WSH"]["d_reb"] = top + 0.01, top + 0.02
+        keys = PAGE.evaluate("(t) => nbaMatchupKeys(t, 'CHA', 'WSH')", table)
+        self.assertIn("Both Own The Defensive Glass", [k["title"] for k in keys])
 
     def test_fits_is_the_offenses_edge_strength_vs_strength_a_clash(self):
         # WSH gets to the line, CHA allows it: written as WSH's Edge, never "Fits"

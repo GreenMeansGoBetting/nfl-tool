@@ -42,7 +42,7 @@ const MK_CATS = [
   ["paint", "Paint & Mid-Range", ["paint", "mid"], "o_paint_pct",
     [["Paint Share", "o_paint_share", "d_paint_share"], ["Paint FG%", "o_paint_pct", "d_paint_pct"], ["Mid-Range Share", "o_mid_share", "d_mid_share"], ["Mid-Range FG%", "o_mid_pct", "d_mid_pct"]]],
   ["turnovers", "Turnovers", ["turnovers"], "o_tov", [["Turnover %", "o_tov", "d_tov"]]],
-  ["glass", "Rebounding", ["glass"], "o_reb", [["Off Rebound %", "o_reb", "d_reb"]]],
+  ["glass", "Rebounding", ["glass"], "o_reb", [["Off Rebound %", "o_reb", "d_reb"], ["Misses", "o_miss", "d_miss"]]],
   ["ft", "Free Throws", ["ft"], "o_ftr", [["FT Rate", "o_ftr", "d_ftr"]]],
 ];
 // Pace & Total's two boxes: [title, rows [label, key, keys.js style key or null]].
@@ -52,11 +52,11 @@ const MK_PACE = [
 ];
 // A key's stat name (its offense number's; the OFF / DEF tag says whose side of the ball).
 const MK_LABEL = {
-  o_rtg: "Rating", d_rtg: "Rating", o_3pm: "3PM", o_3par: "3PA Rate", o_ftr: "FT Rate", o_tov: "Turnovers", o_reb: "Rebounding",
+  o_rtg: "Rating", d_rtg: "Rating", o_3pm: "3PM", o_3par: "3PA Rate", o_ftr: "FT Rate", o_tov: "Turnovers", o_reb: "Rebounding", d_reb: "Rebounding",o_miss: "Rebound Chances",
   o_paint_share: "Paint Share", o_paint_pct: "Paint FG%", o_mid_share: "Mid-Range Share", o_mid_pct: "Mid-Range FG%",
   o_trans_freq: "Transition", o_trans_ppp: "Transition Pts", pace: "Pace", total: "Avg Total", ou: "O/U Record",
 };
-const MK_PLAIN_DEF = new Set(["d_rtg", "d_tov", "d_reb"]); // defense names that already say "allowed"
+const MK_PLAIN_DEF = new Set(["d_rtg", "d_tov", "d_reb", "d_miss"]); // defense names that already say "allowed"
 // A defense number kept as the defense's own (DREB% = boards it grabs) shown in a category box's
 // Allows column as what it gives up, so it reads straight against the offense's number (the owner,
 // 2026-11-07: "IND Allows 71.8%" beside DEN's 26.8% OREB% read wrong). The rank is unchanged.
@@ -137,6 +137,8 @@ function pairRead(keys, o, d, ok, dk) {
   if (weak) return { kind: "untested", tip: weak.title };
   const both = keys.find((k) => k.type === "strength" && hasTile(k, o, ok) && hasTile(k, d, dk));
   if (both) return { kind: "clash", tip: both.title };
+  const few = keys.find((k) => k.type === "fewChances" && hasTile(k, o, ok) && hasTile(k, d, dk));
+  if (few) return { kind: "style", text: "Few Misses", tip: few.title };
   return { kind: "even" };
 }
 // A category's line, offense o vs defense d: the strongest Edge in its topics that way, else Not Tested, else Even.
@@ -166,7 +168,8 @@ function styleRead(keys, game, key) {
 function summaryCard(ctx, game, keys) {
   const [a, h] = [game.away, game.home];
   const mark = (o, topic) => {
-    const k = keys.find((x) => x.group === "edge" && x.topic === topic && x.tiles[0].team === o);
+    // (Rebound Chances reads the misses, not the OREB% / DREB% this row shows)
+    const k = keys.find((x) => x.group === "edge" && x.type !== "chances" && x.topic === topic && x.tiles[0].team === o);
     return `<span class="mks-edge"${k ? ` title="${esc(k.title)}"` : ""}>${k ? logo(k.team, 18) : ""}</span>`;
   };
   const rows = MK_SUMMARY.map(([name, ok, dk, topic]) =>

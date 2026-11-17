@@ -179,6 +179,8 @@ def compute_team_stats(rows: pd.DataFrame) -> dict:
             "pts_off_tov_pg": s[f"{'opp_' if not p else ''}turnover_points"] / games,
             "ast_pg": s[f"{p}assists"] / games,
             "reb_pg": (s[f"{p}offensive_rebounds"] + s[f"{p}defensive_rebounds"]) / games,
+            # missed shots a game: the rebounds there to get off this side's shooting (pace included)
+            "miss_pg": (s[f"{p}field_goals_attempted"] - s[f"{p}field_goals_made"]) / games,
         }
         off, dfn = side(""), side("opp_")
         wins = int(g["team_winner"].sum())
@@ -715,6 +717,8 @@ def league_chart(rows: pd.DataFrame, lines: dict, ident: dict | None) -> dict:
                     row[f"{side}_{key}"] = e.get(f"{p}_{key}")
             row["o_reb"] = b["oreb_pct"]  # its offensive rebound rate
             row["d_reb"] = None if b["opp_oreb_pct"] is None else round(1 - b["opp_oreb_pct"], 4)  # its defensive rebound rate
+            # missed shots a game: its own (o_) and its opponents' against it (d_), the glass's volume
+            row["o_miss"], row["d_miss"] = b["off_miss_pg"], b["def_miss_pg"]
             teams[team] = row
         out[window] = teams
     return out

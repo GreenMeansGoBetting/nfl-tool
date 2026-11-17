@@ -648,6 +648,10 @@ projections, no line / "priced in" check, no record or tracking** (the owner: "a
   cut as the season fills); he must do it himself (12+ points / 1.5+ threes a game); Out / Doubtful off.
   Tiles: his average, the type's +/- vs that defense (rank of the defenses, 30th = gives up the most,
   red; hover lists the players behind it), beat-average x / y.
+- **Rebounds go by the board, not the ball** (2026-11-17, the owner: the defensive glass only ever showed
+  as the other team's Tough Spot): a Glass Edge or Rebound Chances is a Standout for the team that gets
+  those boards ("UTAH Defense: Glass" = UTAH's row, "Defense vs LAC", its own tile first); Few Rebound
+  Chances a Tough Spot. Every other category still reads by who has the ball.
 - **In each category, players (with their letters) first, then teams** (the owner: not jumbled).
 - **Clicks** (the owner, 2026-11-11, "to match the feel of the other pages"): a team row's rank tiles open
   Matchup Keys' who's-behind-it pop-up (who.js `whoTile_` / `whoOpen`, the tile's one matchup); a player
@@ -731,7 +735,12 @@ the same framework next ("once we have the framework down").
   offense top 10 vs a defense allowing the most / least), Same Style / Clash (both at one end / opposite
   ends; no Opposite Ends for scoring, turnovers, glass: an Edge says it), Inside Vs Outside (replaces the
   3PA / paint clashes), Trend (combined O/U 6+ decisions, 70%+), Few Falling (volume top 10, makes 10+
-  places lower), Not Tested (a weak defense the offense rarely tests).
+  places lower), Not Tested (a weak defense the offense rarely tests). **The glass, both ends**
+  (2026-11-17): Same Style on DREB% too (Both Own / Both Weak On The Defensive Glass); **Rebound
+  Chances** = the glass's volume, missed shots a game (`o_miss` / `d_miss`, chart columns Misses / Opp
+  Misses): the offense misses a lot and the defense's opponents miss a lot (one top 10, the other top
+  half) = the defense's Edge; the mirror = Few Rebound Chances (clash group, a "Few Misses" Read in the
+  Rebounding box's Misses row).
 - **Three groups** (`KEY_GROUP`): Edge = edge + Fits (the offense's) + Takes Away (the defense's),
   written "<TEAM> Offense / Defense: <name>"; Clash = clash + Not Tested + Few Falling; Same Style =
   style + Trend. `lead` puts each topic's strongest key first. The owner's CHA @ WSH read is pinned on

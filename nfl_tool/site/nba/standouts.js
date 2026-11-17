@@ -6,6 +6,8 @@
 //   Team rows   -- Matchup Keys' own rules (keys.js nbaMatchupKeys, never a second copy): an
 //                  offense Edge / Fits = a Standout for that offense; a defense Edge = a Tough Spot
 //                  for the offense facing it; Same Style / Trend keys on pace and totals by direction.
+//                  Rebounds go by the board instead: a Glass Edge or Rebound Chances is a Standout for
+//                  the team that gets those boards (offense or defense), Few Rebound Chances a Tough Spot.
 //   Player rows -- Player Types' measuring stick (data.json shot_types.log): how players of HIS type
 //                  did against tonight's defense compared with their own averages (leave-one-out),
 //                  and in how many of those games they beat it. He must do the thing himself
@@ -41,7 +43,7 @@ const SS_CATS = [
 const SS_TOPIC = { scoring: "points", threes: "threes", paint: "inside", mid: "inside", diet: "inside", glass: "glass",
   turnovers: "turnovers", ft: "ft", transition: "pace", pace: "pace", total: "pace", ou: "pace" };
 // Same Style / Trend titles that point toward less (a Tough Spot); the rest point toward more.
-const SS_LESS = ["Both Play Slow", "Both Play Low-Scoring Games", "Two Top Defenses", "Two Struggling Offenses", "Unders", "Neither Runs", "Both Protect The Ball", "Neither Crashes", "Neither Gets To The Line", "Both Avoid Threes", "Both Stay Out Of The Paint", "Both Skip The Mid-Range"];
+const SS_LESS = ["Both Play Slow", "Both Play Low-Scoring Games", "Two Top Defenses", "Two Struggling Offenses", "Unders", "Neither Runs", "Both Protect The Ball", "Neither Crashes", "Both Weak On The Defensive Glass", "Neither Gets To The Line", "Both Avoid Threes", "Both Stay Out Of The Paint", "Both Skip The Mid-Range"];
 
 // The player measuring stick: [field in shot_types.log, his own average index in players[].avg, the
 // least he must average himself, how far over / under their average a type must run, label]
@@ -145,8 +147,14 @@ function ssTeamRows(games, table, ranks) {
     nbaMatchupKeys(table, g.away, g.home).forEach((k) => {
       const cat = SS_TOPIC[k.topic];
       if (!cat) return;
-      let side = null, team = k.team;
-      if (k.type === "edge" || k.type === "fits") {
+      let side = null, team = k.team, role = "Offense";
+      if (cat === "glass" && (k.type === "edge" || k.type === "chances" || k.type === "fewChances")) {
+        // Rebounds read by the board, not by who has the ball (2026-11-17, the owner: the defensive glass
+        // only ever showed as the other team's Tough Spot): the team that wins the glass or has the misses
+        // to grab is the row's team, toward more of its own boards; Few Rebound Chances toward fewer.
+        side = k.type === "fewChances" ? "less" : "more";
+        role = k.tiles[0].team === k.team ? "Offense" : "Defense";
+      } else if (k.type === "edge" || k.type === "fits") {
         const offense = k.tiles[0].team === k.team; // the first tile is the offense's
         side = offense ? "more" : "less";
         team = offense ? k.team : k.tiles[0].team; // a defense Edge is a Tough Spot for the offense it faces
@@ -154,7 +162,7 @@ function ssTeamRows(games, table, ranks) {
         side = SS_LESS.some((w) => k.title.startsWith(w)) ? "less" : "more";
         team = null;
       } else return;
-      out.push({ kind: "team", side, cat, game: g, team, key: k, score: k.score });
+      out.push({ kind: "team", side, cat, game: g, team, role, key: k, score: k.score });
     });
   });
   return out;
@@ -231,6 +239,7 @@ function ssDropDef(row) {
 // ---- drawing ----
 function ssTeamTiles(row, ranks, table) {
   const t = row.key.tiles.slice(0, 2);
+  if (row.role === "Defense") t.reverse(); // the row's own team's tile first
   const g = row.game;
   return t.map(({ team, key }, i) => {
     const opp = team === g.away ? g.home : g.away;
@@ -284,7 +293,7 @@ const ssDropFor = (row) => (row.kind === "player" && ssView.open === ssKey(row)
 function ssWho(row) {
   const g = row.game;
   if (row.kind === "player") return `${ssFace(row)}<span class="ss-name">${playerClick(row.pid, ssEsc(row.p.name))}<small>${ssEsc(row.p.pos || "")} &middot; ${row.team} vs ${row.opp}</small></span>`;
-  if (row.team) return `${ssLogoBox(row.team)}<span class="ss-name ss-team"><b>${row.team}</b><small>Offense vs ${row.team === g.away ? g.home : g.away}</small></span>`;
+  if (row.team) return `${ssLogoBox(row.team)}<span class="ss-name ss-team"><b>${row.team}</b><small>${row.role || "Offense"} vs ${row.team === g.away ? g.home : g.away}</small></span>`;
   return `<span class="ss-pair">${ssLogoBox(g.away)}${ssLogoBox(g.home)}</span><span class="ss-name"><b>Both Teams</b><small>${g.away} @ ${g.home}</small></span>`;
 }
 function ssReadOf(row, stacked) {
@@ -320,7 +329,7 @@ function ssHeroPick(list) {
 function ssHeroCard(row, b) {
   const g = row.game;
   const pic = row.kind === "player" ? ssFace(row, "ss-face-lg") : row.team ? ssLogoBox(row.team, "ss-logo-lg") : `<span class="ss-pair">${ssLogoBox(g.away, "ss-logo-lg")}${ssLogoBox(g.home, "ss-logo-lg")}</span>`;
-  const name = row.kind === "player" ? playerClick(row.pid, ssEsc(row.p.name)) : `<b>${row.team ? `${row.team} Offense` : "Both Teams"}</b>`;
+  const name = row.kind === "player" ? playerClick(row.pid, ssEsc(row.p.name)) : `<b>${row.team ? `${row.team} ${row.role || "Offense"}` : "Both Teams"}</b>`;
   return `<div class="ss-hero-card" data-game="${g.game_id}" style="--team:${ssRgb(row.team || g.home)}">
     <div class="ss-hero-top">${pic}<div class="ss-hero-who">${name}<small>${g.away} @ ${g.home} &middot; ${ssTime(g)}</small></div></div>
     <div class="ss-hero-read"><span class="ss-cat-chip" style="${ssDirStyle(row)}">${ssArrow(row.side)} ${SS_SHORT[row.cat]}</span>${ssReadOf(row, b.stacks.get(row))}</div>

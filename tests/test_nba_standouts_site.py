@@ -80,6 +80,24 @@ class SlateStandouts(unittest.TestCase):
     def test_team_rows_are_matchup_keys_edges(self):
         self.assertTrue(any("AAA Offense: Threes" in r for r in lists()["Standouts"]))
 
+    def test_rebounds_go_by_the_board_not_the_ball(self):
+        # 2026-11-17, the owner: the defensive glass only ever showed as the other team's Tough Spot.
+        # A defense's Glass Edge and Rebound Chances are Standouts for the DEFENSE; Few Chances a Tough Spot.
+        rows = PAGE.evaluate("""() => {
+            const t = {};
+            'ABCDEFGHI'.split('').forEach((c, i) => { t[c] = { games: 10, o_reb: 0.20 + i / 100, d_reb: 0.70 + i / 100, o_miss: 40 + i, d_miss: 40 + i }; });
+            t.A.o_reb = 0.10; t.B.d_reb = 0.95;  // A (away) can't crash, B (home) owns its glass: B's defensive Edge
+            t.A.o_miss = 60; t.B.d_miss = 60;    // A misses the most, B's opponents miss the most: B's Rebound Chances
+            const g = { game_id: 'x', away: 'A', home: 'B' };
+            return ssTeamRows([g], t, ranksOf(t)).filter((r) => r.cat === 'glass').map((r) => [r.key.title, r.team, r.role, r.side]);
+        }""")
+        self.assertIn(["B Defense: Glass", "B", "Defense", "more"], rows)
+        self.assertIn(["B Defense: Rebound Chances", "B", "Defense", "more"], rows)
+        # the other way: B misses the fewest, A's opponents miss the fewest (A's own d_miss is the lowest)
+        self.assertIn(["A Defense: Few Rebound Chances", "A", "Defense", "less"], rows)
+        # B's Glass Edge is never filed as A's offense's Tough Spot any more
+        self.assertFalse([r for r in rows if r[0] == "B Defense: Glass" and r[1] == "A"], rows)
+
     def test_player_rows_read_his_type_against_tonights_defense(self):
         out = lists()
         shooter = [r for r in out["Standouts"] if "Shooter One" in r]
