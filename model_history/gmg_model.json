@@ -1693,6 +1693,30 @@
   "updated": "2026-11-15T06:43Z",
   "week": 10
  },
+ "2026_10_LAC_BAL": {
+  "away": "LAC",
+  "away_pts": 17.6,
+  "final": [
+   23,
+   20
+  ],
+  "frozen": true,
+  "home": "BAL",
+  "home_pts": 17.8,
+  "qb_out": [
+   "BAL"
+  ],
+  "spread": -4.5,
+  "spread_edge": 4.3,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 39.5,
+  "total_edge": 4.1,
+  "total_pick": "under",
+  "total_result": "loss",
+  "updated": "2026-11-16T22:11Z",
+  "week": 10
+ },
  "2026_10_LA_ARI": {
   "away": "LA",
   "away_pts": 27.6,

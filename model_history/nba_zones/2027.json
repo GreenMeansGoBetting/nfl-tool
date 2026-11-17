@@ -24549,11 +24549,11 @@
     "Jakob Poeltl",
     "TOR",
     "NY",
-    -0.2998,
+    -0.3022,
     "under",
     true,
     7.5,
-    -112,
+    -121,
     "draftkings"
    ],
    [
@@ -24561,19 +24561,31 @@
     "Karl-Anthony Towns",
     "NY",
     "TOR",
-    0.1272,
+    0.1261,
     "over",
     true,
     20.5,
-    -111,
-    "prophetx"
+    -128,
+    "fanduel"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "TOR",
+    0.1042,
+    "over",
+    false,
+    8.5,
+    -130,
+    "draftkings"
    ],
    [
     "4433134",
     "Scottie Barnes",
     "TOR",
     "NY",
-    -0.0729,
+    -0.0695,
     "under",
     false,
     21.5,
@@ -24585,12 +24597,12 @@
     "Collin Murray-Boyles",
     "TOR",
     "NY",
-    -0.1675,
+    -0.1821,
     "under",
     true,
     10.5,
-    -130,
-    "caesars"
+    -120,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -24599,12 +24611,24 @@
     "Mikal Bridges",
     "NY",
     "TOR",
-    0.1437,
+    0.1526,
     "over",
     true,
     0.5,
     -193,
     "draftkings"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "TOR",
+    0.1233,
+    "over",
+    true,
+    1.5,
+    -139,
+    "prophetx"
    ],
    [
     "3934672",
@@ -24615,15 +24639,15 @@
     "over",
     false,
     2.5,
-    120,
-    "prophetx"
+    125,
+    "draftkings"
    ],
    [
     "3934719",
     "OG Anunoby",
     "NY",
     "TOR",
-    0.1117,
+    0.1193,
     "over",
     false,
     2.5,
@@ -24636,18 +24660,6 @@
   "date": "2026-11-17",
   "points": [
    [
-    "3136196",
-    "Trey Lyles",
-    "MIN",
-    "POR",
-    -0.1046,
-    "under",
-    false,
-    5.5,
-    -110,
-    "draftkings"
-   ],
-   [
     "3995",
     "Jrue Holiday",
     "POR",
@@ -24656,20 +24668,8 @@
     "under",
     false,
     12.5,
-    -104,
-    "caesars"
-   ],
-   [
-    "4066211",
-    "Robert Williams III",
-    "POR",
-    "MIN",
-    -0.0696,
-    "under",
-    false,
-    6.5,
-    -107,
-    "draftkings"
+    -108,
+    "fanduel"
    ],
    [
     "4397002",
@@ -24679,8 +24679,8 @@
     -0.1673,
     "under",
     true,
-    17.5,
-    -108,
+    18.5,
+    -114,
     "fanduel"
    ],
    [
@@ -24688,12 +24688,12 @@
     "Toumani Camara",
     "POR",
     "MIN",
-    -0.1514,
+    -0.1493,
     "under",
     true,
     11.5,
-    102,
-    "fanduel"
+    -110,
+    "draftkings"
    ],
    [
     "4432816",
@@ -24703,9 +24703,9 @@
     -0.1056,
     "under",
     false,
-    20.5,
-    106,
-    "4cx"
+    21.5,
+    -120,
+    "fanduel"
    ],
    [
     "4432847",
@@ -24715,20 +24715,8 @@
     -0.1746,
     "under",
     true,
-    10.5,
-    100,
-    "betmgm"
-   ],
-   [
-    "4592492",
-    "Bones Hyland",
-    "MIN",
-    "POR",
-    -0.1038,
-    "under",
-    false,
-    10.5,
-    -104,
+    15.5,
+    -109,
     "draftkings"
    ],
    [
@@ -24740,7 +24728,7 @@
     "under",
     true,
     10.5,
-    -117,
+    -102,
     "draftkings"
    ],
    [
@@ -24752,7 +24740,7 @@
     "under",
     true,
     6.5,
-    100,
+    -106,
     "draftkings"
    ],
    [
@@ -24760,11 +24748,11 @@
     "Donovan Clingan",
     "POR",
     "MIN",
-    -0.0582,
+    -0.0841,
     "under",
     false,
-    10.5,
-    -102,
+    11.5,
+    -105,
     "draftkings"
    ],
    [
@@ -24776,8 +24764,8 @@
     "under",
     false,
     20.5,
-    -101,
-    "4cx"
+    -108,
+    "caesars"
    ]
   ],
   "threes": [
@@ -24789,9 +24777,9 @@
     -0.1469,
     "under",
     true,
-    2.5,
-    -196,
-    "fanduel"
+    1.5,
+    128,
+    "prophetx"
    ],
    [
     "4397002",
@@ -24802,19 +24790,19 @@
     "under",
     true,
     1.5,
-    -121,
-    "4cx"
+    -134,
+    "caesars"
    ],
    [
     "4431736",
     "Toumani Camara",
     "POR",
     "MIN",
-    -0.2563,
+    -0.2567,
     "under",
     true,
     2.5,
-    -142,
+    -168,
     "fanduel"
    ],
    [
@@ -24826,8 +24814,8 @@
     "under",
     true,
     3.5,
-    -115,
-    "betmgm"
+    -107,
+    "prophetx"
    ],
    [
     "4432847",
@@ -24838,32 +24826,20 @@
     "under",
     true,
     1.5,
-    -155,
-    "betmgm"
-   ],
-   [
-    "4592492",
-    "Bones Hyland",
-    "MIN",
-    "POR",
-    -0.1745,
-    "under",
-    true,
-    1.5,
-    105,
-    "draftkings"
+    -112,
+    "prophetx"
    ],
    [
     "4683021",
     "Deni Avdija",
     "POR",
     "MIN",
-    -0.2688,
+    -0.2634,
     "under",
     true,
     1.5,
-    114,
-    "fanduel"
+    102,
+    "prophetx"
    ],
    [
     "5081727",
@@ -24874,20 +24850,8 @@
     "under",
     true,
     1.5,
-    -185,
-    "betmgm"
-   ],
-   [
-    "5105565",
-    "Donovan Clingan",
-    "POR",
-    "MIN",
-    0.0704,
-    "over",
-    false,
-    0.5,
-    -165,
-    "4cx"
+    -237,
+    "prophetx"
    ]
   ]
  },
@@ -24903,8 +24867,8 @@
     "under",
     false,
     13.5,
-    -104,
-    "fanduel"
+    -108,
+    "prophetx"
    ],
    [
     "4066372",
@@ -24915,19 +24879,19 @@
     "under",
     true,
     12.5,
-    -110,
-    "fanduel"
+    -109,
+    "prophetx"
    ],
    [
     "4278562",
     "Paul Reed",
     "DET",
     "SA",
-    -0.0573,
+    -0.0522,
     "under",
     false,
     11.5,
-    100,
+    -103,
     "prophetx"
    ],
    [
@@ -24935,12 +24899,12 @@
     "Ausar Thompson",
     "DET",
     "SA",
-    -0.0818,
+    -0.0841,
     "under",
     false,
     10.5,
-    -125,
-    "fanduel"
+    -123,
+    "prophetx"
    ],
    [
     "4845367",
@@ -24951,8 +24915,8 @@
     "under",
     false,
     15.5,
-    100,
-    "prophetx"
+    102,
+    "fanduel"
    ],
    [
     "5107199",
@@ -24963,8 +24927,8 @@
     "under",
     false,
     13.5,
-    -102,
-    "fanduel"
+    112,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -24973,9 +24937,9 @@
     "Devin Vassell",
     "SA",
     "DET",
-    -0.1207,
+    -0.1144,
     "under",
-    true,
+    false,
     1.5,
     103,
     "draftkings"
@@ -24985,7 +24949,7 @@
     "Dylan Harper",
     "SA",
     "DET",
-    -0.2081,
+    -0.2049,
     "under",
     true,
     1.5,
@@ -24997,36 +24961,194 @@
     "Victor Wembanyama",
     "SA",
     "DET",
-    -0.5083,
+    -0.515,
     "under",
     true,
     1.5,
-    133,
+    137,
     "draftkings"
    ]
   ]
  },
  "401910005": {
   "date": "2026-11-17",
-  "points": [],
-  "threes": [
+  "points": [
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "CHA",
+    0.0789,
+    "over",
+    false,
+    35.5,
+    -114,
+    "prophetx"
+   ],
    [
     "4278580",
     "Sandro Mamukelashvili",
     "LAL",
     "CHA",
-    0.1259,
+    0.0813,
+    "over",
+    false,
+    13.5,
+    -110,
+    "prophetx"
+   ],
+   [
+    "4397014",
+    "Quentin Grimes",
+    "LAL",
+    "CHA",
+    0.0613,
+    "over",
+    false,
+    12.5,
+    -109,
+    "draftkings"
+   ],
+   [
+    "4433137",
+    "Ziaire Williams",
+    "LAL",
+    "CHA",
+    0.067,
+    "over",
+    false,
+    7.5,
+    -328,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3135045",
+    "Grayson Allen",
+    "CHA",
+    "LAL",
+    0.2011,
+    "over",
+    true,
+    2.5,
+    -125,
+    "draftkings"
+   ],
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "CHA",
+    0.1126,
+    "over",
+    false,
+    4.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4277811",
+    "Collin Sexton",
+    "LAL",
+    "CHA",
+    0.1575,
     "over",
     true,
     1.5,
-    -115,
-    "fanatics"
+    139,
+    "prophetx"
+   ],
+   [
+    "4278580",
+    "Sandro Mamukelashvili",
+    "LAL",
+    "CHA",
+    0.1313,
+    "over",
+    true,
+    1.5,
+    -136,
+    "caesars"
+   ],
+   [
+    "4397014",
+    "Quentin Grimes",
+    "LAL",
+    "CHA",
+    0.083,
+    "over",
+    false,
+    1.5,
+    114,
+    "fanduel"
+   ],
+   [
+    "4602025",
+    "Sion James",
+    "CHA",
+    "LAL",
+    0.3098,
+    "over",
+    true,
+    1.5,
+    140,
+    "fanduel"
    ]
   ]
  },
  "401910006": {
   "date": "2026-11-17",
-  "points": [],
+  "points": [
+   [
+    "2991139",
+    "Kris Dunn",
+    "LAC",
+    "UTAH",
+    -0.0722,
+    "under",
+    false,
+    5.5,
+    -129,
+    "draftkings"
+   ],
+   [
+    "3448",
+    "Brook Lopez",
+    "LAC",
+    "UTAH",
+    0.1881,
+    "over",
+    true,
+    14.5,
+    -106,
+    "caesars"
+   ],
+   [
+    "4433627",
+    "Keyonte George",
+    "UTAH",
+    "LAC",
+    0.0592,
+    "over",
+    false,
+    20.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "5041955",
+    "Darryn Peterson",
+    "UTAH",
+    "LAC",
+    0.1017,
+    "over",
+    false,
+    20.5,
+    -118,
+    "fanduel"
+   ]
+  ],
   "threes": []
  }
 }
