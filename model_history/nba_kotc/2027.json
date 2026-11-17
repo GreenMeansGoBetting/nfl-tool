@@ -10665,13 +10665,6 @@
     "team": "DET"
    },
    {
-    "id": "3032976",
-    "lead": 0.0003,
-    "name": "Rudy Gobert",
-    "proj": 22.5,
-    "team": "MIN"
-   },
-   {
     "id": "5105565",
     "lead": 0.0003,
     "name": "Donovan Clingan",
@@ -10691,6 +10684,13 @@
     "name": "Keaton Wagler",
     "proj": 19.3,
     "team": "LAC"
+   },
+   {
+    "id": "3032976",
+    "lead": 0.0002,
+    "name": "Rudy Gobert",
+    "proj": 22.4,
+    "team": "MIN"
    },
    {
     "id": "3934719",
@@ -10829,7 +10829,7 @@
     "id": "4431736",
     "lead": 0.0,
     "name": "Toumani Camara",
-    "proj": 15.8,
+    "proj": 15.7,
     "team": "POR"
    },
    {
