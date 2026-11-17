@@ -17531,91 +17531,88 @@
  "401910005": {
   "away": "CHA",
   "date": "2026-11-17",
-  "first_home": 0.586,
+  "first_home": 0.5,
   "home": "LAL",
   "jumpers": [
    [
     "4433249",
     "Moussa Diabate"
    ],
-   [
-    "4433136",
-    "Walker Kessler"
-   ]
+   null
   ],
   "players": {
    "3907498": [
     "Matisse Thybulle",
-    0.086,
+    0.076,
     null,
     false,
     null
    ],
    "3945274": [
     "Luka Doncic",
-    0.175,
-    null,
-    false,
-    null
-   ],
-   "4066457": [
-    "Austin Reaves",
-    0.127,
+    0.154,
     null,
     false,
     null
    ],
    "4395651": [
     "Coby White",
-    0.086,
+    0.104,
     null,
     false,
     null
    ],
    "4396971": [
     "Naz Reid",
+    0.117,
+    null,
+    false,
+    null
+   ],
+   "4397014": [
+    "Quentin Grimes",
     0.097,
     null,
     false,
     null
    ],
-   "4433136": [
-    "Walker Kessler",
-    0.091,
+   "4433137": [
+    "Ziaire Williams",
+    0.079,
     null,
     false,
     null
    ],
    "4433249": [
     "Moussa Diabate",
-    0.076,
+    0.091,
     null,
     false,
     null
    ],
    "4433287": [
     "Brandon Miller",
-    0.084,
+    0.102,
     null,
     false,
     null
    ],
    "4592691": [
     "Jake LaRavia",
-    0.083,
+    0.073,
     null,
     false,
     null
    ],
    "4602025": [
     "Sion James",
-    0.054,
+    0.065,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.76
+  "tip_home": 0.5
  },
  "401910006": {
   "away": "UTAH",
@@ -18599,91 +18596,88 @@
  "401910017": {
   "away": "UTAH",
   "date": "2026-11-18",
-  "first_home": 0.558,
+  "first_home": 0.5,
   "home": "LAL",
   "jumpers": [
    [
     "4397077",
     "Jaxson Hayes"
    ],
-   [
-    "4433136",
-    "Walker Kessler"
-   ]
+   null
   ],
   "players": {
    "3907498": [
     "Matisse Thybulle",
-    0.082,
+    0.076,
     null,
     false,
     null
    ],
    "3945274": [
     "Luka Doncic",
-    0.167,
-    null,
-    false,
-    null
-   ],
-   "4066457": [
-    "Austin Reaves",
-    0.121,
+    0.154,
     null,
     false,
     null
    ],
    "4277919": [
     "Mo Bamba",
-    0.096,
+    0.108,
+    null,
+    false,
+    null
+   ],
+   "4397014": [
+    "Quentin Grimes",
+    0.097,
     null,
     false,
     null
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.057,
+    0.065,
     null,
     false,
     null
    ],
-   "4433136": [
-    "Walker Kessler",
-    0.087,
+   "4433137": [
+    "Ziaire Williams",
+    0.079,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.097,
+    0.11,
     null,
     false,
     null
    ],
    "4592691": [
     "Jake LaRavia",
-    0.079,
+    0.073,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.088,
+    0.1,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.086,
+    0.097,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.675
+  "tip_home": 0.5
  },
  "401910018": {
   "away": "PHX",
