@@ -17408,7 +17408,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.079,
+    0.078,
     900,
     false,
     "bet365"
@@ -17422,7 +17422,7 @@
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.088,
+    0.086,
     800,
     false,
     "fanduel"
@@ -17436,15 +17436,8 @@
    ],
    "4432816": [
     "LaMelo Ball",
-    0.109,
+    0.105,
     600,
-    false,
-    "hard_rock"
-   ],
-   "4433247": [
-    "Jonathan Kuminga",
-    0.072,
-    750,
     false,
     "hard_rock"
    ],
@@ -17468,6 +17461,13 @@
     760,
     false,
     "draftkings"
+   ],
+   "5279133": [
+    "Joan Beringer",
+    0.08,
+    null,
+    false,
+    null
    ],
    "6606": [
     "Damian Lillard",
@@ -18998,7 +18998,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.09,
+    0.088,
     null,
     false,
     null
@@ -19047,21 +19047,21 @@
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.1,
+    0.098,
     null,
     false,
     null
    ],
    "4432816": [
     "LaMelo Ball",
-    0.124,
+    0.119,
     null,
     false,
     null
    ],
-   "4433247": [
-    "Jonathan Kuminga",
-    0.082,
+   "5279133": [
+    "Joan Beringer",
+    0.091,
     null,
     false,
     null
