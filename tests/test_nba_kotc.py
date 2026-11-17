@@ -100,6 +100,27 @@ class Defense(unittest.TestCase):
     def test_league_total_is_the_lines_average(self):
         self.assertEqual(self.league["total"], (230 + 220 + 240 + 225) / 4)
 
+    def test_each_defense_keeps_the_40_plus_games_it_gave_up_most_first(self):
+        # The defense board's popup. BBB: Star A's 62 (Star D's 39 misses 40).
+        # CCC: Star A's 50 then Star D's 45. Old box files without shooting columns give None.
+        rows = lambda team: [dict(zip(kotc.BIG_COLS, r)) for r in self.d[team]["big"]]
+        self.assertEqual([(r["name"], r["pra"], r["team"], r["home"], r["date"]) for r in rows("BBB")], [("Star A", 62, "AAA", True, "2026-01-01")])
+        self.assertEqual([(r["name"], r["pra"], r["pts"], r["reb"], r["ast"], r["min"]) for r in rows("CCC")],
+                         [("Star A", 50, 30, 9, 11, 37), ("Star D", 45, 28, 6, 11, 33)])
+        self.assertIsNone(rows("CCC")[0]["fgm"])
+        self.assertEqual(sum(self.d["CCC"]["buckets"][:1]), len(rows("CCC")))
+
+    def test_the_popup_carries_the_whole_box_line(self):
+        full = SEASON.copy()
+        for col, v in (("field_goals_made", 12), ("field_goals_attempted", 20), ("three_point_field_goals_made", 3),
+                       ("three_point_field_goals_attempted", 7), ("free_throws_made", 13), ("free_throws_attempted", 15),
+                       ("steals", 2), ("blocks", 1), ("turnovers", 4)):
+            full[col] = v
+        pg = kotc.player_games(full, TEAMS)
+        d = kotc.compute_defense(pg, kotc.league_numbers(pg, LINES))
+        r = dict(zip(kotc.BIG_COLS, d["BBB"]["big"][0]))
+        self.assertEqual([r[k] for k in ("fgm", "fga", "tpm", "tpa", "ftm", "fta", "stl", "blk", "tov")], [12, 20, 3, 7, 13, 15, 2, 1, 4])
+
 
 class Nights(unittest.TestCase):
     def setUp(self):

@@ -66,6 +66,13 @@ def num(value, digits=1):
     return round(float(value), digits)
 
 
+BOX_EXTRA = (("field_goals_made", "fgm"), ("field_goals_attempted", "fga"),
+             ("three_point_field_goals_made", "tpm"), ("three_point_field_goals_attempted", "tpa"),
+             ("free_throws_made", "ftm"), ("free_throws_attempted", "fta"),
+             ("steals", "stl"), ("blocks", "blk"), ("turnovers", "tov"))
+BIG_COLS = ("date", "id", "name", "team", "home", "min", "pts", "reb", "ast", "pra") + tuple(k for _, k in BOX_EXTRA)
+
+
 def player_games(player_box: pd.DataFrame, teams) -> pd.DataFrame:
     """One row per player per regular-season game he played, real teams only."""
     box = player_box[(player_box["season_type"] == REGULAR_SEASON) & (player_box["did_not_play"] != True)].copy()  # noqa: E712
@@ -88,6 +95,9 @@ def player_games(player_box: pd.DataFrame, teams) -> pd.DataFrame:
         "ast": box["assists"].fillna(0).astype(int),
     })
     out["pra"] = out["pts"] + out["reb"] + out["ast"]
+    # The rest of his box line, for the defense board's popup (absent in old files = None).
+    for col, key in BOX_EXTRA:
+        out[key] = pd.to_numeric(box[col], errors="coerce").values if col in box.columns else np.nan
     return out.sort_values(["date", "game_id"]).reset_index(drop=True)
 
 
@@ -144,7 +154,30 @@ def compute_defense(pg: pd.DataFrame, league: dict) -> dict:
             "pos": pos,
             "pos_f": pos_f,
             "grp_f": grp_f,
+            "big": big_games(g),
         }
+    return out
+
+
+def big_games(g: pd.DataFrame) -> list:
+    """Every opposing game at THRESHOLDS[0]+ PRA, most first, as lists in
+    BIG_COLS order: the defense board's 40+ ... 60+ popup."""
+    rows = g[g["pra"] >= THRESHOLDS[0]].sort_values(["pra", "date"], ascending=[False, False])
+    out = []
+    for r in rows.itertuples(index=False):
+        row = []
+        for c in BIG_COLS:
+            v = getattr(r, c)
+            if c == "home":
+                v = bool(v)
+            elif c == "min":
+                v = num(v, 0)
+            elif c in ("date", "id", "name", "team"):
+                v = str(v)
+            else:
+                v = None if pd.isna(v) else int(v)
+            row.append(v)
+        out.append(row)
     return out
 
 

@@ -59,10 +59,9 @@
         <div class="kotc-def">
           <div class="kotc-def-head">
             <h3 class="kotc-side-title">Defense Board <button type="button" class="info-i" aria-expanded="false" aria-controls="kotc-note-3" title="How to read this">i</button></h3>
-            <button type="button" id="kotc-def-playing" class="view-toggle-btn kotc-def-playing">Hide Teams Not Playing</button>
             <button type="button" id="kotc-def-save" class="summary-save-btn">Save image</button>
           </div>
-          <p class="section-note info-note" id="kotc-note-3" hidden>What every team has given up this season. <b>40+ ... 60+</b>: opposing players' games at or above each mark. <b>Top Opp</b> is the most PRA any one opponent had against them, on average a game: a high one with few 40+ games = a team that lets one star beat it; lots of 40+ games = a team giving it up top to bottom. <b>vs PG ... C</b>: PRA per 48 minutes allowed to each position. <b>Targets</b>: the other team's top 3 on the board by Lead %. <b>Red = bad defense</b> (gives up the most). Teams not playing are dimmed.</p>
+          <p class="section-note info-note" id="kotc-note-3" hidden>One row per team playing the night. <b>Team</b> is the offense; <b>Tonight</b> is the defense it faces, and every number after it is that defense's this season. <b>40+ ... 60+</b>: opposing players' games at or above each mark against that defense; click one to see who did it and his box score that night. <b>Top Opp</b> is the most PRA any one opponent had against it, on average a game: a high one with few 40+ games = a defense that lets one star beat it; lots of 40+ games = one giving it up top to bottom. <b>vs PG ... C</b>: PRA per 48 minutes it allows to each position. <b>Targets</b>: the Team's own top 3 on the board by Lead %. <b>Red = bad defense</b> (good for the Team); colors rank it against all 30.</p>
           <div id="kotc-def-capture" class="koe-capture kotc-capture">
             <div class="kotc-capture-head">
               <span class="brand-mark">GMG</span>
@@ -117,6 +116,13 @@
     <button type="button" class="modal-close" aria-label="Close">&times;</button>
     <h2 class="section-title">Historical Data <span id="kotc-hist-season" class="muted-label"></span></h2>
     <div id="kotc-hist-body"></div>
+  </div>
+</div>
+<div id="kotc-big-modal" class="modal-overlay" hidden>
+  <div class="modal-box kotc-big-box">
+    <button type="button" class="modal-close" aria-label="Close">&times;</button>
+    <h2 class="section-title kotc-big-h"><span id="kotc-big-title"></span> <span id="kotc-big-sub" class="muted-label"></span></h2>
+    <div id="kotc-big-body"></div>
   </div>
 </div>
 <script src="../sync.js"></script>

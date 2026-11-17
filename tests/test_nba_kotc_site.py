@@ -6,8 +6,9 @@ What is pinned: the page shows the build's projections and chances and does
 no math of its own; best chance first, Out players last with no chance; every
 column sorts; this season only (no season switch); stepping back to a
 finished night shows its pregame board against what happened; the defense
-board sits beside the player board, lists every team, dims the ones not
-playing and names each team's top 3 targets; the nightly leaders list; the
+board sits beside the player board, has one row per OFFENSE playing the night
+with the defense it faces and that defense's numbers, names the offense's own
+top 3 targets, and its 40+ ... 60+ cells open who did it with the box line; the nightly leaders list; the
 payout box reads DraftKings' list, and Est Pay shows only once enough payouts
 are logged; the Historical Data popup (last season's, labeled, until this
 season has 20 nights); the Promo Tools menu links here."""
@@ -56,7 +57,7 @@ def nba_data():
     teams = {t: {"name": t, "short": t, "logo": "", "color": "555555"} for t in TEAMS}
     return {
         "season": 2027, "season_label": "2026-27", "teams": teams, "schedule": games, "team_stats": {}, "players": {}, "injuries": {},
-        "kotc": {"default": "2027", "weights": kotc.WEIGHTS, "thresholds": list(kotc.THRESHOLDS), "seasons": blocks, "slates": slates,
+        "kotc": {"default": "2027", "weights": kotc.WEIGHTS, "thresholds": list(kotc.THRESHOLDS), "big_cols": list(kotc.BIG_COLS), "seasons": blocks, "slates": slates,
                  "past": past, "reference": {"label": "2025-26", "summary": blocks["2027"]["summary"]}, "record": RECORD},
     }
 
@@ -83,7 +84,7 @@ ROWS = """() => [...document.querySelectorAll('#kotc-players tbody tr[data-playe
 
 
 def show(date):
-    PAGE.evaluate(f"() => {{ Object.assign(playerSort, {{ key: 'lead', dir: -1 }}); Object.assign(pastSort, {{ key: 'pra', dir: -1 }}); defPlayingOnly = false; dayIndex = days().indexOf('{date}'); render(); }}")
+    PAGE.evaluate(f"() => {{ Object.assign(playerSort, {{ key: 'lead', dir: -1 }}); Object.assign(pastSort, {{ key: 'pra', dir: -1 }}); dayIndex = days().indexOf('{date}'); render(); }}")
 
 
 class Board(unittest.TestCase):
@@ -201,31 +202,48 @@ class DefenseAndHistory(unittest.TestCase):
     def setUp(self):
         show(NIGHT)
 
-    def test_defense_board_lists_every_team_and_dims_idle_ones(self):
-        rows = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-def-table tbody tr')].map((tr) => [tr.querySelector('b').textContent, tr.classList.contains('kotc-playing')])")
-        self.assertEqual(sorted(t for t, _ in rows), sorted(TEAMS))
-        self.assertEqual(sorted(t for t, playing in rows if playing), ["AAA", "BBB"])
+    def test_defense_board_rows_are_the_offense_with_the_defense_it_faces(self):
+        # NIGHT: BBB @ AAA. AAA's row reads BBB's defense, BBB's row AAA's; CCC / DDD sit out.
+        rows = PAGE.evaluate("() => Object.fromEntries([...document.querySelectorAll('.kotc-def-table tbody tr')].map((tr) => [tr.querySelector('.kotc-team b').textContent, [tr.querySelector('.kotc-opp').textContent.trim(), [...tr.querySelectorAll('[data-bucket]')].map((td) => td.dataset.big)[0] || null, [...tr.children].slice(2, 7).map((td) => Number(td.textContent))]]))")
+        d = SITE.nba["kotc"]["seasons"]["2027"]["defense"]
+        self.assertEqual(sorted(rows), ["AAA", "BBB"])
+        self.assertEqual(rows["AAA"][0].split(), ["vs", "BBB"])
+        self.assertEqual(rows["BBB"][0].split(), ["@", "AAA"])
+        self.assertEqual(rows["AAA"][2], d["BBB"]["buckets"])
+        self.assertEqual(rows["BBB"][2], d["AAA"]["buckets"])
+        self.assertEqual(rows["AAA"][1], "BBB")
+        self.assertIsNone(PAGE.query_selector("#kotc-def-playing"))
 
-    def test_hide_teams_not_playing_and_back(self):
-        teams = "() => [...document.querySelectorAll('.kotc-def-table tbody .kotc-team b')].map((b) => b.textContent)"
-        PAGE.click("#kotc-def-playing")
-        self.assertEqual(sorted(PAGE.evaluate(teams)), ["AAA", "BBB"])
-        PAGE.click("#kotc-def-playing")
-        self.assertEqual(sorted(PAGE.evaluate(teams)), sorted(TEAMS))
+    def test_a_bucket_cell_lists_who_did_it_with_the_box_line(self):
+        cell = "() => [...document.querySelectorAll('.kotc-def-table tbody tr')].find((tr) => tr.querySelector('.kotc-team b').textContent === 'AAA').querySelector('[data-bucket=\"%d\"]')"
+        PAGE.evaluate(f"() => ({cell % 0})().click()")
+        self.assertFalse(PAGE.evaluate("() => document.getElementById('kotc-big-modal').hidden"))
+        body = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-big-table tbody tr')].map((tr) => [...tr.children].map((td) => td.textContent.trim()))")
+        # BBB gave up one 40+ game: Star A's 62 (40 / 10 / 12, 36 minutes) on Jan 1.
+        self.assertEqual(len(body), 1)
+        self.assertIn("Star A", body[0][1])
+        self.assertEqual(body[0][2:7], ["62", "40", "10", "12", "36"])
+        self.assertIn("60+", PAGE.evaluate("() => (" + (cell % 4) + ")().title"))
+        PAGE.keyboard.press("Escape")
+        self.assertTrue(PAGE.evaluate("() => document.getElementById('kotc-big-modal').hidden"))
+        # A zero cell isn't clickable.
+        zero = PAGE.evaluate("() => [...document.querySelectorAll('.kotc-def-table tbody td.num')].filter((td) => td.textContent === '0' && td.dataset.bucket).length")
+        self.assertEqual(zero, 0)
+        self.assertEqual(SITE.errors, [])
 
-    def test_targets_are_the_top_3_by_lead_on_the_team_they_face(self):
+    def test_targets_are_the_teams_own_top_3_by_lead(self):
         cells = PAGE.evaluate("() => Object.fromEntries([...document.querySelectorAll('.kotc-def-table tbody tr')].map((tr) => [tr.querySelector('.kotc-team b').textContent, [...tr.querySelectorAll('.kotc-targets span')].map((s) => s.title)]))")
         names = SITE.nba["kotc"]["seasons"]["2027"]["players"]
-        # Four players against AAA: only the 3 best chances are named, best first.
+        # Four BBB players: only the 3 best chances are named, best first, on BBB's own row.
         extra = [{"id": "30", "team": "BBB", "opp": "AAA", "game_id": "9", "home": False, "proj": 20.0, "b2b": False, "out": False, "lead": 0.001},
                  {"id": "40", "team": "BBB", "opp": "AAA", "game_id": "9", "home": False, "proj": 19.0, "b2b": False, "out": False, "lead": 0.0005}]
         rows = [r for r in SITE.nba["kotc"]["slates"]["2027"][NIGHT] if not r.get("out")]
-        for d in TEAMS:
-            want = [names[r["id"]]["name"] for r in sorted((r for r in rows if r["opp"] == d), key=lambda r: -r["lead"])][:3]
-            self.assertEqual(cells[d], want, d)
+        for t in ("AAA", "BBB"):
+            want = [names[r["id"]]["name"] for r in sorted((r for r in rows if r["team"] == t), key=lambda r: -r["lead"])][:3]
+            self.assertEqual(cells[t], want, t)
         PAGE.evaluate(f"() => {{ KOTC.slates['2027']['{NIGHT}'].push(...{extra!r}.map((r) => JSON.parse(JSON.stringify(r)))); render(); }}".replace("False", "false"))
         try:
-            got = PAGE.evaluate("() => [...[...document.querySelectorAll('.kotc-def-table tbody tr')].find((tr) => tr.querySelector('.kotc-team b').textContent === 'AAA').querySelectorAll('.kotc-targets span')].map((s) => s.title)")
+            got = PAGE.evaluate("() => [...[...document.querySelectorAll('.kotc-def-table tbody tr')].find((tr) => tr.querySelector('.kotc-team b').textContent === 'BBB').querySelectorAll('.kotc-targets span')].map((s) => s.title)")
             self.assertEqual(len(got), 3)
             self.assertNotIn("Star D", got)
         finally:

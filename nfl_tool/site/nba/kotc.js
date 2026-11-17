@@ -16,7 +16,6 @@ let nightsShown = 15;
 const playerSort = { key: "lead", dir: -1 };
 const pastSort = { key: "pra", dir: -1 };
 const defSort = { key: "star", dir: -1 };
-let defPlayingOnly = false;  // defense board: only the night's teams (for screenshots)
 const TOP_ROWS = 25;
 
 const el = (id) => document.getElementById(id);
@@ -208,16 +207,20 @@ function renderPast(date) {
 }
 
 // ---- defense board ----
+// One row per OFFENSE playing the night (Team), the defense it faces in
+// Tonight, and every number after that is that DEFENSE's (the owner,
+// 2026-11-17: the targets are the Team's own players, so the row reads
+// "this team's scorers against that defense"). Idle teams have no row.
 const TARGET_TOP = 100;
 const TARGETS_PER_TEAM = 3;
 const DEF_COLS = [
-  { key: "team", label: "Team", value: (t) => t.abbr },
-  { key: "tonight", label: "Tonight", value: (t) => t.opp || "" },
+  { key: "team", label: "Team", title: "The offense", value: (t) => t.abbr },
+  { key: "tonight", label: "Tonight", title: "The defense they face; every number after this is that defense's", value: (t) => t.opp },
   ...[0, 1, 2, 3, 4].map((i) => ({ key: `b${i}`, bucket: i, value: (t) => t.d.buckets[i] })),
-  { key: "star", label: "Top Opp", title: "The most PRA any one opponent had against them, average a game", value: (t) => t.d.star },
-  ...POSITIONS.map((p) => ({ key: `pos${p}`, label: `vs ${p}`, title: `PRA per 48 minutes allowed to ${POS_NAMES[p].toLowerCase()}`, value: (t) => t.d.pos[p] })),
-  { key: "games", label: "GP", value: (t) => t.d.games },
-  { key: "targets", label: "Targets", title: `The other team's top ${TARGETS_PER_TEAM} on the player board by Lead % (of the night's top ${TARGET_TOP})`, value: (t) => t.targets.length },
+  { key: "star", label: "Top Opp", title: "The most PRA any one opponent had against this defense, average a game", value: (t) => t.d.star },
+  ...POSITIONS.map((p) => ({ key: `pos${p}`, label: `vs ${p}`, title: `PRA per 48 minutes this defense allows to ${POS_NAMES[p].toLowerCase()}`, value: (t) => t.d.pos[p] })),
+  { key: "games", label: "GP", title: "The defense's games", value: (t) => t.d.games },
+  { key: "targets", label: "Targets", title: `The Team's top ${TARGETS_PER_TEAM} on the player board by Lead % (of the night's top ${TARGET_TOP})`, value: (t) => t.targets.length },
 ];
 
 function renderDefense() {
@@ -233,43 +236,75 @@ function renderDefense() {
     tonight[r.team] = { opp: r.opp, home: r.home };
     if (r.b2b) b2b.add(r.team);
   }
-  // Targets: each team's top 3 by Lead % (of the board's top 100), listed on the defense they face.
+  // Targets: each offense's own top 3 by Lead % (of the board's top 100).
   const targets = {};
   nightRows.filter((r) => !r.out && (!finished || r.rank)).sort((a, b) => b.lead - a.lead || b.proj - a.proj).slice(0, TARGET_TOP)
     .forEach((r) => {
-      const list = (targets[r.opp] = targets[r.opp] || []);
+      const list = (targets[r.team] = targets[r.team] || []);
       if (list.length < TARGETS_PER_TEAM) list.push(r.name);
     });
-  const rows = Object.entries(block().defense).map(([abbr, d]) => ({ abbr, d, opp: tonight[abbr] ? tonight[abbr].opp : null, home: tonight[abbr] && tonight[abbr].home, targets: targets[abbr] || [] }));
+  const defense = block().defense;
+  const rows = Object.entries(tonight).filter(([, t]) => defense[t.opp])
+    .map(([abbr, t]) => ({ abbr, opp: t.opp, home: t.home, d: defense[t.opp], targets: targets[abbr] || [] }));
   const col = DEF_COLS.find((c) => c.key === defSort.key) || DEF_COLS[7];  // 7 = Top Opp
   rows.sort((a, b) => {
     const va = col.value(a), vb = col.value(b);
     if (typeof va === "string" || typeof vb === "string") return String(va).localeCompare(String(vb)) * defSort.dir;
     return ((va ?? -Infinity) - (vb ?? -Infinity)) * defSort.dir;
   });
-  const hi = [0, 1, 2, 3, 4].map((i) => range(rows.map((t) => t.d.buckets[i])));
-  const st = range(rows.map((t) => t.d.star));
-  const pos = POSITIONS.map((p) => range(rows.map((t) => t.d.pos[p])));
-  // Hiding the idle teams keeps the colors against all 30 (ranges above use every row).
-  const hide = defPlayingOnly && Object.keys(tonight).length > 0;
-  el("kotc-def-playing").textContent = defPlayingOnly ? "Show All Teams" : "Hide Teams Not Playing";
-  el("kotc-def-sub").textContent = `${block().label}${finished ? " as of today" : ""} · ${date ? `teams playing ${dayWords(date)}${hide ? "" : " in bold"}` : ""}`;
+  // Colors rank each defense against all 30, not just the night's.
+  const all = Object.values(defense);
+  const hi = [0, 1, 2, 3, 4].map((i) => range(all.map((d) => d.buckets[i])));
+  const st = range(all.map((d) => d.star));
+  const pos = POSITIONS.map((p) => range(all.map((d) => d.pos[p])));
+  el("kotc-def-sub").textContent = `${block().label}${finished ? " as of today" : ""}${date ? ` · ${dayWords(date)}` : ""} · each offense vs the defense it faces`;
   const head = DEF_COLS.map((c) => {
     const label = c.bucket !== undefined ? `${KOTC.thresholds[c.bucket]}+` : c.label;
     const sorted = defSort.key === c.key ? (defSort.dir < 0 ? " &#9662;" : " &#9652;") : "";
     return `<th class="koe-sort${c.key === "team" ? "" : " num"}" data-defsort="${c.key}"${c.title ? ` title="${c.title}"` : ""}>${label}${sorted}</th>`;
   }).join("");
-  // Defense view: red = gives up the most (bad defense), so the scale is flipped.
-  const body = rows.filter((t) => !hide || t.opp).map((t) => `<tr class="${t.opp ? "kotc-playing" : "kotc-idle"}">
-      <td class="kotc-team">${logo(t.abbr, 20)} <b>${t.abbr}</b>${b2b.has(t.abbr) ? ` <span class="kotc-tag" title="Played last night">B2B</span>` : ""}</td>
-      <td class="kotc-opp">${t.opp ? `${t.home ? "vs" : "@"} ${logo(t.opp, 16)} ${t.opp}` : ""}</td>
-      ${t.d.buckets.map((c, k) => `<td class="num"${heat(c, hi[k][0], hi[k][1], true)}>${c}</td>`).join("")}
+  const tag = (abbr) => (b2b.has(abbr) ? ` <span class="kotc-tag" title="Played last night">B2B</span>` : "");
+  // Red = the defense gives up the most (good for the Team), so the scale is flipped.
+  const body = rows.map((t) => `<tr class="kotc-playing">
+      <td class="kotc-team">${logo(t.abbr, 20)} <b>${t.abbr}</b>${tag(t.abbr)}</td>
+      <td class="kotc-opp">${t.home ? "vs" : "@"} ${logo(t.opp, 16)} ${t.opp}${tag(t.opp)}</td>
+      ${t.d.buckets.map((c, k) => `<td class="num${c ? " kotc-big-cell" : ""}"${heat(c, hi[k][0], hi[k][1], true)}${c ? ` data-big="${t.opp}" data-bucket="${k}" title="Who had ${KOTC.thresholds[k]}+ PRA against ${t.opp}"` : ""}>${c}</td>`).join("")}
       <td class="num"${heat(t.d.star, st[0], st[1], true)}><b>${fmt(t.d.star)}</b></td>
       ${POSITIONS.map((p, k) => `<td class="num"${heat(t.d.pos[p], pos[k][0], pos[k][1], true)}>${fmt(t.d.pos[p])}</td>`).join("")}
       <td class="num">${t.d.games}</td>
       <td class="kotc-targets">${t.targets.map((n) => `<span title="${n}">${n.split(" ").slice(1).join(" ") || n}</span>`).join(", ")}</td>
     </tr>`).join("");
-  el("kotc-defense").innerHTML = `<table class="data-table kotc-table kotc-def-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  el("kotc-defense").innerHTML = rows.length
+    ? `<table class="data-table kotc-table kotc-def-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`
+    : `<p class="no-data-note">No games this night.</p>`;
+}
+
+// The 40+ ... 60+ popup: every opposing game at that mark against one
+// defense, with the player's box line that night (kotc.py `big_games`).
+function bigGames(abbr, k) {
+  const cols = KOTC.big_cols || [];
+  const min = KOTC.thresholds[k];
+  return ((block().defense[abbr] || {}).big || []).map((r) => Object.fromEntries(cols.map((c, i) => [c, r[i]]))).filter((g) => g.pra >= min);
+}
+
+function renderBig(abbr, k) {
+  const games = bigGames(abbr, k);
+  const shot = (m, a) => (m === null || m === undefined ? "--" : `${m}-${a}`);
+  const n = (v) => (v === null || v === undefined ? "--" : v);
+  el("kotc-big-title").innerHTML = `${logo(abbr, 24)} ${KOTC.thresholds[k]}+ PRA Against ${team(abbr).short || abbr}`;
+  el("kotc-big-sub").textContent = `${games.length} game${games.length === 1 ? "" : "s"} · ${block().label}`;
+  const rows = games.map((g) => `<tr>
+      <td class="kotc-big-date">${dayWords(g.date, { month: "short", day: "numeric" })}</td>
+      <td class="kotc-player"><img src="${headshot(g.id)}" alt="" class="kotc-face" loading="lazy" onerror="this.style.visibility='hidden'"><span class="kotc-who"><b>${playerClick(g.id, g.name)}</b><span class="kotc-sub">${logo(g.team, 14)} ${g.team} ${g.home ? "vs" : "@"} ${abbr}</span></span></td>
+      <td class="num kotc-big-pra"${heat(g.pra, KOTC.thresholds[0], KOTC.thresholds[KOTC.thresholds.length - 1], true)}>${g.pra}</td>
+      <td class="num">${n(g.pts)}</td><td class="num">${n(g.reb)}</td><td class="num">${n(g.ast)}</td>
+      <td class="num">${n(g.min)}</td><td class="num">${shot(g.fgm, g.fga)}</td><td class="num">${shot(g.tpm, g.tpa)}</td><td class="num">${shot(g.ftm, g.fta)}</td>
+      <td class="num">${n(g.stl)}</td><td class="num">${n(g.blk)}</td><td class="num">${n(g.tov)}</td>
+    </tr>`).join("");
+  el("kotc-big-body").innerHTML = games.length
+    ? `<div class="kotc-big-scroll"><table class="data-table kotc-table kotc-big-table"><thead><tr><th>Date</th><th>Player</th><th class="num">PRA</th><th class="num">PTS</th><th class="num">REB</th><th class="num">AST</th><th class="num">MIN</th><th class="num">FG</th><th class="num">3PT</th><th class="num">FT</th><th class="num">STL</th><th class="num">BLK</th><th class="num">TO</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    : `<p class="no-data-note">No ${KOTC.thresholds[k]}+ games against ${abbr} yet.</p>`;
+  el("kotc-big-modal").hidden = false;
 }
 
 // ---- nightly leaders ----
@@ -707,7 +742,9 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#kotc-more")) return (showAll = !showAll), renderPlayers();
   if (e.target.closest("#kotc-nights-more")) return (nightsShown += 30), renderNights();
   if (e.target.closest("#kotc-save")) return saveImage("kotc-save", "kotc-capture", "king-of-the-court");
-  if (e.target.closest("#kotc-def-playing")) return (defPlayingOnly = !defPlayingOnly), renderDefense();
+  const big = e.target.closest("[data-big]");
+  if (big) return renderBig(big.dataset.big, Number(big.dataset.bucket));
+  if (e.target.closest("#kotc-big-modal .modal-close") || e.target.id === "kotc-big-modal") return (el("kotc-big-modal").hidden = true);
   if (e.target.closest("#kotc-def-save")) return saveImage("kotc-def-save", "kotc-def-capture", "kotc-defense");
   if (e.target.closest("#kotc-trend-save")) return saveImage("kotc-trend-save", "kotc-trend-capture", "kotc-trends");
   const tab = e.target.closest("[data-kotc-trend]");
@@ -762,6 +799,7 @@ document.addEventListener("change", (e) => {
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !el("kotc-history-modal").hidden) el("kotc-history-modal").hidden = true;
+  if (e.key === "Escape" && !el("kotc-big-modal").hidden) el("kotc-big-modal").hidden = true;
 });
 
 Promise.all([fetch("data.json").then((r) => r.json()), loadPayouts()])

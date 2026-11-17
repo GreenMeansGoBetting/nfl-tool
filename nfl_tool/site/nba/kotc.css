@@ -45,7 +45,16 @@
 .kotc-out td { opacity: 0.5; }
 .kotc-group td { padding-top: 10px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
 .kotc-more { margin-top: 8px; padding: 4px 12px; }
-.kotc-def-table .kotc-idle td { opacity: 0.42; }
+/* 40+ ... 60+ cells open who did it (kotc.js renderBig). */
+.kotc-def-table .kotc-big-cell { cursor: pointer; }
+.kotc-def-table .kotc-big-cell:hover { outline: 2px solid var(--good-text); outline-offset: -2px; }
+.kotc-big-box { width: fit-content; max-width: 100%; padding-right: 48px; }
+.kotc-big-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.kotc-big-h #kotc-big-title { display: inline-flex; align-items: center; gap: 8px; }
+.kotc-big-scroll { overflow-x: auto; }
+.kotc-big-table { width: fit-content; }
+.kotc-big-table .kotc-big-date { white-space: nowrap; }
+.kotc-big-table .kotc-big-pra { font-weight: 800; }
 .kotc-def-table .kotc-targets { text-align: left; font-weight: 700; }
 
 .kotc-side { flex: 1 1 320px; min-width: 0; max-width: 420px; display: flex; flex-direction: column; gap: 6px; }
@@ -77,7 +86,7 @@ html:not(.is-owner):not(.local-dev) .kotc-log { display: none; }
 .kotc-log-good { color: var(--good-text); }
 .kotc-log-bad { color: var(--bad-text); }
 .kotc-fit { margin: 0; font-size: 0.74rem; color: var(--muted); }
-.kotc-def-head .kotc-def-playing { margin-left: auto; padding: 6px 12px; }
+.kotc-def-head #kotc-def-save { margin-left: auto; }
 
 /* Leader Trends (the owner, 2026-11-10): a tabbed chart box beside Nightly Leaders. */
 .kotc-trend { flex: 0 1 460px; min-width: 0; max-width: 100%; display: flex; flex-direction: column; }

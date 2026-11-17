@@ -911,9 +911,11 @@ DraftKings' promo on the night's most PRA.
 - **The page:** night arrows (past and slate), Save image; **player board and defense board side by
   side**, Nightly Leaders and payouts below. Player board: top 25, Show all; Lead %, Proj, Avg,
   buckets, Opp, Opp Top, vs Pos, Total, Spread, Est Pay; B2B / blowout tags; **no L10, no "from" tag**.
-  Finished night: Pre, PRA, P / R / A, Lead %, Proj, Opp, Paid; winners starred, DNP last. Defense
-  board: red = bad defense; Hide Teams Not Playing; default sort Top Opp; Targets = the other team's
-  top 3 by Lead %.
+  Finished night: Pre, PRA, P / R / A, Lead %, Proj, Opp, Paid; winners starred, DNP last. **Defense
+  board** (flipped 2026-11-17, the owner): one row per OFFENSE playing the night (Team), Tonight = the
+  defense it faces, and every number after is that DEFENSE's; Targets = the Team's own top 3 by Lead %;
+  idle teams have no row; colors rank against all 30; red = bad defense; default sort Top Opp. A 40+ ...
+  60+ cell opens who did it vs that defense with his box line (`big` per defense, `big_cols`).
 - **Leader Trends** (beside Nightly Leaders, the owner 2026-11-10; `renderTrends`, `trendPoints`): an SVG
   scatter, a dot a leader. Tabs **Pregame Rank** (x games that night, y his Pre place, square-root
   scale, not on that night's board = bottom "Off" row) and **Spread & Total** (x his spread, favored
