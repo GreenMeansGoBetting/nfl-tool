@@ -17,6 +17,7 @@
 
 let DATA = null;
 let ssDay = 0;
+let ssLast = null; // the night drawn last (its rows, for a line tile's click)
 // open: the player row whose drop-down is open; byGame: Sort By Game (a display pref, kept on this device)
 const SS_BYGAME_KEY = "nba-tool.ss-bygame.v1";
 const ssView = { cat: "all", window: "season", open: "", dtab: "like", byGame: (() => {
@@ -252,12 +253,50 @@ function ssTeamTiles(row, ranks, table) {
     return `<td><div class="od-tile pt-tile ss-tile${who ? " ss-click" : ""}"${who} style="${rk ? rankStyle(rk, n) : ""}" title="${ssEsc(`${ssTeam(team).name} · ${name}: ${c ? exact(v, c[3]) : v}${rk ? ` · ${ordinal(rk)} of ${n}` : ""}${who ? " · click for who's behind it" : ""}`)}"><b>${rk ? ordinal(rk) : "--"}</b><small>${team} ${c ? c[1].replace("<br>", " ") : ""}</small></div></td>`;
   }).join("");
 }
+// ---- saved plays (a member, 2026-11-14: "a check box on the main boxes of the players so we know we
+// chose them"): a player's line tile opens every book's price (Over / Under), a price there saves the
+// play to My Plays (Prop Research's rule, book-odds.js spec.save), and a saved player gets a check. ----
+const SS_UNIT = { points: "Points", threes: "Threes Made" };
+const ssSaved = (row) => (typeof loadNbaPlays === "function" ? loadNbaPlays() : []).filter((s) => s.market === row.cat
+  && String(s.game_id) === String(row.game.game_id) && String(s.player_id) === String(row.pid));
+const ssSavedTip = (list) => `In My Plays:\n${list.map((s) => `${s.side === "under" ? "Under" : "Over"} ${s.line} at ${showOdds(Number(s.odds))} (${GMG_BOOKS[s.book] || s.book})`).join("\n")}`;
+const ssCheck = (row) => {
+  const list = ssSaved(row);
+  return list.length ? `<span class="ss-check" title="${ssEsc(ssSavedTip(list))}">&#10003;</span>` : "";
+};
+const ssEntry = (k, book = null, odds = null) => nbaCardEntry(k.mk, { game_id: k.gid, date: k.date, away: k.away, home: k.home },
+  { id: k.pid, name: k.name, team: k.tm }, k.side, k.line, [book, null, null, odds]);
+window.bookPlaySaver = {
+  saved(k) {
+    const e = ssEntry(k);
+    const s = loadNbaPlays().find((x) => x.id === e.id);
+    return s && s.side === e.side && Number(s.line) === Number(e.line) ? s : null;
+  },
+  toggle(k, book, odds) {
+    const e = ssEntry(k, book, odds);
+    const now = window.bookPlaySaver.saved(k);
+    const rest = loadNbaPlays().filter((x) => x.id !== e.id);
+    saveNbaPlays(now && now.book === book && Number(now.odds) === odds ? rest : [...rest, { ...e, added_at: new Date().toISOString() }]);
+    ssRender();
+  },
+};
+function ssOpenLine(row) {
+  const line = ssLine(row);
+  if (line === null) return;
+  const g = row.game;
+  const save = { mk: row.cat, gid: g.game_id, date: g.date, away: g.away, home: g.home, pid: row.pid, name: row.p.name, tm: row.team, side: "o", line };
+  openBookOdds({ kind: "prop", stat: row.cat, team: row.team, game: `${g.away}_${g.home}`, pid: row.pid, side: "o", line,
+    title: `${row.p.name} ${SS_UNIT[row.cat]}`, sub: `${g.away} @ ${g.home}`, save });
+}
+
 function ssPlayerTiles(row) {
   const { c, rank, self, cat } = row;
   const fmt = (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
   const selfName = cat === "points" ? "PTS" : "3PM";
   const line = ssLine(row);
-  const selfTile = `<td><div class="od-tile pt-tile ss-tile" title="${ssEsc(`${row.p.name}: ${line === null ? "no line yet" : `line ${line}`} tonight; ${self} ${selfName} a game this season`)}"><b>${line === null ? "--" : line}</b><small>Line · Avg ${self.toFixed(1)}</small></div></td>`;
+  const saved = ssSaved(row);
+  const selfTip = `${row.p.name}: ${line === null ? "no line yet" : `line ${line}`} tonight; ${self} ${selfName} a game this season${line === null ? "" : saved.length ? `\n${ssSavedTip(saved)}\nClick for every book.` : "\nClick for every book's price and to save it to My Plays."}`;
+  const selfTile = `<td><div class="od-tile pt-tile ss-tile${line === null ? "" : " ss-click"}"${line === null ? "" : ` data-ss-line="${ssKey(row)}"`} title="${ssEsc(selfTip)}">${saved.length ? '<span class="ss-check ss-check-tile">&#10003;</span>' : ""}<b>${line === null ? "--" : line}</b><small>Line · Avg ${self.toFixed(1)}</small></div></td>`;
   const who = Object.entries(c.who).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([id, n]) => `${(DATA.shot_types.players[id] || {}).name || id} (${n})`).join(", ");
   const defTile = `<td><div class="od-tile pt-tile ss-tile ss-click" data-dd="${ssKey(row)}" style="${rank ? rankStyle(rank.r, rank.n) : ""}" title="${ssEsc(`Type ${row.p.type} vs ${row.opp}: ${fmt(c.avg)} ${row.label.toLowerCase()} over their own average, ${c.n} games${rank ? ` · ${ordinal(rank.r)} of ${rank.n} defenses (30th = gives up the most)` : ""} · ${who}`)}"><b>${fmt(c.avg)}</b><small>${ssLetter(row.p.type)} vs ${row.opp}</small></div></td>`;
   const hitTile = `<td><div class="od-tile pt-tile ss-tile ss-click" data-dd="${ssKey(row)}" style="${ssStep(c.hit)}" title="${ssEsc(`In ${c.over} of ${c.n} games, type ${row.p.type} beat their own average against ${row.opp}`)}"><b>${c.over}/${c.n}</b><small>Beat Avg</small></div></td>`;
@@ -292,7 +331,7 @@ const ssDropFor = (row) => (row.kind === "player" && ssView.open === ssKey(row)
   ? `<table class="data-table od-grid pt-grid ss-grid ss-droptable"><tbody>${ssDrop(row)}</tbody></table>` : "");
 function ssWho(row) {
   const g = row.game;
-  if (row.kind === "player") return `${ssFace(row)}<span class="ss-name">${playerClick(row.pid, ssEsc(row.p.name))}<small>${ssEsc(row.p.pos || "")} &middot; ${row.team} vs ${row.opp}</small></span>`;
+  if (row.kind === "player") return `${ssFace(row)}<span class="ss-name">${playerClick(row.pid, ssEsc(row.p.name))}${ssCheck(row)}<small>${ssEsc(row.p.pos || "")} &middot; ${row.team} vs ${row.opp}</small></span>`;
   if (row.team) return `${ssLogoBox(row.team)}<span class="ss-name ss-team"><b>${row.team}</b><small>${row.role || "Offense"} vs ${row.team === g.away ? g.home : g.away}</small></span>`;
   return `<span class="ss-pair">${ssLogoBox(g.away)}${ssLogoBox(g.home)}</span><span class="ss-name"><b>Both Teams</b><small>${g.away} @ ${g.home}</small></span>`;
 }
@@ -329,7 +368,7 @@ function ssHeroPick(list) {
 function ssHeroCard(row, b) {
   const g = row.game;
   const pic = row.kind === "player" ? ssFace(row, "ss-face-lg") : row.team ? ssLogoBox(row.team, "ss-logo-lg") : `<span class="ss-pair">${ssLogoBox(g.away, "ss-logo-lg")}${ssLogoBox(g.home, "ss-logo-lg")}</span>`;
-  const name = row.kind === "player" ? playerClick(row.pid, ssEsc(row.p.name)) : `<b>${row.team ? `${row.team} ${row.role || "Offense"}` : "Both Teams"}</b>`;
+  const name = row.kind === "player" ? `${playerClick(row.pid, ssEsc(row.p.name))}${ssCheck(row)}` :`<b>${row.team ? `${row.team} ${row.role || "Offense"}` : "Both Teams"}</b>`;
   return `<div class="ss-hero-card" data-game="${g.game_id}" style="--team:${ssRgb(row.team || g.home)}">
     <div class="ss-hero-top">${pic}<div class="ss-hero-who">${name}<small>${g.away} @ ${g.home} &middot; ${ssTime(g)}</small></div></div>
     <div class="ss-hero-read"><span class="ss-cat-chip" style="${ssDirStyle(row)}">${ssArrow(row.side)} ${SS_SHORT[row.cat]}</span>${ssReadOf(row, b.stacks.get(row))}</div>
@@ -401,6 +440,7 @@ function ssRender() {
   const date = all[ssDay];
   ssEl("day-label").textContent = date ? new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "";
   const b = ssBuild(date);
+  ssLast = b;
   const counts = Object.fromEntries(SS_CATS.map(([c]) => [c, b.rows.filter((r) => r.cat === c).length]));
   const more = b.shown.filter((r) => r.side === "more").length;
   ssEl("ss-bar").innerHTML = `<div class="pt-seg">${[["all", "All"], ...SS_CATS].map(([c, name]) => `<button type="button" class="view-toggle-btn${ssView.cat === c ? " active" : ""}" data-cat="${c}">${name}${c === "all" ? "" : ` <small>${counts[c]}</small>`}</button>`).join("")}</div>
@@ -432,6 +472,11 @@ document.addEventListener("click", (e) => {
   if (whoTile && typeof whoOpen === "function") {
     const g = DATA.schedule.find((x) => String(x.game_id) === whoTile.closest("tr").dataset.game);
     return whoOpen(whoTile.dataset.who, g, whoDirs(whoTile, g));
+  }
+  const lineTile = e.target.closest(".ss-grid [data-ss-line]");
+  if (lineTile && ssLast) {
+    const row = ssLast.rows.find((r) => r.kind === "player" && ssKey(r) === lineTile.dataset.ssLine);
+    return row ? ssOpenLine(row) : undefined;
   }
   const dd = e.target.closest(".ss-grid [data-dd]");
   if (dd) {
@@ -483,6 +528,11 @@ document.addEventListener("click", (e) => {
       // localStorage unavailable -- the theme just won't stick.
     }
   }
+});
+
+// A play saved or removed on the player card (nba-card.js saves it after this listener runs) redraws the checks.
+document.addEventListener("change", (e) => {
+  if (e.target.closest(".nba-pc-toggle") && DATA) setTimeout(ssRender, 0);
 });
 
 fetch("data.json")

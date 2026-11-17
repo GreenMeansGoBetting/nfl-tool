@@ -49,6 +49,11 @@
 /* tiles (the page's own, in the lists or in a one-row grid of their own) */
 .ss-tile small { font-size: 0.62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ss-tile small .pt-letter { min-width: 14px; height: 14px; font-size: 0.6rem; padding: 0 3px; vertical-align: -2px; }
+/* a saved player (My Plays): a filled green check beside his name and in his line tile's corner */
+.ss-check { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; margin-left: 5px; border-radius: 4px;
+  background: var(--good, #2fae5b); color: #fff; font: 800 0.7rem/1 var(--font-body); vertical-align: 1px; }
+.ss-tile { position: relative; }
+.ss-check-tile { position: absolute; top: 2px; right: 2px; margin: 0; width: 13px; height: 13px; font-size: 0.62rem; }
 .ss-grid .ss-click { cursor: pointer; }
 .ss-grid .ss-click:hover { filter: brightness(1.2); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
 .data-table.ss-tiles.ss-grid { width: auto; table-layout: fixed; margin: 0; }

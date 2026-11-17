@@ -330,6 +330,33 @@ class Page(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
         PAGE.click('[data-mk-tab="overview"]')
 
+    def test_a_quarter_opens_every_team_ranked(self):
+        # a member, 2026-11-11: "click on the qtr and see how teams ranked in quarters like you can with other stats"
+        got = PAGE.evaluate("""async () => {
+            const old = DATA.identity;
+            const q = (a, b, c, d) => ({ q1_ppq: a, q2_ppq: b, q3_ppq: c, q4_ppq: d });
+            DATA.identity = { default: 'x', seasons: { x: { teams: { CHA: q(2, -1, 0, 1), WSH: q(-3, 4, 1, 0), BOS: q(5, -2, 2, -1) } } } };
+            const tick = () => new Promise((r) => setTimeout(r, 50));
+            document.querySelector('[data-mk-tab="rotations"]').click(); await tick();
+            document.querySelector('[data-mh-h2h="quarters"]').click(); await tick();
+            document.querySelector('.mh-h2h [data-mh-q="1"]').click(); await tick();
+            const order = () => [...document.querySelectorAll('#mh-q-modal .mh-qrow')].map((r) => [r.querySelector('.mh-qteam').textContent, r.classList.contains('mh-qdim')]);
+            const q1 = order();
+            document.querySelector('[data-mh-qsort="2"]').click(); await tick();
+            const q2 = order();
+            const open = !document.getElementById('mh-q-modal').hidden;
+            document.getElementById('mh-q-modal').remove(); // its tiles read value-big; other tests count every .mk-k
+            DATA.identity = old;
+            document.querySelector('[data-mh-h2h="season"]').click();
+            document.querySelector('[data-mk-tab="overview"]').click();
+            return { q1, q2, open };
+        }""")
+        self.assertTrue(got["open"])
+        # best margin first; tonight's two teams (CHA @ WSH) in color, the rest grayed
+        self.assertEqual(got["q1"], [["BOS", True], ["CHA", False], ["WSH", False]])
+        self.assertEqual([t for t, _ in got["q2"]], ["WSH", "CHA", "BOS"])  # a head re-sorts
+        self.assertEqual(SITE.errors, [])
+
     def test_show_all_summaries_two_a_row_then_back(self):
         PAGE.click("#mk-all")
         cards = PAGE.evaluate("""() => [...document.querySelectorAll('.mks-all .mks-card')].map((c) => {

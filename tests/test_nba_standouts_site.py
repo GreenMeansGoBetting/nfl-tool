@@ -77,6 +77,33 @@ class SlateStandouts(unittest.TestCase):
     def setUp(self):
         PAGE.evaluate("() => { ssView.cat = 'all'; ssView.open = ''; ssView.dtab = 'like'; ssView.byGame = false; ssRender(); const m = document.getElementById('mb-who-modal'); if (m) m.hidden = true; }")
 
+    def test_a_saved_player_gets_a_check(self):
+        # a member, 2026-11-14: "a check box on the main boxes of the players so we know we chose them".
+        # His line tile opens every book; a price there saves the play to My Plays and checks him.
+        got = PAGE.evaluate("""() => {
+            localStorage.removeItem('nfl-tool.nba-plays.v1');
+            DATA.book_odds = { AAA_BBB: { props: { points: { '1': { q: [['draftkings', 'o', 18.5, -110, ''], ['draftkings', 'u', 18.5, -110, '']] } } } } };
+            ssRender();
+            const before = document.querySelectorAll('.ss-check').length;
+            document.querySelector('.ss-list [data-ss-line="1|points|900"]').click();
+            document.querySelector('#book-odds-modal .bo-save').click();
+            document.getElementById('book-odds-modal').hidden = true;
+            const saved = JSON.parse(localStorage.getItem('nfl-tool.nba-plays.v1') || '[]').map((p) => [p.player_id, p.market, p.side, p.line, p.book]);
+            const row = document.querySelector('.ss-list [data-ss-line="1|points|900"]').closest('tr');
+            const checks = { name: !!row.querySelector('.ss-name .ss-check'), tile: !!row.querySelector('.ss-check-tile') };
+            const threes = document.querySelector('.ss-list [data-ss-line="1|threes|900"]');
+            const threesChecked = threes ? !!threes.closest('tr').querySelector('.ss-check') : null;
+            localStorage.removeItem('nfl-tool.nba-plays.v1');
+            delete DATA.book_odds;
+            ssRender();
+            return { before, saved, checks, threesChecked };
+        }""")
+        self.assertEqual(got["before"], 0)
+        self.assertEqual(got["saved"], [["1", "points", "over", 18.5, "draftkings"]])
+        self.assertEqual(got["checks"], {"name": True, "tile": True})
+        self.assertNotEqual(got["threesChecked"], True)  # only the stat he was saved on
+        self.assertEqual(SITE.errors, [])
+
     def test_team_rows_are_matchup_keys_edges(self):
         self.assertTrue(any("AAA Offense: Threes" in r for r in lists()["Standouts"]))
 

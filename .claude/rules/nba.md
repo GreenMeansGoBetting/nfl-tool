@@ -660,6 +660,9 @@ projections, no line / "priced in" check, no record or tracking** (the owner: "a
   `lines3` by the log's `game`, what he scored, Over / Under, vs his own average; and "went over their
   line in x of y") and **<DEF> Vs Every Type** (that defense against all 11 letters, his outlined). His
   first tile is his **line tonight** (`ssLine`, the player card's main-line rule) with his average under it.
+- **Saved check** (a member, 2026-11-14: "a check box ... so we know we chose them"): a player's line tile opens
+  every book (`ssOpenLine`, book-odds.js `spec.save`, Prop Research's save rule); a price there saves to My Plays,
+  and a player saved on that stat in that game gets a green check by his name and in the tile (`ssCheck`).
 - **Stacked** = a player row and a team row, same game, category and direction (parts shown, never
   blended; hover names the team spot). A team logo / name / the game opens Matchup Keys on that game.
 - **Two views** (the owner, 2026-11-12, picked from three mock-ups: A Headliners + Board, B Game Cards, C a games-by-categories map): **By
@@ -794,7 +797,8 @@ the same framework next ("once we have the framework down").
     names and number boxes open who's behind it.
   - **Rotations & History** (`matchup-history.js`, `mhView`; Matchup Data's sections in this look, not a
     link): both Rotations (sortable heads, each number shaded by rank on his own team, Out rows faded),
-    **Head To Head** (tabs Season / Quarters / Blowouts & Spots; tonight's spots via extremes.js) beside
+    **Head To Head** (tabs Season / Quarters / Blowouts & Spots; tonight's spots via extremes.js; a Quarters
+    label opens all 30 teams' quarter margins ranked, a head re-sorts, tonight's two in color, `mhQuarterOpen`) beside
     **How They Win / Lose** (a tab a team, in wins vs in losses, 3 biggest swings marked), then both
     teams' **Recent Games** (spread green = covered, total green = over).
 - **Matchup Summary card** (`summaryCard`, `MK_SUMMARY`), one width 470 px (two fit the 1160 video

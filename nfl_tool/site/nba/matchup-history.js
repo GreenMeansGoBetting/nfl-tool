@@ -140,7 +140,7 @@ function mhHeadToHead(g) {
   const of5 = (v) => `${v.toFixed(1)} Of 5`;
   const tabs = [["season", "Season"], ["quarters", "Quarters"], ["blowouts", "Blowouts & Spots"]];
   let rows;
-  if (MH.h2h === "quarters") rows = [1, 2, 3, 4].map((q) => mhIdRow(g, `q${q}_ppq`, `Q${q} Margin`, true, (v) => mhSigned(v), true));
+  if (MH.h2h === "quarters") rows = [1, 2, 3, 4].map((q) => [...mhIdRow(g, `q${q}_ppq`, `Q${q} Margin &rsaquo;`, true, (v) => mhSigned(v), true), ` data-mh-q="${q}"`]);
   else if (MH.h2h === "blowouts") {
     rows = [mhIdRow(g, "blowout_up_share", "Games Up 15+", true, pct), mhIdRow(g, "blowout_down_share", "Games Down 15+", false, pct),
       mhIdRow(g, "blowout_up_starters", "Starters In: Up 15+", true, of5), mhIdRow(g, "blowout_down_starters", "Starters In: Down 15+", true, of5),
@@ -148,9 +148,52 @@ function mhHeadToHead(g) {
     const spots = mhSpotRows(g);
     if (spots.length) rows = rows.concat([["Tonight's Spots", "group"]], spots);
   } else rows = mhSeasonRows(g);
-  const body = rows.map(([label, a, h]) => (a === "group" ? `<div class="mh-group">${label}</div>` : rsT(label, "rs-l") + (a || rsT("--", "rs-small")) + (h || rsT("--", "rs-small")))).join("");
+  const body = rows.map(([label, a, h, open]) => (a === "group" ? `<div class="mh-group">${label}</div>`
+    : rsT(label, open ? "rs-l mh-qopen" : "rs-l", "", open ? "Click to see every team ranked by this quarter" : "", open || "") + (a || rsT("--", "rs-small")) + (h || rsT("--", "rs-small")))).join("");
   return `<div class="mk-box mh-h2h"><div class="mk-bh mk-bh-both">Head To Head</div>${mhTabs("data-mh-h2h", tabs, MH.h2h)}
     <div class="mh-grid">${mhTeamHeads(g)}${body}</div></div>`;
+}
+
+// ---- Every team by quarter (a member, 2026-11-11: "click on the qtr and see how teams ranked in quarters
+// like you can with other stats"): a Q label opens all 30 teams' quarter margins (net points a 100
+// possessions, this season), sorted by that quarter; a head re-sorts; tonight's two teams stay in color,
+// the rest go gray (the League Stats Chart's rule for a picked game). ----
+const MH_QS = [1, 2, 3, 4];
+const MH_Q = { q: 1, g: null };
+function mhQuarterRender() {
+  const g = MH_Q.g;
+  const teams = mhIdTeams();
+  const key = (q) => `q${q}_ppq`;
+  const has = (v) => v !== null && v !== undefined;
+  const list = Object.keys(teams).filter((t) => has(teams[t][key(MH_Q.q)])).sort((a, b) => teams[b][key(MH_Q.q)] - teams[a][key(MH_Q.q)]);
+  const heads = hd("Team", "mh-qteam") + MH_QS.map((q) => `<button type="button" class="rs-t rs-h mh-sort${q === MH_Q.q ? " on" : ""}" data-mh-qsort="${q}" title="Sort by the ${ordinal(q)} quarter">Q${q}${q === MH_Q.q ? " &#9660;" : ""}</button>`).join("");
+  const rows = list.map((t) => {
+    const mine = g && (t === g.away || t === g.home);
+    const cells = MH_QS.map((q) => {
+      const v = teams[t][key(q)];
+      if (!has(v)) return rsT("--", "rs-small");
+      const rk = mhRank(teams, key(q), v, true);
+      return mhTile(mhSigned(v), rk ? ordinal(rk.r) : "", rk, `${team(t).name} Q${q}: ${mhSigned(v)} net points a 100 possessions${rk ? ` (${ordinal(rk.r)} of ${rk.n})` : ""}`);
+    }).join("");
+    return `<div class="mh-qrow${g && !mine ? " mh-qdim" : ""}">${rsT(`${logo(t, 20)}<b>${t}</b>`, "rs-l mh-qteam", mine ? `background:rgba(${teamRgb(t)},0.35)` : "", team(t).name)}${cells}</div>`;
+  }).join("");
+  document.getElementById("mh-q-content").innerHTML = `<div class="mk-box mh-qbox"><div class="mk-bh mk-bh-both">Quarter Margins: Every Team</div>
+    <div class="mh-qgrid">${heads}${rows || '<div class="mk-none">No Games On File</div>'}</div></div>`;
+}
+function mhQuarterOpen(q, g) {
+  MH_Q.q = q;
+  MH_Q.g = g;
+  if (!document.getElementById("mh-q-modal")) {
+    const overlay = document.createElement("div");
+    overlay.id = "mh-q-modal";
+    overlay.className = "modal-overlay";
+    overlay.innerHTML = '<div class="modal-box mh-qmodal"><button type="button" class="modal-close" aria-label="Close">&times;</button><div id="mh-q-content"></div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay || e.target.closest(".modal-close")) overlay.hidden = true; });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") overlay.hidden = true; });
+  }
+  document.getElementById("mh-q-modal").hidden = false;
+  mhQuarterRender();
 }
 
 // ---- How They Win / Lose: a tab a team, in wins vs in losses, the biggest swings marked ----
@@ -200,6 +243,7 @@ function mhRecent(t) {
 }
 
 function mhView(g) {
+  MH.game = g; // the open game (the quarter pop-up marks its two teams)
   return `<div class="mh-wrap">
     <div class="mh-two">${mhRotation(g.away)}${mhRotation(g.home)}</div>
     <div class="mh-two">${mhHeadToHead(g)}${mhWinLoss(g)}</div>
@@ -213,6 +257,13 @@ document.addEventListener("click", (e) => {
     const [key, dir] = MH.rotSort[sort.dataset.mhTeam] || [];
     MH.rotSort[sort.dataset.mhTeam] = [sort.dataset.mhSort, key === sort.dataset.mhSort ? -dir : -1];
     return renderKeys();
+  }
+  const qOpen = e.target.closest("[data-mh-q]");
+  if (qOpen) return mhQuarterOpen(Number(qOpen.dataset.mhQ), MH.game);
+  const qSort = e.target.closest("[data-mh-qsort]");
+  if (qSort) {
+    MH_Q.q = Number(qSort.dataset.mhQsort);
+    return mhQuarterRender();
   }
   const h2h = e.target.closest("[data-mh-h2h]");
   if (h2h) {
