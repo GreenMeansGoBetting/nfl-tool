@@ -10505,14 +10505,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4525,
+    "lead": 0.4526,
     "name": "Luka Doncic",
     "proj": 54.3,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2145,
+    "lead": 0.2146,
     "name": "Victor Wembanyama",
     "proj": 46.2,
     "team": "SA"
@@ -10533,7 +10533,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.043,
+    "lead": 0.0431,
     "name": "Jalen Brunson",
     "proj": 36.3,
     "team": "NY"
@@ -10575,9 +10575,9 @@
    },
    {
     "id": "4397002",
-    "lead": 0.0039,
+    "lead": 0.0036,
     "name": "Ayo Dosunmu",
-    "proj": 26.0,
+    "proj": 25.9,
     "team": "MIN"
    },
    {
@@ -10596,9 +10596,9 @@
    },
    {
     "id": "4431671",
-    "lead": 0.003,
+    "lead": 0.0029,
     "name": "Jaden McDaniels",
-    "proj": 26.5,
+    "proj": 26.4,
     "team": "MIN"
    },
    {
@@ -10624,7 +10624,7 @@
    },
    {
     "id": "4395724",
-    "lead": 0.0019,
+    "lead": 0.002,
     "name": "Immanuel Quickley",
     "proj": 25.5,
     "team": "TOR"
@@ -10738,7 +10738,7 @@
     "id": "3995",
     "lead": 0.0,
     "name": "Jrue Holiday",
-    "proj": 19.4,
+    "proj": 19.3,
     "team": "POR"
    },
    {
