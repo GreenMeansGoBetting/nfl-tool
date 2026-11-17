@@ -17329,12 +17329,12 @@
     0.112,
     650,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3147657": [
     "Mikal Bridges",
     0.077,
-    930,
+    940,
     false,
     "draftkings"
    ],
@@ -17371,19 +17371,19 @@
     0.099,
     750,
     false,
-    "thescore"
+    "fanduel"
    ],
    "4684272": [
     "Ja'Kobe Walter",
     0.084,
-    1200,
+    1180,
     false,
     "draftkings"
    ],
    "5093267": [
     "Collin Murray-Boyles",
     0.088,
-    860,
+    850,
     false,
     "draftkings"
    ]
@@ -17500,7 +17500,7 @@
     0.075,
     1000,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4066259": [
     "De'Aaron Fox",
@@ -17526,7 +17526,7 @@
    "4432166": [
     "Cade Cunningham",
     0.076,
-    900,
+    950,
     false,
     "fanduel"
    ],
@@ -17547,7 +17547,7 @@
    "5037871": [
     "Dylan Harper",
     0.095,
-    750,
+    800,
     false,
     "fanduel"
    ],
@@ -17561,9 +17561,9 @@
    "5107199": [
     "Daniss Jenkins",
     0.078,
-    1400,
-    true,
-    "fanduel"
+    1250,
+    false,
+    "bet365"
    ]
   },
   "tip_home": 0.839
@@ -17591,7 +17591,7 @@
    "3945274": [
     "Luka Doncic",
     0.154,
-    390,
+    400,
     false,
     "bet365"
    ],
@@ -17612,7 +17612,7 @@
    "4397014": [
     "Quentin Grimes",
     0.097,
-    950,
+    900,
     false,
     "bet365"
    ],
@@ -17628,7 +17628,7 @@
     0.091,
     900,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4433287": [
     "Brandon Miller",
@@ -17640,9 +17640,9 @@
    "4592691": [
     "Jake LaRavia",
     0.073,
-    1000,
+    1100,
     false,
-    "fliff"
+    "fanduel"
    ],
    "4602025": [
     "Sion James",
@@ -17686,7 +17686,7 @@
     0.09,
     750,
     false,
-    "thescore"
+    "hard_rock"
    ],
    "4065663": [
     "Josh Okogie",
@@ -17700,7 +17700,7 @@
     0.102,
     700,
     false,
-    "thescore"
+    "hard_rock"
    ],
    "4277919": [
     "Mo Bamba",
