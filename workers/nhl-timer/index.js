@@ -16,8 +16,17 @@
 
 import { githubClient, nbaWatch } from "./watch.js";
 
+//
+// Since 2026-11-18 it also starts The Bouncer, the daily Discord membership
+// check (private repo discord-role-check), because GitHub's timer was running
+// its morning start times 8 to 10 hours late and the check only works from 8 to
+// 11 am Eastern. Every press outside those hours, or after the day's check is
+// done, stops by itself in that workflow; the same token has access to both repos.
+
 const DISPATCH = "https://api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/workflows/nhl-refresh.yml/dispatches";
+const BOUNCER_DISPATCH = "https://api.github.com/repos/GreenMeansGoBetting/discord-role-check/actions/workflows/membership-check.yml/dispatches";
 export const NBA_WATCH_CRON = "* * * 1-6,10-12 *";
+export const BOUNCER_CRON = "2,32 12-14 * * *";
 
 export default {
   async scheduled(controller, env) {
@@ -25,7 +34,7 @@ export default {
       console.log(`NBA watch: ${await nbaWatch(env, githubClient(env.DISPATCH_TOKEN))}`);
       return;
     }
-    const resp = await fetch(DISPATCH, {
+    const resp = await fetch(controller.cron === BOUNCER_CRON ? BOUNCER_DISPATCH : DISPATCH, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${env.DISPATCH_TOKEN}`,

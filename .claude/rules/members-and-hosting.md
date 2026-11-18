@@ -219,6 +219,10 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
     a scheduled one (stops when no game starts in 14 hours). GitHub's hourly `schedule` stays as
     a backup and stands aside when the live `nhl.built` is under 25 minutes old
     (`BACKUP_SKIP_MINUTES`).
+  - **The same Worker starts The Bouncer (2026-11-18)**, the daily Discord membership check in the
+    private repo `discord-role-check`: `BOUNCER_CRON` presses its workflow with `source: timer`
+    (GitHub's own timer ran its mornings 8 to 10 hours late). `NHL_TRIGGER_TOKEN` has access to both
+    repos; each install sends a harmless `source: check` press to prove it.
   - `.github/workflows/nhl-timer.yml` installs the Worker (on a change to it, or by hand). It
     needs the GitHub secret `NHL_TRIGGER_TOKEN` (a fine-grained token, this repo only, Actions
     read and write; the owner made it with an expiry, so when the timer stops, make a new one,

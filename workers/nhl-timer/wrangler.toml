@@ -12,4 +12,6 @@ workers_dev = false
 # The NBA injury watch (watch.js), every minute around the clock (since
 # 2026-10-31, so a game is graded the minute it is final, not after the 8 am
 # start it had): the cron must match index.js NBA_WATCH_CRON.
-crons = ["17,47 0-2,16-23 * 1-6,10-12 *", "* * * 1-6,10-12 *"]
+# The Bouncer's morning check, all year (since 2026-11-18): 12:00 to 14:59 UTC
+# covers 8 am Eastern in summer and winter; must match index.js BOUNCER_CRON.
+crons = ["17,47 0-2,16-23 * 1-6,10-12 *", "* * * 1-6,10-12 *", "2,32 12-14 * * *"]

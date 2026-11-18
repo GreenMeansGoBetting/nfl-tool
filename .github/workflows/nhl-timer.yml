@@ -48,6 +48,19 @@ jobs:
           echo "GitHub answered $code"
           test "$code" = "200" || { echo "NHL_TRIGGER_TOKEN can't see this repo's workflows"; exit 1; }
 
+      # The Worker also starts The Bouncer (private repo discord-role-check).
+      # source "check" is a real press that stops at once, whatever the hour.
+      - name: The timer's GitHub token can start The Bouncer
+        env:
+          TOKEN: ${{ secrets.NHL_TRIGGER_TOKEN }}
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
+            -d '{"ref":"main","inputs":{"source":"check"}}' \
+            https://api.github.com/repos/GreenMeansGoBetting/discord-role-check/actions/workflows/membership-check.yml/dispatches)
+          echo "GitHub answered $code"
+          test "$code" = "204" || { echo "NHL_TRIGGER_TOKEN can't start The Bouncer's workflow"; exit 1; }
+
       - name: Install the Worker
         working-directory: workers/nhl-timer
         env:

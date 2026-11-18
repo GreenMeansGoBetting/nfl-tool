@@ -336,9 +336,39 @@ class Install(unittest.TestCase):
         index = (WORKER / "index.js").read_text(encoding="utf-8")
         crons = json.loads(re.search(r"^crons = (\[.*\])$", toml, flags=re.M).group(1))
         nba = re.search(r'NBA_WATCH_CRON = "([^"]+)"', index).group(1)
-        self.assertEqual(crons, ["17,47 0-2,16-23 * 1-6,10-12 *", nba])
+        bouncer = re.search(r'BOUNCER_CRON = "([^"]+)"', index).group(1)
+        self.assertEqual(crons, ["17,47 0-2,16-23 * 1-6,10-12 *", nba, bouncer])
         self.assertEqual(nba, "* * * 1-6,10-12 *")  # around the clock: a game is graded the minute it's final (2026-10-31)
+        self.assertEqual(bouncer, "2,32 12-14 * * *")  # 8 am Eastern in summer and winter, all year
         self.assertIn('import { githubClient, nbaWatch } from "./watch.js";', index)
+
+    def press(self, cron, status=204):
+        """Run the Worker's timer with a stand-in for GitHub; returns what it sent."""
+        src = (WORKER / "index.js").read_text(encoding="utf-8")
+        src = src.replace('import { githubClient, nbaWatch } from "./watch.js";', "const githubClient = () => null, nbaWatch = async () => 'nba';")
+        src = src.replace("export default", "const worker =").replace("export const", "const")
+        return PAGE.evaluate("""async ([src, cron, status]) => {
+            const sent = [];
+            const fetch = async (url, init) => { sent.push({url, body: JSON.parse(init.body), auth: init.headers.Authorization}); return new Response(status === 204 ? null : 'no', {status}); };
+            const worker = new Function('fetch', src + '; return worker;')(fetch);
+            let error = null;
+            try { await worker.scheduled({cron}, {DISPATCH_TOKEN: 't'}); } catch (e) { error = e.message; }
+            return {sent, error};
+        }""", [src, cron, status])
+
+    def test_each_timer_presses_its_own_workflow(self):
+        # 2026-11-18: GitHub's timer ran The Bouncer's mornings 8 to 10 hours late.
+        bouncer = self.press("2,32 12-14 * * *")
+        self.assertIsNone(bouncer["error"])
+        self.assertEqual(len(bouncer["sent"]), 1)
+        self.assertIn("/discord-role-check/actions/workflows/membership-check.yml/dispatches", bouncer["sent"][0]["url"])
+        self.assertEqual(bouncer["sent"][0]["body"], {"ref": "main", "inputs": {"source": "timer"}})
+        hockey = self.press("17,47 0-2,16-23 * 1-6,10-12 *")
+        self.assertIn("/nfl-tool/actions/workflows/nhl-refresh.yml/dispatches", hockey["sent"][0]["url"])
+        self.assertEqual(self.press("* * * 1-6,10-12 *")["sent"], [])  # the NBA watch presses through its own client
+
+    def test_a_refused_press_shows_as_a_failure(self):
+        self.assertIn("GitHub answered 403", self.press("2,32 12-14 * * *", status=403)["error"])
 
 
 if __name__ == "__main__":
